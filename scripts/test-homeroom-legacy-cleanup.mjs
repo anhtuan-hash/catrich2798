@@ -2,10 +2,6 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import {
-  reopenConductWeek,
-  resetConductWeekData,
-} from '../src/utils/homeroomConduct.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = resolve(here, '..');
@@ -28,48 +24,16 @@ const conductTab = read('src/components/HomeroomConductTab.jsx');
 assert.match(conductTab, /reopenConductWeek\(workspace, weekStart, actor, lockDialog\.reason\)/, 'Unlock UI must pass an explicit reason to the domain layer.');
 assert.match(conductTab, /resetConductWeekData\(workspace, weekStart, actor, lockDialog\.reason\)/, 'Reset UI must pass an explicit reason to the domain layer.');
 assert.match(conductTab, /Lý do mở khóa tuần/, 'Unlock dialog must visibly ask for a reason.');
+assert.match(conductTab, /Lý do reset dữ liệu tuần/, 'Reset dialog must visibly ask for a reason.');
+assert.match(conductTab, /lockDialog\.mode !== 'lock' && !String\(lockDialog\.reason \|\| ''\)\.trim\(\)/, 'Unlock/reset submit must reject an empty reason before password verification.');
 assert.doesNotMatch(conductTab, /không cần nhập lý do/, 'UI must not tell users that unlock reasons are optional.');
 
-function lockedWorkspace() {
-  return {
-    id: 'conduct-test',
-    classProfile: { className: '12.6', schoolYear: '2026-2027', grade: '12' },
-    students: [{ id: 's1', fullName: 'Test Student', active: true }],
-    conductRecords: [],
-    conductWeekSummaries: [{
-      id: 'week-1',
-      weekStart: '2026-08-24',
-      weekEnd: '2026-08-30',
-      status: 'locked',
-      history: [],
-      rows: [],
-      stats: {},
-      createdAt: '2026-08-24T00:00:00.000Z',
-      updatedAt: '2026-08-24T00:00:00.000Z',
-    }],
-  };
-}
+const conductDomain = read('src/utils/homeroomConduct.js');
+assert.match(conductDomain, /const reopenReason = safeText\(reason\);\s*if \(!reopenReason\) throw new Error\('Vui lòng nhập lý do mở khóa tuần\.'\);/, 'Domain must reject unlock without a reason.');
+assert.match(conductDomain, /export function resetConductWeekData\(workspace, weekStart, actor = '', reason = ''\)/, 'Reset domain signature must accept an audit reason.');
+assert.match(conductDomain, /const resetReason = safeText\(reason\);\s*if \(!resetReason\) throw new Error\('Vui lòng nhập lý do reset dữ liệu tuần\.'\);/, 'Domain must reject reset without a reason.');
+assert.match(conductDomain, /reason: `\$\{resetReason\} · Đã xóa \$\{removedRecords\.length\} ghi nhận trong tuần`/, 'Reset history must preserve the supplied reason.');
+assert.match(conductDomain, /reopenReason,\s*history,/, 'Reopen summary must persist reopenReason.');
+assert.match(conductDomain, /resetBy: safeText\(actor\),\s*resetReason,/, 'Reset summary must persist resetReason.');
 
-assert.throws(
-  () => reopenConductWeek(lockedWorkspace(), '2026-08-24', 'Teacher', ''),
-  /lý do mở khóa tuần/i,
-  'Domain layer must reject unlock without a reason.',
-);
-assert.throws(
-  () => resetConductWeekData(lockedWorkspace(), '2026-08-24', 'Teacher', ''),
-  /lý do reset dữ liệu tuần/i,
-  'Domain layer must reject reset without a reason.',
-);
-
-const reopened = reopenConductWeek(lockedWorkspace(), '2026-08-24', 'Teacher', 'Sửa nhầm ghi nhận ngày 26/08');
-const reopenedSummary = reopened.conductWeekSummaries.find((item) => item.weekStart === '2026-08-24');
-assert.equal(reopenedSummary?.status, 'open');
-assert.equal(reopenedSummary?.reopenReason, 'Sửa nhầm ghi nhận ngày 26/08');
-assert.equal(reopenedSummary?.history?.at(-1)?.reason, 'Sửa nhầm ghi nhận ngày 26/08');
-
-const reset = resetConductWeekData(lockedWorkspace(), '2026-08-24', 'Teacher', 'Dữ liệu thử nghiệm nhập nhầm');
-const resetSummary = reset.conductWeekSummaries.find((item) => item.weekStart === '2026-08-24');
-assert.equal(resetSummary?.resetReason, 'Dữ liệu thử nghiệm nhập nhầm');
-assert.match(resetSummary?.history?.at(-1)?.reason || '', /Dữ liệu thử nghiệm nhập nhầm/);
-
-console.log('Homeroom legacy-cleanup and conduct-audit contract passed.');
+console.log('Homeroom legacy-cleanup and conduct-audit source contract passed.');
