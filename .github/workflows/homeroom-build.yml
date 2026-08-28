@@ -7,10 +7,12 @@ on:
       - 'src/components/Homeroom*.jsx'
       - 'src/components/homeroom/**'
       - 'src/utils/homeroom*.js'
+      - 'src/utils/gradebookWorkspaceStore.js'
       - 'src/data/homeroom*.js'
       - 'src/styles/homeroom*.css'
       - 'scripts/test-homeroom-production-safety.mjs'
       - 'scripts/test-homeroom-legacy-cleanup.mjs'
+      - 'scripts/test-gradebook-migration-state.mjs'
       - '.github/workflows/homeroom-build.yml'
       - 'public/templates/**'
       - 'package.json'
@@ -38,6 +40,8 @@ jobs:
         run: node scripts/test-homeroom-production-safety.mjs
       - name: Run homeroom legacy-cleanup contract
         run: node scripts/test-homeroom-legacy-cleanup.mjs
+      - name: Run gradebook migration-state contract
+        run: node scripts/test-gradebook-migration-state.mjs
       - name: Build application
         id: app_build
         continue-on-error: true
