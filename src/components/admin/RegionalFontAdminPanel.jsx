@@ -138,10 +138,13 @@ export default function RegionalFontAdminPanel({ currentUser, language = 'vi' })
   const setRegionFontSize = (regionId, value) => {
     setMessage('');
     const limits = getRegionalFontSizeLimits(regionId);
+    const shouldReset = value == null || value === '';
     const number = Number(value);
-    const nextSize = Number.isFinite(number)
-      ? Math.min(limits.max, Math.max(limits.min, Math.round(number)))
-      : null;
+    const nextSize = shouldReset
+      ? null
+      : (Number.isFinite(number)
+        ? Math.min(limits.max, Math.max(limits.min, Math.round(number)))
+        : null);
     setDraft((current) => {
       const next = { ...current };
       const fontSizes = { ...(current.fontSizes || {}) };

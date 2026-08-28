@@ -24,6 +24,7 @@ const assertions = [
   ['blob previews cannot be persisted', system.includes("startsWith('blob:')")],
   ['custom upload UI is styled inside cards', css.includes('.regional-font-card__custom-upload') && css.includes('.regional-font-card__file-button')],
   ['every regional font size has a live range control', panel.includes('regional-font-card__font-size') && panel.includes('type="range"') && panel.includes('setRegionFontSize(region.id')],
+  ['regional size default action removes the override instead of clamping to minimum', panel.includes("const shouldReset = value == null || value === ''") && panel.includes('const nextSize = shouldReset') && panel.includes('setRegionFontSize(region.id, null)')],
   ['font sizes persist for every regional setting', system.includes("const FONT_SIZES_KEY = 'fontSizes'") && system.includes('GLOBAL_FONT_REGIONS.forEach((region) =>') && system.includes('getRegionalFontSizeLimits')],
   ['font size limits are region-specific', system.includes('pageTitle: Object.freeze({ min: 20, max: 64') && system.includes('data: Object.freeze({ min: 10, max: 22')],
   ['regional font sizes apply through CSS variables and live DOM authority', system.includes('`--bes-font-size-${region.id}`') && system.includes("node.style.setProperty('font-size', `${size}px`, 'important')")],
