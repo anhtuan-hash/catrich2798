@@ -21,6 +21,19 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      - name: Fix patcher regression assertion
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('.github/scripts/patch-regional-font-sizes.py')
+          text = path.read_text()
+          bad = '''system.includes(\\"node.style.setProperty('font-size', `${size}px`, 'important')\\"))],'''
+          good = '''system.includes(\\"node.style.setProperty('font-size', `${size}px`, 'important')\\")],'''
+          if bad not in text:
+              raise SystemExit('expected bad regression assertion not found')
+          path.write_text(text.replace(bad, good, 1))
+          PY
       - name: Patch regional font sizes
         run: python .github/scripts/patch-regional-font-sizes.py
       - name: Install dependencies
