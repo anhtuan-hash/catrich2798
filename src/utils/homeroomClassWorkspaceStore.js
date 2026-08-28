@@ -23,6 +23,7 @@ const WORKSPACE_TABLE = 'bes_homeroom_workspaces';
 const WORKSPACE_STORE_PREFIX = 'bes-homeroom-workspace-v1';
 const WORKSPACE_INDEX_PREFIX = 'bes-homeroom-workspace-index-v3';
 const PRIVACY_MODES = new Set(['balanced', 'cloud-only', 'device-only']);
+const PERSISTENCE_BASELINES = new Map();
 const SUBJECT_STUDENT_FIELDS = [
   'id', 'code', 'fullName', 'birthDate', 'gender', 'notes',
   'active', 'lifecycleStatus', 'inactiveReason', 'inactiveAt', 'transferClass',
@@ -39,6 +40,7 @@ function userKey(user) { return text(user?.id || user?.authId || user?.email, 'g
 function classTypeStoreKey(user) { return `${CLASS_TYPE_STORE_PREFIX}:${userKey(user)}`; }
 function workspaceStoreKey(user, workspaceId) { return `${WORKSPACE_STORE_PREFIX}:${userKey(user)}:${text(workspaceId, 'default')}`; }
 function workspaceIndexKey(user) { return `${WORKSPACE_INDEX_PREFIX}:${userKey(user)}`; }
+function baselineKey(user, workspaceId) { return `${userKey(user)}:${text(workspaceId, 'default')}`; }
 
 function sameRevision(left, right) {
   const a = text(left);
@@ -48,6 +50,29 @@ function sameRevision(left, right) {
   const aTime = Date.parse(a);
   const bTime = Date.parse(b);
   return Number.isFinite(aTime) && Number.isFinite(bTime) && aTime === bTime;
+}
+
+function attendanceBaseline(workspace) {
+  if (!workspace) return null;
+  return {
+    attendance: workspace.attendance || {},
+    attendanceSessions: workspace.attendanceSessions || {},
+    attendanceLocks: workspace.attendanceLocks || {},
+    correctionRequests: workspace.correctionRequests || [],
+  };
+}
+
+function rememberPersistenceBaseline(workspace, user) {
+  if (!workspace?.id) return;
+  PERSISTENCE_BASELINES.set(baselineKey(user, workspace.id), attendanceBaseline(workspace));
+  if (PERSISTENCE_BASELINES.size > 100) {
+    const oldest = PERSISTENCE_BASELINES.keys().next().value;
+    if (oldest) PERSISTENCE_BASELINES.delete(oldest);
+  }
+}
+
+function getPersistenceBaseline(user, workspaceId) {
+  return PERSISTENCE_BASELINES.get(baselineKey(user, workspaceId)) || null;
 }
 
 function readClassTypes(user) {
@@ -269,6 +294,7 @@ export async function listHomeroomWorkspaces(user) {
     if (local) workspaces.set(item.id, decorateWorkspace(local, user));
   });
 
+  // A catalog view must not download every workspace payload: load at most the currently selected class.
   if (!workspaces.has(originalCurrentId) && !isValidHomeroomClassType(stored[originalCurrentId])) {
     const currentItem = items.find((item) => item.id === originalCurrentId);
     if (currentItem) {
@@ -286,6 +312,7 @@ export function loadLocalHomeroomWorkspace(user, workspaceId = 'default') {
   if (!raw) return null;
   const decorated = decorateWorkspace(raw, user);
   if (hasSubjectStudentPii({ ...raw, classProfile: decorated.classProfile })) persistByPrivacyMode(decorated, user);
+  rememberPersistenceBaseline(decorated, user);
   return decorated;
 }
 
@@ -305,14 +332,14 @@ async function migrateCloudSubjectPiiIfNeeded(rawPayload, decorated, user, works
     .eq('owner_id', user.id)
     .eq('workspace_id', workspaceId)
     .eq('updated_at', expectedUpdatedAt)
-    .select('payload,updated_at')
+    .select('updated_at')
     .maybeSingle();
   if (error || !data) return { workspace: decorated, updatedAt: expectedUpdatedAt };
   const revision = data.updated_at || timestamp;
   return {
     workspace: decorateWorkspace({
-      ...(data.payload || payload),
-      syncMeta: { ...((data.payload || payload).syncMeta || {}), cloudUpdatedAt: revision },
+      ...payload,
+      syncMeta: { ...(payload.syncMeta || {}), cloudUpdatedAt: revision },
     }, user, true),
     updatedAt: revision,
   };
@@ -324,7 +351,9 @@ export async function loadHomeroomWorkspace(user, workspaceId = 'default') {
     return { ok: true, offline: true, workspace: local, source: 'device-only' };
   }
   if (!isSupabaseConfigured || !supabase || !user?.id) {
-    return { ok: true, offline: true, workspace: local || makeDefaultHomeroomWorkspace(user) };
+    const offlineWorkspace = local || makeDefaultHomeroomWorkspace(user);
+    rememberPersistenceBaseline(offlineWorkspace, user);
+    return { ok: true, offline: true, workspace: offlineWorkspace };
   }
 
   const { data, error } = await supabase
@@ -335,7 +364,11 @@ export async function loadHomeroomWorkspace(user, workspaceId = 'default') {
     .maybeSingle();
 
   if (error) return { ok: false, offline: true, message: error.message, workspace: local || makeDefaultHomeroomWorkspace(user) };
-  if (!data?.payload) return { ok: true, empty: true, workspace: local || makeDefaultHomeroomWorkspace(user) };
+  if (!data?.payload) {
+    const emptyWorkspace = local || makeDefaultHomeroomWorkspace(user);
+    rememberPersistenceBaseline(emptyWorkspace, user);
+    return { ok: true, empty: true, workspace: emptyWorkspace };
+  }
 
   let cloud = decorateWorkspace({
     ...data.payload,
@@ -348,6 +381,7 @@ export async function loadHomeroomWorkspace(user, workspaceId = 'default') {
 
   if (privacyMode(cloud) === 'cloud-only') {
     removeLocalWorkspacePayload(user, cloud.id);
+    rememberPersistenceBaseline(cloud, user);
     return { ok: true, workspace: cloud, source: 'cloud' };
   }
 
@@ -358,16 +392,19 @@ export async function loadHomeroomWorkspace(user, workspaceId = 'default') {
     const conflict = Boolean(expected && !sameRevision(expected, cloudUpdatedAt));
     const selected = conflict ? local : { ...local, syncMeta: { ...(local.syncMeta || {}), cloudUpdatedAt: cloudUpdatedAt || expected } };
     persistByPrivacyMode(selected, user);
+    rememberPersistenceBaseline(selected, user);
     return { ok: true, workspace: selected, source: conflict ? 'local-conflict' : 'local', conflict };
   }
 
   persistByPrivacyMode(cloud, user);
+  rememberPersistenceBaseline(cloud, user);
   return { ok: true, workspace: cloud, source: 'cloud' };
 }
 
 function persistenceViolation(previous, next, user) {
-  if (!previous) return null;
-  return getAttendanceLockViolation(decorateWorkspace(previous, user, true), decorateWorkspace(next, user, true));
+  const baseline = previous || getPersistenceBaseline(user, next?.id);
+  if (!baseline) return null;
+  return getAttendanceLockViolation(baseline, next);
 }
 
 export function saveLocalHomeroomWorkspace(workspace, user) {
@@ -380,7 +417,9 @@ export function saveLocalHomeroomWorkspace(workspace, user) {
   }
   const classTypes = readClassTypes(user);
   writeClassTypes(user, { ...classTypes, [prepared.id]: prepared.classProfile.classType });
-  return persistByPrivacyMode(prepared, user);
+  const persisted = persistByPrivacyMode(prepared, user);
+  if (privacyMode(prepared) !== 'cloud-only') rememberPersistenceBaseline(persisted, user);
+  return persisted;
 }
 
 function cloudRow(payload, user, timestamp) {
@@ -413,26 +452,28 @@ export async function saveHomeroomWorkspace(workspace, user) {
   const mode = privacyMode(prepared);
   const local = persistByPrivacyMode(prepared, user);
 
-  if (mode === 'device-only') return { ok: true, offline: true, workspace: local, source: 'device-only' };
+  if (mode === 'device-only') {
+    rememberPersistenceBaseline(local, user);
+    return { ok: true, offline: true, workspace: local, source: 'device-only' };
+  }
   if (!isSupabaseConfigured || !supabase || !user?.id) {
     if (mode === 'cloud-only') {
       return { ok: false, offline: true, code: 'cloud-unavailable', message: 'Chế độ cloud-only cần kết nối cloud để lưu dữ liệu.', workspace: prepared };
     }
+    rememberPersistenceBaseline(local, user);
     return { ok: true, offline: true, workspace: local };
   }
 
   const expectedRevision = text(prepared.syncMeta?.cloudUpdatedAt);
   const { data: existing, error: readError } = await supabase
     .from(WORKSPACE_TABLE)
-    .select('payload,updated_at')
+    .select('updated_at')
     .eq('owner_id', user.id)
     .eq('workspace_id', prepared.id)
     .maybeSingle();
   if (readError) return { ok: false, offline: mode !== 'cloud-only', message: readError.message, workspace: local };
 
-  if (existing?.payload) {
-    const cloudViolation = getAttendanceLockViolation(existing.payload, prepared);
-    if (cloudViolation) return { ok: false, ...cloudViolation, workspace: local };
+  if (existing) {
     if (!expectedRevision || !sameRevision(existing.updated_at, expectedRevision)) return conflictResult(local);
   } else if (expectedRevision) {
     return conflictResult(local, 'Bản ghi cloud đã bị xóa hoặc thay đổi. Hãy tải lại lớp trước khi lưu.');
@@ -455,14 +496,14 @@ export async function saveHomeroomWorkspace(workspace, user) {
       .eq('owner_id', user.id)
       .eq('workspace_id', payload.id)
       .eq('updated_at', expectedRevision)
-      .select('workspace_id,payload,updated_at')
+      .select('updated_at')
       .maybeSingle());
     if (!error && !data) return conflictResult(local);
   } else {
     ({ data, error } = await supabase
       .from(WORKSPACE_TABLE)
       .insert(row)
-      .select('workspace_id,payload,updated_at')
+      .select('updated_at')
       .maybeSingle());
     if (error?.code === '23505') return conflictResult(local);
   }
@@ -471,10 +512,11 @@ export async function saveHomeroomWorkspace(workspace, user) {
 
   const canonicalRevision = data?.updated_at || timestamp;
   const saved = decorateWorkspace({
-    ...(data?.payload || payload),
-    syncMeta: { ...((data?.payload || payload).syncMeta || {}), cloudUpdatedAt: canonicalRevision },
+    ...payload,
+    syncMeta: { ...(payload.syncMeta || {}), cloudUpdatedAt: canonicalRevision },
   }, user, true);
   const persisted = persistByPrivacyMode(saved, user);
+  rememberPersistenceBaseline(saved, user);
   void scheduleHomeroomDriveBackup(saved, user, { reason: 'automatic-after-supabase-sync' })
     .catch(() => { /* recovery backup must not block save */ });
   return { ok: true, workspace: persisted, source: 'cloud-minimal-return' };
