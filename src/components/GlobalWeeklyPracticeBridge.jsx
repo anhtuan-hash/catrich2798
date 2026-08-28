@@ -139,7 +139,7 @@ function PracticeMeta({ item, language = 'vi' }) {
   return <div className="bes-weekly-meta">
     <span>File HTML</span>
     <span>{formatBytes(item.file_size)}</span>
-    <span>Tối thiểu 45 phút</span>
+    <span>Tối thiểu 20 phút</span>
     {item.created_at ? <span>Đăng {formatDate(item.created_at, language)}</span> : null}
   </div>;
 }
@@ -238,7 +238,7 @@ async function createCompletionProof({ item, identity, durationSeconds, startedA
   ctx.fill();
   ctx.fillStyle = '#68755c';
   ctx.font = '600 17px system-ui, -apple-system, Segoe UI, sans-serif';
-  ctx.fillText('Ảnh được hệ thống tạo khi học sinh xác nhận sau tối thiểu 45 phút.', 120, 601);
+  ctx.fillText('Ảnh được hệ thống tạo khi học sinh xác nhận sau tối thiểu 20 phút.', 120, 601);
 
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
@@ -271,7 +271,7 @@ function StudentIdentityGate({ item, initialIdentity, onConfirm, onClose }) {
     <section className="bes-weekly-identity-card" role="dialog" aria-modal="true" aria-label="Khai báo thông tin học sinh">
       <span className="bes-weekly-kicker">STUDENT CHECK-IN</span>
       <h2>Thông tin làm bài</h2>
-      <p>Hệ thống bắt đầu tính 45 phút sau khi em xác nhận thông tin. Em chưa thể gửi bài trước thời gian này.</p>
+      <p>Hệ thống bắt đầu tính thời gian hoạt động sau khi em xác nhận thông tin. Em có thể gửi bài sau khi đủ tối thiểu 20 phút hoạt động.</p>
       <div className="bes-weekly-identity-practice"><strong>{item.title}</strong><span>Không cần đăng nhập tài khoản</span></div>
       <form onSubmit={submit}>
         <label>Họ và tên học sinh<input autoFocus required maxLength={120} value={studentName} onChange={(event) => setStudentName(event.target.value)} placeholder="Nhập đầy đủ họ và tên" /></label>
@@ -376,12 +376,12 @@ function PracticeRunner({ item, onClose, onProgressChanged }) {
         writeWeeklyPracticeProgress(item.id, { htmlResult: payload, htmlReportedCompleteAt: new Date().toISOString() });
         setNotice(activeSeconds >= WEEKLY_PRACTICE_MINIMUM_SECONDS
           ? 'Nội dung HTML đã báo hoàn thành. Em hãy tạo ảnh xác nhận.'
-          : 'Nội dung HTML đã báo hoàn thành. Hệ thống vẫn khóa gửi bài cho đến đủ 45 phút.');
+          : 'Nội dung HTML đã báo hoàn thành. Hệ thống vẫn khóa gửi bài cho đến đủ 20 phút.');
       }
       if (message.type === 'reset') {
         setHtmlResult({});
         writeWeeklyPracticeProgress(item.id, { htmlResult: {}, runtime: {} });
-        setNotice('Đã làm mới tiến độ bên trong bài. Đồng hồ 45 phút không bị đặt lại.');
+        setNotice('Đã làm mới tiến độ bên trong bài. Thời gian hoạt động đã tích lũy không bị đặt lại.');
       }
     };
     window.addEventListener('message', onMessage);
@@ -540,7 +540,7 @@ function PracticeRunner({ item, onClose, onProgressChanged }) {
         {!loading && !error && url ? <iframe ref={iframeRef} src={url} title={item.title} sandbox="allow-scripts allow-forms allow-downloads" referrerPolicy="no-referrer" /> : null}
       </main>
       <footer className={`bes-weekly-completion-bar ${submitted ? 'is-completed' : ''} ${proofUrl ? 'has-proof' : ''}`}>
-        <div className="bes-weekly-completion-copy"><strong>{submitted ? '✓ Đã gửi cho TTCM' : proofUrl ? 'Ảnh xác nhận đã sẵn sàng' : remainingSeconds ? 'Chưa thể nộp bài' : 'Đã đủ 45 phút'}</strong><span>{notice || (remainingSeconds ? 'Tiếp tục làm bài. Đồng hồ chỉ tăng khi cửa sổ bài tập đang hiển thị.' : 'Bấm xác nhận để hệ thống tạo ảnh hoàn thành.')}</span></div>
+        <div className="bes-weekly-completion-copy"><strong>{submitted ? '✓ Đã gửi cho TTCM' : proofUrl ? 'Ảnh xác nhận đã sẵn sàng' : remainingSeconds ? 'Chưa thể nộp bài' : 'Đã đủ 20 phút'}</strong><span>{notice || (remainingSeconds ? 'Tiếp tục làm bài. Đồng hồ chỉ tăng khi cửa sổ bài tập đang hiển thị.' : 'Bấm xác nhận để hệ thống tạo ảnh hoàn thành.')}</span></div>
         {proofUrl ? <button className="bes-weekly-proof-preview" type="button" onClick={() => window.open(proofUrl, '_blank', 'noopener,noreferrer')}><img src={proofUrl} alt="Ảnh xác nhận hoàn thành" /><span>Xem ảnh xác nhận</span></button> : null}
         <div className="bes-weekly-submit-actions">
           {!proofUrl && !submitted ? <button type="button" disabled={!canConfirm || generatingProof} onClick={confirmCompletion}>{generatingProof ? 'Đang tạo ảnh…' : remainingSeconds ? `Còn ${formatDuration(remainingSeconds)}` : 'Xác nhận đã hoàn thành'}</button> : null}
@@ -601,7 +601,7 @@ function ManagerDialog({ currentUser, onClose, onChanged }) {
       if (input) input.value = '';
       await refresh();
       await onChanged?.();
-      setMessage('Đã tải lên và công bố bài luyện tập. Học sinh bắt buộc khai báo tên, lớp và làm tối thiểu 45 phút.');
+      setMessage('Đã tải lên và công bố bài luyện tập. Học sinh bắt buộc khai báo tên, lớp và làm tối thiểu 20 phút trước khi nộp.');
     } catch (error) { setMessage(errorText(error)); }
     finally { setSaving(false); }
   };
@@ -628,17 +628,17 @@ function ManagerDialog({ currentUser, onClose, onChanged }) {
   return createPortal(
     <div className="bes-weekly-modal-backdrop">
       <section className="bes-weekly-manager bes-weekly-manager--simple" role="dialog" aria-modal="true" aria-label="Quản lý bài luyện tập theo tuần">
-        <header><div><span className="bes-weekly-kicker">QUẢN TRỊ NỘI DUNG</span><h2>Bài luyện tập theo tuần</h2><p>Tải file HTML; hệ thống tự áp dụng khai báo học sinh, đồng hồ 45 phút, ảnh xác nhận và gửi kết quả cho TTCM.</p></div><button className="bes-weekly-close" type="button" onClick={onClose}>×</button></header>
+        <header><div><span className="bes-weekly-kicker">QUẢN TRỊ NỘI DUNG</span><h2>Bài luyện tập theo tuần</h2><p>Tải file HTML; hệ thống tự áp dụng khai báo học sinh, thời gian hoạt động, ngưỡng nộp 20 phút, ảnh xác nhận và gửi kết quả cho TTCM.</p></div><button className="bes-weekly-close" type="button" onClick={onClose}>×</button></header>
         {message ? <div className="bes-weekly-manager__message">{message}</div> : null}
         <div className="bes-weekly-manager__grid">
           <form onSubmit={submit} className="bes-weekly-form bes-weekly-form--simple">
             <h3>Tải bài HTML mới</h3>
             <label>Tên bài<input required value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="Ví dụ: Tiếng Anh 10 – Unit 1" /></label>
             <label className="bes-weekly-file">File HTML<input id="bes-weekly-html-file" required type="file" accept=".html,.htm,text/html" onChange={(event) => setFile(event.target.files?.[0] || null)} /><span>{file ? `${file.name} · ${formatBytes(file.size)}` : `File tự chứa, tối đa ${formatBytes(WEEKLY_PRACTICE_MAX_BYTES)}`}</span></label>
-            <div className="bes-weekly-simple-note"><strong>Tự động thiết lập</strong><span>Bắt buộc họ tên · Chọn lớp 10.1–10.12, 11.1–11.6, 12.1–12.9 · Không nộp trước 45 phút · Tạo ảnh xác nhận · Gửi TTCM</span></div>
+            <div className="bes-weekly-simple-note"><strong>Tự động thiết lập</strong><span>Bắt buộc họ tên · Chọn lớp 10.1–10.12, 11.1–11.6, 12.1–12.9 · Không nộp trước 20 phút · Tạo ảnh xác nhận · Gửi TTCM</span></div>
             <button className="bes-weekly-primary" disabled={saving} type="submit">{saving ? 'Đang tải lên…' : 'Tải lên và công bố'}</button>
           </form>
-          <section className="bes-weekly-manage-list"><h3>Các bài đã tạo</h3><div className="bes-weekly-grade-filter bes-weekly-grade-filter--native" data-native-grade-filter="true"><div className="bes-weekly-grade-filter__heading"><strong>Phân loại theo khối</strong><small>Chọn khối để tra cứu nhanh các bài đã tạo.</small></div><div className="bes-weekly-grade-filter__buttons">{['all', '10', '11', '12'].map((grade) => <button key={grade} type="button" data-grade-filter={grade} className={gradeFilter === grade ? 'is-active' : ''} aria-pressed={gradeFilter === grade} disabled={grade !== 'all' && gradeCounts[grade] === 0} onClick={() => setGradeFilter(grade)}><span>{grade === 'all' ? 'Tất cả' : 'Khối ' + grade}</span><b>{gradeCounts[grade]}</b></button>)}</div>{gradeCounts.unclassified > 0 ? <small className="bes-weekly-grade-filter__warning">{gradeCounts.unclassified} bài chưa có phân loại khối rõ ràng. Có thể chọn các bài này và chuyển khối bằng thanh cài đặt nhanh bên dưới.</small> : null}</div>{loading ? <p>Đang tải…</p> : null}{!loading && !visibleItems.length ? <p>{gradeFilter === 'all' ? 'Chưa có bài nào.' : 'Chưa có bài thuộc Khối ' + gradeFilter + '.'}</p> : null}{visibleItems.map((practice) => <article key={practice.id} data-practice-id={practice.id}><div><StatusPill item={practice} /><strong>{practice.title}</strong><span>{formatBytes(practice.file_size)} · Tối thiểu 45 phút · {formatDate(practice.created_at)}</span></div><nav>{practice.status !== 'published' ? <button type="button" onClick={() => changeStatus(practice, 'published')}>Công bố</button> : <button type="button" onClick={() => changeStatus(practice, 'draft')}>Ẩn</button>}<button type="button" onClick={() => changeStatus(practice, 'maintenance')}>Bảo trì</button><button className="is-danger" type="button" onClick={() => remove(practice)}>Xóa</button></nav></article>)}</section>
+          <section className="bes-weekly-manage-list"><h3>Các bài đã tạo</h3><div className="bes-weekly-grade-filter bes-weekly-grade-filter--native" data-native-grade-filter="true"><div className="bes-weekly-grade-filter__heading"><strong>Phân loại theo khối</strong><small>Chọn khối để tra cứu nhanh các bài đã tạo.</small></div><div className="bes-weekly-grade-filter__buttons">{['all', '10', '11', '12'].map((grade) => <button key={grade} type="button" data-grade-filter={grade} className={gradeFilter === grade ? 'is-active' : ''} aria-pressed={gradeFilter === grade} disabled={grade !== 'all' && gradeCounts[grade] === 0} onClick={() => setGradeFilter(grade)}><span>{grade === 'all' ? 'Tất cả' : 'Khối ' + grade}</span><b>{gradeCounts[grade]}</b></button>)}</div>{gradeCounts.unclassified > 0 ? <small className="bes-weekly-grade-filter__warning">{gradeCounts.unclassified} bài chưa có phân loại khối rõ ràng. Có thể chọn các bài này và chuyển khối bằng thanh cài đặt nhanh bên dưới.</small> : null}</div>{loading ? <p>Đang tải…</p> : null}{!loading && !visibleItems.length ? <p>{gradeFilter === 'all' ? 'Chưa có bài nào.' : 'Chưa có bài thuộc Khối ' + gradeFilter + '.'}</p> : null}{visibleItems.map((practice) => <article key={practice.id} data-practice-id={practice.id}><div><StatusPill item={practice} /><strong>{practice.title}</strong><span>{formatBytes(practice.file_size)} · Tối thiểu 20 phút · {formatDate(practice.created_at)}</span></div><nav>{practice.status !== 'published' ? <button type="button" onClick={() => changeStatus(practice, 'published')}>Công bố</button> : <button type="button" onClick={() => changeStatus(practice, 'draft')}>Ẩn</button>}<button type="button" onClick={() => changeStatus(practice, 'maintenance')}>Bảo trì</button><button className="is-danger" type="button" onClick={() => remove(practice)}>Xóa</button></nav></article>)}</section>
         </div>
       </section>
     </div>, document.body,
@@ -706,9 +706,9 @@ export default function GlobalWeeklyPracticeBridge({ route = 'home', language = 
   if (route !== 'home' || !host) return null;
   const content = (
     <div className="bes-weekly-section">
-      <div className="bes-weekly-heading"><div><span className="bes-weekly-kicker">WEEKLY ENGLISH PRACTICE</span><h2>Bài luyện tập tiếng Anh theo tuần</h2><p>Khai báo họ tên và lớp, làm bài tối thiểu 45 phút, tạo ảnh xác nhận rồi gửi cho TTCM.</p></div>{canManage ? <button type="button" className="bes-weekly-manage-button" onClick={() => setManagerOpen(true)}>Quản lý bài tuần</button> : null}</div>
+      <div className="bes-weekly-heading"><div><span className="bes-weekly-kicker">WEEKLY ENGLISH PRACTICE</span><h2>Bài luyện tập tiếng Anh theo tuần</h2><p>Khai báo họ tên và lớp, làm bài tối thiểu 20 phút, tạo ảnh xác nhận rồi gửi cho TTCM.</p></div>{canManage ? <button type="button" className="bes-weekly-manage-button" onClick={() => setManagerOpen(true)}>Quản lý bài tuần</button> : null}</div>
       {loading ? <div className="bes-weekly-empty"><span className="bes-weekly-spinner" />Đang tải bài tuần…</div> : null}
-      {!loading && featured ? <article className="bes-weekly-featured"><div className="bes-weekly-featured__week"><span>BÀI MỚI</span><StatusPill item={featured} /></div><div className="bes-weekly-featured__content"><span className="bes-weekly-category">HTML INTERACTIVE</span><h3>{featured.title}</h3><p>Học sinh chọn lớp trong danh sách, hệ thống tính thời gian hoạt động và chỉ mở nút xác nhận sau đủ 45 phút.</p><PracticeMeta item={featured} language={language} /></div><div className="bes-weekly-featured__action">{readWeeklyPracticeProgress(featured.id)?.submitted ? <span className="bes-weekly-complete">✓ Đã gửi cho TTCM</span> : null}<button className="bes-weekly-primary" type="button" disabled={!getWeeklyPracticeAvailability(featured).canOpen} onClick={() => start(featured)}>{readWeeklyPracticeProgress(featured.id)?.identity ? 'Mở lại bài luyện tập' : 'Bắt đầu luyện tập'}</button><span>Không cần tài khoản học sinh</span></div></article> : null}
+      {!loading && featured ? <article className="bes-weekly-featured"><div className="bes-weekly-featured__week"><span>BÀI MỚI</span><StatusPill item={featured} /></div><div className="bes-weekly-featured__content"><span className="bes-weekly-category">HTML INTERACTIVE</span><h3>{featured.title}</h3><p>Học sinh chọn lớp trong danh sách, hệ thống tính thời gian hoạt động và chỉ mở nút xác nhận sau đủ 20 phút.</p><PracticeMeta item={featured} language={language} /></div><div className="bes-weekly-featured__action">{readWeeklyPracticeProgress(featured.id)?.submitted ? <span className="bes-weekly-complete">✓ Đã gửi cho TTCM</span> : null}<button className="bes-weekly-primary" type="button" disabled={!getWeeklyPracticeAvailability(featured).canOpen} onClick={() => start(featured)}>{readWeeklyPracticeProgress(featured.id)?.identity ? 'Mở lại bài luyện tập' : 'Bắt đầu luyện tập'}</button><span>Không cần tài khoản học sinh</span></div></article> : null}
       {!loading && !featured ? <div className="bes-weekly-empty"><strong>Bài tuần đang được chuẩn bị</strong><p>{canManage ? error || 'Nhấn “Quản lý bài tuần” để tải file HTML đầu tiên.' : 'Vui lòng quay lại sau để xem bài luyện tập mới.'}</p></div> : null}
       {ordered.length > 1 ? <><button className="bes-weekly-show-all" type="button" onClick={() => setExpanded((value) => !value)}>{expanded ? 'Thu gọn danh sách' : `Xem tất cả bài luyện tập (${ordered.length})`}</button>{expanded ? <div className="bes-weekly-list">{ordered.map((practice) => <article key={practice.id}><div><StatusPill item={practice} /><strong>{practice.title}</strong><PracticeMeta item={practice} language={language} /></div><button type="button" disabled={!getWeeklyPracticeAvailability(practice).canOpen} onClick={() => start(practice)}>{readWeeklyPracticeProgress(practice.id)?.submitted ? 'Xem lại' : readWeeklyPracticeProgress(practice.id)?.identity ? 'Tiếp tục' : 'Mở bài'}</button></article>)}</div> : null}</> : null}
       {error && featured && canManage ? <div className="bes-weekly-inline-error">{error}</div> : null}
