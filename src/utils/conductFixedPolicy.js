@@ -15,6 +15,7 @@ const PROHIBITED_RULES = OFFICIAL_CONDUCT_RULES.filter((rule) => rule?.isProhibi
 const PROHIBITED_IDS = new Set(PROHIBITED_RULES.map((rule) => String(rule.id || '').trim()).filter(Boolean));
 const PROHIBITED_CODES = new Set(PROHIBITED_RULES.map((rule) => String(rule.code || '').trim()).filter(Boolean));
 const PROHIBITED_TITLES = new Set(PROHIBITED_RULES.map((rule) => String(rule.title || '').trim().toLowerCase()).filter(Boolean));
+const PROHIBITED_CATEGORY = 'hành vi nghiêm cấm';
 
 function text(value) {
   return String(value ?? '').trim();
@@ -43,18 +44,24 @@ export function downgradeConductOneLevel(classification = {}) {
 }
 
 export function isConfirmedProhibitedRecord(record = {}) {
-  if (record.status !== 'confirmed') return false;
+  const status = (text(record.status) || 'confirmed').toLowerCase();
+  if (status !== 'confirmed') return false;
   const ruleId = text(record.ruleId);
   const code = text(record.code);
   const title = text(record.title).toLowerCase();
-  return PROHIBITED_IDS.has(ruleId) || PROHIBITED_CODES.has(code) || PROHIBITED_TITLES.has(title);
+  const category = text(record.category).toLowerCase();
+  return record.isProhibited === true
+    || PROHIBITED_IDS.has(ruleId)
+    || PROHIBITED_CODES.has(code)
+    || PROHIBITED_TITLES.has(title)
+    || category === PROHIBITED_CATEGORY;
 }
 
 export function prohibitedRecordsForRange(workspace, startDate, endDate, studentId = '') {
   return (Array.isArray(workspace?.conductRecords) ? workspace.conductRecords : []).filter((record) => {
     if (!isConfirmedProhibitedRecord(record)) return false;
     if (studentId && record.studentId !== studentId) return false;
-    const date = text(record.date);
+    const date = text(record.date || record.weekStart).slice(0, 10);
     if (!date) return false;
     if (startDate && date < startDate) return false;
     if (endDate && date > endDate) return false;
