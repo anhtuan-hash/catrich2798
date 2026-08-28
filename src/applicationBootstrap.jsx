@@ -21,6 +21,9 @@ let schoolRegistryLoaded = false;
 let homeroomExtrasLoaded = false;
 let routeListenerInstalled = false;
 let assignedClassSyncPromise = null;
+let assignedClassSyncMode = '';
+let assignedClassSyncResult = null;
+let assignedClassSyncCompletedAt = 0;
 let assignedHomeroomNavigationToken = 0;
 
 // Theme is application chrome. Resolve the persisted/system preference before
@@ -87,37 +90,51 @@ async function preparePreferredHomeroomBeforeMain() {
   }
 }
 
+function assignedHomeroomId(result) {
+  return String(result?.homeroomWorkspaceId || result?.preferredWorkspaceId || '').trim();
+}
+
 function navigateAssignedHomeroomAfterMount(result) {
   if (!isHomeroomRoute()) return;
-  const workspaceId = String(result?.homeroomWorkspaceId || result?.preferredWorkspaceId || '').trim();
+  const workspaceId = assignedHomeroomId(result);
   if (!workspaceId) return;
+
+  // Durable in-memory source for the current session. This remains available even
+  // if another background workspace persistence call temporarily moves localStorage.
+  window.__besAssignedHomeroomWorkspaceId = workspaceId;
+
   const token = ++assignedHomeroomNavigationToken;
   const startedAt = Date.now();
+  let attempts = 0;
 
-  const waitForWorkspace = () => {
+  const deliver = () => {
     if (token !== assignedHomeroomNavigationToken || !isHomeroomRoute()) return;
     const mounted = document.querySelector('.hr-page[data-homeroom-hydrated="true"]');
     if (!mounted) {
-      if (Date.now() - startedAt < 2500) window.setTimeout(waitForWorkspace, 60);
+      if (Date.now() - startedAt < 4000) window.setTimeout(deliver, 60);
       return;
     }
 
-    // The DOM commits before React passive effects. Give HomeroomWorkspace's
-    // bes-homeroom-command listener one short frame to attach, then navigate.
-    window.setTimeout(() => {
-      if (token !== assignedHomeroomNavigationToken || !isHomeroomRoute()) return;
-      window.dispatchEvent(new CustomEvent('bes-homeroom-command', {
-        detail: {
-          type: 'homeroom.navigate',
-          workspaceId,
-          tab: 'overview',
-          source: 'assigned-homeroom-entry-guard',
-        },
-      }));
-    }, 80);
+    attempts += 1;
+    window.dispatchEvent(new CustomEvent('bes-homeroom-command', {
+      detail: {
+        type: 'homeroom.navigate',
+        workspaceId,
+        tab: 'overview',
+        source: 'assigned-homeroom-entry-guard',
+      },
+    }));
+
+    // React effects can attach after the first DOM commit. Re-deliver the same
+    // idempotent navigation command for a short bounded window instead of relying
+    // on one race-prone event. Once caught, later deliveries are harmless because
+    // HomeroomWorkspace ignores navigation to its already-active workspace.
+    if (attempts < 9 && Date.now() - startedAt < 3200) {
+      window.setTimeout(deliver, Math.min(100 + attempts * 45, 320));
+    }
   };
 
-  waitForWorkspace();
+  deliver();
 }
 
 function loadRouteModules() {
@@ -166,33 +183,56 @@ function installRouteModuleLoader() {
 function startAssignedClassSync() {
   if (!isAssignedClassRoute()) return Promise.resolve({ skipped: true });
   const shouldPreferHomeroom = isHomeroomRoute();
+  const mode = shouldPreferHomeroom ? 'prefer-homeroom' : 'sync-only';
 
-  if (!assignedClassSyncPromise) {
-    assignedClassSyncPromise = new Promise((resolve) => {
-      const loadAndSync = async () => {
-        try {
-          const module = await import('./assignedSchoolClassBootstrap.js');
-          module.installAssignedSchoolClassSync?.();
-          const result = await module.prepareAssignedSchoolClasses?.({
-            preferHomeroom: shouldPreferHomeroom,
-          });
-          resolve(result || { ok: true });
-        } catch (error) {
-          assignedClassSyncPromise = null;
-          console.warn('[AssignedSchoolClasses] Chưa thể đồng bộ lớp được phân công.', error);
-          resolve({ ok: false, error });
-        }
-      };
-      window.setTimeout(loadAndSync, 0);
+  // Avoid an immediate duplicate RPC after the pre-main Homeroom sync, but never
+  // reuse a sync-only result as a prefer-homeroom activation on a later route.
+  if (
+    assignedClassSyncResult
+    && Date.now() - assignedClassSyncCompletedAt < 1600
+    && (!shouldPreferHomeroom || assignedClassSyncMode === 'prefer-homeroom')
+  ) {
+    if (shouldPreferHomeroom) navigateAssignedHomeroomAfterMount(assignedClassSyncResult);
+    return Promise.resolve(assignedClassSyncResult);
+  }
+
+  if (assignedClassSyncPromise) {
+    if (!shouldPreferHomeroom || assignedClassSyncMode === 'prefer-homeroom') {
+      return assignedClassSyncPromise.then((result) => {
+        if (isHomeroomRoute()) navigateAssignedHomeroomAfterMount(result);
+        return result;
+      });
+    }
+    // A sync-only task was started elsewhere. Wait for it, then run a real
+    // prefer-homeroom pass instead of treating the old promise as authoritative.
+    return assignedClassSyncPromise.then(() => {
+      assignedClassSyncPromise = null;
+      return startAssignedClassSync();
     });
   }
 
-  return assignedClassSyncPromise.then((result) => {
-    // A previous sync may have started from Brian Team with preferHomeroom=false.
-    // Its result still contains the authoritative homeroomWorkspaceId, so use it
-    // whenever the user later enters Homeroom instead of depending on another RPC.
+  assignedClassSyncMode = mode;
+  const task = (async () => {
+    try {
+      const module = await import('./assignedSchoolClassBootstrap.js');
+      module.installAssignedSchoolClassSync?.();
+      return await module.prepareAssignedSchoolClasses?.({
+        preferHomeroom: shouldPreferHomeroom,
+      }) || { ok: true };
+    } catch (error) {
+      console.warn('[AssignedSchoolClasses] Chưa thể đồng bộ lớp được phân công.', error);
+      return { ok: false, error };
+    }
+  })();
+  assignedClassSyncPromise = task;
+
+  return task.then((result) => {
+    assignedClassSyncResult = result;
+    assignedClassSyncCompletedAt = Date.now();
     if (isHomeroomRoute()) navigateAssignedHomeroomAfterMount(result);
     return result;
+  }).finally(() => {
+    if (assignedClassSyncPromise === task) assignedClassSyncPromise = null;
   });
 }
 
@@ -259,10 +299,8 @@ async function startApplication() {
 
   // On the Homeroom route the admin assignment is authoritative. Finish that
   // synchronization before React reads getCurrentHomeroomWorkspaceId() for its
-  // initial state. Previously the sync ran after main.jsx started mounting, so
-  // its navigation event could fire before HomeroomWorkspace installed the
-  // listener: first open showed a fallback class, while reload showed the right
-  // assigned class because localStorage had already been corrected.
+  // initial state. The sync itself now restores/commits selection only after all
+  // background workspace reconciliation has completed.
   if (isHomeroomRoute()) {
     await startAssignedClassSync();
   }
