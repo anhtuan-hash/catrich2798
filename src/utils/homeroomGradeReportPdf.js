@@ -1,5 +1,6 @@
 import fontkit from '@pdf-lib/fontkit';
 import { PDFDocument, rgb } from 'pdf-lib';
+import pdfVietnameseFontUrl from 'pdfjs-dist/standard_fonts/LiberationSans-Regular.ttf?url';
 import { PEK_TEACHER_SIGNATURE_PNG_BASE64 } from '../assets/pekTeacherSignature.js';
 import { buildGradeExportColumns, gradeExportValue } from './homeroomGradebookExport.js';
 
@@ -52,9 +53,21 @@ function base64Bytes(value) {
 }
 
 async function fetchBytes(path, label) {
-  const response = await fetch(path, { cache: 'force-cache' });
+  const response = await fetch(path, { cache: 'no-cache' });
   if (!response.ok) throw new Error(`Không thể tải ${label} để tạo phiếu điểm PDF.`);
   return new Uint8Array(await response.arrayBuffer());
+}
+
+function assertTrueTypeFont(bytes) {
+  if (!(bytes instanceof Uint8Array) || bytes.length < 4) {
+    throw new Error('Font tiếng Việt dùng để tạo PDF không hợp lệ.');
+  }
+  const isTrueType = bytes[0] === 0x00 && bytes[1] === 0x01 && bytes[2] === 0x00 && bytes[3] === 0x00;
+  const isOpenType = bytes[0] === 0x4f && bytes[1] === 0x54 && bytes[2] === 0x54 && bytes[3] === 0x4f;
+  if (!isTrueType && !isOpenType) {
+    throw new Error('Font tiếng Việt dùng để tạo PDF không đúng định dạng TTF/OTF.');
+  }
+  return bytes;
 }
 
 function reportTime(date) {
@@ -316,7 +329,7 @@ export async function buildStudentGradeReportPdf(input) {
   };
 
   const [fontBytes, logoBytes, signatureBytes] = await Promise.all([
-    suppliedFontBytes || fetchBytes('/bes-fonts/brian-personal-font.ttf', 'font tiếng Việt'),
+    suppliedFontBytes || fetchBytes(pdfVietnameseFontUrl, 'font tiếng Việt'),
     suppliedLogoBytes || fetchBytes('/footer-pek-logo.png', 'logo trường'),
     suppliedSignatureBytes || Promise.resolve(base64Bytes(PEK_TEACHER_SIGNATURE_PNG_BASE64)),
   ]);
@@ -332,7 +345,7 @@ export async function buildStudentGradeReportPdf(input) {
   pdf.setModificationDate(now);
 
   const [font, logo, signature] = await Promise.all([
-    pdf.embedFont(fontBytes, { subset: true }),
+    pdf.embedFont(assertTrueTypeFont(fontBytes), { subset: true }),
     pdf.embedPng(logoBytes),
     pdf.embedPng(signatureBytes),
   ]);
