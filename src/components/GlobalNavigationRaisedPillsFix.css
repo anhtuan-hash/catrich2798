@@ -1,6 +1,6 @@
-/* Brian English · aligned raised navigation authority
-   Final visual contract: one row, one height, one baseline for every primary destination.
-   Loads after GlobalNavigationRaisedPills.css and neutralizes per-tab geometry drift. */
+/* Brian English · unified pill navigation authority
+   Final visual contract: every primary destination uses the same pill geometry as Home.
+   Reports remains one row and owns a live countdown badge. */
 
 html body .app-shell[data-route] .brian-nav__primary {
   gap: 8px !important;
@@ -9,7 +9,7 @@ html body .app-shell[data-route] .brian-nav__primary {
   overflow-y: visible !important;
 }
 
-/* ONE GEOMETRY CONTRACT — all primary buttons rest on the exact same line. */
+/* ONE MASTER BUTTON — Home is the visual template for every destination. */
 html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']) {
   position: relative !important;
   display: inline-flex !important;
@@ -25,24 +25,22 @@ html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='butto
   margin: 0 !important;
   padding: 0 15px !important;
   overflow: hidden !important;
-  border: 1px solid rgba(var(--nav-rgb), .18) !important;
-  border-bottom-color: rgba(var(--nav-rgb), .26) !important;
+  border: 1px solid rgba(var(--nav-rgb), .14) !important;
   border-radius: 14px !important;
-  background: linear-gradient(180deg, #fff 0%, #fff 54%, rgba(var(--nav-rgb), .065) 100%) !important;
-  background-image: linear-gradient(180deg, #fff 0%, #fff 54%, rgba(var(--nav-rgb), .065) 100%) !important;
+  background: rgba(var(--nav-rgb), .075) !important;
+  background-image: linear-gradient(180deg, rgba(255,255,255,.88) 0%, rgba(var(--nav-rgb), .075) 100%) !important;
   color: var(--nav-accent) !important;
   box-shadow:
-    0 7px 14px rgba(31,46,68,.085),
-    0 3px 6px rgba(var(--nav-rgb),.075),
-    0 1px 0 rgba(var(--nav-rgb),.12),
-    inset 0 1px 0 rgba(255,255,255,1) !important;
+    0 5px 12px rgba(31,46,68,.065),
+    0 2px 5px rgba(var(--nav-rgb),.055),
+    inset 0 1px 0 rgba(255,255,255,.92) !important;
   font-size: 14.5px !important;
-  font-weight: 740 !important;
+  font-weight: 720 !important;
   line-height: 1 !important;
   letter-spacing: -.012em !important;
   text-align: center !important;
   white-space: nowrap !important;
-  text-shadow: 0 1px 0 rgba(255,255,255,.82) !important;
+  text-shadow: none !important;
   transform: none !important;
   translate: none !important;
   transition:
@@ -53,7 +51,7 @@ html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='butto
     color 150ms ease !important;
 }
 
-/* Decorative highlight only; never changes geometry. */
+/* No underline / no geometry-changing decoration. */
 html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button'])::after {
   content: '' !important;
   position: absolute !important;
@@ -66,14 +64,14 @@ html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='butto
   height: 1px !important;
   border: 0 !important;
   border-radius: 999px !important;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.96), transparent) !important;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.86), transparent) !important;
   box-shadow: none !important;
-  opacity: .9 !important;
+  opacity: .8 !important;
   transform: none !important;
   pointer-events: none !important;
 }
 
-/* Generated icons participate in flex flow and share one exact size. */
+/* All generated line icons use one exact size and live in the flex flow. */
 html body .app-shell[data-route] .brian-nav__primary > :is(
   button:not([class*='brian-nav__']):first-child,
   button:not([class*='brian-nav__']):nth-of-type(2),
@@ -94,39 +92,37 @@ html body .app-shell[data-route] .brian-nav__primary > :is(
   filter: none !important;
 }
 
-/* Hover may lift temporarily, but every resting state stays perfectly aligned. */
+/* Hover keeps the same pill, simply lifting it a touch. */
 html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']):hover {
-  border-color: rgba(var(--nav-rgb), .30) !important;
-  background: linear-gradient(180deg, #fff 0%, #fff 48%, rgba(var(--nav-rgb), .095) 100%) !important;
-  background-image: linear-gradient(180deg, #fff 0%, #fff 48%, rgba(var(--nav-rgb), .095) 100%) !important;
+  border-color: rgba(var(--nav-rgb), .24) !important;
+  background: rgba(var(--nav-rgb), .105) !important;
+  background-image: linear-gradient(180deg, rgba(255,255,255,.96) 0%, rgba(var(--nav-rgb), .105) 100%) !important;
   color: var(--nav-accent) !important;
   box-shadow:
-    0 11px 20px rgba(31,46,68,.12),
-    0 5px 9px rgba(var(--nav-rgb),.11),
-    0 1px 0 rgba(var(--nav-rgb),.14),
+    0 8px 16px rgba(31,46,68,.09),
+    0 3px 7px rgba(var(--nav-rgb),.08),
     inset 0 1px 0 #fff !important;
-  transform: translateY(-2px) !important;
+  transform: translateY(-1px) !important;
 }
 
 html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']):active {
   box-shadow:
-    0 3px 7px rgba(31,46,68,.09),
-    0 2px 4px rgba(var(--nav-rgb),.08),
-    inset 0 2px 4px rgba(20,34,50,.08) !important;
+    0 2px 5px rgba(31,46,68,.07),
+    0 1px 3px rgba(var(--nav-rgb),.06),
+    inset 0 2px 4px rgba(20,34,50,.06) !important;
   transform: translateY(1px) scale(.99) !important;
 }
 
 html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']):focus-visible {
   outline: none !important;
-  border-color: rgba(var(--nav-rgb), .48) !important;
+  border-color: rgba(var(--nav-rgb), .38) !important;
   box-shadow:
-    0 0 0 3px rgba(var(--nav-rgb),.12),
-    0 8px 16px rgba(31,46,68,.10),
-    0 3px 7px rgba(var(--nav-rgb),.09) !important;
+    0 0 0 3px rgba(var(--nav-rgb),.10),
+    0 6px 13px rgba(31,46,68,.08) !important;
   transform: none !important;
 }
 
-/* ACTIVE — same 52px box and same baseline, only color/depth changes. */
+/* ACTIVE — same Home-style pill, only one step stronger. No white-text mode. */
 html body .app-shell[data-route] .brian-nav__primary > button.is-active,
 html body .app-shell[data-route] .brian-nav__primary > button.active,
 html body .app-shell[data-route] .brian-nav__primary > button[aria-current='page'],
@@ -139,34 +135,32 @@ html body .app-shell[data-route='apps'] .brian-nav__primary > button:not([class*
   height: 52px !important;
   max-height: 52px !important;
   margin: 0 !important;
-  border-color: rgba(var(--nav-rgb), .42) !important;
-  border-bottom-color: rgba(var(--nav-rgb), .50) !important;
-  background: linear-gradient(145deg, var(--nav-active-1) 0%, var(--nav-active-2) 100%) !important;
-  background-image: linear-gradient(145deg, var(--nav-active-1) 0%, var(--nav-active-2) 100%) !important;
-  color: #fff !important;
+  border-color: rgba(var(--nav-rgb), .22) !important;
+  background: rgba(var(--nav-rgb), .14) !important;
+  background-image: linear-gradient(180deg, rgba(255,255,255,.88) 0%, rgba(var(--nav-rgb), .14) 100%) !important;
+  color: var(--nav-accent) !important;
   box-shadow:
-    0 10px 18px rgba(var(--nav-rgb),.23),
-    0 4px 8px rgba(var(--nav-rgb),.16),
-    0 2px 0 rgba(22,40,60,.12),
-    inset 0 1px 0 rgba(255,255,255,.34) !important;
-  font-weight: 800 !important;
-  text-shadow: 0 1px 1px rgba(21,37,55,.18) !important;
+    0 7px 15px rgba(31,46,68,.09),
+    0 3px 7px rgba(var(--nav-rgb),.09),
+    inset 0 1px 0 rgba(255,255,255,.96) !important;
+  font-weight: 790 !important;
+  text-shadow: none !important;
   transform: none !important;
   translate: none !important;
 }
 
 html body .app-shell[data-route] .brian-nav__primary > button.is-active:hover,
 html body .app-shell[data-route] .brian-nav__primary > button[aria-current='page']:hover {
-  color: #fff !important;
+  color: var(--nav-accent) !important;
+  background: rgba(var(--nav-rgb), .17) !important;
+  background-image: linear-gradient(180deg, rgba(255,255,255,.92) 0%, rgba(var(--nav-rgb), .17) 100%) !important;
   box-shadow:
-    0 14px 24px rgba(var(--nav-rgb),.28),
-    0 6px 11px rgba(var(--nav-rgb),.18),
-    0 2px 0 rgba(22,40,60,.12),
-    inset 0 1px 0 rgba(255,255,255,.38) !important;
-  transform: translateY(-2px) !important;
+    0 9px 18px rgba(31,46,68,.10),
+    0 4px 8px rgba(var(--nav-rgb),.10) !important;
+  transform: translateY(-1px) !important;
 }
 
-/* REPORTS — single line. Countdown becomes a tiny status dot, not a second row. */
+/* REPORTS — same one-line master pill + real live countdown badge. */
 html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab,
 html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.shows-countdown {
   display: inline-flex !important;
@@ -178,7 +172,7 @@ html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.s
   min-height: 52px !important;
   height: 52px !important;
   max-height: 52px !important;
-  padding: 0 15px !important;
+  padding: 0 13px 0 15px !important;
 }
 html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.shows-countdown::before {
   grid-column: auto !important;
@@ -199,37 +193,47 @@ html body .app-shell[data-route] .brian-nav__reports-tab .brian-nav__reports-cou
 html body .app-shell[data-route] .brian-nav__reports-tab .brian-nav__reports-countdown.is-expired {
   position: relative !important;
   z-index: 2 !important;
-  flex: 0 0 7px !important;
-  width: 7px !important;
-  min-width: 7px !important;
-  max-width: 7px !important;
-  height: 7px !important;
-  min-height: 7px !important;
-  max-height: 7px !important;
-  display: block !important;
-  margin: 0 0 0 -2px !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-  border: 0 !important;
-  border-radius: 50% !important;
-  background: #f59e0b !important;
-  box-shadow: 0 0 0 2px rgba(245,158,11,.12) !important;
-  color: transparent !important;
-  font-size: 0 !important;
-  line-height: 0 !important;
-  text-indent: -9999px !important;
-  opacity: 1 !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: 20px !important;
+  min-height: 20px !important;
+  max-height: 20px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 0 0 1px !important;
+  padding: 0 7px !important;
+  overflow: visible !important;
+  border: 1px solid rgba(var(--nav-rgb), .16) !important;
+  border-radius: 999px !important;
+  background: rgba(var(--nav-rgb), .09) !important;
+  color: var(--nav-accent) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.72) !important;
+  opacity: .92 !important;
+  font-size: 9.5px !important;
+  font-weight: 780 !important;
+  line-height: 1 !important;
+  letter-spacing: .005em !important;
+  text-indent: 0 !important;
+  white-space: nowrap !important;
+  font-variant-numeric: tabular-nums !important;
+  font-feature-settings: 'tnum' 1 !important;
 }
 html body .app-shell[data-route] .brian-nav__reports-tab .brian-nav__reports-countdown.is-expired {
-  background: #ef4444 !important;
-  box-shadow: 0 0 0 2px rgba(239,68,68,.12) !important;
+  border-color: rgba(220,38,38,.16) !important;
+  background: rgba(220,38,38,.08) !important;
+  color: #c62828 !important;
 }
 html body .app-shell[data-route] .brian-nav__reports-tab:is(.is-active,[aria-current='page']) .brian-nav__reports-countdown {
-  background: rgba(255,255,255,.94) !important;
-  box-shadow: 0 0 0 2px rgba(255,255,255,.18) !important;
+  border-color: rgba(var(--nav-rgb), .22) !important;
+  background: rgba(255,255,255,.58) !important;
+  color: var(--nav-accent) !important;
+  opacity: 1 !important;
 }
 
-/* TTCM — no purple square/icon tile; only the same 18px line glyph as everyone else. */
+/* TTCM — same pill and same 18px line icon. */
 html body .app-shell[data-route] .brian-nav__primary > .brian-nav__ttcm-tab {
   gap: 8px !important;
   min-height: 52px !important;
@@ -267,7 +271,7 @@ html body .app-shell[data-route] .brian-nav__ttcm-badge {
   margin-left: -2px !important;
 }
 
-/* Keep all real child content over the highlight. */
+/* Real child content always sits over the decorative highlight. */
 html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']) > * {
   position: relative !important;
   z-index: 2 !important;
@@ -285,6 +289,13 @@ html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='butto
     padding: 0 12px !important;
     border-radius: 13px !important;
     font-size: 13.5px !important;
+  }
+  html body .app-shell[data-route] .brian-nav__reports-tab .brian-nav__reports-countdown {
+    height: 18px !important;
+    min-height: 18px !important;
+    max-height: 18px !important;
+    padding-inline: 6px !important;
+    font-size: 8.8px !important;
   }
   html body .app-shell[data-route] .brian-nav__primary > :is(
     button:not([class*='brian-nav__']):first-child,
