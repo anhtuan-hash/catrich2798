@@ -60,6 +60,11 @@ function snapshotKey(user, workspaceId) {
   return `${userIdentity(user)}:${String(workspaceId || 'default')}`;
 }
 
+function assignedHomeroomWorkspaceId() {
+  if (typeof window === 'undefined') return '';
+  return String(window.__besAssignedHomeroomWorkspaceId || '').trim();
+}
+
 function getInitialWorkspace(user, workspaceId) {
   const cached = homeroomSessionCache.get(snapshotKey(user, workspaceId));
   if (cached) return cached;
@@ -68,7 +73,9 @@ function getInitialWorkspace(user, workspaceId) {
 }
 
 export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
-  const initialWorkspaceId = getCurrentHomeroomWorkspaceId(currentUser);
+  // Server assignment, when available, is stronger than any stale local current-id.
+  // applicationBootstrap resolves it before first mount on a direct Homeroom entry.
+  const initialWorkspaceId = assignedHomeroomWorkspaceId() || getCurrentHomeroomWorkspaceId(currentUser);
   const initialWorkspace = getInitialWorkspace(currentUser, initialWorkspaceId);
   const [workspaceId, setWorkspaceId] = useState(initialWorkspaceId);
   const [workspace, setWorkspace] = useState(initialWorkspace);
@@ -119,8 +126,21 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
         const items = await refreshCatalog();
         const result = await loadHomeroomWorkspace(currentUser, workspaceId);
         if (!alive || sequence !== hydrationSequenceRef.current) return;
+
+        // A slow request for a previously selected/random class must never commit
+        // after the Admin assignment has become known. Move React state to the
+        // authoritative id and let the next hydration load that class instead.
+        const authoritativeId = assignedHomeroomWorkspaceId();
+        if (authoritativeId && workspaceId !== authoritativeId) {
+          setCurrentHomeroomWorkspaceId(currentUser, authoritativeId);
+          setWorkspaceId(authoritativeId);
+          setCommandTarget({ workspaceId: authoritativeId, tab: 'overview', studentQuery: '' });
+          return;
+        }
+
         const normalized = normalizeHomeroomWorkspace(result.workspace, currentUser);
         const loaded = applyCatalogClassType(normalized, items);
+        if (authoritativeId && loaded.id !== authoritativeId) return;
         setSyncState(result.source === 'cloud' ? 'cloud' : 'local');
         setWorkspace(loaded);
         setClassDraft(loaded.classProfile);
@@ -136,9 +156,44 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   }, [currentUser?.id, currentUser?.authId, currentUser?.email, workspaceId]);
 
   useEffect(() => {
+    // Consume the assignment event directly inside React. This removes the last
+    // dependency on an external navigation event arriving after our listener.
+    const onAssignedHomeroom = (event) => {
+      const targetWorkspaceId = String(event?.detail?.homeroomWorkspaceId || '').trim();
+      if (!targetWorkspaceId) return;
+      window.__besAssignedHomeroomWorkspaceId = targetWorkspaceId;
+      setCurrentHomeroomWorkspaceId(currentUser, targetWorkspaceId);
+      setCommandTarget({ workspaceId: targetWorkspaceId, tab: 'overview', studentQuery: '' });
+      if (targetWorkspaceId !== workspaceId) setWorkspaceId(targetWorkspaceId);
+    };
+    window.addEventListener('bes-school-class-assignment-synced', onAssignedHomeroom);
+
+    const alreadyAssigned = assignedHomeroomWorkspaceId();
+    if (alreadyAssigned && alreadyAssigned !== workspaceId) {
+      setCurrentHomeroomWorkspaceId(currentUser, alreadyAssigned);
+      setCommandTarget({ workspaceId: alreadyAssigned, tab: 'overview', studentQuery: '' });
+      setWorkspaceId(alreadyAssigned);
+    }
+
+    return () => window.removeEventListener('bes-school-class-assignment-synced', onAssignedHomeroom);
+  }, [currentUser?.id, currentUser?.authId, currentUser?.email, workspaceId]);
+
+  useEffect(() => {
     const acceptCommand = (action) => {
       if (!action || action.type !== 'homeroom.navigate') return;
-      const targetWorkspaceId = String(action.workspaceId || workspaceId || '').trim();
+      const authoritativeId = assignedHomeroomWorkspaceId();
+      const requestedWorkspaceId = String(action.workspaceId || workspaceId || '').trim();
+      const isServerAssignment = action.source === 'server-assignment'
+        || action.source === 'assigned-school-class-sync'
+        || action.source === 'assigned-homeroom-entry-guard';
+
+      // Generic/stale entry commands may carry a workspace id from before the
+      // current Admin assignment. Once server authority is known they cannot pull
+      // the app away from the assigned homeroom. Explicit in-app class switching
+      // uses switchWorkspace directly and remains available where permitted.
+      const targetWorkspaceId = authoritativeId && requestedWorkspaceId !== authoritativeId && !isServerAssignment
+        ? authoritativeId
+        : requestedWorkspaceId;
       setCommandTarget({
         workspaceId: targetWorkspaceId,
         tab: String(action.tab || 'overview'),
