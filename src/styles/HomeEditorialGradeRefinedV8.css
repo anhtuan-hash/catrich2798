@@ -2,6 +2,8 @@
    Keeps Home grade entries minimal (grade + entry action only) without looking empty.
    Visual-only. No data, permissions, Hero CMS or practice runner internals are changed. */
 
+/* Restore the section identity explicitly: kicker + title only.
+   The old explanatory sentence and numeric editorial rule stay hidden. */
 .app-shell[data-route='home'] .bha-practice__editorial-copy p,
 .app-shell[data-route='home'] .bha-practice__editorial-rule{
   display:none!important;
@@ -12,7 +14,40 @@
 }
 
 .app-shell[data-route='home'] .bha-practice__editorial-header{
-  margin-bottom:20px!important;
+  display:flex!important;
+  align-items:flex-end!important;
+  justify-content:space-between!important;
+  gap:28px!important;
+  margin-bottom:24px!important;
+}
+
+.app-shell[data-route='home'] .bha-practice__editorial-copy{
+  display:block!important;
+  min-width:0!important;
+}
+
+.app-shell[data-route='home'] .bha-practice__editorial-copy>span{
+  display:flex!important;
+  align-items:center!important;
+  gap:8px!important;
+  margin:0 0 9px!important;
+  color:var(--sage-ochre)!important;
+  font-size:.72rem!important;
+  font-weight:850!important;
+  line-height:1!important;
+  letter-spacing:.17em!important;
+  text-transform:uppercase!important;
+}
+
+.app-shell[data-route='home'] .bha-practice__editorial-copy>h2{
+  display:block!important;
+  margin:0!important;
+  color:var(--sage-deep)!important;
+  font-family:Georgia,'Times New Roman',serif!important;
+  font-size:clamp(2.15rem,3vw,3.2rem)!important;
+  font-weight:500!important;
+  line-height:.98!important;
+  letter-spacing:-.048em!important;
 }
 
 .app-shell[data-route='home'] .bha-grades,
@@ -147,6 +182,9 @@
 }
 
 @media(max-width:900px){
+  .app-shell[data-route='home'] .bha-practice__editorial-header{
+    align-items:flex-start!important;
+  }
   .app-shell[data-route='home'] .bha-grades,
   .app-shell[data-route='home'] .bha-grades--folio{
     grid-template-columns:1fr!important;
@@ -160,6 +198,16 @@
 @media(max-width:560px){
   .app-shell[data-route='home'] .bha-practice{
     padding:22px 16px 24px!important;
+  }
+  .app-shell[data-route='home'] .bha-practice__editorial-header{
+    display:block!important;
+    margin-bottom:18px!important;
+  }
+  .app-shell[data-route='home'] .bha-practice__editorial-copy>h2{
+    font-size:2rem!important;
+  }
+  .app-shell[data-route='home'] .bha-practice__editorial-side{
+    margin-top:14px!important;
   }
   .app-shell[data-route='home'] .bha-folio-grade{
     height:116px!important;
