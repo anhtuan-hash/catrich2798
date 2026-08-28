@@ -6,6 +6,7 @@ import {
   clearRegionalCustomFontPreview,
   getRegionalFontFamily,
   getRegionalFontSettings,
+  getRegionalFontSize,
   loadRegionalFontSettingsFromServer,
   normalizeRegionalFontSettings,
   previewRegionalCustomFont,
@@ -16,6 +17,9 @@ import {
 import './RegionalFontAdminPanel.css';
 
 const REGION_FONT_OPTIONS = GLOBAL_FONT_PRESETS.filter((item) => !item.custom);
+const NAV_FONT_SIZE_MIN = 11;
+const NAV_FONT_SIZE_MAX = 22;
+const NAV_FONT_SIZE_FALLBACK = 15;
 
 function baseName(name = '') {
   return String(name || '').replace(/\.[^.]+$/, '').trim();
@@ -49,6 +53,12 @@ function customDraft(value = null) {
   };
 }
 
+function clampNavigationFontSize(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number)) return null;
+  return Math.min(NAV_FONT_SIZE_MAX, Math.max(NAV_FONT_SIZE_MIN, Math.round(number)));
+}
+
 export default function RegionalFontAdminPanel({ currentUser, language = 'vi' }) {
   const vi = language !== 'en';
   const [draft, setDraft] = useState(() => getRegionalFontSettings());
@@ -59,9 +69,20 @@ export default function RegionalFontAdminPanel({ currentUser, language = 'vi' })
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [messageTone, setMessageTone] = useState('info');
+  const [navigationDefaultSize, setNavigationDefaultSize] = useState(NAV_FONT_SIZE_FALLBACK);
 
   const savedRef = useRef(saved);
   useEffect(() => { savedRef.current = saved; }, [saved]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined' || typeof window === 'undefined') return;
+    const target = document.querySelector('.brian-nav a, .brian-nav button, .brian-nav strong, .brian-nav span')
+      || document.querySelector('.brian-nav');
+    if (!target) return;
+    const parsed = Number.parseFloat(window.getComputedStyle(target).fontSize);
+    const size = clampNavigationFontSize(parsed);
+    if (size) setNavigationDefaultSize(size);
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -98,7 +119,13 @@ export default function RegionalFontAdminPanel({ currentUser, language = 'vi' })
     () => JSON.stringify(draft) !== JSON.stringify(saved) || Object.keys(pendingFiles).length > 0,
     [draft, saved, pendingFiles],
   );
-  const customizedCount = Object.keys(normalizeRegionalFontSettings(draft)).length;
+  const customizedCount = useMemo(() => {
+    const normalized = normalizeRegionalFontSettings(draft);
+    return GLOBAL_FONT_REGIONS.filter((region) => (
+      Boolean(normalized[region.id])
+      || (region.id === 'navigation' && Boolean(getRegionalFontSize(normalized, 'navigation')))
+    )).length;
+  }, [draft]);
 
   const setRegionChoice = (regionId, value) => {
     setMessage('');
@@ -124,6 +151,20 @@ export default function RegionalFontAdminPanel({ currentUser, language = 'vi' })
       } else {
         next[regionId] = value;
       }
+      return next;
+    });
+  };
+
+  const setNavigationFontSize = (value) => {
+    setMessage('');
+    const nextSize = clampNavigationFontSize(value);
+    setDraft((current) => {
+      const next = { ...current };
+      const fontSizes = { ...(current.fontSizes || {}) };
+      if (nextSize) fontSizes.navigation = nextSize;
+      else delete fontSizes.navigation;
+      if (Object.keys(fontSizes).length) next.fontSizes = fontSizes;
+      else delete next.fontSizes;
       return next;
     });
   };
@@ -171,6 +212,12 @@ export default function RegionalFontAdminPanel({ currentUser, language = 'vi' })
     setDraft((current) => {
       const next = { ...current };
       delete next[regionId];
+      if (regionId === 'navigation' && next.fontSizes?.navigation) {
+        const fontSizes = { ...next.fontSizes };
+        delete fontSizes.navigation;
+        if (Object.keys(fontSizes).length) next.fontSizes = fontSizes;
+        else delete next.fontSizes;
+      }
       return next;
     });
   };
@@ -258,8 +305,8 @@ export default function RegionalFontAdminPanel({ currentUser, language = 'vi' })
     setSchemaReady(true);
     setMessageTone('success');
     setMessage(vi
-      ? 'Đã lưu font riêng cho từng khu vực. Mỗi khu vực sẽ dùng đúng font cá nhân hoặc preset đã chọn và được đồng bộ qua Realtime.'
-      : 'Per-region fonts saved. Each region now uses its own custom font or selected preset and syncs through Realtime.');
+      ? 'Đã lưu font theo khu vực và cỡ chữ thanh điều hướng. Các phiên Brian đang mở sẽ nhận thay đổi qua Realtime.'
+      : 'Regional fonts and navigation text size saved. Open Brian sessions will receive the change through Realtime.');
   };
 
   return (
@@ -269,8 +316,8 @@ export default function RegionalFontAdminPanel({ currentUser, language = 'vi' })
           <span className="eyebrow">{vi ? 'Typography theo khu vực' : 'Regional typography'}</span>
           <h3 id="regional-font-admin-title">{vi ? 'Mỗi khu vực có thể dùng font riêng' : 'Give every region its own font'}</h3>
           <p>{vi
-            ? 'Mỗi thẻ bên dưới có bộ chọn font và nút tải font cá nhân độc lập. Chọn hoặc tải font là xem thử ngay tại đúng khu vực đó; chỉ lưu khi bạn bấm “Lưu & áp dụng”.'
-            : 'Every card below has its own font selector and custom upload. Choices preview instantly only in that region and are saved after you confirm.'}</p>
+            ? 'Mỗi thẻ bên dưới có bộ chọn font và nút tải font cá nhân độc lập. Riêng Thanh điều hướng còn có thể chỉnh cỡ chữ và xem thử trực tiếp trước khi lưu.'
+            : 'Every card has its own font selector and custom upload. Navigation also supports live text-size adjustment before saving.'}</p>
         </div>
         <div className="regional-font-admin__head-status">
           <span className="regional-font-admin__live"><i />{vi ? 'Xem thử trực tiếp' : 'Live preview'}</span>
@@ -290,8 +337,11 @@ export default function RegionalFontAdminPanel({ currentUser, language = 'vi' })
           const pendingFile = pendingFiles[region.id] || null;
           const previewFamily = getRegionalFontFamily(region.id, value);
           const customActive = choice === 'custom';
+          const navigationFontSize = region.id === 'navigation' ? getRegionalFontSize(draft, 'navigation') : null;
+          const navigationSizeCustomized = region.id === 'navigation' && Boolean(navigationFontSize);
+          const regionCustomized = choice !== 'inherit' || navigationSizeCustomized;
           return (
-            <article key={region.id} className={`regional-font-card ${choice !== 'inherit' ? 'is-customized' : ''} ${customActive ? 'has-custom-font' : ''}`}>
+            <article key={region.id} className={`regional-font-card ${regionCustomized ? 'is-customized' : ''} ${customActive ? 'has-custom-font' : ''}`}>
               <div className="regional-font-card__title">
                 <div>
                   <strong>{vi ? region.labelVi : region.label}</strong>
@@ -301,6 +351,8 @@ export default function RegionalFontAdminPanel({ currentUser, language = 'vi' })
                   <span className="is-custom-font">{vi ? 'Font cá nhân' : 'Custom font'}</span>
                 ) : choice !== 'inherit' ? (
                   <span>{vi ? 'Riêng' : 'Custom'}</span>
+                ) : navigationSizeCustomized ? (
+                  <span className="is-font-size">{vi ? 'Cỡ chữ riêng' : 'Custom size'}</span>
                 ) : (
                   <span className="is-inherit">{vi ? 'Kế thừa' : 'Inherit'}</span>
                 )}
@@ -317,9 +369,59 @@ export default function RegionalFontAdminPanel({ currentUser, language = 'vi' })
                 </select>
               </label>
 
-              <div className="regional-font-card__sample" style={{ '--region-preview-family': previewFamily }}>
+              <div
+                className="regional-font-card__sample"
+                style={{
+                  '--region-preview-family': previewFamily,
+                  ...(navigationFontSize ? { fontSize: `${navigationFontSize}px` } : {}),
+                }}
+              >
                 {region.sample}
               </div>
+
+              {region.id === 'navigation' ? (
+                <div className={`regional-font-card__font-size ${navigationSizeCustomized ? 'is-active' : ''}`}>
+                  <div className="regional-font-card__font-size-head">
+                    <div>
+                      <strong>{vi ? 'Cỡ chữ thanh điều hướng' : 'Navigation text size'}</strong>
+                      <small>{vi ? 'Xem thử trực tiếp · 11–22 px' : 'Live preview · 11–22 px'}</small>
+                    </div>
+                    <b>{navigationFontSize ? `${navigationFontSize}px` : (vi ? `Mặc định · ${navigationDefaultSize}px` : `Default · ${navigationDefaultSize}px`)}</b>
+                  </div>
+                  <div className="regional-font-card__font-size-controls">
+                    <span aria-hidden="true">A</span>
+                    <input
+                      type="range"
+                      min={NAV_FONT_SIZE_MIN}
+                      max={NAV_FONT_SIZE_MAX}
+                      step="1"
+                      value={navigationFontSize || navigationDefaultSize}
+                      onChange={(event) => setNavigationFontSize(event.target.value)}
+                      aria-label={vi ? 'Cỡ chữ thanh điều hướng' : 'Navigation text size'}
+                    />
+                    <span className="is-large" aria-hidden="true">A</span>
+                    <label>
+                      <input
+                        type="number"
+                        min={NAV_FONT_SIZE_MIN}
+                        max={NAV_FONT_SIZE_MAX}
+                        step="1"
+                        value={navigationFontSize || navigationDefaultSize}
+                        onChange={(event) => setNavigationFontSize(event.target.value)}
+                        aria-label={vi ? 'Cỡ chữ thanh điều hướng theo pixel' : 'Navigation text size in pixels'}
+                      />
+                      <small>px</small>
+                    </label>
+                    <button
+                      type="button"
+                      disabled={!navigationSizeCustomized}
+                      onClick={() => setNavigationFontSize(null)}
+                    >
+                      {vi ? 'Mặc định' : 'Default'}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
 
               <div className={`regional-font-card__custom-upload ${customActive ? 'is-active' : ''}`}>
                 <div className="regional-font-card__custom-head">
@@ -368,9 +470,9 @@ export default function RegionalFontAdminPanel({ currentUser, language = 'vi' })
                 </div>
               </div>
 
-              {choice !== 'inherit' ? (
+              {regionCustomized ? (
                 <button type="button" className="regional-font-card__reset" onClick={() => resetRegion(region.id)}>
-                  {vi ? 'Khôi phục kế thừa' : 'Restore inheritance'}
+                  {vi ? 'Khôi phục kế thừa & mặc định' : 'Restore inheritance & default'}
                 </button>
               ) : null}
             </article>
@@ -381,15 +483,15 @@ export default function RegionalFontAdminPanel({ currentUser, language = 'vi' })
       <div className="regional-font-admin__note">
         <strong>{vi ? 'Font độc lập theo khu vực' : 'Independent regional fonts'}</strong>
         <span>{vi
-          ? 'Font cá nhân tải ở một khu vực chỉ áp dụng cho khu vực đó. Bạn có thể dùng 10 font khác nhau cho 10 khu vực nếu muốn. Mọi thay đổi đều được xem thử trực tiếp trước khi lưu.'
-          : 'A custom font uploaded in one region applies only there. You may use a different font in every region. All changes are previewed live before saving.'}</span>
+          ? 'Font cá nhân tải ở một khu vực chỉ áp dụng cho khu vực đó. Cỡ chữ Thanh điều hướng cũng độc lập và được xem thử trực tiếp trước khi lưu.'
+          : 'A custom font applies only to its own region. Navigation text size is also independent and previewed live before saving.'}</span>
       </div>
 
       {message ? <div className={`regional-font-admin__message is-${messageTone}`}>{message}</div> : null}
 
       <footer className="regional-font-admin__actions">
         <div>
-          <strong>{vi ? `${customizedCount}/${GLOBAL_FONT_REGIONS.length} khu vực có font riêng` : `${customizedCount}/${GLOBAL_FONT_REGIONS.length} regions customized`}</strong>
+          <strong>{vi ? `${customizedCount}/${GLOBAL_FONT_REGIONS.length} khu vực đang tuỳ chỉnh` : `${customizedCount}/${GLOBAL_FONT_REGIONS.length} regions customized`}</strong>
           <small>{changed ? (vi ? 'Đang xem thử · có thay đổi chưa lưu' : 'Live preview · unsaved changes') : (vi ? 'Đã đồng bộ với cấu hình hiện tại' : 'Matches current configuration')}</small>
         </div>
         <button type="button" className="regional-font-btn" disabled={busy} onClick={resetAll}>{vi ? 'Kế thừa tất cả' : 'Inherit all'}</button>
