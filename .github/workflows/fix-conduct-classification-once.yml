@@ -1,0 +1,340 @@
+name: One-time conduct classification consistency fix
+
+on:
+  push:
+    paths:
+      - '.github/workflows/fix-conduct-classification-once.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Patch conduct calculation and active export runtime
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new, label):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8')
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f'{label}: expected exactly 1 match in {path}, found {count}')
+              p.write_text(text.replace(old, new, 1), encoding='utf-8')
+
+          def replace_count(path, old, new, expected, label):
+              p = Path(path)
+              text = p.read_text(encoding='utf-8')
+              count = text.count(old)
+              if count != expected:
+                  raise SystemExit(f'{label}: expected {expected} matches in {path}, found {count}')
+              p.write_text(text.replace(old, new), encoding='utf-8')
+
+          core = 'src/utils/conductFixedPolicy.js'
+          export = 'src/conductMidFinalReportsV2.js'
+
+          replace_once(core,
+          """export function classifyConductPoint(point) {
+            const value = Number(point) || 0;
+            if (value >= FIXED_CONDUCT_POLICY.thresholds.good) return { id: 'good', label: 'Tốt' };
+            if (value >= FIXED_CONDUCT_POLICY.thresholds.fair) return { id: 'fair', label: 'Khá' };
+            if (value >= FIXED_CONDUCT_POLICY.thresholds.pass) return { id: 'pass', label: 'Đạt' };
+            return { id: 'fail', label: 'Chưa đạt' };
+          }
+          """,
+          """export function classifyConductPoint(point) {
+            if (point === null || point === undefined || text(point) === '') {
+              return { id: 'unclassified', label: 'Chưa xếp loại' };
+            }
+            const value = Number(point);
+            if (!Number.isFinite(value)) return { id: 'unclassified', label: 'Chưa xếp loại' };
+            if (value >= FIXED_CONDUCT_POLICY.thresholds.good) return { id: 'good', label: 'Tốt' };
+            if (value >= FIXED_CONDUCT_POLICY.thresholds.fair) return { id: 'fair', label: 'Khá' };
+            if (value >= FIXED_CONDUCT_POLICY.thresholds.pass) return { id: 'pass', label: 'Đạt' };
+            return { id: 'fail', label: 'Chưa đạt' };
+          }
+          """,
+          'core classification null guard')
+
+          replace_once(core,
+          """export function downgradeConductOneLevel(classification = {}) {
+            const order = ['good', 'fair', 'pass', 'fail'];
+            const labels = { good: 'Tốt', fair: 'Khá', pass: 'Đạt', fail: 'Chưa đạt' };
+            const index = order.indexOf(classification?.id);
+            const nextId = index < 0 ? 'fail' : order[Math.min(index + 1, order.length - 1)];
+            return { id: nextId, label: labels[nextId] };
+          }
+          """,
+          """export function downgradeConductOneLevel(classification = {}) {
+            if (classification?.id === 'unclassified') return { id: 'unclassified', label: 'Chưa xếp loại' };
+            const order = ['good', 'fair', 'pass', 'fail'];
+            const labels = { good: 'Tốt', fair: 'Khá', pass: 'Đạt', fail: 'Chưa đạt' };
+            const index = order.indexOf(classification?.id);
+            const nextId = index < 0 ? 'fail' : order[Math.min(index + 1, order.length - 1)];
+            return { id: nextId, label: labels[nextId] };
+          }
+          """,
+          'core downgrade guard')
+
+          replace_once(core,
+          """    const weeklyPoints = weekly.map((row) => conductWeekPoint(row.score));
+              const average = weeklyPoints.length
+                ? weeklyPoints.reduce((sum, point) => sum + point, 0) / weeklyPoints.length
+                : FIXED_CONDUCT_POLICY.maximum;
+              const roundedAverage = Math.round(average * 100) / 100;
+              const baseClassification = classifyConductPoint(roundedAverage);
+              const prohibitedRecords = prohibitedRecordsForRange(workspace, startDate, endDate, student.id);
+              const prohibitedViolationCount = prohibitedRecords.length;
+              const prohibitedDowngraded = prohibitedViolationCount > 0 && baseClassification.id !== 'fail';
+              const classification = prohibitedViolationCount > 0
+                ? downgradeConductOneLevel(baseClassification)
+                : baseClassification;
+
+              return {
+                student,
+                weekCount: weekly.length,
+                weekly,
+                weeklyPoints,
+                average: roundedAverage,
+""",
+          """    const weeklyPoints = weekly.map((row) => conductWeekPoint(row.score));
+              const rawAverage = weeklyPoints.length
+                ? weeklyPoints.reduce((sum, point) => sum + point, 0) / weeklyPoints.length
+                : null;
+              const average = Number.isFinite(rawAverage) ? Math.round(rawAverage * 100) / 100 : null;
+              const baseClassification = classifyConductPoint(rawAverage);
+              const prohibitedRecords = prohibitedRecordsForRange(workspace, startDate, endDate, student.id);
+              const prohibitedViolationCount = prohibitedRecords.length;
+              const hasClassifiableResult = baseClassification.id !== 'unclassified';
+              const prohibitedDowngraded = prohibitedViolationCount > 0
+                && hasClassifiableResult
+                && baseClassification.id !== 'fail';
+              const classification = prohibitedViolationCount > 0 && hasClassifiableResult
+                ? downgradeConductOneLevel(baseClassification)
+                : baseClassification;
+
+              return {
+                student,
+                weekCount: weekly.length,
+                weekly,
+                weeklyPoints,
+                rawAverage,
+                average,
+""",
+          'core raw average classification')
+
+          replace_once(export,
+          """    const weeklyPoints = weekly.map((row) => conductWeekPoint(row.score));
+              const average = weeklyPoints.length
+                ? Math.round((weeklyPoints.reduce((sum, point) => sum + point, 0) / weeklyPoints.length) * 100) / 100
+                : FIXED_CONDUCT_POLICY.maximum;
+              const baseClassification = classifyConductPoint(average);
+              const records = recordsForRange(workspace, range, student.id, true);
+              const prohibitedRecords = records.filter(isConfirmedProhibitedRecord);
+              const classification = prohibitedRecords.length ? downgradeConductOneLevel(baseClassification) : baseClassification;
+              return {
+                student,
+                weekCount: weekly.length,
+                weekly,
+                weeklyPoints,
+                average,
+                baseClassification,
+                classification,
+                prohibitedRecords,
+                prohibitedViolationCount: prohibitedRecords.length,
+                prohibitedDowngraded: prohibitedRecords.length > 0 && baseClassification.id !== 'fail',
+""",
+          """    const weeklyPoints = weekly.map((row) => conductWeekPoint(row.score));
+              const rawAverage = weeklyPoints.length
+                ? weeklyPoints.reduce((sum, point) => sum + point, 0) / weeklyPoints.length
+                : null;
+              const average = Number.isFinite(rawAverage) ? Math.round(rawAverage * 100) / 100 : null;
+              const baseClassification = classifyConductPoint(rawAverage);
+              const records = recordsForRange(workspace, range, student.id, true);
+              const prohibitedRecords = records.filter(isConfirmedProhibitedRecord);
+              const hasClassifiableResult = baseClassification.id !== 'unclassified';
+              const classification = prohibitedRecords.length && hasClassifiableResult
+                ? downgradeConductOneLevel(baseClassification)
+                : baseClassification;
+              return {
+                student,
+                weekCount: weekly.length,
+                weekly,
+                weeklyPoints,
+                rawAverage,
+                average,
+                baseClassification,
+                classification,
+                prohibitedRecords,
+                prohibitedViolationCount: prohibitedRecords.length,
+                prohibitedDowngraded: prohibitedRecords.length > 0
+                  && hasClassifiableResult
+                  && baseClassification.id !== 'fail',
+""",
+          'active export raw average classification')
+
+          replace_once(export,
+          """function classificationCounts(rows) {
+            return rows.reduce((counts, row) => {
+              const id = row.classification?.id || 'fail';
+              counts[id] = (counts[id] || 0) + 1;
+              return counts;
+            }, { good: 0, fair: 0, pass: 0, fail: 0 });
+          }
+          """,
+          """function classificationCounts(rows) {
+            return rows.reduce((counts, row) => {
+              const id = row.classification?.id || 'unclassified';
+              counts[id] = (counts[id] || 0) + 1;
+              return counts;
+            }, { good: 0, fair: 0, pass: 0, fail: 0, unclassified: 0 });
+          }
+          """,
+          'classification counts')
+
+          replace_once(export,
+          """function prohibitedSummary(row) {
+            const count = Number(row.prohibitedViolationCount || 0);
+            if (!count) return '0';
+            if (!row.prohibitedDowngraded) return `${count} · Chưa đạt, không thể hạ thêm`;
+            return `${count} · Hạ 1 bậc ${row.baseClassification?.label || '—'} → ${row.classification?.label || '—'}`;
+          }
+          """,
+          """function prohibitedSummary(row) {
+            const count = Number(row.prohibitedViolationCount || 0);
+            if (!count) return '0';
+            if (row.classification?.id === 'unclassified') return `${count} · Chưa xếp loại, chưa áp dụng hạ bậc`;
+            if (!row.prohibitedDowngraded) return `${count} · Chưa đạt, không thể hạ thêm`;
+            return `${count} · Hạ 1 bậc ${row.baseClassification?.label || '—'} → ${row.classification?.label || '—'}`;
+          }
+          """,
+          'prohibited summary unclassified')
+
+          replace_once(export,
+          """function formulaBlock() {
+            return `<section class=\"formula-box\"><b>Nguồn dữ liệu trực tiếp</b><span>Chỉ các tuần được đánh dấu “tính vào trung bình” mới tham gia điểm TB. Điểm tuần ÷ 25 → thang 4.</span><span>Tốt ≥ 3,60 · Khá ≥ 3,00 · Đạt ≥ 2,40 · Chưa đạt &lt; 2,40.</span><span><strong>Mọi ghi nhận đang tồn tại trong khoảng xét được đọc trực tiếp; tuần đã khóa không làm mất vi phạm. Vi phạm điều cấm đã xác nhận hạ đúng 1 bậc.</strong></span></section>`;
+          }
+          """,
+          """function formulaBlock() {
+            return `<section class=\"formula-box\"><b>Nguồn dữ liệu trực tiếp</b><span>Chỉ các tuần được đánh dấu “tính vào trung bình” mới tham gia điểm TB. Điểm tuần ÷ 25 → thang 4.</span><span>Tốt ≥ 3,60 · Khá ≥ 3,00 · Đạt ≥ 2,40 · Chưa đạt &lt; 2,40.</span><span><strong>Xếp loại bằng điểm trung bình thô; chỉ làm tròn khi hiển thị. Không có tuần hợp lệ: Chưa xếp loại. Vi phạm điều cấm đã xác nhận hạ đúng 1 bậc khi đã có kết quả theo điểm.</strong></span></section>`;
+          }
+          """,
+          'formula policy copy')
+
+          replace_once(export,
+          """function statusLabel(record) {
+            return safeText(record.status, 'confirmed') === 'pending' ? 'Chờ xác nhận' : 'Đã xác nhận';
+          }
+
+          function classReport(workspace, range) {
+""",
+          """function statusLabel(record) {
+            return safeText(record.status, 'confirmed') === 'pending' ? 'Chờ xác nhận' : 'Đã xác nhận';
+          }
+
+          function formatConductAverage(value) {
+            return Number.isFinite(value) ? value.toFixed(2) : '—';
+          }
+
+          function classReport(workspace, range) {
+""",
+          'average formatter')
+
+          replace_once(export,
+          """  const classAverage = rows.length ? rows.reduce((sum, row) => sum + row.average, 0) / rows.length : FIXED_CONDUCT_POLICY.maximum;
+""",
+          """  const classifiableRows = rows.filter((row) => Number.isFinite(row.rawAverage));
+            const classAverage = classifiableRows.length
+              ? classifiableRows.reduce((sum, row) => sum + row.rawAverage, 0) / classifiableRows.length
+              : null;
+""",
+          'class average null-safe raw')
+
+          replace_count(export, '${row.average.toFixed(2)}', '${formatConductAverage(row.average)}', 2, 'row average formatting')
+          replace_once(export, '${classAverage.toFixed(2)}', '${formatConductAverage(classAverage)}', 'class average formatting')
+          replace_once(export, "${row.classification?.id || 'fail'}", "${row.classification?.id || 'unclassified'}", 'result css class fallback')
+
+          replace_once(export,
+          """<article><small>Tốt / Khá · Đạt / Chưa đạt</small><b>${counts.good} / ${counts.fair} · ${counts.pass} / ${counts.fail}</b></article>""",
+          """<article><small>Tốt / Khá · Đạt / Chưa đạt · Chưa XL</small><b>${counts.good} / ${counts.fair} · ${counts.pass} / ${counts.fail} · ${counts.unclassified}</b></article>""",
+          'class summary unclassified count')
+
+          replace_once(export,
+          """  const count = row.prohibitedViolationCount;
+            const note = count
+              ? (row.prohibitedDowngraded
+                ? `Có ${count} vi phạm điều cấm đã xác nhận. Hạ đúng 1 bậc từ ${row.baseClassification?.label || '—'} xuống ${row.classification?.label || '—'}.`
+                : `Có ${count} vi phạm điều cấm đã xác nhận; kết quả theo điểm đã là Chưa đạt.`)
+              : 'Không có vi phạm điều cấm đã xác nhận trong khoảng xét.';
+""",
+          """  const count = row.prohibitedViolationCount;
+            const note = row.classification?.id === 'unclassified'
+              ? (count
+                ? `Chưa có tuần hợp lệ để xếp loại. Có ${count} vi phạm điều cấm đã xác nhận được ghi nhận nhưng chưa áp dụng hạ bậc khi chưa có kết quả theo điểm.`
+                : 'Chưa có tuần hợp lệ để xếp loại trong khoảng xét.')
+              : count
+                ? (row.prohibitedDowngraded
+                  ? `Có ${count} vi phạm điều cấm đã xác nhận. Hạ đúng 1 bậc từ ${row.baseClassification?.label || '—'} xuống ${row.classification?.label || '—'}.`
+                  : `Có ${count} vi phạm điều cấm đã xác nhận; kết quả theo điểm đã là Chưa đạt.`)
+                : 'Không có vi phạm điều cấm đã xác nhận trong khoảng xét.';
+""",
+          'personal unclassified note')
+
+          replace_once(export, "${count ? 'downgraded' : ''}", "${row.prohibitedDowngraded ? 'downgraded' : ''}", 'banner downgrade state')
+          replace_once(export, ".result.fail{color:#b3261e;font-weight:900}", ".result.fail{color:#b3261e;font-weight:900}.result.unclassified{color:#5f6368;font-weight:900}", 'unclassified css')
+
+          replace_once(export,
+          """<span>Tốt ≥ 3,60 · Khá ≥ 3,00 · Đạt ≥ 2,40</span><span>·</span><strong>Điều cấm: hạ đúng 1 bậc</strong>""",
+          """<span>Tốt ≥ 3,60 · Khá ≥ 3,00 · Đạt ≥ 2,40</span><span>·</span><strong>Xếp loại theo điểm thô · Điều cấm: hạ đúng 1 bậc</strong>""",
+          'panel policy copy')
+
+          print('Patched conduct policy and active export runtime successfully.')
+          PY
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify boundary classification
+        run: |
+          node --input-type=module <<'NODE'
+          import { classifyConductPoint } from './src/utils/conductFixedPolicy.js';
+          const cases = [
+            [3.596, 'fair'],
+            [3.6, 'good'],
+            [89.96 / 25, 'fair'],
+            [90 / 25, 'good'],
+            [null, 'unclassified'],
+          ];
+          for (const [value, expected] of cases) {
+            const actual = classifyConductPoint(value).id;
+            if (actual !== expected) throw new Error(`Boundary case ${value}: expected ${expected}, got ${actual}`);
+          }
+          console.log('Boundary classification checks passed.');
+          NODE
+
+      - name: Build
+        run: npm run build
+
+      - name: Commit fix and remove one-time workflow
+        shell: bash
+        run: |
+          rm -f .github/workflows/fix-conduct-classification-once.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/utils/conductFixedPolicy.js src/conductMidFinalReportsV2.js .github/workflows/fix-conduct-classification-once.yml
+          git commit -m "Fix conduct classification boundaries and empty periods"
+          git push origin HEAD:main
