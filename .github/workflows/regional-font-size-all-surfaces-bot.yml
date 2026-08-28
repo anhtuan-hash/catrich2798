@@ -1,4 +1,4 @@
-name: Regional Font Size All Surfaces Bot
+name: Regional Font Size Reset Semantics
 
 on:
   push:
@@ -21,33 +21,38 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - name: Fix patcher regression assertion
+      - name: Fix reset semantics and regression coverage
         shell: bash
         run: |
           python - <<'PY'
           from pathlib import Path
-          path = Path('.github/scripts/patch-regional-font-sizes.py')
-          text = path.read_text()
-          bad = '''system.includes(\\"node.style.setProperty('font-size', `${size}px`, 'important')\\"))],'''
-          good = '''system.includes(\\"node.style.setProperty('font-size', `${size}px`, 'important')\\")],'''
-          if bad not in text:
-              raise SystemExit('expected bad regression assertion not found')
-          path.write_text(text.replace(bad, good, 1))
-          PY
-      - name: Patch regional font sizes
-        run: python .github/scripts/patch-regional-font-sizes.py
-      - name: Update navigation-only legacy assertion
-        shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          path = Path('scripts/test-font-upload-live-preview.mjs')
-          text = path.read_text()
-          old = "  ['navigation font size has live range control', panel.includes('regional-font-card__font-size') && panel.includes('type=\"range\"') && panel.includes('setNavigationFontSize')],"
-          new = "  ['every regional font size has a live range control', panel.includes('regional-font-card__font-size') && panel.includes('type=\"range\"') && panel.includes('setRegionFontSize(region.id')],"
-          if old not in text:
-              raise SystemExit('legacy navigation-only range assertion not found')
-          path.write_text(text.replace(old, new, 1))
+
+          panel_path = Path('src/components/admin/RegionalFontAdminPanel.jsx')
+          panel = panel_path.read_text()
+          old = """    const limits = getRegionalFontSizeLimits(regionId);
+              const number = Number(value);
+              const nextSize = Number.isFinite(number)
+                ? Math.min(limits.max, Math.max(limits.min, Math.round(number)))
+                : null;""".replace('              ', '    ')
+          new = """    const limits = getRegionalFontSizeLimits(regionId);
+              const shouldReset = value == null || value === '';
+              const number = Number(value);
+              const nextSize = shouldReset
+                ? null
+                : (Number.isFinite(number)
+                  ? Math.min(limits.max, Math.max(limits.min, Math.round(number)))
+                  : null);""".replace('              ', '    ')
+          if panel.count(old) != 1:
+              raise SystemExit(f'expected one regional size setter, found {panel.count(old)}')
+          panel_path.write_text(panel.replace(old, new, 1))
+
+          test_path = Path('scripts/test-font-upload-live-preview.mjs')
+          test = test_path.read_text()
+          anchor = "  ['all regional size controls render for every font region', panel.includes('getRegionalFontSizeLimits(region.id)') && panel.includes('setRegionFontSize(region.id') && !panel.includes(\"region.id === 'navigation' ? getRegionalFontSize\")],"
+          addition = anchor + "\n  ['regional size default action removes the override instead of clamping to minimum', panel.includes(\"const shouldReset = value == null || value === ''\") && panel.includes('const nextSize = shouldReset') && panel.includes('setRegionFontSize(region.id, null)')],"
+          if test.count(anchor) != 1:
+              raise SystemExit(f'expected one regional size contract anchor, found {test.count(anchor)}')
+          test_path.write_text(test.replace(anchor, addition, 1))
           PY
       - name: Install dependencies
         run: npm ci
@@ -55,12 +60,12 @@ jobs:
         run: node scripts/test-font-upload-live-preview.mjs
       - name: Build production bundle
         run: npm run build
-      - name: Commit implementation
+      - name: Commit reset fix
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/utils/globalRegionalFontSystem.js src/components/admin/RegionalFontAdminPanel.jsx scripts/test-font-upload-live-preview.mjs
+          git add src/components/admin/RegionalFontAdminPanel.jsx scripts/test-font-upload-live-preview.mjs
           git diff --cached --quiet && exit 0
-          git commit -m "fix(fonts): enable text size for every region"
+          git commit -m "fix(fonts): reset regional text size to inheritance"
           git push origin HEAD:fix/regional-font-sizes-all-surfaces
