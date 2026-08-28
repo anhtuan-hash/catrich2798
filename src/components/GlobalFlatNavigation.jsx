@@ -81,6 +81,8 @@ import './GlobalNavigationRaisedPills.css';
 import './GlobalNavigationRaisedPillsFix.css';
 // FINAL REPORTS OVERRIDE: keep countdown directly below the Reports label without changing row height.
 import './GlobalReportsCountdownBelowLabel.css';
+// FINAL TYPOGRAPHY AUTHORITY: regional navigation font family/size must beat visual defaults.
+import './GlobalNavigationRegionalTypographyFinal.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
