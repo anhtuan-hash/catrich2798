@@ -1,6 +1,5 @@
 import fontkit from '@pdf-lib/fontkit';
 import { PDFDocument, rgb } from 'pdf-lib';
-import pdfVietnameseFontUrl from 'pdfjs-dist/standard_fonts/LiberationSans-Regular.ttf?url';
 import { PEK_TEACHER_SIGNATURE_PNG_BASE64 } from '../assets/pekTeacherSignature.js';
 import { buildGradeExportColumns, gradeExportValue } from './homeroomGradebookExport.js';
 
@@ -10,6 +9,10 @@ const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
 const PAGE_MARGIN = 36;
 const ROWS_PER_PAGE = 18;
+const PDF_VIETNAMESE_FONT_URLS = Object.freeze([
+  '/bes-fonts/brian-personal-font.ttf',
+  'https://raw.githubusercontent.com/notofonts/noto-fonts/main/hinted/ttf/NotoSans/NotoSans-Regular.ttf',
+]);
 
 const COLORS = Object.freeze({
   blue: rgb(0.043, 0.341, 0.816),
@@ -31,7 +34,7 @@ const SEMESTER_LABELS = Object.freeze({
 });
 
 function safeText(value, fallback = '') {
-  const text = String(value ?? '').trim();
+  const text = String(value ?? '').normalize('NFC').trim();
   return text || fallback;
 }
 
@@ -68,6 +71,18 @@ function assertTrueTypeFont(bytes) {
     throw new Error('Font tiếng Việt dùng để tạo PDF không đúng định dạng TTF/OTF.');
   }
   return bytes;
+}
+
+async function fetchVietnameseFontBytes() {
+  let lastError = null;
+  for (const path of PDF_VIETNAMESE_FONT_URLS) {
+    try {
+      return assertTrueTypeFont(await fetchBytes(path, 'font tiếng Việt'));
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error('Không thể tải font tiếng Việt đầy đủ để tạo phiếu điểm PDF.');
 }
 
 function reportTime(date) {
@@ -329,7 +344,7 @@ export async function buildStudentGradeReportPdf(input) {
   };
 
   const [fontBytes, logoBytes, signatureBytes] = await Promise.all([
-    suppliedFontBytes || fetchBytes(pdfVietnameseFontUrl, 'font tiếng Việt'),
+    suppliedFontBytes ? Promise.resolve(assertTrueTypeFont(suppliedFontBytes)) : fetchVietnameseFontBytes(),
     suppliedLogoBytes || fetchBytes('/footer-pek-logo.png', 'logo trường'),
     suppliedSignatureBytes || Promise.resolve(base64Bytes(PEK_TEACHER_SIGNATURE_PNG_BASE64)),
   ]);
@@ -345,7 +360,7 @@ export async function buildStudentGradeReportPdf(input) {
   pdf.setModificationDate(now);
 
   const [font, logo, signature] = await Promise.all([
-    pdf.embedFont(assertTrueTypeFont(fontBytes), { subset: true }),
+    pdf.embedFont(fontBytes, { subset: true }),
     pdf.embedPng(logoBytes),
     pdf.embedPng(signatureBytes),
   ]);
