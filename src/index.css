@@ -31,3 +31,103 @@
   clip-path: none !important;
   opacity: 0 !important;
 }
+
+/* Home weekly-practice dialogs
+   Keep the manager and TTCM statistics surfaces in the viewport layer. These
+   components are rendered with React portals to document.body; without this
+   shell they fall back into normal document flow below Home. */
+html:has(body > .bes-weekly-modal-backdrop),
+html:has(body > .bes-weekly-stat-backdrop),
+body:has(> .bes-weekly-modal-backdrop),
+body:has(> .bes-weekly-stat-backdrop) {
+  overflow: hidden !important;
+}
+
+body > .bes-weekly-modal-backdrop,
+body > .bes-weekly-stat-backdrop {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  margin: 0 !important;
+  padding: clamp(12px, 2.2vw, 28px) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: auto !important;
+  overscroll-behavior: contain;
+  background: rgba(15, 23, 42, .56) !important;
+  box-sizing: border-box !important;
+  isolation: isolate;
+}
+
+body > .bes-weekly-modal-backdrop {
+  z-index: 2147483000 !important;
+}
+
+body > .bes-weekly-stat-backdrop {
+  z-index: 2147483100 !important;
+}
+
+body > .bes-weekly-modal-backdrop > .bes-weekly-manager,
+body > .bes-weekly-stat-backdrop > .bes-weekly-stat-panel {
+  position: relative !important;
+  inset: auto !important;
+  margin: auto !important;
+  max-width: 100% !important;
+  max-height: calc(100dvh - clamp(24px, 4.4vw, 56px)) !important;
+  min-height: 0 !important;
+  box-sizing: border-box !important;
+  background: #fff !important;
+  border: 1px solid rgba(148, 163, 184, .28) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 28px 80px rgba(15, 23, 42, .28) !important;
+}
+
+body > .bes-weekly-modal-backdrop > .bes-weekly-manager {
+  width: min(1180px, 100%) !important;
+  overflow: auto !important;
+  overscroll-behavior: contain;
+}
+
+body > .bes-weekly-stat-backdrop > .bes-weekly-stat-panel {
+  width: min(1320px, 100%) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-header,
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-toolbar {
+  flex: 0 0 auto;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-content {
+  flex: 1 1 auto;
+  min-height: 0 !important;
+  overflow: auto !important;
+  overscroll-behavior: contain;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-close,
+body > .bes-weekly-stat-backdrop .bes-weekly-close {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 720px) {
+  body > .bes-weekly-modal-backdrop,
+  body > .bes-weekly-stat-backdrop {
+    align-items: flex-start !important;
+    padding: 8px !important;
+  }
+
+  body > .bes-weekly-modal-backdrop > .bes-weekly-manager,
+  body > .bes-weekly-stat-backdrop > .bes-weekly-stat-panel {
+    width: 100% !important;
+    max-height: calc(100dvh - 16px) !important;
+    border-radius: 18px !important;
+  }
+}
