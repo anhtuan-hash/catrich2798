@@ -23,6 +23,7 @@ const NAV_ORDER = {
 };
 
 const HUB_TYPOGRAPHY = {
+  uiFamily: 'var(--bes-global-font-family, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)',
   brand: { fontSize: '19px', lineHeight: '1.1' },
   navItem: { fontSize: '15px', lineHeight: '1' },
   account: { fontSize: '15px', lineHeight: '1.2' },
@@ -47,13 +48,23 @@ function keyForButton(button) {
   return matched?.[1] || '';
 }
 
+function lockUiFamily(root) {
+  if (!root) return;
+  setImportant(root, 'font-family', HUB_TYPOGRAPHY.uiFamily);
+  root.querySelectorAll(':is(span, strong, b, small, em, label)').forEach((label) => {
+    setImportant(label, 'font-family', HUB_TYPOGRAPHY.uiFamily);
+  });
+}
+
 function lockHubTypography(nav, primary) {
   if (!nav || !primary) return;
 
-  // Keep the shared hub visually identical on every route. Some historical
-  // Home styles load lazily and used to shrink the header typography after the
-  // global CSS had already rendered. Inline !important is the final authority
-  // for size only; font-family remains controlled by the Admin font setting.
+  // Keep the shared hub visually identical on every route. Several navigation
+  // entries (Reports/TTCM) are mounted through portals and the account control
+  // is remounted independently, so route/feature CSS can otherwise give those
+  // late nodes a different font family. Inline !important is the final chrome
+  // authority for the UI family and type scale. The Brian English brand remains
+  // intentionally outside this family lock and keeps its own brand typography.
   nav.dataset.hubTypography = 'locked';
   setImportant(nav, '-webkit-text-size-adjust', '100%');
   setImportant(nav, 'text-size-adjust', '100%');
@@ -63,15 +74,22 @@ function lockHubTypography(nav, primary) {
   setImportant(brandLabel, 'line-height', HUB_TYPOGRAPHY.brand.lineHeight);
 
   primary.querySelectorAll(':scope > button, :scope > a').forEach((item) => {
+    lockUiFamily(item);
     setImportant(item, 'font-size', HUB_TYPOGRAPHY.navItem.fontSize);
     setImportant(item, 'line-height', HUB_TYPOGRAPHY.navItem.lineHeight);
   });
 
+  nav.querySelectorAll('.brian-nav__account').forEach((account) => {
+    lockUiFamily(account);
+  });
   nav.querySelectorAll('.brian-nav__account strong').forEach((label) => {
     setImportant(label, 'font-size', HUB_TYPOGRAPHY.account.fontSize);
     setImportant(label, 'line-height', HUB_TYPOGRAPHY.account.lineHeight);
   });
 
+  nav.querySelectorAll('.brian-nav__ai-button').forEach((button) => {
+    lockUiFamily(button);
+  });
   nav.querySelectorAll('.brian-nav__ai-button > span').forEach((label) => {
     setImportant(label, 'font-size', HUB_TYPOGRAPHY.aiLabel.fontSize);
     setImportant(label, 'line-height', HUB_TYPOGRAPHY.aiLabel.lineHeight);
