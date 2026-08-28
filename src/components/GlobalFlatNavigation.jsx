@@ -79,6 +79,8 @@ import '../styles/GlobalLayout16x9Authority.css';
 import './GlobalNavigationRaisedPills.css';
 // FINAL HOTFIX: keep icons out of labels and reinforce the active destination state.
 import './GlobalNavigationRaisedPillsFix.css';
+// FINAL REPORTS OVERRIDE: keep countdown directly below the Reports label without changing row height.
+import './GlobalReportsCountdownBelowLabel.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
