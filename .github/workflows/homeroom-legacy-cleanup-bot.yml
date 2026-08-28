@@ -28,99 +28,103 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
+
+          def require(condition, message):
+              if not condition:
+                  raise SystemExit(message)
 
           core = Path('src/components/homeroom/HomeroomCoreTabs.jsx')
           s = core.read_text()
-          for line in [
-              '  addLearningRecord,\n',
-              '  updateGradeSettings,\n',
-              '  parseLearningFile,\n',
-              '  studentMetrics,\n',
-          ]:
-              if line not in s:
-                  raise SystemExit(f'Missing expected legacy import: {line!r}')
-              s = s.replace(line, '', 1)
-          start = s.find('export function LearningTab(')
-          end = s.find('export function ScheduleTab(', start)
-          if start < 0 or end < 0:
-              raise SystemExit('LearningTab boundaries not found')
+          require('export function LearningTab(' in s, 'LearningTab boundary missing')
+          start = s.index('export function LearningTab(')
+          end = s.index('export function ScheduleTab(', start)
           s = s[:start] + s[end:]
+          for name in ['addLearningRecord', 'updateGradeSettings', 'parseLearningFile', 'studentMetrics']:
+              s, count = re.subn(rf'^\s{{2}}{name},\n', '', s, count=1, flags=re.M)
+              require(count == 1, f'Legacy import not removed: {name}')
           core.write_text(s)
+          print('patched HomeroomCoreTabs.jsx')
 
           tab = Path('src/components/HomeroomConductTab.jsx')
           s = tab.read_text()
-          old_reason = "reason: mode === 'lock' ? 'Đã rà soát dữ liệu và xác nhận kết quả rèn luyện tuần' : mode === 'reset' ? 'Reset dữ liệu tuần khẩn cấp' : 'Mở khóa để điều chỉnh dữ liệu tuần',"
-          new_reason = "reason: mode === 'lock' ? 'Đã rà soát dữ liệu và xác nhận kết quả rèn luyện tuần' : '',"
-          if old_reason not in s:
-              raise SystemExit('Lock-dialog default reason contract not found')
-          s = s.replace(old_reason, new_reason, 1)
+          s, count = re.subn(
+              r"reason: mode === 'lock' \? 'Đã rà soát dữ liệu và xác nhận kết quả rèn luyện tuần' : mode === 'reset' \? 'Reset dữ liệu tuần khẩn cấp' : 'Mở khóa để điều chỉnh dữ liệu tuần',",
+              "reason: mode === 'lock' ? 'Đã rà soát dữ liệu và xác nhận kết quả rèn luyện tuần' : '',",
+              s,
+              count=1,
+          )
+          require(count == 1, 'Lock-dialog default reason contract not found')
 
-          marker = "  const handleWeekLockSubmit = async () => {\n    const verified = await verifyConductLockPassword(workspace, lockDialog.password);"
-          replacement = "  const handleWeekLockSubmit = async () => {\n    if (lockDialog.mode !== 'lock' && !String(lockDialog.reason || '').trim()) {\n      setLockDialog((current) => ({ ...current, error: lockDialog.mode === 'reset' ? 'Vui lòng nhập lý do reset dữ liệu tuần.' : 'Vui lòng nhập lý do mở khóa tuần.' }));\n      return;\n    }\n    const verified = await verifyConductLockPassword(workspace, lockDialog.password);"
-          if marker not in s:
-              raise SystemExit('Week-lock submit marker not found')
-          s = s.replace(marker, replacement, 1)
+          marker = "  const handleWeekLockSubmit = async () => {\n"
+          require(marker in s, 'Week-lock submit marker not found')
+          guard = (
+              "  const handleWeekLockSubmit = async () => {\n"
+              "    if (lockDialog.mode !== 'lock' && !String(lockDialog.reason || '').trim()) {\n"
+              "      setLockDialog((current) => ({ ...current, error: lockDialog.mode === 'reset' ? 'Vui lòng nhập lý do reset dữ liệu tuần.' : 'Vui lòng nhập lý do mở khóa tuần.' }));\n"
+              "      return;\n"
+              "    }\n"
+          )
+          s = s.replace(marker, guard, 1)
 
-          old_calls = ": resetConductWeekData(workspace, weekStart, actor)\n          : reopenConductWeek(workspace, weekStart, actor);"
-          new_calls = ": resetConductWeekData(workspace, weekStart, actor, lockDialog.reason)\n          : reopenConductWeek(workspace, weekStart, actor, lockDialog.reason);"
-          if old_calls not in s:
-              raise SystemExit('Conduct reopen/reset calls not found')
-          s = s.replace(old_calls, new_calls, 1)
+          require('resetConductWeekData(workspace, weekStart, actor)' in s, 'Reset call not found')
+          require('reopenConductWeek(workspace, weekStart, actor)' in s, 'Reopen call not found')
+          s = s.replace('resetConductWeekData(workspace, weekStart, actor)', 'resetConductWeekData(workspace, weekStart, actor, lockDialog.reason)', 1)
+          s = s.replace('reopenConductWeek(workspace, weekStart, actor)', 'reopenConductWeek(workspace, weekStart, actor, lockDialog.reason)', 1)
 
           old_note = '🔒 Tuần đã khóa. Nhấn “Mở khóa tuần”, nhập mật khẩu và có thể sửa ngay; không cần nhập lý do.'
-          new_note = '🔒 Tuần đã khóa. Nhấn “Mở khóa tuần”, nhập lý do và mật khẩu để tạo dấu vết kiểm toán trước khi chỉnh sửa.'
-          if old_note not in s:
-              raise SystemExit('Locked-week helper text not found')
-          s = s.replace(old_note, new_note, 1)
+          require(old_note in s, 'Locked-week helper text not found')
+          s = s.replace(old_note, '🔒 Tuần đã khóa. Nhấn “Mở khóa tuần”, nhập lý do và mật khẩu để tạo dấu vết kiểm toán trước khi chỉnh sửa.', 1)
 
-          password_label = '<label><span>Mật khẩu khóa rèn luyện <b>*</b></span><input type="password" autoFocus value={lockDialog.password} onChange={(event) => setLockDialog((current) => ({ ...current, password: event.target.value, error: \'\' }))} onKeyDown={(event) => { if (event.key === \'Enter\') handleWeekLockSubmit(); }} placeholder="Nhập mật khẩu" /></label>'
-          reason_label = "{lockDialog.mode !== 'lock' ? <label><span>{lockDialog.mode === 'reset' ? 'Lý do reset dữ liệu tuần' : 'Lý do mở khóa tuần'} <b>*</b></span><textarea value={lockDialog.reason} onChange={(event) => setLockDialog((current) => ({ ...current, reason: event.target.value, error: '' }))} placeholder={lockDialog.mode === 'reset' ? 'Nêu rõ lý do phải xóa dữ liệu tuần…' : 'Nêu rõ nội dung cần điều chỉnh sau khi mở khóa…'} /></label> : null}\n              " + password_label
-          if password_label not in s:
-              raise SystemExit('Password field marker not found')
-          s = s.replace(password_label, reason_label, 1)
+          password_marker = '              <label><span>Mật khẩu khóa rèn luyện <b>*</b></span><input type="password"'
+          require(password_marker in s, 'Password field marker not found')
+          reason_field = (
+              "              {lockDialog.mode !== 'lock' ? <label><span>{lockDialog.mode === 'reset' ? 'Lý do reset dữ liệu tuần' : 'Lý do mở khóa tuần'} <b>*</b></span><textarea value={lockDialog.reason} onChange={(event) => setLockDialog((current) => ({ ...current, reason: event.target.value, error: '' }))} placeholder={lockDialog.mode === 'reset' ? 'Nêu rõ lý do phải xóa dữ liệu tuần…' : 'Nêu rõ nội dung cần điều chỉnh sau khi mở khóa…'} /></label> : null}\n"
+          )
+          s = s.replace(password_marker, reason_field + password_marker, 1)
 
           old_disabled = "disabled={lockDialog.busy || !lockDialog.password || (lockDialog.mode === 'reset' && !lockDialog.resetConfirmed)}"
-          new_disabled = "disabled={lockDialog.busy || !lockDialog.password || (lockDialog.mode !== 'lock' && !String(lockDialog.reason || '').trim()) || (lockDialog.mode === 'reset' && !lockDialog.resetConfirmed)}"
-          if old_disabled not in s:
-              raise SystemExit('Lock-dialog submit disabled contract not found')
-          s = s.replace(old_disabled, new_disabled, 1)
+          require(old_disabled in s, 'Lock-dialog disabled contract not found')
+          s = s.replace(old_disabled, "disabled={lockDialog.busy || !lockDialog.password || (lockDialog.mode !== 'lock' && !String(lockDialog.reason || '').trim()) || (lockDialog.mode === 'reset' && !lockDialog.resetConfirmed)}", 1)
           tab.write_text(s)
+          print('patched HomeroomConductTab.jsx')
 
           util = Path('src/utils/homeroomConduct.js')
           s = util.read_text()
-          old_reopen = "export function reopenConductWeek(workspace, weekStart, actor = '', reason = '') {\n  const current = normalizeHomeroomWorkspace(workspace);\n  const key = startOfConductWeek(weekStart);\n  const existing = getConductWeekSummary(current, key);\n  if (!existing || existing.status !== 'locked') return current;\n  const reopenReason = safeText(reason, 'Mở khóa để điều chỉnh dữ liệu tuần');"
-          new_reopen = "export function reopenConductWeek(workspace, weekStart, actor = '', reason = '') {\n  const current = normalizeHomeroomWorkspace(workspace);\n  const key = startOfConductWeek(weekStart);\n  const existing = getConductWeekSummary(current, key);\n  if (!existing || existing.status !== 'locked') return current;\n  const reopenReason = safeText(reason);\n  if (!reopenReason) throw new Error('Vui lòng nhập lý do mở khóa tuần.');"
-          if old_reopen not in s:
-              raise SystemExit('reopenConductWeek contract not found')
-          s = s.replace(old_reopen, new_reopen, 1)
+          old = "  const reopenReason = safeText(reason, 'Mở khóa để điều chỉnh dữ liệu tuần');"
+          require(old in s, 'reopen reason fallback not found')
+          s = s.replace(old, "  const reopenReason = safeText(reason);\n  if (!reopenReason) throw new Error('Vui lòng nhập lý do mở khóa tuần.');", 1)
 
-          old_reset = "export function resetConductWeekData(workspace, weekStart, actor = '') {\n  const current = normalizeHomeroomWorkspace(workspace);\n  const key = startOfConductWeek(weekStart);\n  const existing = getConductWeekSummary(current, key);\n  const changedAt = new Date().toISOString();"
-          new_reset = "export function resetConductWeekData(workspace, weekStart, actor = '', reason = '') {\n  const current = normalizeHomeroomWorkspace(workspace);\n  const key = startOfConductWeek(weekStart);\n  const existing = getConductWeekSummary(current, key);\n  const resetReason = safeText(reason);\n  if (!resetReason) throw new Error('Vui lòng nhập lý do reset dữ liệu tuần.');\n  const changedAt = new Date().toISOString();"
-          if old_reset not in s:
-              raise SystemExit('resetConductWeekData contract not found')
-          s = s.replace(old_reset, new_reset, 1)
-
-          old_history_reason = "      reason: `Đã xóa khẩn cấp ${removedRecords.length} ghi nhận trong tuần`,"
-          new_history_reason = "      reason: `${resetReason} · Đã xóa ${removedRecords.length} ghi nhận trong tuần`,"
-          if old_history_reason not in s:
-              raise SystemExit('Reset audit reason marker not found')
-          s = s.replace(old_history_reason, new_history_reason, 1)
-
-          old_reset_meta = "    resetAt: changedAt,\n    resetBy: safeText(actor),\n    reopenedAt: changedAt,"
-          new_reset_meta = "    resetAt: changedAt,\n    resetBy: safeText(actor),\n    resetReason,\n    reopenedAt: changedAt,\n    reopenReason: resetReason,"
-          if old_reset_meta not in s:
-              raise SystemExit('Reset metadata marker not found')
-          s = s.replace(old_reset_meta, new_reset_meta, 1)
+          old_sig = "export function resetConductWeekData(workspace, weekStart, actor = '') {"
+          require(old_sig in s, 'reset signature not found')
+          s = s.replace(old_sig, "export function resetConductWeekData(workspace, weekStart, actor = '', reason = '') {", 1)
+          marker = "  const existing = getConductWeekSummary(current, key);\n  const changedAt = new Date().toISOString();"
+          require(marker in s, 'reset validation marker not found')
+          s = s.replace(marker, "  const existing = getConductWeekSummary(current, key);\n  const resetReason = safeText(reason);\n  if (!resetReason) throw new Error('Vui lòng nhập lý do reset dữ liệu tuần.');\n  const changedAt = new Date().toISOString();", 1)
+          s, count = re.subn(
+              r"reason: `Đã xóa khẩn cấp \$\{removedRecords\.length\} ghi nhận trong tuần`,",
+              "reason: `${resetReason} · Đã xóa ${removedRecords.length} ghi nhận trong tuần`,",
+              s,
+              count=1,
+          )
+          require(count == 1, 'Reset history reason not found')
+          marker = "    resetBy: safeText(actor),\n"
+          require(marker in s, 'reset metadata marker not found')
+          s = s.replace(marker, marker + "    resetReason,\n", 1)
           util.write_text(s)
+          print('patched homeroomConduct.js')
           PY
       - name: Verify focused contracts
         run: |
-          node --check src/utils/homeroomConduct.js
-          node --check src/components/homeroom/HomeroomCoreTabs.jsx || true
           grep -q "export function ScheduleTab" src/components/homeroom/HomeroomCoreTabs.jsx
           ! grep -q "export function LearningTab" src/components/homeroom/HomeroomCoreTabs.jsx
+          ! grep -q "addLearningRecord" src/components/homeroom/HomeroomCoreTabs.jsx
           grep -q "reopenConductWeek(workspace, weekStart, actor, lockDialog.reason)" src/components/HomeroomConductTab.jsx
+          grep -q "resetConductWeekData(workspace, weekStart, actor, lockDialog.reason)" src/components/HomeroomConductTab.jsx
           grep -q "Vui lòng nhập lý do mở khóa tuần" src/utils/homeroomConduct.js
+          grep -q "resetReason" src/utils/homeroomConduct.js
+          npm ci
+          npm run build
       - name: Commit patch
         run: |
           git config user.name "github-actions[bot]"
