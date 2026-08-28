@@ -1,10 +1,9 @@
 // Home grade-entry launcher.
-// Home should remain a lightweight landing surface: clicking a grade entry opens
-// the dedicated THPT Practice Hub instead of mounting the legacy lesson runner
-// inline below the Home footer.
+// Home stays a lightweight landing surface: clicking a grade entry opens the
+// Weekly Practice Hub instead of mounting an exercise runner inline on Home.
 
 const HOME_GRADE_BUTTON = ".app-shell[data-route='home'] .bha-folio-grade .bha-grade-copy > button";
-const PRACTICE_HUB_TARGET = '#/tool/thpt-practice-hub';
+const WEEKLY_PRACTICE_HUB_TARGET = '#/practice';
 
 function gradeFromCard(card) {
   if (!card) return '';
@@ -29,7 +28,7 @@ function handleHomeGradeEntry(event) {
     // Navigation must still work when browser storage is unavailable.
   }
 
-  window.location.hash = PRACTICE_HUB_TARGET;
+  window.location.hash = WEEKLY_PRACTICE_HUB_TARGET;
 }
 
 window.addEventListener('click', handleHomeGradeEntry, true);
