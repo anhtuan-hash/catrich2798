@@ -12,6 +12,14 @@ import './GlobalAccountTextSizeBridge.css';
 const DEFAULT_SIZE = 16;
 const MIN_SIZE = 11;
 const MAX_SIZE = 22;
+const RUNTIME_OWNER_ATTR = 'data-bes-navigation-font-size-runtime';
+const NAVIGATION_TEXT_SELECTOR = [
+  '.brian-nav__brand > span',
+  '.brian-nav__primary > button',
+  '.brian-nav__primary > a',
+  ".brian-nav__primary > [role='button']",
+  '.brian-nav__account > strong',
+].join(',');
 
 function clampSize(value) {
   const size = Math.round(Number(value) || DEFAULT_SIZE);
@@ -36,6 +44,33 @@ function withNavigationSize(settings, size) {
   return next;
 }
 
+function syncNavigationFontSizeDom(settings = getRegionalFontSettings()) {
+  if (typeof document === 'undefined') return;
+  const navigationSize = getRegionalFontSize(settings, 'navigation');
+  const owned = [...document.querySelectorAll(`[${RUNTIME_OWNER_ATTR}='true']`)];
+
+  if (!navigationSize) {
+    owned.forEach((node) => {
+      node.style.removeProperty('font-size');
+      node.removeAttribute(RUNTIME_OWNER_ATTR);
+    });
+    return;
+  }
+
+  const sizeValue = `${navigationSize}px`;
+  document.querySelectorAll(NAVIGATION_TEXT_SELECTOR).forEach((node) => {
+    node.style.setProperty('font-size', sizeValue, 'important');
+    node.setAttribute(RUNTIME_OWNER_ATTR, 'true');
+  });
+
+  owned.forEach((node) => {
+    if (!node.matches(NAVIGATION_TEXT_SELECTOR)) {
+      node.style.removeProperty('font-size');
+      node.removeAttribute(RUNTIME_OWNER_ATTR);
+    }
+  });
+}
+
 function isVietnamese() {
   if (typeof window === 'undefined') return true;
   try { return (window.localStorage.getItem('bet-language') || 'vi') !== 'en'; }
@@ -52,13 +87,14 @@ export default function GlobalAccountTextSizeBridge() {
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
-    const findHost = () => {
+    const findHostAndSync = () => {
       const next = document.querySelector('.brian-nav__account-menu .brian-nav__font-options');
       setHost((current) => current === next ? current : next);
       setVi(isVietnamese());
+      syncNavigationFontSizeDom();
     };
-    findHost();
-    const observer = new MutationObserver(findHost);
+    findHostAndSync();
+    const observer = new MutationObserver(findHostAndSync);
     observer.observe(document.body, { childList: true, subtree: true });
     return () => observer.disconnect();
   }, []);
@@ -69,7 +105,9 @@ export default function GlobalAccountTextSizeBridge() {
       const settings = event?.detail?.settings || getRegionalFontSettings();
       setSize(readSize(settings));
       setOverridden(hasOverride(settings));
+      syncNavigationFontSizeDom(settings);
     };
+    syncNavigationFontSizeDom();
     window.addEventListener(REGIONAL_FONT_EVENT, sync);
     return () => window.removeEventListener(REGIONAL_FONT_EVENT, sync);
   }, []);
@@ -92,12 +130,14 @@ export default function GlobalAccountTextSizeBridge() {
       persist: false,
       source: 'account-navigation-font-size-preview',
     });
+    syncNavigationFontSizeDom(next);
 
     const result = await saveRegionalFontSettings(next);
     if (!result?.ok) {
       applyRegionalFontSettings(previous, {
         source: 'account-navigation-font-size-rollback',
       });
+      syncNavigationFontSizeDom(previous);
       setSize(previousSize);
       setOverridden(previousOverride);
       setError(vi ? 'Không thể lưu cỡ chữ.' : 'Could not save text size.');
@@ -106,6 +146,7 @@ export default function GlobalAccountTextSizeBridge() {
     }
 
     const saved = result.settings || next;
+    syncNavigationFontSizeDom(saved);
     setSize(readSize(saved));
     setOverridden(hasOverride(saved));
     setBusy(false);
