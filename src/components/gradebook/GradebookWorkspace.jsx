@@ -1,6 +1,11 @@
 import GradebookEngine from './GradebookEngine.jsx';
-import '../../styles/GradebookEditorialV2.css';
+import editorialCss from '../../styles/GradebookEditorialV2.css?inline';
 
-// Public Gradebook boundary. The engine now lives in the Gradebook domain;
-// Homeroom no longer owns or imports grade-entry code.
-export default GradebookEngine;
+// Public Gradebook boundary. The final editorial layer is rendered after the
+// app styles so the previous hero treatment cannot win the cascade again.
+export default function GradebookWorkspace(props) {
+  return <>
+    <style>{editorialCss}</style>
+    <GradebookEngine {...props} />
+  </>;
+}
