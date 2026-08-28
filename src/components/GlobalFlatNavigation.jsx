@@ -77,6 +77,8 @@ import './GlobalUnifiedNavigationHub.css';
 import '../styles/GlobalLayout16x9Authority.css';
 // FINAL PRIMARY-NAV VISUAL AUTHORITY: raised, tactile destination buttons approved for Brian.
 import './GlobalNavigationRaisedPills.css';
+// FINAL HOTFIX: keep icons out of labels and reinforce the active destination state.
+import './GlobalNavigationRaisedPillsFix.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
