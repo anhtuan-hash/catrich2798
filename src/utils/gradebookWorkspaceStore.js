@@ -119,6 +119,7 @@ function metadataFromWorkspace(raw, user) {
     archivedAt: workspace.archivedAt,
     studentCount: workspace.students.filter((student) => student?.active !== false).length,
     updatedAt: workspace.updatedAt,
+    migrationState: 'migrated',
     source: 'gradebook-local',
   };
 }
@@ -136,6 +137,7 @@ function metadataFromRow(row) {
     studentCount: Number(row.student_count) || 0,
     updatedAt: row.updated_at || '',
     migratedFromHomeroom: row.migrated_from_homeroom === true,
+    migrationState: 'migrated',
     source: 'gradebook-cloud',
   };
 }
@@ -155,6 +157,34 @@ function mergeCatalog(preferred = [], fallback = []) {
   return sortCatalog([...merged.values()]);
 }
 
+function markMigrationState(items = [], migrationState = 'pending', source = 'homeroom-legacy') {
+  return (items || []).map((item) => ({
+    ...item,
+    migrationState,
+    source: item?.source && String(item.source).startsWith('gradebook-') ? item.source : source,
+  }));
+}
+
+export function summarizeGradebookMigration(items = []) {
+  const summary = { total: 0, migrated: 0, pending: 0, compatibility: 0, complete: false };
+  (items || []).forEach((item) => {
+    if (!item?.id) return;
+    summary.total += 1;
+    const state = item.migrationState === 'compatibility'
+      ? 'compatibility'
+      : item.migrationState === 'migrated'
+        ? 'migrated'
+        : 'pending';
+    summary[state] += 1;
+  });
+  summary.complete = summary.pending === 0 && summary.compatibility === 0;
+  return summary;
+}
+
+function catalogResult(items, extra = {}) {
+  return { ...extra, items, migration: summarizeGradebookMigration(items) };
+}
+
 function readLocalIndex(user) {
   const rows = readJson(indexKey(user), []);
   return Array.isArray(rows) ? rows.filter((item) => item?.id) : [];
@@ -163,6 +193,11 @@ function readLocalIndex(user) {
 function writeLocalIndex(user, item) {
   const current = readLocalIndex(user).filter((entry) => entry.id !== item.id);
   writeJson(indexKey(user), sortCatalog([item, ...current]));
+}
+
+function readDedicatedLocalGradebookClass(user, classId) {
+  const dedicated = readJson(workspaceKey(user, classId), null);
+  return dedicated ? normalizeGradebookWorkspace(dedicated, user) : null;
 }
 
 function isMissingGradebookTable(error) {
@@ -235,15 +270,15 @@ async function saveLegacyCompatibility(workspace, user) {
 }
 
 export function listLocalGradebookClasses(user) {
-  const dedicated = readLocalIndex(user);
-  const legacy = listLocalHomeroomWorkspaces(user);
+  const dedicated = markMigrationState(readLocalIndex(user), 'migrated', 'gradebook-local');
+  const legacy = markMigrationState(listLocalHomeroomWorkspaces(user), 'pending');
   return mergeCatalog(dedicated, legacy);
 }
 
 export async function listGradebookClasses(user) {
   const local = listLocalGradebookClasses(user);
   if (!isSupabaseConfigured || !supabase || !user?.id) {
-    return { ok: true, offline: true, items: local, source: 'gradebook-local' };
+    return catalogResult(local, { ok: true, offline: true, source: 'gradebook-local' });
   }
 
   const { data, error } = await supabase
@@ -254,41 +289,64 @@ export async function listGradebookClasses(user) {
 
   if (error && isMissingGradebookTable(error)) {
     const legacy = await listHomeroomWorkspaces(user);
-    return { ...legacy, items: mergeCatalog(local, legacy.items || []), source: 'legacy-cloud-compat' };
+    const compatibility = markMigrationState(legacy.items || [], 'compatibility', 'legacy-cloud-compat');
+    return catalogResult(mergeCatalog(local, compatibility), {
+      ...legacy,
+      source: 'legacy-cloud-compat',
+      gradebookTablePending: true,
+    });
   }
 
   if (error) {
     try {
       const legacy = await listHomeroomWorkspaces(user);
-      return { ok: false, offline: true, message: error.message, items: mergeCatalog(local, legacy.items || []) };
+      const pending = markMigrationState(legacy.items || [], 'pending');
+      return catalogResult(mergeCatalog(local, pending), {
+        ok: false,
+        offline: true,
+        message: error.message,
+        source: 'gradebook-local',
+      });
     } catch {
-      return { ok: false, offline: true, message: error.message, items: local };
+      return catalogResult(local, {
+        ok: false,
+        offline: true,
+        message: error.message,
+        source: 'gradebook-local',
+      });
     }
   }
 
   let legacyItems = [];
   try {
     const legacy = await listHomeroomWorkspaces(user);
-    legacyItems = legacy.items || [];
+    legacyItems = markMigrationState(legacy.items || [], 'pending');
   } catch {
     legacyItems = [];
   }
-  const cloud = (data || []).map(metadataFromRow);
-  return { ok: true, items: mergeCatalog(cloud, mergeCatalog(local, legacyItems)), source: 'gradebook-cloud' };
+  const cloud = markMigrationState((data || []).map(metadataFromRow), 'migrated', 'gradebook-cloud');
+  const items = mergeCatalog(cloud, mergeCatalog(local, legacyItems));
+  return catalogResult(items, { ok: true, source: 'gradebook-cloud' });
 }
 
 export function loadLocalGradebookClass(user, classId) {
-  const dedicated = readJson(workspaceKey(user, classId), null);
-  if (dedicated) return normalizeGradebookWorkspace(dedicated, user);
+  const dedicated = readDedicatedLocalGradebookClass(user, classId);
+  if (dedicated) return dedicated;
   const legacy = loadLocalHomeroomWorkspace(user, classId);
   if (!legacy) return null;
   return saveLocalGradebookClass(legacy, user);
 }
 
 export async function loadGradebookClass(user, classId) {
-  const local = loadLocalGradebookClass(user, classId);
+  const local = readDedicatedLocalGradebookClass(user, classId);
   if (!isSupabaseConfigured || !supabase || !user?.id) {
-    return { ok: true, offline: true, workspace: local, source: 'gradebook-local' };
+    if (local) {
+      return { ok: true, offline: true, workspace: local, source: 'gradebook-local', migrationState: 'migrated' };
+    }
+    const legacyLocal = loadLocalHomeroomWorkspace(user, classId);
+    if (!legacyLocal) return { ok: false, offline: true, message: 'Không tìm thấy lớp.', workspace: null };
+    const workspace = saveLocalGradebookClass(legacyLocal, user);
+    return { ok: true, offline: true, workspace, source: 'gradebook-local-migrated', migrationState: 'pending' };
   }
 
   const { data, error } = await supabase
@@ -300,27 +358,65 @@ export async function loadGradebookClass(user, classId) {
 
   if (!error && data?.payload) {
     const workspace = saveLocalGradebookClass(data.payload, user);
-    return { ok: true, workspace, source: 'gradebook-cloud' };
+    return { ok: true, workspace, source: 'gradebook-cloud', migrationState: 'migrated' };
   }
 
   const tableMissing = Boolean(error && isMissingGradebookTable(error));
+  if (local) {
+    if (tableMissing) {
+      return {
+        ok: true,
+        offline: true,
+        workspace: local,
+        source: 'gradebook-local',
+        migrationState: 'compatibility',
+        gradebookTablePending: true,
+      };
+    }
+    if (error) {
+      return {
+        ok: false,
+        offline: true,
+        message: error.message || '',
+        workspace: local,
+        source: 'gradebook-local',
+        migrationState: 'migrated',
+      };
+    }
+    const restored = await upsertGradebookCloud(local, user);
+    return restored.ok
+      ? { ok: true, workspace: local, source: 'gradebook-cloud-restored', migrationState: 'migrated' }
+      : {
+          ok: false,
+          offline: true,
+          message: restored.error?.message || 'Không thể đồng bộ Sổ điểm.',
+          workspace: local,
+          source: 'gradebook-local',
+          migrationState: 'migrated',
+        };
+  }
+
   try {
     const legacy = await loadHomeroomWorkspace(user, classId);
     if (legacy?.workspace) {
       const workspace = saveLocalGradebookClass(legacy.workspace, user);
       if (!tableMissing) {
         const migrationResult = await upsertGradebookCloud(workspace, user, { migratedFromHomeroom: true });
-        if (migrationResult.ok) return { ok: true, workspace, source: 'gradebook-cloud-migrated' };
+        if (migrationResult.ok) {
+          return { ok: true, workspace, source: 'gradebook-cloud-migrated', migrationState: 'migrated' };
+        }
       }
-      return { ...legacy, workspace, source: tableMissing ? 'legacy-cloud-compat' : 'legacy-migrated-local' };
+      return {
+        ...legacy,
+        workspace,
+        source: tableMissing ? 'legacy-cloud-compat' : 'legacy-migrated-local',
+        migrationState: tableMissing ? 'compatibility' : 'pending',
+      };
     }
   } catch {
-    // Dedicated local state remains the final fallback below.
+    // No dedicated state exists; legacy remains the final migration source.
   }
 
-  if (local) {
-    return { ok: !error, offline: true, message: error?.message || '', workspace: local, source: 'gradebook-local' };
-  }
   return { ok: false, offline: true, message: error?.message || 'Không tìm thấy lớp.', workspace: null };
 }
 
@@ -337,7 +433,7 @@ export async function saveGradebookClass(workspace, user) {
     updatedAt: new Date().toISOString(),
   }, user);
   const cloud = await upsertGradebookCloud(local, user);
-  if (cloud.ok) return { ...cloud, workspace: local };
+  if (cloud.ok) return { ...cloud, workspace: local, migrationState: 'migrated' };
 
   if (cloud.missingTable) {
     const legacy = await saveLegacyCompatibility(local, user);
@@ -345,6 +441,7 @@ export async function saveGradebookClass(workspace, user) {
       ...legacy,
       workspace: local,
       source: legacy.ok ? 'legacy-cloud-compat' : 'gradebook-local',
+      migrationState: 'compatibility',
       gradebookTablePending: true,
     };
   }
@@ -355,6 +452,7 @@ export async function saveGradebookClass(workspace, user) {
     message: cloud.error?.message || 'Không thể đồng bộ Sổ điểm.',
     workspace: local,
     source: 'gradebook-local',
+    migrationState: 'migrated',
   };
 }
 
