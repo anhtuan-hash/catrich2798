@@ -18,10 +18,15 @@ import '../styles/HomeHeroCmsEditorInteractionFix.css';
 // complete Grade 10/11/12 week lists without having to sign in or visit Apps.
 import '../homePracticeScheduleScroller.js';
 
+// The weekly runner is portaled to document.body. Its structural stylesheet must
+// travel with Home as well; otherwise the portal falls back into raw document flow.
+import '../components/GlobalWeeklyPractice.css';
+
 // HomeApproved owns behaviour/data. Warm V5 keeps the established editorial
 // layout contract; Sage V6 is the approved final route-scoped visual layer.
 import HomeApproved from './HomeApproved.jsx';
 import '../styles/HomeEditorialWarmV5.css';
 import '../styles/HomeEditorialSageV6.css';
+import '../styles/WeeklyPracticeEditorial2026.css';
 
 export default HomeApproved;
