@@ -1,0 +1,566 @@
+/* Brian English — Global Editorial Authority 2026
+   One visual language for every first-party route.
+   Presentation only. Route logic, data, permissions and workflow behavior stay untouched.
+   This stylesheet is injected as the final visual authority by GlobalEditorialAuthorityRuntime. */
+
+:root {
+  --bes-ed-paper: #f6f5f1;
+  --bes-ed-paper-2: #fbfaf7;
+  --bes-ed-surface: #ffffff;
+  --bes-ed-ink: #182231;
+  --bes-ed-ink-2: #394452;
+  --bes-ed-muted: #747b84;
+  --bes-ed-line: #dfddd7;
+  --bes-ed-line-strong: #cbc7bf;
+  --bes-ed-shadow-xs: 0 1px 2px rgba(29, 35, 43, .035);
+  --bes-ed-shadow-sm: 0 7px 22px rgba(29, 35, 43, .045);
+  --bes-ed-shadow-md: 0 18px 46px rgba(29, 35, 43, .08);
+  --bes-ed-serif: Georgia, 'Times New Roman', 'Noto Serif', serif;
+}
+
+html,
+body,
+#root {
+  background: var(--bes-ed-paper) !important;
+}
+
+#root .app-shell {
+  --bes-ed-accent: var(--active-app-accent, #315fc4);
+  --bes-ed-soft: var(--active-app-soft, #eaf0ff);
+  --bes-ed-route-ink: var(--active-app-ink, #172033);
+  color: var(--bes-ed-ink) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.78) 0, rgba(255,255,255,0) 250px),
+    var(--bes-ed-paper) !important;
+}
+
+#root .app-shell,
+#root .app-shell * {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --------------------------------------------------------------------------
+   GLOBAL NAVIGATION — editorial masthead instead of raised SaaS pills
+   -------------------------------------------------------------------------- */
+#root .app-shell .brian-nav {
+  border: 0 !important;
+  border-bottom: 1px solid var(--bes-ed-line) !important;
+  border-radius: 0 !important;
+  background: rgba(255,255,255,.97) !important;
+  box-shadow: 0 1px 0 rgba(31,36,42,.025) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#root .app-shell .brian-nav__brand {
+  border: 0 !important;
+  border-right: 1px solid var(--bes-ed-line) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: var(--bes-ed-ink) !important;
+}
+
+#root .app-shell .brian-nav__brand img {
+  filter: saturate(.88) contrast(.98) !important;
+}
+
+#root .app-shell .brian-nav__brand span {
+  font-family: var(--bes-ed-serif) !important;
+  font-weight: 700 !important;
+  letter-spacing: -.018em !important;
+}
+
+#root .app-shell .brian-nav__primary {
+  gap: 2px !important;
+  padding: 0 8px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+#root .app-shell .brian-nav__primary > button,
+#root .app-shell .brian-nav__primary > a {
+  position: relative !important;
+  min-height: 42px !important;
+  padding: 0 13px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #666c74 !important;
+  font-weight: 680 !important;
+}
+
+#root .app-shell .brian-nav__primary > button::after,
+#root .app-shell .brian-nav__primary > a::after {
+  content: '' !important;
+  position: absolute !important;
+  left: 13px !important;
+  right: 13px !important;
+  bottom: 2px !important;
+  height: 2px !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+#root .app-shell .brian-nav__primary > .is-active {
+  color: var(--bes-ed-route-ink) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+#root .app-shell .brian-nav__primary > .is-active::after {
+  background: var(--bes-ed-accent) !important;
+}
+
+#root .app-shell .brian-nav__search {
+  border: 1px solid var(--bes-ed-line) !important;
+  border-radius: 10px !important;
+  background: #fbfbf9 !important;
+  box-shadow: none !important;
+  color: #666d76 !important;
+}
+
+#root .app-shell .brian-nav__search kbd {
+  border-color: #ddd9d2 !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+#root .app-shell .brian-nav__icon,
+#root .app-shell .brian-nav__account-button,
+#root .app-shell .brian-nav__profile {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+#root .app-shell .brian-nav__icon:hover,
+#root .app-shell .brian-nav__account-button:hover,
+#root .app-shell .brian-nav__profile:hover {
+  background: var(--bes-ed-paper-2) !important;
+}
+
+#root .app-shell .brian-nav__popover,
+#root .app-shell .brian-notification-center,
+#root .app-shell .brian-nav__account-menu {
+  border: 1px solid var(--bes-ed-line) !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+  box-shadow: var(--bes-ed-shadow-md) !important;
+}
+
+/* --------------------------------------------------------------------------
+   TYPOGRAPHY — serif display, quiet sans-serif interface
+   -------------------------------------------------------------------------- */
+#root .app-shell :where(main, [role='main'], .gd-page, .flat-design-home, .hr-page, .settings-m3-page, .admin-page) h1,
+#root .app-shell :where(.gd-hero, .apps-directory-hero, .bha-hero, .home-hero, .page-hero) h1,
+#root .app-shell :where(.gd-hero, .apps-directory-hero, .bha-hero, .home-hero, .page-hero) h2 {
+  font-family: var(--bes-ed-serif) !important;
+  font-weight: 700 !important;
+  letter-spacing: -.035em !important;
+  text-wrap: balance;
+}
+
+#root .app-shell :where(main, [role='main']) > :where(header, section) > :where(h1, h2),
+#root .app-shell :where(.metro-panel, .gd-surface, .settings-m3-card, .permission-request-admin-panel) > header h2 {
+  letter-spacing: -.022em !important;
+}
+
+#root .app-shell :where(.eyebrow, [class*='kicker'], [class*='overline']) {
+  font-size: 10px !important;
+  font-weight: 820 !important;
+  letter-spacing: .13em !important;
+  text-transform: uppercase !important;
+}
+
+#root .app-shell :where(p, small) {
+  text-wrap: pretty;
+}
+
+/* --------------------------------------------------------------------------
+   PAGE CANVAS / HERO CONTRACT
+   -------------------------------------------------------------------------- */
+#root .app-shell :where(.gd-page, .settings-m3-page, .admin-page, .library-page, .resource-library-page, .news-page, .tools-page, .contact-page, .resources-page) {
+  background: transparent !important;
+}
+
+#root .app-shell :where(.gd-hero, .apps-directory-hero, .bha-hero, .home-hero, .page-hero, .admin-hero, .settings-m3-hero) {
+  border: 1px solid var(--bes-ed-line) !important;
+  background:
+    radial-gradient(circle at 91% 10%, color-mix(in srgb, var(--bes-ed-soft) 78%, transparent) 0 15%, transparent 15.5%),
+    linear-gradient(112deg, #fff 0%, #fffefa 62%, color-mix(in srgb, var(--bes-ed-soft) 48%, #fff) 100%) !important;
+  box-shadow: var(--bes-ed-shadow-sm) !important;
+}
+
+/* --------------------------------------------------------------------------
+   SHARED SURFACES — editorial paper cards with restrained depth
+   -------------------------------------------------------------------------- */
+#root .app-shell :where(
+  .metro-panel,
+  .gd-surface,
+  .settings-m3-card,
+  .permission-request-admin-panel,
+  .admin-diagnostic-panel,
+  .diagnostic-tile,
+  .permission-request-card,
+  .permission-box,
+  .apps-directory-toolbar,
+  .launcher-admin-panel,
+  .launcher-group-manager,
+  .bha-tool,
+  .bha-grade,
+  .home-feature-card,
+  .resource-card,
+  .library-card,
+  .news-card,
+  .tool-card
+) {
+  border: 1px solid var(--bes-ed-line) !important;
+  background: var(--bes-ed-surface) !important;
+  box-shadow: var(--bes-ed-shadow-xs) !important;
+}
+
+#root .app-shell :where(
+  .metro-panel,
+  .gd-surface,
+  .settings-m3-card,
+  .permission-request-admin-panel,
+  .admin-diagnostic-panel,
+  .permission-box,
+  .launcher-admin-panel
+) {
+  border-radius: 16px !important;
+}
+
+#root .app-shell :where(.diagnostic-tile, .permission-request-card, .bha-tool, .bha-grade, .resource-card, .library-card, .news-card, .tool-card) {
+  border-radius: 13px !important;
+}
+
+#root .app-shell :where(.metro-panel, .gd-surface, .settings-m3-card) > header,
+#root .app-shell :where(.permission-request-admin-head, .admin-diagnostic-head, .gd-surface-header, .settings-m3-card-head) {
+  border-bottom-color: var(--bes-ed-line) !important;
+}
+
+/* --------------------------------------------------------------------------
+   DASHBOARD
+   -------------------------------------------------------------------------- */
+#root .app-shell[data-route='dashboard'] .gd-page {
+  background: transparent !important;
+}
+
+#root .app-shell[data-route='dashboard'] .gd-surface {
+  overflow: hidden !important;
+}
+
+#root .app-shell[data-route='dashboard'] .gd-surface-header {
+  padding-bottom: 15px !important;
+  border-bottom: 1px solid var(--bes-ed-line) !important;
+}
+
+#root .app-shell[data-route='dashboard'] .gd-surface-heading h2 {
+  font-family: var(--bes-ed-serif) !important;
+  font-weight: 700 !important;
+}
+
+#root .app-shell[data-route='dashboard'] .gd-heading-icon {
+  border: 1px solid color-mix(in srgb, var(--bes-ed-accent) 16%, #ddd) !important;
+  background: color-mix(in srgb, var(--bes-ed-soft) 66%, #fff) !important;
+  box-shadow: none !important;
+}
+
+#root .app-shell[data-route='dashboard'] .gd-event {
+  border-color: var(--bes-ed-line) !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+#root .app-shell[data-route='dashboard'] .gd-text-button {
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   APPLICATION DIRECTORY
+   -------------------------------------------------------------------------- */
+#root .app-shell[data-route='apps'] .flat-apps-directory {
+  background: transparent !important;
+}
+
+#root .app-shell[data-route='apps'] .apps-directory-toolbar {
+  border-radius: 13px !important;
+  background: rgba(255,255,255,.94) !important;
+  box-shadow: var(--bes-ed-shadow-xs) !important;
+}
+
+#root .app-shell[data-route='apps'] .apps-directory-search-box,
+#root .app-shell[data-route='apps'] .apps-directory-command-button,
+#root .app-shell[data-route='apps'] .apps-directory-density-switch {
+  border-color: var(--bes-ed-line) !important;
+  border-radius: 9px !important;
+  background: #fbfbf9 !important;
+  box-shadow: none !important;
+}
+
+#root .app-shell[data-route='apps'] :where(.flat-app-card, .app-list-row, [class*='launcher-card']) {
+  border-color: var(--bes-ed-line) !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   HOME — keep its existing editorial composition, normalize component surfaces
+   -------------------------------------------------------------------------- */
+#root .app-shell[data-route='home'] .bha-tool,
+#root .app-shell[data-route='home'] .bha-grade {
+  box-shadow: none !important;
+}
+
+#root .app-shell[data-route='home'] .bha-tool strong,
+#root .app-shell[data-route='home'] .bha-folio-grade h3 {
+  letter-spacing: -.018em !important;
+}
+
+/* --------------------------------------------------------------------------
+   SETTINGS
+   -------------------------------------------------------------------------- */
+#root .app-shell[data-route='settings'] .settings-m3-card {
+  overflow: hidden !important;
+}
+
+#root .app-shell[data-route='settings'] .settings-m3-card-head {
+  padding-bottom: 15px !important;
+  border-bottom: 1px solid var(--bes-ed-line) !important;
+}
+
+#root .app-shell[data-route='settings'] .settings-m3-card-head h2 {
+  font-family: var(--bes-ed-serif) !important;
+  font-weight: 700 !important;
+}
+
+#root .app-shell[data-route='settings'] .settings-m3-row {
+  border-bottom-color: #eceae5 !important;
+}
+
+#root .app-shell[data-route='settings'] .settings-m3-select {
+  border-color: var(--bes-ed-line-strong) !important;
+  border-radius: 9px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   ADMIN
+   -------------------------------------------------------------------------- */
+#root .app-shell[data-route='admin'] .metro-panel {
+  box-shadow: var(--bes-ed-shadow-xs) !important;
+}
+
+#root .app-shell[data-route='admin'] :where(.admin-diagnostic-head, .permission-request-admin-head) h2 {
+  font-family: var(--bes-ed-serif) !important;
+  color: var(--bes-ed-ink) !important;
+}
+
+#root .app-shell[data-route='admin'] .diagnostic-tile strong {
+  font-family: var(--bes-ed-serif) !important;
+}
+
+#root .app-shell[data-route='admin'] .permission-chip {
+  border-color: var(--bes-ed-line) !important;
+  border-radius: 10px !important;
+  background: #fbfbf9 !important;
+  box-shadow: none !important;
+}
+
+#root .app-shell[data-route='admin'] .permission-chip.checked {
+  border-color: color-mix(in srgb, var(--bes-ed-accent) 38%, var(--bes-ed-line)) !important;
+  background: color-mix(in srgb, var(--bes-ed-soft) 58%, #fff) !important;
+}
+
+/* --------------------------------------------------------------------------
+   HOMEROOM — top-level editorial chrome only; gradebook/data tables keep their
+   dedicated production visual contracts.
+   -------------------------------------------------------------------------- */
+#root .app-shell[data-route='homeroom'] .hr-page {
+  background: transparent !important;
+}
+
+#root .app-shell[data-route='homeroom'] .hr-page > :where(header, .hr-hero, .hr-panel):not(.hr-grade-panel):not(.hr-grade-toolbar) {
+  border-color: var(--bes-ed-line) !important;
+  box-shadow: var(--bes-ed-shadow-xs) !important;
+}
+
+#root .app-shell[data-route='homeroom'] .hr-page h1 {
+  font-family: var(--bes-ed-serif) !important;
+}
+
+/* --------------------------------------------------------------------------
+   FORMS
+   -------------------------------------------------------------------------- */
+#root .app-shell :where(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']), select, textarea) {
+  border-color: var(--bes-ed-line-strong) !important;
+  border-radius: 9px !important;
+  box-shadow: none !important;
+  font: inherit !important;
+}
+
+#root .app-shell :where(input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']), select, textarea):focus {
+  border-color: color-mix(in srgb, var(--bes-ed-accent) 62%, #666) !important;
+  outline: 3px solid color-mix(in srgb, var(--bes-ed-soft) 70%, transparent) !important;
+  outline-offset: 1px !important;
+  box-shadow: none !important;
+}
+
+#root .app-shell textarea {
+  line-height: 1.55 !important;
+}
+
+/* --------------------------------------------------------------------------
+   BUTTONS — preserve route colors, normalize geometry and depth
+   -------------------------------------------------------------------------- */
+#root .app-shell :where(.metro-small-btn, .gd-text-button, .apps-directory-command-button, .settings-m3-button, .permission-request-actions button, .admin-diagnostic-actions button) {
+  border-radius: 9px !important;
+  box-shadow: none !important;
+  font-weight: 700 !important;
+}
+
+#root .app-shell button:focus-visible,
+#root .app-shell a:focus-visible,
+#root .app-shell [role='button']:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--bes-ed-accent) 72%, #333) !important;
+  outline-offset: 2px !important;
+}
+
+/* --------------------------------------------------------------------------
+   TABLES / DATA DENSITY
+   -------------------------------------------------------------------------- */
+#root .app-shell table {
+  border-color: var(--bes-ed-line) !important;
+  background: #fff !important;
+}
+
+#root .app-shell table thead th {
+  border-color: var(--bes-ed-line) !important;
+  background: #f5f4f0 !important;
+  color: #4c535c !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: .045em !important;
+}
+
+#root .app-shell table tbody td {
+  border-color: #ebe9e4 !important;
+}
+
+#root .app-shell table tbody tr:nth-child(even) td {
+  background: #fcfcfa !important;
+}
+
+/* Dedicated gradebook table colors are intentional and remain authoritative. */
+#root .app-shell[data-route='homeroom'] .hr-gradebook table thead th,
+#root .app-shell[data-route='homeroom'] .hr-gradebook table tbody td {
+  background-color: revert-layer;
+}
+
+/* --------------------------------------------------------------------------
+   BADGES / CHIPS
+   -------------------------------------------------------------------------- */
+#root .app-shell :where(.request-count-pill, .permission-chip, [class$='-badge'], [class$='__badge'], [class$='-chip'], [class$='__chip']) {
+  box-shadow: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   MODALS / DRAWERS portalled inside the app
+   -------------------------------------------------------------------------- */
+#root .app-shell :where([role='dialog'], .modal, [class$='-modal'], [class$='__modal']) {
+  border-color: var(--bes-ed-line) !important;
+  background: #fff !important;
+  box-shadow: var(--bes-ed-shadow-md) !important;
+}
+
+body > :where(.modal-backdrop, [class$='-backdrop'], [class$='__backdrop']) {
+  background-color: rgba(26, 31, 38, .54) !important;
+  backdrop-filter: blur(2px) !important;
+  -webkit-backdrop-filter: blur(2px) !important;
+}
+
+/* --------------------------------------------------------------------------
+   AUTH / PUBLIC UTILITY ROUTES
+   -------------------------------------------------------------------------- */
+#root .app-shell[data-route='login'],
+#root .app-shell[data-route='register'],
+#root .app-shell[data-route='setup'],
+#root .app-shell[data-route='contact'],
+#root .app-shell[data-route='resources'] {
+  background:
+    radial-gradient(circle at 86% 12%, color-mix(in srgb, var(--bes-ed-soft) 68%, transparent), transparent 25rem),
+    linear-gradient(180deg, #fff 0, var(--bes-ed-paper) 62%) !important;
+}
+
+#root .app-shell[data-route='login'] :where(form, [class*='auth-card']),
+#root .app-shell[data-route='register'] :where(form, [class*='auth-card']),
+#root .app-shell[data-route='setup'] :where(form, [class*='setup-card']) {
+  border-color: var(--bes-ed-line) !important;
+  background: #fff !important;
+  box-shadow: var(--bes-ed-shadow-sm) !important;
+}
+
+/* --------------------------------------------------------------------------
+   FOOTER
+   -------------------------------------------------------------------------- */
+#root .app-shell footer {
+  border-top-color: var(--bes-ed-line) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   READABILITY / RESPONSIVE
+   -------------------------------------------------------------------------- */
+@media (max-width: 900px) {
+  #root .app-shell .brian-nav__brand {
+    border-right: 0 !important;
+  }
+
+  #root .app-shell .brian-nav__primary > button,
+  #root .app-shell .brian-nav__primary > a {
+    padding-inline: 10px !important;
+  }
+
+  #root .app-shell :where(.metro-panel, .gd-surface, .settings-m3-card, .permission-box, .launcher-admin-panel) {
+    border-radius: 13px !important;
+  }
+}
+
+@media (max-width: 620px) {
+  #root .app-shell .brian-nav {
+    border-bottom-color: #e5e2dc !important;
+  }
+
+  #root .app-shell :where(.gd-hero, .apps-directory-hero, .bha-hero, .home-hero, .page-hero, .admin-hero, .settings-m3-hero) {
+    border-radius: 16px !important;
+  }
+}
+
+/* Printing should feel like a report, not a dashboard. */
+@media print {
+  html,
+  body,
+  #root,
+  #root .app-shell {
+    background: #fff !important;
+  }
+
+  #root .app-shell .brian-nav,
+  #root .app-shell footer {
+    display: none !important;
+  }
+
+  #root .app-shell :where(.metro-panel, .gd-surface, .settings-m3-card, .bha-tool, .bha-grade) {
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+}
