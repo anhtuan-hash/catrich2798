@@ -200,9 +200,14 @@ async function demoteOtherHomeroomWorkspace(user, catalog, selectedId) {
 
 async function syncAssignedSchoolClassWorkspacesInternal(user, options = {}) {
   const preferHomeroom = options.preferHomeroom === true;
+  // Loading or saving a workspace currently persists that workspace locally and
+  // may incidentally move the current-workspace pointer. Capture the user's real
+  // selection before any background reconciliation so the loop itself can never
+  // decide which class opens.
+  const selectionBeforeSync = getCurrentHomeroomWorkspaceId(user);
   const assignmentResult = await listAssignedSchoolClasses(user);
   if (!assignmentResult.ok || !assignmentResult.items.length) {
-    return { ...assignmentResult, changed: 0, preferredWorkspaceId: '', homeroomWorkspaceId: '' };
+    return { ...assignmentResult, changed: 0, preferredWorkspaceId: '', homeroomWorkspaceId: '', selectionBeforeSync };
   }
 
   const catalogResult = await listHomeroomWorkspaces(user);
@@ -291,41 +296,53 @@ async function syncAssignedSchoolClassWorkspacesInternal(user, options = {}) {
   }
 
   if (!preferredWorkspaceId) preferredWorkspaceId = synced[0] || '';
-  const currentId = getCurrentHomeroomWorkspaceId(user);
-  const currentExists = catalog.some((item) => item.id === currentId && item.status !== 'archived') || synced.includes(currentId);
-  const shouldOpenHomeroom = Boolean(preferHomeroom && homeroomWorkspaceId && currentId !== homeroomWorkspaceId);
-  let selectedWorkspaceId = currentId;
+  const currentExists = catalog.some((item) => item.id === selectionBeforeSync && item.status !== 'archived')
+    || synced.includes(selectionBeforeSync);
+  const shouldOpenHomeroom = Boolean(preferHomeroom && homeroomWorkspaceId);
+  let selectedWorkspaceId = selectionBeforeSync;
 
   if (shouldOpenHomeroom) {
-    selectedWorkspaceId = setCurrentHomeroomWorkspaceId(user, homeroomWorkspaceId);
-  } else if ((!currentExists || currentId === 'default') && preferredWorkspaceId) {
-    selectedWorkspaceId = setCurrentHomeroomWorkspaceId(user, preferredWorkspaceId);
+    selectedWorkspaceId = homeroomWorkspaceId;
+  } else if (!currentExists || selectionBeforeSync === 'default') {
+    selectedWorkspaceId = preferredWorkspaceId || selectionBeforeSync;
   }
 
-  if ((changed || selectedWorkspaceId !== currentId) && typeof window !== 'undefined') {
+  // Restore/commit the intended selection after all background loads and saves.
+  // This neutralizes selection drift caused by persistence side effects above.
+  const incidentalSelection = getCurrentHomeroomWorkspaceId(user);
+  if (selectedWorkspaceId && incidentalSelection !== selectedWorkspaceId) {
+    setCurrentHomeroomWorkspaceId(user, selectedWorkspaceId);
+  }
+
+  if (typeof window !== 'undefined') {
+    // Always publish the authoritative homeroom id. Consumers may have mounted
+    // while reconciliation was running even when no workspace payload changed.
     window.dispatchEvent(new CustomEvent('bes-school-class-assignment-synced', {
       detail: {
         changed,
         preferredWorkspaceId,
         homeroomWorkspaceId,
         selectedWorkspaceId,
+        selectionBeforeSync,
+        incidentalSelection,
         openDefaultHomeroom: shouldOpenHomeroom,
         classIds: synced,
       },
     }));
-    window.dispatchEvent(new CustomEvent('bes-homeroom-store-updated'));
+    if (changed || incidentalSelection !== selectedWorkspaceId) {
+      window.dispatchEvent(new CustomEvent('bes-homeroom-store-updated'));
+    }
   }
 
-  // Never reload the browser to select the assigned homeroom. HomeroomWorkspace
-  // already exposes an in-place navigation command; using it keeps React mounted,
-  // preserves the active session, and prevents sync -> reload -> sync loops.
+  // When entering Homeroom the server assignment is authoritative even if the
+  // stored pointer was already correct. Always emit navigation: React may have
+  // mounted earlier with a stale pointer and otherwise would require a reload.
   if (shouldOpenHomeroom && isHomeroomRoute()) {
-    const targetWorkspaceId = selectedWorkspaceId || homeroomWorkspaceId;
     window.setTimeout(() => {
       window.dispatchEvent(new CustomEvent('bes-homeroom-command', {
         detail: {
           type: 'homeroom.navigate',
-          workspaceId: targetWorkspaceId,
+          workspaceId: homeroomWorkspaceId,
           tab: 'overview',
           source: 'assigned-school-class-sync',
         },
@@ -339,6 +356,7 @@ async function syncAssignedSchoolClassWorkspacesInternal(user, options = {}) {
     preferredWorkspaceId,
     homeroomWorkspaceId,
     selectedWorkspaceId,
+    selectionBeforeSync,
     items: assignmentResult.items,
   };
 }
