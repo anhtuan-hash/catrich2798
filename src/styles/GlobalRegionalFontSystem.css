@@ -109,11 +109,21 @@ html[data-font-region-newswire] body .brian-editorial-brief :not(#bes-regional-a
   font-family: var(--bes-font-newswire) !important;
 }
 
-/* Primary navigation. */
+/* Primary navigation font family. */
 html[data-font-region-navigation] body .brian-nav :not(#bes-regional-a#bes-regional-b#bes-regional-c):is(
   div, span, strong, b, em, small, p, button, a, input, select, option
 ) {
   font-family: var(--bes-font-navigation) !important;
+}
+
+/* Primary navigation text size. Keep Material icon glyphs at their component size. */
+html[data-font-size-navigation] body .brian-nav :not(
+  .material-symbols-outlined,
+  .material-symbols-rounded,
+  .material-symbols-sharp,
+  .material-icons
+):is(span, strong, b, em, small, p, button, a, input, select, option) {
+  font-size: var(--bes-font-size-navigation) !important;
 }
 
 /* Never replace icon or code font families. */

@@ -3,6 +3,7 @@ import fs from 'node:fs';
 const panel = fs.readFileSync('src/components/admin/RegionalFontAdminPanel.jsx', 'utf8');
 const css = fs.readFileSync('src/components/admin/RegionalFontAdminPanel.css', 'utf8');
 const system = fs.readFileSync('src/utils/globalRegionalFontSystem.js', 'utf8');
+const runtimeCss = fs.readFileSync('src/styles/GlobalRegionalFontSystem.css', 'utf8');
 
 const assertions = [
   ['shared custom upload panel is removed', !panel.includes('regional-font-upload__preview') && !panel.includes('Tải font của riêng bạn')],
@@ -18,13 +19,19 @@ const assertions = [
   ['regional custom assets use region-scoped storage paths', system.includes('regions/${safe}/')],
   ['blob previews cannot be persisted', system.includes("startsWith('blob:')")],
   ['custom upload UI is styled inside cards', css.includes('.regional-font-card__custom-upload') && css.includes('.regional-font-card__file-button')],
+  ['navigation font size has live range control', panel.includes('regional-font-card__font-size') && panel.includes('type="range"') && panel.includes('setNavigationFontSize')],
+  ['navigation font size persists in regional settings payload', system.includes("const FONT_SIZES_KEY = 'fontSizes'") && system.includes('getRegionalFontSize')],
+  ['navigation font size is bounded safely', system.includes('NAV_FONT_SIZE_MIN = 11') && system.includes('NAV_FONT_SIZE_MAX = 22')],
+  ['navigation font size applies through a CSS variable', system.includes('--bes-font-size-navigation') && runtimeCss.includes('var(--bes-font-size-navigation)')],
+  ['navigation font size excludes Material icon glyphs', runtimeCss.includes('.material-symbols-outlined') && runtimeCss.includes("html[data-font-size-navigation] body .brian-nav")],
+  ['navigation font size UI is styled', css.includes('.regional-font-card__font-size-controls') && css.includes("input[type='range']")],
   ['error and success messages are styled', css.includes('.regional-font-admin__message.is-error') && css.includes('.regional-font-admin__message.is-success')],
 ];
 
 const failed = assertions.filter(([, ok]) => !ok);
 for (const [name, ok] of assertions) console.log(`${ok ? '✓' : '✗'} ${name}`);
 if (failed.length) {
-  console.error(`\n${failed.length} per-region font upload/live preview contract assertion(s) failed.`);
+  console.error(`\n${failed.length} per-region font/live preview contract assertion(s) failed.`);
   process.exit(1);
 }
-console.log('\nPer-region font upload/live preview contract PASS.');
+console.log('\nPer-region font/live preview contract PASS.');
