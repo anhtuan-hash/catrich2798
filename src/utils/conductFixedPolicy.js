@@ -11,11 +11,14 @@ export const FIXED_CONDUCT_POLICY = Object.freeze({
   thresholds: Object.freeze({ good: 3.6, fair: 3.0, pass: 2.4 }),
 });
 
-const PROHIBITED_RULES = OFFICIAL_CONDUCT_RULES.filter((rule) => rule?.isProhibited === true);
+const PROHIBITED_CATEGORY = 'hành vi nghiêm cấm';
+const PROHIBITED_RULES = OFFICIAL_CONDUCT_RULES.filter((rule) => (
+  rule?.isProhibited === true
+  || String(rule?.category || '').trim().toLowerCase() === PROHIBITED_CATEGORY
+));
 const PROHIBITED_IDS = new Set(PROHIBITED_RULES.map((rule) => String(rule.id || '').trim()).filter(Boolean));
 const PROHIBITED_CODES = new Set(PROHIBITED_RULES.map((rule) => String(rule.code || '').trim()).filter(Boolean));
 const PROHIBITED_TITLES = new Set(PROHIBITED_RULES.map((rule) => String(rule.title || '').trim().toLowerCase()).filter(Boolean));
-const PROHIBITED_CATEGORY = 'hành vi nghiêm cấm';
 
 function text(value) {
   return String(value ?? '').trim();
