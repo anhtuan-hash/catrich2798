@@ -11,6 +11,9 @@ import '../styles/apps-performance-recovery.css';
 import '../styles/apps-google-material-list-v2.css';
 import '../styles/games-route-retired.css';
 import '../styles/apps-editorial-five-column-v8.css';
+// Final launcher authority: no search/category rail, five columns × four visible rows,
+// with a native draggable vertical scrollbar for the remaining applications.
+import '../styles/apps-grid-5x4-scroll.css';
 
 const LEGACY_SAVED_GAMES_KEY = 'bes-game-hub-links-v1';
 
