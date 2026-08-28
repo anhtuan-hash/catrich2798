@@ -4,9 +4,9 @@ const panel = fs.readFileSync('src/components/admin/RegionalFontAdminPanel.jsx',
 const css = fs.readFileSync('src/components/admin/RegionalFontAdminPanel.css', 'utf8');
 const system = fs.readFileSync('src/utils/globalRegionalFontSystem.js', 'utf8');
 const runtimeCss = fs.readFileSync('src/styles/GlobalRegionalFontSystem.css', 'utf8');
-const navigationBridge = fs.readFileSync('src/components/GlobalNavigationFontSizeControl.jsx', 'utf8');
-const navigationBridgeCss = fs.readFileSync('src/components/GlobalNavigationFontSizeControl.css', 'utf8');
-const navigationShell = fs.readFileSync('src/components/GlobalFlatNavigation.jsx', 'utf8');
+const accountBridge = fs.readFileSync('src/components/GlobalAccountTextSizeBridge.jsx', 'utf8');
+const accountBridgeCss = fs.readFileSync('src/components/GlobalAccountTextSizeBridge.css', 'utf8');
+const utilitySlot = fs.readFileSync('src/components/GlobalEnglishHubBrand.jsx', 'utf8');
 const legacyScale = fs.readFileSync('src/utils/fontScale.js', 'utf8');
 
 const assertions = [
@@ -30,15 +30,15 @@ const assertions = [
   ['navigation font size excludes Material icon glyphs', runtimeCss.includes('.material-symbols-outlined') && runtimeCss.includes("html[data-font-size-navigation] body .brian-nav")],
   ['navigation font size UI is styled', css.includes('.regional-font-card__font-size-controls') && css.includes("input[type='range']")],
   ['legacy account text scale is intentionally retired', legacyScale.includes('FONT_SCALE_OPTIONS = Object.freeze([100])')],
-  ['account menu mounts the new navigation-size bridge', navigationShell.includes('GlobalNavigationFontSizeControl') && navigationShell.includes('currentUser={props.currentUser}')],
-  ['account menu quick control targets the legacy font-options slot', navigationBridge.includes(".brian-nav__account-menu .brian-nav__font-options") && navigationBridge.includes('createPortal')],
-  ['account menu quick control uses the regional navigation setting', navigationBridge.includes('getRegionalFontSize') && navigationBridge.includes('fontSizes.navigation')],
-  ['account menu quick control exposes decrease increase and reset actions', navigationBridge.includes('commit(size - 1)') && navigationBridge.includes('commit(size + 1)') && navigationBridge.includes('commit(null)')],
-  ['account menu quick control uses 16px as 100 percent and 11-22 bounds', navigationBridge.includes('DEFAULT_SIZE = 16') && navigationBridge.includes('MIN_SIZE = 11') && navigationBridge.includes('MAX_SIZE = 22') && navigationBridge.includes('(size / DEFAULT_SIZE) * 100')],
-  ['account menu quick control saves immediately with rollback', navigationBridge.includes('saveRegionalFontSettings(next, currentUser)') && navigationBridge.includes("source: 'account-navigation-font-size-rollback'")],
-  ['account menu quick control stays synchronized through regional font events', navigationBridge.includes('REGIONAL_FONT_EVENT') && navigationBridge.includes('addEventListener(REGIONAL_FONT_EVENT')],
-  ['legacy 100 percent option is hidden when quick control is mounted', navigationBridgeCss.includes('.brian-nav__font-options > button') && navigationBridgeCss.includes('display: none !important')],
-  ['account quick control styling is present', navigationBridgeCss.includes('.brian-nav__font-size-control') && navigationBridgeCss.includes('.brian-nav__font-size-step') && navigationBridgeCss.includes('.brian-nav__font-size-reset')],
+  ['account utility slot mounts the functional text-size bridge', utilitySlot.includes('GlobalAccountTextSizeBridge') && utilitySlot.includes('<GlobalAccountTextSizeBridge />')],
+  ['account menu quick control targets the legacy font-options slot', accountBridge.includes(".brian-nav__account-menu .brian-nav__font-options") && accountBridge.includes('createPortal')],
+  ['account menu quick control uses the regional navigation setting', accountBridge.includes('getRegionalFontSize') && accountBridge.includes('fontSizes.navigation')],
+  ['account menu quick control exposes decrease increase and reset actions', accountBridge.includes('commit(size - 1)') && accountBridge.includes('commit(size + 1)') && accountBridge.includes('commit(null)')],
+  ['account menu quick control uses 16px as 100 percent and 11-22 bounds', accountBridge.includes('DEFAULT_SIZE = 16') && accountBridge.includes('MIN_SIZE = 11') && accountBridge.includes('MAX_SIZE = 22') && accountBridge.includes('(size / DEFAULT_SIZE) * 100')],
+  ['account menu quick control saves immediately with rollback', accountBridge.includes('saveRegionalFontSettings(next)') && accountBridge.includes("source: 'account-navigation-font-size-rollback'")],
+  ['account menu quick control stays synchronized through regional font events', accountBridge.includes('REGIONAL_FONT_EVENT') && accountBridge.includes('addEventListener(REGIONAL_FONT_EVENT')],
+  ['legacy 100 percent option is hidden when quick control is mounted', accountBridgeCss.includes('.brian-nav__font-options > button') && accountBridgeCss.includes('display: none !important')],
+  ['account quick control styling is present', accountBridgeCss.includes('.brian-nav__font-size-control') && accountBridgeCss.includes('.brian-nav__font-size-step') && accountBridgeCss.includes('.brian-nav__font-size-reset')],
   ['error and success messages are styled', css.includes('.regional-font-admin__message.is-error') && css.includes('.regional-font-admin__message.is-success')],
 ];
 
