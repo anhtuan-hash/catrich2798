@@ -510,7 +510,7 @@ export default function HomeroomConductTab({ workspace, onCommit, currentUser })
       open: true,
       mode,
       password: '',
-      reason: mode === 'lock' ? 'Đã rà soát dữ liệu và xác nhận kết quả rèn luyện tuần' : mode === 'reset' ? 'Reset dữ liệu tuần khẩn cấp' : 'Mở khóa để điều chỉnh dữ liệu tuần',
+      reason: mode === 'lock' ? 'Đã rà soát dữ liệu và xác nhận kết quả rèn luyện tuần' : '',
       error: '',
       busy: false,
       resetConfirmed: false,
@@ -523,6 +523,10 @@ export default function HomeroomConductTab({ workspace, onCommit, currentUser })
   };
 
   const handleWeekLockSubmit = async () => {
+    if (lockDialog.mode !== 'lock' && !String(lockDialog.reason || '').trim()) {
+      setLockDialog((current) => ({ ...current, error: lockDialog.mode === 'reset' ? 'Vui lòng nhập lý do reset dữ liệu tuần.' : 'Vui lòng nhập lý do mở khóa tuần.' }));
+      return;
+    }
     const verified = await verifyConductLockPassword(workspace, lockDialog.password);
     if (!verified) {
       setLockDialog((current) => ({ ...current, error: 'Mật khẩu khóa rèn luyện không đúng.', password: '' }));
@@ -549,8 +553,8 @@ export default function HomeroomConductTab({ workspace, onCommit, currentUser })
       const next = locking
         ? finalizeConductWeek(workspace, weekStart, actor, 'Tổng kết tuần')
         : resetting
-          ? resetConductWeekData(workspace, weekStart, actor)
-          : reopenConductWeek(workspace, weekStart, actor);
+          ? resetConductWeekData(workspace, weekStart, actor, lockDialog.reason)
+          : reopenConductWeek(workspace, weekStart, actor, lockDialog.reason);
       const message = locking
         ? `Đã tổng kết và khóa ${selectedPlanRow?.schoolPlanLabel || 'tuần'} (${formatDate(weekStart)} – ${formatDate(selectedWeekEnd)}).`
         : resetting
@@ -941,10 +945,11 @@ export default function HomeroomConductTab({ workspace, onCommit, currentUser })
                   <label><input type="checkbox" checked={lockDialog.resetConfirmed} onChange={(event) => setLockDialog((current) => ({ ...current, resetConfirmed: event.target.checked, error: '' }))} /><span>Tôi hiểu thao tác này không thể hoàn tác.</span></label>
                 </div>
               ) : null}
+              {lockDialog.mode !== 'lock' ? <label><span>{lockDialog.mode === 'reset' ? 'Lý do reset dữ liệu tuần' : 'Lý do mở khóa tuần'} <b>*</b></span><textarea value={lockDialog.reason} onChange={(event) => setLockDialog((current) => ({ ...current, reason: event.target.value, error: '' }))} placeholder={lockDialog.mode === 'reset' ? 'Nêu rõ lý do phải xóa dữ liệu tuần…' : 'Nêu rõ nội dung cần điều chỉnh sau khi mở khóa…'} /></label> : null}
               <label><span>Mật khẩu khóa rèn luyện <b>*</b></span><input type="password" autoFocus value={lockDialog.password} onChange={(event) => setLockDialog((current) => ({ ...current, password: event.target.value, error: '' }))} onKeyDown={(event) => { if (event.key === 'Enter') handleWeekLockSubmit(); }} placeholder="Nhập mật khẩu" /></label>
               {lockDialog.error ? <div className="hr-lock-password-message error">{lockDialog.error}</div> : null}
             </div>
-            <footer><button type="button" className="secondary" disabled={lockDialog.busy} onClick={closeWeekLockDialog}>Hủy</button><button type="button" className={lockDialog.mode === 'lock' ? 'primary' : lockDialog.mode === 'reset' ? 'danger' : 'warning'} disabled={lockDialog.busy || !lockDialog.password || (lockDialog.mode === 'reset' && !lockDialog.resetConfirmed)} onClick={handleWeekLockSubmit}>{lockDialog.busy ? 'Đang xử lý…' : lockDialog.mode === 'lock' ? 'Tổng kết & khóa' : lockDialog.mode === 'reset' ? 'Xác nhận reset tuần' : 'Mở khóa tuần'}</button></footer>
+            <footer><button type="button" className="secondary" disabled={lockDialog.busy} onClick={closeWeekLockDialog}>Hủy</button><button type="button" className={lockDialog.mode === 'lock' ? 'primary' : lockDialog.mode === 'reset' ? 'danger' : 'warning'} disabled={lockDialog.busy || !lockDialog.password || (lockDialog.mode !== 'lock' && !String(lockDialog.reason || '').trim()) || (lockDialog.mode === 'reset' && !lockDialog.resetConfirmed)} onClick={handleWeekLockSubmit}>{lockDialog.busy ? 'Đang xử lý…' : lockDialog.mode === 'lock' ? 'Tổng kết & khóa' : lockDialog.mode === 'reset' ? 'Xác nhận reset tuần' : 'Mở khóa tuần'}</button></footer>
           </section>
         </div>,
         document.body,
@@ -1190,7 +1195,7 @@ export default function HomeroomConductTab({ workspace, onCommit, currentUser })
               <select value={recordFilterStatus} onChange={(event) => setRecordFilterStatus(event.target.value)}><option value="active">Đang tính điểm</option><option value="confirmed">Đã xác nhận</option><option value="pending">Chờ xác nhận</option><option value="cancelled">Đã hủy</option><option value="all">Tất cả trạng thái</option></select>
               <button type="button" className="secondary" onClick={() => { setRecordQuery(''); setRecordFilterStudentId('all'); setRecordFilterStatus('active'); }}>Xóa bộ lọc</button>
             </div>
-            {selectedWeekLocked ? <div className="hr-conduct-locked-note">🔒 Tuần đã khóa. Nhấn “Mở khóa tuần”, nhập mật khẩu và có thể sửa ngay; không cần nhập lý do.</div> : null}
+            {selectedWeekLocked ? <div className="hr-conduct-locked-note">🔒 Tuần đã khóa. Nhấn “Mở khóa tuần”, nhập lý do và mật khẩu để tạo dấu vết kiểm toán trước khi chỉnh sửa.</div> : null}
             {filteredWeekRecords.length ? <div className="hr-conduct-record-list">{filteredWeekRecords.map((record) => {
               const student = students.find((item) => item.id === record.studentId) || workspace.students.find((item) => item.id === record.studentId);
               const isReward = record.entryType === 'reward';

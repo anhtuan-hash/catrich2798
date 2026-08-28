@@ -684,7 +684,8 @@ export function reopenConductWeek(workspace, weekStart, actor = '', reason = '')
   const key = startOfConductWeek(weekStart);
   const existing = getConductWeekSummary(current, key);
   if (!existing || existing.status !== 'locked') return current;
-  const reopenReason = safeText(reason, 'Mở khóa để điều chỉnh dữ liệu tuần');
+  const reopenReason = safeText(reason);
+  if (!reopenReason) throw new Error('Vui lòng nhập lý do mở khóa tuần.');
   const changedAt = new Date().toISOString();
   const history = [
     ...(Array.isArray(existing.history) ? existing.history : []),
@@ -706,10 +707,12 @@ export function reopenConductWeek(workspace, weekStart, actor = '', reason = '')
   };
 }
 
-export function resetConductWeekData(workspace, weekStart, actor = '') {
+export function resetConductWeekData(workspace, weekStart, actor = '', reason = '') {
   const current = normalizeHomeroomWorkspace(workspace);
   const key = startOfConductWeek(weekStart);
   const existing = getConductWeekSummary(current, key);
+  const resetReason = safeText(reason);
+  if (!resetReason) throw new Error('Vui lòng nhập lý do reset dữ liệu tuần.');
   const changedAt = new Date().toISOString();
   const removedRecords = (current.conductRecords || []).filter((record) => startOfConductWeek(record.weekStart || record.date) === key);
   const history = [
@@ -719,7 +722,7 @@ export function resetConductWeekData(workspace, weekStart, actor = '') {
       action: 'reset',
       at: changedAt,
       by: safeText(actor),
-      reason: `Đã xóa khẩn cấp ${removedRecords.length} ghi nhận trong tuần`,
+      reason: `${resetReason} · Đã xóa ${removedRecords.length} ghi nhận trong tuần`,
       automatic: false,
     },
   ].slice(-80);
@@ -730,6 +733,7 @@ export function resetConductWeekData(workspace, weekStart, actor = '') {
     status: 'open',
     resetAt: changedAt,
     resetBy: safeText(actor),
+    resetReason,
     reopenedAt: changedAt,
     reopenedBy: safeText(actor),
     rows: [],
