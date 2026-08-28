@@ -1,0 +1,329 @@
+/* Brian English — Home Editorial Blue V9
+   Final Home-only visual layer. Presentation only: no weekly-practice data,
+   routing, proof-image, 20-minute submission or TTCM logic is changed. */
+
+.app-shell[data-route='home']{
+  --blue-paper:#ffffff;
+  --blue-paper-soft:#f7fbff;
+  --blue-bg:#eaf4ff;
+  --blue-bg-2:#f3f8ff;
+  --blue-ink:#0f2f5f;
+  --blue-primary:#1465d8;
+  --blue-deep:#0a438f;
+  --blue-muted:#637995;
+  --blue-line:#cfe0f4;
+  --blue-line-soft:#e5eef9;
+  --blue-shadow:0 18px 48px rgba(34,88,150,.09);
+
+  --home-paper:var(--blue-paper)!important;
+  --home-ivory:var(--blue-bg)!important;
+  --home-cream:var(--blue-bg-2)!important;
+  --home-ink:var(--blue-ink)!important;
+  --home-navy:var(--blue-deep)!important;
+  --home-muted:var(--blue-muted)!important;
+  --home-rule:var(--blue-line)!important;
+  --home-rule-soft:var(--blue-line-soft)!important;
+  --home-copper:var(--blue-primary)!important;
+  --home-copper-soft:#e7f1ff!important;
+  --home-shadow:var(--blue-shadow)!important;
+
+  background:
+    radial-gradient(circle at 9% 3%,rgba(75,151,236,.16),transparent 31rem),
+    radial-gradient(circle at 92% 20%,rgba(115,184,246,.12),transparent 28rem),
+    linear-gradient(180deg,#f4f9ff 0%,#e8f3ff 52%,#eef6ff 100%)!important;
+}
+
+.app-shell[data-route='home'] main.wp8-page-stage{background:transparent!important}
+
+/* Cool-blue navigation chrome */
+html body .app-shell[data-route='home']>.bes-top-chrome{
+  background:linear-gradient(180deg,rgba(237,246,255,.97),rgba(237,246,255,.66) 72%,transparent)!important;
+}
+html body .app-shell[data-route='home']>.bes-top-chrome .brian-nav{
+  border-color:rgba(48,118,199,.16)!important;
+  background:rgba(255,255,255,.95)!important;
+  box-shadow:0 10px 30px rgba(24,78,139,.08)!important;
+}
+html body .app-shell[data-route='home']>.bes-top-chrome .brian-nav__brand>span{
+  color:#123f75!important;
+}
+html body .app-shell[data-route='home']>.bes-top-chrome .brian-nav__primary button{
+  color:#47617d!important;
+}
+html body .app-shell[data-route='home']>.bes-top-chrome .brian-nav__primary button:hover{
+  background:#edf5ff!important;
+  color:#0e4f9d!important;
+}
+html body .app-shell[data-route='home']>.bes-top-chrome .brian-nav__primary button.is-active{
+  background:#e5f1ff!important;
+  color:#0b5cc4!important;
+  box-shadow:inset 0 0 0 1px rgba(20,101,216,.14)!important;
+}
+html body .app-shell[data-route='home']>.bes-top-chrome .brian-nav__icon,
+html body .app-shell[data-route='home']>.bes-top-chrome .brian-nav__account{color:#345775!important}
+
+/* Hero keeps the approved editorial composition, but moves into a cool palette. */
+.app-shell[data-route='home'] .bha-hero.hero-cms{
+  border-color:rgba(54,120,194,.20)!important;
+  background:#fff!important;
+  box-shadow:0 22px 58px rgba(31,91,156,.11)!important;
+}
+.app-shell[data-route='home'] .hero-cms__background{
+  background:
+    radial-gradient(circle at 80% 22%,rgba(87,160,236,.16),transparent 31%),
+    linear-gradient(135deg,#f8fbff 0%,#e6f2ff 100%)!important;
+}
+.app-shell[data-route='home'] .hero-cms__overlay{
+  background:linear-gradient(90deg,
+    rgba(249,252,255,.995) 0%,rgba(249,252,255,.97) 32%,
+    rgba(232,244,255,.77) 44%,rgba(232,244,255,.30) 58%,
+    rgba(232,244,255,.05) 72%,transparent 100%)!important;
+}
+.app-shell[data-route='home'] .hero-cms__content{
+  border-color:rgba(68,130,199,.18)!important;
+  background:rgba(255,255,255,.93)!important;
+  box-shadow:0 14px 38px rgba(28,79,138,.08)!important;
+}
+.app-shell[data-route='home'] .hero-cms__badge{border-bottom-color:var(--blue-line)!important;color:var(--blue-primary)!important}
+.app-shell[data-route='home'] .hero-cms__badge i{
+  background:linear-gradient(145deg,#1976e8,#0b55b4)!important;
+  box-shadow:0 7px 17px rgba(20,101,216,.20)!important;
+}
+.app-shell[data-route='home'] .hero-cms__content h1{color:#123b70!important}
+.app-shell[data-route='home'] .hero-cms__content h2{color:#1870da!important}
+.app-shell[data-route='home'] .hero-cms__content>p{border-left-color:#4c96ea!important;color:#5d7390!important}
+.app-shell[data-route='home'] .hero-cms__button.is-primary{
+  border-color:#0c5fc8!important;
+  background:linear-gradient(135deg,#1979eb,#0d5ec9)!important;
+  box-shadow:0 10px 24px rgba(20,101,216,.20)!important;
+}
+.app-shell[data-route='home'] .hero-cms__button.is-secondary{
+  border-color:#c7daf0!important;
+  background:#f8fbff!important;
+  color:#155da9!important;
+}
+.app-shell[data-route='home'] .hero-cms__edit{
+  border-color:#c8dcf2!important;
+  background:rgba(249,252,255,.94)!important;
+  color:#155da9!important;
+}
+
+/* Weekly publication surface */
+.app-shell[data-route='home'] .bha-practice{
+  border-color:#c9ddf2!important;
+  background:rgba(255,255,255,.975)!important;
+  box-shadow:0 18px 48px rgba(31,88,151,.085)!important;
+}
+.app-shell[data-route='home'] .bha-practice__editorial-copy>span{color:#1670df!important}
+.app-shell[data-route='home'] .bha-practice__editorial-copy h2{color:#123b70!important}
+.app-shell[data-route='home'] .bha-practice__editorial-copy p{color:#657b96!important}
+
+/* Published total: reserve a real column for 65 so no label/divider can overlap it. */
+.app-shell[data-route='home'] .bha-practice__editorial-side{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:18px!important;
+  min-width:0!important;
+}
+.app-shell[data-route='home'] .bha-practice__published-count{
+  width:154px!important;
+  min-width:154px!important;
+  min-height:82px!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  grid-template-rows:auto auto auto!important;
+  align-content:center!important;
+  justify-items:start!important;
+  row-gap:2px!important;
+  padding:3px 20px 3px 0!important;
+  border-right:1px solid #cbdff4!important;
+  overflow:visible!important;
+}
+.app-shell[data-route='home'] .bha-practice__published-count>span,
+.app-shell[data-route='home'] .bha-practice__published-count>strong,
+.app-shell[data-route='home'] .bha-practice__published-count>small{
+  grid-column:1!important;
+  position:static!important;
+  width:auto!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  transform:none!important;
+  white-space:nowrap!important;
+}
+.app-shell[data-route='home'] .bha-practice__published-count>span{
+  color:#69809c!important;
+  font-size:8px!important;
+  line-height:1.1!important;
+  letter-spacing:.16em!important;
+}
+.app-shell[data-route='home'] .bha-practice__published-count>strong{
+  color:#0c56b3!important;
+  font-size:3.25rem!important;
+  font-weight:500!important;
+  line-height:.88!important;
+  letter-spacing:-.07em!important;
+}
+.app-shell[data-route='home'] .bha-practice__published-count>small{
+  color:#73879e!important;
+  font-size:8px!important;
+  line-height:1.15!important;
+}
+.app-shell[data-route='home'] .bha-statistics-practice{
+  border-color:#0d59ba!important;
+  background:linear-gradient(135deg,#146bd7,#0a4ea8)!important;
+  box-shadow:0 8px 19px rgba(12,86,181,.17)!important;
+}
+.app-shell[data-route='home'] .bha-manage-practice{
+  border-color:#cbdcf0!important;
+  background:#f8fbff!important;
+  color:#315f91!important;
+}
+.app-shell[data-route='home'] .bha-practice__editorial-rule{color:#7c91aa!important}
+.app-shell[data-route='home'] .bha-practice__editorial-rule i{background:#d6e4f3!important}
+
+/* Grade identities: three unmistakable but harmonious palettes. */
+.app-shell[data-route='home'] .bha-folio-grade--10{
+  --accent:#1465d8!important;
+  --soft:#eaf3ff!important;
+  border-color:#9ec6f5!important;
+  background:linear-gradient(180deg,#eef6ff 0%,#f9fcff 44%,#fff 100%)!important;
+  box-shadow:0 10px 26px rgba(20,101,216,.075)!important;
+}
+.app-shell[data-route='home'] .bha-folio-grade--11{
+  --accent:#c77b08!important;
+  --soft:#fff3df!important;
+  border-color:#e7c47f!important;
+  background:linear-gradient(180deg,#fff6e7 0%,#fffaf1 44%,#fff 100%)!important;
+  box-shadow:0 10px 26px rgba(183,112,8,.07)!important;
+}
+.app-shell[data-route='home'] .bha-folio-grade--12{
+  --accent:#0d8b7a!important;
+  --soft:#e5f7f3!important;
+  border-color:#9bd3ca!important;
+  background:linear-gradient(180deg,#eaf9f6 0%,#f6fcfa 44%,#fff 100%)!important;
+  box-shadow:0 10px 26px rgba(13,139,122,.07)!important;
+}
+.app-shell[data-route='home'] .bha-folio-grade{
+  border-radius:12px!important;
+}
+.app-shell[data-route='home'] .bha-folio-grade__masthead{
+  border-bottom-color:color-mix(in srgb,var(--accent) 22%,#dce7f2)!important;
+}
+.app-shell[data-route='home'] .bha-folio-grade__masthead>small{color:color-mix(in srgb,var(--accent) 64%,#63758b)!important}
+.app-shell[data-route='home'] .bha-folio-grade .bha-grade-copy h3{color:#173c67!important}
+.app-shell[data-route='home'] .bha-folio-grade .bha-grade-copy>small{color:#71849a!important}
+
+/* Number and icon are now two independent visual objects. */
+.app-shell[data-route='home'] .bha-folio-grade__art{
+  position:relative!important;
+  min-height:184px!important;
+  overflow:visible!important;
+  isolation:isolate!important;
+}
+.app-shell[data-route='home'] .bha-folio-grade__art b{
+  position:absolute!important;
+  z-index:1!important;
+  right:16px!important;
+  bottom:10px!important;
+  margin:0!important;
+  color:var(--accent)!important;
+  font-family:Georgia,'Times New Roman',serif!important;
+  font-size:6.15rem!important;
+  font-weight:500!important;
+  line-height:.82!important;
+  letter-spacing:-.08em!important;
+  opacity:.94!important;
+  pointer-events:none!important;
+}
+.app-shell[data-route='home'] .bha-folio-grade__art svg{
+  position:absolute!important;
+  z-index:3!important;
+  top:17px!important;
+  right:17px!important;
+  left:auto!important;
+  bottom:auto!important;
+  width:48px!important;
+  height:48px!important;
+  padding:10px!important;
+  border:1px solid color-mix(in srgb,var(--accent) 38%,#fff)!important;
+  border-radius:13px!important;
+  background:rgba(255,255,255,.94)!important;
+  color:var(--accent)!important;
+  filter:drop-shadow(0 8px 12px color-mix(in srgb,var(--accent) 15%,transparent))!important;
+  pointer-events:none!important;
+}
+.app-shell[data-route='home'] .bha-folio-grade__art i{
+  display:none!important;
+}
+.app-shell[data-route='home'] .bha-folio-grade__serial{
+  color:color-mix(in srgb,var(--accent) 68%,#7690ac)!important;
+}
+
+/* Recent lesson list follows each card identity instead of reverting to generic white/green. */
+.app-shell[data-route='home'] .bha-folio-grade .bha-grade-recent{
+  border-top-color:color-mix(in srgb,var(--accent) 18%,#dfe9f4)!important;
+  background:rgba(255,255,255,.88)!important;
+}
+.app-shell[data-route='home'] .bha-folio-grade .bha-grade-recent__header>span{color:var(--accent)!important}
+.app-shell[data-route='home'] .bha-folio-grade .bha-grade-recent__header>button{
+  border-color:color-mix(in srgb,var(--accent) 24%,#dbe6f1)!important;
+  background:color-mix(in srgb,var(--accent) 6%,#fff)!important;
+  color:var(--accent)!important;
+}
+.app-shell[data-route='home'] .bha-folio-grade .bha-grade-lesson{
+  border-color:color-mix(in srgb,var(--accent) 12%,#e5edf6)!important;
+  background:rgba(255,255,255,.92)!important;
+}
+.app-shell[data-route='home'] .bha-folio-grade .bha-grade-lesson>button{
+  background:var(--accent)!important;
+  box-shadow:0 5px 12px color-mix(in srgb,var(--accent) 20%,transparent)!important;
+}
+
+@media(max-width:1180px){
+  .app-shell[data-route='home'] .bha-practice__editorial-header{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  .app-shell[data-route='home'] .bha-practice__editorial-side{
+    justify-content:space-between!important;
+  }
+}
+
+@media(max-width:900px){
+  .app-shell[data-route='home'] .bha-practice__editorial-side{
+    align-items:stretch!important;
+    flex-direction:column!important;
+    gap:12px!important;
+  }
+  .app-shell[data-route='home'] .bha-practice__published-count{
+    width:100%!important;
+    min-width:0!important;
+    min-height:0!important;
+    grid-template-columns:auto auto!important;
+    grid-template-rows:auto auto!important;
+    justify-content:start!important;
+    column-gap:10px!important;
+    padding:0 0 12px!important;
+    border-right:0!important;
+    border-bottom:1px solid #d5e4f3!important;
+  }
+  .app-shell[data-route='home'] .bha-practice__published-count>span{grid-column:1/-1!important}
+  .app-shell[data-route='home'] .bha-practice__published-count>strong{grid-column:1!important}
+  .app-shell[data-route='home'] .bha-practice__published-count>small{grid-column:2!important;align-self:end!important;padding-bottom:4px!important}
+}
+
+@media(max-width:760px){
+  .app-shell[data-route='home'] .bha-folio-grade__art svg{
+    width:42px!important;
+    height:42px!important;
+    top:13px!important;
+    right:13px!important;
+    padding:9px!important;
+  }
+  .app-shell[data-route='home'] .bha-folio-grade__art b{
+    right:12px!important;
+    bottom:9px!important;
+    font-size:5.2rem!important;
+  }
+}
