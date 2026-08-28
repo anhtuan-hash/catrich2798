@@ -41,6 +41,10 @@ const assertions = [
   ['account quick control styling is present', accountBridgeCss.includes('.brian-nav__font-size-control') && accountBridgeCss.includes('.brian-nav__font-size-step') && accountBridgeCss.includes('.brian-nav__font-size-reset')],
   ['explicit navigation size overrides fixed primary-tab defaults', accountBridgeCss.includes("html[data-font-size-navigation] body .app-shell[data-route] .brian-nav__primary > :is(button, a, [role='button'])") && accountBridgeCss.includes('font-size: var(--bes-font-size-navigation) !important')],
   ['explicit navigation size overrides fixed brand-text defaults', accountBridgeCss.includes('.brian-nav__brand > span') && accountBridgeCss.includes('.brian-nav__brand > span::after')],
+  ['runtime navigation sizing targets direct primary tabs, brand and account name', accountBridge.includes("'.brian-nav__primary > button'") && accountBridge.includes("'.brian-nav__brand > span'") && accountBridge.includes("'.brian-nav__account > strong'")],
+  ['runtime navigation sizing writes inline important authority', accountBridge.includes("node.style.setProperty('font-size', sizeValue, 'important')") && accountBridge.includes("RUNTIME_OWNER_ATTR")],
+  ['runtime navigation sizing reapplies when portal tabs mount', accountBridge.includes('new MutationObserver(findHostAndSync)') && accountBridge.includes('syncNavigationFontSizeDom();')],
+  ['runtime navigation reset removes only bridge-owned inline sizing', accountBridge.includes("node.style.removeProperty('font-size')") && accountBridge.includes('node.removeAttribute(RUNTIME_OWNER_ATTR)')],
   ['error and success messages are styled', css.includes('.regional-font-admin__message.is-error') && css.includes('.regional-font-admin__message.is-success')],
 ];
 
