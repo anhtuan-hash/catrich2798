@@ -21,6 +21,7 @@ let schoolRegistryLoaded = false;
 let homeroomExtrasLoaded = false;
 let routeListenerInstalled = false;
 let assignedClassSyncPromise = null;
+let assignedHomeroomNavigationToken = 0;
 
 // Theme is application chrome. Resolve the persisted/system preference before
 // React mounts and keep it synchronized across tabs and OS appearance changes.
@@ -86,6 +87,39 @@ async function preparePreferredHomeroomBeforeMain() {
   }
 }
 
+function navigateAssignedHomeroomAfterMount(result) {
+  if (!isHomeroomRoute()) return;
+  const workspaceId = String(result?.homeroomWorkspaceId || result?.preferredWorkspaceId || '').trim();
+  if (!workspaceId) return;
+  const token = ++assignedHomeroomNavigationToken;
+  const startedAt = Date.now();
+
+  const waitForWorkspace = () => {
+    if (token !== assignedHomeroomNavigationToken || !isHomeroomRoute()) return;
+    const mounted = document.querySelector('.hr-page[data-homeroom-hydrated="true"]');
+    if (!mounted) {
+      if (Date.now() - startedAt < 2500) window.setTimeout(waitForWorkspace, 60);
+      return;
+    }
+
+    // The DOM commits before React passive effects. Give HomeroomWorkspace's
+    // bes-homeroom-command listener one short frame to attach, then navigate.
+    window.setTimeout(() => {
+      if (token !== assignedHomeroomNavigationToken || !isHomeroomRoute()) return;
+      window.dispatchEvent(new CustomEvent('bes-homeroom-command', {
+        detail: {
+          type: 'homeroom.navigate',
+          workspaceId,
+          tab: 'overview',
+          source: 'assigned-homeroom-entry-guard',
+        },
+      }));
+    }, 80);
+  };
+
+  waitForWorkspace();
+}
+
 function loadRouteModules() {
   if (isAppsRoute()) loadExternalAppsAfterMainShell();
 
@@ -131,26 +165,35 @@ function installRouteModuleLoader() {
 
 function startAssignedClassSync() {
   if (!isAssignedClassRoute()) return Promise.resolve({ skipped: true });
-  if (assignedClassSyncPromise) return assignedClassSyncPromise;
+  const shouldPreferHomeroom = isHomeroomRoute();
 
-  assignedClassSyncPromise = new Promise((resolve) => {
-    const loadAndSync = async () => {
-      try {
-        const module = await import('./assignedSchoolClassBootstrap.js');
-        module.installAssignedSchoolClassSync?.();
-        const result = await module.prepareAssignedSchoolClasses?.({
-          preferHomeroom: isHomeroomRoute(),
-        });
-        resolve(result || { ok: true });
-      } catch (error) {
-        assignedClassSyncPromise = null;
-        console.warn('[AssignedSchoolClasses] Chưa thể đồng bộ lớp được phân công.', error);
-        resolve({ ok: false, error });
-      }
-    };
-    window.setTimeout(loadAndSync, 0);
+  if (!assignedClassSyncPromise) {
+    assignedClassSyncPromise = new Promise((resolve) => {
+      const loadAndSync = async () => {
+        try {
+          const module = await import('./assignedSchoolClassBootstrap.js');
+          module.installAssignedSchoolClassSync?.();
+          const result = await module.prepareAssignedSchoolClasses?.({
+            preferHomeroom: shouldPreferHomeroom,
+          });
+          resolve(result || { ok: true });
+        } catch (error) {
+          assignedClassSyncPromise = null;
+          console.warn('[AssignedSchoolClasses] Chưa thể đồng bộ lớp được phân công.', error);
+          resolve({ ok: false, error });
+        }
+      };
+      window.setTimeout(loadAndSync, 0);
+    });
+  }
+
+  return assignedClassSyncPromise.then((result) => {
+    // A previous sync may have started from Brian Team with preferHomeroom=false.
+    // Its result still contains the authoritative homeroomWorkspaceId, so use it
+    // whenever the user later enters Homeroom instead of depending on another RPC.
+    if (isHomeroomRoute()) navigateAssignedHomeroomAfterMount(result);
+    return result;
   });
-  return assignedClassSyncPromise;
 }
 
 function loadCompactDrawerRuntimeAfterMainShell() {
