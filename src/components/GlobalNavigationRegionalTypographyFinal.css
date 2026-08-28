@@ -1,0 +1,55 @@
+/* Brian English · final regional typography bridge for navigation
+   Loaded after every navigation visual/geometry override.
+   Regional typography settings remain authoritative for text only;
+   icon geometry and compact status badges keep their component sizing. */
+
+/* Font family — use the live regional token everywhere inside the navigation
+   chrome, while preserving dedicated icon/code families. */
+html[data-font-region-navigation] body .brian-nav,
+html[data-font-region-navigation] body .brian-nav :is(
+  button, a, span, strong, b, em, small, p, input, select, option
+):not(
+  .material-symbols-outlined,
+  .material-symbols-rounded,
+  .material-symbols-sharp,
+  .material-icons,
+  .brian-nav__reports-countdown
+) {
+  font-family: var(--bes-font-navigation) !important;
+}
+
+/* Primary destination labels must inherit the selected Navigation size even
+   though the final pill visuals define their own default sizes. */
+html[data-font-size-navigation] body .brian-nav__brand > span,
+html[data-font-size-navigation] body .brian-nav__primary > :is(button,a,[role='button']),
+html[data-font-size-navigation] body .brian-nav__account > strong,
+html[data-font-size-navigation] body .brian-nav__account-name {
+  font-size: var(--bes-font-size-navigation) !important;
+}
+
+/* Portal tabs with real child labels need to follow the button rather than an
+   older per-tab fixed font declaration. */
+html[data-font-size-navigation] body .brian-nav__primary > .brian-nav__reports-tab .brian-nav__reports-label,
+html[data-font-size-navigation] body .brian-nav__primary > .brian-nav__ttcm-tab > span {
+  font-family: inherit !important;
+  font-size: inherit !important;
+}
+
+/* Keep the report countdown deliberately compact; changing navigation text
+   size must not turn the status badge into another full-size label. */
+html body .brian-nav__primary > .brian-nav__reports-tab .brian-nav__reports-countdown {
+  font-size: 9px !important;
+  line-height: 1 !important;
+}
+
+/* Protect SVG/material glyph sizing from regional text controls. */
+html body .brian-nav svg,
+html body .brian-nav .ttcm-m3-icon,
+html body .brian-nav :is(
+  .material-symbols-outlined,
+  .material-symbols-rounded,
+  .material-symbols-sharp,
+  .material-icons
+) {
+  font-size: revert !important;
+}
