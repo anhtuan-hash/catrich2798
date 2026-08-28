@@ -1,74 +1,79 @@
-/* Brian English · premium strong-raised navigation authority
-   Final visual contract for the seven primary destinations.
-   This file loads last and intentionally wins over legacy flat/per-tab styles. */
+/* Brian English · aligned raised navigation authority
+   Final visual contract: one row, one height, one baseline for every primary destination.
+   Loads after GlobalNavigationRaisedPills.css and neutralizes per-tab geometry drift. */
 
 html body .app-shell[data-route] .brian-nav__primary {
-  gap: 11px !important;
-  padding: 0 3px !important;
+  gap: 8px !important;
+  padding: 0 2px !important;
+  align-items: center !important;
   overflow-y: visible !important;
 }
 
-/* Strong tactile base: bright top plane + colored lower plane + physical edge. */
+/* ONE GEOMETRY CONTRACT — all primary buttons rest on the exact same line. */
 html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']) {
+  position: relative !important;
   display: inline-flex !important;
+  flex: 0 0 auto !important;
   flex-direction: row !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 9px !important;
-  min-height: 55px !important;
-  height: 55px !important;
-  max-height: 55px !important;
-  padding: 0 17px !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+  min-height: 52px !important;
+  height: 52px !important;
+  max-height: 52px !important;
+  margin: 0 !important;
+  padding: 0 15px !important;
   overflow: hidden !important;
-  border: 1px solid rgba(var(--nav-rgb), .22) !important;
-  border-bottom-color: rgba(var(--nav-rgb), .31) !important;
-  border-radius: 16px !important;
-  background: linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,.985) 42%, rgba(var(--nav-rgb),.075) 100%) !important;
-  background-image: linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,.985) 42%, rgba(var(--nav-rgb),.075) 100%) !important;
+  border: 1px solid rgba(var(--nav-rgb), .18) !important;
+  border-bottom-color: rgba(var(--nav-rgb), .26) !important;
+  border-radius: 14px !important;
+  background: linear-gradient(180deg, #fff 0%, #fff 54%, rgba(var(--nav-rgb), .065) 100%) !important;
+  background-image: linear-gradient(180deg, #fff 0%, #fff 54%, rgba(var(--nav-rgb), .065) 100%) !important;
   color: var(--nav-accent) !important;
   box-shadow:
-    0 9px 18px rgba(33,47,66,.10),
-    0 4px 8px rgba(var(--nav-rgb),.10),
-    0 2px 0 rgba(var(--nav-rgb),.16),
-    inset 0 1px 0 rgba(255,255,255,1),
-    inset 0 -1px 0 rgba(var(--nav-rgb),.08) !important;
+    0 7px 14px rgba(31,46,68,.085),
+    0 3px 6px rgba(var(--nav-rgb),.075),
+    0 1px 0 rgba(var(--nav-rgb),.12),
+    inset 0 1px 0 rgba(255,255,255,1) !important;
   font-size: 14.5px !important;
-  font-weight: 745 !important;
-  letter-spacing: -.012em !important;
+  font-weight: 740 !important;
   line-height: 1 !important;
+  letter-spacing: -.012em !important;
   text-align: center !important;
-  text-shadow: 0 1px 0 rgba(255,255,255,.9) !important;
-  transform: translate3d(0,0,0) !important;
+  white-space: nowrap !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.82) !important;
+  transform: none !important;
+  translate: none !important;
   transition:
-    transform 180ms cubic-bezier(.2,.82,.2,1),
-    box-shadow 180ms ease,
-    border-color 180ms ease,
-    background 180ms ease,
-    color 180ms ease,
-    filter 180ms ease !important;
+    transform 150ms cubic-bezier(.2,.8,.2,1),
+    box-shadow 150ms ease,
+    border-color 150ms ease,
+    background 150ms ease,
+    color 150ms ease !important;
 }
 
-/* Specular top line; the old flat underline stays retired. */
+/* Decorative highlight only; never changes geometry. */
 html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button'])::after {
   content: '' !important;
   position: absolute !important;
   z-index: 0 !important;
-  top: 2px !important;
-  right: 13px !important;
+  top: 1px !important;
+  right: 12px !important;
   bottom: auto !important;
-  left: 13px !important;
+  left: 12px !important;
   width: auto !important;
   height: 1px !important;
   border: 0 !important;
   border-radius: 999px !important;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.98), transparent) !important;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.96), transparent) !important;
   box-shadow: none !important;
-  opacity: .95 !important;
+  opacity: .9 !important;
   transform: none !important;
   pointer-events: none !important;
 }
 
-/* Generated icons live in the flex row, never over text. */
+/* Generated icons participate in flex flow and share one exact size. */
 html body .app-shell[data-route] .brian-nav__primary > :is(
   button:not([class*='brian-nav__']):first-child,
   button:not([class*='brian-nav__']):nth-of-type(2),
@@ -79,224 +84,207 @@ html body .app-shell[data-route] .brian-nav__primary > :is(
 )::before {
   position: static !important;
   inset: auto !important;
-  flex: 0 0 19px !important;
-  width: 19px !important;
-  min-width: 19px !important;
-  height: 19px !important;
-  min-height: 19px !important;
+  flex: 0 0 18px !important;
+  width: 18px !important;
+  min-width: 18px !important;
+  height: 18px !important;
+  min-height: 18px !important;
   margin: 0 !important;
   transform: none !important;
-  filter: drop-shadow(0 1px 0 rgba(255,255,255,.65)) !important;
+  filter: none !important;
 }
 
-/* Hover has a visible lift and a brighter colored floor. */
+/* Hover may lift temporarily, but every resting state stays perfectly aligned. */
 html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']):hover {
-  border-color: rgba(var(--nav-rgb), .36) !important;
-  border-bottom-color: rgba(var(--nav-rgb), .46) !important;
-  background: linear-gradient(180deg, #fff 0%, rgba(255,255,255,.99) 38%, rgba(var(--nav-rgb),.12) 100%) !important;
-  background-image: linear-gradient(180deg, #fff 0%, rgba(255,255,255,.99) 38%, rgba(var(--nav-rgb),.12) 100%) !important;
+  border-color: rgba(var(--nav-rgb), .30) !important;
+  background: linear-gradient(180deg, #fff 0%, #fff 48%, rgba(var(--nav-rgb), .095) 100%) !important;
+  background-image: linear-gradient(180deg, #fff 0%, #fff 48%, rgba(var(--nav-rgb), .095) 100%) !important;
   color: var(--nav-accent) !important;
   box-shadow:
-    0 15px 26px rgba(33,47,66,.15),
-    0 7px 13px rgba(var(--nav-rgb),.15),
-    0 3px 0 rgba(var(--nav-rgb),.21),
+    0 11px 20px rgba(31,46,68,.12),
+    0 5px 9px rgba(var(--nav-rgb),.11),
+    0 1px 0 rgba(var(--nav-rgb),.14),
     inset 0 1px 0 #fff !important;
-  transform: translate3d(0,-3px,0) !important;
-  filter: saturate(1.04) !important;
+  transform: translateY(-2px) !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']):active {
+  box-shadow:
+    0 3px 7px rgba(31,46,68,.09),
+    0 2px 4px rgba(var(--nav-rgb),.08),
+    inset 0 2px 4px rgba(20,34,50,.08) !important;
+  transform: translateY(1px) scale(.99) !important;
 }
 
 html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']):focus-visible {
   outline: none !important;
-  border-color: rgba(var(--nav-rgb), .52) !important;
+  border-color: rgba(var(--nav-rgb), .48) !important;
   box-shadow:
-    0 0 0 4px rgba(var(--nav-rgb),.14),
-    0 14px 25px rgba(33,47,66,.14),
-    0 6px 12px rgba(var(--nav-rgb),.14),
-    0 2px 0 rgba(var(--nav-rgb),.20) !important;
-  transform: translate3d(0,-2px,0) !important;
+    0 0 0 3px rgba(var(--nav-rgb),.12),
+    0 8px 16px rgba(31,46,68,.10),
+    0 3px 7px rgba(var(--nav-rgb),.09) !important;
+  transform: none !important;
 }
 
-/* Press physically sinks the tile. */
-html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']):active {
-  border-bottom-color: rgba(var(--nav-rgb), .27) !important;
-  box-shadow:
-    0 4px 8px rgba(33,47,66,.10),
-    0 2px 4px rgba(var(--nav-rgb),.10),
-    0 1px 0 rgba(var(--nav-rgb),.14),
-    inset 0 2px 5px rgba(20,34,50,.10) !important;
-  transform: translate3d(0,1px,0) scale(.985) !important;
-  transition-duration: 70ms !important;
-}
-
-/* Strong active contract — intentionally more specific than all per-tab legacy rules. */
+/* ACTIVE — same 52px box and same baseline, only color/depth changes. */
 html body .app-shell[data-route] .brian-nav__primary > button.is-active,
 html body .app-shell[data-route] .brian-nav__primary > button.active,
 html body .app-shell[data-route] .brian-nav__primary > button[aria-current='page'],
 html body .app-shell[data-route] .brian-nav__primary > a.is-active,
 html body .app-shell[data-route] .brian-nav__primary > a.active,
 html body .app-shell[data-route] .brian-nav__primary > a[aria-current='page'],
-html body .app-shell[data-route] .brian-nav__primary > .brian-nav__dashboard-tab.is-active,
-html body .app-shell[data-route] .brian-nav__primary > .brian-nav__homeroom-tab.is-active,
-html body .app-shell[data-route] .brian-nav__primary > .brian-nav__gradebook-tab.is-active,
-html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.is-active,
-html body .app-shell[data-route] .brian-nav__primary > .brian-nav__ttcm-tab.is-active {
-  border-color: rgba(var(--nav-rgb), .58) !important;
-  border-bottom-color: rgba(24,45,67,.20) !important;
-  background: linear-gradient(145deg, var(--nav-active-1) 0%, var(--nav-active-2) 68%, color-mix(in srgb, var(--nav-active-2) 88%, #102a4c) 100%) !important;
-  background-image: linear-gradient(145deg, var(--nav-active-1) 0%, var(--nav-active-2) 68%, color-mix(in srgb, var(--nav-active-2) 88%, #102a4c) 100%) !important;
-  color: #fff !important;
-  box-shadow:
-    0 17px 29px rgba(var(--nav-rgb),.31),
-    0 8px 15px rgba(var(--nav-rgb),.23),
-    0 3px 0 rgba(22,40,60,.16),
-    inset 0 1px 0 rgba(255,255,255,.42),
-    inset 0 -1px 0 rgba(20,31,45,.18) !important;
-  font-weight: 815 !important;
-  text-shadow: 0 1px 1px rgba(21,37,55,.22) !important;
-  transform: translate3d(0,-2px,0) !important;
-  filter: saturate(1.08) !important;
-}
-
-html body .app-shell[data-route] .brian-nav__primary > button.is-active:hover,
-html body .app-shell[data-route] .brian-nav__primary > button[aria-current='page']:hover,
-html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.is-active:hover,
-html body .app-shell[data-route] .brian-nav__primary > .brian-nav__ttcm-tab.is-active:hover {
-  color: #fff !important;
-  box-shadow:
-    0 21px 36px rgba(var(--nav-rgb),.36),
-    0 10px 18px rgba(var(--nav-rgb),.25),
-    0 3px 0 rgba(22,40,60,.16),
-    inset 0 1px 0 rgba(255,255,255,.45) !important;
-  transform: translate3d(0,-4px,0) !important;
-}
-
-/* Native Home/Apps hydration-safe route fallbacks. */
 html body .app-shell[data-route='home'] .brian-nav__primary > button:not([class*='brian-nav__']):first-child,
 html body .app-shell[data-route='apps'] .brian-nav__primary > button:not([class*='brian-nav__']):nth-of-type(2) {
-  border-color: rgba(var(--nav-rgb), .58) !important;
-  border-bottom-color: rgba(24,45,67,.20) !important;
+  min-height: 52px !important;
+  height: 52px !important;
+  max-height: 52px !important;
+  margin: 0 !important;
+  border-color: rgba(var(--nav-rgb), .42) !important;
+  border-bottom-color: rgba(var(--nav-rgb), .50) !important;
   background: linear-gradient(145deg, var(--nav-active-1) 0%, var(--nav-active-2) 100%) !important;
   background-image: linear-gradient(145deg, var(--nav-active-1) 0%, var(--nav-active-2) 100%) !important;
   color: #fff !important;
   box-shadow:
-    0 17px 29px rgba(var(--nav-rgb),.31),
-    0 8px 15px rgba(var(--nav-rgb),.23),
-    0 3px 0 rgba(22,40,60,.16),
-    inset 0 1px 0 rgba(255,255,255,.42) !important;
-  font-weight: 815 !important;
-  text-shadow: 0 1px 1px rgba(21,37,55,.22) !important;
-  transform: translate3d(0,-2px,0) !important;
+    0 10px 18px rgba(var(--nav-rgb),.23),
+    0 4px 8px rgba(var(--nav-rgb),.16),
+    0 2px 0 rgba(22,40,60,.12),
+    inset 0 1px 0 rgba(255,255,255,.34) !important;
+  font-weight: 800 !important;
+  text-shadow: 0 1px 1px rgba(21,37,55,.18) !important;
+  transform: none !important;
+  translate: none !important;
 }
 
-/* TTCM: restore its real icon and give it the same visual weight as other destinations. */
+html body .app-shell[data-route] .brian-nav__primary > button.is-active:hover,
+html body .app-shell[data-route] .brian-nav__primary > button[aria-current='page']:hover {
+  color: #fff !important;
+  box-shadow:
+    0 14px 24px rgba(var(--nav-rgb),.28),
+    0 6px 11px rgba(var(--nav-rgb),.18),
+    0 2px 0 rgba(22,40,60,.12),
+    inset 0 1px 0 rgba(255,255,255,.38) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* REPORTS — single line. Countdown becomes a tiny status dot, not a second row. */
+html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab,
+html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.shows-countdown {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  min-width: 0 !important;
+  min-height: 52px !important;
+  height: 52px !important;
+  max-height: 52px !important;
+  padding: 0 15px !important;
+}
+html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.shows-countdown::before {
+  grid-column: auto !important;
+  grid-row: auto !important;
+  align-self: auto !important;
+}
+html body .app-shell[data-route] .brian-nav__reports-tab .brian-nav__reports-label {
+  display: inline !important;
+  position: relative !important;
+  z-index: 2 !important;
+  color: inherit !important;
+  font: inherit !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
+}
+html body .app-shell[data-route] .brian-nav__reports-tab .brian-nav__reports-countdown,
+html body .app-shell[data-route] .brian-nav__reports-tab .brian-nav__reports-countdown.is-unset,
+html body .app-shell[data-route] .brian-nav__reports-tab .brian-nav__reports-countdown.is-expired {
+  position: relative !important;
+  z-index: 2 !important;
+  flex: 0 0 7px !important;
+  width: 7px !important;
+  min-width: 7px !important;
+  max-width: 7px !important;
+  height: 7px !important;
+  min-height: 7px !important;
+  max-height: 7px !important;
+  display: block !important;
+  margin: 0 0 0 -2px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: #f59e0b !important;
+  box-shadow: 0 0 0 2px rgba(245,158,11,.12) !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  text-indent: -9999px !important;
+  opacity: 1 !important;
+}
+html body .app-shell[data-route] .brian-nav__reports-tab .brian-nav__reports-countdown.is-expired {
+  background: #ef4444 !important;
+  box-shadow: 0 0 0 2px rgba(239,68,68,.12) !important;
+}
+html body .app-shell[data-route] .brian-nav__reports-tab:is(.is-active,[aria-current='page']) .brian-nav__reports-countdown {
+  background: rgba(255,255,255,.94) !important;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.18) !important;
+}
+
+/* TTCM — no purple square/icon tile; only the same 18px line glyph as everyone else. */
 html body .app-shell[data-route] .brian-nav__primary > .brian-nav__ttcm-tab {
-  gap: 9px !important;
-  padding: 0 17px !important;
+  gap: 8px !important;
+  min-height: 52px !important;
+  height: 52px !important;
+  max-height: 52px !important;
+  padding: 0 15px !important;
+}
+html body .app-shell[data-route] .brian-nav__primary > .brian-nav__ttcm-tab::before {
+  content: none !important;
+  display: none !important;
 }
 html body .app-shell[data-route] .brian-nav__primary > .brian-nav__ttcm-tab .ttcm-m3-icon {
+  position: static !important;
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
-  flex: 0 0 19px !important;
-  width: 19px !important;
-  height: 19px !important;
+  flex: 0 0 18px !important;
+  width: 18px !important;
+  min-width: 18px !important;
+  height: 18px !important;
+  min-height: 18px !important;
   margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
   fill: currentColor !important;
   color: inherit !important;
-  filter: drop-shadow(0 1px 0 rgba(255,255,255,.55)) !important;
+  filter: none !important;
+  transform: none !important;
+}
+html body .app-shell[data-route] .brian-nav__ttcm-badge {
+  flex: 0 0 auto !important;
+  margin-left: -2px !important;
 }
 
-/* Reports: premium two-line control with a real status capsule, not loose microcopy. */
-html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.shows-countdown {
-  display: grid !important;
-  grid-template-columns: 19px auto !important;
-  grid-template-rows: auto auto !important;
-  align-items: center !important;
-  justify-content: center !important;
-  column-gap: 9px !important;
-  row-gap: 3px !important;
-  min-width: 132px !important;
-  min-height: 59px !important;
-  height: 59px !important;
-  max-height: 59px !important;
-  padding: 6px 14px !important;
-}
-html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.shows-countdown::before {
-  grid-column: 1 !important;
-  grid-row: 1 / 3 !important;
-  align-self: center !important;
-}
-html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.shows-countdown .brian-nav__reports-label {
-  grid-column: 2 !important;
-  grid-row: 1 !important;
-  align-self: end !important;
-  justify-self: start !important;
-  color: inherit !important;
-  font-size: 14.5px !important;
-  font-weight: 810 !important;
-  line-height: 15px !important;
-}
-html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.shows-countdown .brian-nav__reports-countdown {
-  grid-column: 2 !important;
-  grid-row: 2 !important;
-  align-self: start !important;
-  justify-self: start !important;
-  width: auto !important;
-  min-width: 0 !important;
-  height: 15px !important;
-  min-height: 15px !important;
-  max-height: 15px !important;
-  margin: 0 !important;
-  padding: 1px 6px !important;
-  border: 1px solid rgba(var(--nav-rgb),.15) !important;
-  border-radius: 999px !important;
-  background: rgba(var(--nav-rgb),.08) !important;
-  color: currentColor !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.65) !important;
-  opacity: .82 !important;
-  font-size: 9.3px !important;
-  font-weight: 800 !important;
-  line-height: 11px !important;
-  letter-spacing: .01em !important;
-  white-space: nowrap !important;
-}
-html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.is-active .brian-nav__reports-countdown,
-html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab[aria-current='page'] .brian-nav__reports-countdown {
-  border-color: rgba(255,255,255,.28) !important;
-  background: rgba(255,255,255,.17) !important;
-  color: #fff !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.24) !important;
-  opacity: 1 !important;
-  text-shadow: 0 1px 1px rgba(51,23,18,.15) !important;
-}
-
-/* Keep all real content above highlights. */
+/* Keep all real child content over the highlight. */
 html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']) > * {
   position: relative !important;
   z-index: 2 !important;
 }
 
-/* Lift the whole hub slightly to match the stronger controls. */
-html body .app-shell[data-route] .bes-top-chrome[data-bes-pinned-hub='true'] {
-  border-color: rgba(204,216,231,.94) !important;
-  box-shadow:
-    0 20px 44px rgba(32,54,83,.13),
-    0 5px 13px rgba(32,54,83,.06),
-    inset 0 1px 0 rgba(255,255,255,1) !important;
-}
-
 @media (max-width: 1180px) {
-  html body .app-shell[data-route] .brian-nav__primary {
+  html body .app-shell[data-route] .brian-nav__primary { gap: 6px !important; }
+  html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']),
+  html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.shows-countdown,
+  html body .app-shell[data-route] .brian-nav__primary > .brian-nav__ttcm-tab {
+    min-height: 48px !important;
+    height: 48px !important;
+    max-height: 48px !important;
     gap: 7px !important;
-  }
-  html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']) {
-    gap: 7px !important;
-    min-height: 51px !important;
-    height: 51px !important;
-    max-height: 51px !important;
-    padding: 0 13px !important;
-    border-radius: 14px !important;
-    font-size: 13.2px !important;
+    padding: 0 12px !important;
+    border-radius: 13px !important;
+    font-size: 13.5px !important;
   }
   html body .app-shell[data-route] .brian-nav__primary > :is(
     button:not([class*='brian-nav__']):first-child,
@@ -313,25 +301,6 @@ html body .app-shell[data-route] .bes-top-chrome[data-bes-pinned-hub='true'] {
     height: 17px !important;
     min-height: 17px !important;
   }
-  html body .app-shell[data-route] .brian-nav__primary > .brian-nav__ttcm-tab {
-    padding: 0 13px !important;
-  }
-  html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.shows-countdown {
-    grid-template-columns: 17px auto !important;
-    column-gap: 7px !important;
-    min-width: 116px !important;
-    min-height: 54px !important;
-    height: 54px !important;
-    max-height: 54px !important;
-    padding: 5px 11px !important;
-  }
-  html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.shows-countdown .brian-nav__reports-label {
-    font-size: 13.2px !important;
-  }
-  html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.shows-countdown .brian-nav__reports-countdown {
-    font-size: 8.8px !important;
-    padding-inline: 5px !important;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -339,7 +308,6 @@ html body .app-shell[data-route] .bes-top-chrome[data-bes-pinned-hub='true'] {
     transition: none !important;
   }
   html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']):hover,
-  html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']):focus-visible,
   html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']):active {
     transform: none !important;
   }
