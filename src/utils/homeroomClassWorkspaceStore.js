@@ -204,9 +204,8 @@ function activeLocalWorkspace(user) {
 
 async function listWorkspaceMetadata(user) {
   const localItems = listBaseLocalWorkspaces(user);
-  if (privacyMode(activeLocalWorkspace(user)) === 'device-only') {
-    return { ok: true, offline: true, items: localItems, source: 'device-only' };
-  }
+  const active = activeLocalWorkspace(user);
+  const deviceOnlyWorkspaceId = active && privacyMode(active) === 'device-only' ? active.id : '';
   if (!isSupabaseConfigured || !supabase || !user?.id) return { ok: true, offline: true, items: localItems };
 
   const { data, error } = await supabase
@@ -218,6 +217,7 @@ async function listWorkspaceMetadata(user) {
   if (error) return { ok: false, offline: true, message: error.message, items: localItems };
   const merged = new Map(localItems.map((item) => [item.id, item]));
   (data || []).forEach((row) => {
+    if (deviceOnlyWorkspaceId && row.workspace_id === deviceOnlyWorkspaceId) return;
     const local = merged.get(row.workspace_id) || {};
     const className = text(row.class_name, local.className || 'Chưa đặt tên');
     merged.set(row.workspace_id, {
@@ -239,7 +239,7 @@ async function listWorkspaceMetadata(user) {
       (a.status === 'archived') - (b.status === 'archived')
       || String(b.updatedAt).localeCompare(String(a.updatedAt))
     )),
-    source: 'cloud-meta',
+    source: deviceOnlyWorkspaceId ? 'mixed-device-and-cloud-meta' : 'cloud-meta',
   };
 }
 
@@ -269,7 +269,7 @@ export async function listHomeroomWorkspaces(user) {
     if (local) workspaces.set(item.id, decorateWorkspace(local, user));
   });
 
-  if (!workspaces.has(originalCurrentId) && !isValidHomeroomClassType(stored[originalCurrentId]) && result.source !== 'device-only') {
+  if (!workspaces.has(originalCurrentId) && !isValidHomeroomClassType(stored[originalCurrentId])) {
     const currentItem = items.find((item) => item.id === originalCurrentId);
     if (currentItem) {
       const loaded = await loadHomeroomWorkspace(user, originalCurrentId);
