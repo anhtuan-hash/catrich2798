@@ -106,6 +106,7 @@ function loadRouteModules() {
     Promise.all([
       import('./conductMidFinalReportsV2.js'),
       import('./conductMidFinalReportsV4.js'),
+      import('./conductMidFinalReportsV5.js'),
       import('./preferredHomeroomEntry.js'),
       import('./homeroomHeroIdentityRuntime.js'),
       import('./studentRosterCountFix.js'),
