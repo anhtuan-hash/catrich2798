@@ -32,10 +32,11 @@
   opacity: 0 !important;
 }
 
-/* Home weekly-practice dialogs
-   Keep the manager and TTCM statistics surfaces in the viewport layer. These
-   components are rendered with React portals to document.body; without this
-   shell they fall back into normal document flow below Home. */
+/* =========================================================
+   Home · Weekly Practice modal system
+   2026 refresh — Material/editorial, no presentation motion
+   ========================================================= */
+
 html:has(body > .bes-weekly-modal-backdrop),
 html:has(body > .bes-weekly-stat-backdrop),
 body:has(> .bes-weekly-modal-backdrop),
@@ -47,27 +48,33 @@ body > .bes-weekly-modal-backdrop,
 body > .bes-weekly-stat-backdrop {
   position: fixed !important;
   inset: 0 !important;
+  z-index: 2147483000 !important;
   width: 100vw !important;
   height: 100vh !important;
   height: 100dvh !important;
   margin: 0 !important;
-  padding: clamp(12px, 2.2vw, 28px) !important;
+  padding: clamp(16px, 2.2vw, 30px) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   overflow: auto !important;
   overscroll-behavior: contain;
-  background: rgba(15, 23, 42, .56) !important;
+  background: rgba(29, 39, 55, .64) !important;
+  backdrop-filter: blur(3px) saturate(.9);
+  -webkit-backdrop-filter: blur(3px) saturate(.9);
   box-sizing: border-box !important;
   isolation: isolate;
 }
 
-body > .bes-weekly-modal-backdrop {
-  z-index: 2147483000 !important;
-}
-
 body > .bes-weekly-stat-backdrop {
   z-index: 2147483100 !important;
+}
+
+body > .bes-weekly-modal-backdrop *,
+body > .bes-weekly-stat-backdrop * {
+  box-sizing: border-box !important;
+  font-family: Inter, Arial, "Helvetica Neue", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  text-rendering: optimizeLegibility;
 }
 
 body > .bes-weekly-modal-backdrop > .bes-weekly-manager,
@@ -75,59 +82,1066 @@ body > .bes-weekly-stat-backdrop > .bes-weekly-stat-panel {
   position: relative !important;
   inset: auto !important;
   margin: auto !important;
-  max-width: 100% !important;
-  max-height: calc(100dvh - clamp(24px, 4.4vw, 56px)) !important;
+  width: min(1360px, 100%) !important;
+  max-width: 1360px !important;
+  max-height: calc(100dvh - clamp(32px, 4.4vw, 60px)) !important;
   min-height: 0 !important;
-  box-sizing: border-box !important;
-  background: #fff !important;
-  border: 1px solid rgba(148, 163, 184, .28) !important;
-  border-radius: 24px !important;
-  box-shadow: 0 28px 80px rgba(15, 23, 42, .28) !important;
+  color: #172033 !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e7f0 !important;
+  border-radius: 28px !important;
+  box-shadow: 0 30px 90px rgba(8, 18, 38, .32), 0 2px 10px rgba(8, 18, 38, .08) !important;
 }
 
-body > .bes-weekly-modal-backdrop > .bes-weekly-manager {
-  width: min(1180px, 100%) !important;
-  overflow: auto !important;
-  overscroll-behavior: contain;
+body > .bes-weekly-modal-backdrop button,
+body > .bes-weekly-stat-backdrop button,
+body > .bes-weekly-modal-backdrop input,
+body > .bes-weekly-stat-backdrop input,
+body > .bes-weekly-modal-backdrop select,
+body > .bes-weekly-stat-backdrop select {
+  font: inherit !important;
 }
+
+body > .bes-weekly-modal-backdrop button,
+body > .bes-weekly-stat-backdrop button {
+  cursor: pointer;
+}
+
+body > .bes-weekly-modal-backdrop button:disabled,
+body > .bes-weekly-stat-backdrop button:disabled {
+  cursor: not-allowed;
+  opacity: .52;
+}
+
+body > .bes-weekly-modal-backdrop input:focus,
+body > .bes-weekly-modal-backdrop select:focus,
+body > .bes-weekly-stat-backdrop input:focus,
+body > .bes-weekly-stat-backdrop select:focus {
+  outline: 3px solid rgba(99, 72, 235, .13) !important;
+  outline-offset: 1px !important;
+  border-color: #7b68ee !important;
+}
+
+/* Shared modal header */
+body > .bes-weekly-modal-backdrop > .bes-weekly-manager > header,
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-header {
+  position: relative !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 28px !important;
+  margin: 0 !important;
+  padding: 28px 30px 20px !important;
+  border: 0 !important;
+  background: #fff !important;
+}
+
+body > .bes-weekly-modal-backdrop > .bes-weekly-manager > header > div,
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-header > div {
+  min-width: 0 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-kicker,
+body > .bes-weekly-stat-backdrop .bes-weekly-kicker {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: max-content !important;
+  min-height: 28px !important;
+  margin: 0 0 8px !important;
+  padding: 5px 10px !important;
+  border: 1px solid #e1dcff !important;
+  border-radius: 999px !important;
+  background: #f5f2ff !important;
+  color: #6350dc !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+  font-weight: 800 !important;
+  letter-spacing: .065em !important;
+  text-transform: uppercase !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-kicker::before,
+body > .bes-weekly-stat-backdrop .bes-weekly-kicker::before {
+  content: "▦";
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  color: #6e56e8;
+  font-size: 13px;
+}
+
+body > .bes-weekly-modal-backdrop > .bes-weekly-manager > header h2,
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-header h2 {
+  margin: 0 !important;
+  color: #151b2b !important;
+  font-size: clamp(28px, 2.25vw, 36px) !important;
+  line-height: 1.08 !important;
+  letter-spacing: -.035em !important;
+  font-weight: 800 !important;
+}
+
+body > .bes-weekly-modal-backdrop > .bes-weekly-manager > header p,
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-header p {
+  max-width: 900px !important;
+  margin: 9px 0 0 !important;
+  color: #626d80 !important;
+  font-size: 14px !important;
+  line-height: 1.55 !important;
+  font-weight: 500 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-close,
+body > .bes-weekly-stat-backdrop .bes-weekly-close {
+  position: relative !important;
+  z-index: 5 !important;
+  flex: 0 0 42px !important;
+  width: 42px !important;
+  min-width: 42px !important;
+  height: 42px !important;
+  min-height: 42px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px solid #dfe4ec !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  color: #253047 !important;
+  box-shadow: 0 2px 7px rgba(15, 23, 42, .05) !important;
+  font-size: 24px !important;
+  line-height: 1 !important;
+  font-weight: 400 !important;
+}
+
+/* =========================================================
+   TTCM statistics modal
+   ========================================================= */
 
 body > .bes-weekly-stat-backdrop > .bes-weekly-stat-panel {
-  width: min(1320px, 100%) !important;
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
 }
 
-body > .bes-weekly-stat-backdrop .bes-weekly-stat-header,
 body > .bes-weekly-stat-backdrop .bes-weekly-stat-toolbar {
-  flex: 0 0 auto;
+  flex: 0 0 auto !important;
+  display: grid !important;
+  grid-template-columns: minmax(150px, 1.05fr) minmax(250px, 1.55fr) minmax(140px, .92fr) minmax(150px, .88fr) minmax(150px, .88fr) auto auto !important;
+  gap: 14px !important;
+  align-items: end !important;
+  margin: 0 30px 20px !important;
+  padding: 18px !important;
+  border: 1px solid #e3e8f0 !important;
+  border-radius: 18px !important;
+  background: #fbfcff !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .02) !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-toolbar label,
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-filter {
+  display: grid !important;
+  gap: 7px !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  color: #313b50 !important;
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+  font-weight: 750 !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-toolbar label > span,
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-filter > span {
+  color: #313b50 !important;
+  font-size: 12px !important;
+  font-weight: 750 !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-toolbar select,
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-toolbar input {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 44px !important;
+  margin: 0 !important;
+  padding: 0 12px !important;
+  border: 1px solid #dbe1ea !important;
+  border-radius: 11px !important;
+  background: #fff !important;
+  color: #273248 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .025) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-toolbar > button {
+  height: 44px !important;
+  min-height: 44px !important;
+  margin: 0 !important;
+  padding: 0 15px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  white-space: nowrap !important;
+  border: 1px solid #d9dfe8 !important;
+  border-radius: 11px !important;
+  background: #fff !important;
+  color: #303a4c !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .03) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-toolbar > button:last-child {
+  border-color: #6752e8 !important;
+  background: linear-gradient(135deg, #7357ee, #5c40db) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 18px rgba(93, 66, 219, .2) !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-message,
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-warning {
+  margin: 0 30px 16px !important;
+  padding: 11px 14px !important;
+  border: 1px solid #eadba5 !important;
+  border-radius: 12px !important;
+  background: #fff9e8 !important;
+  color: #725713 !important;
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-state {
+  margin: 0 30px 26px !important;
+  padding: 26px !important;
+  border: 1px dashed #d8deea !important;
+  border-radius: 18px !important;
+  background: #fafbfe !important;
+  color: #667085 !important;
+  text-align: center !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-state.is-error {
+  border-color: #f1c5c5 !important;
+  background: #fff7f7 !important;
+  color: #9d3434 !important;
 }
 
 body > .bes-weekly-stat-backdrop .bes-weekly-stat-content {
-  flex: 1 1 auto;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 30px 28px !important;
+  overflow: auto !important;
+  overscroll-behavior: contain;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-metrics {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  margin: 0 0 20px !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-metric {
+  position: relative !important;
+  min-height: 104px !important;
+  margin: 0 !important;
+  padding: 18px 16px 15px 64px !important;
+  display: grid !important;
+  align-content: center !important;
+  gap: 2px !important;
+  overflow: hidden !important;
+  border: 1px solid #dbe7fb !important;
+  border-radius: 16px !important;
+  background: linear-gradient(135deg, #f6faff, #eef5ff) !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, .025) !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-metric::before {
+  content: "✓";
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #e2edff;
+  color: #2867d8;
+  font-size: 18px;
+  font-weight: 900;
+  transform: translateY(-50%);
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-metric:nth-child(2) {
+  border-color: #d8ebdf !important;
+  background: linear-gradient(135deg, #f6fcf8, #eef9f1) !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-metric:nth-child(2)::before {
+  content: "◎";
+  background: #dff4e6;
+  color: #15904a;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-metric:nth-child(3) {
+  border-color: #f1e1c8 !important;
+  background: linear-gradient(135deg, #fffaf2, #fff5e7) !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-metric:nth-child(3)::before {
+  content: "↗";
+  background: #fff0d5;
+  color: #d27708;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-metric:nth-child(4) {
+  border-color: #e4ddf8 !important;
+  background: linear-gradient(135deg, #fbf9ff, #f3efff) !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-metric:nth-child(4)::before {
+  content: "◷";
+  background: #e9e2ff;
+  color: #6747da;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-metric > span {
+  order: 2;
+  color: #3b465a !important;
+  font-size: 12px !important;
+  line-height: 1.3 !important;
+  font-weight: 750 !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-metric > strong {
+  order: 1;
+  margin: 0 0 2px !important;
+  color: #245fc2 !important;
+  font-size: 24px !important;
+  line-height: 1.05 !important;
+  letter-spacing: -.02em !important;
+  font-weight: 800 !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-metric:nth-child(2) > strong { color: #128440 !important; }
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-metric:nth-child(3) > strong { color: #c86c00 !important; }
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-metric:nth-child(4) > strong { color: #5f42d4 !important; }
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-metric > small {
+  order: 3;
+  margin-top: 2px !important;
+  color: #7b8495 !important;
+  font-size: 10px !important;
+  line-height: 1.3 !important;
+  font-weight: 550 !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-explain {
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: space-between !important;
+  gap: 18px !important;
+  margin: 0 !important;
+  padding: 0 2px 16px !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-explain > div:first-child {
+  position: relative !important;
+  padding-left: 42px !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-explain > div:first-child::before {
+  content: "▤";
+  position: absolute;
+  left: 0;
+  top: 1px;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: #f1edff;
+  color: #6546dc;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-explain h3,
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-section-head h3 {
+  margin: 0 !important;
+  color: #1c2435 !important;
+  font-size: 16px !important;
+  line-height: 1.3 !important;
+  font-weight: 800 !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-explain p,
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-section-head p {
+  margin: 4px 0 0 !important;
+  color: #6b7587 !important;
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-actions {
+  display: flex !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-actions button,
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-state button {
+  min-height: 38px !important;
+  padding: 8px 13px !important;
+  border: 1px solid #d8dee8 !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  color: #364055 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .025) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-actions .bes-weekly-stat-danger {
+  border-color: #f0c7c7 !important;
+  background: #fffafa !important;
+  color: #c93030 !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-empty {
+  position: relative !important;
+  min-height: 142px !important;
+  margin: 0 0 18px !important;
+  padding: 30px 28px 30px 43% !important;
+  display: grid !important;
+  align-content: center !important;
+  border: 1px dashed #cfc7f4 !important;
+  border-radius: 16px !important;
+  background: linear-gradient(135deg, #fbfbff, #f7f5ff) !important;
+  color: #6a7487 !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-empty::before {
+  content: "▱";
+  position: absolute;
+  left: 30%;
+  top: 50%;
+  width: 70px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #bdb2ed;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #f5f2ff, #e9e3ff);
+  color: #7259dd;
+  box-shadow: 0 8px 20px rgba(94, 65, 205, .12);
+  font-size: 38px;
+  line-height: 1;
+  transform: translate(-50%, -50%);
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-empty strong {
+  margin: 0 0 5px !important;
+  color: #1f2738 !important;
+  font-size: 15px !important;
+  line-height: 1.3 !important;
+  font-weight: 800 !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-empty p {
+  max-width: 520px !important;
+  margin: 0 !important;
+  color: #707a8c !important;
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-result-section,
+body > .bes-weekly-stat-backdrop .bes-weekly-daily-section {
+  margin: 0 0 18px !important;
+  padding: 17px !important;
+  border: 1px solid #e2e7ef !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-stat-section-head {
+  margin: 0 0 12px !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-result-table,
+body > .bes-weekly-stat-backdrop .bes-weekly-daily-table {
+  overflow-x: auto !important;
+  border: 1px solid #e5e9f0 !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-result-table > div,
+body > .bes-weekly-stat-backdrop .bes-weekly-daily-table > div {
+  min-width: 760px !important;
+  padding: 10px 12px !important;
+  border-bottom: 1px solid #edf0f5 !important;
+  color: #4d586b !important;
+  font-size: 12px !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-result-table > div:last-child,
+body > .bes-weekly-stat-backdrop .bes-weekly-daily-table > div:last-child {
+  border-bottom: 0 !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-result-table .is-head,
+body > .bes-weekly-stat-backdrop .bes-weekly-daily-table .is-head {
+  background: #f7f8fb !important;
+  color: #646f81 !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+}
+
+body > .bes-weekly-stat-backdrop .bes-weekly-result-table button {
+  min-height: 30px !important;
+  padding: 5px 9px !important;
+  border: 1px solid #d9deea !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  color: #5d49cc !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+}
+
+/* =========================================================
+   Weekly content manager modal
+   ========================================================= */
+
+body > .bes-weekly-modal-backdrop > .bes-weekly-manager {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  overscroll-behavior: contain;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-manager__message {
+  flex: 0 0 auto !important;
+  margin: 0 30px 16px !important;
+  padding: 11px 14px !important;
+  border: 1px solid #d6e6dc !important;
+  border-radius: 12px !important;
+  background: #f2faf5 !important;
+  color: #22643a !important;
+  font-size: 12px !important;
+  line-height: 1.45 !important;
+  font-weight: 650 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-manager__grid {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  display: grid !important;
+  grid-template-columns: minmax(340px, .9fr) minmax(0, 1.55fr) !important;
+  gap: 18px !important;
+  margin: 0 !important;
+  padding: 0 30px 28px !important;
+  overflow: hidden !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-form,
+body > .bes-weekly-modal-backdrop .bes-weekly-manage-list {
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 20px !important;
+  border: 1px solid #e2e7ef !important;
+  border-radius: 18px !important;
+  background: #fff !important;
+  box-shadow: 0 2px 7px rgba(15, 23, 42, .025) !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-form {
+  align-self: start !important;
+  display: grid !important;
+  gap: 14px !important;
+  max-height: 100% !important;
+  overflow: auto !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-form h3,
+body > .bes-weekly-modal-backdrop .bes-weekly-manage-list > h3 {
+  position: relative !important;
+  margin: 0 !important;
+  padding-left: 34px !important;
+  color: #1d2536 !important;
+  font-size: 16px !important;
+  line-height: 1.3 !important;
+  font-weight: 800 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-form h3::before,
+body > .bes-weekly-modal-backdrop .bes-weekly-manage-list > h3::before {
+  content: "↥";
+  position: absolute;
+  left: 0;
+  top: -3px;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #f2efff;
+  color: #6d50e8;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-manage-list > h3::before {
+  content: "▤";
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-form label,
+body > .bes-weekly-modal-backdrop .bes-weekly-grade-field {
+  display: grid !important;
+  gap: 7px !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  color: #333d51 !important;
+  font-size: 12px !important;
+  line-height: 1.25 !important;
+  font-weight: 750 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-form input:not([type="file"]),
+body > .bes-weekly-modal-backdrop .bes-weekly-form select {
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 44px !important;
+  margin: 0 !important;
+  padding: 0 12px !important;
+  border: 1px solid #dce2eb !important;
+  border-radius: 11px !important;
+  background: #fff !important;
+  color: #283348 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .025) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-file {
+  padding: 13px !important;
+  border: 1px dashed #cfd6e4 !important;
+  border-radius: 13px !important;
+  background: #fafbfe !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-file input[type="file"] {
+  width: 100% !important;
+  min-width: 0 !important;
+  color: #4b566b !important;
+  font-size: 12px !important;
+  font-weight: 650 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-file input[type="file"]::file-selector-button {
+  min-height: 34px;
+  margin-right: 10px;
+  padding: 6px 11px;
+  border: 1px solid #d9d4f2;
+  border-radius: 9px;
+  background: #f3efff;
+  color: #5d47cf;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-file > span {
+  color: #7b8495 !important;
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+  font-weight: 550 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-simple-note {
+  position: relative !important;
+  display: grid !important;
+  gap: 6px !important;
+  margin: 0 !important;
+  padding: 14px 14px 14px 42px !important;
+  border: 1px solid #e3dcff !important;
+  border-radius: 13px !important;
+  background: linear-gradient(135deg, #faf8ff, #f4f0ff) !important;
+  color: #635f73 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-simple-note::before {
+  content: "✦";
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  color: #785ee7;
+  font-size: 15px;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-simple-note strong {
+  color: #644ed5 !important;
+  font-size: 12px !important;
+  line-height: 1.3 !important;
+  font-weight: 800 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-simple-note span {
+  color: #686f80 !important;
+  font-size: 11px !important;
+  line-height: 1.6 !important;
+  font-weight: 550 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-form > .bes-weekly-primary {
+  width: 100% !important;
+  min-height: 44px !important;
+  margin: 0 !important;
+  padding: 9px 16px !important;
+  border: 1px solid #6246df !important;
+  border-radius: 11px !important;
+  background: linear-gradient(135deg, #7457ef, #5d3ee0) !important;
+  color: #fff !important;
+  box-shadow: 0 9px 20px rgba(94, 63, 219, .2) !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-manage-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
   min-height: 0 !important;
   overflow: auto !important;
   overscroll-behavior: contain;
 }
 
-body > .bes-weekly-modal-backdrop .bes-weekly-close,
-body > .bes-weekly-stat-backdrop .bes-weekly-close {
-  position: relative;
-  z-index: 2;
-  flex: 0 0 auto;
+body > .bes-weekly-modal-backdrop .bes-weekly-grade-filter {
+  display: grid !important;
+  gap: 11px !important;
+  margin: 0 !important;
+  padding: 15px !important;
+  border: 1px solid #e7eaf1 !important;
+  border-radius: 14px !important;
+  background: #fafbfe !important;
 }
 
-@media (max-width: 720px) {
+body > .bes-weekly-modal-backdrop .bes-weekly-grade-filter__heading {
+  display: flex !important;
+  align-items: baseline !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-grade-filter__heading strong {
+  color: #323b4e !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-grade-filter__heading small {
+  color: #7a8494 !important;
+  font-size: 10px !important;
+  font-weight: 550 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-grade-filter__buttons {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-grade-filter__buttons button {
+  min-height: 60px !important;
+  margin: 0 !important;
+  padding: 9px 10px !important;
+  display: grid !important;
+  align-content: center !important;
+  gap: 3px !important;
+  border: 1px solid #e0e5ed !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  color: #5e6879 !important;
+  box-shadow: none !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-grade-filter__buttons button:nth-child(2) {
+  border-color: #d8e6fa !important;
+  background: #f5f9ff !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-grade-filter__buttons button:nth-child(3) {
+  border-color: #d8ebdf !important;
+  background: #f5fbf7 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-grade-filter__buttons button:nth-child(4) {
+  border-color: #f1dfc8 !important;
+  background: #fff9f2 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-grade-filter__buttons button.is-active {
+  border-color: #866ff0 !important;
+  background: #f2efff !important;
+  color: #5d43d4 !important;
+  box-shadow: inset 0 0 0 1px rgba(111, 82, 229, .12) !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-grade-filter__buttons button span {
+  font-size: 11px !important;
+  line-height: 1.2 !important;
+  font-weight: 700 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-grade-filter__buttons button b {
+  color: inherit !important;
+  font-size: 19px !important;
+  line-height: 1 !important;
+  font-weight: 850 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-grade-filter__warning {
+  padding: 8px 10px !important;
+  border-radius: 9px !important;
+  background: #fff8e8 !important;
+  color: #8a6519 !important;
+  font-size: 10px !important;
+  line-height: 1.4 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-manage-list > p {
+  margin: 0 !important;
+  padding: 17px !important;
+  border: 1px dashed #d9dee7 !important;
+  border-radius: 12px !important;
+  background: #fafbfc !important;
+  color: #798293 !important;
+  text-align: center !important;
+  font-size: 12px !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-manage-list > article {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  gap: 14px !important;
+  align-items: center !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 12px 13px !important;
+  border: 1px solid #e6e9ef !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-manage-list > article > div {
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  gap: 3px 9px !important;
+  align-items: center !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-manage-list > article .bes-weekly-status {
+  grid-row: 1 / 3 !important;
+  align-self: center !important;
+  min-width: 78px !important;
+  margin: 0 !important;
+  padding: 6px 8px !important;
+  border-radius: 999px !important;
+  background: #e9f7ee !important;
+  color: #258b4e !important;
+  text-align: center !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+  font-weight: 800 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-manage-list > article strong {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  color: #283248 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 12px !important;
+  line-height: 1.3 !important;
+  font-weight: 750 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-manage-list > article div > span:last-child {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  color: #808999 !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 10px !important;
+  line-height: 1.3 !important;
+  font-weight: 550 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-manage-list > article nav {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 6px !important;
+  flex-wrap: wrap !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-manage-list > article nav button {
+  min-height: 31px !important;
+  margin: 0 !important;
+  padding: 5px 9px !important;
+  border: 1px solid #dfe3ea !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  color: #566074 !important;
+  box-shadow: none !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+  font-weight: 750 !important;
+}
+
+body > .bes-weekly-modal-backdrop .bes-weekly-manage-list > article nav button.is-danger {
+  border-color: #f1caca !important;
+  background: #fffafa !important;
+  color: #d03b3b !important;
+}
+
+/* =========================================================
+   Responsive behavior
+   ========================================================= */
+
+@media (max-width: 1180px) {
+  body > .bes-weekly-stat-backdrop .bes-weekly-stat-toolbar {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  body > .bes-weekly-stat-backdrop .bes-weekly-stat-filter.is-practice {
+    grid-column: span 2 !important;
+  }
+
+  body > .bes-weekly-stat-backdrop .bes-weekly-stat-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  body > .bes-weekly-modal-backdrop .bes-weekly-manager__grid {
+    grid-template-columns: minmax(320px, .82fr) minmax(0, 1.18fr) !important;
+  }
+}
+
+@media (max-width: 900px) {
   body > .bes-weekly-modal-backdrop,
   body > .bes-weekly-stat-backdrop {
     align-items: flex-start !important;
-    padding: 8px !important;
+    padding: 10px !important;
   }
 
   body > .bes-weekly-modal-backdrop > .bes-weekly-manager,
   body > .bes-weekly-stat-backdrop > .bes-weekly-stat-panel {
     width: 100% !important;
-    max-height: calc(100dvh - 16px) !important;
-    border-radius: 18px !important;
+    max-height: calc(100dvh - 20px) !important;
+    border-radius: 20px !important;
+  }
+
+  body > .bes-weekly-modal-backdrop > .bes-weekly-manager > header,
+  body > .bes-weekly-stat-backdrop .bes-weekly-stat-header {
+    padding: 22px 20px 16px !important;
+  }
+
+  body > .bes-weekly-stat-backdrop .bes-weekly-stat-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    margin: 0 20px 16px !important;
+  }
+
+  body > .bes-weekly-stat-backdrop .bes-weekly-stat-filter.is-practice {
+    grid-column: span 1 !important;
+  }
+
+  body > .bes-weekly-stat-backdrop .bes-weekly-stat-content {
+    padding: 0 20px 22px !important;
+  }
+
+  body > .bes-weekly-modal-backdrop .bes-weekly-manager__grid {
+    grid-template-columns: 1fr !important;
+    padding: 0 20px 22px !important;
+    overflow: auto !important;
+  }
+
+  body > .bes-weekly-modal-backdrop .bes-weekly-form,
+  body > .bes-weekly-modal-backdrop .bes-weekly-manage-list {
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  body > .bes-weekly-modal-backdrop .bes-weekly-manager__message {
+    margin: 0 20px 14px !important;
+  }
+}
+
+@media (max-width: 620px) {
+  body > .bes-weekly-modal-backdrop > .bes-weekly-manager > header,
+  body > .bes-weekly-stat-backdrop .bes-weekly-stat-header {
+    gap: 14px !important;
+  }
+
+  body > .bes-weekly-modal-backdrop > .bes-weekly-manager > header h2,
+  body > .bes-weekly-stat-backdrop .bes-weekly-stat-header h2 {
+    font-size: 26px !important;
+  }
+
+  body > .bes-weekly-stat-backdrop .bes-weekly-stat-toolbar {
+    grid-template-columns: 1fr !important;
+    padding: 14px !important;
+  }
+
+  body > .bes-weekly-stat-backdrop .bes-weekly-stat-metrics {
+    grid-template-columns: 1fr !important;
+  }
+
+  body > .bes-weekly-stat-backdrop .bes-weekly-stat-explain {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  body > .bes-weekly-stat-backdrop .bes-weekly-stat-actions {
+    justify-content: flex-start !important;
+  }
+
+  body > .bes-weekly-stat-backdrop .bes-weekly-stat-empty {
+    padding: 96px 20px 24px !important;
+    text-align: center !important;
+  }
+
+  body > .bes-weekly-stat-backdrop .bes-weekly-stat-empty::before {
+    left: 50%;
+    top: 48px;
+  }
+
+  body > .bes-weekly-modal-backdrop .bes-weekly-grade-filter__heading {
+    display: grid !important;
+  }
+
+  body > .bes-weekly-modal-backdrop .bes-weekly-grade-filter__buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  body > .bes-weekly-modal-backdrop .bes-weekly-manage-list > article {
+    grid-template-columns: 1fr !important;
+  }
+
+  body > .bes-weekly-modal-backdrop .bes-weekly-manage-list > article nav {
+    justify-content: flex-start !important;
   }
 }
