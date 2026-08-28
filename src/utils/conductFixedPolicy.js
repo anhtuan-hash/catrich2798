@@ -42,7 +42,11 @@ export function conductWeekPoint(score) {
 }
 
 export function classifyConductPoint(point) {
-  const value = Number(point) || 0;
+  if (point === null || point === undefined || text(point) === '') {
+    return { id: 'unclassified', label: 'Chưa xếp loại' };
+  }
+  const value = Number(point);
+  if (!Number.isFinite(value)) return { id: 'unclassified', label: 'Chưa xếp loại' };
   if (value >= FIXED_CONDUCT_POLICY.thresholds.good) return { id: 'good', label: 'Tốt' };
   if (value >= FIXED_CONDUCT_POLICY.thresholds.fair) return { id: 'fair', label: 'Khá' };
   if (value >= FIXED_CONDUCT_POLICY.thresholds.pass) return { id: 'pass', label: 'Đạt' };
@@ -50,6 +54,7 @@ export function classifyConductPoint(point) {
 }
 
 export function downgradeConductOneLevel(classification = {}) {
+  if (classification?.id === 'unclassified') return { id: 'unclassified', label: 'Chưa xếp loại' };
   const order = ['good', 'fair', 'pass', 'fail'];
   const labels = { good: 'Tốt', fair: 'Khá', pass: 'Đạt', fail: 'Chưa đạt' };
   const index = order.indexOf(classification?.id);
@@ -97,15 +102,18 @@ export function calculateFixedConductPeriod(workspace, startDate, endDate) {
       .map((rows) => rows.find((row) => row.student.id === student.id))
       .filter(Boolean);
     const weeklyPoints = weekly.map((row) => conductWeekPoint(row.score));
-    const average = weeklyPoints.length
+    const rawAverage = weeklyPoints.length
       ? weeklyPoints.reduce((sum, point) => sum + point, 0) / weeklyPoints.length
-      : FIXED_CONDUCT_POLICY.maximum;
-    const roundedAverage = Math.round(average * 100) / 100;
-    const baseClassification = classifyConductPoint(roundedAverage);
+      : null;
+    const average = Number.isFinite(rawAverage) ? Math.round(rawAverage * 100) / 100 : null;
+    const baseClassification = classifyConductPoint(rawAverage);
     const prohibitedRecords = prohibitedRecordsForRange(workspace, startDate, endDate, student.id);
     const prohibitedViolationCount = prohibitedRecords.length;
-    const prohibitedDowngraded = prohibitedViolationCount > 0 && baseClassification.id !== 'fail';
-    const classification = prohibitedViolationCount > 0
+    const hasClassifiableResult = baseClassification.id !== 'unclassified';
+    const prohibitedDowngraded = prohibitedViolationCount > 0
+      && hasClassifiableResult
+      && baseClassification.id !== 'fail';
+    const classification = prohibitedViolationCount > 0 && hasClassifiableResult
       ? downgradeConductOneLevel(baseClassification)
       : baseClassification;
 
@@ -114,7 +122,8 @@ export function calculateFixedConductPeriod(workspace, startDate, endDate) {
       weekCount: weekly.length,
       weekly,
       weeklyPoints,
-      average: roundedAverage,
+      rawAverage,
+      average,
       baseClassification,
       classification,
       prohibitedRecords,
