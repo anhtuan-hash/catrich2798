@@ -75,6 +75,8 @@ import './GlobalNavigationSemanticOrderFix.css';
 import './GlobalUnifiedNavigationHub.css';
 // ABSOLUTE FINAL GEOMETRY AUTHORITY: one centered 16:9 frame for every Brian route.
 import '../styles/GlobalLayout16x9Authority.css';
+// FINAL PRIMARY-NAV VISUAL AUTHORITY: raised, tactile destination buttons approved for Brian.
+import './GlobalNavigationRaisedPills.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
