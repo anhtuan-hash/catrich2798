@@ -1,0 +1,57 @@
+/* Brian Reports — Scale V15
+   User-requested whole-app enlargement: +25% for the Reports/Brian Team route.
+   This layer is presentation-only and intentionally loaded after Editorial V14. */
+
+/* Scale the complete reports route, not just typography, so cards, controls,
+   icons, spacing and text remain proportionally consistent. The 80vw layout
+   width compensates for 1.25x zoom and keeps the enlarged workspace inside
+   the viewport instead of creating a permanent horizontal scrollbar. */
+html body .btp-shell {
+  width: 80vw !important;
+  max-width: 80vw !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  zoom: 1.25 !important;
+}
+
+/* Route-owned teacher report canvas should use all compensated width. */
+html body .btp-shell .mr-teacher-shell {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* If report modals are portalled directly to body, enlarge them once as well.
+   The viewport caps compensate for the zoom so large previews remain usable. */
+html body > .mr-modal-backdrop .mr-modal,
+html body > .mr-modal-overlay .mr-modal {
+  max-width: 76vw !important;
+  max-height: 76vh !important;
+  zoom: 1.25 !important;
+}
+
+/* Chrome/Safari support zoom natively. This fallback keeps typography and
+   controls noticeably larger in engines without CSS zoom support. */
+@supports not (zoom: 1) {
+  html body .btp-shell {
+    width: 80vw !important;
+    max-width: 80vw !important;
+    transform: scale(1.25) !important;
+    transform-origin: top left !important;
+  }
+
+  html body > .mr-modal-backdrop .mr-modal,
+  html body > .mr-modal-overlay .mr-modal {
+    transform: scale(1.25) !important;
+    transform-origin: center center !important;
+  }
+}
+
+/* Preserve the compensated viewport width on small screens too: the UI is
+   still exactly 25% larger, while existing V14 responsive rules keep content
+   in one or two columns as appropriate. */
+@media (max-width: 900px) {
+  html body .btp-shell {
+    width: 80vw !important;
+    max-width: 80vw !important;
+  }
+}
