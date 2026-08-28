@@ -13,14 +13,16 @@ import '../styles/HomeHeroCmsEditorGoogle.css';
 import '../styles/HomeHeroCmsEditorApproved.css';
 import '../styles/HomeHeroCmsEditorInteractionFix.css';
 
-// Home is intentionally a light entry surface. Detailed per-week browsing remains
-// inside the practice experience instead of being injected into each Home grade card.
+// Home stays a light entry surface. Grade buttons open the dedicated practice hub;
+// the legacy lesson runner must never mount inline below the Home footer.
+import '../homePracticeGradeEntryLauncher.js';
 
 // HomeApproved owns behaviour/data. Warm V5 keeps the established editorial
-// layout contract; Sage V6 owns the approved palette; V7 keeps grade cards minimal.
+// layout contract; Sage V6 owns the approved palette; V8 owns the refined,
+// minimal grade-entry cards.
 import HomeApproved from './HomeApproved.jsx';
 import '../styles/HomeEditorialWarmV5.css';
 import '../styles/HomeEditorialSageV6.css';
-import '../styles/HomeEditorialGradeMinimalV7.css';
+import '../styles/HomeEditorialGradeRefinedV8.css';
 
 export default HomeApproved;
