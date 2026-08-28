@@ -5,7 +5,7 @@ export const WEEKLY_PRACTICE_BUCKET = 'weekly-practice';
 export const WEEKLY_PRACTICE_DRIVE_STORAGE = 'google-drive';
 export const WEEKLY_PRACTICE_PROOF_BUCKET = 'weekly-practice-proofs';
 export const WEEKLY_PRACTICE_MAX_BYTES = 10 * 1024 * 1024;
-export const WEEKLY_PRACTICE_MINIMUM_SECONDS = 45 * 60;
+export const WEEKLY_PRACTICE_MINIMUM_SECONDS = 20 * 60;
 export const WEEKLY_PRACTICE_TABLE = 'weekly_practice_items';
 
 export const WEEKLY_PRACTICE_CLASSES = [
@@ -509,7 +509,7 @@ export async function submitWeeklyPracticeResult(practiceId, identity, result = 
 
   if (!studentName) throw new Error('Họ và tên học sinh không được để trống.');
   if (!WEEKLY_PRACTICE_CLASSES.includes(classCode)) throw new Error('Lớp đã chọn không hợp lệ.');
-  if (durationSeconds < WEEKLY_PRACTICE_MINIMUM_SECONDS) throw new Error('Chưa đủ 45 phút để gửi bài.');
+  if (durationSeconds < WEEKLY_PRACTICE_MINIMUM_SECONDS) throw new Error('Chưa đủ 20 phút để gửi bài.');
   if (!proofPath) throw new Error('Chưa có ảnh xác nhận hoàn thành.');
 
   const payload = {
