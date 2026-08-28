@@ -8,6 +8,9 @@ const EVENT_NAME = 'bes-regional-fonts-updated';
 const LINK_PREFIX = 'bes-regional-font-';
 const CUSTOM_STYLE_PREFIX = 'bes-regional-custom-font-face-';
 const CUSTOM_FAMILY_PREFIX = 'BrianRegionalCustom';
+const FONT_SIZES_KEY = 'fontSizes';
+const NAV_FONT_SIZE_MIN = 11;
+const NAV_FONT_SIZE_MAX = 22;
 
 export const GLOBAL_FONT_REGIONS = Object.freeze([
   { id: 'navigation', labelVi: 'Thanh điều hướng', label: 'Navigation', descriptionVi: 'Logo chữ, menu chính, tài khoản và nhãn trên thanh điều hướng.', description: 'Brand text, primary navigation, account and navigation labels.', sample: 'Brian English · Trang chủ · Dashboard' },
@@ -64,6 +67,18 @@ function normalizePreset(value) {
   return ALLOWED_PRESETS.has(preset) ? preset : 'inherit';
 }
 
+function normalizeNavigationFontSize(value) {
+  const size = Number(value);
+  if (!Number.isFinite(size)) return null;
+  return Math.min(NAV_FONT_SIZE_MAX, Math.max(NAV_FONT_SIZE_MIN, Math.round(size)));
+}
+
+function normalizeFontSizes(input = {}) {
+  const source = input && typeof input === 'object' ? input : {};
+  const navigation = normalizeNavigationFontSize(source.navigation);
+  return navigation ? { navigation } : {};
+}
+
 function normalizeCustomEntry(value = {}) {
   const url = String(value?.url || value?.custom_font_url || '').trim();
   if (!url) return null;
@@ -96,7 +111,14 @@ export function normalizeRegionalFontSettings(input = {}) {
     const value = normalizeRegionValue(source[region.id]);
     if (value) normalized[region.id] = value;
   });
+  const fontSizes = normalizeFontSizes(source[FONT_SIZES_KEY]);
+  if (Object.keys(fontSizes).length) normalized[FONT_SIZES_KEY] = fontSizes;
   return normalized;
+}
+
+export function getRegionalFontSize(settings = {}, regionId = 'navigation') {
+  const normalized = normalizeRegionalFontSettings(settings);
+  return normalizeNavigationFontSize(normalized?.[FONT_SIZES_KEY]?.[regionId]);
 }
 
 function readStoredSettings() {
@@ -116,7 +138,8 @@ function writeStoredSettings(settings) {
 function syncRemoteAssets(settings) {
   if (typeof document === 'undefined') return;
   const required = new Set(
-    Object.values(settings)
+    GLOBAL_FONT_REGIONS
+      .map((region) => settings[region.id])
       .filter((value) => typeof value === 'string' && REMOTE_FONT_STYLESHEETS[value]),
   );
 
@@ -206,6 +229,8 @@ export function getRegionalFontSettings() {
       const value = root.dataset[`fontRegion${region.id.charAt(0).toUpperCase()}${region.id.slice(1)}`];
       if (value && ALLOWED_PRESETS.has(value)) fromDom[region.id] = value;
     });
+    const navigationSize = normalizeNavigationFontSize(root.dataset.fontSizeNavigation);
+    if (navigationSize) fromDom[FONT_SIZES_KEY] = { navigation: navigationSize };
     if (Object.keys(fromDom).length) return fromDom;
   }
   return {};
@@ -230,6 +255,16 @@ export function applyRegionalFontSettings(input = {}, options = {}) {
         root.style.removeProperty(`--bes-font-${region.id}`);
       }
     });
+
+    const navigationSize = getRegionalFontSize(settings, 'navigation');
+    if (navigationSize) {
+      root.dataset.fontSizeNavigation = String(navigationSize);
+      root.style.setProperty('--bes-font-size-navigation', `${navigationSize}px`);
+    } else {
+      delete root.dataset.fontSizeNavigation;
+      root.style.removeProperty('--bes-font-size-navigation');
+    }
+
     root.dataset.regionalFontsSource = source;
     root.dataset.regionalFontsEnabled = Object.keys(settings).length ? 'true' : 'false';
   }
@@ -391,9 +426,9 @@ export async function loadRegionalFontSettingsFromServer({ silent = true } = {})
 
 export async function saveRegionalFontSettings(input = {}, currentUser = null) {
   const settings = normalizeRegionalFontSettings(input);
-  const transientCustom = Object.values(settings).find(
-    (value) => value?.preset === 'custom' && String(value.url || '').startsWith('blob:'),
-  );
+  const transientCustom = GLOBAL_FONT_REGIONS
+    .map((region) => settings[region.id])
+    .find((value) => value?.preset === 'custom' && String(value.url || '').startsWith('blob:'));
   if (transientCustom) {
     return {
       ok: false,
