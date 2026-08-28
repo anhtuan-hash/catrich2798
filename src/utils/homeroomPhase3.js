@@ -1,4 +1,5 @@
 import { normalizeHomeroomWorkspace } from './homeroomStore.js';
+import { sanitizeWorkspaceBackupSnapshot, sanitizeWorkspaceRestoreSnapshot } from './homeroomProductionSafety.js';
 
 function nowIso() { return new Date().toISOString(); }
 function safeText(value, fallback = '') { const text = String(value ?? '').trim(); return text || fallback; }
@@ -17,7 +18,7 @@ export function makeWorkspaceId(className = 'class', schoolYear = '') {
 function snapshotPayload(workspace) {
   const normalized = normalizeHomeroomWorkspace(workspace);
   const { auditLogs, backups, ...rest } = normalized;
-  return rest;
+  return sanitizeWorkspaceBackupSnapshot(rest);
 }
 
 function collectionCounts(workspace) {
@@ -96,8 +97,9 @@ export function restoreWorkspaceBackup(workspace, backupId, actor) {
   const current = normalizeHomeroomWorkspace(workspace, actor);
   const backup = (current.backups || []).find((item) => item.id === backupId);
   if (!backup?.snapshot) throw new Error('Không tìm thấy bản sao lưu.');
+  const restoreCandidate = sanitizeWorkspaceRestoreSnapshot(backup.snapshot, current);
   const restored = normalizeHomeroomWorkspace({
-    ...backup.snapshot,
+    ...restoreCandidate,
     id: current.id,
     backups: current.backups,
     auditLogs: current.auditLogs,

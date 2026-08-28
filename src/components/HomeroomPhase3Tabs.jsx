@@ -100,8 +100,8 @@ export function DataSafetyTab({ workspace, onCommit, currentUser }) {
   const summary = buildClassSummary(workspace);
   const createBackup = () => onCommit(createManualBackup(workspace, currentUser, backupLabel), 'Đã tạo bản sao lưu thủ công.').then(() => setBackupLabel(''));
   const restore = (id) => {
-    if (!window.confirm('Khôi phục bản sao lưu này? Dữ liệu hiện tại sẽ được thay thế nhưng vẫn giữ lịch sử sao lưu.')) return;
-    onCommit(restoreWorkspaceBackup(workspace, id, currentUser), 'Đã khôi phục bản sao lưu.');
+    if (!window.confirm('Khôi phục bản sao lưu này? Dữ liệu lớp sẽ được thay thế; cấu hình bảo mật, quyền truy cập và loại lớp hiện tại vẫn được giữ an toàn.')) return;
+    onCommit(restoreWorkspaceBackup(workspace, id, currentUser), 'Đã khôi phục bản sao lưu an toàn; cấu hình truy cập hiện tại được giữ nguyên.');
   };
   const saveSecurity = () => onCommit({ ...workspace, portalConfig: { ...workspace.portalConfig, ...security }, settings: { ...workspace.settings, privacyMode: security.privacyMode || workspace.settings.privacyMode, inactivityLogoutMinutes: Number(security.inactivityLogoutMinutes || workspace.settings.inactivityLogoutMinutes) } }, 'Đã lưu cấu hình an toàn dữ liệu.');
   const resetPin = (studentId) => onCommit(regenerateStudentPortalPin(workspace, studentId), 'Đã tạo PIN mới cho học sinh.');
