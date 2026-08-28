@@ -23,11 +23,12 @@ import '../weeklyPractice20MinuteGuard.js';
 // travel with Home as well; otherwise the portal falls back into raw document flow.
 import '../components/GlobalWeeklyPractice.css';
 
-// HomeApproved owns behaviour/data. Warm V5 keeps the established editorial
-// layout contract; Sage V6 is the approved final route-scoped visual layer.
+// HomeApproved owns behaviour/data. Warm V5 + Sage V6 keep the established
+// editorial layout contract. Blue V9 is the final Home-only production skin.
 import HomeApproved from './HomeApproved.jsx';
 import '../styles/HomeEditorialWarmV5.css';
 import '../styles/HomeEditorialSageV6.css';
 import '../styles/WeeklyPracticeEditorial2026.css';
+import '../styles/HomeEditorialBlueV9.css';
 
 export default HomeApproved;
