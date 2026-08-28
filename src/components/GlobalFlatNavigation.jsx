@@ -26,6 +26,7 @@ import GlobalTtcmNavigationTab from './GlobalTtcmNavigationTab.jsx';
 import GlobalDashboardFooterBridge from './GlobalDashboardFooterBridge.jsx';
 import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
 import GlobalWeeklyPracticeBridge from './GlobalWeeklyPracticeBridge.jsx';
+import GlobalNavigationFontSizeControl from './GlobalNavigationFontSizeControl.jsx';
 
 // Cross-route utility styles only. Route visual systems must travel with their
 // own lazy route chunks instead of hitchhiking on the shared navigation hub.
@@ -81,6 +82,7 @@ export default function GlobalFlatNavigation(props) {
     <>
       <GlobalNativeTextScaleReset />
       <Navigation {...props} />
+      <GlobalNavigationFontSizeControl currentUser={props.currentUser} language={props.language} />
       <GlobalNavigationHubController />
       <GlobalPinnedNavigationHub route={props.route} />
       <GlobalWindowsPhone8Loading />
