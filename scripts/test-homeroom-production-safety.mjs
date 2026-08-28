@@ -95,7 +95,9 @@ function workspace(overrides = {}) {
   assert.match(source, /privacyMode\(normalized\) === 'cloud-only'/, 'cloud-only must remove the local workspace payload.');
   assert.doesNotMatch(source, /\.upsert\(/, 'Whole-payload blind upsert must not return.');
   assert.match(source, /\.eq\('updated_at', expectedRevision\)/, 'Cloud writes must use optimistic concurrency.');
-  assert.match(source, /getAttendanceLockViolation\(existing\.payload, prepared\)/, 'Cloud persistence must enforce attendance locks.');
+  assert.match(source, /\.select\('updated_at'\)/, 'Cloud writes must return only the revision.');
+  assert.match(source, /getPersistenceBaseline\(user, next\?\.id\)/, 'Attendance persistence must use the last trusted baseline when local payload is absent.');
+  assert.match(source, /getAttendanceLockViolation\(baseline, next\)/, 'Persistence must enforce attendance locks before writing.');
 
   const whitelistMatch = source.match(/const SUBJECT_STUDENT_FIELDS = \[([\s\S]*?)\];/);
   assert.ok(whitelistMatch, 'Subject-student field whitelist must exist.');
