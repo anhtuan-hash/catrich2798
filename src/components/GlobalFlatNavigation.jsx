@@ -27,6 +27,7 @@ import GlobalTtcmNavigationTab from './GlobalTtcmNavigationTab.jsx';
 import GlobalDashboardFooterBridge from './GlobalDashboardFooterBridge.jsx';
 import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
 import GlobalWeeklyPracticeBridge from './GlobalWeeklyPracticeBridge.jsx';
+import GlobalEditorialAuthorityRuntime from './GlobalEditorialAuthorityRuntime.jsx';
 
 // Cross-route utility styles only. Route visual systems must travel with their
 // own lazy route chunks instead of hitchhiking on the shared navigation hub.
@@ -115,6 +116,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalTtcmNavigationTab {...props} />
       <GlobalDashboardFooterBridge route={props.route} language={props.language} />
       <GlobalEnglishHubBrand />
+      <GlobalEditorialAuthorityRuntime />
     </>
   );
 }
