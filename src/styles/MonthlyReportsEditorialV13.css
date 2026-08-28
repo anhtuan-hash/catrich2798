@@ -1,0 +1,837 @@
+/* Brian Reports — Editorial V13
+   Final route-owned visual layer for the teacher monthly-report workspace.
+   Presentation only: report data, review, save, submit and lock logic are untouched. */
+
+html body .mr-teacher-shell {
+  --v13-paper: #fbfaf7;
+  --v13-sheet: #fffefa;
+  --v13-ink: #182334;
+  --v13-ink-soft: #3f4b59;
+  --v13-muted: #7b7d7d;
+  --v13-line: #e5e0d8;
+  --v13-line-strong: #d7d0c6;
+  --v13-coral: #dc493d;
+  --v13-coral-deep: #b8322a;
+  --v13-coral-soft: #fff2ef;
+  --v13-green: #247b4a;
+  --v13-green-soft: #eef8f1;
+  --v13-blue: #286fd8;
+  --v13-blue-soft: #eef5ff;
+  --v13-violet: #7650c8;
+  --v13-violet-soft: #f5f0ff;
+  --v13-amber: #c97912;
+  --v13-amber-soft: #fff7e9;
+  --v13-serif: Georgia, 'Times New Roman', Times, serif;
+  background: var(--v13-paper) !important;
+  color: var(--v13-ink) !important;
+}
+
+/* ---------------------------------------------------------
+   Editorial masthead
+   --------------------------------------------------------- */
+html body .mr-teacher-shell .mr-topbar {
+  position: relative !important;
+  isolation: isolate !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: end !important;
+  gap: 36px !important;
+  min-height: 202px !important;
+  margin: 0 auto 18px !important;
+  padding: 42px 40px 34px !important;
+  overflow: hidden !important;
+  border: 1px solid #ece4da !important;
+  border-radius: 24px !important;
+  background:
+    radial-gradient(ellipse at 90% -18%, rgba(237,176,137,.18) 0 28%, transparent 29%),
+    linear-gradient(112deg, #fffefa 0%, #fffdf9 58%, #fff8f1 100%) !important;
+  box-shadow: 0 10px 34px rgba(67,54,43,.045) !important;
+}
+
+html body .mr-teacher-shell .mr-topbar::before {
+  content: '' !important;
+  position: absolute !important;
+  left: 40px !important;
+  bottom: 26px !important;
+  width: 88px !important;
+  height: 2px !important;
+  border-radius: 999px !important;
+  background: linear-gradient(90deg, var(--v13-coral), #e9a15d) !important;
+  pointer-events: none !important;
+}
+
+html body .mr-teacher-shell .mr-topbar::after {
+  content: '' !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  right: 24px !important;
+  bottom: -12px !important;
+  width: 244px !important;
+  height: 158px !important;
+  opacity: .37 !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='244' height='158' viewBox='0 0 244 158' fill='none'%3E%3Cg stroke='%23c99a78' stroke-width='1.2' opacity='.72'%3E%3Cpath d='M42 56l98-18 9 83-98 18z'/%3E%3Cpath d='M57 70l68-13M59 82l68-13M61 94l68-13M63 106l51-10'/%3E%3Cpath d='M146 22c22 18 35 40 38 66-18-2-33-10-43-24 7-15 9-29 5-42z'/%3E%3Cpath d='M181 19c-12 23-23 46-33 70'/%3E%3Cpath d='M174 35l-19 6M179 50l-20 7M181 65l-19 8'/%3E%3Cellipse cx='204' cy='111' rx='24' ry='10'/%3E%3Cpath d='M180 111v22c0 6 11 10 24 10s24-4 24-10v-22M228 118c13 0 14 17 2 19'/%3E%3C/g%3E%3C/svg%3E") !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: contain !important;
+  pointer-events: none !important;
+}
+
+html body .mr-teacher-shell .mr-brand {
+  position: relative !important;
+  z-index: 2 !important;
+  display: block !important;
+  min-width: 0 !important;
+  padding-bottom: 15px !important;
+}
+
+html body .mr-teacher-shell .mr-brand > span {
+  display: none !important;
+}
+
+html body .mr-teacher-shell .mr-brand small {
+  display: block !important;
+  margin: 0 0 12px !important;
+  color: #8b8178 !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  letter-spacing: .22em !important;
+  text-transform: uppercase !important;
+}
+
+html body .mr-teacher-shell .mr-brand h1 {
+  max-width: 760px !important;
+  margin: 0 !important;
+  color: #172232 !important;
+  font-family: var(--v13-serif) !important;
+  font-size: clamp(46px, 5vw, 72px) !important;
+  font-weight: 600 !important;
+  line-height: .97 !important;
+  letter-spacing: -.052em !important;
+  text-wrap: balance !important;
+}
+
+html body .mr-teacher-shell .mr-top-actions {
+  position: relative !important;
+  z-index: 3 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 11px !important;
+  margin: 0 205px 14px 0 !important;
+  flex-wrap: nowrap !important;
+}
+
+html body .mr-teacher-shell .mr-top-actions label {
+  min-width: 190px !important;
+  padding: 11px 14px 10px !important;
+  border: 1px solid var(--v13-line-strong) !important;
+  border-radius: 13px !important;
+  background: rgba(255,255,255,.84) !important;
+  box-shadow: 0 3px 12px rgba(48,41,34,.025) !important;
+}
+
+html body .mr-teacher-shell .mr-top-actions label > span {
+  color: #8e847c !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  letter-spacing: .16em !important;
+}
+
+html body .mr-teacher-shell .mr-top-actions input,
+html body .mr-teacher-shell .mr-top-actions select {
+  color: var(--v13-ink) !important;
+  font-weight: 720 !important;
+}
+
+html body .mr-teacher-shell .mr-status {
+  min-height: 38px !important;
+  padding: 7px 13px !important;
+  border: 1px solid transparent !important;
+  border-radius: 11px !important;
+  box-shadow: none !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+}
+html body .mr-teacher-shell .mr-status.is-approved {
+  border-color: #c9e0cf !important;
+  background: #eff8f1 !important;
+  color: var(--v13-green) !important;
+}
+html body .mr-teacher-shell .mr-status.is-submitted {
+  border-color: #cbdcf2 !important;
+  background: #f0f6ff !important;
+  color: #245ea9 !important;
+}
+html body .mr-teacher-shell .mr-status.is-revision {
+  border-color: #efc6c1 !important;
+  background: #fff2f0 !important;
+  color: #a9332b !important;
+}
+html body .mr-teacher-shell .mr-status.is-draft,
+html body .mr-teacher-shell .mr-status.is-missing {
+  border-color: #dedbd5 !important;
+  background: #f7f6f3 !important;
+  color: #656663 !important;
+}
+
+/* The old second hero repeats month/teacher context. Locked reports use the
+   editorial masthead instead. Draft/revision keeps a compact progress rail. */
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-hero,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-hero {
+  display: none !important;
+}
+
+html body .mr-teacher-shell:not(:has(.mr-status.is-approved)):not(:has(.mr-status.is-submitted)) .mr-hero {
+  grid-template-columns: minmax(0,1fr) 300px !important;
+  min-height: 0 !important;
+  margin: 0 auto 14px !important;
+  padding: 14px 18px !important;
+  border: 1px solid var(--v13-line) !important;
+  border-radius: 15px !important;
+  background: rgba(255,255,255,.72) !important;
+  box-shadow: none !important;
+}
+html body .mr-teacher-shell:not(:has(.mr-status.is-approved)):not(:has(.mr-status.is-submitted)) .mr-hero h2 {
+  margin: 3px 0 !important;
+  font-family: var(--v13-serif) !important;
+  font-size: 22px !important;
+  font-weight: 600 !important;
+  letter-spacing: -.025em !important;
+}
+html body .mr-teacher-shell:not(:has(.mr-status.is-approved)):not(:has(.mr-status.is-submitted)) .mr-hero > div:first-child > span {
+  color: var(--v13-coral) !important;
+}
+
+/* ---------------------------------------------------------
+   Identity metadata — compact chips, not cards
+   --------------------------------------------------------- */
+html body .mr-teacher-shell .mr-report-meta,
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-report-meta,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-report-meta {
+  display: flex !important;
+  grid-template-columns: none !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 9px !important;
+  margin: 0 auto 16px !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body .mr-teacher-shell .mr-report-meta > div,
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-report-meta > div,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-report-meta > div {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  flex: 0 1 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 42px !important;
+  padding: 8px 14px 8px 45px !important;
+  overflow: visible !important;
+  border: 1px solid #e2ded7 !important;
+  border-radius: 999px !important;
+  background: rgba(255,255,255,.9) !important;
+  box-shadow: 0 3px 12px rgba(52,45,38,.025) !important;
+}
+
+html body .mr-teacher-shell .mr-report-meta > div:nth-child(3) {
+  flex: 1 1 270px !important;
+  max-width: 430px !important;
+}
+
+html body .mr-teacher-shell .mr-report-meta > div::before,
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-report-meta > div::before,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-report-meta > div::before {
+  content: '' !important;
+  position: absolute !important;
+  left: 8px !important;
+  top: 50% !important;
+  width: 28px !important;
+  height: 28px !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  transform: translateY(-50%) !important;
+  background-color: var(--v13-blue-soft) !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: 15px 15px !important;
+}
+
+html body .mr-teacher-shell .mr-report-meta > div:nth-child(1)::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23286fd8' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='8' r='4'/%3E%3Cpath d='M4.5 21a7.5 7.5 0 0 1 15 0'/%3E%3C/svg%3E") !important;
+}
+html body .mr-teacher-shell .mr-report-meta > div:nth-child(2)::before {
+  background-color: var(--v13-green-soft) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23247b4a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='9' cy='7' r='4'/%3E%3Cpath d='M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75'/%3E%3C/svg%3E") !important;
+}
+html body .mr-teacher-shell .mr-report-meta > div:nth-child(3)::before {
+  background-color: var(--v13-violet-soft) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%237650c8' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 19.5A2.5 2.5 0 0 1 6.5 17H20'/%3E%3Cpath d='M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z'/%3E%3C/svg%3E") !important;
+}
+html body .mr-teacher-shell .mr-report-meta > div:nth-child(4)::before {
+  background-color: var(--v13-amber-soft) !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23c97912' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 10l9-5 9 5-9 5z'/%3E%3Cpath d='M7 12v5c3 2 7 2 10 0v-5M21 10v6'/%3E%3C/svg%3E") !important;
+}
+
+html body .mr-teacher-shell .mr-report-meta span,
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-report-meta span,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-report-meta span {
+  display: inline !important;
+  flex: 0 0 auto !important;
+  margin: 0 !important;
+  color: #817d77 !important;
+  font-size: 11px !important;
+  font-weight: 620 !important;
+  line-height: 1.25 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+html body .mr-teacher-shell .mr-report-meta span::after {
+  content: ':' !important;
+}
+html body .mr-teacher-shell .mr-report-meta strong,
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-report-meta strong,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-report-meta strong {
+  display: inline !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+  color: #283444 !important;
+  font-size: 11.5px !important;
+  font-weight: 760 !important;
+  line-height: 1.25 !important;
+  text-overflow: clip !important;
+  white-space: normal !important;
+}
+
+/* ---------------------------------------------------------
+   Deadline + approval — compact editorial status row
+   --------------------------------------------------------- */
+html body .mr-teacher-shell .mr-deadline-card {
+  border-color: #efbbb4 !important;
+  background: linear-gradient(108deg, #fff5f3 0%, #fffbfa 100%) !important;
+  color: #962b24 !important;
+}
+
+html body .mr-teacher-shell .mr-deadline-card.is-expired {
+  border-color: #efb4ad !important;
+  background: linear-gradient(108deg, #fff3f1 0%, #fffbfa 100%) !important;
+}
+
+html body .mr-teacher-shell .mr-deadline-card:has(+ .mr-lock),
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-deadline-card,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-deadline-card {
+  display: inline-flex !important;
+  vertical-align: top !important;
+  width: calc(62% - 7px) !important;
+  min-height: 94px !important;
+  margin: 0 10px 16px 0 !important;
+  padding: 14px 16px !important;
+  border-radius: 15px !important;
+  box-shadow: none !important;
+}
+
+html body .mr-teacher-shell .mr-deadline-icon {
+  width: 42px !important;
+  height: 42px !important;
+  border: 1px solid #f3d0ca !important;
+  border-radius: 13px !important;
+  background: rgba(255,255,255,.78) !important;
+  color: var(--v13-coral) !important;
+}
+html body .mr-teacher-shell .mr-deadline-icon svg {
+  width: 21px !important;
+  height: 21px !important;
+}
+html body .mr-teacher-shell .mr-deadline-copy {
+  align-items: center !important;
+  gap: 12px !important;
+}
+html body .mr-teacher-shell .mr-deadline-copy small {
+  margin-bottom: 3px !important;
+  color: #9f3a32 !important;
+  font-size: 9.5px !important;
+  font-weight: 850 !important;
+  letter-spacing: .13em !important;
+}
+html body .mr-teacher-shell .mr-deadline-copy strong {
+  margin: 0 !important;
+  color: #bd382f !important;
+  font-family: var(--v13-serif) !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+}
+html body .mr-teacher-shell .mr-deadline-copy p {
+  margin: 4px 0 0 !important;
+  color: #7f5853 !important;
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+  opacity: 1 !important;
+}
+
+html body .mr-teacher-shell .mr-countdown {
+  min-width: 116px !important;
+  margin-left: 8px !important;
+  padding: 9px 11px !important;
+  border: 1px solid #efbbb4 !important;
+  border-radius: 12px !important;
+  background: rgba(255,255,255,.62) !important;
+  text-align: center !important;
+}
+html body .mr-teacher-shell .mr-countdown small {
+  color: #8b655f !important;
+  font-size: 9px !important;
+  letter-spacing: .04em !important;
+  text-transform: none !important;
+}
+html body .mr-teacher-shell .mr-countdown strong {
+  margin-top: 2px !important;
+  color: var(--v13-coral-deep) !important;
+  font-size: 12px !important;
+  font-weight: 850 !important;
+}
+
+html body .mr-teacher-shell .mr-deadline-card + .mr-lock,
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-lock,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-lock {
+  display: inline-flex !important;
+  vertical-align: top !important;
+  align-items: center !important;
+  width: calc(38% - 7px) !important;
+  min-height: 94px !important;
+  margin: 0 0 16px !important;
+  padding: 14px 17px !important;
+  border: 1px solid #bedbc5 !important;
+  border-radius: 15px !important;
+  background: linear-gradient(110deg, #f1faf3 0%, #fbfefc 100%) !important;
+  color: #286b42 !important;
+  box-shadow: none !important;
+}
+html body .mr-teacher-shell .mr-lock > svg {
+  width: 42px !important;
+  height: 42px !important;
+  margin: 0 1px 0 0 !important;
+  padding: 9px !important;
+  border: 1px solid #cce3d1 !important;
+  border-radius: 13px !important;
+  background: rgba(255,255,255,.62) !important;
+  color: var(--v13-green) !important;
+}
+html body .mr-teacher-shell .mr-lock b {
+  display: block !important;
+  color: #287344 !important;
+  font-family: var(--v13-serif) !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+}
+html body .mr-teacher-shell .mr-lock p {
+  margin: 4px 0 0 !important;
+  color: #607a67 !important;
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+}
+
+html body .mr-teacher-shell .mr-notice,
+html body .mr-teacher-shell .mr-revision {
+  border-radius: 13px !important;
+  box-shadow: none !important;
+}
+
+/* ---------------------------------------------------------
+   Five editorial dossier cards — locked overview
+   --------------------------------------------------------- */
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-form-stack,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-form-stack {
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0,1fr)) !important;
+  align-items: stretch !important;
+  gap: 14px !important;
+  margin: 0 auto !important;
+}
+
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section {
+  --card-accent: var(--v13-blue);
+  --card-soft: var(--v13-blue-soft);
+  min-height: 306px !important;
+  border: 1px solid #d8e4f4 !important;
+  border-radius: 17px !important;
+  background: linear-gradient(180deg, var(--card-soft) 0 21%, #fff 21% 100%) !important;
+  box-shadow: 0 5px 18px rgba(39,45,54,.035) !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section:nth-child(2),
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section:nth-child(2) {
+  --card-accent: var(--v13-green); --card-soft: var(--v13-green-soft); border-color: #d2e6d8 !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section:nth-child(3),
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section:nth-child(3) {
+  --card-accent: var(--v13-violet); --card-soft: var(--v13-violet-soft); border-color: #e0d6f1 !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section:nth-child(4),
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section:nth-child(4) {
+  --card-accent: var(--v13-amber); --card-soft: var(--v13-amber-soft); border-color: #ecdcc2 !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section:nth-child(5),
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section:nth-child(5) {
+  --card-accent: var(--v13-coral); --card-soft: var(--v13-coral-soft); border-color: #edd2ce !important;
+}
+
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section > header,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section > header {
+  min-height: 304px !important;
+  padding: 24px 20px 22px !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section > header::before,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section > header::before {
+  top: 51px !important;
+  height: 44px !important;
+  background: rgba(255,255,255,.58) !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section-icon,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section-icon {
+  width: 44px !important;
+  height: 44px !important;
+  margin: 0 0 22px !important;
+  border-radius: 50% !important;
+  background: color-mix(in srgb, var(--card-accent) 9%, #fff) !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section-icon svg,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section-icon svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section > header small,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section > header small {
+  margin-bottom: 9px !important;
+  color: var(--card-accent) !important;
+  font-family: var(--v13-serif) !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  letter-spacing: -.02em !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section > header h2,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section > header h2 {
+  min-height: 48px !important;
+  color: #202a38 !important;
+  font-family: var(--v13-serif) !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  line-height: 1.35 !important;
+  letter-spacing: -.017em !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section > header h2::after,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section > header h2::after {
+  width: 26px !important;
+  margin: 14px 0 12px !important;
+  background: color-mix(in srgb, var(--card-accent) 60%, transparent) !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section > header p,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section > header p {
+  color: #6e747d !important;
+  font-size: 10.5px !important;
+  line-height: 1.55 !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section-controls,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section-controls {
+  right: 17px !important;
+  bottom: 17px !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section-toggle,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section-toggle {
+  width: 34px !important;
+  min-width: 34px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  border: 1px solid color-mix(in srgb, var(--card-accent) 22%, transparent) !important;
+  background: rgba(255,255,255,.72) !important;
+}
+
+/* Expanded read-only card stays editorial and full width. */
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section.is-expanded,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section.is-expanded {
+  border-radius: 17px !important;
+  background: #fff !important;
+  box-shadow: 0 10px 28px rgba(41,47,56,.055) !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section.is-expanded > header,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section.is-expanded > header {
+  min-height: 72px !important;
+  padding: 12px 16px !important;
+  background: linear-gradient(90deg, var(--card-soft), #fff 42%) !important;
+}
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section.is-expanded > header h2,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section.is-expanded > header h2 {
+  font-family: var(--v13-serif) !important;
+  font-size: 16px !important;
+}
+
+/* ---------------------------------------------------------
+   Draft / revision form — same editorial language
+   --------------------------------------------------------- */
+html body .mr-teacher-shell:not(:has(.mr-status.is-approved)):not(:has(.mr-status.is-submitted)) .mr-form-stack {
+  gap: 14px !important;
+}
+html body .mr-teacher-shell:not(:has(.mr-status.is-approved)):not(:has(.mr-status.is-submitted)) .mr-section {
+  --edit-accent: var(--v13-blue);
+  --edit-soft: var(--v13-blue-soft);
+  overflow: hidden !important;
+  border: 1px solid var(--v13-line) !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  box-shadow: 0 4px 16px rgba(44,49,56,.025) !important;
+}
+html body .mr-teacher-shell:not(:has(.mr-status.is-approved)):not(:has(.mr-status.is-submitted)) .mr-section:nth-child(2) { --edit-accent:var(--v13-green); --edit-soft:var(--v13-green-soft); }
+html body .mr-teacher-shell:not(:has(.mr-status.is-approved)):not(:has(.mr-status.is-submitted)) .mr-section:nth-child(3) { --edit-accent:var(--v13-violet); --edit-soft:var(--v13-violet-soft); }
+html body .mr-teacher-shell:not(:has(.mr-status.is-approved)):not(:has(.mr-status.is-submitted)) .mr-section:nth-child(4) { --edit-accent:var(--v13-amber); --edit-soft:var(--v13-amber-soft); }
+html body .mr-teacher-shell:not(:has(.mr-status.is-approved)):not(:has(.mr-status.is-submitted)) .mr-section:nth-child(5) { --edit-accent:var(--v13-coral); --edit-soft:var(--v13-coral-soft); }
+html body .mr-teacher-shell:not(:has(.mr-status.is-approved)):not(:has(.mr-status.is-submitted)) .mr-section > header {
+  min-height: 78px !important;
+  padding: 14px 17px !important;
+  background: linear-gradient(90deg, var(--edit-soft), #fff 38%) !important;
+}
+html body .mr-teacher-shell:not(:has(.mr-status.is-approved)):not(:has(.mr-status.is-submitted)) .mr-section-icon {
+  border-color: color-mix(in srgb,var(--edit-accent) 17%,transparent) !important;
+  background: color-mix(in srgb,var(--edit-accent) 8%,#fff) !important;
+  color: var(--edit-accent) !important;
+}
+html body .mr-teacher-shell:not(:has(.mr-status.is-approved)):not(:has(.mr-status.is-submitted)) .mr-section > header small {
+  color: var(--edit-accent) !important;
+}
+html body .mr-teacher-shell:not(:has(.mr-status.is-approved)):not(:has(.mr-status.is-submitted)) .mr-section > header h2 {
+  font-family: var(--v13-serif) !important;
+  font-weight: 700 !important;
+}
+html body .mr-teacher-shell .mr-section-body textarea,
+html body .mr-teacher-shell .mr-section-body input,
+html body .mr-teacher-shell .mr-section-body select {
+  border-color: #d9d4cd !important;
+  border-radius: 11px !important;
+  background: #fffefa !important;
+  box-shadow: none !important;
+}
+html body .mr-teacher-shell .mr-section-body textarea:focus,
+html body .mr-teacher-shell .mr-section-body input:focus,
+html body .mr-teacher-shell .mr-section-body select:focus {
+  border-color: #9eb8df !important;
+  box-shadow: 0 0 0 3px rgba(40,111,216,.08) !important;
+}
+
+/* ---------------------------------------------------------
+   Action bar
+   --------------------------------------------------------- */
+html body .mr-teacher-shell .mr-sticky-actions,
+html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-sticky-actions,
+html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-sticky-actions {
+  position: static !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 14px !important;
+  margin: 20px auto 0 !important;
+  padding: 13px 14px !important;
+  border: 1px solid var(--v13-line) !important;
+  border-radius: 15px !important;
+  background: rgba(255,255,255,.82) !important;
+  box-shadow: 0 5px 18px rgba(50,44,38,.025) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+html body .mr-teacher-shell .mr-sticky-actions > div:first-child {
+  display: none !important;
+}
+html body .mr-teacher-shell .mr-action-buttons {
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+  flex-wrap: wrap !important;
+}
+html body .mr-teacher-shell .mr-action-buttons button {
+  min-height: 42px !important;
+  padding: 0 15px !important;
+  border: 1px solid #d9d3cb !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  color: #394451 !important;
+  box-shadow: none !important;
+  font-weight: 720 !important;
+}
+html body .mr-teacher-shell .mr-action-buttons .is-primary {
+  border-color: var(--v13-coral) !important;
+  background: var(--v13-coral) !important;
+  color: #fff !important;
+}
+html body .mr-teacher-shell .mr-action-buttons button:disabled {
+  opacity: .45 !important;
+}
+html body .mr-teacher-shell:has(.mr-form-stack[aria-disabled='true']) .mr-sticky-actions::after {
+  content: '🔒  Dữ liệu đã khóa · Báo cáo đã được gửi/duyệt' !important;
+  margin-left: auto !important;
+  color: #827b73 !important;
+  font-size: 10.5px !important;
+  font-weight: 650 !important;
+  white-space: nowrap !important;
+}
+
+/* Preview also follows the editorial hierarchy. */
+html body .mr-modal .mr-preview-head h3,
+html body .mr-modal .mr-read-report-head h3,
+html body .mr-modal .mr-read-section h4 {
+  font-family: var(--v13-serif) !important;
+}
+html body .mr-modal {
+  border-radius: 18px !important;
+  border-color: #ded9d2 !important;
+}
+
+/* ---------------------------------------------------------
+   Responsive
+   --------------------------------------------------------- */
+@media (max-width: 1180px) {
+  html body .mr-teacher-shell .mr-topbar {
+    grid-template-columns: minmax(0,1fr) auto !important;
+    padding: 36px 30px 30px !important;
+  }
+  html body .mr-teacher-shell .mr-top-actions {
+    margin-right: 120px !important;
+  }
+  html body .mr-teacher-shell .mr-topbar::after {
+    right: -35px !important;
+    opacity: .25 !important;
+  }
+  html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-form-stack,
+  html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-form-stack {
+    grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  html body .mr-teacher-shell .mr-topbar {
+    display: block !important;
+    min-height: 0 !important;
+  }
+  html body .mr-teacher-shell .mr-brand {
+    padding-bottom: 34px !important;
+  }
+  html body .mr-teacher-shell .mr-brand h1 {
+    max-width: 620px !important;
+    font-size: clamp(40px,8vw,58px) !important;
+  }
+  html body .mr-teacher-shell .mr-top-actions {
+    justify-content: flex-start !important;
+    margin: 0 !important;
+    padding-bottom: 12px !important;
+  }
+  html body .mr-teacher-shell .mr-topbar::after {
+    display: none !important;
+  }
+  html body .mr-teacher-shell .mr-topbar::before {
+    bottom: 22px !important;
+  }
+  html body .mr-teacher-shell .mr-deadline-card:has(+ .mr-lock),
+  html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-deadline-card,
+  html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-deadline-card,
+  html body .mr-teacher-shell .mr-deadline-card + .mr-lock,
+  html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-lock,
+  html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-lock {
+    display: flex !important;
+    width: 100% !important;
+    margin-right: 0 !important;
+  }
+  html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-form-stack,
+  html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-form-stack {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  }
+  html body .mr-teacher-shell:has(.mr-form-stack[aria-disabled='true']) .mr-sticky-actions::after {
+    white-space: normal !important;
+    text-align: right !important;
+  }
+}
+
+@media (max-width: 620px) {
+  html body .mr-teacher-shell {
+    padding: 16px 10px 38px !important;
+  }
+  html body .mr-teacher-shell .mr-topbar {
+    padding: 28px 20px 25px !important;
+    border-radius: 19px !important;
+  }
+  html body .mr-teacher-shell .mr-brand {
+    padding-bottom: 30px !important;
+  }
+  html body .mr-teacher-shell .mr-brand h1 {
+    font-size: clamp(36px,12vw,48px) !important;
+  }
+  html body .mr-teacher-shell .mr-topbar::before {
+    left: 20px !important;
+    bottom: 19px !important;
+  }
+  html body .mr-teacher-shell .mr-top-actions {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+  html body .mr-teacher-shell .mr-top-actions label {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+  html body .mr-teacher-shell .mr-report-meta > div,
+  html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-report-meta > div,
+  html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-report-meta > div {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    max-width: none !important;
+    border-radius: 13px !important;
+  }
+  html body .mr-teacher-shell .mr-deadline-card,
+  html body .mr-teacher-shell .mr-lock {
+    min-height: 0 !important;
+  }
+  html body .mr-teacher-shell .mr-deadline-card {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+  html body .mr-teacher-shell .mr-countdown {
+    width: fit-content !important;
+    min-width: 0 !important;
+    margin: 8px 0 0 54px !important;
+    padding: 7px 10px !important;
+    border-top: 1px solid #efbbb4 !important;
+    text-align: left !important;
+  }
+  html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-form-stack,
+  html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-form-stack {
+    grid-template-columns: 1fr !important;
+  }
+  html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section,
+  html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section {
+    min-height: 260px !important;
+  }
+  html body .mr-teacher-shell:has(.mr-status.is-approved) .mr-section > header,
+  html body .mr-teacher-shell:has(.mr-status.is-submitted) .mr-section > header {
+    min-height: 258px !important;
+  }
+  html body .mr-teacher-shell .mr-sticky-actions {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+  html body .mr-teacher-shell .mr-action-buttons {
+    width: 100% !important;
+  }
+  html body .mr-teacher-shell .mr-action-buttons button {
+    flex: 1 1 130px !important;
+  }
+  html body .mr-teacher-shell:has(.mr-form-stack[aria-disabled='true']) .mr-sticky-actions::after {
+    margin: 0 !important;
+    text-align: left !important;
+  }
+}
