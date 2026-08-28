@@ -1,33 +1,21 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  GLOBAL_FONT_PRESETS,
-  applyGlobalFontPreset,
-  getGlobalFontPreset,
-} from '../../utils/globalFontSystem.js';
-import {
-  applyGlobalCustomFont,
-  clearGlobalCustomFontPreview,
-  loadGlobalCustomFontSettings,
-  previewGlobalCustomFont,
-  saveExistingGlobalCustomFont,
-  saveGlobalCustomFont,
-  validateGlobalCustomFont,
-} from '../../utils/globalCustomFont.js';
+import { GLOBAL_FONT_PRESETS } from '../../utils/globalFontSystem.js';
 import {
   GLOBAL_FONT_REGIONS,
   applyRegionalFontSettings,
+  clearRegionalCustomFontPreview,
+  getRegionalFontFamily,
   getRegionalFontSettings,
   loadRegionalFontSettingsFromServer,
   normalizeRegionalFontSettings,
+  previewRegionalCustomFont,
+  removeRegionalCustomFontAsset,
   saveRegionalFontSettings,
+  uploadRegionalCustomFont,
 } from '../../utils/globalRegionalFontSystem.js';
 import './RegionalFontAdminPanel.css';
 
 const REGION_FONT_OPTIONS = GLOBAL_FONT_PRESETS.filter((item) => !item.custom);
-
-function definitionFor(id) {
-  return REGION_FONT_OPTIONS.find((item) => item.id === id) || null;
-}
 
 function baseName(name = '') {
   return String(name || '').replace(/\.[^.]+$/, '').trim();
@@ -41,74 +29,60 @@ function fileSizeLabel(size = 0) {
   return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
 }
 
+function isCustom(value) {
+  return Boolean(value && typeof value === 'object' && value.preset === 'custom');
+}
+
+function choiceOf(value) {
+  if (isCustom(value)) return 'custom';
+  return typeof value === 'string' && value ? value : 'inherit';
+}
+
+function customDraft(value = null) {
+  return isCustom(value) ? { ...value } : {
+    preset: 'custom',
+    name: '',
+    url: '',
+    path: '',
+    format: '',
+    size: 0,
+  };
+}
+
 export default function RegionalFontAdminPanel({ currentUser, language = 'vi' }) {
   const vi = language !== 'en';
   const [draft, setDraft] = useState(() => getRegionalFontSettings());
   const [saved, setSaved] = useState(() => getRegionalFontSettings());
+  const [pendingFiles, setPendingFiles] = useState({});
   const [schemaReady, setSchemaReady] = useState(false);
-  const [busy, setBusy] = useState(false);
   const [previewReady, setPreviewReady] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [messageTone, setMessageTone] = useState('info');
-  const [fontFile, setFontFile] = useState(null);
-  const [customName, setCustomName] = useState('');
-  const [customConfig, setCustomConfig] = useState(null);
-  const [customBusy, setCustomBusy] = useState(false);
 
   const savedRef = useRef(saved);
-  const customConfigRef = useRef(customConfig);
-  const globalSavedPresetRef = useRef(getGlobalFontPreset());
-  const globalPreviewDirtyRef = useRef(false);
-
   useEffect(() => { savedRef.current = saved; }, [saved]);
-  useEffect(() => { customConfigRef.current = customConfig; }, [customConfig]);
-
-  const restoreGlobalPreview = () => {
-    if (!globalPreviewDirtyRef.current) return;
-    const preset = globalSavedPresetRef.current;
-    const savedCustom = customConfigRef.current;
-    if (preset === 'custom' && savedCustom?.url) {
-      applyGlobalCustomFont(savedCustom, { persist: false, source: 'admin-custom-preview-restore' });
-    } else {
-      applyGlobalFontPreset(preset, {
-        persist: false,
-        broadcast: false,
-        source: 'admin-custom-preview-restore',
-      });
-    }
-    clearGlobalCustomFontPreview();
-    globalPreviewDirtyRef.current = false;
-  };
 
   useEffect(() => {
     let alive = true;
-    Promise.all([
-      loadRegionalFontSettingsFromServer({ silent: true }),
-      loadGlobalCustomFontSettings({ silent: true, apply: getGlobalFontPreset() === 'custom' }),
-    ]).then(([regionResult, customResult]) => {
+    loadRegionalFontSettingsFromServer({ silent: true }).then((result) => {
       if (!alive) return;
-      const next = normalizeRegionalFontSettings(regionResult?.settings || {});
+      const next = normalizeRegionalFontSettings(result?.settings || {});
       setDraft(next);
       setSaved(next);
       savedRef.current = next;
-      setSchemaReady(Boolean(regionResult?.schemaReady));
-      globalSavedPresetRef.current = getGlobalFontPreset();
-      if (customResult?.config) {
-        setCustomConfig(customResult.config);
-        customConfigRef.current = customResult.config;
-        setCustomName(customResult.config.name || '');
-      }
+      setSchemaReady(Boolean(result?.schemaReady));
       setPreviewReady(true);
     });
 
     return () => {
       alive = false;
+      clearRegionalCustomFontPreview();
       applyRegionalFontSettings(savedRef.current, {
         persist: false,
         broadcast: false,
         source: 'admin-region-live-preview-cleanup',
       });
-      restoreGlobalPreview();
     };
   }, []);
 
@@ -120,20 +94,90 @@ export default function RegionalFontAdminPanel({ currentUser, language = 'vi' })
     });
   }, [draft, previewReady]);
 
-  const changed = useMemo(() => JSON.stringify(draft) !== JSON.stringify(saved), [draft, saved]);
-  const customizedCount = Object.keys(draft).length;
+  const changed = useMemo(
+    () => JSON.stringify(draft) !== JSON.stringify(saved) || Object.keys(pendingFiles).length > 0,
+    [draft, saved, pendingFiles],
+  );
+  const customizedCount = Object.keys(normalizeRegionalFontSettings(draft)).length;
 
-  const setRegion = (regionId, value) => {
+  const setRegionChoice = (regionId, value) => {
     setMessage('');
+    if (value !== 'custom') {
+      clearRegionalCustomFontPreview(regionId);
+      setPendingFiles((current) => {
+        if (!current[regionId]) return current;
+        const next = { ...current };
+        delete next[regionId];
+        return next;
+      });
+    }
+
     setDraft((current) => {
       const next = { ...current };
-      if (!value || value === 'inherit') delete next[regionId];
-      else next[regionId] = value;
+      if (!value || value === 'inherit') {
+        delete next[regionId];
+      } else if (value === 'custom') {
+        const existing = isCustom(current[regionId])
+          ? current[regionId]
+          : (isCustom(savedRef.current[regionId]) ? savedRef.current[regionId] : null);
+        next[regionId] = customDraft(existing);
+      } else {
+        next[regionId] = value;
+      }
+      return next;
+    });
+  };
+
+  const setCustomName = (regionId, name) => {
+    setDraft((current) => ({
+      ...current,
+      [regionId]: {
+        ...customDraft(current[regionId]),
+        name,
+      },
+    }));
+  };
+
+  const chooseRegionFile = (region, event) => {
+    const file = event.target.files?.[0] || null;
+    if (!file) return;
+    const currentValue = draft[region.id];
+    const displayName = isCustom(currentValue) && currentValue.name
+      ? currentValue.name
+      : baseName(file.name);
+    const result = previewRegionalCustomFont(region.id, file, displayName);
+    if (!result?.ok) {
+      event.target.value = '';
+      setMessageTone('error');
+      setMessage(result?.message || (vi ? 'Không thể xem thử font.' : 'Could not preview the font.'));
+      return;
+    }
+
+    setPendingFiles((current) => ({ ...current, [region.id]: file }));
+    setDraft((current) => ({ ...current, [region.id]: result.config }));
+    setMessageTone('info');
+    setMessage(vi
+      ? `Đang xem thử trực tiếp “${displayName}” riêng cho khu vực ${region.labelVi}. Font chưa được tải lên hệ thống.`
+      : `Previewing “${displayName}” only for ${region.label}. The font has not been uploaded yet.`);
+  };
+
+  const resetRegion = (regionId) => {
+    clearRegionalCustomFontPreview(regionId);
+    setPendingFiles((current) => {
+      const next = { ...current };
+      delete next[regionId];
+      return next;
+    });
+    setDraft((current) => {
+      const next = { ...current };
+      delete next[regionId];
       return next;
     });
   };
 
   const resetAll = () => {
+    clearRegionalCustomFontPreview();
+    setPendingFiles({});
     setDraft({});
     setMessageTone('info');
     setMessage(vi
@@ -142,124 +186,80 @@ export default function RegionalFontAdminPanel({ currentUser, language = 'vi' })
   };
 
   const restoreSaved = () => {
-    const next = { ...savedRef.current };
-    setDraft(next);
-    restoreGlobalPreview();
+    clearRegionalCustomFontPreview();
+    setPendingFiles({});
+    setDraft({ ...savedRef.current });
     setMessageTone('info');
-    setMessage(vi
-      ? 'Đã khôi phục bản cấu hình đã lưu gần nhất.'
-      : 'Restored the most recently saved configuration.');
-  };
-
-  const chooseFile = (event) => {
-    const file = event.target.files?.[0] || null;
-    if (!file) return;
-    const validation = validateGlobalCustomFont(file);
-    if (!validation.ok) {
-      setFontFile(null);
-      setMessageTone('error');
-      setMessage(validation.message);
-      event.target.value = '';
-      return;
-    }
-
-    const displayName = customName.trim() || baseName(file.name);
-    setFontFile(file);
-    if (!customName.trim()) setCustomName(displayName);
-    const result = previewGlobalCustomFont(file, displayName);
-    if (result.ok) {
-      globalPreviewDirtyRef.current = true;
-      setMessageTone('info');
-      setMessage(vi
-        ? 'Đang xem thử trực tiếp font vừa chọn trên chính giao diện này. Font chưa được tải lên hệ thống.'
-        : 'The selected font is now previewed live on this page. It has not been uploaded yet.');
-    } else {
-      setMessageTone('error');
-      setMessage(result.message || (vi ? 'Không thể xem thử font.' : 'Could not preview the font.'));
-    }
-  };
-
-  const previewSavedCustom = () => {
-    if (!customConfig?.url) {
-      setMessageTone('error');
-      setMessage(vi ? 'Chưa có font cá nhân đã lưu.' : 'No saved custom font is available.');
-      return;
-    }
-    applyGlobalCustomFont(
-      { ...customConfig, name: customName.trim() || customConfig.name },
-      { persist: false, source: 'admin-existing-custom-live-preview' },
-    );
-    globalPreviewDirtyRef.current = true;
-    setMessageTone('info');
-    setMessage(vi
-      ? 'Đang xem thử trực tiếp font cá nhân đã lưu. Chưa thay đổi cấu hình đã lưu.'
-      : 'Previewing the saved custom font live. The saved configuration is unchanged.');
-  };
-
-  const saveCustom = async () => {
-    if (!fontFile && !customConfig?.url) {
-      setMessageTone('error');
-      setMessage(vi
-        ? 'Hãy chọn một file font trước khi tải lên.'
-        : 'Choose a font file before uploading.');
-      return;
-    }
-
-    setCustomBusy(true);
-    setMessage('');
-    const result = fontFile
-      ? await saveGlobalCustomFont(
-        fontFile,
-        customName.trim() || baseName(fontFile.name),
-        currentUser,
-        customConfig,
-      )
-      : await saveExistingGlobalCustomFont(
-        { ...customConfig, name: customName.trim() || customConfig.name },
-        currentUser,
-      );
-    setCustomBusy(false);
-
-    if (result?.ok) {
-      const nextConfig = result.config || customConfig;
-      if (nextConfig) {
-        setCustomConfig(nextConfig);
-        customConfigRef.current = nextConfig;
-        setCustomName(nextConfig.name || customName);
-      }
-      setFontFile(null);
-      globalSavedPresetRef.current = 'custom';
-      globalPreviewDirtyRef.current = false;
-      setMessageTone('success');
-      setMessage(vi
-        ? 'Đã tải font cá nhân lên và áp dụng làm font toàn hệ thống. Các khu vực đang “Kế thừa” sẽ dùng font này.'
-        : 'Custom font uploaded and applied site-wide. Regions set to “Inherit” now use this font.');
-    } else {
-      setMessageTone('error');
-      setMessage(result?.message || (vi ? 'Không thể tải font lên hệ thống.' : 'Could not upload the font.'));
-    }
+    setMessage(vi ? 'Đã khôi phục bản cấu hình đã lưu gần nhất.' : 'Restored the most recently saved configuration.');
   };
 
   const apply = async () => {
+    const missing = GLOBAL_FONT_REGIONS.find((region) => {
+      const value = draft[region.id];
+      return isCustom(value) && !value.url && !pendingFiles[region.id];
+    });
+    if (missing) {
+      setMessageTone('error');
+      setMessage(vi
+        ? `Khu vực “${missing.labelVi}” đang chọn font cá nhân nhưng chưa có file. Hãy tải font riêng cho khu vực này.`
+        : `${missing.label} is set to a custom font but no file has been chosen.`);
+      return;
+    }
+
     setBusy(true);
     setMessage('');
-    const result = await saveRegionalFontSettings(draft, currentUser);
+    const working = { ...draft };
+
+    for (const region of GLOBAL_FONT_REGIONS) {
+      const file = pendingFiles[region.id];
+      if (!file) continue;
+      const currentValue = customDraft(working[region.id]);
+      const upload = await uploadRegionalCustomFont(
+        region.id,
+        file,
+        currentValue.name || baseName(file.name),
+        currentUser,
+      );
+      if (!upload?.ok) {
+        setBusy(false);
+        setMessageTone('error');
+        setMessage(vi
+          ? `Không thể tải font riêng cho “${region.labelVi}”: ${upload?.message || 'Lỗi không xác định.'}`
+          : `Could not upload the custom font for ${region.label}: ${upload?.message || 'Unknown error.'}`);
+        return;
+      }
+      working[region.id] = upload.config;
+    }
+
+    const result = await saveRegionalFontSettings(working, currentUser);
     setBusy(false);
-    if (result?.ok) {
-      const next = normalizeRegionalFontSettings(result.settings || draft);
-      setDraft(next);
-      setSaved(next);
-      savedRef.current = next;
-      setSchemaReady(true);
-      setMessageTone('success');
-      setMessage(vi
-        ? 'Đã lưu font theo khu vực cho toàn hệ thống. Các phiên Brian đang mở sẽ nhận thay đổi qua Realtime.'
-        : 'Regional fonts saved site-wide. Open Brian sessions will receive the update through Realtime.');
-    } else {
+    if (!result?.ok) {
       setSchemaReady(false);
       setMessageTone('error');
       setMessage(result?.message || (vi ? 'Không thể đồng bộ font theo khu vực.' : 'Could not synchronize regional fonts.'));
+      return;
     }
+
+    const next = normalizeRegionalFontSettings(result.settings || working);
+    const previous = savedRef.current;
+    GLOBAL_FONT_REGIONS.forEach((region) => {
+      const oldValue = previous[region.id];
+      const newValue = next[region.id];
+      if (isCustom(oldValue) && oldValue.path && (!isCustom(newValue) || newValue.path !== oldValue.path)) {
+        removeRegionalCustomFontAsset(oldValue).catch(() => {});
+      }
+    });
+
+    clearRegionalCustomFontPreview();
+    setPendingFiles({});
+    setDraft(next);
+    setSaved(next);
+    savedRef.current = next;
+    setSchemaReady(true);
+    setMessageTone('success');
+    setMessage(vi
+      ? 'Đã lưu font riêng cho từng khu vực. Mỗi khu vực sẽ dùng đúng font cá nhân hoặc preset đã chọn và được đồng bộ qua Realtime.'
+      : 'Per-region fonts saved. Each region now uses its own custom font or selected preset and syncs through Realtime.');
   };
 
   return (
@@ -267,10 +267,10 @@ export default function RegionalFontAdminPanel({ currentUser, language = 'vi' })
       <header className="regional-font-admin__head">
         <div>
           <span className="eyebrow">{vi ? 'Typography theo khu vực' : 'Regional typography'}</span>
-          <h3 id="regional-font-admin-title">{vi ? 'Tuỳ chỉnh font cho từng khu vực' : 'Customize fonts by region'}</h3>
+          <h3 id="regional-font-admin-title">{vi ? 'Mỗi khu vực có thể dùng font riêng' : 'Give every region its own font'}</h3>
           <p>{vi
-            ? 'Mỗi khu vực mặc định kế thừa font toàn hệ thống. Thay đổi trong các ô chọn được xem thử ngay lập tức trên giao diện và chỉ được lưu khi bạn xác nhận.'
-            : 'Every region inherits the global font by default. Selection changes are previewed instantly and saved only after you confirm.'}</p>
+            ? 'Mỗi thẻ bên dưới có bộ chọn font và nút tải font cá nhân độc lập. Chọn hoặc tải font là xem thử ngay tại đúng khu vực đó; chỉ lưu khi bạn bấm “Lưu & áp dụng”.'
+            : 'Every card below has its own font selector and custom upload. Choices preview instantly only in that region and are saved after you confirm.'}</p>
         </div>
         <div className="regional-font-admin__head-status">
           <span className="regional-font-admin__live"><i />{vi ? 'Xem thử trực tiếp' : 'Live preview'}</span>
@@ -282,101 +282,38 @@ export default function RegionalFontAdminPanel({ currentUser, language = 'vi' })
         </div>
       </header>
 
-      <section className="regional-font-upload" aria-labelledby="regional-font-upload-title">
-        <div className="regional-font-upload__icon" aria-hidden="true">Aa</div>
-        <div className="regional-font-upload__copy">
-          <span className="eyebrow">{vi ? 'Font cá nhân' : 'Custom font'}</span>
-          <h4 id="regional-font-upload-title">{vi ? 'Tải font của riêng bạn' : 'Upload your own font'}</h4>
-          <p>{vi
-            ? 'Hỗ trợ .woff2, .woff, .ttf, .otf · tối đa 8 MB. Chọn file là xem thử ngay; chỉ khi bấm tải lên thì font mới được đồng bộ đến toàn hệ thống.'
-            : 'Supports .woff2, .woff, .ttf and .otf up to 8 MB. Choosing a file previews it immediately; it is synchronized only after upload.'}</p>
-          {customConfig?.url ? (
-            <span className="regional-font-upload__stored">
-              ✓ {vi ? 'Font đang lưu:' : 'Stored font:'} <b>{customConfig.name}</b>
-              {customConfig.size ? ` · ${fileSizeLabel(customConfig.size)}` : ''}
-            </span>
-          ) : null}
-        </div>
-
-        <div className="regional-font-upload__controls">
-          <label className="regional-font-upload__name">
-            <span>{vi ? 'Tên hiển thị' : 'Display name'}</span>
-            <input
-              type="text"
-              value={customName}
-              onChange={(event) => setCustomName(event.target.value)}
-              placeholder={vi ? 'Ví dụ: SVN-Gilroy' : 'Example: SVN-Gilroy'}
-              maxLength={80}
-            />
-          </label>
-
-          <label className="regional-font-upload__file">
-            <input
-              type="file"
-              accept=".woff2,.woff,.ttf,.otf,font/woff2,font/woff,font/ttf,font/otf"
-              onChange={chooseFile}
-            />
-            <span aria-hidden="true">↑</span>
-            <b>{vi ? 'Chọn file font' : 'Choose font file'}</b>
-          </label>
-
-          <div className={`regional-font-upload__file-state ${fontFile ? 'has-file' : ''}`}>
-            {fontFile ? (
-              <><strong>{fontFile.name}</strong><small>{fileSizeLabel(fontFile.size)}</small></>
-            ) : (
-              <small>{vi ? 'Chưa chọn tệp mới' : 'No new file selected'}</small>
-            )}
-          </div>
-        </div>
-
-        <div className="regional-font-upload__preview">
-          <span>{vi ? 'Xem ngay tại chỗ' : 'Live sample'}</span>
-          <strong style={{ fontFamily: "'BrianGlobalCustom', var(--bes-global-font-family)" }}>
-            Brian English · Giáo viên · Tiếng Việt rõ ràng
-          </strong>
-          <small style={{ fontFamily: "'BrianGlobalCustom', var(--bes-global-font-family)" }}>
-            ABCDEFGHIJKLMNOPQRSTUVWXYZ · 0123456789 · Ă Â Ê Ô Ơ Ư Đ
-          </small>
-        </div>
-
-        <div className="regional-font-upload__actions">
-          {customConfig?.url ? (
-            <button type="button" className="regional-font-btn" disabled={customBusy} onClick={previewSavedCustom}>
-              {vi ? 'Xem font đã lưu' : 'Preview saved font'}
-            </button>
-          ) : null}
-          <button type="button" className="regional-font-btn is-primary" disabled={customBusy || (!fontFile && !customConfig?.url)} onClick={saveCustom}>
-            {customBusy
-              ? (vi ? 'Đang tải font…' : 'Uploading…')
-              : (fontFile
-                ? (vi ? 'Tải lên & áp dụng' : 'Upload & apply')
-                : (vi ? 'Dùng font này toàn hệ thống' : 'Use site-wide'))}
-          </button>
-        </div>
-      </section>
-
       <div className="regional-font-admin__grid">
         {GLOBAL_FONT_REGIONS.map((region) => {
-          const value = draft[region.id] || 'inherit';
-          const definition = definitionFor(value);
-          const previewFamily = definition?.family || 'var(--bes-global-font-family)';
+          const value = draft[region.id];
+          const choice = choiceOf(value);
+          const customValue = isCustom(value) ? value : null;
+          const pendingFile = pendingFiles[region.id] || null;
+          const previewFamily = getRegionalFontFamily(region.id, value);
+          const customActive = choice === 'custom';
           return (
-            <article key={region.id} className={`regional-font-card ${value !== 'inherit' ? 'is-customized' : ''}`}>
+            <article key={region.id} className={`regional-font-card ${choice !== 'inherit' ? 'is-customized' : ''} ${customActive ? 'has-custom-font' : ''}`}>
               <div className="regional-font-card__title">
                 <div>
                   <strong>{vi ? region.labelVi : region.label}</strong>
                   <small>{vi ? region.descriptionVi : region.description}</small>
                 </div>
-                {value !== 'inherit' ? <span>{vi ? 'Riêng' : 'Custom'}</span> : <span className="is-inherit">{vi ? 'Kế thừa' : 'Inherit'}</span>}
+                {customActive ? (
+                  <span className="is-custom-font">{vi ? 'Font cá nhân' : 'Custom font'}</span>
+                ) : choice !== 'inherit' ? (
+                  <span>{vi ? 'Riêng' : 'Custom'}</span>
+                ) : (
+                  <span className="is-inherit">{vi ? 'Kế thừa' : 'Inherit'}</span>
+                )}
               </div>
 
               <label className="regional-font-card__select">
                 <span>{vi ? 'Font chữ' : 'Font family'}</span>
-                <select value={value} onChange={(event) => setRegion(region.id, event.target.value)}>
+                <select value={choice} onChange={(event) => setRegionChoice(region.id, event.target.value)}>
                   <option value="inherit">{vi ? 'Kế thừa font toàn hệ thống' : 'Inherit global font'}</option>
                   {REGION_FONT_OPTIONS.map((font) => (
                     <option key={font.id} value={font.id}>{font.label}</option>
                   ))}
+                  <option value="custom">{vi ? 'Font cá nhân cho khu vực này…' : 'Custom font for this region…'}</option>
                 </select>
               </label>
 
@@ -384,8 +321,55 @@ export default function RegionalFontAdminPanel({ currentUser, language = 'vi' })
                 {region.sample}
               </div>
 
-              {value !== 'inherit' ? (
-                <button type="button" className="regional-font-card__reset" onClick={() => setRegion(region.id, 'inherit')}>
+              <div className={`regional-font-card__custom-upload ${customActive ? 'is-active' : ''}`}>
+                <div className="regional-font-card__custom-head">
+                  <div>
+                    <strong>{vi ? 'Font cá nhân của khu vực này' : 'Custom font for this region'}</strong>
+                    <small>{vi ? '.woff2 · .woff · .ttf · .otf · tối đa 8 MB' : '.woff2 · .woff · .ttf · .otf · max 8 MB'}</small>
+                  </div>
+                  {customValue?.url && !pendingFile ? (
+                    <span className="regional-font-card__stored">✓ {vi ? 'Đã lưu' : 'Saved'}</span>
+                  ) : pendingFile ? (
+                    <span className="regional-font-card__previewing">● {vi ? 'Đang xem thử' : 'Previewing'}</span>
+                  ) : null}
+                </div>
+
+                {customActive ? (
+                  <label className="regional-font-card__custom-name">
+                    <span>{vi ? 'Tên hiển thị' : 'Display name'}</span>
+                    <input
+                      type="text"
+                      value={customValue?.name || ''}
+                      onChange={(event) => setCustomName(region.id, event.target.value)}
+                      placeholder={vi ? 'Ví dụ: SVN-Gilroy' : 'Example: SVN-Gilroy'}
+                      maxLength={80}
+                    />
+                  </label>
+                ) : null}
+
+                <div className="regional-font-card__custom-actions">
+                  <label className="regional-font-card__file-button">
+                    <input
+                      type="file"
+                      accept=".woff2,.woff,.ttf,.otf,font/woff2,font/woff,font/ttf,font/otf"
+                      onChange={(event) => chooseRegionFile(region, event)}
+                    />
+                    <span aria-hidden="true">↑</span>
+                    <b>{customActive
+                      ? (vi ? 'Chọn / thay font riêng' : 'Choose / replace custom font')
+                      : (vi ? 'Tải font riêng' : 'Upload custom font')}</b>
+                  </label>
+                  {customActive && customValue?.url ? (
+                    <small className="regional-font-card__file-state">
+                      {pendingFile?.name || customValue.name || (vi ? 'Font cá nhân' : 'Custom font')}
+                      {(pendingFile?.size || customValue.size) ? ` · ${fileSizeLabel(pendingFile?.size || customValue.size)}` : ''}
+                    </small>
+                  ) : null}
+                </div>
+              </div>
+
+              {choice !== 'inherit' ? (
+                <button type="button" className="regional-font-card__reset" onClick={() => resetRegion(region.id)}>
                   {vi ? 'Khôi phục kế thừa' : 'Restore inheritance'}
                 </button>
               ) : null}
@@ -395,10 +379,10 @@ export default function RegionalFontAdminPanel({ currentUser, language = 'vi' })
       </div>
 
       <div className="regional-font-admin__note">
-        <strong>{vi ? 'Xem thử trực tiếp' : 'Live preview'}</strong>
+        <strong>{vi ? 'Font độc lập theo khu vực' : 'Independent regional fonts'}</strong>
         <span>{vi
-          ? 'Mọi thay đổi font theo khu vực được áp dụng ngay trên trang hiện tại nhưng chưa ghi vào cấu hình. Nếu rời trang mà chưa lưu, Brian tự khôi phục bản đã lưu.'
-          : 'Regional font changes apply immediately on the current page without being persisted. Leaving without saving restores the last saved configuration.'}</span>
+          ? 'Font cá nhân tải ở một khu vực chỉ áp dụng cho khu vực đó. Bạn có thể dùng 10 font khác nhau cho 10 khu vực nếu muốn. Mọi thay đổi đều được xem thử trực tiếp trước khi lưu.'
+          : 'A custom font uploaded in one region applies only there. You may use a different font in every region. All changes are previewed live before saving.'}</span>
       </div>
 
       {message ? <div className={`regional-font-admin__message is-${messageTone}`}>{message}</div> : null}
@@ -411,7 +395,7 @@ export default function RegionalFontAdminPanel({ currentUser, language = 'vi' })
         <button type="button" className="regional-font-btn" disabled={busy} onClick={resetAll}>{vi ? 'Kế thừa tất cả' : 'Inherit all'}</button>
         <button type="button" className="regional-font-btn" disabled={busy || !changed} onClick={restoreSaved}>{vi ? 'Khôi phục bản đã lưu' : 'Restore saved'}</button>
         <button type="button" className="regional-font-btn is-primary" disabled={busy || !changed} onClick={apply}>
-          {busy ? (vi ? 'Đang lưu…' : 'Saving…') : (vi ? 'Lưu & áp dụng' : 'Save & apply')}
+          {busy ? (vi ? 'Đang tải & lưu…' : 'Uploading & saving…') : (vi ? 'Lưu & áp dụng' : 'Save & apply')}
         </button>
       </footer>
     </section>
