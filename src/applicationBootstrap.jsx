@@ -138,8 +138,10 @@ function startAssignedClassSync() {
       try {
         const module = await import('./assignedSchoolClassBootstrap.js');
         module.installAssignedSchoolClassSync?.();
-        await module.prepareAssignedSchoolClasses?.();
-        resolve({ ok: true });
+        const result = await module.prepareAssignedSchoolClasses?.({
+          preferHomeroom: isHomeroomRoute(),
+        });
+        resolve(result || { ok: true });
       } catch (error) {
         assignedClassSyncPromise = null;
         console.warn('[AssignedSchoolClasses] Chưa thể đồng bộ lớp được phân công.', error);
@@ -211,7 +213,18 @@ async function startApplication() {
   // Typography is system chrome, not an authenticated preference. Resolve the
   // Admin-selected public typography before Brian renders its first frame.
   await bootstrapPublicTypographyBeforeApp();
+
+  // On the Homeroom route the admin assignment is authoritative. Finish that
+  // synchronization before React reads getCurrentHomeroomWorkspaceId() for its
+  // initial state. Previously the sync ran after main.jsx started mounting, so
+  // its navigation event could fire before HomeroomWorkspace installed the
+  // listener: first open showed a fallback class, while reload showed the right
+  // assigned class because localStorage had already been corrected.
+  if (isHomeroomRoute()) {
+    await startAssignedClassSync();
+  }
   await preparePreferredHomeroomBeforeMain();
+
   await import('./main.jsx');
   import('./homeWeeklyPracticeStatisticsBootstrap.jsx').catch((error) => {
     console.warn('[WeeklyPracticeStatistics] Không thể khởi tạo bộ điều khiển thống kê TTCM.', error);
