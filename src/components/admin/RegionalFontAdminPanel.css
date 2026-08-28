@@ -147,6 +147,11 @@
   color: #137333;
 }
 
+.regional-font-card__title > span.is-font-size {
+  background: #f3e8ff;
+  color: #7e22ce;
+}
+
 .regional-font-card__select {
   display: grid;
   gap: 5px;
@@ -201,6 +206,130 @@
 
 html[data-global-font] body .regional-font-card__sample {
   font-family: var(--region-preview-family) !important;
+}
+
+.regional-font-card__font-size {
+  margin-top: 12px;
+  padding: 11px 12px;
+  border: 1px solid #e0e3e7;
+  border-radius: 13px;
+  background: #fbfcfe;
+}
+
+.regional-font-card__font-size.is-active {
+  border-color: #d8b4fe;
+  background: #fcf8ff;
+}
+
+.regional-font-card__font-size-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.regional-font-card__font-size-head > div {
+  min-width: 0;
+}
+
+.regional-font-card__font-size-head strong,
+.regional-font-card__font-size-head small {
+  display: block;
+}
+
+.regional-font-card__font-size-head strong {
+  color: #334155;
+  font-size: 10.5px;
+}
+
+.regional-font-card__font-size-head small {
+  margin-top: 2px;
+  color: #7b8491;
+  font-size: 9px;
+}
+
+.regional-font-card__font-size-head > b {
+  flex: none;
+  color: #7e22ce;
+  font-size: 10px;
+}
+
+.regional-font-card__font-size-controls {
+  display: grid;
+  grid-template-columns: auto minmax(100px, 1fr) auto auto auto;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.regional-font-card__font-size-controls > span {
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.regional-font-card__font-size-controls > span.is-large {
+  font-size: 15px;
+}
+
+.regional-font-card__font-size-controls input[type='range'] {
+  width: 100%;
+  min-width: 0;
+  accent-color: #7c3aed;
+  cursor: pointer;
+}
+
+.regional-font-card__font-size-controls > label {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  overflow: hidden;
+  border: 1px solid #d2d7de;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.regional-font-card__font-size-controls input[type='number'] {
+  width: 48px;
+  min-height: 30px;
+  padding: 0 4px 0 8px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #334155;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.regional-font-card__font-size-controls > label small {
+  padding-right: 7px;
+  color: #64748b;
+  font-size: 9px;
+}
+
+.regional-font-card__font-size-controls > button {
+  min-height: 32px;
+  padding: 0 9px;
+  border: 1px solid #d2d7de;
+  border-radius: 9px;
+  background: #fff;
+  color: #475569;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.regional-font-card__font-size-controls > button:hover:not(:disabled) {
+  background: #f7f3ff;
+  border-color: #c4b5fd;
+  color: #6d28d9;
+}
+
+.regional-font-card__font-size-controls > button:disabled {
+  cursor: default;
+  opacity: .45;
 }
 
 .regional-font-card__custom-upload {
@@ -433,6 +562,9 @@ html[data-global-font] body .regional-font-card__sample {
   .regional-font-admin { padding: 16px; border-radius: 18px; }
   .regional-font-admin__head { flex-direction: column; }
   .regional-font-admin__head-status { align-items: flex-start; }
+  .regional-font-card__font-size-controls { grid-template-columns: auto minmax(90px, 1fr) auto; }
+  .regional-font-card__font-size-controls > label,
+  .regional-font-card__font-size-controls > button { grid-column: span 1; }
   .regional-font-card__custom-actions { align-items: stretch; flex-direction: column; }
   .regional-font-card__file-button { width: 100%; }
   .regional-font-card__file-state { white-space: normal; }
