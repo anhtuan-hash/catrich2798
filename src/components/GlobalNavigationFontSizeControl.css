@@ -1,0 +1,104 @@
+/* Account-menu quick control for the same navigation font-size setting used by Regional Typography. */
+.brian-nav__account-menu .brian-nav__font-options > button {
+  display: none !important;
+}
+
+.brian-nav__account-menu .brian-nav__font-options {
+  display: block !important;
+}
+
+.brian-nav__font-size-control {
+  display: grid;
+  grid-template-columns: 38px minmax(84px, 1fr) 38px auto;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+}
+
+.brian-nav__font-size-step,
+.brian-nav__font-size-reset {
+  min-height: 38px;
+  border: 1px solid var(--brian-nav-line);
+  border-radius: 10px;
+  background: var(--brian-nav-surface);
+  color: var(--brian-nav-ink);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.brian-nav__font-size-step {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  font-size: 19px !important;
+  line-height: 1;
+}
+
+.brian-nav__font-size-reset {
+  padding: 0 10px;
+  color: var(--brian-nav-muted);
+  font-size: 10px !important;
+  white-space: nowrap;
+}
+
+.brian-nav__font-size-step:hover:not(:disabled),
+.brian-nav__font-size-reset:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--brian-nav-accent) 55%, var(--brian-nav-line));
+  background: color-mix(in srgb, var(--brian-nav-soft) 84%, white);
+  color: var(--brian-nav-accent);
+}
+
+.brian-nav__font-size-step:focus-visible,
+.brian-nav__font-size-reset:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--brian-nav-accent) 42%, transparent);
+  outline-offset: 2px;
+}
+
+.brian-nav__font-size-step:disabled,
+.brian-nav__font-size-reset:disabled {
+  cursor: not-allowed;
+  opacity: .42;
+}
+
+.brian-nav__font-size-value {
+  min-height: 38px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--brian-nav-accent) 22%, var(--brian-nav-line));
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--brian-nav-accent) 8%, var(--brian-nav-surface));
+  color: var(--brian-nav-accent);
+  text-align: center;
+}
+
+.brian-nav__font-size-value strong {
+  font-size: 13px !important;
+  line-height: 1.05;
+}
+
+.brian-nav__font-size-value small {
+  margin-top: 2px;
+  color: var(--brian-nav-muted);
+  font-size: 8px !important;
+  line-height: 1;
+}
+
+.brian-nav__font-size-error {
+  grid-column: 1 / -1;
+  color: #b3261e;
+  font-size: 9px !important;
+  line-height: 1.3;
+}
+
+@media (max-width: 520px) {
+  .brian-nav__font-size-control {
+    grid-template-columns: 36px minmax(76px, 1fr) 36px;
+  }
+
+  .brian-nav__font-size-reset {
+    grid-column: 1 / -1;
+  }
+}
