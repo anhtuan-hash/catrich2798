@@ -440,3 +440,319 @@
     white-space: normal;
   }
 }
+
+/* Gradebook Editorial Compact — 2026 */
+.gradebook-studio {
+  --gb-blue: #1769e0;
+  --gb-blue-deep: #123a73;
+  --gb-blue-soft: #edf5ff;
+  --gb-line: #d5e5f8;
+  --gb-ink: #142a45;
+  --gb-muted: #687b91;
+}
+
+.gradebook-studio-hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 196px;
+  grid-template-columns: minmax(330px, 1fr) minmax(390px, 480px);
+  align-items: center;
+  overflow: hidden;
+  padding: 34px 36px;
+  border-color: #cfe1f7;
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 52% 38%, rgba(63, 135, 241, .13), transparent 18%),
+    radial-gradient(circle at 4% 104%, rgba(85, 157, 250, .12), transparent 34%),
+    linear-gradient(118deg, #f9fcff 0%, #edf5ff 53%, #e3f1ff 100%);
+  box-shadow: 0 18px 46px rgba(35, 82, 137, .09);
+}
+
+.gradebook-studio-hero::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: 48%;
+  top: 50%;
+  width: 112px;
+  height: 88px;
+  border: 1px solid rgba(79, 139, 223, .24);
+  border-radius: 22px;
+  background:
+    linear-gradient(90deg, transparent 48%, rgba(87, 142, 220, .18) 49%, rgba(87, 142, 220, .18) 51%, transparent 52%),
+    linear-gradient(145deg, rgba(255,255,255,.86), rgba(205, 227, 255, .66));
+  box-shadow:
+    12px 12px 0 rgba(212, 230, 253, .62),
+    24px 24px 0 rgba(225, 238, 255, .44),
+    0 18px 32px rgba(63, 111, 175, .12);
+  transform: translate(-50%, -50%) rotate(-8deg);
+}
+
+.gradebook-studio-hero::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  left: calc(48% + 36px);
+  top: calc(50% - 13px);
+  width: 11px;
+  height: 112px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #69a4ff 0%, #1769e0 74%, #0e4ea9 100%);
+  box-shadow: 0 8px 18px rgba(23, 105, 224, .18);
+  transform: translate(-50%, -50%) rotate(34deg);
+  opacity: .82;
+  pointer-events: none;
+}
+
+.gradebook-studio-hero-copy,
+.gradebook-studio-hero-stats {
+  position: relative;
+  z-index: 2;
+}
+
+.gradebook-studio-kicker {
+  margin-bottom: 10px;
+  color: var(--gb-blue);
+  font-size: 0;
+  letter-spacing: .16em;
+}
+
+.gradebook-studio-kicker::after {
+  content: 'TEACHER WORKSPACE';
+  font-size: .7rem;
+  font-weight: 850;
+}
+
+.gradebook-studio-hero h1 {
+  max-width: 520px;
+  color: var(--gb-ink);
+  font-size: clamp(3.25rem, 5.4vw, 5.8rem);
+  font-weight: 520;
+  line-height: .92;
+  letter-spacing: -.065em;
+}
+
+.gradebook-studio-hero-copy > p {
+  display: none !important;
+}
+
+.gradebook-studio-hero-stats {
+  gap: 12px;
+}
+
+.gradebook-studio-hero-stats article {
+  min-height: 116px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 5px;
+  padding: 15px 10px;
+  border: 1px solid rgba(150, 184, 228, .38);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, .86);
+  box-shadow: 0 10px 26px rgba(42, 85, 139, .07);
+  backdrop-filter: blur(10px);
+}
+
+.gradebook-studio-hero-stats article::before {
+  width: 27px;
+  height: 27px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: #e8f2ff;
+  color: var(--gb-blue);
+  font-family: Arial, sans-serif;
+  font-size: .9rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.gradebook-studio-hero-stats article:nth-child(1)::before { content: '▤'; }
+.gradebook-studio-hero-stats article:nth-child(2)::before { content: '▦'; color: #7b51d3; background: #f2edff; }
+.gradebook-studio-hero-stats article:nth-child(3)::before { content: '●'; color: #18875c; background: #eaf8f1; font-size: .62rem; }
+
+.gradebook-studio-hero-stats strong {
+  color: #0f58c6;
+  font-size: 1.72rem;
+  font-weight: 820;
+}
+
+.gradebook-studio-hero-stats span {
+  margin-top: 0;
+  color: var(--gb-muted);
+  font-size: 0;
+  font-weight: 700;
+}
+
+.gradebook-studio-hero-stats article:nth-child(1) span::after { content: 'Sổ điểm'; font-size: .68rem; }
+.gradebook-studio-hero-stats article:nth-child(2) span::after { content: 'Lớp'; font-size: .68rem; }
+.gradebook-studio-hero-stats article:nth-child(3) span::after { content: 'Học sinh'; font-size: .68rem; }
+
+/* Keep the workspace functional, but remove prose that repeats what the controls already say. */
+.gradebook-studio .gradebook-assignment-head p,
+.gradebook-studio .gradebook-assignment-copy p,
+.gradebook-studio .gradebook-assignment-state,
+.gradebook-studio .gradebook-studio-create .hr-panel-head p,
+.gradebook-studio .hr-grade-title p,
+.gradebook-studio .hr-grade-formula small,
+.gradebook-studio .hr-grade-overview article > span,
+.gradebook-studio .hr-grade-export-copy p,
+.gradebook-studio .hr-grade-panel-head p {
+  display: none !important;
+}
+
+.gradebook-studio .gradebook-assignment-panel {
+  padding: 18px !important;
+  border-color: #d8e5f3 !important;
+  background: #fff !important;
+}
+
+.gradebook-studio .gradebook-assignment-head {
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.gradebook-studio .gradebook-assignment-grid article {
+  min-height: 112px;
+  padding: 15px;
+  border-color: #dce7f3;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 7px 20px rgba(45, 83, 128, .045);
+}
+
+.gradebook-studio .gradebook-assignment-grid article.is-ready {
+  border-color: #cddff3;
+  background: linear-gradient(145deg, #fff 0%, #f8fbff 100%);
+}
+
+.gradebook-studio .gradebook-assignment-grid article > button,
+.gradebook-studio .gradebook-assignment-grid article.is-ready > button {
+  border-color: #c7dcf7;
+  background: #eef6ff;
+  color: #145ab9;
+}
+
+.gradebook-studio .hr-grade-toolbar {
+  min-height: 132px;
+  border-color: #d3e4fa !important;
+  background: linear-gradient(125deg, #f9fcff 0%, #fff 58%, #eef6ff 100%) !important;
+}
+
+.gradebook-studio .hr-grade-formula {
+  min-height: 68px;
+}
+
+.gradebook-studio .hr-grade-overview article {
+  min-height: 96px;
+}
+
+.gradebook-studio .hr-grade-panel-head {
+  min-height: 82px;
+}
+
+.gradebook-studio .hr-grade-export-bar {
+  min-height: 88px;
+}
+
+/* Score-cell interaction: click/focus gives immediate tactile feedback without touching data logic. */
+.gradebook-studio .hr-grade-input {
+  position: relative;
+  transform: translateZ(0);
+  transform-origin: 50% 50%;
+  transition:
+    transform 170ms cubic-bezier(.2,.8,.2,1),
+    box-shadow 190ms ease,
+    border-color 190ms ease,
+    background-color 190ms ease;
+  will-change: transform;
+}
+
+.gradebook-studio .hr-grade-input:hover {
+  border-color: #8bb8f5 !important;
+  background-color: #f8fbff !important;
+  box-shadow: 0 5px 14px rgba(23, 105, 224, .08) !important;
+}
+
+.gradebook-studio .hr-grade-input:active {
+  transform: scale(.94);
+}
+
+.gradebook-studio .hr-grade-input:focus {
+  z-index: 3;
+  border-color: var(--gb-blue) !important;
+  background: radial-gradient(circle at 50% 50%, #ffffff 0%, #edf5ff 100%) !important;
+  box-shadow:
+    0 0 0 4px rgba(23, 105, 224, .14),
+    0 10px 24px rgba(23, 105, 224, .16) !important;
+  transform: translateY(-2px) scale(1.06);
+  animation: gradebook-score-pop 300ms cubic-bezier(.2,.9,.25,1);
+}
+
+.gradebook-studio .hr-grade-result {
+  transition: transform 160ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.gradebook-studio .hr-grade-result:hover {
+  background-color: #f2f7ff !important;
+}
+
+.gradebook-studio .hr-grade-result:active {
+  transform: scale(.92);
+  background-color: #e8f2ff !important;
+  box-shadow: inset 0 0 0 2px rgba(23, 105, 224, .16);
+}
+
+@keyframes gradebook-score-pop {
+  0% { transform: translateY(0) scale(.94); }
+  58% { transform: translateY(-3px) scale(1.085); }
+  100% { transform: translateY(-2px) scale(1.06); }
+}
+
+@media (max-width: 1050px) {
+  .gradebook-studio-hero::before,
+  .gradebook-studio-hero::after {
+    display: none;
+  }
+
+  .gradebook-studio-hero {
+    min-height: 0;
+    grid-template-columns: 1fr;
+  }
+
+  .gradebook-studio-hero-stats {
+    max-width: 560px;
+  }
+}
+
+@media (max-width: 720px) {
+  .gradebook-studio-hero h1 {
+    font-size: clamp(3rem, 18vw, 4.8rem);
+  }
+
+  .gradebook-studio-hero-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .gradebook-studio-hero-stats article {
+    min-height: 98px;
+    padding: 12px 6px;
+  }
+
+  .gradebook-studio .gradebook-assignment-grid article {
+    min-height: 100px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gradebook-studio .hr-grade-input,
+  .gradebook-studio .hr-grade-result {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .gradebook-studio .hr-grade-input:focus {
+    transform: none;
+  }
+}
