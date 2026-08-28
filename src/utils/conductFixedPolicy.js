@@ -12,17 +12,28 @@ export const FIXED_CONDUCT_POLICY = Object.freeze({
 });
 
 const PROHIBITED_CATEGORY = 'hành vi nghiêm cấm';
-const PROHIBITED_RULES = OFFICIAL_CONDUCT_RULES.filter((rule) => (
-  rule?.isProhibited === true
-  || String(rule?.category || '').trim().toLowerCase() === PROHIBITED_CATEGORY
-));
-const PROHIBITED_IDS = new Set(PROHIBITED_RULES.map((rule) => String(rule.id || '').trim()).filter(Boolean));
-const PROHIBITED_CODES = new Set(PROHIBITED_RULES.map((rule) => String(rule.code || '').trim()).filter(Boolean));
-const PROHIBITED_TITLES = new Set(PROHIBITED_RULES.map((rule) => String(rule.title || '').trim().toLowerCase()).filter(Boolean));
+const PROHIBITED_CODE_PATTERN = /^(?:CM(?:0[1-9]|10)|NC0[1-8])$/i;
 
 function text(value) {
   return String(value ?? '').trim();
 }
+
+function normalizedCode(value) {
+  return text(value).toUpperCase();
+}
+
+export function isProhibitedConductCode(value) {
+  return PROHIBITED_CODE_PATTERN.test(normalizedCode(value));
+}
+
+const PROHIBITED_RULES = OFFICIAL_CONDUCT_RULES.filter((rule) => (
+  rule?.isProhibited === true
+  || isProhibitedConductCode(rule?.code)
+  || text(rule?.category).toLowerCase() === PROHIBITED_CATEGORY
+));
+const PROHIBITED_IDS = new Set(PROHIBITED_RULES.map((rule) => text(rule.id)).filter(Boolean));
+const PROHIBITED_CODES = new Set(PROHIBITED_RULES.map((rule) => normalizedCode(rule.code)).filter(Boolean));
+const PROHIBITED_TITLES = new Set(PROHIBITED_RULES.map((rule) => text(rule.title).toLowerCase()).filter(Boolean));
 
 export function conductWeekPoint(score) {
   const numeric = Number(score);
@@ -50,10 +61,11 @@ export function isConfirmedProhibitedRecord(record = {}) {
   const status = (text(record.status) || 'confirmed').toLowerCase();
   if (status !== 'confirmed') return false;
   const ruleId = text(record.ruleId);
-  const code = text(record.code);
+  const code = normalizedCode(record.code);
   const title = text(record.title).toLowerCase();
   const category = text(record.category).toLowerCase();
   return record.isProhibited === true
+    || isProhibitedConductCode(code)
     || PROHIBITED_IDS.has(ruleId)
     || PROHIBITED_CODES.has(code)
     || PROHIBITED_TITLES.has(title)
