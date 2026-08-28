@@ -40,6 +40,16 @@ function classTypeStoreKey(user) { return `${CLASS_TYPE_STORE_PREFIX}:${userKey(
 function workspaceStoreKey(user, workspaceId) { return `${WORKSPACE_STORE_PREFIX}:${userKey(user)}:${text(workspaceId, 'default')}`; }
 function workspaceIndexKey(user) { return `${WORKSPACE_INDEX_PREFIX}:${userKey(user)}`; }
 
+function sameRevision(left, right) {
+  const a = text(left);
+  const b = text(right);
+  if (!a || !b) return a === b;
+  if (a === b) return true;
+  const aTime = Date.parse(a);
+  const bTime = Date.parse(b);
+  return Number.isFinite(aTime) && Number.isFinite(bTime) && aTime === bTime;
+}
+
 function readClassTypes(user) {
   try {
     const parsed = JSON.parse(localStorage.getItem(classTypeStoreKey(user)) || '{}');
@@ -298,7 +308,14 @@ async function migrateCloudSubjectPiiIfNeeded(rawPayload, decorated, user, works
     .select('payload,updated_at')
     .maybeSingle();
   if (error || !data) return { workspace: decorated, updatedAt: expectedUpdatedAt };
-  return { workspace: decorateWorkspace(data.payload || payload, user, true), updatedAt: data.updated_at || timestamp };
+  const revision = data.updated_at || timestamp;
+  return {
+    workspace: decorateWorkspace({
+      ...(data.payload || payload),
+      syncMeta: { ...((data.payload || payload).syncMeta || {}), cloudUpdatedAt: revision },
+    }, user, true),
+    updatedAt: revision,
+  };
 }
 
 export async function loadHomeroomWorkspace(user, workspaceId = 'default') {
@@ -338,8 +355,8 @@ export async function loadHomeroomWorkspace(user, workspaceId = 'default') {
   const localUpdated = Date.parse(local?.updatedAt || 0) || 0;
   if (local && localUpdated > cloudUpdated) {
     const expected = text(local.syncMeta?.cloudUpdatedAt);
-    const conflict = Boolean(expected && expected !== text(cloudUpdatedAt));
-    const selected = conflict ? local : { ...local, syncMeta: { ...(local.syncMeta || {}), cloudUpdatedAt: expected } };
+    const conflict = Boolean(expected && !sameRevision(expected, cloudUpdatedAt));
+    const selected = conflict ? local : { ...local, syncMeta: { ...(local.syncMeta || {}), cloudUpdatedAt: cloudUpdatedAt || expected } };
     persistByPrivacyMode(selected, user);
     return { ok: true, workspace: selected, source: conflict ? 'local-conflict' : 'local', conflict };
   }
@@ -348,15 +365,15 @@ export async function loadHomeroomWorkspace(user, workspaceId = 'default') {
   return { ok: true, workspace: cloud, source: 'cloud' };
 }
 
-function persistenceViolation(previous, next) {
+function persistenceViolation(previous, next, user) {
   if (!previous) return null;
-  return getAttendanceLockViolation(decorateWorkspace(previous, null, true), decorateWorkspace(next, null, true));
+  return getAttendanceLockViolation(decorateWorkspace(previous, user, true), decorateWorkspace(next, user, true));
 }
 
 export function saveLocalHomeroomWorkspace(workspace, user) {
   const prepared = decorateWorkspace({ ...workspace, updatedAt: nowIso() }, user, true);
   const previous = loadBaseLocalWorkspace(user, prepared.id);
-  const violation = persistenceViolation(previous, prepared);
+  const violation = persistenceViolation(previous, prepared, user);
   if (violation) {
     console.warn(`Blocked homeroom persistence: ${violation.code} (${violation.sessionKey})`);
     return previous ? decorateWorkspace(previous, user, true) : prepared;
@@ -388,7 +405,7 @@ function conflictResult(workspace, message = 'Dữ liệu cloud đã thay đổi
 export async function saveHomeroomWorkspace(workspace, user) {
   const prepared = decorateWorkspace({ ...workspace, updatedAt: nowIso() }, user, true);
   const previousLocal = loadBaseLocalWorkspace(user, prepared.id);
-  const localViolation = persistenceViolation(previousLocal, prepared);
+  const localViolation = persistenceViolation(previousLocal, prepared, user);
   if (localViolation) return { ok: false, ...localViolation, workspace: previousLocal ? decorateWorkspace(previousLocal, user, true) : prepared };
 
   const classTypes = readClassTypes(user);
@@ -416,7 +433,7 @@ export async function saveHomeroomWorkspace(workspace, user) {
   if (existing?.payload) {
     const cloudViolation = getAttendanceLockViolation(existing.payload, prepared);
     if (cloudViolation) return { ok: false, ...cloudViolation, workspace: local };
-    if (!expectedRevision || text(existing.updated_at) !== expectedRevision) return conflictResult(local);
+    if (!expectedRevision || !sameRevision(existing.updated_at, expectedRevision)) return conflictResult(local);
   } else if (expectedRevision) {
     return conflictResult(local, 'Bản ghi cloud đã bị xóa hoặc thay đổi. Hãy tải lại lớp trước khi lưu.');
   }
@@ -452,7 +469,11 @@ export async function saveHomeroomWorkspace(workspace, user) {
 
   if (error) return { ok: false, offline: mode !== 'cloud-only', message: error.message, workspace: local };
 
-  const saved = decorateWorkspace(data?.payload || payload, user, true);
+  const canonicalRevision = data?.updated_at || timestamp;
+  const saved = decorateWorkspace({
+    ...(data?.payload || payload),
+    syncMeta: { ...((data?.payload || payload).syncMeta || {}), cloudUpdatedAt: canonicalRevision },
+  }, user, true);
   const persisted = persistByPrivacyMode(saved, user);
   void scheduleHomeroomDriveBackup(saved, user, { reason: 'automatic-after-supabase-sync' })
     .catch(() => { /* recovery backup must not block save */ });
