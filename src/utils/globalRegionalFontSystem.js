@@ -9,8 +9,34 @@ const LINK_PREFIX = 'bes-regional-font-';
 const CUSTOM_STYLE_PREFIX = 'bes-regional-custom-font-face-';
 const CUSTOM_FAMILY_PREFIX = 'BrianRegionalCustom';
 const FONT_SIZES_KEY = 'fontSizes';
-const NAV_FONT_SIZE_MIN = 11;
-const NAV_FONT_SIZE_MAX = 22;
+const FONT_SIZE_LIMITS = Object.freeze({
+  navigation: Object.freeze({ min: 11, max: 22, fallback: 15 }),
+  newswire: Object.freeze({ min: 10, max: 22, fallback: 12 }),
+  pageTitle: Object.freeze({ min: 20, max: 64, fallback: 36 }),
+  sectionHeading: Object.freeze({ min: 14, max: 40, fallback: 22 }),
+  body: Object.freeze({ min: 11, max: 24, fallback: 16 }),
+  cards: Object.freeze({ min: 11, max: 24, fallback: 14 }),
+  controls: Object.freeze({ min: 11, max: 22, fallback: 14 }),
+  data: Object.freeze({ min: 10, max: 22, fallback: 13 }),
+  dashboard: Object.freeze({ min: 11, max: 24, fallback: 15 }),
+  admin: Object.freeze({ min: 11, max: 24, fallback: 15 }),
+});
+const FONT_SIZE_RUNTIME_ORDER = Object.freeze([
+  'dashboard', 'admin', 'body', 'cards', 'data', 'controls',
+  'sectionHeading', 'pageTitle', 'newswire', 'navigation',
+]);
+const FONT_SIZE_RUNTIME_SELECTORS = Object.freeze({
+  dashboard: ".app-shell[data-route='dashboard'] :is(h1,h2,h3,h4,h5,h6,p,span,strong,b,em,small,label,legend,li,dt,dd,blockquote,figcaption,th,td,button,a,input,textarea,select,option,summary)",
+  admin: ".app-shell[data-route='settings'] :is(h1,h2,h3,h4,h5,h6,p,span,strong,b,em,small,label,legend,li,dt,dd,blockquote,figcaption,th,td,button,a,input,textarea,select,option,summary), .app-shell[data-route='admin'] :is(h1,h2,h3,h4,h5,h6,p,span,strong,b,em,small,label,legend,li,dt,dd,blockquote,figcaption,th,td,button,a,input,textarea,select,option,summary)",
+  body: "main#bes-main-content :is(p,li,dt,dd,blockquote,figcaption)",
+  cards: ":is([class*='card'],[class*='widget'],[class*='tile'],[class*='panel']) :is(h1,h2,h3,h4,h5,h6,p,span,strong,b,em,small,label,li,button,a)",
+  data: ":is(table,[class*='metric'],[class*='stat'],[class*='metadata'],[class*='data-value'],[class*='data-label']) :is(th,td,span,strong,b,small,p), :is(th,td,[class*='metric'],[class*='stat'],[class*='metadata'],[class*='data-value'],[class*='data-label'])",
+  controls: "button,[role='button'],[role='tab'],[role='option'],[role='menuitem'],input,textarea,select,option,label,legend,summary",
+  sectionHeading: "h2,h3,h4,[class*='section-title'],[class*='section-heading'],[class*='card-title']",
+  pageTitle: "h1,[class*='page-title'],[class*='hero-title'],[class*='hero-heading'],[class*='hero'] [class*='title']",
+  newswire: ".brian-editorial-brief :is(div,span,strong,b,em,small,p,button,a)",
+  navigation: ".brian-nav__brand > span,.brian-nav__primary > :is(button,a,[role='button']),.brian-nav__account-name,.brian-nav__account :is(strong,span)",
+});
 
 export const GLOBAL_FONT_REGIONS = Object.freeze([
   { id: 'navigation', labelVi: 'Thanh điều hướng', label: 'Navigation', descriptionVi: 'Logo chữ, menu chính, tài khoản và nhãn trên thanh điều hướng.', description: 'Brand text, primary navigation, account and navigation labels.', sample: 'Brian English · Trang chủ · Dashboard' },
@@ -51,10 +77,85 @@ const REMOTE_FONT_STYLESHEETS = Object.freeze({
 let installed = false;
 let realtimeUnsubscribe = null;
 let retryTimers = [];
+let fontSizeRuntimeObserver = null;
+let fontSizeRuntimeFrame = 0;
+let fontSizeRuntimeSettings = {};
 const previewObjectUrls = new Map();
+const fontSizeRuntimeOriginal = new Map();
 
 function definitionFor(preset) {
   return GLOBAL_FONT_PRESETS.find((item) => item.id === preset) || null;
+}
+
+function restoreRuntimeFontSizes() {
+  fontSizeRuntimeOriginal.forEach((original, node) => {
+    if (!node?.style) return;
+    if (original.value) node.style.setProperty('font-size', original.value, original.priority || '');
+    else node.style.removeProperty('font-size');
+    node.removeAttribute('data-bes-regional-font-size-runtime');
+  });
+  fontSizeRuntimeOriginal.clear();
+}
+
+function runtimeNodeExcluded(node, regionId) {
+  if (!node?.style || node.closest?.('.regional-font-admin')) return true;
+  if (node.matches?.('.material-symbols-outlined,.material-symbols-rounded,.material-symbols-sharp,.material-icons,code,pre,kbd,samp')) return true;
+  if (node.closest?.('code,pre,kbd,samp')) return true;
+  if (regionId !== 'navigation' && node.closest?.('.brian-nav')) return true;
+  if (regionId !== 'newswire' && node.closest?.('.brian-editorial-brief')) return true;
+  return false;
+}
+
+function applyRuntimeFontSize(regionId, size) {
+  const selector = FONT_SIZE_RUNTIME_SELECTORS[regionId];
+  if (!selector || !size || typeof document === 'undefined') return;
+  document.querySelectorAll(selector).forEach((node) => {
+    if (runtimeNodeExcluded(node, regionId)) return;
+    if (!fontSizeRuntimeOriginal.has(node)) {
+      fontSizeRuntimeOriginal.set(node, {
+        value: node.style.getPropertyValue('font-size'),
+        priority: node.style.getPropertyPriority('font-size'),
+      });
+    }
+    node.style.setProperty('font-size', `${size}px`, 'important');
+    node.setAttribute('data-bes-regional-font-size-runtime', regionId);
+  });
+}
+
+function performRuntimeFontSizeSync() {
+  if (typeof document === 'undefined') return;
+  restoreRuntimeFontSizes();
+  FONT_SIZE_RUNTIME_ORDER.forEach((regionId) => {
+    const size = getRegionalFontSize(fontSizeRuntimeSettings, regionId);
+    if (size) applyRuntimeFontSize(regionId, size);
+  });
+}
+
+function scheduleRuntimeFontSizeSync() {
+  if (typeof window === 'undefined' || fontSizeRuntimeFrame) return;
+  fontSizeRuntimeFrame = window.requestAnimationFrame(() => {
+    fontSizeRuntimeFrame = 0;
+    performRuntimeFontSizeSync();
+  });
+}
+
+function syncRuntimeRegionalFontSizes(settings) {
+  if (typeof document === 'undefined') return;
+  fontSizeRuntimeSettings = settings;
+  const active = GLOBAL_FONT_REGIONS.some((region) => Boolean(getRegionalFontSize(settings, region.id)));
+  performRuntimeFontSizeSync();
+  if (!active) {
+    fontSizeRuntimeObserver?.disconnect();
+    fontSizeRuntimeObserver = null;
+    return;
+  }
+  if (!fontSizeRuntimeObserver && typeof MutationObserver === 'function') {
+    fontSizeRuntimeObserver = new MutationObserver((records) => {
+      if (records.some((record) => record.addedNodes?.length)) scheduleRuntimeFontSizeSync();
+    });
+    const host = document.body || document.documentElement;
+    if (host) fontSizeRuntimeObserver.observe(host, { childList: true, subtree: true });
+  }
 }
 
 function safeRegionId(value = '') {
@@ -67,16 +168,22 @@ function normalizePreset(value) {
   return ALLOWED_PRESETS.has(preset) ? preset : 'inherit';
 }
 
-function normalizeNavigationFontSize(value) {
+function normalizeRegionalFontSize(regionId, value) {
+  const safe = safeRegionId(regionId);
+  const limits = safe ? FONT_SIZE_LIMITS[safe] : null;
   const size = Number(value);
-  if (!Number.isFinite(size)) return null;
-  return Math.min(NAV_FONT_SIZE_MAX, Math.max(NAV_FONT_SIZE_MIN, Math.round(size)));
+  if (!limits || !Number.isFinite(size)) return null;
+  return Math.min(limits.max, Math.max(limits.min, Math.round(size)));
 }
 
 function normalizeFontSizes(input = {}) {
   const source = input && typeof input === 'object' ? input : {};
-  const navigation = normalizeNavigationFontSize(source.navigation);
-  return navigation ? { navigation } : {};
+  const normalized = {};
+  GLOBAL_FONT_REGIONS.forEach((region) => {
+    const size = normalizeRegionalFontSize(region.id, source[region.id]);
+    if (size) normalized[region.id] = size;
+  });
+  return normalized;
 }
 
 function normalizeCustomEntry(value = {}) {
@@ -117,8 +224,15 @@ export function normalizeRegionalFontSettings(input = {}) {
 }
 
 export function getRegionalFontSize(settings = {}, regionId = 'navigation') {
+  const safe = safeRegionId(regionId);
+  if (!safe) return null;
   const normalized = normalizeRegionalFontSettings(settings);
-  return normalizeNavigationFontSize(normalized?.[FONT_SIZES_KEY]?.[regionId]);
+  return normalizeRegionalFontSize(safe, normalized?.[FONT_SIZES_KEY]?.[safe]);
+}
+
+export function getRegionalFontSizeLimits(regionId = 'navigation') {
+  const safe = safeRegionId(regionId) || 'navigation';
+  return { ...FONT_SIZE_LIMITS[safe] };
 }
 
 function readStoredSettings() {
@@ -229,8 +343,13 @@ export function getRegionalFontSettings() {
       const value = root.dataset[`fontRegion${region.id.charAt(0).toUpperCase()}${region.id.slice(1)}`];
       if (value && ALLOWED_PRESETS.has(value)) fromDom[region.id] = value;
     });
-    const navigationSize = normalizeNavigationFontSize(root.dataset.fontSizeNavigation);
-    if (navigationSize) fromDom[FONT_SIZES_KEY] = { navigation: navigationSize };
+    const fontSizes = {};
+    GLOBAL_FONT_REGIONS.forEach((region) => {
+      const attrKey = `fontSize${region.id.charAt(0).toUpperCase()}${region.id.slice(1)}`;
+      const size = normalizeRegionalFontSize(region.id, root.dataset[attrKey]);
+      if (size) fontSizes[region.id] = size;
+    });
+    if (Object.keys(fontSizes).length) fromDom[FONT_SIZES_KEY] = fontSizes;
     if (Object.keys(fromDom).length) return fromDom;
   }
   return {};
@@ -256,14 +375,18 @@ export function applyRegionalFontSettings(input = {}, options = {}) {
       }
     });
 
-    const navigationSize = getRegionalFontSize(settings, 'navigation');
-    if (navigationSize) {
-      root.dataset.fontSizeNavigation = String(navigationSize);
-      root.style.setProperty('--bes-font-size-navigation', `${navigationSize}px`);
-    } else {
-      delete root.dataset.fontSizeNavigation;
-      root.style.removeProperty('--bes-font-size-navigation');
-    }
+    GLOBAL_FONT_REGIONS.forEach((region) => {
+      const attrKey = `fontSize${region.id.charAt(0).toUpperCase()}${region.id.slice(1)}`;
+      const size = getRegionalFontSize(settings, region.id);
+      if (size) {
+        root.dataset[attrKey] = String(size);
+        root.style.setProperty(`--bes-font-size-${region.id}`, `${size}px`);
+      } else {
+        delete root.dataset[attrKey];
+        root.style.removeProperty(`--bes-font-size-${region.id}`);
+      }
+    });
+    syncRuntimeRegionalFontSizes(settings);
 
     root.dataset.regionalFontsSource = source;
     root.dataset.regionalFontsEnabled = Object.keys(settings).length ? 'true' : 'false';
