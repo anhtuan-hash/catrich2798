@@ -93,6 +93,24 @@
   line-height: 1.3;
 }
 
+/*
+ * GlobalUnifiedNavigationHub.css deliberately keeps a 15px/19px default with
+ * !important. Most primary tabs render their label as a direct text node, so
+ * the generic regional rule on descendant spans cannot override that parent
+ * button size. Reports/TTCM use nested spans, which is why they reacted first.
+ *
+ * When a regional navigation size is explicitly active, add one extra
+ * data-attribute specificity point and override only those fixed defaults.
+ */
+html[data-font-size-navigation] body .app-shell[data-route] .brian-nav__primary > :is(button, a, [role='button']) {
+  font-size: var(--bes-font-size-navigation) !important;
+}
+
+html[data-font-size-navigation] body .app-shell[data-route] .brian-nav__brand > span,
+html[data-font-size-navigation] body .app-shell[data-route] .brian-nav__brand > span::after {
+  font-size: var(--bes-font-size-navigation) !important;
+}
+
 @media (max-width: 520px) {
   .brian-nav__font-size-control {
     grid-template-columns: 36px minmax(76px, 1fr) 36px;

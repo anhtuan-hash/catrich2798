@@ -39,6 +39,8 @@ const assertions = [
   ['account menu quick control stays synchronized through regional font events', accountBridge.includes('REGIONAL_FONT_EVENT') && accountBridge.includes('addEventListener(REGIONAL_FONT_EVENT')],
   ['legacy 100 percent option is hidden when quick control is mounted', accountBridgeCss.includes('.brian-nav__font-options > button') && accountBridgeCss.includes('display: none !important')],
   ['account quick control styling is present', accountBridgeCss.includes('.brian-nav__font-size-control') && accountBridgeCss.includes('.brian-nav__font-size-step') && accountBridgeCss.includes('.brian-nav__font-size-reset')],
+  ['explicit navigation size overrides fixed primary-tab defaults', accountBridgeCss.includes("html[data-font-size-navigation] body .app-shell[data-route] .brian-nav__primary > :is(button, a, [role='button'])") && accountBridgeCss.includes('font-size: var(--bes-font-size-navigation) !important')],
+  ['explicit navigation size overrides fixed brand-text defaults', accountBridgeCss.includes('.brian-nav__brand > span') && accountBridgeCss.includes('.brian-nav__brand > span::after')],
   ['error and success messages are styled', css.includes('.regional-font-admin__message.is-error') && css.includes('.regional-font-admin__message.is-success')],
 ];
 
