@@ -1,11 +1,26 @@
 /* Brian Apps — compact 5 × 4 launcher viewport
-   Visual-only override: preserve app data, permissions, edit controls and launch behavior. */
+   Final Apps visual authority: uniform cards, special badges, fixed top navigation. */
 
 html body .apps-directory-native .apps-directory-toolbar,
 html body .apps-directory-native > .launcher-group-rail,
 html body .apps-directory-native > .flat-apps-group-rail,
 html body .apps-directory-native .flat-apps-group-rail.launcher-group-rail {
   display: none !important;
+}
+
+/* Apps must use the same Brian navigation geometry as every other route.
+   Keep the shared hub attached to the top edge while the launcher scrolls below it. */
+html body .app-shell[data-route='apps'] .bes-top-chrome[data-bes-pinned-hub='true'] {
+  position: fixed !important;
+  top: max(8px, var(--brian-safe-top, 0px)) !important;
+  bottom: auto !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 1900 !important;
+}
+
+html body .app-shell[data-route='apps'] .apps-directory-native {
+  padding-top: 0 !important;
 }
 
 html body .apps-directory-native #apps-directory-grid.apps-directory-list-native {
@@ -16,7 +31,7 @@ html body .apps-directory-native #apps-directory-grid.apps-directory-list-native
   display: grid !important;
   grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
   grid-auto-flow: row !important;
-  grid-auto-rows: minmax(212px, auto) !important;
+  grid-auto-rows: 212px !important;
   gap: 14px !important;
   align-items: stretch !important;
   max-height: 898px !important;
@@ -30,9 +45,7 @@ html body .apps-directory-native #apps-directory-grid.apps-directory-list-native
   scroll-snap-type: y proximity;
 }
 
-html body .apps-directory-native #apps-directory-grid.apps-directory-list-native::-webkit-scrollbar {
-  width: 11px;
-}
+html body .apps-directory-native #apps-directory-grid.apps-directory-list-native::-webkit-scrollbar { width: 11px; }
 html body .apps-directory-native #apps-directory-grid.apps-directory-list-native::-webkit-scrollbar-track {
   border-radius: 999px;
   background: rgba(221, 216, 207, .34);
@@ -49,54 +62,141 @@ html body .apps-directory-native #apps-directory-grid.apps-directory-list-native
   background-clip: padding-box;
 }
 
+/* Every app uses one identical card frame. Special apps are identified only by badges. */
 html body .apps-directory-native #apps-directory-grid.apps-directory-list-native > .editorial-app-card {
   min-width: 0 !important;
+  width: 100% !important;
   min-height: 212px !important;
+  height: 212px !important;
+  max-height: 212px !important;
   margin: 0 !important;
   scroll-snap-align: start;
   border-radius: 16px !important;
+  overflow: hidden !important;
 }
 
 html body .apps-directory-native #apps-directory-grid.apps-directory-list-native .editorial-app-card-main {
   min-height: 212px !important;
+  height: 212px !important;
   padding: 15px 15px 13px !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 html body .apps-directory-native #apps-directory-grid.apps-directory-list-native .editorial-app-card-top {
+  min-height: 43px !important;
+  height: 43px !important;
   margin-bottom: 10px !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
 }
 html body .apps-directory-native #apps-directory-grid.apps-directory-list-native .editorial-app-card-icon {
   width: 43px !important;
   height: 43px !important;
-  flex-basis: 43px !important;
+  flex: 0 0 43px !important;
   border-radius: 12px !important;
 }
 html body .apps-directory-native #apps-directory-grid.apps-directory-list-native .editorial-app-card-icon svg {
   width: 23px !important;
   height: 23px !important;
 }
+
+html body .apps-directory-native .editorial-app-card-top-actions {
+  min-width: 0;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+}
+html body .apps-directory-native .editorial-app-card-badge {
+  max-width: 92px;
+  min-height: 24px;
+  padding: 4px 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid #e3e7ed;
+  border-radius: 999px;
+  background: #f5f7fa;
+  color: #526273;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+html body .apps-directory-native .editorial-app-card-badge.is-featured {
+  border-color: #ffc5c5;
+  background: #fff0f0;
+  color: #d33d3d;
+}
+html body .apps-directory-native .editorial-app-card-badge.is-essential {
+  border-color: #f2d39c;
+  background: #fff7e7;
+  color: #b56b09;
+}
+html body .apps-directory-native .editorial-app-card-badge.is-department {
+  border-color: #d7c6ff;
+  background: #f5f0ff;
+  color: #7048c8;
+}
+html body .apps-directory-native .editorial-app-card-badge.is-new {
+  border-color: #ffd6a3;
+  background: #fff5e7;
+  color: #d66b00;
+}
+html body .apps-directory-native .editorial-app-card-badge.is-shared {
+  border-color: #b9dfd0;
+  background: #eef9f5;
+  color: #287c5f;
+}
+html body .apps-directory-native .editorial-app-card-favorite {
+  flex: 0 0 auto;
+  width: 20px;
+  text-align: center;
+}
+
 html body .apps-directory-native #apps-directory-grid.apps-directory-list-native .editorial-app-card-title {
   min-height: 38px !important;
+  max-height: 38px !important;
   font-size: 14.5px !important;
   line-height: 1.3 !important;
+  -webkit-line-clamp: 2 !important;
 }
 html body .apps-directory-native #apps-directory-grid.apps-directory-list-native .editorial-app-card-description {
   min-height: 36px !important;
+  max-height: 36px !important;
   margin-top: 5px !important;
   -webkit-line-clamp: 2 !important;
   font-size: 11.8px !important;
   line-height: 1.48 !important;
 }
 html body .apps-directory-native #apps-directory-grid.apps-directory-list-native .editorial-app-card-cta {
-  padding-top: 10px !important;
+  min-height: 25px !important;
+  margin-top: auto !important;
+  padding-top: 8px !important;
   font-size: 11.5px !important;
 }
 html body .apps-directory-native #apps-directory-grid.apps-directory-list-native .editorial-app-card-permission {
-  padding: 0 12px 12px !important;
+  position: absolute !important;
+  right: 12px !important;
+  bottom: 9px !important;
+  left: 12px !important;
+  padding: 0 !important;
 }
 
-/* Editing remains available; controls may expand individual cards without being clipped. */
+/* Editing may expand cards because admin controls need extra room. */
 html body .apps-directory-native.is-launcher-edit-mode #apps-directory-grid.apps-directory-list-native {
   grid-auto-rows: minmax(250px, auto) !important;
+}
+html body .apps-directory-native.is-launcher-edit-mode #apps-directory-grid.apps-directory-list-native > .editorial-app-card,
+html body .apps-directory-native.is-launcher-edit-mode #apps-directory-grid.apps-directory-list-native .editorial-app-card-main {
+  height: auto !important;
+  max-height: none !important;
+  min-height: 250px !important;
 }
 
 [data-theme="dark"] body .apps-directory-native #apps-directory-grid.apps-directory-list-native,
@@ -104,8 +204,6 @@ html body .apps-directory-native.is-launcher-edit-mode #apps-directory-grid.apps
   scrollbar-color: rgba(176, 191, 214, .48) rgba(72, 82, 99, .34);
 }
 
-/* The requested 5-column launcher is the desktop/tablet-wide authority.
-   Smaller screens fall back only when five columns would make app names unusable. */
 @media (max-width: 900px) {
   html body .apps-directory-native #apps-directory-grid.apps-directory-list-native {
     width: calc(100% - 24px) !important;

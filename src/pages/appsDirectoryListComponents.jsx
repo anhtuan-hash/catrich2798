@@ -16,6 +16,24 @@ import {
   titleOf,
 } from './appsDirectoryData.js';
 
+const SPECIAL_BADGES = {
+  homeroom: { vi: 'Nổi bật', en: 'Featured', tone: 'featured' },
+  'thpt-practice-hub': { vi: 'Nổi bật', en: 'Featured', tone: 'featured' },
+  educaplay: { vi: 'Nổi bật', en: 'Featured', tone: 'featured' },
+  h5p: { vi: 'Thiết yếu', en: 'Essential', tone: 'essential' },
+  'hidden-apps-folder': { vi: 'Thiết yếu', en: 'Essential', tone: 'essential' },
+  'teaching-tool-hub': { vi: 'TTCM', en: 'Dept.', tone: 'department' },
+  'brian-top-5-arena': { vi: 'Mới', en: 'New', tone: 'new' },
+};
+
+function badgeFor(item) {
+  if (!item) return null;
+  if (item.badge && typeof item.badge === 'object') return item.badge;
+  if (item.isHiddenFolder) return SPECIAL_BADGES['hidden-apps-folder'];
+  if (item.shared) return { vi: 'Dùng chung', en: 'Shared', tone: 'shared' };
+  return SPECIAL_BADGES[item.slug] || null;
+}
+
 export default function AppListRow({
   item,
   language,
@@ -42,6 +60,8 @@ export default function AppListRow({
   const groupId = config.assignments[itemId] || defaultGroupOf(item);
   const itemTitle = titleOf(item, language);
   const description = shortDesc(item, language) || descOf(item, language) || '';
+  const badge = badgeFor(item);
+  const badgeText = badge ? (language === 'vi' ? (badge.vi || badge.labelVi || badge.label) : (badge.en || badge.label || badge.labelVi)) : '';
 
   const openItem = (event) => {
     if (locked || editMode) return;
@@ -70,7 +90,10 @@ export default function AppListRow({
           <span className="editorial-app-card-icon" aria-hidden="true">
             {item.shared ? <span>{item.icon || '🎮'}</span> : <FlatAppIcon type={profile.icon} slug={item.slug} />}
           </span>
-          <span className={`editorial-app-card-favorite ${pinned ? 'is-pinned' : ''}`} aria-hidden="true">{pinned ? '★' : '☆'}</span>
+          <span className="editorial-app-card-top-actions">
+            {badgeText ? <span className={`editorial-app-card-badge is-${badge.tone || 'default'}`}>{badgeText}</span> : null}
+            <span className={`editorial-app-card-favorite ${pinned ? 'is-pinned' : ''}`} aria-hidden="true">{pinned ? '★' : '☆'}</span>
+          </span>
         </span>
         <strong className="editorial-app-card-title">{itemTitle}</strong>
         <small className="editorial-app-card-description">{description}</small>
