@@ -1,6 +1,9 @@
-// Brand cleanup is handled statically in the final navigation CSS layer.
-// Do not mutate React-owned navigation DOM at runtime: replacing/removing
-// children here can desynchronise React and leave lazy routes stuck in fallback.
+import React from 'react';
+import GlobalAccountTextSizeBridge from './GlobalAccountTextSizeBridge.jsx';
+
+// Brand cleanup remains static in the final navigation CSS layer. This utility
+// slot also hosts account-menu helpers without replacing/removing React-owned
+// navigation children.
 export default function GlobalEnglishHubBrand() {
-  return null;
+  return <GlobalAccountTextSizeBridge />;
 }
