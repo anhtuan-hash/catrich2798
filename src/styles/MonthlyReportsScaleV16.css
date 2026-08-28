@@ -1,0 +1,48 @@
+/* Brian Reports — Scale V16
+   Second +25% enlargement requested after V15.
+   Final scale = 1.25 × 1.25 = 1.5625 (156.25% of the original UI).
+   Presentation only; report logic and data are untouched. */
+
+html body .btp-shell {
+  width: 64vw !important;
+  max-width: 64vw !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  zoom: 1.5625 !important;
+}
+
+html body .btp-shell .mr-teacher-shell {
+  width: 100% !important;
+  max-width: none !important;
+}
+
+/* Portalled report dialogs are enlarged to the same final scale while
+   compensating their viewport caps so previews remain visible on screen. */
+html body > .mr-modal-backdrop .mr-modal,
+html body > .mr-modal-overlay .mr-modal {
+  max-width: 60vw !important;
+  max-height: 60vh !important;
+  zoom: 1.5625 !important;
+}
+
+@supports not (zoom: 1) {
+  html body .btp-shell {
+    width: 64vw !important;
+    max-width: 64vw !important;
+    transform: scale(1.5625) !important;
+    transform-origin: top left !important;
+  }
+
+  html body > .mr-modal-backdrop .mr-modal,
+  html body > .mr-modal-overlay .mr-modal {
+    transform: scale(1.5625) !important;
+    transform-origin: center center !important;
+  }
+}
+
+@media (max-width: 900px) {
+  html body .btp-shell {
+    width: 64vw !important;
+    max-width: 64vw !important;
+  }
+}
