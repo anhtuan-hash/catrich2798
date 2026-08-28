@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import StudentRosterImportPanel from '../StudentRosterImportPanel.jsx';
 import {
-  addLearningRecord,
   addScheduleItem,
   addStudent,
   archiveStudent,
@@ -9,7 +8,6 @@ import {
   setAttendanceLock,
   setAttendanceSession,
   transferStudent,
-  updateGradeSettings,
   upsertStudents,
 } from '../../utils/homeroomStore.js';
 import { attendanceSessionKey, createCorrectionRequest, parseAttendanceSessionKey } from '../../utils/homeroomPhase3.js';
@@ -19,10 +17,8 @@ import {
   downloadCsv,
   formatViDate,
   normalizePhone,
-  parseLearningFile,
   parseScheduleFile,
   safeText,
-  studentMetrics,
   todayIso,
 } from '../../utils/homeroomOfflineTools.js';
 
@@ -183,52 +179,6 @@ export function AttendanceTab({ workspace, onCommit, currentUser }) {
     <section className="hr-panel"><div className="hr-panel-head"><div><small>40 phiên gần nhất</small><h2>Lịch sử chuyên cần</h2></div></div>{historyKeys.length ? <div className="hr-history-list">{historyKeys.map((key) => { const data = workspace.attendance[key] || {}; const parsed = parseAttendanceSessionKey(key); return <button key={key} type="button" onClick={() => { setDate(parsed.date); setSession(parsed.session); setPeriod(parsed.period); }}><time>{formatViDate(parsed.date)}<small>{labelSession(parsed.session)}{parsed.period ? ` · Tiết ${parsed.period}` : ''}</small></time><span><b>{Object.values(data).filter((entry) => entry.status === 'present').length}/{Object.keys(data).length} có mặt</b><small>{Object.values(data).filter((entry) => ['excused', 'unexcused'].includes(entry.status)).length} vắng · {Object.values(data).filter((entry) => entry.status === 'late').length} trễ</small></span><i>{workspace.attendanceLocks?.[key]?.locked ? '🔒' : '→'}</i></button>; })}</div> : <p className="hr-muted">Chưa có dữ liệu chuyên cần.</p>}
       {(workspace.correctionRequests || []).length ? <div className="hr-correction-list"><h3>Yêu cầu chỉnh sửa</h3>{workspace.correctionRequests.slice(0, 20).map((item) => <article key={item.id}><b>{item.sessionKey}</b><span>{item.reason}</span><small>{item.requestedBy} · {item.status}</small>{item.status === 'pending' ? <div className="hr-row-actions"><button type="button" onClick={() => resolveRequest(item, true)}>Chấp thuận</button><button type="button" className="danger" onClick={() => resolveRequest(item, false)}>Từ chối</button></div> : null}</article>)}</div> : null}
     </section>
-  </div>;
-}
-
-export function LearningTab({ workspace, onCommit, currentUser }) {
-  const fileRef = useRef(null);
-  const [draft, setDraft] = useState({ id: '', studentId: '', subject: 'Tiếng Anh', period: workspace.semester || 'Học kỳ I', assessment: 'Điểm thường xuyên', score: '', maxScore: '10', teacherName: currentUser?.name || '', note: '', recordedAt: todayIso() });
-  const [subjectFilter, setSubjectFilter] = useState('all');
-  const [importState, setImportState] = useState({ fileName: '', rows: [], error: '' });
-  const [settings, setSettings] = useState({ warningThreshold: workspace.gradeSettings?.warningThreshold ?? 6.5, highRiskThreshold: workspace.gradeSettings?.highRiskThreshold ?? 5 });
-  const students = (workspace.students || []).filter((item) => item.active !== false);
-  const analytics = students.map((student) => ({ student, ...studentMetrics(workspace, student.id) }));
-  const subjects = [...new Set((workspace.learningRecords || []).map((item) => item.subject).filter(Boolean))];
-  const visible = (workspace.learningRecords || []).filter((item) => subjectFilter === 'all' || item.subject === subjectFilter);
-  const metrics = classMetrics(workspace);
-
-  const save = async () => {
-    if (!draft.studentId || !safeText(draft.subject) || draft.score === '') return;
-    await onCommit(addLearningRecord(workspace, { ...draft, score: Number(String(draft.score).replace(',', '.')), maxScore: Number(String(draft.maxScore).replace(',', '.')) || 10 }), draft.id ? 'Đã cập nhật kết quả học tập.' : 'Đã thêm kết quả học tập.');
-    setDraft((current) => ({ ...current, id: '', score: '', note: '', recordedAt: todayIso() }));
-  };
-  const readFile = async (file) => {
-    if (!file) return;
-    try { setImportState({ fileName: file.name, rows: await parseLearningFile(file), error: '' }); }
-    catch (error) { setImportState({ fileName: file.name, rows: [], error: error.message || 'Không đọc được file.' }); }
-  };
-  const importAll = async () => {
-    let next = workspace; let added = 0; let skipped = 0;
-    importState.rows.forEach((row) => {
-      const student = students.find((item) => (row.studentCode && item.code === row.studentCode) || (row.studentName && item.fullName.toLowerCase() === row.studentName.toLowerCase()));
-      if (!student) { skipped += 1; return; }
-      try { next = addLearningRecord(next, { ...row, studentId: student.id, subject: row.subject || draft.subject, period: row.period || draft.period, teacherName: row.teacherName || draft.teacherName }); added += 1; } catch { skipped += 1; }
-    });
-    await onCommit(next, `Đã nhập ${added} kết quả; bỏ qua ${skipped} dòng không khớp học sinh.`);
-    setImportState({ fileName: '', rows: [], error: '' });
-  };
-  const downloadTemplate = () => downloadCsv('mau-bang-diem-hoc-sinh.csv', [['Mã HS', 'Họ và tên', 'Môn học', 'Học kỳ', 'Loại điểm', 'Điểm', 'Thang điểm', 'Ngày', 'Giáo viên', 'Ghi chú'], ['126701', 'Nguyễn Minh Anh', 'Tiếng Anh', 'Học kỳ I', 'Điểm thường xuyên', '8,5', '10', '20/07/2026', 'Nguyễn Anh Tuấn', '']]);
-  const remove = (id) => onCommit({ ...workspace, learningRecords: workspace.learningRecords.filter((item) => item.id !== id) }, 'Đã xóa kết quả học tập.');
-
-  return <div className="hr-tab-stack">
-    <section className="hr-stat-grid"><StatCard icon="∑" label="Điểm trung bình lớp" value={Number.isFinite(metrics.classAverage) ? metrics.classAverage.toFixed(1) : '—'} note={`${workspace.learningRecords?.length || 0} kết quả`} /><StatCard icon="!" label="Nguy cơ cao" value={analytics.filter((item) => Number.isFinite(item.average) && item.average < settings.highRiskThreshold).length} note={`Dưới ${settings.highRiskThreshold}`} tone="red" /><StatCard icon="◎" label="Cần theo dõi" value={analytics.filter((item) => Number.isFinite(item.average) && item.average < settings.warningThreshold).length} note={`Dưới ${settings.warningThreshold}`} tone="orange" /><StatCard icon="▦" label="Môn đã theo dõi" value={subjects.length} note={subjects.join(' · ') || 'Chưa có dữ liệu'} tone="green" /></section>
-    <section className="hr-two-column">
-      <article className="hr-panel"><div className="hr-panel-head"><div><small>Nhập trực tiếp</small><h2>Kết quả học tập</h2></div><button type="button" className="primary" onClick={save}>{draft.id ? 'Cập nhật' : 'Lưu điểm'}</button></div><div className="hr-form-grid two"><label><span>Học sinh</span><select value={draft.studentId} onChange={(event) => setDraft({ ...draft, studentId: event.target.value })}><option value="">Chọn học sinh</option>{students.map((student) => <option key={student.id} value={student.id}>{student.fullName}</option>)}</select></label><label><span>Môn học</span><input value={draft.subject} onChange={(event) => setDraft({ ...draft, subject: event.target.value })} /></label><label><span>Giai đoạn</span><input value={draft.period} onChange={(event) => setDraft({ ...draft, period: event.target.value })} /></label><label><span>Loại đánh giá</span><input value={draft.assessment} onChange={(event) => setDraft({ ...draft, assessment: event.target.value })} /></label><label><span>Điểm</span><input inputMode="decimal" value={draft.score} onChange={(event) => setDraft({ ...draft, score: event.target.value })} /></label><label><span>Thang điểm</span><input inputMode="decimal" value={draft.maxScore} onChange={(event) => setDraft({ ...draft, maxScore: event.target.value })} /></label><label><span>Ngày</span><input type="date" value={draft.recordedAt} onChange={(event) => setDraft({ ...draft, recordedAt: event.target.value })} /></label><label><span>Giáo viên</span><input value={draft.teacherName} onChange={(event) => setDraft({ ...draft, teacherName: event.target.value })} /></label></div><label className="hr-wide-field"><span>Ghi chú</span><textarea value={draft.note} onChange={(event) => setDraft({ ...draft, note: event.target.value })} /></label></article>
-      <article className="hr-panel"><div className="hr-panel-head"><div><small>Excel / CSV</small><h2>Nhập bảng điểm hàng loạt</h2></div><div className="hr-head-actions"><button type="button" className="secondary" onClick={downloadTemplate}>Tải file mẫu</button><button type="button" className="secondary" onClick={() => fileRef.current?.click()}>Chọn file</button><button type="button" className="primary" disabled={!importState.rows.length} onClick={importAll}>Nhập dữ liệu</button></div></div><input ref={fileRef} type="file" hidden accept=".xlsx,.xls,.csv,.tsv,.txt" onChange={(event) => readFile(event.target.files?.[0])} />{importState.fileName ? <p><b>{importState.fileName}</b> · {importState.rows.length} dòng hợp lệ</p> : <p className="hr-muted">Nhận diện tự động theo tiêu đề cột; không gửi dữ liệu ra ngoài.</p>}{importState.error ? <p className="hr-error">{importState.error}</p> : null}<div className="hr-form-grid two"><label><span>Cần theo dõi dưới</span><input type="number" step="0.1" value={settings.warningThreshold} onChange={(event) => setSettings({ ...settings, warningThreshold: event.target.value })} /></label><label><span>Nguy cơ cao dưới</span><input type="number" step="0.1" value={settings.highRiskThreshold} onChange={(event) => setSettings({ ...settings, highRiskThreshold: event.target.value })} /></label></div><button type="button" className="secondary" onClick={() => onCommit(updateGradeSettings(workspace, { warningThreshold: Number(settings.warningThreshold), highRiskThreshold: Number(settings.highRiskThreshold) }), 'Đã lưu ngưỡng cảnh báo.')}>Lưu ngưỡng</button></article>
-    </section>
-    <section className="hr-panel"><div className="hr-panel-head"><div><small>Phân tích ngoại tuyến</small><h2>Tình hình học tập theo học sinh</h2></div><select value={subjectFilter} onChange={(event) => setSubjectFilter(event.target.value)}><option value="all">Tất cả môn</option>{subjects.map((subject) => <option key={subject}>{subject}</option>)}</select></div><div className="hr-analytics-grid">{analytics.map((item) => { const risk = !Number.isFinite(item.average) ? 'medium' : item.average < settings.highRiskThreshold ? 'high' : item.average < settings.warningThreshold ? 'medium' : 'low'; return <article key={item.student.id} className={`hr-analytics-card risk-${risk}`}><header><span>{item.student.fullName.slice(0, 1)}</span><div><b>{item.student.fullName}</b><small>{item.student.code || 'Chưa có mã'}</small></div><em>{risk === 'high' ? 'Nguy cơ cao' : risk === 'medium' ? 'Cần theo dõi' : 'Ổn định'}</em></header><div className="hr-analytics-score"><strong>{Number.isFinite(item.average) ? item.average.toFixed(1) : '—'}</strong><span><i style={{ width: `${Math.max(0, Math.min(100, (item.average || 0) * 10))}%` }} /></span></div><footer><small>{item.scoreCount} điểm</small><small>Vắng KP {item.unexcused}</small><small>Trễ {item.late}</small></footer></article>; })}</div></section>
-    <section className="hr-panel"><div className="hr-panel-head"><div><small>{visible.length} kết quả</small><h2>Lịch sử điểm</h2></div></div>{visible.length ? <div className="hr-preview-table"><table><thead><tr><th>Ngày</th><th>Học sinh</th><th>Môn</th><th>Đánh giá</th><th>Điểm</th><th /></tr></thead><tbody>{visible.slice(0, 300).map((item) => <tr key={item.id}><td>{formatViDate(item.recordedAt)}</td><td>{workspace.students.find((student) => student.id === item.studentId)?.fullName || '—'}</td><td>{item.subject}</td><td>{item.assessment}</td><td><b>{item.score}/{item.maxScore}</b></td><td><div className="hr-row-actions"><button type="button" onClick={() => setDraft({ ...draft, ...item })}>Sửa</button><button type="button" className="danger" onClick={() => remove(item.id)}>Xóa</button></div></td></tr>)}</tbody></table></div> : <p className="hr-muted">Chưa có kết quả học tập.</p>}</section>
   </div>;
 }
 

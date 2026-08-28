@@ -10,6 +10,7 @@ on:
       - 'src/data/homeroom*.js'
       - 'src/styles/homeroom*.css'
       - 'scripts/test-homeroom-production-safety.mjs'
+      - 'scripts/test-homeroom-legacy-cleanup.mjs'
       - '.github/workflows/homeroom-build.yml'
       - 'public/templates/**'
       - 'package.json'
@@ -35,6 +36,8 @@ jobs:
         run: npm ci
       - name: Run homeroom production-safety contract
         run: node scripts/test-homeroom-production-safety.mjs
+      - name: Run homeroom legacy-cleanup contract
+        run: node scripts/test-homeroom-legacy-cleanup.mjs
       - name: Build application
         id: app_build
         continue-on-error: true
