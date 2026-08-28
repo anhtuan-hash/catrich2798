@@ -91,7 +91,10 @@ async function preparePreferredHomeroomBeforeMain() {
 }
 
 function assignedHomeroomId(result) {
-  return String(result?.homeroomWorkspaceId || result?.preferredWorkspaceId || '').trim();
+  // Only an explicit server homeroom assignment is authoritative here. A generic
+  // preferredWorkspaceId can be a subject/managed class and must never be used as
+  // the default entry for the Homeroom app.
+  return String(result?.homeroomWorkspaceId || '').trim();
 }
 
 function navigateAssignedHomeroomAfterMount(result) {
@@ -297,14 +300,18 @@ async function startApplication() {
   // Admin-selected public typography before Brian renders its first frame.
   await bootstrapPublicTypographyBeforeApp();
 
-  // On the Homeroom route the admin assignment is authoritative. Finish that
-  // synchronization before React reads getCurrentHomeroomWorkspaceId() for its
-  // initial state. The sync itself now restores/commits selection only after all
-  // background workspace reconciliation has completed.
+  // Server assignment wins absolutely. Only when the RPC returns no explicit
+  // homeroom assignment may the exact local registry assignment act as fallback.
+  let assignmentResult = null;
   if (isHomeroomRoute()) {
-    await startAssignedClassSync();
+    assignmentResult = await startAssignedClassSync();
   }
-  await preparePreferredHomeroomBeforeMain();
+  const serverHomeroomWorkspaceId = assignedHomeroomId(assignmentResult);
+  if (serverHomeroomWorkspaceId) {
+    window.__besAssignedHomeroomWorkspaceId = serverHomeroomWorkspaceId;
+  } else {
+    await preparePreferredHomeroomBeforeMain();
+  }
 
   await import('./main.jsx');
   import('./homeWeeklyPracticeStatisticsBootstrap.jsx').catch((error) => {
