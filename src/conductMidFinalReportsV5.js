@@ -54,8 +54,8 @@ async function replayWithLatestWorkspace(button, panel) {
   const previousPanelWorkspaceId = panel.dataset.workspaceId;
 
   try {
-    // Exporter V2 reads localStorage synchronously. Supply the exact workspace
-    // returned by the official store only for the synchronous replay click.
+    // conductMidFinalReportsV2 reads localStorage synchronously. Supply the exact
+    // workspace returned by the official store only for this synchronous replay.
     localStorage.setItem(payloadKey, JSON.stringify(workspace));
     localStorage.setItem(currentKey, workspaceId);
     panel.dataset.workspaceId = workspaceId;
@@ -84,17 +84,20 @@ function install() {
 
     event.preventDefault();
     event.stopImmediatePropagation();
+    if (button.dataset.exportBusy === 'true') return;
+    button.dataset.exportBusy = 'true';
     clearError(panel);
 
     const originalText = button.textContent;
-    button.disabled = true;
+    button.setAttribute('aria-busy', 'true');
     button.textContent = 'Đang đồng bộ dữ liệu mới nhất…';
     try {
       await replayWithLatestWorkspace(button, panel);
     } catch (error) {
       showError(panel, error?.message || 'Không thể tải dữ liệu mới nhất để xuất báo cáo.');
     } finally {
-      button.disabled = false;
+      delete button.dataset.exportBusy;
+      button.removeAttribute('aria-busy');
       button.textContent = originalText;
     }
   }, true);
