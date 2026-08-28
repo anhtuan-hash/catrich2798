@@ -1,0 +1,107 @@
+name: Font Size Control Cleanup Bot
+
+on:
+  push:
+    branches:
+      - fix/navigation-account-font-size-control
+    paths:
+      - .github/workflows/font-size-control-cleanup-bot.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/navigation-account-font-size-control
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply focused typography patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          git checkout origin/main -- src/components/GlobalFlatNavigation.jsx
+
+          git mv src/components/GlobalNavigationFontSizeControl.jsx src/components/RegionalFontQuickControl.jsx
+          git mv src/components/GlobalNavigationFontSizeControl.css src/components/RegionalFontQuickControl.css
+
+          python <<'PY'
+          from pathlib import Path
+
+          quick = Path('src/components/RegionalFontQuickControl.jsx')
+          text = quick.read_text()
+          text = text.replace("./GlobalNavigationFontSizeControl.css", "./RegionalFontQuickControl.css")
+          text = text.replace("GlobalNavigationFontSizeControl", "RegionalFontQuickControl")
+          quick.write_text(text)
+
+          bridge = Path('src/components/GlobalFontSettingsBridge.jsx')
+          text = bridge.read_text()
+          marker = "import RegionalFontAdminPanel from './admin/RegionalFontAdminPanel.jsx';\n"
+          assert marker in text, 'GlobalFontSettingsBridge import marker missing'
+          text = text.replace(marker, marker + "import RegionalFontQuickControl from './RegionalFontQuickControl.jsx';\n", 1)
+          old = """  if (!admin || !host) return null;\n\n  return createPortal(\n    <RegionalFontAdminPanel currentUser={props.currentUser} language={props.language} />,\n    host,\n  );\n}"""
+          new = """  const adminPanel = admin && host\n    ? createPortal(\n      <RegionalFontAdminPanel currentUser={props.currentUser} language={props.language} />,\n      host,\n    )\n    : null;\n\n  return (\n    <>\n      <RegionalFontQuickControl currentUser={props.currentUser} language={props.language} />\n      {adminPanel}\n    </>\n  );\n}"""
+          assert old in text, 'GlobalFontSettingsBridge return marker missing'
+          bridge.write_text(text.replace(old, new, 1))
+
+          css = Path('src/styles/GlobalRegionalFontSystem.css')
+          text = css.read_text()
+          anchor = """html[data-font-size-navigation] body .brian-nav :not(\n  .material-symbols-outlined,\n  .material-symbols-rounded,\n  .material-symbols-sharp,\n  .material-icons\n):is(span, strong, b, em, small, p, button, a, input, select, option) {\n  font-size: var(--bes-font-size-navigation) !important;\n}\n"""
+          assert anchor in text, 'Regional navigation size anchor missing'
+          authority = """
+
+/* The unified hub intentionally owns fixed default geometry with 15px/19px
+   !important values. When Admin explicitly chooses a navigation size, this
+   regional setting gains one extra data-attribute specificity point so it can
+   override those defaults without weakening the shared hub contract. */
+html[data-font-size-navigation] body .app-shell[data-route] .brian-nav__primary > :is(button, a, [role='button']) {
+  font-size: var(--bes-font-size-navigation) !important;
+}
+
+html[data-font-size-navigation] body .app-shell[data-route] .brian-nav__brand > span,
+html[data-font-size-navigation] body .app-shell[data-route] .brian-nav__brand > span::after {
+  font-size: var(--bes-font-size-navigation) !important;
+}
+"""
+          if authority.strip() not in text:
+              text = text.replace(anchor, anchor + authority, 1)
+          css.write_text(text)
+
+          test = Path('scripts/test-font-upload-live-preview.mjs')
+          text = test.read_text()
+          text = text.replace("src/components/GlobalNavigationFontSizeControl.jsx", "src/components/RegionalFontQuickControl.jsx")
+          text = text.replace("src/components/GlobalNavigationFontSizeControl.css", "src/components/RegionalFontQuickControl.css")
+          text = text.replace("GlobalNavigationFontSizeControl", "RegionalFontQuickControl")
+          needle = "  ['navigation font size UI is styled', css.includes('.regional-font-card__font-size-controls') && css.includes(\"input[type='range']\")],\n"
+          assert needle in text, 'font regression insertion marker missing'
+          additions = """  ['final hub primary buttons inherit the regional navigation size', runtimeCss.includes("html[data-font-size-navigation] body .app-shell[data-route] .brian-nav__primary > :is(button, a, [role='button'])") && runtimeCss.includes('font-size: var(--bes-font-size-navigation) !important')],\n  ['brand text inherits the regional navigation size', runtimeCss.includes('.brian-nav__brand > span') && runtimeCss.includes('.brian-nav__brand > span::after')],\n"""
+          if additions.strip() not in text:
+              text = text.replace(needle, needle + additions, 1)
+          test.write_text(text)
+          PY
+
+          npm ci
+          node scripts/test-font-upload-live-preview.mjs
+          npm run build
+
+          git config user.name "brian-font-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add src/components/GlobalFlatNavigation.jsx \
+                  src/components/GlobalFontSettingsBridge.jsx \
+                  src/components/RegionalFontQuickControl.jsx \
+                  src/components/RegionalFontQuickControl.css \
+                  src/styles/GlobalRegionalFontSystem.css \
+                  scripts/test-font-upload-live-preview.mjs
+          git add -u src/components/GlobalNavigationFontSizeControl.jsx src/components/GlobalNavigationFontSizeControl.css || true
+          if git diff --cached --quiet; then
+            echo "No source changes needed."
+            exit 0
+          fi
+          git commit -m "fix(fonts): apply navigation size across the full hub"
+          git push origin HEAD:fix/navigation-account-font-size-control
