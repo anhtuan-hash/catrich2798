@@ -1,0 +1,502 @@
+/* Gradebook Editorial V2 — final visual layer for the Gradebook route only. */
+.gradebook-studio {
+  --gbe-ink: #153052;
+  --gbe-blue: #2f7fe7;
+  --gbe-blue-deep: #1d5cb6;
+  --gbe-blue-soft: #eaf4ff;
+  --gbe-gold: #e0a43b;
+  --gbe-gold-deep: #c8871b;
+  --gbe-violet: #7557df;
+  --gbe-teal: #2d9e92;
+  --gbe-line: #d9e7f7;
+  --gbe-paper: #fbfdff;
+}
+
+/* HERO — completely replaces the previous visual treatment. */
+.gradebook-studio .gradebook-studio-hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(300px, .85fr) minmax(420px, 1fr);
+  align-items: center;
+  gap: 34px;
+  min-height: 286px;
+  margin-bottom: 18px;
+  padding: 32px 34px 32px 38px;
+  overflow: hidden;
+  border: 1px solid #cfe0f3;
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 38% 12%, rgba(255,255,255,.92), transparent 25%),
+    radial-gradient(circle at 92% 100%, rgba(248,226,193,.38), transparent 27%),
+    linear-gradient(112deg, #edf6ff 0%, #e4f1ff 54%, #f8f6f0 100%);
+  box-shadow: 0 20px 48px rgba(41, 79, 127, .08);
+}
+
+/* Remove the previous pseudo-illustration entirely. */
+.gradebook-studio .gradebook-studio-hero::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  left: 36.5%;
+  bottom: -38px;
+  width: min(44vw, 600px);
+  height: 330px;
+  border: 0;
+  border-radius: 0;
+  background: url('/gradebook-editorial-still-life.svg') center bottom / contain no-repeat;
+  box-shadow: none;
+  opacity: .98;
+  transform: none;
+  pointer-events: none;
+}
+
+.gradebook-studio .gradebook-studio-hero::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: auto;
+  height: auto;
+  border: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,.17) 1px, transparent 1px),
+    linear-gradient(rgba(255,255,255,.13) 1px, transparent 1px);
+  background-size: 42px 42px;
+  box-shadow: none;
+  opacity: .16;
+  transform: none;
+  pointer-events: none;
+}
+
+.gradebook-studio .gradebook-studio-hero-copy {
+  position: relative;
+  z-index: 3;
+  align-self: center;
+  max-width: 420px;
+  padding: 6px 0 8px 4px;
+}
+
+.gradebook-studio .gradebook-studio-kicker {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  margin: 0 0 13px;
+  padding: 0 13px;
+  border: 1px solid rgba(47,127,231,.55);
+  border-radius: 999px;
+  background: rgba(255,255,255,.58);
+  color: #1f67c7;
+  font-family: Arial, sans-serif;
+  font-size: 0;
+  font-weight: 850;
+  letter-spacing: .15em;
+  box-shadow: 0 5px 14px rgba(42,91,153,.05);
+  backdrop-filter: blur(9px);
+}
+
+.gradebook-studio .gradebook-studio-kicker::after {
+  content: 'TEACHER WORKSPACE';
+  font-size: .67rem;
+}
+
+.gradebook-studio .gradebook-studio-hero h1 {
+  margin: 0;
+  max-width: 460px;
+  color: #143154;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(4rem, 5.6vw, 6.5rem);
+  font-weight: 400;
+  line-height: .9;
+  letter-spacing: -.065em;
+  text-wrap: balance;
+}
+
+.gradebook-studio .gradebook-studio-hero-copy > p {
+  display: none !important;
+}
+
+.gradebook-studio .gradebook-studio-hero-copy::after {
+  content: 'Quản lý điểm · Khoa học · Chính xác';
+  display: block;
+  width: fit-content;
+  margin-top: 20px;
+  color: #355878;
+  font-family: 'Segoe Print', 'Bradley Hand', cursive;
+  font-size: clamp(.95rem, 1.25vw, 1.18rem);
+  font-style: italic;
+  line-height: 1.2;
+  transform: rotate(-1deg);
+}
+
+.gradebook-studio .gradebook-studio-hero-copy::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  bottom: -1px;
+  width: 168px;
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #eab333, #d9961e 72%, transparent);
+  transform: rotate(-2deg);
+  box-shadow: 34px 5px 0 -1px rgba(224,164,59,.44);
+}
+
+.gradebook-studio .gradebook-studio-hero-stats {
+  position: relative;
+  z-index: 4;
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  width: min(100%, 486px);
+  margin-left: auto;
+  align-self: center;
+}
+
+.gradebook-studio .gradebook-studio-hero-stats article {
+  position: relative;
+  min-height: 162px;
+  padding: 21px 14px 18px;
+  overflow: hidden;
+  border: 1px solid rgba(151,183,222,.35);
+  border-radius: 22px;
+  background: rgba(255,255,255,.88);
+  text-align: center;
+  box-shadow:
+    0 16px 30px rgba(42,82,133,.08),
+    inset 0 -3px 0 rgba(47,127,231,.12);
+  backdrop-filter: blur(13px);
+}
+
+.gradebook-studio .gradebook-studio-hero-stats article:nth-child(2) {
+  box-shadow: 0 16px 30px rgba(83,62,150,.08), inset 0 -3px 0 rgba(117,87,223,.17);
+}
+
+.gradebook-studio .gradebook-studio-hero-stats article:nth-child(3) {
+  box-shadow: 0 16px 30px rgba(36,111,103,.08), inset 0 -3px 0 rgba(45,158,146,.18);
+}
+
+.gradebook-studio .gradebook-studio-hero-stats article::before {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 12px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #e8f3ff;
+  color: var(--gbe-blue);
+  font-family: Arial, sans-serif;
+  font-size: 1.15rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.gradebook-studio .gradebook-studio-hero-stats article:nth-child(1)::before { content: '▤'; }
+.gradebook-studio .gradebook-studio-hero-stats article:nth-child(2)::before { content: '●●'; color: var(--gbe-violet); background: #f1edff; font-size: .72rem; letter-spacing: -2px; }
+.gradebook-studio .gradebook-studio-hero-stats article:nth-child(3)::before { content: '◆'; color: var(--gbe-teal); background: #e8f8f3; font-size: .85rem; }
+
+.gradebook-studio .gradebook-studio-hero-stats strong {
+  display: block;
+  color: #145ac1;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 2.5rem;
+  font-weight: 600;
+  line-height: .95;
+  letter-spacing: -.04em;
+}
+
+.gradebook-studio .gradebook-studio-hero-stats article:nth-child(2) strong { color: #6248c5; }
+.gradebook-studio .gradebook-studio-hero-stats article:nth-child(3) strong { color: #188578; }
+
+.gradebook-studio .gradebook-studio-hero-stats span {
+  display: block;
+  margin-top: 10px;
+  color: #53677f;
+  font-size: 0;
+  font-weight: 760;
+  line-height: 1.15;
+}
+
+.gradebook-studio .gradebook-studio-hero-stats article:nth-child(1) span::after { content: 'Sổ điểm'; font-size: .75rem; }
+.gradebook-studio .gradebook-studio-hero-stats article:nth-child(2) span::after { content: 'Lớp đang dùng'; font-size: .75rem; }
+.gradebook-studio .gradebook-studio-hero-stats article:nth-child(3) span::after { content: 'Học sinh'; font-size: .75rem; }
+
+/* ASSIGNED CLASSES — editorial cards from the approved concept. */
+.gradebook-studio .gradebook-assignment-panel {
+  padding: 20px !important;
+  border: 1px solid #dce8f5 !important;
+  border-radius: 26px !important;
+  background: rgba(255,255,255,.93) !important;
+  box-shadow: 0 12px 34px rgba(41,78,125,.05) !important;
+}
+
+.gradebook-studio .gradebook-assignment-head {
+  position: relative;
+  align-items: center;
+  margin-bottom: 18px;
+  padding-bottom: 2px;
+}
+
+.gradebook-studio .gradebook-assignment-head small {
+  display: none;
+}
+
+.gradebook-studio .gradebook-assignment-head h2 {
+  position: relative;
+  padding-left: 43px;
+  color: #173454;
+  font-size: 1.42rem;
+  font-weight: 800;
+}
+
+.gradebook-studio .gradebook-assignment-head h2::before {
+  content: '♙';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #eaf4ff;
+  color: #2778df;
+  font-family: Arial, sans-serif;
+  font-size: 1rem;
+  transform: translateY(-50%);
+}
+
+.gradebook-studio .gradebook-assignment-head h2::after {
+  content: '';
+  position: absolute;
+  left: 44px;
+  bottom: -10px;
+  width: 54px;
+  height: 2px;
+  border-radius: 999px;
+  background: #2f7fe7;
+}
+
+.gradebook-studio .gradebook-assignment-head p {
+  display: none !important;
+}
+
+.gradebook-studio .gradebook-assignment-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.gradebook-studio .gradebook-assignment-grid article,
+.gradebook-studio .gradebook-assignment-grid article.is-ready {
+  position: relative;
+  min-height: 142px;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px 12px;
+  padding: 17px;
+  overflow: hidden;
+  border: 1px solid #cfe2fa !important;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #ffffff 0%, #f0f7ff 100%) !important;
+  box-shadow: 0 9px 24px rgba(35,93,164,.06) !important;
+}
+
+.gradebook-studio .gradebook-assignment-grid article:nth-child(2),
+.gradebook-studio .gradebook-assignment-grid article:nth-child(2).is-ready {
+  border-color: #efd7a7 !important;
+  background: linear-gradient(145deg, #fff 0%, #fff7e8 100%) !important;
+}
+
+.gradebook-studio .gradebook-assignment-grid article:nth-child(3),
+.gradebook-studio .gradebook-assignment-grid article:nth-child(3).is-ready {
+  border-color: #d9cef9 !important;
+  background: linear-gradient(145deg, #fff 0%, #f5f0ff 100%) !important;
+}
+
+.gradebook-studio .gradebook-assignment-grid article:nth-child(4),
+.gradebook-studio .gradebook-assignment-grid article:nth-child(4).is-ready {
+  border-color: #c8e8e3 !important;
+  background: linear-gradient(145deg, #fff 0%, #edf9f7 100%) !important;
+}
+
+.gradebook-studio .gradebook-assignment-grid article::after {
+  content: 'Lớp bộ môn';
+  position: absolute;
+  top: 15px;
+  right: 14px;
+  padding: 4px 8px;
+  border: 1px solid rgba(64,123,193,.16);
+  border-radius: 999px;
+  background: rgba(255,255,255,.64);
+  color: #61748a;
+  font-size: .58rem;
+  font-weight: 760;
+}
+
+.gradebook-studio .gradebook-assignment-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  background: #e4f0ff;
+  color: #2575d9;
+  font-size: 1.05rem;
+}
+
+.gradebook-studio .gradebook-assignment-grid article:nth-child(2) .gradebook-assignment-icon { background: #fff0cf; color: #c68313; }
+.gradebook-studio .gradebook-assignment-grid article:nth-child(3) .gradebook-assignment-icon { background: #eee8ff; color: #704ed7; }
+.gradebook-studio .gradebook-assignment-grid article:nth-child(4) .gradebook-assignment-icon { background: #dff4f0; color: #238f83; }
+
+.gradebook-studio .gradebook-assignment-copy small {
+  color: #728399;
+  font-size: .62rem;
+  font-weight: 760;
+}
+
+.gradebook-studio .gradebook-assignment-copy h3 {
+  margin-top: 3px;
+  color: #142f4e;
+  font-size: 1.24rem;
+  letter-spacing: -.02em;
+}
+
+.gradebook-studio .gradebook-assignment-copy p,
+.gradebook-studio .gradebook-assignment-state {
+  display: none !important;
+}
+
+.gradebook-studio .gradebook-assignment-grid article > button,
+.gradebook-studio .gradebook-assignment-grid article.is-ready > button {
+  grid-column: 1 / -1;
+  min-height: 39px;
+  margin-top: 4px;
+  border: 0 !important;
+  border-radius: 11px;
+  background: linear-gradient(90deg, #1f74df, #4199f4) !important;
+  color: #fff !important;
+  font-size: .72rem;
+  font-weight: 800;
+  box-shadow: 0 7px 15px rgba(31,116,223,.16);
+}
+
+.gradebook-studio .gradebook-assignment-grid article:nth-child(2) > button { background: linear-gradient(90deg, #d58b20, #efb23d) !important; box-shadow: 0 7px 15px rgba(206,137,32,.15); }
+.gradebook-studio .gradebook-assignment-grid article:nth-child(3) > button { background: linear-gradient(90deg, #6948d5, #8d69ee) !important; box-shadow: 0 7px 15px rgba(105,72,213,.15); }
+.gradebook-studio .gradebook-assignment-grid article:nth-child(4) > button { background: linear-gradient(90deg, #238d82, #46b3a4) !important; box-shadow: 0 7px 15px rgba(35,141,130,.15); }
+
+.gradebook-studio .gradebook-assignment-grid article > button::after {
+  content: ' →';
+  font-size: .92rem;
+}
+
+.gradebook-studio .gradebook-assignment-grid article > button:hover {
+  filter: saturate(1.08) brightness(1.02);
+  transform: translateY(-1px);
+}
+
+/* Keep prose reduction from the previous pass. */
+.gradebook-studio .gradebook-assignment-copy p,
+.gradebook-studio .gradebook-studio-create .hr-panel-head p,
+.gradebook-studio .hr-grade-title p,
+.gradebook-studio .hr-grade-formula small,
+.gradebook-studio .hr-grade-overview article > span,
+.gradebook-studio .hr-grade-export-copy p,
+.gradebook-studio .hr-grade-panel-head p {
+  display: none !important;
+}
+
+/* Preserve the requested score interaction. */
+.gradebook-studio .hr-grade-input {
+  transition: transform 170ms cubic-bezier(.2,.8,.2,1), box-shadow 190ms ease, border-color 190ms ease, background-color 190ms ease;
+  transform-origin: center;
+}
+
+.gradebook-studio .hr-grade-input:hover {
+  border-color: #8ab8f4 !important;
+  background: #f8fbff !important;
+  box-shadow: 0 5px 14px rgba(23,105,224,.08) !important;
+}
+
+.gradebook-studio .hr-grade-input:active { transform: scale(.94); }
+
+.gradebook-studio .hr-grade-input:focus {
+  z-index: 3;
+  border-color: #2479df !important;
+  background: #fff !important;
+  box-shadow: 0 0 0 4px rgba(36,121,223,.14), 0 10px 24px rgba(36,121,223,.16) !important;
+  transform: translateY(-2px) scale(1.06);
+  animation: gbe-score-pop 300ms cubic-bezier(.2,.9,.25,1);
+}
+
+.gradebook-studio .hr-grade-result { transition: transform 160ms ease, background-color 180ms ease, box-shadow 180ms ease; }
+.gradebook-studio .hr-grade-result:hover { background-color: #f2f7ff !important; }
+.gradebook-studio .hr-grade-result:active { transform: scale(.92); background-color: #e8f2ff !important; box-shadow: inset 0 0 0 2px rgba(23,105,224,.16); }
+
+@keyframes gbe-score-pop {
+  0% { transform: translateY(0) scale(.94); }
+  58% { transform: translateY(-3px) scale(1.085); }
+  100% { transform: translateY(-2px) scale(1.06); }
+}
+
+@media (max-width: 1320px) {
+  .gradebook-studio .gradebook-studio-hero {
+    grid-template-columns: minmax(270px, .75fr) minmax(370px, 1fr);
+  }
+  .gradebook-studio .gradebook-studio-hero::before {
+    left: 34%;
+    width: 500px;
+  }
+  .gradebook-studio .gradebook-assignment-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+
+@media (max-width: 1040px) {
+  .gradebook-studio .gradebook-studio-hero {
+    grid-template-columns: 1fr;
+    min-height: 430px;
+    padding-bottom: 170px;
+  }
+  .gradebook-studio .gradebook-studio-hero-copy { max-width: 560px; }
+  .gradebook-studio .gradebook-studio-hero::before {
+    left: 42%;
+    bottom: -70px;
+    width: 480px;
+    height: 280px;
+  }
+  .gradebook-studio .gradebook-studio-hero-stats {
+    grid-column: 1;
+    position: absolute;
+    right: 24px;
+    bottom: 22px;
+    width: min(48%, 480px);
+  }
+  .gradebook-studio .gradebook-studio-hero-stats article { min-height: 118px; padding: 13px 8px; }
+  .gradebook-studio .gradebook-studio-hero-stats article::before { width: 34px; height: 34px; margin-bottom: 7px; }
+  .gradebook-studio .gradebook-studio-hero-stats strong { font-size: 2rem; }
+}
+
+@media (max-width: 760px) {
+  .gradebook-studio .gradebook-studio-hero {
+    min-height: 0;
+    padding: 26px 20px;
+  }
+  .gradebook-studio .gradebook-studio-hero h1 { font-size: clamp(3.6rem, 18vw, 5.3rem); }
+  .gradebook-studio .gradebook-studio-hero::before { display: none; }
+  .gradebook-studio .gradebook-studio-hero-stats {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    margin-top: 28px;
+  }
+  .gradebook-studio .gradebook-studio-hero-stats article { min-height: 104px; }
+  .gradebook-studio .gradebook-assignment-grid { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gradebook-studio .hr-grade-input,
+  .gradebook-studio .hr-grade-result,
+  .gradebook-studio .gradebook-assignment-grid article > button {
+    transition: none !important;
+    animation: none !important;
+  }
+  .gradebook-studio .hr-grade-input:focus { transform: none; }
+}
