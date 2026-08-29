@@ -1,0 +1,1 @@
+Temporary trigger for the Vite build diagnostic workflow. Remove after build recovery.
