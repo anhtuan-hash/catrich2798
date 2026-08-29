@@ -1,99 +1,112 @@
-/* Dashboard hero — authoritative composition, Aug 2026.
-   This file directly owns the Dashboard hero. No appended override layer. */
+/* Dashboard hero — single authoritative composition, Aug 2026.
+   This file owns Dashboard hero layout, typography, utilities and responsive behavior.
+   Other Dashboard stylesheets must not define gd-hero selectors. */
 
 .app-shell[data-route="dashboard"] .gd-page .gd-top-grid {
   display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero {
   position: relative !important;
-  isolation: isolate;
-  display: block !important;
-  min-height: 482px !important;
+  isolation: isolate !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 398px !important;
   margin: 0 0 24px !important;
-  padding: 38px 40px 30px !important;
+  padding: 32px 34px 26px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, .92fr) minmax(470px, 1.08fr) !important;
+  grid-template-areas:
+    "copy chips"
+    "copy visual"
+    "actions visual"
+    "secondary visual" !important;
+  grid-template-rows: auto minmax(0, 1fr) auto auto !important;
+  column-gap: clamp(28px, 3vw, 48px) !important;
+  row-gap: 0 !important;
   overflow: hidden !important;
-  border: 1px solid #c9d9eb !important;
+  border: 1px solid #c8d8ec !important;
   border-radius: 30px !important;
   background:
-    radial-gradient(circle at 90% 12%, rgba(255,255,255,.96) 0 13%, transparent 34%),
-    radial-gradient(circle at 88% 88%, rgba(171,211,255,.22) 0 11%, transparent 35%),
-    linear-gradient(118deg, #ffffff 0%, #fbfdff 44%, #f2f7ff 72%, #eaf3ff 100%) !important;
-  box-shadow:
-    0 1px 2px rgba(42,64,92,.035),
-    0 18px 48px rgba(49,80,119,.085) !important;
+    radial-gradient(circle at 88% 8%, rgba(255,255,255,.98) 0 12%, transparent 33%),
+    radial-gradient(circle at 82% 86%, rgba(175,211,255,.20) 0 12%, transparent 37%),
+    linear-gradient(120deg, #fff 0%, #fcfdff 42%, #f5f9ff 68%, #eaf3ff 100%) !important;
+  box-shadow: 0 2px 4px rgba(36,62,92,.035), 0 18px 48px rgba(45,75,112,.075) !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero::before {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  width: 430px;
-  height: 230px;
-  right: 44px;
-  bottom: -138px;
-  border-radius: 50%;
-  background: rgba(67,139,234,.055);
-  pointer-events: none;
+  content: '' !important;
+  position: absolute !important;
+  z-index: -1 !important;
+  width: 440px !important;
+  height: 260px !important;
+  right: -80px !important;
+  bottom: -150px !important;
+  border-radius: 50% !important;
+  background: rgba(56,132,233,.055) !important;
+  pointer-events: none !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero::after {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  width: 150px;
-  height: 150px;
-  right: 38%;
-  top: -106px;
-  border-radius: 50%;
-  background: rgba(106,164,240,.035);
-  pointer-events: none;
+  content: '' !important;
+  position: absolute !important;
+  z-index: -1 !important;
+  width: 220px !important;
+  height: 220px !important;
+  left: 37% !important;
+  top: -160px !important;
+  border-radius: 50% !important;
+  background: rgba(100,163,244,.035) !important;
+  pointer-events: none !important;
 }
 
-/* LEFT — editorial greeting ------------------------------------------------ */
+/* LEFT — greeting ----------------------------------------------------------- */
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy {
+  grid-area: copy !important;
   position: relative !important;
-  z-index: 8 !important;
-  width: 48% !important;
-  max-width: 660px !important;
+  z-index: 5 !important;
+  width: 100% !important;
   min-width: 0 !important;
-  padding: 8px 0 0 2px !important;
+  max-width: 650px !important;
   margin: 0 !important;
+  padding: 4px 0 0 2px !important;
+  align-self: start !important;
   transform: none !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-eyebrow {
   display: inline-flex !important;
   align-items: center !important;
-  min-height: 30px !important;
+  min-height: 29px !important;
   margin: 0 0 15px !important;
-  padding: 0 13px !important;
-  border: 1px solid #b9d1f4 !important;
+  padding: 0 12px !important;
+  border: 1px solid #b8d2f7 !important;
   border-radius: 999px !important;
-  background: linear-gradient(180deg, #f6faff, #e7f1ff) !important;
+  background: linear-gradient(180deg, #f7faff, #e8f2ff) !important;
   color: #1559b7 !important;
   font: 800 11px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
   letter-spacing: .025em !important;
-  box-shadow: 0 4px 12px rgba(35,94,174,.045) !important;
+  box-shadow: 0 4px 12px rgba(35,94,174,.04) !important;
 }
 
-/* h1 is an explicit two-row grid so the greeting can never collapse onto the name. */
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 {
-  position: relative !important;
   display: grid !important;
-  grid-template-columns: minmax(0,1fr) auto !important;
+  grid-template-columns: minmax(0, max-content) auto !important;
   grid-template-rows: auto auto !important;
-  column-gap: 10px !important;
+  align-items: end !important;
+  justify-content: start !important;
+  column-gap: 12px !important;
   row-gap: 2px !important;
   width: 100% !important;
-  max-width: 660px !important;
+  max-width: 650px !important;
   margin: 0 !important;
   padding: 0 !important;
   color: #17263a !important;
   line-height: 1 !important;
   letter-spacing: 0 !important;
   white-space: normal !important;
-  transform: none !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 .gd-hero-greeting {
@@ -104,11 +117,11 @@
   margin: 0 !important;
   color: #17263a !important;
   font-family: Baskerville, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif !important;
-  font-size: clamp(44px, 3.55vw, 57px) !important;
+  font-size: clamp(42px, 3.35vw, 54px) !important;
   font-style: normal !important;
   font-weight: 500 !important;
   line-height: .98 !important;
-  letter-spacing: -.05em !important;
+  letter-spacing: -.045em !important;
   white-space: nowrap !important;
 }
 
@@ -116,87 +129,87 @@
   grid-column: 1 !important;
   grid-row: 2 !important;
   position: relative !important;
+  z-index: 1 !important;
   display: inline-block !important;
-  justify-self: start !important;
   min-width: 0 !important;
   max-width: 100% !important;
   margin: 0 !important;
   color: #1261d4 !important;
   font-family: Baskerville, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif !important;
-  font-size: clamp(64px, 4.8vw, 78px) !important;
+  font-size: clamp(64px, 4.6vw, 76px) !important;
   font-style: italic !important;
   font-weight: 500 !important;
-  line-height: .93 !important;
-  letter-spacing: -.055em !important;
+  line-height: .92 !important;
+  letter-spacing: -.052em !important;
   white-space: nowrap !important;
-  text-shadow: 0 8px 22px rgba(28,101,207,.07) !important;
+  text-shadow: 0 8px 22px rgba(28,101,207,.065) !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 strong.gd-hero-name::after {
   content: '' !important;
   position: absolute !important;
   z-index: -1 !important;
-  left: 12% !important;
-  right: 2% !important;
-  bottom: -8px !important;
-  height: 10px !important;
-  border-top: 2px solid rgba(25,105,225,.52) !important;
+  left: 9% !important;
+  right: 1% !important;
+  bottom: -7px !important;
+  height: 9px !important;
+  border-top: 2px solid rgba(25,105,225,.46) !important;
   border-radius: 50% !important;
-  transform: rotate(-1.15deg) !important;
+  transform: rotate(-1deg) !important;
   pointer-events: none !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 .gd-hero-wave {
   grid-column: 2 !important;
   grid-row: 2 !important;
-  align-self: end !important;
   display: block !important;
-  margin: 0 0 7px !important;
+  align-self: end !important;
+  margin: 0 0 6px !important;
   font-family: system-ui, sans-serif !important;
-  font-size: clamp(27px, 2.2vw, 35px) !important;
+  font-size: clamp(27px, 2vw, 34px) !important;
   font-style: normal !important;
   font-weight: 400 !important;
   line-height: 1 !important;
-  transform: none !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy > p {
-  max-width: 550px !important;
-  margin: 24px 0 0 !important;
+  max-width: 555px !important;
+  margin: 23px 0 0 !important;
   color: #425873 !important;
   font-size: 15px !important;
   font-weight: 610 !important;
-  line-height: 1.56 !important;
+  line-height: 1.52 !important;
   letter-spacing: -.004em !important;
 }
 
-/* LEFT — interaction cluster ------------------------------------------------ */
+/* LEFT — actions ------------------------------------------------------------ */
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-actions,
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-secondary-actions {
   position: relative !important;
-  z-index: 10 !important;
-  top: auto !important;
-  right: auto !important;
-  bottom: auto !important;
-  left: auto !important;
-  float: none !important;
-  width: 48% !important;
-  max-width: 660px !important;
+  z-index: 6 !important;
+  width: 100% !important;
+  max-width: 650px !important;
+  min-width: 0 !important;
+  margin-left: 2px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: flex-start !important;
   flex-wrap: wrap !important;
+  float: none !important;
+  inset: auto !important;
   transform: none !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-actions {
+  grid-area: actions !important;
   gap: 12px !important;
-  margin: 26px 0 0 2px !important;
+  margin-top: 24px !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-secondary-actions {
+  grid-area: secondary !important;
   gap: 10px !important;
-  margin: 12px 0 0 2px !important;
+  margin-top: 11px !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-secondary-actions > button {
@@ -206,8 +219,8 @@
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-button {
-  min-height: 52px !important;
-  padding: 0 21px !important;
+  min-height: 50px !important;
+  padding: 0 20px !important;
   border-radius: 16px !important;
   font-size: 14px !important;
   font-weight: 800 !important;
@@ -215,34 +228,34 @@
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-button.filled {
-  min-width: 252px !important;
+  min-width: 248px !important;
   border-color: #0f66df !important;
   background: linear-gradient(135deg, #0d63dd, #3488f4) !important;
   color: #fff !important;
-  box-shadow: 0 11px 25px rgba(16,103,224,.22) !important;
+  box-shadow: 0 10px 24px rgba(16,103,224,.20) !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-button.outlined {
   min-width: 132px !important;
   border-color: #cfdeec !important;
-  background: rgba(255,255,255,.94) !important;
+  background: rgba(255,255,255,.95) !important;
   color: #244866 !important;
-  box-shadow: 0 6px 17px rgba(45,74,109,.06) !important;
+  box-shadow: 0 6px 16px rgba(45,74,109,.055) !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-link {
-  min-height: 42px !important;
+  min-height: 41px !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  gap: 8px !important;
-  padding: 0 15px !important;
-  border: 1px solid #d1dfed !important;
+  gap: 7px !important;
+  padding: 0 14px !important;
+  border: 1px solid #d0dfef !important;
   border-radius: 14px !important;
-  background: rgba(255,255,255,.86) !important;
+  background: rgba(255,255,255,.90) !important;
   color: #174f91 !important;
   font: 800 12px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-  box-shadow: 0 5px 14px rgba(54,84,123,.045) !important;
+  box-shadow: 0 5px 14px rgba(54,84,123,.04) !important;
   cursor: pointer !important;
 }
 
@@ -253,20 +266,21 @@
   background: #f5f9ff !important;
 }
 
-/* RIGHT — utility rail ------------------------------------------------------ */
+/* RIGHT — interactive utility rail ----------------------------------------- */
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chipbar {
-  position: absolute !important;
-  z-index: 14 !important;
-  top: 28px !important;
-  right: 28px !important;
-  bottom: auto !important;
-  left: auto !important;
+  grid-area: chips !important;
+  position: relative !important;
+  z-index: 8 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 610px !important;
+  justify-self: end !important;
+  align-self: start !important;
   display: grid !important;
-  grid-template-columns: .92fr 1.08fr 1.28fr !important;
+  grid-template-columns: .9fr 1.12fr 1.28fr !important;
   gap: 9px !important;
-  width: min(590px, calc(49% - 12px)) !important;
-  max-width: none !important;
   margin: 0 !important;
+  inset: auto !important;
   transform: none !important;
 }
 
@@ -279,11 +293,11 @@
   column-gap: 9px !important;
   align-items: center !important;
   padding: 9px 12px 9px 10px !important;
-  border: 1px solid rgba(199,216,235,.95) !important;
+  border: 1px solid rgba(198,216,236,.96) !important;
   border-radius: 17px !important;
-  background: rgba(255,255,255,.94) !important;
+  background: rgba(255,255,255,.95) !important;
   color: #163f73 !important;
-  box-shadow: 0 8px 20px rgba(41,78,125,.07) !important;
+  box-shadow: 0 7px 19px rgba(41,78,125,.065) !important;
   backdrop-filter: blur(14px) !important;
   cursor: pointer !important;
 }
@@ -330,23 +344,24 @@
   white-space: nowrap !important;
 }
 
-/* RIGHT — large anchored illustration -------------------------------------- */
+/* RIGHT — illustration ------------------------------------------------------ */
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual {
-  position: absolute !important;
+  grid-area: visual !important;
+  position: relative !important;
   z-index: 3 !important;
-  top: 106px !important;
-  right: 24px !important;
-  bottom: 18px !important;
-  left: auto !important;
-  width: 49% !important;
+  width: 100% !important;
   min-width: 0 !important;
-  min-height: 0 !important;
+  min-height: 275px !important;
+  max-height: 310px !important;
+  align-self: end !important;
+  justify-self: stretch !important;
   display: flex !important;
   align-items: flex-end !important;
   justify-content: flex-end !important;
+  margin: 8px 0 -8px !important;
   padding: 0 !important;
-  margin: 0 !important;
   overflow: visible !important;
+  inset: auto !important;
   transform: none !important;
   pointer-events: none !important;
 }
@@ -356,55 +371,49 @@
   position: absolute !important;
   z-index: -1 !important;
   width: 96% !important;
-  height: 90% !important;
+  height: 95% !important;
   right: -1% !important;
-  bottom: -3% !important;
-  border-radius: 48% 52% 15% 24% !important;
-  background: radial-gradient(circle at 58% 60%, rgba(255,255,255,.98), rgba(229,241,255,.76) 54%, rgba(195,222,255,.15) 79%, transparent 80%) !important;
+  bottom: -6% !important;
+  border-radius: 50% 50% 15% 22% !important;
+  background: radial-gradient(circle at 60% 62%, rgba(255,255,255,.98), rgba(229,241,255,.72) 55%, rgba(195,222,255,.13) 79%, transparent 80%) !important;
   pointer-events: none !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual .gd-hero-illustration {
   display: block !important;
-  width: min(100%, 610px) !important;
+  width: min(100%, 560px) !important;
   height: auto !important;
-  max-width: 610px !important;
-  max-height: 348px !important;
-  margin: 0 0 -2px 0 !important;
+  max-width: 560px !important;
+  max-height: 305px !important;
+  margin: 0 -4px 0 0 !important;
   overflow: visible !important;
   transform: none !important;
   transform-origin: right bottom !important;
-  filter: drop-shadow(0 20px 25px rgba(34,73,119,.13)) !important;
+  filter: drop-shadow(0 18px 24px rgba(34,73,119,.12)) !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-mini-note {
   display: none !important;
 }
 
+/* Tablet ------------------------------------------------------------------- */
 @media (max-width: 1260px) {
   .app-shell[data-route="dashboard"] .gd-page .gd-hero {
-    min-height: 466px !important;
-    padding: 34px 32px 27px !important;
-  }
-
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy,
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-actions,
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-secondary-actions {
-    width: 49% !important;
+    min-height: 382px !important;
+    padding: 29px 28px 24px !important;
+    grid-template-columns: minmax(0, .96fr) minmax(430px, 1.04fr) !important;
+    column-gap: 26px !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 .gd-hero-greeting {
-    font-size: clamp(40px, 3.6vw, 51px) !important;
+    font-size: clamp(39px, 3.5vw, 49px) !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 strong.gd-hero-name {
-    font-size: clamp(57px, 4.8vw, 70px) !important;
+    font-size: clamp(57px, 4.7vw, 68px) !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chipbar {
-    top: 23px !important;
-    right: 22px !important;
-    width: min(545px, calc(49% - 10px)) !important;
     gap: 7px !important;
   }
 
@@ -420,74 +429,64 @@
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual {
-    top: 94px !important;
-    right: 18px !important;
-    bottom: 12px !important;
-    width: 48% !important;
+    min-height: 255px !important;
+    max-height: 285px !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual .gd-hero-illustration {
-    width: min(100%, 540px) !important;
-    max-width: 540px !important;
-    max-height: 320px !important;
+    width: min(100%, 510px) !important;
+    max-width: 510px !important;
+    max-height: 280px !important;
   }
 }
 
-@media (max-width: 1060px) {
+@media (max-width: 1080px) {
   .app-shell[data-route="dashboard"] .gd-page .gd-hero {
-    display: grid !important;
-    grid-template-columns: 1fr !important;
-    grid-template-areas: "chips" "copy" "actions" "secondary" "visual" !important;
     min-height: 0 !important;
     padding: 28px 26px 24px !important;
-  }
-
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chipbar {
-    grid-area: chips !important;
-    position: relative !important;
-    top: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-    left: auto !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 0 24px !important;
+    grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "copy"
+      "chips"
+      "actions"
+      "secondary"
+      "visual" !important;
+    grid-template-rows: auto auto auto auto auto !important;
+    row-gap: 0 !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy {
-    grid-area: copy !important;
-    width: 100% !important;
-    max-width: none !important;
-    padding-top: 0 !important;
-  }
-
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-actions {
-    grid-area: actions !important;
-    width: 100% !important;
     max-width: none !important;
   }
 
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-secondary-actions {
-    grid-area: secondary !important;
-    width: 100% !important;
-    max-width: none !important;
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 {
+    max-width: 760px !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 strong.gd-hero-name {
     max-width: 100% !important;
-    font-size: clamp(60px, 9vw, 86px) !important;
+    font-size: clamp(60px, 8vw, 82px) !important;
     white-space: normal !important;
   }
 
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chipbar {
+    justify-self: start !important;
+    max-width: 720px !important;
+    margin-top: 26px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-actions,
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-secondary-actions {
+    max-width: none !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-actions {
+    margin-top: 20px !important;
+  }
+
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual {
-    grid-area: visual !important;
-    position: relative !important;
-    top: auto !important;
-    right: auto !important;
-    bottom: auto !important;
-    left: auto !important;
-    width: 100% !important;
-    min-height: 300px !important;
+    min-height: 290px !important;
+    max-height: none !important;
     margin-top: 18px !important;
     justify-content: center !important;
   }
@@ -496,37 +495,31 @@
     width: min(650px, 100%) !important;
     max-width: 650px !important;
     max-height: 330px !important;
-    margin: 0 auto -5px !important;
+    margin: 0 auto -4px !important;
   }
 }
 
+/* Mobile ------------------------------------------------------------------- */
 @media (max-width: 640px) {
   .app-shell[data-route="dashboard"] .gd-page .gd-hero {
     padding: 22px 18px 20px !important;
     border-radius: 24px !important;
   }
 
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chipbar {
-    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
-    gap: 8px !important;
-    margin-bottom: 20px !important;
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-eyebrow {
+    margin-bottom: 13px !important;
   }
 
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip:last-child {
-    grid-column: 1 / -1 !important;
-  }
-
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip strong,
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip small {
-    white-space: normal !important;
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 {
+    grid-template-columns: minmax(0,1fr) auto !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 .gd-hero-greeting {
-    font-size: 38px !important;
+    font-size: 37px !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 strong.gd-hero-name {
-    font-size: clamp(52px, 14.5vw, 68px) !important;
+    font-size: clamp(50px, 14vw, 66px) !important;
     white-space: normal !important;
   }
 
@@ -536,8 +529,23 @@
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy > p {
-    margin-top: 22px !important;
+    margin-top: 21px !important;
     font-size: 14px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chipbar {
+    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+    gap: 8px !important;
+    margin-top: 22px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip:last-child {
+    grid-column: 1 / -1 !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip strong,
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip small {
+    white-space: normal !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-actions {
@@ -551,19 +559,19 @@
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-secondary-actions {
     display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns: 1fr !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-link {
+    width: 100% !important;
     min-width: 0 !important;
-    padding: 0 9px !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual {
-    min-height: 235px !important;
+    min-height: 225px !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual .gd-hero-illustration {
-    max-height: 265px !important;
+    max-height: 250px !important;
   }
 }
