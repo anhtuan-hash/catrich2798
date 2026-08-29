@@ -7,5 +7,6 @@
 @import './MonthlyReportsHorizontalCardsV12.css';
 @import './MonthlyReportsEditorialV13.css';
 @import './MonthlyReportsEditorialV14.css';
-@import './MonthlyReportsScaleV15.css';
-@import './MonthlyReportsScaleV16.css';
+/* V17 is the single final reports presentation authority. It replaces the
+   old V15/V16 route zoom layers with real typography, spacing and geometry. */
+@import './MonthlyReportsEditorialMaterialV17.css';
