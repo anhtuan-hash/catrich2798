@@ -1,12 +1,8 @@
 import React from 'react';
 import '../data/registerSeatingChartStudio.js';
 import Navigation from './GlobalCompactNavigation.jsx';
-import GlobalMetroNavigationIndicator from './GlobalMetroNavigationIndicator.jsx';
-import GlobalWindows8Experience from './GlobalWindows8Experience.jsx';
 import GlobalWindowsPhone8Loading from './GlobalWindowsPhone8Loading.jsx';
 import GlobalEditorialBriefBar from './GlobalEditorialBriefBar.jsx';
-import GlobalPrimaryNavigationPin from './GlobalPrimaryNavigationPin.jsx';
-import GlobalNavigationHubController from './GlobalNavigationHubController.jsx';
 import GlobalPinnedNavigationHub from './GlobalPinnedNavigationHub.jsx';
 import GlobalNativeTextScaleReset from './GlobalNativeTextScaleReset.jsx';
 import GlobalGuestNavigationHub from './GlobalGuestNavigationHub.jsx';
@@ -14,7 +10,6 @@ import GlobalUserProfileSettingsBridge from './GlobalUserProfileSettingsBridge.j
 import GlobalUserProfilePreviewGuard from './GlobalUserProfilePreviewGuard.jsx';
 import GlobalSettingsAdminBridge from './GlobalSettingsAdminBridge.jsx';
 import GlobalFontSettingsBridge from './GlobalFontSettingsBridge.jsx';
-import GlobalNavigationRegionalTypographyRuntime from './GlobalNavigationRegionalTypographyRuntime.jsx';
 import GlobalSubtitleSettingsBridge from './GlobalSubtitleSettingsBridge.jsx';
 import GlobalHeroGovernance from './GlobalHeroGovernance.jsx';
 import GlobalAiWebsiteLauncher from './GlobalAiWebsiteLauncher.jsx';
@@ -29,9 +24,10 @@ import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
 import GlobalWeeklyPracticeBridge from './GlobalWeeklyPracticeBridge.jsx';
 import GlobalEditorialAuthorityRuntime from './GlobalEditorialAuthorityRuntime.jsx';
 
-// Shared non-navigation utilities only. The visible navigation shell has exactly
-// one visual authority now: styles/GlobalNavigationFinal2026.css, injected last
-// by GlobalEditorialAuthorityRuntime.
+// Shared non-navigation utilities only. Navigation geometry, visual state and
+// semantic ordering are owned exclusively by GlobalNavigationFinal2026.css.
+// Legacy runtimes that wrote inline !important typography/order/height or
+// inserted Metro/Windows-8 motion indicators have been retired from this shell.
 import './GlobalGoogleMaterialOverride.css';
 import './GlobalCommandPaletteGoogle.css';
 import './GlobalCommandPaletteFocusFix.css';
@@ -55,13 +51,9 @@ export default function GlobalFlatNavigation(props) {
     <>
       <GlobalNativeTextScaleReset />
       <Navigation {...props} />
-      <GlobalNavigationHubController />
       <GlobalPinnedNavigationHub route={props.route} />
       <GlobalWindowsPhone8Loading />
-      <GlobalMetroNavigationIndicator route={props.route} />
-      <GlobalWindows8Experience route={props.route} />
       <GlobalEditorialBriefBar route={props.route} language={props.language} currentUser={props.currentUser} />
-      <GlobalPrimaryNavigationPin route={props.route} />
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalWeeklyPracticeBridge route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalHeroGovernance route={props.route} />
@@ -69,7 +61,6 @@ export default function GlobalFlatNavigation(props) {
       <GlobalUserProfilePreviewGuard route={props.route} />
       <GlobalSettingsAdminBridge {...props} />
       <GlobalFontSettingsBridge {...props} />
-      <GlobalNavigationRegionalTypographyRuntime />
       <GlobalSubtitleSettingsBridge {...props} />
       <GlobalAiWebsiteLauncher {...props} />
       <GlobalGamesNavigationTab {...props} />
