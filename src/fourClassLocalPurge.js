@@ -34,14 +34,29 @@ function explicitPurgeState(registry) {
 
 function assignmentScore(registry) {
   const classes = Array.isArray(registry?.classes) ? registry.classes : [];
-  return classes.reduce((score, item) => {
-    const homeroom = String(item?.homeroomTeacherId || '').trim() ? 1 : 0;
-    const subjects = Array.isArray(item?.subjectTeacherIds)
-      ? item.subjectTeacherIds.filter((value) => String(value || '').trim()).length
+  const classAssignmentScore = classes.reduce((score, item) => {
+    const assignment = item?.assignment && typeof item.assignment === 'object' ? item.assignment : {};
+    const homeroom = String(assignment.homeroomTeacherId || '').trim() ? 1 : 0;
+    const subjects = Array.isArray(assignment.subjectTeacherIds)
+      ? assignment.subjectTeacherIds.filter((value) => String(value || '').trim()).length
       : 0;
-    const locked = item?.assignmentLocked === true ? 1 : 0;
-    return score + homeroom + subjects + locked;
+    return score + homeroom + subjects;
   }, 0);
+
+  const locks = registry?.assignmentLocks && typeof registry.assignmentLocks === 'object'
+    ? Object.values(registry.assignmentLocks)
+    : [];
+  const lockScore = locks.reduce((score, lock) => {
+    if (!lock || typeof lock !== 'object') return score;
+    const locked = lock.locked === true ? 1 : 0;
+    const homeroomSnapshot = String(lock.homeroomTeacherId || '').trim() ? 1 : 0;
+    const subjectSnapshot = Array.isArray(lock.subjectTeacherIds)
+      ? lock.subjectTeacherIds.filter((value) => String(value || '').trim()).length
+      : 0;
+    return score + locked + homeroomSnapshot + subjectSnapshot;
+  }, 0);
+
+  return classAssignmentScore + lockScore;
 }
 
 function classCount(registry) {
