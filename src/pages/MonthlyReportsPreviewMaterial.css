@@ -1,44 +1,80 @@
-/* Monthly report preview — Material document dialog
-   Scoped to Brian Team personal reports so report logic and manager dialogs stay intact. */
+/* Monthly report preview — single-backdrop Material document dialog
+   Final authority for the personal report preview only.
+   The old route-contained grey overlay is intentionally transparent; one body-level
+   scrim now provides a clean viewport backdrop without the double-layer effect. */
 
+/* One viewport scrim. This avoids the inset grey rectangle created when a fixed
+   modal layer inherits a containing block from the route shell. */
+body:has(.btp-shell.mr-has-interactive-hero .mr-modal-layer) {
+  overflow: hidden !important;
+}
+
+body:has(.btp-shell.mr-has-interactive-hero .mr-modal-layer)::before {
+  content: '';
+  position: fixed;
+  z-index: 99990;
+  inset: 0;
+  background: rgba(19, 32, 51, .24);
+  pointer-events: auto;
+}
+
+/* The actual React modal layer stays responsible for click-to-close inside its
+   route area, but no longer paints a second scrim or blur. */
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal-layer {
+  position: fixed !important;
   z-index: 100000 !important;
   inset: 0 !important;
-  padding: clamp(18px, 4vh, 40px) clamp(14px, 3vw, 34px) !important;
-  place-items: center !important;
-  background: rgba(20, 31, 49, .58) !important;
-  backdrop-filter: blur(8px) saturate(.85);
-  -webkit-backdrop-filter: blur(8px) saturate(.85);
+  display: grid !important;
+  place-items: start center !important;
+  padding: clamp(24px, 5vh, 56px) 18px 24px !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
 }
 
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal.is-wide {
-  width: min(920px, calc(100vw - 40px)) !important;
-  max-width: 920px !important;
-  max-height: min(860px, calc(100dvh - 72px)) !important;
+  width: min(980px, calc(100vw - 40px)) !important;
+  max-width: 980px !important;
+  max-height: min(840px, calc(100dvh - 72px)) !important;
   display: grid !important;
   grid-template-rows: auto minmax(0, 1fr) !important;
   overflow: hidden !important;
-  border: 1px solid rgba(207, 216, 228, .92) !important;
-  border-radius: 24px !important;
-  background: #f7f9fc !important;
+  margin: 0 !important;
+  border: 1px solid rgba(213, 221, 232, .96) !important;
+  border-radius: 26px !important;
+  background: #f8fafc !important;
   box-shadow:
-    0 34px 90px rgba(15, 23, 42, .30),
-    0 8px 26px rgba(15, 23, 42, .14) !important;
+    0 32px 80px rgba(15, 23, 42, .20),
+    0 8px 24px rgba(15, 23, 42, .09) !important;
 }
 
+/* Dialog masthead */
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal > header {
   position: relative !important;
   top: auto !important;
   z-index: 5 !important;
-  min-height: 74px !important;
+  min-height: 84px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  gap: 18px !important;
-  padding: 15px 18px 15px 22px !important;
-  border-bottom: 1px solid #e3e8f0 !important;
-  background: rgba(255,255,255,.96) !important;
-  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset !important;
+  gap: 20px !important;
+  padding: 18px 22px 17px 26px !important;
+  border: 0 !important;
+  border-bottom: 1px solid #e6ebf2 !important;
+  background: rgba(255, 255, 255, .98) !important;
+  box-shadow: none !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal > header::after {
+  content: '' !important;
+  position: absolute !important;
+  left: 26px !important;
+  bottom: -1px !important;
+  width: 54px !important;
+  height: 2px !important;
+  border-radius: 999px !important;
+  background: #2d73d7 !important;
 }
 
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal > header > div {
@@ -47,42 +83,43 @@
 
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal > header small {
   display: block !important;
-  margin: 0 0 4px !important;
-  color: #55709a !important;
-  font-size: 9px !important;
+  margin: 0 0 5px !important;
+  color: #5a7395 !important;
+  font-size: 9.5px !important;
   font-weight: 850 !important;
   line-height: 1 !important;
-  letter-spacing: .16em !important;
+  letter-spacing: .17em !important;
 }
 
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal > header h2 {
   margin: 0 !important;
-  color: #152944 !important;
-  font-size: 19px !important;
-  font-weight: 790 !important;
-  line-height: 1.18 !important;
-  letter-spacing: -.018em !important;
+  color: #102844 !important;
+  font-size: clamp(20px, 2vw, 24px) !important;
+  font-weight: 820 !important;
+  line-height: 1.12 !important;
+  letter-spacing: -.025em !important;
 }
 
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal > header > button {
-  width: 40px !important;
-  height: 40px !important;
-  flex: 0 0 40px !important;
+  width: 42px !important;
+  height: 42px !important;
+  flex: 0 0 42px !important;
   display: grid !important;
   place-items: center !important;
   padding: 0 !important;
-  border: 1px solid #dce3ed !important;
+  border: 1px solid #d9e2ee !important;
   border-radius: 50% !important;
-  background: #f8fafc !important;
-  color: #4d6079 !important;
-  box-shadow: none !important;
-  transition: background .16s ease, border-color .16s ease, color .16s ease !important;
+  background: #fff !important;
+  color: #3d536f !important;
+  box-shadow: 0 3px 10px rgba(32, 53, 79, .045) !important;
 }
 
-.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal > header > button:hover {
-  border-color: #c5d2e4 !important;
-  background: #edf3fb !important;
-  color: #1f5eae !important;
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal > header > button:hover,
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal > header > button:focus-visible {
+  border-color: #aac5e8 !important;
+  background: #eef5ff !important;
+  color: #165eb7 !important;
+  outline: none !important;
 }
 
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal > header > button svg {
@@ -90,14 +127,13 @@
   height: 19px !important;
 }
 
+/* Scrollable document surface */
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal-body {
   min-height: 0 !important;
   overflow: auto !important;
   overscroll-behavior: contain !important;
-  padding: 20px !important;
-  background:
-    linear-gradient(#f7f9fc, #f7f9fc) padding-box,
-    radial-gradient(circle at 88% 0%, rgba(227, 239, 255, .72), transparent 34%) border-box !important;
+  padding: 22px !important;
+  background: #f7f9fc !important;
   scrollbar-width: thin;
   scrollbar-color: #c9d4e2 transparent;
 }
@@ -109,139 +145,188 @@
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal-body::-webkit-scrollbar-thumb {
   border: 2px solid transparent;
   border-radius: 999px;
-  background: #c9d4e2;
+  background: #c7d2e1;
   background-clip: padding-box;
 }
 
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview {
   display: grid !important;
-  gap: 12px !important;
+  gap: 14px !important;
   color: #24354d !important;
 }
 
-/* Document identity */
+/* Document identity card */
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-preview-head {
   position: relative !important;
+  isolation: isolate !important;
   overflow: hidden !important;
   display: grid !important;
   grid-template-columns: minmax(0, 1fr) auto !important;
   align-items: center !important;
-  gap: 18px !important;
-  min-height: 126px !important;
-  padding: 22px 24px !important;
-  border: 1px solid #d5e3f5 !important;
-  border-radius: 18px !important;
+  gap: 24px !important;
+  min-height: 148px !important;
+  padding: 25px 28px !important;
+  border: 1px solid #cfe0f5 !important;
+  border-radius: 20px !important;
   background:
-    radial-gradient(circle at 92% 8%, rgba(84, 141, 220, .14), transparent 31%),
-    linear-gradient(132deg, #f8fbff 0%, #edf5ff 100%) !important;
-  box-shadow: 0 5px 18px rgba(41, 76, 120, .05) !important;
+    radial-gradient(circle at 92% 12%, rgba(120, 168, 232, .15), transparent 28%),
+    linear-gradient(135deg, #fbfdff 0%, #eef6ff 100%) !important;
+  box-shadow: 0 6px 20px rgba(39, 76, 121, .045) !important;
+}
+
+/* Quiet document motif on the right. */
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-preview-head::before {
+  content: '' !important;
+  position: absolute !important;
+  z-index: -1 !important;
+  right: 48px !important;
+  top: 26px !important;
+  width: 94px !important;
+  height: 90px !important;
+  opacity: .42 !important;
+  border: 1px solid #c8dbf4 !important;
+  border-radius: 12px !important;
+  background:
+    linear-gradient(#bdd4f1, #bdd4f1) 18px 24px / 46px 5px no-repeat,
+    linear-gradient(#d4e3f5, #d4e3f5) 18px 38px / 56px 4px no-repeat,
+    linear-gradient(#d4e3f5, #d4e3f5) 18px 50px / 46px 4px no-repeat,
+    linear-gradient(#d4e3f5, #d4e3f5) 18px 62px / 34px 4px no-repeat,
+    rgba(255,255,255,.56) !important;
+  transform: rotate(4deg) !important;
 }
 
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-preview-head::after {
   content: '' !important;
   position: absolute !important;
-  left: 24px !important;
+  left: 28px !important;
   bottom: 0 !important;
-  width: 62px !important;
+  width: 66px !important;
   height: 3px !important;
   border-radius: 999px !important;
   background: #2f74d0 !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-preview-head > div {
+  position: relative !important;
+  z-index: 1 !important;
 }
 
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-preview-head small {
   display: inline-flex !important;
   align-items: center !important;
   width: fit-content !important;
-  margin: 0 0 8px !important;
-  padding: 5px 9px !important;
+  margin: 0 0 10px !important;
+  padding: 6px 10px !important;
   border-radius: 999px !important;
-  background: rgba(255,255,255,.78) !important;
-  color: #4e6c95 !important;
+  background: #eaf3ff !important;
+  color: #3972bd !important;
   font-size: 10px !important;
-  font-weight: 800 !important;
-  letter-spacing: .04em !important;
+  font-weight: 820 !important;
+  letter-spacing: .025em !important;
 }
 
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-preview-head h3 {
   margin: 0 !important;
-  color: #152c4c !important;
-  font-size: clamp(22px, 2.3vw, 29px) !important;
-  font-weight: 820 !important;
-  line-height: 1.08 !important;
-  letter-spacing: -.03em !important;
+  color: #102c4e !important;
+  font-size: clamp(25px, 2.5vw, 32px) !important;
+  font-weight: 840 !important;
+  line-height: 1.05 !important;
+  letter-spacing: -.035em !important;
 }
 
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-preview-head p {
-  margin: 8px 0 0 !important;
-  color: #60718a !important;
-  font-size: 13px !important;
-  font-weight: 550 !important;
+  margin: 9px 0 0 !important;
+  color: #60728b !important;
+  font-size: 13.5px !important;
+  font-weight: 570 !important;
   line-height: 1.45 !important;
 }
 
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-preview-head .mr-status {
-  min-height: 38px !important;
-  padding: 8px 13px !important;
-  border: 1px solid #b8ddc6 !important;
+  position: relative !important;
+  z-index: 2 !important;
+  min-height: 40px !important;
+  margin-right: 112px !important;
+  padding: 8px 14px !important;
+  border: 1px solid #aed9bd !important;
   border-radius: 999px !important;
-  background: rgba(234, 248, 239, .92) !important;
+  background: #ecf9f0 !important;
   color: #176b38 !important;
-  box-shadow: 0 4px 12px rgba(32, 111, 61, .06) !important;
+  box-shadow: none !important;
   font-size: 11px !important;
-  font-weight: 820 !important;
+  font-weight: 830 !important;
 }
 
-/* Readable report sections */
+/* Report cards */
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-read-section {
   position: relative !important;
-  padding: 18px 20px !important;
-  border: 1px solid #e0e6ee !important;
-  border-radius: 16px !important;
+  padding: 20px 22px !important;
+  border: 1px solid #dfe6ef !important;
+  border-radius: 18px !important;
   background: #fff !important;
-  box-shadow: 0 3px 12px rgba(27, 43, 66, .035) !important;
+  box-shadow: 0 3px 12px rgba(27, 43, 66, .025) !important;
 }
 
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-read-section h4 {
-  margin: 0 0 13px !important;
-  padding-bottom: 10px !important;
-  border-bottom: 1px solid #edf1f5 !important;
-  color: #173e73 !important;
-  font-size: 13px !important;
+  position: relative !important;
+  margin: 0 0 16px !important;
+  padding: 0 0 13px 42px !important;
+  border-bottom: 1px solid #e8eef6 !important;
+  color: #133a69 !important;
+  font-size: 15px !important;
   font-weight: 840 !important;
   line-height: 1.35 !important;
-  letter-spacing: -.01em !important;
+  letter-spacing: -.015em !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-read-section h4::before {
+  content: '✓' !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: -5px !important;
+  width: 30px !important;
+  height: 30px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px solid #cfe0f7 !important;
+  border-radius: 10px !important;
+  background: #edf5ff !important;
+  color: #246bc3 !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
 }
 
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-read-block + .mr-read-block {
-  margin-top: 16px !important;
-  padding-top: 15px !important;
-  border-top: 1px dashed #e6eaf0 !important;
+  margin-top: 18px !important;
+  padding-top: 17px !important;
+  border-top: 1px dashed #e4eaf2 !important;
 }
 
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-read-block b {
   display: block !important;
   margin: 0 !important;
-  color: #253a57 !important;
-  font-size: 12.5px !important;
-  font-weight: 780 !important;
-  line-height: 1.4 !important;
+  color: #243a58 !important;
+  font-size: 13.5px !important;
+  font-weight: 790 !important;
+  line-height: 1.45 !important;
 }
 
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-read-block p,
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-read-section > p {
-  margin: 7px 0 0 !important;
-  color: #526177 !important;
+  margin: 8px 0 0 !important;
+  color: #526178 !important;
   font-size: 13.5px !important;
   font-weight: 450 !important;
-  line-height: 1.68 !important;
+  line-height: 1.72 !important;
   white-space: pre-wrap !important;
 }
 
-/* Professional statistics table */
+/* Professional statistics */
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-number-table-wrap {
   overflow: hidden !important;
-  border: 1px solid #e0e6ee !important;
-  border-radius: 12px !important;
+  margin-top: 2px !important;
+  border: 1px solid #dfe6ef !important;
+  border-radius: 13px !important;
   background: #fff !important;
 }
 
@@ -252,10 +337,10 @@
 }
 
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-number-table th {
-  padding: 9px 12px !important;
+  padding: 10px 13px !important;
   border: 0 !important;
   border-bottom: 1px solid #dce4ee !important;
-  background: #f3f6fa !important;
+  background: #f2f6fb !important;
   color: #5a687c !important;
   font-size: 9px !important;
   font-weight: 850 !important;
@@ -264,12 +349,12 @@
 }
 
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-number-table td {
-  padding: 9px 12px !important;
+  padding: 10px 13px !important;
   border: 0 !important;
   border-bottom: 1px solid #edf1f5 !important;
   background: #fff !important;
   color: #3f4f64 !important;
-  font-size: 12px !important;
+  font-size: 12.5px !important;
   line-height: 1.35 !important;
 }
 
@@ -284,39 +369,47 @@
 }
 
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-number-table td strong {
-  color: #1e4f8d !important;
-  font-size: 12.5px !important;
-  font-weight: 820 !important;
+  color: #1d579c !important;
+  font-size: 13px !important;
+  font-weight: 830 !important;
 }
 
 .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-preview-ready {
-  margin: 2px 0 0 !important;
-  padding: 12px 14px !important;
-  border: 1px solid #cae4d4 !important;
-  border-radius: 13px !important;
-  background: #f1faf4 !important;
+  margin: 0 !important;
+  padding: 13px 15px !important;
+  border: 1px solid #c6e3d1 !important;
+  border-radius: 14px !important;
+  background: #f0faf3 !important;
   color: #25683d !important;
-  font-size: 11.5px !important;
-  font-weight: 700 !important;
+  font-size: 12px !important;
+  font-weight: 720 !important;
   line-height: 1.45 !important;
 }
 
 @media (max-width: 720px) {
+  body:has(.btp-shell.mr-has-interactive-hero .mr-modal-layer)::before {
+    background: rgba(19, 32, 51, .20);
+  }
+
   .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal-layer {
-    padding: 10px !important;
     place-items: end center !important;
+    padding: 10px 10px 0 !important;
   }
 
   .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal.is-wide {
     width: 100% !important;
     max-width: none !important;
     max-height: 92dvh !important;
-    border-radius: 22px 22px 0 0 !important;
+    border-radius: 24px 24px 0 0 !important;
   }
 
   .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal > header {
-    min-height: 66px !important;
-    padding: 12px 14px 12px 16px !important;
+    min-height: 68px !important;
+    padding: 13px 14px 13px 17px !important;
+  }
+
+  .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal > header::after {
+    left: 17px !important;
   }
 
   .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal-body {
@@ -326,15 +419,25 @@
   .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-preview-head {
     grid-template-columns: 1fr !important;
     min-height: 0 !important;
-    padding: 18px !important;
+    padding: 19px !important;
+  }
+
+  .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-preview-head::before {
+    right: 18px !important;
+    opacity: .22 !important;
+  }
+
+  .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-preview-head::after {
+    left: 19px !important;
   }
 
   .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-preview-head .mr-status {
     width: fit-content !important;
+    margin-right: 0 !important;
   }
 
   .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-read-section {
-    padding: 15px !important;
+    padding: 16px !important;
   }
 }
 
