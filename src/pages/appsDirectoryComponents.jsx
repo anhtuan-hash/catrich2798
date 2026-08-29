@@ -1,5 +1,5 @@
-import React from 'react';
-import { LockKeyhole } from 'lucide-react';
+import React, { useState } from 'react';
+import { ChevronRight, Grid2X2, LockKeyhole, Navigation, Pin, Settings2, Star, UsersRound } from 'lucide-react';
 import PermissionRequestButton from '../components/PermissionRequestButton.jsx';
 import FlatAppIcon from '../components/FlatAppIcon.jsx';
 import { getAppDesignProfile } from '../data/designProfiles.js';
@@ -108,6 +108,30 @@ export function GroupRail({ group, count, language, active, onClick }) {
 export function AppsDirectoryHero({ language, isAdmin, editMode, saving, visibleItems, pinnedCount, navCount, onBrowse, onEdit, onSave, onReset }) {
   const t = copy[language] || copy.vi;
   const vi = language === 'vi';
+  const [activeFilter, setActiveFilter] = useState('all');
+
+  const filterOptions = [
+    { id: 'all', label: vi ? 'Tất cả ứng dụng' : 'All apps', icon: Grid2X2 },
+    { id: 'pinned', label: vi ? 'Đã ghim' : 'Pinned', icon: Pin },
+    { id: 'shared', label: vi ? 'Dùng chung' : 'Shared', icon: UsersRound },
+    { id: 'featured', label: vi ? 'Nổi bật' : 'Featured', icon: Star },
+    { id: 'nav', label: vi ? 'Trên điều hướng' : 'In navigation', icon: Navigation },
+  ];
+
+  const applyFilter = (filterId, shouldScroll = true) => {
+    setActiveFilter(filterId);
+    const root = document.querySelector('.apps-directory-native');
+    if (root) root.dataset.heroFilter = filterId;
+    if (shouldScroll) {
+      window.requestAnimationFrame(() => document.getElementById('apps-directory-grid')?.scrollIntoView({ behavior: 'auto', block: 'start' }));
+    }
+  };
+
+  const browseAll = () => {
+    applyFilter('all', false);
+    onBrowse?.();
+  };
+
   return (
     <header className="editorial-apps-hero">
       <div className="editorial-apps-hero-copy">
@@ -115,37 +139,61 @@ export function AppsDirectoryHero({ language, isAdmin, editMode, saving, visible
         <h1>{vi ? <>Kho <em>ứng dụng</em><br />dành cho giáo viên</> : <>Teacher <em>app</em><br />directory</>}</h1>
         <p className="editorial-apps-lede">
           {vi
-            ? 'Khám phá và mở nhanh toàn bộ công cụ dạy học, quản lý lớp và phát triển chuyên môn trong một không gian gọn gàng, dễ đọc và nhất quán.'
-            : 'Discover and launch teaching, classroom-management and professional tools from one calm, consistent workspace.'}
+            ? 'Khám phá và sử dụng các ứng dụng học tập hữu ích dành riêng cho giáo viên Brian English.'
+            : 'Discover and launch useful teaching applications built for the Brian English workspace.'}
         </p>
+
         <div className="editorial-apps-hero-actions">
-          <button type="button" onClick={onBrowse}>{vi ? 'Xem toàn bộ ứng dụng' : 'Browse all apps'}</button>
-          {isAdmin && <button type="button" onClick={onEdit}>{editMode ? t.finish : t.customize}</button>}
-          {isAdmin && editMode && <button type="button" onClick={onSave} disabled={saving}>{saving ? t.saving : t.save}</button>}
-          {isAdmin && editMode && <button type="button" onClick={onReset} disabled={saving}>{t.reset}</button>}
+          <button type="button" className="is-primary" onClick={browseAll}><Grid2X2 aria-hidden="true" /><span>{vi ? 'Xem toàn bộ ứng dụng' : 'Browse all apps'}</span></button>
+          {isAdmin && <button type="button" className="is-secondary" onClick={onEdit}><Settings2 aria-hidden="true" /><span>{editMode ? t.finish : t.customize}</span></button>}
+          {isAdmin && editMode && <button type="button" className="is-utility" onClick={onSave} disabled={saving}>{saving ? t.saving : t.save}</button>}
+          {isAdmin && editMode && <button type="button" className="is-utility" onClick={onReset} disabled={saving}>{t.reset}</button>}
+        </div>
+
+        <div className="editorial-apps-filter-chips" aria-label={vi ? 'Bộ lọc nhanh ứng dụng' : 'Quick app filters'}>
+          {filterOptions.map(({ id, label, icon: FilterIcon }) => (
+            <button key={id} type="button" className={activeFilter === id ? 'is-active' : ''} onClick={() => applyFilter(id)} aria-pressed={activeFilter === id}>
+              <FilterIcon aria-hidden="true" /><span>{label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
       <div className="editorial-apps-hero-side">
         <div className="editorial-apps-illustration" aria-hidden="true">
-          <svg viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M109 199C110 163 113 123 117 84C120 57 126 35 136 17" stroke="#617362" strokeWidth="1.8" strokeLinecap="round" />
-            <path d="M117 95C94 80 76 62 63 40M115 119C139 103 158 84 171 59M112 148C89 138 69 124 52 104M111 176C133 164 153 149 171 128" stroke="#617362" strokeWidth="1.6" strokeLinecap="round" />
-            <ellipse cx="69" cy="50" rx="10" ry="23" transform="rotate(-43 69 50)" stroke="#617362" strokeWidth="1.5" />
-            <ellipse cx="87" cy="76" rx="9" ry="21" transform="rotate(-49 87 76)" stroke="#617362" strokeWidth="1.5" />
-            <ellipse cx="161" cy="69" rx="10" ry="23" transform="rotate(43 161 69)" stroke="#617362" strokeWidth="1.5" />
-            <ellipse cx="144" cy="96" rx="9" ry="21" transform="rotate(49 144 96)" stroke="#617362" strokeWidth="1.5" />
-            <ellipse cx="61" cy="116" rx="10" ry="23" transform="rotate(-57 61 116)" stroke="#617362" strokeWidth="1.5" />
-            <ellipse cx="85" cy="141" rx="9" ry="21" transform="rotate(-57 85 141)" stroke="#617362" strokeWidth="1.5" />
-            <ellipse cx="160" cy="142" rx="10" ry="23" transform="rotate(57 160 142)" stroke="#617362" strokeWidth="1.5" />
-            <ellipse cx="140" cy="165" rx="9" ry="21" transform="rotate(57 140 165)" stroke="#617362" strokeWidth="1.5" />
-            <path d="M44 202C82 189 132 189 179 202" stroke="#C5A98F" strokeWidth="1.4" strokeLinecap="round" />
+          <span className="editorial-apps-orb editorial-apps-orb-a" />
+          <span className="editorial-apps-orb editorial-apps-orb-b" />
+          <svg viewBox="0 0 260 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M124 277C125 228 128 171 133 116C137 78 144 48 157 23" stroke="#506B70" strokeWidth="1.8" strokeLinecap="round" />
+            <path d="M132 131C103 110 80 85 64 55M130 165C160 143 183 116 199 82M127 205C98 191 73 172 52 145M126 244C154 225 179 203 201 173" stroke="#506B70" strokeWidth="1.6" strokeLinecap="round" />
+            <ellipse cx="72" cy="67" rx="12" ry="27" transform="rotate(-43 72 67)" stroke="#506B70" strokeWidth="1.5" />
+            <ellipse cx="94" cy="101" rx="11" ry="25" transform="rotate(-49 94 101)" stroke="#506B70" strokeWidth="1.5" />
+            <ellipse cx="187" cy="96" rx="12" ry="27" transform="rotate(43 187 96)" stroke="#506B70" strokeWidth="1.5" />
+            <ellipse cx="166" cy="132" rx="11" ry="25" transform="rotate(49 166 132)" stroke="#506B70" strokeWidth="1.5" />
+            <ellipse cx="61" cy="160" rx="12" ry="27" transform="rotate(-57 61 160)" stroke="#506B70" strokeWidth="1.5" />
+            <ellipse cx="91" cy="194" rx="11" ry="25" transform="rotate(-57 91 194)" stroke="#506B70" strokeWidth="1.5" />
+            <ellipse cx="188" cy="191" rx="12" ry="27" transform="rotate(57 188 191)" stroke="#506B70" strokeWidth="1.5" />
+            <ellipse cx="163" cy="225" rx="11" ry="25" transform="rotate(57 163 225)" stroke="#506B70" strokeWidth="1.5" />
+            <path d="M42 281C87 263 148 263 211 281" stroke="#C99678" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
         </div>
+
         <div className="editorial-apps-stats" aria-label={vi ? 'Tổng quan ứng dụng' : 'Apps summary'}>
-          <div className="editorial-apps-stat"><span aria-hidden="true">▦</span><strong>{visibleItems.length}</strong><small>{vi ? 'Ứng dụng sẵn sàng' : 'Apps ready'}</small></div>
-          <div className="editorial-apps-stat"><span aria-hidden="true">★</span><strong>{pinnedCount}</strong><small>{vi ? 'Đã ghim' : 'Pinned'}</small></div>
-          <div className="editorial-apps-stat"><span aria-hidden="true">➤</span><strong>{navCount}</strong><small>{vi ? 'Trên điều hướng' : 'In navigation'}</small></div>
+          <button type="button" className="editorial-apps-stat is-ready" onClick={() => applyFilter('all')}>
+            <span className="editorial-apps-stat-icon"><Grid2X2 aria-hidden="true" /></span>
+            <span className="editorial-apps-stat-copy"><strong>{visibleItems.length}</strong><small>{vi ? 'ứng dụng sẵn sàng' : 'apps ready'}</small></span>
+            <ChevronRight className="editorial-apps-stat-arrow" aria-hidden="true" />
+          </button>
+          <button type="button" className="editorial-apps-stat is-pinned" onClick={() => applyFilter('pinned')}>
+            <span className="editorial-apps-stat-icon"><Star aria-hidden="true" /></span>
+            <span className="editorial-apps-stat-copy"><strong>{pinnedCount}</strong><small>{vi ? 'đã ghim' : 'pinned'}</small></span>
+            <ChevronRight className="editorial-apps-stat-arrow" aria-hidden="true" />
+          </button>
+          <button type="button" className="editorial-apps-stat is-nav" onClick={() => applyFilter('nav')}>
+            <span className="editorial-apps-stat-icon"><Navigation aria-hidden="true" /></span>
+            <span className="editorial-apps-stat-copy"><strong>{navCount}</strong><small>{vi ? 'trên điều hướng' : 'in navigation'}</small></span>
+            <ChevronRight className="editorial-apps-stat-arrow" aria-hidden="true" />
+          </button>
         </div>
       </div>
     </header>
