@@ -5,6 +5,16 @@ export const WORK_HUB_DELIVERY_EVENT = 'bes-work-hub-delivery-updated';
 export const WORK_HUB_BUCKET = 'work-hub-submissions';
 export const WORK_HUB_DRIVE_PROVIDER = 'google-drive';
 export const WORK_HUB_MAX_FILE_BYTES = 10 * 1024 * 1024;
+export const WORK_HUB_MAX_ATTACHMENTS = 10;
+export const WORK_HUB_ALLOWED_EXTENSIONS = Object.freeze([
+  'pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'ppt', 'pptx', 'txt', 'rtf',
+  'odt', 'ods', 'odp',
+  'jpg', 'jpeg', 'png', 'webp', 'gif', 'svg',
+  'zip', 'rar', '7z',
+  'mp3', 'wav', 'ogg', 'm4a',
+  'mp4', 'webm', 'mov',
+]);
+export const WORK_HUB_ATTACHMENT_ACCEPT = WORK_HUB_ALLOWED_EXTENSIONS.map((extension) => `.${extension}`).join(',');
 
 const NOTIFICATION_CACHE_MAX_AGE = 30 * 60 * 1000;
 const SIGNED_URL_CACHE_MAX_AGE = 50 * 60 * 1000;
@@ -12,10 +22,7 @@ const notificationCache = new Map();
 const notificationPromises = new Map();
 const signedUrlCache = new Map();
 
-const ALLOWED_EXTENSIONS = new Set([
-  'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf',
-  'jpg', 'jpeg', 'png', 'webp', 'zip', 'rar', '7z', 'mp3', 'wav', 'mp4',
-]);
+const ALLOWED_EXTENSIONS = new Set(WORK_HUB_ALLOWED_EXTENSIONS);
 
 function cleanText(value) {
   return String(value || '').trim();
@@ -103,6 +110,20 @@ export function validateWorkHubFile(file) {
   return { ok: true };
 }
 
+export function validateWorkHubFiles(files = [], { maxFiles = WORK_HUB_MAX_ATTACHMENTS } = {}) {
+  const list = Array.from(files || []).filter(Boolean);
+  if (list.length > maxFiles) {
+    return { ok: false, message: `Mỗi nội dung chỉ được đính kèm tối đa ${maxFiles} tệp.` };
+  }
+  for (const file of list) {
+    const validation = validateWorkHubFile(file);
+    if (!validation.ok) {
+      return { ok: false, message: `${file?.name || 'Tệp đã chọn'}: ${validation.message}` };
+    }
+  }
+  return { ok: true };
+}
+
 export async function uploadWorkHubSubmissionFile({ file, itemId, userId }) {
   const validation = validateWorkHubFile(file);
   if (!validation.ok) return validation;
@@ -144,6 +165,28 @@ export async function uploadWorkHubSubmissionFile({ file, itemId, userId }) {
   } catch (error) {
     return { ok: false, message: error?.message || 'Không thể tải tệp lên Google Drive.' };
   }
+}
+
+export async function uploadWorkHubSubmissionFiles({ files = [], itemId, userId }) {
+  const list = Array.from(files || []).filter(Boolean);
+  const validation = validateWorkHubFiles(list);
+  if (!validation.ok) return { ...validation, attachments: [] };
+  if (!list.length) return { ok: true, attachments: [] };
+
+  const attachments = [];
+  for (const file of list) {
+    const result = await uploadWorkHubSubmissionFile({ file, itemId, userId });
+    if (!result.ok || !result.attachment) {
+      if (attachments.length) await removeWorkHubSubmissionFiles(attachments).catch(() => {});
+      return {
+        ok: false,
+        attachments: [],
+        message: `${file?.name || 'Tệp'}: ${result.message || 'Không thể tải tệp lên Google Drive.'}`,
+      };
+    }
+    attachments.push(result.attachment);
+  }
+  return { ok: true, attachments };
 }
 
 export async function removeWorkHubSubmissionFile(attachment) {
