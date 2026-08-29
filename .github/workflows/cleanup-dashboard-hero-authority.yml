@@ -1,0 +1,67 @@
+name: Cleanup dashboard hero CSS authority
+
+on:
+  push:
+    paths:
+      - '.github/workflows/cleanup-dashboard-hero-authority.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Remove legacy hero rules from authentic dashboard stylesheet
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          path = Path('src/styles/teacher-dashboard-google-authentic.css')
+          text = path.read_text(encoding='utf-8')
+          original = text
+
+          # Remove only simple CSS rule blocks whose selector targets the Dashboard hero.
+          # This also covers hero rules nested inside media queries while preserving
+          # the surrounding media block and every non-hero Dashboard surface rule.
+          pattern = re.compile(r'(?ms)^[ \t]*[^{}\n][^{}]*\.gd-hero[^{}]*\{[^{}]*\}\s*')
+          while True:
+            updated = pattern.sub('', text)
+            if updated == text:
+              break
+            text = updated
+
+          # Keep the file's purpose explicit after removing hero ownership.
+          marker = '/* Dashboard — Google Workspace / Material 3 soft surfaces.'
+          if text.startswith(marker) and 'Hero ownership was removed from this file' not in text[:320]:
+            text = text.replace(
+              '/* Dashboard — Google Workspace / Material 3 soft surfaces.\n   Scoped to the Dashboard route so global legacy layers cannot recolor cards. */',
+              '/* Dashboard — Google Workspace / Material 3 soft surfaces.\n   Scoped to the Dashboard route so global legacy layers cannot recolor cards.\n   Hero ownership was removed from this file on 2026-08-29; hero layout lives only in teacher-dashboard-hero-interactive-2026.css. */',
+              1,
+            )
+
+          if text == original:
+            raise SystemExit('No legacy hero rules found; refusing to make an empty commit.')
+
+          path.write_text(text, encoding='utf-8')
+
+      - name: Verify no hero selectors remain in authentic stylesheet
+        shell: bash
+        run: |
+          if grep -n "gd-hero" src/styles/teacher-dashboard-google-authentic.css; then
+            echo 'Legacy hero selectors still remain.' >&2
+            exit 1
+          fi
+
+      - name: Commit cleanup
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/styles/teacher-dashboard-google-authentic.css
+          git commit -m 'refactor: remove legacy dashboard hero rules from authentic styles'
+          git push origin main
