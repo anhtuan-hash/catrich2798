@@ -1,0 +1,569 @@
+name: Editorial dashboard hero rebuild
+
+on:
+  push:
+    paths:
+      - '.github/workflows/editorial-dashboard-hero-rebuild.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - name: Rebuild editorial hero from source
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          page_path = Path('src/pages/WorkDashboard.jsx')
+          old_css_path = Path('src/styles/teacher-dashboard-hero-interactive-2026.css')
+          new_css_path = Path('src/styles/teacher-dashboard-editorial-hero.css')
+          workflow_path = Path('.github/workflows/editorial-dashboard-hero-rebuild.yml')
+
+          page = page_path.read_text(encoding='utf-8')
+          page = page.replace("import '../styles/teacher-dashboard-hero-interactive-2026.css';", "import '../styles/teacher-dashboard-editorial-hero.css';")
+
+          illustration = r'''function DashboardHeroIllustration() {
+            return <svg className="editorial-hero-art" viewBox="0 0 700 430" aria-hidden="true" focusable="false">
+              <defs>
+                <linearGradient id="edCalendarBlue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#1769e0" /><stop offset="1" stopColor="#0d4fae" /></linearGradient>
+                <linearGradient id="edBookBlue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#2b77e5" /><stop offset="1" stopColor="#084aa8" /></linearGradient>
+                <linearGradient id="edPaper" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffffff" /><stop offset="1" stopColor="#f6f8fb" /></linearGradient>
+                <linearGradient id="edSoftBlue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#edf4ff" /><stop offset="1" stopColor="#dceaff" /></linearGradient>
+                <filter id="edShadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="14" stdDeviation="14" floodColor="#11345f" floodOpacity=".14" /></filter>
+              </defs>
+
+              <ellipse cx="405" cy="391" rx="244" ry="24" fill="#c9d4e3" opacity=".38" />
+              <circle cx="404" cy="220" r="188" fill="#eaf2ff" opacity=".78" />
+              <g fill="#8cb5ec" opacity=".7">
+                {[0, 1, 2, 3, 4, 5].map((row) => [0, 1, 2, 3, 4, 5].map((col) => <circle key={`dot-${row}-${col}`} cx={599 + col * 15} cy={94 + row * 15} r="2.2" />))}
+              </g>
+
+              <g filter="url(#edShadow)" transform="translate(278 46)">
+                <path d="M30 51 287 65l-7 261-258-12Z" fill="#d8e0ea" opacity=".42" />
+                <path d="M18 40 275 54l-7 261-258-12Z" fill="url(#edPaper)" stroke="#cbd5e1" strokeWidth="2.4" />
+                <path d="M18 40 275 54l-2 60-258-12Z" fill="url(#edCalendarBlue)" />
+                {[48, 99, 150, 201, 252].map((x) => <g key={x}><line x1={x} y1="13" x2={x - 2} y2="69" stroke="#173e6c" strokeWidth="7" strokeLinecap="round" /><ellipse cx={x - 1} cy="43" rx="7.5" ry="4.5" fill="#eaf2fb" opacity=".9" /></g>)}
+                <g stroke="#e4e8ef" strokeWidth="1.4">
+                  {[137, 174, 211, 248, 285].map((y) => <line key={`h-${y}`} x1="34" y1={y} x2="250" y2={y + 11} />)}
+                  {[67, 104, 141, 178, 215].map((x) => <line key={`v-${x}`} x1={x} y1="119" x2={x - 5} y2="293" />)}
+                </g>
+                <path d="M117 170l12 12 25-28" fill="none" stroke="#1769e0" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M175 224l12 12 25-28" fill="none" stroke="#1769e0" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
+              </g>
+
+              <g filter="url(#edShadow)" transform="translate(165 270) rotate(-8 90 54)">
+                <rect width="180" height="108" rx="11" fill="url(#edBookBlue)" />
+                <path d="M12 92h156" stroke="#77a9ed" strokeWidth="2" opacity=".75" />
+                <text x="90" y="48" textAnchor="middle" fill="#fff" fontSize="26" fontWeight="800" fontFamily="Arial, sans-serif">GIÁO ÁN</text>
+                <text x="90" y="73" textAnchor="middle" fill="#dceaff" fontSize="13" fontWeight="600" fontFamily="Arial, sans-serif">Tuần 1</text>
+              </g>
+
+              <g transform="translate(108 265)">
+                <ellipse cx="48" cy="117" rx="45" ry="9" fill="#c9d4e3" opacity=".45" />
+                <path d="M17 54h64l-7 64H24Z" fill="#f7f4ed" stroke="#d5d9df" strokeWidth="2" />
+                <path d="M31 8v57M45 2v63M60 11v54" strokeLinecap="round" strokeWidth="7" />
+                <path d="M31 8v57" stroke="#172f4f" /><path d="M45 2v63" stroke="#1769e0" /><path d="M60 11v54" stroke="#efaa2f" />
+              </g>
+
+              <g filter="url(#edShadow)" transform="translate(401 293)">
+                <rect x="0" y="11" width="105" height="92" rx="17" fill="#fffdfa" stroke="#d8dee7" strokeWidth="2" />
+                <path d="M104 35h18c18 0 24 17 24 26s-6 27-24 27h-18" fill="none" stroke="#d8dee7" strokeWidth="10" />
+                <path d="M104 35h18c18 0 24 17 24 26s-6 27-24 27h-18" fill="none" stroke="#fffdfa" strokeWidth="6" />
+                <text x="52" y="68" textAnchor="middle" fill="#0b57c9" fontSize="25" fontWeight="800" fontFamily="Arial, sans-serif">EH</text>
+              </g>
+
+              <g filter="url(#edShadow)" transform="translate(502 304)">
+                <rect x="0" y="53" width="164" height="27" rx="5" fill="#163f75" />
+                <rect x="8" y="27" width="158" height="27" rx="5" fill="#245fae" />
+                <text x="82" y="72" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="700" fontFamily="Arial, sans-serif">LESSON PLAN</text>
+                <text x="87" y="46" textAnchor="middle" fill="#fff" fontSize="12" fontWeight="700" fontFamily="Arial, sans-serif">ENGLISH</text>
+              </g>
+
+              <g transform="translate(584 230)">
+                <ellipse cx="43" cy="134" rx="44" ry="8" fill="#c9d4e3" opacity=".35" />
+                <path d="M20 77h49l-6 56H26Z" fill="#e9e5da" stroke="#cbc5b7" strokeWidth="2" />
+                <path d="M45 78c-7-44-39-41-38-9 14-8 26 3 38 9Z" fill="#2c9d54" />
+                <path d="M46 75c7-51 40-43 39-10-16-8-28 3-39 10Z" fill="#168447" />
+                <path d="M43 79c-2-41-28-34-27-6 10-5 19 2 27 6Z" fill="#38ad61" />
+              </g>
+
+              <g fill="#9bbce8" opacity=".85">
+                <circle cx="217" cy="91" r="4" /><circle cx="237" cy="91" r="4" /><circle cx="257" cy="91" r="4" />
+                <circle cx="217" cy="111" r="4" /><circle cx="237" cy="111" r="4" /><circle cx="257" cy="111" r="4" />
+              </g>
+              <path d="M173 80l6 14 14 6-14 6-6 14-6-14-14-6 14-6 6-14Z" fill="#fff" />
+            </svg>;
+          }'''
+
+          page, n = re.subn(
+              r'function DashboardHeroIllustration\(\) \{.*?\n\}\n\nexport default function WorkDashboard',
+              illustration + '\n\nexport default function WorkDashboard',
+              page,
+              count=1,
+              flags=re.S,
+          )
+          if n != 1:
+              raise SystemExit(f'illustration replacement count = {n}')
+
+          old_hero_date = "  const heroDate = new Intl.DateTimeFormat(locale, { weekday: 'long', day: '2-digit', month: 'short' }).format(now);"
+          new_hero_date = old_hero_date + "\n  const editorialDate = new Intl.DateTimeFormat('en-GB', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).format(now).replace(/,/g, '').toUpperCase();"
+          if old_hero_date not in page:
+              raise SystemExit('hero date marker not found')
+          page = page.replace(old_hero_date, new_hero_date, 1)
+
+          hero = r'''        <header className="editorial-hero">
+          <div className="editorial-hero-copy">
+            <span className="editorial-hero-eyebrow">{t.eyebrow}</span>
+            <span className="editorial-hero-date">{editorialDate}</span>
+            <h1 className="editorial-hero-title">
+              <span className="editorial-hero-hello">{t.hello},</span>
+              <span className="editorial-hero-name-row"><strong>{name}</strong><span aria-hidden="true">👋</span></span>
+            </h1>
+            <p className="editorial-hero-lead">{t.lead}</p>
+
+            <div className="editorial-hero-actions">
+              <button type="button" className="editorial-action-primary" onClick={scrollToCalendar}><Icon name="calendar" size={20} /><span>{t.calendar}</span><Icon name="arrow" size={18} /></button>
+              <button type="button" className="editorial-action-secondary" onClick={() => refresh()} disabled={loading}><Icon name="refresh" size={20} /><span>{loading ? t.refreshing : t.refresh}</span></button>
+            </div>
+            <div className="editorial-hero-links">
+              <button type="button" onClick={focusNearestEvent}><Icon name="event" size={18} /><span>{t.nearest}</span><Icon name="arrow" size={16} /></button>
+              <button type="button" onClick={() => openTtcm('schedule')}><Icon name="calendar" size={18} /><span>{t.openCalendar}</span><Icon name="arrow" size={16} /></button>
+            </div>
+          </div>
+
+          <div className="editorial-hero-media">
+            <div className="editorial-utility-rail" aria-label={language === 'vi' ? 'Tiện ích nhanh' : 'Quick utilities'}>
+              <button type="button" className="editorial-utility" onClick={() => setNow(new Date())} title={t.currentTime}>
+                <span className="editorial-utility-icon"><Icon name="clock" size={19} /></span>
+                <span><strong>{heroTime}</strong><small>{t.currentTime}</small></span>
+              </button>
+              <button type="button" className="editorial-utility editorial-weather" onClick={refreshWeather} title={t.weather}>
+                <span className="editorial-utility-icon is-sun" aria-hidden="true">☀</span>
+                <span><strong>TP.HCM · {weatherTemperature}</strong><small>{weather.loading ? t.weatherLoading : weatherDescription}</small></span>
+              </button>
+              <button type="button" className="editorial-utility" onClick={focusToday} title={t.dateToday}>
+                <span className="editorial-utility-icon"><Icon name="calendar" size={19} /></span>
+                <span><strong>{heroDate}</strong><small>{t.dateToday}</small></span>
+              </button>
+            </div>
+            <div className="editorial-hero-visual"><DashboardHeroIllustration /></div>
+          </div>
+        </header>
+      </section>'''
+
+          page, n = re.subn(
+              r'        <header className="dash-hero">.*?        </header>\n      </section>',
+              hero,
+              page,
+              count=1,
+              flags=re.S,
+          )
+          if n != 1:
+              raise SystemExit(f'hero replacement count = {n}')
+
+          if 'dash-hero' in page or 'dash-utility' in page or 'dash-main-actions' in page:
+              raise SystemExit('legacy dash hero markup remains')
+          if 'teacher-dashboard-hero-interactive-2026.css' in page:
+              raise SystemExit('legacy hero stylesheet import remains')
+
+          page_path.write_text(page, encoding='utf-8')
+
+          css = r'''/* Brian English Dashboard — editorial hero, Aug 2026.
+             This is the single source of truth for the Dashboard hero. */
+
+          .app-shell[data-route="dashboard"] .gd-top-grid {
+            display: block;
+            width: 100%;
+            min-width: 0;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-hero,
+          .app-shell[data-route="dashboard"] .editorial-hero * {
+            box-sizing: border-box;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-hero {
+            --ed-ink: #102640;
+            --ed-muted: #5f6f82;
+            --ed-blue: #0b57c9;
+            --ed-blue-strong: #0647ad;
+            --ed-line: #d8dee7;
+            display: grid;
+            grid-template-columns: minmax(0, 1.06fr) minmax(520px, .94fr);
+            width: 100%;
+            min-width: 0;
+            min-height: 492px;
+            margin: 0 0 28px;
+            overflow: hidden;
+            background: #fffdfa;
+            border: 1px solid var(--ed-line);
+            border-radius: 26px;
+            box-shadow: 0 16px 42px rgba(28, 48, 74, .065);
+            color: var(--ed-ink);
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-hero-copy {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-width: 0;
+            padding: 45px 30px 42px 46px;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-hero-eyebrow {
+            width: fit-content;
+            margin: 0 0 16px;
+            color: var(--ed-blue);
+            font-size: 12px;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-hero-date {
+            margin: 0 0 11px;
+            color: #43546a;
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.3;
+            letter-spacing: .045em;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-hero-title {
+            display: block;
+            max-width: 760px;
+            margin: 0;
+            padding: 0;
+            font-family: Georgia, 'Times New Roman', Baskerville, 'Palatino Linotype', serif;
+            font-weight: 400;
+            letter-spacing: -.045em;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-hero-hello {
+            display: block;
+            color: #10213a;
+            font-size: clamp(50px, 4.2vw, 68px);
+            font-style: normal;
+            font-weight: 400;
+            line-height: .94;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-hero-name-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 15px;
+            width: fit-content;
+            max-width: 100%;
+            margin-top: 2px;
+            color: var(--ed-blue);
+            line-height: .98;
+            white-space: nowrap;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-hero-name-row strong {
+            position: relative;
+            display: inline-block;
+            color: inherit;
+            font-family: inherit;
+            font-size: clamp(64px, 5.45vw, 88px);
+            font-style: italic;
+            font-weight: 500;
+            letter-spacing: -.055em;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-hero-name-row strong::after {
+            content: '';
+            position: absolute;
+            right: 2%;
+            bottom: -4px;
+            left: 3%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #4383de 12%, #4383de 86%, transparent);
+            transform: rotate(-1deg);
+            transform-origin: left center;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-hero-name-row > span {
+            flex: 0 0 auto;
+            margin-bottom: 10px;
+            font-family: system-ui, sans-serif;
+            font-size: 30px;
+            line-height: 1;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-hero-lead {
+            max-width: 590px;
+            margin: 25px 0 0;
+            color: #33465d;
+            font-size: 16px;
+            font-weight: 500;
+            line-height: 1.65;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 14px;
+            margin-top: 25px;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-action-primary,
+          .app-shell[data-route="dashboard"] .editorial-action-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            min-height: 54px;
+            padding: 0 22px;
+            border-radius: 10px;
+            font: inherit;
+            font-size: 15px;
+            font-weight: 750;
+            cursor: pointer;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-action-primary {
+            min-width: 292px;
+            color: #fff;
+            background: linear-gradient(135deg, #0b64d8, #064eb8);
+            border: 1px solid #084eb3;
+            box-shadow: 0 8px 20px rgba(11, 87, 201, .16);
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-action-secondary {
+            min-width: 148px;
+            color: #173858;
+            background: rgba(255, 255, 255, .72);
+            border: 1px solid #d3dae4;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-action-primary:disabled,
+          .app-shell[data-route="dashboard"] .editorial-action-secondary:disabled {
+            cursor: wait;
+            opacity: .68;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-hero-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 28px;
+            margin-top: 20px;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-hero-links button {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            min-height: 36px;
+            padding: 0;
+            color: #173858;
+            background: transparent;
+            border: 0;
+            font: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-hero-links button:hover {
+            color: var(--ed-blue);
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-hero .gd-icon {
+            flex: 0 0 auto;
+            fill: currentColor;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-hero-media {
+            position: relative;
+            display: grid;
+            grid-template-rows: auto minmax(0, 1fr);
+            min-width: 0;
+            padding: 30px 30px 16px 25px;
+            background:
+              radial-gradient(circle at 76% 54%, rgba(220, 234, 255, .72) 0, rgba(220, 234, 255, .3) 26%, transparent 52%),
+              linear-gradient(120deg, rgba(255, 253, 250, 0), rgba(239, 246, 255, .56));
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-hero-media::before {
+            content: '';
+            position: absolute;
+            top: 50px;
+            bottom: 48px;
+            left: 0;
+            width: 1px;
+            background: #e0e4ea;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-utility-rail {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: .9fr 1.25fr 1.35fr;
+            min-width: 0;
+            border-bottom: 1px solid #e1e5eb;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-utility {
+            display: grid;
+            grid-template-columns: 42px minmax(0, 1fr);
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+            min-height: 76px;
+            padding: 5px 15px;
+            color: var(--ed-ink);
+            background: transparent;
+            border: 0;
+            border-left: 1px solid #e1e5eb;
+            border-radius: 0;
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-utility:first-child {
+            border-left: 0;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-utility-icon {
+            display: grid;
+            place-items: center;
+            width: 38px;
+            height: 38px;
+            color: #0b57c9;
+            background: #eaf2ff;
+            border-radius: 50%;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-utility-icon.is-sun {
+            color: #f0a000;
+            background: #fff4cf;
+            font-size: 22px;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-utility > span:last-child {
+            display: flex;
+            min-width: 0;
+            flex-direction: column;
+            gap: 3px;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-utility strong {
+            overflow: visible;
+            color: #102e56;
+            font-size: 14px;
+            font-weight: 800;
+            line-height: 1.18;
+            white-space: nowrap;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-utility small {
+            color: #657489;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.15;
+            white-space: nowrap;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-hero-visual {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-end;
+            min-width: 0;
+            min-height: 0;
+            padding-top: 8px;
+          }
+
+          .app-shell[data-route="dashboard"] .editorial-hero-art {
+            display: block;
+            width: min(100%, 650px);
+            max-width: 650px;
+            height: auto;
+            max-height: 368px;
+            margin: auto 0 0 auto;
+            overflow: visible;
+          }
+
+          @media (max-width: 1240px) {
+            .app-shell[data-route="dashboard"] .editorial-hero {
+              grid-template-columns: minmax(0, 1fr) minmax(455px, .82fr);
+            }
+            .app-shell[data-route="dashboard"] .editorial-hero-copy { padding-left: 36px; }
+            .app-shell[data-route="dashboard"] .editorial-hero-name-row strong { font-size: clamp(56px, 5vw, 74px); }
+            .app-shell[data-route="dashboard"] .editorial-utility { padding-inline: 10px; }
+            .app-shell[data-route="dashboard"] .editorial-utility strong { font-size: 12px; }
+          }
+
+          @media (max-width: 980px) {
+            .app-shell[data-route="dashboard"] .editorial-hero {
+              grid-template-columns: 1fr;
+              min-height: 0;
+            }
+            .app-shell[data-route="dashboard"] .editorial-hero-copy { padding: 36px 32px 28px; }
+            .app-shell[data-route="dashboard"] .editorial-hero-media {
+              min-height: 390px;
+              padding: 0 30px 14px;
+              border-top: 1px solid #e1e5eb;
+            }
+            .app-shell[data-route="dashboard"] .editorial-hero-media::before { display: none; }
+            .app-shell[data-route="dashboard"] .editorial-hero-name-row strong { font-size: clamp(58px, 9vw, 78px); }
+            .app-shell[data-route="dashboard"] .editorial-utility-rail { margin-top: 8px; }
+            .app-shell[data-route="dashboard"] .editorial-hero-art { max-height: 310px; }
+          }
+
+          @media (max-width: 640px) {
+            .app-shell[data-route="dashboard"] .editorial-hero { border-radius: 20px; }
+            .app-shell[data-route="dashboard"] .editorial-hero-copy { padding: 28px 20px 24px; }
+            .app-shell[data-route="dashboard"] .editorial-hero-date { font-size: 11px; }
+            .app-shell[data-route="dashboard"] .editorial-hero-hello { font-size: clamp(42px, 13vw, 56px); }
+            .app-shell[data-route="dashboard"] .editorial-hero-name-row { gap: 9px; white-space: normal; }
+            .app-shell[data-route="dashboard"] .editorial-hero-name-row strong { font-size: clamp(48px, 14vw, 66px); }
+            .app-shell[data-route="dashboard"] .editorial-hero-name-row > span { margin-bottom: 5px; font-size: 24px; }
+            .app-shell[data-route="dashboard"] .editorial-hero-lead { margin-top: 19px; font-size: 14px; }
+            .app-shell[data-route="dashboard"] .editorial-hero-actions { align-items: stretch; flex-direction: column; }
+            .app-shell[data-route="dashboard"] .editorial-action-primary,
+            .app-shell[data-route="dashboard"] .editorial-action-secondary { width: 100%; min-width: 0; }
+            .app-shell[data-route="dashboard"] .editorial-hero-links { flex-direction: column; gap: 4px; }
+            .app-shell[data-route="dashboard"] .editorial-hero-media { min-height: 410px; padding: 0 16px 8px; }
+            .app-shell[data-route="dashboard"] .editorial-utility-rail { grid-template-columns: 1fr; border-bottom: 0; }
+            .app-shell[data-route="dashboard"] .editorial-utility { min-height: 59px; border-top: 1px solid #e1e5eb; border-left: 0; }
+            .app-shell[data-route="dashboard"] .editorial-utility:first-child { border-top: 0; }
+            .app-shell[data-route="dashboard"] .editorial-hero-art { width: 112%; max-width: 560px; max-height: 270px; }
+          }
+          '''
+
+          new_css_path.write_text(css.strip() + '\n', encoding='utf-8')
+          if old_css_path.exists():
+              old_css_path.unlink()
+          if workflow_path.exists():
+              workflow_path.unlink()
+          PY
+      - name: Install dependencies
+        run: npm ci
+      - name: Build production bundles
+        run: npx vite build && npx vite build --config apps/classroom-screen/vite.config.ts
+      - name: Commit rebuilt hero
+        run: |
+          git config user.name "Brian Editorial Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          git diff --cached --check
+          git commit -m "refactor: rebuild dashboard hero in editorial style"
+          git push origin main
