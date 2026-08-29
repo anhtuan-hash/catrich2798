@@ -1,0 +1,349 @@
+/* Monthly report preview — Material document dialog
+   Scoped to Brian Team personal reports so report logic and manager dialogs stay intact. */
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal-layer {
+  z-index: 100000 !important;
+  inset: 0 !important;
+  padding: clamp(18px, 4vh, 40px) clamp(14px, 3vw, 34px) !important;
+  place-items: center !important;
+  background: rgba(20, 31, 49, .58) !important;
+  backdrop-filter: blur(8px) saturate(.85);
+  -webkit-backdrop-filter: blur(8px) saturate(.85);
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal.is-wide {
+  width: min(920px, calc(100vw - 40px)) !important;
+  max-width: 920px !important;
+  max-height: min(860px, calc(100dvh - 72px)) !important;
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(207, 216, 228, .92) !important;
+  border-radius: 24px !important;
+  background: #f7f9fc !important;
+  box-shadow:
+    0 34px 90px rgba(15, 23, 42, .30),
+    0 8px 26px rgba(15, 23, 42, .14) !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal > header {
+  position: relative !important;
+  top: auto !important;
+  z-index: 5 !important;
+  min-height: 74px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 18px !important;
+  padding: 15px 18px 15px 22px !important;
+  border-bottom: 1px solid #e3e8f0 !important;
+  background: rgba(255,255,255,.96) !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal > header > div {
+  min-width: 0 !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal > header small {
+  display: block !important;
+  margin: 0 0 4px !important;
+  color: #55709a !important;
+  font-size: 9px !important;
+  font-weight: 850 !important;
+  line-height: 1 !important;
+  letter-spacing: .16em !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal > header h2 {
+  margin: 0 !important;
+  color: #152944 !important;
+  font-size: 19px !important;
+  font-weight: 790 !important;
+  line-height: 1.18 !important;
+  letter-spacing: -.018em !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal > header > button {
+  width: 40px !important;
+  height: 40px !important;
+  flex: 0 0 40px !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 0 !important;
+  border: 1px solid #dce3ed !important;
+  border-radius: 50% !important;
+  background: #f8fafc !important;
+  color: #4d6079 !important;
+  box-shadow: none !important;
+  transition: background .16s ease, border-color .16s ease, color .16s ease !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal > header > button:hover {
+  border-color: #c5d2e4 !important;
+  background: #edf3fb !important;
+  color: #1f5eae !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal > header > button svg {
+  width: 19px !important;
+  height: 19px !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal-body {
+  min-height: 0 !important;
+  overflow: auto !important;
+  overscroll-behavior: contain !important;
+  padding: 20px !important;
+  background:
+    linear-gradient(#f7f9fc, #f7f9fc) padding-box,
+    radial-gradient(circle at 88% 0%, rgba(227, 239, 255, .72), transparent 34%) border-box !important;
+  scrollbar-width: thin;
+  scrollbar-color: #c9d4e2 transparent;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal-body::-webkit-scrollbar {
+  width: 9px;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal-body::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: #c9d4e2;
+  background-clip: padding-box;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview {
+  display: grid !important;
+  gap: 12px !important;
+  color: #24354d !important;
+}
+
+/* Document identity */
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-preview-head {
+  position: relative !important;
+  overflow: hidden !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 18px !important;
+  min-height: 126px !important;
+  padding: 22px 24px !important;
+  border: 1px solid #d5e3f5 !important;
+  border-radius: 18px !important;
+  background:
+    radial-gradient(circle at 92% 8%, rgba(84, 141, 220, .14), transparent 31%),
+    linear-gradient(132deg, #f8fbff 0%, #edf5ff 100%) !important;
+  box-shadow: 0 5px 18px rgba(41, 76, 120, .05) !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-preview-head::after {
+  content: '' !important;
+  position: absolute !important;
+  left: 24px !important;
+  bottom: 0 !important;
+  width: 62px !important;
+  height: 3px !important;
+  border-radius: 999px !important;
+  background: #2f74d0 !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-preview-head small {
+  display: inline-flex !important;
+  align-items: center !important;
+  width: fit-content !important;
+  margin: 0 0 8px !important;
+  padding: 5px 9px !important;
+  border-radius: 999px !important;
+  background: rgba(255,255,255,.78) !important;
+  color: #4e6c95 !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: .04em !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-preview-head h3 {
+  margin: 0 !important;
+  color: #152c4c !important;
+  font-size: clamp(22px, 2.3vw, 29px) !important;
+  font-weight: 820 !important;
+  line-height: 1.08 !important;
+  letter-spacing: -.03em !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-preview-head p {
+  margin: 8px 0 0 !important;
+  color: #60718a !important;
+  font-size: 13px !important;
+  font-weight: 550 !important;
+  line-height: 1.45 !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-preview-head .mr-status {
+  min-height: 38px !important;
+  padding: 8px 13px !important;
+  border: 1px solid #b8ddc6 !important;
+  border-radius: 999px !important;
+  background: rgba(234, 248, 239, .92) !important;
+  color: #176b38 !important;
+  box-shadow: 0 4px 12px rgba(32, 111, 61, .06) !important;
+  font-size: 11px !important;
+  font-weight: 820 !important;
+}
+
+/* Readable report sections */
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-read-section {
+  position: relative !important;
+  padding: 18px 20px !important;
+  border: 1px solid #e0e6ee !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  box-shadow: 0 3px 12px rgba(27, 43, 66, .035) !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-read-section h4 {
+  margin: 0 0 13px !important;
+  padding-bottom: 10px !important;
+  border-bottom: 1px solid #edf1f5 !important;
+  color: #173e73 !important;
+  font-size: 13px !important;
+  font-weight: 840 !important;
+  line-height: 1.35 !important;
+  letter-spacing: -.01em !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-read-block + .mr-read-block {
+  margin-top: 16px !important;
+  padding-top: 15px !important;
+  border-top: 1px dashed #e6eaf0 !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-read-block b {
+  display: block !important;
+  margin: 0 !important;
+  color: #253a57 !important;
+  font-size: 12.5px !important;
+  font-weight: 780 !important;
+  line-height: 1.4 !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-read-block p,
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-read-section > p {
+  margin: 7px 0 0 !important;
+  color: #526177 !important;
+  font-size: 13.5px !important;
+  font-weight: 450 !important;
+  line-height: 1.68 !important;
+  white-space: pre-wrap !important;
+}
+
+/* Professional statistics table */
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-number-table-wrap {
+  overflow: hidden !important;
+  border: 1px solid #e0e6ee !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-number-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  table-layout: fixed !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-number-table th {
+  padding: 9px 12px !important;
+  border: 0 !important;
+  border-bottom: 1px solid #dce4ee !important;
+  background: #f3f6fa !important;
+  color: #5a687c !important;
+  font-size: 9px !important;
+  font-weight: 850 !important;
+  letter-spacing: .08em !important;
+  text-transform: uppercase !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-number-table td {
+  padding: 9px 12px !important;
+  border: 0 !important;
+  border-bottom: 1px solid #edf1f5 !important;
+  background: #fff !important;
+  color: #3f4f64 !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-number-table tr:last-child td {
+  border-bottom: 0 !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-number-table th:last-child,
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-number-table td:last-child {
+  width: 120px !important;
+  text-align: center !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-number-table td strong {
+  color: #1e4f8d !important;
+  font-size: 12.5px !important;
+  font-weight: 820 !important;
+}
+
+.btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-preview-ready {
+  margin: 2px 0 0 !important;
+  padding: 12px 14px !important;
+  border: 1px solid #cae4d4 !important;
+  border-radius: 13px !important;
+  background: #f1faf4 !important;
+  color: #25683d !important;
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  line-height: 1.45 !important;
+}
+
+@media (max-width: 720px) {
+  .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal-layer {
+    padding: 10px !important;
+    place-items: end center !important;
+  }
+
+  .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal.is-wide {
+    width: 100% !important;
+    max-width: none !important;
+    max-height: 92dvh !important;
+    border-radius: 22px 22px 0 0 !important;
+  }
+
+  .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal > header {
+    min-height: 66px !important;
+    padding: 12px 14px 12px 16px !important;
+  }
+
+  .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal-body {
+    padding: 12px !important;
+  }
+
+  .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-preview-head {
+    grid-template-columns: 1fr !important;
+    min-height: 0 !important;
+    padding: 18px !important;
+  }
+
+  .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-preview-head .mr-status {
+    width: fit-content !important;
+  }
+
+  .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-template-preview .mr-read-section {
+    padding: 15px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal *,
+  .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal *::before,
+  .btp-shell.mr-has-interactive-hero .mr-teacher-shell .mr-modal *::after {
+    transition: none !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}
