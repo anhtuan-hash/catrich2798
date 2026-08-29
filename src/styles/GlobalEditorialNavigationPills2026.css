@@ -1,0 +1,168 @@
+/* Brian English — Editorial Navigation Pills 2026
+   Final navigation repair layered after GlobalEditorialAuthority2026.
+   Restores tactile color surfaces while keeping the global editorial system.
+   Reports uses the standard single-row pill whenever no live report window is open. */
+
+#root .app-shell[data-route] .brian-nav__primary {
+  gap: 9px !important;
+  padding: 0 2px !important;
+}
+
+#root .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']) {
+  position: relative !important;
+  isolation: isolate !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 52px !important;
+  height: 52px !important;
+  max-height: 52px !important;
+  padding: 0 16px 0 42px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(var(--nav-rgb,49,95,196), .17) !important;
+  border-radius: 16px !important;
+  background: linear-gradient(180deg, #ffffff 0%, rgba(var(--nav-rgb,49,95,196), .065) 100%) !important;
+  background-image: linear-gradient(180deg, #ffffff 0%, rgba(var(--nav-rgb,49,95,196), .065) 100%) !important;
+  color: var(--nav-accent, #315fc4) !important;
+  box-shadow:
+    0 7px 17px rgba(31,46,68,.075),
+    0 2px 5px rgba(var(--nav-rgb,49,95,196), .07),
+    inset 0 1px 0 rgba(255,255,255,.98) !important;
+  font-weight: 760 !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.72) !important;
+}
+
+#root .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']):hover {
+  border-color: rgba(var(--nav-rgb,49,95,196), .28) !important;
+  background: linear-gradient(180deg, #fff 0%, rgba(var(--nav-rgb,49,95,196), .10) 100%) !important;
+  background-image: linear-gradient(180deg, #fff 0%, rgba(var(--nav-rgb,49,95,196), .10) 100%) !important;
+  color: var(--nav-accent, #315fc4) !important;
+  box-shadow:
+    0 10px 22px rgba(31,46,68,.11),
+    0 4px 9px rgba(var(--nav-rgb,49,95,196), .11),
+    inset 0 1px 0 #fff !important;
+}
+
+#root .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']):focus-visible {
+  outline: none !important;
+  border-color: rgba(var(--nav-rgb,49,95,196), .40) !important;
+  box-shadow:
+    0 0 0 3px rgba(var(--nav-rgb,49,95,196), .11),
+    0 9px 20px rgba(31,46,68,.10) !important;
+}
+
+#root .app-shell[data-route] .brian-nav__primary > :is(
+  button.is-active,
+  button.active,
+  button[aria-current='page'],
+  a.is-active,
+  a.active,
+  a[aria-current='page']
+) {
+  border-color: rgba(var(--nav-rgb,49,95,196), .31) !important;
+  background: linear-gradient(135deg, var(--nav-active-1, #5a92ee) 0%, var(--nav-active-2, #315fc4) 100%) !important;
+  background-image: linear-gradient(135deg, var(--nav-active-1, #5a92ee) 0%, var(--nav-active-2, #315fc4) 100%) !important;
+  color: #fff !important;
+  box-shadow:
+    0 11px 23px rgba(var(--nav-rgb,49,95,196), .22),
+    0 4px 9px rgba(var(--nav-rgb,49,95,196), .14),
+    inset 0 1px 0 rgba(255,255,255,.30) !important;
+  text-shadow: 0 1px 1px rgba(28,37,48,.15) !important;
+}
+
+/* Restore the subtle specular line from the premium pill system. */
+#root .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button'])::after {
+  content: '' !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  top: 1px !important;
+  right: 12px !important;
+  bottom: auto !important;
+  left: 12px !important;
+  width: auto !important;
+  height: 1px !important;
+  border-radius: 999px !important;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.90), transparent) !important;
+  box-shadow: none !important;
+  opacity: .76 !important;
+  pointer-events: none !important;
+}
+
+/* Reports with no active deadline must be indistinguishable geometrically from
+   every other destination: one row, same height, same baseline, no ghost row. */
+#root .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab:not(.shows-countdown) {
+  display: inline-flex !important;
+  grid-template-columns: none !important;
+  grid-template-rows: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 0 !important;
+  min-height: 52px !important;
+  height: 52px !important;
+  max-height: 52px !important;
+  padding: 0 16px 0 42px !important;
+  column-gap: normal !important;
+  row-gap: normal !important;
+}
+
+#root .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab:not(.shows-countdown)::before {
+  position: absolute !important;
+  inset: auto !important;
+  left: 15px !important;
+  top: 50% !important;
+  width: 19px !important;
+  min-width: 19px !important;
+  height: 19px !important;
+  min-height: 19px !important;
+  margin: 0 !important;
+  transform: translateY(-50%) !important;
+}
+
+#root .app-shell[data-route] .brian-nav__reports-tab:not(.shows-countdown) .brian-nav__reports-label {
+  position: static !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font: inherit !important;
+  line-height: 1 !important;
+}
+
+/* Live report window: keep the second-line countdown, but preserve the same
+   outer pill language as all other destinations. */
+#root .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.shows-countdown {
+  min-height: 52px !important;
+  height: 52px !important;
+  max-height: 52px !important;
+  border-radius: 16px !important;
+  border-color: rgba(var(--nav-rgb,239,91,62), .17) !important;
+  background: linear-gradient(180deg, #fff 0%, rgba(var(--nav-rgb,239,91,62), .065) 100%) !important;
+}
+
+#root .app-shell[data-route] .brian-nav__reports-tab.shows-countdown .brian-nav__reports-countdown {
+  border-color: rgba(var(--nav-rgb,239,91,62), .17) !important;
+  background: rgba(var(--nav-rgb,239,91,62), .08) !important;
+  color: var(--nav-accent, #ef5b3e) !important;
+}
+
+#root .app-shell[data-route] .brian-nav__reports-tab.shows-countdown:is(.is-active,[aria-current='page']) .brian-nav__reports-countdown {
+  border-color: rgba(255,255,255,.28) !important;
+  background: rgba(255,255,255,.18) !important;
+  color: #fff !important;
+}
+
+@media (max-width: 1180px) {
+  #root .app-shell[data-route] .brian-nav__primary {
+    gap: 6px !important;
+  }
+
+  #root .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']),
+  #root .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab:not(.shows-countdown),
+  #root .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.shows-countdown {
+    min-height: 48px !important;
+    height: 48px !important;
+    max-height: 48px !important;
+    border-radius: 14px !important;
+  }
+}
