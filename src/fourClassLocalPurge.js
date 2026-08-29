@@ -1,91 +1,191 @@
-const PURGE_MARKER = 'bes-all-class-local-purge-20260805-v1';
-const WORKSPACE_PREFIX = 'bes-homeroom-workspace-v1:';
-const INDEX_PREFIX = 'bes-homeroom-workspace-index-v3:';
-const CURRENT_PREFIX = 'bes-homeroom-current-workspace-v3:';
-const CLASS_TYPES_PREFIX = 'bes-homeroom-class-types-v1:';
-const REGISTRY_PREFIX = 'bes-school-class-registry-v1:';
-const PERMANENT_DELETION_PREFIX = 'bes-permanent-student-deletions-v1:';
-const PURGE_VERSION = '2026-08-05-all-v1';
+import { getCurrentUser } from './utils/auth.js';
+import { schoolClassRegistryStorageKey } from './utils/schoolClassRegistry.js';
+import { isSupabaseConfigured, supabase } from './utils/supabase.js';
 
-function parseJson(raw, fallback = null) {
+// Legacy destructive purge retired permanently.
+// Fresh browsers / Incognito sessions must never erase or shadow a valid cloud
+// class-assignment registry just because localStorage is empty.
+const LEGACY_PURGE_MARKERS = [
+  'bes-all-class-local-purge-20260805-v1',
+  'bes-all-class-local-purge-v2026-08-05',
+  'bes-four-class-local-purge-20260805-v1',
+  'bes-four-class-local-purge-20260805-v2',
+];
+const REGISTRY_TABLE = 'school_class_registries';
+const RECOVERY_GUARD_PREFIX = 'bes-school-class-cloud-recovery-v2:';
+
+function safeJson(value, fallback = null) {
   try {
-    return JSON.parse(raw);
+    return value ? JSON.parse(value) : fallback;
   } catch {
     return fallback;
   }
 }
 
-function emptyRegistryPayload(payload) {
-  const updatedAt = new Date().toISOString();
-  return {
-    ...(payload && typeof payload === 'object' ? payload : {}),
-    version: Math.max(Number(payload?.version) || 1, 3),
-    sourceLabel: '',
-    importedAt: '',
-    updatedAt,
-    deletionAudit: [],
-    classes: [],
-    classDataPurge: {
-      scope: 'all-classes',
-      version: PURGE_VERSION,
-      completedAt: updatedAt,
-    },
+function isBrianTeamRoute() {
+  if (typeof window === 'undefined') return false;
+  return /brian-team|personnel-hub|work-hub/i.test(window.location.hash || '');
+}
+
+function explicitPurgeState(registry) {
+  const purge = registry?.classDataPurge;
+  return purge?.scope === 'all-classes' || purge?.state === 'purged';
+}
+
+function assignmentScore(registry) {
+  const classes = Array.isArray(registry?.classes) ? registry.classes : [];
+  return classes.reduce((score, item) => {
+    const homeroom = String(item?.homeroomTeacherId || '').trim() ? 1 : 0;
+    const subjects = Array.isArray(item?.subjectTeacherIds)
+      ? item.subjectTeacherIds.filter((value) => String(value || '').trim()).length
+      : 0;
+    const locked = item?.assignmentLocked === true ? 1 : 0;
+    return score + homeroom + subjects + locked;
+  }, 0);
+}
+
+function classCount(registry) {
+  return Array.isArray(registry?.classes) ? registry.classes.length : 0;
+}
+
+function retireLegacyPurge() {
+  if (typeof window === 'undefined') return;
+  for (const key of LEGACY_PURGE_MARKERS) {
+    try { window.localStorage.removeItem(key); } catch { /* optional storage */ }
+    try { window.sessionStorage.removeItem(key); } catch { /* optional storage */ }
+  }
+  window.__BES_CLASS_DATA_PURGE_RETIRED__ = true;
+}
+
+function writeRecoveryDiagnostic(detail) {
+  if (typeof window === 'undefined') return;
+  window.__BES_CLASS_REGISTRY_RECOVERY__ = {
+    ...(detail || {}),
+    at: new Date().toISOString(),
   };
 }
 
-function runLocalPurge() {
-  if (typeof window === 'undefined' || !window.localStorage) return;
-  if (localStorage.getItem(PURGE_MARKER) === 'done') return;
+async function recoverCloudRegistry() {
+  if (!isBrianTeamRoute() || !isSupabaseConfigured || !supabase) return;
 
-  const keys = [];
-  for (let index = 0; index < localStorage.length; index += 1) {
-    const key = localStorage.key(index);
-    if (key) keys.push(key);
+  let user = null;
+  try {
+    user = await getCurrentUser();
+  } catch (error) {
+    console.warn('[SchoolClassRecovery] Could not resolve current user.', error);
+    return;
+  }
+  if (!user?.id) return;
+
+  const storageKey = schoolClassRegistryStorageKey(user);
+  let localRegistry = null;
+  try {
+    localRegistry = safeJson(window.localStorage.getItem(storageKey), null);
+  } catch {
+    localRegistry = null;
   }
 
-  let removedWorkspaceCount = 0;
-  keys.filter((key) => key.startsWith(WORKSPACE_PREFIX)).forEach((key) => {
-    localStorage.removeItem(key);
-    removedWorkspaceCount += 1;
-  });
+  let data = null;
+  try {
+    const response = await supabase
+      .from(REGISTRY_TABLE)
+      .select('payload,updated_at')
+      .eq('owner_id', user.id)
+      .maybeSingle();
+    if (response.error) {
+      console.warn('[SchoolClassRecovery] Cloud registry read failed.', response.error.message || response.error);
+      return;
+    }
+    data = response.data;
+  } catch (error) {
+    console.warn('[SchoolClassRecovery] Cloud registry read failed.', error);
+    return;
+  }
 
-  keys.filter((key) => key.startsWith(INDEX_PREFIX)).forEach((key) => {
-    localStorage.setItem(key, '[]');
-  });
+  const cloudRegistry = data?.payload && typeof data.payload === 'object' ? data.payload : null;
+  if (!cloudRegistry) return;
 
-  keys.filter((key) => key.startsWith(CURRENT_PREFIX)).forEach((key) => {
-    localStorage.setItem(key, 'default');
-  });
+  const cloudAssignments = assignmentScore(cloudRegistry);
+  const localAssignments = assignmentScore(localRegistry);
+  const localMissing = !localRegistry || typeof localRegistry !== 'object';
+  const localPurged = explicitPurgeState(localRegistry);
+  const localEmptyAgainstCloud = cloudAssignments > 0 && localAssignments === 0;
+  const localHasNoClassesAgainstCloud = classCount(localRegistry) === 0 && classCount(cloudRegistry) > 0;
 
-  keys.filter((key) => key.startsWith(CLASS_TYPES_PREFIX)).forEach((key) => {
-    localStorage.setItem(key, '{}');
-  });
-
-  keys.filter((key) => key.startsWith(REGISTRY_PREFIX)).forEach((key) => {
-    const payload = parseJson(localStorage.getItem(key), {});
-    localStorage.setItem(key, JSON.stringify(emptyRegistryPayload(payload)));
-  });
-
-  keys.filter((key) => key.startsWith(PERMANENT_DELETION_PREFIX)).forEach((key) => {
-    localStorage.removeItem(key);
-  });
+  // normalizeSchoolClassRegistry() can manufacture a blank local registry with
+  // updatedAt=now. The old bootstrap then treats that synthetic blank snapshot as
+  // newer than the real Supabase payload. Prefer cloud whenever the local state is
+  // missing/purged or clearly blank while cloud still contains assignments/locks.
+  const shouldRecover = localMissing || localPurged || localEmptyAgainstCloud || localHasNoClassesAgainstCloud;
+  if (!shouldRecover) {
+    writeRecoveryDiagnostic({
+      state: 'cloud-and-local-valid',
+      cloudAssignments,
+      localAssignments,
+      cloudClasses: classCount(cloudRegistry),
+      localClasses: classCount(localRegistry),
+    });
+    return;
+  }
 
   try {
-    sessionStorage.removeItem('bes-class-12-6-recovery-notice-v1');
-  } catch { /* session storage is optional */ }
+    window.localStorage.setItem(storageKey, JSON.stringify(cloudRegistry));
+  } catch (error) {
+    console.warn('[SchoolClassRecovery] Could not seed local registry from cloud.', error);
+    return;
+  }
 
-  localStorage.removeItem('bes-four-class-local-purge-20260805-v1');
-  localStorage.removeItem('bes-four-class-local-purge-20260805-v2');
-  localStorage.setItem(PURGE_MARKER, 'done');
-  window.__BES_ALL_CLASS_LOCAL_PURGE__ = Object.freeze({
-    completed: true,
-    removedWorkspaceCount,
-    completedAt: new Date().toISOString(),
+  writeRecoveryDiagnostic({
+    state: 'recovered-from-cloud',
+    reason: localPurged
+      ? 'legacy-local-purge'
+      : localEmptyAgainstCloud
+        ? 'blank-local-shadowed-cloud'
+        : localHasNoClassesAgainstCloud
+          ? 'local-classes-missing'
+          : 'local-registry-missing',
+    cloudAssignments,
+    previousLocalAssignments: localAssignments,
+    cloudClasses: classCount(cloudRegistry),
+    previousLocalClasses: classCount(localRegistry),
+    cloudUpdatedAt: data?.updated_at || cloudRegistry?.updatedAt || '',
   });
+
+  // Brian Team may already have mounted from the synthetic blank snapshot. Reload
+  // once so normal bootstrap starts from the recovered cloud payload.
+  const guardKey = `${RECOVERY_GUARD_PREFIX}${user.id}`;
+  let alreadyReloaded = false;
+  try {
+    alreadyReloaded = window.sessionStorage.getItem(guardKey) === 'done';
+    if (!alreadyReloaded) window.sessionStorage.setItem(guardKey, 'done');
+  } catch {
+    // On the next pass localStorage is already recovered, so a reload loop cannot occur.
+  }
+
+  if (!alreadyReloaded) {
+    window.setTimeout(() => window.location.reload(), 0);
+  }
 }
 
-try {
-  runLocalPurge();
-} catch (error) {
-  console.warn('[AllClassLocalPurge] Không thể làm sạch toàn bộ dữ liệu lớp cục bộ.', error);
+let recoveryScheduled = false;
+function scheduleRecovery() {
+  if (!isBrianTeamRoute() || recoveryScheduled) return;
+  recoveryScheduled = true;
+  Promise.resolve()
+    .then(recoverCloudRegistry)
+    .catch((error) => console.warn('[SchoolClassRecovery] Unexpected recovery failure.', error))
+    .finally(() => { recoveryScheduled = false; });
 }
+
+retireLegacyPurge();
+
+if (typeof window !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', scheduleRecovery, { once: true });
+  } else {
+    scheduleRecovery();
+  }
+  window.addEventListener('hashchange', scheduleRecovery);
+}
+
+export { recoverCloudRegistry, retireLegacyPurge };
