@@ -18,13 +18,13 @@ const COPY = {
   vi: {
     pageTitle: 'Dashboard', hello: 'Xin chào', teacher: 'Giáo viên', leader: 'Tổ trưởng',
     eyebrow: 'Tổng quan hôm nay', lead: 'Theo dõi lịch làm việc và cập nhật thông tin quan trọng trong Dashboard gọn gàng, dễ dàng.',
-    calendar: 'Lịch làm việc tuần này', calendarSummary: '7 ngày gần nhất · Không hiển thị tiết dạy',
+    calendar: 'Lịch hôm nay', calendarSummary: 'Công việc và sự kiện trong ngày hôm nay',
     openCalendar: 'Mở lịch đầy đủ', refresh: 'Làm mới', refreshing: 'Đang đồng bộ…',
     upcomingEvents: 'Sự kiện sắp tới', activeDays: 'Ngày có lịch',
-    nextEvent: 'Sự kiện gần nhất', noUpcoming: 'Chưa có sự kiện sắp tới', selectedDay: 'Công việc trong ngày',
+    nextEvent: 'Sự kiện gần nhất', noUpcoming: 'Chưa có sự kiện sắp tới', selectedDay: 'Công việc hôm nay',
     events: 'sự kiện', noEvents: 'Trống lịch', today: 'Hôm nay', allDay: 'Cả ngày', source: 'Nguồn',
     quickActions: 'Thao tác nhanh',
-    emptyCalendar: 'Không có công việc hoặc sự kiện trong ngày này.',
+    emptyCalendar: 'Hôm nay không có công việc hoặc sự kiện.',
     partial: 'Một số nguồn dữ liệu chưa phản hồi. Dashboard vẫn hiển thị phần dữ liệu đã tải được.', retry: 'Thử lại',
     createWork: 'Mở công việc', uploadResource: 'Tải học liệu', textLab: 'Tạo hoạt động', methodsHub: 'Phương pháp giảng dạy', games: 'Mở trò chơi',
     openHomeroom: 'Mở chủ nhiệm', chooseDate: 'Chọn ngày', nearest: 'Xem sự kiện gần nhất',
@@ -33,13 +33,13 @@ const COPY = {
   en: {
     pageTitle: 'Dashboard', hello: 'Hello', teacher: 'Teacher', leader: 'Team leader',
     eyebrow: 'Today overview', lead: 'Keep your work calendar and important updates together in a clean, easy Dashboard.',
-    calendar: 'This week', calendarSummary: 'Next 7 days · Teaching periods are hidden',
+    calendar: 'Today’s schedule', calendarSummary: 'Work and events scheduled for today',
     openCalendar: 'Open full calendar', refresh: 'Refresh', refreshing: 'Syncing…',
     upcomingEvents: 'Upcoming events', activeDays: 'Scheduled days',
-    nextEvent: 'Next event', noUpcoming: 'No upcoming events', selectedDay: 'Work for this day',
+    nextEvent: 'Next event', noUpcoming: 'No upcoming events', selectedDay: 'Today’s work',
     events: 'events', noEvents: 'No schedule', today: 'Today', allDay: 'All day', source: 'Source',
     quickActions: 'Quick actions',
-    emptyCalendar: 'No work or events on this day.',
+    emptyCalendar: 'No work or events scheduled for today.',
     partial: 'Some data sources did not respond. Available data is still shown.', retry: 'Retry',
     createWork: 'Open work', uploadResource: 'Upload resource', textLab: 'Create activity', methodsHub: 'Teaching methods', games: 'Open games',
     openHomeroom: 'Open homeroom', chooseDate: 'Choose a date', nearest: 'View nearest event',
@@ -117,7 +117,7 @@ function DashboardHeroIllustration() {
       <path d="M30 51 287 65l-7 261-258-12Z" fill="#d8e0ea" opacity=".42" />
       <path d="M18 40 275 54l-7 261-258-12Z" fill="url(#edPaper)" stroke="#cad5e3" strokeWidth="2.4" />
       <path d="M18 40 275 54l-2 60-258-12Z" fill="url(#edCalendarBlue)" />
-      {[48,99,150,201,252].map((x) => <g key={x}><line x1={x} y1="13" x2={x - 2} y2="69" stroke="#163d6d" strokeWidth="7" strokeLinecap="round" /><ellipse cx={x - 1} cy="43" rx="7.5" ry="4.5" fill="#eaf2fb" opacity=".9" /></g>)}
+      {[48,99,150,201,252].map((x) => <g key={x}><line x1={x} y1="13" x2={x - 2} y2={69} stroke="#163d6d" strokeWidth="7" strokeLinecap="round" /><ellipse cx={x - 1} cy="43" rx="7.5" ry="4.5" fill="#eaf2fb" opacity=".9" /></g>)}
       <g stroke="#e2e7ee" strokeWidth="1.4">{[137,174,211,248,285].map((y) => <line key={`ed-h-${y}`} x1="34" y1={y} x2="250" y2={y + 11} />)}{[67,104,141,178,215].map((x) => <line key={`ed-v-${x}`} x1={x} y1="119" x2={x - 5} y2="293" />)}</g>
       <path d="M117 170l12 12 25-28" fill="none" stroke="#2563eb" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M175 224l12 12 25-28" fill="none" stroke="#2563eb" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
@@ -154,7 +154,6 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   const [snapshot, setSnapshot] = useState(() => createEmptyDashboardSnapshot(currentUser));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [selectedDay, setSelectedDay] = useState(() => dateKey(new Date()));
   const [now, setNow] = useState(() => new Date());
   const [weather, setWeather] = useState({ temperature: null, code: null, loading: true });
   const lastRefreshRef = useRef(0);
@@ -218,18 +217,17 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   }, [refresh]);
 
   const timeline = useMemo(() => (snapshot.timeline || []).filter((item) => !isTeachingPeriod(item)).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()), [snapshot.timeline]);
-  const calendarDays = useMemo(() => Array.from({ length: 7 }, (_, index) => {
-    const date = new Date(); date.setHours(0, 0, 0, 0); date.setDate(date.getDate() + index);
-    const key = dateKey(date); return { date, key, events: timeline.filter((item) => dateKey(item.date) === key) };
-  }), [timeline]);
-  const selectedCalendarDay = useMemo(() => calendarDays.find((day) => day.key === selectedDay) || calendarDays[0], [calendarDays, selectedDay]);
-  const selectedEvents = selectedCalendarDay?.events || [];
   const name = currentUser?.name || currentUser?.full_name || currentUser?.email?.split('@')[0] || t.teacher;
   const locale = language === 'vi' ? 'vi-VN' : 'en-US';
-  const todayKey = dateKey(new Date());
-  const selectedWeekday = selectedCalendarDay ? new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(selectedCalendarDay.date) : '';
-  const selectedDate = selectedCalendarDay ? new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'long', year: 'numeric' }).format(selectedCalendarDay.date) : '';
-  const calendarRange = calendarDays.length ? `${new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short' }).format(calendarDays[0].date)} — ${new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short', year: 'numeric' }).format(calendarDays[calendarDays.length - 1].date)}` : '';
+  const todayKey = dateKey(now);
+  const todayDate = useMemo(() => {
+    const value = new Date(now);
+    value.setHours(0, 0, 0, 0);
+    return value;
+  }, [todayKey]);
+  const todayEvents = useMemo(() => timeline.filter((item) => dateKey(item.date) === todayKey), [timeline, todayKey]);
+  const todayWeekday = new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(todayDate);
+  const todayDateLabel = new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'long', year: 'numeric' }).format(todayDate);
   const initialLoading = loading && !snapshot.generatedAt;
   const nextEvent = timeline.find((item) => new Date(item.date).getTime() >= Date.now()) || timeline[0] || null;
   const heroTime = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(now);
@@ -243,13 +241,13 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
 
   const scrollToCalendar = () => document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'auto', block: 'start' });
   const focusNearestEvent = () => {
-    if (nextEvent?.date) setSelectedDay(dateKey(nextEvent.date));
+    if (nextEvent?.date && dateKey(nextEvent.date) !== todayKey) {
+      openTtcm('schedule');
+      return;
+    }
     scrollToCalendar();
   };
-  const focusToday = () => {
-    setSelectedDay(todayKey);
-    scrollToCalendar();
-  };
+  const focusToday = () => scrollToCalendar();
 
   return <section className={`gd-page${initialLoading ? ' is-loading' : ''}`} aria-label={t.pageTitle} aria-busy={loading}>
     <div className="gd-shell">
@@ -296,18 +294,15 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
         </header>
       </section>
       {error ? <div className="gd-alert"><Icon name="warning" size={22} /><div><strong>{t.partial}</strong><small>{error}</small></div><button type="button" className="gd-text-button" onClick={() => refresh()}>{t.retry}</button></div> : null}
-      <article className="gd-calendar gd-calendar-split" id="dashboard-calendar">
+      <article className="gd-calendar gd-calendar-today" id="dashboard-calendar">
         <header className="gd-calendar-header"><div className="gd-calendar-title"><span><Icon name="calendar" size={22} /></span><div><h2>{t.calendar}</h2><p>{t.calendarSummary}</p></div></div><button type="button" className="gd-text-button" onClick={() => openTtcm('schedule')}>{t.openCalendar}<Icon name="arrow" size={18} /></button></header>
-        <div className="gd-calendar-layout">
-          <aside className="gd-calendar-sidebar" aria-label={t.chooseDate}>
-            <div className="gd-calendar-side-head"><div><span>{t.chooseDate}</span><strong>{calendarRange}</strong></div><span className="gd-count-chip">{timeline.length} {t.events}</span></div>
-            <div className="gd-calendar-days-grid">{calendarDays.map((day) => {
-              const selected = selectedDay === day.key; const today = todayKey === day.key;
-              return <button type="button" key={day.key} className={`gd-day-card${selected ? ' is-selected' : ''}${today ? ' is-today' : ''}${day.events.length ? ' has-events' : ''}`} onClick={() => setSelectedDay(day.key)} aria-pressed={selected}><span className="gd-day-info"><strong>{new Intl.DateTimeFormat(locale, { weekday: 'short' }).format(day.date)}</strong><small>{new Intl.DateTimeFormat(locale, { month: 'short' }).format(day.date)}</small></span><span className="gd-day-number">{day.date.getDate()}</span><span className="gd-day-event-count">{today ? t.today : day.events.length ? day.events.length : '—'}</span></button>;
-            })}</div>
-            <div className="gd-calendar-next-event"><span><Icon name="event" size={18} /></span><div><small>{t.nextEvent}</small><strong>{nextEvent?.title || t.noUpcoming}</strong></div></div>
-          </aside>
-          <section className="gd-agenda-panel" aria-live="polite"><header className="gd-agenda-panel-header"><div className="gd-agenda-date-badge"><strong>{selectedCalendarDay?.date?.getDate() || '—'}</strong><span>{new Intl.DateTimeFormat(locale, { month: 'short' }).format(selectedCalendarDay?.date || new Date())}</span></div><div className="gd-agenda-heading"><span>{t.selectedDay}</span><h3>{selectedWeekday}</h3><p>{selectedDate}</p></div><span className="gd-count-chip">{selectedEvents.length} {t.events}</span></header><div className="gd-agenda-list gd-agenda-list-split">{initialLoading ? <Empty>{t.refreshing}</Empty> : selectedEvents.length ? selectedEvents.map((item) => <CalendarEvent key={item.id} item={item} language={language} locale={locale} t={t} />) : <Empty>{t.emptyCalendar}</Empty>}</div></section>
+        <div className="gd-today-layout">
+          <header className="gd-today-overview">
+            <div className="gd-today-date-mark"><strong>{todayDate.getDate()}</strong><span>{new Intl.DateTimeFormat(locale, { month: 'short' }).format(todayDate)}</span></div>
+            <div className="gd-today-heading"><span>{t.selectedDay}</span><h3>{todayWeekday}</h3><p>{todayDateLabel}</p></div>
+            <span className="gd-count-chip">{todayEvents.length} {t.events}</span>
+          </header>
+          <div className="gd-agenda-list gd-agenda-list-today">{initialLoading ? <Empty>{t.refreshing}</Empty> : todayEvents.length ? todayEvents.map((item) => <CalendarEvent key={item.id} item={item} language={language} locale={locale} t={t} />) : <Empty>{t.emptyCalendar}</Empty>}</div>
         </div>
       </article>
       <DashboardNewsHub language={language} />
