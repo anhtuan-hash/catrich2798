@@ -103,7 +103,7 @@ function CalendarEvent({ item, language, locale, t }) {
 }
 
 function DashboardHeroIllustration() {
-  return <svg className="gd-hero-illustration" viewBox="0 0 650 430" aria-hidden="true">
+  return <svg className="dash-hero-art" viewBox="0 0 650 430" aria-hidden="true">
     <defs>
       <linearGradient id="gdHeroBlue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#5a9cf8" /><stop offset="1" stopColor="#1769d8" /></linearGradient>
       <linearGradient id="gdHeroPaper" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffffff" /><stop offset="1" stopColor="#eef5ff" /></linearGradient>
@@ -261,44 +261,41 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   return <section className={`gd-page${initialLoading ? ' is-loading' : ''}`} aria-label={t.pageTitle} aria-busy={loading}>
     <div className="gd-shell">
       <section className="gd-top-grid">
-        <header className="gd-hero">
-          <div className="gd-hero-left">
-            <div className="gd-hero-copy">
-              <span className="gd-hero-eyebrow">{t.eyebrow}</span>
+        <header className="dash-hero">
+          <div className="dash-hero-left">
+            <div className="dash-hero-copy">
+              <span className="dash-hero-kicker">{t.eyebrow}</span>
               <h1>
-                <span className="gd-hero-greeting">{t.hello},</span>
-                <span className="gd-hero-name-line"><strong className="gd-hero-name">{name}</strong><span className="gd-hero-wave" aria-hidden="true">👋</span></span>
+                <span className="dash-hello">{t.hello},</span>
+                <span className="dash-name-row"><strong className="dash-name">{name}</strong><span className="dash-wave" aria-hidden="true">👋</span></span>
               </h1>
               <p>{t.lead}</p>
             </div>
 
-            <div className="gd-hero-actions">
-              <button type="button" className="gd-button filled" onClick={scrollToCalendar}><Icon name="calendar" size={20} />{t.calendar}<Icon name="arrow" size={18} /></button>
-              <button type="button" className="gd-button outlined" onClick={() => refresh()} disabled={loading}><Icon name="refresh" size={20} />{loading ? t.refreshing : t.refresh}</button>
+            <div className="dash-main-actions">
+              <button type="button" className="dash-btn dash-btn-primary" onClick={scrollToCalendar}><Icon name="calendar" size={20} />{t.calendar}<Icon name="arrow" size={18} /></button>
+              <button type="button" className="dash-btn dash-btn-secondary" onClick={() => refresh()} disabled={loading}><Icon name="refresh" size={20} />{loading ? t.refreshing : t.refresh}</button>
             </div>
 
-            <div className="gd-hero-secondary-actions">
-              <button type="button" className="gd-hero-link" onClick={focusNearestEvent}><Icon name="event" size={18} />{t.nearest}<Icon name="arrow" size={16} /></button>
-              <button type="button" className="gd-hero-link" onClick={() => openTtcm('schedule')}><Icon name="calendar" size={18} />{t.openCalendar}<Icon name="arrow" size={16} /></button>
+            <div className="dash-sub-actions">
+              <button type="button" className="dash-link" onClick={focusNearestEvent}><Icon name="event" size={18} />{t.nearest}<Icon name="arrow" size={16} /></button>
+              <button type="button" className="dash-link" onClick={() => openTtcm('schedule')}><Icon name="calendar" size={18} />{t.openCalendar}<Icon name="arrow" size={16} /></button>
             </div>
           </div>
 
-          <div className="gd-hero-right">
-            <div className="gd-hero-chipbar" aria-label={language === 'vi' ? 'Tiện ích nhanh' : 'Quick utilities'}>
-              <button type="button" className="gd-hero-chip" onClick={() => setNow(new Date())} title={t.currentTime}>
-                <span className="gd-hero-chip-icon"><Icon name="clock" size={18} /></span><strong>{heroTime}</strong><small>{t.currentTime}</small>
+          <div className="dash-hero-right">
+            <div className="dash-utility-bar" aria-label={language === 'vi' ? 'Tiện ích nhanh' : 'Quick utilities'}>
+              <button type="button" className="dash-utility" onClick={() => setNow(new Date())} title={t.currentTime}>
+                <span className="dash-utility-icon"><Icon name="clock" size={18} /></span><span className="dash-utility-copy"><strong>{heroTime}</strong><small>{t.currentTime}</small></span>
               </button>
-              <button type="button" className="gd-hero-chip is-weather" onClick={refreshWeather} title={t.weather}>
-                <span className="gd-hero-chip-icon" aria-hidden="true">☀️</span><strong>TP.HCM · {weatherTemperature}</strong><small>{weather.loading ? t.weatherLoading : weatherDescription}</small>
+              <button type="button" className="dash-utility dash-utility-weather" onClick={refreshWeather} title={t.weather}>
+                <span className="dash-utility-icon" aria-hidden="true">☀️</span><span className="dash-utility-copy"><strong>TP.HCM · {weatherTemperature}</strong><small>{weather.loading ? t.weatherLoading : weatherDescription}</small></span>
               </button>
-              <button type="button" className="gd-hero-chip" onClick={focusToday} title={t.dateToday}>
-                <span className="gd-hero-chip-icon"><Icon name="calendar" size={18} /></span><strong>{heroDate}</strong><small>{t.dateToday}</small>
+              <button type="button" className="dash-utility" onClick={focusToday} title={t.dateToday}>
+                <span className="dash-utility-icon"><Icon name="calendar" size={18} /></span><span className="dash-utility-copy"><strong>{heroDate}</strong><small>{t.dateToday}</small></span>
               </button>
             </div>
-
-            <div className="gd-hero-visual">
-              <DashboardHeroIllustration />
-            </div>
+            <div className="dash-hero-visual"><DashboardHeroIllustration /></div>
           </div>
         </header>
       </section>
