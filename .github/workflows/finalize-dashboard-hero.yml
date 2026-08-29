@@ -1,0 +1,552 @@
+name: Finalize dashboard hero
+
+on:
+  push:
+    paths:
+      - '.github/workflows/finalize-dashboard-hero.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Refactor hero structure and styles
+        shell: python
+        run: |
+          from pathlib import Path
+
+          jsx_path = Path('src/pages/WorkDashboard.jsx')
+          jsx = jsx_path.read_text(encoding='utf-8')
+
+          start_token = '        <header className="gd-hero">'
+          start = jsx.find(start_token)
+          if start < 0:
+            raise SystemExit('Hero start not found')
+          end = jsx.find('        </header>', start)
+          if end < 0:
+            raise SystemExit('Hero end not found')
+          end += len('        </header>')
+
+          new_hero = '''        <header className="gd-hero">
+          <div className="gd-hero-left">
+            <div className="gd-hero-copy">
+              <span className="gd-hero-eyebrow">{t.eyebrow}</span>
+              <h1>
+                <span className="gd-hero-greeting">{t.hello},</span>
+                <span className="gd-hero-name-line"><strong className="gd-hero-name">{name}</strong><span className="gd-hero-wave" aria-hidden="true">👋</span></span>
+              </h1>
+              <p>{t.lead}</p>
+            </div>
+
+            <div className="gd-hero-actions">
+              <button type="button" className="gd-button filled" onClick={scrollToCalendar}><Icon name="calendar" size={20} />{t.calendar}<Icon name="arrow" size={18} /></button>
+              <button type="button" className="gd-button outlined" onClick={() => refresh()} disabled={loading}><Icon name="refresh" size={20} />{loading ? t.refreshing : t.refresh}</button>
+            </div>
+
+            <div className="gd-hero-secondary-actions">
+              <button type="button" className="gd-hero-link" onClick={focusNearestEvent}><Icon name="event" size={18} />{t.nearest}<Icon name="arrow" size={16} /></button>
+              <button type="button" className="gd-hero-link" onClick={() => openTtcm('schedule')}><Icon name="calendar" size={18} />{t.openCalendar}<Icon name="arrow" size={16} /></button>
+            </div>
+          </div>
+
+          <div className="gd-hero-right">
+            <div className="gd-hero-chipbar" aria-label={language === 'vi' ? 'Tiện ích nhanh' : 'Quick utilities'}>
+              <button type="button" className="gd-hero-chip" onClick={() => setNow(new Date())} title={t.currentTime}>
+                <span className="gd-hero-chip-icon"><Icon name="clock" size={18} /></span><strong>{heroTime}</strong><small>{t.currentTime}</small>
+              </button>
+              <button type="button" className="gd-hero-chip is-weather" onClick={refreshWeather} title={t.weather}>
+                <span className="gd-hero-chip-icon" aria-hidden="true">☀️</span><strong>TP.HCM · {weatherTemperature}</strong><small>{weather.loading ? t.weatherLoading : weatherDescription}</small>
+              </button>
+              <button type="button" className="gd-hero-chip" onClick={focusToday} title={t.dateToday}>
+                <span className="gd-hero-chip-icon"><Icon name="calendar" size={18} /></span><strong>{heroDate}</strong><small>{t.dateToday}</small>
+              </button>
+            </div>
+
+            <div className="gd-hero-visual">
+              <DashboardHeroIllustration />
+            </div>
+          </div>
+        </header>'''
+
+          jsx = jsx[:start] + new_hero + jsx[end:]
+          jsx_path.write_text(jsx, encoding='utf-8')
+
+          css_path = Path('src/styles/teacher-dashboard-hero-interactive-2026.css')
+          css = r'''/* Dashboard hero — final structural composition, Aug 2026.
+   The JSX owns two real columns: left (copy + actions) and right (utilities + illustration).
+   No absolute positioning is used for primary layout. */
+
+.app-shell[data-route="dashboard"] .gd-page .gd-top-grid {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero {
+  position: relative !important;
+  isolation: isolate !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 382px !important;
+  margin: 0 0 24px !important;
+  padding: 30px 32px 26px !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, .94fr) minmax(520px, 1.06fr) !important;
+  gap: clamp(30px, 3.4vw, 54px) !important;
+  overflow: hidden !important;
+  border: 1px solid #c8d8ec !important;
+  border-radius: 30px !important;
+  background:
+    radial-gradient(circle at 91% 7%, rgba(255,255,255,.98) 0 13%, transparent 34%),
+    radial-gradient(circle at 82% 88%, rgba(177,214,255,.18) 0 13%, transparent 37%),
+    linear-gradient(120deg, #fff 0%, #fcfdff 44%, #f5f9ff 70%, #eaf3ff 100%) !important;
+  box-shadow: 0 2px 4px rgba(36,62,92,.035), 0 18px 48px rgba(45,75,112,.075) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero::before {
+  content: '' !important;
+  position: absolute !important;
+  z-index: -1 !important;
+  width: 450px !important;
+  height: 260px !important;
+  right: -95px !important;
+  bottom: -160px !important;
+  border-radius: 50% !important;
+  background: rgba(56,132,233,.055) !important;
+  pointer-events: none !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-left,
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-right {
+  min-width: 0 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-left {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  padding: 5px 0 0 2px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-copy {
+  width: 100% !important;
+  max-width: 660px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-eyebrow {
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: 29px !important;
+  margin: 0 0 14px !important;
+  padding: 0 12px !important;
+  border: 1px solid #b8d2f7 !important;
+  border-radius: 999px !important;
+  background: linear-gradient(180deg, #f7faff, #e8f2ff) !important;
+  color: #1559b7 !important;
+  font: 800 11px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  letter-spacing: .025em !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-copy h1 {
+  display: block !important;
+  width: 100% !important;
+  max-width: 660px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: #17263a !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-greeting {
+  display: block !important;
+  width: fit-content !important;
+  margin: 0 0 2px !important;
+  color: #17263a !important;
+  font-family: Baskerville, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif !important;
+  font-size: clamp(40px, 3.25vw, 54px) !important;
+  font-style: normal !important;
+  font-weight: 500 !important;
+  line-height: .98 !important;
+  letter-spacing: -.048em !important;
+  white-space: nowrap !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-name-line {
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: flex-start !important;
+  gap: 12px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page strong.gd-hero-name {
+  position: relative !important;
+  display: inline-block !important;
+  min-width: 0 !important;
+  max-width: calc(100% - 54px) !important;
+  color: #1261d4 !important;
+  font-family: Baskerville, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif !important;
+  font-size: clamp(61px, 4.65vw, 76px) !important;
+  font-style: italic !important;
+  font-weight: 500 !important;
+  line-height: .93 !important;
+  letter-spacing: -.052em !important;
+  white-space: nowrap !important;
+  text-shadow: 0 8px 22px rgba(28,101,207,.065) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page strong.gd-hero-name::after {
+  content: '' !important;
+  position: absolute !important;
+  z-index: -1 !important;
+  left: 11% !important;
+  right: 1% !important;
+  bottom: -7px !important;
+  height: 9px !important;
+  border-top: 2px solid rgba(25,105,225,.46) !important;
+  border-radius: 50% !important;
+  transform: rotate(-1deg) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-wave {
+  flex: 0 0 auto !important;
+  margin: 0 0 7px !important;
+  font-family: system-ui, sans-serif !important;
+  font-size: 31px !important;
+  line-height: 1 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-copy > p {
+  max-width: 560px !important;
+  margin: 22px 0 0 !important;
+  color: #425873 !important;
+  font-size: 15px !important;
+  font-weight: 610 !important;
+  line-height: 1.52 !important;
+  letter-spacing: -.004em !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  flex-wrap: wrap !important;
+  gap: 11px !important;
+  margin: 24px 0 0 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-secondary-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  flex-wrap: wrap !important;
+  gap: 9px !important;
+  margin: 10px 0 0 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-button {
+  min-height: 50px !important;
+  padding: 0 20px !important;
+  border-radius: 16px !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  letter-spacing: -.01em !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-button.filled {
+  min-width: 248px !important;
+  border-color: #0f66df !important;
+  background: linear-gradient(135deg, #0d63dd, #3488f4) !important;
+  color: #fff !important;
+  box-shadow: 0 10px 24px rgba(16,103,224,.20) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-button.outlined {
+  min-width: 130px !important;
+  border-color: #cfdeec !important;
+  background: rgba(255,255,255,.95) !important;
+  color: #244866 !important;
+  box-shadow: 0 5px 15px rgba(45,74,109,.055) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-link {
+  min-height: 41px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  padding: 0 14px !important;
+  border: 1px solid #d1dfed !important;
+  border-radius: 13px !important;
+  background: rgba(255,255,255,.88) !important;
+  color: #174f91 !important;
+  font: 800 12px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+  box-shadow: 0 4px 13px rgba(54,84,123,.04) !important;
+  cursor: pointer !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-link:hover,
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-chip:hover,
+.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-button.outlined:hover {
+  border-color: #9ebfe8 !important;
+  background: #f5f9ff !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-right {
+  display: grid !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  gap: 16px !important;
+  min-height: 322px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-chipbar {
+  display: grid !important;
+  grid-template-columns: minmax(150px,.9fr) minmax(190px,1.08fr) minmax(220px,1.24fr) !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-chip {
+  min-width: 0 !important;
+  min-height: 62px !important;
+  display: grid !important;
+  grid-template-columns: 36px minmax(0,1fr) !important;
+  grid-template-rows: auto auto !important;
+  column-gap: 9px !important;
+  align-items: center !important;
+  padding: 9px 12px 9px 10px !important;
+  border: 1px solid rgba(199,216,235,.95) !important;
+  border-radius: 17px !important;
+  background: rgba(255,255,255,.95) !important;
+  color: #163f73 !important;
+  box-shadow: 0 7px 18px rgba(41,78,125,.065) !important;
+  cursor: pointer !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-chip-icon {
+  grid-row: 1 / 3 !important;
+  width: 36px !important;
+  height: 36px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 12px !important;
+  background: linear-gradient(145deg, #eef6ff, #dcecff) !important;
+  color: #1768d5 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-chip.is-weather .gd-hero-chip-icon {
+  background: linear-gradient(145deg, #fff9e9, #ffefb9) !important;
+  color: #d49300 !important;
+  font-size: 19px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-chip strong {
+  min-width: 0 !important;
+  align-self: end !important;
+  overflow: visible !important;
+  color: #154986 !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  line-height: 1.12 !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-chip small {
+  min-width: 0 !important;
+  align-self: start !important;
+  margin-top: 2px !important;
+  overflow: visible !important;
+  color: #74859b !important;
+  font-size: 10px !important;
+  font-weight: 650 !important;
+  line-height: 1.12 !important;
+  text-overflow: clip !important;
+  white-space: nowrap !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-visual {
+  position: relative !important;
+  min-height: 244px !important;
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: flex-end !important;
+  overflow: visible !important;
+  pointer-events: none !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-visual::before {
+  content: '' !important;
+  position: absolute !important;
+  z-index: -1 !important;
+  width: 96% !important;
+  height: 94% !important;
+  right: -1% !important;
+  bottom: -2% !important;
+  border-radius: 50% 50% 18% 28% !important;
+  background: radial-gradient(circle at 58% 62%, rgba(255,255,255,.99), rgba(229,241,255,.78) 54%, rgba(195,222,255,.16) 79%, transparent 80%) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-illustration {
+  display: block !important;
+  width: min(100%, 565px) !important;
+  height: auto !important;
+  max-width: 565px !important;
+  max-height: 275px !important;
+  margin: 0 0 -4px auto !important;
+  filter: drop-shadow(0 18px 23px rgba(34,73,119,.12)) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-mini-note {
+  display: none !important;
+}
+
+@media (max-width: 1280px) {
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero {
+    grid-template-columns: minmax(0,.9fr) minmax(470px,1.1fr) !important;
+    padding: 28px 28px 24px !important;
+    gap: 30px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page strong.gd-hero-name {
+    font-size: clamp(56px, 4.5vw, 69px) !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-chipbar {
+    grid-template-columns: minmax(132px,.9fr) minmax(170px,1.08fr) minmax(196px,1.24fr) !important;
+    gap: 8px !important;
+  }
+}
+
+@media (max-width: 1060px) {
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero {
+    grid-template-columns: 1fr !important;
+    min-height: 0 !important;
+    padding: 27px 25px 23px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-left {
+    max-width: 760px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-right {
+    min-height: 0 !important;
+    margin-top: 4px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-chipbar {
+    grid-template-columns: repeat(3, minmax(0,1fr)) !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-visual {
+    min-height: 270px !important;
+    justify-content: center !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-illustration {
+    width: min(620px,100%) !important;
+    max-width: 620px !important;
+    max-height: 300px !important;
+    margin-inline: auto !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero {
+    padding: 22px 18px 20px !important;
+    border-radius: 24px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-greeting {
+    font-size: 36px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-name-line {
+    gap: 8px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page strong.gd-hero-name {
+    max-width: calc(100% - 40px) !important;
+    font-size: clamp(48px, 13vw, 62px) !important;
+    white-space: normal !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-wave {
+    margin-bottom: 5px !important;
+    font-size: 26px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-copy > p {
+    margin-top: 20px !important;
+    font-size: 14px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-actions {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-actions .gd-button {
+    width: 100% !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-secondary-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    width: 100% !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-chipbar {
+    grid-template-columns: 1fr !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-chip {
+    min-height: 58px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-visual {
+    min-height: 220px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-illustration {
+    max-height: 240px !important;
+  }
+}
+'''
+          css_path.write_text(css, encoding='utf-8')
+
+      - name: Verify hero source structure
+        shell: bash
+        run: |
+          grep -q 'className="gd-hero-left"' src/pages/WorkDashboard.jsx
+          grep -q 'className="gd-hero-right"' src/pages/WorkDashboard.jsx
+          grep -q 'className="gd-hero-name-line"' src/pages/WorkDashboard.jsx
+          grep -q 'grid-template-columns: minmax(0, .94fr) minmax(520px, 1.06fr)' src/styles/teacher-dashboard-hero-interactive-2026.css
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Commit final hero
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/pages/WorkDashboard.jsx src/styles/teacher-dashboard-hero-interactive-2026.css
+          git commit -m 'refactor: finalize dashboard hero structure and layout'
+          git push origin main
