@@ -29,62 +29,26 @@ import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
 import GlobalWeeklyPracticeBridge from './GlobalWeeklyPracticeBridge.jsx';
 import GlobalEditorialAuthorityRuntime from './GlobalEditorialAuthorityRuntime.jsx';
 
-// Cross-route utility styles only. Route visual systems must travel with their
-// own lazy route chunks instead of hitchhiking on the shared navigation hub.
+// Shared non-navigation utilities only. The visible navigation shell has exactly
+// one visual authority now: styles/GlobalNavigationFinal2026.css, injected last
+// by GlobalEditorialAuthorityRuntime.
 import './GlobalGoogleMaterialOverride.css';
 import './GlobalCommandPaletteGoogle.css';
 import './GlobalCommandPaletteFocusFix.css';
 import './GlobalNewsAndroidGoogle.css';
 import './GlobalNewsDrawerScroll.css';
 import './GlobalTextLabGoogleLarge.css';
-import './GlobalNavigationScrollableTabs.css';
 import './GlobalWordGraphGoogleM3.css';
 import './GlobalAutosaveGoogle.css';
-import './GlobalAuroraChrome.css';
-import './GlobalSeparatedPills.css';
-import './GlobalNavigationPremiumV2.css';
-import './GlobalNavigationWholeHubAura.css';
-import './GlobalGuestWholeHubAuraFix.css';
 import './GlobalWorkScheduleModern.css';
 import './GlobalScrollPerformance.css';
-import './GlobalNavigationOverlayLayer.css';
-import './GlobalNavigationGoogleM3Polish.css';
-import './GlobalNavigationSearchPillRefinement.css';
-import './GlobalNavigationNoSearch.css';
-import './GlobalBrianHub.css';
-import './GlobalCatRichHeaderVisibilityFix.css';
 import '../pages/SeatingChartStudioFocus.css';
-import './GlobalNavigationFixedSizeContract.css';
 import './GlobalCriticalJankGuard.css';
 import './GlobalNotificationCenterRemoval.css';
-// Windows 8 remains an optional motion language; header visuals are owned by V4.
-import './GlobalWindows8Experience.css';
-// Shared baseline visual contract.
-import './GlobalNavigationHubV4.css';
-// Absolute final loader contract: all page/app loading uses Windows Phone 8 chase dots.
 import './GlobalWindowsPhone8Loading.css';
-// TTCM report countdown must override V4's collapsed status dot when Reports is active.
-import './GlobalReportsCountdownV4.css';
-// Final positioning authority: keep the hub pinned and collapse the newswire while scrolling.
-import './GlobalPinnedNavigationHub.css';
-// Final authority: legacy notification center stays retired even if a later hub theme restores it.
 import './GlobalNotificationCenterFinalRemoval.css';
-// Final Homeroom density authority: compact excessive whitespace without affecting other routes.
 import './homeroom/HomeroomCompactDensity.css';
-// Stable semantic ordering for the shared rail.
-import './GlobalNavigationSemanticOrderFix.css';
-// ABSOLUTE FINAL CHROME AUTHORITY: one identical navigation hub on every Brian route.
-import './GlobalUnifiedNavigationHub.css';
-// ABSOLUTE FINAL GEOMETRY AUTHORITY: one centered 16:9 frame for every Brian route.
 import '../styles/GlobalLayout16x9Authority.css';
-// FINAL PRIMARY-NAV VISUAL AUTHORITY: raised, tactile destination buttons approved for Brian.
-import './GlobalNavigationRaisedPills.css';
-// FINAL HOTFIX: keep icons out of labels and reinforce the active destination state.
-import './GlobalNavigationRaisedPillsFix.css';
-// FINAL REPORTS OVERRIDE: keep countdown directly below the Reports label without changing row height.
-import './GlobalReportsCountdownBelowLabel.css';
-// FINAL TYPOGRAPHY AUTHORITY: regional navigation font family/size must beat visual defaults.
-import './GlobalNavigationRegionalTypographyFinal.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
