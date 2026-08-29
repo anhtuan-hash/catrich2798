@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
 import editorialCss from '../styles/GlobalEditorialAuthority2026.css?inline';
 import navigationPillsCss from '../styles/GlobalEditorialNavigationPills2026.css?inline';
+import compactNavigationShellCss from '../styles/GlobalEditorialNavigationCompactShell2026.css?inline';
 
 const STYLE_ID = 'bes-global-editorial-authority-2026';
-const finalEditorialCss = `${editorialCss}\n\n${navigationPillsCss}`;
+const finalEditorialCss = `${editorialCss}\n\n${navigationPillsCss}\n\n${compactNavigationShellCss}`;
 
 function ensureFinalStyleNode() {
   let style = document.getElementById(STYLE_ID);
