@@ -1,4 +1,4 @@
-const HERO_SELECTOR = '.gradebook-studio > .gradebook-studio-hero';
+const HERO_SELECTOR = '.gradebook-studio .gradebook-studio-hero';
 const RUNTIME_CLASS = 'gbe-material-hero-runtime';
 
 function escapeHtml(value = '') {
@@ -21,18 +21,64 @@ function buttonByText(root, label) {
   )) || null;
 }
 
+function classLabelFromText(value = '') {
+  return compactText(value).match(/\b(?:10|11|12)\.\d+\b/)?.[0] || '';
+}
+
 function currentClassSelect() {
-  return document.querySelector('.gradebook-studio-class-picker select');
+  const explicit = document.querySelector([
+    '.gradebook-studio-class-picker select',
+    '.gradebook-studio-open-class select',
+    '.gradebook-class-context select',
+    '.gradebook-studio-switcher select',
+  ].join(','));
+  if (explicit) return explicit;
+
+  return Array.from(document.querySelectorAll('.gradebook-studio select')).find((select) => (
+    Array.from(select.options || []).some((option) => classLabelFromText(option.textContent || option.value))
+  )) || null;
+}
+
+function assignmentClasses() {
+  const articles = Array.from(document.querySelectorAll('.gradebook-assignment-grid article'));
+  return articles.map((article) => {
+    const button = buttonByText(article, 'Mở sổ điểm');
+    const label = classLabelFromText(article.textContent);
+    return label && button ? { value: label, label, fullLabel: compactText(article.textContent), button } : null;
+  }).filter(Boolean);
+}
+
+function readClasses() {
+  const select = currentClassSelect();
+  if (select) {
+    const options = Array.from(select.options || [])
+      .filter((option) => option.value && classLabelFromText(option.textContent || option.value))
+      .map((option) => ({
+        value: option.value,
+        label: classLabelFromText(option.textContent || option.value),
+        fullLabel: compactText(option.textContent || option.value),
+        active: option.value === select.value,
+      }));
+    if (options.length) return options;
+  }
+
+  const cards = assignmentClasses();
+  const contextText = compactText(document.querySelector('.gradebook-studio-open-class, .gradebook-class-context, .gradebook-studio-switcher')?.textContent);
+  const activeLabel = classLabelFromText(contextText) || cards[0]?.label || '';
+  return cards.map((item) => ({ ...item, active: item.label === activeLabel }));
 }
 
 function ensureGradebookOpen() {
-  const actions = document.querySelector('.gradebook-studio-actions');
+  const actions = document.querySelector('.gradebook-studio-actions, .gradebook-studio-switcher');
   const gradebookButton = buttonByText(actions, 'Sổ điểm');
-  if (gradebookButton && !gradebookButton.classList.contains('primary')) gradebookButton.click();
+  if (gradebookButton && !gradebookButton.classList.contains('primary') && !gradebookButton.classList.contains('is-active')) {
+    gradebookButton.click();
+  }
 }
 
 function revealGradeNavigation() {
-  document.querySelector('.hr-grade-navigation-launcher[aria-hidden="false"], .hr-grade-navigation-launcher:not([aria-hidden="true"])')?.click();
+  const launcher = document.querySelector('.hr-grade-navigation-launcher, .hr-grade-nav-launcher');
+  if (launcher && launcher.getAttribute('aria-hidden') !== 'true') launcher.click();
 }
 
 function clickInnerControl(selector, label) {
@@ -40,90 +86,117 @@ function clickInnerControl(selector, label) {
   window.setTimeout(() => {
     revealGradeNavigation();
     window.setTimeout(() => {
-      const target = buttonByText(document.querySelector(selector), label);
+      const target = buttonByText(document.querySelector(selector), label)
+        || Array.from(document.querySelectorAll('.hr-gradebook button')).find((button) => compactText(button.textContent).includes(label));
       target?.click();
       document.querySelector('.hr-gradebook')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 40);
-  }, 40);
+    }, 70);
+  }, 70);
 }
 
 function openPdfDialog() {
   ensureGradebookOpen();
   window.setTimeout(() => {
-    document.querySelector('.hr-grade-export-pdf')?.click();
-  }, 80);
+    const pdf = document.querySelector('.hr-grade-export-pdf')
+      || buttonByText(document.querySelector('.hr-gradebook'), 'Xuất phiếu điểm cá nhân')
+      || buttonByText(document.querySelector('.hr-gradebook'), 'PDF');
+    if (pdf) pdf.click();
+    else document.querySelector('.hr-grade-export-bar')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 100);
 }
 
 function selectClass(value) {
+  if (!value) return;
   const select = currentClassSelect();
-  if (!select || !value || select.value === value) return;
-  select.value = value;
-  select.dispatchEvent(new Event('input', { bubbles: true }));
-  select.dispatchEvent(new Event('change', { bubbles: true }));
+  if (select) {
+    const option = Array.from(select.options || []).find((item) => item.value === value || classLabelFromText(item.textContent || item.value) === value);
+    if (option && select.value !== option.value) {
+      select.value = option.value;
+      select.dispatchEvent(new Event('input', { bubbles: true }));
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+      return;
+    }
+  }
+
+  const card = assignmentClasses().find((item) => item.value === value || item.label === value);
+  card?.button?.click();
 }
 
 function parseCompletion() {
   const raw = compactText(document.querySelector('.hr-grade-overview .tone-yellow strong')?.textContent);
   const match = raw.match(/(\d+)\s*\/\s*(\d+)/);
-  if (!match) return { done: 0, total: 0, percent: 0 };
-  const done = Number(match[1]) || 0;
-  const total = Number(match[2]) || 0;
-  return { done, total, percent: total ? Math.round((done / total) * 100) : 0 };
+  if (match) {
+    const done = Number(match[1]) || 0;
+    const total = Number(match[2]) || 0;
+    return { done, total, percent: total ? Math.round((done / total) * 100) : 0 };
+  }
+
+  const rows = Array.from(document.querySelectorAll('.hr-grade-table tbody tr'));
+  if (!rows.length) return { done: 0, total: 0, percent: 0 };
+  const complete = rows.filter((row) => {
+    const values = Array.from(row.querySelectorAll('input')).filter((input) => compactText(input.value));
+    return values.length >= 4;
+  }).length;
+  return { done: complete, total: rows.length, percent: Math.round((complete / rows.length) * 100) };
 }
 
 function readHeroStats() {
   const legacy = Array.from(document.querySelectorAll('.gradebook-studio-hero-stats article strong')).map((node) => compactText(node.textContent));
   const completion = parseCompletion();
   const totalColumns = compactText(document.querySelector('.hr-grade-overview .tone-green strong')?.textContent) || '—';
+  const students = document.querySelectorAll('.hr-grade-table tbody tr').length;
+  const classCount = readClasses().length;
   return {
-    activeBooks: legacy[0] || String(currentClassSelect()?.options?.length || 0),
-    assignments: legacy[1] || '—',
-    students: legacy[2] || String(document.querySelectorAll('.hr-grade-table tbody tr').length || 0),
+    activeBooks: legacy[0] || String(classCount || 0),
+    assignments: legacy[1] || String(classCount || 0),
+    students: legacy[2] || String(students || 0),
     totalColumns,
     completion,
   };
 }
 
-function readClasses() {
-  const select = currentClassSelect();
-  if (!select) return [];
-  return Array.from(select.options || [])
-    .filter((option) => option.value)
-    .map((option) => ({
-      value: option.value,
-      label: compactText(option.textContent).split('·')[0].trim() || compactText(option.textContent),
-      fullLabel: compactText(option.textContent),
-      active: option.value === select.value,
-    }));
-}
-
 function readPreviewRows() {
   const rows = Array.from(document.querySelectorAll('.hr-grade-table tbody tr')).slice(0, 3);
   return rows.map((row, index) => {
-    const name = compactText(row.querySelector('.hr-grade-student b')?.textContent) || `Học sinh ${index + 1}`;
-    const inputs = Array.from(row.querySelectorAll('.hr-grade-input'));
-    const score = compactText(row.querySelector('.hr-grade-result strong')?.textContent)
-      || compactText(row.querySelector('.hr-grade-summary-score')?.textContent)
-      || compactText(inputs.find((input) => input.value)?.value)
-      || '—';
+    const cells = Array.from(row.querySelectorAll('td'));
+    const name = compactText(
+      row.querySelector('.hr-grade-student b, .hr-grade-student strong')?.textContent
+      || cells[1]?.textContent,
+    ) || `Học sinh ${index + 1}`;
+    const inputs = Array.from(row.querySelectorAll('input'));
+    const score = compactText(
+      row.querySelector('.hr-grade-result strong, .hr-grade-summary-score')?.textContent
+      || cells.at(-1)?.textContent
+      || inputs.find((input) => input.value)?.value,
+    ) || '—';
     const entered = inputs.filter((input) => compactText(input.value)).length;
     return { name, score, entered };
   });
 }
 
+function activeButtonText(selectors, fallback) {
+  for (const selector of selectors) {
+    const root = document.querySelector(selector);
+    const active = root?.querySelector('button.active, button.is-active, button[aria-selected="true"], button[aria-current="true"]');
+    if (active) return compactText(active.textContent);
+  }
+  return fallback;
+}
+
 function viewState() {
-  const semester = compactText(document.querySelector('.hr-grade-semesters button.active')?.textContent) || 'Học kỳ I';
-  const view = compactText(document.querySelector('.hr-grade-views button.active')?.textContent) || 'TX · Đợt 1';
+  const semester = activeButtonText(['.hr-grade-semesters', '.hr-grade-navigation', '.hr-grade-nav-palette'], 'Học kỳ I');
+  const view = activeButtonText(['.hr-grade-views', '.hr-grade-navigation', '.hr-grade-nav-palette'], 'TX · Đợt 1');
   const subject = compactText(document.querySelector('.hr-grade-controls select')?.selectedOptions?.[0]?.textContent) || 'Tiếng Anh';
   return { semester, view, subject };
 }
 
 function renderHero(container) {
+  if (!container?.isConnected) return;
   const stats = readHeroStats();
   const classes = readClasses();
   const rows = readPreviewRows();
   const state = viewState();
-  const currentClass = classes.find((item) => item.active)?.label || 'Chưa chọn lớp';
+  const currentClass = classes.find((item) => item.active)?.label || classLabelFromText(document.querySelector('.gradebook-studio')?.textContent) || 'Chưa chọn lớp';
   const progress = Math.max(0, Math.min(100, stats.completion.percent));
 
   const classTabs = classes.length
@@ -193,22 +266,15 @@ function renderHero(container) {
 
 export function installGradebookMaterialHero() {
   if (typeof document === 'undefined') return () => {};
+
   let hero = null;
   let container = null;
-  let observer = null;
+  let globalObserver = null;
+  let gradeObserver = null;
   let refreshTimer = 0;
-  let interval = 0;
+  let ensureTimer = 0;
+  let safetyInterval = 0;
   let disposed = false;
-
-  const refresh = () => {
-    if (disposed || !container?.isConnected) return;
-    renderHero(container);
-  };
-
-  const scheduleRefresh = (delay = 50) => {
-    window.clearTimeout(refreshTimer);
-    refreshTimer = window.setTimeout(refresh, delay);
-  };
 
   const onClick = (event) => {
     const button = event.target.closest('[data-gbe-action]');
@@ -218,67 +284,129 @@ export function installGradebookMaterialHero() {
 
     if (action === 'class') {
       selectClass(value);
-      scheduleRefresh(120);
+      scheduleRefresh(180);
       return;
     }
     if (action === 'add-class') {
-      buttonByText(document.querySelector('.gradebook-studio-actions'), 'Thêm lớp')?.click();
+      const addButton = buttonByText(document.querySelector('.gradebook-studio-actions, .gradebook-studio-switcher, .gradebook-studio'), 'Thêm lớp bộ môn')
+        || buttonByText(document.querySelector('.gradebook-studio'), 'Thêm lớp');
+      addButton?.click();
       document.querySelector('.gradebook-studio-create')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
     if (action === 'students') {
-      buttonByText(document.querySelector('.gradebook-studio-actions'), 'Danh sách học sinh')?.click();
-      window.setTimeout(() => document.querySelector('.gradebook-studio-switcher')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 40);
+      buttonByText(document.querySelector('.gradebook-studio-actions, .gradebook-studio-switcher, .gradebook-studio'), 'Danh sách học sinh')?.click();
+      window.setTimeout(() => document.querySelector('.gradebook-studio-switcher, .gradebook-class-context')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
       return;
     }
     if (action === 'semester') {
-      clickInnerControl('.hr-grade-semesters', value);
-      scheduleRefresh(160);
+      clickInnerControl('.hr-grade-semesters, .hr-grade-navigation, .hr-grade-nav-palette', value);
+      scheduleRefresh(220);
       return;
     }
     if (action === 'view') {
-      clickInnerControl('.hr-grade-views', value);
-      scheduleRefresh(160);
+      clickInnerControl('.hr-grade-views, .hr-grade-navigation, .hr-grade-nav-palette', value);
+      scheduleRefresh(220);
       return;
     }
     if (action === 'pdf') openPdfDialog();
   };
 
-  const mount = () => {
-    if (disposed) return;
-    hero = document.querySelector(HERO_SELECTOR);
-    if (!hero) return;
-    hero.classList.add('gbe-material-mounted');
-    container = hero.querySelector(`.${RUNTIME_CLASS}`);
-    if (!container) {
-      container = document.createElement('div');
-      container.className = RUNTIME_CLASS;
-      hero.appendChild(container);
-      container.addEventListener('click', onClick);
-    }
-    refresh();
+  const bindContainer = (nextContainer) => {
+    if (container === nextContainer) return;
+    container?.removeEventListener('click', onClick);
+    container = nextContainer;
+    container?.addEventListener('click', onClick);
+  };
 
-    observer = new MutationObserver((records) => {
-      const externalChange = records.some((record) => !container?.contains(record.target));
-      if (externalChange) scheduleRefresh(80);
-    });
-    observer.observe(document.querySelector('.gradebook-studio') || hero, {
+  const ensureMounted = (shouldRender = false) => {
+    if (disposed) return false;
+    const nextHero = document.querySelector(HERO_SELECTOR);
+    if (!nextHero) return false;
+
+    if (hero && hero !== nextHero) hero.classList.remove('gbe-material-mounted');
+    hero = nextHero;
+    hero.classList.add('gbe-material-mounted');
+
+    let nextContainer = hero.querySelector(`.${RUNTIME_CLASS}`);
+    const created = !nextContainer;
+    if (!nextContainer) {
+      nextContainer = document.createElement('div');
+      nextContainer.className = RUNTIME_CLASS;
+      hero.appendChild(nextContainer);
+    }
+    bindContainer(nextContainer);
+
+    if (created || shouldRender || !compactText(container.textContent)) renderHero(container);
+    return true;
+  };
+
+  const refresh = () => {
+    if (disposed) return;
+    if (!container?.isConnected || !hero?.isConnected) {
+      ensureMounted(true);
+      return;
+    }
+    renderHero(container);
+  };
+
+  const scheduleRefresh = (delay = 90) => {
+    window.clearTimeout(refreshTimer);
+    refreshTimer = window.setTimeout(refresh, delay);
+  };
+
+  const scheduleEnsure = (delay = 30) => {
+    window.clearTimeout(ensureTimer);
+    ensureTimer = window.setTimeout(() => ensureMounted(true), delay);
+  };
+
+  const watchGradebook = () => {
+    gradeObserver?.disconnect();
+    const gradebook = document.querySelector('.hr-gradebook');
+    if (!gradebook) return;
+    gradeObserver = new MutationObserver(() => scheduleRefresh(120));
+    gradeObserver.observe(gradebook, {
       subtree: true,
       childList: true,
       characterData: true,
       attributes: true,
-      attributeFilter: ['class', 'aria-hidden'],
+      attributeFilter: ['class', 'aria-selected', 'aria-current', 'value'],
     });
-    interval = window.setInterval(refresh, 1800);
   };
 
-  window.requestAnimationFrame(mount);
+  globalObserver = new MutationObserver((records) => {
+    const externalChange = records.some((record) => {
+      if (!container) return true;
+      return record.target !== container && !container.contains(record.target);
+    });
+    if (!externalChange) return;
+
+    if (!container?.isConnected || !document.querySelector(HERO_SELECTOR)?.querySelector(`.${RUNTIME_CLASS}`)) {
+      scheduleEnsure(20);
+    } else {
+      scheduleRefresh(130);
+    }
+    watchGradebook();
+  });
+  globalObserver.observe(document.documentElement, { subtree: true, childList: true });
+
+  // Try immediately, after the current React commit, and keep a light safety check.
+  ensureMounted(true);
+  window.requestAnimationFrame(() => ensureMounted(true));
+  window.setTimeout(() => ensureMounted(true), 120);
+  window.setTimeout(() => ensureMounted(true), 500);
+  watchGradebook();
+  safetyInterval = window.setInterval(() => {
+    if (!container?.isConnected || !hero?.isConnected) ensureMounted(true);
+  }, 1500);
 
   return () => {
     disposed = true;
     window.clearTimeout(refreshTimer);
-    window.clearInterval(interval);
-    observer?.disconnect();
+    window.clearTimeout(ensureTimer);
+    window.clearInterval(safetyInterval);
+    globalObserver?.disconnect();
+    gradeObserver?.disconnect();
     container?.removeEventListener('click', onClick);
     container?.remove();
     hero?.classList.remove('gbe-material-mounted');
