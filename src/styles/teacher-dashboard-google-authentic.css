@@ -1,5 +1,6 @@
 /* Dashboard — Google Workspace / Material 3 soft surfaces.
-   Scoped to the Dashboard route so global legacy layers cannot recolor cards. */
+   Scoped to the Dashboard route so global legacy layers cannot recolor cards.
+   Hero ownership was removed from this file on 2026-08-29; hero layout lives only in teacher-dashboard-hero-interactive-2026.css. */
 
 .app-shell[data-route="dashboard"] #bes-main-content,
 #bes-main-content[data-route="dashboard"] {
@@ -72,61 +73,6 @@
   padding: 0 !important;
   display: grid;
   gap: 28px;
-}
-
-.app-shell[data-route="dashboard"] .gd-hero {
-  min-height: 164px;
-  padding: 20px 8px 18px !important;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 36px;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-.app-shell[data-route="dashboard"] .gd-hero-copy {
-  max-width: 900px;
-}
-
-.app-shell[data-route="dashboard"] .gd-hero-copy > span {
-  display: inline-flex;
-  align-items: center;
-  min-height: 28px;
-  margin-bottom: 12px;
-  padding: 0 11px;
-  border-radius: 999px;
-  background: var(--gd-blue-soft);
-  color: #174ea6;
-  font-size: 12px !important;
-  font-weight: 600;
-  letter-spacing: .015em;
-}
-
-.app-shell[data-route="dashboard"] .gd-hero-copy h1 {
-  margin: 0;
-  color: var(--gd-text);
-  font-size: clamp(42px, 4.4vw, 64px) !important;
-  font-weight: 400;
-  line-height: 1.08;
-  letter-spacing: -.04em;
-}
-
-.app-shell[data-route="dashboard"] .gd-hero-copy p {
-  max-width: 760px;
-  margin: 14px 0 0;
-  color: var(--gd-muted);
-  font-size: 17px !important;
-  line-height: 1.55;
-}
-
-.app-shell[data-route="dashboard"] .gd-hero-actions {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 12px;
 }
 
 .app-shell[data-route="dashboard"] .gd-button,
@@ -978,18 +924,7 @@
     gap: 22px;
   }
 
-  .app-shell[data-route="dashboard"] .gd-hero {
-    align-items: flex-start;
-    flex-direction: column;
-    min-height: 0;
-    padding: 12px 4px !important;
-  }
-
-  .app-shell[data-route="dashboard"] .gd-hero-actions {
-    justify-content: flex-start;
-  }
-
-  .app-shell[data-route="dashboard"] .gd-metrics {
+.app-shell[data-route="dashboard"] .gd-metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1035,20 +970,7 @@
     gap: 16px;
   }
 
-  .app-shell[data-route="dashboard"] .gd-hero-copy h1 {
-    font-size: 36px !important;
-  }
-
-  .app-shell[data-route="dashboard"] .gd-hero-copy p {
-    font-size: 15px !important;
-  }
-
-  .app-shell[data-route="dashboard"] .gd-hero-actions,
-  .app-shell[data-route="dashboard"] .gd-button {
-    width: 100%;
-  }
-
-  .app-shell[data-route="dashboard"] .gd-metrics {
+.app-shell[data-route="dashboard"] .gd-metrics {
     grid-template-columns: minmax(0, 1fr);
     gap: 12px;
   }
