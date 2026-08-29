@@ -1,3 +1,4 @@
+import './globalWindowsPhoneLoadingIndicator.js';
 import { reportPwaRefreshNeeded } from './utils/pwa.js';
 
 const INSTALL_KEY = '__besTabResumeStabilityInstalled';
