@@ -1,10 +1,9 @@
+import { useEffect } from 'react';
 import GradebookEngine from './GradebookEngine.jsx';
 import editorialCss from '../../styles/GradebookEditorialV2.css?inline';
+import materialHeroCss from '../../styles/GradebookMaterialHeroRuntime.css?inline';
 import { exportStudentGradeReportPdf } from '../../utils/homeroomGradeReportPdf.js';
-
-// Restoration marker: keep the exact pre-redesign Gradebook visual snapshot and
-// force a fresh production deployment instead of reusing an older Vercel build.
-// No visual or data behavior is changed by this marker.
+import { installGradebookMaterialHero } from '../../utils/gradebookMaterialHeroRuntime.js';
 
 // Keep the PDF exporter in the same production bundle as the Gradebook route.
 // GradebookEngine still calls the module through dynamic import, but because this
@@ -12,11 +11,16 @@ import { exportStudentGradeReportPdf } from '../../utils/homeroomGradeReportPdf.
 // into a late-loaded chunk that may resolve to an empty module on production.
 void exportStudentGradeReportPdf;
 
-// Public Gradebook boundary. The final editorial layer is rendered after the
-// app styles so the previous hero treatment cannot win the cascade again.
+// GradebookWorkspace owns the final route-level visual authority. The legacy
+// editorial CSS remains for the class cards/tables below, while the Material
+// hero layer is rendered last and progressively enhances the existing hero with
+// live class, score and navigation controls.
 export default function GradebookWorkspace(props) {
+  useEffect(() => installGradebookMaterialHero(), [props.workspace?.id]);
+
   return <>
     <style>{editorialCss}</style>
+    <style>{materialHeroCss}</style>
     <GradebookEngine {...props} />
   </>;
 }
