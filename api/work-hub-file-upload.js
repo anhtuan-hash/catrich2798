@@ -6,8 +6,12 @@ export const config = { api: { bodyParser: false, sizeLimit: '11mb' } };
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 const TARGET_FOLDER = '04_WORK_HUB_SUBMISSIONS';
 const ALLOWED_EXTENSIONS = new Set([
-  'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'txt', 'rtf',
-  'jpg', 'jpeg', 'png', 'webp', 'zip', 'rar', '7z', 'mp3', 'wav', 'mp4',
+  'pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'ppt', 'pptx', 'txt', 'rtf',
+  'odt', 'ods', 'odp',
+  'jpg', 'jpeg', 'png', 'webp', 'gif', 'svg',
+  'zip', 'rar', '7z',
+  'mp3', 'wav', 'ogg', 'm4a',
+  'mp4', 'webm', 'mov',
 ]);
 
 function cleanHeader(value, fallback = '') {
@@ -76,7 +80,9 @@ export default async function handler(req, res) {
   try {
     if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' });
     context = await requireApprovedUser(req, { roles: ['admin', 'department_head', 'teacher'] });
-    await enforceRateLimit(context, { feature: 'work_hub_file_upload', perMinute: 10, perDay: 100 });
+    // A single TTCM post may legitimately upload ten files in sequence. Keep room
+    // for the complete batch plus an occasional retry without weakening daily limits.
+    await enforceRateLimit(context, { feature: 'work_hub_file_upload', perMinute: 20, perDay: 200 });
 
     const itemId = uuid(req.headers['x-work-hub-item-id']);
     if (!itemId) throw new Error('Mã công việc không hợp lệ.');
