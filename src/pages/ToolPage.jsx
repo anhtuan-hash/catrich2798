@@ -3,18 +3,10 @@ import React, { Suspense, lazy, useMemo, useState } from 'react';
 const NewsReader = lazy(() => import('./NewsReader.jsx'));
 const VietnamTaxStudio = lazy(() => import('./VietnamTaxStudio.jsx'));
 const TextCareStudio = lazy(() => import('./TextCareStudio.jsx'));
-const SpecializedAppPage = lazy(() => import('./SpecializedAppPage.jsx'));
-const DominoWordForm = lazy(() => import('./DominoWordForm.jsx'));
-const PromptStudio = lazy(() => import('./PromptStudio.jsx'));
-const ClassroomGame = lazy(() => import('./ClassroomGame.jsx'));
-const TestBuilder = lazy(() => import('./TestBuilder.jsx'));
 const AITool = lazy(() => import('./AITool.jsx'));
 const TextLabActivities = lazy(() => import('./TextLabActivities.jsx'));
 const THPTPracticeHub = lazy(() => import('./THPTPracticeHub.jsx'));
 const BrianTeamPortal = lazy(() => import('./BrianTeamPortal.jsx'));
-const TopFiveArena = lazy(() => import('./TopFiveArena.jsx'));
-const SeatingChartStudio = lazy(() => import('./SeatingChartStudio.jsx'));
-const TeachingToolHub = lazy(() => import('./TeachingToolHub.jsx'));
 const GradebookStudio = lazy(() => import('./GradebookStudio.jsx'));
 
 function ToolFallback({ language = 'vi' }) {
@@ -55,19 +47,12 @@ export default function ToolPage(props) {
   const preview = useMemo(() => buildPreview(content, selected, language), [content, selected, language]);
 
   if (tool?.slug === 'gradebook-studio') return renderLazy(GradebookStudio, props);
-  if (tool?.slug === 'teaching-tool-hub') return renderLazy(TeachingToolHub, props);
-  if (tool?.slug === 'seating-chart-studio') return renderLazy(SeatingChartStudio, props);
   if (tool?.slug === 'textlab-activities') return renderLazy(TextLabActivities, props);
   if (tool?.slug === 'thpt-practice-hub') return renderLazy(THPTPracticeHub, props);
-  if (['brian-team', 'personnel-hub'].includes(tool?.slug)) return renderLazy(BrianTeamPortal, props);
-  if (tool?.slug === 'top-five-arena') return renderLazy(TopFiveArena, props);
+  if (tool?.slug === 'brian-team') return renderLazy(BrianTeamPortal, props);
   if (tool?.slug === 'news-reader') return renderLazy(NewsReader, props);
   if (tool?.slug === 'vietnam-tax') return renderLazy(VietnamTaxStudio, props);
   if (tool?.slug === 'textcare') return renderLazy(TextCareStudio, props);
-  if (tool?.slug === 'domino-wordform') return renderLazy(DominoWordForm, props);
-  if (tool?.slug === 'prompt-studio') return renderLazy(PromptStudio, props);
-  if (['jeopardy-builder', 'open-the-box', 'team-race', 'lucky-wheel', 'matching-battle'].includes(tool?.slug)) return renderLazy(ClassroomGame, props);
-  if (tool?.slug === 'test-paper-builder') return renderLazy(TestBuilder, props);
   if (tool?.api) return renderLazy(AITool, props);
 
   if (!tool) {
