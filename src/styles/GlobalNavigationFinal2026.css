@@ -1,0 +1,413 @@
+/* Brian English — ONE FINAL NAVIGATION AUTHORITY 2026
+   This is the only visual/geometry authority for the shared top navigation.
+   Keep route logic, permissions and TTCM workspace behavior in React; keep nav
+   geometry, ordering, color, icons and Reports countdown here. */
+
+html {
+  --bes-primary-nav-height: 64px !important;
+  --bes-navigation-hub-height: 78px !important;
+}
+
+html body .app-shell[data-route] .bes-top-chrome {
+  position: fixed !important;
+  top: max(8px, var(--brian-safe-top, 0px)) !important;
+  left: 50% !important;
+  z-index: 1900 !important;
+  width: calc(100% - clamp(24px, 5vw, 72px)) !important;
+  max-width: none !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: translateX(-50%) !important;
+  overflow: visible !important;
+}
+
+html body .app-shell[data-route] .brian-nav {
+  position: relative !important;
+  inset: auto !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 64px !important;
+  height: 64px !important;
+  max-height: 64px !important;
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 0 14px !important;
+  overflow: visible !important;
+  border: 1px solid #dde4ed !important;
+  border-radius: 20px !important;
+  background: rgba(255,255,255,.985) !important;
+  background-image: none !important;
+  color: #17314f !important;
+  box-shadow: 0 10px 27px rgba(38,57,82,.10), 0 2px 7px rgba(38,57,82,.045) !important;
+  backdrop-filter: blur(14px) saturate(1.08) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.08) !important;
+}
+
+/* The old search slot is not part of the compact production rail. */
+html body .app-shell[data-route] .brian-nav__search { display: none !important; }
+html body .app-shell[data-route] :is(.brian-editorial-brief,.brian-briefing-bar) { display: none !important; }
+
+html body .app-shell[data-route] .brian-nav__brand {
+  position: relative !important;
+  min-width: max-content !important;
+  min-height: 38px !important;
+  height: 38px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  margin: 0 !important;
+  padding: 0 12px 0 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #10365f !important;
+  box-shadow: none !important;
+}
+html body .app-shell[data-route] .brian-nav__brand::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 5px !important;
+  right: 0 !important;
+  bottom: 5px !important;
+  width: 1px !important;
+  background: #e4e8ed !important;
+}
+html body .app-shell[data-route] .brian-nav__brand img {
+  width: 30px !important;
+  min-width: 30px !important;
+  height: 30px !important;
+  border-radius: 8px !important;
+  object-fit: contain !important;
+}
+html body .app-shell[data-route] .brian-nav__brand > span {
+  font-size: 14px !important;
+  font-weight: 760 !important;
+  line-height: 1 !important;
+  letter-spacing: -.02em !important;
+  white-space: nowrap !important;
+}
+
+/* One fixed semantic row: Home, Apps, Dashboard, Homeroom, Gradebook, Reports, TTCM. */
+html body .app-shell[data-route] .brian-nav__primary {
+  position: relative !important;
+  min-width: 0 !important;
+  width: auto !important;
+  min-height: 64px !important;
+  height: 64px !important;
+  max-height: 64px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  flex-wrap: nowrap !important;
+  gap: 4px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+html body .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-child { order: 10 !important; }
+html body .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):nth-of-type(2) { order: 20 !important; }
+/* Admin is intentionally kept in Settings/Admin, not the teacher primary rail. */
+html body .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):nth-of-type(3) { display: none !important; }
+html body .app-shell[data-route] .brian-nav__dashboard-tab { order: 30 !important; }
+html body .app-shell[data-route] .brian-nav__homeroom-tab { order: 40 !important; }
+html body .app-shell[data-route] .brian-nav__gradebook-tab { order: 50 !important; }
+html body .app-shell[data-route] .brian-nav__reports-tab { order: 60 !important; }
+html body .app-shell[data-route] .brian-nav__ttcm-tab { order: 70 !important; }
+
+html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']) {
+  --nav-accent: #356ec5;
+  --nav-rgb: 53,110,197;
+  position: relative !important;
+  isolation: isolate !important;
+  flex: 0 0 auto !important;
+  min-width: 0 !important;
+  min-height: 38px !important;
+  height: 38px !important;
+  max-height: 38px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  margin: 0 !important;
+  padding: 0 9px 0 29px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(var(--nav-rgb), .20) !important;
+  border-radius: 11px !important;
+  background: linear-gradient(180deg,#fff 0%,rgba(var(--nav-rgb),.070) 100%) !important;
+  background-image: linear-gradient(180deg,#fff 0%,rgba(var(--nav-rgb),.070) 100%) !important;
+  color: var(--nav-accent) !important;
+  box-shadow: 0 4px 10px rgba(35,50,70,.055), inset 0 1px 0 rgba(255,255,255,.98) !important;
+  font-family: var(--bes-font-navigation, inherit) !important;
+  font-size: 12px !important;
+  font-weight: 760 !important;
+  line-height: 1 !important;
+  letter-spacing: -.012em !important;
+  text-shadow: none !important;
+  white-space: nowrap !important;
+  transform: none !important;
+}
+
+/* Route identity. */
+html body .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-child { --nav-accent:#1967d2; --nav-rgb:25,103,210; }
+html body .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):nth-of-type(2) { --nav-accent:#7c3aed; --nav-rgb:124,58,237; }
+html body .app-shell[data-route] .brian-nav__dashboard-tab { --nav-accent:#078ea1; --nav-rgb:7,142,161; }
+html body .app-shell[data-route] .brian-nav__homeroom-tab { --nav-accent:#159447; --nav-rgb:21,148,71; }
+html body .app-shell[data-route] .brian-nav__gradebook-tab { --nav-accent:#df7d00; --nav-rgb:223,125,0; }
+html body .app-shell[data-route] .brian-nav__reports-tab { --nav-accent:#e6533b; --nav-rgb:230,83,59; }
+html body .app-shell[data-route] .brian-nav__ttcm-tab { --nav-accent:#285fae; --nav-rgb:40,95,174; padding:0 9px !important; }
+
+html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']):hover {
+  border-color: rgba(var(--nav-rgb), .31) !important;
+  background: linear-gradient(180deg,#fff 0%,rgba(var(--nav-rgb),.115) 100%) !important;
+  background-image: linear-gradient(180deg,#fff 0%,rgba(var(--nav-rgb),.115) 100%) !important;
+  color: var(--nav-accent) !important;
+  box-shadow: 0 7px 15px rgba(35,50,70,.075), 0 2px 5px rgba(var(--nav-rgb),.075) !important;
+  transform: none !important;
+}
+html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']):focus-visible {
+  outline: none !important;
+  border-color: rgba(var(--nav-rgb), .46) !important;
+  box-shadow: 0 0 0 3px rgba(var(--nav-rgb),.12), 0 5px 12px rgba(35,50,70,.07) !important;
+}
+html body .app-shell[data-route] .brian-nav__primary > :is(button.is-active,button.active,button[aria-current='page'],a.is-active,a.active,a[aria-current='page']) {
+  border-color: rgba(var(--nav-rgb), .38) !important;
+  background: linear-gradient(180deg,rgba(var(--nav-rgb),.18) 0%,rgba(var(--nav-rgb),.11) 100%) !important;
+  background-image: linear-gradient(180deg,rgba(var(--nav-rgb),.18) 0%,rgba(var(--nav-rgb),.11) 100%) !important;
+  color: var(--nav-accent) !important;
+  box-shadow: 0 5px 13px rgba(var(--nav-rgb),.12), inset 0 1px 0 rgba(255,255,255,.85) !important;
+  font-weight: 820 !important;
+}
+html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button'])::after { display:none !important; content:none !important; }
+
+/* One compact icon contract. */
+html body .app-shell[data-route] .brian-nav__primary > :is(
+  button:not([class*='brian-nav__']):first-child,
+  button:not([class*='brian-nav__']):nth-of-type(2),
+  .brian-nav__dashboard-tab,
+  .brian-nav__homeroom-tab,
+  .brian-nav__gradebook-tab,
+  .brian-nav__reports-tab
+)::before {
+  content:'' !important;
+  position:absolute !important;
+  z-index:1 !important;
+  left:9px !important;
+  top:50% !important;
+  width:14px !important;
+  min-width:14px !important;
+  height:14px !important;
+  min-height:14px !important;
+  margin:0 !important;
+  border:0 !important;
+  background:currentColor !important;
+  transform:translateY(-50%) !important;
+  opacity:1 !important;
+  pointer-events:none !important;
+  -webkit-mask-position:center !important;
+  -webkit-mask-repeat:no-repeat !important;
+  -webkit-mask-size:contain !important;
+  mask-position:center !important;
+  mask-repeat:no-repeat !important;
+  mask-size:contain !important;
+}
+html body .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-child::before {
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 11 9-8 9 8'/%3E%3Cpath d='M5 10v10h14V10'/%3E%3Cpath d='M9 20v-6h6v6'/%3E%3C/svg%3E") !important;
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m3 11 9-8 9 8'/%3E%3Cpath d='M5 10v10h14V10'/%3E%3Cpath d='M9 20v-6h6v6'/%3E%3C/svg%3E") !important;
+}
+html body .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):nth-of-type(2)::before {
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Crect x='3' y='3' width='7' height='7' rx='1'/%3E%3Crect x='14' y='3' width='7' height='7' rx='1'/%3E%3Crect x='3' y='14' width='7' height='7' rx='1'/%3E%3Crect x='14' y='14' width='7' height='7' rx='1'/%3E%3C/svg%3E") !important;
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2'%3E%3Crect x='3' y='3' width='7' height='7' rx='1'/%3E%3Crect x='14' y='3' width='7' height='7' rx='1'/%3E%3Crect x='3' y='14' width='7' height='7' rx='1'/%3E%3Crect x='14' y='14' width='7' height='7' rx='1'/%3E%3C/svg%3E") !important;
+}
+html body .app-shell[data-route] .brian-nav__dashboard-tab::before {
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M4 20V11'/%3E%3Cpath d='M10 20V5'/%3E%3Cpath d='M16 20v-7'/%3E%3Cpath d='M22 20V8'/%3E%3C/svg%3E") !important;
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M4 20V11'/%3E%3Cpath d='M10 20V5'/%3E%3Cpath d='M16 20v-7'/%3E%3Cpath d='M22 20V8'/%3E%3C/svg%3E") !important;
+}
+html body .app-shell[data-route] .brian-nav__homeroom-tab::before {
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='8.5' cy='8' r='3.5'/%3E%3Cpath d='M2.5 20v-1.5a6 6 0 0 1 12 0V20'/%3E%3Cpath d='M16 6a3 3 0 0 1 0 6M17 14a5 5 0 0 1 4.5 5'/%3E%3C/svg%3E") !important;
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='8.5' cy='8' r='3.5'/%3E%3Cpath d='M2.5 20v-1.5a6 6 0 0 1 12 0V20'/%3E%3Cpath d='M16 6a3 3 0 0 1 0 6M17 14a5 5 0 0 1 4.5 5'/%3E%3C/svg%3E") !important;
+}
+html body .app-shell[data-route] .brian-nav__gradebook-tab::before {
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M6 3h12v18l-6-3-6 3V3Z'/%3E%3Cpath d='M9 7h6M9 11h6'/%3E%3C/svg%3E") !important;
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M6 3h12v18l-6-3-6 3V3Z'/%3E%3Cpath d='M9 7h6M9 11h6'/%3E%3C/svg%3E") !important;
+}
+html body .app-shell[data-route] .brian-nav__reports-tab::before {
+  -webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M6 3h9l3 3v15H6V3Z'/%3E%3Cpath d='M15 3v4h4M9 11h6M9 15h6'/%3E%3C/svg%3E") !important;
+  mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M6 3h9l3 3v15H6V3Z'/%3E%3Cpath d='M15 3v4h4M9 11h6M9 15h6'/%3E%3C/svg%3E") !important;
+}
+
+/* TTCM owns a real SVG child instead of a pseudo-icon. */
+html body .app-shell[data-route] .brian-nav__ttcm-tab .ttcm-m3-icon {
+  width:14px !important;
+  min-width:14px !important;
+  height:14px !important;
+  min-height:14px !important;
+  fill:currentColor !important;
+  flex:0 0 auto !important;
+}
+html body .app-shell[data-route] .brian-nav__ttcm-badge {
+  min-width:16px !important;
+  height:16px !important;
+  padding:0 4px !important;
+  border-radius:999px !important;
+  background:#c93b35 !important;
+  color:#fff !important;
+  font-size:8px !important;
+  font-weight:850 !important;
+  line-height:1 !important;
+}
+
+/* Reports: ordinary one-line pill until a real live deadline exists. */
+html body .app-shell[data-route] .brian-nav__reports-tab:not(.shows-countdown) {
+  display:inline-flex !important;
+  grid-template:none !important;
+}
+html body .app-shell[data-route] .brian-nav__reports-tab:not(.shows-countdown) .brian-nav__reports-label {
+  display:inline-flex !important;
+  align-items:center !important;
+  font:inherit !important;
+  line-height:1 !important;
+}
+html body .app-shell[data-route] .brian-nav__reports-tab.shows-countdown {
+  min-width:72px !important;
+  display:grid !important;
+  grid-template-columns:14px auto !important;
+  grid-template-rows:13px 9px !important;
+  column-gap:5px !important;
+  row-gap:1px !important;
+  padding:4px 8px !important;
+}
+html body .app-shell[data-route] .brian-nav__reports-tab.shows-countdown::before {
+  position:static !important;
+  grid-column:1 !important;
+  grid-row:1 / 3 !important;
+  align-self:center !important;
+  justify-self:center !important;
+  transform:none !important;
+}
+html body .app-shell[data-route] .brian-nav__reports-tab.shows-countdown .brian-nav__reports-label {
+  grid-column:2 !important;
+  grid-row:1 !important;
+  align-self:end !important;
+  justify-self:start !important;
+  font-size:10.8px !important;
+  line-height:12px !important;
+}
+html body .app-shell[data-route] .brian-nav__reports-tab.shows-countdown .brian-nav__reports-countdown {
+  grid-column:2 !important;
+  grid-row:2 !important;
+  align-self:start !important;
+  justify-self:start !important;
+  width:auto !important;
+  min-width:18px !important;
+  max-width:46px !important;
+  height:9px !important;
+  min-height:9px !important;
+  max-height:9px !important;
+  margin:0 !important;
+  padding:0 3px !important;
+  overflow:hidden !important;
+  border:0 !important;
+  border-radius:999px !important;
+  background:rgba(var(--nav-rgb),.11) !important;
+  color:var(--nav-accent) !important;
+  box-shadow:none !important;
+  font-size:7px !important;
+  font-weight:850 !important;
+  line-height:9px !important;
+  white-space:nowrap !important;
+  font-variant-numeric:tabular-nums !important;
+}
+
+/* Compact utility cluster. */
+html body .app-shell[data-route] .brian-nav__actions {
+  min-width:max-content !important;
+  min-height:64px !important;
+  height:64px !important;
+  max-height:64px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:flex-end !important;
+  gap:5px !important;
+  margin:0 !important;
+  padding:0 !important;
+}
+html body .app-shell[data-route] .brian-nav__icon {
+  width:33px !important;
+  min-width:33px !important;
+  height:33px !important;
+  min-height:33px !important;
+  border-radius:10px !important;
+}
+html body .app-shell[data-route] .brian-nav__account {
+  min-height:36px !important;
+  height:36px !important;
+  grid-template-columns:28px auto auto !important;
+  gap:5px !important;
+  padding:3px 6px 3px 4px !important;
+  border:0 !important;
+  border-radius:11px !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+html body .app-shell[data-route] .brian-nav__account :is(strong,.brian-nav__account-name) {
+  max-width:82px !important;
+  font-size:11.5px !important;
+  font-weight:760 !important;
+}
+html body .app-shell[data-route] .brian-nav__account img,
+html body .app-shell[data-route] .brian-nav__avatar,
+html body .app-shell[data-route] .brian-nav__account > span:first-child {
+  width:28px !important;
+  min-width:28px !important;
+  height:28px !important;
+  min-height:28px !important;
+}
+
+@media (max-width:1280px) {
+  html { --bes-primary-nav-height:60px !important; --bes-navigation-hub-height:74px !important; }
+  html body .app-shell[data-route] .brian-nav {
+    min-height:60px !important; height:60px !important; max-height:60px !important;
+    gap:7px !important; padding-inline:10px !important;
+  }
+  html body .app-shell[data-route] .brian-nav__brand { min-height:34px !important; height:34px !important; padding-right:9px !important; }
+  html body .app-shell[data-route] .brian-nav__brand img { width:27px !important; min-width:27px !important; height:27px !important; }
+  html body .app-shell[data-route] .brian-nav__brand > span { display:none !important; }
+  html body .app-shell[data-route] .brian-nav__primary,
+  html body .app-shell[data-route] .brian-nav__actions { min-height:60px !important; height:60px !important; max-height:60px !important; }
+  html body .app-shell[data-route] .brian-nav__primary { gap:2px !important; }
+  html body .app-shell[data-route] .brian-nav__primary > :is(button,a,[role='button']) {
+    min-height:35px !important; height:35px !important; max-height:35px !important;
+    padding:0 7px 0 25px !important; border-radius:9px !important; font-size:10.8px !important;
+  }
+  html body .app-shell[data-route] .brian-nav__primary > :is(
+    button:not([class*='brian-nav__']):first-child,
+    button:not([class*='brian-nav__']):nth-of-type(2),
+    .brian-nav__dashboard-tab,.brian-nav__homeroom-tab,.brian-nav__gradebook-tab,.brian-nav__reports-tab
+  )::before { left:7px !important; width:12px !important; min-width:12px !important; height:12px !important; min-height:12px !important; }
+  html body .app-shell[data-route] .brian-nav__ttcm-tab { padding-inline:7px !important; }
+  html body .app-shell[data-route] .brian-nav__ttcm-tab .ttcm-m3-icon { width:12px !important; min-width:12px !important; height:12px !important; min-height:12px !important; }
+  html body .app-shell[data-route] .brian-nav__reports-tab.shows-countdown { min-width:66px !important; padding:3px 6px !important; }
+  html body .app-shell[data-route] .brian-nav__icon { width:30px !important; min-width:30px !important; height:30px !important; min-height:30px !important; }
+  html body .app-shell[data-route] .brian-nav__account { min-height:33px !important; height:33px !important; grid-template-columns:25px auto !important; }
+  html body .app-shell[data-route] .brian-nav__account :is(strong,.brian-nav__account-name) { display:none !important; }
+  html body .app-shell[data-route] .brian-nav__account img,
+  html body .app-shell[data-route] .brian-nav__avatar,
+  html body .app-shell[data-route] .brian-nav__account > span:first-child { width:25px !important; min-width:25px !important; height:25px !important; min-height:25px !important; }
+}
+
+@media (max-width:900px) {
+  html body .app-shell[data-route] .bes-top-chrome { width:calc(100% - 16px) !important; }
+  html body .app-shell[data-route] .brian-nav { grid-template-columns:auto minmax(0,1fr) auto !important; padding-inline:8px !important; }
+  html body .app-shell[data-route] .brian-nav__primary { overflow-x:auto !important; overflow-y:hidden !important; scrollbar-width:none !important; }
+  html body .app-shell[data-route] .brian-nav__primary::-webkit-scrollbar { display:none !important; }
+}
