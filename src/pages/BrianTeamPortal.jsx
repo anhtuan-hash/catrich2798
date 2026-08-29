@@ -3,6 +3,7 @@ import { BarChart3, CalendarRange, FileText, UsersRound } from 'lucide-react';
 import { isDepartmentLeaderRole } from '../utils/roles.js';
 import MonthlyReportsWorkspace from './MonthlyReportsWorkspace.jsx';
 import MonthlyReportsHistory from './MonthlyReportsHistory.jsx';
+import MonthlyReportsInteractiveHero from './MonthlyReportsInteractiveHero.jsx';
 import PersonnelHub from './PersonnelHub.jsx';
 import './BrianTeamPortal.css';
 
@@ -19,7 +20,12 @@ export default function BrianTeamPortal(props) {
   }, [currentUser, isLeader]);
 
   if (!isLeader) {
-    return <div className="btp-shell"><MonthlyReportsWorkspace currentUser={currentUser} /></div>;
+    return (
+      <div className="btp-shell">
+        <MonthlyReportsInteractiveHero />
+        <MonthlyReportsWorkspace currentUser={currentUser} />
+      </div>
+    );
   }
 
   return (
@@ -55,7 +61,7 @@ export default function BrianTeamPortal(props) {
         </button>
       </nav>
 
-      {view === 'mine' && <MonthlyReportsWorkspace currentUser={teacherViewUser} />}
+      {view === 'mine' && <><MonthlyReportsInteractiveHero /><MonthlyReportsWorkspace currentUser={teacherViewUser} /></>}
       {view === 'reports' && <MonthlyReportsWorkspace currentUser={currentUser} />}
       {view === 'history' && <MonthlyReportsHistory currentUser={currentUser} />}
       {view === 'team' && <PersonnelHub {...props} />}
