@@ -1,0 +1,483 @@
+/* Gradebook hero polish — final route-local visual authority.
+   Keeps the existing runtime interactions intact while tightening hierarchy,
+   spacing and responsive behavior. No motion/animation is introduced. */
+
+html body #root .gradebook-studio > .gradebook-studio-hero.gbe-material-mounted {
+  margin-bottom: 18px;
+  border: 1px solid #c9dcf3;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 8% 5%, rgba(255,255,255,.98), transparent 30%),
+    radial-gradient(circle at 92% 9%, rgba(255,255,255,.82), transparent 24%),
+    radial-gradient(circle at 86% 100%, rgba(111,88,217,.09), transparent 27%),
+    linear-gradient(128deg, #f7fbff 0%, #eef6ff 48%, #e8f3ff 100%);
+  box-shadow: 0 18px 44px rgba(35, 76, 128, .10);
+}
+
+html body #root .gbe-material-hero-runtime {
+  grid-template-columns: minmax(0, .94fr) minmax(500px, 1.06fr);
+  gap: 28px;
+  padding: 30px 32px;
+}
+
+html body #root .gbe-material-hero-runtime::before {
+  width: 210px;
+  height: 210px;
+  right: -82px;
+  bottom: -112px;
+  background: rgba(47,127,231,.075);
+}
+
+html body #root .gbe-material-hero-runtime::after {
+  width: 92px;
+  height: 92px;
+  left: 46.5%;
+  bottom: -46px;
+  background: rgba(45,158,146,.095);
+}
+
+html body #root .gbe-m3-hero-copy {
+  align-self: center;
+  padding: 2px 0 2px 6px;
+}
+
+html body #root .gbe-m3-eyebrow {
+  min-height: 25px;
+  padding: 0 11px;
+  border: 1px solid rgba(31,103,199,.12);
+  background: rgba(221,237,255,.88);
+  color: #1767c9;
+  font-size: 10px;
+  letter-spacing: .12em;
+}
+
+html body #root .gbe-m3-hero-copy h1 {
+  margin: 13px 0 8px;
+  color: #143f78;
+  font-size: clamp(52px, 4.6vw, 70px);
+  line-height: .95;
+  letter-spacing: -.052em;
+}
+
+html body #root .gbe-m3-hero-copy h1 i {
+  margin-left: 7px;
+  color: #5d93f5;
+  font-size: .34em;
+  transform: translateY(5px);
+}
+
+html body #root .gbe-m3-hero-copy > p {
+  margin-bottom: 22px;
+  color: #3a5475;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+/* Class selector: no clipped/vertical active badge, and no oversized segments. */
+html body #root .gbe-m3-class-switcher {
+  width: 100%;
+  max-width: 660px;
+  min-height: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  overflow: visible;
+  border: 1px solid #cbdcf0;
+  border-radius: 16px;
+  background: rgba(255,255,255,.72);
+  box-shadow: 0 6px 18px rgba(49,88,137,.055);
+}
+
+html body #root .gbe-m3-class-tab,
+html body #root .gbe-m3-class-add {
+  flex: 0 1 auto;
+  min-width: 70px;
+  min-height: 40px;
+  gap: 6px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  color: #173b66;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+html body #root .gbe-m3-class-tab span,
+html body #root .gbe-m3-class-tab small {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  writing-mode: horizontal-tb;
+  transform: none;
+}
+
+html body #root .gbe-m3-class-tab small {
+  flex: 0 0 auto;
+  min-height: 20px;
+  padding: 0 7px;
+  border: 1px solid rgba(255,255,255,.28);
+  background: rgba(255,255,255,.16);
+  color: #fff;
+  font-size: 8px;
+  letter-spacing: .01em;
+}
+
+html body #root .gbe-m3-class-tab.is-active {
+  min-width: 116px;
+  border-color: #176bd7;
+  background: #176bd7;
+  color: #fff;
+  box-shadow: 0 6px 14px rgba(23,107,215,.22);
+}
+
+html body #root .gbe-m3-class-tab:hover:not(.is-active),
+html body #root .gbe-m3-class-add:hover {
+  border-color: #d3e3f5;
+  background: #edf5ff;
+}
+
+html body #root .gbe-m3-class-add {
+  min-width: 92px;
+  color: #1767c9;
+}
+
+/* Quick actions */
+html body #root .gbe-m3-actions {
+  gap: 8px;
+  margin-top: 16px;
+}
+
+html body #root .gbe-m3-actions button {
+  min-height: 44px;
+  padding: 0 16px;
+  border-color: #c8d9eb;
+  border-radius: 13px;
+  background: rgba(255,255,255,.86);
+  color: #234c76;
+  box-shadow: 0 3px 10px rgba(41,79,127,.045);
+  font-size: 12px;
+}
+
+html body #root .gbe-m3-actions button > span {
+  width: 22px;
+  height: 22px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #edf5ff;
+  color: #2d72c8;
+  font-size: 12px;
+}
+
+html body #root .gbe-m3-actions .gbe-m3-primary {
+  min-width: 126px;
+  border-color: #0d6bdb;
+  background: #0d6bdb;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(13,107,219,.20);
+}
+
+html body #root .gbe-m3-actions .gbe-m3-primary > span {
+  background: rgba(255,255,255,.16);
+  color: #fff;
+}
+
+html body #root .gbe-m3-filters {
+  gap: 5px;
+  margin-top: 12px;
+}
+
+html body #root .gbe-m3-filters > span {
+  height: 18px;
+  margin: 0 3px;
+}
+
+html body #root .gbe-m3-filters button {
+  min-height: 31px;
+  padding: 0 11px;
+  border-color: rgba(203,220,239,.55);
+  background: rgba(255,255,255,.48);
+  color: #50657e;
+  font-size: 10px;
+}
+
+html body #root .gbe-m3-filters button.is-active {
+  border-color: #9fc5f0;
+  background: #dcecff;
+  color: #0b5dbb;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.4);
+}
+
+/* Live panel: one cohesive surface with quieter internal chrome. */
+html body #root .gbe-m3-live-panel {
+  padding: 14px;
+  border: 1px solid #cedff1;
+  border-radius: 22px;
+  background: rgba(255,255,255,.91);
+  box-shadow: 0 14px 32px rgba(34,73,124,.105);
+}
+
+html body #root .gbe-m3-live-top {
+  grid-template-columns: 82px minmax(0,1fr) 38px;
+  gap: 14px;
+  padding: 5px 5px 13px;
+}
+
+html body #root .gbe-m3-progress-ring {
+  width: 78px;
+  height: 78px;
+  background: conic-gradient(#176bd7 0 var(--gbe-progress), #e0ecfa var(--gbe-progress) 360deg);
+  box-shadow: inset 0 0 0 1px rgba(23,107,215,.03);
+}
+
+html body #root .gbe-m3-progress-ring::after {
+  inset: 9px;
+}
+
+html body #root .gbe-m3-progress-ring strong {
+  font-size: 21px;
+}
+
+html body #root .gbe-m3-progress-copy small {
+  color: #75859a;
+  font-size: 8px;
+  letter-spacing: .10em;
+}
+
+html body #root .gbe-m3-progress-copy b {
+  margin-top: 4px;
+  color: #17375f;
+  font-size: 12px;
+}
+
+html body #root .gbe-m3-progress-copy > div {
+  height: 6px;
+  margin: 8px 0 7px;
+  background: #e6eef7;
+}
+
+html body #root .gbe-m3-progress-copy span {
+  padding: 5px 8px;
+  background: #eaf7ee;
+  color: #267a4b;
+  font-size: 9px;
+}
+
+html body #root .gbe-m3-live-icon {
+  width: 38px;
+  height: 38px;
+  border-color: #d2e0ef;
+  border-radius: 11px;
+  background: #f6faff;
+}
+
+html body #root .gbe-m3-mini-stats {
+  gap: 7px;
+  margin-bottom: 8px;
+}
+
+html body #root .gbe-m3-mini-stats article {
+  grid-template-columns: 28px 1fr;
+  column-gap: 8px;
+  padding: 9px 10px;
+  border-color: #dbe7f3;
+  border-radius: 13px;
+  background: #fbfdff;
+  box-shadow: none;
+}
+
+html body #root .gbe-m3-mini-stats span {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: #edf5ff;
+}
+
+html body #root .gbe-m3-mini-stats b {
+  font-size: 16px;
+}
+
+html body #root .gbe-m3-preview-card {
+  border-color: #dbe6f1;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(31,69,116,.035);
+}
+
+html body #root .gbe-m3-preview-card header {
+  padding: 9px 11px;
+  border-bottom-color: #e8eef6;
+  background: #f8fbff;
+}
+
+html body #root .gbe-m3-preview-card header > span {
+  background: #e8f6ed;
+  color: #24794a;
+}
+
+html body #root .gbe-m3-preview-head,
+html body #root .gbe-m3-preview-row {
+  grid-template-columns: 38px minmax(0,1fr) 66px;
+  min-height: 33px;
+  padding: 0 11px;
+}
+
+html body #root .gbe-m3-preview-row > b {
+  color: #294766;
+  font-size: 10px;
+}
+
+html body #root .gbe-m3-preview-row > em {
+  min-width: 43px;
+  padding: 5px 7px;
+  border-radius: 8px;
+  background: #edf8f3;
+  color: #287b50;
+}
+
+html body #root .gbe-m3-tip {
+  grid-template-columns: 22px minmax(0,1fr) auto;
+  margin-top: 8px;
+  padding: 7px 8px 7px 10px;
+  border: 1px solid #dce9f6;
+  background: #f2f8ff;
+}
+
+html body #root .gbe-m3-tip button {
+  min-height: 30px;
+  border-radius: 9px;
+  background: #fff;
+}
+
+/* The Material hero already owns class/view controls. Keep the legacy switcher
+   in the DOM for the runtime bridge, but remove the duplicate visual bar. */
+html body #root .gradebook-studio > .gradebook-studio-switcher {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  clip-path: inset(50%) !important;
+}
+
+@media (max-width: 1180px) {
+  html body #root .gbe-material-hero-runtime {
+    grid-template-columns: 1fr;
+    gap: 22px;
+    padding: 28px;
+  }
+
+  html body #root .gbe-m3-hero-copy {
+    max-width: 820px;
+  }
+
+  html body #root .gbe-m3-class-switcher {
+    max-width: 820px;
+  }
+
+  html body #root .gbe-m3-live-panel {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+@media (max-width: 760px) {
+  html body #root .gradebook-studio > .gradebook-studio-hero.gbe-material-mounted {
+    border-radius: 21px;
+  }
+
+  html body #root .gbe-material-hero-runtime {
+    gap: 18px;
+    padding: 20px 16px;
+  }
+
+  html body #root .gbe-m3-hero-copy {
+    padding-left: 0;
+  }
+
+  html body #root .gbe-m3-hero-copy h1 {
+    font-size: 46px;
+  }
+
+  html body #root .gbe-m3-hero-copy > p {
+    margin-bottom: 18px;
+    font-size: 13px;
+  }
+
+  html body #root .gbe-m3-class-switcher {
+    gap: 5px;
+    padding: 5px;
+  }
+
+  html body #root .gbe-m3-class-tab,
+  html body #root .gbe-m3-class-add {
+    min-width: 64px;
+    min-height: 38px;
+    padding: 0 10px;
+  }
+
+  html body #root .gbe-m3-class-tab.is-active {
+    min-width: 108px;
+  }
+
+  html body #root .gbe-m3-actions button {
+    flex: 1 1 calc(50% - 5px);
+    min-width: 0;
+  }
+
+  html body #root .gbe-m3-filters {
+    gap: 4px;
+  }
+
+  html body #root .gbe-m3-live-panel {
+    padding: 11px;
+    border-radius: 18px;
+  }
+
+  html body #root .gbe-m3-live-top {
+    grid-template-columns: 68px minmax(0,1fr);
+    gap: 11px;
+  }
+
+  html body #root .gbe-m3-progress-ring {
+    width: 64px;
+    height: 64px;
+  }
+
+  html body #root .gbe-m3-progress-ring strong {
+    font-size: 18px;
+  }
+
+  html body #root .gbe-m3-live-icon {
+    display: none;
+  }
+
+  html body #root .gbe-m3-mini-stats {
+    grid-template-columns: repeat(3, minmax(0,1fr));
+  }
+
+  html body #root .gbe-m3-mini-stats article {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 4px;
+    text-align: center;
+  }
+
+  html body #root .gbe-m3-mini-stats span {
+    grid-row: auto;
+    justify-self: center;
+  }
+
+  html body #root .gbe-m3-tip {
+    grid-template-columns: 20px 1fr;
+  }
+
+  html body #root .gbe-m3-tip button {
+    grid-column: 1 / -1;
+  }
+}
