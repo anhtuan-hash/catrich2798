@@ -2,7 +2,6 @@ import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { hasToolAccess } from '../utils/permissions.js';
 import { launchRoute } from '../utils/navigation.js';
-import './GlobalGradebookNavigationTab.css';
 
 const GRADEBOOK_SLUG = 'gradebook-studio';
 
