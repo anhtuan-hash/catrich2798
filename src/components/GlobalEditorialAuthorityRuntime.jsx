@@ -1,10 +1,9 @@
 import { useEffect } from 'react';
 import editorialCss from '../styles/GlobalEditorialAuthority2026.css?inline';
-import navigationPillsCss from '../styles/GlobalEditorialNavigationPills2026.css?inline';
-import compactNavigationShellCss from '../styles/GlobalEditorialNavigationCompactShell2026.css?inline';
+import navigationCss from '../styles/GlobalNavigationFinal2026.css?inline';
 
 const STYLE_ID = 'bes-global-editorial-authority-2026';
-const finalEditorialCss = `${editorialCss}\n\n${navigationPillsCss}\n\n${compactNavigationShellCss}`;
+const finalEditorialCss = `${editorialCss}\n\n${navigationCss}`;
 
 function ensureFinalStyleNode() {
   let style = document.getElementById(STYLE_ID);
@@ -51,9 +50,9 @@ export default function GlobalEditorialAuthorityRuntime() {
     const style = ensureFinalStyleNode();
     document.documentElement.dataset.besEditorialSystem = '2026';
 
-    // Lazy routes inject their own CSS after the shell has mounted. Whenever a
-    // new stylesheet appears, move the combined editorial + navigation authority
-    // back to the absolute end of <head> so old route skins cannot regain priority.
+    // Lazy routes may inject their own CSS after the shell mounts. Keep the one
+    // editorial bundle — with GlobalNavigationFinal2026 last inside it — at the
+    // absolute end of <head>, so route CSS cannot become a second nav authority.
     const observer = new MutationObserver((mutations) => {
       const hasNewStylesheet = mutations.some((mutation) => [...mutation.addedNodes].some((node) => {
         if (!(node instanceof HTMLElement) || node === style) return false;
