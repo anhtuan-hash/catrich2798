@@ -11,7 +11,7 @@ import '../styles/teacher-dashboard-google-authentic.css';
 import '../styles/teacher-dashboard-calendar-split.css';
 import '../styles/teacher-dashboard-compact-layout.css';
 import '../styles/teacher-dashboard-google-colorful.css';
-import '../styles/teacher-dashboard-hero-interactive-2026.css';
+import '../styles/teacher-dashboard-editorial-hero.css';
 import DashboardNewsHub from '../components/DashboardNewsHub.jsx';
 
 const COPY = {
@@ -103,56 +103,49 @@ function CalendarEvent({ item, language, locale, t }) {
 }
 
 function DashboardHeroIllustration() {
-  return <svg className="dash-hero-art" viewBox="0 0 650 430" aria-hidden="true">
+  return <svg className="editorial-hero-art" viewBox="0 0 700 430" aria-hidden="true" focusable="false">
     <defs>
-      <linearGradient id="gdHeroBlue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#5a9cf8" /><stop offset="1" stopColor="#1769d8" /></linearGradient>
-      <linearGradient id="gdHeroPaper" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffffff" /><stop offset="1" stopColor="#eef5ff" /></linearGradient>
-      <linearGradient id="gdHeroDesk" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stopColor="#f8ead7" /><stop offset="1" stopColor="#efe0cb" /></linearGradient>
+      <linearGradient id="edCalendarBlue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#2563eb" /><stop offset="1" stopColor="#0f4fae" /></linearGradient>
+      <linearGradient id="edBookBlue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#3277df" /><stop offset="1" stopColor="#0b4ca7" /></linearGradient>
+      <linearGradient id="edPaper" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffffff" /><stop offset="1" stopColor="#f7f9fc" /></linearGradient>
+      <filter id="edShadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="14" stdDeviation="14" floodColor="#102b4d" floodOpacity=".13" /></filter>
     </defs>
-    <ellipse cx="376" cy="394" rx="244" ry="27" fill="#c9d9ec" opacity=".42" />
-    <path d="M147 338c21-43 66-69 113-62 25-55 86-85 143-64 51-50 139-45 184 12 45 57 24 143-39 175H188c-43-14-61-39-41-61Z" fill="#e5f0ff" />
-    <g transform="translate(287 63)">
-      <rect x="0" y="32" width="245" height="235" rx="23" fill="url(#gdHeroPaper)" stroke="#b8d2f2" strokeWidth="3" />
-      <rect x="0" y="32" width="245" height="58" rx="23" fill="url(#gdHeroBlue)" />
-      <rect x="0" y="72" width="245" height="18" fill="url(#gdHeroBlue)" />
-      {[25, 72, 119, 166].map((x) => <line key={`ring-${x}`} x1={x} y1="5" x2={x} y2="48" stroke="#214d83" strokeWidth="7" strokeLinecap="round" />)}
-      {[26, 64, 102, 140, 178, 216].map((x) => [114,151,188,225].map((y) => <rect key={`${x}-${y}`} x={x} y={y} width="25" height="22" rx="8" fill="#e8f1ff" />))}
-      <path d="M108 157l9 9 19-21" fill="none" stroke="#2ea75f" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M174 195l9 9 19-21" fill="none" stroke="#2ea75f" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="217" cy="55" r="6" fill="#d7e8ff" />
+    <ellipse cx="405" cy="391" rx="244" ry="24" fill="#c9d4e3" opacity=".34" />
+    <circle cx="405" cy="216" r="188" fill="#edf4ff" />
+    <g fill="#85afe9" opacity=".72">{[0,1,2,3,4,5].map((row) => [0,1,2,3,4,5].map((col) => <circle key={`ed-dot-${row}-${col}`} cx={588 + col * 15} cy={80 + row * 15} r="2.25" />))}</g>
+    <g filter="url(#edShadow)" transform="translate(278 46)">
+      <path d="M30 51 287 65l-7 261-258-12Z" fill="#d8e0ea" opacity=".42" />
+      <path d="M18 40 275 54l-7 261-258-12Z" fill="url(#edPaper)" stroke="#cad5e3" strokeWidth="2.4" />
+      <path d="M18 40 275 54l-2 60-258-12Z" fill="url(#edCalendarBlue)" />
+      {[48,99,150,201,252].map((x) => <g key={x}><line x1={x} y1="13" x2={x - 2} y2="69" stroke="#163d6d" strokeWidth="7" strokeLinecap="round" /><ellipse cx={x - 1} cy="43" rx="7.5" ry="4.5" fill="#eaf2fb" opacity=".9" /></g>)}
+      <g stroke="#e2e7ee" strokeWidth="1.4">{[137,174,211,248,285].map((y) => <line key={`ed-h-${y}`} x1="34" y1={y} x2="250" y2={y + 11} />)}{[67,104,141,178,215].map((x) => <line key={`ed-v-${x}`} x1={x} y1="119" x2={x - 5} y2="293" />)}</g>
+      <path d="M117 170l12 12 25-28" fill="none" stroke="#2563eb" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M175 224l12 12 25-28" fill="none" stroke="#2563eb" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
     </g>
-    <g transform="translate(194 309)">
-      <rect width="142" height="92" rx="14" fill="#2a73dc" transform="rotate(-10 71 46)" />
-      <text x="71" y="47" textAnchor="middle" fill="#fff" fontSize="24" fontWeight="800" transform="rotate(-10 71 46)">GIÁO ÁN</text>
-      <text x="71" y="70" textAnchor="middle" fill="#dbeaff" fontSize="13" transform="rotate(-10 71 46)">Tuần 1</text>
+    <g filter="url(#edShadow)" transform="translate(165 270) rotate(-8 90 54)">
+      <rect width="180" height="108" rx="11" fill="url(#edBookBlue)" />
+      <path d="M12 92h156" stroke="#77a9ed" strokeWidth="2" opacity=".75" />
+      <text x="90" y="48" textAnchor="middle" fill="#fff" fontSize="26" fontWeight="800" fontFamily="Arial, sans-serif">GIÁO ÁN</text>
+      <text x="90" y="73" textAnchor="middle" fill="#dceaff" fontSize="13" fontWeight="600" fontFamily="Arial, sans-serif">Tuần 1</text>
     </g>
-    <g transform="translate(436 313)">
-      <rect x="0" y="20" width="92" height="77" rx="16" fill="#fff" stroke="#d1e1f2" strokeWidth="2" />
-      <path d="M91 39h17a19 19 0 0 1 0 38H91" fill="none" stroke="#fff" strokeWidth="14" />
-      <path d="M91 39h17a19 19 0 0 1 0 38H91" fill="none" stroke="#d1e1f2" strokeWidth="2" />
-      <text x="46" y="67" textAnchor="middle" fill="#1967d2" fontSize="23" fontWeight="900">EH</text>
+    <g transform="translate(108 265)">
+      <ellipse cx="48" cy="117" rx="45" ry="9" fill="#c9d4e3" opacity=".45" />
+      <path d="M17 54h64l-7 64H24Z" fill="#f7f4ed" stroke="#d5d9df" strokeWidth="2" />
+      <path d="M31 8v57" stroke="#172f4f" strokeLinecap="round" strokeWidth="7" /><path d="M45 2v63" stroke="#2563eb" strokeLinecap="round" strokeWidth="7" /><path d="M60 11v54" stroke="#eaaa34" strokeLinecap="round" strokeWidth="7" />
     </g>
-    <g transform="translate(528 273)">
-      <rect x="0" y="82" width="102" height="18" rx="9" fill="#80b4f1" />
-      <rect x="8" y="65" width="94" height="18" rx="9" fill="#4b8be0" />
-      <rect x="17" y="49" width="87" height="17" rx="8" fill="#2f72cf" />
-      <rect x="48" y="0" width="44" height="55" rx="11" fill="#29578c" />
-      <path d="M58 7c-15-31-28 2-15 24 9-20 18-16 15-24Zm17 3c9-32 31-11 20 19-11-17-20-10-20-19Zm-5 9c-1-30-25-22-24 6 10-13 18-9 24-6Z" fill="#37a75f" />
+    <g filter="url(#edShadow)" transform="translate(421 294)">
+      <rect x="0" y="15" width="94" height="82" rx="18" fill="#fff" stroke="#d2dbe7" strokeWidth="2" />
+      <path d="M93 37h20a18 18 0 0 1 0 36H93" fill="none" stroke="#d2dbe7" strokeWidth="3" />
+      <text x="47" y="67" textAnchor="middle" fill="#2563eb" fontSize="24" fontWeight="900" fontFamily="Arial, sans-serif">EH</text>
     </g>
-    <g transform="translate(120 235)">
-      <rect x="0" y="0" width="57" height="92" rx="15" fill="#f2f7ff" stroke="#bcd5f5" strokeWidth="2" />
-      <path d="M16 18h25M16 37h25M16 56h17" stroke="#4c8fe9" strokeWidth="6" strokeLinecap="round" />
-      <circle cx="45" cy="73" r="7" fill="#f6a800" />
+    <g transform="translate(553 273)">
+      <rect x="0" y="88" width="102" height="17" rx="8.5" fill="#a8c8ef" />
+      <rect x="7" y="71" width="95" height="18" rx="9" fill="#5d97df" />
+      <rect x="16" y="54" width="88" height="18" rx="9" fill="#326fc4" />
+      <rect x="48" y="7" width="43" height="52" rx="10" fill="#274d79" />
+      <path d="M58 18c-14-31-28 1-15 24 9-19 18-16 15-24Zm17 2c10-32 31-10 20 19-11-17-20-10-20-19Zm-5 10c-1-31-25-22-24 6 10-13 18-9 24-6Z" fill="#4ba86b" />
     </g>
-    <g transform="translate(148 332)">
-      <ellipse cx="42" cy="64" rx="42" ry="10" fill="#cbd9e9" opacity=".55" />
-      <rect x="18" y="12" width="48" height="58" rx="12" fill="#e8f4ff" />
-      <rect x="27" y="-18" width="6" height="41" rx="3" fill="#1e6bd6" transform="rotate(-7 30 2)" />
-      <rect x="39" y="-22" width="6" height="45" rx="3" fill="#f5b229" />
-      <rect x="51" y="-14" width="6" height="38" rx="3" fill="#376fb8" transform="rotate(8 54 4)" />
-    </g>
-    <g fill="#74a9ed"><circle cx="225" cy="89" r="4" /><circle cx="243" cy="89" r="4" /><circle cx="261" cy="89" r="4" /><circle cx="225" cy="107" r="4" /><circle cx="243" cy="107" r="4" /><circle cx="261" cy="107" r="4" /></g>
-    <path d="M184 74l7 16 16 7-16 7-7 16-7-16-16-7 16-7 7-16Z" fill="#fff" opacity=".95" />
+    <path d="M160 80l7 16 16 7-16 7-7 16-7-16-16-7 16-7 7-16Z" fill="#fff" opacity=".98" />
   </svg>;
 }
 
@@ -261,41 +254,44 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   return <section className={`gd-page${initialLoading ? ' is-loading' : ''}`} aria-label={t.pageTitle} aria-busy={loading}>
     <div className="gd-shell">
       <section className="gd-top-grid">
-        <header className="dash-hero">
-          <div className="dash-hero-left">
-            <div className="dash-hero-copy">
-              <span className="dash-hero-kicker">{t.eyebrow}</span>
-              <h1>
-                <span className="dash-hello">{t.hello},</span>
-                <span className="dash-name-row"><strong className="dash-name">{name}</strong><span className="dash-wave" aria-hidden="true">👋</span></span>
-              </h1>
-              <p>{t.lead}</p>
+        <header className="editorial-hero">
+          <div className="editorial-hero-copy">
+            <div className="editorial-hero-meta">
+              <span className="editorial-hero-eyebrow"><span aria-hidden="true" />{t.eyebrow}</span>
+              <span className="editorial-hero-date">{heroDate}</span>
             </div>
 
-            <div className="dash-main-actions">
-              <button type="button" className="dash-btn dash-btn-primary" onClick={scrollToCalendar}><Icon name="calendar" size={20} />{t.calendar}<Icon name="arrow" size={18} /></button>
-              <button type="button" className="dash-btn dash-btn-secondary" onClick={() => refresh()} disabled={loading}><Icon name="refresh" size={20} />{loading ? t.refreshing : t.refresh}</button>
+            <div className="editorial-hero-heading">
+              <span className="editorial-hero-hello">{t.hello},</span>
+              <h1>{name}<span className="editorial-hero-wave" aria-hidden="true">👋</span></h1>
             </div>
 
-            <div className="dash-sub-actions">
-              <button type="button" className="dash-link" onClick={focusNearestEvent}><Icon name="event" size={18} />{t.nearest}<Icon name="arrow" size={16} /></button>
-              <button type="button" className="dash-link" onClick={() => openTtcm('schedule')}><Icon name="calendar" size={18} />{t.openCalendar}<Icon name="arrow" size={16} /></button>
+            <p className="editorial-hero-lead">{t.lead}</p>
+
+            <div className="editorial-hero-actions">
+              <button type="button" className="editorial-primary-action" onClick={scrollToCalendar}><Icon name="calendar" size={20} /><span>{t.calendar}</span><Icon name="arrow" size={18} /></button>
+              <button type="button" className="editorial-secondary-action" onClick={() => refresh()} disabled={loading}><Icon name="refresh" size={19} /><span>{loading ? t.refreshing : t.refresh}</span></button>
+            </div>
+
+            <div className="editorial-hero-links">
+              <button type="button" onClick={focusNearestEvent}><Icon name="event" size={17} /><span>{t.nearest}</span><Icon name="arrow" size={15} /></button>
+              <button type="button" onClick={() => openTtcm('schedule')}><Icon name="calendar" size={17} /><span>{t.openCalendar}</span><Icon name="arrow" size={15} /></button>
             </div>
           </div>
 
-          <div className="dash-hero-right">
-            <div className="dash-utility-bar" aria-label={language === 'vi' ? 'Tiện ích nhanh' : 'Quick utilities'}>
-              <button type="button" className="dash-utility" onClick={() => setNow(new Date())} title={t.currentTime}>
-                <span className="dash-utility-icon"><Icon name="clock" size={18} /></span><span className="dash-utility-copy"><strong>{heroTime}</strong><small>{t.currentTime}</small></span>
+          <div className="editorial-hero-stage">
+            <div className="editorial-hero-status" aria-label={language === 'vi' ? 'Thông tin nhanh' : 'Quick information'}>
+              <button type="button" className="editorial-status-card editorial-status-time" onClick={() => setNow(new Date())} title={t.currentTime}>
+                <span className="editorial-status-icon"><Icon name="clock" size={18} /></span>
+                <span><small>{t.currentTime}</small><strong>{heroTime}</strong></span>
               </button>
-              <button type="button" className="dash-utility dash-utility-weather" onClick={refreshWeather} title={t.weather}>
-                <span className="dash-utility-icon" aria-hidden="true">☀️</span><span className="dash-utility-copy"><strong>TP.HCM · {weatherTemperature}</strong><small>{weather.loading ? t.weatherLoading : weatherDescription}</small></span>
-              </button>
-              <button type="button" className="dash-utility" onClick={focusToday} title={t.dateToday}>
-                <span className="dash-utility-icon"><Icon name="calendar" size={18} /></span><span className="dash-utility-copy"><strong>{heroDate}</strong><small>{t.dateToday}</small></span>
+              <button type="button" className="editorial-status-card editorial-status-weather" onClick={refreshWeather} title={t.weather}>
+                <span className="editorial-weather-symbol" aria-hidden="true">☀</span>
+                <span><small>{weather.loading ? t.weatherLoading : weatherDescription}</small><strong>TP.HCM · {weatherTemperature}</strong></span>
               </button>
             </div>
-            <div className="dash-hero-visual"><DashboardHeroIllustration /></div>
+            <div className="editorial-hero-visual"><DashboardHeroIllustration /></div>
+            <button type="button" className="editorial-today-chip" onClick={focusToday} title={t.dateToday}><Icon name="calendar" size={17} /><span>{t.dateToday}</span><strong>{new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit' }).format(now)}</strong></button>
           </div>
         </header>
       </section>
