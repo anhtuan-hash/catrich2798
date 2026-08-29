@@ -158,23 +158,25 @@ export default function GlobalReportsNavigationTab({
   if (!host || !allowed) return null;
 
   const departmentLeader = isDepartmentLeaderRole(currentUser?.role);
-  const showCountdownUnderLabel = active && departmentLeader;
   const label = language === 'vi' ? 'Báo cáo' : 'Reports';
   const countdown = deadlineState(deadline, now);
-  const countdownLabel = compactCountdown(countdown, language);
-  const countdownAccessibleLabel = accessibleCountdown(countdown, language);
-  const countdownClass = countdown.expired ? 'is-expired' : (!countdown.active ? 'is-unset' : '');
-  const deadlineTitle = deadline
+  const reportWindowOpen = Boolean(countdown.active && !countdown.expired);
+  const showCountdownUnderLabel = active && departmentLeader && reportWindowOpen;
+  const countdownLabel = reportWindowOpen ? compactCountdown(countdown, language) : '';
+  const countdownAccessibleLabel = reportWindowOpen ? accessibleCountdown(countdown, language) : '';
+  const deadlineTitle = reportWindowOpen
     ? new Intl.DateTimeFormat(language === 'vi' ? 'vi-VN' : 'en', { dateStyle: 'short', timeStyle: 'medium' }).format(new Date(deadline))
-    : (language === 'vi' ? 'Chưa đặt thời hạn báo cáo tháng này' : 'No report deadline set for this month');
+    : '';
+  const accessibleLabel = reportWindowOpen ? `${label} · ${countdownAccessibleLabel}` : label;
+  const buttonTitle = reportWindowOpen ? `${deadlineTitle} · ${countdownAccessibleLabel}` : label;
 
   return createPortal(
     <button
       type="button"
       className={`brian-nav__reports-tab ${active ? 'is-active' : ''} ${showCountdownUnderLabel ? 'shows-countdown' : ''}`.trim()}
       aria-current={active ? 'page' : undefined}
-      aria-label={`${label} · ${countdownAccessibleLabel}`}
-      title={`${deadlineTitle} · ${countdownAccessibleLabel}`}
+      aria-label={accessibleLabel}
+      title={buttonTitle}
       onClick={(event) => launchRoute({
         target: '#/tool/brian-team',
         label: language === 'vi' ? 'BC' : 'RP',
@@ -183,7 +185,9 @@ export default function GlobalReportsNavigationTab({
       })}
     >
       <span className="brian-nav__reports-label">{label}</span>
-      <span className={`brian-nav__reports-countdown ${countdownClass}`} aria-hidden="true">{countdownLabel}</span>
+      {showCountdownUnderLabel ? (
+        <span className="brian-nav__reports-countdown" aria-hidden="true">{countdownLabel}</span>
+      ) : null}
     </button>,
     host,
   );
