@@ -104,11 +104,6 @@ export const GAME_APPS = [
 
 export const SPECIAL_TOOLS = [];
 
-export const ARCHIVED_APPS = [
-  'QuizForge AI', 'WordForm Forge', 'GapCraft Builder', 'Teacher Tools Hub', 'Activity Tiles',
-  'FormFlow AI', 'ExamSmith AI', 'THPT Item Lab', 'ReadSpark MCQ', 'TalkDeck Prompts', 'WriteMirror',
-];
-
 export const RESOURCE_ITEMS = [
   {
     icon: 'WF', title: 'Teacher Flow', titleVi: 'Quy trình',
