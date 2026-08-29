@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
 import editorialCss from '../styles/GlobalEditorialAuthority2026.css?inline';
+import navigationPillsCss from '../styles/GlobalEditorialNavigationPills2026.css?inline';
 
 const STYLE_ID = 'bes-global-editorial-authority-2026';
+const finalEditorialCss = `${editorialCss}\n\n${navigationPillsCss}`;
 
 function ensureFinalStyleNode() {
   let style = document.getElementById(STYLE_ID);
@@ -9,9 +11,9 @@ function ensureFinalStyleNode() {
     style = document.createElement('style');
     style.id = STYLE_ID;
     style.dataset.besEditorialAuthority = '2026';
-    style.textContent = editorialCss;
-  } else if (style.textContent !== editorialCss) {
-    style.textContent = editorialCss;
+    style.textContent = finalEditorialCss;
+  } else if (style.textContent !== finalEditorialCss) {
+    style.textContent = finalEditorialCss;
   }
 
   if (style.parentNode !== document.head || document.head.lastElementChild !== style) {
@@ -49,8 +51,8 @@ export default function GlobalEditorialAuthorityRuntime() {
     document.documentElement.dataset.besEditorialSystem = '2026';
 
     // Lazy routes inject their own CSS after the shell has mounted. Whenever a
-    // new stylesheet appears, move the editorial authority back to the absolute
-    // end of <head> so old route skins can never regain cascade priority.
+    // new stylesheet appears, move the combined editorial + navigation authority
+    // back to the absolute end of <head> so old route skins cannot regain priority.
     const observer = new MutationObserver((mutations) => {
       const hasNewStylesheet = mutations.some((mutation) => [...mutation.addedNodes].some((node) => {
         if (!(node instanceof HTMLElement) || node === style) return false;
