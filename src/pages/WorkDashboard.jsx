@@ -262,37 +262,43 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
     <div className="gd-shell">
       <section className="gd-top-grid">
         <header className="gd-hero">
-          <div className="gd-hero-chipbar" aria-label={language === 'vi' ? 'Tiện ích nhanh' : 'Quick utilities'}>
-            <button type="button" className="gd-hero-chip" onClick={() => setNow(new Date())} title={t.currentTime}>
-              <span className="gd-hero-chip-icon"><Icon name="clock" size={18} /></span><strong>{heroTime}</strong><small>{t.currentTime}</small>
-            </button>
-            <button type="button" className="gd-hero-chip is-weather" onClick={refreshWeather} title={t.weather}>
-              <span className="gd-hero-chip-icon" aria-hidden="true">☀️</span><strong>TP.HCM · {weatherTemperature}</strong><small>{weather.loading ? t.weatherLoading : weatherDescription}</small>
-            </button>
-            <button type="button" className="gd-hero-chip" onClick={focusToday} title={t.dateToday}>
-              <span className="gd-hero-chip-icon"><Icon name="calendar" size={18} /></span><strong>{heroDate}</strong><small>{t.dateToday}</small>
-            </button>
+          <div className="gd-hero-left">
+            <div className="gd-hero-copy">
+              <span className="gd-hero-eyebrow">{t.eyebrow}</span>
+              <h1>
+                <span className="gd-hero-greeting">{t.hello},</span>
+                <span className="gd-hero-name-line"><strong className="gd-hero-name">{name}</strong><span className="gd-hero-wave" aria-hidden="true">👋</span></span>
+              </h1>
+              <p>{t.lead}</p>
+            </div>
+
+            <div className="gd-hero-actions">
+              <button type="button" className="gd-button filled" onClick={scrollToCalendar}><Icon name="calendar" size={20} />{t.calendar}<Icon name="arrow" size={18} /></button>
+              <button type="button" className="gd-button outlined" onClick={() => refresh()} disabled={loading}><Icon name="refresh" size={20} />{loading ? t.refreshing : t.refresh}</button>
+            </div>
+
+            <div className="gd-hero-secondary-actions">
+              <button type="button" className="gd-hero-link" onClick={focusNearestEvent}><Icon name="event" size={18} />{t.nearest}<Icon name="arrow" size={16} /></button>
+              <button type="button" className="gd-hero-link" onClick={() => openTtcm('schedule')}><Icon name="calendar" size={18} />{t.openCalendar}<Icon name="arrow" size={16} /></button>
+            </div>
           </div>
 
-          <div className="gd-hero-copy">
-            <span className="gd-hero-eyebrow">{t.eyebrow}</span>
-            <h1><span className="gd-hero-greeting">{t.hello},</span><strong className="gd-hero-name">{name}</strong><span className="gd-hero-wave" aria-hidden="true">👋</span></h1>
-            <p>{t.lead}</p>
-          </div>
+          <div className="gd-hero-right">
+            <div className="gd-hero-chipbar" aria-label={language === 'vi' ? 'Tiện ích nhanh' : 'Quick utilities'}>
+              <button type="button" className="gd-hero-chip" onClick={() => setNow(new Date())} title={t.currentTime}>
+                <span className="gd-hero-chip-icon"><Icon name="clock" size={18} /></span><strong>{heroTime}</strong><small>{t.currentTime}</small>
+              </button>
+              <button type="button" className="gd-hero-chip is-weather" onClick={refreshWeather} title={t.weather}>
+                <span className="gd-hero-chip-icon" aria-hidden="true">☀️</span><strong>TP.HCM · {weatherTemperature}</strong><small>{weather.loading ? t.weatherLoading : weatherDescription}</small>
+              </button>
+              <button type="button" className="gd-hero-chip" onClick={focusToday} title={t.dateToday}>
+                <span className="gd-hero-chip-icon"><Icon name="calendar" size={18} /></span><strong>{heroDate}</strong><small>{t.dateToday}</small>
+              </button>
+            </div>
 
-          <div className="gd-hero-actions">
-            <button type="button" className="gd-button filled" onClick={scrollToCalendar}><Icon name="calendar" size={20} />{t.calendar}<Icon name="arrow" size={18} /></button>
-            <button type="button" className="gd-button outlined" onClick={() => refresh()} disabled={loading}><Icon name="refresh" size={20} />{loading ? t.refreshing : t.refresh}</button>
-          </div>
-
-          <div className="gd-hero-secondary-actions">
-            <button type="button" className="gd-hero-link" onClick={focusNearestEvent}><Icon name="event" size={18} />{t.nearest}<Icon name="arrow" size={16} /></button>
-            <button type="button" className="gd-hero-link" onClick={() => openTtcm('schedule')}><Icon name="calendar" size={18} />{t.openCalendar}<Icon name="arrow" size={16} /></button>
-          </div>
-
-          <div className="gd-hero-visual">
-            <div className="gd-hero-mini-note"><strong>{language === 'vi' ? 'Kế hoạch hôm nay' : 'Today plan'}</strong><span>{language === 'vi' ? 'Giảng dạy' : 'Teaching'}</span><span>{language === 'vi' ? 'Chấm bài' : 'Marking'}</span><span>{language === 'vi' ? 'Họp chuyên môn' : 'Team meeting'}</span></div>
-            <DashboardHeroIllustration />
+            <div className="gd-hero-visual">
+              <DashboardHeroIllustration />
+            </div>
           </div>
         </header>
       </section>

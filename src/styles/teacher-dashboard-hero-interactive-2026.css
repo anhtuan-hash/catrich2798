@@ -1,6 +1,6 @@
-/* Dashboard hero — single authoritative composition, Aug 2026.
-   This file owns Dashboard hero layout, typography, utilities and responsive behavior.
-   Other Dashboard stylesheets must not define gd-hero selectors. */
+/* Dashboard hero — final structural composition, Aug 2026.
+   Two real columns: left = greeting/actions, right = utilities/illustration.
+   No absolute positioning is used for primary layout. */
 
 .app-shell[data-route="dashboard"] .gd-page .gd-top-grid {
   display: block !important;
@@ -13,26 +13,19 @@
   isolation: isolate !important;
   width: 100% !important;
   min-width: 0 !important;
-  min-height: 398px !important;
+  min-height: 382px !important;
   margin: 0 0 24px !important;
-  padding: 32px 34px 26px !important;
+  padding: 30px 32px 26px !important;
   display: grid !important;
-  grid-template-columns: minmax(0, .92fr) minmax(470px, 1.08fr) !important;
-  grid-template-areas:
-    "copy chips"
-    "copy visual"
-    "actions visual"
-    "secondary visual" !important;
-  grid-template-rows: auto minmax(0, 1fr) auto auto !important;
-  column-gap: clamp(28px, 3vw, 48px) !important;
-  row-gap: 0 !important;
+  grid-template-columns: minmax(0, .94fr) minmax(520px, 1.06fr) !important;
+  gap: clamp(30px, 3.4vw, 54px) !important;
   overflow: hidden !important;
   border: 1px solid #c8d8ec !important;
   border-radius: 30px !important;
   background:
-    radial-gradient(circle at 88% 8%, rgba(255,255,255,.98) 0 12%, transparent 33%),
-    radial-gradient(circle at 82% 86%, rgba(175,211,255,.20) 0 12%, transparent 37%),
-    linear-gradient(120deg, #fff 0%, #fcfdff 42%, #f5f9ff 68%, #eaf3ff 100%) !important;
+    radial-gradient(circle at 91% 7%, rgba(255,255,255,.98) 0 13%, transparent 34%),
+    radial-gradient(circle at 82% 88%, rgba(177,214,255,.18) 0 13%, transparent 37%),
+    linear-gradient(120deg, #fff 0%, #fcfdff 44%, #f5f9ff 70%, #eaf3ff 100%) !important;
   box-shadow: 0 2px 4px rgba(36,62,92,.035), 0 18px 48px rgba(45,75,112,.075) !important;
 }
 
@@ -40,47 +33,40 @@
   content: '' !important;
   position: absolute !important;
   z-index: -1 !important;
-  width: 440px !important;
+  width: 450px !important;
   height: 260px !important;
-  right: -80px !important;
-  bottom: -150px !important;
+  right: -95px !important;
+  bottom: -160px !important;
   border-radius: 50% !important;
   background: rgba(56,132,233,.055) !important;
   pointer-events: none !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-page .gd-hero::after {
-  content: '' !important;
-  position: absolute !important;
-  z-index: -1 !important;
-  width: 220px !important;
-  height: 220px !important;
-  left: 37% !important;
-  top: -160px !important;
-  border-radius: 50% !important;
-  background: rgba(100,163,244,.035) !important;
-  pointer-events: none !important;
-}
-
-/* LEFT — greeting ----------------------------------------------------------- */
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy {
-  grid-area: copy !important;
-  position: relative !important;
-  z-index: 5 !important;
-  width: 100% !important;
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-left,
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-right {
   min-width: 0 !important;
-  max-width: 650px !important;
-  margin: 0 !important;
-  padding: 4px 0 0 2px !important;
-  align-self: start !important;
-  transform: none !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-eyebrow {
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-left {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: flex-start !important;
+  padding: 5px 0 0 2px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-copy {
+  width: 100% !important;
+  max-width: 660px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-eyebrow {
   display: inline-flex !important;
   align-items: center !important;
   min-height: 29px !important;
-  margin: 0 0 15px !important;
+  margin: 0 0 14px !important;
   padding: 0 12px !important;
   border: 1px solid #b8d2f7 !important;
   border-radius: 999px !important;
@@ -88,93 +74,82 @@
   color: #1559b7 !important;
   font: 800 11px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
   letter-spacing: .025em !important;
-  box-shadow: 0 4px 12px rgba(35,94,174,.04) !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 {
-  display: grid !important;
-  grid-template-columns: minmax(0, max-content) auto !important;
-  grid-template-rows: auto auto !important;
-  align-items: end !important;
-  justify-content: start !important;
-  column-gap: 12px !important;
-  row-gap: 2px !important;
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-copy h1 {
+  display: block !important;
   width: 100% !important;
-  max-width: 650px !important;
+  max-width: 660px !important;
   margin: 0 !important;
   padding: 0 !important;
   color: #17263a !important;
   line-height: 1 !important;
   letter-spacing: 0 !important;
-  white-space: normal !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 .gd-hero-greeting {
-  grid-column: 1 / -1 !important;
-  grid-row: 1 !important;
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-greeting {
   display: block !important;
   width: fit-content !important;
-  margin: 0 !important;
+  margin: 0 0 2px !important;
   color: #17263a !important;
   font-family: Baskerville, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif !important;
-  font-size: clamp(42px, 3.35vw, 54px) !important;
+  font-size: clamp(40px, 3.25vw, 54px) !important;
   font-style: normal !important;
   font-weight: 500 !important;
   line-height: .98 !important;
-  letter-spacing: -.045em !important;
+  letter-spacing: -.048em !important;
   white-space: nowrap !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 strong.gd-hero-name {
-  grid-column: 1 !important;
-  grid-row: 2 !important;
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-name-line {
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: flex-start !important;
+  gap: 12px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page strong.gd-hero-name {
   position: relative !important;
-  z-index: 1 !important;
   display: inline-block !important;
   min-width: 0 !important;
-  max-width: 100% !important;
-  margin: 0 !important;
+  max-width: calc(100% - 54px) !important;
   color: #1261d4 !important;
   font-family: Baskerville, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif !important;
-  font-size: clamp(64px, 4.6vw, 76px) !important;
+  font-size: clamp(61px, 4.65vw, 76px) !important;
   font-style: italic !important;
   font-weight: 500 !important;
-  line-height: .92 !important;
+  line-height: .93 !important;
   letter-spacing: -.052em !important;
   white-space: nowrap !important;
   text-shadow: 0 8px 22px rgba(28,101,207,.065) !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 strong.gd-hero-name::after {
+.app-shell[data-route="dashboard"] .gd-page strong.gd-hero-name::after {
   content: '' !important;
   position: absolute !important;
   z-index: -1 !important;
-  left: 9% !important;
+  left: 11% !important;
   right: 1% !important;
   bottom: -7px !important;
   height: 9px !important;
   border-top: 2px solid rgba(25,105,225,.46) !important;
   border-radius: 50% !important;
   transform: rotate(-1deg) !important;
-  pointer-events: none !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 .gd-hero-wave {
-  grid-column: 2 !important;
-  grid-row: 2 !important;
-  display: block !important;
-  align-self: end !important;
-  margin: 0 0 6px !important;
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-wave {
+  flex: 0 0 auto !important;
+  margin: 0 0 7px !important;
   font-family: system-ui, sans-serif !important;
-  font-size: clamp(27px, 2vw, 34px) !important;
-  font-style: normal !important;
-  font-weight: 400 !important;
+  font-size: 31px !important;
   line-height: 1 !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy > p {
-  max-width: 555px !important;
-  margin: 23px 0 0 !important;
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-copy > p {
+  max-width: 560px !important;
+  margin: 22px 0 0 !important;
   color: #425873 !important;
   font-size: 15px !important;
   font-weight: 610 !important;
@@ -182,40 +157,22 @@
   letter-spacing: -.004em !important;
 }
 
-/* LEFT — actions ------------------------------------------------------------ */
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-actions,
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-secondary-actions {
-  position: relative !important;
-  z-index: 6 !important;
-  width: 100% !important;
-  max-width: 650px !important;
-  min-width: 0 !important;
-  margin-left: 2px !important;
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-actions {
   display: flex !important;
   align-items: center !important;
   justify-content: flex-start !important;
   flex-wrap: wrap !important;
-  float: none !important;
-  inset: auto !important;
-  transform: none !important;
+  gap: 11px !important;
+  margin: 24px 0 0 !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-actions {
-  grid-area: actions !important;
-  gap: 12px !important;
-  margin-top: 24px !important;
-}
-
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-secondary-actions {
-  grid-area: secondary !important;
-  gap: 10px !important;
-  margin-top: 11px !important;
-}
-
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-secondary-actions > button {
-  display: inline-flex !important;
-  visibility: visible !important;
-  opacity: 1 !important;
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-secondary-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  flex-wrap: wrap !important;
+  gap: 9px !important;
+  margin: 10px 0 0 !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-button {
@@ -236,55 +193,52 @@
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-button.outlined {
-  min-width: 132px !important;
+  min-width: 130px !important;
   border-color: #cfdeec !important;
   background: rgba(255,255,255,.95) !important;
   color: #244866 !important;
-  box-shadow: 0 6px 16px rgba(45,74,109,.055) !important;
+  box-shadow: 0 5px 15px rgba(45,74,109,.055) !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-link {
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-link {
   min-height: 41px !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
   gap: 7px !important;
   padding: 0 14px !important;
-  border: 1px solid #d0dfef !important;
-  border-radius: 14px !important;
-  background: rgba(255,255,255,.90) !important;
+  border: 1px solid #d1dfed !important;
+  border-radius: 13px !important;
+  background: rgba(255,255,255,.88) !important;
   color: #174f91 !important;
   font: 800 12px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-  box-shadow: 0 5px 14px rgba(54,84,123,.04) !important;
+  box-shadow: 0 4px 13px rgba(54,84,123,.04) !important;
   cursor: pointer !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-link:hover,
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip:hover,
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-link:hover,
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-chip:hover,
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-button.outlined:hover {
   border-color: #9ebfe8 !important;
   background: #f5f9ff !important;
 }
 
-/* RIGHT — interactive utility rail ----------------------------------------- */
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chipbar {
-  grid-area: chips !important;
-  position: relative !important;
-  z-index: 8 !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  max-width: 610px !important;
-  justify-self: end !important;
-  align-self: start !important;
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-right {
   display: grid !important;
-  grid-template-columns: .9fr 1.12fr 1.28fr !important;
-  gap: 9px !important;
-  margin: 0 !important;
-  inset: auto !important;
-  transform: none !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  gap: 16px !important;
+  min-height: 322px !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip {
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-chipbar {
+  display: grid !important;
+  grid-template-columns: minmax(150px,.9fr) minmax(190px,1.08fr) minmax(220px,1.24fr) !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-chip {
   min-width: 0 !important;
   min-height: 62px !important;
   display: grid !important;
@@ -293,16 +247,15 @@
   column-gap: 9px !important;
   align-items: center !important;
   padding: 9px 12px 9px 10px !important;
-  border: 1px solid rgba(198,216,236,.96) !important;
+  border: 1px solid rgba(199,216,235,.95) !important;
   border-radius: 17px !important;
   background: rgba(255,255,255,.95) !important;
   color: #163f73 !important;
-  box-shadow: 0 7px 19px rgba(41,78,125,.065) !important;
-  backdrop-filter: blur(14px) !important;
+  box-shadow: 0 7px 18px rgba(41,78,125,.065) !important;
   cursor: pointer !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip-icon {
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-chip-icon {
   grid-row: 1 / 3 !important;
   width: 36px !important;
   height: 36px !important;
@@ -313,265 +266,178 @@
   color: #1768d5 !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip.is-weather .gd-hero-chip-icon {
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-chip.is-weather .gd-hero-chip-icon {
   background: linear-gradient(145deg, #fff9e9, #ffefb9) !important;
   color: #d49300 !important;
   font-size: 19px !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip strong {
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-chip strong {
   min-width: 0 !important;
   align-self: end !important;
-  overflow: hidden !important;
   color: #154986 !important;
   font-size: 13px !important;
   font-weight: 800 !important;
   line-height: 1.12 !important;
-  text-overflow: ellipsis !important;
   white-space: nowrap !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip small {
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-chip small {
   min-width: 0 !important;
   align-self: start !important;
   margin-top: 2px !important;
-  overflow: hidden !important;
   color: #74859b !important;
   font-size: 10px !important;
   font-weight: 650 !important;
   line-height: 1.12 !important;
-  text-overflow: ellipsis !important;
   white-space: nowrap !important;
 }
 
-/* RIGHT — illustration ------------------------------------------------------ */
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual {
-  grid-area: visual !important;
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-visual {
   position: relative !important;
-  z-index: 3 !important;
-  width: 100% !important;
-  min-width: 0 !important;
-  min-height: 275px !important;
-  max-height: 310px !important;
-  align-self: end !important;
-  justify-self: stretch !important;
+  min-height: 244px !important;
   display: flex !important;
   align-items: flex-end !important;
   justify-content: flex-end !important;
-  margin: 8px 0 -8px !important;
-  padding: 0 !important;
   overflow: visible !important;
-  inset: auto !important;
-  transform: none !important;
   pointer-events: none !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual::before {
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-visual::before {
   content: '' !important;
   position: absolute !important;
   z-index: -1 !important;
   width: 96% !important;
-  height: 95% !important;
+  height: 94% !important;
   right: -1% !important;
-  bottom: -6% !important;
-  border-radius: 50% 50% 15% 22% !important;
-  background: radial-gradient(circle at 60% 62%, rgba(255,255,255,.98), rgba(229,241,255,.72) 55%, rgba(195,222,255,.13) 79%, transparent 80%) !important;
-  pointer-events: none !important;
+  bottom: -2% !important;
+  border-radius: 50% 50% 18% 28% !important;
+  background: radial-gradient(circle at 58% 62%, rgba(255,255,255,.99), rgba(229,241,255,.78) 54%, rgba(195,222,255,.16) 79%, transparent 80%) !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual .gd-hero-illustration {
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-illustration {
   display: block !important;
-  width: min(100%, 560px) !important;
+  width: min(100%, 565px) !important;
   height: auto !important;
-  max-width: 560px !important;
-  max-height: 305px !important;
-  margin: 0 -4px 0 0 !important;
-  overflow: visible !important;
-  transform: none !important;
-  transform-origin: right bottom !important;
-  filter: drop-shadow(0 18px 24px rgba(34,73,119,.12)) !important;
+  max-width: 565px !important;
+  max-height: 275px !important;
+  margin: 0 0 -4px auto !important;
+  filter: drop-shadow(0 18px 23px rgba(34,73,119,.12)) !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-mini-note {
+.app-shell[data-route="dashboard"] .gd-page .gd-hero-mini-note {
   display: none !important;
 }
 
-/* Tablet ------------------------------------------------------------------- */
-@media (max-width: 1260px) {
+@media (max-width: 1280px) {
   .app-shell[data-route="dashboard"] .gd-page .gd-hero {
-    min-height: 382px !important;
-    padding: 29px 28px 24px !important;
-    grid-template-columns: minmax(0, .96fr) minmax(430px, 1.04fr) !important;
-    column-gap: 26px !important;
+    grid-template-columns: minmax(0,.9fr) minmax(470px,1.1fr) !important;
+    padding: 28px 28px 24px !important;
+    gap: 30px !important;
   }
 
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 .gd-hero-greeting {
-    font-size: clamp(39px, 3.5vw, 49px) !important;
+  .app-shell[data-route="dashboard"] .gd-page strong.gd-hero-name {
+    font-size: clamp(56px, 4.5vw, 69px) !important;
   }
 
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 strong.gd-hero-name {
-    font-size: clamp(57px, 4.7vw, 68px) !important;
-  }
-
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chipbar {
-    gap: 7px !important;
-  }
-
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip {
-    min-height: 56px !important;
-    grid-template-columns: 32px minmax(0,1fr) !important;
-    padding: 8px 10px 8px 8px !important;
-  }
-
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip-icon {
-    width: 32px !important;
-    height: 32px !important;
-  }
-
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual {
-    min-height: 255px !important;
-    max-height: 285px !important;
-  }
-
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual .gd-hero-illustration {
-    width: min(100%, 510px) !important;
-    max-width: 510px !important;
-    max-height: 280px !important;
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-chipbar {
+    grid-template-columns: minmax(132px,.9fr) minmax(170px,1.08fr) minmax(196px,1.24fr) !important;
+    gap: 8px !important;
   }
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 1060px) {
   .app-shell[data-route="dashboard"] .gd-page .gd-hero {
-    min-height: 0 !important;
-    padding: 28px 26px 24px !important;
     grid-template-columns: 1fr !important;
-    grid-template-areas:
-      "copy"
-      "chips"
-      "actions"
-      "secondary"
-      "visual" !important;
-    grid-template-rows: auto auto auto auto auto !important;
-    row-gap: 0 !important;
+    min-height: 0 !important;
+    padding: 27px 25px 23px !important;
   }
 
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy {
-    max-width: none !important;
-  }
-
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 {
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-left {
     max-width: 760px !important;
   }
 
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 strong.gd-hero-name {
-    max-width: 100% !important;
-    font-size: clamp(60px, 8vw, 82px) !important;
-    white-space: normal !important;
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-right {
+    min-height: 0 !important;
+    margin-top: 4px !important;
   }
 
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chipbar {
-    justify-self: start !important;
-    max-width: 720px !important;
-    margin-top: 26px !important;
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-chipbar {
+    grid-template-columns: repeat(3, minmax(0,1fr)) !important;
   }
 
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-actions,
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-secondary-actions {
-    max-width: none !important;
-  }
-
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-actions {
-    margin-top: 20px !important;
-  }
-
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual {
-    min-height: 290px !important;
-    max-height: none !important;
-    margin-top: 18px !important;
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-visual {
+    min-height: 270px !important;
     justify-content: center !important;
   }
 
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual .gd-hero-illustration {
-    width: min(650px, 100%) !important;
-    max-width: 650px !important;
-    max-height: 330px !important;
-    margin: 0 auto -4px !important;
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-illustration {
+    width: min(620px,100%) !important;
+    max-width: 620px !important;
+    max-height: 300px !important;
+    margin-inline: auto !important;
   }
 }
 
-/* Mobile ------------------------------------------------------------------- */
-@media (max-width: 640px) {
+@media (max-width: 680px) {
   .app-shell[data-route="dashboard"] .gd-page .gd-hero {
     padding: 22px 18px 20px !important;
     border-radius: 24px !important;
   }
 
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-eyebrow {
-    margin-bottom: 13px !important;
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-greeting {
+    font-size: 36px !important;
   }
 
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 {
-    grid-template-columns: minmax(0,1fr) auto !important;
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-name-line {
+    gap: 8px !important;
   }
 
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 .gd-hero-greeting {
-    font-size: 37px !important;
-  }
-
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 strong.gd-hero-name {
-    font-size: clamp(50px, 14vw, 66px) !important;
+  .app-shell[data-route="dashboard"] .gd-page strong.gd-hero-name {
+    max-width: calc(100% - 40px) !important;
+    font-size: clamp(48px, 13vw, 62px) !important;
     white-space: normal !important;
   }
 
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 .gd-hero-wave {
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-wave {
     margin-bottom: 5px !important;
-    font-size: 27px !important;
+    font-size: 26px !important;
   }
 
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy > p {
-    margin-top: 21px !important;
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-copy > p {
+    margin-top: 20px !important;
     font-size: 14px !important;
   }
 
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chipbar {
-    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
-    gap: 8px !important;
-    margin-top: 22px !important;
-  }
-
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip:last-child {
-    grid-column: 1 / -1 !important;
-  }
-
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip strong,
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip small {
-    white-space: normal !important;
-  }
-
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-actions {
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-actions {
     display: grid !important;
     grid-template-columns: 1fr !important;
-  }
-
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-actions .gd-button {
     width: 100% !important;
   }
 
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-secondary-actions {
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-actions .gd-button {
+    width: 100% !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-secondary-actions {
     display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    width: 100% !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-chipbar {
     grid-template-columns: 1fr !important;
   }
 
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-link {
-    width: 100% !important;
-    min-width: 0 !important;
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-chip {
+    min-height: 58px !important;
   }
 
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual {
-    min-height: 225px !important;
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-visual {
+    min-height: 220px !important;
   }
 
-  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual .gd-hero-illustration {
-    max-height: 250px !important;
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero-illustration {
+    max-height: 240px !important;
   }
 }
