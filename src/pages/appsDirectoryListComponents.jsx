@@ -61,6 +61,7 @@ export default function AppListRow({
   const itemTitle = titleOf(item, language);
   const description = shortDesc(item, language) || descOf(item, language) || '';
   const badge = badgeFor(item);
+  const featured = badge?.tone === 'featured';
   const badgeText = badge ? (language === 'vi' ? (badge.vi || badge.labelVi || badge.label) : (badge.en || badge.label || badge.labelVi)) : '';
 
   const openItem = (event) => {
@@ -77,6 +78,10 @@ export default function AppListRow({
       onDragOver={(event) => { if (editMode) event.preventDefault(); }}
       onDrop={(event) => onDrop?.(event, itemId)}
       data-launcher-item={itemId}
+      data-app-pinned={pinned ? 'true' : 'false'}
+      data-app-nav={inNav ? 'true' : 'false'}
+      data-app-shared={item.shared ? 'true' : 'false'}
+      data-app-featured={featured ? 'true' : 'false'}
     >
       <button
         type="button"
