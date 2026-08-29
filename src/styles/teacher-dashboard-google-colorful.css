@@ -1,5 +1,6 @@
-/* Dashboard — Google Material 3 vivid theme + hard hero layout reset.
-   This file is intentionally loaded last. Keep hero positioning deterministic. */
+/* Dashboard — Google Material 3 vivid surface palette.
+   Hero ownership was removed from this file on 2026-08-29.
+   The Dashboard hero is owned only by teacher-dashboard-hero-interactive-2026.css. */
 
 .app-shell[data-route="dashboard"] .gd-page {
   --gd-blue: #0b57d0 !important;
@@ -25,220 +26,11 @@
     #f7faff !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-shell { gap: 22px !important; }
-
-/* ------------------------------------------------------------------
-   HERO — hard reset. Do not inherit legacy absolute/translated layout.
-   ------------------------------------------------------------------ */
-.app-shell[data-route="dashboard"] .gd-top-grid,
-.app-shell[data-route="dashboard"] .gd-top-grid > .gd-hero {
-  width: 100% !important;
-  min-width: 0 !important;
+.app-shell[data-route="dashboard"] .gd-shell {
+  gap: 22px !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-top-grid > .gd-hero {
-  position: relative !important;
-  inset: auto !important;
-  top: auto !important;
-  right: auto !important;
-  bottom: auto !important;
-  left: auto !important;
-  isolation: isolate !important;
-  display: grid !important;
-  grid-template-columns: minmax(0, 1.08fr) minmax(360px, .92fr) !important;
-  grid-template-rows: auto auto !important;
-  align-content: center !important;
-  align-items: center !important;
-  justify-content: stretch !important;
-  column-gap: 24px !important;
-  row-gap: 0 !important;
-  min-height: 224px !important;
-  height: 224px !important;
-  margin: 0 !important;
-  padding: 24px 32px !important;
-  overflow: hidden !important;
-  border: 1px solid #a8c7fa !important;
-  border-radius: 28px !important;
-  background:
-    radial-gradient(circle at 86% 18%, rgba(52,168,83,.18), transparent 24%),
-    radial-gradient(circle at 82% 94%, rgba(251,188,4,.16), transparent 22%),
-    radial-gradient(circle at 97% 72%, rgba(234,67,53,.10), transparent 17%),
-    linear-gradient(105deg, #ffffff 0%, #f5f9ff 46%, #e8f1ff 100%) !important;
-  box-shadow: 0 4px 16px rgba(60,64,67,.10) !important;
-  transform: none !important;
-  translate: none !important;
-  perspective: none !important;
-}
-
-/* Illustration stays behind/right and must never cover copy. */
-.app-shell[data-route="dashboard"] .gd-top-grid > .gd-hero::before,
-.app-shell[data-route="dashboard"] .gd-top-grid > .gd-hero::after {
-  z-index: 1 !important;
-  opacity: .78 !important;
-  transform: scale(.56) translate3d(0, 0, 0) !important;
-  transform-origin: right center !important;
-  pointer-events: none !important;
-  filter: none !important;
-}
-
-.app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy {
-  grid-column: 1 !important;
-  grid-row: 1 !important;
-  align-self: end !important;
-  justify-self: start !important;
-  position: relative !important;
-  inset: auto !important;
-  top: auto !important;
-  right: auto !important;
-  bottom: auto !important;
-  left: auto !important;
-  z-index: 30 !important;
-  display: block !important;
-  width: 100% !important;
-  max-width: 620px !important;
-  min-width: 0 !important;
-  height: auto !important;
-  min-height: 0 !important;
-  max-height: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow: visible !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  transform: none !important;
-  translate: none !important;
-  scale: 1 !important;
-  rotate: 0deg !important;
-  filter: none !important;
-  clip: auto !important;
-  clip-path: none !important;
-  mask: none !important;
-  pointer-events: auto !important;
-}
-
-.app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy > *,
-.app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy h1 > * {
-  position: static !important;
-  inset: auto !important;
-  top: auto !important;
-  right: auto !important;
-  bottom: auto !important;
-  left: auto !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  transform: none !important;
-  translate: none !important;
-  clip-path: none !important;
-  filter: none !important;
-}
-
-.app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-eyebrow {
-  display: inline-flex !important;
-  align-items: center !important;
-  width: auto !important;
-  min-height: 26px !important;
-  margin: 0 0 9px !important;
-  padding: 0 11px !important;
-  border: 1px solid #a8c7fa !important;
-  border-radius: 999px !important;
-  background: #d3e3fd !important;
-  color: #0842a0 !important;
-  font-size: 11px !important;
-  font-weight: 700 !important;
-  line-height: 1 !important;
-  letter-spacing: .02em !important;
-}
-
-.app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy h1 {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  align-items: baseline !important;
-  gap: 0 .18em !important;
-  max-width: 610px !important;
-  margin: 0 !important;
-  color: #202124 !important;
-  font-size: clamp(36px, 3.5vw, 50px) !important;
-  font-weight: 500 !important;
-  line-height: .98 !important;
-  letter-spacing: -.04em !important;
-  white-space: normal !important;
-}
-
-.app-shell[data-route="dashboard"] .gd-hero-greeting {
-  color: #202124 !important;
-  font: inherit !important;
-  font-weight: 500 !important;
-}
-.app-shell[data-route="dashboard"] .gd-hero-name {
-  color: #0b57d0 !important;
-  font: inherit !important;
-  font-weight: 700 !important;
-}
-.app-shell[data-route="dashboard"] .gd-hero-wave {
-  display: inline-block !important;
-  color: initial !important;
-  font-size: .62em !important;
-  line-height: 1 !important;
-}
-
-.app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy p {
-  display: block !important;
-  max-width: 560px !important;
-  margin: 10px 0 0 !important;
-  color: #46515f !important;
-  font-size: 14px !important;
-  font-weight: 500 !important;
-  line-height: 1.45 !important;
-}
-
-.app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-actions {
-  grid-column: 1 !important;
-  grid-row: 2 !important;
-  align-self: start !important;
-  justify-self: start !important;
-  position: relative !important;
-  inset: auto !important;
-  top: auto !important;
-  right: auto !important;
-  bottom: auto !important;
-  left: auto !important;
-  z-index: 31 !important;
-  display: flex !important;
-  flex-wrap: wrap !important;
-  width: auto !important;
-  max-width: 620px !important;
-  margin: 14px 0 0 !important;
-  padding: 0 !important;
-  gap: 10px !important;
-  transform: none !important;
-  translate: none !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-}
-
-.app-shell[data-route="dashboard"] .gd-button {
-  min-height: 40px !important;
-  padding: 0 17px !important;
-  border-radius: 999px !important;
-  font-size: 13px !important;
-  font-weight: 700 !important;
-}
-.app-shell[data-route="dashboard"] .gd-button.filled {
-  border: 1px solid #0b57d0 !important;
-  background: #0b57d0 !important;
-  color: #fff !important;
-  box-shadow: 0 2px 6px rgba(11,87,208,.22) !important;
-}
-.app-shell[data-route="dashboard"] .gd-button.filled:hover { background: #0842a0 !important; }
-.app-shell[data-route="dashboard"] .gd-button.outlined {
-  border: 1px solid #8ab4f8 !important;
-  background: #fff !important;
-  color: #0b57d0 !important;
-}
-
-/* ------------------------------------------------------------------
-   MATERIAL SURFACES — vivid Google palette, restrained elevation.
-   ------------------------------------------------------------------ */
+/* Material surfaces — vivid Google palette, restrained elevation. */
 .app-shell[data-route="dashboard"] .gd-calendar,
 .app-shell[data-route="dashboard"] .gd-surface,
 .app-shell[data-route="dashboard"] .dnh {
@@ -251,27 +43,34 @@
   border-bottom-color: #cfe0f5 !important;
   background: linear-gradient(90deg, #eaf2ff 0%, #f7faff 58%, #fff 100%) !important;
 }
+
 .app-shell[data-route="dashboard"] .gd-calendar-title > span,
 .app-shell[data-route="dashboard"] .gd-heading-icon {
   background: #c2e7ff !important;
   color: #0b57d0 !important;
 }
+
 .app-shell[data-route="dashboard"] .gd-calendar-title h2,
 .app-shell[data-route="dashboard"] .gd-surface-heading h2 {
   color: #16325c !important;
   font-weight: 650 !important;
 }
+
 .app-shell[data-route="dashboard"] .gd-calendar-title p,
-.app-shell[data-route="dashboard"] .gd-surface-heading p { color: #536579 !important; }
+.app-shell[data-route="dashboard"] .gd-surface-heading p {
+  color: #536579 !important;
+}
 
 .app-shell[data-route="dashboard"] .gd-calendar-sidebar {
   background: linear-gradient(180deg, #f0f6ff 0%, #f8fbff 100%) !important;
   border-bottom-color: #d6e4f5 !important;
 }
+
 .app-shell[data-route="dashboard"] .gd-calendar-side-head > div > span {
   color: #0b57d0 !important;
   font-weight: 700 !important;
 }
+
 .app-shell[data-route="dashboard"] .gd-count-chip {
   background: #d3e3fd !important;
   color: #0842a0 !important;
@@ -282,19 +81,23 @@
   background: #fff !important;
   box-shadow: 0 1px 3px rgba(32,64,110,.06) !important;
 }
+
 .app-shell[data-route="dashboard"] .gd-day-card:hover {
   border-color: #8ab4f8 !important;
   background: #f3f7ff !important;
 }
+
 .app-shell[data-route="dashboard"] .gd-day-card.is-selected {
   border-color: #669df6 !important;
   background: #d3e3fd !important;
   box-shadow: inset 0 0 0 1px rgba(11,87,208,.10), 0 2px 7px rgba(11,87,208,.10) !important;
 }
+
 .app-shell[data-route="dashboard"] .gd-day-card.is-today .gd-day-number {
   background: #0b57d0 !important;
   color: #fff !important;
 }
+
 .app-shell[data-route="dashboard"] .gd-day-card.has-events .gd-day-event-count {
   background: #c2e7ff !important;
   color: #0842a0 !important;
@@ -304,6 +107,7 @@
   border: 1px solid #a8dab5 !important;
   background: #c4eed0 !important;
 }
+
 .app-shell[data-route="dashboard"] .gd-calendar-next-event > span {
   background: #9bd6aa !important;
   color: #0d652d !important;
@@ -314,118 +118,110 @@
   color: #fff !important;
   box-shadow: 0 4px 12px rgba(11,87,208,.20) !important;
 }
+
 .app-shell[data-route="dashboard"] .gd-agenda-heading > span {
   color: #0b57d0 !important;
   font-weight: 700 !important;
 }
+
 .app-shell[data-route="dashboard"] .gd-agenda-heading h3 {
   color: #1f1f1f !important;
   font-weight: 650 !important;
 }
+
 .app-shell[data-route="dashboard"] .gd-agenda-list-split .gd-event {
   border: 1px solid #e0e7ef !important;
   background: #fff !important;
 }
+
 .app-shell[data-route="dashboard"] .gd-agenda-list-split .gd-event:hover {
   border-color: #b8cff0 !important;
   background: #f6f9ff !important;
   box-shadow: 0 2px 7px rgba(32,64,110,.07) !important;
 }
-.app-shell[data-route="dashboard"] .gd-event.is-today .gd-event-color { background: #188038 !important; }
-.app-shell[data-route="dashboard"] .gd-event.is-soon .gd-event-color { background: #f9ab00 !important; }
-.app-shell[data-route="dashboard"] .gd-event.is-overdue .gd-event-color { background: #d93025 !important; }
+
+.app-shell[data-route="dashboard"] .gd-event.is-today .gd-event-color {
+  background: #188038 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-event.is-soon .gd-event-color {
+  background: #f9ab00 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-event.is-overdue .gd-event-color {
+  background: #d93025 !important;
+}
 
 /* News Hub: subtle Google four-color signature. */
 .app-shell[data-route="dashboard"] .dnh {
   border-radius: 26px !important;
   overflow: hidden !important;
 }
+
 .app-shell[data-route="dashboard"] .dnh::before {
   content: "";
   display: block;
   height: 4px;
   background: linear-gradient(90deg, #4285f4 0 25%, #34a853 25% 50%, #fbbc04 50% 75%, #ea4335 75% 100%);
 }
+
 .app-shell[data-route="dashboard"] .dnh-head {
   background: linear-gradient(90deg, #f4f8ff 0%, #fff 60%) !important;
   border-bottom-color: #dbe5f2 !important;
 }
+
 .app-shell[data-route="dashboard"] .dnh-icon {
   background: #c2e7ff !important;
   color: #0b57d0 !important;
 }
+
 .app-shell[data-route="dashboard"] .dnh-title > div > span,
 .app-shell[data-route="dashboard"] .dnh-featured-copy > span,
-.app-shell[data-route="dashboard"] .dnh-view-all { color: #0b57d0 !important; }
+.app-shell[data-route="dashboard"] .dnh-view-all {
+  color: #0b57d0 !important;
+}
+
 .app-shell[data-route="dashboard"] .dnh-title h2,
-.app-shell[data-route="dashboard"] .dnh-featured-copy strong { color: #1f1f1f !important; }
-.app-shell[data-route="dashboard"] .dnh-tabs { background: #e8eef7 !important; }
+.app-shell[data-route="dashboard"] .dnh-featured-copy strong {
+  color: #1f1f1f !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-tabs {
+  background: #e8eef7 !important;
+}
+
 .app-shell[data-route="dashboard"] .dnh-tabs button.is-active {
   background: #fff !important;
   color: #0b57d0 !important;
   box-shadow: 0 2px 6px rgba(32,64,110,.12) !important;
 }
-.app-shell[data-route="dashboard"] .dnh-story:hover { background: #f3f7ff !important; }
+
+.app-shell[data-route="dashboard"] .dnh-story:hover {
+  background: #f3f7ff !important;
+}
 
 /* Quick actions: Google tonal containers. */
 .app-shell[data-route="dashboard"] .gd-quick-surface .gd-surface-header {
   border-bottom-color: #c8dcf7 !important;
   background: linear-gradient(90deg, #dff0ff 0%, #eff8ff 58%, #fff 100%) !important;
 }
+
 .app-shell[data-route="dashboard"] .gd-quick-action {
   border-color: #c8d7e8 !important;
   background: #fff !important;
   color: #263747 !important;
   box-shadow: 0 1px 3px rgba(32,64,110,.05) !important;
 }
+
 .app-shell[data-route="dashboard"] .gd-quick-action:hover {
   border-color: #8ab4f8 !important;
   background: #eef4ff !important;
   color: #0b57d0 !important;
 }
+
 .app-shell[data-route="dashboard"] .gd-quick-action:nth-child(1) > span { background:#c2e7ff !important; color:#0b57d0 !important; }
 .app-shell[data-route="dashboard"] .gd-quick-action:nth-child(2) > span { background:#c4eed0 !important; color:#137333 !important; }
 .app-shell[data-route="dashboard"] .gd-quick-action:nth-child(3) > span { background:#ffefc3 !important; color:#8a5300 !important; }
 .app-shell[data-route="dashboard"] .gd-quick-action:nth-child(4) > span { background:#eadcff !important; color:#7627bb !important; }
 .app-shell[data-route="dashboard"] .gd-quick-action:nth-child(5) > span { background:#f9dedc !important; color:#b3261e !important; }
 .app-shell[data-route="dashboard"] .gd-quick-action:nth-child(6) > span { background:#d3e3fd !important; color:#0842a0 !important; }
-
-@media (max-width: 980px) {
-  .app-shell[data-route="dashboard"] .gd-top-grid > .gd-hero {
-    grid-template-columns: minmax(0, 1fr) 300px !important;
-    min-height: 218px !important;
-    height: 218px !important;
-    padding: 22px 24px !important;
-  }
-  .app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy h1 {
-    font-size: clamp(34px, 5vw, 44px) !important;
-  }
-  .app-shell[data-route="dashboard"] .gd-top-grid > .gd-hero::before,
-  .app-shell[data-route="dashboard"] .gd-top-grid > .gd-hero::after {
-    transform: scale(.50) !important;
-  }
-}
-
-@media (max-width: 720px) {
-  .app-shell[data-route="dashboard"] .gd-top-grid > .gd-hero {
-    display: block !important;
-    min-height: 0 !important;
-    height: auto !important;
-    padding: 22px 20px !important;
-  }
-  .app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy {
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-  .app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-copy h1 {
-    font-size: clamp(34px, 9vw, 42px) !important;
-  }
-  .app-shell[data-route="dashboard"] .gd-top-grid > .gd-hero::before,
-  .app-shell[data-route="dashboard"] .gd-top-grid > .gd-hero::after {
-    opacity: .14 !important;
-    transform: scale(.42) !important;
-  }
-  .app-shell[data-route="dashboard"] .gd-top-grid .gd-hero-actions {
-    margin-top: 16px !important;
-  }
-}
