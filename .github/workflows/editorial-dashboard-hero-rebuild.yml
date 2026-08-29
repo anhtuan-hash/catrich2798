@@ -24,7 +24,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
@@ -32,6 +32,17 @@ jobs:
 
       - name: Rebuild hero from zero
         run: node scripts/rebuild-dashboard-editorial-hero.mjs
+
+      - name: Normalize generated JSX
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/pages/WorkDashboard.jsx')
+          text = path.read_text(encoding='utf-8')
+          text = text.replace('\\`', '`').replace('\\${', '${')
+          path.write_text(text, encoding='utf-8')
+          PY
 
       - name: Validate legacy hero removal
         shell: bash
@@ -42,6 +53,10 @@ jobs:
           fi
           if grep -q 'className="dash-hero"' src/pages/WorkDashboard.jsx; then
             echo 'Legacy dash-hero markup remains.' >&2
+            exit 1
+          fi
+          if grep -q '\\`' src/pages/WorkDashboard.jsx; then
+            echo 'Escaped template literals remain in generated JSX.' >&2
             exit 1
           fi
           test -f src/styles/teacher-dashboard-editorial-hero.css
