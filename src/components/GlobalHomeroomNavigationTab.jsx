@@ -2,7 +2,6 @@ import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { hasRouteAccess } from '../utils/permissions.js';
 import { launchRoute } from '../utils/navigation.js';
-import './GlobalHomeroomNavigationTab.css';
 
 function userKey(user) {
   return String(user?.id || user?.authId || user?.email || '');
