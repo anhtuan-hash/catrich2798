@@ -168,6 +168,12 @@
   color: #78520a;
 }
 
+/* Gradebook route cleanup: the Material hero already exposes the assigned
+   classes as its class switcher, so the full assignment-card grid is redundant. */
+.gradebook-studio > .gradebook-assignment-panel {
+  display: none !important;
+}
+
 @media (max-width: 720px) {
   .gradebook-lifecycle-banner,
   .gradebook-roster-history-head,
