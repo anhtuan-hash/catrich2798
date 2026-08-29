@@ -1,5 +1,5 @@
-/* Dashboard hero — single authoritative composition, Aug 2026.
-   This file owns the hero layout directly. No appended override layer. */
+/* Dashboard hero — authoritative composition, Aug 2026.
+   This file directly owns the Dashboard hero. No appended override layer. */
 
 .app-shell[data-route="dashboard"] .gd-page .gd-top-grid {
   display: block !important;
@@ -9,16 +9,16 @@
   position: relative !important;
   isolation: isolate;
   display: block !important;
-  min-height: 470px !important;
+  min-height: 482px !important;
   margin: 0 0 24px !important;
-  padding: 38px 42px 30px !important;
+  padding: 38px 40px 30px !important;
   overflow: hidden !important;
-  border: 1px solid #cbd9ea !important;
+  border: 1px solid #c9d9eb !important;
   border-radius: 30px !important;
   background:
-    radial-gradient(circle at 91% 18%, rgba(255,255,255,.94) 0 13%, transparent 34%),
-    radial-gradient(circle at 83% 90%, rgba(174,214,255,.22) 0 11%, transparent 36%),
-    linear-gradient(118deg, #ffffff 0%, #fbfdff 45%, #f3f8ff 72%, #eaf3ff 100%) !important;
+    radial-gradient(circle at 90% 12%, rgba(255,255,255,.96) 0 13%, transparent 34%),
+    radial-gradient(circle at 88% 88%, rgba(171,211,255,.22) 0 11%, transparent 35%),
+    linear-gradient(118deg, #ffffff 0%, #fbfdff 44%, #f2f7ff 72%, #eaf3ff 100%) !important;
   box-shadow:
     0 1px 2px rgba(42,64,92,.035),
     0 18px 48px rgba(49,80,119,.085) !important;
@@ -28,12 +28,12 @@
   content: '';
   position: absolute;
   z-index: -1;
-  width: 410px;
-  height: 210px;
-  right: 52px;
-  bottom: -118px;
+  width: 430px;
+  height: 230px;
+  right: 44px;
+  bottom: -138px;
   border-radius: 50%;
-  background: rgba(67,139,234,.06);
+  background: rgba(67,139,234,.055);
   pointer-events: none;
 }
 
@@ -41,137 +41,168 @@
   content: '';
   position: absolute;
   z-index: -1;
-  width: 148px;
-  height: 148px;
-  right: 37%;
-  top: -104px;
+  width: 150px;
+  height: 150px;
+  right: 38%;
+  top: -106px;
   border-radius: 50%;
-  background: rgba(106,164,240,.04);
+  background: rgba(106,164,240,.035);
   pointer-events: none;
 }
 
-/* LEFT: editorial greeting ------------------------------------------------ */
+/* LEFT — editorial greeting ------------------------------------------------ */
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy {
   position: relative !important;
-  z-index: 8;
-  width: 47% !important;
-  max-width: 650px !important;
-  min-width: 0;
-  padding: 12px 0 0 2px !important;
+  z-index: 8 !important;
+  width: 48% !important;
+  max-width: 660px !important;
+  min-width: 0 !important;
+  padding: 8px 0 0 2px !important;
+  margin: 0 !important;
+  transform: none !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-eyebrow {
   display: inline-flex !important;
-  align-items: center;
-  min-height: 30px;
-  margin: 0 0 14px !important;
+  align-items: center !important;
+  min-height: 30px !important;
+  margin: 0 0 15px !important;
   padding: 0 13px !important;
   border: 1px solid #b9d1f4 !important;
   border-radius: 999px !important;
-  background: linear-gradient(180deg, #f5f9ff, #e7f1ff) !important;
+  background: linear-gradient(180deg, #f6faff, #e7f1ff) !important;
   color: #1559b7 !important;
   font: 800 11px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-  letter-spacing: .025em;
-  box-shadow: 0 4px 12px rgba(35,94,174,.05);
+  letter-spacing: .025em !important;
+  box-shadow: 0 4px 12px rgba(35,94,174,.045) !important;
 }
 
+/* h1 is an explicit two-row grid so the greeting can never collapse onto the name. */
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 {
-  position: relative;
-  display: block !important;
-  width: 100%;
-  max-width: 650px;
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: minmax(0,1fr) auto !important;
+  grid-template-rows: auto auto !important;
+  column-gap: 10px !important;
+  row-gap: 2px !important;
+  width: 100% !important;
+  max-width: 660px !important;
   margin: 0 !important;
   padding: 0 !important;
   color: #17263a !important;
-  line-height: .94 !important;
-  letter-spacing: -.05em !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  white-space: normal !important;
+  transform: none !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 .gd-hero-greeting {
+  grid-column: 1 / -1 !important;
+  grid-row: 1 !important;
   display: block !important;
-  width: fit-content;
-  margin: 0 0 8px !important;
+  width: fit-content !important;
+  margin: 0 !important;
   color: #17263a !important;
   font-family: Baskerville, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif !important;
-  font-size: clamp(44px, 3.6vw, 58px) !important;
+  font-size: clamp(44px, 3.55vw, 57px) !important;
   font-style: normal !important;
   font-weight: 500 !important;
   line-height: .98 !important;
   letter-spacing: -.05em !important;
+  white-space: nowrap !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 strong.gd-hero-name {
-  position: relative;
+  grid-column: 1 !important;
+  grid-row: 2 !important;
+  position: relative !important;
   display: inline-block !important;
-  max-width: calc(100% - 50px) !important;
+  justify-self: start !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
   margin: 0 !important;
   color: #1261d4 !important;
   font-family: Baskerville, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif !important;
-  font-size: clamp(62px, 4.75vw, 78px) !important;
+  font-size: clamp(64px, 4.8vw, 78px) !important;
   font-style: italic !important;
   font-weight: 500 !important;
-  line-height: .92 !important;
+  line-height: .93 !important;
   letter-spacing: -.055em !important;
   white-space: nowrap !important;
-  text-shadow: 0 8px 22px rgba(28,101,207,.075);
+  text-shadow: 0 8px 22px rgba(28,101,207,.07) !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 strong.gd-hero-name::after {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  left: 11%;
-  right: 2%;
-  bottom: -9px;
-  height: 11px;
-  border-top: 2px solid rgba(25,105,225,.58);
-  border-radius: 50%;
-  transform: rotate(-1.25deg);
-  pointer-events: none;
+  content: '' !important;
+  position: absolute !important;
+  z-index: -1 !important;
+  left: 12% !important;
+  right: 2% !important;
+  bottom: -8px !important;
+  height: 10px !important;
+  border-top: 2px solid rgba(25,105,225,.52) !important;
+  border-radius: 50% !important;
+  transform: rotate(-1.15deg) !important;
+  pointer-events: none !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 .gd-hero-wave {
-  display: inline-block !important;
-  margin-left: 11px !important;
+  grid-column: 2 !important;
+  grid-row: 2 !important;
+  align-self: end !important;
+  display: block !important;
+  margin: 0 0 7px !important;
   font-family: system-ui, sans-serif !important;
-  font-size: clamp(27px, 2.25vw, 36px) !important;
+  font-size: clamp(27px, 2.2vw, 35px) !important;
   font-style: normal !important;
   font-weight: 400 !important;
   line-height: 1 !important;
-  vertical-align: .12em !important;
+  transform: none !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy > p {
-  max-width: 540px !important;
-  margin: 25px 0 0 !important;
+  max-width: 550px !important;
+  margin: 24px 0 0 !important;
   color: #425873 !important;
   font-size: 15px !important;
   font-weight: 610 !important;
-  line-height: 1.58 !important;
-  letter-spacing: -.004em;
+  line-height: 1.56 !important;
+  letter-spacing: -.004em !important;
 }
 
-/* LEFT: interaction cluster ------------------------------------------------ */
+/* LEFT — interaction cluster ------------------------------------------------ */
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-actions,
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-secondary-actions {
   position: relative !important;
-  z-index: 9;
-  width: 47% !important;
-  max-width: 650px !important;
+  z-index: 10 !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  float: none !important;
+  width: 48% !important;
+  max-width: 660px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: flex-start !important;
   flex-wrap: wrap !important;
+  transform: none !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-actions {
   gap: 12px !important;
-  margin: 27px 0 0 2px !important;
+  margin: 26px 0 0 2px !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-secondary-actions {
   gap: 10px !important;
   margin: 12px 0 0 2px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-secondary-actions > button {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-button {
@@ -196,7 +227,7 @@
   border-color: #cfdeec !important;
   background: rgba(255,255,255,.94) !important;
   color: #244866 !important;
-  box-shadow: 0 6px 17px rgba(45,74,109,.065) !important;
+  box-shadow: 0 6px 17px rgba(45,74,109,.06) !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-link {
@@ -208,11 +239,11 @@
   padding: 0 15px !important;
   border: 1px solid #d1dfed !important;
   border-radius: 14px !important;
-  background: rgba(255,255,255,.84) !important;
+  background: rgba(255,255,255,.86) !important;
   color: #174f91 !important;
   font: 800 12px/1 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
   box-shadow: 0 5px 14px rgba(54,84,123,.045) !important;
-  cursor: pointer;
+  cursor: pointer !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-link:hover,
@@ -222,18 +253,21 @@
   background: #f5f9ff !important;
 }
 
-/* RIGHT: utility rail ------------------------------------------------------ */
+/* RIGHT — utility rail ------------------------------------------------------ */
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chipbar {
   position: absolute !important;
-  z-index: 12;
-  top: 26px !important;
-  right: 26px !important;
+  z-index: 14 !important;
+  top: 28px !important;
+  right: 28px !important;
+  bottom: auto !important;
+  left: auto !important;
   display: grid !important;
   grid-template-columns: .92fr 1.08fr 1.28fr !important;
   gap: 9px !important;
-  width: min(590px, calc(51% - 18px)) !important;
+  width: min(590px, calc(49% - 12px)) !important;
   max-width: none !important;
   margin: 0 !important;
+  transform: none !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip {
@@ -247,11 +281,11 @@
   padding: 9px 12px 9px 10px !important;
   border: 1px solid rgba(199,216,235,.95) !important;
   border-radius: 17px !important;
-  background: rgba(255,255,255,.93) !important;
+  background: rgba(255,255,255,.94) !important;
   color: #163f73 !important;
   box-shadow: 0 8px 20px rgba(41,78,125,.07) !important;
-  backdrop-filter: blur(14px);
-  cursor: pointer;
+  backdrop-filter: blur(14px) !important;
+  cursor: pointer !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip-icon {
@@ -272,38 +306,39 @@
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip strong {
-  min-width: 0;
-  align-self: end;
-  overflow: hidden;
+  min-width: 0 !important;
+  align-self: end !important;
+  overflow: hidden !important;
   color: #154986 !important;
   font-size: 13px !important;
   font-weight: 800 !important;
   line-height: 1.12 !important;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip small {
-  min-width: 0;
-  align-self: start;
-  margin-top: 2px;
-  overflow: hidden;
+  min-width: 0 !important;
+  align-self: start !important;
+  margin-top: 2px !important;
+  overflow: hidden !important;
   color: #74859b !important;
   font-size: 10px !important;
   font-weight: 650 !important;
   line-height: 1.12 !important;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
 }
 
-/* RIGHT: illustration. It never overlaps the utility rail. ---------------- */
+/* RIGHT — large anchored illustration -------------------------------------- */
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual {
   position: absolute !important;
-  z-index: 3;
-  top: 96px !important;
-  right: 20px !important;
-  bottom: 12px !important;
-  width: 51% !important;
+  z-index: 3 !important;
+  top: 106px !important;
+  right: 24px !important;
+  bottom: 18px !important;
+  left: auto !important;
+  width: 49% !important;
   min-width: 0 !important;
   min-height: 0 !important;
   display: flex !important;
@@ -312,33 +347,34 @@
   padding: 0 !important;
   margin: 0 !important;
   overflow: visible !important;
-  pointer-events: none;
+  transform: none !important;
+  pointer-events: none !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual::before {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  width: 91%;
-  height: 82%;
-  right: -1%;
-  bottom: -4%;
-  border-radius: 48% 52% 15% 24%;
-  background: radial-gradient(circle at 56% 60%, rgba(255,255,255,.98), rgba(229,241,255,.72) 53%, rgba(195,222,255,.14) 78%, transparent 79%);
-  pointer-events: none;
+  content: '' !important;
+  position: absolute !important;
+  z-index: -1 !important;
+  width: 96% !important;
+  height: 90% !important;
+  right: -1% !important;
+  bottom: -3% !important;
+  border-radius: 48% 52% 15% 24% !important;
+  background: radial-gradient(circle at 58% 60%, rgba(255,255,255,.98), rgba(229,241,255,.76) 54%, rgba(195,222,255,.15) 79%, transparent 80%) !important;
+  pointer-events: none !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual .gd-hero-illustration {
   display: block !important;
-  width: auto !important;
-  height: 100% !important;
-  max-width: 100% !important;
-  max-height: 100% !important;
-  margin: 0 !important;
+  width: min(100%, 610px) !important;
+  height: auto !important;
+  max-width: 610px !important;
+  max-height: 348px !important;
+  margin: 0 0 -2px 0 !important;
   overflow: visible !important;
   transform: none !important;
-  transform-origin: right bottom;
-  filter: drop-shadow(0 20px 24px rgba(34,73,119,.12));
+  transform-origin: right bottom !important;
+  filter: drop-shadow(0 20px 25px rgba(34,73,119,.13)) !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-mini-note {
@@ -347,28 +383,28 @@
 
 @media (max-width: 1260px) {
   .app-shell[data-route="dashboard"] .gd-page .gd-hero {
-    min-height: 456px !important;
-    padding: 34px 32px 26px !important;
+    min-height: 466px !important;
+    padding: 34px 32px 27px !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy,
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-actions,
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-secondary-actions {
-    width: 48% !important;
+    width: 49% !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 .gd-hero-greeting {
-    font-size: clamp(41px, 3.7vw, 52px) !important;
+    font-size: clamp(40px, 3.6vw, 51px) !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 strong.gd-hero-name {
-    font-size: clamp(58px, 5vw, 72px) !important;
+    font-size: clamp(57px, 4.8vw, 70px) !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chipbar {
-    top: 22px !important;
+    top: 23px !important;
     right: 22px !important;
-    width: min(545px, calc(50% - 18px)) !important;
+    width: min(545px, calc(49% - 10px)) !important;
     gap: 7px !important;
   }
 
@@ -384,74 +420,83 @@
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual {
-    top: 88px !important;
-    right: 16px !important;
-    bottom: 10px !important;
-    width: 50% !important;
+    top: 94px !important;
+    right: 18px !important;
+    bottom: 12px !important;
+    width: 48% !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual .gd-hero-illustration {
+    width: min(100%, 540px) !important;
+    max-width: 540px !important;
+    max-height: 320px !important;
   }
 }
 
-@media (max-width: 1040px) {
+@media (max-width: 1060px) {
   .app-shell[data-route="dashboard"] .gd-page .gd-hero {
     display: grid !important;
     grid-template-columns: 1fr !important;
-    grid-template-areas: "chips" "copy" "actions" "secondary" "visual";
+    grid-template-areas: "chips" "copy" "actions" "secondary" "visual" !important;
     min-height: 0 !important;
     padding: 28px 26px 24px !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chipbar {
-    grid-area: chips;
+    grid-area: chips !important;
     position: relative !important;
     top: auto !important;
     right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 0 24px !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy {
-    grid-area: copy;
+    grid-area: copy !important;
     width: 100% !important;
     max-width: none !important;
     padding-top: 0 !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-actions {
-    grid-area: actions;
+    grid-area: actions !important;
     width: 100% !important;
     max-width: none !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-secondary-actions {
-    grid-area: secondary;
+    grid-area: secondary !important;
     width: 100% !important;
     max-width: none !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 strong.gd-hero-name {
-    max-width: calc(100% - 50px) !important;
-    font-size: clamp(62px, 9vw, 88px) !important;
+    max-width: 100% !important;
+    font-size: clamp(60px, 9vw, 86px) !important;
     white-space: normal !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual {
-    grid-area: visual;
+    grid-area: visual !important;
     position: relative !important;
     top: auto !important;
     right: auto !important;
     bottom: auto !important;
+    left: auto !important;
     width: 100% !important;
     min-height: 300px !important;
-    margin-top: 16px !important;
+    margin-top: 18px !important;
     justify-content: center !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-visual .gd-hero-illustration {
     width: min(650px, 100%) !important;
-    height: auto !important;
+    max-width: 650px !important;
     max-height: 330px !important;
-    margin: 0 auto -8px !important;
+    margin: 0 auto -5px !important;
   }
 }
 
@@ -468,12 +513,12 @@
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip:last-child {
-    grid-column: 1 / -1;
+    grid-column: 1 / -1 !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip strong,
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-chip small {
-    white-space: normal;
+    white-space: normal !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 .gd-hero-greeting {
@@ -481,12 +526,12 @@
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 strong.gd-hero-name {
-    max-width: calc(100% - 40px) !important;
-    font-size: clamp(54px, 15vw, 70px) !important;
+    font-size: clamp(52px, 14.5vw, 68px) !important;
+    white-space: normal !important;
   }
 
   .app-shell[data-route="dashboard"] .gd-page .gd-hero .gd-hero-copy h1 .gd-hero-wave {
-    margin-left: 8px !important;
+    margin-bottom: 5px !important;
     font-size: 27px !important;
   }
 
