@@ -1,227 +1,314 @@
-/* Dashboard — Google Material 3 vivid surface palette.
-   Hero ownership was removed from this file on 2026-08-29.
-   The Dashboard hero is owned only by teacher-dashboard-hero-interactive-2026.css. */
+/* Dashboard — editorial bridge palette.
+   Hero ownership stays in teacher-dashboard-editorial-hero.css.
+   This file now owns the visual language for calendar, news and quick actions. */
 
 .app-shell[data-route="dashboard"] .gd-page {
-  --gd-blue: #0b57d0 !important;
-  --gd-blue-bright: #1a73e8 !important;
-  --gd-blue-soft: #d3e3fd !important;
-  --gd-blue-container: #c2e7ff !important;
-  --gd-green: #188038 !important;
-  --gd-green-soft: #c4eed0 !important;
-  --gd-yellow: #b06000 !important;
-  --gd-yellow-soft: #ffefc3 !important;
-  --gd-red: #c5221f !important;
-  --gd-red-soft: #f9dedc !important;
-  --gd-purple: #7627bb !important;
-  --gd-purple-soft: #eadcff !important;
-  --gd-text: #1f1f1f !important;
-  --gd-muted: #4f5965 !important;
-  --gd-border: #c7d5e5 !important;
-  --gd-border-soft: #e3eaf2 !important;
-  --gd-canvas: #f7faff !important;
+  --gd-blue: #1769e0 !important;
+  --gd-blue-bright: #2563eb !important;
+  --gd-blue-soft: #eaf2ff !important;
+  --gd-blue-container: #dce9ff !important;
+  --gd-green: #24734a !important;
+  --gd-green-soft: #e8f3ec !important;
+  --gd-yellow: #9a6716 !important;
+  --gd-yellow-soft: #fbf2dd !important;
+  --gd-red: #b6403a !important;
+  --gd-red-soft: #f8e8e6 !important;
+  --gd-purple: #6f53a8 !important;
+  --gd-purple-soft: #eee9f8 !important;
+  --gd-text: #172033 !important;
+  --gd-muted: #687387 !important;
+  --gd-border: #d8dee7 !important;
+  --gd-border-soft: #e7ebf0 !important;
+  --gd-canvas: #f7f5f0 !important;
   background:
-    radial-gradient(circle at 8% 8%, rgba(66,133,244,.08), transparent 24%),
-    radial-gradient(circle at 92% 22%, rgba(52,168,83,.06), transparent 24%),
-    #f7faff !important;
+    radial-gradient(circle at 10% 8%, rgba(37,99,235,.045), transparent 22%),
+    #f7f5f0 !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-shell {
-  gap: 22px !important;
+  gap: 24px !important;
 }
 
-/* Material surfaces — vivid Google palette, restrained elevation. */
+/* Surfaces: flatter, quieter, more publication-like. */
 .app-shell[data-route="dashboard"] .gd-calendar,
 .app-shell[data-route="dashboard"] .gd-surface,
 .app-shell[data-route="dashboard"] .dnh {
-  border-color: #c7d5e5 !important;
+  border-color: #d8dee7 !important;
+  border-radius: 20px !important;
   background: #fff !important;
-  box-shadow: 0 2px 7px rgba(32,64,110,.07), 0 12px 32px rgba(32,64,110,.05) !important;
+  box-shadow: 0 12px 34px rgba(34, 48, 68, .045) !important;
 }
 
+/* Calendar masthead — editorial section treatment. */
 .app-shell[data-route="dashboard"] .gd-calendar-header {
-  border-bottom-color: #cfe0f5 !important;
-  background: linear-gradient(90deg, #eaf2ff 0%, #f7faff 58%, #fff 100%) !important;
+  position: relative;
+  min-height: 112px !important;
+  padding: 42px 28px 20px !important;
+  border-bottom: 1px solid #dfe4ea !important;
+  background: #fff !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-header::before {
+  content: "02 / THIS WEEK";
+  position: absolute;
+  top: 16px;
+  left: 28px;
+  color: #1769e0;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .16em;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-title {
+  gap: 13px !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-calendar-title > span,
 .app-shell[data-route="dashboard"] .gd-heading-icon {
-  background: #c2e7ff !important;
-  color: #0b57d0 !important;
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #1769e0 !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-calendar-title h2,
 .app-shell[data-route="dashboard"] .gd-surface-heading h2 {
-  color: #16325c !important;
-  font-weight: 650 !important;
+  color: #172033 !important;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 27px !important;
+  font-weight: 700 !important;
+  letter-spacing: -.025em;
 }
 
 .app-shell[data-route="dashboard"] .gd-calendar-title p,
 .app-shell[data-route="dashboard"] .gd-surface-heading p {
-  color: #536579 !important;
+  color: #7b8697 !important;
+  font-size: 12px !important;
 }
 
+.app-shell[data-route="dashboard"] .gd-calendar-header .gd-text-button {
+  border-radius: 0 !important;
+  color: #1769e0 !important;
+  font-size: 12px !important;
+  font-weight: 760 !important;
+  letter-spacing: .025em;
+}
+
+/* Date selector — rows, rules and typography instead of mini cards. */
 .app-shell[data-route="dashboard"] .gd-calendar-sidebar {
-  background: linear-gradient(180deg, #f0f6ff 0%, #f8fbff 100%) !important;
-  border-bottom-color: #d6e4f5 !important;
+  border-right-color: #e0e5eb !important;
+  background: #fafafa !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-calendar-side-head > div > span {
-  color: #0b57d0 !important;
-  font-weight: 700 !important;
+  color: #1769e0 !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: .12em;
+  text-transform: uppercase;
 }
 
-.app-shell[data-route="dashboard"] .gd-count-chip {
-  background: #d3e3fd !important;
-  color: #0842a0 !important;
-}
-
-.app-shell[data-route="dashboard"] .gd-day-card {
-  border-color: #d5e0ee !important;
-  background: #fff !important;
-  box-shadow: 0 1px 3px rgba(32,64,110,.06) !important;
-}
-
-.app-shell[data-route="dashboard"] .gd-day-card:hover {
-  border-color: #8ab4f8 !important;
-  background: #f3f7ff !important;
-}
-
-.app-shell[data-route="dashboard"] .gd-day-card.is-selected {
-  border-color: #669df6 !important;
-  background: #d3e3fd !important;
-  box-shadow: inset 0 0 0 1px rgba(11,87,208,.10), 0 2px 7px rgba(11,87,208,.10) !important;
-}
-
-.app-shell[data-route="dashboard"] .gd-day-card.is-today .gd-day-number {
-  background: #0b57d0 !important;
-  color: #fff !important;
-}
-
-.app-shell[data-route="dashboard"] .gd-day-card.has-events .gd-day-event-count {
-  background: #c2e7ff !important;
-  color: #0842a0 !important;
-}
-
-.app-shell[data-route="dashboard"] .gd-calendar-next-event {
-  border: 1px solid #a8dab5 !important;
-  background: #c4eed0 !important;
-}
-
-.app-shell[data-route="dashboard"] .gd-calendar-next-event > span {
-  background: #9bd6aa !important;
-  color: #0d652d !important;
-}
-
-.app-shell[data-route="dashboard"] .gd-agenda-date-badge {
-  background: linear-gradient(145deg, #0b57d0, #1a73e8) !important;
-  color: #fff !important;
-  box-shadow: 0 4px 12px rgba(11,87,208,.20) !important;
-}
-
-.app-shell[data-route="dashboard"] .gd-agenda-heading > span {
-  color: #0b57d0 !important;
-  font-weight: 700 !important;
-}
-
-.app-shell[data-route="dashboard"] .gd-agenda-heading h3 {
-  color: #1f1f1f !important;
+.app-shell[data-route="dashboard"] .gd-calendar-side-head > div > strong {
+  color: #202b3d !important;
   font-weight: 650 !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-agenda-list-split .gd-event {
-  border: 1px solid #e0e7ef !important;
+.app-shell[data-route="dashboard"] .gd-count-chip {
+  border: 1px solid #dbe2ea !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  color: #536176 !important;
+  font-size: 10px !important;
+  font-weight: 760 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-day-card {
+  border: 0 !important;
+  border-bottom: 1px solid #e1e6ec !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-day-card:hover {
+  border-bottom-color: #cbd4df !important;
+  background: #f4f7fb !important;
+  box-shadow: none !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-day-card.is-selected {
+  border-left: 3px solid #1769e0 !important;
+  border-bottom-color: #d7e2f1 !important;
+  background: #edf3ff !important;
+  box-shadow: none !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-day-card.is-today .gd-day-number {
+  background: #1769e0 !important;
+  color: #fff !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-day-card.has-events .gd-day-event-count,
+.app-shell[data-route="dashboard"] .gd-day-card.is-today .gd-day-event-count {
+  background: transparent !important;
+  color: #1769e0 !important;
+  font-weight: 760 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-next-event {
+  border: 0 !important;
+  border-left: 3px solid #3c8a5e !important;
+  border-radius: 8px !important;
+  background: #eef6f1 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-next-event > span {
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #24734a !important;
+}
+
+/* Agenda — large date typography, flatter event stories. */
+.app-shell[data-route="dashboard"] .gd-agenda-panel {
   background: #fff !important;
 }
 
+.app-shell[data-route="dashboard"] .gd-agenda-panel-header {
+  border-bottom-color: #dfe4ea !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-date-badge {
+  width: 72px !important;
+  height: 74px !important;
+  border: 0 !important;
+  border-right: 1px solid #dfe4ea !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #1769e0 !important;
+  box-shadow: none !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-date-badge strong {
+  color: #1769e0 !important;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 38px !important;
+  font-weight: 700 !important;
+  letter-spacing: -.04em;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-date-badge span {
+  color: #7d8797 !important;
+  font-size: 9px !important;
+  letter-spacing: .12em;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-heading > span {
+  color: #1769e0 !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: .10em;
+  text-transform: uppercase;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-heading h3 {
+  color: #172033 !important;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(26px, 2vw, 32px) !important;
+  font-weight: 700 !important;
+  letter-spacing: -.02em;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-list-split .gd-event {
+  border: 0 !important;
+  border-bottom: 1px solid #e2e7ed !important;
+  border-radius: 0 !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
 .app-shell[data-route="dashboard"] .gd-agenda-list-split .gd-event:hover {
-  border-color: #b8cff0 !important;
-  background: #f6f9ff !important;
-  box-shadow: 0 2px 7px rgba(32,64,110,.07) !important;
+  border-bottom-color: #cbd5e1 !important;
+  background: #f8fafc !important;
+  box-shadow: none !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-event.is-today .gd-event-color {
-  background: #188038 !important;
-}
+.app-shell[data-route="dashboard"] .gd-event.is-today .gd-event-color { background: #3c8a5e !important; }
+.app-shell[data-route="dashboard"] .gd-event.is-soon .gd-event-color { background: #d19a32 !important; }
+.app-shell[data-route="dashboard"] .gd-event.is-overdue .gd-event-color { background: #c44d47 !important; }
 
-.app-shell[data-route="dashboard"] .gd-event.is-soon .gd-event-color {
-  background: #f9ab00 !important;
-}
-
-.app-shell[data-route="dashboard"] .gd-event.is-overdue .gd-event-color {
-  background: #d93025 !important;
-}
-
-/* News Hub: subtle Google four-color signature. */
+/* News Hub: single cobalt editorial signature instead of four-color branding. */
 .app-shell[data-route="dashboard"] .dnh {
-  border-radius: 26px !important;
   overflow: hidden !important;
 }
 
 .app-shell[data-route="dashboard"] .dnh::before {
   content: "";
   display: block;
-  height: 4px;
-  background: linear-gradient(90deg, #4285f4 0 25%, #34a853 25% 50%, #fbbc04 50% 75%, #ea4335 75% 100%);
+  height: 2px;
+  background: #1769e0;
 }
 
 .app-shell[data-route="dashboard"] .dnh-head {
-  background: linear-gradient(90deg, #f4f8ff 0%, #fff 60%) !important;
-  border-bottom-color: #dbe5f2 !important;
+  border-bottom-color: #dfe4ea !important;
+  background: #fff !important;
 }
 
 .app-shell[data-route="dashboard"] .dnh-icon {
-  background: #c2e7ff !important;
-  color: #0b57d0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #1769e0 !important;
 }
 
 .app-shell[data-route="dashboard"] .dnh-title > div > span,
 .app-shell[data-route="dashboard"] .dnh-featured-copy > span,
 .app-shell[data-route="dashboard"] .dnh-view-all {
-  color: #0b57d0 !important;
+  color: #1769e0 !important;
 }
 
 .app-shell[data-route="dashboard"] .dnh-title h2,
 .app-shell[data-route="dashboard"] .dnh-featured-copy strong {
-  color: #1f1f1f !important;
+  color: #172033 !important;
 }
 
 .app-shell[data-route="dashboard"] .dnh-tabs {
-  background: #e8eef7 !important;
+  border-radius: 8px !important;
+  background: #f0f2f5 !important;
 }
 
 .app-shell[data-route="dashboard"] .dnh-tabs button.is-active {
   background: #fff !important;
-  color: #0b57d0 !important;
-  box-shadow: 0 2px 6px rgba(32,64,110,.12) !important;
+  color: #1769e0 !important;
+  box-shadow: none !important;
 }
 
 .app-shell[data-route="dashboard"] .dnh-story:hover {
-  background: #f3f7ff !important;
+  background: #f7f8fa !important;
 }
 
-/* Quick actions: Google tonal containers. */
+/* Quick actions: restrained editorial utility tiles. */
 .app-shell[data-route="dashboard"] .gd-quick-surface .gd-surface-header {
-  border-bottom-color: #c8dcf7 !important;
-  background: linear-gradient(90deg, #dff0ff 0%, #eff8ff 58%, #fff 100%) !important;
+  border-bottom-color: #dfe4ea !important;
+  background: #fff !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-quick-action {
-  border-color: #c8d7e8 !important;
+  border-color: #d9e0e8 !important;
+  border-radius: 12px !important;
   background: #fff !important;
-  color: #263747 !important;
-  box-shadow: 0 1px 3px rgba(32,64,110,.05) !important;
+  color: #263247 !important;
+  box-shadow: none !important;
 }
 
 .app-shell[data-route="dashboard"] .gd-quick-action:hover {
-  border-color: #8ab4f8 !important;
-  background: #eef4ff !important;
-  color: #0b57d0 !important;
+  border-color: #b9c7d8 !important;
+  background: #f8fafc !important;
+  color: #1769e0 !important;
 }
 
-.app-shell[data-route="dashboard"] .gd-quick-action:nth-child(1) > span { background:#c2e7ff !important; color:#0b57d0 !important; }
-.app-shell[data-route="dashboard"] .gd-quick-action:nth-child(2) > span { background:#c4eed0 !important; color:#137333 !important; }
-.app-shell[data-route="dashboard"] .gd-quick-action:nth-child(3) > span { background:#ffefc3 !important; color:#8a5300 !important; }
-.app-shell[data-route="dashboard"] .gd-quick-action:nth-child(4) > span { background:#eadcff !important; color:#7627bb !important; }
-.app-shell[data-route="dashboard"] .gd-quick-action:nth-child(5) > span { background:#f9dedc !important; color:#b3261e !important; }
-.app-shell[data-route="dashboard"] .gd-quick-action:nth-child(6) > span { background:#d3e3fd !important; color:#0842a0 !important; }
+.app-shell[data-route="dashboard"] .gd-quick-action:nth-child(1) > span { background:#edf4ff !important; color:#1769e0 !important; }
+.app-shell[data-route="dashboard"] .gd-quick-action:nth-child(2) > span { background:#eef6f1 !important; color:#24734a !important; }
+.app-shell[data-route="dashboard"] .gd-quick-action:nth-child(3) > span { background:#fbf2dd !important; color:#9a6716 !important; }
+.app-shell[data-route="dashboard"] .gd-quick-action:nth-child(4) > span { background:#f0ecf8 !important; color:#6f53a8 !important; }
+.app-shell[data-route="dashboard"] .gd-quick-action:nth-child(5) > span { background:#f8e8e6 !important; color:#b6403a !important; }
+.app-shell[data-route="dashboard"] .gd-quick-action:nth-child(6) > span { background:#edf4ff !important; color:#1769e0 !important; }
