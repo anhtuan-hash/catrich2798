@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { hasRouteAccess } from '../utils/permissions.js';
 import { launchRoute } from '../utils/navigation.js';
-import './GlobalDashboardNavigationTab.css';
 
 export default function GlobalDashboardNavigationTab({
   currentUser,
