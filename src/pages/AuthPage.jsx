@@ -1,26 +1,111 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { consumeAuthNotice, isAuthConfigured, loginOfflineDemo, loginUser, loginWithGoogle, registerTeacher, requestPasswordReset, updatePassword } from '../utils/auth.js';
+import {
+  consumeAuthNotice,
+  isAuthConfigured,
+  loginOfflineDemo,
+  loginUser,
+  loginWithGoogle,
+  registerTeacher,
+  requestPasswordReset,
+  updatePassword,
+} from '../utils/auth.js';
 import './AuthPageGoogle.css';
 
 function FeatureIcon({ type }) {
   if (type === 'shield') {
-    return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5.5 5.7v5.7c0 4.3 2.7 7.7 6.5 9.6 3.8-1.9 6.5-5.3 6.5-9.6V5.7L12 3Zm0 3.1 3.8 1.6v3.7c0 2.8-1.5 5.2-3.8 6.7-2.3-1.5-3.8-3.9-3.8-6.7V7.7L12 6.1Zm-1 8.2-1.8-1.8-1.4 1.4 3.2 3.2 5.4-5.4-1.4-1.4-4 4Z" /></svg>;
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 3 5.5 5.7v5.7c0 4.3 2.7 7.7 6.5 9.6 3.8-1.9 6.5-5.3 6.5-9.6V5.7L12 3Zm0 3.1 3.8 1.6v3.7c0 2.8-1.5 5.2-3.8 6.7-2.3-1.5-3.8-3.9-3.8-6.7V7.7L12 6.1Zm-1 8.2-1.8-1.8-1.4 1.4 3.2 3.2 5.4-5.4-1.4-1.4-4 4Z" />
+      </svg>
+    );
   }
+
   if (type === 'apps') {
-    return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 0h7v7h-7v-7Z" /></svg>;
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 0h7v7h-7v-7Z" />
+      </svg>
+    );
   }
-  return <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17.7 6.3A8 8 0 0 0 4.3 9H2l3.5 3.5L9 9H6.4a5.5 5.5 0 0 1 9.5-1L17.7 6.3ZM18.5 11.5 15 15h2.6a5.5 5.5 0 0 1-9.5 1l-1.8 1.7A8 8 0 0 0 19.7 15H22l-3.5-3.5Z" /></svg>;
+
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M17.7 6.3A8 8 0 0 0 4.3 9H2l3.5 3.5L9 9H6.4a5.5 5.5 0 0 1 9.5-1L17.7 6.3ZM18.5 11.5 15 15h2.6a5.5 5.5 0 0 1-9.5 1l-1.8 1.7A8 8 0 0 0 19.7 15H22l-3.5-3.5Z" />
+    </svg>
+  );
+}
+
+function EditorialStillLife() {
+  return (
+    <svg
+      className="auth-editorial-still-life"
+      viewBox="0 0 720 330"
+      role="img"
+      aria-label=""
+      focusable="false"
+    >
+      <defs>
+        <linearGradient id="auth-disc" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#2a6e9b" />
+          <stop offset="1" stopColor="#124d77" />
+        </linearGradient>
+        <linearGradient id="auth-vase" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#f5efe3" />
+          <stop offset="1" stopColor="#d9cbb8" />
+        </linearGradient>
+        <filter id="auth-shadow" x="-20%" y="-20%" width="140%" height="160%">
+          <feDropShadow dx="0" dy="10" stdDeviation="10" floodColor="#342b22" floodOpacity=".16" />
+        </filter>
+      </defs>
+
+      <circle cx="210" cy="172" r="118" fill="url(#auth-disc)" opacity=".92" />
+      <path d="M322 252V132c0-49 40-89 89-89s89 40 89 89v120" fill="none" stroke="#c7a66a" strokeWidth="1.5" opacity=".7" />
+      <path d="M322 252V151c0-40 33-73 73-73s73 33 73 73v101" fill="none" stroke="#d8c8a8" strokeWidth="1" opacity=".72" />
+
+      <g opacity=".76" fill="#0b5b92">
+        <circle cx="555" cy="104" r="2" /><circle cx="577" cy="104" r="2" /><circle cx="599" cy="104" r="2" /><circle cx="621" cy="104" r="2" />
+        <circle cx="555" cy="126" r="2" /><circle cx="577" cy="126" r="2" /><circle cx="599" cy="126" r="2" /><circle cx="621" cy="126" r="2" />
+        <circle cx="555" cy="148" r="2" /><circle cx="577" cy="148" r="2" /><circle cx="599" cy="148" r="2" /><circle cx="621" cy="148" r="2" />
+        <circle cx="555" cy="170" r="2" /><circle cx="577" cy="170" r="2" /><circle cx="599" cy="170" r="2" /><circle cx="621" cy="170" r="2" />
+      </g>
+
+      <g filter="url(#auth-shadow)">
+        <rect x="62" y="257" width="238" height="34" rx="4" fill="#153f5f" />
+        <rect x="78" y="226" width="252" height="34" rx="4" fill="#e9ddc9" />
+        <rect x="91" y="223" width="221" height="4" rx="2" fill="#fbf7ee" />
+      </g>
+
+      <g filter="url(#auth-shadow)">
+        <path d="M114 223c0-24 7-43 19-56 7-8 12-19 12-31v-12h48v12c0 12 5 23 12 31 12 13 19 32 19 56 0 22-25 34-55 34s-55-12-55-34Z" fill="url(#auth-vase)" />
+        <ellipse cx="169" cy="124" rx="24" ry="7" fill="#c9b9a4" />
+        <ellipse cx="169" cy="123" rx="20" ry="4" fill="#e8ded0" />
+      </g>
+
+      <g fill="none" stroke="#8c7655" strokeLinecap="round">
+        <path d="M168 124c-2-27-11-51-30-73" strokeWidth="2" />
+        <path d="M171 124c7-34 22-58 39-82" strokeWidth="1.8" />
+        <path d="M166 123c-13-37-29-56-46-71" strokeWidth="1.5" />
+        <path d="M173 124c15-27 31-43 50-55" strokeWidth="1.5" />
+      </g>
+
+      <g fill="#b29465" opacity=".9">
+        <circle cx="136" cy="50" r="4" /><circle cx="128" cy="60" r="3" /><circle cx="144" cy="64" r="3" />
+        <circle cx="211" cy="40" r="4" /><circle cx="203" cy="52" r="3" /><circle cx="218" cy="55" r="3" />
+        <circle cx="119" cy="52" r="3" /><circle cx="223" cy="68" r="3" /><circle cx="230" cy="62" r="2.5" />
+      </g>
+    </svg>
+  );
 }
 
 function AuthVisualPanel({ language, title, recoveryMode, isRegister, configured }) {
   const features = language === 'vi'
     ? [
-      ['shield', 'Đăng nhập an toàn', configured ? 'Xác thực qua Supabase Auth.' : 'Chế độ demo dành cho kiểm thử giao diện.'],
+      ['shield', 'Đăng nhập an toàn', configured ? 'Xác thực qua Supabase Auth và phân quyền theo tài khoản.' : 'Chế độ demo dành cho kiểm thử giao diện.'],
       ['apps', 'Truy cập đúng quyền', 'Ứng dụng, trò chơi và học liệu hiển thị theo tài khoản.'],
       ['sync', 'Làm việc liền mạch', 'Nhiệm vụ và nội dung được đồng bộ trong hệ thống.'],
     ]
     : [
-      ['shield', 'Secure sign-in', configured ? 'Authentication powered by Supabase Auth.' : 'Demo mode for interface testing.'],
+      ['shield', 'Secure sign-in', configured ? 'Authentication powered by Supabase Auth with role-based access.' : 'Demo mode for interface testing.'],
       ['apps', 'Role-based access', 'Apps, games, and resources follow account permissions.'],
       ['sync', 'Connected workflow', 'Tasks and content stay connected across the system.'],
     ];
@@ -34,7 +119,10 @@ function AuthVisualPanel({ language, title, recoveryMode, isRegister, configured
         : (language === 'vi' ? 'Supabase chưa được cấu hình. Bạn vẫn có thể mở tài khoản demo để kiểm tra giao diện.' : 'Supabase is not configured. Demo accounts remain available for interface testing.');
 
   return (
-    <section className="auth-google-visual" aria-label={language === 'vi' ? 'Giới thiệu trang đăng nhập English Hub' : 'English Hub sign-in overview'}>
+    <section
+      className="auth-google-visual"
+      aria-label={language === 'vi' ? 'Giới thiệu trang đăng nhập English Hub' : 'English Hub sign-in overview'}
+    >
       <div className="auth-google-brand-row">
         <img src="/brian-english-brand-mark.png" alt="" aria-hidden="true" />
         <span>English Hub</span>
@@ -42,35 +130,26 @@ function AuthVisualPanel({ language, title, recoveryMode, isRegister, configured
 
       <div className="auth-google-copy">
         <span className="auth-google-kicker">{language === 'vi' ? 'Không gian giáo viên' : 'Teacher workspace'}</span>
+        <span className="auth-editorial-rule auth-editorial-rule-top" aria-hidden="true" />
         <h1>{title}</h1>
+        <span className="auth-editorial-rule auth-editorial-rule-bottom" aria-hidden="true" />
         <p>{description}</p>
       </div>
 
       <div className="auth-google-visual-art" aria-hidden="true">
-        <div className="auth-google-orbit auth-google-orbit-a" />
-        <div className="auth-google-orbit auth-google-orbit-b" />
-        <div className="auth-google-art-card auth-google-art-card-main">
-          <span className="auth-google-art-logo"><img src="/brian-english-brand-mark.png" alt="" /></span>
-          <div><b>English Hub</b><small>{language === 'vi' ? 'Không gian dạy học số' : 'Digital teaching workspace'}</small></div>
-        </div>
-        <div className="auth-google-art-card auth-google-art-card-small is-blue"><b>Apps</b><span>▦</span></div>
-        <div className="auth-google-art-card auth-google-art-card-small is-green"><b>Auth</b><span>✓</span></div>
-        <div className="auth-google-art-card auth-google-art-card-small is-yellow"><b>Sync</b><span>↻</span></div>
+        <EditorialStillLife />
       </div>
 
       <div className="auth-google-feature-list">
         {features.map(([type, heading, text]) => (
           <article key={heading}>
             <span className={`auth-google-feature-icon is-${type}`}><FeatureIcon type={type} /></span>
-            <div><strong>{heading}</strong><small>{text}</small></div>
+            <div>
+              <strong>{heading}</strong>
+              <small>{text}</small>
+            </div>
           </article>
         ))}
-      </div>
-
-      <div className="auth-google-assurance-row" aria-label={language === 'vi' ? 'Các phương thức và tính năng xác thực' : 'Authentication methods and capabilities'}>
-        <span>Supabase Auth</span>
-        <span>Google Sign-In</span>
-        <span>{language === 'vi' ? 'Phân quyền tài khoản' : 'Role-based access'}</span>
       </div>
     </section>
   );
@@ -84,7 +163,9 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
   const [okMsg, setOkMsg] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [recoveryMode, setRecoveryMode] = useState(() => window.location.href.includes('recovery=1') || window.location.href.includes('type=recovery'));
+  const [recoveryMode, setRecoveryMode] = useState(
+    () => window.location.href.includes('recovery=1') || window.location.href.includes('type=recovery'),
+  );
 
   useEffect(() => {
     const detectRecovery = () => {
@@ -109,8 +190,8 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
     return language === 'vi' ? 'Đăng nhập giáo viên' : 'Teacher sign in';
   }, [isRegister, language, recoveryMode]);
 
-  const submit = async (e) => {
-    e.preventDefault();
+  const submit = async (event) => {
+    event.preventDefault();
     setMsg('');
     setOkMsg('');
 
@@ -134,16 +215,19 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
         setMsg(language === 'vi' ? 'Mật khẩu xác nhận không khớp.' : 'Passwords do not match.');
         return;
       }
+
       setGlobalLoading?.(true, language === 'vi' ? 'Đang cập nhật mật khẩu...' : 'Updating password...');
       const res = await updatePassword(form.password);
       setGlobalLoading?.(false);
+
       if (!res.ok) {
         setMsg(language === 'vi' ? translateLoginError(res.message) : res.message);
         return;
       }
+
       setOkMsg(language === 'vi' ? 'Đã cập nhật mật khẩu. Thầy/cô có thể đăng nhập lại.' : 'Password updated. You can sign in again.');
       setRecoveryMode(false);
-      setForm((prev) => ({ ...prev, password: '', confirm: '' }));
+      setForm((previous) => ({ ...previous, password: '', confirm: '' }));
       window.location.hash = '#/login';
       return;
     }
@@ -161,9 +245,11 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
         setMsg(language === 'vi' ? 'Mật khẩu xác nhận không khớp.' : 'Passwords do not match.');
         return;
       }
+
       setGlobalLoading?.(true, language === 'vi' ? 'Đang tạo tài khoản...' : 'Creating account...');
       const res = await registerTeacher(form);
       setGlobalLoading?.(false);
+
       if (!res.ok) {
         setMsg(res.message || (language === 'vi' ? 'Không thể tạo tài khoản.' : 'Could not create account.'));
         return;
@@ -192,40 +278,49 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
     setGlobalLoading?.(true, language === 'vi' ? 'Đang đăng nhập...' : 'Signing in...');
     const res = await loginUser(form);
     setGlobalLoading?.(false);
+
     if (!res.ok) {
       setMsg(language === 'vi' ? translateLoginError(res.message) : res.message);
       return;
     }
+
     onLogin?.(res.user);
   };
 
   const resetPassword = async () => {
     setMsg('');
     setOkMsg('');
+
     if (!form.email) {
       setMsg(language === 'vi' ? 'Nhập email trước khi yêu cầu đặt lại mật khẩu.' : 'Enter your email before requesting a password reset.');
       return;
     }
+
     setGlobalLoading?.(true, language === 'vi' ? 'Đang gửi email đặt lại mật khẩu...' : 'Sending password reset email...');
     const res = await requestPasswordReset(form.email);
     setGlobalLoading?.(false);
+
     if (!res.ok) {
       setMsg(res.message || (language === 'vi' ? 'Không thể gửi email đặt lại mật khẩu.' : 'Could not send reset email.'));
       return;
     }
+
     setOkMsg(language === 'vi' ? 'Đã gửi email đặt lại mật khẩu nếu tài khoản tồn tại.' : 'Password reset email sent if the account exists.');
   };
 
   const signInGoogle = async () => {
     setMsg('');
     setOkMsg('');
+
     if (!configured) {
       setMsg(language === 'vi' ? 'Cần cấu hình Supabase trước khi đăng nhập bằng Google.' : 'Configure Supabase before using Google sign-in.');
       return;
     }
+
     setGoogleLoading(true);
     setGlobalLoading?.(true, language === 'vi' ? 'Đang chuyển đến Google...' : 'Redirecting to Google...');
     const res = await loginWithGoogle();
+
     if (!res.ok) {
       setGoogleLoading(false);
       setGlobalLoading?.(false);
@@ -237,10 +332,12 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
     setMsg('');
     setOkMsg('');
     const res = await loginOfflineDemo(role);
+
     if (!res.ok) {
       setMsg(res.message || (language === 'vi' ? 'Không mở được demo.' : 'Could not open demo.'));
       return;
     }
+
     onLogin?.(res.user);
   };
 
@@ -258,11 +355,19 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
         <form className="auth-google-form" onSubmit={submit}>
           <header className="auth-google-form-header">
             <span className="auth-google-form-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M17 8h-1V6a4 4 0 1 0-8 0v2H7a2 2 0 0 0-2 2v9h14v-9a2 2 0 0 0-2-2Zm-7-2a2 2 0 1 1 4 0v2h-4V6Zm7 11H7v-7h10v7Z" /></svg>
+              <svg viewBox="0 0 24 24">
+                <path d="M17 8h-1V6a4 4 0 1 0-8 0v2H7a2 2 0 0 0-2 2v9h14v-9a2 2 0 0 0-2-2Zm-7-2a2 2 0 1 1 4 0v2h-4V6Zm7 11H7v-7h10v7Z" />
+              </svg>
             </span>
             <div>
               <span className="auth-google-form-kicker">English Hub</span>
-              <h2>{recoveryMode ? (language === 'vi' ? 'Đặt lại mật khẩu' : 'Reset password') : isRegister ? (language === 'vi' ? 'Tạo tài khoản' : 'Create account') : (language === 'vi' ? 'Đăng nhập' : 'Sign in')}</h2>
+              <h2>
+                {recoveryMode
+                  ? (language === 'vi' ? 'Đặt lại mật khẩu' : 'Reset password')
+                  : isRegister
+                    ? (language === 'vi' ? 'Tạo tài khoản' : 'Create account')
+                    : (language === 'vi' ? 'Đăng nhập' : 'Sign in')}
+              </h2>
               <p>{language === 'vi' ? 'Tiếp tục vào không gian làm việc của bạn.' : 'Continue to your teaching workspace.'}</p>
             </div>
           </header>
@@ -279,11 +384,28 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
               <>
                 <label className="auth-google-field">
                   <span>{language === 'vi' ? 'Họ và tên' : 'Full name'}</span>
-                  <div><i aria-hidden="true">A</i><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="name" placeholder={language === 'vi' ? 'Nhập họ và tên' : 'Enter full name'} /></div>
+                  <div>
+                    <i aria-hidden="true">A</i>
+                    <input
+                      value={form.name}
+                      onChange={(event) => setForm({ ...form, name: event.target.value })}
+                      autoComplete="name"
+                      placeholder={language === 'vi' ? 'Nhập họ và tên' : 'Enter full name'}
+                    />
+                  </div>
                 </label>
+
                 <label className="auth-google-field">
                   <span>{language === 'vi' ? 'Trường / Trung tâm' : 'School / Center'}</span>
-                  <div><i aria-hidden="true">S</i><input value={form.school} onChange={(e) => setForm({ ...form, school: e.target.value })} autoComplete="organization" placeholder={language === 'vi' ? 'Nhập trường hoặc trung tâm' : 'Enter school or center'} /></div>
+                  <div>
+                    <i aria-hidden="true">S</i>
+                    <input
+                      value={form.school}
+                      onChange={(event) => setForm({ ...form, school: event.target.value })}
+                      autoComplete="organization"
+                      placeholder={language === 'vi' ? 'Nhập trường hoặc trung tâm' : 'Enter school or center'}
+                    />
+                  </div>
                 </label>
               </>
             )}
@@ -291,22 +413,61 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
             {!recoveryMode && (
               <label className="auth-google-field">
                 <span>Email</span>
-                <div><i aria-hidden="true">@</i><input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} autoComplete="email" placeholder={language === 'vi' ? 'ten@truong.edu.vn' : 'name@school.edu'} /></div>
+                <div>
+                  <i aria-hidden="true">@</i>
+                  <input
+                    type="email"
+                    value={form.email}
+                    onChange={(event) => setForm({ ...form, email: event.target.value })}
+                    autoComplete="email"
+                    placeholder={language === 'vi' ? 'ten@truong.edu.vn' : 'name@school.edu'}
+                  />
+                </div>
               </label>
             )}
 
             <label className="auth-google-field">
               <span className="auth-google-label-row">
                 <b>{recoveryMode ? (language === 'vi' ? 'Mật khẩu mới' : 'New password') : (language === 'vi' ? 'Mật khẩu' : 'Password')}</b>
-                {!isRegister && !recoveryMode && configured && <button type="button" onClick={resetPassword}>{language === 'vi' ? 'Quên mật khẩu?' : 'Forgot password?'}</button>}
+                {!isRegister && !recoveryMode && configured && (
+                  <button type="button" onClick={resetPassword}>{language === 'vi' ? 'Quên mật khẩu?' : 'Forgot password?'}</button>
+                )}
               </span>
-              <div><i aria-hidden="true">•</i><input type={showPassword ? 'text' : 'password'} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} autoComplete={isRegister || recoveryMode ? 'new-password' : 'current-password'} placeholder={language === 'vi' ? 'Nhập mật khẩu' : 'Enter password'} /><button type="button" className="auth-google-password-toggle" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? (language === 'vi' ? 'Ẩn mật khẩu' : 'Hide password') : (language === 'vi' ? 'Hiện mật khẩu' : 'Show password')}>{showPassword ? 'Ẩn' : 'Hiện'}</button></div>
+              <div>
+                <i aria-hidden="true">•</i>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={form.password}
+                  onChange={(event) => setForm({ ...form, password: event.target.value })}
+                  autoComplete={isRegister || recoveryMode ? 'new-password' : 'current-password'}
+                  placeholder={language === 'vi' ? 'Nhập mật khẩu' : 'Enter password'}
+                />
+                <button
+                  type="button"
+                  className="auth-google-password-toggle"
+                  onClick={() => setShowPassword((value) => !value)}
+                  aria-label={showPassword
+                    ? (language === 'vi' ? 'Ẩn mật khẩu' : 'Hide password')
+                    : (language === 'vi' ? 'Hiện mật khẩu' : 'Show password')}
+                >
+                  {showPassword ? (language === 'vi' ? 'Ẩn' : 'Hide') : (language === 'vi' ? 'Hiện' : 'Show')}
+                </button>
+              </div>
             </label>
 
             {(isRegister || recoveryMode) && (
               <label className="auth-google-field">
                 <span>{language === 'vi' ? 'Xác nhận mật khẩu' : 'Confirm password'}</span>
-                <div><i aria-hidden="true">✓</i><input type="password" value={form.confirm} onChange={(e) => setForm({ ...form, confirm: e.target.value })} autoComplete="new-password" placeholder={language === 'vi' ? 'Nhập lại mật khẩu' : 'Confirm password'} /></div>
+                <div>
+                  <i aria-hidden="true">✓</i>
+                  <input
+                    type="password"
+                    value={form.confirm}
+                    onChange={(event) => setForm({ ...form, confirm: event.target.value })}
+                    autoComplete="new-password"
+                    placeholder={language === 'vi' ? 'Nhập lại mật khẩu' : 'Confirm password'}
+                  />
+                </div>
               </label>
             )}
           </div>
@@ -315,22 +476,46 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
           {okMsg ? <div className="auth-message success-message auth-google-message is-success">{okMsg}</div> : null}
 
           <button className="auth-google-submit" type="submit">
-            {recoveryMode ? (language === 'vi' ? 'Cập nhật mật khẩu' : 'Update password') : isRegister ? (language === 'vi' ? 'Tạo tài khoản' : 'Create account') : (language === 'vi' ? 'Đăng nhập' : 'Sign in')}
+            {recoveryMode
+              ? (language === 'vi' ? 'Cập nhật mật khẩu' : 'Update password')
+              : isRegister
+                ? (language === 'vi' ? 'Tạo tài khoản' : 'Create account')
+                : (language === 'vi' ? 'Đăng nhập' : 'Sign in')}
             <span aria-hidden="true">→</span>
           </button>
 
           {!recoveryMode && configured ? (
             <>
               <div className="auth-google-divider"><span>{language === 'vi' ? 'hoặc' : 'or'}</span></div>
-              <button type="button" className="auth-google-google-button" disabled={googleLoading} onClick={signInGoogle}>
+              <button
+                type="button"
+                className="auth-google-google-button"
+                disabled={googleLoading}
+                onClick={signInGoogle}
+              >
                 <span className="auth-google-google-mark" aria-hidden="true">G</span>
-                <span>{googleLoading ? (language === 'vi' ? 'Đang mở Google...' : 'Opening Google...') : (language === 'vi' ? 'Tiếp tục với Google' : 'Continue with Google')}</span>
+                <span>
+                  {googleLoading
+                    ? (language === 'vi' ? 'Đang mở Google...' : 'Opening Google...')
+                    : (language === 'vi' ? 'Tiếp tục với Google' : 'Continue with Google')}
+                </span>
               </button>
-              <small className="auth-google-google-note">{language === 'vi' ? 'Tài khoản mới cần được quản trị viên phê duyệt trước khi sử dụng.' : 'New accounts require administrator approval before first use.'}</small>
+              <small className="auth-google-google-note">
+                {language === 'vi'
+                  ? 'Tài khoản mới cần được quản trị viên phê duyệt trước khi sử dụng.'
+                  : 'New accounts require administrator approval before first use.'}
+              </small>
             </>
           ) : null}
 
-          <button type="button" className="auth-google-secondary" onClick={() => { setRecoveryMode(false); window.location.hash = isRegister || recoveryMode ? '#/login' : '#/register'; }}>
+          <button
+            type="button"
+            className="auth-google-secondary"
+            onClick={() => {
+              setRecoveryMode(false);
+              window.location.hash = isRegister || recoveryMode ? '#/login' : '#/register';
+            }}
+          >
             {recoveryMode
               ? (language === 'vi' ? 'Quay lại đăng nhập' : 'Back to sign in')
               : isRegister
@@ -347,9 +532,15 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
 
           <div className="auth-google-security-note">
             <FeatureIcon type="shield" />
-            <small>{configured
-              ? (language === 'vi' ? 'Xác thực qua Supabase Auth và phân quyền theo tài khoản.' : 'Authentication through Supabase Auth with role-based access.')
-              : (language === 'vi' ? 'Demo chỉ dùng để kiểm tra giao diện và quy trình.' : 'Demo mode is for interface and workflow testing only.')}</small>
+            <small>
+              {configured
+                ? (language === 'vi'
+                  ? 'Xác thực qua Supabase Auth và phân quyền theo tài khoản.'
+                  : 'Authentication through Supabase Auth with role-based access.')
+                : (language === 'vi'
+                  ? 'Demo chỉ dùng để kiểm tra giao diện và quy trình.'
+                  : 'Demo mode is for interface and workflow testing only.')}
+            </small>
           </div>
         </form>
       </section>
