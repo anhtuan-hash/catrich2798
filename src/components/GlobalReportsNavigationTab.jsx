@@ -6,7 +6,6 @@ import { launchRoute } from '../utils/navigation.js';
 import { loadTeamWorkspace } from '../utils/personnelHub.js';
 import { currentReportMonth, loadMonthlyReportContexts } from '../utils/monthlyReports.js';
 import { deadlineState, loadMonthlyReportDeadline } from '../utils/monthlyReportAdmin.js';
-import './GlobalReportsNavigationTab.css';
 
 function compactCountdown(state, language) {
   if (!state.active) return '—';
