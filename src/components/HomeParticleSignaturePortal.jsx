@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import CatRichParticleLogo from './CatRichParticleLogo.jsx';
+import FishParticleLogo from './FishParticleLogo.jsx';
 
 export default function HomeParticleSignaturePortal({ currentUser }) {
   const [navTarget, setNavTarget] = useState(null);
@@ -30,14 +30,12 @@ export default function HomeParticleSignaturePortal({ currentUser }) {
   if (!currentUser || !navTarget) return null;
 
   return createPortal(
-    <CatRichParticleLogo
-      className="catrich-particle-logo--nav"
-      variant="nav"
-      text="catrich.mauxanh"
-      interactionRadius={32}
-      magneticStrength={0.52}
-      spring={0.12}
-      damping={0.82}
+    <FishParticleLogo
+      className="fish-particle-logo--nav"
+      interactionRadius={40}
+      magneticStrength={1.42}
+      spring={0.118}
+      damping={0.78}
     />,
     navTarget,
   );
