@@ -221,7 +221,9 @@ export default function MonthlyReportsInteractiveHero() {
           <div className="mr-material-hero__eyebrow"><Sparkles /> BRIAN REPORTS</div>
           <h1>
             Báo cáo công việc tháng
-            {reportMonthNumber && <span className="mr-material-hero__month-ink"> {reportMonthNumber}</span>}
+            {reportMonthNumber && (
+              <span className="mr-material-hero__month-ink" style={{ color: 'var(--hero-orange)' }}> {reportMonthNumber}</span>
+            )}
           </h1>
           <p>Tổng hợp, theo dõi và đánh giá toàn bộ hoạt động giảng dạy và công việc của bạn theo từng tháng.</p>
           <span className="mr-material-hero__rule" aria-hidden="true" />
