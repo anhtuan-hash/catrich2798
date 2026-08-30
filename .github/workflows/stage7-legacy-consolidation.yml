@@ -1,0 +1,29 @@
+name: Stage 7 Legacy Consolidation
+
+on:
+  pull_request:
+    paths:
+      - 'src/main.jsx'
+      - 'src/styles/v*.css'
+      - 'src/pages/CloudOperations.jsx'
+      - 'src/components/GlobalEditorialAuthorityRuntime.jsx'
+      - 'scripts/audit-stage7-legacy-consolidation.mjs'
+      - '.github/workflows/stage7-legacy-consolidation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  legacy-consolidation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Audit retired and active legacy CSS contracts
+        run: node scripts/audit-stage7-legacy-consolidation.mjs
