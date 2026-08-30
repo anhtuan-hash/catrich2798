@@ -1,0 +1,258 @@
+/* ========================================================================== 
+   Brian Design System · Stage 5 Workflow Migration
+   TTCM + Homeroom compatibility adapters.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   TTCM workspace
+   -------------------------------------------------------------------------- */
+html body .ttcm-m3-layer {
+  background: rgba(7, 29, 51, .28) !important;
+  backdrop-filter: none !important;
+}
+
+html body .ttcm-m3-shell {
+  border: 1px solid var(--brian-border-default) !important;
+  border-radius: var(--brian-radius-xl) !important;
+  background: var(--brian-surface-canvas) !important;
+  color: var(--brian-ink-primary) !important;
+  box-shadow: var(--brian-shadow-lg) !important;
+}
+
+html body .ttcm-m3-topbar,
+html body .ttcm-m3-toolbar {
+  border-color: var(--brian-border-default) !important;
+  background: var(--brian-surface-primary) !important;
+  color: var(--brian-ink-primary) !important;
+}
+
+html body .ttcm-m3-topbar::before {
+  background: var(--brian-accent) !important;
+}
+
+html body .ttcm-m3-title-icon {
+  border: 1px solid var(--brian-border-subtle) !important;
+  border-radius: var(--brian-radius-md) !important;
+  background: var(--brian-accent-soft) !important;
+  color: var(--brian-accent) !important;
+  box-shadow: none !important;
+}
+
+html body .ttcm-m3-title strong { color: var(--brian-ink-primary) !important; }
+html body .ttcm-m3-title small { color: var(--brian-ink-secondary) !important; }
+
+html body .ttcm-m3-topbar .ttcm-m3-icon-button,
+html body .ttcm-m3-filters button {
+  min-height: var(--brian-touch-target) !important;
+  border: 1px solid var(--brian-border-default) !important;
+  border-radius: var(--brian-radius-md) !important;
+  background: var(--brian-surface-primary) !important;
+  color: var(--brian-ink-secondary) !important;
+  box-shadow: none !important;
+}
+
+html body .ttcm-m3-topbar .ttcm-m3-filled-button {
+  min-height: var(--brian-touch-target) !important;
+  border: 1px solid var(--brian-accent) !important;
+  border-radius: var(--brian-radius-md) !important;
+  background: var(--brian-accent) !important;
+  color: var(--brian-ink-inverse) !important;
+  box-shadow: none !important;
+}
+
+html body .ttcm-m3-workspace-tabs {
+  border: 1px solid var(--brian-border-default) !important;
+  border-radius: var(--brian-radius-md) !important;
+  background: var(--brian-surface-subtle) !important;
+}
+
+html body .ttcm-m3-workspace-tabs button {
+  min-height: 36px !important;
+  border-radius: var(--brian-radius-sm) !important;
+  color: var(--brian-ink-secondary) !important;
+}
+
+html body .ttcm-m3-workspace-tabs button.is-selected,
+html body .ttcm-m3-filters button.is-selected {
+  border-color: var(--brian-border-subtle) !important;
+  background: var(--brian-accent-soft) !important;
+  color: var(--brian-accent-ink) !important;
+  box-shadow: none !important;
+}
+
+html body .ttcm-m3-feed {
+  background: var(--brian-surface-canvas) !important;
+}
+
+html body .ttcm-m3-card {
+  border: 1px solid var(--brian-border-default) !important;
+  border-radius: var(--brian-radius-lg) !important;
+  background: var(--brian-surface-primary) !important;
+  box-shadow: var(--brian-shadow-xs) !important;
+}
+
+html body .ttcm-m3-card.is-unread {
+  border-color: color-mix(in srgb, var(--brian-accent) 24%, var(--brian-border-default)) !important;
+  background: var(--brian-surface-primary) !important;
+  box-shadow: var(--brian-shadow-xs) !important;
+}
+
+html body .ttcm-m3-card::before { background: var(--brian-accent) !important; }
+html body .ttcm-m3-card:has(.ttcm-m3-card-icon.is-feedback)::before { background: var(--brian-warning) !important; }
+html body .ttcm-m3-card:has(.ttcm-m3-card-icon.is-resource)::before { background: var(--brian-success) !important; }
+html body .ttcm-m3-card:has(.ttcm-m3-card-icon.is-task)::before { background: var(--brian-danger) !important; }
+
+html body .ttcm-m3-card-icon {
+  border-radius: var(--brian-radius-md) !important;
+  box-shadow: none !important;
+}
+
+html body .ttcm-m3-card-icon.is-announcement { background: var(--brian-info-soft) !important; color: var(--brian-info) !important; }
+html body .ttcm-m3-card-icon.is-resource { background: var(--brian-success-soft) !important; color: var(--brian-success) !important; }
+html body .ttcm-m3-card-icon.is-feedback { background: var(--brian-warning-soft) !important; color: var(--brian-warning) !important; }
+html body .ttcm-m3-card-icon.is-task { background: var(--brian-danger-soft) !important; color: var(--brian-danger) !important; }
+
+html body .ttcm-m3-shell :is(button, [role='button'], input, textarea, select):focus-visible {
+  outline: 2px solid var(--brian-focus-color) !important;
+  outline-offset: var(--brian-focus-offset) !important;
+  box-shadow: var(--brian-focus-ring) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Homeroom workspace
+   -------------------------------------------------------------------------- */
+.app-shell[data-route='homeroom'] {
+  background: var(--brian-surface-canvas) !important;
+  color: var(--brian-ink-primary) !important;
+}
+
+.app-shell[data-route='homeroom'] .hr-page .hr-material-hero,
+.app-shell[data-route='homeroom'] .hr-page .hr-panel,
+.app-shell[data-route='homeroom'] .hr-page .hr-loading,
+.app-shell[data-route='homeroom'] .hr-page .hr-material-hero__class-panel,
+.app-shell[data-route='homeroom'] .hr-page .hr-material-hero__teacher-card {
+  border: 1px solid var(--brian-border-default) !important;
+  background: var(--brian-surface-primary) !important;
+  color: var(--brian-ink-primary) !important;
+  box-shadow: var(--brian-shadow-xs) !important;
+}
+
+.app-shell[data-route='homeroom'] .hr-page .hr-material-hero {
+  border-radius: var(--brian-radius-xl) !important;
+}
+
+.app-shell[data-route='homeroom'] .hr-page .hr-material-hero__class-panel,
+.app-shell[data-route='homeroom'] .hr-page .hr-material-hero__teacher-card,
+.app-shell[data-route='homeroom'] .hr-page .hr-panel,
+.app-shell[data-route='homeroom'] .hr-page .hr-loading {
+  border-radius: var(--brian-radius-lg) !important;
+}
+
+.app-shell[data-route='homeroom'] .hr-page .hr-material-hero__accent {
+  background: var(--brian-accent) !important;
+}
+
+.app-shell[data-route='homeroom'] .hr-page :is(
+  .hr-material-hero__class-row h1,
+  .hr-panel-head h2,
+  .hr-share-panel h2,
+  .hr-stat strong,
+  .hr-quick-grid button b
+) {
+  color: var(--brian-ink-primary) !important;
+}
+
+.app-shell[data-route='homeroom'] .hr-page :is(
+  .hr-material-hero__teacher-line,
+  .hr-stat small,
+  .hr-stat em,
+  .hr-quick-grid button small
+) {
+  color: var(--brian-ink-secondary) !important;
+}
+
+.app-shell[data-route='homeroom'] .hr-page .hr-tabs-dock > .hr-tabs {
+  border: 1px solid var(--brian-border-default) !important;
+  border-radius: var(--brian-radius-md) !important;
+  background: var(--brian-surface-primary) !important;
+  box-shadow: none !important;
+}
+
+.app-shell[data-route='homeroom'] .hr-page .hr-tabs button {
+  min-height: var(--brian-touch-target) !important;
+  border-radius: var(--brian-radius-sm) !important;
+  color: var(--brian-ink-secondary) !important;
+}
+
+.app-shell[data-route='homeroom'] .hr-page .hr-tabs button:is(.active, .is-active, [aria-selected='true']) {
+  background: var(--brian-accent-soft) !important;
+  color: var(--brian-accent-ink) !important;
+}
+
+.app-shell[data-route='homeroom'] .hr-page :is(input, select, textarea) {
+  border: 1px solid var(--brian-border-default) !important;
+  border-radius: var(--brian-radius-md) !important;
+  background: var(--brian-surface-primary) !important;
+  color: var(--brian-ink-primary) !important;
+  box-shadow: none !important;
+}
+
+.app-shell[data-route='homeroom'] .hr-page :is(input, select, textarea):focus {
+  border-color: var(--brian-accent) !important;
+}
+
+.app-shell[data-route='homeroom'] .hr-page .hr-stat {
+  border: 1px solid var(--brian-border-default) !important;
+  border-radius: var(--brian-radius-lg) !important;
+  background: var(--brian-surface-primary) !important;
+  box-shadow: none !important;
+}
+
+.app-shell[data-route='homeroom'] .hr-page .hr-stat > span,
+.app-shell[data-route='homeroom'] .hr-page .hr-quick-grid button > span,
+.app-shell[data-route='homeroom'] .hr-page .hr-material-hero__detail-icon {
+  border-radius: var(--brian-radius-md) !important;
+  background: var(--brian-accent-soft) !important;
+  color: var(--brian-accent) !important;
+  box-shadow: none !important;
+}
+
+.app-shell[data-route='homeroom'] .hr-page .hr-quick-grid button {
+  min-height: 96px !important;
+  border: 1px solid var(--brian-border-default) !important;
+  border-radius: var(--brian-radius-md) !important;
+  background: var(--brian-surface-primary) !important;
+  color: var(--brian-ink-primary) !important;
+  box-shadow: none !important;
+}
+
+.app-shell[data-route='homeroom'] .hr-page .hr-quick-grid button:hover {
+  border-color: var(--brian-border-strong) !important;
+  background: var(--brian-surface-subtle) !important;
+}
+
+.app-shell[data-route='homeroom'] .hr-page .hr-material-hero__detail,
+.app-shell[data-route='homeroom'] .hr-page .hr-class-type-note {
+  border-color: var(--brian-border-subtle) !important;
+  background: var(--brian-surface-subtle) !important;
+}
+
+.app-shell[data-route='homeroom'] .hr-page :is(button, [role='button'], input, textarea, select):focus-visible {
+  outline: 2px solid var(--brian-focus-color) !important;
+  outline-offset: var(--brian-focus-offset) !important;
+  box-shadow: var(--brian-focus-ring) !important;
+}
+
+@media (max-width: 620px) {
+  html body .ttcm-m3-layer { padding: var(--brian-space-2) !important; }
+  html body .ttcm-m3-shell {
+    width: calc(100vw - 16px) !important;
+    height: calc(100vh - 16px) !important;
+    border-radius: var(--brian-radius-lg) !important;
+  }
+
+  .app-shell[data-route='homeroom'] .hr-page .hr-material-hero,
+  .app-shell[data-route='homeroom'] .hr-page .hr-panel {
+    border-radius: var(--brian-radius-md) !important;
+  }
+}
