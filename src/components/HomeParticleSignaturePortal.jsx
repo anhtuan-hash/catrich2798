@@ -34,10 +34,10 @@ export default function HomeParticleSignaturePortal({ currentUser }) {
       className="catrich-particle-logo--nav"
       variant="nav"
       text="catrich.mauxanh"
-      interactionRadius={36}
-      magneticStrength={0.84}
-      spring={0.082}
-      damping={0.80}
+      interactionRadius={31}
+      magneticStrength={0.72}
+      spring={0.09}
+      damping={0.82}
     />,
     navTarget,
   );
