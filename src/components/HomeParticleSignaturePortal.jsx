@@ -2,13 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import CatRichParticleLogo from './CatRichParticleLogo.jsx';
 
-export default function HomeParticleSignaturePortal() {
-  const [heroTarget, setHeroTarget] = useState(null);
+export default function HomeParticleSignaturePortal({ currentUser }) {
+  const [navTarget, setNavTarget] = useState(null);
 
   useEffect(() => {
+    if (!currentUser) {
+      setNavTarget(null);
+      return undefined;
+    }
+
     const resolveTarget = () => {
-      const nextTarget = document.querySelector('.app-shell[data-route="home"] .bha-hero.hero-cms');
-      setHeroTarget((current) => (current === nextTarget ? current : nextTarget));
+      const nextTarget = document.querySelector('.brian-nav__actions');
+      setNavTarget((current) => (current === nextTarget ? current : nextTarget));
       return Boolean(nextTarget);
     };
 
@@ -20,18 +25,19 @@ export default function HomeParticleSignaturePortal() {
     observer.observe(document.body, { childList: true, subtree: true });
 
     return () => observer.disconnect();
-  }, []);
+  }, [currentUser]);
 
-  if (!heroTarget) return null;
+  if (!currentUser || !navTarget) return null;
 
   return createPortal(
     <CatRichParticleLogo
+      className="catrich-particle-logo--nav"
       text="catrich.mauxanh"
-      interactionRadius={96}
-      magneticStrength={1.6}
-      spring={0.054}
-      damping={0.845}
+      interactionRadius={52}
+      magneticStrength={1.45}
+      spring={0.06}
+      damping={0.84}
     />,
-    heroTarget,
+    navTarget,
   );
 }
