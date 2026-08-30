@@ -41,7 +41,7 @@ Stage 6 therefore adopts a prove-before-delete policy:
 
 - do not remove structural legacy styles until selector/behavior coverage is proven;
 - do not add more global `src/styles/v####.css` imports;
-- current global versioned-CSS baseline in `main.jsx` is capped at 13;
+- current global versioned-CSS baseline in `main.jsx` is capped at 15;
 - new visual work belongs in tokens/components/shared workflow contracts, not another versioned global stylesheet.
 
 ### 4. Retired practice-route contract
