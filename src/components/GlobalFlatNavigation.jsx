@@ -46,6 +46,7 @@ import './GlobalWindowsPhone8Loading.css';
 import './GlobalNotificationCenterFinalRemoval.css';
 import './homeroom/HomeroomCompactDensity.css';
 import '../styles/GlobalLayout16x9Authority.css';
+import '../styles/BrianStage5Migration.css';
 
 export default function GlobalFlatNavigation(props) {
   return (
