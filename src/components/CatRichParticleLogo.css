@@ -1,4 +1,4 @@
-/* Interactive catrich.mauxanh signature — smooth text + local particle field. */
+/* Interactive catrich.mauxanh signature — pure micro-dot gradient. */
 .catrich-particle-logo{
   position:relative;
   pointer-events:auto;
@@ -26,17 +26,17 @@
 }
 
 .catrich-particle-logo--nav{
-  width:clamp(214px,14.5vw,238px);
+  width:clamp(220px,14.8vw,244px);
   height:42px;
   flex:0 0 auto;
   align-self:center;
   overflow:visible;
   opacity:1;
-  filter:saturate(1.04);
+  filter:none;
   font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
 }
 
-/* Keep the signature immediately beside the AI launcher, then the account. */
+/* Keep the particle signature immediately beside the AI launcher, then the account. */
 html body .brian-nav__actions > .catrich-particle-logo--nav{order:2!important}
 html body .brian-nav__actions > .brian-nav__ai-wrap{order:3!important}
 html body .brian-nav__actions > .brian-nav__popover-wrap:not(.brian-nav__ai-wrap){order:4!important}
@@ -44,13 +44,13 @@ html body .brian-nav__actions > .brian-nav__login{order:5!important}
 
 @media(max-width:1360px){
   .catrich-particle-logo--nav{
-    width:198px;
+    width:204px;
   }
 }
 
 @media(max-width:1180px){
   .catrich-particle-logo--nav{
-    width:184px;
+    width:188px;
   }
 }
 
