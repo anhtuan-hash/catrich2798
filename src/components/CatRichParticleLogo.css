@@ -1,4 +1,4 @@
-/* Interactive catrich.mauxanh signature — pure micro-dot gradient. */
+/* Interactive catrich.mauxanh signature — organic contour stipple gradient. */
 .catrich-particle-logo{
   position:relative;
   pointer-events:auto;
@@ -26,14 +26,14 @@
 }
 
 .catrich-particle-logo--nav{
-  width:clamp(220px,14.8vw,244px);
-  height:42px;
+  width:clamp(232px,15.4vw,258px);
+  height:44px;
   flex:0 0 auto;
   align-self:center;
   overflow:visible;
   opacity:1;
-  filter:none;
-  font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
+  filter:saturate(.98);
+  font-family:Inter,"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
 }
 
 /* Keep the particle signature immediately beside the AI launcher, then the account. */
@@ -43,25 +43,17 @@ html body .brian-nav__actions > .brian-nav__popover-wrap:not(.brian-nav__ai-wrap
 html body .brian-nav__actions > .brian-nav__login{order:5!important}
 
 @media(max-width:1360px){
-  .catrich-particle-logo--nav{
-    width:204px;
-  }
+  .catrich-particle-logo--nav{width:214px}
 }
 
 @media(max-width:1180px){
-  .catrich-particle-logo--nav{
-    width:188px;
-  }
+  .catrich-particle-logo--nav{width:196px}
 }
 
 @media(max-width:1080px){
-  .catrich-particle-logo--nav{
-    display:none;
-  }
+  .catrich-particle-logo--nav{display:none}
 }
 
 @media(prefers-reduced-motion:reduce){
-  .catrich-particle-logo--nav{
-    filter:none;
-  }
+  .catrich-particle-logo--nav{filter:none}
 }
