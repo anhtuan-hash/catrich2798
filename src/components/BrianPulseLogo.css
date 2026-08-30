@@ -1,0 +1,125 @@
+.brian-pulse-logo{
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  user-select:none;
+  -webkit-user-select:none;
+  pointer-events:auto;
+}
+
+.brian-pulse-logo__svg{
+  width:100%;
+  height:100%;
+  display:block;
+  overflow:visible;
+}
+
+.brian-pulse-logo__fallback{
+  position:absolute;
+  width:1px;
+  height:1px;
+  overflow:hidden;
+  clip:rect(0 0 0 0);
+  clip-path:inset(50%);
+  white-space:nowrap;
+}
+
+.brian-pulse-logo--nav{
+  width:122px;
+  height:42px;
+  flex:0 0 122px;
+  align-self:center;
+  overflow:visible;
+  opacity:1;
+}
+
+html body .brian-nav__actions > .brian-pulse-logo--nav{order:2!important}
+html body .brian-nav__actions > .brian-nav__ai-wrap{order:3!important}
+html body .brian-nav__actions > .brian-nav__popover-wrap:not(.brian-nav__ai-wrap){order:4!important}
+html body .brian-nav__actions > .brian-nav__login{order:5!important}
+
+.brian-pulse-logo__chip,
+.brian-pulse-logo__glyph,
+.trail-main,
+.trail-soft,
+.trail-fine,
+.trail-dot{
+  transition:
+    transform 300ms cubic-bezier(.18,.82,.2,1),
+    opacity 240ms ease,
+    filter 240ms ease,
+    stroke-width 240ms ease;
+  transform-origin:center;
+  transform-box:fill-box;
+}
+
+.brian-pulse-logo:hover .brian-pulse-logo__chip{
+  transform:translateY(-.35px) scale(1.025);
+}
+
+.brian-pulse-logo:hover .brian-pulse-logo__glyph{
+  transform:scale(1.015);
+}
+
+.brian-pulse-logo:hover .trail-main{
+  transform:translateX(2.5px);
+  stroke-width:3.35;
+}
+
+.brian-pulse-logo:hover .trail-soft{
+  transform:translateX(5px) translateY(-.6px);
+  opacity:.58;
+}
+
+.brian-pulse-logo:hover .trail-fine{
+  transform:translateX(7px) translateY(.5px);
+  opacity:.4;
+}
+
+.brian-pulse-logo .p1{transition-delay:0ms}
+.brian-pulse-logo .p2{transition-delay:16ms}
+.brian-pulse-logo .p3{transition-delay:28ms}
+.brian-pulse-logo .p4{transition-delay:40ms}
+.brian-pulse-logo .p5{transition-delay:52ms}
+.brian-pulse-logo .p6{transition-delay:64ms}
+.brian-pulse-logo .p7{transition-delay:76ms}
+.brian-pulse-logo .p8{transition-delay:88ms}
+
+.brian-pulse-logo:hover .p1{transform:translate(8px,-4px) scale(1.13);opacity:1}
+.brian-pulse-logo:hover .p2{transform:translate(11px,-6px) scale(1.09);opacity:.96}
+.brian-pulse-logo:hover .p3{transform:translate(13px,4px) scale(1.11);opacity:.94}
+.brian-pulse-logo:hover .p4{transform:translate(15px,-2px) scale(1.06);opacity:.9}
+.brian-pulse-logo:hover .p5{transform:translate(17px,5px) scale(1.03);opacity:.86}
+.brian-pulse-logo:hover .p6{transform:translate(19px,-1px) scale(1);opacity:.8}
+.brian-pulse-logo:hover .p7{transform:translate(21px,4px) scale(.97);opacity:.74}
+.brian-pulse-logo:hover .p8{transform:translate(23px,0) scale(.94);opacity:.68}
+
+@media(max-width:1320px){
+  .brian-pulse-logo--nav{
+    width:110px;
+    flex-basis:110px;
+  }
+}
+
+@media(max-width:1180px){
+  .brian-pulse-logo--nav{
+    width:98px;
+    flex-basis:98px;
+  }
+}
+
+@media(max-width:1060px){
+  .brian-pulse-logo--nav{display:none}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .brian-pulse-logo__chip,
+  .brian-pulse-logo__glyph,
+  .trail-main,
+  .trail-soft,
+  .trail-fine,
+  .trail-dot{
+    transition:none;
+  }
+}
