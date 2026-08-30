@@ -39,6 +39,7 @@ export function StudentCard({
   className,
 }) {
   const fallbackInitials = initials || String(name || '?').split(/\s+/).slice(-2).map((part) => part[0]).join('').toUpperCase();
+  const statusVariant = status === 'good' ? 'success' : status === 'attention' ? 'warning' : status === 'risk' ? 'danger' : 'neutral';
   return (
     <article className={cx('bwf-student-card', className)}>
       <div className="bwf-student-card__header">
@@ -49,7 +50,7 @@ export function StudentCard({
           <h3>{name}</h3>
           <p>{[code, studentClass, subtitle].filter(Boolean).join(' · ')}</p>
         </div>
-        {status ? <Badge tone={status === 'good' ? 'success' : status === 'attention' ? 'warning' : status === 'risk' ? 'danger' : 'neutral'}>{statusLabel || status}</Badge> : null}
+        {status ? <Badge variant={statusVariant}>{statusLabel || status}</Badge> : null}
       </div>
       {attendance ? <div className="bwf-student-card__attendance">{typeof attendance === 'string' ? <AttendanceState state={attendance} /> : attendance}</div> : null}
       {metrics.length ? (
@@ -82,6 +83,7 @@ export function ViolationCard({
   className,
 }) {
   const severityText = severityLabel || ({ low: 'Nhẹ', medium: 'Cần lưu ý', high: 'Nghiêm trọng' }[severity] || severity);
+  const severityVariant = severity === 'high' ? 'danger' : severity === 'medium' ? 'warning' : 'neutral';
   return (
     <article className={cx('bwf-violation-card', className)} data-severity={severity}>
       <div className="bwf-violation-card__top">
@@ -90,8 +92,8 @@ export function ViolationCard({
           <h3>{title}</h3>
         </div>
         <div className="bwf-violation-card__badges">
-          <Badge tone={severity === 'high' ? 'danger' : severity === 'medium' ? 'warning' : 'neutral'}>{severityText}</Badge>
-          {status === 'resolved' ? <Badge tone="success">Đã xử lý</Badge> : null}
+          <Badge variant={severityVariant}>{severityText}</Badge>
+          {status === 'resolved' ? <Badge variant="success">Đã xử lý</Badge> : null}
         </div>
       </div>
       <dl className="bwf-violation-card__details">
