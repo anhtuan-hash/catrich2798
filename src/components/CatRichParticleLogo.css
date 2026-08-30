@@ -27,35 +27,32 @@
 }
 
 .catrich-particle-logo--nav{
-  width:clamp(150px,11.5vw,190px);
-  height:44px;
+  width:clamp(188px,13.2vw,214px);
+  height:46px;
   flex:0 0 auto;
   align-self:center;
   overflow:visible;
-  opacity:.92;
-  filter:drop-shadow(0 5px 12px rgba(31,91,156,.09));
+  color:#0b57d0;
+  opacity:1;
+  filter:none;
+  font-family:Arial,Helvetica,ui-sans-serif,system-ui,sans-serif;
 }
 
-.catrich-particle-logo--nav::before{
-  content:"";
-  position:absolute;
-  inset:7px -6px;
-  z-index:-1;
-  border-radius:999px;
-  background:radial-gradient(ellipse at center,rgba(81,151,229,.08),rgba(81,151,229,.025) 48%,transparent 74%);
-  pointer-events:none;
-}
-
-/* Keep the signature immediately to the left of the AI launcher, then the account. */
+/* Keep the signature immediately beside the AI launcher, then the account. */
 html body .brian-nav__actions > .catrich-particle-logo--nav{order:2!important}
 html body .brian-nav__actions > .brian-nav__ai-wrap{order:3!important}
 html body .brian-nav__actions > .brian-nav__popover-wrap:not(.brian-nav__ai-wrap){order:4!important}
 html body .brian-nav__actions > .brian-nav__login{order:5!important}
 
-@media(max-width:1280px){
+@media(max-width:1360px){
   .catrich-particle-logo--nav{
-    width:138px;
-    opacity:.84;
+    width:176px;
+  }
+}
+
+@media(max-width:1180px){
+  .catrich-particle-logo--nav{
+    width:164px;
   }
 }
 
