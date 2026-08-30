@@ -1,7 +1,7 @@
 /* Interactive catrich.mauxanh particle signature — Home Hero only. */
 .catrich-particle-logo{
   position:absolute;
-  z-index:4;
+  z-index:3;
   top:50%;
   right:clamp(34px,6vw,92px);
   width:min(42%,620px);
