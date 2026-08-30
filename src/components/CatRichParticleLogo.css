@@ -1,7 +1,6 @@
-/* Interactive catrich.mauxanh particle signature — global navigation placement. */
+/* Interactive catrich.mauxanh signature — smooth text + local particle field. */
 .catrich-particle-logo{
   position:relative;
-  color:#155da9;
   pointer-events:auto;
   user-select:none;
   -webkit-user-select:none;
@@ -27,14 +26,13 @@
 }
 
 .catrich-particle-logo--nav{
-  width:clamp(204px,14vw,226px);
-  height:44px;
+  width:clamp(214px,14.5vw,238px);
+  height:42px;
   flex:0 0 auto;
   align-self:center;
   overflow:visible;
-  color:#145fba;
-  opacity:.96;
-  filter:none;
+  opacity:1;
+  filter:saturate(1.04);
   font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
 }
 
@@ -46,13 +44,13 @@ html body .brian-nav__actions > .brian-nav__login{order:5!important}
 
 @media(max-width:1360px){
   .catrich-particle-logo--nav{
-    width:188px;
+    width:198px;
   }
 }
 
 @media(max-width:1180px){
   .catrich-particle-logo--nav{
-    width:174px;
+    width:184px;
   }
 }
 
