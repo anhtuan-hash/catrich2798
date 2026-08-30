@@ -1,74 +1,62 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="560" viewBox="0 0 1600 560" fill="none">
   <defs>
     <filter id="paper" x="-10%" y="-10%" width="120%" height="120%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.7" numOctaves="3" seed="17" result="noise"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="3" seed="29" result="noise"/>
       <feColorMatrix in="noise" type="saturate" values="0" result="mono"/>
-      <feComponentTransfer in="mono" result="soft"><feFuncA type="table" tableValues="0 0.055"/></feComponentTransfer>
+      <feComponentTransfer in="mono" result="soft"><feFuncA type="table" tableValues="0 0.045"/></feComponentTransfer>
       <feBlend in="SourceGraphic" in2="soft" mode="multiply"/>
     </filter>
-    <linearGradient id="cream" x1="60" y1="30" x2="1500" y2="530" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FFFDF8"/><stop offset="0.55" stop-color="#FFF9F1"/><stop offset="1" stop-color="#FCE9DC"/>
-    </linearGradient>
-    <linearGradient id="navyBrush" x1="710" y1="360" x2="1260" y2="560" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#17385C"/><stop offset="1" stop-color="#082A4D"/>
-    </linearGradient>
-    <linearGradient id="coral" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#F1B28D"/><stop offset="1" stop-color="#DF744A"/></linearGradient>
-    <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M24 0H0V24" stroke="#8FA9BC" stroke-opacity=".12" stroke-width="1"/></pattern>
-    <pattern id="dots" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="2.2" cy="2.2" r="1.5" fill="#DDA16E" fill-opacity=".42"/></pattern>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="15" stdDeviation="14" flood-color="#3C3024" flood-opacity=".12"/></filter>
+    <linearGradient id="cream" x1="50" y1="20" x2="1540" y2="540" gradientUnits="userSpaceOnUse"><stop stop-color="#FFFCF6"/><stop offset=".58" stop-color="#FFF8EE"/><stop offset="1" stop-color="#F8E7D8"/></linearGradient>
+    <linearGradient id="navy" x1="1160" y1="174" x2="1500" y2="530" gradientUnits="userSpaceOnUse"><stop stop-color="#173B60"/><stop offset="1" stop-color="#082A4D"/></linearGradient>
+    <pattern id="ruled" width="32" height="28" patternUnits="userSpaceOnUse"><path d="M0 27.5H32" stroke="#829AAE" stroke-opacity=".16"/></pattern>
+    <pattern id="dots" width="17" height="17" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.4" fill="#D99663" fill-opacity=".42"/></pattern>
   </defs>
 
   <rect width="1600" height="560" rx="34" fill="url(#cream)" filter="url(#paper)"/>
-  <rect x="18" y="18" width="1564" height="524" rx="28" stroke="#C9BBAE" stroke-opacity=".28"/>
+  <rect x="18" y="18" width="1564" height="524" rx="27" stroke="#BFAF9E" stroke-opacity=".22"/>
 
-  <g opacity=".58" stroke="#DE8A5B" stroke-width="1.3">
-    <circle cx="18" cy="8" r="78"/><circle cx="18" cy="8" r="96"/><circle cx="18" cy="8" r="115"/><circle cx="18" cy="8" r="135"/>
-    <path d="M402 -30C470 62 515 90 603 80C693 70 741 34 790 -30"/>
-    <path d="M1355 555C1402 482 1461 455 1547 465C1580 470 1602 481 1630 504"/>
-    <path d="M1320 570C1384 471 1460 432 1569 448C1608 454 1646 473 1673 495"/>
+  <g opacity=".48" stroke="#E48B5E" stroke-width="1.3">
+    <circle cx="18" cy="4" r="75"/><circle cx="18" cy="4" r="96"/><circle cx="18" cy="4" r="118"/>
+    <path d="M420 -18C500 70 560 92 650 73C721 58 762 24 803 -18"/>
+    <path d="M1348 572C1404 477 1480 440 1590 456"/><path d="M1390 579C1440 496 1501 468 1608 482"/>
   </g>
 
-  <rect x="1120" y="45" width="315" height="138" fill="url(#dots)" opacity=".75"/>
-  <rect x="612" y="42" width="430" height="360" rx="8" fill="url(#grid)" opacity=".72" transform="rotate(1.6 612 42)"/>
-
-  <g opacity=".45" stroke="#C7AD8E" stroke-width="1.2">
-    <path d="M96 484C117 431 142 397 181 363"/>
-    <path d="M119 445C96 422 80 412 58 407"/>
-    <path d="M135 420C157 389 175 373 204 359"/>
-    <path d="M151 397C128 375 111 366 87 362"/>
-    <path d="M167 376C188 350 206 338 234 327"/>
+  <g opacity=".38" stroke="#B59A76" stroke-width="1.2">
+    <path d="M55 488C83 426 113 386 160 350"/><path d="M80 444C59 421 43 412 24 409"/><path d="M105 408C129 380 150 364 180 349"/><path d="M132 377C111 357 94 347 70 345"/><path d="M158 353C181 328 204 315 233 305"/>
   </g>
-  <g fill="#B29C79" fill-opacity=".18">
-    <ellipse cx="76" cy="410" rx="34" ry="11" transform="rotate(32 76 410)"/><ellipse cx="116" cy="370" rx="34" ry="11" transform="rotate(35 116 370)"/>
-    <ellipse cx="161" cy="350" rx="35" ry="11" transform="rotate(-35 161 350)"/><ellipse cx="200" cy="327" rx="33" ry="10" transform="rotate(-31 200 327)"/>
+  <g fill="#B69A74" fill-opacity=".13"><ellipse cx="40" cy="412" rx="38" ry="11" transform="rotate(30 40 412)"/><ellipse cx="88" cy="365" rx="38" ry="11" transform="rotate(32 88 365)"/><ellipse cx="150" cy="334" rx="39" ry="11" transform="rotate(-31 150 334)"/><ellipse cx="205" cy="306" rx="36" ry="10" transform="rotate(-27 205 306)"/></g>
+
+  <!-- layered stationery behind the live report panel -->
+  <g filter="url(#shadow)">
+    <rect x="845" y="58" width="590" height="430" rx="8" fill="#E9D8C4" transform="rotate(-3 845 58)" opacity=".72"/>
+    <rect x="810" y="84" width="594" height="425" rx="7" fill="#F2E6D6" transform="rotate(1.8 810 84)"/>
+    <rect x="780" y="101" width="602" height="411" rx="8" fill="#FFFDF8" stroke="#CDBEAE" stroke-opacity=".46"/>
   </g>
 
-  <g opacity=".76">
-    <path d="M688 520C754 472 810 413 854 339C920 411 1006 452 1113 476C1182 492 1244 501 1319 500L1320 560H666L688 520Z" fill="url(#navyBrush)"/>
-    <path d="M720 526C785 490 834 442 873 386" stroke="#67809A" stroke-opacity=".34" stroke-width="2"/>
-    <path d="M756 542C819 503 874 459 909 408" stroke="#67809A" stroke-opacity=".22" stroke-width="1.4"/>
+  <!-- notebook edge -->
+  <g opacity=".98">
+    <rect x="1230" y="110" width="348" height="448" rx="16" fill="url(#navy)" transform="rotate(4 1230 110)"/>
+    <path d="M1280 157H1517M1280 187H1517M1280 217H1517" stroke="#7290AA" stroke-opacity=".18"/>
+    <rect x="1480" y="142" width="38" height="290" rx="19" fill="#214B70" opacity=".42"/>
   </g>
 
-  <g transform="translate(605 124) rotate(-7 110 160)" opacity=".65">
-    <rect width="210" height="300" rx="3" fill="#E8D7C1"/>
-    <rect x="18" y="15" width="175" height="266" rx="2" fill="#FFFDF8" stroke="#CBBDAE" stroke-opacity=".45"/>
-    <g stroke="#CBB69D" stroke-opacity=".65"><path d="M44 68H167"/><path d="M44 92H167"/><path d="M44 116H167"/><path d="M44 140H167"/><path d="M44 164H167"/><path d="M44 188H167"/><path d="M44 212H167"/></g>
+  <!-- ruled paper peeking out on the left of the panel -->
+  <g transform="translate(694 70) rotate(-5 180 205)" opacity=".84">
+    <rect width="360" height="410" rx="4" fill="#FFFDF8" stroke="#C9B8A5" stroke-opacity=".42"/>
+    <rect x="50" y="58" width="276" height="302" fill="url(#ruled)"/>
+    <path d="M50 58V360" stroke="#E2A38C" stroke-opacity=".44"/>
+    <g fill="#D2C0AA"><circle cx="20" cy="54" r="6"/><circle cx="20" cy="100" r="6"/><circle cx="20" cy="146" r="6"/><circle cx="20" cy="192" r="6"/><circle cx="20" cy="238" r="6"/><circle cx="20" cy="284" r="6"/><circle cx="20" cy="330" r="6"/></g>
   </g>
 
-  <g transform="translate(1310 358) rotate(7)">
-    <rect width="230" height="170" rx="6" fill="#F0D8BA" fill-opacity=".72"/>
-    <path d="M32 47H199M32 72H184M32 97H202M32 122H168" stroke="#C08E62" stroke-opacity=".38" stroke-width="1.5"/>
-  </g>
+  <!-- torn sheet behind metric strip -->
+  <path d="M75 398L745 392L762 418L751 501L702 508L646 502L588 509L531 503L474 509L417 502L356 510L297 503L242 509L181 502L120 510L72 502L63 430Z" fill="#FFF9EF" fill-opacity=".72" stroke="#D8C7B2" stroke-opacity=".28"/>
 
-  <g transform="translate(1472 218) rotate(21)">
-    <rect x="0" y="0" width="23" height="214" rx="11.5" fill="#10283F"/>
-    <rect x="3" y="5" width="17" height="154" rx="8.5" fill="#203D59"/>
-    <path d="M11.5 214L1 171H22L11.5 214Z" fill="#C9A26C"/>
-    <path d="M11.5 214L8 200H15L11.5 214Z" fill="#26221F"/>
-    <rect x="5" y="20" width="3" height="102" rx="1.5" fill="#70859A" fill-opacity=".55"/>
-  </g>
+  <!-- decorative desk items -->
+  <rect x="1210" y="69" width="105" height="27" rx="3" fill="#E9B891" fill-opacity=".68" transform="rotate(7 1210 69)"/>
+  <g transform="translate(1498 250) rotate(18)"><rect width="24" height="228" rx="12" fill="#151E26"/><rect x="4" y="9" width="16" height="150" rx="8" fill="#283C50"/><path d="M12 228L1 178H23L12 228Z" fill="#C59A5D"/><path d="M12 228L8 211H16L12 228Z" fill="#24201C"/><rect x="6" y="20" width="3" height="104" rx="1.5" fill="#8393A2" fill-opacity=".55"/></g>
+  <rect x="1433" y="74" width="96" height="84" fill="url(#dots)" opacity=".65"/>
 
-  <g opacity=".32" stroke="url(#coral)" stroke-width="1.4">
-    <path d="M1460 160C1508 172 1542 208 1550 255"/>
-    <path d="M1447 145C1512 157 1560 204 1570 264"/>
-  </g>
+  <!-- embossed seal -->
+  <g opacity=".2" stroke="#7C644C"><circle cx="1370" cy="490" r="44"/><circle cx="1370" cy="490" r="36"/><path d="M1348 474C1357 463 1386 463 1395 476C1403 489 1396 509 1383 515C1370 522 1354 516 1347 505"/><path d="M1360 468V513M1360 469H1376C1387 469 1392 476 1392 484C1392 492 1386 498 1375 498H1360"/></g>
 </svg>
