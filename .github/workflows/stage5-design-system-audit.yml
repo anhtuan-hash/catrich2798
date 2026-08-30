@@ -1,0 +1,25 @@
+name: Stage 5 Design System Audit
+
+on:
+  pull_request:
+    paths:
+      - 'src/styles/BrianStage5*.css'
+      - 'src/components/GlobalFlatNavigation.jsx'
+      - 'scripts/audit-stage5-design-system.mjs'
+      - '.github/workflows/stage5-design-system-audit.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Audit Stage 5 migration contract
+        run: node scripts/audit-stage5-design-system.mjs
