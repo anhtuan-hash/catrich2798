@@ -1,0 +1,70 @@
+/* Interactive catrich.mauxanh particle signature — Home Hero only. */
+.catrich-particle-logo{
+  position:absolute;
+  z-index:4;
+  top:50%;
+  right:clamp(34px,6vw,92px);
+  width:min(42%,620px);
+  height:clamp(140px,18vw,230px);
+  color:#155da9;
+  transform:translateY(-50%);
+  pointer-events:auto;
+  user-select:none;
+  -webkit-user-select:none;
+  touch-action:none;
+  opacity:.88;
+  filter:drop-shadow(0 16px 28px rgba(31,91,156,.08));
+}
+
+.catrich-particle-logo::before{
+  content:"";
+  position:absolute;
+  inset:8% -7% 4%;
+  z-index:-1;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(81,151,229,.10),rgba(81,151,229,.03) 42%,transparent 72%);
+  pointer-events:none;
+}
+
+.catrich-particle-logo canvas{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  display:block;
+}
+
+.catrich-particle-logo__fallback{
+  position:absolute;
+  width:1px;
+  height:1px;
+  overflow:hidden;
+  clip:rect(0 0 0 0);
+  clip-path:inset(50%);
+  white-space:nowrap;
+}
+
+.hero-cms[data-content-align="center"] .catrich-particle-logo,
+.hero-cms[data-content-align="right"] .catrich-particle-logo{
+  display:none;
+}
+
+@media(max-width:1120px){
+  .catrich-particle-logo{
+    right:24px;
+    width:40%;
+    opacity:.70;
+  }
+}
+
+@media(max-width:900px){
+  .catrich-particle-logo{
+    display:none;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .catrich-particle-logo{
+    filter:none;
+  }
+}
