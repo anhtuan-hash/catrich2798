@@ -1,4 +1,4 @@
-/* Interactive herring mark — compact particle logo for the global navigation. */
+/* Sleek herring particle mark for the global navigation. */
 .fish-particle-logo{
   position:relative;
   pointer-events:auto;
@@ -26,13 +26,13 @@
 }
 
 .fish-particle-logo--nav{
-  width:92px;
-  height:46px;
-  flex:0 0 92px;
+  width:116px;
+  height:42px;
+  flex:0 0 116px;
   align-self:center;
   overflow:visible;
   opacity:1;
-  filter:drop-shadow(0 4px 10px rgba(59,130,246,.08));
+  filter:drop-shadow(0 4px 10px rgba(52,120,229,.07));
 }
 
 /* Fish sits immediately beside the AI launcher, then the account control. */
@@ -43,15 +43,17 @@ html body .brian-nav__actions > .brian-nav__login{order:5!important}
 
 @media(max-width:1280px){
   .fish-particle-logo--nav{
-    width:82px;
-    flex-basis:82px;
+    width:104px;
+    height:40px;
+    flex-basis:104px;
   }
 }
 
 @media(max-width:1120px){
   .fish-particle-logo--nav{
-    width:74px;
-    flex-basis:74px;
+    width:94px;
+    height:38px;
+    flex-basis:94px;
   }
 }
 
