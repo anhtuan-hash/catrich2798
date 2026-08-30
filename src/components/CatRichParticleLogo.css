@@ -27,15 +27,15 @@
 }
 
 .catrich-particle-logo--nav{
-  width:clamp(188px,13.2vw,214px);
-  height:46px;
+  width:clamp(204px,14vw,226px);
+  height:44px;
   flex:0 0 auto;
   align-self:center;
   overflow:visible;
-  color:#0b57d0;
-  opacity:1;
+  color:#145fba;
+  opacity:.96;
   filter:none;
-  font-family:Arial,Helvetica,ui-sans-serif,system-ui,sans-serif;
+  font-family:"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
 }
 
 /* Keep the signature immediately beside the AI launcher, then the account. */
@@ -46,13 +46,13 @@ html body .brian-nav__actions > .brian-nav__login{order:5!important}
 
 @media(max-width:1360px){
   .catrich-particle-logo--nav{
-    width:176px;
+    width:188px;
   }
 }
 
 @media(max-width:1180px){
   .catrich-particle-logo--nav{
-    width:164px;
+    width:174px;
   }
 }
 
