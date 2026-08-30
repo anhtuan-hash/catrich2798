@@ -1,0 +1,358 @@
+/* ========================================================================== 
+   Brian Design System · Stage 5 App Migration
+   Route-scoped compatibility layer for the first migration wave.
+   It maps established Home/Dashboard DOM to Stage 1 semantic tokens without
+   changing business logic, routing, data aggregation or event handlers.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Shared route canvas
+   -------------------------------------------------------------------------- */
+.app-shell:is([data-route='home'], [data-route='dashboard']) {
+  background: var(--brian-surface-canvas) !important;
+  color: var(--brian-ink-primary) !important;
+}
+
+.app-shell:is([data-route='home'], [data-route='dashboard']) main {
+  color: var(--brian-ink-primary);
+}
+
+.app-shell:is([data-route='home'], [data-route='dashboard']) :is(button, a, [role='button']):focus-visible {
+  outline: 2px solid var(--brian-focus-color) !important;
+  outline-offset: var(--brian-focus-offset) !important;
+  box-shadow: var(--brian-focus-ring) !important;
+}
+
+/* --------------------------------------------------------------------------
+   HOME · migrate approved editorial composition onto Brian semantic tokens
+   -------------------------------------------------------------------------- */
+.app-shell[data-route='home'] {
+  --blue-paper: var(--brian-surface-primary) !important;
+  --blue-paper-soft: var(--brian-surface-subtle) !important;
+  --blue-bg: var(--brian-surface-canvas) !important;
+  --blue-bg-2: var(--brian-surface-muted) !important;
+  --blue-ink: var(--brian-ink-primary) !important;
+  --blue-primary: var(--brian-accent) !important;
+  --blue-deep: var(--brian-accent-ink) !important;
+  --blue-muted: var(--brian-ink-secondary) !important;
+  --blue-line: var(--brian-border-default) !important;
+  --blue-line-soft: var(--brian-border-subtle) !important;
+  --blue-shadow: var(--brian-shadow-sm) !important;
+  --home-paper: var(--brian-surface-primary) !important;
+  --home-ivory: var(--brian-surface-canvas) !important;
+  --home-cream: var(--brian-surface-muted) !important;
+  --home-ink: var(--brian-ink-primary) !important;
+  --home-navy: var(--brian-accent-ink) !important;
+  --home-muted: var(--brian-ink-secondary) !important;
+  --home-rule: var(--brian-border-default) !important;
+  --home-rule-soft: var(--brian-border-subtle) !important;
+  --home-copper: var(--brian-accent) !important;
+  --home-copper-soft: var(--brian-accent-soft) !important;
+  --home-shadow: var(--brian-shadow-sm) !important;
+  background: var(--brian-surface-canvas) !important;
+}
+
+.app-shell[data-route='home'] .bha-hero.hero-cms,
+.app-shell[data-route='home'] .bha-practice,
+.app-shell[data-route='home'] .bha-folio-grade {
+  border: 1px solid var(--brian-border-default) !important;
+  background: var(--brian-surface-primary) !important;
+  box-shadow: var(--brian-shadow-xs) !important;
+}
+
+.app-shell[data-route='home'] .bha-hero.hero-cms {
+  border-radius: var(--brian-radius-xl) !important;
+}
+
+.app-shell[data-route='home'] .hero-cms__background {
+  background: var(--brian-surface-subtle) !important;
+}
+
+.app-shell[data-route='home'] .hero-cms__overlay {
+  background: linear-gradient(90deg, var(--brian-surface-primary) 0%, rgba(255,255,255,.96) 40%, rgba(255,255,255,.3) 72%, transparent 100%) !important;
+}
+
+.app-shell[data-route='home'] .hero-cms__content {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.app-shell[data-route='home'] .hero-cms__content h1,
+.app-shell[data-route='home'] .bha-practice__editorial-copy h2,
+.app-shell[data-route='home'] .bha-folio-grade .bha-grade-copy h3 {
+  color: var(--brian-ink-primary) !important;
+}
+
+.app-shell[data-route='home'] .hero-cms__content h2,
+.app-shell[data-route='home'] .hero-cms__badge,
+.app-shell[data-route='home'] .bha-practice__editorial-copy > span {
+  color: var(--brian-accent) !important;
+}
+
+.app-shell[data-route='home'] .hero-cms__content > p,
+.app-shell[data-route='home'] .bha-practice__editorial-copy p,
+.app-shell[data-route='home'] .bha-folio-grade .bha-grade-copy > small {
+  color: var(--brian-ink-secondary) !important;
+}
+
+.app-shell[data-route='home'] .hero-cms__button.is-primary,
+.app-shell[data-route='home'] .bha-statistics-practice {
+  min-height: var(--brian-touch-target) !important;
+  border: 1px solid var(--brian-accent) !important;
+  border-radius: var(--brian-radius-md) !important;
+  background: var(--brian-accent) !important;
+  color: var(--brian-ink-inverse) !important;
+  box-shadow: none !important;
+}
+
+.app-shell[data-route='home'] .hero-cms__button.is-secondary,
+.app-shell[data-route='home'] .hero-cms__edit,
+.app-shell[data-route='home'] .bha-manage-practice,
+.app-shell[data-route='home'] .bha-folio-grade .bha-grade-recent__header > button {
+  min-height: var(--brian-touch-target) !important;
+  border: 1px solid var(--brian-border-default) !important;
+  border-radius: var(--brian-radius-md) !important;
+  background: var(--brian-surface-primary) !important;
+  color: var(--brian-ink-primary) !important;
+  box-shadow: none !important;
+}
+
+.app-shell[data-route='home'] .bha-practice {
+  border-radius: var(--brian-radius-xl) !important;
+}
+
+.app-shell[data-route='home'] .bha-folio-grade {
+  border-radius: var(--brian-radius-lg) !important;
+}
+
+.app-shell[data-route='home'] .bha-folio-grade .bha-grade-recent,
+.app-shell[data-route='home'] .bha-folio-grade .bha-grade-lesson {
+  border-color: var(--brian-border-subtle) !important;
+  background: var(--brian-surface-subtle) !important;
+  box-shadow: none !important;
+}
+
+.app-shell[data-route='home'] .bha-practice__editorial-rule i,
+.app-shell[data-route='home'] .bha-practice__published-count {
+  border-color: var(--brian-border-default) !important;
+}
+
+/* --------------------------------------------------------------------------
+   DASHBOARD · semantic surfaces and hierarchy
+   -------------------------------------------------------------------------- */
+.app-shell[data-route='dashboard'] {
+  --ed-ink: var(--brian-ink-primary) !important;
+  --ed-muted: var(--brian-ink-secondary) !important;
+  --ed-blue: var(--brian-accent) !important;
+  --ed-blue-deep: var(--brian-accent-ink) !important;
+  --ed-rule: var(--brian-border-default) !important;
+}
+
+.app-shell[data-route='dashboard'] .editorial-hero {
+  min-height: 390px !important;
+  border: 1px solid var(--brian-border-default) !important;
+  border-top: 1px solid var(--brian-border-default) !important;
+  border-radius: var(--brian-radius-xl) !important;
+  background: var(--brian-surface-primary) !important;
+  box-shadow: var(--brian-shadow-xs) !important;
+}
+
+.app-shell[data-route='dashboard'] .editorial-hero::before {
+  background: var(--brian-border-subtle) !important;
+}
+
+.app-shell[data-route='dashboard'] .editorial-hero::after {
+  color: var(--brian-ink-tertiary) !important;
+}
+
+.app-shell[data-route='dashboard'] .editorial-hero h1,
+.app-shell[data-route='dashboard'] .editorial-status-card strong {
+  color: var(--brian-ink-primary) !important;
+}
+
+.app-shell[data-route='dashboard'] .editorial-hero-hello,
+.app-shell[data-route='dashboard'] .editorial-hero-lead,
+.app-shell[data-route='dashboard'] .editorial-status-card small,
+.app-shell[data-route='dashboard'] .editorial-secondary-action,
+.app-shell[data-route='dashboard'] .editorial-hero-links button {
+  color: var(--brian-ink-secondary) !important;
+}
+
+.app-shell[data-route='dashboard'] .editorial-hero-eyebrow,
+.app-shell[data-route='dashboard'] .editorial-status-icon,
+.app-shell[data-route='dashboard'] .editorial-today-chip strong {
+  color: var(--brian-accent) !important;
+}
+
+.app-shell[data-route='dashboard'] .editorial-hero-lead,
+.app-shell[data-route='dashboard'] .editorial-hero-date,
+.app-shell[data-route='dashboard'] .editorial-hero-status,
+.app-shell[data-route='dashboard'] .editorial-status-card + .editorial-status-card {
+  border-color: var(--brian-border-default) !important;
+}
+
+.app-shell[data-route='dashboard'] .editorial-primary-action {
+  min-height: var(--brian-touch-target) !important;
+  border: 1px solid var(--brian-accent) !important;
+  border-radius: var(--brian-radius-md) !important;
+  background: var(--brian-accent) !important;
+  color: var(--brian-ink-inverse) !important;
+  box-shadow: none !important;
+}
+
+.app-shell[data-route='dashboard'] .editorial-primary-action:hover {
+  background: var(--brian-accent-hover) !important;
+  border-color: var(--brian-accent-hover) !important;
+}
+
+.app-shell[data-route='dashboard'] .editorial-secondary-action {
+  min-height: var(--brian-touch-target) !important;
+  padding-inline: var(--brian-space-3) !important;
+  border: 1px solid var(--brian-border-default) !important;
+  border-radius: var(--brian-radius-md) !important;
+  background: var(--brian-surface-primary) !important;
+}
+
+.app-shell[data-route='dashboard'] .editorial-hero-status {
+  border-radius: var(--brian-radius-md) !important;
+  background: var(--brian-surface-subtle) !important;
+}
+
+.app-shell[data-route='dashboard'] .editorial-status-card:hover,
+.app-shell[data-route='dashboard'] .editorial-today-chip:hover {
+  background: var(--brian-surface-muted) !important;
+}
+
+.app-shell[data-route='dashboard'] .editorial-today-chip {
+  min-height: 36px !important;
+  border: 1px solid var(--brian-border-default) !important;
+  border-radius: var(--brian-radius-md) !important;
+  background: var(--brian-surface-primary) !important;
+  color: var(--brian-ink-secondary) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Established dashboard surfaces now follow the shared Card contract. */
+.app-shell[data-route='dashboard'] :is(.gd-surface, .gd-calendar-shell, .gd-quick-actions, .dashboard-news-hub) {
+  border: 1px solid var(--brian-border-default) !important;
+  border-radius: var(--brian-radius-lg) !important;
+  background: var(--brian-surface-primary) !important;
+  box-shadow: var(--brian-shadow-xs) !important;
+}
+
+.app-shell[data-route='dashboard'] .gd-surface-header {
+  border-bottom: 1px solid var(--brian-border-subtle) !important;
+  background: transparent !important;
+}
+
+.app-shell[data-route='dashboard'] .gd-surface-heading h2,
+.app-shell[data-route='dashboard'] .gd-event-copy strong {
+  color: var(--brian-ink-primary) !important;
+}
+
+.app-shell[data-route='dashboard'] :is(.gd-surface-heading p, .gd-event-copy p, .gd-event-copy small, .gd-event-time small) {
+  color: var(--brian-ink-secondary) !important;
+}
+
+.app-shell[data-route='dashboard'] .gd-heading-icon {
+  border-radius: var(--brian-radius-md) !important;
+  background: var(--brian-accent-soft) !important;
+  color: var(--brian-accent) !important;
+  box-shadow: none !important;
+}
+
+.app-shell[data-route='dashboard'] .gd-text-button {
+  min-height: 36px !important;
+  padding-inline: var(--brian-space-3) !important;
+  border: 1px solid var(--brian-border-default) !important;
+  border-radius: var(--brian-radius-md) !important;
+  background: var(--brian-surface-primary) !important;
+  color: var(--brian-accent-ink) !important;
+  box-shadow: none !important;
+}
+
+.app-shell[data-route='dashboard'] .gd-event {
+  min-height: var(--brian-touch-target) !important;
+  border: 1px solid var(--brian-border-subtle) !important;
+  border-radius: var(--brian-radius-md) !important;
+  background: var(--brian-surface-primary) !important;
+  box-shadow: none !important;
+}
+
+.app-shell[data-route='dashboard'] .gd-event:hover,
+.app-shell[data-route='dashboard'] .gd-event:focus-visible {
+  border-color: var(--brian-border-strong) !important;
+  background: var(--brian-surface-subtle) !important;
+}
+
+.app-shell[data-route='dashboard'] .gd-event.is-overdue {
+  border-color: color-mix(in srgb, var(--brian-danger) 30%, var(--brian-border-default)) !important;
+  background: var(--brian-danger-soft) !important;
+}
+
+.app-shell[data-route='dashboard'] .gd-event.is-done {
+  border-color: color-mix(in srgb, var(--brian-success) 24%, var(--brian-border-default)) !important;
+  background: var(--brian-success-soft) !important;
+}
+
+.app-shell[data-route='dashboard'] .gd-empty {
+  border: 1px dashed var(--brian-border-default) !important;
+  border-radius: var(--brian-radius-lg) !important;
+  background: var(--brian-surface-subtle) !important;
+  color: var(--brian-ink-secondary) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Navigation consistency for the migrated routes; horizontal layout preserved.
+   -------------------------------------------------------------------------- */
+html body .app-shell:is([data-route='home'], [data-route='dashboard']) > .bes-top-chrome .brian-nav {
+  border: 1px solid var(--brian-border-default) !important;
+  border-radius: var(--brian-radius-lg) !important;
+  background: var(--brian-surface-primary) !important;
+  box-shadow: var(--brian-shadow-xs) !important;
+  backdrop-filter: none !important;
+}
+
+html body .app-shell:is([data-route='home'], [data-route='dashboard']) > .bes-top-chrome .brian-nav__primary button {
+  min-height: var(--brian-touch-target) !important;
+  border-radius: var(--brian-radius-md) !important;
+  color: var(--brian-ink-secondary) !important;
+}
+
+html body .app-shell:is([data-route='home'], [data-route='dashboard']) > .bes-top-chrome .brian-nav__primary button:hover {
+  background: var(--brian-state-hover-overlay) !important;
+  color: var(--brian-ink-primary) !important;
+}
+
+html body .app-shell:is([data-route='home'], [data-route='dashboard']) > .bes-top-chrome .brian-nav__primary button.is-active {
+  background: var(--brian-accent-soft) !important;
+  color: var(--brian-accent-ink) !important;
+  box-shadow: inset 0 0 0 1px var(--brian-border-subtle) !important;
+}
+
+@media (max-width: 920px) {
+  .app-shell[data-route='dashboard'] .editorial-hero {
+    padding: var(--brian-space-6) !important;
+    background: var(--brian-surface-primary) !important;
+  }
+
+  .app-shell[data-route='home'] .bha-hero.hero-cms,
+  .app-shell[data-route='home'] .bha-practice,
+  .app-shell[data-route='dashboard'] .editorial-hero {
+    border-radius: var(--brian-radius-lg) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-shell[data-route='dashboard'] .editorial-hero {
+    padding: var(--brian-space-4) !important;
+  }
+
+  .app-shell[data-route='home'] :is(.hero-cms__button.is-primary, .hero-cms__button.is-secondary, .bha-statistics-practice, .bha-manage-practice),
+  .app-shell[data-route='dashboard'] :is(.editorial-primary-action, .editorial-secondary-action) {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
