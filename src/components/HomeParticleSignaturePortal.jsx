@@ -32,11 +32,12 @@ export default function HomeParticleSignaturePortal({ currentUser }) {
   return createPortal(
     <CatRichParticleLogo
       className="catrich-particle-logo--nav"
+      variant="nav"
       text="catrich.mauxanh"
-      interactionRadius={52}
-      magneticStrength={1.45}
-      spring={0.06}
-      damping={0.84}
+      interactionRadius={38}
+      magneticStrength={1.08}
+      spring={0.074}
+      damping={0.82}
     />,
     navTarget,
   );
