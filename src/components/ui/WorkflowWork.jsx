@@ -37,6 +37,7 @@ export function TaskCard({
   selected = false,
   className,
 }) {
+  const statusVariant = status === 'done' ? 'success' : status === 'blocked' ? 'danger' : status === 'progress' ? 'info' : 'neutral';
   return (
     <article className={cx('bwf-task-card', className)} data-priority={priority} data-selected={selected ? 'true' : undefined}>
       <div className="bwf-task-card__header">
@@ -44,9 +45,7 @@ export function TaskCard({
           <h3>{title}</h3>
           {description ? <p>{description}</p> : null}
         </div>
-        <Badge tone={status === 'done' ? 'success' : status === 'blocked' ? 'danger' : status === 'progress' ? 'info' : 'neutral'}>
-          {statusLabel || STATUS_LABELS[status] || status}
-        </Badge>
+        <Badge variant={statusVariant}>{statusLabel || STATUS_LABELS[status] || status}</Badge>
       </div>
       {(assignee || due || meta) ? (
         <div className="bwf-task-card__meta">
@@ -74,13 +73,14 @@ export function NoticeCard({
   className,
 }) {
   const scopeText = scopeLabel || ({ general: 'Thông báo chung', personal: 'Riêng bạn', team: 'Toàn tổ', feedback: 'Cần góp ý' }[scope] || scope);
+  const scopeVariant = scope === 'personal' ? 'info' : scope === 'feedback' ? 'warning' : 'neutral';
   return (
     <article className={cx('bwf-notice-card', className)} data-unread={unread ? 'true' : undefined} data-scope={scope}>
       <div className="bwf-notice-card__rail" aria-hidden="true" />
       <div className="bwf-notice-card__content">
         <div className="bwf-notice-card__topline">
-          <Badge tone={scope === 'personal' ? 'info' : scope === 'feedback' ? 'warning' : 'neutral'}>{scopeText}</Badge>
-          {needsResponse ? <Badge tone="warning">Cần phản hồi</Badge> : null}
+          <Badge variant={scopeVariant}>{scopeText}</Badge>
+          {needsResponse ? <Badge variant="warning">Cần phản hồi</Badge> : null}
           {unread ? <span className="bwf-unread-dot" aria-label="Chưa đọc" /> : null}
         </div>
         <h3>{title}</h3>
@@ -109,27 +109,17 @@ export function AttachmentCard({
   actions,
   className,
 }) {
-  const interactive = Boolean(onOpen);
-  const handleKeyDown = (event) => {
-    if (!interactive || (event.key !== 'Enter' && event.key !== ' ')) return;
-    event.preventDefault();
-    onOpen?.();
-  };
   return (
-    <article
-      className={cx('bwf-attachment-card', interactive && 'is-interactive', className)}
-      role={interactive ? 'button' : undefined}
-      tabIndex={interactive ? 0 : undefined}
-      onClick={interactive ? onOpen : undefined}
-      onKeyDown={handleKeyDown}
-    >
+    <article className={cx('bwf-attachment-card', onOpen && 'is-interactive', className)}>
       <span className="bwf-attachment-card__icon" aria-hidden="true">{icon || '▤'}</span>
       <div className="bwf-attachment-card__body">
-        <strong>{name}</strong>
+        {onOpen ? (
+          <button type="button" className="bwf-attachment-card__open" onClick={onOpen}>{name}</button>
+        ) : <strong>{name}</strong>}
         <span>{[type, size, meta].filter(Boolean).join(' · ')}</span>
       </div>
       {(onDownload || actions) ? (
-        <div className="bwf-attachment-card__actions" onClick={(event) => event.stopPropagation()}>
+        <div className="bwf-attachment-card__actions">
           {onDownload ? <button type="button" className="bwf-text-action" onClick={onDownload}>Tải xuống</button> : null}
           {actions}
         </div>
