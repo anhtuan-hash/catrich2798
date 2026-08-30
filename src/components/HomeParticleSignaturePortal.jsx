@@ -32,10 +32,10 @@ export default function HomeParticleSignaturePortal({ currentUser }) {
   return createPortal(
     <FishParticleLogo
       className="fish-particle-logo--nav"
-      interactionRadius={40}
-      magneticStrength={1.42}
-      spring={0.118}
-      damping={0.78}
+      interactionRadius={46}
+      magneticStrength={1.7}
+      spring={0.116}
+      damping={0.79}
     />,
     navTarget,
   );
