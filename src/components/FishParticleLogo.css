@@ -1,0 +1,64 @@
+/* Interactive herring mark — compact particle logo for the global navigation. */
+.fish-particle-logo{
+  position:relative;
+  pointer-events:auto;
+  user-select:none;
+  -webkit-user-select:none;
+  touch-action:none;
+}
+
+.fish-particle-logo canvas{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  display:block;
+}
+
+.fish-particle-logo__fallback{
+  position:absolute;
+  width:1px;
+  height:1px;
+  overflow:hidden;
+  clip:rect(0 0 0 0);
+  clip-path:inset(50%);
+  white-space:nowrap;
+}
+
+.fish-particle-logo--nav{
+  width:92px;
+  height:46px;
+  flex:0 0 92px;
+  align-self:center;
+  overflow:visible;
+  opacity:1;
+  filter:drop-shadow(0 4px 10px rgba(59,130,246,.08));
+}
+
+/* Fish sits immediately beside the AI launcher, then the account control. */
+html body .brian-nav__actions > .fish-particle-logo--nav{order:2!important}
+html body .brian-nav__actions > .brian-nav__ai-wrap{order:3!important}
+html body .brian-nav__actions > .brian-nav__popover-wrap:not(.brian-nav__ai-wrap){order:4!important}
+html body .brian-nav__actions > .brian-nav__login{order:5!important}
+
+@media(max-width:1280px){
+  .fish-particle-logo--nav{
+    width:82px;
+    flex-basis:82px;
+  }
+}
+
+@media(max-width:1120px){
+  .fish-particle-logo--nav{
+    width:74px;
+    flex-basis:74px;
+  }
+}
+
+@media(max-width:1040px){
+  .fish-particle-logo--nav{display:none}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .fish-particle-logo--nav{filter:none}
+}
