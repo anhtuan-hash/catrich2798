@@ -1,5 +1,6 @@
 export const BRIAN_THEME_STORAGE_KEY = 'bes-theme-preference-v1';
 export const BRIAN_THEME_MODES = ['light'];
+export const BRIAN_THEME_META_COLOR = '#f4f8fc';
 
 let installed = false;
 
@@ -17,7 +18,7 @@ function enforceLight({ persist = true, emit = true } = {}) {
   root.style.colorScheme = 'light';
 
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', '#f8f4ec');
+  if (meta) meta.setAttribute('content', BRIAN_THEME_META_COLOR);
 
   if (persist && typeof window !== 'undefined') {
     try { window.localStorage.setItem(BRIAN_THEME_STORAGE_KEY, 'light'); } catch { /* optional preference */ }

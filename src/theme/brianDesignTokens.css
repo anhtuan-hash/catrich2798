@@ -1,0 +1,174 @@
+/* ========================================================================== 
+   Brian Design System · Stage 1 Foundation
+   --------------------------------------------------------------------------
+   This file is the single semantic token contract for new Brian UI work.
+
+   Rules:
+   - tokens only: no component selectors or route-specific styling here;
+   - light-only: Brian currently supports one appearance;
+   - new components consume --brian-* semantic tokens, never raw palette values;
+   - legacy aliases remain in styles/Foundation.css during staged migration.
+   ========================================================================== */
+
+:root {
+  color-scheme: light;
+
+  /* -----------------------------------------------------------------------
+     Typography
+     GlobalFontSystem.css remains the authority for the user's chosen family.
+     These tokens define roles, scale and rhythm without bypassing that system.
+     ----------------------------------------------------------------------- */
+  --brian-font-ui: var(--bes-global-font-family, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+  --brian-font-display: var(--brian-font-ui);
+  --brian-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+
+  --brian-font-weight-regular: 400;
+  --brian-font-weight-medium: 550;
+  --brian-font-weight-semibold: 650;
+  --brian-font-weight-bold: 760;
+  --brian-font-weight-heavy: 850;
+
+  --brian-type-xs: 0.75rem;
+  --brian-type-sm: 0.875rem;
+  --brian-type-body: 1rem;
+  --brian-type-md: 1.125rem;
+  --brian-type-lg: 1.25rem;
+  --brian-type-title: clamp(1.5rem, 1.28rem + 0.72vw, 2rem);
+  --brian-type-display: clamp(2.25rem, 1.72rem + 2.1vw, 4rem);
+
+  --brian-leading-tight: 1.08;
+  --brian-leading-title: 1.16;
+  --brian-leading-body: 1.55;
+  --brian-tracking-tight: -0.025em;
+  --brian-tracking-label: 0.055em;
+
+  /* -----------------------------------------------------------------------
+     Neutral surfaces · cool, editorial-paper feeling without cream/ivory.
+     GlobalNoCreamSurface.css enforces the same policy for legacy controls.
+     ----------------------------------------------------------------------- */
+  --brian-surface-canvas: #f4f8fc;
+  --brian-surface-primary: #ffffff;
+  --brian-surface-subtle: #f7f9fc;
+  --brian-surface-muted: #eef4f8;
+  --brian-surface-sunken: #eaf2f8;
+  --brian-surface-overlay: rgba(12, 30, 49, 0.58);
+
+  /* Text */
+  --brian-ink-primary: #071d33;
+  --brian-ink-secondary: #4e657c;
+  --brian-ink-tertiary: #708396;
+  --brian-ink-inverse: #ffffff;
+  --brian-ink-disabled: #8c9bab;
+
+  /* Border / dividers */
+  --brian-border-subtle: #e5edf4;
+  --brian-border-default: #d5e0e9;
+  --brian-border-strong: #b9c8d6;
+
+  /* Brand / interaction */
+  --brian-accent: #1f5fbf;
+  --brian-accent-hover: #184f9f;
+  --brian-accent-pressed: #133f80;
+  --brian-accent-soft: #eaf2ff;
+  --brian-accent-soft-hover: #dce9ff;
+  --brian-accent-ink: #174a93;
+
+  /* Semantic states */
+  --brian-success: #107c10;
+  --brian-success-soft: #edf8ed;
+  --brian-warning: #a15c00;
+  --brian-warning-soft: #fff6df;
+  --brian-danger: #c42b32;
+  --brian-danger-soft: #fff0f0;
+  --brian-info: #0078d4;
+  --brian-info-soft: #edf6ff;
+
+  /* -----------------------------------------------------------------------
+     Spacing · 4px base rhythm
+     ----------------------------------------------------------------------- */
+  --brian-space-0: 0;
+  --brian-space-1: 4px;
+  --brian-space-2: 8px;
+  --brian-space-3: 12px;
+  --brian-space-4: 16px;
+  --brian-space-5: 20px;
+  --brian-space-6: 24px;
+  --brian-space-8: 32px;
+  --brian-space-10: 40px;
+  --brian-space-12: 48px;
+  --brian-space-16: 64px;
+  --brian-space-20: 80px;
+
+  /* Radius · flat first, softened where hierarchy benefits from it */
+  --brian-radius-xs: 6px;
+  --brian-radius-sm: 8px;
+  --brian-radius-md: 12px;
+  --brian-radius-lg: 16px;
+  --brian-radius-xl: 22px;
+  --brian-radius-2xl: 28px;
+  --brian-radius-pill: 999px;
+
+  /* Elevation · intentionally restrained */
+  --brian-shadow-xs: 0 1px 2px rgba(12, 30, 49, 0.06);
+  --brian-shadow-sm: 0 3px 10px rgba(12, 30, 49, 0.08);
+  --brian-shadow-md: 0 12px 30px rgba(12, 30, 49, 0.10);
+  --brian-shadow-lg: 0 24px 60px rgba(12, 30, 49, 0.14);
+
+  /* Motion · for feedback, not decoration. Existing GlobalMotionSystem remains
+     independent until its later migration so Stage 1 has no motion regression. */
+  --brian-motion-instant: 80ms;
+  --brian-motion-fast: 140ms;
+  --brian-motion-standard: 180ms;
+  --brian-motion-slow: 240ms;
+  --brian-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --brian-ease-emphasized: cubic-bezier(0.2, 0, 0, 1);
+
+  /* Focus */
+  --brian-focus-color: #1f5fbf;
+  --brian-focus-ring: 0 0 0 3px rgba(31, 95, 191, 0.20);
+  --brian-focus-offset: 2px;
+
+  /* Component-state primitives */
+  --brian-state-hover-overlay: rgba(7, 29, 51, 0.045);
+  --brian-state-pressed-overlay: rgba(7, 29, 51, 0.085);
+  --brian-state-selected-overlay: rgba(31, 95, 191, 0.105);
+  --brian-state-disabled-opacity: 0.52;
+
+  /* Layout / accessibility */
+  --brian-content-max: 1520px;
+  --brian-touch-target: 44px;
+  --brian-mobile-gutter: 14px;
+  --brian-safe-top: env(safe-area-inset-top, 0px);
+  --brian-safe-right: env(safe-area-inset-right, 0px);
+  --brian-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --brian-safe-left: env(safe-area-inset-left, 0px);
+
+  /* Layer scale for new shared components */
+  --brian-layer-base: 0;
+  --brian-layer-sticky: 100;
+  --brian-layer-dropdown: 500;
+  --brian-layer-drawer: 800;
+  --brian-layer-modal: 1000;
+  --brian-layer-toast: 1200;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --brian-mobile-gutter: 12px;
+  }
+}
+
+@media (max-width: 430px) {
+  :root {
+    --brian-mobile-gutter: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --brian-motion-instant: 1ms;
+    --brian-motion-fast: 1ms;
+    --brian-motion-standard: 1ms;
+    --brian-motion-slow: 1ms;
+  }
+}

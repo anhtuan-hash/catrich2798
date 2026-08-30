@@ -1,17 +1,28 @@
+@import '../theme/brianDesignTokens.css';
+
 /* Minimal native foundation.
    This file owns the document canvas and the outer Brian shell.
-   Route/components own their internal surfaces, typography and decoration. */
+   Route/components own their internal surfaces, typography and decoration.
+
+   Stage 1 design-system migration:
+   - src/theme/brianDesignTokens.css is the semantic source of truth;
+   - the aliases below keep legacy route CSS working during staged migration;
+   - legacy theme-intensity selectors remain temporarily for compatibility. */
 
 :root {
   color-scheme: light;
-  --brian-document-canvas: #f8f4ec;
-  --page: #f8f4ec;
-  --surface: #ffffff;
-  --surface-2: #f8f4ec;
-  --surface-3: #eee6da;
-  --ink: #071d33;
-  --muted: #4e657c;
-  --line: #d8ccbd;
+
+  /* Legacy surface aliases -> Brian semantic tokens. */
+  --brian-document-canvas: var(--brian-surface-canvas);
+  --page: var(--brian-surface-canvas);
+  --surface: var(--brian-surface-primary);
+  --surface-2: var(--brian-surface-canvas);
+  --surface-3: var(--brian-surface-sunken);
+  --ink: var(--brian-ink-primary);
+  --muted: var(--brian-ink-secondary);
+  --line: var(--brian-border-default);
+
+  /* Historical accent palette. Kept intact until app-by-app migration. */
   --blue: #0078d4;
   --blue-dark: #004578;
   --blue-deep: #003b6f;
@@ -33,6 +44,8 @@
   --tile-8: #004578;
   --tile-9: #8764b8;
   --tile-10: #00188f;
+
+  /* Historical semantic aliases. */
   --bg: var(--page);
   --bg-2: var(--surface-2);
   --panel: var(--surface);
@@ -43,16 +56,12 @@
   --muted-text: var(--muted);
   --primary: var(--blue);
   --primary-2: var(--blue-dark);
-  --app-max: 1520px;
-  --gap: 16px;
-  --brian-safe-top: env(safe-area-inset-top, 0px);
-  --brian-safe-right: env(safe-area-inset-right, 0px);
-  --brian-safe-bottom: env(safe-area-inset-bottom, 0px);
-  --brian-safe-left: env(safe-area-inset-left, 0px);
-  --brian-mobile-gutter: 14px;
-  --brian-touch-target: 44px;
+  --app-max: var(--brian-content-max);
+  --gap: var(--brian-space-4);
 }
 
+/* Compatibility-only legacy selectors. Brian's runtime currently enforces
+   light mode; these stay until the corresponding old UI contracts are retired. */
 html[data-theme='dark'] {
   color-scheme: dark;
   --brian-document-canvas: #061522;
@@ -210,7 +219,7 @@ div {
 @media (max-width: 768px) {
   :root {
     --brian-mobile-gutter: 12px;
-    --gap: 12px;
+    --gap: var(--brian-space-3);
   }
 
   html {
