@@ -29,7 +29,10 @@ function metroDirection(fromTarget, toTarget) {
 function windows8MotionActive() {
   if (typeof document === 'undefined' || typeof window === 'undefined') return false;
   const root = document.documentElement;
-  return root?.dataset?.motionMode === 'windows8'
+  const metroSelected = root?.dataset?.motionPage === 'metro-sweep'
+    || root?.dataset?.motionMode === 'metro'
+    || root?.dataset?.motionMode === 'windows8';
+  return metroSelected
     && root?.dataset?.motionEnabled === 'true'
     && !window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
 }
@@ -51,25 +54,11 @@ function clearMetroNavigationState(root, delay = 480) {
   }, delay);
 }
 
-/**
- * Shared route launcher.
- *
- * Windows 8 deliberately uses a short two-stage WinRT-style choreography:
- * current content retreats for ~90 ms, then React changes route and the new
- * content enters in staggered groups. The shell/navigation never moves.
- *
- * Native View Transitions are intentionally not used: heavy Brian routes can
- * exceed Chrome's DOM-update deadline and abort the transition.
- */
 export function launchRoute({ target, navigate } = {}) {
   if (!target || typeof window === 'undefined') return;
 
   const normalizedTarget = String(target);
   const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
-
-  // A portal/tab can receive more than one activation before the delayed WinRT
-  // route commit occurs. Treat those as the same navigation transaction so the
-  // global WP8 loader is not restarted continuously.
   if (window.location.hash === normalizedTarget) return;
   if (pendingTarget === normalizedTarget && now - pendingStartedAt < 1600) return;
 
@@ -107,8 +96,6 @@ export function launchRoute({ target, navigate } = {}) {
     return;
   }
 
-  // WinRT exit is intentionally very short. It creates direction without
-  // making the whole website feel like a slide deck.
   root.dataset.metroExiting = 'true';
   metroNavigationTimer = window.setTimeout(() => {
     delete root.dataset.metroExiting;
@@ -117,7 +104,7 @@ export function launchRoute({ target, navigate } = {}) {
       go();
     } finally {
       clearPendingTarget(normalizedTarget);
-      clearMetroNavigationState(root, 560);
+      clearMetroNavigationState(root, 620);
     }
   }, 92);
 }
