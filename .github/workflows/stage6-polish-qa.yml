@@ -1,0 +1,31 @@
+name: Stage 6 Polish QA
+
+on:
+  pull_request:
+    paths:
+      - 'src/components/GlobalEditorialAuthorityRuntime.jsx'
+      - 'src/components/GlobalFlatNavigation.jsx'
+      - 'src/styles/BrianStage5Migration.css'
+      - 'src/styles/BrianStage5WorkflowMigration.css'
+      - 'src/styles/BrianStage6Polish.css'
+      - 'src/main.jsx'
+      - 'scripts/audit-stage6-polish.mjs'
+      - '.github/workflows/stage6-polish-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  polish-qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Audit final design-system authority
+        run: node scripts/audit-stage6-polish.mjs
