@@ -1,0 +1,120 @@
+/* Motion Library v2 · restored Windows 8 / WinRT route choreography.
+   This file is loaded from GlobalWindows8Experience and intentionally outranks
+   the old v1159 global motion-retirement layer only for Metro route motion. */
+
+:is(
+  html[data-motion-page='metro-sweep'][data-motion-enabled='true'],
+  html[data-motion-mode='metro'][data-motion-enabled='true'],
+  html[data-motion-mode='windows8'][data-motion-enabled='true']
+) {
+  --w8-ease-out: cubic-bezier(.10,.90,.20,1);
+  --w8-ease-in: cubic-bezier(.40,0,1,1);
+  --w8-fast: 92ms;
+  --w8-enter: 390ms;
+  --w8-stagger-step: 52ms;
+  --w8-enter-distance: 62px;
+  --w8-back-distance: 44px;
+  --w8-exit-distance: 14px;
+}
+
+/* Metro choreography animates content groups, never the entire application shell. */
+:is(
+  html[data-motion-page='metro-sweep'][data-motion-enabled='true'],
+  html[data-motion-mode='metro'][data-motion-enabled='true'],
+  html[data-motion-mode='windows8'][data-motion-enabled='true']
+) body #bes-main-content:not(#w8-stage-a#w8-stage-b#w8-stage-c#w8-stage-d) {
+  animation: none !important;
+  transform: none !important;
+  translate: none !important;
+  scale: 1 !important;
+}
+
+:is(
+  html[data-motion-page='metro-sweep'][data-motion-enabled='true'],
+  html[data-motion-mode='metro'][data-motion-enabled='true'],
+  html[data-motion-mode='windows8'][data-motion-enabled='true']
+) body [data-w8-exit='forward']:not(#w8-exit-a#w8-exit-b#w8-exit-c#w8-exit-d) {
+  animation: w8-v2-exit-forward var(--w8-fast) var(--w8-ease-in) both !important;
+  animation-name: w8-v2-exit-forward !important;
+  animation-duration: var(--w8-fast) !important;
+  will-change: transform, opacity !important;
+}
+
+:is(
+  html[data-motion-page='metro-sweep'][data-motion-enabled='true'],
+  html[data-motion-mode='metro'][data-motion-enabled='true'],
+  html[data-motion-mode='windows8'][data-motion-enabled='true']
+) body [data-w8-exit='backward']:not(#w8-exit-a#w8-exit-b#w8-exit-c#w8-exit-d) {
+  animation: w8-v2-exit-back var(--w8-fast) var(--w8-ease-in) both !important;
+  animation-name: w8-v2-exit-back !important;
+  animation-duration: var(--w8-fast) !important;
+  will-change: transform, opacity !important;
+}
+
+:is(
+  html[data-motion-page='metro-sweep'][data-motion-enabled='true'][data-metro-direction='forward'],
+  html[data-motion-mode='metro'][data-motion-enabled='true'][data-metro-direction='forward'],
+  html[data-motion-mode='windows8'][data-motion-enabled='true'][data-metro-direction='forward']
+) body [data-w8-enter='true']:not(#w8-enter-a#w8-enter-b#w8-enter-c#w8-enter-d) {
+  animation: w8-v2-enter-forward var(--w8-enter) var(--w8-ease-out) both !important;
+  animation-name: w8-v2-enter-forward !important;
+  animation-duration: var(--w8-enter) !important;
+  animation-delay: calc(26ms + (var(--w8-stagger-index, 0) * var(--w8-stagger-step))) !important;
+  will-change: transform, opacity !important;
+}
+
+:is(
+  html[data-motion-page='metro-sweep'][data-motion-enabled='true'][data-metro-direction='backward'],
+  html[data-motion-mode='metro'][data-motion-enabled='true'][data-metro-direction='backward'],
+  html[data-motion-mode='windows8'][data-motion-enabled='true'][data-metro-direction='backward']
+) body [data-w8-enter='true']:not(#w8-enter-a#w8-enter-b#w8-enter-c#w8-enter-d) {
+  animation: w8-v2-enter-back var(--w8-enter) var(--w8-ease-out) both !important;
+  animation-name: w8-v2-enter-back !important;
+  animation-duration: var(--w8-enter) !important;
+  animation-delay: calc(22ms + (var(--w8-stagger-index, 0) * 46ms)) !important;
+  will-change: transform, opacity !important;
+}
+
+@keyframes w8-v2-exit-forward {
+  from { opacity: 1; transform: translate3d(0,0,0); }
+  to { opacity: .12; transform: translate3d(calc(-1 * var(--w8-exit-distance)),0,0); }
+}
+
+@keyframes w8-v2-exit-back {
+  from { opacity: 1; transform: translate3d(0,0,0); }
+  to { opacity: .12; transform: translate3d(var(--w8-exit-distance),0,0); }
+}
+
+@keyframes w8-v2-enter-forward {
+  0% { opacity: 0; transform: translate3d(var(--w8-enter-distance),0,0); }
+  24% { opacity: .48; }
+  48% { opacity: .88; }
+  100% { opacity: 1; transform: translate3d(0,0,0); }
+}
+
+@keyframes w8-v2-enter-back {
+  0% { opacity: 0; transform: translate3d(calc(-1 * var(--w8-back-distance)),0,0); }
+  28% { opacity: .52; }
+  52% { opacity: .9; }
+  100% { opacity: 1; transform: translate3d(0,0,0); }
+}
+
+/* A Metro tab shift should remain visible even under the old motion-retirement CSS. */
+html[data-motion-tab='directional'][data-motion-enabled='true'] body [data-global-tab-enter='true']:not(#w8-tab-a#w8-tab-b#w8-tab-c#w8-tab-d) {
+  animation: w8-v2-tab 250ms cubic-bezier(.10,.90,.20,1) both !important;
+  animation-name: w8-v2-tab !important;
+}
+
+@keyframes w8-v2-tab {
+  from { opacity: 0; transform: translate3d(28px,0,0); }
+  to { opacity: 1; transform: translate3d(0,0,0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body [data-w8-enter='true'],
+  body [data-w8-exit],
+  body [data-global-tab-enter='true'] {
+    animation: none !important;
+    transform: none !important;
+  }
+}
