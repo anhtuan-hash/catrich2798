@@ -4,17 +4,21 @@ Stage 7 begins reducing historical CSS payloads after Stages 1–6 established t
 
 ## Principle: prove before delete
 
-A versioned stylesheet is not retired merely because a later design-system layer visually overrides it. Removal requires evidence that production JSX/JS no longer consumes its namespace and that the stylesheet is not carrying structural, responsive, accessibility or runtime contracts.
+A versioned stylesheet is not retired merely because a later design-system layer visually overrides it. Removal requires evidence that the stylesheet itself is no longer carrying required structural, responsive, accessibility or runtime styling. Versioned DOM names or storage/event keys may remain as compatibility contracts even after their original stylesheet is retired.
 
 ## Audit findings
 
-### v1093 — retired tombstone
+### v1093 — stylesheet retired, DOM compatibility names remain
 
-`v1093.css` is already a compatibility tombstone. It contains comments only and no active selectors. No production JS/JSX may consume its retired page/task-shell namespace.
+`v1093.css` is already a compatibility tombstone. It contains comments only and no active selectors.
 
-### v1096 — retired in Stage 7
+Stage 7 diagnostics confirmed that some production bridges still read `v1093-*` DOM class names, including the Work Hub hero bridge and Knowledge Hub. Those DOM names are therefore not declared dead. The important fact is narrower: the original `v1093.css` payload is already retired and must not silently gain selectors again.
 
-`v1096.css` was the standalone Automation Center visual layer. The current router retains the historical `automation-center` token but does not render an Automation Center page, and no active JS/JSX consumer uses the `v1096-*` namespace.
+### v1096 — stylesheet retired in Stage 7
+
+`v1096.css` was the standalone Automation Center visual layer. The current router retains the historical `automation-center` token but does not render an Automation Center page, and Stage 7 found no active JSX/TSX UI consumer that requires the original `v1096-*` stylesheet.
+
+`automationEngine.js` still intentionally uses version-tagged v1096 event, storage and source keys. These are data/runtime compatibility identifiers, not CSS consumers, and must not be renamed merely to remove a stylesheet.
 
 Stage 7 removes the entire active v1096 selector payload and leaves a temporary comment-only tombstone because `main.jsx` still carries the historical import. A later bootstrap consolidation can remove tombstone imports together once the entry file is refactored safely.
 
@@ -37,22 +41,28 @@ Stage 7 introduces a more useful second metric:
 
 - historical imports: maximum 15;
 - active versioned CSS payloads: maximum 13;
-- comment-only tombstones: `v1093.css`, `v1096.css`.
+- comment-only stylesheet tombstones: `v1093.css`, `v1096.css`.
 
-This means Stage 7 reduces active legacy style execution without making a risky full-file replacement of `main.jsx` while concurrent production changes are landing.
+This reduces active legacy style execution without making a risky full-file replacement of `main.jsx` while concurrent production changes are landing.
 
 ## CI contract
 
 `Stage 7 Legacy Consolidation` fails if:
 
 - `v1093.css` or `v1096.css` gains active selectors again;
-- a JS/JSX file consumes a retired `v1096-*` namespace;
+- a JSX/TSX UI surface begins consuming a retired `v1096-*` class namespace;
 - the standalone Automation Center renderer returns without a fresh audit;
 - historical versioned imports exceed 15;
 - active versioned CSS payloads exceed 13;
 - verified active neighbor `v1095.css` or `v1097.css` disappears unexpectedly;
 - `CloudOperations.jsx` loses its currently verified `v1097-page` contract without a new migration;
 - Stage 5–6 final visual authority is removed.
+
+The guard deliberately allows version-tagged runtime/storage keys and existing compatibility DOM names when they are not evidence that a retired stylesheet is required.
+
+## Diagnostics
+
+The Stage 7 workflow uploads its audit output as a short-lived artifact even when the audit fails. This makes future consolidation work explainable: a red check identifies the exact consumer or contract that blocked retirement instead of encouraging blind deletion or guard bypasses.
 
 ## Next consolidation targets
 
