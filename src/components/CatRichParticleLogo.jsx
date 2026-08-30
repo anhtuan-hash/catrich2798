@@ -5,9 +5,9 @@ const DEFAULT_TEXT = 'catrich.mauxanh';
 const TAU = Math.PI * 2;
 
 const NAV_GRADIENT = [
-  { stop: 0, color: '#8b5cf6' },
-  { stop: 0.5, color: '#3b82f6' },
-  { stop: 1, color: '#06b6d4' },
+  { stop: 0, color: '#7c3aed' },
+  { stop: 0.5, color: '#2563eb' },
+  { stop: 1, color: '#0891b2' },
 ];
 
 function seededNoise(x, y, salt = 0) {
@@ -16,16 +16,12 @@ function seededNoise(x, y, salt = 0) {
 }
 
 function hexToRgb(hex) {
-  const value = String(hex || '').replace('#', '');
-  const normalized = value.length === 3
-    ? value.split('').map((part) => `${part}${part}`).join('')
-    : value.padEnd(6, '0').slice(0, 6);
+  const raw = String(hex || '').replace('#', '');
+  const normalized = raw.length === 3
+    ? raw.split('').map((part) => `${part}${part}`).join('')
+    : raw.padEnd(6, '0').slice(0, 6);
   const parsed = Number.parseInt(normalized, 16) || 0;
-  return {
-    r: (parsed >> 16) & 255,
-    g: (parsed >> 8) & 255,
-    b: parsed & 255,
-  };
+  return { r: (parsed >> 16) & 255, g: (parsed >> 8) & 255, b: parsed & 255 };
 }
 
 function mixRgb(left, right, amount) {
@@ -55,8 +51,8 @@ function getFontString(size, family, weight) {
 }
 
 function measureSpacedText(ctx, text, spacing = 0) {
-  let width = 0;
   const characters = [...text];
+  let width = 0;
   characters.forEach((character, index) => {
     width += ctx.measureText(character).width;
     if (index < characters.length - 1) width += spacing;
@@ -77,12 +73,12 @@ function drawSpacedText(ctx, text, centerX, centerY, spacing = 0) {
 }
 
 function resolveFontSize(ctx, text, width, height, family, navMode) {
-  const weight = navMode ? 650 : 800;
-  const spacing = navMode ? 0.08 : 0;
+  const weight = navMode ? 620 : 780;
+  const spacing = navMode ? 0.18 : 0;
   const maxWidth = width * (navMode ? 0.972 : 0.9);
   const minimum = navMode ? 18 : 20;
   let size = navMode
-    ? Math.max(22, Math.min(height * 0.64, width * 0.128))
+    ? Math.max(23, Math.min(height * 0.68, width * 0.124))
     : Math.max(26, Math.min(height * 0.48, width * 0.108));
 
   while (size > minimum) {
@@ -97,9 +93,9 @@ export default function CatRichParticleLogo({
   text = DEFAULT_TEXT,
   className = '',
   variant = 'default',
-  interactionRadius = 34,
-  magneticStrength = 0.62,
-  spring = 0.1,
+  interactionRadius = 30,
+  magneticStrength = 0.5,
+  spring = 0.11,
   damping = 0.82,
 }) {
   const hostRef = useRef(null);
@@ -130,7 +126,7 @@ export default function CatRichParticleLogo({
     let pointerVelocityY = 0;
     let calmFrames = 0;
 
-    const navFamily = '"Helvetica Neue", Helvetica, Arial, ui-sans-serif, system-ui, sans-serif';
+    const navFamily = 'Inter, "Helvetica Neue", Helvetica, Arial, ui-sans-serif, system-ui, sans-serif';
     const defaultFamily = 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
 
     function drawParticle(particle) {
@@ -172,9 +168,9 @@ export default function CatRichParticleLogo({
       if (!measureCtx) return;
 
       const fontSize = resolveFontSize(measureCtx, text, cssWidth, cssHeight, family, navMode);
-      const weight = navMode ? 650 : 800;
-      const spacing = navMode ? 0.08 : 0;
-      const sourceScale = navMode ? 5 : 2;
+      const weight = navMode ? 620 : 780;
+      const spacing = navMode ? 0.18 : 0;
+      const sourceScale = navMode ? 6 : 2;
 
       const mask = document.createElement('canvas');
       mask.width = Math.max(1, Math.round(cssWidth * sourceScale));
@@ -187,56 +183,92 @@ export default function CatRichParticleLogo({
       maskCtx.font = getFontString(fontSize, family, weight);
       maskCtx.textBaseline = 'middle';
       maskCtx.fillStyle = '#fff';
-      drawSpacedText(maskCtx, text, cssWidth / 2, (cssHeight / 2) + (navMode ? 0.2 : 0), spacing);
+      drawSpacedText(maskCtx, text, cssWidth / 2, (cssHeight / 2) + (navMode ? 0.15 : 0), spacing);
       maskCtx.setTransform(1, 0, 0, 1, 0, 0);
 
       const pixels = maskCtx.getImageData(0, 0, mask.width, mask.height).data;
       particles.length = 0;
 
-      const gapX = navMode ? 1.52 : 2.8;
-      const gapY = navMode ? 1.68 : 2.8;
-      const threshold = navMode ? 6 : 48;
-      const candidates = [];
-      let row = 0;
+      const sampleAlpha = (x, y) => {
+        const sx = Math.max(0, Math.min(mask.width - 1, Math.round(x * sourceScale)));
+        const sy = Math.max(0, Math.min(mask.height - 1, Math.round(y * sourceScale)));
+        return pixels[((sy * mask.width) + sx) * 4 + 3];
+      };
 
-      for (let y = 2; y < cssHeight - 2; y += gapY, row += 1) {
-        const rowOffset = (row % 2) * (gapX / 2);
-        for (let x = 2 + rowOffset; x < cssWidth - 2; x += gapX) {
-          const sampleX = Math.max(0, Math.min(mask.width - 1, Math.round(x * sourceScale)));
-          const sampleY = Math.max(0, Math.min(mask.height - 1, Math.round(y * sourceScale)));
-          const alpha = pixels[((sampleY * mask.width) + sampleX) * 4 + 3];
-          if (alpha > threshold) candidates.push([x, y, alpha]);
+      if (navMode) {
+        const cell = 1.34;
+        const edgeStep = 0.72;
+        const maxParticles = 7200;
+        const candidates = [];
+
+        let row = 0;
+        for (let y = 1.5; y < cssHeight - 1.5; y += cell, row += 1) {
+          let col = 0;
+          for (let x = 1.5; x < cssWidth - 1.5; x += cell, col += 1) {
+            const n1 = seededNoise(col, row, 11);
+            const n2 = seededNoise(col, row, 17);
+            const jx = (n1 - 0.5) * cell * 0.88;
+            const jy = (n2 - 0.5) * cell * 0.88;
+            const px = x + jx;
+            const py = y + jy;
+            const alpha = sampleAlpha(px, py);
+            if (alpha < 18) continue;
+
+            const left = sampleAlpha(px - edgeStep, py);
+            const right = sampleAlpha(px + edgeStep, py);
+            const up = sampleAlpha(px, py - edgeStep);
+            const down = sampleAlpha(px, py + edgeStep);
+            const edgeDelta = Math.max(
+              Math.abs(alpha - left),
+              Math.abs(alpha - right),
+              Math.abs(alpha - up),
+              Math.abs(alpha - down),
+            );
+            const edge = Math.min(1, edgeDelta / 150);
+            const density = alpha / 255;
+            const keepChance = 0.48 + (density * 0.34) + (edge * 0.24);
+            if (seededNoise(col, row, 23) > Math.min(0.99, keepChance)) continue;
+
+            candidates.push({ px, py, density, edge, n1, n2 });
+          }
         }
-      }
 
-      const maxParticles = navMode ? 6400 : 3000;
-      const stride = Math.max(1, Math.ceil(candidates.length / maxParticles));
-
-      for (let index = 0; index < candidates.length; index += stride) {
-        const [baseX, baseY, alpha] = candidates[index];
-        const density = alpha / 255;
-        const n1 = seededNoise(baseX, baseY, 2);
-        const n2 = seededNoise(baseX, baseY, 3);
-        const jitter = navMode ? 0.26 : 0.18;
-        const x = baseX + ((n1 - 0.5) * jitter);
-        const y = baseY + ((n2 - 0.5) * jitter);
-        const radius = navMode
-          ? 0.24 + (density * 0.46) + (n1 * 0.035)
-          : 0.48 + (density * 0.4) + (n1 * 0.08);
-
-        particles.push({
-          x,
-          y,
-          homeX: x,
-          homeY: y,
-          vx: 0,
-          vy: 0,
-          radius,
-          opacity: navMode ? 0.48 + (density * 0.5) : 0.62 + (density * 0.35),
-          color: navMode
-            ? gradientColorAt(x / Math.max(1, cssWidth))
-            : (window.getComputedStyle(host).color || '#155da9'),
-        });
+        const stride = Math.max(1, Math.ceil(candidates.length / maxParticles));
+        for (let index = 0; index < candidates.length; index += stride) {
+          const { px, py, density, edge, n1 } = candidates[index];
+          const radius = 0.23 + (density * 0.24) + (edge * 0.13) + (n1 * 0.035);
+          particles.push({
+            x: px,
+            y: py,
+            homeX: px,
+            homeY: py,
+            vx: 0,
+            vy: 0,
+            radius,
+            opacity: 0.62 + (density * 0.22) + (edge * 0.13),
+            color: gradientColorAt(px / Math.max(1, cssWidth)),
+          });
+        }
+      } else {
+        const gap = 2.75;
+        for (let y = gap; y < cssHeight - gap; y += gap) {
+          for (let x = gap; x < cssWidth - gap; x += gap) {
+            const alpha = sampleAlpha(x, y);
+            if (alpha <= 56) continue;
+            const density = alpha / 255;
+            particles.push({
+              x,
+              y,
+              homeX: x,
+              homeY: y,
+              vx: 0,
+              vy: 0,
+              radius: 0.48 + (density * 0.38),
+              opacity: 0.68 + (density * 0.28),
+              color: window.getComputedStyle(host).color || '#155da9',
+            });
+          }
+        }
       }
 
       calmFrames = 0;
@@ -263,15 +295,14 @@ export default function CatRichParticleLogo({
             const proximity = 1 - (distance / interactionRadius);
             const eased = proximity * proximity;
             const cursorEnergy = Math.min(
-              navMode ? 0.72 : 1.35,
-              Math.hypot(pointerVelocityX, pointerVelocityY) * (navMode ? 0.02 : 0.04),
+              navMode ? 0.55 : 1.2,
+              Math.hypot(pointerVelocityX, pointerVelocityY) * (navMode ? 0.016 : 0.035),
             );
             const force = eased * magneticStrength * (1 + cursorEnergy);
-
             particle.vx += nx * force;
             particle.vy += ny * force;
-            particle.vx += (-ny * force * (navMode ? 0.035 : 0.08));
-            particle.vy += (nx * force * (navMode ? 0.035 : 0.08));
+            particle.vx += -ny * force * (navMode ? 0.028 : 0.07);
+            particle.vy += nx * force * (navMode ? 0.028 : 0.07);
           }
         }
 
@@ -283,19 +314,19 @@ export default function CatRichParticleLogo({
         particle.y += particle.vy;
 
         energy += Math.abs(particle.vx) + Math.abs(particle.vy)
-          + (Math.abs(particle.homeX - particle.x) * 0.06)
-          + (Math.abs(particle.homeY - particle.y) * 0.06);
+          + (Math.abs(particle.homeX - particle.x) * 0.05)
+          + (Math.abs(particle.homeY - particle.y) * 0.05);
 
         drawParticle(particle);
       }
 
-      pointerVelocityX *= 0.74;
-      pointerVelocityY *= 0.74;
+      pointerVelocityX *= 0.72;
+      pointerVelocityY *= 0.72;
 
-      if (!pointer.active && energy < Math.max(0.08, particles.length * 0.00008)) calmFrames += 1;
+      if (!pointer.active && energy < Math.max(0.07, particles.length * 0.00007)) calmFrames += 1;
       else calmFrames = 0;
 
-      if (!pointer.active && calmFrames > 10) {
+      if (!pointer.active && calmFrames > 9) {
         renderStatic();
         running = false;
         frame = 0;
@@ -377,7 +408,6 @@ export default function CatRichParticleLogo({
       className={`catrich-particle-logo ${className}`.trim()}
       role="img"
       aria-label={text}
-      title={text}
     >
       <canvas ref={canvasRef} aria-hidden="true" />
       <span className="catrich-particle-logo__fallback">{text}</span>
