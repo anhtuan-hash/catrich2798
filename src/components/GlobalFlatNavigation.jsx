@@ -2,6 +2,7 @@ import React from 'react';
 import '../data/registerSeatingChartStudio.js';
 import Navigation from './GlobalCompactNavigation.jsx';
 import GlobalWindowsPhone8Loading from './GlobalWindowsPhone8Loading.jsx';
+import GlobalWindows8Experience from './GlobalWindows8Experience.jsx';
 import GlobalEditorialBriefBar from './GlobalEditorialBriefBar.jsx';
 import GlobalPinnedNavigationHub from './GlobalPinnedNavigationHub.jsx';
 import GlobalNativeTextScaleReset from './GlobalNativeTextScaleReset.jsx';
@@ -24,10 +25,9 @@ import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
 import GlobalWeeklyPracticeBridge from './GlobalWeeklyPracticeBridge.jsx';
 import GlobalEditorialAuthorityRuntime from './GlobalEditorialAuthorityRuntime.jsx';
 
-// Shared non-navigation utilities only. Navigation geometry, visual state and
-// semantic ordering are owned exclusively by GlobalNavigationFinal2026.css.
-// Legacy runtimes that wrote inline !important typography/order/height or
-// inserted Metro/Windows-8 motion indicators have been retired from this shell.
+// Shared utilities. Motion Library v2 owns general motion; the restored
+// GlobalWindows8Experience is mounted only to provide the authentic WinRT
+// content choreography when the Metro Sweep page effect is selected.
 import './GlobalGoogleMaterialOverride.css';
 import './GlobalCommandPaletteGoogle.css';
 import './GlobalCommandPaletteFocusFix.css';
@@ -52,6 +52,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalNativeTextScaleReset />
       <Navigation {...props} />
       <GlobalPinnedNavigationHub route={props.route} />
+      <GlobalWindows8Experience route={props.route} />
       <GlobalWindowsPhone8Loading />
       <GlobalEditorialBriefBar route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
