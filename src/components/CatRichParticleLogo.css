@@ -1,4 +1,4 @@
-/* Interactive catrich.mauxanh signature — organic contour stipple gradient. */
+/* Interactive catrich.mauxanh signature — dense micro-dot core with soft edge field. */
 .catrich-particle-logo{
   position:relative;
   pointer-events:auto;
@@ -26,13 +26,13 @@
 }
 
 .catrich-particle-logo--nav{
-  width:clamp(232px,15.4vw,258px);
-  height:44px;
+  width:clamp(226px,15vw,246px);
+  height:46px;
   flex:0 0 auto;
   align-self:center;
   overflow:visible;
   opacity:1;
-  filter:saturate(.98);
+  filter:none;
   font-family:Inter,"Helvetica Neue",Helvetica,Arial,ui-sans-serif,system-ui,sans-serif;
 }
 
@@ -43,11 +43,11 @@ html body .brian-nav__actions > .brian-nav__popover-wrap:not(.brian-nav__ai-wrap
 html body .brian-nav__actions > .brian-nav__login{order:5!important}
 
 @media(max-width:1360px){
-  .catrich-particle-logo--nav{width:214px}
+  .catrich-particle-logo--nav{width:210px}
 }
 
 @media(max-width:1180px){
-  .catrich-particle-logo--nav{width:196px}
+  .catrich-particle-logo--nav{width:194px}
 }
 
 @media(max-width:1080px){
