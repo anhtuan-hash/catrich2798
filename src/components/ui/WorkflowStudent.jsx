@@ -69,6 +69,49 @@ export function StudentCard({
   );
 }
 
+export function ClassCard({
+  name,
+  grade,
+  schoolYear,
+  role,
+  studentCount,
+  homeroomTeacher,
+  metrics = [],
+  status,
+  statusLabel,
+  actions,
+  className,
+}) {
+  const statusVariant = status === 'ready' ? 'success' : status === 'attention' ? 'warning' : 'neutral';
+  return (
+    <article className={cx('bwf-class-card', className)}>
+      <div className="bwf-class-card__heading">
+        <div>
+          <p className="bwf-class-card__eyebrow">{[grade, schoolYear].filter(Boolean).join(' · ') || 'Lớp học'}</p>
+          <h3>{name}</h3>
+        </div>
+        {status ? <Badge variant={statusVariant}>{statusLabel || status}</Badge> : null}
+      </div>
+      <div className="bwf-class-card__meta">
+        {role ? <span>{role}</span> : null}
+        {Number.isFinite(studentCount) ? <span>{studentCount} học sinh</span> : null}
+        {homeroomTeacher ? <span>GVCN: {homeroomTeacher}</span> : null}
+      </div>
+      {metrics.length ? (
+        <dl className="bwf-class-card__metrics">
+          {metrics.map((metric, index) => (
+            <div key={metric.key || metric.label || index}>
+              <dt>{metric.label}</dt>
+              <dd>{metric.value}</dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
+      {actions ? <div className="bwf-class-card__actions">{actions}</div> : null}
+    </article>
+  );
+}
+
 export function ViolationCard({
   title,
   studentName,
