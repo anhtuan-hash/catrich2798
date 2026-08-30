@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
 import editorialCss from '../styles/GlobalEditorialAuthority2026.css?inline';
 import navigationCss from '../styles/GlobalNavigationFinal2026.css?inline';
+import stage5AppCss from '../styles/BrianStage5Migration.css?inline';
+import stage5WorkflowCss from '../styles/BrianStage5WorkflowMigration.css?inline';
 
 const STYLE_ID = 'bes-global-editorial-authority-2026';
-const finalEditorialCss = `${editorialCss}\n\n${navigationCss}`;
+const finalEditorialCss = `${editorialCss}\n\n${navigationCss}\n\n${stage5AppCss}\n\n${stage5WorkflowCss}`;
 
 function ensureFinalStyleNode() {
   let style = document.getElementById(STYLE_ID);
@@ -51,8 +53,8 @@ export default function GlobalEditorialAuthorityRuntime() {
     document.documentElement.dataset.besEditorialSystem = '2026';
 
     // Lazy routes may inject their own CSS after the shell mounts. Keep the one
-    // editorial bundle — with GlobalNavigationFinal2026 last inside it — at the
-    // absolute end of <head>, so route CSS cannot become a second nav authority.
+    // editorial bundle — with GlobalNavigationFinal2026 and Stage 5 route
+    // adapters at the end — as the absolute final visual authority.
     const observer = new MutationObserver((mutations) => {
       const hasNewStylesheet = mutations.some((mutation) => [...mutation.addedNodes].some((node) => {
         if (!(node instanceof HTMLElement) || node === style) return false;
