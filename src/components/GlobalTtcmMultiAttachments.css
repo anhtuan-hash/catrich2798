@@ -113,6 +113,137 @@
   line-height: 1.4;
 }
 
+/*
+ * TTCM editorial matrix masthead.
+ * Adapted from the Uiverse matrix idea, but intentionally restrained so the
+ * communication workspace keeps its editorial hierarchy and readability.
+ * The monospace face is used only by decorative pseudo-content.
+ */
+.ttcm-reader-shell.ttcm-m3-shell .ttcm-m3-topbar {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    linear-gradient(
+      110deg,
+      rgba(255, 253, 249, .995) 0%,
+      rgba(255, 253, 249, .97) 42%,
+      rgba(241, 246, 253, .94) 72%,
+      rgba(235, 243, 253, .98) 100%
+    ) !important;
+}
+
+.ttcm-reader-shell.ttcm-m3-shell .ttcm-m3-topbar::before,
+.ttcm-reader-shell.ttcm-m3-shell .ttcm-m3-topbar::after {
+  position: absolute;
+  inset: -18px -12px;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  white-space: pre-wrap;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 25px;
+  letter-spacing: .06em;
+  word-spacing: 14px;
+}
+
+.ttcm-reader-shell.ttcm-m3-shell .ttcm-m3-topbar::before {
+  content: "A  12  ✓  B  03  ↗  T  26  ✦  E  11  +  C  01  ○  →  □  •  12  A  26  ✓  T  B  ↗  11  E  ✦  03  +  C  01  ○  →  □  •  A  12  ✓  B  03  ↗  T  26  ✦  E  11  +  C  01\A26  E  □  11  →  A  03  ✓  T  ✦  B  12  ○  +  C  ↗  01  •  26  E  □  11  →  A  03  ✓  T  ✦  B  12  ○  +  C  ↗  01  •  26  E  □  11  →  A  03  ✓  T  ✦  B  12  ○  +  C  ↗\A03  T  A  ✦  12  E  ✓  26  B  →  11  C  ○  01  ↗  □  +  •  03  T  A  ✦  12  E  ✓  26  B  →  11  C  ○  01  ↗  □  +  •  03  T  A  ✦  12  E  ✓  26  B  →  11  C  ○  01  ↗  □  +\A✓  B  26  01  E  A  ↗  12  □  T  03  +  →  C  11  ✦  ○  •  ✓  B  26  01  E  A  ↗  12  □  T  03  +  →  C  11  ✦  ○  •  ✓  B  26  01  E  A  ↗  12  □  T  03  +  →  C  11  ✦  ○\11  ○  C  A  →  26  T  □  03  B  ✦  12  +  E  01  ✓  ↗  •  11  ○  C  A  →  26  T  □  03  B  ✦  12  +  E  01  ✓  ↗  •  11  ○  C  A  →  26  T  □  03  B  ✦  12  +  E  01  ✓  ↗  •";
+  color: rgba(39, 104, 168, .14);
+  opacity: .54;
+  text-shadow: 0 0 5px rgba(39, 104, 168, .10);
+  transform: translate3d(0, 0, 0);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 18%, #000 90%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 18%, #000 90%, transparent 100%);
+  animation: ttcm-editorial-matrix-breathe 7.8s ease-in-out infinite;
+}
+
+.ttcm-reader-shell.ttcm-m3-shell .ttcm-m3-topbar::after {
+  content: "✦       12                ✓             26       ↗                E          □             A                 03       +                  T       ○              11       →          B\A              26         ✦                   11              ✓        T               03              ↗                 C          □             E               +\A      ✓                 03              A             ✦                  12           →               26             B                 ○        T                  11";
+  color: rgba(37, 99, 235, .32);
+  opacity: .28;
+  text-shadow:
+    0 0 8px rgba(37, 99, 235, .22),
+    0 0 14px rgba(79, 70, 229, .10);
+  transform: translate3d(18px, 3px, 0);
+  -webkit-mask-image: linear-gradient(90deg, transparent 4%, #000 30%, #000 92%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 4%, #000 30%, #000 92%, transparent 100%);
+  animation: ttcm-editorial-matrix-pulse 5.9s ease-in-out infinite .45s;
+}
+
+.ttcm-reader-shell.ttcm-m3-shell .ttcm-m3-topbar > .ttcm-m3-title,
+.ttcm-reader-shell.ttcm-m3-shell .ttcm-m3-topbar > .ttcm-m3-top-actions {
+  position: relative;
+  z-index: 2;
+}
+
+.ttcm-reader-shell.ttcm-m3-shell .ttcm-m3-topbar > .ttcm-m3-title::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: -13px;
+  right: -34px;
+  bottom: -13px;
+  left: -16px;
+  border-radius: 22px;
+  background: linear-gradient(90deg, rgba(255,253,249,.96), rgba(255,253,249,.78) 68%, rgba(255,253,249,0));
+  pointer-events: none;
+}
+
+@keyframes ttcm-editorial-matrix-breathe {
+  0%,
+  100% {
+    color: rgba(39, 104, 168, .11);
+    opacity: .38;
+    text-shadow: 0 0 5px rgba(39, 104, 168, .08);
+    transform: translate3d(0, 0, 0);
+  }
+
+  42% {
+    color: rgba(39, 104, 168, .28);
+    opacity: .66;
+    text-shadow:
+      0 0 8px rgba(39, 104, 168, .18),
+      0 0 13px rgba(39, 104, 168, .08);
+    transform: translate3d(4px, -1px, 0);
+  }
+
+  68% {
+    color: rgba(79, 70, 229, .20);
+    opacity: .52;
+    text-shadow: 0 0 9px rgba(79, 70, 229, .12);
+    transform: translate3d(2px, 1px, 0);
+  }
+}
+
+@keyframes ttcm-editorial-matrix-pulse {
+  0%,
+  100% {
+    color: rgba(37, 99, 235, .18);
+    opacity: .16;
+    text-shadow: 0 0 6px rgba(37, 99, 235, .10);
+  }
+
+  36% {
+    color: rgba(37, 99, 235, .58);
+    opacity: .54;
+    text-shadow:
+      0 0 9px rgba(37, 99, 235, .30),
+      0 0 16px rgba(37, 99, 235, .14);
+  }
+
+  66% {
+    color: rgba(99, 102, 241, .38);
+    opacity: .36;
+    text-shadow:
+      0 0 10px rgba(99, 102, 241, .22),
+      0 0 18px rgba(255, 255, 255, .38);
+  }
+}
+
 @media (max-width: 760px) {
   .ttcm-m3-selected-file {
     grid-template-columns: minmax(0, 1fr);
@@ -120,5 +251,21 @@
 
   .ttcm-m3-selected-file-remove {
     justify-self: start;
+  }
+
+  .ttcm-reader-shell.ttcm-m3-shell .ttcm-m3-topbar::before,
+  .ttcm-reader-shell.ttcm-m3-shell .ttcm-m3-topbar::after {
+    font-size: 9px;
+    line-height: 22px;
+    word-spacing: 9px;
+    opacity: .34;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ttcm-reader-shell.ttcm-m3-shell .ttcm-m3-topbar::before,
+  .ttcm-reader-shell.ttcm-m3-shell .ttcm-m3-topbar::after {
+    animation: none !important;
+    transform: none;
   }
 }
