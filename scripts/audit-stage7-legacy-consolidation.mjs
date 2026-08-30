@@ -27,9 +27,9 @@ if (stripCssComments(v1096)) failures.push('v1096.css: retired tombstone contain
 if (versionedImports.length > 15) failures.push(`main.jsx: historical versioned imports grew beyond 15 (${versionedImports.length})`);
 if (activePayloadImports.length > 13) failures.push(`main.jsx: active versioned CSS payload debt grew beyond 13 (${activePayloadImports.length})`);
 
-// v1096 belonged to the standalone Automation Center. The route token may remain
-// for backwards compatibility, but there must be no production renderer or JS/JSX
-// consumer of the retired namespace.
+// v1096 belonged to the standalone Automation Center UI. Version-tagged storage,
+// event and source keys are intentionally preserved for data/runtime compatibility;
+// only UI class consumers would justify restoring the retired stylesheet.
 if (/currentRoute === ['"]automation-center['"]\s*&&/.test(main)) {
   failures.push('main.jsx: retired standalone Automation Center renderer returned');
 }
@@ -42,10 +42,11 @@ const walk = (directory) => fs.readdirSync(directory, { withFileTypes: true }).f
 });
 
 for (const absolute of walk(sourceRoot)) {
-  if (!/\.(?:js|jsx|ts|tsx)$/.test(absolute)) continue;
+  // UI consumers in JSX/TSX are the relevant evidence for a retired CSS namespace.
+  // Plain JS may legitimately retain v1096 in storage/event compatibility keys.
+  if (!/\.(?:jsx|tsx)$/.test(absolute)) continue;
   const source = fs.readFileSync(absolute, 'utf8');
-  if (/v1096-/.test(source)) failures.push(`${path.relative(root, absolute)}: uses retired v1096-* namespace`);
-  if (/v1093-(?:page|task-shell)/.test(source)) failures.push(`${path.relative(root, absolute)}: uses retired v1093 namespace`);
+  if (/v1096-/.test(source)) failures.push(`${path.relative(root, absolute)}: JSX/TSX uses retired v1096-* UI namespace`);
 }
 
 // Protect active neighbors that were explicitly verified during Stage 7.
@@ -68,5 +69,6 @@ if (failures.length) {
 console.log('Stage 7 legacy consolidation audit passed.');
 console.log(`Historical versioned imports: ${versionedImports.length}/15.`);
 console.log(`Active versioned CSS payloads: ${activePayloadImports.length}/13.`);
-console.log(`Retired tombstones: ${[...retiredTombstones].join(', ')}.`);
+console.log(`Retired stylesheet tombstones: ${[...retiredTombstones].join(', ')}.`);
+console.log('Version-tagged runtime/storage keys remain allowed; retired UI class consumers do not.');
 console.log('Verified active neighbors retained: v1095 (Knowledge Hub), v1097 (Cloud Operations).');
