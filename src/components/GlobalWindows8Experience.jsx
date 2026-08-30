@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { GLOBAL_MOTION_EVENT } from '../utils/globalMotionSystem.js';
+import './GlobalWindows8ExperienceV2.css';
 
 const ROUTE_ORDER = [
   'home', 'apps', 'news', 'games', 'tools', 'homeroom', 'homeroom-portal',
@@ -21,7 +22,10 @@ function isReducedMotion() {
 
 function windows8Active() {
   const root = document.documentElement;
-  return root?.dataset?.motionMode === 'windows8'
+  const metroSelected = root?.dataset?.motionPage === 'metro-sweep'
+    || root?.dataset?.motionMode === 'metro'
+    || root?.dataset?.motionMode === 'windows8';
+  return metroSelected
     && root?.dataset?.motionEnabled === 'true'
     && !isReducedMotion();
 }
@@ -53,33 +57,20 @@ function meaningfulChildren(container) {
   return [...container.children].filter(visibleElement);
 }
 
-/**
- * Windows 8 entrance transitions are content-first, not page-first. We prefer
- * meaningful siblings; when Brian renders a single route wrapper we descend
- * one level so hero/header/sections can arrive in sequence instead of moving
- * the whole screen as one giant card.
- */
 function collectChoreographyItems(main) {
   const direct = meaningfulChildren(main);
   let candidates = direct;
-
   if (direct.length === 1) {
     const nested = meaningfulChildren(direct[0]);
     if (nested.length >= 2) candidates = nested;
   }
-
   if (candidates.length < 2) {
     const discovered = [...(main.querySelectorAll?.([
-      ':scope > section',
-      ':scope > article',
-      ':scope > div > section',
-      ':scope > div > article',
-      ':scope > div > header',
-      ':scope > div > main > section',
+      ':scope > section', ':scope > article', ':scope > div > section',
+      ':scope > div > article', ':scope > div > header', ':scope > div > main > section',
     ].join(',')) || [])].filter(visibleElement);
     if (discovered.length) candidates = discovered;
   }
-
   const unique = [];
   for (const node of candidates) {
     if (!unique.includes(node)) unique.push(node);
@@ -103,10 +94,8 @@ function markExit(direction = 'forward') {
   if (!windows8Active()) return;
   const main = getMain();
   if (!main) return;
-
   main.dataset.w8Exiting = 'true';
-  const items = collectChoreographyItems(main);
-  items.forEach((node) => {
+  collectChoreographyItems(main).forEach((node) => {
     delete node.dataset.w8Enter;
     node.dataset.w8Exit = direction;
   });
@@ -115,17 +104,14 @@ function markExit(direction = 'forward') {
 function markEntrance() {
   const main = getMain();
   if (!main) return;
-
   clearNodeMotion(main);
   if (!windows8Active()) return;
-
   main.dataset.w8Choreography = 'true';
   const items = collectChoreographyItems(main);
   items.forEach((node, index) => {
     node.style.setProperty('--w8-stagger-index', String(index));
     node.dataset.w8Enter = 'true';
   });
-
   window.setTimeout(() => {
     if (!main?.isConnected) return;
     items.forEach((node) => {
@@ -135,13 +121,11 @@ function markEntrance() {
       }
     });
     delete main.dataset.w8Choreography;
-  }, 900);
+  }, 980);
 }
 
 function scheduleEntrance() {
-  window.requestAnimationFrame(() => {
-    window.requestAnimationFrame(markEntrance);
-  });
+  window.requestAnimationFrame(() => window.requestAnimationFrame(markEntrance));
 }
 
 export default function GlobalWindows8Experience({ route = 'home' }) {
@@ -150,7 +134,6 @@ export default function GlobalWindows8Experience({ route = 'home' }) {
 
   useEffect(() => {
     const root = document.documentElement;
-
     const onNavigationStart = (event) => {
       const from = routeName(event?.detail?.from || window.location.hash || previousRouteRef.current);
       const to = routeName(event?.detail?.target || route);
@@ -160,30 +143,25 @@ export default function GlobalWindows8Experience({ route = 'home' }) {
       root.dataset.metroTo = to;
       root.dataset.metroNavigating = 'true';
       markExit(direction);
-
       window.clearTimeout(cleanupTimerRef.current);
       cleanupTimerRef.current = window.setTimeout(() => {
         const main = getMain();
         if (main) delete main.dataset.w8Exiting;
       }, 180);
     };
-
     const onMotionChange = () => {
       const main = getMain();
       if (windows8Active()) scheduleEntrance();
       else clearNodeMotion(main);
     };
-
     const onHashChange = () => {
       previousRouteRef.current = routeName(window.location.hash);
       scheduleEntrance();
     };
-
     window.addEventListener('bes-navigation-start', onNavigationStart);
     window.addEventListener(GLOBAL_MOTION_EVENT, onMotionChange);
     window.addEventListener('hashchange', onHashChange);
     scheduleEntrance();
-
     return () => {
       window.clearTimeout(cleanupTimerRef.current);
       window.removeEventListener('bes-navigation-start', onNavigationStart);
