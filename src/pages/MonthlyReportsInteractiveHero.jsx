@@ -154,6 +154,9 @@ export default function MonthlyReportsInteractiveHero() {
 
   const statusMeta = STATUS_META[snapshot.status] || STATUS_META.draft;
   const progressLabel = snapshot.percent >= 100 ? 'Hoàn tất' : snapshot.percent >= 80 ? 'Sắp hoàn tất' : 'Đang thực hiện';
+  const reportMonthNumber = /^\d{4}-\d{2}$/.test(snapshot.month)
+    ? String(Number(snapshot.month.slice(5, 7)))
+    : '';
 
   const metrics = useMemo(() => [
     {
@@ -216,7 +219,10 @@ export default function MonthlyReportsInteractiveHero() {
       <div className="mr-material-hero__content">
         <div className="mr-material-hero__intro">
           <div className="mr-material-hero__eyebrow"><Sparkles /> BRIAN REPORTS</div>
-          <h1>Báo cáo công việc tháng</h1>
+          <h1>
+            Báo cáo công việc tháng
+            {reportMonthNumber && <span className="mr-material-hero__month-ink"> {reportMonthNumber}</span>}
+          </h1>
           <p>Tổng hợp, theo dõi và đánh giá toàn bộ hoạt động giảng dạy và công việc của bạn theo từng tháng.</p>
           <span className="mr-material-hero__rule" aria-hidden="true" />
 
