@@ -27,33 +27,38 @@ function Detail({ icon, label, value }) {
   </div>;
 }
 
-function EditorialCollage({ className, activeStudents }) {
-  const rows = Math.max(4, Math.min(7, activeStudents || 5));
-  return <div className="hr-editorial-collage" aria-hidden="true">
-    <span className="hr-editorial-collage__blue" />
-    <span className="hr-editorial-collage__sand" />
-    <span className="hr-editorial-collage__circle" />
-    <span className="hr-editorial-collage__dots" />
-    <span className="hr-editorial-collage__lines" />
+function EditorialDossier({ className, activeStudents, vi }) {
+  const rows = Math.max(5, Math.min(8, activeStudents || 6));
+  return <div className="hr-editorial-dossier" aria-hidden="true">
+    <span className="hr-editorial-grid-paper" />
+    <span className="hr-editorial-ink-brush" />
+    <span className="hr-editorial-dots" />
 
-    <div className="hr-editorial-booklet">
-      <span className="hr-editorial-booklet__mark">BE</span>
-      <span className="hr-editorial-booklet__rule" />
-      <span className="hr-editorial-booklet__rule short" />
+    <div className="hr-editorial-leaves">
+      <i /><i /><i /><i /><i />
+    </div>
+
+    <div className="hr-editorial-notebook">
+      <span className="hr-editorial-notebook__crest">B</span>
+      <strong>BRIAN<br />ENGLISH</strong>
+      <small>{vi ? 'HỒ SƠ CHỦ NHIỆM' : 'HOMEROOM DOSSIER'}</small>
+      <span className="hr-editorial-notebook__label">{className}</span>
     </div>
 
     <div className="hr-editorial-roster-paper">
       <span className="hr-editorial-paperclip" />
-      <small>DANH SÁCH HỌC SINH</small>
-      <div className="hr-editorial-roster-head"><span>STT</span><span>HỌ VÀ TÊN</span><span>GHI CHÚ</span></div>
+      <span className="hr-editorial-roster-stamp">{className}</span>
+      <small>{vi ? 'DANH SÁCH HỌC SINH' : 'STUDENT ROSTER'}</small>
+      <div className="hr-editorial-roster-head"><span>STT</span><span>{vi ? 'HỌ VÀ TÊN' : 'NAME'}</span><span>{vi ? 'GHI CHÚ' : 'NOTE'}</span></div>
       <div className="hr-editorial-roster-rows">
         {Array.from({ length: rows }).map((_, index) => <div key={index}><b>{String(index + 1).padStart(2, '0')}</b><span /><i /></div>)}
       </div>
     </div>
 
-    <div className="hr-editorial-note">
-      <Icon type="grade" />
-      <span>{className}</span>
+    <div className="hr-editorial-note-card">
+      <small>HOMEROOM</small>
+      <strong>{className}</strong>
+      <span>{vi ? 'Brian English · Class record' : 'Brian English · Class record'}</span>
     </div>
   </div>;
 }
@@ -118,16 +123,16 @@ export default function HomeroomGlassHero({
     aria-labelledby="hr-editorial-hero-title"
     data-class-type={classTypeLabel}
   >
-    <span className="hr-editorial-hero__vertical" aria-hidden="true">{subjectMode ? 'SUBJECT CLASS' : 'HOMEROOM'}</span>
-
     <div className="hr-editorial-hero__copy">
       <div className="hr-editorial-hero__masthead">
         <span>01</span><i /><b>{workspaceLabel}</b>
       </div>
 
-      <h1 id="hr-editorial-hero-title">{vi ? 'Lớp' : 'Class'} {className}</h1>
-      <p className="hr-editorial-hero__teacher-name">{teacherName}</p>
-      <span className="hr-editorial-hero__role">{roleShort}</span>
+      <h1 id="hr-editorial-hero-title">{vi ? 'Lớp' : 'Class'} <em>{className}</em></h1>
+      <p className="hr-editorial-hero__teacher-name"><span>{roleShort}</span>{teacherName}</p>
+      <p className="hr-editorial-hero__deck">{vi
+        ? 'Hồ sơ lớp học, danh sách học sinh và các tác vụ chủ nhiệm được gom trong một không gian làm việc thống nhất.'
+        : 'Class records, student roster and homeroom actions in one focused workspace.'}</p>
 
       <div className="hr-editorial-hero__ledger" aria-label={vi ? 'Thông tin lớp' : 'Class information'}>
         <Detail icon="calendar" label={vi ? 'Năm học' : 'School year'} value={schoolYear} />
@@ -145,7 +150,7 @@ export default function HomeroomGlassHero({
     </div>
 
     <div className="hr-editorial-hero__art">
-      <EditorialCollage className={className} activeStudents={activeStudents} />
+      <EditorialDossier className={className} activeStudents={activeStudents} vi={vi} />
 
       <aside className="hr-editorial-profile" aria-label={roleLong}>
         <div className="hr-editorial-profile__top">
