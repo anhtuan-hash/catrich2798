@@ -25,12 +25,13 @@ function drawParticle(ctx, particle, color) {
   ctx.translate(particle.x, particle.y);
   ctx.rotate(particle.angle);
   ctx.fillStyle = color;
+  ctx.globalAlpha = particle.opacity ?? 1;
 
   if (particle.shape === 'capsule') {
     roundedRect(ctx, -particle.length / 2, -particle.thickness / 2, particle.length, particle.thickness, particle.thickness / 2);
     ctx.fill();
   } else if (particle.shape === 'dash') {
-    roundedRect(ctx, -particle.length / 2, -particle.thickness / 2, particle.length, particle.thickness, Math.max(0.75, particle.thickness * 0.34));
+    roundedRect(ctx, -particle.length / 2, -particle.thickness / 2, particle.length, particle.thickness, Math.max(0.6, particle.thickness * 0.34));
     ctx.fill();
   } else {
     ctx.beginPath();
@@ -41,33 +42,43 @@ function drawParticle(ctx, particle, color) {
   ctx.restore();
 }
 
-function getParticleShape(x, y) {
+function getParticleShape(x, y, navMode) {
   const value = seededNoise(x, y, 1);
+  if (navMode) {
+    if (value < 0.90) return 'dot';
+    if (value < 0.985) return 'capsule';
+    return 'dash';
+  }
   if (value < 0.64) return 'dot';
   if (value < 0.86) return 'capsule';
   return 'dash';
 }
 
-function getFontString(size, family) {
-  return `800 ${size}px ${family}`;
+function getFontString(size, family, weight = 800) {
+  return `${weight} ${size}px ${family}`;
 }
 
-function resolveFontSize(ctx, text, width, height, family) {
-  let size = Math.min(height * 0.47, width * 0.105);
-  size = Math.max(26, size);
-  const maxWidth = width * 0.88;
+function resolveFontSize(ctx, text, width, height, family, navMode) {
+  let size = navMode
+    ? Math.min(height * 0.62, width * 0.14)
+    : Math.min(height * 0.47, width * 0.105);
+  const minimum = navMode ? 18 : 20;
+  size = Math.max(navMode ? 22 : 26, size);
+  const maxWidth = width * (navMode ? 0.96 : 0.88);
+  const weight = navMode ? 900 : 800;
 
-  while (size > 20) {
-    ctx.font = getFontString(size, family);
+  while (size > minimum) {
+    ctx.font = getFontString(size, family, weight);
     if (ctx.measureText(text).width <= maxWidth) return size;
-    size -= 1;
+    size -= 0.5;
   }
-  return 20;
+  return minimum;
 }
 
 export default function CatRichParticleLogo({
   text = DEFAULT_TEXT,
   className = '',
+  variant = 'default',
   interactionRadius = 92,
   magneticStrength = 1.55,
   spring = 0.052,
@@ -84,6 +95,7 @@ export default function CatRichParticleLogo({
     const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return undefined;
 
+    const navMode = variant === 'nav' || className.includes('catrich-particle-logo--nav');
     const reduceMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     const particles = [];
     const pointer = { x: -9999, y: -9999, active: false };
@@ -92,7 +104,9 @@ export default function CatRichParticleLogo({
     let cssHeight = 0;
     let dpr = 1;
     let particleColor = '#155da9';
-    let fontFamily = 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
+    let fontFamily = navMode
+      ? 'Arial, Helvetica, ui-sans-serif, system-ui, sans-serif'
+      : 'Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
     let reducedMotion = reduceMotionQuery.matches;
     let lastPointerX = 0;
     let lastPointerY = 0;
@@ -124,7 +138,7 @@ export default function CatRichParticleLogo({
 
       const styles = window.getComputedStyle(host);
       particleColor = styles.color || '#155da9';
-      fontFamily = styles.fontFamily || fontFamily;
+      if (!navMode && styles.fontFamily) fontFamily = styles.fontFamily;
 
       const source = document.createElement('canvas');
       source.width = cssWidth;
@@ -133,42 +147,49 @@ export default function CatRichParticleLogo({
       if (!sourceCtx) return;
 
       sourceCtx.clearRect(0, 0, cssWidth, cssHeight);
-      const fontSize = resolveFontSize(sourceCtx, text, cssWidth, cssHeight, fontFamily);
-      sourceCtx.font = getFontString(fontSize, fontFamily);
+      const fontSize = resolveFontSize(sourceCtx, text, cssWidth, cssHeight, fontFamily, navMode);
+      sourceCtx.font = getFontString(fontSize, fontFamily, navMode ? 900 : 800);
       sourceCtx.textAlign = 'center';
       sourceCtx.textBaseline = 'middle';
       sourceCtx.fillStyle = '#fff';
-      sourceCtx.fillText(text, cssWidth / 2, cssHeight / 2);
+      sourceCtx.fillText(text, cssWidth / 2, (cssHeight / 2) + (navMode ? 0.5 : 0));
 
       const pixels = sourceCtx.getImageData(0, 0, cssWidth, cssHeight).data;
       particles.length = 0;
 
       const area = cssWidth * cssHeight;
-      let gap = area > 250000 ? 5 : area > 130000 ? 4 : 3;
-      const estimated = Math.ceil(cssWidth / gap) * Math.ceil(cssHeight / gap);
-      if (estimated > 13500) gap += 1;
+      let gap;
+      if (navMode) gap = 2;
+      else {
+        gap = area > 250000 ? 5 : area > 130000 ? 4 : 3;
+        const estimated = Math.ceil(cssWidth / gap) * Math.ceil(cssHeight / gap);
+        if (estimated > 13500) gap += 1;
+      }
 
       const candidates = [];
+      const alphaThreshold = navMode ? 34 : 92;
       for (let y = gap; y < cssHeight - gap; y += gap) {
         for (let x = gap; x < cssWidth - gap; x += gap) {
           const alpha = pixels[((y * cssWidth) + x) * 4 + 3];
-          if (alpha > 92) candidates.push([x, y, alpha]);
+          if (alpha > alphaThreshold) candidates.push([x, y, alpha]);
         }
       }
 
-      const maxParticles = cssWidth < 600 ? 1500 : 2600;
+      const maxParticles = navMode ? 4800 : (cssWidth < 600 ? 1500 : 2600);
       const stride = Math.max(1, Math.ceil(candidates.length / maxParticles));
 
       for (let index = 0; index < candidates.length; index += stride) {
         const [x, y, alpha] = candidates[index];
-        const shape = getParticleShape(x, y);
+        const shape = getParticleShape(x, y, navMode);
         const n1 = seededNoise(x, y, 2);
         const n2 = seededNoise(x, y, 3);
         const angleBucket = Math.floor(seededNoise(x, y, 4) * 4);
         const angle = [0, Math.PI / 2, Math.PI / 4, -Math.PI / 4][angleBucket];
-        const radius = 0.85 + (n1 * 0.9);
-        const thickness = 1.5 + (n1 * 1.25);
-        const length = shape === 'dash' ? 3.5 + (n2 * 3.6) : 4.5 + (n2 * 4.8);
+        const radius = navMode ? 0.62 + (n1 * 0.42) : 0.85 + (n1 * 0.9);
+        const thickness = navMode ? 1.05 + (n1 * 0.45) : 1.5 + (n1 * 1.25);
+        const length = navMode
+          ? (shape === 'dash' ? 2.3 + (n2 * 1.2) : 2.6 + (n2 * 1.35))
+          : (shape === 'dash' ? 3.5 + (n2 * 3.6) : 4.5 + (n2 * 4.8));
 
         particles.push({
           x,
@@ -182,7 +203,7 @@ export default function CatRichParticleLogo({
           length,
           angle,
           shape,
-          alpha: alpha / 255,
+          opacity: navMode ? 0.78 + ((alpha / 255) * 0.22) : 1,
         });
       }
 
@@ -207,12 +228,12 @@ export default function CatRichParticleLogo({
             const ny = dy / distance;
             const normalized = 1 - (distance / interactionRadius);
             const force = normalized * normalized * magneticStrength;
-            const cursorEnergy = Math.min(1.7, Math.hypot(pointerVelocityX, pointerVelocityY) * 0.045);
+            const cursorEnergy = Math.min(navMode ? 1.05 : 1.7, Math.hypot(pointerVelocityX, pointerVelocityY) * (navMode ? 0.03 : 0.045));
 
             particle.vx += nx * force * (1 + cursorEnergy);
             particle.vy += ny * force * (1 + cursorEnergy);
-            particle.vx += (-ny * force * 0.14) + (pointerVelocityX * normalized * 0.0045);
-            particle.vy += (nx * force * 0.14) + (pointerVelocityY * normalized * 0.0045);
+            particle.vx += (-ny * force * (navMode ? 0.08 : 0.14)) + (pointerVelocityX * normalized * (navMode ? 0.0025 : 0.0045));
+            particle.vy += (nx * force * (navMode ? 0.08 : 0.14)) + (pointerVelocityY * normalized * (navMode ? 0.0025 : 0.0045));
           }
         }
 
@@ -284,7 +305,7 @@ export default function CatRichParticleLogo({
       canvas.removeEventListener('pointercancel', leavePointer);
       reduceMotionQuery.removeEventListener?.('change', onReducedMotionChange);
     };
-  }, [text, interactionRadius, magneticStrength, spring, damping]);
+  }, [text, className, variant, interactionRadius, magneticStrength, spring, damping]);
 
   return (
     <div
