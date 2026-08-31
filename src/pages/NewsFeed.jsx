@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { APPS, GAME_APPS, SPECIAL_TOOLS } from '../data/apps.js';
+import { isRetiredApp } from '../data/retiredApps.js';
 import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { hasRouteAccess } from '../utils/permissions.js';
 import './NewsFeed.css';
@@ -33,7 +34,6 @@ const APP_PRELOADERS = {
   'vietnam-tax': () => import('./VietnamTaxStudio.jsx'),
   'textlab-activities': () => import('./TextLabActivities.jsx'),
   textcare: () => import('./TextCareStudio.jsx'),
-  'game-hub': () => import('./Games.jsx'),
 };
 
 const copy = {
@@ -90,14 +90,14 @@ function localized(item, key, language) {
 }
 
 function canSeeItem(item, currentUser, appVisibility) {
-  if (!item || item.slug === 'news-feed') return false;
+  if (!item || item.slug === 'news-feed' || isRetiredApp(item)) return false;
   if (isAppHiddenForUser(appVisibility?.snapshot, currentUser, `tool:${item.slug}`)) return false;
   if (item.route) return hasRouteAccess(currentUser, item.route, item);
   return hasRouteAccess(currentUser, 'tool', item);
 }
 
 function preloadApp(item) {
-  if (!item?.slug || preloadedApps.has(item.slug)) return;
+  if (!item?.slug || isRetiredApp(item) || preloadedApps.has(item.slug)) return;
   const loader = APP_PRELOADERS[item.slug];
   if (!loader) return;
   preloadedApps.add(item.slug);
@@ -154,7 +154,7 @@ export default function NewsFeed({ language = 'vi', currentUser, appVisibility }
   }).format(now);
 
   const openApp = (item, event) => {
-    if (launchLockRef.current) return;
+    if (launchLockRef.current || isRetiredApp(item)) return;
 
     const target = appTarget(item);
     preloadApp(item);

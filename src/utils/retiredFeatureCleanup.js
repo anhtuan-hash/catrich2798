@@ -1,4 +1,5 @@
 import { installMonthlyReportReviewAccordion } from './monthlyReportReviewAccordion.js';
+import { isRetiredPath } from '../data/retiredApps.js';
 
 const RETIRED_STORAGE_KEYS = new Set([
   'bet-theme',
@@ -7,6 +8,15 @@ const RETIRED_STORAGE_KEYS = new Set([
   'bes-quick-dictionary-history-v1',
   'bes-appearance-v2',
   'bes-accent-color',
+  'bes.slot',
+  'bes.seatingChartStudio.v10',
+  'bes.askBrian.seatingChartStudio.v10',
+  'bes.mobileDock.seatingChartStudio.v10',
+  'bes.top5.cloud.v1',
+  'bes.top5.sessions.v1',
+  'bes.top5.visibility.v1',
+  'bes.mobileDock.top5.v1',
+  'bes.top5.lastCompletedSession.v1',
 ]);
 
 const RETIRED_STORAGE_PREFIXES = [
@@ -14,6 +24,13 @@ const RETIRED_STORAGE_PREFIXES = [
   'bes-global-music-v2:',
   'bes-shared-music-v2:',
   'brian-activity-graph:',
+  'bes.seating-chart-studio',
+  'bes.seatingChartStudio',
+  'bes.top5',
+  'bes.teaching-tool-hub',
+  'bes.game-hub',
+  'bes.games',
+  'bes.tesol-methodology',
 ];
 
 const RETIRED_APP_ROUTES = new Set([
@@ -21,8 +38,27 @@ const RETIRED_APP_ROUTES = new Set([
   'practice',
   'tool/teaching-methods-hub',
   'tool/activity-graph',
+  'tool/top5-studio',
+  'route/top5-studio',
+  'top5-studio',
+  'tesol-methodology',
+  'route/tesol-methodology',
+  'tool/tesol-methodology',
+  'tool/teaching-tool-hub',
+  'route/teaching-tool-hub',
+  'teaching-tool-hub',
+  'tool/seating-chart-studio',
+  'route/seating-chart-studio',
+  'seating-chart-studio',
+  'games',
+  'game',
+  'route/games',
+  'tool/game-hub',
+  'route/game-hub',
+  'game-hub',
 ]);
 
+const RETIRED_RECENTS_STORAGE_KEY = 'bes.recentActivities';
 let installed = false;
 
 function removeRetiredStorage() {
@@ -38,6 +74,29 @@ function removeRetiredStorage() {
   }
 }
 
+function itemLooksRetired(item) {
+  if (!item) return false;
+  if (typeof item === 'string') return isRetiredPath(item);
+  if (typeof item !== 'object') return false;
+  return [item.slug, item.route, item.path, item.href, item.hash, item.target, item.id]
+    .some((value) => value && isRetiredPath(value));
+}
+
+function removeRetiredRecents() {
+  try {
+    const raw = window.localStorage.getItem(RETIRED_RECENTS_STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return;
+    const cleaned = parsed.filter((item) => !itemLooksRetired(item));
+    if (cleaned.length !== parsed.length) {
+      window.localStorage.setItem(RETIRED_RECENTS_STORAGE_KEY, JSON.stringify(cleaned));
+    }
+  } catch {
+    // Ignore malformed or inaccessible legacy storage.
+  }
+}
+
 function currentHashRoute() {
   return String(window.location.hash || '')
     .replace(/^#\/?/, '')
@@ -48,7 +107,8 @@ function currentHashRoute() {
 }
 
 function redirectRetiredAppRoute() {
-  if (!RETIRED_APP_ROUTES.has(currentHashRoute())) return;
+  const route = currentHashRoute();
+  if (!RETIRED_APP_ROUTES.has(route) && !isRetiredPath(route)) return;
   window.location.hash = '#/apps';
 }
 
@@ -86,6 +146,7 @@ export function installRetiredFeatureCleanup() {
   if (installed || typeof window === 'undefined' || typeof document === 'undefined') return;
   installed = true;
   removeRetiredStorage();
+  removeRetiredRecents();
   redirectRetiredAppRoute();
   enforceLightOnlyDocument();
   clearRetiredAppearanceDocument();
@@ -94,6 +155,7 @@ export function installRetiredFeatureCleanup() {
 
   const enforce = () => {
     removeRetiredStorage();
+    removeRetiredRecents();
     enforceLightOnlyDocument();
     clearRetiredAppearanceDocument();
   };

@@ -99,15 +99,9 @@ export const APPS = [
   },
 ];
 
-export const GAME_APPS = [
-  {
-    slug: 'game-hub', route: 'games', icon: 'GH', tone: 'teal', group: 'Third-party Launchers', groupVi: 'Cổng trò chơi',
-    title: 'Game Hub', titleVi: 'Game Hub',
-    desc: 'Open trusted third-party classroom game platforms and save useful links for lessons.',
-    descVi: 'Mở nhanh các nền tảng game lớp học bên thứ ba và lưu link hữu ích cho bài dạy.',
-    status: 'Launcher', statusVi: 'Cổng mở nhanh', api: true, featured: true,
-  },
-];
+// Game Hub is permanently retired. Keep the export for compatibility with
+// existing imports, but expose no applications from this registry.
+export const GAME_APPS = [];
 
 export const SPECIAL_TOOLS = [];
 
