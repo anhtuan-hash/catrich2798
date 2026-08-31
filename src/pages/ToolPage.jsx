@@ -1,5 +1,6 @@
 import React, { Suspense, lazy, useMemo, useState } from 'react';
 
+const NewsFeed = lazy(() => import('./NewsFeed.jsx'));
 const NewsReader = lazy(() => import('./NewsReader.jsx'));
 const VietnamTaxStudio = lazy(() => import('./VietnamTaxStudio.jsx'));
 const TextCareStudio = lazy(() => import('./TextCareStudio.jsx'));
@@ -46,6 +47,7 @@ export default function ToolPage(props) {
   const [title, setTitle] = useState('My Activity');
   const preview = useMemo(() => buildPreview(content, selected, language), [content, selected, language]);
 
+  if (tool?.slug === 'news-feed') return renderLazy(NewsFeed, props);
   if (tool?.slug === 'gradebook-studio') return renderLazy(GradebookStudio, props);
   if (tool?.slug === 'textlab-activities') return renderLazy(TextLabActivities, props);
   if (tool?.slug === 'thpt-practice-hub') return renderLazy(THPTPracticeHub, props);
