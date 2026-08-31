@@ -1,21 +1,15 @@
 import React, { useEffect } from 'react';
-import { GLOBAL_MOTION_EVENT } from '../utils/globalMotionSystem.js';
 import './GlobalPageLaunchEffect.css';
 
-const LAUNCH_DURATION = 480;
+const LAUNCH_DURATION = 1150;
 const REVEAL_DURATION = 180;
-const LAUNCH_EASING = 'cubic-bezier(.2,.82,.2,1)';
-const FALLBACK_COLOR = '#6543b5';
 
 function reducedMotion() {
   return Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
 }
 
 function launchEffectEnabled() {
-  const root = document.documentElement;
-  return root?.dataset?.motionEnabled === 'true'
-    && root?.dataset?.motionPage === 'metro-sweep'
-    && !reducedMotion();
+  return !reducedMotion();
 }
 
 function internalHashTarget(value = '') {
@@ -27,104 +21,34 @@ function nextPaint(callback) {
   window.requestAnimationFrame(() => window.requestAnimationFrame(callback));
 }
 
-function isVeryLightColor(color = '') {
-  const rgb = String(color).match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\s*\)$/i);
-  if (rgb) {
-    const alpha = rgb[4] == null ? 1 : Number(rgb[4]);
-    if (alpha <= 0.08) return true;
-    const [r, g, b] = rgb.slice(1, 4).map(Number);
-    return ((r * 0.299) + (g * 0.587) + (b * 0.114)) > 232;
-  }
-  const hex = String(color).match(/^#([0-9a-f]{6})$/i);
-  if (hex) {
-    const raw = hex[1];
-    const r = parseInt(raw.slice(0, 2), 16);
-    const g = parseInt(raw.slice(2, 4), 16);
-    const b = parseInt(raw.slice(4, 6), 16);
-    return ((r * 0.299) + (g * 0.587) + (b * 0.114)) > 232;
-  }
-  return false;
+function makeCube(parent, index) {
+  const box = document.createElement('div');
+  box.className = `brian-cube-box brian-cube-box${index}`;
+  box.appendChild(document.createElement('div'));
+  parent.appendChild(box);
 }
 
-function readableColor(value = '') {
-  const color = String(value || '').trim();
-  if (!color || color === 'transparent' || color === 'rgba(0, 0, 0, 0)' || isVeryLightColor(color)) return '';
-  return color;
-}
-
-function sourceColor(sourceEl, preferred = '') {
-  const explicit = readableColor(preferred);
-  if (explicit) return explicit;
-  if (!sourceEl?.isConnected) return FALLBACK_COLOR;
-
-  let node = sourceEl;
-  for (let depth = 0; depth < 3 && node; depth += 1, node = node.parentElement) {
-    const style = window.getComputedStyle(node);
-    const tileColor = readableColor(style.getPropertyValue('--tile-color'));
-    if (tileColor) return tileColor;
-    const background = readableColor(style.backgroundColor);
-    if (background) return background;
-  }
-  return FALLBACK_COLOR;
-}
-
-function sourceLabel(sourceEl, preferred = '') {
-  const explicit = String(preferred || '').trim();
-  if (explicit) return explicit;
-  return String(
-    sourceEl?.getAttribute?.('aria-label')
-      || sourceEl?.textContent
-      || 'Brian',
-  ).replace(/\s+/g, ' ').trim().slice(0, 80) || 'Brian';
-}
-
-function sourceRect(sourceEl) {
-  const viewportWidth = Math.max(window.innerWidth, 1);
-  const viewportHeight = Math.max(window.innerHeight, 1);
-  const raw = sourceEl?.isConnected && typeof sourceEl.getBoundingClientRect === 'function'
-    ? sourceEl.getBoundingClientRect()
-    : null;
-
-  if (!raw || raw.width < 2 || raw.height < 2) {
-    const width = Math.min(180, viewportWidth * 0.22);
-    const height = Math.min(96, viewportHeight * 0.14);
-    return {
-      left: (viewportWidth - width) / 2,
-      top: (viewportHeight - height) / 2,
-      width,
-      height,
-    };
-  }
-
-  // Navigation tabs can be extremely thin. A minimum launch surface preserves
-  // the Windows 8 expansion feeling without creating an extreme scale ratio.
-  const width = Math.min(viewportWidth, Math.max(raw.width, 92));
-  const height = Math.min(viewportHeight, Math.max(raw.height, 52));
-  const left = Math.max(0, Math.min(viewportWidth - width, raw.left - ((width - raw.width) / 2)));
-  const top = Math.max(0, Math.min(viewportHeight - height, raw.top - ((height - raw.height) / 2)));
-  return { left, top, width, height };
-}
-
-function makeOverlay({ sourceEl, color, label }) {
-  const viewportWidth = Math.max(window.innerWidth, 1);
-  const viewportHeight = Math.max(window.innerHeight, 1);
-  const rect = sourceRect(sourceEl);
-  const scaleX = Math.max(rect.width / viewportWidth, 0.001);
-  const scaleY = Math.max(rect.height / viewportHeight, 0.001);
-  const initialTransform = `translate3d(${rect.left}px, ${rect.top}px, 0) scale(${scaleX}, ${scaleY})`;
-
+function makeOverlay() {
   const overlay = document.createElement('div');
   overlay.className = 'brian-global-launch-overlay';
-  overlay.setAttribute('aria-hidden', 'true');
-  overlay.style.background = sourceColor(sourceEl, color);
-  overlay.style.transform = initialTransform;
+  overlay.setAttribute('role', 'status');
+  overlay.setAttribute('aria-live', 'polite');
+  overlay.setAttribute('aria-label', 'Đang mở trang');
 
-  const copy = document.createElement('span');
-  copy.textContent = sourceLabel(sourceEl, label);
-  overlay.appendChild(copy);
+  const stage = document.createElement('div');
+  stage.className = 'brian-cube-transition';
+
+  for (let index = 0; index < 8; index += 1) makeCube(stage, index);
+
+  const ground = document.createElement('div');
+  ground.className = 'brian-cube-ground';
+  ground.appendChild(document.createElement('div'));
+  stage.appendChild(ground);
+
+  overlay.appendChild(stage);
   document.body.appendChild(overlay);
-
-  return { overlay, copy, initialTransform };
+  window.requestAnimationFrame(() => overlay.classList.add('is-active'));
+  return overlay;
 }
 
 export default function GlobalPageLaunchEffect() {
@@ -132,63 +56,39 @@ export default function GlobalPageLaunchEffect() {
     let locked = false;
     let clickSnapshot = null;
     let currentCleanup = null;
+    let launchTimer = 0;
+    let revealTimer = 0;
 
     const cleanupRoot = () => {
       document.documentElement.classList.remove('brian-global-page-launching');
       document.documentElement.removeAttribute('data-global-launch-owner');
     };
 
-    const beginLaunch = ({ target, sourceEl, color = '', label = '', navigateAtEnd = true }) => {
+    const clearTimers = () => {
+      window.clearTimeout(launchTimer);
+      window.clearTimeout(revealTimer);
+      launchTimer = 0;
+      revealTimer = 0;
+    };
+
+    const beginLaunch = ({ target, navigateAtEnd = true }) => {
       const normalizedTarget = internalHashTarget(target);
       if (!normalizedTarget || locked || !launchEffectEnabled()) return false;
       if (navigateAtEnd && window.location.hash === normalizedTarget) return false;
 
       locked = true;
+      clearTimers();
       document.documentElement.classList.add('brian-global-page-launching');
-      document.documentElement.dataset.globalLaunchOwner = 'windows8-app-launch';
-      sourceEl?.classList?.add('is-global-launch-source');
+      document.documentElement.dataset.globalLaunchOwner = 'cube-loader';
 
-      const { overlay, copy, initialTransform } = makeOverlay({ sourceEl, color, label });
-      const main = document.getElementById('bes-main-content') || document.querySelector('[data-bes-main-content]');
-
-      const pageAnimation = navigateAtEnd && main?.animate ? main.animate([
-        { opacity: 1, transform: 'translate3d(0,0,0)' },
-        { opacity: 0.16, transform: 'translate3d(-10px,0,0)' },
-      ], {
-        duration: 360,
-        delay: 80,
-        easing: 'cubic-bezier(.2,.8,.2,1)',
-        fill: 'forwards',
-      }) : null;
-
-      const labelAnimation = copy.animate([
-        { opacity: 0, transform: 'translate3d(34px,0,0)' },
-        { opacity: 0, transform: 'translate3d(20px,0,0)', offset: 0.28 },
-        { opacity: 0.92, transform: 'translate3d(0,0,0)' },
-      ], {
-        duration: LAUNCH_DURATION,
-        easing: LAUNCH_EASING,
-        fill: 'forwards',
-      });
-
-      const launchAnimation = overlay.animate([
-        { transform: initialTransform },
-        { transform: 'translate3d(0,0,0) scale(1,1)' },
-      ], {
-        duration: LAUNCH_DURATION,
-        easing: LAUNCH_EASING,
-        fill: 'forwards',
-      });
-
+      const overlay = makeOverlay();
       let cleaned = false;
+
       const cleanup = () => {
         if (cleaned) return;
         cleaned = true;
-        pageAnimation?.cancel();
-        labelAnimation?.cancel();
-        launchAnimation?.cancel();
+        clearTimers();
         overlay.remove();
-        sourceEl?.classList?.remove('is-global-launch-source');
         cleanupRoot();
         locked = false;
         currentCleanup = null;
@@ -201,22 +101,18 @@ export default function GlobalPageLaunchEffect() {
             cleanup();
             return;
           }
-          const reveal = overlay.animate([{ opacity: 1 }, { opacity: 0 }], {
-            duration: REVEAL_DURATION,
-            easing: 'cubic-bezier(.2,.8,.2,1)',
-            fill: 'forwards',
-          });
-          reveal.finished.then(cleanup).catch(cleanup);
+          overlay.classList.add('is-leaving');
+          revealTimer = window.setTimeout(cleanup, REVEAL_DURATION + 40);
         });
       };
 
-      launchAnimation.finished.then(() => {
-        if (navigateAtEnd) window.location.hash = normalizedTarget;
+      launchTimer = window.setTimeout(() => {
+        if (navigateAtEnd && window.location.hash !== normalizedTarget) {
+          window.location.hash = normalizedTarget;
+        }
         revealDestination();
-      }).catch(() => {
-        if (navigateAtEnd && window.location.hash !== normalizedTarget) window.location.hash = normalizedTarget;
-        cleanup();
-      });
+      }, LAUNCH_DURATION);
+
       return true;
     };
 
@@ -225,13 +121,7 @@ export default function GlobalPageLaunchEffect() {
       const target = internalHashTarget(event?.detail?.target);
       if (!target || target === window.location.hash) return;
       event.preventDefault();
-      beginLaunch({
-        target,
-        sourceEl: event?.detail?.sourceEl || null,
-        color: event?.detail?.color || '',
-        label: event?.detail?.label || '',
-        navigateAtEnd: true,
-      });
+      beginLaunch({ target, navigateAtEnd: true });
     };
 
     const onClickCapture = (event) => {
@@ -254,12 +144,7 @@ export default function GlobalPageLaunchEffect() {
       event.preventDefault();
       event.stopPropagation();
       clickSnapshot = null;
-      beginLaunch({
-        target,
-        sourceEl: anchor,
-        label: anchor.getAttribute('aria-label') || anchor.textContent || '',
-        navigateAtEnd: true,
-      });
+      beginLaunch({ target, navigateAtEnd: true });
     };
 
     const onClickBubble = () => {
@@ -271,33 +156,28 @@ export default function GlobalPageLaunchEffect() {
         if (locked || !launchEffectEnabled()) return;
         const target = internalHashTarget(window.location.hash);
         if (!target || target === snapshot.hash) return;
-        // Some legacy buttons assign location.hash directly instead of using
-        // launchRoute(). The URL changes synchronously, while hashchange/render
-        // happens on the next task, so this compositor overlay still starts in
-        // time to cover the destination paint.
-        beginLaunch({
-          target,
-          sourceEl: snapshot.sourceEl,
-          navigateAtEnd: false,
-        });
+
+        // Legacy controls may still assign location.hash directly. In that case
+        // the overlay cannot postpone the already-issued hash mutation, but it
+        // immediately covers the destination paint for a consistent transition.
+        beginLaunch({ target, navigateAtEnd: false });
       });
     };
 
-    const onMotionChange = () => {
-      if (!launchEffectEnabled() && locked) currentCleanup?.();
-    };
+    const onPageShow = () => currentCleanup?.();
 
     window.addEventListener('bes-navigation-start', onNavigationStart);
-    window.addEventListener(GLOBAL_MOTION_EVENT, onMotionChange);
+    window.addEventListener('pageshow', onPageShow);
     document.addEventListener('click', onClickCapture, true);
     document.addEventListener('click', onClickBubble, false);
 
     return () => {
       window.removeEventListener('bes-navigation-start', onNavigationStart);
-      window.removeEventListener(GLOBAL_MOTION_EVENT, onMotionChange);
+      window.removeEventListener('pageshow', onPageShow);
       document.removeEventListener('click', onClickCapture, true);
       document.removeEventListener('click', onClickBubble, false);
       currentCleanup?.();
+      clearTimers();
       cleanupRoot();
     };
   }, []);
