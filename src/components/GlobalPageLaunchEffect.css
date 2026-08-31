@@ -1,0 +1,53 @@
+html.brian-global-page-launching,
+html.brian-global-page-launching body {
+  overflow: hidden !important;
+}
+
+/* While a page launch owns the screen, freeze decorative motion underneath so
+   the compositor only has to move the launch surface. */
+html.brian-global-page-launching body #bes-main-content *,
+html.brian-global-page-launching body [data-bes-main-content] * {
+  animation-play-state: paused !important;
+  transition-duration: 0s !important;
+}
+
+html.brian-global-page-launching body .is-global-launch-source {
+  opacity: 0 !important;
+}
+
+.brian-global-launch-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: grid;
+  place-items: center;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  color: #fff;
+  pointer-events: none;
+  transform-origin: 0 0;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  contain: strict;
+  isolation: isolate;
+}
+
+.brian-global-launch-overlay > span {
+  max-width: min(80vw, 920px);
+  padding: 24px;
+  overflow: hidden;
+  font-family: "Segoe UI", Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: clamp(24px, 4vw, 58px);
+  line-height: 1;
+  font-weight: 300;
+  letter-spacing: -.035em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brian-global-launch-overlay { display: none !important; }
+}
