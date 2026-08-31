@@ -1,8 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { APPS, GAME_APPS, SPECIAL_TOOLS } from '../data/apps.js';
 import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { hasRouteAccess } from '../utils/permissions.js';
-import { launchRoute } from '../utils/navigation.js';
 import './NewsFeed.css';
 
 const TILE_COLORS = {
@@ -15,6 +14,26 @@ const TILE_COLORS = {
 };
 
 const CLUSTER_ORDER = ['work', 'teaching', 'studio'];
+const LAUNCH_DURATION = 480;
+const LAUNCH_EASING = 'cubic-bezier(.2,.82,.2,1)';
+const preloadedApps = new Set();
+
+const APP_PRELOADERS = {
+  'work-dashboard': () => import('./WorkDashboard.jsx'),
+  'gradebook-studio': () => import('./GradebookStudio.jsx'),
+  'brian-team': () => import('./BrianTeamPortal.jsx'),
+  'thpt-practice-hub': () => import('./THPTPracticeHub.jsx'),
+  'knowledge-hub': () => import('./KnowledgeHub.jsx'),
+  'platform-readiness': () => import('./PlatformReadiness.jsx'),
+  'cloud-operations': () => import('./CloudOperations.jsx'),
+  'data-governance': () => import('./DataGovernance.jsx'),
+  'resource-library-hub': () => import('./ResourceLibrary.jsx'),
+  'news-reader': () => import('./NewsReader.jsx'),
+  'vietnam-tax': () => import('./VietnamTaxStudio.jsx'),
+  'textlab-activities': () => import('./TextLabActivities.jsx'),
+  textcare: () => import('./TextCareStudio.jsx'),
+  'game-hub': () => import('./Games.jsx'),
+};
 
 const copy = {
   vi: {
@@ -76,15 +95,32 @@ function canSeeItem(item, currentUser, appVisibility) {
   return hasRouteAccess(currentUser, 'tool', item);
 }
 
+function preloadApp(item) {
+  if (!item?.slug || preloadedApps.has(item.slug)) return;
+  const loader = APP_PRELOADERS[item.slug];
+  if (!loader) return;
+  preloadedApps.add(item.slug);
+  loader().catch(() => preloadedApps.delete(item.slug));
+}
+
+function nextPaint(callback) {
+  window.requestAnimationFrame(() => window.requestAnimationFrame(callback));
+}
+
 export default function NewsFeed({ language = 'vi', currentUser, appVisibility }) {
   const t = copy[language] || copy.vi;
   const [query, setQuery] = useState('');
   const [now, setNow] = useState(() => new Date());
-  const [launching, setLaunching] = useState(null);
+  const rootRef = useRef(null);
+  const launchLockRef = useRef(false);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 30000);
     return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => () => {
+    if (!launchLockRef.current) document.documentElement.classList.remove('brian-news-feed-launching');
   }, []);
 
   const allApps = useMemo(
@@ -117,28 +153,104 @@ export default function NewsFeed({ language = 'vi', currentUser, appVisibility }
   }).format(now);
 
   const openApp = (item, event) => {
+    if (launchLockRef.current) return;
+
     const target = appTarget(item);
+    preloadApp(item);
+
     const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
-    if (reducedMotion) {
-      launchRoute({ target });
+    const source = event.currentTarget;
+    if (reducedMotion || typeof source?.animate !== 'function') {
+      window.location.hash = target;
       return;
     }
 
-    const rect = event.currentTarget.getBoundingClientRect();
+    const rect = source.getBoundingClientRect();
+    const viewportWidth = Math.max(window.innerWidth, 1);
+    const viewportHeight = Math.max(window.innerHeight, 1);
+    const scaleX = Math.max(rect.width / viewportWidth, 0.001);
+    const scaleY = Math.max(rect.height / viewportHeight, 0.001);
+    const initialTransform = `translate3d(${rect.left}px, ${rect.top}px, 0) scale(${scaleX}, ${scaleY})`;
     const color = TILE_COLORS[item.tone] || TILE_COLORS.blue;
-    setLaunching({
-      left: rect.left,
-      top: rect.top,
-      width: rect.width,
-      height: rect.height,
-      color,
-      title: localized(item, 'title', language),
+    const title = localized(item, 'title', language);
+    const root = rootRef.current;
+
+    launchLockRef.current = true;
+    root?.classList.add('is-launching');
+    source.classList.add('is-launch-source');
+    document.documentElement.classList.add('brian-news-feed-launching');
+
+    const overlay = document.createElement('div');
+    overlay.className = 'brian-news-feed-launch-overlay';
+    overlay.setAttribute('aria-hidden', 'true');
+    overlay.style.background = color;
+    overlay.style.transform = initialTransform;
+
+    const overlayLabel = document.createElement('span');
+    overlayLabel.textContent = title;
+    overlay.appendChild(overlayLabel);
+    document.body.appendChild(overlay);
+
+    const pageAnimation = root?.animate([
+      { opacity: 1, transform: 'translate3d(0,0,0)' },
+      { opacity: 0.18, transform: 'translate3d(-10px,0,0)' },
+    ], {
+      duration: 360,
+      delay: 80,
+      easing: 'cubic-bezier(.2,.8,.2,1)',
+      fill: 'forwards',
     });
-    window.setTimeout(() => launchRoute({ target }), 330);
+
+    const labelAnimation = overlayLabel.animate([
+      { opacity: 0, transform: 'translate3d(34px,0,0)' },
+      { opacity: 0, transform: 'translate3d(20px,0,0)', offset: 0.28 },
+      { opacity: 0.92, transform: 'translate3d(0,0,0)' },
+    ], {
+      duration: LAUNCH_DURATION,
+      easing: 'cubic-bezier(.2,.82,.2,1)',
+      fill: 'forwards',
+    });
+
+    const launchAnimation = overlay.animate([
+      { transform: initialTransform },
+      { transform: 'translate3d(0,0,0) scale(1,1)' },
+    ], {
+      duration: LAUNCH_DURATION,
+      easing: LAUNCH_EASING,
+      fill: 'forwards',
+    });
+
+    const cleanup = () => {
+      pageAnimation?.cancel();
+      labelAnimation?.cancel();
+      overlay.remove();
+      root?.classList.remove('is-launching');
+      source.classList.remove('is-launch-source');
+      document.documentElement.classList.remove('brian-news-feed-launching');
+      launchLockRef.current = false;
+    };
+
+    launchAnimation.finished.then(() => {
+      // Deliberately bypass launchRoute here. News Feed already owns the exit
+      // animation, so firing the global Metro route exit would double-animate.
+      window.location.hash = target;
+
+      nextPaint(() => {
+        const reveal = overlay.animate([
+          { opacity: 1 },
+          { opacity: 0 },
+        ], {
+          duration: 180,
+          easing: 'cubic-bezier(.2,.8,.2,1)',
+          fill: 'forwards',
+        });
+        reveal.finished.then(cleanup).catch(cleanup);
+      });
+    }).catch(cleanup);
   };
 
   return (
-    <div className="brian-news-feed" data-language={language}>
+    <div ref={rootRef} className="brian-news-feed" data-language={language}>
       <header className="brian-news-feed__header">
         <div className="brian-news-feed__title-block">
           <span className="brian-news-feed__eyebrow">{t.eyebrow}</span>
@@ -179,6 +291,8 @@ export default function NewsFeed({ language = 'vi', currentUser, appVisibility }
                       key={item.slug}
                       className={`brian-live-tile is-${size} ${item.featured ? 'is-live' : ''}`}
                       style={{ '--tile-color': color, '--tile-delay': `${(index % 6) * -1.1}s` }}
+                      onPointerEnter={() => preloadApp(item)}
+                      onFocus={() => preloadApp(item)}
                       onClick={(event) => openApp(item, event)}
                       aria-label={`${t.open}: ${title}`}
                     >
@@ -213,22 +327,6 @@ export default function NewsFeed({ language = 'vi', currentUser, appVisibility }
           <button type="button" onClick={() => setQuery('')}>{t.reset}</button>
         </div>
       )}
-
-      {launching ? (
-        <div
-          className="brian-news-feed__launch"
-          style={{
-            '--launch-left': `${launching.left}px`,
-            '--launch-top': `${launching.top}px`,
-            '--launch-width': `${launching.width}px`,
-            '--launch-height': `${launching.height}px`,
-            '--launch-color': launching.color,
-          }}
-          aria-hidden="true"
-        >
-          <span>{launching.title}</span>
-        </div>
-      ) : null}
     </div>
   );
 }
