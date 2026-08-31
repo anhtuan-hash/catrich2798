@@ -1,0 +1,111 @@
+.brian-nav__primary > button:first-child {
+  --home-active: 0;
+  position: relative;
+  isolation: isolate;
+  min-width: 118px;
+  min-height: 42px;
+  padding: 0 18px 0 44px;
+  overflow: visible;
+  border: 0 !important;
+  border-radius: 9999px !important;
+  background:
+    radial-gradient(at 51% 89%, hsla(266, 45%, 74%, calc(var(--home-active) * 1)) 0, transparent 52%),
+    radial-gradient(at 100% 100%, hsla(266, 36%, 60%, calc(var(--home-active) * 1)) 0, transparent 50%),
+    radial-gradient(at 22% 91%, hsla(266, 36%, 60%, calc(var(--home-active) * 1)) 0, transparent 50%),
+    hsl(0 0% 12%) !important;
+  color: #fff !important;
+  box-shadow:
+    inset 0 .5px hsl(0 0% 100% / .7),
+    inset 0 -1px 2px hsl(0 0% 0% / .85),
+    0 4px 10px -4px hsl(0 0% 0% / calc(1 - var(--home-active))),
+    0 0 0 calc(var(--home-active) * .375rem) hsl(260 97% 50% / .75) !important;
+  transform: scale(calc(1 + (var(--home-active) * .1))) !important;
+  transform-origin: center;
+  transition:
+    transform .3s ease-in-out,
+    box-shadow .3s ease-in-out,
+    background .3s ease-in-out !important;
+  cursor: pointer;
+}
+
+.brian-nav__primary > button:first-child:is(:hover, :focus-visible) {
+  --home-active: 1;
+}
+
+.brian-nav__primary > button:first-child:active {
+  transform: scale(1) !important;
+}
+
+/* Rotating light border inspired by the approved Uiverse button. */
+.brian-nav__primary > button:first-child::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 248deg,
+    rgba(255,255,255,.18) 275deg,
+    #fff 306deg,
+    rgba(255,255,255,.2) 334deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 0;
+  animation: brian-home-sparkle-border 2s linear infinite;
+}
+
+/* Sparkle mark: same three-star silhouette as the Generate Site demo. */
+.brian-nav__primary > button:first-child::after {
+  content: '' !important;
+  position: absolute !important;
+  left: 14px !important;
+  right: auto !important;
+  top: 50% !important;
+  bottom: auto !important;
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M14.187 8.096 15 5.25l.813 2.846a5.42 5.42 0 0 0 3.09 3.09L21.75 12l-2.846.813a5.42 5.42 0 0 0-3.09 3.09L15 18.75l-.813-2.846a5.42 5.42 0 0 0-3.09-3.09L8.25 12l2.846-.813a5.42 5.42 0 0 0 3.09-3.09ZM6 14.25l-.259 1.035a3.36 3.36 0 0 1-2.456 2.456L2.25 18l1.035.259a3.36 3.36 0 0 1 2.456 2.456L6 21.75l.259-1.035a3.36 3.36 0 0 1 2.455-2.456L9.75 18l-1.036-.259a3.36 3.36 0 0 1-2.455-2.456L6 14.25ZM6.5 4l-.197.5915a1.5 1.5 0 0 1-.7115.7115L5 5.5l.5915.197a1.5 1.5 0 0 1 .7115.7115L6.5 7l.197-.5915a1.5 1.5 0 0 1 .7115-.7115L8 5.5l-.5915-.197a1.5 1.5 0 0 1-.7115-.7115L6.5 4Z'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: contain !important;
+  transform: translateY(-50%) scale(1) rotate(0deg) !important;
+  transform-origin: center;
+  opacity: 1 !important;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.brian-nav__primary > button:first-child:is(:hover, :focus-visible)::after {
+  animation: brian-home-sparkle-pulse 1.5s linear .25s infinite !important;
+}
+
+/* The old active underline is intentionally replaced by the sparkle button treatment. */
+.brian-nav__primary > button:first-child.is-active::after {
+  content: '' !important;
+}
+
+@keyframes brian-home-sparkle-border {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes brian-home-sparkle-pulse {
+  0%, 34%, 71%, 100% { transform: translateY(-50%) scale(1) rotate(0deg); }
+  17% { transform: translateY(-50%) scale(1.22) rotate(-7deg); }
+  49% { transform: translateY(-50%) scale(.9) rotate(8deg); }
+  83% { transform: translateY(-50%) scale(1.16) rotate(-4deg); }
+}
+
+@media (max-width: 1180px) {
+  .brian-nav__primary > button:first-child {
+    min-width: 110px;
+    padding-inline: 42px 14px;
+  }
+}
