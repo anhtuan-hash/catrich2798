@@ -1,13 +1,37 @@
 .brian-pulse-logo{
+  --particle-ink:color-mix(in srgb,var(--brian-nav-ink,#173326) 70%,#6d7771 30%);
+  --particle-accent:color-mix(in srgb,var(--brian-nav-accent,#4f7f43) 34%,#2f6fe8 66%);
   position:relative;
   display:inline-flex;
   align-items:center;
   justify-content:center;
   min-width:0;
-  color:#3f4d47;
+  color:#44544d;
   user-select:none;
   -webkit-user-select:none;
   overflow:visible;
+  isolation:isolate;
+}
+
+.brian-pulse-logo::after{
+  content:'';
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:58%;
+  height:58%;
+  border-radius:50%;
+  transform:translate(-50%,-50%) scale(.92);
+  background:radial-gradient(circle, color-mix(in srgb,var(--particle-accent) 8%,transparent), transparent 68%);
+  opacity:0;
+  pointer-events:none;
+  transition:opacity 220ms ease, transform 260ms ease;
+  z-index:-1;
+}
+
+.brian-pulse-logo:hover::after{
+  opacity:.7;
+  transform:translate(-50%,-50%) scale(1.15);
 }
 
 .brian-pulse-logo__canvas{
@@ -17,6 +41,7 @@
   pointer-events:auto;
   touch-action:none;
   cursor:default;
+  filter:contrast(1.03);
 }
 
 .brian-pulse-logo__fallback{
@@ -31,18 +56,18 @@
 
 .brian-pulse-logo--nav{
   order:1!important;
-  width:48px;
-  height:48px;
-  flex:0 0 48px;
+  width:52px;
+  height:52px;
+  flex:0 0 52px;
   align-self:center;
   margin:0 3px 0 5px;
-  color:color-mix(in srgb,var(--brian-nav-ink,#173326) 68%,#6c756f 32%);
-  opacity:.86;
-  transition:opacity 160ms ease;
+  opacity:.9;
+  transition:opacity 160ms ease, transform 220ms ease;
 }
 
 .brian-pulse-logo--nav:hover{
   opacity:1;
+  transform:scale(1.035);
 }
 
 html body .brian-nav__actions > .brian-pulse-logo--nav{order:1!important}
@@ -52,9 +77,9 @@ html body .brian-nav__actions > .brian-nav__login{order:4!important}
 
 @media(max-width:1120px){
   .brian-pulse-logo--nav{
-    width:44px;
-    height:44px;
-    flex-basis:44px;
+    width:47px;
+    height:47px;
+    flex-basis:47px;
     margin-left:2px;
   }
 }
@@ -64,5 +89,6 @@ html body .brian-nav__actions > .brian-nav__login{order:4!important}
 }
 
 @media(prefers-reduced-motion:reduce){
-  .brian-pulse-logo--nav{transition:none}
+  .brian-pulse-logo--nav,
+  .brian-pulse-logo::after{transition:none}
 }
