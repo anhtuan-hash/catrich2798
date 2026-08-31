@@ -10,49 +10,53 @@ const STYLE_ID = 'bes-global-editorial-authority-2026';
 const RUNNER_WIDTH = 18;
 const RUNNER_HEIGHT = 3;
 const RUNNER_DURATION = 2800;
+const BLACK_SURFACE = '#171717';
+const BLACK_GLOW = 'rgba(255,255,255,.48)';
 const NAV_MOTION_TARGETS = [
   {
     key: 'home',
     selector: ".app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type",
-    glow: 'rgba(126,87,255,.72)',
+    glow: BLACK_GLOW,
+    surface: BLACK_SURFACE,
     home: true,
   },
   {
     key: 'apps',
     selector: ".app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):nth-of-type(2)",
-    glow: 'rgba(124,77,255,.72)',
-    surface: 'linear-gradient(135deg, #7c4dff 0%, #6941e8 100%)',
+    glow: BLACK_GLOW,
+    surface: BLACK_SURFACE,
   },
   {
     key: 'dashboard',
     selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__dashboard-tab',
-    glow: 'rgba(11,87,208,.72)',
-    surface: 'linear-gradient(135deg, #0b57d0 0%, #0847ad 100%)',
+    glow: BLACK_GLOW,
+    surface: BLACK_SURFACE,
   },
   {
     key: 'homeroom',
     selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__homeroom-tab',
-    glow: 'rgba(24,128,56,.72)',
-    surface: 'linear-gradient(135deg, #188038 0%, #11662c 100%)',
+    glow: BLACK_GLOW,
+    surface: BLACK_SURFACE,
   },
   {
     key: 'gradebook',
     selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__gradebook-tab',
-    glow: 'rgba(26,115,232,.72)',
-    surface: 'linear-gradient(135deg, #1a73e8 0%, #1558b5 100%)',
+    glow: BLACK_GLOW,
+    surface: BLACK_SURFACE,
   },
   {
     key: 'reports',
     selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.brian-nav__reports-send',
-    glow: 'rgba(65,105,225,.80)',
+    glow: BLACK_GLOW,
+    surface: BLACK_SURFACE,
     preserveOverflow: true,
     runnerInset: 3,
   },
   {
     key: 'ttcm',
     selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__ttcm-tab',
-    glow: 'rgba(103,80,164,.76)',
-    surface: 'linear-gradient(135deg, #6750a4 0%, #514080 100%)',
+    glow: BLACK_GLOW,
+    surface: BLACK_SURFACE,
   },
 ];
 const finalEditorialCss = `${editorialCss}\n\n${navigationCss}\n\n${stage5AppCss}\n\n${stage5WorkflowCss}\n\n${stage6PolishCss}\n\n${homeSparkleCss}`;
@@ -152,14 +156,14 @@ function styleColoredSurface(button, config) {
   if (!config.surface) return;
   const set = (name, value) => button.style.setProperty(name, value, 'important');
   set('background', config.surface);
-  set('background-image', config.surface);
+  set('background-image', 'none');
   set('color', '#fff');
-  set('border-color', 'rgba(255,255,255,.28)');
+  set('border-color', 'rgba(255,255,255,.18)');
   set(
     'box-shadow',
-    `inset 0 .5px rgba(255,255,255,.52), inset 0 -1px 2px rgba(0,0,0,.20), 0 5px 14px ${config.glow}`,
+    `inset 0 .5px rgba(255,255,255,.34), inset 0 -1px 2px rgba(0,0,0,.34), 0 5px 14px rgba(0,0,0,.28), 0 0 12px ${config.glow}`,
   );
-  set('text-shadow', '0 1px 1px rgba(0,0,0,.14)');
+  set('text-shadow', '0 1px 1px rgba(0,0,0,.28)');
 }
 
 export default function GlobalEditorialAuthorityRuntime() {
