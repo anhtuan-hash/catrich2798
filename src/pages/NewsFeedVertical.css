@@ -1,0 +1,119 @@
+/* Vertical 16:9 Start layout for News Feed.
+   Desktop/tablet clusters behave like stacked Start screens instead of a
+   horizontal panorama. The existing mobile layout remains naturally sized. */
+
+@media (min-width: 721px) {
+  .brian-news-feed {
+    overflow-x: clip;
+  }
+
+  .brian-news-feed__clusters {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: clamp(52px, 6vw, 92px);
+    width: 100%;
+    max-width: 1480px;
+    margin: 0 auto;
+    padding: 0 0 clamp(24px, 4vw, 54px);
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .brian-news-feed__cluster {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    min-height: 0;
+    aspect-ratio: 16 / 9;
+    flex: none;
+    scroll-snap-align: none;
+    scroll-margin-top: 132px;
+  }
+
+  .brian-news-feed__cluster h2 {
+    margin: 0 0 16px;
+    font-size: clamp(15px, 1.15vw, 18px);
+  }
+
+  .brian-news-feed__tiles {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-rows: repeat(4, minmax(0, 1fr));
+    grid-auto-rows: minmax(0, 1fr);
+    gap: clamp(8px, .72vw, 12px);
+  }
+
+  .brian-live-tile {
+    padding: clamp(14px, 1.15vw, 20px);
+  }
+
+  .brian-live-tile__live-window {
+    margin: clamp(10px, 1vw, 16px) 0 8px;
+  }
+
+  .brian-live-tile__face strong {
+    font-size: clamp(17px, 1.45vw, 22px);
+  }
+
+  .brian-live-tile.is-large .brian-live-tile__face strong {
+    font-size: clamp(28px, 2.4vw, 38px);
+  }
+
+  .brian-live-tile.is-square .brian-live-tile__face strong {
+    font-size: clamp(14px, 1.1vw, 18px);
+  }
+}
+
+@media (min-width: 721px) and (max-width: 980px) {
+  .brian-news-feed__clusters {
+    gap: 42px;
+  }
+
+  .brian-news-feed__cluster {
+    aspect-ratio: 16 / 9;
+    scroll-margin-top: 104px;
+  }
+
+  .brian-news-feed__tiles {
+    gap: 7px;
+  }
+
+  .brian-live-tile {
+    padding: 12px;
+  }
+
+  .brian-live-tile__icon {
+    width: 30px;
+    height: 30px;
+    font-size: 10px;
+  }
+
+  .brian-live-tile.is-large .brian-live-tile__icon {
+    width: 40px;
+    height: 40px;
+  }
+
+  .brian-live-tile__face small {
+    -webkit-line-clamp: 1;
+  }
+}
+
+@media (max-width: 720px) {
+  .brian-news-feed {
+    overflow-x: hidden;
+  }
+
+  .brian-news-feed__clusters {
+    overflow-x: hidden;
+    overflow-y: visible;
+  }
+
+  .brian-news-feed__cluster {
+    aspect-ratio: auto;
+  }
+}
