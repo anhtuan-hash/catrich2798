@@ -1,6 +1,8 @@
 .brian-pulse-logo{
-  --particle-start:#9a8df4;
-  --particle-end:#70d2ec;
+  --particle-bg-start:#a79bf8;
+  --particle-bg-end:#87d9ed;
+  --particle-t-start:#6654ff;
+  --particle-t-end:#32c7f4;
   position:relative;
   display:inline-flex;
   align-items:center;
@@ -17,29 +19,35 @@
 .brian-pulse-logo::before{
   content:'';
   position:absolute;
-  inset:5px;
-  border-radius:14px;
-  background:linear-gradient(145deg,rgba(123,92,255,.08),rgba(51,208,255,.055) 58%,rgba(255,255,255,.30));
-  border:1px solid rgba(104,96,220,.18);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.68),0 6px 14px rgba(88,103,140,.09);
+  inset:4px;
+  border-radius:15px;
+  background:
+    radial-gradient(circle at 28% 22%,rgba(255,255,255,.42),transparent 32%),
+    linear-gradient(145deg,rgba(117,93,255,.055),rgba(60,205,245,.045));
+  border:1px solid rgba(112,105,220,.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.65),
+    0 5px 13px rgba(86,101,145,.08);
+  pointer-events:none;
   z-index:0;
 }
 
 .brian-pulse-logo::after{
   content:'';
   position:absolute;
-  inset:1px;
-  border-radius:16px;
-  background:radial-gradient(circle at 28% 24%,rgba(255,255,255,.48),transparent 34%),linear-gradient(140deg,rgba(112,92,255,.12),rgba(51,208,255,.05) 62%,transparent 100%);
-  opacity:.92;
+  inset:0;
+  border-radius:17px;
+  background:radial-gradient(circle,rgba(96,91,255,.08),rgba(54,198,240,.03) 48%,transparent 72%);
+  opacity:0;
+  transform:scale(.92);
+  transition:opacity 200ms ease,transform 260ms cubic-bezier(.2,.8,.2,1);
   pointer-events:none;
-  transition:opacity 220ms ease,transform 220ms ease;
   z-index:-1;
 }
 
 .brian-pulse-logo:hover::after{
-  opacity:1;
-  transform:scale(1.03);
+  opacity:.85;
+  transform:scale(1.06);
 }
 
 .brian-pulse-logo__canvas{
@@ -51,7 +59,7 @@
   pointer-events:auto;
   touch-action:none;
   cursor:default;
-  filter:contrast(1.1) saturate(.96);
+  filter:contrast(1.11) saturate(1.05);
 }
 
 .brian-pulse-logo__fallback{
@@ -92,7 +100,6 @@ html body .brian-nav__actions > .brian-nav__login{order:4!important}
     flex-basis:50px;
     margin-left:3px;
   }
-  .brian-pulse-logo::before{inset:4px}
 }
 
 @media(max-width:1060px){
