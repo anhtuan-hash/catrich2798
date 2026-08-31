@@ -42,6 +42,7 @@ import './GlobalCriticalJankGuard.css';
 import './GlobalNotificationCenterRemoval.css';
 import './GlobalWindowsPhone8Loading.css';
 import './GlobalNotificationCenterFinalRemoval.css';
+import './GlobalHomeSparkleButton.css';
 import './homeroom/HomeroomCompactDensity.css';
 import '../styles/GlobalLayout16x9Authority.css';
 
