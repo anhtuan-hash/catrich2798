@@ -7,11 +7,42 @@ import stage6PolishCss from '../styles/BrianStage6Polish.css?inline';
 import homeSparkleCss from './GlobalHomeSparkleButton.css?inline';
 
 const STYLE_ID = 'bes-global-editorial-authority-2026';
-const HOME_BUTTON_SELECTOR = ".app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type";
-const HOME_RUNNER_CLASS = 'brian-home-border-runner';
-const HOME_RUNNER_WIDTH = 18;
-const HOME_RUNNER_HEIGHT = 3;
-const HOME_RUNNER_DURATION = 2800;
+const RUNNER_WIDTH = 18;
+const RUNNER_HEIGHT = 3;
+const RUNNER_DURATION = 2800;
+const NAV_MOTION_TARGETS = [
+  {
+    key: 'home',
+    selector: ".app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type",
+    glow: 'rgba(126,87,255,.72)',
+    home: true,
+  },
+  {
+    key: 'apps',
+    selector: ".app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):nth-of-type(2)",
+    glow: 'rgba(124,77,255,.72)',
+  },
+  {
+    key: 'dashboard',
+    selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__dashboard-tab',
+    glow: 'rgba(11,87,208,.72)',
+  },
+  {
+    key: 'homeroom',
+    selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__homeroom-tab',
+    glow: 'rgba(24,128,56,.72)',
+  },
+  {
+    key: 'gradebook',
+    selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__gradebook-tab',
+    glow: 'rgba(26,115,232,.72)',
+  },
+  {
+    key: 'ttcm',
+    selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__ttcm-tab',
+    glow: 'rgba(103,80,164,.76)',
+  },
+];
 const finalEditorialCss = `${editorialCss}\n\n${navigationCss}\n\n${stage5AppCss}\n\n${stage5WorkflowCss}\n\n${stage6PolishCss}\n\n${homeSparkleCss}`;
 
 function ensureFinalStyleNode() {
@@ -31,7 +62,7 @@ function ensureFinalStyleNode() {
   return style;
 }
 
-function buildHomeRunnerFrames(width, height) {
+function buildRunnerFrames(width, height) {
   const inset = 1.5;
   const radius = Math.max(2, (height - (inset * 2)) / 2);
   const centerY = height / 2;
@@ -77,109 +108,152 @@ function buildHomeRunnerFrames(width, height) {
     }
 
     frames.push({
-      transform: `translate3d(${x - (HOME_RUNNER_WIDTH / 2)}px, ${y - (HOME_RUNNER_HEIGHT / 2)}px, 0) rotate(${angle}rad)`,
+      transform: `translate3d(${x - (RUNNER_WIDTH / 2)}px, ${y - (RUNNER_HEIGHT / 2)}px, 0) rotate(${angle}rad)`,
     });
   }
 
   return frames;
 }
 
+function styleRunner(runner, glow) {
+  const set = (name, value) => runner.style.setProperty(name, value, 'important');
+  set('position', 'absolute');
+  set('z-index', '12');
+  set('top', '0');
+  set('left', '0');
+  set('width', `${RUNNER_WIDTH}px`);
+  set('min-width', `${RUNNER_WIDTH}px`);
+  set('height', `${RUNNER_HEIGHT}px`);
+  set('min-height', `${RUNNER_HEIGHT}px`);
+  set('margin', '0');
+  set('padding', '0');
+  set('border', '0');
+  set('border-radius', '999px');
+  set('background', 'linear-gradient(90deg, rgba(255,255,255,.12), #fff 42%, #fff 62%, rgba(255,255,255,.14))');
+  set('box-shadow', `0 0 4px rgba(255,255,255,1), 0 0 10px rgba(255,255,255,.88), 0 0 16px ${glow}`);
+  set('opacity', '1');
+  set('pointer-events', 'none');
+  set('transform-origin', 'center center');
+  set('will-change', 'transform');
+}
+
 export default function GlobalEditorialAuthorityRuntime() {
   useEffect(() => {
     let disposed = false;
     let raf = 0;
-    let homeButton = null;
-    let homeRunner = null;
-    let homeRunnerAnimation = null;
-    let homeResizeObserver = null;
-    let releaseHomeEvents = () => {};
+    const bindings = new Map();
 
-    const stopHomeRunner = () => {
-      homeRunnerAnimation?.cancel();
-      homeRunnerAnimation = null;
+    const releaseBinding = (key) => {
+      const binding = bindings.get(key);
+      if (!binding) return;
+      binding.release();
+      bindings.delete(key);
     };
 
-    const startHomeRunner = () => {
-      if (!homeButton || !homeRunner || !homeButton.isConnected || !homeRunner.isConnected) return;
-      stopHomeRunner();
-      const width = homeButton.offsetWidth || 118;
-      const height = homeButton.offsetHeight || 40;
-      const frames = buildHomeRunnerFrames(width, height);
-      homeRunnerAnimation = homeRunner.animate(frames, {
-        duration: HOME_RUNNER_DURATION,
-        iterations: Infinity,
-        easing: 'linear',
-      });
-    };
-
-    const releaseHomeMotion = () => {
-      releaseHomeEvents();
-      releaseHomeEvents = () => {};
-      homeResizeObserver?.disconnect();
-      homeResizeObserver = null;
-      stopHomeRunner();
-      if (homeButton?.isConnected) {
-        homeButton.style.removeProperty('transform');
-        homeButton.style.removeProperty('transition');
-      }
-      homeRunner?.remove();
-      homeRunner = null;
-      homeButton = null;
-    };
-
-    const bindHomeMotion = () => {
+    const bindMotionTarget = (config) => {
       if (disposed) return;
-      const nextButton = document.querySelector(HOME_BUTTON_SELECTOR);
-      if (!nextButton) return;
-      if (nextButton === homeButton && homeRunner?.isConnected) return;
+      const nextButton = document.querySelector(config.selector);
+      const current = bindings.get(config.key);
 
-      releaseHomeMotion();
-      homeButton = nextButton;
-      homeRunner = document.createElement('span');
-      homeRunner.className = HOME_RUNNER_CLASS;
-      homeRunner.setAttribute('aria-hidden', 'true');
-      homeButton.appendChild(homeRunner);
+      if (!nextButton) {
+        if (current) releaseBinding(config.key);
+        return;
+      }
+      if (current?.button === nextButton && current.runner?.isConnected) return;
+      if (current) releaseBinding(config.key);
+
+      const button = nextButton;
+      button.style.setProperty('position', 'relative', 'important');
+      button.style.setProperty('overflow', 'visible', 'important');
+      button.style.setProperty('isolation', 'isolate', 'important');
+      button.style.setProperty('transform-origin', 'center center', 'important');
+      button.style.setProperty('will-change', 'transform', 'important');
+
+      const runner = document.createElement('span');
+      runner.className = config.home
+        ? 'brian-home-border-runner brian-nav-border-runner'
+        : 'brian-nav-border-runner';
+      runner.dataset.navRunner = config.key;
+      runner.setAttribute('aria-hidden', 'true');
+      styleRunner(runner, config.glow);
+      button.appendChild(runner);
+
+      let animation = null;
+      let resizeObserver = null;
+
+      const stopRunner = () => {
+        animation?.cancel();
+        animation = null;
+      };
+
+      const startRunner = () => {
+        if (!button.isConnected || !runner.isConnected) return;
+        stopRunner();
+        const width = button.offsetWidth || 108;
+        const height = button.offsetHeight || 40;
+        animation = runner.animate(buildRunnerFrames(width, height), {
+          duration: RUNNER_DURATION,
+          iterations: Infinity,
+          easing: 'linear',
+        });
+      };
 
       const setScale = (value) => {
-        if (!homeButton?.isConnected) return;
-        homeButton.style.setProperty(
+        if (!button.isConnected) return;
+        button.style.setProperty(
           'transition',
           'transform 240ms cubic-bezier(.2,.82,.2,1), background .24s ease, border-color .24s ease, box-shadow .24s ease',
           'important',
         );
-        homeButton.style.setProperty('transform', `scale(${value})`, 'important');
+        button.style.setProperty('transform', `scale(${value})`, 'important');
       };
 
       const onEnter = () => setScale(1.10);
       const onLeave = () => setScale(1);
       const onDown = () => setScale(.97);
-      const onUp = () => setScale(homeButton?.matches(':hover') ? 1.10 : 1);
+      const onUp = () => setScale(button.matches(':hover') ? 1.10 : 1);
 
-      homeButton.addEventListener('pointerenter', onEnter);
-      homeButton.addEventListener('pointerleave', onLeave);
-      homeButton.addEventListener('focus', onEnter);
-      homeButton.addEventListener('blur', onLeave);
-      homeButton.addEventListener('pointerdown', onDown);
-      homeButton.addEventListener('pointerup', onUp);
-      homeButton.addEventListener('pointercancel', onLeave);
-
-      releaseHomeEvents = () => {
-        if (!homeButton) return;
-        homeButton.removeEventListener('pointerenter', onEnter);
-        homeButton.removeEventListener('pointerleave', onLeave);
-        homeButton.removeEventListener('focus', onEnter);
-        homeButton.removeEventListener('blur', onLeave);
-        homeButton.removeEventListener('pointerdown', onDown);
-        homeButton.removeEventListener('pointerup', onUp);
-        homeButton.removeEventListener('pointercancel', onLeave);
-      };
+      button.addEventListener('pointerenter', onEnter);
+      button.addEventListener('pointerleave', onLeave);
+      button.addEventListener('focus', onEnter);
+      button.addEventListener('blur', onLeave);
+      button.addEventListener('pointerdown', onDown);
+      button.addEventListener('pointerup', onUp);
+      button.addEventListener('pointercancel', onLeave);
 
       if (typeof ResizeObserver !== 'undefined') {
-        homeResizeObserver = new ResizeObserver(() => startHomeRunner());
-        homeResizeObserver.observe(homeButton);
+        resizeObserver = new ResizeObserver(() => startRunner());
+        resizeObserver.observe(button);
       }
 
-      startHomeRunner();
+      const release = () => {
+        button.removeEventListener('pointerenter', onEnter);
+        button.removeEventListener('pointerleave', onLeave);
+        button.removeEventListener('focus', onEnter);
+        button.removeEventListener('blur', onLeave);
+        button.removeEventListener('pointerdown', onDown);
+        button.removeEventListener('pointerup', onUp);
+        button.removeEventListener('pointercancel', onLeave);
+        resizeObserver?.disconnect();
+        stopRunner();
+        runner.remove();
+        if (button.isConnected) {
+          button.style.removeProperty('transform');
+          button.style.removeProperty('transition');
+          button.style.removeProperty('position');
+          button.style.removeProperty('overflow');
+          button.style.removeProperty('isolation');
+          button.style.removeProperty('transform-origin');
+          button.style.removeProperty('will-change');
+        }
+      };
+
+      bindings.set(config.key, { button, runner, release });
+      startRunner();
+    };
+
+    const bindAllMotionTargets = () => {
+      NAV_MOTION_TARGETS.forEach(bindMotionTarget);
     };
 
     const promote = () => {
@@ -188,14 +262,14 @@ export default function GlobalEditorialAuthorityRuntime() {
       raf = window.requestAnimationFrame(() => {
         if (!disposed) {
           ensureFinalStyleNode();
-          bindHomeMotion();
+          bindAllMotionTargets();
         }
       });
     };
 
     const style = ensureFinalStyleNode();
     document.documentElement.dataset.besEditorialSystem = '2026';
-    bindHomeMotion();
+    bindAllMotionTargets();
 
     // Lazy routes can inject CSS after the shell mounts. The observer is the
     // single source of truth for re-promoting Brian's final visual authority;
@@ -209,9 +283,7 @@ export default function GlobalEditorialAuthorityRuntime() {
       if (hasNewStylesheet) promote();
     });
 
-    const rootObserver = new MutationObserver(() => {
-      if (!homeButton?.isConnected || !homeRunner?.isConnected) bindHomeMotion();
-    });
+    const rootObserver = new MutationObserver(() => bindAllMotionTargets());
     const root = document.getElementById('root');
     if (root) rootObserver.observe(root, { childList: true, subtree: true });
 
@@ -224,7 +296,7 @@ export default function GlobalEditorialAuthorityRuntime() {
       disposed = true;
       observer.disconnect();
       rootObserver.disconnect();
-      releaseHomeMotion();
+      [...bindings.keys()].forEach(releaseBinding);
       window.removeEventListener('hashchange', promote);
       window.removeEventListener('bes-route-change', promote);
       window.removeEventListener('bes-editorial-refresh', promote);
