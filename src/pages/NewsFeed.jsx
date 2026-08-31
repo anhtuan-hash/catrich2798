@@ -275,7 +275,7 @@ export default function NewsFeed({ language = 'vi', currentUser, appVisibility }
 
       {clusters.length ? (
         <div className="brian-news-feed__clusters">
-          {clusters.map((cluster) => (
+          {clusters.map((cluster, clusterIndex) => (
             <section key={cluster.id} className={`brian-news-feed__cluster is-${cluster.id}`}>
               <h2>{t[cluster.id]}</h2>
               <div className="brian-news-feed__tiles">
@@ -286,12 +286,15 @@ export default function NewsFeed({ language = 'vi', currentUser, appVisibility }
                   const group = localized(item, 'group', language);
                   const color = TILE_COLORS[item.tone] || TILE_COLORS.blue;
                   const size = tileSize(item, index);
+                  const motionIndex = index + (clusterIndex * 5);
+                  const cycle = 6.2 + ((motionIndex % 5) * 0.55);
+                  const delay = -((motionIndex % 9) * 0.73);
                   return (
                     <button
                       type="button"
                       key={item.slug}
-                      className={`brian-live-tile is-${size} ${item.featured ? 'is-live' : ''}`}
-                      style={{ '--tile-color': color, '--tile-delay': `${(index % 6) * -1.1}s` }}
+                      className={`brian-live-tile is-${size} is-live`}
+                      style={{ '--tile-color': color, '--tile-delay': `${delay}s`, '--tile-cycle': `${cycle}s` }}
                       onPointerEnter={() => preloadApp(item)}
                       onFocus={() => preloadApp(item)}
                       onClick={(event) => openApp(item, event)}
@@ -299,7 +302,7 @@ export default function NewsFeed({ language = 'vi', currentUser, appVisibility }
                     >
                       <span className="brian-live-tile__topline">
                         <span className="brian-live-tile__icon" aria-hidden="true">{item.icon || title.slice(0, 2)}</span>
-                        {item.featured ? <em>{t.live}</em> : null}
+                        <em>{t.live}</em>
                       </span>
                       <span className="brian-live-tile__live-window">
                         <span className="brian-live-tile__face brian-live-tile__face--primary">
