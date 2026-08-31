@@ -4,73 +4,34 @@
   justify-content:center;
   min-width:0;
   color:var(--brian-nav-ink,#173326);
-  white-space:nowrap;
   user-select:none;
   -webkit-user-select:none;
 }
 
-.brian-pulse-logo__wordmark{
-  display:inline-flex;
-  align-items:center;
-  gap:7px;
+.brian-pulse-logo__letter{
+  display:block;
   font-family:Inter,"SF Pro Text","Segoe UI",Roboto,Arial,sans-serif;
-  font-size:10px;
+  font-size:20px;
   line-height:1;
   font-weight:800;
-  letter-spacing:.12em;
-  text-transform:uppercase;
-}
-
-.brian-pulse-logo__catrich{
-  color:color-mix(in srgb,var(--brian-nav-ink,#173326) 72%,#718096 28%);
-}
-
-.brian-pulse-logo__divider{
-  width:1px;
-  height:11px;
-  flex:0 0 1px;
-  border-radius:99px;
-  background:color-mix(in srgb,var(--brian-nav-line,rgba(23,51,38,.12)) 78%,#4f7f43 22%);
-}
-
-.brian-pulse-logo__mauxanh{
-  color:color-mix(in srgb,var(--brian-nav-accent,#4f7f43) 82%,#325f54 18%);
+  letter-spacing:-.02em;
+  color:var(--brian-nav-ink,#173326);
 }
 
 .brian-pulse-logo--nav{
   order:1!important;
-  width:auto;
+  width:28px;
   height:36px;
-  flex:0 0 auto;
+  flex:0 0 28px;
   align-self:center;
-  padding:0 5px;
   margin:0 1px 0 3px;
-  opacity:.82;
-  transition:opacity 160ms ease;
 }
 
-.brian-pulse-logo--nav:hover{
-  opacity:1;
-}
-
-/* The signature is intentionally first, immediately before the AI launcher. */
 html body .brian-nav__actions > .brian-pulse-logo--nav{order:1!important}
 html body .brian-nav__actions > .brian-nav__ai-wrap{order:2!important}
 html body .brian-nav__actions > .brian-nav__popover-wrap:not(.brian-nav__ai-wrap){order:3!important}
 html body .brian-nav__actions > .brian-nav__login{order:4!important}
 
-@media(max-width:1180px){
-  .brian-pulse-logo__wordmark{
-    gap:5px;
-    font-size:9px;
-    letter-spacing:.09em;
-  }
-}
-
 @media(max-width:1060px){
   .brian-pulse-logo--nav{display:none}
-}
-
-@media(prefers-reduced-motion:reduce){
-  .brian-pulse-logo--nav{transition:none}
 }
