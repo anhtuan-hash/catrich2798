@@ -22,10 +22,12 @@ function isReducedMotion() {
 
 function windows8Active() {
   const root = document.documentElement;
-  const metroSelected = root?.dataset?.motionPage === 'metro-sweep'
-    || root?.dataset?.motionMode === 'metro'
-    || root?.dataset?.motionMode === 'windows8';
-  return metroSelected
+  // Metro Sweep is now owned by GlobalPageLaunchEffect, which reproduces the
+  // smooth tile-to-fullscreen Windows 8 launch without layout animation. Keep
+  // this component available only for a legacy explicit windows8 motion mode.
+  if (root?.dataset?.motionPage === 'metro-sweep') return false;
+  const legacyWindows8Selected = root?.dataset?.motionMode === 'windows8';
+  return legacyWindows8Selected
     && root?.dataset?.motionEnabled === 'true'
     && !isReducedMotion();
 }
