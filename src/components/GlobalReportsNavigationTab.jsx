@@ -51,6 +51,72 @@ function accessibleCountdown(state, language) {
   return `${parts.join(' ')} left`;
 }
 
+function reportMotionTargets(button) {
+  if (!button) return {};
+  return {
+    wrapper: button.querySelector('.brian-nav__reports-svg-wrapper'),
+    plane: button.querySelector('.brian-nav__reports-svg-wrapper svg'),
+    copy: button.querySelector('.brian-nav__reports-copy'),
+  };
+}
+
+function cancelReportMotion(button) {
+  const { wrapper, plane, copy } = reportMotionTargets(button);
+  [wrapper, plane, copy].forEach((element) => {
+    element?.getAnimations?.().forEach((animation) => animation.cancel());
+  });
+
+  if (wrapper) wrapper.style.removeProperty('transform');
+  if (plane) plane.style.removeProperty('transform');
+  if (copy) {
+    copy.style.removeProperty('transform');
+    copy.style.removeProperty('opacity');
+  }
+}
+
+function startReportMotion(button) {
+  const { wrapper, plane, copy } = reportMotionTargets(button);
+  if (!wrapper || !plane || !copy) return;
+
+  cancelReportMotion(button);
+
+  if (typeof plane.animate !== 'function') {
+    wrapper.style.transform = 'translate3d(0, -0.1em, 0)';
+    plane.style.transform = 'translate3d(1.35em, 0, 0) rotate(45deg) scale(1.12)';
+    copy.style.transform = 'translate3d(5.5em, 0, 0)';
+    copy.style.opacity = '0';
+    return;
+  }
+
+  wrapper.animate([
+    { transform: 'translate3d(0, 0.1em, 0)' },
+    { transform: 'translate3d(0, -0.1em, 0)' },
+  ], {
+    duration: 600,
+    easing: 'ease-in-out',
+    direction: 'alternate',
+    iterations: Infinity,
+  });
+
+  plane.animate([
+    { transform: 'translate3d(0, 0, 0) rotate(0deg) scale(1)' },
+    { transform: 'translate3d(1.35em, 0, 0) rotate(45deg) scale(1.12)' },
+  ], {
+    duration: 300,
+    easing: 'ease-in-out',
+    fill: 'forwards',
+  });
+
+  copy.animate([
+    { transform: 'translate3d(0, 0, 0)', opacity: 1 },
+    { transform: 'translate3d(5.5em, 0, 0)', opacity: 0 },
+  ], {
+    duration: 300,
+    easing: 'ease-in-out',
+    fill: 'forwards',
+  });
+}
+
 export default function GlobalReportsNavigationTab({
   currentUser,
   language = 'vi',
@@ -177,6 +243,10 @@ export default function GlobalReportsNavigationTab({
       aria-current={active ? 'page' : undefined}
       aria-label={accessibleLabel}
       title={buttonTitle}
+      onMouseEnter={(event) => startReportMotion(event.currentTarget)}
+      onMouseLeave={(event) => cancelReportMotion(event.currentTarget)}
+      onFocus={(event) => startReportMotion(event.currentTarget)}
+      onBlur={(event) => cancelReportMotion(event.currentTarget)}
       onClick={(event) => launchRoute({
         target: '#/tool/brian-team',
         label: language === 'vi' ? 'BC' : 'RP',
