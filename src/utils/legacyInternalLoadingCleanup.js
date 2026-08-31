@@ -1,4 +1,5 @@
 import { installGlobalUnifiedWaveLoading } from './globalUnifiedWaveLoading.js';
+import { installGlobalWaveLoaderExactVisual } from './globalWaveLoaderExactVisual.js';
 
 const LEGACY_WP8_SUPPRESS_STYLE_ID = 'bes-legacy-wp8-loading-suppressed';
 
@@ -27,6 +28,7 @@ function suppressLegacyWp8GlobalLoader() {
 if (typeof document !== 'undefined' && typeof window !== 'undefined') {
   suppressLegacyWp8GlobalLoader();
   installGlobalUnifiedWaveLoading();
+  installGlobalWaveLoaderExactVisual();
 }
 
 const LEGACY_VISUAL_SELECTOR = [
