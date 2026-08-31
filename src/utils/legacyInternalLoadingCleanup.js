@@ -1,3 +1,5 @@
+import { installGlobalUnifiedLoading } from './globalUnifiedLoading.js';
+
 const LEGACY_VISUAL_SELECTOR = [
   '[class~="spinner" i]',
   '[class*="spinner-" i]',
@@ -32,6 +34,7 @@ const PROTECTED_SELECTOR = [
   '.gm-route-loader',
   '.windows-loader-wrap',
   '.windows-loader-card',
+  '[data-bes-unified-loading]',
   '[data-bes-route-loading]',
   '[data-route-loading]',
   '[data-global-route-loading]',
@@ -61,8 +64,20 @@ function isInternalLoadingText(node) {
 export function installLegacyInternalLoadingCleanup() {
   if (typeof document === 'undefined' || typeof MutationObserver === 'undefined') return () => {};
 
+  const releaseGlobalUnifiedLoading = installGlobalUnifiedLoading();
   const hidden = new Map();
   let disposed = false;
+
+  const restore = (node) => {
+    const state = hidden.get(node);
+    if (!(node instanceof HTMLElement) || !state) return;
+    delete node.dataset.besLegacyInternalLoadingHidden;
+    if (state.display) node.style.setProperty('display', state.display, state.displayPriority || '');
+    else node.style.removeProperty('display');
+    if (state.hadAriaHidden) node.setAttribute('aria-hidden', state.ariaHidden ?? 'true');
+    else node.removeAttribute('aria-hidden');
+    hidden.delete(node);
+  };
 
   const hide = (node, reason) => {
     if (!(node instanceof HTMLElement) || isProtected(node) || hidden.has(node)) return;
@@ -80,6 +95,10 @@ export function installLegacyInternalLoadingCleanup() {
   const scanElement = (element) => {
     if (!(element instanceof Element) || disposed) return;
 
+    if (hidden.get(element) && element.dataset.besLegacyInternalLoadingHidden === 'text' && !isInternalLoadingText(element)) {
+      restore(element);
+    }
+
     if (element.matches?.(LEGACY_VISUAL_SELECTOR) && !isProtected(element)) {
       hide(element, 'visual');
     }
@@ -91,6 +110,10 @@ export function installLegacyInternalLoadingCleanup() {
       if (!isProtected(node)) hide(node, 'visual');
     });
     element.querySelectorAll?.(LEGACY_TEXT_SELECTOR).forEach((node) => {
+      if (hidden.get(node) && node.dataset.besLegacyInternalLoadingHidden === 'text' && !isInternalLoadingText(node)) {
+        restore(node);
+        return;
+      }
       if (isInternalLoadingText(node)) hide(node, 'text');
     });
   };
@@ -109,6 +132,7 @@ export function installLegacyInternalLoadingCleanup() {
           if (node instanceof Element) scanElement(node);
           else if (node.parentElement) scanElement(node.parentElement);
         });
+        if (mutation.target instanceof Element) scanElement(mutation.target);
         return;
       }
       if (mutation.target instanceof Element) scanElement(mutation.target);
@@ -120,6 +144,7 @@ export function installLegacyInternalLoadingCleanup() {
     observer.observe(root, {
       childList: true,
       subtree: true,
+      characterData: true,
       attributes: true,
       attributeFilter: ['class', 'data-loading', 'data-state', 'aria-busy'],
     });
@@ -128,14 +153,8 @@ export function installLegacyInternalLoadingCleanup() {
   return () => {
     disposed = true;
     observer.disconnect();
-    hidden.forEach((state, node) => {
-      if (!(node instanceof HTMLElement) || !node.isConnected) return;
-      delete node.dataset.besLegacyInternalLoadingHidden;
-      if (state.display) node.style.setProperty('display', state.display, state.displayPriority || '');
-      else node.style.removeProperty('display');
-      if (state.hadAriaHidden) node.setAttribute('aria-hidden', state.ariaHidden ?? 'true');
-      else node.removeAttribute('aria-hidden');
-    });
+    releaseGlobalUnifiedLoading();
+    [...hidden.keys()].forEach(restore);
     hidden.clear();
   };
 }
