@@ -8,12 +8,12 @@ import homeSparkleCss from './GlobalHomeSparkleButton.css?inline';
 import { installLegacyInternalLoadingCleanup } from '../utils/legacyInternalLoadingCleanup.js';
 
 const STYLE_ID = 'bes-global-editorial-authority-2026';
-const RUNNER_WIDTH = 18;
-const RUNNER_HEIGHT = 3;
+const RUNNER_WIDTH = 12;
+const RUNNER_HEIGHT = 1.5;
 const RUNNER_DURATION = 2800;
 const SOFT_SURFACE = 'linear-gradient(180deg, #fcfdff 0%, #f1f3f6 100%)';
 const SOFT_ACTIVE_SURFACE = 'linear-gradient(180deg, #f2f4f7 0%, #e6eaf0 100%)';
-const SOFT_GLOW = 'rgba(100,116,139,.22)';
+const SOFT_GLOW = 'rgba(100,116,139,.12)';
 const NAV_MOTION_TARGETS = [
   {
     key: 'home',
@@ -52,7 +52,7 @@ const NAV_MOTION_TARGETS = [
     glow: SOFT_GLOW,
     surface: SOFT_SURFACE,
     preserveOverflow: true,
-    runnerInset: 3,
+    runnerInset: 2,
   },
   {
     key: 'ttcm',
@@ -146,9 +146,9 @@ function styleRunner(runner, glow) {
   set('padding', '0');
   set('border', '0');
   set('border-radius', '999px');
-  set('background', 'linear-gradient(90deg, rgba(148,163,184,.08), rgba(71,85,105,.58) 34%, #fff 54%, rgba(148,163,184,.10))');
-  set('box-shadow', `0 0 3px rgba(255,255,255,1), 0 0 7px rgba(71,85,105,.34), 0 0 13px ${glow}`);
-  set('opacity', '1');
+  set('background', 'linear-gradient(90deg, rgba(148,163,184,0), rgba(100,116,139,.28) 34%, rgba(255,255,255,.96) 52%, rgba(148,163,184,0))');
+  set('box-shadow', `0 0 2px rgba(255,255,255,.86), 0 0 4px rgba(71,85,105,.16), 0 0 7px ${glow}`);
+  set('opacity', '.82');
   set('pointer-events', 'none');
   set('transform-origin', 'center center');
   set('will-change', 'transform');
@@ -162,10 +162,10 @@ function styleColoredSurface(button, config) {
   set('background', surface);
   set('background-image', surface);
   set('color', active ? '#334155' : '#475569');
-  set('border-color', active ? 'rgba(100,116,139,.34)' : 'rgba(148,163,184,.28)');
+  set('border-color', active ? 'rgba(100,116,139,.25)' : 'rgba(148,163,184,.19)');
   set(
     'box-shadow',
-    `inset 0 1px rgba(255,255,255,.98), inset 0 -1px 1px rgba(148,163,184,.12), 0 5px 14px rgba(51,65,85,.10), 0 0 10px ${config.glow}`,
+    'inset 0 1px rgba(255,255,255,.96), inset 0 -1px rgba(148,163,184,.07), 0 3px 9px rgba(51,65,85,.07)',
   );
   set('text-shadow', 'none');
 }
