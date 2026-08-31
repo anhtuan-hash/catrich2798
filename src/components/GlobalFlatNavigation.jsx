@@ -1,5 +1,4 @@
 import React from 'react';
-import '../data/registerSeatingChartStudio.js';
 import Navigation from './GlobalCompactNavigation.jsx';
 import GlobalWindowsPhone8Loading from './GlobalWindowsPhone8Loading.jsx';
 import GlobalPageLaunchEffect from './GlobalPageLaunchEffect.jsx';
@@ -17,7 +16,6 @@ import GlobalHeroGovernance from './GlobalHeroGovernance.jsx';
 import GlobalAiWebsiteLauncher from './GlobalAiWebsiteLauncher.jsx';
 import HomeParticleSignaturePortal from './HomeParticleSignaturePortal.jsx';
 import GlobalNewsFeedNavigationTab from './GlobalNewsFeedNavigationTab.jsx';
-import GlobalGamesNavigationTab from './GlobalGamesNavigationTab.jsx';
 import GlobalDashboardNavigationTab from './GlobalDashboardNavigationTab.jsx';
 import GlobalHomeroomNavigationTab from './GlobalHomeroomNavigationTab.jsx';
 import GlobalGradebookNavigationTab from './GlobalGradebookNavigationTab.jsx';
@@ -41,7 +39,6 @@ import './GlobalWordGraphGoogleM3.css';
 import './GlobalAutosaveGoogle.css';
 import './GlobalWorkScheduleModern.css';
 import './GlobalScrollPerformance.css';
-import '../pages/SeatingChartStudioFocus.css';
 import './GlobalCriticalJankGuard.css';
 import './GlobalNotificationCenterRemoval.css';
 import './GlobalWindowsPhone8Loading.css';
@@ -70,7 +67,6 @@ export default function GlobalFlatNavigation(props) {
       <GlobalSubtitleSettingsBridge {...props} />
       <GlobalAiWebsiteLauncher {...props} />
       <HomeParticleSignaturePortal currentUser={props.currentUser} />
-      <GlobalGamesNavigationTab {...props} />
       <GlobalDashboardNavigationTab {...props} />
       <GlobalHomeroomNavigationTab {...props} />
       <GlobalGradebookNavigationTab {...props} />

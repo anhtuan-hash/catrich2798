@@ -4,10 +4,14 @@ const normalize = (value) => String(value || '')
   .replace(/^#\/?/, '')
   .replace(/^\/+|\/+$/g, '');
 
+// These apps are permanently removed. Keep both the real production slugs and
+// older aliases here so stale shortcuts/bookmarks can never resurrect them.
 export const RETIRED_APP_SLUGS = Object.freeze([
+  'top-five-arena',
+  'top-5-arena',
   'top5-studio',
   'brian-top-5-arena',
-  'top-5-arena',
+  'tesol-method',
   'tesol-methodology',
   'teaching-methods-hub',
   'teaching-tool-hub',
@@ -16,6 +20,11 @@ export const RETIRED_APP_SLUGS = Object.freeze([
 ]);
 
 export const RETIRED_ROUTE_IDS = Object.freeze([
+  'top-five-arena',
+  'top-5-arena',
+  'top5-studio',
+  'brian-top-5-arena',
+  'tesol-method',
   'tesol-methodology',
   'teaching-methods-hub',
   'teaching-tool-hub',
