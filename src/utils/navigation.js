@@ -54,7 +54,14 @@ function clearMetroNavigationState(root, delay = 480) {
   }, delay);
 }
 
-export function launchRoute({ target, navigate } = {}) {
+export function launchRoute({
+  target,
+  navigate,
+  sourceEl = null,
+  label = '',
+  color = '',
+  meta = {},
+} = {}) {
   if (!target || typeof window === 'undefined') return;
 
   const normalizedTarget = String(target);
@@ -82,8 +89,17 @@ export function launchRoute({ target, navigate } = {}) {
   root.dataset.metroNavigating = 'true';
   delete root.dataset.metroViewTransition;
 
+  const extra = meta && typeof meta === 'object' && !Array.isArray(meta) ? meta : {};
   window.dispatchEvent(new CustomEvent('bes-navigation-start', {
-    detail: { target: normalizedTarget, from: currentTarget, direction },
+    detail: {
+      ...extra,
+      target: normalizedTarget,
+      from: currentTarget,
+      direction,
+      sourceEl,
+      label: String(label || ''),
+      color: String(color || ''),
+    },
   }));
 
   if (!windows8MotionActive()) {
