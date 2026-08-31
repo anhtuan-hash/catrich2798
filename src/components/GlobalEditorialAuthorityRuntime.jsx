@@ -21,26 +21,31 @@ const NAV_MOTION_TARGETS = [
     key: 'apps',
     selector: ".app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):nth-of-type(2)",
     glow: 'rgba(124,77,255,.72)',
+    surface: 'linear-gradient(135deg, #7c4dff 0%, #6941e8 100%)',
   },
   {
     key: 'dashboard',
     selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__dashboard-tab',
     glow: 'rgba(11,87,208,.72)',
+    surface: 'linear-gradient(135deg, #0b57d0 0%, #0847ad 100%)',
   },
   {
     key: 'homeroom',
     selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__homeroom-tab',
     glow: 'rgba(24,128,56,.72)',
+    surface: 'linear-gradient(135deg, #188038 0%, #11662c 100%)',
   },
   {
     key: 'gradebook',
     selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__gradebook-tab',
     glow: 'rgba(26,115,232,.72)',
+    surface: 'linear-gradient(135deg, #1a73e8 0%, #1558b5 100%)',
   },
   {
     key: 'ttcm',
     selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__ttcm-tab',
     glow: 'rgba(103,80,164,.76)',
+    surface: 'linear-gradient(135deg, #6750a4 0%, #514080 100%)',
   },
 ];
 const finalEditorialCss = `${editorialCss}\n\n${navigationCss}\n\n${stage5AppCss}\n\n${stage5WorkflowCss}\n\n${stage6PolishCss}\n\n${homeSparkleCss}`;
@@ -137,6 +142,20 @@ function styleRunner(runner, glow) {
   set('will-change', 'transform');
 }
 
+function styleColoredSurface(button, config) {
+  if (!config.surface) return;
+  const set = (name, value) => button.style.setProperty(name, value, 'important');
+  set('background', config.surface);
+  set('background-image', config.surface);
+  set('color', '#fff');
+  set('border-color', 'rgba(255,255,255,.28)');
+  set(
+    'box-shadow',
+    `inset 0 .5px rgba(255,255,255,.52), inset 0 -1px 2px rgba(0,0,0,.20), 0 5px 14px ${config.glow}`,
+  );
+  set('text-shadow', '0 1px 1px rgba(0,0,0,.14)');
+}
+
 export default function GlobalEditorialAuthorityRuntime() {
   useEffect(() => {
     let disposed = false;
@@ -159,7 +178,10 @@ export default function GlobalEditorialAuthorityRuntime() {
         if (current) releaseBinding(config.key);
         return;
       }
-      if (current?.button === nextButton && current.runner?.isConnected) return;
+      if (current?.button === nextButton && current.runner?.isConnected) {
+        styleColoredSurface(nextButton, config);
+        return;
+      }
       if (current) releaseBinding(config.key);
 
       const button = nextButton;
@@ -168,6 +190,7 @@ export default function GlobalEditorialAuthorityRuntime() {
       button.style.setProperty('isolation', 'isolate', 'important');
       button.style.setProperty('transform-origin', 'center center', 'important');
       button.style.setProperty('will-change', 'transform', 'important');
+      styleColoredSurface(button, config);
 
       const runner = document.createElement('span');
       runner.className = config.home
@@ -245,6 +268,14 @@ export default function GlobalEditorialAuthorityRuntime() {
           button.style.removeProperty('isolation');
           button.style.removeProperty('transform-origin');
           button.style.removeProperty('will-change');
+          if (config.surface) {
+            button.style.removeProperty('background');
+            button.style.removeProperty('background-image');
+            button.style.removeProperty('color');
+            button.style.removeProperty('border-color');
+            button.style.removeProperty('box-shadow');
+            button.style.removeProperty('text-shadow');
+          }
         }
       };
 
