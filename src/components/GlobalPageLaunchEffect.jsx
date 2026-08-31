@@ -1,10 +1,7 @@
 import React, { useEffect } from 'react';
 import { GLOBAL_MOTION_EVENT } from '../utils/globalMotionSystem.js';
 import './GlobalPageLaunchEffect.css';
-import './GlobalCubeRouteLoader.css';
 
-const CUBE_VISIBLE_MS = 860;
-const CUBE_FADE_MS = 120;
 const LAUNCH_DURATION = 480;
 const REVEAL_DURATION = 180;
 const LAUNCH_EASING = 'cubic-bezier(.2,.82,.2,1)';
@@ -14,11 +11,7 @@ function reducedMotion() {
   return Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
 }
 
-function transitionEnabled() {
-  return !reducedMotion();
-}
-
-function metroLaunchEnabled() {
+function launchEffectEnabled() {
   const root = document.documentElement;
   return root?.dataset?.motionEnabled === 'true'
     && root?.dataset?.motionPage === 'metro-sweep'
@@ -110,7 +103,7 @@ function sourceRect(sourceEl) {
   return { left, top, width, height };
 }
 
-function makeMetroOverlay({ sourceEl, color, label }) {
+function makeOverlay({ sourceEl, color, label }) {
   const viewportWidth = Math.max(window.innerWidth, 1);
   const viewportHeight = Math.max(window.innerHeight, 1);
   const rect = sourceRect(sourceEl);
@@ -132,81 +125,67 @@ function makeMetroOverlay({ sourceEl, color, label }) {
   return { overlay, copy, initialTransform };
 }
 
-function makeCubeOverlay() {
-  const overlay = document.createElement('div');
-  overlay.id = 'bes-cube-route-loader';
-  overlay.className = 'bes-cube-route-loader is-visible';
-  overlay.setAttribute('role', 'status');
-  overlay.setAttribute('aria-live', 'polite');
-  overlay.setAttribute('aria-label', 'Đang mở trang');
-
-  const stage = document.createElement('div');
-  stage.className = 'bes-cube-stage';
-  stage.setAttribute('aria-hidden', 'true');
-
-  for (let index = 0; index < 8; index += 1) {
-    const piece = document.createElement('span');
-    piece.className = `bes-cube-piece bes-cube-piece-${index}`;
-    piece.appendChild(document.createElement('i'));
-    stage.appendChild(piece);
-  }
-
-  const ground = document.createElement('span');
-  ground.className = 'bes-cube-ground';
-  stage.appendChild(ground);
-
-  overlay.appendChild(stage);
-  document.body.appendChild(overlay);
-  return overlay;
-}
-
 export default function GlobalPageLaunchEffect() {
   useEffect(() => {
     let locked = false;
     let clickSnapshot = null;
     let currentCleanup = null;
-    let cubeTimer = 0;
-    let cubeFadeTimer = 0;
-
-    const clearCubeTimers = () => {
-      window.clearTimeout(cubeTimer);
-      window.clearTimeout(cubeFadeTimer);
-      cubeTimer = 0;
-      cubeFadeTimer = 0;
-    };
 
     const cleanupRoot = () => {
       document.documentElement.classList.remove('brian-global-page-launching');
-      document.documentElement.classList.remove('brian-cube-route-loading');
       document.documentElement.removeAttribute('data-global-launch-owner');
     };
 
     const beginLaunch = ({ target, sourceEl, color = '', label = '', navigateAtEnd = true }) => {
       const normalizedTarget = internalHashTarget(target);
-      if (!normalizedTarget || locked || !transitionEnabled()) return false;
+      if (!normalizedTarget || locked || !launchEffectEnabled()) return false;
       if (navigateAtEnd && window.location.hash === normalizedTarget) return false;
 
       locked = true;
       document.documentElement.classList.add('brian-global-page-launching');
-      document.documentElement.classList.add('brian-cube-route-loading');
-      document.documentElement.dataset.globalLaunchOwner = 'cube-then-windows8';
+      document.documentElement.dataset.globalLaunchOwner = 'windows8-app-launch';
+      sourceEl?.classList?.add('is-global-launch-source');
 
-      const cubeOverlay = makeCubeOverlay();
-      let metroOverlay = null;
-      let metroLabelAnimation = null;
-      let metroLaunchAnimation = null;
-      let pageAnimation = null;
+      const { overlay, copy, initialTransform } = makeOverlay({ sourceEl, color, label });
+      const main = document.getElementById('bes-main-content') || document.querySelector('[data-bes-main-content]');
+
+      const pageAnimation = navigateAtEnd && main?.animate ? main.animate([
+        { opacity: 1, transform: 'translate3d(0,0,0)' },
+        { opacity: 0.16, transform: 'translate3d(-10px,0,0)' },
+      ], {
+        duration: 360,
+        delay: 80,
+        easing: 'cubic-bezier(.2,.8,.2,1)',
+        fill: 'forwards',
+      }) : null;
+
+      const labelAnimation = copy.animate([
+        { opacity: 0, transform: 'translate3d(34px,0,0)' },
+        { opacity: 0, transform: 'translate3d(20px,0,0)', offset: 0.28 },
+        { opacity: 0.92, transform: 'translate3d(0,0,0)' },
+      ], {
+        duration: LAUNCH_DURATION,
+        easing: LAUNCH_EASING,
+        fill: 'forwards',
+      });
+
+      const launchAnimation = overlay.animate([
+        { transform: initialTransform },
+        { transform: 'translate3d(0,0,0) scale(1,1)' },
+      ], {
+        duration: LAUNCH_DURATION,
+        easing: LAUNCH_EASING,
+        fill: 'forwards',
+      });
+
       let cleaned = false;
-
       const cleanup = () => {
         if (cleaned) return;
         cleaned = true;
-        clearCubeTimers();
         pageAnimation?.cancel();
-        metroLabelAnimation?.cancel();
-        metroLaunchAnimation?.cancel();
-        cubeOverlay.remove();
-        metroOverlay?.remove();
+        labelAnimation?.cancel();
+        launchAnimation?.cancel();
+        overlay.remove();
         sourceEl?.classList?.remove('is-global-launch-source');
         cleanupRoot();
         locked = false;
@@ -216,11 +195,11 @@ export default function GlobalPageLaunchEffect() {
 
       const revealDestination = () => {
         nextPaint(() => {
-          if (!metroOverlay?.isConnected) {
+          if (!overlay.isConnected) {
             cleanup();
             return;
           }
-          const reveal = metroOverlay.animate([{ opacity: 1 }, { opacity: 0 }], {
+          const reveal = overlay.animate([{ opacity: 1 }, { opacity: 0 }], {
             duration: REVEAL_DURATION,
             easing: 'cubic-bezier(.2,.8,.2,1)',
             fill: 'forwards',
@@ -229,81 +208,18 @@ export default function GlobalPageLaunchEffect() {
         });
       };
 
-      const enterDestinationWithoutMetro = () => {
-        if (navigateAtEnd && window.location.hash !== normalizedTarget) {
-          window.location.hash = normalizedTarget;
-        }
+      launchAnimation.finished.then(() => {
+        if (navigateAtEnd) window.location.hash = normalizedTarget;
+        revealDestination();
+      }).catch(() => {
+        if (navigateAtEnd && window.location.hash !== normalizedTarget) window.location.hash = normalizedTarget;
         cleanup();
-      };
-
-      const runMetroPhase = () => {
-        cubeOverlay.remove();
-
-        if (!metroLaunchEnabled()) {
-          enterDestinationWithoutMetro();
-          return;
-        }
-
-        sourceEl?.classList?.add('is-global-launch-source');
-        document.documentElement.dataset.globalLaunchOwner = 'windows8-app-launch';
-
-        const built = makeMetroOverlay({ sourceEl, color, label });
-        metroOverlay = built.overlay;
-        const main = document.getElementById('bes-main-content') || document.querySelector('[data-bes-main-content]');
-
-        pageAnimation = navigateAtEnd && main?.animate ? main.animate([
-          { opacity: 1, transform: 'translate3d(0,0,0)' },
-          { opacity: 0.16, transform: 'translate3d(-10px,0,0)' },
-        ], {
-          duration: 360,
-          delay: 80,
-          easing: 'cubic-bezier(.2,.8,.2,1)',
-          fill: 'forwards',
-        }) : null;
-
-        metroLabelAnimation = built.copy.animate([
-          { opacity: 0, transform: 'translate3d(34px,0,0)' },
-          { opacity: 0, transform: 'translate3d(20px,0,0)', offset: 0.28 },
-          { opacity: 0.92, transform: 'translate3d(0,0,0)' },
-        ], {
-          duration: LAUNCH_DURATION,
-          easing: LAUNCH_EASING,
-          fill: 'forwards',
-        });
-
-        metroLaunchAnimation = metroOverlay.animate([
-          { transform: built.initialTransform },
-          { transform: 'translate3d(0,0,0) scale(1,1)' },
-        ], {
-          duration: LAUNCH_DURATION,
-          easing: LAUNCH_EASING,
-          fill: 'forwards',
-        });
-
-        metroLaunchAnimation.finished.then(() => {
-          if (navigateAtEnd) window.location.hash = normalizedTarget;
-          revealDestination();
-        }).catch(() => {
-          if (navigateAtEnd && window.location.hash !== normalizedTarget) window.location.hash = normalizedTarget;
-          cleanup();
-        });
-      };
-
-      cubeTimer = window.setTimeout(() => {
-        if (!cubeOverlay.isConnected) {
-          cleanup();
-          return;
-        }
-        cubeOverlay.classList.remove('is-visible');
-        cubeOverlay.classList.add('is-leaving');
-        cubeFadeTimer = window.setTimeout(runMetroPhase, CUBE_FADE_MS);
-      }, CUBE_VISIBLE_MS);
-
+      });
       return true;
     };
 
     const onNavigationStart = (event) => {
-      if (!transitionEnabled() || locked) return;
+      if (!launchEffectEnabled() || locked) return;
       const target = internalHashTarget(event?.detail?.target);
       if (!target || target === window.location.hash) return;
       event.preventDefault();
@@ -317,7 +233,7 @@ export default function GlobalPageLaunchEffect() {
     };
 
     const onClickCapture = (event) => {
-      if (!transitionEnabled() || locked) {
+      if (!launchEffectEnabled() || locked) {
         clickSnapshot = null;
         return;
       }
@@ -347,10 +263,10 @@ export default function GlobalPageLaunchEffect() {
     const onClickBubble = () => {
       const snapshot = clickSnapshot;
       clickSnapshot = null;
-      if (!snapshot || locked || !transitionEnabled()) return;
+      if (!snapshot || locked || !launchEffectEnabled()) return;
 
       queueMicrotask(() => {
-        if (locked || !transitionEnabled()) return;
+        if (locked || !launchEffectEnabled()) return;
         const target = internalHashTarget(window.location.hash);
         if (!target || target === snapshot.hash) return;
         beginLaunch({
@@ -362,7 +278,7 @@ export default function GlobalPageLaunchEffect() {
     };
 
     const onMotionChange = () => {
-      if (!transitionEnabled() && locked) currentCleanup?.();
+      if (!launchEffectEnabled() && locked) currentCleanup?.();
     };
 
     window.addEventListener('bes-navigation-start', onNavigationStart);
@@ -376,7 +292,6 @@ export default function GlobalPageLaunchEffect() {
       document.removeEventListener('click', onClickCapture, true);
       document.removeEventListener('click', onClickBubble, false);
       currentCleanup?.();
-      clearCubeTimers();
       cleanupRoot();
     };
   }, []);
