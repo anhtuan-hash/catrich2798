@@ -1,9 +1,31 @@
 import { installGlobalUnifiedWaveLoading } from './globalUnifiedWaveLoading.js';
 
+const LEGACY_WP8_SUPPRESS_STYLE_ID = 'bes-legacy-wp8-loading-suppressed';
+
+function suppressLegacyWp8GlobalLoader() {
+  if (typeof document === 'undefined') return;
+  let style = document.getElementById(LEGACY_WP8_SUPPRESS_STYLE_ID);
+  if (!style) {
+    style = document.createElement('style');
+    style.id = LEGACY_WP8_SUPPRESS_STYLE_ID;
+    style.textContent = `
+      html body #bes-wp8-global-loader,
+      html body #bes-wp8-global-loader.is-visible {
+        display: none !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+}
+
 // This module is statically imported by Brian's shell, so the unified loader
 // starts once for every route — including surfaces that do not render the
 // global navigation runtime (for example the homeroom portal).
 if (typeof document !== 'undefined' && typeof window !== 'undefined') {
+  suppressLegacyWp8GlobalLoader();
   installGlobalUnifiedWaveLoading();
 }
 
@@ -25,6 +47,7 @@ const LEGACY_VISUAL_SELECTOR = [
   '[class*="loading-backdrop" i]',
   '[class*="loading-mask" i]',
   '[class*="busy-overlay" i]',
+  '.bes-wp8-dots',
   '[data-loading-indicator]',
   '[data-legacy-loading-visual]',
 ].join(',');
@@ -41,6 +64,7 @@ const PROTECTED_SELECTOR = [
   '.gm-route-loader',
   '.windows-loader-wrap',
   '.windows-loader-card',
+  '#bes-wp8-global-loader',
   '[data-bes-route-loading]',
   '[data-route-loading]',
   '[data-global-route-loading]',
@@ -70,6 +94,8 @@ function isInternalLoadingText(node) {
 
 export function installLegacyInternalLoadingCleanup() {
   if (typeof document === 'undefined' || typeof MutationObserver === 'undefined') return () => {};
+
+  suppressLegacyWp8GlobalLoader();
 
   const hidden = new Map();
   let disposed = false;
