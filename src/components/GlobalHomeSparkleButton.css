@@ -1,6 +1,7 @@
 /* Brian Home button override.
    Injected at the END of Brian's final editorial/navigation authority.
-   Keep this selector stronger than the legacy navigation rules. */
+   The moving border runner itself is driven by Web Animations API in
+   GlobalEditorialAuthorityRuntime so it cannot be disabled by CSS cascade. */
 
 html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type,
 html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type.is-active {
@@ -66,12 +67,6 @@ html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*=
     inset 0 -1px 2px hsl(0 0% 0% / .9),
     0 0 0 .30rem hsl(260 97% 50% / .62),
     0 12px 26px hsl(260 75% 35% / .25) !important;
-  transform: scale(1.10) !important;
-}
-
-html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type:active,
-html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type.is-active:active {
-  transform: scale(.97) !important;
 }
 
 /* Keep Brian's house icon. */
@@ -109,45 +104,35 @@ html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*=
   mask-size: contain !important;
 }
 
-/* A real bright capsule travels around the pill perimeter continuously.
-   This replaces the previous animated custom property/conic-gradient approach. */
+/* Disable the legacy pseudo-element runner. The live runner is a real DOM node. */
 html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type::after,
 html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type.is-active::after {
-  content: '' !important;
-  display: block !important;
+  content: none !important;
+  display: none !important;
+}
+
+html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type > .brian-home-border-runner {
   position: absolute !important;
-  z-index: 5 !important;
+  z-index: 8 !important;
   top: 0 !important;
-  right: auto !important;
-  bottom: auto !important;
   left: 0 !important;
-  width: 13px !important;
-  min-width: 13px !important;
+  width: 18px !important;
+  min-width: 18px !important;
   height: 3px !important;
   min-height: 3px !important;
   margin: 0 !important;
   padding: 0 !important;
   border: 0 !important;
   border-radius: 999px !important;
-  background: #fff !important;
-  background-image: none !important;
+  background: linear-gradient(90deg, rgba(255,255,255,.12), #fff 42%, #fff 62%, rgba(255,255,255,.14)) !important;
   box-shadow:
-    0 0 4px rgba(255,255,255,.96),
-    0 0 9px rgba(255,255,255,.82),
-    0 0 14px rgba(126,87,255,.58) !important;
-  opacity: .98 !important;
+    0 0 4px rgba(255,255,255,1),
+    0 0 10px rgba(255,255,255,.88),
+    0 0 16px rgba(126,87,255,.72) !important;
+  opacity: 1 !important;
   pointer-events: none !important;
-  transform: none !important;
-  offset-path: path('M 20 1 H 98 C 109 1 117 9 117 20 C 117 31 109 39 98 39 H 20 C 9 39 1 31 1 20 C 1 9 9 1 20 1 Z') !important;
-  offset-distance: 0% !important;
-  offset-rotate: auto !important;
-  animation: brian-home-border-comet 1.55s linear infinite !important;
-  will-change: offset-distance;
-}
-
-@keyframes brian-home-border-comet {
-  from { offset-distance: 0%; }
-  to { offset-distance: 100%; }
+  transform-origin: center center !important;
+  will-change: transform !important;
 }
 
 @media (max-width: 1180px) {
