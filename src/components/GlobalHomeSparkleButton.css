@@ -1,23 +1,15 @@
 /* Brian Home button override.
-   IMPORTANT: this stylesheet is injected at the END of the final editorial
-   authority by GlobalEditorialAuthorityRuntime, so these rules intentionally
-   own the Home button after every legacy/final navigation layer. */
-
-@property --home-border-angle {
-  syntax: '<angle>';
-  inherits: false;
-  initial-value: 0deg;
-}
+   Injected at the END of Brian's final editorial/navigation authority.
+   Keep this selector stronger than the legacy navigation rules. */
 
 html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type,
 html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type.is-active {
-  --home-border-angle: 0deg;
   position: relative !important;
   isolation: isolate !important;
   flex: 0 0 auto !important;
   min-width: 118px !important;
+  width: 118px !important;
   min-height: 40px !important;
-  width: auto !important;
   height: 40px !important;
   max-height: 40px !important;
   display: inline-flex !important;
@@ -25,38 +17,12 @@ html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*=
   justify-content: center !important;
   gap: 0 !important;
   margin: 0 !important;
-  padding: 0 18px 0 42px !important;
+  padding: 0 16px 0 40px !important;
   overflow: visible !important;
-  border: 2px solid transparent !important;
+  border: 1px solid rgba(255,255,255,.24) !important;
   border-radius: 9999px !important;
-  background:
-    linear-gradient(hsl(0 0% 12%), hsl(0 0% 12%)) padding-box,
-    conic-gradient(
-      from var(--home-border-angle),
-      transparent 0deg,
-      transparent 225deg,
-      rgba(255,255,255,.12) 250deg,
-      rgba(255,255,255,.72) 282deg,
-      #fff 304deg,
-      rgba(255,255,255,.72) 326deg,
-      rgba(255,255,255,.10) 348deg,
-      transparent 360deg
-    ) border-box !important;
-  background-image:
-    linear-gradient(hsl(0 0% 12%), hsl(0 0% 12%)),
-    conic-gradient(
-      from var(--home-border-angle),
-      transparent 0deg,
-      transparent 225deg,
-      rgba(255,255,255,.12) 250deg,
-      rgba(255,255,255,.72) 282deg,
-      #fff 304deg,
-      rgba(255,255,255,.72) 326deg,
-      rgba(255,255,255,.10) 348deg,
-      transparent 360deg
-    ) !important;
-  background-origin: border-box !important;
-  background-clip: padding-box, border-box !important;
+  background: hsl(0 0% 12%) !important;
+  background-image: none !important;
   color: #fff !important;
   box-shadow:
     inset 0 .5px hsl(0 0% 100% / .78),
@@ -70,78 +36,51 @@ html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*=
   text-shadow: none !important;
   white-space: nowrap !important;
   cursor: pointer !important;
-  transform: none !important;
-  scale: 1 !important;
-  transform-origin: center !important;
+  transform: scale(1) !important;
+  transform-origin: center center !important;
   transition:
-    scale .24s cubic-bezier(.2,.82,.2,1),
-    box-shadow .24s ease,
-    color .24s ease !important;
-  animation: brian-home-border-spin 1.65s linear infinite !important;
-  will-change: scale;
+    transform .24s cubic-bezier(.2,.82,.2,1),
+    background .24s ease,
+    border-color .24s ease,
+    box-shadow .24s ease !important;
+  will-change: transform;
 }
 
 html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type:is(:hover, :focus-visible),
 html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type.is-active:is(:hover, :focus-visible) {
   outline: none !important;
-  border: 2px solid transparent !important;
+  border-color: rgba(255,255,255,.42) !important;
   background:
-    radial-gradient(at 51% 89%, hsla(266 45% 74% / .92) 0, transparent 52%) padding-box,
-    radial-gradient(at 100% 100%, hsla(266 36% 60% / .94) 0, transparent 50%) padding-box,
-    radial-gradient(at 22% 91%, hsla(266 36% 60% / .94) 0, transparent 50%) padding-box,
-    linear-gradient(hsl(260 63% 25%), hsl(260 72% 18%)) padding-box,
-    conic-gradient(
-      from var(--home-border-angle),
-      transparent 0deg,
-      transparent 220deg,
-      rgba(255,255,255,.18) 246deg,
-      rgba(255,255,255,.82) 278deg,
-      #fff 302deg,
-      rgba(255,255,255,.82) 326deg,
-      rgba(255,255,255,.14) 350deg,
-      transparent 360deg
-    ) border-box !important;
+    radial-gradient(at 51% 89%, hsla(266 45% 74% / .92) 0, transparent 52%),
+    radial-gradient(at 100% 100%, hsla(266 36% 60% / .94) 0, transparent 50%),
+    radial-gradient(at 22% 91%, hsla(266 36% 60% / .94) 0, transparent 50%),
+    linear-gradient(hsl(260 63% 25%), hsl(260 72% 18%)) !important;
   background-image:
     radial-gradient(at 51% 89%, hsla(266 45% 74% / .92) 0, transparent 52%),
     radial-gradient(at 100% 100%, hsla(266 36% 60% / .94) 0, transparent 50%),
     radial-gradient(at 22% 91%, hsla(266 36% 60% / .94) 0, transparent 50%),
-    linear-gradient(hsl(260 63% 25%), hsl(260 72% 18%)),
-    conic-gradient(
-      from var(--home-border-angle),
-      transparent 0deg,
-      transparent 220deg,
-      rgba(255,255,255,.18) 246deg,
-      rgba(255,255,255,.82) 278deg,
-      #fff 302deg,
-      rgba(255,255,255,.82) 326deg,
-      rgba(255,255,255,.14) 350deg,
-      transparent 360deg
-    ) !important;
-  background-origin: border-box !important;
-  background-clip: padding-box, padding-box, padding-box, padding-box, border-box !important;
+    linear-gradient(hsl(260 63% 25%), hsl(260 72% 18%)) !important;
   color: #fff !important;
   box-shadow:
     inset 0 .5px hsl(0 0% 100% / .9),
     inset 0 -1px 2px hsl(0 0% 0% / .9),
     0 0 0 .30rem hsl(260 97% 50% / .62),
     0 12px 26px hsl(260 75% 35% / .25) !important;
-  transform: none !important;
-  scale: 1.10 !important;
+  transform: scale(1.10) !important;
 }
 
 html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type:active,
 html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type.is-active:active {
-  transform: none !important;
-  scale: .97 !important;
+  transform: scale(.97) !important;
 }
 
-/* Restore and keep the original house icon from Brian's final navigation. */
+/* Keep Brian's house icon. */
 html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type::before,
 html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type.is-active::before {
   content: '' !important;
   display: block !important;
   position: absolute !important;
-  z-index: 2 !important;
+  z-index: 3 !important;
   top: 50% !important;
   right: auto !important;
   bottom: auto !important;
@@ -170,22 +109,52 @@ html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*=
   mask-size: contain !important;
 }
 
-/* Remove the previous three-star decoration and the legacy specular line. */
+/* A real bright capsule travels around the pill perimeter continuously.
+   This replaces the previous animated custom property/conic-gradient approach. */
 html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type::after,
 html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type.is-active::after {
-  content: none !important;
-  display: none !important;
+  content: '' !important;
+  display: block !important;
+  position: absolute !important;
+  z-index: 5 !important;
+  top: 0 !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: 0 !important;
+  width: 13px !important;
+  min-width: 13px !important;
+  height: 3px !important;
+  min-height: 3px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: #fff !important;
+  background-image: none !important;
+  box-shadow:
+    0 0 4px rgba(255,255,255,.96),
+    0 0 9px rgba(255,255,255,.82),
+    0 0 14px rgba(126,87,255,.58) !important;
+  opacity: .98 !important;
+  pointer-events: none !important;
+  transform: none !important;
+  offset-path: path('M 20 1 H 98 C 109 1 117 9 117 20 C 117 31 109 39 98 39 H 20 C 9 39 1 31 1 20 C 1 9 9 1 20 1 Z') !important;
+  offset-distance: 0% !important;
+  offset-rotate: auto !important;
+  animation: brian-home-border-comet 1.55s linear infinite !important;
+  will-change: offset-distance;
 }
 
-@keyframes brian-home-border-spin {
-  from { --home-border-angle: 0deg; }
-  to { --home-border-angle: 360deg; }
+@keyframes brian-home-border-comet {
+  from { offset-distance: 0%; }
+  to { offset-distance: 100%; }
 }
 
 @media (max-width: 1180px) {
   html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type,
   html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type.is-active {
-    min-width: 110px !important;
+    min-width: 118px !important;
+    width: 118px !important;
     padding-right: 14px !important;
     padding-left: 40px !important;
   }
