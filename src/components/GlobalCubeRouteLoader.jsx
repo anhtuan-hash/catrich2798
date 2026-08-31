@@ -21,6 +21,7 @@ export default function GlobalCubeRouteLoader() {
   const [phase, setPhase] = useState('idle');
   const phaseRef = useRef('idle');
   const pendingRef = useRef(null);
+  const clickSnapshotRef = useRef(null);
   const timerRef = useRef(0);
   const fadeTimerRef = useRef(0);
 
@@ -85,9 +86,17 @@ export default function GlobalCubeRouteLoader() {
       play(event.detail || {});
     };
 
-    const onAnchorCapture = (event) => {
+    const onClickCapture = (event) => {
+      clickSnapshotRef.current = null;
       if (phaseRef.current !== 'idle' || pendingRef.current || reducedMotion()) return;
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+      const sourceEl = event.target?.closest?.('a,button,[role="button"],[data-route],[data-target]') || null;
+      clickSnapshotRef.current = {
+        hash: window.location.hash,
+        href: window.location.href,
+        sourceEl,
+      };
 
       const anchor = event.target?.closest?.('a[href]');
       if (!anchor || anchor.target === '_blank' || anchor.hasAttribute('download')) return;
@@ -97,6 +106,7 @@ export default function GlobalCubeRouteLoader() {
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation?.();
+      clickSnapshotRef.current = null;
       play({
         target,
         sourceEl: anchor,
@@ -106,23 +116,55 @@ export default function GlobalCubeRouteLoader() {
       });
     };
 
+    const onClickBubble = () => {
+      const snapshot = clickSnapshotRef.current;
+      clickSnapshotRef.current = null;
+      if (!snapshot || pendingRef.current || phaseRef.current !== 'idle' || reducedMotion()) return;
+
+      queueMicrotask(() => {
+        if (pendingRef.current || phaseRef.current !== 'idle') return;
+        const target = internalHashTarget(window.location.hash);
+        if (!target || target === snapshot.hash) return;
+
+        // Legacy controls may assign location.hash directly in their click
+        // handler. hashchange is delivered later, so restoring the previous URL
+        // here prevents the destination from rendering before the cube phase.
+        try { window.history.replaceState(window.history.state, '', snapshot.href); } catch { /* same-origin fallback below */ }
+        if (window.location.hash !== snapshot.hash) {
+          try { window.history.replaceState(window.history.state, '', `${window.location.pathname}${window.location.search}${snapshot.hash || ''}`); } catch { /* optional */ }
+        }
+
+        play({
+          target,
+          sourceEl: snapshot.sourceEl,
+          label: snapshot.sourceEl?.getAttribute?.('aria-label') || snapshot.sourceEl?.textContent || '',
+          color: '',
+          meta: { source: 'cube-legacy-hash-capture' },
+        });
+      });
+    };
+
     const onPageHide = () => {
       clearTimers();
       pendingRef.current = null;
+      clickSnapshotRef.current = null;
       setLoaderPhase('idle');
       document.documentElement.classList.remove('brian-cube-route-loading');
     };
 
     window.addEventListener(CUBE_EVENT, onCubeRequest);
     window.addEventListener('pagehide', onPageHide);
-    document.addEventListener('click', onAnchorCapture, true);
+    document.addEventListener('click', onClickCapture, true);
+    document.addEventListener('click', onClickBubble, false);
 
     return () => {
       clearTimers();
       pendingRef.current = null;
+      clickSnapshotRef.current = null;
       window.removeEventListener(CUBE_EVENT, onCubeRequest);
       window.removeEventListener('pagehide', onPageHide);
-      document.removeEventListener('click', onAnchorCapture, true);
+      document.removeEventListener('click', onClickCapture, true);
+      document.removeEventListener('click', onClickBubble, false);
       document.documentElement.classList.remove('brian-cube-route-loading');
     };
   }, []);
