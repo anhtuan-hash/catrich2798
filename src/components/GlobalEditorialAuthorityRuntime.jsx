@@ -4,9 +4,10 @@ import navigationCss from '../styles/GlobalNavigationFinal2026.css?inline';
 import stage5AppCss from '../styles/BrianStage5Migration.css?inline';
 import stage5WorkflowCss from '../styles/BrianStage5WorkflowMigration.css?inline';
 import stage6PolishCss from '../styles/BrianStage6Polish.css?inline';
+import homeSparkleCss from './GlobalHomeSparkleButton.css?inline';
 
 const STYLE_ID = 'bes-global-editorial-authority-2026';
-const finalEditorialCss = `${editorialCss}\n\n${navigationCss}\n\n${stage5AppCss}\n\n${stage5WorkflowCss}\n\n${stage6PolishCss}`;
+const finalEditorialCss = `${editorialCss}\n\n${navigationCss}\n\n${stage5AppCss}\n\n${stage5WorkflowCss}\n\n${stage6PolishCss}\n\n${homeSparkleCss}`;
 
 function ensureFinalStyleNode() {
   let style = document.getElementById(STYLE_ID);
