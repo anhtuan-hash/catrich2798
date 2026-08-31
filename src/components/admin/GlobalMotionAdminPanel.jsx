@@ -17,6 +17,7 @@ import {
   saveGlobalMotionDraft,
 } from '../../utils/globalMotionSystem.js';
 import './GlobalMotionAdminPanel.css';
+import './Windows8MotionPreview.css';
 
 const SLOT_ORDER = ['page', 'tab', 'modal', 'drawer', 'popover', 'list', 'indicator', 'loading', 'interaction'];
 
@@ -33,6 +34,34 @@ function formatTime(value, vi) {
   } catch { return String(value); }
 }
 
+function motionOptionLabel(entry, vi) {
+  if (entry?.id === 'metro-sweep') return 'Windows 8 App Launch';
+  return vi ? entry?.labelVi : entry?.label;
+}
+
+function motionOptionDescription(entry, vi) {
+  if (entry?.id === 'metro-sweep') {
+    return vi
+      ? 'Bung từ đúng tile hoặc nút vừa bấm ra toàn màn hình, rồi mới mở trang đích theo nhịp Windows 8.'
+      : 'Expands from the exact clicked tile or button to fullscreen before revealing the destination, inspired by Windows 8.';
+  }
+  return vi ? entry?.descriptionVi : entry?.description;
+}
+
+function motionPresetLabel(preset, vi) {
+  if (preset?.id === 'metro') return 'Windows 8';
+  return vi ? preset?.labelVi : preset?.label;
+}
+
+function motionPresetDescription(preset, vi) {
+  if (preset?.id === 'metro') {
+    return vi
+      ? 'Bộ phối Windows 8 với App Launch toàn màn hình, indicator khối và loader chấm kiểu Metro.'
+      : 'Windows 8 mix with fullscreen App Launch, block indicators and Metro dot loading.';
+  }
+  return preset?.descriptionVi || '';
+}
+
 function EffectGlyph({ slot, effect }) {
   return (
     <div className={`motion-effect-glyph slot-${slot} effect-${effect}`} aria-hidden="true">
@@ -47,6 +76,12 @@ function EffectGlyph({ slot, effect }) {
 
 function MotionPlayground({ draft, tick, language }) {
   const vi = language !== 'en';
+  const [launchPreviewTick, setLaunchPreviewTick] = useState(0);
+  const windows8Selected = draft.slots.page === 'metro-sweep';
+  const pageOption = MOTION_LIBRARY.page.options.find((item) => item.id === draft.slots.page);
+  const tabOption = MOTION_LIBRARY.tab.options.find((item) => item.id === draft.slots.tab);
+  const modalOption = MOTION_LIBRARY.modal.options.find((item) => item.id === draft.slots.modal);
+
   return (
     <div className="motion-playground">
       <div className="motion-playground__topline">
@@ -69,10 +104,43 @@ function MotionPlayground({ draft, tick, language }) {
         </main>
       </div>
       <div className="motion-playground__legend">
-        <span>{MOTION_LIBRARY.page.options.find((item) => item.id === draft.slots.page)?.labelVi}</span>
-        <span>{MOTION_LIBRARY.tab.options.find((item) => item.id === draft.slots.tab)?.labelVi}</span>
-        <span>{MOTION_LIBRARY.modal.options.find((item) => item.id === draft.slots.modal)?.labelVi}</span>
+        <span>{motionOptionLabel(pageOption, vi)}</span>
+        <span>{motionOptionLabel(tabOption, vi)}</span>
+        <span>{motionOptionLabel(modalOption, vi)}</span>
       </div>
+
+      {windows8Selected ? (
+        <div className="motion-win8-preview">
+          <div className="motion-win8-preview__head">
+            <div>
+              <span>WINDOWS 8 APP LAUNCH</span>
+              <strong>{vi ? 'Xem đúng nhịp tile → fullscreen → reveal' : 'Preview the tile → fullscreen → reveal sequence'}</strong>
+              <small>{vi ? 'Không đổi route thật và không ghi cấu hình public.' : 'No real navigation and no public config write.'}</small>
+            </div>
+            <button type="button" className="motion-win8-preview__play" onClick={() => setLaunchPreviewTick((value) => value + 1)}>
+              {vi ? '▶ Xem thử' : '▶ Preview'}
+            </button>
+          </div>
+          <div key={launchPreviewTick} className={`motion-win8-preview__stage ${launchPreviewTick > 0 ? 'is-running' : ''}`} aria-label={vi ? 'Mô phỏng hiệu ứng mở ứng dụng Windows 8' : 'Windows 8 app launch simulation'}>
+            <div className="motion-win8-preview__caption">
+              <strong>Brian Start</strong>
+              <small>Motion sandbox</small>
+            </div>
+            <div className="motion-win8-preview__tiles" aria-hidden="true">
+              <em className="motion-win8-preview__tile"><i>NF</i><b>News Feed</b></em>
+              <em className="motion-win8-preview__tile"><i>WB</i><b>Work Hub</b></em>
+              <em className="motion-win8-preview__tile"><i>CL</i><b>Classroom</b></em>
+            </div>
+            <div className="motion-win8-preview__surface" aria-hidden="true">
+              <strong>News Feed</strong>
+              <small>Brian English Studio</small>
+            </div>
+          </div>
+          <div className="motion-win8-preview__note">
+            {vi ? 'Preview này mô phỏng cùng logic thị giác với Global Windows 8 App Launch đang dùng trên Brian.' : 'This sandbox mirrors the visual logic of Brian’s global Windows 8 App Launch.'}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -83,8 +151,8 @@ function PresetCard({ preset, active, language, onClick }) {
     <button type="button" className={`motion-library-preset ${active ? 'is-active' : ''}`} onClick={onClick}>
       <span className="motion-library-preset__mark">{preset.id === 'editorial-calm' ? 'E' : preset.id === 'material-clean' ? 'M' : preset.id === 'fluent' ? 'F' : preset.id === 'metro' ? 'W' : 'Ø'}</span>
       <span className="motion-library-preset__copy">
-        <strong>{vi ? preset.labelVi : preset.label}</strong>
-        <small>{vi ? preset.descriptionVi : preset.descriptionVi}</small>
+        <strong>{motionPresetLabel(preset, vi)}</strong>
+        <small>{motionPresetDescription(preset, vi)}</small>
       </span>
       {preset.recommended ? <em>{vi ? 'MẶC ĐỊNH' : 'DEFAULT'}</em> : null}
     </button>
@@ -108,9 +176,9 @@ function SlotRow({ slot, value, language, onChange, onPreview }) {
       <label className="motion-slot-row__select">
         <span>{vi ? 'Hiệu ứng' : 'Effect'}</span>
         <select value={value} onChange={(event) => onChange(event.target.value)}>
-          {definition.options.map((entry) => <option key={entry.id} value={entry.id}>{vi ? entry.labelVi : entry.label}</option>)}
+          {definition.options.map((entry) => <option key={entry.id} value={entry.id}>{motionOptionLabel(entry, vi)}</option>)}
         </select>
-        <small>{vi ? selected.descriptionVi : selected.description}</small>
+        <small>{motionOptionDescription(selected, vi)}</small>
       </label>
       <button type="button" className="motion-slot-row__test" onClick={onPreview}>{vi ? 'Xem thử' : 'Preview'}</button>
     </div>
@@ -258,7 +326,7 @@ export default function GlobalMotionAdminPanel({ currentUser, language = 'vi' })
       <div className="motion-library__preset-section">
         <div className="motion-library__section-head">
           <div><span>01</span><strong>{vi ? 'Bộ phối nhanh' : 'Quick mixes'}</strong><small>{vi ? 'Chọn một phong cách rồi tinh chỉnh từng thành phần bên dưới.' : 'Choose a style, then refine each component below.'}</small></div>
-          <b>{currentPreset ? (vi ? currentPreset.labelVi : currentPreset.label) : (vi ? 'Tùy chỉnh' : 'Custom')}</b>
+          <b>{currentPreset ? motionPresetLabel(currentPreset, vi) : (vi ? 'Tùy chỉnh' : 'Custom')}</b>
         </div>
         <div className="motion-library__presets">
           {GLOBAL_MOTION_PRESETS.map((preset) => <PresetCard key={preset.id} preset={preset} active={draft.preset === preset.id} language={language} onClick={() => choosePreset(preset.id)} />)}
@@ -291,7 +359,7 @@ export default function GlobalMotionAdminPanel({ currentUser, language = 'vi' })
       <footer className="motion-library__publish">
         <div className="motion-library__publish-copy">
           <span>{dirty ? (vi ? 'CHƯA XUẤT BẢN' : 'UNPUBLISHED CHANGES') : (vi ? 'ĐANG KHỚP BẢN PUBLIC' : 'MATCHES PUBLIC VERSION')}</span>
-          <strong>{draft.preset === 'custom' ? (vi ? 'Bộ phối tùy chỉnh' : 'Custom mix') : (currentPreset?.labelVi || currentPreset?.label || 'Motion mix')}</strong>
+          <strong>{draft.preset === 'custom' ? (vi ? 'Bộ phối tùy chỉnh' : 'Custom mix') : (motionPresetLabel(currentPreset, vi) || 'Motion mix')}</strong>
           <small>{vi ? 'Preview không ghi vào local config public. Chỉ nút “Xuất bản toàn hệ thống” mới thay đổi trải nghiệm của người dùng.' : 'Preview does not modify the public config. Only Publish changes the user experience.'}</small>
         </div>
         <div className="motion-library__publish-actions">
@@ -307,12 +375,15 @@ export default function GlobalMotionAdminPanel({ currentUser, language = 'vi' })
       {historyOpen ? (
         <section className="motion-library__history">
           <div className="motion-library__section-head"><div><span>04</span><strong>{vi ? 'Lịch sử phiên bản' : 'Version history'}</strong><small>{vi ? 'Khôi phục một cấu hình cũ sẽ đồng thời xuất bản nó thành phiên bản mới.' : 'Restoring an old configuration republishes it as the newest version.'}</small></div></div>
-          {history.length ? history.map((entry) => (
-            <article key={entry.id}>
-              <div><strong>{entry.config?.preset === 'custom' ? (vi ? 'Bộ phối tùy chỉnh' : 'Custom mix') : (GLOBAL_MOTION_PRESETS.find((preset) => preset.id === entry.config?.preset)?.labelVi || entry.config?.preset)}</strong><span>{formatTime(entry.created_at, vi)}</span><small>{entry.updated_by || 'Admin'}</small></div>
-              <button type="button" onClick={() => restoreHistory(entry)} disabled={busy}>{vi ? 'Khôi phục' : 'Restore'}</button>
-            </article>
-          )) : <p className="motion-library__history-empty">{vi ? 'Chưa có lịch sử hoặc migration v2 chưa được chạy.' : 'No history yet, or the v2 migration has not been installed.'}</p>}
+          {history.length ? history.map((entry) => {
+            const historyPreset = GLOBAL_MOTION_PRESETS.find((preset) => preset.id === entry.config?.preset);
+            return (
+              <article key={entry.id}>
+                <div><strong>{entry.config?.preset === 'custom' ? (vi ? 'Bộ phối tùy chỉnh' : 'Custom mix') : (motionPresetLabel(historyPreset, vi) || entry.config?.preset)}</strong><span>{formatTime(entry.created_at, vi)}</span><small>{entry.updated_by || 'Admin'}</small></div>
+                <button type="button" onClick={() => restoreHistory(entry)} disabled={busy}>{vi ? 'Khôi phục' : 'Restore'}</button>
+              </article>
+            );
+          }) : <p className="motion-library__history-empty">{vi ? 'Chưa có lịch sử hoặc migration v2 chưa được chạy.' : 'No history yet, or the v2 migration has not been installed.'}</p>}
         </section>
       ) : null}
 
