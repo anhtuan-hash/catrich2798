@@ -176,36 +176,95 @@ export default function BrianPulseLogo({ className = '' }) {
       maskCtx.fill();
     }
 
-    function punchCustomT(maskCtx, width, height) {
+    function traceCustomT(targetCtx, width, height) {
       const cx = width / 2;
       const cy = height / 2;
       const scale = Math.min(width, height) / 52;
-      const topY = cy - 13.5 * scale;
-      const crossWidth = 21.4 * scale;
-      const crossHeight = 5.1 * scale;
-      const stemTop = topY + 3.4 * scale;
-      const stemBottom = cy + 13.2 * scale;
-      const halfTop = 3.5 * scale;
-      const halfBottom = 2.55 * scale;
+      const topY = cy - 14.2 * scale;
+      const crossWidth = 25.4 * scale;
+      const crossHeight = 5.8 * scale;
+      const stemTop = topY + 3.9 * scale;
+      const stemBottom = cy + 14.0 * scale;
+      const halfTop = 4.1 * scale;
+      const halfBottom = 2.85 * scale;
 
-      roundedRect(maskCtx, cx - crossWidth / 2, topY, crossWidth, crossHeight, 2.2 * scale);
-      maskCtx.fill();
+      roundedRect(
+        targetCtx,
+        cx - crossWidth / 2,
+        topY,
+        crossWidth,
+        crossHeight,
+        2.5 * scale,
+      );
+      targetCtx.fill();
 
-      maskCtx.beginPath();
-      maskCtx.moveTo(cx - halfTop, stemTop);
-      maskCtx.lineTo(cx + halfTop, stemTop);
-      maskCtx.lineTo(cx + halfBottom, stemBottom - 1.6 * scale);
-      maskCtx.quadraticCurveTo(cx + halfBottom, stemBottom, cx, stemBottom + 0.35 * scale);
-      maskCtx.quadraticCurveTo(cx - halfBottom, stemBottom, cx - halfBottom, stemBottom - 1.6 * scale);
-      maskCtx.closePath();
-      maskCtx.fill();
+      targetCtx.beginPath();
+      targetCtx.moveTo(cx - halfTop, stemTop);
+      targetCtx.lineTo(cx + halfTop, stemTop);
+      targetCtx.lineTo(cx + 3.35 * scale, cy + 3.6 * scale);
+      targetCtx.lineTo(cx + halfBottom, stemBottom - 1.7 * scale);
+      targetCtx.quadraticCurveTo(
+        cx + halfBottom,
+        stemBottom,
+        cx + 0.2 * scale,
+        stemBottom + 0.5 * scale,
+      );
+      targetCtx.quadraticCurveTo(
+        cx - halfBottom,
+        stemBottom,
+        cx - halfBottom,
+        stemBottom - 1.7 * scale,
+      );
+      targetCtx.lineTo(cx - 3.3 * scale, cy + 3.6 * scale);
+      targetCtx.closePath();
+      targetCtx.fill();
 
-      maskCtx.beginPath();
-      maskCtx.moveTo(cx + 3.05 * scale, topY + crossHeight);
-      maskCtx.lineTo(cx + 5.7 * scale, topY + crossHeight);
-      maskCtx.lineTo(cx + 4.55 * scale, topY + crossHeight + 1.95 * scale);
-      maskCtx.closePath();
-      maskCtx.fill();
+      // Small clipped shoulder keeps the monogram custom rather than font-like.
+      targetCtx.beginPath();
+      targetCtx.moveTo(cx + 7.0 * scale, topY + crossHeight - 0.1 * scale);
+      targetCtx.lineTo(cx + 11.8 * scale, topY + crossHeight - 0.1 * scale);
+      targetCtx.lineTo(cx + 10.0 * scale, topY + crossHeight + 1.95 * scale);
+      targetCtx.lineTo(cx + 7.0 * scale, topY + crossHeight + 1.05 * scale);
+      targetCtx.closePath();
+      targetCtx.fill();
+    }
+
+    function punchCustomT(maskCtx, width, height) {
+      traceCustomT(maskCtx, width, height);
+    }
+
+    function drawForegroundT(width, height) {
+      const cx = width / 2;
+      const cy = height / 2;
+      const scale = Math.min(width, height) / 52;
+      const gradient = ctx.createLinearGradient(
+        cx - 12 * scale,
+        cy - 13 * scale,
+        cx + 12 * scale,
+        cy + 14 * scale,
+      );
+      gradient.addColorStop(0, '#6b4cff');
+      gradient.addColorStop(0.48, '#4f69ff');
+      gradient.addColorStop(1, '#27c7ef');
+
+      ctx.save();
+      ctx.globalAlpha = pointer.active ? 0.98 : 0.92;
+      ctx.fillStyle = gradient;
+      ctx.shadowColor = 'rgba(80, 84, 220, 0.28)';
+      ctx.shadowBlur = pointer.active ? 7 * scale : 4.5 * scale;
+      ctx.shadowOffsetY = 0.7 * scale;
+      traceCustomT(ctx, width, height);
+
+      // A hairline white highlight keeps the T crisp on the pale gradient badge.
+      ctx.globalAlpha = pointer.active ? 0.34 : 0.24;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = Math.max(0.55, 0.65 * scale);
+      ctx.shadowColor = 'transparent';
+      ctx.beginPath();
+      ctx.moveTo(cx - 8.5 * scale, cy - 13.1 * scale);
+      ctx.lineTo(cx + 7.8 * scale, cy - 13.1 * scale);
+      ctx.stroke();
+      ctx.restore();
     }
 
     function buildParticles(width, height) {
@@ -245,7 +304,7 @@ export default function BrianPulseLogo({ className = '' }) {
           const homeX = x + (randomA - 0.5) * 0.82;
           const homeY = y + (randomB - 0.5) * 0.82;
           const size = 0.78 + randomC * 0.62;
-          const particleAlpha = (0.42 + randomD * 0.5) * edgeFade;
+          const particleAlpha = (0.38 + randomD * 0.46) * edgeFade;
           const selector = Math.floor(randomA * 12);
           const kind = selector < 8 ? 0 : selector < 10 ? 1 : 2;
           const angle = kind === 0 ? 0 : (randomB - 0.5) * 1.08;
@@ -321,6 +380,7 @@ export default function BrianPulseLogo({ className = '' }) {
       const elapsed = now - startedAt;
       if (update) particles.forEach((particle) => particle.update());
       particles.forEach((particle) => particle.draw(palette, elapsed));
+      drawForegroundT(rect.width, rect.height);
       ctx.globalAlpha = 1;
     }
 
