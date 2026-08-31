@@ -27,20 +27,36 @@ const RETIRED_STORAGE_PREFIXES = [
   'bes.seating-chart-studio',
   'bes.seatingChartStudio',
   'bes.top5',
+  'bes.top-five-arena',
   'bes.teaching-tool-hub',
   'bes.game-hub',
   'bes.games',
+  'bes.tesol-method',
   'bes.tesol-methodology',
 ];
 
+// Exact production routes plus historical aliases. The two real routes that
+// were previously missed are tool/top-five-arena and tool/tesol-method.
 const RETIRED_APP_ROUTES = new Set([
   'library',
   'practice',
   'tool/teaching-methods-hub',
   'tool/activity-graph',
+  'tool/top-five-arena',
+  'route/top-five-arena',
+  'top-five-arena',
+  'tool/top-5-arena',
+  'route/top-5-arena',
+  'top-5-arena',
   'tool/top5-studio',
   'route/top5-studio',
   'top5-studio',
+  'tool/brian-top-5-arena',
+  'route/brian-top-5-arena',
+  'brian-top-5-arena',
+  'tool/tesol-method',
+  'route/tesol-method',
+  'tesol-method',
   'tesol-methodology',
   'route/tesol-methodology',
   'tool/tesol-methodology',
@@ -109,7 +125,13 @@ function currentHashRoute() {
 function redirectRetiredAppRoute() {
   const route = currentHashRoute();
   if (!RETIRED_APP_ROUTES.has(route) && !isRetiredPath(route)) return;
-  window.location.hash = '#/apps';
+
+  // Replace instead of append so a removed tool cannot remain in browser
+  // history and re-open when the user presses Back/Forward.
+  if (window.location.hash !== '#/apps') {
+    window.history.replaceState(null, '', '#/apps');
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
+  }
 }
 
 function enforceLightOnlyDocument() {
