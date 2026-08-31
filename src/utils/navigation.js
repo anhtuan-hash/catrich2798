@@ -69,6 +69,31 @@ export function launchRoute({
   if (window.location.hash === normalizedTarget) return;
   if (pendingTarget === normalizedTarget && now - pendingStartedAt < 1600) return;
 
+  const extra = meta && typeof meta === 'object' && !Array.isArray(meta) ? meta : {};
+  const currentTarget = window.location.hash || '#/home';
+  const direction = metroDirection(currentTarget, normalizedTarget);
+
+  // Cube loading is a separate pre-navigation layer. It owns only the short
+  // waiting phase, then re-enters launchRoute with __skipCubeLoader so the
+  // original Windows 8 page-launch runtime can run unchanged afterward.
+  if (!extra.__skipCubeLoader) {
+    const cubeEvent = new CustomEvent('bes-cube-navigation-request', {
+      cancelable: true,
+      detail: {
+        ...extra,
+        target: normalizedTarget,
+        from: currentTarget,
+        direction,
+        navigate,
+        sourceEl,
+        label: String(label || ''),
+        color: String(color || ''),
+      },
+    });
+    window.dispatchEvent(cubeEvent);
+    if (cubeEvent.defaultPrevented) return;
+  }
+
   const go = typeof navigate === 'function'
     ? navigate
     : () => { window.location.hash = normalizedTarget; };
@@ -77,8 +102,6 @@ export function launchRoute({
   pendingStartedAt = now;
 
   const root = document.documentElement;
-  const currentTarget = window.location.hash || '#/home';
-  const direction = metroDirection(currentTarget, normalizedTarget);
 
   window.clearTimeout(metroNavigationTimer);
   window.clearTimeout(metroCleanupTimer);
@@ -89,7 +112,6 @@ export function launchRoute({
   root.dataset.metroNavigating = 'true';
   delete root.dataset.metroViewTransition;
 
-  const extra = meta && typeof meta === 'object' && !Array.isArray(meta) ? meta : {};
   const navigationEvent = new CustomEvent('bes-navigation-start', {
     cancelable: true,
     detail: {
