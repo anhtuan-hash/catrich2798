@@ -6,6 +6,7 @@ import { launchRoute } from '../utils/navigation.js';
 import { loadTeamWorkspace } from '../utils/personnelHub.js';
 import { currentReportMonth, loadMonthlyReportContexts } from '../utils/monthlyReports.js';
 import { deadlineState, loadMonthlyReportDeadline } from '../utils/monthlyReportAdmin.js';
+import './GlobalReportsNavigationTab.css';
 
 function compactCountdown(state, language) {
   if (!state.active) return '—';
@@ -172,21 +173,34 @@ export default function GlobalReportsNavigationTab({
   return createPortal(
     <button
       type="button"
-      className={`brian-nav__reports-tab ${active ? 'is-active' : ''} ${showCountdownUnderLabel ? 'shows-countdown' : ''}`.trim()}
+      className={`brian-nav__reports-tab brian-nav__reports-send ${active ? 'is-active' : ''} ${showCountdownUnderLabel ? 'shows-countdown' : ''}`.trim()}
       aria-current={active ? 'page' : undefined}
       aria-label={accessibleLabel}
       title={buttonTitle}
       onClick={(event) => launchRoute({
         target: '#/tool/brian-team',
         label: language === 'vi' ? 'BC' : 'RP',
-        color: '#0f766e',
+        color: '#4169e1',
         sourceEl: event.currentTarget,
       })}
     >
-      <span className="brian-nav__reports-label">{label}</span>
-      {showCountdownUnderLabel ? (
-        <span className="brian-nav__reports-countdown" aria-hidden="true">{countdownLabel}</span>
-      ) : null}
+      <span className="brian-nav__reports-svg-wrapper-1" aria-hidden="true">
+        <span className="brian-nav__reports-svg-wrapper">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20">
+            <path fill="none" d="M0 0h24v24H0z" />
+            <path
+              fill="currentColor"
+              d="M1.946 9.315c-.522-.174-.527-.455.01-.634l19.087-6.362c.529-.176.832.12.684.638l-5.454 19.086c-.15.529-.455.547-.679.045L12 14l6-8-8 6-8.054-2.685z"
+            />
+          </svg>
+        </span>
+      </span>
+      <span className="brian-nav__reports-copy">
+        <span className="brian-nav__reports-label">{label}</span>
+        {showCountdownUnderLabel ? (
+          <span className="brian-nav__reports-countdown" aria-hidden="true">{countdownLabel}</span>
+        ) : null}
+      </span>
     </button>,
     host,
   );
