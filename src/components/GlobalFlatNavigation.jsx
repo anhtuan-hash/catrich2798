@@ -1,4 +1,5 @@
 import React from 'react';
+import '../utils/globalCubeTransitionRuntime.js';
 import Navigation from './GlobalCompactNavigation.jsx';
 import GlobalWindowsPhone8Loading from './GlobalWindowsPhone8Loading.jsx';
 import GlobalPageLaunchEffect from './GlobalPageLaunchEffect.jsx';
@@ -25,8 +26,8 @@ import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
 import GlobalWeeklyPracticeBridge from './GlobalWeeklyPracticeBridge.jsx';
 import GlobalEditorialAuthorityRuntime from './GlobalEditorialAuthorityRuntime.jsx';
 
-// Shared utilities. GlobalPageLaunchEffect owns the complete page-opening
-// sequence: cube prelude first, then the original Windows 8 Metro Sweep.
+// Shared utilities. Cube is installed as a module-level global runtime before
+// React navigation effects mount. GlobalPageLaunchEffect remains Windows 8 only.
 import './GlobalGoogleMaterialOverride.css';
 import './GlobalCommandPaletteGoogle.css';
 import './GlobalCommandPaletteFocusFix.css';
