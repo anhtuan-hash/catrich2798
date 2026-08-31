@@ -1,5 +1,4 @@
 import React from 'react';
-import '../utils/globalCubeTransitionRuntime.js';
 import Navigation from './GlobalCompactNavigation.jsx';
 import GlobalWindowsPhone8Loading from './GlobalWindowsPhone8Loading.jsx';
 import GlobalPageLaunchEffect from './GlobalPageLaunchEffect.jsx';
@@ -26,8 +25,8 @@ import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
 import GlobalWeeklyPracticeBridge from './GlobalWeeklyPracticeBridge.jsx';
 import GlobalEditorialAuthorityRuntime from './GlobalEditorialAuthorityRuntime.jsx';
 
-// Shared utilities. Cube is installed as a module-level global runtime before
-// React navigation effects mount. GlobalPageLaunchEffect remains Windows 8 only.
+// Shared utilities. Motion Library v2 owns general motion. Metro Sweep remains
+// owned by GlobalPageLaunchEffect for compositor-only Windows 8 app launching.
 import './GlobalGoogleMaterialOverride.css';
 import './GlobalCommandPaletteGoogle.css';
 import './GlobalCommandPaletteFocusFix.css';
