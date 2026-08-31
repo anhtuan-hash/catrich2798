@@ -1,4 +1,5 @@
 import React, { Suspense, lazy, useMemo, useState } from 'react';
+import { isRetiredApp } from '../data/retiredApps.js';
 
 const NewsFeed = lazy(() => import('./NewsFeed.jsx'));
 const NewsReader = lazy(() => import('./NewsReader.jsx'));
@@ -46,6 +47,10 @@ export default function ToolPage(props) {
   const [content, setContent] = useState('Past Simple\nPast Continuous\nwhile\nwhen\nwas watching\nwent out');
   const [title, setTitle] = useState('My Activity');
   const preview = useMemo(() => buildPreview(content, selected, language), [content, selected, language]);
+
+  if (tool && isRetiredApp(tool)) {
+    return <div className="page narrow"><section className="panel empty-state"><h1>{language === 'vi' ? 'Ứng dụng đã được gỡ' : 'App retired'}</h1><p>{language === 'vi' ? 'Ứng dụng này không còn thuộc Brian.' : 'This app is no longer part of Brian.'}</p><button className="primary" onClick={() => (window.location.hash = '#/apps')}>{language === 'vi' ? 'Về Ứng dụng' : 'Back to Apps'}</button></section></div>;
+  }
 
   if (tool?.slug === 'news-feed') return renderLazy(NewsFeed, props);
   if (tool?.slug === 'gradebook-studio') return renderLazy(GradebookStudio, props);
