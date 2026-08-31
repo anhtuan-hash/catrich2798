@@ -42,6 +42,13 @@ const NAV_MOTION_TARGETS = [
     surface: 'linear-gradient(135deg, #1a73e8 0%, #1558b5 100%)',
   },
   {
+    key: 'reports',
+    selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.brian-nav__reports-send',
+    glow: 'rgba(65,105,225,.80)',
+    preserveOverflow: true,
+    runnerInset: 3,
+  },
+  {
     key: 'ttcm',
     selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__ttcm-tab',
     glow: 'rgba(103,80,164,.76)',
@@ -67,8 +74,7 @@ function ensureFinalStyleNode() {
   return style;
 }
 
-function buildRunnerFrames(width, height) {
-  const inset = 1.5;
+function buildRunnerFrames(width, height, inset = 1.5) {
   const radius = Math.max(2, (height - (inset * 2)) / 2);
   const centerY = height / 2;
   const leftCenterX = inset + radius;
@@ -186,7 +192,9 @@ export default function GlobalEditorialAuthorityRuntime() {
 
       const button = nextButton;
       button.style.setProperty('position', 'relative', 'important');
-      button.style.setProperty('overflow', 'visible', 'important');
+      if (!config.preserveOverflow) {
+        button.style.setProperty('overflow', 'visible', 'important');
+      }
       button.style.setProperty('isolation', 'isolate', 'important');
       button.style.setProperty('transform-origin', 'center center', 'important');
       button.style.setProperty('will-change', 'transform', 'important');
@@ -214,7 +222,7 @@ export default function GlobalEditorialAuthorityRuntime() {
         stopRunner();
         const width = button.offsetWidth || 108;
         const height = button.offsetHeight || 40;
-        animation = runner.animate(buildRunnerFrames(width, height), {
+        animation = runner.animate(buildRunnerFrames(width, height, config.runnerInset || 1.5), {
           duration: RUNNER_DURATION,
           iterations: Infinity,
           easing: 'linear',
@@ -264,7 +272,9 @@ export default function GlobalEditorialAuthorityRuntime() {
           button.style.removeProperty('transform');
           button.style.removeProperty('transition');
           button.style.removeProperty('position');
-          button.style.removeProperty('overflow');
+          if (!config.preserveOverflow) {
+            button.style.removeProperty('overflow');
+          }
           button.style.removeProperty('isolation');
           button.style.removeProperty('transform-origin');
           button.style.removeProperty('will-change');
