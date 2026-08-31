@@ -3,6 +3,7 @@ import { APPS, GAME_APPS, SPECIAL_TOOLS } from '../data/apps.js';
 import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { hasRouteAccess } from '../utils/permissions.js';
 import './NewsFeed.css';
+import './NewsFeedVertical.css';
 
 const TILE_COLORS = {
   blue: '#0875c1',
