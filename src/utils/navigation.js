@@ -90,7 +90,8 @@ export function launchRoute({
   delete root.dataset.metroViewTransition;
 
   const extra = meta && typeof meta === 'object' && !Array.isArray(meta) ? meta : {};
-  window.dispatchEvent(new CustomEvent('bes-navigation-start', {
+  const navigationEvent = new CustomEvent('bes-navigation-start', {
+    cancelable: true,
     detail: {
       ...extra,
       target: normalizedTarget,
@@ -100,7 +101,18 @@ export function launchRoute({
       label: String(label || ''),
       color: String(color || ''),
     },
-  }));
+  });
+  window.dispatchEvent(navigationEvent);
+
+  // The global Windows 8 launch runtime cancels this event when it owns the
+  // transition. In that case it keeps the current page alive during the full
+  // tile-to-fullscreen expansion and performs the hash change itself only
+  // after the launch surface has finished expanding.
+  if (navigationEvent.defaultPrevented) {
+    clearPendingTarget(normalizedTarget);
+    clearMetroNavigationState(root, 760);
+    return;
+  }
 
   if (!windows8MotionActive()) {
     try {
@@ -112,6 +124,8 @@ export function launchRoute({
     return;
   }
 
+  // Compatibility fallback for Metro mode if the global launch runtime is not
+  // mounted for any reason. The legacy route transition still remains usable.
   root.dataset.metroExiting = 'true';
   metroNavigationTimer = window.setTimeout(() => {
     delete root.dataset.metroExiting;
