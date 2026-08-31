@@ -1,5 +1,6 @@
 import React from 'react';
 import Navigation from './GlobalCompactNavigation.jsx';
+import GlobalWindowsPhone8Loading from './GlobalWindowsPhone8Loading.jsx';
 import GlobalPageLaunchEffect from './GlobalPageLaunchEffect.jsx';
 import GlobalWindows8Experience from './GlobalWindows8Experience.jsx';
 import GlobalEditorialBriefBar from './GlobalEditorialBriefBar.jsx';
@@ -39,6 +40,7 @@ import './GlobalWorkScheduleModern.css';
 import './GlobalScrollPerformance.css';
 import './GlobalCriticalJankGuard.css';
 import './GlobalNotificationCenterRemoval.css';
+import './GlobalWindowsPhone8Loading.css';
 import './GlobalNotificationCenterFinalRemoval.css';
 import './GlobalHomeSparkleButton.css';
 import './homeroom/HomeroomCompactDensity.css';
@@ -52,6 +54,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalPinnedNavigationHub route={props.route} />
       <GlobalPageLaunchEffect route={props.route} />
       <GlobalWindows8Experience route={props.route} />
+      <GlobalWindowsPhone8Loading />
       <GlobalEditorialBriefBar route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalWeeklyPracticeBridge route={props.route} language={props.language} currentUser={props.currentUser} />
