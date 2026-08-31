@@ -128,6 +128,27 @@ function ensureLoader() {
   return loader;
 }
 
+function getInteractiveTarget(event) {
+  return event.target instanceof Element
+    ? event.target.closest('button,a,[role="button"],[role="menuitem"],input[type="submit"],input[type="button"]')
+    : null;
+}
+
+function isExplicitRouteNavigation(target) {
+  if (!(target instanceof Element)) return false;
+  if (target.closest('.brian-nav__primary')) return true;
+
+  const href = String(target.getAttribute('href') || target.getAttribute('data-href') || '').trim();
+  if (href.startsWith('#/') || href.includes('/#/')) return true;
+
+  const routeTarget = String(
+    target.getAttribute('data-route-target')
+      || target.getAttribute('data-navigation-target')
+      || '',
+  ).trim();
+  return routeTarget.startsWith('#/') || routeTarget.startsWith('/');
+}
+
 export function installGlobalUnifiedWaveLoading() {
   if (typeof window === 'undefined' || typeof document === 'undefined') return () => {};
 
@@ -226,20 +247,18 @@ export function installGlobalUnifiedWaveLoading() {
   };
 
   const onPointerDown = (event) => {
-    const target = event.target instanceof Element
-      ? event.target.closest('button,a,[role="button"],[role="menuitem"],input[type="submit"],input[type="button"]')
-      : null;
+    const target = getInteractiveTarget(event);
     if (!target || target.matches(':disabled,[aria-disabled="true"]')) return;
-    releaseRouteSuppression();
-    lastInteractionAt = performance.now();
+    if (isExplicitRouteNavigation(target)) resetForRouteTransition();
   };
 
-  const onKeyDown = (event) => {
-    if (event.key !== 'Enter' && event.key !== ' ') return;
-    const target = event.target instanceof Element
-      ? event.target.closest('button,a,[role="button"],[role="menuitem"],input[type="submit"],input[type="button"]')
-      : null;
+  const onClick = (event) => {
+    const target = getInteractiveTarget(event);
     if (!target || target.matches(':disabled,[aria-disabled="true"]')) return;
+    if (isExplicitRouteNavigation(target)) {
+      resetForRouteTransition();
+      return;
+    }
     releaseRouteSuppression();
     lastInteractionAt = performance.now();
   };
@@ -339,7 +358,7 @@ export function installGlobalUnifiedWaveLoading() {
   });
 
   window.addEventListener('pointerdown', onPointerDown, true);
-  window.addEventListener('keydown', onKeyDown, true);
+  window.addEventListener('click', onClick, true);
   window.addEventListener('bes-navigation-start', resetForRouteTransition);
   window.addEventListener('hashchange', resetForRouteTransition);
   window.addEventListener('popstate', resetForRouteTransition);
@@ -356,7 +375,7 @@ export function installGlobalUnifiedWaveLoading() {
     disposed = true;
     observer.disconnect();
     window.removeEventListener('pointerdown', onPointerDown, true);
-    window.removeEventListener('keydown', onKeyDown, true);
+    window.removeEventListener('click', onClick, true);
     window.removeEventListener('bes-navigation-start', resetForRouteTransition);
     window.removeEventListener('hashchange', resetForRouteTransition);
     window.removeEventListener('popstate', resetForRouteTransition);
