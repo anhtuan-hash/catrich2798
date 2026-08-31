@@ -1,12 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import './BrianPulseLogo.css';
 
-const LETTER = 'T';
 const SAMPLE_GAP = 2;
-const FIELD_RADIUS = 19;
-const FIELD_FORCE = 3.4;
-const SPRING = 0.072;
-const FRICTION = 0.84;
+const FIELD_RADIUS = 21;
+const FIELD_FORCE = 3.25;
+const SPRING = 0.066;
+const FRICTION = 0.845;
 
 function roundedRect(ctx, x, y, width, height, radius) {
   const r = Math.min(radius, Math.abs(width) / 2, Math.abs(height) / 2);
@@ -22,6 +21,11 @@ function roundedRect(ctx, x, y, width, height, radius) {
 function hash01(seed) {
   const value = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
   return value - Math.floor(value);
+}
+
+function readCssColor(element, variable, fallback) {
+  const styles = getComputedStyle(element);
+  return String(styles.getPropertyValue(variable) || '').trim() || fallback;
 }
 
 export default function BrianPulseLogo({ className = '' }) {
@@ -41,6 +45,7 @@ export default function BrianPulseLogo({ className = '' }) {
     let frameId = 0;
     let resizeObserver = null;
     let disposed = false;
+    let startedAt = performance.now();
 
     const pointer = {
       x: 0,
@@ -52,7 +57,7 @@ export default function BrianPulseLogo({ className = '' }) {
     };
 
     class Particle {
-      constructor(x, y, size, alpha, kind, angle) {
+      constructor({ x, y, size, alpha, kind, angle, accent, halo, phase }) {
         this.x = x;
         this.y = y;
         this.homeX = x;
@@ -63,11 +68,17 @@ export default function BrianPulseLogo({ className = '' }) {
         this.alpha = alpha;
         this.kind = kind;
         this.angle = angle;
+        this.accent = accent;
+        this.halo = halo;
+        this.phase = phase;
         this.rotation = angle;
         this.rotationVelocity = 0;
+        this.pointerEnergy = 0;
       }
 
       update() {
+        let pointerEnergy = 0;
+
         if (pointer.active) {
           const dx = this.x - pointer.x;
           const dy = this.y - pointer.y;
@@ -78,18 +89,18 @@ export default function BrianPulseLogo({ className = '' }) {
             const distance = Math.sqrt(distanceSquared);
             const proximity = 1 - distance / FIELD_RADIUS;
             const curve = proximity * proximity;
-            const strength = curve * (FIELD_FORCE + Math.min(pointer.speed * 0.055, 2.4));
+            const strength = curve * (FIELD_FORCE + Math.min(pointer.speed * 0.05, 2.2));
             const nx = dx / distance;
             const ny = dy / distance;
 
-            // Radial push plus a tiny tangential drift makes the field feel less
-            // mechanical and closer to the liquid/magnetic motion of dqnotes.
-            this.vx += nx * strength + -ny * strength * 0.14;
-            this.vy += ny * strength + nx * strength * 0.14;
-            this.rotationVelocity += (nx - ny) * strength * 0.025;
+            this.vx += nx * strength + -ny * strength * 0.16;
+            this.vy += ny * strength + nx * strength * 0.16;
+            this.rotationVelocity += (nx - ny) * strength * 0.021;
+            pointerEnergy = proximity;
           }
         }
 
+        this.pointerEnergy += (pointerEnergy - this.pointerEnergy) * 0.18;
         this.vx += (this.homeX - this.x) * SPRING;
         this.vy += (this.homeY - this.y) * SPRING;
         this.vx *= FRICTION;
@@ -98,19 +109,25 @@ export default function BrianPulseLogo({ className = '' }) {
         this.x += this.vx;
         this.y += this.vy;
         this.rotation += this.rotationVelocity;
-        this.rotation += (this.angle - this.rotation) * 0.07;
+        this.rotation += (this.angle - this.rotation) * 0.065;
       }
 
-      draw(ink) {
+      draw(ink, accentInk, time) {
+        const shimmer = reduceMotion
+          ? 1
+          : 0.93 + Math.sin(time * 0.00135 + this.phase) * 0.07;
+        const interactionLift = 1 + this.pointerEnergy * 0.35;
+        const finalAlpha = Math.min(1, this.alpha * shimmer * interactionLift);
+
         ctx.save();
         ctx.translate(this.x, this.y);
         ctx.rotate(this.rotation);
-        ctx.globalAlpha = this.alpha;
-        ctx.fillStyle = ink;
+        ctx.globalAlpha = finalAlpha;
+        ctx.fillStyle = this.accent || this.pointerEnergy > 0.72 ? accentInk : ink;
 
         if (this.kind === 0) {
           ctx.beginPath();
-          ctx.arc(0, 0, this.size * 0.48, 0, Math.PI * 2);
+          ctx.arc(0, 0, this.size * (this.halo ? 0.40 : 0.48), 0, Math.PI * 2);
           ctx.fill();
         } else {
           const width = this.kind === 1 ? this.size * 1.55 : this.size * 0.72;
@@ -126,23 +143,65 @@ export default function BrianPulseLogo({ className = '' }) {
     function drawOrganicSeal(maskCtx, width, height) {
       const cx = width / 2;
       const cy = height / 2;
-      const radius = Math.min(width, height) * 0.425;
-      const points = 30;
+      const radius = Math.min(width, height) * 0.412;
+      const points = 34;
 
       maskCtx.beginPath();
       for (let index = 0; index < points; index += 1) {
         const angle = (index / points) * Math.PI * 2;
         const wobble =
           1
-          + Math.sin(angle * 3 + 0.8) * 0.026
-          + Math.sin(angle * 7 - 0.35) * 0.017;
-        const rx = radius * wobble * 1.02;
-        const ry = radius * wobble * 0.98;
+          + Math.sin(angle * 3 + 0.8) * 0.024
+          + Math.sin(angle * 7 - 0.35) * 0.014
+          + Math.sin(angle * 11 + 1.7) * 0.006;
+        const rx = radius * wobble * 1.015;
+        const ry = radius * wobble * 0.985;
         const x = cx + Math.cos(angle) * rx;
         const y = cy + Math.sin(angle) * ry;
         if (index === 0) maskCtx.moveTo(x, y);
         else maskCtx.lineTo(x, y);
       }
+      maskCtx.closePath();
+      maskCtx.fill();
+    }
+
+    function punchCustomT(maskCtx, width, height) {
+      const cx = width / 2;
+      const cy = height / 2;
+      const scale = Math.min(width, height) / 52;
+      const topY = cy - 13.5 * scale;
+      const crossWidth = 21.8 * scale;
+      const crossHeight = 5.4 * scale;
+      const stemTop = topY + 3.6 * scale;
+      const stemBottom = cy + 13.4 * scale;
+      const halfTop = 3.6 * scale;
+      const halfBottom = 2.65 * scale;
+
+      roundedRect(
+        maskCtx,
+        cx - crossWidth / 2,
+        topY,
+        crossWidth,
+        crossHeight,
+        2.2 * scale,
+      );
+      maskCtx.fill();
+
+      // Slightly tapered stem: more emblem-like than a stock font glyph.
+      maskCtx.beginPath();
+      maskCtx.moveTo(cx - halfTop, stemTop);
+      maskCtx.lineTo(cx + halfTop, stemTop);
+      maskCtx.lineTo(cx + halfBottom, stemBottom - 1.8 * scale);
+      maskCtx.quadraticCurveTo(cx + halfBottom, stemBottom, cx, stemBottom + 0.4 * scale);
+      maskCtx.quadraticCurveTo(cx - halfBottom, stemBottom, cx - halfBottom, stemBottom - 1.8 * scale);
+      maskCtx.closePath();
+      maskCtx.fill();
+
+      // A minute asymmetric notch gives the monogram a custom, editorial identity.
+      maskCtx.beginPath();
+      maskCtx.moveTo(cx + 3.2 * scale, topY + crossHeight);
+      maskCtx.lineTo(cx + 6.0 * scale, topY + crossHeight);
+      maskCtx.lineTo(cx + 4.7 * scale, topY + crossHeight + 2.1 * scale);
       maskCtx.closePath();
       maskCtx.fill();
     }
@@ -158,22 +217,15 @@ export default function BrianPulseLogo({ className = '' }) {
       mctx.fillStyle = '#fff';
       drawOrganicSeal(mctx, width, height);
 
-      // Punch the T out of the particle field. The original dqnotes mark reads as
-      // a dark/negative monogram inside a dense stippled seal rather than as a
-      // dotted letter floating on its own.
       mctx.globalCompositeOperation = 'destination-out';
-      const fontSize = Math.max(22, Math.min(31, height * 0.61));
-      mctx.textAlign = 'center';
-      mctx.textBaseline = 'middle';
-      mctx.font = `900 ${fontSize}px Inter, "SF Pro Display", "Helvetica Neue", Arial, sans-serif`;
-      mctx.fillText(LETTER, width / 2, height / 2 + 1.1);
+      punchCustomT(mctx, width, height);
       mctx.globalCompositeOperation = 'source-over';
 
       const data = mctx.getImageData(0, 0, mask.width, mask.height).data;
       const next = [];
       const cx = width / 2;
       const cy = height / 2;
-      const maxRadius = Math.min(width, height) * 0.46;
+      const maxRadius = Math.min(width, height) * 0.445;
 
       for (let y = 1; y < mask.height - 1; y += SAMPLE_GAP) {
         for (let x = 1; x < mask.width - 1; x += SAMPLE_GAP) {
@@ -185,37 +237,87 @@ export default function BrianPulseLogo({ className = '' }) {
           const randomB = hash01(seed + 19);
           const randomC = hash01(seed + 73);
           const randomD = hash01(seed + 149);
-          const distance = Math.hypot(x - cx, y - cy) / maxRadius;
-          const edgeFade = Math.max(0.34, 1 - Math.max(0, distance - 0.68) * 1.55);
+          const randomE = hash01(seed + 227);
+          const dx = x - cx;
+          const dy = y - cy;
+          const distance = Math.hypot(dx, dy) / maxRadius;
+          const angleFromCenter = Math.atan2(dy, dx);
+          const edgeFade = Math.max(0.28, 1 - Math.max(0, distance - 0.69) * 1.7);
 
-          // Micro jitter breaks the visible square raster and produces the dusty,
-          // print-like stipple texture of the reference mark.
-          const homeX = x + (randomA - 0.5) * 0.85;
-          const homeY = y + (randomB - 0.5) * 0.85;
-          const size = 0.78 + randomC * 0.62;
-          const particleAlpha = (0.42 + randomD * 0.5) * edgeFade;
+          const homeX = x + (randomA - 0.5) * 0.88;
+          const homeY = y + (randomB - 0.5) * 0.88;
+          const size = 0.74 + randomC * 0.64;
+          const particleAlpha = (0.39 + randomD * 0.54) * edgeFade;
 
-          const selector = Math.floor(randomA * 12);
-          const kind = selector < 8 ? 0 : selector < 10 ? 1 : 2;
-          const angle = kind === 0 ? 0 : (randomB - 0.5) * 1.15;
-          next.push(new Particle(homeX, homeY, size, particleAlpha, kind, angle));
+          const selector = Math.floor(randomA * 13);
+          const kind = selector < 9 ? 0 : selector < 11 ? 1 : 2;
+          const particleAngle = kind === 0 ? 0 : (randomB - 0.5) * 1.12;
+
+          // Keep the mark mostly monochrome; a tiny lower-right constellation of
+          // accent particles gives Brian a recognisable signature without turning
+          // the seal into a multicolour badge.
+          const accentSector = angleFromCenter > 0.18 && angleFromCenter < 1.55 && distance > 0.48;
+          const accent = accentSector && randomE > 0.84;
+
+          next.push(new Particle({
+            x: homeX,
+            y: homeY,
+            size,
+            alpha: particleAlpha,
+            kind,
+            angle: particleAngle,
+            accent,
+            halo: false,
+            phase: randomE * Math.PI * 2,
+          }));
         }
       }
 
+      // Sparse outer dust softens the edge and recreates the airy stipple fringe
+      // that makes the dqnotes mark feel printed rather than computer-perfect.
+      const haloCount = Math.max(18, Math.round(Math.min(width, height) * 0.62));
+      for (let index = 0; index < haloCount; index += 1) {
+        const randomA = hash01(index * 71 + 11);
+        const randomB = hash01(index * 97 + 23);
+        const randomC = hash01(index * 149 + 37);
+        const angle = (index / haloCount) * Math.PI * 2 + (randomA - 0.5) * 0.16;
+        const radius = maxRadius * (0.91 + randomB * 0.11);
+        const x = cx + Math.cos(angle) * radius;
+        const y = cy + Math.sin(angle) * radius;
+        const accentSector = angle > 0.22 && angle < 1.5;
+
+        next.push(new Particle({
+          x,
+          y,
+          size: 0.68 + randomC * 0.46,
+          alpha: 0.18 + randomA * 0.23,
+          kind: randomB > 0.82 ? 1 : 0,
+          angle: (randomC - 0.5) * 0.9,
+          accent: accentSector && randomC > 0.9,
+          halo: true,
+          phase: randomB * Math.PI * 2,
+        }));
+      }
+
       particles = next;
+      startedAt = performance.now();
     }
 
-    function getInk() {
-      return getComputedStyle(host).color || '#3e4d46';
+    function getPalette() {
+      return {
+        ink: readCssColor(host, '--particle-ink', getComputedStyle(host).color || '#44544d'),
+        accentInk: readCssColor(host, '--particle-accent', '#356fe8'),
+      };
     }
 
-    function draw(update = true) {
+    function draw(update = true, now = performance.now()) {
       const rect = canvas.getBoundingClientRect();
       ctx.clearRect(0, 0, rect.width, rect.height);
-      const ink = getInk();
+      const { ink, accentInk } = getPalette();
+      const elapsed = now - startedAt;
 
       if (update) particles.forEach((particle) => particle.update());
-      particles.forEach((particle) => particle.draw(ink));
+      particles.forEach((particle) => particle.draw(ink, accentInk, elapsed));
       ctx.globalAlpha = 1;
     }
 
@@ -234,10 +336,10 @@ export default function BrianPulseLogo({ className = '' }) {
       draw(false);
     }
 
-    function animate() {
+    function animate(now) {
       if (disposed) return;
       pointer.speed *= 0.87;
-      draw(true);
+      draw(true, now);
       frameId = window.requestAnimationFrame(animate);
     }
 
