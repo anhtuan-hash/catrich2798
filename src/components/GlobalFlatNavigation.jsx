@@ -15,7 +15,6 @@ import GlobalSubtitleSettingsBridge from './GlobalSubtitleSettingsBridge.jsx';
 import GlobalHeroGovernance from './GlobalHeroGovernance.jsx';
 import GlobalAiWebsiteLauncher from './GlobalAiWebsiteLauncher.jsx';
 import HomeParticleSignaturePortal from './HomeParticleSignaturePortal.jsx';
-import GlobalNewsFeedNavigationTab from './GlobalNewsFeedNavigationTab.jsx';
 import GlobalDashboardNavigationTab from './GlobalDashboardNavigationTab.jsx';
 import GlobalHomeroomNavigationTab from './GlobalHomeroomNavigationTab.jsx';
 import GlobalGradebookNavigationTab from './GlobalGradebookNavigationTab.jsx';
@@ -51,7 +50,6 @@ export default function GlobalFlatNavigation(props) {
     <>
       <GlobalNativeTextScaleReset />
       <Navigation {...props} />
-      <GlobalNewsFeedNavigationTab {...props} />
       <GlobalPinnedNavigationHub route={props.route} />
       <GlobalPageLaunchEffect route={props.route} />
       <GlobalWindows8Experience route={props.route} />
