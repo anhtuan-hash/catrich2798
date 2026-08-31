@@ -11,53 +11,54 @@ const STYLE_ID = 'bes-global-editorial-authority-2026';
 const RUNNER_WIDTH = 18;
 const RUNNER_HEIGHT = 3;
 const RUNNER_DURATION = 2800;
-const BLACK_SURFACE = '#171717';
-const BLACK_GLOW = 'rgba(255,255,255,.48)';
+const SOFT_SURFACE = 'linear-gradient(180deg, #fcfdff 0%, #f1f3f6 100%)';
+const SOFT_ACTIVE_SURFACE = 'linear-gradient(180deg, #f2f4f7 0%, #e6eaf0 100%)';
+const SOFT_GLOW = 'rgba(100,116,139,.22)';
 const NAV_MOTION_TARGETS = [
   {
     key: 'home',
     selector: ".app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type",
-    glow: BLACK_GLOW,
-    surface: BLACK_SURFACE,
+    glow: SOFT_GLOW,
+    surface: SOFT_SURFACE,
     home: true,
   },
   {
     key: 'apps',
     selector: ".app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):nth-of-type(2)",
-    glow: BLACK_GLOW,
-    surface: BLACK_SURFACE,
+    glow: SOFT_GLOW,
+    surface: SOFT_SURFACE,
   },
   {
     key: 'dashboard',
     selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__dashboard-tab',
-    glow: BLACK_GLOW,
-    surface: BLACK_SURFACE,
+    glow: SOFT_GLOW,
+    surface: SOFT_SURFACE,
   },
   {
     key: 'homeroom',
     selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__homeroom-tab',
-    glow: BLACK_GLOW,
-    surface: BLACK_SURFACE,
+    glow: SOFT_GLOW,
+    surface: SOFT_SURFACE,
   },
   {
     key: 'gradebook',
     selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__gradebook-tab',
-    glow: BLACK_GLOW,
-    surface: BLACK_SURFACE,
+    glow: SOFT_GLOW,
+    surface: SOFT_SURFACE,
   },
   {
     key: 'reports',
     selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.brian-nav__reports-send',
-    glow: BLACK_GLOW,
-    surface: BLACK_SURFACE,
+    glow: SOFT_GLOW,
+    surface: SOFT_SURFACE,
     preserveOverflow: true,
     runnerInset: 3,
   },
   {
     key: 'ttcm',
     selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__ttcm-tab',
-    glow: BLACK_GLOW,
-    surface: BLACK_SURFACE,
+    glow: SOFT_GLOW,
+    surface: SOFT_SURFACE,
   },
 ];
 const finalEditorialCss = `${editorialCss}\n\n${navigationCss}\n\n${stage5AppCss}\n\n${stage5WorkflowCss}\n\n${stage6PolishCss}\n\n${homeSparkleCss}`;
@@ -145,8 +146,8 @@ function styleRunner(runner, glow) {
   set('padding', '0');
   set('border', '0');
   set('border-radius', '999px');
-  set('background', 'linear-gradient(90deg, rgba(255,255,255,.12), #fff 42%, #fff 62%, rgba(255,255,255,.14))');
-  set('box-shadow', `0 0 4px rgba(255,255,255,1), 0 0 10px rgba(255,255,255,.88), 0 0 16px ${glow}`);
+  set('background', 'linear-gradient(90deg, rgba(148,163,184,.08), rgba(71,85,105,.58) 34%, #fff 54%, rgba(148,163,184,.10))');
+  set('box-shadow', `0 0 3px rgba(255,255,255,1), 0 0 7px rgba(71,85,105,.34), 0 0 13px ${glow}`);
   set('opacity', '1');
   set('pointer-events', 'none');
   set('transform-origin', 'center center');
@@ -156,15 +157,17 @@ function styleRunner(runner, glow) {
 function styleColoredSurface(button, config) {
   if (!config.surface) return;
   const set = (name, value) => button.style.setProperty(name, value, 'important');
-  set('background', config.surface);
-  set('background-image', 'none');
-  set('color', '#fff');
-  set('border-color', 'rgba(255,255,255,.18)');
+  const active = button.classList.contains('is-active');
+  const surface = active ? SOFT_ACTIVE_SURFACE : config.surface;
+  set('background', surface);
+  set('background-image', surface);
+  set('color', active ? '#334155' : '#475569');
+  set('border-color', active ? 'rgba(100,116,139,.34)' : 'rgba(148,163,184,.28)');
   set(
     'box-shadow',
-    `inset 0 .5px rgba(255,255,255,.34), inset 0 -1px 2px rgba(0,0,0,.34), 0 5px 14px rgba(0,0,0,.28), 0 0 12px ${config.glow}`,
+    `inset 0 1px rgba(255,255,255,.98), inset 0 -1px 1px rgba(148,163,184,.12), 0 5px 14px rgba(51,65,85,.10), 0 0 10px ${config.glow}`,
   );
-  set('text-shadow', '0 1px 1px rgba(0,0,0,.28)');
+  set('text-shadow', 'none');
 }
 
 export default function GlobalEditorialAuthorityRuntime() {
