@@ -1,105 +1,165 @@
-/* Vertical 16:9 Start layout for News Feed.
-   Desktop/tablet clusters behave like stacked Start screens instead of a
-   horizontal panorama. The existing mobile layout remains naturally sized. */
+/* Compact vertical Start layout for News Feed.
+   16:9 is treated as the visual canvas proportion, not as a forced height for
+   every cluster. Clusters now flow naturally and stay tightly packed. */
 
 @media (min-width: 721px) {
   .brian-news-feed {
+    --feed-canvas-width: min(1480px, calc((100dvh - 112px) * 16 / 9), calc(100vw - 48px));
+    padding-top: clamp(28px, 3vw, 48px);
+    padding-bottom: 64px;
     overflow-x: clip;
+  }
+
+  .brian-news-feed__header,
+  .brian-news-feed__clusters,
+  .brian-news-feed__empty {
+    width: var(--feed-canvas-width);
+    max-width: none;
+  }
+
+  .brian-news-feed__header {
+    gap: clamp(28px, 4vw, 56px);
+    margin-bottom: clamp(24px, 2.8vw, 38px);
+  }
+
+  .brian-news-feed__title-block h1 {
+    font-size: clamp(58px, 6.4vw, 94px);
+  }
+
+  .brian-news-feed__title-block p {
+    margin-top: 12px;
+    font-size: clamp(14px, 1.15vw, 18px);
   }
 
   .brian-news-feed__clusters {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-    align-items: stretch;
-    gap: clamp(52px, 6vw, 92px);
-    width: 100%;
-    max-width: 1480px;
+    align-items: start;
+    gap: clamp(26px, 2.6vw, 38px);
     margin: 0 auto;
-    padding: 0 0 clamp(24px, 4vw, 54px);
+    padding: 0 0 24px;
     overflow: visible;
     scroll-snap-type: none;
   }
 
   .brian-news-feed__cluster {
-    display: grid;
-    grid-template-rows: auto minmax(0, 1fr);
     width: 100%;
     max-width: none;
     min-width: 0;
     min-height: 0;
-    aspect-ratio: 16 / 9;
+    aspect-ratio: auto;
     flex: none;
     scroll-snap-align: none;
-    scroll-margin-top: 132px;
+    scroll-margin-top: 118px;
   }
 
   .brian-news-feed__cluster h2 {
-    margin: 0 0 16px;
-    font-size: clamp(15px, 1.15vw, 18px);
+    margin: 0 0 10px;
+    font-size: clamp(14px, 1vw, 17px);
+    font-weight: 600;
+    opacity: .76;
   }
 
   .brian-news-feed__tiles {
     width: 100%;
-    height: 100%;
+    height: auto;
     min-height: 0;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-template-rows: repeat(4, minmax(0, 1fr));
-    grid-auto-rows: minmax(0, 1fr);
-    gap: clamp(8px, .72vw, 12px);
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-rows: none;
+    grid-auto-rows: clamp(104px, 8.2vw, 126px);
+    grid-auto-flow: dense;
+    gap: clamp(7px, .62vw, 10px);
+  }
+
+  /* Work cluster is intentionally composed as a dense 50/50 dashboard: the
+     large command tile fills the left half, the remaining tiles stack right. */
+  .brian-news-feed__cluster.is-work .brian-live-tile.is-large {
+    grid-column: span 3;
+    grid-row: span 2;
+  }
+
+  .brian-news-feed__cluster.is-work .brian-live-tile:not(.is-large) {
+    grid-column: span 3;
+    grid-row: span 1;
+  }
+
+  .brian-news-feed__cluster.is-teaching .brian-live-tile.is-wide {
+    grid-column: span 3;
+  }
+
+  .brian-news-feed__cluster.is-teaching .brian-live-tile.is-square {
+    grid-column: span 2;
   }
 
   .brian-live-tile {
-    padding: clamp(14px, 1.15vw, 20px);
+    padding: clamp(12px, .95vw, 17px);
   }
 
   .brian-live-tile__live-window {
-    margin: clamp(10px, 1vw, 16px) 0 8px;
+    margin: 8px 0 6px;
   }
 
   .brian-live-tile__face strong {
-    font-size: clamp(17px, 1.45vw, 22px);
+    font-size: clamp(16px, 1.25vw, 20px);
   }
 
   .brian-live-tile.is-large .brian-live-tile__face strong {
-    font-size: clamp(28px, 2.4vw, 38px);
+    font-size: clamp(27px, 2.2vw, 36px);
   }
 
   .brian-live-tile.is-square .brian-live-tile__face strong {
-    font-size: clamp(14px, 1.1vw, 18px);
-  }
-}
-
-@media (min-width: 721px) and (max-width: 980px) {
-  .brian-news-feed__clusters {
-    gap: 42px;
-  }
-
-  .brian-news-feed__cluster {
-    aspect-ratio: 16 / 9;
-    scroll-margin-top: 104px;
-  }
-
-  .brian-news-feed__tiles {
-    gap: 7px;
-  }
-
-  .brian-live-tile {
-    padding: 12px;
-  }
-
-  .brian-live-tile__icon {
-    width: 30px;
-    height: 30px;
-    font-size: 10px;
-  }
-
-  .brian-live-tile.is-large .brian-live-tile__icon {
-    width: 40px;
-    height: 40px;
+    font-size: clamp(13px, 1vw, 16px);
   }
 
   .brian-live-tile__face small {
+    margin-top: 4px;
     -webkit-line-clamp: 1;
+  }
+
+  /* Every tile is now truly live. Individual cycle/delay values come from
+     JSX so neighboring tiles do not flip at the same time. */
+  .brian-live-tile.is-live .brian-live-tile__face--primary,
+  .brian-live-tile.is-live .brian-live-tile__face--secondary {
+    animation-duration: var(--tile-cycle, 7.2s);
+    animation-delay: var(--tile-delay, 0s);
+  }
+
+  .brian-live-tile.is-live .brian-live-tile__topline em {
+    animation: brian-live-badge-pulse calc(var(--tile-cycle, 7.2s) * .5) ease-in-out var(--tile-delay, 0s) infinite;
+  }
+
+  @keyframes brian-live-badge-pulse {
+    0%, 100% { opacity: .55; }
+    45%, 55% { opacity: 1; }
+  }
+}
+
+@media (min-width: 721px) and (max-width: 1100px) {
+  .brian-news-feed {
+    --feed-canvas-width: min(calc(100vw - 40px), 1060px);
+  }
+
+  .brian-news-feed__header {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .brian-news-feed__tiles {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-rows: 112px;
+  }
+
+  .brian-news-feed__cluster.is-work .brian-live-tile.is-large {
+    grid-column: span 2;
+  }
+
+  .brian-news-feed__cluster.is-work .brian-live-tile:not(.is-large),
+  .brian-news-feed__cluster.is-teaching .brian-live-tile.is-wide {
+    grid-column: span 2;
+  }
+
+  .brian-news-feed__cluster.is-teaching .brian-live-tile.is-square {
+    grid-column: span 1;
   }
 }
 
@@ -115,5 +175,11 @@
 
   .brian-news-feed__cluster {
     aspect-ratio: auto;
+  }
+
+  .brian-live-tile.is-live .brian-live-tile__face--primary,
+  .brian-live-tile.is-live .brian-live-tile__face--secondary {
+    animation-duration: var(--tile-cycle, 7.2s);
+    animation-delay: var(--tile-delay, 0s);
   }
 }
