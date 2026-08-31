@@ -5,6 +5,7 @@ import stage5AppCss from '../styles/BrianStage5Migration.css?inline';
 import stage5WorkflowCss from '../styles/BrianStage5WorkflowMigration.css?inline';
 import stage6PolishCss from '../styles/BrianStage6Polish.css?inline';
 import homeSparkleCss from './GlobalHomeSparkleButton.css?inline';
+import { installLegacyInternalLoadingCleanup } from '../utils/legacyInternalLoadingCleanup.js';
 
 const STYLE_ID = 'bes-global-editorial-authority-2026';
 const RUNNER_WIDTH = 18;
@@ -171,6 +172,7 @@ export default function GlobalEditorialAuthorityRuntime() {
     let disposed = false;
     let raf = 0;
     const bindings = new Map();
+    const releaseLegacyInternalLoadingCleanup = installLegacyInternalLoadingCleanup();
 
     const releaseBinding = (key) => {
       const binding = bindings.get(key);
@@ -341,6 +343,7 @@ export default function GlobalEditorialAuthorityRuntime() {
       disposed = true;
       observer.disconnect();
       rootObserver.disconnect();
+      releaseLegacyInternalLoadingCleanup();
       [...bindings.keys()].forEach(releaseBinding);
       window.removeEventListener('hashchange', promote);
       window.removeEventListener('bes-route-change', promote);
