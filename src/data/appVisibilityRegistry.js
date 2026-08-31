@@ -1,4 +1,5 @@
 import { APPS, GAME_APPS, SPECIAL_TOOLS } from './apps.js';
+import { isRetiredApp } from './retiredApps.js';
 
 export const ROUTE_APP_SHORTCUTS = [
   {
@@ -37,7 +38,7 @@ export const HIDDEN_APPS_FOLDER = {
 };
 
 export function appVisibilityId(item) {
-  if (!item) return '';
+  if (!item || isRetiredApp(item)) return '';
   if (item.visibilityId) return String(item.visibilityId);
   if (item.slug && !item.routeOnly) return `tool:${item.slug}`;
   if (item.route) return `route:${item.route}`;
@@ -45,6 +46,7 @@ export function appVisibilityId(item) {
 }
 
 function normalizeCatalogItem(item, source) {
+  if (!item || isRetiredApp(item)) return null;
   const id = appVisibilityId(item);
   return {
     ...item,
@@ -61,7 +63,7 @@ export function getAppVisibilityCatalog() {
     ...GAME_APPS.map((item) => normalizeCatalogItem(item, 'games')),
     ...SPECIAL_TOOLS.map((item) => normalizeCatalogItem(item, 'tools')),
     ...ROUTE_APP_SHORTCUTS.map((item) => normalizeCatalogItem({ ...item, routeOnly: true }, 'routes')),
-  ];
+  ].filter(Boolean);
   const seen = new Set();
   return merged.filter((item) => {
     if (!item.id || seen.has(item.id)) return false;
@@ -71,14 +73,15 @@ export function getAppVisibilityCatalog() {
 }
 
 export function findVisibilityItemByRoute(route) {
-  const app = [...APPS, ...GAME_APPS, ...SPECIAL_TOOLS].find((item) => item.route === route);
+  const app = [...APPS, ...GAME_APPS, ...SPECIAL_TOOLS]
+    .find((item) => item.route === route && !isRetiredApp(item));
   if (app) return normalizeCatalogItem(app, 'apps');
-  const shortcut = ROUTE_APP_SHORTCUTS.find((item) => item.route === route);
+  const shortcut = ROUTE_APP_SHORTCUTS.find((item) => item.route === route && !isRetiredApp(item));
   if (shortcut) return normalizeCatalogItem({ ...shortcut, routeOnly: true }, 'routes');
   return null;
 }
 
 export function visibilityIdForRoute(route, selectedTool = null) {
-  if (route === 'tool' && selectedTool?.slug) return appVisibilityId(selectedTool);
+  if (route === 'tool' && selectedTool?.slug && !isRetiredApp(selectedTool)) return appVisibilityId(selectedTool);
   return findVisibilityItemByRoute(route)?.id || (route ? `route:${route}` : '');
 }
