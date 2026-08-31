@@ -1,6 +1,7 @@
 import React from 'react';
 import Navigation from './GlobalCompactNavigation.jsx';
 import GlobalWindowsPhone8Loading from './GlobalWindowsPhone8Loading.jsx';
+import GlobalCubeRouteLoader from './GlobalCubeRouteLoader.jsx';
 import GlobalPageLaunchEffect from './GlobalPageLaunchEffect.jsx';
 import GlobalWindows8Experience from './GlobalWindows8Experience.jsx';
 import GlobalEditorialBriefBar from './GlobalEditorialBriefBar.jsx';
@@ -25,9 +26,8 @@ import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
 import GlobalWeeklyPracticeBridge from './GlobalWeeklyPracticeBridge.jsx';
 import GlobalEditorialAuthorityRuntime from './GlobalEditorialAuthorityRuntime.jsx';
 
-// Shared utilities. Motion Library v2 owns general motion. Metro Sweep is now
-// owned by GlobalPageLaunchEffect for compositor-only Windows 8 app launching;
-// GlobalWindows8Experience remains mounted for legacy WinRT choreography only.
+// Shared utilities. Cube loading is a short independent pre-navigation phase.
+// Metro Sweep remains owned by GlobalPageLaunchEffect exactly as before.
 import './GlobalGoogleMaterialOverride.css';
 import './GlobalCommandPaletteGoogle.css';
 import './GlobalCommandPaletteFocusFix.css';
@@ -52,6 +52,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalNativeTextScaleReset />
       <Navigation {...props} />
       <GlobalPinnedNavigationHub route={props.route} />
+      <GlobalCubeRouteLoader />
       <GlobalPageLaunchEffect route={props.route} />
       <GlobalWindows8Experience route={props.route} />
       <GlobalWindowsPhone8Loading />
