@@ -1,6 +1,6 @@
-/* Compact vertical Start layout for News Feed.
-   16:9 is treated as the visual canvas proportion, not as a forced height for
-   every cluster. Clusters now flow naturally and stay tightly packed. */
+/* Compact vertical Windows 8 Start layout.
+   The canvas keeps a 16:9 visual proportion without forcing each section to
+   become a 16:9 slide. Sections flow tightly according to their tile content. */
 
 @media (min-width: 721px) {
   .brian-news-feed {
@@ -18,24 +18,32 @@
   }
 
   .brian-news-feed__header {
+    grid-template-columns: minmax(430px, 1fr) auto;
     gap: clamp(28px, 4vw, 56px);
-    margin-bottom: clamp(24px, 2.8vw, 38px);
+    margin-bottom: clamp(22px, 2.4vw, 34px);
+  }
+
+  .brian-news-feed__title-block {
+    min-width: 0;
   }
 
   .brian-news-feed__title-block h1 {
-    font-size: clamp(58px, 6.4vw, 94px);
+    max-width: 100%;
+    font-size: clamp(58px, 6.2vw, 92px);
+    white-space: nowrap;
   }
 
   .brian-news-feed__title-block p {
+    max-width: 660px;
     margin-top: 12px;
-    font-size: clamp(14px, 1.15vw, 18px);
+    font-size: clamp(14px, 1.1vw, 17px);
   }
 
   .brian-news-feed__clusters {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     align-items: start;
-    gap: clamp(26px, 2.6vw, 38px);
+    gap: clamp(22px, 2.1vw, 32px);
     margin: 0 auto;
     padding: 0 0 24px;
     overflow: visible;
@@ -66,13 +74,23 @@
     min-height: 0;
     grid-template-columns: repeat(6, minmax(0, 1fr));
     grid-template-rows: none;
-    grid-auto-rows: clamp(104px, 8.2vw, 126px);
+    grid-auto-rows: clamp(102px, 7.8vw, 122px);
     grid-auto-flow: dense;
-    gap: clamp(7px, .62vw, 10px);
+    gap: clamp(7px, .58vw, 9px);
   }
 
-  /* Work cluster is intentionally composed as a dense 50/50 dashboard: the
-     large command tile fills the left half, the remaining tiles stack right. */
+  /* Today is a single compact status strip. */
+  .brian-news-feed__cluster.is-today .brian-live-tile {
+    grid-column: span 2;
+    grid-row: span 1;
+  }
+
+  .brian-news-feed__cluster.is-today .brian-live-tile__face strong {
+    font-size: clamp(17px, 1.28vw, 21px);
+  }
+
+  /* Work is the command center: large Dashboard left, TTCM/Homeroom right,
+     then Gradebook + Reports on a compact final row. */
   .brian-news-feed__cluster.is-work .brian-live-tile.is-large {
     grid-column: span 3;
     grid-row: span 2;
@@ -91,24 +109,36 @@
     grid-column: span 2;
   }
 
+  .brian-news-feed__cluster.is-studio .brian-live-tile.is-wide {
+    grid-column: span 2;
+  }
+
+  .brian-news-feed__cluster.is-studio .brian-live-tile.is-square {
+    grid-column: span 2;
+  }
+
   .brian-live-tile {
-    padding: clamp(12px, .95vw, 17px);
+    padding: clamp(12px, .9vw, 16px);
+  }
+
+  .brian-live-tile__topline {
+    justify-content: flex-start;
   }
 
   .brian-live-tile__live-window {
-    margin: 8px 0 6px;
+    margin: 7px 0 5px;
   }
 
   .brian-live-tile__face strong {
-    font-size: clamp(16px, 1.25vw, 20px);
+    font-size: clamp(16px, 1.18vw, 19px);
   }
 
   .brian-live-tile.is-large .brian-live-tile__face strong {
-    font-size: clamp(27px, 2.2vw, 36px);
+    font-size: clamp(28px, 2.15vw, 35px);
   }
 
   .brian-live-tile.is-square .brian-live-tile__face strong {
-    font-size: clamp(13px, 1vw, 16px);
+    font-size: clamp(13px, .96vw, 16px);
   }
 
   .brian-live-tile__face small {
@@ -116,21 +146,23 @@
     -webkit-line-clamp: 1;
   }
 
-  /* Every tile is now truly live. Individual cycle/delay values come from
-     JSX so neighboring tiles do not flip at the same time. */
+  .brian-live-tile.is-smart::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 34%;
+    height: 2px;
+    background: rgba(255,255,255,.72);
+    opacity: .55;
+    pointer-events: none;
+  }
+
+  /* Live motion is staggered by JSX so neighboring tiles never flip together. */
   .brian-live-tile.is-live .brian-live-tile__face--primary,
   .brian-live-tile.is-live .brian-live-tile__face--secondary {
     animation-duration: var(--tile-cycle, 7.2s);
     animation-delay: var(--tile-delay, 0s);
-  }
-
-  .brian-live-tile.is-live .brian-live-tile__topline em {
-    animation: brian-live-badge-pulse calc(var(--tile-cycle, 7.2s) * .5) ease-in-out var(--tile-delay, 0s) infinite;
-  }
-
-  @keyframes brian-live-badge-pulse {
-    0%, 100% { opacity: .55; }
-    45%, 55% { opacity: 1; }
   }
 }
 
@@ -144,9 +176,21 @@
     gap: 20px;
   }
 
+  .brian-news-feed__title-block h1 {
+    white-space: normal;
+  }
+
   .brian-news-feed__tiles {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     grid-auto-rows: 112px;
+  }
+
+  .brian-news-feed__cluster.is-today .brian-live-tile {
+    grid-column: span 2;
+  }
+
+  .brian-news-feed__cluster.is-today .brian-live-tile:last-child {
+    grid-column: span 4;
   }
 
   .brian-news-feed__cluster.is-work .brian-live-tile.is-large {
@@ -154,11 +198,13 @@
   }
 
   .brian-news-feed__cluster.is-work .brian-live-tile:not(.is-large),
-  .brian-news-feed__cluster.is-teaching .brian-live-tile.is-wide {
+  .brian-news-feed__cluster.is-teaching .brian-live-tile.is-wide,
+  .brian-news-feed__cluster.is-studio .brian-live-tile.is-wide {
     grid-column: span 2;
   }
 
-  .brian-news-feed__cluster.is-teaching .brian-live-tile.is-square {
+  .brian-news-feed__cluster.is-teaching .brian-live-tile.is-square,
+  .brian-news-feed__cluster.is-studio .brian-live-tile.is-square {
     grid-column: span 1;
   }
 }
@@ -175,6 +221,14 @@
 
   .brian-news-feed__cluster {
     aspect-ratio: auto;
+  }
+
+  .brian-news-feed__cluster.is-today .brian-news-feed__tiles {
+    grid-template-columns: 1fr;
+  }
+
+  .brian-news-feed__cluster.is-today .brian-live-tile {
+    grid-column: span 1;
   }
 
   .brian-live-tile.is-live .brian-live-tile__face--primary,
