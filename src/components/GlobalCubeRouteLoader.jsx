@@ -19,9 +19,15 @@ function internalHashTarget(value = '') {
 export default function GlobalCubeRouteLoader() {
   const [host, setHost] = useState(null);
   const [phase, setPhase] = useState('idle');
+  const phaseRef = useRef('idle');
   const pendingRef = useRef(null);
   const timerRef = useRef(0);
   const fadeTimerRef = useRef(0);
+
+  const setLoaderPhase = (next) => {
+    phaseRef.current = next;
+    setPhase(next);
+  };
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
@@ -37,7 +43,7 @@ export default function GlobalCubeRouteLoader() {
     const finishAndContinue = () => {
       const pending = pendingRef.current;
       pendingRef.current = null;
-      setPhase('idle');
+      setLoaderPhase('idle');
       document.documentElement.classList.remove('brian-cube-route-loading');
       if (!pending?.target) return;
 
@@ -62,10 +68,10 @@ export default function GlobalCubeRouteLoader() {
       clearTimers();
       pendingRef.current = { ...detail, target };
       document.documentElement.classList.add('brian-cube-route-loading');
-      setPhase('visible');
+      setLoaderPhase('visible');
 
       timerRef.current = window.setTimeout(() => {
-        setPhase('leaving');
+        setLoaderPhase('leaving');
         fadeTimerRef.current = window.setTimeout(finishAndContinue, CUBE_FADE_MS);
       }, CUBE_VISIBLE_MS);
       return true;
@@ -80,7 +86,7 @@ export default function GlobalCubeRouteLoader() {
     };
 
     const onAnchorCapture = (event) => {
-      if (phase !== 'idle' || pendingRef.current || reducedMotion()) return;
+      if (phaseRef.current !== 'idle' || pendingRef.current || reducedMotion()) return;
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
 
       const anchor = event.target?.closest?.('a[href]');
@@ -103,7 +109,7 @@ export default function GlobalCubeRouteLoader() {
     const onPageHide = () => {
       clearTimers();
       pendingRef.current = null;
-      setPhase('idle');
+      setLoaderPhase('idle');
       document.documentElement.classList.remove('brian-cube-route-loading');
     };
 
@@ -119,7 +125,7 @@ export default function GlobalCubeRouteLoader() {
       document.removeEventListener('click', onAnchorCapture, true);
       document.documentElement.classList.remove('brian-cube-route-loading');
     };
-  }, [phase]);
+  }, []);
 
   if (!host || phase === 'idle') return null;
 
