@@ -135,6 +135,25 @@ html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*=
   will-change: transform !important;
 }
 
+/* Match every primary navigation action to Home's pill silhouette.
+   Width stays content-driven; only the capsule geometry is unified. */
+html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):nth-of-type(2),
+html body #root .app-shell[data-route] .brian-nav__primary > .brian-nav__dashboard-tab,
+html body #root .app-shell[data-route] .brian-nav__primary > .brian-nav__homeroom-tab,
+html body #root .app-shell[data-route] .brian-nav__primary > .brian-nav__gradebook-tab,
+html body #root .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.brian-nav__reports-send,
+html body #root .app-shell[data-route] .brian-nav__primary > .brian-nav__ttcm-tab {
+  box-sizing: border-box !important;
+  flex: 0 0 auto !important;
+  min-height: 40px !important;
+  height: 40px !important;
+  max-height: 40px !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+  border-radius: 9999px !important;
+  white-space: nowrap !important;
+}
+
 @media (max-width: 1180px) {
   html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type,
   html body #root .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type.is-active {
