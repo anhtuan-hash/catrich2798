@@ -1,55 +1,57 @@
 .brian-pulse-logo{
-  --particle-ink:#58665f;
-  --particle-edge:#30443a;
-  --particle-accent:#356ee8;
+  --particle-start:#7b5cff;
+  --particle-end:#33d0ff;
   position:relative;
   display:inline-flex;
   align-items:center;
   justify-content:center;
   min-width:0;
-  color:var(--particle-ink);
+  width:100%;
+  height:100%;
   user-select:none;
   -webkit-user-select:none;
   overflow:visible;
   isolation:isolate;
 }
 
-/* A barely-there aura only appears on interaction. It gives the mark presence
-   without turning it into a glowing icon or breaking the editorial reference. */
+.brian-pulse-logo::before{
+  content:'';
+  position:absolute;
+  inset:5px;
+  border-radius:14px;
+  background:linear-gradient(145deg,rgba(123,92,255,.10),rgba(51,208,255,.08) 58%,rgba(255,255,255,.28));
+  border:1px solid rgba(123,92,255,.16);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 7px 16px rgba(88,103,140,.10);
+  z-index:0;
+}
+
 .brian-pulse-logo::after{
   content:'';
   position:absolute;
-  left:50%;
-  top:50%;
-  width:62%;
-  height:62%;
-  border-radius:50%;
-  transform:translate(-50%,-50%) scale(.86);
-  background:radial-gradient(
-    circle,
-    color-mix(in srgb,var(--particle-accent) 8%,transparent) 0%,
-    color-mix(in srgb,var(--particle-accent) 3%,transparent) 42%,
-    transparent 72%
-  );
-  opacity:0;
+  inset:1px;
+  border-radius:16px;
+  background:radial-gradient(circle at 28% 24%,rgba(255,255,255,.42),transparent 34%),linear-gradient(140deg,rgba(123,92,255,.14),rgba(51,208,255,.06) 62%,transparent 100%);
+  opacity:.92;
   pointer-events:none;
-  transition:opacity 220ms ease,transform 280ms cubic-bezier(.2,.8,.2,1);
+  transition:opacity 220ms ease,transform 220ms ease;
   z-index:-1;
 }
 
 .brian-pulse-logo:hover::after{
-  opacity:.72;
-  transform:translate(-50%,-50%) scale(1.16);
+  opacity:1;
+  transform:scale(1.03);
 }
 
 .brian-pulse-logo__canvas{
+  position:relative;
+  z-index:1;
   display:block;
   width:100%;
   height:100%;
   pointer-events:auto;
   touch-action:none;
   cursor:default;
-  filter:contrast(1.055) saturate(.92);
+  filter:contrast(1.06) saturate(1.08);
 }
 
 .brian-pulse-logo__fallback{
@@ -64,19 +66,18 @@
 
 .brian-pulse-logo--nav{
   order:1!important;
-  width:52px;
-  height:52px;
-  flex:0 0 52px;
+  width:54px;
+  height:54px;
+  flex:0 0 54px;
   align-self:center;
   margin:0 4px 0 6px;
-  opacity:.94;
-  transform:translateY(-.5px);
-  transition:opacity 170ms ease,transform 240ms cubic-bezier(.2,.8,.2,1);
+  opacity:.98;
+  transition:transform 220ms ease,filter 220ms ease;
 }
 
 .brian-pulse-logo--nav:hover{
-  opacity:1;
-  transform:translateY(-.5px) scale(1.045);
+  transform:translateY(-.5px) scale(1.035);
+  filter:drop-shadow(0 6px 12px rgba(104,112,168,.14));
 }
 
 html body .brian-nav__actions > .brian-pulse-logo--nav{order:1!important}
@@ -86,11 +87,12 @@ html body .brian-nav__actions > .brian-nav__login{order:4!important}
 
 @media(max-width:1120px){
   .brian-pulse-logo--nav{
-    width:47px;
-    height:47px;
-    flex-basis:47px;
-    margin-left:2px;
+    width:50px;
+    height:50px;
+    flex-basis:50px;
+    margin-left:3px;
   }
+  .brian-pulse-logo::before{inset:4px}
 }
 
 @media(max-width:1060px){
