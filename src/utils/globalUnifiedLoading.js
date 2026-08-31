@@ -14,6 +14,14 @@ const BUSY_SELECTOR = [
   '[data-status="pending"]',
 ].join(',');
 
+const NAVIGATION_SELECTOR = [
+  '.brian-nav__primary',
+  '.brian-nav__inner',
+  '[data-global-navigation]',
+  '[class*="global-nav" i]',
+  '[class*="navigation-fixed" i]',
+].join(',');
+
 const STYLE_TEXT = `
 #${OVERLAY_ID} {
   position: fixed;
@@ -58,7 +66,7 @@ const STYLE_TEXT = `
   height: clamp(52px, 6vw, 76px);
   margin: 0;
   border-radius: 999px;
-  background: var(--active-app-accent, #ff6b6b);
+  background: var(--bes-wave-accent, #ff6b6b);
   transform: translateZ(0) scaleY(.08);
   transform-origin: center;
   animation: bes-brian-wave 1.25s linear infinite;
@@ -168,8 +176,10 @@ function ensureOverlay() {
 
 function closestActionTarget(target) {
   if (!(target instanceof Element)) return null;
+  if (target.closest('a[href^="#/"], a[data-route], [data-route-link]')) return null;
   const action = target.closest('button, [role="button"], input[type="submit"], input[type="button"], [data-action]');
   if (!action || action.closest('[data-no-global-loading]')) return null;
+  if (action.closest(NAVIGATION_SELECTOR)) return null;
   return action;
 }
 
@@ -181,6 +191,12 @@ function actionLabel(action) {
     || action.textContent
     || '',
   ).replace(/\s+/g, ' ').trim().slice(0, 80);
+}
+
+function syncAccent(overlay) {
+  const shell = document.querySelector('.app-shell');
+  const accent = shell ? getComputedStyle(shell).getPropertyValue('--active-app-accent').trim() : '';
+  overlay.style.setProperty('--bes-wave-accent', accent || '#ff6b6b');
 }
 
 export function installGlobalUnifiedLoading() {
@@ -198,6 +214,7 @@ export function installGlobalUnifiedLoading() {
   let domBusyFrame = 0;
   const originalFetch = typeof window.fetch === 'function' ? window.fetch : null;
   const previousPublicApi = window.BrianLoading;
+  let wrappedFetch = null;
 
   const setLabel = (label) => {
     const clean = String(label || '').replace(/\s+/g, ' ').trim();
@@ -208,6 +225,7 @@ export function installGlobalUnifiedLoading() {
     window.clearTimeout(hideTimer);
     hideTimer = 0;
     if (overlay.classList.contains('is-visible')) return;
+    syncAccent(overlay);
     visibleSince = performance.now();
     overlay.classList.remove('is-leaving');
     overlay.classList.add('is-visible');
@@ -250,6 +268,11 @@ export function installGlobalUnifiedLoading() {
     if (!active.size) conceal();
   };
 
+  const endByPrefix = (prefix) => {
+    [...active].filter((token) => token.startsWith(prefix)).forEach((token) => active.delete(token));
+    if (!active.size) conceal();
+  };
+
   const rememberInteraction = (event) => {
     const action = closestActionTarget(event.target);
     if (!action) return;
@@ -258,6 +281,7 @@ export function installGlobalUnifiedLoading() {
   };
 
   const onSubmit = (event) => {
+    if (event.target instanceof Element && event.target.closest(NAVIGATION_SELECTOR)) return;
     lastInteractionAt = performance.now();
     lastInteractionLabel = actionLabel(event.submitter) || 'Đang gửi dữ liệu';
   };
@@ -315,11 +339,12 @@ export function installGlobalUnifiedLoading() {
   };
   const onAiEnd = (event) => {
     const detail = event.detail || {};
-    end(`ai:${detail.id || 'operation'}`);
+    if (detail.id) end(`ai:${detail.id}`);
+    else endByPrefix('ai:');
   };
   const onAiUpdate = (event) => {
     const detail = event.detail || {};
-    setLabel(detail.label || 'AI đang xử lý nội dung');
+    if (active.size) setLabel(detail.label || 'AI đang xử lý nội dung');
   };
 
   document.addEventListener('click', rememberInteraction, true);
@@ -332,7 +357,7 @@ export function installGlobalUnifiedLoading() {
   window.addEventListener('bes-ai-operation-end', onAiEnd);
 
   if (originalFetch) {
-    window.fetch = (...args) => {
+    wrappedFetch = (...args) => {
       const foreground = performance.now() - lastInteractionAt <= USER_FETCH_WINDOW_MS;
       const token = foreground ? `fetch:${++fetchSequence}` : '';
       if (token) start(token, lastInteractionLabel);
@@ -347,27 +372,33 @@ export function installGlobalUnifiedLoading() {
         if (token) end(token);
       });
     };
+    window.fetch = wrappedFetch;
   }
 
+  const apiStart = (id = 'manual', label = '') => {
+    window.dispatchEvent(new CustomEvent('bes-global-loading-start', { detail: { id, label } }));
+    return id;
+  };
+  const apiUpdate = (label = '') => {
+    window.dispatchEvent(new CustomEvent('bes-global-loading-update', { detail: { label } }));
+  };
+  const apiEnd = (id = 'manual') => {
+    window.dispatchEvent(new CustomEvent('bes-global-loading-end', { detail: { id } }));
+  };
+  const apiWrap = async (promise, { id = `manual:${Date.now()}`, label = '' } = {}) => {
+    apiStart(id, label);
+    try {
+      return await promise;
+    } finally {
+      apiEnd(id);
+    }
+  };
+
   window.BrianLoading = Object.freeze({
-    start(id = 'manual', label = '') {
-      window.dispatchEvent(new CustomEvent('bes-global-loading-start', { detail: { id, label } }));
-      return id;
-    },
-    update(label = '') {
-      window.dispatchEvent(new CustomEvent('bes-global-loading-update', { detail: { label } }));
-    },
-    end(id = 'manual') {
-      window.dispatchEvent(new CustomEvent('bes-global-loading-end', { detail: { id } }));
-    },
-    async wrap(promise, { id = `manual:${Date.now()}`, label = '' } = {}) {
-      this.start(id, label);
-      try {
-        return await promise;
-      } finally {
-        this.end(id);
-      }
-    },
+    start: apiStart,
+    update: apiUpdate,
+    end: apiEnd,
+    wrap: apiWrap,
   });
 
   scheduleDomBusySync();
@@ -385,7 +416,7 @@ export function installGlobalUnifiedLoading() {
     window.removeEventListener('bes-ai-operation-start', onAiStart);
     window.removeEventListener('bes-ai-operation-update', onAiUpdate);
     window.removeEventListener('bes-ai-operation-end', onAiEnd);
-    if (originalFetch && window.fetch !== originalFetch) window.fetch = originalFetch;
+    if (originalFetch && wrappedFetch && window.fetch === wrappedFetch) window.fetch = originalFetch;
     if (previousPublicApi === undefined) delete window.BrianLoading;
     else window.BrianLoading = previousPublicApi;
     active.clear();
