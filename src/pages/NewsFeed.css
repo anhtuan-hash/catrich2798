@@ -320,6 +320,27 @@
 
 .brian-live-tile.is-square .brian-live-tile__footer span:first-child { display: none; }
 
+/* Freeze all background motion before the launch layer starts. This keeps the
+   compositor focused on one transform instead of animating every Live Tile. */
+.brian-news-feed.is-launching {
+  pointer-events: none;
+}
+
+.brian-news-feed.is-launching .brian-live-tile {
+  transition: none !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+
+.brian-news-feed.is-launching .brian-live-tile__face {
+  animation-play-state: paused !important;
+  transition: none !important;
+}
+
+.brian-live-tile.is-launch-source {
+  opacity: 0 !important;
+}
+
 .brian-news-feed__empty {
   display: grid;
   place-items: center;
@@ -339,54 +360,43 @@
   cursor: pointer;
 }
 
-.brian-news-feed__launch {
+html.brian-news-feed-launching,
+html.brian-news-feed-launching body {
+  overflow: hidden !important;
+}
+
+/* Full-screen from frame 0: only transform/opacity change while launching.
+   No left/top/width/height animation means no per-frame layout recalculation. */
+.brian-news-feed-launch-overlay {
   position: fixed;
-  left: var(--launch-left);
-  top: var(--launch-top);
-  z-index: 99999;
+  inset: 0;
+  z-index: 2147483000;
   display: grid;
   place-items: center;
-  width: var(--launch-width);
-  height: var(--launch-height);
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
   color: #fff;
-  background: var(--launch-color, #0875c1);
   pointer-events: none;
-  transform-origin: center;
-  animation: brian-news-feed-launch 360ms cubic-bezier(.16,.84,.24,1) forwards;
+  transform-origin: 0 0;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  contain: strict;
+  isolation: isolate;
 }
 
-.brian-news-feed__launch span {
-  max-width: 80vw;
-  padding: 18px;
+.brian-news-feed-launch-overlay > span {
+  max-width: min(80vw, 920px);
+  padding: 24px;
   overflow: hidden;
-  font-size: clamp(18px, 3vw, 40px);
+  font-size: clamp(24px, 4vw, 58px);
+  line-height: 1;
   font-weight: 300;
+  letter-spacing: -.035em;
   white-space: nowrap;
   text-overflow: ellipsis;
-  animation: brian-news-feed-launch-label 260ms ease forwards;
-}
-
-@keyframes brian-news-feed-launch {
-  0% {
-    left: var(--launch-left);
-    top: var(--launch-top);
-    width: var(--launch-width);
-    height: var(--launch-height);
-    transform: perspective(900px) rotateY(-3deg) scale(.97);
-  }
-  100% {
-    left: 0;
-    top: 0;
-    width: 100vw;
-    height: 100vh;
-    transform: none;
-  }
-}
-
-@keyframes brian-news-feed-launch-label {
-  from { opacity: 0; transform: translateX(24px); }
-  to { opacity: .92; transform: none; }
+  will-change: transform, opacity;
 }
 
 @media (max-width: 1100px) {
@@ -438,5 +448,5 @@
   .brian-live-tile.is-live .brian-live-tile__face--secondary { animation: none; }
 
   .brian-live-tile__face--secondary,
-  .brian-news-feed__launch { display: none; }
+  .brian-news-feed-launch-overlay { display: none; }
 }
