@@ -11,7 +11,7 @@ const HOME_BUTTON_SELECTOR = ".app-shell[data-route] .brian-nav__primary > butto
 const HOME_RUNNER_CLASS = 'brian-home-border-runner';
 const HOME_RUNNER_WIDTH = 18;
 const HOME_RUNNER_HEIGHT = 3;
-const HOME_RUNNER_DURATION = 1550;
+const HOME_RUNNER_DURATION = 2800;
 const finalEditorialCss = `${editorialCss}\n\n${navigationCss}\n\n${stage5AppCss}\n\n${stage5WorkflowCss}\n\n${stage6PolishCss}\n\n${homeSparkleCss}`;
 
 function ensureFinalStyleNode() {
