@@ -1,3 +1,5 @@
+import { installGlobalUnifiedWaveLoading } from './globalUnifiedWaveLoading.js';
+
 const LEGACY_VISUAL_SELECTOR = [
   '[class~="spinner" i]',
   '[class*="spinner-" i]',
@@ -35,6 +37,7 @@ const PROTECTED_SELECTOR = [
   '[data-bes-route-loading]',
   '[data-route-loading]',
   '[data-global-route-loading]',
+  '[data-bes-unified-wave-loader]',
 ].join(',');
 
 const LOADING_TEXT = /^(?:đang\s+(?:tải|lưu|xử\s*lý|gửi|tạo|xuất|nhập|đồng\s*bộ|cập\s*nhật|kết\s*nối|chuẩn\s*bị|phân\s*tích)(?:\s+[^.!?…]*)?[.!?…]*|loading(?:\s+[^.!?…]*)?[.!?…]*|saving(?:\s+[^.!?…]*)?[.!?…]*|processing(?:\s+[^.!?…]*)?[.!?…]*|submitting(?:\s+[^.!?…]*)?[.!?…]*|generating(?:\s+[^.!?…]*)?[.!?…]*|exporting(?:\s+[^.!?…]*)?[.!?…]*|importing(?:\s+[^.!?…]*)?[.!?…]*|syncing(?:\s+[^.!?…]*)?[.!?…]*)$/i;
@@ -125,9 +128,12 @@ export function installLegacyInternalLoadingCleanup() {
     });
   }
 
+  const releaseUnifiedWaveLoading = installGlobalUnifiedWaveLoading();
+
   return () => {
     disposed = true;
     observer.disconnect();
+    releaseUnifiedWaveLoading();
     hidden.forEach((state, node) => {
       if (!(node instanceof HTMLElement) || !node.isConnected) return;
       delete node.dataset.besLegacyInternalLoadingHidden;
