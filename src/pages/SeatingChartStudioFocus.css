@@ -1,4 +1,0 @@
-/* Compatibility shim only.
-   The retired Seating Chart UI and its styles remain removed.
-   This empty file preserves a legacy indirect import that is still present in the current bundle graph.
-   Remove this shim once that upstream import is retired. */
