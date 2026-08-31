@@ -1,5 +1,12 @@
 import { installGlobalUnifiedWaveLoading } from './globalUnifiedWaveLoading.js';
 
+// This module is statically imported by Brian's shell, so the unified loader
+// starts once for every route — including surfaces that do not render the
+// global navigation runtime (for example the homeroom portal).
+if (typeof document !== 'undefined' && typeof window !== 'undefined') {
+  installGlobalUnifiedWaveLoading();
+}
+
 const LEGACY_VISUAL_SELECTOR = [
   '[class~="spinner" i]',
   '[class*="spinner-" i]',
@@ -128,12 +135,9 @@ export function installLegacyInternalLoadingCleanup() {
     });
   }
 
-  const releaseUnifiedWaveLoading = installGlobalUnifiedWaveLoading();
-
   return () => {
     disposed = true;
     observer.disconnect();
-    releaseUnifiedWaveLoading();
     hidden.forEach((state, node) => {
       if (!(node instanceof HTMLElement) || !node.isConnected) return;
       delete node.dataset.besLegacyInternalLoadingHidden;
