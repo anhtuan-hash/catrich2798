@@ -24,6 +24,8 @@ const RETIRED_STORAGE_PREFIXES = [
   'bes-global-music-v2:',
   'bes-shared-music-v2:',
   'brian-activity-graph:',
+  'bes.news-feed',
+  'bes.newsFeed',
   'bes.seating-chart-studio',
   'bes.seatingChartStudio',
   'bes.top5',
@@ -35,11 +37,14 @@ const RETIRED_STORAGE_PREFIXES = [
   'bes.tesol-methodology',
 ];
 
-// Exact production routes plus historical aliases. The two real routes that
-// were previously missed are tool/top-five-arena and tool/tesol-method.
+// Exact production routes plus historical aliases for features that have been
+// removed from Brian. Stale bookmarks are replaced with the Apps route.
 const RETIRED_APP_ROUTES = new Set([
   'library',
   'practice',
+  'tool/news-feed',
+  'route/news-feed',
+  'news-feed',
   'tool/teaching-methods-hub',
   'tool/activity-graph',
   'tool/top-five-arena',

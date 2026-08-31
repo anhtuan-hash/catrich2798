@@ -1,12 +1,5 @@
 export const APPS = [
   {
-    slug: 'news-feed', icon: 'NF', tone: 'purple', group: 'Home Experience', groupVi: 'Trang chủ đặc biệt',
-    title: 'Brian News Feed', titleVi: 'News Feed',
-    desc: 'A Windows 8-inspired Start screen where every Brian app becomes a responsive Live Tile.',
-    descVi: 'Trang chủ đặc biệt lấy cảm hứng từ Start Screen của Windows 8, biến toàn bộ ứng dụng Brian thành Live Tile.',
-    status: 'Live Tiles · Windows 8 Start', statusVi: 'Live Tile · Windows 8 Start', api: false, featured: true, hideable: false,
-  },
-  {
     slug: 'work-dashboard', route: 'dashboard', icon: 'DB', tone: 'blue', group: 'Management', groupVi: 'Quản lý',
     title: 'Work Dashboard', titleVi: 'Bảng điều hành',
     desc: 'Combine schedules, action items, professional activities, approvals and department health in one role-aware dashboard.',
