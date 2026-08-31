@@ -69,31 +69,6 @@ export function launchRoute({
   if (window.location.hash === normalizedTarget) return;
   if (pendingTarget === normalizedTarget && now - pendingStartedAt < 1600) return;
 
-  const extra = meta && typeof meta === 'object' && !Array.isArray(meta) ? meta : {};
-  const currentTarget = window.location.hash || '#/home';
-  const direction = metroDirection(currentTarget, normalizedTarget);
-
-  // Cube loading is a separate pre-navigation layer. It owns only the short
-  // waiting phase, then re-enters launchRoute with __skipCubeLoader so the
-  // original Windows 8 page-launch runtime can run unchanged afterward.
-  if (!extra.__skipCubeLoader) {
-    const cubeEvent = new CustomEvent('bes-cube-navigation-request', {
-      cancelable: true,
-      detail: {
-        ...extra,
-        target: normalizedTarget,
-        from: currentTarget,
-        direction,
-        navigate,
-        sourceEl,
-        label: String(label || ''),
-        color: String(color || ''),
-      },
-    });
-    window.dispatchEvent(cubeEvent);
-    if (cubeEvent.defaultPrevented) return;
-  }
-
   const go = typeof navigate === 'function'
     ? navigate
     : () => { window.location.hash = normalizedTarget; };
@@ -102,6 +77,8 @@ export function launchRoute({
   pendingStartedAt = now;
 
   const root = document.documentElement;
+  const currentTarget = window.location.hash || '#/home';
+  const direction = metroDirection(currentTarget, normalizedTarget);
 
   window.clearTimeout(metroNavigationTimer);
   window.clearTimeout(metroCleanupTimer);
@@ -112,6 +89,7 @@ export function launchRoute({
   root.dataset.metroNavigating = 'true';
   delete root.dataset.metroViewTransition;
 
+  const extra = meta && typeof meta === 'object' && !Array.isArray(meta) ? meta : {};
   const navigationEvent = new CustomEvent('bes-navigation-start', {
     cancelable: true,
     detail: {
@@ -126,10 +104,8 @@ export function launchRoute({
   });
   window.dispatchEvent(navigationEvent);
 
-  // The global Windows 8 launch runtime cancels this event when it owns the
-  // transition. In that case it keeps the current page alive during the full
-  // tile-to-fullscreen expansion and performs the hash change itself only
-  // after the launch surface has finished expanding.
+  // GlobalPageLaunchEffect cancels this event when it owns the complete
+  // cube -> Windows 8 transition and performs the route change itself.
   if (navigationEvent.defaultPrevented) {
     clearPendingTarget(normalizedTarget);
     clearMetroNavigationState(root, 760);
