@@ -27,9 +27,28 @@ function nextPaint(callback) {
   window.requestAnimationFrame(() => window.requestAnimationFrame(callback));
 }
 
+function isVeryLightColor(color = '') {
+  const rgb = String(color).match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*([\d.]+))?\s*\)$/i);
+  if (rgb) {
+    const alpha = rgb[4] == null ? 1 : Number(rgb[4]);
+    if (alpha <= 0.08) return true;
+    const [r, g, b] = rgb.slice(1, 4).map(Number);
+    return ((r * 0.299) + (g * 0.587) + (b * 0.114)) > 232;
+  }
+  const hex = String(color).match(/^#([0-9a-f]{6})$/i);
+  if (hex) {
+    const raw = hex[1];
+    const r = parseInt(raw.slice(0, 2), 16);
+    const g = parseInt(raw.slice(2, 4), 16);
+    const b = parseInt(raw.slice(4, 6), 16);
+    return ((r * 0.299) + (g * 0.587) + (b * 0.114)) > 232;
+  }
+  return false;
+}
+
 function readableColor(value = '') {
   const color = String(value || '').trim();
-  if (!color || color === 'transparent' || color === 'rgba(0, 0, 0, 0)') return '';
+  if (!color || color === 'transparent' || color === 'rgba(0, 0, 0, 0)' || isVeryLightColor(color)) return '';
   return color;
 }
 
@@ -226,7 +245,7 @@ export default function GlobalPageLaunchEffect() {
       }
 
       const sourceEl = event.target?.closest?.('a,button,[role="button"],[data-route],[data-target]') || null;
-      clickSnapshot = { hash: window.location.hash, sourceEl, at: performance.now() };
+      clickSnapshot = { hash: window.location.hash, sourceEl };
 
       const anchor = event.target?.closest?.('a[href]');
       const target = internalHashTarget(anchor?.getAttribute?.('href'));
