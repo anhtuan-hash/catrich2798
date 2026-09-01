@@ -16,6 +16,191 @@ const alignmentStyle = `
 .brian-welcome-lighthouse-layer > .brian-welcome-light-particles{z-index:1}
 .brian-welcome-lighthouse-layer > .brian-welcome-lighthouse{z-index:2}
 
+/* Calm cinematic ocean: horizontal broken ripples instead of large arc borders. */
+.brian-welcome-card{
+  --welcome-ocean-horizon:34%;
+}
+.brian-welcome-card .brian-welcome-ocean-layer{
+  overflow:hidden;
+  background:
+    linear-gradient(to bottom,
+      transparent 0 61%,
+      rgba(18,39,79,.08) 63%,
+      rgba(13,38,79,.42) 68%,
+      rgba(7,28,62,.82) 82%,
+      rgba(5,22,50,.96) 100%);
+}
+.brian-welcome-card .brian-welcome-horizon{bottom:var(--welcome-ocean-horizon)!important;height:1px!important;opacity:.72!important;background:linear-gradient(90deg,transparent 0 18%,rgba(122,157,210,.22) 37%,rgba(244,197,162,.48) 64%,rgba(142,171,219,.2) 82%,transparent 100%)!important;box-shadow:0 0 12px rgba(148,172,219,.12)!important}
+
+.brian-welcome-card .brian-welcome-ocean-layer:before{
+  content:"";
+  z-index:0!important;
+  pointer-events:none;
+  position:absolute!important;
+  left:-7%!important;
+  right:-7%!important;
+  bottom:0!important;
+  height:34%!important;
+  opacity:.74!important;
+  filter:none!important;
+  mix-blend-mode:screen;
+  background:
+    repeating-linear-gradient(0deg,
+      transparent 0 7px,
+      rgba(104,145,207,.08) 8px 9px,
+      transparent 10px 17px,
+      rgba(190,210,241,.11) 18px 19px,
+      transparent 20px 29px),
+    linear-gradient(180deg,rgba(87,112,170,.08),rgba(18,59,112,.28) 48%,rgba(5,27,63,.06));
+  background-size:100% 58px,100% 100%;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.56) 11%,#000 28% 100%);
+  mask-image:linear-gradient(to bottom,transparent 0%,rgba(0,0,0,.56) 11%,#000 28% 100%);
+  animation:8.8s ease-in-out -2.4s infinite brianWelcomeOceanSurfaceDrift!important;
+}
+
+.brian-welcome-card .brian-welcome-wave{
+  border:0!important;
+  border-radius:0!important;
+  left:-9%!important;
+  right:-9%!important;
+  bottom:0!important;
+  height:34%!important;
+  transform-origin:50% 50%!important;
+  filter:none!important;
+  pointer-events:none;
+  opacity:.62!important;
+  will-change:transform,background-position,opacity;
+  background-repeat:repeat-x!important;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0%,#000 12%,#000 92%,transparent 100%);
+  mask-image:linear-gradient(to bottom,transparent 0%,#000 12%,#000 92%,transparent 100%);
+  animation-name:brianWelcomeOceanSurfaceDrift!important;
+  animation-timing-function:ease-in-out!important;
+  animation-iteration-count:infinite!important;
+}
+.brian-welcome-card .brian-welcome-wave.wave-a{
+  opacity:.62!important;
+  background:
+    radial-gradient(ellipse at center,rgba(198,215,244,.28) 0 37%,transparent 40%) 0 12%/176px 5px repeat-x,
+    radial-gradient(ellipse at center,rgba(119,162,220,.22) 0 35%,transparent 39%) 70px 32%/238px 4px repeat-x,
+    radial-gradient(ellipse at center,rgba(237,207,191,.14) 0 35%,transparent 40%) 20px 51%/292px 4px repeat-x!important;
+  animation-duration:9.6s!important;
+  animation-delay:-1.8s!important;
+}
+.brian-welcome-card .brian-welcome-wave.wave-b{
+  opacity:.52!important;
+  background:
+    radial-gradient(ellipse at center,rgba(131,171,228,.24) 0 36%,transparent 40%) 28px 23%/218px 5px repeat-x,
+    radial-gradient(ellipse at center,rgba(212,219,242,.2) 0 34%,transparent 39%) 112px 48%/318px 4px repeat-x,
+    radial-gradient(ellipse at center,rgba(236,191,174,.12) 0 36%,transparent 40%) 0 70%/264px 5px repeat-x!important;
+  animation-duration:12.4s!important;
+  animation-delay:-6.1s!important;
+  animation-direction:reverse!important;
+}
+.brian-welcome-card .brian-welcome-wave.wave-c{
+  opacity:.44!important;
+  background:
+    radial-gradient(ellipse at center,rgba(102,148,213,.25) 0 38%,transparent 42%) 80px 18%/250px 6px repeat-x,
+    radial-gradient(ellipse at center,rgba(183,201,235,.18) 0 35%,transparent 40%) 10px 45%/356px 5px repeat-x,
+    radial-gradient(ellipse at center,rgba(225,181,174,.1) 0 36%,transparent 42%) 160px 74%/304px 6px repeat-x!important;
+  animation-duration:15.2s!important;
+  animation-delay:-9.4s!important;
+}
+
+/* Moon reflection: a vertical, broken path of warm light rather than a flat glow blob. */
+.brian-welcome-card .brian-welcome-ocean-layer:after{
+  content:"";
+  z-index:1!important;
+  pointer-events:none;
+  position:absolute!important;
+  right:10.8%!important;
+  bottom:0!important;
+  width:24%!important;
+  height:34%!important;
+  opacity:.58!important;
+  filter:blur(.25px)!important;
+  mix-blend-mode:screen;
+  border-radius:0!important;
+  background:
+    repeating-linear-gradient(0deg,
+      transparent 0 7px,
+      rgba(255,220,176,.08) 8px 9px,
+      rgba(255,229,190,.34) 10px 12px,
+      transparent 13px 19px),
+    linear-gradient(to bottom,rgba(255,225,184,.22),rgba(255,204,158,.08) 58%,transparent 100%)!important;
+  -webkit-clip-path:polygon(43% 0,57% 0,78% 100%,20% 100%)!important;
+  clip-path:polygon(43% 0,57% 0,78% 100%,20% 100%)!important;
+  -webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,.18) 0%,#000 18% 78%,transparent 100%);
+  mask-image:linear-gradient(to bottom,rgba(0,0,0,.18) 0%,#000 18% 78%,transparent 100%);
+  transform:none!important;
+  animation:5.6s ease-in-out -1.4s infinite brianWelcomeMoonPathReflection!important;
+}
+
+/* Lighthouse reflection: narrow, soft and vertical beneath the tower. */
+.brian-welcome-card .brian-welcome-sea-reflection{
+  width:22%!important;
+  height:27%!important;
+  right:0!important;
+  bottom:0!important;
+  clip-path:none!important;
+  opacity:.24!important;
+  transform:none!important;
+  transform-origin:50% 0!important;
+  mix-blend-mode:screen;
+  -webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,.76),rgba(0,0,0,.42) 48%,transparent 100%)!important;
+  mask-image:linear-gradient(to bottom,rgba(0,0,0,.76),rgba(0,0,0,.42) 48%,transparent 100%)!important;
+  animation:6.4s ease-in-out -2.2s infinite brianWelcomeLighthouseWaterReflection!important;
+}
+.brian-welcome-card .brian-welcome-reflection-core{
+  inset:0!important;
+  filter:blur(.25px)!important;
+  background:
+    repeating-linear-gradient(0deg,
+      transparent 0 9px,
+      rgba(255,230,187,.11) 10px 11px,
+      rgba(255,240,208,.31) 12px 14px,
+      transparent 15px 22px),
+    linear-gradient(90deg,transparent 0 28%,rgba(255,213,166,.13) 45%,rgba(255,235,199,.26) 57%,rgba(212,170,176,.11) 73%,transparent 100%)!important;
+  -webkit-mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.72) 55%,transparent 100%)!important;
+  mask-image:linear-gradient(to bottom,#000 0%,rgba(0,0,0,.72) 55%,transparent 100%)!important;
+  animation:3.9s ease-in-out infinite brianWelcomeLighthouseReflectionShimmer!important;
+}
+.brian-welcome-card .brian-welcome-reflection-ripple{
+  left:18%!important;
+  right:18%!important;
+  width:auto!important;
+  height:2px!important;
+  opacity:.28!important;
+  background:linear-gradient(90deg,transparent,rgba(255,225,184,.34),rgba(255,240,211,.48),rgba(255,214,179,.2),transparent)!important;
+  animation:4.6s ease-in-out infinite brianWelcomeLighthouseReflectionRipple!important;
+}
+.brian-welcome-card .brian-welcome-reflection-ripple.ripple-a{bottom:68%!important;animation-delay:-.7s!important}
+.brian-welcome-card .brian-welcome-reflection-ripple.ripple-b{bottom:43%!important;animation-delay:-2.1s!important}
+.brian-welcome-card .brian-welcome-reflection-ripple.ripple-c{bottom:20%!important;animation-delay:-3.5s!important}
+
+@keyframes brianWelcomeOceanSurfaceDrift{
+  0%,100%{transform:translate3d(-1.2%,0,0);background-position:0 12%,70px 32%,20px 51%;opacity:.48}
+  42%{transform:translate3d(.8%,-1px,0);background-position:52px 13%,18px 31%,96px 50%;opacity:.68}
+  72%{transform:translate3d(1.4%,1px,0);background-position:94px 11%,128px 33%,38px 52%;opacity:.58}
+}
+@keyframes brianWelcomeMoonPathReflection{
+  0%,100%{opacity:.44;filter:blur(.35px);background-position:0 0,0 0}
+  38%{opacity:.66;filter:blur(.12px);background-position:8px 18px,0 0}
+  70%{opacity:.52;filter:blur(.28px);background-position:-6px 34px,0 0}
+}
+@keyframes brianWelcomeLighthouseWaterReflection{
+  0%,100%{opacity:.18;filter:blur(.2px);translate:0 0}
+  46%{opacity:.29;filter:blur(.4px);translate:-2px 1px}
+  72%{opacity:.22;filter:blur(.25px);translate:2px 0}
+}
+@keyframes brianWelcomeLighthouseReflectionShimmer{
+  0%,100%{opacity:.54;background-position:0 0,0 0}
+  50%{opacity:.86;background-position:7px 21px,0 0}
+}
+@keyframes brianWelcomeLighthouseReflectionRipple{
+  0%,100%{opacity:.16;transform:translateX(-6px) scaleX(.78)}
+  50%{opacity:.42;transform:translateX(7px) scaleX(1.08)}
+}
+
 .brian-welcome-meteor{animation-name:brianWelcomeMeteorFall}
 .brian-welcome-meteor.meteor-a{--meteor-fall-rotation:26deg}
 .brian-welcome-meteor.meteor-b{--meteor-fall-rotation:22deg}
@@ -58,7 +243,48 @@ const alignmentStyle = `
   100%{opacity:0;transform:translate3d(210px,96px,0) rotate(24deg) scaleX(1.2)}
 }
 
+@media(max-width:900px){
+  .brian-welcome-card{--welcome-ocean-horizon:31%}
+  .brian-welcome-card .brian-welcome-wave{height:31%!important;opacity:.48!important}
+  .brian-welcome-card .brian-welcome-ocean-layer:before,
+  .brian-welcome-card .brian-welcome-ocean-layer:after{height:31%!important}
+  .brian-welcome-card .brian-welcome-sea-reflection{width:25%!important;height:24%!important;opacity:.2!important}
+}
+@media(max-width:600px){
+  .brian-welcome-card{--welcome-ocean-horizon:27%}
+  .brian-welcome-card .brian-welcome-wave{height:27%!important;opacity:.38!important}
+  .brian-welcome-card .brian-welcome-ocean-layer:before,
+  .brian-welcome-card .brian-welcome-ocean-layer:after{height:27%!important}
+  .brian-welcome-card .brian-welcome-ocean-layer:after{width:30%!important;right:6%!important;opacity:.38!important}
+  .brian-welcome-card .brian-welcome-sea-reflection{width:28%!important;height:20%!important;opacity:.16!important}
+}
+
 @media(prefers-reduced-motion:reduce){
+  .brian-welcome-card .brian-welcome-ocean-layer:before,
+  .brian-welcome-card .brian-welcome-ocean-layer:after,
+  .brian-welcome-card .brian-welcome-wave,
+  .brian-welcome-card .brian-welcome-sea-reflection,
+  .brian-welcome-card .brian-welcome-reflection-core,
+  .brian-welcome-card .brian-welcome-reflection-ripple{
+    animation:none!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-ocean-layer:before,
+  .brian-welcome-root.is-motion-forced .brian-welcome-wave{
+    animation-name:brianWelcomeOceanSurfaceDrift!important;
+    animation-iteration-count:infinite!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-ocean-layer:after{
+    animation:5.6s ease-in-out -1.4s infinite brianWelcomeMoonPathReflection!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-sea-reflection{
+    animation:6.4s ease-in-out -2.2s infinite brianWelcomeLighthouseWaterReflection!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-reflection-core{
+    animation:3.9s ease-in-out infinite brianWelcomeLighthouseReflectionShimmer!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-reflection-ripple{
+    animation:4.6s ease-in-out infinite brianWelcomeLighthouseReflectionRipple!important;
+  }
   .brian-welcome-root.is-motion-forced .brian-welcome-meteor{
     animation-name:brianWelcomeMeteorFall!important;
   }
