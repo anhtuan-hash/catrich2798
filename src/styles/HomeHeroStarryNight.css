@@ -4,7 +4,7 @@
  * for copy, media, buttons, layout controls, permissions, preview and publish.
  */
 
-.metro-clean-system[data-route="home"] .hero-cms{
+.app-shell[data-route="home"] .bha-hero.hero-cms{
   --starry-gold:#FFD75D;
   --starry-gold-soft:#FFE582;
   --starry-night:#07162f;
