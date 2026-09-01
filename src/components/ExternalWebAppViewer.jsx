@@ -45,7 +45,7 @@ function sourceTypeOf(app = {}) {
   return app.sourceType === EXTERNAL_APP_SOURCE_HTML || app.htmlContent ? EXTERNAL_APP_SOURCE_HTML : 'url';
 }
 
-export default function ExternalWebAppViewer({ app, onClose }) {
+export default function ExternalWebAppViewer({ app, onClose, introContent = null, explorerId = '' }) {
   const viewerRef = useRef(null);
   const [portalHost, setPortalHost] = useState(null);
   const [nativeFullscreen, setNativeFullscreen] = useState(false);
@@ -56,6 +56,7 @@ export default function ExternalWebAppViewer({ app, onClose }) {
   const config = normalizeExternalAppEmbedConfig(app?.embedConfig, sourceUrl);
   const url = htmlApp ? '' : (safeExternalWebAppUrl(config.embedUrl) || sourceUrl);
   const ready = htmlApp ? isValidExternalHtml(htmlContent) : Boolean(url);
+  const hasIntro = Boolean(introContent);
   const [layout, setLayout] = useState(() => readBrianLayout(null, config));
 
   useEffect(() => {
@@ -138,10 +139,13 @@ export default function ExternalWebAppViewer({ app, onClose }) {
   return createPortal(
     <div
       className="bes-ext-content-layer bes-ext-runtime-layer"
+      data-has-intro={hasIntro ? 'true' : 'false'}
       style={{ '--bes-ext-content-height': `${layout.contentHeight}px` }}
     >
+      {hasIntro ? <div className="bes-ext-runtime-intro">{introContent}</div> : null}
       <section
         ref={viewerRef}
+        id={explorerId || undefined}
         className="bes-ext-viewer is-embedded-app"
         data-native-fullscreen={nativeFullscreen ? 'true' : 'false'}
         data-source-type={sourceType}
