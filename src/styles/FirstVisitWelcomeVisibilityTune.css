@@ -69,4 +69,128 @@
 
 @media(prefers-reduced-motion:reduce){
   .brian-welcome-card .brian-welcome-wave{animation:none!important}
+
+  .brian-welcome-root.is-motion-forced .brian-welcome-depth,
+  .brian-welcome-root.is-motion-forced .brian-welcome-ocean-layer,
+  .brian-welcome-root.is-motion-forced .brian-welcome-lighthouse-layer{
+    transition:transform 180ms cubic-bezier(.2,.72,.2,1)!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-depth-far{
+    transform:translate3d(var(--welcome-parallax-far-x),var(--welcome-parallax-far-y),0)!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-depth-mid-sky,
+  .brian-welcome-root.is-motion-forced .brian-welcome-ocean-layer{
+    transform:translate3d(var(--welcome-parallax-mid-x),var(--welcome-parallax-mid-y),0)!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-lighthouse-layer{
+    transform:translate3d(var(--welcome-parallax-near-x),var(--welcome-parallax-near-y),0)!important;
+  }
+
+  .brian-welcome-root.is-motion-forced .brian-welcome-beam{
+    animation:brianWelcomeBeamInteractiveSweep 7s ease-in-out infinite!important;
+    transform:rotate(-7deg) scaleX(1)!important;
+    opacity:var(--welcome-beam-opacity)!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-card.is-beam-tracking .brian-welcome-beam{
+    animation:none!important;
+    transform:rotate(var(--welcome-beam-angle)) scaleX(var(--welcome-beam-scale))!important;
+    opacity:var(--welcome-beam-opacity)!important;
+    transition:transform 110ms cubic-bezier(.2,.72,.2,1),opacity 120ms ease!important;
+  }
+
+  .brian-welcome-root.is-motion-forced .brian-welcome-light-particles{
+    display:block!important;
+    animation:brianWelcomeBeamInteractiveSweep 7s ease-in-out infinite!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-card.is-beam-tracking .brian-welcome-light-particles{
+    animation:none!important;
+    transform:rotate(var(--welcome-beam-angle)) scaleX(var(--welcome-beam-scale))!important;
+    transition:transform 110ms cubic-bezier(.2,.72,.2,1)!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-light-particles i{
+    display:block!important;
+    animation:brianWelcomeParticleFloat 4.8s ease-in-out infinite!important;
+  }
+
+  .brian-welcome-root.is-motion-forced .brian-welcome-cloud{display:block!important}
+  .brian-welcome-root.is-motion-forced .brian-welcome-cloud.cloud-far{
+    animation:brianWelcomeCloudDrift 31s linear infinite!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-cloud.cloud-near{
+    animation:brianWelcomeCloudDrift 23s linear -8s infinite reverse!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-star{
+    animation:brianWelcomeStarLife 3.7s ease-in-out infinite!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-shooting-star{
+    display:block!important;
+    animation:brianWelcomeShootingStar 13s linear 3s infinite!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-moon-halo{
+    animation:brianWelcomeMoonHalo 9s ease-in-out infinite!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-moon{
+    animation:brianWelcomeMoonGlow 9s ease-in-out infinite!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-lighthouse-lantern{
+    animation:brianWelcomeLanternPulse 3.2s ease-in-out infinite!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-lighthouse-glow{
+    animation:brianWelcomeInteractiveGlow 3.6s ease-in-out infinite!important;
+  }
+
+  .brian-welcome-root.is-motion-forced .brian-welcome-sea-reflection{
+    animation:brianWelcomeReflectionSweep 7s ease-in-out infinite!important;
+    transform:translateX(var(--welcome-reflection-x)) rotate(var(--welcome-reflection-tilt)) scaleX(var(--welcome-reflection-scale))!important;
+    opacity:var(--welcome-reflection-opacity)!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-card.is-beam-tracking .brian-welcome-sea-reflection{
+    animation:none!important;
+    transform:translateX(var(--welcome-reflection-x)) rotate(var(--welcome-reflection-tilt)) scaleX(var(--welcome-reflection-scale))!important;
+    opacity:var(--welcome-reflection-opacity)!important;
+    transition:transform 130ms cubic-bezier(.2,.72,.2,1),opacity 140ms ease!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-reflection-core{
+    animation:brianWelcomeReflectionShimmer 2.8s linear infinite!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-reflection-ripple{
+    animation:brianWelcomeReflectionRipple 3.4s ease-in-out infinite!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-wave{
+    animation-name:brianWelcomeWaveDriftEnhanced!important;
+    animation-timing-function:ease-in-out!important;
+    animation-iteration-count:infinite!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-wave.wave-a{animation-duration:8.6s!important}
+  .brian-welcome-root.is-motion-forced .brian-welcome-wave.wave-b{animation-duration:10.8s!important;animation-delay:-3.8s!important}
+  .brian-welcome-root.is-motion-forced .brian-welcome-wave.wave-c{animation-duration:13.4s!important;animation-delay:-6.1s!important}
+
+  .brian-welcome-root.is-motion-forced .brian-welcome-primary::after{
+    animation:brianWelcomeCtaSweep 6.4s ease-in-out 1.8s infinite!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-features article.is-feature-lit::after{
+    animation:brianWelcomeFeatureLightSweep .78s cubic-bezier(.2,.7,.2,1) both!important;
+  }
+  .brian-welcome-root.is-motion-forced.is-visible:not(.is-starting) .brian-welcome-sky{
+    animation:brianWelcomeSceneEntrance .9s cubic-bezier(.18,.82,.22,1) both!important;
+  }
+  .brian-welcome-root.is-motion-forced.is-visible:not(.is-starting) .brian-welcome-header,
+  .brian-welcome-root.is-motion-forced.is-visible:not(.is-starting) .brian-welcome-copy,
+  .brian-welcome-root.is-motion-forced.is-visible:not(.is-starting) .brian-welcome-features,
+  .brian-welcome-root.is-motion-forced.is-visible:not(.is-starting) .brian-welcome-actions{
+    animation:brianWelcomeContentEntrance .72s cubic-bezier(.18,.82,.22,1) both!important;
+  }
+  .brian-welcome-root.is-motion-forced.is-starting .brian-welcome-start-flash{
+    animation:brianWelcomeStartFlash .68s cubic-bezier(.2,.74,.2,1) both!important;
+  }
+  .brian-welcome-root.is-motion-forced.is-starting .brian-welcome-beam,
+  .brian-welcome-root.is-motion-forced.is-starting .brian-welcome-light-particles{
+    animation:brianWelcomeExitBeam .68s cubic-bezier(.18,.76,.2,1) both!important;
+  }
+  .brian-welcome-root.is-motion-forced.is-starting .brian-welcome-sea-reflection{
+    animation:brianWelcomeExitReflection .68s ease both!important;
+  }
+  .brian-welcome-root.is-motion-forced.is-starting .brian-welcome-card{
+    animation:brianWelcomeCardExit .68s cubic-bezier(.35,.05,.6,1) both!important;
+  }
 }
