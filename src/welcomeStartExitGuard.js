@@ -26,8 +26,8 @@ function finishThroughWelcomeCleanup(frame) {
   const doc = frame.contentDocument;
   const skip = doc?.getElementById('skipWelcome');
 
-  // Elements created inside the iframe live in a different JavaScript realm.
-  // Do not use `instanceof HTMLButtonElement` here: it is false cross-realm.
+  // Nodes created inside the iframe belong to a different JavaScript realm.
+  // Use stable DOM shape checks rather than a parent-realm constructor check.
   if (skip?.tagName === 'BUTTON' && typeof skip.click === 'function') {
     skip.click();
   }
@@ -41,8 +41,7 @@ function armFrame(frame) {
   const doc = frame.contentDocument;
   const start = doc?.getElementById('startJourney');
 
-  // Same cross-realm rule as above: tagName/DOM capability checks are stable
-  // for same-origin iframe nodes, while parent-realm instanceof checks are not.
+  // Same cross-realm rule as above: tagName/capability checks are stable.
   if (!(start?.tagName === 'BUTTON' && typeof start.addEventListener === 'function')) return;
 
   armedFrames.add(frame);
