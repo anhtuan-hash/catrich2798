@@ -1,5 +1,7 @@
-import './styles/FirstVisitWelcomeMotion.css';
-import './styles/FirstVisitWelcomeVisibilityTune.css';
+import welcomeBaseCss from './styles/FirstVisitWelcome.css?inline';
+import welcomeMotionCss from './styles/FirstVisitWelcomeMotion.css?inline';
+import welcomeTuneCss from './styles/FirstVisitWelcomeVisibilityTune.css?inline';
+import welcomeAmbientCss from './styles/FirstVisitWelcomeAmbient.css?inline';
 
 const WELCOME_SEEN_KEY = 'bes-first-visit-welcome-v1';
 const WELCOME_VERSION = '1';
@@ -7,6 +9,8 @@ const WELCOME_ROOT_ID = 'brian-first-visit-welcome';
 const WELCOME_PREVIEW_PARAM = 'welcome';
 const WELCOME_MOTION_PARAM = 'motion';
 const SHELL_WAIT_MS = 20000;
+const WELCOME_EXIT_MS = 700;
+const WELCOME_DISMISS_MS = 240;
 
 let activeCleanup = null;
 
@@ -41,8 +45,7 @@ function markWelcomeSeen() {
   try {
     localStorage.setItem(WELCOME_SEEN_KEY, WELCOME_VERSION);
   } catch {
-    // Storage can be unavailable in hardened/private browser modes. The dialog
-    // still remains usable for the current page even when persistence fails.
+    // Storage can be unavailable in hardened/private browser modes.
   }
 }
 
@@ -164,37 +167,96 @@ function welcomeMarkup() {
   `;
 }
 
+function escapeStyleText(value) {
+  return String(value || '').replace(/<\/style/gi, '<\\/style');
+}
+
+function welcomeFrameDocument(forceFullMotion) {
+  const css = [welcomeBaseCss, welcomeMotionCss, welcomeTuneCss, welcomeAmbientCss]
+    .map(escapeStyleText)
+    .join('\n');
+  const motionClass = forceFullMotion ? ' is-motion-forced' : '';
+  const motionData = forceFullMotion ? ' data-welcome-motion="full"' : '';
+  return `<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <style>
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent;color-scheme:dark}
+    body{font-family:Arial,Helvetica,sans-serif}
+    ${css}
+  </style>
+</head>
+<body>
+  <div class="brian-welcome-root is-visible${motionClass}"${motionData}>
+    ${welcomeMarkup()}
+  </div>
+</body>
+</html>`;
+}
+
+function styleIsolatedFrame(frame) {
+  const important = (property, value) => frame.style.setProperty(property, value, 'important');
+  important('position', 'fixed');
+  important('inset', '0');
+  important('width', '100vw');
+  important('height', '100dvh');
+  important('max-width', 'none');
+  important('max-height', 'none');
+  important('margin', '0');
+  important('padding', '0');
+  important('border', '0');
+  important('border-radius', '0');
+  important('background', 'transparent');
+  important('z-index', '2147483000');
+  important('display', 'block');
+  important('opacity', '1');
+  important('visibility', 'visible');
+  important('pointer-events', 'auto');
+  important('transform', 'none');
+  important('animation', 'none');
+  important('transition', 'none');
+  frame.style.colorScheme = 'dark';
+}
+
 function mountWelcome() {
   if (hasSeenWelcome() || isProtectedEntryRoute() || document.getElementById(WELCOME_ROOT_ID)) return;
   if (!document.body) return;
 
   const forceFullMotion = isFullMotionRequested();
-  const root = document.createElement('div');
-  root.id = WELCOME_ROOT_ID;
-  root.className = 'brian-welcome-root';
-  if (forceFullMotion) {
-    root.classList.add('is-motion-forced');
-    root.dataset.welcomeMotion = 'full';
-  }
-  root.innerHTML = welcomeMarkup();
-
   const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   const previousOverflow = document.body.style.overflow;
-  const card = root.querySelector('.brian-welcome-card');
-  const beam = root.querySelector('.brian-welcome-beam');
-  const reflection = root.querySelector('.brian-welcome-sea-reflection');
-  const primaryCta = root.querySelector('.brian-welcome-primary');
-  const featureCards = Array.from(root.querySelectorAll('[data-welcome-feature]'));
-  const reducedMotion = !forceFullMotion && typeof window.matchMedia === 'function'
-    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const frame = document.createElement('iframe');
+  frame.id = WELCOME_ROOT_ID;
+  frame.title = 'Chào mừng đến với Brian English';
+  frame.setAttribute('aria-label', 'Chào mừng đến với Brian English');
+  frame.setAttribute('sandbox', 'allow-same-origin');
+  frame.setAttribute('data-brian-welcome-isolated', 'true');
+  frame.srcdoc = welcomeFrameDocument(forceFullMotion);
+  styleIsolatedFrame(frame);
+
+  let initialized = false;
   let closing = false;
+  let root = null;
+  let frameDocument = null;
+  let frameWindow = null;
+  let card = null;
+  let beam = null;
+  let reflection = null;
+  let primaryCta = null;
+  let featureCards = [];
   let pointerFrame = 0;
   let pendingPointer = null;
   let activeFeature = null;
   let ctaPointerFrame = 0;
   let pendingCtaPointer = null;
+  let cleanupTimer = 0;
+  let reducedMotion = false;
 
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+  const requestFrame = (callback) => (frameWindow?.requestAnimationFrame || window.requestAnimationFrame).call(frameWindow || window, callback);
+  const cancelFrame = (id) => (frameWindow?.cancelAnimationFrame || window.cancelAnimationFrame).call(frameWindow || window, id);
 
   function setSceneParallax(pointer, rect) {
     if (!card || !pointer || reducedMotion) return;
@@ -225,7 +287,6 @@ function mountWelcome() {
   function applyPointerBeam() {
     pointerFrame = 0;
     if (!pendingPointer || !card || !beam || closing || reducedMotion) return;
-
     const rect = card.getBoundingClientRect();
     setSceneParallax(pendingPointer, rect);
 
@@ -267,14 +328,14 @@ function mountWelcome() {
   function onPointerMove(event) {
     if (reducedMotion || !card || !beam) return;
     pendingPointer = { x: event.clientX, y: event.clientY };
-    if (!pointerFrame) pointerFrame = window.requestAnimationFrame(applyPointerBeam);
+    if (!pointerFrame) pointerFrame = requestFrame(applyPointerBeam);
   }
 
   function onPointerLeave() {
     pendingPointer = null;
     activeFeature = null;
     if (pointerFrame) {
-      window.cancelAnimationFrame(pointerFrame);
+      cancelFrame(pointerFrame);
       pointerFrame = 0;
     }
     featureCards.forEach((feature) => feature.classList.remove('is-feature-lit'));
@@ -291,7 +352,7 @@ function mountWelcome() {
 
   function onFeatureEnter(event) {
     const feature = event.currentTarget;
-    if (!(feature instanceof HTMLElement)) return;
+    if (!feature?.classList) return;
     activeFeature = feature;
     featureCards.forEach((item) => item.classList.toggle('is-feature-lit', item === feature));
     if (reducedMotion || !card) return;
@@ -300,16 +361,16 @@ function mountWelcome() {
       x: featureRect.left + featureRect.width * 0.5,
       y: featureRect.top + featureRect.height * 0.44,
     };
-    if (!pointerFrame) pointerFrame = window.requestAnimationFrame(applyPointerBeam);
+    if (!pointerFrame) pointerFrame = requestFrame(applyPointerBeam);
   }
 
   function onFeatureLeave(event) {
     const feature = event.currentTarget;
     feature?.classList?.remove('is-feature-lit');
     if (activeFeature === feature) activeFeature = null;
-    if (!reducedMotion && event instanceof PointerEvent) {
+    if (!reducedMotion && Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) {
       pendingPointer = { x: event.clientX, y: event.clientY };
-      if (!pointerFrame) pointerFrame = window.requestAnimationFrame(applyPointerBeam);
+      if (!pointerFrame) pointerFrame = requestFrame(applyPointerBeam);
     }
   }
 
@@ -328,13 +389,13 @@ function mountWelcome() {
   function onCtaPointerMove(event) {
     if (reducedMotion) return;
     pendingCtaPointer = { x: event.clientX, y: event.clientY };
-    if (!ctaPointerFrame) ctaPointerFrame = window.requestAnimationFrame(applyCtaMagnet);
+    if (!ctaPointerFrame) ctaPointerFrame = requestFrame(applyCtaMagnet);
   }
 
-  function onCtaPointerLeave() {
+  function resetCtaMagnet() {
     pendingCtaPointer = null;
     if (ctaPointerFrame) {
-      window.cancelAnimationFrame(ctaPointerFrame);
+      cancelFrame(ctaPointerFrame);
       ctaPointerFrame = 0;
     }
     primaryCta?.style.removeProperty('--welcome-cta-x');
@@ -342,131 +403,164 @@ function mountWelcome() {
     card?.classList.remove('is-cta-magnetic');
   }
 
-  function onVisibilityChange() {
-    root.classList.toggle('is-motion-paused', document.hidden);
+  function focusableElements() {
+    if (!frameDocument) return [];
+    return Array.from(frameDocument.querySelectorAll('button:not([disabled]),a[href],[tabindex]:not([tabindex="-1"])'));
   }
-
-  const cleanup = () => {
-    window.removeEventListener('keydown', onKeyDown, true);
-    window.removeEventListener('storage', onStorage);
-    document.removeEventListener('visibilitychange', onVisibilityChange);
-    card?.removeEventListener('pointermove', onPointerMove);
-    card?.removeEventListener('pointerleave', onPointerLeave);
-    featureCards.forEach((feature) => {
-      feature.removeEventListener('pointerenter', onFeatureEnter);
-      feature.removeEventListener('pointerleave', onFeatureLeave);
-    });
-    primaryCta?.removeEventListener('pointermove', onCtaPointerMove);
-    primaryCta?.removeEventListener('pointerleave', onCtaPointerLeave);
-    if (pointerFrame) window.cancelAnimationFrame(pointerFrame);
-    if (ctaPointerFrame) window.cancelAnimationFrame(ctaPointerFrame);
-    document.body.style.overflow = previousOverflow;
-    if (root.isConnected) root.remove();
-    activeCleanup = null;
-    if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
-  };
-
-  const dismiss = (reason) => {
-    if (closing) return;
-    closing = true;
-    markWelcomeSeen();
-    const cinematicStart = reason === 'start' && !reducedMotion;
-    if (cinematicStart) root.classList.add('is-starting');
-    else root.classList.add('is-leaving');
-    window.dispatchEvent(new CustomEvent('bes-first-visit-welcome-dismissed', {
-      detail: { reason, version: WELCOME_VERSION },
-    }));
-    window.setTimeout(cleanup, cinematicStart ? 680 : 220);
-  };
-
-  const focusable = () => Array.from(root.querySelectorAll('button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'));
 
   function onKeyDown(event) {
     if (event.key === 'Escape') {
       event.preventDefault();
-      dismiss('escape');
+      dismissWelcome('escape');
       return;
     }
     if (event.key !== 'Tab') return;
-    const items = focusable();
-    if (!items.length) return;
-    const first = items[0];
-    const last = items[items.length - 1];
-    if (event.shiftKey && document.activeElement === first) {
+    const focusables = focusableElements();
+    if (!focusables.length) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    const active = frameDocument?.activeElement;
+    if (event.shiftKey && active === first) {
       event.preventDefault();
       last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
+    } else if (!event.shiftKey && active === last) {
       event.preventDefault();
       first.focus();
     }
   }
 
-  function onStorage(event) {
-    if (event.key === WELCOME_SEEN_KEY && event.newValue === WELCOME_VERSION && !isWelcomePreviewRequested()) cleanup();
+  function onVisibilityChange() {
+    root?.classList.toggle('is-motion-paused', document.hidden);
   }
 
-  root.querySelectorAll('[data-welcome-action]').forEach((button) => {
-    button.addEventListener('click', () => dismiss(button.dataset.welcomeAction || 'button'));
-  });
+  function onStorage(event) {
+    if (event.key === WELCOME_SEEN_KEY && event.newValue === WELCOME_VERSION) {
+      dismissWelcome('storage', { persist: false, immediate: true });
+    }
+  }
 
-  root.querySelector('[data-welcome-backdrop]')?.addEventListener('click', (event) => {
-    if (event.target === event.currentTarget) dismiss('backdrop');
-  });
+  function finishCleanup() {
+    if (cleanupTimer) {
+      window.clearTimeout(cleanupTimer);
+      cleanupTimer = 0;
+    }
+    if (pointerFrame) cancelFrame(pointerFrame);
+    if (ctaPointerFrame) cancelFrame(ctaPointerFrame);
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+    window.removeEventListener('storage', onStorage);
+    frameDocument?.removeEventListener('keydown', onKeyDown);
+    card?.removeEventListener('pointermove', onPointerMove);
+    card?.removeEventListener('pointerleave', onPointerLeave);
+    primaryCta?.removeEventListener('pointermove', onCtaPointerMove);
+    primaryCta?.removeEventListener('pointerleave', resetCtaMagnet);
+    featureCards.forEach((feature) => {
+      feature.removeEventListener('pointerenter', onFeatureEnter);
+      feature.removeEventListener('pointerleave', onFeatureLeave);
+    });
+    frame.remove();
+    document.body.style.overflow = previousOverflow;
+    if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+    if (activeCleanup === finishCleanup) activeCleanup = null;
+  }
 
-  if (!reducedMotion && card && beam) {
+  function dismissWelcome(reason, options = {}) {
+    if (closing) return;
+    closing = true;
+    const { persist = true, immediate = false } = options;
+    if (persist) markWelcomeSeen();
+    resetCtaMagnet();
+    onPointerLeave();
+
+    const startTransition = reason === 'start';
+    if (startTransition) root?.classList.add('is-starting');
+    else root?.classList.add('is-leaving');
+
+    window.dispatchEvent(new CustomEvent('bes-first-visit-welcome-dismissed', {
+      detail: { reason, isolated: true },
+    }));
+
+    const delay = immediate ? 0 : (startTransition ? WELCOME_EXIT_MS : WELCOME_DISMISS_MS);
+    cleanupTimer = window.setTimeout(finishCleanup, delay);
+  }
+
+  function initializeFrame() {
+    if (initialized) return;
+    frameDocument = frame.contentDocument;
+    frameWindow = frame.contentWindow;
+    if (!frameDocument || !frameWindow) {
+      finishCleanup();
+      return;
+    }
+
+    root = frameDocument.querySelector('.brian-welcome-root');
+    card = frameDocument.querySelector('.brian-welcome-card');
+    beam = frameDocument.querySelector('.brian-welcome-beam');
+    reflection = frameDocument.querySelector('.brian-welcome-sea-reflection');
+    primaryCta = frameDocument.querySelector('.brian-welcome-primary');
+    featureCards = Array.from(frameDocument.querySelectorAll('[data-welcome-feature]'));
+    const frameMatchMedia = typeof frameWindow.matchMedia === 'function'
+      ? frameWindow.matchMedia('(prefers-reduced-motion: reduce)')
+      : null;
+    reducedMotion = !forceFullMotion && Boolean(frameMatchMedia?.matches);
+
+    if (!root || !card || !beam || !primaryCta) {
+      finishCleanup();
+      return;
+    }
+    initialized = true;
+
     card.addEventListener('pointermove', onPointerMove);
     card.addEventListener('pointerleave', onPointerLeave);
+    primaryCta.addEventListener('pointermove', onCtaPointerMove);
+    primaryCta.addEventListener('pointerleave', resetCtaMagnet);
     featureCards.forEach((feature) => {
       feature.addEventListener('pointerenter', onFeatureEnter);
       feature.addEventListener('pointerleave', onFeatureLeave);
     });
-    primaryCta?.addEventListener('pointermove', onCtaPointerMove);
-    primaryCta?.addEventListener('pointerleave', onCtaPointerLeave);
+    frameDocument.addEventListener('keydown', onKeyDown);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('storage', onStorage);
+
+    frameDocument.querySelectorAll('[data-welcome-action]').forEach((button) => {
+      button.addEventListener('click', () => dismissWelcome(button.dataset.welcomeAction || 'close'));
+    });
+    frameDocument.querySelector('[data-welcome-backdrop]')?.addEventListener('click', (event) => {
+      if (event.target === event.currentTarget) dismissWelcome('backdrop');
+    });
+
+    onVisibilityChange();
+    frameWindow.focus();
+    window.setTimeout(() => primaryCta?.focus({ preventScroll: true }), 40);
+    window.dispatchEvent(new CustomEvent('bes-first-visit-welcome-shown', {
+      detail: { isolated: true, motion: forceFullMotion ? 'full' : (reducedMotion ? 'reduced' : 'auto') },
+    }));
   }
 
-  document.body.appendChild(root);
+  frame.addEventListener('load', initializeFrame, { once: true });
   document.body.style.overflow = 'hidden';
-  window.addEventListener('keydown', onKeyDown, true);
-  window.addEventListener('storage', onStorage);
-  document.addEventListener('visibilitychange', onVisibilityChange);
-  onVisibilityChange();
-  activeCleanup = cleanup;
-
-  window.requestAnimationFrame(() => {
-    root.classList.add('is-visible');
-    root.querySelector('[data-welcome-action="start"]')?.focus({ preventScroll: true });
-  });
-
-  window.dispatchEvent(new CustomEvent('bes-first-visit-welcome-shown', {
-    detail: {
-      version: WELCOME_VERSION,
-      preview: isWelcomePreviewRequested(),
-      motion: forceFullMotion ? 'full' : (reducedMotion ? 'reduced' : 'auto'),
-    },
-  }));
+  document.body.appendChild(frame);
+  activeCleanup = finishCleanup;
 }
 
-function waitForShell(startedAt = Date.now()) {
-  if (hasSeenWelcome() || isProtectedEntryRoute()) return;
-  if (document.querySelector('#root .app-shell')) {
-    window.setTimeout(mountWelcome, 180);
-    return;
-  }
-  if (Date.now() - startedAt < SHELL_WAIT_MS) {
-    window.setTimeout(() => waitForShell(startedAt), 120);
-  }
+function waitForApplicationShell() {
+  const startedAt = Date.now();
+  const tick = () => {
+    if (hasSeenWelcome() || isProtectedEntryRoute() || document.getElementById(WELCOME_ROOT_ID)) return;
+    if (document.querySelector('#root .app-shell')) {
+      window.setTimeout(mountWelcome, 180);
+      return;
+    }
+    if (Date.now() - startedAt < SHELL_WAIT_MS) window.setTimeout(tick, 180);
+  };
+  tick();
 }
 
 export function installFirstVisitWelcome() {
-  if (typeof window === 'undefined' || window.__besFirstVisitWelcomeInstalled) return;
-  window.__besFirstVisitWelcomeInstalled = true;
-
-  const begin = () => waitForShell();
+  if (typeof window === 'undefined' || typeof document === 'undefined') return;
+  if (activeCleanup || document.getElementById(WELCOME_ROOT_ID)) return;
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', begin, { once: true });
+    document.addEventListener('DOMContentLoaded', waitForApplicationShell, { once: true });
   } else {
-    begin();
+    waitForApplicationShell();
   }
-
-  window.addEventListener('beforeunload', () => activeCleanup?.(), { once: true });
 }
