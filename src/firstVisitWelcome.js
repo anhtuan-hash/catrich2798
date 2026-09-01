@@ -1,4 +1,5 @@
 import './styles/FirstVisitWelcomeMotion.css';
+import './styles/FirstVisitWelcomeVisibilityTune.css';
 
 const WELCOME_SEEN_KEY = 'bes-first-visit-welcome-v1';
 const WELCOME_VERSION = '1';
