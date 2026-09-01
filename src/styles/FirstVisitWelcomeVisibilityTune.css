@@ -1,0 +1,72 @@
+.brian-welcome-card .brian-welcome-light-particles i{
+  width:4px;
+  height:4px;
+  background:rgba(255,248,224,.96);
+  box-shadow:0 0 10px rgba(255,225,168,.82),0 0 18px rgba(255,212,135,.28);
+}
+
+.brian-welcome-light-particles i:nth-child(10){left:22%;top:58%;animation-delay:-3.6s}
+.brian-welcome-light-particles i:nth-child(11){left:34%;top:41%;animation-delay:-.7s}
+.brian-welcome-light-particles i:nth-child(12){left:53%;top:68%;animation-delay:-2.2s}
+.brian-welcome-light-particles i:nth-child(13){left:71%;top:37%;animation-delay:-4.4s}
+.brian-welcome-light-particles i:nth-child(14){left:87%;top:29%;animation-delay:-1.5s}
+
+.brian-welcome-card .brian-welcome-wave{
+  --welcome-wave-travel:18px;
+  --welcome-wave-lift:5px;
+  animation-name:brianWelcomeWaveDriftEnhanced;
+}
+
+.brian-welcome-card .brian-welcome-wave.wave-a{opacity:.48}
+.brian-welcome-card .brian-welcome-wave.wave-b{opacity:.42}
+.brian-welcome-card .brian-welcome-wave.wave-c{
+  opacity:.4;
+  border-top-color:rgba(186,218,255,.22);
+}
+
+.brian-welcome-card .brian-welcome-shooting-star{
+  width:96px;
+  height:2px;
+  background:linear-gradient(90deg,transparent,rgba(255,239,196,.42),rgba(255,251,232,1));
+  box-shadow:0 0 10px rgba(255,237,195,.68),0 0 22px rgba(255,216,150,.32);
+  animation:brianWelcomeShootingStar 13s linear 3s infinite;
+}
+
+@keyframes brianWelcomeParticleFloat{
+  0%,100%{transform:translate3d(-7px,4px,0) scale(.55);opacity:0}
+  20%{opacity:.38}
+  48%{transform:translate3d(13px,-6px,0) scale(1.08);opacity:1}
+  76%{opacity:.48}
+}
+
+@keyframes brianWelcomeWaveDriftEnhanced{
+  0%,100%{transform:translate3d(-9px,0,0) skewX(var(--welcome-wave-skew)) scaleX(.98);opacity:.44}
+  50%{transform:translate3d(var(--welcome-wave-travel),calc(0px - var(--welcome-wave-lift)),0) skewX(var(--welcome-wave-skew)) scaleX(1.045);opacity:.84}
+}
+
+@keyframes brianWelcomeShootingStar{
+  0%,60%{opacity:0;transform:translate3d(0,0,0) rotate(-24deg) scaleX(.5)}
+  63%{opacity:1}
+  69%{opacity:.96;transform:translate3d(92px,43px,0) rotate(-24deg) scaleX(1)}
+  76%{opacity:0;transform:translate3d(210px,96px,0) rotate(-24deg) scaleX(1.2)}
+  100%{opacity:0;transform:translate3d(210px,96px,0) rotate(-24deg) scaleX(1.2)}
+}
+
+@media(max-width:900px){
+  .brian-welcome-card .brian-welcome-wave{
+    --welcome-wave-travel:13px;
+    --welcome-wave-lift:3px;
+  }
+  .brian-welcome-light-particles i:nth-child(n+9){display:none}
+}
+
+@media(max-width:600px){
+  .brian-welcome-card .brian-welcome-wave{
+    --welcome-wave-travel:9px;
+    --welcome-wave-lift:2px;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .brian-welcome-card .brian-welcome-wave{animation:none!important}
+}
