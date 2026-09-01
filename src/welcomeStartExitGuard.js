@@ -1,7 +1,7 @@
 const WELCOME_FRAME_ID = 'brian-first-visit-welcome';
 const INSTALL_KEY = '__besWelcomeStartExitGuardInstalled';
-const START_EXIT_DELAY_MS = 1650;
-const HARD_EXIT_DELAY_MS = 1100;
+const START_EXIT_DELAY_MS = 2200;
+const HARD_EXIT_DELAY_MS = 650;
 
 const armedFrames = new WeakSet();
 let startTimer = 0;
@@ -26,7 +26,9 @@ function finishThroughWelcomeCleanup(frame) {
   const doc = frame.contentDocument;
   const skip = doc?.getElementById('skipWelcome');
 
-  if (skip instanceof HTMLButtonElement) {
+  // Elements created inside the iframe live in a different JavaScript realm.
+  // Do not use `instanceof HTMLButtonElement` here: it is false cross-realm.
+  if (skip?.tagName === 'BUTTON' && typeof skip.click === 'function') {
     skip.click();
   }
 
@@ -38,7 +40,10 @@ function armFrame(frame) {
   if (!(frame instanceof HTMLIFrameElement) || armedFrames.has(frame)) return;
   const doc = frame.contentDocument;
   const start = doc?.getElementById('startJourney');
-  if (!(start instanceof HTMLButtonElement)) return;
+
+  // Same cross-realm rule as above: tagName/DOM capability checks are stable
+  // for same-origin iframe nodes, while parent-realm instanceof checks are not.
+  if (!(start?.tagName === 'BUTTON' && typeof start.addEventListener === 'function')) return;
 
   armedFrames.add(frame);
   start.addEventListener('click', () => {
