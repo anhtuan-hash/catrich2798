@@ -1,10 +1,21 @@
 import fs from 'node:fs';
 
+const readOptional = (path) => {
+  try {
+    return fs.readFileSync(path, 'utf8');
+  } catch {
+    return '';
+  }
+};
+
 const files = {
-  externalJsx: fs.readFileSync('src/components/ExternalAppHero.jsx', 'utf8'),
-  externalCss: fs.readFileSync('src/components/ExternalAppHero.css', 'utf8'),
-  tesolJsx: fs.readFileSync('src/components/TesolMethodHero.jsx', 'utf8'),
-  tesolCss: fs.readFileSync('src/components/TesolMethodHero.css', 'utf8'),
+  externalJsx: readOptional('src/components/ExternalAppHero.jsx'),
+  externalCss: readOptional('src/components/ExternalAppHero.css'),
+  tesolJsx: readOptional('src/components/TesolMethodHero.jsx'),
+  tesolCss: readOptional('src/components/TesolMethodHero.css'),
+  applicationBootstrap: readOptional('src/applicationBootstrap.jsx'),
+  firstVisitWelcome: readOptional('src/firstVisitWelcome.js'),
+  firstVisitWelcomeCss: readOptional('src/styles/FirstVisitWelcome.css'),
 };
 
 const checks = [
@@ -26,6 +37,15 @@ const checks = [
   ['TESOL CSS contains editorial journal shell', files.tesolCss.includes('.tesol-editorial-shell')],
   ['TESOL hero uses compact viewport sizing', files.tesolCss.includes('--tesol-hero-height:clamp(360px,42vh,460px)') && files.tesolCss.includes('min-height:var(--tesol-hero-height)')],
   ['TESOL CSS respects reduced motion', files.tesolCss.includes('@media(prefers-reduced-motion:reduce)')],
+  ['First-visit welcome is bootstrapped', files.applicationBootstrap.includes("import './styles/FirstVisitWelcome.css';") && files.applicationBootstrap.includes("import { installFirstVisitWelcome } from './firstVisitWelcome.js';") && files.applicationBootstrap.includes('installFirstVisitWelcome();')],
+  ['First-visit welcome uses a versioned browser key', files.firstVisitWelcome.includes("WELCOME_SEEN_KEY = 'bes-first-visit-welcome-v1'") && files.firstVisitWelcome.includes("WELCOME_VERSION = '1'")],
+  ['First-visit welcome reads and persists seen state', files.firstVisitWelcome.includes('localStorage.getItem(WELCOME_SEEN_KEY)') && files.firstVisitWelcome.includes('localStorage.setItem(WELCOME_SEEN_KEY, WELCOME_VERSION)')],
+  ['First-visit welcome protects auth and recovery routes', files.firstVisitWelcome.includes('isProtectedEntryRoute') && files.firstVisitWelcome.includes('recovery') && files.firstVisitWelcome.includes('register')],
+  ['First-visit welcome has accessible dialog semantics', files.firstVisitWelcome.includes('role="dialog"') && files.firstVisitWelcome.includes('aria-modal="true"') && files.firstVisitWelcome.includes('aria-labelledby="brian-welcome-title"')],
+  ['First-visit welcome implements proposal 10 actions', files.firstVisitWelcome.includes('Bắt đầu ngay') && files.firstVisitWelcome.includes('Khám phá sau') && files.firstVisitWelcome.includes('data-welcome-action="start"') && files.firstVisitWelcome.includes('data-welcome-action="later"')],
+  ['First-visit welcome renders lighthouse scene', files.firstVisitWelcome.includes('brian-welcome-lighthouse') && files.firstVisitWelcomeCss.includes('.brian-welcome-lighthouse') && files.firstVisitWelcomeCss.includes('.brian-welcome-beam')],
+  ['First-visit welcome uses 16:9 desktop composition', files.firstVisitWelcomeCss.includes('aspect-ratio:16/9')],
+  ['First-visit welcome respects reduced motion', files.firstVisitWelcomeCss.includes('@media(prefers-reduced-motion:reduce)')],
 ];
 
 const failures = checks.filter(([, ok]) => !ok);
@@ -34,8 +54,8 @@ for (const [label, ok] of checks) {
 }
 
 if (failures.length) {
-  console.error(`\nEditorial hero contract failed: ${failures.length} check(s).`);
+  console.error(`\nUI contract failed: ${failures.length} check(s).`);
   process.exit(1);
 }
 
-console.log('\nEditorial hero contract passed.');
+console.log('\nUI contract passed.');
