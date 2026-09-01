@@ -194,3 +194,314 @@
     animation:brianWelcomeCardExit .68s cubic-bezier(.35,.05,.6,1) both!important;
   }
 }
+
+/* Living Twilight: make the whole scene feel alive instead of letting the beam dominate. */
+.brian-welcome-card{
+  --welcome-living-beam-opacity:.68;
+}
+
+.brian-welcome-card .brian-welcome-sky{
+  background:
+    radial-gradient(circle at 72% 15%,rgba(255,215,161,.24),transparent 22%),
+    radial-gradient(ellipse at 58% 70%,rgba(124,94,154,.18),transparent 34%),
+    linear-gradient(180deg,#0b183e 0%,#1b2d62 34%,#5d557c 64%,#bd7674 100%);
+}
+
+.brian-welcome-card .brian-welcome-sky::after{
+  bottom:-14%;
+  height:44%;
+  background:
+    radial-gradient(ellipse at 74% 12%,rgba(128,167,221,.16),transparent 30%),
+    linear-gradient(180deg,#112d50 0%,#0a203c 46%,#06162d 100%);
+  box-shadow:inset 0 1px 0 rgba(161,196,236,.12);
+}
+
+.brian-welcome-card .brian-welcome-copy{
+  top:25.5%;
+  width:min(44%,500px);
+}
+
+.brian-welcome-root .brian-welcome-copy h1{
+  max-width:455px;
+  font-family:Georgia,'Times New Roman',serif!important;
+  font-size:clamp(40px,4.1vw,62px)!important;
+  font-weight:500!important;
+  line-height:.96!important;
+  letter-spacing:-.035em!important;
+  text-wrap:balance;
+}
+
+.brian-welcome-root .brian-welcome-copy>p:last-child{
+  max-width:470px;
+  margin-top:16px;
+  color:rgba(239,245,255,.86);
+  font-size:14px!important;
+  line-height:1.55;
+}
+
+.brian-welcome-card .brian-welcome-beam{
+  width:47%;
+  height:8.5%;
+  opacity:var(--welcome-living-beam-opacity);
+  background:linear-gradient(270deg,rgba(255,240,199,.7) 0%,rgba(255,232,177,.26) 32%,rgba(255,226,163,.08) 64%,rgba(255,226,163,0) 100%);
+  filter:blur(.9px);
+}
+
+.brian-welcome-card.is-beam-tracking .brian-welcome-beam{
+  opacity:var(--welcome-living-beam-opacity);
+}
+
+.brian-welcome-card .brian-welcome-light-particles{
+  width:47%;
+  height:8.5%;
+  opacity:.72;
+}
+
+.brian-welcome-card .brian-welcome-lighthouse{
+  right:5.8%;
+  bottom:12.5%;
+  transform:scale(.9);
+  transform-origin:right bottom;
+}
+
+.brian-welcome-card .brian-welcome-horizon{
+  bottom:24.5%;
+  height:2px;
+  opacity:.92;
+  background:linear-gradient(90deg,transparent 0 31%,rgba(145,184,230,.2) 46%,rgba(255,210,170,.58) 66%,rgba(173,194,224,.12) 84%,transparent 100%);
+  box-shadow:0 0 16px rgba(124,165,217,.1);
+}
+
+.brian-welcome-card .brian-welcome-depth-far{
+  transform:translate3d(var(--welcome-parallax-far-x),var(--welcome-parallax-far-y),0) translate3d(var(--welcome-parallax-far-x),var(--welcome-parallax-far-y),0);
+}
+
+.brian-welcome-card .brian-welcome-depth-mid-sky,
+.brian-welcome-card .brian-welcome-ocean-layer{
+  transform:translate3d(var(--welcome-parallax-mid-x),var(--welcome-parallax-mid-y),0) translate3d(var(--welcome-parallax-mid-x),var(--welcome-parallax-mid-y),0);
+}
+
+.brian-welcome-card .brian-welcome-lighthouse-layer{
+  transform:translate3d(var(--welcome-parallax-near-x),var(--welcome-parallax-near-y),0) translate3d(var(--welcome-parallax-near-x),var(--welcome-parallax-near-y),0);
+}
+
+.brian-welcome-card .brian-welcome-cloud.cloud-far{
+  left:42%;
+  top:17%;
+  width:300px;
+  opacity:.34;
+  filter:blur(6px);
+  animation:brianWelcomeCloudDrift 16s linear -4s infinite;
+}
+
+.brian-welcome-card .brian-welcome-cloud.cloud-near{
+  left:55%;
+  top:32%;
+  width:370px;
+  height:78px;
+  opacity:.26;
+  filter:blur(8px);
+  animation:brianWelcomeCloudDrift 12s linear -6s infinite reverse;
+}
+
+.brian-welcome-card .brian-welcome-star{
+  width:4.5px;
+  height:4.5px;
+  box-shadow:0 0 8px rgba(255,245,211,.92),0 0 18px rgba(255,226,162,.28);
+  animation:brianWelcomeStarLife 2.6s ease-in-out infinite;
+}
+
+.brian-welcome-card .brian-welcome-star.star-b{animation-delay:-.7s}
+.brian-welcome-card .brian-welcome-star.star-c{animation-delay:-1.4s}
+.brian-welcome-card .brian-welcome-star.star-d{animation-delay:-2.1s}
+.brian-welcome-card .brian-welcome-star.star-e{animation-delay:-.95s}
+
+.brian-welcome-card .brian-welcome-moon-halo{
+  width:144px;
+  height:144px;
+  right:13.6%;
+  top:4.5%;
+  opacity:.72;
+  filter:blur(7px);
+  animation:brianWelcomeMoonHalo 6.4s ease-in-out infinite;
+}
+
+.brian-welcome-card .brian-welcome-moon{
+  width:82px;
+  height:82px;
+  animation:brianWelcomeMoonGlow 6.4s ease-in-out infinite;
+}
+
+.brian-welcome-card .brian-welcome-ocean-layer::after{
+  content:"";
+  position:absolute;
+  right:13.5%;
+  bottom:1%;
+  z-index:0;
+  width:19%;
+  height:23%;
+  border-radius:50%;
+  pointer-events:none;
+  opacity:.5;
+  transform:skewX(-16deg) scaleY(.7);
+  transform-origin:top center;
+  background:
+    repeating-linear-gradient(177deg,transparent 0 7px,rgba(226,231,238,.2) 8px 9px,transparent 10px 15px),
+    radial-gradient(ellipse at 55% 0%,rgba(255,233,191,.46),rgba(178,203,231,.16) 34%,transparent 72%);
+  filter:blur(.55px);
+  mix-blend-mode:screen;
+  animation:brianWelcomeMoonReflection 3.8s ease-in-out infinite;
+}
+
+.brian-welcome-card .brian-welcome-wave{
+  left:34%;
+  right:-8%;
+  border-top-width:2px;
+  border-top-color:rgba(180,215,255,.3);
+  filter:drop-shadow(0 0 5px rgba(126,170,224,.1));
+}
+
+.brian-welcome-card .brian-welcome-wave.wave-a{
+  bottom:9%;
+  opacity:.7;
+  animation:brianWelcomeLivingWave 4.8s ease-in-out -1.2s infinite;
+}
+
+.brian-welcome-card .brian-welcome-wave.wave-b{
+  bottom:3.5%;
+  opacity:.58;
+  animation:brianWelcomeLivingWave 6.2s ease-in-out -3.1s infinite reverse;
+}
+
+.brian-welcome-card .brian-welcome-wave.wave-c{
+  left:28%;
+  right:-10%;
+  bottom:14%;
+  opacity:.46;
+  border-top-color:rgba(205,226,255,.22);
+  animation:brianWelcomeLivingWave 7.4s ease-in-out -4.7s infinite;
+}
+
+.brian-welcome-card .brian-welcome-sea-reflection{
+  bottom:2.5%;
+  opacity:.52;
+}
+
+.brian-welcome-card .brian-welcome-reflection-core{
+  animation-duration:1.9s;
+}
+
+.brian-welcome-card .brian-welcome-reflection-ripple{
+  height:3px;
+  animation-duration:2.4s;
+}
+
+.brian-welcome-card .brian-welcome-shooting-star{
+  animation:brianWelcomeShootingStar 10.5s linear 2.2s infinite;
+}
+
+.brian-welcome-card .brian-welcome-features article{
+  border-color:rgba(255,255,255,.2);
+  background:linear-gradient(180deg,rgba(255,255,255,.105),rgba(255,255,255,.055));
+  backdrop-filter:blur(13px) saturate(1.08);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 10px 28px rgba(1,9,25,.08);
+  animation:brianWelcomeFeatureFloat 5.2s ease-in-out infinite;
+}
+
+.brian-welcome-card .brian-welcome-features article:nth-child(1){animation-delay:-.35s}
+.brian-welcome-card .brian-welcome-features article:nth-child(2){animation-delay:-1.1s}
+.brian-welcome-card .brian-welcome-features article:nth-child(3){animation-delay:-1.85s}
+.brian-welcome-card .brian-welcome-features article:nth-child(4){animation-delay:-2.6s}
+.brian-welcome-card .brian-welcome-features article.is-feature-lit{animation-play-state:paused}
+
+@keyframes brianWelcomeMoonReflection{
+  0%,100%{transform:translate3d(-5px,0,0) skewX(-16deg) scaleY(.62) scaleX(.88);opacity:.34;filter:blur(.8px)}
+  45%{transform:translate3d(6px,-3px,0) skewX(-11deg) scaleY(.8) scaleX(1.08);opacity:.66;filter:blur(.35px)}
+  72%{transform:translate3d(1px,1px,0) skewX(-19deg) scaleY(.72) scaleX(.96);opacity:.5;filter:blur(.55px)}
+}
+
+@keyframes brianWelcomeLivingWave{
+  0%,100%{transform:translate3d(-14px,2px,0) skewX(var(--welcome-wave-skew)) scaleX(.96);opacity:.42}
+  35%{transform:translate3d(8px,-4px,0) skewX(calc(var(--welcome-wave-skew) + 2deg)) scaleX(1.03);opacity:.72}
+  68%{transform:translate3d(24px,1px,0) skewX(calc(var(--welcome-wave-skew) - 2deg)) scaleX(1.075);opacity:.9}
+}
+
+@keyframes brianWelcomeFeatureFloat{
+  0%,100%{translate:0 0;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 10px 28px rgba(1,9,25,.08)}
+  50%{translate:0 -3px;box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 15px 34px rgba(1,9,25,.14)}
+}
+
+@media(max-width:900px){
+  .brian-welcome-root .brian-welcome-copy h1{
+    font-size:clamp(38px,8.8vw,58px)!important;
+  }
+  .brian-welcome-card .brian-welcome-lighthouse{
+    right:0;
+    bottom:5%;
+    transform:scale(.76);
+  }
+  .brian-welcome-card .brian-welcome-cloud.cloud-near{opacity:.16}
+  .brian-welcome-card .brian-welcome-ocean-layer::after{right:9%;width:25%;opacity:.36}
+}
+
+@media(max-width:600px){
+  .brian-welcome-root .brian-welcome-copy h1{
+    font-size:clamp(36px,11.5vw,50px)!important;
+  }
+  .brian-welcome-card .brian-welcome-cloud.cloud-near{display:none}
+  .brian-welcome-card .brian-welcome-features article{animation-duration:6.4s}
+  .brian-welcome-card .brian-welcome-ocean-layer::after{opacity:.28}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .brian-welcome-card .brian-welcome-ocean-layer::after,
+  .brian-welcome-card .brian-welcome-features article{
+    animation:none!important;
+  }
+
+  .brian-welcome-root.is-motion-forced .brian-welcome-depth-far{
+    transform:translate3d(var(--welcome-parallax-far-x),var(--welcome-parallax-far-y),0) translate3d(var(--welcome-parallax-far-x),var(--welcome-parallax-far-y),0)!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-depth-mid-sky,
+  .brian-welcome-root.is-motion-forced .brian-welcome-ocean-layer{
+    transform:translate3d(var(--welcome-parallax-mid-x),var(--welcome-parallax-mid-y),0) translate3d(var(--welcome-parallax-mid-x),var(--welcome-parallax-mid-y),0)!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-lighthouse-layer{
+    transform:translate3d(var(--welcome-parallax-near-x),var(--welcome-parallax-near-y),0) translate3d(var(--welcome-parallax-near-x),var(--welcome-parallax-near-y),0)!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-beam,
+  .brian-welcome-root.is-motion-forced .brian-welcome-card.is-beam-tracking .brian-welcome-beam{
+    opacity:var(--welcome-living-beam-opacity)!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-cloud.cloud-far{
+    animation:brianWelcomeCloudDrift 16s linear -4s infinite!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-cloud.cloud-near{
+    animation:brianWelcomeCloudDrift 12s linear -6s infinite reverse!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-star{
+    animation:brianWelcomeStarLife 2.6s ease-in-out infinite!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-moon-halo{
+    animation:brianWelcomeMoonHalo 6.4s ease-in-out infinite!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-moon{
+    animation:brianWelcomeMoonGlow 6.4s ease-in-out infinite!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-ocean-layer::after{
+    animation:brianWelcomeMoonReflection 3.8s ease-in-out infinite!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-wave.wave-a{
+    animation:brianWelcomeLivingWave 4.8s ease-in-out -1.2s infinite!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-wave.wave-b{
+    animation:brianWelcomeLivingWave 6.2s ease-in-out -3.1s infinite reverse!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-wave.wave-c{
+    animation:brianWelcomeLivingWave 7.4s ease-in-out -4.7s infinite!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-features article{
+    animation:brianWelcomeFeatureFloat 5.2s ease-in-out infinite!important;
+  }
+  .brian-welcome-root.is-motion-forced .brian-welcome-features article:nth-child(2){animation-delay:-1.1s!important}
+}
