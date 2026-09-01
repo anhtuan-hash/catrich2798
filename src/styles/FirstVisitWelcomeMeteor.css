@@ -12,6 +12,8 @@
   --meteor-rotation:-24deg;
   --meteor-dx:180px;
   --meteor-dy:82px;
+  --meteor-mid-dx:104px;
+  --meteor-mid-dy:48px;
   --meteor-duration:10.6s;
   --meteor-delay:0s;
   position:absolute;
@@ -46,6 +48,8 @@
   --meteor-rotation:-26deg;
   --meteor-dx:165px;
   --meteor-dy:72px;
+  --meteor-mid-dx:96px;
+  --meteor-mid-dy:42px;
   --meteor-duration:8.8s;
   --meteor-delay:-1.2s;
 }
@@ -57,6 +61,8 @@
   --meteor-rotation:-22deg;
   --meteor-dx:210px;
   --meteor-dy:92px;
+  --meteor-mid-dx:122px;
+  --meteor-mid-dy:53px;
   --meteor-duration:10.6s;
   --meteor-delay:-6.8s;
 }
@@ -68,6 +74,8 @@
   --meteor-rotation:-29deg;
   --meteor-dx:148px;
   --meteor-dy:78px;
+  --meteor-mid-dx:86px;
+  --meteor-mid-dy:45px;
   --meteor-duration:12.4s;
   --meteor-delay:-3.7s;
 }
@@ -79,6 +87,8 @@
   --meteor-rotation:-25deg;
   --meteor-dx:188px;
   --meteor-dy:86px;
+  --meteor-mid-dx:109px;
+  --meteor-mid-dy:50px;
   --meteor-duration:9.7s;
   --meteor-delay:-8.1s;
 }
@@ -90,6 +100,8 @@
   --meteor-rotation:-20deg;
   --meteor-dx:135px;
   --meteor-dy:62px;
+  --meteor-mid-dx:78px;
+  --meteor-mid-dy:36px;
   --meteor-duration:11.8s;
   --meteor-delay:-5.2s;
 }
@@ -101,6 +113,8 @@
   --meteor-rotation:-31deg;
   --meteor-dx:172px;
   --meteor-dy:104px;
+  --meteor-mid-dx:100px;
+  --meteor-mid-dy:60px;
   --meteor-duration:13.6s;
   --meteor-delay:-10.4s;
 }
@@ -112,6 +126,8 @@
   --meteor-rotation:-18deg;
   --meteor-dx:118px;
   --meteor-dy:50px;
+  --meteor-mid-dx:68px;
+  --meteor-mid-dy:29px;
   --meteor-duration:15.2s;
   --meteor-delay:-12.3s;
 }
@@ -128,7 +144,7 @@
   }
   69%{
     opacity:.96;
-    transform:translate3d(calc(var(--meteor-dx) * .58),calc(var(--meteor-dy) * .58),0) rotate(var(--meteor-rotation)) scaleX(1);
+    transform:translate3d(var(--meteor-mid-dx),var(--meteor-mid-dy),0) rotate(var(--meteor-rotation)) scaleX(1);
   }
   76%{
     opacity:0;
