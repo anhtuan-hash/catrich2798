@@ -7,8 +7,15 @@ const armedFrames = new WeakSet();
 let startTimer = 0;
 let hardTimer = 0;
 
+function routeToHome() {
+  if (window.location.hash !== '#/home') {
+    window.location.hash = '#/home';
+  }
+}
+
 function hardRemoveWelcome(frame) {
   if (!(frame instanceof HTMLIFrameElement) || !frame.isConnected) return;
+  routeToHome();
   frame.remove();
   document.body?.style.removeProperty('overflow');
   window.dispatchEvent(new CustomEvent('bes-first-visit-welcome-dismissed', {
@@ -46,6 +53,7 @@ function armFrame(frame) {
 
   armedFrames.add(frame);
   start.addEventListener('click', () => {
+    routeToHome();
     window.clearTimeout(startTimer);
     window.clearTimeout(hardTimer);
     startTimer = window.setTimeout(
