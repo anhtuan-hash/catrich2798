@@ -80,6 +80,14 @@ const checks = [
   ['Welcome preview query bypasses seen-state for reproducible testing', files.firstVisitWelcome.includes("WELCOME_PREVIEW_PARAM = 'welcome'") && files.firstVisitWelcome.includes("params.get(WELCOME_PREVIEW_PARAM) === 'preview'") && files.firstVisitWelcome.includes('if (isWelcomePreviewRequested()) return false;')],
   ['Welcome full-motion query bypasses runtime reduced-motion gate', files.firstVisitWelcome.includes("WELCOME_MOTION_PARAM = 'motion'") && files.firstVisitWelcome.includes("params.get(WELCOME_MOTION_PARAM) === 'full'") && files.firstVisitWelcome.includes('const reducedMotion = !forceFullMotion') && files.firstVisitWelcome.includes("root.classList.add('is-motion-forced')")],
   ['Forced welcome motion restores CSS animations for diagnostics', welcomeMotionCss.includes('.brian-welcome-root.is-motion-forced') && welcomeMotionCss.includes('brianWelcomeBeamInteractiveSweep 7s') && welcomeMotionCss.includes('brianWelcomeWaveDriftEnhanced') && welcomeMotionCss.includes('brianWelcomeShootingStar 13s')],
+  ['Living Twilight calms the lighthouse beam hierarchy', files.firstVisitWelcomeTuneCss.includes('--welcome-living-beam-opacity:.68') && files.firstVisitWelcomeTuneCss.includes('opacity:var(--welcome-living-beam-opacity)')],
+  ['Living Twilight locks compact welcome typography', files.firstVisitWelcomeTuneCss.includes("font-family:Georgia,'Times New Roman',serif!important") && files.firstVisitWelcomeTuneCss.includes('font-size:clamp(40px,4.1vw,62px)!important')],
+  ['Living Twilight deepens pointer parallax', files.firstVisitWelcome.includes('const x = normalizedX * 17;') && files.firstVisitWelcome.includes('const y = normalizedY * 11;')],
+  ['Living Twilight adds an independent moon reflection', files.firstVisitWelcome.includes('brian-welcome-moon-reflection') && files.firstVisitWelcomeTuneCss.includes('@keyframes brianWelcomeMoonReflection')],
+  ['Living Twilight makes cloud motion readable', files.firstVisitWelcomeTuneCss.includes('animation:brianWelcomeCloudDrift 16s') && files.firstVisitWelcomeTuneCss.includes('animation:brianWelcomeCloudDrift 12s')],
+  ['Living Twilight makes the ocean visibly alive', files.firstVisitWelcomeTuneCss.includes('animation:brianWelcomeLivingWave 4.8s') && files.firstVisitWelcomeTuneCss.includes('animation:brianWelcomeLivingWave 6.2s') && files.firstVisitWelcomeTuneCss.includes('animation:brianWelcomeLivingWave 7.4s')],
+  ['Living Twilight gives stars and moon a faster ambient rhythm', files.firstVisitWelcomeTuneCss.includes('animation:brianWelcomeStarLife 2.6s') && files.firstVisitWelcomeTuneCss.includes('animation:brianWelcomeMoonHalo 6.4s')],
+  ['Living Twilight gives feature cards staggered ambient motion', files.firstVisitWelcomeTuneCss.includes('@keyframes brianWelcomeFeatureFloat') && files.firstVisitWelcomeTuneCss.includes('animation-delay:-1.1s')],
 ];
 
 const failures = checks.filter(([, ok]) => !ok);
