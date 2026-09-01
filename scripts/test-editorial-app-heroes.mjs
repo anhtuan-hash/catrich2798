@@ -19,9 +19,10 @@ const files = {
   firstVisitWelcomeMotionCss: readOptional('src/styles/FirstVisitWelcomeMotion.css'),
   firstVisitWelcomeTuneCss: readOptional('src/styles/FirstVisitWelcomeVisibilityTune.css'),
   firstVisitWelcomeAmbientCss: readOptional('src/styles/FirstVisitWelcomeAmbient.css'),
+  firstVisitWelcomeMeteorCss: readOptional('src/styles/FirstVisitWelcomeMeteor.css'),
 };
 
-const welcomeMotionCss = `${files.firstVisitWelcomeMotionCss}\n${files.firstVisitWelcomeTuneCss}\n${files.firstVisitWelcomeAmbientCss}`;
+const welcomeMotionCss = `${files.firstVisitWelcomeMotionCss}\n${files.firstVisitWelcomeTuneCss}\n${files.firstVisitWelcomeAmbientCss}\n${files.firstVisitWelcomeMeteorCss}`;
 
 const checks = [
   ['External app hero uses the editorial shell', files.externalJsx.includes('external-app-editorial-shell')],
@@ -100,6 +101,10 @@ const checks = [
   ['Welcome imports all visual styles as inline strings', files.firstVisitWelcome.includes("FirstVisitWelcome.css?inline") && files.firstVisitWelcome.includes("FirstVisitWelcomeMotion.css?inline") && files.firstVisitWelcome.includes("FirstVisitWelcomeVisibilityTune.css?inline") && files.firstVisitWelcome.includes("FirstVisitWelcomeAmbient.css?inline")],
   ['Welcome renders inside a sandboxed iframe srcdoc', files.firstVisitWelcome.includes("document.createElement('iframe')") && files.firstVisitWelcome.includes("frame.setAttribute('sandbox', 'allow-same-origin')") && files.firstVisitWelcome.includes('frame.srcdoc = welcomeFrameDocument')],
   ['Welcome interactions bind to the isolated frame document', files.firstVisitWelcome.includes('frame.contentDocument') && files.firstVisitWelcome.includes('frame.contentWindow') && files.firstVisitWelcome.includes("frameDocument.addEventListener('keydown', onKeyDown)")],
+  ['Meteor sky stylesheet is loaded inside isolated welcome frame', files.firstVisitWelcome.includes("FirstVisitWelcomeMeteor.css?inline") && files.firstVisitWelcome.includes('welcomeMeteorCss')],
+  ['Meteor sky renders seven independent meteor trails', (files.firstVisitWelcome.match(/brian-welcome-meteor meteor-[a-g]/g) || []).length === 7],
+  ['Meteor sky uses staggered cinematic flight timing', files.firstVisitWelcomeMeteorCss.includes('@keyframes brianWelcomeMeteorFlight') && files.firstVisitWelcomeMeteorCss.includes('8.8s') && files.firstVisitWelcomeMeteorCss.includes('10.6s') && files.firstVisitWelcomeMeteorCss.includes('12.4s')],
+  ['Meteor sky remains accessible under reduced motion and forced preview', files.firstVisitWelcomeMeteorCss.includes('@media(prefers-reduced-motion:reduce)') && files.firstVisitWelcomeMeteorCss.includes('.brian-welcome-root.is-motion-forced .brian-welcome-meteor')],
 ];
 
 const failures = checks.filter(([, ok]) => !ok);
