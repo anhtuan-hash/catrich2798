@@ -1,0 +1,192 @@
+/* Ambient Autoplay: independent motion layers for the Living Twilight welcome. */
+
+.brian-welcome-root .brian-welcome-vignette::before{
+  content:"";
+  position:absolute;
+  inset:-18% -12%;
+  pointer-events:none;
+  border-radius:42%;
+  background:
+    radial-gradient(ellipse at 22% 56%,rgba(111,139,211,.14),transparent 31%),
+    radial-gradient(ellipse at 72% 30%,rgba(255,207,151,.11),transparent 27%),
+    linear-gradient(108deg,transparent 24%,rgba(171,162,225,.08) 47%,rgba(255,214,163,.08) 55%,transparent 73%);
+  filter:blur(22px) saturate(1.12);
+  mix-blend-mode:screen;
+  opacity:.5;
+  transform:translate3d(-4%,1%,0) rotate(-2deg) scale(1.02);
+  transform-origin:center;
+  will-change:transform,opacity;
+  animation:brianWelcomeTwilightVeil 11s ease-in-out -3s infinite;
+}
+
+.brian-welcome-root .brian-welcome-ocean-layer::before{
+  content:"";
+  position:absolute;
+  z-index:1;
+  left:12%;
+  right:3%;
+  bottom:1.5%;
+  height:22%;
+  pointer-events:none;
+  opacity:.52;
+  background-image:
+    radial-gradient(circle,rgba(255,244,211,.86) 0 1px,rgba(255,224,164,.22) 2px,transparent 5px),
+    radial-gradient(circle,rgba(194,221,255,.62) 0 1px,rgba(145,187,236,.18) 2px,transparent 5px),
+    radial-gradient(circle,rgba(255,231,184,.72) 0 1px,rgba(255,214,145,.16) 2px,transparent 5px),
+    radial-gradient(circle,rgba(221,235,255,.52) 0 1px,transparent 4px);
+  background-size:94px 44px,137px 58px,173px 66px,211px 82px;
+  background-position:7% 54%,38% 24%,68% 72%,91% 38%;
+  filter:blur(.15px) drop-shadow(0 0 6px rgba(255,224,170,.22));
+  mix-blend-mode:screen;
+  mask-image:linear-gradient(90deg,transparent 0%,#000 18%,#000 94%,transparent 100%);
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 18%,#000 94%,transparent 100%);
+  will-change:transform,opacity,background-position;
+  animation:brianWelcomeOceanGlints 5.6s ease-in-out -1.7s infinite;
+}
+
+.brian-welcome-root .brian-welcome-horizon::before{
+  content:"";
+  position:absolute;
+  left:-18%;
+  right:-18%;
+  top:-32px;
+  height:58px;
+  pointer-events:none;
+  border-radius:50%;
+  opacity:.34;
+  background:
+    radial-gradient(ellipse at 35% 58%,rgba(196,211,236,.16),transparent 34%),
+    radial-gradient(ellipse at 68% 50%,rgba(255,222,190,.12),transparent 28%),
+    linear-gradient(90deg,transparent 5%,rgba(194,211,237,.08) 34%,rgba(255,222,190,.11) 63%,transparent 95%);
+  filter:blur(13px);
+  transform:translate3d(-4%,1px,0) scaleX(.94);
+  transform-origin:center;
+  will-change:transform,opacity;
+  animation:brianWelcomeHorizonMist 8.4s ease-in-out -2.4s infinite;
+}
+
+.brian-welcome-root .brian-welcome-moon-halo::before{
+  content:"";
+  position:absolute;
+  inset:-13px;
+  pointer-events:none;
+  border-radius:50%;
+  opacity:.46;
+  background:conic-gradient(from 18deg,transparent 0 18%,rgba(255,239,202,.32) 27%,transparent 38% 61%,rgba(174,199,242,.2) 73%,transparent 84% 100%);
+  -webkit-mask:radial-gradient(circle,transparent 0 58%,#000 62% 67%,transparent 71% 100%);
+  mask:radial-gradient(circle,transparent 0 58%,#000 62% 67%,transparent 71% 100%);
+  filter:blur(.4px) drop-shadow(0 0 8px rgba(255,223,169,.2));
+  transform:rotate(0deg) scale(.94);
+  will-change:transform,opacity;
+  animation:brianWelcomeMoonOrbit 9.2s linear -2.1s infinite;
+}
+
+.brian-welcome-root .brian-welcome-card .brian-welcome-features article{
+  background-image:
+    linear-gradient(108deg,transparent 0 34%,rgba(255,239,207,.04) 42%,rgba(255,244,220,.16) 50%,rgba(188,211,249,.05) 58%,transparent 66% 100%),
+    linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.055));
+  background-size:230% 100%,100% 100%;
+  background-position:-145% 0,0 0;
+  animation-name:brianWelcomeFeatureFloat,brianWelcomeCardSheen;
+  animation-duration:5.2s,8.8s;
+  animation-timing-function:ease-in-out,ease-in-out;
+  animation-iteration-count:infinite,infinite;
+}
+
+.brian-welcome-root .brian-welcome-card .brian-welcome-features article:nth-child(1){animation-delay:-.35s,-1.2s}
+.brian-welcome-root .brian-welcome-card .brian-welcome-features article:nth-child(2){animation-delay:-1.1s,-3.4s}
+.brian-welcome-root .brian-welcome-card .brian-welcome-features article:nth-child(3){animation-delay:-1.85s,-5.7s}
+.brian-welcome-root .brian-welcome-card .brian-welcome-features article:nth-child(4){animation-delay:-2.6s,-7.1s}
+
+@keyframes brianWelcomeTwilightVeil{
+  0%,100%{opacity:.34;transform:translate3d(-5%,2%,0) rotate(-3deg) scale(1.01)}
+  38%{opacity:.58;transform:translate3d(2%,-1%,0) rotate(1deg) scale(1.045)}
+  72%{opacity:.44;transform:translate3d(5%,1%,0) rotate(2.5deg) scale(1.025)}
+}
+
+@keyframes brianWelcomeOceanGlints{
+  0%,100%{
+    opacity:.32;
+    background-position:4% 62%,35% 20%,66% 76%,89% 34%;
+    transform:translate3d(-6px,1px,0) scaleX(.99);
+  }
+  34%{
+    opacity:.7;
+    background-position:15% 48%,44% 35%,72% 58%,95% 48%;
+    transform:translate3d(5px,-2px,0) scaleX(1.015);
+  }
+  68%{
+    opacity:.46;
+    background-position:24% 66%,52% 18%,80% 70%,84% 28%;
+    transform:translate3d(11px,1px,0) scaleX(1.03);
+  }
+}
+
+@keyframes brianWelcomeHorizonMist{
+  0%,100%{opacity:.2;transform:translate3d(-5%,2px,0) scaleX(.92)}
+  45%{opacity:.43;transform:translate3d(2%,-2px,0) scaleX(1.04)}
+  72%{opacity:.31;transform:translate3d(5%,1px,0) scaleX(.98)}
+}
+
+@keyframes brianWelcomeMoonOrbit{
+  0%{opacity:.28;transform:rotate(0deg) scale(.92)}
+  35%{opacity:.58;transform:rotate(126deg) scale(1.035)}
+  70%{opacity:.38;transform:rotate(252deg) scale(.97)}
+  100%{opacity:.28;transform:rotate(360deg) scale(.92)}
+}
+
+@keyframes brianWelcomeCardSheen{
+  0%,18%{background-position:-145% 0,0 0}
+  48%{background-position:15% 0,0 0}
+  72%,100%{background-position:145% 0,0 0}
+}
+
+@media(max-width:900px){
+  .brian-welcome-root .brian-welcome-ocean-layer::before{opacity:.38;height:18%;left:8%;right:0}
+  .brian-welcome-root .brian-welcome-horizon::before{opacity:.25}
+  .brian-welcome-root .brian-welcome-moon-halo::before{opacity:.36}
+}
+
+@media(max-width:600px){
+  .brian-welcome-root .brian-welcome-vignette::before{display:none}
+  .brian-welcome-root .brian-welcome-ocean-layer::before{opacity:.24;height:14%;background-size:118px 54px,162px 72px,204px 84px,246px 94px}
+  .brian-welcome-root .brian-welcome-horizon::before{opacity:.18;filter:blur(16px)}
+  .brian-welcome-root .brian-welcome-moon-halo::before{inset:-8px;opacity:.28}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .brian-welcome-root .brian-welcome-vignette::before,
+  .brian-welcome-root .brian-welcome-ocean-layer::before,
+  .brian-welcome-root .brian-welcome-horizon::before,
+  .brian-welcome-root .brian-welcome-moon-halo::before{
+    animation:none!important;
+  }
+
+  .brian-welcome-root .brian-welcome-card .brian-welcome-features article{
+    animation:none!important;
+  }
+
+  .brian-welcome-root.is-motion-forced .brian-welcome-vignette::before{
+    display:block!important;
+    animation:brianWelcomeTwilightVeil 11s ease-in-out -3s infinite!important;
+  }
+
+  .brian-welcome-root.is-motion-forced .brian-welcome-ocean-layer::before{
+    animation:brianWelcomeOceanGlints 5.6s ease-in-out -1.7s infinite!important;
+  }
+
+  .brian-welcome-root.is-motion-forced .brian-welcome-horizon::before{
+    animation:brianWelcomeHorizonMist 8.4s ease-in-out -2.4s infinite!important;
+  }
+
+  .brian-welcome-root.is-motion-forced .brian-welcome-moon-halo::before{
+    animation:brianWelcomeMoonOrbit 9.2s linear -2.1s infinite!important;
+  }
+
+  .brian-welcome-root.is-motion-forced .brian-welcome-card .brian-welcome-features article{
+    animation-name:brianWelcomeFeatureFloat,brianWelcomeCardSheen!important;
+    animation-duration:5.2s,8.8s!important;
+    animation-timing-function:ease-in-out,ease-in-out!important;
+    animation-iteration-count:infinite,infinite!important;
+  }
+}
