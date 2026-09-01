@@ -4,11 +4,32 @@ import './styles/FirstVisitWelcomeVisibilityTune.css';
 const WELCOME_SEEN_KEY = 'bes-first-visit-welcome-v1';
 const WELCOME_VERSION = '1';
 const WELCOME_ROOT_ID = 'brian-first-visit-welcome';
+const WELCOME_PREVIEW_PARAM = 'welcome';
+const WELCOME_MOTION_PARAM = 'motion';
 const SHELL_WAIT_MS = 20000;
 
 let activeCleanup = null;
 
+function getWelcomeQueryParams() {
+  try {
+    return new URLSearchParams(window.location.search || '');
+  } catch {
+    return new URLSearchParams();
+  }
+}
+
+function isWelcomePreviewRequested() {
+  const params = getWelcomeQueryParams();
+  return params.get(WELCOME_PREVIEW_PARAM) === 'preview';
+}
+
+function isFullMotionRequested() {
+  const params = getWelcomeQueryParams();
+  return params.get(WELCOME_MOTION_PARAM) === 'full';
+}
+
 function hasSeenWelcome() {
+  if (isWelcomePreviewRequested()) return false;
   try {
     return localStorage.getItem(WELCOME_SEEN_KEY) === WELCOME_VERSION;
   } catch {
@@ -147,9 +168,14 @@ function mountWelcome() {
   if (hasSeenWelcome() || isProtectedEntryRoute() || document.getElementById(WELCOME_ROOT_ID)) return;
   if (!document.body) return;
 
+  const forceFullMotion = isFullMotionRequested();
   const root = document.createElement('div');
   root.id = WELCOME_ROOT_ID;
   root.className = 'brian-welcome-root';
+  if (forceFullMotion) {
+    root.classList.add('is-motion-forced');
+    root.dataset.welcomeMotion = 'full';
+  }
   root.innerHTML = welcomeMarkup();
 
   const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -159,7 +185,7 @@ function mountWelcome() {
   const reflection = root.querySelector('.brian-welcome-sea-reflection');
   const primaryCta = root.querySelector('.brian-welcome-primary');
   const featureCards = Array.from(root.querySelectorAll('[data-welcome-feature]'));
-  const reducedMotion = typeof window.matchMedia === 'function'
+  const reducedMotion = !forceFullMotion && typeof window.matchMedia === 'function'
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let closing = false;
   let pointerFrame = 0;
@@ -376,7 +402,7 @@ function mountWelcome() {
   }
 
   function onStorage(event) {
-    if (event.key === WELCOME_SEEN_KEY && event.newValue === WELCOME_VERSION) cleanup();
+    if (event.key === WELCOME_SEEN_KEY && event.newValue === WELCOME_VERSION && !isWelcomePreviewRequested()) cleanup();
   }
 
   root.querySelectorAll('[data-welcome-action]').forEach((button) => {
@@ -412,7 +438,11 @@ function mountWelcome() {
   });
 
   window.dispatchEvent(new CustomEvent('bes-first-visit-welcome-shown', {
-    detail: { version: WELCOME_VERSION },
+    detail: {
+      version: WELCOME_VERSION,
+      preview: isWelcomePreviewRequested(),
+      motion: forceFullMotion ? 'full' : (reducedMotion ? 'reduced' : 'auto'),
+    },
   }));
 }
 
