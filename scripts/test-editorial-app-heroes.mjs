@@ -15,7 +15,7 @@ const checks = [
   ['External app hero keeps dashboard route', files.externalJsx.includes("window.location.hash = '#/dashboard'")],
   ['External app CSS defines paper editorial tokens', files.externalCss.includes('--editorial-paper')],
   ['External app CSS contains editorial shell layout', files.externalCss.includes('.external-app-editorial-shell')],
-  ['External app hero uses compact viewport sizing', files.externalCss.includes('--editorial-hero-height:clamp(430px,52vh,560px)') && files.externalCss.includes('min-height:var(--editorial-hero-height)')],
+  ['External app hero uses compact viewport sizing', files.externalCss.includes('--editorial-hero-height:clamp(360px,42vh,460px)') && files.externalCss.includes('min-height:var(--editorial-hero-height)')],
   ['External app CSS respects reduced motion', files.externalCss.includes('@media(prefers-reduced-motion:reduce)')],
   ['TESOL hero uses the editorial journal shell', files.tesolJsx.includes('tesol-editorial-shell')],
   ['TESOL hero supports pointer parallax', files.tesolJsx.includes('onPointerMove={handlePointerMove}')],
@@ -24,7 +24,7 @@ const checks = [
   ['TESOL hero keeps dashboard route', files.tesolJsx.includes("window.location.hash = '#/dashboard'")],
   ['TESOL CSS defines journal paper tokens', files.tesolCss.includes('--tesol-paper')],
   ['TESOL CSS contains editorial journal shell', files.tesolCss.includes('.tesol-editorial-shell')],
-  ['TESOL hero uses compact viewport sizing', files.tesolCss.includes('--tesol-hero-height:clamp(430px,52vh,560px)') && files.tesolCss.includes('min-height:var(--tesol-hero-height)')],
+  ['TESOL hero uses compact viewport sizing', files.tesolCss.includes('--tesol-hero-height:clamp(360px,42vh,460px)') && files.tesolCss.includes('min-height:var(--tesol-hero-height)')],
   ['TESOL CSS respects reduced motion', files.tesolCss.includes('@media(prefers-reduced-motion:reduce)')],
 ];
 
