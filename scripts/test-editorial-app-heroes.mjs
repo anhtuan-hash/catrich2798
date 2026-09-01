@@ -42,7 +42,7 @@ const checks = [
   ['TESOL CSS contains editorial journal shell layout', files.tesolCss.includes('.tesol-editorial-shell')],
   ['TESOL hero uses compact viewport sizing', files.tesolCss.includes('--tesol-hero-height:clamp(360px,42vh,460px)') && files.tesolCss.includes('min-height:var(--tesol-hero-height)')],
   ['TESOL CSS respects reduced motion', files.tesolCss.includes('@media(prefers-reduced-motion:reduce)')],
-  ['First-visit welcome is bootstrapped', files.applicationBootstrap.includes("import './styles/FirstVisitWelcome.css';") && files.applicationBootstrap.includes("import { installFirstVisitWelcome } from './firstVisitWelcome.js';") && files.applicationBootstrap.includes('installFirstVisitWelcome();')],
+  ['First-visit welcome is bootstrapped', files.applicationBootstrap.includes("import { installFirstVisitWelcome } from './firstVisitWelcome.js';") && files.applicationBootstrap.includes('installFirstVisitWelcome();')],
   ['First-visit welcome uses a versioned browser key', files.firstVisitWelcome.includes("WELCOME_SEEN_KEY = 'bes-first-visit-welcome-v1'") && files.firstVisitWelcome.includes("WELCOME_VERSION = '1'")],
   ['First-visit welcome reads and persists seen state', files.firstVisitWelcome.includes('localStorage.getItem(WELCOME_SEEN_KEY)') && files.firstVisitWelcome.includes('localStorage.setItem(WELCOME_SEEN_KEY, WELCOME_VERSION)')],
   ['First-visit welcome protects auth and recovery routes', files.firstVisitWelcome.includes('isProtectedEntryRoute') && files.firstVisitWelcome.includes('recovery') && files.firstVisitWelcome.includes('register')],
@@ -89,13 +89,17 @@ const checks = [
   ['Living Twilight makes the ocean visibly alive', files.firstVisitWelcomeTuneCss.includes('animation:brianWelcomeLivingWave 4.8s') && files.firstVisitWelcomeTuneCss.includes('animation:brianWelcomeLivingWave 6.2s') && files.firstVisitWelcomeTuneCss.includes('animation:brianWelcomeLivingWave 7.4s')],
   ['Living Twilight gives stars and moon a faster ambient rhythm', files.firstVisitWelcomeTuneCss.includes('animation:brianWelcomeStarLife 2.6s') && files.firstVisitWelcomeTuneCss.includes('animation:brianWelcomeMoonHalo 6.4s')],
   ['Living Twilight gives feature cards staggered ambient motion', files.firstVisitWelcomeTuneCss.includes('@keyframes brianWelcomeFeatureFloat') && files.firstVisitWelcomeTuneCss.includes('animation-delay:-1.1s')],
-  ['Welcome ambient autoplay stylesheet is bootstrapped', files.applicationBootstrap.includes("import './styles/FirstVisitWelcomeAmbient.css';")],
+  ['Welcome ambient autoplay stylesheet is loaded inline', files.firstVisitWelcome.includes("FirstVisitWelcomeAmbient.css?inline")],
   ['Welcome ambient autoplay adds twilight veil drift', files.firstVisitWelcomeAmbientCss.includes('@keyframes brianWelcomeTwilightVeil')],
   ['Welcome ambient autoplay adds ocean glints', files.firstVisitWelcomeAmbientCss.includes('@keyframes brianWelcomeOceanGlints')],
   ['Welcome ambient autoplay adds horizon mist', files.firstVisitWelcomeAmbientCss.includes('@keyframes brianWelcomeHorizonMist')],
   ['Welcome ambient autoplay adds moon orbit halo', files.firstVisitWelcomeAmbientCss.includes('@keyframes brianWelcomeMoonOrbit')],
   ['Welcome ambient autoplay adds glass card sheen', files.firstVisitWelcomeAmbientCss.includes('@keyframes brianWelcomeCardSheen')],
   ['Welcome ambient autoplay respects reduced motion and forced diagnostics', files.firstVisitWelcomeAmbientCss.includes('@media(prefers-reduced-motion:reduce)') && files.firstVisitWelcomeAmbientCss.includes('.brian-welcome-root.is-motion-forced')],
+  ['Welcome motion CSS is isolated from the parent document', !files.applicationBootstrap.includes("import './styles/FirstVisitWelcome.css';") && !files.applicationBootstrap.includes("import './styles/FirstVisitWelcomeAmbient.css';") && !files.firstVisitWelcome.includes("import './styles/FirstVisitWelcomeMotion.css';") && !files.firstVisitWelcome.includes("import './styles/FirstVisitWelcomeVisibilityTune.css';")],
+  ['Welcome imports all visual styles as inline strings', files.firstVisitWelcome.includes("FirstVisitWelcome.css?inline") && files.firstVisitWelcome.includes("FirstVisitWelcomeMotion.css?inline") && files.firstVisitWelcome.includes("FirstVisitWelcomeVisibilityTune.css?inline") && files.firstVisitWelcome.includes("FirstVisitWelcomeAmbient.css?inline")],
+  ['Welcome renders inside a sandboxed iframe srcdoc', files.firstVisitWelcome.includes("document.createElement('iframe')") && files.firstVisitWelcome.includes("frame.setAttribute('sandbox', 'allow-same-origin')") && files.firstVisitWelcome.includes('frame.srcdoc = welcomeFrameDocument')],
+  ['Welcome interactions bind to the isolated frame document', files.firstVisitWelcome.includes('frame.contentDocument') && files.firstVisitWelcome.includes('frame.contentWindow') && files.firstVisitWelcome.includes("frameDocument.addEventListener('keydown', onKeyDown)")],
 ];
 
 const failures = checks.filter(([, ok]) => !ok);
