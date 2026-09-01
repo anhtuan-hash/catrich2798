@@ -4,22 +4,27 @@ const read = (path) => {
   try { return fs.readFileSync(path, 'utf8'); } catch { return ''; }
 };
 
-const runtime = read('src/welcomeSceneAlignmentFix.js');
-const bootstrap = read('src/tabResumeStability.js');
+const welcome = read('src/firstVisitWelcome.js');
+const css = read('src/styles/FirstVisitWelcomeStarryNight.css');
+const bootstrap = read('src/applicationBootstrap.jsx');
 
 const checks = [
-  ['Welcome scene alignment fix is bootstrapped before welcome mount', bootstrap.includes("import './welcomeSceneAlignmentFix.js';")],
-  ['Lighthouse beam uses the rendered lantern as its source', runtime.includes("querySelector('.brian-welcome-lighthouse-lantern')") && runtime.includes('--welcome-lantern-x') && runtime.includes('--welcome-lantern-y')],
-  ['Beam and particles share the lighthouse parallax layer', runtime.includes('lighthouseLayer.insertBefore(beam, lighthouse)') && runtime.includes('lighthouseLayer.insertBefore(particles, lighthouse)')],
-  ['Pointer steering measures the real lantern center', runtime.includes('lanternRect.left + lanternRect.width * 0.5') && runtime.includes('lanternRect.top + lanternRect.height * 0.5')],
-  ['Meteor trails fall from upper-left to lower-right', runtime.includes('@keyframes brianWelcomeMeteorFall') && runtime.includes('--meteor-fall-rotation:26deg') && runtime.includes('--meteor-fall-rotation:31deg') && runtime.includes('translate3d(var(--meteor-dx),var(--meteor-dy),0)')],
-  ['Legacy shooting star also falls downward', runtime.includes('@keyframes brianWelcomeShootingStarFall') && runtime.includes('rotate(24deg)') && runtime.includes('translate3d(210px,96px,0)')],
-  ['Cinematic ocean replaces arc borders with horizontal water bands', runtime.includes('.brian-welcome-card .brian-welcome-wave{') && runtime.includes('border:0!important') && runtime.includes('border-radius:0!important')],
-  ['Cinematic ocean uses layered horizontal surface texture', runtime.includes('repeating-linear-gradient(0deg') && runtime.includes('@keyframes brianWelcomeOceanSurfaceDrift')],
-  ['Cinematic ocean raises and softens the horizon', runtime.includes('--welcome-ocean-horizon:34%') && runtime.includes('.brian-welcome-card .brian-welcome-horizon{bottom:var(--welcome-ocean-horizon)!important')],
-  ['Moonlight reflection becomes a vertical broken path on the water', runtime.includes('@keyframes brianWelcomeMoonPathReflection') && runtime.includes('brian-welcome-ocean-layer:after') && runtime.includes('mask-image:linear-gradient(to bottom')],
-  ['Lighthouse reflection is narrow instead of a giant diagonal wedge', runtime.includes('.brian-welcome-card .brian-welcome-sea-reflection{') && runtime.includes('width:22%!important') && runtime.includes('clip-path:none!important')],
-  ['Cinematic ocean keeps a calm static fallback for reduced motion', runtime.includes('@media(prefers-reduced-motion:reduce)') && runtime.includes('brianWelcomeOceanSurfaceDrift') && runtime.includes('animation:none!important')],
+  ['Starry Night welcome is bootstrapped', bootstrap.includes("import { installFirstVisitWelcome } from './firstVisitWelcome.js';") && bootstrap.includes('installFirstVisitWelcome();')],
+  ['Welcome uses the approved Starry Night stylesheet', welcome.includes("FirstVisitWelcomeStarryNight.css?inline")],
+  ['Welcome retains first-visit persistence and preview mode', welcome.includes("WELCOME_SEEN_KEY = 'bes-first-visit-welcome-v1'") && welcome.includes("params.get(WELCOME_PREVIEW_PARAM) === 'preview'")],
+  ['Welcome renders the approved bilingual artwork hero', welcome.includes('Chạm vào') && welcome.includes('bầu trời sao') && welcome.includes('Xem thêm') && welcome.includes('Learn more')],
+  ['Legacy feature cards and carousel dots are removed', !welcome.includes('data-welcome-feature') && !welcome.includes('brian-welcome-progress') && !welcome.includes('Truyền cảm hứng') && !welcome.includes('Dễ sử dụng')],
+  ['Artwork panel identifies The Starry Night bilingually', welcome.includes('The Starry Night') && welcome.includes('Đêm đầy sao') && welcome.includes('Vincent van Gogh · 1889')],
+  ['Artwork panel includes authoritative artwork metadata', welcome.includes('Saint-Rémy-de-Provence') && welcome.includes('Oil on canvas') && welcome.includes('73.7 × 92.1 cm') && welcome.includes('Museum of Modern Art')],
+  ['Artwork panel includes bilingual story sections', welcome.includes('Hoàn cảnh sáng tác') && welcome.includes('Context') && welcome.includes('Bầu trời xoáy') && welcome.includes('Swirling sky') && welcome.includes('Bạn có biết?') && welcome.includes('Did you know?')],
+  ['Artwork panel has accessible dialog controls and focus management', welcome.includes('aria-haspopup="dialog"') && welcome.includes('aria-controls="paintingInfoPanel"') && welcome.includes('openPaintingInfo') && welcome.includes('closePaintingInfo') && welcome.includes('trapFocus')],
+  ['Escape closes artwork panel before dismissing welcome', welcome.includes("if (infoOpen) closePaintingInfo()") && welcome.includes("event.key === 'Escape'")],
+  ['Start button cycles Star Dive, Living Brush, and Galaxy Portal in preview', welcome.includes('star-dive') && welcome.includes('living-brush') && welcome.includes('galaxy-portal') && welcome.includes('startTransitionIndex')],
+  ['Start transition has a reduced-motion fallback', welcome.includes('reducedMotion') && welcome.includes('forceFullMotion') && css.includes('@media(prefers-reduced-motion:reduce)')],
+  ['Welcome remains isolated in a same-origin sandboxed iframe', welcome.includes("document.createElement('iframe')") && welcome.includes("frame.setAttribute('sandbox', 'allow-same-origin')") && welcome.includes('frame.srcdoc')],
+  ['Starry Night composition is full-screen and responsive', css.includes('.welcome-stage') && css.includes('position:fixed') && css.includes('@media(max-width:900px)') && css.includes('@media(max-width:620px)')],
+  ['Starry Night painting is embedded locally rather than fetched at runtime', css.includes('data:image/webp;base64,')],
+  ['Old lighthouse/ocean scene is no longer part of the active welcome', !welcome.includes('brian-welcome-lighthouse') && !welcome.includes('brian-welcome-ocean-layer') && !welcome.includes('brian-welcome-beam')],
 ];
 
 let failures = 0;
@@ -29,8 +34,7 @@ for (const [label, ok] of checks) {
 }
 
 if (failures) {
-  console.error(`Welcome scene alignment contract failed: ${failures} check(s).`);
+  console.error(`Starry Night welcome contract failed: ${failures} check(s).`);
   process.exit(1);
 }
-
-console.log('Welcome scene alignment contract passed.');
+console.log('Starry Night welcome contract passed.');
