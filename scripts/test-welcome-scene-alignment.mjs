@@ -7,6 +7,8 @@ const read = (path) => {
 const welcome = read('src/firstVisitWelcome.js');
 const css = read('src/styles/FirstVisitWelcomeStarryNight.css');
 const bootstrap = read('src/applicationBootstrap.jsx');
+const tabResume = read('src/tabResumeStability.js');
+const startExitGuard = read('src/welcomeStartExitGuard.js');
 
 const checks = [
   ['Starry Night welcome is bootstrapped', bootstrap.includes("import { installFirstVisitWelcome } from './firstVisitWelcome.js';") && bootstrap.includes('installFirstVisitWelcome();')],
@@ -21,6 +23,7 @@ const checks = [
   ['Escape closes artwork panel before dismissing welcome', welcome.includes("event.key==='Escape'") || welcome.includes("event.key === 'Escape'") ? (welcome.includes('if(infoOpen) closePaintingInfo()') || welcome.includes('if (infoOpen) closePaintingInfo()')) : false],
   ['Start button retains Star Dive, Living Brush, and Galaxy Portal transitions', welcome.includes('star-dive') && welcome.includes('living-brush') && welcome.includes('galaxy-portal') && welcome.includes('startTransitionIndex')],
   ['Start always dismisses welcome after the transition, including preview mode', welcome.includes("function finishTransition(type){dismissWelcome('start:'+type,{persist:!previewMode,immediate:true});}")],
+  ['Start has a parent-window exit watchdog independent of sandboxed iframe timers', tabResume.includes("import './welcomeStartExitGuard.js';") && startExitGuard.includes("getElementById('startJourney')") && startExitGuard.includes("getElementById('skipWelcome')") && startExitGuard.includes('window.setTimeout') && startExitGuard.includes('skip.click()') && startExitGuard.includes('hardRemoveWelcome')],
   ['Start transition has a reduced-motion fallback', welcome.includes('reducedMotion') && welcome.includes('forceFullMotion') && css.includes('@media(prefers-reduced-motion:reduce)')],
   ['Welcome remains isolated in a same-origin sandboxed iframe', welcome.includes("document.createElement('iframe')") && welcome.includes("frame.setAttribute('sandbox', 'allow-same-origin')") && welcome.includes('frame.srcdoc')],
   ['Starry Night composition is full-screen and responsive', css.includes('.welcome-stage') && css.includes('position:fixed') && css.includes('@media(max-width:900px)') && css.includes('@media(max-width:620px)')],
