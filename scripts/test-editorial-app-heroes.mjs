@@ -77,6 +77,9 @@ const checks = [
   ['Cinematic visibility tune strengthens scene parallax', files.firstVisitWelcome.includes('const x = normalizedX * 13;') && files.firstVisitWelcome.includes('const y = normalizedY * 9;')],
   ['Cinematic visibility tune deepens ocean motion', welcomeMotionCss.includes('--welcome-wave-travel:18px') && welcomeMotionCss.includes('--welcome-wave-lift:5px')],
   ['Cinematic visibility tune makes shooting star easier to notice', welcomeMotionCss.includes('width:96px') && welcomeMotionCss.includes('animation:brianWelcomeShootingStar 13s linear 3s infinite')],
+  ['Welcome preview query bypasses seen-state for reproducible testing', files.firstVisitWelcome.includes("WELCOME_PREVIEW_PARAM = 'welcome'") && files.firstVisitWelcome.includes("params.get(WELCOME_PREVIEW_PARAM) === 'preview'") && files.firstVisitWelcome.includes('if (isWelcomePreviewRequested()) return false;')],
+  ['Welcome full-motion query bypasses runtime reduced-motion gate', files.firstVisitWelcome.includes("WELCOME_MOTION_PARAM = 'motion'") && files.firstVisitWelcome.includes("params.get(WELCOME_MOTION_PARAM) === 'full'") && files.firstVisitWelcome.includes('const reducedMotion = !forceFullMotion') && files.firstVisitWelcome.includes("root.classList.add('is-motion-forced')")],
+  ['Forced welcome motion restores CSS animations for diagnostics', welcomeMotionCss.includes('.brian-welcome-root.is-motion-forced') && welcomeMotionCss.includes('brianWelcomeBeamInteractiveSweep 7s') && welcomeMotionCss.includes('brianWelcomeWaveDriftEnhanced') && welcomeMotionCss.includes('brianWelcomeShootingStar 13s')],
 ];
 
 const failures = checks.filter(([, ok]) => !ok);
