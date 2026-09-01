@@ -1,6 +1,6 @@
 {
   "installCommand": "npm ci --no-audit --no-fund --registry=https://registry.npmjs.org",
-  "buildCommand": "node scripts/test-editorial-app-heroes.mjs && npm run build",
+  "buildCommand": "node scripts/test-welcome-scene-alignment.mjs && node scripts/test-editorial-app-heroes.mjs && npm run build",
   "outputDirectory": "dist",
   "rewrites": [
     {
