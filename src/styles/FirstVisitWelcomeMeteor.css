@@ -1,0 +1,169 @@
+.brian-welcome-meteor-field{
+  position:absolute;
+  inset:0;
+  z-index:1;
+  pointer-events:none;
+  overflow:hidden;
+  mix-blend-mode:screen;
+}
+
+.brian-welcome-meteor{
+  --meteor-width:92px;
+  --meteor-rotation:-24deg;
+  --meteor-dx:180px;
+  --meteor-dy:82px;
+  --meteor-duration:10.6s;
+  --meteor-delay:0s;
+  position:absolute;
+  width:var(--meteor-width);
+  height:2px;
+  border-radius:999px;
+  opacity:0;
+  transform-origin:right center;
+  background:linear-gradient(90deg,transparent 0%,rgba(187,202,255,.08) 22%,rgba(218,221,255,.32) 52%,rgba(255,225,190,.78) 82%,rgba(255,250,232,1) 100%);
+  filter:drop-shadow(0 0 4px rgba(188,203,255,.42)) drop-shadow(0 0 10px rgba(255,212,166,.4));
+  will-change:transform,opacity;
+  animation:brianWelcomeMeteorFlight var(--meteor-duration) linear var(--meteor-delay) infinite;
+}
+
+.brian-welcome-meteor::after{
+  content:"";
+  position:absolute;
+  right:-2px;
+  top:50%;
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  transform:translateY(-50%);
+  background:#fffaf0;
+  box-shadow:0 0 7px rgba(255,246,222,.95),0 0 16px rgba(255,211,158,.58);
+}
+
+.brian-welcome-meteor.meteor-a{
+  top:12%;
+  left:31%;
+  --meteor-width:86px;
+  --meteor-rotation:-26deg;
+  --meteor-dx:165px;
+  --meteor-dy:72px;
+  --meteor-duration:8.8s;
+  --meteor-delay:-1.2s;
+}
+
+.brian-welcome-meteor.meteor-b{
+  top:19%;
+  left:43%;
+  --meteor-width:112px;
+  --meteor-rotation:-22deg;
+  --meteor-dx:210px;
+  --meteor-dy:92px;
+  --meteor-duration:10.6s;
+  --meteor-delay:-6.8s;
+}
+
+.brian-welcome-meteor.meteor-c{
+  top:9%;
+  left:57%;
+  --meteor-width:74px;
+  --meteor-rotation:-29deg;
+  --meteor-dx:148px;
+  --meteor-dy:78px;
+  --meteor-duration:12.4s;
+  --meteor-delay:-3.7s;
+}
+
+.brian-welcome-meteor.meteor-d{
+  top:26%;
+  left:66%;
+  --meteor-width:98px;
+  --meteor-rotation:-25deg;
+  --meteor-dx:188px;
+  --meteor-dy:86px;
+  --meteor-duration:9.7s;
+  --meteor-delay:-8.1s;
+}
+
+.brian-welcome-meteor.meteor-e{
+  top:15%;
+  left:73%;
+  --meteor-width:66px;
+  --meteor-rotation:-20deg;
+  --meteor-dx:135px;
+  --meteor-dy:62px;
+  --meteor-duration:11.8s;
+  --meteor-delay:-5.2s;
+}
+
+.brian-welcome-meteor.meteor-f{
+  top:31%;
+  left:52%;
+  --meteor-width:82px;
+  --meteor-rotation:-31deg;
+  --meteor-dx:172px;
+  --meteor-dy:104px;
+  --meteor-duration:13.6s;
+  --meteor-delay:-10.4s;
+}
+
+.brian-welcome-meteor.meteor-g{
+  top:7%;
+  left:39%;
+  --meteor-width:58px;
+  --meteor-rotation:-18deg;
+  --meteor-dx:118px;
+  --meteor-dy:50px;
+  --meteor-duration:15.2s;
+  --meteor-delay:-12.3s;
+}
+
+@keyframes brianWelcomeMeteorFlight{
+  0%,56%{
+    opacity:0;
+    transform:translate3d(0,0,0) rotate(var(--meteor-rotation)) scaleX(.38);
+  }
+  59%{opacity:.12}
+  62%{
+    opacity:1;
+    transform:translate3d(18px,8px,0) rotate(var(--meteor-rotation)) scaleX(.7);
+  }
+  69%{
+    opacity:.96;
+    transform:translate3d(calc(var(--meteor-dx) * .58),calc(var(--meteor-dy) * .58),0) rotate(var(--meteor-rotation)) scaleX(1);
+  }
+  76%{
+    opacity:0;
+    transform:translate3d(var(--meteor-dx),var(--meteor-dy),0) rotate(var(--meteor-rotation)) scaleX(1.14);
+  }
+  100%{
+    opacity:0;
+    transform:translate3d(var(--meteor-dx),var(--meteor-dy),0) rotate(var(--meteor-rotation)) scaleX(1.14);
+  }
+}
+
+@media(max-width:900px){
+  .brian-welcome-meteor{
+    opacity:.86;
+    filter:drop-shadow(0 0 3px rgba(188,203,255,.34)) drop-shadow(0 0 8px rgba(255,212,166,.32));
+  }
+  .brian-welcome-meteor.meteor-f,
+  .brian-welcome-meteor.meteor-g{display:none}
+}
+
+@media(max-width:600px){
+  .brian-welcome-meteor.meteor-d,
+  .brian-welcome-meteor.meteor-e,
+  .brian-welcome-meteor.meteor-f,
+  .brian-welcome-meteor.meteor-g{display:none}
+  .brian-welcome-meteor{height:1px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .brian-welcome-meteor-field{display:none!important}
+  .brian-welcome-meteor{animation:none!important}
+
+  .brian-welcome-root.is-motion-forced .brian-welcome-meteor-field{display:block!important}
+  .brian-welcome-root.is-motion-forced .brian-welcome-meteor{
+    display:block!important;
+    animation:brianWelcomeMeteorFlight var(--meteor-duration) linear var(--meteor-delay) infinite!important;
+  }
+}
