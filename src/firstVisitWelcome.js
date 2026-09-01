@@ -59,7 +59,7 @@ function welcomeMarkup() {
           </div>
           <span class="brian-welcome-beam"></span>
           <div class="brian-welcome-light-particles">
-            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
           </div>
           <div class="brian-welcome-ocean-layer">
             <span class="brian-welcome-horizon"></span>
@@ -173,8 +173,8 @@ function mountWelcome() {
     if (!card || !pointer || reducedMotion) return;
     const normalizedX = clamp(((pointer.x - rect.left) / rect.width - 0.5) * 2, -1, 1);
     const normalizedY = clamp(((pointer.y - rect.top) / rect.height - 0.5) * 2, -1, 1);
-    const x = normalizedX * 9;
-    const y = normalizedY * 6;
+    const x = normalizedX * 13;
+    const y = normalizedY * 9;
     card.style.setProperty('--welcome-parallax-x', `${x.toFixed(2)}px`);
     card.style.setProperty('--welcome-parallax-y', `${y.toFixed(2)}px`);
     card.style.setProperty('--welcome-parallax-far-x', `${(x * 0.34).toFixed(2)}px`);
