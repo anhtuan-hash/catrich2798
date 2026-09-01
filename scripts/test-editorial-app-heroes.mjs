@@ -18,9 +18,10 @@ const files = {
   firstVisitWelcomeCss: readOptional('src/styles/FirstVisitWelcome.css'),
   firstVisitWelcomeMotionCss: readOptional('src/styles/FirstVisitWelcomeMotion.css'),
   firstVisitWelcomeTuneCss: readOptional('src/styles/FirstVisitWelcomeVisibilityTune.css'),
+  firstVisitWelcomeAmbientCss: readOptional('src/styles/FirstVisitWelcomeAmbient.css'),
 };
 
-const welcomeMotionCss = `${files.firstVisitWelcomeMotionCss}\n${files.firstVisitWelcomeTuneCss}`;
+const welcomeMotionCss = `${files.firstVisitWelcomeMotionCss}\n${files.firstVisitWelcomeTuneCss}\n${files.firstVisitWelcomeAmbientCss}`;
 
 const checks = [
   ['External app hero uses the editorial shell', files.externalJsx.includes('external-app-editorial-shell')],
@@ -88,6 +89,13 @@ const checks = [
   ['Living Twilight makes the ocean visibly alive', files.firstVisitWelcomeTuneCss.includes('animation:brianWelcomeLivingWave 4.8s') && files.firstVisitWelcomeTuneCss.includes('animation:brianWelcomeLivingWave 6.2s') && files.firstVisitWelcomeTuneCss.includes('animation:brianWelcomeLivingWave 7.4s')],
   ['Living Twilight gives stars and moon a faster ambient rhythm', files.firstVisitWelcomeTuneCss.includes('animation:brianWelcomeStarLife 2.6s') && files.firstVisitWelcomeTuneCss.includes('animation:brianWelcomeMoonHalo 6.4s')],
   ['Living Twilight gives feature cards staggered ambient motion', files.firstVisitWelcomeTuneCss.includes('@keyframes brianWelcomeFeatureFloat') && files.firstVisitWelcomeTuneCss.includes('animation-delay:-1.1s')],
+  ['Welcome ambient autoplay stylesheet is bootstrapped', files.applicationBootstrap.includes("import './styles/FirstVisitWelcomeAmbient.css';")],
+  ['Welcome ambient autoplay adds twilight veil drift', files.firstVisitWelcomeAmbientCss.includes('@keyframes brianWelcomeTwilightVeil')],
+  ['Welcome ambient autoplay adds ocean glints', files.firstVisitWelcomeAmbientCss.includes('@keyframes brianWelcomeOceanGlints')],
+  ['Welcome ambient autoplay adds horizon mist', files.firstVisitWelcomeAmbientCss.includes('@keyframes brianWelcomeHorizonMist')],
+  ['Welcome ambient autoplay adds moon orbit halo', files.firstVisitWelcomeAmbientCss.includes('@keyframes brianWelcomeMoonOrbit')],
+  ['Welcome ambient autoplay adds glass card sheen', files.firstVisitWelcomeAmbientCss.includes('@keyframes brianWelcomeCardSheen')],
+  ['Welcome ambient autoplay respects reduced motion and forced diagnostics', files.firstVisitWelcomeAmbientCss.includes('@media(prefers-reduced-motion:reduce)') && files.firstVisitWelcomeAmbientCss.includes('.brian-welcome-root.is-motion-forced')],
 ];
 
 const failures = checks.filter(([, ok]) => !ok);
