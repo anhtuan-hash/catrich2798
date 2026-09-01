@@ -23,7 +23,7 @@ const checks = [
   ['Start transition has a reduced-motion fallback', welcome.includes('reducedMotion') && welcome.includes('forceFullMotion') && css.includes('@media(prefers-reduced-motion:reduce)')],
   ['Welcome remains isolated in a same-origin sandboxed iframe', welcome.includes("document.createElement('iframe')") && welcome.includes("frame.setAttribute('sandbox', 'allow-same-origin')") && welcome.includes('frame.srcdoc')],
   ['Starry Night composition is full-screen and responsive', css.includes('.welcome-stage') && css.includes('position:fixed') && css.includes('@media(max-width:900px)') && css.includes('@media(max-width:620px)')],
-  ['Starry Night painting is embedded locally rather than fetched at runtime', css.includes('data:image/webp;base64,')],
+  ['Starry Night uses a public-domain Wikimedia Commons artwork source', css.includes('commons.wikimedia.org/wiki/Special:FilePath/Starry%20Night.webp')],
   ['Old lighthouse/ocean scene is no longer part of the active welcome', !welcome.includes('brian-welcome-lighthouse') && !welcome.includes('brian-welcome-ocean-layer') && !welcome.includes('brian-welcome-beam')],
 ];
 
