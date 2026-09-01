@@ -2,6 +2,7 @@ import './tabResumeStability.js';
 import './noCreamSurfaceRuntime.js';
 import './styles/WidescreenDrawerReadability.css';
 import './styles/FirstVisitWelcome.css';
+import './styles/FirstVisitWelcomeAmbient.css';
 import './tabResumeAuthStability.js';
 import './fourClassLocalPurge.js';
 import './directClassRosterImportBootstrap.js';
