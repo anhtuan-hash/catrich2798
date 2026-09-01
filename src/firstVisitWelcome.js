@@ -51,6 +51,12 @@ function welcomeMarkup() {
           <span class="brian-welcome-moon"></span>
           <span class="brian-welcome-beam"></span>
           <span class="brian-welcome-horizon"></span>
+          <div class="brian-welcome-sea-reflection">
+            <span class="brian-welcome-reflection-core"></span>
+            <span class="brian-welcome-reflection-ripple ripple-a"></span>
+            <span class="brian-welcome-reflection-ripple ripple-b"></span>
+            <span class="brian-welcome-reflection-ripple ripple-c"></span>
+          </div>
           <span class="brian-welcome-wave wave-a"></span>
           <span class="brian-welcome-wave wave-b"></span>
           <div class="brian-welcome-lighthouse">
@@ -132,6 +138,7 @@ function mountWelcome() {
   const previousOverflow = document.body.style.overflow;
   const card = root.querySelector('.brian-welcome-card');
   const beam = root.querySelector('.brian-welcome-beam');
+  const reflection = root.querySelector('.brian-welcome-sea-reflection');
   const reducedMotion = typeof window.matchMedia === 'function'
     && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let closing = false;
@@ -155,11 +162,20 @@ function mountWelcome() {
     const distance = Math.hypot(dx, dy);
     const scale = clamp(distance / (rect.width * 0.52), 0.82, 1.12);
     const opacity = clamp(0.8 + scale * 0.14, 0.88, 0.98);
+    const waterInfluence = clamp((-angle + 9) / 25, 0, 1);
+    const reflectionX = clamp(angle * 1.45, -24, 14);
+    const reflectionOpacity = clamp(0.34 + waterInfluence * 0.46 + (scale - 0.82) * 0.18, 0.38, 0.88);
+    const reflectionScale = clamp(0.9 + waterInfluence * 0.16 + (scale - 1) * 0.16, 0.88, 1.12);
+    const reflectionTilt = clamp(angle * 0.12, -2.2, 1.4);
 
     card.classList.add('is-beam-tracking');
     beam.style.setProperty('--welcome-beam-angle', `${angle.toFixed(2)}deg`);
     beam.style.setProperty('--welcome-beam-scale', scale.toFixed(3));
     beam.style.setProperty('--welcome-beam-opacity', opacity.toFixed(3));
+    reflection?.style.setProperty('--welcome-reflection-x', `${reflectionX.toFixed(2)}px`);
+    reflection?.style.setProperty('--welcome-reflection-opacity', reflectionOpacity.toFixed(3));
+    reflection?.style.setProperty('--welcome-reflection-scale', reflectionScale.toFixed(3));
+    reflection?.style.setProperty('--welcome-reflection-tilt', `${reflectionTilt.toFixed(2)}deg`);
     pendingPointer = null;
   }
 
@@ -179,6 +195,10 @@ function mountWelcome() {
     beam?.style.removeProperty('--welcome-beam-angle');
     beam?.style.removeProperty('--welcome-beam-scale');
     beam?.style.removeProperty('--welcome-beam-opacity');
+    reflection?.style.removeProperty('--welcome-reflection-x');
+    reflection?.style.removeProperty('--welcome-reflection-opacity');
+    reflection?.style.removeProperty('--welcome-reflection-scale');
+    reflection?.style.removeProperty('--welcome-reflection-tilt');
   }
 
   const cleanup = () => {
