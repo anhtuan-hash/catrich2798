@@ -1,3 +1,5 @@
+import './styles/FirstVisitWelcomeMotion.css';
+
 const WELCOME_SEEN_KEY = 'bes-first-visit-welcome-v1';
 const WELCOME_VERSION = '1';
 const WELCOME_ROOT_ID = 'brian-first-visit-welcome';
@@ -128,11 +130,63 @@ function mountWelcome() {
 
   const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   const previousOverflow = document.body.style.overflow;
+  const card = root.querySelector('.brian-welcome-card');
+  const beam = root.querySelector('.brian-welcome-beam');
+  const reducedMotion = typeof window.matchMedia === 'function'
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let closing = false;
+  let pointerFrame = 0;
+  let pendingPointer = null;
+
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+
+  function applyPointerBeam() {
+    pointerFrame = 0;
+    if (!pendingPointer || !card || !beam || closing || reducedMotion) return;
+
+    const rect = card.getBoundingClientRect();
+    const originX = rect.left + rect.width * 0.885;
+    const originY = rect.top + rect.height * 0.42;
+    const dx = pendingPointer.x - originX;
+    const dy = pendingPointer.y - originY;
+    const rawAngle = (Math.atan2(dy, dx) * 180) / Math.PI - 180;
+    const normalizedAngle = rawAngle < -180 ? rawAngle + 360 : rawAngle;
+    const angle = clamp(normalizedAngle, -16, 9);
+    const distance = Math.hypot(dx, dy);
+    const scale = clamp(distance / (rect.width * 0.52), 0.82, 1.12);
+    const opacity = clamp(0.8 + scale * 0.14, 0.88, 0.98);
+
+    card.classList.add('is-beam-tracking');
+    beam.style.setProperty('--welcome-beam-angle', `${angle.toFixed(2)}deg`);
+    beam.style.setProperty('--welcome-beam-scale', scale.toFixed(3));
+    beam.style.setProperty('--welcome-beam-opacity', opacity.toFixed(3));
+    pendingPointer = null;
+  }
+
+  function onPointerMove(event) {
+    if (reducedMotion || !card || !beam) return;
+    pendingPointer = { x: event.clientX, y: event.clientY };
+    if (!pointerFrame) pointerFrame = window.requestAnimationFrame(applyPointerBeam);
+  }
+
+  function onPointerLeave() {
+    pendingPointer = null;
+    if (pointerFrame) {
+      window.cancelAnimationFrame(pointerFrame);
+      pointerFrame = 0;
+    }
+    card?.classList.remove('is-beam-tracking');
+    beam?.style.removeProperty('--welcome-beam-angle');
+    beam?.style.removeProperty('--welcome-beam-scale');
+    beam?.style.removeProperty('--welcome-beam-opacity');
+  }
 
   const cleanup = () => {
     window.removeEventListener('keydown', onKeyDown, true);
     window.removeEventListener('storage', onStorage);
+    card?.removeEventListener('pointermove', onPointerMove);
+    card?.removeEventListener('pointerleave', onPointerLeave);
+    if (pointerFrame) window.cancelAnimationFrame(pointerFrame);
     document.body.style.overflow = previousOverflow;
     if (root.isConnected) root.remove();
     activeCleanup = null;
@@ -183,6 +237,11 @@ function mountWelcome() {
   root.querySelector('[data-welcome-backdrop]')?.addEventListener('click', (event) => {
     if (event.target === event.currentTarget) dismiss('backdrop');
   });
+
+  if (!reducedMotion && card && beam) {
+    card.addEventListener('pointermove', onPointerMove);
+    card.addEventListener('pointerleave', onPointerLeave);
+  }
 
   document.body.appendChild(root);
   document.body.style.overflow = 'hidden';
