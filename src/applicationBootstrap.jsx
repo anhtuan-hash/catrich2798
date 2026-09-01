@@ -1,6 +1,7 @@
 import './tabResumeStability.js';
 import './noCreamSurfaceRuntime.js';
 import './styles/WidescreenDrawerReadability.css';
+import './styles/FirstVisitWelcome.css';
 import './tabResumeAuthStability.js';
 import './fourClassLocalPurge.js';
 import './directClassRosterImportBootstrap.js';
@@ -9,6 +10,7 @@ import './tesolMethodRouteRegistry.js';
 import './components/GlobalHomeroomMaterial3Refinement.css';
 import { bootstrapPublicTypographyBeforeApp } from './publicTypographyBootstrap.js';
 import { bootstrapBrianThemeRuntime } from './theme/brianTheme.js';
+import { installFirstVisitWelcome } from './firstVisitWelcome.js';
 
 const MAX_WAIT_MS = 20000;
 const STARTED_AT = Date.now();
@@ -29,6 +31,7 @@ let assignedHomeroomNavigationToken = 0;
 // Theme is application chrome. Resolve the persisted/system preference before
 // React mounts and keep it synchronized across tabs and OS appearance changes.
 bootstrapBrianThemeRuntime();
+installFirstVisitWelcome();
 
 // applicationBootstrap is loaded before main.jsx. Install the preload circuit
 // breaker here so a stale/failed lazy chunk can never enter the legacy
