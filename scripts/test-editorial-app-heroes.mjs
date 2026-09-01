@@ -59,6 +59,17 @@ const checks = [
   ['Sea reflection has cinematic animated water shimmer', files.firstVisitWelcomeMotionCss.includes('.brian-welcome-sea-reflection') && files.firstVisitWelcomeMotionCss.includes('@keyframes brianWelcomeReflectionShimmer')],
   ['Sea reflection has automatic sweep synchronized with lighthouse', files.firstVisitWelcomeMotionCss.includes('@keyframes brianWelcomeReflectionSweep') && files.firstVisitWelcomeMotionCss.includes('brianWelcomeReflectionSweep 7s')],
   ['Sea reflection motion respects reduced motion', files.firstVisitWelcomeMotionCss.includes('.brian-welcome-sea-reflection') && files.firstVisitWelcomeMotionCss.includes('animation:none!important')],
+  ['Cinematic welcome adds layered pointer parallax', files.firstVisitWelcome.includes("style.setProperty('--welcome-parallax-x'") && files.firstVisitWelcome.includes("style.setProperty('--welcome-parallax-y'") && files.firstVisitWelcomeMotionCss.includes('--welcome-parallax-x')],
+  ['Cinematic welcome renders volumetric beam particles', files.firstVisitWelcome.includes('brian-welcome-light-particles') && files.firstVisitWelcomeMotionCss.includes('@keyframes brianWelcomeParticleFloat')],
+  ['Cinematic welcome uses three moving ocean layers', files.firstVisitWelcome.includes('wave-c') && files.firstVisitWelcomeMotionCss.includes('@keyframes brianWelcomeWaveDrift')],
+  ['Cinematic welcome renders parallax cloud layers', files.firstVisitWelcome.includes('brian-welcome-cloud cloud-far') && files.firstVisitWelcome.includes('brian-welcome-cloud cloud-near') && files.firstVisitWelcomeMotionCss.includes('@keyframes brianWelcomeCloudDrift')],
+  ['Cinematic welcome includes living stars and a rare shooting star', files.firstVisitWelcome.includes('brian-welcome-shooting-star') && files.firstVisitWelcomeMotionCss.includes('@keyframes brianWelcomeShootingStar')],
+  ['Cinematic welcome gives the moon a breathing halo', files.firstVisitWelcome.includes('brian-welcome-moon-halo') && files.firstVisitWelcomeMotionCss.includes('@keyframes brianWelcomeMoonHalo')],
+  ['Cinematic welcome makes feature cards beam-aware', files.firstVisitWelcome.includes('data-welcome-feature') && files.firstVisitWelcome.includes('is-feature-lit') && files.firstVisitWelcomeMotionCss.includes('.brian-welcome-features article.is-feature-lit')],
+  ['Cinematic welcome gives the primary CTA magnetic motion and sweep', files.firstVisitWelcome.includes("style.setProperty('--welcome-cta-x'") && files.firstVisitWelcomeMotionCss.includes('@keyframes brianWelcomeCtaSweep')],
+  ['Cinematic welcome has staged entrance choreography', files.firstVisitWelcomeMotionCss.includes('@keyframes brianWelcomeSceneEntrance') && files.firstVisitWelcomeMotionCss.includes('@keyframes brianWelcomeContentEntrance')],
+  ['Cinematic welcome has a dedicated start transition', files.firstVisitWelcome.includes("root.classList.add('is-starting')") && files.firstVisitWelcomeMotionCss.includes('@keyframes brianWelcomeStartFlash')],
+  ['Cinematic welcome pauses motion while the page is hidden', files.firstVisitWelcome.includes("document.addEventListener('visibilitychange', onVisibilityChange)") && files.firstVisitWelcomeMotionCss.includes('.is-motion-paused')],
 ];
 
 const failures = checks.filter(([, ok]) => !ok);
