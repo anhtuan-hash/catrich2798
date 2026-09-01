@@ -4,6 +4,7 @@ import { CheckCircle2, ChevronRight, FileCode2, Globe2 } from 'lucide-react';
 import { canManageAiWebsites } from '../utils/aiWebsiteSettings.js';
 import { EXTERNAL_APP_SOURCE_HTML, loadExternalWebApps, subscribeExternalWebApps } from '../utils/externalWebApps.js';
 import { TESOL_METHOD_HASH } from '../tesolMethodRouteRegistry.js';
+import TesolMethodHero from './TesolMethodHero.jsx';
 import './ExternalWebApps.css';
 import './ExternalAppApprovalRestore.css';
 import './ApprovedExternalAppsList.css';
@@ -243,7 +244,12 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
 
       {isTesolRoute && tesolApp ? (
         <Suspense fallback={null}>
-          <ExternalWebAppViewer app={tesolApp} onClose={() => { window.location.hash = '#/apps'; }} />
+          <ExternalWebAppViewer
+            app={tesolApp}
+            introContent={<TesolMethodHero language={language} />}
+            explorerId="tesol-method-explorer"
+            onClose={() => { window.location.hash = '#/apps'; }}
+          />
         </Suspense>
       ) : null}
 
