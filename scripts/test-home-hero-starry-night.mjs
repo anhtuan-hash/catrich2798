@@ -6,7 +6,11 @@ const [homeSource, heroCss] = await Promise.all([
   readFile(new URL('../src/styles/HomeHeroStarryNight.css', import.meta.url), 'utf8').catch(() => ''),
 ]);
 
-assert.match(homeSource, /HomeHeroStarryNight\.css/, 'Home should load the Starry Night Hero skin after the base Hero styles');
+assert.match(homeSource, /HomeHeroStarryNight\.css/, 'Home should load the Starry Night Hero skin');
+const starryImportIndex = homeSource.indexOf("import '../styles/HomeHeroStarryNight.css';");
+const editorialBlueImportIndex = homeSource.indexOf("import '../styles/HomeEditorialBlueV9.css';");
+assert.ok(starryImportIndex > editorialBlueImportIndex, 'Starry Night must load after the final Home editorial skin so later !important rules cannot overwrite it');
+
 assert.match(heroCss, /\.hero-cms__background::before\s*\{/, 'Starry Night skin should render a CSS starfield layer');
 assert.match(heroCss, /\.hero-cms__background::after\s*\{/, 'Starry Night skin should render an aurora and moon glow layer');
 assert.match(heroCss, /\.hero-cms::before\s*\{/, 'Starry Night skin should render meteor accents');
