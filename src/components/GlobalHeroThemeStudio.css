@@ -1,0 +1,36 @@
+.app-shell .burs-hero-governed.bes-hero-theme-active {
+  position: relative;
+  isolation: isolate;
+}
+
+.app-shell .burs-hero-governed.bes-hero-theme-active > .bes-hero-theme-layer {
+  position: absolute;
+  inset: -18px;
+  z-index: 0;
+  pointer-events: none;
+  background-repeat: no-repeat;
+  background-size: cover;
+  transform: translate3d(var(--bes-hero-theme-shift-x, 0px), var(--bes-hero-theme-shift-y, 0px), 0) scale(1.035);
+  transform-origin: center;
+  will-change: transform;
+}
+
+.app-shell .burs-hero-governed.bes-hero-theme-active > .bes-hero-theme-layer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 6, 23, var(--bes-hero-theme-overlay, .34));
+  pointer-events: none;
+}
+
+.app-shell .burs-hero-governed.bes-hero-theme-active > :not(.bes-hero-theme-layer) {
+  position: relative;
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell .burs-hero-governed.bes-hero-theme-active > .bes-hero-theme-layer {
+    transform: scale(1.035) !important;
+    will-change: auto;
+  }
+}
