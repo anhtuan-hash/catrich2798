@@ -2,6 +2,7 @@
 // Do not rely on externalAppsBootstrap: that bootstrap is intentionally Apps-route-only.
 import '../styles/HomeHeroExperience2026.css';
 import '../styles/HomeHeroCmsOverlayFix.css';
+import '../styles/HomeHeroStarryNight.css';
 import '../styles/HomeFeaturedTools2026.css';
 import '../styles/HomeFeaturedToolsTypography2026.css';
 
