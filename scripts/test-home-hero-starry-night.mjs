@@ -1,22 +1,20 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const [heroSource, heroCss] = await Promise.all([
-  readFile(new URL('../src/components/HomeHeroExperience2026.jsx', import.meta.url), 'utf8'),
-  readFile(new URL('../src/styles/HomeHeroExperience2026.css', import.meta.url), 'utf8'),
+const [homeSource, heroCss] = await Promise.all([
+  readFile(new URL('../src/pages/Home.jsx', import.meta.url), 'utf8'),
+  readFile(new URL('../src/styles/HomeHeroStarryNight.css', import.meta.url), 'utf8').catch(() => ''),
 ]);
 
-assert.match(heroSource, /data-hero-skin=["']starry-night["']/, 'Hero should expose the Starry Night skin marker');
-assert.match(heroSource, /hero-cms__starfield/, 'Hero should render a decorative starfield layer');
-assert.match(heroSource, /hero-cms__aurora/, 'Hero should render an aurora glow layer');
-assert.match(heroSource, /hero-cms__meteor/, 'Hero should render decorative meteor accents');
-
-assert.match(heroCss, /\.hero-cms__starfield\s*\{/, 'Starfield layer must be styled');
-assert.match(heroCss, /\.hero-cms__aurora\s*\{/, 'Aurora layer must be styled');
-assert.match(heroCss, /\.hero-cms__meteor\s*\{/, 'Meteor layer must be styled');
+assert.match(homeSource, /HomeHeroStarryNight\.css/, 'Home should load the Starry Night Hero skin after the base Hero styles');
+assert.match(heroCss, /\.hero-cms__background::before\s*\{/, 'Starry Night skin should render a CSS starfield layer');
+assert.match(heroCss, /\.hero-cms__background::after\s*\{/, 'Starry Night skin should render an aurora and moon glow layer');
+assert.match(heroCss, /\.hero-cms::before\s*\{/, 'Starry Night skin should render meteor accents');
 assert.match(heroCss, /@keyframes\s+hero-star-drift/, 'Starfield motion must have a dedicated keyframe');
 assert.match(heroCss, /@keyframes\s+hero-aurora-drift/, 'Aurora motion must have a dedicated keyframe');
 assert.match(heroCss, /@media\s*\(prefers-reduced-motion:\s*reduce\)/, 'Hero motion must respect reduced-motion preferences');
 assert.match(heroCss, /linear-gradient\([^)]*#07162f/i, 'Starry Night skin should include the approved deep-night palette');
+assert.match(heroCss, /#FFD75D/i, 'Starry Night skin should include the warm moon-and-star accent');
+assert.match(heroCss, /#FFE582/i, 'Starry Night skin should include the soft gold highlight');
 
 console.log('Home Hero Starry Night contract: OK');
