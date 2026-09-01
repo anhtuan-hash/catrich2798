@@ -2,6 +2,7 @@ import welcomeBaseCss from './styles/FirstVisitWelcome.css?inline';
 import welcomeMotionCss from './styles/FirstVisitWelcomeMotion.css?inline';
 import welcomeTuneCss from './styles/FirstVisitWelcomeVisibilityTune.css?inline';
 import welcomeAmbientCss from './styles/FirstVisitWelcomeAmbient.css?inline';
+import welcomeMeteorCss from './styles/FirstVisitWelcomeMeteor.css?inline';
 
 const WELCOME_SEEN_KEY = 'bes-first-visit-welcome-v1';
 const WELCOME_VERSION = '1';
@@ -76,6 +77,15 @@ function welcomeMarkup() {
             <span class="brian-welcome-star star-d"></span>
             <span class="brian-welcome-star star-e"></span>
             <span class="brian-welcome-shooting-star"></span>
+            <div class="brian-welcome-meteor-field">
+              <span class="brian-welcome-meteor meteor-a"></span>
+              <span class="brian-welcome-meteor meteor-b"></span>
+              <span class="brian-welcome-meteor meteor-c"></span>
+              <span class="brian-welcome-meteor meteor-d"></span>
+              <span class="brian-welcome-meteor meteor-e"></span>
+              <span class="brian-welcome-meteor meteor-f"></span>
+              <span class="brian-welcome-meteor meteor-g"></span>
+            </div>
             <span class="brian-welcome-moon-halo"></span>
             <span class="brian-welcome-moon"></span>
           </div>
@@ -172,7 +182,7 @@ function escapeStyleText(value) {
 }
 
 function welcomeFrameDocument(forceFullMotion) {
-  const css = [welcomeBaseCss, welcomeMotionCss, welcomeTuneCss, welcomeAmbientCss]
+  const css = [welcomeBaseCss, welcomeMotionCss, welcomeTuneCss, welcomeAmbientCss, welcomeMeteorCss]
     .map(escapeStyleText)
     .join('\n');
   const motionClass = forceFullMotion ? ' is-motion-forced' : '';
