@@ -4,6 +4,7 @@ import { CheckCircle2, ChevronRight, FileCode2, Globe2 } from 'lucide-react';
 import { canManageAiWebsites } from '../utils/aiWebsiteSettings.js';
 import { EXTERNAL_APP_SOURCE_HTML, loadExternalWebApps, subscribeExternalWebApps } from '../utils/externalWebApps.js';
 import { TESOL_METHOD_HASH } from '../tesolMethodRouteRegistry.js';
+import ExternalAppHero from './ExternalAppHero.jsx';
 import TesolMethodHero from './TesolMethodHero.jsx';
 import './ExternalWebApps.css';
 import './ExternalAppApprovalRestore.css';
@@ -35,6 +36,21 @@ function normalizeTitle(value = '') {
 function isTesolMethodApp(app = {}) {
   const normalized = normalizeTitle(app.title || app.name || '');
   return normalized === 'phuong phap tesol' || (normalized.includes('tesol') && normalized.includes('phuong phap'));
+}
+
+function routeStateFromHash(hash = '') {
+  const clean = String(hash || '').replace(/^#\//, '');
+  const [route = '', query = ''] = clean.split('?');
+  const params = new URLSearchParams(query);
+  return {
+    route,
+    dedicatedAppId: params.get('app') || '',
+  };
+}
+
+function externalAppRoute(app = {}) {
+  const id = String(app.id || '').trim();
+  return id ? `#/apps?app=${encodeURIComponent(id)}` : '#/apps';
 }
 
 function tone(value = '') {
@@ -92,25 +108,30 @@ function WebsiteAppCard({ app, onOpen, language = 'vi' }) {
 
 export default function ExternalAppsIntegration({ currentUser, language = 'vi' }) {
   const manager = canManageAiWebsites(currentUser);
-  const [route, setRoute] = useState(() => location.hash.replace(/^#\//, '').split('?')[0]);
+  const [routeHash, setRouteHash] = useState(() => location.hash || '#/apps');
   const [hosts, setHosts] = useState({ hero: null, grid: null });
   const [data, setData] = useState({ approved: [], mine: [], requests: [] });
   const [dialog, setDialog] = useState(false);
-  const [active, setActive] = useState(null);
   const [loaded, setLoaded] = useState(false);
+  const { route, dedicatedAppId } = useMemo(() => routeStateFromHash(routeHash), [routeHash]);
   const pending = useMemo(() => data.requests.filter((request) => request.status === 'pending').length, [data.requests]);
   const isTesolRoute = route === TESOL_METHOD_ROUTE;
+  const isDedicatedAppRoute = route === 'apps' && Boolean(dedicatedAppId);
   const tesolApp = useMemo(() => data.approved.find(isTesolMethodApp) || null, [data.approved]);
+  const dedicatedApp = useMemo(
+    () => data.approved.find((app) => String(app.id || '') === String(dedicatedAppId)) || null,
+    [data.approved, dedicatedAppId],
+  );
   const approvedLauncherApps = useMemo(() => data.approved.filter((app) => !isTesolMethodApp(app)), [data.approved]);
 
   useEffect(() => {
-    const updateRoute = () => setRoute(location.hash.replace(/^#\//, '').split('?')[0]);
+    const updateRoute = () => setRouteHash(location.hash || '#/apps');
     addEventListener('hashchange', updateRoute);
     return () => removeEventListener('hashchange', updateRoute);
   }, []);
 
   useEffect(() => {
-    if (route !== 'apps') {
+    if (route !== 'apps' || dedicatedAppId) {
       setHosts({ hero: null, grid: null });
       return undefined;
     }
@@ -161,7 +182,7 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
       if (frame) window.cancelAnimationFrame(frame);
       observer?.disconnect();
     };
-  }, [route]);
+  }, [route, dedicatedAppId]);
 
   useEffect(() => {
     if (!currentUser || (route !== 'apps' && !isTesolRoute)) return undefined;
@@ -173,7 +194,7 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
       setData(next);
       setLoaded(true);
     };
-    const includeRequests = route === 'apps' && manager;
+    const includeRequests = route === 'apps' && !dedicatedAppId && manager;
 
     loadExternalWebApps(currentUser, { includeRequests })
       .then(applyData)
@@ -192,23 +213,25 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
       activeSubscription = false;
       try { unsubscribe?.(); } catch (error) { console.warn('[External apps] subscription cleanup failed', error); }
     };
-  }, [currentUser?.id, currentUser?.email, currentUser?.role, manager, route, isTesolRoute]);
+  }, [currentUser?.id, currentUser?.email, currentUser?.role, manager, route, dedicatedAppId, isTesolRoute]);
 
   const openApprovedApp = (app) => {
     if (isTesolMethodApp(app)) {
       window.location.hash = TESOL_METHOD_HASH;
       return;
     }
-    setActive(app);
+    window.location.hash = externalAppRoute(app);
   };
 
   if (!currentUser) return null;
 
-  const routeHost = isTesolRoute && typeof document !== 'undefined' ? document.getElementById('bes-main-content') : null;
+  const routeHost = (isTesolRoute || isDedicatedAppRoute) && typeof document !== 'undefined'
+    ? document.getElementById('bes-main-content')
+    : null;
 
   return (
     <>
-      {route === 'apps' && hosts.hero ? createPortal(
+      {route === 'apps' && !dedicatedAppId && hosts.hero ? createPortal(
         <div className="external-app-integration-actions">
           <button type="button" className="launcher-add-external-app" onClick={() => setDialog(true)}>
             <span aria-hidden="true">⇧</span>
@@ -219,12 +242,12 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
         hosts.hero,
       ) : null}
 
-      {route === 'apps' && hosts.grid ? createPortal(
+      {route === 'apps' && !dedicatedAppId && hosts.grid ? createPortal(
         approvedLauncherApps.map((app) => <WebsiteAppCard key={app.id} app={app} onOpen={openApprovedApp} language={language} />),
         hosts.grid,
       ) : null}
 
-      {route === 'apps' && dialog ? (
+      {route === 'apps' && !dedicatedAppId && dialog ? (
         <Suspense fallback={null}>
           <ExternalWebAppManager
             open
@@ -236,9 +259,14 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
         </Suspense>
       ) : null}
 
-      {route === 'apps' && active ? (
+      {isDedicatedAppRoute && dedicatedApp && !isTesolMethodApp(dedicatedApp) ? (
         <Suspense fallback={null}>
-          <ExternalWebAppViewer app={active} onClose={() => setActive(null)} />
+          <ExternalWebAppViewer
+            app={dedicatedApp}
+            introContent={<ExternalAppHero app={dedicatedApp} language={language} />}
+            explorerId="external-app-runtime"
+            onClose={() => { window.location.hash = '#/apps'; }}
+          />
         </Suspense>
       ) : null}
 
@@ -251,6 +279,20 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
             onClose={() => { window.location.hash = '#/apps'; }}
           />
         </Suspense>
+      ) : null}
+
+      {isDedicatedAppRoute && routeHost && !dedicatedApp ? createPortal(
+        <div style={{ minHeight: '68vh', display: 'grid', placeItems: 'center', padding: '32px' }}>
+          <section style={{ maxWidth: '720px', width: '100%', padding: '32px', borderRadius: '28px', background: '#fff', border: '1px solid #d9e4f2', boxShadow: '0 18px 50px rgba(34, 65, 110, .12)', textAlign: 'center' }}>
+            <div style={{ fontSize: '48px', marginBottom: '12px' }}>▦</div>
+            <h1 style={{ margin: '0 0 10px' }}>{language === 'en' ? 'Application' : 'Ứng dụng'}</h1>
+            <p style={{ margin: '0 0 20px', color: '#5f6368' }}>{loaded
+              ? (language === 'en' ? 'This approved application is no longer available.' : 'Không tìm thấy ứng dụng đã duyệt này trong kho ứng dụng.')
+              : (language === 'en' ? 'Loading application…' : 'Đang tải ứng dụng…')}</p>
+            {loaded ? <button type="button" onClick={() => { window.location.hash = '#/apps'; }} style={{ border: 0, borderRadius: '999px', padding: '12px 22px', background: '#1a73e8', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>{language === 'en' ? 'Back to Apps' : 'Quay lại Ứng dụng'}</button> : null}
+          </section>
+        </div>,
+        routeHost,
       ) : null}
 
       {isTesolRoute && routeHost && !tesolApp ? createPortal(
