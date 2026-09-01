@@ -35,7 +35,7 @@ const checks = [
   ['TESOL hero keeps explorer CTA', files.tesolJsx.includes("document.getElementById('tesol-method-explorer')")],
   ['TESOL hero keeps dashboard route', files.tesolJsx.includes("window.location.hash = '#/dashboard'")],
   ['TESOL CSS defines journal paper tokens', files.tesolCss.includes('--tesol-paper')],
-  ['TESOL CSS contains editorial journal shell', files.tesolCss.includes('.tesol-editorial-shell')],
+  ['TESOL CSS contains editorial journal shell layout', files.tesolCss.includes('.tesol-editorial-shell')],
   ['TESOL hero uses compact viewport sizing', files.tesolCss.includes('--tesol-hero-height:clamp(360px,42vh,460px)') && files.tesolCss.includes('min-height:var(--tesol-hero-height)')],
   ['TESOL CSS respects reduced motion', files.tesolCss.includes('@media(prefers-reduced-motion:reduce)')],
   ['First-visit welcome is bootstrapped', files.applicationBootstrap.includes("import './styles/FirstVisitWelcome.css';") && files.applicationBootstrap.includes("import { installFirstVisitWelcome } from './firstVisitWelcome.js';") && files.applicationBootstrap.includes('installFirstVisitWelcome();')],
@@ -70,6 +70,10 @@ const checks = [
   ['Cinematic welcome has staged entrance choreography', files.firstVisitWelcomeMotionCss.includes('@keyframes brianWelcomeSceneEntrance') && files.firstVisitWelcomeMotionCss.includes('@keyframes brianWelcomeContentEntrance')],
   ['Cinematic welcome has a dedicated start transition', files.firstVisitWelcome.includes("root.classList.add('is-starting')") && files.firstVisitWelcomeMotionCss.includes('@keyframes brianWelcomeStartFlash')],
   ['Cinematic welcome pauses motion while the page is hidden', files.firstVisitWelcome.includes("document.addEventListener('visibilitychange', onVisibilityChange)") && files.firstVisitWelcomeMotionCss.includes('.is-motion-paused')],
+  ['Cinematic visibility tune increases beam particles', (files.firstVisitWelcome.match(/<i><\/i>/g) || []).length >= 14],
+  ['Cinematic visibility tune strengthens scene parallax', files.firstVisitWelcome.includes('const x = normalizedX * 13;') && files.firstVisitWelcome.includes('const y = normalizedY * 9;')],
+  ['Cinematic visibility tune deepens ocean motion', files.firstVisitWelcomeMotionCss.includes('--welcome-wave-travel:18px') && files.firstVisitWelcomeMotionCss.includes('--welcome-wave-lift:5px')],
+  ['Cinematic visibility tune makes shooting star easier to notice', files.firstVisitWelcomeMotionCss.includes('width:96px') && files.firstVisitWelcomeMotionCss.includes('animation:brianWelcomeShootingStar 13s linear 3s infinite')],
 ];
 
 const failures = checks.filter(([, ok]) => !ok);
