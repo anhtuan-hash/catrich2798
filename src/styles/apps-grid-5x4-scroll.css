@@ -221,3 +221,30 @@ html body .apps-directory-native.is-launcher-edit-mode #apps-directory-grid.apps
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Natural document scrolling.
+   Preserve the existing 5-column editorial card layout and fixed top navigation,
+   but remove the nested scroll physics that made wheel/touch movement feel
+   resisted: no inner viewport, no smooth-wheel interpolation, no scroll snapping,
+   and no overscroll containment. The browser document owns vertical scrolling. */
+html body .apps-directory-native #apps-directory-grid.apps-directory-list-native {
+  max-height: none !important;
+  overflow-y: visible !important;
+  overflow-x: clip !important;
+  overscroll-behavior: auto !important;
+  scroll-behavior: auto !important;
+  scroll-snap-type: none !important;
+  scrollbar-gutter: auto !important;
+  scrollbar-width: auto !important;
+  scrollbar-color: auto !important;
+}
+
+html body .apps-directory-native #apps-directory-grid.apps-directory-list-native > .editorial-app-card {
+  scroll-snap-align: none !important;
+}
+
+@media (max-width: 900px) {
+  html body .apps-directory-native #apps-directory-grid.apps-directory-list-native {
+    max-height: none !important;
+  }
+}
