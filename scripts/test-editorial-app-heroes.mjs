@@ -16,6 +16,7 @@ const files = {
   applicationBootstrap: readOptional('src/applicationBootstrap.jsx'),
   firstVisitWelcome: readOptional('src/firstVisitWelcome.js'),
   firstVisitWelcomeCss: readOptional('src/styles/FirstVisitWelcome.css'),
+  firstVisitWelcomeMotionCss: readOptional('src/styles/FirstVisitWelcomeMotion.css'),
 };
 
 const checks = [
@@ -46,6 +47,12 @@ const checks = [
   ['First-visit welcome renders lighthouse scene', files.firstVisitWelcome.includes('brian-welcome-lighthouse') && files.firstVisitWelcomeCss.includes('.brian-welcome-lighthouse') && files.firstVisitWelcomeCss.includes('.brian-welcome-beam')],
   ['First-visit welcome uses 16:9 desktop composition', files.firstVisitWelcomeCss.includes('aspect-ratio:16/9')],
   ['First-visit welcome respects reduced motion', files.firstVisitWelcomeCss.includes('@media(prefers-reduced-motion:reduce)')],
+  ['Lighthouse beam listens to pointer movement', files.firstVisitWelcome.includes("card.addEventListener('pointermove', onPointerMove)") && files.firstVisitWelcome.includes("card.addEventListener('pointerleave', onPointerLeave)")],
+  ['Lighthouse beam interaction is animation-frame throttled', files.firstVisitWelcome.includes('requestAnimationFrame') && files.firstVisitWelcome.includes('pointerFrame')],
+  ['Lighthouse beam uses CSS variables for live steering', files.firstVisitWelcome.includes("style.setProperty('--welcome-beam-angle'") && files.firstVisitWelcomeMotionCss.includes('--welcome-beam-angle')],
+  ['Lighthouse beam has automatic sweep fallback', files.firstVisitWelcomeMotionCss.includes('@keyframes brianWelcomeBeamInteractiveSweep') && files.firstVisitWelcomeMotionCss.includes('animation:brianWelcomeBeamInteractiveSweep')],
+  ['Lighthouse lantern pulses independently', files.firstVisitWelcomeMotionCss.includes('@keyframes brianWelcomeLanternPulse') && files.firstVisitWelcomeMotionCss.includes('.brian-welcome-lighthouse-lantern')],
+  ['Interactive lighthouse motion respects reduced motion', files.firstVisitWelcomeMotionCss.includes('@media(prefers-reduced-motion:reduce)') && files.firstVisitWelcome.includes("matchMedia('(prefers-reduced-motion: reduce)')")],
 ];
 
 const failures = checks.filter(([, ok]) => !ok);
