@@ -7,6 +7,7 @@ on:
       - 'api/**'
       - 'public/**'
       - 'scripts/test-font-upload-live-preview.mjs'
+      - 'scripts/test-home-hero-starry-night.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'vite.config.*'
@@ -39,6 +40,9 @@ jobs:
 
       - name: Verify font upload and live preview contract
         run: node scripts/test-font-upload-live-preview.mjs
+
+      - name: Verify Home Hero Starry Night contract
+        run: node scripts/test-home-hero-starry-night.mjs
 
       - name: Build production bundle
         run: npm run build
