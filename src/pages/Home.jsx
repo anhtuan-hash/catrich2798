@@ -2,7 +2,6 @@
 // Do not rely on externalAppsBootstrap: that bootstrap is intentionally Apps-route-only.
 import '../styles/HomeHeroExperience2026.css';
 import '../styles/HomeHeroCmsOverlayFix.css';
-import '../styles/HomeHeroStarryNight.css';
 import '../styles/HomeFeaturedTools2026.css';
 import '../styles/HomeFeaturedToolsTypography2026.css';
 
@@ -25,11 +24,13 @@ import '../weeklyPractice20MinuteGuard.js';
 import '../components/GlobalWeeklyPractice.css';
 
 // HomeApproved owns behaviour/data. Warm V5 + Sage V6 keep the established
-// editorial layout contract. Blue V9 is the final Home-only production skin.
+// editorial layout contract. Blue V9 is the base Home production skin; Starry
+// Night intentionally loads last so its Hero-only overrides win the cascade.
 import HomeApproved from './HomeApproved.jsx';
 import '../styles/HomeEditorialWarmV5.css';
 import '../styles/HomeEditorialSageV6.css';
 import '../styles/WeeklyPracticeEditorial2026.css';
 import '../styles/HomeEditorialBlueV9.css';
+import '../styles/HomeHeroStarryNight.css';
 
 export default HomeApproved;
