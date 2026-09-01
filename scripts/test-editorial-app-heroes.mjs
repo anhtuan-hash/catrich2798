@@ -53,6 +53,12 @@ const checks = [
   ['Lighthouse beam has automatic sweep fallback', files.firstVisitWelcomeMotionCss.includes('@keyframes brianWelcomeBeamInteractiveSweep') && files.firstVisitWelcomeMotionCss.includes('animation:brianWelcomeBeamInteractiveSweep')],
   ['Lighthouse lantern pulses independently', files.firstVisitWelcomeMotionCss.includes('@keyframes brianWelcomeLanternPulse') && files.firstVisitWelcomeMotionCss.includes('.brian-welcome-lighthouse-lantern')],
   ['Interactive lighthouse motion respects reduced motion', files.firstVisitWelcomeMotionCss.includes('@media(prefers-reduced-motion:reduce)') && files.firstVisitWelcome.includes("matchMedia('(prefers-reduced-motion: reduce)')")],
+  ['Welcome scene renders a sea-light reflection layer', files.firstVisitWelcome.includes('brian-welcome-sea-reflection') && files.firstVisitWelcome.includes('brian-welcome-reflection-core')],
+  ['Sea reflection follows pointer-steered beam state', files.firstVisitWelcome.includes("reflection.style.setProperty('--welcome-reflection-x'") && files.firstVisitWelcome.includes("reflection.style.setProperty('--welcome-reflection-opacity'")],
+  ['Sea reflection resets when pointer leaves', files.firstVisitWelcome.includes("reflection?.style.removeProperty('--welcome-reflection-x')") && files.firstVisitWelcome.includes("reflection?.style.removeProperty('--welcome-reflection-opacity')")],
+  ['Sea reflection has cinematic animated water shimmer', files.firstVisitWelcomeMotionCss.includes('.brian-welcome-sea-reflection') && files.firstVisitWelcomeMotionCss.includes('@keyframes brianWelcomeReflectionShimmer')],
+  ['Sea reflection has automatic sweep synchronized with lighthouse', files.firstVisitWelcomeMotionCss.includes('@keyframes brianWelcomeReflectionSweep') && files.firstVisitWelcomeMotionCss.includes('brianWelcomeReflectionSweep 7s')],
+  ['Sea reflection motion respects reduced motion', files.firstVisitWelcomeMotionCss.includes('.brian-welcome-sea-reflection') && files.firstVisitWelcomeMotionCss.includes('animation:none!important')],
 ];
 
 const failures = checks.filter(([, ok]) => !ok);
