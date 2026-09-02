@@ -16,9 +16,25 @@ for (const token of forbiddenBootstrapTokens) {
   }
 }
 
+const tabResumePath = path.join(root, 'src', 'tabResumeStability.js');
+const tabResume = fs.readFileSync(tabResumePath, 'utf8');
+const forbiddenRuntimeImports = [
+  './welcomeSceneAlignmentFix.js',
+  './welcomeStartExitGuard.js',
+];
+
+for (const token of forbiddenRuntimeImports) {
+  if (tabResume.includes(token)) {
+    throw new Error(`Tab resume runtime still imports retired welcome code: ${token}`);
+  }
+}
+
 const retiredFiles = [
   path.join(root, 'src', 'firstVisitWelcome.js'),
+  path.join(root, 'src', 'welcomeSceneAlignmentFix.js'),
+  path.join(root, 'src', 'welcomeStartExitGuard.js'),
   path.join(root, 'src', 'styles', 'FirstVisitWelcomeStarryNight.css'),
+  path.join(root, 'scripts', 'test-welcome-scene-alignment.mjs'),
 ];
 
 for (const file of retiredFiles) {
@@ -58,4 +74,4 @@ for (const token of forbiddenEditorialTokens) {
   }
 }
 
-console.log('PASS: first-visit welcome screen is retired from global bootstrap, Vercel build, and editorial contracts.');
+console.log('PASS: first-visit welcome runtime, assets, Vercel build hooks, and editorial contracts are fully retired.');
