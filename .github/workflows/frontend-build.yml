@@ -11,6 +11,7 @@ on:
       - 'scripts/test-font-upload-live-preview.mjs'
       - 'scripts/test-hero-theme-studio.mjs'
       - 'scripts/test-hero-theme-studio-settings-route.mjs'
+      - 'scripts/test-no-first-visit-welcome.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'vite.config.*'
@@ -49,6 +50,9 @@ jobs:
 
       - name: Verify Hero Theme Studio settings route
         run: node scripts/test-hero-theme-studio-settings-route.mjs
+
+      - name: Verify first-visit welcome is retired
+        run: node scripts/test-no-first-visit-welcome.mjs
 
       - name: Build production bundle
         run: npm run build
