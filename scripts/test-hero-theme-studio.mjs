@@ -15,7 +15,7 @@ const modelFile = 'src/heroTheme/heroThemeModel.js';
 const clientFile = 'src/heroTheme/heroThemeClient.js';
 const runtimeFile = 'src/components/HeroThemeRuntime.jsx';
 const guardFile = 'src/components/GlobalRuntimeGuard.jsx';
-const adminPageFile = 'src/pages/AdminPage.jsx';
+const bridgeFile = 'src/components/admin/HeroThemeStudioBridge.jsx';
 const studioFile = 'src/components/admin/HeroThemeStudio.jsx';
 const runtimeCssFile = 'src/styles/HeroThemeRuntime.css';
 const studioCssFile = 'src/styles/HeroThemeStudio.css';
@@ -27,7 +27,7 @@ const mediaApiFile = 'api/hero-theme-media.js';
 const sqlFile = 'supabase/brian_hero_theme_studio.sql';
 
 const registry = read(registryFile), model = read(modelFile), client = read(clientFile), runtime = read(runtimeFile);
-const guard = read(guardFile), adminPage = read(adminPageFile), studio = read(studioFile);
+const guard = read(guardFile), bridge = read(bridgeFile), studio = read(studioFile);
 const runtimeCss = read(runtimeCssFile), studioCss = read(studioCssFile), sharedApi = read(sharedApiFile);
 const manifestApi = read(manifestApiFile), adminApi = read(adminApiFile), uploadApi = read(uploadApiFile), mediaApi = read(mediaApiFile);
 const sql = read(sqlFile), workflow = read('.github/workflows/frontend-build.yml');
@@ -52,9 +52,10 @@ expect(runtimeFile, runtime, /startsWith\(['"]tool\//, 'runtime must resolve too
 expect(runtimeCssFile, runtimeCss, /pointer-events:\s*none/, 'theme layer must not intercept Hero interactions');
 expect(runtimeCssFile, runtimeCss, /z-index/, 'runtime must place the layer behind existing Hero content');
 expect(guardFile, guard, /HeroThemeRuntime/, 'global runtime guard must mount the public Theme Runtime');
-expect(adminPageFile, adminPage, /import\s+HeroThemeStudio\s+from\s+['"]\.\.\/components\/admin\/HeroThemeStudio\.jsx['"]/, 'AdminPage must import Hero Theme Studio directly');
-expect(adminPageFile, adminPage, /<HeroThemeStudio\s+currentUser=\{currentUser\}\s+language=\{language\}\s*\/>/, 'AdminPage must render Hero Theme Studio with its authoritative admin session');
-if (/HeroThemeStudioBridge/.test(guard)) failures.push('GlobalRuntimeGuard: admin Studio must not depend on the fragile portal bridge');
+expect(guardFile, guard, /HeroThemeStudioBridge/, 'admin route must mount the Theme Studio bridge');
+expect(bridgeFile, bridge, /isAdminRole/, 'Studio bridge must enforce the Admin UI gate');
+expect(bridgeFile, bridge, /<HeroThemeStudio\s+currentUser=\{currentUser\}\s+language=\{language\}\s*\/>/, 'Studio bridge must render the Studio directly with the authoritative admin session');
+if (/createPortal|react-dom/.test(bridge)) failures.push('HeroThemeStudioBridge: Studio must not portal into React-managed Admin DOM');
 
 expect(sharedApiFile, sharedApi, /normalizeHeroTheme/, 'server must independently normalize theme configuration');
 expect(sharedApiFile, sharedApi, /requireApprovedUser/, 'admin API helper must use verified server auth');
