@@ -5,8 +5,11 @@ on:
     paths:
       - 'src/**'
       - 'api/**'
+      - 'server/**'
+      - 'supabase/**'
       - 'public/**'
       - 'scripts/test-font-upload-live-preview.mjs'
+      - 'scripts/test-hero-theme-studio.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'vite.config.*'
@@ -39,6 +42,9 @@ jobs:
 
       - name: Verify font upload and live preview contract
         run: node scripts/test-font-upload-live-preview.mjs
+
+      - name: Verify Hero Theme Studio contract
+        run: node scripts/test-hero-theme-studio.mjs
 
       - name: Build production bundle
         run: npm run build
