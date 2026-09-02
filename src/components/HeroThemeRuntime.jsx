@@ -17,6 +17,14 @@ function preloadImage(url) {
   });
 }
 
+function normalizeRouteTarget(route, explicitToolSlug = '') {
+  const raw = String(route || '').trim();
+  if (raw.startsWith('tool/')) {
+    return { route: 'tool', toolSlug: raw.slice('tool/'.length).split(/[?&]/)[0].trim() };
+  }
+  return { route: raw || 'home', toolSlug: String(explicitToolSlug || '').trim() };
+}
+
 function nativeBackgroundChildren(hero) {
   return [...hero.children].filter((child) => {
     if (!(child instanceof HTMLElement)) return false;
@@ -99,7 +107,8 @@ export default function HeroThemeRuntime({ route, toolSlug = '' }) {
     const apply = async ({ force = false } = {}) => {
       const currentGeneration = ++generation;
       clear();
-      const descriptor = getHeroDescriptor(route, toolSlug);
+      const target = normalizeRouteTarget(route, toolSlug);
+      const descriptor = getHeroDescriptor(target.route, target.toolSlug);
       if (!descriptor) return;
       // Defer remote theming until after the existing route has had a frame to render.
       await new Promise((resolve) => requestAnimationFrame(() => resolve()));
