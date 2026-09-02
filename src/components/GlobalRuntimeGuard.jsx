@@ -10,6 +10,8 @@ const VietnamAtmosphereAdminPanel = lazy(() => import('./VietnamAtmosphereAdminP
 const UsernameLoginBridge = lazy(() => import('./UsernameLoginBridge.jsx'));
 const BulkTeacherAccountsPanel = lazy(() => import('./BulkTeacherAccountsPanel.jsx'));
 const UsernameAccountCenter = lazy(() => import('./UsernameAccountCenter.jsx'));
+const HeroThemeRuntime = lazy(() => import('./HeroThemeRuntime.jsx'));
+const HeroThemeStudioBridge = lazy(() => import('./admin/HeroThemeStudioBridge.jsx'));
 
 const NO_ATMOSPHERE_ROUTES = new Set(['login', 'register', 'setup', 'homeroom-portal']);
 
@@ -74,10 +76,12 @@ export default function GlobalRuntimeGuard({ language = 'vi' }) {
   return (
     <>
       <Suspense fallback={null}>
+        <HeroThemeRuntime route={route} />
         {showLoginBridge ? <UsernameLoginBridge language={language} /> : null}
         {showAtmosphere ? <VietnamAtmosphereOverlay /> : null}
         {showAtmosphereManager ? <VietnamAtmosphereAdminPanel language={language} /> : null}
         {showAdminTools ? <BulkTeacherAccountsPanel language={language} /> : null}
+        {showAdminTools ? <HeroThemeStudioBridge language={language} /> : null}
         {showAccountCenter ? <UsernameAccountCenter language={language} /> : null}
       </Suspense>
       {showRuntimeBanner ? (
