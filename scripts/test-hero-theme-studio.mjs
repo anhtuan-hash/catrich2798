@@ -3,24 +3,19 @@ import path from 'node:path';
 
 const root = process.cwd();
 const failures = [];
-
 function read(file) {
   const full = path.join(root, file);
-  if (!fs.existsSync(full)) {
-    failures.push(`missing ${file}`);
-    return '';
-  }
+  if (!fs.existsSync(full)) { failures.push(`missing ${file}`); return ''; }
   return fs.readFileSync(full, 'utf8');
 }
-
-function expect(file, source, pattern, message) {
-  if (!pattern.test(source)) failures.push(`${file}: ${message}`);
-}
+function expect(file, source, pattern, message) { if (!pattern.test(source)) failures.push(`${file}: ${message}`); }
 
 const registryFile = 'src/heroTheme/heroRegistry.js';
 const modelFile = 'src/heroTheme/heroThemeModel.js';
 const clientFile = 'src/heroTheme/heroThemeClient.js';
 const runtimeFile = 'src/components/HeroThemeRuntime.jsx';
+const guardFile = 'src/components/GlobalRuntimeGuard.jsx';
+const bridgeFile = 'src/components/admin/HeroThemeStudioBridge.jsx';
 const studioFile = 'src/components/admin/HeroThemeStudio.jsx';
 const runtimeCssFile = 'src/styles/HeroThemeRuntime.css';
 const studioCssFile = 'src/styles/HeroThemeStudio.css';
@@ -31,22 +26,11 @@ const uploadApiFile = 'api/hero-theme-upload.js';
 const mediaApiFile = 'api/hero-theme-media.js';
 const sqlFile = 'supabase/brian_hero_theme_studio.sql';
 
-const registry = read(registryFile);
-const model = read(modelFile);
-const client = read(clientFile);
-const runtime = read(runtimeFile);
-const studio = read(studioFile);
-const runtimeCss = read(runtimeCssFile);
-const studioCss = read(studioCssFile);
-const sharedApi = read(sharedApiFile);
-const manifestApi = read(manifestApiFile);
-const adminApi = read(adminApiFile);
-const uploadApi = read(uploadApiFile);
-const mediaApi = read(mediaApiFile);
-const sql = read(sqlFile);
-const main = read('src/main.jsx');
-const adminPage = read('src/pages/AdminPage.jsx');
-const workflow = read('.github/workflows/frontend-build.yml');
+const registry = read(registryFile), model = read(modelFile), client = read(clientFile), runtime = read(runtimeFile);
+const guard = read(guardFile), bridge = read(bridgeFile), studio = read(studioFile);
+const runtimeCss = read(runtimeCssFile), studioCss = read(studioCssFile), sharedApi = read(sharedApiFile);
+const manifestApi = read(manifestApiFile), adminApi = read(adminApiFile), uploadApi = read(uploadApiFile), mediaApi = read(mediaApiFile);
+const sql = read(sqlFile), workflow = read('.github/workflows/frontend-build.yml');
 
 expect(registryFile, registry, /home\.main/, 'registry must include home.main');
 expect(registryFile, registry, /validateHeroRegistry|assertUniqueHeroKeys/, 'registry must validate unique hero keys');
@@ -62,9 +46,14 @@ if (/globalFallback|fallbackTheme|inheritTheme/i.test(model + registry)) failure
 expect(clientFile, client, /hero-theme-manifest/, 'client must load public published manifest endpoint');
 expect(runtimeFile, runtime, /requestAnimationFrame|setTimeout|useEffect/, 'runtime must attach after the existing Hero can render');
 expect(runtimeFile, runtime, /data-hero-key|dataset\.heroKey/, 'runtime must mark the resolved Hero with the stable key');
-expect(runtimeFile, runtime, /onError|error/i, 'runtime must fail open when themed media fails');
+expect(runtimeFile, runtime, /original Hero preserved|media error|onerror/i, 'runtime must fail open when themed media fails');
+expect(runtimeFile, runtime, /startsWith\(['"]tool\//, 'runtime must resolve tool/slug hash routes');
 expect(runtimeCssFile, runtimeCss, /pointer-events:\s*none/, 'theme layer must not intercept Hero interactions');
 expect(runtimeCssFile, runtimeCss, /z-index/, 'runtime must place the layer behind existing Hero content');
+expect(guardFile, guard, /HeroThemeRuntime/, 'global runtime guard must mount the public Theme Runtime');
+expect(guardFile, guard, /HeroThemeStudioBridge/, 'admin route must mount the Theme Studio bridge');
+expect(bridgeFile, bridge, /isAdminRole/, 'Studio bridge must enforce the Admin UI gate');
+expect(bridgeFile, bridge, /createPortal/, 'Studio must render inside the existing main Admin content surface');
 
 expect(sharedApiFile, sharedApi, /normalizeHeroTheme/, 'server must independently normalize theme configuration');
 expect(sharedApiFile, sharedApi, /requireApprovedUser/, 'admin API helper must use verified server auth');
@@ -82,7 +71,7 @@ expect(mediaApiFile, mediaApi, /active|revision/i, 'public media proxy must veri
 expect(mediaApiFile, mediaApi, /Cache-Control/, 'public media proxy must be cacheable');
 expect(mediaApiFile, mediaApi, /X-Content-Type-Options|nosniff/i, 'public media proxy must disable MIME sniffing');
 
-for (const table of ['hero_theme_sets', 'hero_theme_drafts', 'hero_theme_revisions', 'hero_theme_active', 'hero_theme_media']) {
+for (const table of ['hero_theme_sets','hero_theme_drafts','hero_theme_revisions','hero_theme_active','hero_theme_media']) {
   expect(sqlFile, sql, new RegExp(`create table if not exists public\\.${table}`), `SQL must create ${table}`);
 }
 expect(sqlFile, sql, /enable row level security/ig, 'Hero theme tables must use RLS');
@@ -99,8 +88,6 @@ expect(studioFile, studio, /Apply.*selected|Áp dụng.*đã chọn/i, 'Studio m
 expect(studioFile, studio, /Apply.*all|Áp dụng.*tất cả/i, 'Studio must explicitly apply to all Heros');
 expect(studioFile, studio, /image\/webp|toBlob/, 'Studio must optimize image uploads to WebP when supported');
 expect(studioCssFile, studioCss, /hero-theme-studio/, 'Studio must have isolated styles');
-expect(adminPage, adminPage, /HeroThemeStudio/, 'Admin page must mount the Theme Studio');
-expect(main, main, /HeroThemeRuntime/, 'main app must mount the public Theme Runtime');
 expect(workflow, workflow, /test-hero-theme-studio\.mjs/, 'frontend CI must run the Hero Theme Studio contract');
 
 if (failures.length) {
@@ -108,5 +95,4 @@ if (failures.length) {
   failures.forEach((failure) => console.error(` - ${failure}`));
   process.exit(1);
 }
-
 console.log('Hero Theme Studio contract passed.');
