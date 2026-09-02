@@ -27,4 +27,35 @@ for (const file of retiredFiles) {
   }
 }
 
-console.log('PASS: first-visit welcome screen is retired from global bootstrap.');
+const vercelConfigPath = path.join(root, 'vercel.json');
+const vercelConfig = JSON.parse(fs.readFileSync(vercelConfigPath, 'utf8'));
+const buildCommand = String(vercelConfig.buildCommand || '');
+const forbiddenBuildTokens = [
+  'test-welcome-scene-alignment.mjs',
+  'firstVisitWelcome',
+  'FirstVisitWelcome',
+];
+
+for (const token of forbiddenBuildTokens) {
+  if (buildCommand.includes(token)) {
+    throw new Error(`Vercel build still requires retired welcome code: ${token}`);
+  }
+}
+
+const editorialContractPath = path.join(root, 'scripts', 'test-editorial-app-heroes.mjs');
+const editorialContract = fs.readFileSync(editorialContractPath, 'utf8');
+const forbiddenEditorialTokens = [
+  'firstVisitWelcome',
+  'First-visit welcome',
+  'Welcome preview query',
+  'Welcome full-motion query',
+  'Welcome renders inside a sandboxed iframe',
+];
+
+for (const token of forbiddenEditorialTokens) {
+  if (editorialContract.includes(token)) {
+    throw new Error(`Editorial hero contract still asserts retired welcome behavior: ${token}`);
+  }
+}
+
+console.log('PASS: first-visit welcome screen is retired from global bootstrap, Vercel build, and editorial contracts.');
