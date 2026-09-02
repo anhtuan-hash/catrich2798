@@ -115,3 +115,14 @@ export async function uploadHeroThemeMedia(file) {
   if (!response.ok) throw new Error(payload?.error || `Hero image upload failed (${response.status})`);
   return payload.media;
 }
+
+export async function loadHeroThemePreviewBlob(mediaId) {
+  const token = await accessToken();
+  const response = await fetch(`/api/hero-theme-media?id=${encodeURIComponent(mediaId)}&preview=1`, {
+    method: 'GET',
+    credentials: 'same-origin',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) throw new Error(`Hero preview media failed (${response.status})`);
+  return response.blob();
+}
