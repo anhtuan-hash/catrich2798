@@ -10,6 +10,7 @@ on:
       - 'public/**'
       - 'scripts/test-font-upload-live-preview.mjs'
       - 'scripts/test-hero-theme-studio.mjs'
+      - 'scripts/test-hero-theme-studio-settings-route.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'vite.config.*'
@@ -45,6 +46,9 @@ jobs:
 
       - name: Verify Hero Theme Studio contract
         run: node scripts/test-hero-theme-studio.mjs
+
+      - name: Verify Hero Theme Studio settings route
+        run: node scripts/test-hero-theme-studio-settings-route.mjs
 
       - name: Build production bundle
         run: npm run build
