@@ -27,4 +27,19 @@ for (const file of retiredFiles) {
   }
 }
 
-console.log('PASS: first-visit welcome screen is retired from global bootstrap.');
+const vercelConfigPath = path.join(root, 'vercel.json');
+const vercelConfig = JSON.parse(fs.readFileSync(vercelConfigPath, 'utf8'));
+const buildCommand = String(vercelConfig.buildCommand || '');
+const forbiddenBuildTokens = [
+  'test-welcome-scene-alignment.mjs',
+  'firstVisitWelcome',
+  'FirstVisitWelcome',
+];
+
+for (const token of forbiddenBuildTokens) {
+  if (buildCommand.includes(token)) {
+    throw new Error(`Vercel build still requires retired welcome code: ${token}`);
+  }
+}
+
+console.log('PASS: first-visit welcome screen is retired from global bootstrap and Vercel build.');
