@@ -32,7 +32,8 @@ const runtimeCss = read(runtimeCssFile), studioCss = read(studioCssFile), shared
 const manifestApi = read(manifestApiFile), adminApi = read(adminApiFile), uploadApi = read(uploadApiFile), mediaApi = read(mediaApiFile);
 const sql = read(sqlFile), workflow = read('.github/workflows/frontend-build.yml');
 
-expect(registryFile, registry, /home\.main/, 'registry must include home.main');
+expect(registryFile, registry, /home:\s*\[['"]Trang chủ['"],\s*['"]Home['"]\]/, 'registry must declare the home route');
+expect(registryFile, registry, /heroKey:\s*`\$\{route\}\.main`/, 'route registry entries must resolve stable <route>.main keys');
 expect(registryFile, registry, /validateHeroRegistry|assertUniqueHeroKeys/, 'registry must validate unique hero keys');
 expect(registryFile, registry, /selectors\s*:/, 'registry must attach to existing Hero roots through declared selectors');
 expect(modelFile, model, /mode\s*[:=].*original|mode === ['"]original['"]/, 'model must support explicit original mode');
@@ -57,7 +58,8 @@ expect(bridgeFile, bridge, /createPortal/, 'Studio must render inside the existi
 
 expect(sharedApiFile, sharedApi, /normalizeHeroTheme/, 'server must independently normalize theme configuration');
 expect(sharedApiFile, sharedApi, /requireApprovedUser/, 'admin API helper must use verified server auth');
-expect(manifestApiFile, manifestApi, /public_manifest|hero_theme_public_manifest|active/i, 'manifest API must expose only active published state');
+expect(manifestApiFile, manifestApi, /loadPublicManifest/, 'manifest endpoint must delegate to the published-only manifest loader');
+expect(sharedApiFile, sharedApi, /rpc\(['"]hero_theme_public_manifest['"]\)/, 'published manifest loader must read only the active public manifest RPC');
 if (/requireApprovedUser\s*\(/.test(manifestApi)) failures.push('public manifest must stay readable by anonymous visitors');
 expect(adminApiFile, adminApi, /roles:\s*\[['"]admin['"]\]/, 'theme mutations must be admin-only');
 expect(adminApiFile, adminApi, /publish|restore|saveDraft/, 'admin endpoint must support draft/publish/restore operations');
