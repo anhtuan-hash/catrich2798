@@ -1,0 +1,99 @@
+name: Install Hero Theme Studio wiring
+
+on:
+  push:
+    branches:
+      - feature/hero-theme-studio-v1
+    paths:
+      - .github/workflows/install-hero-theme-studio-wiring.yml
+
+permissions:
+  contents: write
+
+jobs:
+  wire-test-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout implementation branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/hero-theme-studio-v1
+          fetch-depth: 0
+
+      - name: Wire runtime and Admin Studio
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          main_path = Path('src/main.jsx')
+          main = main_path.read_text()
+          lazy_line = "const HeroThemeRuntime = lazy(() => import('./components/HeroThemeRuntime.jsx'));"
+          if lazy_line not in main:
+              marker = "const HiddenAppsVault = lazy(() => import('./pages/HiddenAppsVault.jsx'));"
+              if marker not in main:
+                  raise SystemExit('main.jsx lazy import marker not found')
+              main = main.replace(marker, marker + '\n' + lazy_line, 1)
+
+          runtime_block = """        <Suspense fallback={null}>\n          <HeroThemeRuntime route={currentRoute} toolSlug={selectedTool?.slug || ''} />\n        </Suspense>\n"""
+          if '<HeroThemeRuntime route={currentRoute}' not in main:
+              marker = """        <Suspense fallback={null}>\n          <GlobalRuntimeGuard language={language} />\n        </Suspense>\n"""
+              if marker not in main:
+                  raise SystemExit('main.jsx runtime guard marker not found')
+              main = main.replace(marker, marker + runtime_block, 1)
+          main_path.write_text(main)
+
+          admin_path = Path('src/pages/AdminPage.jsx')
+          admin = admin_path.read_text()
+          studio_import = "import HeroThemeStudio from '../components/admin/HeroThemeStudio.jsx';"
+          if studio_import not in admin:
+              marker = "import GlobalFontAdminPanel from '../components/admin/GlobalFontAdminPanel.jsx';"
+              if marker not in admin:
+                  raise SystemExit('AdminPage import marker not found')
+              admin = admin.replace(marker, marker + '\n' + studio_import, 1)
+
+          nav_line = "  { id: 'hero-theme', icon: '▣', labelVi: 'Hero Theme Studio', label: 'Hero Theme Studio' },"
+          if nav_line not in admin:
+              marker = "  { id: 'config', icon: '⚙', labelVi: 'Cấu hình hệ thống', label: 'System config' },"
+              if marker not in admin:
+                  raise SystemExit('AdminPage nav marker not found')
+              admin = admin.replace(marker, nav_line + '\n' + marker, 1)
+
+          map_line = "    'hero-theme': '#admin-hero-theme-studio',"
+          if map_line not in admin:
+              marker = "    config: '#admin-global-motion',"
+              if marker not in admin:
+                  raise SystemExit('AdminPage section map marker not found')
+              admin = admin.replace(marker, map_line + '\n' + marker, 1)
+
+          studio_mount = "          <HeroThemeStudio currentUser={currentUser} language={language} />\n"
+          if '<HeroThemeStudio currentUser={currentUser}' not in admin:
+              marker = "          <GlobalMotionAdminPanel currentUser={currentUser} language={language} />\n"
+              if marker not in admin:
+                  raise SystemExit('AdminPage mount marker not found')
+              admin = admin.replace(marker, studio_mount + marker, 1)
+          admin_path.write_text(admin)
+          PY
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Verify Hero Theme Studio contract
+        run: node scripts/test-hero-theme-studio.mjs
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Commit verified wiring
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/main.jsx src/pages/AdminPage.jsx
+          git diff --cached --quiet || git commit -m "feat: wire Hero Theme Studio runtime and admin panel"
+          git push origin HEAD:feature/hero-theme-studio-v1
