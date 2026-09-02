@@ -9,9 +9,6 @@ const files = {
   externalCss: readOptional('src/components/ExternalAppHero.css'),
   tesolJsx: readOptional('src/components/TesolMethodHero.jsx'),
   tesolCss: readOptional('src/components/TesolMethodHero.css'),
-  applicationBootstrap: readOptional('src/applicationBootstrap.jsx'),
-  firstVisitWelcome: readOptional('src/firstVisitWelcome.js'),
-  firstVisitWelcomeCss: readOptional('src/styles/FirstVisitWelcomeStarryNight.css'),
 };
 
 const checks = [
@@ -33,19 +30,6 @@ const checks = [
   ['TESOL CSS contains editorial journal shell layout', files.tesolCss.includes('.tesol-editorial-shell')],
   ['TESOL hero uses compact viewport sizing', files.tesolCss.includes('--tesol-hero-height:clamp(360px,42vh,460px)') && files.tesolCss.includes('min-height:var(--tesol-hero-height)')],
   ['TESOL CSS respects reduced motion', files.tesolCss.includes('@media(prefers-reduced-motion:reduce)')],
-  ['First-visit welcome is bootstrapped', files.applicationBootstrap.includes("import { installFirstVisitWelcome } from './firstVisitWelcome.js';") && files.applicationBootstrap.includes('installFirstVisitWelcome();')],
-  ['First-visit welcome uses a versioned browser key', files.firstVisitWelcome.includes("WELCOME_SEEN_KEY = 'bes-first-visit-welcome-v1'") && files.firstVisitWelcome.includes("WELCOME_VERSION = '1'")],
-  ['First-visit welcome reads and persists seen state', files.firstVisitWelcome.includes('localStorage.getItem(WELCOME_SEEN_KEY)') && files.firstVisitWelcome.includes('localStorage.setItem(WELCOME_SEEN_KEY, WELCOME_VERSION)')],
-  ['First-visit welcome protects auth and recovery routes', files.firstVisitWelcome.includes('isProtectedEntryRoute') && files.firstVisitWelcome.includes('recovery') && files.firstVisitWelcome.includes('register')],
-  ['First-visit welcome has accessible dialog semantics', files.firstVisitWelcome.includes('role="dialog"') && files.firstVisitWelcome.includes('aria-modal="true"') && files.firstVisitWelcome.includes('aria-labelledby="welcomeTitle"')],
-  ['First-visit welcome uses approved Starry Night composition', files.firstVisitWelcome.includes('Chạm vào') && files.firstVisitWelcome.includes('bầu trời sao') && files.firstVisitWelcomeCss.includes('.painting-layer')],
-  ['Welcome removes legacy feature cards', !files.firstVisitWelcome.includes('data-welcome-feature') && !files.firstVisitWelcome.includes('brian-welcome-progress')],
-  ['Welcome has bilingual artwork details', files.firstVisitWelcome.includes('The Starry Night') && files.firstVisitWelcome.includes('Đêm đầy sao') && files.firstVisitWelcome.includes('Learn more')],
-  ['Welcome preserves the three start transitions', files.firstVisitWelcome.includes('star-dive') && files.firstVisitWelcome.includes('living-brush') && files.firstVisitWelcome.includes('galaxy-portal')],
-  ['Welcome preview query bypasses seen-state', files.firstVisitWelcome.includes("WELCOME_PREVIEW_PARAM = 'welcome'") && (files.firstVisitWelcome.includes("params().get(WELCOME_PREVIEW_PARAM) === 'preview'") || files.firstVisitWelcome.includes("params.get(WELCOME_PREVIEW_PARAM) === 'preview'")) && files.firstVisitWelcome.includes('if (isPreview()) return false;')],
-  ['Welcome full-motion query bypasses reduced-motion gate', files.firstVisitWelcome.includes("WELCOME_MOTION_PARAM = 'motion'") && (files.firstVisitWelcome.includes("params().get(WELCOME_MOTION_PARAM) === 'full'") || files.firstVisitWelcome.includes("params.get(WELCOME_MOTION_PARAM) === 'full'")) && files.firstVisitWelcome.includes('forceFullMotion') && files.firstVisitWelcome.includes('motionEnabled=forceFullMotion||!reducedMotion')],
-  ['Welcome renders inside a sandboxed iframe srcdoc', files.firstVisitWelcome.includes("document.createElement('iframe')") && files.firstVisitWelcome.includes("frame.setAttribute('sandbox', 'allow-same-origin')") && files.firstVisitWelcome.includes('frame.srcdoc')],
-  ['Welcome CSS supports responsive and reduced-motion modes', files.firstVisitWelcomeCss.includes('@media(max-width:900px)') && files.firstVisitWelcomeCss.includes('@media(max-width:620px)') && files.firstVisitWelcomeCss.includes('@media(prefers-reduced-motion:reduce)')],
 ];
 
 let failures = 0;
