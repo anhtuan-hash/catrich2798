@@ -1,0 +1,45 @@
+/* Brian English Hero Theme Runtime — no visual effect unless a published custom theme is active. */
+.hero-theme-runtime--active {
+  position: relative !important;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.hero-theme-runtime__native-background {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.hero-theme-runtime__layer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  user-select: none;
+}
+
+.hero-theme-runtime__image,
+.hero-theme-runtime__overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.hero-theme-runtime__image {
+  background-repeat: no-repeat;
+  transform-origin: 50% 50%;
+  will-change: transform;
+}
+
+.hero-theme-runtime__overlay {
+  z-index: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-theme-runtime__image {
+    will-change: auto;
+  }
+}
