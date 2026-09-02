@@ -54,7 +54,8 @@ expect(runtimeCssFile, runtimeCss, /z-index/, 'runtime must place the layer behi
 expect(guardFile, guard, /HeroThemeRuntime/, 'global runtime guard must mount the public Theme Runtime');
 expect(guardFile, guard, /HeroThemeStudioBridge/, 'admin route must mount the Theme Studio bridge');
 expect(bridgeFile, bridge, /isAdminRole/, 'Studio bridge must enforce the Admin UI gate');
-expect(bridgeFile, bridge, /createPortal/, 'Studio must render inside the existing main Admin content surface');
+expect(bridgeFile, bridge, /<HeroThemeStudio\s+currentUser=\{currentUser\}\s+language=\{language\}\s*\/>/, 'Studio bridge must render the Studio directly with the authoritative admin session');
+if (/createPortal|react-dom/.test(bridge)) failures.push('HeroThemeStudioBridge: Studio must not portal into React-managed Admin DOM');
 
 expect(sharedApiFile, sharedApi, /normalizeHeroTheme/, 'server must independently normalize theme configuration');
 expect(sharedApiFile, sharedApi, /requireApprovedUser/, 'admin API helper must use verified server auth');
