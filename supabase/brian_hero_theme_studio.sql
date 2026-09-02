@@ -14,9 +14,14 @@ as $$
   select exists (
     select 1
     from public.profiles p
-    where p.id = auth.uid()
-      and lower(coalesce(p.role, '')) in ('admin', 'administrator')
-      and coalesce(p.approved, true) = true
+    where coalesce(to_jsonb(p)->>'id', to_jsonb(p)->>'user_id', to_jsonb(p)->>'profile_id') = auth.uid()::text
+      and lower(coalesce(to_jsonb(p)->>'role', '')) in ('admin', 'administrator')
+      and lower(coalesce(to_jsonb(p)->>'approved', 'true')) not in ('false', '0', 'no')
+      and lower(coalesce(to_jsonb(p)->>'is_approved', 'true')) not in ('false', '0', 'no')
+      and (
+        nullif(lower(coalesce(to_jsonb(p)->>'status', '')), '') is null
+        or lower(coalesce(to_jsonb(p)->>'status', '')) in ('approved', 'active', 'enabled')
+      )
   );
 $$;
 
@@ -71,10 +76,8 @@ create table if not exists public.hero_theme_media (
   created_at timestamptz not null default now()
 );
 
-create index if not exists hero_theme_revisions_set_created_idx
-  on public.hero_theme_revisions(theme_set_id, created_at desc);
-create index if not exists hero_theme_media_drive_idx
-  on public.hero_theme_media(drive_file_id);
+create index if not exists hero_theme_revisions_set_created_idx on public.hero_theme_revisions(theme_set_id, created_at desc);
+create index if not exists hero_theme_media_drive_idx on public.hero_theme_media(drive_file_id);
 
 alter table public.hero_theme_sets enable row level security;
 alter table public.hero_theme_drafts enable row level security;
@@ -82,50 +85,25 @@ alter table public.hero_theme_revisions enable row level security;
 alter table public.hero_theme_active enable row level security;
 alter table public.hero_theme_media enable row level security;
 
--- Theme library: approved Admin only.
 drop policy if exists "Admins manage hero theme sets" on public.hero_theme_sets;
-create policy "Admins manage hero theme sets"
-  on public.hero_theme_sets
-  for all
-  to authenticated
-  using (public.hero_theme_is_admin())
-  with check (public.hero_theme_is_admin());
+create policy "Admins manage hero theme sets" on public.hero_theme_sets for all to authenticated
+  using (public.hero_theme_is_admin()) with check (public.hero_theme_is_admin());
 
--- Drafts: approved Admin only.
 drop policy if exists "Admins manage hero theme drafts" on public.hero_theme_drafts;
-create policy "Admins manage hero theme drafts"
-  on public.hero_theme_drafts
-  for all
-  to authenticated
-  using (public.hero_theme_is_admin())
-  with check (public.hero_theme_is_admin());
+create policy "Admins manage hero theme drafts" on public.hero_theme_drafts for all to authenticated
+  using (public.hero_theme_is_admin()) with check (public.hero_theme_is_admin());
 
--- Revisions are immutable from PostgREST. Admin may read; only the security-definer
--- publish/restore RPCs below can insert new snapshots.
 drop policy if exists "Admins read hero theme revisions" on public.hero_theme_revisions;
-create policy "Admins read hero theme revisions"
-  on public.hero_theme_revisions
-  for select
-  to authenticated
+create policy "Admins read hero theme revisions" on public.hero_theme_revisions for select to authenticated
   using (public.hero_theme_is_admin());
 
--- Active pointer is also immutable from PostgREST and changed only by RPC.
 drop policy if exists "Admins read hero theme active" on public.hero_theme_active;
-create policy "Admins read hero theme active"
-  on public.hero_theme_active
-  for select
-  to authenticated
+create policy "Admins read hero theme active" on public.hero_theme_active for select to authenticated
   using (public.hero_theme_is_admin());
 
--- Media metadata: approved Admin can register/delete metadata. Public clients never
--- receive Drive file IDs directly; /api/hero-theme-media verifies active references.
 drop policy if exists "Admins manage hero theme media" on public.hero_theme_media;
-create policy "Admins manage hero theme media"
-  on public.hero_theme_media
-  for all
-  to authenticated
-  using (public.hero_theme_is_admin())
-  with check (public.hero_theme_is_admin());
+create policy "Admins manage hero theme media" on public.hero_theme_media for all to authenticated
+  using (public.hero_theme_is_admin()) with check (public.hero_theme_is_admin());
 
 grant select, insert, update, delete on public.hero_theme_sets to authenticated;
 grant select, insert, update, delete on public.hero_theme_drafts to authenticated;
@@ -148,32 +126,26 @@ begin
     raise exception 'Admin access required' using errcode = '42501';
   end if;
 
-  select d.config into v_config
-  from public.hero_theme_drafts d
-  where d.theme_set_id = p_theme_set_id
-  for update;
+  select d.config into v_config from public.hero_theme_drafts d
+  where d.theme_set_id = p_theme_set_id for update;
 
   if v_config is null then
     raise exception 'Theme draft not found' using errcode = 'P0002';
   end if;
 
-  select coalesce(max(r.revision_number), 0) + 1
-    into v_revision_number
-  from public.hero_theme_revisions r
-  where r.theme_set_id = p_theme_set_id;
+  select coalesce(max(r.revision_number), 0) + 1 into v_revision_number
+  from public.hero_theme_revisions r where r.theme_set_id = p_theme_set_id;
 
-  insert into public.hero_theme_revisions (
-    theme_set_id, revision_number, config, published_by
-  ) values (
-    p_theme_set_id, v_revision_number, v_config, auth.uid()
-  ) returning id into v_revision_id;
+  insert into public.hero_theme_revisions (theme_set_id, revision_number, config, published_by)
+  values (p_theme_set_id, v_revision_number, v_config, auth.uid())
+  returning id into v_revision_id;
 
   insert into public.hero_theme_active (id, revision_id, updated_by, updated_at)
   values (true, v_revision_id, auth.uid(), now())
-  on conflict (id) do update
-    set revision_id = excluded.revision_id,
-        updated_by = excluded.updated_by,
-        updated_at = excluded.updated_at;
+  on conflict (id) do update set
+    revision_id = excluded.revision_id,
+    updated_by = excluded.updated_by,
+    updated_at = excluded.updated_at;
 
   return v_revision_id;
 end;
@@ -194,43 +166,33 @@ begin
     raise exception 'Admin access required' using errcode = '42501';
   end if;
 
-  select * into v_source
-  from public.hero_theme_revisions
-  where id = p_revision_id;
-
+  select * into v_source from public.hero_theme_revisions where id = p_revision_id;
   if v_source.id is null then
     raise exception 'Theme revision not found' using errcode = 'P0002';
   end if;
 
-  -- Lock this set's draft row so concurrent publish/restore operations serialize.
-  perform 1 from public.hero_theme_drafts
-   where theme_set_id = v_source.theme_set_id
-   for update;
+  perform 1 from public.hero_theme_drafts where theme_set_id = v_source.theme_set_id for update;
 
-  select coalesce(max(r.revision_number), 0) + 1
-    into v_revision_number
-  from public.hero_theme_revisions r
-  where r.theme_set_id = v_source.theme_set_id;
+  select coalesce(max(r.revision_number), 0) + 1 into v_revision_number
+  from public.hero_theme_revisions r where r.theme_set_id = v_source.theme_set_id;
 
-  insert into public.hero_theme_revisions (
-    theme_set_id, revision_number, config, published_by
-  ) values (
-    v_source.theme_set_id, v_revision_number, v_source.config, auth.uid()
-  ) returning id into v_revision_id;
+  insert into public.hero_theme_revisions (theme_set_id, revision_number, config, published_by)
+  values (v_source.theme_set_id, v_revision_number, v_source.config, auth.uid())
+  returning id into v_revision_id;
 
   insert into public.hero_theme_drafts (theme_set_id, config, updated_by, updated_at)
   values (v_source.theme_set_id, v_source.config, auth.uid(), now())
-  on conflict (theme_set_id) do update
-    set config = excluded.config,
-        updated_by = excluded.updated_by,
-        updated_at = excluded.updated_at;
+  on conflict (theme_set_id) do update set
+    config = excluded.config,
+    updated_by = excluded.updated_by,
+    updated_at = excluded.updated_at;
 
   insert into public.hero_theme_active (id, revision_id, updated_by, updated_at)
   values (true, v_revision_id, auth.uid(), now())
-  on conflict (id) do update
-    set revision_id = excluded.revision_id,
-        updated_by = excluded.updated_by,
-        updated_at = excluded.updated_at;
+  on conflict (id) do update set
+    revision_id = excluded.revision_id,
+    updated_by = excluded.updated_by,
+    updated_at = excluded.updated_at;
 
   return v_revision_id;
 end;
@@ -241,8 +203,6 @@ revoke all on function public.hero_theme_restore_revision(uuid) from public;
 grant execute on function public.hero_theme_publish_draft(uuid) to authenticated;
 grant execute on function public.hero_theme_restore_revision(uuid) to authenticated;
 
--- Published-only public projection. It contains no draft, actor, Drive credential,
--- or Drive file ID data. The media UUID is an opaque app-level identifier.
 create or replace function public.hero_theme_public_manifest()
 returns jsonb
 language sql
