@@ -60,7 +60,7 @@ html body #root .gradebook-studio > .gradebook-studio-hero.gbe-material-mounted:
   pointer-events: none;
 }
 
-html body #root .gradebook-studio > .gradebook-studio-hero.gbe-material-mounted > :not(.gbe-material-hero-runtime) {
+html body #root .gradebook-studio > .gradebook-studio-hero.gbe-material-mounted > :not(.gbe-material-hero-runtime):not(.hero-theme-runtime__layer) {
   display: none !important;
 }
 

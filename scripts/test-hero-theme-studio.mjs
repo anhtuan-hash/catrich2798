@@ -18,6 +18,7 @@ const guardFile = 'src/components/GlobalRuntimeGuard.jsx';
 const bridgeFile = 'src/components/admin/HeroThemeStudioBridge.jsx';
 const studioFile = 'src/components/admin/HeroThemeStudio.jsx';
 const runtimeCssFile = 'src/styles/HeroThemeRuntime.css';
+const gradebookHeroCssFile = 'src/styles/GradebookMaterialHeroRuntime.css';
 const studioCssFile = 'src/styles/HeroThemeStudio.css';
 const sharedApiFile = 'server/api/_heroTheme.js';
 const manifestApiFile = 'api/hero-theme-manifest.js';
@@ -28,7 +29,7 @@ const sqlFile = 'supabase/brian_hero_theme_studio.sql';
 
 const registry = read(registryFile), model = read(modelFile), client = read(clientFile), runtime = read(runtimeFile);
 const guard = read(guardFile), bridge = read(bridgeFile), studio = read(studioFile);
-const runtimeCss = read(runtimeCssFile), studioCss = read(studioCssFile), sharedApi = read(sharedApiFile);
+const runtimeCss = read(runtimeCssFile), gradebookHeroCss = read(gradebookHeroCssFile), studioCss = read(studioCssFile), sharedApi = read(sharedApiFile);
 const manifestApi = read(manifestApiFile), adminApi = read(adminApiFile), uploadApi = read(uploadApiFile), mediaApi = read(mediaApiFile);
 const sql = read(sqlFile), workflow = read('.github/workflows/frontend-build.yml');
 
@@ -54,6 +55,7 @@ expect(runtimeFile, runtime, /currentTarget/, 'runtime must distinguish a replac
 if (/stopWaiting\(\);\s*return true/.test(runtime)) failures.push(`${runtimeFile}: runtime must not stop observing after the first matching Hero`);
 expect(runtimeCssFile, runtimeCss, /pointer-events:\s*none/, 'theme layer must not intercept Hero interactions');
 expect(runtimeCssFile, runtimeCss, /z-index/, 'runtime must place the layer behind existing Hero content');
+expect(gradebookHeroCssFile, gradebookHeroCss, />\s*:not\(\.gbe-material-hero-runtime\):not\(\.hero-theme-runtime__layer\)/, 'Gradebook Material Hero must keep the published Hero Theme layer visible');
 expect(guardFile, guard, /HeroThemeRuntime/, 'global runtime guard must mount the public Theme Runtime');
 expect(guardFile, guard, /HeroThemeStudioBridge/, 'admin route must mount the Theme Studio bridge');
 expect(bridgeFile, bridge, /isAdminRole/, 'Studio bridge must enforce the Admin UI gate');
