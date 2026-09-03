@@ -1,6 +1,6 @@
 # Main branch protection
 
-`main` must be protected in GitHub Settings. The repository connector used for this rollout can read protection/rulesets but cannot create or update them, so this is the only manual control-plane step.
+`main` must be protected in GitHub Settings. The repository connector used for this rollout does not expose a mutation for branch protection/rulesets, and the current integration receives `403 Resource not accessible by integration` when reading the branch-protection endpoint. This is therefore the one remaining manual control-plane step.
 
 ## Recommended ruleset
 
