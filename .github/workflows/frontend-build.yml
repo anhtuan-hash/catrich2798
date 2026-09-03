@@ -8,6 +8,8 @@ on:
       - 'server/**'
       - 'supabase/**'
       - 'public/**'
+      - 'tests/e2e/**'
+      - 'playwright.config.js'
       - 'scripts/test-font-upload-live-preview.mjs'
       - 'scripts/test-hero-theme-studio.mjs'
       - 'scripts/test-hero-theme-studio-settings-route.mjs'
@@ -18,10 +20,12 @@ on:
       - 'scripts/test-ttcm-self-recipient.mjs'
       - 'scripts/test-ttcm-response-multi-attachments.mjs'
       - 'scripts/test-ttcm-drive-resumable-cors.mjs'
+      - 'scripts/test-critical-e2e-contract.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'vite.config.*'
       - '.github/workflows/frontend-build.yml'
+      - '.github/workflows/critical-e2e.yml'
   workflow_dispatch:
 
 permissions:
@@ -77,6 +81,9 @@ jobs:
 
       - name: Verify TTCM Drive resumable CORS origin
         run: node scripts/test-ttcm-drive-resumable-cors.mjs
+
+      - name: Verify critical browser smoke gate
+        run: node scripts/test-critical-e2e-contract.mjs
 
       - name: Build production bundle
         run: npm run build
