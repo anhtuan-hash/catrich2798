@@ -1,7 +1,11 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const remoteBaseUrl = process.env.BES_E2E_BASE_URL || '';
-const chromiumExecutable = process.env.BES_CHROMIUM_EXECUTABLE || '/usr/bin/chromium';
+const chromiumExecutable = process.env.BES_CHROMIUM_EXECUTABLE || '';
+const chromiumLaunchOptions = {
+  ...(chromiumExecutable ? { executablePath: chromiumExecutable } : {}),
+  args: ['--no-sandbox','--disable-dev-shm-usage','--proxy-server=direct://','--proxy-bypass-list=*'],
+};
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -23,8 +27,8 @@ export default defineConfig({
     timeout: 120_000,
   },
   projects: [
-    { name: 'chromium-desktop', use: { ...devices['Desktop Chrome'], launchOptions: { executablePath: chromiumExecutable, args: ['--no-sandbox','--disable-dev-shm-usage','--proxy-server=direct://','--proxy-bypass-list=*'] } } },
+    { name: 'chromium-desktop', use: { ...devices['Desktop Chrome'], launchOptions: chromiumLaunchOptions } },
     { name: 'webkit-desktop', use: { ...devices['Desktop Safari'] } },
-    { name: 'mobile-chromium', use: { ...devices['Pixel 7'], launchOptions: { executablePath: chromiumExecutable, args: ['--no-sandbox','--disable-dev-shm-usage','--proxy-server=direct://','--proxy-bypass-list=*'] } } },
+    { name: 'mobile-chromium', use: { ...devices['Pixel 7'], launchOptions: chromiumLaunchOptions } },
   ],
 });
