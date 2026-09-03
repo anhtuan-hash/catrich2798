@@ -13,6 +13,7 @@ on:
       - 'scripts/test-hero-theme-studio-settings-route.mjs'
       - 'scripts/test-no-first-visit-welcome.mjs'
       - 'scripts/test-dashboard-news-reader-no-loading-bars.mjs'
+      - 'scripts/test-conduct-export-active-class.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'vite.config.*'
@@ -57,6 +58,9 @@ jobs:
 
       - name: Verify dashboard focused reader has no loading bars
         run: node scripts/test-dashboard-news-reader-no-loading-bars.mjs
+
+      - name: Verify conduct export uses active Homeroom class
+        run: node scripts/test-conduct-export-active-class.mjs
 
       - name: Build production bundle
         run: npm run build
