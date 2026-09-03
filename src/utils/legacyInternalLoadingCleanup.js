@@ -1,6 +1,3 @@
-import { installGlobalUnifiedWaveLoading } from './globalUnifiedWaveLoading.js';
-import { installGlobalWaveLoaderExactVisual } from './globalWaveLoaderExactVisual.js';
-
 const LEGACY_WP8_SUPPRESS_STYLE_ID = 'bes-legacy-wp8-loading-suppressed';
 
 function suppressLegacyWp8GlobalLoader() {
@@ -22,13 +19,10 @@ function suppressLegacyWp8GlobalLoader() {
   }
 }
 
-// This module is statically imported by Brian's shell, so the unified loader
-// starts once for every route — including surfaces that do not render the
-// global navigation runtime (for example the homeroom portal).
+// This module is statically imported by Brian's shell. Keep legacy loading
+// visuals suppressed, but do not install any replacement global loader.
 if (typeof document !== 'undefined' && typeof window !== 'undefined') {
   suppressLegacyWp8GlobalLoader();
-  installGlobalUnifiedWaveLoading();
-  installGlobalWaveLoaderExactVisual();
 }
 
 const LEGACY_VISUAL_SELECTOR = [
@@ -70,7 +64,6 @@ const PROTECTED_SELECTOR = [
   '[data-bes-route-loading]',
   '[data-route-loading]',
   '[data-global-route-loading]',
-  '[data-bes-unified-wave-loader]',
 ].join(',');
 
 const LOADING_TEXT = /^(?:đang\s+(?:tải|lưu|xử\s*lý|gửi|tạo|xuất|nhập|đồng\s*bộ|cập\s*nhật|kết\s*nối|chuẩn\s*bị|phân\s*tích)(?:\s+[^.!?…]*)?[.!?…]*|loading(?:\s+[^.!?…]*)?[.!?…]*|saving(?:\s+[^.!?…]*)?[.!?…]*|processing(?:\s+[^.!?…]*)?[.!?…]*|submitting(?:\s+[^.!?…]*)?[.!?…]*|generating(?:\s+[^.!?…]*)?[.!?…]*|exporting(?:\s+[^.!?…]*)?[.!?…]*|importing(?:\s+[^.!?…]*)?[.!?…]*|syncing(?:\s+[^.!?…]*)?[.!?…]*)$/i;

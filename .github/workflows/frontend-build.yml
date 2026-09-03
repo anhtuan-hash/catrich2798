@@ -13,6 +13,7 @@ on:
       - 'scripts/test-hero-theme-studio-settings-route.mjs'
       - 'scripts/test-no-first-visit-welcome.mjs'
       - 'scripts/test-dashboard-news-reader-no-loading-bars.mjs'
+      - 'scripts/test-no-global-wave-loader.mjs'
       - 'scripts/test-conduct-export-active-class.mjs'
       - 'package.json'
       - 'package-lock.json'
@@ -58,6 +59,9 @@ jobs:
 
       - name: Verify dashboard focused reader has no loading bars
         run: node scripts/test-dashboard-news-reader-no-loading-bars.mjs
+
+      - name: Verify global 10-bar Wave Loader is retired
+        run: node scripts/test-no-global-wave-loader.mjs
 
       - name: Verify conduct export uses active Homeroom class
         run: node scripts/test-conduct-export-active-class.mjs
