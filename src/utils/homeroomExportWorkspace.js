@@ -38,3 +38,27 @@ export function activeHomeroomRosterSignature(workspace) {
     .sort();
   return `${text(workspace?.id)}::${students.join('||')}`;
 }
+
+export function resolveRenderedHomeroomWorkspace(candidates = [], {
+  renderedWorkspaceId = '',
+  panelWorkspaceId = '',
+} = {}) {
+  const items = Array.isArray(candidates) ? candidates.filter(Boolean) : [];
+  const renderedId = text(renderedWorkspaceId);
+  if (renderedId) {
+    const exact = items.find((item) => text(item?.id) === renderedId);
+    if (exact) return exact;
+  }
+
+  const panelId = text(panelWorkspaceId);
+  if (panelId) {
+    const exact = items.find((item) => text(item?.id) === panelId);
+    if (exact) return exact;
+  }
+
+  return [...items].sort((left, right) => {
+    const at = Date.parse(left?.updatedAt || left?.lastOpenedAt || 0) || 0;
+    const bt = Date.parse(right?.updatedAt || right?.lastOpenedAt || 0) || 0;
+    return bt - at;
+  })[0] || null;
+}

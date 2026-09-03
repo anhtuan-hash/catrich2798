@@ -3,6 +3,7 @@ import {
   activeHomeroomRosterSignature,
   isAllowedHomeroomExportStorageRead,
   resolveHomeroomExportWorkspaceId,
+  resolveRenderedHomeroomWorkspace,
 } from '../src/utils/homeroomExportWorkspace.js';
 
 const renderedWorkspaceId = '12-6-2026-2027';
@@ -79,6 +80,33 @@ assert.equal(
   activeHomeroomRosterSignature({ ...rosterAfter, students: [...rosterAfter.students].reverse() }),
   activeHomeroomRosterSignature(rosterAfter),
   'đổi thứ tự hiển thị không được tạo refresh giả',
+);
+
+const newerWrongWorkspace = {
+  id: 'subject-10-4',
+  updatedAt: '2026-09-03T09:55:00Z',
+  students: [{ id: 'dang-thanh-cong', code: 'CP-007448', fullName: 'Đặng Thành Công', active: true }],
+};
+const renderedHomeroomWorkspace = {
+  id: 'school-12-6-2026-2027',
+  updatedAt: '2026-09-03T09:40:00Z',
+  students: [{ id: 'dinh-bao-chau', code: 'CP-007371', fullName: 'Đinh Bảo Châu', active: true }],
+};
+assert.equal(
+  resolveRenderedHomeroomWorkspace(
+    [newerWrongWorkspace, renderedHomeroomWorkspace],
+    { renderedWorkspaceId: renderedHomeroomWorkspace.id },
+  ),
+  renderedHomeroomWorkspace,
+  'panel V2 phải lấy workspace đang render, không được lấy workspace lớp khác chỉ vì updatedAt mới hơn',
+);
+assert.equal(
+  resolveRenderedHomeroomWorkspace(
+    [newerWrongWorkspace, renderedHomeroomWorkspace],
+    { renderedWorkspaceId: 'missing', panelWorkspaceId: renderedHomeroomWorkspace.id },
+  ),
+  renderedHomeroomWorkspace,
+  'panel workspace là fallback trước khi rơi về workspace mới cập nhật nhất',
 );
 
 console.log('✓ homeroom report workspace source regression');
