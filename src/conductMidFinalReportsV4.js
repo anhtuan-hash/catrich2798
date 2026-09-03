@@ -63,7 +63,6 @@ function injectStyle() {
   style.id = STYLE_ID;
   style.textContent = `
 #${PANEL_ID} [data-mf-student-field][hidden]{display:none!important}
-#${PANEL_ID}[data-rendered-roster-guard="v12"] [data-mf-student-field][style*="display: none"]{display:none!important}
 `;
   document.head.appendChild(style);
 }
@@ -101,7 +100,6 @@ function syncStudentOptions(panel, workspace) {
 
   const previousStillExists = previous && students.some((student) => text(student.id) === previous);
   if (previousStillExists) select.value = previous;
-  else if (syncScopeVisibility(panel)) select.value = '';
   else select.value = text(students[0]?.id);
 }
 
@@ -114,9 +112,30 @@ function syncPanel() {
   const workspace = exactRenderedWorkspace(panel);
   if (!workspace) return;
 
-  panel.dataset.workspaceId = text(workspace.id, 'default');
-  panel.dataset.renderedRosterGuard = 'v12';
+  // Do not permanently overwrite V2's workspaceId. V2 watches child-list mutations
+  // and would otherwise see a mismatch, remove this panel, and rebuild it forever.
+  panel.dataset.renderedWorkspaceId = text(workspace.id, 'default');
   syncStudentOptions(panel, workspace);
+}
+
+function pinRenderedWorkspaceDuringNativeHandler(panel) {
+  if (!panel) return;
+  const workspace = exactRenderedWorkspace(panel);
+  const renderedId = text(workspace?.id);
+  const previousId = text(panel.dataset.workspaceId);
+  if (!renderedId || renderedId === previousId) return;
+
+  const token = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  panel.dataset.renderedWorkspacePin = token;
+  panel.dataset.workspaceId = renderedId;
+
+  // V2 event handlers run synchronously after this capture listener. Restore before
+  // its requestAnimationFrame-based ensurePanel can react to any child-list changes.
+  window.setTimeout(() => {
+    if (!panel.isConnected || panel.dataset.renderedWorkspacePin !== token) return;
+    if (text(panel.dataset.workspaceId) === renderedId) panel.dataset.workspaceId = previousId;
+    delete panel.dataset.renderedWorkspacePin;
+  }, 0);
 }
 
 let timer = 0;
@@ -138,7 +157,16 @@ function install() {
   observer.observe(document.documentElement, { childList: true, subtree: true });
 
   document.addEventListener('change', (event) => {
-    if (event.target?.closest?.(`#${PANEL_ID} [data-mf-scope]`)) scheduleSync(0);
+    const panel = event.target?.closest?.(`#${PANEL_ID}`);
+    if (!panel) return;
+    pinRenderedWorkspaceDuringNativeHandler(panel);
+    if (event.target?.matches?.('[data-mf-scope]')) scheduleSync(0);
+  }, true);
+
+  document.addEventListener('click', (event) => {
+    const button = event.target?.closest?.(`#${PANEL_ID} [data-mf-export]`);
+    if (!button) return;
+    pinRenderedWorkspaceDuringNativeHandler(button.closest(`#${PANEL_ID}`));
   }, true);
 
   window.addEventListener('bes-homeroom-store-updated', () => scheduleSync(20));
@@ -153,5 +181,5 @@ function install() {
 
 install();
 if (typeof window !== 'undefined') {
-  window.__besConductReportRenderedRosterGuardVersion = 'v12-v2-source-boundary';
+  window.__besConductReportRenderedRosterGuardVersion = 'v13-interaction-loop-fix';
 }
