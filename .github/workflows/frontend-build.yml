@@ -2,26 +2,6 @@ name: Frontend Build
 
 on:
   pull_request:
-    paths:
-      - 'src/**'
-      - 'api/**'
-      - 'server/**'
-      - 'supabase/**'
-      - 'public/**'
-      - 'scripts/test-font-upload-live-preview.mjs'
-      - 'scripts/test-hero-theme-studio.mjs'
-      - 'scripts/test-hero-theme-studio-settings-route.mjs'
-      - 'scripts/test-no-first-visit-welcome.mjs'
-      - 'scripts/test-dashboard-news-reader-no-loading-bars.mjs'
-      - 'scripts/test-no-global-wave-loader.mjs'
-      - 'scripts/test-conduct-export-active-class.mjs'
-      - 'scripts/test-ttcm-self-recipient.mjs'
-      - 'scripts/test-ttcm-response-multi-attachments.mjs'
-      - 'scripts/test-ttcm-drive-resumable-cors.mjs'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'vite.config.*'
-      - '.github/workflows/frontend-build.yml'
   workflow_dispatch:
 
 permissions:
@@ -57,6 +37,9 @@ jobs:
       - name: Verify Hero Theme Studio settings route
         run: node scripts/test-hero-theme-studio-settings-route.mjs
 
+      - name: Verify Hero Theme registry/runtime matrix
+        run: node scripts/test-hero-theme-registry-matrix.mjs
+
       - name: Verify first-visit welcome is retired
         run: node scripts/test-no-first-visit-welcome.mjs
 
@@ -77,6 +60,12 @@ jobs:
 
       - name: Verify TTCM Drive resumable CORS origin
         run: node scripts/test-ttcm-drive-resumable-cors.mjs
+
+      - name: Verify critical browser smoke gate
+        run: node scripts/test-critical-e2e-contract.mjs
+
+      - name: Verify browser error telemetry
+        run: node scripts/test-client-error-telemetry.mjs
 
       - name: Build production bundle
         run: npm run build
