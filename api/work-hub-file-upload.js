@@ -1,22 +1,24 @@
-import { ensureFolder, getConnection, uploadFile } from '../server/api/_googleDrive.js';
+import { ensureFolder, getConnection } from '../server/api/_googleDrive.js';
 import { appendApiAudit, createRequestId, enforceRateLimit, requireApprovedUser, sendJson } from '../server/api/_security.js';
 
-export const config = { api: { bodyParser: false, sizeLimit: '11mb' } };
-
-const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
+const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
 const TARGET_FOLDER = '04_WORK_HUB_SUBMISSIONS';
 const ALLOWED_EXTENSIONS = new Set([
   'pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'ppt', 'pptx', 'txt', 'rtf',
   'odt', 'ods', 'odp',
   'jpg', 'jpeg', 'png', 'webp', 'gif', 'svg',
-  'zip', 'rar', '7z',
+  'zip', 'rar', '7z', 'tar', 'gz', 'tgz', 'bz2', 'xz',
   'mp3', 'wav', 'ogg', 'm4a',
   'mp4', 'webm', 'mov',
 ]);
 
-function cleanHeader(value, fallback = '') {
-  try { return decodeURIComponent(String(value || fallback)).replace(/[\r\n]/g, '').trim(); }
-  catch { return String(value || fallback).replace(/[\r\n]/g, '').trim(); }
+function bodyObject(req) {
+  if (req.body && typeof req.body === 'object') return req.body;
+  try { return JSON.parse(String(req.body || '{}')); } catch { return {}; }
+}
+
+function cleanText(value, fallback = '') {
+  return String(value || fallback).replace(/[\r\n]/g, '').trim();
 }
 
 function extensionOf(value) {
@@ -59,19 +61,41 @@ async function assertWorkItemAccess(context, itemId) {
   return data;
 }
 
-async function readBody(req) {
-  const chunks = [];
-  let total = 0;
-  for await (const chunk of req) {
-    total += chunk.length;
-    if (total > MAX_UPLOAD_BYTES) {
-      const error = new Error('Tệp vượt quá giới hạn 10 MB.');
-      error.status = 413;
-      throw error;
-    }
-    chunks.push(chunk);
+async function initializeResumableUpload(accessToken, { storedName, originalName, mimeType, fileSize, folderId, itemId, uploaderId }) {
+  const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,name,size,mimeType', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json; charset=UTF-8',
+      'X-Upload-Content-Type': mimeType,
+      'X-Upload-Content-Length': String(fileSize),
+    },
+    body: JSON.stringify({
+      name: storedName,
+      parents: [folderId],
+      description: `Work Hub · ${originalName}`,
+      appProperties: {
+        besResource: 'true',
+        category: 'work-hub-submission',
+        workHubItemId: itemId,
+        uploaderId,
+      },
+    }),
+  });
+  if (!response.ok) {
+    let message = 'Google Drive không thể khởi tạo phiên tải tệp.';
+    try { message = (await response.json())?.error?.message || message; } catch { /* keep fallback */ }
+    const error = new Error(message);
+    error.status = response.status >= 400 && response.status < 500 ? response.status : 502;
+    throw error;
   }
-  return Buffer.concat(chunks);
+  const uploadUrl = response.headers.get('location') || '';
+  if (!uploadUrl) {
+    const error = new Error('Google Drive không trả về địa chỉ phiên tải tệp.');
+    error.status = 502;
+    throw error;
+  }
+  return uploadUrl;
 }
 
 export default async function handler(req, res) {
@@ -80,69 +104,69 @@ export default async function handler(req, res) {
   try {
     if (req.method !== 'POST') return sendJson(res, 405, { error: 'Method not allowed' });
     context = await requireApprovedUser(req, { roles: ['admin', 'department_head', 'teacher'] });
-    // A single TTCM post may legitimately upload ten files in sequence. Keep room
-    // for the complete batch plus an occasional retry without weakening daily limits.
     await enforceRateLimit(context, { feature: 'work_hub_file_upload', perMinute: 20, perDay: 200 });
 
-    const itemId = uuid(req.headers['x-work-hub-item-id']);
+    const body = bodyObject(req);
+    const action = cleanText(body.action).toLowerCase();
+    if (action !== 'init_resumable') throw new Error('Thao tác tải tệp không hợp lệ.');
+
+    const itemId = uuid(body.itemId);
     if (!itemId) throw new Error('Mã công việc không hợp lệ.');
     await assertWorkItemAccess(context, itemId);
 
-    const storedName = cleanHeader(req.headers['x-file-name'], 'submission.bin').slice(0, 180);
-    const originalName = cleanHeader(req.headers['x-original-file-name'], storedName).slice(0, 180);
+    const storedName = cleanText(body.fileName, 'submission.bin').slice(0, 180);
+    const originalName = cleanText(body.originalFileName, storedName).slice(0, 180);
     const ext = extensionOf(storedName || originalName);
     if (!ALLOWED_EXTENSIONS.has(ext)) throw new Error('Định dạng tệp chưa được hỗ trợ.');
-    const mimeType = String(req.headers['content-type'] || 'application/octet-stream').split(';')[0].trim().toLowerCase();
-    const declaredLength = Number(req.headers['content-length'] || 0);
-    if (declaredLength > MAX_UPLOAD_BYTES) {
-      const error = new Error('Tệp vượt quá giới hạn 10 MB.');
+
+    const fileSize = Number(body.fileSize || 0);
+    if (!Number.isFinite(fileSize) || fileSize <= 0) throw new Error('Tệp đã chọn không có dữ liệu.');
+    if (fileSize > MAX_UPLOAD_BYTES) {
+      const error = new Error('Tệp vượt quá giới hạn 50 MB.');
       error.status = 413;
       throw error;
     }
-
-    const body = await readBody(req);
-    if (!body.length) throw new Error('Tệp đã chọn không có dữ liệu.');
+    const mimeType = cleanText(body.fileType, 'application/octet-stream').split(';')[0].trim().toLowerCase() || 'application/octet-stream';
 
     const { connection, accessToken } = await getConnection();
     const folderId = connection.folder_map?.[TARGET_FOLDER]
       || await ensureFolder(accessToken, TARGET_FOLDER, connection.root_folder_id);
-    const uploaded = await uploadFile(accessToken, body, {
-      name: storedName,
-      parents: [folderId],
-      description: `Work Hub · ${originalName}`,
-      appProperties: {
-        besResource: 'true',
-        category: 'work-hub-submission',
-        workHubItemId: itemId,
-        uploaderId: context.user.id,
-      },
-    }, mimeType || 'application/octet-stream');
+    const uploadUrl = await initializeResumableUpload(accessToken, {
+      storedName,
+      originalName,
+      mimeType,
+      fileSize,
+      folderId,
+      itemId,
+      uploaderId: context.user.id,
+    });
 
     await appendApiAudit(context, {
       endpoint: '/api/work-hub-file-upload',
-      action: 'work_hub_drive_upload',
+      action: 'work_hub_drive_resumable_init',
       status: 'ok',
       requestId,
-      details: { itemId, fileId: uploaded.id, fileName: originalName, size: body.length },
+      details: { itemId, fileName: originalName, size: fileSize },
     });
     return sendJson(res, 200, {
       ok: true,
-      fileId: uploaded.id,
+      action,
+      uploadUrl,
       fileName: originalName,
-      mimeType: uploaded.mimeType || mimeType,
-      size: Number(uploaded.size || body.length),
+      mimeType,
+      size: fileSize,
       requestId,
     });
   } catch (error) {
     if (context) {
       await appendApiAudit(context, {
         endpoint: '/api/work-hub-file-upload',
-        action: 'work_hub_drive_upload',
+        action: 'work_hub_drive_resumable_init',
         status: 'error',
         requestId,
         details: { message: error?.message || String(error) },
       });
     }
-    return sendJson(res, Number(error?.status || 400), { error: error?.message || 'Không thể tải tệp lên Google Drive.', requestId });
+    return sendJson(res, Number(error?.status || 400), { error: error?.message || 'Không thể khởi tạo tải tệp lên Google Drive.', requestId });
   }
 }

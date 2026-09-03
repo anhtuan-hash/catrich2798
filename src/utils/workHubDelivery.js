@@ -4,13 +4,13 @@ import { getAccessToken } from './resourceLibrary.js';
 export const WORK_HUB_DELIVERY_EVENT = 'bes-work-hub-delivery-updated';
 export const WORK_HUB_BUCKET = 'work-hub-submissions';
 export const WORK_HUB_DRIVE_PROVIDER = 'google-drive';
-export const WORK_HUB_MAX_FILE_BYTES = 10 * 1024 * 1024;
+export const WORK_HUB_MAX_FILE_BYTES = 50 * 1024 * 1024;
 export const WORK_HUB_MAX_ATTACHMENTS = 10;
 export const WORK_HUB_ALLOWED_EXTENSIONS = Object.freeze([
   'pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'ppt', 'pptx', 'txt', 'rtf',
   'odt', 'ods', 'odp',
   'jpg', 'jpeg', 'png', 'webp', 'gif', 'svg',
-  'zip', 'rar', '7z',
+  'zip', 'rar', '7z', 'tar', 'gz', 'tgz', 'bz2', 'xz',
   'mp3', 'wav', 'ogg', 'm4a',
   'mp4', 'webm', 'mov',
 ]);
@@ -101,7 +101,7 @@ export function validateWorkHubFile(file) {
   if (!file) return { ok: false, message: 'Vui lòng chọn một tệp để tải lên.' };
   if (Number(file.size || 0) <= 0) return { ok: false, message: 'Tệp đã chọn không có dữ liệu.' };
   if (Number(file.size || 0) > WORK_HUB_MAX_FILE_BYTES) {
-    return { ok: false, message: 'Tệp vượt quá giới hạn 10 MB.' };
+    return { ok: false, message: 'Tệp vượt quá giới hạn 50 MB.' };
   }
   const ext = fileExtension(file.name);
   if (!ext || !ALLOWED_EXTENSIONS.has(ext)) {
@@ -130,34 +130,41 @@ export async function uploadWorkHubSubmissionFile({ file, itemId, userId }) {
   if (!itemId || !userId) return { ok: false, message: 'Thiếu thông tin công việc hoặc người nộp.' };
 
   try {
-    const token = await getAccessToken();
-    if (!token) return { ok: false, message: 'Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại.' };
-    const response = await fetch('/api/work-hub-file-upload', {
+    const mimeType = file.type || 'application/octet-stream';
+    const init = await authenticatedJson('/api/work-hub-file-upload', {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': file.type || 'application/octet-stream',
-        'X-File-Name': encodeURIComponent(safeFileName(file.name)),
-        'X-Original-File-Name': encodeURIComponent(file.name),
-        'X-Work-Hub-Item-Id': String(itemId),
-      },
+      body: JSON.stringify({
+        action: 'init_resumable',
+        itemId: String(itemId),
+        fileName: safeFileName(file.name),
+        originalFileName: file.name,
+        fileType: mimeType,
+        fileSize: Number(file.size || 0),
+      }),
+    });
+    const uploadUrl = String(init.uploadUrl || '');
+    if (!uploadUrl) return { ok: false, message: 'Không thể khởi tạo phiên tải tệp Google Drive.' };
+
+    const response = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': mimeType },
       body: file,
     });
     let data = {};
     try { data = await response.json(); } catch { /* keep fallback */ }
-    if (!response.ok || !data.fileId) {
-      return { ok: false, message: data.error || 'Không thể tải tệp lên Google Drive.' };
+    if (!response.ok || !data.id) {
+      return { ok: false, message: data?.error?.message || 'Không thể tải tệp lên Google Drive.' };
     }
 
     const attachment = {
       provider: WORK_HUB_DRIVE_PROVIDER,
       bucket: WORK_HUB_DRIVE_PROVIDER,
-      path: data.fileId,
-      drive_file_id: data.fileId,
+      path: data.id,
+      drive_file_id: data.id,
       item_id: itemId,
       name: file.name,
-      mime: file.type || data.mimeType || 'application/octet-stream',
-      size: Number(file.size || data.size || 0),
+      mime: data.mimeType || mimeType,
+      size: Number(data.size || file.size || 0),
       uploaded_at: new Date().toISOString(),
       uploaded_by: userId,
     };
