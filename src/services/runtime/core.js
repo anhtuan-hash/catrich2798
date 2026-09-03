@@ -7,6 +7,9 @@ import {
 import { resolveSystemRole } from '../../utils/roles.js';
 import { RUNTIME_CORE_VERSION } from '../../config/version.js';
 import { initializeAuthSession, subscribeToAuthChanges } from '../../utils/auth.js';
+import { installClientErrorTelemetry } from '../../utils/clientErrorTelemetry.js';
+
+installClientErrorTelemetry({ appVersion: RUNTIME_CORE_VERSION });
 
 const listeners = new Set();
 const channels = new Map();
