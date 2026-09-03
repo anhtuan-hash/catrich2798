@@ -13,6 +13,7 @@ on:
       - 'scripts/test-font-upload-live-preview.mjs'
       - 'scripts/test-hero-theme-studio.mjs'
       - 'scripts/test-hero-theme-studio-settings-route.mjs'
+      - 'scripts/test-hero-theme-registry-matrix.mjs'
       - 'scripts/test-no-first-visit-welcome.mjs'
       - 'scripts/test-dashboard-news-reader-no-loading-bars.mjs'
       - 'scripts/test-no-global-wave-loader.mjs'
@@ -61,6 +62,9 @@ jobs:
 
       - name: Verify Hero Theme Studio settings route
         run: node scripts/test-hero-theme-studio-settings-route.mjs
+
+      - name: Verify Hero Theme registry/runtime matrix
+        run: node scripts/test-hero-theme-registry-matrix.mjs
 
       - name: Verify first-visit welcome is retired
         run: node scripts/test-no-first-visit-welcome.mjs
