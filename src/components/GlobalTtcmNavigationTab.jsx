@@ -72,6 +72,7 @@ function readReadIds(user) {
 }
 function writeReadIds(user, ids) { try { localStorage.setItem(readKey(user), JSON.stringify([...ids].slice(-500))); } catch { /* optional */ } }
 function uniqueIds(values = []) { return [...new Set((values || []).filter(Boolean).map(String))]; }
+function userIsAssignee(item, userId) { return Boolean(userId && uniqueIds(item?.assignee_ids).includes(String(userId))); }
 function normalizeRole(value) { return String(value || '').trim().toLowerCase().replace(/[\s-]+/g, '_'); }
 function departmentKey(person) {
   return String(person?.department_id || person?.department || person?.subject_group || person?.group_name || person?.subject || '').trim().toLowerCase();
@@ -248,40 +249,46 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
   }, [composeOpen, fileViewer, open, responseItem, responseViewerItem]);
 
   const eligibleTeachers = useMemo(() => people.filter((person) => {
-    if (!person?.id || person.id === currentUser?.id) return false;
+    if (!person?.id) return false;
     return !['student','learner','pupil','parent','guardian','guest','admin','administrator'].includes(normalizeRole(person.role));
-  }), [currentUser?.id, people]);
-  const currentProfile = useMemo(() => people.find((person) => person.id === currentUser?.id) || normalizePerson(currentUser), [currentUser, people]);
+  }), [people]);
+  const currentProfile = useMemo(() => people.find((person) => String(person.id) === String(currentUser?.id)) || normalizePerson(currentUser), [currentUser, people]);
   const currentDepartment = departmentKey(currentProfile);
   const departmentTeachers = useMemo(() => {
-    if (!currentDepartment) return eligibleTeachers;
-    const matched = eligibleTeachers.filter((person) => departmentKey(person) === currentDepartment); return matched.length ? matched : eligibleTeachers;
-  }, [currentDepartment, eligibleTeachers]);
+    const others = eligibleTeachers.filter((person) => String(person.id) !== String(currentUser?.id));
+    if (!currentDepartment) return others;
+    const matched = others.filter((person) => departmentKey(person) === currentDepartment); return matched.length ? matched : others;
+  }, [currentDepartment, currentUser?.id, eligibleTeachers]);
+  const departmentRecipients = useMemo(() => {
+    const byId = new Map();
+    [currentProfile, ...departmentTeachers].forEach((person) => { if (person?.id) byId.set(String(person.id), person); });
+    return [...byId.values()];
+  }, [currentProfile, departmentTeachers]);
   const visibleRecipients = useMemo(() => {
-    const needle = recipientQuery.trim().toLowerCase(); if (!needle) return departmentTeachers;
-    return departmentTeachers.filter((person) => `${person.name} ${person.email}`.toLowerCase().includes(needle));
-  }, [departmentTeachers, recipientQuery]);
+    const needle = recipientQuery.trim().toLowerCase(); if (!needle) return departmentRecipients;
+    return departmentRecipients.filter((person) => `${person.name} ${person.email}`.toLowerCase().includes(needle));
+  }, [departmentRecipients, recipientQuery]);
 
-  const unseenCount = useMemo(() => manager ? 0 : items.filter((item) => item.created_by !== currentUser?.id && !readIds.has(String(item.id))).length, [currentUser?.id, items, manager, readIds]);
+  const unseenCount = useMemo(() => items.filter((item) => userIsAssignee(item, currentUser?.id) && !readIds.has(String(item.id))).length, [currentUser?.id, items, readIds]);
   const counts = useMemo(() => {
     const now = Date.now();
     return {
       all: items.length,
-      unread: manager ? 0 : items.filter((item) => item.created_by !== currentUser?.id && !readIds.has(String(item.id))).length,
+      unread: items.filter((item) => userIsAssignee(item, currentUser?.id) && !readIds.has(String(item.id))).length,
       action: items.filter(isActionItem).length,
       due: items.filter((item) => { const due = item.due_at ? new Date(item.due_at).getTime() : 0; return Boolean(due && due >= now && !isDoneItem(item)); }).length,
       done: items.filter(isDoneItem).length,
     };
-  }, [currentUser?.id, items, manager, readIds]);
+  }, [currentUser?.id, items, readIds]);
 
   const filteredItems = useMemo(() => items.filter((item) => {
     if (filter === 'all') return true;
-    if (filter === 'unread') return !manager && item.created_by !== currentUser?.id && !readIds.has(String(item.id));
+    if (filter === 'unread') return userIsAssignee(item, currentUser?.id) && !readIds.has(String(item.id));
     if (filter === 'action') return isActionItem(item);
     if (filter === 'due') { const due = item.due_at ? new Date(item.due_at).getTime() : 0; return Boolean(due && due >= Date.now() && !isDoneItem(item)); }
     if (filter === 'done') return isDoneItem(item);
     return true;
-  }), [currentUser?.id, filter, items, manager, readIds]);
+  }), [currentUser?.id, filter, items, readIds]);
 
   const selectedItem = useMemo(() => filteredItems.find((item) => String(item.id) === String(selectedItemId)) || filteredItems[0] || null, [filteredItems, selectedItemId]);
   const editingAttachments = useMemo(() => {
@@ -300,17 +307,17 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
     const id = String(itemId || ''); if (!id) return;
     setReadIds((current) => { const next = new Set(current); next.add(id); writeReadIds(currentUser, next); return next; });
   }
-  function markAllRead() { const next = new Set(readIds); items.forEach((item) => next.add(String(item.id))); setReadIds(next); writeReadIds(currentUser, next); }
+  function markAllRead() { const next = new Set(readIds); items.forEach((item) => { if (userIsAssignee(item, currentUser?.id)) next.add(String(item.id)); }); setReadIds(next); writeReadIds(currentUser, next); }
   function openItem(item) { if (!item) return; setSelectedItemId(String(item.id)); markRead(item.id); }
 
   function beginCompose() {
     setEditingId(''); setComposeOpen(true); setKind('announcement'); setTitle(''); setDescription(''); setDueAt(''); setFiles([]);
-    setRecipientQuery(''); setSelectedRecipients(departmentTeachers.map((person) => person.id)); setError(''); setNotice('');
+    setRecipientQuery(''); setSelectedRecipients(departmentRecipients.map((person) => person.id)); setError(''); setNotice('');
   }
   function beginEdit(item) {
     if (!manager || !item) return; const canManage = item.created_by === currentUser?.id || item.owner_id === currentUser?.id; if (!canManage) return;
     setEditingId(String(item.id)); setKind(typeForItem(item).id); setTitle(item.title || ''); setDescription(item.description || '');
-    setDueAt(dateTimeLocalValue(item.due_at)); setFiles([]); setRecipientQuery(''); setSelectedRecipients(uniqueIds(item.assignee_ids)); setError(''); setNotice(''); setComposeOpen(true);
+    setDueAt(dateTimeLocalValue(item.due_at)); setFiles([]); setRecipientQuery(''); setSelectedRecipients(uniqueIds([...(item.assignee_ids || []), currentUser?.id])); setError(''); setNotice(''); setComposeOpen(true);
   }
   function selectComposerFiles(event) {
     const incoming = Array.from(event.target.files || []); event.target.value = ''; if (!incoming.length) return;
@@ -319,14 +326,17 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
     setFiles(nextFiles); setError('');
   }
   function removeComposerFile(index) { setFiles((current) => current.filter((_, fileIndex) => fileIndex !== index)); setError(''); }
-  function toggleRecipient(id) { setSelectedRecipients((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]); }
+  function toggleRecipient(id) {
+    if (String(id) === String(currentUser?.id)) return;
+    setSelectedRecipients((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]);
+  }
 
   async function saveEditedCommunication(event) {
     event.preventDefault(); if (!manager || busy || !editingId) return;
     const existing = items.find((item) => String(item.id) === String(editingId)); if (!existing) { setError('Không tìm thấy nội dung cần chỉnh sửa.'); return; }
     if (!(existing.created_by === currentUser?.id || existing.owner_id === currentUser?.id)) { setError('Bạn không có quyền chỉnh sửa nội dung này.'); return; }
     if (!title.trim()) { setError('Vui lòng nhập tiêu đề.'); return; }
-    const recipients = uniqueIds(selectedRecipients); if (!recipients.length) { setError('Vui lòng chọn ít nhất một giáo viên nhận nội dung.'); return; }
+    const recipients = uniqueIds([...selectedRecipients, currentUser?.id]); if (!recipients.length) { setError('Vui lòng chọn ít nhất một người nhận nội dung.'); return; }
     const fileValidation = validateWorkHubFiles(files); if (!fileValidation.ok) { setError(fileValidation.message); return; }
     if (files.length && (!client || !runtime.ready || !runtime.session)) { setError('Cần kết nối hệ thống để tải các tệp đính kèm mới.'); return; }
     const type = CONTENT_TYPES.find((entry) => entry.id === kind) || CONTENT_TYPES[0];
@@ -347,7 +357,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
         if (files.length) { const previous = Array.isArray(existing.attachments) ? existing.attachments : []; if (previous.length) removeWorkHubSubmissionFiles(previous).catch(() => {}); }
       }
       const next = items.map((item) => String(item.id) === String(updated.id) ? updated : item); setItems(next); writeLocalItems(currentUser, next);
-      setEditingId(''); setComposeOpen(false); setFiles([]); setSelectedItemId(String(updated.id)); setNotice('Đã cập nhật nội dung và đồng bộ đến tổ viên.'); window.setTimeout(() => setNotice(''), 3600);
+      setEditingId(''); setComposeOpen(false); setFiles([]); setSelectedItemId(String(updated.id)); setNotice('Đã cập nhật nội dung và đồng bộ đến toàn bộ người nhận.'); window.setTimeout(() => setNotice(''), 3600);
     } catch (editError) { setError(editError?.message || 'Không thể cập nhật nội dung TTCM.'); } finally { setBusy(false); }
   }
 
@@ -367,7 +377,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
 
   async function saveCommunication(event) {
     event.preventDefault(); if (!manager || busy) return; if (!title.trim()) { setError('Vui lòng nhập tiêu đề.'); return; }
-    const recipients = uniqueIds(selectedRecipients); if (!recipients.length) { setError('Vui lòng chọn ít nhất một giáo viên nhận nội dung.'); return; }
+    const recipients = uniqueIds([...selectedRecipients, currentUser?.id]); if (!recipients.length) { setError('Vui lòng chọn ít nhất một người nhận nội dung.'); return; }
     const fileValidation = validateWorkHubFiles(files); if (!fileValidation.ok) { setError(fileValidation.message); return; }
     if (files.length && (!client || !runtime.ready || !runtime.session)) { setError('Cần kết nối hệ thống để tải tệp đính kèm.'); return; }
     const type = CONTENT_TYPES.find((entry) => entry.id === kind) || CONTENT_TYPES[0]; setBusy(true); setError(''); setNotice('');
@@ -385,7 +395,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
         }
       } else created = { ...payload, id: `ttcm-${Date.now()}`, created_at: now, updated_at: now };
       const next = [created, ...items.filter((item) => item.id !== created.id)]; setItems(next); writeLocalItems(currentUser, next); setComposeOpen(false); setFiles([]); setFilter('all'); setSelectedItemId(String(created.id));
-      setNotice(type.action ? 'Đã gửi đến tổ viên và bật theo dõi phản hồi.' : 'Đã gửi nội dung đến Kênh TTCM.'); window.setTimeout(() => setNotice(''), 3600);
+      setNotice(type.action ? 'Đã gửi đến toàn bộ người nhận và bật theo dõi phản hồi.' : 'Đã gửi nội dung đến Kênh TTCM, bao gồm tài khoản TTCM.'); window.setTimeout(() => setNotice(''), 3600);
     } catch (saveError) { setError(saveError?.message || 'Không thể gửi nội dung TTCM.'); } finally { setBusy(false); }
   }
 
@@ -450,8 +460,9 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
 
   const selectedType = selectedItem ? typeForItem(selectedItem) : null;
   const selectedAttachments = Array.isArray(selectedItem?.attachments) ? selectedItem.attachments : [];
-  const selectedUnread = Boolean(selectedItem && !manager && selectedItem.created_by !== currentUser?.id && !readIds.has(String(selectedItem.id)));
+  const selectedUnread = Boolean(selectedItem && userIsAssignee(selectedItem, currentUser?.id) && !readIds.has(String(selectedItem.id)));
   const canManageSelected = Boolean(selectedItem && manager && (selectedItem.created_by === currentUser?.id || selectedItem.owner_id === currentUser?.id));
+  const canActOnSelected = Boolean(selectedItem && userIsAssignee(selectedItem, currentUser?.id) && isActionItem(selectedItem));
 
   const panel = open && typeof document !== 'undefined' ? createPortal(
     <div className="ttcm-m3-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !composeOpen) setOpen(false); }}>
@@ -459,7 +470,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
         <header className="ttcm-m3-topbar">
           <div className="ttcm-m3-title"><span className="ttcm-m3-title-icon"><Icon name="campaign" size={22} /></span><div><strong>Kênh TTCM</strong><small>{manager ? 'Điều hành và giao tiếp với tổ chuyên môn' : 'Thông báo, tài liệu và yêu cầu từ TTCM'}</small></div></div>
           <div className="ttcm-m3-top-actions">
-            {workspaceView === 'feed' && !manager && unseenCount > 0 ? <button type="button" className="ttcm-reader-mark-all" onClick={markAllRead}><Icon name="check" size={18} />Đánh dấu tất cả đã đọc</button> : null}
+            {workspaceView === 'feed' && unseenCount > 0 ? <button type="button" className="ttcm-reader-mark-all" onClick={markAllRead}><Icon name="check" size={18} />Đánh dấu tất cả đã đọc</button> : null}
             <button type="button" className="ttcm-m3-icon-button" onClick={() => loadFeed()} title="Làm mới" aria-label="Làm mới"><Icon name="refresh" /></button>
             {manager && workspaceView === 'feed' ? <button type="button" className="ttcm-m3-filled-button" onClick={beginCompose}><Icon name="add" size={18} />Tạo nội dung</button> : null}
             <button type="button" className="ttcm-m3-icon-button" onClick={() => setOpen(false)} title="Đóng" aria-label="Đóng"><Icon name="close" /></button>
@@ -500,7 +511,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
               <div className="ttcm-reader-list-scroll">
                 {loading ? <div className="ttcm-reader-empty">Đang đồng bộ kênh TTCM…</div> : null}
                 {!loading && filteredItems.map((item) => {
-                  const type = typeForItem(item); const unread = !manager && item.created_by !== currentUser?.id && !readIds.has(String(item.id));
+                  const type = typeForItem(item); const unread = userIsAssignee(item, currentUser?.id) && !readIds.has(String(item.id));
                   const active = String(selectedItem?.id || '') === String(item.id); const attachments = Array.isArray(item.attachments) ? item.attachments : [];
                   return (
                     <article key={item.id} role="button" tabIndex={0} className={`ttcm-reader-card is-${type.id} ${unread ? 'is-unread' : ''} ${active ? 'is-selected' : ''}`}
@@ -562,15 +573,19 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
                   </div>
                   <footer className="ttcm-reader-detail-footer">
                     {selectedAttachments.length ? <button type="button" className="ttcm-reader-secondary" onClick={() => previewAttachment(selectedItem, selectedAttachments[0])}><Icon name="eye" size={18} />Xem tệp</button> : <span />}
-                    {!manager && isActionItem(selectedItem) ? (
-                      selectedType?.id === 'acknowledgement'
-                        ? <button type="button" className="ttcm-reader-primary" disabled={busy} onClick={() => acknowledge(selectedItem)}><Icon name="check" size={18} />Xác nhận đã nhận</button>
-                        : <button type="button" className="ttcm-reader-primary" onClick={() => beginResponse(selectedItem)}>{selectedType?.id === 'feedback' ? 'Gửi góp ý' : 'Phản hồi / hoàn thành'}<Icon name="arrow" size={18} /></button>
-                    ) : !manager ? (
-                      <button type="button" className={`ttcm-reader-primary ${selectedUnread ? '' : 'is-done'}`} onClick={() => markRead(selectedItem.id)} disabled={!selectedUnread}><Icon name="check" size={18} />{selectedUnread ? 'Đánh dấu đã đọc' : 'Đã đọc'}</button>
+                    {canActOnSelected ? (
+                      <div className={manager ? 'ttcm-reader-manager-footer' : undefined}>
+                        {manager && canManageSelected ? <button type="button" className="ttcm-reader-secondary" onClick={() => { setResponseViewerItem(selectedItem); loadResponses(); }}><Icon name="people" size={18} />Phản hồi ({responsesForItem(selectedItem.id).length})</button> : null}
+                        {selectedType?.id === 'acknowledgement'
+                          ? <button type="button" className="ttcm-reader-primary" disabled={busy} onClick={() => acknowledge(selectedItem)}><Icon name="check" size={18} />Xác nhận đã nhận</button>
+                          : <button type="button" className="ttcm-reader-primary" onClick={() => beginResponse(selectedItem)}>{selectedType?.id === 'feedback' ? 'Gửi góp ý' : 'Phản hồi / hoàn thành'}<Icon name="arrow" size={18} /></button>}
+                        {manager && canManageSelected ? <button type="button" className="ttcm-reader-secondary" onClick={() => beginEdit(selectedItem)}><Icon name="edit" size={18} />Chỉnh sửa</button> : null}
+                      </div>
                     ) : canManageSelected ? (
                       <div className="ttcm-reader-manager-footer"><button type="button" className="ttcm-reader-secondary" onClick={() => { setResponseViewerItem(selectedItem); loadResponses(); }}><Icon name="people" size={18} />Phản hồi ({responsesForItem(selectedItem.id).length})</button><button type="button" className="ttcm-reader-primary" onClick={() => beginEdit(selectedItem)}><Icon name="edit" size={18} />Chỉnh sửa</button></div>
-                    ) : null}
+                    ) : (
+                      <button type="button" className={`ttcm-reader-primary ${selectedUnread ? '' : 'is-done'}`} onClick={() => markRead(selectedItem.id)} disabled={!selectedUnread}><Icon name="check" size={18} />{selectedUnread ? 'Đánh dấu đã đọc' : 'Đã đọc'}</button>
+                    )}
                   </footer>
                 </>
               ) : <div className="ttcm-reader-detail-empty"><span><Icon name="campaign" size={32} /></span><strong>Chọn một thông báo để đọc</strong><p>Nội dung đầy đủ, thời hạn và tệp đính kèm sẽ hiển thị tại đây.</p></div>}
@@ -601,8 +616,8 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
           <div className="ttcm-m3-compose-layer" role="presentation"><section className="ttcm-m3-response-dialog ttcm-m3-response-viewer" aria-label="Phản hồi của tổ viên"><header><div><strong>Phản hồi của tổ viên</strong><small>{responseViewerItem.title}</small></div><button type="button" className="ttcm-m3-icon-button" onClick={() => setResponseViewerItem(null)} aria-label="Đóng"><Icon name="close" /></button></header><div className="ttcm-m3-response-list">{responsesForItem(responseViewerItem.id).map((entry) => <article key={entry.id}><header><span className="ttcm-m3-avatar">{String(responseAuthor(entry.author_id)).trim().split(/\s+/).slice(-2).map((part) => part[0] || '').join('').toUpperCase()}</span><div><b>{responseAuthor(entry.author_id)}</b><small>{formatDate(entry.created_at)}</small></div></header><p>{entry.body || 'Đã xác nhận.'}</p>{Array.isArray(entry.attachments) && entry.attachments.length ? <div className="ttcm-m3-attachments">{entry.attachments.map((attachment, index) => <button key={`${entry.id}-${index}`} type="button" onClick={() => previewAttachment(responseViewerItem, attachment)}><Icon name="download" size={17} /><span>{attachment.name || `Tệp ${index + 1}`}</span></button>)}</div> : null}</article>)}{!responsesForItem(responseViewerItem.id).length ? <div className="ttcm-m3-response-empty"><Icon name="people" size={28} /><strong>Chưa có phản hồi</strong><span>Phản hồi, xác nhận và tệp của tổ viên sẽ xuất hiện tại đây.</span></div> : null}</div><footer><button type="button" className="ttcm-m3-filled-button" onClick={() => setResponseViewerItem(null)}>Đóng</button></footer></section></div>
         ) : null}
 
-        {responseItem && !manager ? (
-          <div className="ttcm-m3-compose-layer" role="presentation"><form className="ttcm-m3-response-dialog" onSubmit={submitResponse}><header><div><strong>{typeForItem(responseItem).id === 'feedback' ? 'Gửi góp ý' : 'Phản hồi yêu cầu'}</strong><small>{responseItem.title}</small></div><button type="button" className="ttcm-m3-icon-button" onClick={() => setResponseItem(null)} aria-label="Đóng"><Icon name="close" /></button></header><label className="ttcm-m3-field"><span>Nội dung phản hồi</span><textarea value={responseText} onChange={(event) => setResponseText(event.target.value)} rows={5} placeholder="Nhập góp ý, kết quả thực hiện hoặc nội dung cần phản hồi…" /></label><label className="ttcm-m3-field"><span>Tệp đính kèm <small>(nếu có, tối đa 10 MB)</small></span><input type="file" accept={WORK_HUB_ATTACHMENT_ACCEPT} onChange={(event) => setResponseFile(event.target.files?.[0] || null)} /></label>{error ? <div className="ttcm-m3-banner is-error">{error}</div> : null}<footer><button type="button" className="ttcm-m3-text-button" onClick={() => setResponseItem(null)}>Hủy</button><button type="submit" className="ttcm-m3-filled-button" disabled={busy}>{busy ? 'Đang gửi…' : 'Gửi đến TTCM'}</button></footer></form></div>
+        {responseItem && userIsAssignee(responseItem, currentUser?.id) ? (
+          <div className="ttcm-m3-compose-layer" role="presentation"><form className="ttcm-m3-response-dialog" onSubmit={submitResponse}><header><div><strong>{typeForItem(responseItem).id === 'feedback' ? 'Gửi góp ý' : 'Phản hồi yêu cầu'}</strong><small>{responseItem.title}</small></div><button type="button" className="ttcm-m3-icon-button" onClick={() => setResponseItem(null)} aria-label="Đóng"><Icon name="close" /></button></header><label className="ttcm-m3-field"><span>Nội dung phản hồi</span><textarea value={responseText} onChange={(event) => setResponseText(event.target.value)} rows={5} placeholder="Nhập góp ý, kết quả thực hiện hoặc nội dung cần phản hồi…" /></label><label className="ttcm-m3-field"><span>Tệp đính kèm <small>(nếu có, tối đa 10 MB)</small></span><input type="file" accept={WORK_HUB_ATTACHMENT_ACCEPT} onChange={(event) => setResponseFile(event.target.files?.[0] || null)} /></label>{error ? <div className="ttcm-m3-banner is-error">{error}</div> : null}<footer><button type="button" className="ttcm-m3-text-button" onClick={() => setResponseItem(null)}>Hủy</button><button type="submit" className="ttcm-m3-filled-button" disabled={busy}>{busy ? 'Đang gửi…' : 'Gửi phản hồi'}</button></footer></form></div>
         ) : null}
 
         {composeOpen && manager ? (
@@ -612,8 +627,8 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
             <label className="ttcm-m3-field"><span>Tiêu đề</span><input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={180} placeholder="Nhập tiêu đề ngắn gọn" /></label>
             <label className="ttcm-m3-field"><span>Nội dung</span><textarea value={description} onChange={(event) => setDescription(event.target.value)} rows={5} placeholder="Mô tả nội dung, yêu cầu hoặc hướng dẫn cần thiết" /></label>
             <div className="ttcm-m3-field-row"><label className="ttcm-m3-field"><span>Hạn xử lý <small>(nếu có)</small></span><input type="datetime-local" value={dueAt} onChange={(event) => setDueAt(event.target.value)} /></label><div className="ttcm-m3-field ttcm-m3-multi-upload"><span>Tệp đính kèm <small>({files.length}/{WORK_HUB_MAX_ATTACHMENTS} tệp · tối đa 10 MB/tệp)</small></span><input type="file" multiple accept={WORK_HUB_ATTACHMENT_ACCEPT} aria-label="Chọn tối đa 10 tệp đính kèm" onChange={selectComposerFiles} /><div className="ttcm-m3-upload-copy"><span>PDF, Word, Excel/CSV, PowerPoint, ảnh, văn bản, file nén, âm thanh và video.</span>{files.length ? <button type="button" className="ttcm-m3-text-button" onClick={() => { setFiles([]); setError(''); }}>Xóa tất cả</button> : null}</div>{editingId && !files.length && editingAttachments.length ? <div className="ttcm-m3-upload-existing">Đang giữ {editingAttachments.length} tệp hiện tại. Chọn tệp mới nếu muốn thay toàn bộ.</div> : null}{files.length ? <div className="ttcm-m3-selected-files">{files.map((selectedFile, index) => <div className="ttcm-m3-selected-file" key={selectedFileKey(selectedFile)}><div className="ttcm-m3-selected-file-main"><span className="ttcm-m3-selected-file-icon"><Icon name="folder" size={18} /></span><span><b>{selectedFile.name}</b><small>{String(selectedFile.name || '').split('.').pop()?.toUpperCase() || 'FILE'} · {formatFileSize(selectedFile.size)}</small></span></div><button type="button" className="ttcm-m3-selected-file-remove" onClick={() => removeComposerFile(index)}>Xóa</button></div>)}</div> : null}</div></div>
-            <section className="ttcm-m3-recipients"><header><div><strong>Người nhận</strong><small>{selectedRecipients.length}/{departmentTeachers.length} giáo viên được chọn</small></div><div><button type="button" className="ttcm-m3-text-button" onClick={() => setSelectedRecipients(departmentTeachers.map((person) => person.id))}>Toàn bộ tổ</button><button type="button" className="ttcm-m3-text-button" onClick={() => setSelectedRecipients([])}>Bỏ chọn</button></div></header><input className="ttcm-m3-search" value={recipientQuery} onChange={(event) => setRecipientQuery(event.target.value)} placeholder="Tìm giáo viên…" /><div className="ttcm-m3-recipient-list">{visibleRecipients.map((person) => <label key={person.id}><input type="checkbox" checked={selectedRecipients.includes(person.id)} onChange={() => toggleRecipient(person.id)} /><span className="ttcm-m3-avatar">{String(person.name || 'GV').trim().split(/\s+/).slice(-2).map((part) => part[0] || '').join('').toUpperCase()}</span><span><b>{person.name}</b><small>{person.email || 'Giáo viên'}</small></span></label>)}{!visibleRecipients.length ? <div className="ttcm-m3-recipient-empty">Chưa tìm thấy giáo viên phù hợp.</div> : null}</div></section>
-            {error ? <div className="ttcm-m3-banner is-error">{error}</div> : null}<footer><button type="button" className="ttcm-m3-text-button" onClick={() => { setComposeOpen(false); setEditingId(''); setFiles([]); }}>Hủy</button><button type="submit" className="ttcm-m3-filled-button" disabled={busy}>{busy ? (editingId ? 'Đang lưu…' : `Đang gửi ${files.length ? `${files.length} tệp…` : '…'}`) : (editingId ? 'Lưu thay đổi' : 'Gửi đến tổ viên')}</button></footer>
+            <section className="ttcm-m3-recipients"><header><div><strong>Người nhận</strong><small>{selectedRecipients.length}/{departmentRecipients.length} người được chọn · TTCM luôn được nhận</small></div><div><button type="button" className="ttcm-m3-text-button" onClick={() => setSelectedRecipients(departmentRecipients.map((person) => person.id))}>Toàn bộ tổ</button><button type="button" className="ttcm-m3-text-button" onClick={() => setSelectedRecipients(uniqueIds([currentUser?.id]))}>Bỏ chọn tổ viên</button></div></header><input className="ttcm-m3-search" value={recipientQuery} onChange={(event) => setRecipientQuery(event.target.value)} placeholder="Tìm giáo viên…" /><div className="ttcm-m3-recipient-list">{visibleRecipients.map((person) => { const isSelf = String(person.id) === String(currentUser?.id); return <label key={person.id}><input type="checkbox" checked={isSelf || selectedRecipients.includes(person.id)} disabled={isSelf} onChange={() => toggleRecipient(person.id)} /><span className="ttcm-m3-avatar">{String(person.name || 'GV').trim().split(/\s+/).slice(-2).map((part) => part[0] || '').join('').toUpperCase()}</span><span><b>{person.name}{isSelf ? ' · TTCM' : ''}</b><small>{person.email || 'Giáo viên'}{isSelf ? ' · luôn nhận nội dung' : ''}</small></span></label>; })}{!visibleRecipients.length ? <div className="ttcm-m3-recipient-empty">Chưa tìm thấy giáo viên phù hợp.</div> : null}</div></section>
+            {error ? <div className="ttcm-m3-banner is-error">{error}</div> : null}<footer><button type="button" className="ttcm-m3-text-button" onClick={() => { setComposeOpen(false); setEditingId(''); setFiles([]); }}>Hủy</button><button type="submit" className="ttcm-m3-filled-button" disabled={busy}>{busy ? (editingId ? 'Đang lưu…' : `Đang gửi ${files.length ? `${files.length} tệp…` : '…'}`) : (editingId ? 'Lưu thay đổi' : 'Gửi đến người nhận')}</button></footer>
           </form></div>
         ) : null}
       </section>

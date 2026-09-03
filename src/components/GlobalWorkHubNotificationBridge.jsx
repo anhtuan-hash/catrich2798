@@ -88,6 +88,18 @@ function normalizeIds(values) {
   return Array.isArray(values) ? values.filter(Boolean).map(String) : [];
 }
 
+function isTtcmSelfAssignment(item, userId) {
+  const id = String(userId || '');
+  if (!id) return false;
+  const source = String(item?.source_module || '').toLowerCase();
+  const ownerId = String(item?.owner_id || '');
+  return source === 'ttcm'
+    && item?.metadata?.ttcm === true
+    && item?.metadata?.ttcm_action_required === true
+    && ownerId === id
+    && normalizeIds(item?.assignee_ids).includes(id);
+}
+
 function formatDueDate(value, language) {
   if (!value) return '';
   const date = new Date(value);
@@ -133,9 +145,10 @@ function mapAssignedTask(item, language, readStates) {
   const itemId = String(item?.id || '');
   const id = `work-hub:${itemId}`;
   const due = formatDueDate(item?.due_at, language);
-  const intro = language === 'vi'
-    ? 'Tổ trưởng đã giao cho bạn một công việc'
-    : 'A department leader assigned you a task';
+  const selfTtcm = isTtcmSelfAssignment(item, item?.owner_id);
+  const intro = selfTtcm
+    ? (language === 'vi' ? 'Bạn cũng là người thực hiện nội dung TTCM này' : 'You are also assigned to this department-leader item')
+    : (language === 'vi' ? 'Tổ trưởng đã giao cho bạn một công việc' : 'A department leader assigned you a task');
   const message = [intro, due ? `${language === 'vi' ? 'Hạn' : 'Due'}: ${due}` : '']
     .filter(Boolean)
     .join(' · ');
@@ -157,7 +170,7 @@ function mapAssignedTask(item, language, readStates) {
 function isVisibleAssignedItem(item, userId) {
   const assignees = normalizeIds(item?.assignee_ids);
   if (!assignees.includes(String(userId))) return false;
-  if (String(item?.owner_id || '') === String(userId)) return false;
+  if (String(item?.owner_id || '') === String(userId) && !isTtcmSelfAssignment(item, userId)) return false;
   if (HIDDEN_TASK_STATUSES.has(String(item?.status || '').toLowerCase())) return false;
   if (isScheduleWorkItem(item)) return false;
   if (item?.metadata?.notify_assignee === false) return false;
