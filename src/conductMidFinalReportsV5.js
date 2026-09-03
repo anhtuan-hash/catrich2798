@@ -179,7 +179,9 @@ function schedulePanelRefresh(delay = 0) {
     try {
       const source = await loadLatestWorkspace(panel);
       if (sequence !== panelRefreshSequence || !panel.isConnected) return;
-      panel.dataset.workspaceId = source.workspaceId;
+      // Keep the rendered workspace separately. Permanently changing V2's workspaceId
+      // makes its child-list observer remove/rebuild this panel after roster updates.
+      panel.dataset.renderedWorkspaceId = source.workspaceId;
       const rosterSync = syncPanelStudentOptions(panel, source.workspace);
       if (syncPanelScopeVisibility(panel) && rosterSync.selectionChanged) {
         showError(panel, 'Danh sách học sinh đã được đồng bộ theo đúng lớp đang mở. Hãy chọn lại học sinh cần xuất báo cáo.');
@@ -198,6 +200,7 @@ function replayExportWithMemoryWorkspace(button, panel, popup, source) {
 
   const originalGetItem = Storage.prototype.getItem;
   const originalWindowOpen = window.open;
+  const originalPanelWorkspaceId = panel.dataset.workspaceId;
 
   try {
     // Legacy exporters enumerate every Homeroom key in localStorage. During this
@@ -212,8 +215,8 @@ function replayExportWithMemoryWorkspace(button, panel, popup, source) {
       return originalGetItem.call(this, key);
     };
 
-    // Keep the report panel pinned to the class that is actually rendered. Do not
-    // restore a stale panel id after export; future exports should stay on this class.
+    // Pin only for the synchronous legacy export handler. Restoring immediately
+    // prevents V2's observer from seeing a permanent workspace mismatch.
     panel.dataset.workspaceId = workspaceId;
 
     // Reserve the popup during the real user gesture, then let the synchronous
@@ -223,7 +226,8 @@ function replayExportWithMemoryWorkspace(button, panel, popup, source) {
     button.click();
   } finally {
     window.__besConductExportBridgeReplay = false;
-    panel.dataset.workspaceId = workspaceId;
+    if (originalPanelWorkspaceId == null) delete panel.dataset.workspaceId;
+    else panel.dataset.workspaceId = originalPanelWorkspaceId;
     Storage.prototype.getItem = originalGetItem;
     window.open = originalWindowOpen;
   }
@@ -287,7 +291,7 @@ function install() {
 
     try {
       const source = await loadLatestWorkspace(panel);
-      panel.dataset.workspaceId = source.workspaceId;
+      panel.dataset.renderedWorkspaceId = source.workspaceId;
       const rosterSync = syncPanelStudentOptions(panel, source.workspace);
       const personalMode = syncPanelScopeVisibility(panel);
       if (personalMode && rosterSync.selectionChanged) {
@@ -309,5 +313,5 @@ function install() {
 
 install();
 if (typeof window !== 'undefined') {
-  window.__besConductExportSourceVersion = 'v11-live-roster-panel-sync';
+  window.__besConductExportSourceVersion = 'v12-interaction-loop-fix';
 }
