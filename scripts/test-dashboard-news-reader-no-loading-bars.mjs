@@ -17,6 +17,10 @@ assert.ok(
   'Focused Dashboard news reader must not render its spinner inside the article fetch state.',
 );
 assert.ok(
+  !source.includes('dnh-loader'),
+  'Dashboard News Hub must not render the legacy dnh-loader anywhere because the global WP8 loader decorates it into loading bars.',
+);
+assert.ok(
   styles.includes('.dnh-reader-fetch-state'),
   'Focused Dashboard news reader fetch state must keep its static layout styling.',
 );
@@ -24,5 +28,9 @@ assert.ok(
   !styles.includes('.dnh-reader-loading{'),
   'Retired focused-reader loading selector must not return.',
 );
+assert.ok(
+  !styles.includes('.dnh-loader'),
+  'Dashboard News Hub must not keep the legacy dnh-loader styling after the loader is retired.',
+);
 
-console.log('PASS: Dashboard focused reader has no loading/spinner bars.');
+console.log('PASS: Dashboard News Hub has no loading/spinner bars.');
