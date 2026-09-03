@@ -128,7 +128,7 @@ export default function HomeroomGlassHero({
         <span>01</span><i /><b>{workspaceLabel}</b>
       </div>
 
-      <h1 id="hr-editorial-hero-title">{vi ? 'Lớp' : 'Class'} <em>{className}</em></h1>
+      <h1 id="hr-editorial-hero-title">{vi ? 'Lớp' : 'Class'} <em id="hr-material-hero-title">{className}</em></h1>
       <p className="hr-editorial-hero__teacher-name"><span>{roleShort}</span>{teacherName}</p>
       <p className="hr-editorial-hero__deck">{vi
         ? 'Hồ sơ lớp học, danh sách học sinh và các tác vụ chủ nhiệm được gom trong một không gian làm việc thống nhất.'
