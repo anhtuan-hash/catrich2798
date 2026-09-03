@@ -122,6 +122,7 @@ export default function HomeroomGlassHero({
     className={`hr-editorial-hero ${subjectMode ? 'is-subject' : 'is-homeroom'}`}
     aria-labelledby="hr-editorial-hero-title"
     data-class-type={classTypeLabel}
+    data-workspace-id={workspace?.id || ''}
   >
     <div className="hr-editorial-hero__copy">
       <div className="hr-editorial-hero__masthead">

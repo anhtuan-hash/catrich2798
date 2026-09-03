@@ -3,6 +3,10 @@ import {
   getCurrentHomeroomWorkspaceId,
   loadHomeroomWorkspace,
 } from './utils/homeroomClassWorkspaceStore.js';
+import {
+  isAllowedHomeroomExportStorageRead,
+  resolveHomeroomExportWorkspaceId,
+} from './utils/homeroomExportWorkspace.js';
 
 const PANEL_ID = 'bes-conduct-mid-final-reports';
 const CURRENT_PREFIX = 'bes-homeroom-current-workspace-v3:';
@@ -69,6 +73,12 @@ function userKey(user) {
   return text(user?.id || user?.authId || user?.email, 'guest').toLowerCase();
 }
 
+function renderedWorkspaceId() {
+  return text(
+    document.querySelector('.hr-editorial-hero[data-workspace-id]')?.dataset?.workspaceId,
+  );
+}
+
 function showError(panel, message) {
   const box = panel?.querySelector('[data-mf-error]');
   if (!box) return;
@@ -83,17 +93,47 @@ function clearError(panel) {
   box.classList.remove('show');
 }
 
+function syncPanelStudentOptions(panel, workspace) {
+  const select = panel?.querySelector('[data-mf-student]');
+  if (!select) return { selectionChanged: false };
+
+  const previousStudentId = text(select.value);
+  const students = (Array.isArray(workspace?.students) ? workspace.students : [])
+    .filter((student) => student?.active !== false)
+    .sort((left, right) => text(left.fullName).localeCompare(text(right.fullName), 'vi'));
+
+  select.replaceChildren(...students.map((student) => {
+    const option = document.createElement('option');
+    option.value = text(student.id);
+    option.textContent = text(student.code)
+      ? `${text(student.code)} · ${text(student.fullName)}`
+      : text(student.fullName);
+    return option;
+  }));
+
+  const previousStillExists = Boolean(previousStudentId)
+    && students.some((student) => text(student.id) === previousStudentId);
+  if (previousStillExists) select.value = previousStudentId;
+  else select.value = '';
+
+  return {
+    selectionChanged: Boolean(previousStudentId) && !previousStillExists,
+    studentCount: students.length,
+  };
+}
+
 async function loadLatestWorkspace(panel) {
   const user = await getCurrentUser();
   if (!user?.id && !user?.authId && !user?.email) {
     throw new Error('Không xác định được tài khoản đang đăng nhập để tải dữ liệu rèn luyện mới nhất.');
   }
 
-  const workspaceId = text(
-    getCurrentHomeroomWorkspaceId(user)
-      || panel?.dataset?.workspaceId,
-    'default',
-  );
+  const workspaceId = resolveHomeroomExportWorkspaceId({
+    renderedWorkspaceId: renderedWorkspaceId(),
+    assignedWorkspaceId: typeof window !== 'undefined' ? window.__besAssignedHomeroomWorkspaceId : '',
+    panelWorkspaceId: panel?.dataset?.workspaceId,
+    currentWorkspaceId: getCurrentHomeroomWorkspaceId(user),
+  });
   const result = await loadHomeroomWorkspace(user, workspaceId);
   if (!result?.workspace) {
     throw new Error(result?.message || 'Không tải được dữ liệu lớp mới nhất.');
@@ -111,26 +151,25 @@ function replayExportWithMemoryWorkspace(button, panel, popup, source) {
   const payloadKey = `${WORKSPACE_PREFIX}${userKey(user)}:${workspaceId}`;
   const currentKey = `${CURRENT_PREFIX}${userKey(user)}`;
   const serializedWorkspace = JSON.stringify(workspace);
-  const previousPanelWorkspaceId = panel.dataset.workspaceId;
 
   const originalGetItem = Storage.prototype.getItem;
   const originalWindowOpen = window.open;
 
   try {
-    // Export runtimes still read through localStorage synchronously. Intercept only
-    // the two reads they need and return the freshly loaded workspace from memory.
-    // Nothing is written to Storage, so large classes cannot hit browser quota.
+    // Legacy exporters enumerate every Homeroom key in localStorage. During this
+    // replay, expose only the exact rendered workspace so a same-name class from
+    // another year/account can never win by updatedAt.
     Storage.prototype.getItem = function patchedGetItem(key) {
       if (this === window.localStorage) {
+        if (!isAllowedHomeroomExportStorageRead(key, { payloadKey, currentKey })) return null;
         if (key === payloadKey) return serializedWorkspace;
         if (key === currentKey) return workspaceId;
       }
       return originalGetItem.call(this, key);
     };
 
-    // Keep the legacy synchronous exporter pinned to the exact workspace that was
-    // just loaded from the official Homeroom store. The panel id can be stale when
-    // the class changed after this panel was mounted.
+    // Keep the report panel pinned to the class that is actually rendered. Do not
+    // restore a stale panel id after export; future exports should stay on this class.
     panel.dataset.workspaceId = workspaceId;
 
     // Reserve the popup during the real user gesture, then let the synchronous
@@ -140,7 +179,7 @@ function replayExportWithMemoryWorkspace(button, panel, popup, source) {
     button.click();
   } finally {
     window.__besConductExportBridgeReplay = false;
-    panel.dataset.workspaceId = previousPanelWorkspaceId || workspaceId;
+    panel.dataset.workspaceId = workspaceId;
     Storage.prototype.getItem = originalGetItem;
     window.open = originalWindowOpen;
   }
@@ -170,16 +209,24 @@ function install() {
       showError(panel, 'Trình duyệt đang chặn cửa sổ xuất PDF. Hãy cho phép popup rồi thử lại.');
       return;
     }
-    popup.document.write('<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Đang chuẩn bị báo cáo…</title></head><body style="font-family:Arial,sans-serif;padding:32px">Đang tải dữ liệu rèn luyện mới nhất…</body></html>');
+    popup.document.write('<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Đang chuẩn bị báo cáo…</title></head><body style="font-family:Arial,sans-serif;padding:32px">Đang tải đúng dữ liệu lớp đang mở…</body></html>');
     popup.document.close();
 
     button.dataset.exportBusy = 'true';
     const originalText = button.textContent;
     button.setAttribute('aria-busy', 'true');
-    button.textContent = 'Đang đồng bộ dữ liệu mới nhất…';
+    button.textContent = 'Đang đồng bộ đúng danh sách lớp…';
 
     try {
       const source = await loadLatestWorkspace(panel);
+      panel.dataset.workspaceId = source.workspaceId;
+      const rosterSync = syncPanelStudentOptions(panel, source.workspace);
+      const personalMode = panel.querySelector('[data-mf-scope]')?.value === 'personal';
+      if (personalMode && rosterSync.selectionChanged) {
+        try { popup.close(); } catch { /* optional */ }
+        showError(panel, 'Danh sách học sinh vừa được đồng bộ theo đúng lớp đang mở. Hãy chọn lại học sinh rồi xuất báo cáo.');
+        return;
+      }
       replayExportWithMemoryWorkspace(button, panel, popup, source);
     } catch (error) {
       try { popup.close(); } catch { /* optional */ }
@@ -194,5 +241,5 @@ function install() {
 
 install();
 if (typeof window !== 'undefined') {
-  window.__besConductExportSourceVersion = 'v9-active-workspace-pinned';
+  window.__besConductExportSourceVersion = 'v10-rendered-workspace-pinned';
 }
