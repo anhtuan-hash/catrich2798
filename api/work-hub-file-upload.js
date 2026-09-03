@@ -21,6 +21,17 @@ function cleanText(value, fallback = '') {
   return String(value || fallback).replace(/[\r\n]/g, '').trim();
 }
 
+function browserOriginForRequest(req) {
+  const browserOrigin = cleanText(req.headers.origin);
+  if (!browserOrigin) return '';
+  try {
+    const parsed = new URL(browserOrigin);
+    return ['http:', 'https:'].includes(parsed.protocol) ? parsed.origin : '';
+  } catch {
+    return '';
+  }
+}
+
 function extensionOf(value) {
   const match = String(value || '').toLowerCase().match(/\.([a-z0-9]+)$/);
   return match?.[1] || '';
@@ -61,7 +72,7 @@ async function assertWorkItemAccess(context, itemId) {
   return data;
 }
 
-async function initializeResumableUpload(accessToken, { storedName, originalName, mimeType, fileSize, folderId, itemId, uploaderId }) {
+async function initializeResumableUpload(accessToken, { storedName, originalName, mimeType, fileSize, folderId, itemId, uploaderId, browserOrigin }) {
   const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,name,size,mimeType', {
     method: 'POST',
     headers: {
@@ -69,6 +80,7 @@ async function initializeResumableUpload(accessToken, { storedName, originalName
       'Content-Type': 'application/json; charset=UTF-8',
       'X-Upload-Content-Type': mimeType,
       'X-Upload-Content-Length': String(fileSize),
+      ...(browserOrigin ? { 'Origin': browserOrigin } : {}),
     },
     body: JSON.stringify({
       name: storedName,
@@ -127,6 +139,12 @@ export default async function handler(req, res) {
       throw error;
     }
     const mimeType = cleanText(body.fileType, 'application/octet-stream').split(';')[0].trim().toLowerCase() || 'application/octet-stream';
+    const browserOrigin = browserOriginForRequest(req);
+    if (!browserOrigin) {
+      const error = new Error('Không xác định được nguồn trang để tải tệp trực tiếp lên Google Drive.');
+      error.status = 400;
+      throw error;
+    }
 
     const { connection, accessToken } = await getConnection();
     const folderId = connection.folder_map?.[TARGET_FOLDER]
@@ -139,6 +157,7 @@ export default async function handler(req, res) {
       folderId,
       itemId,
       uploaderId: context.user.id,
+      browserOrigin,
     });
 
     await appendApiAudit(context, {
@@ -146,7 +165,7 @@ export default async function handler(req, res) {
       action: 'work_hub_drive_resumable_init',
       status: 'ok',
       requestId,
-      details: { itemId, fileName: originalName, size: fileSize },
+      details: { itemId, fileName: originalName, size: fileSize, browserOrigin },
     });
     return sendJson(res, 200, {
       ok: true,
