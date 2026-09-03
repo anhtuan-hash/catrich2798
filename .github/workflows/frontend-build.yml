@@ -16,6 +16,7 @@ on:
       - 'scripts/test-no-global-wave-loader.mjs'
       - 'scripts/test-conduct-export-active-class.mjs'
       - 'scripts/test-ttcm-self-recipient.mjs'
+      - 'scripts/test-ttcm-response-multi-attachments.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'vite.config.*'
@@ -69,6 +70,9 @@ jobs:
 
       - name: Verify conduct export uses active Homeroom class
         run: node scripts/test-conduct-export-active-class.mjs
+
+      - name: Verify TTCM response attachment limits
+        run: node scripts/test-ttcm-response-multi-attachments.mjs
 
       - name: Build production bundle
         run: npm run build
