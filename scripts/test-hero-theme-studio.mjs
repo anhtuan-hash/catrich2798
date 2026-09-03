@@ -49,6 +49,9 @@ expect(runtimeFile, runtime, /requestAnimationFrame|setTimeout|useEffect/, 'runt
 expect(runtimeFile, runtime, /data-hero-key|dataset\.heroKey/, 'runtime must mark the resolved Hero with the stable key');
 expect(runtimeFile, runtime, /original Hero preserved|media error|onerror/i, 'runtime must fail open when themed media fails');
 expect(runtimeFile, runtime, /startsWith\(['"]tool\//, 'runtime must resolve tool/slug hash routes');
+expect(runtimeFile, runtime, /observeHeroTarget/, 'runtime must keep observing the active route so lazy-loaded Heros can replace loading placeholders');
+expect(runtimeFile, runtime, /currentTarget/, 'runtime must distinguish a replacement Hero from the previously themed target');
+if (/stopWaiting\(\);\s*return true/.test(runtime)) failures.push(`${runtimeFile}: runtime must not stop observing after the first matching Hero`);
 expect(runtimeCssFile, runtimeCss, /pointer-events:\s*none/, 'theme layer must not intercept Hero interactions');
 expect(runtimeCssFile, runtimeCss, /z-index/, 'runtime must place the layer behind existing Hero content');
 expect(guardFile, guard, /HeroThemeRuntime/, 'global runtime guard must mount the public Theme Runtime');
