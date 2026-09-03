@@ -90,8 +90,8 @@ async function loadLatestWorkspace(panel) {
   }
 
   const workspaceId = text(
-    panel?.dataset?.workspaceId
-      || getCurrentHomeroomWorkspaceId(user),
+    getCurrentHomeroomWorkspaceId(user)
+      || panel?.dataset?.workspaceId,
     'default',
   );
   const result = await loadHomeroomWorkspace(user, workspaceId);
@@ -111,6 +111,7 @@ function replayExportWithMemoryWorkspace(button, panel, popup, source) {
   const payloadKey = `${WORKSPACE_PREFIX}${userKey(user)}:${workspaceId}`;
   const currentKey = `${CURRENT_PREFIX}${userKey(user)}`;
   const serializedWorkspace = JSON.stringify(workspace);
+  const previousPanelWorkspaceId = panel.dataset.workspaceId;
 
   const originalGetItem = Storage.prototype.getItem;
   const originalWindowOpen = window.open;
@@ -127,6 +128,11 @@ function replayExportWithMemoryWorkspace(button, panel, popup, source) {
       return originalGetItem.call(this, key);
     };
 
+    // Keep the legacy synchronous exporter pinned to the exact workspace that was
+    // just loaded from the official Homeroom store. The panel id can be stale when
+    // the class changed after this panel was mounted.
+    panel.dataset.workspaceId = workspaceId;
+
     // Reserve the popup during the real user gesture, then let the synchronous
     // exporter reuse it after the cloud read completes. This avoids popup blockers.
     window.open = () => popup;
@@ -134,6 +140,7 @@ function replayExportWithMemoryWorkspace(button, panel, popup, source) {
     button.click();
   } finally {
     window.__besConductExportBridgeReplay = false;
+    panel.dataset.workspaceId = previousPanelWorkspaceId || workspaceId;
     Storage.prototype.getItem = originalGetItem;
     window.open = originalWindowOpen;
   }
@@ -187,5 +194,5 @@ function install() {
 
 install();
 if (typeof window !== 'undefined') {
-  window.__besConductExportSourceVersion = 'v8-memory-workspace-no-quota';
+  window.__besConductExportSourceVersion = 'v9-active-workspace-pinned';
 }
