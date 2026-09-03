@@ -21,6 +21,7 @@ on:
       - 'scripts/test-ttcm-response-multi-attachments.mjs'
       - 'scripts/test-ttcm-drive-resumable-cors.mjs'
       - 'scripts/test-critical-e2e-contract.mjs'
+      - 'scripts/test-client-error-telemetry.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'vite.config.*'
@@ -84,6 +85,9 @@ jobs:
 
       - name: Verify critical browser smoke gate
         run: node scripts/test-critical-e2e-contract.mjs
+
+      - name: Verify browser error telemetry
+        run: node scripts/test-client-error-telemetry.mjs
 
       - name: Build production bundle
         run: npm run build
