@@ -17,6 +17,7 @@ on:
       - 'scripts/test-conduct-export-active-class.mjs'
       - 'scripts/test-ttcm-self-recipient.mjs'
       - 'scripts/test-ttcm-response-multi-attachments.mjs'
+      - 'scripts/test-ttcm-drive-resumable-cors.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'vite.config.*'
@@ -73,6 +74,9 @@ jobs:
 
       - name: Verify TTCM response attachment limits
         run: node scripts/test-ttcm-response-multi-attachments.mjs
+
+      - name: Verify TTCM Drive resumable CORS origin
+        run: node scripts/test-ttcm-drive-resumable-cors.mjs
 
       - name: Build production bundle
         run: npm run build
