@@ -3,10 +3,15 @@ import { readFile } from 'node:fs/promises';
 
 const v2 = await readFile(new URL('../src/conductMidFinalReportsV2.js', import.meta.url), 'utf8');
 const v5 = await readFile(new URL('../src/conductMidFinalReportsV5.js', import.meta.url), 'utf8');
+const hero = await readFile(new URL('../src/components/homeroom/HomeroomGlassHero.jsx', import.meta.url), 'utf8');
 
 assert.ok(
-  v2.includes("document.querySelector('#hr-editorial-hero-title em')"),
-  'Conduct report panel must identify the class from the current Homeroom editorial hero instead of the retired hero selector.',
+  v2.includes("document.querySelector('#hr-material-hero-title')?.textContent"),
+  'The legacy conduct panel still reads the Homeroom class name through #hr-material-hero-title.',
+);
+assert.ok(
+  hero.includes('<em id="hr-material-hero-title">{className}</em>'),
+  'The current Homeroom hero must expose exactly the active class name through the conduct panel compatibility hook.',
 );
 
 const officialCurrentIndex = v5.indexOf('getCurrentHomeroomWorkspaceId(user)');
