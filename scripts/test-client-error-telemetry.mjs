@@ -11,7 +11,7 @@ function has(source, needle, label) {
 
 const client = read('src/utils/clientErrorTelemetry.js');
 const endpoint = read('api/client-error-report.js');
-const main = read('src/main.jsx');
+const runtimeCore = read('src/services/runtime/core.js');
 
 has(client, "addEventListener('error'", 'window.error capture');
 has(client, "addEventListener('unhandledrejection'", 'unhandled rejection capture');
@@ -23,6 +23,6 @@ has(endpoint, "req.method !== 'POST'", 'POST-only endpoint');
 has(endpoint, 'browserOrigin', 'origin validation');
 has(endpoint, 'MAX_MESSAGE_LENGTH', 'message cap');
 has(endpoint, '[client-error]', 'structured Vercel log marker');
-has(main, 'installClientErrorTelemetry', 'early telemetry install');
+has(runtimeCore, 'installClientErrorTelemetry', 'runtime bootstrap telemetry install');
 
 console.log('Client error telemetry contract OK');
