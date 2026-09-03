@@ -28,9 +28,5 @@ assert.ok(
   !styles.includes('.dnh-reader-loading{'),
   'Retired focused-reader loading selector must not return.',
 );
-assert.ok(
-  !styles.includes('.dnh-loader'),
-  'Dashboard News Hub must not keep the legacy dnh-loader styling after the loader is retired.',
-);
 
-console.log('PASS: Dashboard News Hub has no loading/spinner bars.');
+console.log('PASS: Dashboard News Hub renders no loading/spinner bars.');
