@@ -4,6 +4,7 @@ import {
   loadHomeroomWorkspace,
 } from './utils/homeroomClassWorkspaceStore.js';
 import {
+  activeHomeroomRosterSignature,
   isAllowedHomeroomExportStorageRead,
   resolveHomeroomExportWorkspaceId,
 } from './utils/homeroomExportWorkspace.js';
@@ -93,31 +94,49 @@ function clearError(panel) {
   box.classList.remove('show');
 }
 
+function syncPanelScopeVisibility(panel) {
+  const personalMode = panel?.querySelector('[data-mf-scope]')?.value === 'personal';
+  const studentField = panel?.querySelector('[data-mf-student-field]');
+  if (studentField) {
+    studentField.hidden = !personalMode;
+    if (personalMode) studentField.style.removeProperty('display');
+    else studentField.style.setProperty('display', 'none', 'important');
+  }
+  return personalMode;
+}
+
 function syncPanelStudentOptions(panel, workspace) {
   const select = panel?.querySelector('[data-mf-student]');
-  if (!select) return { selectionChanged: false };
+  if (!select) return { selectionChanged: false, changed: false, studentCount: 0 };
 
+  const personalMode = syncPanelScopeVisibility(panel);
   const previousStudentId = text(select.value);
   const students = (Array.isArray(workspace?.students) ? workspace.students : [])
     .filter((student) => student?.active !== false)
     .sort((left, right) => text(left.fullName).localeCompare(text(right.fullName), 'vi'));
+  const rosterSignature = activeHomeroomRosterSignature(workspace);
+  const rosterChanged = panel.dataset.liveRosterSignature !== rosterSignature;
 
-  select.replaceChildren(...students.map((student) => {
-    const option = document.createElement('option');
-    option.value = text(student.id);
-    option.textContent = text(student.code)
-      ? `${text(student.code)} · ${text(student.fullName)}`
-      : text(student.fullName);
-    return option;
-  }));
+  if (rosterChanged) {
+    select.replaceChildren(...students.map((student) => {
+      const option = document.createElement('option');
+      option.value = text(student.id);
+      option.textContent = text(student.code)
+        ? `${text(student.code)} · ${text(student.fullName)}`
+        : text(student.fullName);
+      return option;
+    }));
+    panel.dataset.liveRosterSignature = rosterSignature;
+  }
 
   const previousStillExists = Boolean(previousStudentId)
     && students.some((student) => text(student.id) === previousStudentId);
   if (previousStillExists) select.value = previousStudentId;
-  else select.value = '';
+  else select.value = personalMode ? '' : text(students[0]?.id);
 
   return {
     selectionChanged: Boolean(previousStudentId) && !previousStillExists,
+    changed: rosterChanged,
     studentCount: students.length,
   };
 }
@@ -144,6 +163,31 @@ async function loadLatestWorkspace(panel) {
     workspaceId,
     workspace: canonicalizeWorkspace(result.workspace),
   };
+}
+
+let panelRefreshTimer = 0;
+let panelRefreshSequence = 0;
+
+function schedulePanelRefresh(delay = 0) {
+  if (typeof window === 'undefined') return;
+  window.clearTimeout(panelRefreshTimer);
+  const sequence = ++panelRefreshSequence;
+  panelRefreshTimer = window.setTimeout(async () => {
+    const panel = document.getElementById(PANEL_ID);
+    if (!panel) return;
+    syncPanelScopeVisibility(panel);
+    try {
+      const source = await loadLatestWorkspace(panel);
+      if (sequence !== panelRefreshSequence || !panel.isConnected) return;
+      panel.dataset.workspaceId = source.workspaceId;
+      const rosterSync = syncPanelStudentOptions(panel, source.workspace);
+      if (syncPanelScopeVisibility(panel) && rosterSync.selectionChanged) {
+        showError(panel, 'Danh sách học sinh đã được đồng bộ theo đúng lớp đang mở. Hãy chọn lại học sinh cần xuất báo cáo.');
+      }
+    } catch (error) {
+      console.warn('[ConductReportRoster] Không thể đồng bộ panel báo cáo.', error);
+    }
+  }, Math.max(0, Number(delay) || 0));
 }
 
 function replayExportWithMemoryWorkspace(button, panel, popup, source) {
@@ -189,6 +233,30 @@ function install() {
   if (window.__besConductExportLiveWorkspaceBridgeInstalled) return;
   window.__besConductExportLiveWorkspaceBridgeInstalled = true;
 
+  // Keep the report controls synchronized even before the user clicks Export.
+  // The legacy panel only keyed refreshes by workspace id, so roster changes inside
+  // the same class could leave a stale student dropdown indefinitely.
+  const panelObserver = new MutationObserver((records) => {
+    const panelAppeared = records.some((record) => Array.from(record.addedNodes || []).some((node) => (
+      node?.nodeType === 1
+      && (node.id === PANEL_ID || node.querySelector?.(`#${PANEL_ID}`))
+    )));
+    if (panelAppeared) schedulePanelRefresh(0);
+  });
+  panelObserver.observe(document.documentElement, { childList: true, subtree: true });
+  window.addEventListener('bes-homeroom-store-updated', () => schedulePanelRefresh(20));
+  window.addEventListener('bes-school-class-assignment-synced', () => schedulePanelRefresh(40));
+  window.addEventListener('bes-homeroom-command', () => schedulePanelRefresh(120));
+  window.addEventListener('hashchange', () => schedulePanelRefresh(120));
+  document.addEventListener('change', (event) => {
+    const scope = event.target?.closest?.(`#${PANEL_ID} [data-mf-scope]`);
+    if (!scope) return;
+    const panel = scope.closest(`#${PANEL_ID}`);
+    syncPanelScopeVisibility(panel);
+    schedulePanelRefresh(0);
+  }, true);
+  schedulePanelRefresh(0);
+
   // Capture at window level so this source-of-truth bridge always runs before the
   // older document-level V4/V2 listeners, regardless of dynamic-import order.
   window.addEventListener('click', async (event) => {
@@ -221,7 +289,7 @@ function install() {
       const source = await loadLatestWorkspace(panel);
       panel.dataset.workspaceId = source.workspaceId;
       const rosterSync = syncPanelStudentOptions(panel, source.workspace);
-      const personalMode = panel.querySelector('[data-mf-scope]')?.value === 'personal';
+      const personalMode = syncPanelScopeVisibility(panel);
       if (personalMode && rosterSync.selectionChanged) {
         try { popup.close(); } catch { /* optional */ }
         showError(panel, 'Danh sách học sinh vừa được đồng bộ theo đúng lớp đang mở. Hãy chọn lại học sinh rồi xuất báo cáo.');
@@ -241,5 +309,5 @@ function install() {
 
 install();
 if (typeof window !== 'undefined') {
-  window.__besConductExportSourceVersion = 'v10-rendered-workspace-pinned';
+  window.__besConductExportSourceVersion = 'v11-live-roster-panel-sync';
 }
