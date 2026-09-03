@@ -167,7 +167,7 @@ export default function DashboardNewsHub({ language = 'vi' }) {
         </div>
       </header>
 
-      {loading ? <div className="dnh-state"><span className="dnh-loader" />{t.loading}</div> : error ? <div className="dnh-state is-error"><span>{error}</span><button type="button" onClick={() => load({ force: true })}>{t.retry}</button></div> : !featured ? <div className="dnh-state">{t.empty}</div> : <>
+      {loading ? <div className="dnh-state" role="status" aria-live="polite">{t.loading}</div> : error ? <div className="dnh-state is-error"><span>{error}</span><button type="button" onClick={() => load({ force: true })}>{t.retry}</button></div> : !featured ? <div className="dnh-state">{t.empty}</div> : <>
         {!expanded ? <div className="dnh-grid">
           <button type="button" className="dnh-featured" onClick={() => openArticle(featured)}>
             <span className="dnh-featured-media"><NewsImage item={featured} featured /><em>{t.featured}</em></span>
