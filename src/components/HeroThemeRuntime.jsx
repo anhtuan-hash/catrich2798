@@ -72,36 +72,47 @@ export default function HeroThemeRuntime({ route, toolSlug = '' }) {
     let cancelled = false;
     let detach = () => {};
     let observer = null;
-    let retryTimer = null;
+    let syncFrame = 0;
+    let currentTarget = null;
     let generation = 0;
 
-    const stopWaiting = () => {
+    const stopObserving = () => {
       observer?.disconnect();
       observer = null;
-      if (retryTimer) window.clearTimeout(retryTimer);
-      retryTimer = null;
+      if (syncFrame) window.cancelAnimationFrame(syncFrame);
+      syncFrame = 0;
+      currentTarget = null;
     };
 
     const clear = () => {
-      stopWaiting();
+      stopObserving();
       detach();
       detach = () => {};
     };
 
-    const waitForHero = (descriptor, theme, imageUrl, currentGeneration) => {
-      const tryAttach = () => {
-        if (cancelled || currentGeneration !== generation) return true;
-        const hero = findHeroElement(descriptor, document);
-        if (!hero) return false;
+    const observeHeroTarget = (descriptor, theme, imageUrl, currentGeneration) => {
+      const syncTarget = () => {
+        syncFrame = 0;
+        if (cancelled || currentGeneration !== generation) return;
+        const nextTarget = findHeroElement(descriptor, document);
+        if (nextTarget === currentTarget && nextTarget?.isConnected) return;
+
         detach();
-        detach = attachThemeLayer(hero, descriptor, theme, imageUrl);
-        stopWaiting();
-        return true;
+        detach = () => {};
+        currentTarget = nextTarget || null;
+        if (currentTarget) {
+          detach = attachThemeLayer(currentTarget, descriptor, theme, imageUrl);
+        }
       };
-      if (tryAttach()) return;
-      observer = new MutationObserver(() => tryAttach());
+
+      const scheduleSync = () => {
+        if (cancelled || currentGeneration !== generation || syncFrame) return;
+        syncFrame = window.requestAnimationFrame(syncTarget);
+      };
+
+      syncTarget();
+      observer = new MutationObserver(scheduleSync);
       observer.observe(document.getElementById('bes-main-content') || document.body, { childList: true, subtree: true });
-      retryTimer = window.setTimeout(() => stopWaiting(), 5000);
     };
 
     const apply = async ({ force = false } = {}) => {
@@ -126,7 +137,7 @@ export default function HeroThemeRuntime({ route, toolSlug = '' }) {
         return;
       }
       if (cancelled || currentGeneration !== generation) return;
-      waitForHero(descriptor, theme, imageUrl, currentGeneration);
+      observeHeroTarget(descriptor, theme, imageUrl, currentGeneration);
     };
 
     const onPublished = () => apply({ force: true });
