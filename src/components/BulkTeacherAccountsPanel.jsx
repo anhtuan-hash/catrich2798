@@ -122,6 +122,14 @@ export default function BulkTeacherAccountsPanel({ language = 'vi' }) {
   }, []);
 
   useEffect(() => {
+    const onOpenManager = () => {
+      if (currentRoute() === 'admin') setOpen(true);
+    };
+    window.addEventListener('bes-open-teacher-account-manager', onOpenManager);
+    return () => window.removeEventListener('bes-open-teacher-account-manager', onOpenManager);
+  }, []);
+
+  useEffect(() => {
     if (route !== 'admin') return undefined;
     let active = true;
     initializeAuthSession().then((user) => active && setCurrentUser(user)).catch(() => null);
