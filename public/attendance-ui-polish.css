@@ -1,38 +1,89 @@
 /* Attendance workspace polish — scoped to the extra-class attendance dialog. */
 
-html body .attendance-shell .attendance-quick-layout,
-html body .attendance-shell .attendance-history-layout {
-  gap: 12px !important;
-  padding: 16px !important;
-  background: var(--att-m3-surface-container, #f0eef6) !important;
-  box-sizing: border-box !important;
+/* Shared visual language: one typography scale, restrained pastel surfaces, strong semantic accents. */
+html body .attendance-shell {
+  --att-type-title: 20px;
+  --att-type-tab: 15px;
+  --att-type-view-title: 22px;
+  --att-type-section: 14px;
+  --att-type-body: 13px;
+  --att-type-label: 10px;
+  --att-type-meta: 11px;
+  --att-type-chip: 11px;
+  --att-type-metric: 28px;
+
+  --att-polish-quick: #f4f7ff;
+  --att-polish-calendar: #f8f6ff;
+  --att-polish-manage: #f3faf8;
+  --att-polish-history: #f5f7fb;
+  --att-polish-report: #f7f7fc;
+
+  --att-gifted-bg: #eef3ff;
+  --att-gifted-bg-selected: #dfe9ff;
+  --att-gifted-accent: #4e6fc4;
+  --att-remedial-bg: #fff3e7;
+  --att-remedial-bg-selected: #ffe5cc;
+  --att-remedial-accent: #c87924;
+
+  --att-palette-blue: #eef3ff;
+  --att-palette-blue-accent: #5274c8;
+  --att-palette-green: #eaf8f0;
+  --att-palette-green-accent: #438b66;
+  --att-palette-rose: #fff0f4;
+  --att-palette-rose-accent: #b85f7c;
+  --att-palette-amber: #fff5df;
+  --att-palette-amber-accent: #b9852e;
+
+  font-size: var(--att-type-body) !important;
 }
 
-html body .attendance-shell .attendance-class-list {
-  grid-template-rows: auto auto minmax(0, 1fr) !important;
-  min-height: 0 !important;
-  overflow: hidden !important;
-  border: 0 !important;
-  border-radius: 22px !important;
-  background: var(--att-m3-surface, #fbf8ff) !important;
-  box-shadow: var(--att-m3-elevation-1, 0 2px 8px rgba(35, 42, 58, .09)) !important;
+/* ---------- Typography ---------- */
+html body .attendance-shell .attendance-title strong {
+  font-size: var(--att-type-title) !important;
+  font-weight: 750 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.015em !important;
 }
 
-html body .attendance-shell .att-m3-class-discovery {
-  min-height: 98px !important;
-  flex-shrink: 0 !important;
-  margin: 0 10px 8px !important;
-  padding: 10px 10px 9px !important;
-  overflow: visible !important;
-  border: 1px solid rgba(63, 95, 144, .10) !important;
-  border-radius: 16px !important;
-  background: var(--att-m3-surface-container, #f0eef6) !important;
+html body .attendance-shell .attendance-title small {
+  font-size: var(--att-type-label) !important;
+  font-weight: 850 !important;
+  line-height: 1.2 !important;
+  letter-spacing: .09em !important;
 }
 
-html body .attendance-shell .att-m3-class-search {
-  display: grid !important;
-  gap: 6px !important;
-  padding: 0 0 8px !important;
+html body .attendance-shell .attendance-tabs button {
+  font-size: var(--att-type-tab) !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+}
+
+html body .attendance-shell .attendance-class-list > header strong,
+html body .attendance-shell .attendance-calendar-toolbar strong,
+html body .attendance-shell .attendance-manage-classes > header strong,
+html body .attendance-shell .attendance-history-list > header strong,
+html body .attendance-shell .att-report-m3__section-head h3 {
+  font-size: var(--att-type-section) !important;
+  font-weight: 750 !important;
+  line-height: 1.25 !important;
+}
+
+html body .attendance-shell .attendance-rollcall-head h2,
+html body .attendance-shell .attendance-member-manager > header h2,
+html body .attendance-shell .att-report-m3__toolbar h2 {
+  font-size: var(--att-type-view-title) !important;
+  font-weight: 760 !important;
+  line-height: 1.2 !important;
+  letter-spacing: -0.02em !important;
+}
+
+html body .attendance-shell input,
+html body .attendance-shell select,
+html body .attendance-shell textarea,
+html body .attendance-shell button,
+html body .attendance-shell .attendance-day-open,
+html body .attendance-shell .attendance-day-lock {
+  font-size: var(--att-type-body) !important;
 }
 
 html body .attendance-shell .att-m3-class-search input {
@@ -46,6 +97,131 @@ html body .attendance-shell .att-m3-class-search input {
   background: #fff !important;
   color: var(--att-m3-on-surface, #1b1b20) !important;
   box-shadow: inset 0 0 0 1px rgba(69, 70, 79, .08) !important;
+  font-size: var(--att-type-body) !important;
+  font-weight: 600 !important;
+}
+
+html body .attendance-shell .attendance-session-controls label > span,
+html body .attendance-shell .att-m3-period-field > span,
+html body .attendance-shell .att-m3-class-search > span,
+html body .attendance-shell .attendance-confirm-bar label > span,
+html body .attendance-shell .attendance-add-student label > span,
+html body .attendance-shell .att-report-m3__filters label span,
+html body .attendance-shell .att-report-m3__export-meta label span,
+html body .attendance-shell .attendance-teacher-field > label {
+  font-size: var(--att-type-label) !important;
+  font-weight: 850 !important;
+  line-height: 1.2 !important;
+  letter-spacing: .06em !important;
+  text-transform: uppercase !important;
+}
+
+html body .attendance-shell .att-m3-subject-hub button {
+  font-size: var(--att-type-chip) !important;
+  font-weight: 750 !important;
+  line-height: 1.2 !important;
+}
+
+html body .attendance-shell .attendance-room-chip,
+html body .attendance-shell .att-m3-status-chip,
+html body .attendance-shell .att-m3-period-chip,
+html body .attendance-shell .att-m3-reason-chips button,
+html body .attendance-shell .att-m3-period-segment button,
+html body .attendance-shell .att-report-m3__status,
+html body .attendance-shell .att-report-m3__mode button,
+html body .attendance-shell .att-report-m3__export button {
+  font-size: var(--att-type-chip) !important;
+  font-weight: 750 !important;
+}
+
+html body .attendance-shell .attendance-class-name-row > b,
+html body .attendance-shell .attendance-manage-classes > button > b,
+html body .attendance-shell .attendance-history-list > div > button > div > b,
+html body .attendance-shell .att-report-m3__teacher-grid strong {
+  font-size: var(--att-type-body) !important;
+  font-weight: 760 !important;
+  line-height: 1.28 !important;
+}
+
+html body .attendance-shell .attendance-class-list button small,
+html body .attendance-shell .attendance-class-list button em,
+html body .attendance-shell .attendance-class-list button time,
+html body .attendance-shell .attendance-manage-classes button small,
+html body .attendance-shell .attendance-history-list button small,
+html body .attendance-shell .attendance-history-list button time,
+html body .attendance-shell .attendance-calendar-day small,
+html body .attendance-shell .attendance-calendar-day em,
+html body .attendance-shell .attendance-rollcall-head p,
+html body .attendance-shell .attendance-member-manager > header p,
+html body .attendance-shell .att-report-m3__toolbar p,
+html body .attendance-shell .att-report-m3__section-head p,
+html body .attendance-shell .att-report-m3__teacher-grid span,
+html body .attendance-shell .att-report-m3__teacher-grid small,
+html body .attendance-shell .att-report-m3__metrics article small {
+  font-size: var(--att-type-meta) !important;
+  line-height: 1.35 !important;
+}
+
+html body .attendance-shell .attendance-class-list > header span,
+html body .attendance-shell .attendance-manage-classes > header span,
+html body .attendance-shell .attendance-history-list > header span,
+html body .attendance-shell .attendance-calendar-weekdays span,
+html body .attendance-shell .att-report-m3__metrics article span,
+html body .attendance-shell .att-report-m3__eyebrow {
+  font-size: var(--att-type-label) !important;
+}
+
+html body .attendance-shell .att-report-m3__metrics article b {
+  font-size: var(--att-type-metric) !important;
+  line-height: 1 !important;
+}
+
+html body .attendance-shell .att-report-m3 th {
+  font-size: var(--att-type-label) !important;
+}
+
+html body .attendance-shell .att-report-m3 td {
+  font-size: var(--att-type-meta) !important;
+  line-height: 1.4 !important;
+}
+
+/* ---------- Quick attendance ---------- */
+html body .attendance-shell .attendance-quick-layout,
+html body .attendance-shell .attendance-history-layout {
+  gap: 12px !important;
+  padding: 16px !important;
+  box-sizing: border-box !important;
+}
+
+html body .attendance-shell .attendance-quick-layout {
+  background: var(--att-polish-quick) !important;
+}
+
+html body .attendance-shell .attendance-class-list {
+  grid-template-rows: auto auto minmax(0, 1fr) !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid #dde5f2 !important;
+  border-radius: 22px !important;
+  background: #fff !important;
+  box-shadow: 0 5px 18px rgba(49, 67, 96, .08) !important;
+}
+
+html body .attendance-shell .att-m3-class-discovery {
+  min-height: 98px !important;
+  flex-shrink: 0 !important;
+  margin: 0 10px 8px !important;
+  padding: 10px 10px 9px !important;
+  overflow: visible !important;
+  border: 1px solid #dbe4f4 !important;
+  border-radius: 16px !important;
+  background: #f1f5fd !important;
+}
+
+html body .attendance-shell .att-m3-class-search {
+  display: grid !important;
+  gap: 6px !important;
+  padding: 0 0 8px !important;
 }
 
 html body .attendance-shell .att-m3-class-search input:focus {
@@ -67,39 +243,80 @@ html body .attendance-shell .attendance-class-list > div:last-child {
   min-height: 0 !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
-  padding: 0 4px 5px !important;
+  padding: 2px 6px 8px !important;
+}
+
+html body .attendance-shell .attendance-class-list > div:last-child > button {
+  margin: 4px 2px !important;
+  border: 1px solid transparent !important;
+  border-radius: 15px !important;
+  box-shadow: 0 2px 7px rgba(39, 53, 79, .045) !important;
+  transition: background .16s ease, border-color .16s ease, box-shadow .16s ease, transform .16s ease !important;
+}
+
+html body .attendance-shell .attendance-class-list > div:last-child > button:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 5px 12px rgba(39, 53, 79, .09) !important;
+}
+
+html body .attendance-shell .attendance-class-list > div:last-child > button:has(.attendance-type-dot.is-gifted) {
+  background: linear-gradient(90deg, var(--att-gifted-bg), #f8faff 78%) !important;
+  border-left: 4px solid var(--att-gifted-accent) !important;
+}
+
+html body .attendance-shell .attendance-class-list > div:last-child > button:has(.attendance-type-dot.is-remedial) {
+  background: linear-gradient(90deg, var(--att-remedial-bg), #fffaf5 78%) !important;
+  border-left: 4px solid var(--att-remedial-accent) !important;
+}
+
+html body .attendance-shell .attendance-class-list > div:last-child > button.is-selected:has(.attendance-type-dot.is-gifted) {
+  background: var(--att-gifted-bg-selected) !important;
+  border-color: #9fb6ea !important;
+  border-left-color: var(--att-gifted-accent) !important;
+  box-shadow: 0 0 0 2px rgba(78, 111, 196, .14), 0 5px 14px rgba(49, 67, 96, .10) !important;
+}
+
+html body .attendance-shell .attendance-class-list > div:last-child > button.is-selected:has(.attendance-type-dot.is-remedial) {
+  background: var(--att-remedial-bg-selected) !important;
+  border-color: #e8b87d !important;
+  border-left-color: var(--att-remedial-accent) !important;
+  box-shadow: 0 0 0 2px rgba(200, 121, 36, .13), 0 5px 14px rgba(86, 62, 32, .09) !important;
 }
 
 html body .attendance-shell .attendance-rollcall {
-  border: 0 !important;
+  border: 1px solid #dde5f2 !important;
   border-radius: 22px !important;
   overflow: hidden !important;
-  box-shadow: var(--att-m3-elevation-1, 0 2px 8px rgba(35, 42, 58, .09)) !important;
+  background: linear-gradient(180deg, #fbfdff 0%, #ffffff 45%) !important;
+  box-shadow: 0 5px 18px rgba(49, 67, 96, .08) !important;
 }
 
+/* ---------- Calendar ---------- */
 html body .attendance-shell .attendance-calendar-layout {
   gap: 10px !important;
   padding: 16px !important;
-  background: var(--att-m3-surface-container, #f0eef6) !important;
+  background: var(--att-polish-calendar) !important;
 }
 
 html body .attendance-shell .attendance-calendar-toolbar {
-  border: 0 !important;
+  border: 1px solid #e1ddf2 !important;
   border-radius: 20px !important;
-  background: var(--att-m3-surface, #fbf8ff) !important;
-  box-shadow: var(--att-m3-elevation-1, 0 2px 8px rgba(35, 42, 58, .09)) !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f4f0ff 100%) !important;
+  box-shadow: 0 5px 16px rgba(66, 54, 105, .075) !important;
 }
 
 html body .attendance-shell .attendance-calendar-weekdays {
   overflow: hidden !important;
-  border: 0 !important;
+  border: 1px solid #e2dff0 !important;
   border-radius: 14px !important;
-  background: var(--att-m3-surface, #fbf8ff) !important;
-  box-shadow: var(--att-m3-elevation-1, 0 2px 8px rgba(35, 42, 58, .07)) !important;
+  background: #f4f1fb !important;
+  box-shadow: 0 2px 8px rgba(55, 47, 84, .05) !important;
 }
 
 html body .attendance-shell .attendance-calendar-weekdays span {
   border-right: 0 !important;
+  color: #59667c !important;
+  font-weight: 800 !important;
 }
 
 html body .attendance-shell .attendance-calendar-grid {
@@ -111,27 +328,45 @@ html body .attendance-shell .attendance-calendar-grid {
 }
 
 html body .attendance-shell .attendance-calendar-day {
-  border: 1px solid var(--att-m3-outline-variant, #c7c6d0) !important;
+  border: 1px solid #dcd9e8 !important;
   border-radius: 14px !important;
-  background: var(--att-m3-surface, #fbf8ff) !important;
-  box-shadow: 0 2px 7px rgba(35, 42, 58, .055) !important;
+  background: #fbfaff !important;
+  box-shadow: 0 2px 7px rgba(45, 39, 72, .055) !important;
   overflow: hidden !important;
 }
 
+html body .attendance-shell .attendance-calendar-day:not(.is-confirmed):not(.is-blank):nth-child(7n+6),
+html body .attendance-shell .attendance-calendar-day:not(.is-confirmed):not(.is-blank):nth-child(7n+7) {
+  background: #fff8f2 !important;
+  border-color: #f0ddcc !important;
+}
+
 html body .attendance-shell .attendance-calendar-day.is-blank {
-  border-color: rgba(118, 119, 127, .13) !important;
-  background: rgba(251, 248, 255, .55) !important;
+  border-color: rgba(118, 119, 127, .10) !important;
+  background: rgba(248, 247, 252, .58) !important;
   box-shadow: none !important;
 }
 
-html body .attendance-shell .attendance-calendar-day.is-confirmed {
-  border-color: transparent !important;
+html body .attendance-shell .attendance-calendar-day.is-confirmed:not(.is-cancelled) {
+  border-color: #a8d9ba !important;
+  background: #eaf8ef !important;
 }
 
+html body .attendance-shell .attendance-calendar-day.is-cancelled {
+  border-color: #efc689 !important;
+  background: #fff1dd !important;
+}
+
+html body .attendance-shell .attendance-calendar-day.is-today {
+  outline: 2px solid #5377c6 !important;
+  outline-offset: 1px !important;
+}
+
+/* ---------- Class management ---------- */
 html body .attendance-shell .attendance-manage-layout {
   gap: 14px !important;
   padding: 16px !important;
-  background: var(--att-m3-surface-container, #f0eef6) !important;
+  background: var(--att-polish-manage) !important;
 }
 
 html body .attendance-shell .attendance-management-grid {
@@ -145,42 +380,171 @@ html body .attendance-shell .attendance-manage-classes,
 html body .attendance-shell .attendance-member-manager,
 html body .attendance-shell .attendance-import-card,
 html body .attendance-shell .attendance-import-report {
-  border: 0 !important;
+  border: 1px solid #dce9e4 !important;
   border-radius: 20px !important;
-  background: var(--att-m3-surface, #fbf8ff) !important;
-  box-shadow: var(--att-m3-elevation-1, 0 2px 8px rgba(35, 42, 58, .09)) !important;
+  background: #fff !important;
+  box-shadow: 0 5px 16px rgba(42, 78, 67, .07) !important;
+}
+
+html body .attendance-shell .attendance-import-card {
+  background: linear-gradient(135deg, #ffffff 0%, #edf9f5 100%) !important;
 }
 
 html body .attendance-shell .attendance-manage-classes {
   overflow: auto !important;
+  padding-bottom: 7px !important;
+}
+
+html body .attendance-shell .attendance-manage-classes > button {
+  margin: 4px 7px !important;
+  border: 1px solid transparent !important;
+  border-radius: 14px !important;
+  box-shadow: 0 2px 6px rgba(45, 65, 61, .045) !important;
+}
+
+html body .attendance-shell .attendance-manage-classes > button:nth-of-type(4n+1) {
+  background: var(--att-palette-blue) !important;
+  border-left: 4px solid var(--att-palette-blue-accent) !important;
+}
+
+html body .attendance-shell .attendance-manage-classes > button:nth-of-type(4n+2) {
+  background: var(--att-palette-green) !important;
+  border-left: 4px solid var(--att-palette-green-accent) !important;
+}
+
+html body .attendance-shell .attendance-manage-classes > button:nth-of-type(4n+3) {
+  background: var(--att-palette-rose) !important;
+  border-left: 4px solid var(--att-palette-rose-accent) !important;
+}
+
+html body .attendance-shell .attendance-manage-classes > button:nth-of-type(4n+4) {
+  background: var(--att-palette-amber) !important;
+  border-left: 4px solid var(--att-palette-amber-accent) !important;
+}
+
+html body .attendance-shell .attendance-manage-classes > button.is-selected {
+  border-color: #91aadb !important;
+  box-shadow: 0 0 0 2px rgba(82, 116, 200, .13), 0 4px 11px rgba(45, 65, 61, .08) !important;
+  filter: saturate(1.08) !important;
 }
 
 html body .attendance-shell .attendance-member-manager {
   overflow: hidden !important;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfffd 100%) !important;
 }
 
+/* ---------- History ---------- */
 html body .attendance-shell .attendance-history-layout {
   gap: 12px !important;
+  background: var(--att-polish-history) !important;
 }
 
 html body .attendance-shell .attendance-history-list,
 html body .attendance-shell .attendance-history-detail {
   min-width: 0 !important;
-  border: 0 !important;
+  border: 1px solid #dfe4ed !important;
   border-radius: 22px !important;
-  background: var(--att-m3-surface, #fbf8ff) !important;
-  box-shadow: var(--att-m3-elevation-1, 0 2px 8px rgba(35, 42, 58, .09)) !important;
+  background: #fff !important;
+  box-shadow: 0 5px 16px rgba(48, 59, 79, .07) !important;
 }
 
 html body .attendance-shell .attendance-history-list {
   overflow: hidden !important;
 }
 
-html body .attendance-shell .attendance-history-detail {
-  overflow: auto !important;
+html body .attendance-shell .attendance-history-list > div > button {
+  margin: 4px 7px !important;
+  border: 1px solid transparent !important;
+  border-radius: 14px !important;
 }
 
+html body .attendance-shell .attendance-history-list > div > button:has(.attendance-type-dot.is-gifted) {
+  background: linear-gradient(90deg, var(--att-gifted-bg), #fbfcff 82%) !important;
+  border-left: 4px solid var(--att-gifted-accent) !important;
+}
+
+html body .attendance-shell .attendance-history-list > div > button:has(.attendance-type-dot.is-remedial) {
+  background: linear-gradient(90deg, var(--att-remedial-bg), #fffaf6 82%) !important;
+  border-left: 4px solid var(--att-remedial-accent) !important;
+}
+
+html body .attendance-shell .attendance-history-list > div > button.is-selected {
+  border-color: #9caed0 !important;
+  box-shadow: 0 0 0 2px rgba(75, 101, 153, .12) !important;
+}
+
+html body .attendance-shell .attendance-history-detail {
+  overflow: auto !important;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcff 100%) !important;
+}
+
+/* ---------- Report ---------- */
+html body .attendance-shell .att-report-m3 {
+  background: var(--att-polish-report) !important;
+}
+
+html body .attendance-shell .att-report-m3__toolbar {
+  border: 1px solid #dfe3f0 !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f2f4ff 100%) !important;
+  box-shadow: 0 5px 16px rgba(55, 65, 101, .07) !important;
+}
+
+html body .attendance-shell .att-report-m3__export-meta,
+html body .attendance-shell .att-report-m3__surface {
+  border: 1px solid #e0e4ee !important;
+  box-shadow: 0 5px 16px rgba(50, 58, 82, .065) !important;
+}
+
+html body .attendance-shell .att-report-m3__export-meta {
+  background: #fbfcff !important;
+}
+
+html body .attendance-shell .att-report-m3__metrics article {
+  border: 1px solid rgba(72, 82, 108, .08) !important;
+  box-shadow: 0 4px 12px rgba(45, 55, 80, .06) !important;
+}
+
+html body .attendance-shell .att-report-m3__teacher-grid > article {
+  border: 1px solid transparent !important;
+  box-shadow: 0 2px 8px rgba(43, 53, 76, .05) !important;
+}
+
+html body .attendance-shell .att-report-m3__teacher-grid > article:nth-child(4n+1) {
+  background: var(--att-palette-blue) !important;
+  border-left: 4px solid var(--att-palette-blue-accent) !important;
+}
+
+html body .attendance-shell .att-report-m3__teacher-grid > article:nth-child(4n+2) {
+  background: var(--att-palette-green) !important;
+  border-left: 4px solid var(--att-palette-green-accent) !important;
+}
+
+html body .attendance-shell .att-report-m3__teacher-grid > article:nth-child(4n+3) {
+  background: var(--att-palette-rose) !important;
+  border-left: 4px solid var(--att-palette-rose-accent) !important;
+}
+
+html body .attendance-shell .att-report-m3__teacher-grid > article:nth-child(4n+4) {
+  background: var(--att-palette-amber) !important;
+  border-left: 4px solid var(--att-palette-amber-accent) !important;
+}
+
+html body .attendance-shell .att-report-m3__teacher-grid > article:nth-child(4n+1) b { color: var(--att-palette-blue-accent) !important; }
+html body .attendance-shell .att-report-m3__teacher-grid > article:nth-child(4n+2) b { color: var(--att-palette-green-accent) !important; }
+html body .attendance-shell .att-report-m3__teacher-grid > article:nth-child(4n+3) b { color: var(--att-palette-rose-accent) !important; }
+html body .attendance-shell .att-report-m3__teacher-grid > article:nth-child(4n+4) b { color: var(--att-palette-amber-accent) !important; }
+
 @media (max-width: 760px) {
+  html body .attendance-shell {
+    --att-type-title: 18px;
+    --att-type-tab: 13px;
+    --att-type-view-title: 20px;
+    --att-type-section: 13px;
+    --att-type-body: 12px;
+    --att-type-meta: 10px;
+    --att-type-chip: 10px;
+  }
+
   html body .attendance-shell .attendance-quick-layout,
   html body .attendance-shell .attendance-history-layout,
   html body .attendance-shell .attendance-calendar-layout,

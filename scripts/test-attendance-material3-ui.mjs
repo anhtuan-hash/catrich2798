@@ -58,4 +58,33 @@ assert.match(
   'History list and detail panels must be separated by a visible gap',
 );
 
+assert.match(polishCss, /--att-type-title\s*:\s*20px/i, 'Attendance typography must define a 20px modal title token');
+assert.match(polishCss, /--att-type-tab\s*:\s*15px/i, 'Attendance typography must define a 15px navigation tab token');
+assert.match(polishCss, /--att-type-section\s*:\s*14px/i, 'Attendance typography must define a 14px section/card heading token');
+assert.match(polishCss, /--att-type-body\s*:\s*13px/i, 'Attendance typography must define a 13px body/input token');
+assert.match(polishCss, /--att-type-label\s*:\s*10px/i, 'Attendance typography must define a 10px field-label token');
+assert.match(polishCss, /--att-type-meta\s*:\s*11px/i, 'Attendance typography must define an 11px metadata token');
+assert.match(polishCss, /--att-type-chip\s*:\s*11px/i, 'Attendance typography must define an 11px chip token');
+assert.match(polishCss, /\.attendance-title\s+strong\s*\{[^}]*font-size\s*:\s*var\(--att-type-title\)/i,
+  'Modal title must consume the shared typography scale');
+assert.match(polishCss, /\.attendance-tabs\s+button\s*\{[^}]*font-size\s*:\s*var\(--att-type-tab\)/i,
+  'Attendance tabs must consume the shared typography scale');
+assert.match(polishCss, /\.att-m3-class-search\s+input\s*\{[^}]*font-size\s*:\s*var\(--att-type-body\)/i,
+  'Class search must use the shared body/input size');
+assert.match(polishCss, /\.att-m3-subject-hub\s+button\s*\{[^}]*font-size\s*:\s*var\(--att-type-chip\)/i,
+  'Subject filter chips must use the shared chip size');
+
+assert.match(polishCss, /\.attendance-class-list[^\n{]*button:has\(\.attendance-type-dot\.is-gifted\)[\s\S]*?background/i,
+  'Gifted quick-attendance class cards must receive a dedicated cool color treatment');
+assert.match(polishCss, /\.attendance-class-list[^\n{]*button:has\(\.attendance-type-dot\.is-remedial\)[\s\S]*?background/i,
+  'Remedial quick-attendance class cards must receive a dedicated warm color treatment');
+assert.match(polishCss, /\.attendance-manage-classes[^\n{]*button:nth-of-type\(4n\+1\)[\s\S]*?border-left/i,
+  'Management class rows must use a repeating colored accent palette');
+assert.match(polishCss, /\.attendance-history-list[^\n{]*button:has\(\.attendance-type-dot\.is-gifted\)[\s\S]*?background/i,
+  'Gifted history rows must receive a dedicated cool color treatment');
+assert.match(polishCss, /\.attendance-history-list[^\n{]*button:has\(\.attendance-type-dot\.is-remedial\)[\s\S]*?background/i,
+  'Remedial history rows must receive a dedicated warm color treatment');
+assert.match(polishCss, /\.att-report-m3__teacher-grid\s*>\s*article:nth-child\(4n\+1\)[\s\S]*?background/i,
+  'Teacher report cards must use a repeating pastel color system');
+
 console.log('Attendance Material 3 UI contract OK');
