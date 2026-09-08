@@ -121,17 +121,31 @@
   overflow: visible !important;
 }
 
-/* Quick Attendance: one scroll surface for the entire right-side session.
-   The roster grows naturally instead of being squeezed into its own scroll box. */
-.attendance-rollcall {
-  grid-template-rows: auto auto auto auto auto !important;
-  align-content: start;
+/* Quick Attendance redesign: the whole right pane is one readable vertical flow.
+   Higher-specificity selectors intentionally beat the component's late-loaded M3 rules. */
+.attendance-quick-layout {
+  overflow: hidden !important;
+}
+
+.attendance-rollcall.attendance-rollcall {
+  display: flex !important;
+  flex-direction: column !important;
+  align-content: initial !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  gap: 12px !important;
+  padding: 18px !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
   scrollbar-gutter: stable;
   overscroll-behavior: contain;
   scrollbar-width: thin;
   scrollbar-color: rgba(63, 95, 144, .58) transparent;
+  background: #f8faff !important;
+}
+
+.attendance-rollcall.attendance-rollcall > * {
+  flex: 0 0 auto !important;
 }
 
 .attendance-rollcall::-webkit-scrollbar { width: 10px; }
@@ -144,9 +158,175 @@
 }
 .attendance-rollcall::-webkit-scrollbar-thumb:hover { background-color: rgba(63, 95, 144, .72); }
 
-.attendance-roster {
-  min-height: auto !important;
+.attendance-rollcall .attendance-rollcall-head.attendance-rollcall-head {
+  min-height: 92px !important;
+  margin: 0 !important;
+  padding: 16px 18px !important;
+  border: 1px solid #dce6f5 !important;
+  border-radius: 20px !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f5f9ff 100%) !important;
+  box-shadow: 0 5px 18px rgba(48, 76, 120, .07) !important;
+}
+
+.attendance-rollcall .attendance-rollcall-head h2 {
+  margin-top: 3px !important;
+  font-size: 23px !important;
+  line-height: 1.08 !important;
+}
+
+.attendance-rollcall .attendance-summary.attendance-summary {
+  min-width: 126px !important;
+  padding: 12px 16px !important;
+  border: 1px solid rgba(23, 107, 71, .12) !important;
+  border-radius: 18px !important;
+  box-shadow: none !important;
+}
+
+.attendance-rollcall .attendance-session-controls.attendance-session-controls {
+  display: grid !important;
+  grid-template-columns: repeat(3,minmax(0,1fr)) !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.attendance-rollcall .attendance-session-controls > label,
+.attendance-rollcall .attendance-session-controls > .attendance-day-lock,
+.attendance-rollcall .attendance-session-controls > .attendance-day-open,
+.attendance-rollcall .attendance-session-controls > .att-m3-period-field {
+  min-height: 74px !important;
+  border: 1px solid #e1e8f3 !important;
+  border-radius: 16px !important;
+  background: #f1f5fb !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.8) !important;
+}
+
+.attendance-rollcall .attendance-session-controls input,
+.attendance-rollcall .attendance-session-controls select {
+  min-height: 36px !important;
+  background: #fff !important;
+  border: 1px solid #e6ebf3 !important;
+}
+
+.attendance-rollcall .attendance-roster-head {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: minmax(0,1fr) 140px 76px !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 49px 20px 10px 64px !important;
+  border: 1px solid #dbe5f4 !important;
+  border-bottom: 0 !important;
+  border-radius: 18px 18px 0 0 !important;
+  background: #f3f6fc !important;
+}
+
+.attendance-rollcall .attendance-roster-head::before {
+  content: 'Danh sách học sinh';
+  position: absolute;
+  top: 13px;
+  left: 18px;
+  color: #17263b;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: -.01em;
+  text-transform: none;
+}
+
+.attendance-rollcall .attendance-roster-head::after {
+  content: 'Điểm danh học sinh trong lớp';
+  position: absolute;
+  top: 31px;
+  left: 18px;
+  color: #718096;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.attendance-rollcall .attendance-roster.attendance-roster {
+  flex: none !important;
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
   overflow: visible !important;
+  margin: 0 0 2px !important;
+  border: 1px solid #dbe5f4 !important;
+  border-top: 0 !important;
+  border-radius: 0 0 18px 18px !important;
+  background: #fff !important;
+}
+
+.attendance-rollcall .att-m3-roster-entry > label {
+  min-height: 48px !important;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+
+.attendance-rollcall .att-m3-roster-entry:nth-child(even) {
+  background: #fbfcff !important;
+}
+
+.attendance-rollcall .att-m3-proof-card.att-m3-proof-card {
+  margin: 0 !important;
+  padding: 14px !important;
+  border: 1px dashed #aac4ef !important;
+  border-radius: 18px !important;
+  background: #f6f9ff !important;
+  box-shadow: none !important;
+}
+
+.attendance-rollcall .att-m3-proof-picker {
+  min-height: 48px !important;
+  border-radius: 14px !important;
+  background: #fff !important;
+}
+
+.attendance-rollcall .attendance-confirm-bar.attendance-confirm-bar {
+  min-height: 72px !important;
+  margin: 0 !important;
+  padding: 12px 14px !important;
+  border: 1px solid #e1e7f0 !important;
+  border-radius: 18px !important;
+  background: #f2f5fa !important;
+  box-shadow: none !important;
+}
+
+.attendance-rollcall .attendance-confirm-bar input {
+  min-height: 38px !important;
+  background: #fff !important;
+}
+
+.attendance-rollcall .attendance-confirm-bar button {
+  min-height: 40px !important;
+}
+
+@media (max-width: 1180px) {
+  .attendance-rollcall .attendance-session-controls.attendance-session-controls {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .attendance-rollcall.attendance-rollcall {
+    padding: 10px !important;
+    gap: 9px !important;
+  }
+
+  .attendance-rollcall .attendance-session-controls.attendance-session-controls {
+    grid-template-columns: 1fr !important;
+  }
+
+  .attendance-rollcall .attendance-roster-head {
+    grid-template-columns: minmax(0,1fr) 68px 48px !important;
+    padding-left: 48px !important;
+  }
+
+  .attendance-rollcall .attendance-confirm-bar.attendance-confirm-bar {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
 }
 
 @media (max-width: 900px) {
