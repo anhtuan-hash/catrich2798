@@ -3,6 +3,7 @@ import GlobalAccountTextSizeBridge from './GlobalAccountTextSizeBridge.jsx';
 import './GlobalIphoneNavigationReadable.css';
 import '../styles/dashboard-iphone-readable.css';
 import './attendance/AttendanceIphoneReadable.css';
+import './attendance/AttendanceManagementIndependentScroll.css';
 import './GlobalIphoneReadabilityCascadeLocks.css';
 
 // Brand cleanup remains static in the final navigation CSS layer. This utility
