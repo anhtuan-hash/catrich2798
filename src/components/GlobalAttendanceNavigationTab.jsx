@@ -14,8 +14,9 @@ import {
 } from '../utils/extraClassAttendance.js';
 import './GlobalAttendanceNavigationTab.css';
 
-const CLASS_COLUMNS = 'id,class_type,class_name,subject,teacher_id,teacher_name,teacher_email,active,created_by,updated_by,created_at,updated_at';
+const CLASS_COLUMNS = 'id,class_type,class_name,subject,teacher_id,teacher_name,teacher_email,active,source_key,school_year,grade_level,expected_student_count,periods_per_week,room,weekdays,time_range,created_by,updated_by,created_at,updated_at';
 const MEMBER_COLUMNS = 'id,class_id,member_key,student_code,student_full_name,school_class_name,active,joined_at,left_at,created_by,updated_by,removed_by,removal_reason,created_at,updated_at';
+const CLASS_TEACHER_COLUMNS = 'id,class_id,teacher_id,teacher_name,teacher_email,position,source_key,created_at,updated_at';
 const SESSION_COLUMNS = 'id,class_id,class_type,class_name,subject,teacher_id,teacher_name,teacher_email,checked_at,checked_by,total_students,present_count,absent_count,note,created_at';
 const RECORD_COLUMNS = 'id,session_id,class_id,member_id,member_key,student_code,student_full_name,school_class_name,status,recorded_at';
 
@@ -80,6 +81,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const [classes, setClasses] = useState([]);
   const [members, setMembers] = useState([]);
   const [teachers, setTeachers] = useState([]);
+  const [classTeachers, setClassTeachers] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [records, setRecords] = useState([]);
   const [selectedClassId, setSelectedClassId] = useState('');
@@ -121,25 +123,27 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     setLoading(true);
     setError('');
     try {
-      const [classResult, memberResult, teacherResult, sessionResult] = await Promise.all([
+      const [classResult, memberResult, teacherResult, classTeacherResult, sessionResult] = await Promise.all([
         client.from('bes_extra_classes').select(CLASS_COLUMNS).order('class_name', { ascending: true }),
         client.from('bes_extra_class_members').select(MEMBER_COLUMNS).order('student_full_name', { ascending: true }),
         client.rpc('bes_extra_attendance_list_teachers'),
+        client.from('bes_extra_class_teachers').select(CLASS_TEACHER_COLUMNS).order('position', { ascending: true }),
         client.from('bes_extra_attendance_sessions').select(SESSION_COLUMNS).order('checked_at', { ascending: false }).limit(400),
       ]);
-      const firstError = classResult.error || memberResult.error || teacherResult.error || sessionResult.error;
+      const firstError = classResult.error || memberResult.error || teacherResult.error || classTeacherResult.error || sessionResult.error;
       if (firstError) throw firstError;
       const nextClasses = classResult.data || [];
       setClasses(nextClasses);
       setMembers(memberResult.data || []);
       setTeachers(teacherResult.data || []);
+      setClassTeachers(classTeacherResult.data || []);
       setSessions(sessionResult.data || []);
       if (!keepSelection || !nextClasses.some((row) => String(row.id) === String(selectedClassId))) {
         setSelectedClassId(nextClasses.find((row) => row.active)?.id || '');
       }
     } catch (loadError) {
       setError(loadError?.message?.includes('does not exist')
-        ? 'Phân hệ Điểm danh chưa được cài đặt trên Supabase. Hãy chạy supabase/extra-class-attendance.sql trước.'
+        ? 'Phân hệ Điểm danh chưa được cài đặt đầy đủ trên Supabase. Hãy chạy migration điểm danh mới nhất.'
         : (loadError?.message || 'Không thể tải dữ liệu điểm danh.'));
     } finally {
       setLoading(false);
@@ -162,11 +166,26 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     });
     return map;
   }, [members]);
+  const classTeacherNames = useMemo(() => {
+    const map = new Map();
+    classTeachers.forEach((row) => {
+      const key = String(row.class_id);
+      const current = map.get(key) || [];
+      if (row.teacher_name && !current.some((name) => fold(name) === fold(row.teacher_name))) current.push(row.teacher_name);
+      map.set(key, current);
+    });
+    return map;
+  }, [classTeachers]);
   const lastSessionByClass = useMemo(() => {
     const map = new Map();
     sessions.forEach((session) => { if (!map.has(String(session.class_id))) map.set(String(session.class_id), session); });
     return map;
   }, [sessions]);
+
+  function teachersForClass(classRow) {
+    const assigned = classTeacherNames.get(String(classRow?.id)) || [];
+    return assigned.length ? assigned.join(', ') : (classRow?.teacher_name || 'Chưa phân công GV');
+  }
 
   useEffect(() => {
     if (view !== 'quick' || !selectedClassId) return;
@@ -401,6 +420,30 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     }
   }
 
+  async function deleteClass(classRow) {
+    if (!classRow || busy || !client) return;
+    const confirmed = window.confirm(`Xóa lớp “${classRow.class_name}”?\n\nThao tác này sẽ xóa danh sách học sinh, phân công giáo viên và toàn bộ các buổi điểm danh của lớp này. Không thể hoàn tác.`);
+    if (!confirmed) return;
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      const { error: deleteError } = await client.rpc('bes_delete_extra_class', { p_class_id: classRow.id });
+      if (deleteError) throw deleteError;
+      if (String(selectedClassId) === String(classRow.id)) setSelectedClassId('');
+      if (sessions.some((session) => String(session.class_id) === String(classRow.id) && String(session.id) === String(selectedSessionId))) {
+        setSelectedSessionId('');
+        setRecords([]);
+      }
+      setNotice(`Đã xóa lớp ${classRow.class_name} cùng dữ liệu điểm danh liên quan.`);
+      await loadAll({ keepSelection: false });
+    } catch (deleteError) {
+      setError(deleteError?.message || 'Không thể xóa lớp.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function changeTeacher(classRow, teacherId) {
     if (!classRow || busy || !client) return;
     const teacher = teachers.find((row) => String(row.id) === String(teacherId));
@@ -416,10 +459,10 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
         updated_at: new Date().toISOString(),
       }).eq('id', classRow.id);
       if (updateError) throw updateError;
-      setNotice(`Đã đổi giáo viên lớp ${classRow.class_name} thành ${teacherLabel(teacher)}.`);
+      setNotice(`Đã đổi giáo viên chính lớp ${classRow.class_name} thành ${teacherLabel(teacher)}.`);
       await loadAll();
     } catch (updateError) {
-      setError(updateError?.message || 'Không thể đổi giáo viên đứng lớp.');
+      setError(updateError?.message || 'Không thể đổi giáo viên chính.');
     } finally {
       setBusy(false);
     }
@@ -435,6 +478,27 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       .order('student_full_name', { ascending: true });
     if (recordError) setError(recordError.message);
     else setRecords(data || []);
+  }
+
+  async function deleteAttendanceSession(session) {
+    if (!session || busy || !client) return;
+    const confirmed = window.confirm(`Xóa buổi điểm danh đã duyệt của lớp “${session.class_name}” lúc ${formatDateTime(session.checked_at)}?\n\nDanh sách có mặt/vắng của buổi này sẽ bị xóa. Không thể hoàn tác.`);
+    if (!confirmed) return;
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      const { error: deleteError } = await client.rpc('bes_delete_extra_attendance_session', { p_session_id: session.id });
+      if (deleteError) throw deleteError;
+      setSelectedSessionId('');
+      setRecords([]);
+      setNotice(`Đã xóa buổi điểm danh của ${session.class_name} lúc ${formatDateTime(session.checked_at)}.`);
+      await loadAll();
+    } catch (deleteError) {
+      setError(deleteError?.message || 'Không thể xóa buổi điểm danh đã duyệt.');
+    } finally {
+      setBusy(false);
+    }
   }
 
   const filteredHistory = useMemo(() => sessions.filter((session) => {
@@ -502,7 +566,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                     return (
                       <button key={classRow.id} type="button" className={String(selectedClassId) === String(classRow.id) ? 'is-selected' : ''} onClick={() => setSelectedClassId(classRow.id)}>
                         <span className={`attendance-type-dot is-${classRow.class_type}`} />
-                        <div><b>{classRow.class_name}</b><small>{extraClassTypeLabel(classRow.class_type)} · {classRow.subject || 'Chưa ghi môn'}</small><em>{classRow.teacher_name || 'Chưa phân công GV'}</em></div>
+                        <div><b>{classRow.class_name}</b><small>{extraClassTypeLabel(classRow.class_type)} · {classRow.subject || 'Chưa ghi môn'}</small><em>{teachersForClass(classRow)}</em></div>
                         <span className="attendance-count">{memberCounts.get(String(classRow.id)) || 0}</span>
                         {last ? <time>{formatDateTime(last.checked_at)}</time> : <time>Chưa điểm danh</time>}
                       </button>
@@ -516,7 +580,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                 {selectedClass ? (
                   <>
                     <header className="attendance-rollcall-head">
-                      <div><span>{extraClassTypeLabel(selectedClass.class_type)}</span><h2>{selectedClass.class_name}</h2><p>{selectedClass.subject || 'Chưa ghi môn'} · GV {selectedClass.teacher_name || 'Chưa phân công'}</p></div>
+                      <div><span>{extraClassTypeLabel(selectedClass.class_type)}</span><h2>{selectedClass.class_name}</h2><p>{selectedClass.subject || 'Chưa ghi môn'} · GV {teachersForClass(selectedClass)}</p></div>
                       <div className="attendance-summary"><b>{summary.present}/{summary.total}</b><span>Có mặt</span><em>{summary.absent} vắng</em></div>
                     </header>
                     <div className="attendance-roster-head"><span>Học sinh</span><span>Lớp chính khóa</span><span>Vắng</span></div>
@@ -572,11 +636,17 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                     <>
                       <header>
                         <div><h2>{selectedClass.class_name}</h2><p>{extraClassTypeLabel(selectedClass.class_type)} · {selectedClass.subject || 'Chưa ghi môn'}</p></div>
-                        <div className="attendance-teacher-field"><label>Giáo viên đứng lớp</label><select value={selectedClass.teacher_id || ''} disabled={busy} onChange={(event) => changeTeacher(selectedClass, event.target.value)}><option value="">Chọn giáo viên</option>{teachers.map((teacher) => <option key={teacher.id} value={teacher.id}>{teacherLabel(teacher)}{teacher.email ? ` · ${teacher.email}` : ''}</option>)}</select></div>
+                        <div className="attendance-teacher-field">
+                          <label>Toàn bộ giáo viên</label>
+                          <strong>{teachersForClass(selectedClass)}</strong>
+                          <label>Giáo viên chính</label>
+                          <select value={selectedClass.teacher_id || ''} disabled={busy} onChange={(event) => changeTeacher(selectedClass, event.target.value)}><option value="">Chọn giáo viên</option>{teachers.map((teacher) => <option key={teacher.id} value={teacher.id}>{teacherLabel(teacher)}{teacher.email ? ` · ${teacher.email}` : ''}</option>)}</select>
+                        </div>
                       </header>
                       <div className="attendance-member-tools">
                         <input value={memberQuery} onChange={(event) => setMemberQuery(event.target.value)} placeholder="Tìm học sinh, mã HS, lớp chính khóa…" />
                         <button type="button" onClick={() => setShowAddStudent((value) => !value)}><Icon name="add" size={18} />Thêm học sinh</button>
+                        <button type="button" disabled={busy} onClick={() => deleteClass(selectedClass)}><Icon name="trash" size={17} />Xóa lớp</button>
                       </div>
 
                       {showAddStudent ? (
@@ -626,7 +696,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
               <section className="attendance-history-detail">
                 {selectedSession ? (
                   <>
-                    <header><span>{extraClassTypeLabel(selectedSession.class_type)}</span><h2>{selectedSession.class_name}</h2><p>{formatDateTime(selectedSession.checked_at)} · GV {selectedSession.teacher_name || '—'}</p></header>
+                    <header><span>{extraClassTypeLabel(selectedSession.class_type)}</span><h2>{selectedSession.class_name}</h2><p>{formatDateTime(selectedSession.checked_at)} · GV {selectedSession.teacher_name || '—'}</p><button type="button" disabled={busy} onClick={() => deleteAttendanceSession(selectedSession)}><Icon name="trash" size={17} />Xóa buổi điểm danh</button></header>
                     <div className="attendance-history-stat"><div><b>{selectedSession.total_students}</b><span>Sĩ số</span></div><div><b>{selectedSession.present_count}</b><span>Có mặt</span></div><div><b>{selectedSession.absent_count}</b><span>Vắng</span></div></div>
                     {selectedSession.note ? <div className="attendance-history-note"><b>Ghi chú</b><p>{selectedSession.note}</p></div> : null}
                     <div className="attendance-absent-list"><strong>Học sinh vắng</strong>{selectedAbsentRecords.map((record, index) => <div key={record.id}><span>{index + 1}</span><div><b>{record.student_full_name}</b><small>{record.student_code || 'Không có mã HS'}</small></div><em>{record.school_class_name || '—'}</em></div>)}{!selectedAbsentRecords.length ? <p>Tất cả học sinh đều có mặt.</p> : null}</div>
