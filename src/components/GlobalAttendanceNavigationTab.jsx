@@ -12,7 +12,7 @@ import {
   parseExtraClassRosterRows,
   sortMembersByName,
 } from '../utils/extraClassAttendance.js';
-import { isExtraClassScheduledOnDate } from '../utils/extraClassSchedule2026.js';
+import { isExtraClassScheduledOnDate, roomForExtraClass } from '../utils/extraClassSchedule2026.js';
 import {
   giftedAssignmentForClass,
   teachersForGiftedAssignment,
@@ -728,13 +728,14 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                 <div>{activeClasses.map((classRow) => {
                   const last = lastSessionByClass.get(String(classRow.id));
                   const scheduledForDate = isExtraClassScheduledOnDate(classRow, attendanceDate);
-                  return <button key={classRow.id} type="button" className={`${String(selectedClassId) === String(classRow.id) ? 'is-selected ' : ''}${scheduledForDate ? '' : 'is-off-schedule'}`.trim()} title={scheduledForDate ? undefined : `Không có lịch học ngày ${formatDate(attendanceDate)}`} onClick={() => setSelectedClassId(classRow.id)}><span className={`attendance-type-dot is-${classRow.class_type}`} /><div><b>{classRow.class_name}</b><small>{extraClassTypeLabel(classRow.class_type)} · {classRow.subject || 'Chưa ghi môn'}</small><em>{teachersForClass(classRow)}</em></div><span className="attendance-count">{memberCounts.get(String(classRow.id)) || 0}</span>{last ? <time>{formatDate(last.attendance_date)}</time> : <time>Chưa điểm danh</time>}</button>;
+                  const room = roomForExtraClass(classRow);
+                  return <button key={classRow.id} type="button" className={`${String(selectedClassId) === String(classRow.id) ? 'is-selected ' : ''}${scheduledForDate ? '' : 'is-off-schedule'}`.trim()} title={scheduledForDate ? undefined : `Không có lịch học ngày ${formatDate(attendanceDate)}`} onClick={() => setSelectedClassId(classRow.id)}><span className={`attendance-type-dot is-${classRow.class_type}`} /><div><div className="attendance-class-name-row"><b>{classRow.class_name}</b>{room ? <span className="attendance-room-chip">{room}</span> : null}</div><small>{extraClassTypeLabel(classRow.class_type)} · {classRow.subject || 'Chưa ghi môn'}</small><em>{teachersForClass(classRow)}</em></div><span className="attendance-count">{memberCounts.get(String(classRow.id)) || 0}</span>{last ? <time>{formatDate(last.attendance_date)}</time> : <time>Chưa điểm danh</time>}</button>;
                 })}{!activeClasses.length ? <div className="attendance-empty">Chưa có lớp. Mở “Quản lý lớp” để import danh sách.</div> : null}</div>
               </aside>
 
               <section className="attendance-rollcall">
                 {selectedClass ? <>
-                  <header className="attendance-rollcall-head"><div><span>{extraClassTypeLabel(selectedClass.class_type)}</span><h2>{selectedClass.class_name}</h2><p>{selectedClass.subject || 'Chưa ghi môn'} · GV phân công: {teachersForClass(selectedClass)}</p></div><div className="attendance-summary"><b>{daySession?.session_status === 'cancelled' ? 'Đã hủy' : daySession ? `${daySession.present_count}/${daySession.total_students}` : `${summary.present}/${summary.total}`}</b><span>{daySession?.session_status === 'cancelled' ? 'Buổi học' : 'Có mặt'}</span><em>{daySession?.session_status === 'cancelled' ? '0 tiết' : `${daySession ? daySession.absent_count : summary.absent} vắng`}</em></div></header>
+                  <header className="attendance-rollcall-head"><div><span>{extraClassTypeLabel(selectedClass.class_type)}</span><div className="attendance-rollcall-title-row"><h2>{selectedClass.class_name}</h2>{roomForExtraClass(selectedClass) ? <span className="attendance-room-chip is-large">{roomForExtraClass(selectedClass)}</span> : null}</div><p>{selectedClass.subject || 'Chưa ghi môn'} · GV phân công: {teachersForClass(selectedClass)}</p></div><div className="attendance-summary"><b>{daySession?.session_status === 'cancelled' ? 'Đã hủy' : daySession ? `${daySession.present_count}/${daySession.total_students}` : `${summary.present}/${summary.total}`}</b><span>{daySession?.session_status === 'cancelled' ? 'Buổi học' : 'Có mặt'}</span><em>{daySession?.session_status === 'cancelled' ? '0 tiết' : `${daySession ? daySession.absent_count : summary.absent} vắng`}</em></div></header>
 
                   <div className="attendance-session-controls">
                     <label><span>Ngày điểm danh</span><input type="date" value={attendanceDate} max={today} onChange={(event) => { setAttendanceDate(event.target.value); setNotice(''); setError(''); }} /></label>
