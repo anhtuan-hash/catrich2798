@@ -121,6 +121,34 @@
   overflow: visible !important;
 }
 
+/* Quick Attendance: one scroll surface for the entire right-side session.
+   The roster grows naturally instead of being squeezed into its own scroll box. */
+.attendance-rollcall {
+  grid-template-rows: auto auto auto auto auto !important;
+  align-content: start;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scrollbar-gutter: stable;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(63, 95, 144, .58) transparent;
+}
+
+.attendance-rollcall::-webkit-scrollbar { width: 10px; }
+.attendance-rollcall::-webkit-scrollbar-track { background: transparent; }
+.attendance-rollcall::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(63, 95, 144, .48);
+  background-clip: padding-box;
+}
+.attendance-rollcall::-webkit-scrollbar-thumb:hover { background-color: rgba(63, 95, 144, .72); }
+
+.attendance-roster {
+  min-height: auto !important;
+  overflow: visible !important;
+}
+
 @media (max-width: 900px) {
   .attendance-layer { padding: 10px !important; }
   .attendance-shell {
