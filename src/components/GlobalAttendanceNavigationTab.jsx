@@ -19,11 +19,13 @@ import {
 import './GlobalAttendanceNavigationTab.css';
 import './GlobalAttendanceDailyCalendar.css';
 import './GlobalAttendanceManualTeacher.css';
+import AttendanceMonthlyReport from './attendance/AttendanceMonthlyReport.jsx';
+import './attendance/AttendanceMaterial3.css';
 
 const CLASS_COLUMNS = 'id,class_type,class_name,subject,teacher_id,teacher_name,teacher_email,active,source_key,school_year,grade_level,expected_student_count,periods_per_week,room,weekdays,time_range,created_by,updated_by,created_at,updated_at';
 const MEMBER_COLUMNS = 'id,class_id,member_key,student_code,student_full_name,school_class_name,active,joined_at,left_at,created_by,updated_by,removed_by,removal_reason,created_at,updated_at';
 const CLASS_TEACHER_COLUMNS = 'id,class_id,teacher_id,teacher_name,teacher_email,position,source_key,created_at,updated_at';
-const SESSION_COLUMNS = 'id,class_id,class_type,class_name,subject,teacher_id,teacher_name,teacher_email,attendance_date,checked_at,checked_by,total_students,present_count,absent_count,note,created_at';
+const SESSION_COLUMNS = 'id,class_id,class_type,class_name,subject,teacher_id,teacher_name,teacher_email,attendance_date,checked_at,checked_by,total_students,present_count,absent_count,note,session_status,lesson_periods,cancellation_reason,created_at';
 const RECORD_COLUMNS = 'id,session_id,class_id,member_id,member_key,student_code,student_full_name,school_class_name,status,recorded_at';
 const VIETNAM_TIME_ZONE = 'Asia/Ho_Chi_Minh';
 
@@ -134,6 +136,10 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const [showAddStudent, setShowAddStudent] = useState(false);
   const [showAddTeacher, setShowAddTeacher] = useState(false);
   const [newTeacherName, setNewTeacherName] = useState('');
+  const [lessonPeriods, setLessonPeriods] = useState(1);
+  const [showCancelSession, setShowCancelSession] = useState(false);
+  const [cancellationReason, setCancellationReason] = useState('');
+  const [reportMonth, setReportMonth] = useState(today.slice(0, 7));
   const fileRef = useRef(null);
 
   const systemRole = normalizeSystemRole(runtime.role || currentUser?.role, SYSTEM_ROLES.GUEST);
@@ -239,6 +245,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   }
 
   function teacherForSession(session) {
+    if (session?.session_status === 'cancelled') return '—';
     return session?.teacher_name || 'Chưa ghi giáo viên';
   }
 
@@ -281,9 +288,15 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   useEffect(() => {
     if (daySession) {
       setSessionTeacher(daySession.teacher_name || '');
+      setLessonPeriods(daySession.session_status === 'cancelled' ? 0 : Number(daySession.lesson_periods || 1));
       setNote(daySession.note || '');
+      setShowCancelSession(false);
+      setCancellationReason(daySession.cancellation_reason || '');
       return;
     }
+    setLessonPeriods(1);
+    setShowCancelSession(false);
+    setCancellationReason('');
     if (selectedTeacherOptions.length === 1) setSessionTeacher(selectedTeacherOptions[0]);
     else setSessionTeacher('');
   }, [daySession?.id, selectedClassId, selectedTeacherOptions.join('|')]);
@@ -318,6 +331,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
         p_class_id: selectedClass.id,
         p_attendance_date: attendanceDate,
         p_teacher_name: sessionTeacher,
+        p_lesson_periods: lessonPeriods,
         p_absent_member_keys: absentKeys,
         p_note: note.trim(),
       });
@@ -329,6 +343,37 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       await loadMonthlySessions();
     } catch (confirmError) {
       setError(confirmError?.message || 'Không thể xác nhận điểm danh.');
+      await loadDaySession();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function cancelClassSession() {
+    if (!selectedClass || busy || !client || isDayLocked || isFutureDate) return;
+    const reason = cancellationReason.trim();
+    if (!reason) {
+      setError('Vui lòng nhập Lý do hủy buổi học.');
+      return;
+    }
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      const { data, error: cancelError } = await client.rpc('bes_cancel_extra_class_session', {
+        p_class_id: selectedClass.id,
+        p_attendance_date: attendanceDate,
+        p_cancellation_reason: reason,
+      });
+      if (cancelError) throw cancelError;
+      const created = Array.isArray(data) ? data[0] : data;
+      setDaySession(created || null);
+      setShowCancelSession(false);
+      setNotice(`Đã hủy buổi học ${selectedClass.class_name} ngày ${formatDate(attendanceDate)}.`);
+      await loadAll();
+      await loadMonthlySessions();
+    } catch (cancelError) {
+      setError(cancelError?.message || 'Không thể hủy buổi học.');
       await loadDaySession();
     } finally {
       setBusy(false);
@@ -610,7 +655,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     <div className="attendance-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
       <section className="attendance-shell" role="dialog" aria-modal="true" aria-label="Điểm danh lớp phụ đạo và bồi dưỡng học sinh giỏi">
         <header className="attendance-topbar">
-          <div className="attendance-title"><span><Icon name="attendance" size={28} /></span><div><small>QUẢN LÝ CHUYÊN CẦN</small><strong>Điểm danh lớp phụ đạo & bồi dưỡng</strong><p>Mỗi lớp chỉ chốt một lần mỗi ngày · giờ xác nhận lưu theo máy chủ</p></div></div>
+          <div className="attendance-title"><span><Icon name="attendance" size={28} /></span><div><small>QUẢN LÝ CHUYÊN CẦN</small><strong>Điểm danh lớp phụ đạo & bồi dưỡng</strong></div></div>
           <div className="attendance-top-actions"><button type="button" className="attendance-icon-button" onClick={() => { loadAll(); loadDaySession(); if (view === 'calendar') loadMonthlySessions(); }} title="Làm mới"><Icon name="refresh" /></button><button type="button" className="attendance-icon-button" onClick={() => setOpen(false)} aria-label="Đóng"><Icon name="close" /></button></div>
         </header>
 
@@ -619,6 +664,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
           <button type="button" className={view === 'calendar' ? 'is-active' : ''} onClick={() => setView('calendar')}><Icon name="calendar" size={18} />Lịch tháng</button>
           <button type="button" className={view === 'manage' ? 'is-active' : ''} onClick={() => setView('manage')}><Icon name="people" size={18} />Quản lý lớp</button>
           <button type="button" className={view === 'history' ? 'is-active' : ''} onClick={() => setView('history')}><Icon name="history" size={18} />Lịch sử</button>
+          <button type="button" className={view === 'report' ? 'is-active' : ''} onClick={() => setView('report')}><Icon name="history" size={18} />Báo cáo</button>
         </nav>
 
         {notice ? <div className="attendance-banner is-success">{notice}</div> : null}
@@ -639,17 +685,19 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
 
               <section className="attendance-rollcall">
                 {selectedClass ? <>
-                  <header className="attendance-rollcall-head"><div><span>{extraClassTypeLabel(selectedClass.class_type)}</span><h2>{selectedClass.class_name}</h2><p>{selectedClass.subject || 'Chưa ghi môn'} · GV phân công: {teachersForClass(selectedClass)}</p></div><div className="attendance-summary"><b>{daySession ? `${daySession.present_count}/${daySession.total_students}` : `${summary.present}/${summary.total}`}</b><span>Có mặt</span><em>{daySession ? daySession.absent_count : summary.absent} vắng</em></div></header>
+                  <header className="attendance-rollcall-head"><div><span>{extraClassTypeLabel(selectedClass.class_type)}</span><h2>{selectedClass.class_name}</h2><p>{selectedClass.subject || 'Chưa ghi môn'} · GV phân công: {teachersForClass(selectedClass)}</p></div><div className="attendance-summary"><b>{daySession?.session_status === 'cancelled' ? 'Đã hủy' : daySession ? `${daySession.present_count}/${daySession.total_students}` : `${summary.present}/${summary.total}`}</b><span>{daySession?.session_status === 'cancelled' ? 'Buổi học' : 'Có mặt'}</span><em>{daySession?.session_status === 'cancelled' ? '0 tiết' : `${daySession ? daySession.absent_count : summary.absent} vắng`}</em></div></header>
 
                   <div className="attendance-session-controls">
                     <label><span>Ngày điểm danh</span><input type="date" value={attendanceDate} max={today} onChange={(event) => { setAttendanceDate(event.target.value); setNotice(''); setError(''); }} /></label>
                     <label className="is-teacher"><span>Giáo viên dạy hôm nay</span>{selectedTeacherOptions.length > 1 ? <select value={sessionTeacher} disabled={isDayLocked} onChange={(event) => setSessionTeacher(event.target.value)}><option value="">Chọn giáo viên</option>{selectedTeacherOptions.map((name) => <option key={name} value={name}>{name}</option>)}</select> : <strong>{selectedTeacherOptions[0] || sessionTeacher || 'Chưa có phân công'}</strong>}</label>
-                    {isDayLocked ? <div className="attendance-day-lock"><Icon name="check" size={18} /><div><b>Đã chốt {formatDate(daySession.attendance_date)}</b><span>GV {daySession.teacher_name} · {formatDateTime(daySession.checked_at)}</span></div></div> : <div className="attendance-day-open"><b>Chưa chốt ngày này</b><span>{isFutureDate ? 'Không thể chọn ngày tương lai.' : 'Có thể điểm danh một lần.'}</span></div>}
+                    <div className="att-m3-period-field"><span>Số tiết dạy</span><div className="att-m3-period-segment">{[[1,'1 tiết'],[1.5,'1,5 tiết'],[2,'2 tiết']].map(([value,label]) => <button key={value} type="button" disabled={isDayLocked} className={lessonPeriods === value ? 'is-active' : ''} onClick={() => setLessonPeriods(value)}>{label}</button>)}</div></div>
+                    {isDayLocked ? <div className={`attendance-day-lock ${daySession.session_status === 'cancelled' ? 'is-cancelled' : ''}`}><Icon name="check" size={18} /><div><b>{daySession.session_status === 'cancelled' ? `Đã hủy ${formatDate(daySession.attendance_date)}` : `Đã điểm danh ${formatDate(daySession.attendance_date)}`}</b><span>{daySession.session_status === 'cancelled' ? `${daySession.cancellation_reason} · 0 tiết` : `GV ${daySession.teacher_name} · ${String(daySession.lesson_periods || 1).replace('.', ',')} tiết · ${formatDateTime(daySession.checked_at)}`}</span></div></div> : <div className="attendance-day-open"><b>Chưa chốt ngày này</b><span>{isFutureDate ? 'Không thể chọn ngày tương lai.' : 'Có thể điểm danh hoặc hủy buổi học.'}</span></div>}
                   </div>
 
                   <div className="attendance-roster-head"><span>Học sinh</span><span>Lớp chính khóa</span><span>Vắng</span></div>
                   <div className="attendance-roster">{draft.map((member, index) => <label key={member.id || member.member_key} className={member.present === false ? 'is-absent' : ''}><span className="attendance-index">{String(index + 1).padStart(2, '0')}</span><div><b>{member.student_full_name}</b><small>{member.student_code || 'Không có mã HS'}</small></div><span className="attendance-school-class">{member.school_class_name || '—'}</span><input type="checkbox" disabled={isDayLocked} checked={member.present === false} onChange={() => toggleAbsent(member.member_key)} aria-label={`Đánh dấu ${member.student_full_name} vắng`} /></label>)}{!draft.length ? <div className="attendance-empty">Lớp này chưa có học sinh đang hoạt động.</div> : null}</div>
-                  <footer className="attendance-confirm-bar"><label><span>Ghi chú buổi học</span><input disabled={isDayLocked} value={note} onChange={(event) => setNote(event.target.value)} placeholder="Không bắt buộc" /></label><div><span>{isDayLocked ? `Đã lưu ${formatDateTime(daySession.checked_at)}` : 'Giờ chốt được lấy từ máy chủ.'}</span><button type="button" disabled={busy || !draft.length || isDayLocked || isFutureDate || !sessionTeacher} onClick={confirmAttendance}><Icon name="check" size={18} />{isDayLocked ? `Đã chốt ${formatDate(daySession.attendance_date)}` : busy ? 'Đang lưu…' : 'Xác nhận điểm danh'}</button></div></footer>
+                  <footer className="attendance-confirm-bar"><label><span>Ghi chú buổi học</span><input disabled={isDayLocked} value={note} onChange={(event) => setNote(event.target.value)} placeholder="Không bắt buộc" /></label><div className="att-m3-session-actions"><button className="att-m3-cancel-button" type="button" disabled={busy || isDayLocked || isFutureDate} onClick={() => setShowCancelSession((value) => !value)}>Hủy buổi học</button><button type="button" disabled={busy || !draft.length || isDayLocked || isFutureDate || !sessionTeacher} onClick={confirmAttendance}><Icon name="check" size={18} />{isDayLocked ? (daySession.session_status === 'cancelled' ? 'Đã hủy' : `Đã chốt ${formatDate(daySession.attendance_date)}`) : busy ? 'Đang lưu…' : 'Xác nhận điểm danh'}</button></div></footer>
+                  {showCancelSession && !isDayLocked ? <div className="att-m3-cancel-surface"><label><span>Lý do hủy *</span><input value={cancellationReason} onChange={(event) => setCancellationReason(event.target.value)} placeholder="Ví dụ: Giáo viên bận công tác" autoFocus /></label><button type="button" onClick={() => { setShowCancelSession(false); setCancellationReason(''); }}>Không hủy</button><button className="is-confirm" type="button" disabled={busy || !cancellationReason.trim()} onClick={cancelClassSession}>{busy ? 'Đang lưu…' : 'Xác nhận hủy'}</button></div> : null}
                 </> : <div className="attendance-empty is-large">Chọn một lớp để bắt đầu điểm danh.</div>}
               </section>
             </div>
@@ -662,7 +710,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
               {calendarLoading ? <div className="attendance-loading">Đang tải lịch tháng…</div> : <div className="attendance-calendar-grid">{calendarCells.map((dateValue, index) => {
                 if (!dateValue) return <div key={`blank-${index}`} className="attendance-calendar-day is-blank" />;
                 const session = calendarByDate.get(dateValue);
-                return <button key={dateValue} type="button" className={`attendance-calendar-day ${dateValue === today ? 'is-today' : ''} ${session ? 'is-confirmed' : ''}`} disabled={!session} onClick={() => session && openSessionFromCalendar(session)}><span className="attendance-calendar-date">{Number(dateValue.slice(-2))}</span>{session ? <><b><Icon name="check" size={14} /> {session.present_count}/{session.total_students}</b><small>{session.teacher_name}</small><em>{formatDateTime(session.checked_at).split(' ')[1] || 'Đã chốt'}</em></> : <small>Chưa điểm danh</small>}</button>;
+                return <button key={dateValue} type="button" className={`attendance-calendar-day ${dateValue === today ? 'is-today' : ''} ${session ? 'is-confirmed' : ''} ${session?.session_status === 'cancelled' ? 'is-cancelled' : ''}`} disabled={!session} onClick={() => session && openSessionFromCalendar(session)}><span className="attendance-calendar-date">{Number(dateValue.slice(-2))}</span>{session ? (session.session_status === 'cancelled' ? <><b>Đã hủy</b><small>{session.cancellation_reason}</small><em>0 tiết</em></> : <><b><Icon name="check" size={14} /> {session.present_count}/{session.total_students}</b><small>{session.teacher_name}</small><em>{String(session.lesson_periods || 1).replace('.', ',')} tiết</em></>) : <small>Chưa điểm danh</small>}</button>;
               })}</div>}
             </div>
           ) : null}
@@ -679,9 +727,11 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
             </div>
           ) : null}
 
+          {!loading && view === 'report' ? <AttendanceMonthlyReport client={client} classes={classes} month={reportMonth} onMonthChange={setReportMonth} onError={setError} /> : null}
+
           {!loading && view === 'history' ? (
-            <div className="attendance-history-layout"><section className="attendance-history-list"><header><div><strong>Lịch sử điểm danh</strong><span>{filteredHistory.length} buổi</span></div><div><select value={historyType} onChange={(event) => setHistoryType(event.target.value)}><option value="all">Tất cả loại lớp</option><option value="remedial">Phụ đạo</option><option value="gifted">Bồi dưỡng HSG</option></select><input value={historyQuery} onChange={(event) => setHistoryQuery(event.target.value)} placeholder="Tìm lớp, giáo viên, ngày…" /></div></header><div>{filteredHistory.map((session) => <button key={session.id} type="button" className={String(selectedSessionId) === String(session.id) ? 'is-selected' : ''} onClick={() => loadSessionRecords(session.id)}><span className={`attendance-type-dot is-${session.class_type}`} /><div><b>{session.class_name}</b><small>{teacherForSession(session)} · {extraClassTypeLabel(session.class_type)}</small><time>{formatDate(session.attendance_date)} · {formatDateTime(session.checked_at)}</time></div><span className="attendance-history-count"><b>{session.present_count}/{session.total_students}</b><em>{session.absent_count} vắng</em></span></button>)}{!filteredHistory.length ? <div className="attendance-empty">Chưa có buổi điểm danh phù hợp.</div> : null}</div></section>
-              <section className="attendance-history-detail">{selectedSession ? <><header><span>{extraClassTypeLabel(selectedSession.class_type)}</span><h2>{selectedSession.class_name}</h2><p>Ngày học {formatDate(selectedSession.attendance_date)} · chốt {formatDateTime(selectedSession.checked_at)} · GV {teacherForSession(selectedSession)}</p><button type="button" disabled={busy} onClick={() => deleteAttendanceSession(selectedSession)}><Icon name="trash" size={17} />Xóa buổi điểm danh</button></header><div className="attendance-history-stat"><div><b>{selectedSession.total_students}</b><span>Sĩ số</span></div><div><b>{selectedSession.present_count}</b><span>Có mặt</span></div><div><b>{selectedSession.absent_count}</b><span>Vắng</span></div></div>{selectedSession.note ? <div className="attendance-history-note"><b>Ghi chú</b><p>{selectedSession.note}</p></div> : null}<div className="attendance-absent-list"><strong>Học sinh vắng</strong>{selectedAbsentRecords.map((record, index) => <div key={record.id}><span>{index + 1}</span><div><b>{record.student_full_name}</b><small>{record.student_code || 'Không có mã HS'}</small></div><em>{record.school_class_name || '—'}</em></div>)}{!selectedAbsentRecords.length ? <p>Tất cả học sinh đều có mặt.</p> : null}</div></> : <div className="attendance-empty is-large">Chọn một buổi để xem danh sách vắng và thời gian điểm danh.</div>}</section></div>
+            <div className="attendance-history-layout"><section className="attendance-history-list"><header><div><strong>Lịch sử điểm danh</strong><span>{filteredHistory.length} buổi</span></div><div><select value={historyType} onChange={(event) => setHistoryType(event.target.value)}><option value="all">Tất cả loại lớp</option><option value="remedial">Phụ đạo</option><option value="gifted">Bồi dưỡng HSG</option></select><input value={historyQuery} onChange={(event) => setHistoryQuery(event.target.value)} placeholder="Tìm lớp, giáo viên, ngày…" /></div></header><div>{filteredHistory.map((session) => <button key={session.id} type="button" className={String(selectedSessionId) === String(session.id) ? 'is-selected' : ''} onClick={() => loadSessionRecords(session.id)}><span className={`attendance-type-dot is-${session.class_type}`} /><div><b>{session.class_name}</b><small>{session.session_status === 'cancelled' ? 'Đã hủy' : `${teacherForSession(session)} · ${String(session.lesson_periods || 1).replace('.', ',')} tiết`} · {extraClassTypeLabel(session.class_type)}</small><time>{formatDate(session.attendance_date)} · {formatDateTime(session.checked_at)}</time></div><span className="attendance-history-count"><b>{session.session_status === 'cancelled' ? 'Đã hủy' : `${session.present_count}/${session.total_students}`}</b><em>{session.session_status === 'cancelled' ? '0 tiết' : `${session.absent_count} vắng`}</em></span></button>)}{!filteredHistory.length ? <div className="attendance-empty">Chưa có buổi điểm danh phù hợp.</div> : null}</div></section>
+              <section className="attendance-history-detail">{selectedSession ? <><header><span className={`att-m3-status-chip is-${selectedSession.session_status === 'cancelled' ? 'cancelled' : 'completed'}`}>{selectedSession.session_status === 'cancelled' ? 'Đã hủy' : 'Đã điểm danh'}</span><h2>{selectedSession.class_name}</h2><p>Ngày học {formatDate(selectedSession.attendance_date)} · chốt {formatDateTime(selectedSession.checked_at)}{selectedSession.session_status === 'cancelled' ? '' : ` · GV ${teacherForSession(selectedSession)}`}</p><span className="att-m3-period-chip">{selectedSession.session_status === 'cancelled' ? '0 tiết' : `${String(selectedSession.lesson_periods || 1).replace('.', ',')} tiết`}</span><button type="button" disabled={busy} onClick={() => deleteAttendanceSession(selectedSession)}><Icon name="trash" size={17} />Xóa buổi điểm danh</button></header>{selectedSession.session_status === 'cancelled' ? <div className="att-m3-cancel-reason"><b>Lý do hủy</b><p>{selectedSession.cancellation_reason}</p></div> : <><div className="attendance-history-stat"><div><b>{selectedSession.total_students}</b><span>Sĩ số</span></div><div><b>{selectedSession.present_count}</b><span>Có mặt</span></div><div><b>{selectedSession.absent_count}</b><span>Vắng</span></div></div>{selectedSession.note ? <div className="attendance-history-note"><b>Ghi chú</b><p>{selectedSession.note}</p></div> : null}<div className="attendance-absent-list"><strong>Học sinh vắng</strong>{selectedAbsentRecords.map((record, index) => <div key={record.id}><span>{index + 1}</span><div><b>{record.student_full_name}</b><small>{record.student_code || 'Không có mã HS'}</small></div><em>{record.school_class_name || '—'}</em></div>)}{!selectedAbsentRecords.length ? <p>Tất cả học sinh đều có mặt.</p> : null}</div></>}</> : <div className="attendance-empty is-large">Chọn một buổi để xem chi tiết.</div>}</section></div>
           ) : null}
         </main>
       </section>
