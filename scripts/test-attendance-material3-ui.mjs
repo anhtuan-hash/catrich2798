@@ -2,6 +2,8 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
 const attendance = fs.readFileSync(new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url), 'utf8');
+const permissionRegistry = fs.readFileSync(new URL('../src/utils/permissions.js', import.meta.url), 'utf8');
+const attendanceUiContract = `${attendance}\n${permissionRegistry}`;
 const cssUrl = new URL('../src/components/attendance/AttendanceMaterial3.css', import.meta.url);
 const reportCssUrl = new URL('../src/components/attendance/AttendanceMonthlyReport.css', import.meta.url);
 const polishUrl = new URL('../public/attendance-ui-polish.css', import.meta.url);
@@ -10,7 +12,7 @@ const reportCss = fs.existsSync(reportCssUrl) ? fs.readFileSync(reportCssUrl, 'u
 const polishCss = fs.existsSync(polishUrl) ? fs.readFileSync(polishUrl, 'utf8') : '';
 
 assert.doesNotMatch(attendance, /Mỗi lớp chỉ chốt một lần mỗi ngày · giờ xác nhận lưu theo máy chủ/);
-assert.match(attendance, /Báo cáo/);
+assert.match(attendanceUiContract, /Báo cáo/);
 assert.match(attendance, /1,5 tiết/);
 assert.match(attendance, /Hủy buổi học/);
 assert.match(attendance, /Đã điểm danh/);
