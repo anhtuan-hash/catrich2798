@@ -47,12 +47,6 @@ import './GlobalHomeSparkleButton.css';
 import './homeroom/HomeroomCompactDensity.css';
 import '../styles/GlobalLayout16x9Authority.css';
 
-// Final phone-only readability layers. They are globally loaded here, but their
-// selectors are route/workspace scoped and only activate at iPhone-class widths.
-import './GlobalIphoneNavigationReadable.css';
-import '../styles/dashboard-iphone-readable.css';
-import './attendance/AttendanceIphoneReadable.css';
-
 export default function GlobalFlatNavigation(props) {
   return (
     <>
