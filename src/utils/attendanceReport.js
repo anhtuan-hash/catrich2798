@@ -1,12 +1,24 @@
+const ABSENCE_REASON_LABELS = Object.freeze({
+  excused: 'Có phép',
+  unexcused: 'Không phép',
+  sick: 'Ốm',
+  family: 'Việc gia đình',
+  other: 'Khác',
+  unspecified: 'Chưa ghi lý do',
+});
+
 function normalizeSession(session) {
   const status = session?.session_status === 'cancelled' ? 'cancelled' : 'completed';
   const rawPeriods = Number(session?.lesson_periods);
   const lessonPeriods = status === 'cancelled' ? 0 : (Number.isFinite(rawPeriods) ? rawPeriods : 1);
   return {
     ...session,
+    class_type: String(session?.class_type || ''),
     session_status: status,
     lesson_periods: lessonPeriods,
     cancellation_reason: String(session?.cancellation_reason || ''),
+    teaching_room: String(session?.teaching_room || ''),
+    teaching_time_range: String(session?.teaching_time_range || ''),
     total_students: Number(session?.total_students || 0),
     present_count: Number(session?.present_count || 0),
     absent_count: Number(session?.absent_count || 0),
@@ -21,17 +33,29 @@ function roundHalf(value) {
   return Math.round((Number(value || 0) + Number.EPSILON) * 2) / 2;
 }
 
-export function buildAttendanceMonthlyReport({
+function matchesPeriod(session, mode, month, date) {
+  const attendanceDate = String(session?.attendance_date || '');
+  if (mode === 'day') return !date || attendanceDate === date;
+  return !month || attendanceDate.slice(0, 7) === month;
+}
+
+export function absenceReasonLabel(code) {
+  return ABSENCE_REASON_LABELS[String(code || '').trim()] || ABSENCE_REASON_LABELS.unspecified;
+}
+
+export function buildAttendanceReport({
   sessions = [],
   records = [],
   classes = [],
+  mode = 'month',
   month = '',
+  date = '',
   classId = 'all',
   teacherName = 'all',
 } = {}) {
   const normalized = sessions.map(normalizeSession);
   const filteredSessions = normalized
-    .filter((session) => !month || String(session.attendance_date || '').slice(0, 7) === month)
+    .filter((session) => matchesPeriod(session, mode, month, date))
     .filter((session) => classId === 'all' || String(session.class_id) === String(classId))
     .filter((session) => teacherName === 'all' || (session.session_status === 'completed' && sameText(session.teacher_name, teacherName)))
     .sort((a, b) => String(a.attendance_date || '').localeCompare(String(b.attendance_date || '')) || String(a.class_name || '').localeCompare(String(b.class_name || ''), 'vi'));
@@ -85,9 +109,12 @@ export function buildAttendanceMonthlyReport({
       id: session.id,
       attendance_date: session.attendance_date,
       class_id: session.class_id,
+      class_type: session.class_type || classRow?.class_type || '',
       class_name: session.class_name || classRow?.class_name || '',
       subject: session.subject || classRow?.subject || '',
-      teacher_name: session.session_status === 'cancelled' ? '' : session.teacher_name,
+      teaching_room: session.teaching_room,
+      teaching_time_range: session.teaching_time_range,
+      teacher_name: session.session_status === 'cancelled' ? '' : String(session.teacher_name || ''),
       session_status: session.session_status,
       lesson_periods: session.lesson_periods,
       total_students: session.session_status === 'cancelled' ? null : session.total_students,
@@ -105,20 +132,32 @@ export function buildAttendanceMonthlyReport({
     .filter((record) => record.status === 'absent' && completedIds.has(String(record.session_id)))
     .map((record) => {
       const session = sessionById.get(String(record.session_id));
+      const classRow = classMap.get(String(session?.class_id || record?.class_id || ''));
+      const reasonCode = String(record?.absence_reason_code || '').trim() || 'unspecified';
       return {
         session_id: record.session_id,
         session_status: 'completed',
         attendance_date: session?.attendance_date || '',
-        class_name: session?.class_name || '',
-        subject: session?.subject || '',
+        class_id: session?.class_id || record?.class_id || '',
+        class_type: session?.class_type || classRow?.class_type || '',
+        class_name: session?.class_name || classRow?.class_name || '',
+        subject: session?.subject || classRow?.subject || '',
+        teaching_room: session?.teaching_room || '',
+        teaching_time_range: session?.teaching_time_range || '',
+        checked_at: session?.checked_at || '',
         teacher_name: session?.teacher_name || '',
         student_code: record.student_code || '',
         student_full_name: record.student_full_name || '',
         school_class_name: record.school_class_name || '',
+        reason_code: reasonCode,
+        reason_label: absenceReasonLabel(reasonCode),
+        absence_note: String(record?.absence_note || ''),
       };
-    });
+    })
+    .sort((a, b) => String(a.attendance_date || '').localeCompare(String(b.attendance_date || '')) || a.student_full_name.localeCompare(b.student_full_name, 'vi'));
 
   return {
+    mode: mode === 'day' ? 'day' : 'month',
     filteredSessions,
     metrics: {
       completedSessions: completed.length,
@@ -134,11 +173,15 @@ export function buildAttendanceMonthlyReport({
   };
 }
 
-export function uniqueReportTeachers(sessions = [], month = '') {
+export function buildAttendanceMonthlyReport(args = {}) {
+  return buildAttendanceReport({ ...args, mode: 'month' });
+}
+
+export function uniqueReportTeachers(sessions = [], month = '', { mode = 'month', date = '' } = {}) {
   const names = new Map();
   sessions.map(normalizeSession)
     .filter((session) => session.session_status === 'completed')
-    .filter((session) => !month || String(session.attendance_date || '').slice(0, 7) === month)
+    .filter((session) => matchesPeriod(session, mode, month, date))
     .forEach((session) => {
       const name = String(session.teacher_name || '').trim();
       if (name) names.set(name.toLocaleLowerCase('vi'), name);

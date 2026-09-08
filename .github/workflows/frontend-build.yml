@@ -88,11 +88,17 @@ jobs:
       - name: Verify attendance schedule dimming
         run: node scripts/test-attendance-schedule-dimming.mjs
 
-      - name: Verify attendance room chips
+      - name: Verify attendance room chip
         run: node scripts/test-attendance-room-chip.mjs
 
       - name: Verify attendance monthly report UI
         run: node scripts/test-attendance-monthly-report-ui.mjs
+
+      - name: Verify attendance absence room/time contract
+        run: node scripts/test-attendance-absence-room-time.mjs
+
+      - name: Verify attendance hub and absence UI
+        run: node scripts/test-attendance-hub-absence-ui.mjs
 
       - name: Verify Vercel Hobby function budget
         run: node scripts/test-vercel-hobby-function-budget.mjs

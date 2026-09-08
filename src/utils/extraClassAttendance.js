@@ -22,6 +22,42 @@ function normalizedStudentCode(value) {
   return raw;
 }
 
+export const ABSENCE_REASON_OPTIONS = [
+  { value: 'excused', label: 'Có phép' },
+  { value: 'unexcused', label: 'Không phép' },
+  { value: 'sick', label: 'Ốm' },
+  { value: 'family', label: 'Việc gia đình' },
+  { value: 'other', label: 'Khác' },
+];
+
+export const ATTENDANCE_SUBJECT_HUB = [
+  { key: 'all', label: 'Tất cả' },
+  { key: 'math', label: 'Toán' },
+  { key: 'casio', label: 'Toán/Casio' },
+  { key: 'literature', label: 'Ngữ văn' },
+  { key: 'english', label: 'Tiếng Anh' },
+  { key: 'physics', label: 'Vật lí' },
+  { key: 'chemistry', label: 'Hóa học' },
+  { key: 'biology', label: 'Sinh học' },
+  { key: 'history', label: 'Lịch sử' },
+  { key: 'geography', label: 'Địa lí' },
+];
+
+export function attendanceSubjectKey(value) {
+  const normalized = fold(value);
+  if (!normalized) return 'other';
+  if (normalized.includes('casio')) return 'casio';
+  if (normalized === 'toan' || normalized.includes('toan hoc')) return 'math';
+  if (normalized.includes('ngu van') || normalized === 'van') return 'literature';
+  if (normalized.includes('tieng anh') || normalized === 'anh' || normalized.includes('english')) return 'english';
+  if (normalized.includes('vat li') || normalized.includes('vat ly') || normalized === 'ly') return 'physics';
+  if (normalized.includes('hoa hoc') || normalized === 'hoa') return 'chemistry';
+  if (normalized.includes('sinh hoc') || normalized === 'sinh') return 'biology';
+  if (normalized.includes('lich su') || normalized === 'su') return 'history';
+  if (normalized.includes('dia li') || normalized.includes('dia ly') || normalized === 'dia') return 'geography';
+  return 'other';
+}
+
 export function normalizeExtraClassType(value) {
   const normalized = fold(value);
   if (!normalized) return '';
@@ -181,7 +217,7 @@ export function parseExtraClassRosterRows(rows = []) {
 export function buildAttendanceDraft(members = []) {
   return (Array.isArray(members) ? members : [])
     .filter((member) => member?.active !== false)
-    .map((member) => ({ ...member, present: true }));
+    .map((member) => ({ ...member, present: true, absence_reason_code: '', absence_note: '' }));
 }
 
 export function attendanceSummary(draft = []) {
