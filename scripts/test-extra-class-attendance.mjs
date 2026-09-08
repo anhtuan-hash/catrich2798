@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 const flatNav = fs.readFileSync(new URL('../src/components/GlobalFlatNavigation.jsx', import.meta.url), 'utf8');
 const attendance = fs.readFileSync(new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url), 'utf8');
 const attendanceAdmin = fs.readFileSync(new URL('../src/components/GlobalAttendanceAdminPersistenceBridge.jsx', import.meta.url), 'utf8');
+const permissionRegistry = fs.readFileSync(new URL('../src/utils/permissions.js', import.meta.url), 'utf8');
 const utility = fs.readFileSync(new URL('../src/utils/extraClassAttendance.js', import.meta.url), 'utf8');
 const sql = fs.readFileSync(new URL('../supabase/extra-class-attendance.sql', import.meta.url), 'utf8');
 const seedUrl = new URL('../supabase/migrations/20260908_gifted_classes_2026_delete_attendance.sql', import.meta.url);
@@ -17,11 +18,12 @@ const legacyGuardSql = fs.existsSync(legacyGuardUrl) ? fs.readFileSync(legacyGua
 const teacherCatalogUrl = new URL('../src/utils/giftedTeacherCatalog2026.js', import.meta.url);
 const teacherCatalogSource = fs.existsSync(teacherCatalogUrl) ? fs.readFileSync(teacherCatalogUrl, 'utf8') : '';
 const combinedSql = `${sql}\n${seedSql}\n${rpcHardeningSql}\n${dailyLockSql}\n${legacyGuardSql}`;
+const attendanceUiContract = `${attendance}\n${permissionRegistry}`;
 
 assert.match(flatNav, /GlobalTtcmNavigationTab[\s\S]*GlobalAttendanceNavigationTab/, 'Attendance must mount immediately after TTCM');
-assert.match(attendance, /Điểm danh nhanh/, 'Attendance workspace needs a quick attendance tab');
-assert.match(attendance, /Quản lý lớp/, 'Attendance workspace needs a class management tab');
-assert.match(attendance, /Lịch sử/, 'Attendance workspace needs a history tab');
+assert.match(attendanceUiContract, /Điểm danh nhanh/, 'Attendance workspace needs a quick attendance tab');
+assert.match(attendanceUiContract, /Quản lý lớp/, 'Attendance workspace needs a class management tab');
+assert.match(attendanceUiContract, /Lịch sử/, 'Attendance workspace needs a history tab');
 assert.match(attendance, /Thêm học sinh/, 'Admin must be able to add students manually');
 assert.match(attendance, /Xóa khỏi lớp/, 'Admin must be able to remove students manually');
 assert.match(attendance, /readSheet/, 'Excel import must use the existing read-excel-file browser reader');
@@ -75,7 +77,7 @@ assert.match(combinedSql, /bes_extra_class_teachers[\s\S]*teacher_name/i, 'Serve
 assert.match(attendance, /type="date"/, 'Quick attendance must expose a date picker');
 assert.match(attendance, /Giáo viên dạy hôm nay/, 'Multi-teacher attendance must require choosing the teacher who teaches that day');
 assert.match(attendance, /Đã chốt/, 'Already-confirmed class/date must render a locked state');
-assert.match(attendance, /Lịch tháng/, 'Attendance workspace must expose a monthly calendar tab');
+assert.match(attendanceUiContract, /Lịch tháng/, 'Attendance workspace must expose a monthly calendar tab');
 assert.match(attendance, /type="month"/, 'Monthly calendar must expose a month picker');
 assert.match(attendance, /attendance_date/, 'Frontend must load and compare the authoritative attendance date');
 assert.match(attendance, /\.gte\('attendance_date'/, 'Monthly calendar query must use a lower attendance_date bound');

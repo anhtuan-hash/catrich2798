@@ -4,7 +4,12 @@ import { readSheet } from 'read-excel-file/browser';
 import { getRuntimeClient } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
 import { normalizeSystemRole, SYSTEM_ROLES } from '../utils/roles.js';
-import { hasExplicitPermissionId, ROUTE_PERMISSION_IDS } from '../utils/permissions.js';
+import {
+  ATTENDANCE_PERMISSION_ITEMS,
+  getFirstAllowedAttendanceTab,
+  hasAnyAttendanceAccess,
+  hasAttendanceTabAccess,
+} from '../utils/permissions.js';
 import {
   ABSENCE_REASON_OPTIONS,
   ATTENDANCE_SUBJECT_HUB,
@@ -45,6 +50,14 @@ const PATHS = {
   check: 'm9.2 17.2-5-5 1.4-1.4 3.6 3.6 8.9-8.9 1.4 1.4-10.3 10.3Z',
   refresh: 'M18.4 5.6A8 8 0 1 0 20 14h-2.1a6 6 0 1 1-1-6.8L14 10h7V3l-2.6 2.6Z',
   calendar: 'M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v15h18V6a2 2 0 0 0-2-2Zm0 15H5V9h14v10ZM7 11h4v4H7v-4Z',
+};
+
+const ATTENDANCE_TAB_ICONS = {
+  quick: 'check',
+  calendar: 'calendar',
+  manage: 'people',
+  history: 'history',
+  report: 'history',
 };
 
 function Icon({ name, size = 20 }) {
@@ -154,11 +167,11 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const fileRef = useRef(null);
 
   const systemRole = normalizeSystemRole(runtime.role || currentUser?.role, SYSTEM_ROLES.GUEST);
-  const allowed = Boolean(
-    currentUser?.id
-      && (systemRole === SYSTEM_ROLES.ADMIN
-        || hasExplicitPermissionId(currentUser, ROUTE_PERMISSION_IDS.attendance))
-  );
+  const isAttendanceAdmin = systemRole === SYSTEM_ROLES.ADMIN;
+  const canAccessAttendanceView = (tabId) => isAttendanceAdmin || hasAttendanceTabAccess(currentUser, tabId);
+  const availableAttendanceTabs = ATTENDANCE_PERMISSION_ITEMS.filter((item) => canAccessAttendanceView(item.tab));
+  const firstAllowedView = isAttendanceAdmin ? 'quick' : getFirstAllowedAttendanceTab(currentUser);
+  const allowed = Boolean(currentUser?.id && (isAttendanceAdmin || hasAnyAttendanceAccess(currentUser)));
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
@@ -174,6 +187,11 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     document.documentElement.classList.add('bes-attendance-open');
     return () => document.documentElement.classList.remove('bes-attendance-open');
   }, [open]);
+
+  useEffect(() => {
+    if (!open || !allowed || !firstAllowedView) return;
+    if (!canAccessAttendanceView(view)) setView(firstAllowedView);
+  }, [open, allowed, firstAllowedView, view, currentUser?.permissions, systemRole]);
 
   async function loadAll({ keepSelection = true } = {}) {
     if (!client || !runtime.ready || !runtime.session || !allowed) return;
@@ -541,6 +559,10 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
 
   async function openSessionFromCalendar(session) {
     if (!session) return;
+    if (!canAccessAttendanceView('history')) {
+      setNotice('Bạn có quyền xem Lịch tháng. Cần thêm quyền Lịch sử để mở chi tiết buổi học.');
+      return;
+    }
     await loadSessionRecords(session.id);
     setView('history');
   }
@@ -785,7 +807,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   if (!host || !allowed) return null;
 
   const tab = createPortal(
-    <button type="button" className={`brian-nav__attendance-tab ${open ? 'is-active' : ''}`} aria-expanded={open} aria-haspopup="dialog" onClick={() => { setOpen((value) => !value); setError(''); if (!open) setView('quick'); }}>
+    <button type="button" className={`brian-nav__attendance-tab ${open ? 'is-active' : ''}`} aria-expanded={open} aria-haspopup="dialog" onClick={() => { setOpen((value) => !value); setError(''); if (!open) setView(firstAllowedView || 'quick'); }}>
       <Icon name="attendance" size={18} /><span>Điểm danh</span>
     </button>, host,
   );
@@ -799,11 +821,11 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
         </header>
 
         <nav className="attendance-tabs" aria-label="Phân hệ điểm danh">
-          <button type="button" className={view === 'quick' ? 'is-active' : ''} onClick={() => setView('quick')}><Icon name="check" size={18} />Điểm danh nhanh</button>
-          <button type="button" className={view === 'calendar' ? 'is-active' : ''} onClick={() => setView('calendar')}><Icon name="calendar" size={18} />Lịch tháng</button>
-          <button type="button" className={view === 'manage' ? 'is-active' : ''} onClick={() => setView('manage')}><Icon name="people" size={18} />Quản lý lớp</button>
-          <button type="button" className={view === 'history' ? 'is-active' : ''} onClick={() => setView('history')}><Icon name="history" size={18} />Lịch sử</button>
-          <button type="button" className={view === 'report' ? 'is-active' : ''} onClick={() => setView('report')}><Icon name="history" size={18} />Báo cáo</button>
+          {availableAttendanceTabs.map((item) => (
+            <button key={item.id} type="button" className={view === item.tab ? 'is-active' : ''} onClick={() => setView(item.tab)}>
+              <Icon name={ATTENDANCE_TAB_ICONS[item.tab] || 'attendance'} size={18} />{item.titleVi}
+            </button>
+          ))}
         </nav>
 
         {notice ? <div className="attendance-banner is-success">{notice}</div> : null}
@@ -812,7 +834,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
         <main className="attendance-content">
           {loading ? <div className="attendance-loading">Đang đồng bộ dữ liệu điểm danh…</div> : null}
 
-          {!loading && view === 'quick' ? (
+          {!loading && canAccessAttendanceView('quick') && view === 'quick' ? (
             <div className="attendance-quick-layout">
               <aside className="attendance-class-list">
                 <header><strong>Lớp đang hoạt động</strong><span>{filteredActiveClasses.length}/{activeClasses.length} lớp</span></header>
@@ -853,7 +875,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
             </div>
           ) : null}
 
-          {!loading && view === 'calendar' ? (
+          {!loading && canAccessAttendanceView('calendar') && view === 'calendar' ? (
             <div className="attendance-calendar-layout">
               <header className="attendance-calendar-toolbar"><div><strong>Lịch điểm danh theo tháng</strong><p>Mỗi ô đã chốt hiển thị giáo viên và số học sinh có mặt.</p></div><label><span>Lớp</span><select value={selectedClassId} onChange={(event) => setSelectedClassId(event.target.value)}>{activeClasses.map((classRow) => <option key={classRow.id} value={classRow.id}>{classRow.class_name}</option>)}</select></label><label><span>Tháng</span><input type="month" value={calendarMonth} onChange={(event) => setCalendarMonth(event.target.value)} /></label></header>
               <div className="attendance-calendar-weekdays">{['Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7','CN'].map((day) => <span key={day}>{day}</span>)}</div>
@@ -865,7 +887,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
             </div>
           ) : null}
 
-          {!loading && view === 'manage' ? (
+          {!loading && canAccessAttendanceView('manage') && view === 'manage' ? (
             <div className="attendance-manage-layout">
               <section className="attendance-import-card"><div><span><Icon name="upload" size={24} /></span><div><strong>Import lớp phụ đạo / bồi dưỡng</strong><p>Excel: Loại lớp · Tên lớp · Môn · Giáo viên · Mã HS · Họ và tên · Lớp chính khóa</p></div></div><input ref={fileRef} type="file" accept=".xlsx,.xls" onChange={(event) => importExcel(event.target.files?.[0])} hidden /><button type="button" disabled={busy} onClick={() => fileRef.current?.click()}><Icon name="upload" size={18} />{busy ? 'Đang xử lý…' : 'Chọn file Excel'}</button></section>
               {importReport ? <section className="attendance-import-report"><strong>{importReport.fileName}</strong><div><span>{importReport.totalClasses} lớp trong file</span><span>{importReport.totalStudents} học sinh</span><span>{importReport.createdClasses} lớp mới</span><span>{importReport.addedMembers} HS thêm mới</span><span>{importReport.reactivatedMembers} HS trở lại</span></div>{importReport.warnings?.length ? <details><summary>{importReport.warnings.length} lưu ý import</summary>{importReport.warnings.map((item, index) => <p key={`${item}-${index}`}>{item}</p>)}</details> : null}</section> : null}
@@ -877,11 +899,11 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
             </div>
           ) : null}
 
-          {!loading && view === 'report' ? <AttendanceMonthlyReport client={client} classes={classes} month={reportMonth} onMonthChange={setReportMonth} onError={setError} /> : null}
+          {!loading && canAccessAttendanceView('report') && view === 'report' ? <AttendanceMonthlyReport client={client} classes={classes} month={reportMonth} onMonthChange={setReportMonth} onError={setError} /> : null}
 
-          {!loading && view === 'history' ? (
+          {!loading && canAccessAttendanceView('history') && view === 'history' ? (
             <div className="attendance-history-layout"><section className="attendance-history-list"><header><div><strong>Lịch sử điểm danh</strong><span>{filteredHistory.length} buổi</span></div><div><select value={historyType} onChange={(event) => setHistoryType(event.target.value)}><option value="all">Tất cả loại lớp</option><option value="remedial">Phụ đạo</option><option value="gifted">Bồi dưỡng HSG</option></select><input value={historyQuery} onChange={(event) => setHistoryQuery(event.target.value)} placeholder="Tìm lớp, giáo viên, ngày…" /></div></header><div>{filteredHistory.map((session) => <button key={session.id} type="button" className={String(selectedSessionId) === String(session.id) ? 'is-selected' : ''} onClick={() => loadSessionRecords(session.id)}><span className={`attendance-type-dot is-${session.class_type}`} /><div><b>{session.class_name}</b><small>{session.session_status === 'cancelled' ? 'Đã hủy' : `${teacherForSession(session)} · ${String(session.lesson_periods || 1).replace('.', ',')} tiết`} · {extraClassTypeLabel(session.class_type)}</small><time>{formatDate(session.attendance_date)} · {formatDateTime(session.checked_at)}</time></div><span className="attendance-history-count"><b>{session.session_status === 'cancelled' ? 'Đã hủy' : `${session.present_count}/${session.total_students}`}</b><em>{session.session_status === 'cancelled' ? '0 tiết' : `${session.absent_count} vắng`}</em></span></button>)}{!filteredHistory.length ? <div className="attendance-empty">Chưa có buổi điểm danh phù hợp.</div> : null}</div></section>
-              <section className="attendance-history-detail">{selectedSession ? <><header><span className={`att-m3-status-chip is-${selectedSession.session_status === 'cancelled' ? 'cancelled' : 'completed'}`}>{selectedSession.session_status === 'cancelled' ? 'Đã hủy' : 'Đã điểm danh'}</span><h2>{selectedSession.class_name}</h2><p>Ngày học {formatDate(selectedSession.attendance_date)} · {selectedSession.teaching_time_range || 'Chưa ghi giờ dạy'} · phòng {selectedSession.teaching_room || 'Chưa ghi'} · chốt {formatDateTime(selectedSession.checked_at)}{selectedSession.session_status === 'cancelled' ? '' : ` · GV ${teacherForSession(selectedSession)}`}</p><span className="att-m3-period-chip">{selectedSession.session_status === 'cancelled' ? '0 tiết' : `${String(selectedSession.lesson_periods || 1).replace('.', ',')} tiết`}</span><button type="button" disabled={busy} onClick={() => deleteAttendanceSession(selectedSession)}><Icon name="trash" size={17} />Xóa buổi điểm danh</button></header>{selectedSession.session_status === 'cancelled' ? <div className="att-m3-cancel-reason"><b>Lý do hủy</b><p>{selectedSession.cancellation_reason}</p></div> : <><div className="attendance-history-stat"><div><b>{selectedSession.total_students}</b><span>Sĩ số</span></div><div><b>{selectedSession.present_count}</b><span>Có mặt</span></div><div><b>{selectedSession.absent_count}</b><span>Vắng</span></div></div>{selectedSession.note ? <div className="attendance-history-note"><b>Ghi chú</b><p>{selectedSession.note}</p></div> : null}<div className="attendance-absent-list"><strong>Học sinh vắng</strong>{selectedAbsentRecords.map((record, index) => <div key={record.id}><span>{index + 1}</span><div><b>{record.student_full_name}</b><small>{record.student_code || 'Không có mã HS'} · {ABSENCE_REASON_OPTIONS.find((item) => item.value === record.absence_reason_code)?.label || 'Chưa ghi lý do'}{record.absence_note ? ` · ${record.absence_note}` : ''}</small></div><em>{record.school_class_name || '—'}</em></div>)}{!selectedAbsentRecords.length ? <p>Tất cả học sinh đều có mặt.</p> : null}</div></>}</> : <div className="attendance-empty is-large">Chọn một buổi để xem chi tiết.</div>}</section></div>
+              <section className="attendance-history-detail">{selectedSession ? <><header><span className={`att-m3-status-chip is-${selectedSession.session_status === 'cancelled' ? 'cancelled' : 'completed'}`}>{selectedSession.session_status === 'cancelled' ? 'Đã hủy' : 'Đã điểm danh'}</span><h2>{selectedSession.class_name}</h2><p>Ngày học {formatDate(selectedSession.attendance_date)} · {selectedSession.teaching_time_range || 'Chưa ghi giờ dạy'} · phòng {selectedSession.teaching_room || 'Chưa ghi'} · chốt {formatDateTime(selectedSession.checked_at)}{selectedSession.session_status === 'cancelled' ? '' : ` · GV ${teacherForSession(selectedSession)}`}</p><span className="att-m3-period-chip">{selectedSession.session_status === 'cancelled' ? '0 tiết' : `${String(selectedSession.lesson_periods || 1).replace('.', ',')} tiết`}</span>{canAccessAttendanceView('quick') ? <button type="button" disabled={busy} onClick={() => deleteAttendanceSession(selectedSession)}><Icon name="trash" size={17} />Xóa buổi điểm danh</button> : null}</header>{selectedSession.session_status === 'cancelled' ? <div className="att-m3-cancel-reason"><b>Lý do hủy</b><p>{selectedSession.cancellation_reason}</p></div> : <><div className="attendance-history-stat"><div><b>{selectedSession.total_students}</b><span>Sĩ số</span></div><div><b>{selectedSession.present_count}</b><span>Có mặt</span></div><div><b>{selectedSession.absent_count}</b><span>Vắng</span></div></div>{selectedSession.note ? <div className="attendance-history-note"><b>Ghi chú</b><p>{selectedSession.note}</p></div> : null}<div className="attendance-absent-list"><strong>Học sinh vắng</strong>{selectedAbsentRecords.map((record, index) => <div key={record.id}><span>{index + 1}</span><div><b>{record.student_full_name}</b><small>{record.student_code || 'Không có mã HS'} · {ABSENCE_REASON_OPTIONS.find((item) => item.value === record.absence_reason_code)?.label || 'Chưa ghi lý do'}{record.absence_note ? ` · ${record.absence_note}` : ''}</small></div><em>{record.school_class_name || '—'}</em></div>)}{!selectedAbsentRecords.length ? <p>Tất cả học sinh đều có mặt.</p> : null}</div></>}</> : <div className="attendance-empty is-large">Chọn một buổi để xem chi tiết.</div>}</section></div>
           ) : null}
         </main>
       </section>
