@@ -1,0 +1,22 @@
+name: Attendance Quick Redesign
+
+on:
+  push:
+    branches:
+      - fix/attendance-quick-redesign
+  pull_request:
+    paths:
+      - 'public/attendance-windows8-launch.css'
+      - 'src/components/GlobalAttendanceNavigationTab.jsx'
+      - 'src/components/attendance/AttendanceMaterial3.css'
+      - 'scripts/test-attendance-quick-redesign.mjs'
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/test-attendance-quick-redesign.mjs
