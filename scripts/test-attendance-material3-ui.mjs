@@ -33,8 +33,8 @@ assert.match(reportCss, /\.att-report-m3\s*\{[^}]*min-height\s*:\s*0[^}]*overflo
   'Monthly report must own a vertical scroll viewport so long reports are not clipped by attendance-content overflow:hidden');
 assert.ok(polishCss, 'Attendance workspace polish stylesheet must exist');
 assert.ok(launchCss, 'Windows 8 attendance launch stylesheet must exist');
-assert.match(indexHtml, /attendance-windows8-launch\.css\?v=1/i,
-  'Application shell must load the Windows 8 attendance launch stylesheet');
+assert.match(indexHtml, /attendance-windows8-launch\.css\?v=2/i,
+  'Application shell must load the current Windows 8 attendance launch stylesheet');
 
 assert.match(
   launchCss,
