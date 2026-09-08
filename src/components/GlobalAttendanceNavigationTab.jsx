@@ -801,9 +801,9 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
 
   const selectedSession = sessions.find((session) => String(session.id) === String(selectedSessionId)) || monthlySessions.find((session) => String(session.id) === String(selectedSessionId));
   const selectedAbsentRecords = records.filter((record) => record.status === 'absent');
-const selectedSessionAttendanceRate = selectedSession?.session_status === 'completed' && Number(selectedSession.total_students) > 0
-  ? Math.round((Number(selectedSession.present_count || 0) / Number(selectedSession.total_students)) * 100)
-  : 0;
+  const selectedSessionAttendanceRate = selectedSession?.session_status === 'completed' && Number(selectedSession.total_students) > 0
+    ? Math.round((Number(selectedSession.present_count || 0) / Number(selectedSession.total_students)) * 100)
+    : 0;
   const calendarByDate = useMemo(() => new Map(monthlySessions.map((session) => [session.attendance_date, session])), [monthlySessions]);
   const calendarCells = useMemo(() => buildCalendarCells(calendarMonth), [calendarMonth]);
 
