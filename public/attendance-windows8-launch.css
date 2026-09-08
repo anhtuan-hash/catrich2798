@@ -1,21 +1,23 @@
 /* Windows 8 / Metro-inspired launch motion for the Attendance workspace.
-   Keep this scoped to the attendance overlay so the rest of Brian's motion system remains untouched. */
+   This effect is intentionally always-on for Attendance. */
 
 .attendance-layer {
-  animation-name: attendance-win8-layer-in;
-  animation-duration: 260ms;
-  animation-timing-function: cubic-bezier(.10, .90, .20, 1);
-  animation-fill-mode: both;
-  animation-iteration-count: 1;
+  animation-name: attendance-win8-layer-in !important;
+  animation-duration: 260ms !important;
+  animation-timing-function: cubic-bezier(.10, .90, .20, 1) !important;
+  animation-fill-mode: both !important;
+  animation-iteration-count: 1 !important;
+  animation-play-state: running !important;
   perspective: 1400px;
 }
 
 .attendance-shell {
-  animation-name: attendance-win8-shell-in;
-  animation-duration: 430ms;
-  animation-timing-function: cubic-bezier(.10, .90, .20, 1);
-  animation-fill-mode: both;
-  animation-iteration-count: 1;
+  animation-name: attendance-win8-shell-in !important;
+  animation-duration: 430ms !important;
+  animation-timing-function: cubic-bezier(.10, .90, .20, 1) !important;
+  animation-fill-mode: both !important;
+  animation-iteration-count: 1 !important;
+  animation-play-state: running !important;
   transform-origin: 50% 18%;
   backface-visibility: hidden;
   will-change: opacity, transform, filter;
@@ -56,14 +58,5 @@
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
     filter: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .attendance-layer,
-  .attendance-shell {
-    animation: none !important;
-    transform: none !important;
-    filter: none !important;
   }
 }
