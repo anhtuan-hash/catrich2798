@@ -128,9 +128,10 @@ export const REMEDIAL_SCHEDULE_2026_2027 = Object.freeze([
 const ALL_SCHEDULES = [...GIFTED_SCHEDULE_2026_2027, ...REMEDIAL_SCHEDULE_2026_2027];
 
 export function scheduleForExtraClass(classRow = {}) {
-  const classType = canonicalClassType(classRow.class_type);
-  const subject = canonicalSubject(classRow.subject || classRow.class_name);
-  const grade = gradeLevelOf(classRow);
+  const row = classRow && typeof classRow === 'object' ? classRow : {};
+  const classType = canonicalClassType(row.class_type);
+  const subject = canonicalSubject(row.subject || row.class_name);
+  const grade = gradeLevelOf(row);
   return ALL_SCHEDULES.find((entry) => (
     entry.class_type === classType
     && entry.subject === subject
