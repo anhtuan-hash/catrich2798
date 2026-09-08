@@ -95,5 +95,30 @@ assert.match(migration, /duplicate|trùng|member_key/i,
   'Member RPC must protect current-roster identity against duplicate active keys');
 assert.match(migration, /v_school_class_name\s+text\s*:=\s*trim\(coalesce\(p_school_class_name,\s*''\)\)/i,
   'Member RPC must preserve internal school-class whitespace so server member_key normalization matches frontend behavior');
+assert.match(
+  migration,
+  /revoke all on function public\.bes_extra_member_key\(text,text,text\) from public,\s*anon,\s*authenticated;/i,
+  'Internal member-key helper must not remain executable through Supabase client roles',
+);
+assert.match(
+  migration,
+  /revoke all on function public\.bes_admin_update_extra_class\(uuid,text,text,integer,text,text,integer\[\]\) from public,\s*anon,\s*authenticated;/i,
+  'Class update RPC must explicitly revoke default anon/authenticated grants before least-privilege grant',
+);
+assert.match(
+  migration,
+  /revoke all on function public\.bes_admin_update_extra_class_member\(uuid,uuid,text,text,text\) from public,\s*anon,\s*authenticated;/i,
+  'Member update RPC must explicitly revoke default anon/authenticated grants before least-privilege grant',
+);
+assert.match(
+  migration,
+  /grant execute on function public\.bes_admin_update_extra_class\(uuid,text,text,integer,text,text,integer\[\]\) to authenticated;/i,
+  'Signed-in users must receive the class RPC entry point, with Admin authorization still enforced inside the RPC',
+);
+assert.match(
+  migration,
+  /grant execute on function public\.bes_admin_update_extra_class_member\(uuid,uuid,text,text,text\) to authenticated;/i,
+  'Signed-in users must receive the member RPC entry point, with Admin authorization still enforced inside the RPC',
+);
 
 console.log('Attendance class edit sync contract OK');
