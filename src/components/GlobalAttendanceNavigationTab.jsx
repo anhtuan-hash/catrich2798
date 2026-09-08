@@ -18,6 +18,7 @@ import {
 } from '../utils/giftedTeacherCatalog2026.js';
 import './GlobalAttendanceNavigationTab.css';
 import './GlobalAttendanceDailyCalendar.css';
+import './GlobalAttendanceManualTeacher.css';
 
 const CLASS_COLUMNS = 'id,class_type,class_name,subject,teacher_id,teacher_name,teacher_email,active,source_key,school_year,grade_level,expected_student_count,periods_per_week,room,weekdays,time_range,created_by,updated_by,created_at,updated_at';
 const MEMBER_COLUMNS = 'id,class_id,member_key,student_code,student_full_name,school_class_name,active,joined_at,left_at,created_by,updated_by,removed_by,removal_reason,created_at,updated_at';
@@ -131,6 +132,8 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const [memberQuery, setMemberQuery] = useState('');
   const [addForm, setAddForm] = useState({ student_code: '', student_full_name: '', school_class_name: '' });
   const [showAddStudent, setShowAddStudent] = useState(false);
+  const [showAddTeacher, setShowAddTeacher] = useState(false);
+  const [newTeacherName, setNewTeacherName] = useState('');
   const fileRef = useRef(null);
 
   const systemRole = normalizeSystemRole(runtime.role || currentUser?.role, SYSTEM_ROLES.GUEST);
@@ -220,10 +223,14 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       gradeLevel: classRow?.grade_level,
       className: classRow?.class_name,
     });
-    if (authoritative.length) return authoritative;
     const normalized = classTeacherNames.get(String(classRow?.id)) || [];
-    if (normalized.length) return normalized;
-    return String(classRow?.teacher_name || '').split(/\s*,\s*/).map((name) => name.trim()).filter(Boolean);
+    const fallback = String(classRow?.teacher_name || '').split(/\s*,\s*/).map((name) => name.trim()).filter(Boolean);
+    const merged = [];
+    [...authoritative, ...normalized, ...fallback].forEach((name) => {
+      const clean = String(name || '').trim();
+      if (clean && !merged.some((current) => fold(current) === fold(clean))) merged.push(clean);
+    });
+    return merged;
   }
 
   function teachersForClass(classRow) {
@@ -236,6 +243,11 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   }
 
   const selectedTeacherOptions = useMemo(() => assignedTeachersForClass(selectedClass), [selectedClass, classTeacherNames]);
+
+  useEffect(() => {
+    setShowAddTeacher(false);
+    setNewTeacherName('');
+  }, [selectedClassId]);
 
   async function loadDaySession(classId = selectedClassId, dateValue = attendanceDate) {
     if (!client || !classId || !dateValue || !allowed) {
@@ -480,6 +492,38 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     } finally { setBusy(false); }
   }
 
+  async function addTeacher(event) {
+    event.preventDefault();
+    if (!selectedClass || busy || !client) return;
+    const teacherName = newTeacherName.trim();
+    if (!teacherName) {
+      setError('Vui lòng nhập họ tên giáo viên.');
+      return;
+    }
+    if (assignedTeachersForClass(selectedClass).some((name) => fold(name) === fold(teacherName))) {
+      setError(`${teacherName} đã có trong lớp ${selectedClass.class_name}.`);
+      return;
+    }
+    setBusy(true);
+    setError('');
+    setNotice('');
+    try {
+      const { error: teacherError } = await client.rpc('bes_add_extra_class_teacher', {
+        p_class_id: selectedClass.id,
+        p_teacher_name: teacherName,
+      });
+      if (teacherError) throw teacherError;
+      setNewTeacherName('');
+      setShowAddTeacher(false);
+      setNotice(`Đã thêm giáo viên ${teacherName} vào lớp ${selectedClass.class_name}.`);
+      await loadAll();
+    } catch (teacherError) {
+      setError(teacherError?.message || 'Không thể thêm giáo viên vào lớp.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function removeStudent(member) {
     if (!member || busy || !client) return;
     const reason = window.prompt(`Xóa ${member.student_full_name} khỏi lớp ${selectedClass?.class_name}?\n\nCó thể nhập lý do. Lịch sử điểm danh cũ sẽ vẫn được giữ nguyên.`, 'Ra khỏi lớp');
@@ -628,7 +672,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
               <section className="attendance-import-card"><div><span><Icon name="upload" size={24} /></span><div><strong>Import lớp phụ đạo / bồi dưỡng</strong><p>Excel: Loại lớp · Tên lớp · Môn · Giáo viên · Mã HS · Họ và tên · Lớp chính khóa</p></div></div><input ref={fileRef} type="file" accept=".xlsx,.xls" onChange={(event) => importExcel(event.target.files?.[0])} hidden /><button type="button" disabled={busy} onClick={() => fileRef.current?.click()}><Icon name="upload" size={18} />{busy ? 'Đang xử lý…' : 'Chọn file Excel'}</button></section>
               {importReport ? <section className="attendance-import-report"><strong>{importReport.fileName}</strong><div><span>{importReport.totalClasses} lớp trong file</span><span>{importReport.totalStudents} học sinh</span><span>{importReport.createdClasses} lớp mới</span><span>{importReport.addedMembers} HS thêm mới</span><span>{importReport.reactivatedMembers} HS trở lại</span></div>{importReport.warnings?.length ? <details><summary>{importReport.warnings.length} lưu ý import</summary>{importReport.warnings.map((item, index) => <p key={`${item}-${index}`}>{item}</p>)}</details> : null}</section> : null}
               <div className="attendance-management-grid"><aside className="attendance-manage-classes"><header><strong>Danh sách lớp</strong><span>{activeClasses.length}</span></header>{activeClasses.map((classRow) => <button key={classRow.id} type="button" className={String(selectedClassId) === String(classRow.id) ? 'is-selected' : ''} onClick={() => setSelectedClassId(classRow.id)}><b>{classRow.class_name}</b><small>{extraClassTypeLabel(classRow.class_type)} · {classRow.subject || 'Chưa ghi môn'}</small><span>{memberCounts.get(String(classRow.id)) || 0} HS</span></button>)}</aside>
-                <section className="attendance-member-manager">{selectedClass ? <><header><div><h2>{selectedClass.class_name}</h2><p>{extraClassTypeLabel(selectedClass.class_type)} · {selectedClass.subject || 'Chưa ghi môn'}</p></div><div className="attendance-teacher-field"><label>Giáo viên theo phân công 2026–2027</label><strong>{teachersForClass(selectedClass)}</strong><small>Không lấy từ tài khoản đăng ký trên website.</small></div></header><div className="attendance-member-tools"><input value={memberQuery} onChange={(event) => setMemberQuery(event.target.value)} placeholder="Tìm học sinh, mã HS, lớp chính khóa…" /><button type="button" onClick={() => setShowAddStudent((value) => !value)}><Icon name="add" size={18} />Thêm học sinh</button><button type="button" disabled={busy} onClick={() => deleteClass(selectedClass)}><Icon name="trash" size={17} />Xóa lớp</button></div>
+                <section className="attendance-member-manager">{selectedClass ? <><header><div><h2>{selectedClass.class_name}</h2><p>{extraClassTypeLabel(selectedClass.class_type)} · {selectedClass.subject || 'Chưa ghi môn'}</p></div><div className="attendance-teacher-field"><label>Giáo viên theo phân công 2026–2027</label><div className="attendance-teacher-summary"><strong>{teachersForClass(selectedClass)}</strong><button type="button" disabled={busy} onClick={() => setShowAddTeacher((value) => !value)}><Icon name="add" size={15} />Thêm giáo viên</button></div>{showAddTeacher ? <form className="attendance-add-teacher" onSubmit={addTeacher}><input value={newTeacherName} onChange={(event) => setNewTeacherName(event.target.value)} placeholder="Nhập họ tên giáo viên" autoFocus /><button type="button" disabled={busy} onClick={() => { setShowAddTeacher(false); setNewTeacherName(''); }}>Hủy</button><button type="submit" disabled={busy || !newTeacherName.trim()}>{busy ? 'Đang lưu…' : 'Lưu'}</button></form> : null}</div></header><div className="attendance-member-tools"><input value={memberQuery} onChange={(event) => setMemberQuery(event.target.value)} placeholder="Tìm học sinh, mã HS, lớp chính khóa…" /><button type="button" onClick={() => setShowAddStudent((value) => !value)}><Icon name="add" size={18} />Thêm học sinh</button><button type="button" disabled={busy} onClick={() => deleteClass(selectedClass)}><Icon name="trash" size={17} />Xóa lớp</button></div>
                   {showAddStudent ? <form className="attendance-add-student" onSubmit={addStudent}><label><span>Mã HS</span><input value={addForm.student_code} onChange={(event) => setAddForm((current) => ({ ...current, student_code: event.target.value }))} placeholder="Có thể để trống" /></label><label><span>Họ và tên *</span><input value={addForm.student_full_name} onChange={(event) => setAddForm((current) => ({ ...current, student_full_name: event.target.value }))} required /></label><label><span>Lớp chính khóa *</span><input value={addForm.school_class_name} onChange={(event) => setAddForm((current) => ({ ...current, school_class_name: event.target.value }))} placeholder="Ví dụ 12.6" required /></label><div><button type="button" onClick={() => setShowAddStudent(false)}>Hủy</button><button type="submit" disabled={busy}><Icon name="add" size={17} />Thêm vào lớp</button></div></form> : null}
                   <div className="attendance-member-table"><div className="attendance-member-table-head"><span>Học sinh</span><span>Lớp</span><span>Trạng thái</span><span /></div>{filteredManagementMembers.map((member) => <div key={member.id} className={member.active === false ? 'is-inactive' : ''}><span><b>{member.student_full_name}</b><small>{member.student_code || 'Không có mã HS'}</small></span><span>{member.school_class_name || '—'}</span><span>{member.active === false ? `Đã rời lớp${member.left_at ? ` · ${formatDateTime(member.left_at)}` : ''}` : 'Đang học'}</span><span>{member.active !== false ? <button type="button" disabled={busy} onClick={() => removeStudent(member)}><Icon name="trash" size={16} />Xóa khỏi lớp</button> : <em>{member.removal_reason || 'Đã lưu lịch sử'}</em>}</span></div>)}{!filteredManagementMembers.length ? <div className="attendance-empty">Không có học sinh phù hợp.</div> : null}</div>
                 </> : <div className="attendance-empty is-large">Chọn lớp để quản lý học sinh.</div>}</section></div>
