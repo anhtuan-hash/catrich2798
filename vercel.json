@@ -44,20 +44,68 @@
       "destination": "/api/gateway?handler=work-hub-file"
     },
     {
+      "source": "/api/google-drive-connect",
+      "destination": "/api/google-drive-gateway?handler=connect"
+    },
+    {
+      "source": "/api/google-drive-callback",
+      "destination": "/api/google-drive-gateway?handler=connect&scope=callback"
+    },
+    {
+      "source": "/api/google-drive-delete",
+      "destination": "/api/google-drive-gateway?handler=delete"
+    },
+    {
+      "source": "/api/google-drive-move",
+      "destination": "/api/google-drive-gateway?handler=delete&scope=move"
+    },
+    {
+      "source": "/api/google-drive-file",
+      "destination": "/api/google-drive-gateway?handler=file"
+    },
+    {
+      "source": "/api/google-drive-preview-session",
+      "destination": "/api/google-drive-gateway?handler=preview-session"
+    },
+    {
+      "source": "/api/hero-theme-admin",
+      "destination": "/api/hero-theme-gateway?handler=admin"
+    },
+    {
+      "source": "/api/hero-theme-manifest",
+      "destination": "/api/hero-theme-gateway?handler=manifest"
+    },
+    {
+      "source": "/api/hero-theme-media",
+      "destination": "/api/hero-theme-gateway?handler=media"
+    },
+    {
+      "source": "/api/homepage-hero-publish",
+      "destination": "/api/hero-theme-gateway?handler=homepage-publish"
+    },
+    {
+      "source": "/api/work-hub-file-access-v2",
+      "destination": "/api/work-hub-gateway?handler=access-v2"
+    },
+    {
+      "source": "/api/work-hub-file-edit-link",
+      "destination": "/api/work-hub-gateway?handler=edit-link"
+    },
+    {
+      "source": "/api/work-hub-file-signed",
+      "destination": "/api/work-hub-gateway?handler=signed"
+    },
+    {
+      "source": "/api/work-hub-file-stream",
+      "destination": "/api/work-hub-gateway?handler=stream"
+    },
+    {
       "source": "/api/external-app-requests",
       "destination": "/api/resource-sync?scope=external-app-requests"
     },
     {
       "source": "/api/news-article",
       "destination": "/api/news-feed?scope=article"
-    },
-    {
-      "source": "/api/google-drive-callback",
-      "destination": "/api/google-drive-connect?scope=callback"
-    },
-    {
-      "source": "/api/google-drive-move",
-      "destination": "/api/google-drive-delete?scope=move"
     },
     {
       "source": "/api/(.*)",
