@@ -19,29 +19,44 @@ jobs:
           base='https://esl-brian.vercel.app'
           curl -fsSIL "$base/" | sed -n '1,40p'
           curl -fsSL "$base/" -o /tmp/index.html
-          echo '=== INDEX ASSETS ==='
-          grep -oE 'src="[^"]+\.js' /tmp/index.html || true
           python - <<'PY'
-          import re, subprocess, pathlib, sys
-          html = pathlib.Path('/tmp/index.html').read_text(errors='ignore')
-          assets = re.findall(r'src="([^"]+\.js)', html)
-          if not assets:
-              print('NO_JS_ASSETS')
-              sys.exit(2)
-          found = False
-          for asset in assets:
-              url = asset if asset.startswith('http') else 'https://esl-brian.vercel.app' + (asset if asset.startswith('/') else '/' + asset)
-              path = '/tmp/' + asset.rsplit('/',1)[-1]
-              subprocess.run(['curl','-fsSL',url,'-o',path], check=True)
-              text = pathlib.Path(path).read_text(errors='ignore')
-              print('ASSET', url, 'bytes', len(text))
-              for needle in ['Tìm nhanh lớp','Phân loại lớp theo bộ môn','Không có lớp phù hợp bộ lọc']:
-                  hit = needle in text
-                  print(needle, '=>', 'FOUND' if hit else 'MISSING')
-              if 'Tìm nhanh lớp' in text and 'Phân loại lớp theo bộ môn' in text:
-                  found = True
-          if not found:
-              print('PRODUCTION_BUNDLE_MISSING_ATTENDANCE_SEARCH')
+          import re, sys, urllib.request
+          from urllib.parse import urljoin, urlparse
+
+          BASE = 'https://esl-brian.vercel.app/'
+          html = open('/tmp/index.html', encoding='utf-8', errors='ignore').read()
+          queue = [urljoin(BASE, value) for value in re.findall(r'src="([^"]+\.js)', html)]
+          seen = set()
+          found_in = []
+          needles = ['Tìm nhanh lớp','Phân loại lớp theo bộ môn','Không có lớp phù hợp bộ lọc']
+
+          while queue and len(seen) < 180:
+              url = queue.pop(0)
+              if url in seen or urlparse(url).netloc != urlparse(BASE).netloc:
+                  continue
+              seen.add(url)
+              try:
+                  with urllib.request.urlopen(url, timeout=20) as response:
+                      text = response.read().decode('utf-8', errors='ignore')
+              except Exception as exc:
+                  print('FETCH_FAIL', url, repr(exc))
+                  continue
+              hits = [needle for needle in needles if needle in text]
+              print('ASSET', url, 'bytes', len(text), 'hits', hits)
+              if hits:
+                  found_in.append((url, hits))
+              refs = set()
+              refs.update(re.findall(r'["\']([^"\']+\.js)["\']', text))
+              refs.update(re.findall(r'assets/[A-Za-z0-9._-]+\.js', text))
+              for ref in refs:
+                  child = urljoin(url, ref)
+                  if child not in seen and urlparse(child).netloc == urlparse(BASE).netloc:
+                      queue.append(child)
+
+          print('CRAWLED_JS_COUNT', len(seen))
+          print('FOUND_IN', found_in)
+          if not any('Tìm nhanh lớp' in hits and 'Phân loại lớp theo bộ môn' in hits for _, hits in found_in):
+              print('PRODUCTION_CHUNKS_MISSING_ATTENDANCE_SEARCH')
               sys.exit(3)
-          print('PRODUCTION_BUNDLE_HAS_ATTENDANCE_SEARCH')
+          print('PRODUCTION_CHUNKS_HAVE_ATTENDANCE_SEARCH')
           PY
