@@ -97,4 +97,19 @@ for (const token of ['is-subject-math', 'is-subject-casio', 'is-subject-literatu
   assert.match(css, new RegExp(token), `Material 3 CSS must define ${token}`);
 }
 
-console.log('Attendance class hub, explicit access permission, database gate, visible discovery, subject colors, room/time and absence UI contract OK');
+assert.match(attendance, /calendarMode/, 'Calendar must support switching between class and daily overview modes');
+assert.match(attendance, /Theo lớp/, 'Calendar mode switch must keep the existing class view');
+assert.match(attendance, /Theo ngày/, 'Calendar mode switch must expose a daily overview');
+assert.match(attendance, /dailyAttendanceDate/, 'Daily overview must keep an independently selectable date');
+assert.match(attendance, /isExtraClassScheduledOnDate\(classRow, dailyAttendanceDate\)/, 'Daily overview must derive scheduled classes from the official class schedule');
+assert.match(attendance, /dailySessionsByClass/, 'Daily overview must match attendance sessions back to scheduled classes');
+for (const label of ['Có lịch', 'Đã điểm danh', 'Chưa điểm danh', 'Đã hủy']) {
+  assert.match(attendance, new RegExp(label), `Daily overview must render the status label “${label}”`);
+}
+assert.match(attendance, /setView\('quick'\)/, 'A missing attendance row must be able to jump to quick attendance');
+assert.match(attendance, /setAttendanceDate\(dailyAttendanceDate\)/, 'Jumping from daily overview must preserve the selected date');
+assert.match(attendance, /setSelectedClassId\(classRow\.id\)/, 'Jumping from daily overview must preserve the selected class');
+assert.match(polishCss, /attendance-calendar-mode-switch/i, 'Daily overview mode switch must have dedicated styling');
+assert.match(polishCss, /attendance-daily-overview/i, 'Daily overview must have dedicated responsive styling');
+
+console.log('Attendance class hub, explicit access permission, database gate, visible discovery, subject colors, room/time, absence UI and daily status overview contract OK');
