@@ -1,0 +1,111 @@
+name: Apply attendance class edit sync
+
+on:
+  push:
+    branches:
+      - feat/attendance-class-edit-sync
+    paths:
+      - .github/workflows/apply-attendance-class-edit-sync.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-test-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/attendance-class-edit-sync
+          fetch-depth: 0
+
+      - name: Integrate isolated attendance editor
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('src/components/GlobalAttendanceNavigationTab.jsx')
+          text = path.read_text()
+
+          import_marker = "import AttendanceMonthlyReport from './attendance/AttendanceMonthlyReport.jsx';"
+          editor_import = "import AttendanceClassEditor from './attendance/AttendanceClassEditor.jsx';"
+          if editor_import not in text:
+              if import_marker not in text:
+                  raise SystemExit('Attendance editor import marker not found')
+              text = text.replace(import_marker, import_marker + '\n' + editor_import, 1)
+
+          old_room = "setTeachingRoom(String(selectedClass?.room || '').trim());"
+          new_room = "setTeachingRoom(roomForExtraClass(selectedClass));"
+          if old_room in text:
+              text = text.replace(old_room, new_room, 1)
+          elif new_room not in text:
+              raise SystemExit('Quick attendance room default marker not found')
+
+          old_deps = "}, [daySession?.id, selectedClassId, selectedTeacherOptions.join('|'), teacherUsageForDate]);"
+          new_deps = "}, [daySession?.id, selectedClassId, selectedClass?.room, selectedClass?.time_range, selectedClass?.weekdays, selectedTeacherOptions.join('|'), teacherUsageForDate]);"
+          if old_deps in text:
+              text = text.replace(old_deps, new_deps, 1)
+          elif new_deps not in text:
+              raise SystemExit('Quick attendance metadata dependency marker not found')
+
+          integration = '''<AttendanceClassEditor
+                    client={client}
+                    selectedClass={selectedClass}
+                    members={filteredManagementMembers}
+                    isAdmin={isAttendanceAdmin}
+                    busy={busy}
+                    onRemoveStudent={removeStudent}
+                    onReload={loadAll}
+                    onError={setError}
+                    onNotice={setNotice}
+                  />'''
+
+          if integration not in text:
+              pattern = re.compile(
+                  r'<div className="attendance-member-table"><div className="attendance-member-table-head">.*?</div>\n\s*</> : <div className="attendance-empty is-large">Chọn lớp để quản lý học sinh\.</div>',
+                  re.S,
+              )
+              match = pattern.search(text)
+              if not match:
+                  raise SystemExit('Attendance member table integration marker not found')
+              replacement = integration + '\n                </> : <div className="attendance-empty is-large">Chọn lớp để quản lý học sinh.</div>'
+              text = text[:match.start()] + replacement + text[match.end():]
+
+          path.write_text(text)
+          PY
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Verify class edit sync contract
+        run: node scripts/test-attendance-class-edit-sync.mjs
+
+      - name: Verify schedule dimming
+        run: node scripts/test-attendance-schedule-dimming.mjs
+
+      - name: Verify room chip
+        run: node scripts/test-attendance-room-chip.mjs
+
+      - name: Verify Material 3 attendance UI
+        run: node scripts/test-attendance-material3-ui.mjs
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Commit verified integration
+        run: |
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/components/GlobalAttendanceNavigationTab.jsx
+          git diff --cached --quiet || git commit -m "feat: integrate attendance class editor"
+          git push origin HEAD:feat/attendance-class-edit-sync
