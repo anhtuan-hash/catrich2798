@@ -115,5 +115,8 @@ jobs:
       - name: Verify Admin teacher account creator
         run: node scripts/test-admin-teacher-account-creator.mjs
 
+      - name: Verify Admin teacher account open contract
+        run: node scripts/test-admin-teacher-account-open-contract.mjs
+
       - name: Build production bundle
         run: npm run build
