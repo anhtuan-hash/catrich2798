@@ -3,12 +3,16 @@ import assert from 'node:assert/strict';
 import {
   isExtraClassScheduledOnDate,
   roomForExtraClass,
+  weekdaysForExtraClass,
 } from '../src/utils/extraClassSchedule2026.js';
 
 const attendanceUrl = new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url);
-const cssUrl = new URL('../src/components/attendance/AttendanceMaterial3.css', import.meta.url);
+const editorUrl = new URL('../src/components/attendance/AttendanceClassEditor.jsx', import.meta.url);
+const cssUrl = new URL('../src/components/attendance/AttendanceClassEditor.css', import.meta.url);
 const migrationUrl = new URL('../supabase/migrations/20260908_attendance_admin_class_member_edit.sql', import.meta.url);
 const attendance = fs.readFileSync(attendanceUrl, 'utf8');
+const editor = fs.readFileSync(editorUrl, 'utf8');
+const ui = `${attendance}\n${editor}`;
 const css = fs.readFileSync(cssUrl, 'utf8');
 const migration = fs.existsSync(migrationUrl) ? fs.readFileSync(migrationUrl, 'utf8') : '';
 
@@ -37,23 +41,30 @@ assert.equal(
   false,
   'Persisted school weekday text must not be interpreted as raw JS indexes',
 );
+assert.deepEqual(
+  weekdaysForExtraClass({ class_type: 'gifted', subject: 'Anh', grade_level: 12, weekdays: '2,3' }),
+  [1, 2],
+  'Editor must receive normalized JS weekday indexes from persisted school notation',
+);
 assert.equal(
   roomForExtraClass({ class_type: 'remedial', subject: 'Anh', grade_level: 10, room: 'B205' }),
   'B205',
   'Persisted room must override the catalog room',
 );
 
-assert.match(attendance, /bes_admin_update_extra_class/,
+assert.match(attendance, /AttendanceClassEditor/,
+  'Management view must integrate the dedicated class editor component');
+assert.match(ui, /bes_admin_update_extra_class/,
   'Management UI must save class metadata through the Admin-only class RPC');
-assert.match(attendance, /bes_admin_update_extra_class_member/,
+assert.match(ui, /bes_admin_update_extra_class_member/,
   'Management UI must save member edits through the Admin-only member RPC');
-assert.match(attendance, /Sửa thông tin lớp/,
+assert.match(ui, /Sửa thông tin lớp/,
   'Management UI must expose a class edit action');
-assert.match(attendance, /Sửa học sinh/,
+assert.match(ui, /Sửa học sinh/,
   'Management UI must expose a student edit action');
-assert.match(attendance, /isAttendanceAdmin[\s\S]{0,500}Sửa thông tin lớp/,
+assert.match(editor, /isAdmin\s*&&\s*!editingClass[\s\S]{0,300}Sửa thông tin lớp/,
   'Class editing must be guarded by the Admin role in the UI');
-assert.match(attendance, /isAttendanceAdmin[\s\S]{0,900}Sửa học sinh/,
+assert.match(editor, /member\.active\s*!==\s*false\s*&&\s*isAdmin[\s\S]{0,300}Sửa học sinh/,
   'Student editing must be guarded by the Admin role in the UI');
 assert.match(css, /\.attendance-class-info-card/,
   'Class information editing surface must have dedicated styling');
