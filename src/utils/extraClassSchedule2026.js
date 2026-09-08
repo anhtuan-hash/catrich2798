@@ -138,6 +138,12 @@ export function scheduleForExtraClass(classRow = {}) {
   )) || null;
 }
 
+export function weekdaysForExtraClass(classRow = {}) {
+  const persisted = persistedWeekdaysOf(classRow);
+  if (persisted) return persisted;
+  return [...(scheduleForExtraClass(classRow)?.weekdays || [])];
+}
+
 export function roomForExtraClass(classRow = {}) {
   const explicitRoom = String(classRow?.room || '').trim();
   if (explicitRoom) return explicitRoom;
