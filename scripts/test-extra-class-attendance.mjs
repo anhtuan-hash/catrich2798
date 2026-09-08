@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 const flatNav = fs.readFileSync(new URL('../src/components/GlobalFlatNavigation.jsx', import.meta.url), 'utf8');
 const attendance = fs.readFileSync(new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url), 'utf8');
+const attendanceEditor = fs.readFileSync(new URL('../src/components/attendance/AttendanceClassEditor.jsx', import.meta.url), 'utf8');
 const attendanceAdmin = fs.readFileSync(new URL('../src/components/GlobalAttendanceAdminPersistenceBridge.jsx', import.meta.url), 'utf8');
 const permissionRegistry = fs.readFileSync(new URL('../src/utils/permissions.js', import.meta.url), 'utf8');
 const utility = fs.readFileSync(new URL('../src/utils/extraClassAttendance.js', import.meta.url), 'utf8');
@@ -19,13 +20,14 @@ const teacherCatalogUrl = new URL('../src/utils/giftedTeacherCatalog2026.js', im
 const teacherCatalogSource = fs.existsSync(teacherCatalogUrl) ? fs.readFileSync(teacherCatalogUrl, 'utf8') : '';
 const combinedSql = `${sql}\n${seedSql}\n${rpcHardeningSql}\n${dailyLockSql}\n${legacyGuardSql}`;
 const attendanceUiContract = `${attendance}\n${permissionRegistry}`;
+const attendanceManagementUi = `${attendance}\n${attendanceEditor}`;
 
 assert.match(flatNav, /GlobalTtcmNavigationTab[\s\S]*GlobalAttendanceNavigationTab/, 'Attendance must mount immediately after TTCM');
 assert.match(attendanceUiContract, /Điểm danh nhanh/, 'Attendance workspace needs a quick attendance tab');
 assert.match(attendanceUiContract, /Quản lý lớp/, 'Attendance workspace needs a class management tab');
 assert.match(attendanceUiContract, /Lịch sử/, 'Attendance workspace needs a history tab');
-assert.match(attendance, /Thêm học sinh/, 'Admin must be able to add students manually');
-assert.match(attendance, /Xóa khỏi lớp/, 'Admin must be able to remove students manually');
+assert.match(attendanceManagementUi, /Thêm học sinh/, 'Admin must be able to add students manually');
+assert.match(attendanceManagementUi, /Xóa khỏi lớp/, 'Admin must be able to remove students manually');
 assert.match(attendance, /readSheet/, 'Excel import must use the existing read-excel-file browser reader');
 assert.match(utility, /parseExtraClassRosterRows/, 'Roster parser must live in the focused attendance utility');
 assert.match(utility, /buildAttendanceDraft/, 'Attendance draft logic must be explicit and testable');
@@ -39,13 +41,13 @@ assert.match(sql, /student_full_name text not null/, 'Attendance records must sn
 
 assert.match(combinedSql, /bes_delete_extra_class\s*\(/, 'SQL must expose a transactional class-deletion RPC');
 assert.match(combinedSql, /bes_delete_extra_attendance_session\s*\(/, 'SQL must expose a transactional approved-attendance deletion RPC');
-assert.match(attendance, /bes_delete_extra_class/, 'Class-management UI must call the class-deletion RPC');
-assert.match(attendance, /Xóa lớp/, 'Class-management UI must expose an explicit delete-class control');
+assert.match(attendanceManagementUi, /bes_delete_extra_class/, 'Class-management UI must call the class-deletion RPC');
+assert.match(attendanceManagementUi, /Xóa lớp/, 'Class-management UI must expose an explicit delete-class control');
 assert.match(attendance, /bes_delete_extra_attendance_session/, 'History UI must call the approved-attendance deletion RPC');
 assert.match(attendance, /Xóa buổi điểm danh/, 'History UI must expose an explicit delete-attendance control');
-assert.match(attendance, /bes_extra_class_teachers/, 'Attendance UI must load normalized multi-teacher assignments');
-assert.match(attendance, /Toàn bộ giáo viên|Giáo viên theo phân công/, 'Class management must visibly list every assigned teacher');
-assert.match(attendance, /window\.confirm/, 'Destructive class and attendance actions must require confirmation');
+assert.match(attendanceManagementUi, /bes_extra_class_teachers/, 'Attendance UI must load normalized multi-teacher assignments');
+assert.match(attendanceManagementUi, /Toàn bộ giáo viên|Giáo viên theo phân công/, 'Class management must visibly list every assigned teacher');
+assert.match(attendanceManagementUi, /window\.confirm/, 'Destructive class and attendance actions must require confirmation');
 assert.ok(rpcHardeningSql, 'A follow-up migration must explicitly harden delete RPC grants for anonymous users');
 assert.match(rpcHardeningSql, /bes_delete_extra_attendance_session\(uuid\)[\s\S]*from\s+anon/i, 'Anonymous users must not execute approved-attendance deletion');
 assert.match(rpcHardeningSql, /bes_delete_extra_class\(uuid\)[\s\S]*from\s+anon/i, 'Anonymous users must not execute class deletion');

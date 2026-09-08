@@ -30,6 +30,7 @@ import './GlobalAttendanceNavigationTab.css';
 import './GlobalAttendanceDailyCalendar.css';
 import './GlobalAttendanceManualTeacher.css';
 import AttendanceMonthlyReport from './attendance/AttendanceMonthlyReport.jsx';
+import AttendanceClassEditor from './attendance/AttendanceClassEditor.jsx';
 import './attendance/AttendanceMaterial3.css';
 
 const CLASS_COLUMNS = 'id,class_type,class_name,subject,teacher_id,teacher_name,teacher_email,active,source_key,school_year,grade_level,expected_student_count,periods_per_week,room,weekdays,time_range,created_by,updated_by,created_at,updated_at';
@@ -391,7 +392,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     }
     setDraft(next);
     setNote(daySession?.note || '');
-  }, [selectedClassId, selectedMembers.length, attendanceDate, daySession?.id, dayRecords]);
+  }, [selectedClassId, selectedMembers, attendanceDate, daySession?.id, dayRecords]);
 
   useEffect(() => {
     if (daySession) {
@@ -405,7 +406,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       return;
     }
     setLessonPeriods(1);
-    setTeachingRoom(String(selectedClass?.room || '').trim());
+    setTeachingRoom(roomForExtraClass(selectedClass));
     setTeachingTimeRange(String(selectedClass?.time_range || '').trim());
     setShowCancelSession(false);
     setCancellationReason('');
@@ -414,7 +415,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     const soleBlocked = Boolean(soleUsage && String(soleUsage.class_id) !== String(selectedClassId));
     if (soleTeacher && !soleBlocked) setSessionTeacher(soleTeacher);
     else setSessionTeacher('');
-  }, [daySession?.id, selectedClassId, selectedTeacherOptions.join('|'), teacherUsageForDate]);
+  }, [daySession?.id, selectedClassId, selectedClass?.room, selectedClass?.time_range, selectedClass?.weekdays, selectedTeacherOptions.join('|'), teacherUsageForDate]);
 
   const summary = useMemo(() => attendanceSummary(draft), [draft]);
   const isFutureDate = attendanceDate > today;
@@ -971,7 +972,17 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
               <div className="attendance-management-grid"><aside className="attendance-manage-classes"><header><strong>Danh sách lớp</strong><span>{activeClasses.length}</span></header>{activeClasses.map((classRow) => <button key={classRow.id} type="button" className={String(selectedClassId) === String(classRow.id) ? 'is-selected' : ''} onClick={() => setSelectedClassId(classRow.id)}><b>{classRow.class_name}</b><small>{extraClassTypeLabel(classRow.class_type)} · {classRow.subject || 'Chưa ghi môn'}</small><span>{memberCounts.get(String(classRow.id)) || 0} HS</span></button>)}</aside>
                 <section className="attendance-member-manager">{selectedClass ? <><header><div><h2>{selectedClass.class_name}</h2><p>{extraClassTypeLabel(selectedClass.class_type)} · {selectedClass.subject || 'Chưa ghi môn'}</p></div><div className="attendance-teacher-field"><label>Giáo viên theo phân công 2026–2027</label><div className="attendance-teacher-summary"><strong>{teachersForClass(selectedClass)}</strong><button type="button" disabled={busy} onClick={() => setShowAddTeacher((value) => !value)}><Icon name="add" size={15} />Thêm giáo viên</button></div>{showAddTeacher ? <form className="attendance-add-teacher" onSubmit={addTeacher}><input value={newTeacherName} onChange={(event) => setNewTeacherName(event.target.value)} placeholder="Nhập họ tên giáo viên" autoFocus /><button type="button" disabled={busy} onClick={() => { setShowAddTeacher(false); setNewTeacherName(''); }}>Hủy</button><button type="submit" disabled={busy || !newTeacherName.trim()}>{busy ? 'Đang lưu…' : 'Lưu'}</button></form> : null}</div></header><div className="attendance-member-tools"><input value={memberQuery} onChange={(event) => setMemberQuery(event.target.value)} placeholder="Tìm học sinh, mã HS, lớp chính khóa…" /><button type="button" onClick={() => setShowAddStudent((value) => !value)}><Icon name="add" size={18} />Thêm học sinh</button><button type="button" disabled={busy} onClick={() => deleteClass(selectedClass)}><Icon name="trash" size={17} />Xóa lớp</button></div>
                   {showAddStudent ? <form className="attendance-add-student" onSubmit={addStudent}><label><span>Mã HS</span><input value={addForm.student_code} onChange={(event) => setAddForm((current) => ({ ...current, student_code: event.target.value }))} placeholder="Có thể để trống" /></label><label><span>Họ và tên *</span><input value={addForm.student_full_name} onChange={(event) => setAddForm((current) => ({ ...current, student_full_name: event.target.value }))} required /></label><label><span>Lớp chính khóa *</span><input value={addForm.school_class_name} onChange={(event) => setAddForm((current) => ({ ...current, school_class_name: event.target.value }))} placeholder="Ví dụ 12.6" required /></label><div><button type="button" onClick={() => setShowAddStudent(false)}>Hủy</button><button type="submit" disabled={busy}><Icon name="add" size={17} />Thêm vào lớp</button></div></form> : null}
-                  <div className="attendance-member-table"><div className="attendance-member-table-head"><span>Học sinh</span><span>Lớp</span><span>Trạng thái</span><span /></div>{filteredManagementMembers.map((member) => <div key={member.id} className={member.active === false ? 'is-inactive' : ''}><span><b>{member.student_full_name}</b><small>{member.student_code || 'Không có mã HS'}</small></span><span>{member.school_class_name || '—'}</span><span>{member.active === false ? `Đã rời lớp${member.left_at ? ` · ${formatDateTime(member.left_at)}` : ''}` : 'Đang học'}</span><span>{member.active !== false ? <button type="button" disabled={busy} onClick={() => removeStudent(member)}><Icon name="trash" size={16} />Xóa khỏi lớp</button> : <em>{member.removal_reason || 'Đã lưu lịch sử'}</em>}</span></div>)}{!filteredManagementMembers.length ? <div className="attendance-empty">Không có học sinh phù hợp.</div> : null}</div>
+                  <AttendanceClassEditor
+          client={client}
+          selectedClass={selectedClass}
+          members={filteredManagementMembers}
+          isAdmin={isAttendanceAdmin}
+          busy={busy}
+          onRemoveStudent={removeStudent}
+          onReload={loadAll}
+          onError={setError}
+          onNotice={setNotice}
+        />
                 </> : <div className="attendance-empty is-large">Chọn lớp để quản lý học sinh.</div>}</section></div>
             </div>
           ) : null}

@@ -52,11 +52,46 @@ function weekdayOf(dateValue) {
   return date.getUTCDay();
 }
 
+function persistedWeekdaysOf(classRow) {
+  const raw = classRow?.weekdays;
+
+  // Runtime/editing code may hold an in-memory JS weekday array (Sun=0 ... Sat=6).
+  if (Array.isArray(raw)) {
+    const normalized = [...new Set(raw
+      .map((value) => Number(value))
+      .filter((value) => Number.isInteger(value) && value >= 0 && value <= 6))]
+      .sort((a, b) => a - b);
+    return normalized.length ? normalized : null;
+  }
+
+  // Production DB keeps the established school notation as text:
+  // 2=Thứ 2/Monday ... 7=Thứ 7/Saturday, CN=Sunday.
+  const tokens = String(raw || '')
+    .split(',')
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+  if (!tokens.length) return null;
+
+  const values = [];
+  tokens.forEach((token) => {
+    const normalized = fold(token);
+    if (normalized === 'cn' || normalized === 'chu nhat' || normalized === 'chunhat') {
+      values.push(0);
+      return;
+    }
+    const schoolDay = Number(token);
+    if (Number.isInteger(schoolDay) && schoolDay >= 2 && schoolDay <= 7) values.push(schoolDay - 1);
+  });
+
+  const normalized = [...new Set(values)].sort((a, b) => a - b);
+  return normalized.length ? normalized : null;
+}
+
 const gifted = (subject, grade, room, weekdays) => ({ class_type: 'gifted', subject, grade, room, weekdays });
 const remedial = (subject, grade, room, weekdays) => ({ class_type: 'remedial', subject, grade, room, weekdays });
 
 // Fixed gifted-class schedule supplied by the school for school year 2026–2027.
-// Weekdays use JavaScript numbering: Monday=1 … Friday=5.
+// Weekdays use JavaScript numbering: Sunday=0, Monday=1 ... Saturday=6.
 export const GIFTED_SCHEDULE_2026_2027 = Object.freeze([
   gifted('vat_li', 10, 'A104', [4]),
   gifted('sinh', 10, 'A106', [2]),
@@ -103,6 +138,12 @@ export function scheduleForExtraClass(classRow = {}) {
   )) || null;
 }
 
+export function weekdaysForExtraClass(classRow = {}) {
+  const persisted = persistedWeekdaysOf(classRow);
+  if (persisted) return persisted;
+  return [...(scheduleForExtraClass(classRow)?.weekdays || [])];
+}
+
 export function roomForExtraClass(classRow = {}) {
   const explicitRoom = String(classRow?.room || '').trim();
   if (explicitRoom) return explicitRoom;
@@ -110,9 +151,14 @@ export function roomForExtraClass(classRow = {}) {
 }
 
 export function isExtraClassScheduledOnDate(classRow, dateValue) {
-  const schedule = scheduleForExtraClass(classRow);
   const weekday = weekdayOf(dateValue);
-  // Unknown/imported classes and malformed dates remain usable rather than being hidden or disabled.
-  if (!schedule || weekday === null) return true;
+  if (weekday === null) return true;
+
+  const persistedWeekdays = persistedWeekdaysOf(classRow);
+  if (persistedWeekdays) return persistedWeekdays.includes(weekday);
+
+  const schedule = scheduleForExtraClass(classRow);
+  // Unknown/imported classes remain usable rather than being hidden or disabled.
+  if (!schedule) return true;
   return schedule.weekdays.includes(weekday);
 }

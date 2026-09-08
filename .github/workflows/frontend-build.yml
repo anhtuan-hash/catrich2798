@@ -97,6 +97,9 @@ jobs:
       - name: Verify attendance room chip
         run: node scripts/test-attendance-room-chip.mjs
 
+      - name: Verify attendance class edit sync
+        run: node scripts/test-attendance-class-edit-sync.mjs
+
       - name: Verify attendance monthly report UI
         run: node scripts/test-attendance-monthly-report-ui.mjs
 
