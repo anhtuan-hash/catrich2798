@@ -1,0 +1,195 @@
+name: Sync History Redesign With Main
+
+on:
+  push:
+    branches:
+      - feat/attendance-history-detail-redesign
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: ${{ !contains(github.event.head_commit.message, '[history-sync]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/attendance-history-detail-redesign
+          fetch-depth: 0
+
+      - name: Merge main and preserve both attendance changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          set +e
+          git merge origin/main --no-ff --no-commit
+          merge_code=$?
+          set -e
+
+          if [ "$merge_code" -ne 0 ]; then
+            conflicts="$(git diff --name-only --diff-filter=U)"
+            echo "Conflicts:"
+            echo "$conflicts"
+            unexpected="$(printf '%s\n' "$conflicts" | grep -v -E '^(src/components/GlobalAttendanceNavigationTab\.jsx|scripts/test-attendance-material3-ui\.mjs)$' || true)"
+            if [ -n "$unexpected" ]; then
+              echo "Unexpected merge conflicts detected:"
+              echo "$unexpected"
+              exit 1
+            fi
+
+            if printf '%s\n' "$conflicts" | grep -qx 'src/components/GlobalAttendanceNavigationTab.jsx'; then
+              git checkout --ours src/components/GlobalAttendanceNavigationTab.jsx
+              python - <<'PY'
+          from pathlib import Path
+          path = Path('src/components/GlobalAttendanceNavigationTab.jsx')
+          text = path.read_text()
+
+          def replace_once(old, new, label):
+              global text
+              if old not in text:
+                  raise SystemExit(f'Missing expected block: {label}')
+              text = text.replace(old, new, 1)
+
+          replace_once(
+              "import { hasExplicitPermissionId, ROUTE_PERMISSION_IDS } from '../utils/permissions.js';",
+              """import {
+            ATTENDANCE_PERMISSION_ITEMS,
+            getFirstAllowedAttendanceTab,
+            hasAnyAttendanceAccess,
+            hasAttendanceTabAccess,
+          } from '../utils/permissions.js';""",
+              'granular permission import',
+          )
+
+          marker = """  calendar: 'M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v15h18V6a2 2 0 0 0-2-2Zm0 15H5V9h14v10ZM7 11h4v4H7v-4Z',
+          };
+
+          function Icon"""
+          replacement = """  calendar: 'M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v15h18V6a2 2 0 0 0-2-2Zm0 15H5V9h14v10ZM7 11h4v4H7v-4Z',
+          };
+
+          const ATTENDANCE_TAB_ICONS = {
+            quick: 'check',
+            calendar: 'calendar',
+            manage: 'people',
+            history: 'history',
+            report: 'history',
+          };
+
+          function Icon"""
+          replace_once(marker, replacement, 'attendance tab icon map')
+
+          replace_once(
+              """  const systemRole = normalizeSystemRole(runtime.role || currentUser?.role, SYSTEM_ROLES.GUEST);
+            const allowed = Boolean(
+              currentUser?.id
+                && (systemRole === SYSTEM_ROLES.ADMIN
+                  || hasExplicitPermissionId(currentUser, ROUTE_PERMISSION_IDS.attendance))
+            );""",
+              """  const systemRole = normalizeSystemRole(runtime.role || currentUser?.role, SYSTEM_ROLES.GUEST);
+            const isAttendanceAdmin = systemRole === SYSTEM_ROLES.ADMIN;
+            const canAccessAttendanceView = (tabId) => isAttendanceAdmin || hasAttendanceTabAccess(currentUser, tabId);
+            const availableAttendanceTabs = ATTENDANCE_PERMISSION_ITEMS.filter((item) => canAccessAttendanceView(item.tab));
+            const firstAllowedView = isAttendanceAdmin ? 'quick' : getFirstAllowedAttendanceTab(currentUser);
+            const allowed = Boolean(currentUser?.id && (isAttendanceAdmin || hasAnyAttendanceAccess(currentUser)));""",
+              'attendance access block',
+          )
+
+          replace_once(
+              """  useEffect(() => {
+            if (!open) return undefined;
+            document.documentElement.classList.add('bes-attendance-open');
+            return () => document.documentElement.classList.remove('bes-attendance-open');
+          }, [open]);
+
+            async function loadAll""",
+              """  useEffect(() => {
+            if (!open) return undefined;
+            document.documentElement.classList.add('bes-attendance-open');
+            return () => document.documentElement.classList.remove('bes-attendance-open');
+          }, [open]);
+
+            useEffect(() => {
+              if (!open || !allowed || !firstAllowedView) return;
+              if (!canAccessAttendanceView(view)) setView(firstAllowedView);
+            }, [open, allowed, firstAllowedView, view, currentUser?.permissions, systemRole]);
+
+            async function loadAll""",
+              'view permission correction effect',
+          )
+
+          replace_once(
+              """  async function openSessionFromCalendar(session) {
+            if (!session) return;
+            await loadSessionRecords(session.id);""",
+              """  async function openSessionFromCalendar(session) {
+            if (!session) return;
+            if (!canAccessAttendanceView('history')) {
+              setNotice('Bạn có quyền xem Lịch tháng. Cần thêm quyền Lịch sử để mở chi tiết buổi học.');
+              return;
+            }
+            await loadSessionRecords(session.id);""",
+              'calendar history guard',
+          )
+
+          replace_once(
+              "if (!open) setView('quick');",
+              "if (!open) setView(firstAllowedView || 'quick');",
+              'first allowed tab opener',
+          )
+
+          old_nav = """        <nav className=\"attendance-tabs\" aria-label=\"Phân hệ điểm danh\">
+                    <button type=\"button\" className={view === 'quick' ? 'is-active' : ''} onClick={() => setView('quick')}><Icon name=\"check\" size={18} />Điểm danh nhanh</button>
+                    <button type=\"button\" className={view === 'calendar' ? 'is-active' : ''} onClick={() => setView('calendar')}><Icon name=\"calendar\" size={18} />Lịch tháng</button>
+                    <button type=\"button\" className={view === 'manage' ? 'is-active' : ''} onClick={() => setView('manage')}><Icon name=\"people\" size={18} />Quản lý lớp</button>
+                    <button type=\"button\" className={view === 'history' ? 'is-active' : ''} onClick={() => setView('history')}><Icon name=\"history\" size={18} />Lịch sử</button>
+                    <button type=\"button\" className={view === 'report' ? 'is-active' : ''} onClick={() => setView('report')}><Icon name=\"history\" size={18} />Báo cáo</button>
+                  </nav>"""
+          new_nav = """        <nav className=\"attendance-tabs\" aria-label=\"Phân hệ điểm danh\">
+                    {availableAttendanceTabs.map((item) => (
+                      <button key={item.id} type=\"button\" className={view === item.tab ? 'is-active' : ''} onClick={() => setView(item.tab)}>
+                        <Icon name={ATTENDANCE_TAB_ICONS[item.tab] || 'attendance'} size={18} />{item.titleVi}
+                      </button>
+                    ))}
+                  </nav>"""
+          replace_once(old_nav, new_nav, 'permission-backed tab navigation')
+
+          for tab in ('quick', 'calendar', 'manage', 'report', 'history'):
+              old = f"!loading && view === '{tab}'"
+              new = f"!loading && canAccessAttendanceView('{tab}') && view === '{tab}'"
+              replace_once(old, new, f'{tab} view guard')
+
+          old_actions = """                  <div className=\"attendance-history-actions\"><button type=\"button\" className=\"attendance-history-report-button\" onClick={() => { if (selectedSession.attendance_date) setReportMonth(selectedSession.attendance_date.slice(0, 7)); setView('report'); }}>Xem báo cáo tháng</button><button type=\"button\" className=\"attendance-history-delete-button\" disabled={busy} onClick={() => deleteAttendanceSession(selectedSession)}><Icon name=\"trash\" size={17} />Xóa buổi điểm danh</button></div>"""
+          new_actions = """                  <div className=\"attendance-history-actions\">{canAccessAttendanceView('report') ? <button type=\"button\" className=\"attendance-history-report-button\" onClick={() => { if (selectedSession.attendance_date) setReportMonth(selectedSession.attendance_date.slice(0, 7)); setView('report'); }}>Xem báo cáo tháng</button> : null}{canAccessAttendanceView('quick') ? <button type=\"button\" className=\"attendance-history-delete-button\" disabled={busy} onClick={() => deleteAttendanceSession(selectedSession)}><Icon name=\"trash\" size={17} />Xóa buổi điểm danh</button> : null}</div>"""
+          replace_once(old_actions, new_actions, 'history action permission guards')
+
+          path.write_text(text)
+          PY
+              git add src/components/GlobalAttendanceNavigationTab.jsx
+            fi
+
+            if printf '%s\n' "$conflicts" | grep -qx 'scripts/test-attendance-material3-ui.mjs'; then
+              git checkout --ours scripts/test-attendance-material3-ui.mjs
+              git add scripts/test-attendance-material3-ui.mjs
+            fi
+          fi
+
+          if git diff --name-only --diff-filter=U | grep -q .; then
+            echo "Unresolved conflicts remain"
+            git diff --name-only --diff-filter=U
+            exit 1
+          fi
+
+          node scripts/test-attendance-material3-ui.mjs
+          node scripts/test-attendance-granular-permissions.mjs
+          npm ci --ignore-scripts
+          npm run build
+
+          git add -A
+          git commit -m "merge: sync main permissions with history redesign [history-sync]"
+          git push origin HEAD:feat/attendance-history-detail-redesign
