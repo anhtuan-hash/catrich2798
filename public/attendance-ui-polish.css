@@ -1,0 +1,191 @@
+/* Attendance workspace polish — scoped to the extra-class attendance dialog. */
+
+html body .attendance-shell .attendance-quick-layout,
+html body .attendance-shell .attendance-history-layout {
+  gap: 12px !important;
+  padding: 16px !important;
+  background: var(--att-m3-surface-container, #f0eef6) !important;
+  box-sizing: border-box !important;
+}
+
+html body .attendance-shell .attendance-class-list {
+  grid-template-rows: auto auto minmax(0, 1fr) !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 22px !important;
+  background: var(--att-m3-surface, #fbf8ff) !important;
+  box-shadow: var(--att-m3-elevation-1, 0 2px 8px rgba(35, 42, 58, .09)) !important;
+}
+
+html body .attendance-shell .att-m3-class-discovery {
+  min-height: 98px !important;
+  flex-shrink: 0 !important;
+  margin: 0 10px 8px !important;
+  padding: 10px 10px 9px !important;
+  overflow: visible !important;
+  border: 1px solid rgba(63, 95, 144, .10) !important;
+  border-radius: 16px !important;
+  background: var(--att-m3-surface-container, #f0eef6) !important;
+}
+
+html body .attendance-shell .att-m3-class-search {
+  display: grid !important;
+  gap: 6px !important;
+  padding: 0 0 8px !important;
+}
+
+html body .attendance-shell .att-m3-class-search input {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 40px !important;
+  padding: 0 13px !important;
+  border: 1px solid transparent !important;
+  border-radius: 13px !important;
+  background: #fff !important;
+  color: var(--att-m3-on-surface, #1b1b20) !important;
+  box-shadow: inset 0 0 0 1px rgba(69, 70, 79, .08) !important;
+}
+
+html body .attendance-shell .att-m3-class-search input:focus {
+  outline: none !important;
+  border-color: var(--att-m3-primary, #3f5f90) !important;
+  box-shadow: 0 0 0 2px rgba(63, 95, 144, .14) !important;
+}
+
+html body .attendance-shell .att-m3-subject-hub {
+  display: flex !important;
+  gap: 6px !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding: 0 0 2px !important;
+  min-height: 32px !important;
+}
+
+html body .attendance-shell .attendance-class-list > div:last-child {
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 0 4px 5px !important;
+}
+
+html body .attendance-shell .attendance-rollcall {
+  border: 0 !important;
+  border-radius: 22px !important;
+  overflow: hidden !important;
+  box-shadow: var(--att-m3-elevation-1, 0 2px 8px rgba(35, 42, 58, .09)) !important;
+}
+
+html body .attendance-shell .attendance-calendar-layout {
+  gap: 10px !important;
+  padding: 16px !important;
+  background: var(--att-m3-surface-container, #f0eef6) !important;
+}
+
+html body .attendance-shell .attendance-calendar-toolbar {
+  border: 0 !important;
+  border-radius: 20px !important;
+  background: var(--att-m3-surface, #fbf8ff) !important;
+  box-shadow: var(--att-m3-elevation-1, 0 2px 8px rgba(35, 42, 58, .09)) !important;
+}
+
+html body .attendance-shell .attendance-calendar-weekdays {
+  overflow: hidden !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+  background: var(--att-m3-surface, #fbf8ff) !important;
+  box-shadow: var(--att-m3-elevation-1, 0 2px 8px rgba(35, 42, 58, .07)) !important;
+}
+
+html body .attendance-shell .attendance-calendar-weekdays span {
+  border-right: 0 !important;
+}
+
+html body .attendance-shell .attendance-calendar-grid {
+  gap: 8px !important;
+  padding: 2px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+html body .attendance-shell .attendance-calendar-day {
+  border: 1px solid var(--att-m3-outline-variant, #c7c6d0) !important;
+  border-radius: 14px !important;
+  background: var(--att-m3-surface, #fbf8ff) !important;
+  box-shadow: 0 2px 7px rgba(35, 42, 58, .055) !important;
+  overflow: hidden !important;
+}
+
+html body .attendance-shell .attendance-calendar-day.is-blank {
+  border-color: rgba(118, 119, 127, .13) !important;
+  background: rgba(251, 248, 255, .55) !important;
+  box-shadow: none !important;
+}
+
+html body .attendance-shell .attendance-calendar-day.is-confirmed {
+  border-color: transparent !important;
+}
+
+html body .attendance-shell .attendance-manage-layout {
+  gap: 14px !important;
+  padding: 16px !important;
+  background: var(--att-m3-surface-container, #f0eef6) !important;
+}
+
+html body .attendance-shell .attendance-management-grid {
+  gap: 12px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+html body .attendance-shell .attendance-manage-classes,
+html body .attendance-shell .attendance-member-manager,
+html body .attendance-shell .attendance-import-card,
+html body .attendance-shell .attendance-import-report {
+  border: 0 !important;
+  border-radius: 20px !important;
+  background: var(--att-m3-surface, #fbf8ff) !important;
+  box-shadow: var(--att-m3-elevation-1, 0 2px 8px rgba(35, 42, 58, .09)) !important;
+}
+
+html body .attendance-shell .attendance-manage-classes {
+  overflow: auto !important;
+}
+
+html body .attendance-shell .attendance-member-manager {
+  overflow: hidden !important;
+}
+
+html body .attendance-shell .attendance-history-layout {
+  gap: 12px !important;
+}
+
+html body .attendance-shell .attendance-history-list,
+html body .attendance-shell .attendance-history-detail {
+  min-width: 0 !important;
+  border: 0 !important;
+  border-radius: 22px !important;
+  background: var(--att-m3-surface, #fbf8ff) !important;
+  box-shadow: var(--att-m3-elevation-1, 0 2px 8px rgba(35, 42, 58, .09)) !important;
+}
+
+html body .attendance-shell .attendance-history-list {
+  overflow: hidden !important;
+}
+
+html body .attendance-shell .attendance-history-detail {
+  overflow: auto !important;
+}
+
+@media (max-width: 760px) {
+  html body .attendance-shell .attendance-quick-layout,
+  html body .attendance-shell .attendance-history-layout,
+  html body .attendance-shell .attendance-calendar-layout,
+  html body .attendance-shell .attendance-manage-layout {
+    padding: 10px !important;
+    gap: 8px !important;
+  }
+}
