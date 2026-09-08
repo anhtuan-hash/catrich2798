@@ -9,6 +9,8 @@ assert.doesNotMatch(attendance, /Không lấy từ tài khoản đăng ký trên
 assert.match(attendance, /Thêm giáo viên/, 'Class management must expose a manual add-teacher control');
 assert.match(attendance, /bes_add_extra_class_teacher/, 'Class management must persist a manual teacher through the guarded RPC');
 assert.match(attendance, /classTeacherNames/, 'Manual teachers must participate in the normalized teacher list used by attendance');
+assert.doesNotMatch(attendance, /if\s*\(authoritative\.length\)\s*return\s+authoritative/, 'Authoritative catalog teachers must be merged with normalized manual teachers, not short-circuit them');
+assert.match(attendance, /\[\.\.\.authoritative,\s*\.\.\.normalized,\s*\.\.\.fallback\]/, 'Attendance teacher options must merge catalog, normalized manual teachers, and fallback names');
 
 assert.ok(migration, 'Manual teacher migration must exist');
 assert.match(migration, /bes_add_extra_class_teacher\s*\(/i, 'Migration must define the add-teacher RPC');
