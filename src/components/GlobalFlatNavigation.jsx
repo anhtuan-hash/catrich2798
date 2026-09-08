@@ -21,6 +21,7 @@ import GlobalGradebookNavigationTab from './GlobalGradebookNavigationTab.jsx';
 import GlobalReportsNavigationTab from './GlobalReportsNavigationTab.jsx';
 import GlobalTtcmNavigationTab from './GlobalTtcmNavigationTab.jsx';
 import GlobalAttendanceNavigationTab from './GlobalAttendanceNavigationTab.jsx';
+import GlobalAttendanceAdminPersistenceBridge from './GlobalAttendanceAdminPersistenceBridge.jsx';
 import GlobalDashboardFooterBridge from './GlobalDashboardFooterBridge.jsx';
 import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
 import GlobalWeeklyPracticeBridge from './GlobalWeeklyPracticeBridge.jsx';
@@ -72,6 +73,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalReportsNavigationTab {...props} />
       <GlobalTtcmNavigationTab {...props} />
       <GlobalAttendanceNavigationTab {...props} />
+      <GlobalAttendanceAdminPersistenceBridge {...props} />
       <GlobalDashboardFooterBridge route={props.route} language={props.language} />
       <GlobalEnglishHubBrand />
       <GlobalEditorialAuthorityRuntime />
