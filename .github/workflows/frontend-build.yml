@@ -85,6 +85,9 @@ jobs:
       - name: Verify attendance Windows 8 launch is always on
         run: node scripts/test-attendance-windows8-always-on.mjs
 
+      - name: Verify attendance history bulk delete
+        run: node scripts/test-attendance-history-bulk-delete.mjs
+
       - name: Verify attendance teacher/day lock
         run: node scripts/test-attendance-teacher-day-lock.mjs
 

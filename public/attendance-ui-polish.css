@@ -1112,3 +1112,145 @@ html body .attendance-shell .att-report-m3__teacher-grid > article:nth-child(4n+
     grid-template-columns: 1fr 1fr !important;
   }
 }
+
+
+/* ---------- History bulk selection ---------- */
+html body .attendance-shell .attendance-history-list-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+html body .attendance-shell .attendance-history-list-actions > button {
+  min-height: 32px !important;
+  padding: 0 11px !important;
+  border: 1px solid #cbd7e9 !important;
+  border-radius: 10px !important;
+  background: #f7f9fd !important;
+  color: #385276 !important;
+  font-weight: 750 !important;
+  cursor: pointer !important;
+}
+
+html body .attendance-shell .attendance-history-list-actions > button.is-active {
+  border-color: #89a6d4 !important;
+  background: #eaf1ff !important;
+  color: #274f8d !important;
+}
+
+html body .attendance-shell .attendance-history-bulk-toolbar {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-top: 8px !important;
+  padding: 8px !important;
+  border: 1px solid #d9e2ef !important;
+  border-radius: 13px !important;
+  background: linear-gradient(135deg, #f8fbff 0%, #f2f6fc 100%) !important;
+}
+
+html body .attendance-shell .attendance-history-bulk-toolbar > button {
+  min-height: 34px !important;
+  padding: 0 10px !important;
+  border: 1px solid #c7d5e8 !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  color: #3f5570 !important;
+  font-weight: 750 !important;
+  cursor: pointer !important;
+}
+
+html body .attendance-shell .attendance-history-bulk-toolbar > span {
+  color: #62738a !important;
+  text-align: center !important;
+  font-size: var(--att-type-meta) !important;
+}
+
+html body .attendance-shell .attendance-history-bulk-toolbar > span b {
+  color: #274f8d !important;
+  font-size: 13px !important;
+}
+
+html body .attendance-shell .attendance-history-bulk-toolbar > button.is-danger {
+  border-color: #efb6b3 !important;
+  background: #fff0ef !important;
+  color: #b7342f !important;
+}
+
+html body .attendance-shell .attendance-history-bulk-toolbar > button:disabled,
+html body .attendance-shell .attendance-history-list-actions > button:disabled {
+  opacity: .48 !important;
+  cursor: not-allowed !important;
+}
+
+html body .attendance-shell .attendance-history-items > button.is-bulk-mode {
+  position: relative !important;
+  padding-left: 44px !important;
+}
+
+html body .attendance-shell .attendance-history-select-box {
+  position: absolute !important;
+  top: 50% !important;
+  left: 12px !important;
+  width: 21px !important;
+  height: 21px !important;
+  display: grid !important;
+  place-items: center !important;
+  transform: translateY(-50%) !important;
+  border: 2px solid #9badc4 !important;
+  border-radius: 7px !important;
+  background: #fff !important;
+  color: #fff !important;
+  box-sizing: border-box !important;
+}
+
+html body .attendance-shell .attendance-history-select-box.is-checked {
+  border-color: #4e70b9 !important;
+  background: #4e70b9 !important;
+  box-shadow: 0 0 0 3px rgba(78, 112, 185, .12) !important;
+}
+
+html body .attendance-shell .attendance-history-items > button.is-bulk-selected {
+  border-color: #8ea9dc !important;
+  background: linear-gradient(90deg, #e8efff 0%, #f5f8ff 82%) !important;
+  box-shadow: 0 0 0 2px rgba(78, 112, 185, .12), 0 4px 12px rgba(53, 73, 111, .08) !important;
+}
+
+html body .attendance-shell .attendance-history-bulk-detail {
+  min-height: 100% !important;
+  display: grid !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 10px !important;
+  padding: 30px !important;
+  text-align: center !important;
+  background: radial-gradient(circle at 50% 38%, #f1f5ff 0%, #ffffff 58%) !important;
+}
+
+html body .attendance-shell .attendance-history-bulk-detail > span {
+  width: 58px !important;
+  height: 58px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 18px !important;
+  background: #e9effc !important;
+  color: #4e70b9 !important;
+}
+
+html body .attendance-shell .attendance-history-bulk-detail h2,
+html body .attendance-shell .attendance-history-bulk-detail p {
+  margin: 0 !important;
+}
+
+html body .attendance-shell .attendance-history-bulk-detail p {
+  max-width: 420px !important;
+  color: #6b778a !important;
+}
+
+html body .attendance-shell .attendance-history-bulk-detail > b {
+  padding: 7px 12px !important;
+  border-radius: 999px !important;
+  background: #eaf1ff !important;
+  color: #31558d !important;
+}
