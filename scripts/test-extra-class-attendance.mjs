@@ -7,7 +7,9 @@ const utility = fs.readFileSync(new URL('../src/utils/extraClassAttendance.js', 
 const sql = fs.readFileSync(new URL('../supabase/extra-class-attendance.sql', import.meta.url), 'utf8');
 const seedUrl = new URL('../supabase/migrations/20260908_gifted_classes_2026_delete_attendance.sql', import.meta.url);
 const seedSql = fs.existsSync(seedUrl) ? fs.readFileSync(seedUrl, 'utf8') : '';
-const combinedSql = `${sql}\n${seedSql}`;
+const rpcHardeningUrl = new URL('../supabase/migrations/20260908_harden_gifted_delete_rpc_anon_grants.sql', import.meta.url);
+const rpcHardeningSql = fs.existsSync(rpcHardeningUrl) ? fs.readFileSync(rpcHardeningUrl, 'utf8') : '';
+const combinedSql = `${sql}\n${seedSql}\n${rpcHardeningSql}`;
 
 assert.match(flatNav, /GlobalTtcmNavigationTab[\s\S]*GlobalAttendanceNavigationTab/, 'Attendance must mount immediately after TTCM');
 assert.match(attendance, /Điểm danh nhanh/, 'Attendance workspace needs a quick attendance tab');
@@ -36,6 +38,9 @@ assert.match(attendance, /Xóa buổi điểm danh/, 'History UI must expose an 
 assert.match(attendance, /bes_extra_class_teachers/, 'Attendance UI must load normalized multi-teacher assignments');
 assert.match(attendance, /Toàn bộ giáo viên/, 'Class management must visibly list every assigned teacher');
 assert.match(attendance, /window\.confirm/, 'Destructive class and attendance actions must require confirmation');
+assert.ok(rpcHardeningSql, 'A follow-up migration must explicitly harden delete RPC grants for anonymous users');
+assert.match(rpcHardeningSql, /bes_delete_extra_attendance_session\(uuid\)[\s\S]*from\s+anon/i, 'Anonymous users must not execute approved-attendance deletion');
+assert.match(rpcHardeningSql, /bes_delete_extra_class\(uuid\)[\s\S]*from\s+anon/i, 'Anonymous users must not execute class deletion');
 
 // Source seed contract: only grade 10/11/12 gifted classes, with every source roster/teacher assignment.
 assert.ok(seedSql, 'The checked-in 2026–2027 gifted-class migration must exist');
