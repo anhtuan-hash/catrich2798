@@ -5,8 +5,11 @@ const flatNav = fs.readFileSync(new URL('../src/components/GlobalFlatNavigation.
 const attendance = fs.readFileSync(new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url), 'utf8');
 const utility = fs.readFileSync(new URL('../src/utils/extraClassAttendance.js', import.meta.url), 'utf8');
 const sql = fs.readFileSync(new URL('../supabase/extra-class-attendance.sql', import.meta.url), 'utf8');
+const managerUrl = new URL('../src/components/ExtraClassAdminDataManager.jsx', import.meta.url);
+const manager = fs.existsSync(managerUrl) ? fs.readFileSync(managerUrl, 'utf8') : '';
 const seedUrl = new URL('../supabase/migrations/20260908_gifted_classes_2026_delete_attendance.sql', import.meta.url);
 const seedSql = fs.existsSync(seedUrl) ? fs.readFileSync(seedUrl, 'utf8') : '';
+const combinedSql = `${sql}\n${seedSql}`;
 
 assert.match(flatNav, /GlobalTtcmNavigationTab[\s\S]*GlobalAttendanceNavigationTab/, 'Attendance must mount immediately after TTCM');
 assert.match(attendance, /Điểm danh nhanh/, 'Attendance workspace needs a quick attendance tab');
@@ -26,13 +29,15 @@ assert.match(sql, /bes_extra_attendance_records/, 'Immutable per-student attenda
 assert.match(sql, /student_full_name text not null/, 'Attendance records must snapshot the student name');
 
 // Regression contract: destructive actions must stay behind guarded server RPCs.
-assert.match(sql, /bes_delete_extra_class\s*\(/, 'SQL must expose a transactional class-deletion RPC');
-assert.match(sql, /bes_delete_extra_attendance_session\s*\(/, 'SQL must expose a transactional approved-attendance deletion RPC');
-assert.match(attendance, /bes_delete_extra_class/, 'Class-management UI must call the class-deletion RPC');
-assert.match(attendance, /Xóa lớp/, 'Class-management UI must expose an explicit delete-class control');
-assert.match(attendance, /bes_delete_extra_attendance_session/, 'History UI must call the approved-attendance deletion RPC');
-assert.match(attendance, /Xóa buổi điểm danh/, 'History UI must expose an explicit delete-attendance control');
-assert.match(attendance, /bes_extra_class_teachers/, 'Attendance UI must load normalized multi-teacher assignments');
+assert.match(combinedSql, /bes_delete_extra_class\s*\(/, 'SQL must expose a transactional class-deletion RPC');
+assert.match(combinedSql, /bes_delete_extra_attendance_session\s*\(/, 'SQL must expose a transactional approved-attendance deletion RPC');
+assert.ok(manager, 'Dedicated extra-class admin data manager must exist');
+assert.match(manager, /bes_delete_extra_class/, 'Class-management UI must call the class-deletion RPC');
+assert.match(manager, /Xóa lớp/, 'Class-management UI must expose an explicit delete-class control');
+assert.match(manager, /bes_delete_extra_attendance_session/, 'History UI must call the approved-attendance deletion RPC');
+assert.match(manager, /Xóa buổi điểm danh/, 'History UI must expose an explicit delete-attendance control');
+assert.match(manager, /bes_extra_class_teachers/, 'Attendance UI must load normalized multi-teacher assignments');
+assert.match(utility, /ExtraClassAdminDataManager/, 'Attendance utility must install the dedicated data manager in browser runtime');
 
 // Source seed contract: only grade 10/11/12 gifted classes, with every source roster/teacher assignment.
 assert.ok(seedSql, 'The checked-in 2026–2027 gifted-class migration must exist');
