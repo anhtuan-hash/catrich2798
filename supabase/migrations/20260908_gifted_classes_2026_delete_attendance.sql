@@ -184,6 +184,7 @@ hsg-2026-dia-li-11	Bồi dưỡng Địa lí 11	Địa lí	11	3	4	A.406	2,6	16h4
 hsg-2026-dia-li-12	Bồi dưỡng Địa lí 12	Địa lí	12	5	4	A.406	2,6	16h45 đến 18h15	Lê Văn Hôn
 $classes$, E'\n')
   loop
+    if trim(v_line) = '' then continue; end if;
     v_parts := string_to_array(v_line, E'\t');
     v_teacher_id := null;
     v_teacher_email := null;
@@ -281,6 +282,7 @@ hsg-2026-dia-li-11	1	Lê Văn Hôn
 hsg-2026-dia-li-12	1	Lê Văn Hôn
 $teachers$, E'\n')
   loop
+    if trim(v_line) = '' then continue; end if;
     v_parts := string_to_array(v_line, E'\t');
     select c.id into v_class_id from public.bes_extra_classes c where c.source_key = v_parts[1];
 
@@ -469,6 +471,7 @@ hsg-2026-tieng-anh-12	identity:ngo-nguyen-minh-hai-12-7	Ngô Nguyễn Minh Hải
 hsg-2026-tieng-anh-12	identity:le-huu-tuong-vi-12-7	Lê Hữu Tường Vi	12.7
 $members$, E'\n')
   loop
+    if trim(v_line) = '' then continue; end if;
     v_parts := string_to_array(v_line, E'\t');
     select c.id into v_class_id from public.bes_extra_classes c where c.source_key = v_parts[1];
 
