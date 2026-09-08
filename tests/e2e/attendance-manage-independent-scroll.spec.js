@@ -1,0 +1,92 @@
+import fs from 'node:fs';
+import { test, expect } from '@playwright/test';
+
+const attendanceCss = fs.readFileSync(new URL('../../src/components/GlobalAttendanceNavigationTab.css', import.meta.url), 'utf8');
+const resetCss = '*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:system-ui,sans-serif}button,input,select{font:inherit}';
+
+function classButtons(count = 18) {
+  return Array.from({ length: count }, (_, index) => `
+    <button type="button" class="${index === 0 ? 'is-selected' : ''}">
+      <b>Lớp ${index + 1}</b>
+      <small>Phụ đạo · Tiếng Anh</small>
+      <span>${index + 5} HS</span>
+    </button>`).join('');
+}
+
+function studentRows(count = 24) {
+  return Array.from({ length: count }, (_, index) => `
+    <div>
+      <span><b>Học sinh ${String(index + 1).padStart(2, '0')}</b><small>Không có mã HS</small></span>
+      <span>12.${(index % 9) + 1}</span>
+      <span>Đang học</span>
+      <span><button type="button">Sửa học sinh</button></span>
+    </div>`).join('');
+}
+
+test.describe('Attendance class management independent scrolling', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.setContent(`
+      <main style="padding:24px;background:#eef2f6;">
+        <div class="attendance-management-grid" style="height:430px;width:1120px;">
+          <aside class="attendance-manage-classes">
+            <header><strong>Danh sách lớp</strong><span>26</span></header>
+            ${classButtons()}
+          </aside>
+          <section class="attendance-member-manager">
+            <header>
+              <div><h2>Phụ đạo Tiếng Anh 10</h2><p>Phụ đạo · Tiếng Anh</p></div>
+              <div class="attendance-teacher-field"><label>Giáo viên theo phân công 2026–2027</label><div>Ngô Thị Mỹ Diệp</div></div>
+            </header>
+            <div class="attendance-member-tools"><input value=""><button type="button">Thêm học sinh</button></div>
+            <div style="padding:16px;border-bottom:1px solid #ddd;min-height:210px;">
+              <strong>Thông tin lớp học</strong>
+              <p>Dữ liệu hiện tại dùng cho các buổi chưa chốt.</p>
+              <p>Phòng học A103 · 16h45 đến 18h15 · Thứ 3, Thứ 5</p>
+            </div>
+            <div class="attendance-member-table">
+              <div class="attendance-member-table-head"><span>Học sinh</span><span>Lớp</span><span>Trạng thái</span><span></span></div>
+              ${studentRows()}
+            </div>
+          </section>
+        </div>
+      </main>`);
+    await page.addStyleTag({ content: `${resetCss}\n${attendanceCss}` });
+  });
+
+  test('left class list and right class detail own separate vertical scroll containers', async ({ page }) => {
+    const grid = page.locator('.attendance-management-grid');
+    const left = page.locator('.attendance-manage-classes');
+    const leftHeader = page.locator('.attendance-manage-classes > header');
+    const right = page.locator('.attendance-member-manager');
+    const memberTable = page.locator('.attendance-member-table');
+
+    await expect(grid).toHaveCSS('overflow-y', 'hidden');
+    await expect(left).toHaveCSS('overflow-y', 'auto');
+    await expect(right).toHaveCSS('overflow-y', 'auto');
+    await expect(memberTable).toHaveCSS('overflow-y', 'visible');
+    await expect(leftHeader).toHaveCSS('position', 'sticky');
+
+    const before = await page.evaluate(() => ({
+      left: document.querySelector('.attendance-manage-classes').scrollTop,
+      right: document.querySelector('.attendance-member-manager').scrollTop,
+    }));
+    expect(before).toEqual({ left: 0, right: 0 });
+
+    await left.evaluate((node) => { node.scrollTop = 180; });
+    const afterLeft = await page.evaluate(() => ({
+      left: document.querySelector('.attendance-manage-classes').scrollTop,
+      right: document.querySelector('.attendance-member-manager').scrollTop,
+    }));
+    expect(afterLeft.left).toBeGreaterThan(0);
+    expect(afterLeft.right).toBe(0);
+
+    await right.evaluate((node) => { node.scrollTop = 220; });
+    const afterRight = await page.evaluate(() => ({
+      left: document.querySelector('.attendance-manage-classes').scrollTop,
+      right: document.querySelector('.attendance-member-manager').scrollTop,
+    }));
+    expect(afterRight.left).toBe(afterLeft.left);
+    expect(afterRight.right).toBeGreaterThan(0);
+  });
+});
