@@ -100,8 +100,9 @@ function htmlEscape(value) {
 }
 
 export function printAttendanceReportPdf(report, filters = {}) {
-  const popup = window.open('', '_blank', 'noopener,noreferrer');
+  const popup = window.open('', '_blank');
   if (!popup) throw new Error('Trình duyệt đang chặn cửa sổ xuất PDF. Hãy cho phép popup rồi thử lại.');
+  try { popup.opener = null; } catch { /* Browser may already isolate the popup. */ }
 
   const teacherHtml = report.teacherRows.map((row) => `
     <tr><td>${htmlEscape(row.teacher_name)}</td><td>${row.completed_sessions}</td><td>${row.total_periods}</td><td>${row.distinct_classes}</td><td>${percent(row.attendance_rate)}</td></tr>
