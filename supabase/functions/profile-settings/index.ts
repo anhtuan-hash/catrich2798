@@ -85,6 +85,12 @@ Deno.serve(async (req: Request) => {
     const avatarUrl = cleanText(incoming.avatarUrl, 1000);
 
     if (!validEmail(contactEmail)) return response(400, { ok: false, message: 'Email liên hệ không hợp lệ.' });
+    if (contactEmail) {
+      const duplicate = await db.from('profiles').select('id').ilike('contact_email', contactEmail).neq('id', authData.user.id).maybeSingle();
+      if (duplicate.error) return response(400, { ok: false, message: duplicate.error.message });
+      if (duplicate.data?.id) return response(409, { ok: false, message: 'Email này đã được dùng cho tài khoản khác.' });
+    }
+
     const allowedAvatarPrefix = `${supabaseUrl}/storage/v1/object/public/profile-avatars/${authData.user.id}/`;
     if (avatarUrl && !avatarUrl.startsWith(allowedAvatarPrefix)) {
       return response(400, { ok: false, message: 'Đường dẫn ảnh hồ sơ không hợp lệ.' });
