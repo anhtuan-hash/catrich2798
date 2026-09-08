@@ -46,6 +46,12 @@ jobs:
       - name: Verify iPhone layout in WebKit
         run: npx playwright test tests/e2e/iphone-dashboard-attendance-layout.spec.js --project=webkit-desktop
 
+      - name: Verify attendance management scroll independence in Chromium
+        run: npx playwright test tests/e2e/attendance-manage-independent-scroll.spec.js --project=chromium-desktop
+
+      - name: Verify attendance management scroll independence in WebKit
+        run: npx playwright test tests/e2e/attendance-manage-independent-scroll.spec.js --project=webkit-desktop
+
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v4
