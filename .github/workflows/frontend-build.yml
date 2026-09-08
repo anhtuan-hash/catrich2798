@@ -88,6 +88,9 @@ jobs:
       - name: Verify attendance monthly report UI
         run: node scripts/test-attendance-monthly-report-ui.mjs
 
+      - name: Verify attendance absence room/time contract
+        run: node scripts/test-attendance-absence-room-time.mjs
+
       - name: Verify Vercel Hobby function budget
         run: node scripts/test-vercel-hobby-function-budget.mjs
 
