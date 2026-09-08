@@ -61,10 +61,10 @@ assert.match(
   /attendance-win8-shell-in[\s\S]*?scale\(\.78\)[\s\S]*?scale\(1\.016\)[\s\S]*?scale\(1\)/i,
   'Windows 8 launch must visibly expand the app from a compact tile-like state into the full workspace',
 );
-assert.match(
+assert.doesNotMatch(
   launchCss,
-  /@media\s*\(prefers-reduced-motion\s*:\s*reduce\)[\s\S]*?\.attendance-layer[\s\S]*?animation\s*:\s*none/i,
-  'Attendance launch motion must be disabled when the user prefers reduced motion',
+  /@media\s*\(prefers-reduced-motion\s*:\s*reduce\)[\s\S]*?animation\s*:\s*none/i,
+  'Attendance Windows 8 launch must remain enabled regardless of reduced-motion preference',
 );
 
 assert.match(
