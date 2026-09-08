@@ -151,6 +151,8 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const [importReport, setImportReport] = useState(null);
   const [historyQuery, setHistoryQuery] = useState('');
   const [historyType, setHistoryType] = useState('all');
+  const [historySelectionMode, setHistorySelectionMode] = useState(false);
+  const [selectedHistorySessionIds, setSelectedHistorySessionIds] = useState([]);
   const [memberQuery, setMemberQuery] = useState('');
   const [classQuery, setClassQuery] = useState('');
   const [subjectFilter, setSubjectFilter] = useState('all');
@@ -788,11 +790,83 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     finally { setBusy(false); }
   }
 
+  function toggleHistorySelectionMode() {
+    setHistorySelectionMode((current) => {
+      const next = !current;
+      if (!next) setSelectedHistorySessionIds([]);
+      return next;
+    });
+  }
+
+  function toggleHistoryBulkSelection(sessionId) {
+    const key = String(sessionId);
+    setSelectedHistorySessionIds((current) => (
+      current.some((id) => String(id) === key)
+        ? current.filter((id) => String(id) !== key)
+        : [...current, sessionId]
+    ));
+  }
+
+  function toggleAllFilteredHistorySelection() {
+    const filteredIds = filteredHistory.map((session) => session.id);
+    if (!filteredIds.length) return;
+    const filteredIdSet = new Set(filteredIds.map((id) => String(id)));
+    setSelectedHistorySessionIds((current) => {
+      const currentSet = new Set(current.map((id) => String(id)));
+      const allSelected = filteredIds.every((id) => currentSet.has(String(id)));
+      if (allSelected) return current.filter((id) => !filteredIdSet.has(String(id)));
+      return Array.from(new Map([...current, ...filteredIds].map((id) => [String(id), id])).values());
+    });
+  }
+
+  async function deleteSelectedHistorySessions() {
+    if (!selectedHistorySessionIds.length || busy || !client) return;
+    const selectedIdSet = new Set(selectedHistorySessionIds.map((id) => String(id)));
+    const targets = sessions.filter((session) => selectedIdSet.has(String(session.id)));
+    if (!targets.length) {
+      setSelectedHistorySessionIds([]);
+      return;
+    }
+    const confirmed = window.confirm(`Xóa ${targets.length} buổi điểm danh đã chọn?\n\nCác ngày tương ứng sẽ được mở khóa để có thể điểm danh lại. Không thể hoàn tác.`);
+    if (!confirmed) return;
+    setBusy(true); setError(''); setNotice('');
+    const failed = [];
+    const deletedIds = new Set();
+    try {
+      for (const session of targets) {
+        const { error: deleteError } = await client.rpc('bes_delete_extra_attendance_session', { p_session_id: session.id });
+        if (deleteError) {
+          failed.push(`${session.class_name} ${formatDate(session.attendance_date)}: ${deleteError.message || 'Lỗi không xác định'}`);
+        } else {
+          deletedIds.add(String(session.id));
+        }
+      }
+      if (deletedIds.has(String(selectedSessionId))) {
+        setSelectedSessionId('');
+        setRecords([]);
+      }
+      if (daySession && deletedIds.has(String(daySession.id))) setDaySession(null);
+      setSelectedHistorySessionIds((current) => current.filter((id) => !deletedIds.has(String(id))));
+      if (!failed.length) setHistorySelectionMode(false);
+      if (deletedIds.size) setNotice(`Đã xóa ${deletedIds.size} buổi điểm danh. Các ngày tương ứng đã được mở khóa.`);
+      if (failed.length) setError(`Không thể xóa ${failed.length} buổi: ${failed.slice(0, 3).join(' · ')}${failed.length > 3 ? ` · và ${failed.length - 3} buổi khác` : ''}`);
+      await loadAll();
+      await loadDaySession();
+      await loadTeacherDaySessions();
+      await loadMonthlySessions();
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const filteredHistory = useMemo(() => sessions.filter((session) => {
     if (historyType !== 'all' && session.class_type !== historyType) return false;
     const haystack = fold(`${session.class_name} ${teacherForSession(session)} ${session.subject} ${session.attendance_date}`);
     return !historyQuery.trim() || haystack.includes(fold(historyQuery));
   }), [sessions, historyQuery, historyType]);
+
+  const selectedHistorySessionIdSet = useMemo(() => new Set(selectedHistorySessionIds.map((id) => String(id))), [selectedHistorySessionIds]);
+  const allFilteredHistorySelected = filteredHistory.length > 0 && filteredHistory.every((session) => selectedHistorySessionIdSet.has(String(session.id)));
 
   const filteredManagementMembers = useMemo(() => allSelectedMembers.filter((member) => {
     if (!memberQuery.trim()) return true;
@@ -908,13 +982,16 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
             <div className="attendance-history-layout">
               <section className="attendance-history-list">
                 <header className="attendance-history-list-head">
-                  <div className="attendance-history-list-title"><div><strong>Lịch sử điểm danh</strong><p>Tra cứu các buổi đã chốt và buổi đã hủy.</p></div><span>{filteredHistory.length} buổi</span></div>
+                  <div className="attendance-history-list-title"><div><strong>Lịch sử điểm danh</strong><p>Tra cứu các buổi đã chốt và buổi đã hủy.</p></div><div className="attendance-history-list-actions"><span>{filteredHistory.length} buổi</span>{canAccessAttendanceView('quick') ? <button type="button" className={historySelectionMode ? 'is-active' : ''} disabled={busy} onClick={toggleHistorySelectionMode}>{historySelectionMode ? 'Thoát chọn' : 'Chọn nhiều'}</button> : null}</div></div>
                   <label className="attendance-history-search"><Icon name="history" size={16} /><input value={historyQuery} onChange={(event) => setHistoryQuery(event.target.value)} placeholder="Tìm theo tên lớp, môn học, giáo viên hoặc ngày…" /></label>
                   <div className="attendance-history-filters"><select value={historyType} onChange={(event) => setHistoryType(event.target.value)}><option value="all">Tất cả loại lớp</option><option value="remedial">Phụ đạo</option><option value="gifted">Bồi dưỡng HSG</option></select></div>
+                  {historySelectionMode ? <div className="attendance-history-bulk-toolbar"><button type="button" disabled={busy || !filteredHistory.length} onClick={toggleAllFilteredHistorySelection}>{allFilteredHistorySelected ? 'Bỏ chọn kết quả' : 'Chọn tất cả kết quả'}</button><span>Đã chọn <b>{selectedHistorySessionIds.length}</b> buổi</span><button type="button" className="is-danger" disabled={busy || !selectedHistorySessionIds.length} onClick={deleteSelectedHistorySessions}><Icon name="trash" size={16} />{busy ? 'Đang xóa…' : `Xóa ${selectedHistorySessionIds.length} buổi`}</button></div> : null}
                 </header>
                 <div className="attendance-history-items">{filteredHistory.map((session) => {
                   const rate = session.session_status === 'cancelled' || !Number(session.total_students) ? null : Math.round((Number(session.present_count || 0) / Number(session.total_students)) * 100);
-                  return <button key={session.id} type="button" className={String(selectedSessionId) === String(session.id) ? 'is-selected' : ''} onClick={() => loadSessionRecords(session.id)}>
+                  const isBulkSelected = selectedHistorySessionIdSet.has(String(session.id));
+                  return <button key={session.id} type="button" className={`${String(selectedSessionId) === String(session.id) && !historySelectionMode ? 'is-selected' : ''}${historySelectionMode ? ' is-bulk-mode' : ''}${isBulkSelected ? ' is-bulk-selected' : ''}`.trim()} aria-pressed={historySelectionMode ? isBulkSelected : undefined} onClick={() => { if (historySelectionMode) toggleHistoryBulkSelection(session.id); else loadSessionRecords(session.id); }}>
+                    {historySelectionMode ? <span className={`attendance-history-select-box ${isBulkSelected ? 'is-checked' : ''}`} aria-hidden="true">{isBulkSelected ? <Icon name="check" size={14} /> : null}</span> : null}
                     <span className={`attendance-type-dot is-${session.class_type}`} />
                     <div className="attendance-history-card-copy"><div className="attendance-history-card-title"><b>{session.class_name}</b><span className={`attendance-history-type is-${session.class_type}`}>{extraClassTypeLabel(session.class_type)}</span></div><small>{session.subject || 'Chưa ghi môn'} · {teacherForSession(session)}</small><time>{formatDate(session.attendance_date)} · {session.teaching_time_range || 'Chưa ghi giờ'} · {session.teaching_room || 'Chưa ghi phòng'}</time></div>
                     <span className="attendance-history-count"><b>{session.session_status === 'cancelled' ? 'Đã hủy' : `${session.present_count}/${session.total_students}`}</b><em>{session.session_status === 'cancelled' ? '0 tiết' : `${session.absent_count} vắng`}</em>{rate !== null ? <i>{rate}%</i> : null}</span>
@@ -922,7 +999,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                 })}{!filteredHistory.length ? <div className="attendance-empty">Chưa có buổi điểm danh phù hợp.</div> : null}</div>
               </section>
 
-              <section className="attendance-history-detail">{selectedSession ? <>
+              <section className="attendance-history-detail">{historySelectionMode ? <div className="attendance-history-bulk-detail"><span><Icon name="trash" size={28} /></span><h2>Chọn nhiều buổi điểm danh</h2><p>Chọn các buổi ở danh sách bên trái, sau đó dùng nút xóa để xử lý một lần.</p><b>{selectedHistorySessionIds.length} buổi đã chọn</b></div> : selectedSession ? <>
                 <div className="attendance-history-hero">
                   <div className="attendance-history-hero-copy"><span className={`att-m3-status-chip is-${selectedSession.session_status === 'cancelled' ? 'cancelled' : 'completed'}`}>{selectedSession.session_status === 'cancelled' ? 'Đã hủy' : 'Đã điểm danh'}</span><h2>{selectedSession.class_name}</h2><div className="attendance-history-hero-chips"><span className={`attendance-history-type is-${selectedSession.class_type}`}>{extraClassTypeLabel(selectedSession.class_type)}</span><span className="att-m3-period-chip">{selectedSession.session_status === 'cancelled' ? '0 tiết' : `${String(selectedSession.lesson_periods || 1).replace('.', ',')} tiết`}</span><span>{formatDate(selectedSession.attendance_date)}</span><span>{selectedSession.teaching_room || 'Chưa ghi phòng'}</span></div></div>
                   <div className="attendance-history-actions">{canAccessAttendanceView('report') ? <button type="button" className="attendance-history-report-button" onClick={() => { if (selectedSession.attendance_date) setReportMonth(selectedSession.attendance_date.slice(0, 7)); setView('report'); }}>Xem báo cáo tháng</button> : null}{canAccessAttendanceView('quick') ? <button type="button" className="attendance-history-delete-button" disabled={busy} onClick={() => deleteAttendanceSession(selectedSession)}><Icon name="trash" size={17} />Xóa buổi điểm danh</button> : null}</div>
