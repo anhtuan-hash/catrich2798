@@ -49,6 +49,21 @@ assert.match(
 );
 assert.match(reportExport, /\.report-page\s*\{[^}]*max-width\s*:\s*100%/i, 'PDF content must stay bounded to portrait page width');
 assert.match(reportExport, /table\s*\{[^}]*max-width\s*:\s*100%/i, 'PDF tables must remain within portrait page width');
+
+// Cross-browser print hardening: Safari must never receive the indexed PNG directly.
+assert.match(reportExport, /export\s+async\s+function\s+printAttendanceReportPdf/i, 'PDF export must wait for print-safe logo preparation');
+assert.match(reportExport, /canvas\.getContext\(['"]2d['"]/i, 'PDF export must rasterize the school logo before printing');
+assert.match(reportExport, /toDataURL\(['"]image\/jpeg['"]/i, 'Print-safe logo must be flattened to true-color JPEG for Safari/Chromium consistency');
+assert.match(reportExport, /fillStyle\s*=\s*['"]#(?:fff|ffffff)['"]/i, 'Print-safe logo must be flattened on an opaque white background');
+assert.match(reportExport, /\.decode\s*\(/i, 'PDF export must wait for image decode instead of a fixed timer');
+assert.doesNotMatch(reportExport, /setTimeout\s*\(\s*\(\)\s*=>\s*window\.print\(\)\s*,\s*300\s*\)/i, 'Legacy 300ms print timer must be removed');
+assert.match(
+  reportExport,
+  /th,td\s*\{[^}]*text-align\s*:\s*center[^}]*vertical-align\s*:\s*middle/i,
+  'All PDF table headers and data cells must be centered horizontally and vertically',
+);
+assert.match(reportExport, /font-variant-numeric\s*:\s*tabular-nums/i, 'PDF table numbers should use stable tabular alignment');
+
 assert.match(reportExport, /teaching_time_range/);
 assert.match(reportExport, /teaching_room/);
 assert.match(reportExport, /checked_at/);
