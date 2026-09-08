@@ -1,0 +1,207 @@
+name: Apply Manage source single scroll
+
+on:
+  push:
+    branches:
+      - feat/manage-source-single-scroll
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Move Manage scrolling into source CSS
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path, old, new):
+              p = Path(path)
+              text = p.read_text()
+              if old not in text:
+                  if new in text:
+                      return
+                  raise SystemExit(f'Expected source block not found in {path}')
+              p.write_text(text.replace(old, new, 1))
+
+          # 1) Remove the late public patch from the document.
+          replace_once(
+              'index.html',
+              '    <link rel="stylesheet" href="/attendance-manage-scrollbar-fix.css?v=1" />\n',
+              '',
+          )
+
+          # 2) Source CSS owns layout and the ONE right-pane scrollbar.
+          replace_once(
+              'src/components/GlobalAttendanceNavigationTab.css',
+              '''.attendance-manage-layout {\n  height: 100%;\n  min-height: 0;\n  display: grid;\n  grid-template-rows: auto auto minmax(0, 1fr);\n  gap: 12px;\n  padding: 14px;\n  overflow: hidden;\n}\n''',
+              '''.attendance-manage-layout {\n  height: 100%;\n  min-height: 0;\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n  padding: 14px;\n  overflow: hidden;\n}\n.attendance-manage-layout > .attendance-import-card,\n.attendance-manage-layout > .attendance-import-report { flex: 0 0 auto; }\n''',
+          )
+          replace_once(
+              'src/components/GlobalAttendanceNavigationTab.css',
+              '''.attendance-management-grid {\n  min-height: 0;\n  display: grid;\n  grid-template-columns: 300px minmax(0, 1fr);\n  overflow: hidden;\n  border: 1px solid var(--att-line);\n  border-radius: 14px;\n  background: #fff;\n}\n''',
+              '''.attendance-management-grid {\n  flex: 1 1 0;\n  min-height: 0;\n  display: grid;\n  grid-template-columns: 300px minmax(0, 1fr);\n  overflow: hidden;\n  border: 1px solid var(--att-line);\n  border-radius: 14px;\n  background: #fff;\n}\n''',
+          )
+          replace_once(
+              'src/components/GlobalAttendanceNavigationTab.css',
+              '.attendance-member-manager { min-width: 0; min-height: 0; display: grid; grid-template-rows: auto auto auto minmax(0, 1fr); overflow: hidden; }\n',
+              '''.attendance-member-manager {\n  min-width: 0;\n  min-height: 0;\n  display: block;\n  overflow-x: hidden;\n  overflow-y: auto;\n  overscroll-behavior-y: contain;\n  scrollbar-gutter: stable;\n  scrollbar-width: thin;\n  scrollbar-color: #b8c4d2 transparent;\n}\n.attendance-member-manager::-webkit-scrollbar { width: 8px; }\n.attendance-member-manager::-webkit-scrollbar-track { background: transparent; }\n.attendance-member-manager::-webkit-scrollbar-thumb {\n  border: 2px solid transparent;\n  border-radius: 999px;\n  background: #c3ccd7;\n  background-clip: padding-box;\n}\n''',
+          )
+          replace_once(
+              'src/components/GlobalAttendanceNavigationTab.css',
+              '.attendance-member-table { min-height: 0; overflow: auto; }\n',
+              '.attendance-member-table { min-height: 0; overflow: visible; border-top: 1px solid var(--att-line-soft); }\n',
+          )
+
+          # 3) Class information is part of the same source-owned surface.
+          replace_once(
+              'src/components/attendance/AttendanceClassEditor.css',
+              '''.attendance-class-info-card {\n  margin: 0 0 14px;\n  padding: 16px;\n  border: 1px solid var(--att-m3-outline-variant, #c7c6d0);\n  border-radius: 20px;\n  background: var(--att-m3-surface-container, #f0eef6);\n}\n''',
+              '''.attendance-class-info-card {\n  margin: 0;\n  padding: 14px 18px 16px;\n  border: 0;\n  border-top: 1px solid #e7ecef;\n  border-radius: 0;\n  background: transparent;\n  box-shadow: none;\n}\n''',
+          )
+
+          # 4) Existing polish/launch layers may style Manage, but may not own its overflow.
+          replace_once(
+              'public/attendance-ui-polish.css',
+              '''html body .attendance-shell .attendance-member-manager {\n  overflow: hidden !important;\n  background: linear-gradient(180deg, #ffffff 0%, #fbfffd 100%) !important;\n}\n''',
+              '''html body .attendance-shell .attendance-member-manager {\n  background: linear-gradient(180deg, #ffffff 0%, #fbfffd 100%) !important;\n}\n''',
+          )
+
+          launch = Path('public/attendance-windows8-launch.css')
+          text = launch.read_text()
+          start = text.find('/* Manage Classes used to trap scrolling inside several nested panels.')
+          end_marker = '''.attendance-member-table {\n  min-height: 0 !important;\n  overflow: visible !important;\n}\n\n'''
+          if start >= 0:
+              end = text.find(end_marker, start)
+              if end < 0:
+                  raise SystemExit('Manage override end marker missing in launch CSS')
+              text = text[:start] + text[end + len(end_marker):]
+              launch.write_text(text)
+
+          # 5) Browser regression now loads the real source cascade only.
+          Path('tests/e2e/attendance-manage-independent-scroll.spec.js').write_text(r'''import fs from 'node:fs';
+          import { test, expect } from '@playwright/test';
+
+          const attendanceCss = fs.readFileSync(new URL('../../src/components/GlobalAttendanceNavigationTab.css', import.meta.url), 'utf8');
+          const editorCss = fs.readFileSync(new URL('../../src/components/attendance/AttendanceClassEditor.css', import.meta.url), 'utf8');
+          const polishCss = fs.readFileSync(new URL('../../public/attendance-ui-polish.css', import.meta.url), 'utf8');
+          const launchCss = fs.readFileSync(new URL('../../public/attendance-windows8-launch.css', import.meta.url), 'utf8');
+          const resetCss = '*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:system-ui,sans-serif}button,input,select{font:inherit}';
+
+          function classButtons(count = 18) {
+            return Array.from({ length: count }, (_, index) => `
+              <button type="button" class="${index === 0 ? 'is-selected' : ''}">
+                <b>Lớp ${index + 1}</b><small>Phụ đạo · Tiếng Anh</small><span>${index + 5} HS</span>
+              </button>`).join('');
+          }
+
+          function studentRows(count = 30) {
+            return Array.from({ length: count }, (_, index) => `
+              <div><span><b>Học sinh ${String(index + 1).padStart(2, '0')}</b><small>Không có mã HS</small></span><span>12.${(index % 9) + 1}</span><span>Đang học</span><span><button type="button">Sửa học sinh</button></span></div>`).join('');
+          }
+
+          test.describe('Attendance class management source-owned single right scroll', () => {
+            test.beforeEach(async ({ page }) => {
+              await page.setViewportSize({ width: 1440, height: 900 });
+              await page.setContent(`
+                <section class="attendance-shell" style="position:relative;width:1220px;height:700px;margin:30px auto;">
+                  <main class="attendance-content">
+                    <div class="attendance-manage-layout">
+                      <section class="attendance-import-card"><div><strong>Import lớp phụ đạo / bồi dưỡng</strong></div><button type="button">Chọn file Excel</button></section>
+                      <div class="attendance-management-grid">
+                        <aside class="attendance-manage-classes"><header><strong>Danh sách lớp</strong><span>26</span></header>${classButtons()}</aside>
+                        <section class="attendance-member-manager">
+                          <header><div><h2>Bồi dưỡng Hóa học 12</h2><p>Bồi dưỡng HSG · Hóa học</p></div><div class="attendance-teacher-field"><label>Giáo viên theo phân công 2026–2027</label><div class="attendance-teacher-summary"><strong>Nguyễn Minh Tiến</strong><button type="button">Thêm giáo viên</button></div></div></header>
+                          <div class="attendance-member-tools"><input value="" placeholder="Tìm học sinh"><button type="button">Thêm học sinh</button><button type="button">Xóa lớp</button></div>
+                          <section class="attendance-class-info-card"><header class="attendance-class-info-head"><div><span>THÔNG TIN LỚP HỌC</span><strong>Dữ liệu hiện tại dùng cho các buổi chưa chốt</strong><p>Các thay đổi bên dưới không sửa lại lịch sử.</p></div><button type="button">Sửa thông tin lớp</button></header><div class="attendance-class-info-grid"><article><span>Tên lớp</span><b>Bồi dưỡng Hóa học 12</b></article><article><span>Môn học</span><b>Hóa học</b></article><article><span>Khối</span><b>Khối 12</b></article><article><span>Phòng học</span><b>A305</b></article><article><span>Thời gian học</span><b>16h45 đến 18h15</b></article><article class="is-wide"><span>Ngày học</span><b>Thứ 2, Thứ 6</b></article></div></section>
+                          <div class="attendance-member-table"><div class="attendance-member-table-head"><span>Học sinh</span><span>Lớp</span><span>Trạng thái</span><span></span></div>${studentRows()}</div>
+                        </section>
+                      </div>
+                    </div>
+                  </main>
+                </section>`);
+              await page.addStyleTag({ content: `${resetCss}\n${attendanceCss}\n${editorCss}\n${polishCss}\n${launchCss}` });
+            });
+
+            test('the right pane scrolls header, class information and students as one flow', async ({ page }) => {
+              const grid = page.locator('.attendance-management-grid');
+              const left = page.locator('.attendance-manage-classes');
+              const right = page.locator('.attendance-member-manager');
+              const rightHeader = page.locator('.attendance-member-manager > header');
+              const memberTable = page.locator('.attendance-member-table');
+
+              await expect(grid).toHaveCSS('overflow-y', 'hidden');
+              await expect(left).toHaveCSS('overflow-y', 'auto');
+              await expect(right).toHaveCSS('overflow-y', 'auto');
+              await expect(memberTable).toHaveCSS('overflow-y', 'visible');
+
+              const headerBefore = await rightHeader.boundingBox();
+              await right.evaluate((node) => { node.scrollTop = 260; });
+              const state = await page.evaluate(() => ({
+                right: document.querySelector('.attendance-member-manager').scrollTop,
+                table: document.querySelector('.attendance-member-table').scrollTop,
+              }));
+              const headerAfter = await rightHeader.boundingBox();
+
+              expect(state.right).toBeGreaterThan(0);
+              expect(state.table).toBe(0);
+              expect(headerBefore).not.toBeNull();
+              expect(headerAfter).not.toBeNull();
+              expect(headerAfter.y).toBeLessThan(headerBefore.y - 20);
+            });
+
+            test('class information remains visually continuous with the right pane', async ({ page }) => {
+              const info = page.locator('.attendance-class-info-card');
+              await expect(info).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+              await expect(info).toHaveCSS('border-left-width', '0px');
+              await expect(info).toHaveCSS('border-radius', '0px');
+              await expect(info).toHaveCSS('box-shadow', 'none');
+            });
+          });
+          '''.replace(/^          /gm, ''))
+
+          # 6) Existing continuity contract now checks source, not a public patch.
+          Path('scripts/test-attendance-manage-unified-pane.mjs').write_text(r'''import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+
+          const index = fs.readFileSync('index.html', 'utf8');
+          const sourceCss = fs.readFileSync('src/components/GlobalAttendanceNavigationTab.css', 'utf8');
+          const editorCss = fs.readFileSync('src/components/attendance/AttendanceClassEditor.css', 'utf8');
+
+          assert.doesNotMatch(index, /attendance-manage-scrollbar-fix\.css/, 'No late Manage patch stylesheet may be loaded');
+          assert.match(sourceCss, /\.attendance-member-manager\s*\{[^}]*overflow-y:\s*auto;/s, 'Right pane must own its single scrollbar');
+          assert.match(sourceCss, /\.attendance-member-table\s*\{[^}]*overflow:\s*visible;/s, 'Student list must participate in the right-pane flow');
+          assert.match(editorCss, /\.attendance-class-info-card\s*\{[^}]*border-radius:\s*0;[^}]*background:\s*transparent;/s, 'Class information must not be a detached card');
+          console.log('PASS: class-management continuity and scrolling are source-owned.');
+          '''.replace(/^          /gm, ''))
+
+          # Keep the permanent unified-pane workflow aligned with source ownership.
+          wf = Path('.github/workflows/verify-attendance-manage-unified-pane.yml')
+          w = wf.read_text()
+          w = w.replace("      - 'public/attendance-manage-scrollbar-fix.css'\n", '')
+          if "scripts/test-attendance-manage-source-scroll.mjs" not in w:
+              w = w.replace("      - 'scripts/test-attendance-manage-unified-pane.mjs'\n", "      - 'scripts/test-attendance-manage-unified-pane.mjs'\n      - 'scripts/test-attendance-manage-source-scroll.mjs'\n")
+          w = w.replace('        run: node scripts/test-attendance-manage-unified-pane.mjs', '        run: node scripts/test-attendance-manage-unified-pane.mjs && node scripts/test-attendance-manage-source-scroll.mjs')
+          wf.write_text(w)
+          PY
+
+          git rm -f public/attendance-manage-scrollbar-fix.css || true
+          node scripts/test-attendance-manage-source-scroll.mjs
+          node scripts/test-attendance-manage-unified-pane.mjs
+
+      - name: Commit source fix
+        run: |
+          if git diff --quiet && git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html src/components/GlobalAttendanceNavigationTab.css src/components/attendance/AttendanceClassEditor.css public/attendance-ui-polish.css public/attendance-windows8-launch.css tests/e2e/attendance-manage-independent-scroll.spec.js scripts/test-attendance-manage-unified-pane.mjs scripts/test-attendance-manage-source-scroll.mjs .github/workflows/verify-attendance-manage-unified-pane.yml
+          git commit -m "fix: make class management use one source-owned scroll"
+          git push
