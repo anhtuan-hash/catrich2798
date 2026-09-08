@@ -93,6 +93,8 @@ assert.match(attendance, /attendance-history-search/, 'History list must expose 
 assert.match(attendance, /attendance-history-hero/, 'History detail must render a dedicated summary hero');
 assert.match(attendance, /attendance-history-info-grid/, 'History detail must render an information-card grid');
 assert.match(attendance, /attendance-history-rate-card/, 'History detail must render an attendance-rate card');
+assert.match(attendance, /const\s+selectedSessionAttendanceRate\s*=/,
+  'History detail must calculate the attendance rate before rendering the rate card');
 assert.match(attendance, /Giáo viên/);
 assert.match(attendance, /Môn học/);
 assert.match(attendance, /Ngày dạy/);
