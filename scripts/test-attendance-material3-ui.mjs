@@ -7,9 +7,13 @@ const attendanceUiContract = `${attendance}\n${permissionRegistry}`;
 const cssUrl = new URL('../src/components/attendance/AttendanceMaterial3.css', import.meta.url);
 const reportCssUrl = new URL('../src/components/attendance/AttendanceMonthlyReport.css', import.meta.url);
 const polishUrl = new URL('../public/attendance-ui-polish.css', import.meta.url);
+const launchCssUrl = new URL('../public/attendance-windows8-launch.css', import.meta.url);
+const indexHtmlUrl = new URL('../index.html', import.meta.url);
 const css = fs.existsSync(cssUrl) ? fs.readFileSync(cssUrl, 'utf8') : '';
 const reportCss = fs.existsSync(reportCssUrl) ? fs.readFileSync(reportCssUrl, 'utf8') : '';
 const polishCss = fs.existsSync(polishUrl) ? fs.readFileSync(polishUrl, 'utf8') : '';
+const launchCss = fs.existsSync(launchCssUrl) ? fs.readFileSync(launchCssUrl, 'utf8') : '';
+const indexHtml = fs.readFileSync(indexHtmlUrl, 'utf8');
 
 assert.doesNotMatch(attendance, /Mỗi lớp chỉ chốt một lần mỗi ngày · giờ xác nhận lưu theo máy chủ/);
 assert.match(attendanceUiContract, /Báo cáo/);
@@ -28,6 +32,40 @@ assert.ok(reportCss, 'Attendance monthly report stylesheet must exist');
 assert.match(reportCss, /\.att-report-m3\s*\{[^}]*min-height\s*:\s*0[^}]*overflow-y\s*:\s*auto/i,
   'Monthly report must own a vertical scroll viewport so long reports are not clipped by attendance-content overflow:hidden');
 assert.ok(polishCss, 'Attendance workspace polish stylesheet must exist');
+assert.ok(launchCss, 'Windows 8 attendance launch stylesheet must exist');
+assert.match(indexHtml, /attendance-windows8-launch\.css\?v=1/i,
+  'Application shell must load the Windows 8 attendance launch stylesheet');
+
+assert.match(
+  launchCss,
+  /@keyframes\s+attendance-win8-layer-in/i,
+  'Attendance backdrop must define a dedicated Windows 8 style launch animation',
+);
+assert.match(
+  launchCss,
+  /@keyframes\s+attendance-win8-shell-in/i,
+  'Attendance shell must define a dedicated Windows 8 style app launch animation',
+);
+assert.match(
+  launchCss,
+  /\.attendance-layer\s*\{[^}]*animation-name\s*:\s*attendance-win8-layer-in/i,
+  'Attendance backdrop must play the Windows 8 launch animation when opened',
+);
+assert.match(
+  launchCss,
+  /\.attendance-shell\s*\{[^}]*animation-name\s*:\s*attendance-win8-shell-in/i,
+  'Attendance shell must play the Windows 8 app launch animation when opened',
+);
+assert.match(
+  launchCss,
+  /attendance-win8-shell-in[\s\S]*?scale\(\.78\)[\s\S]*?scale\(1\.016\)[\s\S]*?scale\(1\)/i,
+  'Windows 8 launch must visibly expand the app from a compact tile-like state into the full workspace',
+);
+assert.match(
+  launchCss,
+  /@media\s*\(prefers-reduced-motion\s*:\s*reduce\)[\s\S]*?\.attendance-layer[\s\S]*?animation\s*:\s*none/i,
+  'Attendance launch motion must be disabled when the user prefers reduced motion',
+);
 
 assert.match(
   polishCss,
