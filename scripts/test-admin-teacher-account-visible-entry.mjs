@@ -1,20 +1,19 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
-const manager = fs.readFileSync('public/admin-teacher-permission-manager.js', 'utf8');
-const viewportCss = fs.readFileSync('public/admin-teacher-permission-viewport-v3.css', 'utf8');
+const entry = fs.readFileSync('public/admin-teacher-account-entry.js', 'utf8');
 
-assert.match(manager, /Tạo tài khoản giáo viên/, 'teacher picker must expose a visible create-account action');
-assert.match(manager, /data-action=["']create-account["']/, 'teacher picker create-account action must have a stable action id');
-assert.match(manager, /teacher-picker-create-account/, 'teacher picker create-account button must have a dedicated class');
-assert.match(manager, /bes-open-teacher-account-manager/, 'teacher picker create-account action must open the account manager');
-assert.match(manager, /mode:\s*["']create["']/, 'teacher picker create-account action must request create mode');
-
-assert.doesNotMatch(
-  viewportCss,
-  /admin-v41-has-teacher-selection\s+\.teacher-picker-floating-create-account\s*,?[\s\S]{0,140}?display:\s*none\s*!important/i,
-  'selecting a teacher must not hide the create-account entry point',
+assert.match(entry, /PICKER_ENTRY_ID/, 'account entry script must own a dedicated teacher-picker entry');
+assert.match(entry, /#admin-v41-teacher-list/, 'account entry must anchor to the visible teacher picker/list');
+assert.match(entry, /Tạo tài khoản giáo viên/, 'teacher picker must expose a visible create-account action');
+assert.match(entry, /teacher-picker-create-account/, 'visible picker action must have a stable dedicated class');
+assert.match(entry, /requestManagerOpen/, 'picker action must open the existing teacher account manager');
+assert.match(entry, /bes-open-teacher-account-manager/, 'picker action must use the existing account-manager command');
+assert.match(
+  entry,
+  /setProperty\(['"]display['"],\s*['"]inline-flex['"],\s*['"]important['"]\)/,
+  'visible picker action must resist the legacy selected-teacher hide rule',
 );
-assert.match(viewportCss, /\.teacher-picker-create-account/, 'create-account entry must have explicit viewport styling');
+assert.match(entry, /MutationObserver/, 'entry must be restored if the permission picker rerenders');
 
 console.log('Admin teacher account visible entry contract verified.');
