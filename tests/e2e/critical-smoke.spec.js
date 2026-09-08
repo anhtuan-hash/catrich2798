@@ -17,6 +17,7 @@ async function assertHealthyShell(page) {
   await expect(page.locator('#bes-main-content')).toBeVisible();
   await expect(page.locator('#bes-global-wave-loader')).toHaveCount(0);
   await expect(page.locator('body')).not.toContainText(/Application error|Cannot read properties of undefined|ChunkLoadError/i);
+  await expect(page.locator('body')).not.toContainText(/Không thể mở thanh điều hướng|Cannot open navigation/i);
 }
 
 test('public shell stays healthy without retired global loader', async ({ page }) => {
