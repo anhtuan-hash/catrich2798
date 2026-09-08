@@ -1,0 +1,1 @@
+Temporary review note: approved right-pane redesign uses one scroll surface and natural-height roster. This file can be removed before merge.
