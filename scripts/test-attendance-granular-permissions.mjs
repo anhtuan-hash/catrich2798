@@ -5,6 +5,7 @@ const permissionUrl = new URL('../src/utils/permissions.js', import.meta.url);
 const attendanceUrl = new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url);
 const adminUrl = new URL('../src/pages/AdminPage.jsx', import.meta.url);
 const migrationUrl = new URL('../supabase/migrations/20260908_granular_attendance_tab_permissions.sql', import.meta.url);
+const hardeningUrl = new URL('../supabase/migrations/20260908_harden_granular_attendance_helper_anon_grants.sql', import.meta.url);
 
 const permissionSource = fs.readFileSync(permissionUrl, 'utf8');
 const attendanceSource = fs.readFileSync(attendanceUrl, 'utf8');
@@ -12,6 +13,7 @@ const adminSource = fs.readFileSync(adminUrl, 'utf8');
 
 assert.match(permissionSource, /export const ATTENDANCE_PERMISSION_IDS\s*=\s*\{/, 'Attendance must expose five dedicated tab permission ids');
 assert.ok(fs.existsSync(migrationUrl), 'Granular attendance permissions must include a Supabase migration');
+assert.ok(fs.existsSync(hardeningUrl), 'Granular attendance helper functions must explicitly harden anonymous EXECUTE grants');
 
 const permissions = await import(permissionUrl);
 const {
@@ -90,5 +92,11 @@ assert.match(migrationSource, /bes_delete_extra_attendance_session[\s\S]*can_tak
 assert.match(migrationSource, /bes_add_extra_class_teacher[\s\S]*can_manage_extra_class_roster/, 'Add teacher RPC must require class-management permission');
 assert.match(migrationSource, /bes_create_extra_class_with_teachers[\s\S]*can_manage_extra_class_roster/, 'Create class RPC must require class-management permission');
 assert.match(migrationSource, /bes_delete_extra_class[\s\S]*can_manage_extra_class_roster/, 'Delete class RPC must require class-management permission');
+
+const hardeningSource = fs.readFileSync(hardeningUrl, 'utf8');
+for (const helper of ['can_read_extra_class_attendance', 'can_take_extra_class_attendance', 'can_manage_extra_class_roster']) {
+  assert.match(hardeningSource, new RegExp(`revoke\\s+(?:all|execute)\\s+on\\s+function\\s+public\\.${helper}\\(\\)\\s+from\\s+anon`, 'i'), `${helper} must explicitly revoke anonymous EXECUTE`);
+  assert.match(hardeningSource, new RegExp(`grant\\s+execute\\s+on\\s+function\\s+public\\.${helper}\\(\\)\\s+to\\s+authenticated`, 'i'), `${helper} must remain executable for signed-in users`);
+}
 
 console.log('Granular attendance tab permissions contract OK');
