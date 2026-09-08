@@ -19,6 +19,8 @@ const utility = fs.readFileSync(new URL('../src/utils/extraClassAttendance.js', 
 const css = fs.readFileSync(new URL('../src/components/attendance/AttendanceMaterial3.css', import.meta.url), 'utf8');
 const polishUrl = new URL('../public/attendance-ui-polish.css', import.meta.url);
 const polishCss = fs.existsSync(polishUrl) ? fs.readFileSync(polishUrl, 'utf8') : '';
+const dailyOverviewCssUrl = new URL('../src/components/attendance/AttendanceDailyOverview.css', import.meta.url);
+const dailyOverviewCss = fs.existsSync(dailyOverviewCssUrl) ? fs.readFileSync(dailyOverviewCssUrl, 'utf8') : '';
 const indexHtml = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const searchRemovalRuntime = fs.readFileSync(new URL('../public/bes-remove-visible-search-bars.js', import.meta.url), 'utf8');
 const permissionMigration = fs.readFileSync(new URL('../supabase/migrations/20260908_admin_grant_attendance_permission.sql', import.meta.url), 'utf8');
@@ -109,7 +111,8 @@ for (const label of ['Có lịch', 'Đã điểm danh', 'Chưa điểm danh', '�
 assert.match(attendance, /setView\('quick'\)/, 'A missing attendance row must be able to jump to quick attendance');
 assert.match(attendance, /setAttendanceDate\(dailyAttendanceDate\)/, 'Jumping from daily overview must preserve the selected date');
 assert.match(attendance, /setSelectedClassId\(classRow\.id\)/, 'Jumping from daily overview must preserve the selected class');
-assert.match(polishCss, /attendance-calendar-mode-switch/i, 'Daily overview mode switch must have dedicated styling');
-assert.match(polishCss, /attendance-daily-overview/i, 'Daily overview must have dedicated responsive styling');
+assert.ok(dailyOverviewCss, 'Daily attendance overview stylesheet must exist');
+assert.match(dailyOverviewCss, /attendance-calendar-mode-switch/i, 'Daily overview mode switch must have dedicated styling');
+assert.match(dailyOverviewCss, /attendance-daily-overview/i, 'Daily overview must have dedicated responsive styling');
 
 console.log('Attendance class hub, explicit access permission, database gate, visible discovery, subject colors, room/time, absence UI and daily status overview contract OK');
