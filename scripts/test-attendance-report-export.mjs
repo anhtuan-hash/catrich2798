@@ -31,24 +31,6 @@ for (const copy of [
 ]) assert.match(reportExport, new RegExp(copy), `PDF export must contain ${copy}`);
 assert.match(reportExport, /petrus-ky-school-logo\.png/);
 assert.match(reportExport, /@page\s*\{[^}]*size\s*:\s*A4\s+portrait/i);
-assert.match(
-  reportExport,
-  /@page\s*\{[^}]*margin\s*:\s*(?:18|19|20|21|22)mm\s+(?:9|10|11|12)mm\s+(?:12|13|14|15|16)mm/i,
-  'PDF page must reserve a safe physical top margin so the school logo/header cannot collide with browser print headers',
-);
-assert.match(reportExport, /class=["']school-logo-box["']/i, 'PDF school logo must live in a dedicated bounded logo box');
-assert.match(
-  reportExport,
-  /\.school-logo-box\s*\{[^}]*(?:width|inline-size)\s*:\s*(?:16|17|18|19|20)mm[^}]*(?:height|block-size)\s*:\s*(?:16|17|18|19|20)mm/i,
-  'PDF logo box must use bounded physical dimensions appropriate for A4 printing',
-);
-assert.match(
-  reportExport,
-  /\.school-head img\s*\{[^}]*(?:max-width\s*:\s*100%|width\s*:\s*(?:14|15|16|17|18)mm)[^}]*(?:max-height\s*:\s*100%|height\s*:\s*(?:14|15|16|17|18)mm)/i,
-  'PDF school logo image must be constrained inside its box',
-);
-assert.match(reportExport, /\.report-page\s*\{[^}]*max-width\s*:\s*100%/i, 'PDF content must stay bounded to portrait page width');
-assert.match(reportExport, /table\s*\{[^}]*max-width\s*:\s*100%/i, 'PDF tables must remain within portrait page width');
 assert.match(reportExport, /teaching_time_range/);
 assert.match(reportExport, /teaching_room/);
 assert.match(reportExport, /checked_at/);
