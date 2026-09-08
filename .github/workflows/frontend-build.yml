@@ -61,6 +61,9 @@ jobs:
       - name: Verify TTCM Drive resumable CORS origin
         run: node scripts/test-ttcm-drive-resumable-cors.mjs
 
+      - name: Verify extra-class attendance contract
+        run: node scripts/test-extra-class-attendance.mjs
+
       - name: Verify critical browser smoke gate
         run: node scripts/test-critical-e2e-contract.mjs
 
