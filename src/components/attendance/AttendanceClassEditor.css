@@ -1,9 +1,11 @@
 .attendance-class-info-card {
-  margin: 0 0 14px;
-  padding: 16px;
-  border: 1px solid var(--att-m3-outline-variant, #c7c6d0);
-  border-radius: 20px;
-  background: var(--att-m3-surface-container, #f0eef6);
+  margin: 0;
+  padding: 14px 18px 16px;
+  border: 0;
+  border-top: 1px solid #e7ecef;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .attendance-class-info-head {
