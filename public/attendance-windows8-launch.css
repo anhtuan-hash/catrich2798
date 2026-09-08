@@ -103,40 +103,6 @@
 }
 .attendance-content::-webkit-scrollbar-thumb:hover { background-color: rgba(63, 95, 144, .72); }
 
-/* Manage Classes used to trap scrolling inside several nested panels.
-   Let the entire manage view participate in the single content scrollbar. */
-.attendance-manage-layout {
-  height: auto !important;
-  min-height: 100% !important;
-  grid-template-rows: auto auto auto !important;
-  overflow: visible !important;
-}
-
-.attendance-management-grid {
-  min-height: 640px;
-  overflow: visible !important;
-  align-items: stretch;
-}
-
-.attendance-manage-classes {
-  overflow: visible !important;
-  grid-template-rows: auto !important;
-  grid-auto-rows: auto !important;
-  align-content: start;
-}
-
-.attendance-member-manager {
-  min-height: 640px;
-  overflow: visible !important;
-  grid-template-rows: auto auto auto auto !important;
-  align-content: start;
-}
-
-.attendance-member-table {
-  min-height: 0 !important;
-  overflow: visible !important;
-}
-
 /* Quick Attendance redesign: the whole right pane is one readable vertical flow.
    The grid row and right pane are explicitly bounded so overflow belongs to the pane,
    while the roster itself keeps its natural height and never creates a nested scroller. */

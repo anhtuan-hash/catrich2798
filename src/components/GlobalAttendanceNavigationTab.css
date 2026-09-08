@@ -320,12 +320,14 @@ html.bes-attendance-open body { overflow: hidden; }
 .attendance-manage-layout {
   height: 100%;
   min-height: 0;
-  display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   gap: 12px;
   padding: 14px;
   overflow: hidden;
 }
+.attendance-manage-layout > .attendance-import-card,
+.attendance-manage-layout > .attendance-import-report { flex: 0 0 auto; }
 .attendance-import-card {
   display: flex;
   align-items: center;
@@ -352,6 +354,7 @@ html.bes-attendance-open body { overflow: hidden; }
 .attendance-import-report details { margin-top: 8px; color: #6a5a24; font-size: 11px; }
 .attendance-import-report details p { margin: 4px 0 0; }
 .attendance-management-grid {
+  flex: 1 1 0;
   min-height: 0;
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr);
@@ -381,7 +384,25 @@ html.bes-attendance-open body { overflow: hidden; }
 .attendance-manage-classes b { font-size: 13px; }
 .attendance-manage-classes small { margin-top: 3px; color: var(--att-muted); font-size: 10px; }
 .attendance-manage-classes button span { margin-top: 5px; color: var(--att-blue); font-size: 10px; font-weight: 800; }
-.attendance-member-manager { min-width: 0; min-height: 0; display: grid; grid-template-rows: auto auto auto minmax(0, 1fr); overflow: hidden; }
+.attendance-member-manager {
+  min-width: 0;
+  min-height: 0;
+  display: block;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: #b8c4d2 transparent;
+}
+.attendance-member-manager::-webkit-scrollbar { width: 8px; }
+.attendance-member-manager::-webkit-scrollbar-track { background: transparent; }
+.attendance-member-manager::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: #c3ccd7;
+  background-clip: padding-box;
+}
 .attendance-member-manager > header { display: flex; align-items: end; justify-content: space-between; gap: 16px; padding: 15px 18px; border-bottom: 1px solid var(--att-line); }
 .attendance-member-manager h2 { margin: 0; font-size: 20px; }
 .attendance-member-manager header p { margin: 4px 0 0; color: var(--att-muted); font-size: 11px; }
@@ -417,7 +438,7 @@ html.bes-attendance-open body { overflow: hidden; }
 .attendance-add-student input { width: 100%; }
 .attendance-add-student > div { display: flex; gap: 7px; }
 .attendance-add-student > div button:first-child { border-color: #b9c7d8; background: #fff; color: #52657b; }
-.attendance-member-table { min-height: 0; overflow: auto; }
+.attendance-member-table { min-height: 0; overflow: visible; border-top: 1px solid var(--att-line-soft); }
 .attendance-member-table-head,
 .attendance-member-table > div:not(.attendance-empty) {
   display: grid;

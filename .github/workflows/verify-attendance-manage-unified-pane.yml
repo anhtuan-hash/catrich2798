@@ -1,23 +1,21 @@
 name: Verify attendance manage unified pane
 
 on:
-  push:
-    branches:
-      - feat/manage-right-pane-unified
   pull_request:
     paths:
-      - 'src/components/GlobalAttendanceNavigationTab.jsx'
-      - 'src/components/attendance/AttendanceClassEditor.jsx'
+      - 'src/components/GlobalAttendanceNavigationTab.css'
       - 'src/components/attendance/AttendanceClassEditor.css'
-      - 'public/attendance-manage-unified-pane.css'
-      - 'public/attendance-manage-scrollbar-fix.css'
+      - 'public/attendance-ui-polish.css'
+      - 'public/attendance-windows8-launch.css'
       - 'index.html'
+      - 'tests/e2e/attendance-manage-independent-scroll.spec.js'
       - 'scripts/test-attendance-manage-unified-pane.mjs'
+      - 'scripts/test-attendance-manage-source-scroll.mjs'
 
 jobs:
   contract:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Unified pane contract
-        run: node scripts/test-attendance-manage-unified-pane.mjs
+      - name: Source-owned Manage contracts
+        run: node scripts/test-attendance-manage-unified-pane.mjs && node scripts/test-attendance-manage-source-scroll.mjs

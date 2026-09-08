@@ -5,29 +5,24 @@ const attendanceCss = fs.readFileSync(new URL('../../src/components/GlobalAttend
 const editorCss = fs.readFileSync(new URL('../../src/components/attendance/AttendanceClassEditor.css', import.meta.url), 'utf8');
 const polishCss = fs.readFileSync(new URL('../../public/attendance-ui-polish.css', import.meta.url), 'utf8');
 const launchCss = fs.readFileSync(new URL('../../public/attendance-windows8-launch.css', import.meta.url), 'utf8');
-const manageCss = fs.readFileSync(new URL('../../public/attendance-manage-scrollbar-fix.css', import.meta.url), 'utf8');
 const resetCss = '*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:system-ui,sans-serif}button,input,select{font:inherit}';
 
 function classButtons(count = 18) {
   return Array.from({ length: count }, (_, index) => `
     <button type="button" class="${index === 0 ? 'is-selected' : ''}">
-      <b>Lớp ${index + 1}</b>
-      <small>Phụ đạo · Tiếng Anh</small>
-      <span>${index + 5} HS</span>
+      <b>Lớp ${index + 1}</b><small>Phụ đạo · Tiếng Anh</small><span>${index + 5} HS</span>
     </button>`).join('');
 }
 
-function studentRows(count = 24) {
+function studentRows(count = 30) {
   return Array.from({ length: count }, (_, index) => `
     <div>
       <span><b>Học sinh ${String(index + 1).padStart(2, '0')}</b><small>Không có mã HS</small></span>
-      <span>12.${(index % 9) + 1}</span>
-      <span>Đang học</span>
-      <span><button type="button">Sửa học sinh</button></span>
+      <span>12.${(index % 9) + 1}</span><span>Đang học</span><span><button type="button">Sửa học sinh</button></span>
     </div>`).join('');
 }
 
-test.describe('Attendance class management production scrolling and unified pane', () => {
+test.describe('Attendance class management source-owned single right scroll', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.setContent(`
@@ -36,82 +31,52 @@ test.describe('Attendance class management production scrolling and unified pane
           <div class="attendance-manage-layout">
             <section class="attendance-import-card"><div><strong>Import lớp phụ đạo / bồi dưỡng</strong></div><button type="button">Chọn file Excel</button></section>
             <div class="attendance-management-grid">
-              <aside class="attendance-manage-classes">
-                <header><strong>Danh sách lớp</strong><span>26</span></header>
-                ${classButtons()}
-              </aside>
+              <aside class="attendance-manage-classes"><header><strong>Danh sách lớp</strong><span>26</span></header>${classButtons()}</aside>
               <section class="attendance-member-manager">
-                <header>
-                  <div><h2>Phụ đạo Tiếng Anh 10</h2><p>Phụ đạo · Tiếng Anh</p></div>
-                  <div class="attendance-teacher-field"><label>Giáo viên theo phân công 2026–2027</label><div class="attendance-teacher-summary"><strong>Ngô Thị Mỹ Diệp</strong><button type="button">Thêm giáo viên</button></div></div>
-                </header>
+                <header><div><h2>Bồi dưỡng Hóa học 12</h2><p>Bồi dưỡng HSG · Hóa học</p></div><div class="attendance-teacher-field"><label>Giáo viên theo phân công 2026–2027</label><div class="attendance-teacher-summary"><strong>Nguyễn Minh Tiến</strong><button type="button">Thêm giáo viên</button></div></div></header>
                 <div class="attendance-member-tools"><input value="" placeholder="Tìm học sinh"><button type="button">Thêm học sinh</button><button type="button">Xóa lớp</button></div>
-                <section class="attendance-class-info-card">
-                  <header class="attendance-class-info-head"><div><span>THÔNG TIN LỚP HỌC</span><strong>Dữ liệu hiện tại dùng cho các buổi chưa chốt</strong><p>Các thay đổi bên dưới không sửa lại lịch sử.</p></div><button type="button">Sửa thông tin lớp</button></header>
-                  <div class="attendance-class-info-grid"><article><span>Tên lớp</span><b>Phụ đạo Tiếng Anh 10</b></article><article><span>Môn học</span><b>Tiếng Anh</b></article><article><span>Khối</span><b>Khối 10</b></article><article><span>Phòng học</span><b>A103</b></article><article><span>Thời gian học</span><b>16h45 đến 18h15</b></article><article class="is-wide"><span>Ngày học</span><b>Thứ 3, Thứ 5</b></article></div>
-                </section>
-                <div class="attendance-member-table">
-                  <div class="attendance-member-table-head"><span>Học sinh</span><span>Lớp</span><span>Trạng thái</span><span></span></div>
-                  ${studentRows()}
-                </div>
+                <section class="attendance-class-info-card"><header class="attendance-class-info-head"><div><span>THÔNG TIN LỚP HỌC</span><strong>Dữ liệu hiện tại dùng cho các buổi chưa chốt</strong><p>Các thay đổi bên dưới không sửa lại lịch sử.</p></div><button type="button">Sửa thông tin lớp</button></header><div class="attendance-class-info-grid"><article><span>Tên lớp</span><b>Bồi dưỡng Hóa học 12</b></article><article><span>Môn học</span><b>Hóa học</b></article><article><span>Khối</span><b>Khối 12</b></article><article><span>Phòng học</span><b>A305</b></article><article><span>Thời gian học</span><b>16h45 đến 18h15</b></article><article class="is-wide"><span>Ngày học</span><b>Thứ 2, Thứ 6</b></article></div></section>
+                <div class="attendance-member-table"><div class="attendance-member-table-head"><span>Học sinh</span><span>Lớp</span><span>Trạng thái</span><span></span></div>${studentRows()}</div>
               </section>
             </div>
           </div>
         </main>
       </section>`);
-    await page.addStyleTag({ content: `${resetCss}\n${attendanceCss}\n${editorCss}\n${polishCss}\n${launchCss}\n${manageCss}` });
+    await page.addStyleTag({ content: `${resetCss}\n${attendanceCss}\n${editorCss}\n${polishCss}\n${launchCss}` });
   });
 
-  test('uses the real production cascade: no outer scroll, hidden internal scrollbars, independent content scrolling', async ({ page }) => {
-    const content = page.locator('.attendance-content');
+  test('the right pane scrolls header, class information and students as one flow', async ({ page }) => {
     const grid = page.locator('.attendance-management-grid');
     const left = page.locator('.attendance-manage-classes');
     const right = page.locator('.attendance-member-manager');
+    const rightHeader = page.locator('.attendance-member-manager > header');
     const memberTable = page.locator('.attendance-member-table');
 
-    await expect(content).toHaveCSS('overflow-y', 'hidden');
     await expect(grid).toHaveCSS('overflow-y', 'hidden');
     await expect(left).toHaveCSS('overflow-y', 'auto');
-    await expect(right).toHaveCSS('overflow-y', 'hidden');
-    await expect(memberTable).toHaveCSS('overflow-y', 'auto');
-    await expect(left).toHaveCSS('scrollbar-width', 'none');
-    await expect(memberTable).toHaveCSS('scrollbar-width', 'none');
+    await expect(right).toHaveCSS('overflow-y', 'auto');
+    await expect(memberTable).toHaveCSS('overflow-y', 'visible');
 
-    await left.evaluate((node) => { node.scrollTop = 180; });
-    const afterLeft = await page.evaluate(() => ({
-      left: document.querySelector('.attendance-manage-classes').scrollTop,
-      table: document.querySelector('.attendance-member-table').scrollTop,
+    const headerBefore = await rightHeader.boundingBox();
+    await right.evaluate((node) => { node.scrollTop = 260; });
+    const state = await page.evaluate(() => ({
       right: document.querySelector('.attendance-member-manager').scrollTop,
+      table: document.querySelector('.attendance-member-table').scrollTop,
     }));
-    expect(afterLeft.left).toBeGreaterThan(0);
-    expect(afterLeft.table).toBe(0);
-    expect(afterLeft.right).toBe(0);
+    const headerAfter = await rightHeader.boundingBox();
 
-    await memberTable.evaluate((node) => { node.scrollTop = 220; });
-    const afterTable = await page.evaluate(() => ({
-      left: document.querySelector('.attendance-manage-classes').scrollTop,
-      table: document.querySelector('.attendance-member-table').scrollTop,
-      right: document.querySelector('.attendance-member-manager').scrollTop,
-    }));
-    expect(afterTable.left).toBe(afterLeft.left);
-    expect(afterTable.table).toBeGreaterThan(0);
-    expect(afterTable.right).toBe(0);
+    expect(state.right).toBeGreaterThan(0);
+    expect(state.table).toBe(0);
+    expect(headerBefore).not.toBeNull();
+    expect(headerAfter).not.toBeNull();
+    expect(headerAfter.y).toBeLessThan(headerBefore.y - 20);
   });
 
-  test('renders the right side as one continuous white surface instead of two detached cards', async ({ page }) => {
-    const right = page.locator('.attendance-member-manager');
-    const tools = page.locator('.attendance-member-tools');
+  test('class information remains visually continuous with the right pane', async ({ page }) => {
     const info = page.locator('.attendance-class-info-card');
-    const infoCell = page.locator('.attendance-class-info-grid article').first();
-    const memberTable = page.locator('.attendance-member-table');
-
-    await expect(right).toHaveCSS('background-color', 'rgb(255, 255, 255)');
     await expect(info).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
     await expect(info).toHaveCSS('border-left-width', '0px');
     await expect(info).toHaveCSS('border-radius', '0px');
     await expect(info).toHaveCSS('box-shadow', 'none');
-    await expect(tools).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
-    await expect(memberTable).toHaveCSS('border-top-width', '1px');
-    await expect(infoCell).toHaveCSS('border-top-width', '1px');
   });
 });
