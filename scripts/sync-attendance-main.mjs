@@ -31,14 +31,4 @@ const scheduleCss = `\n.attendance-class-list button.is-off-schedule{opacity:.48
 if (!css.includes('.attendance-class-list button.is-off-schedule{')) css += scheduleCss;
 fs.writeFileSync(cssPath, css);
 
-const workflowPath = '.github/workflows/frontend-build.yml';
-let workflow = fs.readFileSync(workflowPath, 'utf8');
-const anchor = `      - name: Verify attendance teacher/day lock\n        run: node scripts/test-attendance-teacher-day-lock.mjs\n`;
-const extraSteps = `${anchor}\n      - name: Verify attendance schedule dimming\n        run: node scripts/test-attendance-schedule-dimming.mjs\n\n      - name: Verify attendance room chip\n        run: node scripts/test-attendance-room-chip.mjs\n`;
-if (!workflow.includes('Verify attendance schedule dimming')) {
-  if (!workflow.includes(anchor)) throw new Error('Không tìm thấy attendance teacher/day lock workflow anchor');
-  workflow = workflow.replace(anchor, extraSteps);
-}
-fs.writeFileSync(workflowPath, workflow);
-
-console.log('Synced schedule dimming, room chip and CI gates into attendance feature branch.');
+console.log('Synced schedule dimming and room chip into attendance feature branch.');
