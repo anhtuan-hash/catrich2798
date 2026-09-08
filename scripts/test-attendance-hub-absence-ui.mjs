@@ -19,6 +19,16 @@ assert.match(
   /className=["']att-m3-class-discovery["']\s+data-bes-keep-search=["']true["']|data-bes-keep-search=["']true["']\s+className=["']att-m3-class-discovery["']/,
   'Attendance class discovery must opt out of the global visible-search remover so search and subject filters stay visible at runtime',
 );
+assert.match(
+  css,
+  /\.attendance-class-list\s*\{[^}]*grid-template-rows\s*:\s*auto\s+auto\s+minmax\(0\s*,\s*1fr\)/i,
+  'Attendance class list must reserve separate rows for header, discovery controls, and scrollable class results',
+);
+assert.match(
+  css,
+  /\.att-m3-class-discovery\s*\{[^}]*(?:min-height\s*:\s*[1-9]\d*px|flex-shrink\s*:\s*0)/i,
+  'Attendance class discovery must not collapse between the header and class results',
+);
 
 assert.match(attendance, /ABSENCE_REASON_OPTIONS/, 'Absent rows must render the shared absence reason options');
 for (const label of ['Có phép', 'Không phép', 'Ốm', 'Việc gia đình', 'Khác']) {
