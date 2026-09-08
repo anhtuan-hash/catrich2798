@@ -1,0 +1,48 @@
+name: Finalize History Redesign
+
+on:
+  push:
+    branches:
+      - feat/attendance-history-detail-redesign
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/attendance-history-detail-redesign
+          fetch-depth: 0
+
+      - name: Clean source and run final verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src/components/GlobalAttendanceNavigationTab.jsx')
+          text = path.read_text()
+          text = text.replace('\nconst selectedSessionAttendanceRate =', '\n  const selectedSessionAttendanceRate =', 1)
+          text = text.replace('\n  ? Math.round((Number(selectedSession.present_count || 0) / Number(selectedSession.total_students)) * 100)\n  : 0;\n  const calendarByDate', '\n    ? Math.round((Number(selectedSession.present_count || 0) / Number(selectedSession.total_students)) * 100)\n    : 0;\n  const calendarByDate', 1)
+          path.write_text(text)
+          PY
+
+          rm -f .github/workflows/finalize-history-redesign.yml
+
+          node scripts/test-attendance-material3-ui.mjs
+          node scripts/test-attendance-granular-permissions.mjs
+          npm ci --ignore-scripts
+          npm run build
+          npx playwright install --with-deps chromium
+          npx playwright test tests/e2e/critical-smoke.spec.js --project=chromium-desktop
+
+          git add src/components/GlobalAttendanceNavigationTab.jsx .github/workflows/finalize-history-redesign.yml
+          git commit -m "fix: finalize attendance history redesign"
+          git push origin HEAD:feat/attendance-history-detail-redesign
