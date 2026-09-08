@@ -1,0 +1,135 @@
+name: Apply attendance permission patch
+
+on:
+  push:
+    branches:
+      - feat/admin-attendance-permission
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/admin-attendance-permission
+          fetch-depth: 0
+
+      - name: Apply deterministic permission patch
+        shell: python
+        run: |
+          from pathlib import Path
+
+          def replace_once(text, old, new, label):
+              if text.count(old) != 1:
+                  raise SystemExit(f'{label}: expected exactly one match, got {text.count(old)}')
+              return text.replace(old, new, 1)
+
+          permissions_path = Path('src/utils/permissions.js')
+          permissions = permissions_path.read_text()
+
+          permissions = replace_once(
+              permissions,
+              "  qa: 'route:qa',\n  settings: 'route:settings',",
+              "  qa: 'route:qa',\n  attendance: 'route:attendance',\n  settings: 'route:settings',",
+              'attendance route id',
+          )
+
+          permissions = replace_once(
+              permissions,
+              "export const CORE_PERMISSION_ITEMS = [\n  HOMEROOM_PERMISSION_ITEM,",
+              "export const CORE_PERMISSION_ITEMS = [\n  HOMEROOM_PERMISSION_ITEM,\n  {\n    id: ROUTE_PERMISSION_IDS.attendance,\n    type: 'system',\n    section: 'content',\n    title: 'Attendance',\n    titleVi: 'Điểm danh',\n    desc: 'Access remedial and enrichment attendance. This permission must be granted explicitly by an administrator.',\n    descVi: 'Truy cập điểm danh lớp phụ đạo & bồi dưỡng. Quyền này phải được quản trị viên cấp riêng.',\n  },",
+              'attendance permission item',
+          )
+
+          permissions = replace_once(
+              permissions,
+              "export const PERMISSION_ITEMS = [...CORE_PERMISSION_ITEMS, ...TOOL_PERMISSION_ITEMS];\nexport const ALL_PERMISSION_IDS = PERMISSION_ITEMS.map((item) => item.id);",
+              "export const PERMISSION_ITEMS = [...CORE_PERMISSION_ITEMS, ...TOOL_PERMISSION_ITEMS];\nexport const ALL_PERMISSION_IDS = PERMISSION_ITEMS.map((item) => item.id);\nexport const EXPLICIT_PERMISSION_IDS = [ROUTE_PERMISSION_IDS.attendance];\nconst EXPLICIT_PERMISSION_SET = new Set(EXPLICIT_PERMISSION_IDS);",
+              'explicit permission registry',
+          )
+
+          permissions = replace_once(
+              permissions,
+              "export function createAllAccessPermissions() {\n  return { mode: PERMISSION_MODE_ALL, allowed: [] };\n}\n\nexport function createCustomPermissions(allowed = []) {\n  const clean = [...new Set((allowed || []).filter((id) => ALL_PERMISSION_IDS.includes(id)))];\n  return { mode: PERMISSION_MODE_CUSTOM, allowed: clean };\n}\n\nexport function normalizePermissions(raw) {\n  if (!raw || typeof raw !== 'object') return createAllAccessPermissions();\n  const mode = raw.mode === PERMISSION_MODE_CUSTOM ? PERMISSION_MODE_CUSTOM : PERMISSION_MODE_ALL;\n  if (mode === PERMISSION_MODE_ALL) return createAllAccessPermissions();\n  return createCustomPermissions(Array.isArray(raw.allowed) ? raw.allowed : []);\n}\n\nexport function getAllowedIdsFromPermissions(raw) {\n  const permissions = normalizePermissions(raw);\n  return permissions.mode === PERMISSION_MODE_ALL ? ALL_PERMISSION_IDS : permissions.allowed;\n}",
+              "function cleanPermissionIds(allowed = []) {\n  return [...new Set((allowed || []).filter((id) => ALL_PERMISSION_IDS.includes(id)))];\n}\n\nfunction cleanExplicitPermissionIds(allowed = []) {\n  return [...new Set((allowed || []).filter((id) => EXPLICIT_PERMISSION_SET.has(id)))];\n}\n\nexport function createAllAccessPermissions(explicitAllowed = []) {\n  return { mode: PERMISSION_MODE_ALL, allowed: cleanExplicitPermissionIds(explicitAllowed) };\n}\n\nexport function createCustomPermissions(allowed = []) {\n  return { mode: PERMISSION_MODE_CUSTOM, allowed: cleanPermissionIds(allowed) };\n}\n\nexport function normalizePermissions(raw) {\n  if (!raw || typeof raw !== 'object') return createAllAccessPermissions();\n  const mode = raw.mode === PERMISSION_MODE_CUSTOM ? PERMISSION_MODE_CUSTOM : PERMISSION_MODE_ALL;\n  const allowed = Array.isArray(raw.allowed) ? raw.allowed : [];\n  if (mode === PERMISSION_MODE_ALL) return createAllAccessPermissions(allowed);\n  return createCustomPermissions(allowed);\n}\n\nexport function getAllowedIdsFromPermissions(raw) {\n  const permissions = normalizePermissions(raw);\n  if (permissions.mode !== PERMISSION_MODE_ALL) return permissions.allowed;\n  const normalIds = ALL_PERMISSION_IDS.filter((id) => !EXPLICIT_PERMISSION_SET.has(id));\n  return [...normalIds, ...permissions.allowed];\n}",
+              'permission normalization',
+          )
+
+          permissions = replace_once(
+              permissions,
+              "export function hasPermissionId(user, permissionId) {\n  if (!user) return false;\n  if (isAdminRole(user.role)) return true;\n  const permissions = normalizePermissions(user.permissions);\n  if (permissions.mode === PERMISSION_MODE_ALL) return true;\n  return permissions.allowed.includes(permissionId);\n}",
+              "export function hasPermissionId(user, permissionId) {\n  if (!user) return false;\n  if (isAdminRole(user.role)) return true;\n  const permissions = normalizePermissions(user.permissions);\n  if (EXPLICIT_PERMISSION_SET.has(permissionId)) return permissions.allowed.includes(permissionId);\n  if (permissions.mode === PERMISSION_MODE_ALL) return true;\n  return permissions.allowed.includes(permissionId);\n}",
+              'explicit hasPermission behavior',
+          )
+
+          permissions = replace_once(
+              permissions,
+              "route === 'app-vault' || route === 'qa' || route === 'settings'",
+              "route === 'app-vault' || route === 'qa' || route === 'attendance' || route === 'settings'",
+              'getRoutePermissionId attendance mapping',
+          )
+
+          permissions = replace_once(
+              permissions,
+              "route === 'data-governance' || route === 'qa' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);",
+              "route === 'data-governance' || route === 'qa' || route === 'attendance' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);",
+              'hasRouteAccess attendance guard',
+          )
+
+          permissions_path.write_text(permissions)
+
+          attendance_path = Path('src/components/GlobalAttendanceNavigationTab.jsx')
+          attendance = attendance_path.read_text()
+          attendance = replace_once(
+              attendance,
+              "import { normalizeSystemRole, SYSTEM_ROLES } from '../utils/roles.js';",
+              "import { normalizeSystemRole, SYSTEM_ROLES } from '../utils/roles.js';\nimport { hasExplicitPermissionId, ROUTE_PERMISSION_IDS } from '../utils/permissions.js';",
+              'attendance permission import',
+          )
+          attendance = replace_once(
+              attendance,
+              "  const allowed = Boolean(currentUser?.id && systemRole === SYSTEM_ROLES.ADMIN);",
+              "  const allowed = Boolean(\n    currentUser?.id\n      && (systemRole === SYSTEM_ROLES.ADMIN\n        || hasExplicitPermissionId(currentUser, ROUTE_PERMISSION_IDS.attendance))\n  );",
+              'attendance UI guard',
+          )
+          attendance_path.write_text(attendance)
+
+          test_path = Path('scripts/test-attendance-hub-absence-ui.mjs')
+          test = test_path.read_text()
+          test = replace_once(
+              test,
+              "  getAllowedIdsFromPermissions,\n  hasExplicitPermissionId,",
+              "  getAllowedIdsFromPermissions,\n  getPermissionItem,\n  hasExplicitPermissionId,",
+              'test permission item import',
+          )
+          test = replace_once(
+              test,
+              "const adminPage = fs.readFileSync(new URL('../src/pages/AdminPage.jsx', import.meta.url), 'utf8');\n",
+              "",
+              'remove brittle AdminPage source read',
+          )
+          test = replace_once(
+              test,
+              "assert.match(adminPage, /Điểm danh/, 'Admin permission editor must expose the attendance permission label');",
+              "const attendancePermissionItem = getPermissionItem(ROUTE_PERMISSION_IDS.attendance);\nassert.equal(attendancePermissionItem?.titleVi, 'Điểm danh', 'Admin permission editor data must expose the attendance permission label');\nassert.match(attendancePermissionItem?.descVi || '', /quản trị viên cấp riêng/i, 'Attendance grant must be described as an explicit admin permission');",
+              'test permission item semantics',
+          )
+          test_path.write_text(test)
+
+          migration_path = Path('supabase/migrations/20260908_admin_grant_attendance_permission.sql')
+          migration_path.write_text("""-- 2026-09-08: allow approved users with the explicit route:attendance grant to manage extra-class attendance.\n-- Admins retain unconditional access. The broad teacher permission mode does not grant attendance.\n\ncreate or replace function public.can_manage_extra_class_attendance()\nreturns boolean\nlanguage sql\nstable\nsecurity definer\nset search_path = public\nas $$\n  select exists (\n    select 1\n    from public.profiles p\n    where p.id = auth.uid()\n      and p.approved = true\n      and (\n        lower(coalesce(p.role, '')) in ('admin', 'administrator')\n        or coalesce(p.permissions -> 'allowed', '[]'::jsonb) ? 'route:attendance'\n      )\n  );\n$$;\n\nrevoke all on function public.can_manage_extra_class_attendance() from public;\ngrant execute on function public.can_manage_extra_class_attendance() to authenticated;\n""")
+
+          workflow_path = Path('.github/workflows/apply-attendance-permission-patch.yml')
+          workflow_path.unlink()
+
+      - name: Commit implementation and remove patch workflow
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: add explicit admin-granted attendance access"
+          git push origin HEAD:feat/admin-attendance-permission
