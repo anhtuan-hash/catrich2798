@@ -7,9 +7,10 @@
   const markCreateTeacherButton = () => {
     document.querySelectorAll('button').forEach((button) => {
       const label = normalize(button.textContent || button.getAttribute('aria-label') || '');
-      const isCreateTeacher = label.includes('tạo tài khoản gv')
+      const isCreateTeacher = (label.includes('tạo tài khoản gv')
         || label.includes('tạo tài khoản giáo viên')
-        || label.includes('create teacher account');
+        || label.includes('create teacher account'))
+        && !button.closest('#admin-v41-accounts');
       button.classList.toggle('teacher-picker-floating-create-account', isCreateTeacher);
     });
   };
