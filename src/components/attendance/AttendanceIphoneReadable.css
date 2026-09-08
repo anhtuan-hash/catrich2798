@@ -1,0 +1,401 @@
+/* Attendance phone readability authority.
+   Large type, finger-sized controls, internal scrollers and iPhone safe areas. */
+
+@media (max-width: 520px) {
+  body > .attendance-layer,
+  .attendance-layer {
+    box-sizing: border-box !important;
+    padding:
+      max(7px, env(safe-area-inset-top))
+      max(7px, env(safe-area-inset-right))
+      max(7px, env(safe-area-inset-bottom))
+      max(7px, env(safe-area-inset-left)) !important;
+    overflow: hidden !important;
+  }
+
+  .attendance-shell {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: calc(100dvh - max(14px, env(safe-area-inset-top) + env(safe-area-inset-bottom))) !important;
+    max-height: none !important;
+    border-radius: 20px !important;
+    overflow: hidden !important;
+  }
+
+  .attendance-topbar {
+    min-height: 82px !important;
+    padding: 14px 16px 10px !important;
+  }
+
+  .attendance-title {
+    min-width: 0 !important;
+  }
+
+  .attendance-title > span {
+    width: 46px !important;
+    min-width: 46px !important;
+    height: 46px !important;
+  }
+
+  .attendance-title strong {
+    font-size: 26px !important;
+    line-height: 1.12 !important;
+  }
+
+  .attendance-title small {
+    font-size: 11px !important;
+    line-height: 1.3 !important;
+  }
+
+  .attendance-icon-button {
+    width: 44px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+  }
+
+  .attendance-tabs {
+    min-width: 0 !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 7px !important;
+    padding: 0 14px 12px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-inline: contain !important;
+    scrollbar-width: none !important;
+  }
+
+  .attendance-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .attendance-tabs button {
+    flex: 0 0 auto !important;
+    min-width: max-content !important;
+    min-height: 46px !important;
+    height: 46px !important;
+    padding: 0 14px !important;
+    border-radius: 15px !important;
+    font-size: 14px !important;
+    line-height: 1 !important;
+  }
+
+  .attendance-content {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    padding: 12px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .attendance-class-list,
+  .attendance-rollcall,
+  .attendance-import-card,
+  .attendance-import-report,
+  .attendance-manage-classes,
+  .attendance-member-manager,
+  .attendance-history-list,
+  .attendance-history-detail,
+  .attendance-calendar-toolbar,
+  .attendance-calendar-layout > aside {
+    max-width: 100% !important;
+    border-radius: 18px !important;
+  }
+
+  .attendance-class-list > header,
+  .attendance-manage-classes > header,
+  .attendance-member-manager > header,
+  .attendance-history-detail > header {
+    padding: 15px !important;
+  }
+
+  .attendance-class-list h2,
+  .attendance-manage-classes h2,
+  .attendance-member-manager h2,
+  .attendance-history-detail h2,
+  .attendance-rollcall-head h2 {
+    font-size: 24px !important;
+    line-height: 1.16 !important;
+  }
+
+  .attendance-class-list button,
+  .attendance-manage-classes > button,
+  .attendance-history-list button {
+    min-height: 52px !important;
+    font-size: 15px !important;
+    line-height: 1.35 !important;
+  }
+
+  .att-m3-class-discovery {
+    padding: 0 10px 12px !important;
+  }
+
+  .att-m3-class-search {
+    gap: 7px !important;
+    padding-bottom: 10px !important;
+  }
+
+  .att-m3-class-search span,
+  .attendance-session-controls label > span,
+  .att-m3-period-field > span {
+    font-size: 12px !important;
+    line-height: 1.3 !important;
+  }
+
+  .att-m3-class-search input {
+    min-height: 48px !important;
+    height: 48px !important;
+    padding-inline: 14px !important;
+    font-size: 16px !important;
+  }
+
+  .att-m3-subject-hub {
+    gap: 7px !important;
+    padding: 2px 0 8px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-inline: contain !important;
+    scrollbar-width: none !important;
+  }
+
+  .att-m3-subject-hub::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .att-m3-subject-hub button {
+    flex: 0 0 auto !important;
+    min-height: 44px !important;
+    height: 44px !important;
+    padding: 0 13px !important;
+    font-size: 13px !important;
+  }
+
+  .att-m3-subject-hub button b,
+  .attendance-subject-chip,
+  .att-m3-status-chip,
+  .att-m3-period-chip {
+    font-size: 12px !important;
+  }
+
+  .attendance-rollcall {
+    padding: 16px !important;
+  }
+
+  .attendance-rollcall-head {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 10px !important;
+    padding-bottom: 14px !important;
+  }
+
+  .attendance-summary {
+    min-height: 44px !important;
+    padding: 9px 12px !important;
+    font-size: 13px !important;
+  }
+
+  .attendance-session-controls {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .attendance-session-controls > label,
+  .attendance-session-controls > .attendance-day-lock,
+  .attendance-session-controls > .attendance-day-open,
+  .att-m3-period-field {
+    min-height: 82px !important;
+    padding: 12px !important;
+    border-radius: 16px !important;
+  }
+
+  .attendance-session-controls :is(input, select) {
+    min-height: 48px !important;
+    height: 48px !important;
+    padding-inline: 12px !important;
+    font-size: 16px !important;
+    line-height: 1.2 !important;
+  }
+
+  .att-m3-period-segment {
+    gap: 6px !important;
+    padding: 4px !important;
+  }
+
+  .att-m3-period-segment button {
+    min-height: 44px !important;
+    height: 44px !important;
+    font-size: 14px !important;
+  }
+
+  .attendance-roster {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-gutter: auto !important;
+  }
+
+  .attendance-roster-head {
+    min-width: 0 !important;
+    font-size: 12px !important;
+  }
+
+  .att-m3-roster-entry > label {
+    display: grid !important;
+    grid-template-columns: 44px minmax(0, 1fr) 58px 44px !important;
+    gap: 8px !important;
+    min-height: 68px !important;
+    padding: 9px 8px !important;
+  }
+
+  .att-m3-roster-entry > label :is(strong, b),
+  .attendance-roster label :is(.attendance-student-name, .attendance-member-name) {
+    font-size: 16px !important;
+    line-height: 1.3 !important;
+  }
+
+  .att-m3-roster-entry > label :is(small, span:not(.attendance-status-chip)) {
+    font-size: 12px !important;
+    line-height: 1.35 !important;
+  }
+
+  .att-m3-roster-entry input[type='checkbox'],
+  .attendance-roster input[type='checkbox'] {
+    width: 24px !important;
+    height: 24px !important;
+    margin: 10px !important;
+  }
+
+  .att-m3-absence-detail {
+    grid-template-columns: 1fr !important;
+    gap: 9px !important;
+    padding: 10px !important;
+  }
+
+  .att-m3-absence-detail > span {
+    font-size: 12px !important;
+  }
+
+  .att-m3-reason-chips {
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  .att-m3-reason-chips::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .att-m3-reason-chips button {
+    flex: 0 0 auto !important;
+    min-height: 44px !important;
+    height: 44px !important;
+    padding: 0 12px !important;
+    font-size: 13px !important;
+  }
+
+  .att-m3-absence-detail > input {
+    min-height: 48px !important;
+    height: 48px !important;
+    padding-inline: 12px !important;
+    font-size: 16px !important;
+  }
+
+  .attendance-confirm-bar {
+    position: sticky !important;
+    z-index: 8 !important;
+    bottom: 0 !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 9px !important;
+    margin-top: 12px !important;
+    padding: 12px 12px calc(12px + env(safe-area-inset-bottom)) !important;
+    border-radius: 17px !important;
+  }
+
+  .attendance-confirm-bar :is(input, textarea, select) {
+    min-height: 48px !important;
+    font-size: 16px !important;
+  }
+
+  .attendance-confirm-bar button,
+  .att-m3-cancel-button,
+  .att-m3-session-actions button {
+    min-height: 48px !important;
+    height: auto !important;
+    font-size: 14px !important;
+  }
+
+  .att-m3-cancel-surface {
+    grid-template-columns: 1fr !important;
+    gap: 9px !important;
+  }
+
+  .att-m3-cancel-surface label {
+    grid-column: auto !important;
+  }
+
+  .att-m3-cancel-surface :is(input, button) {
+    min-height: 46px !important;
+    height: 46px !important;
+    font-size: 16px !important;
+  }
+
+  .attendance-calendar-toolbar {
+    padding: 14px !important;
+  }
+
+  .attendance-calendar-toolbar :is(button, input, select) {
+    min-height: 44px !important;
+    font-size: 16px !important;
+  }
+
+  .attendance-calendar-layout,
+  .attendance-management-grid,
+  .attendance-history-layout {
+    grid-template-columns: 1fr !important;
+    min-width: 0 !important;
+    gap: 10px !important;
+  }
+
+  .attendance-calendar-grid,
+  .attendance-history-list,
+  .attendance-history-detail,
+  .att-report-m3 {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .attendance-calendar-day {
+    min-height: 62px !important;
+    font-size: 14px !important;
+  }
+
+  .attendance-history-search input,
+  .attendance-history-detail :is(input, select, textarea),
+  .attendance-member-manager :is(input, select, textarea),
+  .attendance-manage-classes :is(input, select, textarea) {
+    min-height: 48px !important;
+    font-size: 16px !important;
+  }
+
+  .attendance-member-tools button,
+  .attendance-teacher-summary > button,
+  .attendance-add-teacher button,
+  .attendance-add-student button {
+    min-height: 44px !important;
+    font-size: 14px !important;
+  }
+
+  .attendance-shell :is(input, select, textarea) {
+    font-size: 16px !important;
+  }
+}
