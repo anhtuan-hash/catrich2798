@@ -236,8 +236,11 @@ where source_key in (
 )
   and (trim(coalesce(room, '')) = '' or trim(coalesce(weekdays, '')) = '');
 
-revoke all on function public.bes_extra_member_key(text,text,text) from public;
-revoke all on function public.bes_admin_update_extra_class(uuid,text,text,integer,text,text,integer[]) from public;
-revoke all on function public.bes_admin_update_extra_class_member(uuid,uuid,text,text,text) from public;
+-- Supabase projects can grant function EXECUTE to anon/authenticated through default
+-- privileges at creation time. Revoke those explicit grants before granting only the
+-- two public RPC entry points to signed-in users.
+revoke all on function public.bes_extra_member_key(text,text,text) from public, anon, authenticated;
+revoke all on function public.bes_admin_update_extra_class(uuid,text,text,integer,text,text,integer[]) from public, anon, authenticated;
+revoke all on function public.bes_admin_update_extra_class_member(uuid,uuid,text,text,text) from public, anon, authenticated;
 grant execute on function public.bes_admin_update_extra_class(uuid,text,text,integer,text,text,integer[]) to authenticated;
 grant execute on function public.bes_admin_update_extra_class_member(uuid,uuid,text,text,text) to authenticated;
