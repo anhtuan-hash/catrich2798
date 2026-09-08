@@ -1,0 +1,47 @@
+name: Diagnose Attendance Search Production
+
+on:
+  push:
+    branches:
+      - diag/attendance-search-production
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Inspect production bundle for attendance search UI
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://esl-brian.vercel.app'
+          curl -fsSIL "$base/" | sed -n '1,40p'
+          curl -fsSL "$base/" -o /tmp/index.html
+          echo '=== INDEX ASSETS ==='
+          grep -oE 'src="[^"]+\.js' /tmp/index.html || true
+          python - <<'PY'
+          import re, subprocess, pathlib, sys
+          html = pathlib.Path('/tmp/index.html').read_text(errors='ignore')
+          assets = re.findall(r'src="([^"]+\.js)', html)
+          if not assets:
+              print('NO_JS_ASSETS')
+              sys.exit(2)
+          found = False
+          for asset in assets:
+              url = asset if asset.startswith('http') else 'https://esl-brian.vercel.app' + (asset if asset.startswith('/') else '/' + asset)
+              path = '/tmp/' + asset.rsplit('/',1)[-1]
+              subprocess.run(['curl','-fsSL',url,'-o',path], check=True)
+              text = pathlib.Path(path).read_text(errors='ignore')
+              print('ASSET', url, 'bytes', len(text))
+              for needle in ['Tìm nhanh lớp','Phân loại lớp theo bộ môn','Không có lớp phù hợp bộ lọc']:
+                  hit = needle in text
+                  print(needle, '=>', 'FOUND' if hit else 'MISSING')
+              if 'Tìm nhanh lớp' in text and 'Phân loại lớp theo bộ môn' in text:
+                  found = True
+          if not found:
+              print('PRODUCTION_BUNDLE_MISSING_ATTENDANCE_SEARCH')
+              sys.exit(3)
+          print('PRODUCTION_BUNDLE_HAS_ATTENDANCE_SEARCH')
+          PY
