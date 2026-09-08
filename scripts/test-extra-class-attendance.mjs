@@ -10,9 +10,11 @@ const seedUrl = new URL('../supabase/migrations/20260908_gifted_classes_2026_del
 const seedSql = fs.existsSync(seedUrl) ? fs.readFileSync(seedUrl, 'utf8') : '';
 const rpcHardeningUrl = new URL('../supabase/migrations/20260908_harden_gifted_delete_rpc_anon_grants.sql', import.meta.url);
 const rpcHardeningSql = fs.existsSync(rpcHardeningUrl) ? fs.readFileSync(rpcHardeningUrl, 'utf8') : '';
+const dailyLockUrl = new URL('../supabase/migrations/20260908_attendance_daily_lock_monthly_calendar.sql', import.meta.url);
+const dailyLockSql = fs.existsSync(dailyLockUrl) ? fs.readFileSync(dailyLockUrl, 'utf8') : '';
 const teacherCatalogUrl = new URL('../src/utils/giftedTeacherCatalog2026.js', import.meta.url);
 const teacherCatalogSource = fs.existsSync(teacherCatalogUrl) ? fs.readFileSync(teacherCatalogUrl, 'utf8') : '';
-const combinedSql = `${sql}\n${seedSql}\n${rpcHardeningSql}`;
+const combinedSql = `${sql}\n${seedSql}\n${rpcHardeningSql}\n${dailyLockSql}`;
 
 assert.match(flatNav, /GlobalTtcmNavigationTab[\s\S]*GlobalAttendanceNavigationTab/, 'Attendance must mount immediately after TTCM');
 assert.match(attendance, /Điểm danh nhanh/, 'Attendance workspace needs a quick attendance tab');
@@ -64,6 +66,24 @@ assert.doesNotMatch(attendance, /bes_extra_attendance_list_teachers/, 'Class man
 assert.doesNotMatch(attendanceAdmin, /bes_extra_attendance_list_teachers/, 'Manual class creation must not load teacher choices from registered website accounts');
 assert.match(attendance, /giftedTeacherCatalog2026/, 'Class management must use the authoritative teacher assignment catalog');
 assert.match(attendanceAdmin, /giftedTeacherCatalog2026/, 'Manual class creation must use the authoritative teacher assignment catalog');
+
+// Daily attendance lock + actual session teacher + monthly calendar contract.
+assert.ok(dailyLockSql, 'Daily attendance lock migration must exist');
+assert.match(combinedSql, /attendance_date\s+date/i, 'Attendance sessions must store attendance_date');
+assert.match(combinedSql, /unique\s*\([^)]*class_id[^)]*attendance_date|unique index[\s\S]*class_id\s*,\s*attendance_date/i, 'Database must enforce one session per class/date');
+assert.match(combinedSql, /p_attendance_date\s+date/i, 'Confirm RPC must accept the attendance date');
+assert.match(combinedSql, /p_teacher_name\s+text/i, 'Confirm RPC must accept the actual teacher for the session');
+assert.match(combinedSql, /Asia\/Ho_Chi_Minh/, 'Server date validation must use Vietnam timezone');
+assert.match(combinedSql, /bes_extra_class_teachers[\s\S]*teacher_name/i, 'Server must validate teacher against class assignments');
+assert.match(attendance, /type="date"/, 'Quick attendance must expose a date picker');
+assert.match(attendance, /Giáo viên dạy hôm nay/, 'Multi-teacher attendance must require choosing the teacher who teaches that day');
+assert.match(attendance, /Đã chốt/, 'Already-confirmed class/date must render a locked state');
+assert.match(attendance, /Lịch tháng/, 'Attendance workspace must expose a monthly calendar tab');
+assert.match(attendance, /type="month"/, 'Monthly calendar must expose a month picker');
+assert.match(attendance, /attendance_date/, 'Frontend must load and compare the authoritative attendance date');
+assert.match(attendance, /\.gte\('attendance_date'/, 'Monthly calendar query must use a lower attendance_date bound');
+assert.match(attendance, /\.lt\('attendance_date'/, 'Monthly calendar query must use an exclusive upper attendance_date bound');
+assert.doesNotMatch(attendance, /bes_extra_attendance_list_teachers/, 'Daily attendance must never fall back to website account teachers');
 
 const teacherCatalog = await import('../src/utils/giftedTeacherCatalog2026.js');
 assert.equal(teacherCatalog.GIFTED_TEACHER_ASSIGNMENTS_2026_2027.length, 23, 'Teacher catalog must contain exactly the 23 grade 10–12 source classes');
