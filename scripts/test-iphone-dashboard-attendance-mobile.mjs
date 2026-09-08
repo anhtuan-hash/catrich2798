@@ -8,19 +8,24 @@ const read = (relativePath) => {
 
 const dashboardCss = read('src/styles/dashboard-iphone-readable.css');
 const attendanceCss = read('src/components/attendance/AttendanceIphoneReadable.css');
-const navComponent = read('src/components/GlobalFlatNavigation.jsx');
 const navCss = read('src/components/GlobalIphoneNavigationReadable.css');
-const combined = `${dashboardCss}\n${attendanceCss}\n${navCss}`;
+const locksCss = read('src/components/GlobalIphoneReadabilityCascadeLocks.css');
+const styleBridge = read('src/components/GlobalEnglishHubBrand.jsx');
+const globalNavShell = read('src/components/GlobalFlatNavigation.jsx');
+const combined = `${dashboardCss}\n${attendanceCss}\n${navCss}\n${locksCss}`;
 
 assert.ok(dashboardCss, 'Dashboard iPhone readability stylesheet must exist');
 assert.ok(attendanceCss, 'Attendance iPhone readability stylesheet must exist');
 assert.ok(navCss, 'Global iPhone navigation readability stylesheet must exist');
+assert.ok(locksCss, 'Critical iPhone cascade locks must exist');
 
-assert.match(navComponent, /GlobalIphoneNavigationReadable\.css/, 'Shared navigation must load the final iPhone navigation layer');
-assert.match(navComponent, /dashboard-iphone-readable\.css/, 'Shared authenticated shell must load the route-scoped Dashboard phone layer');
-assert.match(navComponent, /AttendanceIphoneReadable\.css/, 'Shared authenticated shell must load the Attendance phone layer');
+assert.match(styleBridge, /GlobalIphoneNavigationReadable\.css/, 'Stable brand bridge must load the iPhone navigation layer');
+assert.match(styleBridge, /dashboard-iphone-readable\.css/, 'Stable brand bridge must load the route-scoped Dashboard phone layer');
+assert.match(styleBridge, /AttendanceIphoneReadable\.css/, 'Stable brand bridge must load the Attendance phone layer');
+assert.match(styleBridge, /GlobalIphoneReadabilityCascadeLocks\.css/, 'Stable brand bridge must load critical cascade locks');
+assert.doesNotMatch(globalNavShell, /GlobalIphone(?:NavigationReadable|ReadabilityCascadeLocks)\.css|dashboard-iphone-readable\.css|AttendanceIphoneReadable\.css/, 'Phone styling must not alter the guarded global navigation shell');
 
-for (const [name, css] of [['dashboard', dashboardCss], ['attendance', attendanceCss], ['navigation', navCss]]) {
+for (const [name, css] of [['dashboard', dashboardCss], ['attendance', attendanceCss], ['navigation', navCss], ['locks', locksCss]]) {
   assert.match(css, /@media\s*\(max-width:\s*(?:500|510|520|530|540)px\)/i, `${name} rules must be phone-scoped`);
 }
 
@@ -31,6 +36,7 @@ assert.match(combined, /env\(safe-area-inset-(?:left|right|bottom)\)/i, 'Mobile 
 assert.match(navCss, /\.brian-nav__primary[\s\S]*?overflow-x\s*:\s*auto/i, 'Phone navigation must scroll internally instead of squeezing tabs');
 assert.match(navCss, /\.brian-nav__primary\s*>\s*:is\([^}]+\)[\s\S]*?min-height\s*:\s*(?:44|45|46|47|48)px/i, 'Phone navigation destinations need >=44px touch targets');
 assert.match(navCss, /font-size\s*:\s*(?:13|13\.5|14)px/i, 'Phone navigation labels must be readable');
+assert.match(locksCss, /first-of-type[\s\S]*?min-height\s*:\s*44px/i, 'Home navigation target must remain >=44px against legacy density rules');
 
 assert.match(dashboardCss, /\.editorial-hero-stage\s*\{[^}]*min-height\s*:\s*(?:1[5-8][0-9])px/i, 'Dashboard hero artwork stage should be about 150-189px tall on phone');
 assert.match(dashboardCss, /\.editorial-hero-hello\s*\{[^}]*font-size\s*:\s*(?:2[5-9]|30)px/i, 'Dashboard greeting must be 25-30px on phone');
@@ -47,5 +53,6 @@ assert.match(attendanceCss, /\.attendance-session-controls\s+:is\(input,\s*selec
 assert.match(attendanceCss, /\.att-m3-roster-entry\s*>\s*label\s*\{[^}]*min-height\s*:\s*(?:64|65|66|67|68|69|70|71|72)px/i, 'Attendance roster rows must be finger-friendly');
 assert.match(attendanceCss, /\.attendance-roster\s*\{[^}]*overflow-x\s*:\s*auto/i, 'Attendance roster overflow must be isolated inside the roster');
 assert.match(attendanceCss, /\.attendance-confirm-bar\s*\{[^}]*env\(safe-area-inset-bottom\)/i, 'Attendance confirmation area must clear the iPhone home indicator');
+assert.match(locksCss, /\.att-m3-roster-entry\s*>\s*label[\s\S]*?min-height\s*:\s*68px/i, 'Roster touch height must be locked against later legacy rules');
 
 console.log('iPhone Dashboard + Attendance mobile readability contract OK');
