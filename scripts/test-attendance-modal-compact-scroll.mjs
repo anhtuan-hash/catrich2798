@@ -1,14 +1,9 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
-const overrideUrl = new URL('../public/attendance-modal-compact-scroll.css', import.meta.url);
-const indexUrl = new URL('../index.html', import.meta.url);
+const cssUrl = new URL('../public/attendance-windows8-launch.css', import.meta.url);
+const css = fs.readFileSync(cssUrl, 'utf8');
 
-assert.ok(fs.existsSync(overrideUrl), 'Compact attendance modal override stylesheet must exist');
-const css = fs.readFileSync(overrideUrl, 'utf8');
-const index = fs.readFileSync(indexUrl, 'utf8');
-
-assert.match(index, /attendance-modal-compact-scroll\.css\?v=1/, 'Compact attendance modal stylesheet must load after existing attendance styles');
 assert.match(css, /\.attendance-shell\s*\{[\s\S]*?width:\s*min\(1360px,\s*calc\(100vw\s*-\s*96px\)\)/, 'Attendance modal should use the compact desktop width');
 assert.match(css, /\.attendance-shell\s*\{[\s\S]*?height:\s*min\(840px,\s*calc\(100vh\s*-\s*92px\)\)/, 'Attendance modal should use the compact desktop height');
 assert.match(css, /\.attendance-content\s*\{[\s\S]*?overflow-y:\s*auto/, 'Attendance content should provide the primary vertical scrollbar');
