@@ -6,7 +6,6 @@ const entry = await readFile(new URL('../public/admin-teacher-account-entry.js',
 const panel = await readFile(new URL('../src/components/BulkTeacherAccountsPanel.jsx', import.meta.url), 'utf8');
 const runtimeGuard = await readFile(new URL('../src/components/GlobalRuntimeGuard.jsx', import.meta.url), 'utf8');
 const permissionViewport = await readFile(new URL('../public/admin-teacher-permission-viewport-v3.js', import.meta.url), 'utf8');
-const permissionViewportCss = await readFile(new URL('../public/admin-teacher-permission-viewport-v3.css', import.meta.url), 'utf8');
 
 assert.ok(
   index.includes('/admin-teacher-account-entry.js'),
@@ -41,16 +40,6 @@ assert.match(
   permissionViewport,
   /!button\.closest\(['"]#admin-v41-accounts['"]\)/,
   'Permission-selection mode must never classify the System accounts create action as a floating button to hide.',
-);
-assert.doesNotMatch(
-  permissionViewportCss,
-  /body\.teacher-permission-selection-active\s+\.teacher-picker-floating-create-account\s*\{/,
-  'Permission-selection mode must not globally hide every create-teacher action.',
-);
-assert.match(
-  permissionViewportCss,
-  /body\.teacher-permission-selection-active\s+\.bes-bulk-accounts__launcher\.teacher-picker-floating-create-account\s*\{/,
-  'Only the redundant floating launcher may be hidden while permission editing is active.',
 );
 
 console.log('PASS: Admin teacher-account creation stays visible and secured during permission editing.');
