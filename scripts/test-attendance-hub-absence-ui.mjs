@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 const attendance = fs.readFileSync(new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url), 'utf8');
 const utility = fs.readFileSync(new URL('../src/utils/extraClassAttendance.js', import.meta.url), 'utf8');
 const css = fs.readFileSync(new URL('../src/components/attendance/AttendanceMaterial3.css', import.meta.url), 'utf8');
+const searchRemovalRuntime = fs.readFileSync(new URL('../public/bes-remove-visible-search-bars.js', import.meta.url), 'utf8');
 const uiSource = `${attendance}\n${utility}`;
 
 assert.match(attendance, /Tìm nhanh lớp/i, 'Quick attendance must provide a fast class search');
@@ -11,6 +12,14 @@ assert.match(attendance, /ATTENDANCE_SUBJECT_HUB/, 'Quick attendance must render
 for (const label of ['Tất cả', 'Toán', 'Toán/Casio', 'Ngữ văn', 'Tiếng Anh', 'Vật lí', 'Hóa học', 'Sinh học', 'Lịch sử', 'Địa lí']) {
   assert.match(uiSource, new RegExp(label), `Subject hub must include ${label}`);
 }
+
+assert.match(searchRemovalRuntime, /\[data-bes-keep-search=["']true["']\]/, 'Global visible-search remover must keep explicitly approved search surfaces');
+assert.match(
+  attendance,
+  /className=["']att-m3-class-discovery["']\s+data-bes-keep-search=["']true["']|data-bes-keep-search=["']true["']\s+className=["']att-m3-class-discovery["']/,
+  'Attendance class discovery must opt out of the global visible-search remover so search and subject filters stay visible at runtime',
+);
+
 assert.match(attendance, /ABSENCE_REASON_OPTIONS/, 'Absent rows must render the shared absence reason options');
 for (const label of ['Có phép', 'Không phép', 'Ốm', 'Việc gia đình', 'Khác']) {
   assert.match(uiSource, new RegExp(label), `Absence reason UI must include ${label}`);
@@ -30,4 +39,4 @@ for (const token of ['is-subject-math', 'is-subject-casio', 'is-subject-literatu
   assert.match(css, new RegExp(token), `Material 3 CSS must define ${token}`);
 }
 
-console.log('Attendance class hub, subject colors, room/time and absence UI contract OK');
+console.log('Attendance class hub, subject colors, runtime visibility, room/time and absence UI contract OK');
