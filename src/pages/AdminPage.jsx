@@ -3,6 +3,7 @@ import { getUsers, isAuthConfigured, repairCurrentAdminDatabaseRole, syncMissing
 import { getPermissionRequests, PERMISSION_REQUESTS_EVENT, updatePermissionRequestStatus } from '../utils/permissionRequests.js';
 import {
   ALL_PERMISSION_IDS,
+  ATTENDANCE_PERMISSION_GROUP,
   PERMISSION_GROUPS,
   PERMISSION_ITEMS,
   createAllAccessPermissions,
@@ -800,7 +801,7 @@ function PermissionEditor({ user, currentUser, language, loading, onChange }) {
   const disabled = loading || isAdminAccount || user.id === currentUser.id;
   const byId = useMemo(() => new Map(PERMISSION_ITEMS.map((item) => [item.id, item])), []);
 
-  const setFull = () => onChange(createAllAccessPermissions());
+  const setFull = () => onChange(createAllAccessPermissions(allowedIds));
   const setCustom = () => onChange(createCustomPermissions(allowedIds));
   const selectAll = () => onChange(createCustomPermissions(ALL_PERMISSION_IDS));
   const clearAll = () => onChange(createCustomPermissions([]));
@@ -814,6 +815,20 @@ function PermissionEditor({ user, currentUser, language, loading, onChange }) {
     if (next.has(id)) next.delete(id);
     else next.add(id);
     onChange(createCustomPermissions([...next]));
+  };
+  const saveExplicitIds = (ids) => onChange(
+    permissions.mode === 'all' ? createAllAccessPermissions(ids) : createCustomPermissions(ids)
+  );
+  const setExplicitGroup = (ids, checked) => {
+    const next = new Set(allowedIds);
+    ids.forEach((id) => (checked ? next.add(id) : next.delete(id)));
+    saveExplicitIds([...next]);
+  };
+  const toggleExplicitId = (id) => {
+    const next = new Set(allowedIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    saveExplicitIds([...next]);
   };
 
   return (
@@ -842,9 +857,46 @@ function PermissionEditor({ user, currentUser, language, loading, onChange }) {
             </button>
           </div>
 
+          <div className="permission-groups permission-explicit-groups">
+            <div className="permission-group">
+              <div className="permission-group-title">
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={ATTENDANCE_PERMISSION_GROUP.ids.every((id) => allowedIds.includes(id))}
+                    disabled={disabled}
+                    onChange={(event) => setExplicitGroup(ATTENDANCE_PERMISSION_GROUP.ids, event.target.checked)}
+                  />
+                  <span>{language === 'vi' ? ATTENDANCE_PERMISSION_GROUP.titleVi : ATTENDANCE_PERMISSION_GROUP.title}</span>
+                </label>
+                <small>{ATTENDANCE_PERMISSION_GROUP.ids.filter((id) => allowedIds.includes(id)).length}/{ATTENDANCE_PERMISSION_GROUP.ids.length}</small>
+              </div>
+              <p className="permission-explicit-note">
+                {language === 'vi'
+                  ? '5 quyền Điểm danh được cấp riêng, kể cả khi tài khoản đang ở chế độ Toàn quyền.'
+                  : 'The five Attendance permissions are granted explicitly, even in Full access mode.'}
+              </p>
+              <div className="permission-chip-grid">
+                {ATTENDANCE_PERMISSION_GROUP.ids.map((id) => {
+                  const item = byId.get(id);
+                  const checked = allowedIds.includes(id);
+                  return (
+                    <label key={id} className={checked ? 'permission-chip checked' : 'permission-chip'}>
+                      <input type="checkbox" checked={checked} disabled={disabled} onChange={() => toggleExplicitId(id)} />
+                      <span>
+                        <b>{language === 'vi' ? item?.titleVi || item?.title : item?.title}</b>
+                        <small>{language === 'vi' ? item?.descVi || item?.desc : item?.desc}</small>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
           {permissions.mode === 'all' ? (
             <div className="permission-all-note">
-              {language === 'vi' ? 'Tài khoản này được dùng toàn bộ hoạt động, trò chơi, công cụ và nội dung giáo viên.' : 'This account can use all teacher activities, games, tools and content modules.'}
+              {language === 'vi' ? 'Tài khoản này được dùng toàn bộ hoạt động, trò chơi, công cụ và nội dung giáo viên. Quyền Điểm danh vẫn theo 5 lựa chọn riêng ở trên.' : 'This account can use all teacher activities, games, tools and content modules. Attendance still follows the five explicit choices above.'}
             </div>
           ) : (
             <div className="permission-groups">
