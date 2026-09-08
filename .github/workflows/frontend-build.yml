@@ -121,6 +121,9 @@ jobs:
       - name: Verify Admin teacher account visible entry
         run: node scripts/test-admin-teacher-account-visible-entry.mjs
 
+      - name: Verify Settings-merged Admin teacher account entry
+        run: node scripts/test-settings-admin-teacher-account-entry.mjs
+
       - name: Verify Settings account center
         run: node scripts/test-settings-account-center.mjs
 
