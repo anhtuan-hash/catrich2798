@@ -52,6 +52,19 @@ function weekdayOf(dateValue) {
   return date.getUTCDay();
 }
 
+function persistedWeekdaysOf(classRow) {
+  const raw = classRow?.weekdays;
+  const values = Array.isArray(raw)
+    ? raw.map((value) => Number(value))
+    : String(raw || '')
+      .split(',')
+      .map((value) => Number(String(value).trim()))
+      .filter((value) => String(value) !== '');
+  const normalized = [...new Set(values.filter((value) => Number.isInteger(value) && value >= 0 && value <= 6))]
+    .sort((a, b) => a - b);
+  return normalized.length ? normalized : null;
+}
+
 const gifted = (subject, grade, room, weekdays) => ({ class_type: 'gifted', subject, grade, room, weekdays });
 const remedial = (subject, grade, room, weekdays) => ({ class_type: 'remedial', subject, grade, room, weekdays });
 
@@ -110,9 +123,14 @@ export function roomForExtraClass(classRow = {}) {
 }
 
 export function isExtraClassScheduledOnDate(classRow, dateValue) {
-  const schedule = scheduleForExtraClass(classRow);
   const weekday = weekdayOf(dateValue);
-  // Unknown/imported classes and malformed dates remain usable rather than being hidden or disabled.
-  if (!schedule || weekday === null) return true;
+  if (weekday === null) return true;
+
+  const persistedWeekdays = persistedWeekdaysOf(classRow);
+  if (persistedWeekdays) return persistedWeekdays.includes(weekday);
+
+  const schedule = scheduleForExtraClass(classRow);
+  // Unknown/imported classes remain usable rather than being hidden or disabled.
+  if (!schedule) return true;
   return schedule.weekdays.includes(weekday);
 }
