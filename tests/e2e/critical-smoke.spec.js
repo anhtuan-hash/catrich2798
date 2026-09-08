@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 
+// Verification-only branch: runtime source is the exact merged main tree.
 const CRITICAL_ROUTES = ['#/dashboard', '#/tool/gradebook-studio', '#/settings'];
 
 function captureDiagnostics(page) {
