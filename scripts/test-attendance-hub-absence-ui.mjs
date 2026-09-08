@@ -21,6 +21,8 @@ const polishUrl = new URL('../public/attendance-ui-polish.css', import.meta.url)
 const polishCss = fs.existsSync(polishUrl) ? fs.readFileSync(polishUrl, 'utf8') : '';
 const dailyOverviewCssUrl = new URL('../src/components/attendance/AttendanceDailyOverview.css', import.meta.url);
 const dailyOverviewCss = fs.existsSync(dailyOverviewCssUrl) ? fs.readFileSync(dailyOverviewCssUrl, 'utf8') : '';
+const dailyOverviewModuleUrl = new URL('../src/attendanceDailyStatusOverview.js', import.meta.url);
+const dailyOverviewModule = fs.existsSync(dailyOverviewModuleUrl) ? fs.readFileSync(dailyOverviewModuleUrl, 'utf8') : '';
 const indexHtml = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const searchRemovalRuntime = fs.readFileSync(new URL('../public/bes-remove-visible-search-bars.js', import.meta.url), 'utf8');
 const permissionMigration = fs.readFileSync(new URL('../supabase/migrations/20260908_admin_grant_attendance_permission.sql', import.meta.url), 'utf8');
@@ -99,18 +101,20 @@ for (const token of ['is-subject-math', 'is-subject-casio', 'is-subject-literatu
   assert.match(css, new RegExp(token), `Material 3 CSS must define ${token}`);
 }
 
-assert.match(attendance, /calendarMode/, 'Calendar must support switching between class and daily overview modes');
-assert.match(attendance, /Theo lớp/, 'Calendar mode switch must keep the existing class view');
-assert.match(attendance, /Theo ngày/, 'Calendar mode switch must expose a daily overview');
-assert.match(attendance, /dailyAttendanceDate/, 'Daily overview must keep an independently selectable date');
-assert.match(attendance, /isExtraClassScheduledOnDate\(classRow, dailyAttendanceDate\)/, 'Daily overview must derive scheduled classes from the official class schedule');
-assert.match(attendance, /dailySessionsByClass/, 'Daily overview must match attendance sessions back to scheduled classes');
+assert.ok(dailyOverviewModule, 'Daily attendance status overview runtime must exist');
+assert.match(indexHtml, /attendanceDailyStatusOverview\.js/, 'Application shell must load the daily attendance status overview runtime');
+assert.match(dailyOverviewModule, /calendarMode/, 'Daily overview runtime must support switching between class and daily modes');
+assert.match(dailyOverviewModule, /Theo lớp/, 'Calendar mode switch must keep the existing class view');
+assert.match(dailyOverviewModule, /Theo ngày/, 'Calendar mode switch must expose a daily overview');
+assert.match(dailyOverviewModule, /dailyAttendanceDate/, 'Daily overview must keep an independently selectable date');
+assert.match(dailyOverviewModule, /isExtraClassScheduledOnDate\(classRow, dailyAttendanceDate\)/, 'Daily overview must derive scheduled classes from the official class schedule');
+assert.match(dailyOverviewModule, /dailySessionsByClass/, 'Daily overview must match attendance sessions back to scheduled classes');
 for (const label of ['Có lịch', 'Đã điểm danh', 'Chưa điểm danh', 'Đã hủy']) {
-  assert.match(attendance, new RegExp(label), `Daily overview must render the status label “${label}”`);
+  assert.match(dailyOverviewModule, new RegExp(label), `Daily overview must render the status label “${label}”`);
 }
-assert.match(attendance, /setView\('quick'\)/, 'A missing attendance row must be able to jump to quick attendance');
-assert.match(attendance, /setAttendanceDate\(dailyAttendanceDate\)/, 'Jumping from daily overview must preserve the selected date');
-assert.match(attendance, /setSelectedClassId\(classRow\.id\)/, 'Jumping from daily overview must preserve the selected class');
+assert.match(dailyOverviewModule, /Điểm danh nhanh/, 'A missing attendance row must be able to jump to quick attendance');
+assert.match(dailyOverviewModule, /dailyAttendanceDate/, 'Jumping from daily overview must preserve the selected date');
+assert.match(dailyOverviewModule, /classRow\.id/, 'Jumping from daily overview must preserve the selected class');
 assert.ok(dailyOverviewCss, 'Daily attendance overview stylesheet must exist');
 assert.match(dailyOverviewCss, /attendance-calendar-mode-switch/i, 'Daily overview mode switch must have dedicated styling');
 assert.match(dailyOverviewCss, /attendance-daily-overview/i, 'Daily overview must have dedicated responsive styling');
