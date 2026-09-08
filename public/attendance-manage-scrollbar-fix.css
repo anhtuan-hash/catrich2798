@@ -51,12 +51,136 @@ html body .attendance-shell .attendance-manage-layout .attendance-member-manager
   overflow: hidden !important;
   grid-template-rows: auto auto auto minmax(0, 1fr) !important;
   align-content: stretch !important;
+  border: 1px solid #dce6e2 !important;
+  border-radius: 20px !important;
+  background: #fff !important;
+  box-shadow: 0 5px 16px rgba(42, 78, 67, .07) !important;
 }
 
+html body .attendance-shell .attendance-manage-layout .attendance-member-manager > header {
+  padding: 16px 18px 11px !important;
+  border-bottom: 0 !important;
+  background: transparent !important;
+}
+
+html body .attendance-shell .attendance-manage-layout .attendance-member-manager > header h2 {
+  margin: 0 !important;
+  color: #172333 !important;
+  font-size: 22px !important;
+  line-height: 1.12 !important;
+  letter-spacing: -.025em !important;
+}
+
+html body .attendance-shell .attendance-manage-layout .attendance-member-manager > header p {
+  margin-top: 4px !important;
+  color: #718096 !important;
+}
+
+html body .attendance-shell .attendance-manage-layout .attendance-teacher-field {
+  min-width: min(430px, 48%) !important;
+}
+
+html body .attendance-shell .attendance-manage-layout .attendance-teacher-summary {
+  align-items: center !important;
+}
+
+html body .attendance-shell .attendance-manage-layout .attendance-member-tools {
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+  padding: 0 18px 13px !important;
+  border-bottom: 0 !important;
+  background: transparent !important;
+}
+
+html body .attendance-shell .attendance-manage-layout .attendance-member-tools input {
+  order: 3 !important;
+  flex: 0 1 290px !important;
+  min-width: 180px !important;
+  margin-left: auto !important;
+  height: 38px !important;
+  border: 1px solid #dce4ed !important;
+  border-radius: 11px !important;
+  background: #f9fbfd !important;
+}
+
+html body .attendance-shell .attendance-manage-layout .attendance-member-tools button:nth-of-type(1) {
+  order: 1 !important;
+  border-color: #cad8ee !important;
+  background: #eaf2ff !important;
+  color: #315fae !important;
+}
+
+html body .attendance-shell .attendance-manage-layout .attendance-member-tools button:nth-of-type(2) {
+  order: 2 !important;
+  border-color: #f0c9c5 !important;
+  background: #fff0ee !important;
+  color: #b33b34 !important;
+}
+
+/* The class-information area is a section of the same right-hand surface,
+   not a second rounded/tinted card. */
+html body .attendance-shell .attendance-manage-layout .attendance-class-info-card {
+  margin: 0 !important;
+  padding: 14px 18px 16px !important;
+  border: 0 !important;
+  border-top: 1px solid #e7ecef !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body .attendance-shell .attendance-manage-layout .attendance-class-info-head {
+  align-items: center !important;
+  margin-bottom: 12px !important;
+}
+
+html body .attendance-shell .attendance-manage-layout .attendance-class-info-head > div > span {
+  margin-bottom: 3px !important;
+  color: #49637d !important;
+  letter-spacing: .05em !important;
+}
+
+html body .attendance-shell .attendance-manage-layout .attendance-class-info-head strong {
+  color: #1e2c3d !important;
+  font-size: 14px !important;
+}
+
+html body .attendance-shell .attendance-manage-layout .attendance-class-info-head p {
+  margin-top: 3px !important;
+  color: #7a8797 !important;
+  font-size: 10px !important;
+}
+
+html body .attendance-shell .attendance-manage-layout .attendance-class-info-head > button {
+  border: 1px solid #d2def0 !important;
+  background: #edf4ff !important;
+  color: #315c9d !important;
+}
+
+html body .attendance-shell .attendance-manage-layout .attendance-class-info-grid {
+  gap: 8px !important;
+}
+
+html body .attendance-shell .attendance-manage-layout .attendance-class-info-grid article {
+  border: 1px solid #e5e9ef !important;
+  border-radius: 12px !important;
+  background: #fafbfd !important;
+  box-shadow: none !important;
+}
+
+html body .attendance-shell .attendance-manage-layout .attendance-class-edit-form,
+html body .attendance-shell .attendance-manage-layout .attendance-weekday-editor {
+  background: transparent !important;
+}
+
+/* Student rows continue directly after the class information. */
 html body .attendance-shell .attendance-manage-layout .attendance-member-table {
   min-height: 0 !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
+  border-top: 1px solid #e7ecef !important;
+  background: #fff !important;
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;
   overscroll-behavior-y: contain;
@@ -64,9 +188,44 @@ html body .attendance-shell .attendance-manage-layout .attendance-member-table {
   -webkit-overflow-scrolling: touch;
 }
 
+html body .attendance-shell .attendance-manage-layout .attendance-member-table-head {
+  background: #f8fafc !important;
+  color: #718096 !important;
+}
+
+html body .attendance-shell .attendance-manage-layout .attendance-member-table > div:not(.attendance-member-table-head):not(.attendance-empty) {
+  background: #fff !important;
+}
+
+html body .attendance-shell .attendance-manage-layout .attendance-member-table > div:not(.attendance-member-table-head):not(.attendance-empty):nth-child(odd) {
+  background: #fbfcfd !important;
+}
+
 html body .attendance-shell .attendance-manage-layout .attendance-manage-classes::-webkit-scrollbar,
 html body .attendance-shell .attendance-manage-layout .attendance-member-table::-webkit-scrollbar {
   width: 0 !important;
   height: 0 !important;
   display: none !important;
+}
+
+@media (max-width: 980px) {
+  html body .attendance-shell .attendance-manage-layout .attendance-member-manager > header {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+
+  html body .attendance-shell .attendance-manage-layout .attendance-teacher-field {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  html body .attendance-shell .attendance-manage-layout .attendance-member-tools {
+    flex-wrap: wrap !important;
+  }
+
+  html body .attendance-shell .attendance-manage-layout .attendance-member-tools input {
+    flex-basis: 100% !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
 }
