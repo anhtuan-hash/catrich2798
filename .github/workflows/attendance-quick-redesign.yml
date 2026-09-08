@@ -6,6 +6,7 @@ on:
       - fix/attendance-quick-redesign
   pull_request:
     paths:
+      - 'public/attendance-windows8-launch.css'
       - 'src/components/GlobalAttendanceNavigationTab.jsx'
       - 'src/components/attendance/AttendanceMaterial3.css'
       - 'scripts/test-attendance-quick-redesign.mjs'
