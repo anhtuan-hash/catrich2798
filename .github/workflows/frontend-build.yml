@@ -67,6 +67,9 @@ jobs:
       - name: Verify manual attendance class teacher persistence
         run: node scripts/test-attendance-manual-class-teacher-persistence.mjs
 
+      - name: Verify manual attendance teacher addition
+        run: node scripts/test-attendance-manual-teacher-add.mjs
+
       - name: Verify Vercel Hobby function budget
         run: node scripts/test-vercel-hobby-function-budget.mjs
 
