@@ -46,6 +46,8 @@ assert.match(seedSql, /grade_level\s+not\s+in\s*\(\s*'10'\s*,\s*'11'\s*,\s*'12'\
 assert.doesNotMatch(seedSql, /hsg-2026-(?:toan|ngu-van|vat-li|hoa-hoc|sinh-hoc|tieng-anh|lich-su|dia-li)-(?:6|7|8|9)(?:\D|$)/, 'Seed source keys must never include grades 6–9');
 assert.match(seedSql, /Bồi dưỡng Địa lí 11/, 'Geography 11 class must be created even though the student source has no Geography roster');
 assert.match(seedSql, /Bồi dưỡng Địa lí 12/, 'Geography 12 class must be created even though the student source has no Geography roster');
+const blankRowGuards = seedSql.match(/if\s+trim\(v_line\)\s*=\s*''\s+then\s+continue;\s+end\s+if;/gi) || [];
+assert.ok(blankRowGuards.length >= 3, 'Every multiline seed loop must skip its leading/trailing blank rows before string_to_array parsing');
 
 const mod = await import('../src/utils/extraClassAttendance.js');
 assert.equal(mod.normalizeExtraClassType('Phụ đạo'), 'remedial');
