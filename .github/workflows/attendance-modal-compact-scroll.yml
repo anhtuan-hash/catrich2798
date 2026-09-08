@@ -1,0 +1,24 @@
+name: Attendance Modal Compact Scroll
+
+on:
+  push:
+    branches:
+      - fix/attendance-modal-compact-scroll
+  pull_request:
+    paths:
+      - 'src/components/GlobalAttendanceNavigationTab.css'
+      - 'scripts/test-attendance-modal-compact-scroll.mjs'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Compact modal scroll contract
+        run: node scripts/test-attendance-modal-compact-scroll.mjs
