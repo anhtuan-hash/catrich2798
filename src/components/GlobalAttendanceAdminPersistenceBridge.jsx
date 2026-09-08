@@ -62,41 +62,28 @@ export default function GlobalAttendanceAdminPersistenceBridge({ currentUser }) 
     setError('');
     setNotice('');
     try {
-      const payload = {
-        class_type: form.class_type,
-        class_name: className,
-        subject: assignment.subject,
-        teacher_id: null,
-        teacher_name: assignment.teachers.join(', '),
-        teacher_email: '',
-        school_year: '2026-2027',
-        grade_level: assignment.gradeLevel,
-        active: true,
-        created_by: currentUser.id,
-        updated_by: currentUser.id,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
+      const { data, error: createError } = await client.rpc('bes_create_extra_class_with_teachers', {
+        p_class_type: form.class_type,
+        p_class_name: className,
+        p_subject: assignment.subject,
+        p_source_key: assignment.sourceKey,
+        p_school_year: '2026-2027',
+        p_grade_level: assignment.gradeLevel,
+        p_teacher_names: assignment.teachers,
+      });
 
-      const { data, error: insertError } = await client
-        .from('bes_extra_classes')
-        .insert(payload)
-        .select('id,class_type,class_name,subject,teacher_id,teacher_name,teacher_email,school_year,grade_level,active,created_at')
-        .single();
-
-      if (insertError) {
-        if (String(insertError.code) === '23505') {
-          throw new Error('Lớp này đã tồn tại trên hệ thống.');
+      if (createError) {
+        if (String(createError.code) === '23505') {
+          throw new Error('Lớp này hoặc phân công này đã tồn tại trên hệ thống.');
         }
-        throw insertError;
+        throw createError;
       }
 
-      setNotice(`Đã lưu lớp “${data?.class_name || className}” với ${assignment.teachers.length} giáo viên theo phân công chính thức.`);
+      const created = Array.isArray(data) ? data[0] : data;
+      setNotice(`Đã lưu lớp “${created?.class_name || className}” với ${assignment.teachers.length} giáo viên theo phân công chính thức.`);
       setForm(EMPTY_FORM);
       setOpen(false);
 
-      // Reuse the attendance workspace's authoritative reload path so the newly
-      // persisted class appears immediately without duplicating roster state here.
       window.setTimeout(() => {
         document.querySelector('.attendance-top-actions button[title="Làm mới"]')?.click();
       }, 80);
