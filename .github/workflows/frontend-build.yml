@@ -82,6 +82,9 @@ jobs:
       - name: Verify attendance Material 3 UI
         run: node scripts/test-attendance-material3-ui.mjs
 
+      - name: Verify iPhone Dashboard and Attendance readability
+        run: node scripts/test-iphone-dashboard-attendance-mobile.mjs
+
       - name: Verify attendance Windows 8 launch is always on
         run: node scripts/test-attendance-windows8-always-on.mjs
 
