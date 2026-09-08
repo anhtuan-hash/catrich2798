@@ -1,0 +1,62 @@
+name: Apply attendance class edit sync edge fixes
+
+on:
+  push:
+    branches:
+      - feat/attendance-class-edit-sync
+    paths:
+      - .github/workflows/apply-attendance-class-edit-sync-edge-fixes.yml
+
+permissions:
+  contents: write
+
+jobs:
+  patch-test-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/attendance-class-edit-sync
+          fetch-depth: 0
+
+      - name: Patch roster refresh and member-key parity
+        run: |
+          python <<'PY'
+          from pathlib import Path
+
+          attendance_path = Path('src/components/GlobalAttendanceNavigationTab.jsx')
+          attendance = attendance_path.read_text()
+          old_dep = "}, [selectedClassId, selectedMembers.length, attendanceDate, daySession?.id, dayRecords]);"
+          new_dep = "}, [selectedClassId, selectedMembers, attendanceDate, daySession?.id, dayRecords]);"
+          if old_dep not in attendance:
+              if new_dep not in attendance:
+                  raise SystemExit('Attendance roster dependency marker not found')
+          else:
+              attendance = attendance.replace(old_dep, new_dep, 1)
+              attendance_path.write_text(attendance)
+
+          migration_path = Path('supabase/migrations/20260908_attendance_admin_class_member_edit.sql')
+          migration = migration_path.read_text()
+          old_class = "  v_school_class_name text := regexp_replace(trim(coalesce(p_school_class_name, '')), '\\s+', '', 'g');"
+          new_class = "  v_school_class_name text := trim(coalesce(p_school_class_name, ''));"
+          if old_class not in migration:
+              if new_class not in migration:
+                  raise SystemExit('Member school-class normalization marker not found')
+          else:
+              migration = migration.replace(old_class, new_class, 1)
+              migration_path.write_text(migration)
+          PY
+
+      - name: Verify edge-case contract
+        run: node scripts/test-attendance-class-edit-sync.mjs
+
+      - name: Commit verified fixes
+        run: |
+          git diff --check
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/components/GlobalAttendanceNavigationTab.jsx supabase/migrations/20260908_attendance_admin_class_member_edit.sql
+          git diff --cached --quiet || git commit -m "fix: keep attendance roster edits synchronized"
+          git push origin HEAD:feat/attendance-class-edit-sync
