@@ -1,0 +1,64 @@
+name: Verify Attendance Search Production
+
+on:
+  push:
+    branches:
+      - diag/attendance-search-after-deploy
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify production JS contains attendance keep marker
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import re, urllib.request
+          from urllib.parse import urljoin, urlparse
+
+          base = 'https://esl-brian.vercel.app/'
+          with urllib.request.urlopen(base, timeout=30) as response:
+              html = response.read().decode('utf-8', errors='ignore')
+          initial = [urljoin(base, ref) for ref in re.findall(r'<script[^>]+src=["\']([^"\']+\.js)', html)]
+          queue = list(dict.fromkeys(initial))
+          seen = set()
+          found = None
+
+          def resolve(parent, ref):
+              if ref.startswith('http://') or ref.startswith('https://'):
+                  return ref
+              if ref.startswith('/'):
+                  return urljoin(base, ref)
+              if ref.startswith('assets/'):
+                  return urljoin(base, ref)
+              return urljoin(parent, ref)
+
+          while queue and len(seen) < 250:
+              url = queue.pop(0)
+              if url in seen or urlparse(url).netloc != urlparse(base).netloc:
+                  continue
+              seen.add(url)
+              try:
+                  with urllib.request.urlopen(url, timeout=30) as response:
+                      text = response.read().decode('utf-8', errors='ignore')
+              except Exception as exc:
+                  print('FETCH_FAIL', url, exc)
+                  continue
+              if 'data-bes-keep-search' in text and 'att-m3-class-discovery' in text:
+                  found = url
+                  print('FOUND_ATTENDANCE_KEEP_MARKER', url)
+                  break
+              refs = set(re.findall(r'["\']([^"\']+\.js)["\']', text))
+              for ref in refs:
+                  child = resolve(url, ref)
+                  if child not in seen and urlparse(child).netloc == urlparse(base).netloc:
+                      queue.append(child)
+
+          print('CRAWLED', len(seen), 'JS assets')
+          if not found:
+              raise SystemExit('Production bundle does not expose the attendance keep marker')
+          PY
