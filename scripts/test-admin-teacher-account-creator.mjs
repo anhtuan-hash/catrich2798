@@ -4,7 +4,9 @@ import { readFile } from 'node:fs/promises';
 const index = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const entry = await readFile(new URL('../public/admin-teacher-account-entry.js', import.meta.url), 'utf8');
 const panel = await readFile(new URL('../src/components/BulkTeacherAccountsPanel.jsx', import.meta.url), 'utf8');
-const adminPage = await readFile(new URL('../src/pages/AdminPage.jsx', import.meta.url), 'utf8');
+const runtimeGuard = await readFile(new URL('../src/components/GlobalRuntimeGuard.jsx', import.meta.url), 'utf8');
+const permissionViewport = await readFile(new URL('../public/admin-teacher-permission-viewport-v3.js', import.meta.url), 'utf8');
+const permissionViewportCss = await readFile(new URL('../public/admin-teacher-permission-viewport-v3.css', import.meta.url), 'utf8');
 
 assert.ok(
   index.includes('/admin-teacher-account-entry.js'),
@@ -31,14 +33,24 @@ assert.ok(
   'Teacher-account manager must remain restricted to admins.',
 );
 assert.match(
-  adminPage,
-  /import\s+BulkTeacherAccountsPanel\s+from\s+['"]\.\.\/components\/BulkTeacherAccountsPanel\.jsx['"];/,
-  'AdminPage must import the secured teacher-account manager instead of relying on an orphan launcher runtime.',
+  runtimeGuard,
+  /showAdminTools\s*\?\s*<BulkTeacherAccountsPanel\s+language=\{language\}\s*\/>/,
+  'The secured teacher-account manager must remain mounted on the Admin route.',
 );
 assert.match(
-  adminPage,
-  /<BulkTeacherAccountsPanel\s+language=\{language\}\s*\/>/,
-  'AdminPage must actually mount the teacher-account manager so the creation action can appear.',
+  permissionViewport,
+  /!button\.closest\(['"]#admin-v41-accounts['"]\)/,
+  'Permission-selection mode must never classify the System accounts create action as a floating button to hide.',
+);
+assert.doesNotMatch(
+  permissionViewportCss,
+  /body\.teacher-permission-selection-active\s+\.teacher-picker-floating-create-account\s*\{/,
+  'Permission-selection mode must not globally hide every create-teacher action.',
+);
+assert.match(
+  permissionViewportCss,
+  /body\.teacher-permission-selection-active\s+\.bes-bulk-accounts__launcher\.teacher-picker-floating-create-account\s*\{/,
+  'Only the redundant floating launcher may be hidden while permission editing is active.',
 );
 
-console.log('PASS: Admin has a secured, mounted teacher-account creation entry point.');
+console.log('PASS: Admin teacher-account creation stays visible and secured during permission editing.');
