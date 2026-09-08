@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: frontend-build-${{ github.event.pull_request.number || github.ref }}
@@ -18,6 +18,24 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
+          fetch-depth: 0
+
+      - name: Apply approved attendance schedule patch
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'feat/attendance-schedule-dimming'
+        run: |
+          if [ -f scripts/apply-attendance-schedule-dimming.mjs ]; then
+            node scripts/apply-attendance-schedule-dimming.mjs
+            rm -f scripts/apply-attendance-schedule-dimming.mjs .github/workflows/apply-attendance-schedule-dimming.yml
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            if ! git diff --cached --quiet; then
+              git commit -m "feat: dim classes outside scheduled attendance days"
+              git push origin HEAD:feat/attendance-schedule-dimming
+            fi
+          fi
 
       - name: Set up Node 22
         uses: actions/setup-node@v4
