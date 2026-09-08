@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import './GlobalSettingsAppearanceBridge.css';
 
 const AdminPage = lazy(() => import('../pages/AdminPage.jsx'));
+const SettingsTeacherAccountCreator = lazy(() => import('./SettingsTeacherAccountCreator.jsx'));
 
 const ADMIN_HOST_ID = 'settings-admin-merge-host';
 const ADMIN_NAV_SLOT_ID = 'settings-admin-merge-nav';
@@ -166,6 +167,7 @@ export default function GlobalSettingsAdminBridge(props) {
             </div>
           </div>
           <Suspense fallback={<div className="settings-admin-merge-loading">{vi ? 'Đang tải công cụ quản trị…' : 'Loading administration tools…'}</div>}>
+            <SettingsTeacherAccountCreator language={props.language} />
             <AdminPage language={props.language} currentUser={props.currentUser} />
           </Suspense>
         </>,
