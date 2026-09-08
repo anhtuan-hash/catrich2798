@@ -4,6 +4,7 @@ import { readSheet } from 'read-excel-file/browser';
 import { getRuntimeClient } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
 import { normalizeSystemRole, SYSTEM_ROLES } from '../utils/roles.js';
+import { hasExplicitPermissionId, ROUTE_PERMISSION_IDS } from '../utils/permissions.js';
 import {
   ABSENCE_REASON_OPTIONS,
   ATTENDANCE_SUBJECT_HUB,
@@ -153,7 +154,11 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const fileRef = useRef(null);
 
   const systemRole = normalizeSystemRole(runtime.role || currentUser?.role, SYSTEM_ROLES.GUEST);
-  const allowed = Boolean(currentUser?.id && systemRole === SYSTEM_ROLES.ADMIN);
+  const allowed = Boolean(
+    currentUser?.id
+      && (systemRole === SYSTEM_ROLES.ADMIN
+        || hasExplicitPermissionId(currentUser, ROUTE_PERMISSION_IDS.attendance))
+  );
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;

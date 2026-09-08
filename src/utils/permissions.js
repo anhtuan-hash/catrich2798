@@ -24,6 +24,7 @@ export const ROUTE_PERMISSION_IDS = {
   'production-hardening': 'route:production-hardening',
   'app-vault': 'route:app-vault',
   qa: 'route:qa',
+  attendance: 'route:attendance',
   settings: 'route:settings',
   homeroom: HOMEROOM_PERMISSION_ID,
 };
@@ -41,6 +42,15 @@ const TOOL_BY_SLUG = new Map([...APPS, ...GAME_APPS, ...SPECIAL_TOOLS].map((item
 
 export const CORE_PERMISSION_ITEMS = [
   HOMEROOM_PERMISSION_ITEM,
+  {
+    id: ROUTE_PERMISSION_IDS.attendance,
+    type: 'system',
+    section: 'content',
+    title: 'Attendance',
+    titleVi: 'Điểm danh',
+    desc: 'Access remedial and enrichment attendance. This permission must be granted explicitly by an administrator.',
+    descVi: 'Truy cập điểm danh lớp phụ đạo & bồi dưỡng. Quyền này phải được quản trị viên cấp riêng.',
+  },
   {
     id: ROUTE_PERMISSION_IDS['resource-library'],
     type: 'content',
@@ -182,6 +192,8 @@ export const TOOL_PERMISSION_ITEMS = [
 
 export const PERMISSION_ITEMS = [...CORE_PERMISSION_ITEMS, ...TOOL_PERMISSION_ITEMS];
 export const ALL_PERMISSION_IDS = PERMISSION_ITEMS.map((item) => item.id);
+export const EXPLICIT_PERMISSION_IDS = [ROUTE_PERMISSION_IDS.attendance];
+const EXPLICIT_PERMISSION_SET = new Set(EXPLICIT_PERMISSION_IDS);
 
 export const PERMISSION_GROUPS = [
   {
@@ -210,25 +222,35 @@ export const PERMISSION_GROUPS = [
   },
 ];
 
-export function createAllAccessPermissions() {
-  return { mode: PERMISSION_MODE_ALL, allowed: [] };
+function cleanPermissionIds(allowed = []) {
+  return [...new Set((allowed || []).filter((id) => ALL_PERMISSION_IDS.includes(id)))];
+}
+
+function cleanExplicitPermissionIds(allowed = []) {
+  return [...new Set((allowed || []).filter((id) => EXPLICIT_PERMISSION_SET.has(id)))];
+}
+
+export function createAllAccessPermissions(explicitAllowed = []) {
+  return { mode: PERMISSION_MODE_ALL, allowed: cleanExplicitPermissionIds(explicitAllowed) };
 }
 
 export function createCustomPermissions(allowed = []) {
-  const clean = [...new Set((allowed || []).filter((id) => ALL_PERMISSION_IDS.includes(id)))];
-  return { mode: PERMISSION_MODE_CUSTOM, allowed: clean };
+  return { mode: PERMISSION_MODE_CUSTOM, allowed: cleanPermissionIds(allowed) };
 }
 
 export function normalizePermissions(raw) {
   if (!raw || typeof raw !== 'object') return createAllAccessPermissions();
   const mode = raw.mode === PERMISSION_MODE_CUSTOM ? PERMISSION_MODE_CUSTOM : PERMISSION_MODE_ALL;
-  if (mode === PERMISSION_MODE_ALL) return createAllAccessPermissions();
-  return createCustomPermissions(Array.isArray(raw.allowed) ? raw.allowed : []);
+  const allowed = Array.isArray(raw.allowed) ? raw.allowed : [];
+  if (mode === PERMISSION_MODE_ALL) return createAllAccessPermissions(allowed);
+  return createCustomPermissions(allowed);
 }
 
 export function getAllowedIdsFromPermissions(raw) {
   const permissions = normalizePermissions(raw);
-  return permissions.mode === PERMISSION_MODE_ALL ? ALL_PERMISSION_IDS : permissions.allowed;
+  if (permissions.mode !== PERMISSION_MODE_ALL) return permissions.allowed;
+  const normalIds = ALL_PERMISSION_IDS.filter((id) => !EXPLICIT_PERMISSION_SET.has(id));
+  return [...normalIds, ...permissions.allowed];
 }
 
 export function getPermissionItem(id) {
@@ -254,6 +276,7 @@ export function hasPermissionId(user, permissionId) {
   if (!user) return false;
   if (isAdminRole(user.role)) return true;
   const permissions = normalizePermissions(user.permissions);
+  if (EXPLICIT_PERMISSION_SET.has(permissionId)) return permissions.allowed.includes(permissionId);
   if (permissions.mode === PERMISSION_MODE_ALL) return true;
   return permissions.allowed.includes(permissionId);
 }
@@ -283,7 +306,7 @@ export function getRoutePermissionId(route) {
   if (RETIRED_ROUTES.has(route)) return '';
   if (route === 'news') return getToolPermissionId('news-reader');
   if (route === 'homeroom') return HOMEROOM_PERMISSION_ID;
-  if (route === 'dashboard' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
+  if (route === 'dashboard' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'attendance' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
   if (route === 'games') return getToolPermissionId('game-hub');
   return '';
 }
@@ -301,7 +324,7 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   if (route === 'dashboard') return Boolean(user);
   if (route === 'homeroom') return hasPermissionId(user, HOMEROOM_PERMISSION_ID);
   if (route === 'apps' || route === 'games' || route === 'tools') return true;
-  if (route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'qa' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
+  if (route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'qa' || route === 'attendance' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
   return false;
 }
 

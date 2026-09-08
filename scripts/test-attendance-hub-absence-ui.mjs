@@ -1,5 +1,15 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
+import {
+  ROUTE_PERMISSION_IDS,
+  createAllAccessPermissions,
+  getAllowedIdsFromPermissions,
+  getPermissionItem,
+  hasExplicitPermissionId,
+  hasPermissionId,
+  hasRouteAccess,
+  normalizePermissions,
+} from '../src/utils/permissions.js';
 
 const attendance = fs.readFileSync(new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url), 'utf8');
 const utility = fs.readFileSync(new URL('../src/utils/extraClassAttendance.js', import.meta.url), 'utf8');
@@ -8,7 +18,54 @@ const polishUrl = new URL('../public/attendance-ui-polish.css', import.meta.url)
 const polishCss = fs.existsSync(polishUrl) ? fs.readFileSync(polishUrl, 'utf8') : '';
 const indexHtml = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const searchRemovalRuntime = fs.readFileSync(new URL('../public/bes-remove-visible-search-bars.js', import.meta.url), 'utf8');
+const permissionMigration = fs.readFileSync(new URL('../supabase/migrations/20260908_admin_grant_attendance_permission.sql', import.meta.url), 'utf8');
 const uiSource = `${attendance}\n${utility}`;
+
+assert.equal(ROUTE_PERMISSION_IDS.attendance, 'route:attendance', 'Attendance must have a dedicated route permission id');
+
+const teacherWithFullNormalAccess = {
+  id: 'teacher-all',
+  role: 'teacher',
+  permissions: createAllAccessPermissions(),
+};
+assert.equal(hasExplicitPermissionId(teacherWithFullNormalAccess, ROUTE_PERMISSION_IDS.attendance), false,
+  'Full teacher access must not implicitly grant attendance');
+assert.equal(hasPermissionId(teacherWithFullNormalAccess, ROUTE_PERMISSION_IDS.attendance), false,
+  'Attendance must stay explicit even in all mode');
+assert.equal(hasRouteAccess(teacherWithFullNormalAccess, 'attendance'), false,
+  'Teacher without the explicit grant must not pass the attendance route guard');
+
+const grantedAllPermissions = normalizePermissions({
+  mode: 'all',
+  allowed: [ROUTE_PERMISSION_IDS.attendance],
+});
+assert.deepEqual(grantedAllPermissions.allowed, [ROUTE_PERMISSION_IDS.attendance],
+  'Normalizing all-mode permissions must preserve the explicit attendance grant');
+assert.equal(getAllowedIdsFromPermissions(grantedAllPermissions).includes(ROUTE_PERMISSION_IDS.attendance), true,
+  'Effective permission ids must include attendance after an explicit grant');
+
+const grantedTeacher = {
+  ...teacherWithFullNormalAccess,
+  permissions: grantedAllPermissions,
+};
+assert.equal(hasExplicitPermissionId(grantedTeacher, ROUTE_PERMISSION_IDS.attendance), true);
+assert.equal(hasPermissionId(grantedTeacher, ROUTE_PERMISSION_IDS.attendance), true);
+assert.equal(hasRouteAccess(grantedTeacher, 'attendance'), true,
+  'Teacher with the explicit attendance grant must pass the route guard');
+
+const admin = {
+  id: 'admin',
+  role: 'admin',
+  permissions: createAllAccessPermissions(),
+};
+assert.equal(hasRouteAccess(admin, 'attendance'), true, 'Admin must always retain attendance access');
+assert.match(attendance, /ROUTE_PERMISSION_IDS\.attendance/, 'Attendance navigation must use the attendance permission id');
+assert.match(attendance, /hasExplicitPermissionId/, 'Attendance navigation must enforce the explicit permission grant');
+const attendancePermissionItem = getPermissionItem(ROUTE_PERMISSION_IDS.attendance);
+assert.equal(attendancePermissionItem?.titleVi, 'Điểm danh', 'Admin permission editor data must expose the attendance permission label');
+assert.match(attendancePermissionItem?.descVi || '', /quản trị viên cấp riêng/i, 'Attendance grant must be described as an explicit admin permission');
+assert.match(permissionMigration, /can_manage_extra_class_attendance/, 'Database migration must update the shared attendance RLS gate');
+assert.match(permissionMigration, /route:attendance/, 'Database attendance gate must honor the explicit attendance permission');
 
 assert.match(attendance, /Tìm nhanh lớp/i, 'Quick attendance must provide a fast class search');
 assert.match(attendance, /ATTENDANCE_SUBJECT_HUB/, 'Quick attendance must render the shared subject hub');
@@ -56,4 +113,4 @@ for (const token of ['is-subject-math', 'is-subject-casio', 'is-subject-literatu
   assert.match(css, new RegExp(token), `Material 3 CSS must define ${token}`);
 }
 
-console.log('Attendance class hub, visible discovery, subject colors, room/time and absence UI contract OK');
+console.log('Attendance class hub, explicit access permission, database gate, visible discovery, subject colors, room/time and absence UI contract OK');
