@@ -12,6 +12,7 @@ import {
   parseExtraClassRosterRows,
   sortMembersByName,
 } from '../utils/extraClassAttendance.js';
+import { isExtraClassScheduledOnDate } from '../utils/extraClassSchedule2026.js';
 import {
   giftedAssignmentForClass,
   teachersForGiftedAssignment,
@@ -726,7 +727,8 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                 <header><strong>Lớp đang hoạt động</strong><span>{activeClasses.length} lớp</span></header>
                 <div>{activeClasses.map((classRow) => {
                   const last = lastSessionByClass.get(String(classRow.id));
-                  return <button key={classRow.id} type="button" className={String(selectedClassId) === String(classRow.id) ? 'is-selected' : ''} onClick={() => setSelectedClassId(classRow.id)}><span className={`attendance-type-dot is-${classRow.class_type}`} /><div><b>{classRow.class_name}</b><small>{extraClassTypeLabel(classRow.class_type)} · {classRow.subject || 'Chưa ghi môn'}</small><em>{teachersForClass(classRow)}</em></div><span className="attendance-count">{memberCounts.get(String(classRow.id)) || 0}</span>{last ? <time>{formatDate(last.attendance_date)}</time> : <time>Chưa điểm danh</time>}</button>;
+                  const scheduledForDate = isExtraClassScheduledOnDate(classRow, attendanceDate);
+                  return <button key={classRow.id} type="button" className={`${String(selectedClassId) === String(classRow.id) ? 'is-selected ' : ''}${scheduledForDate ? '' : 'is-off-schedule'}`.trim()} title={scheduledForDate ? undefined : `Không có lịch học ngày ${formatDate(attendanceDate)}`} onClick={() => setSelectedClassId(classRow.id)}><span className={`attendance-type-dot is-${classRow.class_type}`} /><div><b>{classRow.class_name}</b><small>{extraClassTypeLabel(classRow.class_type)} · {classRow.subject || 'Chưa ghi môn'}</small><em>{teachersForClass(classRow)}</em></div><span className="attendance-count">{memberCounts.get(String(classRow.id)) || 0}</span>{last ? <time>{formatDate(last.attendance_date)}</time> : <time>Chưa điểm danh</time>}</button>;
                 })}{!activeClasses.length ? <div className="attendance-empty">Chưa có lớp. Mở “Quản lý lớp” để import danh sách.</div> : null}</div>
               </aside>
 
