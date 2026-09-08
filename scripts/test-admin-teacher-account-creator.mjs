@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 const index = await readFile(new URL('../index.html', import.meta.url), 'utf8');
 const entry = await readFile(new URL('../public/admin-teacher-account-entry.js', import.meta.url), 'utf8');
 const panel = await readFile(new URL('../src/components/BulkTeacherAccountsPanel.jsx', import.meta.url), 'utf8');
+const adminPage = await readFile(new URL('../src/pages/AdminPage.jsx', import.meta.url), 'utf8');
 
 assert.ok(
   index.includes('/admin-teacher-account-entry.js'),
@@ -29,5 +30,15 @@ assert.ok(
   panel.includes("isAdminRole(currentUser?.role)"),
   'Teacher-account manager must remain restricted to admins.',
 );
+assert.match(
+  adminPage,
+  /import\s+BulkTeacherAccountsPanel\s+from\s+['"]\.\.\/components\/BulkTeacherAccountsPanel\.jsx['"];/,
+  'AdminPage must import the secured teacher-account manager instead of relying on an orphan launcher runtime.',
+);
+assert.match(
+  adminPage,
+  /<BulkTeacherAccountsPanel\s+language=\{language\}\s*\/>/,
+  'AdminPage must actually mount the teacher-account manager so the creation action can appear.',
+);
 
-console.log('PASS: Admin has a secured teacher-account creation entry point.');
+console.log('PASS: Admin has a secured, mounted teacher-account creation entry point.');
