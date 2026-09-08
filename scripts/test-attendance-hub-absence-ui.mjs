@@ -1,10 +1,13 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {
+  ATTENDANCE_PERMISSION_IDS,
   ROUTE_PERMISSION_IDS,
   createAllAccessPermissions,
   getAllowedIdsFromPermissions,
   getPermissionItem,
+  hasAnyAttendanceAccess,
+  hasAttendanceTabAccess,
   hasExplicitPermissionId,
   hasPermissionId,
   hasRouteAccess,
@@ -21,51 +24,32 @@ const searchRemovalRuntime = fs.readFileSync(new URL('../public/bes-remove-visib
 const permissionMigration = fs.readFileSync(new URL('../supabase/migrations/20260908_admin_grant_attendance_permission.sql', import.meta.url), 'utf8');
 const uiSource = `${attendance}\n${utility}`;
 
-assert.equal(ROUTE_PERMISSION_IDS.attendance, 'route:attendance', 'Attendance must have a dedicated route permission id');
+assert.equal(ROUTE_PERMISSION_IDS.attendance, 'route:attendance', 'Legacy Attendance route id must remain available during migration');
 
 const teacherWithFullNormalAccess = {
   id: 'teacher-all',
   role: 'teacher',
   permissions: createAllAccessPermissions(),
 };
-assert.equal(hasExplicitPermissionId(teacherWithFullNormalAccess, ROUTE_PERMISSION_IDS.attendance), false,
+assert.equal(hasAnyAttendanceAccess(teacherWithFullNormalAccess), false,
   'Full teacher access must not implicitly grant attendance');
-assert.equal(hasPermissionId(teacherWithFullNormalAccess, ROUTE_PERMISSION_IDS.attendance), false,
-  'Attendance must stay explicit even in all mode');
 assert.equal(hasRouteAccess(teacherWithFullNormalAccess, 'attendance'), false,
-  'Teacher without the explicit grant must not pass the attendance route guard');
+  'Teacher without an explicit attendance tab grant must not pass the attendance route guard');
 
-const grantedAllPermissions = normalizePermissions({
-  mode: 'all',
-  allowed: [ROUTE_PERMISSION_IDS.attendance],
-});
-assert.deepEqual(grantedAllPermissions.allowed, [ROUTE_PERMISSION_IDS.attendance],
-  'Normalizing all-mode permissions must preserve the explicit attendance grant');
-assert.equal(getAllowedIdsFromPermissions(grantedAllPermissions).includes(ROUTE_PERMISSION_IDS.attendance), true,
-  'Effective permission ids must include attendance after an explicit grant');
+const legacyPermissions = normalizePermissions({ mode: 'all', allowed: [ROUTE_PERMISSION_IDS.attendance] });
+for (const permissionId of Object.values(ATTENDANCE_PERMISSION_IDS)) {
+  assert.equal(legacyPermissions.allowed.includes(permissionId), true, 'Legacy Attendance grant must expand to each granular tab permission');
+}
+const legacyTeacher = { ...teacherWithFullNormalAccess, permissions: legacyPermissions };
+assert.equal(hasAnyAttendanceAccess(legacyTeacher), true);
+assert.equal(hasAttendanceTabAccess(legacyTeacher, 'quick'), true);
+assert.equal(hasRouteAccess(legacyTeacher, 'attendance'), true);
 
-const grantedTeacher = {
-  ...teacherWithFullNormalAccess,
-  permissions: grantedAllPermissions,
-};
-assert.equal(hasExplicitPermissionId(grantedTeacher, ROUTE_PERMISSION_IDS.attendance), true);
-assert.equal(hasPermissionId(grantedTeacher, ROUTE_PERMISSION_IDS.attendance), true);
-assert.equal(hasRouteAccess(grantedTeacher, 'attendance'), true,
-  'Teacher with the explicit attendance grant must pass the route guard');
-
-const admin = {
-  id: 'admin',
-  role: 'admin',
-  permissions: createAllAccessPermissions(),
-};
+const admin = { id: 'admin', role: 'admin', permissions: createAllAccessPermissions() };
 assert.equal(hasRouteAccess(admin, 'attendance'), true, 'Admin must always retain attendance access');
-assert.match(attendance, /ROUTE_PERMISSION_IDS\.attendance/, 'Attendance navigation must use the attendance permission id');
-assert.match(attendance, /hasExplicitPermissionId/, 'Attendance navigation must enforce the explicit permission grant');
-const attendancePermissionItem = getPermissionItem(ROUTE_PERMISSION_IDS.attendance);
-assert.equal(attendancePermissionItem?.titleVi, 'Điểm danh', 'Admin permission editor data must expose the attendance permission label');
-assert.match(attendancePermissionItem?.descVi || '', /quản trị viên cấp riêng/i, 'Attendance grant must be described as an explicit admin permission');
-assert.match(permissionMigration, /can_manage_extra_class_attendance/, 'Database migration must update the shared attendance RLS gate');
-assert.match(permissionMigration, /route:attendance/, 'Database attendance gate must honor the explicit attendance permission');
+assert.match(attendance, /hasAttendanceTabAccess/, 'Attendance navigation must enforce granular tab permissions');
+assert.match(permissionMigration, /can_manage_extra_class_attendance/, 'Earlier database migration must retain the compatibility gate');
+assert.match(permissionMigration, /route:attendance/, 'Earlier database migration must still document the legacy Attendance permission');
 
 assert.match(attendance, /Tìm nhanh lớp/i, 'Quick attendance must provide a fast class search');
 assert.match(attendance, /ATTENDANCE_SUBJECT_HUB/, 'Quick attendance must render the shared subject hub');

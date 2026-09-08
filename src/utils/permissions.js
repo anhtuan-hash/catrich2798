@@ -29,6 +29,76 @@ export const ROUTE_PERMISSION_IDS = {
   homeroom: HOMEROOM_PERMISSION_ID,
 };
 
+// Attendance is intentionally outside normal "full teacher" access.
+// The legacy route:attendance id remains readable for backwards compatibility only.
+export const ATTENDANCE_PERMISSION_IDS = {
+  quick: 'attendance:quick',
+  calendar: 'attendance:calendar',
+  manage: 'attendance:manage',
+  history: 'attendance:history',
+  report: 'attendance:report',
+};
+
+export const ATTENDANCE_PERMISSION_ITEMS = [
+  {
+    id: ATTENDANCE_PERMISSION_IDS.quick,
+    tab: 'quick',
+    type: 'attendance',
+    section: 'attendance',
+    title: 'Quick attendance',
+    titleVi: 'Điểm danh nhanh',
+    desc: 'Take attendance, cancel a class session, and reopen a locked attendance day.',
+    descVi: 'Điểm danh, hủy buổi học và xóa buổi điểm danh đã chốt để mở lại ngày.',
+  },
+  {
+    id: ATTENDANCE_PERMISSION_IDS.calendar,
+    tab: 'calendar',
+    type: 'attendance',
+    section: 'attendance',
+    title: 'Monthly calendar',
+    titleVi: 'Lịch tháng',
+    desc: 'View the monthly attendance calendar.',
+    descVi: 'Xem lịch điểm danh theo tháng.',
+  },
+  {
+    id: ATTENDANCE_PERMISSION_IDS.manage,
+    tab: 'manage',
+    type: 'attendance',
+    section: 'attendance',
+    title: 'Class management',
+    titleVi: 'Quản lý lớp',
+    desc: 'Import, create, edit and remove extra classes, students and teachers.',
+    descVi: 'Import, tạo, chỉnh sửa và xóa lớp, học sinh, giáo viên phụ đạo/bồi dưỡng.',
+  },
+  {
+    id: ATTENDANCE_PERMISSION_IDS.history,
+    tab: 'history',
+    type: 'attendance',
+    section: 'attendance',
+    title: 'Attendance history',
+    titleVi: 'Lịch sử',
+    desc: 'View completed and cancelled attendance sessions and absence details.',
+    descVi: 'Xem lịch sử buổi học đã điểm danh/đã hủy và chi tiết học sinh vắng.',
+  },
+  {
+    id: ATTENDANCE_PERMISSION_IDS.report,
+    tab: 'report',
+    type: 'attendance',
+    section: 'attendance',
+    title: 'Attendance reports',
+    titleVi: 'Báo cáo',
+    desc: 'View and export attendance reports.',
+    descVi: 'Xem và xuất báo cáo chuyên cần.',
+  },
+];
+
+export const ATTENDANCE_PERMISSION_GROUP = {
+  key: 'attendance',
+  title: 'Attendance',
+  titleVi: 'Điểm danh',
+  ids: ATTENDANCE_PERMISSION_ITEMS.map((item) => item.id),
+};
+
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup']);
 const RETIRED_ROUTES = new Set(['library', 'practice']);
 
@@ -42,15 +112,6 @@ const TOOL_BY_SLUG = new Map([...APPS, ...GAME_APPS, ...SPECIAL_TOOLS].map((item
 
 export const CORE_PERMISSION_ITEMS = [
   HOMEROOM_PERMISSION_ITEM,
-  {
-    id: ROUTE_PERMISSION_IDS.attendance,
-    type: 'system',
-    section: 'content',
-    title: 'Attendance',
-    titleVi: 'Điểm danh',
-    desc: 'Access remedial and enrichment attendance. This permission must be granted explicitly by an administrator.',
-    descVi: 'Truy cập điểm danh lớp phụ đạo & bồi dưỡng. Quyền này phải được quản trị viên cấp riêng.',
-  },
   {
     id: ROUTE_PERMISSION_IDS['resource-library'],
     type: 'content',
@@ -190,9 +251,9 @@ export const TOOL_PERMISSION_ITEMS = [
   ...SPECIAL_TOOLS.map((item) => makeToolPermissionItem(item, 'tools')),
 ];
 
-export const PERMISSION_ITEMS = [...CORE_PERMISSION_ITEMS, ...TOOL_PERMISSION_ITEMS];
+export const PERMISSION_ITEMS = [...CORE_PERMISSION_ITEMS, ...ATTENDANCE_PERMISSION_ITEMS, ...TOOL_PERMISSION_ITEMS];
 export const ALL_PERMISSION_IDS = PERMISSION_ITEMS.map((item) => item.id);
-export const EXPLICIT_PERMISSION_IDS = [ROUTE_PERMISSION_IDS.attendance];
+export const EXPLICIT_PERMISSION_IDS = [...ATTENDANCE_PERMISSION_GROUP.ids];
 const EXPLICIT_PERMISSION_SET = new Set(EXPLICIT_PERMISSION_IDS);
 
 export const PERMISSION_GROUPS = [
@@ -222,12 +283,21 @@ export const PERMISSION_GROUPS = [
   },
 ];
 
+function expandLegacyAttendancePermissions(allowed = []) {
+  const source = Array.isArray(allowed) ? allowed : [];
+  if (!source.includes(ROUTE_PERMISSION_IDS.attendance)) return source;
+  return [
+    ...source.filter((id) => id !== ROUTE_PERMISSION_IDS.attendance),
+    ...ATTENDANCE_PERMISSION_GROUP.ids,
+  ];
+}
+
 function cleanPermissionIds(allowed = []) {
-  return [...new Set((allowed || []).filter((id) => ALL_PERMISSION_IDS.includes(id)))];
+  return [...new Set(expandLegacyAttendancePermissions(allowed).filter((id) => ALL_PERMISSION_IDS.includes(id)))];
 }
 
 function cleanExplicitPermissionIds(allowed = []) {
-  return [...new Set((allowed || []).filter((id) => EXPLICIT_PERMISSION_SET.has(id)))];
+  return [...new Set(expandLegacyAttendancePermissions(allowed).filter((id) => EXPLICIT_PERMISSION_SET.has(id)))];
 }
 
 export function createAllAccessPermissions(explicitAllowed = []) {
@@ -254,7 +324,20 @@ export function getAllowedIdsFromPermissions(raw) {
 }
 
 export function getPermissionItem(id) {
-  return PERMISSION_ITEMS.find((item) => item.id === id) || null;
+  const item = PERMISSION_ITEMS.find((entry) => entry.id === id);
+  if (item) return item;
+  if (id === ROUTE_PERMISSION_IDS.attendance) {
+    return {
+      id,
+      type: 'attendance',
+      section: 'attendance',
+      title: 'Attendance (legacy)',
+      titleVi: 'Điểm danh (quyền cũ)',
+      desc: 'Legacy attendance grant; migrated to all five attendance tabs.',
+      descVi: 'Quyền Điểm danh cũ; hệ thống tự chuyển thành đủ 5 quyền thẻ Điểm danh.',
+    };
+  }
+  return null;
 }
 
 export function getToolPermissionId(slug) {
@@ -272,9 +355,23 @@ export function hasExplicitPermissionId(user, permissionId) {
   return Array.isArray(permissions.allowed) && permissions.allowed.includes(permissionId);
 }
 
+export function hasAttendanceTabAccess(user, tab) {
+  const permissionId = ATTENDANCE_PERMISSION_IDS[tab];
+  return Boolean(permissionId && hasExplicitPermissionId(user, permissionId));
+}
+
+export function hasAnyAttendanceAccess(user) {
+  return ATTENDANCE_PERMISSION_ITEMS.some((item) => hasAttendanceTabAccess(user, item.tab));
+}
+
+export function getFirstAllowedAttendanceTab(user) {
+  return ATTENDANCE_PERMISSION_ITEMS.find((item) => hasAttendanceTabAccess(user, item.tab))?.tab || '';
+}
+
 export function hasPermissionId(user, permissionId) {
   if (!user) return false;
   if (isAdminRole(user.role)) return true;
+  if (permissionId === ROUTE_PERMISSION_IDS.attendance) return hasAnyAttendanceAccess(user);
   const permissions = normalizePermissions(user.permissions);
   if (EXPLICIT_PERMISSION_SET.has(permissionId)) return permissions.allowed.includes(permissionId);
   if (permissions.mode === PERMISSION_MODE_ALL) return true;
@@ -306,6 +403,7 @@ export function getRoutePermissionId(route) {
   if (RETIRED_ROUTES.has(route)) return '';
   if (route === 'news') return getToolPermissionId('news-reader');
   if (route === 'homeroom') return HOMEROOM_PERMISSION_ID;
+  if (route === 'attendance') return ATTENDANCE_PERMISSION_IDS.quick;
   if (route === 'dashboard' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'attendance' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
   if (route === 'games') return getToolPermissionId('game-hub');
   return '';
@@ -323,6 +421,7 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   if (route === 'news') return Boolean(user);
   if (route === 'dashboard') return Boolean(user);
   if (route === 'homeroom') return hasPermissionId(user, HOMEROOM_PERMISSION_ID);
+  if (route === 'attendance') return hasAnyAttendanceAccess(user);
   if (route === 'apps' || route === 'games' || route === 'tools') return true;
   if (route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'qa' || route === 'attendance' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
   return false;
@@ -337,7 +436,13 @@ export function summarizePermissions(user, language = 'vi') {
   if (!user) return '';
   if (isAdminRole(user.role)) return language === 'vi' ? 'Toàn quyền quản trị' : 'Full admin access';
   const permissions = normalizePermissions(user.permissions);
-  if (permissions.mode === PERMISSION_MODE_ALL) return language === 'vi' ? 'Toàn quyền giáo viên' : 'Full teacher access';
+  if (permissions.mode === PERMISSION_MODE_ALL) {
+    const attendanceCount = ATTENDANCE_PERMISSION_GROUP.ids.filter((id) => permissions.allowed.includes(id)).length;
+    if (!attendanceCount) return language === 'vi' ? 'Toàn quyền giáo viên · chưa cấp Điểm danh' : 'Full teacher access · no Attendance grant';
+    return language === 'vi'
+      ? `Toàn quyền giáo viên · ${attendanceCount}/${ATTENDANCE_PERMISSION_GROUP.ids.length} quyền Điểm danh`
+      : `Full teacher access · ${attendanceCount}/${ATTENDANCE_PERMISSION_GROUP.ids.length} Attendance permissions`;
+  }
   const count = permissions.allowed.length;
   return language === 'vi' ? `${count}/${ALL_PERMISSION_IDS.length} quyền được cấp` : `${count}/${ALL_PERMISSION_IDS.length} permissions granted`;
 }
