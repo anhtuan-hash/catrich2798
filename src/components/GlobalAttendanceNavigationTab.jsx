@@ -31,12 +31,13 @@ import './GlobalAttendanceDailyCalendar.css';
 import './GlobalAttendanceManualTeacher.css';
 import AttendanceMonthlyReport from './attendance/AttendanceMonthlyReport.jsx';
 import AttendanceClassEditor from './attendance/AttendanceClassEditor.jsx';
+import { ATTENDANCE_PROOF_BUCKET, buildAttendanceProofPath, prepareAttendanceProofImage } from '../utils/attendanceProofImage.js';
 import './attendance/AttendanceMaterial3.css';
 
 const CLASS_COLUMNS = 'id,class_type,class_name,subject,teacher_id,teacher_name,teacher_email,active,source_key,school_year,grade_level,expected_student_count,periods_per_week,room,weekdays,time_range,created_by,updated_by,created_at,updated_at';
 const MEMBER_COLUMNS = 'id,class_id,member_key,student_code,student_full_name,school_class_name,active,joined_at,left_at,created_by,updated_by,removed_by,removal_reason,created_at,updated_at';
 const CLASS_TEACHER_COLUMNS = 'id,class_id,teacher_id,teacher_name,teacher_email,position,source_key,created_at,updated_at';
-const SESSION_COLUMNS = 'id,class_id,class_type,class_name,subject,teacher_id,teacher_name,teacher_email,attendance_date,checked_at,checked_by,total_students,present_count,absent_count,note,session_status,lesson_periods,cancellation_reason,teaching_room,teaching_time_range,created_at';
+const SESSION_COLUMNS = 'id,class_id,class_type,class_name,subject,teacher_id,teacher_name,teacher_email,attendance_date,checked_at,checked_by,total_students,present_count,absent_count,note,session_status,lesson_periods,cancellation_reason,teaching_room,teaching_time_range,proof_path,created_at';
 const RECORD_COLUMNS = 'id,session_id,class_id,member_id,member_key,student_code,student_full_name,school_class_name,status,recorded_at,absence_reason_code,absence_note';
 const VIETNAM_TIME_ZONE = 'Asia/Ho_Chi_Minh';
 
@@ -167,7 +168,12 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const [showCancelSession, setShowCancelSession] = useState(false);
   const [cancellationReason, setCancellationReason] = useState('');
   const [reportMonth, setReportMonth] = useState(today.slice(0, 7));
+  const [proofFile, setProofFile] = useState(null);
+  const [proofPreviewUrl, setProofPreviewUrl] = useState('');
+  const [historyProofUrl, setHistoryProofUrl] = useState('');
+  const [historyProofLoading, setHistoryProofLoading] = useState(false);
   const fileRef = useRef(null);
+  const proofInputRef = useRef(null);
 
   const systemRole = normalizeSystemRole(runtime.role || currentUser?.role, SYSTEM_ROLES.GUEST);
   const isAttendanceAdmin = systemRole === SYSTEM_ROLES.ADMIN;
@@ -424,6 +430,17 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     !row.absence_reason_code || (row.absence_reason_code === 'other' && !String(row.absence_note || '').trim())
   )), [draft]);
 
+  useEffect(() => {
+    if (proofPreviewUrl) URL.revokeObjectURL(proofPreviewUrl);
+    setProofFile(null);
+    setProofPreviewUrl('');
+    if (proofInputRef.current) proofInputRef.current.value = '';
+  }, [selectedClassId, attendanceDate]);
+
+  useEffect(() => () => {
+    if (proofPreviewUrl) URL.revokeObjectURL(proofPreviewUrl);
+  }, [proofPreviewUrl]);
+
   function toggleAbsent(memberKeyValue) {
     if (isDayLocked) return;
     setDraft((current) => current.map((row) => {
@@ -436,6 +453,53 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   function updateAbsenceField(memberKeyValue, patch) {
     if (isDayLocked) return;
     setDraft((current) => current.map((row) => row.member_key === memberKeyValue ? { ...row, ...patch } : row));
+  }
+
+  function clearProofSelection() {
+    if (proofPreviewUrl) URL.revokeObjectURL(proofPreviewUrl);
+    setProofFile(null);
+    setProofPreviewUrl('');
+    if (proofInputRef.current) proofInputRef.current.value = '';
+  }
+
+  function chooseProofFile(file) {
+    if (!file) return;
+    if (!String(file.type || '').startsWith('image/')) {
+      setError('Vui lòng chọn một tệp hình ảnh để làm minh chứng.');
+      return;
+    }
+    if (proofPreviewUrl) URL.revokeObjectURL(proofPreviewUrl);
+    setProofFile(file);
+    setProofPreviewUrl(URL.createObjectURL(file));
+    setError('');
+  }
+
+  async function uploadAttendanceProof(session) {
+    if (!proofFile || !session?.id || !client) return '';
+    const prepared = await prepareAttendanceProofImage(proofFile);
+    const proofPath = buildAttendanceProofPath(session.id);
+    const { error: uploadError } = await client.storage
+      .from(ATTENDANCE_PROOF_BUCKET)
+      .upload(proofPath, prepared, { contentType: 'image/jpeg', upsert: false });
+    if (uploadError) throw uploadError;
+
+    const { error: attachError } = await client.rpc('bes_set_extra_attendance_proof', {
+      p_session_id: session.id,
+      p_proof_path: proofPath,
+    });
+    if (attachError) {
+      await client.storage.from(ATTENDANCE_PROOF_BUCKET).remove([proofPath]);
+      throw attachError;
+    }
+    clearProofSelection();
+    return proofPath;
+  }
+
+  async function removeAttendanceProofPaths(paths) {
+    const cleanPaths = Array.from(new Set((paths || []).map((value) => String(value || '').trim()).filter(Boolean)));
+    if (!client || !cleanPaths.length) return;
+    const { error: removeError } = await client.storage.from(ATTENDANCE_PROOF_BUCKET).remove(cleanPaths);
+    if (removeError) console.warn('Không thể dọn ảnh minh chứng điểm danh:', removeError.message || removeError);
   }
 
   async function confirmAttendance() {
@@ -490,11 +554,23 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       if (confirmError) throw confirmError;
       const created = Array.isArray(data) ? data[0] : data;
       setDaySession(created || null);
-      setNotice(`Đã chốt điểm danh ${selectedClass.class_name} ngày ${formatDate(attendanceDate)} · GV ${sessionTeacher} · ${summary.present}/${summary.total} có mặt.`);
+      let proofSaved = false;
+      let proofUploadFailure = '';
+      if (proofFile && created?.id) {
+        try {
+          await uploadAttendanceProof(created);
+          proofSaved = true;
+        } catch (proofError) {
+          proofUploadFailure = proofError?.message || 'Không thể tải ảnh minh chứng lên hệ thống.';
+          clearProofSelection();
+        }
+      }
       await loadAll();
       await loadDaySession();
       await loadTeacherDaySessions();
       await loadMonthlySessions();
+      setNotice(`Đã chốt điểm danh ${selectedClass.class_name} ngày ${formatDate(attendanceDate)} · GV ${sessionTeacher} · ${summary.present}/${summary.total} có mặt.${proofSaved ? ' · Đã lưu ảnh minh chứng.' : ''}`);
+      if (proofUploadFailure) setError(`Điểm danh đã được chốt, nhưng ảnh minh chứng chưa được lưu: ${proofUploadFailure}`);
     } catch (confirmError) {
       setError(confirmError?.message || 'Không thể xác nhận điểm danh.');
       await loadDaySession();
@@ -526,6 +602,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       const created = Array.isArray(data) ? data[0] : data;
       setDaySession(created || null);
       setShowCancelSession(false);
+      clearProofSelection();
       setNotice(`Đã hủy buổi học ${selectedClass.class_name} ngày ${formatDate(attendanceDate)}.`);
       await loadAll();
       await loadDaySession();
@@ -752,8 +829,10 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     if (!confirmed) return;
     setBusy(true); setError(''); setNotice('');
     try {
+      const classProofPaths = sessions.filter((session) => String(session.class_id) === String(classRow.id)).map((session) => session.proof_path);
       const { error: deleteError } = await client.rpc('bes_delete_extra_class', { p_class_id: classRow.id });
       if (deleteError) throw deleteError;
+      await removeAttendanceProofPaths(classProofPaths);
       if (String(selectedClassId) === String(classRow.id)) setSelectedClassId('');
       setSelectedSessionId(''); setRecords([]); setDaySession(null); setMonthlySessions([]);
       setNotice(`Đã xóa lớp ${classRow.class_name} cùng dữ liệu điểm danh liên quan.`);
@@ -780,6 +859,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     try {
       const { error: deleteError } = await client.rpc('bes_delete_extra_attendance_session', { p_session_id: session.id });
       if (deleteError) throw deleteError;
+      await removeAttendanceProofPaths([session.proof_path]);
       setSelectedSessionId(''); setRecords([]);
       if (String(session.class_id) === String(selectedClassId) && session.attendance_date === attendanceDate) setDaySession(null);
       setNotice(`Đã xóa điểm danh ${session.class_name} ngày ${formatDate(session.attendance_date)}. Ngày này đã được mở khóa.`);
@@ -833,6 +913,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     setBusy(true); setError(''); setNotice('');
     const failed = [];
     const deletedIds = new Set();
+    const proofPathsToRemove = [];
     try {
       for (const session of targets) {
         const { error: deleteError } = await client.rpc('bes_delete_extra_attendance_session', { p_session_id: session.id });
@@ -840,8 +921,10 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
           failed.push(`${session.class_name} ${formatDate(session.attendance_date)}: ${deleteError.message || 'Lỗi không xác định'}`);
         } else {
           deletedIds.add(String(session.id));
+          if (session.proof_path) proofPathsToRemove.push(session.proof_path);
         }
       }
+      await removeAttendanceProofPaths(proofPathsToRemove);
       if (deletedIds.has(String(selectedSessionId))) {
         setSelectedSessionId('');
         setRecords([]);
@@ -875,6 +958,28 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   }), [allSelectedMembers, memberQuery]);
 
   const selectedSession = sessions.find((session) => String(session.id) === String(selectedSessionId)) || monthlySessions.find((session) => String(session.id) === String(selectedSessionId));
+
+  useEffect(() => {
+    let cancelled = false;
+    setHistoryProofUrl('');
+    if (!client || view !== 'history' || !canAccessAttendanceView('history') || !selectedSession?.proof_path) {
+      setHistoryProofLoading(false);
+      return undefined;
+    }
+    setHistoryProofLoading(true);
+    client.storage.from(ATTENDANCE_PROOF_BUCKET).createSignedUrl(selectedSession.proof_path, 300)
+      .then(({ data, error: signedUrlError }) => {
+        if (cancelled) return;
+        setHistoryProofLoading(false);
+        if (signedUrlError) {
+          setHistoryProofUrl('');
+          return;
+        }
+        setHistoryProofUrl(data?.signedUrl || '');
+      });
+    return () => { cancelled = true; };
+  }, [view, selectedSession?.id, selectedSession?.proof_path, currentUser?.permissions, systemRole]);
+
   const selectedAbsentRecords = records.filter((record) => record.status === 'absent');
   const selectedSessionAttendanceRate = selectedSession?.session_status === 'completed' && Number(selectedSession.total_students) > 0
     ? Math.round((Number(selectedSession.present_count || 0) / Number(selectedSession.total_students)) * 100)
@@ -946,6 +1051,11 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
 
                   <div className="attendance-roster-head"><span>Học sinh</span><span>Lớp chính khóa</span><span>Vắng</span></div>
                   <div className="attendance-roster">{draft.map((member, index) => <div key={member.id || member.member_key} className={`att-m3-roster-entry ${member.present === false ? 'is-absent' : ''}`}><label><span className="attendance-index">{String(index + 1).padStart(2, '0')}</span><div><b>{member.student_full_name}</b><small>{member.student_code || 'Không có mã HS'}</small></div><span className="attendance-school-class">{member.school_class_name || '—'}</span><input type="checkbox" disabled={isDayLocked} checked={member.present === false} onChange={() => toggleAbsent(member.member_key)} aria-label={`Đánh dấu ${member.student_full_name} vắng`} /></label>{member.present === false ? <div className="att-m3-absence-detail"><span>Lý do vắng</span><div className="att-m3-reason-chips">{ABSENCE_REASON_OPTIONS.map((reason) => <button key={reason.value} type="button" disabled={isDayLocked} className={member.absence_reason_code === reason.value ? 'is-active' : ''} onClick={() => updateAbsenceField(member.member_key, { absence_reason_code: reason.value, absence_note: reason.value === 'other' ? member.absence_note : member.absence_note })}>{reason.label}</button>)}</div><input disabled={isDayLocked} value={member.absence_note || ''} onChange={(event) => updateAbsenceField(member.member_key, { absence_note: event.target.value })} placeholder={member.absence_reason_code === 'other' ? 'Ghi rõ lý do khác *' : 'Ghi chú thêm (không bắt buộc)'} /></div> : null}</div>)}{!draft.length ? <div className="attendance-empty">Lớp này chưa có học sinh đang hoạt động.</div> : null}</div>
+                  <section className={`att-m3-proof-card ${isDayLocked ? 'is-locked' : ''}`}>
+                    <div className="att-m3-proof-card-head"><span aria-hidden="true">📷</span><div><strong>Minh chứng hình ảnh</strong><small>Không bắt buộc · 01 ảnh cho mỗi buổi điểm danh</small></div>{daySession?.proof_path ? <em>Đã lưu</em> : null}</div>
+                    <input ref={proofInputRef} type="file" accept="image/*" capture="environment" hidden disabled={isDayLocked} onChange={(event) => chooseProofFile(event.target.files?.[0])} />
+                    {proofPreviewUrl && !isDayLocked ? <div className="att-m3-proof-preview"><img src={proofPreviewUrl} alt="Ảnh minh chứng đang chọn" /><div><b>Ảnh đã sẵn sàng</b><span>Ảnh sẽ được nén và lưu khi xác nhận điểm danh.</span><p><button type="button" onClick={() => proofInputRef.current?.click()}>Đổi ảnh</button><button type="button" className="is-remove" onClick={clearProofSelection}>Xóa ảnh</button></p></div></div> : !isDayLocked ? <button className="att-m3-proof-picker" type="button" onClick={() => proofInputRef.current?.click()}><span aria-hidden="true">📷</span><b>Chụp ảnh / Chọn ảnh</b><small>Tùy chọn, không ảnh hưởng việc xác nhận điểm danh</small></button> : <div className="att-m3-proof-locked-note">{daySession?.proof_path ? 'Buổi này đã có ảnh minh chứng. Xem ảnh tại tab Lịch sử.' : 'Buổi này đã chốt và không có ảnh minh chứng.'}</div>}
+                  </section>
                   <footer className="attendance-confirm-bar"><label><span>Ghi chú buổi học</span><input disabled={isDayLocked} value={note} onChange={(event) => setNote(event.target.value)} placeholder="Không bắt buộc" /></label><div className="att-m3-session-actions"><button className="att-m3-cancel-button" type="button" disabled={busy || isDayLocked || isFutureDate} onClick={() => setShowCancelSession((value) => !value)}>Hủy buổi học</button><button type="button" disabled={busy || !draft.length || isDayLocked || isFutureDate || !sessionTeacher || isTeacherBlocked || !teachingRoom.trim() || !teachingTimeRange.trim() || invalidAbsentRows.length > 0} onClick={confirmAttendance}><Icon name="check" size={18} />{isDayLocked ? (daySession.session_status === 'cancelled' ? 'Đã hủy' : `Đã chốt ${formatDate(daySession.attendance_date)}`) : busy ? 'Đang lưu…' : 'Xác nhận điểm danh'}</button></div></footer>
                   {showCancelSession && !isDayLocked ? <div className="att-m3-cancel-surface"><label><span>Lý do hủy *</span><input value={cancellationReason} onChange={(event) => setCancellationReason(event.target.value)} placeholder="Ví dụ: Giáo viên bận công tác" autoFocus /></label><button type="button" onClick={() => { setShowCancelSession(false); setCancellationReason(''); }}>Không hủy</button><button className="is-confirm" type="button" disabled={busy || !cancellationReason.trim()} onClick={cancelClassSession}>{busy ? 'Đang lưu…' : 'Xác nhận hủy'}</button></div> : null}
                 </> : <div className="attendance-empty is-large">Chọn một lớp để bắt đầu điểm danh.</div>}
@@ -1024,6 +1134,8 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                   <article><span>Phòng học</span><b>{selectedSession.teaching_room || 'Chưa ghi'}</b></article>
                   <article><span>Số tiết</span><b>{selectedSession.session_status === 'cancelled' ? '0 tiết' : `${String(selectedSession.lesson_periods || 1).replace('.', ',')} tiết`}</b></article>
                 </div>
+
+                {selectedSession.proof_path ? <section className="attendance-history-proof"><header><div><span aria-hidden="true">📷</span><div><strong>Minh chứng hình ảnh</strong><small>Ảnh được lưu riêng tư và chỉ mở bằng liên kết tạm thời.</small></div></div>{historyProofUrl ? <a href={historyProofUrl} target="_blank" rel="noreferrer">Mở ảnh lớn</a> : null}</header>{historyProofLoading ? <div className="attendance-history-proof-loading">Đang tải ảnh minh chứng…</div> : historyProofUrl ? <a className="attendance-history-proof-image" href={historyProofUrl} target="_blank" rel="noreferrer"><img src={historyProofUrl} alt={`Minh chứng điểm danh ${selectedSession.class_name} ngày ${formatDate(selectedSession.attendance_date)}`} /></a> : <div className="attendance-history-proof-loading">Không thể tải ảnh minh chứng lúc này.</div>}</section> : null}
 
                 {selectedSession.session_status === 'cancelled' ? <>
                   <div className="att-m3-cancel-reason"><b>Lý do hủy</b><p>{selectedSession.cancellation_reason || 'Chưa ghi lý do.'}</p></div>
