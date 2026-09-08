@@ -64,6 +64,9 @@ jobs:
       - name: Verify extra-class attendance contract
         run: node scripts/test-extra-class-attendance.mjs
 
+      - name: Verify manual attendance class teacher persistence
+        run: node scripts/test-attendance-manual-class-teacher-persistence.mjs
+
       - name: Verify Vercel Hobby function budget
         run: node scripts/test-vercel-hobby-function-budget.mjs
 
