@@ -12,9 +12,11 @@ const rpcHardeningUrl = new URL('../supabase/migrations/20260908_harden_gifted_d
 const rpcHardeningSql = fs.existsSync(rpcHardeningUrl) ? fs.readFileSync(rpcHardeningUrl, 'utf8') : '';
 const dailyLockUrl = new URL('../supabase/migrations/20260908_attendance_daily_lock_monthly_calendar.sql', import.meta.url);
 const dailyLockSql = fs.existsSync(dailyLockUrl) ? fs.readFileSync(dailyLockUrl, 'utf8') : '';
+const legacyGuardUrl = new URL('../supabase/migrations/20260908_guard_legacy_attendance_rpc.sql', import.meta.url);
+const legacyGuardSql = fs.existsSync(legacyGuardUrl) ? fs.readFileSync(legacyGuardUrl, 'utf8') : '';
 const teacherCatalogUrl = new URL('../src/utils/giftedTeacherCatalog2026.js', import.meta.url);
 const teacherCatalogSource = fs.existsSync(teacherCatalogUrl) ? fs.readFileSync(teacherCatalogUrl, 'utf8') : '';
-const combinedSql = `${sql}\n${seedSql}\n${rpcHardeningSql}\n${dailyLockSql}`;
+const combinedSql = `${sql}\n${seedSql}\n${rpcHardeningSql}\n${dailyLockSql}\n${legacyGuardSql}`;
 
 assert.match(flatNav, /GlobalTtcmNavigationTab[\s\S]*GlobalAttendanceNavigationTab/, 'Attendance must mount immediately after TTCM');
 assert.match(attendance, /Điểm danh nhanh/, 'Attendance workspace needs a quick attendance tab');
@@ -33,7 +35,6 @@ assert.match(sql, /clock_timestamp\(\)/, 'Attendance time must come from the dat
 assert.match(sql, /bes_extra_attendance_records/, 'Immutable per-student attendance records must exist');
 assert.match(sql, /student_full_name text not null/, 'Attendance records must snapshot the student name');
 
-// Regression contract: destructive actions must stay behind guarded server RPCs and integrated Admin UI controls.
 assert.match(combinedSql, /bes_delete_extra_class\s*\(/, 'SQL must expose a transactional class-deletion RPC');
 assert.match(combinedSql, /bes_delete_extra_attendance_session\s*\(/, 'SQL must expose a transactional approved-attendance deletion RPC');
 assert.match(attendance, /bes_delete_extra_class/, 'Class-management UI must call the class-deletion RPC');
@@ -47,7 +48,6 @@ assert.ok(rpcHardeningSql, 'A follow-up migration must explicitly harden delete 
 assert.match(rpcHardeningSql, /bes_delete_extra_attendance_session\(uuid\)[\s\S]*from\s+anon/i, 'Anonymous users must not execute approved-attendance deletion');
 assert.match(rpcHardeningSql, /bes_delete_extra_class\(uuid\)[\s\S]*from\s+anon/i, 'Anonymous users must not execute class deletion');
 
-// Source seed contract: only grade 10/11/12 gifted classes, with every source roster/teacher assignment.
 assert.ok(seedSql, 'The checked-in 2026–2027 gifted-class migration must exist');
 assert.match(seedSql, /EXPECTED_SEEDED_CLASSES\s*=\s*23/, 'Seed must declare exactly 23 eligible classes');
 assert.match(seedSql, /EXPECTED_SEEDED_MEMBERS\s*=\s*154/, 'Seed must declare exactly 154 source membership rows');
@@ -59,15 +59,12 @@ assert.match(seedSql, /Bồi dưỡng Địa lí 12/, 'Geography 12 class must b
 const blankRowGuards = seedSql.match(/if\s+trim\(v_line\)\s*=\s*''\s+then\s+continue;\s+end\s+if;/gi) || [];
 assert.ok(blankRowGuards.length >= 3, 'Every multiline seed loop must skip its leading/trailing blank rows before string_to_array parsing');
 
-// Regression contract: teacher choices must come from the supplied 2026–2027 assignment sheet,
-// never from the set of accounts registered on the website. Multi-teacher classes must stay multi-teacher.
 assert.ok(teacherCatalogSource, 'A checked-in authoritative 2026–2027 teacher catalog must exist');
 assert.doesNotMatch(attendance, /bes_extra_attendance_list_teachers/, 'Class management must not load teacher choices from registered website accounts');
 assert.doesNotMatch(attendanceAdmin, /bes_extra_attendance_list_teachers/, 'Manual class creation must not load teacher choices from registered website accounts');
 assert.match(attendance, /giftedTeacherCatalog2026/, 'Class management must use the authoritative teacher assignment catalog');
 assert.match(attendanceAdmin, /giftedTeacherCatalog2026/, 'Manual class creation must use the authoritative teacher assignment catalog');
 
-// Daily attendance lock + actual session teacher + monthly calendar contract.
 assert.ok(dailyLockSql, 'Daily attendance lock migration must exist');
 assert.match(combinedSql, /attendance_date\s+date/i, 'Attendance sessions must store attendance_date');
 assert.match(combinedSql, /unique\s*\([^)]*class_id[^)]*attendance_date|unique index[\s\S]*class_id\s*,\s*attendance_date/i, 'Database must enforce one session per class/date');
@@ -85,42 +82,24 @@ assert.match(attendance, /\.gte\('attendance_date'/, 'Monthly calendar query mus
 assert.match(attendance, /\.lt\('attendance_date'/, 'Monthly calendar query must use an exclusive upper attendance_date bound');
 assert.doesNotMatch(attendance, /bes_extra_attendance_list_teachers/, 'Daily attendance must never fall back to website account teachers');
 
+assert.ok(legacyGuardSql, 'Legacy attendance RPC must be guarded so older clients cannot bypass teacher selection');
+assert.match(legacyGuardSql, /bes_confirm_extra_class_attendance\s*\(\s*p_class_id\s+uuid[\s\S]*p_absent_member_keys\s+text\[\][\s\S]*p_note\s+text/i, 'Legacy RPC signature must be replaced by a compatibility guard');
+assert.match(legacyGuardSql, /v_teacher_count\s*<>\s*1|v_teacher_count\s*!=\s*1/i, 'Legacy RPC must refuse classes that do not have exactly one assigned teacher');
+assert.match(legacyGuardSql, /p_attendance_date\s*=>\s*\(clock_timestamp\(\)\s+at\s+time\s+zone\s+'Asia\/Ho_Chi_Minh'\)::date/i, 'Legacy single-teacher calls must delegate to the date-aware RPC using Vietnam date');
+
 const teacherCatalog = await import('../src/utils/giftedTeacherCatalog2026.js');
 assert.equal(teacherCatalog.GIFTED_TEACHER_ASSIGNMENTS_2026_2027.length, 23, 'Teacher catalog must contain exactly the 23 grade 10–12 source classes');
-assert.equal(
-  teacherCatalog.GIFTED_TEACHER_ASSIGNMENTS_2026_2027.reduce((total, item) => total + item.teachers.length, 0),
-  52,
-  'Teacher catalog must preserve all 52 class-teacher assignments from the source sheet',
-);
+assert.equal(teacherCatalog.GIFTED_TEACHER_ASSIGNMENTS_2026_2027.reduce((total, item) => total + item.teachers.length, 0), 52, 'Teacher catalog must preserve all 52 class-teacher assignments from the source sheet');
 assert.ok(teacherCatalog.GIFTED_TEACHER_ASSIGNMENTS_2026_2027.every((item) => ['10', '11', '12'].includes(item.gradeLevel)), 'Teacher catalog must contain only grades 10–12');
-assert.deepEqual(
-  teacherCatalog.teachersForGiftedAssignment({ subject: 'Tiếng Anh', gradeLevel: '10' }),
-  ['Ngô Thị Mỹ Diệp', 'Nguyễn Thị Mỹ Duyên'],
-  'English 10 must use both teachers from the source sheet',
-);
-assert.deepEqual(
-  teacherCatalog.teachersForGiftedAssignment({ subject: 'Tiếng Anh', gradeLevel: '11' }),
-  ['Nguyễn Đặng Minh Hoa', 'Đào Ngọc Nhã'],
-  'English 11 must use both teachers from the source sheet',
-);
-assert.deepEqual(
-  teacherCatalog.teachersForGiftedAssignment({ subject: 'Toán', gradeLevel: '12' }),
-  ['Trần Nguyên Dự', 'Nguyễn Văn Minh'],
-  'Math 12 must preserve its two-teacher assignment',
-);
-assert.deepEqual(
-  teacherCatalog.teachersForGiftedAssignment({ sourceKey: 'hsg-2026-vat-li-11' }),
-  ['Trương Thị Thanh Tuyền', 'Nguyễn Hoàng Thúy Vy', 'Lê Thị Tú', 'Lê Thị Mỹ Thẩm'],
-  'Physics 11 must preserve all four assigned teachers',
-);
+assert.deepEqual(teacherCatalog.teachersForGiftedAssignment({ subject: 'Tiếng Anh', gradeLevel: '10' }), ['Ngô Thị Mỹ Diệp', 'Nguyễn Thị Mỹ Duyên'], 'English 10 must use both teachers from the source sheet');
+assert.deepEqual(teacherCatalog.teachersForGiftedAssignment({ subject: 'Tiếng Anh', gradeLevel: '11' }), ['Nguyễn Đặng Minh Hoa', 'Đào Ngọc Nhã'], 'English 11 must use both teachers from the source sheet');
+assert.deepEqual(teacherCatalog.teachersForGiftedAssignment({ subject: 'Toán', gradeLevel: '12' }), ['Trần Nguyên Dự', 'Nguyễn Văn Minh'], 'Math 12 must preserve its two-teacher assignment');
+assert.deepEqual(teacherCatalog.teachersForGiftedAssignment({ sourceKey: 'hsg-2026-vat-li-11' }), ['Trương Thị Thanh Tuyền', 'Nguyễn Hoàng Thúy Vy', 'Lê Thị Tú', 'Lê Thị Mỹ Thẩm'], 'Physics 11 must preserve all four assigned teachers');
 
 const mod = await import('../src/utils/extraClassAttendance.js');
 assert.equal(mod.normalizeExtraClassType('Phụ đạo'), 'remedial');
 assert.equal(mod.normalizeExtraClassType('Bồi dưỡng HSG'), 'gifted');
-const draft = mod.buildAttendanceDraft([
-  { id: 'm1', member_key: 'a', full_name: 'A' },
-  { id: 'm2', member_key: 'b', full_name: 'B' },
-]);
+const draft = mod.buildAttendanceDraft([{ id: 'm1', member_key: 'a', full_name: 'A' }, { id: 'm2', member_key: 'b', full_name: 'B' }]);
 assert.deepEqual(mod.attendanceSummary(draft), { total: 2, present: 2, absent: 0 });
 const absentDraft = draft.map((item) => item.member_key === 'b' ? { ...item, present: false } : item);
 assert.deepEqual(mod.attendanceSummary(absentDraft), { total: 2, present: 1, absent: 1 });
