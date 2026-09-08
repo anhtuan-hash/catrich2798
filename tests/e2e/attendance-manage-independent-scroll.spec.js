@@ -24,38 +24,45 @@ function studentRows(count = 24) {
     </div>`).join('');
 }
 
+function managementGrid() {
+  return `
+    <div class="attendance-management-grid">
+      <aside class="attendance-manage-classes">
+        <header><strong>Danh sách lớp</strong><span>26</span></header>
+        ${classButtons()}
+      </aside>
+      <section class="attendance-member-manager">
+        <header>
+          <div><h2>Phụ đạo Tiếng Anh 10</h2><p>Phụ đạo · Tiếng Anh</p></div>
+          <div class="attendance-teacher-field"><label>Giáo viên theo phân công 2026–2027</label><div>Ngô Thị Mỹ Diệp</div></div>
+        </header>
+        <div class="attendance-member-tools"><input value=""><button type="button">Thêm học sinh</button></div>
+        <section style="padding:16px;border-bottom:1px solid #ddd;min-height:210px;">
+          <strong>Thông tin lớp học</strong>
+          <p>Dữ liệu hiện tại dùng cho các buổi chưa chốt.</p>
+          <p>Phòng học A103 · 16h45 đến 18h15 · Thứ 3, Thứ 5</p>
+        </section>
+        <div class="attendance-member-table">
+          <div class="attendance-member-table-head"><span>Học sinh</span><span>Lớp</span><span>Trạng thái</span><span></span></div>
+          ${studentRows()}
+        </div>
+      </section>
+    </div>`;
+}
+
+async function addAttendanceStyles(page) {
+  await page.addStyleTag({ content: `${resetCss}\n${attendanceCss}\n${managementScrollCss}` });
+}
+
 test.describe('Attendance class management independent scrolling', () => {
-  test.beforeEach(async ({ page }) => {
+  test('left class list and right class detail own separate vertical scroll containers when the grid is constrained', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.setContent(`
       <main style="padding:24px;background:#eef2f6;">
-        <div class="attendance-management-grid" style="height:430px;width:1120px;">
-          <aside class="attendance-manage-classes">
-            <header><strong>Danh sách lớp</strong><span>26</span></header>
-            ${classButtons()}
-          </aside>
-          <section class="attendance-member-manager">
-            <header>
-              <div><h2>Phụ đạo Tiếng Anh 10</h2><p>Phụ đạo · Tiếng Anh</p></div>
-              <div class="attendance-teacher-field"><label>Giáo viên theo phân công 2026–2027</label><div>Ngô Thị Mỹ Diệp</div></div>
-            </header>
-            <div class="attendance-member-tools"><input value=""><button type="button">Thêm học sinh</button></div>
-            <div style="padding:16px;border-bottom:1px solid #ddd;min-height:210px;">
-              <strong>Thông tin lớp học</strong>
-              <p>Dữ liệu hiện tại dùng cho các buổi chưa chốt.</p>
-              <p>Phòng học A103 · 16h45 đến 18h15 · Thứ 3, Thứ 5</p>
-            </div>
-            <div class="attendance-member-table">
-              <div class="attendance-member-table-head"><span>Học sinh</span><span>Lớp</span><span>Trạng thái</span><span></span></div>
-              ${studentRows()}
-            </div>
-          </section>
-        </div>
+        <div style="height:430px;width:1120px;">${managementGrid()}</div>
       </main>`);
-    await page.addStyleTag({ content: `${resetCss}\n${attendanceCss}\n${managementScrollCss}` });
-  });
+    await addAttendanceStyles(page);
 
-  test('left class list and right class detail own separate vertical scroll containers', async ({ page }) => {
     const grid = page.locator('.attendance-management-grid');
     const left = page.locator('.attendance-manage-classes');
     const leftHeader = page.locator('.attendance-manage-classes > header');
@@ -89,5 +96,42 @@ test.describe('Attendance class management independent scrolling', () => {
     }));
     expect(afterRight.left).toBe(afterLeft.left);
     expect(afterRight.right).toBeGreaterThan(0);
+  });
+
+  test('production manage layout constrains the grid even when the import report is absent', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.setContent(`
+      <main class="attendance-content" style="height:560px;width:1120px;">
+        <div class="attendance-manage-layout">
+          <section class="attendance-import-card">
+            <div><span>↑</span><div><strong>Import lớp phụ đạo / bồi dưỡng</strong><p>Excel: Loại lớp · Tên lớp · Môn · Giáo viên</p></div></div>
+            <button type="button">Chọn file Excel</button>
+          </section>
+          ${managementGrid()}
+        </div>
+      </main>`);
+    await addAttendanceStyles(page);
+
+    const metrics = await page.evaluate(() => {
+      const layout = document.querySelector('.attendance-manage-layout');
+      const grid = document.querySelector('.attendance-management-grid');
+      const left = document.querySelector('.attendance-manage-classes');
+      const right = document.querySelector('.attendance-member-manager');
+      const layoutRect = layout.getBoundingClientRect();
+      const gridRect = grid.getBoundingClientRect();
+      return {
+        layoutBottom: layoutRect.bottom,
+        gridBottom: gridRect.bottom,
+        gridHeight: gridRect.height,
+        leftClientHeight: left.clientHeight,
+        leftScrollHeight: left.scrollHeight,
+        rightClientHeight: right.clientHeight,
+        rightScrollHeight: right.scrollHeight,
+      };
+    });
+
+    expect(metrics.gridBottom).toBeLessThanOrEqual(metrics.layoutBottom + 1);
+    expect(metrics.leftScrollHeight).toBeGreaterThan(metrics.leftClientHeight);
+    expect(metrics.rightScrollHeight).toBeGreaterThan(metrics.rightClientHeight);
   });
 });
