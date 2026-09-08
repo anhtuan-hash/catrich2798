@@ -245,6 +245,7 @@
   }
 
   .att-m3-roster-entry > label {
+    display: grid !important;
     grid-template-columns: 44px minmax(0, 1fr) 58px 44px !important;
     gap: 8px !important;
     min-height: 68px !important;
