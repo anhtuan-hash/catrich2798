@@ -15,12 +15,27 @@ const migration = fs.existsSync(migrationUrl) ? fs.readFileSync(migrationUrl, 'u
 assert.equal(
   isExtraClassScheduledOnDate({ class_type: 'remedial', subject: 'Anh', grade_level: 10, weekdays: [1] }, '2026-09-07'),
   true,
-  'Persisted weekdays must override the catalog schedule',
+  'In-memory JS weekday arrays must override the catalog schedule',
 );
 assert.equal(
   isExtraClassScheduledOnDate({ class_type: 'remedial', subject: 'Anh', grade_level: 10, weekdays: [1] }, '2026-09-08'),
   false,
-  'Persisted weekdays must decide off-schedule state even when catalog says Tuesday',
+  'In-memory JS weekday arrays must decide off-schedule state',
+);
+assert.equal(
+  isExtraClassScheduledOnDate({ class_type: 'gifted', subject: 'Anh', grade_level: 12, weekdays: '2,3' }, '2026-09-07'),
+  true,
+  'Persisted text weekday 2 must mean Thứ 2 / Monday, matching the existing database format',
+);
+assert.equal(
+  isExtraClassScheduledOnDate({ class_type: 'gifted', subject: 'Anh', grade_level: 12, weekdays: '2,3' }, '2026-09-08'),
+  true,
+  'Persisted text weekday 3 must mean Thứ 3 / Tuesday, matching the existing database format',
+);
+assert.equal(
+  isExtraClassScheduledOnDate({ class_type: 'gifted', subject: 'Anh', grade_level: 12, weekdays: '2,3' }, '2026-09-09'),
+  false,
+  'Persisted school weekday text must not be interpreted as raw JS indexes',
 );
 assert.equal(
   roomForExtraClass({ class_type: 'remedial', subject: 'Anh', grade_level: 10, room: 'B205' }),
