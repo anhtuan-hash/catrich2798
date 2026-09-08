@@ -1,0 +1,14 @@
+name: Verify Manage source single scroll
+
+on:
+  push:
+    branches:
+      - feat/manage-source-single-scroll
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Source-owned manage scroll contract
+        run: node scripts/test-attendance-manage-source-scroll.mjs
