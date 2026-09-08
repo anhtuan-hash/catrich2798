@@ -135,7 +135,7 @@ declare
   v_member_key text;
   v_student_code text := trim(coalesce(p_student_code, ''));
   v_student_full_name text := trim(coalesce(p_student_full_name, ''));
-  v_school_class_name text := regexp_replace(trim(coalesce(p_school_class_name, '')), '\s+', '', 'g');
+  v_school_class_name text := trim(coalesce(p_school_class_name, ''));
 begin
   if not exists (
     select 1

@@ -390,7 +390,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     }
     setDraft(next);
     setNote(daySession?.note || '');
-  }, [selectedClassId, selectedMembers.length, attendanceDate, daySession?.id, dayRecords]);
+  }, [selectedClassId, selectedMembers, attendanceDate, daySession?.id, dayRecords]);
 
   useEffect(() => {
     if (daySession) {
