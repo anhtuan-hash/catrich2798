@@ -26,9 +26,9 @@ function currentRoute() {
 }
 
 function roleLabel(role, vi) {
-  const normalized = String(role || '').toLowerCase();
-  if (normalized === 'admin') return vi ? 'Quản trị viên' : 'Administrator';
-  if (normalized === 'teacher') return vi ? 'Giáo viên' : 'Teacher';
+  const value = String(role || '').toLowerCase();
+  if (value === 'admin') return vi ? 'Quản trị viên' : 'Administrator';
+  if (value === 'teacher') return vi ? 'Giáo viên' : 'Teacher';
   return role || (vi ? 'Thành viên' : 'Member');
 }
 
@@ -81,7 +81,7 @@ export default function UsernameAccountCenter({ language = 'vi' }) {
       return;
     }
 
-    setProfileState((current) => ({ ...current, loading: true, message: '' }));
+    setProfileState((state) => ({ ...state, loading: true, message: '' }));
     const rich = await loadProfileSettings();
     if (rich.ok && rich.profile) {
       hydrateProfile(rich.profile, user);
@@ -96,13 +96,7 @@ export default function UsernameAccountCenter({ language = 'vi' }) {
       return;
     }
 
-    hydrateProfile({
-      id: user.id,
-      email: user.email || '',
-      fullName: user.name || '',
-      role: user.role || 'teacher',
-      authMode: 'email',
-    }, user);
+    hydrateProfile({ id: user.id, email: user.email || '', fullName: user.name || '', role: user.role || 'teacher', authMode: 'email' }, user);
     setProfileState({
       loading: false,
       saving: false,
@@ -142,25 +136,21 @@ export default function UsernameAccountCenter({ language = 'vi' }) {
     }
 
     let host = null;
-    let observer = null;
-    const attach = () => {
-      host = document.querySelector('.settings-google-profile-fallback');
-      if (!host) return false;
-      host.classList.add('has-account-center');
-      setProfileHost(host);
-      observer?.disconnect();
-      return true;
+    const syncHost = () => {
+      const nextHost = document.querySelector('.settings-google-profile-fallback');
+      if (nextHost === host) return;
+      host?.classList.remove('has-account-center');
+      host = nextHost;
+      host?.classList.add('has-account-center');
+      setProfileHost(host || null);
     };
 
-    if (!attach()) {
-      observer = new MutationObserver(attach);
-      observer.observe(document.body, { childList: true, subtree: true });
-    }
-
+    syncHost();
+    const observer = new MutationObserver(syncHost);
+    observer.observe(document.body, { childList: true, subtree: true });
     return () => {
-      observer?.disconnect();
+      observer.disconnect();
       host?.classList.remove('has-account-center');
-      setProfileHost(null);
     };
   }, [route, currentUser?.id, currentUser?.provider]);
 
@@ -198,15 +188,14 @@ export default function UsernameAccountCenter({ language = 'vi' }) {
       setPasswordState({ loading: false, message: marked.message || (vi ? 'Đã đổi mật khẩu nhưng chưa cập nhật trạng thái tài khoản.' : 'Password changed, but account status was not updated.') });
       return;
     }
-    setProfile((current) => ({ ...current, mustChangePassword: false }));
+    setProfile((value) => ({ ...value, mustChangePassword: false }));
     setPasswordForm({ current: '', next: '', confirm: '' });
     setPasswordState({ loading: false, message: '' });
   };
 
   const saveProfile = async (event) => {
     event?.preventDefault?.();
-    if (profileState.saving || !currentUser?.id) return;
-    if (draft.bio.length > 320) return;
+    if (profileState.saving || !currentUser?.id || draft.bio.length > 320) return;
     setProfileState({ loading: false, saving: true, message: '', ok: false });
     const result = await saveProfileSettings(draft);
     if (!result.ok || !result.profile) {
@@ -220,7 +209,7 @@ export default function UsernameAccountCenter({ language = 'vi' }) {
 
   const undoProfile = () => {
     setDraft({ ...savedDraft });
-    setProfileState((current) => ({ ...current, message: '' }));
+    setProfileState((state) => ({ ...state, message: '' }));
     setAvatarState({ loading: false, message: '' });
   };
 
@@ -234,8 +223,7 @@ export default function UsernameAccountCenter({ language = 'vi' }) {
       setAvatarState({ loading: false, message: uploaded.message || (vi ? 'Không thể tải ảnh lên.' : 'Could not upload image.') });
       return;
     }
-    const nextDraft = { ...draft, avatarUrl: uploaded.avatarUrl };
-    const saved = await saveProfileSettings(nextDraft);
+    const saved = await saveProfileSettings({ ...draft, avatarUrl: uploaded.avatarUrl });
     if (!saved.ok || !saved.profile) {
       setAvatarState({ loading: false, message: saved.message || (vi ? 'Ảnh đã tải lên nhưng chưa lưu vào hồ sơ.' : 'Image uploaded but profile was not updated.') });
       return;
@@ -289,12 +277,12 @@ export default function UsernameAccountCenter({ language = 'vi' }) {
       </div>
 
       <div className="bes-settings-profile__grid">
-        <label><span>{vi ? 'Tên hiển thị' : 'Display name'}</span><input value={draft.fullName} maxLength={120} onChange={(event) => setDraft((current) => ({ ...current, fullName: event.target.value }))} placeholder={vi ? 'Họ và tên' : 'Full name'} /></label>
-        <label><span>{vi ? 'Chức danh / vị trí' : 'Job title / position'}</span><input value={draft.jobTitle} maxLength={120} onChange={(event) => setDraft((current) => ({ ...current, jobTitle: event.target.value }))} placeholder={vi ? 'Ví dụ: Giáo viên Tiếng Anh' : 'Example: English teacher'} /></label>
-        <label><span>{vi ? 'Trường / đơn vị' : 'School / organization'}</span><input value={draft.school} maxLength={160} onChange={(event) => setDraft((current) => ({ ...current, school: event.target.value }))} placeholder={vi ? 'Trường / đơn vị công tác' : 'School / organization'} /></label>
-        <label><span>{vi ? 'Số điện thoại' : 'Phone number'}</span><input type="tel" value={draft.phone} maxLength={40} onChange={(event) => setDraft((current) => ({ ...current, phone: event.target.value }))} placeholder={vi ? 'Chỉ dùng cho thông tin hồ sơ' : 'Profile contact number'} /></label>
-        <label><span>{vi ? 'Email liên hệ' : 'Contact email'}</span><input type="email" value={draft.contactEmail} maxLength={254} onChange={(event) => setDraft((current) => ({ ...current, contactEmail: event.target.value }))} placeholder="teacher@school.edu.vn" /></label>
-        <label className="bes-settings-profile__bio"><span>{vi ? 'Giới thiệu ngắn' : 'Short bio'}</span><textarea value={draft.bio} maxLength={320} rows={3} onChange={(event) => setDraft((current) => ({ ...current, bio: event.target.value }))} placeholder={vi ? 'Chuyên môn, lớp đang phụ trách hoặc thông tin bạn muốn hiển thị…' : 'Teaching focus, classes or information you want to show…'} /><small>{draft.bio.length}/320</small></label>
+        <label><span>{vi ? 'Tên hiển thị' : 'Display name'}</span><input value={draft.fullName} maxLength={120} onChange={(event) => setDraft((value) => ({ ...value, fullName: event.target.value }))} placeholder={vi ? 'Họ và tên' : 'Full name'} /></label>
+        <label><span>{vi ? 'Chức danh / vị trí' : 'Job title / position'}</span><input value={draft.jobTitle} maxLength={120} onChange={(event) => setDraft((value) => ({ ...value, jobTitle: event.target.value }))} placeholder={vi ? 'Ví dụ: Giáo viên Tiếng Anh' : 'Example: English teacher'} /></label>
+        <label><span>{vi ? 'Trường / đơn vị' : 'School / organization'}</span><input value={draft.school} maxLength={160} onChange={(event) => setDraft((value) => ({ ...value, school: event.target.value }))} placeholder={vi ? 'Trường / đơn vị công tác' : 'School / organization'} /></label>
+        <label><span>{vi ? 'Số điện thoại' : 'Phone number'}</span><input type="tel" value={draft.phone} maxLength={40} onChange={(event) => setDraft((value) => ({ ...value, phone: event.target.value }))} placeholder={vi ? 'Chỉ dùng cho thông tin hồ sơ' : 'Profile contact number'} /></label>
+        <label><span>{vi ? 'Email liên hệ' : 'Contact email'}</span><input type="email" value={draft.contactEmail} maxLength={254} onChange={(event) => setDraft((value) => ({ ...value, contactEmail: event.target.value }))} placeholder="teacher@school.edu.vn" /></label>
+        <label className="bes-settings-profile__bio"><span>{vi ? 'Giới thiệu ngắn' : 'Short bio'}</span><textarea value={draft.bio} maxLength={320} rows={3} onChange={(event) => setDraft((value) => ({ ...value, bio: event.target.value }))} placeholder={vi ? 'Chuyên môn, lớp đang phụ trách hoặc thông tin bạn muốn hiển thị…' : 'Teaching focus, classes or information you want to show…'} /><small>{draft.bio.length}/320</small></label>
       </div>
 
       <footer className="bes-settings-profile__footer">
@@ -331,7 +319,6 @@ export default function UsernameAccountCenter({ language = 'vi' }) {
           </form>
         </div>
       ) : null}
-
       {route === 'settings' && profileHost && profileEditor ? createPortal(profileEditor, profileHost) : null}
     </>
   );
