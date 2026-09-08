@@ -21,10 +21,10 @@ const runtimeCssFile = 'src/styles/HeroThemeRuntime.css';
 const gradebookHeroCssFile = 'src/styles/GradebookMaterialHeroRuntime.css';
 const studioCssFile = 'src/styles/HeroThemeStudio.css';
 const sharedApiFile = 'server/api/_heroTheme.js';
-const manifestApiFile = 'api/hero-theme-manifest.js';
-const adminApiFile = 'api/hero-theme-admin.js';
+const manifestApiFile = 'serverless-handlers/hero-theme-manifest.js';
+const adminApiFile = 'serverless-handlers/hero-theme-admin.js';
 const uploadApiFile = 'api/hero-theme-upload.js';
-const mediaApiFile = 'api/hero-theme-media.js';
+const mediaApiFile = 'serverless-handlers/hero-theme-media.js';
 const sqlFile = 'supabase/brian_hero_theme_studio.sql';
 
 const registry = read(registryFile), model = read(modelFile), client = read(clientFile), runtime = read(runtimeFile);
