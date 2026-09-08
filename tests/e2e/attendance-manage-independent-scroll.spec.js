@@ -3,6 +3,8 @@ import { test, expect } from '@playwright/test';
 
 const attendanceCss = fs.readFileSync(new URL('../../src/components/GlobalAttendanceNavigationTab.css', import.meta.url), 'utf8');
 const managementScrollCss = fs.readFileSync(new URL('../../src/components/attendance/AttendanceManagementIndependentScroll.css', import.meta.url), 'utf8');
+const attendanceComponent = fs.readFileSync(new URL('../../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url), 'utf8');
+const globalBrandComponent = fs.readFileSync(new URL('../../src/components/GlobalEnglishHubBrand.jsx', import.meta.url), 'utf8');
 const resetCss = '*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:system-ui,sans-serif}button,input,select{font:inherit}';
 
 function classButtons(count = 18) {
@@ -24,9 +26,9 @@ function studentRows(count = 24) {
     </div>`).join('');
 }
 
-function managementGrid() {
+function managementGrid(style = '') {
   return `
-    <div class="attendance-management-grid">
+    <div class="attendance-management-grid" style="${style}">
       <aside class="attendance-manage-classes">
         <header><strong>Danh sách lớp</strong><span>26</span></header>
         ${classButtons()}
@@ -55,11 +57,21 @@ async function addAttendanceStyles(page) {
 }
 
 test.describe('Attendance class management independent scrolling', () => {
+  test('scroll authority is owned by attendance and loads after its visual CSS', async () => {
+    const materialImport = "import './attendance/AttendanceMaterial3.css';";
+    const scrollImport = "import './attendance/AttendanceManagementIndependentScroll.css';";
+
+    expect(attendanceComponent).toContain(materialImport);
+    expect(attendanceComponent).toContain(scrollImport);
+    expect(attendanceComponent.indexOf(scrollImport)).toBeGreaterThan(attendanceComponent.indexOf(materialImport));
+    expect(globalBrandComponent).not.toContain(scrollImport);
+  });
+
   test('left class list and right class detail own separate vertical scroll containers when the grid is constrained', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.setContent(`
       <main style="padding:24px;background:#eef2f6;">
-        <div style="height:430px;width:1120px;">${managementGrid()}</div>
+        ${managementGrid('height:430px;width:1120px;')}
       </main>`);
     await addAttendanceStyles(page);
 
