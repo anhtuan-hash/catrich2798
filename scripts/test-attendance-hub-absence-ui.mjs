@@ -18,6 +18,7 @@ const polishUrl = new URL('../public/attendance-ui-polish.css', import.meta.url)
 const polishCss = fs.existsSync(polishUrl) ? fs.readFileSync(polishUrl, 'utf8') : '';
 const indexHtml = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const searchRemovalRuntime = fs.readFileSync(new URL('../public/bes-remove-visible-search-bars.js', import.meta.url), 'utf8');
+const permissionMigration = fs.readFileSync(new URL('../supabase/migrations/20260908_admin_grant_attendance_permission.sql', import.meta.url), 'utf8');
 const uiSource = `${attendance}\n${utility}`;
 
 assert.equal(ROUTE_PERMISSION_IDS.attendance, 'route:attendance', 'Attendance must have a dedicated route permission id');
@@ -63,6 +64,8 @@ assert.match(attendance, /hasExplicitPermissionId/, 'Attendance navigation must 
 const attendancePermissionItem = getPermissionItem(ROUTE_PERMISSION_IDS.attendance);
 assert.equal(attendancePermissionItem?.titleVi, 'Điểm danh', 'Admin permission editor data must expose the attendance permission label');
 assert.match(attendancePermissionItem?.descVi || '', /quản trị viên cấp riêng/i, 'Attendance grant must be described as an explicit admin permission');
+assert.match(permissionMigration, /can_manage_extra_class_attendance/, 'Database migration must update the shared attendance RLS gate');
+assert.match(permissionMigration, /route:attendance/, 'Database attendance gate must honor the explicit attendance permission');
 
 assert.match(attendance, /Tìm nhanh lớp/i, 'Quick attendance must provide a fast class search');
 assert.match(attendance, /ATTENDANCE_SUBJECT_HUB/, 'Quick attendance must render the shared subject hub');
@@ -110,4 +113,4 @@ for (const token of ['is-subject-math', 'is-subject-casio', 'is-subject-literatu
   assert.match(css, new RegExp(token), `Material 3 CSS must define ${token}`);
 }
 
-console.log('Attendance class hub, explicit access permission, visible discovery, subject colors, room/time and absence UI contract OK');
+console.log('Attendance class hub, explicit access permission, database gate, visible discovery, subject colors, room/time and absence UI contract OK');
