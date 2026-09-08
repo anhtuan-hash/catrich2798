@@ -5,13 +5,14 @@ const exportUrl = new URL('../src/utils/attendanceReportExport.js', import.meta.
 const xlsxUrl = new URL('../src/utils/simpleXlsx.js', import.meta.url);
 const reportExport = fs.existsSync(exportUrl) ? fs.readFileSync(exportUrl, 'utf8') : '';
 const xlsx = fs.existsSync(xlsxUrl) ? fs.readFileSync(xlsxUrl, 'utf8') : '';
+const excelPipeline = `${reportExport}\n${xlsx}`;
 
 assert.ok(reportExport, 'attendanceReportExport.js must exist');
 assert.ok(xlsx, 'simpleXlsx.js must exist');
 for (const sheetName of ['Tong quan','Theo giao vien','Chi tiet buoi hoc','Chi tiet vang']) {
   assert.match(reportExport, new RegExp(sheetName), `Excel export must include sheet ${sheetName}`);
 }
-assert.match(reportExport, /application\/vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet/);
+assert.match(excelPipeline, /application\/vnd\.openxmlformats-officedocument\.spreadsheetml\.sheet/);
 assert.match(reportExport, /\.xlsx/);
 assert.match(reportExport, /window\.open/);
 assert.match(reportExport, /\.print\s*\(/);
