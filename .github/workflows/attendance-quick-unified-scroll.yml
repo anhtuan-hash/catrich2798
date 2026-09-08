@@ -1,0 +1,21 @@
+name: Attendance Quick Unified Scroll
+
+on:
+  push:
+    branches:
+      - fix/attendance-quick-unified-scroll
+  pull_request:
+    paths:
+      - 'public/attendance-windows8-launch.css'
+      - 'scripts/test-attendance-quick-unified-scroll.mjs'
+      - '.github/workflows/attendance-quick-unified-scroll.yml'
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/test-attendance-quick-unified-scroll.mjs
