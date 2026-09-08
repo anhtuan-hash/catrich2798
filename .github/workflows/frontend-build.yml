@@ -88,6 +88,9 @@ jobs:
       - name: Verify attendance schedule dimming
         run: node scripts/test-attendance-schedule-dimming.mjs
 
+      - name: Verify attendance room chips
+        run: node scripts/test-attendance-room-chip.mjs
+
       - name: Verify attendance monthly report UI
         run: node scripts/test-attendance-monthly-report-ui.mjs
 
