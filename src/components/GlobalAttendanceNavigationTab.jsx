@@ -12,6 +12,10 @@ import {
   parseExtraClassRosterRows,
   sortMembersByName,
 } from '../utils/extraClassAttendance.js';
+import {
+  giftedAssignmentForClass,
+  teachersForGiftedAssignment,
+} from '../utils/giftedTeacherCatalog2026.js';
 import './GlobalAttendanceNavigationTab.css';
 
 const CLASS_COLUMNS = 'id,class_type,class_name,subject,teacher_id,teacher_name,teacher_email,active,source_key,school_year,grade_level,expected_student_count,periods_per_week,room,weekdays,time_range,created_by,updated_by,created_at,updated_at';
@@ -48,24 +52,6 @@ function formatDateTime(value) {
   }).format(date);
 }
 
-function teacherLabel(teacher) {
-  return teacher?.full_name || teacher?.name || teacher?.email || 'Giáo viên';
-}
-
-function resolveTeacher(group, teachers) {
-  const email = String(group?.teacher_email || '').trim().toLowerCase();
-  if (email) {
-    const exactEmail = teachers.find((teacher) => String(teacher.email || '').trim().toLowerCase() === email);
-    if (exactEmail) return exactEmail;
-  }
-  const name = fold(group?.teacher_name);
-  if (name) {
-    const exactName = teachers.find((teacher) => fold(teacherLabel(teacher)) === name);
-    if (exactName) return exactName;
-  }
-  return null;
-}
-
 function sameClassIdentity(row, group) {
   return row?.class_type === group?.class_type
     && fold(row?.class_name) === fold(group?.class_name)
@@ -80,7 +66,6 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const [view, setView] = useState('quick');
   const [classes, setClasses] = useState([]);
   const [members, setMembers] = useState([]);
-  const [teachers, setTeachers] = useState([]);
   const [classTeachers, setClassTeachers] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [records, setRecords] = useState([]);
@@ -123,19 +108,17 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     setLoading(true);
     setError('');
     try {
-      const [classResult, memberResult, teacherResult, classTeacherResult, sessionResult] = await Promise.all([
+      const [classResult, memberResult, classTeacherResult, sessionResult] = await Promise.all([
         client.from('bes_extra_classes').select(CLASS_COLUMNS).order('class_name', { ascending: true }),
         client.from('bes_extra_class_members').select(MEMBER_COLUMNS).order('student_full_name', { ascending: true }),
-        client.rpc('bes_extra_attendance_list_teachers'),
         client.from('bes_extra_class_teachers').select(CLASS_TEACHER_COLUMNS).order('position', { ascending: true }),
         client.from('bes_extra_attendance_sessions').select(SESSION_COLUMNS).order('checked_at', { ascending: false }).limit(400),
       ]);
-      const firstError = classResult.error || memberResult.error || teacherResult.error || classTeacherResult.error || sessionResult.error;
+      const firstError = classResult.error || memberResult.error || classTeacherResult.error || sessionResult.error;
       if (firstError) throw firstError;
       const nextClasses = classResult.data || [];
       setClasses(nextClasses);
       setMembers(memberResult.data || []);
-      setTeachers(teacherResult.data || []);
       setClassTeachers(classTeacherResult.data || []);
       setSessions(sessionResult.data || []);
       if (!keepSelection || !nextClasses.some((row) => String(row.id) === String(selectedClassId))) {
@@ -183,8 +166,20 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   }, [sessions]);
 
   function teachersForClass(classRow) {
+    const authoritative = teachersForGiftedAssignment({
+      sourceKey: classRow?.source_key,
+      subject: classRow?.subject,
+      gradeLevel: classRow?.grade_level,
+      className: classRow?.class_name,
+    });
+    if (authoritative.length) return authoritative.join(', ');
     const assigned = classTeacherNames.get(String(classRow?.id)) || [];
     return assigned.length ? assigned.join(', ') : (classRow?.teacher_name || 'Chưa phân công GV');
+  }
+
+  function teachersForSession(session) {
+    const classRow = classes.find((row) => String(row.id) === String(session?.class_id));
+    return classRow ? teachersForClass(classRow) : (session?.teacher_name || 'Chưa ghi giáo viên');
   }
 
   useEffect(() => {
@@ -242,21 +237,29 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       const teacherWarnings = [];
 
       for (const group of parsed.groups) {
-        const teacher = resolveTeacher(group, teachers);
-        if (!teacher) {
-          teacherWarnings.push(`${group.class_name}: chưa khớp “${group.teacher_name || group.teacher_email}” với tài khoản giáo viên.`);
-          continue;
+        let classRow = classes.find((row) => row.active !== false && sameClassIdentity(row, group));
+        const assignment = giftedAssignmentForClass({
+          sourceKey: classRow?.source_key,
+          subject: group.subject,
+          gradeLevel: classRow?.grade_level,
+          className: group.class_name,
+        });
+        const primaryTeacherName = assignment?.teachers?.[0] || String(group.teacher_name || '').trim();
+        if (!primaryTeacherName) {
+          teacherWarnings.push(`${group.class_name}: chưa có giáo viên trong danh sách phân công hoặc trong file import.`);
         }
 
-        let classRow = classes.find((row) => row.active !== false && sameClassIdentity(row, group));
         const classPayload = {
           class_type: group.class_type,
           class_name: group.class_name,
-          subject: group.subject || '',
-          teacher_id: teacher.id,
-          teacher_name: teacherLabel(teacher),
-          teacher_email: teacher.email || '',
+          subject: assignment?.subject || group.subject || '',
+          teacher_id: null,
+          teacher_name: primaryTeacherName,
+          teacher_email: '',
           active: true,
+          source_key: classRow?.source_key || assignment?.sourceKey || null,
+          school_year: classRow?.school_year || (assignment ? '2026-2027' : null),
+          grade_level: classRow?.grade_level || assignment?.gradeLevel || null,
           updated_by: currentUser.id,
           updated_at: new Date().toISOString(),
         };
@@ -444,30 +447,6 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     }
   }
 
-  async function changeTeacher(classRow, teacherId) {
-    if (!classRow || busy || !client) return;
-    const teacher = teachers.find((row) => String(row.id) === String(teacherId));
-    if (!teacher) return;
-    setBusy(true);
-    setError('');
-    try {
-      const { error: updateError } = await client.from('bes_extra_classes').update({
-        teacher_id: teacher.id,
-        teacher_name: teacherLabel(teacher),
-        teacher_email: teacher.email || '',
-        updated_by: currentUser.id,
-        updated_at: new Date().toISOString(),
-      }).eq('id', classRow.id);
-      if (updateError) throw updateError;
-      setNotice(`Đã đổi giáo viên chính lớp ${classRow.class_name} thành ${teacherLabel(teacher)}.`);
-      await loadAll();
-    } catch (updateError) {
-      setError(updateError?.message || 'Không thể đổi giáo viên chính.');
-    } finally {
-      setBusy(false);
-    }
-  }
-
   async function loadSessionRecords(sessionId) {
     if (!client || !sessionId) return;
     setSelectedSessionId(sessionId);
@@ -503,9 +482,9 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
 
   const filteredHistory = useMemo(() => sessions.filter((session) => {
     if (historyType !== 'all' && session.class_type !== historyType) return false;
-    const haystack = fold(`${session.class_name} ${session.teacher_name} ${session.subject}`);
+    const haystack = fold(`${session.class_name} ${teachersForSession(session)} ${session.subject}`);
     return !historyQuery.trim() || haystack.includes(fold(historyQuery));
-  }), [sessions, historyQuery, historyType]);
+  }), [sessions, historyQuery, historyType, classes, classTeacherNames]);
 
   const filteredManagementMembers = useMemo(() => allSelectedMembers.filter((member) => {
     if (!memberQuery.trim()) return true;
@@ -637,10 +616,9 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                       <header>
                         <div><h2>{selectedClass.class_name}</h2><p>{extraClassTypeLabel(selectedClass.class_type)} · {selectedClass.subject || 'Chưa ghi môn'}</p></div>
                         <div className="attendance-teacher-field">
-                          <label>Toàn bộ giáo viên</label>
+                          <label>Giáo viên theo phân công 2026–2027</label>
                           <strong>{teachersForClass(selectedClass)}</strong>
-                          <label>Giáo viên chính</label>
-                          <select value={selectedClass.teacher_id || ''} disabled={busy} onChange={(event) => changeTeacher(selectedClass, event.target.value)}><option value="">Chọn giáo viên</option>{teachers.map((teacher) => <option key={teacher.id} value={teacher.id}>{teacherLabel(teacher)}{teacher.email ? ` · ${teacher.email}` : ''}</option>)}</select>
+                          <small>Danh sách lấy theo khối/môn trong bảng phân công chính thức; không lấy từ tài khoản đăng ký trên website.</small>
                         </div>
                       </header>
                       <div className="attendance-member-tools">
@@ -685,7 +663,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                   {filteredHistory.map((session) => (
                     <button key={session.id} type="button" className={String(selectedSessionId) === String(session.id) ? 'is-selected' : ''} onClick={() => loadSessionRecords(session.id)}>
                       <span className={`attendance-type-dot is-${session.class_type}`} />
-                      <div><b>{session.class_name}</b><small>{session.teacher_name || 'Chưa ghi giáo viên'} · {extraClassTypeLabel(session.class_type)}</small><time>{formatDateTime(session.checked_at)}</time></div>
+                      <div><b>{session.class_name}</b><small>{teachersForSession(session)} · {extraClassTypeLabel(session.class_type)}</small><time>{formatDateTime(session.checked_at)}</time></div>
                       <span className="attendance-history-count"><b>{session.present_count}/{session.total_students}</b><em>{session.absent_count} vắng</em></span>
                     </button>
                   ))}
@@ -696,7 +674,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
               <section className="attendance-history-detail">
                 {selectedSession ? (
                   <>
-                    <header><span>{extraClassTypeLabel(selectedSession.class_type)}</span><h2>{selectedSession.class_name}</h2><p>{formatDateTime(selectedSession.checked_at)} · GV {selectedSession.teacher_name || '—'}</p><button type="button" disabled={busy} onClick={() => deleteAttendanceSession(selectedSession)}><Icon name="trash" size={17} />Xóa buổi điểm danh</button></header>
+                    <header><span>{extraClassTypeLabel(selectedSession.class_type)}</span><h2>{selectedSession.class_name}</h2><p>{formatDateTime(selectedSession.checked_at)} · GV {teachersForSession(selectedSession)}</p><button type="button" disabled={busy} onClick={() => deleteAttendanceSession(selectedSession)}><Icon name="trash" size={17} />Xóa buổi điểm danh</button></header>
                     <div className="attendance-history-stat"><div><b>{selectedSession.total_students}</b><span>Sĩ số</span></div><div><b>{selectedSession.present_count}</b><span>Có mặt</span></div><div><b>{selectedSession.absent_count}</b><span>Vắng</span></div></div>
                     {selectedSession.note ? <div className="attendance-history-note"><b>Ghi chú</b><p>{selectedSession.note}</p></div> : null}
                     <div className="attendance-absent-list"><strong>Học sinh vắng</strong>{selectedAbsentRecords.map((record, index) => <div key={record.id}><span>{index + 1}</span><div><b>{record.student_full_name}</b><small>{record.student_code || 'Không có mã HS'}</small></div><em>{record.school_class_name || '—'}</em></div>)}{!selectedAbsentRecords.length ? <p>Tất cả học sinh đều có mặt.</p> : null}</div>
