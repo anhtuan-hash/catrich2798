@@ -1,0 +1,35 @@
+name: One-shot Attendance Feature Sync
+
+on:
+  push:
+    branches:
+      - feat/attendance-hub-absence-reports
+
+permissions:
+  contents: write
+
+jobs:
+  sync-main:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Merge latest main without dropping feature conflict hunks
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git merge --no-edit -X ours origin/main
+      - name: Apply attendance-specific production sync
+        run: node scripts/sync-attendance-main.mjs
+      - name: Commit resolved sync
+        run: |
+          git add .github/workflows/frontend-build.yml scripts/test-attendance-room-chip.mjs scripts/test-attendance-schedule-dimming.mjs src/utils/extraClassSchedule2026.js src/components/GlobalAttendanceNavigationTab.jsx src/components/attendance/AttendanceMaterial3.css
+          if git diff --cached --quiet; then
+            echo "No post-merge patch changes required."
+          else
+            git commit -m "chore: integrate latest attendance schedule changes"
+          fi
+          git push origin HEAD:feat/attendance-hub-absence-reports
