@@ -1,0 +1,38 @@
+name: Apply attendance schedule dimming
+
+on:
+  push:
+    branches:
+      - feat/attendance-schedule-dimming
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.head_commit.message != 'feat: dim classes outside scheduled attendance days'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/attendance-schedule-dimming
+          fetch-depth: 0
+
+      - name: Apply approved attendance patch
+        run: node scripts/apply-attendance-schedule-dimming.mjs
+
+      - name: Remove one-shot patch machinery
+        run: rm -f scripts/apply-attendance-schedule-dimming.mjs .github/workflows/apply-attendance-schedule-dimming.yml
+
+      - name: Commit patched application
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No patch changes to commit."
+            exit 0
+          fi
+          git commit -m "feat: dim classes outside scheduled attendance days"
+          git push origin HEAD:feat/attendance-schedule-dimming
