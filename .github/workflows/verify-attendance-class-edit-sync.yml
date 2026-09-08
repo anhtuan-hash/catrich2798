@@ -1,0 +1,25 @@
+name: Verify attendance class edit sync
+
+on:
+  push:
+    branches:
+      - feat/attendance-class-edit-sync
+    paths:
+      - .github/workflows/verify-attendance-class-edit-sync.yml
+      - scripts/test-attendance-class-edit-sync.mjs
+      - src/components/GlobalAttendanceNavigationTab.jsx
+      - supabase/migrations/20260908_attendance_admin_class_member_edit.sql
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/attendance-class-edit-sync
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run attendance class edit sync contract
+        run: node scripts/test-attendance-class-edit-sync.mjs
