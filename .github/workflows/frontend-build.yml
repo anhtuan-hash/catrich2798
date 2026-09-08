@@ -70,6 +70,21 @@ jobs:
       - name: Verify manual attendance teacher addition
         run: node scripts/test-attendance-manual-teacher-add.mjs
 
+      - name: Verify attendance Material 3 reporting contract
+        run: node scripts/test-attendance-material3-reporting.mjs
+
+      - name: Verify attendance monthly aggregation
+        run: node scripts/test-attendance-report-aggregation.mjs
+
+      - name: Verify attendance report export
+        run: node scripts/test-attendance-report-export.mjs
+
+      - name: Verify attendance Material 3 UI
+        run: node scripts/test-attendance-material3-ui.mjs
+
+      - name: Verify attendance monthly report UI
+        run: node scripts/test-attendance-monthly-report-ui.mjs
+
       - name: Verify Vercel Hobby function budget
         run: node scripts/test-vercel-hobby-function-budget.mjs
 
