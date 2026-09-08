@@ -1,0 +1,156 @@
+name: Finalize Attendance Report Logo Fix
+
+on:
+  push:
+    branches:
+      - fix/attendance-report-logo-print-safe
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/attendance-report-logo-print-safe
+          fetch-depth: 0
+      - name: Apply print-safe logo fix and verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          python - <<'PY'
+          from pathlib import Path
+
+          export_path = Path('src/utils/attendanceReportExport.js')
+          text = export_path.read_text()
+
+          old_marker = "export function printAttendanceReportPdf(report, filters = {}) {"
+          helper_block = r'''async function waitForImageReady(image) {
+            if (!image) return;
+            if (image.complete) {
+              if (image.naturalWidth <= 0 || image.naturalHeight <= 0) throw new Error('Không thể tải logo trường để xuất PDF.');
+            } else {
+              await new Promise((resolve, reject) => {
+                image.addEventListener('load', resolve, { once: true });
+                image.addEventListener('error', () => reject(new Error('Không thể tải logo trường để xuất PDF.')), { once: true });
+              });
+            }
+            if (typeof image.decode === 'function') {
+              try {
+                await image.decode();
+              } catch {
+                if (!image.complete || image.naturalWidth <= 0 || image.naturalHeight <= 0) throw new Error('Không thể giải mã logo trường để xuất PDF.');
+              }
+            }
+          }
+
+          async function buildPrintSafeSchoolLogoDataUrl() {
+            if (typeof document === 'undefined' || typeof Image === 'undefined') return schoolLogoUrl;
+            const image = new Image();
+            image.decoding = 'sync';
+            image.src = schoolLogoUrl;
+            await waitForImageReady(image);
+
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.max(1, image.naturalWidth || 360);
+            canvas.height = Math.max(1, image.naturalHeight || 360);
+            const context = canvas.getContext('2d', { alpha: false });
+            if (!context) throw new Error('Không thể chuẩn hóa logo trường để xuất PDF.');
+            context.fillStyle = '#ffffff';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            context.imageSmoothingEnabled = true;
+            context.imageSmoothingQuality = 'high';
+            context.drawImage(image, 0, 0, canvas.width, canvas.height);
+            return canvas.toDataURL('image/jpeg', 0.96);
+          }
+
+          function waitForPrintWindowLoad(popup) {
+            if (popup.document?.readyState === 'complete') return Promise.resolve();
+            return new Promise((resolve) => popup.addEventListener('load', resolve, { once: true }));
+          }
+
+          export async function printAttendanceReportPdf(report, filters = {}) {'''
+
+          if old_marker not in text:
+            raise SystemExit('printAttendanceReportPdf marker not found')
+          text = text.replace(old_marker, helper_block, 1)
+
+          marker = "export async function printAttendanceReportPdf(report, filters = {}) {"
+          head, tail = text.split(marker, 1)
+          title_line = "\n  const title = reportTitle(filters);"
+          if title_line not in tail:
+            raise SystemExit('PDF title line not found')
+          tail = tail.replace(title_line, "\n  const printSafeLogoUrl = await buildPrintSafeSchoolLogoDataUrl();\n  const title = reportTitle(filters);", 1)
+
+          old_page = '@page{size:A4 portrait;margin:18mm 10mm 14mm}'
+          if old_page not in tail:
+            raise SystemExit('A4 page rule not found')
+          tail = tail.replace(old_page, '@page{size:A4 portrait;margin:21mm 10mm 14mm}', 1)
+
+          old_logo_box = '.school-logo-box{width:18mm;height:18mm;display:grid;place-items:center;overflow:hidden}'
+          if old_logo_box not in tail:
+            raise SystemExit('school-logo-box rule not found')
+          tail = tail.replace(old_logo_box, '.school-logo-box{width:18mm;height:18mm;display:grid;place-items:center;overflow:visible;background:#fff;isolation:isolate}', 1)
+
+          old_logo_image = '.school-head img{width:15mm;height:15mm;max-width:100%;max-height:100%;object-fit:contain;display:block}'
+          if old_logo_image not in tail:
+            raise SystemExit('school logo image rule not found')
+          tail = tail.replace(old_logo_image, '.school-head img{width:16mm;height:16mm;max-width:100%;max-height:100%;object-fit:contain;display:block;background:#fff}', 1)
+
+          old_cells = 'th,td{border:1px solid #d4ddd8;padding:4px 4px;text-align:left;vertical-align:top;overflow-wrap:anywhere;word-break:break-word}'
+          if old_cells not in tail:
+            raise SystemExit('table cell rule not found')
+          tail = tail.replace(old_cells, 'th,td{border:1px solid #d4ddd8;padding:4px 4px;text-align:center;vertical-align:middle;overflow-wrap:anywhere;word-break:break-word;font-variant-numeric:tabular-nums}', 1)
+
+          old_logo_markup = '<div class="school-logo-box"><img src="${htmlEscape(schoolLogoUrl)}" alt="Logo Pétrus Ký"></div>'
+          if old_logo_markup not in tail:
+            raise SystemExit('school logo markup not found')
+          tail = tail.replace(old_logo_markup, '<div class="school-logo-box"><img data-report-school-logo src="${htmlEscape(printSafeLogoUrl)}" alt="Logo Pétrus Ký"></div>', 1)
+
+          old_print_script = '  </main><script>window.addEventListener(\'load\',()=>setTimeout(()=>window.print(),300));<\\/script>\n  </body></html>`);'
+          if old_print_script not in tail:
+            raise SystemExit('legacy print timer not found')
+          tail = tail.replace(old_print_script, '  </main>\n  </body></html>`);', 1)
+
+          old_close = '  popup.document.close();\n}'
+          new_close = '''  popup.document.close();
+            await waitForPrintWindowLoad(popup);
+            await waitForImageReady(popup.document.querySelector('[data-report-school-logo]'));
+            if (typeof popup.requestAnimationFrame === 'function') {
+              await new Promise((resolve) => popup.requestAnimationFrame(() => popup.requestAnimationFrame(resolve)));
+            }
+            popup.focus();
+            popup.print();
+          }'''
+          if old_close not in tail:
+            raise SystemExit('popup close marker not found')
+          tail = tail.replace(old_close, new_close, 1)
+          export_path.write_text(head + marker + tail)
+
+          component_path = Path('src/components/attendance/AttendanceMonthlyReport.jsx')
+          component = component_path.read_text()
+          old_click = "onClick={() => { try { printAttendanceReportPdf(report, exportFilters); } catch (error) { onError?.(error.message); } }}"
+          new_click = "onClick={async () => { try { await printAttendanceReportPdf(report, exportFilters); } catch (error) { onError?.(error.message); } }}"
+          if old_click not in component:
+            raise SystemExit('PDF export click handler not found')
+          component_path.write_text(component.replace(old_click, new_click, 1))
+          PY
+
+          rm -f .github/workflows/attendance-report-logo-red.yml
+
+          node scripts/test-attendance-report-export.mjs
+          node scripts/test-attendance-material3-ui.mjs
+          npm ci --ignore-scripts
+          npm run build
+          npx playwright install --with-deps chromium
+          npx playwright test tests/e2e/critical-smoke.spec.js --project=chromium-desktop
+
+          rm -f .github/workflows/attendance-report-logo-finalize.yml
+          git add src/utils/attendanceReportExport.js src/components/attendance/AttendanceMonthlyReport.jsx scripts/test-attendance-report-export.mjs .github/workflows/attendance-report-logo-red.yml .github/workflows/attendance-report-logo-finalize.yml
+          git commit -m "fix: make attendance report logo print-safe"
+          git push origin HEAD:fix/attendance-report-logo-print-safe
