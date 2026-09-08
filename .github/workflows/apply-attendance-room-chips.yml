@@ -1,0 +1,38 @@
+name: Apply attendance room chips
+
+on:
+  push:
+    branches:
+      - feat/attendance-room-chips
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.event.head_commit.message != 'feat: show rooms beside attendance class names'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/attendance-room-chips
+          fetch-depth: 0
+
+      - name: Apply approved attendance room patch
+        run: node scripts/apply-attendance-room-chips.mjs
+
+      - name: Remove one-shot patch machinery
+        run: rm -f scripts/apply-attendance-room-chips.mjs .github/workflows/apply-attendance-room-chips.yml
+
+      - name: Commit patched attendance UI
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No patch changes to commit."
+            exit 0
+          fi
+          git commit -m "feat: show rooms beside attendance class names"
+          git push origin HEAD:feat/attendance-room-chips
