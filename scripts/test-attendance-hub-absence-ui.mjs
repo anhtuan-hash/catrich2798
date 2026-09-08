@@ -4,6 +4,7 @@ import {
   ROUTE_PERMISSION_IDS,
   createAllAccessPermissions,
   getAllowedIdsFromPermissions,
+  getPermissionItem,
   hasExplicitPermissionId,
   hasPermissionId,
   hasRouteAccess,
@@ -17,7 +18,6 @@ const polishUrl = new URL('../public/attendance-ui-polish.css', import.meta.url)
 const polishCss = fs.existsSync(polishUrl) ? fs.readFileSync(polishUrl, 'utf8') : '';
 const indexHtml = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const searchRemovalRuntime = fs.readFileSync(new URL('../public/bes-remove-visible-search-bars.js', import.meta.url), 'utf8');
-const adminPage = fs.readFileSync(new URL('../src/pages/AdminPage.jsx', import.meta.url), 'utf8');
 const uiSource = `${attendance}\n${utility}`;
 
 assert.equal(ROUTE_PERMISSION_IDS.attendance, 'route:attendance', 'Attendance must have a dedicated route permission id');
@@ -60,7 +60,9 @@ const admin = {
 assert.equal(hasRouteAccess(admin, 'attendance'), true, 'Admin must always retain attendance access');
 assert.match(attendance, /ROUTE_PERMISSION_IDS\.attendance/, 'Attendance navigation must use the attendance permission id');
 assert.match(attendance, /hasExplicitPermissionId/, 'Attendance navigation must enforce the explicit permission grant');
-assert.match(adminPage, /Điểm danh/, 'Admin permission editor must expose the attendance permission label');
+const attendancePermissionItem = getPermissionItem(ROUTE_PERMISSION_IDS.attendance);
+assert.equal(attendancePermissionItem?.titleVi, 'Điểm danh', 'Admin permission editor data must expose the attendance permission label');
+assert.match(attendancePermissionItem?.descVi || '', /quản trị viên cấp riêng/i, 'Attendance grant must be described as an explicit admin permission');
 
 assert.match(attendance, /Tìm nhanh lớp/i, 'Quick attendance must provide a fast class search');
 assert.match(attendance, /ATTENDANCE_SUBJECT_HUB/, 'Quick attendance must render the shared subject hub');
