@@ -115,6 +115,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const [sessions, setSessions] = useState([]);
   const [records, setRecords] = useState([]);
   const [monthlySessions, setMonthlySessions] = useState([]);
+  const [teacherDaySessions, setTeacherDaySessions] = useState([]);
   const [selectedClassId, setSelectedClassId] = useState('');
   const [selectedSessionId, setSelectedSessionId] = useState('');
   const [attendanceDate, setAttendanceDate] = useState(today);
@@ -250,6 +251,16 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   }
 
   const selectedTeacherOptions = useMemo(() => assignedTeachersForClass(selectedClass), [selectedClass, classTeacherNames]);
+  const teacherUsageForDate = useMemo(() => {
+    const map = new Map();
+    teacherDaySessions.forEach((session) => {
+      const key = fold(session.teacher_name);
+      if (key && !map.has(key)) map.set(key, session);
+    });
+    return map;
+  }, [teacherDaySessions]);
+  const blockedTeacherUsage = sessionTeacher ? teacherUsageForDate.get(fold(sessionTeacher)) : null;
+  const isTeacherBlocked = Boolean(blockedTeacherUsage && String(blockedTeacherUsage.class_id) !== String(selectedClassId));
 
   useEffect(() => {
     setShowAddTeacher(false);
@@ -275,10 +286,34 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     return found;
   }
 
+  async function loadTeacherDaySessions(dateValue = attendanceDate) {
+    if (!client || !dateValue || !allowed) {
+      setTeacherDaySessions([]);
+      return [];
+    }
+    const { data, error: usageError } = await client.from('bes_extra_attendance_sessions')
+      .select('id,class_id,class_name,teacher_name,attendance_date,session_status')
+      .eq('attendance_date', dateValue)
+      .eq('session_status', 'completed')
+      .order('checked_at', { ascending: true });
+    if (usageError) {
+      setError(usageError.message || 'Không thể kiểm tra giáo viên đã điểm danh trong ngày.');
+      return [];
+    }
+    const rows = data || [];
+    setTeacherDaySessions(rows);
+    return rows;
+  }
+
   useEffect(() => {
     if (!open || !allowed || !selectedClassId || !attendanceDate) return;
     loadDaySession(selectedClassId, attendanceDate);
   }, [open, allowed, selectedClassId, attendanceDate]);
+
+  useEffect(() => {
+    if (!open || !allowed || !attendanceDate) return;
+    loadTeacherDaySessions(attendanceDate);
+  }, [open, allowed, attendanceDate]);
 
   useEffect(() => {
     setDraft(buildAttendanceDraft(selectedMembers));
@@ -297,9 +332,12 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     setLessonPeriods(1);
     setShowCancelSession(false);
     setCancellationReason('');
-    if (selectedTeacherOptions.length === 1) setSessionTeacher(selectedTeacherOptions[0]);
+    const soleTeacher = selectedTeacherOptions.length === 1 ? selectedTeacherOptions[0] : '';
+    const soleUsage = soleTeacher ? teacherUsageForDate.get(fold(soleTeacher)) : null;
+    const soleBlocked = Boolean(soleUsage && String(soleUsage.class_id) !== String(selectedClassId));
+    if (soleTeacher && !soleBlocked) setSessionTeacher(soleTeacher);
     else setSessionTeacher('');
-  }, [daySession?.id, selectedClassId, selectedTeacherOptions.join('|')]);
+  }, [daySession?.id, selectedClassId, selectedTeacherOptions.join('|'), teacherUsageForDate]);
 
   const summary = useMemo(() => attendanceSummary(draft), [draft]);
   const isFutureDate = attendanceDate > today;
@@ -322,6 +360,11 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       setError('Vui lòng chọn giáo viên dạy hôm nay.');
       return;
     }
+    if (isTeacherBlocked) {
+      setError(`Giáo viên ${sessionTeacher} đã được điểm danh tại lớp ${blockedTeacherUsage.class_name} ngày ${formatDate(attendanceDate)}.`);
+      setSessionTeacher('');
+      return;
+    }
     const absentKeys = draft.filter((row) => row.present === false).map((row) => row.member_key);
     setBusy(true);
     setError('');
@@ -340,10 +383,12 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       setDaySession(created || null);
       setNotice(`Đã chốt điểm danh ${selectedClass.class_name} ngày ${formatDate(attendanceDate)} · GV ${sessionTeacher} · ${summary.present}/${summary.total} có mặt.`);
       await loadAll();
+      await loadTeacherDaySessions();
       await loadMonthlySessions();
     } catch (confirmError) {
       setError(confirmError?.message || 'Không thể xác nhận điểm danh.');
       await loadDaySession();
+      await loadTeacherDaySessions();
     } finally {
       setBusy(false);
     }
@@ -596,6 +641,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       setSelectedSessionId(''); setRecords([]); setDaySession(null); setMonthlySessions([]);
       setNotice(`Đã xóa lớp ${classRow.class_name} cùng dữ liệu điểm danh liên quan.`);
       await loadAll({ keepSelection: false });
+      await loadTeacherDaySessions();
     } catch (deleteError) { setError(deleteError?.message || 'Không thể xóa lớp.'); }
     finally { setBusy(false); }
   }
@@ -622,6 +668,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       setNotice(`Đã xóa điểm danh ${session.class_name} ngày ${formatDate(session.attendance_date)}. Ngày này đã được mở khóa.`);
       await loadAll();
       await loadDaySession();
+      await loadTeacherDaySessions();
       await loadMonthlySessions();
     } catch (deleteError) { setError(deleteError?.message || 'Không thể xóa buổi điểm danh đã duyệt.'); }
     finally { setBusy(false); }
@@ -656,7 +703,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       <section className="attendance-shell" role="dialog" aria-modal="true" aria-label="Điểm danh lớp phụ đạo và bồi dưỡng học sinh giỏi">
         <header className="attendance-topbar">
           <div className="attendance-title"><span><Icon name="attendance" size={28} /></span><div><small>QUẢN LÝ CHUYÊN CẦN</small><strong>Điểm danh lớp phụ đạo & bồi dưỡng</strong></div></div>
-          <div className="attendance-top-actions"><button type="button" className="attendance-icon-button" onClick={() => { loadAll(); loadDaySession(); if (view === 'calendar') loadMonthlySessions(); }} title="Làm mới"><Icon name="refresh" /></button><button type="button" className="attendance-icon-button" onClick={() => setOpen(false)} aria-label="Đóng"><Icon name="close" /></button></div>
+          <div className="attendance-top-actions"><button type="button" className="attendance-icon-button" onClick={() => { loadAll(); loadDaySession(); loadTeacherDaySessions(); if (view === 'calendar') loadMonthlySessions(); }} title="Làm mới"><Icon name="refresh" /></button><button type="button" className="attendance-icon-button" onClick={() => setOpen(false)} aria-label="Đóng"><Icon name="close" /></button></div>
         </header>
 
         <nav className="attendance-tabs" aria-label="Phân hệ điểm danh">
@@ -689,14 +736,14 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
 
                   <div className="attendance-session-controls">
                     <label><span>Ngày điểm danh</span><input type="date" value={attendanceDate} max={today} onChange={(event) => { setAttendanceDate(event.target.value); setNotice(''); setError(''); }} /></label>
-                    <label className="is-teacher"><span>Giáo viên dạy hôm nay</span>{selectedTeacherOptions.length > 1 ? <select value={sessionTeacher} disabled={isDayLocked} onChange={(event) => setSessionTeacher(event.target.value)}><option value="">Chọn giáo viên</option>{selectedTeacherOptions.map((name) => <option key={name} value={name}>{name}</option>)}</select> : <strong>{selectedTeacherOptions[0] || sessionTeacher || 'Chưa có phân công'}</strong>}</label>
+                    <label className="is-teacher"><span>Giáo viên dạy hôm nay</span><select value={sessionTeacher} disabled={isDayLocked || !selectedTeacherOptions.length} onChange={(event) => setSessionTeacher(event.target.value)}><option value="">Chọn giáo viên</option>{selectedTeacherOptions.map((name) => { const usage = teacherUsageForDate.get(fold(name)); const blocked = Boolean(usage && String(usage.class_id) !== String(selectedClassId)); return <option key={name} value={name} disabled={blocked}>{blocked ? `${name} — đã điểm danh: ${usage.class_name}` : name}</option>; })}</select></label>
                     <div className="att-m3-period-field"><span>Số tiết dạy</span><div className="att-m3-period-segment">{[[1,'1 tiết'],[1.5,'1,5 tiết'],[2,'2 tiết']].map(([value,label]) => <button key={value} type="button" disabled={isDayLocked} className={lessonPeriods === value ? 'is-active' : ''} onClick={() => setLessonPeriods(value)}>{label}</button>)}</div></div>
                     {isDayLocked ? <div className={`attendance-day-lock ${daySession.session_status === 'cancelled' ? 'is-cancelled' : ''}`}><Icon name="check" size={18} /><div><b>{daySession.session_status === 'cancelled' ? `Đã hủy ${formatDate(daySession.attendance_date)}` : `Đã điểm danh ${formatDate(daySession.attendance_date)}`}</b><span>{daySession.session_status === 'cancelled' ? `${daySession.cancellation_reason} · 0 tiết` : `GV ${daySession.teacher_name} · ${String(daySession.lesson_periods || 1).replace('.', ',')} tiết · ${formatDateTime(daySession.checked_at)}`}</span></div></div> : <div className="attendance-day-open"><b>Chưa chốt ngày này</b><span>{isFutureDate ? 'Không thể chọn ngày tương lai.' : 'Có thể điểm danh hoặc hủy buổi học.'}</span></div>}
                   </div>
 
                   <div className="attendance-roster-head"><span>Học sinh</span><span>Lớp chính khóa</span><span>Vắng</span></div>
                   <div className="attendance-roster">{draft.map((member, index) => <label key={member.id || member.member_key} className={member.present === false ? 'is-absent' : ''}><span className="attendance-index">{String(index + 1).padStart(2, '0')}</span><div><b>{member.student_full_name}</b><small>{member.student_code || 'Không có mã HS'}</small></div><span className="attendance-school-class">{member.school_class_name || '—'}</span><input type="checkbox" disabled={isDayLocked} checked={member.present === false} onChange={() => toggleAbsent(member.member_key)} aria-label={`Đánh dấu ${member.student_full_name} vắng`} /></label>)}{!draft.length ? <div className="attendance-empty">Lớp này chưa có học sinh đang hoạt động.</div> : null}</div>
-                  <footer className="attendance-confirm-bar"><label><span>Ghi chú buổi học</span><input disabled={isDayLocked} value={note} onChange={(event) => setNote(event.target.value)} placeholder="Không bắt buộc" /></label><div className="att-m3-session-actions"><button className="att-m3-cancel-button" type="button" disabled={busy || isDayLocked || isFutureDate} onClick={() => setShowCancelSession((value) => !value)}>Hủy buổi học</button><button type="button" disabled={busy || !draft.length || isDayLocked || isFutureDate || !sessionTeacher} onClick={confirmAttendance}><Icon name="check" size={18} />{isDayLocked ? (daySession.session_status === 'cancelled' ? 'Đã hủy' : `Đã chốt ${formatDate(daySession.attendance_date)}`) : busy ? 'Đang lưu…' : 'Xác nhận điểm danh'}</button></div></footer>
+                  <footer className="attendance-confirm-bar"><label><span>Ghi chú buổi học</span><input disabled={isDayLocked} value={note} onChange={(event) => setNote(event.target.value)} placeholder="Không bắt buộc" /></label><div className="att-m3-session-actions"><button className="att-m3-cancel-button" type="button" disabled={busy || isDayLocked || isFutureDate} onClick={() => setShowCancelSession((value) => !value)}>Hủy buổi học</button><button type="button" disabled={busy || !draft.length || isDayLocked || isFutureDate || !sessionTeacher || isTeacherBlocked} onClick={confirmAttendance}><Icon name="check" size={18} />{isDayLocked ? (daySession.session_status === 'cancelled' ? 'Đã hủy' : `Đã chốt ${formatDate(daySession.attendance_date)}`) : busy ? 'Đang lưu…' : 'Xác nhận điểm danh'}</button></div></footer>
                   {showCancelSession && !isDayLocked ? <div className="att-m3-cancel-surface"><label><span>Lý do hủy *</span><input value={cancellationReason} onChange={(event) => setCancellationReason(event.target.value)} placeholder="Ví dụ: Giáo viên bận công tác" autoFocus /></label><button type="button" onClick={() => { setShowCancelSession(false); setCancellationReason(''); }}>Không hủy</button><button className="is-confirm" type="button" disabled={busy || !cancellationReason.trim()} onClick={cancelClassSession}>{busy ? 'Đang lưu…' : 'Xác nhận hủy'}</button></div> : null}
                 </> : <div className="attendance-empty is-large">Chọn một lớp để bắt đầu điểm danh.</div>}
               </section>
