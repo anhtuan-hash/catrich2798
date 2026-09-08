@@ -97,5 +97,8 @@ jobs:
       - name: Verify browser error telemetry
         run: node scripts/test-client-error-telemetry.mjs
 
+      - name: Verify Admin teacher account creator
+        run: node scripts/test-admin-teacher-account-creator.mjs
+
       - name: Build production bundle
         run: npm run build
