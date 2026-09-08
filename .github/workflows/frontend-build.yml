@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: frontend-build-${{ github.event.pull_request.number || github.ref }}
@@ -18,8 +18,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Set up Node 22
         uses: actions/setup-node@v4
@@ -29,17 +27,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci --ignore-scripts
-
-      - name: Apply teacher account open listener
-        if: github.event_name == 'pull_request'
-        run: |
-          node scripts/apply-admin-teacher-account-open.mjs
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/components/BulkTeacherAccountsPanel.jsx
-          git rm scripts/apply-admin-teacher-account-open.mjs
-          git commit -m "fix: open teacher account manager from system accounts"
-          git push origin HEAD:${{ github.head_ref }}
 
       - name: Verify font upload and live preview contract
         run: node scripts/test-font-upload-live-preview.mjs
