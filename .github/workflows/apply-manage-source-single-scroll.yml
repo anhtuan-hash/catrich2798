@@ -100,6 +100,6 @@ jobs:
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add index.html src/components/GlobalAttendanceNavigationTab.css src/components/attendance/AttendanceClassEditor.css public/attendance-ui-polish.css public/attendance-windows8-launch.css public/attendance-manage-scrollbar-fix.css 2>/dev/null || true
+          git add -A
           git commit -m "fix: make class management use one source-owned scroll"
           git push
