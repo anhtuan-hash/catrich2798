@@ -87,4 +87,26 @@ assert.match(polishCss, /\.attendance-history-list[^\n{]*button:has\(\.attendanc
 assert.match(polishCss, /\.att-report-m3__teacher-grid\s*>\s*article:nth-child\(4n\+1\)[\s\S]*?background/i,
   'Teacher report cards must use a repeating pastel color system');
 
+assert.match(attendance, /attendance-history-search/, 'History list must expose a prominent search control');
+assert.match(attendance, /attendance-history-hero/, 'History detail must render a dedicated summary hero');
+assert.match(attendance, /attendance-history-info-grid/, 'History detail must render an information-card grid');
+assert.match(attendance, /attendance-history-rate-card/, 'History detail must render an attendance-rate card');
+assert.match(attendance, /Giáo viên/);
+assert.match(attendance, /Môn học/);
+assert.match(attendance, /Ngày dạy/);
+assert.match(attendance, /Thời gian/);
+assert.match(attendance, /Phòng học/);
+assert.match(attendance, /Tỷ lệ chuyên cần/);
+assert.match(attendance, /Ghi chú buổi học/);
+assert.match(attendance, /Danh sách học sinh vắng/);
+assert.match(attendance, /Chốt lúc/);
+assert.match(polishCss, /\.attendance-history-hero\s*\{[^}]*background\s*:/i,
+  'History hero must have its own visual surface');
+assert.match(polishCss, /\.attendance-history-info-grid\s*\{[^}]*grid-template-columns\s*:/i,
+  'History metadata must be presented as a responsive card grid');
+assert.match(polishCss, /\.attendance-history-rate-card\s*\{[^}]*background\s*:/i,
+  'Attendance-rate card must use a distinct semantic surface');
+assert.match(polishCss, /\.attendance-history-all-present\s*\{[^}]*background\s*:/i,
+  'All-present state must be rendered as a dedicated success surface');
+
 console.log('Attendance Material 3 UI contract OK');
