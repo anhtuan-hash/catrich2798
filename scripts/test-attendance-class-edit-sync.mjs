@@ -17,6 +17,22 @@ const css = fs.readFileSync(cssUrl, 'utf8');
 const migration = fs.existsSync(migrationUrl) ? fs.readFileSync(migrationUrl, 'utf8') : '';
 
 assert.equal(
+  roomForExtraClass(null),
+  '',
+  'Empty selected-class state must not crash the global navigation before attendance data loads',
+);
+assert.deepEqual(
+  weekdaysForExtraClass(null),
+  [],
+  'Empty selected-class state must expose no weekdays instead of dereferencing null',
+);
+assert.equal(
+  isExtraClassScheduledOnDate(null, '2026-09-08'),
+  true,
+  'An empty/unknown class must remain usable while attendance data is still loading',
+);
+
+assert.equal(
   isExtraClassScheduledOnDate({ class_type: 'remedial', subject: 'Anh', grade_level: 10, weekdays: [1] }, '2026-09-07'),
   true,
   'In-memory JS weekday arrays must override the catalog schedule',
