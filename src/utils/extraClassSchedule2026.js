@@ -54,14 +54,36 @@ function weekdayOf(dateValue) {
 
 function persistedWeekdaysOf(classRow) {
   const raw = classRow?.weekdays;
-  const values = Array.isArray(raw)
-    ? raw.map((value) => Number(value))
-    : String(raw || '')
-      .split(',')
-      .map((value) => Number(String(value).trim()))
-      .filter((value) => String(value) !== '');
-  const normalized = [...new Set(values.filter((value) => Number.isInteger(value) && value >= 0 && value <= 6))]
-    .sort((a, b) => a - b);
+
+  // Runtime/editing code may hold an in-memory JS weekday array (Sun=0 ... Sat=6).
+  if (Array.isArray(raw)) {
+    const normalized = [...new Set(raw
+      .map((value) => Number(value))
+      .filter((value) => Number.isInteger(value) && value >= 0 && value <= 6))]
+      .sort((a, b) => a - b);
+    return normalized.length ? normalized : null;
+  }
+
+  // Production DB keeps the established school notation as text:
+  // 2=Thứ 2/Monday ... 7=Thứ 7/Saturday, CN=Sunday.
+  const tokens = String(raw || '')
+    .split(',')
+    .map((value) => String(value).trim())
+    .filter(Boolean);
+  if (!tokens.length) return null;
+
+  const values = [];
+  tokens.forEach((token) => {
+    const normalized = fold(token);
+    if (normalized === 'cn' || normalized === 'chu nhat' || normalized === 'chunhat') {
+      values.push(0);
+      return;
+    }
+    const schoolDay = Number(token);
+    if (Number.isInteger(schoolDay) && schoolDay >= 2 && schoolDay <= 7) values.push(schoolDay - 1);
+  });
+
+  const normalized = [...new Set(values)].sort((a, b) => a - b);
   return normalized.length ? normalized : null;
 }
 
@@ -69,7 +91,7 @@ const gifted = (subject, grade, room, weekdays) => ({ class_type: 'gifted', subj
 const remedial = (subject, grade, room, weekdays) => ({ class_type: 'remedial', subject, grade, room, weekdays });
 
 // Fixed gifted-class schedule supplied by the school for school year 2026–2027.
-// Weekdays use JavaScript numbering: Monday=1 … Friday=5.
+// Weekdays use JavaScript numbering: Sunday=0, Monday=1 ... Saturday=6.
 export const GIFTED_SCHEDULE_2026_2027 = Object.freeze([
   gifted('vat_li', 10, 'A104', [4]),
   gifted('sinh', 10, 'A106', [2]),
