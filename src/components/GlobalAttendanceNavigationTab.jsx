@@ -811,7 +811,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
             <div className="attendance-quick-layout">
               <aside className="attendance-class-list">
                 <header><strong>Lớp đang hoạt động</strong><span>{filteredActiveClasses.length}/{activeClasses.length} lớp</span></header>
-                <div className="att-m3-class-discovery">
+                <div className="att-m3-class-discovery" data-bes-keep-search="true">
                   <label className="att-m3-class-search"><span>Tìm nhanh lớp</span><input value={classQuery} onChange={(event) => setClassQuery(event.target.value)} placeholder="Tên lớp, môn hoặc giáo viên…" /></label>
                   <div className="att-m3-subject-hub" aria-label="Phân loại lớp theo bộ môn">
                     {ATTENDANCE_SUBJECT_HUB.map((item) => <button key={item.key} type="button" className={`is-subject-${item.key} ${subjectFilter === item.key ? 'is-active' : ''}`} onClick={() => setSubjectFilter(item.key)}><span>{item.label}</span><b>{item.key === 'all' ? activeClasses.length : (subjectCounts.get(item.key) || 0)}</b></button>)}
