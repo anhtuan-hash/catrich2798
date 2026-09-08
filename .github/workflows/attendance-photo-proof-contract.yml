@@ -1,0 +1,26 @@
+name: Attendance Photo Proof Contract
+
+on:
+  push:
+    branches:
+      - feat/attendance-photo-proof
+  pull_request:
+    paths:
+      - 'src/components/GlobalAttendanceNavigationTab.jsx'
+      - 'src/components/attendance/AttendanceMaterial3.css'
+      - 'src/utils/attendanceProofImage.js'
+      - 'supabase/migrations/20260908_attendance_photo_proof.sql'
+      - 'scripts/test-attendance-photo-proof.mjs'
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node scripts/test-attendance-photo-proof.mjs
