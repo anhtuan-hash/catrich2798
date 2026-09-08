@@ -74,18 +74,16 @@ assert.match(polishCss, /\.att-m3-class-search\s+input\s*\{[^}]*font-size\s*:\s*
 assert.match(polishCss, /\.att-m3-subject-hub\s+button\s*\{[^}]*font-size\s*:\s*var\(--att-type-chip\)/i,
   'Subject filter chips must use the shared chip size');
 
-assert.match(attendance, /is-type-\$\{classRow\.class_type\}/,
-  'Class rows must expose their class type as a semantic CSS class');
-assert.match(attendance, /is-type-\$\{session\.class_type\}/,
-  'History rows must expose their class type as a semantic CSS class');
-assert.match(polishCss, /\.attendance-class-list\s+button\.is-type-gifted[\s\S]*?background/i,
-  'Gifted class cards must receive a dedicated color treatment');
-assert.match(polishCss, /\.attendance-class-list\s+button\.is-type-remedial[\s\S]*?background/i,
-  'Remedial class cards must receive a dedicated color treatment');
-assert.match(polishCss, /\.attendance-manage-classes\s+button\.is-type-gifted[\s\S]*?border-left/i,
-  'Management gifted class rows must carry a colored accent');
-assert.match(polishCss, /\.attendance-history-list\s+button\.is-type-remedial[\s\S]*?border-left/i,
-  'History remedial rows must carry a colored accent');
+assert.match(polishCss, /\.attendance-class-list[^\n{]*button:has\(\.attendance-type-dot\.is-gifted\)[\s\S]*?background/i,
+  'Gifted quick-attendance class cards must receive a dedicated cool color treatment');
+assert.match(polishCss, /\.attendance-class-list[^\n{]*button:has\(\.attendance-type-dot\.is-remedial\)[\s\S]*?background/i,
+  'Remedial quick-attendance class cards must receive a dedicated warm color treatment');
+assert.match(polishCss, /\.attendance-manage-classes[^\n{]*button:nth-of-type\(4n\+1\)[\s\S]*?border-left/i,
+  'Management class rows must use a repeating colored accent palette');
+assert.match(polishCss, /\.attendance-history-list[^\n{]*button:has\(\.attendance-type-dot\.is-gifted\)[\s\S]*?background/i,
+  'Gifted history rows must receive a dedicated cool color treatment');
+assert.match(polishCss, /\.attendance-history-list[^\n{]*button:has\(\.attendance-type-dot\.is-remedial\)[\s\S]*?background/i,
+  'Remedial history rows must receive a dedicated warm color treatment');
 assert.match(polishCss, /\.att-report-m3__teacher-grid\s*>\s*article:nth-child\(4n\+1\)[\s\S]*?background/i,
   'Teacher report cards must use a repeating pastel color system');
 
