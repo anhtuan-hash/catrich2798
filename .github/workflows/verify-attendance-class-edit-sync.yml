@@ -1,5 +1,6 @@
 name: Verify attendance class edit sync
 
+# Post-fix verification workflow; remove before merge.
 on:
   push:
     branches:
