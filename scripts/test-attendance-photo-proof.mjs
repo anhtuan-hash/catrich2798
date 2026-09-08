@@ -5,15 +5,18 @@ const attendanceUrl = new URL('../src/components/GlobalAttendanceNavigationTab.j
 const cssUrl = new URL('../src/components/attendance/AttendanceMaterial3.css', import.meta.url);
 const proofUtilityUrl = new URL('../src/utils/attendanceProofImage.js', import.meta.url);
 const proofMigrationUrl = new URL('../supabase/migrations/20260908_attendance_photo_proof.sql', import.meta.url);
+const proofAclMigrationUrl = new URL('../supabase/migrations/20260908_attendance_photo_proof_acl_hardening.sql', import.meta.url);
 
 const attendance = fs.readFileSync(attendanceUrl, 'utf8');
 const css = fs.readFileSync(cssUrl, 'utf8');
 
 assert.ok(fs.existsSync(proofUtilityUrl), 'Attendance proof image utility must exist');
 assert.ok(fs.existsSync(proofMigrationUrl), 'Attendance photo proof migration must exist');
+assert.ok(fs.existsSync(proofAclMigrationUrl), 'Attendance photo proof ACL hardening migration must exist');
 
 const proofUtility = fs.readFileSync(proofUtilityUrl, 'utf8');
 const proofMigration = fs.readFileSync(proofMigrationUrl, 'utf8');
+const proofAclMigration = fs.readFileSync(proofAclMigrationUrl, 'utf8');
 
 assert.match(attendance, /proof_path/, 'Attendance sessions must load proof_path');
 assert.match(attendance, /Minh chứng hình ảnh/, 'Quick attendance and History must label photo evidence clearly');
@@ -39,6 +42,11 @@ assert.match(proofMigration, /can_view_extra_attendance_proof\(\)/, 'Private pro
 assert.match(proofMigration, /attendance:history/, 'History proof access must require the explicit History permission');
 assert.match(proofMigration, /bes_set_extra_attendance_proof/, 'Migration must expose the secure proof attachment RPC');
 assert.match(proofMigration, /session_status\s*=\s*'completed'/, 'Proof attachment must only target completed attendance sessions');
+
+assert.match(proofAclMigration, /revoke\s+execute\s+on\s+function\s+public\.can_view_extra_attendance_proof\(\)\s+from\s+anon/i, 'History proof helper must explicitly revoke anon execution');
+assert.match(proofAclMigration, /revoke\s+execute\s+on\s+function\s+public\.bes_set_extra_attendance_proof\(uuid\s*,\s*text\)\s+from\s+anon/i, 'Proof attachment RPC must explicitly revoke anon execution');
+assert.match(proofAclMigration, /grant\s+execute\s+on\s+function\s+public\.can_view_extra_attendance_proof\(\)\s+to\s+authenticated/i, 'History proof helper must remain executable by signed-in users');
+assert.match(proofAclMigration, /grant\s+execute\s+on\s+function\s+public\.bes_set_extra_attendance_proof\(uuid\s*,\s*text\)\s+to\s+authenticated/i, 'Proof attachment RPC must remain executable by signed-in users');
 
 assert.match(css, /att-m3-proof-card/, 'Quick attendance proof card must have dedicated Material 3 styling');
 assert.match(css, /attendance-history-proof/, 'History proof viewer must have dedicated styling');
