@@ -82,6 +82,9 @@ jobs:
       - name: Verify attendance Material 3 UI
         run: node scripts/test-attendance-material3-ui.mjs
 
+      - name: Verify attendance teacher/day lock
+        run: node scripts/test-attendance-teacher-day-lock.mjs
+
       - name: Verify attendance monthly report UI
         run: node scripts/test-attendance-monthly-report-ui.mjs
 
