@@ -1,0 +1,280 @@
+from pathlib import Path
+
+jsx_path = Path('src/components/GlobalAttendanceNavigationTab.jsx')
+css_path = Path('public/attendance-ui-polish.css')
+jsx = jsx_path.read_text()
+css = css_path.read_text()
+
+if 'historySelectionMode' in jsx:
+    print('Bulk history selection already applied; nothing to do.')
+else:
+    anchor = "  const [historyType, setHistoryType] = useState('all');\n"
+    insert = anchor + "  const [historySelectionMode, setHistorySelectionMode] = useState(false);\n  const [selectedHistorySessionIds, setSelectedHistorySessionIds] = useState([]);\n"
+    if anchor not in jsx:
+        raise SystemExit('state anchor not found')
+    jsx = jsx.replace(anchor, insert, 1)
+
+    anchor = "  const filteredHistory = useMemo(() => sessions.filter((session) => {\n"
+    functions = r'''  function toggleHistorySelectionMode() {
+    setHistorySelectionMode((current) => {
+      const next = !current;
+      if (!next) setSelectedHistorySessionIds([]);
+      return next;
+    });
+  }
+
+  function toggleHistoryBulkSelection(sessionId) {
+    const key = String(sessionId);
+    setSelectedHistorySessionIds((current) => (
+      current.some((id) => String(id) === key)
+        ? current.filter((id) => String(id) !== key)
+        : [...current, sessionId]
+    ));
+  }
+
+  function toggleAllFilteredHistorySelection() {
+    const filteredIds = filteredHistory.map((session) => session.id);
+    if (!filteredIds.length) return;
+    const filteredIdSet = new Set(filteredIds.map((id) => String(id)));
+    setSelectedHistorySessionIds((current) => {
+      const currentSet = new Set(current.map((id) => String(id)));
+      const allSelected = filteredIds.every((id) => currentSet.has(String(id)));
+      if (allSelected) return current.filter((id) => !filteredIdSet.has(String(id)));
+      return Array.from(new Map([...current, ...filteredIds].map((id) => [String(id), id])).values());
+    });
+  }
+
+  async function deleteSelectedHistorySessions() {
+    if (!selectedHistorySessionIds.length || busy || !client) return;
+    const selectedIdSet = new Set(selectedHistorySessionIds.map((id) => String(id)));
+    const targets = sessions.filter((session) => selectedIdSet.has(String(session.id)));
+    if (!targets.length) {
+      setSelectedHistorySessionIds([]);
+      return;
+    }
+    const confirmed = window.confirm(`Xóa ${targets.length} buổi điểm danh đã chọn?\n\nCác ngày tương ứng sẽ được mở khóa để có thể điểm danh lại. Không thể hoàn tác.`);
+    if (!confirmed) return;
+    setBusy(true); setError(''); setNotice('');
+    const failed = [];
+    const deletedIds = new Set();
+    try {
+      for (const session of targets) {
+        const { error: deleteError } = await client.rpc('bes_delete_extra_attendance_session', { p_session_id: session.id });
+        if (deleteError) {
+          failed.push(`${session.class_name} ${formatDate(session.attendance_date)}: ${deleteError.message || 'Lỗi không xác định'}`);
+        } else {
+          deletedIds.add(String(session.id));
+        }
+      }
+      if (deletedIds.has(String(selectedSessionId))) {
+        setSelectedSessionId('');
+        setRecords([]);
+      }
+      if (daySession && deletedIds.has(String(daySession.id))) setDaySession(null);
+      setSelectedHistorySessionIds((current) => current.filter((id) => !deletedIds.has(String(id))));
+      if (!failed.length) setHistorySelectionMode(false);
+      if (deletedIds.size) setNotice(`Đã xóa ${deletedIds.size} buổi điểm danh. Các ngày tương ứng đã được mở khóa.`);
+      if (failed.length) setError(`Không thể xóa ${failed.length} buổi: ${failed.slice(0, 3).join(' · ')}${failed.length > 3 ? ` · và ${failed.length - 3} buổi khác` : ''}`);
+      await loadAll();
+      await loadDaySession();
+      await loadTeacherDaySessions();
+      await loadMonthlySessions();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+'''
+    if anchor not in jsx:
+        raise SystemExit('filtered history anchor not found')
+    jsx = jsx.replace(anchor, functions + anchor, 1)
+
+    anchor = "  const filteredManagementMembers = useMemo(() => allSelectedMembers.filter((member) => {\n"
+    derived = "  const selectedHistorySessionIdSet = useMemo(() => new Set(selectedHistorySessionIds.map((id) => String(id))), [selectedHistorySessionIds]);\n  const allFilteredHistorySelected = filteredHistory.length > 0 && filteredHistory.every((session) => selectedHistorySessionIdSet.has(String(session.id)));\n\n"
+    if anchor not in jsx:
+        raise SystemExit('history derived-state anchor not found')
+    jsx = jsx.replace(anchor, derived + anchor, 1)
+
+    old = '''                  <div className="attendance-history-list-title"><div><strong>Lịch sử điểm danh</strong><p>Tra cứu các buổi đã chốt và buổi đã hủy.</p></div><span>{filteredHistory.length} buổi</span></div>
+                  <label className="attendance-history-search"><Icon name="history" size={16} /><input value={historyQuery} onChange={(event) => setHistoryQuery(event.target.value)} placeholder="Tìm theo tên lớp, môn học, giáo viên hoặc ngày…" /></label>
+                  <div className="attendance-history-filters"><select value={historyType} onChange={(event) => setHistoryType(event.target.value)}><option value="all">Tất cả loại lớp</option><option value="remedial">Phụ đạo</option><option value="gifted">Bồi dưỡng HSG</option></select></div>
+'''
+    new = '''                  <div className="attendance-history-list-title"><div><strong>Lịch sử điểm danh</strong><p>Tra cứu các buổi đã chốt và buổi đã hủy.</p></div><div className="attendance-history-list-actions"><span>{filteredHistory.length} buổi</span>{canAccessAttendanceView('quick') ? <button type="button" className={historySelectionMode ? 'is-active' : ''} disabled={busy} onClick={toggleHistorySelectionMode}>{historySelectionMode ? 'Thoát chọn' : 'Chọn nhiều'}</button> : null}</div></div>
+                  <label className="attendance-history-search"><Icon name="history" size={16} /><input value={historyQuery} onChange={(event) => setHistoryQuery(event.target.value)} placeholder="Tìm theo tên lớp, môn học, giáo viên hoặc ngày…" /></label>
+                  <div className="attendance-history-filters"><select value={historyType} onChange={(event) => setHistoryType(event.target.value)}><option value="all">Tất cả loại lớp</option><option value="remedial">Phụ đạo</option><option value="gifted">Bồi dưỡng HSG</option></select></div>
+                  {historySelectionMode ? <div className="attendance-history-bulk-toolbar"><button type="button" disabled={busy || !filteredHistory.length} onClick={toggleAllFilteredHistorySelection}>{allFilteredHistorySelected ? 'Bỏ chọn kết quả' : 'Chọn tất cả kết quả'}</button><span>Đã chọn <b>{selectedHistorySessionIds.length}</b> buổi</span><button type="button" className="is-danger" disabled={busy || !selectedHistorySessionIds.length} onClick={deleteSelectedHistorySessions}><Icon name="trash" size={16} />{busy ? 'Đang xóa…' : `Xóa ${selectedHistorySessionIds.length} buổi`}</button></div> : null}
+'''
+    if old not in jsx:
+        raise SystemExit('history header anchor not found')
+    jsx = jsx.replace(old, new, 1)
+
+    old = '''                  return <button key={session.id} type="button" className={String(selectedSessionId) === String(session.id) ? 'is-selected' : ''} onClick={() => loadSessionRecords(session.id)}>
+                    <span className={`attendance-type-dot is-${session.class_type}`} />
+'''
+    new = '''                  const isBulkSelected = selectedHistorySessionIdSet.has(String(session.id));
+                  return <button key={session.id} type="button" className={`${String(selectedSessionId) === String(session.id) && !historySelectionMode ? 'is-selected' : ''}${historySelectionMode ? ' is-bulk-mode' : ''}${isBulkSelected ? ' is-bulk-selected' : ''}`.trim()} aria-pressed={historySelectionMode ? isBulkSelected : undefined} onClick={() => { if (historySelectionMode) toggleHistoryBulkSelection(session.id); else loadSessionRecords(session.id); }}>
+                    {historySelectionMode ? <span className={`attendance-history-select-box ${isBulkSelected ? 'is-checked' : ''}`} aria-hidden="true">{isBulkSelected ? <Icon name="check" size={14} /> : null}</span> : null}
+                    <span className={`attendance-type-dot is-${session.class_type}`} />
+'''
+    if old not in jsx:
+        raise SystemExit('history card anchor not found')
+    jsx = jsx.replace(old, new, 1)
+
+    old = '<section className="attendance-history-detail">{selectedSession ? <>'
+    new = '<section className="attendance-history-detail">{historySelectionMode ? <div className="attendance-history-bulk-detail"><span><Icon name="trash" size={28} /></span><h2>Chọn nhiều buổi điểm danh</h2><p>Chọn các buổi ở danh sách bên trái, sau đó dùng nút xóa để xử lý một lần.</p><b>{selectedHistorySessionIds.length} buổi đã chọn</b></div> : selectedSession ? <>'
+    if old not in jsx:
+        raise SystemExit('history detail anchor not found')
+    jsx = jsx.replace(old, new, 1)
+
+    jsx_path.write_text(jsx)
+
+marker = '/* ---------- History bulk selection ---------- */'
+if marker not in css:
+    css += r'''
+
+/* ---------- History bulk selection ---------- */
+html body .attendance-shell .attendance-history-list-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+html body .attendance-shell .attendance-history-list-actions > button {
+  min-height: 32px !important;
+  padding: 0 11px !important;
+  border: 1px solid #cbd7e9 !important;
+  border-radius: 10px !important;
+  background: #f7f9fd !important;
+  color: #385276 !important;
+  font-weight: 750 !important;
+  cursor: pointer !important;
+}
+
+html body .attendance-shell .attendance-history-list-actions > button.is-active {
+  border-color: #89a6d4 !important;
+  background: #eaf1ff !important;
+  color: #274f8d !important;
+}
+
+html body .attendance-shell .attendance-history-bulk-toolbar {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-top: 8px !important;
+  padding: 8px !important;
+  border: 1px solid #d9e2ef !important;
+  border-radius: 13px !important;
+  background: linear-gradient(135deg, #f8fbff 0%, #f2f6fc 100%) !important;
+}
+
+html body .attendance-shell .attendance-history-bulk-toolbar > button {
+  min-height: 34px !important;
+  padding: 0 10px !important;
+  border: 1px solid #c7d5e8 !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  color: #3f5570 !important;
+  font-weight: 750 !important;
+  cursor: pointer !important;
+}
+
+html body .attendance-shell .attendance-history-bulk-toolbar > span {
+  color: #62738a !important;
+  text-align: center !important;
+  font-size: var(--att-type-meta) !important;
+}
+
+html body .attendance-shell .attendance-history-bulk-toolbar > span b {
+  color: #274f8d !important;
+  font-size: 13px !important;
+}
+
+html body .attendance-shell .attendance-history-bulk-toolbar > button.is-danger {
+  border-color: #efb6b3 !important;
+  background: #fff0ef !important;
+  color: #b7342f !important;
+}
+
+html body .attendance-shell .attendance-history-bulk-toolbar > button:disabled,
+html body .attendance-shell .attendance-history-list-actions > button:disabled {
+  opacity: .48 !important;
+  cursor: not-allowed !important;
+}
+
+html body .attendance-shell .attendance-history-items > button.is-bulk-mode {
+  position: relative !important;
+  padding-left: 44px !important;
+}
+
+html body .attendance-shell .attendance-history-select-box {
+  position: absolute !important;
+  top: 50% !important;
+  left: 12px !important;
+  width: 21px !important;
+  height: 21px !important;
+  display: grid !important;
+  place-items: center !important;
+  transform: translateY(-50%) !important;
+  border: 2px solid #9badc4 !important;
+  border-radius: 7px !important;
+  background: #fff !important;
+  color: #fff !important;
+  box-sizing: border-box !important;
+}
+
+html body .attendance-shell .attendance-history-select-box.is-checked {
+  border-color: #4e70b9 !important;
+  background: #4e70b9 !important;
+  box-shadow: 0 0 0 3px rgba(78, 112, 185, .12) !important;
+}
+
+html body .attendance-shell .attendance-history-items > button.is-bulk-selected {
+  border-color: #8ea9dc !important;
+  background: linear-gradient(90deg, #e8efff 0%, #f5f8ff 82%) !important;
+  box-shadow: 0 0 0 2px rgba(78, 112, 185, .12), 0 4px 12px rgba(53, 73, 111, .08) !important;
+}
+
+html body .attendance-shell .attendance-history-bulk-detail {
+  min-height: 100% !important;
+  display: grid !important;
+  place-items: center !important;
+  align-content: center !important;
+  gap: 10px !important;
+  padding: 30px !important;
+  text-align: center !important;
+  background: radial-gradient(circle at 50% 38%, #f1f5ff 0%, #ffffff 58%) !important;
+}
+
+html body .attendance-shell .attendance-history-bulk-detail > span {
+  width: 58px !important;
+  height: 58px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 18px !important;
+  background: #e9effc !important;
+  color: #4e70b9 !important;
+}
+
+html body .attendance-shell .attendance-history-bulk-detail h2,
+html body .attendance-shell .attendance-history-bulk-detail p {
+  margin: 0 !important;
+}
+
+html body .attendance-shell .attendance-history-bulk-detail p {
+  max-width: 420px !important;
+  color: #6b778a !important;
+}
+
+html body .attendance-shell .attendance-history-bulk-detail > b {
+  padding: 7px 12px !important;
+  border-radius: 999px !important;
+  background: #eaf1ff !important;
+  color: #31558d !important;
+}
+'''
+    css_path.write_text(css)
+
+for temp in (Path('docs/placeholder.txt'), Path('docs/placeholder2.txt')):
+    if temp.exists():
+        temp.unlink()
