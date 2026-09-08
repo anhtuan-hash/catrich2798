@@ -38,16 +38,16 @@
       return;
     }
 
-    const actionArea = document.querySelector('.teacher-picker-buttons');
     const teacherList = document.querySelector(TEACHER_LIST_SELECTOR);
-    if (!actionArea && !teacherList) return;
+    const actionArea = document.querySelector('.teacher-picker-buttons');
+    if (!teacherList && !actionArea) return;
 
     button = createPickerButton();
-    if (actionArea) {
-      actionArea.appendChild(button);
+    if (teacherList) {
+      teacherList.insertAdjacentElement('afterend', button);
       return;
     }
-    teacherList.insertAdjacentElement('afterend', button);
+    actionArea.appendChild(button);
   };
 
   const installAccountsEntry = () => {
