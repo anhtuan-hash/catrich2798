@@ -1,12 +1,12 @@
-import briefingWeather from './_briefing-weather.js';
-import checkEmbed from './_check-embed.js';
-import googleDriveHomeroomBackup from './_google-drive-homeroom-backup.js';
-import weeklyPracticeDriveAction from './_weekly-practice-drive-action.js';
-import weeklyPracticeFile from './_weekly-practice-file.js';
-import workHubArchiveResource from './_work-hub-archive-resource.js';
-import workHubFileAccess from './_work-hub-file-access.js';
-import workHubFileAction from './_work-hub-file-action.js';
-import workHubFile from './_work-hub-file.js';
+import briefingWeather from '../serverless-handlers/_briefing-weather.js';
+import checkEmbed from '../serverless-handlers/_check-embed.js';
+import googleDriveHomeroomBackup from '../serverless-handlers/_google-drive-homeroom-backup.js';
+import weeklyPracticeDriveAction from '../serverless-handlers/_weekly-practice-drive-action.js';
+import weeklyPracticeFile from '../serverless-handlers/_weekly-practice-file.js';
+import workHubArchiveResource from '../serverless-handlers/_work-hub-archive-resource.js';
+import workHubFileAccess from '../serverless-handlers/_work-hub-file-access.js';
+import workHubFileAction from '../serverless-handlers/_work-hub-file-action.js';
+import workHubFile from '../serverless-handlers/_work-hub-file.js';
 
 const handlers = Object.freeze({
   'briefing-weather': briefingWeather,
