@@ -20,6 +20,7 @@ import GlobalHomeroomNavigationTab from './GlobalHomeroomNavigationTab.jsx';
 import GlobalGradebookNavigationTab from './GlobalGradebookNavigationTab.jsx';
 import GlobalReportsNavigationTab from './GlobalReportsNavigationTab.jsx';
 import GlobalTtcmNavigationTab from './GlobalTtcmNavigationTab.jsx';
+import GlobalAttendanceNavigationTab from './GlobalAttendanceNavigationTab.jsx';
 import GlobalDashboardFooterBridge from './GlobalDashboardFooterBridge.jsx';
 import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
 import GlobalWeeklyPracticeBridge from './GlobalWeeklyPracticeBridge.jsx';
@@ -70,6 +71,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalGradebookNavigationTab {...props} />
       <GlobalReportsNavigationTab {...props} />
       <GlobalTtcmNavigationTab {...props} />
+      <GlobalAttendanceNavigationTab {...props} />
       <GlobalDashboardFooterBridge route={props.route} language={props.language} />
       <GlobalEnglishHubBrand />
       <GlobalEditorialAuthorityRuntime />
