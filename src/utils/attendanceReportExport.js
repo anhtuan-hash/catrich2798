@@ -1,4 +1,3 @@
-import schoolLogoUrl from '../assets/petrus-ky-school-logo.png';
 import { createXlsxBlob } from './simpleXlsx.js';
 
 const VIETNAM_TIME_ZONE = 'Asia/Ho_Chi_Minh';
@@ -229,45 +228,6 @@ function vietnamReportDate() {
   return `Thành phố Hồ Chí Minh, ngày ${map.day} tháng ${map.month} năm ${map.year}`;
 }
 
-async function waitForImageReady(image) {
-  if (!image) return;
-  if (image.complete) {
-    if (image.naturalWidth <= 0 || image.naturalHeight <= 0) throw new Error('Không thể tải logo trường để xuất PDF.');
-  } else {
-    await new Promise((resolve, reject) => {
-      image.addEventListener('load', resolve, { once: true });
-      image.addEventListener('error', () => reject(new Error('Không thể tải logo trường để xuất PDF.')), { once: true });
-    });
-  }
-  if (typeof image.decode === 'function') {
-    try {
-      await image.decode();
-    } catch {
-      if (!image.complete || image.naturalWidth <= 0 || image.naturalHeight <= 0) throw new Error('Không thể giải mã logo trường để xuất PDF.');
-    }
-  }
-}
-
-async function buildPrintSafeSchoolLogoDataUrl() {
-  if (typeof document === 'undefined' || typeof Image === 'undefined') return schoolLogoUrl;
-  const image = new Image();
-  image.decoding = 'sync';
-  image.src = schoolLogoUrl;
-  await waitForImageReady(image);
-
-  const canvas = document.createElement('canvas');
-  canvas.width = Math.max(1, image.naturalWidth || 360);
-  canvas.height = Math.max(1, image.naturalHeight || 360);
-  const context = canvas.getContext('2d', { alpha: false });
-  if (!context) throw new Error('Không thể chuẩn hóa logo trường để xuất PDF.');
-  context.fillStyle = '#ffffff';
-  context.fillRect(0, 0, canvas.width, canvas.height);
-  context.imageSmoothingEnabled = true;
-  context.imageSmoothingQuality = 'high';
-  context.drawImage(image, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL('image/jpeg', 0.96);
-}
-
 function waitForPrintWindowLoad(popup) {
   if (popup.document?.readyState === 'complete') return Promise.resolve();
   return new Promise((resolve) => popup.addEventListener('load', resolve, { once: true }));
@@ -278,7 +238,6 @@ export async function printAttendanceReportPdf(report, filters = {}) {
   if (!popup) throw new Error('Trình duyệt đang chặn cửa sổ xuất PDF. Hãy cho phép popup rồi thử lại.');
   try { popup.opener = null; } catch { /* Browser may already isolate the popup. */ }
 
-  const printSafeLogoUrl = await buildPrintSafeSchoolLogoDataUrl();
   const title = reportTitle(filters);
   const teacherHtml = report.teacherRows.map((row) => `
     <tr><td>${htmlEscape(row.teacher_name)}</td><td>${row.completed_sessions}</td><td>${String(row.total_periods).replace('.', ',')}</td><td>${row.distinct_classes}</td><td>${row.present_instances}</td><td>${row.absent_instances}</td><td>${percent(row.attendance_rate)}</td></tr>
@@ -308,9 +267,9 @@ export async function printAttendanceReportPdf(report, filters = {}) {
   `).join('');
 
   popup.document.write(`<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>${htmlEscape(title)} ${htmlEscape(periodText(filters))}</title><style>
-    @page{size:A4 portrait;margin:21mm 10mm 14mm}*{box-sizing:border-box}html,body{width:100%;max-width:100%}body{margin:0;overflow:visible;font-family:Arial,"Helvetica Neue",sans-serif;color:#173128;font-size:8.1px;line-height:1.35;background:#fff}.report-page{width:100%;max-width:100%;margin:0 auto;overflow:visible}.school-head{display:grid;grid-template-columns:20mm minmax(0,1fr) 20mm;align-items:center;min-height:18mm;border-bottom:2px solid #0b6b3a;padding:0 0 3mm;margin-bottom:3mm}.school-logo-box{width:18mm;height:18mm;display:grid;place-items:center;overflow:visible;background:#fff;isolation:isolate}.school-head img{width:16mm;height:16mm;max-width:100%;max-height:100%;object-fit:contain;display:block;background:#fff}.school-head__text{text-align:center;min-width:0}.school-head__text b{display:block;font-size:9.7px;letter-spacing:.02em}.school-head__text strong{display:block;font-size:11.5px;margin-top:3px;color:#0b6b3a}.school-head__spacer{width:18mm;height:18mm}.report-title{text-align:center;margin:10px 0 3px;font-size:16px;letter-spacing:.035em;color:#0b6b3a}.period{text-align:center;font-size:10px;font-weight:700;margin-bottom:3px}.filters{text-align:center;color:#53645d;margin-bottom:10px}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:9px 0 12px}.metric{border:1px solid #d4e3da;border-radius:7px;padding:7px 8px;background:#f6faf7}.metric span{display:block;color:#557066;font-size:7.4px;text-transform:uppercase;font-weight:700}.metric b{display:block;font-size:15px;color:#0b6b3a;margin-top:2px}.section{margin-top:12px;break-inside:auto}.section h2{font-size:10.3px;color:#0b6b3a;margin:0 0 5px;padding:5px 7px;background:#e7f3eb;border-left:3px solid #0b6b3a;break-after:avoid}.section p.empty{margin:6px 0;padding:8px;background:#f7f9f8;color:#64736e;border-radius:5px}table{width:100%;max-width:100%;border-collapse:collapse;table-layout:fixed}thead{display:table-header-group}tr{break-inside:avoid;page-break-inside:avoid}th,td{border:1px solid #d4ddd8;padding:4px 4px;text-align:center;vertical-align:middle;overflow-wrap:anywhere;word-break:break-word;font-variant-numeric:tabular-nums}th{background:#0b6b3a;color:#fff;font-size:7.1px;font-weight:700}td b{display:block}td small{display:block;color:#627069;margin-top:1px}.cancelled td{background:#fff4df}.remarks{margin-top:12px;padding:8px 10px;border:1px solid #c8ddd0;border-radius:7px;background:#f5faf7;break-inside:avoid}.remarks b{display:block;color:#0b6b3a;margin-bottom:3px}.reporter{margin:16px 0 0 auto;width:48%;text-align:center;break-inside:avoid}.reporter .date{font-style:italic;margin-bottom:11px}.reporter strong{display:block;font-size:9px}.reporter b{display:block;margin-top:16px;font-size:10px;color:#0b6b3a}.reporter span{display:block;margin-top:2px}.footer{margin-top:12px;border-top:1px solid #d7e1dc;padding-top:5px;color:#728079;text-align:center;font-size:7px}@media print{html,body,.report-page{width:100%;max-width:100%}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.section{break-inside:auto}.remarks,.reporter,.school-head{break-inside:avoid}}
+    @page{size:A4 portrait;margin:21mm 10mm 14mm}*{box-sizing:border-box}html,body{width:100%;max-width:100%}body{margin:0;overflow:visible;font-family:Arial,"Helvetica Neue",sans-serif;color:#173128;font-size:8.1px;line-height:1.35;background:#fff}.report-page{width:100%;max-width:100%;margin:0 auto;overflow:visible}.school-head{border-bottom:2px solid #0b6b3a;padding:0 0 3mm;margin-bottom:3mm;text-align:center}.school-head__text{text-align:center;min-width:0}.school-head__text b{display:block;font-size:9.7px;letter-spacing:.02em}.school-head__text strong{display:block;font-size:11.5px;margin-top:3px;color:#0b6b3a}.report-title{text-align:center;margin:10px 0 3px;font-size:16px;letter-spacing:.035em;color:#0b6b3a}.period{text-align:center;font-size:10px;font-weight:700;margin-bottom:3px}.filters{text-align:center;color:#53645d;margin-bottom:10px}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:9px 0 12px}.metric{border:1px solid #d4e3da;border-radius:7px;padding:7px 8px;background:#f6faf7}.metric span{display:block;color:#557066;font-size:7.4px;text-transform:uppercase;font-weight:700}.metric b{display:block;font-size:15px;color:#0b6b3a;margin-top:2px}.section{margin-top:12px;break-inside:auto}.section h2{font-size:10.3px;color:#0b6b3a;margin:0 0 5px;padding:5px 7px;background:#e7f3eb;border-left:3px solid #0b6b3a;break-after:avoid}.section p.empty{margin:6px 0;padding:8px;background:#f7f9f8;color:#64736e;border-radius:5px}table{width:100%;max-width:100%;border-collapse:collapse;table-layout:fixed}thead{display:table-header-group}tr{break-inside:avoid;page-break-inside:avoid}th,td{border:1px solid #d4ddd8;padding:4px 4px;text-align:center;vertical-align:middle;overflow-wrap:anywhere;word-break:break-word;font-variant-numeric:tabular-nums}th{background:#0b6b3a;color:#fff;font-size:7.1px;font-weight:700}td b{display:block}td small{display:block;color:#627069;margin-top:1px}.cancelled td{background:#fff4df}.remarks{margin-top:12px;padding:8px 10px;border:1px solid #c8ddd0;border-radius:7px;background:#f5faf7;break-inside:avoid}.remarks b{display:block;color:#0b6b3a;margin-bottom:3px}.reporter{margin:16px 0 0 auto;width:48%;text-align:center;break-inside:avoid}.reporter .date{font-style:italic;margin-bottom:11px}.reporter strong{display:block;font-size:9px}.reporter b{display:block;margin-top:16px;font-size:10px;color:#0b6b3a}.reporter span{display:block;margin-top:2px}.footer{margin-top:12px;border-top:1px solid #d7e1dc;padding-top:5px;color:#728079;text-align:center;font-size:7px}@media print{html,body,.report-page{width:100%;max-width:100%}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}.section{break-inside:auto}.remarks,.reporter,.school-head{break-inside:avoid}}
   </style></head><body><main class="report-page">
-    <div class="school-head"><div class="school-logo-box"><img data-report-school-logo src="${htmlEscape(printSafeLogoUrl)}" alt="Logo Pétrus Ký"></div><div class="school-head__text"><b>SỞ GIÁO DỤC VÀ ĐÀO TẠO THÀNH PHỐ HỒ CHÍ MINH</b><strong>TRƯỜNG TRUNG - TIỂU HỌC PÉTRUS KÝ</strong></div><span class="school-head__spacer" aria-hidden="true"></span></div>
+    <div class="school-head"><div class="school-head__text"><b>SỞ GIÁO DỤC VÀ ĐÀO TẠO THÀNH PHỐ HỒ CHÍ MINH</b><strong>TRƯỜNG TRUNG - TIỂU HỌC PÉTRUS KÝ</strong></div></div>
     <h1 class="report-title">${htmlEscape(title)}</h1><div class="period">${htmlEscape(periodText(filters))}</div><div class="filters">${htmlEscape(filters.classLabel || 'Tất cả lớp')} · ${htmlEscape(filters.teacherLabel || 'Tất cả giáo viên')}</div>
     <div class="metrics"><div class="metric"><span>Buổi đã dạy</span><b>${report.metrics.completedSessions}</b></div><div class="metric"><span>Buổi đã hủy</span><b>${report.metrics.cancelledSessions}</b></div><div class="metric"><span>Tổng số tiết</span><b>${String(report.metrics.totalPeriods).replace('.', ',')}</b></div><div class="metric"><span>Tỷ lệ chuyên cần</span><b>${percent(report.metrics.attendanceRate)}</b></div></div>
     <section class="section"><h2>1. THỐNG KÊ THEO GIÁO VIÊN</h2><table><thead><tr><th style="width:28%">Giáo viên</th><th>Buổi</th><th>Tiết</th><th>Lớp</th><th>Có mặt</th><th>Vắng</th><th>Chuyên cần</th></tr></thead><tbody>${teacherHtml || '<tr><td colspan="7">Không có dữ liệu phù hợp bộ lọc.</td></tr>'}</tbody></table></section>
@@ -323,7 +282,6 @@ export async function printAttendanceReportPdf(report, filters = {}) {
   </body></html>`);
   popup.document.close();
   await waitForPrintWindowLoad(popup);
-  await waitForImageReady(popup.document.querySelector('[data-report-school-logo]'));
   if (typeof popup.requestAnimationFrame === 'function') {
     await new Promise((resolve) => popup.requestAnimationFrame(() => popup.requestAnimationFrame(resolve)));
   }
