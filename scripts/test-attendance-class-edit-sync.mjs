@@ -70,6 +70,10 @@ assert.match(css, /\.attendance-class-info-card/,
   'Class information editing surface must have dedicated styling');
 assert.match(css, /\.attendance-member-edit-row/,
   'Member editing row must have dedicated styling');
+assert.doesNotMatch(attendance, /selectedMembers\.length\s*,\s*attendanceDate/,
+  'Quick attendance draft must not depend only on roster length because student edits can keep the same count');
+assert.match(attendance, /\[selectedClassId,\s*selectedMembers,\s*attendanceDate,\s*daySession\?\.id,\s*dayRecords\]/,
+  'Quick attendance draft must refresh when current member metadata changes');
 
 assert.match(migration, /create or replace function\s+public\.bes_admin_update_extra_class\s*\(/i,
   'Migration must define the Admin class-update RPC');
@@ -89,5 +93,7 @@ assert.doesNotMatch(migration, /update\s+public\.bes_extra_attendance_records/i,
   'Current member edits must never rewrite attendance record snapshots');
 assert.match(migration, /duplicate|trùng|member_key/i,
   'Member RPC must protect current-roster identity against duplicate active keys');
+assert.match(migration, /v_school_class_name\s+text\s*:=\s*trim\(coalesce\(p_school_class_name,\s*''\)\)/i,
+  'Member RPC must preserve internal school-class whitespace so server member_key normalization matches frontend behavior');
 
 console.log('Attendance class edit sync contract OK');
