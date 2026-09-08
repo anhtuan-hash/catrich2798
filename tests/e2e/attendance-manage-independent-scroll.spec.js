@@ -2,7 +2,10 @@ import fs from 'node:fs';
 import { test, expect } from '@playwright/test';
 
 const attendanceCss = fs.readFileSync(new URL('../../src/components/GlobalAttendanceNavigationTab.css', import.meta.url), 'utf8');
-const managementScrollCss = fs.readFileSync(new URL('../../src/components/attendance/AttendanceManagementIndependentScroll.css', import.meta.url), 'utf8');
+const editorCss = fs.readFileSync(new URL('../../src/components/attendance/AttendanceClassEditor.css', import.meta.url), 'utf8');
+const polishCss = fs.readFileSync(new URL('../../public/attendance-ui-polish.css', import.meta.url), 'utf8');
+const launchCss = fs.readFileSync(new URL('../../public/attendance-windows8-launch.css', import.meta.url), 'utf8');
+const manageCss = fs.readFileSync(new URL('../../public/attendance-manage-scrollbar-fix.css', import.meta.url), 'utf8');
 const resetCss = '*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:system-ui,sans-serif}button,input,select{font:inherit}';
 
 function classButtons(count = 18) {
@@ -24,70 +27,91 @@ function studentRows(count = 24) {
     </div>`).join('');
 }
 
-test.describe('Attendance class management independent scrolling', () => {
+test.describe('Attendance class management production scrolling and unified pane', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.setContent(`
-      <main style="padding:24px;background:#eef2f6;">
-        <div class="attendance-management-grid" style="height:430px;width:1120px;">
-          <aside class="attendance-manage-classes">
-            <header><strong>Danh sách lớp</strong><span>26</span></header>
-            ${classButtons()}
-          </aside>
-          <section class="attendance-member-manager">
-            <header>
-              <div><h2>Phụ đạo Tiếng Anh 10</h2><p>Phụ đạo · Tiếng Anh</p></div>
-              <div class="attendance-teacher-field"><label>Giáo viên theo phân công 2026–2027</label><div>Ngô Thị Mỹ Diệp</div></div>
-            </header>
-            <div class="attendance-member-tools"><input value=""><button type="button">Thêm học sinh</button></div>
-            <div style="padding:16px;border-bottom:1px solid #ddd;min-height:210px;">
-              <strong>Thông tin lớp học</strong>
-              <p>Dữ liệu hiện tại dùng cho các buổi chưa chốt.</p>
-              <p>Phòng học A103 · 16h45 đến 18h15 · Thứ 3, Thứ 5</p>
+      <section class="attendance-shell" style="position:relative;width:1220px;height:700px;margin:30px auto;">
+        <main class="attendance-content">
+          <div class="attendance-manage-layout">
+            <section class="attendance-import-card"><div><strong>Import lớp phụ đạo / bồi dưỡng</strong></div><button type="button">Chọn file Excel</button></section>
+            <div class="attendance-management-grid">
+              <aside class="attendance-manage-classes">
+                <header><strong>Danh sách lớp</strong><span>26</span></header>
+                ${classButtons()}
+              </aside>
+              <section class="attendance-member-manager">
+                <header>
+                  <div><h2>Phụ đạo Tiếng Anh 10</h2><p>Phụ đạo · Tiếng Anh</p></div>
+                  <div class="attendance-teacher-field"><label>Giáo viên theo phân công 2026–2027</label><div class="attendance-teacher-summary"><strong>Ngô Thị Mỹ Diệp</strong><button type="button">Thêm giáo viên</button></div></div>
+                </header>
+                <div class="attendance-member-tools"><input value="" placeholder="Tìm học sinh"><button type="button">Thêm học sinh</button><button type="button">Xóa lớp</button></div>
+                <section class="attendance-class-info-card">
+                  <header class="attendance-class-info-head"><div><span>THÔNG TIN LỚP HỌC</span><strong>Dữ liệu hiện tại dùng cho các buổi chưa chốt</strong><p>Các thay đổi bên dưới không sửa lại lịch sử.</p></div><button type="button">Sửa thông tin lớp</button></header>
+                  <div class="attendance-class-info-grid"><article><span>Tên lớp</span><b>Phụ đạo Tiếng Anh 10</b></article><article><span>Môn học</span><b>Tiếng Anh</b></article><article><span>Khối</span><b>Khối 10</b></article><article><span>Phòng học</span><b>A103</b></article><article><span>Thời gian học</span><b>16h45 đến 18h15</b></article><article class="is-wide"><span>Ngày học</span><b>Thứ 3, Thứ 5</b></article></div>
+                </section>
+                <div class="attendance-member-table">
+                  <div class="attendance-member-table-head"><span>Học sinh</span><span>Lớp</span><span>Trạng thái</span><span></span></div>
+                  ${studentRows()}
+                </div>
+              </section>
             </div>
-            <div class="attendance-member-table">
-              <div class="attendance-member-table-head"><span>Học sinh</span><span>Lớp</span><span>Trạng thái</span><span></span></div>
-              ${studentRows()}
-            </div>
-          </section>
-        </div>
-      </main>`);
-    await page.addStyleTag({ content: `${resetCss}\n${attendanceCss}\n${managementScrollCss}` });
+          </div>
+        </main>
+      </section>`);
+    await page.addStyleTag({ content: `${resetCss}\n${attendanceCss}\n${editorCss}\n${polishCss}\n${launchCss}\n${manageCss}` });
   });
 
-  test('left class list and right class detail own separate vertical scroll containers', async ({ page }) => {
+  test('uses the real production cascade: no outer scroll, hidden internal scrollbars, independent content scrolling', async ({ page }) => {
+    const content = page.locator('.attendance-content');
     const grid = page.locator('.attendance-management-grid');
     const left = page.locator('.attendance-manage-classes');
-    const leftHeader = page.locator('.attendance-manage-classes > header');
     const right = page.locator('.attendance-member-manager');
     const memberTable = page.locator('.attendance-member-table');
 
+    await expect(content).toHaveCSS('overflow-y', 'hidden');
     await expect(grid).toHaveCSS('overflow-y', 'hidden');
     await expect(left).toHaveCSS('overflow-y', 'auto');
-    await expect(right).toHaveCSS('overflow-y', 'auto');
-    await expect(memberTable).toHaveCSS('overflow-y', 'visible');
-    await expect(leftHeader).toHaveCSS('position', 'sticky');
-
-    const before = await page.evaluate(() => ({
-      left: document.querySelector('.attendance-manage-classes').scrollTop,
-      right: document.querySelector('.attendance-member-manager').scrollTop,
-    }));
-    expect(before).toEqual({ left: 0, right: 0 });
+    await expect(right).toHaveCSS('overflow-y', 'hidden');
+    await expect(memberTable).toHaveCSS('overflow-y', 'auto');
+    await expect(left).toHaveCSS('scrollbar-width', 'none');
+    await expect(memberTable).toHaveCSS('scrollbar-width', 'none');
 
     await left.evaluate((node) => { node.scrollTop = 180; });
     const afterLeft = await page.evaluate(() => ({
       left: document.querySelector('.attendance-manage-classes').scrollTop,
+      table: document.querySelector('.attendance-member-table').scrollTop,
       right: document.querySelector('.attendance-member-manager').scrollTop,
     }));
     expect(afterLeft.left).toBeGreaterThan(0);
+    expect(afterLeft.table).toBe(0);
     expect(afterLeft.right).toBe(0);
 
-    await right.evaluate((node) => { node.scrollTop = 220; });
-    const afterRight = await page.evaluate(() => ({
+    await memberTable.evaluate((node) => { node.scrollTop = 220; });
+    const afterTable = await page.evaluate(() => ({
       left: document.querySelector('.attendance-manage-classes').scrollTop,
+      table: document.querySelector('.attendance-member-table').scrollTop,
       right: document.querySelector('.attendance-member-manager').scrollTop,
     }));
-    expect(afterRight.left).toBe(afterLeft.left);
-    expect(afterRight.right).toBeGreaterThan(0);
+    expect(afterTable.left).toBe(afterLeft.left);
+    expect(afterTable.table).toBeGreaterThan(0);
+    expect(afterTable.right).toBe(0);
+  });
+
+  test('renders the right side as one continuous white surface instead of two detached cards', async ({ page }) => {
+    const right = page.locator('.attendance-member-manager');
+    const tools = page.locator('.attendance-member-tools');
+    const info = page.locator('.attendance-class-info-card');
+    const infoCell = page.locator('.attendance-class-info-grid article').first();
+    const memberTable = page.locator('.attendance-member-table');
+
+    await expect(right).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+    await expect(info).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    await expect(info).toHaveCSS('border-left-width', '0px');
+    await expect(info).toHaveCSS('border-radius', '0px');
+    await expect(info).toHaveCSS('box-shadow', 'none');
+    await expect(tools).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    await expect(memberTable).toHaveCSS('border-top-width', '1px');
+    await expect(infoCell).toHaveCSS('border-top-width', '1px');
   });
 });
