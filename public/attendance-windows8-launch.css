@@ -62,10 +62,26 @@
 }
 
 /* Compact workspace proportions based on the approved reference screenshot.
-   Header/tabs stay fixed; the content pane becomes the primary scroll surface. */
-.attendance-shell {
+   Header/tabs stay fixed; content always receives the remaining viewport height.
+   Flex is intentional here: notice/error banners are conditional children, so a fixed
+   four-row grid can otherwise put content in an auto row and destroy its scroll range. */
+.attendance-shell.attendance-shell {
   width: min(1360px, calc(100vw - 96px)) !important;
   height: min(840px, calc(100vh - 92px)) !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.attendance-shell.attendance-shell > .attendance-topbar,
+.attendance-shell.attendance-shell > .attendance-tabs,
+.attendance-shell.attendance-shell > .attendance-banner {
+  flex: 0 0 auto !important;
+}
+
+.attendance-shell.attendance-shell > .attendance-content {
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+  height: auto !important;
 }
 
 .attendance-content {
@@ -129,7 +145,9 @@
   overflow: hidden !important;
 }
 
-.attendance-rollcall.attendance-rollcall {
+/* Match/beat the high-specificity polish rule that previously forced overflow:hidden.
+   This is the actual wheel/touch scroll surface for the complete roll-call flow. */
+html body .attendance-shell .attendance-rollcall.attendance-rollcall {
   display: flex !important;
   flex-direction: column !important;
   align-content: initial !important;
@@ -142,7 +160,9 @@
   overflow-x: hidden !important;
   overflow-y: auto !important;
   scrollbar-gutter: stable;
-  overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: rgba(63, 95, 144, .58) transparent;
   background: #f8faff !important;

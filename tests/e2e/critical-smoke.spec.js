@@ -1,3 +1,4 @@
+import fs from 'node:fs';
 import { test, expect } from '@playwright/test';
 
 const CRITICAL_ROUTES = ['#/dashboard', '#/tool/gradebook-studio', '#/settings'];
@@ -59,3 +60,50 @@ for (const route of CRITICAL_ROUTES) {
     expect(diagnostics.pageErrors).toEqual([]);
   });
 }
+
+test('quick attendance right pane has a real wheel-scroll range without a status banner', async ({ page }) => {
+  const baseCss = fs.readFileSync(new URL('../../src/components/GlobalAttendanceNavigationTab.css', import.meta.url), 'utf8');
+  const materialCss = fs.readFileSync(new URL('../../src/components/attendance/AttendanceMaterial3.css', import.meta.url), 'utf8');
+  const polishCss = fs.readFileSync(new URL('../../public/attendance-ui-polish.css', import.meta.url), 'utf8');
+  const launchCss = fs.readFileSync(new URL('../../public/attendance-windows8-launch.css', import.meta.url), 'utf8');
+  const rosterRows = Array.from({ length: 26 }, (_, index) => `
+    <div class="att-m3-roster-entry">
+      <label><span class="attendance-index">${String(index + 1).padStart(2, '0')}</span><div><b>Học sinh ${index + 1}</b><small>HS${index + 1}</small></div><span class="attendance-school-class">10.${(index % 12) + 1}</span><input type="checkbox"></label>
+    </div>`).join('');
+
+  await page.setViewportSize({ width: 1536, height: 960 });
+  await page.setContent(`<!doctype html><html><head><style>${baseCss}\n${materialCss}\n${polishCss}\n${launchCss}</style></head><body>
+    <div class="attendance-layer">
+      <section class="attendance-shell">
+        <header class="attendance-topbar"><div class="attendance-title"><strong>Điểm danh</strong></div></header>
+        <nav class="attendance-tabs"><button class="is-active">Điểm danh nhanh</button></nav>
+        <main class="attendance-content">
+          <div class="attendance-quick-layout">
+            <aside class="attendance-class-list"><header><strong>Lớp đang hoạt động</strong></header><div class="att-m3-class-discovery"></div><div></div></aside>
+            <section class="attendance-rollcall">
+              <header class="attendance-rollcall-head"><div><h2>Phụ đạo Tiếng Anh 10</h2></div><div class="attendance-summary"><b>26/26</b><span>Có mặt</span><em>0 vắng</em></div></header>
+              <div class="attendance-session-controls"><label><span>Ngày điểm danh</span><input value="09/09/2026"></label><label><span>Giáo viên</span><input value="GV"></label><div class="att-m3-period-field"><span>Số tiết</span></div></div>
+              <div class="attendance-roster-head"><span>Học sinh</span><span>Lớp chính khóa</span><span>Vắng</span></div>
+              <div class="attendance-roster">${rosterRows}</div>
+              <section class="att-m3-proof-card"><strong>Minh chứng hình ảnh</strong></section>
+              <footer class="attendance-confirm-bar"><label><span>Ghi chú</span><input></label><button>Xác nhận điểm danh</button></footer>
+            </section>
+          </div>
+        </main>
+      </section>
+    </div>
+  </body></html>`);
+
+  const scroller = page.locator('.attendance-rollcall');
+  const metrics = await scroller.evaluate((element) => ({
+    overflowY: getComputedStyle(element).overflowY,
+    clientHeight: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+  }));
+  expect(metrics.overflowY).toBe('auto');
+  expect(metrics.scrollHeight).toBeGreaterThan(metrics.clientHeight);
+
+  await scroller.hover();
+  await page.mouse.wheel(0, 640);
+  await expect.poll(() => scroller.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+});
