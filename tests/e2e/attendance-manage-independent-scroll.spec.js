@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import { test, expect } from '@playwright/test';
 
 const attendanceCss = fs.readFileSync(new URL('../../src/components/GlobalAttendanceNavigationTab.css', import.meta.url), 'utf8');
+const managementScrollCss = fs.readFileSync(new URL('../../src/components/attendance/AttendanceManagementIndependentScroll.css', import.meta.url), 'utf8');
 const resetCss = '*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;font-family:system-ui,sans-serif}button,input,select{font:inherit}';
 
 function classButtons(count = 18) {
@@ -51,7 +52,7 @@ test.describe('Attendance class management independent scrolling', () => {
           </section>
         </div>
       </main>`);
-    await page.addStyleTag({ content: `${resetCss}\n${attendanceCss}` });
+    await page.addStyleTag({ content: `${resetCss}\n${attendanceCss}\n${managementScrollCss}` });
   });
 
   test('left class list and right class detail own separate vertical scroll containers', async ({ page }) => {
