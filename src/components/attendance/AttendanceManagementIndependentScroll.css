@@ -1,0 +1,68 @@
+/* Attendance > Quản lý lớp desktop/tablet scroll authority.
+   The class list and class detail are independent vertical scroll containers. */
+
+@media (min-width: 761px) {
+  .attendance-management-grid {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .attendance-manage-classes {
+    display: block;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: #b8c4d2 transparent;
+  }
+
+  .attendance-manage-classes > header {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    background: #fbfcfe;
+  }
+
+  .attendance-member-manager {
+    display: block;
+    min-width: 0;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+    scrollbar-color: #b8c4d2 transparent;
+  }
+
+  .attendance-member-table {
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .attendance-manage-classes::-webkit-scrollbar,
+  .attendance-member-manager::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .attendance-manage-classes::-webkit-scrollbar-track,
+  .attendance-member-manager::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .attendance-manage-classes::-webkit-scrollbar-thumb,
+  .attendance-member-manager::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background: #c3ccd7;
+    background-clip: padding-box;
+  }
+
+  .attendance-manage-classes::-webkit-scrollbar-thumb:hover,
+  .attendance-member-manager::-webkit-scrollbar-thumb:hover {
+    background: #9fabb9;
+    background-clip: padding-box;
+  }
+}
