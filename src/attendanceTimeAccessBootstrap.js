@@ -9,21 +9,24 @@ import { hasAttendanceTabAccess } from './utils/permissions.js';
 import { normalizeSystemRole, SYSTEM_ROLES } from './utils/roles.js';
 import {
   attendanceAccessReasonVi,
+  attendanceWindowLabel,
   evaluateAttendanceTimeAccess,
   isAssignedAttendanceTeacher,
-  parseAttendanceTimeRange,
+  parseClockTime,
 } from './utils/attendanceTimeAccess.js';
 
 const INSTALL_KEY = '__besAttendanceTimeAccessControlInstalled';
-const CLASS_SELECT = 'id,class_name,subject,class_type,teacher_id,teacher_name,teacher_email,active,weekdays,time_range';
+const CLASS_SELECT = 'id,class_name,subject,class_type,teacher_id,teacher_name,teacher_email,active';
 const TEACHER_SELECT = 'class_id,teacher_id,teacher_name,teacher_email,position';
 
 let client = null;
 let runtimeSnapshot = null;
 let settings = {
-  enforce_teacher_schedule: false,
+  enforce_teacher_time_window: false,
+  teacher_start_time: '16:40:00',
+  teacher_end_time: '17:15:00',
   can_administer: false,
-  bypass_schedule: false,
+  bypass_time_window: false,
   server_now: '',
 };
 let classes = [];
@@ -50,7 +53,7 @@ function currentProfile() {
 }
 
 function hasReportPermission() {
-  return Boolean(isAdmin() || settings.bypass_schedule || hasAttendanceTabAccess(currentProfile(), 'report'));
+  return Boolean(isAdmin() || settings.bypass_time_window || hasAttendanceTabAccess(currentProfile(), 'report'));
 }
 
 function hasQuickPermission() {
@@ -59,6 +62,16 @@ function hasQuickPermission() {
 
 function nowFromServerClock() {
   return new Date(Date.now() + serverClockOffsetMs);
+}
+
+function inputClockValue(value, fallback = '') {
+  const match = String(value || '').trim().match(/^(\d{1,2}):(\d{2})/);
+  if (!match) return fallback;
+  return `${String(Number(match[1])).padStart(2, '0')}:${match[2]}`;
+}
+
+function configuredWindowLabel() {
+  return attendanceWindowLabel(settings.teacher_start_time, settings.teacher_end_time);
 }
 
 function teachersForClass(classId) {
@@ -95,12 +108,7 @@ function matchingTeacherNames(classRow, profile) {
 function classByName(name) {
   const normalized = lower(name);
   if (!normalized) return null;
-  const matches = classes.filter((row) => lower(row.class_name) === normalized && row.active !== false);
-  return matches[0] || null;
-}
-
-function dateInputValue() {
-  return String(document.querySelector('.attendance-session-controls input[type="date"]')?.value || '').trim();
+  return classes.find((row) => lower(row.class_name) === normalized && row.active !== false) || null;
 }
 
 function selectedTeacherValue() {
@@ -111,7 +119,7 @@ function selectedClassRow() {
   return classByName(document.querySelector('.attendance-rollcall-head h2')?.textContent || '');
 }
 
-function evaluateClass(classRow, attendanceDate, selectedTeacher = '') {
+function evaluateClass(classRow, selectedTeacher = '') {
   const profile = currentProfile();
   const assigned = isAssignedAttendanceTeacher({
     profile,
@@ -119,20 +127,19 @@ function evaluateClass(classRow, attendanceDate, selectedTeacher = '') {
     classTeachers: teachersForClass(classRow?.id),
   });
   let result = evaluateAttendanceTimeAccess({
-    restrictionEnabled: Boolean(settings.enforce_teacher_schedule),
+    restrictionEnabled: Boolean(settings.enforce_teacher_time_window),
     isAdmin: isAdmin(),
     hasReportPermission: hasReportPermission(),
     hasQuickPermission: hasQuickPermission(),
     isAssigned: assigned,
-    timeRange: classRow?.time_range || '',
-    attendanceDate,
-    weekdays: classRow?.weekdays || '',
+    startTime: settings.teacher_start_time,
+    endTime: settings.teacher_end_time,
     now: nowFromServerClock(),
   });
 
   if (
     result.allowed
-    && settings.enforce_teacher_schedule
+    && settings.enforce_teacher_time_window
     && !result.bypass
     && selectedTeacher
   ) {
@@ -141,7 +148,7 @@ function evaluateClass(classRow, attendanceDate, selectedTeacher = '') {
       result = {
         allowed: false,
         reason: 'teacher_identity_mismatch',
-        timeRange: classRow?.time_range || '',
+        windowLabel: configuredWindowLabel(),
       };
     }
   }
@@ -161,7 +168,7 @@ function reasonText(result) {
 function setClassButtonDecoration(button, classRow, result) {
   if (!button || !classRow) return;
   if (button.dataset.besAttendanceClassId !== String(classRow.id)) button.dataset.besAttendanceClassId = String(classRow.id);
-  const locked = Boolean(settings.enforce_teacher_schedule && !result.allowed && !result.bypass);
+  const locked = Boolean(settings.enforce_teacher_time_window && !result.allowed && !result.bypass);
   button.classList.toggle('bes-attendance-class-locked', locked);
   if (locked) {
     if (!button.hasAttribute('data-bes-original-title')) button.dataset.besOriginalTitle = button.getAttribute('title') || '';
@@ -197,7 +204,7 @@ function setTimeLocked(node, locked) {
 function applyTeacherOptionGuard(classRow, lockedByAccess) {
   const select = document.querySelector('.attendance-session-controls label.is-teacher select');
   if (!select) return;
-  const shouldRestrict = Boolean(settings.enforce_teacher_schedule && !hasReportPermission() && !isAdmin());
+  const shouldRestrict = Boolean(settings.enforce_teacher_time_window && !hasReportPermission() && !isAdmin());
   const ownNames = matchingTeacherNames(classRow, currentProfile()).map(lower);
   Array.from(select.options || []).forEach((option) => {
     if (!option.value) return;
@@ -254,21 +261,21 @@ function ensureStatusBanner(result, classRow) {
 
   let tone = 'is-info';
   let title = 'Giới hạn giờ đang tắt';
-  let message = 'Cách thao tác điểm danh hiện tại được giữ nguyên.';
+  let message = 'Cách thao tác điểm danh của PR #704 đang được giữ nguyên.';
 
   if (accessNotice) {
     tone = 'is-info';
     title = 'Cập nhật quyền điểm danh';
     message = accessNotice;
-  } else if (settings.enforce_teacher_schedule && result?.bypass) {
+  } else if (settings.enforce_teacher_time_window && result?.bypass) {
     tone = 'is-bypass';
     title = isAdmin() ? 'Admin — không giới hạn giờ' : 'Quyền Báo cáo — không giới hạn giờ';
-    message = 'Tài khoản này được phép thao tác ngoài khung giờ của lớp.';
-  } else if (settings.enforce_teacher_schedule && result?.allowed) {
+    message = `Khung giờ giáo viên: ${configuredWindowLabel()}. Tài khoản này được phép thao tác ngoài khung giờ.`;
+  } else if (settings.enforce_teacher_time_window && result?.allowed) {
     tone = 'is-allowed';
     title = 'Đang trong khung giờ được phép';
-    message = `${classRow.time_range || 'Khung giờ lớp'} · Bạn có thể thao tác điểm danh.`;
-  } else if (settings.enforce_teacher_schedule) {
+    message = `${configuredWindowLabel()} · Bạn có thể thao tác điểm danh lớp được phân công.`;
+  } else if (settings.enforce_teacher_time_window) {
     tone = 'is-blocked';
     title = 'Đang khóa thao tác điểm danh';
     message = reasonText(result);
@@ -280,69 +287,120 @@ function ensureStatusBanner(result, classRow) {
   if (banner.innerHTML !== html) banner.innerHTML = html;
 }
 
-function missingTimeCount() {
-  return classes.filter((row) => row.active !== false && !parseAttendanceTimeRange(row.time_range)).length;
-}
+async function saveAdminSettings(panel) {
+  if (!client || !settings.can_administer || !panel) return;
+  const enabledInput = panel.querySelector('.bes-attendance-time-enabled');
+  const startInput = panel.querySelector('.bes-attendance-time-start');
+  const endInput = panel.querySelector('.bes-attendance-time-end');
+  const saveButton = panel.querySelector('.bes-attendance-time-save');
+  const status = panel.querySelector('.bes-attendance-time-admin-status');
+  const start = String(startInput?.value || '').trim();
+  const end = String(endInput?.value || '').trim();
 
-async function changeRestriction(enabled, input) {
-  if (!client || !settings.can_administer) return;
-  input.disabled = true;
+  if (parseClockTime(start) === null || parseClockTime(end) === null || parseClockTime(start) === parseClockTime(end)) {
+    if (status) {
+      status.textContent = 'Giờ bắt đầu và kết thúc phải hợp lệ và khác nhau.';
+      status.className = 'bes-attendance-time-admin-status is-error';
+    }
+    return;
+  }
+
+  if (saveButton) saveButton.disabled = true;
   accessNotice = '';
   try {
-    const { data, error } = await client.rpc('bes_admin_set_attendance_time_restriction', { p_enabled: Boolean(enabled) });
+    const { data, error } = await client.rpc('bes_admin_set_attendance_time_restriction', {
+      p_enabled: Boolean(enabledInput?.checked),
+      p_start_time: start,
+      p_end_time: end,
+    });
     if (error) throw error;
     settings = { ...settings, ...(data || {}) };
     if (data?.server_now) serverClockOffsetMs = new Date(data.server_now).getTime() - Date.now();
     serverDecision = { key: '', data: null, pending: false };
-    accessNotice = enabled
-      ? 'Đã bật giới hạn: giáo viên chỉ thao tác lớp được phân công trong đúng ngày và khung giờ.'
-      : 'Đã tắt giới hạn giờ: hệ thống trở về cách thao tác trước đây.';
+    accessNotice = settings.enforce_teacher_time_window
+      ? `Đã bật giới hạn ${configuredWindowLabel()} cho giáo viên được phân công.`
+      : `Đã tắt giới hạn giờ. Khung ${configuredWindowLabel()} vẫn được lưu để dùng khi bật lại.`;
+    if (status) {
+      status.textContent = 'Đã lưu cài đặt.';
+      status.className = 'bes-attendance-time-admin-status is-success';
+    }
   } catch (error) {
-    accessNotice = `Không thể cập nhật công tắc: ${error?.message || error}`;
+    if (status) {
+      status.textContent = error?.message || 'Không thể lưu cài đặt.';
+      status.className = 'bes-attendance-time-admin-status is-error';
+    }
   } finally {
-    input.disabled = false;
+    if (saveButton) saveButton.disabled = false;
     queueRender();
   }
 }
 
-function ensureAdminToggle() {
-  const actions = document.querySelector('.attendance-top-actions');
-  if (!actions) return;
-  let wrap = actions.querySelector('.bes-attendance-time-toggle');
+function ensureAdminSettingsPanel() {
+  const tabs = document.querySelector('.attendance-tabs');
+  if (!tabs) return;
+  let panel = document.querySelector('.bes-attendance-time-settings');
   if (!settings.can_administer) {
-    wrap?.remove();
+    panel?.remove();
     return;
   }
-  if (!wrap) {
-    wrap = document.createElement('label');
-    wrap.className = 'bes-attendance-time-toggle';
-    wrap.innerHTML = '<span class="bes-attendance-time-toggle-copy"><b>Giới hạn GV theo giờ</b><small></small></span><span class="bes-attendance-switch"><input type="checkbox" aria-label="Bật giới hạn giáo viên theo giờ học"><i></i></span>';
-    actions.insertBefore(wrap, actions.firstChild);
-    const input = wrap.querySelector('input');
-    input.addEventListener('change', () => changeRestriction(input.checked, input));
+
+  if (!panel) {
+    panel = document.createElement('section');
+    panel.className = 'bes-attendance-time-settings';
+    panel.innerHTML = `
+      <div class="bes-attendance-time-heading">
+        <span aria-hidden="true">⏱</span>
+        <div><strong>Thời gian điểm danh của giáo viên</strong><small>Chỉ giáo viên được phân công bị giới hạn. Admin và người có quyền Báo cáo luôn được thao tác.</small></div>
+      </div>
+      <label class="bes-attendance-time-toggle">
+        <span><b>Bật giới hạn thời gian</b><small>Ngoài khung giờ, giáo viên chỉ được xem.</small></span>
+        <span class="bes-attendance-switch"><input class="bes-attendance-time-enabled" type="checkbox" aria-label="Bật giới hạn thời gian điểm danh"><i></i></span>
+      </label>
+      <label class="bes-attendance-time-field"><span>Bắt đầu</span><input class="bes-attendance-time-start" type="time" step="60" aria-label="Giờ bắt đầu điểm danh"></label>
+      <span class="bes-attendance-time-arrow" aria-hidden="true">→</span>
+      <label class="bes-attendance-time-field"><span>Kết thúc</span><input class="bes-attendance-time-end" type="time" step="60" aria-label="Giờ kết thúc điểm danh"></label>
+      <button class="bes-attendance-time-save" type="button">Lưu cài đặt</button>
+      <em class="bes-attendance-time-admin-status" aria-live="polite"></em>
+    `;
+    tabs.insertAdjacentElement('afterend', panel);
+    panel.querySelector('.bes-attendance-time-save')?.addEventListener('click', () => saveAdminSettings(panel));
+    panel.querySelectorAll('input').forEach((input) => input.addEventListener('change', () => {
+      const status = panel.querySelector('.bes-attendance-time-admin-status');
+      if (status) {
+        status.textContent = 'Có thay đổi chưa lưu.';
+        status.className = 'bes-attendance-time-admin-status is-dirty';
+      }
+    }));
   }
-  const input = wrap.querySelector('input');
-  if (input && input.checked !== Boolean(settings.enforce_teacher_schedule)) input.checked = Boolean(settings.enforce_teacher_schedule);
-  const invalidCount = missingTimeCount();
-  const small = wrap.querySelector('small');
-  const text = settings.enforce_teacher_schedule
-    ? `Bật${invalidCount ? ` · ${invalidCount} lớp chưa có giờ` : ''}`
-    : 'Tắt · giữ hành vi hiện tại';
-  if (small && small.textContent !== text) small.textContent = text;
+
+  const enabledInput = panel.querySelector('.bes-attendance-time-enabled');
+  const startInput = panel.querySelector('.bes-attendance-time-start');
+  const endInput = panel.querySelector('.bes-attendance-time-end');
+  if (enabledInput && enabledInput.checked !== Boolean(settings.enforce_teacher_time_window)) enabledInput.checked = Boolean(settings.enforce_teacher_time_window);
+  const startValue = inputClockValue(settings.teacher_start_time, '16:40');
+  const endValue = inputClockValue(settings.teacher_end_time, '17:15');
+  if (startInput && document.activeElement !== startInput && startInput.value !== startValue) startInput.value = startValue;
+  if (endInput && document.activeElement !== endInput && endInput.value !== endValue) endInput.value = endValue;
 }
 
-function serverDecisionKey(classRow, attendanceDate, teacherName) {
-  return [runtimeSnapshot?.profile?.id || '', classRow?.id || '', attendanceDate || '', lower(teacherName), settings.enforce_teacher_schedule ? '1' : '0'].join('|');
+function serverDecisionKey(classRow, teacherName) {
+  return [
+    runtimeSnapshot?.profile?.id || '',
+    classRow?.id || '',
+    lower(teacherName),
+    settings.enforce_teacher_time_window ? '1' : '0',
+    settings.teacher_start_time || '',
+    settings.teacher_end_time || '',
+  ].join('|');
 }
 
-function requestServerDecision(classRow, attendanceDate, teacherName) {
-  if (!client || !classRow?.id || !attendanceDate || !settings.enforce_teacher_schedule) return;
-  const key = serverDecisionKey(classRow, attendanceDate, teacherName);
+function requestServerDecision(classRow, teacherName) {
+  if (!client || !classRow?.id || !settings.enforce_teacher_time_window) return;
+  const key = serverDecisionKey(classRow, teacherName);
   if (serverDecision.key === key) return;
   serverDecision = { key, data: null, pending: true };
   client.rpc('bes_get_extra_class_attendance_access', {
     p_class_id: classRow.id,
-    p_attendance_date: attendanceDate,
     p_teacher_name: teacherName || null,
   }).then(({ data, error }) => {
     if (serverDecision.key !== key) return;
@@ -358,13 +416,11 @@ function renderAccessState() {
   const shell = document.querySelector('.attendance-shell');
   if (!shell) return;
 
-  ensureAdminToggle();
-  const attendanceDate = dateInputValue();
+  ensureAdminSettingsPanel();
   document.querySelectorAll('.attendance-class-list > div > button').forEach((button) => {
     const classRow = classByName(button.querySelector('b')?.textContent || '');
     if (!classRow) return;
-    const result = evaluateClass(classRow, attendanceDate);
-    setClassButtonDecoration(button, classRow, result);
+    setClassButtonDecoration(button, classRow, evaluateClass(classRow));
   });
 
   const classRow = selectedClassRow();
@@ -375,14 +431,12 @@ function renderAccessState() {
   }
 
   const teacherName = selectedTeacherValue();
-  let result = evaluateClass(classRow, attendanceDate, teacherName);
-  const key = serverDecisionKey(classRow, attendanceDate, teacherName);
-  if (settings.enforce_teacher_schedule) requestServerDecision(classRow, attendanceDate, teacherName);
-  if (settings.enforce_teacher_schedule && serverDecision.key === key && serverDecision.data) {
-    result = serverDecision.data;
-  }
+  let result = evaluateClass(classRow, teacherName);
+  const key = serverDecisionKey(classRow, teacherName);
+  if (settings.enforce_teacher_time_window) requestServerDecision(classRow, teacherName);
+  if (settings.enforce_teacher_time_window && serverDecision.key === key && serverDecision.data) result = serverDecision.data;
 
-  const locked = Boolean(settings.enforce_teacher_schedule && !result?.allowed && !result?.bypass);
+  const locked = Boolean(settings.enforce_teacher_time_window && !result?.allowed && !result?.bypass);
   applyTeacherOptionGuard(classRow, locked);
   lockRollcallControls(locked);
   ensureStatusBanner(result, classRow);
