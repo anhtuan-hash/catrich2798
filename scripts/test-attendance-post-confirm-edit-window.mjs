@@ -104,10 +104,10 @@ for (const required of [
   'Còn',
   '30 phút',
   'Lưu điều chỉnh',
-  'attendance:report',
 ]) {
   assert.ok(bootstrapSource.includes(required), `Bootstrap must contain ${required}`);
 }
+assert.match(bootstrapSource, /hasAttendanceTabAccess\(currentProfile\(\), 'report'\)/, 'Report permission must bypass expiry in the client UI');
 assert.match(bootstrapSource, /setInterval\([\s\S]*1000/, 'Countdown must refresh while the dialog is open');
 assert.match(bootstrapSource, /attendance-top-actions[\s\S]*Làm mới|title="Làm mới"|\[title="Làm mới"\]/, 'Saving an adjustment must refresh the React attendance view');
 
@@ -126,8 +126,8 @@ for (const required of [
 }
 assert.doesNotMatch(
   migrationSource,
-  /teacher_start_time|teacher_end_time|enforce_teacher_time_window/,
-  'Post-confirm grace period must be independent from the Admin global attendance window',
+  /bes_attendance_access_decision|bes_attendance_access_settings/,
+  'Post-confirm grace period must be independent from the Admin global attendance-window decision',
 );
 assert.match(migrationSource, /security definer[\s\S]*set search_path = ''/, 'Privileged update helper must pin an empty search_path');
 assert.match(migrationSource, /revoke all on function public\.bes_update_extra_attendance_session/, 'Update RPC must not be executable by PUBLIC');
