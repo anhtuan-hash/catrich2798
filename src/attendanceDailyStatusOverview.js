@@ -330,7 +330,7 @@ function installDailyOverview(layout) {
   host.setAttribute(HOST_ATTRIBUTE, 'true');
   host.className = 'attendance-daily-overview-host';
   host.innerHTML = `
-    <div class="attendance-daily-compact-toolbar">
+    <div class="attendance-daily-compact-toolbar" style="grid-template-columns:minmax(0,1fr) 150px">
       <div class="attendance-calendar-room-filter" aria-label="Lọc theo phòng học">
         <div class="attendance-calendar-room-chips" role="group" aria-label="Phòng học"><button type="button" class="attendance-calendar-room-chip is-active" data-room-filter="all" aria-pressed="true">Tất cả phòng</button></div>
       </div>
