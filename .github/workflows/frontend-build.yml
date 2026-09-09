@@ -79,6 +79,9 @@ jobs:
       - name: Verify attendance report export
         run: node scripts/test-attendance-report-export.mjs
 
+      - name: Verify attendance audit actors
+        run: node scripts/test-attendance-audit-actors.mjs
+
       - name: Verify attendance Material 3 UI
         run: node scripts/test-attendance-material3-ui.mjs
 
