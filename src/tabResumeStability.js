@@ -5,6 +5,7 @@ import './attendanceQuickClassListCollapse.js';
 import './attendancePostConfirmEditBootstrap.js';
 import './attendanceCalendarDirectEntryBootstrap.js';
 import './attendanceLegacyMonthlyCalendarCleanup.js';
+import './styles/AttendanceMobileResponsive.css';
 import { reportPwaRefreshNeeded } from './utils/pwa.js';
 
 const INSTALL_KEY = '__besTabResumeStabilityInstalled';
