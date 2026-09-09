@@ -49,6 +49,9 @@ jobs:
       - name: Verify global 10-bar Wave Loader is retired
         run: node scripts/test-no-global-wave-loader.mjs
 
+      - name: Verify footer is always expanded
+        run: node scripts/test-footer-always-expanded.mjs
+
       - name: Verify TTCM receives own communications
         run: node scripts/test-ttcm-self-recipient.mjs
 
