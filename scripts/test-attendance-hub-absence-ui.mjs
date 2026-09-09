@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {
   ATTENDANCE_PERMISSION_IDS,
+  ATTENDANCE_PERMISSION_ITEMS,
   ROUTE_PERMISSION_IDS,
   createAllAccessPermissions,
   getAllowedIdsFromPermissions,
@@ -114,7 +115,8 @@ assert.doesNotMatch(dailySchedule, /MutationObserver|querySelector|innerHTML|dat
 assert.doesNotMatch(dailySchedule, /Theo lớp/, 'Attendance calendar must no longer expose the class-based mode');
 assert.doesNotMatch(dailySchedule, /attendance-calendar-mode-switch/, 'Attendance calendar must no longer render a mode switcher');
 assert.doesNotMatch(dailySchedule, /setCalendarMode\s*\(/, 'Attendance calendar must not switch back to the legacy class calendar');
-assert.match(attendance, /Lịch điểm danh/, 'Attendance calendar tab must be presented as Lịch điểm danh');
+const calendarPermissionItem = ATTENDANCE_PERMISSION_ITEMS.find((item) => item.tab === 'calendar');
+assert.equal(calendarPermissionItem?.titleVi, 'Lịch điểm danh', 'Calendar tab source-of-truth must be renamed from Lịch tháng to Lịch điểm danh');
 assert.match(attendance, /calendarDate/, 'Direct daily schedule must keep an independently selectable date');
 assert.match(attendance, /loadCalendarSessions\(dateValue = calendarDate\)/, 'Attendance navigation must load attendance sessions for the selected day');
 assert.match(attendance, /\.eq\(['"]attendance_date['"],\s*dateValue\)/, 'Daily session loader must query by the selected attendance date');
