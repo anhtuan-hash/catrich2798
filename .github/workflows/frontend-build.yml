@@ -127,6 +127,9 @@ jobs:
       - name: Verify post-confirm attendance edit window
         run: node scripts/test-attendance-post-confirm-edit-window.mjs
 
+      - name: Verify calendar-first attendance entry
+        run: node scripts/test-attendance-calendar-direct-entry.mjs
+
       - name: Verify report override quick attendance entry
         run: node scripts/test-attendance-report-override-quick.mjs
 

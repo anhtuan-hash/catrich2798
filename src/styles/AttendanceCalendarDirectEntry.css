@@ -1,0 +1,36 @@
+.attendance-tabs button[data-bes-hidden-quick-tab="true"] {
+  display: none !important;
+}
+
+.attendance-tabs button[data-bes-calendar-entry-tab="true"].bes-calendar-detail-active {
+  color: var(--att-blue, #2468d8);
+}
+
+.attendance-tabs button[data-bes-calendar-entry-tab="true"].bes-calendar-detail-active::after {
+  content: '';
+  position: absolute;
+  height: 3px;
+  right: 16px;
+  bottom: 0;
+  left: 16px;
+  border-radius: 3px 3px 0 0;
+  background: var(--att-blue, #2468d8);
+}
+
+.attendance-shell[data-bes-calendar-class-detail="true"] .attendance-quick-layout {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.attendance-shell[data-bes-calendar-class-detail="true"] .attendance-class-list {
+  display: none !important;
+}
+
+.attendance-shell[data-bes-calendar-class-detail="true"] .attendance-class-list-restore {
+  display: none !important;
+}
+
+@media (max-width: 820px) {
+  .attendance-shell[data-bes-calendar-class-detail="true"] .attendance-quick-layout {
+    display: block;
+  }
+}
