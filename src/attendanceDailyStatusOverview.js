@@ -173,17 +173,17 @@ function renderError(overview, message) {
   overview.innerHTML = `<div class="attendance-daily-overview__empty">${escapeHtml(message || 'Không thể tải trạng thái điểm danh theo ngày.')}</div>`;
 }
 
-function syncRoomFilterOptions(layout, scheduledClasses, dailySessionsByClass) {
-  const roomSelect = layout.querySelector('.attendance-calendar-mode-bar__room select');
-  if (!roomSelect) return;
+function syncRoomFilterChips(layout, scheduledClasses, dailySessionsByClass) {
+  const roomChips = layout.querySelector('.attendance-calendar-room-chips');
+  if (!roomChips) return;
   const roomOptions = sortAttendanceRoomLabels(scheduledClasses.map((classRow) => (
     displayedRoomForClass(classRow, dailySessionsByClass.get(String(classRow.id)))
   )));
   if (dailyRoomFilter !== 'all' && !roomOptions.some((room) => matchesAttendanceRoomFilter(room, dailyRoomFilter))) {
     dailyRoomFilter = 'all';
   }
-  roomSelect.innerHTML = `<option value="all">Tất cả phòng</option>${roomOptions.map((room) => `<option value="${escapeHtml(room)}">${escapeHtml(room)}</option>`).join('')}`;
-  roomSelect.value = dailyRoomFilter;
+  const chip = (value, label) => `<button type="button" class="attendance-calendar-room-chip ${matchesAttendanceRoomFilter(value, dailyRoomFilter) && (dailyRoomFilter === 'all' ? value === 'all' : true) ? 'is-active' : ''}" data-room-filter="${escapeHtml(value)}" aria-pressed="${matchesAttendanceRoomFilter(value, dailyRoomFilter) && (dailyRoomFilter === 'all' ? value === 'all' : true) ? 'true' : 'false'}">${escapeHtml(label)}</button>`;
+  roomChips.innerHTML = `${chip('all', 'Tất cả phòng')}${roomOptions.map((room) => chip(room, room)).join('')}`;
 }
 
 function renderDailyRows(layout, overview, classes, sessions) {
@@ -195,7 +195,7 @@ function renderDailyRows(layout, overview, classes, sessions) {
   });
 
   const scheduledClasses = classes.filter((classRow) => isExtraClassScheduledOnDate(classRow, dailyAttendanceDate));
-  syncRoomFilterOptions(layout, scheduledClasses, dailySessionsByClass);
+  syncRoomFilterChips(layout, scheduledClasses, dailySessionsByClass);
   const visibleClasses = scheduledClasses.filter((classRow) => matchesAttendanceRoomFilter(
     displayedRoomForClass(classRow, dailySessionsByClass.get(String(classRow.id))),
     dailyRoomFilter,
@@ -297,7 +297,7 @@ function setCalendarMode(layout, mode) {
   });
   const dateField = host.querySelector('.attendance-calendar-mode-bar__date');
   if (dateField) dateField.hidden = calendarMode !== 'daily';
-  const roomField = host.querySelector('.attendance-calendar-mode-bar__room');
+  const roomField = host.querySelector('.attendance-calendar-room-filter');
   if (roomField) roomField.hidden = calendarMode !== 'daily';
   const overview = host.querySelector('.attendance-daily-overview');
   if (!overview) return;
@@ -317,14 +317,14 @@ function installDailyOverview(layout) {
         <button type="button" data-mode="class">Theo lớp</button>
         <button type="button" data-mode="daily">Theo ngày</button>
       </div>
-      <label class="attendance-calendar-mode-bar__room">
-        <span>Phòng học</span>
-        <select aria-label="Lọc theo phòng học"><option value="all">Tất cả phòng</option></select>
-      </label>
       <label class="attendance-calendar-mode-bar__date">
         <span>Ngày</span>
         <input type="date" max="${vietnamDateString()}" value="${escapeHtml(dailyAttendanceDate)}" />
       </label>
+    </div>
+    <div class="attendance-calendar-room-filter" aria-label="Lọc theo phòng học">
+      <span>Phòng học</span>
+      <div class="attendance-calendar-room-chips" role="group"><button type="button" class="attendance-calendar-room-chip is-active" data-room-filter="all" aria-pressed="true">Tất cả phòng</button></div>
     </div>
     <div class="attendance-daily-overview" aria-live="polite"></div>`;
 
@@ -336,9 +336,11 @@ function installDailyOverview(layout) {
     button.addEventListener('click', () => setCalendarMode(layout, button.dataset.mode));
   });
 
-  const roomSelect = host.querySelector('.attendance-calendar-mode-bar__room select');
-  roomSelect?.addEventListener('change', () => {
-    dailyRoomFilter = roomSelect.value || 'all';
+  const roomChips = host.querySelector('.attendance-calendar-room-chips');
+  roomChips?.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-room-filter]');
+    if (!button || !roomChips.contains(button)) return;
+    dailyRoomFilter = button.dataset.roomFilter || 'all';
     const overview = host.querySelector('.attendance-daily-overview');
     if (calendarMode === 'daily' && overview && dailyOverviewSnapshot) {
       renderDailyRows(layout, overview, dailyOverviewSnapshot.classes, dailyOverviewSnapshot.sessions);
