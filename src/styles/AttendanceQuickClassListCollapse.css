@@ -1,0 +1,104 @@
+.attendance-quick-layout.is-class-list-collapsed {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.attendance-quick-layout.is-class-list-collapsed > .attendance-class-list {
+  display: none;
+}
+
+.attendance-class-list > header {
+  gap: 8px;
+}
+
+.attendance-class-list-toggle,
+.attendance-class-list-restore {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #d7e0ea;
+  background: #fff;
+  color: #4d6278;
+  cursor: pointer;
+  transition: background .15s ease, border-color .15s ease, color .15s ease;
+}
+
+.attendance-class-list-toggle:hover,
+.attendance-class-list-restore:hover {
+  border-color: #b8cae3;
+  background: #edf4ff;
+  color: #2468d8;
+}
+
+.attendance-class-list-toggle:focus-visible,
+.attendance-class-list-restore:focus-visible {
+  outline: 3px solid rgba(36, 104, 216, .2);
+  outline-offset: 2px;
+}
+
+.attendance-class-list-toggle {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  margin-left: 2px;
+  border-radius: 9px;
+  font: inherit;
+}
+
+.attendance-class-list-toggle > span {
+  font-size: 22px;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.attendance-rollcall {
+  position: relative;
+}
+
+.attendance-class-list-restore {
+  position: absolute;
+  z-index: 18;
+  top: 12px;
+  left: 14px;
+  min-height: 34px;
+  gap: 6px;
+  padding: 0 10px 0 8px;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(29, 58, 91, .08);
+  font: inherit;
+}
+
+.attendance-class-list-restore[hidden] {
+  display: none !important;
+}
+
+.attendance-class-list-restore > span {
+  font-size: 21px;
+  line-height: 1;
+}
+
+.attendance-class-list-restore > b {
+  font-size: 11px;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.attendance-quick-layout.is-class-list-collapsed .attendance-rollcall-head {
+  padding-left: 150px;
+}
+
+@media (max-width: 820px) {
+  .attendance-class-list-restore {
+    top: 8px;
+    left: 8px;
+    min-height: 32px;
+    padding: 0 8px;
+  }
+
+  .attendance-class-list-restore > b {
+    font-size: 10px;
+  }
+
+  .attendance-quick-layout.is-class-list-collapsed .attendance-rollcall-head {
+    padding-left: 118px;
+  }
+}
