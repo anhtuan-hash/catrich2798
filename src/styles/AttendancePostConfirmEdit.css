@@ -1,0 +1,440 @@
+.bes-post-confirm-edit-card {
+  margin: 10px 14px 12px;
+  border: 1px solid #d9e3ef;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(35, 57, 87, .07);
+  color: #17324d;
+  overflow: hidden;
+}
+
+.bes-post-confirm-edit-card.is-open,
+.bes-post-confirm-edit-card.is-locked {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(180px, auto);
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+}
+
+.bes-post-confirm-edit-card.is-open {
+  border-color: #bfe2cf;
+  background: linear-gradient(135deg, #f3fbf7, #ffffff 62%);
+}
+
+.bes-post-confirm-edit-card.is-locked {
+  background: #f7f9fc;
+  border-color: #dfe5ec;
+}
+
+.bes-post-confirm-card-copy {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.bes-post-confirm-icon {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #e4f5ec;
+  color: #17764d;
+  font-size: 18px;
+}
+
+.is-locked .bes-post-confirm-icon {
+  background: #edf1f5;
+  color: #6b7c8e;
+}
+
+.bes-post-confirm-card-copy > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.bes-post-confirm-card-copy strong {
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.bes-post-confirm-card-copy p,
+.bes-post-confirm-card-copy small {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.bes-post-confirm-card-copy p {
+  color: #52677d;
+  font-size: 11px;
+}
+
+.bes-post-confirm-card-copy small {
+  color: #7b8a99;
+  font-size: 10px;
+}
+
+.bes-post-confirm-card-summary {
+  min-width: 86px;
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  padding: 8px 12px;
+  border: 1px solid #e1e8ef;
+  border-radius: 12px;
+  background: rgba(255,255,255,.82);
+}
+
+.bes-post-confirm-card-summary b {
+  color: #16764d;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.bes-post-confirm-card-summary span,
+.bes-post-confirm-card-summary em {
+  color: #738396;
+  font-size: 9px;
+  font-style: normal;
+}
+
+.bes-post-confirm-card-action {
+  display: grid;
+  justify-items: end;
+  gap: 7px;
+}
+
+.bes-post-confirm-card-action strong {
+  color: #27704f;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.is-locked .bes-post-confirm-card-action strong {
+  color: #68798a;
+}
+
+.bes-post-confirm-card-action button,
+.bes-post-confirm-editor-footer button,
+.bes-post-confirm-status-toggle button {
+  border: 0;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease, opacity .15s ease;
+}
+
+.bes-post-confirm-card-action button {
+  padding: 9px 13px;
+  background: #1f6fbd;
+  color: #fff;
+  font-size: 11px;
+  box-shadow: 0 5px 12px rgba(31, 111, 189, .16);
+}
+
+.bes-post-confirm-card-action button:hover:not(:disabled),
+.bes-post-confirm-editor-footer button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.bes-post-confirm-card-action button:disabled,
+.bes-post-confirm-editor-footer button:disabled {
+  cursor: wait;
+  opacity: .58;
+}
+
+.bes-post-confirm-notice {
+  grid-column: 1 / -1;
+  padding: 8px 10px;
+  border-radius: 9px;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.bes-post-confirm-notice.is-success {
+  background: #eaf8f1;
+  color: #176e50;
+}
+
+.bes-post-confirm-notice.is-error {
+  background: #fff0ee;
+  color: #a7352d;
+}
+
+.bes-post-confirm-edit-card.is-editing {
+  padding: 0;
+  background: #f8fafc;
+}
+
+.bes-post-confirm-editor-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e0e7ef;
+  background: #fff;
+}
+
+.bes-post-confirm-editor-head > div:first-child {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.bes-post-confirm-editor-head > div:first-child > span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 34px;
+  border-radius: 10px;
+  background: #e7f0fb;
+  color: #1e65aa;
+}
+
+.bes-post-confirm-editor-head strong {
+  display: block;
+  font-size: 14px;
+}
+
+.bes-post-confirm-editor-head p {
+  margin: 2px 0 0;
+  color: #718296;
+  font-size: 10px;
+}
+
+.bes-post-confirm-live-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: #eef7f3;
+  color: #277157;
+  white-space: nowrap;
+}
+
+.bes-post-confirm-live-summary b {
+  font-size: 16px;
+}
+
+.bes-post-confirm-live-summary span,
+.bes-post-confirm-live-summary em {
+  font-size: 9px;
+  font-style: normal;
+}
+
+.bes-post-confirm-editor-note {
+  margin: 12px 14px 0;
+  padding: 9px 11px;
+  border-radius: 10px;
+  background: #edf5ff;
+  color: #375d82;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.bes-post-confirm-students {
+  display: grid;
+  gap: 8px;
+  max-height: 420px;
+  overflow: auto;
+  padding: 12px 14px;
+}
+
+.bes-post-confirm-student {
+  display: grid;
+  grid-template-columns: 30px minmax(160px, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 11px;
+  border: 1px solid #e1e7ee;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.bes-post-confirm-student.is-absent {
+  border-color: #f0d4d0;
+  background: #fffafa;
+}
+
+.bes-post-confirm-index {
+  color: #91a0af;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.bes-post-confirm-student-name {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.bes-post-confirm-student-name b {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bes-post-confirm-student-name small,
+.bes-post-confirm-present-note {
+  color: #7c8a99;
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.bes-post-confirm-status-toggle {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+  border-radius: 10px;
+  background: #eef2f6;
+}
+
+.bes-post-confirm-status-toggle button {
+  min-width: 64px;
+  padding: 7px 9px;
+  background: transparent;
+  color: #637487;
+  font-size: 10px;
+}
+
+.bes-post-confirm-status-toggle button.is-active[data-status="present"] {
+  background: #ddf4e8;
+  color: #16704c;
+}
+
+.bes-post-confirm-status-toggle button.is-active[data-status="absent"] {
+  background: #ffe9e5;
+  color: #a33d34;
+}
+
+.bes-post-confirm-absence-fields {
+  grid-column: 2 / -1;
+  display: grid;
+  grid-template-columns: minmax(150px, .5fr) minmax(220px, 1fr);
+  gap: 8px;
+}
+
+.bes-post-confirm-absence-fields label,
+.bes-post-confirm-editor-footer label {
+  display: grid;
+  gap: 4px;
+}
+
+.bes-post-confirm-absence-fields label span,
+.bes-post-confirm-editor-footer label span {
+  color: #718195;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.bes-post-confirm-absence-fields select,
+.bes-post-confirm-absence-fields input,
+.bes-post-confirm-editor-footer input {
+  width: 100%;
+  min-height: 34px;
+  box-sizing: border-box;
+  border: 1px solid #d7e0e9;
+  border-radius: 9px;
+  background: #fff;
+  color: #203b55;
+  font: inherit;
+  font-size: 10px;
+  outline: none;
+  padding: 7px 9px;
+}
+
+.bes-post-confirm-absence-fields select:focus,
+.bes-post-confirm-absence-fields input:focus,
+.bes-post-confirm-editor-footer input:focus {
+  border-color: #72a7d8;
+  box-shadow: 0 0 0 3px rgba(55, 126, 191, .1);
+}
+
+.bes-post-confirm-present-note {
+  grid-column: 2 / -1;
+  color: #5d7e69;
+}
+
+.bes-post-confirm-editor-footer {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+  padding: 12px 14px 14px;
+  border-top: 1px solid #e0e7ef;
+  background: #fff;
+}
+
+.bes-post-confirm-editor-footer > div {
+  display: flex;
+  gap: 8px;
+}
+
+.bes-post-confirm-editor-footer button {
+  min-height: 36px;
+  padding: 8px 13px;
+  font-size: 10px;
+}
+
+.bes-post-confirm-editor-footer button.is-secondary {
+  border: 1px solid #d8e0e8;
+  background: #fff;
+  color: #56697d;
+}
+
+.bes-post-confirm-editor-footer button.is-primary {
+  background: #1f6fbd;
+  color: #fff;
+  box-shadow: 0 5px 12px rgba(31, 111, 189, .16);
+}
+
+@media (max-width: 900px) {
+  .bes-post-confirm-edit-card.is-open,
+  .bes-post-confirm-edit-card.is-locked {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .bes-post-confirm-card-action {
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    justify-items: stretch;
+  }
+  .bes-post-confirm-card-action strong { white-space: normal; }
+  .bes-post-confirm-card-action button { justify-self: end; }
+}
+
+@media (max-width: 680px) {
+  .bes-post-confirm-edit-card { margin: 8px 10px 10px; border-radius: 13px; }
+  .bes-post-confirm-edit-card.is-open,
+  .bes-post-confirm-edit-card.is-locked {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 12px;
+  }
+  .bes-post-confirm-card-summary {
+    grid-template-columns: auto auto auto;
+    justify-content: start;
+    justify-items: start;
+    gap: 5px;
+  }
+  .bes-post-confirm-card-action { grid-column: auto; grid-template-columns: 1fr; justify-items: stretch; }
+  .bes-post-confirm-card-action button { width: 100%; justify-self: stretch; }
+  .bes-post-confirm-editor-head { align-items: flex-start; flex-direction: column; }
+  .bes-post-confirm-student { grid-template-columns: 24px minmax(0, 1fr); }
+  .bes-post-confirm-status-toggle { grid-column: 1 / -1; width: 100%; }
+  .bes-post-confirm-status-toggle button { flex: 1; }
+  .bes-post-confirm-absence-fields { grid-column: 1 / -1; grid-template-columns: 1fr; }
+  .bes-post-confirm-present-note { grid-column: 1 / -1; }
+  .bes-post-confirm-editor-footer { grid-template-columns: 1fr; }
+  .bes-post-confirm-editor-footer > div { display: grid; grid-template-columns: 1fr 1fr; }
+}
