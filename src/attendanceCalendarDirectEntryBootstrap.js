@@ -5,6 +5,7 @@ const HIDDEN_QUICK_ATTRIBUTE = 'data-bes-hidden-quick-tab';
 const CALENDAR_TAB_ATTRIBUTE = 'data-bes-calendar-entry-tab';
 const DETAIL_ATTRIBUTE = 'data-bes-calendar-class-detail';
 const DAILY_ROOT_SELECTOR = '[data-attendance-daily-status-root]';
+const BACK_BUTTON_CLASS = 'bes-attendance-calendar-back';
 
 let observer = null;
 let scanQueued = false;
@@ -92,6 +93,43 @@ function findQuickClassButton(quickLayout, classId, className) {
   }) || null;
 }
 
+function exitCalendarClassDetail(shell) {
+  if (!shell) return;
+  const { calendarTab } = markAttendanceTabs(shell);
+  shell.removeAttribute(DETAIL_ATTRIBUTE);
+  shell.querySelector(`.${BACK_BUTTON_CLASS}`)?.remove();
+  calendarTab?.classList.remove('bes-calendar-detail-active');
+  calendarTab?.click();
+}
+
+function syncBackButton(shell, detailActive) {
+  let button = shell.querySelector(`.${BACK_BUTTON_CLASS}`);
+  if (!detailActive) {
+    button?.remove();
+    return;
+  }
+
+  const rollcall = shell.querySelector('.attendance-rollcall');
+  if (!rollcall) return;
+  if (!button) {
+    button = document.createElement('button');
+    button.type = 'button';
+    button.className = BACK_BUTTON_CLASS;
+    button.setAttribute('aria-label', 'Quay lại lịch điểm danh');
+    button.innerHTML = '<span aria-hidden="true">←</span><b>Quay lại lịch điểm danh</b>';
+    button.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      exitCalendarClassDetail(shell);
+    });
+  }
+
+  const rollcallHead = rollcall.querySelector('.attendance-rollcall-head');
+  if (button.parentElement !== rollcall || (rollcallHead && button.nextElementSibling !== rollcallHead)) {
+    rollcall.insertBefore(button, rollcallHead || rollcall.firstChild);
+  }
+}
+
 function syncDetailState(shell) {
   if (!shell?.isConnected) return;
   const { quickTab, calendarTab } = markAttendanceTabs(shell);
@@ -103,6 +141,7 @@ function syncDetailState(shell) {
 
   const detailActive = Boolean(shell.hasAttribute(DETAIL_ATTRIBUTE) && quickLayout);
   calendarTab?.classList.toggle('bes-calendar-detail-active', detailActive);
+  syncBackButton(shell, detailActive);
 
   if (!initializedShells.has(shell) && quickTab && calendarTab) {
     initializedShells.add(shell);
@@ -176,6 +215,7 @@ function onCapturedClick(event) {
   if (calendarTab) {
     const shell = calendarTab.closest('.attendance-shell');
     shell?.removeAttribute(DETAIL_ATTRIBUTE);
+    shell?.querySelector(`.${BACK_BUTTON_CLASS}`)?.remove();
     calendarTab.classList.remove('bes-calendar-detail-active');
   }
 }
