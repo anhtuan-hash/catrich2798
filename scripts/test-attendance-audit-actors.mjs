@@ -3,15 +3,22 @@ import assert from 'node:assert/strict';
 import { buildAttendanceReport } from '../src/utils/attendanceReport.js';
 
 const auditHelperUrl = new URL('../src/utils/attendanceAuditActors.js', import.meta.url);
+const auditUiUrl = new URL('../src/attendanceAuditActorsBootstrap.js', import.meta.url);
 const attendanceUrl = new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url);
+const reportComponentUrl = new URL('../src/components/attendance/AttendanceMonthlyReport.jsx', import.meta.url);
 const reportUrl = new URL('../src/utils/attendanceReport.js', import.meta.url);
 const exportUrl = new URL('../src/utils/attendanceReportExport.js', import.meta.url);
+const indexUrl = new URL('../index.html', import.meta.url);
 const migrationUrl = new URL('../supabase/migrations/20260909_attendance_audit_actor_snapshots.sql', import.meta.url);
 
 const attendance = fs.readFileSync(attendanceUrl, 'utf8');
+const auditUi = fs.existsSync(auditUiUrl) ? fs.readFileSync(auditUiUrl, 'utf8') : '';
+const reportComponent = fs.readFileSync(reportComponentUrl, 'utf8');
 const reportSource = fs.readFileSync(reportUrl, 'utf8');
 const exportSource = fs.readFileSync(exportUrl, 'utf8');
+const indexSource = fs.readFileSync(indexUrl, 'utf8');
 const migration = fs.existsSync(migrationUrl) ? fs.readFileSync(migrationUrl, 'utf8') : '';
+const historyUiSource = `${attendance}\n${auditUi}`;
 
 assert.ok(fs.existsSync(auditHelperUrl), 'Attendance audit actor helper must exist');
 if (fs.existsSync(auditHelperUrl)) {
@@ -102,9 +109,12 @@ assert.equal(report.sessionRows[0]?.change_count, 1, 'Report rows must expose ad
 assert.equal(report.sessionRows[0]?.change_history?.length, 1, 'Report rows must expose grouped adjustment history');
 
 assert.match(reportSource, /changes\s*=\s*\[\]/, 'Attendance report aggregation must accept audit changes');
-assert.match(attendance, /bes_extra_attendance_record_changes/, 'Attendance UI must load persisted adjustment audit rows');
+assert.match(reportComponent, /bes_extra_attendance_record_changes/, 'Report UI must load persisted adjustment audit rows');
+assert.match(reportComponent, /checked_by_name/, 'Report UI must load the original attendance actor snapshot');
+assert.match(indexSource, /attendanceAuditActorsBootstrap\.js/, 'Attendance audit history UI must boot with the app');
+assert.match(historyUiSource, /bes_extra_attendance_record_changes/, 'Attendance history UI must load persisted adjustment audit rows');
 for (const copy of ['Người thực hiện điểm danh', 'Điều chỉnh gần nhất', 'Đã điều chỉnh', 'Xem lịch sử điều chỉnh']) {
-  assert.match(attendance, new RegExp(copy), `Attendance history UI must display ${copy}`);
+  assert.match(historyUiSource, new RegExp(copy), `Attendance history UI must display ${copy}`);
 }
 for (const copy of ['Người điểm danh', 'Người điều chỉnh gần nhất']) {
   assert.match(exportSource, new RegExp(copy), `PDF/Excel export must include ${copy}`);
