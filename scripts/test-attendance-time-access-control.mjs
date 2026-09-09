@@ -78,6 +78,7 @@ const startupSource = fs.readFileSync(startupUrl, 'utf8');
 assert.match(startupSource, /attendanceTimeAccessBootstrap\.js/, 'The pre-main startup chain must load the attendance access runtime');
 
 const uiSource = fs.readFileSync(bootstrapUrl, 'utf8');
+const cssSource = fs.readFileSync(cssUrl, 'utf8');
 assert.match(uiSource, /bes_get_attendance_access_settings/, 'UI must read the server-side settings');
 assert.match(uiSource, /bes_admin_set_attendance_time_restriction/, 'Admin UI must persist the toggle and global time window through a protected RPC');
 assert.match(uiSource, /type="time"/, 'Admin UI must expose start/end time inputs');
@@ -92,5 +93,18 @@ assert.match(uiSource, /let\s+adminSettingsDirty\s*=\s*false/, 'Admin settings f
 assert.match(uiSource, /adminSettingsDirty\s*=\s*true/, 'Input changes must mark the Admin settings form dirty');
 assert.match(uiSource, /if\s*\(!adminSettingsDirty\)\s*\{[\s\S]{0,900}enabledInput\.checked[\s\S]{0,900}startInput\.value[\s\S]{0,900}endInput\.value[\s\S]{0,900}\}/, 'Server settings may sync into controls only while the form is clean');
 assert.match(uiSource, /settings\s*=\s*\{\s*\.\.\.settings,\s*\.\.\.\(data\s*\|\|\s*\{\}\)\s*\}[\s\S]{0,500}adminSettingsDirty\s*=\s*false/, 'A successful save must clear dirty state after adopting the server response');
+
+// Compact admin settings: the time control belongs in the tab bar after Báo cáo and must
+// open as an overlay instead of consuming a full horizontal row in the attendance content.
+assert.match(uiSource, /bes-attendance-time-trigger/, 'Admin must get a compact time-settings trigger in the attendance tab bar');
+assert.match(uiSource, /Giờ GV/, 'Compact trigger must use a short label');
+assert.match(uiSource, /configuredWindowLabel\(\)/, 'Compact trigger must display the saved attendance window');
+assert.match(uiSource, /tabs\.appendChild\(trigger\)/, 'Compact trigger must be appended after the existing attendance tabs (after Báo cáo)');
+assert.match(uiSource, /adminSettingsPopoverOpen/, 'Popover open/closed state must be explicit and stable across renders');
+assert.match(uiSource, /panel\.hidden\s*=\s*!adminSettingsPopoverOpen/, 'Settings panel must stay out of view until the Admin opens it');
+assert.doesNotMatch(uiSource, /tabs\.insertAdjacentElement\('afterend',\s*panel\)/, 'Settings must no longer consume a standalone row below the tabs');
+assert.match(cssSource, /\.attendance-tabs\s*\{[^}]*position\s*:\s*relative/is, 'Tab bar must anchor the settings popover');
+assert.match(cssSource, /\.bes-attendance-time-settings\s*\{[^}]*position\s*:\s*absolute/is, 'Settings panel must be an overlay, not normal document flow');
+assert.match(cssSource, /\.bes-attendance-time-trigger/is, 'Compact trigger must have dedicated styling');
 
 console.log('Admin-configured global attendance time window contract OK');
