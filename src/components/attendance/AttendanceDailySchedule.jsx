@@ -174,20 +174,24 @@ export default function AttendanceDailySchedule({
                     type="button"
                     className={`attendance-daily-class-row is-${status}`}
                     data-floor={floor || undefined}
+                    aria-label={status === 'missing' ? `Điểm danh ${classRow.class_name}` : `Mở ${classRow.class_name} - ${statusLabel(status)}`}
                     onClick={() => onOpenClass?.(classRow, session || null)}
                   >
                     <span className="attendance-daily-class-row__class">
                       <b>{classRow.class_name}</b>
                       <small>{extraClassTypeLabel(classRow.class_type)} · {classRow.subject || 'Chưa ghi môn'}</small>
                     </span>
-                    <span className="attendance-daily-class-row__teacher"><b>{teacher}</b></span>
+                    <span className="attendance-daily-class-row__teacher" title={teacher}><b>{teacher}</b></span>
                     <span className="attendance-daily-class-row__meta is-room" data-floor={floor || undefined}>
-                      <b>{room}</b><small>{floor ? `Lầu ${floor}` : 'Phòng học'}</small>
+                      <b>{room}</b>
                     </span>
                     <span className="attendance-daily-class-row__meta is-time">
                       <b>{timeRange}</b>{attendanceMeta ? <small>{attendanceMeta}</small> : null}
                     </span>
-                    <span className={`attendance-daily-class-row__status is-${status}`}>{statusLabel(status)}</span>
+                    <span className={`attendance-daily-class-row__status is-${status}`}>
+                      <span className="attendance-daily-class-row__status-label">{statusLabel(status)}</span>
+                      {status === 'missing' ? <em className="attendance-daily-class-row__action">Điểm danh →</em> : null}
+                    </span>
                   </button>
                 </Fragment>
               );

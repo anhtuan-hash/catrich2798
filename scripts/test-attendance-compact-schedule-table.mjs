@@ -34,6 +34,13 @@ for (const label of ['LỚP', 'GIÁO VIÊN', 'PHÒNG', 'THỜI GIAN', 'TRẠNG T
 assert.doesNotMatch(directView, /Có lịch nhưng chưa chốt/, 'Missing sessions must not repeat redundant status copy under time.');
 assert.match(directView, /roomFilter\s*===\s*['"]all['"]/, 'Floor separators must be conditional on all-room mode.');
 
+// Final visual polish: readable teachers, non-redundant room badges, clearer action affordance and independent list scrolling.
+assert.match(directView, /className="attendance-daily-class-row__teacher"\s+title=\{teacher\}/, 'Teacher cells must expose the full assignment on hover.');
+assert.doesNotMatch(directView, /<b>\{room\}<\/b><small>\{floor\s*\?\s*`Lầu/, 'Room rows must not repeat floor text that already appears in floor separators.');
+assert.match(directView, /attendance-daily-class-row__action/, 'Missing attendance rows must expose a dedicated action affordance.');
+assert.match(directView, /Điểm danh →/, 'Missing attendance rows must reveal “Điểm danh →” as the action cue.');
+assert.match(directView, /aria-label=\{status === ['"]missing['"]\s*\?\s*`Điểm danh/, 'Clickable missing rows must state their action to assistive technology.');
+
 assert.doesNotMatch(css, /data-attendance-daily-mode|data-attendance-daily-only/, 'CSS must not hide the old React calendar behind runtime data attributes.');
 assert.doesNotMatch(css, /\.attendance-calendar-toolbar\s*\{[^}]*display\s*:\s*none\s*!important/s, 'CSS must not conceal the legacy toolbar.');
 assert.match(css, /\.attendance-daily-compact-toolbar\s*\{[^}]*position:\s*sticky;[^}]*top:\s*0;/s, 'Room/date toolbar must stay visible while scrolling.');
@@ -42,5 +49,14 @@ assert.match(css, /\.attendance-daily-class-row\s*\{[^}]*min-height:\s*(?:54|55|
 assert.match(css, /\.attendance-daily-class-row__meta\.is-room\s*\{[^}]*display:\s*inline-flex;/s, 'Room badge must be compact and inline.');
 assert.match(css, /\.attendance-daily-floor-group\s*\{[^}]*position:\s*sticky;/s, 'Floor separators must stay visible inside the scrolling class list.');
 assert.match(css, /@media\s*\(max-width:\s*760px\)[\s\S]*\.attendance-daily-table-header\s*\{[^}]*display:\s*none;/s, 'Desktop column header must collapse cleanly on mobile.');
+
+assert.match(css, /\.attendance-daily-overview-host\s*\{[^}]*height:\s*100%;[^}]*overflow:\s*hidden;/s, 'Daily host must reserve a bounded viewport for independent list scrolling.');
+assert.match(css, /\.attendance-daily-overview\s*\{[^}]*grid-template-rows:\s*auto\s+auto\s+minmax\(0,\s*1fr\);[^}]*overflow:\s*hidden;/s, 'Summary and table header must remain fixed while only the class list scrolls.');
+assert.match(css, /\.attendance-daily-overview__list\s*\{[^}]*overflow-y:\s*auto;[^}]*overscroll-behavior:\s*contain;/s, 'Class list must own vertical scrolling.');
+assert.match(css, /\.attendance-daily-overview__summary\.is-compact\s*\{[^}]*min-height:\s*(?:38|39|40|41|42)px;/s, 'Summary strip must be slightly taller and easier to scan.');
+assert.match(css, /\.attendance-daily-class-row__teacher b\s*\{[^}]*-webkit-line-clamp:\s*2;[^}]*white-space:\s*normal;/s, 'Teacher names must wrap to at most two readable lines instead of truncating immediately.');
+assert.match(css, /\.attendance-daily-class-row__action\s*\{[^}]*opacity:\s*0;/s, 'Attendance action cue must stay visually quiet until interaction.');
+assert.match(css, /\.attendance-daily-class-row:is\(:hover,\s*:focus-visible\)[\s\S]*attendance-daily-class-row__action[^}]*opacity:\s*1;/s, 'Attendance action cue must appear on mouse or keyboard focus.');
+assert.match(css, /\.attendance-content:has\(\.attendance-daily-overview-host\)\s*\{[^}]*padding:\s*(?:10|11|12|13|14)px;/s, 'Daily schedule should reclaim vertical space by tightening content padding only for this view.');
 
 console.log('Direct React compact attendance schedule contract OK');
