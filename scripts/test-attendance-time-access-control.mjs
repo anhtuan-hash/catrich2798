@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 const utilityUrl = new URL('../src/utils/attendanceTimeAccess.js', import.meta.url);
 const bootstrapUrl = new URL('../src/attendanceTimeAccessBootstrap.js', import.meta.url);
 const cssUrl = new URL('../src/styles/AttendanceTimeAccessControl.css', import.meta.url);
-const appBootstrapUrl = new URL('../src/applicationBootstrap.jsx', import.meta.url);
+const startupUrl = new URL('../src/tabResumeStability.js', import.meta.url);
 const migrationUrl = new URL('../supabase/migrations/20260909_attendance_time_access_control.sql', import.meta.url);
 
 assert.ok(fs.existsSync(utilityUrl), 'Attendance time access utility must exist');
@@ -67,20 +67,24 @@ for (const required of [
   'attendance:report',
   'bes_confirm_extra_class_attendance',
   'bes_cancel_extra_class_session',
+  'bes_delete_extra_attendance_session',
 ]) {
   assert.match(migrationSource, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `Migration must contain ${required}`);
 }
 assert.match(migrationSource, /p_attendance_date[\s\S]*p_teacher_name[\s\S]*p_now/, 'Backend helper must evaluate date, selected teacher and server time');
 assert.match(migrationSource, /can_take_extra_class_attendance\(\)/, 'Backend must preserve the quick-attendance permission gate');
-assert.match(migrationSource, /lower\(trim\(p\.full_name\)\)/, 'Backend must bind attendance to the caller profile identity');
+assert.match(migrationSource, /v_profile\.full_name/, 'Backend must bind attendance to the caller profile identity');
+assert.match(migrationSource, /security definer[\s\S]*set search_path = ''/, 'Privileged helpers must pin an empty search_path');
+assert.match(migrationSource, /revoke all on function private\./, 'Private security-definer helpers must not be executable by PUBLIC');
 
-const appBootstrapSource = fs.readFileSync(appBootstrapUrl, 'utf8');
-assert.match(appBootstrapSource, /attendanceTimeAccessBootstrap\.js/, 'Application bootstrap must load the attendance access runtime');
+const startupSource = fs.readFileSync(startupUrl, 'utf8');
+assert.match(startupSource, /attendanceTimeAccessBootstrap\.js/, 'The pre-main startup chain must load the attendance access runtime');
 
 const uiSource = fs.readFileSync(bootstrapUrl, 'utf8');
 assert.match(uiSource, /bes_get_attendance_access_settings/, 'UI must read the server-side toggle');
 assert.match(uiSource, /bes_admin_set_attendance_time_restriction/, 'Admin UI must persist the toggle through a protected RPC');
+assert.match(uiSource, /bes_get_extra_class_attendance_access/, 'Selected-class UI must verify the same decision on the server');
 assert.match(uiSource, /evaluateAttendanceTimeAccess/, 'UI must use the shared boundary-tested evaluator');
-assert.match(uiSource, /attendance:report/, 'Report permission must bypass the UI schedule lock');
+assert.match(uiSource, /hasAttendanceTabAccess\(currentProfile\(\), 'report'\)/, 'Report permission must bypass the UI schedule lock');
 
 console.log('Attendance time access control contract OK');
