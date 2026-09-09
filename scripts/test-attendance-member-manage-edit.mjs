@@ -27,5 +27,6 @@ assert.match(attendanceMemberMigrations, /route:attendance/, 'RPC permission che
 assert.match(attendanceMemberMigrations, /grant\s+execute\s+on\s+function\s+public\.bes_update_extra_class_member[\s\S]*?to\s+authenticated/i, 'RPC must be executable by authenticated users after its own permission check');
 assert.match(attendanceMemberMigrations, /v_active\s+boolean\s*:=\s*coalesce\(p_active,\s*true\)/i, 'RPC must normalize the requested active status');
 assert.match(attendanceMemberMigrations, /left_at\s*=\s*case[\s\S]*?when\s+v_active\s+then\s+null[\s\S]*?clock_timestamp\(\)/i, 'Changing to Đã nghỉ must timestamp the leave event and reactivation must clear it');
+assert.match(attendanceMemberMigrations, /removal_reason\s*=\s*case[\s\S]*?when\s+v_active\s+then\s*''/i, 'Reactivation must respect the NOT NULL removal_reason column by clearing it to an empty string');
 
 console.log('PASS: Manage-tab users can edit student identity and active status.');
