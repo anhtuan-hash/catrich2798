@@ -5,7 +5,7 @@ function normalizeRangeText(value) {
     .trim()
     .toLowerCase()
     .replace(/[–—−]/g, '-')
-    .replace(/\b(?:đến|den|to)\b/g, '-')
+    .replace(/\s*(?:đến|den|to)\s*/g, ' - ')
     .replace(/\s+/g, ' ');
 }
 
