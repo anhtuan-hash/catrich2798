@@ -112,6 +112,9 @@ jobs:
       - name: Verify attendance hub and absence UI
         run: node scripts/test-attendance-hub-absence-ui.mjs
 
+      - name: Verify visible A-Z attendance room filter
+        run: node scripts/test-attendance-visible-room-filter.mjs
+
       - name: Verify granular attendance permissions
         run: node scripts/test-attendance-granular-permissions.mjs
 
