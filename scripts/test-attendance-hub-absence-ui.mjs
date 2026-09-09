@@ -131,15 +131,15 @@ assert.deepEqual(
   ATTENDANCE_ROOM_ROUTE,
   [
     'A103', 'A104', 'A106',
-    'A201', 'A202', 'A204', 'B201', 'B203', 'B205', 'B206',
+    'A201', 'A202', 'A204', 'A206', 'B201', 'B203', 'B205', 'B206',
     'A301', 'A302', 'A303', 'A304', 'A305', 'A306',
     'A401', 'A402', 'A404', 'A405', 'A406',
   ],
   'Room route must match the school-approved floor-by-floor attendance path.',
 );
 assert.deepEqual(
-  sortAttendanceRoomLabels(['A.406', 'B.203', 'A201', 'B.201', 'A202', ' A201 ', '', 'a202']),
-  ['A201', 'A202', 'B.201', 'B.203', 'A.406'],
+  sortAttendanceRoomLabels(['A.406', 'B.203', 'A206', 'A201', 'B.201', 'A202', ' A201 ', '', 'a202']),
+  ['A201', 'A202', 'A206', 'B.201', 'B.203', 'A.406'],
   'Room options must be trimmed, de-duplicated case-insensitively, and follow the physical route while preserving labels.',
 );
 assert.equal(matchesAttendanceRoomFilter('A.406', 'all'), true, 'All rooms must pass the default filter.');
