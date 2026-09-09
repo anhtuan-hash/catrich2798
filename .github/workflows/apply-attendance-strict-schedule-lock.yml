@@ -1,0 +1,34 @@
+name: Apply attendance strict schedule lock
+
+on:
+  push:
+    branches:
+      - fix/attendance-strict-schedule-lock
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/attendance-strict-schedule-lock
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply source transformation
+        run: node scripts/apply-attendance-strict-schedule-lock.mjs
+      - name: Commit transformed source when needed
+        shell: bash
+        run: |
+          if git diff --quiet -- src/components/GlobalAttendanceNavigationTab.jsx; then
+            echo "No source changes needed."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/components/GlobalAttendanceNavigationTab.jsx
+          git commit -m "fix: hard-lock off-schedule attendance controls"
+          git push origin HEAD:fix/attendance-strict-schedule-lock
