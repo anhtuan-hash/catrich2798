@@ -33,7 +33,6 @@ function initialMemberForm(member) {
     student_code: String(member?.student_code || ''),
     student_full_name: String(member?.student_full_name || ''),
     school_class_name: String(member?.school_class_name || ''),
-    active: member?.active !== false,
   };
 }
 
@@ -42,7 +41,6 @@ export default function AttendanceClassEditor({
   selectedClass,
   members = [],
   isAdmin = false,
-  canManageMembers = false,
   busy = false,
   onRemoveStudent,
   onReload,
@@ -128,7 +126,7 @@ export default function AttendanceClassEditor({
   }
 
   function startEditMember(member) {
-    if (!canManageMembers || !member || locked) return;
+    if (!isAdmin || !member || member.active === false || locked) return;
     setEditingMemberId(String(member.id));
     setMemberForm(initialMemberForm(member));
     onError?.('');
@@ -141,7 +139,7 @@ export default function AttendanceClassEditor({
   }
 
   async function saveMemberInfo(member) {
-    if (!canManageMembers || !selectedClass || !member || !client || locked) return;
+    if (!isAdmin || !selectedClass || !member || !client || locked) return;
     const fullName = memberForm.student_full_name.trim();
     const schoolClass = memberForm.school_class_name.trim();
     if (!fullName || !schoolClass) {
@@ -153,18 +151,17 @@ export default function AttendanceClassEditor({
     onError?.('');
     onNotice?.('');
     try {
-      const { error } = await client.rpc('bes_update_extra_class_member', {
+      const { error } = await client.rpc('bes_admin_update_extra_class_member', {
         p_class_id: selectedClass.id,
         p_member_id: member.id,
         p_student_code: memberForm.student_code.trim(),
         p_student_full_name: fullName,
         p_school_class_name: schoolClass,
-        p_active: Boolean(memberForm.active),
       });
       if (error) throw error;
       setEditingMemberId('');
       setMemberForm(initialMemberForm(null));
-      onNotice?.(`Đã cập nhật ${fullName} · ${memberForm.active ? 'Đang học' : 'Đã nghỉ'}. Lịch sử điểm danh trước đây không thay đổi.`);
+      onNotice?.(`Đã cập nhật ${fullName}. Lịch sử điểm danh trước đây không thay đổi.`);
       await onReload?.();
     } catch (saveError) {
       onError?.(saveError?.message || 'Không thể cập nhật thông tin học sinh.');
@@ -219,7 +216,7 @@ export default function AttendanceClassEditor({
       <div className="attendance-member-table">
         <div className="attendance-member-table-head"><span>Học sinh</span><span>Lớp</span><span>Trạng thái</span><span /></div>
         {members.map((member) => {
-          const isEditing = String(editingMemberId) === String(member.id) && canManageMembers;
+          const isEditing = String(editingMemberId) === String(member.id) && member.active !== false && isAdmin;
           if (isEditing) {
             return (
               <div key={member.id} className="attendance-member-edit-row">
@@ -228,7 +225,7 @@ export default function AttendanceClassEditor({
                   <label><small>Họ và tên *</small><input value={memberForm.student_full_name} onChange={(event) => setMemberForm((current) => ({ ...current, student_full_name: event.target.value }))} /></label>
                 </span>
                 <span><label><small>Lớp chính khóa *</small><input value={memberForm.school_class_name} onChange={(event) => setMemberForm((current) => ({ ...current, school_class_name: event.target.value }))} placeholder="Ví dụ 12.6" /></label></span>
-                <span><label><small>Trạng thái</small><select value={memberForm.active ? 'active' : 'inactive'} onChange={(event) => setMemberForm((current) => ({ ...current, active: event.target.value === 'active' }))}><option value="active">Đang học</option><option value="inactive">Đã nghỉ</option></select></label></span>
+                <span>Đang chỉnh sửa</span>
                 <span className="attendance-member-edit-actions"><button type="button" disabled={locked} onClick={cancelMemberEdit}>Hủy</button><button className="is-primary" type="button" disabled={locked || !memberForm.student_full_name.trim() || !memberForm.school_class_name.trim()} onClick={() => saveMemberInfo(member)}>{saving === `member:${member.id}` ? 'Đang lưu…' : 'Lưu'}</button></span>
               </div>
             );
@@ -237,9 +234,9 @@ export default function AttendanceClassEditor({
             <div key={member.id} className={member.active === false ? 'is-inactive' : ''}>
               <span><b>{member.student_full_name}</b><small>{member.student_code || 'Không có mã HS'}</small></span>
               <span>{member.school_class_name || '—'}</span>
-              <span>{member.active === false ? `Đã nghỉ${member.left_at ? ` · ${new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(member.left_at))}` : ''}` : 'Đang học'}</span>
+              <span>{member.active === false ? `Đã rời lớp${member.left_at ? ` · ${new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh', day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(member.left_at))}` : ''}` : 'Đang học'}</span>
               <span className="attendance-member-row-actions">
-                {canManageMembers ? <button type="button" disabled={locked} onClick={() => startEditMember(member)}>Sửa học sinh</button> : null}
+                {member.active !== false && isAdmin ? <button type="button" disabled={locked} onClick={() => startEditMember(member)}>Sửa học sinh</button> : null}
                 {member.active !== false ? <button type="button" disabled={locked} onClick={() => onRemoveStudent?.(member)}>Xóa khỏi lớp</button> : <em>{member.removal_reason || 'Đã lưu lịch sử'}</em>}
               </span>
             </div>
