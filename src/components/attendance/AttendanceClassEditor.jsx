@@ -41,7 +41,6 @@ export default function AttendanceClassEditor({
   client,
   selectedClass,
   members = [],
-  isAdmin = false,
   canManageMembers = false,
   busy = false,
   onRemoveStudent,
@@ -86,7 +85,7 @@ export default function AttendanceClassEditor({
 
   async function saveClassInfo(event) {
     event.preventDefault();
-    if (!isAdmin || !selectedClass || !client || locked) return;
+    if (!canManageMembers || !selectedClass || !client || locked) return;
 
     const className = classForm.class_name.trim();
     const gradeLevel = Number(classForm.grade_level);
@@ -184,12 +183,12 @@ export default function AttendanceClassEditor({
             <strong>Dữ liệu hiện tại dùng cho các buổi chưa chốt</strong>
             <p>Các thay đổi bên dưới không sửa lại lịch sử điểm danh đã xác nhận.</p>
           </div>
-          {isAdmin && !editingClass ? (
+          {canManageMembers && !editingClass ? (
             <button type="button" disabled={locked} onClick={() => setEditingClass(true)}>Sửa thông tin lớp</button>
           ) : null}
         </header>
 
-        {editingClass && isAdmin ? (
+        {editingClass && canManageMembers ? (
           <form className="attendance-class-edit-form" onSubmit={saveClassInfo}>
             <div className="attendance-class-edit-grid">
               <label><span>Tên lớp *</span><input value={classForm.class_name} onChange={(event) => setClassForm((current) => ({ ...current, class_name: event.target.value }))} /></label>
