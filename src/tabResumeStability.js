@@ -1,4 +1,5 @@
 import './globalWindowsPhoneLoadingIndicator.js';
+import './attendanceTimeAccessBootstrap.js';
 import { reportPwaRefreshNeeded } from './utils/pwa.js';
 
 const INSTALL_KEY = '__besTabResumeStabilityInstalled';
