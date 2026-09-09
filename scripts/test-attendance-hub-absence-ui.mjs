@@ -104,9 +104,10 @@ for (const token of ['is-subject-math', 'is-subject-casio', 'is-subject-literatu
 
 assert.ok(dailyOverviewModule, 'Daily attendance status overview runtime must exist');
 assert.match(indexHtml, /attendanceDailyStatusOverview\.js/, 'Application shell must load the daily attendance status overview runtime');
-assert.match(dailyOverviewModule, /calendarMode/, 'Daily overview runtime must support switching between class and daily modes');
-assert.match(dailyOverviewModule, /Theo lớp/, 'Calendar mode switch must keep the existing class view');
-assert.match(dailyOverviewModule, /Theo ngày/, 'Calendar mode switch must expose a daily overview');
+assert.doesNotMatch(dailyOverviewModule, /Theo lớp/, 'Attendance calendar must no longer expose the class-based mode');
+assert.doesNotMatch(dailyOverviewModule, /attendance-calendar-mode-switch/, 'Attendance calendar must no longer render a mode switcher');
+assert.doesNotMatch(dailyOverviewModule, /setCalendarMode\s*\(/, 'Attendance calendar must not switch back to the legacy class calendar');
+assert.match(dailyOverviewModule, /Lịch điểm danh/, 'Attendance calendar tab must be presented as Lịch điểm danh');
 assert.match(dailyOverviewModule, /dailyAttendanceDate/, 'Daily overview must keep an independently selectable date');
 assert.match(dailyOverviewModule, /isExtraClassScheduledOnDate\(classRow, dailyAttendanceDate\)/, 'Daily overview must derive scheduled classes from the official class schedule');
 assert.match(dailyOverviewModule, /dailySessionsByClass/, 'Daily overview must match attendance sessions back to scheduled classes');
@@ -114,10 +115,10 @@ for (const label of ['Có lịch', 'Đã điểm danh', 'Chưa điểm danh', '�
   assert.match(dailyOverviewModule, new RegExp(label), `Daily overview must render the status label “${label}”`);
 }
 assert.match(dailyOverviewModule, /Điểm danh nhanh/, 'A missing attendance row must be able to jump to quick attendance');
+assert.match(dailyOverviewModule, /openHistoryAttendance\(classRow\)/, 'A completed or cancelled row must open history without restoring the legacy class calendar');
 assert.match(dailyOverviewModule, /dailyAttendanceDate/, 'Jumping from daily overview must preserve the selected date');
 assert.match(dailyOverviewModule, /classRow\.id/, 'Jumping from daily overview must preserve the selected class');
 assert.ok(dailyOverviewCss, 'Daily attendance overview stylesheet must exist');
-assert.match(dailyOverviewCss, /attendance-calendar-mode-switch/i, 'Daily overview mode switch must have dedicated styling');
 assert.match(dailyOverviewCss, /attendance-daily-overview/i, 'Daily overview must have dedicated responsive styling');
 
 // Daily room filter: options must be unique and follow the approved floor-by-floor physical route.
@@ -152,4 +153,4 @@ assert.match(dailyOverviewModule, /matchesAttendanceRoomFilter/, 'Daily rows mus
 assert.match(dailyOverviewModule, /sortAttendanceRowsByRoomRoute/, 'Daily rows must follow the approved physical room route.');
 assert.match(dailyOverviewCss, /attendance-calendar-room-filter/i, 'Daily room filter must have responsive styling.');
 
-console.log('Attendance class hub, explicit access permission, database gate, visible discovery, subject colors, room/time, absence UI, daily status overview and floor room route contract OK');
+console.log('Attendance class hub, explicit access permission, database gate, visible discovery, subject colors, room/time, absence UI, daily-only status overview and floor room route contract OK');
