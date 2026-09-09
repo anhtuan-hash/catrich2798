@@ -34,7 +34,7 @@ for (const label of ['LỚP', 'GIÁO VIÊN', 'PHÒNG', 'THỜI GIAN', 'TRẠNG T
 assert.doesNotMatch(directView, /Có lịch nhưng chưa chốt/, 'Missing sessions must not repeat redundant status copy under time.');
 assert.match(directView, /roomFilter\s*===\s*['"]all['"]/, 'Floor separators must be conditional on all-room mode.');
 
-// Final visual polish: readable teachers, non-redundant room badges, clearer action affordance and independent list scrolling.
+// Readability polish: full teacher hover text, compact rooms, clear attendance action and independent list scrolling.
 assert.match(directView, /className="attendance-daily-class-row__teacher"\s+title=\{teacher\}/, 'Teacher cells must expose the full assignment on hover.');
 assert.doesNotMatch(directView, /<b>\{room\}<\/b><small>\{floor\s*\?\s*`Lầu/, 'Room rows must not repeat floor text that already appears in floor separators.');
 assert.match(directView, /attendance-daily-class-row__action/, 'Missing attendance rows must expose a dedicated action affordance.');
@@ -57,6 +57,18 @@ assert.match(css, /\.attendance-daily-overview__summary\.is-compact\s*\{[^}]*min
 assert.match(css, /\.attendance-daily-class-row__teacher b\s*\{[^}]*-webkit-line-clamp:\s*2;[^}]*white-space:\s*normal;/s, 'Teacher names must wrap to at most two readable lines instead of truncating immediately.');
 assert.match(css, /\.attendance-daily-class-row__action\s*\{[^}]*opacity:\s*0;/s, 'Attendance action cue must stay visually quiet until interaction.');
 assert.match(css, /\.attendance-daily-class-row:is\(:hover,\s*:focus-visible\)[\s\S]*attendance-daily-class-row__action[^}]*opacity:\s*1;/s, 'Attendance action cue must appear on mouse or keyboard focus.');
-assert.match(css, /\.attendance-content:has\(\.attendance-daily-overview-host\)\s*\{[^}]*padding:\s*(?:10|11|12|13|14)px;/s, 'Daily schedule should reclaim vertical space by tightening content padding only for this view.');
+
+// Micro-polish from production screenshot: reclaim vertical space, strengthen hierarchy and rebalance teacher width.
+assert.match(css, /\.attendance-content:has\(\.attendance-daily-overview-host\)\s*\{[^}]*padding:\s*(?:8|9|10)px;/s, 'Daily content padding must be reduced further so more class rows fit in the modal.');
+assert.match(css, /\.attendance-daily-compact-toolbar\s*\{[^}]*min-height:\s*(?:38|39|40|41)px;[^}]*padding:\s*(?:3|4)px\s+(?:6|7)px;/s, 'Room/date toolbar must be shorter and denser without changing its structure.');
+assert.match(css, /\.attendance-daily-overview__metric b\s*\{[^}]*font-size:\s*(?:16|16\.5|17)px;/s, 'Summary numbers must be more prominent than the labels.');
+assert.match(css, /\.attendance-daily-table-header\s*\{[^}]*grid-template-columns:\s*minmax\(200px,\s*1\.2\dfr\)\s+minmax\(220px,\s*1\.3\dfr\)/s, 'Desktop grid must give relatively less width to class names and more to teacher assignments.');
+assert.match(css, /\.attendance-daily-class-row\s*\{[^}]*grid-template-columns:\s*minmax\(200px,\s*1\.2\dfr\)\s+minmax\(220px,\s*1\.3\dfr\)/s, 'Class rows must use the same rebalanced column grid as the table header.');
+assert.match(css, /\.attendance-daily-table-header\s*\{[^}]*color:\s*#[0-5][0-9a-f]{5};[^}]*font-size:\s*10\.5px;/si, 'Column labels must use stronger contrast and slightly larger type.');
+assert.match(css, /\.attendance-daily-class-row\s*\{[^}]*height:\s*58px;/s, 'Desktop class rows must have a fixed height so one-line and two-line teacher assignments keep the same rhythm.');
+assert.match(css, /\.attendance-daily-class-row__teacher\s*\{[^}]*min-height:\s*30px;[^}]*max-height:\s*30px;/s, 'Teacher cells must reserve the same two-line height for consistent row alignment.');
+assert.match(css, /\.attendance-daily-class-row:is\(:hover,\s*:focus-visible\)\s+\.attendance-daily-class-row__status\.is-missing\s*\{[^}]*background:/s, 'Hover/focus must visibly strengthen the missing-status action chip.');
+assert.match(css, /\.attendance-daily-floor-group\s*\{[^}]*border-left-width:\s*3px;/s, 'Floor separators must gain a stronger color cue without adding more layout chrome.');
+assert.match(css, /\.attendance-daily-overview__list\s*\{[^}]*padding:[^;]*12px[^;]*;/s, 'Scrollable class list must keep bottom breathing space so the last row is never glued to the viewport edge.');
 
 console.log('Direct React compact attendance schedule contract OK');
