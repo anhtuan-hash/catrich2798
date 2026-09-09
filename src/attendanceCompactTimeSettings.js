@@ -24,14 +24,12 @@ function renderTrigger(trigger, panel) {
   const windowLabel = readWindowLabel(panel);
   trigger.classList.toggle('is-enabled', enabled);
   trigger.classList.toggle('is-open', adminSettingsPopoverOpen);
-  trigger.setAttribute('aria-expanded', adminSettingsPopoverOpen ? 'true' : 'false');
-  trigger.setAttribute('title', `${enabled ? 'Đang bật' : 'Đang tắt'} giới hạn giờ giáo viên · ${windowLabel}`);
-  trigger.innerHTML = `
-    <span class="bes-attendance-time-trigger-icon" aria-hidden="true">⏱</span>
-    <b>Giờ GV</b>
-    <small>${windowLabel}</small>
-    <i class="bes-attendance-time-trigger-dot" aria-hidden="true"></i>
-  `;
+  const expanded = adminSettingsPopoverOpen ? 'true' : 'false';
+  if (trigger.getAttribute('aria-expanded') !== expanded) trigger.setAttribute('aria-expanded', expanded);
+  const title = `${enabled ? 'Đang bật' : 'Đang tắt'} giới hạn giờ giáo viên · ${windowLabel}`;
+  if (trigger.getAttribute('title') !== title) trigger.setAttribute('title', title);
+  const time = trigger.querySelector('small');
+  if (time && time.textContent !== windowLabel) time.textContent = windowLabel;
 }
 
 function createTrigger() {
@@ -40,6 +38,8 @@ function createTrigger() {
   trigger.className = ATTENDANCE_COMPACT_TIME_TRIGGER_CLASS;
   trigger.setAttribute('aria-label', 'Cài đặt giờ điểm danh của giáo viên');
   trigger.setAttribute('aria-haspopup', 'dialog');
+  trigger.setAttribute('aria-expanded', 'false');
+  trigger.innerHTML = '<span class="bes-attendance-time-trigger-icon" aria-hidden="true">⏱</span><b>Giờ GV</b><small>--:--–--:--</small><i class="bes-attendance-time-trigger-dot" aria-hidden="true"></i>';
   trigger.addEventListener('click', (event) => {
     event.stopPropagation();
     adminSettingsPopoverOpen = !adminSettingsPopoverOpen;
