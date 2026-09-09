@@ -1,5 +1,6 @@
 import './globalWindowsPhoneLoadingIndicator.js';
 import './attendanceTimeAccessBootstrap.js';
+import './attendanceCompactTimeSettings.js';
 import './attendanceQuickClassListCollapse.js';
 import { reportPwaRefreshNeeded } from './utils/pwa.js';
 
