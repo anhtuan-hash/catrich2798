@@ -1,0 +1,28 @@
+name: Attendance Mobile Readable Layout
+
+on:
+  pull_request:
+    paths:
+      - 'src/components/attendance/AttendanceIphoneReadable.css'
+      - 'src/components/attendance/AttendanceMobileV2.css'
+      - 'src/tabResumeStability.js'
+      - 'scripts/test-attendance-mobile-readable-layout.mjs'
+      - '.github/workflows/attendance-mobile-readable-layout.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify attendance mobile readability
+        run: node scripts/test-attendance-mobile-readable-layout.mjs
