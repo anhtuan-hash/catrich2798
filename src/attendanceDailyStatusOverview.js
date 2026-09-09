@@ -218,7 +218,7 @@ function renderDailyRows(layout, overview, classes, sessions) {
   const missingCount = Math.max(0, visibleClasses.length - completedCount - cancelledCount);
 
   const metrics = `
-    <div class="attendance-daily-overview__summary">
+    <div class="attendance-daily-overview__summary is-compact" aria-label="Tóm tắt điểm danh">
       <article class="attendance-daily-overview__metric"><span>Có lịch</span><b>${visibleClasses.length}</b></article>
       <article class="attendance-daily-overview__metric is-completed"><span>Đã điểm danh</span><b>${completedCount}</b></article>
       <article class="attendance-daily-overview__metric is-missing"><span>Chưa điểm danh</span><b>${missingCount}</b></article>
@@ -254,19 +254,19 @@ function renderDailyRows(layout, overview, classes, sessions) {
       ? `${Number(session?.present_count || 0)}/${Number(session?.total_students || 0)} có mặt · ${String(session?.lesson_periods || 1).replace('.', ',')} tiết`
       : status === 'cancelled'
         ? `${session?.cancellation_reason || 'Buổi học đã hủy'} · 0 tiết`
-        : 'Có lịch học nhưng chưa chốt điểm danh';
+        : 'Có lịch nhưng chưa chốt';
     const floorAttribute = floor ? ` data-floor="${floor}"` : '';
     const showFloorSeparator = dailyRoomFilter === 'all' && floor && floor !== previousFloor;
     if (floor) previousFloor = floor;
     const floorSeparator = showFloorSeparator
-      ? `<div class="attendance-daily-floor-group" data-floor="${floor}"><strong>Lầu ${floor}</strong><span>${floorCounts.get(floor) || 0} lớp · đi theo thứ tự phòng</span></div>`
+      ? `<div class="attendance-daily-floor-group" data-floor="${floor}"><strong>Lầu ${floor}</strong><span>${floorCounts.get(floor) || 0} lớp</span></div>`
       : '';
 
     return `${floorSeparator}
       <button type="button" class="attendance-daily-class-row is-${status}" data-class-id="${escapeHtml(classRow.id)}"${floorAttribute}>
         <span class="attendance-daily-class-row__class"><b>${escapeHtml(classRow.class_name)}</b><small>${escapeHtml(classTypeLabel(classRow))} · ${escapeHtml(classRow.subject || 'Chưa ghi môn')}</small></span>
-        <span class="attendance-daily-class-row__teacher"><b>${escapeHtml(teacher)}</b><small>Giáo viên</small></span>
-        <span class="attendance-daily-class-row__meta is-room"${floorAttribute}><b>${escapeHtml(room)}</b><small>Phòng học${floor ? ` · Lầu ${floor}` : ''}</small></span>
+        <span class="attendance-daily-class-row__teacher"><b>${escapeHtml(teacher)}</b></span>
+        <span class="attendance-daily-class-row__meta is-room"${floorAttribute}><b>${escapeHtml(room)}</b><small>${floor ? `Lầu ${floor}` : 'Phòng học'}</small></span>
         <span class="attendance-daily-class-row__meta is-time"><b>${escapeHtml(timeRange)}</b><small>${escapeHtml(attendanceMeta)}</small></span>
         <span class="attendance-daily-class-row__status is-${status}">${statusLabel(status)}</span>
       </button>`;
@@ -340,19 +340,17 @@ function installDailyOverview(layout) {
   host.setAttribute(HOST_ATTRIBUTE, 'true');
   host.className = 'attendance-daily-overview-host';
   host.innerHTML = `
-    <div class="attendance-calendar-mode-bar">
+    <div class="attendance-daily-compact-toolbar">
       <div class="attendance-calendar-mode-switch" role="group" aria-label="Kiểu xem lịch điểm danh">
         <button type="button" data-mode="class">Theo lớp</button>
         <button type="button" data-mode="daily">Theo ngày</button>
       </div>
+      <div class="attendance-calendar-room-filter" aria-label="Lọc theo phòng học">
+        <div class="attendance-calendar-room-chips" role="group" aria-label="Phòng học"><button type="button" class="attendance-calendar-room-chip is-active" data-room-filter="all" aria-pressed="true">Tất cả phòng</button></div>
+      </div>
       <label class="attendance-calendar-mode-bar__date">
-        <span>Ngày</span>
-        <input type="date" max="${vietnamDateString()}" value="${escapeHtml(dailyAttendanceDate)}" />
+        <input type="date" aria-label="Ngày điểm danh" max="${vietnamDateString()}" value="${escapeHtml(dailyAttendanceDate)}" />
       </label>
-    </div>
-    <div class="attendance-calendar-room-filter" aria-label="Lọc theo phòng học">
-      <span>Phòng học</span>
-      <div class="attendance-calendar-room-chips" role="group"><button type="button" class="attendance-calendar-room-chip is-active" data-room-filter="all" aria-pressed="true">Tất cả phòng</button></div>
     </div>
     <div class="attendance-daily-overview" aria-live="polite"></div>`;
 
