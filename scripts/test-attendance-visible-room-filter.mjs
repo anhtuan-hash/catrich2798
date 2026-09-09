@@ -48,7 +48,7 @@ assert.deepEqual(
   ATTENDANCE_ROOM_ROUTE,
   [
     'A103', 'A104', 'A106',
-    'A201', 'A202', 'A204', 'B201', 'B203', 'B205', 'B206',
+    'A201', 'A202', 'A204', 'A206', 'B201', 'B203', 'B205', 'B206',
     'A301', 'A302', 'A303', 'A304', 'A305', 'A306',
     'A401', 'A402', 'A404', 'A405', 'A406',
   ],
@@ -56,10 +56,16 @@ assert.deepEqual(
 );
 
 assert.equal(attendanceFloorForRoom('A103'), 1);
+assert.equal(attendanceFloorForRoom('A206'), 2);
 assert.equal(attendanceFloorForRoom('A.406'), 4);
 assert.equal(attendanceFloorForRoom('B205'), 2);
 assert.equal(attendanceFloorForRoom(''), null);
 
+assert.deepEqual(
+  sortAttendanceRoomLabels(['A405', 'A206', 'B205', 'A302', 'A104', 'A204', 'A202', 'A103']),
+  ['A103', 'A202', 'A204', 'A206', 'B205', 'A302', 'A405'],
+  'A206 must remain inside the floor-2 route instead of falling behind known floor-4 rooms.',
+);
 assert.deepEqual(
   sortAttendanceRoomLabels(['B205', 'A405', 'A302', 'A104', 'A306', 'A401', 'A202', 'A103', 'A406']),
   ['A103', 'A104', 'A202', 'B205', 'A302', 'A306', 'A401', 'A405', 'A406'],
@@ -79,14 +85,15 @@ assert.deepEqual(
 const rows = [
   { id: 'chem', room: 'A305', class_name: 'Hóa 12' },
   { id: 'history', room: 'A405', class_name: 'Lịch sử 10' },
+  { id: 'a206', room: 'A206', class_name: 'Tiếng Anh 12' },
   { id: 'physics', room: 'B205', class_name: 'Vật lí 11' },
   { id: 'math', room: 'A402', class_name: 'Toán 12' },
   { id: 'bio', room: 'A304', class_name: 'Sinh học 12' },
 ];
 assert.deepEqual(
   sortAttendanceRowsByRoomRoute(rows, (row) => row.room).map((row) => row.id),
-  ['physics', 'bio', 'chem', 'math', 'history'],
-  'Class rows must be routed by floor and room so teachers can move without backtracking.',
+  ['a206', 'physics', 'bio', 'chem', 'math', 'history'],
+  'Class rows must route A206 with floor 2 before moving to floors 3 and 4.',
 );
 
 console.log('Compact floor-grouped daily attendance room route contract OK');
