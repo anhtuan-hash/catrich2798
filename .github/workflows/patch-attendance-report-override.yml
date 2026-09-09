@@ -1,0 +1,66 @@
+name: Patch attendance report override
+
+on:
+  push:
+    branches:
+      - feat/attendance-time-access-control
+    paths:
+      - '.github/workflows/patch-attendance-report-override.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/attendance-time-access-control
+          fetch-depth: 0
+
+      - name: Patch report override without widening destructive permissions
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('src/components/GlobalAttendanceNavigationTab.jsx')
+          source = path.read_text()
+          if 'const canUseQuickAttendance =' in source:
+              print('Patch already applied.')
+              raise SystemExit(0)
+
+          old = """  const systemRole = normalizeSystemRole(runtime.role || currentUser?.role, SYSTEM_ROLES.GUEST);\n  const isAttendanceAdmin = systemRole === SYSTEM_ROLES.ADMIN;\n  const canAccessAttendanceView = (tabId) => isAttendanceAdmin || hasAttendanceTabAccess(currentUser, tabId);\n  const availableAttendanceTabs = ATTENDANCE_PERMISSION_ITEMS.filter((item) => canAccessAttendanceView(item.tab));\n  const firstAllowedView = isAttendanceAdmin ? 'quick' : getFirstAllowedAttendanceTab(currentUser);\n  const allowed = Boolean(currentUser?.id && (isAttendanceAdmin || hasAnyAttendanceAccess(currentUser)));\n"""
+          new = """  const systemRole = normalizeSystemRole(runtime.role || currentUser?.role, SYSTEM_ROLES.GUEST);\n  const isAttendanceAdmin = systemRole === SYSTEM_ROLES.ADMIN;\n  const canAccessAttendanceView = (tabId) => isAttendanceAdmin || hasAttendanceTabAccess(currentUser, tabId);\n  const hasAttendanceReportOverride = isAttendanceAdmin || hasAttendanceTabAccess(currentUser, 'report');\n  const canUseQuickAttendance = isAttendanceAdmin || hasAttendanceTabAccess(currentUser, 'quick') || hasAttendanceReportOverride;\n  const availableAttendanceTabs = ATTENDANCE_PERMISSION_ITEMS.filter((item) => item.tab === 'quick' ? canUseQuickAttendance : canAccessAttendanceView(item.tab));\n  const firstAllowedView = canUseQuickAttendance ? 'quick' : getFirstAllowedAttendanceTab(currentUser);\n  const allowed = Boolean(currentUser?.id && (isAttendanceAdmin || hasAnyAttendanceAccess(currentUser)));\n"""
+          if old not in source:
+              raise SystemExit('Permission block not found; refusing broad patch')
+          source = source.replace(old, new, 1)
+
+          old_effect = """  useEffect(() => {\n    if (!open || !allowed || !firstAllowedView) return;\n    if (!canAccessAttendanceView(view)) setView(firstAllowedView);\n  }, [open, allowed, firstAllowedView, view, currentUser?.permissions, systemRole]);\n"""
+          new_effect = """  useEffect(() => {\n    if (!open || !allowed || !firstAllowedView) return;\n    const canOpenCurrentView = view === 'quick' ? canUseQuickAttendance : canAccessAttendanceView(view);\n    if (!canOpenCurrentView) setView(firstAllowedView);\n  }, [open, allowed, firstAllowedView, view, currentUser?.permissions, systemRole, canUseQuickAttendance]);\n"""
+          if old_effect not in source:
+              raise SystemExit('View guard block not found; refusing broad patch')
+          source = source.replace(old_effect, new_effect, 1)
+
+          old_render = "!loading && canAccessAttendanceView('quick') && view === 'quick'"
+          new_render = "!loading && canUseQuickAttendance && view === 'quick'"
+          if old_render not in source:
+              raise SystemExit('Quick render guard not found; refusing broad patch')
+          source = source.replace(old_render, new_render, 1)
+
+          path.write_text(source)
+          print('Applied report override quick-entry patch.')
+          PY
+
+      - name: Commit patch
+        run: |
+          if git diff --quiet; then
+            echo 'No changes to commit.'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/components/GlobalAttendanceNavigationTab.jsx
+          git commit -m 'feat: let report users open quick attendance override'
+          git push origin HEAD:feat/attendance-time-access-control
