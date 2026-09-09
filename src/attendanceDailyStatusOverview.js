@@ -12,9 +12,8 @@ const CLASS_COLUMNS = 'id,class_type,class_name,subject,teacher_name,active,room
 const SESSION_COLUMNS = 'id,class_id,class_name,subject,teacher_name,attendance_date,checked_at,total_students,present_count,absent_count,session_status,lesson_periods,cancellation_reason,teaching_room,teaching_time_range';
 const VIETNAM_TIME_ZONE = 'Asia/Ho_Chi_Minh';
 const HOST_ATTRIBUTE = 'data-attendance-daily-status-root';
-const MODE_ATTRIBUTE = 'data-attendance-daily-mode';
+const VIEW_ATTRIBUTE = 'data-attendance-daily-only';
 
-let calendarMode = 'class';
 let dailyAttendanceDate = vietnamDateString();
 let dailyRoomFilter = 'all';
 let dailyOverviewSnapshot = null;
@@ -96,6 +95,15 @@ function findAttendanceTab(label) {
     .find((button) => fold(button.textContent).includes(wanted)) || null;
 }
 
+function renameCalendarTab() {
+  const button = findAttendanceTab('Lịch tháng') || findAttendanceTab('Lịch điểm danh');
+  if (!button || fold(button.textContent) === fold('Lịch điểm danh')) return;
+  const textNode = [...button.childNodes].find((node) => node.nodeType === Node.TEXT_NODE);
+  if (textNode) textNode.textContent = 'Lịch điểm danh';
+  else button.append(document.createTextNode('Lịch điểm danh'));
+  button.setAttribute('aria-label', 'Lịch điểm danh');
+}
+
 async function openQuickAttendance(classRow) {
   const quickTab = findAttendanceTab('Điểm danh nhanh');
   if (!quickTab) return;
@@ -119,7 +127,7 @@ async function openQuickAttendance(classRow) {
   classButton?.click();
 }
 
-async function openHistoryFallback(classRow) {
+async function openHistoryAttendance(classRow) {
   const historyTab = findAttendanceTab('Lịch sử');
   if (!historyTab) return;
   historyTab.click();
@@ -131,27 +139,6 @@ async function openHistoryFallback(classRow) {
     return text.includes(fold(classRow.class_name)) && text.includes(fold(targetDate));
   });
   row?.click();
-}
-
-async function openExistingAttendance(layout, classRow) {
-  setCalendarMode(layout, 'class');
-  const toolbar = layout.querySelector('.attendance-calendar-toolbar');
-  const classSelect = toolbar?.querySelector('select');
-  const monthInput = toolbar?.querySelector('input[type="month"]');
-  if (classSelect) setControlledValue(classSelect, String(classRow.id));
-  if (monthInput) setControlledValue(monthInput, dailyAttendanceDate.slice(0, 7));
-
-  const dayNumber = String(Number(dailyAttendanceDate.slice(-2)));
-  const dayButton = await waitFor(() => [...layout.querySelectorAll('.attendance-calendar-day')].find((button) => {
-    const dateText = button.querySelector('.attendance-calendar-date')?.textContent?.trim();
-    return dateText === dayNumber && !button.disabled;
-  }), 3600);
-
-  if (dayButton) {
-    dayButton.click();
-    return;
-  }
-  await openHistoryFallback(classRow);
 }
 
 function statusForSession(session) {
@@ -279,7 +266,7 @@ function renderDailyRows(layout, overview, classes, sessions) {
       if (!classRow) return;
       const session = dailySessionsByClass.get(String(classRow.id));
       if (session?.session_status === 'completed' || session?.session_status === 'cancelled') {
-        await openExistingAttendance(layout, classRow);
+        await openHistoryAttendance(classRow);
       } else {
         await openQuickAttendance(classRow);
       }
@@ -293,7 +280,7 @@ async function loadDailyOverview(layout, overview) {
   const client = getRuntimeClient();
   if (!client) {
     window.setTimeout(() => {
-      if (overview.isConnected && calendarMode === 'daily') loadDailyOverview(layout, overview);
+      if (overview.isConnected) loadDailyOverview(layout, overview);
     }, 260);
     return;
   }
@@ -303,7 +290,7 @@ async function loadDailyOverview(layout, overview) {
       client.from('bes_extra_classes').select(CLASS_COLUMNS).eq('active', true).order('class_name', { ascending: true }),
       client.from('bes_extra_attendance_sessions').select(SESSION_COLUMNS).eq('attendance_date', dailyAttendanceDate).order('checked_at', { ascending: true }),
     ]);
-    if (token !== requestToken || !overview.isConnected || calendarMode !== 'daily') return;
+    if (token !== requestToken || !overview.isConnected) return;
     const firstError = classResult.error || sessionResult.error;
     if (firstError) throw firstError;
     dailyOverviewSnapshot = { classes: classResult.data || [], sessions: sessionResult.data || [] };
@@ -314,53 +301,47 @@ async function loadDailyOverview(layout, overview) {
   }
 }
 
-function setCalendarMode(layout, mode) {
-  calendarMode = mode === 'daily' ? 'daily' : 'class';
-  layout.setAttribute(MODE_ATTRIBUTE, calendarMode);
-  const host = layout.querySelector(`[${HOST_ATTRIBUTE}]`);
-  if (!host) return;
-  host.querySelectorAll('.attendance-calendar-mode-switch button').forEach((button) => {
-    button.classList.toggle('is-active', button.dataset.mode === calendarMode);
-    button.setAttribute('aria-pressed', button.dataset.mode === calendarMode ? 'true' : 'false');
+function hideLegacyMonthlyView(layout) {
+  layout.setAttribute(VIEW_ATTRIBUTE, 'true');
+  [
+    '.attendance-calendar-toolbar',
+    '.attendance-calendar-weekdays',
+    '.attendance-calendar-grid',
+  ].forEach((selector) => {
+    layout.querySelectorAll(selector).forEach((element) => {
+      element.hidden = true;
+      element.setAttribute('aria-hidden', 'true');
+    });
   });
-  const dateField = host.querySelector('.attendance-calendar-mode-bar__date');
-  if (dateField) dateField.hidden = calendarMode !== 'daily';
-  const roomField = host.querySelector('.attendance-calendar-room-filter');
-  if (roomField) roomField.hidden = calendarMode !== 'daily';
-  const overview = host.querySelector('.attendance-daily-overview');
-  if (!overview) return;
-  overview.hidden = calendarMode !== 'daily';
-  if (calendarMode === 'daily') loadDailyOverview(layout, overview);
-  else requestToken += 1;
+  layout.querySelectorAll('.attendance-loading').forEach((element) => {
+    if (!element.closest(`[${HOST_ATTRIBUTE}]`)) {
+      element.hidden = true;
+      element.setAttribute('aria-hidden', 'true');
+    }
+  });
 }
 
 function installDailyOverview(layout) {
-  if (!layout || layout.querySelector(`[${HOST_ATTRIBUTE}]`)) return;
+  if (!layout) return;
+  hideLegacyMonthlyView(layout);
+  if (layout.querySelector(`[${HOST_ATTRIBUTE}]`)) return;
+
   const host = document.createElement('section');
   host.setAttribute(HOST_ATTRIBUTE, 'true');
   host.className = 'attendance-daily-overview-host';
   host.innerHTML = `
-    <div class="attendance-daily-compact-toolbar">
-      <div class="attendance-calendar-mode-switch" role="group" aria-label="Kiểu xem lịch điểm danh">
-        <button type="button" data-mode="class">Theo lớp</button>
-        <button type="button" data-mode="daily">Theo ngày</button>
-      </div>
+    <div class="attendance-daily-compact-toolbar" style="grid-template-columns:minmax(0,1fr) 150px">
       <div class="attendance-calendar-room-filter" aria-label="Lọc theo phòng học">
         <div class="attendance-calendar-room-chips" role="group" aria-label="Phòng học"><button type="button" class="attendance-calendar-room-chip is-active" data-room-filter="all" aria-pressed="true">Tất cả phòng</button></div>
       </div>
       <label class="attendance-calendar-mode-bar__date">
+        <span class="sr-only">Ngày điểm danh</span>
         <input type="date" aria-label="Ngày điểm danh" max="${vietnamDateString()}" value="${escapeHtml(dailyAttendanceDate)}" />
       </label>
     </div>
     <div class="attendance-daily-overview" aria-live="polite"></div>`;
 
-  const toolbar = layout.querySelector('.attendance-calendar-toolbar');
-  if (toolbar?.nextSibling) layout.insertBefore(host, toolbar.nextSibling);
-  else layout.appendChild(host);
-
-  host.querySelectorAll('.attendance-calendar-mode-switch button').forEach((button) => {
-    button.addEventListener('click', () => setCalendarMode(layout, button.dataset.mode));
-  });
+  layout.prepend(host);
 
   const roomChips = host.querySelector('.attendance-calendar-room-chips');
   roomChips?.addEventListener('click', (event) => {
@@ -368,7 +349,7 @@ function installDailyOverview(layout) {
     if (!button || !roomChips.contains(button)) return;
     dailyRoomFilter = button.dataset.roomFilter || 'all';
     const overview = host.querySelector('.attendance-daily-overview');
-    if (calendarMode === 'daily' && overview && dailyOverviewSnapshot) {
+    if (overview && dailyOverviewSnapshot) {
       renderDailyRows(layout, overview, dailyOverviewSnapshot.classes, dailyOverviewSnapshot.sessions);
     }
   });
@@ -379,14 +360,16 @@ function installDailyOverview(layout) {
     dailyAttendanceDate = dateInput.value;
     dailyOverviewSnapshot = null;
     const overview = host.querySelector('.attendance-daily-overview');
-    if (calendarMode === 'daily' && overview) loadDailyOverview(layout, overview);
+    if (overview) loadDailyOverview(layout, overview);
   });
 
-  setCalendarMode(layout, calendarMode);
+  const overview = host.querySelector('.attendance-daily-overview');
+  if (overview) loadDailyOverview(layout, overview);
 }
 
 function scanAttendanceCalendar() {
   scanQueued = false;
+  renameCalendarTab();
   document.querySelectorAll('.attendance-calendar-layout').forEach((layout) => installDailyOverview(layout));
 }
 
