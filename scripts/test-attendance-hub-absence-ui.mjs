@@ -120,13 +120,13 @@ assert.ok(dailyOverviewCss, 'Daily attendance overview stylesheet must exist');
 assert.match(dailyOverviewCss, /attendance-calendar-mode-switch/i, 'Daily overview mode switch must have dedicated styling');
 assert.match(dailyOverviewCss, /attendance-daily-overview/i, 'Daily overview must have dedicated responsive styling');
 
-// Daily room filter: options must be unique and sorted A→Z, and filtering must match the room displayed on each row.
+// Daily room filter: options must be unique and naturally sorted A→Z while ignoring punctuation separators.
 assert.ok(fs.existsSync(dailyRoomFilterUrl), 'Daily attendance must have a dedicated room-filter helper.');
 const { sortAttendanceRoomLabels, matchesAttendanceRoomFilter } = await import(dailyRoomFilterUrl.href);
 assert.deepEqual(
   sortAttendanceRoomLabels(['B.203', 'A.406', 'A201', 'B.101', 'A202', ' A201 ', '', 'a202']),
-  ['A.406', 'A201', 'A202', 'B.101', 'B.203'],
-  'Room options must be trimmed, de-duplicated case-insensitively, and sorted A→Z.',
+  ['A201', 'A202', 'A.406', 'B.101', 'B.203'],
+  'Room options must be trimmed, de-duplicated case-insensitively, and natural-sorted A→Z while ignoring punctuation.',
 );
 assert.equal(matchesAttendanceRoomFilter('A.406', 'all'), true, 'All rooms must pass the default filter.');
 assert.equal(matchesAttendanceRoomFilter('A.406', 'A.406'), true, 'The selected room must remain visible.');
