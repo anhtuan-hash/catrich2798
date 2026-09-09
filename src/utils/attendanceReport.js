@@ -1,3 +1,5 @@
+import { groupAttendanceChangesBySession } from './attendanceAuditActors.js';
+
 const ABSENCE_REASON_LABELS = Object.freeze({
   excused: 'Có phép',
   unexcused: 'Không phép',
@@ -19,6 +21,7 @@ function normalizeSession(session) {
     cancellation_reason: String(session?.cancellation_reason || ''),
     teaching_room: String(session?.teaching_room || ''),
     teaching_time_range: String(session?.teaching_time_range || ''),
+    checked_by_name: String(session?.checked_by_name || ''),
     total_students: Number(session?.total_students || 0),
     present_count: Number(session?.present_count || 0),
     absent_count: Number(session?.absent_count || 0),
@@ -46,6 +49,7 @@ export function absenceReasonLabel(code) {
 export function buildAttendanceReport({
   sessions = [],
   records = [],
+  changes = [],
   classes = [],
   mode = 'month',
   month = '',
@@ -102,9 +106,11 @@ export function buildAttendanceReport({
     .sort((a, b) => b.total_periods - a.total_periods || a.teacher_name.localeCompare(b.teacher_name, 'vi'));
 
   const classMap = new Map(classes.map((item) => [String(item.id), item]));
+  const auditBySession = groupAttendanceChangesBySession(changes);
   const sessionRows = filteredSessions.map((session) => {
     const classRow = classMap.get(String(session.class_id));
     const denominator = session.present_count + session.absent_count;
+    const audit = auditBySession.get(String(session.id)) || { events: [], change_count: 0, latest_changed_by_name: '', latest_changed_at: '' };
     return {
       id: session.id,
       attendance_date: session.attendance_date,
@@ -115,6 +121,11 @@ export function buildAttendanceReport({
       teaching_room: session.teaching_room,
       teaching_time_range: session.teaching_time_range,
       teacher_name: session.session_status === 'cancelled' ? '' : String(session.teacher_name || ''),
+      checked_by_name: String(session.checked_by_name || ''),
+      latest_changed_by_name: audit.latest_changed_by_name,
+      latest_changed_at: audit.latest_changed_at,
+      change_count: audit.change_count,
+      change_history: audit.events,
       session_status: session.session_status,
       lesson_periods: session.lesson_periods,
       total_students: session.session_status === 'cancelled' ? null : session.total_students,
@@ -134,6 +145,7 @@ export function buildAttendanceReport({
       const session = sessionById.get(String(record.session_id));
       const classRow = classMap.get(String(session?.class_id || record?.class_id || ''));
       const reasonCode = String(record?.absence_reason_code || '').trim() || 'unspecified';
+      const audit = auditBySession.get(String(record.session_id)) || {};
       return {
         session_id: record.session_id,
         session_status: 'completed',
@@ -146,6 +158,9 @@ export function buildAttendanceReport({
         teaching_time_range: session?.teaching_time_range || '',
         checked_at: session?.checked_at || '',
         teacher_name: session?.teacher_name || '',
+        checked_by_name: session?.checked_by_name || '',
+        latest_changed_by_name: audit.latest_changed_by_name || '',
+        latest_changed_at: audit.latest_changed_at || '',
         student_code: record.student_code || '',
         student_full_name: record.student_full_name || '',
         school_class_name: record.school_class_name || '',
