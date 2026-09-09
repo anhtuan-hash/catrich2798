@@ -28,6 +28,22 @@ assert.match(css, /data-floor="3"/i, 'Floor 3 must have a dedicated color treatm
 assert.match(css, /data-floor="4"/i, 'Floor 4 must have a dedicated color treatment.');
 assert.match(css, /\.attendance-daily-floor-group/i, 'Floor separators must have dedicated styling.');
 
+// Compact daily layout: one toolbar, one summary strip, then the routed class list.
+assert.match(runtime, /attendance-daily-compact-toolbar/, 'Daily controls must be consolidated into one compact toolbar.');
+assert.doesNotMatch(runtime, /<span>Phòng học<\/span>/, 'The redundant visible “Phòng học” label must be removed from the compact toolbar.');
+assert.match(runtime, /aria-label="Ngày điểm danh"/, 'The compact date field must retain an accessible label without a separate visible heading.');
+assert.match(runtime, /attendance-daily-overview__summary is-compact/, 'Daily metrics must render as one compact summary strip.');
+assert.doesNotMatch(runtime, /đi theo thứ tự phòng/, 'Floor separators must not repeat the instructional copy on every floor.');
+assert.match(
+  css,
+  /data-attendance-daily-mode="daily"\][^}]*>\s*\.attendance-calendar-toolbar\s*\{[^}]*display\s*:\s*none\s*!important/i,
+  'The original month-title toolbar must disappear in daily mode to reclaim vertical space.',
+);
+assert.match(css, /\.attendance-daily-compact-toolbar\s*\{[^}]*min-height\s*:\s*4[0-9]px/i, 'Compact daily controls should fit in roughly one 40px row.');
+assert.match(css, /\.attendance-daily-overview__summary\.is-compact\s*\{[^}]*min-height\s*:\s*3[0-9]px/i, 'Summary metrics must collapse into a short horizontal strip.');
+assert.match(css, /\.attendance-daily-floor-group\s*\{[^}]*min-height\s*:\s*3[0-2]px/i, 'Floor separators must be compact.');
+assert.match(css, /\.attendance-daily-class-row\s*\{[^}]*min-height\s*:\s*5[2-9]px/i, 'Daily class rows must be dense enough to show substantially more classes per viewport.');
+
 assert.deepEqual(
   ATTENDANCE_ROOM_ROUTE,
   [
@@ -73,4 +89,4 @@ assert.deepEqual(
   'Class rows must be routed by floor and room so teachers can move without backtracking.',
 );
 
-console.log('Visible floor-grouped daily attendance room route contract OK');
+console.log('Compact floor-grouped daily attendance room route contract OK');
