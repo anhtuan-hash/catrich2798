@@ -178,8 +178,10 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const systemRole = normalizeSystemRole(runtime.role || currentUser?.role, SYSTEM_ROLES.GUEST);
   const isAttendanceAdmin = systemRole === SYSTEM_ROLES.ADMIN;
   const canAccessAttendanceView = (tabId) => isAttendanceAdmin || hasAttendanceTabAccess(currentUser, tabId);
-  const availableAttendanceTabs = ATTENDANCE_PERMISSION_ITEMS.filter((item) => canAccessAttendanceView(item.tab));
-  const firstAllowedView = isAttendanceAdmin ? 'quick' : getFirstAllowedAttendanceTab(currentUser);
+  const hasAttendanceReportOverride = isAttendanceAdmin || hasAttendanceTabAccess(currentUser, 'report');
+  const canUseQuickAttendance = isAttendanceAdmin || hasAttendanceTabAccess(currentUser, 'quick') || hasAttendanceReportOverride;
+  const availableAttendanceTabs = ATTENDANCE_PERMISSION_ITEMS.filter((item) => item.tab === 'quick' ? canUseQuickAttendance : canAccessAttendanceView(item.tab));
+  const firstAllowedView = canUseQuickAttendance ? 'quick' : getFirstAllowedAttendanceTab(currentUser);
   const allowed = Boolean(currentUser?.id && (isAttendanceAdmin || hasAnyAttendanceAccess(currentUser)));
 
   useEffect(() => {
@@ -199,8 +201,9 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
 
   useEffect(() => {
     if (!open || !allowed || !firstAllowedView) return;
-    if (!canAccessAttendanceView(view)) setView(firstAllowedView);
-  }, [open, allowed, firstAllowedView, view, currentUser?.permissions, systemRole]);
+    const canOpenCurrentView = view === 'quick' ? canUseQuickAttendance : canAccessAttendanceView(view);
+    if (!canOpenCurrentView) setView(firstAllowedView);
+  }, [open, allowed, firstAllowedView, view, currentUser?.permissions, systemRole, canUseQuickAttendance]);
 
   async function loadAll({ keepSelection = true } = {}) {
     if (!client || !runtime.ready || !runtime.session || !allowed) return;
@@ -1017,7 +1020,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
         <main className="attendance-content">
           {loading ? <div className="attendance-loading">Đang đồng bộ dữ liệu điểm danh…</div> : null}
 
-          {!loading && canAccessAttendanceView('quick') && view === 'quick' ? (
+          {!loading && canUseQuickAttendance && view === 'quick' ? (
             <div className="attendance-quick-layout">
               <aside className="attendance-class-list">
                 <header><strong>Lớp đang hoạt động</strong><span>{filteredActiveClasses.length}/{activeClasses.length} lớp</span></header>
