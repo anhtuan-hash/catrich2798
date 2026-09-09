@@ -153,13 +153,12 @@ export function roomForExtraClass(classRow = {}) {
 
 export function isExtraClassScheduledOnDate(classRow, dateValue) {
   const weekday = weekdayOf(dateValue);
-  if (weekday === null) return true;
+  if (weekday === null) return false;
 
+  // Attendance eligibility is authoritative only when the class has an explicit
+  // persisted schedule. The fixed catalog remains a metadata fallback (room/
+  // editor defaults) but may be stale, so it must never silently authorize an
+  // attendance action.
   const persistedWeekdays = persistedWeekdaysOf(classRow);
-  if (persistedWeekdays) return persistedWeekdays.includes(weekday);
-
-  const schedule = scheduleForExtraClass(classRow);
-  // Unknown/imported classes remain usable rather than being hidden or disabled.
-  if (!schedule) return true;
-  return schedule.weekdays.includes(weekday);
+  return Boolean(persistedWeekdays?.includes(weekday));
 }

@@ -28,8 +28,8 @@ assert.deepEqual(
 );
 assert.equal(
   isExtraClassScheduledOnDate(null, '2026-09-08'),
-  true,
-  'An empty/unknown class must remain usable while attendance data is still loading',
+  false,
+  'An empty/unknown class must fail closed until its attendance schedule is known',
 );
 
 assert.equal(
