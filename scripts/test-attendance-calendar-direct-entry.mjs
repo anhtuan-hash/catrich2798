@@ -25,7 +25,7 @@ assert.match(bootstrapSource, /addEventListener\(['"]click['"][\s\S]*capture:\s*
 assert.match(bootstrapSource, /stopImmediatePropagation\(\)/, 'Calendar row interception must prevent legacy Quick/History routing');
 assert.match(bootstrapSource, /quickTab\.click\(\)/, 'A selected calendar class must open the existing rollcall internally');
 assert.match(bootstrapSource, /setControlledValue\([\s\S]*attendance-session-controls[\s\S]*input\[type=["']date["']\]/, 'The rollcall must receive the date selected in the calendar');
-assert.match(bootstrapSource, /calendarTab\.click\(\)/, 'Opening the attendance module must redirect the hidden Quick default to the calendar');
+assert.match(bootstrapSource, /calendarTab\??\.click\(\)/, 'Opening the attendance module must redirect the hidden Quick default to the calendar');
 assert.match(bootstrapSource, /session_status|is-completed|is-cancelled|attendance-daily-class-row/, 'Completed and pending calendar rows must share the direct-entry bridge');
 
 const cssSource = fs.readFileSync(cssUrl, 'utf8');
