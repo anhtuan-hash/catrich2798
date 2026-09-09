@@ -1,6 +1,11 @@
 import { getRuntimeClient } from './services/runtime/core.js';
 import { isExtraClassScheduledOnDate, roomForExtraClass } from './utils/extraClassSchedule2026.js';
-import { matchesAttendanceRoomFilter, sortAttendanceRoomLabels } from './utils/attendanceDailyRoomFilter.js';
+import {
+  attendanceFloorForRoom,
+  matchesAttendanceRoomFilter,
+  sortAttendanceRoomLabels,
+  sortAttendanceRowsByRoomRoute,
+} from './utils/attendanceDailyRoomFilter.js';
 import './components/attendance/AttendanceDailyOverview.css';
 
 const CLASS_COLUMNS = 'id,class_type,class_name,subject,teacher_name,active,room,time_range,grade_level,source_key';
@@ -182,7 +187,12 @@ function syncRoomFilterChips(layout, scheduledClasses, dailySessionsByClass) {
   if (dailyRoomFilter !== 'all' && !roomOptions.some((room) => matchesAttendanceRoomFilter(room, dailyRoomFilter))) {
     dailyRoomFilter = 'all';
   }
-  const chip = (value, label) => `<button type="button" class="attendance-calendar-room-chip ${matchesAttendanceRoomFilter(value, dailyRoomFilter) && (dailyRoomFilter === 'all' ? value === 'all' : true) ? 'is-active' : ''}" data-room-filter="${escapeHtml(value)}" aria-pressed="${matchesAttendanceRoomFilter(value, dailyRoomFilter) && (dailyRoomFilter === 'all' ? value === 'all' : true) ? 'true' : 'false'}">${escapeHtml(label)}</button>`;
+  const chip = (value, label) => {
+    const active = matchesAttendanceRoomFilter(value, dailyRoomFilter) && (dailyRoomFilter === 'all' ? value === 'all' : true);
+    const floor = value === 'all' ? null : attendanceFloorForRoom(value);
+    const floorAttribute = floor ? ` data-floor="${floor}"` : '';
+    return `<button type="button" class="attendance-calendar-room-chip ${active ? 'is-active' : ''}" data-room-filter="${escapeHtml(value)}"${floorAttribute} aria-pressed="${active ? 'true' : 'false'}">${escapeHtml(label)}</button>`;
+  };
   roomChips.innerHTML = `${chip('all', 'Tất cả phòng')}${roomOptions.map((room) => chip(room, room)).join('')}`;
 }
 
@@ -196,10 +206,13 @@ function renderDailyRows(layout, overview, classes, sessions) {
 
   const scheduledClasses = classes.filter((classRow) => isExtraClassScheduledOnDate(classRow, dailyAttendanceDate));
   syncRoomFilterChips(layout, scheduledClasses, dailySessionsByClass);
-  const visibleClasses = scheduledClasses.filter((classRow) => matchesAttendanceRoomFilter(
-    displayedRoomForClass(classRow, dailySessionsByClass.get(String(classRow.id))),
-    dailyRoomFilter,
-  ));
+  const visibleClasses = sortAttendanceRowsByRoomRoute(
+    scheduledClasses.filter((classRow) => matchesAttendanceRoomFilter(
+      displayedRoomForClass(classRow, dailySessionsByClass.get(String(classRow.id))),
+      dailyRoomFilter,
+    )),
+    (classRow) => displayedRoomForClass(classRow, dailySessionsByClass.get(String(classRow.id))),
+  );
   const completedCount = visibleClasses.filter((classRow) => statusForSession(dailySessionsByClass.get(String(classRow.id))) === 'completed').length;
   const cancelledCount = visibleClasses.filter((classRow) => statusForSession(dailySessionsByClass.get(String(classRow.id))) === 'cancelled').length;
   const missingCount = Math.max(0, visibleClasses.length - completedCount - cancelledCount);
@@ -222,23 +235,38 @@ function renderDailyRows(layout, overview, classes, sessions) {
     return;
   }
 
+  const floorCounts = new Map();
+  visibleClasses.forEach((classRow) => {
+    const session = dailySessionsByClass.get(String(classRow.id));
+    const floor = attendanceFloorForRoom(displayedRoomForClass(classRow, session));
+    if (floor) floorCounts.set(floor, (floorCounts.get(floor) || 0) + 1);
+  });
+
+  let previousFloor = null;
   const rows = visibleClasses.map((classRow) => {
     const session = dailySessionsByClass.get(String(classRow.id));
     const status = statusForSession(session);
     const teacher = status === 'completed' ? (session?.teacher_name || classRow.teacher_name || 'Chưa ghi giáo viên') : (classRow.teacher_name || 'Chưa phân công GV');
     const room = displayedRoomForClass(classRow, session) || 'Chưa ghi phòng';
+    const floor = attendanceFloorForRoom(room);
     const timeRange = session?.teaching_time_range || classRow.time_range || 'Chưa ghi giờ';
     const attendanceMeta = status === 'completed'
       ? `${Number(session?.present_count || 0)}/${Number(session?.total_students || 0)} có mặt · ${String(session?.lesson_periods || 1).replace('.', ',')} tiết`
       : status === 'cancelled'
         ? `${session?.cancellation_reason || 'Buổi học đã hủy'} · 0 tiết`
         : 'Có lịch học nhưng chưa chốt điểm danh';
+    const floorAttribute = floor ? ` data-floor="${floor}"` : '';
+    const showFloorSeparator = dailyRoomFilter === 'all' && floor && floor !== previousFloor;
+    if (floor) previousFloor = floor;
+    const floorSeparator = showFloorSeparator
+      ? `<div class="attendance-daily-floor-group" data-floor="${floor}"><strong>Lầu ${floor}</strong><span>${floorCounts.get(floor) || 0} lớp · đi theo thứ tự phòng</span></div>`
+      : '';
 
-    return `
-      <button type="button" class="attendance-daily-class-row is-${status}" data-class-id="${escapeHtml(classRow.id)}">
+    return `${floorSeparator}
+      <button type="button" class="attendance-daily-class-row is-${status}" data-class-id="${escapeHtml(classRow.id)}"${floorAttribute}>
         <span class="attendance-daily-class-row__class"><b>${escapeHtml(classRow.class_name)}</b><small>${escapeHtml(classTypeLabel(classRow))} · ${escapeHtml(classRow.subject || 'Chưa ghi môn')}</small></span>
         <span class="attendance-daily-class-row__teacher"><b>${escapeHtml(teacher)}</b><small>Giáo viên</small></span>
-        <span class="attendance-daily-class-row__meta"><b>${escapeHtml(room)}</b><small>Phòng học</small></span>
+        <span class="attendance-daily-class-row__meta is-room"${floorAttribute}><b>${escapeHtml(room)}</b><small>Phòng học${floor ? ` · Lầu ${floor}` : ''}</small></span>
         <span class="attendance-daily-class-row__meta is-time"><b>${escapeHtml(timeRange)}</b><small>${escapeHtml(attendanceMeta)}</small></span>
         <span class="attendance-daily-class-row__status is-${status}">${statusLabel(status)}</span>
       </button>`;

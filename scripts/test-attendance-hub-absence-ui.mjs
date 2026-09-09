@@ -120,13 +120,27 @@ assert.ok(dailyOverviewCss, 'Daily attendance overview stylesheet must exist');
 assert.match(dailyOverviewCss, /attendance-calendar-mode-switch/i, 'Daily overview mode switch must have dedicated styling');
 assert.match(dailyOverviewCss, /attendance-daily-overview/i, 'Daily overview must have dedicated responsive styling');
 
-// Daily room filter: options must be unique and naturally sorted A→Z while ignoring punctuation separators.
+// Daily room filter: options must be unique and follow the approved floor-by-floor physical route.
 assert.ok(fs.existsSync(dailyRoomFilterUrl), 'Daily attendance must have a dedicated room-filter helper.');
-const { sortAttendanceRoomLabels, matchesAttendanceRoomFilter } = await import(dailyRoomFilterUrl.href);
+const {
+  ATTENDANCE_ROOM_ROUTE,
+  sortAttendanceRoomLabels,
+  matchesAttendanceRoomFilter,
+} = await import(dailyRoomFilterUrl.href);
 assert.deepEqual(
-  sortAttendanceRoomLabels(['B.203', 'A.406', 'A201', 'B.101', 'A202', ' A201 ', '', 'a202']),
-  ['A201', 'A202', 'A.406', 'B.101', 'B.203'],
-  'Room options must be trimmed, de-duplicated case-insensitively, and natural-sorted A→Z while ignoring punctuation.',
+  ATTENDANCE_ROOM_ROUTE,
+  [
+    'A103', 'A104', 'A106',
+    'A201', 'A202', 'A204', 'B201', 'B203', 'B205', 'B206',
+    'A301', 'A302', 'A303', 'A304', 'A305', 'A306',
+    'A401', 'A402', 'A404', 'A405', 'A406',
+  ],
+  'Room route must match the school-approved floor-by-floor attendance path.',
+);
+assert.deepEqual(
+  sortAttendanceRoomLabels(['A.406', 'B.203', 'A201', 'B.201', 'A202', ' A201 ', '', 'a202']),
+  ['A201', 'A202', 'B.201', 'B.203', 'A.406'],
+  'Room options must be trimmed, de-duplicated case-insensitively, and follow the physical route while preserving labels.',
 );
 assert.equal(matchesAttendanceRoomFilter('A.406', 'all'), true, 'All rooms must pass the default filter.');
 assert.equal(matchesAttendanceRoomFilter('A.406', 'A.406'), true, 'The selected room must remain visible.');
@@ -135,6 +149,7 @@ assert.match(dailyOverviewModule, /attendance-calendar-room-filter/, 'Daily mode
 assert.match(dailyOverviewModule, /Tất cả phòng/, 'Room filter must include an option to clear the filter.');
 assert.match(dailyOverviewModule, /dailyRoomFilter/, 'Daily overview must keep the selected room filter state.');
 assert.match(dailyOverviewModule, /matchesAttendanceRoomFilter/, 'Daily rows must be filtered by the selected displayed room.');
+assert.match(dailyOverviewModule, /sortAttendanceRowsByRoomRoute/, 'Daily rows must follow the approved physical room route.');
 assert.match(dailyOverviewCss, /attendance-calendar-room-filter/i, 'Daily room filter must have responsive styling.');
 
-console.log('Attendance class hub, explicit access permission, database gate, visible discovery, subject colors, room/time, absence UI, daily status overview and A-Z room filter contract OK');
+console.log('Attendance class hub, explicit access permission, database gate, visible discovery, subject colors, room/time, absence UI, daily status overview and floor room route contract OK');
