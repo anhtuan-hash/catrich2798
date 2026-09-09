@@ -20,7 +20,7 @@ function canonicalRoomCode(value) {
 
 export const ATTENDANCE_ROOM_ROUTE = Object.freeze([
   'A103', 'A104', 'A106',
-  'A201', 'A202', 'A204', 'B201', 'B203', 'B205', 'B206',
+  'A201', 'A202', 'A204', 'A206', 'B201', 'B203', 'B205', 'B206',
   'A301', 'A302', 'A303', 'A304', 'A305', 'A306',
   'A401', 'A402', 'A404', 'A405', 'A406',
 ]);
