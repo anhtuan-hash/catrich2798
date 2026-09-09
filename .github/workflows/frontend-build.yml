@@ -115,6 +115,9 @@ jobs:
       - name: Verify visible A-Z attendance room filter
         run: node scripts/test-attendance-visible-room-filter.mjs
 
+      - name: Verify collapsible quick attendance class list
+        run: node scripts/test-attendance-collapsible-class-list.mjs
+
       - name: Verify granular attendance permissions
         run: node scripts/test-attendance-granular-permissions.mjs
 
