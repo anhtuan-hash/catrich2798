@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {
   ATTENDANCE_PERMISSION_IDS,
+  ATTENDANCE_PERMISSION_ITEMS,
   ROUTE_PERMISSION_IDS,
   createAllAccessPermissions,
   getAllowedIdsFromPermissions,
@@ -21,8 +22,9 @@ const polishUrl = new URL('../public/attendance-ui-polish.css', import.meta.url)
 const polishCss = fs.existsSync(polishUrl) ? fs.readFileSync(polishUrl, 'utf8') : '';
 const dailyOverviewCssUrl = new URL('../src/components/attendance/AttendanceDailyOverview.css', import.meta.url);
 const dailyOverviewCss = fs.existsSync(dailyOverviewCssUrl) ? fs.readFileSync(dailyOverviewCssUrl, 'utf8') : '';
-const dailyOverviewModuleUrl = new URL('../src/attendanceDailyStatusOverview.js', import.meta.url);
-const dailyOverviewModule = fs.existsSync(dailyOverviewModuleUrl) ? fs.readFileSync(dailyOverviewModuleUrl, 'utf8') : '';
+const dailyScheduleUrl = new URL('../src/components/attendance/AttendanceDailySchedule.jsx', import.meta.url);
+const dailySchedule = fs.existsSync(dailyScheduleUrl) ? fs.readFileSync(dailyScheduleUrl, 'utf8') : '';
+const legacyDailyOverviewModuleUrl = new URL('../src/attendanceDailyStatusOverview.js', import.meta.url);
 const dailyRoomFilterUrl = new URL('../src/utils/attendanceDailyRoomFilter.js', import.meta.url);
 const indexHtml = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const searchRemovalRuntime = fs.readFileSync(new URL('../public/bes-remove-visible-search-bars.js', import.meta.url), 'utf8');
@@ -102,22 +104,31 @@ for (const token of ['is-subject-math', 'is-subject-casio', 'is-subject-literatu
   assert.match(css, new RegExp(token), `Material 3 CSS must define ${token}`);
 }
 
-assert.ok(dailyOverviewModule, 'Daily attendance status overview runtime must exist');
-assert.match(indexHtml, /attendanceDailyStatusOverview\.js/, 'Application shell must load the daily attendance status overview runtime');
-assert.doesNotMatch(dailyOverviewModule, /Theo lớp/, 'Attendance calendar must no longer expose the class-based mode');
-assert.doesNotMatch(dailyOverviewModule, /attendance-calendar-mode-switch/, 'Attendance calendar must no longer render a mode switcher');
-assert.doesNotMatch(dailyOverviewModule, /setCalendarMode\s*\(/, 'Attendance calendar must not switch back to the legacy class calendar');
-assert.match(dailyOverviewModule, /Lịch điểm danh/, 'Attendance calendar tab must be presented as Lịch điểm danh');
-assert.match(dailyOverviewModule, /dailyAttendanceDate/, 'Daily overview must keep an independently selectable date');
-assert.match(dailyOverviewModule, /isExtraClassScheduledOnDate\(classRow, dailyAttendanceDate\)/, 'Daily overview must derive scheduled classes from the official class schedule');
-assert.match(dailyOverviewModule, /dailySessionsByClass/, 'Daily overview must match attendance sessions back to scheduled classes');
+// Daily schedule must now be rendered directly by React, with no deleted runtime in the boot chain.
+assert.equal(fs.existsSync(legacyDailyOverviewModuleUrl), false, 'Deleted daily attendance DOM runtime must stay deleted');
+assert.doesNotMatch(indexHtml, /attendanceDailyStatusOverview\.js/, 'Application shell must not load the deleted daily attendance runtime');
+assert.ok(dailySchedule, 'Direct React daily attendance schedule must exist');
+assert.match(attendance, /import\s+AttendanceDailySchedule\s+from\s+['"]\.\/attendance\/AttendanceDailySchedule\.jsx['"];/, 'Attendance navigation must import the direct daily schedule');
+assert.match(attendance, /<AttendanceDailySchedule\b/, 'Attendance calendar branch must render the daily schedule directly');
+assert.doesNotMatch(attendance, /\bcalendarMonth\b|\bmonthlySessions\b|\bloadMonthlySessions\b/, 'Attendance navigation must not restore legacy monthly calendar state or loader');
+assert.doesNotMatch(dailySchedule, /MutationObserver|querySelector|innerHTML|data-attendance-daily-status-root/, 'Daily schedule must use React rendering instead of DOM mutation');
+assert.doesNotMatch(dailySchedule, /Theo lớp/, 'Attendance calendar must no longer expose the class-based mode');
+assert.doesNotMatch(dailySchedule, /attendance-calendar-mode-switch/, 'Attendance calendar must no longer render a mode switcher');
+assert.doesNotMatch(dailySchedule, /setCalendarMode\s*\(/, 'Attendance calendar must not switch back to the legacy class calendar');
+const calendarPermissionItem = ATTENDANCE_PERMISSION_ITEMS.find((item) => item.tab === 'calendar');
+assert.equal(calendarPermissionItem?.titleVi, 'Lịch điểm danh', 'Calendar tab source-of-truth must be renamed from Lịch tháng to Lịch điểm danh');
+assert.match(attendance, /calendarDate/, 'Direct daily schedule must keep an independently selectable date');
+assert.match(attendance, /loadCalendarSessions\(dateValue = calendarDate\)/, 'Attendance navigation must load attendance sessions for the selected day');
+assert.match(attendance, /\.eq\(['"]attendance_date['"],\s*dateValue\)/, 'Daily session loader must query by the selected attendance date');
+assert.match(dailySchedule, /isExtraClassScheduledOnDate\(classRow, date\)/, 'Daily schedule must derive scheduled classes from the official class schedule');
+assert.match(dailySchedule, /sessionsByClass/, 'Daily schedule must match attendance sessions back to scheduled classes');
 for (const label of ['Có lịch', 'Đã điểm danh', 'Chưa điểm danh', 'Đã hủy']) {
-  assert.match(dailyOverviewModule, new RegExp(label), `Daily overview must render the status label “${label}”`);
+  assert.match(dailySchedule, new RegExp(label), `Daily schedule must render the status label “${label}”`);
 }
-assert.match(dailyOverviewModule, /Điểm danh nhanh/, 'A missing attendance row must be able to jump to quick attendance');
-assert.match(dailyOverviewModule, /openHistoryAttendance\(classRow\)/, 'A completed or cancelled row must open history without restoring the legacy class calendar');
-assert.match(dailyOverviewModule, /dailyAttendanceDate/, 'Jumping from daily overview must preserve the selected date');
-assert.match(dailyOverviewModule, /classRow\.id/, 'Jumping from daily overview must preserve the selected class');
+assert.match(attendance, /setView\(['"]quick['"]\)/, 'A missing attendance row must be able to jump to quick attendance');
+assert.match(attendance, /openSessionFromCalendar\(session\)/, 'A completed or cancelled row must open the existing attendance session');
+assert.match(attendance, /setAttendanceDate\(calendarDate\)/, 'Jumping from the daily schedule must preserve the selected date');
+assert.match(attendance, /setSelectedClassId\(String\(classRow\.id\)\)/, 'Jumping from the daily schedule must preserve the selected class');
 assert.ok(dailyOverviewCss, 'Daily attendance overview stylesheet must exist');
 assert.match(dailyOverviewCss, /attendance-daily-overview/i, 'Daily overview must have dedicated responsive styling');
 
@@ -146,11 +157,17 @@ assert.deepEqual(
 assert.equal(matchesAttendanceRoomFilter('A.406', 'all'), true, 'All rooms must pass the default filter.');
 assert.equal(matchesAttendanceRoomFilter('A.406', 'A.406'), true, 'The selected room must remain visible.');
 assert.equal(matchesAttendanceRoomFilter('A201', 'A.406'), false, 'Other rooms must be hidden.');
-assert.match(dailyOverviewModule, /attendance-calendar-room-filter/, 'Daily mode must render a dedicated visible room filter.');
-assert.match(dailyOverviewModule, /Tất cả phòng/, 'Room filter must include an option to clear the filter.');
-assert.match(dailyOverviewModule, /dailyRoomFilter/, 'Daily overview must keep the selected room filter state.');
-assert.match(dailyOverviewModule, /matchesAttendanceRoomFilter/, 'Daily rows must be filtered by the selected displayed room.');
-assert.match(dailyOverviewModule, /sortAttendanceRowsByRoomRoute/, 'Daily rows must follow the approved physical room route.');
+assert.match(dailySchedule, /attendance-calendar-room-filter/, 'Daily mode must render a dedicated visible room filter.');
+assert.match(dailySchedule, /Tất cả phòng/, 'Room filter must include an option to clear the filter.');
+assert.match(dailySchedule, /roomFilter/, 'Daily schedule must receive and preserve the selected room filter state.');
+assert.match(dailySchedule, /matchesAttendanceRoomFilter/, 'Daily rows must be filtered by the selected displayed room.');
+assert.match(dailySchedule, /sortAttendanceRowsByRoomRoute/, 'Daily rows must follow the approved physical room route.');
 assert.match(dailyOverviewCss, /attendance-calendar-room-filter/i, 'Daily room filter must have responsive styling.');
 
-console.log('Attendance class hub, explicit access permission, database gate, visible discovery, subject colors, room/time, absence UI, daily-only status overview and floor room route contract OK');
+// Keep utility permission helpers exercised so accidental export regressions are caught.
+assert.equal(typeof getAllowedIdsFromPermissions, 'function');
+assert.equal(typeof getPermissionItem, 'function');
+assert.equal(typeof hasExplicitPermissionId, 'function');
+assert.equal(typeof hasPermissionId, 'function');
+
+console.log('Attendance class hub, permissions, absence UI, direct daily schedule and floor room route contract OK');

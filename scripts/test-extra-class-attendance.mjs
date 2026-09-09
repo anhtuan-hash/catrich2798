@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 const flatNav = fs.readFileSync(new URL('../src/components/GlobalFlatNavigation.jsx', import.meta.url), 'utf8');
 const attendance = fs.readFileSync(new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url), 'utf8');
+const dailySchedule = fs.readFileSync(new URL('../src/components/attendance/AttendanceDailySchedule.jsx', import.meta.url), 'utf8');
 const attendanceEditor = fs.readFileSync(new URL('../src/components/attendance/AttendanceClassEditor.jsx', import.meta.url), 'utf8');
 const attendanceAdmin = fs.readFileSync(new URL('../src/components/GlobalAttendanceAdminPersistenceBridge.jsx', import.meta.url), 'utf8');
 const permissionRegistry = fs.readFileSync(new URL('../src/utils/permissions.js', import.meta.url), 'utf8');
@@ -79,11 +80,13 @@ assert.match(combinedSql, /bes_extra_class_teachers[\s\S]*teacher_name/i, 'Serve
 assert.match(attendance, /type="date"/, 'Quick attendance must expose a date picker');
 assert.match(attendance, /Giáo viên dạy hôm nay/, 'Multi-teacher attendance must require choosing the teacher who teaches that day');
 assert.match(attendance, /Đã chốt/, 'Already-confirmed class/date must render a locked state');
-assert.match(attendanceUiContract, /Lịch tháng/, 'Attendance workspace must expose a monthly calendar tab');
-assert.match(attendance, /type="month"/, 'Monthly calendar must expose a month picker');
+assert.match(attendanceUiContract, /Lịch điểm danh/, 'Attendance workspace must expose the daily attendance schedule tab');
+assert.match(dailySchedule, /type="date"/, 'Daily attendance schedule must expose a date picker');
+assert.match(attendance, /AttendanceDailySchedule/, 'Attendance workspace must render the direct React daily schedule');
 assert.match(attendance, /attendance_date/, 'Frontend must load and compare the authoritative attendance date');
-assert.match(attendance, /\.gte\('attendance_date'/, 'Monthly calendar query must use a lower attendance_date bound');
-assert.match(attendance, /\.lt\('attendance_date'/, 'Monthly calendar query must use an exclusive upper attendance_date bound');
+assert.match(attendance, /\.eq\('attendance_date',\s*dateValue\)/, 'Daily attendance schedule query must load sessions for exactly the selected date');
+assert.doesNotMatch(attendance, /\.gte\('attendance_date'/, 'Daily attendance schedule must not restore a monthly lower-bound query');
+assert.doesNotMatch(attendance, /\.lt\('attendance_date'/, 'Daily attendance schedule must not restore a monthly upper-bound query');
 assert.doesNotMatch(attendance, /bes_extra_attendance_list_teachers/, 'Daily attendance must never fall back to website account teachers');
 
 assert.ok(legacyGuardSql, 'Legacy attendance RPC must be guarded so older clients cannot bypass teacher selection');

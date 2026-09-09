@@ -160,16 +160,6 @@
   background: #eadcff;
 }
 
-.attendance-calendar-layout[data-attendance-daily-mode="daily"] > .attendance-calendar-toolbar {
-  display: none !important;
-}
-
-.attendance-calendar-layout[data-attendance-daily-mode="daily"] > .attendance-calendar-weekdays,
-.attendance-calendar-layout[data-attendance-daily-mode="daily"] > .attendance-calendar-grid,
-.attendance-calendar-layout[data-attendance-daily-mode="daily"] > .attendance-loading {
-  display: none !important;
-}
-
 .attendance-daily-overview {
   display: grid;
   gap: 6px;

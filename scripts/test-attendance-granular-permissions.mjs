@@ -40,7 +40,7 @@ const expectedIds = {
 };
 assert.deepEqual(ATTENDANCE_PERMISSION_IDS, expectedIds);
 assert.deepEqual(ATTENDANCE_PERMISSION_GROUP.ids, Object.values(expectedIds), 'Admin attendance group must contain exactly the five tab permissions');
-assert.deepEqual(ATTENDANCE_PERMISSION_ITEMS.map((item) => item.titleVi), ['Điểm danh nhanh', 'Lịch tháng', 'Quản lý lớp', 'Lịch sử', 'Báo cáo']);
+assert.deepEqual(ATTENDANCE_PERMISSION_ITEMS.map((item) => item.titleVi), ['Điểm danh nhanh', 'Lịch điểm danh', 'Quản lý lớp', 'Lịch sử', 'Báo cáo']);
 
 const teacherAll = { id: 'teacher-all', role: 'teacher', permissions: createAllAccessPermissions() };
 for (const tab of Object.keys(expectedIds)) {

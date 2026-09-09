@@ -31,6 +31,7 @@ import './GlobalAttendanceDailyCalendar.css';
 import './GlobalAttendanceManualTeacher.css';
 import AttendanceMonthlyReport from './attendance/AttendanceMonthlyReport.jsx';
 import AttendanceClassEditor from './attendance/AttendanceClassEditor.jsx';
+import AttendanceDailySchedule from './attendance/AttendanceDailySchedule.jsx';
 import { ATTENDANCE_PROOF_BUCKET, buildAttendanceProofPath, prepareAttendanceProofImage } from '../utils/attendanceProofImage.js';
 import './attendance/AttendanceMaterial3.css';
 
@@ -93,29 +94,6 @@ function formatDateTime(value) {
   }).format(date);
 }
 
-function monthBounds(monthValue) {
-  const [year, month] = String(monthValue || '').split('-').map(Number);
-  if (!year || !month) return null;
-  const start = `${year}-${String(month).padStart(2, '0')}-01`;
-  const nextDate = new Date(Date.UTC(year, month, 1));
-  const next = `${nextDate.getUTCFullYear()}-${String(nextDate.getUTCMonth() + 1).padStart(2, '0')}-01`;
-  return { start, next, year, month };
-}
-
-function buildCalendarCells(monthValue) {
-  const bounds = monthBounds(monthValue);
-  if (!bounds) return [];
-  const first = new Date(`${bounds.start}T00:00:00+07:00`);
-  const leading = (first.getDay() + 6) % 7;
-  const daysInMonth = new Date(Date.UTC(bounds.year, bounds.month, 0)).getUTCDate();
-  const cells = Array.from({ length: leading }, () => null);
-  for (let day = 1; day <= daysInMonth; day += 1) {
-    cells.push(`${bounds.year}-${String(bounds.month).padStart(2, '0')}-${String(day).padStart(2, '0')}`);
-  }
-  while (cells.length % 7) cells.push(null);
-  return cells;
-}
-
 function sameClassIdentity(row, group) {
   return row?.class_type === group?.class_type
     && fold(row?.class_name) === fold(group?.class_name)
@@ -134,7 +112,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const [classTeachers, setClassTeachers] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [records, setRecords] = useState([]);
-  const [monthlySessions, setMonthlySessions] = useState([]);
+  const [calendarSessions, setCalendarSessions] = useState([]);
   const [teacherDaySessions, setTeacherDaySessions] = useState([]);
   const [dayRecords, setDayRecords] = useState([]);
   const [selectedClassId, setSelectedClassId] = useState('');
@@ -142,7 +120,8 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const [attendanceDate, setAttendanceDate] = useState(today);
   const [sessionTeacher, setSessionTeacher] = useState('');
   const [daySession, setDaySession] = useState(null);
-  const [calendarMonth, setCalendarMonth] = useState(today.slice(0, 7));
+  const [calendarDate, setCalendarDate] = useState(today);
+  const [calendarRoomFilter, setCalendarRoomFilter] = useState('all');
   const [calendarLoading, setCalendarLoading] = useState(false);
   const [draft, setDraft] = useState([]);
   const [note, setNote] = useState('');
@@ -571,7 +550,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       await loadAll();
       await loadDaySession();
       await loadTeacherDaySessions();
-      await loadMonthlySessions();
+      await loadCalendarSessions(calendarDate);
       setNotice(`Đã chốt điểm danh ${selectedClass.class_name} ngày ${formatDate(attendanceDate)} · GV ${sessionTeacher} · ${summary.present}/${summary.total} có mặt.${proofSaved ? ' · Đã lưu ảnh minh chứng.' : ''}`);
       if (proofUploadFailure) setError(`Điểm danh đã được chốt, nhưng ảnh minh chứng chưa được lưu: ${proofUploadFailure}`);
     } catch (confirmError) {
@@ -609,7 +588,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       setNotice(`Đã hủy buổi học ${selectedClass.class_name} ngày ${formatDate(attendanceDate)}.`);
       await loadAll();
       await loadDaySession();
-      await loadMonthlySessions();
+      await loadCalendarSessions(calendarDate);
     } catch (cancelError) {
       setError(cancelError?.message || 'Không thể hủy buổi học.');
       await loadDaySession();
@@ -618,27 +597,29 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     }
   }
 
-  async function loadMonthlySessions(classId = selectedClassId, monthValue = calendarMonth) {
-    const bounds = monthBounds(monthValue);
-    if (!client || !classId || !bounds || !allowed) {
-      setMonthlySessions([]);
+  async function loadCalendarSessions(dateValue = calendarDate) {
+    if (!client || !dateValue || !allowed) {
+      setCalendarSessions([]);
+      setCalendarLoading(false);
       return;
     }
     setCalendarLoading(true);
-    const { data, error: monthError } = await client.from('bes_extra_attendance_sessions')
+    const { data, error: calendarError } = await client.from('bes_extra_attendance_sessions')
       .select(SESSION_COLUMNS)
-      .eq('class_id', classId)
-      .gte('attendance_date', bounds.start)
-      .lt('attendance_date', bounds.next)
-      .order('attendance_date', { ascending: true });
-    if (monthError) setError(monthError.message || 'Không thể tải lịch điểm danh theo tháng.');
-    else setMonthlySessions(data || []);
+      .eq('attendance_date', dateValue)
+      .order('checked_at', { ascending: true });
+    if (calendarError) {
+      setError(calendarError.message || 'Không thể tải lịch điểm danh theo ngày.');
+      setCalendarSessions([]);
+    } else {
+      setCalendarSessions(data || []);
+    }
     setCalendarLoading(false);
   }
 
   useEffect(() => {
-    if (open && view === 'calendar' && selectedClassId) loadMonthlySessions();
-  }, [open, view, selectedClassId, calendarMonth]);
+    if (open && view === 'calendar') loadCalendarSessions(calendarDate);
+  }, [open, view, calendarDate]);
 
   async function openSessionFromCalendar(session) {
     if (!session) return;
@@ -837,7 +818,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       if (deleteError) throw deleteError;
       await removeAttendanceProofPaths(classProofPaths);
       if (String(selectedClassId) === String(classRow.id)) setSelectedClassId('');
-      setSelectedSessionId(''); setRecords([]); setDaySession(null); setMonthlySessions([]);
+      setSelectedSessionId(''); setRecords([]); setDaySession(null); setCalendarSessions([]);
       setNotice(`Đã xóa lớp ${classRow.class_name} cùng dữ liệu điểm danh liên quan.`);
       await loadAll({ keepSelection: false });
       await loadTeacherDaySessions();
@@ -869,7 +850,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       await loadAll();
       await loadDaySession();
       await loadTeacherDaySessions();
-      await loadMonthlySessions();
+      await loadCalendarSessions(calendarDate);
     } catch (deleteError) { setError(deleteError?.message || 'Không thể xóa buổi điểm danh đã duyệt.'); }
     finally { setBusy(false); }
   }
@@ -940,7 +921,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       await loadAll();
       await loadDaySession();
       await loadTeacherDaySessions();
-      await loadMonthlySessions();
+      await loadCalendarSessions(calendarDate);
     } finally {
       setBusy(false);
     }
@@ -960,7 +941,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     return fold(`${member.student_full_name} ${member.student_code} ${member.school_class_name}`).includes(fold(memberQuery));
   }), [allSelectedMembers, memberQuery]);
 
-  const selectedSession = sessions.find((session) => String(session.id) === String(selectedSessionId)) || monthlySessions.find((session) => String(session.id) === String(selectedSessionId));
+  const selectedSession = sessions.find((session) => String(session.id) === String(selectedSessionId)) || calendarSessions.find((session) => String(session.id) === String(selectedSessionId));
 
   useEffect(() => {
     let cancelled = false;
@@ -987,8 +968,6 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const selectedSessionAttendanceRate = selectedSession?.session_status === 'completed' && Number(selectedSession.total_students) > 0
     ? Math.round((Number(selectedSession.present_count || 0) / Number(selectedSession.total_students)) * 100)
     : 0;
-  const calendarByDate = useMemo(() => new Map(monthlySessions.map((session) => [session.attendance_date, session])), [monthlySessions]);
-  const calendarCells = useMemo(() => buildCalendarCells(calendarMonth), [calendarMonth]);
 
   if (!host || !allowed) return null;
 
@@ -1003,7 +982,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       <section className="attendance-shell" role="dialog" aria-modal="true" aria-label="Điểm danh lớp phụ đạo và bồi dưỡng học sinh giỏi">
         <header className="attendance-topbar">
           <div className="attendance-title"><span><Icon name="attendance" size={28} /></span><div><small>QUẢN LÝ CHUYÊN CẦN</small><strong>Điểm danh lớp phụ đạo & bồi dưỡng</strong></div></div>
-          <div className="attendance-top-actions"><button type="button" className="attendance-icon-button" onClick={() => { loadAll(); loadDaySession(); loadTeacherDaySessions(); if (view === 'calendar') loadMonthlySessions(); }} title="Làm mới"><Icon name="refresh" /></button><button type="button" className="attendance-icon-button" onClick={() => setOpen(false)} aria-label="Đóng"><Icon name="close" /></button></div>
+          <div className="attendance-top-actions"><button type="button" className="attendance-icon-button" onClick={() => { loadAll(); loadDaySession(); loadTeacherDaySessions(); if (view === 'calendar') loadCalendarSessions(calendarDate); }} title="Làm mới"><Icon name="refresh" /></button><button type="button" className="attendance-icon-button" onClick={() => setOpen(false)} aria-label="Đóng"><Icon name="close" /></button></div>
         </header>
 
         <nav className="attendance-tabs" aria-label="Phân hệ điểm danh">
@@ -1068,13 +1047,33 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
 
           {!loading && canAccessAttendanceView('calendar') && view === 'calendar' ? (
             <div className="attendance-calendar-layout">
-              <header className="attendance-calendar-toolbar"><div><strong>Lịch điểm danh theo tháng</strong><p>Mỗi ô đã chốt hiển thị giáo viên và số học sinh có mặt.</p></div><label><span>Lớp</span><select value={selectedClassId} onChange={(event) => setSelectedClassId(event.target.value)}>{activeClasses.map((classRow) => <option key={classRow.id} value={classRow.id}>{classRow.class_name}</option>)}</select></label><label><span>Tháng</span><input type="month" value={calendarMonth} onChange={(event) => setCalendarMonth(event.target.value)} /></label></header>
-              <div className="attendance-calendar-weekdays">{['Thứ 2','Thứ 3','Thứ 4','Thứ 5','Thứ 6','Thứ 7','CN'].map((day) => <span key={day}>{day}</span>)}</div>
-              {calendarLoading ? <div className="attendance-loading">Đang tải lịch tháng…</div> : <div className="attendance-calendar-grid">{calendarCells.map((dateValue, index) => {
-                if (!dateValue) return <div key={`blank-${index}`} className="attendance-calendar-day is-blank" />;
-                const session = calendarByDate.get(dateValue);
-                return <button key={dateValue} type="button" className={`attendance-calendar-day ${dateValue === today ? 'is-today' : ''} ${session ? 'is-confirmed' : ''} ${session?.session_status === 'cancelled' ? 'is-cancelled' : ''}`} disabled={!session} onClick={() => session && openSessionFromCalendar(session)}><span className="attendance-calendar-date">{Number(dateValue.slice(-2))}</span>{session ? (session.session_status === 'cancelled' ? <><b>Đã hủy</b><small>{session.cancellation_reason}</small><em>0 tiết</em></> : <><b><Icon name="check" size={14} /> {session.present_count}/{session.total_students}</b><small>{session.teacher_name}</small><em>{String(session.lesson_periods || 1).replace('.', ',')} tiết</em></>) : <small>Chưa điểm danh</small>}</button>;
-              })}</div>}
+              <AttendanceDailySchedule
+                classes={activeClasses}
+                sessions={calendarSessions}
+                date={calendarDate}
+                maxDate={today}
+                loading={calendarLoading}
+                roomFilter={calendarRoomFilter}
+                onDateChange={(nextDate) => {
+                  if (!nextDate) return;
+                  setCalendarDate(nextDate);
+                  setNotice('');
+                  setError('');
+                }}
+                onRoomFilterChange={setCalendarRoomFilter}
+                teacherLabelForClass={teachersForClass}
+                onOpenClass={(classRow, session) => {
+                  if (session?.session_status === 'completed' || session?.session_status === 'cancelled') {
+                    openSessionFromCalendar(session);
+                    return;
+                  }
+                  setSelectedClassId(String(classRow.id));
+                  setAttendanceDate(calendarDate);
+                  setNotice('');
+                  setError('');
+                  setView('quick');
+                }}
+              />
             </div>
           ) : null}
 
