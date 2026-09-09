@@ -9,12 +9,14 @@ import {
 const attendanceUrl = new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url);
 const editorUrl = new URL('../src/components/attendance/AttendanceClassEditor.jsx', import.meta.url);
 const cssUrl = new URL('../src/components/attendance/AttendanceClassEditor.css', import.meta.url);
-const migrationUrl = new URL('../supabase/migrations/20260908_attendance_admin_class_member_edit.sql', import.meta.url);
+const legacyMigrationUrl = new URL('../supabase/migrations/20260908_attendance_admin_class_member_edit.sql', import.meta.url);
+const manageMigrationUrl = new URL('../supabase/migrations/20260909_attendance_manage_class_details_permission.sql', import.meta.url);
 const attendance = fs.readFileSync(attendanceUrl, 'utf8');
 const editor = fs.readFileSync(editorUrl, 'utf8');
 const ui = `${attendance}\n${editor}`;
 const css = fs.readFileSync(cssUrl, 'utf8');
-const migration = fs.existsSync(migrationUrl) ? fs.readFileSync(migrationUrl, 'utf8') : '';
+const legacyMigration = fs.existsSync(legacyMigrationUrl) ? fs.readFileSync(legacyMigrationUrl, 'utf8') : '';
+const manageMigration = fs.existsSync(manageMigrationUrl) ? fs.readFileSync(manageMigrationUrl, 'utf8') : '';
 
 assert.equal(
   roomForExtraClass(null),
@@ -71,15 +73,19 @@ assert.equal(
 assert.match(attendance, /AttendanceClassEditor/,
   'Management view must integrate the dedicated class editor component');
 assert.match(ui, /bes_admin_update_extra_class/,
-  'Management UI must save class metadata through the Admin-only class RPC');
+  'Management UI must save class metadata through the existing compatible class RPC');
 assert.match(ui, /bes_update_extra_class_member/,
   'Management UI must save member edits through the Manage-authorized member RPC');
 assert.match(ui, /Sửa thông tin lớp/,
   'Management UI must expose a class edit action');
 assert.match(ui, /Sửa học sinh/,
   'Management UI must expose a student edit action');
-assert.match(editor, /isAdmin\s*&&\s*!editingClass[\s\S]{0,300}Sửa thông tin lớp/,
-  'Class editing must be guarded by the Admin role in the UI');
+assert.match(editor, /canManageMembers\s*&&\s*!editingClass[\s\S]{0,300}Sửa thông tin lớp/,
+  'Class editing must be guarded by the Manage-tab capability in the UI');
+assert.match(editor, /editingClass\s*&&\s*canManageMembers/,
+  'Class edit form must remain available to any granted attendance:manage teacher');
+assert.doesNotMatch(editor, /isAdmin\s*&&\s*!editingClass[\s\S]{0,300}Sửa thông tin lớp/,
+  'Class editing must no longer be hard-coded to the Admin role');
 assert.match(editor, /canManageMembers[\s\S]{0,300}Sửa học sinh/,
   'Student editing must be guarded by Manage-tab capability in the UI');
 assert.match(css, /\.attendance-class-info-card/,
@@ -91,48 +97,59 @@ assert.doesNotMatch(attendance, /selectedMembers\.length\s*,\s*attendanceDate/,
 assert.match(attendance, /\[selectedClassId,\s*selectedMembers,\s*attendanceDate,\s*daySession\?\.id,\s*dayRecords\]/,
   'Quick attendance draft must refresh when current member metadata changes');
 
-assert.match(migration, /create or replace function\s+public\.bes_admin_update_extra_class\s*\(/i,
-  'Migration must define the Admin class-update RPC');
-assert.match(migration, /create or replace function\s+public\.bes_admin_update_extra_class_member\s*\(/i,
-  'Migration must define the Admin member-update RPC');
-assert.match(migration, /Chỉ Admin được sửa thông tin lớp/i,
-  'Class RPC must enforce Admin authorization server-side');
-assert.match(migration, /Chỉ Admin được sửa thông tin học sinh/i,
+assert.match(legacyMigration, /create or replace function\s+public\.bes_admin_update_extra_class\s*\(/i,
+  'Legacy migration must define the compatible class-update RPC');
+assert.match(legacyMigration, /create or replace function\s+public\.bes_admin_update_extra_class_member\s*\(/i,
+  'Legacy migration must define the Admin member-update RPC');
+assert.ok(manageMigration.length > 0,
+  'A follow-up migration must align class-detail edits with attendance:manage');
+assert.match(manageMigration, /create or replace function\s+public\.bes_admin_update_extra_class\s*\(/i,
+  'Manage-permission migration must replace the compatible class-update RPC');
+assert.match(manageMigration, /if not public\.can_manage_extra_class_roster\(\)/i,
+  'Class RPC must enforce attendance:manage authorization server-side');
+assert.doesNotMatch(manageMigration, /Chỉ Admin được sửa thông tin lớp/i,
+  'Effective class RPC must no longer enforce an Admin-only role check');
+assert.match(legacyMigration, /Chỉ Admin được sửa thông tin học sinh/i,
   'Legacy member RPC must continue enforcing Admin authorization server-side');
-assert.match(migration, /update\s+public\.bes_extra_classes/i,
+assert.match(manageMigration, /update\s+public\.bes_extra_classes/i,
   'Class RPC must update the current class row');
-assert.match(migration, /update\s+public\.bes_extra_class_members/i,
+assert.match(legacyMigration, /update\s+public\.bes_extra_class_members/i,
   'Member RPC must update the current member row');
-assert.doesNotMatch(migration, /update\s+public\.bes_extra_attendance_sessions/i,
+assert.doesNotMatch(manageMigration, /update\s+public\.bes_extra_attendance_sessions/i,
   'Current class edits must never rewrite attendance session snapshots');
-assert.doesNotMatch(migration, /update\s+public\.bes_extra_attendance_records/i,
+assert.doesNotMatch(legacyMigration, /update\s+public\.bes_extra_attendance_records/i,
   'Current member edits must never rewrite attendance record snapshots');
-assert.match(migration, /duplicate|trùng|member_key/i,
+assert.match(legacyMigration, /duplicate|trùng|member_key/i,
   'Member RPC must protect current-roster identity against duplicate active keys');
-assert.match(migration, /v_school_class_name\s+text\s*:=\s*trim\(coalesce\(p_school_class_name,\s*''\)\)/i,
+assert.match(legacyMigration, /v_school_class_name\s+text\s*:=\s*trim\(coalesce\(p_school_class_name,\s*''\)\)/i,
   'Member RPC must preserve internal school-class whitespace so server member_key normalization matches frontend behavior');
 assert.match(
-  migration,
+  legacyMigration,
   /revoke all on function public\.bes_extra_member_key\(text,text,text\) from public,\s*anon,\s*authenticated;/i,
   'Internal member-key helper must not remain executable through Supabase client roles',
 );
 assert.match(
-  migration,
-  /revoke all on function public\.bes_admin_update_extra_class\(uuid,text,text,integer,text,text,integer\[\]\) from public,\s*anon,\s*authenticated;/i,
-  'Class update RPC must explicitly revoke default anon/authenticated grants before least-privilege grant',
+  manageMigration,
+  /revoke all on function public\.bes_admin_update_extra_class\(uuid,text,text,integer,text,text,integer\[\]\) from public;/i,
+  'Class update RPC must revoke PUBLIC execution',
 );
 assert.match(
-  migration,
+  manageMigration,
+  /revoke all on function public\.bes_admin_update_extra_class\(uuid,text,text,integer,text,text,integer\[\]\) from anon;/i,
+  'Class update RPC must revoke anonymous execution',
+);
+assert.match(
+  manageMigration,
+  /grant execute on function public\.bes_admin_update_extra_class\(uuid,text,text,integer,text,text,integer\[\]\) to authenticated;/i,
+  'Signed-in users must receive the class RPC entry point, with attendance:manage authorization enforced inside the RPC',
+);
+assert.match(
+  legacyMigration,
   /revoke all on function public\.bes_admin_update_extra_class_member\(uuid,uuid,text,text,text\) from public,\s*anon,\s*authenticated;/i,
   'Legacy member update RPC must explicitly revoke default anon/authenticated grants before least-privilege grant',
 );
 assert.match(
-  migration,
-  /grant execute on function public\.bes_admin_update_extra_class\(uuid,text,text,integer,text,text,integer\[\]\) to authenticated;/i,
-  'Signed-in users must receive the class RPC entry point, with Admin authorization still enforced inside the RPC',
-);
-assert.match(
-  migration,
+  legacyMigration,
   /grant execute on function public\.bes_admin_update_extra_class_member\(uuid,uuid,text,text,text\) to authenticated;/i,
   'Signed-in users must receive the legacy member RPC entry point, with Admin authorization still enforced inside the RPC',
 );
