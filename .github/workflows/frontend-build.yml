@@ -118,6 +118,9 @@ jobs:
       - name: Verify attendance time access control
         run: node scripts/test-attendance-time-access-control.mjs
 
+      - name: Verify report override quick attendance entry
+        run: node scripts/test-attendance-report-override-quick.mjs
+
       - name: Verify Vercel Hobby function budget
         run: node scripts/test-vercel-hobby-function-budget.mjs
 
