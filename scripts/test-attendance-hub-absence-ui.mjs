@@ -23,6 +23,7 @@ const dailyOverviewCssUrl = new URL('../src/components/attendance/AttendanceDail
 const dailyOverviewCss = fs.existsSync(dailyOverviewCssUrl) ? fs.readFileSync(dailyOverviewCssUrl, 'utf8') : '';
 const dailyOverviewModuleUrl = new URL('../src/attendanceDailyStatusOverview.js', import.meta.url);
 const dailyOverviewModule = fs.existsSync(dailyOverviewModuleUrl) ? fs.readFileSync(dailyOverviewModuleUrl, 'utf8') : '';
+const dailyRoomFilterUrl = new URL('../src/utils/attendanceDailyRoomFilter.js', import.meta.url);
 const indexHtml = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const searchRemovalRuntime = fs.readFileSync(new URL('../public/bes-remove-visible-search-bars.js', import.meta.url), 'utf8');
 const permissionMigration = fs.readFileSync(new URL('../supabase/migrations/20260908_admin_grant_attendance_permission.sql', import.meta.url), 'utf8');
@@ -119,4 +120,21 @@ assert.ok(dailyOverviewCss, 'Daily attendance overview stylesheet must exist');
 assert.match(dailyOverviewCss, /attendance-calendar-mode-switch/i, 'Daily overview mode switch must have dedicated styling');
 assert.match(dailyOverviewCss, /attendance-daily-overview/i, 'Daily overview must have dedicated responsive styling');
 
-console.log('Attendance class hub, explicit access permission, database gate, visible discovery, subject colors, room/time, absence UI and daily status overview contract OK');
+// Daily room filter: options must be unique and sorted A→Z, and filtering must match the room displayed on each row.
+assert.ok(fs.existsSync(dailyRoomFilterUrl), 'Daily attendance must have a dedicated room-filter helper.');
+const { sortAttendanceRoomLabels, matchesAttendanceRoomFilter } = await import(dailyRoomFilterUrl.href);
+assert.deepEqual(
+  sortAttendanceRoomLabels(['B.203', 'A.406', 'A201', 'B.101', 'A202', ' A201 ', '', 'a202']),
+  ['A.406', 'A201', 'A202', 'B.101', 'B.203'],
+  'Room options must be trimmed, de-duplicated case-insensitively, and sorted A→Z.',
+);
+assert.equal(matchesAttendanceRoomFilter('A.406', 'all'), true, 'All rooms must pass the default filter.');
+assert.equal(matchesAttendanceRoomFilter('A.406', 'A.406'), true, 'The selected room must remain visible.');
+assert.equal(matchesAttendanceRoomFilter('A201', 'A.406'), false, 'Other rooms must be hidden.');
+assert.match(dailyOverviewModule, /attendance-calendar-mode-bar__room/, 'Daily mode bar must render a dedicated room filter.');
+assert.match(dailyOverviewModule, /Tất cả phòng/, 'Room filter must include an option to clear the filter.');
+assert.match(dailyOverviewModule, /dailyRoomFilter/, 'Daily overview must keep the selected room filter state.');
+assert.match(dailyOverviewModule, /matchesAttendanceRoomFilter/, 'Daily rows must be filtered by the selected displayed room.');
+assert.match(dailyOverviewCss, /attendance-calendar-mode-bar__room/i, 'Daily room filter must have responsive styling.');
+
+console.log('Attendance class hub, explicit access permission, database gate, visible discovery, subject colors, room/time, absence UI, daily status overview and A-Z room filter contract OK');
