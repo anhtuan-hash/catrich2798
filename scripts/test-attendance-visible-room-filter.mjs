@@ -46,8 +46,8 @@ assert.equal(attendanceFloorForRoom(''), null);
 
 assert.deepEqual(
   sortAttendanceRoomLabels(['B205', 'A405', 'A302', 'A104', 'A306', 'A401', 'A202', 'A103', 'A406']),
-  ['A103', 'A104', 'A202', 'A302', 'A306', 'A401', 'A405', 'A406', 'B205'],
-  'Known school rooms must follow the physical attendance route instead of lexical interleaving.',
+  ['A103', 'A104', 'A202', 'B205', 'A302', 'A306', 'A401', 'A405', 'A406'],
+  'Known school rooms must follow the physical floor-by-floor attendance route instead of lexical interleaving.',
 );
 assert.deepEqual(
   sortAttendanceRoomLabels(['B.203', 'A.406', 'A201', 'B.201', 'A202', ' A201 ', '', 'a202']),
@@ -69,8 +69,8 @@ const rows = [
 ];
 assert.deepEqual(
   sortAttendanceRowsByRoomRoute(rows, (row) => row.room).map((row) => row.id),
-  ['bio', 'chem', 'math', 'history', 'physics'],
-  'Class rows must be routed by room so teachers can move floor-by-floor without backtracking.',
+  ['physics', 'bio', 'chem', 'math', 'history'],
+  'Class rows must be routed by floor and room so teachers can move without backtracking.',
 );
 
 console.log('Visible floor-grouped daily attendance room route contract OK');
