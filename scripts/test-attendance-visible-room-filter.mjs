@@ -7,19 +7,19 @@ import {
   sortAttendanceRowsByRoomRoute,
 } from '../src/utils/attendanceDailyRoomFilter.js';
 
-const runtime = fs.readFileSync(new URL('../src/attendanceDailyStatusOverview.js', import.meta.url), 'utf8');
+const schedule = fs.readFileSync(new URL('../src/components/attendance/AttendanceDailySchedule.jsx', import.meta.url), 'utf8');
 const css = fs.readFileSync(new URL('../src/components/attendance/AttendanceDailyOverview.css', import.meta.url), 'utf8');
 
-assert.match(runtime, /attendance-calendar-room-chips/, 'Daily attendance must render the room list as an always-visible chip group.');
-assert.match(runtime, /data-room-filter/, 'Each visible room chip must carry its room-filter value.');
-assert.match(runtime, /Tất cả phòng/, 'The visible room list must include a clear-all chip.');
-assert.match(runtime, /sortAttendanceRoomLabels/, 'Visible room chips must keep using the room-route sorter.');
-assert.match(runtime, /sortAttendanceRowsByRoomRoute/, 'Daily class rows must be sorted by the same physical room route.');
-assert.match(runtime, /attendanceFloorForRoom/, 'Daily attendance must derive floor identity from each room.');
-assert.match(runtime, /attendance-daily-floor-group/, 'All-room view must insert floor group separators.');
-assert.match(runtime, /data-floor=/, 'Room chips and/or rows must expose their floor for consistent coloring.');
-assert.match(runtime, /matchesAttendanceRoomFilter/, 'Visible room chips must keep filtering the displayed rows.');
-assert.doesNotMatch(runtime, /<select aria-label="Lọc theo phòng học"/, 'Room choices must not be hidden inside a dropdown.');
+assert.match(schedule, /attendance-calendar-room-chips/, 'Daily attendance must render the room list as an always-visible chip group.');
+assert.match(schedule, /onRoomFilterChange\?\.\(room\)/, 'Each visible room chip must update the direct React room-filter state.');
+assert.match(schedule, /Tất cả phòng/, 'The visible room list must include a clear-all chip.');
+assert.match(schedule, /sortAttendanceRoomLabels/, 'Visible room chips must keep using the room-route sorter.');
+assert.match(schedule, /sortAttendanceRowsByRoomRoute/, 'Daily class rows must be sorted by the same physical room route.');
+assert.match(schedule, /attendanceFloorForRoom/, 'Daily attendance must derive floor identity from each room.');
+assert.match(schedule, /attendance-daily-floor-group/, 'All-room view must insert floor group separators.');
+assert.match(schedule, /data-floor=/, 'Room chips and/or rows must expose their floor for consistent coloring.');
+assert.match(schedule, /matchesAttendanceRoomFilter/, 'Visible room chips must keep filtering the displayed rows.');
+assert.doesNotMatch(schedule, /<select[^>]*aria-label="Lọc theo phòng học"/, 'Room choices must not be hidden inside a dropdown.');
 assert.match(css, /\.attendance-calendar-room-chips/i, 'Visible room chips must have dedicated responsive styling.');
 assert.match(css, /\.attendance-calendar-room-chip\.is-active/i, 'The selected room chip must have a clear active state.');
 assert.match(css, /data-floor="1"/i, 'Floor 1 must have a dedicated color treatment.');
@@ -28,17 +28,14 @@ assert.match(css, /data-floor="3"/i, 'Floor 3 must have a dedicated color treatm
 assert.match(css, /data-floor="4"/i, 'Floor 4 must have a dedicated color treatment.');
 assert.match(css, /\.attendance-daily-floor-group/i, 'Floor separators must have dedicated styling.');
 
-// Compact daily layout: one toolbar, one summary strip, then the routed class list.
-assert.match(runtime, /attendance-daily-compact-toolbar/, 'Daily controls must be consolidated into one compact toolbar.');
-assert.doesNotMatch(runtime, /<span>Phòng học<\/span>/, 'The redundant visible “Phòng học” label must be removed from the compact toolbar.');
-assert.match(runtime, /aria-label="Ngày điểm danh"/, 'The compact date field must retain an accessible label without a separate visible heading.');
-assert.match(runtime, /attendance-daily-overview__summary is-compact/, 'Daily metrics must render as one compact summary strip.');
-assert.doesNotMatch(runtime, /đi theo thứ tự phòng/, 'Floor separators must not repeat the instructional copy on every floor.');
-assert.match(
-  css,
-  /data-attendance-daily-mode="daily"\][^}]*>\s*\.attendance-calendar-toolbar\s*\{[^}]*display\s*:\s*none\s*!important/i,
-  'The original month-title toolbar must disappear in daily mode to reclaim vertical space.',
-);
+// Compact daily layout: one direct React toolbar, one summary strip, then the routed class list.
+assert.match(schedule, /attendance-daily-compact-toolbar/, 'Daily controls must be consolidated into one compact toolbar.');
+assert.doesNotMatch(schedule, /<span>Phòng học<\/span>/, 'The redundant visible “Phòng học” label must be removed from the compact toolbar.');
+assert.match(schedule, /aria-label="Ngày điểm danh"/, 'The compact date field must retain an accessible label without a separate visible heading.');
+assert.match(schedule, /attendance-daily-overview__summary is-compact/, 'Daily metrics must render as one compact summary strip.');
+assert.doesNotMatch(schedule, /đi theo thứ tự phòng/, 'Floor separators must not repeat instructional copy on every floor.');
+assert.doesNotMatch(schedule, /MutationObserver|querySelector|innerHTML|data-attendance-daily-status-root/, 'Room filtering must remain inside direct React rendering rather than a DOM runtime.');
+assert.doesNotMatch(css, /data-attendance-daily-mode="daily"/i, 'Daily styling must not rely on hiding a legacy monthly calendar by data attribute.');
 assert.match(css, /\.attendance-daily-compact-toolbar\s*\{[^}]*min-height\s*:\s*4[0-9]px/i, 'Compact daily controls should fit in roughly one 40px row.');
 assert.match(css, /\.attendance-daily-overview__summary\.is-compact\s*\{[^}]*min-height\s*:\s*3[0-9]px/i, 'Summary metrics must collapse into a short horizontal strip.');
 assert.match(css, /\.attendance-daily-floor-group\s*\{[^}]*min-height\s*:\s*3[0-2]px/i, 'Floor separators must be compact.');
@@ -96,4 +93,4 @@ assert.deepEqual(
   'Class rows must route A206 with floor 2 before moving to floors 3 and 4.',
 );
 
-console.log('Compact floor-grouped daily attendance room route contract OK');
+console.log('Compact floor-grouped direct React daily attendance room route contract OK');
