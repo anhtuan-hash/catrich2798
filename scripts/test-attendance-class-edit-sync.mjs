@@ -72,16 +72,16 @@ assert.match(attendance, /AttendanceClassEditor/,
   'Management view must integrate the dedicated class editor component');
 assert.match(ui, /bes_admin_update_extra_class/,
   'Management UI must save class metadata through the Admin-only class RPC');
-assert.match(ui, /bes_update_extra_class_member/,
-  'Management UI must save member edits through the Manage-authorized member RPC');
+assert.match(ui, /bes_admin_update_extra_class_member/,
+  'Management UI must save member edits through the Admin-only member RPC');
 assert.match(ui, /Sửa thông tin lớp/,
   'Management UI must expose a class edit action');
 assert.match(ui, /Sửa học sinh/,
   'Management UI must expose a student edit action');
 assert.match(editor, /isAdmin\s*&&\s*!editingClass[\s\S]{0,300}Sửa thông tin lớp/,
   'Class editing must be guarded by the Admin role in the UI');
-assert.match(editor, /canManageMembers[\s\S]{0,300}Sửa học sinh/,
-  'Student editing must be guarded by Manage-tab capability in the UI');
+assert.match(editor, /member\.active\s*!==\s*false\s*&&\s*isAdmin[\s\S]{0,300}Sửa học sinh/,
+  'Student editing must be guarded by the Admin role in the UI');
 assert.match(css, /\.attendance-class-info-card/,
   'Class information editing surface must have dedicated styling');
 assert.match(css, /\.attendance-member-edit-row/,
@@ -98,7 +98,7 @@ assert.match(migration, /create or replace function\s+public\.bes_admin_update_e
 assert.match(migration, /Chỉ Admin được sửa thông tin lớp/i,
   'Class RPC must enforce Admin authorization server-side');
 assert.match(migration, /Chỉ Admin được sửa thông tin học sinh/i,
-  'Legacy member RPC must continue enforcing Admin authorization server-side');
+  'Member RPC must enforce Admin authorization server-side');
 assert.match(migration, /update\s+public\.bes_extra_classes/i,
   'Class RPC must update the current class row');
 assert.match(migration, /update\s+public\.bes_extra_class_members/i,
@@ -124,7 +124,7 @@ assert.match(
 assert.match(
   migration,
   /revoke all on function public\.bes_admin_update_extra_class_member\(uuid,uuid,text,text,text\) from public,\s*anon,\s*authenticated;/i,
-  'Legacy member update RPC must explicitly revoke default anon/authenticated grants before least-privilege grant',
+  'Member update RPC must explicitly revoke default anon/authenticated grants before least-privilege grant',
 );
 assert.match(
   migration,
@@ -134,7 +134,7 @@ assert.match(
 assert.match(
   migration,
   /grant execute on function public\.bes_admin_update_extra_class_member\(uuid,uuid,text,text,text\) to authenticated;/i,
-  'Signed-in users must receive the legacy member RPC entry point, with Admin authorization still enforced inside the RPC',
+  'Signed-in users must receive the member RPC entry point, with Admin authorization still enforced inside the RPC',
 );
 
 console.log('Attendance class edit sync contract OK');

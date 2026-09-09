@@ -1096,7 +1096,6 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
           selectedClass={selectedClass}
           members={filteredManagementMembers}
           isAdmin={isAttendanceAdmin}
-          canManageMembers={canAccessAttendanceView('manage')}
           busy={busy}
           onRemoveStudent={removeStudent}
           onReload={loadAll}
