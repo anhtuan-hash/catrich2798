@@ -1,17 +1,39 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
-const tabSource = fs.readFileSync(new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url), 'utf8');
-const dailySource = fs.readFileSync(new URL('../src/attendanceDailyStatusOverview.js', import.meta.url), 'utf8');
+const bootstrapUrl = new URL('../src/attendanceCalendarDirectEntryBootstrap.js', import.meta.url);
+const cssUrl = new URL('../src/styles/AttendanceCalendarDirectEntry.css', import.meta.url);
+const startupUrl = new URL('../src/tabResumeStability.js', import.meta.url);
 
-assert.match(tabSource, /useState\(['"]calendar['"]\)/, 'Attendance module must open on the calendar view by default');
-assert.match(tabSource, /if\s*\(item\.tab\s*===\s*['"]quick['"]\)\s*return\s+false|item\.tab\s*===\s*['"]quick['"]\s*\?\s*false/, 'Quick attendance must be hidden from the visible attendance navigation');
-assert.match(tabSource, /bes:attendance-open-class/, 'React attendance view must listen for calendar class selection');
-assert.match(tabSource, /setSelectedClassId\([\s\S]*setAttendanceDate\([\s\S]*setView\(['"]quick['"]\)/, 'Calendar class selection must open the existing rollcall detail for that class and date');
-assert.match(tabSource, /view\s*===\s*['"]quick['"][\s\S]{0,400}item\.tab\s*===\s*['"]calendar['"]|item\.tab\s*===\s*['"]calendar['"][\s\S]{0,400}view\s*===\s*['"]quick['"]/, 'Calendar tab must remain visually active while a class rollcall is open');
-assert.match(tabSource, /hasAttendanceTabAccess\(currentUser,\s*['"]calendar['"]\)[\s\S]{0,400}canUseQuickAttendance|canUseQuickAttendance[\s\S]{0,400}hasAttendanceTabAccess\(currentUser,\s*['"]calendar['"]\)/, 'Users who can take attendance must retain access through the calendar entry point');
+assert.ok(fs.existsSync(bootstrapUrl), 'Calendar direct-entry bootstrap must exist');
+assert.ok(fs.existsSync(cssUrl), 'Calendar direct-entry styles must exist');
 
-assert.match(dailySource, /bes:attendance-open-class/, 'Daily schedule rows must open attendance through a direct class-selection event');
-assert.doesNotMatch(dailySource, /Điểm danh nhanh[\s\S]{0,400}\.click\(\)/, 'Daily schedule must not navigate by clicking the hidden Quick tab');
+const bootstrapSource = fs.readFileSync(bootstrapUrl, 'utf8');
+for (const required of [
+  'Điểm danh nhanh',
+  'Lịch điểm danh',
+  'data-bes-hidden-quick-tab',
+  'attendance-daily-class-row',
+  'data-attendance-daily-status-root',
+  'attendance-quick-layout',
+  'data-bes-attendance-class-id',
+  'data-bes-calendar-class-detail',
+]) {
+  assert.ok(bootstrapSource.includes(required), `Calendar bridge must contain ${required}`);
+}
+assert.match(bootstrapSource, /addEventListener\(['"]click['"][\s\S]*capture:\s*true/, 'Calendar row interception must run in capture phase before the legacy row handler');
+assert.match(bootstrapSource, /stopImmediatePropagation\(\)/, 'Calendar row interception must prevent legacy Quick/History routing');
+assert.match(bootstrapSource, /quickTab\.click\(\)/, 'A selected calendar class must open the existing rollcall internally');
+assert.match(bootstrapSource, /setControlledValue\([\s\S]*attendance-session-controls[\s\S]*input\[type=["']date["']\]/, 'The rollcall must receive the date selected in the calendar');
+assert.match(bootstrapSource, /calendarTab\.click\(\)/, 'Opening the attendance module must redirect the hidden Quick default to the calendar');
+assert.match(bootstrapSource, /session_status|is-completed|is-cancelled|attendance-daily-class-row/, 'Completed and pending calendar rows must share the direct-entry bridge');
+
+const cssSource = fs.readFileSync(cssUrl, 'utf8');
+assert.match(cssSource, /data-bes-hidden-quick-tab[\s\S]*display:\s*none/, 'Quick attendance tab must be visually hidden');
+assert.match(cssSource, /data-bes-calendar-class-detail[\s\S]*attendance-class-list[\s\S]*display:\s*none/, 'Direct calendar entry must focus on the selected class instead of showing a second class picker');
+assert.match(cssSource, /bes-calendar-detail-active/, 'Calendar tab must stay visually active while selected-class rollcall is open');
+
+const startupSource = fs.readFileSync(startupUrl, 'utf8');
+assert.match(startupSource, /attendanceCalendarDirectEntryBootstrap\.js/, 'Startup chain must load the calendar direct-entry runtime');
 
 console.log('Attendance calendar direct-entry contract OK');
