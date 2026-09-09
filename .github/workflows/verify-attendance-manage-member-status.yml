@@ -1,0 +1,23 @@
+name: Verify attendance manage member status
+
+on:
+  push:
+    branches:
+      - feat/attendance-manage-member-status
+  pull_request:
+    paths:
+      - 'src/components/GlobalAttendanceNavigationTab.jsx'
+      - 'src/components/attendance/AttendanceClassEditor.jsx'
+      - 'src/components/attendance/AttendanceClassEditor.css'
+      - 'supabase/migrations/*attendance*member*status*.sql'
+      - 'scripts/test-attendance-member-manage-edit.mjs'
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/test-attendance-member-manage-edit.mjs
