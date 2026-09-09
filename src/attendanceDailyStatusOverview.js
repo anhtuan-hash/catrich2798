@@ -1,5 +1,6 @@
 import { getRuntimeClient } from './services/runtime/core.js';
 import { isExtraClassScheduledOnDate, roomForExtraClass } from './utils/extraClassSchedule2026.js';
+import { matchesAttendanceRoomFilter, sortAttendanceRoomLabels } from './utils/attendanceDailyRoomFilter.js';
 import './components/attendance/AttendanceDailyOverview.css';
 
 const CLASS_COLUMNS = 'id,class_type,class_name,subject,teacher_name,active,room,time_range,grade_level,source_key';
@@ -10,6 +11,8 @@ const MODE_ATTRIBUTE = 'data-attendance-daily-mode';
 
 let calendarMode = 'class';
 let dailyAttendanceDate = vietnamDateString();
+let dailyRoomFilter = 'all';
+let dailyOverviewSnapshot = null;
 let requestToken = 0;
 let observer = null;
 let scanQueued = false;
@@ -158,12 +161,29 @@ function statusLabel(status) {
   return 'Chưa điểm danh';
 }
 
+function displayedRoomForClass(classRow, session) {
+  return String(session?.teaching_room || roomForExtraClass(classRow) || classRow?.room || '').trim();
+}
+
 function renderLoading(overview) {
   overview.innerHTML = '<div class="attendance-daily-overview__empty">Đang tải trạng thái điểm danh theo ngày…</div>';
 }
 
 function renderError(overview, message) {
   overview.innerHTML = `<div class="attendance-daily-overview__empty">${escapeHtml(message || 'Không thể tải trạng thái điểm danh theo ngày.')}</div>`;
+}
+
+function syncRoomFilterOptions(layout, scheduledClasses, dailySessionsByClass) {
+  const roomSelect = layout.querySelector('.attendance-calendar-mode-bar__room select');
+  if (!roomSelect) return;
+  const roomOptions = sortAttendanceRoomLabels(scheduledClasses.map((classRow) => (
+    displayedRoomForClass(classRow, dailySessionsByClass.get(String(classRow.id)))
+  )));
+  if (dailyRoomFilter !== 'all' && !roomOptions.some((room) => matchesAttendanceRoomFilter(room, dailyRoomFilter))) {
+    dailyRoomFilter = 'all';
+  }
+  roomSelect.innerHTML = `<option value="all">Tất cả phòng</option>${roomOptions.map((room) => `<option value="${escapeHtml(room)}">${escapeHtml(room)}</option>`).join('')}`;
+  roomSelect.value = dailyRoomFilter;
 }
 
 function renderDailyRows(layout, overview, classes, sessions) {
@@ -175,13 +195,18 @@ function renderDailyRows(layout, overview, classes, sessions) {
   });
 
   const scheduledClasses = classes.filter((classRow) => isExtraClassScheduledOnDate(classRow, dailyAttendanceDate));
-  const completedCount = scheduledClasses.filter((classRow) => statusForSession(dailySessionsByClass.get(String(classRow.id))) === 'completed').length;
-  const cancelledCount = scheduledClasses.filter((classRow) => statusForSession(dailySessionsByClass.get(String(classRow.id))) === 'cancelled').length;
-  const missingCount = Math.max(0, scheduledClasses.length - completedCount - cancelledCount);
+  syncRoomFilterOptions(layout, scheduledClasses, dailySessionsByClass);
+  const visibleClasses = scheduledClasses.filter((classRow) => matchesAttendanceRoomFilter(
+    displayedRoomForClass(classRow, dailySessionsByClass.get(String(classRow.id))),
+    dailyRoomFilter,
+  ));
+  const completedCount = visibleClasses.filter((classRow) => statusForSession(dailySessionsByClass.get(String(classRow.id))) === 'completed').length;
+  const cancelledCount = visibleClasses.filter((classRow) => statusForSession(dailySessionsByClass.get(String(classRow.id))) === 'cancelled').length;
+  const missingCount = Math.max(0, visibleClasses.length - completedCount - cancelledCount);
 
   const metrics = `
     <div class="attendance-daily-overview__summary">
-      <article class="attendance-daily-overview__metric"><span>Có lịch</span><b>${scheduledClasses.length}</b></article>
+      <article class="attendance-daily-overview__metric"><span>Có lịch</span><b>${visibleClasses.length}</b></article>
       <article class="attendance-daily-overview__metric is-completed"><span>Đã điểm danh</span><b>${completedCount}</b></article>
       <article class="attendance-daily-overview__metric is-missing"><span>Chưa điểm danh</span><b>${missingCount}</b></article>
       <article class="attendance-daily-overview__metric is-cancelled"><span>Đã hủy</span><b>${cancelledCount}</b></article>
@@ -192,11 +217,16 @@ function renderDailyRows(layout, overview, classes, sessions) {
     return;
   }
 
-  const rows = scheduledClasses.map((classRow) => {
+  if (!visibleClasses.length) {
+    overview.innerHTML = `${metrics}<div class="attendance-daily-overview__empty">Không có lớp nào ở phòng ${escapeHtml(dailyRoomFilter)} trong ngày ${escapeHtml(formatDate(dailyAttendanceDate))}.</div>`;
+    return;
+  }
+
+  const rows = visibleClasses.map((classRow) => {
     const session = dailySessionsByClass.get(String(classRow.id));
     const status = statusForSession(session);
     const teacher = status === 'completed' ? (session?.teacher_name || classRow.teacher_name || 'Chưa ghi giáo viên') : (classRow.teacher_name || 'Chưa phân công GV');
-    const room = session?.teaching_room || roomForExtraClass(classRow) || classRow.room || 'Chưa ghi phòng';
+    const room = displayedRoomForClass(classRow, session) || 'Chưa ghi phòng';
     const timeRange = session?.teaching_time_range || classRow.time_range || 'Chưa ghi giờ';
     const attendanceMeta = status === 'completed'
       ? `${Number(session?.present_count || 0)}/${Number(session?.total_students || 0)} có mặt · ${String(session?.lesson_periods || 1).replace('.', ',')} tiết`
@@ -217,7 +247,7 @@ function renderDailyRows(layout, overview, classes, sessions) {
   overview.innerHTML = `${metrics}<div class="attendance-daily-overview__list">${rows}</div>`;
   overview.querySelectorAll('.attendance-daily-class-row').forEach((button) => {
     button.addEventListener('click', async () => {
-      const classRow = scheduledClasses.find((row) => String(row.id) === String(button.dataset.classId));
+      const classRow = visibleClasses.find((row) => String(row.id) === String(button.dataset.classId));
       if (!classRow) return;
       const session = dailySessionsByClass.get(String(classRow.id));
       if (session?.session_status === 'completed' || session?.session_status === 'cancelled') {
@@ -248,7 +278,8 @@ async function loadDailyOverview(layout, overview) {
     if (token !== requestToken || !overview.isConnected || calendarMode !== 'daily') return;
     const firstError = classResult.error || sessionResult.error;
     if (firstError) throw firstError;
-    renderDailyRows(layout, overview, classResult.data || [], sessionResult.data || []);
+    dailyOverviewSnapshot = { classes: classResult.data || [], sessions: sessionResult.data || [] };
+    renderDailyRows(layout, overview, dailyOverviewSnapshot.classes, dailyOverviewSnapshot.sessions);
   } catch (error) {
     if (token !== requestToken || !overview.isConnected) return;
     renderError(overview, error?.message || 'Không thể tải trạng thái điểm danh theo ngày.');
@@ -266,6 +297,8 @@ function setCalendarMode(layout, mode) {
   });
   const dateField = host.querySelector('.attendance-calendar-mode-bar__date');
   if (dateField) dateField.hidden = calendarMode !== 'daily';
+  const roomField = host.querySelector('.attendance-calendar-mode-bar__room');
+  if (roomField) roomField.hidden = calendarMode !== 'daily';
   const overview = host.querySelector('.attendance-daily-overview');
   if (!overview) return;
   overview.hidden = calendarMode !== 'daily';
@@ -284,6 +317,10 @@ function installDailyOverview(layout) {
         <button type="button" data-mode="class">Theo lớp</button>
         <button type="button" data-mode="daily">Theo ngày</button>
       </div>
+      <label class="attendance-calendar-mode-bar__room">
+        <span>Phòng học</span>
+        <select aria-label="Lọc theo phòng học"><option value="all">Tất cả phòng</option></select>
+      </label>
       <label class="attendance-calendar-mode-bar__date">
         <span>Ngày</span>
         <input type="date" max="${vietnamDateString()}" value="${escapeHtml(dailyAttendanceDate)}" />
@@ -299,10 +336,20 @@ function installDailyOverview(layout) {
     button.addEventListener('click', () => setCalendarMode(layout, button.dataset.mode));
   });
 
+  const roomSelect = host.querySelector('.attendance-calendar-mode-bar__room select');
+  roomSelect?.addEventListener('change', () => {
+    dailyRoomFilter = roomSelect.value || 'all';
+    const overview = host.querySelector('.attendance-daily-overview');
+    if (calendarMode === 'daily' && overview && dailyOverviewSnapshot) {
+      renderDailyRows(layout, overview, dailyOverviewSnapshot.classes, dailyOverviewSnapshot.sessions);
+    }
+  });
+
   const dateInput = host.querySelector('input[type="date"]');
   dateInput?.addEventListener('change', () => {
     if (!dateInput.value) return;
     dailyAttendanceDate = dateInput.value;
+    dailyOverviewSnapshot = null;
     const overview = host.querySelector('.attendance-daily-overview');
     if (calendarMode === 'daily' && overview) loadDailyOverview(layout, overview);
   });
