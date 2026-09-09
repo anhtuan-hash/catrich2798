@@ -131,10 +131,10 @@ assert.deepEqual(
 assert.equal(matchesAttendanceRoomFilter('A.406', 'all'), true, 'All rooms must pass the default filter.');
 assert.equal(matchesAttendanceRoomFilter('A.406', 'A.406'), true, 'The selected room must remain visible.');
 assert.equal(matchesAttendanceRoomFilter('A201', 'A.406'), false, 'Other rooms must be hidden.');
-assert.match(dailyOverviewModule, /attendance-calendar-mode-bar__room/, 'Daily mode bar must render a dedicated room filter.');
+assert.match(dailyOverviewModule, /attendance-calendar-room-filter/, 'Daily mode must render a dedicated visible room filter.');
 assert.match(dailyOverviewModule, /Tất cả phòng/, 'Room filter must include an option to clear the filter.');
 assert.match(dailyOverviewModule, /dailyRoomFilter/, 'Daily overview must keep the selected room filter state.');
 assert.match(dailyOverviewModule, /matchesAttendanceRoomFilter/, 'Daily rows must be filtered by the selected displayed room.');
-assert.match(dailyOverviewCss, /attendance-calendar-mode-bar__room/i, 'Daily room filter must have responsive styling.');
+assert.match(dailyOverviewCss, /attendance-calendar-room-filter/i, 'Daily room filter must have responsive styling.');
 
 console.log('Attendance class hub, explicit access permission, database gate, visible discovery, subject colors, room/time, absence UI, daily status overview and A-Z room filter contract OK');
