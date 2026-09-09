@@ -1,77 +1,34 @@
--- 2026-09-09: optional assigned-teacher/time-window enforcement for Attendance.
--- Defaults OFF so existing attendance behavior is unchanged until an Admin enables it.
--- Admins and users with attendance:report bypass the schedule restriction.
+-- 2026-09-09: optional Admin-configured global attendance time window.
+-- Baseline is the exact PR #704 tree. This migration intentionally does NOT
+-- hard-lock by class weekdays/time_range (PR #705 behavior stays rolled back).
+-- Toggle defaults OFF. Admin and attendance:report users bypass the window.
 
 create schema if not exists private;
 
 create table if not exists public.bes_attendance_access_settings (
   id smallint primary key default 1 check (id = 1),
-  enforce_teacher_schedule boolean not null default false,
+  enforce_teacher_time_window boolean not null default false,
+  teacher_start_time time without time zone not null default time '16:40',
+  teacher_end_time time without time zone not null default time '17:15',
   updated_by uuid references public.profiles(id) on delete set null,
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  constraint bes_attendance_access_distinct_times check (teacher_start_time <> teacher_end_time)
 );
 
-insert into public.bes_attendance_access_settings (id, enforce_teacher_schedule)
-values (1, false)
+insert into public.bes_attendance_access_settings (
+  id,
+  enforce_teacher_time_window,
+  teacher_start_time,
+  teacher_end_time
+)
+values (1, false, time '16:40', time '17:15')
 on conflict (id) do nothing;
 
 alter table public.bes_attendance_access_settings enable row level security;
 revoke all on table public.bes_attendance_access_settings from anon, authenticated;
 
-create or replace function private.bes_parse_attendance_time_range(p_value text)
-returns jsonb
-language plpgsql
-immutable
-security invoker
-set search_path = ''
-as $$
-declare
-  v_text text := lower(trim(coalesce(p_value, '')));
-  v_match text[];
-  v_start_hour integer;
-  v_start_minute integer;
-  v_end_hour integer;
-  v_end_minute integer;
-  v_start integer;
-  v_end integer;
-begin
-  if v_text = '' then return null; end if;
-  v_text := replace(replace(replace(v_text, '–', '-'), '—', '-'), '−', '-');
-  v_text := regexp_replace(v_text, '[[:space:]]+(đến|den|to)[[:space:]]+', '-', 'gi');
-  v_match := regexp_match(
-    v_text,
-    '^([0-9]{1,2})[[:space:]]*([:hg])?[[:space:]]*([0-9]{0,2})[[:space:]]*-[[:space:]]*([0-9]{1,2})[[:space:]]*([:hg])?[[:space:]]*([0-9]{0,2})$',
-    'i'
-  );
-  if v_match is null then return null; end if;
-
-  v_start_hour := v_match[1]::integer;
-  v_start_minute := case when coalesce(v_match[3], '') = '' then 0 else v_match[3]::integer end;
-  v_end_hour := v_match[4]::integer;
-  v_end_minute := case when coalesce(v_match[6], '') = '' then 0 else v_match[6]::integer end;
-
-  if v_start_hour not between 0 and 23
-     or v_end_hour not between 0 and 23
-     or v_start_minute not between 0 and 59
-     or v_end_minute not between 0 and 59 then
-    return null;
-  end if;
-
-  v_start := v_start_hour * 60 + v_start_minute;
-  v_end := v_end_hour * 60 + v_end_minute;
-  return jsonb_build_object(
-    'start_minute', v_start,
-    'end_minute', v_end,
-    'overnight', v_end < v_start
-  );
-exception when others then
-  return null;
-end;
-$$;
-
 create or replace function private.bes_attendance_access_decision(
   p_class_id uuid,
-  p_attendance_date date,
   p_teacher_name text,
   p_now timestamptz
 )
@@ -85,19 +42,14 @@ declare
   v_profile public.profiles%rowtype;
   v_class public.bes_extra_classes%rowtype;
   v_enforced boolean := false;
+  v_start time without time zone := time '16:40';
+  v_end time without time zone := time '17:15';
+  v_local_time time without time zone := (coalesce(p_now, clock_timestamp()) at time zone 'Asia/Ho_Chi_Minh')::time;
   v_is_admin boolean := false;
   v_has_report boolean := false;
   v_is_assigned boolean := false;
   v_selected_teacher text := lower(trim(coalesce(p_teacher_name, '')));
-  v_window jsonb;
-  v_start integer;
-  v_end integer;
-  v_local_now timestamp without time zone := coalesce(p_now, clock_timestamp()) at time zone 'Asia/Ho_Chi_Minh';
-  v_clock_seconds integer;
-  v_expected_date date;
   v_in_window boolean := false;
-  v_day_allowed boolean := true;
-  v_dow integer;
 begin
   if v_uid is null then
     return jsonb_build_object('allowed', false, 'reason', 'not_authenticated');
@@ -128,14 +80,26 @@ begin
     return jsonb_build_object('allowed', false, 'reason', 'missing_permission');
   end if;
 
-  select coalesce(s.enforce_teacher_schedule, false)
-  into v_enforced
+  select
+    coalesce(s.enforce_teacher_time_window, false),
+    s.teacher_start_time,
+    s.teacher_end_time
+  into v_enforced, v_start, v_end
   from public.bes_attendance_access_settings s
   where s.id = 1;
 
   v_enforced := coalesce(v_enforced, false);
+  v_start := coalesce(v_start, time '16:40');
+  v_end := coalesce(v_end, time '17:15');
+
   if not v_enforced then
-    return jsonb_build_object('allowed', true, 'reason', 'restriction_disabled', 'bypass', false);
+    return jsonb_build_object(
+      'allowed', true,
+      'reason', 'restriction_disabled',
+      'bypass', false,
+      'window_start', to_char(v_start, 'HH24:MI'),
+      'window_end', to_char(v_end, 'HH24:MI')
+    );
   end if;
 
   select *
@@ -201,36 +165,24 @@ begin
       'allowed', false,
       'reason', 'unassigned',
       'class_id', p_class_id,
-      'time_range', coalesce(v_class.time_range, '')
+      'window_start', to_char(v_start, 'HH24:MI'),
+      'window_end', to_char(v_end, 'HH24:MI')
     );
   end if;
 
-  v_window := private.bes_parse_attendance_time_range(v_class.time_range);
-  if v_window is null then
+  if v_start = v_end then
     return jsonb_build_object(
       'allowed', false,
       'reason', 'invalid_time',
-      'class_id', p_class_id,
-      'time_range', coalesce(v_class.time_range, '')
+      'class_id', p_class_id
     );
   end if;
 
-  v_start := (v_window ->> 'start_minute')::integer;
-  v_end := (v_window ->> 'end_minute')::integer;
-  v_clock_seconds := floor(extract(epoch from v_local_now::time))::integer;
-  v_expected_date := v_local_now::date;
-
-  if v_end < v_start then
-    if v_clock_seconds >= v_start * 60 then
-      v_in_window := true;
-      v_expected_date := v_local_now::date;
-    elsif v_clock_seconds <= v_end * 60 then
-      v_in_window := true;
-      v_expected_date := (v_local_now::date - 1);
-    end if;
+  if v_end > v_start then
+    v_in_window := v_local_time >= v_start and v_local_time <= v_end;
   else
-    v_in_window := v_clock_seconds >= v_start * 60
-                   and v_clock_seconds <= v_end * 60;
+    -- Overnight window, e.g. 22:00 -> 01:30.
+    v_in_window := v_local_time >= v_start or v_local_time <= v_end;
   end if;
 
   if not v_in_window then
@@ -238,44 +190,8 @@ begin
       'allowed', false,
       'reason', 'outside_time',
       'class_id', p_class_id,
-      'time_range', coalesce(v_class.time_range, ''),
-      'expected_session_date', v_expected_date
-    );
-  end if;
-
-  if p_attendance_date is null or p_attendance_date <> v_expected_date then
-    return jsonb_build_object(
-      'allowed', false,
-      'reason', 'wrong_session_date',
-      'class_id', p_class_id,
-      'time_range', coalesce(v_class.time_range, ''),
-      'expected_session_date', v_expected_date
-    );
-  end if;
-
-  if nullif(trim(coalesce(v_class.weekdays, '')), '') is not null then
-    v_dow := extract(dow from p_attendance_date)::integer;
-    select exists (
-      select 1
-      from unnest(string_to_array(v_class.weekdays, ',')) as token(value)
-      where (
-        lower(trim(token.value)) in ('cn', 'chu nhat', 'chủ nhật')
-        and v_dow = 0
-      ) or (
-        trim(token.value) ~ '^[2-7]$'
-        and trim(token.value)::integer - 1 = v_dow
-      )
-    )
-    into v_day_allowed;
-  end if;
-
-  if not coalesce(v_day_allowed, true) then
-    return jsonb_build_object(
-      'allowed', false,
-      'reason', 'off_schedule',
-      'class_id', p_class_id,
-      'time_range', coalesce(v_class.time_range, ''),
-      'expected_session_date', v_expected_date
+      'window_start', to_char(v_start, 'HH24:MI'),
+      'window_end', to_char(v_end, 'HH24:MI')
     );
   end if;
 
@@ -284,8 +200,8 @@ begin
     'reason', 'within_window',
     'bypass', false,
     'class_id', p_class_id,
-    'time_range', coalesce(v_class.time_range, ''),
-    'expected_session_date', v_expected_date
+    'window_start', to_char(v_start, 'HH24:MI'),
+    'window_end', to_char(v_end, 'HH24:MI')
   );
 end;
 $$;
@@ -300,6 +216,8 @@ declare
   v_uid uuid := auth.uid();
   v_profile public.profiles%rowtype;
   v_enabled boolean := false;
+  v_start time without time zone := time '16:40';
+  v_end time without time zone := time '17:15';
   v_is_admin boolean := false;
   v_has_report boolean := false;
 begin
@@ -317,25 +235,36 @@ begin
     raise exception 'Bạn không có quyền truy cập phân hệ điểm danh.' using errcode = '42501';
   end if;
 
-  select coalesce(s.enforce_teacher_schedule, false)
-  into v_enabled
+  select
+    coalesce(s.enforce_teacher_time_window, false),
+    s.teacher_start_time,
+    s.teacher_end_time
+  into v_enabled, v_start, v_end
   from public.bes_attendance_access_settings s
   where s.id = 1;
 
+  v_start := coalesce(v_start, time '16:40');
+  v_end := coalesce(v_end, time '17:15');
   v_is_admin := lower(coalesce(v_profile.role, '')) in ('admin', 'administrator');
   v_has_report := coalesce(v_profile.permissions -> 'allowed', '[]'::jsonb) ? 'attendance:report';
 
   return jsonb_build_object(
-    'enforce_teacher_schedule', coalesce(v_enabled, false),
+    'enforce_teacher_time_window', coalesce(v_enabled, false),
+    'teacher_start_time', to_char(v_start, 'HH24:MI'),
+    'teacher_end_time', to_char(v_end, 'HH24:MI'),
     'can_administer', v_is_admin,
-    'bypass_schedule', v_is_admin or v_has_report,
+    'bypass_time_window', v_is_admin or v_has_report,
     'server_now', clock_timestamp(),
     'time_zone', 'Asia/Ho_Chi_Minh'
   );
 end;
 $$;
 
-create or replace function private.bes_set_attendance_time_restriction(p_enabled boolean)
+create or replace function private.bes_set_attendance_time_restriction(
+  p_enabled boolean,
+  p_start_time time without time zone,
+  p_end_time time without time zone
+)
 returns jsonb
 language plpgsql
 security definer
@@ -354,13 +283,29 @@ begin
     raise exception 'Chỉ Admin được thay đổi giới hạn giờ điểm danh.' using errcode = '42501';
   end if;
 
+  if p_start_time is null or p_end_time is null or p_start_time = p_end_time then
+    raise exception 'Giờ bắt đầu và giờ kết thúc phải hợp lệ và khác nhau.' using errcode = '22023';
+  end if;
+
   insert into public.bes_attendance_access_settings (
-    id, enforce_teacher_schedule, updated_by, updated_at
+    id,
+    enforce_teacher_time_window,
+    teacher_start_time,
+    teacher_end_time,
+    updated_by,
+    updated_at
   ) values (
-    1, coalesce(p_enabled, false), v_uid, clock_timestamp()
+    1,
+    coalesce(p_enabled, false),
+    p_start_time,
+    p_end_time,
+    v_uid,
+    clock_timestamp()
   )
   on conflict (id) do update
-  set enforce_teacher_schedule = excluded.enforce_teacher_schedule,
+  set enforce_teacher_time_window = excluded.enforce_teacher_time_window,
+      teacher_start_time = excluded.teacher_start_time,
+      teacher_end_time = excluded.teacher_end_time,
       updated_by = excluded.updated_by,
       updated_at = excluded.updated_at;
 
@@ -368,17 +313,16 @@ begin
 end;
 $$;
 
-revoke all on function private.bes_attendance_access_decision(uuid,date,text,timestamptz) from public;
+revoke all on function private.bes_attendance_access_decision(uuid,text,timestamptz) from public;
 revoke all on function private.bes_attendance_settings_snapshot() from public;
-revoke all on function private.bes_set_attendance_time_restriction(boolean) from public;
+revoke all on function private.bes_set_attendance_time_restriction(boolean,time without time zone,time without time zone) from public;
 grant usage on schema private to authenticated;
-grant execute on function private.bes_attendance_access_decision(uuid,date,text,timestamptz) to authenticated;
+grant execute on function private.bes_attendance_access_decision(uuid,text,timestamptz) to authenticated;
 grant execute on function private.bes_attendance_settings_snapshot() to authenticated;
-grant execute on function private.bes_set_attendance_time_restriction(boolean) to authenticated;
+grant execute on function private.bes_set_attendance_time_restriction(boolean,time without time zone,time without time zone) to authenticated;
 
 create or replace function public.bes_can_operate_extra_class_attendance(
   p_class_id uuid,
-  p_attendance_date date,
   p_teacher_name text default null,
   p_now timestamptz default clock_timestamp()
 )
@@ -388,14 +332,13 @@ security invoker
 set search_path = ''
 as $$
   select coalesce(
-    (private.bes_attendance_access_decision(p_class_id, p_attendance_date, p_teacher_name, p_now) ->> 'allowed')::boolean,
+    (private.bes_attendance_access_decision(p_class_id, p_teacher_name, p_now) ->> 'allowed')::boolean,
     false
   );
 $$;
 
 create or replace function public.bes_get_extra_class_attendance_access(
   p_class_id uuid,
-  p_attendance_date date,
   p_teacher_name text default null
 )
 returns jsonb
@@ -403,7 +346,7 @@ language sql
 security invoker
 set search_path = ''
 as $$
-  select private.bes_attendance_access_decision(p_class_id, p_attendance_date, p_teacher_name, clock_timestamp());
+  select private.bes_attendance_access_decision(p_class_id, p_teacher_name, clock_timestamp());
 $$;
 
 create or replace function public.bes_can_operate_extra_attendance_session(
@@ -428,7 +371,6 @@ begin
   return coalesce(
     (private.bes_attendance_access_decision(
       v_session.class_id,
-      v_session.attendance_date,
       null,
       p_now
     ) ->> 'allowed')::boolean,
@@ -446,32 +388,38 @@ as $$
   select private.bes_attendance_settings_snapshot();
 $$;
 
-create or replace function public.bes_admin_set_attendance_time_restriction(p_enabled boolean)
+create or replace function public.bes_admin_set_attendance_time_restriction(
+  p_enabled boolean,
+  p_start_time time without time zone,
+  p_end_time time without time zone
+)
 returns jsonb
 language sql
 security invoker
 set search_path = ''
 as $$
-  select private.bes_set_attendance_time_restriction(p_enabled);
+  select private.bes_set_attendance_time_restriction(p_enabled, p_start_time, p_end_time);
 $$;
 
-revoke all on function public.bes_can_operate_extra_class_attendance(uuid,date,text,timestamptz) from public;
-revoke all on function public.bes_can_operate_extra_class_attendance(uuid,date,text,timestamptz) from anon;
-revoke all on function public.bes_get_extra_class_attendance_access(uuid,date,text) from public;
-revoke all on function public.bes_get_extra_class_attendance_access(uuid,date,text) from anon;
+revoke all on function public.bes_can_operate_extra_class_attendance(uuid,text,timestamptz) from public;
+revoke all on function public.bes_can_operate_extra_class_attendance(uuid,text,timestamptz) from anon;
+revoke all on function public.bes_get_extra_class_attendance_access(uuid,text) from public;
+revoke all on function public.bes_get_extra_class_attendance_access(uuid,text) from anon;
 revoke all on function public.bes_can_operate_extra_attendance_session(uuid,timestamptz) from public;
 revoke all on function public.bes_can_operate_extra_attendance_session(uuid,timestamptz) from anon;
 revoke all on function public.bes_get_attendance_access_settings() from public;
 revoke all on function public.bes_get_attendance_access_settings() from anon;
-revoke all on function public.bes_admin_set_attendance_time_restriction(boolean) from public;
-revoke all on function public.bes_admin_set_attendance_time_restriction(boolean) from anon;
+revoke all on function public.bes_admin_set_attendance_time_restriction(boolean,time without time zone,time without time zone) from public;
+revoke all on function public.bes_admin_set_attendance_time_restriction(boolean,time without time zone,time without time zone) from anon;
 
-grant execute on function public.bes_can_operate_extra_class_attendance(uuid,date,text,timestamptz) to authenticated;
-grant execute on function public.bes_get_extra_class_attendance_access(uuid,date,text) to authenticated;
+grant execute on function public.bes_can_operate_extra_class_attendance(uuid,text,timestamptz) to authenticated;
+grant execute on function public.bes_get_extra_class_attendance_access(uuid,text) to authenticated;
 grant execute on function public.bes_can_operate_extra_attendance_session(uuid,timestamptz) to authenticated;
 grant execute on function public.bes_get_attendance_access_settings() to authenticated;
-grant execute on function public.bes_admin_set_attendance_time_restriction(boolean) to authenticated;
+grant execute on function public.bes_admin_set_attendance_time_restriction(boolean,time without time zone,time without time zone) to authenticated;
 
+-- Patch only the existing PR #704 write gates. This does not introduce the
+-- PR #705 class-schedule trigger or weekday hard-lock behavior.
 do $attendance_time_gate$
 declare
   v_definition text;
@@ -485,7 +433,7 @@ begin
     execute replace(
       v_definition,
       'public.can_take_extra_class_attendance()',
-      'public.bes_can_operate_extra_class_attendance(p_class_id, p_attendance_date, p_teacher_name, clock_timestamp())'
+      'public.bes_can_operate_extra_class_attendance(p_class_id, p_teacher_name, clock_timestamp())'
     );
   end if;
 
@@ -498,7 +446,7 @@ begin
     execute replace(
       v_definition,
       'public.can_take_extra_class_attendance()',
-      'public.bes_can_operate_extra_class_attendance(p_class_id, p_attendance_date, null, clock_timestamp())'
+      'public.bes_can_operate_extra_class_attendance(p_class_id, null, clock_timestamp())'
     );
   end if;
 
@@ -528,4 +476,4 @@ grant execute on function public.bes_cancel_extra_class_session(uuid,date,text,t
 grant execute on function public.bes_delete_extra_attendance_session(uuid) to authenticated;
 
 comment on table public.bes_attendance_access_settings is
-  'Global Admin toggle for assigned-teacher attendance schedule enforcement. Defaults OFF for backwards compatibility.';
+  'Admin-controlled global attendance window for assigned teachers. Defaults OFF; PR #704 behavior is preserved when disabled.';
