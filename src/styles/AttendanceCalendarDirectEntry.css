@@ -29,8 +29,56 @@
   display: none !important;
 }
 
+.bes-attendance-calendar-back {
+  width: fit-content;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 8px 2px;
+  padding: 0 11px;
+  border: 1px solid #d6e2f1;
+  border-radius: 10px;
+  background: #f7faff;
+  color: var(--att-blue, #2468d8);
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(32, 65, 108, .04);
+}
+
+.bes-attendance-calendar-back:hover {
+  border-color: #b9d0ee;
+  background: #edf5ff;
+}
+
+.bes-attendance-calendar-back:focus-visible {
+  outline: 3px solid rgba(36, 104, 216, .18);
+  outline-offset: 2px;
+}
+
+.bes-attendance-calendar-back > span {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.bes-attendance-calendar-back > b {
+  font-size: 11px;
+  font-weight: 800;
+}
+
 @media (max-width: 820px) {
   .attendance-shell[data-bes-calendar-class-detail="true"] .attendance-quick-layout {
     display: block;
+  }
+
+  .bes-attendance-calendar-back {
+    min-height: 30px;
+    margin-bottom: 6px;
+    padding: 0 9px;
+  }
+
+  .bes-attendance-calendar-back > b {
+    font-size: 10px;
   }
 }
