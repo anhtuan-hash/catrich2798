@@ -222,6 +222,14 @@ function renderDailyRows(layout, overview, classes, sessions) {
     return;
   }
 
+  const tableHeader = `<div class="attendance-daily-table-header" aria-hidden="true">
+    <span class="attendance-daily-table-header__class">LỚP</span>
+    <span class="attendance-daily-table-header__teacher">GIÁO VIÊN</span>
+    <span class="attendance-daily-table-header__room">PHÒNG</span>
+    <span class="attendance-daily-table-header__time">THỜI GIAN</span>
+    <span class="attendance-daily-table-header__status">TRẠNG THÁI</span>
+  </div>`;
+
   const floorCounts = new Map();
   visibleClasses.forEach((classRow) => {
     const session = dailySessionsByClass.get(String(classRow.id));
@@ -241,12 +249,13 @@ function renderDailyRows(layout, overview, classes, sessions) {
       ? `${Number(session?.present_count || 0)}/${Number(session?.total_students || 0)} có mặt · ${String(session?.lesson_periods || 1).replace('.', ',')} tiết`
       : status === 'cancelled'
         ? `${session?.cancellation_reason || 'Buổi học đã hủy'} · 0 tiết`
-        : 'Có lịch nhưng chưa chốt';
+        : '';
+    const attendanceMetaHtml = attendanceMeta ? `<small>${escapeHtml(attendanceMeta)}</small>` : '';
     const floorAttribute = floor ? ` data-floor="${floor}"` : '';
     const showFloorSeparator = dailyRoomFilter === 'all' && floor && floor !== previousFloor;
     if (floor) previousFloor = floor;
     const floorSeparator = showFloorSeparator
-      ? `<div class="attendance-daily-floor-group" data-floor="${floor}"><strong>Lầu ${floor}</strong><span>${floorCounts.get(floor) || 0} lớp</span></div>`
+      ? `<div class="attendance-daily-floor-group" data-floor="${floor}"><strong>Lầu ${floor}<span> · ${floorCounts.get(floor) || 0} lớp</span></strong></div>`
       : '';
 
     return `${floorSeparator}
@@ -254,12 +263,12 @@ function renderDailyRows(layout, overview, classes, sessions) {
         <span class="attendance-daily-class-row__class"><b>${escapeHtml(classRow.class_name)}</b><small>${escapeHtml(classTypeLabel(classRow))} · ${escapeHtml(classRow.subject || 'Chưa ghi môn')}</small></span>
         <span class="attendance-daily-class-row__teacher"><b>${escapeHtml(teacher)}</b></span>
         <span class="attendance-daily-class-row__meta is-room"${floorAttribute}><b>${escapeHtml(room)}</b><small>${floor ? `Lầu ${floor}` : 'Phòng học'}</small></span>
-        <span class="attendance-daily-class-row__meta is-time"><b>${escapeHtml(timeRange)}</b><small>${escapeHtml(attendanceMeta)}</small></span>
+        <span class="attendance-daily-class-row__meta is-time"><b>${escapeHtml(timeRange)}</b>${attendanceMetaHtml}</span>
         <span class="attendance-daily-class-row__status is-${status}">${statusLabel(status)}</span>
       </button>`;
   }).join('');
 
-  overview.innerHTML = `${metrics}<div class="attendance-daily-overview__list">${rows}</div>`;
+  overview.innerHTML = `${metrics}${tableHeader}<div class="attendance-daily-overview__list">${rows}</div>`;
   overview.querySelectorAll('.attendance-daily-class-row').forEach((button) => {
     button.addEventListener('click', async () => {
       const classRow = visibleClasses.find((row) => String(row.id) === String(button.dataset.classId));
@@ -330,7 +339,7 @@ function installDailyOverview(layout) {
   host.setAttribute(HOST_ATTRIBUTE, 'true');
   host.className = 'attendance-daily-overview-host';
   host.innerHTML = `
-    <div class="attendance-daily-compact-toolbar" style="grid-template-columns:minmax(0,1fr) 150px">
+    <div class="attendance-daily-compact-toolbar">
       <div class="attendance-calendar-room-filter" aria-label="Lọc theo phòng học">
         <div class="attendance-calendar-room-chips" role="group" aria-label="Phòng học"><button type="button" class="attendance-calendar-room-chip is-active" data-room-filter="all" aria-pressed="true">Tất cả phòng</button></div>
       </div>
