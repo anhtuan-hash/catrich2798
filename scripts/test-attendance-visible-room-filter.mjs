@@ -63,7 +63,7 @@ assert.equal(attendanceFloorForRoom(''), null);
 
 assert.deepEqual(
   sortAttendanceRoomLabels(['A405', 'A206', 'B205', 'A302', 'A104', 'A204', 'A202', 'A103']),
-  ['A103', 'A202', 'A204', 'A206', 'B205', 'A302', 'A405'],
+  ['A103', 'A104', 'A202', 'A204', 'A206', 'B205', 'A302', 'A405'],
   'A206 must remain inside the floor-2 route instead of falling behind known floor-4 rooms.',
 );
 assert.deepEqual(
