@@ -121,7 +121,8 @@
 
 .attendance-class-edit-grid input,
 .attendance-class-edit-grid select,
-.attendance-member-edit-row input {
+.attendance-member-edit-row input,
+.attendance-member-edit-row select {
   width: 100%;
   min-width: 0;
   height: 38px;
@@ -138,7 +139,8 @@
 
 .attendance-class-edit-grid input:focus,
 .attendance-class-edit-grid select:focus,
-.attendance-member-edit-row input:focus {
+.attendance-member-edit-row input:focus,
+.attendance-member-edit-row select:focus {
   outline: 2px solid color-mix(in srgb, var(--att-m3-primary, #3f5f90) 28%, transparent);
   outline-offset: 1px;
   border-color: var(--att-m3-primary, #3f5f90);
@@ -224,7 +226,8 @@
   margin-bottom: 3px;
 }
 
-.attendance-member-edit-row input {
+.attendance-member-edit-row input,
+.attendance-member-edit-row select {
   height: 34px;
 }
 
