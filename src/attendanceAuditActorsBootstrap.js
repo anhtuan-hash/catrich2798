@@ -7,7 +7,6 @@ const CHANGE_COLUMNS = 'id,session_id,record_id,class_id,member_key,student_full
 let scheduled = false;
 let activeKey = '';
 let requestId = 0;
-const cache = new Map();
 
 function formatDateTime(value) {
   const date = new Date(value);
@@ -124,11 +123,7 @@ async function refresh() {
   const currentRequest = ++requestId;
   renderLoading(identity.detail);
   try {
-    let data = cache.get(identity.key);
-    if (!data) {
-      data = await loadAudit(identity);
-      if (data) cache.set(identity.key, data);
-    }
+    const data = await loadAudit(identity);
     if (currentRequest !== requestId) return;
     const latestIdentity = selectedHistoryIdentity();
     if (!latestIdentity || latestIdentity.key !== identity.key) return;
@@ -156,7 +151,6 @@ if (typeof document !== 'undefined') {
       }
     }, true);
     window.addEventListener('bes-attendance-audit-refresh', () => {
-      cache.clear();
       activeKey = '';
       scheduleRefresh();
     });
