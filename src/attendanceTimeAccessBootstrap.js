@@ -39,6 +39,8 @@ let observer = null;
 let timer = 0;
 let serverDecision = { key: '', data: null, pending: false };
 let accessNotice = '';
+let adminSettingsDirty = false;
+let adminSettingsDraft = null;
 
 function lower(value) {
   return String(value || '').trim().toLowerCase();
@@ -72,6 +74,30 @@ function inputClockValue(value, fallback = '') {
 
 function configuredWindowLabel() {
   return attendanceWindowLabel(settings.teacher_start_time, settings.teacher_end_time);
+}
+
+function readAdminSettingsDraft(panel) {
+  if (!panel) return null;
+  return {
+    enabled: Boolean(panel.querySelector('.bes-attendance-time-enabled')?.checked),
+    start: String(panel.querySelector('.bes-attendance-time-start')?.value || '').trim(),
+    end: String(panel.querySelector('.bes-attendance-time-end')?.value || '').trim(),
+  };
+}
+
+function resetAdminSettingsDraft() {
+  adminSettingsDirty = false;
+  adminSettingsDraft = null;
+}
+
+function markAdminSettingsDirty(panel) {
+  adminSettingsDirty = true;
+  adminSettingsDraft = readAdminSettingsDraft(panel);
+  const status = panel?.querySelector('.bes-attendance-time-admin-status');
+  if (status) {
+    status.textContent = 'Có thay đổi chưa lưu.';
+    status.className = 'bes-attendance-time-admin-status is-dirty';
+  }
 }
 
 function teachersForClass(classId) {
@@ -315,6 +341,8 @@ async function saveAdminSettings(panel) {
     });
     if (error) throw error;
     settings = { ...settings, ...(data || {}) };
+    adminSettingsDirty = false;
+    adminSettingsDraft = null;
     if (data?.server_now) serverClockOffsetMs = new Date(data.server_now).getTime() - Date.now();
     serverDecision = { key: '', data: null, pending: false };
     accessNotice = settings.enforce_teacher_time_window
@@ -340,6 +368,7 @@ function ensureAdminSettingsPanel() {
   if (!tabs) return;
   let panel = document.querySelector('.bes-attendance-time-settings');
   if (!settings.can_administer) {
+    resetAdminSettingsDraft();
     panel?.remove();
     return;
   }
@@ -364,23 +393,27 @@ function ensureAdminSettingsPanel() {
     `;
     tabs.insertAdjacentElement('afterend', panel);
     panel.querySelector('.bes-attendance-time-save')?.addEventListener('click', () => saveAdminSettings(panel));
-    panel.querySelectorAll('input').forEach((input) => input.addEventListener('change', () => {
-      const status = panel.querySelector('.bes-attendance-time-admin-status');
-      if (status) {
-        status.textContent = 'Có thay đổi chưa lưu.';
-        status.className = 'bes-attendance-time-admin-status is-dirty';
-      }
-    }));
+    panel.querySelectorAll('input').forEach((input) => {
+      input.addEventListener('input', () => markAdminSettingsDirty(panel));
+      input.addEventListener('change', () => markAdminSettingsDirty(panel));
+    });
   }
 
   const enabledInput = panel.querySelector('.bes-attendance-time-enabled');
   const startInput = panel.querySelector('.bes-attendance-time-start');
   const endInput = panel.querySelector('.bes-attendance-time-end');
-  if (enabledInput && enabledInput.checked !== Boolean(settings.enforce_teacher_time_window)) enabledInput.checked = Boolean(settings.enforce_teacher_time_window);
   const startValue = inputClockValue(settings.teacher_start_time, '16:40');
   const endValue = inputClockValue(settings.teacher_end_time, '17:15');
-  if (startInput && document.activeElement !== startInput && startInput.value !== startValue) startInput.value = startValue;
-  if (endInput && document.activeElement !== endInput && endInput.value !== endValue) endInput.value = endValue;
+
+  if (!adminSettingsDirty) {
+    if (enabledInput && enabledInput.checked !== Boolean(settings.enforce_teacher_time_window)) enabledInput.checked = Boolean(settings.enforce_teacher_time_window);
+    if (startInput && document.activeElement !== startInput && startInput.value !== startValue) startInput.value = startValue;
+    if (endInput && document.activeElement !== endInput && endInput.value !== endValue) endInput.value = endValue;
+  } else if (adminSettingsDraft) {
+    if (enabledInput && enabledInput.checked !== Boolean(adminSettingsDraft.enabled)) enabledInput.checked = Boolean(adminSettingsDraft.enabled);
+    if (startInput && document.activeElement !== startInput && startInput.value !== adminSettingsDraft.start) startInput.value = adminSettingsDraft.start;
+    if (endInput && document.activeElement !== endInput && endInput.value !== adminSettingsDraft.end) endInput.value = adminSettingsDraft.end;
+  }
 }
 
 function serverDecisionKey(classRow, teacherName) {
@@ -459,6 +492,7 @@ async function refreshAccessMetadata({ force = false } = {}) {
         classes = [];
         classTeachers = [];
         metadataLoadedForUser = '';
+        resetAdminSettingsDraft();
         return;
       }
       if (!force && metadataLoadedForUser === userId && classes.length) return;
@@ -518,6 +552,7 @@ export function installAttendanceTimeAccessControl() {
     if (previousUserId !== nextUserId) {
       metadataLoadedForUser = '';
       serverDecision = { key: '', data: null, pending: false };
+      resetAdminSettingsDraft();
       refreshAccessMetadata({ force: true }).catch(() => {});
     } else {
       queueRender();
