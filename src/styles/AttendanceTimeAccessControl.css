@@ -1,6 +1,47 @@
+.bes-attendance-time-settings {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.3fr) minmax(220px, .9fr) 118px 24px 118px auto;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-bottom: 1px solid #dfe6ee;
+  background: #f8fbff;
+  color: #24384f;
+}
+.bes-attendance-time-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.bes-attendance-time-heading > span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 10px;
+  background: #e8f1ff;
+}
+.bes-attendance-time-heading > div,
+.bes-attendance-time-toggle > span:first-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.bes-attendance-time-heading strong,
+.bes-attendance-time-toggle b {
+  font-size: 12px;
+  line-height: 1.25;
+}
+.bes-attendance-time-heading small,
+.bes-attendance-time-toggle small {
+  color: #6c7d90;
+  font-size: 9px;
+  line-height: 1.35;
+}
 .bes-attendance-time-toggle {
-  min-width: 210px;
-  min-height: 42px;
+  min-height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: space-between;
@@ -8,14 +49,11 @@
   padding: 7px 10px 7px 12px;
   border: 1px solid #d9e2ec;
   border-radius: 12px;
-  background: #f8fafc;
+  background: #fff;
   color: #24384f;
   cursor: pointer;
   user-select: none;
 }
-.bes-attendance-time-toggle-copy { display: grid; gap: 2px; min-width: 0; }
-.bes-attendance-time-toggle-copy b { font-size: 11px; line-height: 1.2; white-space: nowrap; }
-.bes-attendance-time-toggle-copy small { color: #6c7d90; font-size: 9px; font-weight: 700; white-space: nowrap; }
 .bes-attendance-switch { position: relative; width: 36px; height: 22px; flex: 0 0 auto; }
 .bes-attendance-switch input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
 .bes-attendance-switch i {
@@ -42,6 +80,66 @@
 .bes-attendance-switch input:checked + i::after { transform: translateX(14px); }
 .bes-attendance-switch input:focus-visible + i { outline: 3px solid rgba(36, 104, 216, .2); outline-offset: 2px; }
 .bes-attendance-switch input:disabled + i { opacity: .55; }
+
+.bes-attendance-time-field {
+  min-height: 44px;
+  display: grid;
+  gap: 3px;
+  padding: 6px 9px;
+  border: 1px solid #d9e2ec;
+  border-radius: 11px;
+  background: #fff;
+}
+.bes-attendance-time-field > span {
+  color: #6c7d90;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.bes-attendance-time-field input {
+  min-width: 0;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #1d3248;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+}
+.bes-attendance-time-arrow {
+  display: grid;
+  place-items: center;
+  color: #7b8da1;
+  font-weight: 900;
+}
+.bes-attendance-time-save {
+  min-height: 42px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 11px;
+  background: #245ca8;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.bes-attendance-time-save:disabled { opacity: .55; cursor: wait; }
+.bes-attendance-time-admin-status {
+  grid-column: 2 / -1;
+  min-height: 14px;
+  margin-top: -4px;
+  color: #6c7d90;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 700;
+}
+.bes-attendance-time-admin-status.is-success { color: #176e50; }
+.bes-attendance-time-admin-status.is-error { color: #a7352d; }
+.bes-attendance-time-admin-status.is-dirty { color: #8b611b; }
 
 .bes-attendance-access-status {
   min-height: 54px;
@@ -92,9 +190,25 @@
 .attendance-rollcall.bes-attendance-write-locked [data-bes-time-lock="true"] { cursor: not-allowed !important; }
 .attendance-session-controls label.is-teacher select[aria-invalid="true"] { border-color: #d96b62; background: #fff7f6; }
 
-@media (max-width: 900px) {
-  .bes-attendance-time-toggle { min-width: 0; width: 42px; padding: 8px 4px; justify-content: center; }
-  .bes-attendance-time-toggle-copy { display: none; }
-  .attendance-top-actions { align-items: center; }
+@media (max-width: 1180px) {
+  .bes-attendance-time-settings {
+    grid-template-columns: minmax(260px, 1.2fr) minmax(200px, .8fr) 112px 18px 112px;
+  }
+  .bes-attendance-time-save { grid-column: 2 / -1; justify-self: end; min-width: 120px; }
+  .bes-attendance-time-admin-status { grid-column: 1 / -1; }
+}
+
+@media (max-width: 760px) {
+  .bes-attendance-time-settings {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+  .bes-attendance-time-heading,
+  .bes-attendance-time-toggle,
+  .bes-attendance-time-admin-status { grid-column: 1 / -1; }
+  .bes-attendance-time-field { width: auto; }
+  .bes-attendance-time-arrow { display: none; }
+  .bes-attendance-time-save { grid-column: 1 / -1; width: 100%; }
   .bes-attendance-access-status { padding: 9px 12px; }
 }
