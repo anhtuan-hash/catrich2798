@@ -1,0 +1,27 @@
+name: Attendance Mobile Responsive Layout
+
+on:
+  pull_request:
+    paths:
+      - 'src/styles/AttendanceMobileResponsive.css'
+      - 'src/tabResumeStability.js'
+      - 'scripts/test-attendance-mobile-responsive-layout.mjs'
+      - '.github/workflows/attendance-mobile-responsive-layout.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify mobile attendance responsive layout
+        run: node scripts/test-attendance-mobile-responsive-layout.mjs
