@@ -59,6 +59,7 @@ export default function AttendanceClassEditor({
   showEditButton = true,
   showClassInfo = true,
   memberTableVariant = 'default',
+  memberIndexOffset = 0,
 }) {
   const [internalEditingClass, setInternalEditingClass] = useState(false);
   const [classForm, setClassForm] = useState(() => initialClassForm(selectedClass));
@@ -247,7 +248,7 @@ export default function AttendanceClassEditor({
             if (isEditing) {
               return (
                 <div key={member.id} className="attendance-member-edit-row is-mockup-row">
-                  <span className="attendance-member-table__index">{index + 1}</span>
+                  <span className="attendance-member-table__index">{memberIndexOffset + index + 1}</span>
                   <span><label><small>Họ và tên *</small><input value={memberForm.student_full_name} onChange={(event) => setMemberForm((current) => ({ ...current, student_full_name: event.target.value }))} /></label></span>
                   <span><label><small>Lớp chính khóa *</small><input value={memberForm.school_class_name} onChange={(event) => setMemberForm((current) => ({ ...current, school_class_name: event.target.value }))} placeholder="Ví dụ 12.6" /></label></span>
                   <span><label><small>Mã HS</small><input value={memberForm.student_code} onChange={(event) => setMemberForm((current) => ({ ...current, student_code: event.target.value }))} placeholder="Có thể để trống" /></label></span>
@@ -260,7 +261,7 @@ export default function AttendanceClassEditor({
             const menuOpen = String(openMemberMenuId) === String(member.id);
             return (
               <div key={member.id} className={`attendance-member-table-row${member.active === false ? ' is-inactive' : ''}`}>
-                <span className="attendance-member-table__index">{index + 1}</span>
+                <span className="attendance-member-table__index">{memberIndexOffset + index + 1}</span>
                 <span className="attendance-member-name-cell"><span className="attendance-member-avatar">{studentInitials(member.student_full_name)}</span><b>{member.student_full_name}</b></span>
                 <span className="attendance-member-school-class">{member.school_class_name || '—'}</span>
                 <span className="attendance-member-code">{member.student_code || '—'}</span>
