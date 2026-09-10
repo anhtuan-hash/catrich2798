@@ -123,7 +123,7 @@ begin
         v_teacher_name,
         '',
         v_position,
-        'manual-edit:' || p_class_id::text || ':' || v_position::text,
+        'manual-edit:' || p_class_id::text || ':' || gen_random_uuid()::text,
         auth.uid(),
         auth.uid(),
         clock_timestamp(),
