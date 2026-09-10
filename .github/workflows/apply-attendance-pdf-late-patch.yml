@@ -6,6 +6,7 @@ on:
       - feat/attendance-pdf-late-students
     paths:
       - scripts/apply-attendance-pdf-late-patch.py
+      - .github/workflows/apply-attendance-pdf-late-patch.yml
 
 permissions:
   contents: write
