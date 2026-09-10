@@ -1,30 +1,37 @@
 .attendance-tabs {
   position: relative;
-  overflow: visible !important;
+  overflow: visible;
+}
+
+/* The compact Admin trigger is a real attendance nav item. These states are
+   shared by every direct tab button so Báo cáo and Giờ GV move identically. */
+.attendance-tabs > button {
+  transition: background-color .15s ease, color .15s ease;
+}
+
+.attendance-tabs > button::after {
+  content: '';
+  position: absolute;
+  height: 3px;
+  right: 16px;
+  bottom: 0;
+  left: 16px;
+  border-radius: 3px 3px 0 0;
+  background: var(--att-blue);
+  opacity: 0;
+  transform: scaleX(.7);
+  transform-origin: center;
+  transition: opacity .15s ease, transform .15s ease;
+  pointer-events: none;
+}
+
+.attendance-tabs > button.is-active::after {
+  opacity: 1;
+  transform: scaleX(1);
 }
 
 .bes-attendance-time-trigger {
-  min-height: 36px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-left: 4px;
-  padding: 0 10px;
-  border: 1px solid #d9e2ec;
-  border-radius: 11px;
-  background: #f8fbff;
-  color: #42566d;
-  font: inherit;
-  cursor: pointer;
   white-space: nowrap;
-  transition: border-color .15s ease, background .15s ease, color .15s ease, box-shadow .15s ease;
-}
-
-.bes-attendance-time-trigger:hover,
-.bes-attendance-time-trigger.is-open {
-  border-color: #b8ccec;
-  background: #edf4ff;
-  color: #245ca8;
 }
 
 .bes-attendance-time-trigger:focus-visible {
@@ -33,26 +40,26 @@
 }
 
 .bes-attendance-time-trigger-icon {
-  font-size: 13px;
+  flex: 0 0 auto;
+}
+
+.bes-attendance-time-trigger-label {
+  font-weight: inherit;
+}
+
+.bes-attendance-time-trigger-window {
+  color: inherit;
+  font-size: 10px;
+  font-weight: 760;
   line-height: 1;
-}
-
-.bes-attendance-time-trigger b {
-  font-size: 11px;
-  font-weight: 850;
-}
-
-.bes-attendance-time-trigger small {
-  color: #6c7d90;
-  font-size: 9px;
-  font-weight: 750;
+  opacity: .7;
 }
 
 .bes-attendance-time-trigger-dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   flex: 0 0 auto;
-  border-radius: 999px;
+  border-radius: 50%;
   background: #a9b5c2;
   box-shadow: 0 0 0 2px rgba(169, 181, 194, .16);
 }
@@ -80,7 +87,7 @@
 }
 
 .bes-attendance-time-settings.is-compact-popover[hidden] {
-  display: none !important;
+  display: none;
 }
 
 .bes-attendance-time-settings.is-compact-popover .bes-attendance-time-heading {
@@ -120,12 +127,7 @@
 }
 
 @media (max-width: 760px) {
-  .bes-attendance-time-trigger {
-    min-height: 34px;
-    padding: 0 8px;
-  }
-
-  .bes-attendance-time-trigger small {
+  .bes-attendance-time-trigger-window {
     display: none;
   }
 
