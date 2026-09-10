@@ -135,6 +135,26 @@ assert.match(workspace, /data-bes-keep-search="true"[\s\S]{0,300}Tìm kiếm h�
 assert.match(workspace, /memberIndexOffset=\{\(safeMemberPage - 1\) \* MEMBERS_PER_PAGE\}/,
   'Roster pagination must pass the page offset so STT numbering continues across pages.');
 
+// Final 10/10 polish: student totals must be semantically consistent while retaining inactive history.
+assert.match(workspace, /const activeMemberCount = allSelectedMembers\.filter\(\(member\) => member\.active !== false\)\.length;/,
+  'Detail student total must derive active members from the same selected-member collection used by the roster.');
+assert.match(workspace, /const inactiveMemberCount = allSelectedMembers\.length - activeMemberCount;/,
+  'Detail must expose inactive history without mislabeling it as currently enrolled.');
+assert.match(workspace, /<b>\{activeMemberCount\}<\/b><small>học sinh<\/small>/,
+  'Hero student quick-stat must show active students only.');
+assert.match(workspace, /\{activeMemberCount\} đang học[\s\S]{0,180}\{inactiveMemberCount\} đã nghỉ[\s\S]{0,180}\{allSelectedMembers\.length\} hồ sơ/,
+  'Roster subtitle must explicitly distinguish active, inactive, and historical record totals.');
+assert.match(workspace, /Hiển thị \{visibleManagementMembers\.length\}\/\{memberTotal\} hồ sơ/,
+  'Pagination footer must describe roster records instead of implying every historical row is an active student.');
+
+// Long teacher lists should remain readable without losing the complete value.
+assert.match(workspace, /function compactTeacherLabel\(/,
+  'Detail must have a compact teacher-label helper for long assignments.');
+assert.match(workspace, /attendance-manage-detail-teacher-summary/,
+  'Teacher info cell must render the compact summary with a dedicated style hook.');
+assert.match(workspace, /title=\{teacher\}/,
+  'Complete teacher assignment must remain available as a native tooltip.');
+
 for (const token of [
   '.attendance-manage-detail-quick-stats',
   '.attendance-manage-detail-quick-stat',
@@ -142,6 +162,7 @@ for (const token of [
   '.attendance-manage-detail-info-item',
   '.attendance-manage-detail-roster-card',
   '.attendance-manage-detail-roster-footer',
+  '.attendance-manage-detail-teacher-summary',
 ]) {
   assert.ok(detailCss.includes(token), `Approved detail CSS must include ${token}`);
 }
@@ -150,7 +171,15 @@ assert.match(detailCss, /\.attendance-manage-detail-info-strip\s*\{[^}]*grid-tem
 assert.match(detailCss, /\.attendance-manage-detail-body\s*\{[^}]*grid-template-columns:\s*1fr/s,
   'Approved detail body must dedicate the full width to the student table.');
 assert.match(detailCss, /\.attendance-manage-detail-hero\s*\{[^}]*background:[^;}]*linear-gradient/s,
-  'Approved hero must use the soft blue mockup treatment instead of a flat white panel.');
+  'Approved hero must use the soft subject-tinted mockup treatment instead of a flat white panel.');
+assert.match(detailCss, /\.attendance-manage-detail-hero::before\s*\{[^}]*height:\s*3px/s,
+  'Final hero polish must include a subtle subject-accent top rail.');
+assert.match(detailCss, /\.attendance-manage-detail-quick-stats\s*\{[^}]*width:\s*min\(100%,\s*600px\)/s,
+  'Quick stats need more horizontal breathing room on desktop.');
+assert.match(detailCss, /\.attendance-member-table\.is-mockup\s*>\s*\.attendance-member-table-row\s*\{[^}]*font-size:\s*11\.5px/s,
+  'Student rows must use the final readability size.');
+assert.match(detailCss, /\.attendance-manage-detail-roster-footer\s+nav\s+button\s*\{[^}]*width:\s*34px[^}]*height:\s*34px/s,
+  'Pagination controls must be large enough for a polished, comfortable click target.');
 
 assert.match(editor, /showClassInfo\s*=\s*true/,
   'AttendanceClassEditor must allow the workspace to hide the duplicate normal class-info card.');
