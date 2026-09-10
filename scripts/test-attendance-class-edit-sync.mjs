@@ -10,6 +10,7 @@ const attendanceUrl = new URL('../src/components/GlobalAttendanceNavigationTab.j
 const workspaceUrl = new URL('../src/components/attendance/AttendanceClassManagementWorkspace.jsx', import.meta.url);
 const editorUrl = new URL('../src/components/attendance/AttendanceClassEditor.jsx', import.meta.url);
 const cssUrl = new URL('../src/components/attendance/AttendanceClassEditor.css', import.meta.url);
+const rosterCssUrl = new URL('../src/components/attendance/AttendanceClassManagementRosterScroll.css', import.meta.url);
 const legacyMigrationUrl = new URL('../supabase/migrations/20260908_attendance_admin_class_member_edit.sql', import.meta.url);
 const manageMigrationUrl = new URL('../supabase/migrations/20260909_attendance_manage_class_details_permission.sql', import.meta.url);
 const attendance = fs.readFileSync(attendanceUrl, 'utf8');
@@ -17,6 +18,7 @@ const workspace = fs.readFileSync(workspaceUrl, 'utf8');
 const editor = fs.readFileSync(editorUrl, 'utf8');
 const ui = `${attendance}\n${workspace}\n${editor}`;
 const css = fs.readFileSync(cssUrl, 'utf8');
+const rosterCss = fs.readFileSync(rosterCssUrl, 'utf8');
 const legacyMigration = fs.existsSync(legacyMigrationUrl) ? fs.readFileSync(legacyMigrationUrl, 'utf8') : '';
 const manageMigration = fs.existsSync(manageMigrationUrl) ? fs.readFileSync(manageMigrationUrl, 'utf8') : '';
 
@@ -96,6 +98,26 @@ assert.match(css, /\.attendance-class-info-card/,
   'Class information editing surface must have dedicated styling');
 assert.match(css, /\.attendance-member-edit-row/,
   'Member editing row must have dedicated styling');
+assert.match(
+  workspace,
+  /className=\{`attendance-manage-detail-body\$\{editingClass \? ' is-editing-class' : ''\}`\}/,
+  'Class edit mode must mark the detail body so the editor can reserve real layout space',
+);
+assert.match(
+  rosterCss,
+  /\.attendance-manage-detail-body\.is-editing-class\s*\{[^}]*grid-template-rows:\s*max-content\s+max-content[^}]*align-content:\s*start/s,
+  'Class edit mode must stack the editor and roster as natural-height grid rows',
+);
+assert.match(
+  rosterCss,
+  /\.attendance-manage-detail-body\.is-editing-class\s*>\s*\.attendance-member-table\.is-mockup\s*\{[^}]*min-height:\s*auto/s,
+  'Roster must release its 100% minimum height while the class editor is open',
+);
+assert.match(
+  rosterCss,
+  /\.attendance-manage-detail-body\s*>\s*\.attendance-member-table\.is-mockup\s*\{[^}]*min-height:\s*100%/s,
+  'Normal class detail mode must retain the full-height roster behavior',
+);
 assert.doesNotMatch(attendance, /selectedMembers\.length\s*,\s*attendanceDate/,
   'Quick attendance draft must not depend only on roster length because student edits can keep the same count');
 assert.match(attendance, /\[selectedClassId,\s*selectedMembers,\s*attendanceDate,\s*daySession\?\.id,\s*dayRecords\]/,
