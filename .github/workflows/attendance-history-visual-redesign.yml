@@ -25,3 +25,5 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Verify attendance history visual redesign
         run: node scripts/test-attendance-history-visual-redesign.mjs
+      - name: Verify attendance history behavior guard
+        run: node scripts/test-attendance-history-functional-guard.mjs
