@@ -1,0 +1,30 @@
+name: Attendance PDF Tardy Students
+
+on:
+  push:
+    branches:
+      - feat/attendance-pdf-late-students
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Verify attendance PDF tardy-student details
+        run: node scripts/test-attendance-pdf-late-students.mjs
