@@ -438,3 +438,7 @@
   .bes-post-confirm-editor-footer { grid-template-columns: 1fr; }
   .bes-post-confirm-editor-footer > div { display: grid; grid-template-columns: 1fr 1fr; }
 }
+
+.bes-post-confirm-student.is-late{background:color-mix(in srgb,#ffddb8 42%,#fff)}
+.bes-post-confirm-status-toggle{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.bes-post-confirm-status-toggle button.is-late{background:#ffddb8!important;color:#8b5000!important}

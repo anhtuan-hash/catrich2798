@@ -271,7 +271,7 @@ function reasonLabel(code) {
 function makeDraft() {
   draft = records.map((record) => ({
     ...record,
-    status: record.status === 'absent' ? 'absent' : 'present',
+    status: ['present', 'late', 'absent'].includes(record.status) ? record.status : 'present',
     absence_reason_code: text(record.absence_reason_code),
     absence_note: text(record.absence_note),
   }));
@@ -282,24 +282,27 @@ function statusSummary() {
   const source = editing ? draft : records;
   const total = source.length || Number(activeSession?.total_students || 0);
   const absent = source.filter((item) => item.status === 'absent').length;
-  return { total, absent, present: Math.max(0, total - absent) };
+  const late = source.filter((item) => item.status === 'late').length;
+  return { total, absent, late, present: Math.max(0, total - absent) };
 }
 
 function renderEditorRows() {
   return draft.map((record, index) => {
     const absent = record.status === 'absent';
+    const late = record.status === 'late';
     const reasons = REASON_OPTIONS.map(([value, label]) => `<option value="${value}" ${record.absence_reason_code === value ? 'selected' : ''}>${label}</option>`).join('');
-    return `<article class="bes-post-confirm-student ${absent ? 'is-absent' : 'is-present'}" data-record-id="${escapeHtml(record.id)}">
+    return `<article class="bes-post-confirm-student ${absent ? 'is-absent' : late ? 'is-late' : 'is-present'}" data-record-id="${escapeHtml(record.id)}">
       <span class="bes-post-confirm-index">${String(index + 1).padStart(2, '0')}</span>
       <div class="bes-post-confirm-student-name"><b>${escapeHtml(record.student_full_name)}</b><small>${escapeHtml(record.student_code || 'Không có mã HS')} · ${escapeHtml(record.school_class_name || '—')}</small></div>
       <div class="bes-post-confirm-status-toggle" role="group" aria-label="Trạng thái ${escapeHtml(record.student_full_name)}">
-        <button type="button" data-action="status" data-status="present" class="${!absent ? 'is-active' : ''}">Có mặt</button>
+        <button type="button" data-action="status" data-status="present" class="${record.status === 'present' ? 'is-active' : ''}">Có mặt</button>
+        <button type="button" data-action="status" data-status="late" class="${late ? 'is-active is-late' : ''}">Đi trễ</button>
         <button type="button" data-action="status" data-status="absent" class="${absent ? 'is-active' : ''}">Vắng</button>
       </div>
       ${absent ? `<div class="bes-post-confirm-absence-fields">
         <label><span>Lý do vắng</span><select data-field="reason">${reasons}</select></label>
         <label><span>Ghi chú</span><input data-field="absence-note" value="${escapeHtml(record.absence_note)}" placeholder="Bắt buộc nếu chọn Khác" /></label>
-      </div>` : '<small class="bes-post-confirm-present-note">Nếu học sinh vừa vào trễ, chuyển từ Vắng sang Có mặt rồi lưu điều chỉnh.</small>'}
+      </div>` : '<small class="bes-post-confirm-present-note">Đi trễ được lưu thành trạng thái riêng và vẫn được tính là có mặt.</small>'}
     </article>`;
   }).join('');
 }
@@ -358,7 +361,7 @@ function renderCard() {
         <span class="bes-post-confirm-icon" aria-hidden="true">${access.allowed ? '✎' : '🔒'}</span>
         <div><strong>Điều chỉnh điểm danh sau khi chốt</strong><p>${escapeHtml(helper)}</p><small>${escapeHtml(auditText)}</small></div>
       </div>
-      <div class="bes-post-confirm-card-summary"><b>${summary.present}/${summary.total}</b><span>có mặt</span><em>${summary.absent} vắng</em></div>
+      <div class="bes-post-confirm-card-summary"><b>${summary.present}/${summary.total}</b><span>có mặt</span><em>${summary.late} đi trễ · ${summary.absent} vắng</em></div>
       <div class="bes-post-confirm-card-action">
         <strong>${escapeHtml(accessHeading(access))}</strong>
         ${access.allowed ? `<button type="button" data-action="open" ${loading ? 'disabled' : ''}>Điều chỉnh điểm danh</button>` : ''}
@@ -373,7 +376,7 @@ function renderCard() {
       <div><span aria-hidden="true">✎</span><div><strong>Điều chỉnh điểm danh</strong><p>${escapeHtml(accessHeading(access))} · chốt lúc ${escapeHtml(formatVietnamTime(activeSession.checked_at))}</p></div></div>
       <div class="bes-post-confirm-live-summary"><b>${summary.present}/${summary.total}</b><span>có mặt</span><em>${summary.absent} vắng</em></div>
     </header>
-    <div class="bes-post-confirm-editor-note">Học sinh vào trễ: chuyển <b>Vắng</b> → <b>Có mặt</b>. Hệ thống lưu người sửa, thời gian và trạng thái trước/sau.</div>
+    <div class="bes-post-confirm-editor-note">Chọn đúng trạng thái <b>Có mặt</b>, <b>Đi trễ</b> hoặc <b>Vắng</b>. Đi trễ vẫn tính là có mặt; hệ thống lưu người sửa, thời gian và trạng thái trước/sau.</div>
     <div class="bes-post-confirm-students">${renderEditorRows()}</div>
     <footer class="bes-post-confirm-editor-footer">
       <label><span>Ghi chú buổi học</span><input data-field="session-note" value="${escapeHtml(draftNote)}" placeholder="Không bắt buộc" /></label>
@@ -497,9 +500,10 @@ function onCardClick(event) {
   if (action === 'status') {
     const record = draftRecordFromTarget(button);
     if (!record) return;
-    record.status = button.dataset.status === 'absent' ? 'absent' : 'present';
+    const nextStatus = button.dataset.status;
+    record.status = ['present', 'late', 'absent'].includes(nextStatus) ? nextStatus : 'present';
     if (record.status === 'absent' && !record.absence_reason_code) record.absence_reason_code = 'unspecified';
-    if (record.status === 'present') {
+    if (record.status === 'present' || record.status === 'late') {
       record.absence_reason_code = '';
       record.absence_note = '';
     }
