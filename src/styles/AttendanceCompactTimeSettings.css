@@ -1,3 +1,7 @@
+.bes-attendance-time-settings:not(.is-config-workspace) {
+  display: none !important;
+}
+
 .bes-attendance-time-settings.is-config-workspace {
   width: min(760px, 100%);
   margin: 24px auto;
