@@ -91,8 +91,11 @@ assert.match(searchRemoval, /KEEP_SELECTOR[\s\S]{0,240}\.attendance-manage-searc
   'Global search-removal runtime must explicitly preserve the local class-management search control.');
 assert.match(workspaceCss, /\.attendance-manage-class-tile\s*\{[^}]*border-left:\s*5px solid var\(--manage-accent\)/s,
   'Class tiles must have a strong subject-color rail for quick visual grouping.');
-assert.match(workspaceCss, /\.attendance-manage-tile__title\s*\{[^}]*-webkit-line-clamp:\s*2[^}]*padding-block:\s*2px/s,
-  'Class names must have a two-line readable title box with vertical breathing room to avoid glyph clipping.');
+const titleRule = workspaceCss.match(/\.attendance-manage-tile__title\s*\{[^}]*\}/s)?.[0] || '';
+assert.match(titleRule, /-webkit-line-clamp:\s*2/,
+  'Class names must allow two lines instead of clipping to one line.');
+assert.match(titleRule, /padding-block:\s*2px/,
+  'Class title box must include vertical breathing room to avoid Vietnamese glyph clipping.');
 for (const color of ['#2563eb', '#8b5cf6', '#0f8b8d', '#4f46e5', '#e11d48', '#16a34a', '#d97706', '#0891b2']) {
   assert.ok(workspaceCss.includes(color), `Subject palette must include strengthened accent ${color}.`);
 }
