@@ -378,7 +378,7 @@ export default function AttendanceClassManagementWorkspace({
           <button type="button" onClick={() => downloadMemberCsv(selectedClass, allSelectedMembers)}><WorkspaceIcon name="download" size={16} />Xuất danh sách</button>
         </header>
 
-        <div className="attendance-manage-detail-body" tabIndex={0} aria-label="Danh sách học sinh có thể cuộn">
+        <div className={`attendance-manage-detail-body${editingClass ? ' is-editing-class' : ''}`} tabIndex={0} aria-label="Danh sách học sinh có thể cuộn">
           <AttendanceClassEditor
             client={client}
             selectedClass={selectedClass}
