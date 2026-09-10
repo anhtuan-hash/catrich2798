@@ -2,60 +2,57 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
 const component = fs.readFileSync(new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url), 'utf8');
-const cssPath = new URL('../src/components/attendance/AttendanceHistoryV2.css', import.meta.url);
-assert.ok(fs.existsSync(cssPath), 'Attendance History V2 must use its own scoped stylesheet');
+const cssPath = new URL('../src/components/attendance/AttendanceHistoryV3.css', import.meta.url);
+
+assert.ok(fs.existsSync(cssPath), 'Attendance History V3 must use a new isolated stylesheet instead of layering more V2 overrides');
 const css = fs.readFileSync(cssPath, 'utf8');
 
-assert.match(component, /import ['"]\.\/attendance\/AttendanceHistoryV2\.css['"];/, 'History V2 stylesheet must load after existing attendance styles');
-assert.match(component, /attendance-history-layout attendance-history-v2/, 'History layout must expose the isolated V2 scope');
-assert.match(component, />Thông tin buổi học</, 'History detail must label the information section');
-assert.match(component, />Tổng hợp điểm danh</, 'History detail must label the attendance summary section');
-assert.match(component, /attendance-history-v2__hero-art/, 'Approved mockup hero must include a decorative education visual');
-assert.match(component, /attendance-history-v2__info-icon/, 'Information cards must have visual icon tiles');
-assert.match(component, /attendance-history-v2__summary-icon/, 'Attendance summary cards must have visual icon tiles');
-assert.match(component, /attendance-history-v2__rate-ring/, 'Attendance rate must include a visual ring indicator');
+assert.match(component, /import ['"]\.\/attendance\/AttendanceHistoryV3\.css['"];/, 'History V3 stylesheet must be imported');
+assert.doesNotMatch(component, /import ['"]\.\/attendance\/AttendanceHistoryV2\.css['"];/, 'History V2 stylesheet must no longer be imported by the attendance component');
+assert.match(component, /className="ahv3"/, 'History root must use the clean V3 namespace');
 
-for (const selector of [
-  '.attendance-history-v2 .attendance-history-list',
-  '.attendance-history-v2 .attendance-history-items > button',
-  '.attendance-history-v2 .attendance-history-hero',
-  '.attendance-history-v2 .attendance-history-info-grid',
-  '.attendance-history-v2 .attendance-history-stat-grid',
-  '.attendance-history-v2 .attendance-audit-actor-panel',
-  '.attendance-history-v2 .attendance-history-proof',
-]) assert.ok(css.includes(selector), `Scoped stylesheet must style ${selector}`);
+for (const className of [
+  'ahv3__sidebar',
+  'ahv3__sidebar-head',
+  'ahv3__search',
+  'ahv3__filter',
+  'ahv3__session-list',
+  'ahv3__session',
+  'ahv3__detail',
+  'ahv3__hero',
+  'ahv3__info-grid',
+  'ahv3__summary',
+  'ahv3__audit',
+  'ahv3__proof',
+  'ahv3__late',
+  'ahv3__absent',
+  'ahv3__footer',
+]) assert.ok(component.includes(className), `History markup must expose ${className}`);
 
-assert.match(css, /--ahv2-blue\s*:/, 'V2 stylesheet must define its own blue accent token');
-assert.match(css, /--ahv2-green\s*:/, 'V2 stylesheet must define its own green token');
-assert.match(css, /--ahv2-red\s*:/, 'V2 stylesheet must define its own red token');
-assert.match(css, /--ahv2-orange\s*:/, 'V2 stylesheet must define its own orange token');
-assert.match(css, /@media\s*\(max-width:\s*900px\)/, 'History V2 must have an isolated narrow-screen fallback');
-assert.doesNotMatch(css, /(^|\n)\s*(html|body|:root)\s*\{/m, 'History V2 must not alter global page styles');
+for (const legacyClass of [
+  'attendance-history-search',
+  'attendance-history-filters',
+  'attendance-history-stat-grid',
+  'attendance-history-info-grid',
+  'attendance-history-proof',
+  'attendance-history-footer-grid',
+]) assert.doesNotMatch(component, new RegExp(`className=["'][^"']*\\b${legacyClass}\\b`), `V3 must not reuse legacy layout class ${legacyClass}`);
 
-// Production screenshot polish contract: search must stay visible and compact.
-assert.match(css, /\.attendance-history-v2 \.attendance-history-search\s*\{[^}]*display:\s*flex/s, 'History search must be visible');
-assert.doesNotMatch(css, /\.attendance-history-v2 \.attendance-history-search\s*\{[^}]*display:\s*none/s, 'History search must never be hidden by V2');
-assert.match(css, /\.attendance-history-v2 \.attendance-history-filters\s*\{[^}]*margin-top:\s*8px/s, 'Filter must sit directly below search without the old blank gap');
+assert.match(css, /\.ahv3__search\s*\{[^}]*display:\s*flex/s, 'V3 search must be visible');
+assert.match(css, /\.ahv3__sidebar-head\s*\{[^}]*display:\s*grid/s, 'Sidebar header must use a compact explicit layout');
+assert.match(css, /\.ahv3__filter\s*\{[^}]*margin-top:\s*8px/s, 'Filter must sit directly under search');
+assert.match(css, /\.ahv3__summary\s*\{[^}]*grid-template-columns:\s*repeat\(5,\s*minmax\(0,\s*1fr\)\)/s, 'Desktop summary must keep all five cards on one row');
+assert.doesNotMatch(css, /@media\s*\(max-width:\s*1180px\)[\s\S]*?\.ahv3__summary\s*\{[^}]*grid-template-columns:\s*repeat\([234],/s, 'V3 must not prematurely collapse the summary into an orphan-card layout');
+assert.match(css, /\.ahv3__audit-proof\s*\{[^}]*grid-template-columns:\s*1fr/s, 'Audit and proof must stack instead of creating a blank side-by-side column');
+assert.match(css, /\.ahv3__proof-image img\s*\{[^}]*max-height:\s*190px/s, 'Proof image must remain compact');
+assert.match(css, /@media\s*\(max-width:\s*900px\)/, 'History V3 must have a narrow-screen fallback');
+assert.doesNotMatch(css, /(^|\n)\s*(html|body|:root)\s*\{/m, 'History V3 must not alter global page styles');
 
-// Audit and proof cards share a grid row, but neither may stretch to the other card height.
-assert.match(css, /\.attendance-history-v2 \.attendance-audit-actor-panel\s*\{[^}]*align-self:\s*start/s, 'Audit panel must not stretch to proof-image height');
-assert.match(css, /\.attendance-history-v2 \.attendance-history-proof\s*\{[^}]*align-self:\s*start/s, 'Proof panel must keep intrinsic height');
-assert.match(css, /\.attendance-history-v2 \.attendance-audit-actor-panel\.is-loading\s*\{[^}]*min-height:\s*0/s, 'Loading audit panel must stay compact');
-
-// Replace placeholder glyphs with the app SVG Icon component.
-for (const iconName of ['teacher', 'book', 'calendar', 'clock', 'room', 'periods']) {
-  assert.match(component, new RegExp(`<Icon name=["']${iconName}["']`), `Session info must render the ${iconName} SVG icon`);
+for (const iconName of ['teacher', 'book', 'calendar', 'clock', 'room', 'periods', 'people', 'check', 'late', 'absent', 'camera']) {
+  assert.match(component, new RegExp(`<Icon name=["']${iconName}["']`), `V3 must render the ${iconName} SVG icon`);
 }
-for (const iconName of ['people', 'check', 'late', 'absent']) {
-  assert.match(component, new RegExp(`<Icon name=["']${iconName}["']`), `Attendance summary must render the ${iconName} SVG icon`);
-}
 
-// Tardy deserves its own visible summary card while remaining included in present_count.
-assert.match(component, /<article className="is-late">[\s\S]*?selectedLateRecords\.length[\s\S]*?<span>Đi trễ<\/span>/, 'History summary must expose a dedicated tardy card');
-assert.match(component, /<article className="is-present">[\s\S]*?selectedSession\.present_count[\s\S]*?<span>Có mặt<\/span>/, 'Present count must remain sourced from present_count');
+assert.match(component, /selectedSession\.present_count[\s\S]*?Có mặt[\s\S]*?Đã gồm học sinh đi trễ/, 'Present summary must continue to include tardy students');
+assert.match(component, /selectedLateRecords\.length[\s\S]*?Đi trễ[\s\S]*?Vẫn tính có mặt/, 'V3 must keep a dedicated tardy metric');
 
-// The vertical rhythm should be denser than the first V2 release.
-assert.match(css, /\.attendance-history-v2 \.attendance-history-hero\s*\{[^}]*min-height:\s*118px/s, 'History hero must use the compact height');
-assert.match(css, /\.attendance-history-v2 \.attendance-history-items > button\s*\{[^}]*min-height:\s*88px/s, 'History session cards must use the compact height');
-
-console.log('Attendance history visual redesign + polish contract OK');
+console.log('Attendance history V3 isolated-layout contract OK');
