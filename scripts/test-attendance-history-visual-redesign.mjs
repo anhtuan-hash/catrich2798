@@ -1,3 +1,4 @@
+// Final verification trigger after applying the real History V3 namespace migration.
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
