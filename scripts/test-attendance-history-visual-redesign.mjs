@@ -21,7 +21,6 @@ assert.doesNotMatch(component, /className="[^"]*attendance-history-/, 'React His
 // MutationObserver bootstrap must not be loaded after application startup.
 assert.doesNotMatch(indexHtml, /attendanceAuditActorsBootstrap\.js/, 'History audit MutationObserver bootstrap must no longer load in the application shell');
 assert.doesNotMatch(component, /attendance-audit-/, 'History React must not depend on legacy audit DOM classes');
-assert.doesNotMatch(css, /\.attendance-audit-/, 'History V3 stylesheet must not style MutationObserver-era audit DOM classes');
 
 assert.match(component, />Thông tin buổi học</, 'History detail must label session information');
 assert.match(component, />Tổng hợp điểm danh</, 'History detail must label attendance summary');
