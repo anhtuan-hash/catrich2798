@@ -115,8 +115,9 @@ function syncBackButton(shell, detailActive) {
     button = document.createElement('button');
     button.type = 'button';
     button.className = BACK_BUTTON_CLASS;
-    button.setAttribute('aria-label', 'Quay lại lịch điểm danh');
-    button.innerHTML = '<span aria-hidden="true">←</span><b>Quay lại lịch điểm danh</b>';
+    button.setAttribute('aria-label', 'Thoát về lịch điểm danh');
+    button.setAttribute('title', 'Quay lại Lịch điểm danh');
+    button.innerHTML = '<span aria-hidden="true">←</span><b>Thoát</b>';
     button.addEventListener('click', (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -133,13 +134,7 @@ function syncBackButton(shell, detailActive) {
 function syncDetailState(shell) {
   if (!shell?.isConnected) return;
   const { quickTab, calendarTab } = markAttendanceTabs(shell);
-  const quickLayout = shell.querySelector('.attendance-quick-layout');
-
-  if (!quickLayout && shell.hasAttribute(DETAIL_ATTRIBUTE)) {
-    shell.removeAttribute(DETAIL_ATTRIBUTE);
-  }
-
-  const detailActive = Boolean(shell.hasAttribute(DETAIL_ATTRIBUTE) && quickLayout);
+  const detailActive = shell.hasAttribute(DETAIL_ATTRIBUTE);
   calendarTab?.classList.toggle('bes-calendar-detail-active', detailActive);
   syncBackButton(shell, detailActive);
 
@@ -202,6 +197,16 @@ async function openClassFromCalendar(row) {
   shell.querySelector('.attendance-rollcall')?.scrollTo?.({ top: 0, behavior: 'instant' });
 }
 
+function clearDetailForVisibleTab(tab) {
+  if (!tab || tab.hasAttribute(HIDDEN_QUICK_ATTRIBUTE)) return;
+  const shell = tab.closest('.attendance-shell');
+  if (!shell?.hasAttribute(DETAIL_ATTRIBUTE)) return;
+  shell.removeAttribute(DETAIL_ATTRIBUTE);
+  shell.querySelector(`.${BACK_BUTTON_CLASS}`)?.remove();
+  const { calendarTab } = markAttendanceTabs(shell);
+  calendarTab?.classList.remove('bes-calendar-detail-active');
+}
+
 function onCapturedClick(event) {
   const row = event.target?.closest?.('.attendance-daily-class-row');
   if (row && row.closest(DAILY_ROOT_SELECTOR)) {
@@ -211,13 +216,8 @@ function onCapturedClick(event) {
     return;
   }
 
-  const calendarTab = event.target?.closest?.(`[${CALENDAR_TAB_ATTRIBUTE}]`);
-  if (calendarTab) {
-    const shell = calendarTab.closest('.attendance-shell');
-    shell?.removeAttribute(DETAIL_ATTRIBUTE);
-    shell?.querySelector(`.${BACK_BUTTON_CLASS}`)?.remove();
-    calendarTab.classList.remove('bes-calendar-detail-active');
-  }
+  const attendanceTab = event.target?.closest?.('.attendance-tabs button');
+  clearDetailForVisibleTab(attendanceTab);
 }
 
 function scanAttendanceShells() {
