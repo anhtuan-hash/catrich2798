@@ -2,8 +2,10 @@ import './styles/AttendanceCompactTimeSettings.css';
 
 const INSTALL_KEY = '__besAttendanceCompactTimeSettingsInstalled';
 export const ATTENDANCE_COMPACT_TIME_TRIGGER_CLASS = 'bes-attendance-time-trigger';
+const CONFIG_TAB_ID = 'bes-attendance-time-config-tab';
+const CONFIG_PANEL_ID = 'bes-attendance-time-config-panel';
 
-let adminSettingsPopoverOpen = false;
+let configOpen = false;
 let observer = null;
 let renderQueued = false;
 
@@ -22,48 +24,53 @@ function readWindowLabel(panel) {
 function renderTrigger(trigger, panel) {
   const enabled = Boolean(panel?.querySelector('.bes-attendance-time-enabled')?.checked);
   const windowLabel = readWindowLabel(panel);
+  trigger.classList.toggle('is-active', configOpen);
   trigger.classList.toggle('is-enabled', enabled);
-  trigger.classList.toggle('is-open', adminSettingsPopoverOpen);
-  const expanded = adminSettingsPopoverOpen ? 'true' : 'false';
-  if (trigger.getAttribute('aria-expanded') !== expanded) trigger.setAttribute('aria-expanded', expanded);
+  trigger.setAttribute('aria-selected', configOpen ? 'true' : 'false');
+  trigger.tabIndex = 0;
   const title = `${enabled ? 'Đang bật' : 'Đang tắt'} giới hạn giờ giáo viên · ${windowLabel}`;
   if (trigger.getAttribute('title') !== title) trigger.setAttribute('title', title);
-  const time = trigger.querySelector('small');
-  if (time && time.textContent !== windowLabel) time.textContent = windowLabel;
 }
 
 function createTrigger() {
   const trigger = document.createElement('button');
   trigger.type = 'button';
+  trigger.id = CONFIG_TAB_ID;
   trigger.className = ATTENDANCE_COMPACT_TIME_TRIGGER_CLASS;
-  trigger.setAttribute('aria-label', 'Cài đặt giờ điểm danh của giáo viên');
-  trigger.setAttribute('aria-haspopup', 'dialog');
-  trigger.setAttribute('aria-expanded', 'false');
-  trigger.innerHTML = '<span class="bes-attendance-time-trigger-icon" aria-hidden="true">⏱</span><b>Giờ GV</b><small>--:--–--:--</small><i class="bes-attendance-time-trigger-dot" aria-hidden="true"></i>';
-  trigger.addEventListener('click', (event) => {
-    event.stopPropagation();
-    adminSettingsPopoverOpen = !adminSettingsPopoverOpen;
+  trigger.setAttribute('role', 'tab');
+  trigger.setAttribute('aria-label', 'Cấu hình giờ điểm danh của giáo viên');
+  trigger.setAttribute('aria-controls', CONFIG_PANEL_ID);
+  trigger.setAttribute('aria-selected', 'false');
+  trigger.innerHTML = '<span class="bes-attendance-time-trigger-icon" aria-hidden="true">⚙</span><b>Cấu hình</b>';
+  trigger.addEventListener('click', () => {
+    if (configOpen) return;
+    configOpen = true;
     queueRender();
   });
   return trigger;
 }
 
-function closePopover() {
-  if (!adminSettingsPopoverOpen) return;
-  adminSettingsPopoverOpen = false;
+function closeConfigView() {
+  if (!configOpen) return;
+  configOpen = false;
   queueRender();
 }
 
 function renderCompactTimeSettings() {
   renderQueued = false;
   const tabs = document.querySelector('.attendance-tabs');
-  const panel = document.querySelector('.bes-attendance-time-settings');
   if (!tabs) return;
 
+  const shell = tabs.closest('.attendance-shell');
+  const content = shell?.querySelector('.attendance-content');
+  const panel = shell?.querySelector('.bes-attendance-time-settings');
   let trigger = tabs.querySelector(`.${ATTENDANCE_COMPACT_TIME_TRIGGER_CLASS}`);
-  if (!panel) {
+
+  if (!panel || !content) {
     trigger?.remove();
-    adminSettingsPopoverOpen = false;
+    tabs.classList.remove('is-time-config-open');
+    content?.classList.remove('is-time-config-open');
+    configOpen = false;
     return;
   }
 
@@ -72,11 +79,16 @@ function renderCompactTimeSettings() {
     tabs.appendChild(trigger);
   }
 
-  if (panel.parentElement !== tabs) tabs.appendChild(panel);
-  panel.classList.add('is-compact-popover');
-  panel.setAttribute('role', 'dialog');
-  panel.setAttribute('aria-label', 'Cài đặt giờ điểm danh của giáo viên');
-  panel.hidden = !adminSettingsPopoverOpen;
+  if (panel.parentElement !== content) content.prepend(panel);
+  panel.classList.add('is-config-view');
+  panel.id = CONFIG_PANEL_ID;
+  panel.setAttribute('role', 'tabpanel');
+  panel.setAttribute('aria-labelledby', CONFIG_TAB_ID);
+  const shouldHidePanel = !configOpen;
+  if (panel.hidden !== shouldHidePanel) panel.hidden = shouldHidePanel;
+
+  tabs.classList.toggle('is-time-config-open', configOpen);
+  content.classList.toggle('is-time-config-open', configOpen);
   renderTrigger(trigger, panel);
 }
 
@@ -97,7 +109,7 @@ export function installAttendanceCompactTimeSettings() {
       childList: true,
       subtree: true,
       attributes: true,
-      attributeFilter: ['checked', 'value', 'class'],
+      attributeFilter: ['checked', 'value', 'class', 'hidden'],
     });
 
     document.addEventListener('input', (event) => {
@@ -107,14 +119,10 @@ export function installAttendanceCompactTimeSettings() {
       if (event.target?.closest?.('.bes-attendance-time-settings')) queueRender();
     }, true);
     document.addEventListener('click', (event) => {
-      if (!adminSettingsPopoverOpen) return;
-      const target = event.target;
-      if (target?.closest?.('.bes-attendance-time-settings, .bes-attendance-time-trigger')) return;
-      closePopover();
+      const tabButton = event.target?.closest?.('.attendance-tabs > button');
+      if (!tabButton || tabButton.classList.contains(ATTENDANCE_COMPACT_TIME_TRIGGER_CLASS)) return;
+      closeConfigView();
     }, true);
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') closePopover();
-    });
     queueRender();
   };
 
