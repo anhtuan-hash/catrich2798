@@ -127,3 +127,5 @@ replace_once(frontend, """      - name: Verify attendance report export
       - name: Verify attendance PDF tardy-student details
         run: node scripts/test-attendance-pdf-late-students.mjs
 """)
+
+# Trigger marker: apply the source change once via CI, then remove this helper.
