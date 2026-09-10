@@ -11,8 +11,9 @@ assert.doesNotMatch(managementUi, /Không lấy từ tài khoản đăng ký tr�
 assert.match(managementUi, /Thêm giáo viên/, 'Class management must expose a manual add-teacher control');
 assert.match(attendance, /bes_add_extra_class_teacher/, 'Class management must persist a manual teacher through the guarded RPC');
 assert.match(attendance, /classTeacherNames/, 'Manual teachers must participate in the normalized teacher list used by attendance');
-assert.doesNotMatch(attendance, /if\s*\(authoritative\.length\)\s*return\s+authoritative/, 'Authoritative catalog teachers must be merged with normalized manual teachers, not short-circuit them');
-assert.match(attendance, /\[\.\.\.authoritative,\s*\.\.\.normalized,\s*\.\.\.fallback\]/, 'Attendance teacher options must merge catalog, normalized manual teachers, and fallback names');
+assert.match(attendance, /const authoritative = normalized\.length\s*\?\s*\[\]\s*:\s*teachersForGiftedAssignment/, 'Persisted normalized teacher assignments must override the static catalog after a class has been edited');
+assert.match(attendance, /const fallback = normalized\.length\s*\?\s*\[\]\s*:\s*String\(classRow\?\.teacher_name/, 'Cached class teacher names must only be a fallback when normalized assignments do not exist');
+assert.match(attendance, /\[\.\.\.normalized,\s*\.\.\.authoritative,\s*\.\.\.fallback\]/, 'Attendance teacher options must prefer normalized assignments and only fall back to catalog/cached names');
 
 assert.ok(migration, 'Manual teacher migration must exist');
 assert.match(migration, /bes_add_extra_class_teacher\s*\(/i, 'Migration must define the add-teacher RPC');
