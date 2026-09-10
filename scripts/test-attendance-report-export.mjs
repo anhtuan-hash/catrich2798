@@ -25,15 +25,16 @@ for (const copy of [
   'BÁO CÁO ĐIỂM DANH THEO NGÀY',
   '1. CHI TIẾT BUỔI HỌC',
   '2. CHI TIẾT HỌC SINH VẮNG',
+  '3. CHI TIẾT HỌC SINH ĐI TRỄ',
   'NHẬN XÉT CHUNG',
   'NGƯỜI BÁO CÁO',
 ]) assert.match(reportExport, new RegExp(copy), `PDF export must contain ${copy}`);
 assert.doesNotMatch(reportExport, /1\. THỐNG KÊ THEO GIÁO VIÊN/, 'PDF must remove the teacher-summary section entirely');
-assert.doesNotMatch(reportExport, /3\. CHI TIẾT HỌC SINH VẮNG/, 'PDF section numbering must be compact after removing teacher summary');
+assert.doesNotMatch(reportExport, /3\. CHI TIẾT HỌC SINH VẮNG/, 'PDF section numbering must keep absence details as section 2');
 
 const pdfSessionHeader = reportExport.match(/<section class="section"><h2>1\. CHI TIẾT BUỔI HỌC<\/h2>[\s\S]*?<\/thead>/)?.[0] || '';
 const expectedPdfHeaderOrder = [
-  'Ngày', 'Lớp / môn', 'GV / phòng', 'Giờ dạy / chốt', 'Tiết', 'Sĩ số', 'Có mặt', 'Vắng', 'Tỷ lệ',
+  'Ngày', 'Lớp / môn', 'GV / phòng', 'Giờ dạy / chốt', 'Tiết', 'Sĩ số', 'Có mặt', 'Đi trễ', 'Vắng', 'Tỷ lệ',
   'Người điểm danh', 'Người điều chỉnh gần nhất', 'Trạng thái / ghi chú',
 ];
 let previousHeaderIndex = -1;
@@ -46,7 +47,7 @@ for (const header of expectedPdfHeaderOrder) {
 const sessionTemplate = reportExport.match(/const sessionHtml = report\.sessionRows\.map[\s\S]*?\)\.join\(''\);/)?.[0] || '';
 const expectedSessionDataOrder = [
   'row.attendance_date', 'row.class_name', 'row.teacher_name', 'row.teaching_time_range', 'row.lesson_periods',
-  'row.total_students', 'row.present_count', 'row.absent_count', 'row.attendance_rate', 'row.checked_by_name',
+  'row.total_students', 'row.present_count', 'row.late_count', 'row.absent_count', 'row.attendance_rate', 'row.checked_by_name',
   'row.latest_changed_by_name', 'row.note',
 ];
 let previousDataIndex = -1;

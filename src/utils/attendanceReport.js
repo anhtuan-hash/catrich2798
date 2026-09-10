@@ -182,6 +182,34 @@ export function buildAttendanceReport({
     })
     .sort((a, b) => String(a.attendance_date || '').localeCompare(String(b.attendance_date || '')) || a.student_full_name.localeCompare(b.student_full_name, 'vi'));
 
+  const lateRows = records
+    .filter((record) => record.status === 'late' && completedIds.has(String(record.session_id)))
+    .map((record) => {
+      const session = sessionById.get(String(record.session_id));
+      const classRow = classMap.get(String(session?.class_id || record?.class_id || ''));
+      const audit = auditBySession.get(String(record.session_id)) || {};
+      return {
+        session_id: record.session_id,
+        session_status: 'completed',
+        attendance_date: session?.attendance_date || '',
+        class_id: session?.class_id || record?.class_id || '',
+        class_type: session?.class_type || classRow?.class_type || '',
+        class_name: session?.class_name || classRow?.class_name || '',
+        subject: session?.subject || classRow?.subject || '',
+        teaching_room: session?.teaching_room || '',
+        teaching_time_range: session?.teaching_time_range || '',
+        checked_at: session?.checked_at || '',
+        teacher_name: session?.teacher_name || '',
+        checked_by_name: session?.checked_by_name || '',
+        latest_changed_by_name: audit.latest_changed_by_name || '',
+        latest_changed_at: audit.latest_changed_at || '',
+        student_code: record.student_code || '',
+        student_full_name: record.student_full_name || '',
+        school_class_name: record.school_class_name || '',
+      };
+    })
+    .sort((a, b) => String(a.attendance_date || '').localeCompare(String(b.attendance_date || '')) || a.student_full_name.localeCompare(b.student_full_name, 'vi'));
+
   return {
     mode: mode === 'day' ? 'day' : 'month',
     filteredSessions,
@@ -197,6 +225,7 @@ export function buildAttendanceReport({
     teacherRows,
     sessionRows,
     absenceRows,
+    lateRows,
   };
 }
 
