@@ -9,7 +9,7 @@ const BACK_BUTTON_CLASS = 'bes-attendance-calendar-back';
 
 let observer = null;
 let scanQueued = false;
-const initializedShells = new WeakSet();
+const redirectPendingShells = new WeakSet();
 
 function text(value) {
   return String(value ?? '').trim();
@@ -138,15 +138,14 @@ function syncDetailState(shell) {
   calendarTab?.classList.toggle('bes-calendar-detail-active', detailActive);
   syncBackButton(shell, detailActive);
 
-  if (!initializedShells.has(shell) && quickTab && calendarTab) {
-    initializedShells.add(shell);
-    if (quickTab.classList.contains('is-active') && !detailActive) {
-      queueMicrotask(() => {
-        if (!shell.isConnected || shell.hasAttribute(DETAIL_ATTRIBUTE)) return;
-        const currentTabs = markAttendanceTabs(shell);
-        if (currentTabs.quickTab?.classList.contains('is-active')) currentTabs.calendarTab?.click();
-      });
-    }
+  if (quickTab && calendarTab && quickTab.classList.contains('is-active') && !detailActive && !redirectPendingShells.has(shell)) {
+    redirectPendingShells.add(shell);
+    queueMicrotask(() => {
+      redirectPendingShells.delete(shell);
+      if (!shell.isConnected || shell.hasAttribute(DETAIL_ATTRIBUTE)) return;
+      const currentTabs = markAttendanceTabs(shell);
+      if (currentTabs.quickTab?.classList.contains('is-active')) currentTabs.calendarTab?.click();
+    });
   }
 }
 
@@ -236,7 +235,7 @@ function startAttendanceCalendarDirectEntry() {
   document.addEventListener('click', onCapturedClick, { capture: true });
   scanAttendanceShells();
   observer = new MutationObserver(queueScan);
-  observer.observe(document.body, { childList: true, subtree: true });
+  observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
 }
 
 export function installAttendanceCalendarDirectEntry() {
