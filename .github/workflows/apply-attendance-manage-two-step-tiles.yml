@@ -1,0 +1,37 @@
+name: Apply Attendance Manage Two-Step Tiles
+
+on:
+  push:
+    branches:
+      - feature/attendance-manage-two-step-tiles
+    paths:
+      - .github/workflows/apply-attendance-manage-two-step-tiles.yml
+      - scripts/apply-attendance-manage-two-step-tiles.mjs
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: feature/attendance-manage-two-step-tiles
+          fetch-depth: 0
+
+      - name: Apply direct React refactor
+        run: node scripts/apply-attendance-manage-two-step-tiles.mjs
+
+      - name: Commit generated source
+        run: |
+          if git diff --quiet -- src/components/GlobalAttendanceNavigationTab.jsx; then
+            echo "No source changes required."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/components/GlobalAttendanceNavigationTab.jsx
+          git commit -m "feat: wire two-step attendance class management"
+          git push origin HEAD:feature/attendance-manage-two-step-tiles
