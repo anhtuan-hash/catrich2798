@@ -27,7 +27,7 @@ function renderTrigger(trigger, panel) {
   trigger.classList.toggle('is-active', configOpen);
   trigger.classList.toggle('is-enabled', enabled);
   trigger.setAttribute('aria-selected', configOpen ? 'true' : 'false');
-  trigger.tabIndex = configOpen ? 0 : -1;
+  trigger.tabIndex = 0;
   const title = `${enabled ? 'Đang bật' : 'Đang tắt'} giới hạn giờ giáo viên · ${windowLabel}`;
   if (trigger.getAttribute('title') !== title) trigger.setAttribute('title', title);
 }
@@ -84,7 +84,8 @@ function renderCompactTimeSettings() {
   panel.id = CONFIG_PANEL_ID;
   panel.setAttribute('role', 'tabpanel');
   panel.setAttribute('aria-labelledby', CONFIG_TAB_ID);
-  panel.hidden = !configOpen;
+  const shouldHidePanel = !configOpen;
+  if (panel.hidden !== shouldHidePanel) panel.hidden = shouldHidePanel;
 
   tabs.classList.toggle('is-time-config-open', configOpen);
   content.classList.toggle('is-time-config-open', configOpen);
