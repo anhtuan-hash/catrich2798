@@ -36,6 +36,7 @@ import AttendanceMonthlyReport from './attendance/AttendanceMonthlyReport.jsx';
 import AttendanceClassManagementWorkspace from './attendance/AttendanceClassManagementWorkspace.jsx';
 import AttendanceDailySchedule from './attendance/AttendanceDailySchedule.jsx';
 import { ATTENDANCE_PROOF_BUCKET, buildAttendanceProofPath, prepareAttendanceProofImage } from '../utils/attendanceProofImage.js';
+import { filterAndSortAttendanceHistory } from '../utils/attendanceHistoryFilters.js';
 import './attendance/AttendanceMaterial3.css';
 import './attendance/AttendanceHistoryV2.css';
 
@@ -144,6 +145,9 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const [importReport, setImportReport] = useState(null);
   const [historyQuery, setHistoryQuery] = useState('');
   const [historyType, setHistoryType] = useState('all');
+  const [historySort, setHistorySort] = useState('desc');
+  const [historyDateFrom, setHistoryDateFrom] = useState('');
+  const [historyDateTo, setHistoryDateTo] = useState('');
   const [historySelectionMode, setHistorySelectionMode] = useState(false);
   const [selectedHistorySessionIds, setSelectedHistorySessionIds] = useState([]);
   const [memberQuery, setMemberQuery] = useState('');
@@ -951,14 +955,19 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     }
   }
 
-  const filteredHistory = useMemo(() => sessions.filter((session) => {
-    if (historyType !== 'all' && session.class_type !== historyType) return false;
-    const haystack = fold(`${session.class_name} ${teacherForSession(session)} ${session.subject} ${session.attendance_date}`);
-    return !historyQuery.trim() || haystack.includes(fold(historyQuery));
-  }), [sessions, historyQuery, historyType]);
+  const filteredHistory = useMemo(() => filterAndSortAttendanceHistory(sessions, {
+    query: historyQuery,
+    type: historyType,
+    dateFrom: historyDateFrom,
+    dateTo: historyDateTo,
+    sort: historySort,
+    getTeacher: teacherForSession,
+  }), [sessions, historyQuery, historyType, historyDateFrom, historyDateTo, historySort, classTeachers]);
 
   const selectedHistorySessionIdSet = useMemo(() => new Set(selectedHistorySessionIds.map((id) => String(id))), [selectedHistorySessionIds]);
   const allFilteredHistorySelected = filteredHistory.length > 0 && filteredHistory.every((session) => selectedHistorySessionIdSet.has(String(session.id)));
+  const historyDateRangeInvalid = Boolean(historyDateFrom && historyDateTo && historyDateFrom > historyDateTo);
+  const historyHasFilters = Boolean(historyQuery.trim() || historyType !== 'all' || historySort !== 'desc' || historyDateFrom || historyDateTo);
 
   const filteredManagementMembers = useMemo(() => allSelectedMembers.filter((member) => {
     if (!memberQuery.trim()) return true;
@@ -1151,7 +1160,18 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                 <header className="ahv3__list-head">
                   <div className="ahv3__list-title"><div><strong>Lịch sử điểm danh</strong><p>Tra cứu các buổi đã chốt và buổi đã hủy.</p></div><div className="ahv3__list-actions"><span>{filteredHistory.length} buổi</span>{canAccessAttendanceView('quick') ? <button type="button" className={historySelectionMode ? 'is-active' : ''} disabled={busy} onClick={toggleHistorySelectionMode}>{historySelectionMode ? 'Thoát chọn' : 'Chọn nhiều'}</button> : null}</div></div>
                   <label className="ahv3__search" data-bes-keep-search="true"><Icon name="history" size={16} /><input value={historyQuery} onChange={(event) => setHistoryQuery(event.target.value)} placeholder="Tìm theo tên lớp, môn học, giáo viên hoặc ngày…" /></label>
-                  <div className="ahv3__filters"><select value={historyType} onChange={(event) => setHistoryType(event.target.value)}><option value="all">Tất cả loại lớp</option><option value="remedial">Phụ đạo</option><option value="gifted">Bồi dưỡng HSG</option></select></div>
+                  <div className="ahv3__filters">
+                    <label><span>Loại lớp</span><select value={historyType} onChange={(event) => setHistoryType(event.target.value)}><option value="all">Tất cả loại lớp</option><option value="remedial">Phụ đạo</option><option value="gifted">Bồi dưỡng HSG</option></select></label>
+                    <label><span>Sắp xếp theo ngày</span><select value={historySort} onChange={(event) => setHistorySort(event.target.value)}><option value="desc">Mới nhất → cũ nhất</option><option value="asc">Cũ nhất → mới nhất</option></select></label>
+                  </div>
+                  <div className="ahv3__date-filters" data-bes-keep-search="true">
+                    <label><span>Từ ngày</span><input type="date" value={historyDateFrom} max={historyDateTo || undefined} onChange={(event) => setHistoryDateFrom(event.target.value)} /></label>
+                    <label><span>Đến ngày</span><input type="date" value={historyDateTo} min={historyDateFrom || undefined} onChange={(event) => setHistoryDateTo(event.target.value)} /></label>
+                  </div>
+                  <div className={`ahv3__filter-meta ${historyDateRangeInvalid ? 'is-invalid' : ''}`}>
+                    <button type="button" disabled={!historyHasFilters} onClick={() => { setHistoryQuery(''); setHistoryType('all'); setHistorySort('desc'); setHistoryDateFrom(''); setHistoryDateTo(''); }}><Icon name="refresh" size={14} />Xóa bộ lọc</button>
+                    <span>{historyDateRangeInvalid ? 'Khoảng ngày không hợp lệ' : `Hiển thị ${filteredHistory.length} buổi`}</span>
+                  </div>
                   {historySelectionMode ? <div className="ahv3__bulk-toolbar"><button type="button" disabled={busy || !filteredHistory.length} onClick={toggleAllFilteredHistorySelection}>{allFilteredHistorySelected ? 'Bỏ chọn kết quả' : 'Chọn tất cả kết quả'}</button><span>Đã chọn <b>{selectedHistorySessionIds.length}</b> buổi</span><button type="button" className="is-danger" disabled={busy || !selectedHistorySessionIds.length} onClick={deleteSelectedHistorySessions}><Icon name="trash" size={16} />{busy ? 'Đang xóa…' : `Xóa ${selectedHistorySessionIds.length} buổi`}</button></div> : null}
                 </header>
                 <div className="ahv3__items">{filteredHistory.map((session, historyIndex) => {

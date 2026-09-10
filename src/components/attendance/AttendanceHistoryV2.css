@@ -164,27 +164,93 @@
   color: #95a3b6;
 }
 
-.ahv3__shell .ahv3__list-head > .ahv3__filters {
-  display: block;
-  grid-template-columns: none;
+.ahv3__shell .ahv3__list-head > .ahv3__filters,
+.ahv3__shell .ahv3__list-head > .ahv3__date-filters {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px;
   width: 100%;
-  margin: 8px 0 0 !important;
+  margin: 9px 0 0 !important;
 }
 
-.ahv3__shell .ahv3__list-head > .ahv3__filters select {
+.ahv3__shell .ahv3__filters label,
+.ahv3__shell .ahv3__date-filters label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.ahv3__shell .ahv3__filters label > span,
+.ahv3__shell .ahv3__date-filters label > span {
+  color: #344762;
+  font-size: 9.5px;
+  font-weight: 800;
+}
+
+.ahv3__shell .ahv3__filters select,
+.ahv3__shell .ahv3__date-filters input {
   display: block;
   width: 100%;
+  min-width: 0;
   min-height: 40px;
   margin: 0;
-  padding: 0 12px;
-  border: 1px solid #dfe7f2;
-  border-radius: 11px;
-  background: #fff;
+  padding: 0 10px;
+  border: 1px solid #dfe7f2 !important;
+  border-radius: 11px !important;
+  outline: 0;
+  background: #fff !important;
   color: #263a56;
   font: inherit;
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 700;
-  box-shadow: 0 3px 9px rgba(62, 91, 140, 0.035);
+  box-shadow: 0 3px 9px rgba(62, 91, 140, 0.035) !important;
+}
+
+.ahv3__shell .ahv3__filters select:focus,
+.ahv3__shell .ahv3__date-filters input:focus {
+  border-color: #9dbcf7 !important;
+  box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.08) !important;
+}
+
+.ahv3__shell .ahv3__filter-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.ahv3__shell .ahv3__filter-meta button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
+  margin: 0 !important;
+  padding: 0 9px;
+  border: 1px solid #dce6f3 !important;
+  border-radius: 9px !important;
+  background: #f7faff !important;
+  color: #2f63ae;
+  font: inherit;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ahv3__shell .ahv3__filter-meta button:disabled {
+  opacity: .45;
+  cursor: default;
+}
+
+.ahv3__shell .ahv3__filter-meta > span {
+  color: #7a8ba2;
+  font-size: 9px;
+  font-weight: 700;
+  text-align: right;
+}
+
+.ahv3__shell .ahv3__filter-meta.is-invalid > span {
+  color: #d34252;
 }
 
 .ahv3__shell .ahv3__bulk-toolbar {
