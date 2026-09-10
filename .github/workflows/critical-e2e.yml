@@ -34,6 +34,9 @@ jobs:
       - name: Build production bundle
         run: npm run build
 
+      - name: Verify attendance teacher-time access contract
+        run: node scripts/test-attendance-time-access-control.mjs
+
       - name: Run Chromium critical browser smoke
         run: npx playwright test tests/e2e/critical-smoke.spec.js --project=chromium-desktop
 
@@ -45,6 +48,12 @@ jobs:
 
       - name: Verify Attendance History V3 production cascade in WebKit
         run: npx playwright test tests/e2e/attendance-history-production-layout.spec.js --project=webkit-desktop
+
+      - name: Verify Giờ GV tab parity in Chromium
+        run: npx playwright test tests/e2e/attendance-teacher-time-tab-parity.spec.js --project=chromium-desktop
+
+      - name: Verify Giờ GV tab parity in WebKit
+        run: npx playwright test tests/e2e/attendance-teacher-time-tab-parity.spec.js --project=webkit-desktop
 
       - name: Verify iPhone layout in Chromium
         run: npx playwright test tests/e2e/iphone-dashboard-attendance-layout.spec.js --project=chromium-desktop
