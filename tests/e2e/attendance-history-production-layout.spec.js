@@ -11,17 +11,22 @@ const searchStripCss = read('public/bes-remove-visible-search-bars.css');
 const searchStripJs = read('public/bes-remove-visible-search-bars.js');
 
 test.describe('Attendance History V3 production cascade', () => {
-  test('source is isolated from legacy History selectors and keeps search', async () => {
+  test('source is isolated from legacy History selectors and keeps search/date filters', async () => {
     expect(componentSource).toContain('className="ahv3__shell"');
     expect(componentSource).toContain('data-attendance-history-v3="true"');
     expect(componentSource).toContain('data-bes-keep-search="true"');
+    expect(componentSource).toContain('className="ahv3__date-filters"');
+    expect(componentSource).toContain('Sắp xếp theo ngày');
+    expect(componentSource).toContain('Từ ngày');
+    expect(componentSource).toContain('Đến ngày');
+    expect(componentSource).toContain('Xóa bộ lọc');
     expect(componentSource).toContain('className="ahv3__audit-actor-panel"');
     expect(componentSource).not.toMatch(/className=(?:"[^"\n]*attendance-history-|\{`[^`\n]*attendance-history-)/);
     expect(historyCss).not.toMatch(/\.attendance-history-/);
     expect(legacyCss).not.toContain('.ahv3__');
   });
 
-  test('search, five-card summary, audit/proof order and proof bounds survive legacy runtime', async ({ page }) => {
+  test('search, date filters, five-card summary, audit/proof order and proof bounds survive legacy runtime', async ({ page }) => {
     await page.setViewportSize({ width: 1512, height: 982 });
     await page.setContent(`
       <div class="attendance-layer"><section class="attendance-shell"><main class="attendance-content">
@@ -30,7 +35,15 @@ test.describe('Attendance History V3 production cascade', () => {
             <header class="ahv3__list-head">
               <div class="ahv3__list-title"><div><strong>Lịch sử điểm danh</strong><p>Tra cứu các buổi đã chốt.</p></div></div>
               <label class="ahv3__search" data-bes-keep-search="true"><span>⌕</span><input data-testid="history-search" placeholder="Tìm theo tên lớp, môn học, giáo viên hoặc ngày…"></label>
-              <div class="ahv3__filters"><select><option>Tất cả loại lớp</option></select></div>
+              <div class="ahv3__filters" data-testid="primary-filters">
+                <label><span>Loại lớp</span><select data-testid="type-filter"><option>Tất cả loại lớp</option></select></label>
+                <label><span>Sắp xếp theo ngày</span><select data-testid="sort-filter"><option>Mới nhất → cũ nhất</option></select></label>
+              </div>
+              <div class="ahv3__date-filters" data-bes-keep-search="true" data-testid="date-filters">
+                <label><span>Từ ngày</span><input data-testid="date-from" type="date"></label>
+                <label><span>Đến ngày</span><input data-testid="date-to" type="date"></label>
+              </div>
+              <div class="ahv3__filter-meta" data-testid="filter-meta"><button type="button">Xóa bộ lọc</button><span>Hiển thị 1 buổi</span></div>
             </header>
             <div class="ahv3__items"><button data-testid="history-item"><span class="ahv3__number">1</span><span><b>12.6</b></span><span>95%</span></button></div>
           </section>
@@ -61,6 +74,22 @@ test.describe('Attendance History V3 production cascade', () => {
     expect(searchBox.width).toBeGreaterThan(100);
     expect(await search.evaluate((el) => Boolean(el.closest('[data-bes-search-bar-removed="true"]')))).toBe(false);
 
+    for (const testId of ['type-filter', 'sort-filter', 'date-from', 'date-to']) {
+      const control = page.getByTestId(testId);
+      const box = await control.boundingBox();
+      expect(box).not.toBeNull();
+      expect(box.width).toBeGreaterThan(80);
+      expect(box.height).toBeGreaterThanOrEqual(36);
+      expect(await control.evaluate((el) => Boolean(el.closest('[data-bes-search-bar-removed="true"]')))).toBe(false);
+    }
+
+    const primaryFilterBoxes = await page.locator('[data-testid="primary-filters"] > label').evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().toJSON()));
+    const dateFilterBoxes = await page.locator('[data-testid="date-filters"] > label').evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().toJSON()));
+    expect(primaryFilterBoxes).toHaveLength(2);
+    expect(dateFilterBoxes).toHaveLength(2);
+    expect(Math.abs(primaryFilterBoxes[0].top - primaryFilterBoxes[1].top)).toBeLessThan(1.5);
+    expect(Math.abs(dateFilterBoxes[0].top - dateFilterBoxes[1].top)).toBeLessThan(1.5);
+
     const statBoxes = await page.getByTestId('stat').evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().toJSON()));
     expect(statBoxes).toHaveLength(5);
     expect(Math.max(...statBoxes.map((box) => box.top)) - Math.min(...statBoxes.map((box) => box.top))).toBeLessThan(1.5);
@@ -74,12 +103,11 @@ test.describe('Attendance History V3 production cascade', () => {
     expect(imageBox.height).toBeGreaterThan(0);
     expect(imageBox.height).toBeLessThanOrEqual(210);
 
-    const searchRegion = await page.locator('.ahv3__search').boundingBox();
+    const filterMeta = await page.getByTestId('filter-meta').boundingBox();
     const firstItem = await page.getByTestId('history-item').boundingBox();
-    expect(searchRegion).not.toBeNull();
+    expect(filterMeta).not.toBeNull();
     expect(firstItem).not.toBeNull();
-    expect(searchRegion.height).toBeGreaterThanOrEqual(36);
-    const searchBottom = searchRegion.y + searchRegion.height;
-    expect(firstItem.y - searchBottom).toBeLessThan(80);
+    const filterBottom = filterMeta.y + filterMeta.height;
+    expect(firstItem.y - filterBottom).toBeLessThan(40);
   });
 });
