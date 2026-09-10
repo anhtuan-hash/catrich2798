@@ -30,16 +30,32 @@ for (const copy of [
 ]) assert.match(reportExport, new RegExp(copy), `PDF export must contain ${copy}`);
 assert.doesNotMatch(reportExport, /1\. THỐNG KÊ THEO GIÁO VIÊN/, 'PDF must remove the teacher-summary section entirely');
 assert.doesNotMatch(reportExport, /3\. CHI TIẾT HỌC SINH VẮNG/, 'PDF section numbering must be compact after removing teacher summary');
-assert.match(
-  reportExport,
-  /headers:\s*\[\s*'Ngày',\s*'Lớp \/ môn',\s*'GV \/ phòng',\s*'Giờ dạy \/ chốt',\s*'Tiết',\s*'Sĩ số',\s*'Có mặt',\s*'Vắng',\s*'Tỷ lệ',\s*'Người điểm danh',\s*'Người điều chỉnh gần nhất',\s*'Trạng thái \/ ghi chú',\s*\]/,
-  'Session-detail PDF columns must place audit actors after Tỷ lệ and before Trạng thái / ghi chú',
-);
-assert.match(
-  reportExport,
-  /columns:\s*\[\s*'date',\s*'class_subject',\s*'teacher_room',\s*'time_checked',\s*'periods',\s*'total_students',\s*'present_count',\s*'absent_count',\s*'attendance_rate',\s*'checked_by',\s*'last_adjustment',\s*'status_note',\s*\]/,
-  'Session-detail data keys must follow the visible PDF column order',
-);
+
+const pdfSessionHeader = reportExport.match(/<section class="section"><h2>1\. CHI TIẾT BUỔI HỌC<\/h2>[\s\S]*?<\/thead>/)?.[0] || '';
+const expectedPdfHeaderOrder = [
+  'Ngày', 'Lớp / môn', 'GV / phòng', 'Giờ dạy / chốt', 'Tiết', 'Sĩ số', 'Có mặt', 'Vắng', 'Tỷ lệ',
+  'Người điểm danh', 'Người điều chỉnh gần nhất', 'Trạng thái / ghi chú',
+];
+let previousHeaderIndex = -1;
+for (const header of expectedPdfHeaderOrder) {
+  const index = pdfSessionHeader.indexOf(`>${header}<`);
+  assert.ok(index > previousHeaderIndex, `PDF session header must place “${header}” in the approved order`);
+  previousHeaderIndex = index;
+}
+
+const sessionTemplate = reportExport.match(/const sessionHtml = report\.sessionRows\.map[\s\S]*?\)\.join\(''\);/)?.[0] || '';
+const expectedSessionDataOrder = [
+  'row.attendance_date', 'row.class_name', 'row.teacher_name', 'row.teaching_time_range', 'row.lesson_periods',
+  'row.total_students', 'row.present_count', 'row.absent_count', 'row.attendance_rate', 'row.checked_by_name',
+  'row.latest_changed_by_name', 'row.note',
+];
+let previousDataIndex = -1;
+for (const token of expectedSessionDataOrder) {
+  const index = sessionTemplate.indexOf(token);
+  assert.ok(index > previousDataIndex, `PDF session row must place ${token} in the approved column order`);
+  previousDataIndex = index;
+}
+
 assert.match(reportExport, /@page\s*\{[^}]*size\s*:\s*A4\s+portrait/i);
 assert.match(
   reportExport,
