@@ -2,6 +2,8 @@ import './styles/AttendanceCompactTimeSettings.css';
 
 const INSTALL_KEY = '__besAttendanceCompactTimeSettingsInstalled';
 export const ATTENDANCE_COMPACT_TIME_TRIGGER_CLASS = 'bes-attendance-time-trigger';
+const CONFIG_TAB_ID = 'bes-attendance-time-config-tab';
+const CONFIG_PANEL_ID = 'bes-attendance-time-config-panel';
 
 let configOpen = false;
 let observer = null;
@@ -25,6 +27,7 @@ function renderTrigger(trigger, panel) {
   trigger.classList.toggle('is-active', configOpen);
   trigger.classList.toggle('is-enabled', enabled);
   trigger.setAttribute('aria-selected', configOpen ? 'true' : 'false');
+  trigger.tabIndex = configOpen ? 0 : -1;
   const title = `${enabled ? 'Đang bật' : 'Đang tắt'} giới hạn giờ giáo viên · ${windowLabel}`;
   if (trigger.getAttribute('title') !== title) trigger.setAttribute('title', title);
 }
@@ -32,35 +35,40 @@ function renderTrigger(trigger, panel) {
 function createTrigger() {
   const trigger = document.createElement('button');
   trigger.type = 'button';
+  trigger.id = CONFIG_TAB_ID;
   trigger.className = ATTENDANCE_COMPACT_TIME_TRIGGER_CLASS;
+  trigger.setAttribute('role', 'tab');
   trigger.setAttribute('aria-label', 'Cấu hình giờ điểm danh của giáo viên');
+  trigger.setAttribute('aria-controls', CONFIG_PANEL_ID);
   trigger.setAttribute('aria-selected', 'false');
-  trigger.innerHTML = '<span class="bes-attendance-time-trigger-icon" aria-hidden="true">⏱</span><b>Cấu hình</b>';
-  trigger.addEventListener('click', (event) => {
-    event.stopPropagation();
+  trigger.innerHTML = '<span class="bes-attendance-time-trigger-icon" aria-hidden="true">⚙</span><b>Cấu hình</b>';
+  trigger.addEventListener('click', () => {
+    if (configOpen) return;
     configOpen = true;
     queueRender();
   });
   return trigger;
 }
 
-function deactivateNativeTabs(tabs) {
-  if (!configOpen || !tabs) return;
-  tabs.querySelectorAll(`:scope > button:not(.${ATTENDANCE_COMPACT_TIME_TRIGGER_CLASS})`).forEach((button) => {
-    if (button.classList.contains('is-active')) button.classList.remove('is-active');
-  });
+function closeConfigView() {
+  if (!configOpen) return;
+  configOpen = false;
+  queueRender();
 }
 
 function renderCompactTimeSettings() {
   renderQueued = false;
   const tabs = document.querySelector('.attendance-tabs');
-  const panel = document.querySelector('.bes-attendance-time-settings');
-  const content = document.querySelector('.attendance-content');
   if (!tabs) return;
 
+  const shell = tabs.closest('.attendance-shell');
+  const content = shell?.querySelector('.attendance-content');
+  const panel = shell?.querySelector('.bes-attendance-time-settings');
   let trigger = tabs.querySelector(`.${ATTENDANCE_COMPACT_TIME_TRIGGER_CLASS}`);
+
   if (!panel || !content) {
     trigger?.remove();
+    tabs.classList.remove('is-time-config-open');
     content?.classList.remove('is-time-config-open');
     configOpen = false;
     return;
@@ -71,13 +79,15 @@ function renderCompactTimeSettings() {
     tabs.appendChild(trigger);
   }
 
-  if (panel.parentElement !== content) content.appendChild(panel);
+  if (panel.parentElement !== content) content.prepend(panel);
   panel.classList.add('is-config-view');
-  panel.removeAttribute('role');
-  panel.setAttribute('aria-label', 'Cấu hình giờ điểm danh của giáo viên');
+  panel.id = CONFIG_PANEL_ID;
+  panel.setAttribute('role', 'tabpanel');
+  panel.setAttribute('aria-labelledby', CONFIG_TAB_ID);
   panel.hidden = !configOpen;
+
+  tabs.classList.toggle('is-time-config-open', configOpen);
   content.classList.toggle('is-time-config-open', configOpen);
-  deactivateNativeTabs(tabs);
   renderTrigger(trigger, panel);
 }
 
@@ -110,9 +120,7 @@ export function installAttendanceCompactTimeSettings() {
     document.addEventListener('click', (event) => {
       const tabButton = event.target?.closest?.('.attendance-tabs > button');
       if (!tabButton || tabButton.classList.contains(ATTENDANCE_COMPACT_TIME_TRIGGER_CLASS)) return;
-      if (!configOpen) return;
-      configOpen = false;
-      queueRender();
+      closeConfigView();
     }, true);
     queueRender();
   };
