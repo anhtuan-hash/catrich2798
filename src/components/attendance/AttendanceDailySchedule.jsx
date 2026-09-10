@@ -31,7 +31,6 @@ function AttendanceDailyIcon({ name, className = '' }) {
     layers: <><path d="m12 3 8 4-8 4-8-4 8-4Z" /><path d="m4 12 8 4 8-4M4 17l8 4 8-4" /></>,
     building: <><path d="M4 21V8l8-4 8 4v13" /><path d="M2 21h20M9 21v-5h6v5M8 10h1m6 0h1M8 13h1m6 0h1" /></>,
     users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></>,
-    arrow: <><path d="M5 12h14M14 7l5 5-5 5" /></>,
   };
   return <svg {...common}>{paths[name] || paths.list}</svg>;
 }
@@ -168,7 +167,7 @@ export default function AttendanceDailySchedule({
         <span className={`attendance-daily-class-row__status is-${status}`}>
           <span className="attendance-daily-class-row__status-icon"><AttendanceDailyIcon name={statusIcon} /></span>
           <span className="attendance-daily-class-row__status-label">{statusLabel(status)}</span>
-          {status === 'missing' ? <em className="attendance-daily-class-row__action"><AttendanceDailyIcon name="check" />Điểm danh <AttendanceDailyIcon name="arrow" /></em> : null}
+          {status === 'missing' ? <em className="attendance-daily-class-row__action"><AttendanceDailyIcon name="check" />Điểm danh →</em> : null}
         </span>
       </button>
     );
@@ -205,9 +204,9 @@ export default function AttendanceDailySchedule({
             })}
           </div>
         </div>
-        <label className="attendance-calendar-mode-bar__date attendance-daily-date-card">
+        <label className="attendance-daily-date-card">
           <span className="attendance-daily-date-card__icon"><AttendanceDailyIcon name="calendar" /></span>
-          <span className="attendance-daily-date-card__body">
+          <span className="attendance-calendar-mode-bar__date attendance-daily-date-card__body">
             <span className="attendance-daily-date-card__label">Ngày điểm danh</span>
             <input
               type="date"
