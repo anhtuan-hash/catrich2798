@@ -76,7 +76,10 @@ test.describe('Attendance History V3 production cascade', () => {
 
     const searchRegion = await page.locator('.ahv3__search').boundingBox();
     const firstItem = await page.getByTestId('history-item').boundingBox();
+    expect(searchRegion).not.toBeNull();
+    expect(firstItem).not.toBeNull();
     expect(searchRegion.height).toBeGreaterThanOrEqual(36);
-    expect(firstItem.top - searchRegion.bottom).toBeLessThan(80);
+    const searchBottom = searchRegion.y + searchRegion.height;
+    expect(firstItem.y - searchBottom).toBeLessThan(80);
   });
 });
