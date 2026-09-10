@@ -71,4 +71,25 @@ assert.match(css, /\.attendance-daily-class-row:is\(:hover,\s*:focus-visible\)\s
 assert.match(css, /\.attendance-daily-floor-group\s*\{[^}]*border-left-width:\s*3px;/s, 'Floor separators must gain a stronger color cue without adding more layout chrome.');
 assert.match(css, /\.attendance-daily-overview__list\s*\{[^}]*padding:[^;]*12px[^;]*;/s, 'Scrollable class list must keep bottom breathing space so the last row is never glued to the viewport edge.');
 
+// Approved visual mockup: strong floor cards, icon-led metadata, separated date card and route summary.
+assert.match(directView, /function\s+AttendanceDailyIcon\s*\(/, 'Mockup match must use a focused inline SVG icon helper instead of adding an icon runtime dependency.');
+assert.match(directView, /className="attendance-daily-date-card"/, 'Date picker must render as its own raised card beside the room filters.');
+assert.match(directView, />Ngày điểm danh</, 'Date card must expose the visible “Ngày điểm danh” label from the mockup.');
+assert.match(directView, /attendance-daily-overview__route-meta/, 'Summary strip must show the total class/floor route metadata on the right.');
+assert.match(directView, /Tổng \{visibleClasses\.length\} lớp trong \{activeFloorCount\} tầng/, 'Route metadata must state total visible classes and active floors.');
+assert.match(directView, /attendance-daily-floor-card/, 'Each floor must become a distinct tinted card, not only a thin separator.');
+assert.match(directView, /attendance-daily-floor-card__title/, 'Floor card must have the filled “Lầu X · N lớp” title pill.');
+assert.match(directView, /attendance-daily-floor-card__badge/, 'Floor card must expose the right-side “Tầng X” badge.');
+assert.match(directView, /attendance-daily-class-row__leading-icon/, 'Each class row must include the blue learner/group icon tile from the mockup.');
+assert.match(directView, /attendance-daily-class-row__room-icon/, 'Room badges must include a building/room icon.');
+assert.match(directView, /attendance-daily-class-row__time-icon/, 'Time cells must include a clock icon.');
+assert.match(directView, /attendance-daily-class-row__status-icon/, 'Status chips must include their status/action icon.');
+assert.match(css, /\.attendance-daily-floor-card\s*\{[^}]*border:\s*1px solid[^}]*border-left-width:\s*8px;[^}]*box-shadow:/s, 'Floor blocks must visually pop with a thick color rail, border and elevation.');
+for (const floor of ['1', '2', '3', '4']) {
+  assert.match(css, new RegExp(`\\.attendance-daily-floor-card\\[data-floor="${floor}"\\]\\s*\\{[^}]*background:`,'s'), `Floor ${floor} card must have its own tinted background.`);
+}
+assert.match(css, /\.attendance-daily-floor-card__title\s*\{[^}]*border-radius:\s*999px;[^}]*color:\s*#fff;/s, 'Floor title must be a high-contrast filled pill.');
+assert.match(css, /\.attendance-daily-class-row__leading-icon\s*\{[^}]*width:\s*38px;[^}]*height:\s*38px;[^}]*border-radius:/s, 'Class rows must use the mockup-sized raised learner icon tile.');
+assert.match(css, /\.attendance-daily-class-row\s*\{[^}]*box-shadow:\s*0\s+4px\s+12px/s, 'Class rows must appear as elevated cards inside each floor block.');
+
 console.log('Direct React compact attendance schedule contract OK');
