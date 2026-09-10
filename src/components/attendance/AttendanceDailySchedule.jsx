@@ -1,4 +1,4 @@
-import React, { Fragment, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { isExtraClassScheduledOnDate, roomForExtraClass } from '../../utils/extraClassSchedule2026.js';
 import {
   attendanceFloorForRoom,
@@ -8,6 +8,33 @@ import {
 } from '../../utils/attendanceDailyRoomFilter.js';
 import { extraClassTypeLabel } from '../../utils/extraClassAttendance.js';
 import './AttendanceDailyOverview.css';
+
+function AttendanceDailyIcon({ name, className = '' }) {
+  const common = {
+    width: 18,
+    height: 18,
+    viewBox: '0 0 24 24',
+    fill: 'none',
+    stroke: 'currentColor',
+    strokeWidth: 2,
+    strokeLinecap: 'round',
+    strokeLinejoin: 'round',
+    className,
+    'aria-hidden': true,
+  };
+  const paths = {
+    calendar: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M8 3v4M16 3v4M3 10h18" /></>,
+    list: <><path d="M9 6h11M9 12h11M9 18h11" /><circle cx="4" cy="6" r="1" /><circle cx="4" cy="12" r="1" /><circle cx="4" cy="18" r="1" /></>,
+    check: <><circle cx="12" cy="12" r="9" /><path d="m8 12 2.5 2.5L16 9" /></>,
+    clock: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
+    x: <><circle cx="12" cy="12" r="9" /><path d="m9 9 6 6m0-6-6 6" /></>,
+    layers: <><path d="m12 3 8 4-8 4-8-4 8-4Z" /><path d="m4 12 8 4 8-4M4 17l8 4 8-4" /></>,
+    building: <><path d="M4 21V8l8-4 8 4v13" /><path d="M2 21h20M9 21v-5h6v5M8 10h1m6 0h1M8 13h1m6 0h1" /></>,
+    users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></>,
+    arrow: <><path d="M5 12h14M14 7l5 5-5 5" /></>,
+  };
+  return <svg {...common}>{paths[name] || paths.list}</svg>;
+}
 
 function statusForSession(session) {
   if (session?.session_status === 'cancelled') return 'cancelled';
@@ -78,8 +105,74 @@ export default function AttendanceDailySchedule({
     });
     return counts;
   }, [visibleClasses, sessionsByClass]);
+  const activeFloorCount = floorCounts.size;
+  const showFloorCards = roomFilter === 'all';
+  const floorGroups = useMemo(() => {
+    const groups = [];
+    const byFloor = new Map();
+    visibleClasses.forEach((classRow) => {
+      const session = sessionsByClass.get(String(classRow.id));
+      const floor = attendanceFloorForRoom(displayedRoomForClass(classRow, session));
+      const key = floor || 'other';
+      if (!byFloor.has(key)) {
+        const group = { key, floor: floor || null, rows: [] };
+        byFloor.set(key, group);
+        groups.push(group);
+      }
+      byFloor.get(key).rows.push(classRow);
+    });
+    return groups;
+  }, [visibleClasses, sessionsByClass]);
 
-  let previousFloor = null;
+  const renderClassRow = (classRow) => {
+    const session = sessionsByClass.get(String(classRow.id));
+    const status = statusForSession(session);
+    const room = displayedRoomForClass(classRow, session) || 'Chưa ghi phòng';
+    const floor = attendanceFloorForRoom(room);
+    const timeRange = session?.teaching_time_range || classRow.time_range || 'Chưa ghi giờ';
+    const teacher = status === 'completed'
+      ? (session?.teacher_name || teacherLabelForClass?.(classRow) || classRow.teacher_name || 'Chưa ghi giáo viên')
+      : (teacherLabelForClass?.(classRow) || classRow.teacher_name || 'Chưa phân công GV');
+    const attendanceMeta = status === 'completed'
+      ? `${Number(session?.present_count || 0)}/${Number(session?.total_students || 0)} có mặt · ${String(session?.lesson_periods || 1).replace('.', ',')} tiết`
+      : status === 'cancelled'
+        ? `${session?.cancellation_reason || 'Buổi học đã hủy'} · 0 tiết`
+        : '';
+    const statusIcon = status === 'completed' ? 'check' : status === 'cancelled' ? 'x' : 'clock';
+
+    return (
+      <button
+        key={classRow.id}
+        type="button"
+        className={`attendance-daily-class-row is-${status}`}
+        data-floor={floor || undefined}
+        aria-label={status === 'missing' ? `Điểm danh ${classRow.class_name}` : `Mở ${classRow.class_name} - ${statusLabel(status)}`}
+        onClick={() => onOpenClass?.(classRow, session || null)}
+      >
+        <span className="attendance-daily-class-row__class-shell">
+          <span className="attendance-daily-class-row__leading-icon"><AttendanceDailyIcon name="users" /></span>
+          <span className="attendance-daily-class-row__class">
+            <b>{classRow.class_name}</b>
+            <small>{extraClassTypeLabel(classRow.class_type)} · {classRow.subject || 'Chưa ghi môn'}</small>
+          </span>
+        </span>
+        <span className="attendance-daily-class-row__teacher" title={teacher}><b>{teacher}</b></span>
+        <span className="attendance-daily-class-row__meta is-room" data-floor={floor || undefined}>
+          <span className="attendance-daily-class-row__room-icon"><AttendanceDailyIcon name="building" /></span>
+          <b>{room}</b>
+        </span>
+        <span className="attendance-daily-class-row__meta is-time">
+          <span className="attendance-daily-class-row__time-icon"><AttendanceDailyIcon name="clock" /></span>
+          <span className="attendance-daily-class-row__time-copy"><b>{timeRange}</b>{attendanceMeta ? <small>{attendanceMeta}</small> : null}</span>
+        </span>
+        <span className={`attendance-daily-class-row__status is-${status}`}>
+          <span className="attendance-daily-class-row__status-icon"><AttendanceDailyIcon name={statusIcon} /></span>
+          <span className="attendance-daily-class-row__status-label">{statusLabel(status)}</span>
+          {status === 'missing' ? <em className="attendance-daily-class-row__action"><AttendanceDailyIcon name="check" />Điểm danh <AttendanceDailyIcon name="arrow" /></em> : null}
+        </span>
+      </button>
+    );
+  };
 
   return (
     <div className="attendance-daily-overview-host">
@@ -112,24 +205,42 @@ export default function AttendanceDailySchedule({
             })}
           </div>
         </div>
-        <label className="attendance-calendar-mode-bar__date">
-          <span className="sr-only">Ngày điểm danh</span>
-          <input
-            type="date"
-            aria-label="Ngày điểm danh"
-            max={maxDate || undefined}
-            value={date || ''}
-            onChange={(event) => onDateChange?.(event.target.value)}
-          />
+        <label className="attendance-calendar-mode-bar__date attendance-daily-date-card">
+          <span className="attendance-daily-date-card__icon"><AttendanceDailyIcon name="calendar" /></span>
+          <span className="attendance-daily-date-card__body">
+            <span className="attendance-daily-date-card__label">Ngày điểm danh</span>
+            <input
+              type="date"
+              aria-label="Ngày điểm danh"
+              max={maxDate || undefined}
+              value={date || ''}
+              onChange={(event) => onDateChange?.(event.target.value)}
+            />
+          </span>
         </label>
       </div>
 
       <div className="attendance-daily-overview" aria-live="polite">
         <div className="attendance-daily-overview__summary is-compact" aria-label="Tóm tắt điểm danh">
-          <article className="attendance-daily-overview__metric"><span>Có lịch</span><b>{visibleClasses.length}</b></article>
-          <article className="attendance-daily-overview__metric is-completed"><span>Đã điểm danh</span><b>{completedCount}</b></article>
-          <article className="attendance-daily-overview__metric is-missing"><span>Chưa điểm danh</span><b>{missingCount}</b></article>
-          <article className="attendance-daily-overview__metric is-cancelled"><span>Đã hủy</span><b>{cancelledCount}</b></article>
+          <div className="attendance-daily-overview__metrics">
+            <article className="attendance-daily-overview__metric">
+              <span className="attendance-daily-overview__metric-icon"><AttendanceDailyIcon name="list" /></span>
+              <span className="attendance-daily-overview__metric-label">Có lịch</span><b>{visibleClasses.length}</b>
+            </article>
+            <article className="attendance-daily-overview__metric is-completed">
+              <span className="attendance-daily-overview__metric-icon"><AttendanceDailyIcon name="check" /></span>
+              <span className="attendance-daily-overview__metric-label">Đã điểm danh</span><b>{completedCount}</b>
+            </article>
+            <article className="attendance-daily-overview__metric is-missing">
+              <span className="attendance-daily-overview__metric-icon"><AttendanceDailyIcon name="clock" /></span>
+              <span className="attendance-daily-overview__metric-label">Chưa điểm danh</span><b>{missingCount}</b>
+            </article>
+            <article className="attendance-daily-overview__metric is-cancelled">
+              <span className="attendance-daily-overview__metric-icon"><AttendanceDailyIcon name="x" /></span>
+              <span className="attendance-daily-overview__metric-label">Đã hủy</span><b>{cancelledCount}</b>
+            </article>
+          </div>
+          <div className="attendance-daily-overview__route-meta"><AttendanceDailyIcon name="layers" />Tổng {visibleClasses.length} lớp trong {activeFloorCount} tầng</div>
         </div>
 
         <div className="attendance-daily-table-header" aria-hidden="true">
@@ -146,56 +257,24 @@ export default function AttendanceDailySchedule({
 
         {!loading && visibleClasses.length > 0 ? (
           <div className="attendance-daily-overview__list">
-            {visibleClasses.map((classRow) => {
-              const session = sessionsByClass.get(String(classRow.id));
-              const status = statusForSession(session);
-              const room = displayedRoomForClass(classRow, session) || 'Chưa ghi phòng';
-              const floor = attendanceFloorForRoom(room);
-              const timeRange = session?.teaching_time_range || classRow.time_range || 'Chưa ghi giờ';
-              const teacher = status === 'completed'
-                ? (session?.teacher_name || teacherLabelForClass?.(classRow) || classRow.teacher_name || 'Chưa ghi giáo viên')
-                : (teacherLabelForClass?.(classRow) || classRow.teacher_name || 'Chưa phân công GV');
-              const attendanceMeta = status === 'completed'
-                ? `${Number(session?.present_count || 0)}/${Number(session?.total_students || 0)} có mặt · ${String(session?.lesson_periods || 1).replace('.', ',')} tiết`
-                : status === 'cancelled'
-                  ? `${session?.cancellation_reason || 'Buổi học đã hủy'} · 0 tiết`
-                  : '';
-              const showFloorSeparator = effectiveRoomFilter === 'all' && floor && floor !== previousFloor;
-              if (floor) previousFloor = floor;
-
-              return (
-                <Fragment key={classRow.id}>
-                  {showFloorSeparator ? (
-                    <div className="attendance-daily-floor-group" data-floor={floor}>
-                      <strong>Lầu {floor}<span> · {floorCounts.get(floor) || 0} lớp</span></strong>
-                    </div>
-                  ) : null}
-                  <button
-                    type="button"
-                    className={`attendance-daily-class-row is-${status}`}
-                    data-floor={floor || undefined}
-                    aria-label={status === 'missing' ? `Điểm danh ${classRow.class_name}` : `Mở ${classRow.class_name} - ${statusLabel(status)}`}
-                    onClick={() => onOpenClass?.(classRow, session || null)}
-                  >
-                    <span className="attendance-daily-class-row__class">
-                      <b>{classRow.class_name}</b>
-                      <small>{extraClassTypeLabel(classRow.class_type)} · {classRow.subject || 'Chưa ghi môn'}</small>
-                    </span>
-                    <span className="attendance-daily-class-row__teacher" title={teacher}><b>{teacher}</b></span>
-                    <span className="attendance-daily-class-row__meta is-room" data-floor={floor || undefined}>
-                      <b>{room}</b>
-                    </span>
-                    <span className="attendance-daily-class-row__meta is-time">
-                      <b>{timeRange}</b>{attendanceMeta ? <small>{attendanceMeta}</small> : null}
-                    </span>
-                    <span className={`attendance-daily-class-row__status is-${status}`}>
-                      <span className="attendance-daily-class-row__status-label">{statusLabel(status)}</span>
-                      {status === 'missing' ? <em className="attendance-daily-class-row__action">Điểm danh →</em> : null}
-                    </span>
-                  </button>
-                </Fragment>
-              );
-            })}
+            {floorGroups.map((group) => (
+              <section
+                key={group.key}
+                className={`attendance-daily-floor-card ${showFloorCards ? '' : 'is-filtered'}`}
+                data-floor={group.floor || undefined}
+              >
+                <div className="attendance-daily-floor-group" data-floor={group.floor || undefined}>
+                  <strong className="attendance-daily-floor-card__title">
+                    <AttendanceDailyIcon name="building" />
+                    {group.floor ? <>Lầu {group.floor}<span> · {group.rows.length} lớp</span></> : <>Khác<span> · {group.rows.length} lớp</span></>}
+                  </strong>
+                  {group.floor ? <span className="attendance-daily-floor-card__badge">Tầng {group.floor}</span> : null}
+                </div>
+                <div className="attendance-daily-floor-card__rows">
+                  {group.rows.map(renderClassRow)}
+                </div>
+              </section>
+            ))}
           </div>
         ) : null}
       </div>
