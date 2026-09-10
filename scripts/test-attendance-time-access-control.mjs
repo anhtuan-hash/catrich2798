@@ -5,6 +5,7 @@ const utilityUrl = new URL('../src/utils/attendanceTimeAccess.js', import.meta.u
 const bootstrapUrl = new URL('../src/attendanceTimeAccessBootstrap.js', import.meta.url);
 const compactRuntimeUrl = new URL('../src/attendanceCompactTimeSettings.js', import.meta.url);
 const compactCssUrl = new URL('../src/styles/AttendanceCompactTimeSettings.css', import.meta.url);
+const attendanceTabsCssUrl = new URL('../src/components/GlobalAttendanceNavigationTab.css', import.meta.url);
 const startupUrl = new URL('../src/tabResumeStability.js', import.meta.url);
 const migrationUrl = new URL('../supabase/migrations/20260909_attendance_time_access_control.sql', import.meta.url);
 
@@ -12,6 +13,7 @@ assert.ok(fs.existsSync(utilityUrl), 'Attendance time access utility must exist'
 assert.ok(fs.existsSync(bootstrapUrl), 'Attendance time access UI/bootstrap must exist');
 assert.ok(fs.existsSync(compactRuntimeUrl), 'Compact Admin time settings runtime must exist');
 assert.ok(fs.existsSync(compactCssUrl), 'Compact Admin time settings styles must exist');
+assert.ok(fs.existsSync(attendanceTabsCssUrl), 'Attendance tab source styles must exist');
 assert.ok(fs.existsSync(migrationUrl), 'Attendance time access Supabase migration must exist');
 
 const {
@@ -96,22 +98,34 @@ assert.match(uiSource, /adminSettingsDirty\s*=\s*true/, 'Input changes must mark
 assert.match(uiSource, /if\s*\(!adminSettingsDirty\)\s*\{[\s\S]{0,900}enabledInput\.checked[\s\S]{0,900}startInput\.value[\s\S]{0,900}endInput\.value[\s\S]{0,900}\}/, 'Server settings may sync into controls only while the form is clean');
 assert.match(uiSource, /settings\s*=\s*\{\s*\.\.\.settings,\s*\.\.\.\(data\s*\|\|\s*\{\}\)\s*\}[\s\S]{0,500}adminSettingsDirty\s*=\s*false/, 'A successful save must clear dirty state after adopting the server response');
 
-// Compact Admin settings is isolated from the authorization runtime: it relocates the existing
-// panel into the tab bar and exposes it only when the compact trigger is opened.
+// Giờ GV stays a compact popover trigger, but it must use the exact visual state language of
+// the React attendance navigation tabs instead of presenting itself as a separate pill/control.
 const compactSource = fs.readFileSync(compactRuntimeUrl, 'utf8');
 const compactCssSource = fs.readFileSync(compactCssUrl, 'utf8');
+const attendanceTabsCssSource = fs.readFileSync(attendanceTabsCssUrl, 'utf8');
 assert.match(compactSource, /bes-attendance-time-trigger/, 'Admin must get a compact time-settings trigger in the attendance tab bar');
-assert.match(compactSource, /<b>Giờ GV<\/b>/, 'Compact trigger must use a short label');
+assert.match(compactSource, /bes-attendance-time-trigger-label[^>]*>Giờ GV<\/span>/, 'Compact trigger must keep the Giờ GV label');
 assert.match(compactSource, /readWindowLabel\(panel\)/, 'Compact trigger must display the current attendance window');
+assert.match(compactSource, /attendance-icon bes-attendance-time-trigger-icon/, 'Giờ GV must use the same SVG icon language as the React attendance tabs');
+assert.match(compactSource, /classList\.toggle\('is-active',\s*adminSettingsPopoverOpen\)/, 'Opening Giờ GV must reuse the attendance tab active state');
 assert.match(compactSource, /tabs\.appendChild\(trigger\)/, 'Compact trigger must be appended after the existing attendance tabs (after Báo cáo)');
-assert.match(compactSource, /tabs\.appendChild\(panel\)/, 'Existing settings panel must be relocated into the tab bar so it leaves document flow');
-assert.match(compactSource, /let\s+adminSettingsPopoverOpen\s*=\s*false/, 'Popover open/closed state must be explicit and stable across renders');
+assert.match(compactSource, /tabs\.appendChild\(panel\)/, 'Existing settings panel must stay out of document flow inside the tab bar popover layer');
+assert.match(compactSource, /let\s+adminSettingsPopoverOpen\s*=\s*false/, 'Popover open/closed state must remain explicit and stable across renders');
 assert.match(compactSource, /panel\.hidden\s*=\s*!adminSettingsPopoverOpen/, 'Settings panel must stay out of view until the Admin opens it');
 assert.match(compactSource, /event\.key\s*===\s*'Escape'/, 'Escape must close the compact settings popover');
 assert.match(compactSource, /closest\?\.\('\.bes-attendance-time-settings, \.bes-attendance-time-trigger'\)/, 'Clicking outside the popover must close it');
-assert.match(compactCssSource, /\.attendance-tabs\s*\{[^}]*position\s*:\s*relative/is, 'Tab bar must anchor the settings popover');
-assert.match(compactCssSource, /\.bes-attendance-time-settings\.is-compact-popover\s*\{[^}]*position\s*:\s*absolute/is, 'Settings panel must be an overlay, not normal document flow');
-assert.match(compactCssSource, /\.bes-attendance-time-trigger/is, 'Compact trigger must have dedicated styling');
-assert.match(compactCssSource, /\.bes-attendance-time-heading\s*\{[^}]*display\s*:\s*none/is, 'Verbose heading must be removed inside the compact popover');
+
+assert.match(attendanceTabsCssSource, /\.attendance-tabs button\s*\{[^}]*transition\s*:/is, 'All attendance tabs must share one hover/color transition contract');
+assert.match(attendanceTabsCssSource, /\.attendance-tabs button::after\s*\{[^}]*opacity\s*:\s*0[^}]*transform\s*:\s*scaleX\([^)]*\)[^}]*transition\s*:/is, 'Attendance underline must have one shared animated base state');
+assert.match(attendanceTabsCssSource, /\.attendance-tabs button\.is-active::after\s*\{[^}]*opacity\s*:\s*1[^}]*transform\s*:\s*scaleX\(1\)/is, 'Attendance active tabs must reveal the same 3px underline animation');
+
+const triggerBlock = compactCssSource.match(/\.bes-attendance-time-trigger\s*\{([^}]*)\}/i)?.[1] || '';
+for (const property of ['min-height', 'margin-left', 'padding', 'border', 'border-radius', 'background', 'font', 'transition']) {
+  assert.doesNotMatch(triggerBlock, new RegExp(`(?:^|\\n)\\s*${property.replace('-', '\\-')}\\s*:`, 'i'), `Giờ GV must inherit ${property} from the shared attendance tab source instead of overriding it`);
+}
+assert.doesNotMatch(compactCssSource, /\.bes-attendance-time-trigger:hover\s*,?[\s\S]{0,120}\.bes-attendance-time-trigger\.is-open\s*\{/i, 'Giờ GV must not own a separate hover/open visual rule');
+assert.doesNotMatch(compactCssSource, /!important/i, 'Teacher-time tab parity must be solved at source without !important patches');
+assert.match(compactCssSource, /\.bes-attendance-time-settings\.is-compact-popover\s*\{[^}]*position\s*:\s*absolute/is, 'Settings panel must remain an overlay, not normal document flow');
+assert.match(compactCssSource, /\.bes-attendance-time-heading\s*\{[^}]*display\s*:\s*none/is, 'Verbose heading must remain removed inside the compact popover');
 
 console.log('Admin-configured global attendance time window contract OK');
