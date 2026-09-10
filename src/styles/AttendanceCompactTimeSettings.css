@@ -1,138 +1,160 @@
-.attendance-tabs {
-  position: relative;
-  overflow: visible !important;
-}
-
-.bes-attendance-time-trigger {
-  min-height: 36px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-left: 4px;
-  padding: 0 10px;
-  border: 1px solid #d9e2ec;
-  border-radius: 11px;
-  background: #f8fbff;
-  color: #42566d;
-  font: inherit;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: border-color .15s ease, background .15s ease, color .15s ease, box-shadow .15s ease;
-}
-
-.bes-attendance-time-trigger:hover,
-.bes-attendance-time-trigger.is-open {
-  border-color: #b8ccec;
-  background: #edf4ff;
-  color: #245ca8;
-}
-
-.bes-attendance-time-trigger:focus-visible {
-  outline: 3px solid rgba(36, 104, 216, .18);
-  outline-offset: 2px;
-}
-
-.bes-attendance-time-trigger-icon {
-  font-size: 13px;
-  line-height: 1;
-}
-
-.bes-attendance-time-trigger b {
-  font-size: 11px;
-  font-weight: 850;
-}
-
-.bes-attendance-time-trigger small {
-  color: #6c7d90;
-  font-size: 9px;
-  font-weight: 750;
-}
-
-.bes-attendance-time-trigger-dot {
-  width: 7px;
-  height: 7px;
-  flex: 0 0 auto;
-  border-radius: 999px;
-  background: #a9b5c2;
-  box-shadow: 0 0 0 2px rgba(169, 181, 194, .16);
-}
-
-.bes-attendance-time-trigger.is-enabled .bes-attendance-time-trigger-dot {
-  background: #1d9a6c;
-  box-shadow: 0 0 0 2px rgba(29, 154, 108, .14);
-}
-
-.bes-attendance-time-settings.is-compact-popover {
-  position: absolute;
-  z-index: 80;
-  top: calc(100% + 8px);
-  right: 12px;
-  width: min(430px, calc(100vw - 32px));
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 9px;
-  padding: 12px;
-  border: 1px solid #d9e2ec;
-  border-radius: 14px;
-  background: #fff;
-  box-shadow: 0 18px 44px rgba(32, 52, 77, .18), 0 4px 12px rgba(32, 52, 77, .08);
-  color: #24384f;
-}
-
-.bes-attendance-time-settings.is-compact-popover[hidden] {
+.bes-attendance-config-bridge-root {
   display: none !important;
 }
 
-.bes-attendance-time-settings.is-compact-popover .bes-attendance-time-heading {
+/* The access runtime still creates the real settings form and owns its RPC/save
+   behavior. Keep that form invisible until the React configuration bridge has
+   moved it into the dedicated Cấu hình workspace. */
+.attendance-shell:not(.bes-attendance-config-active) > .bes-attendance-time-settings {
+  display: none !important;
+}
+
+.attendance-tabs .bes-attendance-config-tab-icon {
+  display: inline-grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.attendance-tabs .bes-attendance-config-tab.is-active .bes-attendance-config-tab-icon {
+  background: #edf4ff;
+}
+
+.attendance-shell.bes-attendance-config-active .attendance-tabs > button:not(.bes-attendance-config-tab).is-active {
+  color: #68788b;
+}
+
+.attendance-shell.bes-attendance-config-active .attendance-tabs > button:not(.bes-attendance-config-tab).is-active::after {
   display: none;
 }
 
-.bes-attendance-time-settings.is-compact-popover .bes-attendance-time-toggle {
-  grid-column: 1 / -1;
-  min-height: 40px;
-  padding: 6px 9px;
-}
-
-.bes-attendance-time-settings.is-compact-popover .bes-attendance-time-toggle small {
+.bes-attendance-config-react-host {
   display: none;
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  padding: clamp(18px, 2.3vw, 32px);
+  background: #f6f8fb;
+  color: #10253c;
 }
 
-.bes-attendance-time-settings.is-compact-popover .bes-attendance-time-field {
-  min-height: 40px;
-  padding: 5px 8px;
+.attendance-shell.bes-attendance-config-active .bes-attendance-config-react-host {
+  display: block;
 }
 
-.bes-attendance-time-settings.is-compact-popover .bes-attendance-time-arrow {
-  display: none;
+.attendance-shell.bes-attendance-config-active .attendance-content > :not(.bes-attendance-config-react-host) {
+  display: none !important;
 }
 
-.bes-attendance-time-settings.is-compact-popover .bes-attendance-time-save {
-  grid-column: 1 / -1;
-  min-height: 38px;
-  width: 100%;
-  border-radius: 10px;
+.bes-attendance-config-heading {
+  width: min(1180px, 100%);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin: 0 auto 18px;
+  padding: 22px 24px;
+  border: 1px solid #dbe3ec;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(31, 56, 87, .06);
 }
 
-.bes-attendance-time-settings.is-compact-popover .bes-attendance-time-admin-status {
-  grid-column: 1 / -1;
-  min-height: 12px;
-  margin: -2px 2px 0;
+.bes-attendance-config-heading-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 14px;
+  background: #edf4ff;
+  color: #2468d8;
+  font-size: 24px;
+}
+
+.bes-attendance-config-heading > div:last-child {
+  min-width: 0;
+}
+
+.bes-attendance-config-heading small {
+  display: block;
+  margin-bottom: 4px;
+  color: #2468d8;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+
+.bes-attendance-config-heading h2 {
+  margin: 0;
+  font-size: clamp(22px, 2vw, 30px);
+  line-height: 1.1;
+  letter-spacing: -.025em;
+}
+
+.bes-attendance-config-heading p {
+  max-width: 830px;
+  margin: 8px 0 0;
+  color: #65758b;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.bes-attendance-config-panel-slot {
+  width: min(1180px, 100%);
+  min-height: 128px;
+  margin: 0 auto;
+}
+
+.bes-attendance-config-panel-slot > .bes-attendance-time-settings {
+  display: grid !important;
+  border: 1px solid #dbe3ec;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 8px 24px rgba(31, 56, 87, .06);
+  overflow: hidden;
+}
+
+.bes-attendance-config-loading {
+  min-height: 128px;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  border: 1px dashed #cbd7e5;
+  border-radius: 18px;
+  background: #fff;
+  color: #65758b;
+  font-size: 13px;
+  font-weight: 750;
+  text-align: center;
 }
 
 @media (max-width: 760px) {
-  .bes-attendance-time-trigger {
-    min-height: 34px;
-    padding: 0 8px;
+  .bes-attendance-config-react-host {
+    padding: 12px;
   }
 
-  .bes-attendance-time-trigger small {
-    display: none;
+  .bes-attendance-config-heading {
+    gap: 11px;
+    margin-bottom: 12px;
+    padding: 16px;
+    border-radius: 15px;
   }
 
-  .bes-attendance-time-settings.is-compact-popover {
-    right: 8px;
-    width: min(360px, calc(100vw - 24px));
-    grid-template-columns: 1fr 1fr;
-    padding: 10px;
+  .bes-attendance-config-heading-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 20px;
+  }
+
+  .bes-attendance-config-heading p {
+    font-size: 12px;
+  }
+
+  .bes-attendance-config-panel-slot > .bes-attendance-time-settings {
+    border-radius: 15px;
   }
 }

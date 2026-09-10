@@ -10,8 +10,8 @@ const migrationUrl = new URL('../supabase/migrations/20260909_attendance_time_ac
 
 assert.ok(fs.existsSync(utilityUrl), 'Attendance time access utility must exist');
 assert.ok(fs.existsSync(bootstrapUrl), 'Attendance time access UI/bootstrap must exist');
-assert.ok(fs.existsSync(compactRuntimeUrl), 'Compact Admin time settings runtime must exist');
-assert.ok(fs.existsSync(compactCssUrl), 'Compact Admin time settings styles must exist');
+assert.ok(fs.existsSync(compactRuntimeUrl), 'Attendance configuration tab bridge must exist');
+assert.ok(fs.existsSync(compactCssUrl), 'Attendance configuration tab styles must exist');
 assert.ok(fs.existsSync(migrationUrl), 'Attendance time access Supabase migration must exist');
 
 const {
@@ -78,7 +78,7 @@ assert.match(migrationSource, /revoke all on function private\./, 'Private secur
 
 const startupSource = fs.readFileSync(startupUrl, 'utf8');
 assert.match(startupSource, /attendanceTimeAccessBootstrap\.js/, 'The pre-main startup chain must load the attendance access runtime');
-assert.match(startupSource, /attendanceCompactTimeSettings\.js/, 'The pre-main startup chain must load the compact settings runtime after the time-access runtime');
+assert.match(startupSource, /attendanceCompactTimeSettings\.js/, 'The pre-main startup chain must load the configuration tab bridge after the time-access runtime');
 
 const uiSource = fs.readFileSync(bootstrapUrl, 'utf8');
 assert.match(uiSource, /bes_get_attendance_access_settings/, 'UI must read the server-side settings');
@@ -96,22 +96,19 @@ assert.match(uiSource, /adminSettingsDirty\s*=\s*true/, 'Input changes must mark
 assert.match(uiSource, /if\s*\(!adminSettingsDirty\)\s*\{[\s\S]{0,900}enabledInput\.checked[\s\S]{0,900}startInput\.value[\s\S]{0,900}endInput\.value[\s\S]{0,900}\}/, 'Server settings may sync into controls only while the form is clean');
 assert.match(uiSource, /settings\s*=\s*\{\s*\.\.\.settings,\s*\.\.\.\(data\s*\|\|\s*\{\}\)\s*\}[\s\S]{0,500}adminSettingsDirty\s*=\s*false/, 'A successful save must clear dirty state after adopting the server response');
 
-// Compact Admin settings is isolated from the authorization runtime: it relocates the existing
-// panel into the tab bar and exposes it only when the compact trigger is opened.
+// The old compact Giờ GV popover is retired. The configuration bridge owns a real
+// Attendance tab and reuses the existing server-backed settings form inside it.
 const compactSource = fs.readFileSync(compactRuntimeUrl, 'utf8');
 const compactCssSource = fs.readFileSync(compactCssUrl, 'utf8');
-assert.match(compactSource, /bes-attendance-time-trigger/, 'Admin must get a compact time-settings trigger in the attendance tab bar');
-assert.match(compactSource, /<b>Giờ GV<\/b>/, 'Compact trigger must use a short label');
-assert.match(compactSource, /readWindowLabel\(panel\)/, 'Compact trigger must display the current attendance window');
-assert.match(compactSource, /tabs\.appendChild\(trigger\)/, 'Compact trigger must be appended after the existing attendance tabs (after Báo cáo)');
-assert.match(compactSource, /tabs\.appendChild\(panel\)/, 'Existing settings panel must be relocated into the tab bar so it leaves document flow');
-assert.match(compactSource, /let\s+adminSettingsPopoverOpen\s*=\s*false/, 'Popover open/closed state must be explicit and stable across renders');
-assert.match(compactSource, /panel\.hidden\s*=\s*!adminSettingsPopoverOpen/, 'Settings panel must stay out of view until the Admin opens it');
-assert.match(compactSource, /event\.key\s*===\s*'Escape'/, 'Escape must close the compact settings popover');
-assert.match(compactSource, /closest\?\.\('\.bes-attendance-time-settings, \.bes-attendance-time-trigger'\)/, 'Clicking outside the popover must close it');
-assert.match(compactCssSource, /\.attendance-tabs\s*\{[^}]*position\s*:\s*relative/is, 'Tab bar must anchor the settings popover');
-assert.match(compactCssSource, /\.bes-attendance-time-settings\.is-compact-popover\s*\{[^}]*position\s*:\s*absolute/is, 'Settings panel must be an overlay, not normal document flow');
-assert.match(compactCssSource, /\.bes-attendance-time-trigger/is, 'Compact trigger must have dedicated styling');
-assert.match(compactCssSource, /\.bes-attendance-time-heading\s*\{[^}]*display\s*:\s*none/is, 'Verbose heading must be removed inside the compact popover');
+assert.match(compactSource, /createPortal/, 'Configuration UI must mount into the existing Attendance tab/content surfaces through React portals');
+assert.match(compactSource, /bes-attendance-config-tab/, 'Admin must get a dedicated Cấu hình tab in the attendance tab bar');
+assert.match(compactSource, /'Cấu hình'/, 'Configuration tab must use the approved label');
+assert.match(compactSource, /data-bes-attendance-time-settings-host/, 'Configuration view must own a stable host for the existing settings form');
+assert.match(compactSource, /SYSTEM_ROLES\.ADMIN/, 'Configuration tab must be admin-only');
+assert.match(compactSource, /host\.appendChild\(panel\)/, 'The existing server-backed settings panel must be moved into the configuration workspace');
+assert.match(compactSource, /bes-attendance-config-active/, 'Configuration view mode must be explicit and reversible');
+assert.doesNotMatch(compactSource, /<b>Giờ GV<\/b>|adminSettingsPopoverOpen|is-compact-popover|ATTENDANCE_COMPACT_TIME_TRIGGER_CLASS/, 'Legacy Giờ GV popover runtime must remain retired');
+assert.match(compactCssSource, /\.attendance-shell\.bes-attendance-config-active\s+\.attendance-content\s*>\s*:not\(\.bes-attendance-config-react-host\)[\s\S]*?display\s*:\s*none\s*!important/i, 'Configuration mode must hide the previously selected Attendance view');
+assert.doesNotMatch(compactCssSource, /\.bes-attendance-time-trigger|\.is-compact-popover/, 'Legacy Giờ GV trigger/popover CSS must remain retired');
 
 console.log('Admin-configured global attendance time window contract OK');
