@@ -1,4 +1,4 @@
-# One-shot migration workflow. This touch intentionally triggers the push event now that the workflow already exists on the branch.
+# One-shot migration workflow. Re-triggered after repairing the migration script syntax.
 name: Apply Attendance History V3 Isolation
 
 on:
