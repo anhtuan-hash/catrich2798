@@ -87,10 +87,8 @@ assert.match(workspaceCss, /@media[^}]*max-width:\s*680px[\s\S]*\.attendance-man
 assert.match(workspaceCss, /\.attendance-manage-detail-body\s*\{[^}]*grid-template-columns:/s,
   'Detail state must use a dedicated full-width information/roster grid.');
 
-assert.match(searchRemoval, /data-bes-keep-search="true"/,
-  'Global search-removal runtime must preserve explicitly opted-in local search controls.');
-assert.match(workspace, /<label className="attendance-manage-search" data-bes-keep-search="true">/,
-  'Class-management search must opt out of the global persistent-search removal runtime.');
+assert.match(searchRemoval, /KEEP_SELECTOR\s*=\s*['"][^'"]*\.attendance-manage-search/,
+  'Global search-removal runtime must explicitly preserve the local class-management search control.');
 assert.match(workspaceCss, /\.attendance-manage-class-tile\s*\{[^}]*border-left:\s*5px solid var\(--manage-accent\)/s,
   'Class tiles must have a strong subject-color rail for quick visual grouping.');
 assert.match(workspaceCss, /\.attendance-manage-tile__title\s*\{[^}]*-webkit-line-clamp:\s*2[^}]*padding-block:\s*2px/s,
