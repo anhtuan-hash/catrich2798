@@ -40,6 +40,12 @@ jobs:
       - name: Run WebKit critical browser smoke
         run: npx playwright test tests/e2e/critical-smoke.spec.js --project=webkit-desktop
 
+      - name: Verify Attendance History V3 production cascade in Chromium
+        run: npx playwright test tests/e2e/attendance-history-production-layout.spec.js --project=chromium-desktop
+
+      - name: Verify Attendance History V3 production cascade in WebKit
+        run: npx playwright test tests/e2e/attendance-history-production-layout.spec.js --project=webkit-desktop
+
       - name: Verify iPhone layout in Chromium
         run: npx playwright test tests/e2e/iphone-dashboard-attendance-layout.spec.js --project=chromium-desktop
 
