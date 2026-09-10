@@ -47,12 +47,20 @@ export default function AttendanceClassEditor({
   onReload,
   onError,
   onNotice,
+  editingClass: controlledEditingClass,
+  onEditingClassChange,
+  showEditButton = true,
 }) {
-  const [editingClass, setEditingClass] = useState(false);
+  const [internalEditingClass, setInternalEditingClass] = useState(false);
   const [classForm, setClassForm] = useState(() => initialClassForm(selectedClass));
   const [editingMemberId, setEditingMemberId] = useState('');
   const [memberForm, setMemberForm] = useState(() => initialMemberForm(null));
   const [saving, setSaving] = useState('');
+  const editingClass = typeof controlledEditingClass === 'boolean' ? controlledEditingClass : internalEditingClass;
+  const setEditingClass = (value) => {
+    if (onEditingClassChange) onEditingClassChange(Boolean(value));
+    else setInternalEditingClass(Boolean(value));
+  };
 
   useEffect(() => {
     setClassForm(initialClassForm(selectedClass));
@@ -183,7 +191,7 @@ export default function AttendanceClassEditor({
             <strong>Dữ liệu hiện tại dùng cho các buổi chưa chốt</strong>
             <p>Các thay đổi bên dưới không sửa lại lịch sử điểm danh đã xác nhận.</p>
           </div>
-          {canManageMembers && !editingClass ? (
+          {showEditButton && canManageMembers && !editingClass ? (
             <button type="button" disabled={locked} onClick={() => setEditingClass(true)}>Sửa thông tin lớp</button>
           ) : null}
         </header>

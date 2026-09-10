@@ -127,6 +127,9 @@ jobs:
       - name: Verify collapsible quick attendance class list
         run: node scripts/test-attendance-collapsible-class-list.mjs
 
+      - name: Verify two-step attendance class management
+        run: node scripts/test-attendance-manage-two-step-tiles.mjs
+
       - name: Verify granular attendance permissions
         run: node scripts/test-attendance-granular-permissions.mjs
 

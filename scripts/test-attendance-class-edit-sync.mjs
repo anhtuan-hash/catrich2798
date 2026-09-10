@@ -7,13 +7,15 @@ import {
 } from '../src/utils/extraClassSchedule2026.js';
 
 const attendanceUrl = new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url);
+const workspaceUrl = new URL('../src/components/attendance/AttendanceClassManagementWorkspace.jsx', import.meta.url);
 const editorUrl = new URL('../src/components/attendance/AttendanceClassEditor.jsx', import.meta.url);
 const cssUrl = new URL('../src/components/attendance/AttendanceClassEditor.css', import.meta.url);
 const legacyMigrationUrl = new URL('../supabase/migrations/20260908_attendance_admin_class_member_edit.sql', import.meta.url);
 const manageMigrationUrl = new URL('../supabase/migrations/20260909_attendance_manage_class_details_permission.sql', import.meta.url);
 const attendance = fs.readFileSync(attendanceUrl, 'utf8');
+const workspace = fs.readFileSync(workspaceUrl, 'utf8');
 const editor = fs.readFileSync(editorUrl, 'utf8');
-const ui = `${attendance}\n${editor}`;
+const ui = `${attendance}\n${workspace}\n${editor}`;
 const css = fs.readFileSync(cssUrl, 'utf8');
 const legacyMigration = fs.existsSync(legacyMigrationUrl) ? fs.readFileSync(legacyMigrationUrl, 'utf8') : '';
 const manageMigration = fs.existsSync(manageMigrationUrl) ? fs.readFileSync(manageMigrationUrl, 'utf8') : '';
@@ -70,8 +72,10 @@ assert.equal(
   'Persisted room must override the catalog room',
 );
 
-assert.match(attendance, /AttendanceClassEditor/,
-  'Management view must integrate the dedicated class editor component');
+assert.match(attendance, /AttendanceClassManagementWorkspace/,
+  'Management view must integrate the dedicated two-step class management workspace');
+assert.match(workspace, /AttendanceClassEditor/,
+  'Two-step class detail must integrate the dedicated class editor component');
 assert.match(ui, /bes_admin_update_extra_class/,
   'Management UI must save class metadata through the existing compatible class RPC');
 assert.match(ui, /bes_update_extra_class_member/,

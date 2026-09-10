@@ -2,11 +2,13 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
 const attendance = fs.readFileSync(new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url), 'utf8');
+const managementWorkspace = fs.readFileSync(new URL('../src/components/attendance/AttendanceClassManagementWorkspace.jsx', import.meta.url), 'utf8');
+const managementUi = `${attendance}\n${managementWorkspace}`;
 const migrationUrl = new URL('../supabase/migrations/20260908_add_manual_extra_class_teacher.sql', import.meta.url);
 const migration = fs.existsSync(migrationUrl) ? fs.readFileSync(migrationUrl, 'utf8') : '';
 
-assert.doesNotMatch(attendance, /Không lấy từ tài khoản đăng ký trên website\.?/, 'Obsolete website-account explanatory copy must be removed');
-assert.match(attendance, /Thêm giáo viên/, 'Class management must expose a manual add-teacher control');
+assert.doesNotMatch(managementUi, /Không lấy từ tài khoản đăng ký trên website\.?/, 'Obsolete website-account explanatory copy must be removed');
+assert.match(managementUi, /Thêm giáo viên/, 'Class management must expose a manual add-teacher control');
 assert.match(attendance, /bes_add_extra_class_teacher/, 'Class management must persist a manual teacher through the guarded RPC');
 assert.match(attendance, /classTeacherNames/, 'Manual teachers must participate in the normalized teacher list used by attendance');
 assert.doesNotMatch(attendance, /if\s*\(authoritative\.length\)\s*return\s+authoritative/, 'Authoritative catalog teachers must be merged with normalized manual teachers, not short-circuit them');

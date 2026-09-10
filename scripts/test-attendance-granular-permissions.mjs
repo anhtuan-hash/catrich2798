@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 const permissionUrl = new URL('../src/utils/permissions.js', import.meta.url);
 const attendanceUrl = new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url);
+const workspaceUrl = new URL('../src/components/attendance/AttendanceClassManagementWorkspace.jsx', import.meta.url);
 const classEditorUrl = new URL('../src/components/attendance/AttendanceClassEditor.jsx', import.meta.url);
 const adminUrl = new URL('../src/pages/AdminPage.jsx', import.meta.url);
 const migrationUrl = new URL('../supabase/migrations/20260908_granular_attendance_tab_permissions.sql', import.meta.url);
@@ -10,6 +11,7 @@ const classDetailsMigrationUrl = new URL('../supabase/migrations/20260909_attend
 
 const permissionSource = fs.readFileSync(permissionUrl, 'utf8');
 const attendanceSource = fs.readFileSync(attendanceUrl, 'utf8');
+const workspaceSource = fs.readFileSync(workspaceUrl, 'utf8');
 const classEditorSource = fs.readFileSync(classEditorUrl, 'utf8');
 const adminSource = fs.readFileSync(adminUrl, 'utf8');
 
@@ -88,13 +90,16 @@ assert.equal(getFirstAllowedAttendanceTab(admin), 'quick');
 assert.match(attendanceSource, /hasAttendanceTabAccess/, 'Attendance UI must gate individual tabs');
 assert.match(attendanceSource, /getFirstAllowedAttendanceTab/, 'Attendance UI must open the first allowed tab');
 assert.match(attendanceSource, /ATTENDANCE_PERMISSION_ITEMS/, 'Attendance navigation must be built from the permission-backed tab list');
-assert.match(attendanceSource, /canManageMembers=\{canAccessAttendanceView\('manage'\)\}/, 'Class-management editor must receive attendance:manage access, not an admin-only flag');
+assert.match(attendanceSource, /canManageMembers=\{canAccessAttendanceView\('manage'\)\}/, 'Class-management workspace must receive attendance:manage access, not an admin-only flag');
 assert.match(adminSource, /ATTENDANCE_PERMISSION_GROUP/, 'Admin permission editor must expose the dedicated attendance permission group');
 assert.match(adminSource, /permission-explicit-groups/, 'Attendance permissions must remain editable even in full teacher mode');
 
 assert.match(classEditorSource, /if \(!canManageMembers \|\| !selectedClass \|\| !client \|\| locked\) return;/, 'Saving class details must require attendance:manage, not Admin role');
-assert.match(classEditorSource, /\{canManageMembers && !editingClass \? \(/, 'Teachers with attendance:manage must see Sửa thông tin lớp');
+assert.match(workspaceSource, /onClick=\{\(\) => setEditingClass\(true\)\}[\s\S]{0,120}Sửa thông tin lớp/, 'Teachers with attendance:manage must see the workspace-owned Sửa thông tin lớp action');
+assert.match(workspaceSource, /canManageMembers=\{canManageMembers\}/, 'Two-step workspace must pass attendance:manage through to the class editor');
+assert.match(classEditorSource, /showEditButton && canManageMembers && !editingClass/, 'Reusable class editor edit control must remain guarded by attendance:manage when shown');
 assert.match(classEditorSource, /\{editingClass && canManageMembers \? \(/, 'Teachers with attendance:manage must use the class edit form');
+assert.doesNotMatch(workspaceSource, /isAdmin\s*&&[\s\S]{0,220}Sửa thông tin lớp/, 'Workspace class edit action must not be hard-coded to Admin');
 assert.doesNotMatch(classEditorSource, /if \(!isAdmin \|\| !selectedClass/, 'Class detail save must not remain Admin-only');
 
 const migrationSource = fs.readFileSync(migrationUrl, 'utf8');
