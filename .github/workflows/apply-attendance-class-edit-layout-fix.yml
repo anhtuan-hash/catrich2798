@@ -1,0 +1,65 @@
+name: Apply attendance class edit layout fix
+
+on:
+  push:
+    branches:
+      - fix/attendance-class-edit-layout
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/attendance-class-edit-layout
+          fetch-depth: 0
+      - name: Fix class editor and roster overlap
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          workspace_path = Path('src/components/attendance/AttendanceClassManagementWorkspace.jsx')
+          workspace = workspace_path.read_text()
+          old = 'className="attendance-manage-detail-body"'
+          new = "className={`attendance-manage-detail-body${editingClass ? ' is-editing-class' : ''}`}"
+          if new not in workspace:
+              count = workspace.count(old)
+              if count != 1:
+                  raise SystemExit(f'Expected exactly one detail-body class anchor, found {count}')
+              workspace = workspace.replace(old, new, 1)
+              workspace_path.write_text(workspace)
+
+          css_path = Path('src/components/attendance/AttendanceClassManagementRosterScroll.css')
+          css = css_path.read_text()
+          marker = '/* Class editor must reserve real flow space above the roster. */'
+          if marker not in css:
+              anchor = '''.attendance-manage-detail-body:focus-visible {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--detail-accent) 42%, transparent);
+}
+'''
+              addition = '''/* Class editor must reserve real flow space above the roster. */
+.attendance-manage-detail-body.is-editing-class {
+  grid-template-rows: max-content max-content;
+  align-content: start;
+}
+
+.attendance-manage-detail-body.is-editing-class > .attendance-member-table.is-mockup {
+  min-height: auto;
+}
+
+'''
+              if anchor not in css:
+                  raise SystemExit('Roster CSS insertion anchor not found')
+              css = css.replace(anchor, addition + anchor, 1)
+              css_path.write_text(css)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/components/attendance/AttendanceClassManagementWorkspace.jsx src/components/attendance/AttendanceClassManagementRosterScroll.css
+          git diff --cached --quiet && exit 0
+          git commit -m "fix(attendance): prevent class editor roster overlap"
+          git push origin HEAD:fix/attendance-class-edit-layout
