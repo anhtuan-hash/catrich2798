@@ -4,9 +4,12 @@ import assert from 'node:assert/strict';
 const navigation = fs.readFileSync(new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url), 'utf8');
 const workspace = fs.readFileSync(new URL('../src/components/attendance/AttendanceClassManagementWorkspace.jsx', import.meta.url), 'utf8');
 const workspaceCss = fs.readFileSync(new URL('../src/components/attendance/AttendanceClassManagementWorkspace.css', import.meta.url), 'utf8');
+const detailMockupCssPath = new URL('../src/components/attendance/AttendanceClassManagementDetailMockup.css', import.meta.url);
+const detailMockupCss = fs.existsSync(detailMockupCssPath) ? fs.readFileSync(detailMockupCssPath, 'utf8') : '';
 const editor = fs.readFileSync(new URL('../src/components/attendance/AttendanceClassEditor.jsx', import.meta.url), 'utf8');
 const editorCss = fs.readFileSync(new URL('../src/components/attendance/AttendanceClassEditor.css', import.meta.url), 'utf8');
 const searchRemoval = fs.readFileSync(new URL('../public/bes-remove-visible-search-bars.js', import.meta.url), 'utf8');
+const detailCss = `${workspaceCss}\n${detailMockupCss}`;
 
 assert.match(navigation, /import AttendanceClassManagementWorkspace from ['"]\.\/attendance\/AttendanceClassManagementWorkspace\.jsx['"];/,
   'Global attendance source must import the direct React class-management workspace.');
@@ -72,10 +75,9 @@ for (const token of [
   '.attendance-manage-detail',
   '.attendance-manage-detail-back',
   '.attendance-manage-detail-hero',
-  '.attendance-manage-detail-stats',
   '.attendance-manage-detail-body',
 ]) {
-  assert.ok(workspaceCss.includes(token), `Approved two-step manage CSS must include ${token}`);
+  assert.ok(detailCss.includes(token), `Approved two-step manage CSS must include ${token}`);
 }
 
 assert.match(workspaceCss, /\.attendance-manage-tile-grid\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\)/s,
@@ -115,6 +117,9 @@ for (const token of [
   'Giáo viên phụ trách',
   'attendance-manage-detail-roster-card',
   'attendance-manage-detail-roster-title',
+  'attendance-manage-detail-roster-footer',
+  'Hiển thị',
+  'MEMBERS_PER_PAGE = 5',
 ]) {
   assert.ok(workspace.includes(token), `Approved detail mockup must include ${token}`);
 }
@@ -126,6 +131,8 @@ assert.match(workspace, /showClassInfo=\{editingClass\}/,
   'Normal detail view must not duplicate the old class-info card; it should appear only while editing.');
 assert.match(workspace, /memberTableVariant="mockup"/,
   'Workspace must request the approved mockup member table variant.');
+assert.match(workspace, /data-bes-keep-search="true"[\s\S]{0,300}Tìm kiếm học sinh/,
+  'Detail student search must opt out of the global search-removal runtime.');
 
 for (const token of [
   '.attendance-manage-detail-quick-stats',
@@ -133,14 +140,15 @@ for (const token of [
   '.attendance-manage-detail-info-strip',
   '.attendance-manage-detail-info-item',
   '.attendance-manage-detail-roster-card',
+  '.attendance-manage-detail-roster-footer',
 ]) {
-  assert.ok(workspaceCss.includes(token), `Approved detail CSS must include ${token}`);
+  assert.ok(detailCss.includes(token), `Approved detail CSS must include ${token}`);
 }
-assert.match(workspaceCss, /\.attendance-manage-detail-info-strip\s*\{[^}]*grid-template-columns:\s*repeat\(6,\s*minmax\(0,\s*1fr\)\)/s,
+assert.match(detailCss, /\.attendance-manage-detail-info-strip\s*\{[^}]*grid-template-columns:\s*repeat\(6,\s*minmax\(0,\s*1fr\)\)/s,
   'Desktop detail information strip must contain six equal summary cells.');
-assert.match(workspaceCss, /\.attendance-manage-detail-body\s*\{[^}]*grid-template-columns:\s*1fr/s,
+assert.match(detailCss, /\.attendance-manage-detail-body\s*\{[^}]*grid-template-columns:\s*1fr/s,
   'Approved detail body must dedicate the full width to the student table.');
-assert.match(workspaceCss, /\.attendance-manage-detail-hero\s*\{[^}]*background:[^;}]*linear-gradient/s,
+assert.match(detailCss, /\.attendance-manage-detail-hero\s*\{[^}]*background:[^;}]*linear-gradient/s,
   'Approved hero must use the soft blue mockup treatment instead of a flat white panel.');
 
 // Approved student table: STT, avatar/name, class, student code, status pill, compact actions/menu.
@@ -162,11 +170,11 @@ assert.match(editor, />Sửa<\/button>/,
   'Mockup member row must use the compact Sửa action label.');
 assert.match(editor, /aria-label=\{`Mở thao tác cho \$\{member\.student_full_name\}`\}/,
   'Ellipsis action must be accessible for each student.');
-assert.match(editorCss, /\.attendance-member-table\.is-mockup\s+\.attendance-member-table-head[\s\S]{0,500}grid-template-columns:/,
+assert.match(detailCss, /\.attendance-member-table\.is-mockup\s+\.attendance-member-table-head[\s\S]{0,500}grid-template-columns:/,
   'Mockup member table must define its own six-column grid.');
-assert.match(editorCss, /\.attendance-member-status-pill\.is-active/,
+assert.match(detailCss, /\.attendance-member-status-pill\.is-active/,
   'Active student state must render as a green status pill.');
-assert.match(editorCss, /\.attendance-member-avatar/,
+assert.match(detailCss, /\.attendance-member-avatar/,
   'Student rows must render compact initial avatars like the approved mockup.');
 
 assert.match(editor, /attendance-class-info-card/, 'Existing class edit behavior must remain in AttendanceClassEditor.');
