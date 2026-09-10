@@ -263,16 +263,17 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   }, [sessions]);
 
   function assignedTeachersForClass(classRow) {
+    const normalized = classTeacherNames.get(String(classRow?.id)) || [];
+    if (normalized.length) return normalized;
     const authoritative = teachersForGiftedAssignment({
       sourceKey: classRow?.source_key,
       subject: classRow?.subject,
       gradeLevel: classRow?.grade_level,
       className: classRow?.class_name,
     });
-    const normalized = classTeacherNames.get(String(classRow?.id)) || [];
     const fallback = String(classRow?.teacher_name || '').split(/\s*,\s*/).map((name) => name.trim()).filter(Boolean);
     const merged = [];
-    [...authoritative, ...normalized, ...fallback].forEach((name) => {
+    [...authoritative, ...fallback].forEach((name) => {
       const clean = String(name || '').trim();
       if (clean && !merged.some((current) => fold(current) === fold(clean))) merged.push(clean);
     });
@@ -1124,6 +1125,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
               filteredManagementMembers={filteredManagementMembers}
               memberCounts={memberCounts}
               teachersForClass={teachersForClass}
+              teacherNamesForClass={assignedTeachersForClass}
               busy={busy}
               fileRef={fileRef}
               importExcel={importExcel}
