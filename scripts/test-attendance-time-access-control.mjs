@@ -115,9 +115,10 @@ assert.match(compactSource, /panel\.hidden\s*=\s*!adminSettingsPopoverOpen/, 'Se
 assert.match(compactSource, /event\.key\s*===\s*'Escape'/, 'Escape must close the compact settings popover');
 assert.match(compactSource, /closest\?\.\('\.bes-attendance-time-settings, \.bes-attendance-time-trigger'\)/, 'Clicking outside the popover must close it');
 
-assert.match(attendanceTabsCssSource, /\.attendance-tabs button\s*\{[^}]*transition\s*:/is, 'All attendance tabs must share one hover/color transition contract');
-assert.match(attendanceTabsCssSource, /\.attendance-tabs button::after\s*\{[^}]*opacity\s*:\s*0[^}]*transform\s*:\s*scaleX\([^)]*\)[^}]*transition\s*:/is, 'Attendance underline must have one shared animated base state');
-assert.match(attendanceTabsCssSource, /\.attendance-tabs button\.is-active::after\s*\{[^}]*opacity\s*:\s*1[^}]*transform\s*:\s*scaleX\(1\)/is, 'Attendance active tabs must reveal the same 3px underline animation');
+assert.match(attendanceTabsCssSource, /\.attendance-tabs button\s*\{[^}]*padding\s*:\s*0\s+18px[^}]*font-weight\s*:\s*800/is, 'Giờ GV must inherit the canonical attendance tab geometry and typography');
+assert.match(compactCssSource, /\.attendance-tabs\s*>\s*button\s*\{[^}]*transition\s*:/is, 'All top-level attendance tabs must share one hover/color transition contract');
+assert.match(compactCssSource, /\.attendance-tabs\s*>\s*button::after\s*\{[^}]*height\s*:\s*3px[^}]*opacity\s*:\s*0[^}]*transform\s*:\s*scaleX\([^)]*\)[^}]*transition\s*:/is, 'Attendance underline must have one shared animated base state');
+assert.match(compactCssSource, /\.attendance-tabs\s*>\s*button\.is-active::after\s*\{[^}]*opacity\s*:\s*1[^}]*transform\s*:\s*scaleX\(1\)/is, 'Attendance active tabs must reveal the same 3px underline animation');
 
 const triggerBlock = compactCssSource.match(/\.bes-attendance-time-trigger\s*\{([^}]*)\}/i)?.[1] || '';
 for (const property of ['min-height', 'margin-left', 'padding', 'border', 'border-radius', 'background', 'font', 'transition']) {
