@@ -401,6 +401,7 @@ export default function AttendanceClassManagementWorkspace({
             showEditButton={false}
             showClassInfo={editingClass}
             memberTableVariant="mockup"
+            memberIndexOffset={(safeMemberPage - 1) * MEMBERS_PER_PAGE}
           />
         </div>
 
