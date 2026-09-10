@@ -117,6 +117,7 @@ export default function AttendanceClassManagementWorkspace({
   filteredManagementMembers = [],
   memberCounts,
   teachersForClass,
+  teacherNamesForClass,
   busy = false,
   fileRef,
   importExcel,
@@ -333,8 +334,8 @@ export default function AttendanceClassManagementWorkspace({
 
             <div className="attendance-manage-detail-actions">
               <button type="button" className="attendance-manage-detail-actions__primary" disabled={busy} onClick={() => setShowAddStudent?.((value) => !value)}><WorkspaceIcon name="plus" size={17} />Thêm học sinh</button>
-              <button type="button" disabled={busy} onClick={() => setEditingClass(true)}><WorkspaceIcon name="edit" size={15} />Sửa thông tin lớp</button>
-              <button type="button" disabled={busy} onClick={() => setShowAddTeacher?.((value) => !value)}><WorkspaceIcon name="plus" size={16} />Thêm giáo viên</button>
+              <button type="button" disabled={busy || !canManageMembers} onClick={() => setEditingClass(true)}><WorkspaceIcon name="edit" size={15} />Sửa thông tin lớp</button>
+              <button type="button" disabled={busy || !canManageMembers} onClick={() => setShowAddTeacher?.((value) => !value)}><WorkspaceIcon name="plus" size={16} />Thêm giáo viên</button>
               <button type="button" className="is-danger" disabled={busy} onClick={() => deleteClass?.(selectedClass)}><WorkspaceIcon name="trash" size={15} />Xóa lớp</button>
             </div>
           </div>
@@ -383,6 +384,7 @@ export default function AttendanceClassManagementWorkspace({
             client={client}
             selectedClass={selectedClass}
             members={filteredManagementMembers}
+            teacherNames={teacherNamesForClass?.(selectedClass) || []}
             isAdmin={isAdmin}
             canManageMembers={canManageMembers}
             busy={busy}
