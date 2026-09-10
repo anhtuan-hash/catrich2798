@@ -179,8 +179,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  min-height: 42px;
-  padding: 5px 10px;
+  min-height: 39px;
+  padding: 4px 10px;
   border: 1px solid #dfe6f0;
   border-radius: 12px;
   background: rgba(255,255,255,.97);
@@ -200,7 +200,7 @@
   align-items: center;
   gap: 6px;
   flex: 0 0 auto;
-  min-height: 30px;
+  min-height: 29px;
   padding: 0 12px;
   border: 0;
   border-radius: 0;
@@ -208,9 +208,7 @@
   box-shadow: none;
 }
 
-.attendance-daily-overview__metric + .attendance-daily-overview__metric {
-  border-left: 1px solid #e8ecf2;
-}
+.attendance-daily-overview__metric + .attendance-daily-overview__metric { border-left: 1px solid #e8ecf2; }
 
 .attendance-daily-overview__metric-icon {
   display: grid;
@@ -373,10 +371,7 @@
   font-weight: 900;
 }
 
-.attendance-daily-floor-card__rows {
-  display: grid;
-  gap: 7px;
-}
+.attendance-daily-floor-card__rows { display: grid; gap: 7px; }
 
 .attendance-daily-class-row {
   display: grid;
@@ -406,10 +401,7 @@
   outline: none;
 }
 
-.attendance-daily-class-row:focus-visible {
-  box-shadow: 0 0 0 2px rgba(52, 103, 168, .17), 0 7px 16px rgba(38, 62, 94, .13);
-}
-
+.attendance-daily-class-row:focus-visible { box-shadow: 0 0 0 2px rgba(52, 103, 168, .17), 0 7px 16px rgba(38, 62, 94, .13); }
 .attendance-daily-class-row.is-completed { background: #fbfffc; }
 .attendance-daily-class-row.is-missing { background: #fff; }
 .attendance-daily-class-row.is-cancelled { background: #fafbfc; opacity: .92; }
@@ -437,14 +429,9 @@
 
 .attendance-daily-class-row__class,
 .attendance-daily-class-row__teacher,
-.attendance-daily-class-row__meta {
-  min-width: 0;
-}
+.attendance-daily-class-row__meta { min-width: 0; }
 
-.attendance-daily-class-row__class {
-  display: grid;
-  gap: 2px;
-}
+.attendance-daily-class-row__class { display: grid; gap: 2px; }
 
 .attendance-daily-class-row__teacher {
   display: flex;
@@ -488,17 +475,9 @@
   min-width: 0;
 }
 
-.attendance-daily-class-row__time-icon {
-  color: #4d6d97;
-}
-
+.attendance-daily-class-row__time-icon { color: #4d6d97; }
 .attendance-daily-class-row__time-icon svg { width: 16px; height: 16px; }
-
-.attendance-daily-class-row__time-copy {
-  display: grid;
-  gap: 2px;
-  min-width: 0;
-}
+.attendance-daily-class-row__time-copy { display: grid; gap: 2px; min-width: 0; }
 
 .attendance-daily-class-row__class b,
 .attendance-daily-class-row__meta b,
@@ -617,15 +596,12 @@
 
 @media (max-width: 980px) {
   .attendance-daily-compact-toolbar { grid-template-columns: minmax(0, 1fr) 170px; }
-
   .attendance-daily-table-header,
   .attendance-daily-class-row {
     grid-template-columns: minmax(175px, 1.08fr) minmax(185px, 1.14fr) minmax(82px, .5fr) auto;
   }
-
   .attendance-daily-table-header__time,
   .attendance-daily-class-row__meta.is-time { display: none; }
-
   .attendance-daily-overview__route-meta { display: none; }
 }
 
@@ -650,11 +626,7 @@
   .attendance-daily-date-card__icon { width: 30px; height: 30px; }
   .attendance-calendar-room-chip { min-height: 28px; padding: 4px 9px; }
 
-  .attendance-daily-overview__summary.is-compact {
-    min-height: 40px;
-    padding: 4px 5px;
-  }
-
+  .attendance-daily-overview__summary.is-compact { min-height: 39px; padding: 4px 5px; }
   .attendance-daily-overview__metric { min-height: 28px; padding: 0 8px; gap: 4px; }
   .attendance-daily-overview__metric-icon { width: 22px; height: 22px; }
   .attendance-daily-overview__metric-label { font-size: 9px; }
