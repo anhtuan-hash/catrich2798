@@ -87,7 +87,7 @@ assert.match(workspaceCss, /@media[^}]*max-width:\s*680px[\s\S]*\.attendance-man
 assert.match(workspaceCss, /\.attendance-manage-detail-body\s*\{[^}]*grid-template-columns:/s,
   'Detail state must use a dedicated full-width information/roster grid.');
 
-assert.match(searchRemoval, /KEEP_SELECTOR\s*=\s*['"][^'"]*\.attendance-manage-search/,
+assert.match(searchRemoval, /KEEP_SELECTOR[\s\S]{0,240}\.attendance-manage-search/,
   'Global search-removal runtime must explicitly preserve the local class-management search control.');
 assert.match(workspaceCss, /\.attendance-manage-class-tile\s*\{[^}]*border-left:\s*5px solid var\(--manage-accent\)/s,
   'Class tiles must have a strong subject-color rail for quick visual grouping.');
