@@ -58,5 +58,10 @@ assert.match(migration, /delete\s+from\s+public\.bes_extra_class_teachers/i, 'Re
 assert.match(migration, /insert\s+into\s+public\.bes_extra_class_teachers/i, 'New teachers must be persisted to the normalized assignment table.');
 assert.match(migration, /teacher_name\s*=\s*array_to_string\(v_teacher_names,\s*', '\)/, 'The class teacher_name cache must be synchronized with the normalized list.');
 assert.match(migration, /can_manage_extra_class_roster\(\)[\s\S]*p_teacher_names/i, 'The RPC must keep teacher replacement behind the roster-management authorization path.');
+assert.match(
+  migration,
+  /'manual-edit:'\s*\|\|\s*p_class_id::text\s*\|\|\s*':'\s*\|\|\s*gen_random_uuid\(\)::text/,
+  'New teacher assignment source keys must use a UUID so reordering/removing teachers cannot collide with preserved rows.',
+);
 
 console.log('Attendance class teacher editing contract: PASS');
