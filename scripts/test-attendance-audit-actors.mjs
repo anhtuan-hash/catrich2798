@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import { buildAttendanceReport } from '../src/utils/attendanceReport.js';
 
 const auditHelperUrl = new URL('../src/utils/attendanceAuditActors.js', import.meta.url);
-const auditUiUrl = new URL('../src/attendanceAuditActorsBootstrap.js', import.meta.url);
 const attendanceUrl = new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url);
 const reportComponentUrl = new URL('../src/components/attendance/AttendanceMonthlyReport.jsx', import.meta.url);
 const reportUrl = new URL('../src/utils/attendanceReport.js', import.meta.url);
@@ -12,13 +11,11 @@ const indexUrl = new URL('../index.html', import.meta.url);
 const migrationUrl = new URL('../supabase/migrations/20260909_attendance_audit_actor_snapshots.sql', import.meta.url);
 
 const attendance = fs.readFileSync(attendanceUrl, 'utf8');
-const auditUi = fs.existsSync(auditUiUrl) ? fs.readFileSync(auditUiUrl, 'utf8') : '';
 const reportComponent = fs.readFileSync(reportComponentUrl, 'utf8');
 const reportSource = fs.readFileSync(reportUrl, 'utf8');
 const exportSource = fs.readFileSync(exportUrl, 'utf8');
 const indexSource = fs.readFileSync(indexUrl, 'utf8');
 const migration = fs.existsSync(migrationUrl) ? fs.readFileSync(migrationUrl, 'utf8') : '';
-const historyUiSource = `${attendance}\n${auditUi}`;
 
 assert.ok(fs.existsSync(auditHelperUrl), 'Attendance audit actor helper must exist');
 if (fs.existsSync(auditHelperUrl)) {
@@ -111,11 +108,15 @@ assert.equal(report.sessionRows[0]?.change_history?.length, 1, 'Report rows must
 assert.match(reportSource, /changes\s*=\s*\[\]/, 'Attendance report aggregation must accept audit changes');
 assert.match(reportComponent, /bes_extra_attendance_record_changes/, 'Report UI must load persisted adjustment audit rows');
 assert.match(reportComponent, /checked_by_name/, 'Report UI must load the original attendance actor snapshot');
-assert.match(indexSource, /attendanceAuditActorsBootstrap\.js/, 'Attendance audit history UI must boot with the app');
-assert.match(historyUiSource, /bes_extra_attendance_record_changes/, 'Attendance history UI must load persisted adjustment audit rows');
-for (const copy of ['Người thực hiện điểm danh', 'Điều chỉnh gần nhất', 'Đã điều chỉnh', 'Xem lịch sử điều chỉnh']) {
-  assert.match(historyUiSource, new RegExp(copy), `Attendance history UI must display ${copy}`);
-}
+
+// History owns its audit slot directly in React. The former standalone
+// MutationObserver bootstrap must stay retired so it cannot reorder or resize V3 after render.
+assert.doesNotMatch(indexSource, /attendanceAuditActorsBootstrap\.js/, 'Attendance History must not boot the legacy MutationObserver audit runtime');
+assert.match(attendance, /className="ahv3__audit-actor-panel"/, 'Attendance History must render a React-owned audit actor panel');
+assert.match(attendance, /selectedSession\.checked_by\s*\|\|\s*'Không ghi nhận'/, 'React History audit panel must show the persisted check-in actor');
+assert.match(attendance, /formatDateTime\(selectedSession\.checked_at\)/, 'React History audit panel must show the persisted check-in timestamp');
+assert.doesNotMatch(attendance, /attendance-audit-actor-panel/, 'React History must not depend on MutationObserver-era audit class names');
+
 for (const copy of ['Người điểm danh', 'Người điều chỉnh gần nhất']) {
   assert.match(exportSource, new RegExp(copy), `PDF/Excel export must include ${copy}`);
 }
