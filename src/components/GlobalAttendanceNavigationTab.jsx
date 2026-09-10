@@ -33,7 +33,7 @@ import './GlobalAttendanceNavigationTab.css';
 import './GlobalAttendanceDailyCalendar.css';
 import './GlobalAttendanceManualTeacher.css';
 import AttendanceMonthlyReport from './attendance/AttendanceMonthlyReport.jsx';
-import AttendanceClassEditor from './attendance/AttendanceClassEditor.jsx';
+import AttendanceClassManagementWorkspace from './attendance/AttendanceClassManagementWorkspace.jsx';
 import AttendanceDailySchedule from './attendance/AttendanceDailySchedule.jsx';
 import { ATTENDANCE_PROOF_BUCKET, buildAttendanceProofPath, prepareAttendanceProofImage } from '../utils/attendanceProofImage.js';
 import './attendance/AttendanceMaterial3.css';
@@ -1098,26 +1098,40 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
           ) : null}
 
           {!loading && canAccessAttendanceView('manage') && view === 'manage' ? (
-            <div className="attendance-manage-layout">
-              <section className="attendance-import-card"><div><span><Icon name="upload" size={24} /></span><div><strong>Import lớp phụ đạo / bồi dưỡng</strong><p>Excel: Loại lớp · Tên lớp · Môn · Giáo viên · Mã HS · Họ và tên · Lớp chính khóa</p></div></div><input ref={fileRef} type="file" accept=".xlsx,.xls" onChange={(event) => importExcel(event.target.files?.[0])} hidden /><button type="button" disabled={busy} onClick={() => fileRef.current?.click()}><Icon name="upload" size={18} />{busy ? 'Đang xử lý…' : 'Chọn file Excel'}</button></section>
-              {importReport ? <section className="attendance-import-report"><strong>{importReport.fileName}</strong><div><span>{importReport.totalClasses} lớp trong file</span><span>{importReport.totalStudents} học sinh</span><span>{importReport.createdClasses} lớp mới</span><span>{importReport.addedMembers} HS thêm mới</span><span>{importReport.reactivatedMembers} HS trở lại</span></div>{importReport.warnings?.length ? <details><summary>{importReport.warnings.length} lưu ý import</summary>{importReport.warnings.map((item, index) => <p key={`${item}-${index}`}>{item}</p>)}</details> : null}</section> : null}
-              <div className="attendance-management-grid"><aside className="attendance-manage-classes"><header><strong>Danh sách lớp</strong><span>{activeClasses.length}</span></header>{activeClasses.map((classRow) => <button key={classRow.id} type="button" className={String(selectedClassId) === String(classRow.id) ? 'is-selected' : ''} onClick={() => setSelectedClassId(classRow.id)}><b>{classRow.class_name}</b><small>{extraClassTypeLabel(classRow.class_type)} · {classRow.subject || 'Chưa ghi môn'}</small><span>{memberCounts.get(String(classRow.id)) || 0} HS</span></button>)}</aside>
-                <section className="attendance-member-manager">{selectedClass ? <><header><div><h2>{selectedClass.class_name}</h2><p>{extraClassTypeLabel(selectedClass.class_type)} · {selectedClass.subject || 'Chưa ghi môn'}</p></div><div className="attendance-teacher-field"><label>Giáo viên theo phân công 2026–2027</label><div className="attendance-teacher-summary"><strong>{teachersForClass(selectedClass)}</strong><button type="button" disabled={busy} onClick={() => setShowAddTeacher((value) => !value)}><Icon name="add" size={15} />Thêm giáo viên</button></div>{showAddTeacher ? <form className="attendance-add-teacher" onSubmit={addTeacher}><input value={newTeacherName} onChange={(event) => setNewTeacherName(event.target.value)} placeholder="Nhập họ tên giáo viên" autoFocus /><button type="button" disabled={busy} onClick={() => { setShowAddTeacher(false); setNewTeacherName(''); }}>Hủy</button><button type="submit" disabled={busy || !newTeacherName.trim()}>{busy ? 'Đang lưu…' : 'Lưu'}</button></form> : null}</div></header><div className="attendance-member-tools"><input value={memberQuery} onChange={(event) => setMemberQuery(event.target.value)} placeholder="Tìm học sinh, mã HS, lớp chính khóa…" /><button type="button" onClick={() => setShowAddStudent((value) => !value)}><Icon name="add" size={18} />Thêm học sinh</button><button type="button" disabled={busy} onClick={() => deleteClass(selectedClass)}><Icon name="trash" size={17} />Xóa lớp</button></div>
-                  {showAddStudent ? <form className="attendance-add-student" onSubmit={addStudent}><label><span>Mã HS</span><input value={addForm.student_code} onChange={(event) => setAddForm((current) => ({ ...current, student_code: event.target.value }))} placeholder="Có thể để trống" /></label><label><span>Họ và tên *</span><input value={addForm.student_full_name} onChange={(event) => setAddForm((current) => ({ ...current, student_full_name: event.target.value }))} required /></label><label><span>Lớp chính khóa *</span><input value={addForm.school_class_name} onChange={(event) => setAddForm((current) => ({ ...current, school_class_name: event.target.value }))} placeholder="Ví dụ 12.6" required /></label><div><button type="button" onClick={() => setShowAddStudent(false)}>Hủy</button><button type="submit" disabled={busy}><Icon name="add" size={17} />Thêm vào lớp</button></div></form> : null}
-                  <AttendanceClassEditor
-          client={client}
-          selectedClass={selectedClass}
-          members={filteredManagementMembers}
-          isAdmin={isAttendanceAdmin}
-          canManageMembers={canAccessAttendanceView('manage')}
-          busy={busy}
-          onRemoveStudent={removeStudent}
-          onReload={loadAll}
-          onError={setError}
-          onNotice={setNotice}
-        />
-                </> : <div className="attendance-empty is-large">Chọn lớp để quản lý học sinh.</div>}</section></div>
-            </div>
+            <AttendanceClassManagementWorkspace
+              activeClasses={activeClasses}
+              selectedClass={selectedClass}
+              selectedClassId={selectedClassId}
+              allSelectedMembers={allSelectedMembers}
+              filteredManagementMembers={filteredManagementMembers}
+              memberCounts={memberCounts}
+              teachersForClass={teachersForClass}
+              busy={busy}
+              fileRef={fileRef}
+              importExcel={importExcel}
+              importReport={importReport}
+              memberQuery={memberQuery}
+              setMemberQuery={setMemberQuery}
+              showAddStudent={showAddStudent}
+              setShowAddStudent={setShowAddStudent}
+              addForm={addForm}
+              setAddForm={setAddForm}
+              addStudent={addStudent}
+              showAddTeacher={showAddTeacher}
+              setShowAddTeacher={setShowAddTeacher}
+              newTeacherName={newTeacherName}
+              setNewTeacherName={setNewTeacherName}
+              addTeacher={addTeacher}
+              deleteClass={deleteClass}
+              client={client}
+              isAdmin={isAttendanceAdmin}
+              canManageMembers={canAccessAttendanceView('manage')}
+              removeStudent={removeStudent}
+              loadAll={loadAll}
+              setError={setError}
+              setNotice={setNotice}
+              onSelectClass={setSelectedClassId}
+            />
           ) : null}
 
           {!loading && canAccessAttendanceView('report') && view === 'report' ? <AttendanceMonthlyReport client={client} classes={classes} month={reportMonth} onMonthChange={setReportMonth} onError={setError} /> : null}
