@@ -263,16 +263,16 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   }, [sessions]);
 
   function assignedTeachersForClass(classRow) {
-    const authoritative = teachersForGiftedAssignment({
+    const normalized = classTeacherNames.get(String(classRow?.id)) || [];
+    const authoritative = normalized.length ? [] : teachersForGiftedAssignment({
       sourceKey: classRow?.source_key,
       subject: classRow?.subject,
       gradeLevel: classRow?.grade_level,
       className: classRow?.class_name,
     });
-    const normalized = classTeacherNames.get(String(classRow?.id)) || [];
-    const fallback = String(classRow?.teacher_name || '').split(/\s*,\s*/).map((name) => name.trim()).filter(Boolean);
+    const fallback = normalized.length ? [] : String(classRow?.teacher_name || '').split(/\s*,\s*/).map((name) => name.trim()).filter(Boolean);
     const merged = [];
-    [...authoritative, ...normalized, ...fallback].forEach((name) => {
+    [...normalized, ...authoritative, ...fallback].forEach((name) => {
       const clean = String(name || '').trim();
       if (clean && !merged.some((current) => fold(current) === fold(clean))) merged.push(clean);
     });
