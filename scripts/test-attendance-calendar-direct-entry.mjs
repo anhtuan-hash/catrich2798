@@ -4,17 +4,15 @@ import assert from 'node:assert/strict';
 const bootstrapUrl = new URL('../src/attendanceCalendarDirectEntryBootstrap.js', import.meta.url);
 const cssUrl = new URL('../src/styles/AttendanceCalendarDirectEntry.css', import.meta.url);
 const startupUrl = new URL('../src/tabResumeStability.js', import.meta.url);
-const componentUrl = new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url);
+const scheduleUrl = new URL('../src/components/attendance/AttendanceDailySchedule.jsx', import.meta.url);
 
 assert.ok(fs.existsSync(bootstrapUrl), 'Calendar direct-entry bootstrap must exist');
 assert.ok(fs.existsSync(cssUrl), 'Calendar direct-entry styles must exist');
-assert.ok(fs.existsSync(componentUrl), 'Attendance React component must exist');
+assert.ok(fs.existsSync(scheduleUrl), 'Daily attendance schedule component must exist');
 
-const componentSource = fs.readFileSync(componentUrl, 'utf8');
-assert.match(componentSource, /const\s*\[calendarDetailOpen,\s*setCalendarDetailOpen\]\s*=\s*useState\(false\)/, 'React must own whether a calendar row is opened as focused rollcall detail');
-assert.match(componentSource, /data-bes-calendar-class-detail=\{calendarDetailOpen\s*\?\s*['"]true['"]\s*:\s*undefined\}/, 'Focused calendar detail must be declared on the attendance shell before hidden Quick renders');
-assert.match(componentSource, /onOpenClass=\{\(classRow,\s*session\)\s*=>\s*\{[\s\S]{0,1200}setCalendarDetailOpen\(true\)[\s\S]{0,500}setView\(['"]quick['"]\)/, 'A pending calendar row must mark focused detail before opening the rollcall view');
-assert.match(componentSource, /function\s+exitCalendarClassDetail\s*\(\)\s*\{[\s\S]{0,500}setCalendarDetailOpen\(false\)[\s\S]{0,500}setView\(['"]calendar['"]\)/, 'Focused rollcall must have a React-owned exit back to Lịch điểm danh');
+const scheduleSource = fs.readFileSync(scheduleUrl, 'utf8');
+assert.match(scheduleSource, /data-attendance-daily-status-root/, 'The rendered daily schedule must expose the root marker used by the calendar click bridge');
+assert.match(scheduleSource, /data-class-id=\{classRow\.id\}/, 'Every daily class row must expose its stable class id to the calendar click bridge');
 
 const bootstrapSource = fs.readFileSync(bootstrapUrl, 'utf8');
 for (const required of [
