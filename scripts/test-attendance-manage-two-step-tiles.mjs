@@ -33,7 +33,7 @@ assert.match(workspace, /attendance-manage-tile-grid/,
   'Overview must render classes as a tile grid.');
 assert.match(workspace, /attendance-manage-class-tile/,
   'Each class must render as a dedicated tile.');
-assert.match(workspace, /onSelectClass\?\.\(classRow\.id\)[\s\S]{0,260}setManageDetailOpen\(true\)/,
+assert.match(workspace, /onSelectClass\?\.\(classRow\.id\)[\s\S]{0,320}setManageDetailOpen\(true\)/,
   'Clicking a class tile must select that class and open the detail state.');
 assert.match(workspace, /Quay lại danh sách lớp/,
   'Detail state must expose explicit navigation back to the class grid.');
@@ -84,8 +84,6 @@ assert.match(workspaceCss, /@media[^}]*max-width:\s*1100px[\s\S]*\.attendance-ma
   'Tablet overview must collapse to two tile columns.');
 assert.match(workspaceCss, /@media[^}]*max-width:\s*680px[\s\S]*\.attendance-manage-tile-grid\s*\{[^}]*grid-template-columns:\s*1fr/,
   'Mobile overview must collapse to one tile column.');
-assert.match(workspaceCss, /\.attendance-manage-detail-body\s*\{[^}]*grid-template-columns:/s,
-  'Detail state must use a dedicated full-width information/roster grid.');
 
 assert.match(searchRemoval, /KEEP_SELECTOR[\s\S]{0,240}\.attendance-manage-search/,
   'Global search-removal runtime must explicitly preserve the local class-management search control.');
@@ -104,10 +102,76 @@ assert.match(workspaceCss, /\.attendance-manage-tile__type\.is-remedial\s*\{[^}]
 assert.match(workspaceCss, /\.attendance-manage-tile__type\.is-gifted\s*\{[^}]*border:\s*1px solid #93c5fd/s,
   'Gifted badge must have a clearly defined blue border.');
 
+// Approved detail mockup: hero identity + compact stats/actions + one-line information strip.
+for (const token of [
+  'attendance-manage-detail-hero__meta',
+  'attendance-manage-detail-quick-stats',
+  'attendance-manage-detail-quick-stat',
+  'Đang hoạt động',
+  'attendance-manage-detail-info-strip',
+  'attendance-manage-detail-info-item',
+  'Môn học',
+  'Lịch học',
+  'Giáo viên phụ trách',
+  'attendance-manage-detail-roster-card',
+  'attendance-manage-detail-roster-title',
+]) {
+  assert.ok(workspace.includes(token), `Approved detail mockup must include ${token}`);
+}
+assert.match(workspace, /className="attendance-manage-detail-actions"[\s\S]{0,1000}Thêm học sinh[\s\S]{0,500}Sửa thông tin lớp[\s\S]{0,500}Thêm giáo viên[\s\S]{0,500}Xóa lớp/,
+  'Approved hero must order actions with Add student first, then edit, teacher, and delete.');
+assert.match(workspace, /attendance-manage-detail-actions__primary/,
+  'Add student must be the single primary hero action.');
+assert.match(workspace, /showClassInfo=\{editingClass\}/,
+  'Normal detail view must not duplicate the old class-info card; it should appear only while editing.');
+assert.match(workspace, /memberTableVariant="mockup"/,
+  'Workspace must request the approved mockup member table variant.');
+
+for (const token of [
+  '.attendance-manage-detail-quick-stats',
+  '.attendance-manage-detail-quick-stat',
+  '.attendance-manage-detail-info-strip',
+  '.attendance-manage-detail-info-item',
+  '.attendance-manage-detail-roster-card',
+]) {
+  assert.ok(workspaceCss.includes(token), `Approved detail CSS must include ${token}`);
+}
+assert.match(workspaceCss, /\.attendance-manage-detail-info-strip\s*\{[^}]*grid-template-columns:\s*repeat\(6,\s*minmax\(0,\s*1fr\)\)/s,
+  'Desktop detail information strip must contain six equal summary cells.');
+assert.match(workspaceCss, /\.attendance-manage-detail-body\s*\{[^}]*grid-template-columns:\s*1fr/s,
+  'Approved detail body must dedicate the full width to the student table.');
+assert.match(workspaceCss, /\.attendance-manage-detail-hero\s*\{[^}]*background:[^;}]*linear-gradient/s,
+  'Approved hero must use the soft blue mockup treatment instead of a flat white panel.');
+
+// Approved student table: STT, avatar/name, class, student code, status pill, compact actions/menu.
+assert.match(editor, /showClassInfo\s*=\s*true/,
+  'AttendanceClassEditor must allow the workspace to hide the duplicate normal class-info card.');
+assert.match(editor, /memberTableVariant\s*=\s*['"]default['"]/,
+  'AttendanceClassEditor must expose a member-table variant without changing standalone defaults.');
+for (const token of [
+  'attendance-member-table__index',
+  'attendance-member-avatar',
+  'Mã HS',
+  'attendance-member-status-pill',
+  'attendance-member-menu-button',
+  'attendance-member-row-menu',
+]) {
+  assert.ok(editor.includes(token), `Approved student table must include ${token}`);
+}
+assert.match(editor, />Sửa<\/button>/,
+  'Mockup member row must use the compact Sửa action label.');
+assert.match(editor, /aria-label=\{`Mở thao tác cho \$\{member\.student_full_name\}`\}/,
+  'Ellipsis action must be accessible for each student.');
+assert.match(editorCss, /\.attendance-member-table\.is-mockup\s+\.attendance-member-table-head[\s\S]{0,500}grid-template-columns:/,
+  'Mockup member table must define its own six-column grid.');
+assert.match(editorCss, /\.attendance-member-status-pill\.is-active/,
+  'Active student state must render as a green status pill.');
+assert.match(editorCss, /\.attendance-member-avatar/,
+  'Student rows must render compact initial avatars like the approved mockup.');
+
 assert.match(editor, /attendance-class-info-card/, 'Existing class edit behavior must remain in AttendanceClassEditor.');
 assert.match(editor, /showEditButton/, 'Class editor must support the hero-owned edit action without duplicating controls.');
 assert.match(editor, /Sửa thông tin lớp/, 'Class edit action must remain available for standalone editor use.');
-assert.match(editor, /Sửa học sinh/, 'Student edit action must remain available.');
 assert.match(editor, /Xóa khỏi lớp/, 'Student removal action must remain available.');
 assert.match(editorCss, /attendance-class-info-grid/, 'Class editor styling must remain available in detail state.');
 
