@@ -25,6 +25,14 @@
   box-shadow: inset 0 -2px 0 rgba(29, 141, 100, .42);
 }
 
+.attendance-tabs.is-time-config-open > button:not(.bes-attendance-time-trigger).is-active {
+  color: #68788b;
+}
+
+.attendance-tabs.is-time-config-open > button:not(.bes-attendance-time-trigger).is-active::after {
+  display: none;
+}
+
 .attendance-content.is-time-config-open > :not(.bes-attendance-time-settings) {
   display: none !important;
 }
