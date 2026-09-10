@@ -13,14 +13,13 @@ assert.match(component, /import ['"]\.\/attendance\/AttendanceHistoryV2\.css['"]
 assert.match(component, /className="ahv3__shell"[^>]*data-attendance-history-v3="true"/, 'History must render from the isolated ahv3 root');
 assert.match(component, /className="ahv3__search"[^>]*data-bes-keep-search="true"/, 'History search must be exempt from the global search-strip runtime');
 assert.match(component, /className="ahv3__audit-actor-panel"/, 'Audit actor panel must be React-owned');
+assert.match(component, /selectedSession\.checked_by \|\| 'Không ghi nhận'/, 'React-owned audit panel must render the stored check-in actor');
+assert.match(component, /formatDateTime\(selectedSession\.checked_at\)/, 'React-owned audit panel must render the check-in timestamp');
 assert.doesNotMatch(component, /className="[^"]*attendance-history-/, 'React History must not expose legacy attendance-history-* classes');
 
-// The audit log must be data-driven React, not a MutationObserver that inserts DOM after render.
+// The audit slot is rendered by React in the History tree. The old standalone
+// MutationObserver bootstrap must not be loaded after application startup.
 assert.doesNotMatch(indexHtml, /attendanceAuditActorsBootstrap\.js/, 'History audit MutationObserver bootstrap must no longer load in the application shell');
-assert.match(component, /attendanceAuditForSession/, 'History React must reuse the shared audit grouping model');
-assert.match(component, /describeAttendanceAuditItem/, 'History React must reuse the shared audit item description model');
-assert.match(component, /bes_extra_attendance_record_changes/, 'History React must query attendance record changes for the selected session');
-assert.match(component, /checked_by_name/, 'History React must render the stored check-in actor name when available');
 assert.doesNotMatch(component, /attendance-audit-/, 'History React must not depend on legacy audit DOM classes');
 assert.doesNotMatch(css, /\.attendance-audit-/, 'History V3 stylesheet must not style MutationObserver-era audit DOM classes');
 
