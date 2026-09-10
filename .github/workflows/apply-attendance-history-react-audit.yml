@@ -40,3 +40,5 @@ jobs:
           git rm scripts/apply-attendance-history-react-audit.mjs .github/workflows/apply-attendance-history-react-audit.yml
           git commit -m "fix(attendance): move History audit runtime into React"
           git push origin HEAD:fix/history-v3-legacy-isolation
+
+# one-shot trigger 2026-09-10
