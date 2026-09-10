@@ -32,4 +32,30 @@ assert.match(css, /--ahv2-orange\s*:/, 'V2 stylesheet must define its own orange
 assert.match(css, /@media\s*\(max-width:\s*900px\)/, 'History V2 must have an isolated narrow-screen fallback');
 assert.doesNotMatch(css, /(^|\n)\s*(html|body|:root)\s*\{/m, 'History V2 must not alter global page styles');
 
-console.log('Attendance history visual redesign contract OK');
+// Production screenshot polish contract: search must stay visible and compact.
+assert.match(css, /\.attendance-history-v2 \.attendance-history-search\s*\{[^}]*display:\s*flex/s, 'History search must be visible');
+assert.doesNotMatch(css, /\.attendance-history-v2 \.attendance-history-search\s*\{[^}]*display:\s*none/s, 'History search must never be hidden by V2');
+assert.match(css, /\.attendance-history-v2 \.attendance-history-filters\s*\{[^}]*margin-top:\s*8px/s, 'Filter must sit directly below search without the old blank gap');
+
+// Audit and proof cards share a grid row, but neither may stretch to the other card height.
+assert.match(css, /\.attendance-history-v2 \.attendance-audit-actor-panel\s*\{[^}]*align-self:\s*start/s, 'Audit panel must not stretch to proof-image height');
+assert.match(css, /\.attendance-history-v2 \.attendance-history-proof\s*\{[^}]*align-self:\s*start/s, 'Proof panel must keep intrinsic height');
+assert.match(css, /\.attendance-history-v2 \.attendance-audit-actor-panel\.is-loading\s*\{[^}]*min-height:\s*0/s, 'Loading audit panel must stay compact');
+
+// Replace placeholder glyphs with the app SVG Icon component.
+for (const iconName of ['teacher', 'book', 'calendar', 'clock', 'room', 'periods']) {
+  assert.match(component, new RegExp(`<Icon name=["']${iconName}["']`), `Session info must render the ${iconName} SVG icon`);
+}
+for (const iconName of ['people', 'check', 'late', 'absent']) {
+  assert.match(component, new RegExp(`<Icon name=["']${iconName}["']`), `Attendance summary must render the ${iconName} SVG icon`);
+}
+
+// Tardy deserves its own visible summary card while remaining included in present_count.
+assert.match(component, /<article className="is-late">[\s\S]*?selectedLateRecords\.length[\s\S]*?<span>Đi trễ<\/span>/, 'History summary must expose a dedicated tardy card');
+assert.match(component, /<article className="is-present">[\s\S]*?selectedSession\.present_count[\s\S]*?<span>Có mặt<\/span>/, 'Present count must remain sourced from present_count');
+
+// The vertical rhythm should be denser than the first V2 release.
+assert.match(css, /\.attendance-history-v2 \.attendance-history-hero\s*\{[^}]*min-height:\s*118px/s, 'History hero must use the compact height');
+assert.match(css, /\.attendance-history-v2 \.attendance-history-items > button\s*\{[^}]*min-height:\s*88px/s, 'History session cards must use the compact height');
+
+console.log('Attendance history visual redesign + polish contract OK');
