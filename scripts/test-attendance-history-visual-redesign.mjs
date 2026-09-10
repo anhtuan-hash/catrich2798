@@ -8,6 +8,7 @@ const css = read('src/components/attendance/AttendanceHistoryV2.css');
 const legacyCss = read('public/attendance-ui-polish.css');
 const stripJs = read('public/bes-remove-visible-search-bars.js');
 const indexHtml = read('index.html');
+const compactTimeSettings = read('src/attendanceCompactTimeSettings.js');
 
 assert.match(component, /import ['"]\.\/attendance\/AttendanceHistoryV2\.css['"];/, 'History stylesheet must stay explicitly loaded');
 assert.match(component, /className="ahv3__shell"[^>]*data-attendance-history-v3="true"/, 'History must render from the isolated ahv3 root');
@@ -19,6 +20,15 @@ assert.doesNotMatch(component, /className="[^"]*attendance-history-/, 'React His
 
 assert.doesNotMatch(indexHtml, /attendanceAuditActorsBootstrap\.js/, 'History audit MutationObserver bootstrap must no longer load in the application shell');
 assert.doesNotMatch(component, /attendance-audit-/, 'History React must not depend on legacy audit DOM classes');
+
+// Teacher attendance-window settings must behave like a normal top-level attendance tab.
+assert.match(compactTimeSettings, /<b>Cấu hình<\/b>/, 'Teacher time settings must expose the Cấu hình tab label');
+assert.match(compactTimeSettings, /setAttribute\('role', 'tab'\)/, 'Cấu hình must expose tab semantics');
+assert.match(compactTimeSettings, /tabs\.appendChild\(trigger\)/, 'Cấu hình must live in the same attendance tab bar as Báo cáo');
+assert.doesNotMatch(compactTimeSettings, /Giờ GV/, 'Legacy Giờ GV label must be removed');
+assert.doesNotMatch(compactTimeSettings, /is-compact-popover/, 'Teacher time settings must not use the legacy compact popover');
+assert.match(compactTimeSettings, /attendance-content/, 'Cấu hình content must render inside the attendance content area');
+assert.match(compactTimeSettings, /const shouldHidePanel = !configOpen;\s*if \(panel\.hidden !== shouldHidePanel\) panel\.hidden = shouldHidePanel;/, 'Cấu hình must avoid hidden-attribute observer render loops');
 
 assert.match(component, />Thông tin buổi học</, 'History detail must label session information');
 assert.match(component, />Tổng hợp điểm danh</, 'History detail must label attendance summary');
