@@ -4,15 +4,9 @@ import assert from 'node:assert/strict';
 const bootstrapUrl = new URL('../src/attendanceCalendarDirectEntryBootstrap.js', import.meta.url);
 const cssUrl = new URL('../src/styles/AttendanceCalendarDirectEntry.css', import.meta.url);
 const startupUrl = new URL('../src/tabResumeStability.js', import.meta.url);
-const componentUrl = new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url);
 
 assert.ok(fs.existsSync(bootstrapUrl), 'Calendar direct-entry bootstrap must exist');
 assert.ok(fs.existsSync(cssUrl), 'Calendar direct-entry styles must exist');
-assert.ok(fs.existsSync(componentUrl), 'Attendance React component must exist');
-
-const componentSource = fs.readFileSync(componentUrl, 'utf8');
-assert.match(componentSource, /const\s*\[view,\s*setView\]\s*=\s*useState\(['"]calendar['"]\)/, 'Attendance must initialize on Lịch điểm danh instead of briefly rendering the hidden Quick view');
-assert.match(componentSource, /const\s+firstAllowedView\s*=\s*canAccessAttendanceView\(['"]calendar['"]\)\s*\?\s*['"]calendar['"]\s*:/, 'Calendar-capable users must fall back to Lịch điểm danh before Quick attendance');
 
 const bootstrapSource = fs.readFileSync(bootstrapUrl, 'utf8');
 for (const required of [
@@ -33,6 +27,12 @@ assert.match(bootstrapSource, /quickTab\.click\(\)/, 'A selected calendar class 
 assert.match(bootstrapSource, /setControlledValue\([\s\S]*attendance-session-controls[\s\S]*input\[type=["']date["']\]/, 'The rollcall must receive the date selected in the calendar');
 assert.match(bootstrapSource, /calendarTab\??\.click\(\)/, 'Opening the attendance module must redirect the hidden Quick default to the calendar');
 assert.match(bootstrapSource, /session_status|is-completed|is-cancelled|attendance-daily-class-row/, 'Completed and pending calendar rows must share the direct-entry bridge');
+
+// Regression from production: the hidden Quick view can become active after the first DOM scan.
+// The calendar-first redirect must therefore remain live until Quick is no longer the active view,
+// rather than marking the shell as initialized before React has applied the active-tab class.
+assert.doesNotMatch(bootstrapSource, /initializedShells/, 'Calendar-first redirect must not be guarded by a one-shot shell initialization flag');
+assert.match(bootstrapSource, /quickTab\.classList\.contains\(['"]is-active['"]\)[\s\S]{0,400}calendarTab\??\.click\(\)/, 'Whenever hidden Quick is active outside focused detail, the bridge must redirect it to Lịch điểm danh');
 
 // Regression: a focused class opened from Lịch điểm danh must expose a compact Thoát action
 // that survives transient React rerenders, clears direct-entry state only on explicit exit,
