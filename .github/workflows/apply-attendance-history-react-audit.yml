@@ -1,0 +1,42 @@
+name: Apply Attendance History React Audit
+
+on:
+  push:
+    branches:
+      - fix/history-v3-legacy-isolation
+    paths:
+      - '.github/workflows/apply-attendance-history-react-audit.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout fix branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/history-v3-legacy-isolation
+          fetch-depth: 0
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Wire React-owned audit panel
+        run: node scripts/apply-attendance-history-react-audit.mjs
+
+      - name: Verify History V3 static contract
+        run: node scripts/test-attendance-history-visual-redesign.mjs
+
+      - name: Commit implementation and remove one-shot helper
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/components/GlobalAttendanceNavigationTab.jsx index.html scripts/test-attendance-history-visual-redesign.mjs
+          git rm scripts/apply-attendance-history-react-audit.mjs .github/workflows/apply-attendance-history-react-audit.yml
+          git commit -m "fix(attendance): move History audit runtime into React"
+          git push origin HEAD:fix/history-v3-legacy-isolation
