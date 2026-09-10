@@ -253,20 +253,19 @@ export async function printAttendanceReportPdf(report, filters = {}) {
   if (!popup) throw new Error('Trình duyệt đang chặn cửa sổ xuất PDF. Hãy cho phép popup rồi thử lại.');
   try { popup.opener = null; } catch { /* Browser may already isolate the popup. */ }
   const title = reportTitle(filters);
-  const teacherHtml = report.teacherRows.map((row) => `
-    <tr><td>${htmlEscape(row.teacher_name)}</td><td>${row.completed_sessions}</td><td>${String(row.total_periods).replace('.', ',')}</td><td>${row.distinct_classes}</td><td>${row.present_instances}</td><td>${row.absent_instances}</td><td>${percent(row.attendance_rate)}</td></tr>
-  `).join('');
   const sessionHtml = report.sessionRows.map((row) => `
     <tr class="${row.session_status === 'cancelled' ? 'cancelled' : ''}">
       <td>${htmlEscape(formatDate(row.attendance_date))}</td>
       <td><b>${htmlEscape(row.class_name)}</b><small>${htmlEscape(classTypeLabel(row.class_type))} · ${htmlEscape(row.subject || '—')}</small></td>
       <td><b>${htmlEscape(row.teacher_name || '—')}</b><small>Phòng: ${htmlEscape(row.teaching_room || 'Chưa ghi')}</small></td>
       <td><b>${htmlEscape(row.teaching_time_range || 'Chưa ghi')}</b><small>Chốt: ${htmlEscape(formatCheckedTime(row.checked_at))}</small></td>
+      <td>${row.session_status === 'cancelled' ? '0' : htmlEscape(String(row.lesson_periods).replace('.', ','))}</td>
+      <td>${row.total_students ?? '—'}</td>
+      <td>${row.present_count ?? '—'}</td>
+      <td>${row.absent_count ?? '—'}</td>
+      <td>${row.attendance_rate === null ? '—' : percent(row.attendance_rate)}</td>
       <td><b>${htmlEscape(row.checked_by_name || '—')}</b><small>${htmlEscape(formatCheckedTime(row.checked_at))}</small></td>
       <td><b>${htmlEscape(row.latest_changed_by_name || 'Chưa điều chỉnh')}</b><small>${row.latest_changed_at ? htmlEscape(formatCheckedTime(row.latest_changed_at)) : `${Number(row.change_count || 0)} lần`}</small></td>
-      <td>${row.session_status === 'cancelled' ? '0' : htmlEscape(String(row.lesson_periods).replace('.', ','))}</td>
-      <td>${row.total_students ?? '—'}</td><td>${row.present_count ?? '—'}</td><td>${row.absent_count ?? '—'}</td>
-      <td>${row.attendance_rate === null ? '—' : percent(row.attendance_rate)}</td>
       <td><b>${row.session_status === 'cancelled' ? 'Đã hủy' : 'Đã điểm danh'}</b><small>${htmlEscape(row.note || '—')}</small></td>
     </tr>
   `).join('');
@@ -288,9 +287,8 @@ export async function printAttendanceReportPdf(report, filters = {}) {
     <div class="school-head"><div class="school-head__text"><b>SỞ GIÁO DỤC VÀ ĐÀO TẠO THÀNH PHỐ HỒ CHÍ MINH</b><strong>TRƯỜNG TRUNG - TIỂU HỌC PÉTRUS KÝ</strong></div></div>
     <h1 class="report-title">${htmlEscape(title)}</h1><div class="period">${htmlEscape(periodText(filters))}</div><div class="filters">${htmlEscape(filters.classLabel || 'Tất cả lớp')} · ${htmlEscape(filters.teacherLabel || 'Tất cả giáo viên')}</div>
     <div class="metrics"><div class="metric"><span>Buổi đã dạy</span><b>${report.metrics.completedSessions}</b></div><div class="metric"><span>Buổi đã hủy</span><b>${report.metrics.cancelledSessions}</b></div><div class="metric"><span>Tổng số tiết</span><b>${String(report.metrics.totalPeriods).replace('.', ',')}</b></div><div class="metric"><span>Tỷ lệ chuyên cần</span><b>${percent(report.metrics.attendanceRate)}</b></div></div>
-    <section class="section"><h2>1. THỐNG KÊ THEO GIÁO VIÊN</h2><table><thead><tr><th style="width:28%">Giáo viên</th><th>Buổi</th><th>Tiết</th><th>Lớp</th><th>Có mặt</th><th>Vắng</th><th>Chuyên cần</th></tr></thead><tbody>${teacherHtml || '<tr><td colspan="7">Không có dữ liệu phù hợp bộ lọc.</td></tr>'}</tbody></table></section>
-    <section class="section"><h2>2. CHI TIẾT BUỔI HỌC</h2><table><thead><tr><th style="width:7%">Ngày</th><th style="width:14%">Lớp / môn</th><th style="width:11%">GV / phòng</th><th style="width:11%">Giờ dạy / chốt</th><th style="width:12%">Người điểm danh</th><th style="width:13%">Người điều chỉnh gần nhất</th><th>Tiết</th><th>Sĩ số</th><th>Có mặt</th><th>Vắng</th><th>Tỷ lệ</th><th style="width:12%">Trạng thái / ghi chú</th></tr></thead><tbody>${sessionHtml || '<tr><td colspan="12">Không có dữ liệu phù hợp bộ lọc.</td></tr>'}</tbody></table></section>
-    <section class="section"><h2>3. CHI TIẾT HỌC SINH VẮNG</h2>${absenceHtml ? `<table><thead><tr><th style="width:9%">Ngày</th><th style="width:22%">Học sinh</th><th style="width:18%">Lý do / ghi chú</th><th style="width:18%">Lớp / môn</th><th style="width:15%">Giáo viên</th><th style="width:12%">Giờ dạy / chốt</th><th>Phòng</th></tr></thead><tbody>${absenceHtml}</tbody></table>` : '<p class="empty">Không có học sinh vắng trong dữ liệu phù hợp bộ lọc.</p>'}</section>
+    <section class="section"><h2>1. CHI TIẾT BUỔI HỌC</h2><table><thead><tr><th style="width:8%">Ngày</th><th style="width:15%">Lớp / môn</th><th style="width:11%">GV / phòng</th><th style="width:11%">Giờ dạy / chốt</th><th style="width:4%">Tiết</th><th style="width:5%">Sĩ số</th><th style="width:5%">Có mặt</th><th style="width:4%">Vắng</th><th style="width:6%">Tỷ lệ</th><th style="width:10%">Người điểm danh</th><th style="width:11%">Người điều chỉnh gần nhất</th><th style="width:10%">Trạng thái / ghi chú</th></tr></thead><tbody>${sessionHtml || '<tr><td colspan="12">Không có dữ liệu phù hợp bộ lọc.</td></tr>'}</tbody></table></section>
+    <section class="section"><h2>2. CHI TIẾT HỌC SINH VẮNG</h2>${absenceHtml ? `<table><thead><tr><th style="width:9%">Ngày</th><th style="width:22%">Học sinh</th><th style="width:18%">Lý do / ghi chú</th><th style="width:18%">Lớp / môn</th><th style="width:15%">Giáo viên</th><th style="width:12%">Giờ dạy / chốt</th><th>Phòng</th></tr></thead><tbody>${absenceHtml}</tbody></table>` : '<p class="empty">Không có học sinh vắng trong dữ liệu phù hợp bộ lọc.</p>'}</section>
     <div class="remarks"><b>NHẬN XÉT CHUNG</b>${htmlEscape(filters.generalRemarks || 'Không có nhận xét chung.')}</div>
     <div class="reporter"><div class="date">${htmlEscape(vietnamReportDate())}</div><strong>NGƯỜI BÁO CÁO</strong><b>${htmlEscape(filters.reporterName || 'Chưa ghi')}</b><span>${htmlEscape(filters.reporterTitle || 'Chưa ghi chức vụ')}</span></div>
     <div class="footer">Báo cáo được lập từ phân hệ Điểm danh lớp phụ đạo &amp; bồi dưỡng.</div>
