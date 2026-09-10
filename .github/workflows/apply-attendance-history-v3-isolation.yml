@@ -1,0 +1,42 @@
+name: Apply Attendance History V3 Isolation
+
+on:
+  push:
+    branches:
+      - fix/history-v3-legacy-isolation
+    paths:
+      - '.github/workflows/apply-attendance-history-v3-isolation.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout fix branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/history-v3-legacy-isolation
+          fetch-depth: 0
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Apply namespaced History V3 migration
+        run: node scripts/apply-attendance-history-v3-isolation.mjs
+
+      - name: Run History V3 static isolation contract
+        run: node scripts/test-attendance-history-visual-redesign.mjs
+
+      - name: Commit implementation and remove one-shot helper
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/components/GlobalAttendanceNavigationTab.jsx src/components/attendance/AttendanceHistoryV2.css scripts/test-attendance-history-visual-redesign.mjs
+          git rm scripts/apply-attendance-history-v3-isolation.mjs .github/workflows/apply-attendance-history-v3-isolation.yml
+          git commit -m "fix(attendance): isolate History V3 from legacy runtime"
+          git push origin HEAD:fix/history-v3-legacy-isolation
