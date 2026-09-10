@@ -13,6 +13,7 @@ const cssUrl = new URL('../src/components/attendance/AttendanceClassEditor.css',
 const rosterCssUrl = new URL('../src/components/attendance/AttendanceClassManagementRosterScroll.css', import.meta.url);
 const legacyMigrationUrl = new URL('../supabase/migrations/20260908_attendance_admin_class_member_edit.sql', import.meta.url);
 const manageMigrationUrl = new URL('../supabase/migrations/20260909_attendance_manage_class_details_permission.sql', import.meta.url);
+const teacherEditMigrationUrl = new URL('../supabase/migrations/20260910_attendance_edit_class_teachers.sql', import.meta.url);
 const attendance = fs.readFileSync(attendanceUrl, 'utf8');
 const workspace = fs.readFileSync(workspaceUrl, 'utf8');
 const editor = fs.readFileSync(editorUrl, 'utf8');
@@ -21,6 +22,7 @@ const css = fs.readFileSync(cssUrl, 'utf8');
 const rosterCss = fs.readFileSync(rosterCssUrl, 'utf8');
 const legacyMigration = fs.existsSync(legacyMigrationUrl) ? fs.readFileSync(legacyMigrationUrl, 'utf8') : '';
 const manageMigration = fs.existsSync(manageMigrationUrl) ? fs.readFileSync(manageMigrationUrl, 'utf8') : '';
+const teacherEditMigration = fs.existsSync(teacherEditMigrationUrl) ? fs.readFileSync(teacherEditMigrationUrl, 'utf8') : '';
 
 assert.equal(
   roomForExtraClass(null),
@@ -78,8 +80,8 @@ assert.match(attendance, /AttendanceClassManagementWorkspace/,
   'Management view must integrate the dedicated two-step class management workspace');
 assert.match(workspace, /AttendanceClassEditor/,
   'Two-step class detail must integrate the dedicated class editor component');
-assert.match(ui, /bes_admin_update_extra_class/,
-  'Management UI must save class metadata through the existing compatible class RPC');
+assert.match(ui, /bes_admin_update_extra_class|bes_update_extra_class_with_teachers/,
+  'Management UI must save class metadata through a compatible class RPC');
 assert.match(ui, /bes_update_extra_class_member/,
   'Management UI must save member edits through the Manage-authorized member RPC');
 assert.match(ui, /Sửa thông tin lớp/,
@@ -122,6 +124,34 @@ assert.doesNotMatch(attendance, /selectedMembers\.length\s*,\s*attendanceDate/,
   'Quick attendance draft must not depend only on roster length because student edits can keep the same count');
 assert.match(attendance, /\[selectedClassId,\s*selectedMembers,\s*attendanceDate,\s*daySession\?\.id,\s*dayRecords\]/,
   'Quick attendance draft must refresh when current member metadata changes');
+
+// Teacher assignments are edited as part of the class form, not through a separate admin-only screen.
+assert.match(editor, /teacherNames\s*=\s*\[\]/,
+  'Class editor must accept the current teacher-name array');
+assert.match(editor, /Giáo viên dạy lớp\s*\*/,
+  'Class edit form must expose a required teacher editor');
+assert.match(editor, /attendance-class-teacher-chip/,
+  'Current assigned teachers must be rendered as removable chips');
+assert.match(editor, /removeClassTeacher|removeTeacher/i,
+  'Class editor must support removing an assigned teacher before save');
+assert.match(editor, /addClassTeacher|addTeacher/i,
+  'Class editor must support adding a teacher before save');
+assert.match(editor, /p_teacher_names:\s*teacherNames/,
+  'Class save must send the full teacher list to the backend transaction');
+assert.match(editor, /teacherNames\.length[\s\S]{0,220}(ít nhất một giáo viên|giáo viên)/i,
+  'Class save must reject an empty teacher list');
+assert.match(workspace, /teacherNamesForClass/,
+  'Management workspace must receive the authoritative teacher-name resolver');
+assert.match(workspace, /teacherNames=\{teacherNamesForClass\?\.\(selectedClass\)\s*\|\|\s*\[\]\}/,
+  'Selected class teacher names must be passed into the class editor');
+assert.match(attendance, /teacherNamesForClass=\{assignedTeachersForClass\}/,
+  'Global attendance state must pass the normalized teacher resolver into class management');
+assert.match(attendance, /const normalized = classTeacherNames\.get\(String\(classRow\?\.id\)\) \|\| \[\];[\s\S]{0,120}if \(normalized\.length\) return normalized;/,
+  'Normalized bes_extra_class_teachers rows must override the static gifted catalog when present');
+assert.match(css, /\.attendance-class-teacher-editor/,
+  'Teacher editing must have a dedicated responsive layout');
+assert.match(css, /\.attendance-class-teacher-chip/,
+  'Teacher chips must have dedicated styling');
 
 assert.match(legacyMigration, /create or replace function\s+public\.bes_admin_update_extra_class\s*\(/i,
   'Legacy migration must define the compatible class-update RPC');
@@ -179,5 +209,30 @@ assert.match(
   /grant execute on function public\.bes_admin_update_extra_class_member\(uuid,uuid,text,text,text\) to authenticated;/i,
   'Signed-in users must receive the legacy member RPC entry point, with Admin authorization still enforced inside the RPC',
 );
+
+assert.ok(teacherEditMigration.length > 0,
+  'Teacher editing requires a dedicated migration so old production clients remain compatible during rollout');
+assert.match(teacherEditMigration, /create or replace function\s+public\.bes_update_extra_class_with_teachers\s*\(/i,
+  'Teacher-edit migration must define a dedicated atomic class-and-teachers RPC');
+assert.match(teacherEditMigration, /p_teacher_names\s+text\[\]/i,
+  'Teacher-edit RPC must receive the complete teacher-name array');
+assert.match(teacherEditMigration, /if not public\.can_manage_extra_class_roster\(\)/i,
+  'Teacher-edit RPC must enforce attendance:manage server-side');
+assert.match(teacherEditMigration, /delete from public\.bes_extra_class_teachers[\s\S]{0,900}insert into public\.bes_extra_class_teachers/i,
+  'Teacher-edit RPC must replace normalized teacher assignments atomically');
+assert.match(teacherEditMigration, /teacher_name\s*=\s*array_to_string\(v_teacher_names,\s*', '\)/i,
+  'Teacher-edit RPC must keep bes_extra_classes.teacher_name synchronized with normalized assignments');
+assert.match(teacherEditMigration, /Lớp phải có ít nhất một giáo viên/i,
+  'Teacher-edit RPC must reject an empty normalized teacher list');
+assert.doesNotMatch(teacherEditMigration, /(update|delete from)\s+public\.bes_extra_attendance_sessions/i,
+  'Changing current teachers must not rewrite or delete confirmed attendance session snapshots');
+assert.doesNotMatch(teacherEditMigration, /(update|delete from)\s+public\.bes_extra_attendance_records/i,
+  'Changing current teachers must not rewrite or delete confirmed attendance record snapshots');
+assert.match(teacherEditMigration, /revoke all on function public\.bes_update_extra_class_with_teachers\(uuid,text,text,integer,text,text,integer\[\],text\[\]\) from public;/i,
+  'Atomic class-teacher RPC must revoke PUBLIC execution');
+assert.match(teacherEditMigration, /revoke all on function public\.bes_update_extra_class_with_teachers\(uuid,text,text,integer,text,text,integer\[\],text\[\]\) from anon;/i,
+  'Atomic class-teacher RPC must revoke anonymous execution');
+assert.match(teacherEditMigration, /grant execute on function public\.bes_update_extra_class_with_teachers\(uuid,text,text,integer,text,text,integer\[\],text\[\]\) to authenticated;/i,
+  'Authenticated users may invoke the RPC, with Manage permission checked inside it');
 
 console.log('Attendance class edit sync contract OK');
