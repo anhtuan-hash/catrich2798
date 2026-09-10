@@ -11,12 +11,13 @@ assert.doesNotMatch(managementUi, /Không lấy từ tài khoản đăng ký tr�
 assert.match(managementUi, /Thêm giáo viên/, 'Class management must expose a manual add-teacher control');
 assert.match(attendance, /bes_add_extra_class_teacher/, 'Class management must persist a manual teacher through the guarded RPC');
 assert.match(attendance, /classTeacherNames/, 'Manual teachers must participate in the normalized teacher list used by attendance');
-assert.doesNotMatch(attendance, /if\s*\(authoritative\.length\)\s*return\s+authoritative/, 'Authoritative catalog teachers must be merged with normalized manual teachers, not short-circuit them');
-assert.match(attendance, /\[\.\.\.authoritative,\s*\.\.\.normalized,\s*\.\.\.fallback\]/, 'Attendance teacher options must merge catalog, normalized manual teachers, and fallback names');
+assert.match(attendance, /const normalized = classTeacherNames\.get\(String\(classRow\?\.id\)\) \|\| \[\];[\s\S]{0,180}normalized\.length\s*\?\s*\[\]\s*:\s*teachersForGiftedAssignment/, 'When normalized assignments exist, the static gifted catalog must become fallback-only');
+assert.match(attendance, /const fallback = normalized\.length \? \[\] : String\(classRow\?\.teacher_name/, 'Legacy class teacher_name must also be fallback-only once normalized assignments exist');
+assert.match(attendance, /\[\.\.\.normalized,\s*\.\.\.authoritative,\s*\.\.\.fallback\]/, 'Attendance teacher options must prefer normalized manual assignments, then use catalog and fallback only for legacy classes');
 
 assert.ok(migration, 'Manual teacher migration must exist');
 assert.match(migration, /bes_add_extra_class_teacher\s*\(/i, 'Migration must define the add-teacher RPC');
-assert.match(migration, /can_manage_extra_class_attendance\(\)/i, 'RPC must enforce Admin attendance permission');
+assert.match(migration, /can_manage_extra_class_attendance\(\)/i, 'Original migration must define the guarded RPC; later granular migration upgrades its authorization gate to attendance:manage');
 assert.match(migration, /bes_extra_class_teachers/i, 'RPC must persist the teacher in normalized class assignments');
 assert.match(migration, /lower\s*\(\s*trim\s*\(\s*teacher_name\s*\)\s*\)/i, 'RPC must reject duplicate teacher names case-insensitively within a class');
 assert.match(migration, /from\s+anon/i, 'Anonymous users must be explicitly denied RPC execution');
