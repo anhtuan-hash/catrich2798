@@ -6,10 +6,12 @@ const workspace = fs.readFileSync(new URL('../src/components/attendance/Attendan
 const workspaceCss = fs.readFileSync(new URL('../src/components/attendance/AttendanceClassManagementWorkspace.css', import.meta.url), 'utf8');
 const detailMockupCssPath = new URL('../src/components/attendance/AttendanceClassManagementDetailMockup.css', import.meta.url);
 const detailMockupCss = fs.existsSync(detailMockupCssPath) ? fs.readFileSync(detailMockupCssPath, 'utf8') : '';
+const rosterScrollCssPath = new URL('../src/components/attendance/AttendanceClassManagementRosterScroll.css', import.meta.url);
+const rosterScrollCss = fs.existsSync(rosterScrollCssPath) ? fs.readFileSync(rosterScrollCssPath, 'utf8') : '';
 const editor = fs.readFileSync(new URL('../src/components/attendance/AttendanceClassEditor.jsx', import.meta.url), 'utf8');
 const editorCss = fs.readFileSync(new URL('../src/components/attendance/AttendanceClassEditor.css', import.meta.url), 'utf8');
 const searchRemoval = fs.readFileSync(new URL('../public/bes-remove-visible-search-bars.js', import.meta.url), 'utf8');
-const detailCss = `${workspaceCss}\n${detailMockupCss}`;
+const detailCss = `${workspaceCss}\n${detailMockupCss}\n${rosterScrollCss}`;
 
 assert.match(navigation, /import AttendanceClassManagementWorkspace from ['"]\.\/attendance\/AttendanceClassManagementWorkspace\.jsx['"];/,
   'Global attendance source must import the direct React class-management workspace.');
@@ -116,9 +118,6 @@ for (const token of [
   'Giáo viên phụ trách',
   'attendance-manage-detail-roster-card',
   'attendance-manage-detail-roster-title',
-  'attendance-manage-detail-roster-footer',
-  'Hiển thị',
-  'MEMBERS_PER_PAGE = 5',
 ]) {
   assert.ok(workspace.includes(token), `Approved detail mockup must include ${token}`);
 }
@@ -132,8 +131,14 @@ assert.match(workspace, /memberTableVariant="mockup"/,
   'Workspace must request the approved mockup member table variant.');
 assert.match(workspace, /data-bes-keep-search="true"[\s\S]{0,300}Tìm kiếm học sinh/,
   'Detail student search must opt out of the global search-removal runtime.');
-assert.match(workspace, /memberIndexOffset=\{\(safeMemberPage - 1\) \* MEMBERS_PER_PAGE\}/,
-  'Roster pagination must pass the page offset so STT numbering continues across pages.');
+
+// One-card roster: every filtered member renders in one continuous scroll surface, with no pagination state or controls.
+assert.doesNotMatch(workspace, /MEMBERS_PER_PAGE|memberPage|setMemberPage|safeMemberPage|pageCount/,
+  'Student roster must not split into pages or keep pagination state.');
+assert.match(workspace, /members=\{filteredManagementMembers\}/,
+  'Student roster must pass the entire filtered member collection to the table.');
+assert.doesNotMatch(workspace, /aria-label="Phân trang danh sách học sinh"|attendance-manage-detail-roster-footer/,
+  'Student roster must not render pagination controls or a pagination footer.');
 
 // Final 10/10 polish: student totals must be semantically consistent while retaining inactive history.
 assert.match(workspace, /const activeMemberCount = allSelectedMembers\.filter\(\(member\) => member\.active !== false\)\.length;/,
@@ -144,8 +149,6 @@ assert.match(workspace, /<b>\{activeMemberCount\}<\/b><small>học sinh<\/small>
   'Hero student quick-stat must show active students only.');
 assert.match(workspace, /\{activeMemberCount\} đang học[\s\S]{0,180}\{inactiveMemberCount\} đã nghỉ[\s\S]{0,180}\{allSelectedMembers\.length\} hồ sơ/,
   'Roster subtitle must explicitly distinguish active, inactive, and historical record totals.');
-assert.match(workspace, /Hiển thị \{visibleManagementMembers\.length\}\/\{memberTotal\} hồ sơ/,
-  'Pagination footer must describe roster records instead of implying every historical row is an active student.');
 
 // Long teacher lists should remain readable without losing the complete value.
 assert.match(workspace, /function compactTeacherLabel\(/,
@@ -161,7 +164,6 @@ for (const token of [
   '.attendance-manage-detail-info-strip',
   '.attendance-manage-detail-info-item',
   '.attendance-manage-detail-roster-card',
-  '.attendance-manage-detail-roster-footer',
   '.attendance-manage-detail-teacher-summary',
 ]) {
   assert.ok(detailCss.includes(token), `Approved detail CSS must include ${token}`);
@@ -170,6 +172,14 @@ assert.match(detailCss, /\.attendance-manage-detail-info-strip\s*\{[^}]*grid-tem
   'Desktop detail information strip must contain six equal summary cells.');
 assert.match(detailCss, /\.attendance-manage-detail-body\s*\{[^}]*grid-template-columns:\s*1fr/s,
   'Approved detail body must dedicate the full width to the student table.');
+assert.match(detailCss, /\.attendance-manage-detail-body\s*\{[^}]*overflow-y:\s*auto/s,
+  'One-card roster must scroll vertically inside its own body.');
+assert.match(detailCss, /\.attendance-manage-detail-body\s*\{[^}]*overscroll-behavior:\s*contain/s,
+  'Roster scrolling must remain contained inside the card.');
+assert.match(detailCss, /\.attendance-manage-detail-body\s*\{[^}]*scrollbar-gutter:\s*stable/s,
+  'Roster must reserve a stable scrollbar gutter to avoid horizontal layout jumps.');
+assert.match(detailCss, /\.attendance-member-table\.is-mockup\s+\.attendance-member-table-head[\s\S]{0,500}position:\s*sticky/s,
+  'Student column header must remain sticky while the single roster scrolls.');
 assert.match(detailCss, /\.attendance-manage-detail-hero\s*\{[^}]*background:[^;}]*linear-gradient/s,
   'Approved hero must use the soft subject-tinted mockup treatment instead of a flat white panel.');
 assert.match(detailCss, /\.attendance-manage-detail-hero::before\s*\{[^}]*height:\s*3px/s,
@@ -178,8 +188,6 @@ assert.match(detailCss, /\.attendance-manage-detail-quick-stats\s*\{[^}]*width:\
   'Quick stats need more horizontal breathing room on desktop.');
 assert.match(detailCss, /\.attendance-member-table\.is-mockup\s*>\s*\.attendance-member-table-row\s*\{[^}]*font-size:\s*11\.5px/s,
   'Student rows must use the final readability size.');
-assert.match(detailCss, /\.attendance-manage-detail-roster-footer\s+nav\s+button\s*\{[^}]*width:\s*34px[^}]*height:\s*34px/s,
-  'Pagination controls must be large enough for a polished, comfortable click target.');
 
 assert.match(editor, /showClassInfo\s*=\s*true/,
   'AttendanceClassEditor must allow the workspace to hide the duplicate normal class-info card.');
@@ -188,7 +196,7 @@ assert.match(editor, /memberTableVariant\s*=\s*['"]default['"]/,
 assert.match(editor, /memberIndexOffset\s*=\s*0/,
   'AttendanceClassEditor must support a zero-based member index offset without changing standalone defaults.');
 assert.match(editor, /memberIndexOffset \+ index \+ 1/,
-  'Mockup STT must use the page offset instead of restarting from one on every page.');
+  'Mockup STT must support a supplied offset while defaulting to continuous numbering from one.');
 for (const token of [
   'attendance-member-table__index',
   'attendance-member-avatar',

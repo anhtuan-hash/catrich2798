@@ -1,11 +1,10 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { attendanceSubjectKey, extraClassTypeLabel } from '../../utils/extraClassAttendance.js';
 import { roomForExtraClass, weekdaysForExtraClass } from '../../utils/extraClassSchedule2026.js';
 import AttendanceClassEditor from './AttendanceClassEditor.jsx';
 import './AttendanceClassManagementWorkspace.css';
 import './AttendanceClassManagementDetailMockup.css';
-
-const MEMBERS_PER_PAGE = 5;
+import './AttendanceClassManagementRosterScroll.css';
 
 const WEEKDAY_LABELS = new Map([
   [1, 'Thứ 2'],
@@ -114,7 +113,6 @@ function downloadMemberCsv(selectedClass, members) {
 export default function AttendanceClassManagementWorkspace({
   activeClasses = [],
   selectedClass,
-  selectedClassId,
   allSelectedMembers = [],
   filteredManagementMembers = [],
   memberCounts,
@@ -150,7 +148,6 @@ export default function AttendanceClassManagementWorkspace({
   const [manageTypeFilter, setManageTypeFilter] = useState('all');
   const [manageGradeFilter, setManageGradeFilter] = useState('all');
   const [editingClass, setEditingClass] = useState(false);
-  const [memberPage, setMemberPage] = useState(1);
 
   const filteredManageClasses = useMemo(() => activeClasses.filter((classRow) => {
     if (manageTypeFilter !== 'all' && classRow.class_type !== manageTypeFilter) return false;
@@ -161,10 +158,6 @@ export default function AttendanceClassManagementWorkspace({
     return haystack.includes(query);
   }), [activeClasses, manageClassQuery, manageTypeFilter, manageGradeFilter, teachersForClass]);
 
-  useEffect(() => {
-    setMemberPage(1);
-  }, [selectedClassId, memberQuery]);
-
   const detailVisible = Boolean(manageDetailOpen && selectedClass);
 
   function openClass(classRow) {
@@ -173,7 +166,6 @@ export default function AttendanceClassManagementWorkspace({
     setShowAddStudent?.(false);
     setShowAddTeacher?.(false);
     setEditingClass(false);
-    setMemberPage(1);
     setManageDetailOpen(true);
   }
 
@@ -183,7 +175,6 @@ export default function AttendanceClassManagementWorkspace({
     setShowAddStudent?.(false);
     setShowAddTeacher?.(false);
     setEditingClass(false);
-    setMemberPage(1);
   }
 
   if (!detailVisible) {
@@ -297,13 +288,6 @@ export default function AttendanceClassManagementWorkspace({
   const isActive = selectedClass.active !== false;
   const activeMemberCount = allSelectedMembers.filter((member) => member.active !== false).length;
   const inactiveMemberCount = allSelectedMembers.length - activeMemberCount;
-  const memberTotal = filteredManagementMembers.length;
-  const pageCount = Math.max(1, Math.ceil(memberTotal / MEMBERS_PER_PAGE));
-  const safeMemberPage = Math.min(memberPage, pageCount);
-  const visibleManagementMembers = filteredManagementMembers.slice(
-    (safeMemberPage - 1) * MEMBERS_PER_PAGE,
-    safeMemberPage * MEMBERS_PER_PAGE,
-  );
 
   return (
     <section className={`attendance-manage-detail is-subject-${subjectKey}`}>
@@ -394,11 +378,11 @@ export default function AttendanceClassManagementWorkspace({
           <button type="button" onClick={() => downloadMemberCsv(selectedClass, allSelectedMembers)}><WorkspaceIcon name="download" size={16} />Xuất danh sách</button>
         </header>
 
-        <div className="attendance-manage-detail-body">
+        <div className="attendance-manage-detail-body" tabIndex={0} aria-label="Danh sách học sinh có thể cuộn">
           <AttendanceClassEditor
             client={client}
             selectedClass={selectedClass}
-            members={visibleManagementMembers}
+            members={filteredManagementMembers}
             isAdmin={isAdmin}
             canManageMembers={canManageMembers}
             busy={busy}
@@ -411,22 +395,8 @@ export default function AttendanceClassManagementWorkspace({
             showEditButton={false}
             showClassInfo={editingClass}
             memberTableVariant="mockup"
-            memberIndexOffset={(safeMemberPage - 1) * MEMBERS_PER_PAGE}
           />
         </div>
-
-        <footer className="attendance-manage-detail-roster-footer">
-          <span>Hiển thị {visibleManagementMembers.length}/{memberTotal} hồ sơ</span>
-          {pageCount > 1 ? (
-            <nav aria-label="Phân trang danh sách học sinh">
-              <button type="button" aria-label="Trang trước" disabled={safeMemberPage === 1} onClick={() => setMemberPage((page) => Math.max(1, page - 1))}>‹</button>
-              {Array.from({ length: pageCount }, (_, index) => index + 1).map((page) => (
-                <button key={page} type="button" className={safeMemberPage === page ? 'is-active' : ''} aria-current={safeMemberPage === page ? 'page' : undefined} onClick={() => setMemberPage(page)}>{page}</button>
-              ))}
-              <button type="button" aria-label="Trang sau" disabled={safeMemberPage === pageCount} onClick={() => setMemberPage((page) => Math.min(pageCount, page + 1))}>›</button>
-            </nav>
-          ) : null}
-        </footer>
       </section>
     </section>
   );
