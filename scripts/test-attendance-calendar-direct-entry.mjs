@@ -28,6 +28,12 @@ assert.match(bootstrapSource, /setControlledValue\([\s\S]*attendance-session-con
 assert.match(bootstrapSource, /calendarTab\??\.click\(\)/, 'Opening the attendance module must redirect the hidden Quick default to the calendar');
 assert.match(bootstrapSource, /session_status|is-completed|is-cancelled|attendance-daily-class-row/, 'Completed and pending calendar rows must share the direct-entry bridge');
 
+// Regression from production: the hidden Quick view can become active after the first DOM scan.
+// The calendar-first redirect must therefore remain live until Quick is no longer the active view,
+// rather than marking the shell as initialized before React has applied the active-tab class.
+assert.doesNotMatch(bootstrapSource, /initializedShells/, 'Calendar-first redirect must not be guarded by a one-shot shell initialization flag');
+assert.match(bootstrapSource, /quickTab\.classList\.contains\(['"]is-active['"]\)[\s\S]{0,400}calendarTab\??\.click\(\)/, 'Whenever hidden Quick is active outside focused detail, the bridge must redirect it to Lịch điểm danh');
+
 // Regression: a focused class opened from Lịch điểm danh must expose a compact Thoát action
 // that survives transient React rerenders, clears direct-entry state only on explicit exit,
 // and returns to the calendar without closing the attendance modal.
