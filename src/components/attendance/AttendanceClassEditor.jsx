@@ -12,12 +12,31 @@ const WEEKDAY_OPTIONS = [
   { value: 0, label: 'Chủ nhật' },
 ];
 
+function fold(value) {
+  return String(value || '')
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D')
+    .toLowerCase();
+}
+
+function normalizeTeacherNames(values = []) {
+  const normalized = [];
+  values.forEach((value) => {
+    const teacherName = String(value || '').trim().replace(/\s+/g, ' ');
+    if (teacherName && !normalized.some((current) => fold(current) === fold(teacherName))) normalized.push(teacherName);
+  });
+  return normalized;
+}
+
 function weekdayLabel(values = []) {
   const labels = WEEKDAY_OPTIONS.filter((item) => values.includes(item.value)).map((item) => item.label);
   return labels.length ? labels.join(', ') : 'Chưa ghi';
 }
 
-function initialClassForm(classRow) {
+function initialClassForm(classRow, teacherNames = []) {
   return {
     class_name: String(classRow?.class_name || ''),
     subject: String(classRow?.subject || ''),
@@ -25,6 +44,7 @@ function initialClassForm(classRow) {
     room: roomForExtraClass(classRow),
     time_range: String(classRow?.time_range || '').trim(),
     weekdays: weekdaysForExtraClass(classRow),
+    teacher_names: normalizeTeacherNames(teacherNames),
   };
 }
 
@@ -48,6 +68,7 @@ export default function AttendanceClassEditor({
   client,
   selectedClass,
   members = [],
+  teacherNames = [],
   canManageMembers = false,
   busy = false,
   onRemoveStudent,
@@ -61,8 +82,10 @@ export default function AttendanceClassEditor({
   memberTableVariant = 'default',
   memberIndexOffset = 0,
 }) {
+  const teacherNamesKey = normalizeTeacherNames(teacherNames).join('\u0001');
   const [internalEditingClass, setInternalEditingClass] = useState(false);
-  const [classForm, setClassForm] = useState(() => initialClassForm(selectedClass));
+  const [classForm, setClassForm] = useState(() => initialClassForm(selectedClass, teacherNames));
+  const [teacherInput, setTeacherInput] = useState('');
   const [editingMemberId, setEditingMemberId] = useState('');
   const [memberForm, setMemberForm] = useState(() => initialMemberForm(null));
   const [saving, setSaving] = useState('');
@@ -74,12 +97,13 @@ export default function AttendanceClassEditor({
   };
 
   useEffect(() => {
-    setClassForm(initialClassForm(selectedClass));
+    setClassForm(initialClassForm(selectedClass, teacherNames));
+    setTeacherInput('');
     setEditingClass(false);
     setEditingMemberId('');
     setMemberForm(initialMemberForm(null));
     setOpenMemberMenuId('');
-  }, [selectedClass?.id, selectedClass?.updated_at]);
+  }, [selectedClass?.id, selectedClass?.updated_at, teacherNamesKey]);
 
   const currentWeekdays = useMemo(() => weekdaysForExtraClass(selectedClass), [selectedClass]);
   const currentRoom = roomForExtraClass(selectedClass);
@@ -98,8 +122,30 @@ export default function AttendanceClassEditor({
     });
   }
 
+  function addClassTeacher() {
+    const teacherName = String(teacherInput || '').trim().replace(/\s+/g, ' ');
+    if (!teacherName) return;
+    if (classForm.teacher_names.some((current) => fold(current) === fold(teacherName))) {
+      onError?.(`${teacherName} đã có trong danh sách giáo viên của lớp.`);
+      return;
+    }
+    setClassForm((current) => ({ ...current, teacher_names: [...current.teacher_names, teacherName] }));
+    setTeacherInput('');
+    onError?.('');
+  }
+
+  function removeClassTeacher(teacherName) {
+    if (locked) return;
+    setClassForm((current) => ({
+      ...current,
+      teacher_names: current.teacher_names.filter((currentName) => fold(currentName) !== fold(teacherName)),
+    }));
+    onError?.('');
+  }
+
   function cancelClassEdit() {
-    setClassForm(initialClassForm(selectedClass));
+    setClassForm(initialClassForm(selectedClass, teacherNames));
+    setTeacherInput('');
     setEditingClass(false);
     onError?.('');
   }
@@ -110,6 +156,7 @@ export default function AttendanceClassEditor({
 
     const className = classForm.class_name.trim();
     const gradeLevel = Number(classForm.grade_level);
+    const teacherNames = normalizeTeacherNames(classForm.teacher_names);
     if (!className) {
       onError?.('Tên lớp không được để trống.');
       return;
@@ -122,12 +169,16 @@ export default function AttendanceClassEditor({
       onError?.('Vui lòng chọn ít nhất một ngày học trong tuần.');
       return;
     }
+    if (!teacherNames.length) {
+      onError?.('Lớp phải có ít nhất một giáo viên dạy lớp.');
+      return;
+    }
 
     setSaving('class');
     onError?.('');
     onNotice?.('');
     try {
-      const { error } = await client.rpc('bes_admin_update_extra_class', {
+      const { error } = await client.rpc('bes_update_extra_class_with_teachers', {
         p_class_id: selectedClass.id,
         p_class_name: className,
         p_subject: classForm.subject.trim(),
@@ -135,13 +186,15 @@ export default function AttendanceClassEditor({
         p_room: classForm.room.trim(),
         p_time_range: classForm.time_range.trim(),
         p_weekdays: classForm.weekdays,
+        p_teacher_names: teacherNames,
       });
       if (error) throw error;
       setEditingClass(false);
-      onNotice?.(`Đã cập nhật thông tin lớp ${className}. Các buổi đã chốt vẫn giữ nguyên dữ liệu lịch sử.`);
+      setTeacherInput('');
+      onNotice?.(`Đã cập nhật thông tin và ${teacherNames.length} giáo viên của lớp ${className}. Các buổi đã chốt vẫn giữ nguyên dữ liệu lịch sử.`);
       await onReload?.();
     } catch (saveError) {
-      onError?.(saveError?.message || 'Không thể cập nhật thông tin lớp.');
+      onError?.(saveError?.message || 'Không thể cập nhật thông tin lớp và giáo viên.');
     } finally {
       setSaving('');
     }
@@ -218,11 +271,39 @@ export default function AttendanceClassEditor({
             <label><span>Phòng học</span><input value={classForm.room} onChange={(event) => setClassForm((current) => ({ ...current, room: event.target.value }))} placeholder="Ví dụ A103" /></label>
             <label className="is-wide"><span>Thời gian học</span><input value={classForm.time_range} onChange={(event) => setClassForm((current) => ({ ...current, time_range: event.target.value }))} placeholder="Ví dụ 16h45 đến 18h15" /></label>
           </div>
+          <div className="attendance-class-teacher-editor">
+            <span>Giáo viên dạy lớp *</span>
+            <div className="attendance-class-teacher-chips" aria-label="Giáo viên hiện được phân công">
+              {classForm.teacher_names.map((teacherName) => (
+                <span key={teacherName} className="attendance-class-teacher-chip">
+                  <b>{teacherName}</b>
+                  <button type="button" disabled={locked} aria-label={`Xóa ${teacherName} khỏi lớp`} onClick={() => removeClassTeacher(teacherName)}>×</button>
+                </span>
+              ))}
+              {!classForm.teacher_names.length ? <em>Chưa có giáo viên. Hãy thêm ít nhất một giáo viên trước khi lưu.</em> : null}
+            </div>
+            <div className="attendance-class-teacher-add-row">
+              <input
+                value={teacherInput}
+                onChange={(event) => setTeacherInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    addClassTeacher();
+                  }
+                }}
+                placeholder="Nhập họ tên giáo viên"
+                aria-label="Họ tên giáo viên cần thêm"
+              />
+              <button type="button" disabled={locked || !teacherInput.trim()} onClick={addClassTeacher}>+ Thêm giáo viên</button>
+            </div>
+            <small>Có thể phân công nhiều giáo viên. Danh sách này sẽ áp dụng cho các buổi chưa chốt.</small>
+          </div>
           <div className="attendance-weekday-editor">
             <span>Ngày học trong tuần *</span>
             <div>{WEEKDAY_OPTIONS.map((item) => <button key={item.value} type="button" className={classForm.weekdays.includes(item.value) ? 'is-active' : ''} onClick={() => toggleWeekday(item.value)}>{item.label}</button>)}</div>
           </div>
-          <footer><button type="button" disabled={locked} onClick={cancelClassEdit}>Hủy</button><button className="is-primary" type="submit" disabled={locked || !classForm.class_name.trim() || !classForm.weekdays.length}>{saving === 'class' ? 'Đang lưu…' : 'Lưu thông tin lớp'}</button></footer>
+          <footer><button type="button" disabled={locked} onClick={cancelClassEdit}>Hủy</button><button className="is-primary" type="submit" disabled={locked || !classForm.class_name.trim() || !classForm.weekdays.length || !classForm.teacher_names.length}>{saving === 'class' ? 'Đang lưu…' : 'Lưu thông tin lớp'}</button></footer>
         </form>
       ) : (
         <div className="attendance-class-info-grid">
@@ -231,6 +312,7 @@ export default function AttendanceClassEditor({
           <article><span>Khối</span><b>{selectedClass.grade_level ? `Khối ${selectedClass.grade_level}` : 'Chưa ghi'}</b></article>
           <article><span>Phòng học</span><b>{currentRoom || 'Chưa ghi'}</b></article>
           <article><span>Thời gian học</span><b>{selectedClass.time_range || 'Chưa ghi'}</b></article>
+          <article className="is-wide"><span>Giáo viên dạy lớp</span><b>{normalizeTeacherNames(teacherNames).join(', ') || 'Chưa phân công GV'}</b></article>
           <article className="is-wide"><span>Ngày học</span><b>{weekdayLabel(currentWeekdays)}</b></article>
         </div>
       )}
