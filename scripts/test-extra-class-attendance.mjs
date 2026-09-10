@@ -107,8 +107,8 @@ const mod = await import('../src/utils/extraClassAttendance.js');
 assert.equal(mod.normalizeExtraClassType('Phụ đạo'), 'remedial');
 assert.equal(mod.normalizeExtraClassType('Bồi dưỡng HSG'), 'gifted');
 const draft = mod.buildAttendanceDraft([{ id: 'm1', member_key: 'a', full_name: 'A' }, { id: 'm2', member_key: 'b', full_name: 'B' }]);
-assert.deepEqual(mod.attendanceSummary(draft), { total: 2, present: 2, absent: 0 });
+assert.deepEqual(mod.attendanceSummary(draft), { total: 2, present: 2, late: 0, absent: 0 });
 const absentDraft = draft.map((item) => item.member_key === 'b' ? { ...item, present: false } : item);
-assert.deepEqual(mod.attendanceSummary(absentDraft), { total: 2, present: 1, absent: 1 });
+assert.deepEqual(mod.attendanceSummary(absentDraft), { total: 2, present: 1, late: 0, absent: 1 });
 
 console.log('Extra class attendance contract OK');

@@ -67,6 +67,13 @@ export function buildAttendanceReport({
   const completed = filteredSessions.filter((session) => session.session_status === 'completed');
   const cancelled = filteredSessions.filter((session) => session.session_status === 'cancelled');
   const completedIds = new Set(completed.map((session) => String(session.id)));
+  const lateCountBySession = new Map();
+  records.forEach((record) => {
+    const sessionId = String(record?.session_id || '');
+    if (record?.status !== 'late' || !completedIds.has(sessionId)) return;
+    lateCountBySession.set(sessionId, (lateCountBySession.get(sessionId) || 0) + 1);
+  });
+  const lateInstances = [...lateCountBySession.values()].reduce((sum, count) => sum + count, 0);
   const presentInstances = completed.reduce((sum, session) => sum + session.present_count, 0);
   const absentInstances = completed.reduce((sum, session) => sum + session.absent_count, 0);
   const attendanceDenominator = presentInstances + absentInstances;
@@ -81,12 +88,14 @@ export function buildAttendanceReport({
       total_periods: 0,
       class_ids: new Set(),
       present_instances: 0,
+      late_instances: 0,
       absent_instances: 0,
     };
     row.completed_sessions += 1;
     row.total_periods += session.lesson_periods;
     row.class_ids.add(String(session.class_id));
     row.present_instances += session.present_count;
+    row.late_instances += lateCountBySession.get(String(session.id)) || 0;
     row.absent_instances += session.absent_count;
     teacherMap.set(key, row);
   });
@@ -98,6 +107,7 @@ export function buildAttendanceReport({
       total_periods: roundHalf(row.total_periods),
       distinct_classes: row.class_ids.size,
       present_instances: row.present_instances,
+      late_instances: row.late_instances,
       absent_instances: row.absent_instances,
       attendance_rate: row.present_instances + row.absent_instances
         ? row.present_instances / (row.present_instances + row.absent_instances)
@@ -130,6 +140,7 @@ export function buildAttendanceReport({
       lesson_periods: session.lesson_periods,
       total_students: session.session_status === 'cancelled' ? null : session.total_students,
       present_count: session.session_status === 'cancelled' ? null : session.present_count,
+      late_count: session.session_status === 'cancelled' ? null : (lateCountBySession.get(String(session.id)) || 0),
       absent_count: session.session_status === 'cancelled' ? null : session.absent_count,
       attendance_rate: session.session_status === 'cancelled' || !denominator ? null : session.present_count / denominator,
       note: session.session_status === 'cancelled' ? session.cancellation_reason : String(session.note || ''),
@@ -179,6 +190,7 @@ export function buildAttendanceReport({
       cancelledSessions: cancelled.length,
       totalPeriods: roundHalf(completed.reduce((sum, session) => sum + session.lesson_periods, 0)),
       presentInstances,
+      lateInstances,
       absentInstances,
       attendanceRate: attendanceDenominator ? presentInstances / attendanceDenominator : 0,
     },

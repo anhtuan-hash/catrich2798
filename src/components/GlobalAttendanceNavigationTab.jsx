@@ -12,10 +12,13 @@ import {
 } from '../utils/permissions.js';
 import {
   ABSENCE_REASON_OPTIONS,
+  ATTENDANCE_STATUS,
   ATTENDANCE_SUBJECT_HUB,
+  attendanceStatusLabel,
   attendanceSubjectKey,
   attendanceSummary,
   buildAttendanceDraft,
+  normalizeAttendanceStatus,
   extraClassTypeLabel,
   memberKey,
   parseExtraClassRosterRows,
@@ -373,7 +376,8 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       next.forEach((row) => {
         const record = recordMap.get(row.member_key);
         if (!record) return;
-        row.present = record.status !== 'absent';
+        row.status = normalizeAttendanceStatus(record.status);
+        row.present = row.status !== ATTENDANCE_STATUS.ABSENT;
         row.absence_reason_code = record.absence_reason_code || '';
         row.absence_note = record.absence_note || '';
       });
@@ -408,7 +412,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const summary = useMemo(() => attendanceSummary(draft), [draft]);
   const isFutureDate = attendanceDate > today;
   const isDayLocked = Boolean(daySession);
-  const invalidAbsentRows = useMemo(() => draft.filter((row) => row.present === false && (
+  const invalidAbsentRows = useMemo(() => draft.filter((row) => row.status === ATTENDANCE_STATUS.ABSENT && (
     !row.absence_reason_code || (row.absence_reason_code === 'other' && !String(row.absence_note || '').trim())
   )), [draft]);
 
@@ -423,12 +427,19 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     if (proofPreviewUrl) URL.revokeObjectURL(proofPreviewUrl);
   }, [proofPreviewUrl]);
 
-  function toggleAbsent(memberKeyValue) {
+  function setAttendanceStatus(memberKeyValue, nextStatus) {
     if (isDayLocked) return;
     setDraft((current) => current.map((row) => {
       if (row.member_key !== memberKeyValue) return row;
-      if (row.present === false) return { ...row, present: true, absence_reason_code: '', absence_note: '' };
-      return { ...row, present: false, absence_reason_code: '', absence_note: '' };
+      const status = normalizeAttendanceStatus(nextStatus);
+      const absent = status === ATTENDANCE_STATUS.ABSENT;
+      return {
+        ...row,
+        status,
+        present: !absent,
+        absence_reason_code: absent ? row.absence_reason_code : '',
+        absence_note: absent ? row.absence_note : '',
+      };
     }));
   }
 
@@ -514,11 +525,14 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
         : `Vui lòng chọn lý do vắng cho ${first.student_full_name}.`);
       return;
     }
-    const absenceDetails = draft.filter((row) => row.present === false).map((row) => ({
+    const absenceDetails = draft.filter((row) => row.status === ATTENDANCE_STATUS.ABSENT).map((row) => ({
       member_key: row.member_key,
       reason_code: row.absence_reason_code,
       note: String(row.absence_note || '').trim(),
     }));
+    const lateMemberKeys = draft
+      .filter((row) => row.status === ATTENDANCE_STATUS.LATE)
+      .map((row) => row.member_key);
     setBusy(true);
     setError('');
     setNotice('');
@@ -532,6 +546,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
         p_note: note.trim(),
         p_teaching_room: teachingRoom.trim(),
         p_teaching_time_range: teachingTimeRange.trim(),
+        p_late_member_keys: lateMemberKeys,
       });
       if (confirmError) throw confirmError;
       const created = Array.isArray(data) ? data[0] : data;
@@ -551,7 +566,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       await loadDaySession();
       await loadTeacherDaySessions();
       await loadCalendarSessions(calendarDate);
-      setNotice(`Đã chốt điểm danh ${selectedClass.class_name} ngày ${formatDate(attendanceDate)} · GV ${sessionTeacher} · ${summary.present}/${summary.total} có mặt.${proofSaved ? ' · Đã lưu ảnh minh chứng.' : ''}`);
+      setNotice(`Đã chốt điểm danh ${selectedClass.class_name} ngày ${formatDate(attendanceDate)} · GV ${sessionTeacher} · ${summary.present}/${summary.total} có mặt · ${summary.late} đi trễ.${proofSaved ? ' · Đã lưu ảnh minh chứng.' : ''}`);
       if (proofUploadFailure) setError(`Điểm danh đã được chốt, nhưng ảnh minh chứng chưa được lưu: ${proofUploadFailure}`);
     } catch (confirmError) {
       setError(confirmError?.message || 'Không thể xác nhận điểm danh.');
@@ -964,7 +979,8 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     return () => { cancelled = true; };
   }, [view, selectedSession?.id, selectedSession?.proof_path, currentUser?.permissions, systemRole]);
 
-  const selectedAbsentRecords = records.filter((record) => record.status === 'absent');
+  const selectedAbsentRecords = records.filter((record) => record.status === ATTENDANCE_STATUS.ABSENT);
+  const selectedLateRecords = records.filter((record) => record.status === ATTENDANCE_STATUS.LATE);
   const selectedSessionAttendanceRate = selectedSession?.session_status === 'completed' && Number(selectedSession.total_students) > 0
     ? Math.round((Number(selectedSession.present_count || 0) / Number(selectedSession.total_students)) * 100)
     : 0;
@@ -1031,8 +1047,12 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                     {isDayLocked ? <div className={`attendance-day-lock ${daySession.session_status === 'cancelled' ? 'is-cancelled' : ''}`}><Icon name="check" size={18} /><div><b>{daySession.session_status === 'cancelled' ? `Đã hủy ${formatDate(daySession.attendance_date)}` : `Đã điểm danh ${formatDate(daySession.attendance_date)}`}</b><span>{daySession.session_status === 'cancelled' ? `${daySession.cancellation_reason} · 0 tiết` : `GV ${daySession.teacher_name} · ${String(daySession.lesson_periods || 1).replace('.', ',')} tiết · ${formatDateTime(daySession.checked_at)}`}</span></div></div> : <div className="attendance-day-open"><b>Chưa chốt ngày này</b><span>{isFutureDate ? 'Không thể chọn ngày tương lai.' : 'Có thể điểm danh hoặc hủy buổi học.'}</span></div>}
                   </div>
 
-                  <div className="attendance-roster-head"><span>Học sinh</span><span>Lớp chính khóa</span><span>Vắng</span></div>
-                  <div className="attendance-roster">{draft.map((member, index) => <div key={member.id || member.member_key} className={`att-m3-roster-entry ${member.present === false ? 'is-absent' : ''}`}><label><span className="attendance-index">{String(index + 1).padStart(2, '0')}</span><div><b>{member.student_full_name}</b><small>{member.student_code || 'Không có mã HS'}</small></div><span className="attendance-school-class">{member.school_class_name || '—'}</span><input type="checkbox" disabled={isDayLocked} checked={member.present === false} onChange={() => toggleAbsent(member.member_key)} aria-label={`Đánh dấu ${member.student_full_name} vắng`} /></label>{member.present === false ? <div className="att-m3-absence-detail"><span>Lý do vắng</span><div className="att-m3-reason-chips">{ABSENCE_REASON_OPTIONS.map((reason) => <button key={reason.value} type="button" disabled={isDayLocked} className={member.absence_reason_code === reason.value ? 'is-active' : ''} onClick={() => updateAbsenceField(member.member_key, { absence_reason_code: reason.value, absence_note: reason.value === 'other' ? member.absence_note : member.absence_note })}>{reason.label}</button>)}</div><input disabled={isDayLocked} value={member.absence_note || ''} onChange={(event) => updateAbsenceField(member.member_key, { absence_note: event.target.value })} placeholder={member.absence_reason_code === 'other' ? 'Ghi rõ lý do khác *' : 'Ghi chú thêm (không bắt buộc)'} /></div> : null}</div>)}{!draft.length ? <div className="attendance-empty">Lớp này chưa có học sinh đang hoạt động.</div> : null}</div>
+                  <div className="attendance-roster-head"><span>Học sinh</span><span>Lớp chính khóa</span><span>Trạng thái</span></div>
+                  <div className="attendance-roster">{draft.map((member, index) => <div key={member.id || member.member_key} className={`att-m3-roster-entry ${member.status === ATTENDANCE_STATUS.ABSENT ? 'is-absent' : member.status === ATTENDANCE_STATUS.LATE ? 'is-late' : 'is-present'}`}><label><span className="attendance-index">{String(index + 1).padStart(2, '0')}</span><div><b>{member.student_full_name}</b><small>{member.student_code || 'Không có mã HS'}</small></div><span className="attendance-school-class">{member.school_class_name || '—'}</span><div className="att-m3-attendance-status" role="group" aria-label={`Trạng thái ${member.student_full_name}`}>
+                          <button type="button" data-status="present" disabled={isDayLocked} className={member.status === ATTENDANCE_STATUS.PRESENT ? 'is-active is-present' : ''} onClick={() => setAttendanceStatus(member.member_key, ATTENDANCE_STATUS.PRESENT)}>Có mặt</button>
+                          <button type="button" data-status="late" disabled={isDayLocked} className={member.status === ATTENDANCE_STATUS.LATE ? 'is-active is-late' : ''} onClick={() => setAttendanceStatus(member.member_key, ATTENDANCE_STATUS.LATE)}>Đi trễ</button>
+                          <button type="button" data-status="absent" disabled={isDayLocked} className={member.status === ATTENDANCE_STATUS.ABSENT ? 'is-active is-absent' : ''} onClick={() => setAttendanceStatus(member.member_key, ATTENDANCE_STATUS.ABSENT)}>Vắng</button>
+                        </div></label>{member.status === ATTENDANCE_STATUS.ABSENT ? <div className="att-m3-absence-detail"><span>Lý do vắng</span><div className="att-m3-reason-chips">{ABSENCE_REASON_OPTIONS.map((reason) => <button key={reason.value} type="button" disabled={isDayLocked} className={member.absence_reason_code === reason.value ? 'is-active' : ''} onClick={() => updateAbsenceField(member.member_key, { absence_reason_code: reason.value, absence_note: reason.value === 'other' ? member.absence_note : member.absence_note })}>{reason.label}</button>)}</div><input disabled={isDayLocked} value={member.absence_note || ''} onChange={(event) => updateAbsenceField(member.member_key, { absence_note: event.target.value })} placeholder={member.absence_reason_code === 'other' ? 'Ghi rõ lý do khác *' : 'Ghi chú thêm (không bắt buộc)'} /></div> : null}</div>)}{!draft.length ? <div className="attendance-empty">Lớp này chưa có học sinh đang hoạt động.</div> : null}</div>
                   <section className={`att-m3-proof-card ${isDayLocked ? 'is-locked' : ''}`}>
                     <div className="att-m3-proof-card-head"><span aria-hidden="true">📷</span><div><strong>Minh chứng hình ảnh</strong><small>Không bắt buộc · 01 ảnh cho mỗi buổi điểm danh</small></div>{daySession?.proof_path ? <em>Đã lưu</em> : null}</div>
                     <input ref={proofInputRef} type="file" accept="image/*" capture="environment" hidden disabled={isDayLocked} onChange={(event) => chooseProofFile(event.target.files?.[0])} />
@@ -1144,7 +1164,9 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                   <div className="att-m3-cancel-reason"><b>Lý do hủy</b><p>{selectedSession.cancellation_reason || 'Chưa ghi lý do.'}</p></div>
                   <div className="attendance-history-footer-grid"><section className="attendance-history-note"><strong>Ghi chú buổi học</strong><p>{selectedSession.note || 'Buổi học đã hủy, không có ghi chú bổ sung.'}</p></section><section className="attendance-history-lock"><strong>Nhật ký chốt buổi</strong><div><span>Chốt lúc</span><b>{formatDateTime(selectedSession.checked_at)}</b></div><div><span>Trạng thái</span><b>Đã hủy</b></div></section></div>
                 </> : <>
-                  <div className="attendance-history-stat-grid"><article><b>{selectedSession.total_students}</b><span>Sĩ số</span></article><article className="is-present"><b>{selectedSession.present_count}</b><span>Có mặt</span></article><article className="is-absent"><b>{selectedSession.absent_count}</b><span>Vắng</span></article><article className="attendance-history-rate-card"><b>{selectedSessionAttendanceRate ?? 0}%</b><span>Tỷ lệ chuyên cần</span></article></div>
+                  <div className="attendance-history-stat-grid"><article><b>{selectedSession.total_students}</b><span>Sĩ số</span></article><article className="is-present"><b>{selectedSession.present_count}</b><span>Có mặt (gồm đi trễ)</span></article><article className="is-late"><b>{selectedLateRecords.length}</b><span>Đi trễ</span></article><article className="is-absent"><b>{selectedSession.absent_count}</b><span>Vắng</span></article><article className="attendance-history-rate-card"><b>{selectedSessionAttendanceRate ?? 0}%</b><span>Tỷ lệ chuyên cần</span></article></div>
+
+                  {selectedLateRecords.length ? <section className="attendance-history-late-section"><header><div><strong>Danh sách học sinh đi trễ</strong><span>{selectedLateRecords.length} học sinh</span></div></header><div className="attendance-late-list">{selectedLateRecords.map((record, index) => <div key={record.id}><span>{index + 1}</span><div><b>{record.student_full_name}</b><small>{record.student_code || 'Không có mã HS'} · {attendanceStatusLabel(record.status)} · vẫn tính có mặt</small></div><em>{record.school_class_name || '—'}</em></div>)}</div></section> : null}
 
                   <section className="attendance-history-absent-section"><header><div><strong>Danh sách học sinh vắng</strong><span>{selectedAbsentRecords.length} học sinh</span></div></header>{selectedAbsentRecords.length ? <div className="attendance-absent-list">{selectedAbsentRecords.map((record, index) => <div key={record.id}><span>{index + 1}</span><div><b>{record.student_full_name}</b><small>{record.student_code || 'Không có mã HS'} · {ABSENCE_REASON_OPTIONS.find((item) => item.value === record.absence_reason_code)?.label || 'Chưa ghi lý do'}{record.absence_note ? ` · ${record.absence_note}` : ''}</small></div><em>{record.school_class_name || '—'}</em></div>)}</div> : <div className="attendance-history-all-present"><Icon name="check" size={24} /><div><b>Tất cả học sinh đều có mặt.</b><span>Lớp duy trì sĩ số đầy đủ trong buổi học này.</span></div></div>}</section>
 

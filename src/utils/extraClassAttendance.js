@@ -30,6 +30,27 @@ export const ABSENCE_REASON_OPTIONS = [
   { value: 'other', label: 'Khác' },
 ];
 
+export const ATTENDANCE_STATUS = Object.freeze({
+  PRESENT: 'present',
+  LATE: 'late',
+  ABSENT: 'absent',
+});
+
+export function normalizeAttendanceStatus(value, fallbackPresent = true) {
+  const normalized = text(value).toLowerCase();
+  if (normalized === ATTENDANCE_STATUS.PRESENT || normalized === ATTENDANCE_STATUS.LATE || normalized === ATTENDANCE_STATUS.ABSENT) {
+    return normalized;
+  }
+  return fallbackPresent === false ? ATTENDANCE_STATUS.ABSENT : ATTENDANCE_STATUS.PRESENT;
+}
+
+export function attendanceStatusLabel(value) {
+  const status = normalizeAttendanceStatus(value);
+  if (status === ATTENDANCE_STATUS.LATE) return 'Đi trễ';
+  if (status === ATTENDANCE_STATUS.ABSENT) return 'Vắng';
+  return 'Có mặt';
+}
+
 export const ATTENDANCE_SUBJECT_HUB = [
   { key: 'all', label: 'Tất cả' },
   { key: 'math', label: 'Toán' },
@@ -217,14 +238,35 @@ export function parseExtraClassRosterRows(rows = []) {
 export function buildAttendanceDraft(members = []) {
   return (Array.isArray(members) ? members : [])
     .filter((member) => member?.active !== false)
-    .map((member) => ({ ...member, present: true, absence_reason_code: '', absence_note: '' }));
+    .map((member) => ({
+      ...member,
+      status: ATTENDANCE_STATUS.PRESENT,
+      present: true,
+      absence_reason_code: '',
+      absence_note: '',
+    }));
 }
 
 export function attendanceSummary(draft = []) {
   const items = Array.isArray(draft) ? draft : [];
-  const total = items.length;
-  const present = items.reduce((count, item) => count + (item?.present === false ? 0 : 1), 0);
-  return { total, present, absent: total - present };
+  let present = 0;
+  let late = 0;
+  let absent = 0;
+
+  items.forEach((item) => {
+    let status = normalizeAttendanceStatus(item?.status, item?.present !== false);
+    // Keep compatibility with older draft mutations that only flipped `present`.
+    // An explicit `late` remains authoritative because late is still present.
+    if (item?.present === false && status === ATTENDANCE_STATUS.PRESENT) status = ATTENDANCE_STATUS.ABSENT;
+    if (status === ATTENDANCE_STATUS.ABSENT) {
+      absent += 1;
+      return;
+    }
+    present += 1;
+    if (status === ATTENDANCE_STATUS.LATE) late += 1;
+  });
+
+  return { total: items.length, present, late, absent };
 }
 
 export function sortMembersByName(members = []) {
