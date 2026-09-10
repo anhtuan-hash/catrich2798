@@ -44,6 +44,14 @@ function countTeachers(label) {
   return value.split(',').map((item) => item.trim()).filter(Boolean).length;
 }
 
+function compactTeacherLabel(label) {
+  const value = String(label || '').trim();
+  if (!value || value === 'Chưa phân công GV') return 'Chưa phân công GV';
+  const names = value.split(',').map((item) => item.trim()).filter(Boolean);
+  if (names.length <= 1) return names[0] || 'Chưa phân công GV';
+  return `${names[0]} +${names.length - 1} GV`;
+}
+
 function WorkspaceIcon({ name, size = 18 }) {
   const common = {
     width: size,
@@ -282,11 +290,13 @@ export default function AttendanceClassManagementWorkspace({
   const room = roomForExtraClass(selectedClass) || 'Chưa ghi phòng';
   const weekday = weekdayLabel(selectedClass);
   const time = String(selectedClass.time_range || '').trim() || 'Chưa ghi giờ';
-  const studentCount = memberCounts?.get(String(selectedClass.id)) || 0;
   const teacher = teachersForClass?.(selectedClass) || 'Chưa phân công GV';
   const teacherCount = countTeachers(teacher);
+  const teacherSummary = compactTeacherLabel(teacher);
   const subjectKey = attendanceSubjectKey(selectedClass.subject);
   const isActive = selectedClass.active !== false;
+  const activeMemberCount = allSelectedMembers.filter((member) => member.active !== false).length;
+  const inactiveMemberCount = allSelectedMembers.length - activeMemberCount;
   const memberTotal = filteredManagementMembers.length;
   const pageCount = Math.max(1, Math.ceil(memberTotal / MEMBERS_PER_PAGE));
   const safeMemberPage = Math.min(memberPage, pageCount);
@@ -325,7 +335,7 @@ export default function AttendanceClassManagementWorkspace({
             <div className="attendance-manage-detail-quick-stats" aria-label="Tóm tắt lớp">
               <article className="attendance-manage-detail-quick-stat">
                 <span><WorkspaceIcon name="users" size={20} /></span>
-                <div><b>{studentCount}</b><small>học sinh</small></div>
+                <div><b>{activeMemberCount}</b><small>học sinh</small></div>
               </article>
               <article className="attendance-manage-detail-quick-stat">
                 <span><WorkspaceIcon name="teacher" size={20} /></span>
@@ -353,7 +363,7 @@ export default function AttendanceClassManagementWorkspace({
         <article className="attendance-manage-detail-info-item"><span><WorkspaceIcon name="room" size={20} /></span><div><small>Phòng học</small><b>{room}</b></div></article>
         <article className="attendance-manage-detail-info-item"><span><WorkspaceIcon name="calendar" size={20} /></span><div><small>Lịch học</small><b>{weekday}</b></div></article>
         <article className="attendance-manage-detail-info-item"><span><WorkspaceIcon name="clock" size={20} /></span><div><small>Thời gian</small><b>{time}</b></div></article>
-        <article className="attendance-manage-detail-info-item"><span><WorkspaceIcon name="teacher" size={20} /></span><div><small>Giáo viên phụ trách</small><b title={teacher}>{teacher}</b></div></article>
+        <article className="attendance-manage-detail-info-item"><span><WorkspaceIcon name="teacher" size={20} /></span><div><small>Giáo viên phụ trách</small><b className="attendance-manage-detail-teacher-summary" title={teacher}>{teacherSummary}</b></div></article>
       </section>
 
       {showAddTeacher ? (
@@ -378,7 +388,7 @@ export default function AttendanceClassManagementWorkspace({
         <header className="attendance-manage-detail-roster-toolbar">
           <div className="attendance-manage-detail-roster-title">
             <span><WorkspaceIcon name="users" size={21} /></span>
-            <div><strong>Danh sách học sinh</strong><small>{allSelectedMembers.length} học sinh đang theo học</small></div>
+            <div><strong>Danh sách học sinh</strong><small>{activeMemberCount} đang học · {inactiveMemberCount} đã nghỉ · {allSelectedMembers.length} hồ sơ</small></div>
           </div>
           <label data-bes-keep-search="true"><WorkspaceIcon name="search" size={16} /><input value={memberQuery || ''} onChange={(event) => setMemberQuery?.(event.target.value)} placeholder="Tìm kiếm học sinh..." aria-label="Tìm kiếm học sinh" /></label>
           <button type="button" onClick={() => downloadMemberCsv(selectedClass, allSelectedMembers)}><WorkspaceIcon name="download" size={16} />Xuất danh sách</button>
@@ -406,7 +416,7 @@ export default function AttendanceClassManagementWorkspace({
         </div>
 
         <footer className="attendance-manage-detail-roster-footer">
-          <span>Hiển thị {visibleManagementMembers.length}/{memberTotal} học sinh</span>
+          <span>Hiển thị {visibleManagementMembers.length}/{memberTotal} hồ sơ</span>
           {pageCount > 1 ? (
             <nav aria-label="Phân trang danh sách học sinh">
               <button type="button" aria-label="Trang trước" disabled={safeMemberPage === 1} onClick={() => setMemberPage((page) => Math.max(1, page - 1))}>‹</button>
