@@ -4,9 +4,15 @@ import assert from 'node:assert/strict';
 const bootstrapUrl = new URL('../src/attendanceCalendarDirectEntryBootstrap.js', import.meta.url);
 const cssUrl = new URL('../src/styles/AttendanceCalendarDirectEntry.css', import.meta.url);
 const startupUrl = new URL('../src/tabResumeStability.js', import.meta.url);
+const componentUrl = new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url);
 
 assert.ok(fs.existsSync(bootstrapUrl), 'Calendar direct-entry bootstrap must exist');
 assert.ok(fs.existsSync(cssUrl), 'Calendar direct-entry styles must exist');
+assert.ok(fs.existsSync(componentUrl), 'Attendance React component must exist');
+
+const componentSource = fs.readFileSync(componentUrl, 'utf8');
+assert.match(componentSource, /const\s*\[view,\s*setView\]\s*=\s*useState\(['"]calendar['"]\)/, 'Attendance must initialize on Lịch điểm danh instead of briefly rendering the hidden Quick view');
+assert.match(componentSource, /const\s+firstAllowedView\s*=\s*canAccessAttendanceView\(['"]calendar['"]\)\s*\?\s*['"]calendar['"]\s*:/, 'Calendar-capable users must fall back to Lịch điểm danh before Quick attendance');
 
 const bootstrapSource = fs.readFileSync(bootstrapUrl, 'utf8');
 for (const required of [
