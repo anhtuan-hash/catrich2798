@@ -1,0 +1,28 @@
+name: Attendance class teacher editing
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/components/GlobalAttendanceNavigationTab.jsx'
+      - 'src/components/attendance/AttendanceClassEditor.jsx'
+      - 'src/components/attendance/AttendanceClassManagementWorkspace.jsx'
+      - 'src/components/attendance/AttendanceClassEditor.css'
+      - 'supabase/migrations/20260910163500_attendance_edit_class_teachers.sql'
+      - 'scripts/test-attendance-edit-class-teachers.mjs'
+      - '.github/workflows/attendance-edit-class-teachers.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    name: Verify editable class teachers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Verify class teacher editing contract
+        run: node scripts/test-attendance-edit-class-teachers.mjs

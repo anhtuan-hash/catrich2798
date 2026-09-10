@@ -282,6 +282,9 @@ export default function AttendanceClassManagementWorkspace({
   const weekday = weekdayLabel(selectedClass);
   const time = String(selectedClass.time_range || '').trim() || 'Chưa ghi giờ';
   const teacher = teachersForClass?.(selectedClass) || 'Chưa phân công GV';
+  const selectedAssignedTeachers = teacher === 'Chưa phân công GV'
+    ? []
+    : teacher.split(',').map((name) => name.trim()).filter(Boolean);
   const teacherCount = countTeachers(teacher);
   const teacherSummary = compactTeacherLabel(teacher);
   const subjectKey = attendanceSubjectKey(selectedClass.subject);
@@ -383,6 +386,7 @@ export default function AttendanceClassManagementWorkspace({
             client={client}
             selectedClass={selectedClass}
             members={filteredManagementMembers}
+            teacherNames={selectedAssignedTeachers}
             isAdmin={isAdmin}
             canManageMembers={canManageMembers}
             busy={busy}
