@@ -6,10 +6,12 @@ const workspace = fs.readFileSync(new URL('../src/components/attendance/Attendan
 const workspaceCss = fs.readFileSync(new URL('../src/components/attendance/AttendanceClassManagementWorkspace.css', import.meta.url), 'utf8');
 const detailMockupCssPath = new URL('../src/components/attendance/AttendanceClassManagementDetailMockup.css', import.meta.url);
 const detailMockupCss = fs.existsSync(detailMockupCssPath) ? fs.readFileSync(detailMockupCssPath, 'utf8') : '';
+const rosterScrollCssPath = new URL('../src/components/attendance/AttendanceClassManagementRosterScroll.css', import.meta.url);
+const rosterScrollCss = fs.existsSync(rosterScrollCssPath) ? fs.readFileSync(rosterScrollCssPath, 'utf8') : '';
 const editor = fs.readFileSync(new URL('../src/components/attendance/AttendanceClassEditor.jsx', import.meta.url), 'utf8');
 const editorCss = fs.readFileSync(new URL('../src/components/attendance/AttendanceClassEditor.css', import.meta.url), 'utf8');
 const searchRemoval = fs.readFileSync(new URL('../public/bes-remove-visible-search-bars.js', import.meta.url), 'utf8');
-const detailCss = `${workspaceCss}\n${detailMockupCss}`;
+const detailCss = `${workspaceCss}\n${detailMockupCss}\n${rosterScrollCss}`;
 
 assert.match(navigation, /import AttendanceClassManagementWorkspace from ['"]\.\/attendance\/AttendanceClassManagementWorkspace\.jsx['"];/,
   'Global attendance source must import the direct React class-management workspace.');
