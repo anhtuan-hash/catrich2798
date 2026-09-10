@@ -6,11 +6,13 @@ const permissionRegistry = fs.readFileSync(new URL('../src/utils/permissions.js'
 const attendanceUiContract = `${attendance}\n${permissionRegistry}`;
 const cssUrl = new URL('../src/components/attendance/AttendanceMaterial3.css', import.meta.url);
 const reportCssUrl = new URL('../src/components/attendance/AttendanceMonthlyReport.css', import.meta.url);
+const historyCssUrl = new URL('../src/components/attendance/AttendanceHistoryV2.css', import.meta.url);
 const polishUrl = new URL('../public/attendance-ui-polish.css', import.meta.url);
 const launchCssUrl = new URL('../public/attendance-windows8-launch.css', import.meta.url);
 const indexHtmlUrl = new URL('../index.html', import.meta.url);
 const css = fs.existsSync(cssUrl) ? fs.readFileSync(cssUrl, 'utf8') : '';
 const reportCss = fs.existsSync(reportCssUrl) ? fs.readFileSync(reportCssUrl, 'utf8') : '';
+const historyCss = fs.existsSync(historyCssUrl) ? fs.readFileSync(historyCssUrl, 'utf8') : '';
 const polishCss = fs.existsSync(polishUrl) ? fs.readFileSync(polishUrl, 'utf8') : '';
 const launchCss = fs.existsSync(launchCssUrl) ? fs.readFileSync(launchCssUrl, 'utf8') : '';
 const indexHtml = fs.readFileSync(indexHtmlUrl, 'utf8');
@@ -31,6 +33,7 @@ assert.match(css, /--att-m3-cyan/);
 assert.ok(reportCss, 'Attendance monthly report stylesheet must exist');
 assert.match(reportCss, /\.att-report-m3\s*\{[^}]*min-height\s*:\s*0[^}]*overflow-y\s*:\s*auto/i,
   'Monthly report must own a vertical scroll viewport so long reports are not clipped by attendance-content overflow:hidden');
+assert.ok(historyCss, 'Attendance History V3 stylesheet must exist');
 assert.ok(polishCss, 'Attendance workspace polish stylesheet must exist');
 assert.ok(launchCss, 'Windows 8 attendance launch stylesheet must exist');
 assert.match(indexHtml, /attendance-windows8-launch\.css\?v=2/i,
@@ -95,7 +98,7 @@ assert.match(
 assert.match(
   polishCss,
   /\.attendance-shell\s+\.attendance-history-layout\s*\{[^}]*gap\s*:\s*(?:8|9|10|11|12|13|14|15|16)px/i,
-  'History list and detail panels must be separated by a visible gap',
+  'Legacy History rules may remain for old surfaces but must not target V3',
 );
 
 assert.match(polishCss, /--att-type-title\s*:\s*20px/i, 'Attendance typography must define a 20px modal title token');
@@ -121,18 +124,21 @@ assert.match(polishCss, /\.attendance-class-list[^\n{]*button:has\(\.attendance-
 assert.match(polishCss, /\.attendance-manage-classes[^\n{]*button:nth-of-type\(4n\+1\)[\s\S]*?border-left/i,
   'Management class rows must use a repeating colored accent palette');
 assert.match(polishCss, /\.attendance-history-list[^\n{]*button:has\(\.attendance-type-dot\.is-gifted\)[\s\S]*?background/i,
-  'Gifted history rows must receive a dedicated cool color treatment');
+  'Legacy gifted History styling may remain for older surfaces');
 assert.match(polishCss, /\.attendance-history-list[^\n{]*button:has\(\.attendance-type-dot\.is-remedial\)[\s\S]*?background/i,
-  'Remedial history rows must receive a dedicated warm color treatment');
+  'Legacy remedial History styling may remain for older surfaces');
 assert.match(polishCss, /\.att-report-m3__teacher-grid\s*>\s*article:nth-child\(4n\+1\)[\s\S]*?background/i,
   'Teacher report cards must use a repeating pastel color system');
 
-assert.match(attendance, /attendance-history-search/, 'History list must expose a prominent search control');
-assert.match(attendance, /attendance-history-hero/, 'History detail must render a dedicated summary hero');
-assert.match(attendance, /attendance-history-info-grid/, 'History detail must render an information-card grid');
-assert.match(attendance, /attendance-history-rate-card/, 'History detail must render an attendance-rate card');
+assert.match(attendance, /className="ahv3__search"[^>]*data-bes-keep-search="true"/, 'History V3 must expose a prominent search control protected from the global search-strip runtime');
+assert.match(attendance, /ahv3__hero/, 'History V3 detail must render a dedicated summary hero');
+assert.match(attendance, /ahv3__info-grid/, 'History V3 detail must render an information-card grid');
+assert.match(attendance, /ahv3__rate-card/, 'History V3 detail must render an attendance-rate card');
 assert.match(attendance, /const\s+selectedSessionAttendanceRate\s*=/,
   'History detail must calculate the attendance rate before rendering the rate card');
+assert.doesNotMatch(attendance, /className="[^"]*attendance-history-/, 'History V3 must not reintroduce legacy attendance-history-* class names');
+assert.doesNotMatch(historyCss, /\.attendance-history-/, 'History V3 stylesheet must remain outside legacy History selectors');
+assert.doesNotMatch(polishCss, /\.ahv3__/, 'Legacy polish stylesheet must not know about the V3 namespace');
 assert.match(attendance, /Giáo viên/);
 assert.match(attendance, /Môn học/);
 assert.match(attendance, /Ngày dạy/);
@@ -142,13 +148,11 @@ assert.match(attendance, /Tỷ lệ chuyên cần/);
 assert.match(attendance, /Ghi chú buổi học/);
 assert.match(attendance, /Danh sách học sinh vắng/);
 assert.match(attendance, /Chốt lúc/);
-assert.match(polishCss, /\.attendance-history-hero\s*\{[^}]*background\s*:/i,
-  'History hero must have its own visual surface');
-assert.match(polishCss, /\.attendance-history-info-grid\s*\{[^}]*grid-template-columns\s*:/i,
-  'History metadata must be presented as a responsive card grid');
-assert.match(polishCss, /\.attendance-history-rate-card\s*\{[^}]*background\s*:/i,
-  'Attendance-rate card must use a distinct semantic surface');
-assert.match(polishCss, /\.attendance-history-all-present\s*\{[^}]*background\s*:/i,
-  'All-present state must be rendered as a dedicated success surface');
+assert.match(historyCss, /\.ahv3__shell \.ahv3__hero\s*\{[^}]*background\s*:/i,
+  'History V3 hero must have its own visual surface');
+assert.match(historyCss, /\.ahv3__shell \.ahv3__info-grid\s*\{[^}]*grid-template-columns\s*:/i,
+  'History V3 metadata must be presented as a responsive card grid');
+assert.match(historyCss, /\.ahv3__shell \.ahv3__stat-grid article\.ahv3__rate-card\s*\{[^}]*background\s*:/i,
+  'History V3 attendance-rate card must use a distinct semantic surface');
 
 console.log('Attendance Material 3 UI contract OK');

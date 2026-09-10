@@ -36,6 +36,7 @@ import AttendanceMonthlyReport from './attendance/AttendanceMonthlyReport.jsx';
 import AttendanceClassManagementWorkspace from './attendance/AttendanceClassManagementWorkspace.jsx';
 import AttendanceDailySchedule from './attendance/AttendanceDailySchedule.jsx';
 import { ATTENDANCE_PROOF_BUCKET, buildAttendanceProofPath, prepareAttendanceProofImage } from '../utils/attendanceProofImage.js';
+import { filterAndSortAttendanceHistory } from '../utils/attendanceHistoryFilters.js';
 import './attendance/AttendanceMaterial3.css';
 import './attendance/AttendanceHistoryV2.css';
 
@@ -144,6 +145,9 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const [importReport, setImportReport] = useState(null);
   const [historyQuery, setHistoryQuery] = useState('');
   const [historyType, setHistoryType] = useState('all');
+  const [historySort, setHistorySort] = useState('desc');
+  const [historyDateFrom, setHistoryDateFrom] = useState('');
+  const [historyDateTo, setHistoryDateTo] = useState('');
   const [historySelectionMode, setHistorySelectionMode] = useState(false);
   const [selectedHistorySessionIds, setSelectedHistorySessionIds] = useState([]);
   const [memberQuery, setMemberQuery] = useState('');
@@ -951,14 +955,19 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     }
   }
 
-  const filteredHistory = useMemo(() => sessions.filter((session) => {
-    if (historyType !== 'all' && session.class_type !== historyType) return false;
-    const haystack = fold(`${session.class_name} ${teacherForSession(session)} ${session.subject} ${session.attendance_date}`);
-    return !historyQuery.trim() || haystack.includes(fold(historyQuery));
-  }), [sessions, historyQuery, historyType]);
+  const filteredHistory = useMemo(() => filterAndSortAttendanceHistory(sessions, {
+    query: historyQuery,
+    type: historyType,
+    dateFrom: historyDateFrom,
+    dateTo: historyDateTo,
+    sort: historySort,
+    getTeacher: teacherForSession,
+  }), [sessions, historyQuery, historyType, historyDateFrom, historyDateTo, historySort, classTeachers]);
 
   const selectedHistorySessionIdSet = useMemo(() => new Set(selectedHistorySessionIds.map((id) => String(id))), [selectedHistorySessionIds]);
   const allFilteredHistorySelected = filteredHistory.length > 0 && filteredHistory.every((session) => selectedHistorySessionIdSet.has(String(session.id)));
+  const historyDateRangeInvalid = Boolean(historyDateFrom && historyDateTo && historyDateFrom > historyDateTo);
+  const historyHasFilters = Boolean(historyQuery.trim() || historyType !== 'all' || historySort !== 'desc' || historyDateFrom || historyDateTo);
 
   const filteredManagementMembers = useMemo(() => allSelectedMembers.filter((member) => {
     if (!memberQuery.trim()) return true;
@@ -1146,64 +1155,84 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
           {!loading && canAccessAttendanceView('report') && view === 'report' ? <AttendanceMonthlyReport client={client} classes={classes} month={reportMonth} onMonthChange={setReportMonth} onError={setError} /> : null}
 
           {!loading && canAccessAttendanceView('history') && view === 'history' ? (
-            <div className="attendance-history-layout attendance-history-v2">
-              <section className="attendance-history-list">
-                <header className="attendance-history-list-head">
-                  <div className="attendance-history-list-title"><div><strong>Lịch sử điểm danh</strong><p>Tra cứu các buổi đã chốt và buổi đã hủy.</p></div><div className="attendance-history-list-actions"><span>{filteredHistory.length} buổi</span>{canAccessAttendanceView('quick') ? <button type="button" className={historySelectionMode ? 'is-active' : ''} disabled={busy} onClick={toggleHistorySelectionMode}>{historySelectionMode ? 'Thoát chọn' : 'Chọn nhiều'}</button> : null}</div></div>
-                  <label className="attendance-history-search"><Icon name="history" size={16} /><input value={historyQuery} onChange={(event) => setHistoryQuery(event.target.value)} placeholder="Tìm theo tên lớp, môn học, giáo viên hoặc ngày…" /></label>
-                  <div className="attendance-history-filters"><select value={historyType} onChange={(event) => setHistoryType(event.target.value)}><option value="all">Tất cả loại lớp</option><option value="remedial">Phụ đạo</option><option value="gifted">Bồi dưỡng HSG</option></select></div>
-                  {historySelectionMode ? <div className="attendance-history-bulk-toolbar"><button type="button" disabled={busy || !filteredHistory.length} onClick={toggleAllFilteredHistorySelection}>{allFilteredHistorySelected ? 'Bỏ chọn kết quả' : 'Chọn tất cả kết quả'}</button><span>Đã chọn <b>{selectedHistorySessionIds.length}</b> buổi</span><button type="button" className="is-danger" disabled={busy || !selectedHistorySessionIds.length} onClick={deleteSelectedHistorySessions}><Icon name="trash" size={16} />{busy ? 'Đang xóa…' : `Xóa ${selectedHistorySessionIds.length} buổi`}</button></div> : null}
+            <div className="ahv3__shell" data-attendance-history-v3="true">
+              <section className="ahv3__list">
+                <header className="ahv3__list-head">
+                  <div className="ahv3__list-title"><div><strong>Lịch sử điểm danh</strong><p>Tra cứu các buổi đã chốt và buổi đã hủy.</p></div><div className="ahv3__list-actions"><span>{filteredHistory.length} buổi</span>{canAccessAttendanceView('quick') ? <button type="button" className={historySelectionMode ? 'is-active' : ''} disabled={busy} onClick={toggleHistorySelectionMode}>{historySelectionMode ? 'Thoát chọn' : 'Chọn nhiều'}</button> : null}</div></div>
+                  <label className="ahv3__search" data-bes-keep-search="true"><Icon name="history" size={16} /><input value={historyQuery} onChange={(event) => setHistoryQuery(event.target.value)} placeholder="Tìm theo tên lớp, môn học, giáo viên hoặc ngày…" /></label>
+                  <div className="ahv3__filters">
+                    <label><span>Loại lớp</span><select value={historyType} onChange={(event) => setHistoryType(event.target.value)}><option value="all">Tất cả loại lớp</option><option value="remedial">Phụ đạo</option><option value="gifted">Bồi dưỡng HSG</option></select></label>
+                    <label><span>Sắp xếp theo ngày</span><select value={historySort} onChange={(event) => setHistorySort(event.target.value)}><option value="desc">Mới nhất → cũ nhất</option><option value="asc">Cũ nhất → mới nhất</option></select></label>
+                  </div>
+                  <div className="ahv3__date-filters" data-bes-keep-search="true">
+                    <label><span>Từ ngày</span><input type="date" value={historyDateFrom} max={historyDateTo || undefined} onChange={(event) => setHistoryDateFrom(event.target.value)} /></label>
+                    <label><span>Đến ngày</span><input type="date" value={historyDateTo} min={historyDateFrom || undefined} onChange={(event) => setHistoryDateTo(event.target.value)} /></label>
+                  </div>
+                  <div className={`ahv3__filter-meta ${historyDateRangeInvalid ? 'is-invalid' : ''}`}>
+                    <button type="button" disabled={!historyHasFilters} onClick={() => { setHistoryQuery(''); setHistoryType('all'); setHistorySort('desc'); setHistoryDateFrom(''); setHistoryDateTo(''); }}><Icon name="refresh" size={14} />Xóa bộ lọc</button>
+                    <span>{historyDateRangeInvalid ? 'Khoảng ngày không hợp lệ' : `Hiển thị ${filteredHistory.length} buổi`}</span>
+                  </div>
+                  {historySelectionMode ? <div className="ahv3__bulk-toolbar"><button type="button" disabled={busy || !filteredHistory.length} onClick={toggleAllFilteredHistorySelection}>{allFilteredHistorySelected ? 'Bỏ chọn kết quả' : 'Chọn tất cả kết quả'}</button><span>Đã chọn <b>{selectedHistorySessionIds.length}</b> buổi</span><button type="button" className="is-danger" disabled={busy || !selectedHistorySessionIds.length} onClick={deleteSelectedHistorySessions}><Icon name="trash" size={16} />{busy ? 'Đang xóa…' : `Xóa ${selectedHistorySessionIds.length} buổi`}</button></div> : null}
                 </header>
-                <div className="attendance-history-items">{filteredHistory.map((session, historyIndex) => {
+                <div className="ahv3__items">{filteredHistory.map((session, historyIndex) => {
                   const rate = session.session_status === 'cancelled' || !Number(session.total_students) ? null : Math.round((Number(session.present_count || 0) / Number(session.total_students)) * 100);
                   const isBulkSelected = selectedHistorySessionIdSet.has(String(session.id));
                   return <button key={session.id} type="button" className={`${String(selectedSessionId) === String(session.id) && !historySelectionMode ? 'is-selected' : ''}${historySelectionMode ? ' is-bulk-mode' : ''}${isBulkSelected ? ' is-bulk-selected' : ''}`.trim()} aria-pressed={historySelectionMode ? isBulkSelected : undefined} onClick={() => { if (historySelectionMode) toggleHistoryBulkSelection(session.id); else loadSessionRecords(session.id); }}>
-                    {historySelectionMode ? <span className={`attendance-history-select-box ${isBulkSelected ? 'is-checked' : ''}`} aria-hidden="true">{isBulkSelected ? <Icon name="check" size={14} /> : null}</span> : null}
-                    <span className="attendance-history-v2__number">{historyIndex + 1}</span>
+                    {historySelectionMode ? <span className={`ahv3__select-box ${isBulkSelected ? 'is-checked' : ''}`} aria-hidden="true">{isBulkSelected ? <Icon name="check" size={14} /> : null}</span> : null}
+                    <span className="ahv3__number">{historyIndex + 1}</span>
                     <span className={`attendance-type-dot is-${session.class_type}`} />
-                    <div className="attendance-history-card-copy"><div className="attendance-history-card-title"><b>{session.class_name}</b><span className={`attendance-history-type is-${session.class_type}`}>{extraClassTypeLabel(session.class_type)}</span></div><small>{session.subject || 'Chưa ghi môn'} · {teacherForSession(session)}</small><time>{formatDate(session.attendance_date)} · {session.teaching_time_range || 'Chưa ghi giờ'} · {session.teaching_room || 'Chưa ghi phòng'}</time></div>
-                    <span className="attendance-history-count"><b>{session.session_status === 'cancelled' ? 'Đã hủy' : `${session.present_count}/${session.total_students}`}</b><em>{session.session_status === 'cancelled' ? '0 tiết' : `${session.absent_count} vắng`}</em>{rate !== null ? <i>{rate}%</i> : null}</span>
+                    <div className="ahv3__card-copy"><div className="ahv3__card-title"><b>{session.class_name}</b><span className={`ahv3__type is-${session.class_type}`}>{extraClassTypeLabel(session.class_type)}</span></div><small>{session.subject || 'Chưa ghi môn'} · {teacherForSession(session)}</small><time>{formatDate(session.attendance_date)} · {session.teaching_time_range || 'Chưa ghi giờ'} · {session.teaching_room || 'Chưa ghi phòng'}</time></div>
+                    <span className="ahv3__count"><b>{session.session_status === 'cancelled' ? 'Đã hủy' : `${session.present_count}/${session.total_students}`}</b><em>{session.session_status === 'cancelled' ? '0 tiết' : `${session.absent_count} vắng`}</em>{rate !== null ? <i>{rate}%</i> : null}</span>
                   </button>;
                 })}{!filteredHistory.length ? <div className="attendance-empty">Chưa có buổi điểm danh phù hợp.</div> : null}</div>
               </section>
 
-              <section className="attendance-history-detail">{historySelectionMode ? <div className="attendance-history-bulk-detail"><span><Icon name="trash" size={28} /></span><h2>Chọn nhiều buổi điểm danh</h2><p>Chọn các buổi ở danh sách bên trái, sau đó dùng nút xóa để xử lý một lần.</p><b>{selectedHistorySessionIds.length} buổi đã chọn</b></div> : selectedSession ? <>
-                <div className="attendance-history-hero">
-                  <div className="attendance-history-hero-copy"><span className={`att-m3-status-chip is-${selectedSession.session_status === 'cancelled' ? 'cancelled' : 'completed'}`}>{selectedSession.session_status === 'cancelled' ? 'Đã hủy' : 'Đã điểm danh'}</span><h2>{selectedSession.class_name}</h2><div className="attendance-history-hero-chips"><span className={`attendance-history-type is-${selectedSession.class_type}`}>{extraClassTypeLabel(selectedSession.class_type)}</span><span className="att-m3-period-chip">{selectedSession.session_status === 'cancelled' ? '0 tiết' : `${String(selectedSession.lesson_periods || 1).replace('.', ',')} tiết`}</span><span>{formatDate(selectedSession.attendance_date)}</span><span>{selectedSession.teaching_room || 'Chưa ghi phòng'}</span></div></div>
-                  <div className="attendance-history-v2__hero-art" aria-hidden="true"><span className="is-leaf is-leaf-1" /><span className="is-leaf is-leaf-2" /><span className="is-book is-book-1" /><span className="is-book is-book-2" /><span className="is-book is-book-3" /></div>
-                  <div className="attendance-history-actions">{canAccessAttendanceView('report') ? <button type="button" className="attendance-history-report-button" onClick={() => { if (selectedSession.attendance_date) setReportMonth(selectedSession.attendance_date.slice(0, 7)); setView('report'); }}>Xem báo cáo tháng</button> : null}{canAccessAttendanceView('quick') ? <button type="button" className="attendance-history-delete-button" disabled={busy} onClick={() => deleteAttendanceSession(selectedSession)}><Icon name="trash" size={17} />Xóa buổi điểm danh</button> : null}</div>
+              <section className="ahv3__detail">{historySelectionMode ? <div className="ahv3__bulk-detail"><span><Icon name="trash" size={28} /></span><h2>Chọn nhiều buổi điểm danh</h2><p>Chọn các buổi ở danh sách bên trái, sau đó dùng nút xóa để xử lý một lần.</p><b>{selectedHistorySessionIds.length} buổi đã chọn</b></div> : selectedSession ? <>
+                <div className="ahv3__hero">
+                  <div className="ahv3__hero-copy"><span className={`att-m3-status-chip is-${selectedSession.session_status === 'cancelled' ? 'cancelled' : 'completed'}`}>{selectedSession.session_status === 'cancelled' ? 'Đã hủy' : 'Đã điểm danh'}</span><h2>{selectedSession.class_name}</h2><div className="ahv3__hero-chips"><span className={`ahv3__type is-${selectedSession.class_type}`}>{extraClassTypeLabel(selectedSession.class_type)}</span><span className="att-m3-period-chip">{selectedSession.session_status === 'cancelled' ? '0 tiết' : `${String(selectedSession.lesson_periods || 1).replace('.', ',')} tiết`}</span><span>{formatDate(selectedSession.attendance_date)}</span><span>{selectedSession.teaching_room || 'Chưa ghi phòng'}</span></div></div>
+                  <div className="ahv3__hero-art" aria-hidden="true"><span className="is-leaf is-leaf-1" /><span className="is-leaf is-leaf-2" /><span className="is-book is-book-1" /><span className="is-book is-book-2" /><span className="is-book is-book-3" /></div>
+                  <div className="ahv3__actions">{canAccessAttendanceView('report') ? <button type="button" className="ahv3__report-button" onClick={() => { if (selectedSession.attendance_date) setReportMonth(selectedSession.attendance_date.slice(0, 7)); setView('report'); }}>Xem báo cáo tháng</button> : null}{canAccessAttendanceView('quick') ? <button type="button" className="ahv3__delete-button" disabled={busy} onClick={() => deleteAttendanceSession(selectedSession)}><Icon name="trash" size={17} />Xóa buổi điểm danh</button> : null}</div>
                 </div>
 
-                <h3 className="attendance-history-v2__section-title is-info"><span aria-hidden="true"><Icon name="calendar" size={14} /></span>Thông tin buổi học</h3>
-                <div className="attendance-history-info-grid">
-                  <article><span className="attendance-history-v2__info-icon is-blue" aria-hidden="true"><Icon name="teacher" size={19} /></span><div><span>Giáo viên</span><b>{teacherForSession(selectedSession)}</b></div></article>
-                  <article><span className="attendance-history-v2__info-icon is-green" aria-hidden="true"><Icon name="book" size={19} /></span><div><span>Môn học</span><b>{selectedSession.subject || 'Chưa ghi môn'}</b></div></article>
-                  <article><span className="attendance-history-v2__info-icon is-purple" aria-hidden="true"><Icon name="calendar" size={19} /></span><div><span>Ngày dạy</span><b>{formatDate(selectedSession.attendance_date)}</b></div></article>
-                  <article><span className="attendance-history-v2__info-icon is-orange" aria-hidden="true"><Icon name="clock" size={19} /></span><div><span>Thời gian</span><b>{selectedSession.teaching_time_range || 'Chưa ghi'}</b></div></article>
-                  <article><span className="attendance-history-v2__info-icon is-blue" aria-hidden="true"><Icon name="room" size={19} /></span><div><span>Phòng học</span><b>{selectedSession.teaching_room || 'Chưa ghi'}</b></div></article>
-                  <article><span className="attendance-history-v2__info-icon is-purple" aria-hidden="true"><Icon name="periods" size={19} /></span><div><span>Số tiết</span><b>{selectedSession.session_status === 'cancelled' ? '0 tiết' : `${String(selectedSession.lesson_periods || 1).replace('.', ',')} tiết`}</b></div></article>
+                <h3 className="ahv3__section-title is-info"><span aria-hidden="true"><Icon name="calendar" size={14} /></span>Thông tin buổi học</h3>
+                <div className="ahv3__info-grid">
+                  <article><span className="ahv3__info-icon is-blue" aria-hidden="true"><Icon name="teacher" size={19} /></span><div><span>Giáo viên</span><b>{teacherForSession(selectedSession)}</b></div></article>
+                  <article><span className="ahv3__info-icon is-green" aria-hidden="true"><Icon name="book" size={19} /></span><div><span>Môn học</span><b>{selectedSession.subject || 'Chưa ghi môn'}</b></div></article>
+                  <article><span className="ahv3__info-icon is-purple" aria-hidden="true"><Icon name="calendar" size={19} /></span><div><span>Ngày dạy</span><b>{formatDate(selectedSession.attendance_date)}</b></div></article>
+                  <article><span className="ahv3__info-icon is-orange" aria-hidden="true"><Icon name="clock" size={19} /></span><div><span>Thời gian</span><b>{selectedSession.teaching_time_range || 'Chưa ghi'}</b></div></article>
+                  <article><span className="ahv3__info-icon is-blue" aria-hidden="true"><Icon name="room" size={19} /></span><div><span>Phòng học</span><b>{selectedSession.teaching_room || 'Chưa ghi'}</b></div></article>
+                  <article><span className="ahv3__info-icon is-purple" aria-hidden="true"><Icon name="periods" size={19} /></span><div><span>Số tiết</span><b>{selectedSession.session_status === 'cancelled' ? '0 tiết' : `${String(selectedSession.lesson_periods || 1).replace('.', ',')} tiết`}</b></div></article>
                 </div>
 
-                {selectedSession.proof_path ? <section className="attendance-history-proof"><header><div><span className="attendance-history-v2__proof-icon" aria-hidden="true"><Icon name="camera" size={18} /></span><div><strong>Minh chứng hình ảnh</strong><small>Ảnh được lưu riêng tư và chỉ mở bằng liên kết tạm thời.</small></div></div>{historyProofUrl ? <a href={historyProofUrl} target="_blank" rel="noreferrer">Mở ảnh lớn</a> : null}</header>{historyProofLoading ? <div className="attendance-history-proof-loading">Đang tải ảnh minh chứng…</div> : historyProofUrl ? <a className="attendance-history-proof-image" href={historyProofUrl} target="_blank" rel="noreferrer"><img src={historyProofUrl} alt={`Minh chứng điểm danh ${selectedSession.class_name} ngày ${formatDate(selectedSession.attendance_date)}`} /></a> : <div className="attendance-history-proof-loading">Không thể tải ảnh minh chứng lúc này.</div>}</section> : null}
+                {selectedSession.proof_path ? <section className="ahv3__proof"><header><div><span className="ahv3__proof-icon" aria-hidden="true"><Icon name="camera" size={18} /></span><div><strong>Minh chứng hình ảnh</strong><small>Ảnh được lưu riêng tư và chỉ mở bằng liên kết tạm thời.</small></div></div>{historyProofUrl ? <a href={historyProofUrl} target="_blank" rel="noreferrer">Mở ảnh lớn</a> : null}</header>{historyProofLoading ? <div className="ahv3__proof-loading">Đang tải ảnh minh chứng…</div> : historyProofUrl ? <a className="ahv3__proof-image" href={historyProofUrl} target="_blank" rel="noreferrer"><img src={historyProofUrl} alt={`Minh chứng điểm danh ${selectedSession.class_name} ngày ${formatDate(selectedSession.attendance_date)}`} /></a> : <div className="ahv3__proof-loading">Không thể tải ảnh minh chứng lúc này.</div>}</section> : null}
 
+                <section className="ahv3__audit-actor-panel" aria-label="Nhật ký người thao tác">
+                  <header className="ahv3__audit-actor-panel__head">
+                    <div><strong>Nhật ký người thao tác</strong><span>Dữ liệu chốt buổi</span></div>
+                  </header>
+                  <div className="ahv3__audit-actor-panel__grid">
+                    <div><span>Người thao tác</span><b>{selectedSession.checked_by || 'Không ghi nhận'}</b></div>
+                    <div><span>Chốt lúc</span><b>{formatDateTime(selectedSession.checked_at)}</b></div>
+                  </div>
+                </section>
                 {selectedSession.session_status === 'cancelled' ? <>
                   <div className="att-m3-cancel-reason"><b>Lý do hủy</b><p>{selectedSession.cancellation_reason || 'Chưa ghi lý do.'}</p></div>
-                  <div className="attendance-history-footer-grid"><section className="attendance-history-note"><strong>Ghi chú buổi học</strong><p>{selectedSession.note || 'Buổi học đã hủy, không có ghi chú bổ sung.'}</p></section><section className="attendance-history-lock"><strong>Nhật ký chốt buổi</strong><div><span>Chốt lúc</span><b>{formatDateTime(selectedSession.checked_at)}</b></div><div><span>Trạng thái</span><b>Đã hủy</b></div></section></div>
+                  <div className="ahv3__footer-grid"><section className="ahv3__note"><strong>Ghi chú buổi học</strong><p>{selectedSession.note || 'Buổi học đã hủy, không có ghi chú bổ sung.'}</p></section><section className="ahv3__lock"><strong>Nhật ký chốt buổi</strong><div><span>Chốt lúc</span><b>{formatDateTime(selectedSession.checked_at)}</b></div><div><span>Trạng thái</span><b>Đã hủy</b></div></section></div>
                 </> : <>
-                  <h3 className="attendance-history-v2__section-title attendance-history-v2__summary-title"><span aria-hidden="true"><Icon name="attendance" size={14} /></span>Tổng hợp điểm danh</h3>
-                  <div className="attendance-history-stat-grid">
-                    <article><span className="attendance-history-v2__summary-icon is-blue" aria-hidden="true"><Icon name="people" size={19} /></span><b>{selectedSession.total_students}</b><span>Sĩ số lớp</span></article>
-                    <article className="is-present"><span className="attendance-history-v2__summary-icon is-green" aria-hidden="true"><Icon name="check" size={19} /></span><b>{selectedSession.present_count}</b><span>Có mặt</span><small>Đã gồm học sinh đi trễ</small></article>
-                    <article className="is-late"><span className="attendance-history-v2__summary-icon is-orange" aria-hidden="true"><Icon name="late" size={19} /></span><b>{selectedLateRecords.length}</b><span>Đi trễ</span><small>Vẫn tính có mặt</small></article>
-                    <article className="is-absent"><span className="attendance-history-v2__summary-icon is-red" aria-hidden="true"><Icon name="absent" size={19} /></span><b>{selectedSession.absent_count}</b><span>Vắng</span></article>
-                    <article className="attendance-history-rate-card"><b>{selectedSessionAttendanceRate ?? 0}%</b><span>Tỷ lệ chuyên cần</span><span className="attendance-history-v2__rate-ring" style={{ '--attendance-rate': `${selectedSessionAttendanceRate ?? 0}%` }} aria-hidden="true" /></article>
+                  <h3 className="ahv3__section-title ahv3__summary-title"><span aria-hidden="true"><Icon name="attendance" size={14} /></span>Tổng hợp điểm danh</h3>
+                  <div className="ahv3__stat-grid">
+                    <article><span className="ahv3__summary-icon is-blue" aria-hidden="true"><Icon name="people" size={19} /></span><b>{selectedSession.total_students}</b><span>Sĩ số lớp</span></article>
+                    <article className="is-present"><span className="ahv3__summary-icon is-green" aria-hidden="true"><Icon name="check" size={19} /></span><b>{selectedSession.present_count}</b><span>Có mặt</span><small>Đã gồm học sinh đi trễ</small></article>
+                    <article className="is-late"><span className="ahv3__summary-icon is-orange" aria-hidden="true"><Icon name="late" size={19} /></span><b>{selectedLateRecords.length}</b><span>Đi trễ</span><small>Vẫn tính có mặt</small></article>
+                    <article className="is-absent"><span className="ahv3__summary-icon is-red" aria-hidden="true"><Icon name="absent" size={19} /></span><b>{selectedSession.absent_count}</b><span>Vắng</span></article>
+                    <article className="ahv3__rate-card"><b>{selectedSessionAttendanceRate ?? 0}%</b><span>Tỷ lệ chuyên cần</span><span className="ahv3__rate-ring" style={{ '--attendance-rate': `${selectedSessionAttendanceRate ?? 0}%` }} aria-hidden="true" /></article>
                   </div>
 
-                  {selectedLateRecords.length ? <section className="attendance-history-late-section"><header><div><strong>Danh sách học sinh đi trễ</strong><span>{selectedLateRecords.length} học sinh</span></div></header><div className="attendance-late-list">{selectedLateRecords.map((record, index) => <div key={record.id}><span>{index + 1}</span><div><b>{record.student_full_name}</b><small>{record.student_code || 'Không có mã HS'} · {attendanceStatusLabel(record.status)} · vẫn tính có mặt</small></div><em>{record.school_class_name || '—'}</em></div>)}</div></section> : null}
+                  {selectedLateRecords.length ? <section className="ahv3__late-section"><header><div><strong>Danh sách học sinh đi trễ</strong><span>{selectedLateRecords.length} học sinh</span></div></header><div className="attendance-late-list">{selectedLateRecords.map((record, index) => <div key={record.id}><span>{index + 1}</span><div><b>{record.student_full_name}</b><small>{record.student_code || 'Không có mã HS'} · {attendanceStatusLabel(record.status)} · vẫn tính có mặt</small></div><em>{record.school_class_name || '—'}</em></div>)}</div></section> : null}
 
-                  <section className="attendance-history-absent-section"><header><div><strong>Danh sách học sinh vắng</strong><span>{selectedAbsentRecords.length} học sinh</span></div></header>{selectedAbsentRecords.length ? <div className="attendance-absent-list">{selectedAbsentRecords.map((record, index) => <div key={record.id}><span>{index + 1}</span><div><b>{record.student_full_name}</b><small>{record.student_code || 'Không có mã HS'} · {ABSENCE_REASON_OPTIONS.find((item) => item.value === record.absence_reason_code)?.label || 'Chưa ghi lý do'}{record.absence_note ? ` · ${record.absence_note}` : ''}</small></div><em>{record.school_class_name || '—'}</em></div>)}</div> : <div className="attendance-history-all-present"><Icon name="check" size={24} /><div><b>Tất cả học sinh đều có mặt.</b><span>Lớp duy trì sĩ số đầy đủ trong buổi học này.</span></div></div>}</section>
+                  <section className="ahv3__absent-section"><header><div><strong>Danh sách học sinh vắng</strong><span>{selectedAbsentRecords.length} học sinh</span></div></header>{selectedAbsentRecords.length ? <div className="attendance-absent-list">{selectedAbsentRecords.map((record, index) => <div key={record.id}><span>{index + 1}</span><div><b>{record.student_full_name}</b><small>{record.student_code || 'Không có mã HS'} · {ABSENCE_REASON_OPTIONS.find((item) => item.value === record.absence_reason_code)?.label || 'Chưa ghi lý do'}{record.absence_note ? ` · ${record.absence_note}` : ''}</small></div><em>{record.school_class_name || '—'}</em></div>)}</div> : <div className="ahv3__all-present"><Icon name="check" size={24} /><div><b>Tất cả học sinh đều có mặt.</b><span>Lớp duy trì sĩ số đầy đủ trong buổi học này.</span></div></div>}</section>
 
-                  <div className="attendance-history-footer-grid"><section className="attendance-history-note"><strong>Ghi chú buổi học</strong><p>{selectedSession.note || 'Chưa có ghi chú cho buổi học này.'}</p></section><section className="attendance-history-lock"><strong>Nhật ký chốt buổi</strong><div><span>Chốt lúc</span><b>{formatDateTime(selectedSession.checked_at)}</b></div><div><span>Trạng thái</span><b>Đã chốt</b></div></section></div>
+                  <div className="ahv3__footer-grid"><section className="ahv3__note"><strong>Ghi chú buổi học</strong><p>{selectedSession.note || 'Chưa có ghi chú cho buổi học này.'}</p></section><section className="ahv3__lock"><strong>Nhật ký chốt buổi</strong><div><span>Chốt lúc</span><b>{formatDateTime(selectedSession.checked_at)}</b></div><div><span>Trạng thái</span><b>Đã chốt</b></div></section></div>
                 </>}
               </> : <div className="attendance-empty is-large">Chọn một buổi để xem chi tiết.</div>}</section>
             </div>

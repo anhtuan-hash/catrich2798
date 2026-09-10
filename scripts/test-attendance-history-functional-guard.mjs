@@ -16,10 +16,13 @@ for (const behavior of [
   'selectedAbsentRecords',
 ]) assert.ok(source.includes(behavior), `History redesign must preserve ${behavior}`);
 
-assert.match(source, /attendance-history-report-button/, 'Monthly report action must remain');
-assert.match(source, /attendance-history-delete-button/, 'Single-session delete action must remain');
-assert.match(source, /attendance-history-late-section/, 'Tardy student details must remain');
-assert.match(source, /attendance-history-absent-section/, 'Absent student details must remain');
+assert.match(source, /ahv3__report-button/, 'Monthly report action must remain');
+assert.match(source, /ahv3__delete-button/, 'Single-session delete action must remain');
+assert.match(source, /ahv3__late-section/, 'Tardy student details must remain');
+assert.match(source, /ahv3__absent-section/, 'Absent student details must remain');
+assert.match(source, /className="ahv3__audit-actor-panel"/, 'Operator audit panel must remain React-owned');
+assert.match(source, /data-bes-keep-search="true"/, 'History search exemption must remain');
+assert.doesNotMatch(source, /className="[^"]*attendance-history-/, 'History must remain isolated from legacy attendance-history-* class selectors');
 assert.match(
   source,
   /<article className="is-present">[\s\S]*?selectedSession\.present_count[\s\S]*?<span>Có mặt<\/span>[\s\S]*?Đã gồm học sinh đi trễ[\s\S]*?<\/article>/,
