@@ -11,6 +11,9 @@ assert.match(compactSource, /setAttribute\('role', 'tab'\)/, 'configuration cont
 assert.match(compactSource, /setAttribute\('aria-controls', CONFIG_PANEL_ID\)/, 'configuration tab should point to its panel');
 assert.match(compactSource, /setAttribute\('role', 'tabpanel'\)/, 'configuration view should expose tabpanel semantics');
 assert.match(compactSource, /aria-selected/, 'configuration control should expose selected state');
+assert.match(compactSource, /trigger\.tabIndex = 0;/, 'configuration tab should remain keyboard reachable when inactive');
+assert.doesNotMatch(compactSource, /trigger\.tabIndex = configOpen \? 0 : -1/, 'inactive configuration tab must not be removed from keyboard tab order');
+assert.match(compactSource, /const shouldHidePanel = !configOpen;\s*if \(panel\.hidden !== shouldHidePanel\) panel\.hidden = shouldHidePanel;/, 'panel hidden state should only be written when it changes to avoid observer render loops');
 assert.doesNotMatch(compactSource, /classList\.remove\('is-active'\)/, 'configuration tab must not mutate React-owned active tab classes');
 assert.match(compactSource, /tabs\.classList\.toggle\('is-time-config-open'/, 'tab bar should expose configuration-open state');
 assert.match(compactCss, /\.attendance-tabs\.is-time-config-open[^\{]*button:not\(\.bes-attendance-time-trigger\)\.is-active::after/, 'native active underline should be visually suppressed while configuration is open');
