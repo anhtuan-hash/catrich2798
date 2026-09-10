@@ -104,7 +104,6 @@ assert.match(workspaceCss, /\.attendance-manage-tile__type\.is-remedial\s*\{[^}]
 assert.match(workspaceCss, /\.attendance-manage-tile__type\.is-gifted\s*\{[^}]*border:\s*1px solid #93c5fd/s,
   'Gifted badge must have a clearly defined blue border.');
 
-// Approved detail mockup: hero identity + compact stats/actions + one-line information strip.
 for (const token of [
   'attendance-manage-detail-hero__meta',
   'attendance-manage-detail-quick-stats',
@@ -133,6 +132,8 @@ assert.match(workspace, /memberTableVariant="mockup"/,
   'Workspace must request the approved mockup member table variant.');
 assert.match(workspace, /data-bes-keep-search="true"[\s\S]{0,300}Tìm kiếm học sinh/,
   'Detail student search must opt out of the global search-removal runtime.');
+assert.match(workspace, /memberIndexOffset=\{\(safeMemberPage - 1\) \* MEMBERS_PER_PAGE\}/,
+  'Roster pagination must pass the page offset so STT numbering continues across pages.');
 
 for (const token of [
   '.attendance-manage-detail-quick-stats',
@@ -151,11 +152,14 @@ assert.match(detailCss, /\.attendance-manage-detail-body\s*\{[^}]*grid-template-
 assert.match(detailCss, /\.attendance-manage-detail-hero\s*\{[^}]*background:[^;}]*linear-gradient/s,
   'Approved hero must use the soft blue mockup treatment instead of a flat white panel.');
 
-// Approved student table: STT, avatar/name, class, student code, status pill, compact actions/menu.
 assert.match(editor, /showClassInfo\s*=\s*true/,
   'AttendanceClassEditor must allow the workspace to hide the duplicate normal class-info card.');
 assert.match(editor, /memberTableVariant\s*=\s*['"]default['"]/,
   'AttendanceClassEditor must expose a member-table variant without changing standalone defaults.');
+assert.match(editor, /memberIndexOffset\s*=\s*0/,
+  'AttendanceClassEditor must support a zero-based member index offset without changing standalone defaults.');
+assert.match(editor, /memberIndexOffset \+ index \+ 1/,
+  'Mockup STT must use the page offset instead of restarting from one on every page.');
 for (const token of [
   'attendance-member-table__index',
   'attendance-member-avatar',
