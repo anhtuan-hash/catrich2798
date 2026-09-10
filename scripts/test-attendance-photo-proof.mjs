@@ -2,12 +2,14 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
 const attendanceUrl = new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url);
+const workspaceUrl = new URL('../src/components/attendance/AttendanceClassManagementWorkspace.jsx', import.meta.url);
 const cssUrl = new URL('../src/components/attendance/AttendanceMaterial3.css', import.meta.url);
 const proofUtilityUrl = new URL('../src/utils/attendanceProofImage.js', import.meta.url);
 const proofMigrationUrl = new URL('../supabase/migrations/20260908_attendance_photo_proof.sql', import.meta.url);
 const proofAclMigrationUrl = new URL('../supabase/migrations/20260908_attendance_photo_proof_acl_hardening.sql', import.meta.url);
 
 const attendance = fs.readFileSync(attendanceUrl, 'utf8');
+const workspace = fs.readFileSync(workspaceUrl, 'utf8');
 const css = fs.readFileSync(cssUrl, 'utf8');
 
 assert.ok(fs.existsSync(proofUtilityUrl), 'Attendance proof image utility must exist');
@@ -28,7 +30,8 @@ assert.match(attendance, /ATTENDANCE_PROOF_BUCKET/, 'Attendance UI must use the 
 assert.match(attendance, /bes_set_extra_attendance_proof/, 'Attendance UI must attach uploaded proof to its session through the secure RPC');
 assert.match(attendance, /createSignedUrl/, 'History must use a short-lived signed URL for private proof images');
 assert.match(attendance, /\.remove\(/, 'Delete flows must remove stored proof objects');
-assert.match(attendance, /AttendanceClassEditor/, 'Latest class editor integration from main must be preserved');
+assert.match(attendance, /AttendanceClassManagementWorkspace/, 'Attendance must preserve the current two-step class-management integration');
+assert.match(workspace, /AttendanceClassEditor/, 'The two-step class-management workspace must preserve the dedicated class editor integration');
 
 assert.match(proofUtility, /ATTENDANCE_PROOF_BUCKET\s*=\s*['"]attendance-session-proofs['"]/, 'Proof utility must name the private bucket');
 assert.match(proofUtility, /ATTENDANCE_PROOF_MAX_EDGE\s*=\s*1600/, 'Proof utility must cap image dimensions at 1600px');
