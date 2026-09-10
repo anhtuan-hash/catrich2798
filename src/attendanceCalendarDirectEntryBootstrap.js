@@ -196,6 +196,16 @@ async function openClassFromCalendar(row) {
   shell.querySelector('.attendance-rollcall')?.scrollTo?.({ top: 0, behavior: 'instant' });
 }
 
+function primeReactCalendarDetail(row) {
+  const shell = row?.closest?.('.attendance-shell');
+  if (!shell || !row.closest('.attendance-calendar-layout') || !row.classList.contains('is-missing')) return false;
+
+  shell.setAttribute(DETAIL_ATTRIBUTE, 'true');
+  const { calendarTab } = markAttendanceTabs(shell);
+  calendarTab?.classList.add('bes-calendar-detail-active');
+  return true;
+}
+
 function clearDetailForVisibleTab(tab) {
   if (!tab || tab.hasAttribute(HIDDEN_QUICK_ATTRIBUTE)) return;
   const shell = tab.closest('.attendance-shell');
@@ -212,6 +222,10 @@ function onCapturedClick(event) {
     event.preventDefault();
     event.stopImmediatePropagation();
     void openClassFromCalendar(row);
+    return;
+  }
+
+  if (row && primeReactCalendarDetail(row)) {
     return;
   }
 

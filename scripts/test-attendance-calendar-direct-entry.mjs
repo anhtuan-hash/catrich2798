@@ -4,9 +4,14 @@ import assert from 'node:assert/strict';
 const bootstrapUrl = new URL('../src/attendanceCalendarDirectEntryBootstrap.js', import.meta.url);
 const cssUrl = new URL('../src/styles/AttendanceCalendarDirectEntry.css', import.meta.url);
 const startupUrl = new URL('../src/tabResumeStability.js', import.meta.url);
+const scheduleUrl = new URL('../src/components/attendance/AttendanceDailySchedule.jsx', import.meta.url);
 
 assert.ok(fs.existsSync(bootstrapUrl), 'Calendar direct-entry bootstrap must exist');
 assert.ok(fs.existsSync(cssUrl), 'Calendar direct-entry styles must exist');
+assert.ok(fs.existsSync(scheduleUrl), 'Daily attendance schedule component must exist');
+
+const scheduleSource = fs.readFileSync(scheduleUrl, 'utf8');
+assert.doesNotMatch(scheduleSource, /data-attendance-daily-status-root/, 'Direct React daily schedule must not be converted back into the deleted DOM-runtime contract');
 
 const bootstrapSource = fs.readFileSync(bootstrapUrl, 'utf8');
 for (const required of [
@@ -27,6 +32,12 @@ assert.match(bootstrapSource, /quickTab\.click\(\)/, 'A selected calendar class 
 assert.match(bootstrapSource, /setControlledValue\([\s\S]*attendance-session-controls[\s\S]*input\[type=["']date["']\]/, 'The rollcall must receive the date selected in the calendar');
 assert.match(bootstrapSource, /calendarTab\??\.click\(\)/, 'Opening the attendance module must redirect the hidden Quick default to the calendar');
 assert.match(bootstrapSource, /session_status|is-completed|is-cancelled|attendance-daily-class-row/, 'Completed and pending calendar rows must share the direct-entry bridge');
+
+// Production regression: the new React schedule does not use the deleted data-attendance-daily-status-root runtime marker.
+// A pending React row must therefore prime focused-detail state during capture, but then allow React's own onClick to run.
+assert.match(bootstrapSource, /function\s+primeReactCalendarDetail\s*\(/, 'Calendar bridge must explicitly support the direct React daily schedule');
+assert.match(bootstrapSource, /primeReactCalendarDetail[\s\S]{0,1200}attendance-calendar-layout[\s\S]{0,1200}is-missing[\s\S]{0,1200}setAttribute\(DETAIL_ATTRIBUTE,\s*['"]true['"]\)/, 'Pending React schedule rows must mark focused detail before React switches to hidden Quick');
+assert.match(bootstrapSource, /if\s*\(row\s*&&\s*primeReactCalendarDetail\(row\)\)\s*\{\s*return;\s*\}/, 'Direct React row capture must return without cancelling the native React handler');
 
 // Regression from production: the hidden Quick view can become active after the first DOM scan.
 // The calendar-first redirect must therefore remain live until Quick is no longer the active view,
