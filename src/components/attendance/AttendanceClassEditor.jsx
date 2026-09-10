@@ -37,6 +37,13 @@ function initialMemberForm(member) {
   };
 }
 
+function studentInitials(value) {
+  const words = String(value || '').trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return 'HS';
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return `${words[0][0] || ''}${words[words.length - 1][0] || ''}`.toUpperCase();
+}
+
 export default function AttendanceClassEditor({
   client,
   selectedClass,
@@ -50,12 +57,15 @@ export default function AttendanceClassEditor({
   editingClass: controlledEditingClass,
   onEditingClassChange,
   showEditButton = true,
+  showClassInfo = true,
+  memberTableVariant = 'default',
 }) {
   const [internalEditingClass, setInternalEditingClass] = useState(false);
   const [classForm, setClassForm] = useState(() => initialClassForm(selectedClass));
   const [editingMemberId, setEditingMemberId] = useState('');
   const [memberForm, setMemberForm] = useState(() => initialMemberForm(null));
   const [saving, setSaving] = useState('');
+  const [openMemberMenuId, setOpenMemberMenuId] = useState('');
   const editingClass = typeof controlledEditingClass === 'boolean' ? controlledEditingClass : internalEditingClass;
   const setEditingClass = (value) => {
     if (onEditingClassChange) onEditingClassChange(Boolean(value));
@@ -67,11 +77,13 @@ export default function AttendanceClassEditor({
     setEditingClass(false);
     setEditingMemberId('');
     setMemberForm(initialMemberForm(null));
+    setOpenMemberMenuId('');
   }, [selectedClass?.id, selectedClass?.updated_at]);
 
   const currentWeekdays = useMemo(() => weekdaysForExtraClass(selectedClass), [selectedClass]);
   const currentRoom = roomForExtraClass(selectedClass);
   const locked = busy || Boolean(saving);
+  const isMockupTable = memberTableVariant === 'mockup';
 
   function toggleWeekday(value) {
     setClassForm((current) => {
@@ -138,6 +150,7 @@ export default function AttendanceClassEditor({
     if (!canManageMembers || !member || locked) return;
     setEditingMemberId(String(member.id));
     setMemberForm(initialMemberForm(member));
+    setOpenMemberMenuId('');
     onError?.('');
   }
 
@@ -182,47 +195,106 @@ export default function AttendanceClassEditor({
 
   if (!selectedClass) return null;
 
+  const classInfoSection = showClassInfo ? (
+    <section className="attendance-class-info-card">
+      <header className="attendance-class-info-head">
+        <div>
+          <span>THÔNG TIN LỚP HỌC</span>
+          <strong>Dữ liệu hiện tại dùng cho các buổi chưa chốt</strong>
+          <p>Các thay đổi bên dưới không sửa lại lịch sử điểm danh đã xác nhận.</p>
+        </div>
+        {showEditButton && canManageMembers && !editingClass ? (
+          <button type="button" disabled={locked} onClick={() => setEditingClass(true)}>Sửa thông tin lớp</button>
+        ) : null}
+      </header>
+
+      {editingClass && canManageMembers ? (
+        <form className="attendance-class-edit-form" onSubmit={saveClassInfo}>
+          <div className="attendance-class-edit-grid">
+            <label><span>Tên lớp *</span><input value={classForm.class_name} onChange={(event) => setClassForm((current) => ({ ...current, class_name: event.target.value }))} /></label>
+            <label><span>Môn học</span><input value={classForm.subject} onChange={(event) => setClassForm((current) => ({ ...current, subject: event.target.value }))} /></label>
+            <label><span>Khối *</span><select value={classForm.grade_level} onChange={(event) => setClassForm((current) => ({ ...current, grade_level: event.target.value }))}><option value="">Chọn khối</option><option value="10">Khối 10</option><option value="11">Khối 11</option><option value="12">Khối 12</option></select></label>
+            <label><span>Phòng học</span><input value={classForm.room} onChange={(event) => setClassForm((current) => ({ ...current, room: event.target.value }))} placeholder="Ví dụ A103" /></label>
+            <label className="is-wide"><span>Thời gian học</span><input value={classForm.time_range} onChange={(event) => setClassForm((current) => ({ ...current, time_range: event.target.value }))} placeholder="Ví dụ 16h45 đến 18h15" /></label>
+          </div>
+          <div className="attendance-weekday-editor">
+            <span>Ngày học trong tuần *</span>
+            <div>{WEEKDAY_OPTIONS.map((item) => <button key={item.value} type="button" className={classForm.weekdays.includes(item.value) ? 'is-active' : ''} onClick={() => toggleWeekday(item.value)}>{item.label}</button>)}</div>
+          </div>
+          <footer><button type="button" disabled={locked} onClick={cancelClassEdit}>Hủy</button><button className="is-primary" type="submit" disabled={locked || !classForm.class_name.trim() || !classForm.weekdays.length}>{saving === 'class' ? 'Đang lưu…' : 'Lưu thông tin lớp'}</button></footer>
+        </form>
+      ) : (
+        <div className="attendance-class-info-grid">
+          <article><span>Tên lớp</span><b>{selectedClass.class_name}</b></article>
+          <article><span>Môn học</span><b>{selectedClass.subject || 'Chưa ghi'}</b></article>
+          <article><span>Khối</span><b>{selectedClass.grade_level ? `Khối ${selectedClass.grade_level}` : 'Chưa ghi'}</b></article>
+          <article><span>Phòng học</span><b>{currentRoom || 'Chưa ghi'}</b></article>
+          <article><span>Thời gian học</span><b>{selectedClass.time_range || 'Chưa ghi'}</b></article>
+          <article className="is-wide"><span>Ngày học</span><b>{weekdayLabel(currentWeekdays)}</b></article>
+        </div>
+      )}
+    </section>
+  ) : null;
+
+  if (isMockupTable) {
+    return (
+      <>
+        {classInfoSection}
+        <div className="attendance-member-table is-mockup">
+          <div className="attendance-member-table-head"><span>STT</span><span>Học sinh</span><span>Lớp chính khóa</span><span>Mã HS</span><span>Trạng thái</span><span>Hành động</span></div>
+          {members.map((member, index) => {
+            const isEditing = String(editingMemberId) === String(member.id) && canManageMembers;
+            if (isEditing) {
+              return (
+                <div key={member.id} className="attendance-member-edit-row is-mockup-row">
+                  <span className="attendance-member-table__index">{index + 1}</span>
+                  <span><label><small>Họ và tên *</small><input value={memberForm.student_full_name} onChange={(event) => setMemberForm((current) => ({ ...current, student_full_name: event.target.value }))} /></label></span>
+                  <span><label><small>Lớp chính khóa *</small><input value={memberForm.school_class_name} onChange={(event) => setMemberForm((current) => ({ ...current, school_class_name: event.target.value }))} placeholder="Ví dụ 12.6" /></label></span>
+                  <span><label><small>Mã HS</small><input value={memberForm.student_code} onChange={(event) => setMemberForm((current) => ({ ...current, student_code: event.target.value }))} placeholder="Có thể để trống" /></label></span>
+                  <span><label><small>Trạng thái</small><select value={memberForm.active ? 'active' : 'inactive'} onChange={(event) => setMemberForm((current) => ({ ...current, active: event.target.value === 'active' }))}><option value="active">Đang học</option><option value="inactive">Đã nghỉ</option></select></label></span>
+                  <span className="attendance-member-edit-actions"><button type="button" disabled={locked} onClick={cancelMemberEdit}>Hủy</button><button className="is-primary" type="button" disabled={locked || !memberForm.student_full_name.trim() || !memberForm.school_class_name.trim()} onClick={() => saveMemberInfo(member)}>{saving === `member:${member.id}` ? 'Đang lưu…' : 'Lưu'}</button></span>
+                </div>
+              );
+            }
+
+            const menuOpen = String(openMemberMenuId) === String(member.id);
+            return (
+              <div key={member.id} className={`attendance-member-table-row${member.active === false ? ' is-inactive' : ''}`}>
+                <span className="attendance-member-table__index">{index + 1}</span>
+                <span className="attendance-member-name-cell"><span className="attendance-member-avatar">{studentInitials(member.student_full_name)}</span><b>{member.student_full_name}</b></span>
+                <span className="attendance-member-school-class">{member.school_class_name || '—'}</span>
+                <span className="attendance-member-code">{member.student_code || '—'}</span>
+                <span><em className={`attendance-member-status-pill ${member.active === false ? 'is-inactive' : 'is-active'}`}><i aria-hidden="true" />{member.active === false ? 'Đã nghỉ' : 'Đang học'}</em></span>
+                <span className="attendance-member-row-actions is-compact">
+                  {canManageMembers ? <button type="button" className="attendance-member-edit-button" disabled={locked} onClick={() => startEditMember(member)}>Sửa</button> : null}
+                  {canManageMembers ? (
+                    <button
+                      type="button"
+                      className="attendance-member-menu-button"
+                      disabled={locked}
+                      aria-label={`Mở thao tác cho ${member.student_full_name}`}
+                      aria-expanded={menuOpen}
+                      onClick={() => setOpenMemberMenuId((current) => String(current) === String(member.id) ? '' : String(member.id))}
+                    >…</button>
+                  ) : null}
+                  {canManageMembers && menuOpen ? (
+                    <span className="attendance-member-row-menu">
+                      {member.active !== false ? <button type="button" disabled={locked} onClick={() => { setOpenMemberMenuId(''); onRemoveStudent?.(member); }}>Xóa khỏi lớp</button> : <em>{member.removal_reason || 'Đã lưu lịch sử'}</em>}
+                    </span>
+                  ) : null}
+                </span>
+              </div>
+            );
+          })}
+          {!members.length ? <div className="attendance-empty">Không có học sinh phù hợp.</div> : null}
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
-      <section className="attendance-class-info-card">
-        <header className="attendance-class-info-head">
-          <div>
-            <span>THÔNG TIN LỚP HỌC</span>
-            <strong>Dữ liệu hiện tại dùng cho các buổi chưa chốt</strong>
-            <p>Các thay đổi bên dưới không sửa lại lịch sử điểm danh đã xác nhận.</p>
-          </div>
-          {showEditButton && canManageMembers && !editingClass ? (
-            <button type="button" disabled={locked} onClick={() => setEditingClass(true)}>Sửa thông tin lớp</button>
-          ) : null}
-        </header>
-
-        {editingClass && canManageMembers ? (
-          <form className="attendance-class-edit-form" onSubmit={saveClassInfo}>
-            <div className="attendance-class-edit-grid">
-              <label><span>Tên lớp *</span><input value={classForm.class_name} onChange={(event) => setClassForm((current) => ({ ...current, class_name: event.target.value }))} /></label>
-              <label><span>Môn học</span><input value={classForm.subject} onChange={(event) => setClassForm((current) => ({ ...current, subject: event.target.value }))} /></label>
-              <label><span>Khối *</span><select value={classForm.grade_level} onChange={(event) => setClassForm((current) => ({ ...current, grade_level: event.target.value }))}><option value="">Chọn khối</option><option value="10">Khối 10</option><option value="11">Khối 11</option><option value="12">Khối 12</option></select></label>
-              <label><span>Phòng học</span><input value={classForm.room} onChange={(event) => setClassForm((current) => ({ ...current, room: event.target.value }))} placeholder="Ví dụ A103" /></label>
-              <label className="is-wide"><span>Thời gian học</span><input value={classForm.time_range} onChange={(event) => setClassForm((current) => ({ ...current, time_range: event.target.value }))} placeholder="Ví dụ 16h45 đến 18h15" /></label>
-            </div>
-            <div className="attendance-weekday-editor">
-              <span>Ngày học trong tuần *</span>
-              <div>{WEEKDAY_OPTIONS.map((item) => <button key={item.value} type="button" className={classForm.weekdays.includes(item.value) ? 'is-active' : ''} onClick={() => toggleWeekday(item.value)}>{item.label}</button>)}</div>
-            </div>
-            <footer><button type="button" disabled={locked} onClick={cancelClassEdit}>Hủy</button><button className="is-primary" type="submit" disabled={locked || !classForm.class_name.trim() || !classForm.weekdays.length}>{saving === 'class' ? 'Đang lưu…' : 'Lưu thông tin lớp'}</button></footer>
-          </form>
-        ) : (
-          <div className="attendance-class-info-grid">
-            <article><span>Tên lớp</span><b>{selectedClass.class_name}</b></article>
-            <article><span>Môn học</span><b>{selectedClass.subject || 'Chưa ghi'}</b></article>
-            <article><span>Khối</span><b>{selectedClass.grade_level ? `Khối ${selectedClass.grade_level}` : 'Chưa ghi'}</b></article>
-            <article><span>Phòng học</span><b>{currentRoom || 'Chưa ghi'}</b></article>
-            <article><span>Thời gian học</span><b>{selectedClass.time_range || 'Chưa ghi'}</b></article>
-            <article className="is-wide"><span>Ngày học</span><b>{weekdayLabel(currentWeekdays)}</b></article>
-          </div>
-        )}
-      </section>
-
+      {classInfoSection}
       <div className="attendance-member-table">
         <div className="attendance-member-table-head"><span>Học sinh</span><span>Lớp</span><span>Trạng thái</span><span /></div>
         {members.map((member) => {
