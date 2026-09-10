@@ -254,7 +254,10 @@ export function attendanceSummary(draft = []) {
   let absent = 0;
 
   items.forEach((item) => {
-    const status = normalizeAttendanceStatus(item?.status, item?.present !== false);
+    let status = normalizeAttendanceStatus(item?.status, item?.present !== false);
+    // Keep compatibility with older draft mutations that only flipped `present`.
+    // An explicit `late` remains authoritative because late is still present.
+    if (item?.present === false && status === ATTENDANCE_STATUS.PRESENT) status = ATTENDANCE_STATUS.ABSENT;
     if (status === ATTENDANCE_STATUS.ABSENT) {
       absent += 1;
       return;
