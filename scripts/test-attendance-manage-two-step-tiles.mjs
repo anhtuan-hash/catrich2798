@@ -6,6 +6,7 @@ const workspace = fs.readFileSync(new URL('../src/components/attendance/Attendan
 const workspaceCss = fs.readFileSync(new URL('../src/components/attendance/AttendanceClassManagementWorkspace.css', import.meta.url), 'utf8');
 const editor = fs.readFileSync(new URL('../src/components/attendance/AttendanceClassEditor.jsx', import.meta.url), 'utf8');
 const editorCss = fs.readFileSync(new URL('../src/components/attendance/AttendanceClassEditor.css', import.meta.url), 'utf8');
+const searchRemoval = fs.readFileSync(new URL('../public/bes-remove-visible-search-bars.js', import.meta.url), 'utf8');
 
 assert.match(navigation, /import AttendanceClassManagementWorkspace from ['"]\.\/attendance\/AttendanceClassManagementWorkspace\.jsx['"];/,
   'Global attendance source must import the direct React class-management workspace.');
@@ -85,6 +86,23 @@ assert.match(workspaceCss, /@media[^}]*max-width:\s*680px[\s\S]*\.attendance-man
   'Mobile overview must collapse to one tile column.');
 assert.match(workspaceCss, /\.attendance-manage-detail-body\s*\{[^}]*grid-template-columns:/s,
   'Detail state must use a dedicated full-width information/roster grid.');
+
+assert.match(searchRemoval, /KEEP_SELECTOR[\s\S]{0,240}\.attendance-manage-search/,
+  'Global search-removal runtime must explicitly preserve the local class-management search control.');
+assert.match(workspaceCss, /\.attendance-manage-class-tile\s*\{[^}]*border-left:\s*5px solid var\(--manage-accent\)/s,
+  'Class tiles must have a strong subject-color rail for quick visual grouping.');
+const titleRule = workspaceCss.match(/\.attendance-manage-tile__title\s*\{[^}]*\}/s)?.[0] || '';
+assert.match(titleRule, /-webkit-line-clamp:\s*2/,
+  'Class names must allow two lines instead of clipping to one line.');
+assert.match(titleRule, /padding-block:\s*2px/,
+  'Class title box must include vertical breathing room to avoid Vietnamese glyph clipping.');
+for (const color of ['#2563eb', '#8b5cf6', '#0f8b8d', '#4f46e5', '#e11d48', '#16a34a', '#d97706', '#0891b2']) {
+  assert.ok(workspaceCss.includes(color), `Subject palette must include strengthened accent ${color}.`);
+}
+assert.match(workspaceCss, /\.attendance-manage-tile__type\.is-remedial\s*\{[^}]*border:\s*1px solid #86efac/s,
+  'Remedial badge must have a clearly defined green border.');
+assert.match(workspaceCss, /\.attendance-manage-tile__type\.is-gifted\s*\{[^}]*border:\s*1px solid #93c5fd/s,
+  'Gifted badge must have a clearly defined blue border.');
 
 assert.match(editor, /attendance-class-info-card/, 'Existing class edit behavior must remain in AttendanceClassEditor.');
 assert.match(editor, /showEditButton/, 'Class editor must support the hero-owned edit action without duplicating controls.');

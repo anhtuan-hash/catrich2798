@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const KEEP_SELECTOR = '.global-command-palette, .global-command-palette-layer, [data-bes-keep-search="true"]';
+  const KEEP_SELECTOR = '.global-command-palette, .global-command-palette-layer, [data-bes-keep-search="true"], .attendance-manage-search';
   const SEARCH_TEXT = /(search|find|lookup|query|tìm|tìm|tra\s*cứu|tra\s*cuu|lọc|lọc|filter)/i;
   const WRAPPER_TEXT = /(search|find|lookup|query|filter|tìm|tra-cuu|tra_cuu|loc)/i;
   const HARD_TARGETS = [
