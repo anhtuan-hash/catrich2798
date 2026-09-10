@@ -23,12 +23,23 @@ for (const copy of [
   'TRƯỜNG TRUNG - TIỂU HỌC PÉTRUS KÝ',
   'BÁO CÁO ĐIỂM DANH THEO THÁNG',
   'BÁO CÁO ĐIỂM DANH THEO NGÀY',
-  '1. THỐNG KÊ THEO GIÁO VIÊN',
-  '2. CHI TIẾT BUỔI HỌC',
-  '3. CHI TIẾT HỌC SINH VẮNG',
+  '1. CHI TIẾT BUỔI HỌC',
+  '2. CHI TIẾT HỌC SINH VẮNG',
   'NHẬN XÉT CHUNG',
   'NGƯỜI BÁO CÁO',
 ]) assert.match(reportExport, new RegExp(copy), `PDF export must contain ${copy}`);
+assert.doesNotMatch(reportExport, /1\. THỐNG KÊ THEO GIÁO VIÊN/, 'PDF must remove the teacher-summary section entirely');
+assert.doesNotMatch(reportExport, /3\. CHI TIẾT HỌC SINH VẮNG/, 'PDF section numbering must be compact after removing teacher summary');
+assert.match(
+  reportExport,
+  /headers:\s*\[\s*'Ngày',\s*'Lớp \/ môn',\s*'GV \/ phòng',\s*'Giờ dạy \/ chốt',\s*'Tiết',\s*'Sĩ số',\s*'Có mặt',\s*'Vắng',\s*'Tỷ lệ',\s*'Người điểm danh',\s*'Người điều chỉnh gần nhất',\s*'Trạng thái \/ ghi chú',\s*\]/,
+  'Session-detail PDF columns must place audit actors after Tỷ lệ and before Trạng thái / ghi chú',
+);
+assert.match(
+  reportExport,
+  /columns:\s*\[\s*'date',\s*'class_subject',\s*'teacher_room',\s*'time_checked',\s*'periods',\s*'total_students',\s*'present_count',\s*'absent_count',\s*'attendance_rate',\s*'checked_by',\s*'last_adjustment',\s*'status_note',\s*\]/,
+  'Session-detail data keys must follow the visible PDF column order',
+);
 assert.match(reportExport, /@page\s*\{[^}]*size\s*:\s*A4\s+portrait/i);
 assert.match(
   reportExport,
@@ -74,4 +85,4 @@ assert.match(reportExport, /columnWidths\s*:/i);
 assert.match(reportExport, /autoFilter\s*:/i);
 assert.match(reportExport, /freezeRows\s*:/i);
 
-console.log('Attendance PDF without logo and styled Excel export contract OK');
+console.log('Attendance streamlined PDF and styled Excel export contract OK');
