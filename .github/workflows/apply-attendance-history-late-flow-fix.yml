@@ -53,6 +53,15 @@ jobs:
             assert old in css, f'missing History section target: {old.splitlines()[0]}'
             css = css.replace(old, new, 1)
 
+          css += r'''
+
+          /* A tardy card with two or more visible rows must contribute its full
+             visual height to the grid track. Without this minimum, the following
+             absence/footer rows can be auto-sized underneath its overflowing rows. */
+          .ahv3__shell .ahv3__detail > .ahv3__late-section:has(.attendance-late-list > div:nth-child(2)) {
+            min-height: 166px !important;
+          }
+          '''
           path.write_text(css, encoding='utf-8')
 
       - name: Set up Node 22
