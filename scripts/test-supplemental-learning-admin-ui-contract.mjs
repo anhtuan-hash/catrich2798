@@ -2,10 +2,12 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const source = await readFile(new URL('../src/supplementalLearningBootstrap.js', import.meta.url), 'utf8');
+const supplementalCss = await readFile(new URL('../src/styles/SupplementalLearning.css', import.meta.url), 'utf8');
 const css = [
-  await readFile(new URL('../src/styles/SupplementalLearning.css', import.meta.url), 'utf8'),
+  supplementalCss,
   await readFile(new URL('../src/styles/SupplementalLearningAdminCompleteness.css', import.meta.url), 'utf8'),
 ].join('\n');
+const nativeAttendanceCss = await readFile(new URL('../src/components/GlobalAttendanceNavigationTab.css', import.meta.url), 'utf8');
 
 assert.match(source, /SYSTEM_ROLES\.ADMIN/, 'supplemental management must be Admin-only');
 for (const label of [
@@ -46,5 +48,20 @@ assert.match(css, /\.bes-supplemental-dialog/);
 assert.match(css, /\.bes-supplemental-admin-search/);
 assert.match(css, /\.bes-supplemental-edit-form/);
 assert.match(css, /@media\(max-width:560px\)/);
+
+function selectorZIndex(text, selector) {
+  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = text.match(new RegExp(`${escaped}\\{[^}]*z-index\\s*:\\s*(\\d+)`, 'i'));
+  return match ? Number(match[1]) : NaN;
+}
+
+const nativeLayerZ = selectorZIndex(nativeAttendanceCss, '.attendance-layer');
+const adminBackdropZ = selectorZIndex(supplementalCss, '.bes-supplemental-backdrop');
+const adminDialogZ = selectorZIndex(supplementalCss, '.bes-supplemental-dialog');
+const rollcallZ = selectorZIndex(supplementalCss, '.bes-supplemental-rollcall');
+assert.ok(Number.isFinite(nativeLayerZ), 'native Attendance layer must expose a measurable z-index');
+assert.ok(adminBackdropZ > nativeLayerZ, `Học bổ sung backdrop must sit above the Attendance modal (${adminBackdropZ} <= ${nativeLayerZ})`);
+assert.ok(adminDialogZ > adminBackdropZ, 'Học bổ sung Admin dialog must sit above its backdrop');
+assert.ok(rollcallZ > adminBackdropZ, 'Học bổ sung rollcall must also sit above the Attendance modal/backdrop');
 
 console.log('supplemental learning admin UI contract: ok');
