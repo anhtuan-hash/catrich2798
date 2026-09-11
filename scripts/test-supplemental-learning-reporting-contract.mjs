@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+const source=await readFile(new URL('../src/supplementalAttendanceReportingBootstrap.js',import.meta.url),'utf8');
+for(const value of ["['all','Tất cả']","['remedial','Phụ đạo']","['enrichment','Bồi dưỡng']","['supplemental','Học bổ sung']"])assert.ok(source.includes(value),`missing activity filter ${value}`);
+assert.ok(source.includes('BÁO CÁO HỌC BỔ SUNG KIẾN THỨC'),'missing exact supplemental PDF title');
+assert.match(source,/loadSupplementalHistory/);
+assert.match(source,/loadSupplementalStudentReport/);
+assert.match(source,/loadAttendanceActivities/);
+assert.match(source,/buổi hủy không vào mẫu số/i,'report must explain cancelled-session denominator rule');
+assert.match(source,/không tự cộng vào tổng cũ/i,'combined mode must not silently alter legacy totals');
+assert.match(source,/window\.print\(\)/,'supplemental report needs print/PDF path');
+console.log('supplemental learning reporting contract: ok');
