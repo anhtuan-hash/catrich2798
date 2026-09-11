@@ -40,6 +40,9 @@ jobs:
       - name: Verify global attendance operator permission contract
         run: node scripts/test-global-attendance-operator-permission.mjs
 
+      - name: Verify supplemental learning database contract
+        run: node scripts/test-supplemental-learning-database-contract.mjs
+
       - name: Run Chromium critical browser smoke
         run: npx playwright test tests/e2e/critical-smoke.spec.js --project=chromium-desktop
 
