@@ -8,6 +8,7 @@ const compactCssUrl = new URL('../src/styles/AttendanceCompactTimeSettings.css',
 const attendanceTabsCssUrl = new URL('../src/components/GlobalAttendanceNavigationTab.css', import.meta.url);
 const startupUrl = new URL('../src/tabResumeStability.js', import.meta.url);
 const migrationUrl = new URL('../supabase/migrations/20260909_attendance_time_access_control.sql', import.meta.url);
+const globalOperatorMigrationUrl = new URL('../supabase/migrations/20260911_global_attendance_operator_permission.sql', import.meta.url);
 
 assert.ok(fs.existsSync(utilityUrl), 'Attendance time access utility must exist');
 assert.ok(fs.existsSync(bootstrapUrl), 'Attendance time access UI/bootstrap must exist');
@@ -15,6 +16,7 @@ assert.ok(fs.existsSync(compactRuntimeUrl), 'Compact Admin time settings runtime
 assert.ok(fs.existsSync(compactCssUrl), 'Compact Admin time settings styles must exist');
 assert.ok(fs.existsSync(attendanceTabsCssUrl), 'Attendance tab source styles must exist');
 assert.ok(fs.existsSync(migrationUrl), 'Attendance time access Supabase migration must exist');
+assert.ok(fs.existsSync(globalOperatorMigrationUrl), 'Global attendance operator forward migration must exist');
 
 const {
   parseClockTime,
@@ -31,7 +33,6 @@ const base = {
   isAdmin: false,
   hasReportPermission: false,
   hasQuickPermission: true,
-  isAssigned: true,
   startTime: '16:40',
   endTime: '17:15',
 };
@@ -40,13 +41,15 @@ assert.equal(evaluateAttendanceTimeAccess({ ...base, now: new Date('2026-09-09T1
 assert.equal(evaluateAttendanceTimeAccess({ ...base, now: new Date('2026-09-09T17:15:00+07:00') }).allowed, true, 'Exact end boundary must be allowed');
 assert.equal(evaluateAttendanceTimeAccess({ ...base, now: new Date('2026-09-09T16:39:59+07:00') }).reason, 'outside_time');
 assert.equal(evaluateAttendanceTimeAccess({ ...base, now: new Date('2026-09-09T17:15:01+07:00') }).reason, 'outside_time');
-assert.equal(evaluateAttendanceTimeAccess({ ...base, isAssigned: false, now: new Date('2026-09-09T16:50:00+07:00') }).reason, 'unassigned');
+assert.equal(evaluateAttendanceTimeAccess({ ...base, isAssigned: false, now: new Date('2026-09-09T16:50:00+07:00') }).allowed, true, 'Teaching assignment must not affect an Admin-granted global attendance operator');
+assert.equal(evaluateAttendanceTimeAccess({ ...base, hasQuickPermission: false, isAssigned: true, now: new Date('2026-09-09T16:50:00+07:00') }).reason, 'missing_permission', 'Teaching assignment alone must not grant attendance write access');
 assert.equal(evaluateAttendanceTimeAccess({ ...base, startTime: '', now: new Date('2026-09-09T16:50:00+07:00') }).reason, 'invalid_time');
 assert.equal(evaluateAttendanceTimeAccess({ ...base, startTime: '16:40', endTime: '16:40', now: new Date('2026-09-09T16:40:00+07:00') }).reason, 'invalid_time');
 
-assert.equal(evaluateAttendanceTimeAccess({ ...base, restrictionEnabled: false, isAssigned: false, now: new Date('2026-09-09T03:00:00+07:00') }).allowed, true, 'Toggle OFF must preserve PR #704 behavior');
-assert.equal(evaluateAttendanceTimeAccess({ ...base, isAdmin: true, isAssigned: false, startTime: '', endTime: '', now: new Date('2026-09-09T03:00:00+07:00') }).allowed, true, 'Admin must bypass the window');
-assert.equal(evaluateAttendanceTimeAccess({ ...base, hasReportPermission: true, isAssigned: false, startTime: '', endTime: '', now: new Date('2026-09-09T03:00:00+07:00') }).allowed, true, 'Report permission must bypass the window');
+assert.equal(evaluateAttendanceTimeAccess({ ...base, restrictionEnabled: false, now: new Date('2026-09-09T03:00:00+07:00') }).allowed, true, 'Toggle OFF must allow an Admin-granted attendance operator without a time restriction');
+assert.equal(evaluateAttendanceTimeAccess({ ...base, restrictionEnabled: false, hasQuickPermission: false, now: new Date('2026-09-09T03:00:00+07:00') }).reason, 'missing_permission', 'Toggle OFF must not grant attendance permission by itself');
+assert.equal(evaluateAttendanceTimeAccess({ ...base, isAdmin: true, hasQuickPermission: false, startTime: '', endTime: '', now: new Date('2026-09-09T03:00:00+07:00') }).allowed, true, 'Admin must bypass the window and ordinary permission gate');
+assert.equal(evaluateAttendanceTimeAccess({ ...base, hasReportPermission: true, hasQuickPermission: false, startTime: '', endTime: '', now: new Date('2026-09-09T03:00:00+07:00') }).allowed, true, 'Report permission must bypass the window and ordinary permission gate');
 
 const overnight = { ...base, startTime: '22:00', endTime: '01:30' };
 assert.equal(evaluateAttendanceTimeAccess({ ...overnight, now: new Date('2026-09-09T22:00:00+07:00') }).allowed, true, 'Overnight start must be allowed');
@@ -71,12 +74,17 @@ for (const required of [
 ]) {
   assert.match(migrationSource, new RegExp(required.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `Migration must contain ${required}`);
 }
-assert.match(migrationSource, /p_class_id[\s\S]*p_teacher_name[\s\S]*p_now/, 'Backend helper must evaluate class assignment, selected teacher and server time');
+assert.match(migrationSource, /p_class_id[\s\S]*p_teacher_name[\s\S]*p_now/, 'Backend helper API must keep class, selected-teacher and server-time parameters for existing callers');
 assert.doesNotMatch(migrationSource, /v_class\.weekdays|v_class\.time_range/, 'Time-window feature must not reintroduce PR #705 schedule hard-lock semantics');
-assert.match(migrationSource, /can_take_extra_class_attendance\(\)/, 'Backend must preserve the original quick-attendance permission gate for ordinary teachers');
-assert.match(migrationSource, /v_profile\.full_name/, 'Backend must bind attendance to the caller profile identity');
+assert.match(migrationSource, /can_take_extra_class_attendance\(\)/, 'Backend must preserve the explicit quick-attendance permission gate');
 assert.match(migrationSource, /security definer[\s\S]*set search_path = ''/, 'Privileged helpers must pin an empty search_path');
 assert.match(migrationSource, /revoke all on function private\./, 'Private security-definer helpers must not be executable by PUBLIC');
+
+const globalOperatorMigrationSource = fs.readFileSync(globalOperatorMigrationUrl, 'utf8');
+assert.match(globalOperatorMigrationSource, /create or replace function private\.bes_attendance_access_decision/i, 'Forward migration must replace the central attendance authorization helper');
+assert.match(globalOperatorMigrationSource, /can_take_extra_class_attendance\(\)/, 'Current backend authorization must remain driven by the Admin-granted attendance permission');
+assert.doesNotMatch(globalOperatorMigrationSource, /bes_extra_class_teachers|v_is_assigned/i, 'Current backend authorization must not depend on class teaching assignment');
+assert.match(globalOperatorMigrationSource, /Asia\/Ho_Chi_Minh/, 'Current backend authorization must retain authoritative Vietnam time enforcement');
 
 const startupSource = fs.readFileSync(startupUrl, 'utf8');
 assert.match(startupSource, /attendanceTimeAccessBootstrap\.js/, 'The pre-main startup chain must load the attendance access runtime');
@@ -89,7 +97,9 @@ assert.match(uiSource, /type="time"/, 'Admin UI must expose start/end time input
 assert.match(uiSource, /teacher_start_time/, 'UI must use the Admin-configured global start time');
 assert.match(uiSource, /teacher_end_time/, 'UI must use the Admin-configured global end time');
 assert.match(uiSource, /evaluateAttendanceTimeAccess/, 'UI must use the shared boundary-tested evaluator');
+assert.match(uiSource, /hasAttendanceTabAccess\(currentProfile\(\), 'quick'\)/, 'UI must use the Admin-granted quick attendance permission as the ordinary write assignment');
 assert.match(uiSource, /hasAttendanceTabAccess\(currentProfile\(\), 'report'\)/, 'Report permission must bypass the UI time lock');
+assert.doesNotMatch(uiSource, /isAssignedAttendanceTeacher|matchingTeacherNames|teacher_identity_mismatch/, 'UI authorization must not depend on teaching assignment or selected-teacher identity');
 
 // Regression: changing the toggle/time inputs must survive MutationObserver-driven renders
 // until the Admin explicitly saves. The server snapshot may only overwrite a clean form.
