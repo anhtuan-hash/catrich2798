@@ -16,6 +16,13 @@ assert.ok(confirmAt>=0&&uploadAt>confirmAt&&attachAt>uploadAt,'proof path must b
 assert.match(source,/proofPath:''/,'confirmation must not persist a proof path before storage upload succeeds');
 assert.match(source,/if\(!force&&requestKey===key\)return;/,'an unchanged cached attendance day must not rewrite the supplemental DOM');
 assert.doesNotMatch(source,/if\(!force&&requestKey===key\)\{renderSection\(root\);return;\}/,'cached refresh must not create a MutationObserver render loop that blocks Attendance tab clicks');
-assert.match(source,/\[data-attendance-daily-status-root\]/,'supplemental bootstrap must target the native daily schedule mount');
-assert.match(dailyScheduleSource,/data-attendance-daily-status-root/,'native Attendance daily schedule must expose the mount target used by supplemental attendance');
+const mountSelector=source.match(/const DAILY_ROOT='([^']+)'/)?.[1]||'';
+assert.ok(mountSelector,'supplemental bootstrap must declare its native daily schedule mount selector');
+if(mountSelector.startsWith('.')){
+  assert.ok(dailyScheduleSource.includes(`className="${mountSelector.slice(1)}"`),`native Attendance daily schedule must expose ${mountSelector}`);
+}else if(mountSelector.startsWith('[')&&mountSelector.endsWith(']')){
+  assert.ok(dailyScheduleSource.includes(mountSelector.slice(1,-1)),`native Attendance daily schedule must expose ${mountSelector}`);
+}else{
+  assert.fail(`unsupported supplemental daily mount selector ${mountSelector}`);
+}
 console.log('supplemental learning quick attendance contract: ok');
