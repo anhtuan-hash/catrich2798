@@ -1,24 +1,33 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
-const source = fs.readFileSync('src/components/GlobalAttendanceNavigationTab.jsx', 'utf8');
+const bootstrapSource = fs.readFileSync('src/attendanceTimeAccessBootstrap.js', 'utf8');
+const globalPermissionSource = fs.readFileSync('supabase/migrations/20260911_global_attendance_permission.sql', 'utf8');
 const deleteScopeFixSource = fs.readFileSync('supabase/migrations/20260909_attendance_report_delete_scope_fix.sql', 'utf8');
+const { evaluateAttendanceTimeAccess } = await import(new URL('../src/utils/attendanceTimeAccess.js', import.meta.url));
 
-assert.match(source, /const canUseQuickAttendance\s*=/, 'Attendance must define a dedicated quick-operation capability');
-assert.match(source, /hasAttendanceTabAccess\(currentUser,\s*'report'\)/, 'Report permission must grant the quick-operation override');
-assert.match(source, /item\.tab === 'quick'\s*\?\s*canUseQuickAttendance/, 'Quick tab visibility must use the override capability');
-assert.match(source, /view === 'quick'[\s\S]{0,120}canUseQuickAttendance|canUseQuickAttendance[\s\S]{0,120}view === 'quick'/, 'Quick attendance body must render for report override users');
-assert.match(source, /canAccessAttendanceView\('quick'\)/, 'History destructive actions must keep using the original quick permission gate');
+const reportOnly = evaluateAttendanceTimeAccess({
+  restrictionEnabled: false,
+  isAdmin: false,
+  hasQuickPermission: false,
+  hasReportPermission: true,
+  startTime: '16:45',
+  endTime: '17:30',
+  now: new Date('2026-09-11T17:00:00+07:00'),
+});
+assert.equal(reportOnly.allowed, false, 'Report-only account must not receive attendance operation rights');
+assert.equal(reportOnly.reason, 'missing_permission');
+
+assert.match(bootstrapSource, /function hasQuickPermission\(\)/, 'Frontend write controls must use an explicit quick-attendance capability');
+assert.match(bootstrapSource, /if \(!hasQuickPermission\(\)\) return false/, 'Report bypass must be subordinate to quick-attendance permission');
+assert.match(globalPermissionSource, /if not public\.can_take_extra_class_attendance\(\)[\s\S]{0,500}missing_permission/, 'Server decision must reject missing quick permission before any bypass');
+assert.match(globalPermissionSource, /missing_permission[\s\S]{0,1400}if v_has_report/, 'Report permission may bypass time only after quick permission succeeds');
 
 assert.match(
   deleteScopeFixSource,
   /public\.can_take_extra_class_attendance\(\) and public\.bes_can_operate_extra_attendance_session\(p_session_id, clock_timestamp\(\)\)/,
-  'Backend history deletion must require quick permission AND the assignment/time gate',
+  'History deletion must still require quick permission plus the server operation gate',
 );
-assert.doesNotMatch(
-  deleteScopeFixSource,
-  /attendance:report/,
-  'History delete scope fix must not grant report-only users destructive access',
-);
+assert.doesNotMatch(deleteScopeFixSource, /attendance:report/, 'Report-only users must not gain destructive history access');
 
-console.log('Attendance report override quick-entry contract OK');
+console.log('Attendance report permission remains read/report-only without quick permission');
