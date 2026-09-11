@@ -76,6 +76,12 @@ jobs:
       - name: Verify supplemental attendance in WebKit
         run: npx playwright test tests/e2e/supplemental-learning-attendance.spec.js --project=webkit-desktop
 
+      - name: Verify supplemental single-modal bridge in Chromium
+        run: npx playwright test tests/e2e/supplemental-single-modal.spec.js --project=chromium-desktop
+
+      - name: Verify supplemental single-modal bridge in WebKit
+        run: npx playwright test tests/e2e/supplemental-single-modal.spec.js --project=webkit-desktop
+
       - name: Verify Attendance History V3 production cascade in Chromium
         run: npx playwright test tests/e2e/attendance-history-production-layout.spec.js --project=chromium-desktop
 
