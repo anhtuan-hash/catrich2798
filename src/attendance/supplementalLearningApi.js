@@ -18,7 +18,63 @@ function isoDate(value) {
 function compact(params) {
   return Object.fromEntries(Object.entries(params).filter(([, value]) => value !== undefined));
 }
+function teacherPayload(teachers = []) {
+  return (teachers || []).map((teacher) => ({
+    teacherId: teacher.teacherId || teacher.id || null,
+    fullName: teacher.fullName || teacher.teacherName || '',
+    email: teacher.email || teacher.teacherEmail || '',
+  }));
+}
 
+// Class-centric facade used by the simplified Học bổ sung management UI.
+export async function loadSupplementalClasses(client, { includeArchived = true } = {}) {
+  return (await rpc(client, 'bes_list_supplemental_classes', { p_include_archived: includeArchived })) || [];
+}
+export async function upsertSupplementalClass(client, input = {}) {
+  return rpc(client, 'bes_upsert_supplemental_class', compact({
+    p_group_name: input.className || input.groupName || '',
+    p_subject: input.subject || '',
+    p_grade_level: input.gradeLevel || '',
+    p_start_date: isoDate(input.startDate),
+    p_end_date: isoDate(input.endDate),
+    p_weekdays: (input.weekdays || []).map(Number),
+    p_start_time: input.startTime || '',
+    p_end_time: input.endTime || '',
+    p_group_id: input.id || input.groupId || null,
+    p_room: input.room || '',
+    p_note: input.note || '',
+    p_active: input.active !== false,
+    p_teachers: teacherPayload(input.teachers),
+  }));
+}
+export async function archiveSupplementalClass(client, groupId, reason = '') {
+  return rpc(client, 'bes_archive_supplemental_class', { p_group_id: groupId, p_reason: reason || 'Lớp đã được lưu trữ' });
+}
+export async function upsertSupplementalClassMember(client, input = {}) {
+  return rpc(client, 'bes_upsert_supplemental_class_member', compact({
+    p_group_id: input.groupId,
+    p_full_name: input.fullName || '',
+    p_student_id: input.studentId || null,
+    p_student_code: input.studentCode || '',
+    p_school_class_name: input.schoolClassName || '',
+    p_effective_from: isoDate(input.effectiveFrom || new Date()),
+  }));
+}
+export async function setSupplementalClassMemberStatus(client, input = {}) {
+  return rpc(client, 'bes_set_supplemental_class_member_status', {
+    p_group_id: input.groupId,
+    p_student_id: input.studentId,
+    p_active: input.active === true,
+    p_effective_date: isoDate(input.effectiveDate || new Date()),
+    p_removal_reason: input.removalReason || '',
+  });
+}
+export async function setSupplementalClassTeachers(client, groupId, teachers = []) {
+  return rpc(client, 'bes_set_supplemental_class_teachers', { p_group_id: groupId, p_teachers: teacherPayload(teachers) });
+}
+
+// Legacy adapters remain callable for backward compatibility. The simplified UI
+// deliberately does not use official-student linking or adhoc-session creation.
 export async function loadSupplementalAdminData(client) {
   return (await rpc(client, 'bes_list_supplemental_admin_data')) || {};
 }
