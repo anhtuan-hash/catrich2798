@@ -37,39 +37,11 @@ export function attendanceWindowLabel(startTime, endTime) {
   return `${normalizedClockLabel(startTime)}–${normalizedClockLabel(endTime)}`;
 }
 
-export function isAssignedAttendanceTeacher({ profile = {}, classRow = {}, classTeachers = [] } = {}) {
-  const profileId = String(profile.id || '').trim();
-  const email = String(profile.email || '').trim().toLowerCase();
-  const name = String(profile.full_name || profile.name || '').trim().toLowerCase();
-  if (!profileId && !email && !name) return false;
-
-  const rowMatches = (row) => {
-    const teacherId = String(row?.teacher_id || '').trim();
-    const teacherEmail = String(row?.teacher_email || '').trim().toLowerCase();
-    const teacherName = String(row?.teacher_name || '').trim().toLowerCase();
-    return Boolean(
-      (profileId && teacherId && teacherId === profileId)
-      || (email && teacherEmail && teacherEmail === email)
-      || (name && teacherName && teacherName === name)
-    );
-  };
-
-  if (classTeachers.some(rowMatches)) return true;
-  if (rowMatches(classRow)) return true;
-
-  return String(classRow?.teacher_name || '')
-    .split(',')
-    .map((teacherName) => teacherName.trim().toLowerCase())
-    .filter(Boolean)
-    .some((teacherName) => Boolean(name && teacherName === name));
-}
-
 export function evaluateAttendanceTimeAccess({
   restrictionEnabled = false,
   isAdmin = false,
   hasReportPermission = false,
   hasQuickPermission = false,
-  isAssigned = false,
   startTime = '',
   endTime = '',
   now = new Date(),
@@ -78,7 +50,6 @@ export function evaluateAttendanceTimeAccess({
   if (hasReportPermission) return { allowed: true, reason: 'report_bypass', bypass: true };
   if (!hasQuickPermission) return { allowed: false, reason: 'missing_permission', bypass: false };
   if (!restrictionEnabled) return { allowed: true, reason: 'restriction_disabled', bypass: false };
-  if (!isAssigned) return { allowed: false, reason: 'unassigned', bypass: false };
 
   const startMinutes = parseClockTime(startTime);
   const endMinutes = parseClockTime(endTime);
@@ -121,10 +92,9 @@ export function evaluateAttendanceTimeAccess({
 
 export function attendanceAccessReasonVi(result = {}) {
   switch (result.reason) {
-    case 'unassigned': return 'Bạn không nằm trong phân công của lớp này.';
     case 'invalid_time': return 'Khung giờ điểm danh chưa hợp lệ. Admin cần kiểm tra giờ bắt đầu và giờ kết thúc.';
-    case 'outside_time': return `Giáo viên chỉ được thao tác điểm danh trong khung giờ ${result.windowLabel || 'Admin đã quy định'}.`;
-    case 'missing_permission': return 'Tài khoản chưa có quyền Điểm danh nhanh.';
+    case 'outside_time': return `Tài khoản được phân công điểm danh chỉ được thao tác trong khung giờ ${result.windowLabel || 'Admin đã quy định'}.`;
+    case 'missing_permission': return 'Tài khoản chưa được Admin cấp quyền điểm danh.';
     case 'invalid_now': return 'Không thể xác định thời gian hiện tại theo múi giờ Việt Nam.';
     default: return result.allowed ? 'Được phép thao tác điểm danh.' : 'Không thể thao tác điểm danh lúc này.';
   }
