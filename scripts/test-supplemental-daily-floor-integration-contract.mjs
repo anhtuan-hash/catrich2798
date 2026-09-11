@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const scheduleSource = await readFile(new URL('../src/components/attendance/AttendanceDailySchedule.jsx', import.meta.url), 'utf8');
+const nativeRollcallSource = await readFile(new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url), 'utf8');
 const quickSource = await readFile(new URL('../src/supplementalAttendanceQuickBootstrap.js', import.meta.url), 'utf8');
 
 assert.match(scheduleSource, /loadSupplementalAttendanceActivities/, 'native daily schedule must load Học bổ sung activities for the selected day');
@@ -14,11 +15,14 @@ assert.match(scheduleSource, /data-bes-attendance-source=["']supplemental["']/, 
 assert.match(scheduleSource, /attendanceFloorForRoom\([^)]*(?:supplemental|activity|row)[^)]*\)/i, 'Học bổ sung rooms must participate in the same floor grouping as Phụ đạo/Bồi dưỡng');
 assert.match(scheduleSource, /sortAttendanceRoomLabels\([\s\S]{0,500}supplementalActivities/i, 'Học bổ sung rooms must participate in the native room filter options');
 assert.match(scheduleSource, /visible(?:Rows|Activities|Items)\.length/, 'summary totals must count the combined visible daily rows');
-assert.match(scheduleSource, /bes-open-supplemental-attendance/, 'clicking a native Học bổ sung row must bridge to the existing supplemental rollcall flow');
+assert.match(scheduleSource, /bes-open-supplemental-attendance/, 'clicking a native Học bổ sung row must dispatch the supplemental rollcall event');
 assert.match(scheduleSource, /bes-supplemental-attendance-changed/, 'native daily schedule must refresh after supplemental attendance/admin changes');
-assert.match(quickSource, /bes-open-supplemental-attendance/, 'supplemental rollcall bootstrap must listen for the native row click bridge');
-assert.match(quickSource, /bes-supplemental-attendance-changed/, 'supplemental rollcall must notify the native daily schedule after confirmation');
-assert.doesNotMatch(quickSource, /bes-supplemental-daily-section|bes-supplemental-daily-grid|bes-supplemental-daily-card/, 'the old separate HỌC BỔ SUNG card section must be removed');
-assert.doesNotMatch(quickSource, /Nhóm dài ngày|Phát sinh/, 'rollcall must not reintroduce retired supplemental UI concepts');
+
+assert.match(nativeRollcallSource, /window\.addEventListener\(['"]bes-open-supplemental-attendance['"]\s*,\s*openSupplementalRollcall\)/, 'native React rollcall must listen for the daily supplemental row click bridge');
+assert.match(nativeRollcallSource, /canManageSupplementalLearning\(runtime\)/, 'native supplemental rollcall bridge must stay behind the dedicated manager guard');
+assert.match(nativeRollcallSource, /bes-supplemental-attendance-changed/, 'native supplemental rollcall must notify the daily schedule after confirmation or cancellation');
+
+assert.doesNotMatch(quickSource, /addEventListener|createElement|bes-supplemental-daily-section|bes-supplemental-daily-grid|bes-supplemental-daily-card/, 'retired quick bootstrap must remain inert and must not render/listen for a second supplemental flow');
+assert.doesNotMatch(quickSource, /Nhóm dài ngày|Phát sinh/, 'retired bootstrap must not reintroduce supplemental legacy UI concepts');
 
 console.log('supplemental daily floor integration contract: ok');
