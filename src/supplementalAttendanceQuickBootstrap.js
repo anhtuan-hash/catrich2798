@@ -7,7 +7,7 @@ const DAILY_ROOT='[data-attendance-daily-status-root]';
 const SECTION_CLASS='bes-supplemental-daily-section';
 const ROLLCALL_ID='bes-supplemental-rollcall';
 let client=null;let runtime=null;let observer=null;let queued=false;let requestKey='';let activities=[];let activeSession=null;let participantState=[];let busy=false;
-function esc(value){return String(value??'').replace(/[&<>"']/g,(m)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#39;'}[m]));}
+function esc(value){return String(value??'').replace(/[&<>"']/g,(m)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
 function dateForRoot(root){return String(root?.querySelector('input[type="date"]')?.value||document.querySelector('.attendance-daily-compact-toolbar input[type="date"]')?.value||new Date().toISOString().slice(0,10)).slice(0,10);}
 function kindLabel(kind){return kind==='recurring'?'Nhóm dài ngày':'Phát sinh';}
 function statusLabel(status){return({scheduled:'Chưa điểm danh',in_progress:'Đang điểm danh',confirmed:'Đã chốt',cancelled:'Đã hủy'})[status]||status;}
