@@ -6,9 +6,11 @@ const legacyHistorySource = await readFile(new URL('../src/components/GlobalAtte
 const bridge = await readFile(new URL('../src/supplementalSingleModalBridge.js', import.meta.url), 'utf8');
 const css = await readFile(new URL('../src/styles/SupplementalSingleModal.css', import.meta.url), 'utf8');
 
-for (const value of ["['all','Tất cả']", "['remedial','Phụ đạo']", "['enrichment','Bồi dưỡng']", "['supplemental','Học bổ sung']"]) {
-  assert.ok(source.includes(value), `missing activity filter ${value}`);
+for (const [value, label] of [['all','Tất cả'], ['remedial','Phụ đạo'], ['enrichment','Bồi dưỡng'], ['supplemental','Học bổ sung']]) {
+  assert.match(source, new RegExp(`['\"]${value}['\"]\\s*,\\s*['\"]${label}['\"]`), `missing activity filter ${value}/${label}`);
 }
+assert.match(source, /canManageSupplementalLearning/, 'supplemental history/report UI must use the dedicated access guard');
+assert.match(source, /if \(!canManage\(\)\)/, 'reporting UI must be cleared when dedicated access is lost');
 assert.ok(source.includes('BÁO CÁO HỌC BỔ SUNG KIẾN THỨC'), 'missing exact supplemental PDF title');
 assert.match(source, /loadSupplementalHistory/);
 assert.match(source, /loadSupplementalStudentReport/);
@@ -23,6 +25,9 @@ assert.match(source, /renderLegacyActivityReport/);
 assert.match(source, /presentCount|present_count/);
 assert.match(source, /absentCount|absent_count/);
 assert.match(source, /tardyCount|tardy_count/);
+assert.doesNotMatch(source, /Nhóm dài ngày|Buổi phát sinh/, 'class-centric reporting must not expose retired supplemental concepts');
+assert.match(source, /LỚP HỌC BỔ SUNG/, 'current class history must use the class-centric label');
+assert.match(source, /DỮ LIỆU CŨ/, 'legacy adhoc history must remain visible without reviving the retired creation concept');
 
 const bindTabs = source.match(/function bindTabs\(\)\s*\{([\s\S]*?)\n\}\n\nfunction start\(\)/)?.[1] || '';
 assert.ok(bindTabs, 'must expose bindTabs implementation for the reporting bootstrap');
