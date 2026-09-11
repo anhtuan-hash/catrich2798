@@ -173,6 +173,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const systemRole = normalizeSystemRole(runtime.role || currentUser?.role, SYSTEM_ROLES.GUEST);
   const isAttendanceAdmin = systemRole === SYSTEM_ROLES.ADMIN;
   const canAccessAttendanceView = (tabId) => isAttendanceAdmin || hasAttendanceTabAccess(currentUser, tabId);
+  const canDeleteAttendanceHistory = isAttendanceAdmin || String(currentUser?.email || '').trim().toLowerCase() === 'hongtham@accounts.brianenglish.studio';
   const hasAttendanceReportOverride = isAttendanceAdmin || hasAttendanceTabAccess(currentUser, 'report');
   const canUseQuickAttendance = isAttendanceAdmin || hasAttendanceTabAccess(currentUser, 'quick') || hasAttendanceReportOverride;
   const availableAttendanceTabs = ATTENDANCE_PERMISSION_ITEMS.filter((item) => item.tab === 'quick' ? canUseQuickAttendance : canAccessAttendanceView(item.tab));
@@ -864,7 +865,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   }
 
   async function deleteAttendanceSession(session) {
-    if (!session || busy || !client) return;
+    if (!session || busy || !client || !canDeleteAttendanceHistory) return;
     const confirmed = window.confirm(`Xóa buổi điểm danh đã duyệt của lớp “${session.class_name}” ngày ${formatDate(session.attendance_date)} lúc ${formatDateTime(session.checked_at)}?\n\nNgày này sẽ được mở khóa để có thể điểm danh lại. Không thể hoàn tác.`);
     if (!confirmed) return;
     setBusy(true); setError(''); setNotice('');
@@ -913,7 +914,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   }
 
   async function deleteSelectedHistorySessions() {
-    if (!selectedHistorySessionIds.length || busy || !client) return;
+    if (!selectedHistorySessionIds.length || busy || !client || !canDeleteAttendanceHistory) return;
     const selectedIdSet = new Set(selectedHistorySessionIds.map((id) => String(id)));
     const targets = sessions.filter((session) => selectedIdSet.has(String(session.id)));
     if (!targets.length) {
@@ -1158,7 +1159,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
             <div className="ahv3__shell" data-attendance-history-v3="true">
               <section className="ahv3__list">
                 <header className="ahv3__list-head">
-                  <div className="ahv3__list-title"><div><strong>Lịch sử điểm danh</strong><p>Tra cứu các buổi đã chốt và buổi đã hủy.</p></div><div className="ahv3__list-actions"><span>{filteredHistory.length} buổi</span>{canAccessAttendanceView('quick') ? <button type="button" className={historySelectionMode ? 'is-active' : ''} disabled={busy} onClick={toggleHistorySelectionMode}>{historySelectionMode ? 'Thoát chọn' : 'Chọn nhiều'}</button> : null}</div></div>
+                  <div className="ahv3__list-title"><div><strong>Lịch sử điểm danh</strong><p>Tra cứu các buổi đã chốt và buổi đã hủy.</p></div><div className="ahv3__list-actions"><span>{filteredHistory.length} buổi</span>{canDeleteAttendanceHistory ? <button type="button" className={historySelectionMode ? 'is-active' : ''} disabled={busy} onClick={toggleHistorySelectionMode}>{historySelectionMode ? 'Thoát chọn' : 'Chọn nhiều'}</button> : null}</div></div>
                   <label className="ahv3__search" data-bes-keep-search="true"><Icon name="history" size={16} /><input value={historyQuery} onChange={(event) => setHistoryQuery(event.target.value)} placeholder="Tìm theo tên lớp, môn học, giáo viên hoặc ngày…" /></label>
                   <div className="ahv3__filters">
                     <label><span>Loại lớp</span><select value={historyType} onChange={(event) => setHistoryType(event.target.value)}><option value="all">Tất cả loại lớp</option><option value="remedial">Phụ đạo</option><option value="gifted">Bồi dưỡng HSG</option></select></label>
@@ -1191,7 +1192,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                 <div className="ahv3__hero">
                   <div className="ahv3__hero-copy"><span className={`att-m3-status-chip is-${selectedSession.session_status === 'cancelled' ? 'cancelled' : 'completed'}`}>{selectedSession.session_status === 'cancelled' ? 'Đã hủy' : 'Đã điểm danh'}</span><h2>{selectedSession.class_name}</h2><div className="ahv3__hero-chips"><span className={`ahv3__type is-${selectedSession.class_type}`}>{extraClassTypeLabel(selectedSession.class_type)}</span><span className="att-m3-period-chip">{selectedSession.session_status === 'cancelled' ? '0 tiết' : `${String(selectedSession.lesson_periods || 1).replace('.', ',')} tiết`}</span><span>{formatDate(selectedSession.attendance_date)}</span><span>{selectedSession.teaching_room || 'Chưa ghi phòng'}</span></div></div>
                   <div className="ahv3__hero-art" aria-hidden="true"><span className="is-leaf is-leaf-1" /><span className="is-leaf is-leaf-2" /><span className="is-book is-book-1" /><span className="is-book is-book-2" /><span className="is-book is-book-3" /></div>
-                  <div className="ahv3__actions">{canAccessAttendanceView('report') ? <button type="button" className="ahv3__report-button" onClick={() => { if (selectedSession.attendance_date) setReportMonth(selectedSession.attendance_date.slice(0, 7)); setView('report'); }}>Xem báo cáo tháng</button> : null}{canAccessAttendanceView('quick') ? <button type="button" className="ahv3__delete-button" disabled={busy} onClick={() => deleteAttendanceSession(selectedSession)}><Icon name="trash" size={17} />Xóa buổi điểm danh</button> : null}</div>
+                  <div className="ahv3__actions">{canAccessAttendanceView('report') ? <button type="button" className="ahv3__report-button" onClick={() => { if (selectedSession.attendance_date) setReportMonth(selectedSession.attendance_date.slice(0, 7)); setView('report'); }}>Xem báo cáo tháng</button> : null}{canDeleteAttendanceHistory ? <button type="button" className="ahv3__delete-button" disabled={busy} onClick={() => deleteAttendanceSession(selectedSession)}><Icon name="trash" size={17} />Xóa buổi điểm danh</button> : null}</div>
                 </div>
 
                 <h3 className="ahv3__section-title is-info"><span aria-hidden="true"><Icon name="calendar" size={14} /></span>Thông tin buổi học</h3>
