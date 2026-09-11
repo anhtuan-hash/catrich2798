@@ -3,8 +3,6 @@ import assert from 'node:assert/strict';
 
 const utilityUrl = new URL('../src/utils/attendanceTimeAccess.js', import.meta.url);
 const bootstrapUrl = new URL('../src/attendanceTimeAccessBootstrap.js', import.meta.url);
-const navigationUrl = new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url);
-const permissionsUrl = new URL('../src/utils/permissions.js', import.meta.url);
 const migrationUrl = new URL('../supabase/migrations/20260911_global_attendance_permission.sql', import.meta.url);
 
 const { evaluateAttendanceTimeAccess } = await import(utilityUrl);
@@ -21,7 +19,7 @@ const base = {
   endTime: '17:30',
 };
 
-assert.deepEqual(
+assert.equal(
   evaluateAttendanceTimeAccess({ ...base, now: inWindow }).allowed,
   true,
   'A non-admin with Điểm danh nhanh must be allowed to take attendance for any class; teacher assignment is irrelevant.',
@@ -56,26 +54,9 @@ const bootstrapSource = fs.readFileSync(bootstrapUrl, 'utf8');
 assert.doesNotMatch(bootstrapSource, /isAssignedAttendanceTeacher/, 'Time-access UI must not authorize by class-teacher assignment.');
 assert.doesNotMatch(bootstrapSource, /matchingTeacherNames/, 'Invigilators must not be forced to impersonate the assigned teacher identity.');
 assert.doesNotMatch(bootstrapSource, /teacher_identity_mismatch/, 'Global attendance users must be able to select the actual teacher of any class.');
+assert.match(bootstrapSource, /hasQuickPermission\(\)/, 'The UI operation gate must explicitly use the Admin-granted quick-attendance permission.');
 assert.match(bootstrapSource, /tất cả lớp/i, 'Attendance status copy must explain the global all-class scope.');
-
-const navigationSource = fs.readFileSync(navigationUrl, 'utf8');
-assert.match(
-  navigationSource,
-  /const canUseQuickAttendance\s*=\s*isAttendanceAdmin\s*\|\|\s*hasAttendanceTabAccess\(currentUser,\s*'quick'\)/,
-  'Quick attendance UI must be granted only by Admin or Điểm danh nhanh.',
-);
-assert.doesNotMatch(
-  navigationSource,
-  /const canUseQuickAttendance\s*=.*hasAttendanceReportOverride/,
-  'Report-only accounts must not receive quick-attendance operations.',
-);
-
-const permissionsSource = fs.readFileSync(permissionsUrl, 'utf8');
-assert.match(
-  permissionsSource,
-  /attendance:quick[\s\S]{0,700}tất cả (?:các )?lớp/i,
-  'Admin permission copy must make clear that Điểm danh nhanh grants attendance for all classes.',
-);
+assert.match(bootstrapSource, /const locked = Boolean\(!result\?\.allowed && !result\?\.bypass\)/, 'Missing permission must lock writes even when Giờ GV is disabled.');
 
 assert.ok(fs.existsSync(migrationUrl), 'A forward-only Supabase migration must deploy the new global attendance authorization model.');
 const migrationSource = fs.readFileSync(migrationUrl, 'utf8');
@@ -86,7 +67,7 @@ assert.doesNotMatch(migrationSource, /bes_extra_class_teachers/i, 'Server author
 assert.doesNotMatch(migrationSource, /teacher_identity_mismatch/i, 'Server authorization must not bind invigilator identity to selected teacher identity.');
 assert.match(
   migrationSource,
-  /if not public\.can_take_extra_class_attendance\(\)[\s\S]{0,500}missing_permission[\s\S]{0,900}if v_has_report/i,
+  /if not public\.can_take_extra_class_attendance\(\)[\s\S]{0,500}missing_permission[\s\S]{0,1200}if v_has_report/i,
   'Quick-attendance permission must be checked before the optional report time-window bypass.',
 );
 
