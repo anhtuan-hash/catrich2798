@@ -31,7 +31,13 @@ assert.match(bindTabs, /detected\s*!==\s*observerActiveTab|observerActiveTab\s*!
 
 const refreshPanel = source.match(/async function refreshPanel\([^)]*\)\s*\{([\s\S]*?)\n\}\n\nfunction bindTabs\(\)/)?.[1] || '';
 assert.ok(refreshPanel, 'must expose refreshPanel implementation');
-assert.match(refreshPanel, /if\s*\(filter\s*===\s*['"]all['"]\)\s*\{[\s\S]{0,160}closePanel\(\);[\s\S]{0,120}return;/, 'Tất cả must keep the native History/Report workspace as the single primary surface instead of appending a second full panel');
-assert.doesNotMatch(refreshPanel, /filter\s*===\s*['"]all['"][\s\S]{0,500}renderPanel\(/, 'Tất cả must not stack a supplemental full report below the native History/Report UI');
+const allModeStart = refreshPanel.indexOf("if (filter === 'all') {");
+const allModeEnd = refreshPanel.indexOf('const current = ++token;', allModeStart);
+assert.ok(allModeStart >= 0 && allModeEnd > allModeStart, 'must expose a bounded Tất cả mode before filtered rendering begins');
+const allMode = refreshPanel.slice(allModeStart, allModeEnd);
+assert.match(allMode, /closePanel\(\)/, 'Tất cả must close any supplemental exclusive panel');
+assert.match(allMode, /return;/, 'Tất cả must return before supplemental filtered rendering');
+assert.doesNotMatch(allMode, /renderPanel\(/, 'Tất cả must not stack a supplemental full panel below the native History/Report UI');
+assert.doesNotMatch(allMode, /loadSupplementalHistory|loadSupplementalStudentReport/, 'Tất cả must not load a second supplemental report surface');
 
 console.log('supplemental learning reporting contract: ok');
