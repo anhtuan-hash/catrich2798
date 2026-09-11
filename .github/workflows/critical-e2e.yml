@@ -40,11 +40,38 @@ jobs:
       - name: Verify global attendance operator permission contract
         run: node scripts/test-global-attendance-operator-permission.mjs
 
+      - name: Verify supplemental learning database contract
+        run: node scripts/test-supplemental-learning-database-contract.mjs
+
+      - name: Verify supplemental legacy late-status compatibility
+        run: node scripts/test-supplemental-learning-legacy-status-contract.mjs
+
+      - name: Verify supplemental activity adapter contract
+        run: node scripts/test-supplemental-learning-activity-contract.mjs
+
+      - name: Verify supplemental Admin UI contract
+        run: node scripts/test-supplemental-learning-admin-ui-contract.mjs
+
+      - name: Verify supplemental quick-attendance contract
+        run: node scripts/test-supplemental-learning-quick-attendance-contract.mjs
+
+      - name: Verify supplemental history/report contract
+        run: node scripts/test-supplemental-learning-reporting-contract.mjs
+
+      - name: Verify supplemental route bootstrap contract
+        run: node scripts/test-supplemental-learning-route-bootstrap-contract.mjs
+
       - name: Run Chromium critical browser smoke
         run: npx playwright test tests/e2e/critical-smoke.spec.js --project=chromium-desktop
 
       - name: Run WebKit critical browser smoke
         run: npx playwright test tests/e2e/critical-smoke.spec.js --project=webkit-desktop
+
+      - name: Verify supplemental attendance in Chromium
+        run: npx playwright test tests/e2e/supplemental-learning-attendance.spec.js --project=chromium-desktop
+
+      - name: Verify supplemental attendance in WebKit
+        run: npx playwright test tests/e2e/supplemental-learning-attendance.spec.js --project=webkit-desktop
 
       - name: Verify Attendance History V3 production cascade in Chromium
         run: npx playwright test tests/e2e/attendance-history-production-layout.spec.js --project=chromium-desktop
