@@ -23,6 +23,11 @@ assert.equal(
   'Admin-granted attendance permission must allow attendance operation inside the configured window',
 );
 assert.equal(
+  evaluateAttendanceTimeAccess({ ...base, isAssigned: false }).allowed,
+  true,
+  'Teaching assignment must be irrelevant once Admin grants global attendance permission',
+);
+assert.equal(
   evaluateAttendanceTimeAccess({ ...base, hasQuickPermission: false, isAssigned: true }).reason,
   'missing_permission',
   'A teaching assignment must never grant attendance write access by itself',
@@ -33,6 +38,9 @@ assert.equal(
   'Attendance operators must still obey the Admin-configured teacher-time window',
 );
 assert.match(attendanceAccessReasonVi({ allowed: false, reason: 'missing_permission' }), /Admin.*quyền điểm danh/i);
+
+const utilitySource = fs.readFileSync(utilityUrl, 'utf8');
+assert.doesNotMatch(utilitySource, /\bisAssigned\b|reason:\s*'unassigned'|case\s+'unassigned'/, 'Shared access evaluator must not retain class-assignment authorization semantics');
 
 const bootstrapSource = fs.readFileSync(bootstrapUrl, 'utf8');
 assert.doesNotMatch(bootstrapSource, /isAssignedAttendanceTeacher/, 'Frontend access must not depend on teaching assignment');
