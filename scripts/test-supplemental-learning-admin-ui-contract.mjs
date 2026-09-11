@@ -2,7 +2,10 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const source = await readFile(new URL('../src/supplementalLearningBootstrap.js', import.meta.url), 'utf8');
-const css = await readFile(new URL('../src/styles/SupplementalLearning.css', import.meta.url), 'utf8');
+const css = [
+  await readFile(new URL('../src/styles/SupplementalLearning.css', import.meta.url), 'utf8'),
+  await readFile(new URL('../src/styles/SupplementalLearningAdminCompleteness.css', import.meta.url), 'utf8'),
+].join('\n');
 
 assert.match(source, /SYSTEM_ROLES\.ADMIN/, 'supplemental management must be Admin-only');
 for (const label of [
