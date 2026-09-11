@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+const source=await readFile(new URL('../src/supplementalLearningRouteBootstrap.js',import.meta.url),'utf8');
+const html=await readFile(new URL('../index.html',import.meta.url),'utf8');
+assert.match(html,/src="\/src\/supplementalLearningRouteBootstrap\.js"/,'index must install the supplemental route bootstrap');
+assert.match(source,/attendance\|diem-danh/i,'bootstrap must recognize Attendance route');
+for(const module of ['./supplementalLearningBootstrap.js','./supplementalAttendanceQuickBootstrap.js','./supplementalAttendanceReportingBootstrap.js'])assert.ok(source.includes(module),`missing lazy route module ${module}`);
+assert.match(source,/Promise\.all/,'route modules should load together only when Attendance is active');
+assert.match(source,/MutationObserver/,'bootstrap must recover when Attendance DOM mounts after route resolution');
+console.log('supplemental learning route bootstrap contract: ok');
