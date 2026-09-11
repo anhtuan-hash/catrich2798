@@ -52,6 +52,12 @@ jobs:
       - name: Verify Attendance History V3 production cascade in WebKit
         run: npx playwright test tests/e2e/attendance-history-production-layout.spec.js --project=webkit-desktop
 
+      - name: Reproduce Attendance History late-flow overlap in Chromium
+        run: npx playwright test tests/e2e/attendance-history-late-flow.spec.js --project=chromium-desktop
+
+      - name: Reproduce Attendance History late-flow overlap in WebKit
+        run: npx playwright test tests/e2e/attendance-history-late-flow.spec.js --project=webkit-desktop
+
       - name: Verify Giờ GV tab parity in Chromium
         run: npx playwright test tests/e2e/attendance-teacher-time-tab-parity.spec.js --project=chromium-desktop
 
