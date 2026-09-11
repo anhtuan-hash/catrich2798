@@ -47,8 +47,8 @@ export const ATTENDANCE_PERMISSION_ITEMS = [
     section: 'attendance',
     title: 'Quick attendance',
     titleVi: 'Điểm danh nhanh',
-    desc: 'Take attendance, cancel a class session, and reopen a locked attendance day.',
-    descVi: 'Điểm danh, hủy buổi học và xóa buổi điểm danh đã chốt để mở lại ngày.',
+    desc: 'Take attendance and cancel a class session.',
+    descVi: 'Điểm danh và hủy buổi học.',
   },
   {
     id: ATTENDANCE_PERMISSION_IDS.calendar,

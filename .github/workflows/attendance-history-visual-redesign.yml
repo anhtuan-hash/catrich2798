@@ -29,3 +29,5 @@ jobs:
         run: node scripts/test-attendance-history-functional-guard.mjs
       - name: Verify attendance history date filter and sorting
         run: node scripts/test-attendance-history-date-filter.mjs
+      - name: Verify attendance history delete authorization
+        run: node scripts/test-attendance-history-delete-authorization.mjs
