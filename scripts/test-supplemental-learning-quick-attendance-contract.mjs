@@ -22,4 +22,12 @@ assert.equal(mountSelector,'[data-bes-supplemental-daily-scroll-root]','suppleme
 assert.ok(dailyScheduleSource.includes('data-bes-supplemental-daily-scroll-root="true"'),'native Attendance daily schedule must expose an always-present supplemental scroll mount');
 assert.match(dailyScheduleSource,/className="attendance-daily-overview__list"\s+data-bes-supplemental-daily-scroll-root="true"/,'supplemental mount must be the existing scrollable attendance list');
 assert.doesNotMatch(source,/const DAILY_ROOT='\.attendance-daily-overview-host'/,'fixed-height host must never be used as the supplemental card mount');
+
+// Opening a supplemental card must reuse the already-open Attendance modal.
+assert.match(source,/mountSupplementalWorkspace/, 'rollcall must use the shared embedded Attendance workspace');
+assert.doesNotMatch(source,/document\.body\.append\(host\)/, 'rollcall must not append a new popup to document.body');
+assert.doesNotMatch(source,/bes-supplemental-backdrop/, 'rollcall must not render another backdrop');
+assert.doesNotMatch(source,/role="dialog"|aria-modal="true"/, 'rollcall must not declare a nested modal');
+assert.match(source,/bes-supplemental-rollcall-workspace/, 'rollcall needs an embedded workspace class');
+
 console.log('supplemental learning quick attendance contract: ok');
