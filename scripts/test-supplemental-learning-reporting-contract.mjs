@@ -25,4 +25,9 @@ assert.match(source, /presentCount|present_count/, 'filtered activity reports mu
 assert.match(source, /absentCount|absent_count/, 'filtered activity reports must expose absent counts');
 assert.match(source, /tardyCount|tardy_count/, 'filtered activity reports must expose tardy counts');
 
+const bindTabs = source.match(/function bindTabs\(\)\s*\{([\s\S]*?)\n\}\n\nfunction start\(\)/)?.[1] || '';
+assert.ok(bindTabs, 'must expose bindTabs implementation for the reporting bootstrap');
+assert.doesNotMatch(bindTabs, /if\s*\(detected\)\s*ensureFilter\(\)/, 'MutationObserver must not unconditionally rewrite the reporting filter on every DOM mutation');
+assert.match(bindTabs, /detected\s*!==\s*observerActiveTab|observerActiveTab\s*!==\s*detected/, 'observer-driven tab detection must only render when the active History/Report tab actually changes');
+
 console.log('supplemental learning reporting contract: ok');

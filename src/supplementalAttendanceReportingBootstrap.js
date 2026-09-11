@@ -10,6 +10,7 @@ const TAB_SELECTOR = '.attendance-tabs button';
 let client = null;
 let runtime = null;
 let observer = null;
+let observerActiveTab = '';
 let activeTab = '';
 let filter = 'all';
 let query = '';
@@ -62,7 +63,7 @@ function activityLabel(type) {
 }
 
 function statusLabel(value) {
-  return ({ confirmed: 'Đã chốt', completed: 'Đã chốt', cancelled: 'Đã hủy', scheduled: 'Chưa điểm danh', in_progress: 'Đang điểm danh', present: 'Có mặt', absent: 'Vắng', tardy: 'Đi trễ' })[value] || value || '';
+  return ({ confirmed: 'Đã chốt', completed: 'Đã chốt', cancelled: 'Đã hủy', scheduled: 'Chưa điểm danh', in_progress: 'Đang điểm danh', present: 'Có mặt', absent: 'Vắng', tardy: 'Đi trễ', late: 'Đi trễ' })[value] || value || '';
 }
 
 function legacyHistoryTypeSelect() {
@@ -287,6 +288,7 @@ function bindTabs() {
     button.addEventListener('click', () => {
       const next = tabKind(button);
       activeTab = next;
+      observerActiveTab = next;
       if (!next) {
         document.getElementById(FILTER_ID)?.remove();
         closePanel();
@@ -300,8 +302,15 @@ function bindTabs() {
       setTimeout(() => ensureFilter(), 0);
     });
   });
-  const detected = detectActiveTab();
-  if (detected) ensureFilter();
+
+  const detected = tabKind(activeButton());
+  if (detected && detected !== observerActiveTab) {
+    activeTab = detected;
+    observerActiveTab = detected;
+    ensureFilter();
+  } else if (!detected) {
+    observerActiveTab = '';
+  }
 }
 
 function start() {
