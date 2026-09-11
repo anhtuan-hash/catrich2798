@@ -44,8 +44,14 @@ assert.match(
 
 assert.match(
   source,
-  /canDeleteAttendanceHistory\s*\?\s*<button[^>]*className="ahv3__delete-button"/,
-  'Single-session delete must only be offered to authorized deleters.',
+  /canDeleteAttendanceHistory\s*&&\s*!isSupplementalHistorySession\(selectedSession\)\s*\?\s*<button[^>]*className="ahv3__delete-button"/,
+  'Single-session delete must require delete authorization and exclude supplemental history rows.',
+);
+
+assert.match(
+  source,
+  /if\s*\(!session\s*\|\|[\s\S]*!canDeleteAttendanceHistory\s*\|\|\s*isSupplementalHistorySession\(session\)\)\s*return;/,
+  'Delete handler must refuse supplemental sessions even if invoked outside the normal button flow.',
 );
 
 assert.doesNotMatch(
