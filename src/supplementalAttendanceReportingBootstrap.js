@@ -87,7 +87,7 @@ function legacyHistoryTypeSelect() {
 }
 
 function syncLegacyHistoryFilter(activityType) {
-  const mapped = activityType === 'enrichment' ? 'gifted' : activityType === 'remedial' ? 'remedial' : 'all';
+  const mapped = activityType === 'enrichment' ? 'gifted' : activityType === 'remedial' ? 'remedial' : activityType === 'supplemental' ? 'supplemental' : 'all';
   const select = legacyHistoryTypeSelect();
   if (!select || select.value === mapped) return;
   const setter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement?.prototype || {}, 'value')?.set;
@@ -275,15 +275,8 @@ async function refreshPanel(force = false) {
   try {
     if (activeTab === 'history') {
       syncLegacyHistoryFilter(filter);
-      if (filter === 'supplemental') {
-        const rows = await loadSupplementalHistory(client, { from: dateFrom, to: dateTo }, query);
-        if (current !== token) return;
-        renderPanel(historyHtml(rows), 'Lịch sử Học bổ sung');
-      } else {
-        const rows = await loadAttendanceActivities(client, { from: dateFrom, to: dateTo }, filter);
-        if (current !== token) return;
-        renderPanel(unifiedHistoryHtml(rows), `Lịch sử ${activityLabel(filter)}`);
-      }
+      closePanel();
+      return;
     } else if (activeTab === 'report') {
       if (filter === 'supplemental') {
         const rows = await loadSupplementalStudentReport(client, { from: dateFrom, to: dateTo });

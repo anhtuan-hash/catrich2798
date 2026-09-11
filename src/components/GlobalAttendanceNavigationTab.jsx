@@ -37,6 +37,7 @@ import AttendanceClassManagementWorkspace from './attendance/AttendanceClassMana
 import AttendanceDailySchedule from './attendance/AttendanceDailySchedule.jsx';
 import { ATTENDANCE_PROOF_BUCKET, buildAttendanceProofPath, prepareAttendanceProofImage } from '../utils/attendanceProofImage.js';
 import { filterAndSortAttendanceHistory } from '../utils/attendanceHistoryFilters.js';
+import { canManageSupplementalLearning } from '../supplementalAccess.js';
 import './attendance/AttendanceMaterial3.css';
 import './attendance/AttendanceHistoryV2.css';
 
@@ -113,6 +114,65 @@ function sameClassIdentity(row, group) {
     && fold(row?.subject) === fold(group?.subject);
 }
 
+function isSupplementalHistorySession(session) {
+  return session?.attendance_source === 'supplemental' || session?.class_type === 'supplemental';
+}
+
+function historyClassTypeLabel(session) {
+  return isSupplementalHistorySession(session) ? 'Học bổ sung' : extraClassTypeLabel(session?.class_type);
+}
+
+function normalizeSupplementalHistorySessions(rows = []) {
+  return (Array.isArray(rows) ? rows : []).map((row) => {
+    const sourceId = String(row?.id || '');
+    const participants = Array.isArray(row?.participants) ? row.participants : [];
+    const tardyCount = Number(row?.tardyCount || 0);
+    const presentCount = Number(row?.presentCount || 0);
+    return {
+      id: 'supplemental:' + sourceId,
+      class_id: row?.groupId ? 'supplemental-group:' + row.groupId : '',
+      class_type: 'supplemental',
+      class_name: row?.groupName || row?.title || 'Học bổ sung',
+      subject: row?.subject || '',
+      teacher_id: null,
+      teacher_name: row?.teacherName || '',
+      teacher_email: '',
+      attendance_date: row?.date || '',
+      checked_at: row?.attendanceConfirmedAt || null,
+      checked_by: null,
+      checked_by_name: row?.checkedByName || '',
+      total_students: Number(row?.totalStudents || participants.length || 0),
+      present_count: presentCount + tardyCount,
+      absent_count: Number(row?.absentCount || 0),
+      tardy_count: tardyCount,
+      note: row?.sessionNote || '',
+      session_status: row?.status === 'cancelled' ? 'cancelled' : 'completed',
+      lesson_periods: null,
+      cancellation_reason: row?.cancellationReason || '',
+      teaching_room: row?.room || '',
+      teaching_time_range: row?.timeRange || '',
+      proof_path: row?.proofPath || '',
+      created_at: null,
+      attendance_source: 'supplemental',
+      supplemental_session_id: sourceId,
+      history_records: participants.map((participant, index) => ({
+        id: 'supplemental-record:' + sourceId + ':' + (participant?.studentId || index),
+        session_id: 'supplemental:' + sourceId,
+        class_id: row?.groupId ? 'supplemental-group:' + row.groupId : '',
+        member_id: participant?.studentId || null,
+        member_key: participant?.canonicalStudentKey || '',
+        student_code: participant?.studentCode || '',
+        student_full_name: participant?.fullName || '',
+        school_class_name: participant?.schoolClassName || '',
+        status: participant?.status === 'tardy' ? ATTENDANCE_STATUS.LATE : normalizeAttendanceStatus(participant?.status, participant?.status !== 'absent'),
+        recorded_at: null,
+        absence_reason_code: participant?.absenceReasonCode || '',
+        absence_note: participant?.absenceNote || '',
+      })),
+    };
+  });
+}
+
 export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const runtime = useRuntimeCore();
   const client = getRuntimeClient();
@@ -124,6 +184,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const [members, setMembers] = useState([]);
   const [classTeachers, setClassTeachers] = useState([]);
   const [sessions, setSessions] = useState([]);
+  const [supplementalHistorySessions, setSupplementalHistorySessions] = useState([]);
   const [records, setRecords] = useState([]);
   const [calendarSessions, setCalendarSessions] = useState([]);
   const [teacherDaySessions, setTeacherDaySessions] = useState([]);
@@ -179,6 +240,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const availableAttendanceTabs = ATTENDANCE_PERMISSION_ITEMS.filter((item) => item.tab === 'quick' ? canUseQuickAttendance : canAccessAttendanceView(item.tab));
   const firstAllowedView = canUseQuickAttendance ? 'quick' : getFirstAllowedAttendanceTab(currentUser);
   const allowed = Boolean(currentUser?.id && (isAttendanceAdmin || hasAnyAttendanceAccess(currentUser)));
+  const canSeeSupplementalHistory = canManageSupplementalLearning(runtime);
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
@@ -206,19 +268,24 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     setLoading(true);
     setError('');
     try {
-      const [classResult, memberResult, classTeacherResult, sessionResult] = await Promise.all([
+      const supplementalHistoryPromise = canSeeSupplementalHistory && canAccessAttendanceView('history')
+        ? client.rpc('bes_list_supplemental_history', { p_from: '2000-01-01', p_to: today, p_query: '' })
+        : Promise.resolve({ data: [], error: null });
+      const [classResult, memberResult, classTeacherResult, sessionResult, supplementalHistoryResult] = await Promise.all([
         client.from('bes_extra_classes').select(CLASS_COLUMNS).order('class_name', { ascending: true }),
         client.from('bes_extra_class_members').select(MEMBER_COLUMNS).order('student_full_name', { ascending: true }),
         client.from('bes_extra_class_teachers').select(CLASS_TEACHER_COLUMNS).order('position', { ascending: true }),
         client.from('bes_extra_attendance_sessions').select(SESSION_COLUMNS).order('checked_at', { ascending: false }).limit(400),
+        supplementalHistoryPromise,
       ]);
-      const firstError = classResult.error || memberResult.error || classTeacherResult.error || sessionResult.error;
+      const firstError = classResult.error || memberResult.error || classTeacherResult.error || sessionResult.error || supplementalHistoryResult.error;
       if (firstError) throw firstError;
       const nextClasses = classResult.data || [];
       setClasses(nextClasses);
       setMembers(memberResult.data || []);
       setClassTeachers(classTeacherResult.data || []);
       setSessions(sessionResult.data || []);
+      setSupplementalHistorySessions(normalizeSupplementalHistorySessions(supplementalHistoryResult.data || []));
       if (!keepSelection || !nextClasses.some((row) => String(row.id) === String(selectedClassId))) {
         setSelectedClassId(nextClasses.find((row) => row.active)?.id || '');
       }
@@ -855,17 +922,28 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     finally { setBusy(false); }
   }
 
+  function loadSupplementalSessionRecords(session) {
+    if (!session || !isSupplementalHistorySession(session)) return;
+    setSelectedSessionId(session.id);
+    setError('');
+    setRecords(Array.isArray(session.history_records) ? session.history_records : []);
+  }
+
   async function loadSessionRecords(sessionId) {
     if (!client || !sessionId) return;
+    const supplementalSession = supplementalHistorySessions.find((session) => String(session.id) === String(sessionId));
+    if (supplementalSession) {
+      loadSupplementalSessionRecords(supplementalSession);
+      return;
+    }
     setSelectedSessionId(sessionId);
     setError('');
     const { data, error: recordError } = await client.from('bes_extra_attendance_records').select(RECORD_COLUMNS).eq('session_id', sessionId).order('student_full_name', { ascending: true });
     if (recordError) setError(recordError.message);
     else setRecords(data || []);
   }
-
   async function deleteAttendanceSession(session) {
-    if (!session || busy || !client || !canDeleteAttendanceHistory) return;
+    if (!session || busy || !client || !canDeleteAttendanceHistory || isSupplementalHistorySession(session)) return;
     const confirmed = window.confirm(`Xóa buổi điểm danh đã duyệt của lớp “${session.class_name}” ngày ${formatDate(session.attendance_date)} lúc ${formatDateTime(session.checked_at)}?\n\nNgày này sẽ được mở khóa để có thể điểm danh lại. Không thể hoàn tác.`);
     if (!confirmed) return;
     setBusy(true); setError(''); setNotice('');
@@ -893,6 +971,8 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   }
 
   function toggleHistoryBulkSelection(sessionId) {
+    const target = [...sessions, ...supplementalHistorySessions].find((session) => String(session.id) === String(sessionId));
+    if (isSupplementalHistorySession(target)) return;
     const key = String(sessionId);
     setSelectedHistorySessionIds((current) => (
       current.some((id) => String(id) === key)
@@ -902,7 +982,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   }
 
   function toggleAllFilteredHistorySelection() {
-    const filteredIds = filteredHistory.map((session) => session.id);
+    const filteredIds = filteredHistory.filter((session) => !isSupplementalHistorySession(session)).map((session) => session.id);
     if (!filteredIds.length) return;
     const filteredIdSet = new Set(filteredIds.map((id) => String(id)));
     setSelectedHistorySessionIds((current) => {
@@ -956,14 +1036,15 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     }
   }
 
-  const filteredHistory = useMemo(() => filterAndSortAttendanceHistory(sessions, {
+  const combinedHistorySessions = useMemo(() => [...sessions, ...supplementalHistorySessions], [sessions, supplementalHistorySessions]);
+  const filteredHistory = useMemo(() => filterAndSortAttendanceHistory(combinedHistorySessions, {
     query: historyQuery,
     type: historyType,
     dateFrom: historyDateFrom,
     dateTo: historyDateTo,
     sort: historySort,
     getTeacher: teacherForSession,
-  }), [sessions, historyQuery, historyType, historyDateFrom, historyDateTo, historySort, classTeachers]);
+  }), [combinedHistorySessions, historyQuery, historyType, historyDateFrom, historyDateTo, historySort, classTeachers]);
 
   const selectedHistorySessionIdSet = useMemo(() => new Set(selectedHistorySessionIds.map((id) => String(id))), [selectedHistorySessionIds]);
   const allFilteredHistorySelected = filteredHistory.length > 0 && filteredHistory.every((session) => selectedHistorySessionIdSet.has(String(session.id)));
@@ -975,7 +1056,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     return fold(`${member.student_full_name} ${member.student_code} ${member.school_class_name}`).includes(fold(memberQuery));
   }), [allSelectedMembers, memberQuery]);
 
-  const selectedSession = sessions.find((session) => String(session.id) === String(selectedSessionId)) || calendarSessions.find((session) => String(session.id) === String(selectedSessionId));
+  const selectedSession = combinedHistorySessions.find((session) => String(session.id) === String(selectedSessionId)) || calendarSessions.find((session) => String(session.id) === String(selectedSessionId));
 
   useEffect(() => {
     let cancelled = false;
@@ -1162,7 +1243,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                   <div className="ahv3__list-title"><div><strong>Lịch sử điểm danh</strong><p>Tra cứu các buổi đã chốt và buổi đã hủy.</p></div><div className="ahv3__list-actions"><span>{filteredHistory.length} buổi</span>{canDeleteAttendanceHistory ? <button type="button" className={historySelectionMode ? 'is-active' : ''} disabled={busy} onClick={toggleHistorySelectionMode}>{historySelectionMode ? 'Thoát chọn' : 'Chọn nhiều'}</button> : null}</div></div>
                   <label className="ahv3__search" data-bes-keep-search="true"><Icon name="history" size={16} /><input value={historyQuery} onChange={(event) => setHistoryQuery(event.target.value)} placeholder="Tìm theo tên lớp, môn học, giáo viên hoặc ngày…" /></label>
                   <div className="ahv3__filters">
-                    <label><span>Loại lớp</span><select value={historyType} onChange={(event) => setHistoryType(event.target.value)}><option value="all">Tất cả loại lớp</option><option value="remedial">Phụ đạo</option><option value="gifted">Bồi dưỡng HSG</option></select></label>
+                    <label><span>Loại lớp</span><select value={historyType} onChange={(event) => setHistoryType(event.target.value)}><option value="all">Tất cả loại lớp</option><option value="remedial">Phụ đạo</option><option value="gifted">Bồi dưỡng HSG</option>{canSeeSupplementalHistory ? <option value="supplemental">Học bổ sung</option> : null}</select></label>
                     <label><span>Sắp xếp theo ngày</span><select value={historySort} onChange={(event) => setHistorySort(event.target.value)}><option value="desc">Mới nhất → cũ nhất</option><option value="asc">Cũ nhất → mới nhất</option></select></label>
                   </div>
                   <div className="ahv3__date-filters" data-bes-keep-search="true">
@@ -1182,7 +1263,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                     {historySelectionMode ? <span className={`ahv3__select-box ${isBulkSelected ? 'is-checked' : ''}`} aria-hidden="true">{isBulkSelected ? <Icon name="check" size={14} /> : null}</span> : null}
                     <span className="ahv3__number">{historyIndex + 1}</span>
                     <span className={`attendance-type-dot is-${session.class_type}`} />
-                    <div className="ahv3__card-copy"><div className="ahv3__card-title"><b>{session.class_name}</b><span className={`ahv3__type is-${session.class_type}`}>{extraClassTypeLabel(session.class_type)}</span></div><small>{session.subject || 'Chưa ghi môn'} · {teacherForSession(session)}</small><time>{formatDate(session.attendance_date)} · {session.teaching_time_range || 'Chưa ghi giờ'} · {session.teaching_room || 'Chưa ghi phòng'}</time></div>
+                    <div className="ahv3__card-copy"><div className="ahv3__card-title"><b>{session.class_name}</b><span className={`ahv3__type is-${session.class_type}`}>{historyClassTypeLabel(session)}</span></div><small>{session.subject || 'Chưa ghi môn'} · {teacherForSession(session)}</small><time>{formatDate(session.attendance_date)} · {session.teaching_time_range || 'Chưa ghi giờ'} · {session.teaching_room || 'Chưa ghi phòng'}</time></div>
                     <span className="ahv3__count"><b>{session.session_status === 'cancelled' ? 'Đã hủy' : `${session.present_count}/${session.total_students}`}</b><em>{session.session_status === 'cancelled' ? '0 tiết' : `${session.absent_count} vắng`}</em>{rate !== null ? <i>{rate}%</i> : null}</span>
                   </button>;
                 })}{!filteredHistory.length ? <div className="attendance-empty">Chưa có buổi điểm danh phù hợp.</div> : null}</div>
@@ -1190,9 +1271,9 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
 
               <section className="ahv3__detail">{historySelectionMode ? <div className="ahv3__bulk-detail"><span><Icon name="trash" size={28} /></span><h2>Chọn nhiều buổi điểm danh</h2><p>Chọn các buổi ở danh sách bên trái, sau đó dùng nút xóa để xử lý một lần.</p><b>{selectedHistorySessionIds.length} buổi đã chọn</b></div> : selectedSession ? <>
                 <div className="ahv3__hero">
-                  <div className="ahv3__hero-copy"><span className={`att-m3-status-chip is-${selectedSession.session_status === 'cancelled' ? 'cancelled' : 'completed'}`}>{selectedSession.session_status === 'cancelled' ? 'Đã hủy' : 'Đã điểm danh'}</span><h2>{selectedSession.class_name}</h2><div className="ahv3__hero-chips"><span className={`ahv3__type is-${selectedSession.class_type}`}>{extraClassTypeLabel(selectedSession.class_type)}</span><span className="att-m3-period-chip">{selectedSession.session_status === 'cancelled' ? '0 tiết' : `${String(selectedSession.lesson_periods || 1).replace('.', ',')} tiết`}</span><span>{formatDate(selectedSession.attendance_date)}</span><span>{selectedSession.teaching_room || 'Chưa ghi phòng'}</span></div></div>
+                  <div className="ahv3__hero-copy"><span className={`att-m3-status-chip is-${selectedSession.session_status === 'cancelled' ? 'cancelled' : 'completed'}`}>{selectedSession.session_status === 'cancelled' ? 'Đã hủy' : 'Đã điểm danh'}</span><h2>{selectedSession.class_name}</h2><div className="ahv3__hero-chips"><span className={`ahv3__type is-${selectedSession.class_type}`}>{historyClassTypeLabel(selectedSession)}</span><span className="att-m3-period-chip">{selectedSession.session_status === 'cancelled' ? '0 tiết' : `${String(selectedSession.lesson_periods || 1).replace('.', ',')} tiết`}</span><span>{formatDate(selectedSession.attendance_date)}</span><span>{selectedSession.teaching_room || 'Chưa ghi phòng'}</span></div></div>
                   <div className="ahv3__hero-art" aria-hidden="true"><span className="is-leaf is-leaf-1" /><span className="is-leaf is-leaf-2" /><span className="is-book is-book-1" /><span className="is-book is-book-2" /><span className="is-book is-book-3" /></div>
-                  <div className="ahv3__actions">{canAccessAttendanceView('report') ? <button type="button" className="ahv3__report-button" onClick={() => { if (selectedSession.attendance_date) setReportMonth(selectedSession.attendance_date.slice(0, 7)); setView('report'); }}>Xem báo cáo tháng</button> : null}{canDeleteAttendanceHistory ? <button type="button" className="ahv3__delete-button" disabled={busy} onClick={() => deleteAttendanceSession(selectedSession)}><Icon name="trash" size={17} />Xóa buổi điểm danh</button> : null}</div>
+                  <div className="ahv3__actions">{canAccessAttendanceView('report') && !isSupplementalHistorySession(selectedSession) ? <button type="button" className="ahv3__report-button" onClick={() => { if (selectedSession.attendance_date) setReportMonth(selectedSession.attendance_date.slice(0, 7)); setView('report'); }}>Xem báo cáo tháng</button> : null}{canDeleteAttendanceHistory && !isSupplementalHistorySession(selectedSession) ? <button type="button" className="ahv3__delete-button" disabled={busy} onClick={() => deleteAttendanceSession(selectedSession)}><Icon name="trash" size={17} />Xóa buổi điểm danh</button> : null}</div>
                 </div>
 
                 <h3 className="ahv3__section-title is-info"><span aria-hidden="true"><Icon name="calendar" size={14} /></span>Thông tin buổi học</h3>
