@@ -19,6 +19,11 @@ assert.match(shell, /\[\[1,'1 tiết'\],\[1\.5,'1,5 tiết'\],\[2,'2 tiết'\]\]
 assert.match(shell, /Giáo viên dạy hôm nay/, 'The shared native rollcall must retain the teacher selector.');
 assert.match(shell, /Phòng học/, 'The shared native rollcall must retain room editing.');
 assert.match(shell, /Thời gian dạy/, 'The shared native rollcall must retain teaching-time editing.');
+assert.match(
+  shell,
+  /if \(!client \|\| !allowed \|\| !canManageSupplementalLearning\(runtime\)\) return undefined;[\s\S]{0,500}openSupplementalRollcall/,
+  'The native supplemental rollcall listener must be installed only behind the dedicated supplemental access guard.',
+);
 
 assert.match(
   shell,
