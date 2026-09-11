@@ -44,3 +44,5 @@ jobs:
           git add src/components/GlobalAttendanceNavigationTab.jsx src/supplementalAttendanceReportingBootstrap.js
           git commit -m "Integrate supplemental sessions into native attendance history"
           git push origin HEAD:fix/unify-supplemental-attendance-history-20260911
+
+# Manual retrigger marker: 2026-09-11T17:54+07:00
