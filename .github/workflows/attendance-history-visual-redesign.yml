@@ -34,8 +34,8 @@ jobs:
           assert old_columns in jsx, 'SESSION_COLUMNS target not found'
           jsx = jsx.replace(old_columns, new_columns, 1)
 
-          old_actor = "<div><span>Người thao tác</span><strong>{selectedSession.checked_by || 'Không ghi nhận'}</strong></div>"
-          new_actor = "<div><span>Người thao tác</span><strong>{selectedSession.checked_by_name || selectedSession.checked_by || 'Không ghi nhận'}</strong></div>"
+          old_actor = "<div><span>Người thao tác</span><b>{selectedSession.checked_by || 'Không ghi nhận'}</b></div>"
+          new_actor = "<div><span>Người thao tác</span><b>{selectedSession.checked_by_name || selectedSession.checked_by || 'Không ghi nhận'}</b></div>"
           assert old_actor in jsx, 'audit actor target not found'
           jsx = jsx.replace(old_actor, new_actor, 1)
 
