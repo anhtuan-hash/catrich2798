@@ -4,8 +4,10 @@ const source=await readFile(new URL('../src/supplementalAttendanceQuickBootstrap
 const bridge=await readFile(new URL('../src/supplementalSingleModalBridge.js',import.meta.url),'utf8');
 const css=await readFile(new URL('../src/styles/SupplementalSingleModal.css',import.meta.url),'utf8');
 const dailyScheduleSource=await readFile(new URL('../src/components/attendance/AttendanceDailySchedule.jsx',import.meta.url),'utf8');
-for(const token of ['data-bes-attendance-source="supplemental"','data-bes-supplemental-session-id','HỌC BỔ SUNG','Nhóm dài ngày','Phát sinh'])assert.ok(source.includes(token),`missing quick-attendance marker ${token}`);
-for(const call of ['loadSupplementalAttendanceActivities','beginSupplementalAttendance','confirmSupplementalAttendance','attachSupplementalProof'])assert.ok(source.includes(call),`missing RPC client ${call}`);
+
+for(const call of ['beginSupplementalAttendance','confirmSupplementalAttendance','attachSupplementalProof'])assert.ok(source.includes(call),`missing RPC client ${call}`);
+assert.match(source,/bes-open-supplemental-attendance/,'native daily row must be able to launch the existing supplemental rollcall flow');
+assert.doesNotMatch(source,/renderSection|bes-supplemental-daily-section|bes-supplemental-daily-card/,'quick bootstrap must no longer render a second standalone daily-card section');
 assert.match(source,/attendance-session-proofs/,'proof uploads must use the existing attendance proof bucket');
 assert.match(source,/present.*tardy.*absent/s,'must expose all three attendance states');
 assert.doesNotMatch(source,/teacher.*===.*runtime|runtime.*===.*teacher/i,'operator identity must not be matched to the instructional teacher');
@@ -16,14 +18,7 @@ const uploadAt=source.indexOf(".from('attendance-session-proofs').upload");
 const attachAt=source.indexOf('attachSupplementalProof(client');
 assert.ok(confirmAt>=0&&uploadAt>confirmAt&&attachAt>uploadAt,'proof path must be attached only after confirmation and successful object upload');
 assert.match(source,/proofPath:''/,'confirmation must not persist a proof path before storage upload succeeds');
-assert.doesNotMatch(source,/if\(!force&&requestKey===key\)return;/,'same-day cache must not skip rendering when Attendance remounts a fresh daily root');
-assert.match(source,/if\(!force&&requestKey===key\)\{[^}]*root\.querySelector\(`\.\$\{SECTION_CLASS\}`\)[^}]*renderSection\(root\)[^}]*return;?\}/s,'cached supplemental activities must be re-rendered when the remounted daily root has no supplemental section');
-assert.doesNotMatch(source,/if\(!force&&requestKey===key\)\{renderSection\(root\);return;\}/,'cached refresh must still avoid a MutationObserver render loop');
-const mountSelector=source.match(/const DAILY_ROOT='([^']+)'/)?.[1]||'';
-assert.equal(mountSelector,'[data-bes-supplemental-daily-scroll-root]','supplemental attendance must mount inside the native scroll list, not as a third child of the fixed-height schedule host');
-assert.ok(dailyScheduleSource.includes('data-bes-supplemental-daily-scroll-root="true"'),'native Attendance daily schedule must expose an always-present supplemental scroll mount');
-assert.match(dailyScheduleSource,/className="attendance-daily-overview__list"\s+data-bes-supplemental-daily-scroll-root="true"/,'supplemental mount must be the existing scrollable attendance list');
-assert.doesNotMatch(source,/const DAILY_ROOT='\.attendance-daily-overview-host'/,'fixed-height host must never be used as the supplemental card mount');
+assert.match(dailyScheduleSource,/data-bes-attendance-source=["']supplemental["']/,'native Attendance daily schedule owns supplemental row rendering');
 
 for(const token of ['bes-supplemental-rollcall','bes-supplemental-rollcall-workspace','moveIntoAttendanceContent'])assert.ok(bridge.includes(token),`single-modal rollcall bridge missing ${token}`);
 assert.match(bridge,/normalizeRollcall\(\)[\s\S]*?querySelectorAll\('\.bes-supplemental-backdrop'\)[\s\S]*?\.remove\(\)/,'rollcall bridge must remove the second backdrop');
