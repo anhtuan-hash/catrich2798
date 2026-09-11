@@ -42,10 +42,6 @@ export function evaluateAttendanceTimeAccess({
   isAdmin = false,
   hasReportPermission = false,
   hasQuickPermission = false,
-  // Kept only for backwards-compatible unit contracts. The production runtime
-  // no longer derives this value from teaching assignments and therefore uses
-  // the default true value for every Admin-granted attendance operator.
-  isAssigned = true,
   startTime = '',
   endTime = '',
   now = new Date(),
@@ -54,7 +50,6 @@ export function evaluateAttendanceTimeAccess({
   if (hasReportPermission) return { allowed: true, reason: 'report_bypass', bypass: true };
   if (!hasQuickPermission) return { allowed: false, reason: 'missing_permission', bypass: false };
   if (!restrictionEnabled) return { allowed: true, reason: 'restriction_disabled', bypass: false };
-  if (!isAssigned) return { allowed: false, reason: 'unassigned', bypass: false };
 
   const startMinutes = parseClockTime(startTime);
   const endMinutes = parseClockTime(endTime);
@@ -97,7 +92,6 @@ export function evaluateAttendanceTimeAccess({
 
 export function attendanceAccessReasonVi(result = {}) {
   switch (result.reason) {
-    case 'unassigned': return 'Tài khoản chưa được áp dụng cơ chế phân công điểm danh toàn cục.';
     case 'invalid_time': return 'Khung giờ điểm danh chưa hợp lệ. Admin cần kiểm tra giờ bắt đầu và giờ kết thúc.';
     case 'outside_time': return `Tài khoản được phân công điểm danh chỉ được thao tác trong khung giờ ${result.windowLabel || 'Admin đã quy định'}.`;
     case 'missing_permission': return 'Tài khoản chưa được Admin cấp quyền điểm danh.';
