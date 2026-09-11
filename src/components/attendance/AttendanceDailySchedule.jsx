@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { loadSupplementalAttendanceActivities } from '../../attendance/supplementalLearningApi.js';
-import { getRuntimeClient } from '../../services/runtime/core.js';
+import { getRuntimeClient, getRuntimeState, subscribeRuntime } from '../../services/runtime/core.js';
+import { canManageSupplementalLearning } from '../../supplementalAccess.js';
 import { isExtraClassScheduledOnDate, roomForExtraClass } from '../../utils/extraClassSchedule2026.js';
 import {
   attendanceFloorForRoom,
@@ -67,10 +68,6 @@ function supplementalStatusLabel(activity) {
   return 'Chưa điểm danh';
 }
 
-function supplementalKindLabel(activity) {
-  return activity?.supplementalKind === 'recurring' ? 'Nhóm dài ngày' : 'Phát sinh';
-}
-
 function displayedRoomForClass(classRow, session) {
   return String(session?.teaching_room || roomForExtraClass(classRow) || classRow?.room || '').trim();
 }
@@ -111,8 +108,9 @@ export default function AttendanceDailySchedule({
 
     const loadSupplemental = async () => {
       const client = getRuntimeClient();
+      const runtime = getRuntimeState();
       const selectedDate = String(date || '').slice(0, 10);
-      if (!client || !selectedDate) {
+      if (!client || !selectedDate || !canManageSupplementalLearning(runtime)) {
         if (!disposed) {
           setSupplementalActivities([]);
           setSupplementalLoading(false);
@@ -123,7 +121,8 @@ export default function AttendanceDailySchedule({
       setSupplementalLoading(true);
       try {
         const rows = await loadSupplementalAttendanceActivities(client, { from: selectedDate, to: selectedDate });
-        if (!disposed && token === requestToken) setSupplementalActivities(rows || []);
+        const managedRows = (rows || []).filter((activity) => activity.supplementalKind !== 'adhoc');
+        if (!disposed && token === requestToken) setSupplementalActivities(managedRows);
       } catch {
         if (!disposed && token === requestToken) setSupplementalActivities([]);
       } finally {
@@ -132,11 +131,12 @@ export default function AttendanceDailySchedule({
     };
 
     const handleSupplementalChanged = () => { void loadSupplemental(); };
-    void loadSupplemental();
+    const unsubscribeRuntime = subscribeRuntime(() => { void loadSupplemental(); });
     window.addEventListener(SUPPLEMENTAL_CHANGED_EVENT, handleSupplementalChanged);
     return () => {
       disposed = true;
       requestToken += 1;
+      unsubscribeRuntime?.();
       window.removeEventListener(SUPPLEMENTAL_CHANGED_EVENT, handleSupplementalChanged);
     };
   }, [date]);
@@ -272,7 +272,7 @@ export default function AttendanceDailySchedule({
     const teacher = activity?.teacherName || 'Chưa phân công GV';
     const activityStatus = String(activity?.status || '').toLowerCase();
     const statusIcon = status === 'completed' ? 'check' : status === 'cancelled' ? 'x' : 'clock';
-    const attendanceMeta = `${supplementalKindLabel(activity)} · ${Number(activity?.participantCount || 0)} học sinh`;
+    const attendanceMeta = `Lớp học bổ sung · ${Number(activity?.participantCount || 0)} học sinh`;
 
     return (
       <button
