@@ -17,12 +17,8 @@ assert.match(source,/proofPath:''/,'confirmation must not persist a proof path b
 assert.match(source,/if\(!force&&requestKey===key\)return;/,'an unchanged cached attendance day must not rewrite the supplemental DOM');
 assert.doesNotMatch(source,/if\(!force&&requestKey===key\)\{renderSection\(root\);return;\}/,'cached refresh must not create a MutationObserver render loop that blocks Attendance tab clicks');
 const mountSelector=source.match(/const DAILY_ROOT='([^']+)'/)?.[1]||'';
-assert.ok(mountSelector,'supplemental bootstrap must declare its native daily schedule mount selector');
-if(mountSelector.startsWith('.')){
-  assert.ok(dailyScheduleSource.includes(`className="${mountSelector.slice(1)}"`),`native Attendance daily schedule must expose ${mountSelector}`);
-}else if(mountSelector.startsWith('[')&&mountSelector.endsWith(']')){
-  assert.ok(dailyScheduleSource.includes(mountSelector.slice(1,-1)),`native Attendance daily schedule must expose ${mountSelector}`);
-}else{
-  assert.fail(`unsupported supplemental daily mount selector ${mountSelector}`);
-}
+assert.equal(mountSelector,'[data-bes-supplemental-daily-scroll-root]','supplemental attendance must mount inside the native scroll list, not as a third child of the fixed-height schedule host');
+assert.ok(dailyScheduleSource.includes('data-bes-supplemental-daily-scroll-root="true"'),'native Attendance daily schedule must expose an always-present supplemental scroll mount');
+assert.match(dailyScheduleSource,/className="attendance-daily-overview__list"\s+data-bes-supplemental-daily-scroll-root="true"/,'supplemental mount must be the existing scrollable attendance list');
+assert.doesNotMatch(source,/const DAILY_ROOT='\.attendance-daily-overview-host'/,'fixed-height host must never be used as the supplemental card mount');
 console.log('supplemental learning quick attendance contract: ok');
