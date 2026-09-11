@@ -1,0 +1,42 @@
+/* Học bổ sung reuses the native Attendance modal. No supplemental surface may create a second modal/backdrop. */
+.attendance-content.bes-supplemental-workspace-active{overflow:hidden!important;position:relative}
+.attendance-content.bes-supplemental-workspace-active>:not(.bes-supplemental-workspace-host){display:none!important}
+.bes-supplemental-workspace-host{width:100%;height:100%;min-height:0;box-sizing:border-box}
+
+/* Never paint the legacy supplemental page backdrop. The bridge removes these nodes before paint as well. */
+.bes-supplemental-backdrop{display:none!important}
+body.bes-supplemental-report-exclusive:after{display:none!important;content:none!important}
+
+/* Hosts are hidden during the same microtask in which legacy bootstraps append them to body,
+   then made visible after the bridge moves them into .attendance-content. */
+#bes-supplemental-learning-admin,#bes-supplemental-rollcall{visibility:hidden}
+#bes-supplemental-learning-admin.bes-supplemental-workspace-host,
+#bes-supplemental-rollcall.bes-supplemental-workspace-host{visibility:visible}
+
+#bes-supplemental-learning-admin.bes-supplemental-workspace-host{overflow:auto;background:#f8fafc}
+#bes-supplemental-learning-admin .bes-supplemental-dialog.bes-supplemental-admin-workspace{
+  position:relative!important;inset:auto!important;z-index:auto!important;width:100%;min-height:100%;
+  margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:visible!important;
+}
+#bes-supplemental-learning-admin .bes-supplemental-dialog-head{top:0}
+.attendance-shell.bes-supplemental-admin-open .bes-supplemental-nav-tab{color:#175cd3;background:#edf4ff}
+.attendance-shell.bes-supplemental-admin-open .bes-supplemental-nav-tab:after{content:"";position:absolute;height:3px;right:16px;bottom:0;left:16px;border-radius:3px 3px 0 0;background:#175cd3}
+.attendance-shell.bes-supplemental-admin-open .attendance-tabs>button.is-active:not(.bes-supplemental-nav-tab){color:#68788b}
+.attendance-shell.bes-supplemental-admin-open .attendance-tabs>button.is-active:not(.bes-supplemental-nav-tab):after{display:none}
+
+#bes-supplemental-rollcall.bes-supplemental-workspace-host{overflow:hidden;background:#f8fafc}
+#bes-supplemental-rollcall .bes-supplemental-rollcall.bes-supplemental-rollcall-workspace{
+  position:relative!important;inset:auto!important;z-index:auto!important;width:100%;height:100%;min-height:0;
+  margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;
+}
+
+#bes-supplemental-reporting-panel.bes-supplemental-reporting-workspace.is-exclusive{
+  position:relative!important;inset:auto!important;z-index:auto!important;width:100%;height:100%;min-height:0;
+  margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;overflow:auto!important;
+}
+
+@media(max-width:980px){
+  #bes-supplemental-learning-admin .bes-supplemental-dialog.bes-supplemental-admin-workspace,
+  #bes-supplemental-rollcall .bes-supplemental-rollcall.bes-supplemental-rollcall-workspace,
+  #bes-supplemental-reporting-panel.bes-supplemental-reporting-workspace.is-exclusive{inset:auto!important}
+}
