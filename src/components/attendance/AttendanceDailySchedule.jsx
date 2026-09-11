@@ -1,4 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { loadSupplementalAttendanceActivities } from '../../attendance/supplementalLearningApi.js';
+import { getRuntimeClient } from '../../services/runtime/core.js';
 import { isExtraClassScheduledOnDate, roomForExtraClass } from '../../utils/extraClassSchedule2026.js';
 import {
   attendanceFloorForRoom,
@@ -8,6 +10,9 @@ import {
 } from '../../utils/attendanceDailyRoomFilter.js';
 import { extraClassTypeLabel } from '../../utils/extraClassAttendance.js';
 import './AttendanceDailyOverview.css';
+
+const SUPPLEMENTAL_CHANGED_EVENT = 'bes-supplemental-attendance-changed';
+const SUPPLEMENTAL_OPEN_EVENT = 'bes-open-supplemental-attendance';
 
 function AttendanceDailyIcon({ name, className = '' }) {
   const common = {
@@ -41,14 +46,37 @@ function statusForSession(session) {
   return 'missing';
 }
 
+function statusForSupplementalActivity(activity) {
+  const status = String(activity?.status || '').toLowerCase();
+  if (status === 'cancelled') return 'cancelled';
+  if (status === 'confirmed') return 'completed';
+  return 'missing';
+}
+
 function statusLabel(status) {
   if (status === 'completed') return 'Đã điểm danh';
   if (status === 'cancelled') return 'Đã hủy';
   return 'Chưa điểm danh';
 }
 
+function supplementalStatusLabel(activity) {
+  const status = String(activity?.status || '').toLowerCase();
+  if (status === 'confirmed') return 'Đã điểm danh';
+  if (status === 'cancelled') return 'Đã hủy';
+  if (status === 'in_progress') return 'Đang điểm danh';
+  return 'Chưa điểm danh';
+}
+
+function supplementalKindLabel(activity) {
+  return activity?.supplementalKind === 'recurring' ? 'Nhóm dài ngày' : 'Phát sinh';
+}
+
 function displayedRoomForClass(classRow, session) {
   return String(session?.teaching_room || roomForExtraClass(classRow) || classRow?.room || '').trim();
+}
+
+function displayedRoomForSupplemental(activity) {
+  return String(activity?.room || '').trim();
 }
 
 function latestSessionsByClass(sessions) {
@@ -73,55 +101,118 @@ export default function AttendanceDailySchedule({
   onOpenClass,
   teacherLabelForClass,
 }) {
+  const [supplementalActivities, setSupplementalActivities] = useState([]);
+  const [supplementalLoading, setSupplementalLoading] = useState(false);
   const sessionsByClass = useMemo(() => latestSessionsByClass(sessions), [sessions]);
+
+  useEffect(() => {
+    let disposed = false;
+    let requestToken = 0;
+
+    const loadSupplemental = async () => {
+      const client = getRuntimeClient();
+      const selectedDate = String(date || '').slice(0, 10);
+      if (!client || !selectedDate) {
+        if (!disposed) {
+          setSupplementalActivities([]);
+          setSupplementalLoading(false);
+        }
+        return;
+      }
+      const token = ++requestToken;
+      setSupplementalLoading(true);
+      try {
+        const rows = await loadSupplementalAttendanceActivities(client, { from: selectedDate, to: selectedDate });
+        if (!disposed && token === requestToken) setSupplementalActivities(rows || []);
+      } catch {
+        if (!disposed && token === requestToken) setSupplementalActivities([]);
+      } finally {
+        if (!disposed && token === requestToken) setSupplementalLoading(false);
+      }
+    };
+
+    const handleSupplementalChanged = () => { void loadSupplemental(); };
+    void loadSupplemental();
+    window.addEventListener(SUPPLEMENTAL_CHANGED_EVENT, handleSupplementalChanged);
+    return () => {
+      disposed = true;
+      requestToken += 1;
+      window.removeEventListener(SUPPLEMENTAL_CHANGED_EVENT, handleSupplementalChanged);
+    };
+  }, [date]);
+
   const scheduledClasses = useMemo(
     () => classes.filter((classRow) => classRow.active !== false && isExtraClassScheduledOnDate(classRow, date)),
     [classes, date],
   );
-  const roomOptions = useMemo(() => sortAttendanceRoomLabels(scheduledClasses.map((classRow) => (
-    displayedRoomForClass(classRow, sessionsByClass.get(String(classRow.id)))
-  ))), [scheduledClasses, sessionsByClass]);
+
+  const roomOptions = useMemo(() => sortAttendanceRoomLabels([
+    ...scheduledClasses.map((classRow) => displayedRoomForClass(classRow, sessionsByClass.get(String(classRow.id)))),
+    ...supplementalActivities.map((activity) => displayedRoomForSupplemental(activity)),
+  ]), [scheduledClasses, sessionsByClass, supplementalActivities]);
+
   const effectiveRoomFilter = roomFilter === 'all' || roomOptions.some((room) => matchesAttendanceRoomFilter(room, roomFilter))
     ? roomFilter
     : 'all';
-  const visibleClasses = useMemo(() => sortAttendanceRowsByRoomRoute(
-    scheduledClasses.filter((classRow) => matchesAttendanceRoomFilter(
-      displayedRoomForClass(classRow, sessionsByClass.get(String(classRow.id))),
-      effectiveRoomFilter,
-    )),
-    (classRow) => displayedRoomForClass(classRow, sessionsByClass.get(String(classRow.id))),
-  ), [scheduledClasses, sessionsByClass, effectiveRoomFilter]);
 
-  const completedCount = visibleClasses.filter((classRow) => statusForSession(sessionsByClass.get(String(classRow.id))) === 'completed').length;
-  const cancelledCount = visibleClasses.filter((classRow) => statusForSession(sessionsByClass.get(String(classRow.id))) === 'cancelled').length;
-  const missingCount = Math.max(0, visibleClasses.length - completedCount - cancelledCount);
+  const visibleClasses = useMemo(() => scheduledClasses.filter((classRow) => matchesAttendanceRoomFilter(
+    displayedRoomForClass(classRow, sessionsByClass.get(String(classRow.id))),
+    effectiveRoomFilter,
+  )), [scheduledClasses, sessionsByClass, effectiveRoomFilter]);
+
+  const visibleSupplementalActivities = useMemo(() => supplementalActivities.filter((activity) => matchesAttendanceRoomFilter(
+    displayedRoomForSupplemental(activity),
+    effectiveRoomFilter,
+  )), [supplementalActivities, effectiveRoomFilter]);
+
+  const visibleRows = useMemo(() => sortAttendanceRowsByRoomRoute([
+    ...visibleClasses.map((classRow) => {
+      const session = sessionsByClass.get(String(classRow.id));
+      return {
+        key: `extra:${classRow.id}`,
+        source: 'extra',
+        classRow,
+        room: displayedRoomForClass(classRow, session),
+        status: statusForSession(session),
+      };
+    }),
+    ...visibleSupplementalActivities.map((activity) => ({
+      key: `supplemental:${activity.id}`,
+      source: 'supplemental',
+      activity,
+      room: displayedRoomForSupplemental(activity),
+      status: statusForSupplementalActivity(activity),
+    })),
+  ], (row) => row.room), [visibleClasses, visibleSupplementalActivities, sessionsByClass]);
+
+  const completedCount = visibleRows.filter((row) => row.status === 'completed').length;
+  const cancelledCount = visibleRows.filter((row) => row.status === 'cancelled').length;
+  const missingCount = Math.max(0, visibleRows.length - completedCount - cancelledCount);
   const floorCounts = useMemo(() => {
     const counts = new Map();
-    visibleClasses.forEach((classRow) => {
-      const session = sessionsByClass.get(String(classRow.id));
-      const floor = attendanceFloorForRoom(displayedRoomForClass(classRow, session));
+    visibleRows.forEach((row) => {
+      const floor = attendanceFloorForRoom(row.room);
       if (floor) counts.set(floor, (counts.get(floor) || 0) + 1);
     });
     return counts;
-  }, [visibleClasses, sessionsByClass]);
+  }, [visibleRows]);
   const activeFloorCount = floorCounts.size;
   const showFloorCards = roomFilter === 'all';
   const floorGroups = useMemo(() => {
     const groups = [];
     const byFloor = new Map();
-    visibleClasses.forEach((classRow) => {
-      const session = sessionsByClass.get(String(classRow.id));
-      const floor = attendanceFloorForRoom(displayedRoomForClass(classRow, session));
+    visibleRows.forEach((row) => {
+      const floor = attendanceFloorForRoom(row.room);
       const key = floor || 'other';
       if (!byFloor.has(key)) {
         const group = { key, floor: floor || null, rows: [] };
         byFloor.set(key, group);
         groups.push(group);
       }
-      byFloor.get(key).rows.push(classRow);
+      byFloor.get(key).rows.push(row);
     });
     return groups;
-  }, [visibleClasses, sessionsByClass]);
+  }, [visibleRows]);
 
   const renderClassRow = (classRow) => {
     const session = sessionsByClass.get(String(classRow.id));
@@ -172,6 +263,57 @@ export default function AttendanceDailySchedule({
       </button>
     );
   };
+
+  const renderSupplementalRow = (activity) => {
+    const status = statusForSupplementalActivity(activity);
+    const room = displayedRoomForSupplemental(activity) || 'Chưa ghi phòng';
+    const floor = attendanceFloorForRoom(room);
+    const timeRange = activity?.timeRange || 'Chưa ghi giờ';
+    const teacher = activity?.teacherName || 'Chưa phân công GV';
+    const activityStatus = String(activity?.status || '').toLowerCase();
+    const statusIcon = status === 'completed' ? 'check' : status === 'cancelled' ? 'x' : 'clock';
+    const attendanceMeta = `${supplementalKindLabel(activity)} · ${Number(activity?.participantCount || 0)} học sinh`;
+
+    return (
+      <button
+        key={`supplemental:${activity.id}`}
+        type="button"
+        className={`attendance-daily-class-row is-${status} is-supplemental`}
+        data-bes-attendance-source="supplemental"
+        data-bes-supplemental-session-id={activity.id}
+        data-floor={floor || undefined}
+        aria-label={`${supplementalStatusLabel(activity)} ${activity.title || activity.subject || 'Học bổ sung'}`}
+        onClick={() => window.dispatchEvent(new CustomEvent(SUPPLEMENTAL_OPEN_EVENT, {
+          detail: { sessionId: activity.id, status: activity.status },
+        }))}
+      >
+        <span className="attendance-daily-class-row__class-shell">
+          <span className="attendance-daily-class-row__leading-icon"><AttendanceDailyIcon name="users" /></span>
+          <span className="attendance-daily-class-row__class">
+            <b>{activity.title || activity.subject || 'Học bổ sung'}</b>
+            <small>Học bổ sung · {activity.subject || 'Chưa ghi môn'}</small>
+          </span>
+        </span>
+        <span className="attendance-daily-class-row__teacher" title={teacher}><b>{teacher}</b></span>
+        <span className="attendance-daily-class-row__meta is-room" data-floor={floor || undefined}>
+          <span className="attendance-daily-class-row__room-icon"><AttendanceDailyIcon name="building" /></span>
+          <b>{room}</b>
+        </span>
+        <span className="attendance-daily-class-row__meta is-time">
+          <span className="attendance-daily-class-row__time-icon"><AttendanceDailyIcon name="clock" /></span>
+          <span className="attendance-daily-class-row__time-copy"><b>{timeRange}</b><small>{attendanceMeta}</small></span>
+        </span>
+        <span className={`attendance-daily-class-row__status is-${status}`}>
+          <span className="attendance-daily-class-row__status-icon"><AttendanceDailyIcon name={statusIcon} /></span>
+          <span className="attendance-daily-class-row__status-label">{supplementalStatusLabel(activity)}</span>
+          {status === 'missing' ? <em className="attendance-daily-class-row__action"><AttendanceDailyIcon name="check" />{activityStatus === 'in_progress' ? 'Tiếp tục →' : 'Điểm danh →'}</em> : null}
+        </span>
+      </button>
+    );
+  };
+
+  const combinedLoading = loading || supplementalLoading;
+  const scheduledTotal = scheduledClasses.length + supplementalActivities.length;
 
   return (
     <div className="attendance-daily-overview-host">
@@ -224,7 +366,7 @@ export default function AttendanceDailySchedule({
           <div className="attendance-daily-overview__metrics">
             <article className="attendance-daily-overview__metric">
               <span className="attendance-daily-overview__metric-icon"><AttendanceDailyIcon name="list" /></span>
-              <span className="attendance-daily-overview__metric-label">Có lịch</span><b>{visibleClasses.length}</b>
+              <span className="attendance-daily-overview__metric-label">Có lịch</span><b>{visibleRows.length}</b>
             </article>
             <article className="attendance-daily-overview__metric is-completed">
               <span className="attendance-daily-overview__metric-icon"><AttendanceDailyIcon name="check" /></span>
@@ -239,23 +381,23 @@ export default function AttendanceDailySchedule({
               <span className="attendance-daily-overview__metric-label">Đã hủy</span><b>{cancelledCount}</b>
             </article>
           </div>
-          <div className="attendance-daily-overview__route-meta"><AttendanceDailyIcon name="layers" />Tổng {visibleClasses.length} lớp trong {activeFloorCount} tầng</div>
+          <div className="attendance-daily-overview__route-meta"><AttendanceDailyIcon name="layers" />Tổng {visibleRows.length} lớp/buổi trong {activeFloorCount} tầng</div>
         </div>
 
         <div className="attendance-daily-table-header" aria-hidden="true">
-          <span className="attendance-daily-table-header__class">LỚP</span>
+          <span className="attendance-daily-table-header__class">LỚP / HOẠT ĐỘNG</span>
           <span className="attendance-daily-table-header__teacher">GIÁO VIÊN</span>
           <span className="attendance-daily-table-header__room">PHÒNG</span>
           <span className="attendance-daily-table-header__time">THỜI GIAN</span>
           <span className="attendance-daily-table-header__status">TRẠNG THÁI</span>
         </div>
 
-        <div className="attendance-daily-overview__list" data-bes-supplemental-daily-scroll-root="true">
-          {loading ? <div className="attendance-daily-overview__empty">Đang tải lịch điểm danh…</div> : null}
-          {!loading && !scheduledClasses.length ? <div className="attendance-daily-overview__empty">Không có lớp nào theo lịch vào ngày đã chọn.</div> : null}
-          {!loading && scheduledClasses.length > 0 && !visibleClasses.length ? <div className="attendance-daily-overview__empty">Không có lớp nào ở phòng {effectiveRoomFilter} trong ngày đã chọn.</div> : null}
+        <div className="attendance-daily-overview__list">
+          {combinedLoading ? <div className="attendance-daily-overview__empty">Đang tải lịch điểm danh…</div> : null}
+          {!combinedLoading && !scheduledTotal ? <div className="attendance-daily-overview__empty">Không có lớp hoặc buổi Học bổ sung nào theo lịch vào ngày đã chọn.</div> : null}
+          {!combinedLoading && scheduledTotal > 0 && !visibleRows.length ? <div className="attendance-daily-overview__empty">Không có lớp hoặc buổi Học bổ sung nào ở phòng {effectiveRoomFilter} trong ngày đã chọn.</div> : null}
 
-          {!loading && visibleClasses.length > 0 ? floorGroups.map((group) => (
+          {!combinedLoading && visibleRows.length > 0 ? floorGroups.map((group) => (
             <section
               key={group.key}
               className={`attendance-daily-floor-card ${showFloorCards ? '' : 'is-filtered'}`}
@@ -264,12 +406,12 @@ export default function AttendanceDailySchedule({
               <div className="attendance-daily-floor-group" data-floor={group.floor || undefined}>
                 <strong className="attendance-daily-floor-card__title">
                   <AttendanceDailyIcon name="building" />
-                  {group.floor ? <>Lầu {group.floor}<span> · {group.rows.length} lớp</span></> : <>Khác<span> · {group.rows.length} lớp</span></>}
+                  {group.floor ? <>Lầu {group.floor}<span> · {group.rows.length} lớp/buổi</span></> : <>Khác<span> · {group.rows.length} lớp/buổi</span></>}
                 </strong>
                 {group.floor ? <span className="attendance-daily-floor-card__badge">Tầng {group.floor}</span> : null}
               </div>
               <div className="attendance-daily-floor-card__rows">
-                {group.rows.map(renderClassRow)}
+                {group.rows.map((row) => (row.source === 'supplemental' ? renderSupplementalRow(row.activity) : renderClassRow(row.classRow)))}
               </div>
             </section>
           )) : null}
