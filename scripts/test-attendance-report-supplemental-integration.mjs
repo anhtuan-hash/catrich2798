@@ -63,6 +63,13 @@ assert.match(reportComponent, /bes_list_supplemental_history/, 'The native repor
 assert.match(reportComponent, /bes-attendance-activity-filter-change/, 'The native report must react to the shared activity filter pills.');
 assert.match(reportComponent, /supplemental/i, 'The native report must expose supplemental rows/classes in its unified filters and table.');
 
+const attendanceShell = fs.readFileSync(new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url), 'utf8');
+assert.match(
+  attendanceShell,
+  /includeSupplemental=\{canSeeSupplementalHistory\}/,
+  'The native report must only request supplemental data for the dedicated supplemental managers.',
+);
+
 const bootstrap = fs.readFileSync(new URL('../src/supplementalAttendanceReportingBootstrap.js', import.meta.url), 'utf8');
 assert.doesNotMatch(
   bootstrap,
