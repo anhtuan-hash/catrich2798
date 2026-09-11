@@ -49,16 +49,15 @@ assert.match(css, /\.bes-supplemental-admin-search/);
 assert.match(css, /\.bes-supplemental-edit-form/);
 assert.match(css, /@media\(max-width:560px\)/);
 
-function selectorZIndex(text, selector) {
-  const escaped = selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const matches = [...text.matchAll(new RegExp(`${escaped}\\{[^}]*z-index\\s*:\\s*(\\d+)`, 'gi'))];
-  return matches.length ? Math.max(...matches.map((match) => Number(match[1]))) : NaN;
+function maxZIndex(text, pattern) {
+  const matches = [...text.matchAll(pattern)].map((match) => Number(match[1]));
+  return matches.length ? Math.max(...matches) : NaN;
 }
 
-const nativeLayerZ = selectorZIndex(nativeAttendanceCss, '.attendance-layer');
-const adminBackdropZ = selectorZIndex(css, '.bes-supplemental-backdrop');
-const adminDialogZ = selectorZIndex(css, '.bes-supplemental-dialog');
-const rollcallZ = selectorZIndex(css, '.bes-supplemental-rollcall');
+const nativeLayerZ = maxZIndex(nativeAttendanceCss, /\.attendance-layer\{[^}]*z-index\s*:\s*(\d+)/gi);
+const adminBackdropZ = maxZIndex(css, /\.bes-supplemental-backdrop\{[^}]*z-index\s*:\s*(\d+)/gi);
+const adminDialogZ = maxZIndex(css, /\.bes-supplemental-dialog\{[^}]*z-index\s*:\s*(\d+)/gi);
+const rollcallZ = maxZIndex(css, /\.bes-supplemental-rollcall\{[^}]*z-index\s*:\s*(\d+)/gi);
 assert.ok(Number.isFinite(nativeLayerZ), 'native Attendance layer must expose a measurable z-index');
 assert.ok(adminBackdropZ > nativeLayerZ, `Học bổ sung backdrop must sit above the Attendance modal (${adminBackdropZ} <= ${nativeLayerZ})`);
 assert.ok(adminDialogZ > adminBackdropZ, 'Học bổ sung Admin dialog must sit above its backdrop');
