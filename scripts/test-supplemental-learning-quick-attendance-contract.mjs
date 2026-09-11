@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 const source=await readFile(new URL('../src/supplementalAttendanceQuickBootstrap.js',import.meta.url),'utf8');
+const bridge=await readFile(new URL('../src/supplementalSingleModalBridge.js',import.meta.url),'utf8');
+const css=await readFile(new URL('../src/styles/SupplementalSingleModal.css',import.meta.url),'utf8');
 const dailyScheduleSource=await readFile(new URL('../src/components/attendance/AttendanceDailySchedule.jsx',import.meta.url),'utf8');
 for(const token of ['data-bes-attendance-source="supplemental"','data-bes-supplemental-session-id','HỌC BỔ SUNG','Nhóm dài ngày','Phát sinh'])assert.ok(source.includes(token),`missing quick-attendance marker ${token}`);
 for(const call of ['loadSupplementalAttendanceActivities','beginSupplementalAttendance','confirmSupplementalAttendance','attachSupplementalProof'])assert.ok(source.includes(call),`missing RPC client ${call}`);
@@ -22,4 +24,11 @@ assert.equal(mountSelector,'[data-bes-supplemental-daily-scroll-root]','suppleme
 assert.ok(dailyScheduleSource.includes('data-bes-supplemental-daily-scroll-root="true"'),'native Attendance daily schedule must expose an always-present supplemental scroll mount');
 assert.match(dailyScheduleSource,/className="attendance-daily-overview__list"\s+data-bes-supplemental-daily-scroll-root="true"/,'supplemental mount must be the existing scrollable attendance list');
 assert.doesNotMatch(source,/const DAILY_ROOT='\.attendance-daily-overview-host'/,'fixed-height host must never be used as the supplemental card mount');
+
+for(const token of ['bes-supplemental-rollcall','bes-supplemental-rollcall-workspace','moveIntoAttendanceContent'])assert.ok(bridge.includes(token),`single-modal rollcall bridge missing ${token}`);
+assert.match(bridge,/normalizeRollcall\(\)[\s\S]*?querySelectorAll\('\.bes-supplemental-backdrop'\)[\s\S]*?\.remove\(\)/,'rollcall bridge must remove the second backdrop');
+assert.match(bridge,/normalizeRollcall\(\)[\s\S]*?stripNestedModalSemantics\(panel\)/,'rollcall bridge must strip nested dialog semantics');
+assert.match(css,/#bes-supplemental-rollcall \.bes-supplemental-rollcall\.bes-supplemental-rollcall-workspace[\s\S]*?position:relative!important/,'rollcall must be inline inside Attendance content');
+assert.match(css,/#bes-supplemental-rollcall\.bes-supplemental-workspace-host\{visibility:visible\}/,'rollcall host becomes visible only after it is embedded');
+
 console.log('supplemental learning quick attendance contract: ok');

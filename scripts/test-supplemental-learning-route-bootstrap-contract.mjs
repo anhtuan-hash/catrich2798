@@ -5,6 +5,8 @@ const html=await readFile(new URL('../index.html',import.meta.url),'utf8');
 assert.match(html,/src="\/src\/supplementalLearningRouteBootstrap\.js"/,'index must install the supplemental route bootstrap');
 assert.match(source,/attendance\|diem-danh/i,'bootstrap must recognize Attendance route');
 for(const module of ['./supplementalLearningBootstrap.js','./supplementalAttendanceQuickBootstrap.js','./supplementalAttendanceReportingBootstrap.js'])assert.ok(source.includes(module),`missing lazy route module ${module}`);
+assert.ok(source.includes('./supplementalSingleModalBridge.js'),'Attendance route must install the single-modal bridge');
+assert.ok(source.indexOf("import('./supplementalSingleModalBridge.js')") < source.indexOf('Promise.all(['),'single-modal bridge must resolve before legacy supplemental modules start rendering');
 assert.match(source,/Promise\.all/,'route modules should load together only when Attendance is active');
 assert.match(source,/MutationObserver/,'bootstrap must recover when Attendance DOM mounts after route resolution');
 console.log('supplemental learning route bootstrap contract: ok');
