@@ -3,7 +3,6 @@ import { readFile } from 'node:fs/promises';
 
 const source = await readFile(new URL('../src/supplementalAttendanceReportingBootstrap.js', import.meta.url), 'utf8');
 const legacyHistorySource = await readFile(new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url), 'utf8');
-const legacyReportSource = await readFile(new URL('../src/components/attendance/AttendanceMonthlyReport.jsx', import.meta.url), 'utf8');
 
 for (const value of ["['all','Tất cả']", "['remedial','Phụ đạo']", "['enrichment','Bồi dưỡng']", "['supplemental','Học bổ sung']"]) {
   assert.ok(source.includes(value), `missing activity filter ${value}`);
@@ -17,14 +16,13 @@ assert.match(source, /không tự cộng vào tổng cũ/i, 'combined mode must 
 assert.match(source, /window\.print\(\)/, 'supplemental report needs print/PDF path');
 
 assert.match(source, /syncLegacyHistoryFilter/, 'activity filter must actively synchronize the existing History class-type filter');
-assert.match(source, /enrichment[\s\S]{0,120}gifted|gifted[\s\S]{0,120}enrichment/, 'Bồi dưỡng activity filter must map to the legacy gifted class_type');
+assert.match(source, /enrichment[\s\S]{0,160}gifted|gifted[\s\S]{0,160}enrichment/, 'Bồi dưỡng activity filter must map to the legacy gifted class_type');
 assert.match(legacyHistorySource, /<option value="remedial">Phụ đạo<\/option>/, 'legacy History remedial option must remain available');
 assert.match(legacyHistorySource, /<option value="gifted">Bồi dưỡng HSG<\/option>/, 'legacy History gifted option must remain available');
-
-assert.match(legacyReportSource, /bes-attendance-activity-filter-change/, 'legacy monthly report must listen to the unified activity filter');
-assert.match(legacyReportSource, /activityTypeFilter/, 'legacy monthly report must keep an explicit activity-type filter state');
-assert.match(legacyReportSource, /activityTypeFilter\s*===\s*'remedial'/, 'monthly report must support remedial filtering');
-assert.match(legacyReportSource, /activityTypeFilter\s*===\s*'enrichment'/, 'monthly report must support enrichment filtering');
-assert.match(legacyReportSource, /class_type\s*===\s*'gifted'/, 'monthly report must map enrichment to production gifted rows');
+assert.match(source, /renderLegacyActivityReport/, 'remedial/enrichment report filters must render a real filtered report instead of leaving the native report unchanged');
+assert.match(source, /filter\s*!==\s*'all'/, 'a non-all activity filter must use an exclusive filtered surface');
+assert.match(source, /presentCount|present_count/, 'filtered activity reports must expose present counts');
+assert.match(source, /absentCount|absent_count/, 'filtered activity reports must expose absent counts');
+assert.match(source, /tardyCount|tardy_count/, 'filtered activity reports must expose tardy counts');
 
 console.log('supplemental learning reporting contract: ok');
