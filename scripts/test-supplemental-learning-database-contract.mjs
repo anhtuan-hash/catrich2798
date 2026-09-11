@@ -67,7 +67,9 @@ assert.match(sql, /bes_supplemental_sessions[\s\S]{0,240}status\s*<>\s*'cancelle
 assert.match(sql, /clock_timestamp\s*\(\s*\)/i, 'authoritative timestamps must come from PostgreSQL');
 assert.match(sql, /status\s*=\s*'cancelled'/i, 'cancelled sessions must be rejected by attendance flow');
 assert.match(sql, /checked_by\s*=\s*v_uid|auth\.uid\s*\(\s*\)/i, 'attendance actor must come from authenticated user');
-assert.match(sql, /where\s+s\.attendance_date\s+between[\s\S]{0,220}s\.status\s*=\s*'confirmed'/i, 'student report denominator must be based only on confirmed sessions');
+const studentReportSql = sql.match(/create or replace function public\.bes_supplemental_student_report[\s\S]*?(?=create or replace function public\.bes_list_attendance_activities)/i)?.[0] || '';
+assert.match(studentReportSql, /join\s+public\.bes_supplemental_sessions\s+s\s+on\s+s\.id\s*=\s*p\.session_id[\s\S]{0,180}s\.status\s*=\s*'confirmed'/i, 'student report denominator must be based only on confirmed sessions');
+assert.match(studentReportSql, /where\s+s\.attendance_date\s+between\s+p_from\s+and\s+p_to/i, 'student report must honor the requested date range');
 assert.doesNotMatch(sql, /insert\s+into\s+public\.bes_extra_/i, 'supplemental implementation must not write legacy extra-class tables');
 assert.doesNotMatch(sql, /update\s+public\.bes_extra_/i, 'supplemental implementation must not rewrite legacy extra-class tables');
 assert.doesNotMatch(sql, /delete\s+from\s+public\.bes_extra_/i, 'supplemental implementation must not delete legacy extra-class history');
