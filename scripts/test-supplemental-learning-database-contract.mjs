@@ -8,16 +8,19 @@ const proofMigrationPath = path.join(root, 'supabase/migrations/20260911_supplem
 const proofAttachPath = path.join(root, 'supabase/migrations/20260911_supplemental_learning_proof_attach.sql');
 const proofConfirmHardeningPath = path.join(root, 'supabase/migrations/20260911_supplemental_learning_proof_confirm_hardening.sql');
 const activityTypeFixPath = path.join(root, 'supabase/migrations/20260911_supplemental_learning_activity_type_fix.sql');
+const completenessHardeningPath = path.join(root, 'supabase/migrations/20260911_supplemental_learning_completeness_hardening.sql');
 assert.ok(fs.existsSync(migrationPath), 'supplemental learning migration must exist');
 assert.ok(fs.existsSync(proofMigrationPath), 'supplemental proof-access migration must exist');
 assert.ok(fs.existsSync(proofAttachPath), 'supplemental proof-attach migration must exist');
 assert.ok(fs.existsSync(proofConfirmHardeningPath), 'supplemental proof-confirm hardening migration must exist');
 assert.ok(fs.existsSync(activityTypeFixPath), 'supplemental activity-type forward migration must exist');
+assert.ok(fs.existsSync(completenessHardeningPath), 'supplemental completeness hardening migration must exist');
 const sql = fs.readFileSync(migrationPath, 'utf8');
 const proofSql = fs.readFileSync(proofMigrationPath, 'utf8');
 const proofAttachSql = fs.readFileSync(proofAttachPath, 'utf8');
 const proofConfirmHardeningSql = fs.readFileSync(proofConfirmHardeningPath, 'utf8');
 const activityTypeSql = fs.readFileSync(activityTypeFixPath, 'utf8');
+const completenessSql = fs.readFileSync(completenessHardeningPath, 'utf8');
 
 for (const table of [
   'bes_supplemental_students',
@@ -71,14 +74,22 @@ assert.match(sql, /clock_timestamp\s*\(\s*\)/i, 'authoritative timestamps must c
 assert.match(sql, /status\s*=\s*'cancelled'/i, 'cancelled sessions must be rejected by attendance flow');
 assert.match(sql, /checked_by\s*=\s*v_uid|auth\.uid\s*\(\s*\)/i, 'attendance actor must come from authenticated user');
 
-const studentUpsertSql = sql.match(/create or replace function public\.bes_upsert_supplemental_student[\s\S]*?(?=create or replace function public\.bes_link_supplemental_student)/i)?.[0] || '';
+const studentUpsertSql = completenessSql.match(/create or replace function public\.bes_upsert_supplemental_student[\s\S]*?(?=revoke all on function public\.bes_upsert_supplemental_student)/i)?.[0] || '';
 assert.match(studentUpsertSql, /private\.bes_supplemental_official_candidates\s*\(\s*\)/i, 'official identities must be validated against authoritative school candidates');
-assert.match(studentUpsertSql, /source_type\s*=\s*'official'[\s\S]{0,220}lower\s*\(\s*s\.official_key\s*\)\s*=\s*lower/i, 're-adding an official student must reuse the existing supplemental identity');
+assert.match(studentUpsertSql, /source_type\s*=\s*'official'[\s\S]{0,420}lower\s*\(\s*s\.official_key\s*\)\s*=\s*lower/i, 're-adding an official student must reuse the existing supplemental identity');
+assert.match(studentUpsertSql, /v_candidate\.student_code/i, 'official student code must come from authoritative candidate data');
+assert.match(studentUpsertSql, /v_candidate\.full_name/i, 'official student name must come from authoritative candidate data');
+assert.match(studentUpsertSql, /v_candidate\.school_class_name/i, 'official school class must come from authoritative candidate data');
 
-const attendanceListSql = sql.match(/create or replace function public\.bes_list_supplemental_attendance[\s\S]*?(?=create or replace function public\.bes_begin_supplemental_attendance)/i)?.[0] || '';
-assert.match(attendanceListSql, /roster_frozen_at[\s\S]{0,360}bes_supplemental_group_memberships/i, 'scheduled recurring cards must count effective membership before roster freeze');
+const attendanceListSql = completenessSql.match(/create or replace function public\.bes_list_supplemental_attendance[\s\S]*?(?=revoke all on function public\.bes_list_supplemental_attendance)/i)?.[0] || '';
+assert.match(attendanceListSql, /roster_frozen_at[\s\S]{0,520}bes_supplemental_group_memberships/i, 'scheduled recurring cards must count effective membership before roster freeze');
 assert.match(attendanceListSql, /effective_from\s*<=\s*s\.attendance_date/i, 'scheduled recurring participant count must respect membership start date');
 assert.match(attendanceListSql, /effective_until\s+is\s+null[\s\S]{0,100}effective_until\s*>=\s*s\.attendance_date/i, 'scheduled recurring participant count must respect membership end date');
+assert.match(attendanceListSql, /count\s*\(\s*distinct\s+private\.bes_supplemental_canonical_key/i, 'pre-freeze roster count must deduplicate linked canonical students');
+
+const unifiedActivitySql = completenessSql.match(/create or replace function public\.bes_list_attendance_activities[\s\S]*?(?=revoke all on function public\.bes_list_attendance_activities)/i)?.[0] || '';
+for (const countKey of ['presentCount', 'absentCount', 'tardyCount']) assert.ok(unifiedActivitySql.includes(`'${countKey}'`), `unified activity row must expose ${countKey}`);
+assert.match(unifiedActivitySql, /bes_extra_attendance_records[\s\S]{0,140}tardy/i, 'legacy tardy count must be derived from attendance records without assuming a non-existent session column');
 
 assert.match(proofConfirmHardeningSql, /create or replace function public\.bes_confirm_supplemental_attendance/i, 'proof hardening must replace the confirm RPC');
 assert.doesNotMatch(proofConfirmHardeningSql, /proof_path\s*=\s*btrim\s*\(\s*coalesce\s*\(\s*p_proof_path/i, 'confirm RPC must not trust a client-supplied proof path');
@@ -86,10 +97,10 @@ assert.match(proofConfirmHardeningSql, /proof_path\s*=\s*''/i, 'confirm RPC must
 const studentReportSql = sql.match(/create or replace function public\.bes_supplemental_student_report[\s\S]*?(?=create or replace function public\.bes_list_attendance_activities)/i)?.[0] || '';
 assert.match(studentReportSql, /join\s+public\.bes_supplemental_sessions\s+s\s+on\s+s\.id\s*=\s*p\.session_id[\s\S]{0,180}s\.status\s*=\s*'confirmed'/i, 'student report denominator must be based only on confirmed sessions');
 assert.match(studentReportSql, /where\s+s\.attendance_date\s+between\s+p_from\s+and\s+p_to/i, 'student report must honor the requested date range');
-assert.doesNotMatch(sql, /insert\s+into\s+public\.bes_extra_/i, 'supplemental implementation must not write legacy extra-class tables');
-assert.doesNotMatch(sql, /update\s+public\.bes_extra_/i, 'supplemental implementation must not rewrite legacy extra-class history');
-assert.doesNotMatch(sql, /delete\s+from\s+public\.bes_extra_/i, 'supplemental implementation must not delete legacy extra-class history');
-assert.doesNotMatch(sql, /gi[aá]m\s*th[iị]\s*[123]?/i, 'supplemental authorization must not hardcode proctor accounts or roles');
+assert.doesNotMatch(sql + completenessSql, /insert\s+into\s+public\.bes_extra_/i, 'supplemental implementation must not write legacy extra-class tables');
+assert.doesNotMatch(sql + completenessSql, /update\s+public\.bes_extra_/i, 'supplemental implementation must not rewrite legacy extra-class history');
+assert.doesNotMatch(sql + completenessSql, /delete\s+from\s+public\.bes_extra_/i, 'supplemental implementation must not delete legacy extra-class history');
+assert.doesNotMatch(sql + completenessSql, /gi[aá]m\s*th[iị]\s*[123]?/i, 'supplemental authorization must not hardcode proctor accounts or roles');
 
 assert.match(proofSql, /attendance-session-proofs/i, 'supplemental proof must use existing attendance proof bucket');
 assert.match(proofSql, /bes_can_upload_supplemental_proof/i, 'supplemental proof upload authorization helper must exist');
