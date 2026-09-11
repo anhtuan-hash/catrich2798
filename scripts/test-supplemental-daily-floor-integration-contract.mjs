@@ -2,18 +2,17 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const scheduleSource = await readFile(new URL('../src/components/attendance/AttendanceDailySchedule.jsx', import.meta.url), 'utf8');
-const navigationSource = await readFile(new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url), 'utf8');
 const quickSource = await readFile(new URL('../src/supplementalAttendanceQuickBootstrap.js', import.meta.url), 'utf8');
 
 assert.match(
   scheduleSource,
-  /supplementalActivities\s*=\s*\[\]/,
-  'native daily schedule must accept Học bổ sung activities as first-class rows',
+  /loadSupplementalAttendanceActivities/,
+  'native daily schedule must load Học bổ sung activities for the selected day',
 );
 assert.match(
   scheduleSource,
-  /onOpenSupplemental/,
-  'native daily schedule must expose a click handler for Học bổ sung rows',
+  /supplementalActivities/,
+  'native daily schedule must keep Học bổ sung activities as first-class rows',
 );
 assert.match(
   scheduleSource,
@@ -36,24 +35,24 @@ assert.match(
   'summary totals must count the combined visible daily rows',
 );
 assert.match(
-  navigationSource,
-  /loadSupplementalAttendanceActivities/,
-  'native Attendance owner must load Học bổ sung activities for the selected day',
-);
-assert.match(
-  navigationSource,
-  /supplementalActivities=\{[^}]+\}/,
-  'native Attendance owner must pass Học bổ sung activities into the daily schedule',
-);
-assert.match(
-  navigationSource,
+  scheduleSource,
   /bes-open-supplemental-attendance/,
   'clicking a native Học bổ sung row must bridge to the existing supplemental rollcall flow',
+);
+assert.match(
+  scheduleSource,
+  /bes-supplemental-attendance-changed/,
+  'native daily schedule must refresh after supplemental attendance/admin changes',
 );
 assert.match(
   quickSource,
   /bes-open-supplemental-attendance/,
   'supplemental rollcall bootstrap must listen for the native row click bridge',
+);
+assert.match(
+  quickSource,
+  /bes-supplemental-attendance-changed/,
+  'supplemental rollcall must notify the native daily schedule after confirmation',
 );
 assert.doesNotMatch(
   quickSource,
