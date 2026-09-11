@@ -9,9 +9,11 @@ on:
       - 'src/supplementalAttendanceQuickBootstrap.js'
       - 'src/supplementalAttendanceReportingBootstrap.js'
       - 'src/supplementalLearningRouteBootstrap.js'
+      - 'src/supplementalClassNavigationBridge.js'
       - 'src/attendance/supplementalLearningApi.js'
       - 'src/styles/SupplementalLearning.css'
-      - 'supabase/migrations/20260911150000_supplemental_classes_simplification.sql'
+      - 'src/styles/SupplementalClasses.css'
+      - 'supabase/migrations/*supplemental_classes*.sql'
       - 'scripts/test-supplemental-classes-simplification.mjs'
       - '.github/workflows/supplemental-classes-simplification.yml'
 
