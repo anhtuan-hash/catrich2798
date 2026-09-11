@@ -31,11 +31,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Verify supplemental native rollcall contract
         run: node scripts/test-attendance-supplemental-native-rollcall.mjs
-      - name: Verify existing supplemental contracts
-        run: |
-          node scripts/test-supplemental-learning-database.mjs
-          node scripts/test-supplemental-learning-ui.mjs
-          node scripts/test-supplemental-learning-quick-attendance.mjs
-          node scripts/test-attendance-report-supplemental-integration.mjs
+      - name: Verify repository smoke tests
+        run: npm test
       - name: Verify production build
         run: npm run build
