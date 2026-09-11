@@ -13,4 +13,6 @@ const uploadAt=source.indexOf(".from('attendance-session-proofs').upload");
 const attachAt=source.indexOf('attachSupplementalProof(client');
 assert.ok(confirmAt>=0&&uploadAt>confirmAt&&attachAt>uploadAt,'proof path must be attached only after confirmation and successful object upload');
 assert.match(source,/proofPath:''/,'confirmation must not persist a proof path before storage upload succeeds');
+assert.match(source,/if\(!force&&requestKey===key\)return;/,'an unchanged cached attendance day must not rewrite the supplemental DOM');
+assert.doesNotMatch(source,/if\(!force&&requestKey===key\)\{renderSection\(root\);return;\}/,'cached refresh must not create a MutationObserver render loop that blocks Attendance tab clicks');
 console.log('supplemental learning quick attendance contract: ok');
