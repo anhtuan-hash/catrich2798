@@ -35,7 +35,7 @@ assert.match(source, /Tìm nhóm, học sinh, môn, giáo viên, ngày, trạng 
 assert.match(source, /data-form="edit-group"/, 'Admin must be able to edit recurring group metadata/schedule');
 assert.match(source, /data-form="edit-session"/, 'Admin must be able to edit an unfrozen ad-hoc session');
 assert.match(source, /data-action="toggle-student"/, 'Admin must be able to deactivate/reactivate reusable student identities');
-assert.match(source, /name="initialStudentId"/, 'Recurring group creation must support an initial student roster');
+assert.match(source, /pickerItems\('initialStudentId'\)|name="initialStudentId"/, 'Recurring group creation must support an initial student roster');
 assert.match(source, /name="officialParticipantKey"/, 'Group/session student picker must be able to choose official students directly');
 assert.match(source, /data-student-search/, 'Large student pickers need in-place search');
 assert.match(source, /data-link-official/, 'Manual identity linking must use an explicit official-student picker');
