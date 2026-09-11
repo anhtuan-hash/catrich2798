@@ -43,6 +43,9 @@ jobs:
       - name: Verify supplemental learning database contract
         run: node scripts/test-supplemental-learning-database-contract.mjs
 
+      - name: Verify supplemental legacy late-status compatibility
+        run: node scripts/test-supplemental-learning-legacy-status-contract.mjs
+
       - name: Verify supplemental activity adapter contract
         run: node scripts/test-supplemental-learning-activity-contract.mjs
 
