@@ -105,8 +105,8 @@ function ensureFilter() {
   bar.innerHTML = `<div><span>Loại hoạt động</span>${filterOptions().map(([value, label]) =>
     `<button type="button" data-activity-filter="${value}" class="${filter === value ? 'is-active' : ''}">${label}</button>`).join('')}</div>
     <small>${activeTab === 'report'
-      ? 'Tất cả giữ nguyên báo cáo Phụ đạo/Bồi dưỡng hiện tại và bổ sung khối Học bổ sung; chọn một loại để xem riêng.'
-      : 'Lịch sử có thể lọc thực sự theo Phụ đạo, Bồi dưỡng hoặc Học bổ sung.'}</small>`;
+      ? 'Tất cả giữ nguyên báo cáo hiện tại; chọn Phụ đạo, Bồi dưỡng hoặc Học bổ sung để xem riêng.'
+      : 'Tất cả giữ nguyên lịch sử hiện tại; chọn Phụ đạo, Bồi dưỡng hoặc Học bổ sung để xem riêng.'}</small>`;
 
   bar.querySelectorAll('[data-activity-filter]').forEach((button) => button.addEventListener('click', () => {
     filter = button.dataset.activityFilter || 'all';
@@ -240,8 +240,14 @@ async function refreshPanel(force = false) {
   if (!dateFrom) dateFrom = dayOffset(activeTab === 'report' ? -365 : -31);
   if (!dateTo) dateTo = dayOffset(0);
   if (!['all', 'remedial', 'enrichment', 'supplemental'].includes(filter)) filter = 'all';
-  const current = ++token;
 
+  if (filter === 'all') {
+    if (activeTab === 'history') syncLegacyHistoryFilter('all');
+    closePanel();
+    return;
+  }
+
+  const current = ++token;
   try {
     if (activeTab === 'history') {
       syncLegacyHistoryFilter(filter);
@@ -249,10 +255,6 @@ async function refreshPanel(force = false) {
         const rows = await loadSupplementalHistory(client, { from: dateFrom, to: dateTo }, query);
         if (current !== token) return;
         renderPanel(historyHtml(rows), 'Lịch sử Học bổ sung');
-      } else if (filter === 'all') {
-        const rows = await loadSupplementalHistory(client, { from: dateFrom, to: dateTo }, query);
-        if (current !== token) return;
-        renderPanel(`<div class="bes-supplemental-combined-note"><strong>Học bổ sung</strong><p>Lịch sử Phụ đạo/Bồi dưỡng hiện có phía trên vẫn giữ nguyên. Khối này bổ sung Học bổ sung để tạo chế độ “Tất cả”.</p></div>${historyHtml(rows)}`, 'Học bổ sung trong Tất cả hoạt động');
       } else {
         const rows = await loadAttendanceActivities(client, { from: dateFrom, to: dateTo }, filter);
         if (current !== token) return;
@@ -263,10 +265,6 @@ async function refreshPanel(force = false) {
         const rows = await loadSupplementalStudentReport(client, { from: dateFrom, to: dateTo });
         if (current !== token) return;
         renderPanel(reportHtml(rows), 'Báo cáo Học bổ sung');
-      } else if (filter === 'all') {
-        const rows = await loadSupplementalStudentReport(client, { from: dateFrom, to: dateTo });
-        if (current !== token) return;
-        renderPanel(`<div class="bes-supplemental-combined-note"><strong>Chế độ Tất cả</strong><p>Báo cáo Phụ đạo/Bồi dưỡng hiện có phía trên vẫn giữ nguyên cách tính. Khối dưới đây là Học bổ sung và chỉ xuất hiện vì bạn đã chọn “Tất cả”; không tự cộng vào tổng cũ.</p></div>${reportHtml(rows)}`, 'Tất cả báo cáo điểm danh');
       } else {
         const rows = await loadAttendanceActivities(client, { from: dateFrom, to: dateTo }, filter);
         if (current !== token) return;
