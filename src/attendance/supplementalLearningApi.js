@@ -118,10 +118,16 @@ export async function beginSupplementalAttendance(client, sessionId) {
   return rpc(client, 'bes_begin_supplemental_attendance', { p_session_id: sessionId });
 }
 export async function confirmSupplementalAttendance(client, input = {}) {
-  return rpc(client, 'bes_confirm_supplemental_attendance', {
+  return rpc(client, 'bes_confirm_supplemental_attendance_v2', {
     p_session_id: input.sessionId,
     p_participants: (input.participants || []).map((item) => ({ participantId: item.participantId || item.id, status: item.status || 'present', absenceReasonCode: item.absenceReasonCode || '', absenceNote: item.absenceNote || '' })),
-    p_session_note: input.sessionNote || '', p_proof_path: input.proofPath || '',
+    p_session_note: input.sessionNote || '',
+    p_proof_path: input.proofPath || '',
+    p_lesson_periods: Number(input.lessonPeriods || 1),
+    p_teacher_name: input.teacherName || '',
+    p_room: input.room || '',
+    p_start_time: input.startTime || null,
+    p_end_time: input.endTime || null,
   });
 }
 export async function attachSupplementalProof(client, sessionId, proofPath) {

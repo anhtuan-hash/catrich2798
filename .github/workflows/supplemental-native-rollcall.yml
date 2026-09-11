@@ -1,0 +1,35 @@
+name: Supplemental native rollcall parity
+
+on:
+  push:
+    branches:
+      - fix/unify-supplemental-rollcall-20260911
+  pull_request:
+    paths:
+      - 'src/components/GlobalAttendanceNavigationTab.jsx'
+      - 'src/attendance/supplementalLearningApi.js'
+      - 'src/supplementalAttendanceQuickBootstrap.js'
+      - 'src/utils/attendanceReport.js'
+      - 'supabase/migrations/20260911_supplemental_native_rollcall_parity.sql'
+      - 'scripts/test-attendance-supplemental-native-rollcall.mjs'
+      - '.github/workflows/supplemental-native-rollcall.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Verify supplemental native rollcall contract
+        run: node scripts/test-attendance-supplemental-native-rollcall.mjs
+      - name: Verify production build
+        run: npm run build

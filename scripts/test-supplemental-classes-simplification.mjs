@@ -39,9 +39,10 @@ assert.match(ui, /changeMemberStatus\(selected\.id, button\.dataset\.student, bu
 assert.ok(access.includes(managerUuid), 'The frontend visibility guard must use the stable Hồng Thắm profile UUID.');
 assert.match(access, /approved/, 'The frontend visibility guard must require an approved profile.');
 assert.match(access, /admin|administrator/, 'The frontend visibility guard must allow approved Admins.');
-for (const entry of [ui, quick, reporting, route]) {
-  assert.match(entry, /supplementalAccess|canManageSupplementalLearning/, 'Every supplemental management/rollcall/reporting/route entry point must use the dedicated access guard.');
+for (const entry of [ui, reporting, route]) {
+  assert.match(entry, /supplementalAccess|canManageSupplementalLearning/, 'Every active supplemental management/reporting/route entry point must use the dedicated access guard.');
 }
+assert.doesNotMatch(quick, /addEventListener|createElement|role="dialog"/, 'The retired quick bootstrap must remain an inert compatibility stub; native React rollcall owns authorization and UI.');
 const reportingImport = route.indexOf("import('./supplementalAttendanceReportingBootstrap.js')");
 const routeGuard = route.indexOf('canManageSupplementalLearning');
 assert.ok(routeGuard >= 0 && reportingImport > routeGuard, 'Reporting must only be dynamically loaded behind the strict supplemental route guard.');
