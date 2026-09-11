@@ -14,13 +14,16 @@ const managerUuid = '4c89bfa1-9e3f-4965-a082-99f6e974f5ba';
 const ui = read('src/supplementalLearningBootstrap.js');
 const api = read('src/attendance/supplementalLearningApi.js');
 const quick = read('src/supplementalAttendanceQuickBootstrap.js');
+const reporting = read('src/supplementalAttendanceReportingBootstrap.js');
 const route = read('src/supplementalLearningRouteBootstrap.js');
 const access = mustExist('src/supplementalAccess.js');
 const migration = mustExist('supabase/migrations/20260911150000_supplemental_classes_simplification.sql');
+const authHardening = mustExist('supabase/migrations/20260911151000_supplemental_classes_authorization_hardening.sql');
 
 assert.match(ui, /Lớp học bổ sung/, 'The management UI must be class-centric.');
 for (const forbidden of ['Nhóm dài ngày', 'Buổi phát sinh', 'Liên kết với học sinh chính thức']) {
   assert.ok(!ui.includes(forbidden), `Legacy UI label must be removed: ${forbidden}`);
+  assert.ok(!reporting.includes(forbidden), `Legacy reporting label must be removed: ${forbidden}`);
 }
 assert.ok(!ui.includes('data-form="official-student"'), 'The new UI must not expose the global official-student registry form.');
 assert.ok(!ui.includes('data-form="adhoc-session"'), 'The new UI must not expose adhoc-session creation.');
@@ -29,12 +32,13 @@ assert.ok(!ui.includes('data-action="link"'), 'The new UI must not expose offici
 assert.ok(access.includes(managerUuid), 'The frontend visibility guard must use the stable Hồng Thắm profile UUID.');
 assert.match(access, /approved/, 'The frontend visibility guard must require an approved profile.');
 assert.match(access, /admin|administrator/, 'The frontend visibility guard must allow approved Admins.');
-for (const entry of [ui, quick, route]) {
-  assert.match(entry, /supplementalAccess|canManageSupplementalLearning/, 'Supplemental management/rollcall/route entry points must use the dedicated access guard.');
+for (const entry of [ui, quick, reporting, route]) {
+  assert.match(entry, /supplementalAccess|canManageSupplementalLearning/, 'Every supplemental management/rollcall/reporting/route entry point must use the dedicated access guard.');
 }
 const reportingImport = route.indexOf("import('./supplementalAttendanceReportingBootstrap.js')");
 const routeGuard = route.indexOf('canManageSupplementalLearning');
 assert.ok(routeGuard >= 0 && reportingImport > routeGuard, 'Reporting must only be dynamically loaded behind the strict supplemental route guard.');
+assert.match(reporting, /if \(!canManage\(\)\)/, 'Reporting must clear/deny its UI after runtime access is lost.');
 
 for (const rpcName of [
   'bes_list_supplemental_classes',
@@ -63,5 +67,7 @@ for (const genericPermission of ['route:attendance', 'attendance:quick', 'attend
 
 assert.match(migration, /bes_require_supplemental_admin[\s\S]*bes_require_supplemental_manager/, 'Legacy supplemental admin guard must delegate to the strict manager rule.');
 assert.match(migration, /bes_require_supplemental_reader[\s\S]*bes_require_supplemental_manager/, 'Legacy supplemental reader guard must delegate to the strict manager rule.');
+assert.match(authHardening, /bes_supplemental_sessions[\s\S]*perform private\.bes_require_supplemental_manager\(\)/, 'Direct begin/confirm attendance access must raise through the strict supplemental manager guard.');
+assert.ok(!authHardening.includes("return jsonb_build_object('allowed', false, 'reason', 'supplemental_not_allowed')"), 'Unauthorized supplemental attendance must not degrade to a generic boolean denial.');
 
 console.log('supplemental classes simplification contract: PASS');
