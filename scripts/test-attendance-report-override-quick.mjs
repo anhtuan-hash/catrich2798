@@ -25,10 +25,9 @@ assert.match(
   /hongtham@accounts\.brianenglish\.studio/i,
   'Dedicated delete authorization must preserve Nguyễn Thị Hồng Thắm access',
 );
-assert.doesNotMatch(
-  deleteAuthorizationSource,
-  /attendance:report/,
-  'Report-only permission must not grant destructive history access',
-);
+const helperBody = deleteAuthorizationSource.match(/create\s+or\s+replace\s+function\s+public\.can_delete_extra_attendance_history\(\)[\s\S]*?\$\$;/i)?.[0] || '';
+assert.match(helperBody, /lower\(coalesce\(p\.role,\s*''\)\)\s+in\s*\('admin',\s*'administrator'\)/i, 'Dedicated delete helper must allow Admin/Administrator');
+assert.match(helperBody, /hongtham@accounts\.brianenglish\.studio/i, 'Dedicated delete helper must allow Nguyễn Thị Hồng Thắm');
+assert.doesNotMatch(helperBody, /hasAttendanceTabAccess|attendance_permissions|has_explicit_permission/i, 'Delete helper must not derive destructive access from tab permissions');
 
 console.log('Attendance report override quick-entry contract OK');
