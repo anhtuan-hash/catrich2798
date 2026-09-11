@@ -83,45 +83,6 @@ jobs:
           '''
           css_path.write_text(css, encoding='utf-8')
 
-          final_workflow = '''name: Attendance History Visual Redesign
-
-          on:
-            push:
-              branches:
-                - feat/attendance-history-visual-redesign
-            pull_request:
-
-          permissions:
-            contents: read
-
-          jobs:
-            contract:
-              runs-on: ubuntu-latest
-              timeout-minutes: 10
-              steps:
-                - name: Checkout
-                  uses: actions/checkout@v4
-                - name: Set up Node 22
-                  uses: actions/setup-node@v4
-                  with:
-                    node-version: '22'
-                    cache: npm
-                - name: Install dependencies
-                  run: npm ci --ignore-scripts
-                - name: Verify attendance history visual redesign
-                  run: node scripts/test-attendance-history-visual-redesign.mjs
-                - name: Verify attendance history behavior guard
-                  run: node scripts/test-attendance-history-functional-guard.mjs
-                - name: Verify attendance history date filter and sorting
-                  run: node scripts/test-attendance-history-date-filter.mjs
-                - name: Verify attendance history delete authorization
-                  run: node scripts/test-attendance-history-delete-authorization.mjs
-                - name: Verify attendance history display fixes
-                  run: node scripts/test-attendance-history-display-fixes.mjs
-          '''
-          import textwrap
-          Path('.github/workflows/attendance-history-visual-redesign.yml').write_text(textwrap.dedent(final_workflow), encoding='utf-8')
-
       - name: Set up Node 22
         uses: actions/setup-node@v4
         with:
@@ -144,11 +105,10 @@ jobs:
       - name: Build frontend
         run: npm run build
 
-      - name: Commit verified fix
+      - name: Commit verified source fix
         run: |
-          rm -f .github/workflows/apply-attendance-history-display-fixes.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/components/GlobalAttendanceNavigationTab.jsx src/components/attendance/AttendanceHistoryV2.css scripts/test-attendance-history-display-fixes.mjs .github/workflows/attendance-history-visual-redesign.yml .github/workflows/apply-attendance-history-display-fixes.yml
+          git add src/components/GlobalAttendanceNavigationTab.jsx src/components/attendance/AttendanceHistoryV2.css
           git commit -m "Fix attendance history display defects"
           git push origin HEAD:fix/attendance-history-display-bugs-v2
