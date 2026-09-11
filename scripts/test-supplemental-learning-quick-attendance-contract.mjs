@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 const source=await readFile(new URL('../src/supplementalAttendanceQuickBootstrap.js',import.meta.url),'utf8');
+const dailyScheduleSource=await readFile(new URL('../src/components/attendance/AttendanceDailySchedule.jsx',import.meta.url),'utf8');
 for(const token of ['data-bes-attendance-source="supplemental"','data-bes-supplemental-session-id','HỌC BỔ SUNG','Nhóm dài ngày','Phát sinh'])assert.ok(source.includes(token),`missing quick-attendance marker ${token}`);
 for(const call of ['loadSupplementalAttendanceActivities','beginSupplementalAttendance','confirmSupplementalAttendance','attachSupplementalProof'])assert.ok(source.includes(call),`missing RPC client ${call}`);
 assert.match(source,/attendance-session-proofs/,'proof uploads must use the existing attendance proof bucket');
@@ -15,4 +16,6 @@ assert.ok(confirmAt>=0&&uploadAt>confirmAt&&attachAt>uploadAt,'proof path must b
 assert.match(source,/proofPath:''/,'confirmation must not persist a proof path before storage upload succeeds');
 assert.match(source,/if\(!force&&requestKey===key\)return;/,'an unchanged cached attendance day must not rewrite the supplemental DOM');
 assert.doesNotMatch(source,/if\(!force&&requestKey===key\)\{renderSection\(root\);return;\}/,'cached refresh must not create a MutationObserver render loop that blocks Attendance tab clicks');
+assert.match(source,/\[data-attendance-daily-status-root\]/,'supplemental bootstrap must target the native daily schedule mount');
+assert.match(dailyScheduleSource,/data-attendance-daily-status-root/,'native Attendance daily schedule must expose the mount target used by supplemental attendance');
 console.log('supplemental learning quick attendance contract: ok');
