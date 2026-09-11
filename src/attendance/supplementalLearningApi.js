@@ -68,6 +68,9 @@ export async function confirmSupplementalAttendance(client, input = {}) {
     p_session_note: input.sessionNote || '', p_proof_path: input.proofPath || '',
   });
 }
+export async function attachSupplementalProof(client, sessionId, proofPath) {
+  return rpc(client, 'bes_attach_supplemental_proof', { p_session_id: sessionId, p_proof_path: proofPath });
+}
 export async function loadSupplementalHistory(client, range = {}, query = '') {
   return (await rpc(client, 'bes_list_supplemental_history', { p_from: isoDate(range.from), p_to: isoDate(range.to), p_query: query || '' })) || [];
 }
