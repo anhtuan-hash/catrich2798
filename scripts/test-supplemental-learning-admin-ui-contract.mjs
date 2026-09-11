@@ -54,10 +54,10 @@ function maxZIndex(text, pattern) {
   return matches.length ? Math.max(...matches) : NaN;
 }
 
-const nativeLayerZ = maxZIndex(nativeAttendanceCss, /\.attendance-layer\{[^}]*z-index\s*:\s*(\d+)/gi);
-const adminBackdropZ = maxZIndex(css, /\.bes-supplemental-backdrop\{[^}]*z-index\s*:\s*(\d+)/gi);
-const adminDialogZ = maxZIndex(css, /\.bes-supplemental-dialog\{[^}]*z-index\s*:\s*(\d+)/gi);
-const rollcallZ = maxZIndex(css, /\.bes-supplemental-rollcall\{[^}]*z-index\s*:\s*(\d+)/gi);
+const nativeLayerZ = maxZIndex(nativeAttendanceCss, /\.attendance-layer\s*\{[^}]*z-index\s*:\s*(\d+)/gi);
+const adminBackdropZ = maxZIndex(css, /\.bes-supplemental-backdrop\s*\{[^}]*z-index\s*:\s*(\d+)/gi);
+const adminDialogZ = maxZIndex(css, /\.bes-supplemental-dialog\s*\{[^}]*z-index\s*:\s*(\d+)/gi);
+const rollcallZ = maxZIndex(css, /\.bes-supplemental-rollcall\s*\{[^}]*z-index\s*:\s*(\d+)/gi);
 assert.ok(Number.isFinite(nativeLayerZ), 'native Attendance layer must expose a measurable z-index');
 assert.ok(adminBackdropZ > nativeLayerZ, `Học bổ sung backdrop must sit above the Attendance modal (${adminBackdropZ} <= ${nativeLayerZ})`);
 assert.ok(adminDialogZ > adminBackdropZ, 'Học bổ sung Admin dialog must sit above its backdrop');
