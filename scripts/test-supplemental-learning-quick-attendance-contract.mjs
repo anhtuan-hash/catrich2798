@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+const source=await readFile(new URL('../src/supplementalAttendanceQuickBootstrap.js',import.meta.url),'utf8');
+for(const token of ['data-bes-attendance-source="supplemental"','data-bes-supplemental-session-id','HỌC BỔ SUNG','Nhóm dài ngày','Phát sinh'])assert.ok(source.includes(token),`missing quick-attendance marker ${token}`);
+for(const call of ['loadSupplementalAttendanceActivities','beginSupplementalAttendance','confirmSupplementalAttendance'])assert.ok(source.includes(call),`missing RPC client ${call}`);
+assert.match(source,/attendance-session-proofs/,'proof uploads must use the existing attendance proof bucket');
+assert.match(source,/present.*tardy.*absent/s,'must expose all three attendance states');
+assert.doesNotMatch(source,/teacher.*===.*runtime|runtime.*===.*teacher/i,'operator identity must not be matched to the instructional teacher');
+assert.match(source,/beginSupplementalAttendance\(client,sessionId\)/,'begin/freeze must be server-authoritative');
+assert.match(source,/confirmSupplementalAttendance\(client/,'confirmation must be server-authoritative');
+console.log('supplemental learning quick attendance contract: ok');
