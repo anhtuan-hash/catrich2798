@@ -6,14 +6,17 @@ const root = process.cwd();
 const migrationPath = path.join(root, 'supabase/migrations/20260911_supplemental_learning_attendance.sql');
 const proofMigrationPath = path.join(root, 'supabase/migrations/20260911_supplemental_learning_proof_access.sql');
 const proofAttachPath = path.join(root, 'supabase/migrations/20260911_supplemental_learning_proof_attach.sql');
+const proofConfirmHardeningPath = path.join(root, 'supabase/migrations/20260911_supplemental_learning_proof_confirm_hardening.sql');
 const activityTypeFixPath = path.join(root, 'supabase/migrations/20260911_supplemental_learning_activity_type_fix.sql');
 assert.ok(fs.existsSync(migrationPath), 'supplemental learning migration must exist');
 assert.ok(fs.existsSync(proofMigrationPath), 'supplemental proof-access migration must exist');
 assert.ok(fs.existsSync(proofAttachPath), 'supplemental proof-attach migration must exist');
+assert.ok(fs.existsSync(proofConfirmHardeningPath), 'supplemental proof-confirm hardening migration must exist');
 assert.ok(fs.existsSync(activityTypeFixPath), 'supplemental activity-type forward migration must exist');
 const sql = fs.readFileSync(migrationPath, 'utf8');
 const proofSql = fs.readFileSync(proofMigrationPath, 'utf8');
 const proofAttachSql = fs.readFileSync(proofAttachPath, 'utf8');
+const proofConfirmHardeningSql = fs.readFileSync(proofConfirmHardeningPath, 'utf8');
 const activityTypeSql = fs.readFileSync(activityTypeFixPath, 'utf8');
 
 for (const table of [
@@ -67,14 +70,14 @@ assert.match(sql, /bes_supplemental_sessions[\s\S]{0,240}status\s*<>\s*'cancelle
 assert.match(sql, /clock_timestamp\s*\(\s*\)/i, 'authoritative timestamps must come from PostgreSQL');
 assert.match(sql, /status\s*=\s*'cancelled'/i, 'cancelled sessions must be rejected by attendance flow');
 assert.match(sql, /checked_by\s*=\s*v_uid|auth\.uid\s*\(\s*\)/i, 'attendance actor must come from authenticated user');
-const confirmSql = sql.match(/create or replace function public\.bes_confirm_supplemental_attendance[\s\S]*?(?=create or replace function public\.bes_list_supplemental_history)/i)?.[0] || '';
-assert.doesNotMatch(confirmSql, /proof_path\s*=\s*btrim\s*\(\s*coalesce\s*\(\s*p_proof_path/i, 'confirm RPC must not trust a client-supplied proof path');
-assert.match(confirmSql, /proof_path\s*=\s*''/i, 'confirm RPC must leave proof empty until verified storage attachment');
+assert.match(proofConfirmHardeningSql, /create or replace function public\.bes_confirm_supplemental_attendance/i, 'proof hardening must replace the confirm RPC');
+assert.doesNotMatch(proofConfirmHardeningSql, /proof_path\s*=\s*btrim\s*\(\s*coalesce\s*\(\s*p_proof_path/i, 'confirm RPC must not trust a client-supplied proof path');
+assert.match(proofConfirmHardeningSql, /proof_path\s*=\s*''/i, 'confirm RPC must leave proof empty until verified storage attachment');
 const studentReportSql = sql.match(/create or replace function public\.bes_supplemental_student_report[\s\S]*?(?=create or replace function public\.bes_list_attendance_activities)/i)?.[0] || '';
 assert.match(studentReportSql, /join\s+public\.bes_supplemental_sessions\s+s\s+on\s+s\.id\s*=\s*p\.session_id[\s\S]{0,180}s\.status\s*=\s*'confirmed'/i, 'student report denominator must be based only on confirmed sessions');
 assert.match(studentReportSql, /where\s+s\.attendance_date\s+between\s+p_from\s+and\s+p_to/i, 'student report must honor the requested date range');
 assert.doesNotMatch(sql, /insert\s+into\s+public\.bes_extra_/i, 'supplemental implementation must not write legacy extra-class tables');
-assert.doesNotMatch(sql, /update\s+public\.bes_extra_/i, 'supplemental implementation must not rewrite legacy extra-class tables');
+assert.doesNotMatch(sql, /update\s+public\.bes_extra_/i, 'supplemental implementation must not rewrite legacy extra-class history');
 assert.doesNotMatch(sql, /delete\s+from\s+public\.bes_extra_/i, 'supplemental implementation must not delete legacy extra-class history');
 assert.doesNotMatch(sql, /gi[aá]m\s*th[iị]\s*[123]?/i, 'supplemental authorization must not hardcode proctor accounts or roles');
 
