@@ -1,3 +1,4 @@
+import './styles/SupplementalClasses.css';
 import { normalizeSystemRole, SYSTEM_ROLES } from './utils/roles.js';
 
 export const SUPPLEMENTAL_MANAGER_PROFILE_ID = '4c89bfa1-9e3f-4965-a082-99f6e974f5ba';
