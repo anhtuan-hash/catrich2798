@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+const source=await readFile(new URL('../src/supplementalLearningBootstrap.js',import.meta.url),'utf8');
+const css=await readFile(new URL('../src/styles/SupplementalLearning.css',import.meta.url),'utf8');
+assert.match(source,/SYSTEM_ROLES\.ADMIN/,'supplemental management must be Admin-only');
+for(const label of ['Học bổ sung','Tạo nhóm học bổ sung','Tạo buổi phát sinh','Liên kết với học sinh chính thức','Ngừng tham gia từ ngày nào?'])assert.ok(source.includes(label),`missing UI contract: ${label}`);
+for(const call of ['loadSupplementalAdminData','upsertSupplementalStudent','upsertSupplementalGroup','setSupplementalMembership','upsertSupplementalSession','linkSupplementalStudent','cancelSupplementalSession'])assert.ok(source.includes(call),`missing admin action: ${call}`);
+assert.doesNotMatch(source,/Giám thị\s*[123]?/i,'must not hardcode proctor roles/accounts');
+assert.match(css,/\.bes-supplemental-dialog/);assert.match(css,/@media\(max-width:560px\)/);
+console.log('supplemental learning admin UI contract: ok');
