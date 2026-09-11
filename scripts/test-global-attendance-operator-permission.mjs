@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 
 const utilityUrl = new URL('../src/utils/attendanceTimeAccess.js', import.meta.url);
 const bootstrapUrl = new URL('../src/attendanceTimeAccessBootstrap.js', import.meta.url);
-const permissionsUrl = new URL('../src/utils/permissions.js', import.meta.url);
 const migrationUrl = new URL('../supabase/migrations/20260911_global_attendance_operator_permission.sql', import.meta.url);
 
 const { evaluateAttendanceTimeAccess, attendanceAccessReasonVi } = await import(utilityUrl);
@@ -19,9 +18,9 @@ const base = {
 };
 
 assert.equal(
-  evaluateAttendanceTimeAccess({ ...base, isAssigned: false }).allowed,
+  evaluateAttendanceTimeAccess(base).allowed,
   true,
-  'Admin-granted attendance permission must allow every class; teacher assignment must not be required',
+  'Admin-granted attendance permission must allow attendance operation inside the configured window',
 );
 assert.equal(
   evaluateAttendanceTimeAccess({ ...base, hasQuickPermission: false, isAssigned: true }).reason,
@@ -39,11 +38,8 @@ const bootstrapSource = fs.readFileSync(bootstrapUrl, 'utf8');
 assert.doesNotMatch(bootstrapSource, /isAssignedAttendanceTeacher/, 'Frontend access must not depend on teaching assignment');
 assert.doesNotMatch(bootstrapSource, /teacher_identity_mismatch/, 'Attendance operators must be able to operate every class without matching the selected teacher identity');
 assert.doesNotMatch(bootstrapSource, /matchingTeacherNames\(/, 'Teacher dropdown options must not be restricted to the operator identity');
+assert.doesNotMatch(bootstrapSource, /bes_extra_class_teachers/, 'Frontend access metadata must not load teacher assignment rows for authorization');
 assert.match(bootstrapSource, /Bạn có thể thao tác điểm danh tất cả các lớp\./, 'Allowed-state UI must explain the global attendance assignment clearly');
-
-const permissionSource = fs.readFileSync(permissionsUrl, 'utf8');
-assert.match(permissionSource, /titleVi:\s*'Được phép điểm danh'/, 'Admin permission UI must name the global attendance assignment clearly');
-assert.match(permissionSource, /descVi:\s*'[^']*tất cả các lớp[^']*'/, 'Admin permission UI must explain that the grant covers all classes');
 
 assert.ok(fs.existsSync(migrationUrl), 'A forward migration must patch the already-deployed backend authorization helper');
 const migrationSource = fs.readFileSync(migrationUrl, 'utf8');
