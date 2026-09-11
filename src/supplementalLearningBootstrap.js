@@ -153,7 +153,6 @@ async function saveMember(form, classId, studentId = null) {
   await runMutation(() => upsertSupplementalClassMember(client, { groupId: classId, studentId, fullName: String(values.get('fullName') || '').trim(), studentCode: String(values.get('studentCode') || '').trim(), schoolClassName: String(values.get('schoolClassName') || '').trim(), effectiveFrom: today() }), studentId ? 'Đã cập nhật thông tin học sinh.' : 'Đã thêm học sinh vào lớp.');
 }
 async function changeMemberStatus(classId, studentId, active) {
-  if (!window.confirm(active ? 'Kích hoạt lại học sinh này trong lớp?' : 'Chuyển học sinh này sang trạng thái Ngừng học? Lịch sử cũ vẫn được giữ nguyên.')) return;
   await runMutation(() => setSupplementalClassMemberStatus(client, { groupId: classId, studentId, active, effectiveDate: today() }), active ? 'Đã kích hoạt lại học sinh.' : 'Đã chuyển học sinh sang Ngừng học.');
 }
 async function archiveClass(classId) {
