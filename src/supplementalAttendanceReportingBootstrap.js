@@ -1,5 +1,6 @@
 import './styles/SupplementalLearning.css';
 import { ensureRuntimeReady, getRuntimeClient, getRuntimeState, subscribeRuntime } from './services/runtime/core.js';
+import { canManageSupplementalLearning } from './supplementalAccess.js';
 import { loadAttendanceActivities, loadSupplementalHistory, loadSupplementalStudentReport } from './attendance/supplementalLearningApi.js';
 
 const INSTALL_KEY = '__besSupplementalReportingInstalled';
@@ -17,6 +18,10 @@ let query = '';
 let dateFrom = '';
 let dateTo = '';
 let token = 0;
+
+function canManage() {
+  return canManageSupplementalLearning(runtime || {});
+}
 
 function esc(value) {
   return String(value ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
@@ -55,7 +60,7 @@ function shell() {
 }
 
 function filterOptions() {
-  return [['all','Tất cả'],['remedial','Phụ đạo'],['enrichment','Bồi dưỡng'],['supplemental','Học bổ sung']];
+  return [['all', 'Tất cả'], ['remedial', 'Phụ đạo'], ['enrichment', 'Bồi dưỡng'], ['supplemental', 'Học bổ sung']];
 }
 
 function activityLabel(type) {
@@ -64,6 +69,14 @@ function activityLabel(type) {
 
 function statusLabel(value) {
   return ({ confirmed: 'Đã chốt', completed: 'Đã chốt', cancelled: 'Đã hủy', scheduled: 'Chưa điểm danh', in_progress: 'Đang điểm danh', present: 'Có mặt', absent: 'Vắng', tardy: 'Đi trễ', late: 'Đi trễ' })[value] || value || '';
+}
+
+function clearSupplementalReportingUi() {
+  document.getElementById(FILTER_ID)?.remove();
+  closePanel();
+  filter = 'all';
+  query = '';
+  token += 1;
 }
 
 function legacyHistoryTypeSelect() {
@@ -85,6 +98,11 @@ function syncLegacyHistoryFilter(activityType) {
 }
 
 function ensureFilter() {
+  if (!canManage()) {
+    clearSupplementalReportingUi();
+    return;
+  }
+
   const host = shell();
   if (!host || !detectActiveTab()) {
     document.getElementById(FILTER_ID)?.remove();
@@ -109,6 +127,7 @@ function ensureFilter() {
       : 'Tất cả giữ nguyên lịch sử hiện tại; chọn Phụ đạo, Bồi dưỡng hoặc Học bổ sung để xem riêng.'}</small>`;
 
   bar.querySelectorAll('[data-activity-filter]').forEach((button) => button.addEventListener('click', () => {
+    if (!canManage()) return;
     filter = button.dataset.activityFilter || 'all';
     if (activeTab === 'history') syncLegacyHistoryFilter(filter);
     window.dispatchEvent(new CustomEvent('bes-attendance-activity-filter-change', { detail: { activityType: filter, tab: activeTab } }));
@@ -125,7 +144,7 @@ function rangeControls() {
   return `<div class="bes-supplemental-report-tools">
     <label>Từ ngày<input type="date" data-report-from value="${esc(dateFrom)}"></label>
     <label>Đến ngày<input type="date" data-report-to value="${esc(dateTo)}"></label>
-    ${activeTab === 'history' ? `<label>Tìm kiếm<input type="search" data-report-query value="${esc(query)}" placeholder="Học sinh, môn, nhóm, giáo viên"></label>` : ''}
+    ${activeTab === 'history' ? `<label>Tìm kiếm<input type="search" data-report-query value="${esc(query)}" placeholder="Học sinh, môn, lớp, giáo viên"></label>` : ''}
     <button type="button" data-report-refresh>Cập nhật</button>
     ${printable ? '<button type="button" class="is-primary" data-report-print>In / Lưu PDF</button>' : ''}
   </div>`;
@@ -135,8 +154,9 @@ function historyHtml(rows) {
   if (!rows.length) return '<p class="bes-supplemental-empty">Không có dữ liệu Học bổ sung phù hợp trong khoảng ngày này.</p>';
   return `<div class="bes-supplemental-history-list">${rows.map((row) => {
     const participants = row.participants || [];
+    const sourceLabel = row.kind === 'adhoc' ? 'HỌC BỔ SUNG · DỮ LIỆU CŨ' : 'LỚP HỌC BỔ SUNG';
     return `<article class="bes-supplemental-history-card">
-      <header><div><span class="bes-supplemental-source-badge">HỌC BỔ SUNG · ${row.kind === 'recurring' ? 'Nhóm dài ngày' : 'Phát sinh'}</span><h3>${esc(row.title || row.subject)}</h3><p>${esc(row.date)} · ${esc(row.subject)} · ${esc(row.teacherName || 'Chưa giáo viên')} · ${esc(row.room || 'Chưa phòng')} · ${esc(row.timeRange || '')}</p></div><strong>${statusLabel(row.status)}</strong></header>
+      <header><div><span class="bes-supplemental-source-badge">${sourceLabel}</span><h3>${esc(row.title || row.subject)}</h3><p>${esc(row.date)} · ${esc(row.subject)} · ${esc(row.teacherName || 'Chưa giáo viên')} · ${esc(row.room || 'Chưa phòng')} · ${esc(row.timeRange || '')}</p></div><strong>${statusLabel(row.status)}</strong></header>
       ${row.status === 'confirmed' ? `<div class="bes-supplemental-history-stats"><span>Tổng <b>${Number(row.totalStudents || 0)}</b></span><span>Có mặt <b>${Number(row.presentCount || 0)}</b></span><span>Đi trễ <b>${Number(row.tardyCount || 0)}</b></span><span>Vắng <b>${Number(row.absentCount || 0)}</b></span></div>` : ''}
       ${row.cancellationReason ? `<p class="bes-supplemental-cancel-reason">Lý do hủy: ${esc(row.cancellationReason)}</p>` : ''}
       ${participants.length ? `<details><summary>Danh sách học sinh (${participants.length})</summary><div class="bes-supplemental-history-participants">${participants.map((participant) => `<div><span><b>${esc(participant.fullName)}</b><small>${esc(participant.studentCode || 'Không mã')} · ${esc(participant.schoolClassName || 'Chưa lớp')}</small></span><em data-status="${esc(participant.status)}">${statusLabel(participant.status)}</em>${participant.status === 'absent' && (participant.absenceReasonCode || participant.absenceNote) ? `<small>${esc(participant.absenceReasonCode || '')} ${esc(participant.absenceNote || '')}</small>` : ''}</div>`).join('')}</div></details>` : ''}
@@ -193,6 +213,10 @@ function renderLegacyActivityReport(rows, activityType) {
 }
 
 function renderPanel(body, title) {
+  if (!canManage()) {
+    clearSupplementalReportingUi();
+    return;
+  }
   let panel = document.getElementById(PANEL_ID);
   if (!panel) {
     panel = document.createElement('section');
@@ -233,8 +257,8 @@ function closePanel() {
 }
 
 async function refreshPanel(force = false) {
-  if (!client || !activeTab) {
-    closePanel();
+  if (!client || !activeTab || !canManage()) {
+    clearSupplementalReportingUi();
     return;
   }
   if (!dateFrom) dateFrom = dayOffset(activeTab === 'report' ? -365 : -31);
@@ -272,7 +296,7 @@ async function refreshPanel(force = false) {
       }
     }
   } catch (error) {
-    if (current !== token) return;
+    if (current !== token || !canManage()) return;
     renderPanel(`<p class="bes-supplemental-empty">${esc(error?.message || 'Không thể tải dữ liệu báo cáo.')}</p>`, 'Không thể tải dữ liệu');
   } finally {
     void force;
@@ -280,10 +304,18 @@ async function refreshPanel(force = false) {
 }
 
 function bindTabs() {
+  if (!canManage()) {
+    clearSupplementalReportingUi();
+    return;
+  }
   document.querySelectorAll(TAB_SELECTOR).forEach((button) => {
     if (button.dataset.besSupplementalReportingBound) return;
     button.dataset.besSupplementalReportingBound = 'true';
     button.addEventListener('click', () => {
+      if (!canManage()) {
+        clearSupplementalReportingUi();
+        return;
+      }
       const next = tabKind(button);
       activeTab = next;
       observerActiveTab = next;
@@ -328,6 +360,11 @@ async function install() {
   subscribeRuntime((next) => {
     runtime = next || getRuntimeState();
     client = getRuntimeClient();
+    if (!canManage()) {
+      clearSupplementalReportingUi();
+      return;
+    }
+    bindTabs();
     if (activeTab) void refreshPanel(true);
   });
 }
