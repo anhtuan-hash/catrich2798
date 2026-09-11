@@ -28,6 +28,79 @@ function normalizeSession(session) {
   };
 }
 
+export function normalizeSupplementalReportData(rows = []) {
+  const sessions = [];
+  const records = [];
+  const classMap = new Map();
+
+  (Array.isArray(rows) ? rows : []).forEach((row) => {
+    const sourceId = String(row?.id || '');
+    if (!sourceId) return;
+    const groupIdentity = String(row?.groupId || `${row?.groupName || row?.title || 'Học bổ sung'}::${row?.subject || ''}`);
+    const classId = `supplemental:${groupIdentity}`;
+    const sessionId = `supplemental:${sourceId}`;
+    const participants = Array.isArray(row?.participants) ? row.participants : [];
+    const tardyCount = Number(row?.tardyCount || 0);
+    const presentCount = Number(row?.presentCount || 0) + tardyCount;
+    const absentCount = Number(row?.absentCount || 0);
+    const className = String(row?.groupName || row?.title || 'Học bổ sung');
+    const subject = String(row?.subject || '');
+
+    sessions.push({
+      id: sessionId,
+      class_id: classId,
+      class_type: 'supplemental',
+      class_name: className,
+      subject,
+      teacher_name: String(row?.teacherName || ''),
+      attendance_date: String(row?.date || '').slice(0, 10),
+      checked_at: row?.attendanceConfirmedAt || row?.checkedAt || null,
+      checked_by_name: String(row?.checkedByName || ''),
+      total_students: Number(row?.totalStudents || participants.length || 0),
+      present_count: presentCount,
+      absent_count: absentCount,
+      note: String(row?.sessionNote || ''),
+      session_status: row?.status === 'cancelled' ? 'cancelled' : 'completed',
+      lesson_periods: row?.status === 'cancelled' ? 0 : 1,
+      cancellation_reason: String(row?.cancellationReason || ''),
+      teaching_room: String(row?.room || ''),
+      teaching_time_range: String(row?.timeRange || ''),
+      attendance_source: 'supplemental',
+    });
+
+    if (!classMap.has(classId)) {
+      classMap.set(classId, {
+        id: classId,
+        class_type: 'supplemental',
+        class_name: className,
+        subject,
+        teacher_name: String(row?.teacherName || ''),
+        active: true,
+      });
+    }
+
+    participants.forEach((participant, index) => {
+      const rawStatus = String(participant?.status || 'present');
+      records.push({
+        id: `supplemental-record:${sourceId}:${participant?.studentId || index}`,
+        session_id: sessionId,
+        class_id: classId,
+        member_id: participant?.studentId || null,
+        member_key: participant?.canonicalStudentKey || '',
+        student_code: participant?.studentCode || '',
+        student_full_name: participant?.fullName || '',
+        school_class_name: participant?.schoolClassName || '',
+        status: rawStatus === 'tardy' ? 'late' : rawStatus === 'absent' ? 'absent' : 'present',
+        recorded_at: null,
+        absence_reason_code: participant?.absenceReasonCode || '',
+        absence_note: participant?.absenceNote || '',
+      });
+    });
+  });
+
+  return { sessions, records, classes: [...classMap.values()] };
+}
+
 function sameText(a, b) {
   return String(a || '').trim().localeCompare(String(b || '').trim(), 'vi', { sensitivity: 'base' }) === 0;
 }
@@ -42,6 +115,11 @@ function matchesPeriod(session, mode, month, date) {
   return !month || attendanceDate.slice(0, 7) === month;
 }
 
+function matchesActivityType(session, activityType) {
+  const requested = activityType === 'enrichment' ? 'gifted' : String(activityType || 'all');
+  return requested === 'all' || String(session?.class_type || '') === requested;
+}
+
 export function absenceReasonLabel(code) {
   return ABSENCE_REASON_LABELS[String(code || '').trim()] || ABSENCE_REASON_LABELS.unspecified;
 }
@@ -54,12 +132,14 @@ export function buildAttendanceReport({
   mode = 'month',
   month = '',
   date = '',
+  activityType = 'all',
   classId = 'all',
   teacherName = 'all',
 } = {}) {
   const normalized = sessions.map(normalizeSession);
   const filteredSessions = normalized
     .filter((session) => matchesPeriod(session, mode, month, date))
+    .filter((session) => matchesActivityType(session, activityType))
     .filter((session) => classId === 'all' || String(session.class_id) === String(classId))
     .filter((session) => teacherName === 'all' || (session.session_status === 'completed' && sameText(session.teacher_name, teacherName)))
     .sort((a, b) => String(a.attendance_date || '').localeCompare(String(b.attendance_date || '')) || String(a.class_name || '').localeCompare(String(b.class_name || ''), 'vi'));

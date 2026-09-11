@@ -1234,7 +1234,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
             />
           ) : null}
 
-          {!loading && canAccessAttendanceView('report') && view === 'report' ? <AttendanceMonthlyReport client={client} classes={classes} month={reportMonth} onMonthChange={setReportMonth} onError={setError} /> : null}
+          {!loading && canAccessAttendanceView('report') && view === 'report' ? <AttendanceMonthlyReport client={client} classes={classes} includeSupplemental={canSeeSupplementalHistory} month={reportMonth} onMonthChange={setReportMonth} onError={setError} /> : null}
 
           {!loading && canAccessAttendanceView('history') && view === 'history' ? (
             <div className="ahv3__shell" data-attendance-history-v3="true">
