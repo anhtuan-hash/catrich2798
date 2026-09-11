@@ -4,8 +4,11 @@ import assert from 'node:assert/strict';
 
 const root = process.cwd();
 const migrationPath = path.join(root, 'supabase/migrations/20260911_supplemental_learning_attendance.sql');
+const proofMigrationPath = path.join(root, 'supabase/migrations/20260911_supplemental_learning_proof_access.sql');
 assert.ok(fs.existsSync(migrationPath), 'supplemental learning migration must exist');
+assert.ok(fs.existsSync(proofMigrationPath), 'supplemental proof-access migration must exist');
 const sql = fs.readFileSync(migrationPath, 'utf8');
+const proofSql = fs.readFileSync(proofMigrationPath, 'utf8');
 
 for (const table of [
   'bes_supplemental_students',
@@ -16,6 +19,7 @@ for (const table of [
 ]) {
   assert.match(sql, new RegExp(`create table if not exists public\\.${table}`, 'i'), `${table} must be created`);
   assert.match(sql, new RegExp(`alter table public\\.${table} enable row level security`, 'i'), `${table} must have RLS enabled`);
+  assert.match(sql, new RegExp(`revoke all on table public\\.${table} from public, anon, authenticated`, 'i'), `${table} must not expose direct authenticated writes`);
 }
 
 assert.match(sql, /source_type\s+text[\s\S]{0,240}official[\s\S]{0,80}manual/i, 'student source type must distinguish official/manual');
@@ -26,6 +30,9 @@ assert.match(sql, /kind\s+text[\s\S]{0,220}recurring[\s\S]{0,80}adhoc/i, 'sessio
 assert.match(sql, /status\s+text[\s\S]{0,360}scheduled[\s\S]{0,120}in_progress[\s\S]{0,120}confirmed[\s\S]{0,120}cancelled/i, 'session lifecycle must be explicit');
 assert.match(sql, /roster_frozen_at/i, 'session must record roster freeze time');
 assert.match(sql, /canonical_student_key/i, 'participant must snapshot canonical identity');
+assert.match(sql, /student_code_snapshot/i, 'participant must snapshot the student code');
+assert.match(sql, /full_name_snapshot/i, 'participant must snapshot the student name');
+assert.match(sql, /school_class_snapshot/i, 'participant must snapshot the school class');
 assert.match(sql, /unique\s*\(\s*session_id\s*,\s*canonical_student_key\s*\)/i, 'same canonical student must not appear twice in a session');
 
 for (const rpc of [
@@ -39,6 +46,7 @@ for (const rpc of [
   'bes_list_supplemental_attendance',
   'bes_begin_supplemental_attendance',
   'bes_confirm_supplemental_attendance',
+  'bes_list_attendance_activities',
   'bes_list_supplemental_history',
   'bes_supplemental_student_report',
 ]) {
@@ -46,14 +54,26 @@ for (const rpc of [
 }
 
 assert.match(sql, /create or replace function private\.bes_require_supplemental_admin/i, 'server-side Admin guard must exist');
-assert.match(sql, /lower\s*\(\s*coalesce\s*\(\s*p\.role/i, 'Admin guard must inspect approved profile role');
+assert.match(sql, /lower\s*\(\s*coalesce\s*\(\s*v_profile\.role|lower\s*\(\s*coalesce\s*\(\s*p\.role/i, 'Admin guard must inspect approved profile role');
 assert.match(sql, /public\.can_take_extra_class_attendance\s*\(\s*\)/i, 'attendance RPC must reuse global quick-attendance permission gate');
 assert.match(sql, /private\.bes_attendance_access_decision/i, 'attendance RPC must reuse central Giờ GV decision');
+assert.match(sql, /bes_supplemental_sessions[\s\S]{0,240}status\s*<>\s*'cancelled'/i, 'central time gate must recognize non-cancelled supplemental sessions');
 assert.match(sql, /clock_timestamp\s*\(\s*\)/i, 'authoritative timestamps must come from PostgreSQL');
 assert.match(sql, /status\s*=\s*'cancelled'/i, 'cancelled sessions must be rejected by attendance flow');
 assert.match(sql, /checked_by\s*=\s*v_uid|auth\.uid\s*\(\s*\)/i, 'attendance actor must come from authenticated user');
+assert.match(sql, /where\s+s\.attendance_date\s+between[\s\S]{0,220}s\.status\s*=\s*'confirmed'/i, 'student report denominator must be based only on confirmed sessions');
 assert.doesNotMatch(sql, /insert\s+into\s+public\.bes_extra_/i, 'supplemental implementation must not write legacy extra-class tables');
 assert.doesNotMatch(sql, /update\s+public\.bes_extra_/i, 'supplemental implementation must not rewrite legacy extra-class tables');
 assert.doesNotMatch(sql, /delete\s+from\s+public\.bes_extra_/i, 'supplemental implementation must not delete legacy extra-class history');
+assert.doesNotMatch(sql, /gi[aá]m\s*th[iị]\s*[123]?/i, 'supplemental authorization must not hardcode proctor accounts or roles');
+
+assert.match(proofSql, /attendance-session-proofs/i, 'supplemental proof must use existing attendance proof bucket');
+assert.match(proofSql, /bes_can_upload_supplemental_proof/i, 'supplemental proof upload authorization helper must exist');
+assert.match(proofSql, /s\.checked_by\s*=\s*auth\.uid\s*\(\s*\)/i, 'only the confirming operator may upload a supplemental proof');
+assert.match(proofSql, /bes_can_view_supplemental_proof/i, 'supplemental proof view authorization helper must exist');
+assert.match(proofSql, /attendance:history/i, 'history permission must be able to view supplemental proof');
+assert.match(proofSql, /attendance:report/i, 'report permission must be able to view supplemental proof');
+assert.match(proofSql, /create policy[\s\S]*for insert[\s\S]*bes_can_upload_supplemental_proof/i, 'storage INSERT policy must be installed');
+assert.match(proofSql, /create policy[\s\S]*for select[\s\S]*bes_can_view_supplemental_proof/i, 'storage SELECT policy must be installed');
 
 console.log('Supplemental learning database contract OK');
