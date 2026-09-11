@@ -7,8 +7,10 @@ const css=[
   fs.readFileSync(path.join(root,'src/styles/SupplementalLearning.css'),'utf8'),
   fs.readFileSync(path.join(root,'src/styles/SupplementalLearningAdminCompleteness.css'),'utf8'),
 ].join('\n');
+const nativeAttendanceCss=fs.readFileSync(path.join(root,'src/components/GlobalAttendanceNavigationTab.css'),'utf8');
 
 async function installCss(page){await page.addStyleTag({content:css});}
+async function installLayeredCss(page){await page.addStyleTag({content:`${nativeAttendanceCss}\n${css}`});}
 
 test.describe('Supplemental learning attendance UI',()=>{
   test('daily cards are visually distinct from legacy Attendance rows',async({page})=>{
@@ -36,6 +38,20 @@ test.describe('Supplemental learning attendance UI',()=>{
     const dialog=page.locator('.bes-supplemental-dialog');
     const box=await dialog.boundingBox();
     expect(box?.width).toBeGreaterThan(900);
+  });
+
+  test('Admin and rollcall overlays sit above the native Attendance modal layer',async({page})=>{
+    await page.setViewportSize({width:1280,height:800});
+    await page.setContent(`<div class="attendance-layer"><section class="attendance-shell">Native Attendance</section></div><div class="bes-supplemental-backdrop"></div><section class="bes-supplemental-dialog"><button type="button">Thao tác Học bổ sung</button></section><section class="bes-supplemental-rollcall"><button type="button">Chốt điểm danh</button></section>`);
+    await installLayeredCss(page);
+    const nativeZ=Number(await page.locator('.attendance-layer').evaluate((node)=>getComputedStyle(node).zIndex));
+    const backdropZ=Number(await page.locator('.bes-supplemental-backdrop').evaluate((node)=>getComputedStyle(node).zIndex));
+    const dialogZ=Number(await page.locator('.bes-supplemental-dialog').evaluate((node)=>getComputedStyle(node).zIndex));
+    const rollcallZ=Number(await page.locator('.bes-supplemental-rollcall').evaluate((node)=>getComputedStyle(node).zIndex));
+    expect(backdropZ).toBeGreaterThan(nativeZ);
+    expect(dialogZ).toBeGreaterThan(backdropZ);
+    expect(rollcallZ).toBeGreaterThan(backdropZ);
+    await expect(page.getByRole('button',{name:'Thao tác Học bổ sung'})).toBeVisible();
   });
 
   test('activity filter surface exposes all four approved modes',async({page})=>{

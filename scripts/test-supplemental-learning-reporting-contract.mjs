@@ -12,7 +12,6 @@ assert.match(source, /loadSupplementalHistory/);
 assert.match(source, /loadSupplementalStudentReport/);
 assert.match(source, /loadAttendanceActivities/);
 assert.match(source, /buổi hủy không vào mẫu số/i, 'report must explain cancelled-session denominator rule');
-assert.match(source, /không tự cộng vào tổng cũ/i, 'combined mode must not silently alter legacy totals');
 assert.match(source, /window\.print\(\)/, 'supplemental report needs print/PDF path');
 
 assert.match(source, /syncLegacyHistoryFilter/, 'activity filter must actively synchronize the existing History class-type filter');
@@ -29,5 +28,16 @@ const bindTabs = source.match(/function bindTabs\(\)\s*\{([\s\S]*?)\n\}\n\nfunct
 assert.ok(bindTabs, 'must expose bindTabs implementation for the reporting bootstrap');
 assert.doesNotMatch(bindTabs, /if\s*\(detected\)\s*ensureFilter\(\)/, 'MutationObserver must not unconditionally rewrite the reporting filter on every DOM mutation');
 assert.match(bindTabs, /detected\s*!==\s*observerActiveTab|observerActiveTab\s*!==\s*detected/, 'observer-driven tab detection must only render when the active History/Report tab actually changes');
+
+const refreshPanel = source.match(/async function refreshPanel\([^)]*\)\s*\{([\s\S]*?)\n\}\n\nfunction bindTabs\(\)/)?.[1] || '';
+assert.ok(refreshPanel, 'must expose refreshPanel implementation');
+const allModeStart = refreshPanel.indexOf("if (filter === 'all') {");
+const allModeEnd = refreshPanel.indexOf('const current = ++token;', allModeStart);
+assert.ok(allModeStart >= 0 && allModeEnd > allModeStart, 'must expose a bounded Tất cả mode before filtered rendering begins');
+const allMode = refreshPanel.slice(allModeStart, allModeEnd);
+assert.match(allMode, /closePanel\(\)/, 'Tất cả must close any supplemental exclusive panel');
+assert.match(allMode, /return;/, 'Tất cả must return before supplemental filtered rendering');
+assert.doesNotMatch(allMode, /renderPanel\(/, 'Tất cả must not stack a supplemental full panel below the native History/Report UI');
+assert.doesNotMatch(allMode, /loadSupplementalHistory|loadSupplementalStudentReport/, 'Tất cả must not load a second supplemental report surface');
 
 console.log('supplemental learning reporting contract: ok');
