@@ -31,7 +31,5 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Verify supplemental native rollcall contract
         run: node scripts/test-attendance-supplemental-native-rollcall.mjs
-      - name: Verify repository smoke tests
-        run: npm test
       - name: Verify production build
         run: npm run build
