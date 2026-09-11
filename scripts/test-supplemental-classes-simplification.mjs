@@ -29,6 +29,13 @@ assert.ok(!ui.includes('data-form="official-student"'), 'The new UI must not exp
 assert.ok(!ui.includes('data-form="adhoc-session"'), 'The new UI must not expose adhoc-session creation.');
 assert.ok(!ui.includes('data-action="link"'), 'The new UI must not expose official-student linking.');
 
+const statusAction = ui.match(/async function changeMemberStatus\([^)]*\)\s*\{([\s\S]*?)\n\}/)?.[1] || '';
+assert.ok(statusAction, 'Member status action must exist.');
+assert.match(statusAction, /setSupplementalClassMemberStatus/, 'Member status action must call the server-authoritative status RPC.');
+assert.doesNotMatch(statusAction, /window\.confirm/, 'Đang học/Ngừng học toggles must not be blocked behind a browser-native confirm dialog.');
+assert.match(ui, /data-action="member-status"/, 'Member rows must expose the status action control.');
+assert.match(ui, /changeMemberStatus\(selected\.id, button\.dataset\.student, button\.dataset\.active === 'true'\)/, 'Member status controls must be wired directly to changeMemberStatus.');
+
 assert.ok(access.includes(managerUuid), 'The frontend visibility guard must use the stable Hồng Thắm profile UUID.');
 assert.match(access, /approved/, 'The frontend visibility guard must require an approved profile.');
 assert.match(access, /admin|administrator/, 'The frontend visibility guard must allow approved Admins.');
