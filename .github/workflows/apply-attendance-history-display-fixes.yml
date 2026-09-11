@@ -1,0 +1,123 @@
+name: Apply Attendance History Display Fixes
+
+on:
+  push:
+    branches:
+      - fix/attendance-history-display-bugs-v2
+
+permissions:
+  contents: write
+
+jobs:
+  patch-test-commit:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout fix branch
+        uses: actions/checkout@v4
+        with:
+          ref: fix/attendance-history-display-bugs-v2
+          fetch-depth: 0
+
+      - name: Apply display fixes
+        shell: python
+        run: |
+          from pathlib import Path
+
+          jsx_path = Path('src/components/GlobalAttendanceNavigationTab.jsx')
+          jsx = jsx_path.read_text(encoding='utf-8')
+
+          old_columns = "const SESSION_COLUMNS = 'id,class_id,class_type,class_name,subject,teacher_id,teacher_name,teacher_email,attendance_date,checked_at,checked_by,total_students,present_count,absent_count,note,session_status,lesson_periods,cancellation_reason,teaching_room,teaching_time_range,proof_path,created_at';"
+          new_columns = "const SESSION_COLUMNS = 'id,class_id,class_type,class_name,subject,teacher_id,teacher_name,teacher_email,attendance_date,checked_at,checked_by,checked_by_name,total_students,present_count,absent_count,note,session_status,lesson_periods,cancellation_reason,teaching_room,teaching_time_range,proof_path,created_at';"
+          assert old_columns in jsx, 'SESSION_COLUMNS target not found'
+          jsx = jsx.replace(old_columns, new_columns, 1)
+
+          old_actor = "<div><span>Người thao tác</span><strong>{selectedSession.checked_by || 'Không ghi nhận'}</strong></div>"
+          new_actor = "<div><span>Người thao tác</span><strong>{selectedSession.checked_by_name || selectedSession.checked_by || 'Không ghi nhận'}</strong></div>"
+          assert old_actor in jsx, 'audit actor target not found'
+          jsx = jsx.replace(old_actor, new_actor, 1)
+
+          old_absent = '<section className="ahv3__absent-section">'
+          new_absent = '<section className={`ahv3__absent-section ${!selectedAbsentRecords.length ? \'is-empty\' : \'\'}`.trim()}>'
+          assert old_absent in jsx, 'absence section target not found'
+          jsx = jsx.replace(old_absent, new_absent, 1)
+          jsx_path.write_text(jsx, encoding='utf-8')
+
+          css_path = Path('src/components/attendance/AttendanceHistoryV2.css')
+          css = css_path.read_text(encoding='utf-8')
+          marker = '/* Attendance history display bug fixes: tardy rows + compact empty absence */'
+          assert marker not in css, 'display fix CSS already present'
+          css += r'''
+
+          /* Attendance history display bug fixes: tardy rows + compact empty absence */
+          .ahv3__shell .ahv3__late-section {
+            display: block !important;
+            height: auto !important;
+            min-height: 0 !important;
+            overflow: visible !important;
+          }
+
+          .ahv3__shell .attendance-late-list {
+            display: block !important;
+            position: static !important;
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: 165px;
+            overflow-y: auto;
+            overflow-x: hidden;
+          }
+
+          .ahv3__shell .ahv3__absent-section.is-empty {
+            min-height: 0 !important;
+            height: auto !important;
+            padding-bottom: 12px;
+          }
+
+          .ahv3__shell .ahv3__absent-section.is-empty .attendance-absent-list {
+            margin-top: 8px;
+            max-height: none;
+            overflow: visible;
+          }
+          '''
+          css_path.write_text(css, encoding='utf-8')
+
+          workflow_path = Path('.github/workflows/attendance-history-visual-redesign.yml')
+          workflow = workflow_path.read_text(encoding='utf-8')
+          anchor = "      - name: Verify attendance history delete authorization\n        run: node scripts/test-attendance-history-delete-authorization.mjs\n"
+          addition = anchor + "      - name: Verify attendance history display fixes\n        run: node scripts/test-attendance-history-display-fixes.mjs\n"
+          assert anchor in workflow, 'permanent workflow anchor not found'
+          if 'Verify attendance history display fixes' not in workflow:
+              workflow = workflow.replace(anchor, addition, 1)
+          workflow_path.write_text(workflow, encoding='utf-8')
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Verify display fixes
+        run: node scripts/test-attendance-history-display-fixes.mjs
+
+      - name: Verify existing history contracts
+        run: |
+          node scripts/test-attendance-history-visual-redesign.mjs
+          node scripts/test-attendance-history-functional-guard.mjs
+          node scripts/test-attendance-history-date-filter.mjs
+          node scripts/test-attendance-history-delete-authorization.mjs
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Commit verified fix and remove one-shot workflow
+        run: |
+          rm .github/workflows/apply-attendance-history-display-fixes.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/components/GlobalAttendanceNavigationTab.jsx src/components/attendance/AttendanceHistoryV2.css scripts/test-attendance-history-display-fixes.mjs .github/workflows/attendance-history-visual-redesign.yml .github/workflows/apply-attendance-history-display-fixes.yml
+          git commit -m "Fix attendance history display defects"
+          git push origin HEAD:fix/attendance-history-display-bugs-v2
