@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - fix/unify-supplemental-attendance-history-20260911
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -12,18 +13,29 @@ jobs:
   patch:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
         with:
           ref: fix/unify-supplemental-attendance-history-20260911
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
       - name: Apply integration patch
         run: node scripts/apply-attendance-history-supplemental-integration.mjs
+      - name: Verify focused supplemental history contract
+        run: node scripts/test-attendance-history-supplemental-integration.mjs
+      - name: Verify production build
+        run: npm run build
       - name: Commit patched source
         shell: bash
         run: |
-          if git diff --quiet; then
+          if git diff --quiet -- src/components/GlobalAttendanceNavigationTab.jsx src/supplementalAttendanceReportingBootstrap.js; then
             echo "No source changes needed."
             exit 0
           fi
