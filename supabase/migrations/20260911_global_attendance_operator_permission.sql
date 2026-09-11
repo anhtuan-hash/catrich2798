@@ -70,6 +70,19 @@ begin
   v_start := coalesce(v_start, time '16:40');
   v_end := coalesce(v_end, time '17:15');
 
+  -- Preserve the pre-existing toggle-OFF semantics exactly: once Admin disables
+  -- the time restriction, a globally granted attendance operator is allowed
+  -- without adding a new class-existence restriction here.
+  if not v_enforced then
+    return jsonb_build_object(
+      'allowed', true,
+      'reason', 'restriction_disabled',
+      'bypass', false,
+      'window_start', to_char(v_start, 'HH24:MI'),
+      'window_end', to_char(v_end, 'HH24:MI')
+    );
+  end if;
+
   -- Keep the existing RPC signature because attendance write functions already
   -- call this helper with class/teacher parameters. Teacher identity is now
   -- informational only and must not affect authorization.
@@ -82,17 +95,6 @@ begin
       and c.active = true
   ) then
     return jsonb_build_object('allowed', false, 'reason', 'class_not_found');
-  end if;
-
-  if not v_enforced then
-    return jsonb_build_object(
-      'allowed', true,
-      'reason', 'restriction_disabled',
-      'bypass', false,
-      'class_id', p_class_id,
-      'window_start', to_char(v_start, 'HH24:MI'),
-      'window_end', to_char(v_end, 'HH24:MI')
-    );
   end if;
 
   if v_start = v_end then
