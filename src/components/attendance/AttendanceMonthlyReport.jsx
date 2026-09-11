@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { buildAttendanceReport, uniqueReportTeachers } from '../../utils/attendanceReport.js';
+import { buildAttendanceReport, normalizeSupplementalReportData, uniqueReportTeachers } from '../../utils/attendanceReport.js';
 import { downloadAttendanceReportXlsx, printAttendanceReportPdf } from '../../utils/attendanceReportExport.js';
 import './AttendanceMonthlyReport.css';
 
@@ -70,7 +70,7 @@ function periodLabel(value) {
 }
 
 function classTypeLabel(value) {
-  return value === 'gifted' ? 'Bồi dưỡng HSG' : value === 'remedial' ? 'Phụ đạo' : '—';
+  return value === 'gifted' ? 'Bồi dưỡng HSG' : value === 'remedial' ? 'Phụ đạo' : value === 'supplemental' ? 'Học bổ sung' : '—';
 }
 
 function teacherInitials(name) {
@@ -95,10 +95,12 @@ function automaticRemarks(report) {
   return `Trong kỳ báo cáo có ${report.metrics.completedSessions} buổi đã dạy, tổng ${String(report.metrics.totalPeriods).replace('.', ',')} tiết; tỷ lệ chuyên cần đạt ${attendance}.${cancelled}`;
 }
 
-export default function AttendanceMonthlyReport({ client, classes = [], month, onMonthChange, onError }) {
+export default function AttendanceMonthlyReport({ client, classes = [], month, onMonthChange, onError, includeSupplemental = false }) {
   const [mode, setMode] = useState('month');
   const [date, setDate] = useState(vietnamDateString());
   const [sessions, setSessions] = useState([]);
+  const [supplementalClasses, setSupplementalClasses] = useState([]);
+  const [activityType, setActivityType] = useState('all');
   const [records, setRecords] = useState([]);
   const [changes, setChanges] = useState([]);
   const [classId, setClassId] = useState('all');
@@ -110,6 +112,21 @@ export default function AttendanceMonthlyReport({ client, classes = [], month, o
   const remarksDirty = useRef(false);
   const teacherTrackRef = useRef(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    function handleActivityFilter(event) {
+      if (event?.detail?.tab !== 'report') return;
+      const nextType = ['all', 'remedial', 'enrichment', 'supplemental'].includes(event?.detail?.activityType)
+        ? event.detail.activityType
+        : 'all';
+      setActivityType(nextType);
+      setClassId('all');
+      setTeacherName('all');
+      remarksDirty.current = false;
+    }
+    window.addEventListener('bes-attendance-activity-filter-change', handleActivityFilter);
+    return () => window.removeEventListener('bes-attendance-activity-filter-change', handleActivityFilter);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -127,10 +144,18 @@ export default function AttendanceMonthlyReport({ client, classes = [], month, o
         else sessionQuery = sessionQuery.gte('attendance_date', bounds.start).lt('attendance_date', bounds.next);
         const sessionResult = await sessionQuery;
         if (sessionResult.error) throw sessionResult.error;
-        const nextSessions = sessionResult.data || [];
-        const sessionIds = nextSessions.map((row) => row.id);
-        const completedIds = nextSessions.filter((row) => row.session_status !== 'cancelled').map((row) => row.id);
-        let nextRecords = [];
+        const extraSessions = sessionResult.data || [];
+        const sessionIds = extraSessions.map((row) => row.id);
+        const completedIds = extraSessions.filter((row) => row.session_status !== 'cancelled').map((row) => row.id);
+        let supplementalData = { sessions: [], records: [], classes: [] };
+        if (includeSupplemental) {
+          const supplementalFrom = mode === 'day' ? date : bounds.start;
+          const supplementalTo = mode === 'day' ? date : bounds.next;
+          const supplementalResult = await client.rpc('bes_list_supplemental_history', { p_from: supplementalFrom, p_to: supplementalTo, p_query: '' });
+          if (supplementalResult.error) throw supplementalResult.error;
+          supplementalData = normalizeSupplementalReportData(supplementalResult.data || []);
+        }
+        let nextRecords = [...supplementalData.records];
         let nextChanges = [];
         if (completedIds.length) {
           const recordResult = await client.from('bes_extra_attendance_records')
@@ -138,7 +163,7 @@ export default function AttendanceMonthlyReport({ client, classes = [], month, o
             .in('session_id', completedIds)
             .order('student_full_name', { ascending: true });
           if (recordResult.error) throw recordResult.error;
-          nextRecords = recordResult.data || [];
+          nextRecords = [...(recordResult.data || []), ...supplementalData.records];
         }
         if (sessionIds.length) {
           const changeResult = await client.from('bes_extra_attendance_record_changes')
@@ -149,7 +174,8 @@ export default function AttendanceMonthlyReport({ client, classes = [], month, o
           nextChanges = changeResult.data || [];
         }
         if (!cancelled) {
-          setSessions(nextSessions);
+          setSessions([...extraSessions, ...supplementalData.sessions]);
+          setSupplementalClasses(supplementalData.classes);
           setRecords(nextRecords);
           setChanges(nextChanges);
           remarksDirty.current = false;
@@ -162,13 +188,14 @@ export default function AttendanceMonthlyReport({ client, classes = [], month, o
     }
     load();
     return () => { cancelled = true; };
-  }, [client, mode, month, date]);
+  }, [client, mode, month, date, includeSupplemental]);
 
+  const reportClasses = useMemo(() => [...classes, ...supplementalClasses], [classes, supplementalClasses]);
   const teachers = useMemo(() => uniqueReportTeachers(sessions, month, { mode, date }), [sessions, month, mode, date]);
   useEffect(() => { if (teacherName !== 'all' && !teachers.includes(teacherName)) setTeacherName('all'); }, [teachers.join('|')]);
-  useEffect(() => { if (classId !== 'all' && !classes.some((row) => String(row.id) === String(classId))) setClassId('all'); }, [classes.length]);
+  useEffect(() => { if (classId !== 'all' && !reportClasses.some((row) => String(row.id) === String(classId))) setClassId('all'); }, [reportClasses]);
 
-  const report = useMemo(() => buildAttendanceReport({ sessions, records, changes, classes, mode, month, date, classId, teacherName }), [sessions, records, changes, classes, mode, month, date, classId, teacherName]);
+  const report = useMemo(() => buildAttendanceReport({ sessions, records, changes, classes: reportClasses, mode, month, date, activityType, classId, teacherName }), [sessions, records, changes, reportClasses, mode, month, date, activityType, classId, teacherName]);
   useEffect(() => {
     if (!remarksDirty.current) setGeneralRemarks(automaticRemarks(report));
   }, [report.metrics.completedSessions, report.metrics.cancelledSessions, report.metrics.totalPeriods, report.metrics.attendanceRate, report.sessionRows.length, classId, teacherName, mode, month, date]);
@@ -180,7 +207,7 @@ export default function AttendanceMonthlyReport({ client, classes = [], month, o
     return rows.sort((a, b) => Number(b.total_periods || 0) - Number(a.total_periods || 0) || String(a.teacher_name || '').localeCompare(String(b.teacher_name || ''), 'vi'));
   }, [report.teacherRows, teacherSort]);
 
-  const selectedClass = classes.find((row) => String(row.id) === String(classId));
+  const selectedClass = reportClasses.find((row) => String(row.id) === String(classId));
   const periodLabelText = mode === 'day' ? formatDate(date) : `Tháng ${String(month || '').slice(5, 7)}/${String(month || '').slice(0, 4)}`;
   const exportFilters = {
     mode,
@@ -231,7 +258,7 @@ export default function AttendanceMonthlyReport({ client, classes = [], month, o
           {mode === 'month'
             ? <label><span>Tháng</span><input type="month" value={month} onChange={(event) => { onMonthChange?.(event.target.value); remarksDirty.current = false; }} /></label>
             : <label><span>Ngày</span><input type="date" value={date} max={vietnamDateString()} onChange={(event) => { setDate(event.target.value); remarksDirty.current = false; }} /></label>}
-          <label><span>Lớp</span><select value={classId} onChange={(event) => { setClassId(event.target.value); remarksDirty.current = false; }}><option value="all">Tất cả lớp</option>{classes.filter((row) => row.active !== false).map((row) => <option key={row.id} value={row.id}>{row.class_name}</option>)}</select></label>
+          <label><span>Lớp</span><select value={classId} onChange={(event) => { setClassId(event.target.value); remarksDirty.current = false; }}><option value="all">Tất cả lớp</option>{reportClasses.filter((row) => row.active !== false && (activityType === 'all' || (activityType === 'enrichment' ? row.class_type === 'gifted' : row.class_type === activityType))).map((row) => <option key={row.id} value={row.id}>{row.class_name}</option>)}</select></label>
           <label><span>Giáo viên</span><select value={teacherName} onChange={(event) => { setTeacherName(event.target.value); remarksDirty.current = false; }}><option value="all">Tất cả giáo viên</option>{teachers.map((name) => <option key={name} value={name}>{name}</option>)}</select></label>
         </div>
       </div>

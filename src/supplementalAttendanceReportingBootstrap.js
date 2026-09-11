@@ -278,15 +278,8 @@ async function refreshPanel(force = false) {
       closePanel();
       return;
     } else if (activeTab === 'report') {
-      if (filter === 'supplemental') {
-        const rows = await loadSupplementalStudentReport(client, { from: dateFrom, to: dateTo });
-        if (current !== token) return;
-        renderPanel(reportHtml(rows), 'Báo cáo Học bổ sung');
-      } else {
-        const rows = await loadAttendanceActivities(client, { from: dateFrom, to: dateTo }, filter);
-        if (current !== token) return;
-        renderPanel(renderLegacyActivityReport(rows, filter), `Báo cáo ${activityLabel(filter)}`);
-      }
+      closePanel();
+      return;
     }
   } catch (error) {
     if (current !== token || !canManage()) return;

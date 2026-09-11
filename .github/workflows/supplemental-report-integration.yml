@@ -1,0 +1,38 @@
+name: Supplemental report integration
+
+on:
+  pull_request:
+    paths:
+      - 'src/components/attendance/AttendanceMonthlyReport.jsx'
+      - 'src/components/GlobalAttendanceNavigationTab.jsx'
+      - 'src/utils/attendanceReport.js'
+      - 'src/supplementalAttendanceReportingBootstrap.js'
+      - 'scripts/test-attendance-report-supplemental-integration.mjs'
+      - '.github/workflows/supplemental-report-integration.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Verify unified supplemental attendance report
+        run: node scripts/test-attendance-report-supplemental-integration.mjs
+      - name: Verify existing report aggregation
+        run: node scripts/test-attendance-report-aggregation.mjs
+      - name: Verify report export
+        run: node scripts/test-attendance-report-export.mjs
+      - name: Verify production build
+        run: npm run build
