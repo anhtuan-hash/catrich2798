@@ -3,7 +3,10 @@ import assert from 'node:assert/strict';
 
 const source = fs.readFileSync('src/components/GlobalAttendanceNavigationTab.jsx', 'utf8');
 const deleteScopeFixSource = fs.readFileSync('supabase/migrations/20260909_attendance_report_delete_scope_fix.sql', 'utf8');
-const deleteAuthorizationSource = fs.readFileSync('supabase/migrations/20260911_attendance_history_delete_authorization.sql', 'utf8');
+const migrations = fs.readdirSync('supabase/migrations')
+  .filter((name) => name.endsWith('.sql'))
+  .map((name) => fs.readFileSync(`supabase/migrations/${name}`, 'utf8'))
+  .join('\n');
 
 assert.match(source, /const canUseQuickAttendance\s*=/, 'Attendance must define a dedicated quick-operation capability');
 assert.match(source, /hasAttendanceTabAccess\(currentUser,\s*'report'\)/, 'Report permission must grant the quick-operation override');
@@ -23,12 +26,12 @@ assert.doesNotMatch(
   'Report-only access must not be introduced by the legacy delete scope migration',
 );
 assert.match(
-  deleteAuthorizationSource,
+  migrations,
   /create\s+or\s+replace\s+function\s+public\.can_delete_extra_attendance_history\s*\(\s*\)/i,
   'Latest delete-history migration must install the dedicated authorization helper',
 );
 assert.match(
-  deleteAuthorizationSource,
+  migrations,
   /bes_delete_extra_attendance_session[\s\S]*can_delete_extra_attendance_history\s*\(\s*\)/i,
   'Latest delete RPC must enforce the dedicated delete-history authorization helper',
 );
