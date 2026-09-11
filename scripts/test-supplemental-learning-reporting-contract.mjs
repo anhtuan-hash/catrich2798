@@ -12,7 +12,6 @@ assert.match(source, /loadSupplementalHistory/);
 assert.match(source, /loadSupplementalStudentReport/);
 assert.match(source, /loadAttendanceActivities/);
 assert.match(source, /buổi hủy không vào mẫu số/i, 'report must explain cancelled-session denominator rule');
-assert.match(source, /không tự cộng vào tổng cũ/i, 'combined mode must not silently alter legacy totals');
 assert.match(source, /window\.print\(\)/, 'supplemental report needs print/PDF path');
 
 assert.match(source, /syncLegacyHistoryFilter/, 'activity filter must actively synchronize the existing History class-type filter');
@@ -29,5 +28,10 @@ const bindTabs = source.match(/function bindTabs\(\)\s*\{([\s\S]*?)\n\}\n\nfunct
 assert.ok(bindTabs, 'must expose bindTabs implementation for the reporting bootstrap');
 assert.doesNotMatch(bindTabs, /if\s*\(detected\)\s*ensureFilter\(\)/, 'MutationObserver must not unconditionally rewrite the reporting filter on every DOM mutation');
 assert.match(bindTabs, /detected\s*!==\s*observerActiveTab|observerActiveTab\s*!==\s*detected/, 'observer-driven tab detection must only render when the active History/Report tab actually changes');
+
+const refreshPanel = source.match(/async function refreshPanel\([^)]*\)\s*\{([\s\S]*?)\n\}\n\nfunction bindTabs\(\)/)?.[1] || '';
+assert.ok(refreshPanel, 'must expose refreshPanel implementation');
+assert.match(refreshPanel, /if\s*\(filter\s*===\s*['"]all['"]\)\s*\{[\s\S]{0,160}closePanel\(\);[\s\S]{0,120}return;/, 'Tất cả must keep the native History/Report workspace as the single primary surface instead of appending a second full panel');
+assert.doesNotMatch(refreshPanel, /filter\s*===\s*['"]all['"][\s\S]{0,500}renderPanel\(/, 'Tất cả must not stack a supplemental full report below the native History/Report UI');
 
 console.log('supplemental learning reporting contract: ok');
