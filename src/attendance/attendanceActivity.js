@@ -24,7 +24,7 @@ export function normalizeSupplementalActivity(row = {}) {
 
 export function normalizeExtraClassActivity(row = {}) {
   const type = text(row.activityType || row.activity_type || row.classType || row.class_type).toLowerCase();
-  const activityType = type === 'enrichment' ? 'enrichment' : 'remedial';
+  const activityType = type === 'enrichment' || type === 'gifted' ? 'enrichment' : 'remedial';
   return {
     id: text(row.id),
     source: 'extra',
