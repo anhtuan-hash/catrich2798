@@ -76,7 +76,7 @@ assert.match(directView, /function\s+AttendanceDailyIcon\s*\(/, 'Mockup match mu
 assert.match(directView, /className="attendance-daily-date-card"/, 'Date picker must render as its own raised card beside the room filters.');
 assert.match(directView, />Ngày điểm danh</, 'Date card must expose the visible “Ngày điểm danh” label from the mockup.');
 assert.match(directView, /attendance-daily-overview__route-meta/, 'Summary strip must show the total class/floor route metadata on the right.');
-assert.match(directView, /Tổng \{visibleClasses\.length\} lớp trong \{activeFloorCount\} tầng/, 'Route metadata must state total visible classes and active floors.');
+assert.match(directView, /Tổng \{visible(?:Classes|Rows)\.length\} lớp(?:\/buổi)? trong \{activeFloorCount\} tầng/, 'Route metadata must state total visible classes/activities and active floors.');
 assert.match(directView, /attendance-daily-floor-card/, 'Each floor must become a distinct tinted card, not only a thin separator.');
 assert.match(directView, /attendance-daily-floor-card__title/, 'Floor card must have the filled “Lầu X · N lớp” title pill.');
 assert.match(directView, /attendance-daily-floor-card__badge/, 'Floor card must expose the right-side “Tầng X” badge.');
