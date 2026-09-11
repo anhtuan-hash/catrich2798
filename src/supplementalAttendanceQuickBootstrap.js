@@ -1,24 +1,16 @@
 import './styles/SupplementalLearning.css';
 import { ensureRuntimeReady, getRuntimeClient, getRuntimeState, subscribeRuntime } from './services/runtime/core.js';
 import { canManageSupplementalLearning } from './supplementalAccess.js';
-import {
-  attachSupplementalProof,
-  beginSupplementalAttendance,
-  confirmSupplementalAttendance,
-  loadSupplementalAttendanceActivities,
-} from './attendance/supplementalLearningApi.js';
+import { attachSupplementalProof, beginSupplementalAttendance, confirmSupplementalAttendance } from './attendance/supplementalLearningApi.js';
 
 const INSTALL_KEY = '__besSupplementalAttendanceQuickInstalled';
-const DAILY_ROOT = '[data-bes-supplemental-daily-scroll-root]';
-const SECTION_CLASS = 'bes-supplemental-daily-section';
 const ROLLCALL_ID = 'bes-supplemental-rollcall';
+const OPEN_EVENT = 'bes-open-supplemental-attendance';
+const CLASS_OPEN_EVENT = 'bes-supplemental-open-rollcall';
+const CHANGED_EVENT = 'bes-supplemental-attendance-changed';
 
 let client = null;
 let runtime = null;
-let observer = null;
-let queued = false;
-let requestKey = '';
-let activities = [];
 let activeSession = null;
 let participantState = [];
 let busy = false;
@@ -31,90 +23,11 @@ function esc(value) {
   return String(value ?? '').replace(/[&<>"']/g, (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
 }
 
-function dateForRoot(root) {
-  return String(
-    root?.querySelector('input[type="date"]')?.value
-      || document.querySelector('.attendance-daily-compact-toolbar input[type="date"]')?.value
-      || new Date().toISOString().slice(0, 10),
-  ).slice(0, 10);
-}
-
-function statusLabel(status) {
-  return ({ scheduled: 'Chưa điểm danh', in_progress: 'Đang điểm danh', confirmed: 'Đã chốt', cancelled: 'Đã hủy' })[status] || status;
-}
-
 function accessError(error) {
   const code = String(error?.message || error || '');
-  if (code.includes('supplemental_not_allowed') || code.includes('không có quyền')) return 'Tài khoản không có quyền điểm danh Học bổ sung.';
+  if (code.includes('42501') || code.includes('không có quyền') || code.includes('permission')) return 'Tài khoản không có quyền điểm danh Học bổ sung.';
   if (code.includes('cancelled') || code.includes('đã bị hủy')) return 'Buổi Học bổ sung đã bị hủy.';
   return code || 'Không thể mở điểm danh Học bổ sung.';
-}
-
-function removeSection() {
-  document.querySelectorAll(`.${SECTION_CLASS}`).forEach((node) => node.remove());
-}
-
-function renderSection(root) {
-  if (!canManage()) {
-    removeSection();
-    return;
-  }
-  let section = root.querySelector(`.${SECTION_CLASS}`);
-  if (!section) {
-    section = document.createElement('section');
-    section.className = SECTION_CLASS;
-    section.dataset.besSupplementalDaily = 'true';
-    root.append(section);
-  }
-  section.innerHTML = `<header><div><span>HỌC BỔ SUNG</span><strong>${activities.length} lớp</strong></div><small>Các lớp học bổ sung trong ngày</small></header>
-    <div class="bes-supplemental-daily-grid">${activities.length ? activities.map((activity) => `
-      <button type="button" class="bes-supplemental-daily-card" data-bes-attendance-source="supplemental" data-bes-supplemental-session-id="${esc(activity.id)}" ${activity.status === 'cancelled' ? 'disabled' : ''}>
-        <span class="bes-supplemental-source-badge">LỚP HỌC BỔ SUNG</span>
-        <strong>${esc(activity.title || activity.subject)}</strong>
-        <small>${esc(activity.subject)} · ${esc(activity.timeRange || '')} · ${esc(activity.room || 'Chưa phòng')}</small>
-        <small>${esc(activity.teacherName || 'Chưa giáo viên')} · ${Number(activity.participantCount || 0)} học sinh</small>
-        <span class="bes-supplemental-kind">${statusLabel(activity.status)}</span>
-      </button>`).join('') : '<p>Không có lớp Học bổ sung trong ngày này.</p>'}</div>`;
-  section.querySelectorAll('[data-bes-supplemental-session-id]').forEach((button) => button.addEventListener('click', (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    void openRollcall(button.dataset.besSupplementalSessionId);
-  }));
-}
-
-async function refresh(root = document.querySelector(DAILY_ROOT), force = false) {
-  if (!root || !client || !canManage()) {
-    removeSection();
-    return;
-  }
-  const date = dateForRoot(root);
-  const key = `${runtime?.user?.id || runtime?.profile?.id || 'user'}:${date}`;
-  if (!force && requestKey === key) {
-    if (!root.querySelector(`.${SECTION_CLASS}`)) renderSection(root);
-    return;
-  }
-  requestKey = key;
-  try {
-    const rows = await loadSupplementalAttendanceActivities(client, { from: date, to: date });
-    // Legacy one-off sessions remain available in history only. The new daily flow is class-based.
-    activities = rows.filter((activity) => activity.supplementalKind !== 'adhoc');
-    renderSection(root);
-  } catch (error) {
-    activities = [];
-    renderSection(root);
-    const section = root.querySelector(`.${SECTION_CLASS}`);
-    if (section) section.dataset.loadError = error?.message || 'error';
-  }
-}
-
-function queueRefresh(force = false) {
-  if (queued) return;
-  queued = true;
-  queueMicrotask(() => {
-    queued = false;
-    const root = document.querySelector(DAILY_ROOT);
-    if (root) void refresh(root, force);
-  });
 }
 
 function safeFileName(name = 'proof.jpg') {
@@ -151,7 +64,7 @@ function renderRollcall(message = '') {
     document.body.append(host);
   }
   const session = activeSession?.session || {};
-  host.innerHTML = `<section class="bes-supplemental-rollcall bes-supplemental-rollcall-workspace">
+  host.innerHTML = `<div class="bes-supplemental-backdrop" data-rollcall-close></div><section class="bes-supplemental-rollcall" role="dialog" aria-modal="true">
     <header><div><span class="bes-supplemental-source-badge">LỚP HỌC BỔ SUNG</span><h2>${esc(session.title || session.subject || 'Học bổ sung')}</h2><p>${esc(session.attendance_date || '')} · ${esc(session.subject || '')} · ${esc(session.teacher_name || 'Chưa giáo viên')} · ${esc(session.room || 'Chưa phòng')}</p></div><button type="button" data-rollcall-close aria-label="Đóng">×</button></header>
     ${message ? `<div class="bes-supplemental-rollcall-message">${esc(message)}</div>` : ''}
     <main>${participantState.map(participantHtml).join('') || '<p class="bes-supplemental-empty">Buổi học chưa có học sinh đang học.</p>'}</main>
@@ -178,11 +91,30 @@ function bindRollcall(host) {
   host.querySelector('[data-confirm]')?.addEventListener('click', () => void confirmCurrent(host));
 }
 
-async function openRollcall(sessionId) {
-  if (busy || !client || !canManage() || !sessionId) return;
-  const current = activities.find((activity) => activity.id === sessionId);
-  if (current?.status === 'confirmed') {
+async function ensureClient() {
+  if (client) return client;
+  try { await ensureRuntimeReady(); } catch { /* runtime can recover */ }
+  runtime = getRuntimeState();
+  client = getRuntimeClient();
+  return client;
+}
+
+async function openRollcall(rawSessionId, knownStatus = '') {
+  if (busy || !canManage()) return;
+  const sessionId = String(rawSessionId || '').trim();
+  if (!sessionId) return;
+  const status = String(knownStatus || '').toLowerCase();
+  if (status === 'confirmed') {
     window.alert('Buổi Học bổ sung này đã chốt điểm danh. Xem tại Lịch sử.');
+    return;
+  }
+  if (status === 'cancelled') {
+    window.alert('Buổi Học bổ sung đã bị hủy.');
+    return;
+  }
+  await ensureClient();
+  if (!client) {
+    window.alert('Chưa thể kết nối dữ liệu điểm danh. Vui lòng thử lại.');
     return;
   }
   busy = true;
@@ -236,8 +168,7 @@ async function confirmCurrent(host) {
       }
     }
     closeRollcall();
-    requestKey = '';
-    await refresh(document.querySelector(DAILY_ROOT), true);
+    window.dispatchEvent(new CustomEvent(CHANGED_EVENT, { detail: { sessionId } }));
     if (proofWarning) window.alert(proofWarning);
   } catch (error) {
     renderRollcall(error?.message || 'Không thể chốt điểm danh.');
@@ -246,41 +177,24 @@ async function confirmCurrent(host) {
   }
 }
 
-function start() {
-  if (observer) return;
-  document.addEventListener('change', (event) => {
-    if (event.target?.matches?.(`${DAILY_ROOT} input[type="date"], .attendance-daily-compact-toolbar input[type="date"]`)) {
-      requestKey = '';
-      queueRefresh(true);
-    }
-  }, true);
-  window.addEventListener('bes-supplemental-open-rollcall', (event) => {
-    if (canManage()) void openRollcall(event?.detail?.sessionId || '');
-  });
-  observer = new MutationObserver(() => queueRefresh(false));
-  observer.observe(document.body, { childList: true, subtree: true });
-  queueRefresh(true);
+async function handleOpen(event) {
+  if (!canManage()) return;
+  await openRollcall(event?.detail?.sessionId, event?.detail?.status || '');
 }
 
 async function install() {
   if (window[INSTALL_KEY]) return;
   window[INSTALL_KEY] = true;
+  window.addEventListener(OPEN_EVENT, handleOpen);
+  window.addEventListener(CLASS_OPEN_EVENT, handleOpen);
   try { await ensureRuntimeReady(); } catch { /* runtime can recover */ }
   runtime = getRuntimeState();
   client = getRuntimeClient();
-  start();
   subscribeRuntime((next) => {
     runtime = next || getRuntimeState();
     client = getRuntimeClient();
-    requestKey = '';
-    if (!canManage()) {
-      closeRollcall();
-      removeSection();
-      activities = [];
-      return;
-    }
-    queueRefresh(true);
+    if (!canManage()) closeRollcall();
   });
 }
 
-if (typeof window !== 'undefined' && typeof document !== 'undefined') install();
+if (typeof window !== 'undefined' && typeof document !== 'undefined') void install();
