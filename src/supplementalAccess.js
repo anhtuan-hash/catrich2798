@@ -9,8 +9,16 @@ export function canManageSupplementalLearning(runtime = {}) {
   const approved = profile?.approved === true;
   if (!approved || !userId) return false;
 
-  const role = normalizeSystemRole(runtime?.role || profile?.role, SYSTEM_ROLES.GUEST);
-  return role === SYSTEM_ROLES.ADMIN || userId === SUPPLEMENTAL_MANAGER_PROFILE_ID;
+  // Backend authorization is based on the approved profile role, so the
+  // visibility guard must not accidentally hide an Admin because runtime.role
+  // was inferred from a different active assignment.
+  const profileRole = String(profile?.role || '').trim().toLowerCase();
+  const runtimeRole = normalizeSystemRole(runtime?.role, SYSTEM_ROLES.GUEST);
+  const isAdmin = profileRole === 'admin'
+    || profileRole === 'administrator'
+    || runtimeRole === SYSTEM_ROLES.ADMIN;
+
+  return isAdmin || userId === SUPPLEMENTAL_MANAGER_PROFILE_ID;
 }
 
 export function supplementalAccessSnapshot(runtime = {}) {
