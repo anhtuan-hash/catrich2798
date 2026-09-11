@@ -33,3 +33,5 @@ jobs:
         run: node scripts/test-attendance-history-delete-authorization.mjs
       - name: Verify attendance history display fixes
         run: node scripts/test-attendance-history-display-fixes.mjs
+      - name: Verify supplemental history integration
+        run: node scripts/test-attendance-history-supplemental-integration.mjs
