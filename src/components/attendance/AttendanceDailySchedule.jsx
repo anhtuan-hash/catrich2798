@@ -250,32 +250,30 @@ export default function AttendanceDailySchedule({
           <span className="attendance-daily-table-header__status">TRẠNG THÁI</span>
         </div>
 
-        {loading ? <div className="attendance-daily-overview__empty">Đang tải lịch điểm danh…</div> : null}
-        {!loading && !scheduledClasses.length ? <div className="attendance-daily-overview__empty">Không có lớp nào theo lịch vào ngày đã chọn.</div> : null}
-        {!loading && scheduledClasses.length > 0 && !visibleClasses.length ? <div className="attendance-daily-overview__empty">Không có lớp nào ở phòng {effectiveRoomFilter} trong ngày đã chọn.</div> : null}
+        <div className="attendance-daily-overview__list" data-bes-supplemental-daily-scroll-root="true">
+          {loading ? <div className="attendance-daily-overview__empty">Đang tải lịch điểm danh…</div> : null}
+          {!loading && !scheduledClasses.length ? <div className="attendance-daily-overview__empty">Không có lớp nào theo lịch vào ngày đã chọn.</div> : null}
+          {!loading && scheduledClasses.length > 0 && !visibleClasses.length ? <div className="attendance-daily-overview__empty">Không có lớp nào ở phòng {effectiveRoomFilter} trong ngày đã chọn.</div> : null}
 
-        {!loading && visibleClasses.length > 0 ? (
-          <div className="attendance-daily-overview__list">
-            {floorGroups.map((group) => (
-              <section
-                key={group.key}
-                className={`attendance-daily-floor-card ${showFloorCards ? '' : 'is-filtered'}`}
-                data-floor={group.floor || undefined}
-              >
-                <div className="attendance-daily-floor-group" data-floor={group.floor || undefined}>
-                  <strong className="attendance-daily-floor-card__title">
-                    <AttendanceDailyIcon name="building" />
-                    {group.floor ? <>Lầu {group.floor}<span> · {group.rows.length} lớp</span></> : <>Khác<span> · {group.rows.length} lớp</span></>}
-                  </strong>
-                  {group.floor ? <span className="attendance-daily-floor-card__badge">Tầng {group.floor}</span> : null}
-                </div>
-                <div className="attendance-daily-floor-card__rows">
-                  {group.rows.map(renderClassRow)}
-                </div>
-              </section>
-            ))}
-          </div>
-        ) : null}
+          {!loading && visibleClasses.length > 0 ? floorGroups.map((group) => (
+            <section
+              key={group.key}
+              className={`attendance-daily-floor-card ${showFloorCards ? '' : 'is-filtered'}`}
+              data-floor={group.floor || undefined}
+            >
+              <div className="attendance-daily-floor-group" data-floor={group.floor || undefined}>
+                <strong className="attendance-daily-floor-card__title">
+                  <AttendanceDailyIcon name="building" />
+                  {group.floor ? <>Lầu {group.floor}<span> · {group.rows.length} lớp</span></> : <>Khác<span> · {group.rows.length} lớp</span></>}
+                </strong>
+                {group.floor ? <span className="attendance-daily-floor-card__badge">Tầng {group.floor}</span> : null}
+              </div>
+              <div className="attendance-daily-floor-card__rows">
+                {group.rows.map(renderClassRow)}
+              </div>
+            </section>
+          )) : null}
+        </div>
       </div>
     </div>
   );
