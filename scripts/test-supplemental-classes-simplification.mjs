@@ -14,7 +14,6 @@ const managerUuid = '4c89bfa1-9e3f-4965-a082-99f6e974f5ba';
 const ui = read('src/supplementalLearningBootstrap.js');
 const api = read('src/attendance/supplementalLearningApi.js');
 const quick = read('src/supplementalAttendanceQuickBootstrap.js');
-const reporting = read('src/supplementalAttendanceReportingBootstrap.js');
 const route = read('src/supplementalLearningRouteBootstrap.js');
 const access = mustExist('src/supplementalAccess.js');
 const migration = mustExist('supabase/migrations/20260911150000_supplemental_classes_simplification.sql');
@@ -30,9 +29,12 @@ assert.ok(!ui.includes('data-action="link"'), 'The new UI must not expose offici
 assert.ok(access.includes(managerUuid), 'The frontend visibility guard must use the stable Hồng Thắm profile UUID.');
 assert.match(access, /approved/, 'The frontend visibility guard must require an approved profile.');
 assert.match(access, /admin|administrator/, 'The frontend visibility guard must allow approved Admins.');
-for (const entry of [ui, quick, reporting, route]) {
-  assert.match(entry, /supplementalAccess|canManageSupplementalLearning/, 'Every supplemental entry flow must use the dedicated supplemental access guard.');
+for (const entry of [ui, quick, route]) {
+  assert.match(entry, /supplementalAccess|canManageSupplementalLearning/, 'Supplemental management/rollcall/route entry points must use the dedicated access guard.');
 }
+const reportingImport = route.indexOf("import('./supplementalAttendanceReportingBootstrap.js')");
+const routeGuard = route.indexOf('canManageSupplementalLearning');
+assert.ok(routeGuard >= 0 && reportingImport > routeGuard, 'Reporting must only be dynamically loaded behind the strict supplemental route guard.');
 
 for (const rpcName of [
   'bes_list_supplemental_classes',
