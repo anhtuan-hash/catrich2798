@@ -3,7 +3,7 @@ import { ensureRuntimeReady, getRuntimeClient, getRuntimeState, subscribeRuntime
 import { attachSupplementalProof, beginSupplementalAttendance, confirmSupplementalAttendance, loadSupplementalAttendanceActivities } from './attendance/supplementalLearningApi.js';
 
 const INSTALL_KEY='__besSupplementalAttendanceQuickInstalled';
-const DAILY_ROOT='.attendance-daily-overview-host';
+const DAILY_ROOT='[data-bes-supplemental-daily-scroll-root]';
 const SECTION_CLASS='bes-supplemental-daily-section';
 const ROLLCALL_ID='bes-supplemental-rollcall';
 let client=null;let runtime=null;let observer=null;let queued=false;let requestKey='';let activities=[];let activeSession=null;let participantState=[];let busy=false;
