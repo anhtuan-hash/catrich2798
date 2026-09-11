@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - feat/attendance-history-visual-redesign
-      - fix/attendance-history-delete-authorization
   pull_request:
 
 permissions:
