@@ -70,6 +70,16 @@ assert.match(sql, /bes_supplemental_sessions[\s\S]{0,240}status\s*<>\s*'cancelle
 assert.match(sql, /clock_timestamp\s*\(\s*\)/i, 'authoritative timestamps must come from PostgreSQL');
 assert.match(sql, /status\s*=\s*'cancelled'/i, 'cancelled sessions must be rejected by attendance flow');
 assert.match(sql, /checked_by\s*=\s*v_uid|auth\.uid\s*\(\s*\)/i, 'attendance actor must come from authenticated user');
+
+const studentUpsertSql = sql.match(/create or replace function public\.bes_upsert_supplemental_student[\s\S]*?(?=create or replace function public\.bes_link_supplemental_student)/i)?.[0] || '';
+assert.match(studentUpsertSql, /private\.bes_supplemental_official_candidates\s*\(\s*\)/i, 'official identities must be validated against authoritative school candidates');
+assert.match(studentUpsertSql, /source_type\s*=\s*'official'[\s\S]{0,220}lower\s*\(\s*s\.official_key\s*\)\s*=\s*lower/i, 're-adding an official student must reuse the existing supplemental identity');
+
+const attendanceListSql = sql.match(/create or replace function public\.bes_list_supplemental_attendance[\s\S]*?(?=create or replace function public\.bes_begin_supplemental_attendance)/i)?.[0] || '';
+assert.match(attendanceListSql, /roster_frozen_at[\s\S]{0,360}bes_supplemental_group_memberships/i, 'scheduled recurring cards must count effective membership before roster freeze');
+assert.match(attendanceListSql, /effective_from\s*<=\s*s\.attendance_date/i, 'scheduled recurring participant count must respect membership start date');
+assert.match(attendanceListSql, /effective_until\s+is\s+null[\s\S]{0,100}effective_until\s*>=\s*s\.attendance_date/i, 'scheduled recurring participant count must respect membership end date');
+
 assert.match(proofConfirmHardeningSql, /create or replace function public\.bes_confirm_supplemental_attendance/i, 'proof hardening must replace the confirm RPC');
 assert.doesNotMatch(proofConfirmHardeningSql, /proof_path\s*=\s*btrim\s*\(\s*coalesce\s*\(\s*p_proof_path/i, 'confirm RPC must not trust a client-supplied proof path');
 assert.match(proofConfirmHardeningSql, /proof_path\s*=\s*''/i, 'confirm RPC must leave proof empty until verified storage attachment');
