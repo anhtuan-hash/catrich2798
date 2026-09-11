@@ -101,7 +101,9 @@ function install() {
   window[INSTALL_KEY] = true;
   document.addEventListener('click', closeSupplementalWorkspaceForNativeTab, true);
   const observer = new MutationObserver(normalize);
-  observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'role', 'aria-modal'] });
+  // Child-list changes are sufficient: each legacy supplemental renderer inserts/replaces DOM.
+  // Avoid observing class/ARIA attributes because normalize itself adjusts them.
+  observer.observe(document.documentElement, { childList: true, subtree: true });
   normalize();
 }
 
