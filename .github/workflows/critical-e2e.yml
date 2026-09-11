@@ -58,6 +58,9 @@ jobs:
       - name: Verify supplemental quick-attendance contract
         run: node scripts/test-supplemental-learning-quick-attendance-contract.mjs
 
+      - name: Verify supplemental daily floor integration contract
+        run: node scripts/test-supplemental-daily-floor-integration-contract.mjs
+
       - name: Verify supplemental history/report contract
         run: node scripts/test-supplemental-learning-reporting-contract.mjs
 

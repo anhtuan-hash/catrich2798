@@ -8,21 +8,29 @@ const css=[
   fs.readFileSync(path.join(root,'src/styles/SupplementalLearningAdminCompleteness.css'),'utf8'),
 ].join('\n');
 const nativeAttendanceCss=fs.readFileSync(path.join(root,'src/components/GlobalAttendanceNavigationTab.css'),'utf8');
+const nativeDailyCss=fs.readFileSync(path.join(root,'src/components/attendance/AttendanceDailyOverview.css'),'utf8');
 
 async function installCss(page){await page.addStyleTag({content:css});}
-async function installLayeredCss(page){await page.addStyleTag({content:`${nativeAttendanceCss}\n${css}`});}
+async function installLayeredCss(page){await page.addStyleTag({content:`${nativeAttendanceCss}\n${nativeDailyCss}\n${css}`});}
 
 test.describe('Supplemental learning attendance UI',()=>{
-  test('daily cards are visually distinct from legacy Attendance rows',async({page})=>{
+  test('Học bổ sung uses the same native row layout inside a floor card',async({page})=>{
     await page.setViewportSize({width:1280,height:760});
-    await page.setContent(`<main data-attendance-daily-status-root><div class="attendance-daily-class-row">Phụ đạo Toán 10</div><section class="bes-supplemental-daily-section"><header><div><span>HỌC BỔ SUNG</span><strong>1 buổi</strong></div><small>Nhóm dài ngày và buổi phát sinh</small></header><div class="bes-supplemental-daily-grid"><button type="button" class="bes-supplemental-daily-card" data-bes-attendance-source="supplemental" data-bes-supplemental-session-id="sample"><span class="bes-supplemental-source-badge">HỌC BỔ SUNG</span><strong>Ôn Toán 12</strong><small>Toán · 16:45–18:00 · A1</small><small>Giáo viên A · 12 học sinh</small><span class="bes-supplemental-kind">Nhóm dài ngày · Chưa điểm danh</span></button></div></section></main>`);
-    await installCss(page);
-    const card=page.locator('[data-bes-supplemental-session-id="sample"]');
-    await expect(card).toBeVisible();
-    await expect(card.getByText('HỌC BỔ SUNG')).toBeVisible();
-    await expect(card.getByText(/Nhóm dài ngày/)).toBeVisible();
-    const cardBox=await card.boundingBox();
-    expect(cardBox?.width).toBeGreaterThan(300);
+    await page.setContent(`<main class="attendance-daily-overview"><div class="attendance-daily-overview__list"><section class="attendance-daily-floor-card" data-floor="2"><div class="attendance-daily-floor-group" data-floor="2"><strong class="attendance-daily-floor-card__title">Lầu 2 <span>· 2 lớp/buổi</span></strong><span class="attendance-daily-floor-card__badge">Tầng 2</span></div><div class="attendance-daily-floor-card__rows"><button type="button" class="attendance-daily-class-row is-missing" data-floor="2"><span class="attendance-daily-class-row__class-shell"><span class="attendance-daily-class-row__leading-icon"></span><span class="attendance-daily-class-row__class"><b>Phụ đạo Toán 10</b><small>Phụ đạo · Toán</small></span></span><span class="attendance-daily-class-row__teacher"><b>Giáo viên A</b></span><span class="attendance-daily-class-row__meta is-room"><b>A202</b></span><span class="attendance-daily-class-row__meta is-time"><b>16h45 đến 18h00</b></span><span class="attendance-daily-class-row__status is-missing">Chưa điểm danh</span></button><button type="button" class="attendance-daily-class-row is-completed is-supplemental" data-bes-attendance-source="supplemental" data-bes-supplemental-session-id="sample" data-floor="2"><span class="attendance-daily-class-row__class-shell"><span class="attendance-daily-class-row__leading-icon"></span><span class="attendance-daily-class-row__class"><b>Bù bài toán 12</b><small>Học bổ sung · Toán</small></span></span><span class="attendance-daily-class-row__teacher"><b>Trần Nguyên Dự</b></span><span class="attendance-daily-class-row__meta is-room"><b>A203</b></span><span class="attendance-daily-class-row__meta is-time"><b>16:45–18:00</b><small>Nhóm dài ngày · 2 học sinh</small></span><span class="attendance-daily-class-row__status is-completed">Đã điểm danh</span></button></div></section></div></main>`);
+    await installLayeredCss(page);
+    const legacy=page.getByRole('button',{name:/Phụ đạo Toán 10/});
+    const supplemental=page.locator('[data-bes-supplemental-session-id="sample"]');
+    await expect(legacy).toBeVisible();
+    await expect(supplemental).toBeVisible();
+    await expect(page.getByText('Lầu 2')).toBeVisible();
+    await expect(supplemental.getByText('Học bổ sung · Toán')).toBeVisible();
+    const [legacyStyle,supplementalStyle]=await Promise.all([
+      legacy.evaluate((node)=>({display:getComputedStyle(node).display,columns:getComputedStyle(node).gridTemplateColumns,height:getComputedStyle(node).height})),
+      supplemental.evaluate((node)=>({display:getComputedStyle(node).display,columns:getComputedStyle(node).gridTemplateColumns,height:getComputedStyle(node).height})),
+    ]);
+    expect(supplementalStyle.display).toBe(legacyStyle.display);
+    expect(supplementalStyle.columns).toBe(legacyStyle.columns);
+    expect(supplementalStyle.height).toBe(legacyStyle.height);
   });
 
   test('Admin workspace exposes searchable edit and roster controls',async({page})=>{
