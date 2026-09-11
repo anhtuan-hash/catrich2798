@@ -43,7 +43,7 @@ import './attendance/AttendanceHistoryV2.css';
 const CLASS_COLUMNS = 'id,class_type,class_name,subject,teacher_id,teacher_name,teacher_email,active,source_key,school_year,grade_level,expected_student_count,periods_per_week,room,weekdays,time_range,created_by,updated_by,created_at,updated_at';
 const MEMBER_COLUMNS = 'id,class_id,member_key,student_code,student_full_name,school_class_name,active,joined_at,left_at,created_by,updated_by,removed_by,removal_reason,created_at,updated_at';
 const CLASS_TEACHER_COLUMNS = 'id,class_id,teacher_id,teacher_name,teacher_email,position,source_key,created_at,updated_at';
-const SESSION_COLUMNS = 'id,class_id,class_type,class_name,subject,teacher_id,teacher_name,teacher_email,attendance_date,checked_at,checked_by,total_students,present_count,absent_count,note,session_status,lesson_periods,cancellation_reason,teaching_room,teaching_time_range,proof_path,created_at';
+const SESSION_COLUMNS = 'id,class_id,class_type,class_name,subject,teacher_id,teacher_name,teacher_email,attendance_date,checked_at,checked_by,checked_by_name,total_students,present_count,absent_count,note,session_status,lesson_periods,cancellation_reason,teaching_room,teaching_time_range,proof_path,created_at';
 const RECORD_COLUMNS = 'id,session_id,class_id,member_id,member_key,student_code,student_full_name,school_class_name,status,recorded_at,absence_reason_code,absence_note';
 const VIETNAM_TIME_ZONE = 'Asia/Ho_Chi_Minh';
 
@@ -1212,7 +1212,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                     <div><strong>Nhật ký người thao tác</strong><span>Dữ liệu chốt buổi</span></div>
                   </header>
                   <div className="ahv3__audit-actor-panel__grid">
-                    <div><span>Người thao tác</span><b>{selectedSession.checked_by || 'Không ghi nhận'}</b></div>
+                    <div><span>Người thao tác</span><b>{selectedSession.checked_by_name || selectedSession.checked_by || 'Không ghi nhận'}</b></div>
                     <div><span>Chốt lúc</span><b>{formatDateTime(selectedSession.checked_at)}</b></div>
                   </div>
                 </section>
@@ -1231,7 +1231,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
 
                   {selectedLateRecords.length ? <section className="ahv3__late-section"><header><div><strong>Danh sách học sinh đi trễ</strong><span>{selectedLateRecords.length} học sinh</span></div></header><div className="attendance-late-list">{selectedLateRecords.map((record, index) => <div key={record.id}><span>{index + 1}</span><div><b>{record.student_full_name}</b><small>{record.student_code || 'Không có mã HS'} · {attendanceStatusLabel(record.status)} · vẫn tính có mặt</small></div><em>{record.school_class_name || '—'}</em></div>)}</div></section> : null}
 
-                  <section className="ahv3__absent-section"><header><div><strong>Danh sách học sinh vắng</strong><span>{selectedAbsentRecords.length} học sinh</span></div></header>{selectedAbsentRecords.length ? <div className="attendance-absent-list">{selectedAbsentRecords.map((record, index) => <div key={record.id}><span>{index + 1}</span><div><b>{record.student_full_name}</b><small>{record.student_code || 'Không có mã HS'} · {ABSENCE_REASON_OPTIONS.find((item) => item.value === record.absence_reason_code)?.label || 'Chưa ghi lý do'}{record.absence_note ? ` · ${record.absence_note}` : ''}</small></div><em>{record.school_class_name || '—'}</em></div>)}</div> : <div className="ahv3__all-present"><Icon name="check" size={24} /><div><b>Tất cả học sinh đều có mặt.</b><span>Lớp duy trì sĩ số đầy đủ trong buổi học này.</span></div></div>}</section>
+                  <section className={`ahv3__absent-section ${!selectedAbsentRecords.length ? 'is-empty' : ''}`.trim()}><header><div><strong>Danh sách học sinh vắng</strong><span>{selectedAbsentRecords.length} học sinh</span></div></header>{selectedAbsentRecords.length ? <div className="attendance-absent-list">{selectedAbsentRecords.map((record, index) => <div key={record.id}><span>{index + 1}</span><div><b>{record.student_full_name}</b><small>{record.student_code || 'Không có mã HS'} · {ABSENCE_REASON_OPTIONS.find((item) => item.value === record.absence_reason_code)?.label || 'Chưa ghi lý do'}{record.absence_note ? ` · ${record.absence_note}` : ''}</small></div><em>{record.school_class_name || '—'}</em></div>)}</div> : <div className="ahv3__all-present"><Icon name="check" size={24} /><div><b>Tất cả học sinh đều có mặt.</b><span>Lớp duy trì sĩ số đầy đủ trong buổi học này.</span></div></div>}</section>
 
                   <div className="ahv3__footer-grid"><section className="ahv3__note"><strong>Ghi chú buổi học</strong><p>{selectedSession.note || 'Chưa có ghi chú cho buổi học này.'}</p></section><section className="ahv3__lock"><strong>Nhật ký chốt buổi</strong><div><span>Chốt lúc</span><b>{formatDateTime(selectedSession.checked_at)}</b></div><div><span>Trạng thái</span><b>Đã chốt</b></div></section></div>
                 </>}

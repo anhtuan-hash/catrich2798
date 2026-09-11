@@ -2100,3 +2100,34 @@
   }
 }
 
+
+
+/* Attendance history display bug fixes: tardy rows + compact empty absence */
+.ahv3__shell .ahv3__late-section {
+  display: block !important;
+  height: auto !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+
+.ahv3__shell .attendance-late-list {
+  display: block !important;
+  position: static !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: 165px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.ahv3__shell .ahv3__absent-section.is-empty {
+  min-height: 0 !important;
+  height: auto !important;
+  padding-bottom: 12px;
+}
+
+.ahv3__shell .ahv3__absent-section.is-empty .attendance-absent-list {
+  margin-top: 8px;
+  max-height: none;
+  overflow: visible;
+}
