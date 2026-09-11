@@ -1,0 +1,27 @@
+name: Supplemental classes simplification
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/supplementalAccess.js'
+      - 'src/supplementalLearningBootstrap.js'
+      - 'src/supplementalAttendanceQuickBootstrap.js'
+      - 'src/supplementalAttendanceReportingBootstrap.js'
+      - 'src/supplementalLearningRouteBootstrap.js'
+      - 'src/attendance/supplementalLearningApi.js'
+      - 'src/styles/SupplementalLearning.css'
+      - 'supabase/migrations/20260911150000_supplemental_classes_simplification.sql'
+      - 'scripts/test-supplemental-classes-simplification.mjs'
+      - '.github/workflows/supplemental-classes-simplification.yml'
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/test-supplemental-classes-simplification.mjs
