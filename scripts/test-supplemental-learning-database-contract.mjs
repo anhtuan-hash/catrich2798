@@ -67,6 +67,9 @@ assert.match(sql, /bes_supplemental_sessions[\s\S]{0,240}status\s*<>\s*'cancelle
 assert.match(sql, /clock_timestamp\s*\(\s*\)/i, 'authoritative timestamps must come from PostgreSQL');
 assert.match(sql, /status\s*=\s*'cancelled'/i, 'cancelled sessions must be rejected by attendance flow');
 assert.match(sql, /checked_by\s*=\s*v_uid|auth\.uid\s*\(\s*\)/i, 'attendance actor must come from authenticated user');
+const confirmSql = sql.match(/create or replace function public\.bes_confirm_supplemental_attendance[\s\S]*?(?=create or replace function public\.bes_list_supplemental_history)/i)?.[0] || '';
+assert.doesNotMatch(confirmSql, /proof_path\s*=\s*btrim\s*\(\s*coalesce\s*\(\s*p_proof_path/i, 'confirm RPC must not trust a client-supplied proof path');
+assert.match(confirmSql, /proof_path\s*=\s*''/i, 'confirm RPC must leave proof empty until verified storage attachment');
 const studentReportSql = sql.match(/create or replace function public\.bes_supplemental_student_report[\s\S]*?(?=create or replace function public\.bes_list_attendance_activities)/i)?.[0] || '';
 assert.match(studentReportSql, /join\s+public\.bes_supplemental_sessions\s+s\s+on\s+s\.id\s*=\s*p\.session_id[\s\S]{0,180}s\.status\s*=\s*'confirmed'/i, 'student report denominator must be based only on confirmed sessions');
 assert.match(studentReportSql, /where\s+s\.attendance_date\s+between\s+p_from\s+and\s+p_to/i, 'student report must honor the requested date range');
