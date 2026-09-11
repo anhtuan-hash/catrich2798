@@ -38,6 +38,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: fix/unify-supplemental-attendance-history-20260911
+      - name: Reinstall dependencies after supplemental checkout
+        if: github.head_ref == 'fix/unify-supplemental-attendance-history-20260911'
+        run: npm ci --ignore-scripts
       - name: Apply supplemental history integration
         if: github.head_ref == 'fix/unify-supplemental-attendance-history-20260911'
         run: node scripts/apply-attendance-history-supplemental-integration.mjs
