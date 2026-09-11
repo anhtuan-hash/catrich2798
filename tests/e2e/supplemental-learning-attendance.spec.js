@@ -3,7 +3,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root=process.cwd();
-const css=fs.readFileSync(path.join(root,'src/styles/SupplementalLearning.css'),'utf8');
+const css=[
+  fs.readFileSync(path.join(root,'src/styles/SupplementalLearning.css'),'utf8'),
+  fs.readFileSync(path.join(root,'src/styles/SupplementalLearningAdminCompleteness.css'),'utf8'),
+].join('\n');
 
 async function installCss(page){await page.addStyleTag({content:css});}
 
@@ -18,6 +21,31 @@ test.describe('Supplemental learning attendance UI',()=>{
     await expect(card.getByText(/Nhóm dài ngày/)).toBeVisible();
     const cardBox=await card.boundingBox();
     expect(cardBox?.width).toBeGreaterThan(300);
+  });
+
+  test('Admin workspace exposes searchable edit and roster controls',async({page})=>{
+    await page.setViewportSize({width:1280,height:800});
+    await page.setContent(`<div class="bes-supplemental-backdrop"></div><section class="bes-supplemental-dialog"><header class="bes-supplemental-dialog-head"><div><span class="bes-supplemental-kicker">ĐIỂM DANH · ADMIN</span><h2>Học bổ sung</h2></div><button>×</button></header><nav class="bes-supplemental-local-tabs"><button>Học sinh</button><button>Nhóm dài ngày</button><button>Buổi phát sinh</button></nav><div class="bes-supplemental-admin-search"><label>Tìm nhóm, học sinh, môn, giáo viên, ngày, trạng thái<input type="search" value=""></label></div><main><section class="bes-supplemental-section"><article class="bes-supplemental-group"><header><div><strong>Bổ sung Toán 12</strong><small>Toán · P.12 · 16:45–18:00</small></div><span>Đang hoạt động</span></header><div class="bes-supplemental-group-actions"><button>Dừng nhóm</button></div><details class="bes-supplemental-edit" open><summary>Sửa nhóm</summary><form class="bes-supplemental-edit-form"><div class="bes-supplemental-form-grid"><label>Tên nhóm<input value="Bổ sung Toán 12"></label><label>Phòng<input value="P.12"></label></div><div class="bes-supplemental-edit-actions"><button class="is-primary">Lưu thay đổi nhóm</button></div></form></details></article><form class="bes-supplemental-card"><h4>Tạo buổi phát sinh</h4><label class="bes-supplemental-note-field">Ghi chú buổi học<textarea></textarea></label><div class="bes-supplemental-picker"><label class="bes-supplemental-picker-search">Tìm học sinh<input data-student-search></label><div class="bes-supplemental-checklist"><label class="bes-supplemental-check"><input type="checkbox"><span>Nguyễn Văn A · 12.6</span><small>Học sinh chính thức</small></label></div></div><button class="is-primary">Tạo buổi phát sinh</button></form></section></main></section>`);
+    await installCss(page);
+    await expect(page.getByRole('heading',{name:'Học bổ sung'})).toBeVisible();
+    await expect(page.getByPlaceholder('Tìm nhóm, học sinh, môn, giáo viên, ngày, trạng thái')).toBeVisible().catch(async()=>{
+      await expect(page.getByLabel('Tìm nhóm, học sinh, môn, giáo viên, ngày, trạng thái')).toBeVisible();
+    });
+    for(const label of ['Dừng nhóm','Lưu thay đổi nhóm','Tạo buổi phát sinh'])await expect(page.getByRole('button',{name:label})).toBeVisible();
+    await expect(page.getByText('Ghi chú buổi học')).toBeVisible();
+    const dialog=page.locator('.bes-supplemental-dialog');
+    const box=await dialog.boundingBox();
+    expect(box?.width).toBeGreaterThan(900);
+  });
+
+  test('activity filter surface exposes all four approved modes',async({page})=>{
+    await page.setContent(`<section class="bes-supplemental-report-filter"><div><span>Loại hoạt động</span><button class="is-active">Tất cả</button><button>Phụ đạo</button><button>Bồi dưỡng</button><button>Học bổ sung</button></div><small>Lịch sử có thể lọc thực sự theo Phụ đạo, Bồi dưỡng hoặc Học bổ sung.</small></section><section class="bes-supplemental-reporting-panel is-exclusive"><header class="bes-supplemental-reporting-head"><div><span class="bes-supplemental-kicker">BÁO CÁO · Bồi dưỡng</span><h2>Báo cáo Bồi dưỡng</h2></div><button>×</button></header><main><section class="bes-supplemental-pdf-report"><header><h1>BÁO CÁO BỒI DƯỠNG HỌC SINH GIỎI</h1></header><div class="bes-supplemental-report-summary"><span>Có mặt <b>10</b></span><span>Đi trễ <b>1</b></span><span>Vắng <b>2</b></span></div></section></main></section>`);
+    await installCss(page);
+    for(const label of ['Tất cả','Phụ đạo','Bồi dưỡng','Học bổ sung'])await expect(page.getByRole('button',{name:label})).toBeVisible();
+    await expect(page.getByRole('heading',{name:'BÁO CÁO BỒI DƯỠNG HỌC SINH GIỎI'})).toBeVisible();
+    await expect(page.getByText(/Có mặt/)).toBeVisible();
+    await expect(page.getByText(/Đi trễ/)).toBeVisible();
+    await expect(page.getByText(/Vắng/)).toBeVisible();
   });
 
   test('rollcall stays usable on an iPhone-sized viewport',async({page})=>{
