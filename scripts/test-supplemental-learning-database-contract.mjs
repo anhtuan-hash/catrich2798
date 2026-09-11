@@ -5,12 +5,15 @@ import assert from 'node:assert/strict';
 const root = process.cwd();
 const migrationPath = path.join(root, 'supabase/migrations/20260911_supplemental_learning_attendance.sql');
 const proofMigrationPath = path.join(root, 'supabase/migrations/20260911_supplemental_learning_proof_access.sql');
+const proofAttachPath = path.join(root, 'supabase/migrations/20260911_supplemental_learning_proof_attach.sql');
 const activityTypeFixPath = path.join(root, 'supabase/migrations/20260911_supplemental_learning_activity_type_fix.sql');
 assert.ok(fs.existsSync(migrationPath), 'supplemental learning migration must exist');
 assert.ok(fs.existsSync(proofMigrationPath), 'supplemental proof-access migration must exist');
+assert.ok(fs.existsSync(proofAttachPath), 'supplemental proof-attach migration must exist');
 assert.ok(fs.existsSync(activityTypeFixPath), 'supplemental activity-type forward migration must exist');
 const sql = fs.readFileSync(migrationPath, 'utf8');
 const proofSql = fs.readFileSync(proofMigrationPath, 'utf8');
+const proofAttachSql = fs.readFileSync(proofAttachPath, 'utf8');
 const activityTypeSql = fs.readFileSync(activityTypeFixPath, 'utf8');
 
 for (const table of [
@@ -78,6 +81,10 @@ assert.match(proofSql, /attendance:history/i, 'history permission must be able t
 assert.match(proofSql, /attendance:report/i, 'report permission must be able to view supplemental proof');
 assert.match(proofSql, /create policy[\s\S]*for insert[\s\S]*bes_can_upload_supplemental_proof/i, 'storage INSERT policy must be installed');
 assert.match(proofSql, /create policy[\s\S]*for select[\s\S]*bes_can_view_supplemental_proof/i, 'storage SELECT policy must be installed');
+assert.match(proofAttachSql, /create or replace function public\.bes_attach_supplemental_proof/i, 'proof attachment RPC must exist');
+assert.match(proofAttachSql, /storage\.objects/i, 'proof attachment RPC must verify the object exists');
+assert.match(proofAttachSql, /checked_by\s*<>\s*v_uid/i, 'proof attachment must remain owned by the confirming operator');
+assert.match(proofAttachSql, /set proof_path\s*=\s*v_path/i, 'proof path must be persisted only by the post-upload attachment RPC');
 
 assert.match(activityTypeSql, /class_type[\s\S]{0,120}gifted[\s\S]{0,60}enrichment/i, 'legacy production class_type=gifted must map to enrichment');
 assert.match(activityTypeSql, /v_type\s+not\s+in\s*\(\s*'all'\s*,\s*'remedial'\s*,\s*'enrichment'\s*,\s*'supplemental'/i, 'unified activity filter vocabulary must remain explicit');
