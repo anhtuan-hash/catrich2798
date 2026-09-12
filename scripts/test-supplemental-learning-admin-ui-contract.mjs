@@ -27,12 +27,13 @@ for (const forbidden of ['Tạo nhóm học bổ sung', 'Tạo buổi phát sinh
 }
 
 for (const call of [
-  'loadSupplementalClasses', 'upsertSupplementalClass', 'archiveSupplementalClass',
+  'loadSupplementalClasses', 'upsertSupplementalClass', 'deleteSupplementalClass',
   'upsertSupplementalClassMember', 'setSupplementalClassMemberStatus',
 ]) assert.ok(source.includes(call), `missing class management action: ${call}`);
+assert.ok(!source.includes('archiveSupplementalClass'), 'visible supplemental class deletion must not use archive semantics');
 
 for (const rpc of [
-  'bes_list_supplemental_classes', 'bes_upsert_supplemental_class', 'bes_archive_supplemental_class',
+  'bes_list_supplemental_classes', 'bes_upsert_supplemental_class', 'bes_delete_supplemental_class',
   'bes_upsert_supplemental_class_member', 'bes_set_supplemental_class_member_status', 'bes_set_supplemental_class_teachers',
 ]) assert.ok(api.includes(rpc), `missing class-centric RPC wrapper: ${rpc}`);
 
@@ -42,6 +43,7 @@ assert.match(source, /data-form="class"/);
 assert.match(source, /data-form="add-member"/);
 assert.match(source, /data-form="edit-member"/);
 assert.match(source, /data-action="member-status"/);
+assert.match(source, /data-action="delete-class"/);
 assert.match(source, /data-add-teacher/);
 assert.match(source, /data-remove-teacher/);
 assert.doesNotMatch(source, /data-form="adhoc-session"|data-link-official|officialParticipantKey/);
