@@ -12,9 +12,10 @@ const js = [
 const css = [
   readOptional('../public/attendance-history-v5.css'),
   readOptional('../public/attendance-history-pixel-v6.css'),
+  readOptional('../public/attendance-history-final-polish-v6-1.css'),
 ].join('\n');
 
-assert.match(index, /attendance-history-v5\.css\?v=2[\s\S]*attendance-history-pixel-v6\.css\?v=2/, 'final-polish History CSS must use a fresh cache version');
+assert.match(index, /attendance-history-v5\.css\?v=2[\s\S]*attendance-history-pixel-v6\.css\?v=1[\s\S]*attendance-history-final-polish-v6-1\.css\?v=1/, 'final-polish History CSS must load after the approved v6 layer');
 assert.match(index, /attendance-history-v5\.js\?v=2[\s\S]*attendance-history-pixel-v6\.js\?v=1/, 'pixel-match runtime must load after the stable v5 runtime');
 
 assert.match(js, /data-ah-v5-type-filter/, 'runtime must still recognize the native type selector');
