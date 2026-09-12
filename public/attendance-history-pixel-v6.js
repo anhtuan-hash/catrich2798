@@ -130,10 +130,13 @@
   function enhance() {
     frame = 0;
     const root = document.querySelector(ROOT_SELECTOR);
-    if (!root) return;
-    const shell = root.closest('.attendance-shell');
-    if (!shell) return;
-    shell.classList.add('ah-history-v5', 'ah-history-pixel-v6');
+    const activeShell = root?.closest('.attendance-shell') || null;
+    document.querySelectorAll('.attendance-shell.ah-history-pixel-v6').forEach((shell) => {
+      if (!activeShell || shell !== activeShell) shell.classList.remove('ah-history-pixel-v6');
+    });
+    if (!root || !activeShell) return;
+
+    activeShell.classList.add('ah-history-v5', 'ah-history-pixel-v6');
     restoreMockupTypeFilter(root);
     decorateActivityIcons(root);
     ensureHeroMetadata(root);
@@ -148,7 +151,7 @@
 
   function start() {
     enhance();
-    observer.observe(document.body, { childList: true, subtree: true });
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
     document.addEventListener('change', scheduleEnhance, true);
     document.addEventListener('click', scheduleEnhance, true);
   }
