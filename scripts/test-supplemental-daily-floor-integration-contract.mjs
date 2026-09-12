@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { isExtraClassScheduledOnDate } from '../src/utils/extraClassSchedule2026.js';
 
 const scheduleSource = await readFile(new URL('../src/components/attendance/AttendanceDailySchedule.jsx', import.meta.url), 'utf8');
 const nativeRollcallSource = await readFile(new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url), 'utf8');
@@ -18,6 +19,33 @@ assert.match(scheduleSource, /visible(?:Rows|Activities|Items)\.length/, 'summar
 assert.match(scheduleSource, /bes-supplemental-open-rollcall/, 'clicking a native Học bổ sung row must dispatch the native React rollcall event');
 assert.doesNotMatch(scheduleSource, /bes-open-supplemental-attendance/, 'the daily Học bổ sung row must never dispatch the retired legacy rollcall event');
 assert.match(scheduleSource, /bes-supplemental-attendance-changed/, 'native daily schedule must refresh after supplemental attendance/admin changes');
+
+// Opening supplemental rollcall injects a temporary `supplemental:*` class into the shared
+// classes state. AttendanceDailySchedule also loads the real supplemental activity, so the
+// native extra-class scheduler must reject that temporary class or the UI shows a fake
+// “Phụ đạo” row beside the real “Học bổ sung” row.
+assert.equal(isExtraClassScheduledOnDate({
+  id: 'supplemental:group-abc',
+  class_type: 'supplemental',
+  class_name: 'abc',
+  subject: 'Toán',
+  room: 'A101',
+  active: true,
+}, '2026-09-12'), false, 'synthetic supplemental rollcall classes must never enter the native extra-class daily schedule');
+assert.equal(isExtraClassScheduledOnDate({
+  id: 'supplemental:group-abc-without-type',
+  class_name: 'abc',
+  subject: 'Toán',
+  room: 'A101',
+  active: true,
+}, '2026-09-12'), false, 'supplemental:* ids must be rejected even if class_type is missing');
+assert.equal(isExtraClassScheduledOnDate({
+  id: 'imported-unknown-extra-class',
+  class_type: 'remedial',
+  class_name: 'Lớp nhập ngoài danh mục',
+  subject: 'Môn khác',
+  active: true,
+}, '2026-09-12'), true, 'ordinary unknown/imported extra classes must keep the existing permissive scheduling behavior');
 
 assert.match(nativeRollcallSource, /window\.addEventListener\(['"]bes-supplemental-open-rollcall['"]\s*,\s*openSupplementalRollcall\)/, 'native React rollcall must listen for the daily supplemental row click');
 assert.match(nativeRollcallSource, /canManageSupplementalLearning\(runtime\)/, 'native supplemental rollcall bridge must stay behind the dedicated manager guard');
