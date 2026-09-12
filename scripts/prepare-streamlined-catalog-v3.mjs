@@ -9,12 +9,12 @@ const appSlugs = [
   'classroom-screen', 'content-ecosystem', 'assessment-core',
   'automation-center', 'collaboration-hub', 'knowledge-train',
   'crossword-trial', 'flying-words', 'exam-studio', 'word2graph',
-  'reading-studio', 'lesson-plan-ai', 'student-practice',
-  'random-group-generator', 'word-orbit', 'activity-graph',
+  'reading-studio', 'student-practice', 'random-group-generator',
+  'word-orbit', 'activity-graph',
 ];
 const routeSlugs = ['content-ecosystem', 'assessment-core', 'automation-center', 'collaboration-hub', 'practice'];
 const toolComponents = [
-  'WordGraphStudio', 'ReadingStudio', 'LessonArchitect', 'ExamStudioUploadPage',
+  'WordGraphStudio', 'ReadingStudio', 'ExamStudioUploadPage',
   'StudentPractice', 'ActivityGraphStudio', 'ClassroomScreenHost',
   'FlyingWordsGame', 'CrosswordTrialGame', 'KnowledgeTrainGame', 'WordOrbitGame',
 ];
@@ -147,4 +147,4 @@ fs.mkdirSync('apps/classroom-screen', { recursive: true });
 write('apps/classroom-screen/empty.js', 'export default null;\n');
 write('apps/classroom-screen/vite.config.ts', `import { defineConfig } from 'vite';\nimport { fileURLToPath } from 'node:url';\nexport default defineConfig({ build: { write: false, lib: { entry: fileURLToPath(new URL('./empty.js', import.meta.url)), formats: ['es'], fileName: 'retired' } } });\n`);
 
-console.log('Precise production cleanup applied for the 16 retired Brian applications.');
+console.log(`Precise production cleanup applied for the ${appSlugs.length} retired Brian applications.`);
