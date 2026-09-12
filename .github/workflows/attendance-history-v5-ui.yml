@@ -1,0 +1,21 @@
+name: Attendance History V5 UI
+
+on:
+  pull_request:
+    paths:
+      - 'public/attendance-history-v5.css'
+      - 'public/attendance-history-v5.js'
+      - 'index.html'
+      - 'scripts/test-attendance-history-v5-ui.mjs'
+      - '.github/workflows/attendance-history-v5-ui.yml'
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify refined History visual contract
+        run: node scripts/test-attendance-history-v5-ui.mjs
