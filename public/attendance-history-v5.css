@@ -1,0 +1,306 @@
+/* Attendance History V5 — single activity filter + compact approved mockup refinements. */
+
+.attendance-shell.ah-history-v5 {
+  --ah-remedial: #f97316;
+  --ah-gifted: #1677ff;
+  --ah-supplemental: #16a34a;
+  --ah-v5-line: #dbe6f3;
+  --ah-v5-muted: #6f819c;
+  --ah-v5-surface: #ffffff;
+  --ah-v5-canvas: #f5f8fc;
+}
+
+.attendance-shell.ah-history-v5 [data-ah-v5-duplicate-filter="true"] {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Compress chrome so useful history content starts higher on screen. */
+.attendance-shell.ah-history-v5 .attendance-topbar {
+  min-height: 82px !important;
+  padding: 14px 22px 8px !important;
+}
+
+.attendance-shell.ah-history-v5 .attendance-title > span {
+  width: 50px !important;
+  height: 50px !important;
+  flex-basis: 50px !important;
+  border-radius: 15px !important;
+}
+
+.attendance-shell.ah-history-v5 .attendance-title strong {
+  font-size: 20px !important;
+}
+
+.attendance-shell.ah-history-v5 .ah-mockup-subtitle {
+  display: none !important;
+}
+
+.attendance-shell.ah-history-v5 .attendance-tabs {
+  min-height: 52px !important;
+  padding: 0 22px 6px !important;
+  gap: 7px !important;
+}
+
+.attendance-shell.ah-history-v5 .attendance-tabs > button {
+  min-height: 42px !important;
+  padding-inline: 14px !important;
+  border-radius: 12px !important;
+}
+
+/* Keep exactly one activity selector: the approved colored bar. */
+.attendance-shell.ah-history-v5 .ah-mockup-filterbar {
+  grid-template-columns: auto auto minmax(180px, 1fr) !important;
+  min-height: 52px !important;
+  margin: 0 16px 10px !important;
+  padding: 6px 12px !important;
+  gap: 12px !important;
+  border-radius: 14px !important;
+  box-shadow: 0 3px 12px rgba(39, 69, 107, .035) !important;
+}
+
+.attendance-shell.ah-history-v5 .ah-mockup-filterbar__buttons {
+  gap: 7px !important;
+}
+
+.attendance-shell.ah-history-v5 .ah-mockup-filter {
+  min-height: 36px !important;
+  padding-inline: 14px !important;
+}
+
+.attendance-shell.ah-history-v5 .attendance-banner.is-success {
+  min-height: 48px !important;
+  margin: 0 16px 10px !important;
+  padding-block: 7px !important;
+}
+
+.attendance-shell.ah-history-v5 .attendance-content {
+  padding: 0 14px 14px !important;
+  background: var(--ah-v5-canvas) !important;
+}
+
+/* Main two-column workspace. */
+.attendance-shell.ah-history-v5 .ahv3__shell {
+  grid-template-columns: minmax(440px, 520px) minmax(0, 1fr) !important;
+  gap: 14px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__list,
+.attendance-shell.ah-history-v5 .ahv3__detail {
+  border-color: var(--ah-v5-line) !important;
+  border-radius: 19px !important;
+  box-shadow: 0 6px 20px rgba(35, 63, 102, .045) !important;
+}
+
+/* Left panel: tighter filters and more readable cards. */
+.attendance-shell.ah-history-v5 .ahv3__list-head {
+  padding: 15px 14px 11px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__list-title strong {
+  font-size: 19px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__list-title p {
+  margin-top: 2px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__list-actions {
+  gap: 9px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__list-actions > span {
+  padding: 5px 9px !important;
+  border-radius: 999px !important;
+  background: #f1f5fa !important;
+  color: #637792 !important;
+  font-weight: 800 !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__list-actions button {
+  min-height: 36px !important;
+  border-radius: 10px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__list-head > .ahv3__search {
+  min-height: 42px !important;
+  margin-top: 10px !important;
+  border-radius: 12px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__list-head > .ahv3__search input {
+  min-height: 38px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__filters,
+.attendance-shell.ah-history-v5 .ahv3__date-filters {
+  gap: 9px !important;
+  margin-top: 8px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__filters select,
+.attendance-shell.ah-history-v5 .ahv3__date-filters input {
+  min-height: 38px !important;
+  border-radius: 10px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__filter-meta {
+  margin-top: 8px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__items {
+  gap: 8px !important;
+  padding: 8px 8px 12px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__items > button {
+  min-height: 76px !important;
+  padding: 9px 38px 9px 11px !important;
+  border-radius: 14px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__items > button.ah-kind-remedial.is-selected {
+  border-color: #fdba74 !important;
+  background: linear-gradient(90deg, #fff 0%, #fff8f2 100%) !important;
+  box-shadow: 0 0 0 1px rgba(249, 115, 22, .08), 0 8px 17px rgba(249, 115, 22, .09) !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__items > button.ah-kind-gifted.is-selected {
+  border-color: #84b8ff !important;
+  background: linear-gradient(90deg, #fff 0%, #f2f7ff 100%) !important;
+  box-shadow: 0 0 0 1px rgba(22, 119, 255, .08), 0 8px 17px rgba(22, 119, 255, .10) !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__items > button.ah-kind-supplemental.is-selected {
+  border-color: #86d7a2 !important;
+  background: linear-gradient(90deg, #fff 0%, #f1fbf5 100%) !important;
+  box-shadow: 0 0 0 1px rgba(22, 163, 74, .08), 0 8px 17px rgba(22, 163, 74, .09) !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__number {
+  width: 40px !important;
+  height: 40px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__card-title b {
+  font-size: 12.8px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__card-copy small,
+.attendance-shell.ah-history-v5 .ahv3__card-copy time {
+  margin-top: 3px !important;
+}
+
+/* Selected-session detail: clearer hierarchy, less dead space. */
+.attendance-shell.ah-history-v5 .ahv3__detail {
+  padding: 12px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__hero {
+  min-height: 132px !important;
+  margin: 0 0 10px !important;
+  padding: 15px 18px !important;
+  border: 1px solid #d8e7fb !important;
+  border-radius: 17px !important;
+  background: linear-gradient(135deg, #f9fcff 0%, #edf5ff 100%) !important;
+  overflow: hidden !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__hero h2 {
+  margin-top: 9px !important;
+  font-size: clamp(24px, 2vw, 31px) !important;
+  line-height: 1.05 !important;
+  letter-spacing: -.035em !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__hero-chips {
+  margin-top: 10px !important;
+  gap: 7px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__hero-chips > span {
+  min-height: 28px !important;
+  padding: 4px 9px !important;
+  border-radius: 999px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__actions {
+  gap: 8px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__actions button {
+  min-height: 38px !important;
+  border-radius: 10px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__section-title {
+  margin: 10px 2px 7px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__info-grid {
+  gap: 9px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__info-grid > article {
+  min-height: 66px !important;
+  padding: 10px 12px !important;
+  border-radius: 12px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__stat-grid {
+  gap: 9px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__stat-grid > article {
+  min-height: 78px !important;
+  padding: 10px 11px !important;
+  border-radius: 12px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__audit-actor-panel {
+  margin-top: 10px !important;
+  border-radius: 13px !important;
+}
+
+.attendance-shell.ah-history-v5 .ahv3__audit-actor-panel__grid {
+  gap: 10px !important;
+}
+
+/* Smaller displays keep one activity bar and move to a fluid workspace. */
+@media (max-width: 1180px) {
+  .attendance-shell.ah-history-v5 .ahv3__shell {
+    grid-template-columns: minmax(380px, 440px) minmax(0, 1fr) !important;
+  }
+
+  .attendance-shell.ah-history-v5 .ah-mockup-filterbar {
+    grid-template-columns: auto 1fr !important;
+  }
+
+  .attendance-shell.ah-history-v5 .ah-mockup-filterbar__hint {
+    display: none !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .attendance-shell.ah-history-v5 .attendance-topbar {
+    min-height: 70px !important;
+  }
+
+  .attendance-shell.ah-history-v5 .ah-mockup-filterbar {
+    margin-inline: 10px !important;
+  }
+
+  .attendance-shell.ah-history-v5 .ahv3__shell {
+    grid-template-columns: 1fr !important;
+  }
+
+  .attendance-shell.ah-history-v5 .ahv3__detail {
+    padding: 10px !important;
+  }
+}
