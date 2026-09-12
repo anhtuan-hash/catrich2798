@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight, BarChart3, BookOpen, Check, ClipboardClock, FileCheck2, Files,
-  FolderOpen, Gamepad2, GraduationCap, MessageSquareText, NotebookTabs,
+  FolderOpen, GraduationCap, MessageSquareText, NotebookTabs,
   School, UsersRound,
 } from 'lucide-react';
 import { APPS, GAME_APPS, SPECIAL_TOOLS } from '../data/apps.js';
@@ -57,7 +57,6 @@ const TOOL_DEFS = [
   ['textcare', FileCheck2, 'TextCare Fixer', 'TextCare Fixer', 'Chuẩn hoá, kiểm tra và sửa văn bản.', 'Polish, check and improve documents.', 'textcare', '#/apps', '#188038', '#edf7ee'],
   ['library', FolderOpen, 'Thư viện', 'Library', 'Quản lý và chia sẻ tài liệu học tập.', 'Manage and share learning resources.', null, '#/library', '#f29900', '#fff7e2', 'library'],
   ['weekly', ClipboardClock, 'Bài tập theo tuần', 'Weekly Practice', 'Luyện tập đều đặn theo từng khối lớp.', 'Regular practice paths by grade level.', 'thpt-practice-hub', '#/practice', '#00a6c7', '#eaf8fb'],
-  ['games', Gamepad2, 'Trò chơi', 'Games', 'Học mà chơi, chơi mà học trong lớp.', 'Engaging classroom games.', 'game-hub', '#/games', '#e94270', '#fff0f4'],
   ['homeroom', UsersRound, 'Chủ nhiệm', 'Homeroom', 'Quản lý lớp học và hồ sơ học sinh.', 'Manage classes and student records.', null, '#/homeroom', '#7e57c2', '#f4efff', 'homeroom'],
   ['dashboard', School, 'Quản lý lớp học', 'Class Management', 'Theo dõi công việc và vận hành lớp học.', 'Track classroom work and operations.', null, '#/dashboard', '#2684ff', '#eef5ff', 'dashboard'],
   ['resources', Files, 'Thư viện tài liệu', 'Resource Library', 'Truy cập kho học liệu dùng chung.', 'Open the shared resource library.', null, '#/resource-library', '#34a853', '#eef8f0', 'resource-library'],

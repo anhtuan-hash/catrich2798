@@ -78,6 +78,14 @@ export const APPS = [
     status: '2026 tax scale · Offline calculator', statusVi: 'Biểu thuế 2026 · Tính offline', api: true, featured: true,
   },
   {
+    slug: 'lesson-plan-ai', icon: 'LA', tone: 'blue', group: 'Teaching Design', groupVi: 'Thiết kế bài dạy',
+    title: 'Lesson Architect', titleVi: 'Lesson Architect',
+    desc: 'Design curriculum-aligned lesson plans, digital-competence activities and classroom slide decks.',
+    descVi: 'Thiết kế giáo án, hoạt động năng lực số và slide bài dạy bám chương trình.',
+    status: 'Lesson plans · Slides · Digital competence', statusVi: 'Giáo án · Slide · Năng lực số',
+    api: true, featured: true,
+  },
+  {
     slug: 'textlab-activities', icon: 'TL', tone: 'blue', group: 'Teaching Design', groupVi: 'Tạo hoạt động',
     title: 'Brian TextLab Activities', titleVi: 'Brian TextLab Activities',
     desc: 'Turn text into 18 interactive classroom activities with live preview and offline export.',
