@@ -5,12 +5,15 @@ on:
     branches:
       - fix/attendance-modal-compact-scroll
       - fix/attendance-modal-size-history-standard
+      - fix/attendance-typography-history-standard
   pull_request:
     paths:
       - 'public/attendance-windows8-launch.css'
       - 'public/attendance-history-mockup-v4.css'
+      - 'public/attendance-history-pixel-v6.css'
       - 'src/components/GlobalAttendanceNavigationTab.css'
       - 'scripts/test-attendance-modal-compact-scroll.mjs'
+      - 'scripts/test-attendance-typography-parity.mjs'
 
 permissions:
   contents: read
@@ -25,3 +28,5 @@ jobs:
           node-version: 20
       - name: History-sized modal scroll contract
         run: node scripts/test-attendance-modal-compact-scroll.mjs
+      - name: History typography parity contract
+        run: node scripts/test-attendance-typography-parity.mjs
