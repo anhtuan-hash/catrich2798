@@ -39,6 +39,9 @@ jobs:
       - name: Verify audit regression hardening contract
         run: node scripts/test-audit-regression-hardening.mjs
 
+      - name: Run role-based full web regression in Chromium
+        run: npx playwright test tests/e2e/full-web-regression.spec.js --project=chromium-desktop
+
       - name: Verify attendance teacher-time access contract
         run: node scripts/test-attendance-time-access-control.mjs
 
