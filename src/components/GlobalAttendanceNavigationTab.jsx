@@ -38,7 +38,7 @@ import AttendanceDailySchedule from './attendance/AttendanceDailySchedule.jsx';
 import { ATTENDANCE_PROOF_BUCKET, buildAttendanceProofPath, prepareAttendanceProofImage } from '../utils/attendanceProofImage.js';
 import { filterAndSortAttendanceHistory } from '../utils/attendanceHistoryFilters.js';
 import { canManageSupplementalLearning } from '../supplementalAccess.js';
-import { attachSupplementalProof, beginSupplementalAttendance, cancelSupplementalSession, confirmSupplementalAttendance, deleteSupplementalAttendanceHistory } from '../attendance/supplementalLearningApi.js';
+import { attachSupplementalProof, beginSupplementalAttendance, cancelSupplementalSession, confirmSupplementalAttendance, deleteSupplementalAttendanceHistory, loadSupplementalAttendanceActivities, loadSupplementalSessionTeachers } from '../attendance/supplementalLearningApi.js';
 import './attendance/AttendanceMaterial3.css';
 import './attendance/AttendanceHistoryV2.css';
 
@@ -403,17 +403,28 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
         setBusy(true);
         setError('');
         setNotice('');
-        const payload = await beginSupplementalAttendance(client, sessionId);
+        const [payload, supplementalTeacherRows] = await Promise.all([
+          beginSupplementalAttendance(client, sessionId),
+          loadSupplementalSessionTeachers(client, sessionId),
+        ]);
         const session = payload?.session || {};
         const sourceClassId = String(event?.detail?.classId || session.group_id || sessionId);
         const syntheticClassId = 'supplemental:' + sourceClassId;
         const participants = Array.isArray(payload?.participants) ? payload.participants : [];
+        const assignedTeacherNames = [];
+        [...(Array.isArray(supplementalTeacherRows) ? supplementalTeacherRows : []).map((row) => row?.fullName || row?.teacherName || ''), session.teacher_name || ''].forEach((name) => {
+          const clean = String(name || '').trim();
+          if (clean && !assignedTeacherNames.some((current) => fold(current) === fold(clean))) assignedTeacherNames.push(clean);
+        });
+        const sessionTeacherName = String(session.teacher_name || '').trim();
+        const initialTeacher = assignedTeacherNames.find((name) => fold(name) === fold(sessionTeacherName))
+          || (assignedTeacherNames.length === 1 ? assignedTeacherNames[0] : '');
         const syntheticClass = {
           id: syntheticClassId,
           class_type: 'supplemental',
           class_name: session.group_name || session.title || 'Học bổ sung',
           subject: session.subject || '',
-          teacher_name: session.teacher_name || '',
+          teacher_name: assignedTeacherNames.join(', '),
           room: session.room || '',
           time_range: [session.start_time, session.end_time].filter(Boolean).join(' - '),
           active: true,
@@ -432,7 +443,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
         setSelectedClassId(syntheticClassId);
         setSelectedSessionId(sessionId);
         setAttendanceDate(String(session.attendance_date || today).slice(0, 10));
-        setSessionTeacher(session.teacher_name || '');
+        setSessionTeacher(initialTeacher);
         setLessonPeriods(Number(session.lesson_periods || 1));
         setTeachingRoom(session.room || '');
         setTeachingTimeRange([session.start_time, session.end_time].filter(Boolean).join(' - '));
@@ -495,18 +506,37 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       setTeacherDaySessions([]);
       return [];
     }
-    const { data, error: usageError } = await client.from('bes_extra_attendance_sessions')
-      .select('id,class_id,class_name,teacher_name,attendance_date,session_status')
-      .eq('attendance_date', dateValue)
-      .eq('session_status', 'completed')
-      .order('checked_at', { ascending: true });
-    if (usageError) {
-      setError(usageError.message || 'Không thể kiểm tra giáo viên đã điểm danh trong ngày.');
+    try {
+      const supplementalUsagePromise = canManageSupplementalLearning(runtime)
+        ? loadSupplementalAttendanceActivities(client, { from: dateValue, to: dateValue })
+        : Promise.resolve([]);
+      const [extraResult, supplementalActivities] = await Promise.all([
+        client.from('bes_extra_attendance_sessions')
+          .select('id,class_id,class_name,teacher_name,attendance_date,session_status')
+          .eq('attendance_date', dateValue)
+          .eq('session_status', 'completed')
+          .order('checked_at', { ascending: true }),
+        supplementalUsagePromise,
+      ]);
+      if (extraResult.error) throw extraResult.error;
+      const supplementalRows = (Array.isArray(supplementalActivities) ? supplementalActivities : [])
+        .filter((row) => String(row.status || '').toLowerCase() === 'confirmed')
+        .map((row) => ({
+          id: row.id,
+          class_id: 'supplemental:' + row.id,
+          class_name: row.title || 'Học bổ sung',
+          teacher_name: row.teacherName || '',
+          attendance_date: row.date || dateValue,
+          session_status: 'completed',
+        }));
+      const rows = [...(extraResult.data || []), ...supplementalRows];
+      setTeacherDaySessions(rows);
+      return rows;
+    } catch (usageError) {
+      setError(usageError?.message || 'Không thể kiểm tra giáo viên đã điểm danh trong ngày.');
+      setTeacherDaySessions([]);
       return [];
     }
-    const rows = data || [];
-    setTeacherDaySessions(rows);
-    return rows;
   }
 
   useEffect(() => {
@@ -662,12 +692,35 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       setError('Ngày điểm danh không được ở tương lai theo giờ Việt Nam.');
       return;
     }
-    const absentWithoutReason = draft.find((row) => row.status === ATTENDANCE_STATUS.ABSENT && !row.absence_reason_code);
-    if (absentWithoutReason) {
-      setError('Hãy chọn lý do vắng cho ' + (absentWithoutReason.student_full_name || 'học sinh vắng mặt') + '.');
+    if (!sessionTeacher) {
+      setError('Vui lòng chọn giáo viên dạy hôm nay.');
       return;
     }
-    const [startTime = '', endTime = ''] = String(teachingTimeRange || '').split(/\s*-\s*/, 2);
+    if (isTeacherBlocked) {
+      setError(`Giáo viên ${sessionTeacher} đã được điểm danh tại lớp ${blockedTeacherUsage.class_name} ngày ${formatDate(attendanceDate)}.`);
+      setSessionTeacher('');
+      return;
+    }
+    if (!teachingRoom.trim()) {
+      setError('Vui lòng nhập phòng học.');
+      return;
+    }
+    if (!teachingTimeRange.trim()) {
+      setError('Vui lòng nhập thời gian dạy.');
+      return;
+    }
+    if (invalidAbsentRows.length) {
+      const first = invalidAbsentRows[0];
+      setError(first.absence_reason_code === 'other'
+        ? `Vui lòng ghi chú lý do “Khác” cho ${first.student_full_name}.`
+        : `Vui lòng chọn lý do vắng cho ${first.student_full_name}.`);
+      return;
+    }
+    const [startTime = '', endTime = ''] = String(teachingTimeRange || '').split(/\s*[-–—]\s*/, 2);
+    if (!startTime.trim() || !endTime.trim()) {
+      setError('Vui lòng nhập thời gian dạy.');
+      return;
+    }
     setBusy(true);
     setError('');
     setNotice('');
@@ -1281,7 +1334,11 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                 })}{!filteredActiveClasses.length ? <div className="attendance-empty">Không có lớp phù hợp bộ lọc.</div> : null}</div>
               </aside>
 
-              <section className="attendance-rollcall">
+              <section
+                className="attendance-rollcall"
+                data-bes-attendance-source={attendanceSource}
+                data-bes-attendance-session-id={attendanceSource === 'supplemental' ? (selectedSessionId || daySession?.id || '') : (daySession?.id || '')}
+              >
                 {selectedClass ? <>
                   <header className="attendance-rollcall-head"><div><span>{extraClassTypeLabel(selectedClass.class_type)}</span><div className="attendance-rollcall-title-row"><h2>{selectedClass.class_name}</h2>{roomForExtraClass(selectedClass) ? <span className="attendance-room-chip is-large">{roomForExtraClass(selectedClass)}</span> : null}</div><p>{selectedClass.subject || 'Chưa ghi môn'} · GV phân công: {teachersForClass(selectedClass)}</p></div><div className="attendance-summary"><b>{daySession?.session_status === 'cancelled' ? 'Đã hủy' : daySession ? `${daySession.present_count}/${daySession.total_students}` : `${summary.present}/${summary.total}`}</b><span>{daySession?.session_status === 'cancelled' ? 'Buổi học' : 'Có mặt'}</span><em>{daySession?.session_status === 'cancelled' ? '0 tiết' : `${daySession ? daySession.absent_count : summary.absent} vắng`}</em></div></header>
 

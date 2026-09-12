@@ -5,6 +5,10 @@ import {
   getRuntimeState,
   subscribeRuntime,
 } from './services/runtime/core.js';
+import {
+  getSupplementalAttendanceEditSnapshot,
+  updateSupplementalAttendanceSession,
+} from './attendance/supplementalLearningApi.js';
 import { hasAttendanceTabAccess } from './utils/permissions.js';
 import { normalizeSystemRole, SYSTEM_ROLES } from './utils/roles.js';
 import {
@@ -33,6 +37,7 @@ let timer = 0;
 let renderQueued = false;
 let loadQueued = false;
 let activeKey = '';
+let activeSource = 'extra';
 let activeSession = null;
 let serverAccess = null;
 let serverClockOffsetMs = 0;
@@ -107,12 +112,17 @@ function selectedContext() {
     selectedButton?.dataset?.besAttendanceClassId
       || selectedButton?.getAttribute?.('data-bes-attendance-class-id'),
   ).trim();
+  const source = text(rollcall.dataset.besAttendanceSource || rollcall.getAttribute('data-bes-attendance-source')).trim() === 'supplemental'
+    ? 'supplemental'
+    : 'extra';
+  const sessionId = text(rollcall.dataset.besAttendanceSessionId || rollcall.getAttribute('data-bes-attendance-session-id')).trim();
   if (!className || !attendanceDate) return null;
-  return { rollcall, className, attendanceDate, classId };
+  return { rollcall, className, attendanceDate, classId, source, sessionId };
 }
 
 function clearState({ keepNotice = false } = {}) {
   activeKey = '';
+  activeSource = 'extra';
   activeSession = null;
   serverAccess = null;
   records = [];
@@ -178,7 +188,7 @@ async function loadSelectedSession({ force = false } = {}) {
     return;
   }
 
-  const provisionalKey = `${context.classId || context.className}|${context.attendanceDate}`;
+  const provisionalKey = `${context.source}|${context.sessionId || context.classId || context.className}|${context.attendanceDate}`;
   if (!force && provisionalKey === activeKey && activeSession) {
     queueRender();
     return;
@@ -187,6 +197,30 @@ async function loadSelectedSession({ force = false } = {}) {
   loading = true;
   queueRender();
   try {
+    if (context.source === 'supplemental') {
+      if (!context.sessionId) {
+        clearState();
+        return;
+      }
+      const snapshot = await getSupplementalAttendanceEditSnapshot(client, context.sessionId);
+      activeKey = provisionalKey;
+      activeSource = 'supplemental';
+      activeSession = snapshot?.session || null;
+      serverAccess = snapshot?.access || { allowed: false, reason: 'unknown' };
+      updateClockOffset(serverAccess?.server_now);
+      records = (Array.isArray(snapshot?.records) ? snapshot.records : []).map((record) => ({
+        ...record,
+        status: record.status === 'tardy' ? 'late' : record.status,
+      }));
+      latestChange = snapshot?.latestChange && Object.keys(snapshot.latestChange).length ? snapshot.latestChange : null;
+      editing = false;
+      draft = [];
+      draftNote = text(activeSession?.note);
+      errorMessage = '';
+      return;
+    }
+
+    activeSource = 'extra';
     const classId = await resolveClassId(context);
     if (!classId) {
       clearState();
@@ -239,6 +273,15 @@ async function loadSelectedSession({ force = false } = {}) {
 
 function localAccess() {
   if (!activeSession) return { allowed: false, reason: 'not_completed', remainingMs: 0, expiresAt: '' };
+  if (activeSource === 'supplemental') {
+    return {
+      allowed: Boolean(serverAccess?.allowed),
+      reason: serverAccess?.reason || 'unknown',
+      bypass: Boolean(serverAccess?.bypass),
+      remainingMs: Math.max(0, Number(serverAccess?.remaining_seconds || 0) * 1000),
+      expiresAt: serverAccess?.expires_at || '',
+    };
+  }
   const evaluated = evaluatePostConfirmEditAccess({
     session: activeSession,
     currentUserId: currentUserId(),
@@ -409,7 +452,7 @@ async function openEditor() {
   errorMessage = '';
   notice = '';
   try {
-    if (!records.length) records = await fetchRecords(activeSession.id);
+    if (!records.length && activeSource !== 'supplemental') records = await fetchRecords(activeSession.id);
     makeDraft();
     editing = true;
     queueRender();
@@ -457,15 +500,29 @@ async function saveAdjustment() {
     note: record.status === 'absent' ? text(record.absence_note).trim() : '',
   }));
 
-  const { error } = await client.rpc('bes_update_extra_attendance_session', {
-    p_session_id: activeSession.id,
-    p_records: payload,
-    p_note: text(draftNote).trim(),
-  });
+  let saveError = null;
+  try {
+    if (activeSource === 'supplemental') {
+      await updateSupplementalAttendanceSession(client, {
+        sessionId: activeSession.id,
+        records: payload,
+        note: text(draftNote).trim(),
+      });
+    } else {
+      const { error } = await client.rpc('bes_update_extra_attendance_session', {
+        p_session_id: activeSession.id,
+        p_records: payload,
+        p_note: text(draftNote).trim(),
+      });
+      saveError = error;
+    }
+  } catch (error) {
+    saveError = error;
+  }
   saving = false;
 
-  if (error) {
-    errorMessage = error.message || 'Không thể lưu điều chỉnh điểm danh.';
+  if (saveError) {
+    errorMessage = saveError.message || 'Không thể lưu điều chỉnh điểm danh.';
     if (/30 phút|không có quyền|đã hết/i.test(errorMessage)) editing = false;
     queueRender();
     return;
