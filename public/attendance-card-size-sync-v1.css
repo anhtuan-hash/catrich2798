@@ -1,6 +1,7 @@
 /* Attendance cross-tab sizing V1 — History is the visual source of truth. */
 
-.attendance-shell {
+.attendance-shell,
+.bes-supplemental-dialog {
   --attendance-session-card-min-height: 80px;
   --attendance-session-card-radius: 15px;
   --attendance-session-card-pad-y: 10px;
@@ -19,14 +20,27 @@
 
 /* Comparable class/session cards share the approved History dimensions. */
 .attendance-shell .ahv3__items > button,
+.attendance-shell .attendance-daily-class-row,
 .attendance-shell .attendance-class-list > div:last-child > button,
 .attendance-shell .attendance-manage-classes > button,
 .attendance-shell .bes-supplemental-daily-card,
 .bes-supplemental-dialog .bes-supplemental-daily-card,
 .attendance-shell .att-report-m3__teacher-grid > article {
-  min-height: var(--attendance-session-card-min-height) !important;
-  border-radius: var(--attendance-session-card-radius) !important;
+  min-height: var(--attendance-session-card-min-height, 80px) !important;
+  border-radius: var(--attendance-session-card-radius, 15px) !important;
   box-sizing: border-box !important;
+}
+
+/* The current daily schedule used a fixed 58px row; release that fixed height so it can
+   adopt the same 80px minimum as History without clipping its teacher/room/status columns. */
+.attendance-shell .attendance-daily-class-row {
+  height: auto !important;
+  padding: var(--attendance-session-card-pad-y) var(--attendance-session-card-pad-x) !important;
+}
+
+/* Floor containers belong to the same geometry system while remaining content-height. */
+.attendance-shell .attendance-daily-floor-card {
+  border-radius: var(--attendance-session-card-radius) !important;
 }
 
 /* Non-History cards use the same inner breathing room; History keeps its tuned arrow gutter. */
@@ -44,8 +58,8 @@
 .bes-supplemental-dialog .bes-supplemental-row,
 .attendance-shell .bes-supplemental-history-card,
 .bes-supplemental-dialog .bes-supplemental-history-card {
-  border-radius: var(--attendance-session-card-radius) !important;
-  padding: var(--attendance-session-card-pad-y) var(--attendance-session-card-pad-x) !important;
+  border-radius: var(--attendance-session-card-radius, 15px) !important;
+  padding: var(--attendance-session-card-pad-y, 10px) var(--attendance-session-card-pad-x, 12px) !important;
   box-sizing: border-box !important;
 }
 
