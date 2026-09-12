@@ -299,6 +299,21 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     }
   }
 
+  async function refreshHistoryData() {
+    if (!client || !runtime.ready || !runtime.session || !allowed) return;
+    const supplementalHistoryPromise = canSeeSupplementalHistory && canAccessAttendanceView('history')
+      ? client.rpc('bes_list_supplemental_history', { p_from: '2000-01-01', p_to: today, p_query: '' })
+      : Promise.resolve({ data: [], error: null });
+    const [sessionResult, supplementalHistoryResult] = await Promise.all([
+      client.from('bes_extra_attendance_sessions').select(SESSION_COLUMNS).order('checked_at', { ascending: false }).limit(400),
+      supplementalHistoryPromise,
+    ]);
+    const firstError = sessionResult.error || supplementalHistoryResult.error;
+    if (firstError) throw firstError;
+    setSessions(sessionResult.data || []);
+    setSupplementalHistorySessions(normalizeSupplementalHistorySessions(supplementalHistoryResult.data || []));
+  }
+
   useEffect(() => {
     if (open && allowed && !String(selectedClassId || '').startsWith('supplemental:')) loadAll();
   }, [open, allowed, runtime.ready, runtime.session?.user?.id]);
@@ -746,7 +761,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       clearProofSelection();
       setNotice('Đã chốt điểm danh Học bổ sung.');
       window.dispatchEvent(new CustomEvent('bes-supplemental-attendance-changed', { detail: { sessionId: selectedSessionId || daySession?.id } }));
-      await loadHistory();
+      await refreshHistoryData();
     } catch (confirmError) {
       setError(confirmError?.message || 'Không thể chốt điểm danh Học bổ sung.');
     } finally {
@@ -856,7 +871,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
         clearProofSelection();
         setNotice(`Đã hủy buổi học ${selectedClass.class_name} ngày ${formatDate(attendanceDate)}.`);
         window.dispatchEvent(new CustomEvent('bes-supplemental-attendance-changed', { detail: { sessionId: selectedSessionId || daySession?.id } }));
-        await loadHistory();
+        await refreshHistoryData();
         return;
       }
       const { data, error: cancelError } = await client.rpc('bes_cancel_extra_class_session', {
