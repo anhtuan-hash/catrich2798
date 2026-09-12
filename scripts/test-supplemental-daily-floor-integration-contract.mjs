@@ -15,10 +15,11 @@ assert.match(scheduleSource, /data-bes-attendance-source=["']supplemental["']/, 
 assert.match(scheduleSource, /attendanceFloorForRoom\([^)]*(?:supplemental|activity|row)[^)]*\)/i, 'Học bổ sung rooms must participate in the same floor grouping as Phụ đạo/Bồi dưỡng');
 assert.match(scheduleSource, /sortAttendanceRoomLabels\([\s\S]{0,500}supplementalActivities/i, 'Học bổ sung rooms must participate in the native room filter options');
 assert.match(scheduleSource, /visible(?:Rows|Activities|Items)\.length/, 'summary totals must count the combined visible daily rows');
-assert.match(scheduleSource, /bes-open-supplemental-attendance/, 'clicking a native Học bổ sung row must dispatch the supplemental rollcall event');
+assert.match(scheduleSource, /bes-supplemental-open-rollcall/, 'clicking a native Học bổ sung row must dispatch the native React rollcall event');
+assert.doesNotMatch(scheduleSource, /bes-open-supplemental-attendance/, 'the daily Học bổ sung row must never dispatch the retired legacy rollcall event');
 assert.match(scheduleSource, /bes-supplemental-attendance-changed/, 'native daily schedule must refresh after supplemental attendance/admin changes');
 
-assert.match(nativeRollcallSource, /window\.addEventListener\(['"]bes-open-supplemental-attendance['"]\s*,\s*openSupplementalRollcall\)/, 'native React rollcall must listen for the daily supplemental row click bridge');
+assert.match(nativeRollcallSource, /window\.addEventListener\(['"]bes-supplemental-open-rollcall['"]\s*,\s*openSupplementalRollcall\)/, 'native React rollcall must listen for the daily supplemental row click');
 assert.match(nativeRollcallSource, /canManageSupplementalLearning\(runtime\)/, 'native supplemental rollcall bridge must stay behind the dedicated manager guard');
 assert.match(nativeRollcallSource, /bes-supplemental-attendance-changed/, 'native supplemental rollcall must notify the daily schedule after confirmation or cancellation');
 

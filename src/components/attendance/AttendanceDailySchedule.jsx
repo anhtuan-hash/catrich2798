@@ -13,7 +13,7 @@ import { extraClassTypeLabel } from '../../utils/extraClassAttendance.js';
 import './AttendanceDailyOverview.css';
 
 const SUPPLEMENTAL_CHANGED_EVENT = 'bes-supplemental-attendance-changed';
-const SUPPLEMENTAL_OPEN_EVENT = 'bes-open-supplemental-attendance';
+const SUPPLEMENTAL_OPEN_EVENT = 'bes-supplemental-open-rollcall';
 
 function AttendanceDailyIcon({ name, className = '' }) {
   const common = {

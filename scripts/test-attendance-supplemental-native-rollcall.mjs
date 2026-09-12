@@ -4,13 +4,16 @@ import fs from 'node:fs';
 const read = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 
 const shell = read('src/components/GlobalAttendanceNavigationTab.jsx');
+const schedule = read('src/components/attendance/AttendanceDailySchedule.jsx');
 const supplementalApi = read('src/attendance/supplementalLearningApi.js');
 const quickBootstrap = read('src/supplementalAttendanceQuickBootstrap.js');
 const reportUtils = read('src/utils/attendanceReport.js');
 const migrationPath = new URL('../supabase/migrations/20260911_supplemental_native_rollcall_parity.sql', import.meta.url);
 
 assert.match(shell, /bes-supplemental-open-rollcall/, 'The native React attendance surface must listen for class-launched supplemental rollcall.');
-assert.match(shell, /bes-open-supplemental-attendance/, 'The native React attendance surface must also accept supplemental rollcall from schedule/calendar entry points.');
+assert.match(shell, /bes-open-supplemental-attendance/, 'The native React attendance surface may keep accepting the legacy supplemental event for compatibility outside the daily schedule.');
+assert.match(schedule, /bes-supplemental-open-rollcall/, 'The daily attendance schedule must open Học bổ sung through the native React rollcall event.');
+assert.doesNotMatch(schedule, /bes-open-supplemental-attendance/, 'The daily attendance schedule must never route Học bổ sung through the legacy rollcall event.');
 assert.match(shell, /supplementalRollcall|rollcallSource|attendanceSource/, 'The native attendance surface must keep an explicit source discriminator for supplemental sessions.');
 assert.match(shell, /beginSupplementalAttendance/, 'The native attendance surface must load/freeze the supplemental roster through the supplemental API.');
 assert.match(shell, /confirmSupplementalAttendance/, 'The native attendance surface must finalize supplemental attendance through the supplemental backend.');
