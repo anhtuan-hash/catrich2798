@@ -274,12 +274,20 @@ async function loadSelectedSession({ force = false } = {}) {
 function localAccess() {
   if (!activeSession) return { allowed: false, reason: 'not_completed', remainingMs: 0, expiresAt: '' };
   if (activeSource === 'supplemental') {
+    const bypass = Boolean(serverAccess?.bypass);
+    const expiresAt = serverAccess?.expires_at || '';
+    const expiryMs = expiresAt ? new Date(expiresAt).getTime() : Number.NaN;
+    const remainingMs = bypass
+      ? Math.max(0, Number(serverAccess?.remaining_seconds || 0) * 1000)
+      : (Number.isFinite(expiryMs) ? Math.max(0, expiryMs - nowFromServerClock().getTime()) : Math.max(0, Number(serverAccess?.remaining_seconds || 0) * 1000));
+    const serverAllowed = Boolean(serverAccess?.allowed);
+    const allowed = serverAllowed && (bypass || remainingMs > 0);
     return {
-      allowed: Boolean(serverAccess?.allowed),
-      reason: serverAccess?.reason || 'unknown',
-      bypass: Boolean(serverAccess?.bypass),
-      remainingMs: Math.max(0, Number(serverAccess?.remaining_seconds || 0) * 1000),
-      expiresAt: serverAccess?.expires_at || '',
+      allowed,
+      reason: allowed ? (serverAccess?.reason || 'within_edit_window') : (serverAllowed && !bypass ? 'edit_window_expired' : (serverAccess?.reason || 'unknown')),
+      bypass,
+      remainingMs,
+      expiresAt,
     };
   }
   const evaluated = evaluatePostConfirmEditAccess({
