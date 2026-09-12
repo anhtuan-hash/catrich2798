@@ -28,9 +28,11 @@ assert.match(index, /attendance-history-perfect-polish-v6-2\.css\?v=1[\s\S]*atte
 assert.match(syncCss, /--attendance-session-card-min-height:\s*80px/, 'shared card token must preserve History 80px session-card rhythm');
 assert.match(syncCss, /--attendance-session-card-radius:\s*15px/, 'shared card token must preserve History corner radius');
 assert.match(syncCss, /\.ahv3__items\s*>\s*button/, 'History session cards must participate in shared sizing');
-assert.match(syncCss, /\.attendance-class-list\s*>\s*div:last-child\s*>\s*button/, 'daily attendance class cards must share History sizing');
+assert.match(syncCss, /\.attendance-daily-class-row/, 'current daily attendance rows must share History sizing');
+assert.match(syncCss, /\.attendance-class-list\s*>\s*div:last-child\s*>\s*button/, 'legacy daily attendance cards must share History sizing');
 assert.match(syncCss, /\.attendance-manage-classes\s*>\s*button/, 'Manage classes cards must share History sizing');
 assert.match(syncCss, /\.bes-supplemental-daily-card/, 'supplemental-learning class cards must share History sizing');
 assert.match(syncCss, /\.att-report-m3__teacher-grid\s*>\s*article/, 'report teacher cards must share History sizing rhythm');
+assert.match(syncCss, /\.attendance-tabs\s*>\s*button[\s\S]*--attendance-tab-height/, 'all navigation tabs must use the same tab-height token as History');
 
 console.log('attendance History lifecycle + card-size sync contract: ok');
