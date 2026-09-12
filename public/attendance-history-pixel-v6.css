@@ -1,0 +1,574 @@
+/* Attendance History V6 — pixel-match layer for the approved mockup. */
+
+.attendance-shell.ah-history-pixel-v6 {
+  --ah6-blue: #1677ff;
+  --ah6-blue-soft: #edf5ff;
+  --ah6-orange: #f97316;
+  --ah6-orange-soft: #fff3e8;
+  --ah6-green: #16a34a;
+  --ah6-green-soft: #eaf8ef;
+  --ah6-ink: #12223d;
+  --ah6-copy: #536985;
+  --ah6-muted: #8090a7;
+  --ah6-line: #dbe6f3;
+  --ah6-line-soft: #e9eff6;
+  --ah6-canvas: #f5f8fc;
+}
+
+/* Restore the secondary "Loại lớp" control shown in the approved mockup. */
+.attendance-shell.ah-history-pixel-v6 .ahv3__filters label[data-ah-v5-type-filter="sync-only"] {
+  display: grid !important;
+  visibility: visible !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: visible !important;
+}
+
+/* Header and nav: preserve breathing room from the mockup. */
+.attendance-shell.ah-history-pixel-v6 .attendance-topbar {
+  min-height: 82px !important;
+  padding: 14px 22px 8px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .attendance-title > span {
+  width: 52px !important;
+  height: 52px !important;
+  flex-basis: 52px !important;
+  border-radius: 16px !important;
+  box-shadow: inset 0 0 0 1px #e3edfa !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .attendance-title strong {
+  color: var(--ah6-ink) !important;
+  font-size: 21px !important;
+  line-height: 1.12 !important;
+  letter-spacing: -.03em !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .attendance-tabs {
+  min-height: 54px !important;
+  padding: 0 22px 7px !important;
+  gap: 8px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .attendance-tabs > button {
+  min-height: 42px !important;
+  padding-inline: 15px !important;
+  border-radius: 12px !important;
+  font-size: 12.5px !important;
+}
+
+/* Activity selector: rounded, lightly outlined, with the desktop hint restored. */
+.attendance-shell.ah-history-pixel-v6 .ah-mockup-filterbar {
+  display: grid !important;
+  grid-template-columns: auto auto minmax(0, 1fr) !important;
+  align-items: center !important;
+  min-height: 58px !important;
+  margin: 0 16px 12px !important;
+  padding: 8px 13px !important;
+  gap: 13px !important;
+  border: 1px solid #dbe6f3 !important;
+  border-radius: 16px !important;
+  background: #ffffff !important;
+  box-shadow: 0 2px 10px rgba(36, 70, 112, .035) !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ah-mockup-filterbar__label {
+  color: #334a68 !important;
+  font-size: 10.5px !important;
+  font-weight: 850 !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ah-mockup-filterbar__buttons {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: nowrap !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ah-mockup-filter {
+  min-height: 38px !important;
+  padding: 0 15px !important;
+  gap: 8px !important;
+  border-radius: 999px !important;
+  font-size: 11.5px !important;
+  font-weight: 850 !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ah-mockup-filterbar__hint {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-self: end !important;
+  gap: 7px !important;
+  color: #8495ad !important;
+  font-size: 10px !important;
+  line-height: 1.35 !important;
+  white-space: nowrap !important;
+}
+
+/* Workspace proportions match the approved mockup more closely. */
+.attendance-shell.ah-history-pixel-v6 .attendance-content {
+  padding: 4px 16px 16px !important;
+  background: var(--ah6-canvas) !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__shell {
+  grid-template-columns: minmax(455px, 520px) minmax(0, 1fr) !important;
+  gap: 14px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__list,
+.attendance-shell.ah-history-pixel-v6 .ahv3__detail {
+  border: 1px solid #dbe6f3 !important;
+  border-radius: 19px !important;
+  background: #fff !important;
+  box-shadow: 0 6px 24px rgba(30, 59, 96, .045) !important;
+}
+
+/* Left filter panel. */
+.attendance-shell.ah-history-pixel-v6 .ahv3__list-head {
+  padding: 18px 15px 13px !important;
+  border-bottom: 1px solid #e8eef5 !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__list-title strong {
+  color: var(--ah6-ink) !important;
+  font-size: 20px !important;
+  line-height: 1.18 !important;
+  letter-spacing: -.035em !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__list-title p {
+  margin-top: 4px !important;
+  color: #7e8fa7 !important;
+  font-size: 10.8px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__list-actions > span {
+  padding: 6px 9px !important;
+  background: #f1f5fa !important;
+  color: #72839b !important;
+  font-size: 9.5px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__list-actions button {
+  min-height: 38px !important;
+  padding: 0 13px !important;
+  border: 1px solid #cfe0f7 !important;
+  border-radius: 11px !important;
+  background: #f7fbff !important;
+  color: #1467ca !important;
+  font-size: 10.5px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__list-head > .ahv3__search {
+  min-height: 46px !important;
+  margin-top: 12px !important;
+  padding: 0 13px !important;
+  border: 1px solid #d8e5f4 !important;
+  border-radius: 13px !important;
+  background: #fff !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__list-head > .ahv3__search input {
+  min-height: 42px !important;
+  font-size: 11.5px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__filters {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px !important;
+  margin-top: 10px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__filters label,
+.attendance-shell.ah-history-pixel-v6 .ahv3__filters label[data-ah-v5-type-filter="sync-only"] {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 5px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__filters label > span,
+.attendance-shell.ah-history-pixel-v6 .ahv3__date-filters label > span {
+  color: #405572 !important;
+  font-size: 9.5px !important;
+  font-weight: 850 !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__filters select,
+.attendance-shell.ah-history-pixel-v6 .ahv3__date-filters input {
+  min-height: 40px !important;
+  padding-inline: 10px !important;
+  border: 1px solid #d8e4f2 !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  color: #263b5a !important;
+  font-size: 10px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__date-filters {
+  gap: 10px !important;
+  margin-top: 9px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__filter-meta {
+  margin-top: 10px !important;
+}
+
+/* Session cards: mockup-size rows and semantic activity icons. */
+.attendance-shell.ah-history-pixel-v6 .ahv3__items {
+  gap: 8px !important;
+  padding: 10px 10px 14px !important;
+  background: #fbfdff !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__items > button {
+  grid-template-columns: 48px minmax(0, 1fr) auto !important;
+  min-height: 80px !important;
+  padding: 10px 38px 10px 12px !important;
+  gap: 10px !important;
+  border: 1px solid #e0e8f2 !important;
+  border-radius: 15px !important;
+  background: #fff !important;
+  box-shadow: 0 2px 8px rgba(34, 65, 103, .035) !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__items > button:hover {
+  border-color: #c8daee !important;
+  box-shadow: 0 6px 14px rgba(31, 64, 107, .07) !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__number[data-ah-v6-activity-icon] {
+  width: 42px !important;
+  height: 42px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 50% !important;
+  font-size: 0 !important;
+  box-shadow: inset 0 0 0 1px rgba(79, 113, 153, .035) !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__number[data-ah-v6-activity-icon] svg {
+  width: 21px !important;
+  height: 21px !important;
+  display: block !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ah-kind-remedial .ahv3__number[data-ah-v6-activity-icon] {
+  background: var(--ah6-orange-soft) !important;
+  color: var(--ah6-orange) !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ah-kind-gifted .ahv3__number[data-ah-v6-activity-icon] {
+  background: var(--ah6-blue-soft) !important;
+  color: var(--ah6-blue) !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ah-kind-supplemental .ahv3__number[data-ah-v6-activity-icon] {
+  background: var(--ah6-green-soft) !important;
+  color: var(--ah6-green) !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__card-title b {
+  color: #172843 !important;
+  font-size: 12.8px !important;
+  line-height: 1.18 !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__type {
+  padding: 3px 7px !important;
+  font-size: 8px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__card-copy small,
+.attendance-shell.ah-history-pixel-v6 .ahv3__card-copy time {
+  margin-top: 3px !important;
+  color: #6c7e98 !important;
+  font-size: 9.4px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__count b {
+  font-size: 13px !important;
+}
+
+/* Selected detail hero: stronger hierarchy + metadata + academic art. */
+.attendance-shell.ah-history-pixel-v6 .ahv3__detail {
+  padding: 12px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__hero {
+  position: relative !important;
+  min-height: 150px !important;
+  margin: 0 0 12px !important;
+  padding: 17px 300px 16px 20px !important;
+  border: 1px solid #d8e7fb !important;
+  border-radius: 17px !important;
+  overflow: hidden !important;
+  isolation: isolate !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__hero.ah-kind-remedial {
+  border-color: #ffd9bd !important;
+  background: linear-gradient(135deg, #fffaf6 0%, #fff4ea 100%) !important;
+  box-shadow: inset 4px 0 0 var(--ah6-orange) !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__hero.ah-kind-gifted {
+  border-color: #d4e6ff !important;
+  background: linear-gradient(135deg, #f9fcff 0%, #eef5ff 100%) !important;
+  box-shadow: inset 4px 0 0 var(--ah6-blue) !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__hero.ah-kind-supplemental {
+  border-color: #cfead8 !important;
+  background: linear-gradient(135deg, #f9fefa 0%, #edf9f1 100%) !important;
+  box-shadow: inset 4px 0 0 var(--ah6-green) !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__hero h2 {
+  position: relative !important;
+  z-index: 2 !important;
+  margin: 8px 0 0 !important;
+  color: var(--ah6-ink) !important;
+  font-size: clamp(27px, 2.15vw, 34px) !important;
+  line-height: 1.04 !important;
+  letter-spacing: -.045em !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__hero-chips {
+  display: none !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__hero-meta {
+  position: relative !important;
+  z-index: 2 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  flex-wrap: wrap !important;
+  margin-top: 11px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv6__meta-chip {
+  min-height: 28px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 4px 10px !important;
+  border: 1px solid #d7e5f5 !important;
+  border-radius: 999px !important;
+  background: rgba(255,255,255,.82) !important;
+  color: #405777 !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  box-shadow: 0 1px 2px rgba(31, 64, 107, .025) !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv6__meta-chip.is-kind.ah-kind-remedial {
+  border-color: #ffd2b1 !important;
+  background: #fff1e6 !important;
+  color: #dc5b08 !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv6__meta-chip.is-kind.ah-kind-gifted {
+  border-color: #c9dfff !important;
+  background: #edf5ff !important;
+  color: #116bd8 !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv6__meta-chip.is-kind.ah-kind-supplemental {
+  border-color: #c6e8d1 !important;
+  background: #ebf9f0 !important;
+  color: #14803f !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__hero > .ahv3__hero-art {
+  display: none !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 [data-ah-v6-hero-art] {
+  position: absolute !important;
+  z-index: 0 !important;
+  right: 20px !important;
+  bottom: -5px !important;
+  width: 178px !important;
+  height: 100px !important;
+  color: #4f8ee8 !important;
+  pointer-events: none !important;
+  opacity: .86 !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ah-kind-remedial [data-ah-v6-hero-art] {
+  color: #ee8a42 !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ah-kind-supplemental [data-ah-v6-hero-art] {
+  color: #54aa70 !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 [data-ah-v6-hero-art] svg {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__actions {
+  position: absolute !important;
+  z-index: 3 !important;
+  top: 15px !important;
+  right: 16px !important;
+  display: flex !important;
+  gap: 8px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__actions button {
+  min-height: 38px !important;
+  padding-inline: 13px !important;
+  border-radius: 10px !important;
+  background: rgba(255,255,255,.83) !important;
+  backdrop-filter: blur(6px) !important;
+  font-size: 10.5px !important;
+}
+
+/* Detail section headings and white information cards. */
+.attendance-shell.ah-history-pixel-v6 .ahv3__section-title {
+  margin: 13px 2px 8px !important;
+  color: #263c5a !important;
+  font-size: 11.5px !important;
+  font-weight: 850 !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__section-title > span {
+  width: 27px !important;
+  height: 27px !important;
+  border-radius: 8px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__info-grid {
+  gap: 10px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__info-grid > article {
+  min-height: 70px !important;
+  padding: 11px 13px !important;
+  border: 1px solid #dce8f6 !important;
+  border-radius: 13px !important;
+  background: #fff !important;
+  box-shadow: 0 2px 7px rgba(32, 64, 104, .025) !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__info-grid > article:hover {
+  border-color: #c9ddf4 !important;
+  background: #fff !important;
+  box-shadow: 0 5px 12px rgba(32, 64, 104, .055) !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__info-icon {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 11px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__info-grid article div > span {
+  color: #8190a6 !important;
+  font-size: 8.2px !important;
+  font-weight: 800 !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__info-grid article div > b {
+  margin-top: 3px !important;
+  color: #20334f !important;
+  font-size: 10.8px !important;
+}
+
+/* Keep the successful tonal summary design, but increase polish. */
+.attendance-shell.ah-history-pixel-v6 .ahv3__stat-grid {
+  gap: 9px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__stat-grid > article {
+  min-height: 78px !important;
+  padding: 10px 11px !important;
+  border-radius: 12px !important;
+  box-shadow: inset 0 0 0 1px rgba(89, 118, 151, .06) !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__stat-grid > article > b {
+  font-size: 17px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__audit-actor-panel {
+  margin-top: 10px !important;
+  padding: 11px 12px !important;
+  border: 1px solid #e2eaf4 !important;
+  border-radius: 13px !important;
+  background: #fbfcfe !important;
+}
+
+/* Responsive adjustments. */
+@media (max-width: 1180px) {
+  .attendance-shell.ah-history-pixel-v6 .ahv3__shell {
+    grid-template-columns: minmax(400px, 445px) minmax(0, 1fr) !important;
+  }
+
+  .attendance-shell.ah-history-pixel-v6 .ah-mockup-filterbar {
+    grid-template-columns: auto 1fr !important;
+  }
+
+  .attendance-shell.ah-history-pixel-v6 .ah-mockup-filterbar__hint {
+    display: none !important;
+  }
+
+  .attendance-shell.ah-history-pixel-v6 .ahv3__hero {
+    padding-right: 225px !important;
+  }
+
+  .attendance-shell.ah-history-pixel-v6 [data-ah-v6-hero-art] {
+    width: 140px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .attendance-shell.ah-history-pixel-v6 .ah-mockup-filterbar {
+    display: block !important;
+    margin-inline: 10px !important;
+    padding: 8px 10px !important;
+  }
+
+  .attendance-shell.ah-history-pixel-v6 .ah-mockup-filterbar__buttons {
+    margin-top: 7px !important;
+    overflow-x: auto !important;
+  }
+
+  .attendance-shell.ah-history-pixel-v6 .ahv3__shell {
+    grid-template-columns: 1fr !important;
+  }
+
+  .attendance-shell.ah-history-pixel-v6 .ahv3__hero {
+    min-height: 142px !important;
+    padding: 16px !important;
+  }
+
+  .attendance-shell.ah-history-pixel-v6 .ahv3__actions {
+    position: static !important;
+    margin-top: 12px !important;
+  }
+
+  .attendance-shell.ah-history-pixel-v6 [data-ah-v6-hero-art] {
+    display: none !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .attendance-shell.ah-history-pixel-v6 .ahv3__filters,
+  .attendance-shell.ah-history-pixel-v6 .ahv3__date-filters {
+    grid-template-columns: 1fr !important;
+  }
+
+  .attendance-shell.ah-history-pixel-v6 .ahv3__items > button {
+    grid-template-columns: 44px minmax(0, 1fr) auto !important;
+  }
+}
