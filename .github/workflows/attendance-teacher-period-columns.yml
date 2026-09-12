@@ -13,9 +13,99 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
+  implement:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/teacher-report-period-columns-20260912
+      - name: Apply bounded report changes
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+
+          function replaceOnce(path, before, after) {
+            const source = fs.readFileSync(path, 'utf8');
+            if (source.includes(after)) return false;
+            if (!source.includes(before)) throw new Error(`Expected source block not found in ${path}`);
+            fs.writeFileSync(path, source.replace(before, after));
+            return true;
+          }
+
+          let changed = false;
+          changed = replaceOnce(
+            'src/utils/attendanceReport.js',
+            "      lesson_periods: row?.status === 'cancelled' ? 0 : 1,",
+            "      lesson_periods: row?.status === 'cancelled' ? 0 : (Number(row?.lessonPeriods ?? row?.lesson_periods) > 0 ? Number(row?.lessonPeriods ?? row?.lesson_periods) : 1),",
+          ) || changed;
+
+          changed = replaceOnce(
+            'src/utils/attendanceReport.js',
+            "      total_periods: 0,\n      class_ids: new Set(),",
+            "      total_periods: 0,\n      gifted_periods: 0,\n      remedial_periods: 0,\n      supplemental_periods: 0,\n      class_ids: new Set(),",
+          ) || changed;
+
+          changed = replaceOnce(
+            'src/utils/attendanceReport.js',
+            "    row.total_periods += session.lesson_periods;\n    row.class_ids.add(String(session.class_id));",
+            "    row.total_periods += session.lesson_periods;\n    if (session.class_type === 'gifted') row.gifted_periods += session.lesson_periods;\n    else if (session.class_type === 'remedial') row.remedial_periods += session.lesson_periods;\n    else if (session.class_type === 'supplemental') row.supplemental_periods += session.lesson_periods;\n    row.class_ids.add(String(session.class_id));",
+          ) || changed;
+
+          changed = replaceOnce(
+            'src/utils/attendanceReport.js',
+            "      total_periods: roundHalf(row.total_periods),\n      distinct_classes: row.class_ids.size,",
+            "      total_periods: roundHalf(row.total_periods),\n      gifted_periods: roundHalf(row.gifted_periods),\n      remedial_periods: roundHalf(row.remedial_periods),\n      supplemental_periods: roundHalf(row.supplemental_periods),\n      distinct_classes: row.class_ids.size,",
+          ) || changed;
+
+          changed = replaceOnce(
+            'src/utils/attendanceReportExport.js',
+            "    row.completed_sessions,\n    row.total_periods,\n    row.distinct_classes,",
+            "    row.completed_sessions,\n    row.gifted_periods,\n    row.remedial_periods,\n    row.supplemental_periods,\n    row.distinct_classes,",
+          ) || changed;
+
+          changed = replaceOnce(
+            'src/utils/attendanceReportExport.js',
+            "    ['Giáo viên', 'Số buổi đã dạy', 'Tổng số tiết', 'Số lớp', 'Lượt có mặt', 'Lượt vắng', 'Tỷ lệ chuyên cần'],",
+            "    ['Giáo viên', 'Số buổi đã dạy', 'Tổng số tiết bồi dưỡng', 'Tổng số tiết phụ đạo', 'Tổng số tiết bù bài', 'Số lớp', 'Lượt có mặt', 'Lượt vắng', 'Tỷ lệ chuyên cần'],",
+          ) || changed;
+
+          changed = replaceOnce(
+            'src/utils/attendanceReportExport.js',
+            "      merges: ['A1:G1', 'A2:G2', 'A3:G3'],\n      columnWidths: [31, 16, 16, 12, 15, 15, 18],",
+            "      merges: ['A1:I1', 'A2:I2', 'A3:I3'],\n      columnWidths: [31, 16, 24, 22, 22, 12, 15, 15, 18],",
+          ) || changed;
+
+          changed = replaceOnce(
+            'src/utils/attendanceReportExport.js',
+            "      cellStyles: buildColumnCellStyles('G', 6, teacherData.length, 8),\n      freezeRows: 5,\n      autoFilter: `A5:G${5 + teacherBodyCount}` ,",
+            "      cellStyles: buildColumnCellStyles('I', 6, teacherData.length, 8),\n      freezeRows: 5,\n      autoFilter: `A5:I${5 + teacherBodyCount}` ,",
+          ) || changed;
+
+          // The source has no space before the comma after the template literal; handle that exact variant.
+          changed = replaceOnce(
+            'src/utils/attendanceReportExport.js',
+            "      cellStyles: buildColumnCellStyles('G', 6, teacherData.length, 8),\n      freezeRows: 5,\n      autoFilter: `A5:G${5 + teacherBodyCount}`,",
+            "      cellStyles: buildColumnCellStyles('I', 6, teacherData.length, 8),\n      freezeRows: 5,\n      autoFilter: `A5:I${5 + teacherBodyCount}`,",
+          ) || changed;
+
+          if (!changed) console.log('Implementation already present; no file changes needed.');
+          NODE
+      - name: Commit implementation when changed
+        run: |
+          if git diff --quiet; then
+            echo "No implementation changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/utils/attendanceReport.js src/utils/attendanceReportExport.js
+          git commit -m "fix: split teacher report lesson periods"
+          git push origin HEAD:fix/teacher-report-period-columns-20260912
+
   contract:
     runs-on: ubuntu-latest
     timeout-minutes: 15
