@@ -51,6 +51,11 @@ assert.match(supplementalApi, /p_teacher_name/, 'Supplemental confirmation must 
 assert.match(supplementalApi, /p_room/, 'Supplemental confirmation must persist the room override.');
 assert.match(supplementalApi, /p_start_time/, 'Supplemental confirmation must persist the start time override.');
 assert.match(supplementalApi, /p_end_time/, 'Supplemental confirmation must persist the end time override.');
+assert.match(supplementalApi, /Vui lòng chọn giáo viên dạy hôm nay\./, 'Supplemental confirmation must reject a missing teacher just like the shared extra-class flow.');
+assert.match(supplementalApi, /Vui lòng nhập phòng học\./, 'Supplemental confirmation must reject a missing room just like the shared extra-class flow.');
+assert.match(supplementalApi, /Vui lòng nhập thời gian dạy\./, 'Supplemental confirmation must reject missing start/end times just like the shared extra-class flow.');
+assert.match(supplementalApi, /Vui lòng chọn lý do vắng/, 'Supplemental confirmation must reject an absent participant without an absence reason.');
+assert.match(supplementalApi, /Vui lòng ghi chú lý do “Khác”/, 'Supplemental confirmation must reject the “Khác” absence reason without a note.');
 
 assert.equal(fs.existsSync(migrationPath), true, 'A migration must persist native-rollcall metadata for supplemental sessions.');
 const migration = read('supabase/migrations/20260911_supplemental_native_rollcall_parity.sql');
