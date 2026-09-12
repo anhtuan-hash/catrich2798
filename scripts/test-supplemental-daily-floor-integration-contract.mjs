@@ -51,6 +51,16 @@ assert.match(nativeRollcallSource, /window\.addEventListener\(['"]bes-supplement
 assert.match(nativeRollcallSource, /canManageSupplementalLearning\(runtime\)/, 'native supplemental rollcall bridge must stay behind the dedicated manager guard');
 assert.match(nativeRollcallSource, /bes-supplemental-attendance-changed/, 'native supplemental rollcall must notify the daily schedule after confirmation or cancellation');
 
+// A confirmed/cancelled Học bổ sung session must refresh both history sources immediately.
+// This protects the production flow from calling a stale/undefined `loadHistory` helper after
+// the RPC already succeeded, which otherwise leaves Lịch sử empty until the whole view reloads.
+assert.doesNotMatch(nativeRollcallSource, /await\s+loadHistory\s*\(\s*\)/, 'supplemental rollcall must not call the removed undefined loadHistory helper');
+assert.match(nativeRollcallSource, /async function refreshHistoryData\s*\(\s*\)/, 'native attendance must define a dedicated history refresh helper');
+assert.match(nativeRollcallSource, /refreshHistoryData[\s\S]{0,2600}bes_extra_attendance_sessions/, 'history refresh must reload native attendance sessions');
+assert.match(nativeRollcallSource, /refreshHistoryData[\s\S]{0,2600}bes_list_supplemental_history/, 'history refresh must reload Học bổ sung history');
+assert.match(nativeRollcallSource, /setSuccess\(['"]Đã chốt điểm danh Học bổ sung\.["']\);\s*await\s+refreshHistoryData\s*\(\s*\)/, 'confirming Học bổ sung must refresh history immediately');
+assert.match(nativeRollcallSource, /setSuccess\(['"]Đã hủy buổi Học bổ sung\.["']\);\s*await\s+refreshHistoryData\s*\(\s*\)/, 'cancelling Học bổ sung must refresh history immediately');
+
 assert.doesNotMatch(quickSource, /addEventListener|createElement|bes-supplemental-daily-section|bes-supplemental-daily-grid|bes-supplemental-daily-card/, 'retired quick bootstrap must remain inert and must not render/listen for a second supplemental flow');
 assert.doesNotMatch(quickSource, /Nhóm dài ngày|Phát sinh/, 'retired bootstrap must not reintroduce supplemental legacy UI concepts');
 
