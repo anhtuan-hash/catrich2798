@@ -19,6 +19,15 @@ assert.match(scheduleSource, /bes-supplemental-open-rollcall/, 'clicking a nativ
 assert.doesNotMatch(scheduleSource, /bes-open-supplemental-attendance/, 'the daily Học bổ sung row must never dispatch the retired legacy rollcall event');
 assert.match(scheduleSource, /bes-supplemental-attendance-changed/, 'native daily schedule must refresh after supplemental attendance/admin changes');
 
+// Opening a supplemental rollcall temporarily injects a synthetic `supplemental:*` class into
+// the shared React `classes` state. The daily schedule already loads supplemental activities
+// independently, so that synthetic quick-rollcall class must never be rendered as a native
+// Phụ đạo/Bồi dưỡng row (otherwise one real Học bổ sung class appears twice).
+assert.match(scheduleSource, /function\s+isNativeExtraAttendanceClass\s*\(/, 'daily schedule must explicitly distinguish persisted extra classes from synthetic supplemental rollcall classes');
+assert.match(scheduleSource, /class_type[\s\S]{0,240}supplemental/i, 'native extra-class guard must reject class_type=supplemental');
+assert.match(scheduleSource, /startsWith\(['"]supplemental:['"]\)/, 'native extra-class guard must reject supplemental:* synthetic ids');
+assert.match(scheduleSource, /classes\.filter\(\(classRow\)\s*=>[\s\S]{0,220}isNativeExtraAttendanceClass\(classRow\)/, 'scheduled native rows must apply the supplemental synthetic-class guard before date scheduling');
+
 assert.match(nativeRollcallSource, /window\.addEventListener\(['"]bes-supplemental-open-rollcall['"]\s*,\s*openSupplementalRollcall\)/, 'native React rollcall must listen for the daily supplemental row click');
 assert.match(nativeRollcallSource, /canManageSupplementalLearning\(runtime\)/, 'native supplemental rollcall bridge must stay behind the dedicated manager guard');
 assert.match(nativeRollcallSource, /bes-supplemental-attendance-changed/, 'native supplemental rollcall must notify the daily schedule after confirmation or cancellation');
