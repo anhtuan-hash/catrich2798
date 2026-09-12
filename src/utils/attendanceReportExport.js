@@ -107,7 +107,9 @@ export function downloadAttendanceReportXlsx(report, filters = {}) {
   const teacherData = report.teacherRows.map((row) => [
     row.teacher_name,
     row.completed_sessions,
-    row.total_periods,
+    row.gifted_periods,
+    row.remedial_periods,
+    row.supplemental_periods,
     row.distinct_classes,
     row.present_instances,
     row.absent_instances,
@@ -118,7 +120,7 @@ export function downloadAttendanceReportXlsx(report, filters = {}) {
     ['TRƯỜNG TRUNG - TIỂU HỌC PÉTRUS KÝ'],
     [`${title} · ${period}`],
     [],
-    ['Giáo viên', 'Số buổi đã dạy', 'Tổng số tiết', 'Số lớp', 'Lượt có mặt', 'Lượt vắng', 'Tỷ lệ chuyên cần'],
+    ['Giáo viên', 'Số buổi đã dạy', 'Tổng số tiết bồi dưỡng', 'Tổng số tiết phụ đạo', 'Tổng số tiết bù bài', 'Số lớp', 'Lượt có mặt', 'Lượt vắng', 'Tỷ lệ chuyên cần'],
     ...teacherData,
   ];
 
@@ -192,13 +194,13 @@ export function downloadAttendanceReportXlsx(report, filters = {}) {
     {
       name: 'Theo giao vien',
       rows: teacherRows,
-      merges: ['A1:G1', 'A2:G2', 'A3:G3'],
-      columnWidths: [31, 16, 16, 12, 15, 15, 18],
+      merges: ['A1:I1', 'A2:I2', 'A3:I3'],
+      columnWidths: [31, 16, 24, 22, 22, 12, 15, 15, 18],
       rowHeights: { 1: 22, 2: 22, 3: 28, 5: 28 },
       rowStyles: { 1: 1, 2: 1, 3: 2, 5: 4, ...buildRowStyles(6, teacherData.length, 5) },
-      cellStyles: buildColumnCellStyles('G', 6, teacherData.length, 8),
+      cellStyles: buildColumnCellStyles('I', 6, teacherData.length, 8),
       freezeRows: 5,
-      autoFilter: `A5:G${5 + teacherBodyCount}`,
+      autoFilter: `A5:I${5 + teacherBodyCount}`,
     },
     {
       name: 'Chi tiet buoi hoc',
