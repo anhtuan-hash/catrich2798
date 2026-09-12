@@ -14,9 +14,64 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
+  implement:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/supplemental-history-delete-parity-20260912
+      - name: Apply remaining bounded UI parity changes
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = 'src/components/GlobalAttendanceNavigationTab.jsx';
+          let source = fs.readFileSync(path, 'utf8');
+          let changed = false;
+
+          function replaceAllRequired(before, after) {
+            if (!source.includes(before)) {
+              if (source.includes(after)) return;
+              throw new Error(`Expected source block not found: ${before}`);
+            }
+            source = source.split(before).join(after);
+            changed = true;
+          }
+
+          replaceAllRequired(
+            'canDeleteAttendanceHistory && !isSupplementalHistorySession(selectedSession) ?',
+            'canDeleteAttendanceHistory ?',
+          );
+
+          replaceAllRequired(
+            "    const target = [...sessions, ...supplementalHistorySessions].find((session) => String(session.id) === String(sessionId));\n    if (isSupplementalHistorySession(target)) return;\n    const key = String(sessionId);",
+            "    const key = String(sessionId);",
+          );
+
+          replaceAllRequired(
+            '    const filteredIds = filteredHistory.filter((session) => !isSupplementalHistorySession(session)).map((session) => session.id);',
+            '    const filteredIds = filteredHistory.map((session) => session.id);',
+          );
+
+          if (changed) fs.writeFileSync(path, source);
+          else console.log('Remaining supplemental bulk parity changes already present.');
+          NODE
+      - name: Commit implementation when changed
+        run: |
+          if git diff --quiet; then
+            echo "No implementation changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/components/GlobalAttendanceNavigationTab.jsx
+          git commit -m "fix: include supplemental history in delete selection"
+          git push origin HEAD:fix/supplemental-history-delete-parity-20260912
+
   contract:
     runs-on: ubuntu-latest
     timeout-minutes: 15
