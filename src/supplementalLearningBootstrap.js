@@ -1,4 +1,5 @@
 import './styles/SupplementalLearning.css';
+import { readSheet } from 'read-excel-file/browser';
 import { ensureRuntimeReady, getRuntimeClient, getRuntimeState, subscribeRuntime } from './services/runtime/core.js';
 import { canManageSupplementalLearning } from './supplementalAccess.js';
 import {
@@ -89,6 +90,35 @@ function classSearchText(item) {
   return fold([item.className, item.subject, item.gradeLevel, item.room, teacherNames(item), ...(item.members || []).map((m) => `${m.fullName} ${m.studentCode} ${m.schoolClassName}`)].join(' '));
 }
 
+function headerColumn(headers, aliases) {
+  const normalized = headers.map((value) => fold(value));
+  return normalized.findIndex((value) => aliases.some((alias) => value === alias || value.includes(alias)));
+}
+function parseImportedMembers(rows = []) {
+  const source = Array.isArray(rows) ? rows : [];
+  const headerIndex = source.slice(0, 12).findIndex((row) => Array.isArray(row) && headerColumn(row, ['ho va ten', 'ho ten', 'ten hoc sinh', 'student name', 'full name']) >= 0);
+  if (headerIndex < 0) throw new Error('Không tìm thấy cột Họ và tên trong file Excel.');
+  const headers = source[headerIndex] || [];
+  const nameIndex = headerColumn(headers, ['ho va ten', 'ho ten', 'ten hoc sinh', 'student name', 'full name']);
+  const codeIndex = headerColumn(headers, ['ma hoc sinh', 'ma hs', 'mshs', 'student code']);
+  const classIndex = headerColumn(headers, ['lop chinh khoa', 'lop', 'school class', 'class']);
+  const seen = new Set();
+  const members = [];
+  for (const row of source.slice(headerIndex + 1)) {
+    if (!Array.isArray(row)) continue;
+    const fullName = String(row[nameIndex] ?? '').trim();
+    if (!fullName) continue;
+    const studentCode = codeIndex >= 0 ? String(row[codeIndex] ?? '').trim() : '';
+    const schoolClassName = classIndex >= 0 ? String(row[classIndex] ?? '').trim() : '';
+    const key = studentCode ? `code:${fold(studentCode)}` : `name:${fold(fullName)}|${fold(schoolClassName)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    members.push({ fullName, studentCode, schoolClassName });
+  }
+  if (!members.length) throw new Error('File Excel không có học sinh hợp lệ để thêm.');
+  return members;
+}
+
 function classCards() {
   const q = fold(classQuery);
   const rows = classes.filter((item) => !item.archivedAt && (!q || classSearchText(item).includes(q)));
@@ -113,7 +143,7 @@ function memberRows(item) {
 function classEditor(item) {
   const isNew = !item.id;
   const teachers = item.teachers?.length ? item.teachers : [{}];
-  return `<div class="bes-supplemental-class-editor"><div class="bes-supplemental-editor-heading"><button type="button" data-action="back-to-classes">← Danh sách lớp</button><div><span>${isNew ? 'TẠO MỚI' : 'QUẢN LÝ LỚP'}</span><h3>${isNew ? 'Tạo lớp học bổ sung' : esc(item.className || item.groupName)}</h3></div></div><form class="bes-supplemental-class-form" data-form="class"><section class="bes-supplemental-editor-card"><header><div><h4>Thông tin lớp</h4><p>Nhập trực tiếp thông tin dùng cho lịch học và điểm danh.</p></div></header><div class="bes-supplemental-form-grid"><label>Tên lớp<input name="className" value="${esc(item.className || item.groupName || '')}" required></label><label>Môn học<input name="subject" value="${esc(item.subject || '')}" required></label><label>Khối<input name="gradeLevel" value="${esc(item.gradeLevel || '')}" placeholder="10, 11 hoặc 12" required></label><label>Phòng học<input name="room" value="${esc(item.room || '')}" placeholder="Không bắt buộc"></label><label>Từ ngày<input name="startDate" type="date" value="${esc(item.startDate || today())}" required></label><label>Đến ngày<input name="endDate" type="date" value="${esc(item.endDate || plusMonths())}" required></label><label>Giờ bắt đầu<input name="startTime" type="time" value="${esc(item.startTime || '16:40')}" required></label><label>Giờ kết thúc<input name="endTime" type="time" value="${esc(item.endTime || '17:15')}" required></label></div><fieldset class="bes-supplemental-weekdays"><legend>Ngày học trong tuần</legend>${weekdayChecks(item.weekdays || [2])}</fieldset><label>Ghi chú<textarea name="note" rows="3" placeholder="Không bắt buộc">${esc(item.note || '')}</textarea></label><label class="bes-supplemental-switch"><input type="checkbox" name="active" ${item.active !== false ? 'checked' : ''}><span>Lớp đang hoạt động</span></label></section><section class="bes-supplemental-editor-card"><header><div><h4>Giáo viên phụ trách</h4><p>Thông tin phụ trách không tự cấp quyền truy cập Học bổ sung.</p></div><button type="button" data-add-teacher>+ Thêm giáo viên</button></header><div class="bes-supplemental-teacher-list" data-teacher-list>${teachers.map(teacherRow).join('')}</div></section><div class="bes-supplemental-savebar"><button type="button" data-action="back-to-classes">Hủy</button><button class="is-primary" type="submit" ${busy ? 'disabled' : ''}>${isNew ? 'Tạo lớp học bổ sung' : 'Lưu thay đổi'}</button></div></form>${isNew ? '<section class="bes-supplemental-editor-card is-disabled"><h4>Học sinh</h4><p>Hãy lưu lớp trước khi thêm học sinh.</p></section>' : `<section class="bes-supplemental-editor-card bes-supplemental-students-card"><header><div><h4>Học sinh</h4><p>Quản lý danh sách riêng của lớp và trạng thái đang học/ngừng học.</p></div><span>${Number(item.activeStudentCount || 0)} đang học</span></header><form class="bes-supplemental-add-member" data-form="add-member"><label>Họ và tên<input name="fullName" required placeholder="Họ tên học sinh"></label><label>Mã học sinh<input name="studentCode" placeholder="Không bắt buộc"></label><label>Lớp chính khóa<input name="schoolClassName" placeholder="VD: 12.6"></label><button class="is-primary" type="submit" ${busy ? 'disabled' : ''}>+ Thêm học sinh</button></form>${memberRows(item)}</section>`}</div>`;
+  return `<div class="bes-supplemental-class-editor"><div class="bes-supplemental-editor-heading"><button type="button" data-action="back-to-classes">← Danh sách lớp</button><div><span>${isNew ? 'TẠO MỚI' : 'QUẢN LÝ LỚP'}</span><h3>${isNew ? 'Tạo lớp học bổ sung' : esc(item.className || item.groupName)}</h3></div></div><form class="bes-supplemental-class-form" data-form="class"><section class="bes-supplemental-editor-card"><header><div><h4>Thông tin lớp</h4><p>Nhập trực tiếp thông tin dùng cho lịch học và điểm danh.</p></div></header><div class="bes-supplemental-form-grid"><label>Tên lớp<input name="className" value="${esc(item.className || item.groupName || '')}" required></label><label>Môn học<input name="subject" value="${esc(item.subject || '')}" required></label><label>Khối<input name="gradeLevel" value="${esc(item.gradeLevel || '')}" placeholder="10, 11 hoặc 12" required></label><label>Phòng học<input name="room" value="${esc(item.room || '')}" placeholder="Không bắt buộc"></label><label>Từ ngày<input name="startDate" type="date" value="${esc(item.startDate || today())}" required></label><label>Đến ngày<input name="endDate" type="date" value="${esc(item.endDate || plusMonths())}" required></label><label>Giờ bắt đầu<input name="startTime" type="time" value="${esc(item.startTime || '16:40')}" required></label><label>Giờ kết thúc<input name="endTime" type="time" value="${esc(item.endTime || '17:15')}" required></label></div><fieldset class="bes-supplemental-weekdays"><legend>Ngày học trong tuần</legend>${weekdayChecks(item.weekdays || [2])}</fieldset><label>Ghi chú<textarea name="note" rows="3" placeholder="Không bắt buộc">${esc(item.note || '')}</textarea></label><label class="bes-supplemental-switch"><input type="checkbox" name="active" ${item.active !== false ? 'checked' : ''}><span>Lớp đang hoạt động</span></label></section><section class="bes-supplemental-editor-card"><header><div><h4>Giáo viên phụ trách</h4><p>Thông tin phụ trách không tự cấp quyền truy cập Học bổ sung.</p></div><button type="button" data-add-teacher>+ Thêm giáo viên</button></header><div class="bes-supplemental-teacher-list" data-teacher-list>${teachers.map(teacherRow).join('')}</div></section><div class="bes-supplemental-savebar"><button type="button" data-action="back-to-classes">Hủy</button><button class="is-primary" type="submit" ${busy ? 'disabled' : ''}>${isNew ? 'Tạo lớp học bổ sung' : 'Lưu thay đổi'}</button></div></form>${isNew ? '<section class="bes-supplemental-editor-card is-disabled"><h4>Học sinh</h4><p>Hãy lưu lớp trước khi thêm học sinh.</p></section>' : `<section class="bes-supplemental-editor-card bes-supplemental-students-card"><header><div><h4>Học sinh</h4><p>Quản lý danh sách riêng của lớp và trạng thái đang học/ngừng học.</p></div><div><span>${Number(item.activeStudentCount || 0)} đang học</span><label class="bes-supplemental-import-members">Tải file Excel<input type="file" data-import-members accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden></label></div></header><form class="bes-supplemental-add-member" data-form="add-member"><label>Họ và tên<input name="fullName" required placeholder="Họ tên học sinh"></label><label>Mã học sinh<input name="studentCode" placeholder="Không bắt buộc"></label><label>Lớp chính khóa<input name="schoolClassName" placeholder="VD: 12.6"></label><button class="is-primary" type="submit" ${busy ? 'disabled' : ''}>+ Thêm học sinh</button></form>${memberRows(item)}</section>`}</div>`;
 }
 
 function renderPanel() {
@@ -151,6 +181,41 @@ async function saveClass(form, item) {
 async function saveMember(form, classId, studentId = null) {
   const values = new FormData(form);
   await runMutation(() => upsertSupplementalClassMember(client, { groupId: classId, studentId, fullName: String(values.get('fullName') || '').trim(), studentCode: String(values.get('studentCode') || '').trim(), schoolClassName: String(values.get('schoolClassName') || '').trim(), effectiveFrom: today() }), studentId ? 'Đã cập nhật thông tin học sinh.' : 'Đã thêm học sinh vào lớp.');
+}
+async function importMembersFromFile(file, classId) {
+  if (!file || !classId || busy || !canManage()) return;
+  busy = true;
+  renderPanel();
+  try {
+    const rows = await readSheet(file);
+    const imported = parseImportedMembers(rows);
+    const item = classes.find((row) => row.id === classId);
+    const existingMembers = item?.members || [];
+    let createdCount = 0;
+    let updatedCount = 0;
+    for (const member of imported) {
+      const existing = existingMembers.find((current) => {
+        if (member.studentCode && current.studentCode) return fold(member.studentCode) === fold(current.studentCode);
+        return fold(member.fullName) === fold(current.fullName) && fold(member.schoolClassName) === fold(current.schoolClassName);
+      });
+      await upsertSupplementalClassMember(client, {
+        groupId: classId,
+        studentId: existing?.studentId || null,
+        fullName: member.fullName,
+        studentCode: member.studentCode,
+        schoolClassName: member.schoolClassName,
+        effectiveFrom: today(),
+      });
+      if (existing) updatedCount += 1; else createdCount += 1;
+    }
+    message = `Đã nhập ${imported.length} học sinh từ ${file.name}: ${createdCount} mới, ${updatedCount} cập nhật.`;
+    await reload();
+  } catch (error) {
+    setMessage(error?.message || 'Không thể import danh sách học sinh Học bổ sung.', 'error');
+  } finally {
+    busy = false;
+    renderPanel();
+  }
 }
 async function changeMemberStatus(classId, studentId, active) {
   await runMutation(() => setSupplementalClassMemberStatus(client, { groupId: classId, studentId, active, effectiveDate: today() }), active ? 'Đã kích hoạt lại học sinh.' : 'Đã chuyển học sinh sang Ngừng học.');
@@ -194,6 +259,7 @@ function bindPanel(host, selected) {
   bindTeacherRemove(classForm);
   if (selected?.id) {
     host.querySelector('[data-form="add-member"]')?.addEventListener('submit', (event) => { event.preventDefault(); void saveMember(event.currentTarget, selected.id); });
+    host.querySelector('[data-import-members]')?.addEventListener('change', (event) => { void importMembersFromFile(event.target.files?.[0], selected.id).finally(() => { event.target.value = ''; }); });
     host.querySelectorAll('[data-form="edit-member"]').forEach((form) => form.addEventListener('submit', (event) => { event.preventDefault(); void saveMember(form, selected.id, form.dataset.student); }));
     host.querySelectorAll('[data-action="member-status"]').forEach((button) => button.addEventListener('click', () => void changeMemberStatus(selected.id, button.dataset.student, button.dataset.active === 'true')));
   }

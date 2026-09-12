@@ -36,6 +36,12 @@ assert.doesNotMatch(statusAction, /window\.confirm/, 'Đang học/Ngừng học 
 assert.match(ui, /data-action="member-status"/, 'Member rows must expose the status action control.');
 assert.match(ui, /changeMemberStatus\(selected\.id, button\.dataset\.student, button\.dataset\.active === 'true'\)/, 'Member status controls must be wired directly to changeMemberStatus.');
 
+assert.match(ui, /read-excel-file\/browser/, 'Học bổ sung must support the same fast Excel roster workflow as the other attendance classes.');
+assert.match(ui, /data-import-members/, 'An existing supplemental class must expose a file input for fast student import.');
+assert.match(ui, /async function importMembersFromFile/, 'Supplemental class management must implement a dedicated member import flow.');
+assert.match(ui, /upsertSupplementalClassMember\(client,[\s\S]{0,500}groupId: classId/, 'Imported students must stay in the Học bổ sung backend/domain.');
+assert.match(ui, /importMembersFromFile\(event\.target\.files\?\.\[0\], selected\.id\)/, 'The selected supplemental class must receive the uploaded roster.');
+
 assert.ok(access.includes(managerUuid), 'The frontend visibility guard must use the stable Hồng Thắm profile UUID.');
 assert.match(access, /approved/, 'The frontend visibility guard must require an approved profile.');
 assert.match(access, /admin|administrator/, 'The frontend visibility guard must allow approved Admins.');
