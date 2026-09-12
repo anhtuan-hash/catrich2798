@@ -61,7 +61,7 @@ export function normalizeSupplementalReportData(rows = []) {
       absent_count: absentCount,
       note: String(row?.sessionNote || ''),
       session_status: row?.status === 'cancelled' ? 'cancelled' : 'completed',
-      lesson_periods: row?.status === 'cancelled' ? 0 : 1,
+      lesson_periods: row?.status === 'cancelled' ? 0 : (Number(row?.lessonPeriods ?? row?.lesson_periods) > 0 ? Number(row?.lessonPeriods ?? row?.lesson_periods) : 1),
       cancellation_reason: String(row?.cancellationReason || ''),
       teaching_room: String(row?.room || ''),
       teaching_time_range: String(row?.timeRange || ''),
@@ -166,6 +166,9 @@ export function buildAttendanceReport({
       teacher_name: teacher,
       completed_sessions: 0,
       total_periods: 0,
+      gifted_periods: 0,
+      remedial_periods: 0,
+      supplemental_periods: 0,
       class_ids: new Set(),
       present_instances: 0,
       late_instances: 0,
@@ -173,6 +176,9 @@ export function buildAttendanceReport({
     };
     row.completed_sessions += 1;
     row.total_periods += session.lesson_periods;
+    if (session.class_type === 'gifted') row.gifted_periods += session.lesson_periods;
+    else if (session.class_type === 'remedial') row.remedial_periods += session.lesson_periods;
+    else if (session.class_type === 'supplemental') row.supplemental_periods += session.lesson_periods;
     row.class_ids.add(String(session.class_id));
     row.present_instances += session.present_count;
     row.late_instances += lateCountBySession.get(String(session.id)) || 0;
@@ -185,6 +191,9 @@ export function buildAttendanceReport({
       teacher_name: row.teacher_name,
       completed_sessions: row.completed_sessions,
       total_periods: roundHalf(row.total_periods),
+      gifted_periods: roundHalf(row.gifted_periods),
+      remedial_periods: roundHalf(row.remedial_periods),
+      supplemental_periods: roundHalf(row.supplemental_periods),
       distinct_classes: row.class_ids.size,
       present_instances: row.present_instances,
       late_instances: row.late_instances,
