@@ -7,7 +7,7 @@ const css = read('public/attendance-history-mockup-v4.css');
 const runtime = read('public/attendance-history-mockup-v4.js');
 
 assert.match(indexHtml, /attendance-history-mockup-v4\.css\?v=1/, 'Approved history mockup stylesheet must be loaded');
-assert.match(indexHtml, /attendance-history-mockup-v4\.js\?v=1/, 'Approved history mockup runtime must be loaded');
+assert.match(indexHtml, /attendance-history-mockup-v4\.js\?v=2/, 'Approved history mockup runtime must be loaded');
 
 assert.match(css, /--ah-remedial:\s*#f97316/i, 'Remedial sessions must use the approved orange');
 assert.match(css, /--ah-gifted:\s*#1677ff/i, 'Gifted sessions must use the approved blue');
