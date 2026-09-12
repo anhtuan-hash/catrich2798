@@ -1,0 +1,3 @@
+Force production redeploy after PR #787.
+Target commit: 1ea39bdc221f2ff8eb3420dfa24f1e98385139c0
+Reason: deploy Học bổ sung history refresh fix to production.
