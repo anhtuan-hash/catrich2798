@@ -26,6 +26,28 @@ function teacherPayload(teachers = []) {
   }));
 }
 
+export function validateSupplementalAttendanceInput(input = {}) {
+  if (!String(input.teacherName || '').trim()) {
+    throw new Error('Vui lòng chọn giáo viên dạy hôm nay.');
+  }
+  if (!String(input.room || '').trim()) {
+    throw new Error('Vui lòng nhập phòng học.');
+  }
+  if (!String(input.startTime || '').trim() || !String(input.endTime || '').trim()) {
+    throw new Error('Vui lòng nhập thời gian dạy.');
+  }
+  for (const participant of input.participants || []) {
+    if (String(participant?.status || '').trim().toLowerCase() !== 'absent') continue;
+    const reasonCode = String(participant?.absenceReasonCode || '').trim();
+    if (!reasonCode) {
+      throw new Error('Vui lòng chọn lý do vắng cho học sinh vắng mặt.');
+    }
+    if (reasonCode === 'other' && !String(participant?.absenceNote || '').trim()) {
+      throw new Error('Vui lòng ghi chú lý do “Khác” cho học sinh vắng mặt.');
+    }
+  }
+}
+
 // Class-centric facade used by the simplified Học bổ sung management UI.
 export async function loadSupplementalClasses(client, { includeArchived = true } = {}) {
   return (await rpc(client, 'bes_list_supplemental_classes', { p_include_archived: includeArchived })) || [];
@@ -121,16 +143,17 @@ export async function beginSupplementalAttendance(client, sessionId) {
   return rpc(client, 'bes_begin_supplemental_attendance', { p_session_id: sessionId });
 }
 export async function confirmSupplementalAttendance(client, input = {}) {
+  validateSupplementalAttendanceInput(input);
   return rpc(client, 'bes_confirm_supplemental_attendance_v2', {
     p_session_id: input.sessionId,
     p_participants: (input.participants || []).map((item) => ({ participantId: item.participantId || item.id, status: item.status || 'present', absenceReasonCode: item.absenceReasonCode || '', absenceNote: item.absenceNote || '' })),
     p_session_note: input.sessionNote || '',
     p_proof_path: input.proofPath || '',
     p_lesson_periods: Number(input.lessonPeriods || 1),
-    p_teacher_name: input.teacherName || '',
-    p_room: input.room || '',
-    p_start_time: input.startTime || null,
-    p_end_time: input.endTime || null,
+    p_teacher_name: String(input.teacherName || '').trim(),
+    p_room: String(input.room || '').trim(),
+    p_start_time: String(input.startTime || '').trim(),
+    p_end_time: String(input.endTime || '').trim(),
   });
 }
 export async function attachSupplementalProof(client, sessionId, proofPath) {
