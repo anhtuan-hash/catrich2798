@@ -9,6 +9,7 @@ const supplementalApi = read('src/attendance/supplementalLearningApi.js');
 const quickBootstrap = read('src/supplementalAttendanceQuickBootstrap.js');
 const reportUtils = read('src/utils/attendanceReport.js');
 const migrationPath = new URL('../supabase/migrations/20260911_supplemental_native_rollcall_parity.sql', import.meta.url);
+const finalParityMigrationPath = new URL('../supabase/migrations/20260912_supplemental_final_parity.sql', import.meta.url);
 
 assert.match(shell, /bes-supplemental-open-rollcall/, 'The native React attendance surface must listen for class-launched supplemental rollcall.');
 assert.match(shell, /bes-open-supplemental-attendance/, 'The native React attendance surface may keep accepting the legacy supplemental event for compatibility outside the daily schedule.');
@@ -57,11 +58,25 @@ assert.match(supplementalApi, /Vui lòng nhập thời gian dạy\./, 'Supplemen
 assert.match(supplementalApi, /Vui lòng chọn lý do vắng/, 'Supplemental confirmation must reject an absent participant without an absence reason.');
 assert.match(supplementalApi, /Vui lòng ghi chú lý do “Khác”/, 'Supplemental confirmation must reject the “Khác” absence reason without a note.');
 
+assert.match(supplementalApi, /loadSupplementalSessionTeachers/, 'The supplemental API must expose assigned teachers for the selected session.');
+assert.match(shell, /loadSupplementalSessionTeachers/, 'Opening supplemental rollcall must load the complete assigned-teacher list.');
+assert.match(shell, /teacherNames|assignedTeacherNames|supplementalTeacherNames/, 'Supplemental rollcall must normalize multiple assigned teacher names for the shared selector.');
+
 assert.equal(fs.existsSync(migrationPath), true, 'A migration must persist native-rollcall metadata for supplemental sessions.');
 const migration = read('supabase/migrations/20260911_supplemental_native_rollcall_parity.sql');
 assert.match(migration, /lesson_periods/i, 'Supplemental sessions must store lesson periods.');
 assert.match(migration, /bes_confirm_supplemental_attendance_v2/i, 'A compatibility-safe supplemental confirmation RPC must persist native rollcall metadata.');
 assert.match(migration, /bes_list_supplemental_history/i, 'Unified history/report must expose the persisted lesson-period metadata.');
+
+assert.equal(fs.existsSync(finalParityMigrationPath), true, 'A forward-only migration must close the remaining supplemental parity gaps.');
+const finalParityMigration = read('supabase/migrations/20260912_supplemental_final_parity.sql');
+assert.match(finalParityMigration, /bes_list_supplemental_session_teachers/i, 'The backend must expose all assigned teachers for a supplemental recurring session.');
+assert.match(finalParityMigration, /bes_confirm_supplemental_attendance_v2/i, 'The final migration must harden the existing v2 confirmation RPC without changing its client contract.');
+assert.match(finalParityMigration, /Vui lòng chọn giáo viên dạy hôm nay|giáo viên dạy hôm nay/i, 'The backend must reject confirmation without an effective teacher.');
+assert.match(finalParityMigration, /Vui lòng nhập phòng học|phòng học/i, 'The backend must reject confirmation without an effective room.');
+assert.match(finalParityMigration, /excused[\s\S]*unexcused[\s\S]*sick[\s\S]*family[\s\S]*other[\s\S]*unspecified/i, 'The backend must validate the supported absence-reason codes.');
+assert.match(finalParityMigration, /other[\s\S]{0,1200}absenceNote|absence_note[\s\S]{0,1200}other/i, 'The backend must require a note for the “other” absence reason.');
+assert.match(finalParityMigration, /bes_extra_attendance_sessions[\s\S]{0,1800}bes_supplemental_sessions|bes_supplemental_sessions[\s\S]{0,1800}bes_extra_attendance_sessions/, 'Teacher/day conflict protection must consider both extra and supplemental attendance sources.');
 
 assert.match(reportUtils, /lessonPeriods|lesson_periods/, 'Unified reporting must consume the supplemental lesson-period value rather than always assuming one period.');
 
