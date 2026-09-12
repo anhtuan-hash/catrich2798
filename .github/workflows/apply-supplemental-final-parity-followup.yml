@@ -1,0 +1,36 @@
+name: Apply supplemental final parity follow-up
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/apply-supplemental-final-parity-followup.py'
+      - '.github/workflows/apply-supplemental-final-parity-followup.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: github.head_ref == 'fix/supplemental-final-parity-20260912'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python scripts/apply-supplemental-final-parity-followup.py
+      - name: Commit countdown parity patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/attendancePostConfirmEditBootstrap.js
+          if git diff --cached --quiet; then
+            echo "No follow-up changes to commit."
+            exit 0
+          fi
+          git commit -m "fix: keep supplemental edit window countdown live"
+          git push origin HEAD:${{ github.head_ref }}
