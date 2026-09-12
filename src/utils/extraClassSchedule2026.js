@@ -151,7 +151,18 @@ export function roomForExtraClass(classRow = {}) {
   return String(scheduleForExtraClass(classRow)?.room || '').trim();
 }
 
+function isSyntheticSupplementalClass(classRow = {}) {
+  const classType = canonicalClassType(classRow?.class_type);
+  const classId = String(classRow?.id || '').trim().toLowerCase();
+  return classType === 'supplemental' || classId.startsWith('supplemental:');
+}
+
 export function isExtraClassScheduledOnDate(classRow, dateValue) {
+  // Học bổ sung uses its own activity loader. Native rollcall temporarily injects a
+  // `supplemental:*` class into shared state only so the quick-attendance form can reuse
+  // the existing UI. It is not a Phụ đạo/Bồi dưỡng class and must never be scheduled here.
+  if (isSyntheticSupplementalClass(classRow)) return false;
+
   const weekday = weekdayOf(dateValue);
   if (weekday === null) return true;
 
