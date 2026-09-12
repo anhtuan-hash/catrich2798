@@ -16,7 +16,7 @@ assert.match(v4, /function\s+cleanupMockupArtifacts\s*\(/, 'V4 must expose an ex
 assert.match(v4, /data-ah-mockup-owned[\s\S]*filterbar/, 'History filterbar must remain explicitly owned by the History enhancer');
 assert.match(v4, /cleanupMockupArtifacts\(observedShell\)/, 'leaving History must clean shared-shell artifacts');
 assert.match(v4, /data-ah-original-text/, 'enhanced success banners must retain enough state to be restored');
-assert.match(v4, /removeAttribute\(['"]data-ah-mockup-owned['"]\)/, 'cleanup must release History ownership attributes');
+assert.match(v4, /removeAttribute\((?:OWNED|['"]data-ah-mockup-owned['"])\)/, 'cleanup must release History ownership attributes');
 
 assert.match(v5, /function\s+restoreDuplicateActivityFilters\s*\(/, 'V5 must restore filters it previously hid');
 assert.match(v5, /style\.removeProperty\(['"]display['"]\)/, 'V5 cleanup must remove its display:none override');
