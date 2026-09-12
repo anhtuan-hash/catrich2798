@@ -1,0 +1,90 @@
+/* Attendance cross-tab sizing V1 — History is the visual source of truth. */
+
+.attendance-shell,
+.bes-supplemental-dialog {
+  --attendance-session-card-min-height: 80px;
+  --attendance-session-card-radius: 15px;
+  --attendance-session-card-pad-y: 10px;
+  --attendance-session-card-pad-x: 12px;
+  --attendance-tab-height: 46px;
+  --attendance-tab-radius: 13px;
+}
+
+/* Navigation tabs keep the same physical rhythm in every pane, not only History. */
+.attendance-shell .attendance-tabs > button {
+  min-height: var(--attendance-tab-height) !important;
+  padding: 0 16px !important;
+  border-radius: var(--attendance-tab-radius) !important;
+  box-sizing: border-box !important;
+}
+
+/* Comparable class/session cards share the approved History dimensions. */
+.attendance-shell .ahv3__items > button,
+.attendance-shell .attendance-daily-class-row,
+.attendance-shell .attendance-class-list > div:last-child > button,
+.attendance-shell .attendance-manage-classes > button,
+.attendance-shell .bes-supplemental-daily-card,
+.bes-supplemental-dialog .bes-supplemental-daily-card,
+.attendance-shell .att-report-m3__teacher-grid > article {
+  min-height: var(--attendance-session-card-min-height, 80px) !important;
+  border-radius: var(--attendance-session-card-radius, 15px) !important;
+  box-sizing: border-box !important;
+}
+
+/* The current daily schedule used a fixed 58px row; release that fixed height so it can
+   adopt the same 80px minimum as History without clipping its teacher/room/status columns. */
+.attendance-shell .attendance-daily-class-row {
+  height: auto !important;
+  padding: var(--attendance-session-card-pad-y) var(--attendance-session-card-pad-x) !important;
+}
+
+/* Floor containers belong to the same geometry system while remaining content-height. */
+.attendance-shell .attendance-daily-floor-card {
+  border-radius: var(--attendance-session-card-radius) !important;
+}
+
+/* Non-History cards use the same inner breathing room; History keeps its tuned arrow gutter. */
+.attendance-shell .attendance-class-list > div:last-child > button,
+.attendance-shell .attendance-manage-classes > button,
+.attendance-shell .bes-supplemental-daily-card,
+.bes-supplemental-dialog .bes-supplemental-daily-card,
+.attendance-shell .att-report-m3__teacher-grid > article {
+  padding: var(--attendance-session-card-pad-y) var(--attendance-session-card-pad-x) !important;
+}
+
+/* Supplemental rows/history cards follow the same corner and padding system without forcing
+   a fixed height when their content is naturally multi-line. */
+.attendance-shell .bes-supplemental-row,
+.bes-supplemental-dialog .bes-supplemental-row,
+.attendance-shell .bes-supplemental-history-card,
+.bes-supplemental-dialog .bes-supplemental-history-card {
+  border-radius: var(--attendance-session-card-radius, 15px) !important;
+  padding: var(--attendance-session-card-pad-y, 10px) var(--attendance-session-card-pad-x, 12px) !important;
+  box-sizing: border-box !important;
+}
+
+/* Keep compact Manage cards visually aligned with History while preserving all metadata. */
+.attendance-shell .attendance-manage-classes > button {
+  gap: 8px !important;
+}
+
+.attendance-shell .attendance-manage-class-head {
+  margin-bottom: 2px !important;
+}
+
+.attendance-shell .attendance-manage-class-meta {
+  gap: 4px !important;
+}
+
+/* Report metric tiles are not session cards, but their geometry should belong to the same system. */
+.attendance-shell .att-report-m3__metrics > article {
+  border-radius: var(--attendance-session-card-radius) !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 900px) {
+  .attendance-shell .attendance-tabs > button {
+    min-height: 44px !important;
+    padding-inline: 13px !important;
+  }
+}

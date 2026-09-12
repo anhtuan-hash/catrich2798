@@ -3,10 +3,13 @@ name: Attendance History V5 UI
 on:
   pull_request:
     paths:
+      - 'public/attendance-history-mockup-v4.js'
       - 'public/attendance-history-v5.css'
       - 'public/attendance-history-v5.js'
+      - 'public/attendance-card-size-sync-v1.css'
       - 'index.html'
       - 'scripts/test-attendance-history-v5-ui.mjs'
+      - 'scripts/test-attendance-history-lifecycle-card-sync.mjs'
       - '.github/workflows/attendance-history-v5-ui.yml'
 
 jobs:
@@ -19,3 +22,5 @@ jobs:
           node-version: 22
       - name: Verify refined History visual contract
         run: node scripts/test-attendance-history-v5-ui.mjs
+      - name: Verify History cleanup and cross-tab card sizing
+        run: node scripts/test-attendance-history-lifecycle-card-sync.mjs

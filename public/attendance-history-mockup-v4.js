@@ -2,6 +2,8 @@
   'use strict';
 
   const OWNED = 'data-ah-mockup-owned';
+  const ORIGINAL_HTML = 'data-ah-original-html';
+  const ORIGINAL_HIDDEN = 'data-ah-original-hidden';
   let observedShell = null;
 
   const activityFilterMarkup = `
@@ -47,6 +49,30 @@
 
   function typeSelect(root) {
     return root?.querySelector('.ahv3__filters select') || null;
+  }
+
+  function cleanupMockupArtifacts(shell) {
+    if (!shell) return;
+
+    shell.classList.remove('ah-history-mockup');
+
+    shell.querySelectorAll(`.ah-mockup-filterbar[${OWNED}="filterbar"], .ah-mockup-subtitle[${OWNED}="subtitle"]`)
+      .forEach((node) => node.remove());
+
+    shell.querySelectorAll(`.attendance-banner.is-success[${OWNED}="success-banner"]`).forEach((banner) => {
+      const originalHtml = banner.getAttribute(ORIGINAL_HTML);
+      const originalText = banner.getAttribute('data-ah-original-text') || '';
+      const wasHidden = banner.getAttribute(ORIGINAL_HIDDEN) === 'true';
+
+      if (originalHtml !== null) banner.innerHTML = originalHtml;
+      else banner.textContent = originalText;
+
+      banner.hidden = wasHidden;
+      banner.removeAttribute(OWNED);
+      banner.removeAttribute('data-ah-original-text');
+      banner.removeAttribute(ORIGINAL_HTML);
+      banner.removeAttribute(ORIGINAL_HIDDEN);
+    });
   }
 
   function setFilter(type, root) {
@@ -143,6 +169,8 @@
 
     banner.setAttribute(OWNED, 'success-banner');
     banner.setAttribute('data-ah-original-text', original);
+    banner.setAttribute(ORIGINAL_HTML, banner.innerHTML);
+    banner.setAttribute(ORIGINAL_HIDDEN, String(banner.hidden));
     banner.hidden = false;
     banner.innerHTML = `
       <span class="ah-mockup-banner-check" aria-hidden="true">✓</span>
@@ -156,14 +184,14 @@
   function enhance() {
     const root = historyRoot();
     if (!root) {
-      if (observedShell) observedShell.classList.remove('ah-history-mockup');
+      cleanupMockupArtifacts(observedShell);
       observedShell = null;
       return;
     }
 
     const shell = shellFor(root);
     if (!shell) return;
-    if (observedShell && observedShell !== shell) observedShell.classList.remove('ah-history-mockup');
+    if (observedShell && observedShell !== shell) cleanupMockupArtifacts(observedShell);
     observedShell = shell;
     shell.classList.add('ah-history-mockup');
 

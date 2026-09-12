@@ -14,10 +14,11 @@ const css = [
   readOptional('../public/attendance-history-pixel-v6.css'),
   readOptional('../public/attendance-history-final-polish-v6-1.css'),
   readOptional('../public/attendance-history-perfect-polish-v6-2.css'),
+  readOptional('../public/attendance-card-size-sync-v1.css'),
 ].join('\n');
 
-assert.match(index, /attendance-history-v5\.css\?v=2[\s\S]*attendance-history-pixel-v6\.css\?v=1[\s\S]*attendance-history-final-polish-v6-1\.css\?v=1[\s\S]*attendance-history-perfect-polish-v6-2\.css\?v=1/, 'perfect-polish History CSS must load last');
-assert.match(index, /attendance-history-v5\.js\?v=2[\s\S]*attendance-history-pixel-v6\.js\?v=1/, 'pixel-match runtime must load after the stable v5 runtime');
+assert.match(index, /attendance-history-v5\.css\?v=2[\s\S]*attendance-history-pixel-v6\.css\?v=1[\s\S]*attendance-history-final-polish-v6-1\.css\?v=1[\s\S]*attendance-history-perfect-polish-v6-2\.css\?v=1[\s\S]*attendance-card-size-sync-v1\.css\?v=1/, 'shared sizing CSS must load after the perfect-polish History layer');
+assert.match(index, /attendance-history-mockup-v4\.js\?v=2[\s\S]*attendance-history-v5\.js\?v=3[\s\S]*attendance-history-pixel-v6\.js\?v=1/, 'cleanup-aware History runtimes must load before the pixel-match runtime');
 
 assert.match(js, /data-ah-v5-type-filter/, 'runtime must still recognize the native type selector');
 assert.match(js, /data-ah-v6-activity-icon/, 'runtime must decorate list cards with activity-specific icons');
