@@ -58,8 +58,8 @@ assert.doesNotMatch(nativeRollcallSource, /await\s+loadHistory\s*\(\s*\)/, 'supp
 assert.match(nativeRollcallSource, /async function refreshHistoryData\s*\(\s*\)/, 'native attendance must define a dedicated history refresh helper');
 assert.match(nativeRollcallSource, /refreshHistoryData[\s\S]{0,2600}bes_extra_attendance_sessions/, 'history refresh must reload native attendance sessions');
 assert.match(nativeRollcallSource, /refreshHistoryData[\s\S]{0,2600}bes_list_supplemental_history/, 'history refresh must reload Học bổ sung history');
-assert.match(nativeRollcallSource, /setSuccess\(['"]Đã chốt điểm danh Học bổ sung\.["']\);\s*await\s+refreshHistoryData\s*\(\s*\)/, 'confirming Học bổ sung must refresh history immediately');
-assert.match(nativeRollcallSource, /setSuccess\(['"]Đã hủy buổi Học bổ sung\.["']\);\s*await\s+refreshHistoryData\s*\(\s*\)/, 'cancelling Học bổ sung must refresh history immediately');
+assert.match(nativeRollcallSource, /confirmSupplementalSharedAttendance[\s\S]{0,7000}await\s+refreshHistoryData\s*\(\s*\)/, 'confirming Học bổ sung must refresh history immediately');
+assert.match(nativeRollcallSource, /if\s*\(attendanceSource\s*===\s*['"]supplemental['"]\)[\s\S]{0,2400}await\s+refreshHistoryData\s*\(\s*\)/, 'cancelling Học bổ sung must refresh history immediately');
 
 assert.doesNotMatch(quickSource, /addEventListener|createElement|bes-supplemental-daily-section|bes-supplemental-daily-grid|bes-supplemental-daily-card/, 'retired quick bootstrap must remain inert and must not render/listen for a second supplemental flow');
 assert.doesNotMatch(quickSource, /Nhóm dài ngày|Phát sinh/, 'retired bootstrap must not reintroduce supplemental legacy UI concepts');
