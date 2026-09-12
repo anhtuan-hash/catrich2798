@@ -61,13 +61,13 @@
   }
 }
 
-/* Compact workspace proportions based on the approved reference screenshot.
+/* Large workspace proportions aligned with the approved History / Học bổ sung reference.
    Header/tabs stay fixed; content always receives the remaining viewport height.
    Flex is intentional here: notice/error banners are conditional children, so a fixed
    four-row grid can otherwise put content in an auto row and destroy its scroll range. */
 .attendance-shell.attendance-shell {
-  width: min(1360px, calc(100vw - 96px)) !important;
-  height: min(840px, calc(100vh - 92px)) !important;
+  width: min(1460px, calc(100vw - 54px)) !important;
+  height: min(910px, calc(100vh - 54px)) !important;
   display: flex !important;
   flex-direction: column !important;
 }
