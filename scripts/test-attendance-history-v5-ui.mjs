@@ -23,6 +23,7 @@ assert.match(js, /decorateActivityIcons/, 'runtime must own activity icon decora
 assert.match(js, /data-ah-v6-hero-meta/, 'runtime must ensure the selected hero exposes mockup-style metadata');
 assert.match(js, /ensureHeroMetadata/, 'runtime must restore hero metadata when the host DOM omits it');
 assert.match(js, /data-ah-v6-hero-art/, 'runtime must provide the academic hero illustration used by the mockup');
+assert.match(js, /classList\.remove\('ah-history-pixel-v6'\)/, 'runtime must remove the v6 scope when History is no longer active');
 assert.match(js, /ah-kind-remedial/, 'runtime must classify selected remedial detail');
 assert.match(js, /ah-kind-gifted/, 'runtime must classify selected gifted detail');
 assert.match(js, /ah-kind-supplemental/, 'runtime must classify selected supplemental detail');
