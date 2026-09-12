@@ -110,6 +110,9 @@ export async function upsertSupplementalSession(client, input = {}) {
 export async function cancelSupplementalSession(client, sessionId, reason = '') {
   return rpc(client, 'bes_cancel_supplemental_session', { p_session_id: sessionId, p_reason: reason });
 }
+export async function deleteSupplementalAttendanceHistory(client, sessionId) {
+  return rpc(client, 'bes_delete_supplemental_attendance_history', { p_session_id: sessionId });
+}
 export async function loadSupplementalAttendanceActivities(client, range = {}) {
   const data = await rpc(client, 'bes_list_supplemental_attendance', { p_from: isoDate(range.from), p_to: isoDate(range.to) });
   return (Array.isArray(data) ? data : []).map(normalizeSupplementalActivity);
