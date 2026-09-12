@@ -85,14 +85,21 @@ jobs:
             "      cellStyles: buildColumnCellStyles('I', 6, teacherData.length, 8),\n      freezeRows: 5,\n      autoFilter: `A5:I${5 + teacherBodyCount}` ,",
           ) || changed;
 
-          // The source has no space before the comma after the template literal; handle that exact variant.
-          changed = replaceOnce(
-            'src/utils/attendanceReportExport.js',
-            "      cellStyles: buildColumnCellStyles('G', 6, teacherData.length, 8),\n      freezeRows: 5,\n      autoFilter: `A5:G${5 + teacherBodyCount}`,",
-            "      cellStyles: buildColumnCellStyles('I', 6, teacherData.length, 8),\n      freezeRows: 5,\n      autoFilter: `A5:I${5 + teacherBodyCount}`,",
-          ) || changed;
-
           if (!changed) console.log('Implementation already present; no file changes needed.');
+          NODE
+      - name: Normalize exact teacher filter range
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const path = 'src/utils/attendanceReportExport.js';
+          let source = fs.readFileSync(path, 'utf8');
+          const oldBlock = "      cellStyles: buildColumnCellStyles('G', 6, teacherData.length, 8),\n      freezeRows: 5,\n      autoFilter: `A5:G${5 + teacherBodyCount}`,";
+          const newBlock = "      cellStyles: buildColumnCellStyles('I', 6, teacherData.length, 8),\n      freezeRows: 5,\n      autoFilter: `A5:I${5 + teacherBodyCount}`,";
+          if (!source.includes(newBlock)) {
+            if (!source.includes(oldBlock)) throw new Error('Expected teacher filter block not found');
+            source = source.replace(oldBlock, newBlock);
+            fs.writeFileSync(path, source);
+          }
           NODE
       - name: Commit implementation when changed
         run: |
