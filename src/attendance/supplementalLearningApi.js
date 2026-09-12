@@ -72,6 +72,9 @@ export async function upsertSupplementalClass(client, input = {}) {
 export async function archiveSupplementalClass(client, groupId, reason = '') {
   return rpc(client, 'bes_archive_supplemental_class', { p_group_id: groupId, p_reason: reason || 'Lớp đã được lưu trữ' });
 }
+export async function deleteSupplementalClass(client, groupId) {
+  return rpc(client, 'bes_delete_supplemental_class', { p_group_id: groupId });
+}
 export async function upsertSupplementalClassMember(client, input = {}) {
   return rpc(client, 'bes_upsert_supplemental_class_member', compact({
     p_group_id: input.groupId,
