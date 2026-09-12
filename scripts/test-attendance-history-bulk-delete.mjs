@@ -10,7 +10,11 @@ assert.match(attendance, /Chọn nhiều/, 'History must expose a multi-select a
 assert.match(attendance, /Chọn tất cả kết quả/, 'History must support selecting all currently filtered sessions');
 assert.match(attendance, /Xóa \$\{selectedHistorySessionIds\.length\} buổi/, 'Bulk delete action must show the selected count');
 assert.match(attendance, /deleteSelectedHistorySessions/, 'History must implement a bulk session deletion handler');
-assert.match(attendance, /for \(const session of targets\)[\s\S]*?bes_delete_extra_attendance_session/, 'Bulk delete must reuse the existing approved attendance-session deletion RPC for every selected session');
+assert.match(attendance, /async function deleteAttendanceHistoryAtSource\(session\)/, 'Bulk delete must centralize source-aware destructive history routing');
+assert.match(attendance, /isSupplementalHistorySession\(session\)[\s\S]*deleteSupplementalAttendanceHistory\(client, session\.supplemental_session_id\)/, 'Supplemental history must use its dedicated reset RPC through the source-aware helper');
+assert.match(attendance, /return client\.rpc\('bes_delete_extra_attendance_session', \{ p_session_id: session\.id \}\)/, 'Phụ đạo/Bồi dưỡng history must continue using the existing approved deletion RPC');
+assert.match(attendance, /for \(const session of targets\)[\s\S]*?deleteAttendanceHistoryAtSource\(session\)/, 'Bulk delete must route every selected session through the source-aware deletion helper');
+assert.match(attendance, /const targets = combinedHistorySessions\.filter/, 'Bulk delete must include supplemental and regular history rows');
 assert.match(attendance, /Không thể xóa \$\{failed\.length\} buổi/, 'Partial failures must be surfaced instead of silently ignored');
 assert.match(attendance, /ahv3__select-box/, 'History V3 cards must render a dedicated selection affordance');
 assert.match(attendance, /is-bulk-selected/, 'Selected history rows must have a visible selected state');
