@@ -1,0 +1,161 @@
+/* Attendance History V6.1 — final production polish based on the approved mockup. */
+
+/* Make the activity helper readable without competing with the filters. */
+.attendance-shell.ah-history-pixel-v6 .ah-mockup-filterbar__hint {
+  color: #6f829c !important;
+  font-weight: 650 !important;
+}
+
+/* Give the detail pane a little more room while keeping the list comfortable. */
+.attendance-shell.ah-history-pixel-v6 .ahv3__shell {
+  grid-template-columns: minmax(430px, 490px) minmax(0, 1fr) !important;
+}
+
+/* Refine the filter controls so they feel like part of the dashboard, not raw form fields. */
+.attendance-shell.ah-history-pixel-v6 .ahv3__filters select,
+.attendance-shell.ah-history-pixel-v6 .ahv3__date-filters input {
+  min-height: 39px !important;
+  border-color: #dbe6f3 !important;
+  border-radius: 11px !important;
+  background: #fbfdff !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), 0 1px 2px rgba(35, 67, 105, .025) !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__filters select:focus,
+.attendance-shell.ah-history-pixel-v6 .ahv3__date-filters input:focus {
+  border-color: #b9d5f5 !important;
+  background: #fff !important;
+  box-shadow: 0 0 0 3px rgba(22, 119, 255, .06) !important;
+  outline: none !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__date-filters input {
+  font-variant-numeric: tabular-nums !important;
+  letter-spacing: .015em !important;
+}
+
+/* Hero: remove the awkward orphaned class number and reduce dead space at the right. */
+.attendance-shell.ah-history-pixel-v6 .ahv3__hero {
+  min-height: 142px !important;
+  padding: 16px 245px 15px 20px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__hero h2 {
+  max-width: 100% !important;
+  margin-top: 7px !important;
+  font-size: clamp(26px, 1.9vw, 32px) !important;
+  line-height: 1.03 !important;
+  letter-spacing: -.042em !important;
+  white-space: nowrap !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__hero-meta {
+  margin-top: 10px !important;
+  gap: 6px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv6__meta-chip {
+  min-height: 27px !important;
+  padding: 4px 9px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 [data-ah-v6-hero-art] {
+  right: 18px !important;
+  bottom: -7px !important;
+  width: 160px !important;
+  height: 92px !important;
+  opacity: .79 !important;
+}
+
+/* Keep actions available, but subordinate them to the selected class title. */
+.attendance-shell.ah-history-pixel-v6 .ahv3__actions {
+  top: 13px !important;
+  right: 14px !important;
+  gap: 6px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__actions button {
+  min-height: 34px !important;
+  padding-inline: 11px !important;
+  border-radius: 9px !important;
+  font-size: 9.5px !important;
+  font-weight: 800 !important;
+}
+
+/* Recover a little vertical room so the audit block is visible sooner in a laptop viewport. */
+.attendance-shell.ah-history-pixel-v6 .ahv3__section-title {
+  margin-top: 11px !important;
+  margin-bottom: 7px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__info-grid > article {
+  min-height: 67px !important;
+  padding-block: 10px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__stat-grid > article {
+  min-height: 74px !important;
+  padding-block: 9px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__audit-actor-panel {
+  margin-top: 12px !important;
+  padding: 10px 12px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__audit-actor-panel__head {
+  margin-bottom: 7px !important;
+  color: #2a405e !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__audit-actor-panel__head b,
+.attendance-shell.ah-history-pixel-v6 .ahv3__audit-actor-panel__head strong {
+  font-size: 11.3px !important;
+  font-weight: 850 !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__audit-actor-panel__head small {
+  color: #8797ad !important;
+}
+
+/* Intermediate widths: protect the detail pane and allow long titles to wrap gracefully. */
+@media (max-width: 1180px) {
+  .attendance-shell.ah-history-pixel-v6 .ahv3__shell {
+    grid-template-columns: minmax(385px, 425px) minmax(0, 1fr) !important;
+  }
+
+  .attendance-shell.ah-history-pixel-v6 .ahv3__hero {
+    padding-right: 205px !important;
+  }
+
+  .attendance-shell.ah-history-pixel-v6 .ahv3__hero h2 {
+    white-space: normal !important;
+    text-wrap: balance !important;
+  }
+
+  .attendance-shell.ah-history-pixel-v6 [data-ah-v6-hero-art] {
+    width: 132px !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .attendance-shell.ah-history-pixel-v6 .ahv3__shell {
+    grid-template-columns: 1fr !important;
+  }
+
+  .attendance-shell.ah-history-pixel-v6 .ahv3__hero {
+    min-height: 138px !important;
+    padding: 15px !important;
+  }
+
+  .attendance-shell.ah-history-pixel-v6 .ahv3__hero h2 {
+    font-size: clamp(24px, 6vw, 30px) !important;
+    white-space: normal !important;
+    text-wrap: balance !important;
+  }
+
+  .attendance-shell.ah-history-pixel-v6 .ahv3__actions {
+    position: static !important;
+    margin-top: 11px !important;
+  }
+}
