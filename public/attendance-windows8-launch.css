@@ -70,6 +70,95 @@
   height: min(910px, calc(100vh - 54px)) !important;
   display: flex !important;
   flex-direction: column !important;
+
+  /* History / Học bổ sung are the approved typography reference. Keep the shared
+     Attendance views on the same visual scale instead of the older, larger polish scale. */
+  --att-type-page-title: 21px;
+  --att-type-tab: 12.5px;
+  --att-type-section-title: 20px;
+  --att-type-card-title: 12.8px;
+  --att-type-body: 10.8px;
+  --att-type-control: 10.5px;
+  --att-type-label: 9.5px;
+  --att-type-meta: 9px;
+  --att-type-stat: 17px;
+
+  /* Bridge the legacy polish tokens so existing high-specificity rules inherit the
+     History scale without needing per-view one-off overrides. */
+  --att-type-title: var(--att-type-page-title);
+  --att-type-view-title: var(--att-type-section-title);
+  --att-type-section: var(--att-type-card-title);
+  --att-type-chip: var(--att-type-control);
+  --att-type-metric: var(--att-type-stat);
+}
+
+/* Shared typography parity. History keeps its own later pixel-match layer, while the
+   other Attendance tabs now resolve to the same hierarchy and text density. */
+.attendance-shell .attendance-title strong {
+  font-size: var(--att-type-page-title) !important;
+}
+
+.attendance-shell .attendance-tabs > button {
+  font-size: var(--att-type-tab) !important;
+}
+
+.attendance-shell .attendance-rollcall-head h2,
+.attendance-shell .attendance-member-manager > header h2,
+.attendance-shell .att-report-m3__toolbar h2 {
+  font-size: var(--att-type-section-title) !important;
+}
+
+.attendance-shell .attendance-class-list button b,
+.attendance-shell .attendance-manage-classes > button > b,
+.attendance-shell .attendance-member-table b,
+.attendance-shell .att-report-m3__teacher-grid strong {
+  font-size: var(--att-type-card-title) !important;
+}
+
+.attendance-shell .attendance-title p,
+.attendance-shell .attendance-rollcall-head p,
+.attendance-shell .attendance-member-manager > header p,
+.attendance-shell .att-report-m3__toolbar p,
+.attendance-shell .att-report-m3__section-head p {
+  font-size: var(--att-type-body) !important;
+}
+
+.attendance-shell input,
+.attendance-shell select,
+.attendance-shell textarea,
+.attendance-shell button,
+.attendance-shell .attendance-day-open,
+.attendance-shell .attendance-day-lock {
+  font-size: var(--att-type-control) !important;
+}
+
+.attendance-shell .attendance-session-controls label > span,
+.attendance-shell .att-m3-period-field > span,
+.attendance-shell .att-m3-class-search > span,
+.attendance-shell .attendance-confirm-bar label > span,
+.attendance-shell .attendance-add-student label > span,
+.attendance-shell .att-report-m3__filters label span,
+.attendance-shell .att-report-m3__export-meta label span,
+.attendance-shell .attendance-teacher-field > label,
+.attendance-shell .attendance-class-list > header span,
+.attendance-shell .attendance-manage-classes > header span {
+  font-size: var(--att-type-label) !important;
+}
+
+.attendance-shell .attendance-class-list button small,
+.attendance-shell .attendance-class-list button em,
+.attendance-shell .attendance-class-list button time,
+.attendance-shell .attendance-manage-classes button small,
+.attendance-shell .attendance-calendar-day small,
+.attendance-shell .attendance-calendar-day em,
+.attendance-shell .att-report-m3__teacher-grid span,
+.attendance-shell .att-report-m3__teacher-grid small,
+.attendance-shell .att-report-m3 td {
+  font-size: var(--att-type-meta) !important;
+}
+
+.attendance-shell .att-report-m3__metrics article b {
+  font-size: var(--att-type-stat) !important;
 }
 
 .attendance-shell.attendance-shell > .attendance-topbar,
@@ -160,7 +249,7 @@ html body .attendance-shell .attendance-rollcall.attendance-rollcall {
 
 .attendance-rollcall .attendance-rollcall-head h2 {
   margin-top: 3px !important;
-  font-size: 23px !important;
+  font-size: var(--att-type-section-title) !important;
   line-height: 1.08 !important;
 }
 
@@ -217,7 +306,7 @@ html body .attendance-shell .attendance-rollcall.attendance-rollcall {
   top: 13px;
   left: 18px;
   color: #17263b;
-  font-size: 14px;
+  font-size: var(--att-type-card-title) !important;
   font-weight: 900;
   letter-spacing: -.01em;
   text-transform: none;
@@ -229,7 +318,7 @@ html body .attendance-shell .attendance-rollcall.attendance-rollcall {
   top: 31px;
   left: 18px;
   color: #718096;
-  font-size: 10px;
+  font-size: var(--att-type-meta) !important;
   font-weight: 650;
   letter-spacing: 0;
   text-transform: none;
