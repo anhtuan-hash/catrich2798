@@ -142,6 +142,9 @@ export async function loadSupplementalAttendanceActivities(client, range = {}) {
 export async function beginSupplementalAttendance(client, sessionId) {
   return rpc(client, 'bes_begin_supplemental_attendance', { p_session_id: sessionId });
 }
+export async function loadSupplementalSessionTeachers(client, sessionId) {
+  return (await rpc(client, 'bes_list_supplemental_session_teachers', { p_session_id: sessionId })) || [];
+}
 export async function confirmSupplementalAttendance(client, input = {}) {
   validateSupplementalAttendanceInput(input);
   return rpc(client, 'bes_confirm_supplemental_attendance_v2', {
@@ -158,6 +161,21 @@ export async function confirmSupplementalAttendance(client, input = {}) {
 }
 export async function attachSupplementalProof(client, sessionId, proofPath) {
   return rpc(client, 'bes_attach_supplemental_proof', { p_session_id: sessionId, p_proof_path: proofPath });
+}
+export async function getSupplementalAttendanceEditSnapshot(client, sessionId) {
+  return rpc(client, 'bes_get_supplemental_attendance_edit_snapshot', { p_session_id: sessionId });
+}
+export async function updateSupplementalAttendanceSession(client, input = {}) {
+  return rpc(client, 'bes_update_supplemental_attendance_session', {
+    p_session_id: input.sessionId,
+    p_records: (input.records || []).map((item) => ({
+      participantId: item.participantId || item.record_id || item.id,
+      status: String(item.status || 'present').toLowerCase() === 'late' ? 'tardy' : String(item.status || 'present').toLowerCase(),
+      absenceReasonCode: item.absenceReasonCode ?? item.reason_code ?? item.absence_reason_code ?? '',
+      absenceNote: item.absenceNote ?? item.note ?? item.absence_note ?? '',
+    })),
+    p_note: input.note || '',
+  });
 }
 export async function loadSupplementalHistory(client, range = {}, query = '') {
   return (await rpc(client, 'bes_list_supplemental_history', { p_from: isoDate(range.from), p_to: isoDate(range.to), p_query: query || '' })) || [];
