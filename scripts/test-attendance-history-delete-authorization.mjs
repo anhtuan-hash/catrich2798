@@ -27,7 +27,13 @@ assert.match(
 assert.match(
   migrations,
   /bes_delete_extra_attendance_session[\s\S]*can_delete_extra_attendance_history\s*\(\s*\)/i,
-  'The delete RPC must enforce the dedicated delete-history authorization helper.',
+  'The Phụ đạo/Bồi dưỡng delete RPC must enforce the dedicated delete-history authorization helper.',
+);
+
+assert.match(
+  migrations,
+  /bes_delete_supplemental_attendance_history[\s\S]*can_delete_extra_attendance_history\s*\(\s*\)/i,
+  'The Học bổ sung delete-history RPC must enforce the same dedicated authorization helper.',
 );
 
 assert.match(
@@ -44,14 +50,20 @@ assert.match(
 
 assert.match(
   source,
-  /canDeleteAttendanceHistory\s*&&\s*!isSupplementalHistorySession\(selectedSession\)\s*\?\s*<button[^>]*className="ahv3__delete-button"/,
-  'Single-session delete must require delete authorization and exclude supplemental history rows.',
+  /canDeleteAttendanceHistory\s*\?\s*<button[^>]*className="ahv3__delete-button"/,
+  'Single-session delete must require delete authorization for every supported history source.',
 );
 
 assert.match(
   source,
-  /if\s*\(!session\s*\|\|[\s\S]*!canDeleteAttendanceHistory\s*\|\|\s*isSupplementalHistorySession\(session\)\)\s*return;/,
-  'Delete handler must refuse supplemental sessions even if invoked outside the normal button flow.',
+  /if\s*\(!session\s*\|\|[\s\S]*!canDeleteAttendanceHistory\)\s*return;/,
+  'Delete handler must refuse unauthorized calls even if invoked outside the normal button flow.',
+);
+
+assert.match(
+  source,
+  /deleteAttendanceHistoryAtSource\(session\)/,
+  'Authorized deletion must route through the source-aware helper.',
 );
 
 assert.doesNotMatch(
