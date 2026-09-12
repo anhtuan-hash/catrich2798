@@ -1,0 +1,26 @@
+name: Supplemental post-confirm edit parity
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/components/GlobalAttendanceNavigationTab.jsx'
+      - 'src/attendancePostConfirmEditBootstrap.js'
+      - 'src/attendance/supplementalLearningApi.js'
+      - 'supabase/migrations/20260912_supplemental_final_parity.sql'
+      - 'scripts/test-supplemental-post-confirm-edit-parity.mjs'
+      - '.github/workflows/supplemental-post-confirm-edit-parity.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/test-supplemental-post-confirm-edit-parity.mjs
