@@ -35,6 +35,16 @@ assert.doesNotMatch(
   /!canDeleteAttendanceHistory\s*\|\|\s*isSupplementalHistorySession\(session\)/,
   'The single-delete handler must not reject Học bổ sung before routing to its dedicated RPC.',
 );
+assert.doesNotMatch(
+  ui,
+  /if\s*\(\s*isSupplementalHistorySession\(target\)\s*\)\s*return\s*;/,
+  'Bulk selection must allow an individual Học bổ sung history row to be selected.',
+);
+assert.doesNotMatch(
+  ui,
+  /filteredHistory\.filter\(\(session\)\s*=>\s*!isSupplementalHistorySession\(session\)\)/,
+  'Select-all must include Học bổ sung rows instead of filtering them out.',
+);
 assert.match(
   ui,
   /deleteSupplementalAttendanceHistory\s*\(/,
