@@ -44,25 +44,35 @@ assert.match(
   /\.attendance-shell \.attendance-tabs > button\s*\{[\s\S]*?font-size:\s*var\(--att-type-tab\)\s*!important/,
   'All Attendance tabs must use the History tab size',
 );
+
+// The production stylesheet intentionally groups equivalent selectors. Match from each
+// selector through its shared declaration block so the contract checks behavior rather
+// than requiring duplicated one-selector blocks.
 assert.match(
   launchCss,
-  /\.attendance-shell \.attendance-rollcall-head h2\s*\{[\s\S]*?font-size:\s*var\(--att-type-section-title\)\s*!important/,
+  /\.attendance-shell \.attendance-rollcall-head h2,[\s\S]*?\{[\s\S]*?font-size:\s*var\(--att-type-section-title\)\s*!important/,
   'Quick Attendance section headings must use the shared section-title size',
 );
 assert.match(
   launchCss,
-  /\.attendance-shell \.attendance-class-list button b\s*\{[\s\S]*?font-size:\s*var\(--att-type-card-title\)\s*!important/,
+  /\.attendance-shell \.attendance-class-list button b,[\s\S]*?\{[\s\S]*?font-size:\s*var\(--att-type-card-title\)\s*!important/,
   'Quick Attendance class cards must use the History card-title size',
 );
 assert.match(
   launchCss,
-  /\.attendance-shell \.attendance-member-manager h2\s*\{[\s\S]*?font-size:\s*var\(--att-type-section-title\)\s*!important/,
+  /\.attendance-shell \.attendance-member-manager > header h2,[\s\S]*?\{[\s\S]*?font-size:\s*var\(--att-type-section-title\)\s*!important/,
   'Manage Classes section headings must use the shared section-title size',
 );
 assert.match(
   launchCss,
-  /\.attendance-shell \.attendance-member-table b\s*\{[\s\S]*?font-size:\s*var\(--att-type-card-title\)\s*!important/,
+  /\.attendance-shell \.attendance-member-table b,[\s\S]*?\{[\s\S]*?font-size:\s*var\(--att-type-card-title\)\s*!important/,
   'Manage Classes rows must use the History card-title size',
+);
+
+assert.doesNotMatch(
+  launchCss,
+  /\.attendance-rollcall \.attendance-rollcall-head h2\s*\{[\s\S]*?font-size:\s*(?:23px|24px)/,
+  'Legacy oversized Quick Attendance heading must not return',
 );
 
 console.log('Attendance typography parity with History reference OK');
