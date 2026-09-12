@@ -1,0 +1,63 @@
+/* Attendance History V6.2 — final micro-polish toward the approved mockup. */
+
+/* Selected session cards: keep semantic color, soften the outline and depth. */
+.attendance-shell.ah-history-pixel-v6 .ahv3__items > button.is-selected.ah-kind-remedial {
+  border-color: #f5b98f !important;
+  background: linear-gradient(90deg, #fffaf6 0%, #ffffff 72%) !important;
+  box-shadow: 0 5px 14px rgba(180, 91, 26, .055) !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__items > button.is-selected.ah-kind-gifted {
+  border-color: #a9cdfc !important;
+  background: linear-gradient(90deg, #f7fbff 0%, #ffffff 72%) !important;
+  box-shadow: 0 5px 14px rgba(31, 101, 190, .055) !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__items > button.is-selected.ah-kind-supplemental {
+  border-color: #a9ddbb !important;
+  background: linear-gradient(90deg, #f8fdf9 0%, #ffffff 72%) !important;
+  box-shadow: 0 5px 14px rgba(26, 126, 63, .05) !important;
+}
+
+/* Lift the academic artwork slightly and give it enough presence to balance the hero. */
+.attendance-shell.ah-history-pixel-v6 [data-ah-v6-hero-art] {
+  bottom: 0 !important;
+  opacity: .86 !important;
+}
+
+/* Recover the last few vertical pixels without making the detail cards feel cramped. */
+.attendance-shell.ah-history-pixel-v6 .ahv3__section-title {
+  margin-top: 10px !important;
+  margin-bottom: 6px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__info-grid > article {
+  min-height: 65px !important;
+  padding-block: 9px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__stat-grid {
+  gap: 8px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__stat-grid > article {
+  min-height: 70px !important;
+  padding-block: 8px !important;
+}
+
+.attendance-shell.ah-history-pixel-v6 .ahv3__audit-actor-panel {
+  margin-top: 10px !important;
+  padding-block: 9px !important;
+}
+
+/* Keep laptop and mobile behavior from V6.1 intact. */
+@media (max-width: 1180px) {
+  .attendance-shell.ah-history-pixel-v6 .ahv3__items > button.is-selected {
+    box-shadow: 0 4px 12px rgba(34, 65, 103, .05) !important;
+  }
+
+  .attendance-shell.ah-history-pixel-v6 [data-ah-v6-hero-art] {
+    bottom: 1px !important;
+    opacity: .82 !important;
+  }
+}
