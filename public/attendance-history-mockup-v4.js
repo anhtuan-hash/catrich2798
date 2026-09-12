@@ -3,14 +3,6 @@
 
   const OWNED = 'data-ah-mockup-owned';
   let observedShell = null;
-  let lastSuccessText = '';
-
-  const typeMeta = {
-    all: { label: 'Tất cả', icon: '▦' },
-    remedial: { label: 'Phụ đạo', icon: '●' },
-    gifted: { label: 'Bồi dưỡng', icon: '◆' },
-    supplemental: { label: 'Học bổ sung', icon: '▣' },
-  };
 
   const activityFilterMarkup = `
     <div class="ah-mockup-filterbar" ${OWNED}="filterbar">
@@ -140,21 +132,15 @@
   function ensureSuccessBanner(root) {
     const shell = shellFor(root);
     const banner = shell?.querySelector('.attendance-banner.is-success');
-    if (!banner) {
-      lastSuccessText = '';
-      return;
-    }
+    if (!banner) return;
 
-    const currentRaw = banner.getAttribute('data-ah-original-text') || banner.textContent?.trim() || '';
-    const owned = banner.getAttribute(OWNED) === 'success-banner';
-    if (owned && currentRaw === lastSuccessText) return;
+    const alreadyEnhanced = banner.getAttribute(OWNED) === 'success-banner'
+      && Boolean(banner.querySelector('.ah-mockup-banner-copy'));
+    if (alreadyEnhanced) return;
 
-    const original = owned
-      ? currentRaw
-      : (banner.textContent || '').replace(/×\s*$/, '').trim();
+    const original = (banner.textContent || '').replace(/×\s*$/, '').trim();
     if (!original) return;
 
-    lastSuccessText = original;
     banner.setAttribute(OWNED, 'success-banner');
     banner.setAttribute('data-ah-original-text', original);
     banner.hidden = false;
