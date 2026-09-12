@@ -25,6 +25,8 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Verify attendance history visual redesign
         run: node scripts/test-attendance-history-visual-redesign.mjs
+      - name: Verify approved attendance history mockup V4
+        run: node scripts/test-attendance-history-mockup-v4.mjs
       - name: Verify attendance history behavior guard
         run: node scripts/test-attendance-history-functional-guard.mjs
       - name: Verify attendance history date filter and sorting
