@@ -1,0 +1,22 @@
+name: Supplemental hard delete
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/attendance/supplementalLearningApi.js'
+      - 'src/supplementalLearningBootstrap.js'
+      - 'supabase/migrations/*supplemental_class_hard_delete*.sql'
+      - 'scripts/test-supplemental-hard-delete.mjs'
+      - '.github/workflows/supplemental-hard-delete.yml'
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node scripts/test-supplemental-hard-delete.mjs

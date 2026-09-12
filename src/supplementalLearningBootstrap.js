@@ -3,7 +3,7 @@ import { readSheet } from 'read-excel-file/browser';
 import { ensureRuntimeReady, getRuntimeClient, getRuntimeState, subscribeRuntime } from './services/runtime/core.js';
 import { canManageSupplementalLearning } from './supplementalAccess.js';
 import {
-  archiveSupplementalClass,
+  deleteSupplementalClass,
   loadSupplementalClasses,
   setSupplementalClassMemberStatus,
   upsertSupplementalClass,
@@ -125,13 +125,13 @@ function classCards() {
   if (!rows.length) return '<div class="bes-supplemental-empty-state"><strong>Chưa có lớp học bổ sung phù hợp.</strong><span>Chọn “Tạo lớp học bổ sung” để bắt đầu.</span></div>';
   return `<div class="bes-supplemental-class-grid">${rows.map((item) => {
     const next = item.nextSession || null;
-    return `<article class="bes-supplemental-class-card"><header><div><span class="bes-supplemental-source-badge">LỚP HỌC BỔ SUNG</span><h3>${esc(item.className || item.groupName)}</h3><p>${esc(item.subject)} · Khối ${esc(item.gradeLevel || '—')}</p></div><span class="bes-supplemental-status ${item.active === false ? 'is-paused' : ''}">${item.active === false ? 'Tạm dừng' : 'Đang hoạt động'}</span></header><div class="bes-supplemental-class-meta"><span><b>Phòng</b>${esc(item.room || 'Chưa xếp')}</span><span><b>Lịch học</b>${esc(scheduleLabel(item))}</span><span><b>Giáo viên</b>${esc(teacherNames(item))}</span><span><b>Học sinh</b>${Number(item.activeStudentCount || 0)} đang học</span></div>${next ? `<p class="bes-supplemental-next-session"><b>Buổi kế tiếp:</b> ${esc(next.date)} · ${esc(next.startTime)}–${esc(next.endTime)}</p>` : '<p class="bes-supplemental-next-session is-muted">Chưa có buổi sắp tới.</p>'}<footer><button type="button" class="is-primary" data-action="manage-class" data-id="${esc(item.id)}">Quản lý</button><button type="button" data-action="attendance" data-id="${esc(item.id)}" data-session="${esc(next?.id || '')}" ${next ? '' : 'disabled'}>Điểm danh</button><button type="button" data-action="history" data-id="${esc(item.id)}">Lịch sử</button><button type="button" class="is-danger-quiet" data-action="archive-class" data-id="${esc(item.id)}">Xóa lớp</button></footer></article>`;
+    return `<article class="bes-supplemental-class-card"><header><div><span class="bes-supplemental-source-badge">LỚP HỌC BỔ SUNG</span><h3>${esc(item.className || item.groupName)}</h3><p>${esc(item.subject)} · Khối ${esc(item.gradeLevel || '—')}</p></div><span class="bes-supplemental-status ${item.active === false ? 'is-paused' : ''}">${item.active === false ? 'Tạm dừng' : 'Đang hoạt động'}</span></header><div class="bes-supplemental-class-meta"><span><b>Phòng</b>${esc(item.room || 'Chưa xếp')}</span><span><b>Lịch học</b>${esc(scheduleLabel(item))}</span><span><b>Giáo viên</b>${esc(teacherNames(item))}</span><span><b>Học sinh</b>${Number(item.activeStudentCount || 0)} đang học</span></div>${next ? `<p class="bes-supplemental-next-session"><b>Buổi kế tiếp:</b> ${esc(next.date)} · ${esc(next.startTime)}–${esc(next.endTime)}</p>` : '<p class="bes-supplemental-next-session is-muted">Chưa có buổi sắp tới.</p>'}<footer><button type="button" class="is-primary" data-action="manage-class" data-id="${esc(item.id)}">Quản lý</button><button type="button" data-action="attendance" data-id="${esc(item.id)}" data-session="${esc(next?.id || '')}" ${next ? '' : 'disabled'}>Điểm danh</button><button type="button" data-action="history" data-id="${esc(item.id)}">Lịch sử</button><button type="button" class="is-danger-quiet" data-action="delete-class" data-id="${esc(item.id)}">Xóa lớp</button></footer></article>`;
   }).join('')}</div>`;
 }
 function archivedClasses() {
   const rows = classes.filter((item) => item.archivedAt);
   if (!rows.length) return '';
-  return `<details class="bes-supplemental-archive"><summary>Lớp đã lưu trữ (${rows.length})</summary><div>${rows.map((item) => `<article><span><b>${esc(item.className || item.groupName)}</b><small>${esc(item.subject)} · ${esc(item.archivedAt || '')}</small></span><button type="button" data-action="history" data-id="${esc(item.id)}">Xem lịch sử</button></article>`).join('')}</div></details>`;
+  return `<details class="bes-supplemental-archive"><summary>Lớp đã lưu trữ (${rows.length})</summary><div>${rows.map((item) => `<article><span><b>${esc(item.className || item.groupName)}</b><small>${esc(item.subject)} · ${esc(item.archivedAt || '')}</small></span><button type="button" data-action="history" data-id="${esc(item.id)}">Xem lịch sử</button><button type="button" class="is-danger-quiet" data-action="delete-class" data-id="${esc(item.id)}">Xóa vĩnh viễn</button></article>`).join('')}</div></details>`;
 }
 function memberRows(item) {
   if (!(item.members || []).length) return '<p class="bes-supplemental-empty">Chưa có học sinh trong lớp.</p>';
@@ -220,10 +220,10 @@ async function importMembersFromFile(file, classId) {
 async function changeMemberStatus(classId, studentId, active) {
   await runMutation(() => setSupplementalClassMemberStatus(client, { groupId: classId, studentId, active, effectiveDate: today() }), active ? 'Đã kích hoạt lại học sinh.' : 'Đã chuyển học sinh sang Ngừng học.');
 }
-async function archiveClass(classId) {
+async function deleteClass(classId) {
   const item = classes.find((row) => row.id === classId);
-  if (!item || !window.confirm(`Xóa lớp “${item.className || item.groupName}” khỏi danh sách hoạt động? Lịch sử điểm danh sẽ được giữ nguyên.`)) return;
-  await runMutation(async () => { await archiveSupplementalClass(client, classId, 'Lớp đã được lưu trữ'); selectedClassId = ''; }, 'Đã lưu trữ lớp và giữ nguyên toàn bộ lịch sử.', { keepSelection: false });
+  if (!item || !window.confirm(`Xóa vĩnh viễn lớp “${item.className || item.groupName}”? Toàn bộ lịch học, dữ liệu điểm danh và lịch sử của lớp sẽ bị xóa hoàn toàn. Không thể hoàn tác.`)) return;
+  await runMutation(async () => { await deleteSupplementalClass(client, classId); selectedClassId = ''; }, 'Đã xóa vĩnh viễn lớp Học bổ sung.', { keepSelection: false });
 }
 function openAttendance(item, sessionId) {
   if (!sessionId) return window.alert('Lớp chưa có buổi sắp tới để điểm danh.');
@@ -250,7 +250,7 @@ function bindPanel(host, selected) {
   host.querySelector('[data-action="create-class"]')?.addEventListener('click', () => { creatingClass = true; selectedClassId = ''; renderPanel(); });
   host.querySelectorAll('[data-action="back-to-classes"]').forEach((button) => button.addEventListener('click', () => { creatingClass = false; selectedClassId = ''; renderPanel(); }));
   host.querySelectorAll('[data-action="manage-class"]').forEach((button) => button.addEventListener('click', () => { selectedClassId = button.dataset.id || ''; creatingClass = false; renderPanel(); }));
-  host.querySelectorAll('[data-action="archive-class"]').forEach((button) => button.addEventListener('click', () => void archiveClass(button.dataset.id)));
+  host.querySelectorAll('[data-action="delete-class"]').forEach((button) => button.addEventListener('click', () => void deleteClass(button.dataset.id)));
   host.querySelectorAll('[data-action="attendance"]').forEach((button) => button.addEventListener('click', () => { const item = classes.find((row) => row.id === button.dataset.id); if (item) openAttendance(item, button.dataset.session); }));
   host.querySelectorAll('[data-action="history"]').forEach((button) => button.addEventListener('click', () => { const item = classes.find((row) => row.id === button.dataset.id); if (item) openHistory(item); }));
   const classForm = host.querySelector('[data-form="class"]');
