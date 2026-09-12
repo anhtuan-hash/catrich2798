@@ -14,98 +14,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  implement:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: fix/supplemental-history-delete-parity-20260912
-      - name: Apply bounded supplemental delete-history changes
-        run: |
-          node <<'NODE'
-          const fs = require('node:fs');
-
-          function replaceOnce(path, before, after) {
-            const source = fs.readFileSync(path, 'utf8');
-            if (source.includes(after)) return false;
-            if (!source.includes(before)) throw new Error(`Expected source block not found in ${path}: ${before}`);
-            fs.writeFileSync(path, source.replace(before, after));
-            return true;
-          }
-
-          function replaceAllExact(path, before, after, expectedCount) {
-            const source = fs.readFileSync(path, 'utf8');
-            if (source.includes(after) && !source.includes(before)) return false;
-            const count = source.split(before).length - 1;
-            if (count !== expectedCount) throw new Error(`Expected ${expectedCount} occurrences in ${path}, found ${count}: ${before}`);
-            fs.writeFileSync(path, source.split(before).join(after));
-            return true;
-          }
-
-          let changed = false;
-
-          changed = replaceOnce(
-            'src/attendance/supplementalLearningApi.js',
-            "export async function cancelSupplementalSession(client, sessionId, reason = '') {\n  return rpc(client, 'bes_cancel_supplemental_session', { p_session_id: sessionId, p_reason: reason });\n}\nexport async function loadSupplementalAttendanceActivities(client, range = {}) {",
-            "export async function cancelSupplementalSession(client, sessionId, reason = '') {\n  return rpc(client, 'bes_cancel_supplemental_session', { p_session_id: sessionId, p_reason: reason });\n}\nexport async function deleteSupplementalAttendanceHistory(client, sessionId) {\n  return rpc(client, 'bes_delete_supplemental_attendance_history', { p_session_id: sessionId });\n}\nexport async function loadSupplementalAttendanceActivities(client, range = {}) {",
-          ) || changed;
-
-          changed = replaceOnce(
-            'src/components/GlobalAttendanceNavigationTab.jsx',
-            "import { attachSupplementalProof, beginSupplementalAttendance, cancelSupplementalSession, confirmSupplementalAttendance } from '../attendance/supplementalLearningApi.js';",
-            "import { attachSupplementalProof, beginSupplementalAttendance, cancelSupplementalSession, confirmSupplementalAttendance, deleteSupplementalAttendanceHistory } from '../attendance/supplementalLearningApi.js';",
-          ) || changed;
-
-          changed = replaceOnce(
-            'src/components/GlobalAttendanceNavigationTab.jsx',
-            "  async function deleteAttendanceSession(session) {",
-            "  async function deleteAttendanceHistoryAtSource(session) {\n    if (isSupplementalHistorySession(session)) {\n      try {\n        await deleteSupplementalAttendanceHistory(client, session.supplemental_session_id);\n        return { error: null };\n      } catch (error) {\n        return { error };\n      }\n    }\n    return client.rpc('bes_delete_extra_attendance_session', { p_session_id: session.id });\n  }\n\n  async function deleteAttendanceSession(session) {",
-          ) || changed;
-
-          changed = replaceOnce(
-            'src/components/GlobalAttendanceNavigationTab.jsx',
-            "    if (!session || busy || !client || !canDeleteAttendanceHistory || isSupplementalHistorySession(session)) return;",
-            "    if (!session || busy || !client || !canDeleteAttendanceHistory) return;",
-          ) || changed;
-
-          changed = replaceAllExact(
-            'src/components/GlobalAttendanceNavigationTab.jsx',
-            "const { error: deleteError } = await client.rpc('bes_delete_extra_attendance_session', { p_session_id: session.id });",
-            "const { error: deleteError } = await deleteAttendanceHistoryAtSource(session);",
-            2,
-          ) || changed;
-
-          changed = replaceOnce(
-            'src/components/GlobalAttendanceNavigationTab.jsx',
-            "    const targets = sessions.filter((session) => selectedIdSet.has(String(session.id)));",
-            "    const targets = combinedHistorySessions.filter((session) => selectedIdSet.has(String(session.id)));",
-          ) || changed;
-
-          changed = replaceOnce(
-            'src/components/GlobalAttendanceNavigationTab.jsx',
-            "canDeleteAttendanceHistory && !isSupplementalHistorySession(selectedSession) ?",
-            "canDeleteAttendanceHistory ?",
-          ) || changed;
-
-          if (!changed) console.log('Supplemental delete-history implementation already present.');
-          NODE
-      - name: Commit implementation when changed
-        run: |
-          if git diff --quiet; then
-            echo "No implementation changes to commit."
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/components/GlobalAttendanceNavigationTab.jsx src/attendance/supplementalLearningApi.js
-          git commit -m "fix: enable supplemental attendance history deletion"
-          git push origin HEAD:fix/supplemental-history-delete-parity-20260912
-
   contract:
     runs-on: ubuntu-latest
     timeout-minutes: 15
