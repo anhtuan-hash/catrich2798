@@ -4,8 +4,11 @@ on:
   push:
     branches:
       - fix/attendance-modal-compact-scroll
+      - fix/attendance-modal-size-history-standard
   pull_request:
     paths:
+      - 'public/attendance-windows8-launch.css'
+      - 'public/attendance-history-mockup-v4.css'
       - 'src/components/GlobalAttendanceNavigationTab.css'
       - 'scripts/test-attendance-modal-compact-scroll.mjs'
 
@@ -20,5 +23,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Compact modal scroll contract
+      - name: History-sized modal scroll contract
         run: node scripts/test-attendance-modal-compact-scroll.mjs
