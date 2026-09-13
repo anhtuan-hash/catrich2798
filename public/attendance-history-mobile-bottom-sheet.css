@@ -1,0 +1,476 @@
+/* Attendance History mobile bottom sheet — approved mobile list/detail pattern.
+   Desktop stays untouched. This file is loaded after every Attendance history skin. */
+
+@media (max-width: 900px) {
+  html body .attendance-shell.ah-history-v5 .ahv3__shell[data-attendance-history-v3="true"].ahv3__shell {
+    position: relative !important;
+    box-sizing: border-box !important;
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    grid-template-columns: none !important;
+    grid-template-rows: none !important;
+    gap: 0 !important;
+    overflow: hidden !important;
+    isolation: isolate;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__shell[data-attendance-history-v3="true"] .ahv3__list {
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+    border-radius: 18px !important;
+  }
+
+  /* Compact list toolbar: search first, advanced date filters only when requested. */
+  html body .attendance-shell.ah-history-v5 .ahv3__shell[data-attendance-history-v3="true"] .ahv3__list-head,
+  html body .attendance-shell.ah-history-v5 .ahv3__shell[data-attendance-history-v3="true"].is-mobile-detail-open .ahv3__list-head {
+    position: relative !important;
+    top: auto !important;
+    z-index: 2 !important;
+    flex: 0 0 auto !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 44px !important;
+    gap: 8px !important;
+    padding: 10px !important;
+    border-bottom: 1px solid #edf2f8 !important;
+    background: #fff !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__list-title {
+    grid-column: 1 / -1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    min-width: 0 !important;
+    min-height: 28px !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__list-title > div:first-child {
+    display: none !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__list-actions {
+    width: 100% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__list-actions > span {
+    min-height: 28px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 4px 9px !important;
+    background: #f1f5f9 !important;
+    color: #64748b !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__list-actions button {
+    min-height: 36px !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__list-head > .ahv3__search {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    border-radius: 13px !important;
+    background: #f8fbff !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-filter-toggle {
+    grid-column: 2 !important;
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    padding: 0 !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    border: 1px solid #dce7f5 !important;
+    border-radius: 13px !important;
+    background: #f8fbff !important;
+    color: #315b91 !important;
+    cursor: pointer !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-filter-toggle.is-active {
+    border-color: #91baf1 !important;
+    background: #eaf3ff !important;
+    color: #1767d9 !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-filter-toggle svg {
+    width: 19px !important;
+    height: 19px !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__filters {
+    grid-column: 1 / -1 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 8px !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__filters label[data-ah-v5-type-filter="sync-only"] {
+    display: none !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__filters label:not([data-ah-v5-type-filter="sync-only"]) {
+    display: flex !important;
+    align-items: center !important;
+    gap: 7px !important;
+    margin-left: auto !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__filters label:not([data-ah-v5-type-filter="sync-only"]) > span {
+    font-size: 9px !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__filters select {
+    width: auto !important;
+    max-width: 170px !important;
+    min-height: 34px !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__date-filters,
+  html body .attendance-shell.ah-history-v5 .ahv3__filter-meta {
+    grid-column: 1 / -1 !important;
+    display: none !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__shell.is-mobile-filters-open .ahv3__date-filters {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    margin: 0 !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__shell.is-mobile-filters-open .ahv3__filter-meta {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 8px !important;
+    margin: 0 !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__bulk-toolbar {
+    grid-column: 1 / -1 !important;
+    margin: 0 !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__items {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    max-width: 100% !important;
+    padding: 8px !important;
+    gap: 8px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch;
+    background: #f7f9fc !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__items > button {
+    min-height: 86px !important;
+    padding: 10px 32px 10px 11px !important;
+    border-radius: 15px !important;
+  }
+
+  /* Detail is no longer a second row. It is a true in-modal bottom sheet. */
+  html body .attendance-shell.ah-history-v5 .ahv3__shell[data-attendance-history-v3="true"] .ahv3__detail {
+    display: none !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-sheet-backdrop {
+    position: absolute !important;
+    inset: 0 !important;
+    z-index: 30 !important;
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    background: rgba(15, 34, 56, .28) !important;
+    backdrop-filter: blur(1.5px) !important;
+    -webkit-backdrop-filter: blur(1.5px) !important;
+    cursor: default !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__shell.is-mobile-detail-open .ahv3__detail {
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    z-index: 40 !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: 78% !important;
+    min-height: 0 !important;
+    max-height: 78% !important;
+    padding: 36px 12px calc(16px + env(safe-area-inset-bottom)) !important;
+    border: 1px solid #e5edf7 !important;
+    border-bottom: 0 !important;
+    border-radius: 26px 26px 0 0 !important;
+    background: #fff !important;
+    box-shadow: 0 -18px 46px rgba(15, 34, 56, .20) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__shell.is-mobile-detail-open .ahv3__detail::before {
+    content: "" !important;
+    position: absolute !important;
+    top: 10px !important;
+    left: 50% !important;
+    width: 44px !important;
+    height: 4px !important;
+    border-radius: 999px !important;
+    background: #a9b5c6 !important;
+    transform: translateX(-50%) !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-sheet-close {
+    position: absolute !important;
+    top: calc(22% + 10px) !important;
+    right: 12px !important;
+    z-index: 50 !important;
+    width: 42px !important;
+    height: 42px !important;
+    display: inline-grid !important;
+    place-items: center !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: #f3f6fa !important;
+    color: #334155 !important;
+    box-shadow: 0 1px 3px rgba(15, 34, 56, .08) !important;
+    font: 500 27px/1 system-ui, sans-serif !important;
+    cursor: pointer !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__shell.is-mobile-detail-dismissed .ahv3__detail,
+  html body .attendance-shell.ah-history-v5 .ahv3__shell.is-mobile-detail-dismissed .ahv3__mobile-sheet-backdrop,
+  html body .attendance-shell.ah-history-v5 .ahv3__shell.is-mobile-detail-dismissed .ahv3__mobile-sheet-close {
+    display: none !important;
+  }
+
+  /* Mockup hierarchy inside the sheet: status/title → 3 key stats → essential info → more detail. */
+  html body .attendance-shell.ah-history-v5 .ahv3__shell.is-mobile-detail-open .ahv3__detail > * {
+    flex: 0 0 auto !important;
+    order: 20;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__shell.is-mobile-detail-open .ahv3__hero {
+    order: 1 !important;
+    min-height: 0 !important;
+    padding: 14px !important;
+    border-radius: 18px !important;
+    background: linear-gradient(135deg, #f5f9ff 0%, #edf4ff 100%) !important;
+    box-shadow: inset 4px 0 0 #2f73ee !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__shell.is-mobile-detail-open .ahv3__hero-art {
+    display: none !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__shell.is-mobile-detail-open .ahv3__hero h2 {
+    max-width: 100% !important;
+    margin-top: 8px !important;
+    font-size: clamp(25px, 7.5vw, 34px) !important;
+    line-height: 1.02 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__shell.is-mobile-detail-open .ahv3__hero-chips {
+    flex-wrap: wrap !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__shell.is-mobile-detail-open .ahv3__hero .ahv3__actions {
+    display: none !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-summary {
+    order: 2 !important;
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    margin-top: 10px !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-summary > article {
+    min-width: 0 !important;
+    min-height: 72px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    gap: 3px !important;
+    padding: 9px 8px !important;
+    border-radius: 13px !important;
+    background: #eef9f2 !important;
+    text-align: left !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-summary > article.is-absent {
+    background: #fff1f2 !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-summary > article.is-rate {
+    background: #eef9f2 !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-summary b {
+    color: #15803d !important;
+    font-size: 20px !important;
+    line-height: 1 !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-summary .is-absent b {
+    color: #dc3545 !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-summary span {
+    color: #6b7d92 !important;
+    font-size: 9px !important;
+    line-height: 1.25 !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__section-title.is-info {
+    order: 3 !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__info-grid {
+    order: 4 !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__summary-title,
+  html body .attendance-shell.ah-history-v5 .ahv3__stat-grid {
+    display: none !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__audit-actor-panel { order: 8 !important; }
+  html body .attendance-shell.ah-history-v5 .ahv3__proof { order: 9 !important; }
+  html body .attendance-shell.ah-history-v5 .ahv3__late-section { order: 10 !important; }
+  html body .attendance-shell.ah-history-v5 .ahv3__absent-section { order: 11 !important; }
+  html body .attendance-shell.ah-history-v5 .ahv3__footer-grid { order: 12 !important; }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-sheet-actions {
+    order: 100 !important;
+    position: sticky !important;
+    bottom: calc(-16px - env(safe-area-inset-bottom)) !important;
+    z-index: 3 !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+    margin: 12px -2px -2px !important;
+    padding: 12px 2px calc(4px + env(safe-area-inset-bottom)) !important;
+    background: linear-gradient(180deg, rgba(255,255,255,.84), #fff 26%) !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-sheet-actions button {
+    width: 100% !important;
+    min-height: 50px !important;
+    border-radius: 13px !important;
+    font: 800 12px/1.2 system-ui, sans-serif !important;
+    cursor: pointer !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-sheet-actions .is-primary {
+    border: 1px solid #2169df !important;
+    background: #2f73ee !important;
+    color: #fff !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-sheet-actions .is-danger {
+    border: 1px solid #f1a9af !important;
+    background: #fff !important;
+    color: #d93646 !important;
+  }
+}
+
+@media (max-width: 520px) {
+  html body .attendance-shell.ah-history-v5 .ahv3__shell.is-mobile-detail-open .ahv3__detail {
+    height: 80% !important;
+    max-height: 80% !important;
+    padding-inline: 10px !important;
+    border-radius: 24px 24px 0 0 !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-sheet-close {
+    top: calc(20% + 9px) !important;
+    right: 10px !important;
+    width: 40px !important;
+    height: 40px !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__list-head {
+    padding: 8px !important;
+    grid-template-columns: minmax(0, 1fr) 42px !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-filter-toggle {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__filters label:not([data-ah-v5-type-filter="sync-only"]) > span {
+    display: none !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__filters select {
+    max-width: 150px !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__shell.is-mobile-filters-open .ahv3__date-filters {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__items > button {
+    min-height: 82px !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-summary {
+    gap: 6px !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-summary > article {
+    min-height: 68px !important;
+    padding-inline: 7px !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-summary b {
+    font-size: 18px !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__info-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

@@ -9,10 +9,14 @@ on:
       - fix/attendance-mobile-modal-frame
       - fix/attendance-mobile-inner-layout
       - fix/attendance-history-mobile-list-first
+      - fix/attendance-history-mobile-bottom-sheet
   pull_request:
     paths:
       - 'public/attendance-windows8-launch.css'
       - 'public/attendance-history-mockup-v4.css'
+      - 'public/attendance-history-v5.css'
+      - 'public/attendance-history-v5.js'
+      - 'public/attendance-history-mobile-bottom-sheet.css'
       - 'public/attendance-history-pixel-v6.css'
       - 'public/attendance-card-size-sync-v1.css'
       - 'src/components/GlobalAttendanceNavigationTab.css'
@@ -32,6 +36,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: History enhancer syntax
+        run: node --check public/attendance-history-v5.js
       - name: History-sized modal scroll contract
         run: node scripts/test-attendance-modal-compact-scroll.mjs
       - name: History typography parity contract
