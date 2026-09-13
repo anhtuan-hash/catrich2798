@@ -87,4 +87,206 @@
     min-height: 44px !important;
     padding-inline: 13px !important;
   }
+
+  /* Unified mobile modal frame -------------------------------------------------
+     This final layer is intentionally loaded after every Attendance visual skin.
+     The overlay owns the visual viewport; every Attendance shell then consumes only
+     the padded safe area. This prevents the old content-box + 100vw combination from
+     pushing dialogs to the right on iOS and keeps History on the exact same frame. */
+  html body .attendance-layer {
+    box-sizing: border-box !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    inset: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left)) !important;
+    overflow: hidden !important;
+  }
+
+  html body .attendance-shell.attendance-shell,
+  html body .attendance-shell.ah-history-mockup {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 680px !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    max-height: 100% !important;
+    margin: 0 auto !important;
+    overflow-x: hidden !important;
+    overflow-y: hidden !important;
+    border-radius: 22px !important;
+  }
+
+  html body .attendance-shell .attendance-topbar {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 76px !important;
+    gap: 10px !important;
+    padding: 12px 14px 10px !important;
+  }
+
+  html body .attendance-shell .attendance-title {
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+    gap: 10px !important;
+  }
+
+  html body .attendance-shell .attendance-title > span {
+    width: 44px !important;
+    height: 44px !important;
+    flex: 0 0 44px !important;
+    border-radius: 14px !important;
+  }
+
+  html body .attendance-shell .attendance-title > div {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  html body .attendance-shell .attendance-title small {
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+  }
+
+  html body .attendance-shell .attendance-title strong {
+    max-width: 100% !important;
+    font-size: 17px !important;
+    line-height: 1.18 !important;
+    letter-spacing: -.02em !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  html body .attendance-shell .attendance-top-actions {
+    flex: 0 0 auto !important;
+    align-self: flex-start !important;
+    gap: 6px !important;
+  }
+
+  html body .attendance-shell .attendance-icon-button {
+    width: 40px !important;
+    height: 40px !important;
+    flex: 0 0 40px !important;
+    border-radius: 12px !important;
+  }
+
+  html body .attendance-shell .attendance-tabs {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 54px !important;
+    gap: 6px !important;
+    padding: 4px 10px 8px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-x: contain !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  html body .attendance-shell .attendance-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  html body .attendance-shell .attendance-tabs > button {
+    flex: 0 0 auto !important;
+    min-width: max-content !important;
+    min-height: 42px !important;
+    padding-inline: 12px !important;
+    white-space: nowrap !important;
+  }
+
+  html body .attendance-shell .attendance-banner {
+    box-sizing: border-box !important;
+    max-width: calc(100% - 20px) !important;
+    margin-inline: 10px !important;
+  }
+
+  html body .attendance-shell .attendance-content {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 0 !important;
+    padding: 10px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  html body .attendance-shell .attendance-content > *,
+  html body .attendance-shell .attendance-quick-layout,
+  html body .attendance-shell .attendance-history-layout,
+  html body .attendance-shell .attendance-manage-layout,
+  html body .attendance-shell .attendance-management-grid,
+  html body .attendance-shell .attendance-rollcall,
+  html body .attendance-shell .attendance-history-detail {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Supplemental-learning uses a sibling dialog class rather than attendance-shell.
+     Give it the same width and overflow contract so the whole attendance system feels
+     like one product on mobile. */
+  html body .bes-supplemental-dialog {
+    box-sizing: border-box !important;
+    width: min(100%, 680px) !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    margin-inline: auto !important;
+    overflow-x: hidden !important;
+  }
+}
+
+@media (max-width: 520px) {
+  html body .attendance-layer {
+    padding-top: max(8px, env(safe-area-inset-top)) !important;
+    padding-right: max(8px, env(safe-area-inset-right)) !important;
+    padding-bottom: max(8px, env(safe-area-inset-bottom)) !important;
+    padding-left: max(8px, env(safe-area-inset-left)) !important;
+  }
+
+  html body .attendance-shell.attendance-shell,
+  html body .attendance-shell.ah-history-mockup {
+    max-width: none !important;
+    border-radius: 20px !important;
+  }
+
+  html body .attendance-shell .attendance-topbar {
+    min-height: 72px !important;
+    padding: 10px 12px 8px !important;
+  }
+
+  html body .attendance-shell .attendance-title > span {
+    width: 40px !important;
+    height: 40px !important;
+    flex-basis: 40px !important;
+  }
+
+  html body .attendance-shell .attendance-title strong {
+    font-size: 16px !important;
+  }
+
+  html body .attendance-shell .attendance-icon-button {
+    width: 38px !important;
+    height: 38px !important;
+    flex-basis: 38px !important;
+  }
+
+  html body .attendance-shell .attendance-tabs {
+    padding-inline: 8px !important;
+  }
+
+  html body .attendance-shell .attendance-content {
+    padding: 8px !important;
+  }
 }
