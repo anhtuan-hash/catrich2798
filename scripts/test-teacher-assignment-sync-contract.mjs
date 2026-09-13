@@ -4,7 +4,8 @@ const files = {
   sql: fs.readFileSync(new URL('../supabase/brian-teacher-assignment-sync.sql', import.meta.url), 'utf8'),
   client: fs.readFileSync(new URL('../src/utils/teacherAssignments.js', import.meta.url), 'utf8'),
   portal: fs.readFileSync(new URL('../src/pages/BrianTeamPortal.jsx', import.meta.url), 'utf8'),
-  cards: fs.readFileSync(new URL('../src/pages/MonthlyReportsCardRefresh.css', import.meta.url), 'utf8'),
+  workspace: fs.readFileSync(new URL('../src/pages/MonthlyReportsWorkspace.jsx', import.meta.url), 'utf8'),
+  styles: fs.readFileSync(new URL('../src/pages/MonthlyReportsWorkspace.css', import.meta.url), 'utf8'),
 };
 
 const checks = [
@@ -16,8 +17,9 @@ const checks = [
   ['Professional tasks and document requirements sync to teacher', files.sql.includes("d -> 'assignments'") && files.sql.includes("d -> 'documentRequirements'")],
   ['Monthly reports use synchronized source of truth', files.sql.includes('create or replace function public.bes_monthly_report_context()') && files.sql.includes('from public.department_teacher_sync s')],
   ['Shared assignment client is available for other teacher modules', files.client.includes('loadMyTeacherAssignments') && files.client.includes('summarizeTeacherAssignments')],
-  ['Refreshed report cards are loaded last', files.portal.includes("import './MonthlyReportsCardRefresh.css';")],
-  ['Report cards use four-color Google assignment identity system', ['#1a73e8','#9334e6','#188038','#f9ab00'].every((color) => files.cards.toLowerCase().includes(color))],
+  ['Brian Team mounts the active monthly report workspace', files.portal.includes('MonthlyReportsWorkspace') && files.portal.includes('<MonthlyReportsWorkspace')],
+  ['Report workspace owns its consolidated stylesheet', files.workspace.includes("import './MonthlyReportsWorkspace.css';") && files.styles.includes('.mr-teacher-shell') && files.styles.includes('.mr-manager')],
+  ['Synchronized report states remain visibly represented', ['.mr-notice', '.mr-revision', '.mr-lock'].every((selector) => files.styles.includes(selector))],
 ];
 
 const failed = checks.filter(([, ok]) => !ok);
