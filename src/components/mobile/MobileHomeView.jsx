@@ -1,5 +1,27 @@
-import React from 'react';
-import { ArrowRight, BarChart3, ClipboardClock, Sparkles } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { ArrowRight, BarChart3, CalendarDays, ClipboardClock, Sparkles } from 'lucide-react';
+
+function practiceTimestamp(item) {
+  const values = [item?.opens_at, item?.published_at, item?.created_at];
+  for (const value of values) {
+    if (!value) continue;
+    const time = new Date(value).getTime();
+    if (!Number.isNaN(time)) return time;
+  }
+  return 0;
+}
+
+function formatPracticeDate(item, language) {
+  const value = item?.opens_at || item?.published_at || item?.created_at;
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat(language === 'en' ? 'en-US' : 'vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(date);
+}
 
 export default function MobileHomeView({
   t,
@@ -19,6 +41,11 @@ export default function MobileHomeView({
   onOpenManager,
 }) {
   const vi = language !== 'en';
+  const [selectedGrade, setSelectedGrade] = useState(10);
+  const visiblePractices = useMemo(
+    () => [...(practicesByGrade[selectedGrade] || [])].sort((a, b) => practiceTimestamp(b) - practiceTimestamp(a)),
+    [practicesByGrade, selectedGrade],
+  );
 
   return (
     <main className="bes-mobile-home" data-bes-mobile-home="true" aria-label={vi ? 'Trang chủ Brian English' : 'Brian English home'}>
@@ -80,6 +107,24 @@ export default function MobileHomeView({
           </div>
         ) : null}
 
+        {!practiceLoading && !practiceError ? (
+          <div className="bes-mobile-home__grade-selector" aria-label={vi ? 'Chọn khối lớp' : 'Choose grade'}>
+            {[10, 11, 12].map((grade) => (
+              <button
+                key={grade}
+                type="button"
+                data-mobile-grade={grade}
+                aria-pressed={selectedGrade === grade}
+                onClick={() => setSelectedGrade(grade)}
+              >
+                <span>{t.grade}</span>
+                <strong>{grade}</strong>
+                <small>{(practicesByGrade[grade] || []).length}</small>
+              </button>
+            ))}
+          </div>
+        ) : null}
+
         {practiceLoading ? <div className="bes-mobile-home__state">{t.loading}</div> : null}
         {!practiceLoading && practiceError ? (
           <div className="bes-mobile-home__state is-error">
@@ -88,18 +133,34 @@ export default function MobileHomeView({
           </div>
         ) : null}
         {!practiceLoading && !practiceError ? (
-          <div className="bes-mobile-home__grade-summary" aria-label={vi ? 'Bài tập theo khối' : 'Practice by grade'}>
-            {[10, 11, 12].map((grade) => {
-              const items = practicesByGrade[grade] || [];
-              const newest = items[0];
-              return (
-                <article key={grade}>
-                  <span>{t.grade} {grade}</span>
-                  <strong>{items.length}</strong>
-                  <button type="button" disabled={!newest} onClick={() => newest && onOpenPractice?.(newest)}>{t.enter}</button>
-                </article>
-              );
-            })}
+          <div className="bes-mobile-home__practice-panel" data-mobile-practice-grade={selectedGrade}>
+            <div className="bes-mobile-home__practice-panel-head">
+              <div>
+                <small>{t.weekly}</small>
+                <h3>{t.english} {selectedGrade}</h3>
+              </div>
+              <span>{visiblePractices.length} {vi ? 'bài' : 'lessons'}</span>
+            </div>
+
+            {visiblePractices.length ? (
+              <div className="bes-mobile-home__practice-list">
+                {visiblePractices.map((item, index) => {
+                  const date = formatPracticeDate(item, language);
+                  return (
+                    <article key={item?.id || `${selectedGrade}-${index}`} className="bes-mobile-home__practice-card" data-mobile-practice-card>
+                      <div className="bes-mobile-home__practice-card-copy">
+                        <span className="bes-mobile-home__practice-index">{String(index + 1).padStart(2, '0')}</span>
+                        <div>
+                          <h4>{item?.title || `${t.english} ${selectedGrade}`}</h4>
+                          {date ? <small><CalendarDays size={14} />{date}</small> : null}
+                        </div>
+                      </div>
+                      <button type="button" onClick={() => onOpenPractice?.(item)}>{t.enter}<ArrowRight size={15} /></button>
+                    </article>
+                  );
+                })}
+              </div>
+            ) : <div className="bes-mobile-home__state">{t.empty}</div>}
           </div>
         ) : null}
       </section>
