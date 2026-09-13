@@ -1,5 +1,8 @@
 import React from 'react';
 import { Bell, ClipboardCheck, Menu, Search, UserRound } from 'lucide-react';
+import { hasAnyAttendanceAccess } from '../../utils/permissions.js';
+import { isAdminRole } from '../../utils/roles.js';
+import { buildMobileTopbarAction, runMobileNavigationItem } from './mobileNavigation.js';
 import '../../pages/AuthPageMobileRedesign.css';
 import '../../pages/AuthPageMobileHeroRemoval.css';
 
@@ -12,8 +15,7 @@ export default function MobileTopBar({
   title = 'Brian English',
   onMenu,
   onSearch,
-  quickAction,
-  onQuickAction,
+  onNotifications,
   onAccount,
   currentUser,
   hasUnread = false,
@@ -23,7 +25,21 @@ export default function MobileTopBar({
   const identityBrand = homeBrand || authBrand;
   const brandTitle = identityBrand ? 'Brian English' : title;
   const brandSubtitle = identityBrand ? 'ENGLISH HUB' : 'Brian English';
+  const canAccessAttendance = Boolean(currentUser?.id && (isAdminRole(currentUser?.role) || hasAnyAttendanceAccess(currentUser)));
+  const quickAction = buildMobileTopbarAction({
+    authenticated: Boolean(currentUser),
+    canAccessAttendance,
+    language: title === 'Home' ? 'en' : 'vi',
+  });
   const attendanceQuickAction = quickAction?.id === 'attendance';
+
+  const handleQuickAction = () => {
+    if (attendanceQuickAction) {
+      runMobileNavigationItem(quickAction);
+      return;
+    }
+    onNotifications?.();
+  };
 
   return (
     <header className={`bes-mobile-topbar${homeBrand ? ' is-home' : ''}${authBrand ? ' is-auth' : ''}`} data-bes-mobile-topbar="true">
@@ -54,7 +70,7 @@ export default function MobileTopBar({
           <button
             type="button"
             className={`bes-mobile-icon-button ${attendanceQuickAction ? 'bes-mobile-attendance-button' : 'bes-mobile-notification-button'}`}
-            onClick={onQuickAction}
+            onClick={handleQuickAction}
             aria-label={quickAction.label}
           >
             {attendanceQuickAction
