@@ -19,6 +19,7 @@ const appsSource = read('src/data/apps.js');
 const toolPageSource = read('src/pages/ToolPage.jsx');
 const knowledgeRemovalRuntimeSource = read('src/removeKnowledgeHubRuntime.js');
 const workflowSource = read('.github/workflows/critical-e2e.yml');
+const monthlyContractSource = read('scripts/test-monthly-reports-contract.mjs');
 
 const forbiddenQaMutations = [
   'addQuestionsFromTextToBank',
@@ -100,6 +101,28 @@ assert.equal(
   false,
   'Legacy Knowledge Hub compatibility runtime must not redirect the active route to Apps',
 );
+
+assert.equal(
+  monthlyContractSource.includes('MonthlyReportsWorkspaceModern.css'),
+  false,
+  'Monthly reports contract must not depend on the removed split modern stylesheet',
+);
+assert.equal(
+  monthlyContractSource.includes('MonthlyReportsTemplate.css'),
+  false,
+  'Monthly reports contract must validate the active consolidated workspace stylesheet',
+);
+
+for (const legacyWorkflow of [
+  '.github/workflows/apply-notification-toggle-fix.yml',
+  '.github/workflows/integrate-complete-task-workspace.yml',
+]) {
+  assert.equal(
+    fs.existsSync(path.join(root, legacyWorkflow)),
+    false,
+    `Retired department-app workflow must stay removed: ${legacyWorkflow}`,
+  );
+}
 
 assert.match(
   workflowSource,
