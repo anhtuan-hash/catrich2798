@@ -63,6 +63,31 @@ function runWhenIdle(callback, timeout = 1800) {
   window.setTimeout(callback, Math.min(timeout, 650));
 }
 
+function isDefaultAuthenticatedLandingRoute() {
+  const href = window.location.href || '';
+  if (href.includes('type=recovery') || href.includes('recovery=1')) return false;
+  const cleanHash = String(window.location.hash || '').replace('#/', '').replace('#', '').trim();
+  const routeOnly = cleanHash.split('?')[0].split('&')[0];
+  return !routeOnly || routeOnly === 'home';
+}
+
+async function prepareAuthenticatedLandingBeforeMain() {
+  if (!isDefaultAuthenticatedLandingRoute()) return;
+  try {
+    const [{ initializeAuthSession }, { getFirstAllowedRoute }] = await Promise.all([
+      import('./utils/auth.js'),
+      import('./utils/permissions.js'),
+    ]);
+    const user = await initializeAuthSession();
+    if (!user) return;
+    const targetRoute = getFirstAllowedRoute(user);
+    if (!targetRoute || targetRoute === 'home') return;
+    window.history.replaceState(null, '', `#/${targetRoute}`);
+  } catch (error) {
+    console.warn('[AuthenticatedLanding] Không thể xác định trang mặc định sau đăng nhập.', error);
+  }
+}
+
 function isHomeroomRoute() {
   return /homeroom|chu-nhiem|gvcn/i.test(window.location.hash || '');
 }
@@ -299,6 +324,7 @@ async function startApplication() {
   // Typography is system chrome, not an authenticated preference. Resolve the
   // Admin-selected public typography before Brian renders its first frame.
   await bootstrapPublicTypographyBeforeApp();
+  await prepareAuthenticatedLandingBeforeMain();
 
   // Server assignment wins absolutely. Only when the RPC returns no explicit
   // homeroom assignment may the exact local registry assignment act as fallback.
