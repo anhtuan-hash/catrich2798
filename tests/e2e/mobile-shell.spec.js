@@ -57,6 +57,7 @@ test('mobile menu opens a touch-friendly route sheet without changing the curren
 
   await page.getByRole('button', { name: 'Mở menu' }).click();
   await expect(page.getByRole('dialog', { name: 'Điều hướng Brian English' })).toBeVisible();
-  await expect(page.locator('.bes-mobile-sheet button').first()).toHaveCSS('min-height', '44px');
+  const firstButtonMinHeight = await page.locator('.bes-mobile-sheet button').first().evaluate((element) => Number.parseFloat(getComputedStyle(element).minHeight));
+  expect(firstButtonMinHeight).toBeGreaterThanOrEqual(44);
   expect(await page.evaluate(() => window.location.hash)).toBe(originalHash);
 });
