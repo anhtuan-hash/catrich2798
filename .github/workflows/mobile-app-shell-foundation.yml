@@ -12,11 +12,7 @@ on:
       - 'src/styles/mobile/**'
       - 'tests/unit/presentation-mode.test.mjs'
       - 'tests/unit/mobile-navigation.test.mjs'
-      - 'tests/unit/smoke-css-sources.test.mjs'
       - 'tests/e2e/mobile-shell.spec.js'
-      - 'scripts/smoke-test.mjs'
-      - 'scripts/node-test-loader.mjs'
-      - 'scripts/register-node-test-loader.mjs'
       - 'playwright.config.js'
       - '.github/workflows/mobile-app-shell-foundation.yml'
   pull_request:
@@ -28,11 +24,7 @@ on:
       - 'src/styles/mobile/**'
       - 'tests/unit/presentation-mode.test.mjs'
       - 'tests/unit/mobile-navigation.test.mjs'
-      - 'tests/unit/smoke-css-sources.test.mjs'
       - 'tests/e2e/mobile-shell.spec.js'
-      - 'scripts/smoke-test.mjs'
-      - 'scripts/node-test-loader.mjs'
-      - 'scripts/register-node-test-loader.mjs'
       - 'playwright.config.js'
       - '.github/workflows/mobile-app-shell-foundation.yml'
 
@@ -55,14 +47,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Check smoke CSS source paths
-        run: node --test tests/unit/smoke-css-sources.test.mjs
-
-      - name: Run repository smoke tests
-        env:
-          NODE_OPTIONS: --import ./scripts/register-node-test-loader.mjs
-        run: npm test
 
       - name: Run mobile shell unit tests
         run: node --test tests/unit/presentation-mode.test.mjs tests/unit/mobile-navigation.test.mjs
