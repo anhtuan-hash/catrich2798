@@ -41,7 +41,14 @@
   margin-top: 19px;
 }
 
-.bes-mobile-home__hero-actions button {
+/*
+ * GlobalViewportReadabilityGuard intentionally gives every phone control a
+ * 44px floor with a fairly specific html/body/:is(...) selector. Mobile Home
+ * deliberately uses larger native-phone controls, so scope these minimums to
+ * the active mobile shell with enough specificity to win without weakening
+ * the global accessibility floor anywhere else.
+ */
+html.bes-mobile-shell-active .bes-mobile-home__hero-actions button {
   min-height: 50px;
   padding: 11px 14px;
   font-size: 14px;
@@ -71,7 +78,7 @@
   line-height: 1.2;
 }
 
-.bes-mobile-home__section-head button {
+html.bes-mobile-shell-active .bes-mobile-home__section-head button {
   min-height: 46px;
   padding: 9px 12px;
   font-size: 13px;
@@ -82,7 +89,7 @@
   margin-top: 16px;
 }
 
-.bes-mobile-home__tool {
+html.bes-mobile-shell-active .bes-mobile-home__tool {
   min-height: 110px;
   gap: 10px;
   padding: 15px;
@@ -143,7 +150,7 @@
   gap: 10px;
 }
 
-.bes-mobile-home__manager-actions button {
+html.bes-mobile-shell-active .bes-mobile-home__manager-actions button {
   min-height: 48px;
   font-size: 13px;
 }
@@ -152,7 +159,7 @@
   gap: 10px;
 }
 
-.bes-mobile-home__grade-selector button {
+html.bes-mobile-shell-active .bes-mobile-home__grade-selector button {
   min-height: 64px;
   padding: 10px 11px;
   border-radius: 17px;
@@ -223,14 +230,14 @@
   font-size: 11px;
 }
 
-.bes-mobile-home__practice-card > button {
+html.bes-mobile-shell-active .bes-mobile-home__practice-card > button {
   min-width: 84px;
   min-height: 48px;
   padding: 9px 12px;
   font-size: 12.5px;
 }
 
-.bes-mobile-home__practice-expand {
+html.bes-mobile-shell-active .bes-mobile-home__practice-expand {
   appearance: none;
   width: 100%;
   min-height: 50px;
@@ -272,7 +279,7 @@
     padding: 18px;
   }
 
-  .bes-mobile-home__tool {
+  html.bes-mobile-shell-active .bes-mobile-home__tool {
     min-height: 104px;
     padding: 13px;
   }
@@ -300,7 +307,7 @@
     padding: 24px;
   }
 
-  .bes-mobile-home__tool {
+  html.bes-mobile-shell-active .bes-mobile-home__tool {
     min-height: 120px;
     padding: 17px;
   }
