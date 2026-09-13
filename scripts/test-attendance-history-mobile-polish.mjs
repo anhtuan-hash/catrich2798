@@ -33,7 +33,9 @@ assert.match(css, /\.ahv3__absent-section\s*\{[^}]*min-height:\s*0\s*!important;
 
 // Actions now sit directly after content. They stay full-width, but are not pushed to the
 // bottom of a taller sheet and are not sticky when the detail is short.
-assert.match(css, /\.ahv3__mobile-sheet-actions\s*\{[^}]*position:\s*static\s*!important;[^}]*margin:\s*12px\s+0\s+0\s*!important;[^}]*grid-template-columns:\s*1fr\s*!important;/s, 'Mobile actions must follow content without creating dead space');
+assert.match(css, /\.ahv3__mobile-sheet-actions\s*\{[^}]*position:\s*static\s*!important;/s, 'Mobile actions must not be sticky');
+assert.match(css, /\.ahv3__mobile-sheet-actions\s*\{[^}]*margin:\s*12px\s+0\s+0\s*!important;/s, 'Mobile actions must follow content without auto-margin dead space');
+assert.match(css, /\.ahv3__mobile-sheet-actions\s*\{[^}]*grid-template-columns:\s*1fr\s*!important;/s, 'Mobile actions must remain a one-column rail');
 assert.match(css, /\.ahv3__mobile-sheet-actions button\s*\{[^}]*width:\s*100%\s*!important;[^}]*min-height:\s*48px\s*!important;/s, 'Mobile action buttons must stay full-width and touch-friendly');
 
 // Secondary audit/note content is collapsed by default to keep the mobile detail concise,
