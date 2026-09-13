@@ -14,7 +14,7 @@
   const MOBILE_STYLESHEET_ID = 'ah-mobile-bottom-sheet-styles';
   const MOBILE_STYLESHEET_HREF = '/attendance-history-mobile-bottom-sheet.css?v=1';
   const MOBILE_POLISH_STYLESHEET_ID = 'ah-mobile-polish-styles';
-  const MOBILE_POLISH_STYLESHEET_HREF = '/attendance-history-mobile-polish.css?v=1';
+  const MOBILE_POLISH_STYLESHEET_HREF = '/attendance-history-mobile-polish.css?v=2';
   const MOBILE_OPEN_CLASS = 'is-mobile-detail-open';
   const MOBILE_DISMISSED_CLASS = 'is-mobile-detail-dismissed';
   const MOBILE_FILTERS_CLASS = 'is-mobile-filters-open';
@@ -312,7 +312,7 @@
       close.setAttribute('aria-label', 'Đóng chi tiết');
       close.textContent = '×';
       close.addEventListener('click', () => dismissMobileDetail(root));
-      detail.insertAdjacentElement('afterend', close);
+      detail.prepend(close);
     }
 
     ensureMobileSummary(selectedCard, detail);
