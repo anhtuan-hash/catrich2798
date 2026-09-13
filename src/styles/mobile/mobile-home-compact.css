@@ -1,39 +1,13 @@
 /* Compact mobile Home refinement.
    This file is intentionally imported after mobile-home-polish.css so it can
-   tighten the dedicated mobile composition without changing desktop Home. */
+   tighten the dedicated mobile Home body without changing the global mobile
+   shell touch/typography contract. */
 
 @media (max-width: 640px) {
   .bes-mobile-home {
     gap: 10px;
     padding-top: 4px;
     padding-bottom: 24px;
-  }
-
-  .bes-mobile-topbar.is-home {
-    min-height: 58px;
-  }
-
-  .bes-mobile-brand.is-home {
-    gap: 8px;
-  }
-
-  .bes-mobile-brand__mark--logo {
-    width: 36px;
-    height: 36px;
-    border-radius: 9px;
-  }
-
-  .bes-mobile-brand.is-home .bes-mobile-brand__copy strong {
-    max-width: min(48vw, 220px);
-    font-size: 16px;
-    line-height: 1.05;
-  }
-
-  .bes-mobile-brand.is-home .bes-mobile-brand__copy small {
-    margin-top: 2px;
-    font-size: 7px;
-    line-height: 1;
-    letter-spacing: .11em;
   }
 
   .bes-mobile-home__dateline {
