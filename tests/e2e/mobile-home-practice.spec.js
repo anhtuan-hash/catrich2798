@@ -105,11 +105,39 @@ test('phone Home uses a native mobile visual scale instead of compressed desktop
         offsetHeight: element.offsetHeight,
       };
     };
-    const ancestors = [];
-    let node = grade;
-    for (let index = 0; node && index < 7; index += 1, node = node.parentElement) {
-      ancestors.push(styleSnapshot(node));
-    }
+    const matchingMinHeightRules = (element) => {
+      const matches = [];
+      const visit = (rules, href, context = '') => {
+        for (const rule of Array.from(rules || [])) {
+          if (rule.cssRules) {
+            let active = true;
+            if (rule.media?.mediaText) active = window.matchMedia(rule.media.mediaText).matches;
+            if (active) visit(rule.cssRules, href, `${context}${rule.media?.mediaText ? ` @media ${rule.media.mediaText}` : ''}`);
+            continue;
+          }
+          if (!rule.selectorText || !rule.style) continue;
+          let matched = false;
+          try { matched = element.matches(rule.selectorText); } catch { matched = false; }
+          if (!matched) continue;
+          const minHeight = rule.style.getPropertyValue('min-height');
+          const minBlockSize = rule.style.getPropertyValue('min-block-size');
+          if (!minHeight && !minBlockSize) continue;
+          matches.push({
+            href,
+            context,
+            selector: rule.selectorText,
+            minHeight,
+            minHeightPriority: rule.style.getPropertyPriority('min-height'),
+            minBlockSize,
+            minBlockSizePriority: rule.style.getPropertyPriority('min-block-size'),
+          });
+        }
+      };
+      for (const sheet of Array.from(document.styleSheets)) {
+        try { visit(sheet.cssRules, sheet.href || 'inline'); } catch { /* cross-origin sheet */ }
+      }
+      return matches;
+    };
     return {
       heroTitle: px('.bes-mobile-home__hero h1'),
       sectionTitle: px('.bes-mobile-home__section-head h2'),
@@ -122,13 +150,13 @@ test('phone Home uses a native mobile visual scale instead of compressed desktop
       brandTitle: px('.bes-mobile-brand__copy strong'),
       bottomLabel: px('.bes-mobile-bottomnav__item'),
       gradeGeometry: styleSnapshot(grade),
-      ancestorGeometry: ancestors,
+      minHeightRules: matchingMinHeightRules(grade),
     };
   });
 
   console.log('MOBILE_SCALE_DIAGNOSTIC', JSON.stringify({
     gradeGeometry: metrics.gradeGeometry,
-    ancestorGeometry: metrics.ancestorGeometry,
+    minHeightRules: metrics.minHeightRules,
   }));
 
   expect(metrics.heroTitle).toBeGreaterThanOrEqual(34);
