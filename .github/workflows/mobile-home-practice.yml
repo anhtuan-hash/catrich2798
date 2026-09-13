@@ -9,6 +9,7 @@ on:
       - 'src/pages/HomeApproved.jsx'
       - 'src/components/mobile/MobileHomeView.jsx'
       - 'src/styles/mobile/mobile-home.css'
+      - 'src/styles/HomeMobileDesktopParity.css'
       - 'src/components/mobile/**'
       - 'src/device/**'
       - 'src/hooks/usePresentationMode.js'
