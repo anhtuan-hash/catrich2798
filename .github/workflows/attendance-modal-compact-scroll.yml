@@ -11,6 +11,7 @@ on:
       - fix/attendance-history-mobile-list-first
       - fix/attendance-history-mobile-bottom-sheet
       - fix/attendance-history-mobile-polish
+      - fix/attendance-history-mobile-compact-detail
   pull_request:
     paths:
       - 'public/attendance-windows8-launch.css'
