@@ -20,22 +20,28 @@ assert.match(ttcm, /selectedItem && userIsAssignee\(selectedItem, currentUser\?\
 assert.match(notifications, /function isTtcmSelfAssignment\(item, userId\)/, 'Global notifications need a narrow TTCM self-assignment exception');
 assert.match(notifications, /owner_id[\s\S]*!isTtcmSelfAssignment\(item, userId\)/, 'Self-owned tasks must remain hidden except for TTCM self-assignments');
 
-// Mobile TTCM must be a true phone composition rather than the desktop three-pane
-// reader compressed into a narrow viewport. Keep the same state/handlers, but
-// expose phone-only navigation, filters and an explicit-selection detail sheet.
-assert.match(ttcm, /import '\.\/GlobalTtcmMobile\.css';/, 'TTCM must load its final mobile-only stylesheet after the desktop reader layers');
-assert.match(ttcm, /ttcm-mobile-back/, 'Mobile TTCM must expose a large back/close control in the app header');
-assert.match(ttcm, /ttcm-mobile-filter-strip/, 'Mobile TTCM must render horizontal filter chips instead of relying on the desktop mailbox rail');
-assert.match(ttcm, /ttcm-mobile-more/, 'Mobile TTCM must keep secondary actions and Personnel reachable from the compact header');
-assert.match(ttcm, /ttcm-reader-detail[^"`]*\$\{selectedItemId\s*\?\s*'is-mobile-open'\s*:\s*''\}/, 'Mobile detail sheet must only open after an explicit notification selection');
-
+// Phone presentation is layered around the canonical TTCM component so data,
+// permissions and handlers remain single-source while the desktop reader stays intact.
+const adapterUrl = new URL('../src/components/GlobalTtcmMobileAdapter.jsx', import.meta.url);
 const mobileCssUrl = new URL('../src/components/GlobalTtcmMobile.css', import.meta.url);
+assert.ok(fs.existsSync(adapterUrl), 'TTCM needs a phone presentation adapter around the canonical component');
 assert.ok(fs.existsSync(mobileCssUrl), 'TTCM needs a dedicated final mobile stylesheet');
+const adapter = fs.existsSync(adapterUrl) ? fs.readFileSync(adapterUrl, 'utf8') : '';
 const mobileCss = fs.existsSync(mobileCssUrl) ? fs.readFileSync(mobileCssUrl, 'utf8') : '';
+const flatNavigation = fs.readFileSync(new URL('../src/components/GlobalFlatNavigation.jsx', import.meta.url), 'utf8');
+
+assert.match(flatNavigation, /GlobalTtcmMobileAdapter/, 'Global navigation must mount the TTCM mobile adapter instead of bypassing it');
+assert.match(adapter, /GlobalTtcmNavigationTab/, 'Mobile adapter must reuse the canonical TTCM component rather than duplicate its business logic');
+assert.match(adapter, /GlobalTtcmMobile\.css/, 'Mobile adapter must load the final phone-only stylesheet');
+assert.match(adapter, /data-mobile-detail-open/, 'Mobile adapter must track explicit notification selection for the bottom sheet');
+assert.match(adapter, /closest\('\.ttcm-reader-card'\)/, 'Tapping a notification card must open the phone detail sheet');
+assert.match(adapter, /closest\('\.ttcm-reader-back'\)/, 'Back from detail must close the phone sheet without closing TTCM');
+assert.match(adapter, /matchMedia\('\(max-width: 760px\)'\)/, 'DOM adaptation must only run on phone layout');
+
 assert.match(mobileCss, /@media\s*\(max-width:\s*760px\)/, 'TTCM mobile redesign must be phone-scoped');
-assert.match(mobileCss, /\.ttcm-reader-sidebar[\s\S]*display:\s*none\s*!important/, 'Desktop mailbox sidebar must be removed from phone composition');
-assert.match(mobileCss, /\.ttcm-mobile-filter-strip[\s\S]*display:\s*flex\s*!important/, 'Phone filter chips must be visible and horizontally scrollable');
-assert.match(mobileCss, /\.ttcm-reader-detail\.is-mobile-open[\s\S]*position:\s*fixed\s*!important[\s\S]*bottom:\s*0/, 'Selected TTCM content must open as a bottom sheet on phones');
+assert.match(mobileCss, /\.ttcm-reader-sidebar[\s\S]*display:\s*flex\s*!important[\s\S]*overflow-x:\s*auto/, 'Desktop mailbox rail must become horizontally scrollable filter chips on phones');
+assert.match(mobileCss, /\.ttcm-reader-detail[\s\S]*display:\s*none\s*!important/, 'Phone detail must stay hidden until the user chooses a notification');
+assert.match(mobileCss, /\[data-mobile-detail-open=['"]true['"]\][\s\S]*\.ttcm-reader-detail[\s\S]*position:\s*fixed\s*!important[\s\S]*bottom:\s*0/, 'Explicit TTCM selection must open as a bottom sheet on phones');
 assert.match(mobileCss, /\.ttcm-reader-detail-footer[\s\S]*position:\s*sticky/, 'Mobile detail actions must remain reachable at the bottom of the sheet');
 assert.match(mobileCss, /min-height:\s*44px/, 'Mobile TTCM controls must preserve a 44px minimum touch target');
 assert.match(mobileCss, /overflow-x:\s*(?:auto|hidden|clip)/, 'Mobile TTCM must prevent destructive horizontal overflow');
