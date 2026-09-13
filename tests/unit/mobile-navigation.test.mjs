@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildMobileNavigationModel } from '../../src/components/mobile/mobileNavigation.js';
+import { buildMobileNavigationModel, buildMobileTopbarAction } from '../../src/components/mobile/mobileNavigation.js';
 
 const allow = (route) => !['admin', 'app-vault'].includes(route);
 
@@ -37,6 +37,38 @@ test('attendance replaces practice as the center action when available', () => {
   });
   assert.equal(model.bottomItems[2].id, 'attendance');
   assert.equal(model.bottomItems[2].action, 'attendance');
+});
+
+test('mobile topbar uses Attendance as the authenticated quick action when permitted', () => {
+  assert.deepEqual(buildMobileTopbarAction({
+    authenticated: true,
+    canAccessAttendance: true,
+    language: 'vi',
+  }), {
+    id: 'attendance',
+    action: 'attendance',
+    label: 'Điểm danh',
+  });
+});
+
+test('mobile topbar falls back to Notifications when Attendance is not permitted', () => {
+  assert.deepEqual(buildMobileTopbarAction({
+    authenticated: true,
+    canAccessAttendance: false,
+    language: 'vi',
+  }), {
+    id: 'notifications',
+    action: 'notifications',
+    label: 'Thông báo',
+  });
+});
+
+test('guest topbar has no authenticated quick action', () => {
+  assert.equal(buildMobileTopbarAction({
+    authenticated: false,
+    canAccessAttendance: false,
+    language: 'vi',
+  }), null);
 });
 
 test('drawer base mirrors original compact navigation instead of app catalog groups', () => {
