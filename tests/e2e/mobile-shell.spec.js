@@ -18,6 +18,7 @@ test('phone uses mobile chrome and hides desktop navigation', async ({ page }, t
   await page.goto('/#/home');
   await expect(page.locator('.app-shell')).toHaveAttribute('data-device-class', 'phone');
   await expectMobileChrome(page);
+  await expect(page.locator('.bes-mobile-bridge-host')).toHaveAttribute('hidden', '');
 
   const bottomPadding = await page.locator('#bes-main-content').evaluate((element) => Number.parseFloat(getComputedStyle(element).paddingBottom));
   expect(bottomPadding).toBeGreaterThanOrEqual(68);
