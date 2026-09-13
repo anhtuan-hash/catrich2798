@@ -1,23 +1,14 @@
-import { APPS } from './data/apps.js';
+// Legacy compatibility shim.
+//
+// Knowledge Hub is an active production route again. This module used to remove
+// `knowledge-hub` from the shared APPS registry and redirect direct bookmarks to
+// `#/apps` before main.jsx mounted. applicationBootstrap.jsx still imports this
+// file for backward compatibility, so it must remain intentionally side-effect
+// free. Keeping the shim prevents stale deployments/import graphs from failing
+// while ensuring the active Knowledge Hub route is never retired at bootstrap.
 
-const REMOVED_APP_SLUG = 'knowledge-hub';
-const REMOVED_ROUTE_PATTERN = /(^|[\/#?])knowledge-hub(?:$|[\/#?&])/i;
-
-// Remove the retired app from the single shared app registry before the main UI loads.
-for (let index = APPS.length - 1; index >= 0; index -= 1) {
-  const app = APPS[index];
-  if (app?.slug === REMOVED_APP_SLUG || app?.route === REMOVED_APP_SLUG) APPS.splice(index, 1);
-}
-
-function redirectRetiredRoute() {
-  if (typeof window === 'undefined') return;
-  const hash = String(window.location.hash || '');
-  if (!REMOVED_ROUTE_PATTERN.test(hash)) return;
-  window.location.hash = '#/apps';
-}
-
-// Guard old bookmarks / direct URLs so the retired app can no longer be opened.
-if (typeof window !== 'undefined') {
-  redirectRetiredRoute();
-  window.addEventListener('hashchange', redirectRetiredRoute);
-}
+export const KNOWLEDGE_HUB_RUNTIME_STATUS = Object.freeze({
+  active: true,
+  redirects: false,
+  mutatesRegistry: false,
+});

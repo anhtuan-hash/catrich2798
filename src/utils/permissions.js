@@ -419,7 +419,7 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   if (route === 'trash') return Boolean(user);
   if (route === 'tool') return hasToolAccess(user, selectedTool?.slug);
   if (route === 'news') return Boolean(user);
-  if (route === 'dashboard') return Boolean(user);
+  if (route === 'dashboard') return hasPermissionId(user, ROUTE_PERMISSION_IDS.dashboard);
   if (route === 'homeroom') return hasPermissionId(user, HOMEROOM_PERMISSION_ID);
   if (route === 'attendance') return hasAnyAttendanceAccess(user);
   if (route === 'apps' || route === 'games' || route === 'tools') return true;
@@ -429,7 +429,20 @@ export function hasRouteAccess(user, route, selectedTool = null) {
 
 export function getFirstAllowedRoute(user) {
   if (!user) return 'login';
-  return 'dashboard';
+  const priority = [
+    'dashboard',
+    'homeroom',
+    'resource-library',
+    'knowledge-hub',
+    'platform-readiness',
+    'cloud-operations',
+    'data-governance',
+    'qa',
+    'settings',
+    'apps',
+    'tools',
+  ];
+  return priority.find((route) => hasRouteAccess(user, route)) || 'home';
 }
 
 export function summarizePermissions(user, language = 'vi') {
