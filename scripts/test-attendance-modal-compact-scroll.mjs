@@ -5,6 +5,7 @@ const launchCss = fs.readFileSync(new URL('../public/attendance-windows8-launch.
 const sourceCss = fs.readFileSync(new URL('../src/components/GlobalAttendanceNavigationTab.css', import.meta.url), 'utf8');
 const historyCss = fs.readFileSync(new URL('../public/attendance-history-mockup-v4.css', import.meta.url), 'utf8');
 const frameCss = fs.readFileSync(new URL('../public/attendance-card-size-sync-v1.css', import.meta.url), 'utf8');
+const navigationJsx = fs.readFileSync(new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url), 'utf8');
 
 // History and Học bổ sung are the approved large-footprint reference. The shared
 // Attendance shell used by Lịch điểm danh / Quản lý lớp / Báo cáo must match History
@@ -37,4 +38,17 @@ assert.match(frameCss, /html body \.attendance-shell \.attendance-tabs\s*\{[^}]*
 assert.match(frameCss, /html body \.attendance-shell \.attendance-title\s*\{[^}]*min-width:\s*0\s*!important;[^}]*flex:\s*1\s+1\s+auto\s*!important;/s, 'Mobile title is allowed to shrink beside action buttons');
 assert.match(frameCss, /html body \.bes-supplemental-dialog\s*\{[^}]*width:\s*min\(100%,\s*680px\)\s*!important;[^}]*overflow-x:\s*hidden\s*!important;/s, 'Supplemental-learning dialogs share the same mobile width contract');
 
-console.log('Attendance modal matches History large footprint + source-owned single Manage scroll + unified mobile frame contract OK');
+// Mobile inner-layout regressions captured from real iPhone screenshots.
+assert.match(frameCss, /html body \.attendance-shell \.attendance-daily-summary\s*\{[^}]*display:\s*grid\s*!important;[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)\s*!important;[^}]*overflow-x:\s*hidden\s*!important;/s, 'Daily summary must wrap into a 2x2 mobile grid instead of clipping the fourth metric');
+assert.match(frameCss, /html body \.attendance-shell \.attendance-daily-summary-item\s*\{[^}]*min-width:\s*0\s*!important;[^}]*width:\s*auto\s*!important;[^}]*flex:\s*none\s*!important;/s, 'Daily summary items must not keep the legacy 125px flex basis on phones');
+assert.match(frameCss, /html body \.attendance-shell \.attendance-manage-class-tile\s*\{[^}]*min-height:\s*148px\s*!important;[^}]*overflow:\s*visible\s*!important;/s, 'Manage class cards must retain enough mobile height for their class metadata');
+assert.match(frameCss, /html body \.attendance-shell \.attendance-manage-tile__title\s*\{[^}]*display:\s*-webkit-box\s*!important;[^}]*visibility:\s*visible\s*!important;[^}]*color:\s*#0f2238\s*!important;/s, 'Manage class names must stay visible on mobile');
+assert.match(frameCss, /html body \.attendance-shell \.attendance-manage-tile__subtitle,[\s\S]*?html body \.attendance-shell \.attendance-manage-tile__meta\s*\{[^}]*display:/s, 'Manage class subject and metadata must not be hidden by mobile overrides');
+
+assert.match(navigationJsx, /className=\{`ahv3__shell \$\{selectedSession && !historySelectionMode \? 'is-detail-open' : ''\}`\}/, 'History shell should expose a selected-detail state for mobile layout');
+assert.match(navigationJsx, /className="ahv3__mobile-back"[\s\S]*?setSelectedSessionId\(''\)[\s\S]*?setRecords\(\[\]\)/, 'History detail needs an explicit mobile back action to return to the list');
+assert.match(frameCss, /html body \.attendance-shell \.ahv3__mobile-back\s*\{[^}]*display:\s*inline-flex\s*!important;/s, 'History mobile back action must be visible in the final mobile layer');
+assert.match(frameCss, /html body \.attendance-shell \.ahv3__shell\.is-detail-open \.ahv3__list\s*\{[^}]*display:\s*none\s*!important;/s, 'History list must be hidden on phones while a selected detail is open');
+assert.match(frameCss, /html body \.attendance-shell \.ahv3__shell\.is-detail-open \.ahv3__detail\s*\{[^}]*display:\s*block\s*!important;[^}]*width:\s*100%\s*!important;/s, 'History detail must become the focused full-width mobile view');
+
+console.log('Attendance modal frame + mobile daily/manage/history inner-layout contracts OK');
