@@ -20,6 +20,8 @@ const toolPageSource = read('src/pages/ToolPage.jsx');
 const knowledgeRemovalRuntimeSource = read('src/removeKnowledgeHubRuntime.js');
 const workflowSource = read('.github/workflows/critical-e2e.yml');
 const monthlyContractSource = read('scripts/test-monthly-reports-contract.mjs');
+const teacherSyncContractSource = read('scripts/test-teacher-assignment-sync-contract.mjs');
+const monthlyWorkflowSource = read('.github/workflows/monthly-reports-check.yml');
 
 const forbiddenQaMutations = [
   'addQuestionsFromTextToBank',
@@ -102,15 +104,25 @@ assert.equal(
   'Legacy Knowledge Hub compatibility runtime must not redirect the active route to Apps',
 );
 
+for (const staleStyle of [
+  'MonthlyReportsWorkspaceModern.css',
+  'MonthlyReportsTemplate.css',
+]) {
+  assert.equal(
+    monthlyContractSource.includes(staleStyle),
+    false,
+    `Monthly reports contract must not depend on retired style layer: ${staleStyle}`,
+  );
+}
 assert.equal(
-  monthlyContractSource.includes('MonthlyReportsWorkspaceModern.css'),
+  teacherSyncContractSource.includes('MonthlyReportsCardRefresh.css'),
   false,
-  'Monthly reports contract must not depend on the removed split modern stylesheet',
+  'Teacher assignment sync contract must validate the active consolidated report UI',
 );
-assert.equal(
-  monthlyContractSource.includes('MonthlyReportsTemplate.css'),
-  false,
-  'Monthly reports contract must validate the active consolidated workspace stylesheet',
+assert.match(
+  monthlyWorkflowSource,
+  /node-version:\s*22/,
+  'Monthly reports workflow must use the repository-supported Node 22 runtime',
 );
 
 for (const legacyWorkflow of [
