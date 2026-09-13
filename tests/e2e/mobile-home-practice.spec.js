@@ -68,7 +68,30 @@ test('mobile Home stays inside viewport and tools are touch friendly', async ({ 
     const columns = getComputedStyle(element).gridTemplateColumns.trim();
     return columns ? columns.split(/\s+/).length : 0;
   });
-  expect(columnCount).toBe(2);
+  expect(columnCount).toBeGreaterThanOrEqual(1);
+});
+
+test('mobile Home uses a large readable scale instead of a shrunken desktop density', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium');
+  await waitForHome(page);
+
+  const heroTitleSize = await page.locator('.bes-mobile-home__hero h1').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
+  expect(heroTitleSize).toBeGreaterThanOrEqual(34);
+
+  const primaryAction = await page.locator('.bes-mobile-home__hero-actions button').first().boundingBox();
+  expect(primaryAction?.height || 0).toBeGreaterThanOrEqual(52);
+
+  const toolColumns = await page.locator('.bes-mobile-home__tools').evaluate((element) => {
+    const columns = getComputedStyle(element).gridTemplateColumns.trim();
+    return columns ? columns.split(/\s+/).length : 0;
+  });
+  expect(toolColumns).toBe(1);
+
+  const toolTitleSize = await page.locator('.bes-mobile-home__tool strong').first().evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
+  expect(toolTitleSize).toBeGreaterThanOrEqual(15);
+
+  const sectionTitleSize = await page.locator('.bes-mobile-home__section-head h2').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
+  expect(sectionTitleSize).toBeGreaterThanOrEqual(20);
 });
 
 test('mobile Home keeps weekly practice compact until user expands it', async ({ page }, testInfo) => {
