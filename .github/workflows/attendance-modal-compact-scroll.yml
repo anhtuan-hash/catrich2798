@@ -7,6 +7,7 @@ on:
       - fix/attendance-modal-size-history-standard
       - fix/attendance-typography-history-standard
       - fix/attendance-mobile-modal-frame
+      - fix/attendance-mobile-inner-layout
   pull_request:
     paths:
       - 'public/attendance-windows8-launch.css'
@@ -14,6 +15,8 @@ on:
       - 'public/attendance-history-pixel-v6.css'
       - 'public/attendance-card-size-sync-v1.css'
       - 'src/components/GlobalAttendanceNavigationTab.css'
+      - 'src/components/GlobalAttendanceNavigationTab.jsx'
+      - 'src/components/attendance/AttendanceClassManagementWorkspace.css'
       - 'scripts/test-attendance-modal-compact-scroll.mjs'
       - 'scripts/test-attendance-typography-parity.mjs'
 
