@@ -90,6 +90,16 @@
     justify-content: flex-end !important;
   }
 
+  .metro-clean-system[data-route='home'] .bha-statistics-practice,
+  .metro-clean-system[data-route='home'] .bha-manage-practice,
+  .metro-clean-system[data-route='home'] .bha-grade-copy > button {
+    min-height: 44px !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-grade-copy > button {
+    padding: 8px 4px !important;
+  }
+
   .metro-clean-system[data-route='home'] .bha-practice__editorial-rule {
     display: none !important;
   }
