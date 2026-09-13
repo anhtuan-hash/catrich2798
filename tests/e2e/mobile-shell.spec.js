@@ -100,18 +100,19 @@ test('mobile drawer mirrors original primary navigation buttons instead of catal
 
   await page.getByRole('button', { name: 'Mở menu' }).click();
   const drawer = page.getByRole('dialog', { name: 'Điều hướng Brian English' });
+  const primaryNav = drawer.getByRole('navigation', { name: 'Điều hướng chính', exact: true });
   await expect(drawer).toBeVisible();
 
-  await expect(drawer.getByRole('button', { name: 'Trang chủ' })).toBeVisible();
-  await expect(drawer.getByRole('button', { name: 'Dashboard' })).toBeVisible();
-  await expect(drawer.getByRole('button', { name: 'Chủ nhiệm' })).toBeVisible();
-  await expect(drawer.getByRole('button', { name: 'Sổ điểm' })).toBeVisible();
-  await expect(drawer.getByRole('button', { name: 'Báo cáo' })).toBeVisible();
+  await expect(primaryNav.getByRole('button', { name: 'Trang chủ', exact: true })).toBeVisible();
+  await expect(primaryNav.getByRole('button', { name: 'Dashboard', exact: true })).toBeVisible();
+  await expect(primaryNav.getByRole('button', { name: 'Chủ nhiệm', exact: true })).toBeVisible();
+  await expect(primaryNav.getByRole('button', { name: 'Sổ điểm', exact: true })).toBeVisible();
+  await expect(primaryNav.getByRole('button', { name: 'Báo cáo', exact: true })).toBeVisible();
   await expect(drawer.getByText('Dạy & học')).toHaveCount(0);
   await expect(drawer.getByText('Vận hành')).toHaveCount(0);
   await expect(drawer.getByText('Quản trị & hệ thống')).toHaveCount(0);
 
-  await drawer.getByRole('button', { name: 'Dashboard' }).click();
+  await primaryNav.getByRole('button', { name: 'Dashboard', exact: true }).click();
   expect(await page.evaluate(() => window.__mobileOriginalNavClicks)).toContain('dashboard');
 });
 
