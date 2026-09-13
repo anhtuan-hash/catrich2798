@@ -1,0 +1,192 @@
+/* Mobile homepage parity layer.
+   Keep the desktop Home DOM and visual language; only reflow it for phones. */
+
+@media (max-width: 620px) {
+  .metro-clean-system[data-route='home'] .bha-home {
+    width: min(100%, calc(100vw - 24px)) !important;
+    margin-inline: auto !important;
+    padding: 8px 0 24px !important;
+    display: grid !important;
+    gap: 14px !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-editorial-dateline {
+    order: 0;
+    min-width: 0;
+    padding-inline: 2px;
+    gap: 7px;
+    font-size: 0.65rem;
+    white-space: nowrap;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-editorial-dateline i {
+    min-width: 12px;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-editorial-dateline strong {
+    margin-left: auto;
+    font-size: 0.62rem;
+  }
+
+  /* Flatten only the layout wrapper. The actual desktop sections remain unchanged. */
+  .metro-clean-system[data-route='home'] .bha-top {
+    display: contents !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-hero {
+    order: 1;
+    width: 100%;
+    min-width: 0;
+    border-radius: 20px !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-practice {
+    order: 2;
+    width: 100%;
+    min-width: 0;
+    margin-top: 0 !important;
+    padding: 17px 15px 18px !important;
+    border-radius: 20px !important;
+  }
+
+  /* Featured tools are useful on phones, but come after the primary weekly-practice task. */
+  .metro-clean-system[data-route='home'] .bha-tools {
+    order: 3;
+    width: 100%;
+    min-width: 0;
+    min-height: 0 !important;
+    display: grid !important;
+    padding: 16px !important;
+    gap: 13px !important;
+    border-radius: 20px !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-practice > header {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+    gap: 14px !important;
+    margin-bottom: 14px !important;
+    padding: 0 !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-practice__editorial-copy,
+  .metro-clean-system[data-route='home'] .bha-practice__editorial-side {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-practice__editorial-side {
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-practice__published-count {
+    min-width: 0;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-practice-header-actions {
+    justify-content: flex-end !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-practice__editorial-rule {
+    display: none !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-grades {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-grade {
+    width: 100%;
+    min-width: 0;
+    border-radius: 18px !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-tools > header {
+    gap: 10px !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-tools > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-tool {
+    min-height: 118px !important;
+    padding: 12px 9px !important;
+    border-radius: 16px !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-tool-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-tool small {
+    font-size: 0.6rem !important;
+  }
+
+  .metro-clean-system[data-route='home'] .hero-cms.bha-hero {
+    min-height: 560px !important;
+    max-height: none !important;
+  }
+
+  .metro-clean-system[data-route='home'] .hero-cms__content {
+    max-width: 100% !important;
+    padding: 28px 22px 34px !important;
+  }
+
+  .metro-clean-system[data-route='home'] .hero-cms__content h1 {
+    max-width: 11ch !important;
+    margin-top: 17px !important;
+    font-size: clamp(2.3rem, 10.8vw, 3.15rem) !important;
+    line-height: 0.98 !important;
+  }
+
+  .metro-clean-system[data-route='home'] .hero-cms__content h2 {
+    font-size: clamp(1.8rem, 8.5vw, 2.55rem) !important;
+  }
+
+  .metro-clean-system[data-route='home'] .hero-cms__content > p {
+    max-width: 34rem !important;
+    margin-top: 15px !important;
+    font-size: 0.92rem !important;
+    line-height: 1.5 !important;
+  }
+
+  .metro-clean-system[data-route='home'] .hero-cms__actions {
+    margin-top: 19px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .metro-clean-system[data-route='home'] .hero-cms__button {
+    min-height: 48px !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .metro-clean-system[data-route='home'] .bha-home {
+    width: min(100%, calc(100vw - 18px)) !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-editorial-dateline span:nth-of-type(2) {
+    display: none;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-tools > div {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-tool {
+    min-height: 104px !important;
+  }
+
+  .metro-clean-system[data-route='home'] .bha-practice__editorial-side {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+}
