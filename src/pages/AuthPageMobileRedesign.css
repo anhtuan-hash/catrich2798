@@ -1,0 +1,436 @@
+/* Approved mobile/portrait-tablet authentication composition.
+   This file is loaded with the mobile shell and intentionally leaves the
+   desktop/iPad-landscape AuthPageGoogle.css composition untouched. */
+
+.app-shell[data-presentation='mobile'] .auth-google-page {
+  width: min(100%, 760px) !important;
+  max-width: 760px !important;
+  margin: 0 auto !important;
+  padding: 16px 12px 28px !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-stage {
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 18px !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-visual {
+  min-height: auto !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.14fr) minmax(118px, .86fr) !important;
+  grid-template-areas:
+    "copy art"
+    "features features" !important;
+  align-items: center !important;
+  gap: 22px 10px !important;
+  padding: 28px 18px 18px !important;
+  border: 1px solid rgba(31, 87, 145, .09) !important;
+  border-radius: 26px !important;
+  background:
+    radial-gradient(circle at 96% 10%, rgba(207, 230, 255, .92) 0 18%, rgba(222, 238, 255, .58) 19% 32%, transparent 50%),
+    linear-gradient(145deg, #ffffff 0%, #f7fbff 50%, #edf6ff 100%) !important;
+  box-shadow: 0 14px 38px rgba(45, 83, 125, .08) !important;
+  overflow: hidden !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-brand-row {
+  display: none !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-copy {
+  grid-area: copy !important;
+  max-width: none !important;
+  padding: 0 !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-kicker {
+  color: #73a8d9 !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
+  font-size: .7rem !important;
+  font-weight: 850 !important;
+  line-height: 1.2 !important;
+  letter-spacing: .18em !important;
+  text-transform: uppercase !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-editorial-rule {
+  display: none !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-copy h1 {
+  max-width: 9ch !important;
+  margin: 14px 0 12px !important;
+  color: #08264b !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
+  font-size: clamp(2.5rem, 11vw, 3.5rem) !important;
+  font-weight: 900 !important;
+  line-height: .98 !important;
+  letter-spacing: -.055em !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-copy p {
+  max-width: 34rem !important;
+  margin: 0 !important;
+  color: #52657b !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
+  font-size: .92rem !important;
+  font-weight: 500 !important;
+  line-height: 1.55 !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-visual-art {
+  grid-area: art !important;
+  min-height: 188px !important;
+  height: 188px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-editorial-still-life {
+  width: 390px !important;
+  max-width: none !important;
+  height: auto !important;
+  transform: translateX(-54px) scale(.78) !important;
+  transform-origin: center !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-feature-list {
+  grid-area: features !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  padding: 0 !important;
+  border: 0 !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-feature-list article,
+.app-shell[data-presentation='mobile'] .auth-google-feature-list article + article {
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+  padding: 10px 5px !important;
+  border: 0 !important;
+  background: transparent !important;
+  text-align: center !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-feature-icon {
+  width: 46px !important;
+  height: 46px !important;
+  flex: 0 0 46px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px solid rgba(22, 111, 205, .06) !important;
+  border-radius: 14px !important;
+  background: #e8f3ff !important;
+  color: #126ec7 !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-feature-icon svg {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-feature-list article div {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 5px !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-feature-list strong {
+  color: #0a315f !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
+  font-size: .78rem !important;
+  font-weight: 850 !important;
+  line-height: 1.25 !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-feature-list small {
+  color: #68788c !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
+  font-size: .66rem !important;
+  font-weight: 500 !important;
+  line-height: 1.38 !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-form {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  gap: 16px !important;
+  padding: 24px 18px !important;
+  border: 1px solid rgba(26, 70, 116, .12) !important;
+  border-radius: 22px !important;
+  background: rgba(255, 255, 255, .98) !important;
+  box-shadow: 0 16px 40px rgba(47, 74, 109, .08) !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-form::before {
+  height: 2px !important;
+  background: linear-gradient(90deg, #0c4e86, #1685d4, rgba(22, 133, 212, .12)) !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-form-header {
+  grid-template-columns: 1fr !important;
+  gap: 8px !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-form-icon {
+  width: 46px !important;
+  height: 46px !important;
+  border-radius: 14px !important;
+  background: #eaf4ff !important;
+  color: #126ec7 !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-form-icon svg {
+  width: 23px !important;
+  height: 23px !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-form-kicker {
+  color: #126ec7 !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
+  font-size: .68rem !important;
+  font-weight: 850 !important;
+  letter-spacing: .16em !important;
+  text-transform: uppercase !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-form-header h2 {
+  margin: 8px 0 5px !important;
+  color: #08264b !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
+  font-size: 2.15rem !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  letter-spacing: -.045em !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-form-header p {
+  color: #68788c !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
+  font-size: .83rem !important;
+  line-height: 1.45 !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-fields {
+  gap: 14px !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-field {
+  gap: 7px !important;
+  color: #26384d !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
+  font-size: .78rem !important;
+  font-weight: 800 !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-field > div {
+  min-height: 56px !important;
+  border: 1px solid #d7e0e9 !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-field input {
+  min-height: 54px !important;
+  font-size: .88rem !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-label-row button {
+  min-height: 32px !important;
+  color: #126ec7 !important;
+  font-size: .73rem !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-submit,
+.app-shell[data-presentation='mobile'] .auth-google-google-button {
+  min-height: 54px !important;
+  border-radius: 12px !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
+  font-size: .9rem !important;
+  font-weight: 850 !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-submit {
+  border-color: #0d5a95 !important;
+  background: linear-gradient(100deg, #0b4a7c 0%, #096aa9 48%, #1292dc 100%) !important;
+  box-shadow: 0 10px 24px rgba(10, 95, 155, .18) !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-google-button {
+  border-color: #d6e0ea !important;
+  background: #fff !important;
+  color: #17324f !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-google-note,
+.app-shell[data-presentation='mobile'] .auth-google-secondary,
+.app-shell[data-presentation='mobile'] .auth-google-security-note small {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
+}
+
+.app-shell[data-presentation='mobile'] .auth-google-security-note {
+  color: #64768a !important;
+}
+
+/* Only the mobile authentication route gets the compact professional footer. */
+body:has(.app-shell[data-presentation='mobile'] .auth-google-page) .signature-footer-collapsible {
+  width: calc(100% - 24px) !important;
+  max-width: 736px !important;
+  margin: 16px auto 12px !important;
+  border: 1px solid rgba(26, 70, 116, .10) !important;
+  border-radius: 20px !important;
+  background: #fff !important;
+  box-shadow: 0 12px 32px rgba(47, 74, 109, .06) !important;
+}
+
+body:has(.app-shell[data-presentation='mobile'] .auth-google-page) .signature-footer-static-summary {
+  min-height: 44px !important;
+  padding: 9px 12px !important;
+}
+
+body:has(.app-shell[data-presentation='mobile'] .auth-google-page) .signature-footer-summary {
+  gap: 6px !important;
+  font-size: .7rem !important;
+  white-space: normal !important;
+}
+
+body:has(.app-shell[data-presentation='mobile'] .auth-google-page) .signature-footer-v50-main {
+  display: grid !important;
+  grid-template-columns: minmax(92px, .76fr) minmax(0, 1.35fr) !important;
+  gap: 14px !important;
+  padding: 18px 14px 12px !important;
+}
+
+body:has(.app-shell[data-presentation='mobile'] .auth-google-page) .signature-footer-v50-brand {
+  min-width: 0 !important;
+  padding: 0 !important;
+  align-self: start !important;
+}
+
+body:has(.app-shell[data-presentation='mobile'] .auth-google-page) .signature-footer-v50-brian-logo {
+  width: min(112px, 100%) !important;
+  max-height: 86px !important;
+  object-fit: contain !important;
+  margin: 0 auto 8px !important;
+}
+
+body:has(.app-shell[data-presentation='mobile'] .auth-google-page) .signature-footer-v50-affiliations {
+  gap: 7px !important;
+}
+
+body:has(.app-shell[data-presentation='mobile'] .auth-google-page) .signature-footer-v50-affiliations img {
+  max-width: 44px !important;
+  max-height: 36px !important;
+  object-fit: contain !important;
+}
+
+body:has(.app-shell[data-presentation='mobile'] .auth-google-page) .signature-footer-v50-profile {
+  min-width: 0 !important;
+  padding: 0 0 0 14px !important;
+  border-left: 1px solid #e3ebf3 !important;
+}
+
+body:has(.app-shell[data-presentation='mobile'] .auth-google-page) .signature-footer-v50-role-badge {
+  min-width: 34px !important;
+  min-height: 24px !important;
+  padding: 3px 8px !important;
+  border-radius: 9px !important;
+  font-size: .68rem !important;
+}
+
+body:has(.app-shell[data-presentation='mobile'] .auth-google-page) .signature-footer-v50-profile h2 {
+  margin: 7px 0 8px !important;
+  font-size: .92rem !important;
+  line-height: 1.18 !important;
+}
+
+body:has(.app-shell[data-presentation='mobile'] .auth-google-page) .signature-footer-v50-details {
+  gap: 5px !important;
+  font-size: .67rem !important;
+  line-height: 1.35 !important;
+}
+
+body:has(.app-shell[data-presentation='mobile'] .auth-google-page) .signature-footer-v50-details .detail-centre,
+body:has(.app-shell[data-presentation='mobile'] .auth-google-page) .signature-footer-v50-details .detail-examiner {
+  display: none !important;
+}
+
+body:has(.app-shell[data-presentation='mobile'] .auth-google-page) .signature-footer-v50-credentials {
+  grid-column: 1 / -1 !important;
+  margin: 2px 0 0 !important;
+  padding: 10px 0 0 !important;
+  border-top: 1px solid #e5edf5 !important;
+  text-align: center !important;
+}
+
+body:has(.app-shell[data-presentation='mobile'] .auth-google-page) .signature-footer-v50-credentials > span {
+  color: #1768aa !important;
+  font-size: .68rem !important;
+  font-weight: 850 !important;
+  letter-spacing: .04em !important;
+}
+
+body:has(.app-shell[data-presentation='mobile'] .auth-google-page) .signature-footer-v50-credentials ul {
+  display: none !important;
+}
+
+body:has(.app-shell[data-presentation='mobile'] .auth-google-page) .signature-footer-expanded-note {
+  min-height: 42px !important;
+  padding: 9px 12px !important;
+  color: #48637d !important;
+  font-size: .68rem !important;
+  line-height: 1.35 !important;
+  text-align: left !important;
+}
+
+@media (max-width: 430px) {
+  .app-shell[data-presentation='mobile'] .auth-google-page {
+    padding-inline: 10px !important;
+  }
+
+  .app-shell[data-presentation='mobile'] .auth-google-visual {
+    grid-template-columns: minmax(0, 1.18fr) minmax(104px, .82fr) !important;
+    padding: 24px 15px 16px !important;
+  }
+
+  .app-shell[data-presentation='mobile'] .auth-google-copy h1 {
+    font-size: clamp(2.5rem, 11vw, 3.15rem) !important;
+  }
+
+  .app-shell[data-presentation='mobile'] .auth-google-visual-art {
+    min-height: 168px !important;
+    height: 168px !important;
+  }
+
+  .app-shell[data-presentation='mobile'] .auth-editorial-still-life {
+    width: 350px !important;
+    transform: translateX(-58px) scale(.72) !important;
+  }
+
+  .app-shell[data-presentation='mobile'] .auth-google-feature-list strong {
+    font-size: .73rem !important;
+  }
+
+  .app-shell[data-presentation='mobile'] .auth-google-feature-list small {
+    font-size: .62rem !important;
+  }
+
+  body:has(.app-shell[data-presentation='mobile'] .auth-google-page) .signature-footer-v50-main {
+    grid-template-columns: minmax(86px, .68fr) minmax(0, 1.32fr) !important;
+    gap: 10px !important;
+    padding-inline: 12px !important;
+  }
+
+  body:has(.app-shell[data-presentation='mobile'] .auth-google-page) .signature-footer-v50-profile {
+    padding-left: 11px !important;
+  }
+}
