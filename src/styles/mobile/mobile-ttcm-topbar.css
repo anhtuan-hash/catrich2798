@@ -1,0 +1,32 @@
+.bes-mobile-ttcm-button {
+  appearance: none;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 54px;
+  height: 44px;
+  min-height: 44px;
+  margin: 0 1px 0 0;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, var(--bes-mobile-primary) 18%, var(--bes-mobile-border));
+  border-radius: 13px;
+  background: var(--bes-mobile-primary-soft);
+  color: #1f57cf;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.055em;
+  line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bes-mobile-ttcm-button:active {
+  background: color-mix(in srgb, var(--bes-mobile-primary-soft) 78%, var(--bes-mobile-primary) 22%);
+}
+
+.bes-mobile-ttcm-button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--bes-mobile-primary) 40%, transparent);
+  outline-offset: 2px;
+}
