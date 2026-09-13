@@ -5,7 +5,8 @@ on:
     branches:
       - feat/calendar-import-api
     paths:
-      - 'api/work-schedule-import.js'
+      - 'api/work-hub-gateway.js'
+      - 'serverless-handlers/work-schedule-import.js'
       - 'src/utils/workScheduleImport.js'
       - 'src/utils/workScheduleImportPlan.js'
       - 'src/components/GlobalWorkScheduleCenter.jsx'
@@ -13,7 +14,8 @@ on:
       - '.github/workflows/work-schedule-import-api.yml'
   pull_request:
     paths:
-      - 'api/work-schedule-import.js'
+      - 'api/work-hub-gateway.js'
+      - 'serverless-handlers/work-schedule-import.js'
       - 'src/utils/workScheduleImport.js'
       - 'src/utils/workScheduleImportPlan.js'
       - 'src/components/GlobalWorkScheduleCenter.jsx'
@@ -38,5 +40,7 @@ jobs:
         run: npm ci
       - name: Unit tests
         run: node --test tests/unit/work-schedule-import-api.test.mjs
+      - name: Vercel Hobby function budget
+        run: node scripts/test-vercel-hobby-function-budget.mjs
       - name: Production build
         run: npm run build
