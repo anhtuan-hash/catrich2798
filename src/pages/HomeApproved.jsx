@@ -277,7 +277,7 @@ export default function HomeApproved({ currentUser, language = 'vi', appVisibili
     12: practiceItems.filter((item) => inferGrade(item) === 12),
   }), [practiceItems]);
 
-  if (presentation.mode === 'mobile') {
+  if (presentation.presentationMode === 'mobile') {
     return (
       <MobileHomeView
         t={t}
