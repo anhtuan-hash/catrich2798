@@ -1,4 +1,4 @@
-const PHONE_UA = /iPhone|iPod|Android.+Mobile|Windows Phone|Mobile/i;
+const PHONE_UA = /iPhone|iPod|Android.+Mobile|Windows Phone/i;
 const ANDROID_UA = /Android/i;
 const IPAD_UA = /iPad/i;
 const DESKTOP_OS_UA = /Windows NT|Macintosh|CrOS|X11/i;
@@ -25,15 +25,15 @@ export function resolvePresentationMode(env = {}, override = null) {
   const platform = String(env.platform || '');
   const touch = Number(env.maxTouchPoints || 0);
   const ipadDesktopUa = platform === 'MacIntel' && touch > 1;
-  const phone = env.userAgentDataMobile === true || PHONE_UA.test(ua);
   const ipad = IPAD_UA.test(ua) || ipadDesktopUa;
-  const androidTablet = ANDROID_UA.test(ua) && !PHONE_UA.test(ua) && touch > 0;
+  const androidTablet = ANDROID_UA.test(ua) && !/Android.+Mobile/i.test(ua) && touch > 0;
+  const phone = !ipad && !androidTablet && (env.userAgentDataMobile === true || PHONE_UA.test(ua));
   const desktopOs = DESKTOP_OS_UA.test(ua) && !ipadDesktopUa;
   const shortSide = Math.min(Number(env.screenWidth || 0), Number(env.screenHeight || 0));
 
   let deviceClass = 'desktop';
-  if (phone) deviceClass = 'phone';
-  else if (ipad || androidTablet) deviceClass = 'tablet';
+  if (ipad || androidTablet) deviceClass = 'tablet';
+  else if (phone) deviceClass = 'phone';
   else if (!desktopOs && touch > 1 && env.coarsePointer && env.hoverNone && shortSide >= 600) deviceClass = 'tablet';
 
   const automatic = deviceClass === 'phone'
