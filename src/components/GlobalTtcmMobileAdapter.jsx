@@ -3,6 +3,7 @@ import GlobalTtcmNavigationTab from './GlobalTtcmNavigationTab.jsx';
 import './GlobalTtcmMobile.css';
 
 const PHONE_QUERY = '(max-width: 760px)';
+const MOBILE_DETAIL_ATTRIBUTE = 'data-mobile-detail-open';
 
 export default function GlobalTtcmMobileAdapter(props) {
   useEffect(() => {
@@ -11,7 +12,7 @@ export default function GlobalTtcmMobileAdapter(props) {
     const phone = window.matchMedia('(max-width: 760px)');
     const clearOpenSheets = () => {
       document.querySelectorAll('.ttcm-reader-shell[data-mobile-detail-open]').forEach((shell) => {
-        shell.removeAttribute('data-mobile-detail-open');
+        shell.removeAttribute(MOBILE_DETAIL_ATTRIBUTE);
       });
     };
 
@@ -22,22 +23,22 @@ export default function GlobalTtcmMobileAdapter(props) {
       if (!target || !shell) return;
 
       if (target.closest('.ttcm-reader-card')) {
-        shell.dataset.mobileDetailOpen = 'true';
+        shell.setAttribute(MOBILE_DETAIL_ATTRIBUTE, 'true');
         return;
       }
 
       if (target.closest('.ttcm-reader-back')) {
-        shell.removeAttribute('data-mobile-detail-open');
+        shell.removeAttribute(MOBILE_DETAIL_ATTRIBUTE);
         return;
       }
 
       if (target.closest('.ttcm-reader-sidebar > button') || target.closest('.ttcm-m3-workspace-tabs button')) {
-        shell.removeAttribute('data-mobile-detail-open');
+        shell.removeAttribute(MOBILE_DETAIL_ATTRIBUTE);
         return;
       }
 
-      if (shell.dataset.mobileDetailOpen === 'true' && !target.closest('.ttcm-reader-detail')) {
-        shell.removeAttribute('data-mobile-detail-open');
+      if (shell.getAttribute(MOBILE_DETAIL_ATTRIBUTE) === 'true' && !target.closest('.ttcm-reader-detail')) {
+        shell.removeAttribute(MOBILE_DETAIL_ATTRIBUTE);
       }
     };
 
@@ -46,7 +47,7 @@ export default function GlobalTtcmMobileAdapter(props) {
       const target = event.target instanceof Element ? event.target : null;
       const card = target?.closest('.ttcm-reader-card');
       const shell = card?.closest('.ttcm-reader-shell');
-      if (card && shell) shell.dataset.mobileDetailOpen = 'true';
+      if (card && shell) shell.setAttribute(MOBILE_DETAIL_ATTRIBUTE, 'true');
     };
 
     const onViewportChange = () => {
