@@ -1,10 +1,11 @@
 import React from 'react';
-import { Bell, ClipboardCheck, Menu, Search, UserRound } from 'lucide-react';
+import { Bell, ClipboardCheck, Menu, UserRound } from 'lucide-react';
 import { hasAnyAttendanceAccess } from '../../utils/permissions.js';
 import { isAdminRole } from '../../utils/roles.js';
 import { buildMobileTopbarAction, runMobileNavigationItem } from './mobileNavigation.js';
 import '../../pages/AuthPageMobileRedesign.css';
 import '../../pages/AuthPageMobileHeroRemoval.css';
+import '../../styles/mobile/mobile-ttcm-topbar.css';
 
 function userInitial(currentUser) {
   const source = currentUser?.name || currentUser?.full_name || currentUser?.email || 'B';
@@ -14,7 +15,6 @@ function userInitial(currentUser) {
 export default function MobileTopBar({
   title = 'Brian English',
   onMenu,
-  onSearch,
   onNotifications,
   onAccount,
   currentUser,
@@ -32,6 +32,10 @@ export default function MobileTopBar({
     language: title === 'Home' ? 'en' : 'vi',
   });
   const attendanceQuickAction = quickAction?.id === 'attendance';
+
+  const handleTtcm = () => {
+    window.dispatchEvent(new CustomEvent('bes-ttcm-open', { detail: { view: 'feed' } }));
+  };
 
   const handleQuickAction = () => {
     if (attendanceQuickAction) {
@@ -63,9 +67,11 @@ export default function MobileTopBar({
       </button>
 
       <div className="bes-mobile-topbar__actions">
-        <button type="button" className="bes-mobile-icon-button" onClick={onSearch} aria-label="Tìm kiếm">
-          <Search size={21} strokeWidth={2.2} />
-        </button>
+        {currentUser ? (
+          <button type="button" className="bes-mobile-ttcm-button" onClick={handleTtcm} aria-label="TTCM">
+            TTCM
+          </button>
+        ) : null}
         {currentUser && quickAction ? (
           <button
             type="button"
