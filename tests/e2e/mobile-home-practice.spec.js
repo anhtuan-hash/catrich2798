@@ -85,64 +85,9 @@ test('phone Home uses a native mobile visual scale instead of compressed desktop
       return element ? Number.parseFloat(getComputedStyle(element)[property]) : 0;
     };
     const height = (selector) => document.querySelector(selector)?.getBoundingClientRect().height || 0;
-    const grade = document.querySelector('.bes-mobile-home__grade-selector button');
-    const styleSnapshot = (element) => {
-      if (!element) return null;
-      const style = getComputedStyle(element);
-      const rect = element.getBoundingClientRect();
-      return {
-        tag: element.tagName,
-        className: element.className,
-        inlineStyle: element.getAttribute('style') || '',
-        minHeight: style.minHeight,
-        height: style.height,
-        blockSize: style.blockSize,
-        minBlockSize: style.minBlockSize,
-        transform: style.transform,
-        scale: style.scale,
-        zoom: style.zoom,
-        boxSizing: style.boxSizing,
-        rectHeight: rect.height,
-        offsetHeight: element.offsetHeight,
-      };
-    };
-    const matchingMinHeightRules = (element) => {
-      const matches = [];
-      const visit = (rules, href, context = '') => {
-        for (const rule of Array.from(rules || [])) {
-          if (rule.selectorText && rule.style) {
-            let matched = false;
-            try { matched = element.matches(rule.selectorText); } catch { matched = false; }
-            if (matched) {
-              const minHeight = rule.style.getPropertyValue('min-height');
-              const minBlockSize = rule.style.getPropertyValue('min-block-size');
-              if (minHeight || minBlockSize) {
-                matches.push({
-                  href,
-                  context,
-                  selector: rule.selectorText,
-                  minHeight,
-                  minHeightPriority: rule.style.getPropertyPriority('min-height'),
-                  minBlockSize,
-                  minBlockSizePriority: rule.style.getPropertyPriority('min-block-size'),
-                });
-              }
-            }
-          }
-          if (rule.cssRules?.length) {
-            let active = true;
-            if (rule.media?.mediaText) active = window.matchMedia(rule.media.mediaText).matches;
-            if (active) visit(rule.cssRules, href, `${context}${rule.media?.mediaText ? ` @media ${rule.media.mediaText}` : ''}`);
-          }
-        }
-      };
-      for (const sheet of Array.from(document.styleSheets)) {
-        try { visit(sheet.cssRules, sheet.href || 'inline'); } catch { /* cross-origin sheet */ }
-      }
-      return matches;
-    };
     return {
       heroTitle: px('.bes-mobile-home__hero h1'),
+      heroButtonHeight: height('.bes-mobile-home__hero-actions button'),
       sectionTitle: px('.bes-mobile-home__section-head h2'),
       toolLabel: px('.bes-mobile-home__tool strong'),
       toolHeight: height('.bes-mobile-home__tool'),
@@ -152,17 +97,12 @@ test('phone Home uses a native mobile visual scale instead of compressed desktop
       topbarHeight: height('.bes-mobile-topbar'),
       brandTitle: px('.bes-mobile-brand__copy strong'),
       bottomLabel: px('.bes-mobile-bottomnav__item'),
-      gradeGeometry: styleSnapshot(grade),
-      minHeightRules: matchingMinHeightRules(grade),
+      bottomItemHeight: height('.bes-mobile-bottomnav__item'),
     };
   });
 
-  console.log('MOBILE_SCALE_DIAGNOSTIC', JSON.stringify({
-    gradeGeometry: metrics.gradeGeometry,
-    minHeightRules: metrics.minHeightRules,
-  }));
-
   expect(metrics.heroTitle).toBeGreaterThanOrEqual(34);
+  expect(metrics.heroButtonHeight).toBeGreaterThanOrEqual(48);
   expect(metrics.sectionTitle).toBeGreaterThanOrEqual(20);
   expect(metrics.toolLabel).toBeGreaterThanOrEqual(15);
   expect(metrics.toolHeight).toBeGreaterThanOrEqual(104);
@@ -172,6 +112,7 @@ test('phone Home uses a native mobile visual scale instead of compressed desktop
   expect(metrics.topbarHeight).toBeGreaterThanOrEqual(68);
   expect(metrics.brandTitle).toBeGreaterThanOrEqual(16);
   expect(metrics.bottomLabel).toBeGreaterThanOrEqual(11);
+  expect(metrics.bottomItemHeight).toBeGreaterThanOrEqual(60);
 });
 
 test('mobile Home keeps weekly practice compact until user expands it', async ({ page }, testInfo) => {
