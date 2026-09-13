@@ -85,6 +85,31 @@ test('phone Home uses a native mobile visual scale instead of compressed desktop
       return element ? Number.parseFloat(getComputedStyle(element)[property]) : 0;
     };
     const height = (selector) => document.querySelector(selector)?.getBoundingClientRect().height || 0;
+    const grade = document.querySelector('.bes-mobile-home__grade-selector button');
+    const styleSnapshot = (element) => {
+      if (!element) return null;
+      const style = getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      return {
+        tag: element.tagName,
+        className: element.className,
+        minHeight: style.minHeight,
+        height: style.height,
+        blockSize: style.blockSize,
+        minBlockSize: style.minBlockSize,
+        transform: style.transform,
+        scale: style.scale,
+        zoom: style.zoom,
+        boxSizing: style.boxSizing,
+        rectHeight: rect.height,
+        offsetHeight: element.offsetHeight,
+      };
+    };
+    const ancestors = [];
+    let node = grade;
+    for (let index = 0; node && index < 7; index += 1, node = node.parentElement) {
+      ancestors.push(styleSnapshot(node));
+    }
     return {
       heroTitle: px('.bes-mobile-home__hero h1'),
       sectionTitle: px('.bes-mobile-home__section-head h2'),
@@ -96,8 +121,15 @@ test('phone Home uses a native mobile visual scale instead of compressed desktop
       topbarHeight: height('.bes-mobile-topbar'),
       brandTitle: px('.bes-mobile-brand__copy strong'),
       bottomLabel: px('.bes-mobile-bottomnav__item'),
+      gradeGeometry: styleSnapshot(grade),
+      ancestorGeometry: ancestors,
     };
   });
+
+  console.log('MOBILE_SCALE_DIAGNOSTIC', JSON.stringify({
+    gradeGeometry: metrics.gradeGeometry,
+    ancestorGeometry: metrics.ancestorGeometry,
+  }));
 
   expect(metrics.heroTitle).toBeGreaterThanOrEqual(34);
   expect(metrics.sectionTitle).toBeGreaterThanOrEqual(20);
