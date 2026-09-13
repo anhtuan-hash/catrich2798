@@ -1,0 +1,51 @@
+name: Mobile Home Practice
+
+on:
+  push:
+    branches:
+      - feat/mobile-home-practice
+  pull_request:
+    paths:
+      - 'src/pages/HomeApproved.jsx'
+      - 'src/components/mobile/MobileHomeView.jsx'
+      - 'src/styles/mobile/mobile-home.css'
+      - 'tests/e2e/mobile-home-practice.spec.js'
+      - '.github/workflows/mobile-home-practice.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-home-practice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Phone Home contract
+        run: npx playwright test tests/e2e/mobile-home-practice.spec.js --project=mobile-chromium
+
+      - name: Desktop Home contract
+        run: npx playwright test tests/e2e/mobile-home-practice.spec.js --project=chromium-desktop
+
+      - name: Portrait iPad Home contract
+        run: npx playwright test tests/e2e/mobile-home-practice.spec.js --project=ipad-portrait
+
+      - name: Landscape iPad Home contract
+        run: npx playwright test tests/e2e/mobile-home-practice.spec.js --project=ipad-landscape
