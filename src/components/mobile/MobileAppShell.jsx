@@ -109,6 +109,39 @@ export default function MobileAppShell({
   const hasUnread = notifications.some((item) => !item?.read);
 
   useEffect(() => {
+    const root = document.documentElement;
+    const viewport = window.visualViewport;
+    let frame = 0;
+
+    const syncViewport = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        const visualHeight = viewport?.height || window.innerHeight;
+        const visualTop = viewport?.offsetTop || 0;
+        const bottomOcclusion = Math.max(0, window.innerHeight - visualHeight - visualTop);
+        root.style.setProperty('--bes-mobile-browser-bottom-inset', `${Math.round(bottomOcclusion)}px`);
+        root.style.setProperty('--bes-mobile-visual-height', `${Math.round(visualHeight)}px`);
+      });
+    };
+
+    syncViewport();
+    viewport?.addEventListener?.('resize', syncViewport);
+    viewport?.addEventListener?.('scroll', syncViewport);
+    window.addEventListener('resize', syncViewport);
+    window.addEventListener('orientationchange', syncViewport);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      viewport?.removeEventListener?.('resize', syncViewport);
+      viewport?.removeEventListener?.('scroll', syncViewport);
+      window.removeEventListener('resize', syncViewport);
+      window.removeEventListener('orientationchange', syncViewport);
+      root.style.removeProperty('--bes-mobile-browser-bottom-inset');
+      root.style.removeProperty('--bes-mobile-visual-height');
+    };
+  }, []);
+
+  useEffect(() => {
     const refresh = () => setNotifications(readStoredNotifications(currentUser));
     refresh();
     window.addEventListener('bes-global-notification', refresh);
