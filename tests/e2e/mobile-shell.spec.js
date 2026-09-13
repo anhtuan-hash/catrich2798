@@ -24,6 +24,28 @@ test('phone uses mobile chrome and hides desktop navigation', async ({ page }, t
   expect(bottomPadding).toBeGreaterThanOrEqual(68);
 });
 
+test('phone mobile chrome uses large touch and typography scale', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium');
+  await page.goto('/#/home');
+  await expectMobileChrome(page);
+
+  const topbarHeight = await page.locator('.bes-mobile-topbar').evaluate((element) => Number.parseFloat(getComputedStyle(element).minHeight));
+  expect(topbarHeight).toBeGreaterThanOrEqual(72);
+
+  const brandMark = await page.locator('.bes-mobile-brand__mark').boundingBox();
+  expect(brandMark?.width || 0).toBeGreaterThanOrEqual(42);
+  expect(brandMark?.height || 0).toBeGreaterThanOrEqual(42);
+
+  const brandTitleSize = await page.locator('.bes-mobile-brand__copy strong').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
+  expect(brandTitleSize).toBeGreaterThanOrEqual(17);
+
+  const touchTarget = await page.evaluate(() => Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bes-mobile-touch')) || 0);
+  expect(touchTarget).toBeGreaterThanOrEqual(50);
+
+  const bottomItem = await page.locator('.bes-mobile-bottomnav__item').first().boundingBox();
+  expect(bottomItem?.height || 0).toBeGreaterThanOrEqual(60);
+});
+
 test('portrait iPad uses mobile chrome', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'ipad-portrait');
   await page.goto('/#/home');

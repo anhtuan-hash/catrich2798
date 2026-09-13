@@ -1,96 +1,253 @@
-/* Targeted mobile-home refinements kept separate from the larger legacy Home stylesheet. */
+/* Large, touch-first mobile Home presentation. Desktop Home is rendered by a
+   separate component, so these rules only affect the dedicated mobile view. */
 .bes-mobile-home {
-  gap: 14px;
-  padding-top: 12px;
+  gap: 20px;
+  padding-top: 18px;
+  padding-bottom: 36px;
 }
 
 .bes-mobile-home__hero,
 .bes-mobile-home__section {
-  border-radius: 20px;
+  border-radius: 24px;
 }
 
 .bes-mobile-home__hero {
-  padding: 18px 18px 17px;
-  box-shadow: 0 14px 32px rgba(24, 77, 184, 0.2);
+  padding: 25px 22px 23px;
+  box-shadow: 0 18px 42px rgba(24, 77, 184, 0.22);
+}
+
+.bes-mobile-home__eyebrow {
+  font-size: 12px;
 }
 
 .bes-mobile-home__hero h1 {
-  margin: 14px 0 8px;
-  font-size: clamp(27px, 7.2vw, 38px);
-  line-height: 1.01;
+  margin: 18px 0 12px;
+  font-size: clamp(36px, 9.5vw, 48px);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
 }
 
 .bes-mobile-home__hero > p {
-  font-size: 13px;
-  line-height: 1.45;
+  font-size: 16px;
+  line-height: 1.55;
 }
 
 .bes-mobile-home__hero-actions {
-  margin-top: 15px;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.bes-mobile-home__hero-actions button {
+  min-height: 54px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  font-size: 15px;
 }
 
 .bes-mobile-home__hero-stat {
-  margin-top: 12px;
-  padding: 7px 10px;
+  margin-top: 17px;
+  padding: 9px 12px;
+  border-radius: 14px;
+  font-size: 13px;
+}
+
+.bes-mobile-home__hero-stat strong {
+  font-size: 21px;
 }
 
 .bes-mobile-home__section {
-  padding: 15px;
-  box-shadow: 0 7px 22px rgba(28, 42, 70, 0.05);
+  padding: 21px 20px;
+  box-shadow: 0 10px 28px rgba(28, 42, 70, 0.06);
+}
+
+.bes-mobile-home__section-head {
+  gap: 14px;
+}
+
+.bes-mobile-home__section-head h2 {
+  font-size: 21px;
+  line-height: 1.2;
+}
+
+.bes-mobile-home__section-head button {
+  min-height: 48px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  font-size: 13px;
 }
 
 .bes-mobile-home__tools {
-  gap: 9px;
-  margin-top: 12px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+  margin-top: 16px;
 }
 
 .bes-mobile-home__tool {
   min-height: 82px;
-  gap: 8px;
-  padding: 11px;
-  border-radius: 16px;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  align-content: center;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 18px;
 }
 
 .bes-mobile-home__tool > span {
-  width: 36px;
-  height: 36px;
-  border-radius: 11px;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+}
+
+.bes-mobile-home__tool strong {
+  font-size: 16px;
+  line-height: 1.3;
 }
 
 .bes-mobile-home__practice {
-  gap: 12px;
+  gap: 16px;
+}
+
+.bes-mobile-home__practice-head {
+  gap: 14px;
 }
 
 .bes-mobile-home__practice-head h2 {
-  font-size: 20px;
+  margin-top: 8px;
+  font-size: 27px;
+  line-height: 1.08;
 }
 
 .bes-mobile-home__practice-head p {
-  margin-top: 6px;
-  line-height: 1.4;
+  margin-top: 8px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.bes-mobile-home__practice-total {
+  min-width: 78px;
+  padding: 12px 10px;
+  border-radius: 18px;
+}
+
+.bes-mobile-home__practice-total strong {
+  font-size: 26px;
+}
+
+.bes-mobile-home__manager-actions {
+  gap: 10px;
+}
+
+.bes-mobile-home__manager-actions button {
+  min-height: 52px;
+  padding: 10px 12px;
+  font-size: 13px;
+}
+
+.bes-mobile-home__grade-selector {
+  gap: 9px;
+}
+
+.bes-mobile-home__grade-selector button {
+  min-height: 68px;
+  padding: 10px 11px;
+  border-radius: 17px;
+}
+
+.bes-mobile-home__grade-selector button > span {
+  font-size: 10px;
+}
+
+.bes-mobile-home__grade-selector button > strong {
+  font-size: 21px;
+}
+
+.bes-mobile-home__grade-selector button > small {
+  min-width: 30px;
+  height: 30px;
+  font-size: 11px;
+}
+
+.bes-mobile-home__practice-panel {
+  gap: 13px;
+}
+
+.bes-mobile-home__practice-panel-head small {
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+
+.bes-mobile-home__practice-panel-head h3 {
+  font-size: 21px;
+}
+
+.bes-mobile-home__practice-panel-head > span {
+  padding: 7px 10px;
+  font-size: 11px;
+}
+
+.bes-mobile-home__practice-list {
+  gap: 11px;
 }
 
 .bes-mobile-home__practice-card {
-  padding: 9px 10px;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 18px;
+}
+
+.bes-mobile-home__practice-card-copy {
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: 11px;
+}
+
+.bes-mobile-home__practice-index {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.bes-mobile-home__practice-card h4 {
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.bes-mobile-home__practice-card small {
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.bes-mobile-home__practice-card > button {
+  min-width: 88px;
+  min-height: 52px;
+  padding: 10px 12px;
   border-radius: 15px;
+  font-size: 13px;
+}
+
+.bes-mobile-home__state {
+  min-height: 96px;
+  padding: 16px;
+  border-radius: 18px;
+  font-size: 15px;
 }
 
 .bes-mobile-home__practice-expand {
   appearance: none;
   width: 100%;
-  min-height: 46px;
+  min-height: 52px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  margin-top: 2px;
-  padding: 9px 12px;
+  gap: 8px;
+  margin-top: 3px;
+  padding: 10px 14px;
   border: 1px solid #dbe5fa;
-  border-radius: 14px;
+  border-radius: 15px;
   background: #f4f7fd;
   color: #2458c7;
   font: inherit;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 800;
   cursor: pointer;
 }
@@ -99,22 +256,62 @@
   background: #eaf1ff;
 }
 
-@media (min-width: 700px) {
+@media (max-width: 359px) {
   .bes-mobile-home {
-    padding-top: 18px;
     gap: 16px;
+    padding-top: 14px;
   }
 
   .bes-mobile-home__hero {
-    padding: 26px 26px 23px;
+    padding: 22px 18px 20px;
+  }
+
+  .bes-mobile-home__hero h1 {
+    font-size: clamp(34px, 10vw, 40px);
   }
 
   .bes-mobile-home__section {
-    padding: 20px;
+    padding: 18px 16px;
+  }
+
+  .bes-mobile-home__hero-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .bes-mobile-home__practice-head {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .bes-mobile-home__practice-total {
+    width: fit-content;
+  }
+}
+
+@media (min-width: 700px) {
+  .bes-mobile-home {
+    padding-top: 24px;
+    gap: 22px;
+  }
+
+  .bes-mobile-home__hero {
+    padding: 32px 30px 29px;
+  }
+
+  .bes-mobile-home__hero h1 {
+    font-size: 48px;
+  }
+
+  .bes-mobile-home__section {
+    padding: 24px;
+  }
+
+  .bes-mobile-home__tools {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
   }
 
   .bes-mobile-home__tool {
     min-height: 96px;
-    padding: 14px;
+    padding: 18px;
   }
 }
