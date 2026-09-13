@@ -1,0 +1,595 @@
+.bes-mobile-home,
+.bes-mobile-home * {
+  box-sizing: border-box;
+}
+
+.bes-mobile-home {
+  width: min(100%, 860px);
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 16px var(--bes-mobile-gutter) 28px;
+  display: grid;
+  gap: 16px;
+  overflow-x: clip;
+  color: var(--bes-mobile-ink);
+}
+
+.bes-mobile-home button {
+  font: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bes-mobile-home button:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--bes-mobile-primary) 38%, transparent);
+  outline-offset: 2px;
+}
+
+.bes-mobile-home__hero,
+.bes-mobile-home__section {
+  min-width: 0;
+  max-width: 100%;
+  border-radius: 24px;
+}
+
+.bes-mobile-home__hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 22px 20px 20px;
+  background:
+    radial-gradient(circle at 88% 14%, rgba(255, 255, 255, 0.22), transparent 24%),
+    radial-gradient(circle at 12% 100%, rgba(126, 211, 255, 0.2), transparent 33%),
+    linear-gradient(140deg, #123b86 0%, #246bfd 52%, #4d84ff 100%);
+  color: #fff;
+  box-shadow: 0 18px 42px rgba(24, 77, 184, 0.24);
+}
+
+.bes-mobile-home__hero::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  width: 154px;
+  height: 154px;
+  right: -58px;
+  bottom: -72px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 50%;
+  box-shadow: 0 0 0 28px rgba(255, 255, 255, 0.04), 0 0 0 58px rgba(255, 255, 255, 0.025);
+}
+
+.bes-mobile-home__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 100%;
+  color: inherit;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.bes-mobile-home__hero .bes-mobile-home__eyebrow {
+  padding: 7px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.bes-mobile-home__hero h1 {
+  max-width: 650px;
+  margin: 18px 0 10px;
+  font-size: clamp(29px, 8.2vw, 46px);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+}
+
+.bes-mobile-home__hero h1 em {
+  display: block;
+  margin-top: 5px;
+  color: #d8e7ff;
+  font-style: normal;
+}
+
+.bes-mobile-home__hero > p {
+  max-width: 610px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.bes-mobile-home__hero-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.bes-mobile-home__hero-actions button,
+.bes-mobile-home__section-head button,
+.bes-mobile-home__manager-actions button,
+.bes-mobile-home__state button,
+.bes-mobile-home__practice-card > button {
+  appearance: none;
+  min-height: var(--bes-mobile-touch);
+  border: 0;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
+.bes-mobile-home__hero-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 780;
+}
+
+.bes-mobile-home__hero-actions button:first-child {
+  background: #fff;
+  color: #1855cf;
+  box-shadow: 0 8px 20px rgba(7, 33, 92, 0.18);
+}
+
+.bes-mobile-home__hero-actions button:last-child {
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.bes-mobile-home__hero-stat {
+  width: fit-content;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 7px;
+  margin-top: 16px;
+  padding: 8px 11px;
+  border-radius: 13px;
+  background: rgba(7, 29, 78, 0.2);
+  color: rgba(255, 255, 255, 0.84);
+  font-size: 12px;
+}
+
+.bes-mobile-home__hero-stat strong {
+  color: #fff;
+  font-size: 19px;
+  line-height: 1;
+}
+
+.bes-mobile-home__section {
+  padding: 18px;
+  border: 1px solid var(--bes-mobile-border);
+  background: var(--bes-mobile-surface);
+  box-shadow: 0 10px 28px rgba(28, 42, 70, 0.06);
+}
+
+.bes-mobile-home__section-head,
+.bes-mobile-home__practice-panel-head {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bes-mobile-home__section-head h2,
+.bes-mobile-home__practice-head h2,
+.bes-mobile-home__practice-panel-head h3 {
+  margin: 0;
+  color: var(--bes-mobile-ink);
+  letter-spacing: -0.03em;
+}
+
+.bes-mobile-home__section-head h2 {
+  min-width: 0;
+  font-size: 17px;
+  line-height: 1.2;
+}
+
+.bes-mobile-home__section-head button {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 10px;
+  background: var(--bes-mobile-primary-soft);
+  color: #1f5bd7;
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.bes-mobile-home__tools {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 11px;
+  margin-top: 14px;
+}
+
+.bes-mobile-home__tool {
+  appearance: none;
+  min-width: 0;
+  min-height: 92px;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid color-mix(in srgb, var(--tool-accent, var(--bes-mobile-primary)) 14%, var(--bes-mobile-border));
+  border-radius: 18px;
+  background: linear-gradient(145deg, var(--tool-soft, #f7f9fd), #fff 72%);
+  color: var(--bes-mobile-ink);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(28, 42, 70, 0.045);
+}
+
+.bes-mobile-home__tool > span {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--tool-accent, var(--bes-mobile-primary)) 10%, #fff);
+  color: var(--tool-accent, var(--bes-mobile-primary));
+}
+
+.bes-mobile-home__tool strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.bes-mobile-home__practice {
+  display: grid;
+  gap: 14px;
+}
+
+.bes-mobile-home__practice-head {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+}
+
+.bes-mobile-home__practice-head > div:first-child {
+  min-width: 0;
+}
+
+.bes-mobile-home__practice-head .bes-mobile-home__eyebrow {
+  color: var(--bes-mobile-primary);
+}
+
+.bes-mobile-home__practice-head h2 {
+  margin-top: 7px;
+  font-size: 22px;
+  line-height: 1.08;
+}
+
+.bes-mobile-home__practice-head p {
+  margin: 8px 0 0;
+  color: var(--bes-mobile-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.bes-mobile-home__practice-total {
+  min-width: 72px;
+  display: grid;
+  justify-items: center;
+  padding: 10px;
+  border-radius: 16px;
+  background: var(--bes-mobile-primary-soft);
+  color: #2359cb;
+}
+
+.bes-mobile-home__practice-total strong {
+  font-size: 23px;
+  line-height: 1;
+}
+
+.bes-mobile-home__practice-total span {
+  margin-top: 4px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.bes-mobile-home__manager-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.bes-mobile-home__manager-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 10px;
+  background: #f5f7fb;
+  color: #39445b;
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.bes-mobile-home__grade-selector {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.bes-mobile-home__grade-selector button {
+  appearance: none;
+  position: relative;
+  min-width: 0;
+  min-height: 56px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 1px 5px;
+  padding: 8px 10px;
+  border: 1px solid var(--bes-mobile-border);
+  border-radius: 15px;
+  background: #f8f9fc;
+  color: var(--bes-mobile-ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.bes-mobile-home__grade-selector button > span {
+  grid-column: 1;
+  color: var(--bes-mobile-muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+}
+
+.bes-mobile-home__grade-selector button > strong {
+  grid-column: 1;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.bes-mobile-home__grade-selector button > small {
+  grid-column: 2;
+  grid-row: 1 / 3;
+  display: grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--bes-mobile-muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.bes-mobile-home__grade-selector button[aria-pressed='true'] {
+  border-color: color-mix(in srgb, var(--bes-mobile-primary) 34%, transparent);
+  background: var(--bes-mobile-primary-soft);
+  color: #1d56ce;
+  box-shadow: inset 0 0 0 1px rgba(36, 107, 253, 0.05);
+}
+
+.bes-mobile-home__grade-selector button[aria-pressed='true'] > span,
+.bes-mobile-home__grade-selector button[aria-pressed='true'] > small {
+  color: #2358ca;
+}
+
+.bes-mobile-home__state {
+  min-height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px;
+  border: 1px dashed var(--bes-mobile-border);
+  border-radius: 16px;
+  background: #fafbfd;
+  color: var(--bes-mobile-muted);
+  font-size: 13px;
+  text-align: center;
+}
+
+.bes-mobile-home__state.is-error {
+  flex-direction: column;
+  color: #a82b35;
+}
+
+.bes-mobile-home__state button {
+  padding: 8px 14px;
+  background: #fff0f1;
+  color: #a82b35;
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.bes-mobile-home__practice-panel {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.bes-mobile-home__practice-panel-head {
+  padding-top: 2px;
+}
+
+.bes-mobile-home__practice-panel-head small {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--bes-mobile-muted);
+  font-size: 10px;
+  font-weight: 760;
+  text-transform: uppercase;
+}
+
+.bes-mobile-home__practice-panel-head h3 {
+  font-size: 18px;
+}
+
+.bes-mobile-home__practice-panel-head > span {
+  flex: 0 0 auto;
+  padding: 6px 9px;
+  border-radius: 999px;
+  background: #f2f4f8;
+  color: var(--bes-mobile-muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.bes-mobile-home__practice-list {
+  min-width: 0;
+  display: grid;
+  gap: 9px;
+}
+
+.bes-mobile-home__practice-card {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 11px;
+  border: 1px solid var(--bes-mobile-border);
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: 0 5px 15px rgba(28, 42, 70, 0.04);
+}
+
+.bes-mobile-home__practice-card-copy {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+}
+
+.bes-mobile-home__practice-index {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: var(--bes-mobile-primary-soft);
+  color: #2259cf;
+  font-size: 11px;
+  font-weight: 850;
+}
+
+.bes-mobile-home__practice-card-copy > div {
+  min-width: 0;
+}
+
+.bes-mobile-home__practice-card h4 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--bes-mobile-ink);
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.bes-mobile-home__practice-card small {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 5px;
+  color: var(--bes-mobile-muted);
+  font-size: 10px;
+}
+
+.bes-mobile-home__practice-card > button {
+  flex: 0 0 auto;
+  min-width: 74px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 10px;
+  background: var(--bes-mobile-primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+@media (max-width: 359px) {
+  .bes-mobile-home {
+    gap: 12px;
+    padding-top: 12px;
+  }
+
+  .bes-mobile-home__hero,
+  .bes-mobile-home__section {
+    border-radius: 20px;
+  }
+
+  .bes-mobile-home__hero {
+    padding: 19px 16px 17px;
+  }
+
+  .bes-mobile-home__section {
+    padding: 15px;
+  }
+
+  .bes-mobile-home__practice-card {
+    grid-template-columns: 1fr;
+  }
+
+  .bes-mobile-home__practice-card > button {
+    width: 100%;
+  }
+}
+
+@media (min-width: 700px) {
+  .bes-mobile-home {
+    padding-top: 22px;
+    gap: 18px;
+  }
+
+  .bes-mobile-home__hero {
+    padding: 30px 28px 26px;
+  }
+
+  .bes-mobile-home__hero-actions {
+    max-width: 430px;
+  }
+
+  .bes-mobile-home__section {
+    padding: 22px;
+  }
+
+  .bes-mobile-home__tools {
+    gap: 14px;
+  }
+
+  .bes-mobile-home__tool {
+    min-height: 104px;
+    padding: 16px;
+  }
+
+  .bes-mobile-home__practice-card {
+    padding: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .bes-mobile-home__tool,
+  .bes-mobile-home__grade-selector button,
+  .bes-mobile-home__practice-card > button {
+    transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+  }
+
+  .bes-mobile-home__tool:active,
+  .bes-mobile-home__grade-selector button:active,
+  .bes-mobile-home__practice-card > button:active {
+    transform: scale(0.98);
+  }
+}
