@@ -109,62 +109,59 @@ export default function MobileHomeView({
           </div>
         ) : null}
 
-        {!practiceLoading && !practiceError ? (
-          <div className="bes-mobile-home__grade-selector" aria-label={vi ? 'Chọn khối lớp' : 'Choose grade'}>
-            {[10, 11, 12].map((grade) => (
-              <button
-                key={grade}
-                type="button"
-                data-mobile-grade={grade}
-                aria-pressed={selectedGrade === grade}
-                onClick={() => setSelectedGrade(grade)}
-              >
-                <span>{t.grade}</span>
-                <strong>{grade}</strong>
-                <small>{(practicesByGrade[grade] || []).length}</small>
-              </button>
-            ))}
-          </div>
-        ) : null}
+        <div className="bes-mobile-home__grade-selector" aria-label={vi ? 'Chọn khối lớp' : 'Choose grade'}>
+          {[10, 11, 12].map((grade) => (
+            <button
+              key={grade}
+              type="button"
+              data-mobile-grade={grade}
+              aria-pressed={selectedGrade === grade}
+              onClick={() => setSelectedGrade(grade)}
+            >
+              <span>{t.grade}</span>
+              <strong>{grade}</strong>
+              <small>{(practicesByGrade[grade] || []).length}</small>
+            </button>
+          ))}
+        </div>
 
-        {practiceLoading ? <div className="bes-mobile-home__state">{t.loading}</div> : null}
-        {!practiceLoading && practiceError ? (
-          <div className="bes-mobile-home__state is-error">
-            <span>{practiceError}</span>
-            <button type="button" onClick={onRetryPractice}>{t.retry}</button>
-          </div>
-        ) : null}
-        {!practiceLoading && !practiceError ? (
-          <div className="bes-mobile-home__practice-panel" data-mobile-practice-grade={selectedGrade}>
-            <div className="bes-mobile-home__practice-panel-head">
-              <div>
-                <small>{t.weekly}</small>
-                <h3>{t.english} {selectedGrade}</h3>
-              </div>
-              <span>{visiblePractices.length} {vi ? 'bài' : 'lessons'}</span>
+        <div className="bes-mobile-home__practice-panel" data-mobile-practice-grade={selectedGrade} aria-busy={practiceLoading ? 'true' : 'false'}>
+          <div className="bes-mobile-home__practice-panel-head">
+            <div>
+              <small>{t.weekly}</small>
+              <h3>{t.english} {selectedGrade}</h3>
             </div>
-
-            {visiblePractices.length ? (
-              <div className="bes-mobile-home__practice-list">
-                {visiblePractices.map((item, index) => {
-                  const date = formatPracticeDate(item, language);
-                  return (
-                    <article key={item?.id || `${selectedGrade}-${index}`} className="bes-mobile-home__practice-card" data-mobile-practice-card>
-                      <div className="bes-mobile-home__practice-card-copy">
-                        <span className="bes-mobile-home__practice-index">{String(index + 1).padStart(2, '0')}</span>
-                        <div>
-                          <h4>{item?.title || `${t.english} ${selectedGrade}`}</h4>
-                          {date ? <small><CalendarDays size={14} />{date}</small> : null}
-                        </div>
-                      </div>
-                      <button type="button" onClick={() => onOpenPractice?.(item)}>{t.enter}<ArrowRight size={15} /></button>
-                    </article>
-                  );
-                })}
-              </div>
-            ) : <div className="bes-mobile-home__state">{t.empty}</div>}
+            <span>{visiblePractices.length} {vi ? 'bài' : 'lessons'}</span>
           </div>
-        ) : null}
+
+          {practiceLoading ? <div className="bes-mobile-home__state">{t.loading}</div> : null}
+          {!practiceLoading && practiceError ? (
+            <div className="bes-mobile-home__state is-error">
+              <span>{practiceError}</span>
+              <button type="button" onClick={onRetryPractice}>{t.retry}</button>
+            </div>
+          ) : null}
+          {!practiceLoading && !practiceError && visiblePractices.length ? (
+            <div className="bes-mobile-home__practice-list">
+              {visiblePractices.map((item, index) => {
+                const date = formatPracticeDate(item, language);
+                return (
+                  <article key={item?.id || `${selectedGrade}-${index}`} className="bes-mobile-home__practice-card" data-mobile-practice-card>
+                    <div className="bes-mobile-home__practice-card-copy">
+                      <span className="bes-mobile-home__practice-index">{String(index + 1).padStart(2, '0')}</span>
+                      <div>
+                        <h4>{item?.title || `${t.english} ${selectedGrade}`}</h4>
+                        {date ? <small><CalendarDays size={14} />{date}</small> : null}
+                      </div>
+                    </div>
+                    <button type="button" onClick={() => onOpenPractice?.(item)}>{t.enter}<ArrowRight size={15} /></button>
+                  </article>
+                );
+              })}
+            </div>
+          ) : null}
+          {!practiceLoading && !practiceError && !visiblePractices.length ? <div className="bes-mobile-home__state">{t.empty}</div> : null}
+        </div>
       </section>
     </main>
   );
