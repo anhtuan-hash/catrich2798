@@ -70,3 +70,18 @@ test('mobile Home stays inside viewport and tools are touch friendly', async ({ 
   });
   expect(columnCount).toBe(2);
 });
+
+test('mobile Home keeps weekly practice compact until user expands it', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium');
+  await waitForHome(page);
+
+  const cards = page.locator('[data-mobile-practice-card]');
+  const initialCount = await cards.count();
+  expect(initialCount).toBeLessThanOrEqual(4);
+
+  const expand = page.getByRole('button', { name: /Xem tất cả bài|View all lessons/i });
+  if (await expand.count()) {
+    await expand.click();
+    expect(await cards.count()).toBeGreaterThan(initialCount);
+  }
+});

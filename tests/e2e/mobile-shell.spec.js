@@ -51,14 +51,55 @@ test('desktop remains desktop after narrow viewport resize', async ({ page }, te
   await expectDesktopChrome(page);
 });
 
-test('mobile menu opens a touch-friendly route sheet without changing the current route', async ({ page }, testInfo) => {
+test('mobile menu opens as a left navigation drawer without changing route', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile-chromium');
   await page.goto('/#/home');
   const originalHash = await page.evaluate(() => window.location.hash);
 
   await page.getByRole('button', { name: 'Mở menu' }).click();
-  await expect(page.getByRole('dialog', { name: 'Điều hướng Brian English' })).toBeVisible();
-  const firstButtonMinHeight = await page.locator('.bes-mobile-sheet button').first().evaluate((element) => Number.parseFloat(getComputedStyle(element).minHeight));
+  const drawer = page.getByRole('dialog', { name: 'Điều hướng Brian English' });
+  await expect(drawer).toBeVisible();
+  await expect(drawer).toHaveClass(/bes-mobile-drawer/);
+
+  // Geometry assertions describe the settled drawer. Wait for its entrance
+  // animation instead of sampling a transient transform offset mid-flight.
+  await drawer.evaluate(async (element) => {
+    const animations = element.getAnimations();
+    await Promise.all(animations.map((animation) => animation.finished.catch(() => undefined)));
+  });
+
+  const box = await drawer.boundingBox();
+  const viewport = page.viewportSize();
+  expect(box?.x || 0).toBeLessThanOrEqual(1);
+  expect(box?.width || 0).toBeGreaterThan((viewport?.width || 0) * 0.72);
+  expect(box?.width || 0).toBeLessThan((viewport?.width || 0) * 0.94);
+  expect(box?.height || 0).toBeGreaterThan((viewport?.height || 0) * 0.9);
+
+  const firstButtonMinHeight = await page.locator('.bes-mobile-drawer button').first().evaluate((element) => Number.parseFloat(getComputedStyle(element).minHeight));
   expect(firstButtonMinHeight).toBeGreaterThanOrEqual(44);
   expect(await page.evaluate(() => window.location.hash)).toBe(originalHash);
+});
+
+test('mobile bottom navigation rises above browser visual viewport occlusion', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium');
+  await page.addInitScript(() => {
+    const viewport = new EventTarget();
+    Object.defineProperties(viewport, {
+      height: { get: () => 700 },
+      offsetTop: { get: () => 0 },
+      width: { get: () => window.innerWidth },
+      offsetLeft: { get: () => 0 },
+      scale: { get: () => 1 },
+    });
+    Object.defineProperty(window, 'visualViewport', { configurable: true, value: viewport });
+  });
+
+  await page.goto('/#/home');
+  await expectMobileChrome(page);
+
+  const inset = await page.evaluate(() => Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--bes-mobile-browser-bottom-inset')) || 0);
+  expect(inset).toBeGreaterThan(0);
+
+  const bottom = await page.locator('.bes-mobile-bottomnav').evaluate((element) => Number.parseFloat(getComputedStyle(element).bottom));
+  expect(bottom).toBeGreaterThanOrEqual(inset);
 });
