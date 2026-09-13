@@ -11,6 +11,8 @@
   const ORIGINAL_DISPLAY_PRIORITY_ATTRIBUTE = 'data-ah-v5-original-display-priority';
   const DETAIL_KIND_CLASSES = ['ah-kind-remedial', 'ah-kind-gifted', 'ah-kind-supplemental'];
   const MOBILE_MEDIA_QUERY = '(max-width: 900px)';
+  const MOBILE_STYLESHEET_ID = 'ah-mobile-bottom-sheet-styles';
+  const MOBILE_STYLESHEET_HREF = '/attendance-history-mobile-bottom-sheet.css?v=1';
   const MOBILE_OPEN_CLASS = 'is-mobile-detail-open';
   const MOBILE_DISMISSED_CLASS = 'is-mobile-detail-dismissed';
   const MOBILE_FILTERS_CLASS = 'is-mobile-filters-open';
@@ -27,6 +29,15 @@
 
   function isMobileViewport() {
     return Boolean(window.matchMedia?.(MOBILE_MEDIA_QUERY).matches);
+  }
+
+  function ensureMobileStylesheet() {
+    if (document.getElementById(MOBILE_STYLESHEET_ID)) return;
+    const link = document.createElement('link');
+    link.id = MOBILE_STYLESHEET_ID;
+    link.rel = 'stylesheet';
+    link.href = MOBILE_STYLESHEET_HREF;
+    document.head.append(link);
   }
 
   function isLegacyActivityFilter(node) {
@@ -179,7 +190,7 @@
     button.setAttribute('aria-expanded', String(expanded));
   }
 
-  function ensureMobileSummary(root, selectedCard, detail) {
+  function ensureMobileSummary(selectedCard, detail) {
     let summary = detail.querySelector(`.${MOBILE_SUMMARY_CLASS}`);
     if (!summary) {
       summary = document.createElement('div');
@@ -275,7 +286,7 @@
       detail.insertAdjacentElement('afterend', close);
     }
 
-    ensureMobileSummary(root, selectedCard, detail);
+    ensureMobileSummary(selectedCard, detail);
     ensureMobileActionProxy(detail);
   }
 
@@ -325,6 +336,7 @@
   }
 
   function start() {
+    ensureMobileStylesheet();
     enhance();
     observer.observe(document.body, { childList: true, subtree: true });
     document.addEventListener('change', scheduleEnhance, true);
