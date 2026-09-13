@@ -1,6 +1,22 @@
 name: Mobile App Shell Foundation
 
 on:
+  push:
+    branches:
+      - feat/mobile-app-shell-foundation
+    paths:
+      - 'src/device/**'
+      - 'src/hooks/usePresentationMode.js'
+      - 'src/components/mobile/**'
+      - 'src/components/GlobalFlatNavigation.jsx'
+      - 'src/styles/mobile/**'
+      - 'tests/unit/presentation-mode.test.mjs'
+      - 'tests/unit/mobile-navigation.test.mjs'
+      - 'tests/e2e/mobile-shell.spec.js'
+      - 'scripts/node-test-loader.mjs'
+      - 'scripts/register-node-test-loader.mjs'
+      - 'playwright.config.js'
+      - '.github/workflows/mobile-app-shell-foundation.yml'
   pull_request:
     paths:
       - 'src/device/**'
