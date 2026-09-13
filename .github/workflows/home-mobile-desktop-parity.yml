@@ -1,0 +1,28 @@
+name: Home mobile desktop parity
+
+on:
+  push:
+    branches:
+      - fix/home-mobile-desktop-parity
+  pull_request:
+    paths:
+      - 'src/pages/HomeApproved.jsx'
+      - 'src/styles/HomeMobileDesktopParity.css'
+      - 'scripts/test-home-mobile-desktop-parity.mjs'
+      - '.github/workflows/home-mobile-desktop-parity.yml'
+
+jobs:
+  parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Verify homepage mobile/desktop parity contract
+        run: node scripts/test-home-mobile-desktop-parity.mjs
+      - name: Build production bundle
+        run: npm run build
