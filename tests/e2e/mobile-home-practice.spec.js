@@ -41,24 +41,21 @@ test('landscape iPad preserves desktop Home body', async ({ page }, testInfo) =>
   await expect(page.locator('[data-bes-mobile-home="true"]')).toHaveCount(0);
 });
 
-test('mobile Home keeps desktop content hierarchy: Hero, weekly practice, then tools', async ({ page }, testInfo) => {
+test('mobile Home keeps Hero then weekly practice and omits featured tools', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile-chromium');
   await waitForHome(page);
 
   const hero = page.locator('[data-mobile-home-hero]');
   const practice = page.locator('[data-mobile-home-practice]');
-  const tools = page.locator('[data-mobile-home-tools]');
   await expect(hero).toBeVisible();
   await expect(practice).toBeVisible();
-  await expect(tools).toBeVisible();
+  await expect(page.locator('[data-mobile-home-tools]')).toHaveCount(0);
 
-  const [heroBox, practiceBox, toolsBox] = await Promise.all([
+  const [heroBox, practiceBox] = await Promise.all([
     hero.boundingBox(),
     practice.boundingBox(),
-    tools.boundingBox(),
   ]);
   expect(heroBox?.y || 0).toBeLessThan(practiceBox?.y || Number.MAX_SAFE_INTEGER);
-  expect(practiceBox?.y || 0).toBeLessThan(toolsBox?.y || Number.MAX_SAFE_INTEGER);
 });
 
 test('mobile Weekly Practice shows all three grade summaries simultaneously', async ({ page }, testInfo) => {
@@ -83,23 +80,12 @@ test('mobile grade summary action meets touch target minimum and opens its lesso
   await expect(page.locator('[data-mobile-practice-grade="10"]')).toBeVisible();
 });
 
-test('mobile Home stays inside viewport and tools are touch friendly', async ({ page }, testInfo) => {
+test('mobile Home stays inside viewport', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile-chromium');
   await waitForHome(page);
   await expect(page.locator('[data-bes-mobile-home="true"]')).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
-
-  const cards = page.locator('[data-mobile-tool]');
-  expect(await cards.count()).toBeGreaterThan(0);
-  const first = await cards.first().boundingBox();
-  expect(first?.height || 0).toBeGreaterThanOrEqual(44);
-
-  const columnCount = await page.locator('.bes-mobile-home__tools').evaluate((element) => {
-    const columns = getComputedStyle(element).gridTemplateColumns.trim();
-    return columns ? columns.split(/\s+/).length : 0;
-  });
-  expect(columnCount).toBe(1);
 });
 
 test('mobile Home uses readable Hero typography and large actions', async ({ page }, testInfo) => {
@@ -111,9 +97,6 @@ test('mobile Home uses readable Hero typography and large actions', async ({ pag
 
   const primaryAction = await page.locator('[data-mobile-home-hero] .hero-cms__button').first().boundingBox();
   expect(primaryAction?.height || 0).toBeGreaterThanOrEqual(48);
-
-  const toolTitleSize = await page.locator('.bes-mobile-home__tool strong').first().evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
-  expect(toolTitleSize).toBeGreaterThanOrEqual(15);
 });
 
 test('mobile Home brand uses Brian English identity instead of route title', async ({ page }, testInfo) => {
