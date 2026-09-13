@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, BarChart3, CalendarDays, ChevronDown, ChevronUp, ClipboardClock, Sparkles } from 'lucide-react';
 import '../../styles/mobile/mobile-home.css';
+import '../../styles/mobile/mobile-home-polish.css';
 
 function practiceTimestamp(item) {
   const values = [item?.opens_at, item?.published_at, item?.created_at];
