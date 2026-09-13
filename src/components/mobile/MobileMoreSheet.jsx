@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronRight, LogOut, X } from 'lucide-react';
 
-export default function MobileMoreSheet({ open, groups = [], onClose, onSelect, currentUser, onLogout }) {
+export default function MobileMoreSheet({ open, items = [], onClose, onSelect, currentUser, onLogout }) {
   const closeRef = useRef(null);
   const drawerRef = useRef(null);
 
@@ -66,25 +66,21 @@ export default function MobileMoreSheet({ open, groups = [], onClose, onSelect, 
           </button>
         </header>
 
-        <nav className="bes-mobile-drawer__body" aria-label="Danh mục điều hướng">
-          {groups.map((group) => (
-            <section className="bes-mobile-drawer__group" key={group.id}>
-              <h3>{group.label}</h3>
-              <div className="bes-mobile-drawer__items">
-                {group.items.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className={item.active ? 'is-active' : ''}
-                    onClick={() => { onSelect?.(item); onClose?.(); }}
-                  >
-                    <span>{item.label}</span>
-                    <ChevronRight size={19} aria-hidden="true" />
-                  </button>
-                ))}
-              </div>
-            </section>
-          ))}
+        <nav className="bes-mobile-drawer__body" aria-label="Điều hướng chính">
+          <div className="bes-mobile-drawer__items bes-mobile-drawer__items--primary">
+            {items.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={item.active ? 'is-active' : ''}
+                aria-current={item.active ? 'page' : undefined}
+                onClick={() => { onSelect?.(item); onClose?.(); }}
+              >
+                <span>{item.label}</span>
+                <ChevronRight size={19} aria-hidden="true" />
+              </button>
+            ))}
+          </div>
         </nav>
 
         {currentUser && onLogout ? (
