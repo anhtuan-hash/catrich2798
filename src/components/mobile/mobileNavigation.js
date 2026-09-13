@@ -15,6 +15,18 @@ function item(id, label, options = {}) {
   return { id, label, ...options };
 }
 
+export function buildMobileTopbarAction({
+  authenticated = false,
+  canAccessAttendance = false,
+  language = 'vi',
+} = {}) {
+  if (!authenticated) return null;
+  const t = COPY[language] || COPY.vi;
+  return canAccessAttendance
+    ? item('attendance', t.attendance, { action: 'attendance' })
+    : item('notifications', t.notifications, { action: 'notifications' });
+}
+
 export function buildMobileNavigationModel({
   authenticated,
   currentRoute = 'home',

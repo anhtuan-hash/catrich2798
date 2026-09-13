@@ -1,5 +1,8 @@
 import React from 'react';
-import { Bell, Menu, Search, UserRound } from 'lucide-react';
+import { Bell, ClipboardCheck, Menu, Search, UserRound } from 'lucide-react';
+import { hasAnyAttendanceAccess } from '../../utils/permissions.js';
+import { isAdminRole } from '../../utils/roles.js';
+import { buildMobileTopbarAction, runMobileNavigationItem } from './mobileNavigation.js';
 import '../../pages/AuthPageMobileRedesign.css';
 import '../../pages/AuthPageMobileHeroRemoval.css';
 
@@ -22,6 +25,21 @@ export default function MobileTopBar({
   const identityBrand = homeBrand || authBrand;
   const brandTitle = identityBrand ? 'Brian English' : title;
   const brandSubtitle = identityBrand ? 'ENGLISH HUB' : 'Brian English';
+  const canAccessAttendance = Boolean(currentUser?.id && (isAdminRole(currentUser?.role) || hasAnyAttendanceAccess(currentUser)));
+  const quickAction = buildMobileTopbarAction({
+    authenticated: Boolean(currentUser),
+    canAccessAttendance,
+    language: title === 'Home' ? 'en' : 'vi',
+  });
+  const attendanceQuickAction = quickAction?.id === 'attendance';
+
+  const handleQuickAction = () => {
+    if (attendanceQuickAction) {
+      runMobileNavigationItem(quickAction);
+      return;
+    }
+    onNotifications?.();
+  };
 
   return (
     <header className={`bes-mobile-topbar${homeBrand ? ' is-home' : ''}${authBrand ? ' is-auth' : ''}`} data-bes-mobile-topbar="true">
@@ -48,10 +66,17 @@ export default function MobileTopBar({
         <button type="button" className="bes-mobile-icon-button" onClick={onSearch} aria-label="Tìm kiếm">
           <Search size={21} strokeWidth={2.2} />
         </button>
-        {currentUser ? (
-          <button type="button" className="bes-mobile-icon-button bes-mobile-notification-button" onClick={onNotifications} aria-label="Thông báo">
-            <Bell size={21} strokeWidth={2.2} />
-            {hasUnread ? <span className="bes-mobile-unread-dot" aria-hidden="true" /> : null}
+        {currentUser && quickAction ? (
+          <button
+            type="button"
+            className={`bes-mobile-icon-button ${attendanceQuickAction ? 'bes-mobile-attendance-button' : 'bes-mobile-notification-button'}`}
+            onClick={handleQuickAction}
+            aria-label={quickAction.label}
+          >
+            {attendanceQuickAction
+              ? <ClipboardCheck size={21} strokeWidth={2.2} />
+              : <Bell size={21} strokeWidth={2.2} />}
+            {!attendanceQuickAction && hasUnread ? <span className="bes-mobile-unread-dot" aria-hidden="true" /> : null}
           </button>
         ) : null}
         <button type="button" className="bes-mobile-avatar-button" onClick={onAccount} aria-label={currentUser ? 'Tài khoản' : 'Đăng nhập'}>
