@@ -15,6 +15,18 @@ test('authenticated navigation keeps five primary destinations', () => {
   assert.deepEqual(model.bottomItems.map((item) => item.id), ['home', 'apps', 'practice', 'notifications', 'account']);
 });
 
+test('practice center action targets the live weekly practice block instead of retired route', () => {
+  const model = buildMobileNavigationModel({
+    authenticated: true,
+    currentRoute: 'home',
+    language: 'vi',
+    canAccessRoute: allow,
+    canAccessAttendance: false,
+  });
+  assert.equal(model.bottomItems[2].action, 'practice');
+  assert.equal(model.bottomItems[2].route, undefined);
+});
+
 test('attendance replaces practice as the center action when available', () => {
   const model = buildMobileNavigationModel({
     authenticated: true,
