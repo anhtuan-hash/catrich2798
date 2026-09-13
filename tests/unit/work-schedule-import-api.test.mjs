@@ -6,7 +6,7 @@ import {
   importOwnershipKey,
   isImportManagedScheduleItem,
 } from '../../src/utils/workScheduleImportPlan.js';
-import { isScheduleImportLeader } from '../../api/work-schedule-import.js';
+import { isScheduleImportLeader } from '../../serverless-handlers/work-schedule-import.js';
 
 function event(overrides = {}) {
   return {
