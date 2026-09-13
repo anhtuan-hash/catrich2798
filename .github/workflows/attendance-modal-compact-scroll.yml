@@ -12,6 +12,7 @@ on:
       - 'public/attendance-windows8-launch.css'
       - 'public/attendance-history-mockup-v4.css'
       - 'public/attendance-history-pixel-v6.css'
+      - 'public/attendance-card-size-sync-v1.css'
       - 'src/components/GlobalAttendanceNavigationTab.css'
       - 'scripts/test-attendance-modal-compact-scroll.mjs'
       - 'scripts/test-attendance-typography-parity.mjs'
