@@ -2,39 +2,27 @@ import { launchRoute } from '../../utils/navigation.js';
 
 const COPY = {
   vi: {
-    home: 'Trang chủ', apps: 'Ứng dụng', practice: 'Bài tập', attendance: 'Điểm danh', notifications: 'Thông báo', account: 'Tài khoản',
+    home: 'Trang chủ', apps: 'Ứng dụng', admin: 'Quản trị', practice: 'Bài tập', attendance: 'Điểm danh', notifications: 'Thông báo', account: 'Tài khoản',
     resources: 'Tài nguyên', search: 'Tìm kiếm', contact: 'Liên hệ', login: 'Đăng nhập',
   },
   en: {
-    home: 'Home', apps: 'Apps', practice: 'Practice', attendance: 'Attendance', notifications: 'Notifications', account: 'Account',
+    home: 'Home', apps: 'Apps', admin: 'Admin', practice: 'Practice', attendance: 'Attendance', notifications: 'Notifications', account: 'Account',
     resources: 'Resources', search: 'Search', contact: 'Contact', login: 'Sign in',
   },
-};
-
-const MORE_GROUPS = [
-  { id: 'teaching', vi: 'Dạy & học', en: 'Teaching & learning', routes: ['apps', 'games', 'tools', 'resources', 'resource-library', 'knowledge-hub'] },
-  { id: 'classes', vi: 'Lớp học', en: 'Classes', routes: ['homeroom'] },
-  { id: 'work', vi: 'Công việc & báo cáo', en: 'Work & reports', routes: ['dashboard', 'work-hub', 'assessment-core'] },
-  { id: 'operations', vi: 'Vận hành', en: 'Operations', routes: ['platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'qa'] },
-  { id: 'admin', vi: 'Quản trị & hệ thống', en: 'Administration & system', routes: ['app-vault', 'settings', 'trash', 'admin'] },
-];
-
-const ROUTE_LABELS = {
-  home: ['Trang chủ', 'Home'], apps: ['Ứng dụng', 'Apps'], games: ['Trò chơi', 'Games'], tools: ['Công cụ', 'Tools'], resources: ['Tài nguyên', 'Resources'],
-  'resource-library': ['Kho học liệu', 'Resource Library'], 'knowledge-hub': ['Kho học liệu thông minh', 'Smart Knowledge'],
-  homeroom: ['Giáo viên chủ nhiệm', 'Homeroom'], dashboard: ['Bảng điều hành', 'Dashboard'], 'work-hub': ['Trung tâm công việc', 'Work Hub'],
-  'assessment-core': ['Ngân hàng câu hỏi', 'Assessment Core'], 'platform-readiness': ['Sẵn sàng nền tảng', 'Platform Readiness'],
-  'automation-center': ['Tự động hóa', 'Automation Center'], 'cloud-operations': ['Vận hành nền', 'Cloud Operations'],
-  'collaboration-hub': ['Cộng tác', 'Collaboration Hub'], 'data-governance': ['Quản trị dữ liệu', 'Data Governance'],
-  'production-hardening': ['Sẵn sàng Production', 'Production Hardening'], qa: ['Trạng thái hệ thống', 'System Health'],
-  'app-vault': ['Ứng dụng đã ẩn', 'Hidden Apps'], settings: ['Cài đặt', 'Settings'], trash: ['Thùng rác', 'Trash'], admin: ['Quản trị', 'Admin'],
 };
 
 function item(id, label, options = {}) {
   return { id, label, ...options };
 }
 
-export function buildMobileNavigationModel({ authenticated, currentRoute = 'home', language = 'vi', canAccessRoute = () => false, canAccessAttendance = false } = {}) {
+export function buildMobileNavigationModel({
+  authenticated,
+  currentRoute = 'home',
+  language = 'vi',
+  canAccessRoute = () => false,
+  canAccessAttendance = false,
+  isAdminNavigation = false,
+} = {}) {
   const t = COPY[language] || COPY.vi;
   const routeItem = (id, route, label = t[id] || id) => item(id, label, { route, action: 'route', active: currentRoute === route });
 
@@ -56,23 +44,19 @@ export function buildMobileNavigationModel({ authenticated, currentRoute = 'home
         routeItem('login', 'login'),
       ];
 
-  const moreGroups = authenticated
-    ? MORE_GROUPS.map((group) => ({
-        id: group.id,
-        label: language === 'vi' ? group.vi : group.en,
-        items: group.routes
-          .filter((route) => canAccessRoute(route))
-          .map((route) => ({
-            id: `route:${route}`,
-            route,
-            action: 'route',
-            label: ROUTE_LABELS[route]?.[language === 'vi' ? 0 : 1] || route,
-            active: currentRoute === route,
-          })),
-      })).filter((group) => group.items.length)
-    : [];
+  // The mobile drawer must mirror the original GlobalCompactNavigation primary
+  // row. Dynamic tabs such as Dashboard, Homeroom, Gradebook, Reports, TTCM and
+  // Attendance are supplied at runtime by the existing original navigation
+  // bridge host, so they are intentionally not duplicated here.
+  const drawerBaseItems = [routeItem('home', 'home')];
+  if (authenticated && (isAdminNavigation || canAccessRoute('apps'))) {
+    drawerBaseItems.push(routeItem('apps', 'apps'));
+  }
+  if (authenticated && isAdminNavigation) {
+    drawerBaseItems.push(routeItem('admin', 'admin'));
+  }
 
-  return { bottomItems, moreGroups };
+  return { bottomItems, drawerBaseItems };
 }
 
 function openWeeklyPractice() {
