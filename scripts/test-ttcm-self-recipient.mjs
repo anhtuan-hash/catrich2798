@@ -20,20 +20,22 @@ assert.match(ttcm, /selectedItem && userIsAssignee\(selectedItem, currentUser\?\
 assert.match(notifications, /function isTtcmSelfAssignment\(item, userId\)/, 'Global notifications need a narrow TTCM self-assignment exception');
 assert.match(notifications, /owner_id[\s\S]*!isTtcmSelfAssignment\(item, userId\)/, 'Self-owned tasks must remain hidden except for TTCM self-assignments');
 
-// Phone presentation is layered around the canonical TTCM component so data,
-// permissions and handlers remain single-source while the desktop reader stays intact.
+// Phone presentation is a sidecar around the canonical TTCM mount. This keeps
+// navigation ordering and all business logic unchanged while adding phone-only
+// DOM state and a final CSS presentation layer.
 const adapterUrl = new URL('../src/components/GlobalTtcmMobileAdapter.jsx', import.meta.url);
 const mobileCssUrl = new URL('../src/components/GlobalTtcmMobile.css', import.meta.url);
-assert.ok(fs.existsSync(adapterUrl), 'TTCM needs a phone presentation adapter around the canonical component');
+assert.ok(fs.existsSync(adapterUrl), 'TTCM needs a phone presentation sidecar');
 assert.ok(fs.existsSync(mobileCssUrl), 'TTCM needs a dedicated final mobile stylesheet');
 const adapter = fs.existsSync(adapterUrl) ? fs.readFileSync(adapterUrl, 'utf8') : '';
 const mobileCss = fs.existsSync(mobileCssUrl) ? fs.readFileSync(mobileCssUrl, 'utf8') : '';
 const flatNavigation = fs.readFileSync(new URL('../src/components/GlobalFlatNavigation.jsx', import.meta.url), 'utf8');
 
-assert.match(flatNavigation, /GlobalTtcmMobileAdapter/, 'Global navigation must mount the TTCM mobile adapter instead of bypassing it');
-assert.match(adapter, /GlobalTtcmNavigationTab/, 'Mobile adapter must reuse the canonical TTCM component rather than duplicate its business logic');
-assert.match(adapter, /GlobalTtcmMobile\.css/, 'Mobile adapter must load the final phone-only stylesheet');
-assert.match(adapter, /data-mobile-detail-open/, 'Mobile adapter must track explicit notification selection for the bottom sheet');
+assert.match(flatNavigation, /import GlobalTtcmNavigationTab from '\.\/GlobalTtcmNavigationTab\.jsx';/, 'Canonical TTCM navigation import must stay intact');
+assert.match(flatNavigation, /<GlobalTtcmNavigationTab \{\.\.\.props\} \/>[\s\S]*<GlobalTtcmMobileAdapter \/>[\s\S]*<GlobalAttendanceNavigationTab/, 'Mobile sidecar must enhance TTCM without replacing the canonical TTCM-to-Attendance mount order');
+assert.ok(!adapter.includes("import GlobalTtcmNavigationTab"), 'Mobile sidecar must not create a second TTCM instance');
+assert.match(adapter, /GlobalTtcmMobile\.css/, 'Mobile sidecar must load the final phone-only stylesheet');
+assert.match(adapter, /data-mobile-detail-open/, 'Mobile sidecar must track explicit notification selection for the bottom sheet');
 assert.match(adapter, /closest\('\.ttcm-reader-card'\)/, 'Tapping a notification card must open the phone detail sheet');
 assert.match(adapter, /closest\('\.ttcm-reader-back'\)/, 'Back from detail must close the phone sheet without closing TTCM');
 assert.match(adapter, /matchMedia\('\(max-width: 760px\)'\)/, 'DOM adaptation must only run on phone layout');
