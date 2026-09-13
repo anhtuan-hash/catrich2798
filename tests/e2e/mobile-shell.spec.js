@@ -174,26 +174,12 @@ test('mobile login uses Brian English identity and removes the duplicate brand s
   await expect(page.locator('.auth-google-brand-row')).not.toBeVisible();
 });
 
-test('mobile login hero uses compact sans typography and three benefit columns', async ({ page }, testInfo) => {
+test('mobile login removes the teacher hero and starts with the auth form', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile-chromium');
   await page.goto('/#/login');
   await expect(page.locator('.auth-google-page')).toBeVisible();
-
-  const heroTitle = page.locator('.auth-google-copy h1');
-  await expect(heroTitle).toContainText('Đăng nhập giáo viên');
-  const typography = await heroTitle.evaluate((element) => {
-    const style = getComputedStyle(element);
-    return { fontFamily: style.fontFamily, fontSize: Number.parseFloat(style.fontSize) };
-  });
-  expect(typography.fontFamily.toLowerCase()).not.toContain('caveat');
-  expect(typography.fontSize).toBeGreaterThanOrEqual(40);
-  expect(typography.fontSize).toBeLessThanOrEqual(58);
-
-  const columnCount = await page.locator('.auth-google-feature-list').evaluate((element) => {
-    const columns = getComputedStyle(element).gridTemplateColumns.trim();
-    return columns ? columns.split(/\s+/).length : 0;
-  });
-  expect(columnCount).toBe(3);
+  await expect(page.locator('.auth-google-visual')).not.toBeVisible();
+  await expect(page.locator('.auth-google-form')).toBeVisible();
 });
 
 test('mobile login keeps the auth form readable, touch friendly and inside the viewport', async ({ page }, testInfo) => {
@@ -221,6 +207,7 @@ test('desktop login keeps the existing desktop composition', async ({ page }, te
   await page.goto('/#/login');
   await expect(page.locator('.auth-google-page')).toBeVisible();
   await expect(page.locator('.auth-google-brand-row')).toBeVisible();
+  await expect(page.locator('.auth-google-visual')).toBeVisible();
 
   const columns = await page.locator('.auth-google-stage').evaluate((element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length);
   expect(columns).toBe(2);

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Bell, Menu, Search, UserRound } from 'lucide-react';
 import '../../pages/AuthPageMobileRedesign.css';
+import '../../pages/AuthPageMobileHeroRemoval.css';
 
 function userInitial(currentUser) {
   const source = currentUser?.name || currentUser?.full_name || currentUser?.email || 'B';
