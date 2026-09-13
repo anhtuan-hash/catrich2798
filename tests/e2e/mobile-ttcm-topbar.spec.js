@@ -41,3 +41,31 @@ test('authenticated phone topbar uses original Brian logo and opens TTCM', async
   await ttcmButton.click();
   await expect(page.getByRole('dialog', { name: 'Kênh TTCM' })).toBeVisible();
 });
+
+test('authenticated avatar opens mobile account menu without leaving dashboard', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium');
+  await installAdminSession(page);
+  await page.goto('/#/dashboard');
+
+  const avatar = page.getByRole('button', { name: 'Tài khoản', exact: true });
+  await expect(avatar).toBeVisible();
+  await avatar.click();
+
+  await expect(page).toHaveURL(/#\/dashboard$/);
+  const menu = page.getByRole('dialog', { name: 'Menu tài khoản' });
+  await expect(menu).toBeVisible();
+  await expect(menu.getByText('Mobile TTCM Admin', { exact: true })).toBeVisible();
+  await expect(menu.getByText('Quản trị viên', { exact: true })).toBeVisible();
+  await expect(menu.getByRole('button', { name: /Tài khoản của tôi/ })).toBeVisible();
+  await expect(menu.getByRole('button', { name: /Cài đặt/ })).toBeVisible();
+  await expect(menu.getByRole('button', { name: /Thông báo/ })).toBeVisible();
+  await expect(menu.getByRole('button', { name: /Trợ giúp & hướng dẫn/ })).toBeVisible();
+  await expect(menu.getByRole('button', { name: /Đăng xuất/ })).toBeVisible();
+
+  const box = await menu.boundingBox();
+  const viewport = page.viewportSize();
+  expect(box).not.toBeNull();
+  expect(viewport).not.toBeNull();
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
+});
