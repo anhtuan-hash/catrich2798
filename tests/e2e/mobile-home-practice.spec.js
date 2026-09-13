@@ -74,6 +74,10 @@ test('mobile Home stays inside viewport and tools are touch friendly', async ({ 
 test('phone Home uses a native mobile visual scale instead of compressed desktop density', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile-chromium');
   await waitForHome(page);
+  await expect(page.locator('[data-bes-mobile-home="true"]')).toBeVisible();
+  await expect(page.locator('[data-mobile-home-hero] h1')).toBeVisible();
+  await expect(page.locator('[data-mobile-tool]').first()).toBeVisible();
+  await expect(page.locator('[data-mobile-practice-card]').first()).toBeVisible();
 
   const metrics = await page.evaluate(() => {
     const px = (selector, property = 'fontSize') => {
