@@ -1,12 +1,12 @@
 :root {
-  --bes-mobile-gutter: 16px;
-  --bes-mobile-gap: 14px;
-  --bes-mobile-radius-sm: 12px;
-  --bes-mobile-radius: 18px;
-  --bes-mobile-radius-lg: 24px;
-  --bes-mobile-touch: 44px;
-  --bes-mobile-topbar-height: 62px;
-  --bes-mobile-bottomnav-height: 68px;
+  --bes-mobile-gutter: 18px;
+  --bes-mobile-gap: 20px;
+  --bes-mobile-radius-sm: 14px;
+  --bes-mobile-radius: 20px;
+  --bes-mobile-radius-lg: 26px;
+  --bes-mobile-touch: 52px;
+  --bes-mobile-topbar-height: 76px;
+  --bes-mobile-bottomnav-height: 78px;
   --bes-mobile-surface: #ffffff;
   --bes-mobile-canvas: #f5f7fb;
   --bes-mobile-ink: #172033;
@@ -17,6 +17,82 @@
   --bes-mobile-shadow: 0 12px 40px rgba(28, 42, 70, 0.12);
 }
 
+/* Shared phone/tablet scale contract. Keep the mobile shell comfortably readable
+   without changing any desktop presentation. Higher specificity intentionally
+   lets these scale values win over the shell's older compact defaults. */
+html.bes-mobile-shell-active .bes-mobile-brand__mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  font-size: 21px;
+}
+
+html.bes-mobile-shell-active .bes-mobile-brand__copy strong {
+  font-size: 18px;
+  line-height: 1.15;
+}
+
+html.bes-mobile-shell-active .bes-mobile-brand__copy small {
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+html.bes-mobile-shell-active .bes-mobile-avatar-button {
+  font-size: 16px;
+}
+
+html.bes-mobile-shell-active .bes-mobile-bottomnav__item {
+  min-height: 64px;
+  gap: 4px;
+  font-size: 11px;
+}
+
+html.bes-mobile-shell-active .bes-mobile-bottomnav__icon {
+  width: 40px;
+  height: 34px;
+}
+
+html.bes-mobile-shell-active .bes-mobile-bottomnav__item.is-center .bes-mobile-bottomnav__icon {
+  width: 48px;
+  height: 40px;
+  border-radius: 15px;
+}
+
+html.bes-mobile-shell-active .bes-mobile-drawer__head {
+  min-height: calc(82px + env(safe-area-inset-top));
+}
+
+html.bes-mobile-shell-active .bes-mobile-drawer__mark {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  font-size: 18px;
+}
+
+html.bes-mobile-shell-active .bes-mobile-drawer__brand strong {
+  font-size: 17px;
+}
+
+html.bes-mobile-shell-active .bes-mobile-drawer__brand small {
+  font-size: 10px;
+}
+
+html.bes-mobile-shell-active .bes-mobile-drawer__items button,
+html.bes-mobile-shell-active .bes-mobile-drawer__footer button {
+  min-height: 58px;
+  font-size: 16px;
+}
+
 @media (max-width: 359px) {
-  :root { --bes-mobile-gutter: 12px; }
+  :root {
+    --bes-mobile-gutter: 14px;
+    --bes-mobile-touch: 50px;
+    --bes-mobile-topbar-height: 72px;
+    --bes-mobile-bottomnav-height: 74px;
+  }
+
+  html.bes-mobile-shell-active .bes-mobile-brand__mark {
+    width: 42px;
+    height: 42px;
+  }
 }
