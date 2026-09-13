@@ -1,5 +1,6 @@
 import React from 'react';
 import { Bell, Menu, Search, UserRound } from 'lucide-react';
+import '../../styles/mobile/mobile-scale.css';
 
 function userInitial(currentUser) {
   const source = currentUser?.name || currentUser?.full_name || currentUser?.email || 'B';
