@@ -1,7 +1,6 @@
 /* Compact mobile Home refinement.
-   This file is intentionally imported after mobile-home-polish.css so it can
-   tighten the dedicated mobile Home body without changing the global mobile
-   shell touch/typography contract. */
+   This file is intentionally imported after all Home desktop/editorial styles so
+   the dedicated phone composition wins without changing desktop behaviour. */
 
 @media (max-width: 640px) {
   .bes-mobile-home {
@@ -19,47 +18,61 @@
   }
 
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms {
-    height: 388px !important;
-    min-height: 388px !important;
-    max-height: 388px !important;
+    height: 300px !important;
+    min-height: 300px !important;
+    max-height: 300px !important;
+    align-items: flex-start !important;
     overflow: hidden !important;
+    border: 1px solid rgba(220, 216, 207, .82) !important;
     border-radius: 18px !important;
-    box-shadow: 0 8px 22px rgba(46, 72, 107, .09) !important;
+    background: #fffdf8 !important;
+    box-shadow: 0 7px 20px rgba(39, 61, 91, .075) !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__background {
+    background:
+      radial-gradient(circle at 92% 23%, rgba(195, 218, 255, .58) 0 38px, transparent 39px),
+      radial-gradient(circle at 96% 48%, rgba(255, 224, 181, .54) 0 34px, transparent 35px),
+      linear-gradient(135deg, #fffdf9 0%, #fffefb 58%, #f8fbff 100%) !important;
   }
 
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__media {
-    object-position: 72% center !important;
+    display: none !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__empty-media {
+    background: transparent !important;
   }
 
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__overlay {
     background:
       linear-gradient(90deg,
-        rgba(255,255,255,.995) 0%,
-        rgba(255,255,255,.985) 48%,
-        rgba(255,255,255,.88) 64%,
-        rgba(255,255,255,.42) 80%,
-        rgba(255,255,255,.10) 100%),
-      color-mix(in srgb, var(--hero-overlay-color,#fff) calc(var(--hero-overlay-opacity,.1) * 100%), transparent) !important;
+        rgba(255,253,248,.995) 0%,
+        rgba(255,253,248,.985) 58%,
+        rgba(255,253,248,.82) 76%,
+        rgba(255,253,248,.28) 100%) !important;
   }
 
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content,
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms[data-content-align="right"] .hero-cms__content,
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms[data-content-align="center"] .hero-cms__content {
-    width: 84% !important;
-    max-width: 330px !important;
+    width: 100% !important;
+    max-width: 100% !important;
     min-width: 0 !important;
     align-items: flex-start !important;
     margin: 0 !important;
-    padding: 16px 14px !important;
+    padding: 14px 14px 13px !important;
     text-align: left !important;
   }
 
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__badge {
-    min-height: 32px !important;
+    min-height: 30px !important;
     gap: 7px;
-    padding: 4px 10px 4px 5px;
-    border-radius: 11px;
+    padding: 3px 9px 3px 4px;
+    border-radius: 10px;
     font-size: 8px;
+    letter-spacing: .09em;
+    box-shadow: none;
   }
 
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__badge > i,
@@ -71,36 +84,54 @@
   }
 
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content h1 {
-    margin-top: 12px !important;
-    font-size: clamp(34px, 9.5vw, 38px) !important;
-    line-height: .92 !important;
-    letter-spacing: -.052em !important;
+    display: block !important;
+    width: min(100%, 340px) !important;
+    margin-top: 9px !important;
+    color: #183b6b !important;
+    font-size: clamp(31px, 8.45vw, 34px) !important;
+    line-height: .94 !important;
+    letter-spacing: -.045em !important;
+    text-wrap: balance;
+    text-shadow: none !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content h1 span {
+    display: inline !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content h1 span:not(:last-child)::after {
+    content: " ";
   }
 
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content h2 {
-    margin-top: 5px !important;
-    font-size: clamp(27px, 7.5vw, 30px) !important;
+    width: auto !important;
+    margin-top: 2px !important;
+    color: #4f83dc !important;
+    font-size: clamp(25px, 6.8vw, 28px) !important;
     line-height: .96 !important;
-    letter-spacing: -.047em !important;
+    letter-spacing: -.04em !important;
+    text-shadow: none !important;
   }
 
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content > p {
-    max-width: 285px;
-    margin-top: 10px !important;
-    padding-left: 9px;
-    border-left-width: 2px;
-    font-size: 11px !important;
-    line-height: 1.38 !important;
-    font-weight: 650 !important;
+    max-width: 315px;
+    margin-top: 7px !important;
+    padding-left: 0;
+    border-left: 0;
+    color: #61718a !important;
+    font-size: 10.5px !important;
+    line-height: 1.34 !important;
+    font-weight: 620 !important;
+    text-wrap: pretty;
   }
 
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__actions {
-    width: min(292px, 100%);
+    width: min(100%, 338px);
     display: grid;
-    grid-template-columns: minmax(0, 1.25fr) minmax(0, .9fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: stretch;
     gap: 8px;
-    margin-top: 12px;
+    margin-top: 10px;
   }
 
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__button {
@@ -109,14 +140,27 @@
     min-height: 48px !important;
     padding: 8px 10px !important;
     border-radius: 12px !important;
-    font-size: 11px !important;
+    font-size: 10.5px !important;
     white-space: nowrap;
+    box-shadow: none !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__button.is-primary {
+    background: linear-gradient(135deg, #3378ef, #2e68df) !important;
+    border-color: #2e68df !important;
+    box-shadow: 0 7px 16px rgba(46, 104, 223, .20) !important;
   }
 
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__button:not(.is-primary) {
-    min-height: 44px !important;
-    background: rgba(255,255,255,.82) !important;
+    min-height: 48px !important;
+    border-color: rgba(188, 198, 212, .74) !important;
+    background: rgba(255,255,255,.91) !important;
+    color: #344964 !important;
     backdrop-filter: blur(8px);
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__info {
+    display: none !important;
   }
 
   .bes-mobile-home__section {
@@ -265,24 +309,28 @@
   }
 
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms {
-    height: 372px !important;
-    min-height: 372px !important;
-    max-height: 372px !important;
+    height: 292px !important;
+    min-height: 292px !important;
+    max-height: 292px !important;
   }
 
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content,
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms[data-content-align="right"] .hero-cms__content,
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms[data-content-align="center"] .hero-cms__content {
-    width: 88% !important;
     padding-inline: 12px !important;
   }
 
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content h1 {
-    font-size: 33px !important;
+    font-size: 30px !important;
   }
 
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content h2 {
-    font-size: 26px !important;
+    font-size: 24px !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content > p {
+    max-width: 290px;
+    font-size: 10px !important;
   }
 
   .bes-mobile-home__practice-head {
@@ -317,9 +365,9 @@
   }
 
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms {
-    height: 470px !important;
-    min-height: 470px !important;
-    max-height: 470px !important;
+    height: 430px !important;
+    min-height: 430px !important;
+    max-height: 430px !important;
   }
 
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content,
