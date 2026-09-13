@@ -14,6 +14,7 @@ import {
 import HomeHeroExperience2026 from '../HomeHeroExperience2026.jsx';
 import '../../styles/mobile/mobile-home.css';
 import '../../styles/mobile/mobile-home-polish.css';
+import '../../styles/mobile/mobile-home-compact.css';
 
 function practiceTimestamp(item) {
   const values = [item?.opens_at, item?.published_at, item?.created_at];
