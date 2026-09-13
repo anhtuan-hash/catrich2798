@@ -45,10 +45,16 @@ assert.match(frameCss, /html body \.attendance-shell \.attendance-manage-tile__t
 assert.match(frameCss, /html body \.attendance-shell \.attendance-manage-tile__subtitle\s*\{[^}]*display:\s*block\s*!important;[^}]*visibility:\s*visible\s*!important;/s, 'Manage class subjects must stay visible on mobile');
 assert.match(frameCss, /html body \.attendance-shell \.attendance-manage-tile__meta\s*\{[^}]*display:\s*grid\s*!important;[^}]*visibility:\s*visible\s*!important;/s, 'Manage class metadata must stay visible on mobile');
 
-// History stays inside one visual viewport on phones. The list and detail each own
-// their scroll region instead of creating the multi-screen vertical document seen in production.
-assert.match(frameCss, /html body \.attendance-shell \.ahv3__shell\s*\{[^}]*height:\s*100%\s*!important;[^}]*display:\s*grid\s*!important;[^}]*grid-template-rows:\s*minmax\(240px,\s*42%\)\s+minmax\(0,\s*1fr\)\s*!important;[^}]*overflow:\s*hidden\s*!important;/s, 'History mobile shell must be bounded to one viewport with list/detail rows');
-assert.match(frameCss, /html body \.attendance-shell \.ahv3__list,[\s\S]*?html body \.attendance-shell \.ahv3__detail\s*\{[^}]*min-height:\s*0\s*!important;[^}]*max-height:\s*100%\s*!important;[^}]*overflow-y:\s*auto\s*!important;/s, 'History list and detail must scroll independently inside the modal');
-assert.match(frameCss, /html body \.attendance-shell \.ahv3__detail\s*\{[^}]*width:\s*100%\s*!important;[^}]*max-width:\s*100%\s*!important;/s, 'History detail must stay full-width without forcing horizontal overflow');
+// History is list-first on phones. With no selected session, the filter/list pane owns
+// the full available height and the empty detail illustration is removed. Session cards
+// scroll under the filter header so the date fields and real history rows remain reachable.
+assert.match(frameCss, /html body \.attendance-shell \.ahv3__shell:not\(:has\(\.ahv3__items > button\.is-selected\)\)\s*\{[^}]*display:\s*block\s*!important;[^}]*height:\s*100%\s*!important;/s, 'History without a selected session must become a full-height list-first view');
+assert.match(frameCss, /html body \.attendance-shell \.ahv3__shell:not\(:has\(\.ahv3__items > button\.is-selected\)\) \.ahv3__detail\s*\{[^}]*display:\s*none\s*!important;/s, 'Empty History detail must not waste half the phone viewport');
+assert.match(frameCss, /html body \.attendance-shell \.ahv3__shell:not\(:has\(\.ahv3__items > button\.is-selected\)\) \.ahv3__list\s*\{[^}]*height:\s*100%\s*!important;[^}]*display:\s*flex\s*!important;[^}]*flex-direction:\s*column\s*!important;[^}]*overflow:\s*hidden\s*!important;/s, 'History list must own the mobile viewport before a session is selected');
+assert.match(frameCss, /html body \.attendance-shell \.ahv3__shell:not\(:has\(\.ahv3__items > button\.is-selected\)\) \.ahv3__items\s*\{[^}]*flex:\s*1\s+1\s+auto\s*!important;[^}]*min-height:\s*0\s*!important;[^}]*overflow-y:\s*auto\s*!important;/s, 'History session cards must receive the remaining height and scroll independently');
+assert.match(frameCss, /html body \.attendance-shell \.ahv3__shell:has\(\.ahv3__items > button\.is-selected\) \.ahv3__list-head\s*\{[^}]*display:\s*none\s*!important;/s, 'Once a session is selected, bulky filters must collapse so session navigation remains visible');
+assert.match(frameCss, /html body \.attendance-shell \.ahv3__shell:has\(\.ahv3__items > button\.is-selected\)\s*\{[^}]*grid-template-rows:\s*minmax\(92px,\s*24%\)\s+minmax\(0,\s*1fr\)\s*!important;/s, 'Selected History sessions reserve a compact navigator and give most height to detail');
+assert.doesNotMatch(frameCss, /grid-template-rows:\s*minmax\(240px,\s*42%\)\s+minmax\(0,\s*1fr\)/, 'The broken 42/58 History split must be removed');
+assert.doesNotMatch(frameCss, /grid-template-rows:\s*minmax\(230px,\s*40%\)\s+minmax\(0,\s*1fr\)/, 'The broken phone 40/60 History split must be removed');
 
-console.log('Attendance modal frame + mobile daily/manage/history inner-layout contracts OK');
+console.log('Attendance modal frame + mobile daily/manage/history list-first contracts OK');
