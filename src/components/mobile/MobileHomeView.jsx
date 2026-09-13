@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { ArrowRight, BarChart3, CalendarDays, ClipboardClock, Sparkles } from 'lucide-react';
+import '../../styles/mobile/mobile-home.css';
 
 function practiceTimestamp(item) {
   const values = [item?.opens_at, item?.published_at, item?.created_at];
@@ -77,6 +78,7 @@ export default function MobileHomeView({
                 type="button"
                 className="bes-mobile-home__tool"
                 data-mobile-tool={item.id}
+                style={{ '--tool-accent': item.accent, '--tool-soft': item.soft }}
                 onClick={(event) => onOpenTool?.(item, event)}
               >
                 <span aria-hidden="true"><Icon size={22} /></span>
