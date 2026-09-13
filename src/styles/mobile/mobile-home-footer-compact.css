@@ -1,0 +1,136 @@
+/* Phone-only Home footer refinement. The full signature footer remains intact on
+   desktop/tablet landscape; phones show only the useful identity summary. */
+@media (max-width: 640px) {
+  .metro-clean-system[data-route="home"] > footer.signature-footer-collapsible {
+    width: calc(100% - 16px) !important;
+    max-width: calc(100% - 16px) !important;
+    min-height: 0 !important;
+    max-height: 210px !important;
+    margin: 12px auto 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: 1px solid #dfe6ef !important;
+    border-radius: 16px !important;
+    background: rgba(255,255,255,.98) !important;
+    box-shadow: 0 6px 20px rgba(35, 63, 103, .06) !important;
+  }
+
+  .metro-clean-system[data-route="home"] > footer.signature-footer-collapsible::before,
+  .metro-clean-system[data-route="home"] > footer.signature-footer-collapsible::after {
+    content: none !important;
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    clip-path: none !important;
+    transform: none !important;
+  }
+
+  .metro-clean-system[data-route="home"] > footer .signature-footer-static-summary {
+    min-height: 34px !important;
+    padding: 7px 11px !important;
+    border-bottom: 1px solid #edf1f5 !important;
+  }
+
+  .metro-clean-system[data-route="home"] > footer .signature-footer-summary {
+    gap: 5px !important;
+    font-size: 10px !important;
+    line-height: 1.2 !important;
+  }
+
+  .metro-clean-system[data-route="home"] > footer .signature-footer-expanded-panel {
+    display: block !important;
+    min-height: 0 !important;
+    border-top: 0 !important;
+  }
+
+  .metro-clean-system[data-route="home"] > footer .signature-footer-v50-main {
+    min-height: 0 !important;
+    display: grid !important;
+    grid-template-columns: 68px minmax(0, 1fr) !important;
+    align-items: center !important;
+    gap: 11px !important;
+    margin: 0 !important;
+    padding: 10px 11px 12px !important;
+  }
+
+  .metro-clean-system[data-route="home"] > footer .signature-footer-v50-brand {
+    min-width: 0 !important;
+    min-height: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+  }
+
+  .metro-clean-system[data-route="home"] > footer .signature-footer-v50-brian-logo {
+    width: 64px !important;
+    max-width: 64px !important;
+    height: auto !important;
+    max-height: 62px !important;
+    margin: 0 !important;
+    object-fit: contain !important;
+  }
+
+  .metro-clean-system[data-route="home"] > footer .signature-footer-v50-affiliations,
+  .metro-clean-system[data-route="home"] > footer .signature-footer-v50-credentials,
+  .metro-clean-system[data-route="home"] > footer .signature-footer-expanded-note,
+  .metro-clean-system[data-route="home"] > footer .detail-phone,
+  .metro-clean-system[data-route="home"] > footer .detail-centre,
+  .metro-clean-system[data-route="home"] > footer .detail-examiner {
+    display: none !important;
+  }
+
+  .metro-clean-system[data-route="home"] > footer .signature-footer-v50-profile {
+    min-width: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+  }
+
+  .metro-clean-system[data-route="home"] > footer .signature-footer-v50-language-badge {
+    min-height: 20px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    padding: 2px 7px !important;
+    margin: 0 0 4px !important;
+    border-radius: 7px !important;
+    font-size: 8px !important;
+    line-height: 1 !important;
+  }
+
+  .metro-clean-system[data-route="home"] > footer .signature-footer-v50-profile h2 {
+    margin: 0 !important;
+    font-size: 14px !important;
+    line-height: 1.15 !important;
+    letter-spacing: -.015em !important;
+  }
+
+  .metro-clean-system[data-route="home"] > footer .signature-footer-v50-details {
+    display: grid !important;
+    gap: 3px !important;
+    margin: 5px 0 0 !important;
+    padding: 0 !important;
+  }
+
+  .metro-clean-system[data-route="home"] > footer .signature-footer-v50-detail.detail-school,
+  .metro-clean-system[data-route="home"] > footer .signature-footer-v50-detail.detail-role {
+    min-height: 0 !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 5px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 9px !important;
+    line-height: 1.25 !important;
+  }
+
+  .metro-clean-system[data-route="home"] > footer .signature-footer-v50-detail-icon {
+    width: 5px !important;
+    height: 5px !important;
+    flex: 0 0 5px !important;
+    margin-top: 3px !important;
+  }
+}

@@ -1,0 +1,411 @@
+/* Compact mobile Home refinement.
+   This file is intentionally imported after all Home desktop/editorial styles so
+   the dedicated phone composition wins without changing desktop behaviour. */
+
+@media (max-width: 640px) {
+  .bes-mobile-home {
+    gap: 10px;
+    padding-top: 4px;
+    padding-bottom: 24px;
+  }
+
+  .bes-mobile-home__dateline {
+    min-height: 22px;
+    gap: 6px;
+    padding: 0 2px;
+    font-size: 7px;
+    letter-spacing: .1em;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms {
+    height: 300px !important;
+    min-height: 300px !important;
+    max-height: 300px !important;
+    align-items: flex-start !important;
+    overflow: hidden !important;
+    border: 1px solid rgba(220, 216, 207, .82) !important;
+    border-radius: 18px !important;
+    background: #fffdf8 !important;
+    box-shadow: 0 7px 20px rgba(39, 61, 91, .075) !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__background {
+    background:
+      radial-gradient(circle at 92% 23%, rgba(195, 218, 255, .58) 0 38px, transparent 39px),
+      radial-gradient(circle at 96% 48%, rgba(255, 224, 181, .54) 0 34px, transparent 35px),
+      linear-gradient(135deg, #fffdf9 0%, #fffefb 58%, #f8fbff 100%) !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__media {
+    display: none !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__empty-media {
+    background: transparent !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__overlay {
+    background:
+      linear-gradient(90deg,
+        rgba(255,253,248,.995) 0%,
+        rgba(255,253,248,.985) 58%,
+        rgba(255,253,248,.82) 76%,
+        rgba(255,253,248,.28) 100%) !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content,
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms[data-content-align="right"] .hero-cms__content,
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms[data-content-align="center"] .hero-cms__content {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    align-items: flex-start !important;
+    margin: 0 !important;
+    padding: 14px 14px 13px !important;
+    text-align: left !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__badge {
+    min-height: 30px !important;
+    gap: 7px;
+    padding: 3px 9px 3px 4px;
+    border-radius: 10px;
+    font-size: 8px;
+    letter-spacing: .09em;
+    box-shadow: none;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__badge > i,
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__badge > img {
+    width: 24px;
+    height: 24px;
+    flex-basis: 24px;
+    border-radius: 7px;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content h1 {
+    display: block !important;
+    width: min(100%, 340px) !important;
+    margin-top: 9px !important;
+    color: #183b6b !important;
+    font-size: clamp(31px, 8.45vw, 34px) !important;
+    line-height: .94 !important;
+    letter-spacing: -.045em !important;
+    text-wrap: balance;
+    text-shadow: none !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content h1 span {
+    display: inline !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content h1 span:not(:last-child)::after {
+    content: " ";
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content h2 {
+    width: auto !important;
+    margin-top: 2px !important;
+    color: #4f83dc !important;
+    font-size: clamp(25px, 6.8vw, 28px) !important;
+    line-height: .96 !important;
+    letter-spacing: -.04em !important;
+    text-shadow: none !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content > p {
+    max-width: 315px;
+    margin-top: 7px !important;
+    padding-left: 0;
+    border-left: 0;
+    color: #61718a !important;
+    font-size: 10.5px !important;
+    line-height: 1.34 !important;
+    font-weight: 620 !important;
+    text-wrap: pretty;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__actions {
+    width: min(100%, 338px);
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    margin-top: 10px !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__button {
+    width: 100%;
+    min-width: 0;
+    min-height: 48px !important;
+    padding: 8px 10px !important;
+    border-radius: 12px !important;
+    font-size: 10.5px !important;
+    white-space: nowrap;
+    box-shadow: none !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__button.is-primary {
+    background: linear-gradient(135deg, #3378ef, #2e68df) !important;
+    border-color: #2e68df !important;
+    box-shadow: 0 7px 16px rgba(46, 104, 223, .20) !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__button:not(.is-primary) {
+    min-height: 48px !important;
+    border-color: rgba(188, 198, 212, .74) !important;
+    background: rgba(255,255,255,.91) !important;
+    color: #344964 !important;
+    backdrop-filter: blur(8px);
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__info {
+    display: none !important;
+  }
+
+  .bes-mobile-home__section {
+    padding: 14px;
+    border-radius: 17px;
+    box-shadow: 0 7px 20px rgba(34, 67, 108, .045);
+  }
+
+  .bes-mobile-home__practice {
+    gap: 11px;
+  }
+
+  .bes-mobile-home__practice-head {
+    grid-template-columns: minmax(0, 1fr) 74px;
+    gap: 10px;
+  }
+
+  .bes-mobile-home__practice-head .bes-mobile-home__eyebrow {
+    gap: 5px;
+    font-size: 8px;
+    letter-spacing: .1em;
+  }
+
+  .bes-mobile-home__practice-head h2 {
+    margin-top: 5px;
+    font-size: 22px;
+    line-height: 1.02;
+  }
+
+  .bes-mobile-home__practice-head p {
+    margin-top: 6px;
+    font-size: 10px;
+    line-height: 1.35;
+  }
+
+  .bes-mobile-home__practice-total {
+    padding-left: 9px;
+  }
+
+  .bes-mobile-home__practice-total small {
+    font-size: 6px;
+  }
+
+  .bes-mobile-home__practice-total strong {
+    margin-top: 1px;
+    font-size: 34px;
+  }
+
+  .bes-mobile-home__practice-total span {
+    margin-top: 2px;
+    font-size: 7px;
+  }
+
+  .bes-mobile-home__manager-actions button {
+    min-height: 44px;
+  }
+
+  .bes-mobile-home__grade-stack {
+    gap: 9px;
+  }
+
+  .bes-mobile-home__grade-card {
+    border-radius: 14px;
+  }
+
+  .bes-mobile-home__grade-masthead {
+    min-height: 26px;
+    padding: 5px 10px 4px;
+    border-top-width: 2px;
+    font-size: 7px;
+  }
+
+  .bes-mobile-home__grade-masthead strong {
+    font-size: 8px;
+  }
+
+  .bes-mobile-home__grade-main {
+    grid-template-columns: 40px minmax(0, 1fr) 45px 38px;
+    gap: 7px;
+    padding: 6px 8px 8px;
+  }
+
+  .bes-mobile-home__grade-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+  }
+
+  .bes-mobile-home__grade-icon svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .bes-mobile-home__grade-copy > small {
+    gap: 3px;
+    font-size: 7px;
+    letter-spacing: .08em;
+  }
+
+  .bes-mobile-home__grade-copy h3 {
+    margin-top: 2px;
+    font-size: 15px;
+  }
+
+  .bes-mobile-home__grade-copy p {
+    margin-top: 2px;
+    font-size: 9px;
+  }
+
+  .bes-mobile-home__grade-copy > button {
+    min-height: 44px;
+    margin: 0 0 -10px -8px;
+    padding: 8px;
+    font-size: 10px;
+  }
+
+  .bes-mobile-home__grade-number {
+    font-size: 38px;
+    line-height: .84;
+  }
+
+  .bes-mobile-home__grade-arrow {
+    width: 38px;
+    height: 38px;
+  }
+
+  .bes-mobile-home__grade-arrow svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .bes-mobile-home__practice-panel--inline {
+    gap: 8px;
+    padding: 8px;
+    border-radius: 13px;
+  }
+
+  .bes-mobile-home__practice-card {
+    padding: 8px;
+  }
+}
+
+@media (max-width: 359px) {
+  .bes-mobile-home__dateline {
+    min-height: 20px;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms {
+    height: 292px !important;
+    min-height: 292px !important;
+    max-height: 292px !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content,
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms[data-content-align="right"] .hero-cms__content,
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms[data-content-align="center"] .hero-cms__content {
+    padding-inline: 12px !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content h1 {
+    font-size: 30px !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content h2 {
+    font-size: 24px !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content > p {
+    max-width: 290px;
+    font-size: 10px !important;
+  }
+
+  .bes-mobile-home__practice-head {
+    grid-template-columns: minmax(0, 1fr) 66px;
+  }
+
+  .bes-mobile-home__grade-main {
+    grid-template-columns: 38px minmax(0, 1fr) 40px 36px;
+    gap: 6px;
+    padding-inline: 7px;
+  }
+
+  .bes-mobile-home__grade-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .bes-mobile-home__grade-number {
+    font-size: 34px;
+  }
+
+  .bes-mobile-home__grade-arrow {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 900px) and (orientation: portrait) {
+  .bes-mobile-home {
+    gap: 14px;
+    padding-top: 10px;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms {
+    height: 430px !important;
+    min-height: 430px !important;
+    max-height: 430px !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content,
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms[data-content-align="right"] .hero-cms__content,
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms[data-content-align="center"] .hero-cms__content {
+    width: 58% !important;
+    max-width: 430px !important;
+    padding: 24px 22px !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content h1 {
+    font-size: 43px !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content h2 {
+    font-size: 34px !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .bes-mobile-home__section {
+    padding: 18px;
+  }
+
+  .bes-mobile-home__grade-main {
+    grid-template-columns: 48px minmax(0, 1fr) 64px 42px;
+    padding: 9px 12px 11px;
+  }
+
+  .bes-mobile-home__grade-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .bes-mobile-home__grade-number {
+    font-size: 50px;
+  }
+}
