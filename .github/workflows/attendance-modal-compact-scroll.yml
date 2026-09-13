@@ -18,6 +18,7 @@ on:
       - 'public/attendance-history-v5.css'
       - 'public/attendance-history-v5.js'
       - 'public/attendance-history-mobile-bottom-sheet.css'
+      - 'public/attendance-history-mobile-polish.css'
       - 'public/attendance-history-pixel-v6.css'
       - 'public/attendance-card-size-sync-v1.css'
       - 'src/components/GlobalAttendanceNavigationTab.css'
