@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Navigation from './GlobalCompactNavigation.jsx';
+import MobileAppShell from './mobile/MobileAppShell.jsx';
+import usePresentationMode from '../hooks/usePresentationMode.js';
 import GlobalWindowsPhone8Loading from './GlobalWindowsPhone8Loading.jsx';
 import GlobalPageLaunchEffect from './GlobalPageLaunchEffect.jsx';
 import GlobalWindows8Experience from './GlobalWindows8Experience.jsx';
@@ -48,16 +50,46 @@ import './homeroom/HomeroomCompactDensity.css';
 import '../styles/GlobalLayout16x9Authority.css';
 
 export default function GlobalFlatNavigation(props) {
+  const presentation = usePresentationMode();
+  const mobile = presentation.presentationMode === 'mobile';
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const shell = document.querySelector('.app-shell');
+    root.dataset.presentationMode = presentation.presentationMode;
+    root.dataset.deviceClass = presentation.deviceClass;
+    root.dataset.deviceOrientation = presentation.orientation;
+    root.classList.toggle('bes-mobile-shell-active', mobile);
+    if (shell) {
+      shell.dataset.presentation = presentation.presentationMode;
+      shell.dataset.deviceClass = presentation.deviceClass;
+      shell.dataset.orientation = presentation.orientation;
+    }
+
+    return () => {
+      root.classList.remove('bes-mobile-shell-active');
+      delete root.dataset.presentationMode;
+      delete root.dataset.deviceClass;
+      delete root.dataset.deviceOrientation;
+      if (shell) {
+        delete shell.dataset.presentation;
+        delete shell.dataset.deviceClass;
+        delete shell.dataset.orientation;
+      }
+    };
+  }, [presentation.presentationMode, presentation.deviceClass, presentation.orientation, mobile]);
+
   return (
     <>
       <GlobalNativeTextScaleReset />
-      <Navigation {...props} />
-      <GlobalPinnedNavigationHub route={props.route} />
+      {mobile ? <MobileAppShell {...props} /> : <Navigation {...props} />}
+
+      {!mobile ? <GlobalPinnedNavigationHub route={props.route} /> : null}
       <GlobalPageLaunchEffect route={props.route} />
       <GlobalWindows8Experience route={props.route} />
       <GlobalWindowsPhone8Loading />
-      <GlobalEditorialBriefBar route={props.route} language={props.language} currentUser={props.currentUser} />
-      <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} />
+      {!mobile ? <GlobalEditorialBriefBar route={props.route} language={props.language} currentUser={props.currentUser} /> : null}
+      {!mobile ? <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} /> : null}
       <GlobalWeeklyPracticeBridge route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalHeroGovernance route={props.route} />
       <GlobalUserProfileSettingsBridge {...props} />
@@ -65,8 +97,9 @@ export default function GlobalFlatNavigation(props) {
       <GlobalSettingsAdminBridge {...props} />
       <GlobalFontSettingsBridge {...props} />
       <GlobalSubtitleSettingsBridge {...props} />
-      <GlobalAiWebsiteLauncher {...props} />
-      <HomeParticleSignaturePortal currentUser={props.currentUser} />
+      {!mobile ? <GlobalAiWebsiteLauncher {...props} /> : null}
+      {!mobile ? <HomeParticleSignaturePortal currentUser={props.currentUser} /> : null}
+
       <GlobalDashboardNavigationTab {...props} />
       <GlobalHomeroomNavigationTab {...props} />
       <GlobalGradebookNavigationTab {...props} />
@@ -74,8 +107,8 @@ export default function GlobalFlatNavigation(props) {
       <GlobalTtcmNavigationTab {...props} />
       <GlobalAttendanceNavigationTab {...props} />
       <GlobalAttendanceAdminPersistenceBridge {...props} />
-      <GlobalDashboardFooterBridge route={props.route} language={props.language} />
-      <GlobalEnglishHubBrand />
+      {!mobile ? <GlobalDashboardFooterBridge route={props.route} language={props.language} /> : null}
+      {!mobile ? <GlobalEnglishHubBrand /> : null}
       <GlobalEditorialAuthorityRuntime />
     </>
   );

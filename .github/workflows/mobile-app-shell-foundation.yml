@@ -1,0 +1,70 @@
+name: Mobile App Shell Foundation
+
+on:
+  push:
+    branches:
+      - feat/mobile-app-shell-foundation
+    paths:
+      - 'src/device/**'
+      - 'src/hooks/usePresentationMode.js'
+      - 'src/components/mobile/**'
+      - 'src/components/GlobalFlatNavigation.jsx'
+      - 'src/styles/mobile/**'
+      - 'tests/unit/presentation-mode.test.mjs'
+      - 'tests/unit/mobile-navigation.test.mjs'
+      - 'tests/e2e/mobile-shell.spec.js'
+      - 'playwright.config.js'
+      - '.github/workflows/mobile-app-shell-foundation.yml'
+  pull_request:
+    paths:
+      - 'src/device/**'
+      - 'src/hooks/usePresentationMode.js'
+      - 'src/components/mobile/**'
+      - 'src/components/GlobalFlatNavigation.jsx'
+      - 'src/styles/mobile/**'
+      - 'tests/unit/presentation-mode.test.mjs'
+      - 'tests/unit/mobile-navigation.test.mjs'
+      - 'tests/e2e/mobile-shell.spec.js'
+      - 'playwright.config.js'
+      - '.github/workflows/mobile-app-shell-foundation.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  mobile-shell:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run mobile shell unit tests
+        run: node --test tests/unit/presentation-mode.test.mjs tests/unit/mobile-navigation.test.mjs
+
+      - name: Build application
+        run: npm run build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Desktop shell regression
+        run: npx playwright test tests/e2e/mobile-shell.spec.js --project=chromium-desktop
+
+      - name: Phone shell
+        run: npx playwright test tests/e2e/mobile-shell.spec.js --project=mobile-chromium
+
+      - name: iPad portrait shell
+        run: npx playwright test tests/e2e/mobile-shell.spec.js --project=ipad-portrait
+
+      - name: iPad landscape shell
+        run: npx playwright test tests/e2e/mobile-shell.spec.js --project=ipad-landscape

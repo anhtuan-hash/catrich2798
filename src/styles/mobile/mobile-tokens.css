@@ -1,0 +1,22 @@
+:root {
+  --bes-mobile-gutter: 16px;
+  --bes-mobile-gap: 14px;
+  --bes-mobile-radius-sm: 12px;
+  --bes-mobile-radius: 18px;
+  --bes-mobile-radius-lg: 24px;
+  --bes-mobile-touch: 44px;
+  --bes-mobile-topbar-height: 62px;
+  --bes-mobile-bottomnav-height: 68px;
+  --bes-mobile-surface: #ffffff;
+  --bes-mobile-canvas: #f5f7fb;
+  --bes-mobile-ink: #172033;
+  --bes-mobile-muted: #697386;
+  --bes-mobile-border: rgba(23, 32, 51, 0.09);
+  --bes-mobile-primary: #246bfd;
+  --bes-mobile-primary-soft: #edf3ff;
+  --bes-mobile-shadow: 0 12px 40px rgba(28, 42, 70, 0.12);
+}
+
+@media (max-width: 359px) {
+  :root { --bes-mobile-gutter: 12px; }
+}
