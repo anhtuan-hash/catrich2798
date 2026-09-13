@@ -11,7 +11,7 @@ import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
 import { isDepartmentLeaderRole } from '../utils/roles.js';
 import { listPublicWeeklyPractices } from '../utils/weeklyPractice.js';
-import { usePresentationMode } from '../hooks/usePresentationMode.js';
+import usePresentationMode from '../hooks/usePresentationMode.js';
 import HomeHeroExperience2026 from '../components/HomeHeroExperience2026.jsx';
 import MobileHomeView from '../components/mobile/MobileHomeView.jsx';
 import './HomeApproved.css';
