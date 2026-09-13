@@ -30,5 +30,19 @@ export default defineConfig({
     { name: 'chromium-desktop', use: { ...devices['Desktop Chrome'], launchOptions: chromiumLaunchOptions } },
     { name: 'webkit-desktop', use: { ...devices['Desktop Safari'] } },
     { name: 'mobile-chromium', use: { ...devices['Pixel 7'], launchOptions: chromiumLaunchOptions } },
+    {
+      name: 'ipad-portrait',
+      use: {
+        ...devices['iPad Pro 11'],
+        viewport: { width: 834, height: 1194 },
+      },
+    },
+    {
+      name: 'ipad-landscape',
+      use: {
+        ...devices['iPad Pro 11 landscape'],
+        viewport: { width: 1194, height: 834 },
+      },
+    },
   ],
 });
