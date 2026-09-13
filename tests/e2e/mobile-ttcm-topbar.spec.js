@@ -18,13 +18,20 @@ async function installAdminSession(page) {
   }, DEMO_ADMIN);
 }
 
-test('authenticated phone topbar replaces Search with TTCM and opens Kênh TTCM', async ({ page }, testInfo) => {
+test('authenticated phone topbar uses original Brian logo and opens TTCM', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile-chromium');
   await installAdminSession(page);
   await page.goto('/#/dashboard');
 
   await expect(page.locator('.bes-mobile-topbar')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Tìm kiếm', exact: true })).toHaveCount(0);
+
+  const brandMark = page.locator('.bes-mobile-brand__mark');
+  await expect(brandMark).not.toHaveText('B');
+  const originalLogo = brandMark.locator('img[src="/brian-english-brand-logo.png"]');
+  await expect(originalLogo).toBeVisible();
+  const logoLoaded = await originalLogo.evaluate((image) => image.complete && image.naturalWidth > 0 && image.naturalHeight > 0);
+  expect(logoLoaded).toBe(true);
 
   const ttcmButton = page.getByRole('button', { name: 'TTCM', exact: true });
   await expect(ttcmButton).toBeVisible();
