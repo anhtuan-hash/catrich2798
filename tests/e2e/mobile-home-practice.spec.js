@@ -131,7 +131,7 @@ test('mobile weekly practice stays compact until a grade is opened and can expan
   await waitForHome(page);
 
   await expect(page.locator('[data-mobile-practice-panel]')).toHaveCount(0);
-  await page.locator('[data-mobile-grade-card="10"] [data-mobile-grade-toggle]').click();
+  await page.locator('[data-mobile-grade-card="10"] [data-mobile-grade-toggle]').first().click();
   const cards = page.locator('[data-mobile-practice-grade="10"] [data-mobile-practice-card]');
   const initialCount = await cards.count();
   expect(initialCount).toBeLessThanOrEqual(4);
