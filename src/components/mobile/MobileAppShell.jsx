@@ -167,7 +167,7 @@ export default function MobileAppShell({
           hasUnread={hasUnread}
         />
         <MobileBottomNavigation items={navigation.bottomItems} onSelect={selectItem} />
-        <div className="brian-nav__primary bes-mobile-bridge-host" aria-hidden="true" />
+        <div className="brian-nav__primary bes-mobile-bridge-host" hidden aria-hidden="true" />
       </div>
 
       <MobileMoreSheet
