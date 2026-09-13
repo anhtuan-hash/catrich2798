@@ -349,8 +349,9 @@
     grid-column: 1 / -1 !important;
   }
 
-  /* History: bound list + detail to the modal viewport. Previously both sections
-     expanded into one long document on phones, producing a multi-screen modal. */
+  /* History: list-first on mobile. The production regression came from reserving 40–42%
+     of the viewport for filters/list before a session existed, which left no room for
+     actual session cards and wasted the rest on an empty detail illustration. */
   html body .attendance-shell .ahv3__shell {
     box-sizing: border-box !important;
     width: 100% !important;
@@ -360,7 +361,6 @@
     min-height: 0 !important;
     display: grid !important;
     grid-template-columns: 1fr !important;
-    grid-template-rows: minmax(240px, 42%) minmax(0, 1fr) !important;
     gap: 10px !important;
     overflow: hidden !important;
   }
@@ -373,7 +373,6 @@
     max-width: 100% !important;
     max-height: 100% !important;
     overflow-x: hidden !important;
-    overflow-y: auto !important;
     overscroll-behavior: contain !important;
     -webkit-overflow-scrolling: touch;
   }
@@ -381,18 +380,81 @@
   html body .attendance-shell .ahv3__detail {
     width: 100% !important;
     max-width: 100% !important;
+    overflow-y: auto !important;
   }
 
   html body .attendance-shell .ahv3__list-head {
-    position: sticky !important;
-    top: 0 !important;
+    position: static !important;
     z-index: 5 !important;
     background: #fff !important;
   }
 
   html body .attendance-shell .ahv3__items {
     min-height: 0 !important;
-    overflow: visible !important;
+  }
+
+  /* No selected session: filters + real session list receive the complete History pane. */
+  html body .attendance-shell .ahv3__shell:not(:has(.ahv3__items > button.is-selected)) {
+    display: block !important;
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  html body .attendance-shell .ahv3__shell:not(:has(.ahv3__items > button.is-selected)) .ahv3__detail {
+    display: none !important;
+  }
+
+  html body .attendance-shell .ahv3__shell:not(:has(.ahv3__items > button.is-selected)) .ahv3__list {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  html body .attendance-shell .ahv3__shell:not(:has(.ahv3__items > button.is-selected)) .ahv3__list-head {
+    flex: 0 0 auto !important;
+    position: static !important;
+  }
+
+  html body .attendance-shell .ahv3__shell:not(:has(.ahv3__items > button.is-selected)) .ahv3__items {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Selected session: collapse the large filter header, keep a compact scrollable
+     session navigator above the detail, and devote most of the modal to detail. */
+  html body .attendance-shell .ahv3__shell:has(.ahv3__items > button.is-selected) {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: minmax(92px, 24%) minmax(0, 1fr) !important;
+    gap: 8px !important;
+    height: 100% !important;
+    overflow: hidden !important;
+  }
+
+  html body .attendance-shell .ahv3__shell:has(.ahv3__items > button.is-selected) .ahv3__list {
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+  }
+
+  html body .attendance-shell .ahv3__shell:has(.ahv3__items > button.is-selected) .ahv3__list-head {
+    display: none !important;
+  }
+
+  html body .attendance-shell .ahv3__shell:has(.ahv3__items > button.is-selected) .ahv3__items {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Supplemental-learning uses a sibling dialog class rather than attendance-shell.
@@ -465,8 +527,8 @@
     grid-template-columns: 1fr 1fr !important;
   }
 
-  html body .attendance-shell .ahv3__shell {
-    grid-template-rows: minmax(230px, 40%) minmax(0, 1fr) !important;
-    gap: 8px !important;
+  html body .attendance-shell .ahv3__shell:has(.ahv3__items > button.is-selected) {
+    grid-template-rows: minmax(88px, 22%) minmax(0, 1fr) !important;
+    gap: 7px !important;
   }
 }
