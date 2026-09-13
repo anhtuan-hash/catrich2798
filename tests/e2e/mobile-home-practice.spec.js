@@ -77,7 +77,7 @@ test('phone Home uses a native mobile visual scale instead of compressed desktop
   await expect(page.locator('[data-bes-mobile-home="true"]')).toBeVisible();
   await expect(page.locator('[data-mobile-home-hero] h1')).toBeVisible();
   await expect(page.locator('[data-mobile-tool]').first()).toBeVisible();
-  await expect(page.locator('[data-mobile-practice-card]').first()).toBeVisible();
+  await expect(page.locator('[data-mobile-grade="10"]')).toBeVisible();
 
   const metrics = await page.evaluate(() => {
     const px = (selector, property = 'fontSize') => {
@@ -91,7 +91,8 @@ test('phone Home uses a native mobile visual scale instead of compressed desktop
       toolLabel: px('.bes-mobile-home__tool strong'),
       toolHeight: height('.bes-mobile-home__tool'),
       practiceTitle: px('.bes-mobile-home__practice-head h2'),
-      practiceCardTitle: px('.bes-mobile-home__practice-card h4'),
+      gradeNumber: px('.bes-mobile-home__grade-selector button > strong'),
+      gradeHeight: height('.bes-mobile-home__grade-selector button'),
       topbarHeight: height('.bes-mobile-topbar'),
       brandTitle: px('.bes-mobile-brand__copy strong'),
       bottomLabel: px('.bes-mobile-bottomnav__item'),
@@ -103,7 +104,8 @@ test('phone Home uses a native mobile visual scale instead of compressed desktop
   expect(metrics.toolLabel).toBeGreaterThanOrEqual(15);
   expect(metrics.toolHeight).toBeGreaterThanOrEqual(104);
   expect(metrics.practiceTitle).toBeGreaterThanOrEqual(23);
-  expect(metrics.practiceCardTitle).toBeGreaterThanOrEqual(14);
+  expect(metrics.gradeNumber).toBeGreaterThanOrEqual(20);
+  expect(metrics.gradeHeight).toBeGreaterThanOrEqual(60);
   expect(metrics.topbarHeight).toBeGreaterThanOrEqual(68);
   expect(metrics.brandTitle).toBeGreaterThanOrEqual(16);
   expect(metrics.bottomLabel).toBeGreaterThanOrEqual(11);
