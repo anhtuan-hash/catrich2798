@@ -37,4 +37,18 @@ assert.match(frameCss, /html body \.attendance-shell \.attendance-tabs\s*\{[^}]*
 assert.match(frameCss, /html body \.attendance-shell \.attendance-title\s*\{[^}]*min-width:\s*0\s*!important;[^}]*flex:\s*1\s+1\s+auto\s*!important;/s, 'Mobile title is allowed to shrink beside action buttons');
 assert.match(frameCss, /html body \.bes-supplemental-dialog\s*\{[^}]*width:\s*min\(100%,\s*680px\)\s*!important;[^}]*overflow-x:\s*hidden\s*!important;/s, 'Supplemental-learning dialogs share the same mobile width contract');
 
-console.log('Attendance modal matches History large footprint + source-owned single Manage scroll + unified mobile frame contract OK');
+// Mobile inner-layout regressions captured from real iPhone screenshots.
+assert.match(frameCss, /html body \.attendance-shell \.attendance-daily-summary\s*\{[^}]*display:\s*grid\s*!important;[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)\s*!important;[^}]*overflow-x:\s*hidden\s*!important;/s, 'Daily summary must wrap into a 2x2 mobile grid instead of clipping the fourth metric');
+assert.match(frameCss, /html body \.attendance-shell \.attendance-daily-summary-item\s*\{[^}]*min-width:\s*0\s*!important;[^}]*width:\s*auto\s*!important;[^}]*flex:\s*none\s*!important;/s, 'Daily summary items must not keep the legacy 125px flex basis on phones');
+assert.match(frameCss, /html body \.attendance-shell \.attendance-manage-class-tile\s*\{[^}]*min-height:\s*148px\s*!important;[^}]*overflow:\s*hidden\s*!important;/s, 'Manage class cards must retain enough mobile height for their class metadata');
+assert.match(frameCss, /html body \.attendance-shell \.attendance-manage-tile__title\s*\{[^}]*display:\s*-webkit-box\s*!important;[^}]*visibility:\s*visible\s*!important;[^}]*color:\s*#0f2238\s*!important;/s, 'Manage class names must stay visible on mobile');
+assert.match(frameCss, /html body \.attendance-shell \.attendance-manage-tile__subtitle\s*\{[^}]*display:\s*block\s*!important;[^}]*visibility:\s*visible\s*!important;/s, 'Manage class subjects must stay visible on mobile');
+assert.match(frameCss, /html body \.attendance-shell \.attendance-manage-tile__meta\s*\{[^}]*display:\s*grid\s*!important;[^}]*visibility:\s*visible\s*!important;/s, 'Manage class metadata must stay visible on mobile');
+
+// History stays inside one visual viewport on phones. The list and detail each own
+// their scroll region instead of creating the multi-screen vertical document seen in production.
+assert.match(frameCss, /html body \.attendance-shell \.ahv3__shell\s*\{[^}]*height:\s*100%\s*!important;[^}]*display:\s*grid\s*!important;[^}]*grid-template-rows:\s*minmax\(240px,\s*42%\)\s+minmax\(0,\s*1fr\)\s*!important;[^}]*overflow:\s*hidden\s*!important;/s, 'History mobile shell must be bounded to one viewport with list/detail rows');
+assert.match(frameCss, /html body \.attendance-shell \.ahv3__list,[\s\S]*?html body \.attendance-shell \.ahv3__detail\s*\{[^}]*min-height:\s*0\s*!important;[^}]*max-height:\s*100%\s*!important;[^}]*overflow-y:\s*auto\s*!important;/s, 'History list and detail must scroll independently inside the modal');
+assert.match(frameCss, /html body \.attendance-shell \.ahv3__detail\s*\{[^}]*width:\s*100%\s*!important;[^}]*max-width:\s*100%\s*!important;/s, 'History detail must stay full-width without forcing horizontal overflow');
+
+console.log('Attendance modal frame + mobile daily/manage/history inner-layout contracts OK');
