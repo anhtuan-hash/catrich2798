@@ -17,6 +17,7 @@ const qaSource = read('src/pages/QAHealthCheck.jsx');
 const homeSource = read('src/pages/HomeApproved.jsx');
 const appsSource = read('src/data/apps.js');
 const toolPageSource = read('src/pages/ToolPage.jsx');
+const knowledgeRemovalRuntimeSource = read('src/removeKnowledgeHubRuntime.js');
 const workflowSource = read('.github/workflows/critical-e2e.yml');
 
 const forbiddenQaMutations = [
@@ -82,6 +83,22 @@ assert.equal(
   /['"]game-hub['"]/.test(homeSource),
   false,
   'Retired Game Hub must not be advertised on Home',
+);
+
+assert.match(
+  appsSource,
+  /slug:\s*['"]knowledge-hub['"]/,
+  'Knowledge Hub must remain in the shared app registry',
+);
+assert.equal(
+  /APPS\.splice\s*\(/.test(knowledgeRemovalRuntimeSource),
+  false,
+  'Legacy Knowledge Hub compatibility runtime must not remove the active app from APPS',
+);
+assert.equal(
+  /location\.hash\s*=\s*['"]#\/apps['"]/.test(knowledgeRemovalRuntimeSource),
+  false,
+  'Legacy Knowledge Hub compatibility runtime must not redirect the active route to Apps',
 );
 
 assert.match(
