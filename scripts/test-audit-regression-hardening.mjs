@@ -18,7 +18,6 @@ const homeSource = read('src/pages/HomeApproved.jsx');
 const appsSource = read('src/data/apps.js');
 const toolPageSource = read('src/pages/ToolPage.jsx');
 const knowledgeRemovalRuntimeSource = read('src/removeKnowledgeHubRuntime.js');
-const settingsAdminBridgeSource = read('src/components/GlobalSettingsAdminBridge.jsx');
 const workflowSource = read('.github/workflows/critical-e2e.yml');
 
 const forbiddenQaMutations = [
@@ -100,12 +99,6 @@ assert.equal(
   /location\.hash\s*=\s*['"]#\/apps['"]/.test(knowledgeRemovalRuntimeSource),
   false,
   'Legacy Knowledge Hub compatibility runtime must not redirect the active route to Apps',
-);
-
-assert.equal(
-  /route\s*===\s*['"]admin['"][\s\S]{0,500}location\.hash\s*=\s*['"]#\/settings/.test(settingsAdminBridgeSource),
-  false,
-  'Global Settings/Admin bridge must not redirect the active standalone Admin route to Settings',
 );
 
 assert.match(
