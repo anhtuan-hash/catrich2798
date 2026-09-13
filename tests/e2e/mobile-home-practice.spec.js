@@ -154,3 +154,19 @@ test('mobile weekly practice stays compact until a grade is opened and can expan
     expect(await cards.count()).toBeGreaterThan(initialCount);
   }
 });
+
+test('mobile Home footer is a compact identity card instead of a credential wall', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium');
+  await waitForHome(page);
+
+  const footer = page.locator('footer.signature-footer-collapsible');
+  await expect(footer).toBeVisible();
+  const box = await footer.boundingBox();
+  expect(box?.height || Number.MAX_SAFE_INTEGER).toBeLessThanOrEqual(220);
+
+  await expect(footer.locator('.signature-footer-v50-brian-logo')).toBeVisible();
+  await expect(footer.locator('.signature-footer-v50-profile h2')).toBeVisible();
+  await expect(footer.locator('.signature-footer-v50-credentials')).toBeHidden();
+  await expect(footer.locator('.signature-footer-v50-affiliations')).toBeHidden();
+  await expect(footer.locator('.signature-footer-expanded-note')).toBeHidden();
+});
