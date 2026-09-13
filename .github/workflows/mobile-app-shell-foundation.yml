@@ -11,6 +11,8 @@ on:
       - 'tests/unit/presentation-mode.test.mjs'
       - 'tests/unit/mobile-navigation.test.mjs'
       - 'tests/e2e/mobile-shell.spec.js'
+      - 'scripts/node-test-loader.mjs'
+      - 'scripts/register-node-test-loader.mjs'
       - 'playwright.config.js'
       - '.github/workflows/mobile-app-shell-foundation.yml'
 
@@ -35,6 +37,8 @@ jobs:
         run: npm ci
 
       - name: Run repository smoke tests
+        env:
+          NODE_OPTIONS: --import ./scripts/register-node-test-loader.mjs
         run: npm test
 
       - name: Run mobile shell unit tests
