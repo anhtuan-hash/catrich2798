@@ -171,7 +171,7 @@ test('mobile login uses Brian English identity and removes the duplicate brand s
   const brand = page.locator('.bes-mobile-brand__copy');
   await expect(brand).toContainText('Brian English');
   await expect(brand).not.toContainText('Đăng nhập');
-  await expect(page.locator('.auth-google-brand')).not.toBeVisible();
+  await expect(page.locator('.auth-google-brand-row')).not.toBeVisible();
 });
 
 test('mobile login hero uses compact sans typography and three benefit columns', async ({ page }, testInfo) => {
@@ -179,7 +179,7 @@ test('mobile login hero uses compact sans typography and three benefit columns',
   await page.goto('/#/login');
   await expect(page.locator('.auth-google-page')).toBeVisible();
 
-  const heroTitle = page.locator('.auth-google-intro h1');
+  const heroTitle = page.locator('.auth-google-copy h1');
   await expect(heroTitle).toContainText('Đăng nhập giáo viên');
   const typography = await heroTitle.evaluate((element) => {
     const style = getComputedStyle(element);
@@ -189,7 +189,7 @@ test('mobile login hero uses compact sans typography and three benefit columns',
   expect(typography.fontSize).toBeGreaterThanOrEqual(40);
   expect(typography.fontSize).toBeLessThanOrEqual(58);
 
-  const columnCount = await page.locator('.auth-google-highlights').evaluate((element) => {
+  const columnCount = await page.locator('.auth-google-feature-list').evaluate((element) => {
     const columns = getComputedStyle(element).gridTemplateColumns.trim();
     return columns ? columns.split(/\s+/).length : 0;
   });
@@ -199,10 +199,10 @@ test('mobile login hero uses compact sans typography and three benefit columns',
 test('mobile login keeps the auth form readable, touch friendly and inside the viewport', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile-chromium');
   await page.goto('/#/login');
-  const card = page.locator('.auth-google-card');
+  const card = page.locator('.auth-google-form');
   await expect(card).toBeVisible();
 
-  const primary = await page.locator('.auth-google-primary').boundingBox();
+  const primary = await page.locator('.auth-google-submit').boundingBox();
   expect(primary?.height || 0).toBeGreaterThanOrEqual(52);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
@@ -220,8 +220,8 @@ test('desktop login keeps the existing desktop composition', async ({ page }, te
   test.skip(testInfo.project.name !== 'chromium-desktop');
   await page.goto('/#/login');
   await expect(page.locator('.auth-google-page')).toBeVisible();
-  await expect(page.locator('.auth-google-brand')).toBeVisible();
+  await expect(page.locator('.auth-google-brand-row')).toBeVisible();
 
-  const columns = await page.locator('.auth-google-layout').evaluate((element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length);
+  const columns = await page.locator('.auth-google-stage').evaluate((element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length);
   expect(columns).toBe(2);
 });
