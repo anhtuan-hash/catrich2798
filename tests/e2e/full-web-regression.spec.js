@@ -55,7 +55,6 @@ const roleMatrix = [
       ['#/resource-library', 'resource-library'],
       ['#/knowledge-hub', 'knowledge-hub'],
       ['#/settings', 'settings'],
-      ['#/admin', 'admin'],
       ['#/production-hardening', 'production-hardening'],
     ],
   },
@@ -104,6 +103,18 @@ for (const scenario of roleMatrix) {
     await expect(pageErrors, `Unhandled browser errors for ${scenario.name}: ${pageErrors.join('\n')}`).toEqual([]);
   });
 }
+
+test('legacy Admin route resolves to the intended Settings-merged admin workspace', async ({ page }) => {
+  const pageErrors = collectPageErrors(page);
+  await installDemoSession(page, demoUser('admin'));
+
+  await page.goto('/#/admin');
+  await expect(page).toHaveURL(/#\/settings\?section=admin/);
+  await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'settings');
+  await expect(page.locator('#settings-admin-merge-host')).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Chưa được cấp quyền|Permission required/i })).toHaveCount(0);
+  await expect(pageErrors, `Unhandled browser errors for merged Admin Settings route: ${pageErrors.join('\n')}`).toEqual([]);
+});
 
 test('Lesson Architect opens its real module instead of falling back to Apps', async ({ page }) => {
   await installDemoSession(page, demoUser('teacher'));
