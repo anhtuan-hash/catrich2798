@@ -8,6 +8,7 @@ on:
       - fix/attendance-typography-history-standard
       - fix/attendance-mobile-modal-frame
       - fix/attendance-mobile-inner-layout
+      - fix/attendance-history-mobile-list-first
   pull_request:
     paths:
       - 'public/attendance-windows8-launch.css'
