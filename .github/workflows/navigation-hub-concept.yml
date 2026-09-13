@@ -1,11 +1,13 @@
-name: Navigation Hub Concept Guard
+name: Navigation Architecture Guard
 
 on:
   pull_request:
     paths:
       - 'src/components/GlobalFlatNavigation.jsx'
-      - 'src/components/GlobalNavigationConceptV2.jsx'
-      - 'src/components/GlobalNavigationConceptV2.css'
+      - 'src/components/GlobalCompactNavigation.jsx'
+      - 'src/components/GlobalCompactNavigation.css'
+      - 'src/components/mobile/MobileAppShell.jsx'
+      - 'src/styles/mobile/mobile-shell.css'
       - 'scripts/test-navigation-hub-concept.mjs'
       - '.github/workflows/navigation-hub-concept.yml'
   workflow_dispatch:
@@ -22,5 +24,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Verify approved navigation, performance and egress contracts
+      - name: Verify current desktop/mobile navigation architecture
         run: node scripts/test-navigation-hub-concept.mjs
