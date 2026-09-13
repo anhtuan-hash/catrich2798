@@ -23,6 +23,43 @@ const ROUTE_TITLES = {
   contact: ['Liên hệ', 'Contact'], settings: ['Cài đặt', 'Settings'], admin: ['Quản trị', 'Admin'], login: ['Đăng nhập', 'Sign in'], register: ['Đăng ký', 'Register'],
 };
 
+const ORIGINAL_BRIDGE_CLASSES = [
+  ['dashboard', 'brian-nav__dashboard-tab'],
+  ['homeroom', 'brian-nav__homeroom-tab'],
+  ['gradebook', 'brian-nav__gradebook-tab'],
+  ['reports', 'brian-nav__reports-tab'],
+  ['ttcm', 'brian-nav__ttcm-tab'],
+  ['attendance', 'brian-nav__attendance-tab'],
+];
+
+function originalBridgeKey(button, index = 0) {
+  const explicit = String(button?.dataset?.navKey || '').trim();
+  if (explicit) return explicit;
+  const match = ORIGINAL_BRIDGE_CLASSES.find(([, className]) => button?.classList?.contains(className));
+  return match?.[0] || `bridge-${index}`;
+}
+
+function originalBridgeLabel(button) {
+  if (!button) return '';
+  const clone = button.cloneNode(true);
+  clone.querySelectorAll('svg, b, [aria-hidden="true"], .brian-nav__reports-countdown').forEach((node) => node.remove());
+  return String(clone.textContent || '').replace(/\s+/g, ' ').trim();
+}
+
+function readOriginalBridgeItems(host) {
+  if (!host) return [];
+  return Array.from(host.children)
+    .filter((node) => node?.tagName === 'BUTTON')
+    .map((button, index) => ({
+      id: `original:${originalBridgeKey(button, index)}`,
+      bridgeKey: originalBridgeKey(button, index),
+      action: 'original-bridge',
+      label: originalBridgeLabel(button),
+      active: button.classList.contains('is-active') || button.getAttribute('aria-current') === 'page' || button.getAttribute('aria-expanded') === 'true',
+    }))
+    .filter((item) => item.label);
+}
+
 function notificationStorageKey(currentUser) {
   return `bes-global-notifications:${currentUser?.id || currentUser?.email || 'guest'}`;
 }
@@ -87,7 +124,9 @@ export default function MobileAppShell({
   const [moreOpen, setMoreOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState(() => readStoredNotifications(currentUser));
+  const [originalBridgeItems, setOriginalBridgeItems] = useState([]);
   const snapshot = appVisibility?.snapshot || {};
+  const isAdminNavigation = isAdminRole(currentUser?.role);
 
   const canAccessRoute = useCallback((targetRoute) => {
     if (!hasRouteAccess(currentUser, targetRoute)) return false;
@@ -95,14 +134,22 @@ export default function MobileAppShell({
     return !isAppHiddenForUser(snapshot, currentUser, id);
   }, [currentUser, snapshot]);
 
-  const canAccessAttendance = Boolean(currentUser?.id && (isAdminRole(currentUser?.role) || hasAnyAttendanceAccess(currentUser)));
+  const canAccessAttendance = Boolean(currentUser?.id && (isAdminNavigation || hasAnyAttendanceAccess(currentUser)));
+  const canShowOriginalApps = Boolean(currentUser && (isAdminNavigation || hasRouteAccess(currentUser, 'apps')));
   const navigation = useMemo(() => buildMobileNavigationModel({
     authenticated: Boolean(currentUser),
     currentRoute: route,
     language,
     canAccessRoute,
     canAccessAttendance,
-  }), [currentUser, route, language, canAccessRoute, canAccessAttendance]);
+    isAdminNavigation,
+    canShowOriginalApps,
+  }), [currentUser, route, language, canAccessRoute, canAccessAttendance, isAdminNavigation, canShowOriginalApps]);
+
+  const drawerItems = useMemo(
+    () => [...navigation.drawerBaseItems, ...originalBridgeItems],
+    [navigation.drawerBaseItems, originalBridgeItems],
+  );
 
   const titlePair = ROUTE_TITLES[route] || [selectedTool?.titleVi || selectedTool?.title || 'Brian English', selectedTool?.title || selectedTool?.titleVi || 'Brian English'];
   const title = language === 'en' ? titlePair[1] : titlePair[0];
@@ -139,6 +186,16 @@ export default function MobileAppShell({
       root.style.removeProperty('--bes-mobile-browser-bottom-inset');
       root.style.removeProperty('--bes-mobile-visual-height');
     };
+  }, []);
+
+  useEffect(() => {
+    const host = document.querySelector('.bes-mobile-bridge-host');
+    if (!host) return undefined;
+    const sync = () => setOriginalBridgeItems(readOriginalBridgeItems(host));
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(host, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'aria-current', 'aria-expanded'] });
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -179,8 +236,17 @@ export default function MobileAppShell({
 
   const selectItem = (item) => {
     setMoreOpen(false);
-    if (item?.id === 'notifications') setNotificationsOpen(true);
-    else runMobileNavigationItem(item);
+    if (item?.id === 'notifications') {
+      setNotificationsOpen(true);
+      return;
+    }
+    if (item?.action === 'original-bridge') {
+      const host = document.querySelector('.bes-mobile-bridge-host');
+      const source = Array.from(host?.children || []).find((button, index) => originalBridgeKey(button, index) === item.bridgeKey);
+      source?.click?.();
+      return;
+    }
+    runMobileNavigationItem(item);
   };
 
   const accountItem = currentUser
@@ -205,7 +271,7 @@ export default function MobileAppShell({
 
       <MobileMoreSheet
         open={moreOpen}
-        groups={navigation.moreGroups}
+        items={drawerItems}
         onClose={() => setMoreOpen(false)}
         onSelect={selectItem}
         currentUser={currentUser}
