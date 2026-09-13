@@ -1,0 +1,46 @@
+name: Work Schedule Import API
+
+on:
+  push:
+    branches:
+      - feat/calendar-import-api
+    paths:
+      - 'api/work-hub-gateway.js'
+      - 'serverless-handlers/work-schedule-import.js'
+      - 'src/utils/workScheduleImport.js'
+      - 'src/utils/workScheduleImportPlan.js'
+      - 'src/components/GlobalWorkScheduleCenter.jsx'
+      - 'tests/unit/work-schedule-import-api.test.mjs'
+      - '.github/workflows/work-schedule-import-api.yml'
+  pull_request:
+    paths:
+      - 'api/work-hub-gateway.js'
+      - 'serverless-handlers/work-schedule-import.js'
+      - 'src/utils/workScheduleImport.js'
+      - 'src/utils/workScheduleImportPlan.js'
+      - 'src/components/GlobalWorkScheduleCenter.jsx'
+      - 'tests/unit/work-schedule-import-api.test.mjs'
+      - '.github/workflows/work-schedule-import-api.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Unit tests
+        run: node --test tests/unit/work-schedule-import-api.test.mjs
+      - name: Vercel Hobby function budget
+        run: node scripts/test-vercel-hobby-function-budget.mjs
+      - name: Production build
+        run: npm run build
