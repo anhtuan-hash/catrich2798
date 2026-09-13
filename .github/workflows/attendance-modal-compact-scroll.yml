@@ -6,6 +6,7 @@ on:
       - fix/attendance-modal-compact-scroll
       - fix/attendance-modal-size-history-standard
       - fix/attendance-typography-history-standard
+      - fix/attendance-mobile-modal-frame
   pull_request:
     paths:
       - 'public/attendance-windows8-launch.css'
