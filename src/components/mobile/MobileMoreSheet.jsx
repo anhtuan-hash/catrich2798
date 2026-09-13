@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronRight, LogOut, X } from 'lucide-react';
 
 export default function MobileMoreSheet({ open, groups = [], onClose, onSelect, currentUser, onLogout }) {
@@ -42,7 +43,7 @@ export default function MobileMoreSheet({ open, groups = [], onClose, onSelect, 
 
   if (!open) return null;
 
-  return (
+  const drawer = (
     <div
       className="bes-mobile-drawer-layer"
       role="presentation"
@@ -97,4 +98,6 @@ export default function MobileMoreSheet({ open, groups = [], onClose, onSelect, 
       </aside>
     </div>
   );
+
+  return typeof document !== 'undefined' ? createPortal(drawer, document.body) : drawer;
 }
