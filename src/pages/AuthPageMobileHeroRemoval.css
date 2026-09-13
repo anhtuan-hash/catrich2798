@@ -1,0 +1,4 @@
+/* Mobile/portrait-tablet login intentionally starts at the authentication form. */
+.app-shell[data-presentation='mobile'] .auth-google-visual {
+  display: none !important;
+}
