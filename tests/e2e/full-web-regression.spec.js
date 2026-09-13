@@ -46,7 +46,7 @@ const roleMatrix = [
     name: 'Admin',
     role: 'admin',
     routes: [
-      ['#/home', 'home'],
+      ['#/home', 'dashboard'],
       ['#/apps', 'apps'],
       ['#/dashboard', 'dashboard'],
       ['#/homeroom', 'homeroom'],
@@ -62,7 +62,7 @@ const roleMatrix = [
     name: 'TTCM',
     role: 'department_head',
     routes: [
-      ['#/home', 'home'],
+      ['#/home', 'dashboard'],
       ['#/apps', 'apps'],
       ['#/dashboard', 'dashboard'],
       ['#/homeroom', 'homeroom'],
@@ -78,7 +78,7 @@ const roleMatrix = [
     name: 'Teacher',
     role: 'teacher',
     routes: [
-      ['#/home', 'home'],
+      ['#/home', 'dashboard'],
       ['#/apps', 'apps'],
       ['#/dashboard', 'dashboard'],
       ['#/homeroom', 'homeroom'],
@@ -124,12 +124,16 @@ test('Lesson Architect opens its real module instead of falling back to Apps', a
   await expect(page.locator('#bes-main-content')).toContainText(/Lesson Architect/i);
 });
 
-test('teacher without route:dashboard is denied and login fallback avoids Dashboard', async ({ page }) => {
+test('teacher without route:dashboard falls back from Home and login without using Dashboard', async ({ page }) => {
   const restricted = demoUser('teacher', {
     mode: 'custom',
     allowed: ['tool:gradebook-studio'],
   });
   await installDemoSession(page, restricted);
+
+  await page.goto('/#/home');
+  await expect.poll(() => page.url()).toMatch(/#\/apps(?:$|[?&])/);
+  await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'apps');
 
   await page.goto('/#/dashboard');
   await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'dashboard');
