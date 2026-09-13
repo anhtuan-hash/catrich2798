@@ -18,6 +18,7 @@ export default function MobileTopBar({
   onMenu,
   onNotifications,
   onAccount,
+  accountOpen = false,
   currentUser,
   hasUnread = false,
 }) {
@@ -88,7 +89,14 @@ export default function MobileTopBar({
             {!attendanceQuickAction && hasUnread ? <span className="bes-mobile-unread-dot" aria-hidden="true" /> : null}
           </button>
         ) : null}
-        <button type="button" className="bes-mobile-avatar-button" onClick={onAccount} aria-label={currentUser ? 'Tài khoản' : 'Đăng nhập'}>
+        <button
+          type="button"
+          className="bes-mobile-avatar-button"
+          onClick={onAccount}
+          aria-label={currentUser ? 'Tài khoản' : 'Đăng nhập'}
+          aria-haspopup={currentUser ? 'dialog' : undefined}
+          aria-expanded={currentUser ? accountOpen : undefined}
+        >
           {currentUser ? <span>{userInitial(currentUser)}</span> : <UserRound size={20} />}
         </button>
       </div>

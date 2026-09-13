@@ -8,6 +8,7 @@ import { buildMobileNavigationModel, runMobileNavigationItem } from './mobileNav
 import MobileTopBar from './MobileTopBar.jsx';
 import MobileBottomNavigation from './MobileBottomNavigation.jsx';
 import MobileMoreSheet from './MobileMoreSheet.jsx';
+import MobileAccountMenu from './MobileAccountMenu.jsx';
 import '../../styles/mobile/mobile-tokens.css';
 import '../../styles/mobile/mobile-shell.css';
 
@@ -122,6 +123,7 @@ export default function MobileAppShell({
   route = 'home', selectedTool = null, language = 'vi', currentUser, onLogout, appVisibility,
 }) {
   const [moreOpen, setMoreOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState(() => readStoredNotifications(currentUser));
   const [originalBridgeItems, setOriginalBridgeItems] = useState([]);
@@ -189,6 +191,10 @@ export default function MobileAppShell({
   }, []);
 
   useEffect(() => {
+    setAccountOpen(false);
+  }, [route, currentUser?.id]);
+
+  useEffect(() => {
     const host = document.querySelector('.bes-mobile-bridge-host');
     if (!host) return undefined;
     const sync = () => setOriginalBridgeItems(readOriginalBridgeItems(host));
@@ -236,6 +242,7 @@ export default function MobileAppShell({
 
   const selectItem = (item) => {
     setMoreOpen(false);
+    setAccountOpen(false);
     if (item?.id === 'notifications') {
       setNotificationsOpen(true);
       return;
@@ -253,15 +260,51 @@ export default function MobileAppShell({
     ? { id: 'account', label: language === 'en' ? 'Account' : 'Tài khoản', route: 'settings', action: 'route' }
     : { id: 'login', label: language === 'en' ? 'Sign in' : 'Đăng nhập', route: 'login', action: 'route' };
 
+  const openAccountMenu = () => {
+    if (!currentUser) {
+      selectItem(accountItem);
+      return;
+    }
+    setMoreOpen(false);
+    setNotificationsOpen(false);
+    setAccountOpen((open) => !open);
+  };
+
+  const openAccountRoute = () => {
+    setAccountOpen(false);
+    runMobileNavigationItem({ id: 'account', action: 'route', route: 'settings' });
+  };
+
+  const openSettingsRoute = () => {
+    setAccountOpen(false);
+    runMobileNavigationItem({ id: 'settings', action: 'route', route: 'settings' });
+  };
+
+  const openAccountNotifications = () => {
+    setAccountOpen(false);
+    setNotificationsOpen(true);
+  };
+
+  const openHelpRoute = () => {
+    setAccountOpen(false);
+    runMobileNavigationItem({ id: 'help', action: 'route', route: 'contact' });
+  };
+
+  const logoutFromAccountMenu = () => {
+    setAccountOpen(false);
+    onLogout?.();
+  };
+
   return (
     <>
       <div className="bes-mobile-shell" data-bes-mobile-shell="true" data-route={route}>
         <MobileTopBar
           title={title}
-          onMenu={() => setMoreOpen(true)}
+          onMenu={() => { setAccountOpen(false); setMoreOpen(true); }}
           onSearch={() => runMobileNavigationItem({ action: 'search' })}
-          onNotifications={() => setNotificationsOpen(true)}
-          onAccount={() => selectItem(accountItem)}
+          onNotifications={() => { setAccountOpen(false); setNotificationsOpen(true); }}
+          onAccount={openAccountMenu}
+          accountOpen={accountOpen}
           currentUser={currentUser}
           hasUnread={hasUnread}
         />
@@ -276,6 +319,16 @@ export default function MobileAppShell({
         onSelect={selectItem}
         currentUser={currentUser}
         onLogout={onLogout}
+      />
+      <MobileAccountMenu
+        open={accountOpen}
+        currentUser={currentUser}
+        onClose={() => setAccountOpen(false)}
+        onProfile={openAccountRoute}
+        onSettings={openSettingsRoute}
+        onNotifications={openAccountNotifications}
+        onHelp={openHelpRoute}
+        onLogout={logoutFromAccountMenu}
       />
       <MobileNotificationSheet open={notificationsOpen} currentUser={currentUser} language={language} onClose={() => setNotificationsOpen(false)} />
     </>
