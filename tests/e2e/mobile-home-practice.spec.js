@@ -88,15 +88,40 @@ test('mobile Home stays inside viewport', async ({ page }, testInfo) => {
   expect(overflow).toBeLessThanOrEqual(1);
 });
 
-test('mobile Home uses readable Hero typography and large actions', async ({ page }, testInfo) => {
+test('mobile Home keeps the top bar and Hero compact without sacrificing touch targets', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile-chromium');
   await waitForHome(page);
 
-  const heroTitleSize = await page.locator('[data-mobile-home-hero] .hero-cms__content h1').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
-  expect(heroTitleSize).toBeGreaterThanOrEqual(38);
+  const mark = await page.locator('.bes-mobile-brand__mark--logo').boundingBox();
+  expect(mark?.width || Number.MAX_SAFE_INTEGER).toBeLessThanOrEqual(36);
 
-  const primaryAction = await page.locator('[data-mobile-home-hero] .hero-cms__button').first().boundingBox();
+  const dateline = await page.locator('[data-mobile-home-dateline]').boundingBox();
+  expect(dateline?.height || Number.MAX_SAFE_INTEGER).toBeLessThanOrEqual(24);
+
+  const hero = await page.locator('[data-mobile-home-hero] .hero-cms').boundingBox();
+  expect(hero?.height || Number.MAX_SAFE_INTEGER).toBeGreaterThanOrEqual(320);
+  expect(hero?.height || Number.MAX_SAFE_INTEGER).toBeLessThanOrEqual(420);
+
+  const heroTitleSize = await page.locator('[data-mobile-home-hero] .hero-cms__content h1').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
+  const heroHighlightSize = await page.locator('[data-mobile-home-hero] .hero-cms__content h2').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
+  expect(heroTitleSize).toBeGreaterThanOrEqual(32);
+  expect(heroTitleSize).toBeLessThanOrEqual(40);
+  expect(heroHighlightSize).toBeGreaterThanOrEqual(26);
+  expect(heroHighlightSize).toBeLessThanOrEqual(32);
+
+  const primaryAction = await page.locator('[data-mobile-home-hero] .hero-cms__button.is-primary').boundingBox();
   expect(primaryAction?.height || 0).toBeGreaterThanOrEqual(48);
+});
+
+test('mobile grade summaries stay compact', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium');
+  await waitForHome(page);
+
+  const cards = page.locator('[data-mobile-grade-card]');
+  for (let index = 0; index < await cards.count(); index += 1) {
+    const box = await cards.nth(index).boundingBox();
+    expect(box?.height || Number.MAX_SAFE_INTEGER).toBeLessThanOrEqual(120);
+  }
 });
 
 test('mobile Home brand uses Brian English identity instead of route title', async ({ page }, testInfo) => {
