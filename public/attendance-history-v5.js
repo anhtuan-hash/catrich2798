@@ -13,14 +13,18 @@
   const MOBILE_MEDIA_QUERY = '(max-width: 900px)';
   const MOBILE_STYLESHEET_ID = 'ah-mobile-bottom-sheet-styles';
   const MOBILE_STYLESHEET_HREF = '/attendance-history-mobile-bottom-sheet.css?v=1';
+  const MOBILE_POLISH_STYLESHEET_ID = 'ah-mobile-polish-styles';
+  const MOBILE_POLISH_STYLESHEET_HREF = '/attendance-history-mobile-polish.css?v=1';
   const MOBILE_OPEN_CLASS = 'is-mobile-detail-open';
   const MOBILE_DISMISSED_CLASS = 'is-mobile-detail-dismissed';
   const MOBILE_FILTERS_CLASS = 'is-mobile-filters-open';
+  const MOBILE_SECONDARY_CLASS = 'is-mobile-secondary-open';
   const MOBILE_BACKDROP_CLASS = 'ahv3__mobile-sheet-backdrop';
   const MOBILE_CLOSE_CLASS = 'ahv3__mobile-sheet-close';
   const MOBILE_FILTER_TOGGLE_CLASS = 'ahv3__mobile-filter-toggle';
   const MOBILE_SUMMARY_CLASS = 'ahv3__mobile-summary';
   const MOBILE_ACTIONS_CLASS = 'ahv3__mobile-sheet-actions';
+  const MOBILE_SECONDARY_TOGGLE_CLASS = 'ahv3__mobile-secondary-toggle';
   let frame = 0;
 
   function normalizedText(node) {
@@ -32,12 +36,17 @@
   }
 
   function ensureMobileStylesheet() {
-    if (document.getElementById(MOBILE_STYLESHEET_ID)) return;
-    const link = document.createElement('link');
-    link.id = MOBILE_STYLESHEET_ID;
-    link.rel = 'stylesheet';
-    link.href = MOBILE_STYLESHEET_HREF;
-    document.head.append(link);
+    [
+      [MOBILE_STYLESHEET_ID, MOBILE_STYLESHEET_HREF],
+      [MOBILE_POLISH_STYLESHEET_ID, MOBILE_POLISH_STYLESHEET_HREF],
+    ].forEach(([id, href]) => {
+      if (document.getElementById(id)) return;
+      const link = document.createElement('link');
+      link.id = id;
+      link.rel = 'stylesheet';
+      link.href = href;
+      document.head.append(link);
+    });
   }
 
   function isLegacyActivityFilter(node) {
@@ -146,18 +155,19 @@
 
   function dismissMobileDetail(root) {
     if (!root) return;
-    root.classList.remove(MOBILE_OPEN_CLASS);
+    root.classList.remove(MOBILE_OPEN_CLASS, MOBILE_SECONDARY_CLASS);
     root.classList.add(MOBILE_DISMISSED_CLASS);
   }
 
   function removeMobileDetailControls(root) {
     if (!root) return;
-    root.classList.remove(MOBILE_OPEN_CLASS, MOBILE_DISMISSED_CLASS);
+    root.classList.remove(MOBILE_OPEN_CLASS, MOBILE_DISMISSED_CLASS, MOBILE_SECONDARY_CLASS);
     delete root.dataset.ahMobileSelectedKey;
     root.querySelector(`.${MOBILE_BACKDROP_CLASS}`)?.remove();
     root.querySelector(`.${MOBILE_CLOSE_CLASS}`)?.remove();
     root.querySelector(`.${MOBILE_SUMMARY_CLASS}`)?.remove();
     root.querySelector(`.${MOBILE_ACTIONS_CLASS}`)?.remove();
+    root.querySelector(`.${MOBILE_SECONDARY_TOGGLE_CLASS}`)?.remove();
   }
 
   function ensureMobileFilterToggle(root) {
@@ -206,6 +216,25 @@
     setNodeText(values[0], count?.querySelector('b')?.textContent || '—');
     setNodeText(values[1], count?.querySelector('em')?.textContent || '—');
     setNodeText(values[2], count?.querySelector('i')?.textContent || '—');
+  }
+
+  function ensureMobileSecondaryToggle(root, detail) {
+    let toggle = detail.querySelector(`.${MOBILE_SECONDARY_TOGGLE_CLASS}`);
+    if (!toggle) {
+      toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = MOBILE_SECONDARY_TOGGLE_CLASS;
+      toggle.addEventListener('click', () => {
+        const expanded = root.classList.toggle(MOBILE_SECONDARY_CLASS);
+        toggle.setAttribute('aria-expanded', String(expanded));
+        setNodeText(toggle, expanded ? 'Thu gọn thông tin bổ sung' : 'Thông tin bổ sung');
+      });
+      detail.append(toggle);
+    }
+
+    const expanded = root.classList.contains(MOBILE_SECONDARY_CLASS);
+    toggle.setAttribute('aria-expanded', String(expanded));
+    setNodeText(toggle, expanded ? 'Thu gọn thông tin bổ sung' : 'Thông tin bổ sung');
   }
 
   function ensureMobileActionProxy(detail) {
@@ -259,7 +288,7 @@
 
     const selectedKey = normalizedText(selectedCard).slice(0, 240);
     if (root.dataset.ahMobileSelectedKey && root.dataset.ahMobileSelectedKey !== selectedKey) {
-      root.classList.remove(MOBILE_DISMISSED_CLASS);
+      root.classList.remove(MOBILE_DISMISSED_CLASS, MOBILE_SECONDARY_CLASS);
     }
     root.dataset.ahMobileSelectedKey = selectedKey;
 
@@ -287,6 +316,7 @@
     }
 
     ensureMobileSummary(selectedCard, detail);
+    ensureMobileSecondaryToggle(root, detail);
     ensureMobileActionProxy(detail);
   }
 
@@ -325,7 +355,7 @@
     const card = event.target?.closest?.(`${ROOT_SELECTOR} .ahv3__items > button`);
     if (!card || card.classList.contains('is-bulk-mode')) return;
     const root = card.closest(ROOT_SELECTOR);
-    root?.classList.remove(MOBILE_DISMISSED_CLASS);
+    root?.classList.remove(MOBILE_DISMISSED_CLASS, MOBILE_SECONDARY_CLASS);
     window.setTimeout(scheduleEnhance, 0);
   }
 
