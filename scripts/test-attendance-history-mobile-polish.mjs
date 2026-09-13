@@ -14,6 +14,11 @@ assert.match(css, /\.ahv3__items\s*\{[^}]*flex:\s*1\s+1\s+0%\s*!important;[^}]*h
 assert.match(css, /\.ahv3__shell\.is-mobile-detail-open \.ahv3__detail\s*\{[^}]*height:\s*auto\s*!important;[^}]*max-height:\s*88dvh\s*!important;/s, 'Mobile History detail should be content-sized with an 88dvh cap');
 assert.match(css, /\.ahv3__shell\.is-mobile-detail-open \.ahv3__detail\s*\{[^}]*padding-bottom:\s*max\(12px,\s*env\(safe-area-inset-bottom\)\)\s*!important;/s, 'Mobile History detail should keep only compact safe-area bottom padding');
 
+// The close button must live inside the auto-height sheet so it stays pinned to the sheet
+// chrome even when the content is much shorter than 88dvh.
+assert.match(behavior, /detail\.prepend\(close\)/, 'Mobile detail close control must be anchored inside the sheet');
+assert.match(css, /\.ahv3__mobile-sheet-close\s*\{[^}]*top:\s*10px\s*!important;[^}]*right:\s*10px\s*!important;/s, 'Mobile detail close control must stay in the sheet top-right corner');
+
 // Bottom sheet must be genuinely mobile-width. Desktop max-width/grid constraints must
 // not leave the hero, information cards, audit, lists, or actions stuck at half width.
 assert.match(css, /\.ahv3__hero,[\s\S]*?\.ahv3__info-grid,[\s\S]*?\.ahv3__info-grid > article,[\s\S]*?\.ahv3__audit-actor-panel,[\s\S]*?\.ahv3__absent-section,[\s\S]*?\.ahv3__footer-grid,[\s\S]*?\.ahv3__mobile-sheet-actions\s*\{[^}]*width:\s*100%\s*!important;[^}]*max-width:\s*none\s*!important;/s, 'Core mobile detail surfaces must share one full-width contract');
@@ -35,7 +40,7 @@ assert.match(css, /\.ahv3__mobile-sheet-actions button\s*\{[^}]*width:\s*100%\s*
 // but remains accessible through a dedicated disclosure control.
 assert.match(behavior, /MOBILE_SECONDARY_CLASS\s*=\s*'is-mobile-secondary-open'/, 'History enhancer must track secondary mobile detail disclosure state');
 assert.match(behavior, /MOBILE_SECONDARY_TOGGLE_CLASS\s*=\s*'ahv3__mobile-secondary-toggle'/, 'History enhancer must expose a secondary-info toggle');
-assert.match(behavior, /MOBILE_POLISH_STYLESHEET_HREF\s*=\s*'\/attendance-history-mobile-polish\.css\?v=1'/, 'History enhancer must load the final polish layer after the bottom sheet');
+assert.match(behavior, /MOBILE_POLISH_STYLESHEET_HREF\s*=\s*'\/attendance-history-mobile-polish\.css\?v=2'/, 'History enhancer must load the compact-detail polish layer without stale mobile CSS');
 assert.match(css, /\.ahv3__audit-actor-panel,[\s\S]*?\.ahv3__footer-grid\s*\{[^}]*display:\s*none\s*!important;/s, 'Secondary audit and note blocks should start collapsed on mobile');
 assert.match(css, /\.is-mobile-secondary-open \.ahv3__audit-actor-panel,[\s\S]*?\.is-mobile-secondary-open \.ahv3__footer-grid\s*\{[^}]*display:\s*grid\s*!important;/s, 'Secondary audit and note blocks must become visible when expanded');
 assert.match(css, /\.ahv3__mobile-secondary-toggle\s*\{[^}]*width:\s*100%\s*!important;[^}]*min-height:\s*44px\s*!important;/s, 'Secondary disclosure must remain touch-friendly without adding excess height');
