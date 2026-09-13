@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowRight,
   BarChart3,
-  BookOpen,
   CalendarDays,
   Check,
   ChevronDown,
@@ -156,7 +155,6 @@ export default function MobileHomeView({
   t,
   language = 'vi',
   currentUser,
-  tools = [],
   practiceItems = [],
   practicesByGrade = {},
   practiceLoading = false,
@@ -164,8 +162,6 @@ export default function MobileHomeView({
   canManagePractice = false,
   onStart,
   onGuide,
-  onOpenApps,
-  onOpenTool,
   onOpenPractice,
   onRetryPractice,
   onOpenStatistics,
@@ -239,32 +235,6 @@ export default function MobileHomeView({
               ) : null}
             </React.Fragment>
           ))}
-        </div>
-      </section>
-
-      <section className="bes-mobile-home__section bes-mobile-home__featured-tools" data-mobile-home-tools aria-labelledby="mobile-featured-tools-title">
-        <header className="bes-mobile-home__section-head">
-          <h2 id="mobile-featured-tools-title"><BookOpen size={22} aria-hidden="true" />{t.tools}</h2>
-          <button type="button" onClick={onOpenApps}>{t.all}<ArrowRight size={15} /></button>
-        </header>
-        <div className="bes-mobile-home__tools">
-          {tools.map((item) => {
-            const Icon = item.Icon;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                className="bes-mobile-home__tool"
-                data-mobile-tool={item.id}
-                style={{ '--tool-accent': item.accent, '--tool-soft': item.soft }}
-                onClick={(event) => onOpenTool?.(item, event)}
-              >
-                <span aria-hidden="true"><Icon size={22} /></span>
-                <strong>{vi ? item.title : item.titleEn}</strong>
-                <ArrowRight className="bes-mobile-home__tool-arrow" size={19} aria-hidden="true" />
-              </button>
-            );
-          })}
         </div>
       </section>
     </main>
