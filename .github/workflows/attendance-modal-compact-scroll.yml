@@ -9,6 +9,7 @@ on:
       - fix/attendance-mobile-modal-frame
       - fix/attendance-mobile-inner-layout
       - fix/attendance-history-mobile-list-first
+      - fix/attendance-history-mobile-bottom-sheet
   pull_request:
     paths:
       - 'public/attendance-windows8-launch.css'
