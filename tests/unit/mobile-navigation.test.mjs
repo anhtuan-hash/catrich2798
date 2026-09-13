@@ -39,20 +39,37 @@ test('attendance replaces practice as the center action when available', () => {
   assert.equal(model.bottomItems[2].action, 'attendance');
 });
 
-test('forbidden routes are not emitted in More groups', () => {
+test('drawer base mirrors original compact navigation instead of app catalog groups', () => {
   const model = buildMobileNavigationModel({
     authenticated: true,
     currentRoute: 'home',
     language: 'vi',
     canAccessRoute: allow,
     canAccessAttendance: false,
+    isAdminNavigation: false,
   });
-  const routes = model.moreGroups.flatMap((group) => group.items).map((item) => item.route);
-  assert.equal(routes.includes('admin'), false);
-  assert.equal(routes.includes('app-vault'), false);
+
+  assert.deepEqual(model.drawerBaseItems.map((item) => [item.id, item.label]), [
+    ['home', 'Trang chủ'],
+    ['apps', 'Ứng dụng'],
+  ]);
+  assert.equal('moreGroups' in model, false);
 });
 
-test('guest navigation exposes only public-safe items', () => {
+test('admin drawer keeps the original Admin primary tab', () => {
+  const model = buildMobileNavigationModel({
+    authenticated: true,
+    currentRoute: 'home',
+    language: 'vi',
+    canAccessRoute: () => true,
+    canAccessAttendance: true,
+    isAdminNavigation: true,
+  });
+
+  assert.deepEqual(model.drawerBaseItems.map((item) => item.id), ['home', 'apps', 'admin']);
+});
+
+test('guest navigation exposes only public-safe bottom items and Home in original drawer', () => {
   const model = buildMobileNavigationModel({
     authenticated: false,
     currentRoute: 'home',
@@ -61,4 +78,5 @@ test('guest navigation exposes only public-safe items', () => {
     canAccessAttendance: false,
   });
   assert.deepEqual(model.bottomItems.map((item) => item.id), ['home', 'resources', 'search', 'contact', 'login']);
+  assert.deepEqual(model.drawerBaseItems.map((item) => item.id), ['home']);
 });
