@@ -1,5 +1,6 @@
 import React from 'react';
 import { Bell, Menu, Search, UserRound } from 'lucide-react';
+import '../../pages/AuthPageMobileRedesign.css';
 
 function userInitial(currentUser) {
   const source = currentUser?.name || currentUser?.full_name || currentUser?.email || 'B';
@@ -16,19 +17,22 @@ export default function MobileTopBar({
   hasUnread = false,
 }) {
   const homeBrand = title === 'Trang chủ' || title === 'Home';
-  const brandTitle = homeBrand ? 'Brian English' : title;
-  const brandSubtitle = homeBrand ? 'ENGLISH HUB' : 'Brian English';
+  const authBrand = ['Đăng nhập', 'Sign in', 'Đăng ký', 'Register'].includes(title);
+  const identityBrand = homeBrand || authBrand;
+  const brandTitle = identityBrand ? 'Brian English' : title;
+  const brandSubtitle = identityBrand ? 'ENGLISH HUB' : 'Brian English';
 
   return (
-    <header className={`bes-mobile-topbar${homeBrand ? ' is-home' : ''}`} data-bes-mobile-topbar="true">
+    <header className={`bes-mobile-topbar${homeBrand ? ' is-home' : ''}${authBrand ? ' is-auth' : ''}`} data-bes-mobile-topbar="true">
       <button type="button" className="bes-mobile-icon-button" onClick={onMenu} aria-label="Mở menu">
         <Menu size={22} strokeWidth={2.2} />
       </button>
 
       <button
         type="button"
-        className={`bes-mobile-brand${homeBrand ? ' is-home' : ''}`}
+        className={`bes-mobile-brand${homeBrand ? ' is-home' : ''}${authBrand ? ' is-auth' : ''}`}
         data-home-brand={homeBrand ? 'true' : undefined}
+        data-auth-brand={authBrand ? 'true' : undefined}
         onClick={onMenu}
         aria-label="Mở điều hướng Brian English"
       >
