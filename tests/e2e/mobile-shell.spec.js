@@ -61,6 +61,13 @@ test('mobile menu opens as a left navigation drawer without changing route', asy
   await expect(drawer).toBeVisible();
   await expect(drawer).toHaveClass(/bes-mobile-drawer/);
 
+  // Geometry assertions describe the settled drawer. Wait for its entrance
+  // animation instead of sampling a transient transform offset mid-flight.
+  await drawer.evaluate(async (element) => {
+    const animations = element.getAnimations();
+    await Promise.all(animations.map((animation) => animation.finished.catch(() => undefined)));
+  });
+
   const box = await drawer.boundingBox();
   const viewport = page.viewportSize();
   expect(box?.x || 0).toBeLessThanOrEqual(1);
