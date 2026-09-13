@@ -71,6 +71,50 @@ test('mobile Home stays inside viewport and tools are touch friendly', async ({ 
   expect(columnCount).toBe(2);
 });
 
+test('phone Home uses a native mobile visual scale instead of compressed desktop density', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium');
+  await waitForHome(page);
+  await expect(page.locator('[data-bes-mobile-home="true"]')).toBeVisible();
+  await expect(page.locator('[data-mobile-home-hero] h1')).toBeVisible();
+  await expect(page.locator('[data-mobile-tool]').first()).toBeVisible();
+  await expect(page.locator('[data-mobile-grade="10"]')).toBeVisible();
+
+  const metrics = await page.evaluate(() => {
+    const px = (selector, property = 'fontSize') => {
+      const element = document.querySelector(selector);
+      return element ? Number.parseFloat(getComputedStyle(element)[property]) : 0;
+    };
+    const height = (selector) => document.querySelector(selector)?.getBoundingClientRect().height || 0;
+    return {
+      heroTitle: px('.bes-mobile-home__hero h1'),
+      heroButtonHeight: height('.bes-mobile-home__hero-actions button'),
+      sectionTitle: px('.bes-mobile-home__section-head h2'),
+      toolLabel: px('.bes-mobile-home__tool strong'),
+      toolHeight: height('.bes-mobile-home__tool'),
+      practiceTitle: px('.bes-mobile-home__practice-head h2'),
+      gradeNumber: px('.bes-mobile-home__grade-selector button > strong'),
+      gradeHeight: height('.bes-mobile-home__grade-selector button'),
+      topbarHeight: height('.bes-mobile-topbar'),
+      brandTitle: px('.bes-mobile-brand__copy strong'),
+      bottomLabel: px('.bes-mobile-bottomnav__item'),
+      bottomItemHeight: height('.bes-mobile-bottomnav__item'),
+    };
+  });
+
+  expect(metrics.heroTitle).toBeGreaterThanOrEqual(34);
+  expect(metrics.heroButtonHeight).toBeGreaterThanOrEqual(48);
+  expect(metrics.sectionTitle).toBeGreaterThanOrEqual(20);
+  expect(metrics.toolLabel).toBeGreaterThanOrEqual(15);
+  expect(metrics.toolHeight).toBeGreaterThanOrEqual(104);
+  expect(metrics.practiceTitle).toBeGreaterThanOrEqual(23);
+  expect(metrics.gradeNumber).toBeGreaterThanOrEqual(20);
+  expect(metrics.gradeHeight).toBeGreaterThanOrEqual(60);
+  expect(metrics.topbarHeight).toBeGreaterThanOrEqual(68);
+  expect(metrics.brandTitle).toBeGreaterThanOrEqual(16);
+  expect(metrics.bottomLabel).toBeGreaterThanOrEqual(11);
+  expect(metrics.bottomItemHeight).toBeGreaterThanOrEqual(60);
+});
+
 test('mobile Home keeps weekly practice compact until user expands it', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile-chromium');
   await waitForHome(page);

@@ -1,96 +1,258 @@
-/* Targeted mobile-home refinements kept separate from the larger legacy Home stylesheet. */
+/* Targeted mobile Home refinements.
+   This layer deliberately increases visual scale so the phone UI reads like a
+   native mobile product instead of a compressed desktop dashboard. */
 .bes-mobile-home {
-  gap: 14px;
-  padding-top: 12px;
+  gap: 20px;
+  padding-top: 18px;
+  padding-bottom: 34px;
 }
 
 .bes-mobile-home__hero,
 .bes-mobile-home__section {
-  border-radius: 20px;
+  border-radius: 24px;
 }
 
 .bes-mobile-home__hero {
-  padding: 18px 18px 17px;
-  box-shadow: 0 14px 32px rgba(24, 77, 184, 0.2);
+  padding: 24px 22px 22px;
+  box-shadow: 0 18px 38px rgba(24, 77, 184, 0.22);
+}
+
+.bes-mobile-home__eyebrow {
+  font-size: 12px;
+}
+
+.bes-mobile-home__hero .bes-mobile-home__eyebrow {
+  padding: 8px 11px;
 }
 
 .bes-mobile-home__hero h1 {
-  margin: 14px 0 8px;
-  font-size: clamp(27px, 7.2vw, 38px);
-  line-height: 1.01;
+  margin: 16px 0 10px;
+  font-size: clamp(34px, 9vw, 44px);
+  line-height: 1.02;
 }
 
 .bes-mobile-home__hero > p {
-  font-size: 13px;
-  line-height: 1.45;
+  font-size: 15px;
+  line-height: 1.5;
 }
 
 .bes-mobile-home__hero-actions {
-  margin-top: 15px;
+  gap: 12px;
+  margin-top: 19px;
+}
+
+/*
+ * GlobalViewportReadabilityGuard intentionally gives every phone control a
+ * 44px floor with a fairly specific html/body/:is(...) selector. Mobile Home
+ * deliberately uses larger native-phone controls, so scope these minimums to
+ * the active mobile shell with enough specificity to win without weakening
+ * the global accessibility floor anywhere else.
+ */
+html.bes-mobile-shell-active .bes-mobile-home__hero-actions button {
+  min-height: 50px;
+  padding: 11px 14px;
+  font-size: 14px;
 }
 
 .bes-mobile-home__hero-stat {
-  margin-top: 12px;
-  padding: 7px 10px;
+  margin-top: 15px;
+  padding: 8px 11px;
+  font-size: 13px;
+}
+
+.bes-mobile-home__hero-stat strong {
+  font-size: 21px;
 }
 
 .bes-mobile-home__section {
-  padding: 15px;
-  box-shadow: 0 7px 22px rgba(28, 42, 70, 0.05);
+  padding: 20px;
+  box-shadow: 0 10px 28px rgba(28, 42, 70, 0.065);
+}
+
+.bes-mobile-home__section-head {
+  gap: 14px;
+}
+
+.bes-mobile-home__section-head h2 {
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+html.bes-mobile-shell-active .bes-mobile-home__section-head button {
+  min-height: 46px;
+  padding: 9px 12px;
+  font-size: 13px;
 }
 
 .bes-mobile-home__tools {
-  gap: 9px;
-  margin-top: 12px;
+  gap: 12px;
+  margin-top: 16px;
 }
 
-.bes-mobile-home__tool {
-  min-height: 82px;
-  gap: 8px;
-  padding: 11px;
-  border-radius: 16px;
+html.bes-mobile-shell-active .bes-mobile-home__tool {
+  min-height: 110px;
+  gap: 10px;
+  padding: 15px;
+  border-radius: 19px;
 }
 
 .bes-mobile-home__tool > span {
-  width: 36px;
-  height: 36px;
-  border-radius: 11px;
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+}
+
+.bes-mobile-home__tool > span svg {
+  width: 23px;
+  height: 23px;
+}
+
+.bes-mobile-home__tool strong {
+  font-size: 15px;
+  line-height: 1.3;
 }
 
 .bes-mobile-home__practice {
-  gap: 12px;
+  gap: 16px;
+}
+
+.bes-mobile-home__practice-head {
+  gap: 14px;
 }
 
 .bes-mobile-home__practice-head h2 {
-  font-size: 20px;
+  margin-top: 8px;
+  font-size: 24px;
+  line-height: 1.1;
 }
 
 .bes-mobile-home__practice-head p {
-  margin-top: 6px;
-  line-height: 1.4;
+  margin-top: 8px;
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+
+.bes-mobile-home__practice-total {
+  min-width: 80px;
+  padding: 12px 10px;
+  border-radius: 18px;
+}
+
+.bes-mobile-home__practice-total strong {
+  font-size: 27px;
+}
+
+.bes-mobile-home__practice-total span {
+  font-size: 10px;
+}
+
+.bes-mobile-home__manager-actions {
+  gap: 10px;
+}
+
+html.bes-mobile-shell-active .bes-mobile-home__manager-actions button {
+  min-height: 48px;
+  font-size: 13px;
+}
+
+.bes-mobile-home__grade-selector {
+  gap: 10px;
+}
+
+html.bes-mobile-shell-active .bes-mobile-home__grade-selector button {
+  min-height: 64px;
+  padding: 10px 11px;
+  border-radius: 17px;
+}
+
+.bes-mobile-home__grade-selector button > span {
+  font-size: 10px;
+}
+
+.bes-mobile-home__grade-selector button > strong {
+  font-size: 20px;
+}
+
+.bes-mobile-home__grade-selector button > small {
+  min-width: 29px;
+  height: 29px;
+  font-size: 11px;
+}
+
+.bes-mobile-home__practice-panel {
+  gap: 12px;
+}
+
+.bes-mobile-home__practice-panel-head small {
+  margin-bottom: 3px;
+  font-size: 11px;
+}
+
+.bes-mobile-home__practice-panel-head h3 {
+  font-size: 20px;
+}
+
+.bes-mobile-home__practice-panel-head > span {
+  padding: 7px 10px;
+  font-size: 11px;
+}
+
+.bes-mobile-home__practice-list {
+  gap: 10px;
 }
 
 .bes-mobile-home__practice-card {
-  padding: 9px 10px;
-  border-radius: 15px;
+  min-height: 68px;
+  gap: 12px;
+  padding: 13px;
+  border-radius: 17px;
 }
 
-.bes-mobile-home__practice-expand {
+.bes-mobile-home__practice-card-copy {
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 10px;
+}
+
+.bes-mobile-home__practice-index {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.bes-mobile-home__practice-card h4 {
+  font-size: 14.5px;
+  line-height: 1.35;
+}
+
+.bes-mobile-home__practice-card small {
+  margin-top: 5px;
+  font-size: 11px;
+}
+
+html.bes-mobile-shell-active .bes-mobile-home__practice-card > button {
+  min-width: 84px;
+  min-height: 48px;
+  padding: 9px 12px;
+  font-size: 12.5px;
+}
+
+html.bes-mobile-shell-active .bes-mobile-home__practice-expand {
   appearance: none;
   width: 100%;
-  min-height: 46px;
+  min-height: 50px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  margin-top: 2px;
-  padding: 9px 12px;
+  margin-top: 4px;
+  padding: 10px 14px;
   border: 1px solid #dbe5fa;
-  border-radius: 14px;
+  border-radius: 15px;
   background: #f4f7fd;
   color: #2458c7;
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
   cursor: pointer;
 }
@@ -99,22 +261,54 @@
   background: #eaf1ff;
 }
 
-@media (min-width: 700px) {
+@media (max-width: 359px) {
   .bes-mobile-home {
-    padding-top: 18px;
     gap: 16px;
+    padding-top: 14px;
   }
 
   .bes-mobile-home__hero {
-    padding: 26px 26px 23px;
+    padding: 21px 18px 19px;
+  }
+
+  .bes-mobile-home__hero h1 {
+    font-size: 32px;
   }
 
   .bes-mobile-home__section {
-    padding: 20px;
+    padding: 18px;
   }
 
-  .bes-mobile-home__tool {
-    min-height: 96px;
-    padding: 14px;
+  html.bes-mobile-shell-active .bes-mobile-home__tool {
+    min-height: 104px;
+    padding: 13px;
+  }
+
+  .bes-mobile-home__tool strong {
+    font-size: 14px;
+  }
+}
+
+@media (min-width: 700px) {
+  .bes-mobile-home {
+    padding-top: 24px;
+    gap: 22px;
+  }
+
+  .bes-mobile-home__hero {
+    padding: 32px 30px 28px;
+  }
+
+  .bes-mobile-home__hero h1 {
+    font-size: clamp(40px, 5.2vw, 50px);
+  }
+
+  .bes-mobile-home__section {
+    padding: 24px;
+  }
+
+  html.bes-mobile-shell-active .bes-mobile-home__tool {
+    min-height: 120px;
+    padding: 17px;
   }
 }
