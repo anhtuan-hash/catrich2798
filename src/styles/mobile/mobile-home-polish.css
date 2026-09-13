@@ -1,0 +1,120 @@
+/* Targeted mobile-home refinements kept separate from the larger legacy Home stylesheet. */
+.bes-mobile-home {
+  gap: 14px;
+  padding-top: 12px;
+}
+
+.bes-mobile-home__hero,
+.bes-mobile-home__section {
+  border-radius: 20px;
+}
+
+.bes-mobile-home__hero {
+  padding: 18px 18px 17px;
+  box-shadow: 0 14px 32px rgba(24, 77, 184, 0.2);
+}
+
+.bes-mobile-home__hero h1 {
+  margin: 14px 0 8px;
+  font-size: clamp(27px, 7.2vw, 38px);
+  line-height: 1.01;
+}
+
+.bes-mobile-home__hero > p {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.bes-mobile-home__hero-actions {
+  margin-top: 15px;
+}
+
+.bes-mobile-home__hero-stat {
+  margin-top: 12px;
+  padding: 7px 10px;
+}
+
+.bes-mobile-home__section {
+  padding: 15px;
+  box-shadow: 0 7px 22px rgba(28, 42, 70, 0.05);
+}
+
+.bes-mobile-home__tools {
+  gap: 9px;
+  margin-top: 12px;
+}
+
+.bes-mobile-home__tool {
+  min-height: 82px;
+  gap: 8px;
+  padding: 11px;
+  border-radius: 16px;
+}
+
+.bes-mobile-home__tool > span {
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
+}
+
+.bes-mobile-home__practice {
+  gap: 12px;
+}
+
+.bes-mobile-home__practice-head h2 {
+  font-size: 20px;
+}
+
+.bes-mobile-home__practice-head p {
+  margin-top: 6px;
+  line-height: 1.4;
+}
+
+.bes-mobile-home__practice-card {
+  padding: 9px 10px;
+  border-radius: 15px;
+}
+
+.bes-mobile-home__practice-expand {
+  appearance: none;
+  width: 100%;
+  min-height: 46px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 2px;
+  padding: 9px 12px;
+  border: 1px solid #dbe5fa;
+  border-radius: 14px;
+  background: #f4f7fd;
+  color: #2458c7;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.bes-mobile-home__practice-expand:active {
+  background: #eaf1ff;
+}
+
+@media (min-width: 700px) {
+  .bes-mobile-home {
+    padding-top: 18px;
+    gap: 16px;
+  }
+
+  .bes-mobile-home__hero {
+    padding: 26px 26px 23px;
+  }
+
+  .bes-mobile-home__section {
+    padding: 20px;
+  }
+
+  .bes-mobile-home__tool {
+    min-height: 96px;
+    padding: 14px;
+  }
+}
