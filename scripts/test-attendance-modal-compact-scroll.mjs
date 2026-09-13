@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 const launchCss = fs.readFileSync(new URL('../public/attendance-windows8-launch.css', import.meta.url), 'utf8');
 const sourceCss = fs.readFileSync(new URL('../src/components/GlobalAttendanceNavigationTab.css', import.meta.url), 'utf8');
+const componentSource = fs.readFileSync(new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url), 'utf8');
 const historyCss = fs.readFileSync(new URL('../public/attendance-history-mockup-v4.css', import.meta.url), 'utf8');
 const frameCss = fs.readFileSync(new URL('../public/attendance-card-size-sync-v1.css', import.meta.url), 'utf8');
 
@@ -45,16 +46,22 @@ assert.match(frameCss, /html body \.attendance-shell \.attendance-manage-tile__t
 assert.match(frameCss, /html body \.attendance-shell \.attendance-manage-tile__subtitle\s*\{[^}]*display:\s*block\s*!important;[^}]*visibility:\s*visible\s*!important;/s, 'Manage class subjects must stay visible on mobile');
 assert.match(frameCss, /html body \.attendance-shell \.attendance-manage-tile__meta\s*\{[^}]*display:\s*grid\s*!important;[^}]*visibility:\s*visible\s*!important;/s, 'Manage class metadata must stay visible on mobile');
 
-// History is list-first on phones. With no selected session, the filter/list pane owns
-// the full available height and the empty detail illustration is removed. Session cards
-// scroll under the filter header so the date fields and real history rows remain reachable.
-assert.match(frameCss, /html body \.attendance-shell \.ahv3__shell:not\(:has\(\.ahv3__items > button\.is-selected\)\)\s*\{[^}]*display:\s*block\s*!important;[^}]*height:\s*100%\s*!important;/s, 'History without a selected session must become a full-height list-first view');
-assert.match(frameCss, /html body \.attendance-shell \.ahv3__shell:not\(:has\(\.ahv3__items > button\.is-selected\)\) \.ahv3__detail\s*\{[^}]*display:\s*none\s*!important;/s, 'Empty History detail must not waste half the phone viewport');
-assert.match(frameCss, /html body \.attendance-shell \.ahv3__shell:not\(:has\(\.ahv3__items > button\.is-selected\)\) \.ahv3__list\s*\{[^}]*height:\s*100%\s*!important;[^}]*display:\s*flex\s*!important;[^}]*flex-direction:\s*column\s*!important;[^}]*overflow:\s*hidden\s*!important;/s, 'History list must own the mobile viewport before a session is selected');
-assert.match(frameCss, /html body \.attendance-shell \.ahv3__shell:not\(:has\(\.ahv3__items > button\.is-selected\)\) \.ahv3__items\s*\{[^}]*flex:\s*1\s+1\s+auto\s*!important;[^}]*min-height:\s*0\s*!important;[^}]*overflow-y:\s*auto\s*!important;/s, 'History session cards must receive the remaining height and scroll independently');
-assert.match(frameCss, /html body \.attendance-shell \.ahv3__shell:has\(\.ahv3__items > button\.is-selected\) \.ahv3__list-head\s*\{[^}]*display:\s*none\s*!important;/s, 'Once a session is selected, bulky filters must collapse so session navigation remains visible');
-assert.match(frameCss, /html body \.attendance-shell \.ahv3__shell:has\(\.ahv3__items > button\.is-selected\)\s*\{[^}]*grid-template-rows:\s*minmax\(92px,\s*24%\)\s+minmax\(0,\s*1fr\)\s*!important;/s, 'Selected History sessions reserve a compact navigator and give most height to detail');
-assert.doesNotMatch(frameCss, /grid-template-rows:\s*minmax\(240px,\s*42%\)\s+minmax\(0,\s*1fr\)/, 'The broken 42/58 History split must be removed');
-assert.doesNotMatch(frameCss, /grid-template-rows:\s*minmax\(230px,\s*40%\)\s+minmax\(0,\s*1fr\)/, 'The broken phone 40/60 History split must be removed');
+// History mobile UX approved in the mockup: the list remains the primary full-height
+// screen and selecting a session opens a modal bottom sheet over that list. The old
+// selected-session split layout must not return.
+assert.match(componentSource, /ahv3__shell[^\n]*is-mobile-detail-open/s, 'History root must expose a selected-session mobile sheet state');
+assert.match(componentSource, /className="ahv3__mobile-sheet-backdrop"/, 'History must render a backdrop behind the mobile detail sheet');
+assert.match(componentSource, /className="ahv3__mobile-sheet-chrome"/, 'History detail must render mobile bottom-sheet chrome');
+assert.match(componentSource, /className="ahv3__mobile-sheet-close"/, 'Mobile detail sheet must have an explicit close action');
+assert.match(frameCss, /html body \.attendance-shell \.ahv3__shell\s*\{[^}]*position:\s*relative\s*!important;[^}]*height:\s*100%\s*!important;[^}]*display:\s*block\s*!important;/s, 'History list remains a full-height relative viewport on mobile');
+assert.match(frameCss, /html body \.attendance-shell \.ahv3__list\s*\{[^}]*height:\s*100%\s*!important;[^}]*display:\s*flex\s*!important;[^}]*flex-direction:\s*column\s*!important;/s, 'History list must stay full-height even after a session is selected');
+assert.match(frameCss, /html body \.attendance-shell \.ahv3__items\s*\{[^}]*flex:\s*1\s+1\s+auto\s*!important;[^}]*overflow-y:\s*auto\s*!important;/s, 'History cards own the remaining list height and scroll normally');
+assert.match(frameCss, /html body \.attendance-shell \.ahv3__mobile-sheet-backdrop\s*\{[^}]*position:\s*absolute\s*!important;[^}]*inset:\s*0\s*!important;[^}]*z-index:\s*30\s*!important;/s, 'Selected History session must dim the list with an in-modal backdrop');
+assert.match(frameCss, /html body \.attendance-shell \.ahv3__shell\.is-mobile-detail-open \.ahv3__detail\s*\{[^}]*position:\s*absolute\s*!important;[^}]*bottom:\s*0\s*!important;[^}]*max-height:\s*78%\s*!important;[^}]*overflow-y:\s*auto\s*!important;[^}]*z-index:\s*40\s*!important;/s, 'Selected History detail must open as a bounded bottom sheet');
+assert.match(frameCss, /html body \.attendance-shell \.ahv3__mobile-sheet-chrome\s*\{[^}]*position:\s*sticky\s*!important;[^}]*top:\s*0\s*!important;/s, 'Bottom sheet close/drag chrome remains reachable while detail scrolls');
+assert.doesNotMatch(frameCss, /grid-template-rows:\s*minmax\(92px,\s*24%\)\s+minmax\(0,\s*1fr\)/, 'The old selected-session 24/76 split must be removed');
+assert.doesNotMatch(frameCss, /grid-template-rows:\s*minmax\(88px,\s*22%\)\s+minmax\(0,\s*1fr\)/, 'The old narrow-phone 22/78 split must be removed');
+assert.doesNotMatch(frameCss, /grid-template-rows:\s*minmax\(240px,\s*42%\)\s+minmax\(0,\s*1fr\)/, 'The broken 42/58 History split must remain removed');
+assert.doesNotMatch(frameCss, /grid-template-rows:\s*minmax\(230px,\s*40%\)\s+minmax\(0,\s*1fr\)/, 'The broken phone 40/60 History split must remain removed');
 
-console.log('Attendance modal frame + mobile daily/manage/history list-first contracts OK');
+console.log('Attendance modal frame + mobile daily/manage/history bottom-sheet contracts OK');
