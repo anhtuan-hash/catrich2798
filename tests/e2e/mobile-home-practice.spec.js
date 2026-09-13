@@ -93,6 +93,7 @@ test('phone Home uses a native mobile visual scale instead of compressed desktop
       return {
         tag: element.tagName,
         className: element.className,
+        inlineStyle: element.getAttribute('style') || '',
         minHeight: style.minHeight,
         height: style.height,
         blockSize: style.blockSize,
@@ -109,28 +110,30 @@ test('phone Home uses a native mobile visual scale instead of compressed desktop
       const matches = [];
       const visit = (rules, href, context = '') => {
         for (const rule of Array.from(rules || [])) {
-          if (rule.cssRules) {
+          if (rule.selectorText && rule.style) {
+            let matched = false;
+            try { matched = element.matches(rule.selectorText); } catch { matched = false; }
+            if (matched) {
+              const minHeight = rule.style.getPropertyValue('min-height');
+              const minBlockSize = rule.style.getPropertyValue('min-block-size');
+              if (minHeight || minBlockSize) {
+                matches.push({
+                  href,
+                  context,
+                  selector: rule.selectorText,
+                  minHeight,
+                  minHeightPriority: rule.style.getPropertyPriority('min-height'),
+                  minBlockSize,
+                  minBlockSizePriority: rule.style.getPropertyPriority('min-block-size'),
+                });
+              }
+            }
+          }
+          if (rule.cssRules?.length) {
             let active = true;
             if (rule.media?.mediaText) active = window.matchMedia(rule.media.mediaText).matches;
             if (active) visit(rule.cssRules, href, `${context}${rule.media?.mediaText ? ` @media ${rule.media.mediaText}` : ''}`);
-            continue;
           }
-          if (!rule.selectorText || !rule.style) continue;
-          let matched = false;
-          try { matched = element.matches(rule.selectorText); } catch { matched = false; }
-          if (!matched) continue;
-          const minHeight = rule.style.getPropertyValue('min-height');
-          const minBlockSize = rule.style.getPropertyValue('min-block-size');
-          if (!minHeight && !minBlockSize) continue;
-          matches.push({
-            href,
-            context,
-            selector: rule.selectorText,
-            minHeight,
-            minHeightPriority: rule.style.getPropertyPriority('min-height'),
-            minBlockSize,
-            minBlockSizePriority: rule.style.getPropertyPriority('min-block-size'),
-          });
         }
       };
       for (const sheet of Array.from(document.styleSheets)) {
