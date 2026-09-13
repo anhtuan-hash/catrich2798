@@ -68,21 +68,14 @@ export default function GlobalSettingsAdminBridge(props) {
       });
     };
 
-    if (props.route === 'admin' && admin) {
-      hideAdminButton();
-      timer = window.setTimeout(() => {
-        if (!cancelled) window.location.hash = '#/settings?section=admin';
-      }, 0);
-      return () => {
-        cancelled = true;
-        window.clearTimeout(timer);
-        restoreStandaloneAdminNavigation(hiddenButtons);
-      };
-    }
-
     const mount = () => {
       if (cancelled) return true;
-      if (admin) hideAdminButton();
+
+      // Settings can continue to host an embedded Admin workspace, but the
+      // canonical #/admin route remains a real route in main.jsx and navigation.
+      // Hide the duplicate top-level button only while the merged Settings view
+      // itself is active; never hijack or redirect a standalone Admin visit.
+      if (admin && props.route === 'settings') hideAdminButton();
 
       if (props.route !== 'settings' || !admin) {
         setPortalTargets({ adminHost: null, adminNav: null });
