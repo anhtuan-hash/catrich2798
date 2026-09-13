@@ -10,6 +10,7 @@ on:
       - fix/attendance-mobile-inner-layout
       - fix/attendance-history-mobile-list-first
       - fix/attendance-history-mobile-bottom-sheet
+      - fix/attendance-history-mobile-polish
   pull_request:
     paths:
       - 'public/attendance-windows8-launch.css'
@@ -23,6 +24,7 @@ on:
       - 'src/components/GlobalAttendanceNavigationTab.jsx'
       - 'src/components/attendance/AttendanceClassManagementWorkspace.css'
       - 'scripts/test-attendance-modal-compact-scroll.mjs'
+      - 'scripts/test-attendance-history-mobile-polish.mjs'
       - 'scripts/test-attendance-typography-parity.mjs'
 
 permissions:
@@ -40,5 +42,7 @@ jobs:
         run: node --check public/attendance-history-v5.js
       - name: History-sized modal scroll contract
         run: node scripts/test-attendance-modal-compact-scroll.mjs
+      - name: History mobile polish contract
+        run: node scripts/test-attendance-history-mobile-polish.mjs
       - name: History typography parity contract
         run: node scripts/test-attendance-typography-parity.mjs
