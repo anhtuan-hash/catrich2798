@@ -79,12 +79,12 @@ const universalAiSource = fs.readFileSync(new URL('../src/components/UniversalAI
 const specializedSource = fs.readFileSync(new URL('../src/pages/SpecializedAppPage.jsx', import.meta.url), 'utf8');
 const cssSource = [
   '../src/index.css',
-  '../src/styles/legacy/01-foundation.css',
-  '../src/styles/legacy/02-workspaces.css',
-  '../src/styles/legacy/03-operations.css',
-  '../src/styles/legacy/04-modern-shell.css',
-  '../src/styles/legacy/05-connected-platform.css',
-  '../src/styles/legacy/06-current-features.css',
+  '../src/styles/Foundation.css',
+  '../src/styles/BrianWorkspaces.css',
+  '../src/styles/BrianOperations.css',
+  '../src/styles/BrianShell.css',
+  '../src/styles/BrianConnectedPlatform.css',
+  '../src/styles/BrianCurrentFeatures.css',
   '../src/styles/v1099.css',
 ].map((file) => fs.readFileSync(new URL(file, import.meta.url), 'utf8')).join('\n');
 const wordGraphSource = fs.readFileSync(new URL('../src/pages/WordGraphStudio.jsx', import.meta.url), 'utf8');
@@ -196,7 +196,7 @@ const homeroomConductTabSource = fs.readFileSync(new URL('../src/components/Home
 const homeroomConductSource = fs.readFileSync(new URL('../src/utils/homeroomConduct.js', import.meta.url), 'utf8');
 const homeroomConductDataSource = fs.readFileSync(new URL('../src/data/homeroomConduct.js', import.meta.url), 'utf8');
 const conductPdfPath = new URL('../public/documents/Quyet-dinh-95-QD-PEK-Noi-quy-va-cham-diem-thi-dua-2025.pdf', import.meta.url);
-add('V10.70 weekly conduct tab and 100-point workflow', homeroomDataSource.includes("key: 'conduct'") && homeroomSource.includes('HomeroomConductTab') && homeroomConductTabSource.includes('Sổ rèn luyện điện tử theo đúng tuần của trường') && homeroomConductTabSource.includes('Ghi nhận & trừ điểm'), 'dedicated homeroom conduct workspace present');
+add('V10.70 weekly conduct tab and 100-point workflow', homeroomConductDataSource.includes("key: 'conduct'") && homeroomSource.includes('HomeroomConductTab') && homeroomConductTabSource.includes('Sổ rèn luyện điện tử theo đúng tuần của trường') && homeroomConductTabSource.includes('Ghi nhận & trừ điểm'), 'dedicated homeroom conduct workspace present');
 add('V10.70 Decision 95/QĐ-PEK catalog and attached PDF', OFFICIAL_CONDUCT_RULES.length >= 30 && CONDUCT_DOCUMENT.path.includes('Quyet-dinh-95-QD-PEK') && homeroomConductDataSource.includes('Bảng lượng hóa điểm') && fs.existsSync(conductPdfPath), `${OFFICIAL_CONDUCT_RULES.length} official rules and PDF included`);
 add('V10.70 custom future violation rule input', homeroomConductTabSource.includes('Vi phạm khác / nội quy mới') && homeroomConductTabSource.includes('Điểm trừ tối thiểu là 5') && homeroomConductSource.includes('addCustomConductRule') && homeroomStoreSource.includes('conductCustomRules'), 'new school rules can be saved and reused');
 const conductWorkspace = makeDefaultHomeroomWorkspace({ email: 'teacher@example.com' });
@@ -462,4 +462,3 @@ if (failed.length) {
   process.exit(1);
 }
 console.log(`\nAll ${checks.length} smoke checks passed.`);
-
