@@ -22,6 +22,7 @@ export function buildMobileNavigationModel({
   canAccessRoute = () => false,
   canAccessAttendance = false,
   isAdminNavigation = false,
+  canShowOriginalApps,
 } = {}) {
   const t = COPY[language] || COPY.vi;
   const routeItem = (id, route, label = t[id] || id) => item(id, label, { route, action: 'route', active: currentRoute === route });
@@ -44,17 +45,16 @@ export function buildMobileNavigationModel({
         routeItem('login', 'login'),
       ];
 
-  // The mobile drawer must mirror the original GlobalCompactNavigation primary
-  // row. Dynamic tabs such as Dashboard, Homeroom, Gradebook, Reports, TTCM and
-  // Attendance are supplied at runtime by the existing original navigation
-  // bridge host, so they are intentionally not duplicated here.
+  // The drawer mirrors the original GlobalCompactNavigation primary row.
+  // Dynamic tabs (Dashboard, Homeroom, Gradebook, Reports, TTCM, Attendance)
+  // come from the existing original bridge host at runtime rather than a
+  // separately maintained mobile catalog.
   const drawerBaseItems = [routeItem('home', 'home')];
-  if (authenticated && (isAdminNavigation || canAccessRoute('apps'))) {
-    drawerBaseItems.push(routeItem('apps', 'apps'));
-  }
-  if (authenticated && isAdminNavigation) {
-    drawerBaseItems.push(routeItem('admin', 'admin'));
-  }
+  const showApps = typeof canShowOriginalApps === 'boolean'
+    ? canShowOriginalApps
+    : Boolean(authenticated && (isAdminNavigation || canAccessRoute('apps')));
+  if (showApps) drawerBaseItems.push(routeItem('apps', 'apps'));
+  if (authenticated && isAdminNavigation) drawerBaseItems.push(routeItem('admin', 'admin'));
 
   return { bottomItems, drawerBaseItems };
 }
