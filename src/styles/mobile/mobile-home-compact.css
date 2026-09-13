@@ -127,11 +127,11 @@
 
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__actions {
     width: min(100%, 338px);
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: stretch;
-    gap: 8px;
-    margin-top: 10px;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    margin-top: 10px !important;
   }
 
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__button {
@@ -387,7 +387,8 @@
   }
 
   .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 
   .bes-mobile-home__section {
