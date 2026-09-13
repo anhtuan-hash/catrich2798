@@ -1,0 +1,64 @@
+name: Mobile Home Practice
+
+on:
+  push:
+    branches:
+      - feat/mobile-home-practice
+  pull_request:
+    paths:
+      - 'src/pages/HomeApproved.jsx'
+      - 'src/components/mobile/MobileHomeView.jsx'
+      - 'src/styles/mobile/mobile-home.css'
+      - 'src/components/mobile/**'
+      - 'src/device/**'
+      - 'src/hooks/usePresentationMode.js'
+      - 'tests/unit/presentation-mode.test.mjs'
+      - 'tests/unit/mobile-navigation.test.mjs'
+      - 'tests/e2e/mobile-shell.spec.js'
+      - 'tests/e2e/mobile-home-practice.spec.js'
+      - '.github/workflows/mobile-home-practice.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-home-practice-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  mobile-home-practice:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Foundation unit contracts
+        run: node --test tests/unit/presentation-mode.test.mjs tests/unit/mobile-navigation.test.mjs
+
+      - name: Build application
+        run: npm run build
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium webkit
+
+      - name: Desktop regression
+        run: npx playwright test tests/e2e/mobile-shell.spec.js tests/e2e/mobile-home-practice.spec.js --project=chromium-desktop
+
+      - name: Phone regression
+        run: npx playwright test tests/e2e/mobile-shell.spec.js tests/e2e/mobile-home-practice.spec.js --project=mobile-chromium
+
+      - name: Portrait iPad regression
+        run: npx playwright test tests/e2e/mobile-shell.spec.js tests/e2e/mobile-home-practice.spec.js --project=ipad-portrait
+
+      - name: Landscape iPad regression
+        run: npx playwright test tests/e2e/mobile-shell.spec.js tests/e2e/mobile-home-practice.spec.js --project=ipad-landscape

@@ -1,0 +1,72 @@
+import { test, expect } from '@playwright/test';
+
+async function waitForHome(page) {
+  await page.goto('/#/home');
+  await expect(page.locator('.app-shell')).toBeVisible();
+}
+
+test('phone uses mobile Home body instead of desktop editorial body', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium');
+  await waitForHome(page);
+  await expect(page.locator('[data-bes-mobile-home="true"]')).toBeVisible();
+  await expect(page.locator('.bha-editorial-dateline')).toHaveCount(0);
+  await expect(page.locator('[data-bes-mobile-home="true"] [data-mobile-home-hero]')).toBeVisible();
+});
+
+test('desktop preserves existing Home body', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium-desktop');
+  await waitForHome(page);
+  await expect(page.locator('.bha-editorial-dateline')).toBeVisible();
+  await expect(page.locator('[data-bes-mobile-home="true"]')).toHaveCount(0);
+});
+
+test('portrait iPad uses mobile Home body', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'ipad-portrait');
+  await waitForHome(page);
+  await expect(page.locator('[data-bes-mobile-home="true"]')).toBeVisible();
+  await expect(page.locator('.bha-editorial-dateline')).toHaveCount(0);
+});
+
+test('landscape iPad preserves desktop Home body', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'ipad-landscape');
+  await waitForHome(page);
+  await expect(page.locator('.bha-editorial-dateline')).toBeVisible();
+  await expect(page.locator('[data-bes-mobile-home="true"]')).toHaveCount(0);
+});
+
+test('mobile Weekly Practice switches grades with accessible chips', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium');
+  await waitForHome(page);
+  const grade10 = page.locator('[data-mobile-grade="10"]');
+  const grade11 = page.locator('[data-mobile-grade="11"]');
+  await expect(grade10).toHaveAttribute('aria-pressed', 'true');
+  await grade11.click();
+  await expect(grade11).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('[data-mobile-practice-grade="11"]')).toBeVisible();
+});
+
+test('mobile grade chips meet touch target minimum', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium');
+  await waitForHome(page);
+  const box = await page.locator('[data-mobile-grade="10"]').boundingBox();
+  expect(box?.height || 0).toBeGreaterThanOrEqual(44);
+});
+
+test('mobile Home stays inside viewport and tools are touch friendly', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium');
+  await waitForHome(page);
+  await expect(page.locator('[data-bes-mobile-home="true"]')).toBeVisible();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+
+  const cards = page.locator('[data-mobile-tool]');
+  expect(await cards.count()).toBeGreaterThan(0);
+  const first = await cards.first().boundingBox();
+  expect(first?.height || 0).toBeGreaterThanOrEqual(44);
+
+  const columnCount = await page.locator('.bes-mobile-home__tools').evaluate((element) => {
+    const columns = getComputedStyle(element).gridTemplateColumns.trim();
+    return columns ? columns.split(/\s+/).length : 0;
+  });
+  expect(columnCount).toBe(2);
+});
