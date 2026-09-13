@@ -88,12 +88,16 @@ test('mobile Home stays inside viewport', async ({ page }, testInfo) => {
   expect(overflow).toBeLessThanOrEqual(1);
 });
 
-test('mobile Home keeps the top bar and Hero compact without sacrificing touch targets', async ({ page }, testInfo) => {
+test('mobile Home keeps Hero compact while preserving mobile shell touch scale', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile-chromium');
   await waitForHome(page);
 
+  const topbarHeight = await page.locator('.bes-mobile-topbar').evaluate((element) => Number.parseFloat(getComputedStyle(element).minHeight));
+  expect(topbarHeight).toBeGreaterThanOrEqual(72);
+
   const mark = await page.locator('.bes-mobile-brand__mark--logo').boundingBox();
-  expect(mark?.width || Number.MAX_SAFE_INTEGER).toBeLessThanOrEqual(36);
+  expect(mark?.width || 0).toBeGreaterThanOrEqual(42);
+  expect(mark?.height || 0).toBeGreaterThanOrEqual(42);
 
   const dateline = await page.locator('[data-mobile-home-dateline]').boundingBox();
   expect(dateline?.height || Number.MAX_SAFE_INTEGER).toBeLessThanOrEqual(24);
