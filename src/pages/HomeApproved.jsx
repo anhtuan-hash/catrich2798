@@ -11,13 +11,12 @@ import { isAppHiddenForUser } from '../utils/appVisibility.js';
 import { visibilityIdForRoute } from '../data/appVisibilityRegistry.js';
 import { isDepartmentLeaderRole } from '../utils/roles.js';
 import { listPublicWeeklyPractices } from '../utils/weeklyPractice.js';
-import usePresentationMode from '../hooks/usePresentationMode.js';
 import HomeHeroExperience2026 from '../components/HomeHeroExperience2026.jsx';
-import MobileHomeView from '../components/mobile/MobileHomeView.jsx';
 import './HomeApproved.css';
 import './HomePracticeIntegration.css';
 import './HomePracticeByGrade.css';
 import './HomePracticeFinalFix.css';
+import '../styles/HomeMobileDesktopParity.css';
 
 const ALL_APPS = [...APPS, ...GAME_APPS, ...SPECIAL_TOOLS];
 const isPublicTarget = (target) => ['#/home', '#/resources', '#/contact', '#/login', '#/register', '#/setup'].includes(target);
@@ -233,7 +232,6 @@ function roleCanManagePractice(role) {
 
 export default function HomeApproved({ currentUser, language = 'vi', appVisibility }) {
   const t = TEXT[language] || TEXT.vi;
-  const presentation = usePresentationMode();
   const visibilitySnapshot = appVisibility?.snapshot;
   const firstRoute = currentUser ? getFirstAllowedRoute(currentUser) : 'login';
   const [practiceItems, setPracticeItems] = useState([]);
@@ -275,28 +273,6 @@ export default function HomeApproved({ currentUser, language = 'vi', appVisibili
     11: practiceItems.filter((item) => inferGrade(item) === 11),
     12: practiceItems.filter((item) => inferGrade(item) === 12),
   }), [practiceItems]);
-
-  if (presentation.presentationMode === 'mobile') {
-    return (
-      <MobileHomeView
-        t={t}
-        language={language}
-        tools={tools}
-        practiceItems={practiceItems}
-        practicesByGrade={practicesByGrade}
-        practiceLoading={practiceLoading}
-        practiceError={practiceError}
-        canManagePractice={canManagePractice}
-        onStart={(event) => launch(currentUser ? `#/${firstRoute}` : '#/login', 'GO', '#1a73e8', currentUser, event?.currentTarget)}
-        onOpenApps={(event) => launch('#/apps', 'AP', '#1a73e8', currentUser, event?.currentTarget)}
-        onOpenTool={(item, event) => launch(item.target, item.id.toUpperCase().slice(0, 2), item.accent, currentUser, event?.currentTarget)}
-        onOpenPractice={(item) => openLegacyPractice(item, language)}
-        onRetryPractice={() => refreshPractice()}
-        onOpenStatistics={() => window.dispatchEvent(new CustomEvent('bes-open-weekly-statistics'))}
-        onOpenManager={() => openLegacyManager(language)}
-      />
-    );
-  }
 
   return (
     <div className="bha-home bha-home--editorial-v3" aria-label="English Hub homepage">
