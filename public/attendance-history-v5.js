@@ -10,10 +10,23 @@
   const ORIGINAL_DISPLAY_ATTRIBUTE = 'data-ah-v5-original-display';
   const ORIGINAL_DISPLAY_PRIORITY_ATTRIBUTE = 'data-ah-v5-original-display-priority';
   const DETAIL_KIND_CLASSES = ['ah-kind-remedial', 'ah-kind-gifted', 'ah-kind-supplemental'];
+  const MOBILE_MEDIA_QUERY = '(max-width: 900px)';
+  const MOBILE_OPEN_CLASS = 'is-mobile-detail-open';
+  const MOBILE_DISMISSED_CLASS = 'is-mobile-detail-dismissed';
+  const MOBILE_FILTERS_CLASS = 'is-mobile-filters-open';
+  const MOBILE_BACKDROP_CLASS = 'ahv3__mobile-sheet-backdrop';
+  const MOBILE_CLOSE_CLASS = 'ahv3__mobile-sheet-close';
+  const MOBILE_FILTER_TOGGLE_CLASS = 'ahv3__mobile-filter-toggle';
+  const MOBILE_SUMMARY_CLASS = 'ahv3__mobile-summary';
+  const MOBILE_ACTIONS_CLASS = 'ahv3__mobile-sheet-actions';
   let frame = 0;
 
   function normalizedText(node) {
     return String(node?.textContent || '').replace(/\s+/g, ' ').trim();
+  }
+
+  function isMobileViewport() {
+    return Boolean(window.matchMedia?.(MOBILE_MEDIA_QUERY).matches);
   }
 
   function isLegacyActivityFilter(node) {
@@ -115,6 +128,157 @@
     else if (typeChip?.classList.contains('is-supplemental')) hero.classList.add('ah-kind-supplemental');
   }
 
+  function setNodeText(node, value) {
+    const next = String(value || '').trim();
+    if (node && node.textContent !== next) node.textContent = next;
+  }
+
+  function dismissMobileDetail(root) {
+    if (!root) return;
+    root.classList.remove(MOBILE_OPEN_CLASS);
+    root.classList.add(MOBILE_DISMISSED_CLASS);
+  }
+
+  function removeMobileDetailControls(root) {
+    if (!root) return;
+    root.classList.remove(MOBILE_OPEN_CLASS, MOBILE_DISMISSED_CLASS);
+    delete root.dataset.ahMobileSelectedKey;
+    root.querySelector(`.${MOBILE_BACKDROP_CLASS}`)?.remove();
+    root.querySelector(`.${MOBILE_CLOSE_CLASS}`)?.remove();
+    root.querySelector(`.${MOBILE_SUMMARY_CLASS}`)?.remove();
+    root.querySelector(`.${MOBILE_ACTIONS_CLASS}`)?.remove();
+  }
+
+  function ensureMobileFilterToggle(root) {
+    const head = root?.querySelector('.ahv3__list-head');
+    const search = head?.querySelector('.ahv3__search');
+    if (!head || !search || !isMobileViewport()) {
+      root?.querySelector(`.${MOBILE_FILTER_TOGGLE_CLASS}`)?.remove();
+      root?.classList.remove(MOBILE_FILTERS_CLASS);
+      return;
+    }
+
+    let button = head.querySelector(`.${MOBILE_FILTER_TOGGLE_CLASS}`);
+    if (!button) {
+      button = document.createElement('button');
+      button.type = 'button';
+      button.className = MOBILE_FILTER_TOGGLE_CLASS;
+      button.setAttribute('aria-label', 'Bộ lọc nâng cao');
+      button.setAttribute('aria-expanded', 'false');
+      button.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6"/></svg>';
+      button.addEventListener('click', () => {
+        const expanded = root.classList.toggle(MOBILE_FILTERS_CLASS);
+        button.classList.toggle('is-active', expanded);
+        button.setAttribute('aria-expanded', String(expanded));
+      });
+      search.insertAdjacentElement('afterend', button);
+    }
+
+    const expanded = root.classList.contains(MOBILE_FILTERS_CLASS);
+    button.classList.toggle('is-active', expanded);
+    button.setAttribute('aria-expanded', String(expanded));
+  }
+
+  function ensureMobileSummary(root, selectedCard, detail) {
+    let summary = detail.querySelector(`.${MOBILE_SUMMARY_CLASS}`);
+    if (!summary) {
+      summary = document.createElement('div');
+      summary.className = MOBILE_SUMMARY_CLASS;
+      summary.innerHTML = '<article class="is-present"><b></b><span>Học sinh tham gia</span></article><article class="is-absent"><b></b><span>Học sinh vắng</span></article><article class="is-rate"><b></b><span>Tỷ lệ chuyên cần</span></article>';
+      const hero = detail.querySelector('.ahv3__hero');
+      if (hero) hero.insertAdjacentElement('afterend', summary);
+      else detail.prepend(summary);
+    }
+
+    const count = selectedCard?.querySelector('.ahv3__count');
+    const values = summary.querySelectorAll('b');
+    setNodeText(values[0], count?.querySelector('b')?.textContent || '—');
+    setNodeText(values[1], count?.querySelector('em')?.textContent || '—');
+    setNodeText(values[2], count?.querySelector('i')?.textContent || '—');
+  }
+
+  function ensureMobileActionProxy(detail) {
+    let actions = detail.querySelector(`.${MOBILE_ACTIONS_CLASS}`);
+    if (!actions) {
+      actions = document.createElement('div');
+      actions.className = MOBILE_ACTIONS_CLASS;
+
+      const report = document.createElement('button');
+      report.type = 'button';
+      report.className = 'is-primary';
+      report.dataset.mobileAction = 'report';
+      report.textContent = 'Xem báo cáo tháng';
+      report.addEventListener('click', () => detail.querySelector('.ahv3__report-button')?.click());
+
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'is-danger';
+      remove.dataset.mobileAction = 'delete';
+      remove.textContent = 'Xóa buổi điểm danh';
+      remove.addEventListener('click', () => detail.querySelector('.ahv3__delete-button')?.click());
+
+      actions.append(report, remove);
+      detail.append(actions);
+    }
+
+    const originalReport = detail.querySelector('.ahv3__report-button');
+    const originalDelete = detail.querySelector('.ahv3__delete-button');
+    const reportProxy = actions.querySelector('[data-mobile-action="report"]');
+    const deleteProxy = actions.querySelector('[data-mobile-action="delete"]');
+
+    if (reportProxy) {
+      reportProxy.hidden = !originalReport;
+      reportProxy.disabled = Boolean(originalReport?.disabled);
+    }
+    if (deleteProxy) {
+      deleteProxy.hidden = !originalDelete;
+      deleteProxy.disabled = Boolean(originalDelete?.disabled);
+    }
+  }
+
+  function ensureMobileDetailControls(root) {
+    if (!root) return;
+    const selectedCard = root.querySelector('.ahv3__items > button.is-selected');
+    const detail = root.querySelector('.ahv3__detail');
+
+    if (!isMobileViewport() || !selectedCard || !detail) {
+      removeMobileDetailControls(root);
+      return;
+    }
+
+    const selectedKey = normalizedText(selectedCard).slice(0, 240);
+    if (root.dataset.ahMobileSelectedKey && root.dataset.ahMobileSelectedKey !== selectedKey) {
+      root.classList.remove(MOBILE_DISMISSED_CLASS);
+    }
+    root.dataset.ahMobileSelectedKey = selectedKey;
+
+    if (!root.classList.contains(MOBILE_DISMISSED_CLASS)) root.classList.add(MOBILE_OPEN_CLASS);
+
+    let backdrop = root.querySelector(`.${MOBILE_BACKDROP_CLASS}`);
+    if (!backdrop) {
+      backdrop = document.createElement('button');
+      backdrop.type = 'button';
+      backdrop.className = MOBILE_BACKDROP_CLASS;
+      backdrop.setAttribute('aria-label', 'Đóng chi tiết buổi điểm danh');
+      backdrop.addEventListener('click', () => dismissMobileDetail(root));
+      detail.insertAdjacentElement('beforebegin', backdrop);
+    }
+
+    let close = root.querySelector(`.${MOBILE_CLOSE_CLASS}`);
+    if (!close) {
+      close = document.createElement('button');
+      close.type = 'button';
+      close.className = MOBILE_CLOSE_CLASS;
+      close.setAttribute('aria-label', 'Đóng chi tiết');
+      close.textContent = '×';
+      close.addEventListener('click', () => dismissMobileDetail(root));
+      detail.insertAdjacentElement('afterend', close);
+    }
+
+    ensureMobileSummary(root, selectedCard, detail);
+    ensureMobileActionProxy(detail);
+  }
+
   function enhance() {
     frame = 0;
     const root = document.querySelector(ROOT_SELECTOR);
@@ -132,6 +296,8 @@
     hideDuplicateActivityFilters(activeShell);
     tagNativeTypeFilter(root);
     classifySelectedDetail(root);
+    ensureMobileFilterToggle(root);
+    ensureMobileDetailControls(root);
 
     const approvedBars = Array.from(activeShell.querySelectorAll(APPROVED_FILTER_SELECTOR));
     approvedBars.slice(1).forEach(hideAsDuplicate);
@@ -144,10 +310,28 @@
 
   const observer = new MutationObserver(scheduleEnhance);
 
+  function onDocumentClick(event) {
+    const card = event.target?.closest?.(`${ROOT_SELECTOR} .ahv3__items > button`);
+    if (!card || card.classList.contains('is-bulk-mode')) return;
+    const root = card.closest(ROOT_SELECTOR);
+    root?.classList.remove(MOBILE_DISMISSED_CLASS);
+    window.setTimeout(scheduleEnhance, 0);
+  }
+
+  function onDocumentKeydown(event) {
+    if (event.key !== 'Escape') return;
+    const root = document.querySelector(`${ROOT_SELECTOR}.${MOBILE_OPEN_CLASS}`);
+    if (root) dismissMobileDetail(root);
+  }
+
   function start() {
     enhance();
     observer.observe(document.body, { childList: true, subtree: true });
     document.addEventListener('change', scheduleEnhance, true);
+    document.addEventListener('click', onDocumentClick, true);
+    document.addEventListener('keydown', onDocumentKeydown, true);
+    const media = window.matchMedia?.(MOBILE_MEDIA_QUERY);
+    media?.addEventListener?.('change', scheduleEnhance);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
