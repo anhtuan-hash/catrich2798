@@ -12,7 +12,7 @@ const COPY = {
 };
 
 const MORE_GROUPS = [
-  { id: 'teaching', vi: 'Dạy & học', en: 'Teaching & learning', routes: ['apps', 'games', 'tools', 'resources', 'resource-library', 'knowledge-hub', 'practice'] },
+  { id: 'teaching', vi: 'Dạy & học', en: 'Teaching & learning', routes: ['apps', 'games', 'tools', 'resources', 'resource-library', 'knowledge-hub'] },
   { id: 'classes', vi: 'Lớp học', en: 'Classes', routes: ['homeroom'] },
   { id: 'work', vi: 'Công việc & báo cáo', en: 'Work & reports', routes: ['dashboard', 'work-hub', 'assessment-core'] },
   { id: 'operations', vi: 'Vận hành', en: 'Operations', routes: ['platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'qa'] },
@@ -21,7 +21,7 @@ const MORE_GROUPS = [
 
 const ROUTE_LABELS = {
   home: ['Trang chủ', 'Home'], apps: ['Ứng dụng', 'Apps'], games: ['Trò chơi', 'Games'], tools: ['Công cụ', 'Tools'], resources: ['Tài nguyên', 'Resources'],
-  'resource-library': ['Kho học liệu', 'Resource Library'], 'knowledge-hub': ['Kho học liệu thông minh', 'Smart Knowledge'], practice: ['Bài tập', 'Practice'],
+  'resource-library': ['Kho học liệu', 'Resource Library'], 'knowledge-hub': ['Kho học liệu thông minh', 'Smart Knowledge'],
   homeroom: ['Giáo viên chủ nhiệm', 'Homeroom'], dashboard: ['Bảng điều hành', 'Dashboard'], 'work-hub': ['Trung tâm công việc', 'Work Hub'],
   'assessment-core': ['Ngân hàng câu hỏi', 'Assessment Core'], 'platform-readiness': ['Sẵn sàng nền tảng', 'Platform Readiness'],
   'automation-center': ['Tự động hóa', 'Automation Center'], 'cloud-operations': ['Vận hành nền', 'Cloud Operations'],
@@ -42,7 +42,9 @@ export function buildMobileNavigationModel({ authenticated, currentRoute = 'home
     ? [
         routeItem('home', 'home'),
         routeItem('apps', 'apps'),
-        canAccessAttendance ? item('attendance', t.attendance, { action: 'attendance', active: false }) : routeItem('practice', 'practice'),
+        canAccessAttendance
+          ? item('attendance', t.attendance, { action: 'attendance', active: false })
+          : item('practice', t.practice, { action: 'practice', active: false }),
         item('notifications', t.notifications, { action: 'notifications', active: false }),
         routeItem('account', 'settings'),
       ]
@@ -73,10 +75,32 @@ export function buildMobileNavigationModel({ authenticated, currentRoute = 'home
   return { bottomItems, moreGroups };
 }
 
+function openWeeklyPractice() {
+  const scrollToPractice = (attempt = 0) => {
+    const target = document.getElementById('bes-weekly-practice-root');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    if (attempt < 20) window.setTimeout(() => scrollToPractice(attempt + 1), 80);
+  };
+
+  if (window.location.hash !== '#/home') {
+    launchRoute({ target: '#/home', label: 'WP' });
+    window.setTimeout(() => scrollToPractice(), 140);
+    return;
+  }
+  scrollToPractice();
+}
+
 export function runMobileNavigationItem(itemValue) {
   const selected = itemValue || {};
   if (selected.action === 'search') {
     window.dispatchEvent(new CustomEvent('bes-command-palette-open'));
+    return;
+  }
+  if (selected.action === 'practice') {
+    openWeeklyPractice();
     return;
   }
   if (selected.action === 'attendance') {
