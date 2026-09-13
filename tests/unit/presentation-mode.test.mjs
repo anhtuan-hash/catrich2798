@@ -35,6 +35,24 @@ test('iPhone is mobile in portrait and landscape', () => {
   }
 });
 
+test('classic iPad UA is tablet even though it contains Mobile', () => {
+  const common = {
+    ...base,
+    userAgent: 'Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1',
+    userAgentDataMobile: true,
+    platform: 'iPad',
+    maxTouchPoints: 5,
+    coarsePointer: true,
+    hoverNone: true,
+  };
+  const portrait = resolvePresentationMode({ ...common, screenWidth: 834, screenHeight: 1194, orientationType: 'portrait-primary' });
+  const landscape = resolvePresentationMode({ ...common, screenWidth: 1194, screenHeight: 834, orientationType: 'landscape-primary' });
+  assert.equal(portrait.deviceClass, 'tablet');
+  assert.equal(portrait.presentationMode, 'mobile');
+  assert.equal(landscape.deviceClass, 'tablet');
+  assert.equal(landscape.presentationMode, 'desktop');
+});
+
 test('iPadOS desktop-class UA is tablet and follows orientation', () => {
   const common = {
     ...base,
