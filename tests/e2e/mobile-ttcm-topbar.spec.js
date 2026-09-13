@@ -47,7 +47,7 @@ test('authenticated avatar opens mobile account menu without leaving dashboard',
   await installAdminSession(page);
   await page.goto('/#/dashboard');
 
-  const avatar = page.getByRole('button', { name: 'Tài khoản', exact: true });
+  const avatar = page.locator('.bes-mobile-topbar .bes-mobile-avatar-button');
   await expect(avatar).toBeVisible();
   await avatar.click();
 
