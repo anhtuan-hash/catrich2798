@@ -25,13 +25,14 @@ import '../components/GlobalWeeklyPractice.css';
 
 // HomeApproved owns behaviour/data. Warm V5 + Sage V6 keep the established
 // editorial layout contract. Blue V9 is the final desktop Home skin. The compact
-// mobile layer must load last so its phone/tablet contract wins Home's responsive
-// Hero defaults without changing the desktop presentation.
+// mobile layers must load last so their phone/tablet contract wins Home's
+// responsive defaults without changing the desktop presentation.
 import HomeApproved from './HomeApproved.jsx';
 import '../styles/HomeEditorialWarmV5.css';
 import '../styles/HomeEditorialSageV6.css';
 import '../styles/WeeklyPracticeEditorial2026.css';
 import '../styles/HomeEditorialBlueV9.css';
 import '../styles/mobile/mobile-home-compact.css';
+import '../styles/mobile/mobile-home-footer-compact.css';
 
 export default HomeApproved;
