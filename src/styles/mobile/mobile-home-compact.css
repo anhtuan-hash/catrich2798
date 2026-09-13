@@ -1,0 +1,388 @@
+/* Compact mobile Home refinement.
+   This file is intentionally imported after mobile-home-polish.css so it can
+   tighten the dedicated mobile composition without changing desktop Home. */
+
+@media (max-width: 640px) {
+  .bes-mobile-home {
+    gap: 10px;
+    padding-top: 4px;
+    padding-bottom: 24px;
+  }
+
+  .bes-mobile-topbar.is-home {
+    min-height: 58px;
+  }
+
+  .bes-mobile-brand.is-home {
+    gap: 8px;
+  }
+
+  .bes-mobile-brand__mark--logo {
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+  }
+
+  .bes-mobile-brand.is-home .bes-mobile-brand__copy strong {
+    max-width: min(48vw, 220px);
+    font-size: 16px;
+    line-height: 1.05;
+  }
+
+  .bes-mobile-brand.is-home .bes-mobile-brand__copy small {
+    margin-top: 2px;
+    font-size: 7px;
+    line-height: 1;
+    letter-spacing: .11em;
+  }
+
+  .bes-mobile-home__dateline {
+    min-height: 22px;
+    gap: 6px;
+    padding: 0 2px;
+    font-size: 7px;
+    letter-spacing: .1em;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms {
+    height: 388px !important;
+    min-height: 388px !important;
+    max-height: 388px !important;
+    overflow: hidden !important;
+    border-radius: 18px !important;
+    box-shadow: 0 8px 22px rgba(46, 72, 107, .09) !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__media {
+    object-position: 72% center !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__overlay {
+    background:
+      linear-gradient(90deg,
+        rgba(255,255,255,.995) 0%,
+        rgba(255,255,255,.985) 48%,
+        rgba(255,255,255,.88) 64%,
+        rgba(255,255,255,.42) 80%,
+        rgba(255,255,255,.10) 100%),
+      color-mix(in srgb, var(--hero-overlay-color,#fff) calc(var(--hero-overlay-opacity,.1) * 100%), transparent) !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content,
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms[data-content-align="right"] .hero-cms__content,
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms[data-content-align="center"] .hero-cms__content {
+    width: 84% !important;
+    max-width: 330px !important;
+    min-width: 0 !important;
+    align-items: flex-start !important;
+    margin: 0 !important;
+    padding: 16px 14px !important;
+    text-align: left !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__badge {
+    min-height: 32px !important;
+    gap: 7px;
+    padding: 4px 10px 4px 5px;
+    border-radius: 11px;
+    font-size: 8px;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__badge > i,
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__badge > img {
+    width: 24px;
+    height: 24px;
+    flex-basis: 24px;
+    border-radius: 7px;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content h1 {
+    margin-top: 12px !important;
+    font-size: clamp(34px, 9.5vw, 38px) !important;
+    line-height: .92 !important;
+    letter-spacing: -.052em !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content h2 {
+    margin-top: 5px !important;
+    font-size: clamp(27px, 7.5vw, 30px) !important;
+    line-height: .96 !important;
+    letter-spacing: -.047em !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content > p {
+    max-width: 285px;
+    margin-top: 10px !important;
+    padding-left: 9px;
+    border-left-width: 2px;
+    font-size: 11px !important;
+    line-height: 1.38 !important;
+    font-weight: 650 !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__actions {
+    width: min(292px, 100%);
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, .9fr);
+    align-items: stretch;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__button {
+    width: 100%;
+    min-width: 0;
+    min-height: 48px !important;
+    padding: 8px 10px !important;
+    border-radius: 12px !important;
+    font-size: 11px !important;
+    white-space: nowrap;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__button:not(.is-primary) {
+    min-height: 44px !important;
+    background: rgba(255,255,255,.82) !important;
+    backdrop-filter: blur(8px);
+  }
+
+  .bes-mobile-home__section {
+    padding: 14px;
+    border-radius: 17px;
+    box-shadow: 0 7px 20px rgba(34, 67, 108, .045);
+  }
+
+  .bes-mobile-home__practice {
+    gap: 11px;
+  }
+
+  .bes-mobile-home__practice-head {
+    grid-template-columns: minmax(0, 1fr) 74px;
+    gap: 10px;
+  }
+
+  .bes-mobile-home__practice-head .bes-mobile-home__eyebrow {
+    gap: 5px;
+    font-size: 8px;
+    letter-spacing: .1em;
+  }
+
+  .bes-mobile-home__practice-head h2 {
+    margin-top: 5px;
+    font-size: 22px;
+    line-height: 1.02;
+  }
+
+  .bes-mobile-home__practice-head p {
+    margin-top: 6px;
+    font-size: 10px;
+    line-height: 1.35;
+  }
+
+  .bes-mobile-home__practice-total {
+    padding-left: 9px;
+  }
+
+  .bes-mobile-home__practice-total small {
+    font-size: 6px;
+  }
+
+  .bes-mobile-home__practice-total strong {
+    margin-top: 1px;
+    font-size: 34px;
+  }
+
+  .bes-mobile-home__practice-total span {
+    margin-top: 2px;
+    font-size: 7px;
+  }
+
+  .bes-mobile-home__manager-actions button {
+    min-height: 44px;
+  }
+
+  .bes-mobile-home__grade-stack {
+    gap: 9px;
+  }
+
+  .bes-mobile-home__grade-card {
+    border-radius: 14px;
+  }
+
+  .bes-mobile-home__grade-masthead {
+    min-height: 26px;
+    padding: 5px 10px 4px;
+    border-top-width: 2px;
+    font-size: 7px;
+  }
+
+  .bes-mobile-home__grade-masthead strong {
+    font-size: 8px;
+  }
+
+  .bes-mobile-home__grade-main {
+    grid-template-columns: 40px minmax(0, 1fr) 45px 38px;
+    gap: 7px;
+    padding: 6px 8px 8px;
+  }
+
+  .bes-mobile-home__grade-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+  }
+
+  .bes-mobile-home__grade-icon svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .bes-mobile-home__grade-copy > small {
+    gap: 3px;
+    font-size: 7px;
+    letter-spacing: .08em;
+  }
+
+  .bes-mobile-home__grade-copy h3 {
+    margin-top: 2px;
+    font-size: 15px;
+  }
+
+  .bes-mobile-home__grade-copy p {
+    margin-top: 2px;
+    font-size: 9px;
+  }
+
+  .bes-mobile-home__grade-copy > button {
+    min-height: 44px;
+    margin: 0 0 -10px -8px;
+    padding: 8px;
+    font-size: 10px;
+  }
+
+  .bes-mobile-home__grade-number {
+    font-size: 38px;
+    line-height: .84;
+  }
+
+  .bes-mobile-home__grade-arrow {
+    width: 38px;
+    height: 38px;
+  }
+
+  .bes-mobile-home__grade-arrow svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .bes-mobile-home__practice-panel--inline {
+    gap: 8px;
+    padding: 8px;
+    border-radius: 13px;
+  }
+
+  .bes-mobile-home__practice-card {
+    padding: 8px;
+  }
+}
+
+@media (max-width: 359px) {
+  .bes-mobile-home__dateline {
+    min-height: 20px;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms {
+    height: 372px !important;
+    min-height: 372px !important;
+    max-height: 372px !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content,
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms[data-content-align="right"] .hero-cms__content,
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms[data-content-align="center"] .hero-cms__content {
+    width: 88% !important;
+    padding-inline: 12px !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content h1 {
+    font-size: 33px !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content h2 {
+    font-size: 26px !important;
+  }
+
+  .bes-mobile-home__practice-head {
+    grid-template-columns: minmax(0, 1fr) 66px;
+  }
+
+  .bes-mobile-home__grade-main {
+    grid-template-columns: 38px minmax(0, 1fr) 40px 36px;
+    gap: 6px;
+    padding-inline: 7px;
+  }
+
+  .bes-mobile-home__grade-icon {
+    width: 38px;
+    height: 38px;
+  }
+
+  .bes-mobile-home__grade-number {
+    font-size: 34px;
+  }
+
+  .bes-mobile-home__grade-arrow {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 900px) and (orientation: portrait) {
+  .bes-mobile-home {
+    gap: 14px;
+    padding-top: 10px;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms {
+    height: 470px !important;
+    min-height: 470px !important;
+    max-height: 470px !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content,
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms[data-content-align="right"] .hero-cms__content,
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms[data-content-align="center"] .hero-cms__content {
+    width: 58% !important;
+    max-width: 430px !important;
+    padding: 24px 22px !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content h1 {
+    font-size: 43px !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__content h2 {
+    font-size: 34px !important;
+  }
+
+  .metro-clean-system[data-route="home"] .bes-mobile-home__desktop-hero .hero-cms__actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bes-mobile-home__section {
+    padding: 18px;
+  }
+
+  .bes-mobile-home__grade-main {
+    grid-template-columns: 48px minmax(0, 1fr) 64px 42px;
+    padding: 9px 12px 11px;
+  }
+
+  .bes-mobile-home__grade-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .bes-mobile-home__grade-number {
+    font-size: 50px;
+  }
+}
