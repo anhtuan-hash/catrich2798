@@ -15,25 +15,41 @@ export default function MobileTopBar({
   currentUser,
   hasUnread = false,
 }) {
+  const homeBrand = title === 'Trang chủ' || title === 'Home';
+  const brandTitle = homeBrand ? 'Brian English' : title;
+  const brandSubtitle = homeBrand ? 'ENGLISH HUB' : 'Brian English';
+
   return (
-    <header className="bes-mobile-topbar" data-bes-mobile-topbar="true">
+    <header className={`bes-mobile-topbar${homeBrand ? ' is-home' : ''}`} data-bes-mobile-topbar="true">
       <button type="button" className="bes-mobile-icon-button" onClick={onMenu} aria-label="Mở menu">
         <Menu size={22} strokeWidth={2.2} />
       </button>
 
-      <button type="button" className="bes-mobile-brand" onClick={onMenu} aria-label="Mở điều hướng Brian English">
-        <span className="bes-mobile-brand__mark" aria-hidden="true">B</span>
+      <button
+        type="button"
+        className={`bes-mobile-brand${homeBrand ? ' is-home' : ''}`}
+        data-home-brand={homeBrand ? 'true' : undefined}
+        onClick={onMenu}
+        aria-label="Mở điều hướng Brian English"
+      >
+        {homeBrand ? (
+          <span className="bes-mobile-brand__mark bes-mobile-brand__mark--logo" aria-hidden="true">
+            <img src="/favicon.png" alt="" />
+          </span>
+        ) : <span className="bes-mobile-brand__mark" aria-hidden="true">B</span>}
         <span className="bes-mobile-brand__copy">
-          <strong>{title}</strong>
-          <small>Brian English</small>
+          <strong>{brandTitle}</strong>
+          <small>{brandSubtitle}</small>
         </span>
       </button>
 
       <div className="bes-mobile-topbar__actions">
-        <button type="button" className="bes-mobile-icon-button" onClick={onSearch} aria-label="Tìm kiếm">
-          <Search size={21} strokeWidth={2.2} />
-        </button>
-        {currentUser ? (
+        {!homeBrand ? (
+          <button type="button" className="bes-mobile-icon-button" onClick={onSearch} aria-label="Tìm kiếm">
+            <Search size={21} strokeWidth={2.2} />
+          </button>
+        ) : null}
+        {currentUser && !homeBrand ? (
           <button type="button" className="bes-mobile-icon-button bes-mobile-notification-button" onClick={onNotifications} aria-label="Thông báo">
             <Bell size={21} strokeWidth={2.2} />
             {hasUnread ? <span className="bes-mobile-unread-dot" aria-hidden="true" /> : null}
