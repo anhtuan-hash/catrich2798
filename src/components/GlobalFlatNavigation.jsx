@@ -55,16 +55,27 @@ export default function GlobalFlatNavigation(props) {
 
   useEffect(() => {
     const root = document.documentElement;
+    const shell = document.querySelector('.app-shell');
     root.dataset.presentationMode = presentation.presentationMode;
     root.dataset.deviceClass = presentation.deviceClass;
     root.dataset.deviceOrientation = presentation.orientation;
     root.classList.toggle('bes-mobile-shell-active', mobile);
+    if (shell) {
+      shell.dataset.presentation = presentation.presentationMode;
+      shell.dataset.deviceClass = presentation.deviceClass;
+      shell.dataset.orientation = presentation.orientation;
+    }
 
     return () => {
       root.classList.remove('bes-mobile-shell-active');
       delete root.dataset.presentationMode;
       delete root.dataset.deviceClass;
       delete root.dataset.deviceOrientation;
+      if (shell) {
+        delete shell.dataset.presentation;
+        delete shell.dataset.deviceClass;
+        delete shell.dataset.orientation;
+      }
     };
   }, [presentation.presentationMode, presentation.deviceClass, presentation.orientation, mobile]);
 
