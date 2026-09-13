@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { ArrowRight, BarChart3, CalendarDays, ClipboardClock, Sparkles } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ArrowRight, BarChart3, CalendarDays, ChevronDown, ChevronUp, ClipboardClock, Sparkles } from 'lucide-react';
 import '../../styles/mobile/mobile-home.css';
 
 function practiceTimestamp(item) {
@@ -43,10 +43,16 @@ export default function MobileHomeView({
 }) {
   const vi = language !== 'en';
   const [selectedGrade, setSelectedGrade] = useState(10);
+  const [practiceExpanded, setPracticeExpanded] = useState(false);
   const visiblePractices = useMemo(
     () => [...(practicesByGrade[selectedGrade] || [])].sort((a, b) => practiceTimestamp(b) - practiceTimestamp(a)),
     [practicesByGrade, selectedGrade],
   );
+  const displayedPractices = practiceExpanded ? visiblePractices : visiblePractices.slice(0, 4);
+
+  useEffect(() => {
+    setPracticeExpanded(false);
+  }, [selectedGrade]);
 
   return (
     <main className="bes-mobile-home" data-bes-mobile-home="true" aria-label={vi ? 'Trang chủ Brian English' : 'Brian English home'}>
@@ -141,24 +147,38 @@ export default function MobileHomeView({
               <button type="button" onClick={onRetryPractice}>{t.retry}</button>
             </div>
           ) : null}
-          {!practiceLoading && !practiceError && visiblePractices.length ? (
-            <div className="bes-mobile-home__practice-list">
-              {visiblePractices.map((item, index) => {
-                const date = formatPracticeDate(item, language);
-                return (
-                  <article key={item?.id || `${selectedGrade}-${index}`} className="bes-mobile-home__practice-card" data-mobile-practice-card>
-                    <div className="bes-mobile-home__practice-card-copy">
-                      <span className="bes-mobile-home__practice-index">{String(index + 1).padStart(2, '0')}</span>
-                      <div>
-                        <h4>{item?.title || `${t.english} ${selectedGrade}`}</h4>
-                        {date ? <small><CalendarDays size={14} />{date}</small> : null}
+          {!practiceLoading && !practiceError && displayedPractices.length ? (
+            <>
+              <div className="bes-mobile-home__practice-list">
+                {displayedPractices.map((item, index) => {
+                  const date = formatPracticeDate(item, language);
+                  return (
+                    <article key={item?.id || `${selectedGrade}-${index}`} className="bes-mobile-home__practice-card" data-mobile-practice-card>
+                      <div className="bes-mobile-home__practice-card-copy">
+                        <span className="bes-mobile-home__practice-index">{String(index + 1).padStart(2, '0')}</span>
+                        <div>
+                          <h4>{item?.title || `${t.english} ${selectedGrade}`}</h4>
+                          {date ? <small><CalendarDays size={14} />{date}</small> : null}
+                        </div>
                       </div>
-                    </div>
-                    <button type="button" onClick={() => onOpenPractice?.(item)}>{t.enter}<ArrowRight size={15} /></button>
-                  </article>
-                );
-              })}
-            </div>
+                      <button type="button" onClick={() => onOpenPractice?.(item)}>{t.enter}<ArrowRight size={15} /></button>
+                    </article>
+                  );
+                })}
+              </div>
+              {visiblePractices.length > 4 ? (
+                <button
+                  type="button"
+                  className="bes-mobile-home__practice-expand"
+                  aria-expanded={practiceExpanded}
+                  onClick={() => setPracticeExpanded((value) => !value)}
+                >
+                  {practiceExpanded
+                    ? <>{vi ? 'Thu gọn' : 'Show less'}<ChevronUp size={17} /></>
+                    : <>{vi ? `Xem tất cả bài (${visiblePractices.length})` : `View all lessons (${visiblePractices.length})`}<ChevronDown size={17} /></>}
+                </button>
+              ) : null}
+            </>
           ) : null}
           {!practiceLoading && !practiceError && !visiblePractices.length ? <div className="bes-mobile-home__state">{t.empty}</div> : null}
         </div>
