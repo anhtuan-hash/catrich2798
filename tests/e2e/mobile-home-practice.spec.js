@@ -95,7 +95,7 @@ test('mobile Home keeps Hero compact while preserving mobile shell touch scale',
   const topbarHeight = await page.locator('.bes-mobile-topbar').evaluate((element) => Number.parseFloat(getComputedStyle(element).minHeight));
   expect(topbarHeight).toBeGreaterThanOrEqual(72);
 
-  const mark = await page.locator('.bes-mobile-brand__mark--logo').boundingBox();
+  const mark = await page.locator('.bes-mobile-brand__mark').boundingBox();
   expect(mark?.width || 0).toBeGreaterThanOrEqual(42);
   expect(mark?.height || 0).toBeGreaterThanOrEqual(42);
 
