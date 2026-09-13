@@ -32,11 +32,7 @@ export default function MobileTopBar({
         onClick={onMenu}
         aria-label="Mở điều hướng Brian English"
       >
-        {homeBrand ? (
-          <span className="bes-mobile-brand__mark bes-mobile-brand__mark--logo" aria-hidden="true">
-            <img src="/favicon.png" alt="" />
-          </span>
-        ) : <span className="bes-mobile-brand__mark" aria-hidden="true">B</span>}
+        <span className="bes-mobile-brand__mark" aria-hidden="true">B</span>
         <span className="bes-mobile-brand__copy">
           <strong>{brandTitle}</strong>
           <small>{brandSubtitle}</small>
@@ -44,12 +40,10 @@ export default function MobileTopBar({
       </button>
 
       <div className="bes-mobile-topbar__actions">
-        {!homeBrand ? (
-          <button type="button" className="bes-mobile-icon-button" onClick={onSearch} aria-label="Tìm kiếm">
-            <Search size={21} strokeWidth={2.2} />
-          </button>
-        ) : null}
-        {currentUser && !homeBrand ? (
+        <button type="button" className="bes-mobile-icon-button" onClick={onSearch} aria-label="Tìm kiếm">
+          <Search size={21} strokeWidth={2.2} />
+        </button>
+        {currentUser ? (
           <button type="button" className="bes-mobile-icon-button bes-mobile-notification-button" onClick={onNotifications} aria-label="Thông báo">
             <Bell size={21} strokeWidth={2.2} />
             {hasUnread ? <span className="bes-mobile-unread-dot" aria-hidden="true" /> : null}
