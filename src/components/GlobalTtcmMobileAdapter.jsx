@@ -1,11 +1,10 @@
 import React, { useEffect } from 'react';
-import GlobalTtcmNavigationTab from './GlobalTtcmNavigationTab.jsx';
 import './GlobalTtcmMobile.css';
 
 const PHONE_QUERY = '(max-width: 760px)';
 const MOBILE_DETAIL_ATTRIBUTE = 'data-mobile-detail-open';
 
-export default function GlobalTtcmMobileAdapter(props) {
+export default function GlobalTtcmMobileAdapter() {
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
 
@@ -66,7 +65,7 @@ export default function GlobalTtcmMobileAdapter(props) {
     };
   }, []);
 
-  return <GlobalTtcmNavigationTab {...props} />;
+  return null;
 }
 
 export { PHONE_QUERY };
