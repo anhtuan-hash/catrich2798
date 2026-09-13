@@ -6,6 +6,7 @@ import { buildMobileTopbarAction, runMobileNavigationItem } from './mobileNaviga
 import '../../pages/AuthPageMobileRedesign.css';
 import '../../pages/AuthPageMobileHeroRemoval.css';
 import '../../styles/mobile/mobile-ttcm-topbar.css';
+import '../../styles/mobile/mobile-brand-logo.css';
 
 function userInitial(currentUser) {
   const source = currentUser?.name || currentUser?.full_name || currentUser?.email || 'B';
@@ -59,7 +60,9 @@ export default function MobileTopBar({
         onClick={onMenu}
         aria-label="Mở điều hướng Brian English"
       >
-        <span className="bes-mobile-brand__mark" aria-hidden="true">B</span>
+        <span className="bes-mobile-brand__mark" aria-hidden="true">
+          <img className="bes-mobile-brand__logo" src="/brian-english-brand-logo.png" alt="" />
+        </span>
         <span className="bes-mobile-brand__copy">
           <strong>{brandTitle}</strong>
           <small>{brandSubtitle}</small>
