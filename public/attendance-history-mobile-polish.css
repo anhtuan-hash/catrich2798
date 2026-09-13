@@ -1,4 +1,4 @@
-/* Attendance History mobile polish — fixes dead list space and desktop-width remnants.
+/* Attendance History mobile polish — list-first + compact detail sheet.
    Loaded after the bottom-sheet layer; desktop remains untouched. */
 
 @media (max-width: 900px) {
@@ -26,9 +26,33 @@
     -webkit-overflow-scrolling: touch;
   }
 
+  /* Compact detail sheet: hug content, scroll only when content exceeds the phone viewport. */
+  html body .attendance-shell.ah-history-v5 .ahv3__shell.is-mobile-detail-open .ahv3__detail {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: 88dvh !important;
+    padding-top: 32px !important;
+    padding-right: 10px !important;
+    padding-bottom: max(12px, env(safe-area-inset-bottom)) !important;
+    padding-left: 10px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    scroll-padding-bottom: max(12px, env(safe-area-inset-bottom)) !important;
+  }
+
   html body .attendance-shell.ah-history-v5 .ahv3__shell.is-mobile-detail-open .ahv3__detail > * {
     min-width: 0 !important;
     box-sizing: border-box !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-sheet-close {
+    position: absolute !important;
+    top: 10px !important;
+    right: 10px !important;
+    bottom: auto !important;
+    z-index: 8 !important;
+    width: 38px !important;
+    height: 38px !important;
   }
 
   html body .attendance-shell.ah-history-v5 .ahv3__hero,
@@ -45,24 +69,80 @@
 
   html body .attendance-shell.ah-history-v5 .ahv3__shell.is-mobile-detail-open .ahv3__hero {
     display: block !important;
-    margin: 0 0 10px !important;
-    padding: 15px !important;
+    margin: 0 0 8px !important;
+    padding: 12px !important;
+    border-radius: 16px !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__shell.is-mobile-detail-open .ahv3__hero h2 {
+    max-width: calc(100% - 4px) !important;
+    margin-top: 6px !important;
+    font-size: clamp(23px, 6.8vw, 30px) !important;
+    line-height: 1.04 !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__shell.is-mobile-detail-open .ahv3__hero-chips {
+    gap: 6px !important;
+    margin-top: 9px !important;
   }
 
   html body .attendance-shell.ah-history-v5 .ahv3__mobile-summary {
     width: 100% !important;
     max-width: none !important;
+    gap: 6px !important;
+    margin-top: 8px !important;
     box-sizing: border-box !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-summary > article {
+    min-height: 60px !important;
+    padding: 8px !important;
+    border-radius: 12px !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-summary b {
+    font-size: 18px !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__section-title.is-info {
+    margin: 9px 0 6px !important;
   }
 
   html body .attendance-shell.ah-history-v5 .ahv3__info-grid {
     display: grid !important;
-    gap: 8px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    margin: 0 !important;
   }
 
   html body .attendance-shell.ah-history-v5 .ahv3__info-grid > article {
-    min-height: 70px !important;
+    min-height: 58px !important;
     margin: 0 !important;
+    padding: 9px !important;
+    border-radius: 12px !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__info-grid > article > div {
+    min-width: 0 !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__info-grid > article strong,
+  html body .attendance-shell.ah-history-v5 .ahv3__info-grid > article b {
+    overflow-wrap: anywhere !important;
+  }
+
+  /* Student absence content should size to its real rows, not a desktop-height placeholder. */
+  html body .attendance-shell.ah-history-v5 .ahv3__absent-section {
+    min-height: 0 !important;
+    height: auto !important;
+    margin-top: 9px !important;
+    padding: 10px !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__absent-section > * {
+    min-height: 0 !important;
+    max-height: none !important;
+    box-sizing: border-box !important;
   }
 
   /* Keep low-priority audit/note material available without making the first view endless. */
@@ -83,15 +163,15 @@
     order: 12 !important;
     width: 100% !important;
     max-width: none !important;
-    min-height: 46px !important;
+    min-height: 44px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
     gap: 10px !important;
-    margin: 10px 0 0 !important;
-    padding: 0 14px !important;
+    margin: 9px 0 0 !important;
+    padding: 0 13px !important;
     border: 1px solid #dbe6f3 !important;
-    border-radius: 13px !important;
+    border-radius: 12px !important;
     background: #f8fbff !important;
     color: #315b91 !important;
     font: 800 11px/1.2 system-ui, sans-serif !important;
@@ -109,19 +189,23 @@
     transform: rotate(180deg) translateY(1px) !important;
   }
 
+  /* Actions follow content directly. No auto-margin/sticky behavior that creates a white void. */
   html body .attendance-shell.ah-history-v5 .ahv3__mobile-sheet-actions {
-    position: sticky !important;
-    bottom: 0 !important;
-    z-index: 6 !important;
+    position: static !important;
+    bottom: auto !important;
+    z-index: 1 !important;
     grid-template-columns: 1fr !important;
-    margin: auto 0 0 !important;
-    padding: 12px 0 calc(6px + env(safe-area-inset-bottom)) !important;
-    background: linear-gradient(180deg, rgba(255,255,255,.78), #fff 28%) !important;
+    gap: 8px !important;
+    margin: 12px 0 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
   }
 
   html body .attendance-shell.ah-history-v5 .ahv3__mobile-sheet-actions button {
     width: 100% !important;
     max-width: none !important;
+    min-height: 48px !important;
+    border-radius: 12px !important;
   }
 
   /* Make horizontal activity overflow intentional and discoverable. */
@@ -155,20 +239,35 @@
 }
 
 @media (max-width: 520px) {
+  html body .attendance-shell.ah-history-v5 .ahv3__shell.is-mobile-detail-open .ahv3__detail {
+    height: auto !important;
+    max-height: 88dvh !important;
+    padding-inline: 9px !important;
+    border-radius: 24px 24px 0 0 !important;
+  }
+
   html body .attendance-shell.ah-history-v5 .ahv3__info-grid {
     width: 100% !important;
     max-width: none !important;
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
   }
 
   html body .attendance-shell.ah-history-v5 .ahv3__info-grid > article {
     width: 100% !important;
     max-width: none !important;
-    min-height: 68px !important;
+    min-height: 58px !important;
+    padding: 9px !important;
   }
 
   html body .attendance-shell.ah-history-v5 .ahv3__shell.is-mobile-detail-open .ahv3__hero {
     width: 100% !important;
     max-width: none !important;
+    padding: 11px !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-summary > article {
+    min-height: 58px !important;
+    padding: 7px !important;
   }
 }
