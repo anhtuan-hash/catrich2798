@@ -20,6 +20,20 @@ test('desktop preserves existing Home body', async ({ page }, testInfo) => {
   await expect(page.locator('[data-bes-mobile-home="true"]')).toHaveCount(0);
 });
 
+test('portrait iPad uses mobile Home body', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'ipad-portrait');
+  await waitForHome(page);
+  await expect(page.locator('[data-bes-mobile-home="true"]')).toBeVisible();
+  await expect(page.locator('.bha-editorial-dateline')).toHaveCount(0);
+});
+
+test('landscape iPad preserves desktop Home body', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'ipad-landscape');
+  await waitForHome(page);
+  await expect(page.locator('.bha-editorial-dateline')).toBeVisible();
+  await expect(page.locator('[data-bes-mobile-home="true"]')).toHaveCount(0);
+});
+
 test('mobile Weekly Practice switches grades with accessible chips', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile-chromium');
   await waitForHome(page);
@@ -36,4 +50,23 @@ test('mobile grade chips meet touch target minimum', async ({ page }, testInfo) 
   await waitForHome(page);
   const box = await page.locator('[data-mobile-grade="10"]').boundingBox();
   expect(box?.height || 0).toBeGreaterThanOrEqual(44);
+});
+
+test('mobile Home stays inside viewport and tools are touch friendly', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium');
+  await waitForHome(page);
+  await expect(page.locator('[data-bes-mobile-home="true"]')).toBeVisible();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+
+  const cards = page.locator('[data-mobile-tool]');
+  expect(await cards.count()).toBeGreaterThan(0);
+  const first = await cards.first().boundingBox();
+  expect(first?.height || 0).toBeGreaterThanOrEqual(44);
+
+  const columnCount = await page.locator('.bes-mobile-home__tools').evaluate((element) => {
+    const columns = getComputedStyle(element).gridTemplateColumns.trim();
+    return columns ? columns.split(/\s+/).length : 0;
+  });
+  expect(columnCount).toBe(2);
 });
