@@ -20,4 +20,24 @@ assert.match(ttcm, /selectedItem && userIsAssignee\(selectedItem, currentUser\?\
 assert.match(notifications, /function isTtcmSelfAssignment\(item, userId\)/, 'Global notifications need a narrow TTCM self-assignment exception');
 assert.match(notifications, /owner_id[\s\S]*!isTtcmSelfAssignment\(item, userId\)/, 'Self-owned tasks must remain hidden except for TTCM self-assignments');
 
-console.log('TTCM self-recipient contract OK');
+// Mobile TTCM must be a true phone composition rather than the desktop three-pane
+// reader compressed into a narrow viewport. Keep the same state/handlers, but
+// expose phone-only navigation, filters and an explicit-selection detail sheet.
+assert.match(ttcm, /import '\.\/GlobalTtcmMobile\.css';/, 'TTCM must load its final mobile-only stylesheet after the desktop reader layers');
+assert.match(ttcm, /ttcm-mobile-back/, 'Mobile TTCM must expose a large back/close control in the app header');
+assert.match(ttcm, /ttcm-mobile-filter-strip/, 'Mobile TTCM must render horizontal filter chips instead of relying on the desktop mailbox rail');
+assert.match(ttcm, /ttcm-mobile-more/, 'Mobile TTCM must keep secondary actions and Personnel reachable from the compact header');
+assert.match(ttcm, /ttcm-reader-detail[^"`]*\$\{selectedItemId\s*\?\s*'is-mobile-open'\s*:\s*''\}/, 'Mobile detail sheet must only open after an explicit notification selection');
+
+const mobileCssUrl = new URL('../src/components/GlobalTtcmMobile.css', import.meta.url);
+assert.ok(fs.existsSync(mobileCssUrl), 'TTCM needs a dedicated final mobile stylesheet');
+const mobileCss = fs.existsSync(mobileCssUrl) ? fs.readFileSync(mobileCssUrl, 'utf8') : '';
+assert.match(mobileCss, /@media\s*\(max-width:\s*760px\)/, 'TTCM mobile redesign must be phone-scoped');
+assert.match(mobileCss, /\.ttcm-reader-sidebar[\s\S]*display:\s*none\s*!important/, 'Desktop mailbox sidebar must be removed from phone composition');
+assert.match(mobileCss, /\.ttcm-mobile-filter-strip[\s\S]*display:\s*flex\s*!important/, 'Phone filter chips must be visible and horizontally scrollable');
+assert.match(mobileCss, /\.ttcm-reader-detail\.is-mobile-open[\s\S]*position:\s*fixed\s*!important[\s\S]*bottom:\s*0/, 'Selected TTCM content must open as a bottom sheet on phones');
+assert.match(mobileCss, /\.ttcm-reader-detail-footer[\s\S]*position:\s*sticky/, 'Mobile detail actions must remain reachable at the bottom of the sheet');
+assert.match(mobileCss, /min-height:\s*44px/, 'Mobile TTCM controls must preserve a 44px minimum touch target');
+assert.match(mobileCss, /overflow-x:\s*(?:auto|hidden|clip)/, 'Mobile TTCM must prevent destructive horizontal overflow');
+
+console.log('TTCM self-recipient and mobile workspace contract OK');
