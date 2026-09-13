@@ -161,3 +161,67 @@ test('mobile bottom navigation rises above browser visual viewport occlusion', a
   const bottom = await page.locator('.bes-mobile-bottomnav').evaluate((element) => Number.parseFloat(getComputedStyle(element).bottom));
   expect(bottom).toBeGreaterThanOrEqual(inset);
 });
+
+test('mobile login uses Brian English identity and removes the duplicate brand strip', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium');
+  await page.goto('/#/login');
+  await expectMobileChrome(page);
+  await expect(page.locator('.auth-google-page')).toBeVisible();
+
+  const brand = page.locator('.bes-mobile-brand__copy');
+  await expect(brand).toContainText('Brian English');
+  await expect(brand).not.toContainText('Đăng nhập');
+  await expect(page.locator('.auth-google-brand')).not.toBeVisible();
+});
+
+test('mobile login hero uses compact sans typography and three benefit columns', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium');
+  await page.goto('/#/login');
+  await expect(page.locator('.auth-google-page')).toBeVisible();
+
+  const heroTitle = page.locator('.auth-google-intro h1');
+  await expect(heroTitle).toContainText('Đăng nhập giáo viên');
+  const typography = await heroTitle.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return { fontFamily: style.fontFamily, fontSize: Number.parseFloat(style.fontSize) };
+  });
+  expect(typography.fontFamily.toLowerCase()).not.toContain('caveat');
+  expect(typography.fontSize).toBeGreaterThanOrEqual(40);
+  expect(typography.fontSize).toBeLessThanOrEqual(58);
+
+  const columnCount = await page.locator('.auth-google-highlights').evaluate((element) => {
+    const columns = getComputedStyle(element).gridTemplateColumns.trim();
+    return columns ? columns.split(/\s+/).length : 0;
+  });
+  expect(columnCount).toBe(3);
+});
+
+test('mobile login keeps the auth form readable, touch friendly and inside the viewport', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium');
+  await page.goto('/#/login');
+  const card = page.locator('.auth-google-card');
+  await expect(card).toBeVisible();
+
+  const primary = await page.locator('.auth-google-primary').boundingBox();
+  expect(primary?.height || 0).toBeGreaterThanOrEqual(52);
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(1);
+});
+
+test('mobile login condenses the global footer instead of showing the full credentials list', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium');
+  await page.goto('/#/login');
+  await expect(page.locator('.signature-footer-v50')).toBeVisible();
+  await expect(page.locator('.signature-footer-v50-credentials ul')).not.toBeVisible();
+  await expect(page.locator('.signature-footer-v50-details .detail-centre')).not.toBeVisible();
+});
+
+test('desktop login keeps the existing desktop composition', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium-desktop');
+  await page.goto('/#/login');
+  await expect(page.locator('.auth-google-page')).toBeVisible();
+  await expect(page.locator('.auth-google-brand')).toBeVisible();
+
+  const columns = await page.locator('.auth-google-layout').evaluate((element) => getComputedStyle(element).gridTemplateColumns.trim().split(/\s+/).length);
+  expect(columns).toBe(2);
+});
