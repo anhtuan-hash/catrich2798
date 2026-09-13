@@ -61,8 +61,6 @@ test('mobile menu opens as a left navigation drawer without changing route', asy
   await expect(drawer).toBeVisible();
   await expect(drawer).toHaveClass(/bes-mobile-drawer/);
 
-  // Geometry assertions describe the settled drawer. Wait for its entrance
-  // animation instead of sampling a transient transform offset mid-flight.
   await drawer.evaluate(async (element) => {
     const animations = element.getAnimations();
     await Promise.all(animations.map((animation) => animation.finished.catch(() => undefined)));
@@ -78,6 +76,43 @@ test('mobile menu opens as a left navigation drawer without changing route', asy
   const firstButtonMinHeight = await page.locator('.bes-mobile-drawer button').first().evaluate((element) => Number.parseFloat(getComputedStyle(element).minHeight));
   expect(firstButtonMinHeight).toBeGreaterThanOrEqual(44);
   expect(await page.evaluate(() => window.location.hash)).toBe(originalHash);
+});
+
+test('mobile drawer mirrors original primary navigation buttons instead of catalog groups', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium');
+  await page.goto('/#/home');
+
+  await page.locator('.bes-mobile-bridge-host').evaluate((host) => {
+    window.__mobileOriginalNavClicks = [];
+    const add = (key, label) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.dataset.navKey = key;
+      button.textContent = label;
+      button.addEventListener('click', () => window.__mobileOriginalNavClicks.push(key));
+      host.appendChild(button);
+    };
+    add('dashboard', 'Dashboard');
+    add('homeroom', 'Chủ nhiệm');
+    add('gradebook', 'Sổ điểm');
+    add('reports', 'Báo cáo');
+  });
+
+  await page.getByRole('button', { name: 'Mở menu' }).click();
+  const drawer = page.getByRole('dialog', { name: 'Điều hướng Brian English' });
+  await expect(drawer).toBeVisible();
+
+  await expect(drawer.getByRole('button', { name: 'Trang chủ' })).toBeVisible();
+  await expect(drawer.getByRole('button', { name: 'Dashboard' })).toBeVisible();
+  await expect(drawer.getByRole('button', { name: 'Chủ nhiệm' })).toBeVisible();
+  await expect(drawer.getByRole('button', { name: 'Sổ điểm' })).toBeVisible();
+  await expect(drawer.getByRole('button', { name: 'Báo cáo' })).toBeVisible();
+  await expect(drawer.getByText('Dạy & học')).toHaveCount(0);
+  await expect(drawer.getByText('Vận hành')).toHaveCount(0);
+  await expect(drawer.getByText('Quản trị & hệ thống')).toHaveCount(0);
+
+  await drawer.getByRole('button', { name: 'Dashboard' }).click();
+  expect(await page.evaluate(() => window.__mobileOriginalNavClicks)).toContain('dashboard');
 });
 
 test('mobile bottom navigation rises above browser visual viewport occlusion', async ({ page }, testInfo) => {
