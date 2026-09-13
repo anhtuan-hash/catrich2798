@@ -88,7 +88,7 @@ test('mobile Home stays inside viewport', async ({ page }, testInfo) => {
   expect(overflow).toBeLessThanOrEqual(1);
 });
 
-test('mobile Home keeps Hero compact while preserving mobile shell touch scale', async ({ page }, testInfo) => {
+test('mobile Home keeps approved Hero height while preserving touch targets', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile-chromium');
   await waitForHome(page);
 
@@ -103,18 +103,41 @@ test('mobile Home keeps Hero compact while preserving mobile shell touch scale',
   expect(dateline?.height || Number.MAX_SAFE_INTEGER).toBeLessThanOrEqual(24);
 
   const hero = await page.locator('[data-mobile-home-hero] .hero-cms').boundingBox();
-  expect(hero?.height || Number.MAX_SAFE_INTEGER).toBeGreaterThanOrEqual(320);
-  expect(hero?.height || Number.MAX_SAFE_INTEGER).toBeLessThanOrEqual(420);
+  expect(hero?.height || Number.MAX_SAFE_INTEGER).toBeGreaterThanOrEqual(270);
+  expect(hero?.height || Number.MAX_SAFE_INTEGER).toBeLessThanOrEqual(320);
 
   const heroTitleSize = await page.locator('[data-mobile-home-hero] .hero-cms__content h1').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
   const heroHighlightSize = await page.locator('[data-mobile-home-hero] .hero-cms__content h2').evaluate((element) => Number.parseFloat(getComputedStyle(element).fontSize));
-  expect(heroTitleSize).toBeGreaterThanOrEqual(32);
-  expect(heroTitleSize).toBeLessThanOrEqual(40);
-  expect(heroHighlightSize).toBeGreaterThanOrEqual(26);
-  expect(heroHighlightSize).toBeLessThanOrEqual(32);
+  expect(heroTitleSize).toBeGreaterThanOrEqual(30);
+  expect(heroTitleSize).toBeLessThanOrEqual(35);
+  expect(heroHighlightSize).toBeGreaterThanOrEqual(24);
+  expect(heroHighlightSize).toBeLessThanOrEqual(29);
 
   const primaryAction = await page.locator('[data-mobile-home-hero] .hero-cms__button.is-primary').boundingBox();
+  const secondaryAction = await page.locator('[data-mobile-home-hero] .hero-cms__button.is-secondary').boundingBox();
   expect(primaryAction?.height || 0).toBeGreaterThanOrEqual(48);
+  expect(secondaryAction?.height || 0).toBeGreaterThanOrEqual(44);
+  expect(Math.abs((primaryAction?.y || 0) - (secondaryAction?.y || 0))).toBeLessThanOrEqual(2);
+});
+
+test('mobile Hero headline flows naturally instead of forcing CMS line breaks', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium');
+  await waitForHome(page);
+
+  const firstLine = page.locator('[data-mobile-home-hero] .hero-cms__content h1 span').first();
+  await expect(firstLine).toBeVisible();
+  const display = await firstLine.evaluate((element) => getComputedStyle(element).display);
+  expect(display).toBe('inline');
+});
+
+test('mobile Hero suppresses full-bleed media for the approved quiet background', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium');
+  await waitForHome(page);
+
+  const media = page.locator('[data-mobile-home-hero] .hero-cms__media');
+  if (await media.count()) {
+    await expect(media).toBeHidden();
+  }
 });
 
 test('mobile grade summaries stay compact', async ({ page }, testInfo) => {
