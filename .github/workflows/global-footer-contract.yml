@@ -5,6 +5,7 @@ on:
     paths:
       - 'src/main.jsx'
       - 'src/components/FooterAuthCards.css'
+      - 'src/components/FooterCompactDisclosure.css'
       - 'scripts/test-global-footer-contract.mjs'
       - '.github/workflows/global-footer-contract.yml'
 
