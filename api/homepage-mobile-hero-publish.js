@@ -13,22 +13,6 @@ const ALLOWED_IMAGE_TYPES = new Map([
   ['image/gif', 'gif'],
   ['image/apng', 'apng'],
 ]);
-const HERO_EDITOR_ROLES = new Set([
-  'admin',
-  'administrator',
-  'ttcm',
-  'department_head',
-  'department-head',
-  'department leader',
-  'department_leader',
-  'subject_leader',
-  'subject leader',
-  'to_truong',
-  'tổ trưởng',
-  'leader',
-  'head',
-  'manager',
-]);
 
 function cleanText(value, fallback = '', max = 2000) {
   return String(value ?? fallback).replace(/\u0000/g, '').trim().slice(0, max);
@@ -177,14 +161,14 @@ async function publishCommit(settings, entries, message) {
   return commit.sha;
 }
 
-async function requireHeroEditor(req) {
+async function requireAdmin(req) {
   const user = await requireUser(req);
   const client = adminClient();
   const profile = await getUserProfile(client, user);
   const role = cleanText(profile?.role || user?.app_metadata?.role || user?.user_metadata?.role, '', 80).toLowerCase();
   const approved = profile?.approved !== false && profile?.is_approved !== false;
-  if (!approved || !HERO_EDITOR_ROLES.has(role)) {
-    const error = new Error('Only Admin/TTCM Hero editors can publish the Mobile Hero image');
+  if (!approved || !['admin', 'administrator'].includes(role)) {
+    const error = new Error('Only Admin can publish the Mobile Hero image');
     error.status = 403;
     throw error;
   }
@@ -194,7 +178,7 @@ async function requireHeroEditor(req) {
 export default async function handler(req, res) {
   try {
     if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
-    const user = await requireHeroEditor(req);
+    const user = await requireAdmin(req);
     const remove = req.body?.remove === true;
     const settings = githubSettings();
     const publishedAt = new Date().toISOString();
