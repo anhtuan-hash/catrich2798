@@ -1,19 +1,20 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowRight,
   BarChart3,
+  BookOpen,
   CalendarDays,
-  Check,
   ChevronDown,
   ChevronUp,
-  ClipboardClock,
   GraduationCap,
   MessageSquareText,
   NotebookTabs,
+  Sparkles,
+  Star,
 } from 'lucide-react';
-import HomeHeroExperience2026 from '../HomeHeroExperience2026.jsx';
 import '../../styles/mobile/mobile-home.css';
 import '../../styles/mobile/mobile-home-polish.css';
+import '../../styles/mobile/mobile-home-premium.css';
 
 function practiceTimestamp(item) {
   const values = [item?.opens_at, item?.published_at, item?.created_at];
@@ -38,19 +39,14 @@ function formatPracticeDate(item, language) {
 }
 
 function gradeTheme(grade) {
-  if (grade === 10) return { accent: '#0b57d0', soft: '#eef4ff', Icon: NotebookTabs };
-  if (grade === 11) return { accent: '#c97900', soft: '#fff7e8', Icon: MessageSquareText };
-  return { accent: '#00897b', soft: '#eaf8f5', Icon: GraduationCap };
+  if (grade === 10) return { accent: '#1469f5', soft: '#edf5ff', Icon: NotebookTabs };
+  if (grade === 11) return { accent: '#e58a00', soft: '#fff5e7', Icon: MessageSquareText };
+  return { accent: '#0b9f82', soft: '#eafaf5', Icon: GraduationCap };
 }
 
-function MobileGradeSummary({ grade, items, t, language, open, onToggle }) {
+function MobileGradeSummary({ grade, items, language, open, onToggle }) {
   const vi = language !== 'en';
   const { accent, soft, Icon } = gradeTheme(grade);
-  const sorted = useMemo(
-    () => [...(items || [])].sort((a, b) => practiceTimestamp(b) - practiceTimestamp(a)),
-    [items],
-  );
-  const latest = sorted[0];
 
   return (
     <article
@@ -58,32 +54,20 @@ function MobileGradeSummary({ grade, items, t, language, open, onToggle }) {
       data-mobile-grade-card={grade}
       style={{ '--grade-accent': accent, '--grade-soft': soft }}
     >
-      <div className="bes-mobile-home__grade-masthead">
-        <span>{t.grade} {grade}</span>
-        <strong>{items?.length || 0} {vi ? 'bài' : 'lessons'}</strong>
-      </div>
-      <div className="bes-mobile-home__grade-main">
-        <span className="bes-mobile-home__grade-icon" aria-hidden="true"><Icon size={24} /></span>
-        <div className="bes-mobile-home__grade-copy">
-          <small><Check size={13} />{t.weekly}</small>
-          <h3>{t.english} {grade}</h3>
-          <p>{latest?.title || t.curriculum}</p>
-          <button type="button" data-mobile-grade-toggle onClick={onToggle} aria-expanded={open}>
-            {open ? (vi ? 'Thu gọn' : 'Close') : t.enter}<ArrowRight size={15} />
-          </button>
-        </div>
-        <strong className="bes-mobile-home__grade-number" aria-hidden="true">{grade}</strong>
-        <button
-          type="button"
-          className="bes-mobile-home__grade-arrow"
-          data-mobile-grade-toggle
-          aria-label={vi ? `${open ? 'Thu gọn' : 'Mở bài'} Khối ${grade}` : `${open ? 'Close' : 'Open'} Grade ${grade}`}
-          aria-expanded={open}
-          onClick={onToggle}
-        >
-          {open ? <ChevronUp size={22} /> : <ArrowRight size={22} />}
-        </button>
-      </div>
+      <span className="bes-mobile-home__grade-label">{vi ? 'KHỐI' : 'GRADE'}</span>
+      <span className="bes-mobile-home__grade-icon" aria-hidden="true"><Icon size={25} strokeWidth={2.2} /></span>
+      <strong className="bes-mobile-home__grade-number">{grade}</strong>
+      <small className="bes-mobile-home__grade-count">{items?.length || 0} {vi ? 'bài' : 'lessons'}</small>
+      <button
+        type="button"
+        className="bes-mobile-home__grade-arrow"
+        data-mobile-grade-toggle
+        aria-label={vi ? `${open ? 'Thu gọn' : 'Mở bài'} Khối ${grade}` : `${open ? 'Close' : 'Open'} Grade ${grade}`}
+        aria-expanded={open}
+        onClick={onToggle}
+      >
+        {open ? <ChevronUp size={21} /> : <ArrowRight size={21} />}
+      </button>
     </article>
   );
 }
@@ -154,89 +138,167 @@ function MobilePracticeList({ grade, items, t, language, loading, error, onRetry
 export default function MobileHomeView({
   t,
   language = 'vi',
-  currentUser,
   practiceItems = [],
   practicesByGrade = {},
   practiceLoading = false,
   practiceError = '',
   canManagePractice = false,
   onStart,
-  onGuide,
+  onOpenApps,
   onOpenPractice,
   onRetryPractice,
   onOpenStatistics,
-  onOpenManager,
 }) {
   const vi = language !== 'en';
   const [openGrade, setOpenGrade] = useState(null);
+  const practiceRef = useRef(null);
+
+  useEffect(() => {
+    document.documentElement.classList.add('bes-mobile-home-premium-active');
+    return () => document.documentElement.classList.remove('bes-mobile-home-premium-active');
+  }, []);
+
+  const scrollToPractice = () => {
+    practiceRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+  };
+
+  const quickActions = [
+    {
+      id: 'learn',
+      label: vi ? 'Học' : 'Learn',
+      Icon: BookOpen,
+      tone: 'blue',
+      action: onStart,
+    },
+    {
+      id: 'statistics',
+      label: vi ? 'Thống kê' : 'Stats',
+      Icon: BarChart3,
+      tone: 'mint',
+      action: canManagePractice && onOpenStatistics ? onOpenStatistics : scrollToPractice,
+    },
+    {
+      id: 'schedule',
+      label: vi ? 'Lịch học' : 'Schedule',
+      Icon: CalendarDays,
+      tone: 'violet',
+      action: scrollToPractice,
+    },
+    {
+      id: 'achievement',
+      label: vi ? 'Thành tích' : 'Progress',
+      Icon: Star,
+      tone: 'amber',
+      action: onOpenApps || onStart,
+    },
+  ];
 
   return (
-    <main className="bes-mobile-home" data-bes-mobile-home="true" aria-label={vi ? 'Trang chủ Brian English' : 'Brian English home'}>
-      <div className="bes-mobile-home__dateline" data-mobile-home-dateline aria-label={vi ? 'Brian English — không gian dạy học' : 'Brian English teaching studio'}>
-        <span>BRIAN ENGLISH</span>
-        <i aria-hidden="true" />
-        <span>{vi ? 'KHÔNG GIAN DẠY HỌC' : 'TEACHING STUDIO'}</span>
-        <strong>2026—2027</strong>
-      </div>
-
-      <div className="bes-mobile-home__desktop-hero" data-mobile-home-hero>
-        <HomeHeroExperience2026
-          currentUser={currentUser}
-          language={language}
-          t={t}
-          onStart={onStart}
-          onGuide={onGuide}
-        />
-      </div>
-
-      <section className="bes-mobile-home__section bes-mobile-home__practice" data-mobile-home-practice id="weekly-practice" aria-labelledby="mobile-weekly-practice-title">
-        <header className="bes-mobile-home__practice-head">
-          <div>
-            <span className="bes-mobile-home__eyebrow"><ClipboardClock size={16} />{t.practice}</span>
-            <h2 id="mobile-weekly-practice-title">{t.practiceTitle}</h2>
-            <p>{t.practiceSub}</p>
+    <main className="bes-mobile-home is-premium" data-bes-mobile-home="true" aria-label={vi ? 'Trang chủ Brian English' : 'Brian English home'}>
+      <div className="bes-mobile-home__premium" data-mobile-home-premium>
+        <section className="bes-mobile-home__premium-hero" data-mobile-home-hero aria-labelledby="mobile-home-premium-heading">
+          <img
+            className="bes-mobile-home__premium-hero-art"
+            src="/mobile-home-premium-hero.svg"
+            alt=""
+            draggable="false"
+            data-mobile-home-hero-art
+          />
+          <div className="bes-mobile-home__sr-only">
+            <h1 id="mobile-home-premium-heading">{vi ? 'Học tốt hơn' : 'Learn better'}</h1>
+            <p>{vi ? 'Tiếng Anh mở ra nhiều cơ hội hơn.' : 'English opens more opportunities.'}</p>
           </div>
-          <div className="bes-mobile-home__practice-total">
-            <small>{vi ? 'ĐÃ XUẤT BẢN' : 'PUBLISHED'}</small>
-            <strong>{practiceItems.length}</strong>
-            <span>{vi ? 'bài luyện tập' : 'practice lessons'}</span>
-          </div>
-        </header>
+          <button
+            type="button"
+            className="bes-mobile-home__hero-hotspot is-start"
+            aria-label={vi ? 'Bắt đầu' : 'Start'}
+            onClick={onStart}
+          />
+          <button
+            type="button"
+            className="bes-mobile-home__hero-hotspot is-guide"
+            aria-label={vi ? 'Xem ngay' : 'View now'}
+            onClick={onOpenApps}
+          />
+        </section>
 
-        {canManagePractice ? (
-          <div className="bes-mobile-home__manager-actions">
-            <button type="button" onClick={onOpenStatistics}><BarChart3 size={17} />{t.statistics}</button>
-            <button type="button" onClick={onOpenManager}>{t.manage}</button>
-          </div>
-        ) : null}
+        <section className="bes-mobile-home__quick-actions" data-mobile-home-quick-actions aria-label={vi ? 'Truy cập nhanh' : 'Quick actions'}>
+          {quickActions.map(({ id, label, Icon, tone, action }) => (
+            <button key={id} type="button" className={`is-${tone}`} aria-label={label} onClick={action}>
+              <span aria-hidden="true"><Icon size={29} strokeWidth={2.1} /></span>
+              <strong>{label}</strong>
+            </button>
+          ))}
+        </section>
 
-        <div className="bes-mobile-home__grade-stack">
-          {[10, 11, 12].map((grade) => (
-            <React.Fragment key={grade}>
+        <section
+          ref={practiceRef}
+          className="bes-mobile-home__section bes-mobile-home__practice is-premium"
+          data-mobile-home-practice
+          id="weekly-practice"
+          aria-labelledby="mobile-weekly-practice-title"
+        >
+          <header className="bes-mobile-home__premium-practice-head">
+            <div>
+              <small><Sparkles size={15} />{vi ? 'TUẦN NÀY' : 'THIS WEEK'}</small>
+              <h2 id="mobile-weekly-practice-title">{vi ? 'Luyện tập tuần này' : 'Practice this week'}</h2>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setOpenGrade((current) => current || 10);
+                window.setTimeout(scrollToPractice, 0);
+              }}
+            >
+              {vi ? 'Xem tất cả' : 'View all'}<ArrowRight size={17} />
+            </button>
+          </header>
+
+          <div className="bes-mobile-home__grade-grid">
+            {[10, 11, 12].map((grade) => (
               <MobileGradeSummary
+                key={grade}
                 grade={grade}
                 items={practicesByGrade[grade] || []}
-                t={t}
                 language={language}
                 open={openGrade === grade}
                 onToggle={() => setOpenGrade((current) => current === grade ? null : grade)}
               />
-              {openGrade === grade ? (
-                <MobilePracticeList
-                  grade={grade}
-                  items={practicesByGrade[grade] || []}
-                  t={t}
-                  language={language}
-                  loading={practiceLoading}
-                  error={practiceError}
-                  onRetry={onRetryPractice}
-                  onOpenPractice={onOpenPractice}
-                />
-              ) : null}
-            </React.Fragment>
-          ))}
-        </div>
-      </section>
+            ))}
+          </div>
+
+          {openGrade ? (
+            <MobilePracticeList
+              grade={openGrade}
+              items={practicesByGrade[openGrade] || []}
+              t={t}
+              language={language}
+              loading={practiceLoading}
+              error={practiceError}
+              onRetry={onRetryPractice}
+              onOpenPractice={onOpenPractice}
+            />
+          ) : null}
+
+          {!openGrade && practiceLoading ? <div className="bes-mobile-home__state">{t.loading}</div> : null}
+          {!openGrade && !practiceLoading && practiceError ? (
+            <div className="bes-mobile-home__state is-error">
+              <span>{practiceError}</span>
+              <button type="button" onClick={onRetryPractice}>{t.retry}</button>
+            </div>
+          ) : null}
+          <span className="bes-mobile-home__practice-count" aria-label={`${practiceItems.length} ${vi ? 'bài luyện tập' : 'practice lessons'}`}>{practiceItems.length}</span>
+        </section>
+
+        <section className="bes-mobile-home__motivation" aria-label={vi ? 'Động lực học tập' : 'Learning motivation'}>
+          <div>
+            <BarChart3 size={28} aria-hidden="true" />
+            <strong>A BRIGHTER<br />TOMORROW</strong>
+          </div>
+          <div className="bes-mobile-home__mountain" aria-hidden="true"><i /><i /><i /></div>
+          <span>Keep<br />Going</span>
+        </section>
+      </div>
     </main>
   );
 }

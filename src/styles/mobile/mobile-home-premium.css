@@ -1,0 +1,565 @@
+html.bes-mobile-home-premium-active footer.signature-footer-collapsible {
+  display: none !important;
+}
+
+.bes-mobile-home.is-premium {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 14px 14px calc(var(--bes-mobile-bottomnav-height, 76px) + var(--bes-mobile-browser-bottom-inset, 0px) + env(safe-area-inset-bottom) + 30px);
+  overflow-x: clip;
+  background:
+    radial-gradient(circle at 88% 8%, rgba(112, 167, 255, 0.12), transparent 32%),
+    linear-gradient(180deg, #f7faff 0%, #fbfcff 40%, #f6f9ff 100%);
+  color: #0c1b4d;
+}
+
+.bes-mobile-home__premium {
+  display: grid;
+  gap: 15px;
+  width: 100%;
+}
+
+.bes-mobile-home__sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.bes-mobile-home__premium-hero {
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  aspect-ratio: 805 / 485;
+  min-height: 190px;
+  overflow: hidden;
+  border: 1px solid rgba(183, 200, 232, 0.54);
+  border-radius: 28px;
+  background: #f8fbff;
+  box-shadow: 0 14px 34px rgba(28, 69, 139, 0.09);
+}
+
+.bes-mobile-home__premium-hero-art {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
+}
+
+.bes-mobile-home__hero-hotspot {
+  appearance: none;
+  position: absolute;
+  z-index: 3;
+  top: 64.5%;
+  min-height: 44px;
+  height: 20%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  color: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bes-mobile-home__hero-hotspot.is-start {
+  left: 4.6%;
+  width: 29.5%;
+}
+
+.bes-mobile-home__hero-hotspot.is-guide {
+  left: 35.5%;
+  width: 27.5%;
+}
+
+.bes-mobile-home__hero-hotspot:focus-visible {
+  outline: 3px solid rgba(31, 103, 255, 0.58);
+  outline-offset: -3px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.bes-mobile-home__hero-hotspot:active {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.bes-mobile-home__quick-actions {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+  width: 100%;
+  padding: 13px;
+  border: 1px solid rgba(207, 218, 238, 0.75);
+  border-radius: 25px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 10px 28px rgba(35, 64, 115, 0.065);
+}
+
+.bes-mobile-home__quick-actions button {
+  appearance: none;
+  box-sizing: border-box;
+  display: flex;
+  min-width: 0;
+  min-height: 84px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 5px 9px;
+  border: 0;
+  border-radius: 19px;
+  color: #10204f;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+.bes-mobile-home__quick-actions button > span {
+  display: grid;
+  width: 43px;
+  height: 43px;
+  place-items: center;
+  border-radius: 14px;
+}
+
+.bes-mobile-home__quick-actions button strong {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: clamp(10px, 2.85vw, 13px);
+  font-weight: 760;
+  line-height: 1.12;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bes-mobile-home__quick-actions button.is-blue {
+  background: linear-gradient(145deg, #f0f6ff, #e9f2ff);
+}
+.bes-mobile-home__quick-actions button.is-blue > span { color: #1768f4; background: rgba(76, 143, 255, 0.12); }
+
+.bes-mobile-home__quick-actions button.is-mint {
+  background: linear-gradient(145deg, #effbf7, #e7f8f2);
+}
+.bes-mobile-home__quick-actions button.is-mint > span { color: #0d9a7c; background: rgba(22, 173, 139, 0.12); }
+
+.bes-mobile-home__quick-actions button.is-violet {
+  background: linear-gradient(145deg, #f7f3ff, #f0ebff);
+}
+.bes-mobile-home__quick-actions button.is-violet > span { color: #6f48e8; background: rgba(117, 76, 232, 0.12); }
+
+.bes-mobile-home__quick-actions button.is-amber {
+  background: linear-gradient(145deg, #fff9ed, #fff2d9);
+}
+.bes-mobile-home__quick-actions button.is-amber > span { color: #e89400; background: rgba(245, 166, 32, 0.13); }
+
+.bes-mobile-home__quick-actions button:active {
+  transform: scale(0.97);
+  filter: saturate(1.05);
+}
+
+.bes-mobile-home__quick-actions button:focus-visible {
+  outline: 3px solid rgba(32, 103, 255, 0.32);
+  outline-offset: 2px;
+}
+
+.bes-mobile-home__practice.is-premium {
+  box-sizing: border-box;
+  display: grid;
+  gap: 14px;
+  width: 100%;
+  scroll-margin-top: calc(var(--bes-mobile-topbar-height, 82px) + env(safe-area-inset-top) + 12px);
+  padding: 18px 15px 16px;
+  border: 1px solid rgba(204, 216, 238, 0.82);
+  border-radius: 27px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 12px 30px rgba(32, 61, 112, 0.07);
+}
+
+.bes-mobile-home__premium-practice-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bes-mobile-home__premium-practice-head > div {
+  min-width: 0;
+}
+
+.bes-mobile-home__premium-practice-head small {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  color: #4875c9;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.13em;
+}
+
+.bes-mobile-home__premium-practice-head h2 {
+  margin: 0;
+  color: #0a1743;
+  font-size: clamp(23px, 6.4vw, 30px);
+  font-weight: 850;
+  line-height: 1.03;
+  letter-spacing: -0.035em;
+}
+
+.bes-mobile-home__premium-practice-head > button {
+  appearance: none;
+  display: inline-flex;
+  min-height: 44px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+  padding: 0 2px 0 10px;
+  border: 0;
+  background: transparent;
+  color: #1768f4;
+  font-size: 12px;
+  font-weight: 780;
+  cursor: pointer;
+}
+
+.bes-mobile-home__grade-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+  width: 100%;
+}
+
+.bes-mobile-home.is-premium .bes-mobile-home__grade-card {
+  position: relative;
+  box-sizing: border-box;
+  display: block;
+  min-width: 0;
+  height: 174px;
+  overflow: hidden;
+  padding: 15px 12px;
+  border: 1.5px solid color-mix(in srgb, var(--grade-accent) 29%, white);
+  border-radius: 22px;
+  background: linear-gradient(160deg, #fff 0%, var(--grade-soft) 72%, #fff 140%);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--grade-accent) 8%, transparent);
+}
+
+.bes-mobile-home.is-premium .bes-mobile-home__grade-card::before,
+.bes-mobile-home.is-premium .bes-mobile-home__grade-card::after {
+  content: '';
+  position: absolute;
+  right: -28%;
+  bottom: -30%;
+  width: 132%;
+  height: 54%;
+  border-radius: 54% 46% 0 0;
+  background: color-mix(in srgb, var(--grade-accent) 9%, transparent);
+  transform: rotate(-8deg);
+  pointer-events: none;
+}
+
+.bes-mobile-home.is-premium .bes-mobile-home__grade-card::after {
+  right: -10%;
+  bottom: -40%;
+  background: color-mix(in srgb, var(--grade-accent) 13%, transparent);
+  transform: rotate(7deg);
+}
+
+.bes-mobile-home__grade-label,
+.bes-mobile-home__grade-count,
+.bes-mobile-home.is-premium .bes-mobile-home__grade-number,
+.bes-mobile-home.is-premium .bes-mobile-home__grade-icon,
+.bes-mobile-home.is-premium .bes-mobile-home__grade-arrow {
+  position: absolute;
+  z-index: 2;
+}
+
+.bes-mobile-home__grade-label {
+  top: 14px;
+  left: 12px;
+  color: var(--grade-accent);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.11em;
+}
+
+.bes-mobile-home__grade-count {
+  top: 15px;
+  right: 11px;
+  color: color-mix(in srgb, var(--grade-accent) 78%, #304464);
+  font-size: 8px;
+  font-weight: 780;
+}
+
+.bes-mobile-home.is-premium .bes-mobile-home__grade-icon {
+  top: 36px;
+  right: 12px;
+  display: grid;
+  width: 39px;
+  height: 39px;
+  place-items: center;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--grade-accent) 9%, white);
+  color: var(--grade-accent);
+}
+
+.bes-mobile-home.is-premium .bes-mobile-home__grade-number {
+  top: 47px;
+  left: 12px;
+  color: var(--grade-accent);
+  font-size: clamp(46px, 13vw, 60px);
+  font-weight: 860;
+  line-height: 0.96;
+  letter-spacing: -0.07em;
+}
+
+.bes-mobile-home.is-premium .bes-mobile-home__grade-arrow {
+  appearance: none;
+  right: 11px;
+  bottom: 12px;
+  display: grid;
+  width: 46px;
+  min-width: 46px;
+  height: 46px;
+  min-height: 46px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--grade-accent) 25%, white);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--grade-accent);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bes-mobile-home.is-premium .bes-mobile-home__grade-card.is-open {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--grade-accent) 13%, transparent), 0 8px 20px rgba(33, 60, 104, 0.08);
+}
+
+.bes-mobile-home.is-premium .bes-mobile-home__practice-panel {
+  display: grid;
+  gap: 9px;
+  padding: 3px 0 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.bes-mobile-home.is-premium .bes-mobile-home__practice-list {
+  display: grid;
+  gap: 8px;
+}
+
+.bes-mobile-home.is-premium .bes-mobile-home__practice-card {
+  box-sizing: border-box;
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 10px 10px 11px;
+  border: 1px solid #e5ebf5;
+  border-radius: 16px;
+  background: #f9fbff;
+}
+
+.bes-mobile-home.is-premium .bes-mobile-home__practice-card-copy {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+}
+
+.bes-mobile-home.is-premium .bes-mobile-home__practice-index {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  place-items: center;
+  border-radius: 11px;
+  background: #eaf2ff;
+  color: #2069df;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.bes-mobile-home.is-premium .bes-mobile-home__practice-card-copy > div {
+  min-width: 0;
+}
+
+.bes-mobile-home.is-premium .bes-mobile-home__practice-card h4 {
+  max-width: 48vw;
+  margin: 0;
+  overflow: hidden;
+  color: #10204e;
+  font-size: 12px;
+  font-weight: 760;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bes-mobile-home.is-premium .bes-mobile-home__practice-card small {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 3px;
+  color: #7b879f;
+  font-size: 9px;
+}
+
+.bes-mobile-home.is-premium .bes-mobile-home__practice-card > button,
+.bes-mobile-home.is-premium .bes-mobile-home__practice-expand,
+.bes-mobile-home.is-premium .bes-mobile-home__state button {
+  appearance: none;
+  display: inline-flex;
+  min-height: 44px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 12px;
+  background: #eaf2ff;
+  color: #1768f4;
+  font-size: 10px;
+  font-weight: 780;
+  cursor: pointer;
+}
+
+.bes-mobile-home.is-premium .bes-mobile-home__practice-expand {
+  justify-self: center;
+  background: transparent;
+}
+
+.bes-mobile-home.is-premium .bes-mobile-home__state {
+  box-sizing: border-box;
+  display: flex;
+  min-height: 54px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 14px;
+  background: #f6f9ff;
+  color: #738099;
+  font-size: 11px;
+  text-align: center;
+}
+
+.bes-mobile-home.is-premium .bes-mobile-home__state.is-error {
+  color: #9b3f45;
+  background: #fff5f5;
+}
+
+.bes-mobile-home__practice-count {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.bes-mobile-home__motivation {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  min-height: 126px;
+  overflow: hidden;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 18px;
+  border: 1px solid rgba(190, 211, 242, 0.8);
+  border-radius: 26px;
+  background:
+    radial-gradient(circle at 62% 24%, rgba(255, 241, 191, 0.92), transparent 18%),
+    linear-gradient(145deg, #dceeff 0%, #f5fbff 46%, #deebff 100%);
+  box-shadow: 0 10px 28px rgba(32, 70, 130, 0.07);
+}
+
+.bes-mobile-home__motivation > div:first-child {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #236be9;
+}
+
+.bes-mobile-home__motivation > div:first-child strong {
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1.5;
+  letter-spacing: 0.28em;
+}
+
+.bes-mobile-home__motivation > span {
+  position: relative;
+  z-index: 3;
+  margin-right: 5px;
+  color: #3677d7;
+  font-family: cursive;
+  font-size: 18px;
+  font-style: italic;
+  line-height: 1;
+  transform: rotate(-5deg);
+}
+
+.bes-mobile-home__mountain {
+  position: absolute;
+  z-index: 1;
+  inset: auto 18% 0 27%;
+  height: 78%;
+}
+
+.bes-mobile-home__mountain i {
+  position: absolute;
+  bottom: -18px;
+  width: 88px;
+  height: 88px;
+  border-radius: 18px 18px 8px 8px;
+  background: linear-gradient(135deg, #74a8ef 0 49%, #4f84d4 50% 100%);
+  transform: rotate(45deg) skew(-6deg, -6deg);
+  box-shadow: inset 10px 9px 0 rgba(255, 255, 255, 0.28);
+}
+
+.bes-mobile-home__mountain i:nth-child(1) { left: 2%; width: 76px; height: 76px; opacity: 0.58; }
+.bes-mobile-home__mountain i:nth-child(2) { left: 24%; width: 108px; height: 108px; bottom: -28px; }
+.bes-mobile-home__mountain i:nth-child(3) { left: 58%; width: 70px; height: 70px; opacity: 0.5; }
+
+@media (max-width: 359px) {
+  .bes-mobile-home.is-premium { padding-inline: 10px; }
+  .bes-mobile-home__premium { gap: 12px; }
+  .bes-mobile-home__quick-actions { gap: 6px; padding: 10px; }
+  .bes-mobile-home__quick-actions button { min-height: 78px; padding-inline: 2px; }
+  .bes-mobile-home__quick-actions button > span { width: 38px; height: 38px; }
+  .bes-mobile-home__grade-grid { gap: 6px; }
+  .bes-mobile-home.is-premium .bes-mobile-home__grade-card { height: 162px; padding-inline: 9px; }
+  .bes-mobile-home__grade-label { left: 9px; }
+  .bes-mobile-home__grade-count { right: 8px; }
+  .bes-mobile-home.is-premium .bes-mobile-home__grade-number { left: 9px; font-size: 44px; }
+  .bes-mobile-home.is-premium .bes-mobile-home__grade-icon { right: 8px; width: 35px; height: 35px; }
+  .bes-mobile-home.is-premium .bes-mobile-home__grade-arrow { right: 8px; }
+}
+
+@media (min-width: 600px) {
+  .bes-mobile-home.is-premium { padding-inline: 22px; }
+  .bes-mobile-home__premium { gap: 18px; }
+  .bes-mobile-home__quick-actions { padding: 16px; gap: 12px; }
+  .bes-mobile-home__quick-actions button { min-height: 104px; }
+  .bes-mobile-home.is-premium .bes-mobile-home__grade-card { height: 198px; }
+  .bes-mobile-home.is-premium .bes-mobile-home__grade-number { font-size: 66px; }
+}
