@@ -84,6 +84,10 @@
       "destination": "/api/hero-theme-gateway?handler=homepage-publish"
     },
     {
+      "source": "/api/homepage-mobile-hero-publish",
+      "destination": "/api/hero-theme-gateway?handler=homepage-mobile-publish"
+    },
+    {
       "source": "/api/work-hub-file-access-v2",
       "destination": "/api/work-hub-gateway?handler=access-v2"
     },

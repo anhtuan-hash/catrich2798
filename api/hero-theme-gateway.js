@@ -2,12 +2,14 @@ import admin from '../serverless-handlers/hero-theme-admin.js';
 import manifest from '../serverless-handlers/hero-theme-manifest.js';
 import media from '../serverless-handlers/hero-theme-media.js';
 import homepagePublish from '../serverless-handlers/homepage-hero-publish.js';
+import homepageMobilePublish from '../serverless-handlers/homepage-mobile-hero-publish.js';
 
 const handlers = Object.freeze({
   admin,
   manifest,
   media,
   'homepage-publish': homepagePublish,
+  'homepage-mobile-publish': homepageMobilePublish,
 });
 
 export default async function heroThemeGateway(req, res) {
