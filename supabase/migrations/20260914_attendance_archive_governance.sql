@@ -54,10 +54,10 @@ begin
 
     insert into public.audit_events (
       action, actor_id, entity_type, entity_id,
-      before_data, after_data, source, metadata
+      before_data, after_data, source_module, metadata
     ) values (
       v_action, v_actor, 'attendance_archive', v_entity_id,
-      null,
+      '{}'::jsonb,
       jsonb_build_object('delete_request_status', new.delete_request_status),
       'attendance_archive', v_metadata
     );
@@ -113,7 +113,7 @@ begin
       if v_action <> '' then
         insert into public.audit_events (
           action, actor_id, entity_type, entity_id,
-          before_data, after_data, source, metadata
+          before_data, after_data, source_module, metadata
         ) values (
           v_action,
           v_actor,
@@ -155,14 +155,14 @@ begin
 
     insert into public.audit_events (
       action, actor_id, entity_type, entity_id,
-      before_data, after_data, source, metadata
+      before_data, after_data, source_module, metadata
     ) values (
       v_action,
       v_actor,
       'attendance_archive',
       old.id::text,
       jsonb_build_object('delete_request_status', old.delete_request_status),
-      null,
+      '{}'::jsonb,
       'attendance_archive',
       jsonb_build_object(
         'source_type', old.source_type,
