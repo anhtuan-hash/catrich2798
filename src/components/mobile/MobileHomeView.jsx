@@ -9,9 +9,14 @@ import {
   GraduationCap,
   MessageSquareText,
   NotebookTabs,
+  Pencil,
   Sparkles,
   Star,
+  X,
 } from 'lucide-react';
+import MobileHeroAdminField from '../MobileHeroAdminField.jsx';
+import { getCurrentUser, subscribeToAuthChanges } from '../../utils/auth.js';
+import { isDepartmentLeaderRole } from '../../utils/roles.js';
 import '../../styles/mobile/mobile-home.css';
 import '../../styles/mobile/mobile-home-polish.css';
 import '../../styles/mobile/mobile-home-premium.css';
@@ -152,12 +157,40 @@ export default function MobileHomeView({
 }) {
   const vi = language !== 'en';
   const [openGrade, setOpenGrade] = useState(null);
+  const [heroEditorUser, setHeroEditorUser] = useState(null);
+  const [heroEditorOpen, setHeroEditorOpen] = useState(false);
   const practiceRef = useRef(null);
+  const canEditHero = isDepartmentLeaderRole(heroEditorUser?.role);
 
   useEffect(() => {
     document.documentElement.classList.add('bes-mobile-home-premium-active');
     return () => document.documentElement.classList.remove('bes-mobile-home-premium-active');
   }, []);
+
+  useEffect(() => {
+    let active = true;
+    getCurrentUser()
+      .then((user) => { if (active) setHeroEditorUser(user || null); })
+      .catch(() => { if (active) setHeroEditorUser(null); });
+    const unsubscribe = subscribeToAuthChanges((user) => {
+      if (active) setHeroEditorUser(user || null);
+    });
+    return () => {
+      active = false;
+      unsubscribe?.();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!canEditHero && heroEditorOpen) setHeroEditorOpen(false);
+  }, [canEditHero, heroEditorOpen]);
+
+  useEffect(() => {
+    if (!heroEditorOpen) return undefined;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previousOverflow; };
+  }, [heroEditorOpen]);
 
   const scrollToPractice = () => {
     practiceRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
@@ -205,6 +238,34 @@ export default function MobileHomeView({
             draggable="false"
             data-mobile-home-hero-art
           />
+          {canEditHero ? (
+            <button
+              type="button"
+              aria-label={vi ? 'Chỉnh sửa Hero Mobile' : 'Edit mobile Hero'}
+              onClick={() => setHeroEditorOpen(true)}
+              style={{
+                position: 'absolute',
+                top: 12,
+                right: 12,
+                zIndex: 8,
+                minHeight: 38,
+                padding: '8px 12px',
+                border: '1px solid rgba(15, 23, 42, .14)',
+                borderRadius: 14,
+                background: 'rgba(255,255,255,.94)',
+                color: '#102b55',
+                boxShadow: '0 8px 24px rgba(15,23,42,.14)',
+                backdropFilter: 'blur(14px)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                fontSize: 12,
+                fontWeight: 800,
+              }}
+            >
+              <Pencil size={14} />{vi ? 'Chỉnh Hero' : 'Edit Hero'}
+            </button>
+          ) : null}
           <div className="bes-mobile-home__sr-only">
             <h1 id="mobile-home-premium-heading">{vi ? 'Học tốt hơn' : 'Learn better'}</h1>
             <p>{vi ? 'Tiếng Anh mở ra nhiều cơ hội hơn.' : 'English opens more opportunities.'}</p>
@@ -222,6 +283,69 @@ export default function MobileHomeView({
             onClick={onOpenApps}
           />
         </section>
+
+        {heroEditorOpen && canEditHero ? (
+          <div
+            role="presentation"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setHeroEditorOpen(false);
+            }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 2147483000,
+              display: 'grid',
+              alignItems: 'end',
+              padding: 'max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom))',
+              background: 'rgba(15, 23, 42, .46)',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            <section
+              role="dialog"
+              aria-modal="true"
+              aria-label={vi ? 'Chỉnh sửa Hero Mobile' : 'Edit mobile Hero'}
+              style={{
+                width: 'min(720px, 100%)',
+                maxHeight: '92dvh',
+                overflow: 'auto',
+                margin: '0 auto',
+                padding: 14,
+                borderRadius: '26px 26px 20px 20px',
+                background: '#ffffff',
+                boxShadow: '0 24px 80px rgba(15,23,42,.28)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, padding: '4px 4px 12px' }}>
+                <div>
+                  <strong style={{ display: 'block', fontSize: 20, color: '#0f172a' }}>{vi ? 'Chỉnh Hero Mobile' : 'Edit Mobile Hero'}</strong>
+                  <small style={{ display: 'block', marginTop: 5, color: '#64748b', lineHeight: 1.45 }}>
+                    {vi ? 'Thay đổi ở đây chỉ áp dụng cho phiên bản điện thoại, không ảnh hưởng Hero trên PC.' : 'Changes here apply only to mobile and do not affect the desktop Hero.'}
+                  </small>
+                </div>
+                <button
+                  type="button"
+                  aria-label={vi ? 'Đóng' : 'Close'}
+                  onClick={() => setHeroEditorOpen(false)}
+                  style={{
+                    width: 38,
+                    height: 38,
+                    flex: '0 0 auto',
+                    border: '1px solid #dbe3ef',
+                    borderRadius: 12,
+                    background: '#f8fafc',
+                    color: '#0f172a',
+                    display: 'grid',
+                    placeItems: 'center',
+                  }}
+                >
+                  <X size={19} />
+                </button>
+              </div>
+              <MobileHeroAdminField currentUser={heroEditorUser} />
+            </section>
+          </div>
+        ) : null}
 
         <section className="bes-mobile-home__quick-actions" data-mobile-home-quick-actions aria-label={vi ? 'Truy cập nhanh' : 'Quick actions'}>
           {quickActions.map(({ id, label, Icon, tone, action }) => (
