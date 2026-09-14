@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { getRuntimeClient } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
+import { hasAttendanceTabAccess } from '../utils/permissions.js';
 import { normalizeSystemRole, SYSTEM_ROLES } from '../utils/roles.js';
 import {
   GIFTED_TEACHER_ASSIGNMENTS_2026_2027,
@@ -29,7 +30,10 @@ export default function GlobalAttendanceAdminPersistenceBridge({ currentUser }) 
   const [notice, setNotice] = useState('');
 
   const systemRole = normalizeSystemRole(runtime.role || currentUser?.role, SYSTEM_ROLES.GUEST);
-  const allowed = Boolean(currentUser?.id && systemRole === SYSTEM_ROLES.ADMIN);
+  const isAdmin = systemRole === SYSTEM_ROLES.ADMIN;
+  const hasManageAccess = hasAttendanceTabAccess(currentUser, 'manage');
+  const hasReportAccess = hasAttendanceTabAccess(currentUser, 'report');
+  const allowed = Boolean(currentUser?.id && (isAdmin || hasManageAccess || hasReportAccess));
   const assignment = useMemo(
     () => GIFTED_TEACHER_ASSIGNMENTS_2026_2027.find((item) => item.sourceKey === form.assignment_key) || null,
     [form.assignment_key],
