@@ -37,6 +37,7 @@ export const ATTENDANCE_PERMISSION_IDS = {
   manage: 'attendance:manage',
   history: 'attendance:history',
   report: 'attendance:report',
+  delete: 'attendance:delete',
 };
 
 export const ATTENDANCE_PERMISSION_ITEMS = [
@@ -92,11 +93,25 @@ export const ATTENDANCE_PERMISSION_ITEMS = [
   },
 ];
 
+// Destructive/manage actions are intentionally separate from tab permissions so
+// granting attendance:delete never becomes a fake navigation tab.
+export const ATTENDANCE_ACTION_PERMISSION_ITEMS = [
+  {
+    id: ATTENDANCE_PERMISSION_IDS.delete,
+    type: 'attendance',
+    section: 'attendance',
+    title: 'Archive / delete attendance history',
+    titleVi: 'Lưu trữ / xóa lịch sử điểm danh',
+    desc: 'Archive and restore attendance history and request permanent deletion.',
+    descVi: 'Đưa lịch sử điểm danh vào Kho lưu trữ, khôi phục và gửi yêu cầu xóa vĩnh viễn.',
+  },
+];
+
 export const ATTENDANCE_PERMISSION_GROUP = {
   key: 'attendance',
   title: 'Attendance',
   titleVi: 'Điểm danh',
-  ids: ATTENDANCE_PERMISSION_ITEMS.map((item) => item.id),
+  ids: [...ATTENDANCE_PERMISSION_ITEMS, ...ATTENDANCE_ACTION_PERMISSION_ITEMS].map((item) => item.id),
 };
 
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup']);
@@ -251,7 +266,12 @@ export const TOOL_PERMISSION_ITEMS = [
   ...SPECIAL_TOOLS.map((item) => makeToolPermissionItem(item, 'tools')),
 ];
 
-export const PERMISSION_ITEMS = [...CORE_PERMISSION_ITEMS, ...ATTENDANCE_PERMISSION_ITEMS, ...TOOL_PERMISSION_ITEMS];
+export const PERMISSION_ITEMS = [
+  ...CORE_PERMISSION_ITEMS,
+  ...ATTENDANCE_PERMISSION_ITEMS,
+  ...ATTENDANCE_ACTION_PERMISSION_ITEMS,
+  ...TOOL_PERMISSION_ITEMS,
+];
 export const ALL_PERMISSION_IDS = PERMISSION_ITEMS.map((item) => item.id);
 export const EXPLICIT_PERMISSION_IDS = [...ATTENDANCE_PERMISSION_GROUP.ids];
 const EXPLICIT_PERMISSION_SET = new Set(EXPLICIT_PERMISSION_IDS);
@@ -263,6 +283,7 @@ export const PERMISSION_GROUPS = [
     titleVi: 'Nội dung & hệ thống',
     ids: CORE_PERMISSION_ITEMS.map((item) => item.id),
   },
+  ATTENDANCE_PERMISSION_GROUP,
   {
     key: 'apps',
     title: 'App activities',
@@ -288,7 +309,7 @@ function expandLegacyAttendancePermissions(allowed = []) {
   if (!source.includes(ROUTE_PERMISSION_IDS.attendance)) return source;
   return [
     ...source.filter((id) => id !== ROUTE_PERMISSION_IDS.attendance),
-    ...ATTENDANCE_PERMISSION_GROUP.ids,
+    ...ATTENDANCE_PERMISSION_ITEMS.map((item) => item.id),
   ];
 }
 
