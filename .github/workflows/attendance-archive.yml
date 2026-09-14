@@ -4,9 +4,12 @@ on:
   pull_request:
     paths:
       - 'src/components/GlobalAttendanceNavigationTab.jsx'
+      - 'src/components/attendance/AttendanceArchivePanel.jsx'
       - 'src/components/attendance/AttendanceArchive.css'
       - 'src/attendance/attendanceArchiveApi.js'
+      - 'src/utils/permissions.js'
       - 'supabase/migrations/20260914_attendance_archive.sql'
+      - 'supabase/migrations/20260914_attendance_archive_governance.sql'
       - 'scripts/test-attendance-archive.mjs'
       - '.github/workflows/attendance-archive.yml'
   push:
@@ -14,9 +17,12 @@ on:
       - 'feature/attendance-archive'
     paths:
       - 'src/components/GlobalAttendanceNavigationTab.jsx'
+      - 'src/components/attendance/AttendanceArchivePanel.jsx'
       - 'src/components/attendance/AttendanceArchive.css'
       - 'src/attendance/attendanceArchiveApi.js'
+      - 'src/utils/permissions.js'
       - 'supabase/migrations/20260914_attendance_archive.sql'
+      - 'supabase/migrations/20260914_attendance_archive_governance.sql'
       - 'scripts/test-attendance-archive.mjs'
       - '.github/workflows/attendance-archive.yml'
 
