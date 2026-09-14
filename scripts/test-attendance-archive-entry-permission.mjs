@@ -1,16 +1,26 @@
-import fs from 'node:fs';
 import assert from 'node:assert/strict';
+import {
+  getFirstAllowedAttendanceTab,
+  hasAnyAttendanceAccess,
+} from '../src/utils/permissions.js';
 
-const ui = fs.readFileSync('src/components/GlobalAttendanceNavigationTab.jsx', 'utf8');
+const deleteOnlyUser = {
+  id: 'delete-only-user',
+  role: 'teacher',
+  permissions: {
+    mode: 'custom',
+    allowed: ['attendance:delete'],
+  },
+};
 
-assert.match(
-  ui,
-  /const\s+allowed\s*=\s*Boolean\([^;]*canDeleteAttendanceHistory[^;]*\);/,
+assert.equal(
+  hasAnyAttendanceAccess(deleteOnlyUser),
+  true,
   'A user explicitly granted attendance:delete must be allowed to open the Attendance app even without another attendance tab permission.',
 );
-assert.match(
-  ui,
-  /const\s+firstAllowedView\s*=\s*[^;]*canDeleteAttendanceHistory\s*\?\s*'archive'/,
+assert.equal(
+  getFirstAllowedAttendanceTab(deleteOnlyUser),
+  'archive',
   'When attendance:delete is the only attendance grant, the archive must be the initial view.',
 );
 
