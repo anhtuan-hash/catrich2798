@@ -15,11 +15,12 @@ const workspaceSource = fs.readFileSync(workspaceUrl, 'utf8');
 const classEditorSource = fs.readFileSync(classEditorUrl, 'utf8');
 const adminSource = fs.readFileSync(adminUrl, 'utf8');
 
-assert.match(permissionSource, /export const ATTENDANCE_PERMISSION_IDS\s*=\s*\{/, 'Attendance must expose five dedicated tab permission ids');
+assert.match(permissionSource, /export const ATTENDANCE_PERMISSION_IDS\s*=\s*\{/, 'Attendance must expose stable tab and action permission ids');
 assert.ok(fs.existsSync(migrationUrl), 'Granular attendance permissions must include a Supabase migration');
 
 const permissions = await import(permissionUrl);
 const {
+  ATTENDANCE_ACTION_PERMISSION_ITEMS,
   ATTENDANCE_PERMISSION_IDS,
   ATTENDANCE_PERMISSION_GROUP,
   ATTENDANCE_PERMISSION_ITEMS,
@@ -33,19 +34,24 @@ const {
   normalizePermissions,
 } = permissions;
 
-const expectedIds = {
+const expectedTabIds = {
   quick: 'attendance:quick',
   calendar: 'attendance:calendar',
   manage: 'attendance:manage',
   history: 'attendance:history',
   report: 'attendance:report',
 };
+const expectedIds = {
+  ...expectedTabIds,
+  delete: 'attendance:delete',
+};
 assert.deepEqual(ATTENDANCE_PERMISSION_IDS, expectedIds);
-assert.deepEqual(ATTENDANCE_PERMISSION_GROUP.ids, Object.values(expectedIds), 'Admin attendance group must contain exactly the five tab permissions');
+assert.deepEqual(ATTENDANCE_PERMISSION_GROUP.ids, Object.values(expectedIds), 'Admin attendance group must contain five tab permissions plus attendance:delete');
 assert.deepEqual(ATTENDANCE_PERMISSION_ITEMS.map((item) => item.titleVi), ['Điểm danh nhanh', 'Lịch điểm danh', 'Quản lý lớp', 'Lịch sử', 'Báo cáo']);
+assert.deepEqual(ATTENDANCE_ACTION_PERMISSION_ITEMS.map((item) => item.id), [expectedIds.delete], 'attendance:delete must remain an action permission, not a navigation tab');
 
 const teacherAll = { id: 'teacher-all', role: 'teacher', permissions: createAllAccessPermissions() };
-for (const tab of Object.keys(expectedIds)) {
+for (const tab of Object.keys(expectedTabIds)) {
   assert.equal(hasAttendanceTabAccess(teacherAll, tab), false, `Full teacher mode must not implicitly grant ${tab}`);
 }
 assert.equal(hasAnyAttendanceAccess(teacherAll), false);
@@ -81,10 +87,11 @@ assert.equal(hasAttendanceTabAccess(manageOnly, 'quick'), false);
 assert.equal(getFirstAllowedAttendanceTab(manageOnly), 'manage');
 
 const legacy = normalizePermissions({ mode: 'all', allowed: [ROUTE_PERMISSION_IDS.attendance] });
-assert.deepEqual([...legacy.allowed].sort(), Object.values(expectedIds).sort(), 'Legacy route:attendance grants must expand to all five tabs');
+assert.deepEqual([...legacy.allowed].sort(), Object.values(expectedTabIds).sort(), 'Legacy route:attendance grants must expand to all five view tabs but never attendance:delete');
+assert.equal(legacy.allowed.includes(ATTENDANCE_PERMISSION_IDS.delete), false, 'Legacy route:attendance must not gain destructive archive permission');
 
 const admin = { id: 'admin', role: 'admin', permissions: createAllAccessPermissions() };
-for (const tab of Object.keys(expectedIds)) assert.equal(hasAttendanceTabAccess(admin, tab), true, `Admin must always access ${tab}`);
+for (const tab of Object.keys(expectedTabIds)) assert.equal(hasAttendanceTabAccess(admin, tab), true, `Admin must always access ${tab}`);
 assert.equal(getFirstAllowedAttendanceTab(admin), 'quick');
 
 assert.match(attendanceSource, /hasAttendanceTabAccess/, 'Attendance UI must gate individual tabs');
@@ -103,7 +110,7 @@ assert.doesNotMatch(workspaceSource, /isAdmin\s*&&[\s\S]{0,220}Sửa thông tin 
 assert.doesNotMatch(classEditorSource, /if \(!isAdmin \|\| !selectedClass/, 'Class detail save must not remain Admin-only');
 
 const migrationSource = fs.readFileSync(migrationUrl, 'utf8');
-for (const id of ['route:attendance', ...Object.values(expectedIds)]) assert.match(migrationSource, new RegExp(id.replace(':', '\\:')), `Migration must contain ${id}`);
+for (const id of ['route:attendance', ...Object.values(expectedTabIds)]) assert.match(migrationSource, new RegExp(id.replace(':', '\\:')), `Migration must contain ${id}`);
 assert.match(migrationSource, /can_read_extra_class_attendance/, 'Migration must provide a shared read gate');
 assert.match(migrationSource, /can_take_extra_class_attendance/, 'Migration must provide a quick-attendance write gate');
 assert.match(migrationSource, /can_manage_extra_class_roster/, 'Migration must provide a class-management write gate');
@@ -121,4 +128,4 @@ assert.match(classDetailsMigrationSource, /can_manage_extra_class_roster\(\)/, '
 assert.match(classDetailsMigrationSource, /revoke all on function public\.bes_admin_update_extra_class/, 'Class-details RPC must remain unavailable to anonymous callers');
 assert.match(classDetailsMigrationSource, /grant execute on function public\.bes_admin_update_extra_class/, 'Authenticated callers must reach the RPC and be gated inside it');
 
-console.log('Granular attendance tab permissions contract OK');
+console.log('Granular attendance tab and action permissions contract OK');
