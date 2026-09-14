@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { readSheet } from 'read-excel-file/browser';
 import { getRuntimeClient } from '../services/runtime/core.js';
@@ -6,20 +6,16 @@ import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
 import { parseExtraClassRosterRows } from '../utils/extraClassAttendance.js';
 import { hasAttendanceTabAccess } from '../utils/permissions.js';
 import { normalizeSystemRole, SYSTEM_ROLES } from '../utils/roles.js';
-import {
-  GIFTED_TEACHER_ASSIGNMENTS_2026_2027,
-  giftedAssignmentForClass,
-  giftedAssignmentOptions,
-} from '../utils/giftedTeacherCatalog2026.js';
+import { giftedAssignmentForClass } from '../utils/giftedTeacherCatalog2026.js';
 import './GlobalAttendanceAdminPersistenceBridge.css';
-
-const ASSIGNMENT_OPTIONS = giftedAssignmentOptions();
-const DEFAULT_ASSIGNMENT_KEY = 'hsg-2026-tieng-anh-10';
 
 const EMPTY_FORM = {
   class_type: 'gifted',
   class_name: '',
-  assignment_key: DEFAULT_ASSIGNMENT_KEY,
+  subject: '',
+  grade_level: '',
+  school_year: '2026-2027',
+  teacher_names: '',
 };
 
 function fold(value) {
@@ -36,6 +32,25 @@ function sameClassIdentity(row, group) {
   return row?.class_type === group?.class_type
     && fold(row?.class_name) === fold(group?.class_name)
     && fold(row?.subject) === fold(group?.subject);
+}
+
+function parseManualTeacherNames(value) {
+  const names = [];
+  String(value || '').split(/[\n,;]+/).forEach((rawName) => {
+    const name = rawName.trim();
+    if (name && !names.some((current) => fold(current) === fold(name))) names.push(name);
+  });
+  return names;
+}
+
+function buildManualSourceKey(classType, className) {
+  const slug = fold(className)
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 36) || 'class';
+  const uniquePart = globalThis.crypto?.randomUUID?.()
+    || `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  return `manual-${classType}-${slug}-${uniquePart}`;
 }
 
 export default function GlobalAttendanceAdminPersistenceBridge({ currentUser }) {
@@ -55,10 +70,6 @@ export default function GlobalAttendanceAdminPersistenceBridge({ currentUser }) 
   const hasReportAccess = hasAttendanceTabAccess(currentUser, 'report');
   const allowed = Boolean(currentUser?.id && (isAdmin || hasManageAccess || hasReportAccess));
   const reportOnlyCreator = Boolean(currentUser?.id && hasReportAccess && !hasManageAccess && !isAdmin);
-  const assignment = useMemo(
-    () => GIFTED_TEACHER_ASSIGNMENTS_2026_2027.find((item) => item.sourceKey === form.assignment_key) || null,
-    [form.assignment_key],
-  );
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
@@ -76,14 +87,31 @@ export default function GlobalAttendanceAdminPersistenceBridge({ currentUser }) 
   async function createClass(event) {
     event.preventDefault();
     if (!allowed || !client || busy) return;
+
     const className = form.class_name.trim();
+    const subject = form.subject.trim();
+    const gradeLevel = form.grade_level.trim();
+    const schoolYear = form.school_year.trim();
+    const teacherNames = parseManualTeacherNames(form.teacher_names);
 
     if (!className) {
       setError('Vui lòng nhập tên lớp.');
       return;
     }
-    if (!assignment) {
-      setError('Vui lòng chọn đúng khối/môn trong danh sách phân công 2026–2027.');
+    if (!subject) {
+      setError('Vui lòng nhập môn học.');
+      return;
+    }
+    if (!['10', '11', '12'].includes(gradeLevel)) {
+      setError('Vui lòng nhập khối 10, 11 hoặc 12.');
+      return;
+    }
+    if (!schoolYear) {
+      setError('Vui lòng nhập năm học.');
+      return;
+    }
+    if (!teacherNames.length) {
+      setError('Vui lòng nhập ít nhất một giáo viên phụ trách.');
       return;
     }
 
@@ -94,22 +122,22 @@ export default function GlobalAttendanceAdminPersistenceBridge({ currentUser }) 
       const { data, error: createError } = await client.rpc('bes_create_extra_class_with_teachers', {
         p_class_type: form.class_type,
         p_class_name: className,
-        p_subject: assignment.subject,
-        p_source_key: assignment.sourceKey,
-        p_school_year: '2026-2027',
-        p_grade_level: assignment.gradeLevel,
-        p_teacher_names: assignment.teachers,
+        p_subject: subject,
+        p_source_key: buildManualSourceKey(form.class_type, className),
+        p_school_year: schoolYear,
+        p_grade_level: gradeLevel,
+        p_teacher_names: teacherNames,
       });
 
       if (createError) {
         if (String(createError.code) === '23505') {
-          throw new Error('Lớp này hoặc phân công này đã tồn tại trên hệ thống.');
+          throw new Error('Lớp này đã tồn tại trên hệ thống.');
         }
         throw createError;
       }
 
       const created = Array.isArray(data) ? data[0] : data;
-      setNotice(`Đã lưu lớp “${created?.class_name || className}” với ${assignment.teachers.length} giáo viên theo phân công chính thức.`);
+      setNotice(`Đã lưu lớp “${created?.class_name || className}” với ${teacherNames.length} giáo viên bạn tự nhập.`);
       setForm(EMPTY_FORM);
       setOpen(false);
 
@@ -230,7 +258,7 @@ export default function GlobalAttendanceAdminPersistenceBridge({ currentUser }) 
     <div className="attendance-create-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) setOpen(false); }}>
       <form className="attendance-create-dialog" onSubmit={createClass}>
         <header>
-          <div><small>TẠO LỚP THỦ CÔNG</small><h3>Lớp phụ đạo / bồi dưỡng mới</h3><p>Giáo viên lấy từ bảng phân công chính thức khối 10–12 năm học 2026–2027, không lấy từ tài khoản website.</p></div>
+          <div><small>TẠO LỚP THỦ CÔNG</small><h3>Lớp phụ đạo / bồi dưỡng mới</h3><p>Tự nhập thông tin lớp và giáo viên phụ trách. Không bắt buộc theo bảng phân công sẵn có.</p></div>
           <button type="button" aria-label="Đóng" disabled={busy} onClick={() => setOpen(false)}>×</button>
         </header>
 
@@ -239,13 +267,15 @@ export default function GlobalAttendanceAdminPersistenceBridge({ currentUser }) 
 
         <div className="attendance-create-fields">
           <label><span>Loại lớp *</span><select value={form.class_type} onChange={(event) => setForm((current) => ({ ...current, class_type: event.target.value }))}><option value="remedial">Phụ đạo</option><option value="gifted">Bồi dưỡng HSG</option></select></label>
-          <label className="is-wide"><span>Tên lớp *</span><input value={form.class_name} onChange={(event) => setForm((current) => ({ ...current, class_name: event.target.value }))} placeholder={assignment?.className || 'Ví dụ: Bồi dưỡng Tiếng Anh 10'} required /></label>
-          <label className="is-wide"><span>Khối / môn theo phân công *</span><select value={form.assignment_key} onChange={(event) => setForm((current) => ({ ...current, assignment_key: event.target.value }))} required>{ASSIGNMENT_OPTIONS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
-          <label className="is-wide"><span>Giáo viên theo phân công</span><strong>{assignment?.teachers.join(', ') || '—'}</strong><small>{assignment ? `${assignment.teachers.length} giáo viên · khối ${assignment.gradeLevel} · ${assignment.subject}` : 'Chưa có phân công'}</small></label>
+          <label><span>Khối *</span><input value={form.grade_level} inputMode="numeric" maxLength="2" onChange={(event) => setForm((current) => ({ ...current, grade_level: event.target.value }))} placeholder="10, 11 hoặc 12" required /></label>
+          <label className="is-full"><span>Tên lớp *</span><input value={form.class_name} onChange={(event) => setForm((current) => ({ ...current, class_name: event.target.value }))} placeholder="Ví dụ: Bồi dưỡng Tiếng Anh 10" required /></label>
+          <label><span>Môn học *</span><input value={form.subject} onChange={(event) => setForm((current) => ({ ...current, subject: event.target.value }))} placeholder="Ví dụ: Tiếng Anh" required /></label>
+          <label><span>Năm học *</span><input value={form.school_year} onChange={(event) => setForm((current) => ({ ...current, school_year: event.target.value }))} placeholder="2026-2027" required /></label>
+          <label className="is-full"><span>Giáo viên phụ trách *</span><textarea rows="2" value={form.teacher_names} onChange={(event) => setForm((current) => ({ ...current, teacher_names: event.target.value }))} placeholder="Nhập tên giáo viên. Nhiều giáo viên có thể cách nhau bằng dấu phẩy, dấu chấm phẩy hoặc xuống dòng." required /></label>
         </div>
 
         <footer>
-          <span>Các lớp có nhiều giáo viên sẽ giữ đầy đủ toàn bộ giáo viên trong danh sách phân công.</span>
+          <span>Bạn tự quyết định tên lớp, môn, khối và giáo viên; hệ thống chỉ kiểm tra dữ liệu bắt buộc.</span>
           <div><button type="button" disabled={busy} onClick={() => setOpen(false)}>Hủy</button><button type="submit" disabled={busy}>{busy ? 'Đang lưu…' : 'Lưu lớp trên hệ thống'}</button></div>
         </footer>
       </form>
