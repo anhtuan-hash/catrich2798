@@ -1,0 +1,47 @@
+/* Global footer integrity guard.
+   The app shell owns the canonical footer. Route content must never mount a
+   second visible credentials footer, and decorative page layers must stay
+   behind the footer surface. */
+
+.metro-clean-system > main#bes-main-content footer.signature-footer-collapsible {
+  display: none !important;
+}
+
+.metro-clean-system > footer.signature-footer-collapsible ~ footer.signature-footer-collapsible {
+  display: none !important;
+}
+
+.metro-clean-system > footer.signature-footer-collapsible {
+  position: relative !important;
+  z-index: 30 !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  padding: 20px !important;
+  border: 1px solid #e4e8ec !important;
+  border-radius: 28px !important;
+  background: #f8fafc !important;
+  box-shadow: 0 1px 2px rgba(60, 64, 67, .05) !important;
+}
+
+/* Keep the approved three-card composition above the informational rows. */
+.metro-clean-system > footer.signature-footer-collapsible .signature-footer-v50-main {
+  order: 1 !important;
+}
+
+.metro-clean-system > footer.signature-footer-collapsible .signature-footer-expanded-note {
+  order: 2 !important;
+}
+
+.metro-clean-system > footer.signature-footer-collapsible > .signature-footer-static-summary {
+  order: 3 !important;
+}
+
+@media (max-width: 720px) {
+  .metro-clean-system > footer.signature-footer-collapsible {
+    width: calc(100% - 16px) !important;
+    max-width: calc(100% - 16px) !important;
+    margin: 16px auto 12px !important;
+    padding: 12px !important;
+    border-radius: 20px !important;
+  }
+}
