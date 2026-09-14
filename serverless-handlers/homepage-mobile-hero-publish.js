@@ -167,8 +167,8 @@ async function requireAdmin(req) {
   const profile = await getUserProfile(client, user);
   const role = cleanText(profile?.role || user?.app_metadata?.role || user?.user_metadata?.role, '', 80).toLowerCase();
   const approved = profile?.approved !== false && profile?.is_approved !== false;
-  if (!approved || !['admin', 'administrator'].includes(role)) {
-    const error = new Error('Only Admin can publish the Mobile Hero image');
+  if (!approved || !['admin', 'administrator', 'department_head', 'department-head', 'ttcm'].includes(role)) {
+    const error = new Error('Only Admin/TTCM can publish the Mobile Hero image');
     error.status = 403;
     throw error;
   }
