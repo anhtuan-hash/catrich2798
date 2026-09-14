@@ -110,7 +110,7 @@ export default function AttendanceArchivePanel({
             </div>
 
             <div className="attendance-archive__actions">
-              {!approved ? <button type="button" className="is-restore" disabled={busy} onClick={() => onRestore?.(item)}>Khôi phục</button> : null}
+              {!pending && !approved ? <button type="button" className="is-restore" disabled={busy} onClick={() => onRestore?.(item)}>Khôi phục</button> : null}
               {!pending && !approved ? <button type="button" className="is-request" disabled={busy} onClick={() => onRequestDelete?.(item)}>{rejected ? 'Gửi lại yêu cầu xóa' : 'Yêu cầu xóa vĩnh viễn'}</button> : null}
               {isAdmin && pending ? <>
                 <button type="button" className="is-reject" disabled={busy} onClick={() => onRejectDelete?.(item)}>Từ chối</button>

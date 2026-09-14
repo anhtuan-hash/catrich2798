@@ -5,10 +5,12 @@ import { getRuntimeClient } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
 import { normalizeSystemRole, SYSTEM_ROLES } from '../utils/roles.js';
 import {
+  ATTENDANCE_PERMISSION_IDS,
   ATTENDANCE_PERMISSION_ITEMS,
   getFirstAllowedAttendanceTab,
   hasAnyAttendanceAccess,
   hasAttendanceTabAccess,
+  hasExplicitPermissionId,
 } from '../utils/permissions.js';
 import {
   ABSENCE_REASON_OPTIONS,
@@ -240,7 +242,9 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const systemRole = normalizeSystemRole(runtime.role || currentUser?.role, SYSTEM_ROLES.GUEST);
   const isAttendanceAdmin = systemRole === SYSTEM_ROLES.ADMIN;
   const canAccessAttendanceView = (tabId) => isAttendanceAdmin || hasAttendanceTabAccess(currentUser, tabId);
-  const canDeleteAttendanceHistory = isAttendanceAdmin || String(currentUser?.email || '').trim().toLowerCase() === 'hongtham@accounts.brianenglish.studio';
+  const canDeleteAttendanceHistory = isAttendanceAdmin
+    || hasExplicitPermissionId(currentUser, ATTENDANCE_PERMISSION_IDS.delete)
+    || String(currentUser?.email || '').trim().toLowerCase() === 'hongtham@accounts.brianenglish.studio';
   const hasAttendanceReportOverride = isAttendanceAdmin || hasAttendanceTabAccess(currentUser, 'report');
   const canUseQuickAttendance = isAttendanceAdmin || hasAttendanceTabAccess(currentUser, 'quick') || hasAttendanceReportOverride;
   const archiveTab = { id: 'attendance:archive', tab: 'archive', titleVi: 'Kho lưu trữ' };
