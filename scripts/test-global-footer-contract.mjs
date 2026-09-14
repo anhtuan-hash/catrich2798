@@ -48,6 +48,12 @@ const checks = [
     name: 'Mobile footer stacks cards in one column',
     ok: /@media\s*\(max-width:\s*720px\)[\s\S]*?signature-footer-v50-main[\s\S]*?grid-template-columns:\s*1fr\s*!important/.test(footerCss),
   },
+  {
+    name: 'Mobile app-shell guard enforces Dashboard footer parity after route styles',
+    ok: /@media\s*\(max-width:\s*720px\)[\s\S]*?data-app-shell-footer=['"]true['"][\s\S]*?signature-footer-v50-main[\s\S]*?grid-template-columns:\s*minmax\(0,\s*1fr\)\s*!important/.test(integrityCss)
+      && /signature-footer-v50-credentials\s*>\s*ul\s*\{[\s\S]*?display:\s*flex\s*!important[\s\S]*?max-height:\s*none\s*!important/.test(integrityCss)
+      && /signature-footer-v50-detail\s*\{[\s\S]*?display:\s*grid\s*!important/.test(integrityCss),
+  },
 ];
 
 let failed = 0;
