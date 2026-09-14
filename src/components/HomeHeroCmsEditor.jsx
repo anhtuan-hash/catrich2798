@@ -28,6 +28,7 @@ import {
   saveHomeHeroDraft,
 } from '../utils/homepageHeroCms.js';
 import { uploadHomeHeroMedia } from '../utils/homepageHeroMediaOptimizer.js';
+import MobileHeroAdminField from './MobileHeroAdminField.jsx';
 
 const TABS = [
   ['content', Type, 'Nội dung'],
@@ -379,6 +380,8 @@ export default function HomeHeroCmsEditor({
 
             {tab === 'background' ? (
               <section className="hero-editor__section">
+                <MobileHeroAdminField currentUser={currentUser} />
+                <div className="hero-editor__section-title"><div><h3>Nền Hero Desktop</h3><p>Phần này chỉ thay đổi Hero trên màn hình lớn; ảnh mobile được quản lý riêng phía trên.</p></div></div>
                 <div className="hero-editor__upload">
                   <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/apng,video/mp4,video/webm" onChange={handleUpload} hidden />
                   <i>{config.background.type === 'video' ? <Video size={30} /> : <FileImage size={30} />}</i>

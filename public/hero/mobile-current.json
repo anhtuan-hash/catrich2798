@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "revision": "bootstrap",
+  "publishedAt": "",
+  "publishedBy": "",
+  "delivery": "vercel-static",
+  "mobileHero": {
+    "url": "",
+    "fileName": "",
+    "mimeType": "",
+    "fit": "contain"
+  }
+}

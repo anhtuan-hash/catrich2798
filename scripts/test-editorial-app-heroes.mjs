@@ -9,6 +9,11 @@ const files = {
   externalCss: readOptional('src/components/ExternalAppHero.css'),
   tesolJsx: readOptional('src/components/TesolMethodHero.jsx'),
   tesolCss: readOptional('src/components/TesolMethodHero.css'),
+  heroEditor: readOptional('src/components/HomeHeroCmsEditor.jsx'),
+  mobileHeroAdmin: readOptional('src/components/MobileHeroAdminField.jsx'),
+  mobileDirectHero: readOptional('src/mobileHomeDirectHero.js'),
+  mobileHeroApi: readOptional('api/homepage-mobile-hero-publish.js'),
+  mobileHeroBootstrap: readOptional('public/hero/mobile-current.json'),
 };
 
 const checks = [
@@ -30,6 +35,14 @@ const checks = [
   ['TESOL CSS contains editorial journal shell layout', files.tesolCss.includes('.tesol-editorial-shell')],
   ['TESOL hero uses compact viewport sizing', files.tesolCss.includes('--tesol-hero-height:clamp(360px,42vh,460px)') && files.tesolCss.includes('min-height:var(--tesol-hero-height)')],
   ['TESOL CSS respects reduced motion', files.tesolCss.includes('@media(prefers-reduced-motion:reduce)')],
+  ['Homepage Hero editor embeds the dedicated Mobile Hero field', files.heroEditor.includes("import MobileHeroAdminField from './MobileHeroAdminField.jsx'") && files.heroEditor.includes('<MobileHeroAdminField currentUser={currentUser} />')],
+  ['Mobile Hero controls are explicitly admin-only in the client', files.mobileHeroAdmin.includes('isAdminRole(currentUser?.role)') && files.mobileHeroAdmin.includes('Chỉ tài khoản Admin')],
+  ['Mobile Hero controls accept image files and support preview, publish, and reset', files.mobileHeroAdmin.includes('IMAGE_ACCEPT') && files.mobileHeroAdmin.includes('Công bố ảnh mobile') && files.mobileHeroAdmin.includes('handleReset') && files.mobileHeroAdmin.includes('Xem trước Hero Mobile')],
+  ['Mobile Hero is published independently from the desktop Hero document', files.mobileHeroAdmin.includes('/api/homepage-mobile-hero-publish') && files.mobileHeroApi.includes("const MOBILE_DOCUMENT_PATH = 'public/hero/mobile-current.json'")],
+  ['Mobile Hero publish API enforces Admin on the server', files.mobileHeroApi.includes("!['admin', 'administrator'].includes(role)") && files.mobileHeroApi.includes('Only Admin can publish the Mobile Hero image')],
+  ['Mobile Hero publish API restricts media to image MIME types', files.mobileHeroApi.includes('ALLOWED_IMAGE_TYPES') && !files.mobileHeroApi.includes("['video/mp4'" )],
+  ['Mobile homepage loads the published Mobile Hero with the existing art as fallback', files.mobileDirectHero.includes("const MOBILE_HERO_DOCUMENT = '/hero/mobile-current.json'") && files.mobileDirectHero.includes('publishedMobileHeroUrl || mobileHomeHeroImage')],
+  ['Mobile Hero bootstrap document keeps the current mobile art until Admin publishes', files.mobileHeroBootstrap.includes('"revision": "bootstrap"') && files.mobileHeroBootstrap.includes('"url": ""') && files.mobileHeroBootstrap.includes('"fit": "contain"')],
 ];
 
 let failures = 0;
