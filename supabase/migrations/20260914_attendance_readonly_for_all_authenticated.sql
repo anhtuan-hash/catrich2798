@@ -21,6 +21,7 @@ as $$
 $$;
 
 revoke all on function public.can_view_extra_class_attendance() from public;
+revoke all on function public.can_view_extra_class_attendance() from anon;
 grant execute on function public.can_view_extra_class_attendance() to authenticated;
 
 -- Keep the existing admin/operator SELECT policies in place and add a second,
