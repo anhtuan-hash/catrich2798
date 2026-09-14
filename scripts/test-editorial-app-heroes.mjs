@@ -42,7 +42,7 @@ const checks = [
   ['Mobile Hero publish API authorizes TTCM/Admin on the server', files.mobileHeroApi.includes("!['admin', 'administrator', 'department_head', 'department-head', 'ttcm'].includes(role)") && files.mobileHeroApi.includes('Only Admin/TTCM can publish the Mobile Hero image')],
   ['Mobile Hero publish API restricts media to image MIME types', files.mobileHeroApi.includes('ALLOWED_IMAGE_TYPES') && !files.mobileHeroApi.includes("['video/mp4'" )],
   ['Mobile homepage loads the published Mobile Hero with the existing art as fallback', files.mobileDirectHero.includes("const MOBILE_HERO_DOCUMENT = '/hero/mobile-current.json'") && files.mobileDirectHero.includes('publishedMobileHeroUrl || mobileHomeHeroImage')],
-  ['Mobile Hero bootstrap document keeps the current mobile art until Admin publishes', files.mobileHeroBootstrap.includes('"revision": "bootstrap"') && files.mobileHeroBootstrap.includes('"url": ""') && files.mobileHeroBootstrap.includes('"fit": "contain"')],
+  ['Mobile Hero document supports bootstrap or published art', files.mobileHeroBootstrap.includes('"delivery": "vercel-static"') && files.mobileHeroBootstrap.includes('"fit": "contain"') && (files.mobileHeroBootstrap.includes('"revision": "bootstrap"') || (files.mobileHeroBootstrap.includes('"url": "/hero/media/') && files.mobileHeroBootstrap.includes('"mimeType": "image/')))],
 ];
 
 let failures = 0;
