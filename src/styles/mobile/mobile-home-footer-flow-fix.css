@@ -1,0 +1,20 @@
+/* Premium mobile Home now uses the canonical app-shell footer.
+   Both the mobile shell and the Home surface previously reserved the fixed
+   bottom-navigation/browser inset before the footer. Once the shared footer
+   became visible, those two reservations stacked into a large empty band.
+   Keep the reserve out of the pre-footer flow and let the footer follow the
+   final Home card directly. */
+@media (max-width: 720px) {
+  html.bes-mobile-shell-active .metro-clean-system[data-route='home'] > main#bes-main-content {
+    padding-bottom: 0 !important;
+  }
+
+  html.bes-mobile-home-premium-active .metro-clean-system[data-route='home'] .bes-mobile-home.is-premium {
+    padding-bottom: 0 !important;
+  }
+
+  html.bes-mobile-home-premium-active .metro-clean-system[data-route='home'] > footer.footer.signature-footer-collapsible[data-app-shell-footer='true'] {
+    display: flex !important;
+    margin-top: 8px !important;
+  }
+}

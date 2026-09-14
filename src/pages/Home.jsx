@@ -35,5 +35,6 @@ import '../styles/WeeklyPracticeEditorial2026.css';
 import '../styles/HomeEditorialBlueV9.css';
 import '../styles/mobile/mobile-home-compact.css';
 import '../styles/mobile/mobile-home-footer-compact.css';
+import '../styles/mobile/mobile-home-footer-flow-fix.css';
 
 export default HomeApproved;
