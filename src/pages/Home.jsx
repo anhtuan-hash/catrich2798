@@ -18,6 +18,7 @@ import '../styles/HomeHeroCmsEditorInteractionFix.css';
 // complete Grade 10/11/12 week lists without having to sign in or visit Apps.
 import '../homePracticeScheduleScroller.js';
 import '../weeklyPractice20MinuteGuard.js';
+import '../mobileHomeDirectHero.js';
 
 // The weekly runner is portaled to document.body. Its structural stylesheet must
 // travel with Home as well; otherwise the portal falls back into raw document flow.
