@@ -1,1 +1,331 @@
-/* placeholder */
+/* Login/register footer presentation — approved Google-style card layout.
+   Route-scoped so the shared credentials footer on authenticated routes is unchanged. */
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) > footer.signature-footer-collapsible {
+  display: flex !important;
+  flex-direction: column !important;
+  width: min(1480px, calc(100% - 40px)) !important;
+  max-width: calc(100% - 40px) !important;
+  margin: 28px auto 22px !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) > footer.signature-footer-collapsible > .signature-footer-expanded-panel {
+  display: contents !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) > footer.signature-footer-collapsible .signature-footer-v50-main {
+  order: 1 !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, .92fr) minmax(0, 1.02fr) minmax(0, .96fr) !important;
+  align-items: stretch !important;
+  gap: 22px !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) > footer.signature-footer-collapsible .signature-footer-v50-main > section {
+  min-width: 0 !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 26px 28px !important;
+  border: 1px solid #dadce0 !important;
+  border-radius: 22px !important;
+  background: rgba(255, 255, 255, .98) !important;
+  box-shadow: 0 2px 8px rgba(60, 64, 67, .08), 0 10px 26px rgba(60, 64, 67, .05) !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-brand {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-brian-logo {
+  display: block !important;
+  width: min(250px, 88%) !important;
+  max-height: 102px !important;
+  object-fit: contain !important;
+  margin: 0 auto 22px !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-affiliations {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 28px !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 20px 8px 0 !important;
+  border-top: 1px solid #eceff1 !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-affiliations img {
+  width: auto !important;
+  height: 82px !important;
+  max-width: 126px !important;
+  object-fit: contain !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-logo-divider {
+  width: 1px !important;
+  height: 70px !important;
+  background: #e0e3e7 !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-brand::after {
+  content: 'Better Learners  •  Brighter Futures';
+  display: block;
+  margin-top: 18px;
+  color: #7890a6;
+  font-size: .78rem;
+  font-style: italic;
+  letter-spacing: .02em;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-profile {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  text-align: left !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-language-badge {
+  align-self: flex-start !important;
+  min-width: 42px !important;
+  height: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 0 12px !important;
+  padding: 0 12px !important;
+  border-radius: 11px !important;
+  background: #188038 !important;
+  color: #fff !important;
+  font-size: .76rem !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 5px rgba(24, 128, 56, .18) !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-profile h2 {
+  margin: 0 0 12px !important;
+  color: #137333 !important;
+  font-size: clamp(1.28rem, 1.7vw, 1.72rem) !important;
+  line-height: 1.14 !important;
+  font-weight: 800 !important;
+  letter-spacing: -.018em !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-details {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-detail {
+  display: grid !important;
+  grid-template-columns: 34px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-height: 44px !important;
+  margin: 0 !important;
+  padding: 7px 0 !important;
+  border-bottom: 1px solid #eceff1 !important;
+  color: #455b70 !important;
+  font-size: .9rem !important;
+  line-height: 1.42 !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-detail:last-child {
+  border-bottom: 0 !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-detail-icon {
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 50% !important;
+  background: #e6f4ea !important;
+  box-shadow: inset 0 0 0 1px rgba(24, 128, 56, .05) !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-detail-icon::after {
+  color: #188038 !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-credentials {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  text-align: left !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-section-label {
+  display: block !important;
+  margin: 0 0 14px !important;
+  color: #137333 !important;
+  font-size: .92rem !important;
+  line-height: 1.3 !important;
+  font-weight: 850 !important;
+  letter-spacing: .035em !important;
+  text-transform: uppercase !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-credentials > ul {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  list-style: none !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-credentials > ul > li {
+  display: grid !important;
+  grid-template-columns: 26px minmax(0, 1fr) !important;
+  gap: 10px !important;
+  align-items: start !important;
+  margin: 0 !important;
+  padding: 10px 0 !important;
+  border-bottom: 1px solid #eceff1 !important;
+  color: #455b70 !important;
+  font-size: .89rem !important;
+  line-height: 1.42 !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-credentials > ul > li:last-child {
+  border-bottom: 0 !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-star {
+  color: #188038 !important;
+  font-size: 1rem !important;
+  line-height: 1.25 !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) > footer.signature-footer-collapsible .signature-footer-expanded-note {
+  order: 2 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  margin: 18px 0 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #6b7f92 !important;
+  font-size: .77rem !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) > footer.signature-footer-collapsible > .signature-footer-static-summary {
+  order: 3 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  margin: 12px 0 0 !important;
+  padding: 14px 12px 0 !important;
+  border: 0 !important;
+  border-top: 1px solid #dfe4e8 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  text-align: center !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-summary {
+  justify-content: center !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  width: 100% !important;
+  color: #5f7182 !important;
+  font-size: .8rem !important;
+  line-height: 1.4 !important;
+  white-space: normal !important;
+  text-align: center !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-summary strong {
+  color: #3f566c !important;
+  font-weight: 800 !important;
+}
+
+.metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-summary-separator {
+  color: #a8b3bd !important;
+}
+
+@media (max-width: 1040px) {
+  .metro-clean-system:is([data-route='login'], [data-route='register']) > footer.signature-footer-collapsible .signature-footer-v50-main {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-credentials {
+    grid-column: 1 / -1 !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .metro-clean-system:is([data-route='login'], [data-route='register']) > footer.signature-footer-collapsible {
+    width: calc(100% - 24px) !important;
+    max-width: calc(100% - 24px) !important;
+    margin: 18px auto 16px !important;
+  }
+
+  .metro-clean-system:is([data-route='login'], [data-route='register']) > footer.signature-footer-collapsible .signature-footer-v50-main {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-credentials {
+    grid-column: auto !important;
+  }
+
+  .metro-clean-system:is([data-route='login'], [data-route='register']) > footer.signature-footer-collapsible .signature-footer-v50-main > section {
+    padding: 22px 20px !important;
+    border-radius: 18px !important;
+  }
+
+  .metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-brian-logo {
+    width: min(230px, 82%) !important;
+  }
+
+  .metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-affiliations img {
+    height: 68px !important;
+  }
+
+  .metro-clean-system:is([data-route='login'], [data-route='register']) > footer.signature-footer-collapsible .signature-footer-expanded-note {
+    margin-top: 14px !important;
+    padding: 0 10px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-affiliations {
+    gap: 18px !important;
+  }
+
+  .metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-v50-affiliations img {
+    height: 60px !important;
+    max-width: 108px !important;
+  }
+
+  .metro-clean-system:is([data-route='login'], [data-route='register']) .signature-footer-summary {
+    font-size: .75rem !important;
+  }
+}
