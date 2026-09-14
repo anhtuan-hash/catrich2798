@@ -529,7 +529,7 @@ function App() {
           </Suspense>
         </> : null}
         {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><PwaUpdateBanner language={language} /></Suspense> : null}
-        {!['homeroom-portal', 'dashboard'].includes(currentRoute) ? <Footer language={language} currentUser={currentUser} /> : null}
+        <Footer language={language} currentUser={currentUser} />
       </div>
     </>
   );

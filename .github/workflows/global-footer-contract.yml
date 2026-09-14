@@ -1,0 +1,26 @@
+name: Global Footer Contract
+
+on:
+  pull_request:
+    paths:
+      - 'src/main.jsx'
+      - 'src/components/FooterAuthCards.css'
+      - 'src/components/FooterCompactDisclosure.css'
+      - 'scripts/test-global-footer-contract.mjs'
+      - '.github/workflows/global-footer-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  footer-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify global footer contract
+        run: node scripts/test-global-footer-contract.mjs
