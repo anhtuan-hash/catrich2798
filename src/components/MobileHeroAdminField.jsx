@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Check, Image as ImageIcon, LockKeyhole, RotateCcw, Smartphone, Upload } from 'lucide-react';
-import { isAdminRole } from '../utils/roles.js';
+import { isDepartmentLeaderRole } from '../utils/roles.js';
 import { supabase } from '../utils/supabase.js';
 import { uploadHomeHeroMedia } from '../utils/homepageHeroMediaOptimizer.js';
 
@@ -29,7 +29,7 @@ async function readPublishedMobileHero() {
 
 function statusMessage(error) {
   const message = String(error?.message || error || 'Không thể cập nhật Hero Mobile.');
-  if (/admin/i.test(message) && /only|chỉ/i.test(message)) return 'Chỉ tài khoản Admin mới được thay đổi ảnh Hero Mobile.';
+  if (/admin|ttcm|department/i.test(message) && /only|chỉ/i.test(message)) return 'Chỉ tài khoản TTCM/Admin có quyền chỉnh Hero mới được thay đổi ảnh Hero Mobile.';
   if (/GITHUB_HERO_TOKEN/i.test(message)) return 'Vercel chưa có GITHUB_HERO_TOKEN để công bố ảnh Hero Mobile.';
   if (/session|token|đăng nhập/i.test(message)) return 'Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại rồi thử lại.';
   return message;
@@ -37,7 +37,7 @@ function statusMessage(error) {
 
 export default function MobileHeroAdminField({ currentUser }) {
   const inputRef = useRef(null);
-  const canEdit = isAdminRole(currentUser?.role);
+  const canEdit = isDepartmentLeaderRole(currentUser?.role);
   const [published, setPublished] = useState({ url: '', fileName: '', mimeType: '' });
   const [draft, setDraft] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -158,7 +158,7 @@ export default function MobileHeroAdminField({ currentUser }) {
           <div><strong>Ảnh Hero Mobile</strong><small>Ảnh riêng cho phiên bản điện thoại</small></div>
           <LockKeyhole size={19} />
         </header>
-        <p style={{ margin: 0, color: '#64748b', fontSize: 13 }}>Chỉ tài khoản Admin mới có quyền thay đổi ảnh Hero Mobile.</p>
+        <p style={{ margin: 0, color: '#64748b', fontSize: 13 }}>Chỉ tài khoản TTCM/Admin có quyền chỉnh Hero mới được thay đổi ảnh Hero Mobile.</p>
       </article>
     );
   }
@@ -173,7 +173,7 @@ export default function MobileHeroAdminField({ currentUser }) {
         <span style={{ fontSize: 12, color: '#64748b' }}>{loading ? 'Đang tải…' : (usingFallback ? 'Đang dùng ảnh mặc định' : 'Đã có ảnh riêng')}</span>
       </header>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(180px, 320px) 1fr', gap: 18, alignItems: 'center' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 18, alignItems: 'center' }}>
         <div style={{ aspectRatio: '4 / 3', borderRadius: 20, overflow: 'hidden', border: '1px solid rgba(15,23,42,.12)', background: '#f8fbff' }}>
           <img src={previewUrl} alt="Xem trước Hero Mobile" style={{ width: '100%', height: '100%', display: 'block', objectFit: 'contain' }} />
         </div>
