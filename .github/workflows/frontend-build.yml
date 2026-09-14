@@ -133,6 +133,9 @@ jobs:
       - name: Verify granular attendance permissions
         run: node scripts/test-attendance-granular-permissions.mjs
 
+      - name: Verify report-access class creation
+        run: node scripts/test-attendance-report-class-creation-permission.mjs
+
       - name: Verify attendance time access control
         run: node scripts/test-attendance-time-access-control.mjs
 
