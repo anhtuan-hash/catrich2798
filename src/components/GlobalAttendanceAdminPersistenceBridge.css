@@ -106,7 +106,7 @@
 
 .attendance-create-fields {
   display: grid;
-  grid-template-columns: 1fr 2fr;
+  grid-template-columns: 1fr 1fr;
   gap: 16px;
   padding: 22px 24px;
 }
@@ -120,6 +120,10 @@
   grid-column: span 1;
 }
 
+.attendance-create-fields label.is-full {
+  grid-column: 1 / -1;
+}
+
 .attendance-create-fields span {
   color: #40536a;
   font-size: 12px;
@@ -127,7 +131,8 @@
 }
 
 .attendance-create-fields input,
-.attendance-create-fields select {
+.attendance-create-fields select,
+.attendance-create-fields textarea {
   width: 100%;
   min-height: 44px;
   box-sizing: border-box;
@@ -140,8 +145,16 @@
   outline: none;
 }
 
+.attendance-create-fields textarea {
+  min-height: 76px;
+  padding: 11px 12px;
+  line-height: 1.45;
+  resize: vertical;
+}
+
 .attendance-create-fields input:focus,
-.attendance-create-fields select:focus {
+.attendance-create-fields select:focus,
+.attendance-create-fields textarea:focus {
   border-color: #7fa8e4;
   box-shadow: 0 0 0 3px rgba(36, 104, 216, .10);
 }
@@ -211,6 +224,7 @@
 @media (max-width: 900px) {
   .attendance-persistence-actions small { display: none; }
   .attendance-create-fields { grid-template-columns: 1fr; }
+  .attendance-create-fields label.is-full { grid-column: auto; }
   .attendance-create-dialog > footer { align-items: stretch; flex-direction: column; }
   .attendance-create-dialog > footer > div { justify-content: flex-end; }
 }
