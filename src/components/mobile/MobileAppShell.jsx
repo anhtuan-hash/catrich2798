@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Bell, X } from 'lucide-react';
 import { hasAnyAttendanceAccess, hasRouteAccess } from '../../utils/permissions.js';
 import { isAdminRole } from '../../utils/roles.js';
@@ -97,8 +98,7 @@ function MobileNotificationSheet({ open, currentUser, language, onClose }) {
 
   if (!open) return null;
   const vi = language !== 'en';
-
-  return (
+  const sheet = (
     <div className="bes-mobile-sheet-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose?.(); }}>
       <section className="bes-mobile-sheet bes-mobile-notifications" role="dialog" aria-modal="true" aria-label={vi ? 'Thông báo' : 'Notifications'}>
         <div className="bes-mobile-sheet__handle" aria-hidden="true" />
@@ -117,6 +117,10 @@ function MobileNotificationSheet({ open, currentUser, language, onClose }) {
       </section>
     </div>
   );
+
+  return typeof document !== 'undefined' && document.body
+    ? createPortal(sheet, document.body)
+    : sheet;
 }
 
 export default function MobileAppShell({
