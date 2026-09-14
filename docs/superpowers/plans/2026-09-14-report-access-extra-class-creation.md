@@ -4,7 +4,7 @@
 
 **Goal:** Allow Admins and approved accounts with Attendance report access to create new `bes_extra_classes` (manual + Excel import) without widening existing class-management mutations.
 
-**Design:** Introduce a narrow create capability separate from `can_manage_extra_class_roster()`. Frontend exposes the Quản lý lớp surface to report holders only for read/create/import actions; existing-class mutations remain guarded by `attendance:manage`. Backend manual creation and a new transactional create-with-members RPC use the new create gate. Report-only import is create-only: existing classes are skipped, never updated.
+**Design:** Introduce a narrow create capability separate from `can_manage_extra_class_roster()`. The existing persistence bridge exposes manual creation to Admin/Manage/Report accounts. For a report-only account, the bridge falls back to the Attendance header and adds a create-only Excel import action, so the account does not need to receive the broader `attendance:manage` UI capability. Backend manual creation and a new transactional create-with-members RPC use the new create gate. Report-only import is create-only: existing classes are skipped, never updated.
 
 ## Task 1 — Lock the authorization contract with a failing test
 
@@ -12,12 +12,12 @@
 - Create: `scripts/test-attendance-report-class-creation-permission.mjs`
 - Modify: `.github/workflows/frontend-build.yml`
 
-1. Assert `attendance:report` is recognized as a class-creation capability without changing `attendance:manage` semantics.
-2. Assert the manual class bridge admits report access.
-3. Assert the Manage tab/workspace separates `canCreateClasses` from `canManageMembers`.
+1. Assert `attendance:report` remains distinct from `attendance:manage`.
+2. Assert the class-creation bridge recognizes report access.
+3. Assert report-only creation controls have an Attendance-header fallback even without the Manage tab.
 4. Assert report-only Excel import uses a create-only RPC and skips existing-class mutation.
 5. Assert the new migration defines a narrow `can_create_extra_class_roster()` gate and leaves edit/delete/member-management gates unchanged.
-6. Run `node scripts/test-attendance-report-class-creation-permission.mjs` and confirm RED before production changes.
+6. Run the contract in CI and confirm RED before production changes.
 
 ## Task 2 — Add the narrow backend create capability
 
@@ -35,15 +35,12 @@
 
 **Files:**
 - Modify: `src/components/GlobalAttendanceAdminPersistenceBridge.jsx`
-- Modify: `src/components/GlobalAttendanceNavigationTab.jsx`
-- Modify: `src/components/attendance/AttendanceClassManagementWorkspace.jsx`
 
 1. Manual “Tạo lớp mới”: allow Admin, `attendance:manage`, or `attendance:report` while continuing to call the transactional create RPC.
-2. Treat report access as sufficient to open the Quản lý lớp surface, but keep `canManageMembers` tied only to the existing Manage permission/Admin.
-3. Pass a separate `canCreateClasses` capability into the workspace.
-4. Keep import/create controls visible only to create-capable users.
-5. For report-only import, skip any class that already exists and call `bes_create_extra_class_with_members` only for new classes. Do not update/reactivate any existing class/member.
-6. Keep edit class, add/remove student, add teacher, and delete class controls unavailable to report-only users.
+2. Keep the existing placement inside `.attendance-import-card` for Admin/Manage users.
+3. For report-only users, fall back to `.attendance-top-actions`, making creation available without granting the Manage tab.
+4. Add a report-only Excel import action that reads the existing class list, skips classes that already exist, and calls `bes_create_extra_class_with_members` only for genuinely new classes.
+5. Do not issue direct UPDATE/DELETE calls against existing classes or members from the report-only bridge.
 
 ## Task 4 — Verify and review
 
@@ -52,4 +49,4 @@
 3. Run `node scripts/test-attendance-manual-class-teacher-persistence.mjs` — GREEN.
 4. Run `npm run build` — GREEN.
 5. Let the PR Frontend Build workflow run and inspect failures before claiming completion.
-6. Review the diff for privilege expansion: report-only must be able to create/import *new* classes only; no existing-class mutation privilege is added.
+6. Review the diff for privilege expansion: report-only may create/import *new* classes only; no existing-class mutation privilege is added.
