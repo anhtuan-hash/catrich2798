@@ -29,6 +29,7 @@ for (const token of [
 }
 assert.match(migration, /revoke\s+all\s+on\s+function[\s\S]*from\s+(?:public\s*,\s*)?anon\b/i, 'Archive RPC execution must be revoked from anonymous callers.');
 assert.doesNotMatch(migration, /delete\s+from\s+storage\.objects/i, 'Database RPCs must not delete Storage metadata directly.');
+assert.match(migration, /create\s+or\s+replace\s+function\s+public\.bes_finalize_attendance_archive_delete\s*\([^)]*\)[\s\S]*?as\s+\$\$[\s\S]*?end;\s*\$\$;/i, 'Permanent-delete finalizer must use valid PostgreSQL dollar quoting.');
 assert.match(migration, /bes_finalize_attendance_archive_delete[\s\S]*if\s+not\s+public\.is_admin\(\)/i, 'Only Admin may finalize permanent deletion.');
 assert.match(migration, /bes_restore_attendance_archive[\s\S]*delete_request_status\s*=\s*'approved'/i, 'Approved deletions must be blocked from restore while finalization is pending.');
 assert.match(migration, /Buổi Học bổ sung này đã có dữ liệu điểm danh mới/i, 'Supplemental restore must guard against overwriting a newly attended session.');
