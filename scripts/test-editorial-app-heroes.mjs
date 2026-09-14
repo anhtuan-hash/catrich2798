@@ -12,7 +12,7 @@ const files = {
   heroEditor: readOptional('src/components/HomeHeroCmsEditor.jsx'),
   mobileHeroAdmin: readOptional('src/components/MobileHeroAdminField.jsx'),
   mobileDirectHero: readOptional('src/mobileHomeDirectHero.js'),
-  mobileHeroApi: readOptional('api/homepage-mobile-hero-publish.js'),
+  mobileHeroApi: readOptional('serverless-handlers/homepage-mobile-hero-publish.js'),
   mobileHeroBootstrap: readOptional('public/hero/mobile-current.json'),
 };
 
