@@ -2,6 +2,7 @@ import fs from 'node:fs';
 
 const mainSource = fs.readFileSync(new URL('../src/main.jsx', import.meta.url), 'utf8');
 const footerCss = fs.readFileSync(new URL('../src/components/FooterAuthCards.css', import.meta.url), 'utf8');
+const disclosureCss = fs.readFileSync(new URL('../src/components/FooterCompactDisclosure.css', import.meta.url), 'utf8');
 
 const checks = [
   {
@@ -15,7 +16,7 @@ const checks = [
   },
   {
     name: 'Mobile Home no longer hides the shared footer',
-    ok: !footerCss.includes("[data-route='home']:has([data-mobile-home-premium]) > footer.signature-footer-collapsible"),
+    ok: !disclosureCss.includes("[data-route='home']:has([data-mobile-home-premium]) > footer.signature-footer-collapsible"),
   },
   {
     name: 'Mobile footer stacks cards in one column',
