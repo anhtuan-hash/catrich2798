@@ -34,21 +34,6 @@ function cleanText(value, fallback = '', max = 2000) {
   return String(value ?? fallback).replace(/\u0000/g, '').trim().slice(0, max);
 }
 
-function number(value, fallback, min, max) {
-  const parsed = Number(value);
-  if (!Number.isFinite(parsed)) return fallback;
-  return Math.max(min, Math.min(max, parsed));
-}
-
-function normalizeVisualSettings(input = {}) {
-  return {
-    fit: ['cover', 'contain'].includes(input?.fit) ? input.fit : 'contain',
-    positionX: number(input?.positionX, 50, 0, 100),
-    positionY: number(input?.positionY, 50, 0, 100),
-    zoom: number(input?.zoom, 1, 0.5, 2),
-  };
-}
-
 function githubSettings() {
   const token = process.env.GITHUB_HERO_TOKEN || process.env.GITHUB_TOKEN || '';
   const repository = process.env.GITHUB_HERO_REPOSITORY || DEFAULT_REPOSITORY;
@@ -106,12 +91,6 @@ function resolveImageUrl(req, value) {
     throw new Error(`Hero media host is not allowed: ${url.hostname}`);
   }
   return url;
-}
-
-function existingStaticMedia(value) {
-  const raw = cleanText(value, '', 2000);
-  if (!/^\/hero\/media\/[A-Za-z0-9._-]+$/.test(raw)) return '';
-  return raw;
 }
 
 async function downloadImage(req, source) {
@@ -221,43 +200,31 @@ export default async function handler(req, res) {
     const publishedAt = new Date().toISOString();
     const revision = `${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
     const entries = [];
-    const visual = normalizeVisualSettings(req.body);
 
     let mobileHero = {
       url: '',
       fileName: '',
       mimeType: '',
-      ...visual,
+      fit: 'contain',
     };
 
     if (!remove) {
-      const currentStaticUrl = existingStaticMedia(req.body?.url);
-      if (currentStaticUrl) {
-        mobileHero = {
-          url: currentStaticUrl,
-          fileName: cleanText(req.body?.fileName, currentStaticUrl.split('/').pop() || '', 240),
-          mimeType: cleanText(req.body?.mimeType, '', 120),
-          ...visual,
-        };
-      } else {
-        const media = await downloadImage(req, req.body?.url);
-        entries.push({ path: media.repositoryPath, content: media.bytes });
-        mobileHero = {
-          url: media.publicPath,
-          fileName: media.fileName,
-          mimeType: media.mimeType,
-          ...visual,
-        };
-      }
+      const media = await downloadImage(req, req.body?.url);
+      entries.push({ path: media.repositoryPath, content: media.bytes });
+      mobileHero = {
+        url: media.publicPath,
+        fileName: media.fileName,
+        mimeType: media.mimeType,
+        fit: 'contain',
+      };
     }
 
     const staticDocument = {
-      schemaVersion: 2,
+      schemaVersion: 1,
       revision,
       publishedAt,
       publishedBy: user.email || user.id,
       delivery: 'vercel-static',
-      target: 'mobile',
       mobileHero,
     };
     entries.push({
@@ -275,7 +242,6 @@ export default async function handler(req, res) {
       ok: true,
       deploymentPending: true,
       delivery: 'vercel-static',
-      target: 'mobile',
       revision,
       publishedAt,
       commitSha,
