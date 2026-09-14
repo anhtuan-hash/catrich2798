@@ -23,7 +23,7 @@ import GlobalGradebookNavigationTab from './GlobalGradebookNavigationTab.jsx';
 import GlobalReportsNavigationTab from './GlobalReportsNavigationTab.jsx';
 import GlobalTtcmNavigationTab from './GlobalTtcmNavigationTab.jsx';
 import GlobalTtcmMobileAdapter from './GlobalTtcmMobileAdapter.jsx';
-import GlobalAttendanceNavigationTab from './GlobalAttendanceNavigationTab.jsx';
+import GlobalAttendanceNavigationTab from './GlobalAttendanceReadOnlyNavigationTab.jsx';
 import GlobalAttendanceAdminPersistenceBridge from './GlobalAttendanceAdminPersistenceBridge.jsx';
 import GlobalDashboardFooterBridge from './GlobalDashboardFooterBridge.jsx';
 import GlobalEnglishHubBrand from './GlobalEnglishHubBrand.jsx';
