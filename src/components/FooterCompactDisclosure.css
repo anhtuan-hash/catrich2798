@@ -204,3 +204,10 @@ html[data-theme="dark"] .metro-clean-system .signature-footer-expanded-note,
   order:2147483647!important;
   margin-top:auto!important;
 }
+
+/* Premium mobile Home owns its entire visual flow. The legacy credentials
+   footer remains mounted for other routes and desktop Home, but must not
+   compete with the approved mobile composition. */
+.metro-clean-system[data-route='home']:has([data-mobile-home-premium]) > footer.signature-footer-collapsible{
+  display:none!important;
+}
