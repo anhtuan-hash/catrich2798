@@ -305,7 +305,7 @@ export async function printAttendanceReportPdf(report, filters = {}) {
     <section class="section"><h2>3. CHI TIẾT HỌC SINH ĐI TRỄ</h2>${lateHtml ? `<table><thead><tr><th style="width:10%">Ngày</th><th style="width:26%">Học sinh</th><th style="width:22%">Lớp / môn</th><th style="width:18%">Giáo viên</th><th style="width:16%">Giờ dạy / chốt</th><th>Phòng</th></tr></thead><tbody>${lateHtml}</tbody></table>` : '<p class="empty">Không có học sinh đi trễ trong dữ liệu phù hợp bộ lọc.</p>'}</section>
     <div class="remarks"><b>NHẬN XÉT CHUNG</b>${htmlEscape(filters.generalRemarks || 'Không có nhận xét chung.')}</div>
     <div class="reporter"><div class="date">${htmlEscape(vietnamReportDate())}</div><strong>NGƯỜI BÁO CÁO</strong><b>${htmlEscape(filters.reporterName || 'Chưa ghi')}</b><span>${htmlEscape(filters.reporterTitle || 'Chưa ghi chức vụ')}</span></div>
-    <div class="footer">Báo cáo được lập từ phân hệ Điểm danh lớp phụ đạo &amp; bồi dưỡng.</div>
+    <div class="footer"><strong>SẢN PHẨM CÔNG NGHỆ SỐ • TỔ TIẾNG ANH THPT • NĂM HỌC 2026–2027</strong><br>Chủ trì xây dựng và thực hiện: Tổ trưởng chuyên môn Nguyễn Anh Tuấn</div>
   </main>
   </body></html>`);
   popup.document.close();
