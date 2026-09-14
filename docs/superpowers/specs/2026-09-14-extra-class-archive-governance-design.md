@@ -44,6 +44,8 @@ Each row represents one archived class package and contains at minimum:
 
 Snapshots must retain original primary keys and foreign-key identifiers so restoration can return the package to the same logical identity.
 
+While a class is archived, there must be at most one live archive package for the same original class id. Enforce this with an appropriate unique constraint/index or equivalent server-side guard.
+
 ## Archive transaction
 
 Add a server RPC such as `bes_archive_extra_class(p_class_id uuid)`.
@@ -71,7 +73,7 @@ The RPC must:
 
 1. Verify the caller is an approved Admin or has `attendance:manage`.
 2. Lock the archive row.
-3. Refuse restoration while the delete request is `pending` or `approved`.
+3. Allow restoration only from `none` or `rejected` status. Refuse restoration from `pending` or `approved`.
 4. Validate that restoring the original class id/source key will not collide with an active class created after archiving.
 5. Restore the class row first, then teacher assignments, members, sessions and attendance records in dependency order.
 6. Preserve original ids and timestamps where valid.
@@ -82,7 +84,17 @@ If any required insert fails, the transaction must roll back and the archive pac
 
 ## Permanent-delete request and Admin approval
 
-Use the same governance states already established by attendance-history archive: `none -> pending -> approved/rejected`.
+Use the same governance states already established by attendance-history archive.
+
+Valid transitions are:
+
+- `none -> pending` when Admin or `attendance:manage` requests permanent deletion;
+- `rejected -> pending` when Admin or `attendance:manage` resubmits after rejection;
+- `pending -> rejected` when Admin rejects;
+- `pending -> approved` when Admin approves;
+- `approved -> finalized` only by successful permanent-deletion finalization, represented by removing the archive row.
+
+No other transition is valid.
 
 Add RPCs equivalent to:
 
@@ -90,23 +102,23 @@ Add RPCs equivalent to:
 - `bes_review_extra_class_archive_delete(p_archive_id uuid, p_approve boolean, p_note text)` for Admin only;
 - `bes_finalize_extra_class_archive_delete(p_archive_id uuid)` for Admin only and only from `approved` state.
 
-A request entering `pending` must notify approved Admin accounts. Resubmission after rejection should create a fresh notification.
+A request entering `pending` must notify approved Admin accounts. Resubmission after rejection must create a fresh notification.
 
-Approval and finalization remain separate states so storage cleanup can fail safely without losing the database snapshot.
+Approval and finalization remain separate so proof-storage cleanup can fail safely without losing the database snapshot.
 
 ## Permanent deletion and proof cleanup
 
 Permanent deletion is allowed only after Admin approval.
 
-Finalization must:
+Use a two-phase cleanup matching the existing attendance-archive safety pattern:
 
-1. Verify Admin role server-side.
-2. Verify archive status is `approved`.
-3. Delete every proof object referenced by the archived session snapshots.
-4. If any proof deletion fails, keep the archive row and approved state so Admin can retry. Do not discard the database snapshot.
-5. Delete the archive row only after storage cleanup succeeds.
+1. Admin review RPC moves the archive row from `pending` to `approved` and returns the proof paths needed for cleanup.
+2. The authenticated Admin client removes every referenced proof object from the attendance proof storage bucket.
+3. Only after all proof deletions succeed does the client call the Admin-only finalize RPC.
+4. The finalize RPC rechecks Admin role and `approved` status, then deletes the archive row.
+5. If any proof deletion fails, do not call finalize. Keep the archive row in `approved` state so Admin can retry cleanup later.
 
-The archived operational rows do not need to be deleted again because they were removed from active tables at archive time. Finalization therefore destroys the last recoverable class snapshot and associated proof files.
+The archived operational rows do not need to be deleted again because they were removed from active tables at archive time. Finalization therefore destroys the last recoverable class snapshot after its proof files are gone.
 
 ## Audit trail
 
@@ -162,10 +174,10 @@ A class archive card should show at least:
 
 Actions:
 
-- Admin or `attendance:manage`: `Khôi phục` when status is neither `pending` nor `approved`;
-- Admin or `attendance:manage`: `Yêu cầu xóa vĩnh viễn` when status permits;
-- Admin only: `Từ chối` and `Duyệt xóa vĩnh viễn` while pending;
-- Admin only: retry/finalize permanent deletion while approved.
+- Admin or `attendance:manage`: `Khôi phục` only in `none` or `rejected` state;
+- Admin or `attendance:manage`: `Yêu cầu xóa vĩnh viễn` only in `none` or `rejected` state;
+- Admin only: `Từ chối` and `Duyệt xóa vĩnh viễn` while `pending`;
+- Admin only: retry/finalize permanent deletion while `approved`.
 
 Report-only users do not receive these class-archive mutation actions.
 
@@ -173,16 +185,16 @@ Report-only users do not receive these class-archive mutation actions.
 
 Do not change the meaning of `bes_attendance_archive`. Individual attendance sessions archived from Lịch sử/Báo cáo continue to use the existing APIs and UI lifecycle.
 
-A whole-class archive is a distinct object. If a class contains active attendance sessions, those sessions are captured inside the class archive package rather than individually inserted into `bes_attendance_archive`.
+A whole-class archive is a distinct object. If a class contains attendance sessions, those sessions are captured inside the class archive package rather than individually inserted into `bes_attendance_archive`.
 
 This avoids duplicate ownership of the same session snapshot and keeps class restoration atomic.
 
 ## Error handling and conflicts
 
 - Missing target class: return a not-found error without creating archive data.
-- Already archived class: return an idempotent/already-archived response when safe, or a clear conflict error.
+- Already archived class: return a clear conflict or idempotent `already_archived` response; in either case do not create a second archive row.
 - Restore collision on original class id or unique `source_key`: keep the archive untouched and return a conflict requiring operator resolution.
-- Pending/approved purge request: restoration is blocked.
+- Pending/approved purge request: restoration and new delete requests are blocked.
 - Unauthorized caller: return `42501`-style permission error from RPC.
 - Storage cleanup failure after Admin approval: keep approved archive data for retry.
 
@@ -210,12 +222,13 @@ Use TDD. Add failing contracts before implementation for these cases:
 7. Restore is blocked for `pending` and `approved` purge states.
 8. `attendance:manage` can request permanent deletion but cannot approve/reject/finalize it.
 9. Admin can reject a request and the item becomes restorable again.
-10. Admin can approve and finalize permanent deletion.
-11. Storage cleanup failure preserves the approved archive for retry.
-12. Existing attendance-history archive behavior remains unchanged.
-13. UI contract: class delete action is archive-first and is not exposed to report-only accounts.
-14. UI contract: Archive tab shows class items and Admin governance actions correctly.
-15. Production build and Critical E2E continue to pass.
+10. Admin can approve a request; approval alone does not remove the archive snapshot.
+11. Proof-storage cleanup failure preserves the approved archive for retry.
+12. Finalize is Admin-only and succeeds only from `approved` after proof cleanup.
+13. Existing attendance-history archive behavior remains unchanged.
+14. UI contract: class delete action is archive-first and is not exposed to report-only accounts.
+15. UI contract: Archive tab shows class items and Admin governance actions correctly.
+16. Production build and Critical E2E continue to pass.
 
 ## Success criteria
 
