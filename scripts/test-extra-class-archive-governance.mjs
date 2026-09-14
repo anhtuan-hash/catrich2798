@@ -28,6 +28,7 @@ for (const token of [
   'teachers_snapshot',
   'sessions_snapshot',
   'records_snapshot',
+  'changes_snapshot',
   'proof_paths',
 ]) {
   assert.ok(migration.includes(token), `Missing database contract: ${token}`);
@@ -49,6 +50,10 @@ assert.match(migration, /delete_request_status[\s\S]*'none'[\s\S]*'pending'[\s\S
   'Archive must model the approved state machine.');
 assert.match(migration, /bes_restore_extra_class_archive[\s\S]*not\s+in\s*\(\s*'none'\s*,\s*'rejected'\s*\)/i,
   'Restore must be blocked while purge is pending or approved.');
+assert.match(migration, /bes_extra_attendance_record_changes[\s\S]*changes_snapshot/i,
+  'Whole-class archive must preserve attendance edit-history snapshots.');
+assert.match(migration, /jsonb_populate_recordset\(null::public\.bes_extra_attendance_record_changes,\s*v_archive\.changes_snapshot\)/i,
+  'Restore must recreate attendance edit-history rows.');
 assert.match(migration, /attendance_class_purge_approval/i,
   'Permanent-delete requests must create a dedicated Admin notification.');
 assert.match(migration, /work_hub_notifications[\s\S]*null::uuid[\s\S]*attendance_class_purge_approval/i,
@@ -85,7 +90,7 @@ for (const name of [
 }
 assert.match(api, /storage\.from\(ATTENDANCE_PROOF_BUCKET\)\.remove\(proofPaths\)/,
   'Approved permanent deletion must remove all proof paths through Storage before finalize.');
-assert.match(api, /finalizeExtraClassArchiveDelete\(client,\s*archiveId\)/,
+assert.match(api, /finalizeExtraClassArchiveDelete\(client,\s*archiveId/,
   'Archive row finalization must happen only after proof cleanup.');
 
 assert.match(navigation, /archiveExtraClass/,
@@ -98,6 +103,8 @@ assert.match(navigation, /canUseClassArchive/,
   'Class archive visibility must be modeled separately from attendance-history archive visibility.');
 assert.match(navigation, /canUseAttendanceHistoryArchive/,
   'Existing attendance-history archive visibility must stay separate.');
+assert.match(navigation, /if\s*\(open\s*&&\s*canOpenArchive\)\s*loadArchive\(\)/,
+  'Manage-only archive users must load their class archive automatically when the module opens.');
 assert.match(workspace, /canArchiveClass/,
   'Workspace must receive an explicit class-archive capability.');
 assert.match(workspace, /canArchiveClass\s*\?\s*\(/,
