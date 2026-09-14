@@ -59,7 +59,7 @@ assert.doesNotMatch(governance, /interval\s+'?30\s+days'?|expires_at/i, 'Attenda
 
 assert.match(permissions, /delete:\s*'attendance:delete'/, 'Permission registry must expose attendance:delete as a stable permission id.');
 assert.match(permissions, /ATTENDANCE_ACTION_PERMISSION_ITEMS/, 'Destructive attendance permission must be modeled separately from view tabs.');
-assert.match(permissions, /ATTENDANCE_ACTION_PERMISSION_ITEMS[\s\S]*attendance:delete/i, 'Attendance action permissions must include attendance:delete.');
+assert.match(permissions, /ATTENDANCE_ACTION_PERMISSION_ITEMS\s*=\s*\[[\s\S]*?id:\s*ATTENDANCE_PERMISSION_IDS\.delete[\s\S]*?\];/, 'Attendance action permissions must include the attendance:delete id.');
 const tabItemsStart = permissions.indexOf('export const ATTENDANCE_PERMISSION_ITEMS');
 const tabItemsEnd = permissions.indexOf('export const ATTENDANCE_ACTION_PERMISSION_ITEMS', tabItemsStart);
 assert.ok(tabItemsStart >= 0 && tabItemsEnd > tabItemsStart, 'Attendance tab and action permission registries must be separate.');
