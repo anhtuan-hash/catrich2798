@@ -355,8 +355,8 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   }, [open, allowed, runtime.ready, runtime.session?.user?.id]);
 
   useEffect(() => {
-    if (open && canDeleteAttendanceHistory) loadArchive();
-  }, [open, canDeleteAttendanceHistory, runtime.ready, runtime.session?.user?.id]);
+    if (open && canOpenArchive) loadArchive();
+  }, [open, canOpenArchive, runtime.ready, runtime.session?.user?.id]);
 
   const activeClasses = useMemo(() => classes.filter((row) => row.active !== false), [classes]);
   const selectedClass = useMemo(() => classes.find((row) => String(row.id) === String(selectedClassId)) || null, [classes, selectedClassId]);
