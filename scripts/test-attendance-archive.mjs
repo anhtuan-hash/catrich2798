@@ -35,6 +35,10 @@ assert.match(migration, /create\s+or\s+replace\s+function\s+public\.bes_finalize
 assert.match(migration, /bes_finalize_attendance_archive_delete[\s\S]*if\s+not\s+public\.is_admin\(\)/i, 'Only Admin may finalize permanent deletion.');
 assert.match(migration, /bes_restore_attendance_archive[\s\S]*delete_request_status\s*=\s*'approved'/i, 'Approved deletions must be blocked from restore while finalization is pending.');
 assert.match(migration, /Buổi Học bổ sung này đã có dữ liệu điểm danh mới/i, 'Supplemental restore must guard against overwriting a newly attended session.');
+assert.doesNotMatch(migration, /unique\s*\(\s*source_type\s*,\s*source_session_id\s*\)/i, 'Archive must keep multiple historical versions when the same session is attended and archived again.');
+assert.doesNotMatch(migration, /on\s+conflict\s*\(\s*source_type\s*,\s*source_session_id\s*\)\s+do\s+update/i, 'Re-archiving a session must insert a new snapshot instead of overwriting an older archive version.');
+assert.match(migration, /bes_attendance_archive_source_session_idx[\s\S]*source_type\s*,\s*source_session_id/i, 'Archive should keep a non-unique source/session lookup index for idempotent legacy calls.');
+assert.match(migration, /where\s+a\.source_type\s*=\s*'extra'\s+and\s+a\.source_session_id\s*=\s*p_session_id[\s\S]*order\s+by\s+a\.archived_at\s+desc[\s\S]*limit\s+1/i, 'Repeated legacy delete calls must resolve the latest archived version deterministically.');
 
 for (const token of [
   'attendance:delete',
