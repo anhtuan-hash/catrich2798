@@ -63,7 +63,7 @@ assert.match(permissions, /ATTENDANCE_ACTION_PERMISSION_ITEMS\s*=\s*\[[\s\S]*?id
 const tabItemsStart = permissions.indexOf('export const ATTENDANCE_PERMISSION_ITEMS');
 const tabItemsEnd = permissions.indexOf('export const ATTENDANCE_ACTION_PERMISSION_ITEMS', tabItemsStart);
 assert.ok(tabItemsStart >= 0 && tabItemsEnd > tabItemsStart, 'Attendance tab and action permission registries must be separate.');
-assert.ok(!permissions.slice(tabItemsStart, tabItemsEnd).includes('attendance:delete'), 'attendance:delete must never become a fake attendance tab.');
+assert.ok(!permissions.slice(tabItemsStart, tabItemsEnd).includes('id: ATTENDANCE_PERMISSION_IDS.delete'), 'attendance:delete must never become a fake attendance tab.');
 assert.match(permissions, /ATTENDANCE_PERMISSION_GROUP[\s\S]*ATTENDANCE_ACTION_PERMISSION_ITEMS/, 'Attendance permission group must expose both tab and destructive action grants to Admin permission management.');
 
 for (const token of [
