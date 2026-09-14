@@ -79,6 +79,11 @@ const migration = fs.readFileSync(
 assert.match(migration, /create or replace function public\.can_view_extra_class_attendance\(\)/i);
 assert.match(migration, /p\.id\s*=\s*auth\.uid\(\)/i);
 assert.match(migration, /p\.approved\s*=\s*true/i);
+assert.match(
+  migration,
+  /revoke\s+all\s+on\s+function\s+public\.can_view_extra_class_attendance\(\)\s+from\s+anon/i,
+  'anonymous callers must not be granted the SECURITY DEFINER view helper',
+);
 for (const table of [
   'bes_extra_classes',
   'bes_extra_class_members',
