@@ -1,6 +1,7 @@
 import React from 'react';
 import { APP_VERSION } from '../config/version.js';
 import './FooterCompactDisclosure.css';
+import './FooterAuthCards.css';
 
 const ENGLISH_DETAILS = {
   language: 'EN',
