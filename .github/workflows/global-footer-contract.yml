@@ -60,7 +60,7 @@ jobs:
           let disclosure = fs.readFileSync(disclosurePath, 'utf8');
           const hideRule = /\n\/\* Premium mobile Home owns its entire visual flow\.[\s\S]*?\.metro-clean-system\[data-route='home'\]:has\(\[data-mobile-home-premium\]\) > footer\.signature-footer-collapsible\{\s*display:none!important;\s*\}\s*$/;
           if (hideRule.test(disclosure)) {
-            disclosure = disclosure.replace(hideRule, '\n');
+            disclosure = disclosure.replace(hideRule, '').replace(/\n+$/, '\n');
             fs.writeFileSync(disclosurePath, disclosure);
           }
           NODE
