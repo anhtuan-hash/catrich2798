@@ -69,3 +69,33 @@ test('authenticated avatar opens mobile account menu without leaving dashboard',
   expect(box.x).toBeGreaterThanOrEqual(0);
   expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
 });
+
+test('account notifications open as a visible sheet inside the phone viewport', async ({ page }, testInfo) => {
+  test.skip(!['mobile-chromium', 'mobile-webkit'].includes(testInfo.project.name));
+  await installAdminSession(page);
+  await page.goto('/#/dashboard');
+
+  const avatar = page.locator('.bes-mobile-topbar .bes-mobile-avatar-button');
+  await expect(avatar).toBeVisible();
+  await avatar.click();
+
+  const accountMenu = page.getByRole('dialog', { name: 'Menu tài khoản' });
+  await expect(accountMenu).toBeVisible();
+  await accountMenu.getByRole('button', { name: 'Thông báo', exact: true }).click();
+  await expect(accountMenu).toBeHidden();
+
+  const layer = page.locator('.bes-mobile-sheet-layer');
+  const notificationSheet = page.getByRole('dialog', { name: 'Thông báo' });
+  await expect(layer).toBeVisible();
+  await expect(notificationSheet).toBeVisible();
+  await expect(notificationSheet.getByText('Chưa có thông báo mới.', { exact: true })).toBeVisible();
+
+  const box = await notificationSheet.boundingBox();
+  const visualViewport = await page.evaluate(() => ({
+    top: window.visualViewport?.offsetTop || 0,
+    height: window.visualViewport?.height || window.innerHeight,
+  }));
+  expect(box).not.toBeNull();
+  expect(box.y).toBeGreaterThanOrEqual(visualViewport.top - 1);
+  expect(box.y + box.height).toBeLessThanOrEqual(visualViewport.top + visualViewport.height + 1);
+});

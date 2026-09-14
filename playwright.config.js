@@ -30,6 +30,7 @@ export default defineConfig({
     { name: 'chromium-desktop', use: { ...devices['Desktop Chrome'], launchOptions: chromiumLaunchOptions } },
     { name: 'webkit-desktop', use: { ...devices['Desktop Safari'] } },
     { name: 'mobile-chromium', use: { ...devices['Pixel 7'], launchOptions: chromiumLaunchOptions } },
+    { name: 'mobile-webkit', use: { ...devices['iPhone 13'] } },
     {
       name: 'ipad-portrait',
       use: {
