@@ -55,6 +55,10 @@ assert.match(governance, /permissions[\s\S]*allowed[\s\S]*attendance:delete/i, '
 assert.match(governance, /insert\s+into\s+public\.work_hub_notifications/i, 'Permanent-delete requests must notify Admins.');
 assert.match(governance, /notification_type[\s\S]*attendance_purge_approval/i, 'Admin notification must use a dedicated attendance purge approval type.');
 assert.match(governance, /insert\s+into\s+public\.audit_events/i, 'Attendance archive lifecycle must write durable audit events.');
+assert.match(governance, /before_data\s*,\s*after_data\s*,\s*source_module\s*,\s*metadata/i, 'Attendance audit inserts must use the real audit_events.source_module column.');
+assert.doesNotMatch(governance, /before_data\s*,\s*after_data\s*,\s*source\s*,\s*metadata/i, 'Attendance audit inserts must not reference the nonexistent audit_events.source column.');
+assert.match(governance, /v_action\s*,\s*v_actor\s*,\s*'attendance_archive'\s*,\s*v_entity_id\s*,\s*'\{\}'::jsonb\s*,\s*jsonb_build_object\('delete_request_status'/i, 'Archive audit must use an empty JSON object instead of NULL for NOT NULL before_data.');
+assert.match(governance, /jsonb_build_object\('delete_request_status'\s*,\s*old\.delete_request_status\)\s*,\s*'\{\}'::jsonb\s*,\s*'attendance_archive'/i, 'Restore/finalize audit must use an empty JSON object instead of NULL for NOT NULL after_data.');
 assert.doesNotMatch(governance, /interval\s+'?30\s+days'?|expires_at/i, 'Attendance archive must not inherit automatic 30-day purge behavior.');
 
 assert.match(permissions, /delete:\s*'attendance:delete'/, 'Permission registry must expose attendance:delete as a stable permission id.');
