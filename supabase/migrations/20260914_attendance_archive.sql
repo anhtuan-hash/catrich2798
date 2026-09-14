@@ -26,14 +26,15 @@ create table if not exists public.bes_attendance_archive (
   delete_request_reason text not null default '',
   delete_reviewed_by uuid,
   delete_reviewed_at timestamptz,
-  delete_review_note text not null default '',
-  unique (source_type, source_session_id)
+  delete_review_note text not null default ''
 );
 
 create index if not exists bes_attendance_archive_date_idx
   on public.bes_attendance_archive (attendance_date desc, archived_at desc);
 create index if not exists bes_attendance_archive_request_idx
   on public.bes_attendance_archive (delete_request_status, archived_at desc);
+create index if not exists bes_attendance_archive_source_session_idx
+  on public.bes_attendance_archive (source_type, source_session_id, archived_at desc);
 
 alter table public.bes_attendance_archive enable row level security;
 revoke all on table public.bes_attendance_archive from public, anon, authenticated;
@@ -76,13 +77,12 @@ begin
     for update;
 
     if not found then
-      if exists (
-        select 1 from public.bes_attendance_archive a
-        where a.source_type = 'extra' and a.source_session_id = p_session_id
-      ) then
-        select a.id into v_archive_id
-        from public.bes_attendance_archive a
-        where a.source_type = 'extra' and a.source_session_id = p_session_id;
+      select a.id into v_archive_id
+      from public.bes_attendance_archive a
+      where a.source_type = 'extra' and a.source_session_id = p_session_id
+      order by a.archived_at desc
+      limit 1;
+      if found then
         return jsonb_build_object('archive_id', v_archive_id, 'source_type', 'extra', 'already_archived', true);
       end if;
       raise exception 'Không tìm thấy buổi điểm danh cần lưu trữ.' using errcode = 'P0002';
@@ -102,8 +102,6 @@ begin
       v_extra.attendance_date, v_extra.checked_at, v_extra.session_status,
       coalesce(v_extra.proof_path, ''), to_jsonb(v_extra), v_records, v_uid, coalesce(v_actor_name, '')
     )
-    on conflict (source_type, source_session_id) do update
-      set archived_at = excluded.archived_at
     returning id into v_archive_id;
 
     -- Records cascade from the session. The proof object is intentionally retained.
@@ -136,8 +134,6 @@ begin
       v_supp.attendance_confirmed_at, v_supp.status, coalesce(v_supp.proof_path, ''),
       to_jsonb(v_supp), v_records, v_uid, coalesce(v_actor_name, '')
     )
-    on conflict (source_type, source_session_id) do update
-      set archived_at = excluded.archived_at
     returning id into v_archive_id;
 
     -- Preserve the scheduled session itself so recurring planning stays intact,
