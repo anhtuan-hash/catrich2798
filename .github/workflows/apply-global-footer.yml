@@ -1,0 +1,77 @@
+name: Apply Global Footer Transform
+
+on:
+  push:
+    branches:
+      - feat/global-google-footer
+    paths:
+      - '.github/workflows/apply-global-footer.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/global-google-footer
+          fetch-depth: 0
+
+      - name: Apply approved footer globally
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+
+          const mainPath = 'src/main.jsx';
+          const cardPath = 'src/components/FooterAuthCards.css';
+          const disclosurePath = 'src/components/FooterCompactDisclosure.css';
+
+          let main = fs.readFileSync(mainPath, 'utf8');
+          const conditionalFooter = "{!['homeroom-portal', 'dashboard'].includes(currentRoute) ? <Footer language={language} currentUser={currentUser} /> : null}";
+          const globalFooter = '<Footer language={language} currentUser={currentUser} />';
+          if (!main.includes(conditionalFooter)) {
+            throw new Error('Expected route-scoped footer render was not found in src/main.jsx');
+          }
+          main = main.replace(conditionalFooter, globalFooter);
+          fs.writeFileSync(mainPath, main);
+
+          let cards = fs.readFileSync(cardPath, 'utf8');
+          const routeScope = ".metro-clean-system:is([data-route='login'], [data-route='register'])";
+          if (!cards.includes(routeScope)) {
+            throw new Error('Expected login/register footer scope was not found in FooterAuthCards.css');
+          }
+          cards = cards
+            .replace(
+              '/* Login/register footer presentation — approved Google-style card layout.\n   Route-scoped so the shared credentials footer on authenticated routes is unchanged. */',
+              '/* Shared footer presentation — approved Google-style card layout.\n   Applied consistently across every route, desktop and mobile. */'
+            )
+            .split(routeScope).join('.metro-clean-system');
+          fs.writeFileSync(cardPath, cards);
+
+          let disclosure = fs.readFileSync(disclosurePath, 'utf8');
+          const hideRule = /\n\/\* Premium mobile Home owns its entire visual flow\.[\s\S]*?\.metro-clean-system\[data-route='home'\]:has\(\[data-mobile-home-premium\]\) > footer\.signature-footer-collapsible\{\s*display:none!important;\s*\}\s*$/;
+          if (!hideRule.test(disclosure)) {
+            throw new Error('Expected mobile Home footer suppression rule was not found');
+          }
+          disclosure = disclosure.replace(hideRule, '\n');
+          fs.writeFileSync(disclosurePath, disclosure);
+          NODE
+
+      - name: Verify footer contract before commit
+        run: node scripts/test-global-footer-contract.mjs
+
+      - name: Check diff
+        run: git diff --check
+
+      - name: Commit transformed source
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/main.jsx src/components/FooterAuthCards.css src/components/FooterCompactDisclosure.css
+          git commit -m "feat: apply approved footer globally"
+          git push origin HEAD:feat/global-google-footer
