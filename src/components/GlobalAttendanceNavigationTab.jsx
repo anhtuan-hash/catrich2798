@@ -5,10 +5,12 @@ import { getRuntimeClient } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
 import { normalizeSystemRole, SYSTEM_ROLES } from '../utils/roles.js';
 import {
+  ATTENDANCE_PERMISSION_IDS,
   ATTENDANCE_PERMISSION_ITEMS,
   getFirstAllowedAttendanceTab,
   hasAnyAttendanceAccess,
   hasAttendanceTabAccess,
+  hasExplicitPermissionId,
 } from '../utils/permissions.js';
 import {
   ABSENCE_REASON_OPTIONS,
@@ -35,10 +37,12 @@ import './GlobalAttendanceManualTeacher.css';
 import AttendanceMonthlyReport from './attendance/AttendanceMonthlyReport.jsx';
 import AttendanceClassManagementWorkspace from './attendance/AttendanceClassManagementWorkspace.jsx';
 import AttendanceDailySchedule from './attendance/AttendanceDailySchedule.jsx';
+import AttendanceArchivePanel from './attendance/AttendanceArchivePanel.jsx';
 import { ATTENDANCE_PROOF_BUCKET, buildAttendanceProofPath, prepareAttendanceProofImage } from '../utils/attendanceProofImage.js';
 import { filterAndSortAttendanceHistory } from '../utils/attendanceHistoryFilters.js';
 import { canManageSupplementalLearning } from '../supplementalAccess.js';
-import { attachSupplementalProof, beginSupplementalAttendance, cancelSupplementalSession, confirmSupplementalAttendance, deleteSupplementalAttendanceHistory, loadSupplementalAttendanceActivities, loadSupplementalSessionTeachers } from '../attendance/supplementalLearningApi.js';
+import { attachSupplementalProof, beginSupplementalAttendance, cancelSupplementalSession, confirmSupplementalAttendance, loadSupplementalAttendanceActivities, loadSupplementalSessionTeachers } from '../attendance/supplementalLearningApi.js';
+import { archiveAttendanceHistory, listAttendanceArchive, requestAttendanceArchiveDelete, restoreAttendanceArchive, reviewAttendanceArchiveDelete } from '../attendance/attendanceArchiveApi.js';
 import './attendance/AttendanceMaterial3.css';
 import './attendance/AttendanceHistoryV2.css';
 
@@ -76,6 +80,7 @@ const ATTENDANCE_TAB_ICONS = {
   manage: 'people',
   history: 'history',
   report: 'history',
+  archive: 'trash',
 };
 
 function Icon({ name, size = 20 }) {
@@ -186,6 +191,8 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const [classTeachers, setClassTeachers] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [supplementalHistorySessions, setSupplementalHistorySessions] = useState([]);
+  const [archiveItems, setArchiveItems] = useState([]);
+  const [archiveLoading, setArchiveLoading] = useState(false);
   const [records, setRecords] = useState([]);
   const [calendarSessions, setCalendarSessions] = useState([]);
   const [teacherDaySessions, setTeacherDaySessions] = useState([]);
@@ -235,10 +242,17 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const systemRole = normalizeSystemRole(runtime.role || currentUser?.role, SYSTEM_ROLES.GUEST);
   const isAttendanceAdmin = systemRole === SYSTEM_ROLES.ADMIN;
   const canAccessAttendanceView = (tabId) => isAttendanceAdmin || hasAttendanceTabAccess(currentUser, tabId);
-  const canDeleteAttendanceHistory = isAttendanceAdmin || String(currentUser?.email || '').trim().toLowerCase() === 'hongtham@accounts.brianenglish.studio';
+  const canDeleteAttendanceHistory = isAttendanceAdmin
+    || hasExplicitPermissionId(currentUser, ATTENDANCE_PERMISSION_IDS.delete)
+    || String(currentUser?.email || '').trim().toLowerCase() === 'hongtham@accounts.brianenglish.studio';
   const hasAttendanceReportOverride = isAttendanceAdmin || hasAttendanceTabAccess(currentUser, 'report');
   const canUseQuickAttendance = isAttendanceAdmin || hasAttendanceTabAccess(currentUser, 'quick') || hasAttendanceReportOverride;
-  const availableAttendanceTabs = ATTENDANCE_PERMISSION_ITEMS.filter((item) => item.tab === 'quick' ? canUseQuickAttendance : canAccessAttendanceView(item.tab));
+  const archiveTab = { id: 'attendance:archive', tab: 'archive', titleVi: 'Kho lưu trữ' };
+  const availableAttendanceTabs = [
+    ...ATTENDANCE_PERMISSION_ITEMS.filter((item) => item.tab === 'quick' ? canUseQuickAttendance : canAccessAttendanceView(item.tab)),
+    ...(canDeleteAttendanceHistory ? [archiveTab] : []),
+  ];
+  const archiveCount = archiveItems.length;
   const firstAllowedView = canUseQuickAttendance ? 'quick' : getFirstAllowedAttendanceTab(currentUser);
   const allowed = Boolean(currentUser?.id && (isAttendanceAdmin || hasAnyAttendanceAccess(currentUser)));
   const canSeeSupplementalHistory = canManageSupplementalLearning(runtime);
@@ -260,7 +274,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
 
   useEffect(() => {
     if (!open || !allowed || !firstAllowedView) return;
-    const canOpenCurrentView = view === 'quick' ? canUseQuickAttendance : canAccessAttendanceView(view);
+    const canOpenCurrentView = view === 'quick' ? canUseQuickAttendance : view === 'archive' ? canDeleteAttendanceHistory : canAccessAttendanceView(view);
     if (!canOpenCurrentView) setView(firstAllowedView);
   }, [open, allowed, firstAllowedView, view, currentUser?.permissions, systemRole, canUseQuickAttendance]);
 
@@ -299,6 +313,18 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     }
   }
 
+  async function loadArchive({ silent = false } = {}) {
+    if (!client || !runtime.ready || !runtime.session || !canDeleteAttendanceHistory) return;
+    if (!silent) setArchiveLoading(true);
+    try {
+      setArchiveItems(await listAttendanceArchive(client));
+    } catch (archiveError) {
+      setError(archiveError?.message || 'Không thể tải Kho lưu trữ điểm danh.');
+    } finally {
+      if (!silent) setArchiveLoading(false);
+    }
+  }
+
   async function refreshHistoryData() {
     if (!client || !runtime.ready || !runtime.session || !allowed) return;
     const supplementalHistoryPromise = canSeeSupplementalHistory && canAccessAttendanceView('history')
@@ -317,6 +343,10 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   useEffect(() => {
     if (open && allowed && !String(selectedClassId || '').startsWith('supplemental:')) loadAll();
   }, [open, allowed, runtime.ready, runtime.session?.user?.id]);
+
+  useEffect(() => {
+    if (open && canDeleteAttendanceHistory) loadArchive();
+  }, [open, canDeleteAttendanceHistory, runtime.ready, runtime.session?.user?.id]);
 
   const activeClasses = useMemo(() => classes.filter((row) => row.active !== false), [classes]);
   const selectedClass = useMemo(() => classes.find((row) => String(row.id) === String(selectedClassId)) || null, [classes, selectedClassId]);
@@ -1147,35 +1177,22 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     if (recordError) setError(recordError.message);
     else setRecords(data || []);
   }
-  async function deleteAttendanceHistoryAtSource(session) {
-    if (isSupplementalHistorySession(session)) {
-      try {
-        await deleteSupplementalAttendanceHistory(client, session.supplemental_session_id);
-        return { error: null };
-      } catch (error) {
-        return { error };
-      }
-    }
-    return client.rpc('bes_delete_extra_attendance_session', { p_session_id: session.id });
-  }
-
   async function deleteAttendanceSession(session) {
     if (!session || busy || !client || !canDeleteAttendanceHistory) return;
-    const confirmed = window.confirm(`Xóa buổi điểm danh đã duyệt của lớp “${session.class_name}” ngày ${formatDate(session.attendance_date)} lúc ${formatDateTime(session.checked_at)}?\n\nNgày này sẽ được mở khóa để có thể điểm danh lại. Không thể hoàn tác.`);
+    const confirmed = window.confirm(`Đưa buổi điểm danh của lớp “${session.class_name}” ngày ${formatDate(session.attendance_date)} vào Kho lưu trữ?\n\nBuổi này sẽ không còn xuất hiện trong Lịch sử/Báo cáo và có thể khôi phục lại sau.`);
     if (!confirmed) return;
     setBusy(true); setError(''); setNotice('');
     try {
-      const { error: deleteError } = await deleteAttendanceHistoryAtSource(session);
-      if (deleteError) throw deleteError;
-      await removeAttendanceProofPaths([session.proof_path]);
+      await archiveAttendanceHistory(client, session);
       setSelectedSessionId(''); setRecords([]);
       if (String(session.class_id) === String(selectedClassId) && session.attendance_date === attendanceDate) setDaySession(null);
-      setNotice(`Đã xóa điểm danh ${session.class_name} ngày ${formatDate(session.attendance_date)}. Ngày này đã được mở khóa.`);
+      setNotice(`Đã chuyển ${session.class_name} ngày ${formatDate(session.attendance_date)} vào Kho lưu trữ.`);
       await loadAll();
+      await loadArchive({ silent: true });
       await loadDaySession();
       await loadTeacherDaySessions();
       await loadCalendarSessions(calendarDate);
-    } catch (deleteError) { setError(deleteError?.message || 'Không thể xóa buổi điểm danh đã duyệt.'); }
+    } catch (deleteError) { setError(deleteError?.message || 'Không thể đưa buổi điểm danh vào Kho lưu trữ.'); }
     finally { setBusy(false); }
   }
 
@@ -1216,23 +1233,20 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       setSelectedHistorySessionIds([]);
       return;
     }
-    const confirmed = window.confirm(`Xóa ${targets.length} buổi điểm danh đã chọn?\n\nCác ngày tương ứng sẽ được mở khóa để có thể điểm danh lại. Không thể hoàn tác.`);
+    const confirmed = window.confirm(`Đưa ${targets.length} buổi điểm danh đã chọn vào Kho lưu trữ?\n\nCác buổi này sẽ không còn xuất hiện trong Lịch sử/Báo cáo và có thể khôi phục lại sau.`);
     if (!confirmed) return;
     setBusy(true); setError(''); setNotice('');
     const failed = [];
     const deletedIds = new Set();
-    const proofPathsToRemove = [];
     try {
       for (const session of targets) {
-        const { error: deleteError } = await deleteAttendanceHistoryAtSource(session);
-        if (deleteError) {
-          failed.push(`${session.class_name} ${formatDate(session.attendance_date)}: ${deleteError.message || 'Lỗi không xác định'}`);
-        } else {
+        try {
+          await archiveAttendanceHistory(client, session);
           deletedIds.add(String(session.id));
-          if (session.proof_path) proofPathsToRemove.push(session.proof_path);
+        } catch (archiveError) {
+          failed.push(`${session.class_name} ${formatDate(session.attendance_date)}: ${archiveError?.message || 'Lỗi không xác định'}`);
         }
       }
-      await removeAttendanceProofPaths(proofPathsToRemove);
       if (deletedIds.has(String(selectedSessionId))) {
         setSelectedSessionId('');
         setRecords([]);
@@ -1240,12 +1254,64 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       if (daySession && deletedIds.has(String(daySession.id))) setDaySession(null);
       setSelectedHistorySessionIds((current) => current.filter((id) => !deletedIds.has(String(id))));
       if (!failed.length) setHistorySelectionMode(false);
-      if (deletedIds.size) setNotice(`Đã xóa ${deletedIds.size} buổi điểm danh. Các ngày tương ứng đã được mở khóa.`);
-      if (failed.length) setError(`Không thể xóa ${failed.length} buổi: ${failed.slice(0, 3).join(' · ')}${failed.length > 3 ? ` · và ${failed.length - 3} buổi khác` : ''}`);
+      if (deletedIds.size) setNotice(`Đã chuyển ${deletedIds.size} buổi điểm danh vào Kho lưu trữ.`);
+      if (failed.length) setError(`Không thể lưu trữ ${failed.length} buổi: ${failed.slice(0, 3).join(' · ')}${failed.length > 3 ? ` · và ${failed.length - 3} buổi khác` : ''}`);
       await loadAll();
+      await loadArchive({ silent: true });
       await loadDaySession();
       await loadTeacherDaySessions();
       await loadCalendarSessions(calendarDate);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function restoreArchivedSession(item) {
+    if (!item?.archive_id || busy || !client) return;
+    if (!window.confirm(`Khôi phục “${item.class_name || 'buổi điểm danh'}” ngày ${formatDate(item.attendance_date)} về Lịch sử điểm danh?`)) return;
+    setBusy(true); setError(''); setNotice('');
+    try {
+      await restoreAttendanceArchive(client, item.archive_id);
+      setNotice(`Đã khôi phục ${item.class_name || 'buổi điểm danh'} ngày ${formatDate(item.attendance_date)}.`);
+      await loadAll();
+      await loadArchive({ silent: true });
+      await loadTeacherDaySessions();
+      await loadCalendarSessions(calendarDate);
+    } catch (restoreError) {
+      setError(restoreError?.message || 'Không thể khôi phục buổi điểm danh.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function requestArchivedPermanentDelete(item) {
+    if (!item?.archive_id || busy || !client) return;
+    const reason = window.prompt('Nhập lý do yêu cầu Admin xóa vĩnh viễn (có thể để trống):', item.delete_request_reason || '');
+    if (reason === null) return;
+    setBusy(true); setError(''); setNotice('');
+    try {
+      await requestAttendanceArchiveDelete(client, item.archive_id, reason);
+      setNotice('Đã gửi yêu cầu xóa vĩnh viễn. Dữ liệu vẫn được giữ nguyên cho đến khi Admin duyệt.');
+      await loadArchive({ silent: true });
+    } catch (requestError) {
+      setError(requestError?.message || 'Không thể gửi yêu cầu xóa vĩnh viễn.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function reviewArchivedPermanentDelete(item, approve) {
+    if (!isAttendanceAdmin || !item?.archive_id || busy || !client) return;
+    const action = approve ? 'DUYỆT XÓA VĨNH VIỄN' : 'TỪ CHỐI yêu cầu xóa';
+    if (!window.confirm(`${action} “${item.class_name || 'buổi điểm danh'}” ngày ${formatDate(item.attendance_date)}?${approve ? '\n\nDữ liệu và ảnh minh chứng sẽ không thể khôi phục.' : ''}`)) return;
+    const note = window.prompt('Ghi chú của Admin (có thể để trống):', '') ?? '';
+    setBusy(true); setError(''); setNotice('');
+    try {
+      await reviewAttendanceArchiveDelete(client, item.archive_id, approve, note);
+      setNotice(approve ? 'Admin đã duyệt xóa vĩnh viễn mục lưu trữ.' : 'Admin đã từ chối yêu cầu xóa vĩnh viễn.');
+      await loadArchive({ silent: true });
+    } catch (reviewError) {
+      setError(reviewError?.message || 'Không thể xử lý yêu cầu xóa vĩnh viễn.');
     } finally {
       setBusy(false);
     }
@@ -1313,13 +1379,13 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       <section className="attendance-shell" role="dialog" aria-modal="true" aria-label="Điểm danh lớp phụ đạo và bồi dưỡng học sinh giỏi">
         <header className="attendance-topbar">
           <div className="attendance-title"><span><Icon name="attendance" size={28} /></span><div><small>QUẢN LÝ CHUYÊN CẦN</small><strong>Điểm danh lớp phụ đạo & bồi dưỡng</strong></div></div>
-          <div className="attendance-top-actions"><button type="button" className="attendance-icon-button" onClick={() => { loadAll(); loadDaySession(); loadTeacherDaySessions(); if (view === 'calendar') loadCalendarSessions(calendarDate); }} title="Làm mới"><Icon name="refresh" /></button><button type="button" className="attendance-icon-button" onClick={() => setOpen(false)} aria-label="Đóng"><Icon name="close" /></button></div>
+          <div className="attendance-top-actions"><button type="button" className="attendance-icon-button" onClick={() => { loadAll(); loadDaySession(); loadTeacherDaySessions(); if (view === 'calendar') loadCalendarSessions(calendarDate); if (view === 'archive') loadArchive(); }} title="Làm mới"><Icon name="refresh" /></button><button type="button" className="attendance-icon-button" onClick={() => setOpen(false)} aria-label="Đóng"><Icon name="close" /></button></div>
         </header>
 
         <nav className="attendance-tabs" aria-label="Phân hệ điểm danh">
           {availableAttendanceTabs.map((item) => (
             <button key={item.id} type="button" className={view === item.tab ? 'is-active' : ''} onClick={() => setView(item.tab)}>
-              <Icon name={ATTENDANCE_TAB_ICONS[item.tab] || 'attendance'} size={18} />{item.titleVi}
+              <Icon name={ATTENDANCE_TAB_ICONS[item.tab] || 'attendance'} size={18} />{item.titleVi}{item.tab === 'archive' && archiveCount > 0 ? <span className="attendance-tab-badge">{archiveCount > 99 ? '99+' : archiveCount}</span> : null}
             </button>
           ))}
         </nav>
@@ -1455,6 +1521,18 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
 
           {!loading && canAccessAttendanceView('report') && view === 'report' ? <AttendanceMonthlyReport client={client} classes={classes} includeSupplemental={canSeeSupplementalHistory} month={reportMonth} onMonthChange={setReportMonth} onError={setError} /> : null}
 
+          {canDeleteAttendanceHistory && view === 'archive' ? <AttendanceArchivePanel
+            items={archiveItems}
+            loading={archiveLoading}
+            busy={busy}
+            isAdmin={isAttendanceAdmin}
+            onRefresh={() => loadArchive()}
+            onRestore={restoreArchivedSession}
+            onRequestDelete={requestArchivedPermanentDelete}
+            onApproveDelete={(item) => reviewArchivedPermanentDelete(item, true)}
+            onRejectDelete={(item) => reviewArchivedPermanentDelete(item, false)}
+          /> : null}
+
           {!loading && canAccessAttendanceView('history') && view === 'history' ? (
             <div className="ahv3__shell" data-attendance-history-v3="true">
               <section className="ahv3__list">
@@ -1473,7 +1551,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                     <button type="button" disabled={!historyHasFilters} onClick={() => { setHistoryQuery(''); setHistoryType('all'); setHistorySort('desc'); setHistoryDateFrom(''); setHistoryDateTo(''); }}><Icon name="refresh" size={14} />Xóa bộ lọc</button>
                     <span>{historyDateRangeInvalid ? 'Khoảng ngày không hợp lệ' : `Hiển thị ${filteredHistory.length} buổi`}</span>
                   </div>
-                  {historySelectionMode ? <div className="ahv3__bulk-toolbar"><button type="button" disabled={busy || !filteredHistory.length} onClick={toggleAllFilteredHistorySelection}>{allFilteredHistorySelected ? 'Bỏ chọn kết quả' : 'Chọn tất cả kết quả'}</button><span>Đã chọn <b>{selectedHistorySessionIds.length}</b> buổi</span><button type="button" className="is-danger" disabled={busy || !selectedHistorySessionIds.length} onClick={deleteSelectedHistorySessions}><Icon name="trash" size={16} />{busy ? 'Đang xóa…' : `Xóa ${selectedHistorySessionIds.length} buổi`}</button></div> : null}
+                  {historySelectionMode ? <div className="ahv3__bulk-toolbar"><button type="button" disabled={busy || !filteredHistory.length} onClick={toggleAllFilteredHistorySelection}>{allFilteredHistorySelected ? 'Bỏ chọn kết quả' : 'Chọn tất cả kết quả'}</button><span>Đã chọn <b>{selectedHistorySessionIds.length}</b> buổi</span><button type="button" className="is-danger" disabled={busy || !selectedHistorySessionIds.length} onClick={deleteSelectedHistorySessions}><Icon name="trash" size={16} />{busy ? 'Đang lưu trữ…' : `Lưu trữ ${selectedHistorySessionIds.length} buổi`}</button></div> : null}
                 </header>
                 <div className="ahv3__items">{filteredHistory.map((session, historyIndex) => {
                   const rate = session.session_status === 'cancelled' || !Number(session.total_students) ? null : Math.round((Number(session.present_count || 0) / Number(session.total_students)) * 100);
@@ -1488,11 +1566,11 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                 })}{!filteredHistory.length ? <div className="attendance-empty">Chưa có buổi điểm danh phù hợp.</div> : null}</div>
               </section>
 
-              <section className="ahv3__detail">{historySelectionMode ? <div className="ahv3__bulk-detail"><span><Icon name="trash" size={28} /></span><h2>Chọn nhiều buổi điểm danh</h2><p>Chọn các buổi ở danh sách bên trái, sau đó dùng nút xóa để xử lý một lần.</p><b>{selectedHistorySessionIds.length} buổi đã chọn</b></div> : selectedSession ? <>
+              <section className="ahv3__detail">{historySelectionMode ? <div className="ahv3__bulk-detail"><span><Icon name="trash" size={28} /></span><h2>Chọn nhiều buổi điểm danh</h2><p>Chọn các buổi ở danh sách bên trái, sau đó chuyển một lần vào Kho lưu trữ.</p><b>{selectedHistorySessionIds.length} buổi đã chọn</b></div> : selectedSession ? <>
                 <div className="ahv3__hero">
                   <div className="ahv3__hero-copy"><span className={`att-m3-status-chip is-${selectedSession.session_status === 'cancelled' ? 'cancelled' : 'completed'}`}>{selectedSession.session_status === 'cancelled' ? 'Đã hủy' : 'Đã điểm danh'}</span><h2>{selectedSession.class_name}</h2><div className="ahv3__hero-chips"><span className={`ahv3__type is-${selectedSession.class_type}`}>{historyClassTypeLabel(selectedSession)}</span><span className="att-m3-period-chip">{selectedSession.session_status === 'cancelled' ? '0 tiết' : `${String(selectedSession.lesson_periods || 1).replace('.', ',')} tiết`}</span><span>{formatDate(selectedSession.attendance_date)}</span><span>{selectedSession.teaching_room || 'Chưa ghi phòng'}</span></div></div>
                   <div className="ahv3__hero-art" aria-hidden="true"><span className="is-leaf is-leaf-1" /><span className="is-leaf is-leaf-2" /><span className="is-book is-book-1" /><span className="is-book is-book-2" /><span className="is-book is-book-3" /></div>
-                  <div className="ahv3__actions">{canAccessAttendanceView('report') && !isSupplementalHistorySession(selectedSession) ? <button type="button" className="ahv3__report-button" onClick={() => { if (selectedSession.attendance_date) setReportMonth(selectedSession.attendance_date.slice(0, 7)); setView('report'); }}>Xem báo cáo tháng</button> : null}{canDeleteAttendanceHistory ? <button type="button" className="ahv3__delete-button" disabled={busy} onClick={() => deleteAttendanceSession(selectedSession)}><Icon name="trash" size={17} />Xóa buổi điểm danh</button> : null}</div>
+                  <div className="ahv3__actions">{canAccessAttendanceView('report') && !isSupplementalHistorySession(selectedSession) ? <button type="button" className="ahv3__report-button" onClick={() => { if (selectedSession.attendance_date) setReportMonth(selectedSession.attendance_date.slice(0, 7)); setView('report'); }}>Xem báo cáo tháng</button> : null}{canDeleteAttendanceHistory ? <button type="button" className="ahv3__delete-button" disabled={busy} onClick={() => deleteAttendanceSession(selectedSession)}><Icon name="trash" size={17} />Đưa vào Kho lưu trữ</button> : null}</div>
                 </div>
 
                 <h3 className="ahv3__section-title is-info"><span aria-hidden="true"><Icon name="calendar" size={14} /></span>Thông tin buổi học</h3>

@@ -44,9 +44,14 @@ assert.equal(hasRouteAccess(teacherWithFullNormalAccess, 'attendance'), false,
   'Teacher without an explicit attendance tab grant must not pass the attendance route guard');
 
 const legacyPermissions = normalizePermissions({ mode: 'all', allowed: [ROUTE_PERMISSION_IDS.attendance] });
-for (const permissionId of Object.values(ATTENDANCE_PERMISSION_IDS)) {
+for (const { id: permissionId } of ATTENDANCE_PERMISSION_ITEMS) {
   assert.equal(legacyPermissions.allowed.includes(permissionId), true, 'Legacy Attendance grant must expand to each granular tab permission');
 }
+assert.equal(
+  legacyPermissions.allowed.includes(ATTENDANCE_PERMISSION_IDS.delete),
+  false,
+  'Legacy Attendance grant must not silently add the destructive attendance:delete permission',
+);
 const legacyTeacher = { ...teacherWithFullNormalAccess, permissions: legacyPermissions };
 assert.equal(hasAnyAttendanceAccess(legacyTeacher), true);
 assert.equal(hasAttendanceTabAccess(legacyTeacher, 'quick'), true);

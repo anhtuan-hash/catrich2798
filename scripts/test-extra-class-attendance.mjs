@@ -18,9 +18,11 @@ const dailyLockUrl = new URL('../supabase/migrations/20260908_attendance_daily_l
 const dailyLockSql = fs.existsSync(dailyLockUrl) ? fs.readFileSync(dailyLockUrl, 'utf8') : '';
 const legacyGuardUrl = new URL('../supabase/migrations/20260908_guard_legacy_attendance_rpc.sql', import.meta.url);
 const legacyGuardSql = fs.existsSync(legacyGuardUrl) ? fs.readFileSync(legacyGuardUrl, 'utf8') : '';
+const archiveUrl = new URL('../supabase/migrations/20260914_attendance_archive.sql', import.meta.url);
+const archiveSql = fs.existsSync(archiveUrl) ? fs.readFileSync(archiveUrl, 'utf8') : '';
 const teacherCatalogUrl = new URL('../src/utils/giftedTeacherCatalog2026.js', import.meta.url);
 const teacherCatalogSource = fs.existsSync(teacherCatalogUrl) ? fs.readFileSync(teacherCatalogUrl, 'utf8') : '';
-const combinedSql = `${sql}\n${seedSql}\n${rpcHardeningSql}\n${dailyLockSql}\n${legacyGuardSql}`;
+const combinedSql = `${sql}\n${seedSql}\n${rpcHardeningSql}\n${dailyLockSql}\n${legacyGuardSql}\n${archiveSql}`;
 const attendanceUiContract = `${attendance}\n${permissionRegistry}`;
 const attendanceManagementUi = `${attendance}\n${attendanceManagementWorkspace}\n${attendanceEditor}`;
 
@@ -42,11 +44,12 @@ assert.match(sql, /bes_extra_attendance_records/, 'Immutable per-student attenda
 assert.match(sql, /student_full_name text not null/, 'Attendance records must snapshot the student name');
 
 assert.match(combinedSql, /bes_delete_extra_class\s*\(/, 'SQL must expose a transactional class-deletion RPC');
-assert.match(combinedSql, /bes_delete_extra_attendance_session\s*\(/, 'SQL must expose a transactional approved-attendance deletion RPC');
+assert.match(combinedSql, /bes_delete_extra_attendance_session\s*\(/, 'SQL must keep the approved-attendance deletion compatibility RPC');
 assert.match(attendanceManagementUi, /bes_delete_extra_class/, 'Class-management UI must call the class-deletion RPC');
 assert.match(attendanceManagementUi, /Xóa lớp/, 'Class-management UI must expose an explicit delete-class control');
-assert.match(attendance, /bes_delete_extra_attendance_session/, 'History UI must call the approved-attendance deletion RPC');
-assert.match(attendance, /Xóa buổi điểm danh/, 'History UI must expose an explicit delete-attendance control');
+assert.match(attendance, /archiveAttendanceHistory/, 'History UI must route first deletion through the reversible attendance archive API');
+assert.match(attendance, /Đưa vào Kho lưu trữ|Lưu trữ/, 'History UI must expose an explicit archive control');
+assert.match(archiveSql, /bes_delete_extra_attendance_session[\s\S]*bes_archive_attendance_history\s*\(\s*'extra'/i, 'Legacy approved-attendance deletion must be rerouted to archive so old clients cannot bypass recovery');
 assert.match(attendanceManagementUi, /bes_extra_class_teachers/, 'Attendance UI must load normalized multi-teacher assignments');
 assert.match(attendanceManagementUi, /Toàn bộ giáo viên|Giáo viên theo phân công|Giáo viên phụ trách/, 'Class management must visibly list every assigned teacher');
 assert.match(attendanceManagementUi, /window\.confirm/, 'Destructive class and attendance actions must require confirmation');

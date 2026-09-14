@@ -1,0 +1,218 @@
+.attendance-archive {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.attendance-archive__hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px;
+  border: 1px solid rgba(148, 163, 184, .28);
+  border-radius: 22px;
+  background: linear-gradient(135deg, rgba(248, 250, 252, .98), rgba(241, 245, 249, .82));
+}
+
+.attendance-archive__hero h2 {
+  margin: 5px 0 7px;
+  font-size: clamp(1.25rem, 2vw, 1.7rem);
+  color: #0f172a;
+}
+
+.attendance-archive__hero p {
+  max-width: 760px;
+  margin: 0;
+  line-height: 1.55;
+  color: #64748b;
+}
+
+.attendance-archive__eyebrow {
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .11em;
+  color: #64748b;
+}
+
+.attendance-archive__stats {
+  flex: 0 0 auto;
+  min-width: 150px;
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+}
+
+.attendance-archive__stats strong {
+  font-size: 2rem;
+  line-height: 1;
+  color: #0f172a;
+}
+
+.attendance-archive__stats span { color: #64748b; font-size: .85rem; }
+.attendance-archive__stats em {
+  margin-top: 8px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #fff7ed;
+  color: #c2410c;
+  font-size: .76rem;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.attendance-archive__toolbar {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.7fr) minmax(150px, .8fr) minmax(150px, .8fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
+.attendance-archive__toolbar label { display: grid; gap: 6px; min-width: 0; }
+.attendance-archive__toolbar label > span {
+  font-size: .74rem;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.attendance-archive__toolbar input,
+.attendance-archive__toolbar select,
+.attendance-archive__refresh {
+  min-height: 42px;
+  border: 1px solid #dbe3ed;
+  border-radius: 12px;
+  background: #fff;
+  color: #0f172a;
+  padding: 0 12px;
+  font: inherit;
+}
+
+.attendance-archive__refresh { cursor: pointer; font-weight: 750; }
+.attendance-archive__refresh:disabled { cursor: default; opacity: .55; }
+
+.attendance-archive__list { display: grid; gap: 12px; }
+.attendance-archive__card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px;
+  padding: 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 9px 28px rgba(15, 23, 42, .045);
+}
+.attendance-archive__card.is-pending { border-color: #fed7aa; }
+.attendance-archive__card.is-rejected { border-color: #fecaca; }
+
+.attendance-archive__card-main { min-width: 0; display: grid; gap: 12px; }
+.attendance-archive__card-title { display: flex; align-items: center; gap: 10px; min-width: 0; flex-wrap: wrap; }
+.attendance-archive__card-title h3 { margin: 0; font-size: 1.02rem; color: #0f172a; overflow-wrap: anywhere; }
+.attendance-archive__source {
+  display: inline-flex;
+  align-items: center;
+  min-height: 25px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: .7rem;
+  font-weight: 850;
+  background: #eef2ff;
+  color: #4338ca;
+}
+.attendance-archive__source.is-supplemental { background: #ecfeff; color: #0e7490; }
+
+.attendance-archive__meta {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(120px, 1fr));
+  gap: 10px 16px;
+}
+.attendance-archive__meta span { display: grid; gap: 2px; color: #334155; font-size: .84rem; }
+.attendance-archive__meta b { font-size: .69rem; text-transform: uppercase; letter-spacing: .035em; color: #94a3b8; }
+
+.attendance-archive__request-state {
+  display: flex;
+  gap: 8px 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  color: #64748b;
+  font-size: .78rem;
+}
+.attendance-archive__request-state strong { color: #475569; }
+.attendance-archive__request-state.is-pending strong { color: #c2410c; }
+.attendance-archive__request-state.is-rejected strong { color: #b91c1c; }
+
+.attendance-archive__actions {
+  align-self: center;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  max-width: 330px;
+}
+.attendance-archive__actions button {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid #dbe3ed;
+  border-radius: 11px;
+  background: #fff;
+  font: inherit;
+  font-size: .8rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.attendance-archive__actions button:disabled { cursor: default; opacity: .5; }
+.attendance-archive__actions .is-restore { border-color: #bfdbfe; background: #eff6ff; color: #1d4ed8; }
+.attendance-archive__actions .is-request { color: #9a3412; background: #fff7ed; border-color: #fed7aa; }
+.attendance-archive__actions .is-reject { color: #475569; }
+.attendance-archive__actions .is-approve { color: #fff; background: #b91c1c; border-color: #b91c1c; }
+
+.attendance-archive__empty {
+  min-height: 170px;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 5px;
+  padding: 28px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 18px;
+  color: #64748b;
+  text-align: center;
+}
+.attendance-archive__empty strong { color: #334155; }
+
+.attendance-tab-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  margin-left: 5px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
+  font-size: .68rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+@media (max-width: 900px) {
+  .attendance-archive__hero { padding: 17px; border-radius: 17px; }
+  .attendance-archive__toolbar { grid-template-columns: 1fr 1fr; }
+  .attendance-archive__search { grid-column: 1 / -1; }
+  .attendance-archive__refresh { width: 100%; }
+  .attendance-archive__card { grid-template-columns: 1fr; }
+  .attendance-archive__meta { grid-template-columns: 1fr 1fr; }
+  .attendance-archive__actions { max-width: none; justify-content: flex-start; }
+}
+
+@media (max-width: 560px) {
+  .attendance-archive { gap: 12px; }
+  .attendance-archive__hero { display: grid; gap: 15px; padding: 15px; }
+  .attendance-archive__stats { justify-items: start; min-width: 0; grid-template-columns: auto 1fr; align-items: baseline; column-gap: 7px; }
+  .attendance-archive__stats em { grid-column: 1 / -1; }
+  .attendance-archive__toolbar { grid-template-columns: 1fr; }
+  .attendance-archive__search { grid-column: auto; }
+  .attendance-archive__card { gap: 14px; padding: 14px; border-radius: 15px; }
+  .attendance-archive__meta { grid-template-columns: 1fr; }
+  .attendance-archive__actions { display: grid; grid-template-columns: 1fr; }
+  .attendance-archive__actions button { width: 100%; min-height: 42px; }
+}

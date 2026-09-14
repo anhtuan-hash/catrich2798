@@ -1,0 +1,48 @@
+name: Attendance Archive
+
+on:
+  pull_request:
+    paths:
+      - 'src/components/GlobalAttendanceNavigationTab.jsx'
+      - 'src/components/attendance/AttendanceArchivePanel.jsx'
+      - 'src/components/attendance/AttendanceArchive.css'
+      - 'src/attendance/attendanceArchiveApi.js'
+      - 'src/utils/permissions.js'
+      - 'supabase/migrations/20260914_attendance_archive.sql'
+      - 'supabase/migrations/20260914_attendance_archive_governance.sql'
+      - 'supabase/migrations/20260914_attendance_archive_change_log_preservation.sql'
+      - 'scripts/test-attendance-archive.mjs'
+      - 'scripts/test-attendance-archive-change-log-preservation.mjs'
+      - 'scripts/test-attendance-archive-entry-permission.mjs'
+      - '.github/workflows/attendance-archive.yml'
+  push:
+    branches:
+      - 'feature/attendance-archive'
+    paths:
+      - 'src/components/GlobalAttendanceNavigationTab.jsx'
+      - 'src/components/attendance/AttendanceArchivePanel.jsx'
+      - 'src/components/attendance/AttendanceArchive.css'
+      - 'src/attendance/attendanceArchiveApi.js'
+      - 'src/utils/permissions.js'
+      - 'supabase/migrations/20260914_attendance_archive.sql'
+      - 'supabase/migrations/20260914_attendance_archive_governance.sql'
+      - 'supabase/migrations/20260914_attendance_archive_change_log_preservation.sql'
+      - 'scripts/test-attendance-archive.mjs'
+      - 'scripts/test-attendance-archive-change-log-preservation.mjs'
+      - 'scripts/test-attendance-archive-entry-permission.mjs'
+      - '.github/workflows/attendance-archive.yml'
+
+jobs:
+  contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify attendance archive contract
+        run: node scripts/test-attendance-archive.mjs
+      - name: Verify attendance archive preserves change logs
+        run: node scripts/test-attendance-archive-change-log-preservation.mjs
+      - name: Verify attendance:delete grants archive entry
+        run: node scripts/test-attendance-archive-entry-permission.mjs
