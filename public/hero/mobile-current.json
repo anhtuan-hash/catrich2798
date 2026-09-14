@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "revision": "bootstrap",
-  "publishedAt": "",
-  "publishedBy": "",
+  "revision": "1789375425864-3f7ff5f5",
+  "publishedAt": "2026-09-14T08:43:45.864Z",
+  "publishedBy": "anhtuan@pek.edu.vn",
   "delivery": "vercel-static",
   "mobileHero": {
-    "url": "",
-    "fileName": "",
-    "mimeType": "",
+    "url": "/hero/media/mobile-hero-1789375427481-f737fc9e2b84.png",
+    "fileName": "mobile-hero-1789375427481-f737fc9e2b84.png",
+    "mimeType": "image/png",
     "fit": "contain"
   }
 }
