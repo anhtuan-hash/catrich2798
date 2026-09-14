@@ -20,7 +20,7 @@ create table if not exists public.bes_attendance_archive (
   archived_by_name text not null default '',
   archived_at timestamptz not null default clock_timestamp(),
   delete_request_status text not null default 'none'
-    check (delete_request_status in ('none', 'pending', 'rejected')),
+    check (delete_request_status in ('none', 'pending', 'approved', 'rejected')),
   delete_requested_by uuid,
   delete_requested_at timestamptz,
   delete_request_reason text not null default '',
@@ -252,6 +252,9 @@ begin
   if not found then
     raise exception 'Không tìm thấy mục lưu trữ cần khôi phục.' using errcode = 'P0002';
   end if;
+  if v_archive.delete_request_status = 'approved' then
+    raise exception 'Mục này đã được Admin duyệt xóa và đang chờ hoàn tất, không thể khôi phục.' using errcode = '22023';
+  end if;
 
   if v_archive.source_type = 'extra' then
     select * into v_extra
@@ -291,6 +294,21 @@ begin
     from jsonb_populate_record(null::public.bes_supplemental_sessions, v_archive.session_snapshot);
 
     if exists (select 1 from public.bes_supplemental_sessions s where s.id = v_supp.id) then
+      if exists (
+        select 1
+        from public.bes_supplemental_sessions s
+        where s.id = v_supp.id
+          and (
+            s.status <> 'scheduled'
+            or s.roster_frozen_at is not null
+            or s.attendance_confirmed_at is not null
+            or s.checked_by is not null
+            or trim(coalesce(s.proof_path, '')) <> ''
+          )
+      ) then
+        raise exception 'Buổi Học bổ sung này đã có dữ liệu điểm danh mới. Không thể khôi phục chồng dữ liệu.' using errcode = '23505';
+      end if;
+
       update public.bes_supplemental_sessions s
       set group_id = v_supp.group_id,
           kind = v_supp.kind,
@@ -377,6 +395,9 @@ begin
   if not found then
     raise exception 'Không tìm thấy mục lưu trữ.' using errcode = 'P0002';
   end if;
+  if v_archive.delete_request_status = 'approved' then
+    raise exception 'Mục này đã được Admin duyệt xóa và đang chờ hoàn tất.' using errcode = '22023';
+  end if;
 
   update public.bes_attendance_archive a
   set delete_request_status = 'pending',
@@ -417,24 +438,30 @@ begin
   if not found then
     raise exception 'Không tìm thấy mục lưu trữ.' using errcode = 'P0002';
   end if;
-  if v_archive.delete_request_status <> 'pending' then
+  if v_archive.delete_request_status not in ('pending', 'approved') then
     raise exception 'Mục này không có yêu cầu xóa đang chờ duyệt.' using errcode = '22023';
   end if;
 
   if coalesce(p_approve, false) then
-    if trim(coalesce(v_archive.proof_path, '')) <> '' then
-      delete from storage.objects o
-      where o.bucket_id = 'attendance-session-proofs'
-        and o.name = v_archive.proof_path;
-    end if;
-    delete from public.bes_attendance_archive a where a.id = p_archive_id;
+    update public.bes_attendance_archive a
+    set delete_request_status = 'approved',
+        delete_reviewed_by = v_uid,
+        delete_reviewed_at = clock_timestamp(),
+        delete_review_note = trim(coalesce(p_note, ''))
+    where a.id = p_archive_id;
+
     return jsonb_build_object(
       'archive_id', p_archive_id,
       'approved', true,
-      'permanently_deleted', true,
+      'ready_for_permanent_delete', true,
+      'proof_path', v_archive.proof_path,
       'reviewed_by', v_uid,
       'note', trim(coalesce(p_note, ''))
     );
+  end if;
+
+  if v_archive.delete_request_status = 'approved' then
+    raise exception 'Yêu cầu này đã được duyệt xóa, không thể chuyển sang từ chối.' using errcode = '22023';
   end if;
 
   update public.bes_attendance_archive a
@@ -451,6 +478,41 @@ begin
   );
 end;
 $$;
+
+create or replace function public.bes_finalize_attendance_archive_delete(p_archive_id uuid)
+returns jsonb
+language plpgsql
+security definer
+set search_path = ''
+as $
+declare
+  v_uid uuid := auth.uid();
+  v_archive public.bes_attendance_archive%rowtype;
+begin
+  if not public.is_admin() then
+    raise exception 'Chỉ Admin được hoàn tất xóa vĩnh viễn.' using errcode = '42501';
+  end if;
+
+  select * into v_archive
+  from public.bes_attendance_archive a
+  where a.id = p_archive_id
+  for update;
+  if not found then
+    raise exception 'Không tìm thấy mục lưu trữ.' using errcode = 'P0002';
+  end if;
+  if v_archive.delete_request_status <> 'approved' then
+    raise exception 'Mục này chưa được Admin duyệt xóa.' using errcode = '22023';
+  end if;
+
+  delete from public.bes_attendance_archive a where a.id = p_archive_id;
+  return jsonb_build_object(
+    'archive_id', p_archive_id,
+    'approved', true,
+    'permanently_deleted', true,
+    'finalized_by', v_uid
+  );
+end;
+$;
 
 -- Backward-compatible hard-delete endpoints now route to the archive. This closes
 -- the bypass where an older client could permanently delete without Admin review.
@@ -477,6 +539,7 @@ revoke all on function public.bes_list_attendance_archive() from public, anon;
 revoke all on function public.bes_restore_attendance_archive(uuid) from public, anon;
 revoke all on function public.bes_request_attendance_archive_delete(uuid, text) from public, anon;
 revoke all on function public.bes_review_attendance_archive_delete(uuid, boolean, text) from public, anon;
+revoke all on function public.bes_finalize_attendance_archive_delete(uuid) from public, anon;
 revoke all on function public.bes_delete_extra_attendance_session(uuid) from public, anon;
 revoke all on function public.bes_delete_supplemental_attendance_history(uuid) from public, anon;
 
@@ -485,5 +548,6 @@ grant execute on function public.bes_list_attendance_archive() to authenticated;
 grant execute on function public.bes_restore_attendance_archive(uuid) to authenticated;
 grant execute on function public.bes_request_attendance_archive_delete(uuid, text) to authenticated;
 grant execute on function public.bes_review_attendance_archive_delete(uuid, boolean, text) to authenticated;
+grant execute on function public.bes_finalize_attendance_archive_delete(uuid) to authenticated;
 grant execute on function public.bes_delete_extra_attendance_session(uuid) to authenticated;
 grant execute on function public.bes_delete_supplemental_attendance_history(uuid) to authenticated;
