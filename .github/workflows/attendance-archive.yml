@@ -6,30 +6,39 @@ on:
       - 'src/components/GlobalAttendanceNavigationTab.jsx'
       - 'src/components/attendance/AttendanceArchivePanel.jsx'
       - 'src/components/attendance/AttendanceArchive.css'
+      - 'src/components/attendance/AttendanceClassManagementWorkspace.jsx'
       - 'src/attendance/attendanceArchiveApi.js'
+      - 'src/attendance/extraClassArchiveApi.js'
       - 'src/utils/permissions.js'
       - 'supabase/migrations/20260914_attendance_archive.sql'
       - 'supabase/migrations/20260914_attendance_archive_governance.sql'
       - 'supabase/migrations/20260914_attendance_archive_change_log_preservation.sql'
+      - 'supabase/migrations/20260914182000_extra_class_archive_governance.sql'
       - 'scripts/test-attendance-archive.mjs'
       - 'scripts/test-attendance-archive-change-log-preservation.mjs'
       - 'scripts/test-attendance-archive-entry-permission.mjs'
+      - 'scripts/test-extra-class-archive-governance.mjs'
       - '.github/workflows/attendance-archive.yml'
   push:
     branches:
       - 'feature/attendance-archive'
+      - 'feat/extra-class-archive-governance'
     paths:
       - 'src/components/GlobalAttendanceNavigationTab.jsx'
       - 'src/components/attendance/AttendanceArchivePanel.jsx'
       - 'src/components/attendance/AttendanceArchive.css'
+      - 'src/components/attendance/AttendanceClassManagementWorkspace.jsx'
       - 'src/attendance/attendanceArchiveApi.js'
+      - 'src/attendance/extraClassArchiveApi.js'
       - 'src/utils/permissions.js'
       - 'supabase/migrations/20260914_attendance_archive.sql'
       - 'supabase/migrations/20260914_attendance_archive_governance.sql'
       - 'supabase/migrations/20260914_attendance_archive_change_log_preservation.sql'
+      - 'supabase/migrations/20260914182000_extra_class_archive_governance.sql'
       - 'scripts/test-attendance-archive.mjs'
       - 'scripts/test-attendance-archive-change-log-preservation.mjs'
       - 'scripts/test-attendance-archive-entry-permission.mjs'
+      - 'scripts/test-extra-class-archive-governance.mjs'
       - '.github/workflows/attendance-archive.yml'
 
 jobs:
@@ -46,3 +55,5 @@ jobs:
         run: node scripts/test-attendance-archive-change-log-preservation.mjs
       - name: Verify attendance:delete grants archive entry
         run: node scripts/test-attendance-archive-entry-permission.mjs
+      - name: Verify whole-class archive governance
+        run: node scripts/test-extra-class-archive-governance.mjs
