@@ -17,10 +17,50 @@ test('phone uses the approved premium mobile Home composition', async ({ page },
 
   const art = mobileHome.locator('[data-mobile-home-hero-art]');
   await expect(art).toBeVisible();
-  await expect(art).toHaveAttribute('src', /mobile-home-premium-hero\.svg$/);
+  await expect(art).toHaveAttribute('src', /mobile-home-premium-hero\.webp$/);
   await expect(mobileHome.getByRole('heading', { name: /Học tốt hơn/i })).toBeAttached();
   await expect(mobileHome.getByRole('button', { name: /^Bắt đầu$/i })).toBeVisible();
   await expect(mobileHome.getByRole('button', { name: /^Xem ngay$/i })).toBeVisible();
+});
+
+test('premium mobile Home suppresses global atmosphere and keeps a light canvas', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'mobile-chromium');
+  await waitForHome(page);
+
+  const atmosphere = page.locator('.bes-vn-atmosphere');
+  if (await atmosphere.count()) {
+    await expect(atmosphere).toBeHidden();
+  }
+
+  const diagnostics = await page.evaluate(() => {
+    const read = (selector) => {
+      const element = document.querySelector(selector);
+      if (!element) return null;
+      const style = getComputedStyle(element);
+      return {
+        selector,
+        display: style.display,
+        background: style.background,
+        backgroundColor: style.backgroundColor,
+        position: style.position,
+        zIndex: style.zIndex,
+      };
+    };
+    return {
+      html: read('html'),
+      body: read('body'),
+      appShell: read('.app-shell'),
+      main: read('#bes-main-content'),
+      mobileHome: read('.bes-mobile-home.is-premium'),
+      atmosphere: read('.bes-vn-atmosphere'),
+    };
+  });
+  console.log('MOBILE_HOME_VISUAL_DIAGNOSTICS', JSON.stringify(diagnostics));
+
+  const canvas = page.locator('.bes-mobile-home.is-premium');
+  const background = await canvas.evaluate((element) => getComputedStyle(element).backgroundColor);
+  expect(background).not.toBe('rgb(0, 0, 0)');
+  expect(background).not.toBe('rgba(0, 0, 0, 0)');
 });
 
 test('desktop preserves existing Home body', async ({ page }, testInfo) => {
