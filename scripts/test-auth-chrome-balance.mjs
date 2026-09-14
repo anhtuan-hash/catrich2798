@@ -3,7 +3,7 @@ import path from 'node:path';
 import process from 'node:process';
 
 const root = process.cwd();
-const authPage = fs.readFileSync(path.join(root, 'src/pages/AuthPage.jsx'), 'utf8');
+const navigation = fs.readFileSync(path.join(root, 'src/components/GlobalFlatNavigation.jsx'), 'utf8');
 const chromeFixPath = path.join(root, 'src/pages/AuthPageChromeFix.css');
 
 if (!fs.existsSync(chromeFixPath)) {
@@ -12,13 +12,9 @@ if (!fs.existsSync(chromeFixPath)) {
 
 const chromeFix = fs.readFileSync(chromeFixPath, 'utf8');
 
-const googleImport = "import './AuthPageGoogle.css';";
-const fixImport = "import './AuthPageChromeFix.css';";
-const googleIndex = authPage.indexOf(googleImport);
-const fixIndex = authPage.indexOf(fixImport);
-
-if (googleIndex < 0 || fixIndex < 0 || fixIndex < googleIndex) {
-  throw new Error('AuthPageChromeFix.css must be imported after AuthPageGoogle.css.');
+const fixImport = "import '../pages/AuthPageChromeFix.css';";
+if (!navigation.includes(fixImport)) {
+  throw new Error('GlobalFlatNavigation must load AuthPageChromeFix.css so the route-scoped shell fix is present before auth rendering.');
 }
 
 const requirements = [
