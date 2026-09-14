@@ -2,9 +2,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
 const permissionsUrl = new URL('../src/utils/permissions.js', import.meta.url);
-const attendanceUrl = new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url);
 const bridgeUrl = new URL('../src/components/GlobalAttendanceAdminPersistenceBridge.jsx', import.meta.url);
-const workspaceUrl = new URL('../src/components/attendance/AttendanceClassManagementWorkspace.jsx', import.meta.url);
 const migrationUrl = new URL('../supabase/migrations/20260914120000_attendance_report_class_creation.sql', import.meta.url);
 
 const permissions = await import(permissionsUrl);
@@ -22,40 +20,28 @@ const reportOnly = {
 assert.equal(hasAttendanceTabAccess(reportOnly, 'report'), true, 'Fixture must have Attendance report access');
 assert.equal(hasAttendanceTabAccess(reportOnly, 'manage'), false, 'Report access must not silently become attendance:manage');
 
-const attendanceSource = fs.readFileSync(attendanceUrl, 'utf8');
 const bridgeSource = fs.readFileSync(bridgeUrl, 'utf8');
-const workspaceSource = fs.readFileSync(workspaceUrl, 'utf8');
 const migrationSource = fs.existsSync(migrationUrl) ? fs.readFileSync(migrationUrl, 'utf8') : '';
 
 assert.match(
   bridgeSource,
   /hasAttendanceTabAccess\(currentUser,\s*['"]report['"]\)/,
-  'Manual Tạo lớp mới bridge must recognize attendance:report',
+  'Tạo lớp mới bridge must recognize attendance:report',
 );
 assert.match(
   bridgeSource,
   /hasAttendanceTabAccess\(currentUser,\s*['"]manage['"]\)/,
   'Existing attendance:manage creation capability must remain available',
 );
-assert.match(
-  bridgeSource,
-  /bes_create_extra_class_with_teachers/,
-  'Manual creation must keep using the transactional create RPC',
-);
-
-assert.match(attendanceSource, /const canCreateExtraClasses\s*=/, 'Attendance UI must derive a dedicated class-create capability');
-assert.match(attendanceSource, /canCreateExtraClasses[\s\S]{0,260}hasAttendanceTabAccess\(currentUser,\s*['"]report['"]\)/, 'Class-create capability must include report access');
-assert.match(attendanceSource, /const canOpenClassManagement\s*=\s*canAccessAttendanceView\(['"]manage['"]\)\s*\|\|\s*canCreateExtraClasses/, 'Report creators must be able to open the Manage surface without receiving manage permission');
-assert.match(attendanceSource, /item\.tab\s*===\s*['"]manage['"][\s\S]{0,120}canOpenClassManagement/, 'Manage navigation entry must be available to create-capable report users');
-assert.match(attendanceSource, /canCreateClasses=\{canCreateExtraClasses\}/, 'Workspace must receive create capability separately');
-assert.match(attendanceSource, /canManageMembers=\{canAccessAttendanceView\(['"]manage['"]\)\}/, 'Existing-class mutations must remain tied to attendance:manage');
-assert.match(attendanceSource, /bes_create_extra_class_with_members/, 'Report-only Excel import must use the transactional create-with-members RPC');
-assert.match(attendanceSource, /if\s*\(!canManageClassRoster\s*&&\s*classRow\)/, 'Report-only import must branch away from existing-class updates');
-assert.match(attendanceSource, /Bỏ qua lớp đã tồn tại/, 'Report-only import must explicitly report skipped existing classes');
-
-assert.match(workspaceSource, /canCreateClasses\s*=\s*false/, 'Workspace must accept a dedicated canCreateClasses prop');
-assert.match(workspaceSource, /canCreateClasses\s*\?\s*\(/, 'Create/import controls must be guarded by canCreateClasses');
-assert.match(workspaceSource, /canManageMembers\s*\?\s*\(/, 'Existing-class mutation controls must be guarded by canManageMembers');
+assert.match(bridgeSource, /reportOnlyCreator/, 'Bridge must distinguish report-only creators from full class managers');
+assert.match(bridgeSource, /\.attendance-top-actions/, 'Report-only creators must receive creation controls even without the Manage tab');
+assert.match(bridgeSource, /bes_create_extra_class_with_teachers/, 'Manual creation must keep using the transactional create RPC');
+assert.match(bridgeSource, /readSheet\(file\)/, 'Report-only creators must be able to import an Excel roster');
+assert.match(bridgeSource, /parseExtraClassRosterRows\(rows\)/, 'Excel import must reuse the validated extra-class parser');
+assert.match(bridgeSource, /if\s*\(classRow\)\s*\{[\s\S]{0,260}Bỏ qua lớp đã tồn tại[\s\S]{0,160}continue;/, 'Report-only import must skip existing classes instead of mutating them');
+assert.match(bridgeSource, /bes_create_extra_class_with_members/, 'Report-only Excel import must use the transactional create-with-members RPC');
+assert.doesNotMatch(bridgeSource, /\.from\(['"]bes_extra_classes['"]\)[\s\S]{0,220}\.update\(/, 'Report-only bridge must not update existing classes directly');
+assert.doesNotMatch(bridgeSource, /\.from\(['"]bes_extra_class_members['"]\)[\s\S]{0,220}\.(?:update|delete)\(/, 'Report-only bridge must not mutate existing members directly');
 
 assert.ok(migrationSource, 'Report-access class creation migration must exist');
 assert.match(migrationSource, /create or replace function public\.can_create_extra_class_roster\(\)/i, 'Migration must define a narrow create capability');
