@@ -73,7 +73,7 @@ assert.match(
 );
 assert.match(
   sql,
-  /v_source\s*=\s*'supplemental'[\s\S]*bes_supplemental_session_participants/i,
+  /else\s+select\s+\*\s+into\s+v_supp[\s\S]*?from\s+public\.bes_supplemental_sessions[\s\S]*?bes_supplemental_session_participants/i,
   'Supplemental archive must snapshot and process its participant rows.',
 );
 assert.match(
