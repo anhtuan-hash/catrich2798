@@ -4,6 +4,8 @@ on:
   push:
     paths:
       - '.github/workflows/debug-mobile-hero-build.yml'
+      - 'scripts/test-editorial-app-heroes.mjs'
+      - 'vercel.json'
       - 'src/components/mobile/MobileHomeView.jsx'
       - 'src/components/MobileHeroAdminField.jsx'
       - 'api/homepage-mobile-hero-publish.js'
@@ -24,5 +26,5 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
-      - name: Production build
-        run: npm run build
+      - name: Run Vercel build contract
+        run: node scripts/test-editorial-app-heroes.mjs && npm run build
