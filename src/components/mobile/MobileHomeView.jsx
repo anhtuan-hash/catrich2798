@@ -15,6 +15,7 @@ import {
 import '../../styles/mobile/mobile-home.css';
 import '../../styles/mobile/mobile-home-polish.css';
 import '../../styles/mobile/mobile-home-premium.css';
+import '../../styles/mobile/mobile-home-premium-parity.css';
 
 function practiceTimestamp(item) {
   const values = [item?.opens_at, item?.published_at, item?.created_at];
@@ -199,7 +200,7 @@ export default function MobileHomeView({
         <section className="bes-mobile-home__premium-hero" data-mobile-home-hero aria-labelledby="mobile-home-premium-heading">
           <img
             className="bes-mobile-home__premium-hero-art"
-            src="/mobile-home-premium-hero.svg"
+            src="/mobile-home-premium-hero.webp"
             alt=""
             draggable="false"
             data-mobile-home-hero-art
