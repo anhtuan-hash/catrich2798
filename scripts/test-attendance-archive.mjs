@@ -54,6 +54,8 @@ assert.match(governance, /can_delete_extra_attendance_history[\s\S]*attendance:d
 assert.match(governance, /permissions[\s\S]*allowed[\s\S]*attendance:delete/i, 'Backend must read attendance:delete from the profile permission payload.');
 assert.match(governance, /insert\s+into\s+public\.work_hub_notifications/i, 'Permanent-delete requests must notify Admins.');
 assert.match(governance, /notification_type[\s\S]*attendance_purge_approval/i, 'Admin notification must use a dedicated attendance purge approval type.');
+assert.match(governance, /insert\s+into\s+public\.work_hub_notifications\s*\(\s*user_id\s*,\s*item_id\s*,\s*notification_type\s*,\s*title\s*,\s*body\s*\)[\s\S]*?select\s+admin_profile\.id\s*,\s*null::uuid\s*,\s*'attendance_purge_approval'/i, 'Attendance purge notifications must leave item_id NULL because it is a foreign key to work_hub_items, not attendance archives.');
+assert.doesNotMatch(governance, /admin_profile\.id\s*,\s*new\.id\s*,\s*'attendance_purge_approval'/i, 'Attendance archive ids must never be written into work_hub_notifications.item_id.');
 assert.match(governance, /insert\s+into\s+public\.audit_events/i, 'Attendance archive lifecycle must write durable audit events.');
 assert.match(governance, /before_data\s*,\s*after_data\s*,\s*source_module\s*,\s*metadata/i, 'Attendance audit inserts must use the real audit_events.source_module column.');
 assert.doesNotMatch(governance, /before_data\s*,\s*after_data\s*,\s*source\s*,\s*metadata/i, 'Attendance audit inserts must not reference the nonexistent audit_events.source column.');
