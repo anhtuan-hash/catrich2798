@@ -74,12 +74,16 @@ begin
         from public.profiles p
         where p.id = new.delete_requested_by;
 
+        -- item_id is intentionally NULL: work_hub_notifications.item_id points to
+        -- work_hub_items, while this notification refers to an attendance archive.
+        -- Each transition into pending creates a fresh Admin notification, including
+        -- a resubmission after a previous rejection.
         insert into public.work_hub_notifications (
           user_id, item_id, notification_type, title, body
         )
         select
           admin_profile.id,
-          new.id,
+          null::uuid,
           'attendance_purge_approval',
           'Yêu cầu xóa vĩnh viễn dữ liệu điểm danh',
           concat(
@@ -95,15 +99,7 @@ begin
           )
         from public.profiles admin_profile
         where admin_profile.approved = true
-          and lower(trim(coalesce(admin_profile.role, ''))) in ('admin', 'administrator')
-          and not exists (
-            select 1
-            from public.work_hub_notifications existing
-            where existing.user_id = admin_profile.id
-              and existing.item_id = new.id
-              and existing.notification_type = 'attendance_purge_approval'
-              and existing.read_at is null
-          );
+          and lower(trim(coalesce(admin_profile.role, ''))) in ('admin', 'administrator');
       elsif new.delete_request_status = 'approved' then
         v_action := 'attendance.purge_approved';
       elsif new.delete_request_status = 'rejected' then
