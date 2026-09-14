@@ -10,7 +10,9 @@ on:
       - 'src/utils/permissions.js'
       - 'supabase/migrations/20260914_attendance_archive.sql'
       - 'supabase/migrations/20260914_attendance_archive_governance.sql'
+      - 'supabase/migrations/20260914_attendance_archive_change_log_preservation.sql'
       - 'scripts/test-attendance-archive.mjs'
+      - 'scripts/test-attendance-archive-change-log-preservation.mjs'
       - '.github/workflows/attendance-archive.yml'
   push:
     branches:
@@ -23,7 +25,9 @@ on:
       - 'src/utils/permissions.js'
       - 'supabase/migrations/20260914_attendance_archive.sql'
       - 'supabase/migrations/20260914_attendance_archive_governance.sql'
+      - 'supabase/migrations/20260914_attendance_archive_change_log_preservation.sql'
       - 'scripts/test-attendance-archive.mjs'
+      - 'scripts/test-attendance-archive-change-log-preservation.mjs'
       - '.github/workflows/attendance-archive.yml'
 
 jobs:
@@ -36,3 +40,5 @@ jobs:
           node-version: 22
       - name: Verify attendance archive contract
         run: node scripts/test-attendance-archive.mjs
+      - name: Verify attendance archive preserves change logs
+        run: node scripts/test-attendance-archive-change-log-preservation.mjs
