@@ -45,7 +45,8 @@ assert.match(sql, /student_full_name text not null/, 'Attendance records must sn
 
 assert.match(combinedSql, /bes_delete_extra_class\s*\(/, 'SQL must expose a transactional class-deletion RPC');
 assert.match(combinedSql, /bes_delete_extra_attendance_session\s*\(/, 'SQL must keep the approved-attendance deletion compatibility RPC');
-assert.match(attendanceManagementUi, /bes_delete_extra_class/, 'Class-management UI must call the class-deletion RPC');
+assert.match(attendanceManagementUi, /archiveExtraClass/, 'Class-management UI must route class deletion through the archive-first adapter');
+assert.doesNotMatch(attendance, /client\.rpc\(['"]bes_delete_extra_class['"]/, 'Class-management UI must not call the legacy hard-delete RPC directly');
 assert.match(attendanceManagementUi, /Xóa lớp/, 'Class-management UI must expose an explicit delete-class control');
 assert.match(attendance, /archiveAttendanceHistory/, 'History UI must route first deletion through the reversible attendance archive API');
 assert.match(attendance, /Đưa vào Kho lưu trữ|Lưu trữ/, 'History UI must expose an explicit archive control');

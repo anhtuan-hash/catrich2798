@@ -137,6 +137,7 @@ export default function AttendanceClassManagementWorkspace({
   client,
   isAdmin,
   canManageMembers,
+  canArchiveClass = false,
   removeStudent,
   loadAll,
   setError,
@@ -338,7 +339,7 @@ export default function AttendanceClassManagementWorkspace({
               <button type="button" className="attendance-manage-detail-actions__primary" disabled={busy} onClick={() => setShowAddStudent?.((value) => !value)}><WorkspaceIcon name="plus" size={17} />Thêm học sinh</button>
               <button type="button" disabled={busy} onClick={() => setEditingClass(true)}><WorkspaceIcon name="edit" size={15} />Sửa thông tin lớp</button>
               <button type="button" disabled={busy} onClick={() => setShowAddTeacher?.((value) => !value)}><WorkspaceIcon name="plus" size={16} />Thêm giáo viên</button>
-              <button type="button" className="is-danger" disabled={busy} onClick={() => deleteClass?.(selectedClass)}><WorkspaceIcon name="trash" size={15} />Xóa lớp</button>
+              {canArchiveClass ? (<button type="button" className="is-danger" disabled={busy} onClick={() => deleteClass?.(selectedClass)}><WorkspaceIcon name="trash" size={15} />Xóa lớp</button>) : null}
             </div>
           </div>
         </div>
