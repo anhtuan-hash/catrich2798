@@ -11,6 +11,26 @@ async function rpc(client, name, params = {}) {
   return data;
 }
 
+function normalizeProofPaths(values) {
+  return [...new Set(
+    (Array.isArray(values) ? values : [])
+      .map((value) => String(value || '').trim())
+      .filter(Boolean),
+  )];
+}
+
+async function removeProofPaths(client, values) {
+  const proofPaths = normalizeProofPaths(values);
+  if (!proofPaths.length) return;
+  if (!client?.storage?.from) {
+    throw new Error('Dịch vụ lưu trữ chưa sẵn sàng. Gói lớp vẫn được giữ để thử lại.');
+  }
+  const { error: proofError } = await client.storage.from(ATTENDANCE_PROOF_BUCKET).remove(proofPaths);
+  if (proofError) {
+    throw new Error(`Chưa thể xóa minh chứng: ${proofError.message || 'lỗi Storage'}. Gói lớp vẫn được giữ để thử lại.`);
+  }
+}
+
 export async function archiveExtraClass(client, classId) {
   if (!classId) throw new Error('Không xác định được lớp cần lưu trữ.');
   return rpc(client, 'bes_archive_extra_class', { p_class_id: classId });
@@ -34,8 +54,9 @@ export async function requestExtraClassArchiveDelete(client, archiveId, reason =
   });
 }
 
-export async function finalizeExtraClassArchiveDelete(client, archiveId) {
+export async function finalizeExtraClassArchiveDelete(client, archiveId, proofPaths = []) {
   if (!archiveId) throw new Error('Không xác định được lớp cần hoàn tất xóa.');
+  await removeProofPaths(client, proofPaths);
   return rpc(client, 'bes_finalize_extra_class_archive_delete', { p_archive_id: archiveId });
 }
 
@@ -48,12 +69,7 @@ export async function reviewExtraClassArchiveDelete(client, archiveId, approve, 
   });
   if (approve !== true) return review;
 
-  const proofPaths = [...new Set(
-    (Array.isArray(review?.proof_paths) ? review.proof_paths : [])
-      .map((value) => String(value || '').trim())
-      .filter(Boolean),
-  )];
-
+  const proofPaths = normalizeProofPaths(review?.proof_paths);
   if (proofPaths.length) {
     if (!client?.storage?.from) {
       throw new Error('Admin đã duyệt xóa nhưng dịch vụ lưu trữ chưa sẵn sàng. Gói lớp vẫn được giữ để thử lại.');
