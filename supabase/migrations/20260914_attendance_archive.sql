@@ -484,7 +484,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $$
 declare
   v_uid uuid := auth.uid();
   v_archive public.bes_attendance_archive%rowtype;
@@ -512,7 +512,7 @@ begin
     'finalized_by', v_uid
   );
 end;
-$;
+$$;
 
 -- Backward-compatible hard-delete endpoints now route to the archive. This closes
 -- the bypass where an older client could permanently delete without Admin review.
