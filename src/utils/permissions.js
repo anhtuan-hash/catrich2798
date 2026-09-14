@@ -382,11 +382,14 @@ export function hasAttendanceTabAccess(user, tab) {
 }
 
 export function hasAnyAttendanceAccess(user) {
-  return ATTENDANCE_PERMISSION_ITEMS.some((item) => hasAttendanceTabAccess(user, item.tab));
+  return ATTENDANCE_PERMISSION_ITEMS.some((item) => hasAttendanceTabAccess(user, item.tab))
+    || hasExplicitPermissionId(user, ATTENDANCE_PERMISSION_IDS.delete);
 }
 
 export function getFirstAllowedAttendanceTab(user) {
-  return ATTENDANCE_PERMISSION_ITEMS.find((item) => hasAttendanceTabAccess(user, item.tab))?.tab || '';
+  const firstTab = ATTENDANCE_PERMISSION_ITEMS.find((item) => hasAttendanceTabAccess(user, item.tab))?.tab || '';
+  if (firstTab) return firstTab;
+  return hasExplicitPermissionId(user, ATTENDANCE_PERMISSION_IDS.delete) ? 'archive' : '';
 }
 
 export function hasPermissionId(user, permissionId) {
