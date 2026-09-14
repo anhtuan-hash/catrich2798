@@ -1,0 +1,30 @@
+/* Visual-isolation contract for the approved premium mobile Home.
+   This route owns its canvas and must not inherit global decorative overlays
+   or dark/transparent route backgrounds that can leak through between cards. */
+html.bes-mobile-home-premium-active,
+html.bes-mobile-home-premium-active body,
+html.bes-mobile-home-premium-active #root,
+html.bes-mobile-home-premium-active .app-shell,
+html.bes-mobile-home-premium-active #bes-main-content {
+  background-color: #f7faff !important;
+}
+
+html.bes-mobile-home-premium-active .bes-vn-atmosphere {
+  display: none !important;
+}
+
+html.bes-mobile-home-premium-active .bes-mobile-home.is-premium {
+  background-color: #f7faff !important;
+}
+
+html.bes-mobile-home-premium-active .bes-mobile-home__premium {
+  position: relative;
+  z-index: 1;
+}
+
+/* The approved Hero is a self-contained raster artboard. Rendering the WebP
+   directly avoids Safari's restrictions on external assets referenced from an
+   SVG loaded through <img>, which previously left the Hero card blank. */
+html.bes-mobile-home-premium-active .bes-mobile-home__premium-hero-art {
+  background-color: #f8fbff;
+}

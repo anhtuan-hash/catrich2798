@@ -9,6 +9,7 @@ on:
       - 'src/pages/HomeApproved.jsx'
       - 'src/components/mobile/MobileHomeView.jsx'
       - 'src/styles/mobile/mobile-home.css'
+      - 'src/styles/mobile/mobile-home-*.css'
       - 'src/components/mobile/**'
       - 'src/device/**'
       - 'src/hooks/usePresentationMode.js'
@@ -16,6 +17,7 @@ on:
       - 'tests/unit/mobile-navigation.test.mjs'
       - 'tests/e2e/mobile-shell.spec.js'
       - 'tests/e2e/mobile-home-practice.spec.js'
+      - 'tests/e2e/mobile-home-safari.spec.js'
       - '.github/workflows/mobile-home-practice.yml'
 
 permissions:
@@ -56,6 +58,9 @@ jobs:
 
       - name: Phone regression
         run: npx playwright test tests/e2e/mobile-shell.spec.js tests/e2e/mobile-home-practice.spec.js --project=mobile-chromium
+
+      - name: iPhone Safari regression
+        run: npx playwright test tests/e2e/mobile-home-safari.spec.js --project=mobile-webkit
 
       - name: Portrait iPad regression
         run: npx playwright test tests/e2e/mobile-shell.spec.js tests/e2e/mobile-home-practice.spec.js --project=ipad-portrait
