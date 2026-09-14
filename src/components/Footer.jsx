@@ -2,6 +2,7 @@ import React from 'react';
 import { APP_VERSION } from '../config/version.js';
 import './FooterCompactDisclosure.css';
 import './FooterAuthCards.css';
+import './FooterIntegrity.css';
 
 const ENGLISH_DETAILS = {
   language: 'EN',
@@ -58,15 +59,8 @@ export default function Footer({ language }) {
     <footer
       className={`footer footer-v10 signature-footer-v75 signature-footer-v50 signature-footer-collapsible ${isVi ? 'signature-footer-v50-vi' : 'signature-footer-v50-en'}`}
       aria-label={isVi ? 'Thông tin English Hub' : 'English Hub information'}
+      data-app-shell-footer="true"
     >
-      <div className="signature-footer-static-summary">
-        <span className="signature-footer-summary">
-          <strong>English Hub v{APP_VERSION}</strong>
-          <span className="signature-footer-summary-separator" aria-hidden="true">•</span>
-          <span>{content.copyright}</span>
-        </span>
-      </div>
-
       <div id="english-hub-footer-details" className="signature-footer-expanded-panel">
         <div className="signature-footer-v50-main">
           <section className="signature-footer-v50-brand" aria-label="English Hub, Pétrus Ký and Cambridge Assessment English">
@@ -108,6 +102,14 @@ export default function Footer({ language }) {
         </div>
 
         <div className="signature-footer-expanded-note">{content.examiner}</div>
+      </div>
+
+      <div className="signature-footer-static-summary">
+        <span className="signature-footer-summary">
+          <strong>English Hub v{APP_VERSION}</strong>
+          <span className="signature-footer-summary-separator" aria-hidden="true">•</span>
+          <span>{content.copyright}</span>
+        </span>
       </div>
     </footer>
   );
