@@ -68,6 +68,9 @@ jobs:
       - name: Phone TTCM topbar
         run: npx playwright test tests/e2e/mobile-ttcm-topbar.spec.js --project=mobile-chromium
 
+      - name: iPhone Safari notification sheet
+        run: npx playwright test tests/e2e/mobile-ttcm-topbar.spec.js --project=mobile-webkit --grep "account notifications"
+
       - name: iPad portrait shell
         run: npx playwright test tests/e2e/mobile-shell.spec.js --project=ipad-portrait
 
