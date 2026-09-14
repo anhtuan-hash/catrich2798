@@ -43,6 +43,7 @@ import { filterAndSortAttendanceHistory } from '../utils/attendanceHistoryFilter
 import { canManageSupplementalLearning } from '../supplementalAccess.js';
 import { attachSupplementalProof, beginSupplementalAttendance, cancelSupplementalSession, confirmSupplementalAttendance, loadSupplementalAttendanceActivities, loadSupplementalSessionTeachers } from '../attendance/supplementalLearningApi.js';
 import { archiveAttendanceHistory, listAttendanceArchive, requestAttendanceArchiveDelete, restoreAttendanceArchive, reviewAttendanceArchiveDelete } from '../attendance/attendanceArchiveApi.js';
+import { archiveExtraClass, finalizeExtraClassArchiveDelete, listExtraClassArchive, requestExtraClassArchiveDelete, restoreExtraClassArchive, reviewExtraClassArchiveDelete } from '../attendance/extraClassArchiveApi.js';
 import './attendance/AttendanceMaterial3.css';
 import './attendance/AttendanceHistoryV2.css';
 
@@ -192,6 +193,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const [sessions, setSessions] = useState([]);
   const [supplementalHistorySessions, setSupplementalHistorySessions] = useState([]);
   const [archiveItems, setArchiveItems] = useState([]);
+  const [classArchiveItems, setClassArchiveItems] = useState([]);
   const [archiveLoading, setArchiveLoading] = useState(false);
   const [records, setRecords] = useState([]);
   const [calendarSessions, setCalendarSessions] = useState([]);
@@ -245,14 +247,17 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const canDeleteAttendanceHistory = isAttendanceAdmin
     || hasExplicitPermissionId(currentUser, ATTENDANCE_PERMISSION_IDS.delete)
     || String(currentUser?.email || '').trim().toLowerCase() === 'hongtham@accounts.brianenglish.studio';
+  const canUseAttendanceHistoryArchive = canDeleteAttendanceHistory;
+  const canUseClassArchive = isAttendanceAdmin || hasAttendanceTabAccess(currentUser, 'manage');
+  const canOpenArchive = canUseAttendanceHistoryArchive || canUseClassArchive;
   const hasAttendanceReportOverride = isAttendanceAdmin || hasAttendanceTabAccess(currentUser, 'report');
   const canUseQuickAttendance = isAttendanceAdmin || hasAttendanceTabAccess(currentUser, 'quick') || hasAttendanceReportOverride;
   const archiveTab = { id: 'attendance:archive', tab: 'archive', titleVi: 'Kho lưu trữ' };
   const availableAttendanceTabs = [
     ...ATTENDANCE_PERMISSION_ITEMS.filter((item) => item.tab === 'quick' ? canUseQuickAttendance : canAccessAttendanceView(item.tab)),
-    ...(canDeleteAttendanceHistory ? [archiveTab] : []),
+    ...(canOpenArchive ? [archiveTab] : []),
   ];
-  const archiveCount = archiveItems.length;
+  const archiveCount = archiveItems.length + classArchiveItems.length;
   const firstAllowedView = canUseQuickAttendance ? 'quick' : getFirstAllowedAttendanceTab(currentUser);
   const allowed = Boolean(currentUser?.id && (isAttendanceAdmin || hasAnyAttendanceAccess(currentUser)));
   const canSeeSupplementalHistory = canManageSupplementalLearning(runtime);
@@ -274,7 +279,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
 
   useEffect(() => {
     if (!open || !allowed || !firstAllowedView) return;
-    const canOpenCurrentView = view === 'quick' ? canUseQuickAttendance : view === 'archive' ? canDeleteAttendanceHistory : canAccessAttendanceView(view);
+    const canOpenCurrentView = view === 'quick' ? canUseQuickAttendance : view === 'archive' ? canOpenArchive : canAccessAttendanceView(view);
     if (!canOpenCurrentView) setView(firstAllowedView);
   }, [open, allowed, firstAllowedView, view, currentUser?.permissions, systemRole, canUseQuickAttendance]);
 
@@ -314,12 +319,17 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   }
 
   async function loadArchive({ silent = false } = {}) {
-    if (!client || !runtime.ready || !runtime.session || !canDeleteAttendanceHistory) return;
+    if (!client || !runtime.ready || !runtime.session || !canOpenArchive) return;
     if (!silent) setArchiveLoading(true);
     try {
-      setArchiveItems(await listAttendanceArchive(client));
+      const [attendanceItems, extraClassItems] = await Promise.all([
+        canUseAttendanceHistoryArchive ? listAttendanceArchive(client) : Promise.resolve([]),
+        canUseClassArchive ? listExtraClassArchive(client) : Promise.resolve([]),
+      ]);
+      setArchiveItems(attendanceItems);
+      setClassArchiveItems(extraClassItems);
     } catch (archiveError) {
-      setError(archiveError?.message || 'Không thể tải Kho lưu trữ điểm danh.');
+      setError(archiveError?.message || 'Không thể tải Kho lưu trữ.');
     } finally {
       if (!silent) setArchiveLoading(false);
     }
@@ -1139,21 +1149,26 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   }
 
   async function deleteClass(classRow) {
-    if (!classRow || busy || !client) return;
-    const confirmed = window.confirm(`Xóa lớp “${classRow.class_name}”?\n\nThao tác này sẽ xóa danh sách học sinh, phân công giáo viên và toàn bộ các buổi điểm danh của lớp này. Không thể hoàn tác.`);
+    if (!classRow || busy || !client || !canUseClassArchive) return;
+    const memberCount = members.filter((member) => String(member.class_id) === String(classRow.id)).length;
+    const teacherCount = classTeachers.filter((teacher) => String(teacher.class_id) === String(classRow.id)).length;
+    const sessionCount = sessions.filter((session) => String(session.class_id) === String(classRow.id)).length;
+    const confirmed = window.confirm(
+      `Đưa lớp “${classRow.class_name}” vào Kho lưu trữ?\n\n`
+      + `${memberCount} học sinh · ${teacherCount} giáo viên · ${sessionCount} buổi điểm danh sẽ được lưu cùng lớp.\n\n`
+      + 'Lớp có thể khôi phục sau này. Xóa vĩnh viễn vẫn phải được Admin duyệt.'
+    );
     if (!confirmed) return;
     setBusy(true); setError(''); setNotice('');
     try {
-      const classProofPaths = sessions.filter((session) => String(session.class_id) === String(classRow.id)).map((session) => session.proof_path);
-      const { error: deleteError } = await client.rpc('bes_delete_extra_class', { p_class_id: classRow.id });
-      if (deleteError) throw deleteError;
-      await removeAttendanceProofPaths(classProofPaths);
+      const result = await archiveExtraClass(client, classRow.id);
       if (String(selectedClassId) === String(classRow.id)) setSelectedClassId('');
       setSelectedSessionId(''); setRecords([]); setDaySession(null); setCalendarSessions([]);
-      setNotice(`Đã xóa lớp ${classRow.class_name} cùng dữ liệu điểm danh liên quan.`);
+      setNotice(`Đã đưa lớp “${result?.class_name || classRow.class_name}” vào Kho lưu trữ.`);
       await loadAll({ keepSelection: false });
+      await loadArchive({ silent: true });
       await loadTeacherDaySessions();
-    } catch (deleteError) { setError(deleteError?.message || 'Không thể xóa lớp.'); }
+    } catch (archiveError) { setError(archiveError?.message || 'Không thể đưa lớp vào Kho lưu trữ.'); }
     finally { setBusy(false); }
   }
 
@@ -1264,6 +1279,52 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     } finally {
       setBusy(false);
     }
+  }
+
+  async function restoreArchivedClass(item) {
+    if (!item?.archive_id || busy || !client || !canUseClassArchive) return;
+    if (!window.confirm(`Khôi phục nguyên trạng lớp “${item.class_name || 'Lớp học'}” từ Kho lưu trữ?`)) return;
+    setBusy(true); setError(''); setNotice('');
+    try {
+      await restoreExtraClassArchive(client, item.archive_id);
+      setNotice(`Đã khôi phục lớp “${item.class_name || 'Lớp học'}” cùng danh sách học sinh, giáo viên và lịch sử điểm danh.`);
+      await loadAll({ keepSelection: false });
+      await loadArchive({ silent: true });
+      await loadTeacherDaySessions();
+    } catch (restoreError) { setError(restoreError?.message || 'Không thể khôi phục lớp.'); }
+    finally { setBusy(false); }
+  }
+
+  async function requestArchivedClassPermanentDelete(item) {
+    if (!item?.archive_id || busy || !client || !canUseClassArchive) return;
+    const reason = window.prompt(`Lý do yêu cầu xóa vĩnh viễn lớp “${item.class_name || 'Lớp học'}” (có thể để trống):`, '');
+    if (reason === null) return;
+    setBusy(true); setError(''); setNotice('');
+    try {
+      await requestExtraClassArchiveDelete(client, item.archive_id, reason);
+      setNotice('Đã gửi yêu cầu xóa vĩnh viễn lớp. Admin phải xác nhận trước khi dữ liệu bị xóa hẳn.');
+      await loadArchive({ silent: true });
+    } catch (requestError) { setError(requestError?.message || 'Không thể gửi yêu cầu xóa vĩnh viễn lớp.'); }
+    finally { setBusy(false); }
+  }
+
+  async function reviewArchivedClassPermanentDelete(item, approve) {
+    if (!isAttendanceAdmin || !item?.archive_id || busy || !client) return;
+    const retryApproved = approve && item.delete_request_status === 'approved';
+    const action = retryApproved ? 'HOÀN TẤT XÓA VĨNH VIỄN' : approve ? 'DUYỆT XÓA VĨNH VIỄN' : 'TỪ CHỐI yêu cầu xóa';
+    if (!window.confirm(`${action} lớp “${item.class_name || 'Lớp học'}”?${approve ? '\n\nSau khi hoàn tất, gói lớp và minh chứng sẽ không thể khôi phục.' : ''}`)) return;
+    const note = retryApproved ? '' : (window.prompt('Ghi chú Admin (có thể để trống):', '') ?? '');
+    setBusy(true); setError(''); setNotice('');
+    try {
+      if (retryApproved) {
+        await finalizeExtraClassArchiveDelete(client, item.archive_id, item.proof_paths);
+      } else {
+        await reviewExtraClassArchiveDelete(client, item.archive_id, approve, note);
+      }
+      setNotice(approve ? 'Đã hoàn tất xóa vĩnh viễn lớp.' : 'Đã từ chối yêu cầu xóa vĩnh viễn lớp.');
+      await loadArchive({ silent: true });
+    } catch (reviewError) { setError(reviewError?.message || 'Không thể xử lý yêu cầu xóa vĩnh viễn lớp.'); }
+    finally { setBusy(false); }
   }
 
   async function restoreArchivedSession(item) {
@@ -1511,6 +1572,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
               client={client}
               isAdmin={isAttendanceAdmin}
               canManageMembers={canAccessAttendanceView('manage')}
+              canArchiveClass={canUseClassArchive}
               removeStudent={removeStudent}
               loadAll={loadAll}
               setError={setError}
@@ -1521,16 +1583,22 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
 
           {!loading && canAccessAttendanceView('report') && view === 'report' ? <AttendanceMonthlyReport client={client} classes={classes} includeSupplemental={canSeeSupplementalHistory} month={reportMonth} onMonthChange={setReportMonth} onError={setError} /> : null}
 
-          {canDeleteAttendanceHistory && view === 'archive' ? <AttendanceArchivePanel
-            items={archiveItems}
+          {canOpenArchive && view === 'archive' ? <AttendanceArchivePanel
+            items={canUseAttendanceHistoryArchive ? archiveItems : []}
+            classItems={canUseClassArchive ? classArchiveItems : []}
             loading={archiveLoading}
             busy={busy}
             isAdmin={isAttendanceAdmin}
+            canManageClasses={canUseClassArchive}
             onRefresh={() => loadArchive()}
             onRestore={restoreArchivedSession}
             onRequestDelete={requestArchivedPermanentDelete}
             onApproveDelete={(item) => reviewArchivedPermanentDelete(item, true)}
             onRejectDelete={(item) => reviewArchivedPermanentDelete(item, false)}
+            onRestoreClass={restoreArchivedClass}
+            onRequestDeleteClass={requestArchivedClassPermanentDelete}
+            onApproveDeleteClass={(item) => reviewArchivedClassPermanentDelete(item, true)}
+            onRejectDeleteClass={(item) => reviewArchivedClassPermanentDelete(item, false)}
           /> : null}
 
           {!loading && canAccessAttendanceView('history') && view === 'history' ? (
