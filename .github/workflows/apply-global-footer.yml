@@ -1,3 +1,4 @@
+# One-shot source transform for the approved global footer.
 name: Apply Global Footer Transform
 
 on:
