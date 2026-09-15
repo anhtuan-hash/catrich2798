@@ -3,7 +3,8 @@ name: Global Navigation Star Effect
 on:
   pull_request:
     paths:
-      - 'src/components/GlobalEditorialAuthorityRuntime.jsx'
+      - 'src/noCreamSurfaceRuntime.js'
+      - 'src/navigationStarEffectBootstrap.js'
       - 'src/components/GlobalNavigationStarEffect.css'
       - 'src/components/BrianPulseLogo.jsx'
       - 'src/components/BrianPulseLogo.css'
@@ -13,7 +14,8 @@ on:
     branches:
       - main
     paths:
-      - 'src/components/GlobalEditorialAuthorityRuntime.jsx'
+      - 'src/noCreamSurfaceRuntime.js'
+      - 'src/navigationStarEffectBootstrap.js'
       - 'src/components/GlobalNavigationStarEffect.css'
       - 'src/components/BrianPulseLogo.jsx'
       - 'src/components/BrianPulseLogo.css'
