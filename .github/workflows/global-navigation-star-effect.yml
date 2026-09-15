@@ -1,0 +1,40 @@
+name: Global Navigation Star Effect
+
+on:
+  pull_request:
+    paths:
+      - 'src/components/GlobalEditorialAuthorityRuntime.jsx'
+      - 'src/components/GlobalNavigationStarEffect.css'
+      - 'src/components/BrianPulseLogo.jsx'
+      - 'src/components/BrianPulseLogo.css'
+      - 'scripts/test-global-navigation-star-effect.mjs'
+      - '.github/workflows/global-navigation-star-effect.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/components/GlobalEditorialAuthorityRuntime.jsx'
+      - 'src/components/GlobalNavigationStarEffect.css'
+      - 'src/components/BrianPulseLogo.jsx'
+      - 'src/components/BrianPulseLogo.css'
+      - 'scripts/test-global-navigation-star-effect.mjs'
+      - '.github/workflows/global-navigation-star-effect.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  star-effect-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify Star-inspired navigation effect contract
+        run: node scripts/test-global-navigation-star-effect.mjs
