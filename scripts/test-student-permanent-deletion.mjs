@@ -66,5 +66,15 @@ assert.match(
   /studentPermanentDeletionTombstones/,
   'assigned-class sync must read durable tombstones from the teacher workspace',
 );
+assert.match(
+  assignedSyncSource,
+  /const reconciledActiveStudentCount = \(reconciled\.students \|\| \[\]\)/,
+  'student count must be recomputed from the reconciled workspace when the central roster is empty',
+);
+assert.match(
+  assignedSyncSource,
+  /durableTombstones\.length\s*\? reconciledActiveStudentCount/,
+  'permanent deletions must not force studentCountTarget to zero when assigned payload has no roster rows',
+);
 
 console.log('student-permanent-deletion: ok');
