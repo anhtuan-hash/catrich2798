@@ -46,7 +46,7 @@ begin
         end
       ) as normalized_student_ref,
       trim(coalesce(s.student ->> 'code', '')) as normalized_code,
-      trim(coalesce(s.student ->> 'name', '')) as normalized_name,
+      trim(coalesce(s.student ->> 'fullName', '')) as normalized_name,
       coalesce(w.payload -> 'classProfile' ->> 'grade', '') as normalized_grade
     from public.bes_homeroom_workspaces w
     cross join lateral jsonb_array_elements(
@@ -56,8 +56,9 @@ begin
       end
     ) as s(student)
     where w.archived_at is null
+      and coalesce(s.student ->> 'deletedAt', '') = ''
       and lower(coalesce(s.student ->> 'active', 'true')) <> 'false'
-      and lower(coalesce(s.student ->> 'status', 'active')) <> 'archived'
+      and lower(coalesce(s.student ->> 'lifecycleStatus', 'active')) <> 'archived'
       and (
         public.is_admin()
         or w.owner_id = auth.uid()
@@ -121,9 +122,9 @@ declare
   v_student_id text;
   v_student_ref text;
   v_code text;
-  v_attendance_key text;
   v_attendance jsonb := '[]'::jsonb;
   v_grades jsonb := '[]'::jsonb;
+  v_gradebook_payload jsonb;
 begin
   if auth.uid() is null
      or trim(coalesce(p_student_ref, '')) = ''
@@ -154,8 +155,9 @@ begin
   ) as s(student)
   where w.archived_at is null
     and w.workspace_id = trim(p_workspace_id)
+    and coalesce(s.student ->> 'deletedAt', '') = ''
     and lower(coalesce(s.student ->> 'active', 'true')) <> 'false'
-    and lower(coalesce(s.student ->> 'status', 'active')) <> 'archived'
+    and lower(coalesce(s.student ->> 'lifecycleStatus', 'active')) <> 'archived'
     and (
       public.is_admin()
       or w.owner_id = auth.uid()
@@ -169,7 +171,6 @@ begin
     )
     and (
       trim(coalesce(s.student ->> 'id', '')) = trim(p_student_ref)
-      or trim(coalesce(s.student ->> 'code', '')) = trim(p_student_ref)
       or (
         trim(coalesce(s.student ->> 'code', '')) <> ''
         and 'code:' || trim(s.student ->> 'code') = trim(p_student_ref)
@@ -188,18 +189,18 @@ begin
     nullif(v_student_id, ''),
     case when v_code <> '' then 'code:' || v_code else null end
   );
-  v_attendance_key := coalesce(nullif(v_student_id, ''), nullif(v_code, ''), v_student_ref);
 
-  if v_attendance_key is not null then
+  if v_student_id <> '' then
     select coalesce(
       jsonb_agg(
         jsonb_build_object(
           'date', split_part(session_entry.key, '::', 1),
           'session_name', split_part(session_entry.key, '::', 2),
           'period_no', nullif(split_part(session_entry.key, '::', 3), ''),
-          'status', coalesce(session_entry.value -> v_attendance_key ->> 'status', ''),
-          'note', coalesce(session_entry.value -> v_attendance_key ->> 'note', ''),
-          'reason', coalesce(session_entry.value -> v_attendance_key ->> 'reason', ''),
+          'status', coalesce(session_entry.value -> v_student_id ->> 'status', ''),
+          'note', coalesce(session_entry.value -> v_student_id ->> 'note', ''),
+          'reason', coalesce(session_entry.value -> v_student_id ->> 'reason', ''),
+          'marked_at', coalesce(session_entry.value -> v_student_id ->> 'markedAt', ''),
           'source', 'homeroom'
         )
         order by session_entry.key desc
@@ -214,64 +215,108 @@ begin
       end
     ) as session_entry(key, value)
     where jsonb_typeof(session_entry.value) = 'object'
-      and session_entry.value ? v_attendance_key;
+      and session_entry.value ? v_student_id;
   end if;
 
-  select coalesce(
-    jsonb_agg(
-      jsonb_build_object(
-        'date', coalesce(
-          record_entry.record ->> 'createdAt',
-          record_entry.record ->> 'created_at',
-          record_entry.record ->> 'updatedAt',
-          record_entry.record ->> 'updated_at',
-          record_entry.record ->> 'date',
-          ''
-        ),
-        'score', coalesce(
-          record_entry.record -> 'score',
-          record_entry.record -> 'value',
-          record_entry.record -> 'grade',
-          'null'::jsonb
-        ),
-        'subject', coalesce(record_entry.record ->> 'subject', record_entry.record ->> 'subjectName', ''),
-        'period', coalesce(record_entry.record ->> 'period', record_entry.record ->> 'term', ''),
-        'assessment_type', coalesce(record_entry.record ->> 'assessmentType', record_entry.record ->> 'assessment_type', record_entry.record ->> 'type', ''),
-        'source', 'gradebook'
-      )
-    ),
-    '[]'::jsonb
-  )
-  into v_grades
+  select g.payload
+  into v_gradebook_payload
   from public.bes_gradebook_workspaces g
-  cross join lateral jsonb_array_elements(
-    case
-      when jsonb_typeof(g.payload -> 'learningRecords') = 'array' then g.payload -> 'learningRecords'
-      else '[]'::jsonb
-    end
-  ) as record_entry(record)
   where g.archived_at is null
     and g.owner_id = v_owner_id
     and g.workspace_id = v_workspace_id
-    and (
-      trim(coalesce(record_entry.record ->> 'studentId', record_entry.record ->> 'student_id', '')) = v_student_id
-      or trim(coalesce(record_entry.record ->> 'studentRef', record_entry.record ->> 'student_ref', '')) = v_student_ref
-      or (
-        v_code <> ''
-        and trim(coalesce(record_entry.record ->> 'studentCode', record_entry.record ->> 'student_code', '')) = v_code
-      )
-    );
+  order by g.updated_at desc nulls last
+  limit 1;
+
+  if v_gradebook_payload is not null and v_student_id <> '' then
+    with subjects as (
+      select
+        subject_entry.key as subject_key,
+        subject_entry.value as subject_value
+      from jsonb_each(
+        case
+          when jsonb_typeof(v_gradebook_payload -> 'learningGradebook' -> 'subjects') = 'object'
+            then v_gradebook_payload -> 'learningGradebook' -> 'subjects'
+          else '{}'::jsonb
+        end
+      ) as subject_entry(key, value)
+    ), semesters as (
+      select
+        subjects.subject_key,
+        subjects.subject_value,
+        semester_entry.key as semester_key,
+        semester_entry.value as semester_value
+      from subjects
+      cross join lateral jsonb_each(
+        case
+          when jsonb_typeof(subjects.subject_value -> 'semesters') = 'object'
+            then subjects.subject_value -> 'semesters'
+          else '{}'::jsonb
+        end
+      ) as semester_entry(key, value)
+    ), regular_blocks as (
+      select
+        semesters.subject_key,
+        semesters.subject_value,
+        semesters.semester_key,
+        block_entry.value as block_value,
+        block_entry.ordinality as block_no
+      from semesters
+      cross join lateral jsonb_array_elements(
+        case
+          when jsonb_typeof(semesters.semester_value -> 'regular') = 'array'
+            then semesters.semester_value -> 'regular'
+          else '[]'::jsonb
+        end
+      ) with ordinality as block_entry(value, ordinality)
+    ), score_cells as (
+      select
+        regular_blocks.subject_key,
+        coalesce(nullif(regular_blocks.subject_value ->> 'name', ''), regular_blocks.subject_key) as subject_name,
+        regular_blocks.semester_key,
+        regular_blocks.block_no,
+        column_entry.ordinality as column_no,
+        coalesce(nullif(column_entry.value ->> 'label', ''), column_entry.value ->> 'id', '') as column_label,
+        regular_blocks.block_value -> 'scores' -> v_student_id -> (column_entry.value ->> 'id') as score_value
+      from regular_blocks
+      cross join lateral jsonb_array_elements(
+        case
+          when jsonb_typeof(regular_blocks.block_value -> 'columns') = 'array'
+            then regular_blocks.block_value -> 'columns'
+          else '[]'::jsonb
+        end
+      ) with ordinality as column_entry(value, ordinality)
+    )
+    select coalesce(
+      jsonb_agg(
+        jsonb_build_object(
+          'date', coalesce(v_gradebook_payload ->> 'updatedAt', ''),
+          'score', replace(score_cells.score_value #>> '{}', ',', '.')::numeric,
+          'subject', score_cells.subject_name,
+          'period', concat_ws(' · ', score_cells.semester_key, score_cells.column_label),
+          'assessment_type', 'regular',
+          'source', 'gradebook'
+        )
+        order by score_cells.subject_key, score_cells.semester_key, score_cells.block_no, score_cells.column_no
+      ) filter (
+        where score_cells.score_value is not null
+          and (score_cells.score_value #>> '{}') ~ '^[-+]?[0-9]+([.,][0-9]+)?$'
+      ),
+      '[]'::jsonb
+    )
+    into v_grades
+    from score_cells;
+  end if;
 
   return jsonb_build_object(
     'student', jsonb_build_object(
       'student_ref', v_student_ref,
       'code', v_code,
-      'full_name', coalesce(v_student ->> 'name', ''),
+      'full_name', coalesce(v_student ->> 'fullName', ''),
       'class_name', v_class_name,
       'workspace_id', v_workspace_id,
       'school_year', v_school_year,
       'grade', coalesce(v_payload -> 'classProfile' ->> 'grade', ''),
-      'lifecycle_status', 'active'
+      'lifecycle_status', coalesce(v_student ->> 'lifecycleStatus', 'active')
     ),
     'attendance', coalesce(v_attendance, '[]'::jsonb),
     'grades', coalesce(v_grades, '[]'::jsonb)
