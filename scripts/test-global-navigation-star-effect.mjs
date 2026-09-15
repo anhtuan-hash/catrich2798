@@ -16,10 +16,10 @@ assert.match(starLogoCss, /@keyframes brian-star-halo/);
 // The Star logo itself must stay visually prominent in the desktop navigation.
 assert.match(starLogoCss, /\.brian-pulse-logo-trigger\{[\s\S]*?width:64px;[\s\S]*?min-width:64px;[\s\S]*?height:64px;[\s\S]*?min-height:64px;[\s\S]*?flex:0 0 64px;/);
 assert.match(starLogoCss, /@media\(max-width:1120px\)\{[\s\S]*?\.brian-pulse-logo-trigger\{[\s\S]*?width:60px;[\s\S]*?min-width:60px;[\s\S]*?height:60px;[\s\S]*?min-height:60px;[\s\S]*?flex-basis:60px;/);
-assert.match(starLogo, /const outer = 17\.6 \* scale;/);
-assert.match(starLogo, /const inner = 4\.8 \* scale;/);
-assert.match(starLogo, /ctx\.shadowBlur = 3\.6 \+ this\.pointerEnergy \* 4\.8;/);
+assert.match(starLogo, /const scale = Math\.min\(width, height\) \/ 54;/);
+assert.match(starLogo, /const outer = 14\.8 \* scale;/);
 assert.match(starLogoCss, /filter:contrast\(1\.16\) saturate\(1\.08\) drop-shadow\(0 0 7px rgba\(101,211,255,\.2\)\);/);
+assert.match(starLogoCss, /background:radial-gradient\(circle,rgba\(105,218,255,\.22\),rgba\(91,115,255,\.08\) 48%,transparent 74%\);/);
 
 // The bootstrap is loaded once with existing global chrome, before the app mounts.
 assert.match(integration, /import '\.\/navigationStarEffectBootstrap\.js';/);
