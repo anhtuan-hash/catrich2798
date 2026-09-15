@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './StudentSupportCenter.css';
 import StudentSupportOverview from '../components/studentSupport/StudentSupportOverview.jsx';
 import StudentSupportAlertQueue from '../components/studentSupport/StudentSupportAlertQueue.jsx';
@@ -6,11 +6,17 @@ import StudentSupportStudentProfile from '../components/studentSupport/StudentSu
 import StudentSupportObservationForm from '../components/studentSupport/StudentSupportObservationForm.jsx';
 import StudentSupportCaseManager from '../components/studentSupport/StudentSupportCaseManager.jsx';
 import StudentSupportRulePanel from '../components/studentSupport/StudentSupportRulePanel.jsx';
+import StudentSupportRuleSettings from '../components/studentSupport/StudentSupportRuleSettings.jsx';
 import StudentSupportReports from '../components/studentSupport/StudentSupportReports.jsx';
 import { listSupportAlerts, listSupportCases } from '../studentSupport/studentSupportApi.js';
 import { buildStudentSupportHash, parseStudentSupportHash } from '../studentSupport/studentSupportIdentity.js';
 import { searchScopedStudents } from '../studentSupport/studentSupportSources.js';
 import { summarizeSupportState } from '../studentSupport/studentSupportViewModel.js';
+import {
+  emitStudentSupportNotification,
+  isAlertReviewOverdue,
+  isCaseFollowUpDue,
+} from '../studentSupport/studentSupportNotifications.js';
 
 const TABS = [
   ['overview', 'Tổng quan', 'Overview'],
@@ -38,6 +44,7 @@ export default function StudentSupportCenter({ language = 'vi', currentUser = nu
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
+  const reminderKeysRef = useRef(new Set());
 
   const activeTab = TABS.some(([key]) => key === routeState.tab) ? routeState.tab : 'overview';
   const summary = useMemo(() => summarizeSupportState(alerts, cases), [alerts, cases]);
@@ -72,6 +79,31 @@ export default function StudentSupportCenter({ language = 'vi', currentUser = nu
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
   }, [vi]);
+
+  useEffect(() => {
+    if (loading || databasePending) return;
+    const now = new Date();
+    cases.filter((row) => isCaseFollowUpDue(row, now)).forEach((row) => {
+      const key = `case:${row.id}`;
+      if (reminderKeysRef.current.has(key)) return;
+      reminderKeysRef.current.add(key);
+      emitStudentSupportNotification({
+        type: 'CASE_FOLLOW_UP_DUE',
+        target: buildStudentSupportHash({ studentRef: row.student_ref, workspaceId: row.homeroom_workspace_id, tab: 'cases' }),
+        studentRef: row.student_ref,
+      });
+    });
+    alerts.filter((row) => isAlertReviewOverdue(row, now, 48)).forEach((row) => {
+      const key = `alert:${row.id}`;
+      if (reminderKeysRef.current.has(key)) return;
+      reminderKeysRef.current.add(key);
+      emitStudentSupportNotification({
+        type: 'ALERT_REVIEW_OVERDUE',
+        target: buildStudentSupportHash({ studentRef: row.student_ref, workspaceId: row.homeroom_workspace_id, tab: 'alerts' }),
+        studentRef: row.student_ref,
+      });
+    });
+  }, [alerts, cases, databasePending, loading]);
 
   useEffect(() => {
     const query = searchQuery.trim();
@@ -224,7 +256,7 @@ export default function StudentSupportCenter({ language = 'vi', currentUser = nu
         />
       ) : null}
 
-      {!loading && !error && activeTab === 'rules' ? (
+      {!loading && !error && activeTab === 'rules' ? <>
         <StudentSupportRulePanel
           studentRef={routeState.studentRef}
           workspaceId={routeState.workspaceId}
@@ -233,7 +265,8 @@ export default function StudentSupportCenter({ language = 'vi', currentUser = nu
           language={language}
           onAlertSaved={addAlert}
         />
-      ) : null}
+        <StudentSupportRuleSettings currentUser={currentUser} databasePending={databasePending} language={language} />
+      </> : null}
 
       {!loading && !error && activeTab === 'reports' ? (
         <StudentSupportReports cases={cases} alerts={alerts} language={language} />
