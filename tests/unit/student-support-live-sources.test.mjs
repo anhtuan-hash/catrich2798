@@ -17,6 +17,27 @@ test('Student Support live-source migration reads students and attendance from c
   assert.match(sql, /bes_gradebook_workspaces/i);
 });
 
+test('live-source migration matches the production workspace JSON schema', () => {
+  const sql = fs.readFileSync(migrationUrl, 'utf8');
+  assert.match(sql, /fullName/);
+  assert.match(sql, /lifecycleStatus/);
+  assert.match(sql, /learningGradebook/);
+  assert.match(sql, /subjects/);
+  assert.match(sql, /semesters/);
+  assert.match(sql, /regular/);
+  assert.doesNotMatch(sql, /payload\s*->\s*['"]learningRecords['"]/);
+});
+
+test('live-source RPCs remain authenticated-only', () => {
+  const sql = fs.readFileSync(migrationUrl, 'utf8');
+  assert.match(sql, /revoke all on function public\.bes_search_student_support_students\(text, integer\) from public/i);
+  assert.match(sql, /revoke all on function public\.bes_search_student_support_students\(text, integer\) from anon/i);
+  assert.match(sql, /grant execute on function public\.bes_search_student_support_students\(text, integer\) to authenticated/i);
+  assert.match(sql, /revoke all on function public\.bes_get_student_support_student_360\(text, text\) from public/i);
+  assert.match(sql, /revoke all on function public\.bes_get_student_support_student_360\(text, text\) from anon/i);
+  assert.match(sql, /grant execute on function public\.bes_get_student_support_student_360\(text, text\) to authenticated/i);
+});
+
 test('Student 360 uses a scoped live-source RPC instead of empty normalized shadow tables', () => {
   assert.match(sources, /rpc\(['"]bes_get_student_support_student_360['"]/);
   assert.doesNotMatch(sources, /from\(['"]bes_homeroom_students['"]\)/);
