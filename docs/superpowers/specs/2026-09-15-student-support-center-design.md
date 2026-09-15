@@ -1,7 +1,7 @@
 # Student Support Center — Design Specification
 
 Date: 2026-09-15
-Status: Approved design, pending implementation-plan approval
+Status: Approved for implementation planning
 Route: `#/student-support`
 Product name: **Student Support Center / Trung tâm Hỗ trợ Học sinh**
 
@@ -661,193 +661,61 @@ Important mutations generate immutable audit/event records, including:
 
 Existing platform audit facilities should be reused when practical, with Student Support case events providing domain-specific history.
 
-## 17. Archive and deletion
+## 17. Deletion and retention
 
-Normal teacher workflows must not hard-delete support records.
+Normal users do not hard-delete Student Support records.
 
-Expected pattern:
+- Cases and related workflow records use archive-first behavior.
+- Archived data can be restored by authorized users.
+- Permanent deletion is Admin-governed and must follow the existing Data Governance/trash approval pattern.
+- Domain event/audit history must be retained as required by the applicable governance path until permanent deletion is approved.
 
-`active -> archived -> restore OR admin-approved permanent deletion`
+## 18. Error handling
 
-Permanent deletion must be restricted, auditable, and compatible with related-record integrity.
+- Missing source data produces an explicit “insufficient data” state, not a warning alert.
+- Failure to load one source (for example Gradebook) should not erase successfully loaded Attendance/Student Support data; the UI shows a per-source warning.
+- Mutations show clear retryable errors and must not optimistically claim success until the database confirms the write.
+- Authorization failures show no sensitive row content.
+- Rule configuration validation rejects unknown rule types and invalid numeric windows/thresholds.
 
-## 18. UI and responsive behavior
+## 19. Responsive UX
 
-### Desktop
+Desktop may use tables for dense work queues. Mobile must switch to stacked cards with primary actions visible without horizontal scrolling.
 
-Use the product’s current visual system and navigation patterns.
+Student 360 and case detail should use compact tab/section navigation. Critical buttons must meet touch-target requirements already established by the platform accessibility controls.
 
-Recommended page composition:
+## 20. Testing and acceptance
 
-- Hero/title and scope selector.
-- Summary metric cards.
-- Search/filter bar.
-- Main alert/case queue.
-- Secondary follow-up/activity panels.
+Required coverage:
 
-Student 360 should use tabs or clearly separated sections rather than one extremely long unstructured page.
+- Unit tests for deterministic rule calculations, date windows, grade trend comparisons, duplicate prevention, case transitions, and overdue selectors.
+- RLS tests for Admin, Department Head, GVCN, assigned subject teacher, unassigned teacher, student, and unauthenticated user.
+- Integration tests for Attendance/Gradebook/Homeroom read composition.
+- E2E tests for alert review -> case -> actions -> follow-up -> closure.
+- Responsive E2E on desktop and mobile.
+- Regression tests proving source Attendance/Gradebook rows are not modified by Student Support actions.
+- Static verification that Student Support code contains no AI/model/API dependency.
 
-### Mobile
+## 21. V1 exclusions
 
-Avoid wide desktop tables.
+The following are explicitly outside V1:
 
-Use stacked cards with:
+- AI or machine-learning analysis.
+- Psychological or behavioral diagnosis.
+- Autonomous case decisions.
+- Predictive risk scoring.
+- Direct student/family Student Support portal.
+- Automated SMS/Zalo/email family messaging.
+- Complex visual workflow designer.
+- New independent student identity/master-data system.
 
-- student name/class;
-- alert/category;
-- key evidence;
-- status;
-- primary action.
+## 22. Rollout sequence
 
-Filters open in a compact sheet/drawer pattern consistent with the current mobile shell.
+1. Database schema + RLS + deterministic rules.
+2. Route/permissions + Student 360 read path.
+3. Alert queue + teacher observations.
+4. Support cases/actions/follow-up.
+5. Notifications + reporting/exports.
+6. Archive/governance + final security/regression verification.
 
-## 19. Deep links
-
-After the main route is stable, add context-sensitive entry points:
-
-- Attendance -> “Xem hồ sơ hỗ trợ”.
-- Gradebook -> “Student Support”.
-- Homeroom student -> “Hỗ trợ học sinh”.
-
-All deep links target a canonical Student Support student route/query state and still pass permission checks.
-
-## 20. Error and empty states
-
-Required cases:
-
-- No permission.
-- No students in scope.
-- No alerts.
-- No support cases.
-- Attendance unavailable.
-- Gradebook unavailable.
-- Insufficient grade history for trend rule.
-- Rule evaluation failed.
-- Realtime/network unavailable.
-
-The app should remain usable when one source module is unavailable; unavailable data is labeled rather than replaced with fabricated values.
-
-## 21. Security requirements
-
-- Add `route:student-support` to the existing permission model.
-- All new public-schema tables require RLS.
-- Authorization must be enforced in database policies/RPCs as well as UI.
-- Subject teachers may access only assigned students/classes and permitted fields.
-- GVCN access follows assigned homeroom authority.
-- Private-note visibility is enforced server-side.
-- Management access must be explicitly scoped.
-- No service-role key or privileged secret may be exposed to the client.
-- Mutations must validate actor authorization and current relationships.
-
-## 22. Reporting privacy
-
-Aggregate school/class reporting should default to counts and workflow status.
-
-Private note bodies, family-contact text, and confidential observation text are excluded from aggregate exports unless the requesting role has explicit permission and the report type intentionally includes them.
-
-## 23. Testing requirements
-
-Implementation must include tests for:
-
-- route and permission access;
-- role/scope restrictions;
-- Student 360 aggregation with missing sources;
-- deterministic attendance rules;
-- deterministic grade rules;
-- observation-count rules;
-- duplicate-alert prevention;
-- alert lifecycle transitions;
-- case lifecycle transitions;
-- action deadlines/overdue logic;
-- note visibility/RLS;
-- teacher-assignment boundaries;
-- archive/restore behavior;
-- reporting access and privacy;
-- notification event generation;
-- mobile rendering for core queues/profile.
-
-Regression tests must confirm existing Attendance, Gradebook, Homeroom, Admin permissions, and global notifications remain functional.
-
-## 24. V1 delivery slices
-
-### Slice 1 — Foundation
-
-- Route `#/student-support`.
-- App registry/navigation entry.
-- `route:student-support` permission.
-- Core schema and RLS.
-- Student/class identity mapping validation.
-- Audit/event foundation.
-
-### Slice 2 — Student 360
-
-- Search students in allowed scope.
-- General profile.
-- Attendance summary/history read integration.
-- Gradebook summary/trend read integration.
-- Teacher observations read/write.
-
-### Slice 3 — Deterministic alert engine
-
-- Rule configuration.
-- Attendance rules.
-- Grade rules.
-- Teacher-observation rules.
-- Combined deterministic rules.
-- Duplicate prevention.
-- Alert queue/review workflow.
-
-### Slice 4 — Support cases
-
-- Open/link case from alert.
-- Case goals/statuses.
-- Actions and deadlines.
-- Follow-up date/outcome.
-- Timeline.
-
-### Slice 5 — Collaboration and family-contact logging
-
-- Observation submission to GVCN.
-- Structured family-contact records.
-- Template-based internal notifications.
-- Visibility scopes.
-
-### Slice 6 — Reporting and governance
-
-- Class/grade/time reports.
-- PDF/Excel export.
-- Archive/restore.
-- Admin-approved permanent deletion flow if compatible with current governance service.
-- Final security/performance regression checks.
-
-## 25. Explicit V1 non-goals
-
-- Any AI feature.
-- Predictive analytics.
-- Psychological assessment.
-- Student personality/behavior scoring.
-- Automatic parent messaging.
-- Parent/student self-service case access.
-- SMS/Zalo integrations.
-- Workflow-builder UI.
-- Cross-school SIS replacement.
-- Editing Attendance or Gradebook data from Student Support.
-
-## 26. Success criteria
-
-V1 is successful when an authorized teacher can:
-
-1. open `#/student-support` and see only students within their permitted scope;
-2. search a student and view a combined factual profile sourced from existing modules;
-3. receive a deterministic, explainable alert without duplicate spam;
-4. review the alert and optionally open a support case;
-5. assign concrete support actions and deadlines;
-6. receive internal reminders for due follow-up;
-7. record the human-decided outcome;
-8. review a complete event timeline;
-9. export authorized aggregate reports;
-10. complete all of the above without any AI service or AI-generated content.
-
-## 27. Implementation constraint
-
-Before implementation, create a detailed engineering plan that identifies the exact existing student/class/teacher identifiers, source tables/RPCs, migration strategy, RLS policy model, files to change, test files, and staged PR order. No schema or UI implementation should begin until that plan is reviewed.
+Production exposure remains permission-controlled and subject to the existing app-visibility system.
