@@ -121,14 +121,6 @@ const HEAVY_READ_TTL = [
   ['/rest/v1/resource_collections', 60 * 60 * 1000],
   ['/rest/v1/resource_collection_items', 60 * 60 * 1000],
   ['/rest/v1/bes_homeroom_workspaces', 60 * 60 * 1000],
-  ['/rest/v1/student_support_alerts', 2 * 60 * 1000],
-  ['/rest/v1/student_support_cases', 2 * 60 * 1000],
-  ['/rest/v1/student_support_actions', 60 * 1000],
-  ['/rest/v1/student_support_notes', 60 * 1000],
-  ['/rest/v1/student_support_teacher_observations', 60 * 1000],
-  ['/rest/v1/student_support_family_contacts', 60 * 1000],
-  ['/rest/v1/student_support_case_events', 60 * 1000],
-  ['/rest/v1/student_support_rules', 5 * 60 * 1000],
   ['/rest/v1/assessment_items', 60 * 60 * 1000],
   ['/rest/v1/assessment_blueprints', 60 * 60 * 1000],
   ['/rest/v1/assessment_tests', 60 * 60 * 1000],
@@ -273,130 +265,155 @@ function cloneFetchInput(input) {
         signal: input.signal,
       });
     }
-    throw error;
+    throw new TypeError('Không thể gửi lại yêu cầu vì nội dung request đã được sử dụng.', { cause: error });
   }
 }
 
-function normalizeFetchArgs(input, init = {}) {
-  if (typeof Request !== 'undefined' && input instanceof Request) {
-    const cloned = cloneFetchInput(input);
-    if (init && Object.keys(init).length) return new Request(cloned, init);
-    return cloned;
-  }
-  return new Request(input, init);
+function wait(milliseconds) {
+  return new Promise((resolve) => window.setTimeout(resolve, Math.max(0, milliseconds)));
 }
 
-function shouldRetrySupabaseRequest(status) {
-  return status === 408 || status === 409 || status === 425 || status === 429 || status >= 500;
-}
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-async function runSupabaseRequest(input, init = {}) {
-  let request = applyReadLimitCap(applySelectProjection(normalizeFetchArgs(input, init)));
+function isWeeklyPracticeMutation(request) {
   const method = String(request.method || 'GET').toUpperCase();
-  const isRead = method === 'GET' || method === 'HEAD';
-  const ttl = isRead ? getHeavyReadTtl(request.url) : 0;
-  const key = isRead && ttl ? cacheKeyFor(request) : '';
-
-  if (key) {
-    const cached = readCache.get(key);
-    if (cached && Date.now() - cached.storedAt < ttl) return cached.response.clone();
-    const inFlight = inFlightReads.get(key);
-    if (inFlight?.promise) return (await inFlight.promise).clone();
-  }
-
-  const token = { invalidated: false };
-  const attempt = async () => {
-    let lastError = null;
-    let lastResponse = null;
-    for (let index = 0; index <= SUPABASE_RETRY_DELAYS.length; index += 1) {
-      try {
-        request = index === 0 ? request : applyReadLimitCap(applySelectProjection(normalizeFetchArgs(input, init)));
-        const response = await nativeFetch(request);
-        lastResponse = response;
-        if (!shouldRetrySupabaseRequest(response.status) || index === SUPABASE_RETRY_DELAYS.length) return response;
-      } catch (error) {
-        lastError = error;
-        if (index === SUPABASE_RETRY_DELAYS.length) throw error;
-      }
-      await sleep(SUPABASE_RETRY_DELAYS[index]);
-    }
-    if (lastResponse) return lastResponse;
-    throw lastError || new Error('Supabase request failed.');
-  };
-
-  const promise = attempt().then((response) => {
-    if (key && response.ok && !token.invalidated) {
-      readCache.set(key, { response: response.clone(), storedAt: Date.now() });
-      trimReadCache();
-    }
-    return response;
-  }).finally(() => {
-    if (key && inFlightReads.get(key)?.token === token) inFlightReads.delete(key);
-  });
-
-  if (key) inFlightReads.set(key, { promise, token });
-  const response = await promise;
-  if (!isRead && response.ok) clearReadCacheForMutation(request.url);
-  return response;
+  if (method === 'GET' || method === 'HEAD') return false;
+  return request.url.includes('/rest/v1/weekly_practice_items')
+    || request.url.includes('/storage/v1/object/weekly-practice/');
 }
 
-async function pacedMutation(operation) {
-  weeklyMutationQueue = weeklyMutationQueue.then(async () => {
-    const gap = Date.now() - lastWeeklyMutationAt;
-    if (gap < WEEKLY_MUTATION_GAP_MS) await sleep(WEEKLY_MUTATION_GAP_MS - gap);
+async function isUsageLimitResponse(response) {
+  if (response.status === 429) return true;
+  if (response.ok) return false;
+  try {
+    const text = (await response.clone().text()).toLowerCase();
+    return text.includes('usage limit reached')
+      || text.includes('rate limit')
+      || text.includes('too many requests');
+  } catch {
+    return false;
+  }
+}
+
+function retryDelayFor(response, attempt) {
+  const retryAfter = Number.parseFloat(response.headers.get('retry-after') || '');
+  if (Number.isFinite(retryAfter) && retryAfter > 0) return Math.min(retryAfter * 1000, 30000);
+  return SUPABASE_RETRY_DELAYS[Math.min(attempt, SUPABASE_RETRY_DELAYS.length - 1)];
+}
+
+async function fetchWithUsageLimitRetry(request) {
+  for (let attempt = 0; attempt <= SUPABASE_RETRY_DELAYS.length; attempt += 1) {
+    const response = await nativeFetch(request.clone());
+    const limited = await isUsageLimitResponse(response);
+    if (!limited || attempt >= SUPABASE_RETRY_DELAYS.length) return response;
+    await wait(retryDelayFor(response, attempt));
+  }
+  return nativeFetch(request.clone());
+}
+
+async function runWeeklyPracticeMutation(request) {
+  const execute = async () => {
+    const elapsed = Date.now() - lastWeeklyMutationAt;
+    if (elapsed < WEEKLY_MUTATION_GAP_MS) await wait(WEEKLY_MUTATION_GAP_MS - elapsed);
     try {
-      return await operation();
+      return await fetchWithUsageLimitRetry(request);
     } finally {
       lastWeeklyMutationAt = Date.now();
     }
-  });
-  return weeklyMutationQueue;
+  };
+
+  const pending = weeklyMutationQueue.then(execute, execute);
+  weeklyMutationQueue = pending.then(() => undefined, () => undefined);
+  return pending;
 }
 
-const supabaseOptions = nativeFetch ? {
-  global: {
-    fetch: runSupabaseRequest,
-  },
-} : undefined;
+async function egressAwareFetch(input, init) {
+  if (!nativeFetch) throw new Error('Fetch API is unavailable.');
+  const originalRequest = new Request(cloneFetchInput(input), init);
+  const method = String(originalRequest.method || 'GET').toUpperCase();
+  const isRestRequest = originalRequest.url.includes('/rest/v1/');
+
+  // Invalidate only the table changed by the mutation. Clearing every heavy-read
+  // cache after unrelated writes caused Work Hub, Homeroom and Resource Library
+  // to be downloaded again even when their own data had not changed.
+  if (isRestRequest && method !== 'GET' && method !== 'HEAD') {
+    clearReadCacheForMutation(originalRequest.url);
+    if (isWeeklyPracticeMutation(originalRequest)) return runWeeklyPracticeMutation(originalRequest);
+    return fetchWithUsageLimitRetry(originalRequest);
+  }
+
+  if (isWeeklyPracticeMutation(originalRequest)) return runWeeklyPracticeMutation(originalRequest);
+
+  const request = isRestRequest ? applyReadLimitCap(applySelectProjection(originalRequest)) : originalRequest;
+  const ttl = method === 'GET' && isRestRequest ? getHeavyReadTtl(request.url) : 0;
+  if (!ttl) return fetchWithUsageLimitRetry(request);
+
+  const key = cacheKeyFor(request);
+  const cached = readCache.get(key);
+  if (cached && Date.now() - cached.storedAt < ttl) {
+    return cached.response.clone();
+  }
+  if (cached) readCache.delete(key);
+
+  if (!inFlightReads.has(key)) {
+    const token = { invalidated: false };
+    let pending;
+    pending = fetchWithUsageLimitRetry(request)
+      .then((response) => {
+        if (response.ok && !token.invalidated) {
+          readCache.set(key, { storedAt: Date.now(), response: response.clone() });
+          trimReadCache();
+        }
+        return response.clone();
+      })
+      .finally(() => {
+        if (inFlightReads.get(key)?.promise === pending) inFlightReads.delete(key);
+      });
+    inFlightReads.set(key, { promise: pending, token });
+  }
+
+  const response = await inFlightReads.get(key).promise;
+  return response.clone();
+}
 
 export const supabase = isSupabaseConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey, supabaseOptions)
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+      realtime: {
+        params: { eventsPerSecond: 10 },
+      },
+      global: {
+        fetch: egressAwareFetch,
+        headers: { 'x-bes-runtime': RUNTIME_CORE_VERSION },
+      },
+    })
   : null;
 
-export function getSupabaseClient() {
-  return supabase;
+export function getSupabaseStatus() {
+  return {
+    configured: isSupabaseConfigured,
+    hasUrl: Boolean(supabaseUrl),
+    hasAnonKey: Boolean(supabaseAnonKey),
+    projectRef: supabaseUrl.match(/^https:\/\/([^.]+)\.supabase\.co/i)?.[1] || '',
+  };
 }
 
-export function getSupabaseRuntimeVersion() {
-  return RUNTIME_CORE_VERSION;
+export function getSupabasePublicConfig() {
+  return {
+    url: supabaseUrl,
+    anonKey: supabaseAnonKey,
+    configured: isSupabaseConfigured,
+  };
 }
 
-export async function supabaseQuery(table, configure = null) {
-  if (!supabase) throw new Error('Supabase chưa được cấu hình.');
-  let query = supabase.from(table).select('*');
-  if (typeof configure === 'function') query = configure(query);
-  const { data, error } = await query;
-  if (error) throw error;
-  return data || [];
-}
-
-export async function supabaseRpc(name, args = {}) {
-  if (!supabase) throw new Error('Supabase chưa được cấu hình.');
-  const { data, error } = await supabase.rpc(name, args);
-  if (error) throw error;
-  return data;
-}
-
-export async function supabaseMutation(table, operation) {
-  if (!supabase) throw new Error('Supabase chưa được cấu hình.');
-  return pacedMutation(async () => {
-    const result = await operation(supabase.from(table));
-    if (result?.error) throw result.error;
-    invalidateSupabaseReadCacheForTable(table);
-    return result?.data ?? result;
+if (typeof window !== 'undefined') {
+  // Native modules use this singleton. The global is read-only compatibility for
+  // diagnostics and legacy utilities; no API-key capture or REST bridge is needed.
+  Object.defineProperty(window, 'BESSupabase', {
+    configurable: true,
+    enumerable: false,
+    get: () => supabase,
   });
 }
