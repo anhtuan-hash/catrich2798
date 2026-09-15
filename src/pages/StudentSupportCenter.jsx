@@ -6,6 +6,7 @@ import StudentSupportStudentProfile from '../components/studentSupport/StudentSu
 import StudentSupportObservationForm from '../components/studentSupport/StudentSupportObservationForm.jsx';
 import StudentSupportCaseManager from '../components/studentSupport/StudentSupportCaseManager.jsx';
 import StudentSupportRulePanel from '../components/studentSupport/StudentSupportRulePanel.jsx';
+import StudentSupportReports from '../components/studentSupport/StudentSupportReports.jsx';
 import { listSupportAlerts, listSupportCases } from '../studentSupport/studentSupportApi.js';
 import { buildStudentSupportHash, parseStudentSupportHash } from '../studentSupport/studentSupportIdentity.js';
 import { searchScopedStudents } from '../studentSupport/studentSupportSources.js';
@@ -235,10 +236,7 @@ export default function StudentSupportCenter({ language = 'vi', currentUser = nu
       ) : null}
 
       {!loading && !error && activeTab === 'reports' ? (
-        <section className="student-support-state-card">
-          <strong>{vi ? 'Báo cáo đang được triển khai theo kế hoạch' : 'Reports are being implemented'}</strong>
-          <p>{vi ? 'Báo cáo chỉ tổng hợp số liệu được phép xem, không tự đưa ghi chú riêng tư hoặc nội dung liên hệ gia đình vào báo cáo.' : 'Reports will aggregate authorized statistics only and will not automatically include private notes or family-contact details.'}</p>
-        </section>
+        <StudentSupportReports cases={cases} alerts={alerts} language={language} />
       ) : null}
     </main>
   );
