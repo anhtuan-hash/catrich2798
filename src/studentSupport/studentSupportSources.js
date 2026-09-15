@@ -14,6 +14,33 @@ export function isMissingStudentSupportSourceError(error) {
   return referencesStudentSupport && (isMissingCode || missingMessage);
 }
 
+async function loadCanonicalStudentRecord(studentRef, fallbackCode, workspaceId) {
+  if (!workspaceId) return null;
+  const code = clean(fallbackCode || (studentRef.startsWith('code:') ? studentRef.slice(5) : ''));
+  let query = supabase
+    .from('bes_homeroom_students')
+    .select('student_ref,code,full_name,lifecycle_status')
+    .eq('workspace_id', workspaceId)
+    .is('archived_at', null);
+  query = code ? query.eq('code', code) : query.eq('student_ref', studentRef);
+  const { data, error } = await query.limit(1).maybeSingle();
+  if (error) throw error;
+  return data || null;
+}
+
+async function loadWorkspaceMetadata(workspaceId) {
+  if (!workspaceId) return null;
+  const { data, error } = await supabase
+    .from('bes_homeroom_workspaces')
+    .select('workspace_id,class_name,school_year')
+    .eq('workspace_id', workspaceId)
+    .is('archived_at', null)
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data || null;
+}
+
 export async function searchScopedStudents(query, limit = 30) {
   if (!supabase) throw new Error('Supabase chưa được cấu hình.');
   const p_query = clean(query);
@@ -41,7 +68,9 @@ export async function loadStudent360Facts({ student = {}, workspaceId = '' } = {
   const code = clean(student.code || student.student_code || student.studentCode);
   const resolvedWorkspace = clean(workspaceId || student.workspaceId || student.workspace_id);
 
-  const [attendanceResult, gradesResult, observationsResult, scope] = await Promise.all([
+  const [studentResult, workspaceResult, attendanceResult, gradesResult, observationsResult, scope] = await Promise.all([
+    loadCanonicalStudentRecord(studentRef, code, resolvedWorkspace),
+    loadWorkspaceMetadata(resolvedWorkspace),
     resolvedWorkspace
       ? supabase.from('bes_homeroom_attendance').select('*').eq('workspace_id', resolvedWorkspace).eq('student_ref', studentRef).order('attendance_date', { ascending: false }).limit(120)
       : Promise.resolve({ data: [], error: null }),
@@ -60,24 +89,27 @@ export async function loadStudent360Facts({ student = {}, workspaceId = '' } = {
 
   return {
     student: {
-      studentRef,
-      code,
-      fullName: clean(student.fullName || student.full_name),
-      className: clean(student.className || student.class_name),
-      workspaceId: resolvedWorkspace,
-      schoolYear: clean(student.schoolYear || student.school_year),
+      studentRef: clean(studentResult?.student_ref || studentRef),
+      code: clean(studentResult?.code || code),
+      fullName: clean(studentResult?.full_name || student.fullName || student.full_name),
+      className: clean(workspaceResult?.class_name || student.className || student.class_name),
+      workspaceId: clean(workspaceResult?.workspace_id || resolvedWorkspace),
+      schoolYear: clean(workspaceResult?.school_year || student.schoolYear || student.school_year),
       grade: clean(student.grade),
+      lifecycleStatus: clean(studentResult?.lifecycle_status || 'active'),
     },
     attendance: (attendanceResult.data || []).map((row) => ({
       date: row.attendance_date || row.date || '',
       status: row.status || '',
       sessionName: row.session_name || row.sessionName || '',
+      periodNo: row.period_no ?? null,
       source: 'homeroom',
     })),
     grades: (gradesResult.data || []).map((row) => ({
       date: row.created_at || row.updated_at || '',
       score: Number(row.score ?? row.value ?? row.grade),
       subject: row.subject || '',
+      period: row.period || '',
       assessmentType: row.assessment_type || row.type || '',
       source: 'homeroom',
     })).filter((row) => Number.isFinite(row.score)),
