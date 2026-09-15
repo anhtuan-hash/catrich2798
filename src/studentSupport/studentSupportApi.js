@@ -380,32 +380,4 @@ export async function createFamilyContact(input = {}, user) {
   return row;
 }
 
-export async function archiveSupportCase(caseId, user) {
-  requireUser(user);
-  const client = requireClient();
-  const before = await getById(TABLES.cases, caseId);
-  const after = await single(client.from(TABLES.cases).update({ archived_at: nowIso() }).eq('id', caseId), 'Không thể lưu trữ hồ sơ.');
-  await appendCaseEvent({
-    caseId, studentRef: before.student_ref, workspaceId: before.homeroom_workspace_id,
-    eventType: 'CASE_ARCHIVED', metadata: { archived_at: after.archived_at },
-  }, user);
-  await recordStudentSupportAudit('student_support.case_archived', {
-    entity_type: 'student_support_case', entity_id: caseId, before_data: before, after_data: after,
-  }, user);
-  return after;
-}
-
-export async function restoreSupportCase(caseId, user) {
-  requireUser(user);
-  const client = requireClient();
-  const before = await getById(TABLES.cases, caseId);
-  const after = await single(client.from(TABLES.cases).update({ archived_at: null }).eq('id', caseId), 'Không thể khôi phục hồ sơ.');
-  await appendCaseEvent({
-    caseId, studentRef: before.student_ref, workspaceId: before.homeroom_workspace_id,
-    eventType: 'CASE_RESTORED', metadata: { archived_at: null },
-  }, user);
-  await recordStudentSupportAudit('student_support.case_restored', {
-    entity_type: 'student_support_case', entity_id: caseId, before_data: before, after_data: after,
-  }, user);
-  return after;
-}
+export { archiveSupportCase, restoreSupportCase } from './studentSupportArchive.js';
