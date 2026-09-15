@@ -1,3 +1,5 @@
+import './navigationStarEffectBootstrap.js';
+
 /*
  * Brian English — runtime near-white warm-surface neutralizer.
  *
