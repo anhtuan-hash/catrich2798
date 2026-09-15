@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   canTransitionCase,
+  validateCaseInput,
   validateObservationInput,
   sanitizeAuditSnapshot,
   CASE_TRANSITIONS,
@@ -13,6 +14,16 @@ test('case lifecycle blocks invalid shortcuts', () => {
   assert.equal(canTransitionCase('RESOLVED', 'ACTIVE'), true);
   assert.equal(canTransitionCase('CLOSED', 'ACTIVE'), false);
   assert.deepEqual(CASE_TRANSITIONS.NEW, ['REVIEWING', 'NO_ACTION_REQUIRED']);
+});
+
+test('case creation requires durable identity, workspace, category and title', () => {
+  assert.throws(() => validateCaseInput({ workspaceId: '12.6', category: 'ATTENDANCE', title: 'Theo dõi' }), /student/i);
+  assert.throws(() => validateCaseInput({ studentRef: 'HS-1', category: 'ATTENDANCE', title: 'Theo dõi' }), /workspace/i);
+  assert.throws(() => validateCaseInput({ studentRef: 'HS-1', workspaceId: '12.6', title: 'Theo dõi' }), /category/i);
+  assert.throws(() => validateCaseInput({ studentRef: 'HS-1', workspaceId: '12.6', category: 'ATTENDANCE' }), /title/i);
+  const valid = validateCaseInput({ studentRef: 'HS-1', workspaceId: '12.6', category: 'ATTENDANCE', title: 'Theo dõi chuyên cần' });
+  assert.equal(valid.student_ref, 'HS-1');
+  assert.equal(valid.category, 'ATTENDANCE');
 });
 
 test('teacher observation requires durable student identity and class scope', () => {
