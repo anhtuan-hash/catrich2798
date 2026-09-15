@@ -2,11 +2,11 @@ import React, { useEffect, useRef } from 'react';
 import './BrianPulseLogo.css';
 
 const BG_GAP = 2;
-const T_GAP = 1.7;
+const STAR_GAP = 1.55;
 const FIELD_RADIUS = 20;
 const FIELD_FORCE = 3.8;
 const SPRING_BG = 0.062;
-const SPRING_T = 0.082;
+const SPRING_STAR = 0.09;
 const FRICTION = 0.845;
 
 function roundedRect(ctx, x, y, width, height, radius) {
@@ -49,6 +49,19 @@ function mixColor(a, b, t) {
   const g = Math.round(left.g + (right.g - left.g) * p);
   const bl = Math.round(left.b + (right.b - left.b) * p);
   return `rgb(${r}, ${g}, ${bl})`;
+}
+
+function drawSparklePath(ctx, cx, cy, outerRadius, innerRadius) {
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - outerRadius);
+  ctx.lineTo(cx + innerRadius, cy - innerRadius);
+  ctx.lineTo(cx + outerRadius, cy);
+  ctx.lineTo(cx + innerRadius, cy + innerRadius);
+  ctx.lineTo(cx, cy + outerRadius);
+  ctx.lineTo(cx - innerRadius, cy + innerRadius);
+  ctx.lineTo(cx - outerRadius, cy);
+  ctx.lineTo(cx - innerRadius, cy - innerRadius);
+  ctx.closePath();
 }
 
 export default function BrianPulseLogo({ className = '' }) {
@@ -103,7 +116,7 @@ export default function BrianPulseLogo({ className = '' }) {
             const distance = Math.sqrt(distanceSq);
             const proximity = 1 - distance / FIELD_RADIUS;
             const curve = proximity * proximity;
-            const roleBoost = this.role === 't' ? 1.18 : 1;
+            const roleBoost = this.role === 'star' ? 1.2 : 1;
             const strength = curve * (FIELD_FORCE + Math.min(pointer.speed * 0.055, 2.5)) * roleBoost;
             const nx = dx / distance;
             const ny = dy / distance;
@@ -115,7 +128,7 @@ export default function BrianPulseLogo({ className = '' }) {
         }
 
         this.pointerEnergy += (energy - this.pointerEnergy) * 0.22;
-        const spring = this.role === 't' ? SPRING_T : SPRING_BG;
+        const spring = this.role === 'star' ? SPRING_STAR : SPRING_BG;
         this.vx += (this.homeX - this.x) * spring;
         this.vy += (this.homeY - this.y) * spring;
         this.vx *= FRICTION;
@@ -128,16 +141,17 @@ export default function BrianPulseLogo({ className = '' }) {
       }
 
       draw(palette, elapsed) {
+        const isStar = this.role === 'star';
         const shimmer = reduceMotion
           ? 1
-          : 0.965 + Math.sin(elapsed * 0.00115 + this.phase) * (this.role === 't' ? 0.035 : 0.02);
-        const hoverLift = 1 + this.pointerEnergy * (this.role === 't' ? 0.22 : 0.12);
+          : 0.96 + Math.sin(elapsed * 0.00125 + this.phase) * (isStar ? 0.055 : 0.02);
+        const hoverLift = 1 + this.pointerEnergy * (isStar ? 0.26 : 0.12);
         const alpha = Math.min(1, this.alpha * shimmer * hoverLift);
-        const baseTone = this.role === 't'
-          ? Math.min(1, 0.12 + this.tone * 0.72)
+        const baseTone = isStar
+          ? Math.min(1, 0.08 + this.tone * 0.72)
           : Math.min(1, 0.26 + this.tone * 0.66);
-        const fill = this.role === 't'
-          ? mixColor(palette.tStart, palette.tEnd, baseTone)
+        const fill = isStar
+          ? mixColor(palette.starStart, palette.starEnd, baseTone)
           : mixColor(palette.bgStart, palette.bgEnd, baseTone);
 
         ctx.save();
@@ -145,6 +159,11 @@ export default function BrianPulseLogo({ className = '' }) {
         ctx.rotate(this.rotation);
         ctx.globalAlpha = alpha;
         ctx.fillStyle = fill;
+
+        if (isStar) {
+          ctx.shadowColor = 'rgba(127, 218, 255, 0.72)';
+          ctx.shadowBlur = 2.5 + this.pointerEnergy * 4;
+        }
 
         if (this.kind === 0) {
           ctx.beginPath();
@@ -173,37 +192,13 @@ export default function BrianPulseLogo({ className = '' }) {
       maskCtx.fill();
     }
 
-    function drawTMask(maskCtx, width, height) {
+    function drawStarMask(maskCtx, width, height) {
       const cx = width / 2;
       const cy = height / 2;
-      const scale = Math.min(width, height) / 52;
-      const topY = cy - 14.1 * scale;
-      const barWidth = 25.0 * scale;
-      const barHeight = 5.65 * scale;
-      roundedRect(maskCtx, cx - barWidth / 2, topY, barWidth, barHeight, 2.5 * scale);
-      maskCtx.fill();
-
-      const stemTop = topY + 3.8 * scale;
-      const stemBottom = cy + 14.0 * scale;
-      const topHalf = 4.0 * scale;
-      const bottomHalf = 2.75 * scale;
-      maskCtx.beginPath();
-      maskCtx.moveTo(cx - topHalf, stemTop);
-      maskCtx.lineTo(cx + topHalf, stemTop);
-      maskCtx.lineTo(cx + 3.25 * scale, cy + 3.6 * scale);
-      maskCtx.lineTo(cx + bottomHalf, stemBottom - 1.7 * scale);
-      maskCtx.quadraticCurveTo(cx + bottomHalf, stemBottom, cx + 0.15 * scale, stemBottom + 0.5 * scale);
-      maskCtx.quadraticCurveTo(cx - bottomHalf, stemBottom, cx - bottomHalf, stemBottom - 1.7 * scale);
-      maskCtx.lineTo(cx - 3.2 * scale, cy + 3.6 * scale);
-      maskCtx.closePath();
-      maskCtx.fill();
-
-      maskCtx.beginPath();
-      maskCtx.moveTo(cx + 7.0 * scale, topY + barHeight - 0.1 * scale);
-      maskCtx.lineTo(cx + 11.6 * scale, topY + barHeight - 0.1 * scale);
-      maskCtx.lineTo(cx + 9.9 * scale, topY + barHeight + 1.9 * scale);
-      maskCtx.lineTo(cx + 7.0 * scale, topY + barHeight + 1.0 * scale);
-      maskCtx.closePath();
+      const scale = Math.min(width, height) / 54;
+      const outer = 14.8 * scale;
+      const inner = 4.25 * scale;
+      drawSparklePath(maskCtx, cx, cy, outer, inner);
       maskCtx.fill();
     }
 
@@ -219,7 +214,8 @@ export default function BrianPulseLogo({ className = '' }) {
           const alpha = data[(Math.floor(y) * width + Math.floor(x)) * 4 + 3];
           if (alpha < 100) continue;
 
-          const seed = Math.floor(x * 151 + y * 977 + (role === 't' ? 991 : 0));
+          const isStar = role === 'star';
+          const seed = Math.floor(x * 151 + y * 977 + (isStar ? 991 : 0));
           const a = hash01(seed);
           const b = hash01(seed + 29);
           const c = hash01(seed + 83);
@@ -229,9 +225,9 @@ export default function BrianPulseLogo({ className = '' }) {
           const dx = x - cx;
           const dy = y - cy;
           const tone = Math.max(0, Math.min(1, (dx + dy) / (max * 1.55) + 0.5 + (d - 0.5) * 0.08));
-          const jitter = role === 't' ? 0.34 : 0.72;
-          const size = role === 't' ? 1.02 + c * 0.56 : 0.72 + c * 0.48;
-          const particleAlpha = role === 't' ? 0.76 + d * 0.22 : 0.24 + d * 0.30;
+          const jitter = isStar ? 0.28 : 0.72;
+          const size = isStar ? 1.08 + c * 0.6 : 0.72 + c * 0.48;
+          const particleAlpha = isStar ? 0.82 + d * 0.18 : 0.24 + d * 0.30;
           const selector = Math.floor(a * 12);
           const kind = selector < 8 ? 0 : selector < 10 ? 1 : 2;
           const angle = kind === 0 ? 0 : (b - 0.5) * 0.96;
@@ -259,20 +255,20 @@ export default function BrianPulseLogo({ className = '' }) {
       bgCanvas.width = w;
       bgCanvas.height = h;
       const bgCtx = bgCanvas.getContext('2d', { willReadFrequently: true });
-      const tCanvas = document.createElement('canvas');
-      tCanvas.width = w;
-      tCanvas.height = h;
-      const tCtx = tCanvas.getContext('2d', { willReadFrequently: true });
-      if (!bgCtx || !tCtx) return;
+      const starCanvas = document.createElement('canvas');
+      starCanvas.width = w;
+      starCanvas.height = h;
+      const starCtx = starCanvas.getContext('2d', { willReadFrequently: true });
+      if (!bgCtx || !starCtx) return;
 
       bgCtx.fillStyle = '#fff';
       drawSquareMask(bgCtx, w, h);
-      tCtx.fillStyle = '#fff';
-      drawTMask(tCtx, w, h);
+      starCtx.fillStyle = '#fff';
+      drawStarMask(starCtx, w, h);
 
       const backgroundParticles = sampleMask(bgCtx, w, h, BG_GAP, 'bg');
-      const tParticles = sampleMask(tCtx, w, h, T_GAP, 't');
-      particles = [...backgroundParticles, ...tParticles];
+      const starParticles = sampleMask(starCtx, w, h, STAR_GAP, 'star');
+      particles = [...backgroundParticles, ...starParticles];
       startedAt = performance.now();
     }
 
@@ -280,9 +276,49 @@ export default function BrianPulseLogo({ className = '' }) {
       return {
         bgStart: readCssColor(host, '--particle-bg-start', '#a79bf8'),
         bgEnd: readCssColor(host, '--particle-bg-end', '#87d9ed'),
-        tStart: readCssColor(host, '--particle-t-start', '#6654ff'),
-        tEnd: readCssColor(host, '--particle-t-end', '#32c7f4'),
+        starStart: readCssColor(host, '--particle-star-start', '#ffffff'),
+        starEnd: readCssColor(host, '--particle-star-end', '#79d9ff'),
       };
+    }
+
+    function drawStarAura(width, height, elapsed) {
+      const cx = width / 2;
+      const cy = height / 2;
+      const breath = reduceMotion ? 0.55 : 0.55 + Math.sin(elapsed * 0.0019) * 0.16;
+      const radius = Math.min(width, height) * (0.32 + breath * 0.035);
+      const gradient = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+      gradient.addColorStop(0, `rgba(210, 245, 255, ${0.18 + breath * 0.1})`);
+      gradient.addColorStop(0.42, `rgba(104, 210, 255, ${0.09 + breath * 0.05})`);
+      gradient.addColorStop(1, 'rgba(91, 174, 255, 0)');
+      ctx.save();
+      ctx.fillStyle = gradient;
+      ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+      ctx.restore();
+    }
+
+    function drawSatelliteSparkles(width, height, elapsed) {
+      const cx = width / 2;
+      const cy = height / 2;
+      const base = Math.min(width, height) / 54;
+      const sparkles = [
+        { x: -13.2, y: -10.8, r: 2.2, phase: 0.2 },
+        { x: 13.6, y: -7.2, r: 1.7, phase: 2.2 },
+        { x: 11.7, y: 12.4, r: 1.35, phase: 4.1 },
+      ];
+
+      ctx.save();
+      sparkles.forEach((spark) => {
+        const twinkle = reduceMotion ? 0.7 : 0.62 + Math.sin(elapsed * 0.0026 + spark.phase) * 0.28;
+        const outer = spark.r * base * (0.92 + twinkle * 0.12);
+        const inner = outer * 0.28;
+        ctx.globalAlpha = Math.max(0.18, twinkle);
+        ctx.fillStyle = '#effcff';
+        ctx.shadowColor = 'rgba(103, 215, 255, 0.92)';
+        ctx.shadowBlur = 5 * base;
+        drawSparklePath(ctx, cx + spark.x * base, cy + spark.y * base, outer, inner);
+        ctx.fill();
+      });
+      ctx.restore();
     }
 
     function draw(update = true, now = performance.now()) {
@@ -290,8 +326,10 @@ export default function BrianPulseLogo({ className = '' }) {
       ctx.clearRect(0, 0, rect.width, rect.height);
       const palette = getPalette();
       const elapsed = now - startedAt;
+      drawStarAura(rect.width, rect.height, elapsed);
       if (update) particles.forEach((particle) => particle.update());
       particles.forEach((particle) => particle.draw(palette, elapsed));
+      drawSatelliteSparkles(rect.width, rect.height, elapsed);
       ctx.globalAlpha = 1;
     }
 
@@ -369,16 +407,20 @@ export default function BrianPulseLogo({ className = '' }) {
     };
   }, []);
 
-  return (
-    <div
-      ref={hostRef}
-      className={`brian-pulse-logo ${className}`.trim()}
-      role="img"
-      aria-label="Magnetic particle T badge"
-      title="T"
-    >
-      <canvas ref={canvasRef} className="brian-pulse-logo__canvas" aria-hidden="true" />
-      <span className="brian-pulse-logo__fallback">T</span>
-    </div>
+  return React.createElement(
+    'div',
+    {
+      ref: hostRef,
+      className: `brian-pulse-logo ${className}`.trim(),
+      role: 'img',
+      'aria-label': 'Glowing particle star badge',
+      title: 'Star',
+    },
+    React.createElement('canvas', {
+      ref: canvasRef,
+      className: 'brian-pulse-logo__canvas',
+      'aria-hidden': 'true',
+    }),
+    React.createElement('span', { className: 'brian-pulse-logo__fallback' }, '✦'),
   );
 }
