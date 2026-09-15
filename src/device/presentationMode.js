@@ -3,10 +3,51 @@ const ANDROID_UA = /Android/i;
 const IPAD_UA = /iPad/i;
 const DESKTOP_OS_UA = /Windows NT|Macintosh|CrOS|X11/i;
 
+export const PRESENTATION_OVERRIDE_STORAGE_KEY = 'bes-presentation-override';
+export const PRESENTATION_OVERRIDE_EVENT = 'bes-presentation-override-change';
+
+function normalizePresentationOverride(value) {
+  return value === 'mobile' || value === 'desktop' ? value : null;
+}
+
 export function readPresentationOverride(search = '', enabled = false) {
   if (!enabled) return null;
   const value = new URLSearchParams(String(search || '').replace(/^\?/, '')).get('besPresentation');
-  return value === 'mobile' || value === 'desktop' ? value : null;
+  return normalizePresentationOverride(value);
+}
+
+export function readStoredPresentationOverride(storageLike = typeof window !== 'undefined' ? window.localStorage : null) {
+  if (!storageLike) return null;
+  try {
+    return normalizePresentationOverride(storageLike.getItem(PRESENTATION_OVERRIDE_STORAGE_KEY));
+  } catch {
+    return null;
+  }
+}
+
+export function writePresentationOverride(value, windowLike = typeof window !== 'undefined' ? window : null) {
+  const normalized = normalizePresentationOverride(value);
+  if (!windowLike) return normalized;
+
+  try {
+    if (normalized) windowLike.localStorage?.setItem(PRESENTATION_OVERRIDE_STORAGE_KEY, normalized);
+    else windowLike.localStorage?.removeItem(PRESENTATION_OVERRIDE_STORAGE_KEY);
+  } catch {
+    // Presentation preference is optional when storage is unavailable.
+  }
+
+  try {
+    const EventCtor = windowLike.CustomEvent;
+    if (EventCtor) {
+      windowLike.dispatchEvent(new EventCtor(PRESENTATION_OVERRIDE_EVENT, { detail: { value: normalized } }));
+    } else if (typeof Event !== 'undefined') {
+      windowLike.dispatchEvent(new Event(PRESENTATION_OVERRIDE_EVENT));
+    }
+  } catch {
+    // Same-tab notification is best effort; storage still preserves the preference.
+  }
+
+  return normalized;
 }
 
 export function orientationFromEnvironment(env = {}) {
