@@ -3,6 +3,7 @@ import './StudentSupportCenter.css';
 import StudentSupportOverview from '../components/studentSupport/StudentSupportOverview.jsx';
 import StudentSupportAlertQueue from '../components/studentSupport/StudentSupportAlertQueue.jsx';
 import StudentSupportStudentProfile from '../components/studentSupport/StudentSupportStudentProfile.jsx';
+import StudentSupportObservationForm from '../components/studentSupport/StudentSupportObservationForm.jsx';
 import { listSupportAlerts, listSupportCases } from '../studentSupport/studentSupportApi.js';
 import { buildStudentSupportHash, parseStudentSupportHash } from '../studentSupport/studentSupportIdentity.js';
 import { searchScopedStudents } from '../studentSupport/studentSupportSources.js';
@@ -22,7 +23,7 @@ function isMissingDatabaseError(error) {
   return /does not exist|schema cache|could not find|PGRST202|42P01|bes_search_student_support_students/i.test(String(error?.message || error || ''));
 }
 
-export default function StudentSupportCenter({ language = 'vi' }) {
+export default function StudentSupportCenter({ language = 'vi', currentUser = null }) {
   const vi = language === 'vi';
   const [routeState, setRouteState] = useState(() => parseStudentSupportHash(window.location.hash));
   const [alerts, setAlerts] = useState([]);
@@ -185,7 +186,17 @@ export default function StudentSupportCenter({ language = 'vi' }) {
         />
       ) : null}
 
-      {!loading && !error && ['cases', 'observations', 'rules', 'reports'].includes(activeTab) ? (
+      {!loading && !error && activeTab === 'observations' ? (
+        <StudentSupportObservationForm
+          studentRef={routeState.studentRef}
+          workspaceId={routeState.workspaceId}
+          currentUser={currentUser}
+          databasePending={databasePending}
+          language={language}
+        />
+      ) : null}
+
+      {!loading && !error && ['cases', 'rules', 'reports'].includes(activeTab) ? (
         <section className="student-support-state-card">
           <strong>{vi ? 'Khu vực đã đăng ký, đang triển khai theo kế hoạch' : 'Section registered and scheduled for implementation'}</strong>
           <p>{vi ? 'Không có quyết định hoặc dữ liệu học sinh nào được tự động tạo trong giai đoạn này.' : 'No student decision or case is created automatically at this stage.'}</p>
