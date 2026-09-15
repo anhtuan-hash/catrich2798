@@ -2,11 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   canTransitionCase,
-  validateCaseInput,
   validateObservationInput,
   sanitizeAuditSnapshot,
   CASE_TRANSITIONS,
 } from '../../src/studentSupport/studentSupportApi.js';
+import { validateCaseInput } from '../../src/studentSupport/studentSupportValidation.js';
 
 test('case lifecycle blocks invalid shortcuts', () => {
   assert.equal(canTransitionCase('NEW', 'CLOSED'), false);
