@@ -164,10 +164,19 @@ html[data-presentation-mode='mobile'][data-presentation-override='mobile'][data-
   transform:translateX(-50%)!important;
 }
 
+html[data-presentation-mode='mobile'][data-presentation-override='mobile'][data-device-class='desktop'] .bes-mobile-drawer-layer,
+html[data-presentation-mode='mobile'][data-presentation-override='mobile'][data-device-class='desktop'] .bes-mobile-sheet-layer,
+html[data-presentation-mode='mobile'][data-presentation-override='mobile'][data-device-class='desktop'] .bes-mobile-account-menu-layer{
+  left:50%!important;
+  right:auto!important;
+  width:min(100vw,430px)!important;
+  transform:translateX(-50%)!important;
+}
+
 .bes-mobile-desktop-return{
   appearance:none;
   position:fixed;
-  z-index:1700;
+  z-index:2100;
   top:20px;
   right:24px;
   display:inline-flex;
