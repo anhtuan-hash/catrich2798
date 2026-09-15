@@ -64,7 +64,6 @@
 .brian-nav-star-effect__sparkle--one {
   --sparkle-x: -21px;
   --sparkle-y: -10px;
-  --sparkle-scale: 1;
   animation-delay: -120ms;
 }
 
@@ -74,7 +73,6 @@
   margin: -3px 0 0 -3px;
   --sparkle-x: 18px;
   --sparkle-y: -8px;
-  --sparkle-scale: .82;
   animation-delay: -560ms;
 }
 
@@ -84,7 +82,6 @@
   margin: -2.5px 0 0 -2.5px;
   --sparkle-x: 13px;
   --sparkle-y: 12px;
-  --sparkle-scale: .72;
   animation-delay: -920ms;
 }
 
@@ -113,15 +110,15 @@
 @keyframes brian-nav-star-twinkle {
   0%, 100% {
     opacity: .38;
-    transform: translate3d(var(--sparkle-x), var(--sparkle-y), 0) scale(calc(var(--sparkle-scale) * .78)) rotate(0deg);
+    transform: translate3d(var(--sparkle-x), var(--sparkle-y), 0) scale(.78) rotate(0deg);
   }
   48% {
     opacity: .98;
-    transform: translate3d(var(--sparkle-x), var(--sparkle-y), 0) scale(calc(var(--sparkle-scale) * 1.12)) rotate(18deg);
+    transform: translate3d(var(--sparkle-x), var(--sparkle-y), 0) scale(1.12) rotate(18deg);
   }
   72% {
     opacity: .62;
-    transform: translate3d(var(--sparkle-x), var(--sparkle-y), 0) scale(var(--sparkle-scale)) rotate(31deg);
+    transform: translate3d(var(--sparkle-x), var(--sparkle-y), 0) scale(1) rotate(31deg);
   }
 }
 
