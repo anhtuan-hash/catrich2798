@@ -1,0 +1,65 @@
+name: Star Mobile Mode Toggle
+
+on:
+  pull_request:
+    paths:
+      - 'src/device/presentationMode.js'
+      - 'src/hooks/usePresentationMode.js'
+      - 'src/components/HomeParticleSignaturePortal.jsx'
+      - 'src/components/GlobalFlatNavigation.jsx'
+      - 'src/components/BrianPulseLogo.css'
+      - 'scripts/test-star-mobile-mode-toggle.mjs'
+      - 'tests/unit/presentation-mode.test.mjs'
+      - 'tests/e2e/mobile-shell.spec.js'
+      - '.github/workflows/star-mobile-mode-toggle.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/device/presentationMode.js'
+      - 'src/hooks/usePresentationMode.js'
+      - 'src/components/HomeParticleSignaturePortal.jsx'
+      - 'src/components/GlobalFlatNavigation.jsx'
+      - 'src/components/BrianPulseLogo.css'
+      - 'scripts/test-star-mobile-mode-toggle.mjs'
+      - 'tests/unit/presentation-mode.test.mjs'
+      - 'tests/e2e/mobile-shell.spec.js'
+      - '.github/workflows/star-mobile-mode-toggle.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  star-mobile-mode:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify star mobile-mode contract
+        run: node scripts/test-star-mobile-mode-toggle.mjs
+
+      - name: Verify presentation-mode unit tests
+        run: node --test tests/unit/presentation-mode.test.mjs
+
+      - name: Run application smoke tests
+        run: npm test
+
+      - name: Build production bundle
+        run: npm run build
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Verify forced mobile preview and desktop return
+        run: npx playwright test tests/e2e/mobile-shell.spec.js --project=chromium-desktop --grep "desktop stored override"
