@@ -61,6 +61,7 @@ export async function loadStudent360Facts({ student = {}, workspaceId = '' } = {
   const liveStudent = live.student && typeof live.student === 'object' ? live.student : {};
   const attendance = Array.isArray(live.attendance) ? live.attendance : [];
   const grades = Array.isArray(live.grades) ? live.grades : [];
+  const conductRecords = Array.isArray(live.conduct_records) ? live.conduct_records : [];
 
   return {
     student: {
@@ -90,6 +91,18 @@ export async function loadStudent360Facts({ student = {}, workspaceId = '' } = {
       assessmentType: row.assessment_type || row.assessmentType || row.type || '',
       source: 'gradebook',
     })).filter((row) => Number.isFinite(row.score)),
+    conductRecords: conductRecords.map((row) => ({
+      id: clean(row.id),
+      date: row.date || '',
+      title: clean(row.title),
+      category: clean(row.category),
+      code: clean(row.code),
+      deduction: Number(row.deduction) || 0,
+      severity: clean(row.severity || 'normal'),
+      status: clean(row.status || 'confirmed'),
+      note: clean(row.note),
+      source: clean(row.source || 'homeroom-conduct'),
+    })),
     observations: observationsResult.error ? [] : (observationsResult.data || []),
     assignmentScope: scope,
   };
