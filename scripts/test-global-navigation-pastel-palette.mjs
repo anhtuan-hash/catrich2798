@@ -12,10 +12,14 @@ assert.match(css, /background:\s*var\(--nav-item-active-bg,\s*var\(--brian-nav-s
 assert.match(css, /color:\s*var\(--nav-item-text,\s*var\(--brian-nav-muted\)\)/);
 assert.match(css, /color:\s*var\(--nav-item-active-text,\s*var\(--brian-nav-ink\)\)/);
 
-assert.match(component, /data-nav-key="home"[^>]*className=\{route === 'home' \? 'is-active' : ''\}/s);
-assert.match(component, /data-nav-key="apps"[^>]*className=\{route === 'apps' \? 'is-active' : ''\}/s);
 assert.match(component, /canShowApps \? <button/);
 assert.match(component, /isAdmin \? <button/);
+assert.match(runtime, /const PRIMARY_NAV_LABEL_KEYS = new Map\(\[/);
+assert.match(runtime, /\['Trang chủ', 'home'\]/);
+assert.match(runtime, /\['Home', 'home'\]/);
+assert.match(runtime, /\['Ứng dụng', 'apps'\]/);
+assert.match(runtime, /\['Apps', 'apps'\]/);
+assert.match(runtime, /button\.dataset\.navKey = key/);
 
 const palettes = [
   { key: 'home', selector: "[data-nav-key='home']", surface: '#e8f1ff', hover: '#dceaff', active: '#d2e3ff', ink: '#285ea8', border: '#c9dcff' },
@@ -46,6 +50,7 @@ for (const palette of palettes) {
 }
 
 assert.doesNotMatch(pastelCss, /button:not\(\[class\*='brian-nav__'\]\):(first-child|nth-of-type)/, 'Pastel authority must not depend on button position');
+assert.doesNotMatch(runtime, /(first-of-type|nth-of-type)/, 'Production navigation runtime must not depend on button position');
 assert.doesNotMatch(runtime, /surface:\s*SOFT_SURFACE/, 'Production navigation runtime must not overwrite pastel buttons with the old gray surface');
 assert.match(runtime, /active \? config\.activeSurface : hovered \? config\.hoverSurface : config\.surface/);
 assert.match(runtime, /active \? config\.activeInk : config\.ink/);
