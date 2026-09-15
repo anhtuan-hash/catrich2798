@@ -8,6 +8,7 @@ on:
       - 'src/components/HomeParticleSignaturePortal.jsx'
       - 'src/components/GlobalFlatNavigation.jsx'
       - 'src/components/BrianPulseLogo.css'
+      - 'scripts/ignore-css-loader.mjs'
       - 'scripts/test-star-mobile-mode-toggle.mjs'
       - 'tests/unit/presentation-mode.test.mjs'
       - 'tests/e2e/mobile-shell.spec.js'
@@ -21,6 +22,7 @@ on:
       - 'src/components/HomeParticleSignaturePortal.jsx'
       - 'src/components/GlobalFlatNavigation.jsx'
       - 'src/components/BrianPulseLogo.css'
+      - 'scripts/ignore-css-loader.mjs'
       - 'scripts/test-star-mobile-mode-toggle.mjs'
       - 'tests/unit/presentation-mode.test.mjs'
       - 'tests/e2e/mobile-shell.spec.js'
@@ -53,6 +55,8 @@ jobs:
         run: node --test tests/unit/presentation-mode.test.mjs
 
       - name: Run application smoke tests
+        env:
+          NODE_OPTIONS: --loader=./scripts/ignore-css-loader.mjs
         run: npm test
 
       - name: Build production bundle
