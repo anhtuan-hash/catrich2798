@@ -73,6 +73,26 @@ test('desktop remains desktop after narrow viewport resize', async ({ page }, te
   await expectDesktopChrome(page);
 });
 
+test('desktop stored override opens the real mobile shell and can return to desktop', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium-desktop');
+  await page.addInitScript(() => localStorage.setItem('bes-presentation-override', 'mobile'));
+  await page.goto('/#/home');
+
+  await expect(page.locator('.app-shell')).toHaveAttribute('data-device-class', 'desktop');
+  await expect(page.locator('.app-shell')).toHaveAttribute('data-presentation-override', 'mobile');
+  await expectMobileChrome(page);
+
+  const stageWidth = await page.locator('#root').evaluate((element) => element.getBoundingClientRect().width);
+  expect(stageWidth).toBeLessThanOrEqual(430.5);
+
+  const returnButton = page.locator('.bes-mobile-desktop-return');
+  await expect(returnButton).toBeVisible();
+  await returnButton.click();
+  await expectDesktopChrome(page);
+  await expect(page.locator('.app-shell')).not.toHaveAttribute('data-presentation-override', 'mobile');
+  expect(await page.evaluate(() => localStorage.getItem('bes-presentation-override'))).toBeNull();
+});
+
 test('mobile menu opens as a left navigation drawer without changing route', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile-chromium');
   await page.goto('/#/home');
