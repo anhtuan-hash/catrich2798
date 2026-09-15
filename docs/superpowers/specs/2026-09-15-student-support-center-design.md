@@ -1,7 +1,7 @@
 # Student Support Center — Design Specification
 
 Date: 2026-09-15
-Status: Approved for implementation planning
+Status: Approved; implementation plan ready
 Route: `#/student-support`
 Product name: **Student Support Center / Trung tâm Hỗ trợ Học sinh**
 
