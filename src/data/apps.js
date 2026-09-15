@@ -7,6 +7,13 @@ export const APPS = [
     status: 'Realtime · Role-aware · 14-day view', statusVi: 'Realtime · Theo vai trò · 14 ngày', api: true, featured: true,
   },
   {
+    slug: 'student-support', route: 'student-support', icon: 'SS', tone: 'mint', group: 'School Management', groupVi: 'Hỗ trợ học sinh',
+    title: 'Student Support Center', titleVi: 'Trung tâm Hỗ trợ Học sinh',
+    desc: 'Review factual school signals, coordinate support actions and follow up student progress.',
+    descVi: 'Tổng hợp tín hiệu thực tế, phối hợp hỗ trợ và theo dõi tiến trình học sinh.',
+    status: 'Rule-based · Human-reviewed · No AI', statusVi: 'Theo quy tắc · Giáo viên duyệt · Không AI', api: true, featured: true,
+  },
+  {
     slug: 'gradebook-studio', icon: 'GB', tone: 'blue', group: 'Teaching Management', groupVi: 'Quản lý giảng dạy',
     title: 'Gradebook Studio', titleVi: 'Sổ điểm',
     desc: 'Manage class rosters and gradebooks independently of homeroom-teacher duties.',
