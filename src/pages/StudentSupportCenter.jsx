@@ -4,6 +4,7 @@ import StudentSupportOverview from '../components/studentSupport/StudentSupportO
 import StudentSupportAlertQueue from '../components/studentSupport/StudentSupportAlertQueue.jsx';
 import StudentSupportStudentProfile from '../components/studentSupport/StudentSupportStudentProfile.jsx';
 import StudentSupportObservationForm from '../components/studentSupport/StudentSupportObservationForm.jsx';
+import StudentSupportCaseManager from '../components/studentSupport/StudentSupportCaseManager.jsx';
 import { listSupportAlerts, listSupportCases } from '../studentSupport/studentSupportApi.js';
 import { buildStudentSupportHash, parseStudentSupportHash } from '../studentSupport/studentSupportIdentity.js';
 import { searchScopedStudents } from '../studentSupport/studentSupportSources.js';
@@ -113,6 +114,14 @@ export default function StudentSupportCenter({ language = 'vi', currentUser = nu
     setSearchResults([]);
   }
 
+  function addCase(row) {
+    setCases((items) => [row, ...items.filter((item) => item.id !== row.id)]);
+  }
+
+  function updateCase(row) {
+    setCases((items) => items.map((item) => item.id === row.id ? row : item));
+  }
+
   return (
     <main className="student-support-center" aria-labelledby="student-support-title">
       <section className="student-support-hero">
@@ -186,6 +195,19 @@ export default function StudentSupportCenter({ language = 'vi', currentUser = nu
         />
       ) : null}
 
+      {!loading && !error && activeTab === 'cases' ? (
+        <StudentSupportCaseManager
+          cases={cases}
+          studentRef={routeState.studentRef}
+          workspaceId={routeState.workspaceId}
+          currentUser={currentUser}
+          databasePending={databasePending}
+          language={language}
+          onCaseCreated={addCase}
+          onCaseUpdated={updateCase}
+        />
+      ) : null}
+
       {!loading && !error && activeTab === 'observations' ? (
         <StudentSupportObservationForm
           studentRef={routeState.studentRef}
@@ -196,7 +218,7 @@ export default function StudentSupportCenter({ language = 'vi', currentUser = nu
         />
       ) : null}
 
-      {!loading && !error && ['cases', 'rules', 'reports'].includes(activeTab) ? (
+      {!loading && !error && ['rules', 'reports'].includes(activeTab) ? (
         <section className="student-support-state-card">
           <strong>{vi ? 'Khu vực đã đăng ký, đang triển khai theo kế hoạch' : 'Section registered and scheduled for implementation'}</strong>
           <p>{vi ? 'Không có quyết định hoặc dữ liệu học sinh nào được tự động tạo trong giai đoạn này.' : 'No student decision or case is created automatically at this stage.'}</p>
