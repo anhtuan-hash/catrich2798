@@ -4,162 +4,140 @@
 
 **Goal:** Build a production-ready, non-AI Student Support Center at `#/student-support` that composes existing Attendance, Gradebook, Homeroom, teaching-assignment, and notification data into a deterministic support workflow for alerts, human review, support cases, follow-up, reporting, and audit.
 
-**Architecture:** Student Support is a new bounded domain under `src/studentSupport/`. Existing modules remain the source of truth for attendance, grades, class membership, teacher assignments, and parent-contact facts. Student Support owns only deterministic rules, alerts, support cases, actions, notes, teacher observations, support-specific family-contact logs, and immutable case events. The cross-module student key is the existing `student_ref`/student code identity already used by Homeroom; no new independent student master table is introduced.
+**Architecture:** Student Support is a new domain under `src/studentSupport/`. Attendance, grades, class membership, teacher assignments, and existing family-contact facts remain owned by their current modules; Student Support stores only rules, alerts, cases, actions, notes, teacher observations, support-specific family contacts, and immutable case events. The durable cross-module identity is existing `student_ref` when present, otherwise the existing student code normalized as `code:<value>`; a new student master table is explicitly forbidden.
 
-**Tech Stack:** React 18, Vite, Supabase/PostgreSQL + RLS, existing Brian permission framework, existing notification event bus, Node `node:test`, Playwright, browser-side PDF/Excel export libraries already present in the repo.
+**Tech Stack:** React 18, Vite, Supabase/PostgreSQL + RLS, existing Brian permission framework, existing `bes-global-notification` event bus, Node `node:test`, Playwright, existing browser-side export libraries.
 
 **Spec:** `docs/superpowers/specs/2026-09-15-student-support-center-design.md`
 
 ## Global Constraints
 
-- Student Support must not call any AI/LLM endpoint, model, embedding service, semantic classifier, or AI helper.
-- All alerts must come from deterministic rules with visible evidence and formulas.
-- Teachers remain the final decision-makers for opening, updating, resolving, and closing cases.
-- Do not duplicate Attendance, Gradebook, Homeroom, or teaching-assignment records into Student Support-owned tables.
-- Reuse `student_ref`, existing class/workspace identifiers, existing account ids, and existing teaching-assignment checks.
-- Subject teachers may only see students/classes they are assigned to teach; GVCN may only manage their own homeroom scope; Admin/authorized management may see broader scope according to role/permission.
-- RLS must enforce note visibility; React-only hiding is insufficient.
-- Do not expose internal alerts, private notes, or internal case metadata to the Homeroom Portal in V1.
-- Do not automatically send sensitive messages to students or families in V1.
-- Archive-first deletion is required; permanent deletion follows existing governance/approval patterns.
-- Desktop, tablet, and mobile layouts must remain usable; no wide-table-only critical workflow.
-- Existing app-visibility controls and `route:student-support` permission must govern access.
-- All new Student Support code must pass the repo's no-AI audit.
+- No AI/LLM/model/embedding/semantic-classifier call is allowed anywhere in Student Support.
+- Alerts must come only from deterministic rules with visible evidence and formulas.
+- Teachers make every case-opening, follow-up, resolution, and closure decision.
+- Attendance, Gradebook, Homeroom, teaching assignments, and existing parent-contact data are read-only sources for this feature.
+- Subject teachers may access only assigned classes; GVCN may manage only owned homeroom workspaces; Admin may access all; Department Head may access only workspaces whose owners are teachers in `department_teacher_sync` rows where `department_head_id = auth.uid()`.
+- RLS, not React filtering, enforces access and note visibility.
+- Student/family portal users have no Student Support access in V1.
+- No automatic family/student messaging in V1.
+- Archive-first deletion is mandatory; hard deletion is Admin-governed through existing `deleted_items` governance.
+- Desktop/mobile/tablet workflows must not require horizontal scrolling for critical actions.
+- Route permission is `route:student-support`; existing app visibility remains active.
+- Student Support code must pass `scripts/audit-no-ai.mjs` and its dedicated verifier.
 
 ---
 
-## File Structure
+## File Map
 
-### New files
+### Create
 
-- `src/studentSupport/studentSupportConstants.js` — statuses, observation types, visibility scopes, default rule codes.
-- `src/studentSupport/studentSupportIdentity.js` — normalize `student_ref`, student code, class/workspace context, and deep-link query parsing.
-- `src/studentSupport/studentSupportRules.js` — pure deterministic rule evaluation and deduplication keys.
-- `src/studentSupport/studentSupportApi.js` — Supabase CRUD/query facade for alerts, cases, actions, notes, observations, family contacts, rules, and case events.
-- `src/studentSupport/studentSupportSources.js` — read-only adapters for Homeroom, Gradebook, Attendance, and teaching assignments.
-- `src/studentSupport/studentSupportNotifications.js` — fixed-template notification event creation.
-- `src/studentSupport/studentSupportExports.js` — report projection and PDF/Excel export helpers.
-- `src/pages/StudentSupportCenter.jsx` — page shell, tabs, routing/query state, loading/error states.
-- `src/pages/StudentSupportCenter.css` — responsive layout.
-- `src/components/studentSupport/StudentSupportOverview.jsx` — overview cards and due work.
-- `src/components/studentSupport/StudentSupportAlertQueue.jsx` — alert work queue and filters.
-- `src/components/studentSupport/StudentSupportStudentProfile.jsx` — Student 360 read view.
-- `src/components/studentSupport/StudentSupportCases.jsx` — case list/detail, lifecycle and actions.
-- `src/components/studentSupport/StudentSupportObservationForm.jsx` — subject/GVCN observation form.
-- `src/components/studentSupport/StudentSupportRuleSettings.jsx` — Admin deterministic-rule configuration UI.
-- `src/components/studentSupport/StudentSupportReports.jsx` — aggregate reporting UI.
-- `supabase/migrations/20260915090000_student_support_core.sql` — tables, constraints, indexes, timestamp trigger wiring.
-- `supabase/migrations/20260915091000_student_support_rls.sql` — RLS policies, grants, scoped helper views/RPCs where necessary.
-- `supabase/migrations/20260915092000_student_support_seed_rules.sql` — deterministic default rules only.
-- `tests/unit/student-support-rules.test.mjs` — deterministic rule unit tests.
-- `tests/unit/student-support-identity.test.mjs` — identity/query normalization tests.
-- `tests/unit/student-support-api.test.mjs` — API payload and transition validation tests with a fake Supabase client.
-- `tests/e2e/student-support-center.spec.js` — route, responsive, permission, alert/case workflow UI tests.
-- `scripts/verify-student-support.mjs` — static contract verifier for route, permission, no-AI, and schema file presence.
+- `src/studentSupport/studentSupportConstants.js`
+- `src/studentSupport/studentSupportIdentity.js`
+- `src/studentSupport/studentSupportRules.js`
+- `src/studentSupport/studentSupportApi.js`
+- `src/studentSupport/studentSupportSources.js`
+- `src/studentSupport/studentSupportNotifications.js`
+- `src/studentSupport/studentSupportExports.js`
+- `src/pages/StudentSupportCenter.jsx`
+- `src/pages/StudentSupportCenter.css`
+- `src/components/studentSupport/StudentSupportOverview.jsx`
+- `src/components/studentSupport/StudentSupportAlertQueue.jsx`
+- `src/components/studentSupport/StudentSupportStudentProfile.jsx`
+- `src/components/studentSupport/StudentSupportCases.jsx`
+- `src/components/studentSupport/StudentSupportObservationForm.jsx`
+- `src/components/studentSupport/StudentSupportRuleSettings.jsx`
+- `src/components/studentSupport/StudentSupportReports.jsx`
+- `supabase/migrations/20260915090000_student_support_core.sql`
+- `supabase/migrations/20260915091000_student_support_rls.sql`
+- `supabase/migrations/20260915092000_student_support_seed_rules.sql`
+- `supabase/migrations/20260915093000_student_support_archive_governance.sql`
+- `tests/unit/student-support-rules.test.mjs`
+- `tests/unit/student-support-identity.test.mjs`
+- `tests/unit/student-support-api.test.mjs`
+- `tests/e2e/student-support-center.spec.js`
+- `scripts/verify-student-support.mjs`
 
-### Existing files to modify
+### Modify
 
-- `src/main.jsx` — lazy page import, `student-support` route, design profile, render branch.
-- `src/data/apps.js` — launcher card for Student Support Center.
-- `src/utils/permissions.js` — `route:student-support` permission id/item.
-- `src/utils/supabase.js` — Student Support read projection/TTL entries.
-- `src/pages/HomeroomWorkspace.jsx` or a focused Homeroom child component — deep link to Student Support for a selected student.
-- `src/pages/GradebookStudio.jsx` or `src/components/gradebook/GradebookWorkspace.jsx` — deep link for a selected roster student.
-- `src/components/GlobalCompactNavigation.jsx` only if a Student Support-specific notification target needs normalization; otherwise use the existing `bes-global-notification` event without modifying this file.
-- `scripts/audit-no-ai.mjs` — explicitly scan/guard Student Support source paths.
-- `package.json` — add Student Support verification scripts.
+- `src/main.jsx`
+- `src/data/apps.js`
+- `src/utils/permissions.js`
+- `src/utils/supabase.js`
+- `src/components/homeroom/HomeroomCoreTabs.jsx`
+- `src/components/gradebook/GradebookWorkspace.jsx`
+- `scripts/audit-no-ai.mjs`
+- `package.json`
 
 ---
 
-### Task 1: Create the Student Support database domain
+### Task 1: Create the Student Support database schema
 
 **Files:**
 - Create: `supabase/migrations/20260915090000_student_support_core.sql`
-- Test: SQL verification executed against a Supabase development branch before production
 
 **Interfaces:**
-- Consumes: existing `auth.users`, `public.profiles`, `public.bes_homeroom_workspaces`, existing `student_ref` conventions.
-- Produces: `student_support_rules`, `student_support_alerts`, `student_support_cases`, `student_support_actions`, `student_support_notes`, `student_support_teacher_observations`, `student_support_family_contacts`, `student_support_case_events`.
+- Produces eight tables: `student_support_rules`, `student_support_alerts`, `student_support_cases`, `student_support_actions`, `student_support_notes`, `student_support_teacher_observations`, `student_support_family_contacts`, `student_support_case_events`.
 
-- [ ] **Step 1: Write a failing schema verification query before applying the migration**
+- [ ] **Step 1: Run the pre-migration failing inventory query**
 
 ```sql
 select table_name
 from information_schema.tables
-where table_schema = 'public'
+where table_schema='public'
   and table_name in (
-    'student_support_rules',
-    'student_support_alerts',
-    'student_support_cases',
-    'student_support_actions',
-    'student_support_notes',
-    'student_support_teacher_observations',
-    'student_support_family_contacts',
-    'student_support_case_events'
+    'student_support_rules','student_support_alerts','student_support_cases','student_support_actions',
+    'student_support_notes','student_support_teacher_observations','student_support_family_contacts','student_support_case_events'
   );
 ```
 
 Expected before migration: fewer than 8 rows.
 
-- [ ] **Step 2: Create the core migration**
+- [ ] **Step 2: Create the tables with explicit constraints**
 
-Use `student_ref text not null` as the durable cross-module student identifier because the current Homeroom tables already use `student_ref` across attendance, learning records, feedback, parent contacts, incidents, and portal data. Use `homeroom_workspace_id text` for the owning homeroom scope and `source_class_name text`/`source_workspace_id text` on subject-teacher observations.
-
-Core table shape:
+Use `student_ref text not null`, `homeroom_workspace_id text not null`, and existing user UUIDs. Case status:
 
 ```sql
-create table public.student_support_cases (
-  id uuid primary key default gen_random_uuid(),
-  student_ref text not null,
-  homeroom_workspace_id text not null,
-  school_year text not null default '',
-  category text not null,
-  title text not null,
-  reason text not null default '',
-  goal text not null default '',
-  owner_id uuid not null references auth.users(id),
-  status text not null default 'NEW'
-    check (status in ('NEW','REVIEWING','ACTIVE','FOLLOW_UP','RESOLVED','CLOSED','NO_ACTION_REQUIRED')),
-  follow_up_at timestamptz,
-  opened_at timestamptz not null default now(),
-  resolved_at timestamptz,
-  closed_at timestamptz,
-  created_by uuid not null references auth.users(id),
-  created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now(),
-  archived_at timestamptz
-);
+check (status in ('NEW','REVIEWING','ACTIVE','FOLLOW_UP','RESOLVED','CLOSED','NO_ACTION_REQUIRED'))
 ```
 
-Alerts must include `rule_id`, `rule_version`, `evidence jsonb`, `window_start`, `window_end`, `dedupe_key text`, `first_triggered_at`, and `last_evaluated_at`. Add a partial unique index preventing duplicate active alerts:
+Alert status:
+
+```sql
+check (status in ('NEW','REVIEWING','LINKED_TO_CASE','NO_ACTION_REQUIRED','RESOLVED','ARCHIVED'))
+```
+
+Action status:
+
+```sql
+check (status in ('TODO','IN_PROGRESS','DONE','CANCELLED'))
+```
+
+Note visibility:
+
+```sql
+check (visibility_scope in ('PRIVATE','HOMEROOM','TEACHING_TEAM','MANAGEMENT'))
+```
+
+Teacher observations store `source_class_name`, `source_workspace_id`, `teacher_id`, `subject_name`, `observation_type`, `observation_date`, `period_label`, `body`, `submitted_to_homeroom`, `follow_up_requested`, and `visibility_scope`.
+
+- [ ] **Step 3: Add indexes and duplicate-alert protection**
 
 ```sql
 create unique index student_support_alerts_active_dedupe_idx
-on public.student_support_alerts (dedupe_key)
+on public.student_support_alerts(dedupe_key)
 where archived_at is null and status in ('NEW','REVIEWING','LINKED_TO_CASE');
-```
 
-Case events are append-oriented: no user-facing update/delete path.
-
-- [ ] **Step 3: Add indexes for real query paths**
-
-```sql
-create index student_support_alerts_student_idx
-  on public.student_support_alerts (student_ref, created_at desc);
 create index student_support_cases_workspace_idx
-  on public.student_support_cases (homeroom_workspace_id, status, updated_at desc);
+on public.student_support_cases(homeroom_workspace_id,status,updated_at desc);
+
 create index student_support_actions_due_idx
-  on public.student_support_actions (assigned_to, due_at)
-  where status not in ('DONE','CANCELLED');
-create index student_support_observations_student_idx
-  on public.student_support_teacher_observations (student_ref, observation_date desc);
+on public.student_support_actions(assigned_to,due_at)
+where status not in ('DONE','CANCELLED');
 ```
 
-- [ ] **Step 4: Apply migration to a Supabase development branch and verify**
+- [ ] **Step 4: Apply on a Supabase development branch and re-run inventory**
 
-Run the schema verification query again.
-
-Expected: exactly 8 table rows and the indexes above exist.
+Expected: exactly 8 tables.
 
 - [ ] **Step 5: Commit**
 
@@ -170,29 +148,25 @@ git commit -m "feat: add student support data model"
 
 ---
 
-### Task 2: Enforce role/scope security with RLS
+### Task 2: Enforce RLS and role/class scope
 
 **Files:**
 - Create: `supabase/migrations/20260915091000_student_support_rls.sql`
-- Test: SQL role-policy verification on a Supabase development branch
 
 **Interfaces:**
-- Consumes: `public.is_admin()`, `public.bes_v1099_current_role(auth.uid())`, `public.bes_has_any_class_assignment(class_name)`, `bes_homeroom_workspaces.owner_id`, `auth.uid()`.
-- Produces: RLS-protected CRUD contract for all Student Support tables.
+- Consumes: `public.is_admin()`, `public.bes_v1099_current_role(auth.uid())`, `public.bes_has_any_class_assignment(text)`, `bes_homeroom_workspaces.owner_id`, `department_teacher_sync`.
 
-- [ ] **Step 1: Write failing policy inventory query**
+- [ ] **Step 1: Run the pre-migration policy query**
 
 ```sql
-select tablename, policyname, cmd
+select tablename,policyname,cmd
 from pg_policies
-where schemaname = 'public'
-  and tablename like 'student_support_%'
-order by tablename, policyname;
+where schemaname='public' and tablename like 'student_support_%';
 ```
 
-Expected before migration: no complete policy set.
+Expected: incomplete/no policy set.
 
-- [ ] **Step 2: Enable RLS on every Student Support table**
+- [ ] **Step 2: Enable RLS on all eight tables**
 
 ```sql
 alter table public.student_support_rules enable row level security;
@@ -205,71 +179,52 @@ alter table public.student_support_family_contacts enable row level security;
 alter table public.student_support_case_events enable row level security;
 ```
 
-- [ ] **Step 3: Implement workspace-scope read policies**
+- [ ] **Step 3: Implement the exact homeroom/admin/department-head scope predicate**
 
-GVCN access is derived from workspace ownership:
+For rows containing `homeroom_workspace_id`, access is true when any branch matches:
 
 ```sql
-exists (
-  select 1
-  from public.bes_homeroom_workspaces w
+public.is_admin()
+or exists (
+  select 1 from public.bes_homeroom_workspaces w
   where w.workspace_id = homeroom_workspace_id
     and w.owner_id = auth.uid()
     and w.archived_at is null
 )
+or exists (
+  select 1
+  from public.bes_homeroom_workspaces w
+  join public.department_teacher_sync d on d.teacher_id = w.owner_id
+  where w.workspace_id = homeroom_workspace_id
+    and d.department_head_id = auth.uid()
+    and w.archived_at is null
+)
 ```
 
-Admin access uses `public.is_admin()`.
+- [ ] **Step 4: Implement subject-teacher observation scope**
 
-Department-head access is allowed only for management-level aggregate/case data and must use normalized role checks plus the existing department/assignment scope; do not grant blanket `authenticated` access.
-
-- [ ] **Step 4: Implement subject-teacher observation policies**
-
-Allow an observation insert only when:
+Insert requires:
 
 ```sql
 teacher_id = auth.uid()
 and public.bes_has_any_class_assignment(source_class_name)
 ```
 
-Allow the observation author to read their own observation; allow owning GVCN/Admin to read submitted observations for that homeroom. Do not let subject teachers read private family-contact entries or unrelated private notes.
+Observation author may read own rows. Owning GVCN/Admin/Department Head may read submitted rows in scope.
 
-- [ ] **Step 5: Enforce note visibility in SQL**
+- [ ] **Step 5: Enforce note visibility in RLS**
 
-For `student_support_notes.visibility_scope`:
+`PRIVATE`: author/Admin only. `HOMEROOM`: author + owning GVCN + Admin. `TEACHING_TEAM`: author + owning GVCN + assigned subject teacher + Admin. `MANAGEMENT`: author + owning GVCN + matching Department Head + Admin.
 
-```sql
-check (visibility_scope in ('PRIVATE','HOMEROOM','TEACHING_TEAM','MANAGEMENT'))
-```
+- [ ] **Step 6: Make case events append-only**
 
-Policy behavior:
+Create select/insert policies only; no update/delete policies.
 
-- `PRIVATE`: `author_id = auth.uid()` or Admin.
-- `HOMEROOM`: author + owning homeroom teacher + Admin.
-- `TEACHING_TEAM`: author + owning homeroom teacher + users with matching teaching assignment + Admin.
-- `MANAGEMENT`: author + owning homeroom teacher + authorized department head + Admin.
+- [ ] **Step 7: Verify outsider teacher denial and run Supabase security advisors**
 
-- [ ] **Step 6: Protect immutable case events**
+Expected: an unassigned teacher reads zero rows for another class; no new missing-RLS findings.
 
-Grant select/insert under scope, but do not create update/delete policies for `student_support_case_events`.
-
-- [ ] **Step 7: Verify anonymous/student denial and teacher-scope denial**
-
-Use Supabase test users or `set local role authenticated` test fixtures and assert:
-
-```sql
--- A teacher outside the class must see zero rows.
-select count(*) from public.student_support_teacher_observations
-where source_class_name = 'UNASSIGNED-CLASS';
-```
-
-Expected: `0` under an unassigned teacher session.
-
-- [ ] **Step 8: Run Supabase security advisors**
-
-Expected: no new missing-RLS/table exposure findings for Student Support tables.
-
-- [ ] **Step 9: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
 git add supabase/migrations/20260915091000_student_support_rls.sql
@@ -278,108 +233,73 @@ git commit -m "feat: secure student support with RLS"
 
 ---
 
-### Task 3: Seed deterministic rules and implement the pure rule engine
+### Task 3: Implement deterministic rule engine and seed rules
 
 **Files:**
-- Create: `supabase/migrations/20260915092000_student_support_seed_rules.sql`
 - Create: `src/studentSupport/studentSupportConstants.js`
 - Create: `src/studentSupport/studentSupportRules.js`
 - Create: `tests/unit/student-support-rules.test.mjs`
+- Create: `supabase/migrations/20260915092000_student_support_seed_rules.sql`
 
 **Interfaces:**
-- Produces: `evaluateRule(rule, facts, now)`, `makeAlertDedupeKey(rule, studentRef, windowStart, windowEnd)`, `evaluateRules(rules, factsByStudent, now)`.
-- Rule result shape: `{ triggered, ruleId, ruleCode, evidence, windowStart, windowEnd, metric }`.
+- Produces: `evaluateRule(rule,facts,now)`, `evaluateRules(rules,factsByStudent,now)`, `makeAlertDedupeKey(rule,studentRef,windowStart,windowEnd)`.
 
-- [ ] **Step 1: Write failing rule tests**
+- [ ] **Step 1: Write failing tests**
 
 ```js
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateRule, makeAlertDedupeKey } from '../../src/studentSupport/studentSupportRules.js';
 
-test('absence rule triggers at configured threshold', () => {
-  const rule = { id: 'r1', code: 'absence_14d', ruleType: 'attendance_count', config: { status: 'absent', threshold: 3, days: 14 } };
-  const facts = { attendance: [
-    { date: '2026-09-03', status: 'absent' },
-    { date: '2026-09-08', status: 'absent' },
-    { date: '2026-09-14', status: 'absent' },
-  ] };
-  const result = evaluateRule(rule, facts, new Date('2026-09-15T00:00:00Z'));
-  assert.equal(result.triggered, true);
-  assert.equal(result.metric, 3);
+test('3 absences in 14 days triggers', () => {
+  const rule={id:'r1',version:1,code:'absence_3_in_14d',ruleType:'attendance_count',config:{status:'absent',threshold:3,days:14}};
+  const facts={attendance:[
+    {date:'2026-09-03',status:'absent'},
+    {date:'2026-09-08',status:'absent'},
+    {date:'2026-09-14',status:'absent'},
+  ]};
+  assert.equal(evaluateRule(rule,facts,new Date('2026-09-15T00:00:00Z')).triggered,true);
 });
 
-test('insufficient grade samples never trigger', () => {
-  const rule = { id: 'r2', code: 'grade_drop', ruleType: 'grade_window_drop', config: { sampleSize: 3, delta: 1 } };
-  const result = evaluateRule(rule, { grades: [{ score: 5 }] }, new Date('2026-09-15T00:00:00Z'));
-  assert.equal(result.triggered, false);
-  assert.equal(result.evidence.reason, 'insufficient_data');
-});
-
-test('dedupe key is stable for same rule/student/window', () => {
-  assert.equal(
-    makeAlertDedupeKey({ id: 'r1', version: 1 }, 'student-1', '2026-09-01', '2026-09-15'),
-    makeAlertDedupeKey({ id: 'r1', version: 1 }, 'student-1', '2026-09-01', '2026-09-15'),
-  );
+test('insufficient grade samples cannot trigger', () => {
+  const rule={id:'r2',version:1,code:'grade_drop',ruleType:'grade_window_drop',config:{sampleSize:3,delta:1}};
+  const result=evaluateRule(rule,{grades:[{score:5}]},new Date('2026-09-15T00:00:00Z'));
+  assert.equal(result.triggered,false);
+  assert.equal(result.evidence.reason,'insufficient_data');
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
-
-Run:
+- [ ] **Step 2: Run test and confirm failure**
 
 ```bash
 node --test tests/unit/student-support-rules.test.mjs
 ```
 
-Expected: FAIL because rule module does not exist.
-
-- [ ] **Step 3: Implement supported V1 rule types**
-
-`studentSupportRules.js` must support exactly:
+- [ ] **Step 3: Implement only these V1 rule types**
 
 ```js
 export const STUDENT_SUPPORT_RULE_TYPES = Object.freeze([
-  'attendance_count',
-  'grade_window_drop',
-  'consecutive_scores_below',
-  'observation_count',
-  'combined_all',
+  'attendance_count','grade_window_drop','consecutive_scores_below','observation_count','combined_all',
 ]);
 ```
 
-No fuzzy matching, AI, or free-text interpretation.
+No free-text interpretation is allowed.
 
-- [ ] **Step 4: Seed initial disabled/configurable defaults**
+- [ ] **Step 4: Seed fixed-code default rules**
 
-Seed rules with stable codes:
+Seed `absence_3_in_14d`, `absence_5_in_30d`, `late_3_in_14d`, disabled `grade_drop_3v3_1point`, and disabled `incomplete_3_in_14d` with JSON numeric configs.
 
-```sql
-insert into public.student_support_rules
-(code, name, rule_type, enabled, scope, config, version)
-values
-('absence_3_in_14d', 'Vắng 3 buổi trong 14 ngày', 'attendance_count', true, 'school', '{"status":"absent","threshold":3,"days":14}'::jsonb, 1),
-('absence_5_in_30d', 'Vắng 5 buổi trong 30 ngày', 'attendance_count', true, 'school', '{"status":"absent","threshold":5,"days":30}'::jsonb, 1),
-('late_3_in_14d', 'Đi muộn 3 lần trong 14 ngày', 'attendance_count', true, 'school', '{"status":"late","threshold":3,"days":14}'::jsonb, 1),
-('grade_drop_3v3_1point', 'Điểm TB 3 bài gần nhất giảm từ 1 điểm', 'grade_window_drop', false, 'school', '{"sampleSize":3,"delta":1}'::jsonb, 1),
-('incomplete_3_in_14d', '3 ghi nhận chưa hoàn thành nhiệm vụ trong 14 ngày', 'observation_count', false, 'school', '{"observationType":"TASK_INCOMPLETE","threshold":3,"days":14}'::jsonb, 1)
-on conflict (code) do nothing;
-```
-
-- [ ] **Step 5: Run tests**
-
-Expected: PASS.
-
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Run test and commit**
 
 ```bash
-git add supabase/migrations/20260915092000_student_support_seed_rules.sql src/studentSupport/studentSupportConstants.js src/studentSupport/studentSupportRules.js tests/unit/student-support-rules.test.mjs
+node --test tests/unit/student-support-rules.test.mjs
+git add src/studentSupport supabase/migrations/20260915092000_student_support_seed_rules.sql tests/unit/student-support-rules.test.mjs
 git commit -m "feat: add deterministic student support rules"
 ```
 
 ---
 
-### Task 4: Implement identity normalization and source adapters
+### Task 4: Normalize student identity and build read-only source adapters
 
 **Files:**
 - Create: `src/studentSupport/studentSupportIdentity.js`
@@ -388,351 +308,224 @@ git commit -m "feat: add deterministic student support rules"
 - Modify: `src/utils/supabase.js`
 
 **Interfaces:**
-- Produces: `normalizeStudentRef(student)`, `parseStudentSupportHash(hash)`, `buildStudentSupportHash(input)`, `loadStudentSupportScope(user)`, `loadStudent360Facts({ user, studentRef, homeroomWorkspaceId, days })`.
-- Consumes existing Homeroom and Gradebook store functions plus direct read-only Supabase queries.
+- Produces: `normalizeStudentRef(student)`, `parseStudentSupportHash(hash)`, `buildStudentSupportHash(input)`, `loadStudentSupportScope(user)`, `loadStudent360Facts(input)`.
 
 - [ ] **Step 1: Write failing identity tests**
 
 ```js
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import { normalizeStudentRef, parseStudentSupportHash, buildStudentSupportHash } from '../../src/studentSupport/studentSupportIdentity.js';
-
-test('student ref prefers existing id then code', () => {
-  assert.equal(normalizeStudentRef({ studentRef: 'HS-1', code: '001' }), 'HS-1');
-  assert.equal(normalizeStudentRef({ id: 'abc', code: '001' }), 'abc');
-  assert.equal(normalizeStudentRef({ code: '001' }), 'code:001');
-});
-
-test('deep link round trips', () => {
-  const hash = buildStudentSupportHash({ studentRef: 'HS-1', workspaceId: '12.6' });
-  assert.deepEqual(parseStudentSupportHash(hash), { studentRef: 'HS-1', workspaceId: '12.6', tab: '' });
-});
+assert.equal(normalizeStudentRef({studentRef:'HS-1',code:'001'}),'HS-1');
+assert.equal(normalizeStudentRef({code:'001'}),'code:001');
+assert.equal(normalizeStudentRef({fullName:'No id'}),'');
 ```
 
-- [ ] **Step 2: Run test and verify failure**
+Case creation is disabled when `normalizeStudentRef()` returns empty.
 
-```bash
-node --test tests/unit/student-support-identity.test.mjs
-```
-
-- [ ] **Step 3: Implement identity rules**
-
-Preference order:
+- [ ] **Step 2: Implement deep-link round trip**
 
 ```js
-student.studentRef || student.student_ref || student.rosterStudentId || student.id || (student.code ? `code:${student.code}` : '')
+buildStudentSupportHash({studentRef:'HS-1',workspaceId:'12.6',tab:'student'})
+// => #/student-support?student=HS-1&workspace=12.6&tab=student
 ```
 
-Never generate a random id for an existing student. If no durable ref/code is available, the UI may display the student but must disable case creation and show `Thiếu mã định danh học sinh`.
+- [ ] **Step 3: Implement Student 360 facts**
 
-- [ ] **Step 4: Implement read-only Student 360 sources**
-
-`loadStudent360Facts()` returns:
+Return:
 
 ```js
 {
-  student: { studentRef, code, fullName, className, workspaceId, schoolYear, grade },
-  attendance: [{ date, status, sessionName, source }],
-  grades: [{ date, score, subject, assessmentType, source }],
-  observations: [],
-  assignmentScope: { isHomeroomOwner, subjectClasses: [] },
+  student:{studentRef,code,fullName,className,workspaceId,schoolYear,grade},
+  attendance:[{date,status,sessionName,source}],
+  grades:[{date,score,subject,assessmentType,source}],
+  observations:[],
+  assignmentScope:{isHomeroomOwner,subjectClasses:[]},
 }
 ```
 
-Attendance source order:
+Official attendance comes from `bes_homeroom_attendance`; grades come from `bes_homeroom_learning_records` plus Gradebook read helpers. Supplemental attendance is included only when existing student code/canonical key matches the same identity.
 
-1. `bes_homeroom_attendance` by `student_ref` for official homeroom facts.
-2. supplemental/extra attendance reports only when their canonical student key/code resolves to the same student.
+- [ ] **Step 4: Add short Student Support read-cache TTLs**
 
-Grade source order:
+Add 5-minute TTL for alerts/cases/actions and 30-minute TTL for rules in `src/utils/supabase.js`.
 
-1. `bes_homeroom_learning_records` by `student_ref`.
-2. Gradebook workspace payload/read helper for subject-grade detail; do not write back.
-
-- [ ] **Step 5: Add Student Support paths to Supabase read caching**
-
-Add projections/TTL entries in `src/utils/supabase.js` for new tables, for example:
-
-```js
-['/rest/v1/student_support_alerts', 5 * 60 * 1000],
-['/rest/v1/student_support_cases', 5 * 60 * 1000],
-['/rest/v1/student_support_actions', 5 * 60 * 1000],
-['/rest/v1/student_support_rules', 30 * 60 * 1000],
-```
-
-Keep alert/case TTL short because the app is collaborative.
-
-- [ ] **Step 6: Run identity tests and existing smoke tests**
+- [ ] **Step 5: Run tests and commit**
 
 ```bash
 node --test tests/unit/student-support-identity.test.mjs
 npm test
-```
-
-Expected: PASS.
-
-- [ ] **Step 7: Commit**
-
-```bash
 git add src/studentSupport/studentSupportIdentity.js src/studentSupport/studentSupportSources.js src/utils/supabase.js tests/unit/student-support-identity.test.mjs
 git commit -m "feat: connect student support source data"
 ```
 
 ---
 
-### Task 5: Implement the Student Support API and lifecycle validation
+### Task 5: Implement workflow API and lifecycle validation
 
 **Files:**
 - Create: `src/studentSupport/studentSupportApi.js`
 - Create: `tests/unit/student-support-api.test.mjs`
 
 **Interfaces:**
-- Produces:
-  - `listSupportAlerts(filters)`
-  - `upsertEvaluatedAlert(input)`
-  - `reviewAlert(alertId, decision)`
-  - `listSupportCases(filters)`
-  - `createSupportCase(input)`
-  - `transitionSupportCase(caseId, nextStatus, note)`
-  - `createSupportAction(input)` / `updateSupportAction(id, patch)`
-  - `createSupportNote(input)`
-  - `createTeacherObservation(input)`
-  - `createFamilyContact(input)`
-  - `appendCaseEvent(input)`
-  - `archiveSupportCase(caseId)`
+- Produces: `listSupportAlerts`, `upsertEvaluatedAlert`, `reviewAlert`, `listSupportCases`, `createSupportCase`, `transitionSupportCase`, `createSupportAction`, `updateSupportAction`, `createSupportNote`, `createTeacherObservation`, `createFamilyContact`, `appendCaseEvent`, `archiveSupportCase`, `restoreSupportCase`.
 
-- [ ] **Step 1: Write failing transition/API tests with a fake client**
+- [ ] **Step 1: Write failing lifecycle tests**
 
 ```js
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import { canTransitionCase, validateObservationInput } from '../../src/studentSupport/studentSupportApi.js';
+assert.equal(canTransitionCase('NEW','CLOSED'),false);
+assert.equal(canTransitionCase('ACTIVE','FOLLOW_UP'),true);
+assert.throws(()=>validateObservationInput({observationType:'TASK_INCOMPLETE'}),/student/i);
+```
 
-test('case cannot jump from NEW directly to CLOSED', () => {
-  assert.equal(canTransitionCase('NEW', 'CLOSED'), false);
-});
+- [ ] **Step 2: Implement exact transitions**
 
-test('case can move ACTIVE to FOLLOW_UP', () => {
-  assert.equal(canTransitionCase('ACTIVE', 'FOLLOW_UP'), true);
-});
-
-test('observation requires factual type and student ref', () => {
-  assert.throws(() => validateObservationInput({ observationType: 'TASK_INCOMPLETE' }), /student/i);
+```js
+export const CASE_TRANSITIONS=Object.freeze({
+  NEW:['REVIEWING','NO_ACTION_REQUIRED'],
+  REVIEWING:['ACTIVE','NO_ACTION_REQUIRED'],
+  ACTIVE:['FOLLOW_UP','RESOLVED'],
+  FOLLOW_UP:['ACTIVE','RESOLVED'],
+  RESOLVED:['CLOSED','ACTIVE'],
+  CLOSED:[],
+  NO_ACTION_REQUIRED:[],
 });
 ```
 
-- [ ] **Step 2: Run and verify failure**
+Every case transition appends one immutable `student_support_case_events` row.
+
+- [ ] **Step 3: Implement duplicate-safe alert upsert by `dedupe_key`**
+
+A fourth absence updates the existing active 3-in-14 alert evidence; it does not insert a second active alert.
+
+- [ ] **Step 4: Run tests and commit**
 
 ```bash
 node --test tests/unit/student-support-api.test.mjs
-```
-
-- [ ] **Step 3: Implement explicit lifecycle transitions**
-
-```js
-export const CASE_TRANSITIONS = Object.freeze({
-  NEW: ['REVIEWING', 'NO_ACTION_REQUIRED'],
-  REVIEWING: ['ACTIVE', 'NO_ACTION_REQUIRED'],
-  ACTIVE: ['FOLLOW_UP', 'RESOLVED'],
-  FOLLOW_UP: ['ACTIVE', 'RESOLVED'],
-  RESOLVED: ['CLOSED', 'ACTIVE'],
-  CLOSED: [],
-  NO_ACTION_REQUIRED: [],
-});
-```
-
-`transitionSupportCase` must update the case and append `student_support_case_events` in the same logical operation; if implemented through a Postgres RPC, make the RPC validate `auth.uid()` and preserve RLS scope.
-
-- [ ] **Step 4: Implement duplicate-safe alert upsert**
-
-Use `dedupe_key` and update factual evidence/metric on an active alert instead of inserting daily duplicates.
-
-- [ ] **Step 5: Run tests**
-
-Expected: PASS.
-
-- [ ] **Step 6: Commit**
-
-```bash
 git add src/studentSupport/studentSupportApi.js tests/unit/student-support-api.test.mjs
 git commit -m "feat: add student support workflow API"
 ```
 
 ---
 
-### Task 6: Register route, permission, launcher card, and no-AI guard
+### Task 6: Register the route, permission, launcher, page stub, and no-AI verifier
 
 **Files:**
+- Create: `src/pages/StudentSupportCenter.jsx`
+- Create: `src/pages/StudentSupportCenter.css`
+- Create: `scripts/verify-student-support.mjs`
 - Modify: `src/main.jsx`
 - Modify: `src/data/apps.js`
 - Modify: `src/utils/permissions.js`
-- Create: `scripts/verify-student-support.mjs`
 - Modify: `scripts/audit-no-ai.mjs`
 - Modify: `package.json`
 
 **Interfaces:**
-- Produces route `#/student-support`, permission `route:student-support`, visibility id from existing app registry, build-time verification command.
+- Produces `#/student-support`, `route:student-support`, launcher card, initial protected page shell.
 
-- [ ] **Step 1: Write the static verifier first**
+- [ ] **Step 1: Write verifier first and confirm it fails**
 
-`verify-student-support.mjs` should read source files and fail unless all contracts exist:
+Verifier asserts:
 
 ```js
 assert(main.includes("currentRoute === 'student-support'"));
-assert(main.includes("'student-support'"));
 assert(apps.includes("slug: 'student-support'"));
 assert(permissions.includes("'student-support': 'route:student-support'"));
 ```
 
-It must also fail if Student Support source imports `callAI`, references `/api/ai`, `openrouter`, embeddings, or known AI provider helpers.
+It also scans `src/studentSupport`, `src/components/studentSupport`, and `src/pages/StudentSupportCenter.jsx` for executable references to `callAI`, `/api/ai`, `openrouter`, embedding providers, or AI-provider imports.
 
-- [ ] **Step 2: Run verifier and confirm failure**
+- [ ] **Step 2: Add launcher card**
+
+```js
+{
+  slug:'student-support',route:'student-support',icon:'SS',tone:'mint',
+  group:'School Management',groupVi:'Hỗ trợ học sinh',
+  title:'Student Support Center',titleVi:'Trung tâm Hỗ trợ Học sinh',
+  desc:'Review factual school signals, coordinate support actions and follow up student progress.',
+  descVi:'Tổng hợp tín hiệu thực tế, phối hợp hỗ trợ và theo dõi tiến trình học sinh.',
+  status:'Rule-based · Human-reviewed · No AI',statusVi:'Theo quy tắc · Giáo viên duyệt · Không AI',
+  api:true,featured:true,
+}
+```
+
+- [ ] **Step 3: Add permission and route render**
+
+Add:
+
+```js
+'student-support':'route:student-support'
+```
+
+Add a `CORE_PERMISSION_ITEMS` entry, lazy import, `ROUTES` item, design profile, and render branch.
+
+- [ ] **Step 4: Create the minimal protected page stub**
+
+```jsx
+export default function StudentSupportCenter(){
+  return <main className="student-support-center"><h1>Trung tâm Hỗ trợ Học sinh</h1></main>;
+}
+```
+
+Task 7 expands this file rather than recreating it.
+
+- [ ] **Step 5: Add npm scripts and run verifier**
+
+```json
+"test:student-support":"node --test tests/unit/student-support-*.test.mjs",
+"verify:student-support":"node scripts/verify-student-support.mjs && npm run test:student-support && npm run test:v11.6.7"
+```
+
+Run:
 
 ```bash
 node scripts/verify-student-support.mjs
 ```
 
-Expected: FAIL.
+Expected: PASS.
 
-- [ ] **Step 3: Add launcher card**
-
-Add to `APPS`:
-
-```js
-{
-  slug: 'student-support', route: 'student-support', icon: 'SS', tone: 'mint',
-  group: 'School Management', groupVi: 'Hỗ trợ học sinh',
-  title: 'Student Support Center', titleVi: 'Trung tâm Hỗ trợ Học sinh',
-  desc: 'Review factual school signals, coordinate support actions and follow up student progress.',
-  descVi: 'Tổng hợp tín hiệu thực tế, phối hợp hỗ trợ và theo dõi tiến trình học sinh.',
-  status: 'Rule-based · Human-reviewed · No AI',
-  statusVi: 'Theo quy tắc · Giáo viên duyệt · Không AI',
-  api: true, featured: true,
-}
-```
-
-- [ ] **Step 4: Add route permission**
-
-In `ROUTE_PERMISSION_IDS`:
-
-```js
-'student-support': 'route:student-support',
-```
-
-Add a `CORE_PERMISSION_ITEMS` entry titled `Trung tâm Hỗ trợ Học sinh`.
-
-- [ ] **Step 5: Add lazy route/render branch**
-
-In `src/main.jsx`:
-
-```js
-const StudentSupportCenter = lazy(() => import('./pages/StudentSupportCenter.jsx'));
-```
-
-Add `'student-support'` to `ROUTES`, a design profile, and:
-
-```jsx
-{canAccessRoute && currentRoute === 'student-support' && currentUser && <StudentSupportCenter {...context} />}
-```
-
-- [ ] **Step 6: Extend no-AI audit**
-
-Add Student Support-specific forbidden patterns and assert that no Student Support file imports removed/AI helpers.
-
-- [ ] **Step 7: Add npm scripts**
-
-```json
-"test:student-support": "node --test tests/unit/student-support-*.test.mjs",
-"verify:student-support": "node scripts/verify-student-support.mjs && npm run test:student-support && npm run test:v11.6.7"
-```
-
-- [ ] **Step 8: Run verifier**
+- [ ] **Step 6: Commit**
 
 ```bash
-npm run verify:student-support
-```
-
-Expected: PASS after page stub exists in Task 7.
-
-- [ ] **Step 9: Commit**
-
-```bash
-git add src/main.jsx src/data/apps.js src/utils/permissions.js scripts/verify-student-support.mjs scripts/audit-no-ai.mjs package.json
+git add src/main.jsx src/data/apps.js src/utils/permissions.js src/pages/StudentSupportCenter.jsx src/pages/StudentSupportCenter.css scripts/verify-student-support.mjs scripts/audit-no-ai.mjs package.json
 git commit -m "feat: register student support center"
 ```
 
 ---
 
-### Task 7: Build the page shell, overview, alert queue, and responsive layout
+### Task 7: Build Overview and alert work queue
 
 **Files:**
-- Create: `src/pages/StudentSupportCenter.jsx`
-- Create: `src/pages/StudentSupportCenter.css`
+- Modify: `src/pages/StudentSupportCenter.jsx`
+- Modify: `src/pages/StudentSupportCenter.css`
 - Create: `src/components/studentSupport/StudentSupportOverview.jsx`
 - Create: `src/components/studentSupport/StudentSupportAlertQueue.jsx`
 - Create: `tests/e2e/student-support-center.spec.js`
 
 **Interfaces:**
-- Consumes: `listSupportAlerts`, `listSupportCases`, query parser, current user.
+- Consumes API alert/case lists.
 - Produces tabs `overview`, `alerts`, `student`, `cases`, `observations`, `rules`, `reports`.
 
-- [ ] **Step 1: Write failing Playwright route tests**
+- [ ] **Step 1: Write failing Playwright tests for protected route and 390px overflow**
 
 ```js
-import { test, expect } from '@playwright/test';
-
-test('student support route renders protected shell', async ({ page }) => {
-  await page.goto('/#/student-support');
-  await expect(page.locator('main.student-support-center')).toBeVisible();
-  await expect(page.getByRole('heading', { name: /Trung tâm Hỗ trợ Học sinh/i })).toBeVisible();
-});
-
-test('mobile layout does not overflow horizontally', async ({ page }) => {
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto('/#/student-support');
-  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
-  expect(overflow).toBe(false);
-});
+await page.goto('/#/student-support');
+await expect(page.locator('main.student-support-center')).toBeVisible();
+await expect(page.getByRole('heading',{name:/Trung tâm Hỗ trợ Học sinh/i})).toBeVisible();
 ```
 
-Use the existing authenticated E2E setup pattern from other protected-route tests; do not bypass permission checks in production code.
+At 390px, `document.documentElement.scrollWidth` must not exceed `clientWidth`.
 
-- [ ] **Step 2: Build page shell with explicit states**
+- [ ] **Step 2: Implement explicit loading/error/empty states and summary counts**
 
-The page must render:
+Counts are calculated from scoped rows only: monitored students, new alerts, active cases, follow-up due, resolved, closed.
 
-```jsx
-<StudentSupportOverview />
-<StudentSupportAlertQueue />
-```
+- [ ] **Step 3: Implement filters**
 
-with loading, empty, error, offline/fallback, and permission-denied states.
+Grade, class, GVCN, subject teacher, alert type, case status, date range, overdue-only.
 
-- [ ] **Step 3: Implement Overview cards**
+- [ ] **Step 4: Use responsive cards below tablet width**
 
-Derive counts only from loaded rows:
+Critical actions remain reachable without a wide table.
 
-```js
-const summary = {
-  monitored: uniqueStudentCount(activeCases),
-  newAlerts: alerts.filter((a) => a.status === 'NEW').length,
-  activeCases: cases.filter((c) => ['NEW','REVIEWING','ACTIVE'].includes(c.status)).length,
-  followUp: cases.filter((c) => c.status === 'FOLLOW_UP').length,
-  resolved: cases.filter((c) => c.status === 'RESOLVED').length,
-  closed: cases.filter((c) => c.status === 'CLOSED').length,
-};
-```
-
-- [ ] **Step 4: Implement alert filters**
-
-Support grade/class/GVCN/type/status/date/overdue filtering. Filters operate after RLS-scoped loading; never fetch broader data client-side then hide it.
-
-- [ ] **Step 5: Make tables collapse to cards on mobile**
-
-Critical actions must remain reachable at 390px width without horizontal scrolling.
-
-- [ ] **Step 6: Run focused E2E**
+- [ ] **Step 5: Build and run desktop/mobile E2E**
 
 ```bash
 npm run build
@@ -740,73 +533,51 @@ npx playwright test tests/e2e/student-support-center.spec.js --project=chromium-
 npx playwright test tests/e2e/student-support-center.spec.js --project=mobile-chromium
 ```
 
-Expected: PASS.
-
-- [ ] **Step 7: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add src/pages/StudentSupportCenter.jsx src/pages/StudentSupportCenter.css src/components/studentSupport tests/e2e/student-support-center.spec.js
-git commit -m "feat: add student support dashboard and alert queue"
+git commit -m "feat: add student support dashboard and alerts"
 ```
 
 ---
 
-### Task 8: Build Student 360 and deep links from Homeroom/Gradebook
+### Task 8: Build Student 360 and exact deep links from Homeroom/Gradebook
 
 **Files:**
 - Create: `src/components/studentSupport/StudentSupportStudentProfile.jsx`
-- Modify: `src/pages/HomeroomWorkspace.jsx` or the smallest student-list child component that owns student row actions
-- Modify: `src/components/gradebook/GradebookWorkspace.jsx` or the smallest roster child component that owns student row actions
+- Modify: `src/components/homeroom/HomeroomCoreTabs.jsx`
+- Modify: `src/components/gradebook/GradebookWorkspace.jsx`
 - Modify: `tests/e2e/student-support-center.spec.js`
 
 **Interfaces:**
-- Consumes: `loadStudent360Facts`, `buildStudentSupportHash`.
-- Produces deep links such as `#/student-support?student=HS-001&workspace=12.6&tab=student`.
+- Consumes: `loadStudent360Facts`, `normalizeStudentRef`, `buildStudentSupportHash`.
 
-- [ ] **Step 1: Add failing E2E for deep-link navigation**
+- [ ] **Step 1: Add failing E2E for Homeroom student deep link**
 
-Verify a Homeroom student action opens Student Support with the correct query params and Student 360 title.
+The student row action must navigate to:
+
+```text
+#/student-support?student=<encoded-ref>&workspace=<encoded-workspace>&tab=student
+```
 
 - [ ] **Step 2: Build Student 360 sections**
 
-Render only factual sections:
+General information, attendance, grades, teacher observations, open alerts, support cases, support timeline. Grade trend shows explicit comparison windows; no prediction/risk score.
 
-```text
-Thông tin chung
-Chuyên cần
-Kết quả học tập
-Ghi nhận giáo viên
-Cảnh báo đang mở
-Hồ sơ hỗ trợ
-Dòng thời gian hỗ trợ
-```
+- [ ] **Step 3: Add `Xem hồ sơ hỗ trợ` to `StudentsTab` in `HomeroomCoreTabs.jsx`**
 
-Attendance summary must show counts and exact recent rows. Grade trend must show formula labels such as `TB 3 bài gần nhất` vs `TB 3 bài trước`, never a predictive score.
+Use existing `workspace.id` and the selected student identity.
 
-- [ ] **Step 3: Add Homeroom deep link**
+- [ ] **Step 4: Add the same deep link to Gradebook roster actions in `GradebookWorkspace.jsx`**
 
-Use:
+Case creation is disabled if neither durable `student_ref` nor student code exists.
 
-```js
-window.location.hash = buildStudentSupportHash({
-  studentRef: normalizeStudentRef(student),
-  workspaceId,
-  tab: 'student',
-});
-```
-
-- [ ] **Step 4: Add Gradebook deep link**
-
-Pass roster student identity and class/workspace id. If the roster student lacks a durable ref/code, open read-only Student Support with case creation disabled.
-
-- [ ] **Step 5: Run focused E2E on desktop/mobile**
-
-Expected: PASS.
-
-- [ ] **Step 6: Commit**
+- [ ] **Step 5: Run E2E and commit**
 
 ```bash
-git add src/components/studentSupport/StudentSupportStudentProfile.jsx src/pages/HomeroomWorkspace.jsx src/components/gradebook/GradebookWorkspace.jsx tests/e2e/student-support-center.spec.js
+npx playwright test tests/e2e/student-support-center.spec.js --project=chromium-desktop
+git add src/components/studentSupport/StudentSupportStudentProfile.jsx src/components/homeroom/HomeroomCoreTabs.jsx src/components/gradebook/GradebookWorkspace.jsx tests/e2e/student-support-center.spec.js
 git commit -m "feat: add student 360 support profile"
 ```
 
@@ -823,61 +594,34 @@ git commit -m "feat: add student 360 support profile"
 - Modify: `tests/e2e/student-support-center.spec.js`
 
 **Interfaces:**
-- Produces teacher observations and `evaluateAndPersistStudentAlerts({ user, studentRef, workspaceId })`.
+- Produces `evaluateAndPersistStudentAlerts({user,studentRef,workspaceId})`.
 
-- [ ] **Step 1: Add failing observation-count test**
+- [ ] **Step 1: Add test: three `TASK_INCOMPLETE` observations in 14 days trigger one alert; fourth updates same alert**
 
-Three `TASK_INCOMPLETE` observations inside 14 days must trigger exactly one alert; a fourth observation must update evidence on the same active alert.
-
-- [ ] **Step 2: Implement observation form with fixed types**
-
-Use constant values only:
+- [ ] **Step 2: Implement fixed observation types**
 
 ```js
-'TASK_INCOMPLETE'
-'MATERIAL_NOT_PREPARED'
-'CLASS_TASK_INCOMPLETE'
-'LATE_ARRIVAL'
-'ABSENCE_OBSERVED'
-'POSITIVE_PROGRESS'
-'GOOD_PARTICIPATION'
-'HELPED_PEERS'
-'OTHER_FACTUAL'
+['TASK_INCOMPLETE','MATERIAL_NOT_PREPARED','CLASS_TASK_INCOMPLETE','LATE_ARRIVAL','ABSENCE_OBSERVED','POSITIVE_PROGRESS','GOOD_PARTICIPATION','HELPED_PEERS','OTHER_FACTUAL']
 ```
 
-Fields: student, class, subject, date, period, type, factual note, visibility, submit-to-GVCN, request-follow-up.
+- [ ] **Step 3: Implement evaluation sequence**
 
-- [ ] **Step 3: Implement deterministic evaluation flow**
+```text
+load enabled rules -> load factual sources -> pure evaluateRules -> upsert triggered alerts -> never open a case automatically
+```
 
-`evaluateAndPersistStudentAlerts` must:
-
-1. Load enabled rule rows.
-2. Load factual source data.
-3. Run `evaluateRules` pure functions.
-4. Call `upsertEvaluatedAlert` for triggered results.
-5. Resolve/leave untouched non-triggered alerts according to explicit lifecycle rules; never auto-open a support case.
-
-- [ ] **Step 4: Ensure no free-text rule interpretation**
-
-Rule configuration JSON must be validated by `rule_type`; user-entered text never becomes executable logic.
-
-- [ ] **Step 5: Run unit + E2E tests**
+- [ ] **Step 4: Run unit/E2E and commit**
 
 ```bash
 npm run test:student-support
 npx playwright test tests/e2e/student-support-center.spec.js --project=chromium-desktop
-```
-
-- [ ] **Step 6: Commit**
-
-```bash
-git add src/components/studentSupport/StudentSupportObservationForm.jsx src/studentSupport/studentSupportApi.js src/studentSupport/studentSupportRules.js src/pages/StudentSupportCenter.jsx tests/unit/student-support-rules.test.mjs tests/e2e/student-support-center.spec.js
+git add src/components/studentSupport/StudentSupportObservationForm.jsx src/studentSupport src/pages/StudentSupportCenter.jsx tests
 git commit -m "feat: add teacher observations and alert evaluation"
 ```
 
 ---
 
-### Task 10: Build support cases, actions, notes, family contacts, and timeline
+### Task 10: Build support cases, actions, notes, family-contact log, and timeline
 
 **Files:**
 - Create: `src/components/studentSupport/StudentSupportCases.jsx`
@@ -887,65 +631,48 @@ git commit -m "feat: add teacher observations and alert evaluation"
 - Modify: `tests/e2e/student-support-center.spec.js`
 
 **Interfaces:**
-- Consumes lifecycle API.
-- Produces complete human-controlled support workflow.
+- Produces complete human-controlled workflow.
 
-- [ ] **Step 1: Add failing E2E workflow**
-
-Workflow:
+- [ ] **Step 1: Add failing E2E lifecycle**
 
 ```text
-NEW alert -> teacher reviews -> create case -> REVIEWING -> add action -> ACTIVE -> mark action DONE -> FOLLOW_UP -> teacher records RESOLVED -> CLOSED
+alert reviewed -> create case -> REVIEWING -> add action -> ACTIVE -> action DONE -> FOLLOW_UP -> teacher chooses RESOLVED -> teacher chooses CLOSED
 ```
 
-Assert every status change is initiated by an explicit button and no automatic case transition occurs on page reload.
+Reloading the page must never advance status automatically.
 
-- [ ] **Step 2: Build case creation form**
+- [ ] **Step 2: Build case form with fixed categories from the spec**
 
-Required fields:
+No psychological-diagnosis category.
 
-```js
-studentRef, homeroomWorkspaceId, category, title, reason, goal, ownerId, followUpAt
-```
+- [ ] **Step 3: Build action management with `TODO`, `IN_PROGRESS`, `DONE`, `CANCELLED`**
 
-Categories are the spec-defined fixed categories; no psychological diagnosis option.
+Overdue is display-only and does not auto-transition.
 
-- [ ] **Step 3: Build action management**
+- [ ] **Step 4: Build RLS-backed note visibility selector**
 
-Action statuses:
+Exact choices: `PRIVATE`, `HOMEROOM`, `TEACHING_TEAM`, `MANAGEMENT`.
 
-```js
-['TODO','IN_PROGRESS','DONE','CANCELLED']
-```
+- [ ] **Step 5: Build family-contact log without send actions**
 
-Display due/overdue state based on time, but do not auto-complete/cancel.
+Phone, in-person, message, parent meeting, other; statuses completed/could-not-reach/responded/follow-up-required. Do not integrate SMS/Zalo/email sending.
 
-- [ ] **Step 4: Build note visibility selector**
+- [ ] **Step 6: Build immutable case timeline**
 
-Display exact choices `PRIVATE`, `HOMEROOM`, `TEACHING_TEAM`, `MANAGEMENT`; rely on RLS for enforcement.
+No event edit/delete controls.
 
-- [ ] **Step 5: Build family-contact log**
-
-Contact methods and statuses are fixed values from the spec. No send button, SMS API, Zalo API, email automation, or generated parent message in V1.
-
-- [ ] **Step 6: Build immutable timeline**
-
-Timeline reads `student_support_case_events` and related factual event timestamps; there is no edit/delete button for event rows.
-
-- [ ] **Step 7: Run tests**
-
-Expected: workflow passes and role-scoped RLS prevents unauthorized rows.
-
-- [ ] **Step 8: Commit**
+- [ ] **Step 7: Run tests and commit**
 
 ```bash
-git add src/components/studentSupport/StudentSupportCases.jsx src/pages/StudentSupportCenter.jsx src/studentSupport/studentSupportApi.js tests/unit/student-support-api.test.mjs tests/e2e/student-support-center.spec.js
+npm run test:student-support
+npx playwright test tests/e2e/student-support-center.spec.js --project=chromium-desktop
+git add src/components/studentSupport/StudentSupportCases.jsx src/pages/StudentSupportCenter.jsx src/studentSupport/studentSupportApi.js tests
 git commit -m "feat: add student support case management"
 ```
 
 ---
 
-### Task 11: Add notifications, due/overdue behavior, and rule settings
+### Task 11: Add fixed-template notifications, overdue selectors, and Admin rule settings
 
 **Files:**
 - Create: `src/studentSupport/studentSupportNotifications.js`
@@ -954,61 +681,37 @@ git commit -m "feat: add student support case management"
 - Modify: `tests/e2e/student-support-center.spec.js`
 
 **Interfaces:**
-- Produces `emitStudentSupportNotification(input)` using the existing `bes-global-notification` event.
+- Produces `emitStudentSupportNotification(input)`, `isActionOverdue`, `isCaseFollowUpDue`, `isAlertReviewOverdue`.
 
-- [ ] **Step 1: Write notification payload unit assertion inside API/rule tests**
-
-Expected payload:
+- [ ] **Step 1: Implement notification helper using existing event bus**
 
 ```js
-{
-  title: 'Student Support',
-  message: 'Hồ sơ Nguyễn Văn A đến hạn kiểm tra lại.',
-  target: '#/student-support?case=<id>&tab=cases',
-  category: 'work',
-  source: 'student-support',
-  priority: 'normal',
-}
+window.dispatchEvent(new CustomEvent('bes-global-notification',{detail:{
+  title:'Student Support',message,target,category:'work',source:'student-support',priority:'normal'
+}}));
 ```
 
-- [ ] **Step 2: Implement fixed-template notification helper**
+Messages come from fixed templates only.
 
-```js
-window.dispatchEvent(new CustomEvent('bes-global-notification', { detail: payload }));
-```
+- [ ] **Step 2: Implement deterministic due/overdue functions**
 
-Never compose content through AI or external services.
+They only affect labels/notifications, never student data or case outcomes.
 
-- [ ] **Step 3: Add deterministic due/overdue selectors**
+- [ ] **Step 3: Build Admin numeric rule settings**
 
-Selectors:
+Admin can enable/disable and edit validated threshold/window numbers. Non-admin cannot edit.
 
-```js
-isActionOverdue(action, now)
-isCaseFollowUpDue(caseItem, now)
-isAlertReviewOverdue(alert, now, thresholdDays)
-```
-
-These change labels/notifications only; they do not mutate outcomes.
-
-- [ ] **Step 4: Build Admin rule settings**
-
-Admin can enable/disable rules and edit numeric thresholds/window lengths through validated inputs. Non-admin users receive read-only or no access according to permission.
-
-- [ ] **Step 5: Run E2E notification/rule-settings tests**
-
-Expected: template notification appears in existing notification center; non-admin cannot edit rule settings.
-
-- [ ] **Step 6: Commit**
+- [ ] **Step 4: Run E2E and commit**
 
 ```bash
+npx playwright test tests/e2e/student-support-center.spec.js --project=chromium-desktop
 git add src/studentSupport/studentSupportNotifications.js src/components/studentSupport/StudentSupportRuleSettings.jsx src/pages/StudentSupportCenter.jsx tests/e2e/student-support-center.spec.js
 git commit -m "feat: add support reminders and rule settings"
 ```
 
 ---
 
-### Task 12: Add aggregate reporting and exports
+### Task 12: Add aggregate reports and PDF/Excel export
 
 **Files:**
 - Create: `src/studentSupport/studentSupportExports.js`
@@ -1018,123 +721,105 @@ git commit -m "feat: add support reminders and rule settings"
 - Modify: `tests/e2e/student-support-center.spec.js`
 
 **Interfaces:**
-- Produces `buildSupportReport(rows, filters)`, `exportSupportReportPdf(report)`, `exportSupportReportExcel(report)`.
+- Produces `buildSupportReport(rows,filters)`, `exportSupportReportPdf(report)`, `exportSupportReportExcel(report)`.
 
-- [ ] **Step 1: Add failing report projection test**
+- [ ] **Step 1: Add failing projection test**
 
-```js
-assert.deepEqual(buildSupportReport([
-  { className: '12.6', status: 'ACTIVE', category: 'attendance' },
-  { className: '12.6', status: 'CLOSED', category: 'academic' },
-], { className: '12.6' }).summary, {
-  total: 2,
-  active: 1,
-  closed: 1,
-});
-```
+Two 12.6 cases (`ACTIVE`, `CLOSED`) must return `{total:2,active:1,closed:1}` and no private note body.
 
-Report output must not contain private note bodies unless explicitly requested by an authorized detailed-case export path; V1 aggregate export omits them.
+- [ ] **Step 2: Build report filters**
 
-- [ ] **Step 2: Build on-screen reports**
+Class, grade, GVCN, month, semester, school year, status, category.
 
-Filters: class, grade, GVCN, month, semester, school year, status, category.
+- [ ] **Step 3: Export aggregate datasets using existing repo export patterns**
 
-- [ ] **Step 3: Implement PDF/Excel export using existing repo export dependencies/patterns**
+Include title, period, filters, summary, grouped tables, generated timestamp, product footer. Omit private notes.
 
-Export includes title, period, filters, summary counts, class/status/category tables, generated-at timestamp, and product footer. Do not export private notes.
-
-- [ ] **Step 4: Run tests**
-
-Expected: no private note text in generated aggregate dataset; downloads are produced.
-
-- [ ] **Step 5: Commit**
+- [ ] **Step 4: Run tests and commit**
 
 ```bash
-git add src/studentSupport/studentSupportExports.js src/components/studentSupport/StudentSupportReports.jsx src/pages/StudentSupportCenter.jsx tests/unit/student-support-api.test.mjs tests/e2e/student-support-center.spec.js
+npm run test:student-support
+git add src/studentSupport/studentSupportExports.js src/components/studentSupport/StudentSupportReports.jsx src/pages/StudentSupportCenter.jsx tests
 git commit -m "feat: add student support reporting"
 ```
 
 ---
 
-### Task 13: Add archive-first governance and deletion protection
+### Task 13: Integrate archive-first deletion with Data Governance
 
 **Files:**
+- Create: `supabase/migrations/20260915093000_student_support_archive_governance.sql`
 - Modify: `src/studentSupport/studentSupportApi.js`
 - Modify: `src/components/studentSupport/StudentSupportCases.jsx`
-- Add migration if required by the existing governance integration: `supabase/migrations/20260915093000_student_support_archive_governance.sql`
 - Modify: `tests/unit/student-support-api.test.mjs`
 - Modify: `tests/e2e/student-support-center.spec.js`
 
 **Interfaces:**
-- Produces archive/restore and permanent-delete-request flow; no direct teacher hard delete.
+- Reuses existing `deleted_items(id,entity_type,entity_id,title,source_module,deleted_by,payload,restore_payload,status,expires_at,...)`.
 
-- [ ] **Step 1: Add failing test that teacher delete maps to archive**
+- [ ] **Step 1: Add test proving the public API exposes archive/restore but no ordinary hard-delete function**
 
-Assert the public API exposes `archiveSupportCase` but no `deleteSupportCaseDirect` function.
+- [ ] **Step 2: Implement archive transaction/RPC**
 
-- [ ] **Step 2: Implement archive behavior**
+Archive sets `student_support_cases.archived_at`, writes event `CASE_ARCHIVED`, and inserts one `deleted_items` row:
 
-Set `archived_at`, append event `CASE_ARCHIVED`, hide from default lists, allow authorized restore.
+```text
+entity_type = student_support_case
+entity_id = <case uuid as text>
+source_module = student-support
+status = trashed
+payload = complete case/actions/notes/contact snapshot needed for governance review
+restore_payload = identifiers/state required to restore
+```
 
-- [ ] **Step 3: Integrate permanent deletion with existing governance pattern**
+- [ ] **Step 3: Implement restore**
 
-If `deleted_items`/Data Governance can represent Student Support entities directly, register `entity_type='student_support_case'`. Otherwise add a narrowly-scoped archive request table/RPC matching the attendance archive approval sequence.
+Restore clears `archived_at`, restores active status from snapshot, marks `deleted_items.status='restored'`, and appends `CASE_RESTORED`.
 
-Permanent delete must require Admin approval and remove dependent actions/notes/events only in the reviewed deletion path.
+- [ ] **Step 4: Keep permanent deletion Admin-only through existing Data Governance**
 
-- [ ] **Step 4: Run archive/restore E2E**
+No teacher-facing hard-delete button and no direct `delete from student_support_cases` call in React/API code.
 
-Expected: teacher sees archive/restore where authorized; no ordinary hard-delete button.
-
-- [ ] **Step 5: Commit**
+- [ ] **Step 5: Run archive/restore tests and commit**
 
 ```bash
-git add src/studentSupport/studentSupportApi.js src/components/studentSupport/StudentSupportCases.jsx supabase/migrations tests/unit/student-support-api.test.mjs tests/e2e/student-support-center.spec.js
+npm run test:student-support
+npx playwright test tests/e2e/student-support-center.spec.js --project=chromium-desktop
+git add supabase/migrations/20260915093000_student_support_archive_governance.sql src/studentSupport/studentSupportApi.js src/components/studentSupport/StudentSupportCases.jsx tests
 git commit -m "feat: add student support archive governance"
 ```
 
 ---
 
-### Task 14: Final security, no-AI, regression, and rollout verification
+### Task 14: Final no-AI, security, responsive, regression, and rollout gate
 
 **Files:**
 - Modify: `scripts/verify-student-support.mjs`
 - Modify: `tests/e2e/student-support-center.spec.js`
-- Modify: `package.json` only if final verification script needs composition
+- Modify: `package.json` if final script composition changes
 
 **Interfaces:**
-- Produces a release gate for Student Support.
+- Produces the release gate.
 
-- [ ] **Step 1: Extend static verifier for all prohibited AI paths**
+- [ ] **Step 1: Make verifier fail on executable AI dependencies**
 
-Fail if any file under `src/studentSupport` or `src/components/studentSupport` contains/imports:
+Scan Student Support source for imports/endpoints containing `callAI`, `/api/ai`, `openrouter`, embedding-provider modules, or AI-provider helpers. The phrase `Không AI` in copy is allowed.
 
-```text
-callAI
-/api/ai
-openrouter
-embedding
-semantic classifier
-AI Admin Assistant helper imports
-```
-
-The word `AI` is allowed only in user-facing statements such as `Không AI` and comments explaining prohibition; verifier should target executable imports/endpoints, not harmless copy.
-
-- [ ] **Step 2: Verify RLS/security in development Supabase**
-
-Run:
+- [ ] **Step 2: Verify all Student Support tables have RLS**
 
 ```sql
-select tablename, rowsecurity
+select tablename,rowsecurity
 from pg_tables
 where schemaname='public' and tablename like 'student_support_%';
 ```
 
-Expected: `rowsecurity = true` for every Student Support table.
+Expected: every row `true`.
 
-Run Supabase security and performance advisors and fix any new Student Support finding before rollout.
+- [ ] **Step 3: Run Supabase security/performance advisors**
 
-- [ ] **Step 3: Run focused verification**
+Fix every new finding caused by Student Support before rollout.
+
+- [ ] **Step 4: Run focused release checks**
 
 ```bash
 npm run verify:student-support
@@ -1144,9 +829,7 @@ npx playwright test tests/e2e/student-support-center.spec.js --project=mobile-ch
 npx playwright test tests/e2e/student-support-center.spec.js --project=webkit-desktop
 ```
 
-Expected: PASS.
-
-- [ ] **Step 4: Run repository regression gates**
+- [ ] **Step 5: Run repository regression checks**
 
 ```bash
 npm test
@@ -1155,53 +838,37 @@ npm run audit:budget
 npm run test:v11.6.7
 ```
 
-Expected: PASS with no regression to Homeroom, Gradebook, Attendance, app visibility, or permissions.
-
-- [ ] **Step 5: Deploy migrations in controlled order**
-
-Order:
+- [ ] **Step 6: Deploy migrations in exact order**
 
 ```text
-1. 20260915090000_student_support_core.sql
-2. 20260915091000_student_support_rls.sql
-3. 20260915092000_student_support_seed_rules.sql
-4. optional archive-governance migration if Task 13 required it
+20260915090000_student_support_core.sql
+20260915091000_student_support_rls.sql
+20260915092000_student_support_seed_rules.sql
+20260915093000_student_support_archive_governance.sql
 ```
 
-After each production migration, run a read-only verification query before continuing.
+Run read-only verification after each migration.
 
-- [ ] **Step 6: Deploy frontend behind normal permission/app visibility controls**
+- [ ] **Step 7: Production smoke test**
 
-Initial production rollout:
-
-```text
-Admin: enabled
-Department head: permission-controlled
-GVCN/Teacher: permission-controlled
-Student: denied
-Family portal: denied
-```
-
-Do not seed hidden status automatically unless the product owner explicitly asks; the existing Hidden Apps Vault remains the control point.
-
-- [ ] **Step 7: Production smoke verification**
-
-Verify:
+Verify all of these facts:
 
 ```text
-Admin can open #/student-support.
-Unauthorized user receives AccessDenied.
-GVCN sees only own homeroom scope.
-Subject teacher can submit observation only for assigned class.
-Student 360 reads Attendance/Gradebook without modifying source data.
-A 3-in-14 absence rule produces one explainable alert, not duplicates.
-No case opens automatically.
+Admin opens #/student-support.
+Unauthorized accounts receive AccessDenied.
+GVCN sees only owned homeroom scope.
+Department Head sees only teachers/classes in their department sync scope.
+Subject teacher can submit observation only for an assigned class.
+Student 360 reads Attendance/Gradebook without modifying them.
+3 absences in 14 days create one explainable alert; a fourth updates that alert.
+No alert automatically opens a case.
+No case automatically changes outcome.
 No family message sends automatically.
-No AI/API/model request occurs while using any Student Support screen.
+No AI/model/API request occurs from any Student Support screen.
 Archive does not hard-delete immediately.
 ```
 
-- [ ] **Step 8: Commit final verification changes**
+- [ ] **Step 8: Commit final gate**
 
 ```bash
 git add scripts/verify-student-support.mjs tests/e2e/student-support-center.spec.js package.json
@@ -1210,29 +877,27 @@ git commit -m "test: harden student support release gate"
 
 ---
 
-## Recommended PR Sequence
+## PR Sequence
 
-1. **PR A — Data foundation:** Tasks 1–3. Schema, RLS, seed rules, rule unit tests.
-2. **PR B — Route + sources:** Tasks 4–7. Identity/source adapters, API, route/permission, overview/alerts UI.
-3. **PR C — Student workflow:** Tasks 8–11. Student 360, observations, alert evaluation, cases, notifications, rule settings.
-4. **PR D — Reporting + governance:** Tasks 12–13. Reports/exports and archive-first governance.
-5. **PR E — Release hardening:** Task 14. Full regression/security/no-AI verification and production rollout.
+1. **PR A — Data foundation:** Tasks 1–3.
+2. **PR B — Sources + route + overview:** Tasks 4–7.
+3. **PR C — Student workflow:** Tasks 8–11.
+4. **PR D — Reporting + governance:** Tasks 12–13.
+5. **PR E — Release hardening:** Task 14.
 
-Each PR must be independently reviewable and must not merge if its focused tests fail.
+Each PR is independently reviewable and must not merge with failing focused tests.
 
 ## Definition of Done
 
-Student Support Center is complete only when all of the following are true:
-
-- `#/student-support` renders and is governed by `route:student-support` plus existing app visibility.
-- Admin/GVCN/subject-teacher scopes are enforced by RLS, not only by UI filtering.
-- Student 360 composes existing Attendance/Gradebook/Homeroom data without duplicating source records.
-- Deterministic attendance/grade/observation rules show exact evidence and do not produce duplicate active alerts.
-- Alert review never automatically opens a support case.
-- Case lifecycle, support actions, follow-up, notes, family-contact log, and immutable timeline work end to end.
-- Private note visibility is enforced by database policy.
-- Family/student portal receives no internal Student Support data in V1.
-- Aggregate reports omit private notes and export successfully.
-- Archive-first deletion works and ordinary teachers cannot hard-delete cases.
-- `npm run verify:student-support`, build, Student Support E2E across desktop/mobile, no-AI audit, smoke tests, and repository contract tests all pass.
-- Production smoke testing confirms there are no AI/model/API calls from Student Support usage.
+- Route, launcher, app visibility, and `route:student-support` permission work.
+- RLS enforces Admin/Department Head/GVCN/subject-teacher scope.
+- Student 360 composes existing source data without copying source records.
+- Rules are deterministic, explainable, and duplicate-safe.
+- Alert review never auto-opens a case.
+- Cases/actions/follow-up/notes/family-contact log/timeline work end to end.
+- Private note visibility is enforced in Postgres.
+- Student/family portal receives no internal Student Support data in V1.
+- Aggregate exports omit private notes.
+- Archive-first deletion uses existing `deleted_items` governance.
+- `verify:student-support`, build, focused E2E, no-AI audit, smoke tests, and repository regression checks all pass.
+- Production smoke confirms zero AI/model/API calls from Student Support usage.
