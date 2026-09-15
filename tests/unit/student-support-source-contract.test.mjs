@@ -9,16 +9,14 @@ test('scoped student search uses server-side RPC and never downloads all student
   assert.doesNotMatch(source, /from\(['"](?:students|bes_homeroom_students)['"]\)\.select\(['"]\*['"]\)/);
 });
 
-test('student 360 reads canonical student, workspace, attendance and learning sources', () => {
-  assert.match(source, /from\(['"]bes_homeroom_students['"]\)/);
-  assert.match(source, /student_ref,code,full_name,lifecycle_status/);
-  assert.match(source, /from\(['"]bes_homeroom_workspaces['"]\)/);
-  assert.match(source, /workspace_id,class_name,school_year/);
-  assert.match(source, /bes_homeroom_attendance/);
-  assert.match(source, /bes_homeroom_learning_records/);
+test('student 360 reads canonical live workspace data through a scoped server-side RPC', () => {
+  assert.match(source, /bes_get_student_support_student_360/);
+  assert.doesNotMatch(source, /from\(['"]bes_homeroom_students['"]\)/);
+  assert.doesNotMatch(source, /from\(['"]bes_homeroom_attendance['"]\)/);
+  assert.doesNotMatch(source, /from\(['"]bes_homeroom_learning_records['"]\)/);
 });
 
-test('learning records use the real created_at timestamp column', () => {
-  assert.match(source, /bes_homeroom_learning_records[\s\S]*order\(['"]created_at['"]/);
-  assert.doesNotMatch(source, /order\(['"]record_date['"]/);
+test('student 360 keeps teacher observations as Student Support-owned data', () => {
+  assert.match(source, /from\(['"]student_support_teacher_observations['"]\)/);
+  assert.match(source, /order\(['"]observation_date['"]/);
 });

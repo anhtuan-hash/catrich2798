@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import './StudentSupportCenter.css';
+import './StudentSupportCenterLive.css';
 import StudentSupportOverview from '../components/studentSupport/StudentSupportOverview.jsx';
 import StudentSupportAlertQueue from '../components/studentSupport/StudentSupportAlertQueue.jsx';
 import StudentSupportStudentProfile from '../components/studentSupport/StudentSupportStudentProfile.jsx';
@@ -44,6 +45,9 @@ export default function StudentSupportCenter({ language = 'vi', currentUser = nu
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
+  const [starterStudents, setStarterStudents] = useState([]);
+  const [starterStudentsLoading, setStarterStudentsLoading] = useState(false);
+  const [starterStudentsError, setStarterStudentsError] = useState('');
   const reminderKeysRef = useRef(new Set());
 
   const activeTab = TABS.some(([key]) => key === routeState.tab) ? routeState.tab : 'overview';
@@ -79,6 +83,25 @@ export default function StudentSupportCenter({ language = 'vi', currentUser = nu
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
   }, [vi]);
+
+  useEffect(() => {
+    if (loading || databasePending) return undefined;
+    let alive = true;
+    setStarterStudentsLoading(true);
+    setStarterStudentsError('');
+    searchScopedStudents('', 12)
+      .then((rows) => {
+        if (!alive) return;
+        setStarterStudents(rows);
+      })
+      .catch((nextError) => {
+        if (!alive) return;
+        setStarterStudents([]);
+        setStarterStudentsError(nextError?.message || (vi ? 'Không thể tải danh sách học sinh.' : 'Unable to load student roster.'));
+      })
+      .finally(() => { if (alive) setStarterStudentsLoading(false); });
+    return () => { alive = false; };
+  }, [databasePending, loading, vi]);
 
   useEffect(() => {
     if (loading || databasePending) return;
@@ -175,7 +198,7 @@ export default function StudentSupportCenter({ language = 'vi', currentUser = nu
         <span className="student-support-no-ai">{vi ? 'Không AI' : 'No AI'}</span>
       </section>
 
-      <section className="student-support-search" aria-label={vi ? 'Tìm học sinh' : 'Student search'}>
+      <section className="student-support-search" aria-label={vi ? 'Tìm học sinh' : 'Student search'} data-bes-keep-search="true">
         <label htmlFor="student-support-search-input">{vi ? 'Tìm học sinh trong phạm vi được phép' : 'Search students in your authorized scope'}</label>
         <input
           id="student-support-search-input"
@@ -216,7 +239,16 @@ export default function StudentSupportCenter({ language = 'vi', currentUser = nu
       {error ? <section className="student-support-state-card is-error">{error}</section> : null}
 
       {!loading && !error && activeTab === 'overview' ? (
-        <StudentSupportOverview summary={summary} language={language} onOpenAlerts={() => openTab('alerts')} onOpenCases={() => openTab('cases')} />
+        <StudentSupportOverview
+          summary={summary}
+          students={starterStudents}
+          studentsLoading={starterStudentsLoading}
+          studentsError={starterStudentsError}
+          language={language}
+          onOpenStudent={openStudent}
+          onOpenAlerts={() => openTab('alerts')}
+          onOpenCases={() => openTab('cases')}
+        />
       ) : null}
 
       {!loading && !error && activeTab === 'alerts' ? (
