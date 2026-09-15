@@ -1,0 +1,49 @@
+name: Student Support CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/studentSupport/**'
+      - 'src/components/studentSupport/**'
+      - 'src/pages/StudentSupportCenter.*'
+      - 'src/data/apps.js'
+      - 'src/utils/permissions.js'
+      - 'src/main.jsx'
+      - 'supabase/migrations/*student_support*'
+      - 'tests/unit/student-support-*.test.mjs'
+      - 'scripts/verify-student-support.mjs'
+      - '.github/workflows/student-support-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: student-support-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Run Student Support unit tests
+        run: node --test tests/unit/student-support-*.test.mjs
+
+      - name: Verify route, permission and no-AI contract
+        run: node scripts/verify-student-support.mjs
+
+      - name: Build production bundle
+        run: npm run build
