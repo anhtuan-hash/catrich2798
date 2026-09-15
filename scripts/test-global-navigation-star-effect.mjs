@@ -13,6 +13,14 @@ assert.match(starLogo, /drawSatelliteSparkles/);
 assert.match(starLogo, /pointerEnergy/);
 assert.match(starLogoCss, /@keyframes brian-star-halo/);
 
+// The Star logo itself must stay visually prominent in the desktop navigation.
+assert.match(starLogoCss, /\.brian-pulse-logo-trigger\{[\s\S]*?width:64px;[\s\S]*?min-width:64px;[\s\S]*?height:64px;[\s\S]*?min-height:64px;[\s\S]*?flex:0 0 64px;/);
+assert.match(starLogoCss, /@media\(max-width:1120px\)\{[\s\S]*?\.brian-pulse-logo-trigger\{[\s\S]*?width:60px;[\s\S]*?min-width:60px;[\s\S]*?height:60px;[\s\S]*?min-height:60px;[\s\S]*?flex-basis:60px;/);
+assert.match(starLogo, /const outer = 17\.6 \* scale;/);
+assert.match(starLogo, /const inner = 4\.8 \* scale;/);
+assert.match(starLogo, /ctx\.shadowBlur = 3\.6 \+ this\.pointerEnergy \* 4\.8;/);
+assert.match(starLogoCss, /filter:contrast\(1\.16\) saturate\(1\.08\) drop-shadow\(0 0 7px rgba\(101,211,255,\.2\)\);/);
+
 // The bootstrap is loaded once with existing global chrome, before the app mounts.
 assert.match(integration, /import '\.\/navigationStarEffectBootstrap\.js';/);
 assert.match(bootstrap, /import '\.\/components\/GlobalNavigationStarEffect\.css';/);
@@ -61,4 +69,4 @@ assert.match(effectCss, /@keyframes brian-nav-star-twinkle/);
 assert.match(effectCss, /@media \(prefers-reduced-motion: reduce\)/);
 assert.match(effectCss, /\[data-brian-star-fx='true'\]/);
 
-console.log('✓ All primary navigation buttons receive the lightweight Star-inspired pointer aura and sparkle effect.');
+console.log('✓ Navigation Star effects and the enlarged, clearer Star logo contract are intact.');
