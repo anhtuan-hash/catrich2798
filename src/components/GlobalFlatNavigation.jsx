@@ -50,6 +50,7 @@ import './GlobalNotificationCenterFinalRemoval.css';
 import './GlobalHomeSparkleButton.css';
 import './homeroom/HomeroomCompactDensity.css';
 import '../styles/GlobalLayout16x9Authority.css';
+import './GlobalNavigationPastelPalette.css';
 
 export default function GlobalFlatNavigation(props) {
   const presentation = usePresentationMode();
