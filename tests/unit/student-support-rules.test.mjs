@@ -12,6 +12,20 @@ test('3 absences in 14 days triggers', () => {
   assert.equal(evaluateRule(rule,facts,new Date('2026-09-15T00:00:00Z')).triggered,true);
 });
 
+test('absence rule normalizes real Homeroom attendance statuses without changing source data', () => {
+  const rule={id:'r1',version:1,code:'absence_3_in_14d',ruleType:'attendance_count',config:{status:'absent',threshold:3,days:14}};
+  const attendance=[
+    {date:'2026-09-03',status:'unexcused'},
+    {date:'2026-09-08',status:'excused'},
+    {date:'2026-09-14',status:'absent_one_period'},
+    {date:'2026-09-14',status:'late'},
+  ];
+  const result=evaluateRule(rule,{attendance},new Date('2026-09-15T00:00:00Z'));
+  assert.equal(result.triggered,true);
+  assert.equal(result.metric,3);
+  assert.equal(attendance[0].status,'unexcused');
+});
+
 test('insufficient grade samples cannot trigger', () => {
   const rule={id:'r2',version:1,code:'grade_drop',ruleType:'grade_window_drop',config:{sampleSize:3,delta:1}};
   const result=evaluateRule(rule,{grades:[{score:5}]},new Date('2026-09-15T00:00:00Z'));
