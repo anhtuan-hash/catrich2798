@@ -5,6 +5,7 @@ import StudentSupportAlertQueue from '../components/studentSupport/StudentSuppor
 import StudentSupportStudentProfile from '../components/studentSupport/StudentSupportStudentProfile.jsx';
 import StudentSupportObservationForm from '../components/studentSupport/StudentSupportObservationForm.jsx';
 import StudentSupportCaseManager from '../components/studentSupport/StudentSupportCaseManager.jsx';
+import StudentSupportRulePanel from '../components/studentSupport/StudentSupportRulePanel.jsx';
 import { listSupportAlerts, listSupportCases } from '../studentSupport/studentSupportApi.js';
 import { buildStudentSupportHash, parseStudentSupportHash } from '../studentSupport/studentSupportIdentity.js';
 import { searchScopedStudents } from '../studentSupport/studentSupportSources.js';
@@ -122,6 +123,10 @@ export default function StudentSupportCenter({ language = 'vi', currentUser = nu
     setCases((items) => items.map((item) => item.id === row.id ? row : item));
   }
 
+  function addAlert(row) {
+    setAlerts((items) => [row, ...items.filter((item) => item.id !== row.id)]);
+  }
+
   return (
     <main className="student-support-center" aria-labelledby="student-support-title">
       <section className="student-support-hero">
@@ -218,10 +223,21 @@ export default function StudentSupportCenter({ language = 'vi', currentUser = nu
         />
       ) : null}
 
-      {!loading && !error && ['rules', 'reports'].includes(activeTab) ? (
+      {!loading && !error && activeTab === 'rules' ? (
+        <StudentSupportRulePanel
+          studentRef={routeState.studentRef}
+          workspaceId={routeState.workspaceId}
+          currentUser={currentUser}
+          databasePending={databasePending}
+          language={language}
+          onAlertSaved={addAlert}
+        />
+      ) : null}
+
+      {!loading && !error && activeTab === 'reports' ? (
         <section className="student-support-state-card">
-          <strong>{vi ? 'Khu vực đã đăng ký, đang triển khai theo kế hoạch' : 'Section registered and scheduled for implementation'}</strong>
-          <p>{vi ? 'Không có quyết định hoặc dữ liệu học sinh nào được tự động tạo trong giai đoạn này.' : 'No student decision or case is created automatically at this stage.'}</p>
+          <strong>{vi ? 'Báo cáo đang được triển khai theo kế hoạch' : 'Reports are being implemented'}</strong>
+          <p>{vi ? 'Báo cáo chỉ tổng hợp số liệu được phép xem, không tự đưa ghi chú riêng tư hoặc nội dung liên hệ gia đình vào báo cáo.' : 'Reports will aggregate authorized statistics only and will not automatically include private notes or family-contact details.'}</p>
         </section>
       ) : null}
     </main>
