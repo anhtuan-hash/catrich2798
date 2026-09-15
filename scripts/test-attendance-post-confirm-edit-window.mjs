@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 const utilityUrl = new URL('../src/utils/attendancePostConfirmEdit.js', import.meta.url);
 const bootstrapUrl = new URL('../src/attendancePostConfirmEditBootstrap.js', import.meta.url);
 const migrationUrl = new URL('../supabase/migrations/20260909_attendance_post_confirm_edit_window.sql', import.meta.url);
+const supplementalBaseMigrationUrl = new URL('../supabase/migrations/20260912_supplemental_final_parity.sql', import.meta.url);
 const delegatedMigrationUrl = new URL('../supabase/migrations/20260915_delegated_attendance_post_confirm_edit.sql', import.meta.url);
 const startupUrl = new URL('../src/tabResumeStability.js', import.meta.url);
 
@@ -98,6 +99,7 @@ assert.equal(result.reason, 'not_completed');
 
 assert.ok(fs.existsSync(bootstrapUrl), 'Post-confirm adjustment bootstrap must exist');
 assert.ok(fs.existsSync(migrationUrl), 'Post-confirm adjustment migration must exist');
+assert.ok(fs.existsSync(supplementalBaseMigrationUrl), 'Supplemental final-parity migration must exist');
 assert.ok(fs.existsSync(delegatedMigrationUrl), 'Delegated attendance post-confirm migration must exist');
 
 const bootstrapSource = fs.readFileSync(bootstrapUrl, 'utf8');
@@ -134,6 +136,18 @@ assert.doesNotMatch(
 assert.match(migrationSource, /security definer[\s\S]*set search_path = ''/, 'Privileged update helper must pin an empty search_path');
 assert.match(migrationSource, /revoke all on function public\.bes_update_extra_attendance_session/, 'Update RPC must not be executable by PUBLIC');
 
+const supplementalBaseMigrationSource = fs.readFileSync(supplementalBaseMigrationUrl, 'utf8');
+assert.match(
+  supplementalBaseMigrationSource,
+  /create or replace function private\.bes_supplemental_attendance_edit_decision/,
+  'Supplemental attendance must have its own post-confirm access decision',
+);
+assert.match(
+  supplementalBaseMigrationSource,
+  /v_session\.checked_by\s+is\s+distinct\s+from\s+v_uid/,
+  'Regression fixture: the current supplemental decision still ties editing to the original confirmer',
+);
+
 const delegatedMigrationSource = fs.readFileSync(delegatedMigrationUrl, 'utf8');
 assert.match(
   delegatedMigrationSource,
@@ -149,6 +163,16 @@ assert.match(
   delegatedMigrationSource,
   /interval '30 minutes'/,
   'Delegated migration must preserve the 30-minute window anchored to checked_at',
+);
+assert.match(
+  delegatedMigrationSource,
+  /create or replace function private\.bes_supplemental_attendance_edit_decision/,
+  'Delegated migration must also replace the Học bổ sung post-confirm access decision',
+);
+assert.match(
+  delegatedMigrationSource,
+  /private\.bes_is_supplemental_manager\(\)/,
+  'Supplemental corrections must retain strict supplemental-manager authorization',
 );
 assert.doesNotMatch(
   delegatedMigrationSource,
