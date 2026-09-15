@@ -7,7 +7,6 @@ function validDate(value) {
 
 export function evaluatePostConfirmEditAccess({
   session = null,
-  currentUserId = '',
   isAdmin = false,
   hasReportPermission = false,
   hasQuickPermission = false,
@@ -36,9 +35,6 @@ export function evaluatePostConfirmEditAccess({
   if (!hasQuickPermission) {
     return { allowed: false, reason: 'missing_permission', bypass: false, remainingMs, expiresAt };
   }
-  if (!currentUserId || String(session.checked_by || '') !== String(currentUserId)) {
-    return { allowed: false, reason: 'not_session_teacher', bypass: false, remainingMs, expiresAt };
-  }
 
   const allowed = nowDate.getTime() <= expiresAtMs;
   return {
@@ -63,7 +59,6 @@ export function postConfirmAccessReasonVi(result = {}) {
     case 'report_bypass': return 'Tài khoản có quyền Báo cáo được phép điều chỉnh điểm danh sau khi chốt.';
     case 'within_edit_window': return `Còn ${formatPostConfirmRemaining(result.remainingMs)} để điều chỉnh.`;
     case 'edit_window_expired': return 'Đã khóa chỉnh sửa sau 30 phút kể từ lúc chốt.';
-    case 'not_session_teacher': return 'Chỉ giáo viên đã chốt buổi điểm danh này mới được điều chỉnh trong 30 phút.';
     case 'missing_permission': return 'Tài khoản không có quyền Điểm danh nhanh.';
     case 'invalid_checked_at': return 'Không xác định được thời điểm chốt buổi điểm danh.';
     case 'not_completed': return 'Chỉ buổi đã điểm danh mới có thể điều chỉnh.';

@@ -4,6 +4,8 @@ import assert from 'node:assert/strict';
 const utilityUrl = new URL('../src/utils/attendancePostConfirmEdit.js', import.meta.url);
 const bootstrapUrl = new URL('../src/attendancePostConfirmEditBootstrap.js', import.meta.url);
 const migrationUrl = new URL('../supabase/migrations/20260909_attendance_post_confirm_edit_window.sql', import.meta.url);
+const supplementalBaseMigrationUrl = new URL('../supabase/migrations/20260912_supplemental_final_parity.sql', import.meta.url);
+const delegatedMigrationUrl = new URL('../supabase/migrations/20260915_delegated_attendance_post_confirm_edit.sql', import.meta.url);
 const startupUrl = new URL('../src/tabResumeStability.js', import.meta.url);
 
 const {
@@ -12,7 +14,7 @@ const {
   formatPostConfirmRemaining,
 } = await import(utilityUrl);
 
-assert.equal(POST_CONFIRM_EDIT_WINDOW_MS, 30 * 60 * 1000, 'Teacher adjustment window must be exactly 30 minutes');
+assert.equal(POST_CONFIRM_EDIT_WINDOW_MS, 30 * 60 * 1000, 'Attendance adjustment window must be exactly 30 minutes');
 
 const session = {
   id: 'session-1',
@@ -21,7 +23,7 @@ const session = {
   checked_by: 'teacher-1',
 };
 
-const teacherBase = {
+const operatorBase = {
   session,
   currentUserId: 'teacher-1',
   hasQuickPermission: true,
@@ -30,45 +32,46 @@ const teacherBase = {
 };
 
 let result = evaluatePostConfirmEditAccess({
-  ...teacherBase,
+  ...operatorBase,
   now: new Date('2026-09-09T10:20:00.000Z'),
 });
-assert.equal(result.allowed, true, 'Teacher who confirmed must be able to adjust within 30 minutes');
+assert.equal(result.allowed, true, 'A delegated attendance operator must be able to adjust within 30 minutes');
 assert.equal(result.reason, 'within_edit_window');
 assert.equal(result.expiresAt, '2026-09-09T10:32:00.000Z');
 assert.equal(formatPostConfirmRemaining(result.remainingMs), '12 phút');
 
 result = evaluatePostConfirmEditAccess({
-  ...teacherBase,
+  ...operatorBase,
   now: new Date('2026-09-09T10:32:00.000Z'),
 });
 assert.equal(result.allowed, true, 'Exact 30-minute boundary must remain editable');
 
 result = evaluatePostConfirmEditAccess({
-  ...teacherBase,
+  ...operatorBase,
   now: new Date('2026-09-09T10:32:00.001Z'),
 });
-assert.equal(result.allowed, false, 'Teacher must be locked immediately after the 30-minute boundary');
+assert.equal(result.allowed, false, 'Delegated attendance operator must be locked immediately after the 30-minute boundary');
 assert.equal(result.reason, 'edit_window_expired');
 
 result = evaluatePostConfirmEditAccess({
-  ...teacherBase,
+  ...operatorBase,
   currentUserId: 'teacher-2',
   now: new Date('2026-09-09T10:10:00.000Z'),
 });
-assert.equal(result.allowed, false, 'Another teacher must not edit a session they did not confirm');
-assert.equal(result.reason, 'not_session_teacher');
+assert.equal(result.allowed, true, 'Another delegated attendance operator must be able to adjust within 30 minutes even if they did not confirm the session');
+assert.equal(result.reason, 'within_edit_window');
 
 result = evaluatePostConfirmEditAccess({
-  ...teacherBase,
+  ...operatorBase,
   hasQuickPermission: false,
+  currentUserId: 'readonly-user',
   now: new Date('2026-09-09T10:10:00.000Z'),
 });
-assert.equal(result.allowed, false, 'Ordinary teacher still needs quick-attendance permission');
+assert.equal(result.allowed, false, 'Read-only attendance viewers must not gain post-confirm write access');
 assert.equal(result.reason, 'missing_permission');
 
 result = evaluatePostConfirmEditAccess({
-  ...teacherBase,
+  ...operatorBase,
   isAdmin: true,
   currentUserId: 'admin-1',
   now: new Date('2026-09-10T10:32:00.001Z'),
@@ -77,7 +80,7 @@ assert.equal(result.allowed, true, 'Admin must bypass the 30-minute expiry');
 assert.equal(result.reason, 'admin_bypass');
 
 result = evaluatePostConfirmEditAccess({
-  ...teacherBase,
+  ...operatorBase,
   hasReportPermission: true,
   hasQuickPermission: false,
   currentUserId: 'report-1',
@@ -87,7 +90,7 @@ assert.equal(result.allowed, true, 'Attendance report permission must bypass the
 assert.equal(result.reason, 'report_bypass');
 
 result = evaluatePostConfirmEditAccess({
-  ...teacherBase,
+  ...operatorBase,
   session: { ...session, session_status: 'cancelled' },
   now: new Date('2026-09-09T10:10:00.000Z'),
 });
@@ -96,6 +99,8 @@ assert.equal(result.reason, 'not_completed');
 
 assert.ok(fs.existsSync(bootstrapUrl), 'Post-confirm adjustment bootstrap must exist');
 assert.ok(fs.existsSync(migrationUrl), 'Post-confirm adjustment migration must exist');
+assert.ok(fs.existsSync(supplementalBaseMigrationUrl), 'Supplemental final-parity migration must exist');
+assert.ok(fs.existsSync(delegatedMigrationUrl), 'Delegated attendance post-confirm migration must exist');
 
 const bootstrapSource = fs.readFileSync(bootstrapUrl, 'utf8');
 for (const required of [
@@ -117,7 +122,6 @@ for (const required of [
   'bes_get_extra_attendance_edit_access',
   'bes_update_extra_attendance_session',
   "interval '30 minutes'",
-  'checked_by',
   'attendance:report',
   'present_count',
   'absent_count',
@@ -132,7 +136,51 @@ assert.doesNotMatch(
 assert.match(migrationSource, /security definer[\s\S]*set search_path = ''/, 'Privileged update helper must pin an empty search_path');
 assert.match(migrationSource, /revoke all on function public\.bes_update_extra_attendance_session/, 'Update RPC must not be executable by PUBLIC');
 
+const supplementalBaseMigrationSource = fs.readFileSync(supplementalBaseMigrationUrl, 'utf8');
+assert.match(
+  supplementalBaseMigrationSource,
+  /create or replace function private\.bes_supplemental_attendance_edit_decision/,
+  'Supplemental attendance must have its own post-confirm access decision',
+);
+assert.match(
+  supplementalBaseMigrationSource,
+  /v_session\.checked_by\s+is\s+distinct\s+from\s+v_uid/,
+  'Regression fixture: the current supplemental decision still ties editing to the original confirmer',
+);
+
+const delegatedMigrationSource = fs.readFileSync(delegatedMigrationUrl, 'utf8');
+assert.match(
+  delegatedMigrationSource,
+  /create or replace function private\.bes_extra_attendance_edit_decision/,
+  'Delegated migration must replace the server-side post-confirm access decision',
+);
+assert.match(
+  delegatedMigrationSource,
+  /can_take_extra_class_attendance\(\)/,
+  'Delegated migration must authorize through the Admin-granted attendance permission',
+);
+assert.match(
+  delegatedMigrationSource,
+  /interval '30 minutes'/,
+  'Delegated migration must preserve the 30-minute window anchored to checked_at',
+);
+assert.match(
+  delegatedMigrationSource,
+  /create or replace function private\.bes_supplemental_attendance_edit_decision/,
+  'Delegated migration must also replace the Học bổ sung post-confirm access decision',
+);
+assert.match(
+  delegatedMigrationSource,
+  /private\.bes_is_supplemental_manager\(\)/,
+  'Supplemental corrections must retain strict supplemental-manager authorization',
+);
+assert.doesNotMatch(
+  delegatedMigrationSource,
+  /checked_by\s+is\s+distinct\s+from|not_session_teacher/,
+  'Delegated operators must not be restricted to the account that originally confirmed the session',
+);
+
 const startupSource = fs.readFileSync(startupUrl, 'utf8');
 assert.match(startupSource, /attendancePostConfirmEditBootstrap\.js/, 'Startup chain must load the post-confirm adjustment runtime');
 
-console.log('Attendance 30-minute post-confirm adjustment contract OK');
+console.log('Attendance 30-minute delegated post-confirm adjustment contract OK');
