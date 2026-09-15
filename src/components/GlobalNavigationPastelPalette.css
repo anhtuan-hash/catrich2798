@@ -1,0 +1,145 @@
+/* Brian English · pastel palette for the primary desktop navigation.
+   Color-only authority: geometry, routing, permissions, badges and behavior stay untouched. */
+
+html body .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-child {
+  --nav-pastel-surface: #e8f1ff;
+  --nav-pastel-hover: #dceaff;
+  --nav-pastel-active: #d2e3ff;
+  --nav-pastel-border: #c9dcff;
+  --nav-pastel-ink: #285ea8;
+  --nav-rgb: 80, 136, 224 !important;
+  --nav-accent: #285ea8 !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):nth-of-type(2) {
+  --nav-pastel-surface: #dff8ec;
+  --nav-pastel-hover: #d2f3e3;
+  --nav-pastel-active: #c5edd9;
+  --nav-pastel-border: #bcebd6;
+  --nav-pastel-ink: #1f6a52;
+  --nav-rgb: 55, 171, 126 !important;
+  --nav-accent: #1f6a52 !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > .brian-nav__dashboard-tab {
+  --nav-pastel-surface: #eee5ff;
+  --nav-pastel-hover: #e5d8ff;
+  --nav-pastel-active: #dbcaff;
+  --nav-pastel-border: #d8c7ff;
+  --nav-pastel-ink: #6248a3;
+  --nav-rgb: 132, 96, 210 !important;
+  --nav-accent: #6248a3 !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > .brian-nav__homeroom-tab {
+  --nav-pastel-surface: #ffe8f4;
+  --nav-pastel-hover: #ffdeef;
+  --nav-pastel-active: #ffd2e9;
+  --nav-pastel-border: #f6c7df;
+  --nav-pastel-ink: #8b4a6c;
+  --nav-rgb: 201, 96, 151 !important;
+  --nav-accent: #8b4a6c !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > .brian-nav__gradebook-tab {
+  --nav-pastel-surface: #ffede5;
+  --nav-pastel-hover: #ffe2d6;
+  --nav-pastel-active: #ffd7c7;
+  --nav-pastel-border: #f5d1c1;
+  --nav-pastel-ink: #8a5946;
+  --nav-rgb: 202, 122, 88 !important;
+  --nav-accent: #8a5946 !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab {
+  --nav-pastel-surface: #fff5d8;
+  --nav-pastel-hover: #ffefc5;
+  --nav-pastel-active: #ffe8ae;
+  --nav-pastel-border: #f1dfa5;
+  --nav-pastel-ink: #806522;
+  --nav-rgb: 210, 166, 48 !important;
+  --nav-accent: #806522 !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > .brian-nav__ttcm-tab {
+  --nav-pastel-surface: #efeaff;
+  --nav-pastel-hover: #e6deff;
+  --nav-pastel-active: #dcd1ff;
+  --nav-pastel-border: #dad0ff;
+  --nav-pastel-ink: #584b90;
+  --nav-rgb: 112, 91, 198 !important;
+  --nav-accent: #584b90 !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > .brian-nav__attendance-tab {
+  --nav-pastel-surface: #dff8ff;
+  --nav-pastel-hover: #d1f2fb;
+  --nav-pastel-active: #c2ebf7;
+  --nav-pastel-border: #b8e7f4;
+  --nav-pastel-ink: #24708a;
+  --nav-rgb: 54, 157, 190 !important;
+  --nav-accent: #24708a !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > :is(
+  button:not([class*='brian-nav__']):first-child,
+  button:not([class*='brian-nav__']):nth-of-type(2),
+  .brian-nav__dashboard-tab,
+  .brian-nav__homeroom-tab,
+  .brian-nav__gradebook-tab,
+  .brian-nav__reports-tab,
+  .brian-nav__ttcm-tab,
+  .brian-nav__attendance-tab
+) {
+  border-color: var(--nav-pastel-border) !important;
+  background: var(--nav-pastel-surface) !important;
+  background-image: linear-gradient(180deg, rgba(255,255,255,.82) 0%, color-mix(in srgb, var(--nav-pastel-surface) 88%, white) 42%, var(--nav-pastel-surface) 100%) !important;
+  color: var(--nav-pastel-ink) !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > :is(
+  button:not([class*='brian-nav__']):first-child,
+  button:not([class*='brian-nav__']):nth-of-type(2),
+  .brian-nav__dashboard-tab,
+  .brian-nav__homeroom-tab,
+  .brian-nav__gradebook-tab,
+  .brian-nav__reports-tab,
+  .brian-nav__ttcm-tab,
+  .brian-nav__attendance-tab
+):hover {
+  border-color: color-mix(in srgb, var(--nav-pastel-border) 78%, var(--nav-pastel-ink)) !important;
+  background: var(--nav-pastel-hover) !important;
+  background-image: linear-gradient(180deg, rgba(255,255,255,.9) 0%, var(--nav-pastel-hover) 100%) !important;
+  color: var(--nav-pastel-ink) !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > :is(
+  button:not([class*='brian-nav__']):first-child,
+  button:not([class*='brian-nav__']):nth-of-type(2),
+  .brian-nav__dashboard-tab,
+  .brian-nav__homeroom-tab,
+  .brian-nav__gradebook-tab,
+  .brian-nav__reports-tab,
+  .brian-nav__ttcm-tab,
+  .brian-nav__attendance-tab
+):is(.is-active,.active,[aria-current='page']) {
+  border-color: color-mix(in srgb, var(--nav-pastel-border) 64%, var(--nav-pastel-ink)) !important;
+  background: var(--nav-pastel-active) !important;
+  background-image: linear-gradient(180deg, rgba(255,255,255,.78) 0%, var(--nav-pastel-active) 100%) !important;
+  color: var(--nav-pastel-ink) !important;
+}
+
+html body .app-shell[data-route] .brian-nav__primary > :is(
+  button:not([class*='brian-nav__']):first-child,
+  button:not([class*='brian-nav__']):nth-of-type(2),
+  .brian-nav__dashboard-tab,
+  .brian-nav__homeroom-tab,
+  .brian-nav__gradebook-tab,
+  .brian-nav__reports-tab,
+  .brian-nav__ttcm-tab,
+  .brian-nav__attendance-tab
+):focus-visible {
+  outline: none !important;
+  border-color: var(--nav-pastel-ink) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--nav-pastel-ink) 14%, transparent), 0 6px 13px rgba(31,46,68,.08) !important;
+}
