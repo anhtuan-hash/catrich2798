@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import Navigation from './GlobalCompactNavigation.jsx';
 import MobileAppShell from './mobile/MobileAppShell.jsx';
 import usePresentationMode from '../hooks/usePresentationMode.js';
+import { writePresentationOverride } from '../device/presentationMode.js';
 import GlobalWindowsPhone8Loading from './GlobalWindowsPhone8Loading.jsx';
 import GlobalPageLaunchEffect from './GlobalPageLaunchEffect.jsx';
 import GlobalWindows8Experience from './GlobalWindows8Experience.jsx';
@@ -53,6 +54,9 @@ import '../styles/GlobalLayout16x9Authority.css';
 export default function GlobalFlatNavigation(props) {
   const presentation = usePresentationMode();
   const mobile = presentation.presentationMode === 'mobile';
+  const forcedMobile = mobile && presentation.override === 'mobile' && presentation.deviceClass === 'desktop';
+  const returnLabel = props.language === 'en' ? 'Desktop' : 'Máy tính';
+  const returnAria = props.language === 'en' ? 'Return to desktop layout' : 'Trở về giao diện máy tính';
 
   useEffect(() => {
     const root = document.documentElement;
@@ -60,11 +64,15 @@ export default function GlobalFlatNavigation(props) {
     root.dataset.presentationMode = presentation.presentationMode;
     root.dataset.deviceClass = presentation.deviceClass;
     root.dataset.deviceOrientation = presentation.orientation;
+    if (presentation.override) root.dataset.presentationOverride = presentation.override;
+    else delete root.dataset.presentationOverride;
     root.classList.toggle('bes-mobile-shell-active', mobile);
     if (shell) {
       shell.dataset.presentation = presentation.presentationMode;
       shell.dataset.deviceClass = presentation.deviceClass;
       shell.dataset.orientation = presentation.orientation;
+      if (presentation.override) shell.dataset.presentationOverride = presentation.override;
+      else delete shell.dataset.presentationOverride;
     }
 
     return () => {
@@ -72,18 +80,32 @@ export default function GlobalFlatNavigation(props) {
       delete root.dataset.presentationMode;
       delete root.dataset.deviceClass;
       delete root.dataset.deviceOrientation;
+      delete root.dataset.presentationOverride;
       if (shell) {
         delete shell.dataset.presentation;
         delete shell.dataset.deviceClass;
         delete shell.dataset.orientation;
+        delete shell.dataset.presentationOverride;
       }
     };
-  }, [presentation.presentationMode, presentation.deviceClass, presentation.orientation, mobile]);
+  }, [presentation.presentationMode, presentation.deviceClass, presentation.orientation, presentation.override, mobile]);
 
   return (
     <>
       <GlobalNativeTextScaleReset />
       {mobile ? <MobileAppShell {...props} /> : <Navigation {...props} />}
+      {forcedMobile ? (
+        <button
+          type="button"
+          className="bes-mobile-desktop-return"
+          onClick={() => writePresentationOverride(null)}
+          aria-label={returnAria}
+          title={returnAria}
+        >
+          <span aria-hidden="true">▣</span>
+          <strong>{returnLabel}</strong>
+        </button>
+      ) : null}
 
       {!mobile ? <GlobalPinnedNavigationHub route={props.route} /> : null}
       <GlobalPageLaunchEffect route={props.route} />
