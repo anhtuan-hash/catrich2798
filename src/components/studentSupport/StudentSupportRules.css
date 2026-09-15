@@ -1,0 +1,156 @@
+.student-support-rules-panel {
+  margin-top: 18px;
+}
+
+.student-support-rules-head,
+.student-support-rule-card {
+  padding: 20px;
+  border: 1px solid #e1e8e5;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.student-support-rules-head span,
+.student-support-rule-card-head > div > span {
+  color: #718079;
+  font-size: .76rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.student-support-rules-head h2,
+.student-support-rule-card h3 {
+  margin: 6px 0 5px;
+  color: #1d4938;
+}
+
+.student-support-rules-head p,
+.student-support-rule-card p {
+  margin: 0;
+  color: #66736d;
+  line-height: 1.5;
+}
+
+.student-support-rule-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.student-support-rule-card.is-disabled {
+  opacity: .72;
+}
+
+.student-support-rule-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.student-support-rule-state {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: .75rem;
+  font-weight: 800;
+}
+
+.student-support-rule-state.is-on {
+  background: #e6f5ee;
+  color: #246048;
+}
+
+.student-support-rule-state.is-off {
+  background: #f0f1f1;
+  color: #737b78;
+}
+
+.student-support-rule-config {
+  margin-top: 13px;
+  padding: 10px 12px;
+  border-radius: 11px;
+  background: #f6f9f7;
+  color: #344a41;
+  font-size: .9rem;
+}
+
+.student-support-rule-result {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.student-support-rule-result > div {
+  padding: 10px;
+  border-radius: 10px;
+  background: #f4f7f6;
+}
+
+.student-support-rule-result.is-triggered > div:first-child {
+  background: #e8f6ef;
+}
+
+.student-support-rule-result.is-insufficient > div:first-child {
+  background: #fff6df;
+}
+
+.student-support-rule-result small {
+  display: block;
+  color: #78837f;
+  font-size: .72rem;
+}
+
+.student-support-rule-result strong {
+  display: block;
+  margin-top: 4px;
+  color: #31483f;
+  overflow-wrap: anywhere;
+}
+
+.student-support-rule-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 13px;
+}
+
+.student-support-rule-actions button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--active-app-accent, #2f8f76);
+  color: #fff;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.student-support-rule-actions button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.student-support-rule-actions span {
+  color: #287056;
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+@media (max-width: 680px) {
+  .student-support-rules-head,
+  .student-support-rule-card {
+    padding: 15px;
+    border-radius: 15px;
+  }
+  .student-support-rule-card-head {
+    flex-direction: column;
+  }
+  .student-support-rule-result {
+    grid-template-columns: 1fr;
+  }
+}

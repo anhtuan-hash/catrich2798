@@ -21,6 +21,7 @@ import {
   safeText,
   todayIso,
 } from '../../utils/homeroomOfflineTools.js';
+import { buildStudentSupportHash, normalizeStudentRef } from '../../studentSupport/studentSupportIdentity.js';
 
 const EMPTY_STUDENT = {
   code: '', fullName: '', birthDate: '', gender: '', phone: '', parentName: '', parentPhone: '', parentEmail: '', address: '', notes: '', supportLevel: 'normal',
@@ -114,6 +115,15 @@ export function StudentsTab({ workspace, onCommit }) {
     const target = window.prompt(`Chuyển ${student.fullName} đến lớp nào?`, '') || '';
     if (safeText(target)) await onCommit(transferStudent(workspace, student.id, target), `Đã ghi nhận chuyển lớp đến ${target}.`);
   };
+  const openStudentSupport = (student) => {
+    const studentRef = normalizeStudentRef(student);
+    if (!studentRef) return;
+    window.location.hash = buildStudentSupportHash({
+      studentRef,
+      workspaceId: workspace.id || workspace.workspaceId || '',
+      tab: 'student',
+    }).replace(/^#/, '');
+  };
   const importRows = async (rows) => onCommit(upsertStudents(workspace, rows), `Đã nhập/cập nhật ${rows.length} học sinh từ file mẫu.`);
   const exportRoster = () => downloadCsv(`danh-sach-${workspace.classProfile?.className || 'lop'}.csv`, [
     ['Mã HS', 'Họ và tên', 'Ngày sinh', 'Giới tính', 'SĐT học sinh', 'Phụ huynh', 'SĐT phụ huynh', 'Email phụ huynh', 'Địa chỉ', 'Ghi chú'],
@@ -130,7 +140,7 @@ export function StudentsTab({ workspace, onCommit }) {
       </div><label className="hr-wide-field"><span>Ghi chú / hoàn cảnh cần lưu ý</span><textarea value={draft.notes || ''} onChange={(event) => setDraft({ ...draft, notes: event.target.value })} /></label>{editingId ? <button type="button" className="text-btn" onClick={() => { setDraft(EMPTY_STUDENT); setEditingId(''); }}>Hủy chỉnh sửa</button> : null}
     </section>
     <section className="hr-panel"><div className="hr-panel-head"><div><small>{workspace.students?.length || 0} hồ sơ</small><h2>Danh sách lớp</h2></div><div className="hr-filter-row"><input placeholder="Tìm học sinh, phụ huynh…" value={query} onChange={(event) => setQuery(event.target.value)} /><select value={filter} onChange={(event) => setFilter(event.target.value)}><option value="active">Đang học</option><option value="attention">Cần lưu ý / ưu tiên</option><option value="inactive">Đã lưu trữ / chuyển lớp</option></select></div></div>
-      {students.length ? <div className="hr-table-wrap"><table className="hr-table"><thead><tr><th>Học sinh</th><th>Liên hệ</th><th>Phụ huynh</th><th>Theo dõi</th><th /></tr></thead><tbody>{students.map((student, index) => <tr key={student.id}><td><div className="hr-person-cell"><span>{String(index + 1).padStart(2, '0')}</span><p><b>{student.fullName}</b><small>{student.code || 'Chưa có mã'} · {student.birthDate ? formatViDate(student.birthDate) : 'Chưa có ngày sinh'}</small></p></div></td><td><b>{student.phone || '—'}</b><small>{student.address || 'Chưa có địa chỉ'}</small></td><td><b>{student.parentName || '—'}</b><small>{student.parentPhone || student.parentEmail || 'Chưa có liên hệ'}</small></td><td><span className={`hr-support-chip ${student.supportLevel}`}>{student.supportLevel === 'priority' ? 'Ưu tiên' : student.supportLevel === 'attention' ? 'Cần lưu ý' : 'Bình thường'}</span><small>{student.notes || 'Không có ghi chú'}</small></td><td><div className="hr-row-actions"><button type="button" onClick={() => edit(student)}>Sửa</button>{student.active === false ? <button type="button" onClick={() => onCommit(restoreStudent(workspace, student.id), 'Đã khôi phục học sinh.')}>Khôi phục</button> : <><button type="button" onClick={() => transfer(student)}>Chuyển lớp</button><button type="button" className="danger" onClick={() => archive(student)}>Lưu trữ</button></>}</div></td></tr>)}</tbody></table></div> : <EmptyState title="Chưa có học sinh" text="Tải file mẫu, điền danh sách và hệ thống sẽ tự nhận diện hoàn toàn trên thiết bị." action={() => setShowImporter(true)} actionLabel="Nhập nhanh từ file" />}
+      {students.length ? <div className="hr-table-wrap"><table className="hr-table"><thead><tr><th>Học sinh</th><th>Liên hệ</th><th>Phụ huynh</th><th>Theo dõi</th><th /></tr></thead><tbody>{students.map((student, index) => <tr key={student.id}><td><div className="hr-person-cell"><span>{String(index + 1).padStart(2, '0')}</span><p><b>{student.fullName}</b><small>{student.code || 'Chưa có mã'} · {student.birthDate ? formatViDate(student.birthDate) : 'Chưa có ngày sinh'}</small></p></div></td><td><b>{student.phone || '—'}</b><small>{student.address || 'Chưa có địa chỉ'}</small></td><td><b>{student.parentName || '—'}</b><small>{student.parentPhone || student.parentEmail || 'Chưa có liên hệ'}</small></td><td><span className={`hr-support-chip ${student.supportLevel}`}>{student.supportLevel === 'priority' ? 'Ưu tiên' : student.supportLevel === 'attention' ? 'Cần lưu ý' : 'Bình thường'}</span><small>{student.notes || 'Không có ghi chú'}</small></td><td><div className="hr-row-actions"><button type="button" disabled={!normalizeStudentRef(student)} onClick={() => openStudentSupport(student)}>Xem hồ sơ hỗ trợ</button><button type="button" onClick={() => edit(student)}>Sửa</button>{student.active === false ? <button type="button" onClick={() => onCommit(restoreStudent(workspace, student.id), 'Đã khôi phục học sinh.')}>Khôi phục</button> : <><button type="button" onClick={() => transfer(student)}>Chuyển lớp</button><button type="button" className="danger" onClick={() => archive(student)}>Lưu trữ</button></>}</div></td></tr>)}</tbody></table></div> : <EmptyState title="Chưa có học sinh" text="Tải file mẫu, điền danh sách và hệ thống sẽ tự nhận diện hoàn toàn trên thiết bị." action={() => setShowImporter(true)} actionLabel="Nhập nhanh từ file" />}
     </section>
   </div>;
 }

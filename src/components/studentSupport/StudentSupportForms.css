@@ -1,0 +1,151 @@
+@import './StudentSupportCases.css';
+
+.student-support-form-card {
+  margin-top: 18px;
+  padding: 20px;
+  border: 1px solid #e1e8e5;
+  border-radius: 20px;
+  background: #fff;
+}
+
+.student-support-form-card header span {
+  color: #6d7974;
+  font-size: .8rem;
+  font-weight: 750;
+}
+
+.student-support-form-card header h2 {
+  margin: 5px 0 3px;
+  color: #1b4938;
+}
+
+.student-support-form-card header p {
+  margin: 0;
+  color: #718079;
+}
+
+.student-support-inline-warning {
+  margin-top: 14px;
+  padding: 11px 13px;
+  border: 1px dashed #d8b75c;
+  border-radius: 12px;
+  background: #fffaf0;
+  color: #71540c;
+  line-height: 1.45;
+}
+
+.student-support-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.student-support-form label > span {
+  display: block;
+  margin-bottom: 7px;
+  color: #374b43;
+  font-size: .86rem;
+  font-weight: 700;
+}
+
+.student-support-form input,
+.student-support-form select,
+.student-support-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #ccd8d3;
+  border-radius: 11px;
+  background: #fff;
+  color: #1f302a;
+  font: inherit;
+}
+
+.student-support-form input,
+.student-support-form select {
+  min-height: 43px;
+  padding: 0 11px;
+}
+
+.student-support-form textarea {
+  padding: 11px;
+  resize: vertical;
+}
+
+.student-support-form input:focus-visible,
+.student-support-form select:focus-visible,
+.student-support-form textarea:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--active-app-accent, #2f8f76) 55%, transparent);
+  outline-offset: 1px;
+}
+
+.student-support-form-wide {
+  grid-column: 1 / -1;
+}
+
+.student-support-check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.student-support-check input {
+  width: 18px;
+  height: 18px;
+  min-height: 0;
+  margin: 0;
+}
+
+.student-support-check > span {
+  margin: 0 !important;
+}
+
+.student-support-form-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.student-support-form-actions button,
+.student-support-form-card button.student-support-primary {
+  min-height: 42px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 11px;
+  background: var(--active-app-accent, #2f8f76);
+  color: #fff;
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.student-support-form-actions button:disabled {
+  cursor: not-allowed;
+  opacity: .5;
+}
+
+.student-support-form-message {
+  margin: 12px 0 0;
+  font-size: .9rem;
+}
+
+.student-support-form-message.is-success {
+  color: #176246;
+}
+
+.student-support-form-message.is-error {
+  color: #a42b2b;
+}
+
+@media (max-width: 680px) {
+  .student-support-form-card {
+    padding: 15px;
+    border-radius: 16px;
+  }
+  .student-support-form {
+    grid-template-columns: 1fr;
+  }
+  .student-support-form-wide {
+    grid-column: auto;
+  }
+}
