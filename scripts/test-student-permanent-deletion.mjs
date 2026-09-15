@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {
   filterPermanentlyDeletedStudents,
   mergePermanentStudentTombstones,
@@ -42,5 +43,28 @@ assert.equal(
 
 const mergedAgain = mergePermanentStudentTombstones(tombstones, [deletedStudent], '2026-09-15T04:00:00.000Z');
 assert.equal(mergedAgain.length, 1, 'repeated sync/delete must not duplicate tombstones');
+
+const permanentRuntimeSource = fs.readFileSync(new URL('../src/studentPermanentDeleteRuntime.js', import.meta.url), 'utf8');
+const assignedSyncSource = fs.readFileSync(new URL('../src/assignedSchoolClassBootstrap.js', import.meta.url), 'utf8');
+assert.match(
+  permanentRuntimeSource,
+  /mergePermanentStudentTombstones/,
+  'permanent-delete runtime must persist durable tombstones into the homeroom workspace',
+);
+assert.match(
+  permanentRuntimeSource,
+  /studentPermanentDeletionTombstones/,
+  'permanent-delete runtime must store tombstones in workspace payload, not only localStorage',
+);
+assert.match(
+  assignedSyncSource,
+  /filterPermanentlyDeletedStudents/,
+  'assigned-class sync must filter the authoritative roster using durable workspace tombstones',
+);
+assert.match(
+  assignedSyncSource,
+  /studentPermanentDeletionTombstones/,
+  'assigned-class sync must read durable tombstones from the teacher workspace',
+);
 
 console.log('student-permanent-deletion: ok');
