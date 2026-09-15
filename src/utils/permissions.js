@@ -13,6 +13,7 @@ export const ROUTE_PERMISSION_IDS = {
   'resource-library': 'route:resource-library',
   'knowledge-hub': 'route:knowledge-hub',
   dashboard: 'route:dashboard',
+  'student-support': 'route:student-support',
   'work-hub': 'route:work-hub',
   'content-ecosystem': 'route:content-ecosystem',
   'assessment-core': 'route:assessment-core',
@@ -153,6 +154,15 @@ export const CORE_PERMISSION_ITEMS = [
     titleVi: 'Bảng điều hành',
     desc: 'View role-aware schedules, action items, approvals and department summaries.',
     descVi: 'Xem lịch, việc cần xử lý, phê duyệt và tổng hợp tổ chuyên môn theo vai trò.',
+  },
+  {
+    id: ROUTE_PERMISSION_IDS['student-support'],
+    type: 'content',
+    section: 'content',
+    title: 'Student Support Center',
+    titleVi: 'Trung tâm Hỗ trợ Học sinh',
+    desc: 'Review factual school signals and coordinate teacher-controlled student support workflows.',
+    descVi: 'Xem tín hiệu thực tế và phối hợp quy trình hỗ trợ học sinh do giáo viên kiểm soát.',
   },
   {
     id: ROUTE_PERMISSION_IDS['work-hub'],
@@ -428,7 +438,7 @@ export function getRoutePermissionId(route) {
   if (route === 'news') return getToolPermissionId('news-reader');
   if (route === 'homeroom') return HOMEROOM_PERMISSION_ID;
   if (route === 'attendance') return ATTENDANCE_PERMISSION_IDS.quick;
-  if (route === 'dashboard' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'attendance' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
+  if (route === 'dashboard' || route === 'student-support' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'attendance' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
   if (route === 'games') return getToolPermissionId('game-hub');
   return '';
 }
@@ -444,6 +454,7 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   if (route === 'tool') return hasToolAccess(user, selectedTool?.slug);
   if (route === 'news') return Boolean(user);
   if (route === 'dashboard') return hasPermissionId(user, ROUTE_PERMISSION_IDS.dashboard);
+  if (route === 'student-support') return hasPermissionId(user, ROUTE_PERMISSION_IDS['student-support']);
   if (route === 'homeroom') return hasPermissionId(user, HOMEROOM_PERMISSION_ID);
   if (route === 'attendance') return hasAnyAttendanceAccess(user);
   if (route === 'apps' || route === 'games' || route === 'tools') return true;
@@ -456,6 +467,7 @@ export function getFirstAllowedRoute(user) {
   const priority = [
     'dashboard',
     'homeroom',
+    'student-support',
     'resource-library',
     'knowledge-hub',
     'platform-readiness',
