@@ -1,7 +1,7 @@
 /* Brian English · pastel palette for the primary desktop navigation.
    Color-only authority: geometry, routing, permissions, badges and behavior stay untouched. */
 
-html body .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-child {
+html body .app-shell[data-route] .brian-nav__primary > [data-nav-key='home'] {
   --nav-pastel-surface: #e8f1ff;
   --nav-pastel-hover: #dceaff;
   --nav-pastel-active: #d2e3ff;
@@ -11,7 +11,7 @@ html body .app-shell[data-route] .brian-nav__primary > button:not([class*='brian
   --nav-accent: #285ea8 !important;
 }
 
-html body .app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):nth-of-type(2) {
+html body .app-shell[data-route] .brian-nav__primary > [data-nav-key='apps'] {
   --nav-pastel-surface: #dff8ec;
   --nav-pastel-hover: #d2f3e3;
   --nav-pastel-active: #c5edd9;
@@ -46,9 +46,9 @@ html body .app-shell[data-route] .brian-nav__primary > .brian-nav__gradebook-tab
   --nav-pastel-hover: #ffe2d6;
   --nav-pastel-active: #ffd7c7;
   --nav-pastel-border: #f5d1c1;
-  --nav-pastel-ink: #8a5946;
+  --nav-pastel-ink: #7d4d3b;
   --nav-rgb: 202, 122, 88 !important;
-  --nav-accent: #8a5946 !important;
+  --nav-accent: #7d4d3b !important;
 }
 
 html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab {
@@ -76,14 +76,14 @@ html body .app-shell[data-route] .brian-nav__primary > .brian-nav__attendance-ta
   --nav-pastel-hover: #d1f2fb;
   --nav-pastel-active: #c2ebf7;
   --nav-pastel-border: #b8e7f4;
-  --nav-pastel-ink: #24708a;
+  --nav-pastel-ink: #1f657b;
   --nav-rgb: 54, 157, 190 !important;
-  --nav-accent: #24708a !important;
+  --nav-accent: #1f657b !important;
 }
 
 html body .app-shell[data-route] .brian-nav__primary > :is(
-  button:not([class*='brian-nav__']):first-child,
-  button:not([class*='brian-nav__']):nth-of-type(2),
+  [data-nav-key='home'],
+  [data-nav-key='apps'],
   .brian-nav__dashboard-tab,
   .brian-nav__homeroom-tab,
   .brian-nav__gradebook-tab,
@@ -98,8 +98,8 @@ html body .app-shell[data-route] .brian-nav__primary > :is(
 }
 
 html body .app-shell[data-route] .brian-nav__primary > :is(
-  button:not([class*='brian-nav__']):first-child,
-  button:not([class*='brian-nav__']):nth-of-type(2),
+  [data-nav-key='home'],
+  [data-nav-key='apps'],
   .brian-nav__dashboard-tab,
   .brian-nav__homeroom-tab,
   .brian-nav__gradebook-tab,
@@ -114,8 +114,8 @@ html body .app-shell[data-route] .brian-nav__primary > :is(
 }
 
 html body .app-shell[data-route] .brian-nav__primary > :is(
-  button:not([class*='brian-nav__']):first-child,
-  button:not([class*='brian-nav__']):nth-of-type(2),
+  [data-nav-key='home'],
+  [data-nav-key='apps'],
   .brian-nav__dashboard-tab,
   .brian-nav__homeroom-tab,
   .brian-nav__gradebook-tab,
@@ -130,8 +130,8 @@ html body .app-shell[data-route] .brian-nav__primary > :is(
 }
 
 html body .app-shell[data-route] .brian-nav__primary > :is(
-  button:not([class*='brian-nav__']):first-child,
-  button:not([class*='brian-nav__']):nth-of-type(2),
+  [data-nav-key='home'],
+  [data-nav-key='apps'],
   .brian-nav__dashboard-tab,
   .brian-nav__homeroom-tab,
   .brian-nav__gradebook-tab,

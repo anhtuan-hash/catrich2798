@@ -11,54 +11,111 @@ const STYLE_ID = 'bes-global-editorial-authority-2026';
 const RUNNER_WIDTH = 12;
 const RUNNER_HEIGHT = 1.5;
 const RUNNER_DURATION = 2800;
-const SOFT_SURFACE = 'linear-gradient(180deg, #fcfdff 0%, #f1f3f6 100%)';
-const SOFT_ACTIVE_SURFACE = 'linear-gradient(180deg, #f2f4f7 0%, #e6eaf0 100%)';
-const SOFT_GLOW = 'rgba(100,116,139,.12)';
+const PRIMARY_NAV_LABEL_KEYS = new Map([
+  ['Trang chủ', 'home'],
+  ['Home', 'home'],
+  ['Ứng dụng', 'apps'],
+  ['Apps', 'apps'],
+]);
 const NAV_MOTION_TARGETS = [
   {
     key: 'home',
-    selector: ".app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):first-of-type",
-    glow: SOFT_GLOW,
-    surface: SOFT_SURFACE,
+    selector: ".app-shell[data-route] .brian-nav__primary > [data-nav-key='home']",
+    glow: 'rgba(80,136,224,.18)',
+    surface: '#e8f1ff',
+    hoverSurface: '#dceaff',
+    activeSurface: '#d2e3ff',
+    ink: '#285ea8',
+    activeInk: '#285ea8',
+    border: '#c9dcff',
+    activeBorder: '#8fb8f6',
     home: true,
   },
   {
     key: 'apps',
-    selector: ".app-shell[data-route] .brian-nav__primary > button:not([class*='brian-nav__']):nth-of-type(2)",
-    glow: SOFT_GLOW,
-    surface: SOFT_SURFACE,
+    selector: ".app-shell[data-route] .brian-nav__primary > [data-nav-key='apps']",
+    glow: 'rgba(55,171,126,.18)',
+    surface: '#dff8ec',
+    hoverSurface: '#d2f3e3',
+    activeSurface: '#c5edd9',
+    ink: '#1f6a52',
+    activeInk: '#1f6a52',
+    border: '#bcebd6',
+    activeBorder: '#82cfad',
   },
   {
     key: 'dashboard',
     selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__dashboard-tab',
-    glow: SOFT_GLOW,
-    surface: SOFT_SURFACE,
+    glow: 'rgba(132,96,210,.18)',
+    surface: '#eee5ff',
+    hoverSurface: '#e5d8ff',
+    activeSurface: '#dbcaff',
+    ink: '#6248a3',
+    activeInk: '#6248a3',
+    border: '#d8c7ff',
+    activeBorder: '#ad95ea',
   },
   {
     key: 'homeroom',
     selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__homeroom-tab',
-    glow: SOFT_GLOW,
-    surface: SOFT_SURFACE,
+    glow: 'rgba(201,96,151,.18)',
+    surface: '#ffe8f4',
+    hoverSurface: '#ffdeef',
+    activeSurface: '#ffd2e9',
+    ink: '#8b4a6c',
+    activeInk: '#8b4a6c',
+    border: '#f6c7df',
+    activeBorder: '#df9fc1',
   },
   {
     key: 'gradebook',
     selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__gradebook-tab',
-    glow: SOFT_GLOW,
-    surface: SOFT_SURFACE,
+    glow: 'rgba(202,122,88,.18)',
+    surface: '#ffede5',
+    hoverSurface: '#ffe2d6',
+    activeSurface: '#ffd7c7',
+    ink: '#7d4d3b',
+    activeInk: '#7d4d3b',
+    border: '#f5d1c1',
+    activeBorder: '#dfa992',
   },
   {
     key: 'reports',
     selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.brian-nav__reports-send',
-    glow: SOFT_GLOW,
-    surface: SOFT_SURFACE,
+    glow: 'rgba(210,166,48,.18)',
+    surface: '#fff5d8',
+    hoverSurface: '#ffefc5',
+    activeSurface: '#ffe8ae',
+    ink: '#806522',
+    activeInk: '#806522',
+    border: '#f1dfa5',
+    activeBorder: '#d6bc6b',
     preserveOverflow: true,
     runnerInset: 2,
   },
   {
     key: 'ttcm',
     selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__ttcm-tab',
-    glow: SOFT_GLOW,
-    surface: SOFT_SURFACE,
+    glow: 'rgba(112,91,198,.18)',
+    surface: '#efeaff',
+    hoverSurface: '#e6deff',
+    activeSurface: '#dcd1ff',
+    ink: '#584b90',
+    activeInk: '#584b90',
+    border: '#dad0ff',
+    activeBorder: '#ae9be8',
+  },
+  {
+    key: 'attendance',
+    selector: '.app-shell[data-route] .brian-nav__primary > .brian-nav__attendance-tab',
+    glow: 'rgba(54,157,190,.18)',
+    surface: '#dff8ff',
+    hoverSurface: '#d1f2fb',
+    activeSurface: '#c2ebf7',
+    ink: '#1f657b',
+    activeInk: '#1f657b',
+    border: '#b8e7f4',
+    activeBorder: '#7fc7da',
   },
 ];
 const finalEditorialCss = `${editorialCss}\n\n${navigationCss}\n\n${stage5AppCss}\n\n${stage5WorkflowCss}\n\n${stage6PolishCss}\n\n${homeSparkleCss}`;
@@ -78,6 +135,14 @@ function ensureFinalStyleNode() {
     document.head.appendChild(style);
   }
   return style;
+}
+
+function tagPrimaryNavigationButtons() {
+  document.querySelectorAll('.app-shell[data-route] .brian-nav__primary > button').forEach((button) => {
+    if (button.dataset.navKey) return;
+    const key = PRIMARY_NAV_LABEL_KEYS.get(String(button.textContent || '').trim());
+    if (key) button.dataset.navKey = key;
+  });
 }
 
 function buildRunnerFrames(width, height, inset = 1.5) {
@@ -154,18 +219,18 @@ function styleRunner(runner, glow) {
   set('will-change', 'transform');
 }
 
-function styleColoredSurface(button, config) {
+function styleColoredSurface(button, config, hovered = false) {
   if (!config.surface) return;
   const set = (name, value) => button.style.setProperty(name, value, 'important');
   const active = button.classList.contains('is-active');
-  const surface = active ? SOFT_ACTIVE_SURFACE : config.surface;
+  const surface = active ? config.activeSurface : hovered ? config.hoverSurface : config.surface;
   set('background', surface);
-  set('background-image', surface);
-  set('color', active ? '#334155' : '#475569');
-  set('border-color', active ? 'rgba(100,116,139,.25)' : 'rgba(148,163,184,.19)');
+  set('background-image', `linear-gradient(180deg, rgba(255,255,255,.82) 0%, ${surface} 100%)`);
+  set('color', active ? config.activeInk : config.ink);
+  set('border-color', active ? config.activeBorder : config.border);
   set(
     'box-shadow',
-    'inset 0 1px rgba(255,255,255,.96), inset 0 -1px rgba(148,163,184,.07), 0 3px 9px rgba(51,65,85,.07)',
+    `inset 0 1px rgba(255,255,255,.92), inset 0 -1px rgba(31,46,68,.04), 0 3px 9px rgba(51,65,85,.07), 0 0 0 1px ${config.glow}`,
   );
   set('text-shadow', 'none');
 }
@@ -248,8 +313,14 @@ export default function GlobalEditorialAuthorityRuntime() {
         button.style.setProperty('transform', `scale(${value})`, 'important');
       };
 
-      const onEnter = () => setScale(1.10);
-      const onLeave = () => setScale(1);
+      const onEnter = () => {
+        styleColoredSurface(button, config, true);
+        setScale(1.10);
+      };
+      const onLeave = () => {
+        styleColoredSurface(button, config, false);
+        setScale(1);
+      };
       const onDown = () => setScale(.97);
       const onUp = () => setScale(button.matches(':hover') ? 1.10 : 1);
 
@@ -303,6 +374,7 @@ export default function GlobalEditorialAuthorityRuntime() {
     };
 
     const bindAllMotionTargets = () => {
+      tagPrimaryNavigationButtons();
       NAV_MOTION_TARGETS.forEach(bindMotionTarget);
     };
 
