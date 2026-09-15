@@ -16,7 +16,7 @@ test('returns empty when no durable identity exists', () => {
 
 test('deep link round trips student, workspace and tab safely', () => {
   const hash = buildStudentSupportHash({ studentRef: 'HS 1/2', workspaceId: '12.6 A', tab: 'student' });
-  assert.equal(hash, '#/student-support?student=HS%201%2F2&workspace=12.6%20A&tab=student');
+  assert.equal(hash, '#/student-support?student=HS+1%2F2&workspace=12.6+A&tab=student');
   assert.deepEqual(parseStudentSupportHash(hash), {
     studentRef: 'HS 1/2',
     workspaceId: '12.6 A',
