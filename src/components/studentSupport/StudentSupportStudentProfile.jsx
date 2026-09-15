@@ -15,6 +15,11 @@ function deltaLabel(delta, vi) {
   return `${sign}${delta}`;
 }
 
+function conductStatusLabel(status, vi) {
+  if (status === 'pending') return vi ? 'Chờ xác nhận' : 'Pending';
+  return vi ? 'Đã xác nhận' : 'Confirmed';
+}
+
 export default function StudentSupportStudentProfile({
   studentRef = '',
   workspaceId = '',
@@ -143,6 +148,28 @@ export default function StudentSupportStudentProfile({
             })}
           </div>
         )}
+      </article>
+
+      <article className="student-support-profile-card">
+        <div className="student-support-section-heading">
+          <div>
+            <h3>{vi ? 'Rèn luyện' : 'Conduct'}</h3>
+            <p>{vi ? 'Các vi phạm đang được ghi nhận trực tiếp từ hồ sơ Chủ nhiệm; bản ghi đã hủy không hiển thị.' : 'Current violations read directly from the Homeroom record; cancelled entries are excluded.'}</p>
+          </div>
+          <strong>{facts.conductRecords?.length || 0}</strong>
+        </div>
+        <div className="student-support-compact-list">
+          {(facts.conductRecords || []).slice(0, 12).map((row, index) => (
+            <div key={row.id || `${row.date}-${row.code}-${index}`}>
+              <span>{formatDate(row.date, language)}</span>
+              <strong>{row.title || row.category || (vi ? 'Vi phạm' : 'Violation')}</strong>
+              <small>
+                {[row.category, row.code, row.deduction > 0 ? `${vi ? 'Điểm trừ' : 'Deduction'} ${row.deduction}` : '', conductStatusLabel(row.status, vi)].filter(Boolean).join(' · ')}
+              </small>
+            </div>
+          ))}
+          {!facts.conductRecords?.length ? <p>{vi ? 'Chưa có vi phạm rèn luyện đang được ghi nhận.' : 'No current conduct violations.'}</p> : null}
+        </div>
       </article>
 
       <div className="student-support-profile-grid">
