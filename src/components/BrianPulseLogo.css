@@ -1,8 +1,8 @@
 .brian-pulse-logo{
   --particle-bg-start:#a79bf8;
   --particle-bg-end:#87d9ed;
-  --particle-t-start:#6654ff;
-  --particle-t-end:#32c7f4;
+  --particle-star-start:#ffffff;
+  --particle-star-end:#79d9ff;
   position:relative;
   display:inline-flex;
   align-items:center;
@@ -37,17 +37,19 @@
   position:absolute;
   inset:0;
   border-radius:17px;
-  background:radial-gradient(circle,rgba(96,91,255,.08),rgba(54,198,240,.03) 48%,transparent 72%);
-  opacity:0;
-  transform:scale(.92);
+  background:radial-gradient(circle,rgba(105,218,255,.16),rgba(91,115,255,.055) 48%,transparent 72%);
+  opacity:.28;
+  transform:scale(.96);
+  animation:brian-star-halo 3.6s ease-in-out infinite;
   transition:opacity 200ms ease,transform 260ms cubic-bezier(.2,.8,.2,1);
   pointer-events:none;
   z-index:-1;
 }
 
 .brian-pulse-logo:hover::after{
-  opacity:.85;
-  transform:scale(1.06);
+  animation:none;
+  opacity:.82;
+  transform:scale(1.07);
 }
 
 .brian-pulse-logo__canvas{
@@ -59,7 +61,7 @@
   pointer-events:auto;
   touch-action:none;
   cursor:default;
-  filter:contrast(1.11) saturate(1.05);
+  filter:contrast(1.1) saturate(1.04) drop-shadow(0 0 5px rgba(101,211,255,.12));
 }
 
 .brian-pulse-logo__fallback{
@@ -93,6 +95,11 @@ html body .brian-nav__actions > .brian-nav__ai-wrap{order:2!important}
 html body .brian-nav__actions > .brian-nav__popover-wrap:not(.brian-nav__ai-wrap){order:3!important}
 html body .brian-nav__actions > .brian-nav__login{order:4!important}
 
+@keyframes brian-star-halo{
+  0%,100%{opacity:.22;transform:scale(.94)}
+  50%{opacity:.46;transform:scale(1.035)}
+}
+
 @media(max-width:1120px){
   .brian-pulse-logo--nav{
     width:50px;
@@ -109,4 +116,5 @@ html body .brian-nav__actions > .brian-nav__login{order:4!important}
 @media(prefers-reduced-motion:reduce){
   .brian-pulse-logo--nav,
   .brian-pulse-logo::after{transition:none}
+  .brian-pulse-logo::after{animation:none;opacity:.28;transform:none}
 }
