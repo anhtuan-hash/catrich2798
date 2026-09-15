@@ -13,3 +13,8 @@ test('student 360 reads official attendance and learning records only as source 
   assert.match(source, /bes_homeroom_attendance/);
   assert.match(source, /bes_homeroom_learning_records/);
 });
+
+test('learning records use the real created_at timestamp column', () => {
+  assert.match(source, /bes_homeroom_learning_records[\s\S]*order\(['"]created_at['"]/);
+  assert.doesNotMatch(source, /order\(['"]record_date['"]/);
+});
