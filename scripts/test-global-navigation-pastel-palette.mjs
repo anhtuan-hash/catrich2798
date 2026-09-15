@@ -26,16 +26,30 @@ const palettes = [
   { key: 'apps', selector: "[data-nav-key='apps']", surface: '#dff8ec', hover: '#d2f3e3', active: '#c5edd9', ink: '#1f6a52', border: '#bcebd6' },
   { key: 'dashboard', selector: '.brian-nav__dashboard-tab', surface: '#eee5ff', hover: '#e5d8ff', active: '#dbcaff', ink: '#6248a3', border: '#d8c7ff' },
   { key: 'homeroom', selector: '.brian-nav__homeroom-tab', surface: '#ffe8f4', hover: '#ffdeef', active: '#ffd2e9', ink: '#8b4a6c', border: '#f6c7df' },
-  { key: 'gradebook', selector: '.brian-nav__gradebook-tab', surface: '#ffede5', hover: '#ffe2d6', active: '#ffd7c7', ink: '#8a5946', border: '#f5d1c1' },
+  { key: 'gradebook', selector: '.brian-nav__gradebook-tab', surface: '#ffede5', hover: '#ffe2d6', active: '#ffd7c7', ink: '#7d4d3b', border: '#f5d1c1' },
   { key: 'reports', selector: '.brian-nav__reports-tab', surface: '#fff5d8', hover: '#ffefc5', active: '#ffe8ae', ink: '#806522', border: '#f1dfa5' },
   { key: 'ttcm', selector: '.brian-nav__ttcm-tab', surface: '#efeaff', hover: '#e6deff', active: '#dcd1ff', ink: '#584b90', border: '#dad0ff' },
-  { key: 'attendance', selector: '.brian-nav__attendance-tab', surface: '#dff8ff', hover: '#d1f2fb', active: '#c2ebf7', ink: '#24708a', border: '#b8e7f4' },
+  { key: 'attendance', selector: '.brian-nav__attendance-tab', surface: '#dff8ff', hover: '#d1f2fb', active: '#c2ebf7', ink: '#1f657b', border: '#b8e7f4' },
 ];
 
 function runtimeBlock(key) {
   const match = runtime.match(new RegExp(`\\{\\s*key: '${key}',([\\s\\S]*?)\\n\\s*\\},`));
   assert.ok(match, `Missing production runtime palette target for ${key}`);
   return match[1];
+}
+
+function luminance(hex) {
+  const channels = [1, 3, 5].map((index) => parseInt(hex.slice(index, index + 2), 16) / 255)
+    .map((value) => value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * channels[0] + 0.7152 * channels[1] + 0.0722 * channels[2];
+}
+
+function contrast(first, second) {
+  const firstLuminance = luminance(first);
+  const secondLuminance = luminance(second);
+  const lighter = Math.max(firstLuminance, secondLuminance);
+  const darker = Math.min(firstLuminance, secondLuminance);
+  return (lighter + 0.05) / (darker + 0.05);
 }
 
 for (const palette of palettes) {
@@ -45,8 +59,12 @@ for (const palette of palettes) {
   assert.ok(block.includes(`hoverSurface: '${palette.hover}'`), `${palette.key} runtime hover surface must match approved pastel palette`);
   assert.ok(block.includes(`activeSurface: '${palette.active}'`), `${palette.key} runtime active surface must match approved pastel palette`);
   assert.ok(block.includes(`ink: '${palette.ink}'`), `${palette.key} runtime ink must match approved pastel palette`);
+  assert.ok(block.includes(`activeInk: '${palette.ink}'`), `${palette.key} runtime active ink must match approved pastel palette`);
   assert.ok(block.includes(`border: '${palette.border}'`), `${palette.key} runtime border must match approved pastel palette`);
   assert.ok(pastelCss.includes(palette.selector), `${palette.key} stylesheet must use the same semantic selector`);
+  assert.ok(contrast(palette.ink, palette.surface) >= 4.5, `${palette.key} default contrast must be >= 4.5:1`);
+  assert.ok(contrast(palette.ink, palette.hover) >= 4.5, `${palette.key} hover contrast must be >= 4.5:1`);
+  assert.ok(contrast(palette.ink, palette.active) >= 4.5, `${palette.key} active contrast must be >= 4.5:1`);
 }
 
 assert.doesNotMatch(pastelCss, /button:not\(\[class\*='brian-nav__'\]\):(first-child|nth-of-type)/, 'Pastel authority must not depend on button position');
@@ -62,4 +80,4 @@ assert.match(runtime, /styleColoredSurface\(button, config, false\)/);
 assert.equal(new Set(palettes.map(({ surface }) => surface)).size, 8, 'All eight primary navigation functions must have distinct pastel surfaces');
 assert.equal(new Set(palettes.map(({ active }) => active)).size, 8, 'All eight primary navigation functions must have distinct active surfaces');
 
-console.log('✓ Production navigation runtime preserves eight semantic pastel identities without changing route or permission logic.');
+console.log('✓ Production navigation runtime preserves eight semantic, accessible pastel identities without changing route or permission logic.');
