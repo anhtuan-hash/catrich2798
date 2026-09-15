@@ -65,3 +65,19 @@ export function compareGradeWindows(rows = [], sampleSize = 3) {
     recent,
   };
 }
+
+export function groupGradeComparisons(rows = [], sampleSize = 3) {
+  const grouped = new Map();
+  for (const row of rows || []) {
+    const subject = String(row?.subject || '').trim() || 'Chưa xác định môn';
+    if (!grouped.has(subject)) grouped.set(subject, []);
+    grouped.get(subject).push(row);
+  }
+  return [...grouped.entries()]
+    .sort(([a], [b]) => a.localeCompare(b, 'vi'))
+    .map(([subject, items]) => ({
+      subject,
+      rows: items,
+      comparison: compareGradeWindows(items, sampleSize),
+    }));
+}
