@@ -14,6 +14,7 @@ import {
   reconcileWorkspaceRoster,
 } from './utils/schoolClassRegistry.js';
 import { isSupabaseConfigured, supabase } from './utils/supabase.js';
+import { filterPermanentlyDeletedStudents } from './utils/permanentStudentDeletion.js';
 
 const ASSIGNED_CLASSES_RPC = 'get_my_assigned_school_classes';
 const RPC_TIMEOUT_MS = 3500;
@@ -223,13 +224,24 @@ async function syncAssignedSchoolClassWorkspacesInternal(user, options = {}) {
 
   for (const item of sorted) {
     const existing = await loadExistingWorkspace(user, catalog, item.className);
+    const durableTombstones = Array.isArray(existing.workspace?.studentPermanentDeletionTombstones)
+      ? existing.workspace.studentPermanentDeletionTombstones
+      : [];
+    const filteredStudents = filterPermanentlyDeletedStudents(item.students, durableTombstones);
+    const effectiveActiveStudentCount = filteredStudents.filter((student) => (
+      student?.active !== false && !isDeletedAssignedStudent(student)
+    )).length;
     const workspaceId = existing.workspace?.id || deterministicWorkspaceId(item.className, item.schoolYear);
     const classType = item.assignmentType === 'homeroom'
       ? HOMEROOM_CLASS_TYPE
       : (item.assignmentType === 'managed' && existing.workspace?.classProfile?.classType
         ? existing.workspace.classProfile.classType
         : SUBJECT_CLASS_TYPE);
-    const itemSignature = signature(item);
+    const itemSignature = signature({
+      ...item,
+      students: filteredStudents,
+      activeStudentCount: effectiveActiveStudentCount,
+    });
 
     if (
       existing.workspace?.schoolAssignment?.signature === itemSignature
@@ -255,9 +267,18 @@ async function syncAssignedSchoolClassWorkspacesInternal(user, options = {}) {
       },
     }, user);
     const importedAt = item.registryUpdatedAt || new Date().toISOString();
-    const reconciled = item.students.length
-      ? reconcileWorkspaceRoster(base, item.className, item.students, importedAt)
+    const reconciledBase = item.students.length
+      ? reconcileWorkspaceRoster(base, item.className, filteredStudents, importedAt)
       : base;
+    const reconciled = durableTombstones.length
+      ? {
+          ...reconciledBase,
+          students: filterPermanentlyDeletedStudents(reconciledBase.students, durableTombstones),
+        }
+      : reconciledBase;
+    const reconciledActiveStudentCount = (reconciled.students || []).filter((student) => (
+      student?.active !== false && !isDeletedAssignedStudent(student)
+    )).length;
     const next = normalizeHomeroomWorkspace({
       ...reconciled,
       id: workspaceId,
@@ -273,7 +294,9 @@ async function syncAssignedSchoolClassWorkspacesInternal(user, options = {}) {
         room: item.room || reconciled.classProfile?.room || '',
         adviserName: text(user?.name || user?.email),
         adviserEmail: text(user?.email),
-        studentCountTarget: item.activeStudentCount || item.expectedCount,
+        studentCountTarget: durableTombstones.length
+          ? reconciledActiveStudentCount
+          : (item.activeStudentCount || item.expectedCount),
       },
       schoolAssignment: {
         source: 'school-class-registry',
