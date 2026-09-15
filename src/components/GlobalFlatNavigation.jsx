@@ -54,7 +54,7 @@ import '../styles/GlobalLayout16x9Authority.css';
 export default function GlobalFlatNavigation(props) {
   const presentation = usePresentationMode();
   const mobile = presentation.presentationMode === 'mobile';
-  const forcedMobile = mobile && presentation.override === 'mobile' && presentation.deviceClass === 'desktop';
+  const forcedMobile = mobile && presentation.override === 'mobile' && presentation.deviceClass !== 'phone';
   const returnLabel = props.language === 'en' ? 'Desktop' : 'Máy tính';
   const returnAria = props.language === 'en' ? 'Return to desktop layout' : 'Trở về giao diện máy tính';
 
