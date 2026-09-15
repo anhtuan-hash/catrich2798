@@ -9,7 +9,11 @@ test('scoped student search uses server-side RPC and never downloads all student
   assert.doesNotMatch(source, /from\(['"](?:students|bes_homeroom_students)['"]\)\.select\(['"]\*['"]\)/);
 });
 
-test('student 360 reads official attendance and learning records only as source data', () => {
+test('student 360 reads canonical student, workspace, attendance and learning sources', () => {
+  assert.match(source, /from\(['"]bes_homeroom_students['"]\)/);
+  assert.match(source, /student_ref,code,full_name,lifecycle_status/);
+  assert.match(source, /from\(['"]bes_homeroom_workspaces['"]\)/);
+  assert.match(source, /workspace_id,class_name,school_year/);
   assert.match(source, /bes_homeroom_attendance/);
   assert.match(source, /bes_homeroom_learning_records/);
 });
