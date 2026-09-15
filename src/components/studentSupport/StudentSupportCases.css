@@ -1,0 +1,316 @@
+.student-support-case-manager {
+  margin-top: 18px;
+}
+
+.student-support-case-layout {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.student-support-case-list,
+.student-support-case-detail {
+  border: 1px solid #e1e8e5;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.student-support-case-list {
+  position: sticky;
+  top: 16px;
+  overflow: hidden;
+}
+
+.student-support-case-list-head {
+  padding: 14px;
+  border-bottom: 1px solid #e7ece9;
+  background: #f7faf8;
+}
+
+.student-support-case-list-head > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.student-support-case-list-head span {
+  display: inline-flex;
+  min-width: 28px;
+  height: 28px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #e8f4ef;
+  color: #255f49;
+  font-weight: 800;
+}
+
+.student-support-case-list-head select {
+  width: 100%;
+  min-height: 38px;
+  border: 1px solid #d0dad6;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.student-support-case-list-body {
+  display: grid;
+  max-height: 680px;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.student-support-case-list-body button {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  padding: 12px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: #273c34;
+  text-align: left;
+  cursor: pointer;
+}
+
+.student-support-case-list-body button:hover,
+.student-support-case-list-body button.is-active {
+  background: #edf7f3;
+}
+
+.student-support-case-list-body button span,
+.student-support-case-list-body button small {
+  color: #718079;
+  font-size: .75rem;
+}
+
+.student-support-case-list-body > p {
+  padding: 10px;
+  color: #75817c;
+}
+
+.student-support-case-main {
+  min-width: 0;
+}
+
+.student-support-case-main > .student-support-form-card:first-child {
+  margin-top: 0;
+}
+
+.student-support-case-detail {
+  margin-top: 16px;
+  padding: 20px;
+}
+
+.student-support-case-detail-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e7ece9;
+}
+
+.student-support-case-detail-head span {
+  display: inline-flex;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #edf3f0;
+  color: #486158;
+  font-size: .73rem;
+  font-weight: 800;
+}
+
+.student-support-case-detail-head h2 {
+  margin: 7px 0 4px;
+  color: #1c4435;
+}
+
+.student-support-case-detail-head p {
+  margin: 0;
+  color: #718079;
+}
+
+.student-support-case-transitions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.student-support-case-transitions button {
+  min-height: 36px;
+  border: 1px solid #bcd0c7;
+  border-radius: 9px;
+  background: #fff;
+  color: #285542;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.student-support-case-transitions button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.student-support-case-text-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.student-support-case-text-grid > div {
+  min-width: 0;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f7faf8;
+}
+
+.student-support-case-text-grid small {
+  color: #75817c;
+  font-weight: 700;
+}
+
+.student-support-case-text-grid p {
+  margin: 7px 0 0;
+  color: #30423b;
+  white-space: pre-wrap;
+}
+
+.student-support-case-section {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid #e9eeec;
+}
+
+.student-support-case-section h3 {
+  margin: 0 0 12px;
+  color: #234437;
+}
+
+.student-support-case-items {
+  display: grid;
+  gap: 8px;
+}
+
+.student-support-case-items > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 11px 12px;
+  border: 1px solid #e7ecea;
+  border-radius: 11px;
+  background: #fbfdfc;
+}
+
+.student-support-case-items > div > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.student-support-case-items span,
+.student-support-case-items small {
+  color: #718079;
+  font-size: .76rem;
+}
+
+.student-support-case-items strong,
+.student-support-case-items p {
+  color: #30443c;
+}
+
+.student-support-case-items p {
+  margin: 4px 0 0;
+  white-space: pre-wrap;
+}
+
+.student-support-case-items select {
+  min-height: 36px;
+  border: 1px solid #d0dad6;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.student-support-form.compact {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: #f8fbf9;
+}
+
+.student-support-timeline {
+  position: relative;
+  display: grid;
+  gap: 0;
+  padding-left: 16px;
+  border-left: 2px solid #d9e8e1;
+}
+
+.student-support-timeline > div {
+  position: relative;
+  display: grid;
+  grid-template-columns: 120px minmax(0, 1fr) minmax(0, .8fr);
+  gap: 10px;
+  padding: 9px 0 9px 10px;
+}
+
+.student-support-timeline > div::before {
+  content: '';
+  position: absolute;
+  left: -21px;
+  top: 14px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--active-app-accent, #2f8f76);
+}
+
+.student-support-timeline span,
+.student-support-timeline small {
+  color: #75817c;
+  font-size: .78rem;
+}
+
+@media (max-width: 960px) {
+  .student-support-case-layout {
+    grid-template-columns: 1fr;
+  }
+  .student-support-case-list {
+    position: static;
+  }
+  .student-support-case-list-body {
+    max-height: 300px;
+  }
+}
+
+@media (max-width: 680px) {
+  .student-support-case-detail {
+    padding: 15px;
+    border-radius: 16px;
+  }
+  .student-support-case-detail-head {
+    flex-direction: column;
+  }
+  .student-support-case-transitions {
+    justify-content: flex-start;
+  }
+  .student-support-case-text-grid {
+    grid-template-columns: 1fr;
+  }
+  .student-support-case-items > div {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .student-support-case-items select {
+    width: 100%;
+  }
+  .student-support-timeline > div {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+}
