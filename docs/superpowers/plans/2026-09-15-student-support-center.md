@@ -6,7 +6,7 @@
 
 **Architecture:** Student Support is a new domain under `src/studentSupport/`. Attendance, grades, class membership, teacher assignments, and existing family-contact facts remain owned by their current modules; Student Support stores only rules, alerts, cases, actions, notes, teacher observations, support-specific family contacts, and immutable case events. The durable cross-module identity is existing `student_ref` when present, otherwise the existing student code normalized as `code:<value>`; a new student master table is explicitly forbidden.
 
-**Tech Stack:** React 18, Vite, Supabase/PostgreSQL + RLS, existing Brian permission framework, existing `bes-global-notification` event bus, Node `node:test`, Playwright, existing browser-side export libraries.
+**Tech Stack:** React 18, Vite, Supabase/PostgreSQL + RLS, existing Brian permission framework, existing `bes-global-notification` event bus, existing Data Governance audit/trash utilities, Node `node:test`, Playwright, existing browser-side export libraries.
 
 **Spec:** `docs/superpowers/specs/2026-09-15-student-support-center-design.md`
 
@@ -24,6 +24,7 @@
 - Desktop/mobile/tablet workflows must not require horizontal scrolling for critical actions.
 - Route permission is `route:student-support`; existing app visibility remains active.
 - Student Support code must pass `scripts/audit-no-ai.mjs` and its dedicated verifier.
+- Generic audit events must not copy private note bodies, family-contact message bodies, or other sensitive free text into `audit_events`; audit stores action metadata and identifiers only.
 
 ---
 
@@ -120,6 +121,8 @@ check (visibility_scope in ('PRIVATE','HOMEROOM','TEACHING_TEAM','MANAGEMENT'))
 
 Teacher observations store `source_class_name`, `source_workspace_id`, `teacher_id`, `subject_name`, `observation_type`, `observation_date`, `period_label`, `body`, `submitted_to_homeroom`, `follow_up_requested`, and `visibility_scope`.
 
+Foreign keys from actions/notes/family contacts/events to cases use `on delete cascade` so an Admin-governed final purge can remove a case graph atomically after the trash review period.
+
 - [ ] **Step 3: Add indexes and duplicate-alert protection**
 
 ```sql
@@ -148,13 +151,14 @@ git commit -m "feat: add student support data model"
 
 ---
 
-### Task 2: Enforce RLS and role/class scope
+### Task 2: Enforce RLS, role/class scope, and scoped student search
 
 **Files:**
 - Create: `supabase/migrations/20260915091000_student_support_rls.sql`
 
 **Interfaces:**
 - Consumes: `public.is_admin()`, `public.bes_v1099_current_role(auth.uid())`, `public.bes_has_any_class_assignment(text)`, `bes_homeroom_workspaces.owner_id`, `department_teacher_sync`.
+- Produces: RLS policies and RPC `bes_search_student_support_students(p_query text, p_limit integer)`.
 
 - [ ] **Step 1: Run the pre-migration policy query**
 
@@ -220,11 +224,32 @@ Observation author may read own rows. Owning GVCN/Admin/Department Head may read
 
 Create select/insert policies only; no update/delete policies.
 
-- [ ] **Step 7: Verify outsider teacher denial and run Supabase security advisors**
+- [ ] **Step 7: Create the scoped student-search RPC**
 
-Expected: an unassigned teacher reads zero rows for another class; no new missing-RLS findings.
+Create `public.bes_search_student_support_students(p_query text default '', p_limit integer default 30)` returning only `student_ref`, `code`, `full_name`, `workspace_id`, `class_name`, `school_year`, `grade`, and `homeroom_owner_id`.
 
-- [ ] **Step 8: Commit**
+The function may be `SECURITY DEFINER` only with all of these safeguards:
+
+```sql
+set search_path = public, auth, pg_temp;
+if auth.uid() is null then return; end if;
+```
+
+Scope branches must exactly match Admin, workspace owner, Department Head department sync, or subject-teacher class assignment. Search matches normalized name, code, or class name. Clamp `p_limit` to `1..50`.
+
+After creation:
+
+```sql
+revoke all on function public.bes_search_student_support_students(text,integer) from public;
+revoke all on function public.bes_search_student_support_students(text,integer) from anon;
+grant execute on function public.bes_search_student_support_students(text,integer) to authenticated;
+```
+
+- [ ] **Step 8: Verify outsider teacher denial, search-scope denial, and run Supabase security advisors**
+
+An unassigned teacher receives zero Student Support rows and zero search results for another class. Expected: no new missing-RLS or insecure-function findings.
+
+- [ ] **Step 9: Commit**
 
 ```bash
 git add supabase/migrations/20260915091000_student_support_rls.sql
@@ -267,6 +292,12 @@ test('insufficient grade samples cannot trigger', () => {
   assert.equal(result.triggered,false);
   assert.equal(result.evidence.reason,'insufficient_data');
 });
+
+test('dedupe key is stable', () => {
+  const a=makeAlertDedupeKey({id:'r1',version:1},'HS-1','2026-09-01','2026-09-15');
+  const b=makeAlertDedupeKey({id:'r1',version:1},'HS-1','2026-09-01','2026-09-15');
+  assert.equal(a,b);
+});
 ```
 
 - [ ] **Step 2: Run test and confirm failure**
@@ -299,7 +330,7 @@ git commit -m "feat: add deterministic student support rules"
 
 ---
 
-### Task 4: Normalize student identity and build read-only source adapters
+### Task 4: Normalize student identity and build read-only source/search adapters
 
 **Files:**
 - Create: `src/studentSupport/studentSupportIdentity.js`
@@ -308,7 +339,7 @@ git commit -m "feat: add deterministic student support rules"
 - Modify: `src/utils/supabase.js`
 
 **Interfaces:**
-- Produces: `normalizeStudentRef(student)`, `parseStudentSupportHash(hash)`, `buildStudentSupportHash(input)`, `loadStudentSupportScope(user)`, `loadStudent360Facts(input)`.
+- Produces: `normalizeStudentRef(student)`, `parseStudentSupportHash(hash)`, `buildStudentSupportHash(input)`, `loadStudentSupportScope(user)`, `loadStudent360Facts(input)`, `searchScopedStudents(query,limit)`.
 
 - [ ] **Step 1: Write failing identity tests**
 
@@ -327,7 +358,20 @@ buildStudentSupportHash({studentRef:'HS-1',workspaceId:'12.6',tab:'student'})
 // => #/student-support?student=HS-1&workspace=12.6&tab=student
 ```
 
-- [ ] **Step 3: Implement Student 360 facts**
+- [ ] **Step 3: Implement scoped search adapter**
+
+`searchScopedStudents(query,limit=30)` must call only:
+
+```js
+supabase.rpc('bes_search_student_support_students', {
+  p_query: String(query || '').trim(),
+  p_limit: Math.max(1, Math.min(50, Number(limit) || 30)),
+});
+```
+
+It must never fall back to downloading all school students and filtering client-side.
+
+- [ ] **Step 4: Implement Student 360 facts**
 
 Return:
 
@@ -343,11 +387,11 @@ Return:
 
 Official attendance comes from `bes_homeroom_attendance`; grades come from `bes_homeroom_learning_records` plus Gradebook read helpers. Supplemental attendance is included only when existing student code/canonical key matches the same identity.
 
-- [ ] **Step 4: Add short Student Support read-cache TTLs**
+- [ ] **Step 5: Add short Student Support read-cache TTLs**
 
 Add 5-minute TTL for alerts/cases/actions and 30-minute TTL for rules in `src/utils/supabase.js`.
 
-- [ ] **Step 5: Run tests and commit**
+- [ ] **Step 6: Run tests and commit**
 
 ```bash
 node --test tests/unit/student-support-identity.test.mjs
@@ -358,14 +402,15 @@ git commit -m "feat: connect student support source data"
 
 ---
 
-### Task 5: Implement workflow API and lifecycle validation
+### Task 5: Implement workflow API, lifecycle validation, and platform audit
 
 **Files:**
 - Create: `src/studentSupport/studentSupportApi.js`
 - Create: `tests/unit/student-support-api.test.mjs`
 
 **Interfaces:**
-- Produces: `listSupportAlerts`, `upsertEvaluatedAlert`, `reviewAlert`, `listSupportCases`, `createSupportCase`, `transitionSupportCase`, `createSupportAction`, `updateSupportAction`, `createSupportNote`, `createTeacherObservation`, `createFamilyContact`, `appendCaseEvent`, `archiveSupportCase`, `restoreSupportCase`.
+- Consumes: `recordAuditEvent` from `src/utils/collaborationGovernance.js`.
+- Produces: `listSupportAlerts`, `upsertEvaluatedAlert`, `reviewAlert`, `listSupportCases`, `createSupportCase`, `transitionSupportCase`, `createSupportAction`, `updateSupportAction`, `createSupportNote`, `createTeacherObservation`, `createFamilyContact`, `appendCaseEvent`, `archiveSupportCase`, `restoreSupportCase`, `recordStudentSupportAudit`.
 
 - [ ] **Step 1: Write failing lifecycle tests**
 
@@ -395,7 +440,26 @@ Every case transition appends one immutable `student_support_case_events` row.
 
 A fourth absence updates the existing active 3-in-14 alert evidence; it does not insert a second active alert.
 
-- [ ] **Step 4: Run tests and commit**
+- [ ] **Step 4: Add Data Governance audit for important mutations**
+
+`recordStudentSupportAudit(action,input,user)` calls existing `recordAuditEvent` with `source_module:'student-support'`. Required audit actions:
+
+```text
+student_support.alert_reviewed
+student_support.case_created
+student_support.case_status_changed
+student_support.action_created
+student_support.action_completed
+student_support.note_created
+student_support.observation_created
+student_support.family_contact_logged
+student_support.case_archived
+student_support.case_restored
+```
+
+Audit `before_data`/`after_data` must contain status/category/ids/timestamps only. Never copy note bodies, family-contact message/summary bodies, or observation body text into generic audit.
+
+- [ ] **Step 5: Run tests and commit**
 
 ```bash
 node --test tests/unit/student-support-api.test.mjs
@@ -490,7 +554,7 @@ git commit -m "feat: register student support center"
 
 ---
 
-### Task 7: Build Overview and alert work queue
+### Task 7: Build Overview, scoped student search, and alert work queue
 
 **Files:**
 - Modify: `src/pages/StudentSupportCenter.jsx`
@@ -500,7 +564,7 @@ git commit -m "feat: register student support center"
 - Create: `tests/e2e/student-support-center.spec.js`
 
 **Interfaces:**
-- Consumes API alert/case lists.
+- Consumes API alert/case lists and `searchScopedStudents`.
 - Produces tabs `overview`, `alerts`, `student`, `cases`, `observations`, `rules`, `reports`.
 
 - [ ] **Step 1: Write failing Playwright tests for protected route and 390px overflow**
@@ -513,19 +577,27 @@ await expect(page.getByRole('heading',{name:/Trung tâm Hỗ trợ Học sinh/i}
 
 At 390px, `document.documentElement.scrollWidth` must not exceed `clientWidth`.
 
-- [ ] **Step 2: Implement explicit loading/error/empty states and summary counts**
+- [ ] **Step 2: Add scoped global student search tests**
+
+Search must match authorized students by full name, student code, and class name. A subject teacher searching another unassigned class must receive no result. Selecting a result opens `tab=student` for that `student_ref`/workspace.
+
+- [ ] **Step 3: Implement search input with debounced scoped RPC**
+
+Minimum query length 2 characters for name search; exact student code may search immediately. Maximum 30 displayed results. Do not cache or display results after the user's auth/scope changes.
+
+- [ ] **Step 4: Implement explicit loading/error/empty states and summary counts**
 
 Counts are calculated from scoped rows only: monitored students, new alerts, active cases, follow-up due, resolved, closed.
 
-- [ ] **Step 3: Implement filters**
+- [ ] **Step 5: Implement alert filters**
 
 Grade, class, GVCN, subject teacher, alert type, case status, date range, overdue-only.
 
-- [ ] **Step 4: Use responsive cards below tablet width**
+- [ ] **Step 6: Use responsive cards below tablet width**
 
 Critical actions remain reachable without a wide table.
 
-- [ ] **Step 5: Build and run desktop/mobile E2E**
+- [ ] **Step 7: Build and run desktop/mobile E2E**
 
 ```bash
 npm run build
@@ -533,7 +605,7 @@ npx playwright test tests/e2e/student-support-center.spec.js --project=chromium-
 npx playwright test tests/e2e/student-support-center.spec.js --project=mobile-chromium
 ```
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
 git add src/pages/StudentSupportCenter.jsx src/pages/StudentSupportCenter.css src/components/studentSupport tests/e2e/student-support-center.spec.js
@@ -745,7 +817,7 @@ git commit -m "feat: add student support reporting"
 
 ---
 
-### Task 13: Integrate archive-first deletion with Data Governance
+### Task 13: Integrate archive-first deletion with existing Data Governance
 
 **Files:**
 - Create: `supabase/migrations/20260915093000_student_support_archive_governance.sql`
@@ -755,32 +827,39 @@ git commit -m "feat: add student support reporting"
 - Modify: `tests/e2e/student-support-center.spec.js`
 
 **Interfaces:**
-- Reuses existing `deleted_items(id,entity_type,entity_id,title,source_module,deleted_by,payload,restore_payload,status,expires_at,...)`.
+- Reuses existing `deleted_items` and existing Data Governance `restoreDeletedEntity`/`permanentlyDeleteEntity` behavior.
+- Produces RPC `bes_archive_student_support_case(uuid)` and deleted-item status trigger for Student Support.
 
 - [ ] **Step 1: Add test proving the public API exposes archive/restore but no ordinary hard-delete function**
 
-- [ ] **Step 2: Implement archive transaction/RPC**
+- [ ] **Step 2: Create atomic archive RPC**
 
-Archive sets `student_support_cases.archived_at`, writes event `CASE_ARCHIVED`, and inserts one `deleted_items` row:
+`bes_archive_student_support_case(p_case_id uuid)` must validate caller scope, set `student_support_cases.archived_at`, append `CASE_ARCHIVED`, insert one `deleted_items` row, and write an `audit_events` metadata record in one database transaction.
+
+Deleted item fields:
 
 ```text
 entity_type = student_support_case
 entity_id = <case uuid as text>
 source_module = student-support
-status = trashed
-payload = complete case/actions/notes/contact snapshot needed for governance review
-restore_payload = identifiers/state required to restore
+status = deleted
+payload = case snapshot plus child identifiers required for review
+restore_payload = { table: student_support_cases, row: <case row with archived_at null> }
 ```
 
-- [ ] **Step 3: Implement restore**
+Do not copy PRIVATE note bodies into the generic trash payload; dependent note/action rows remain in their RLS-protected source tables until final purge.
 
-Restore clears `archived_at`, restores active status from snapshot, marks `deleted_items.status='restored'`, and appends `CASE_RESTORED`.
+- [ ] **Step 3: Add deleted-item status trigger for restore/purge**
 
-- [ ] **Step 4: Keep permanent deletion Admin-only through existing Data Governance**
+When an existing `deleted_items` row with `entity_type='student_support_case'` changes to `status='restored'`, clear `archived_at` and append `CASE_RESTORED` if the case exists.
 
-No teacher-facing hard-delete button and no direct `delete from student_support_cases` call in React/API code.
+When it changes to `status='purged'`, require `public.is_admin()`; otherwise raise an exception. If Admin, delete the case row and let `on delete cascade` remove dependent Student Support rows. This makes the existing Data Governance permanent-delete action actually purge Student Support while keeping Admin-only authority.
 
-- [ ] **Step 5: Run archive/restore tests and commit**
+- [ ] **Step 4: Implement Student Support archive/restore UI**
+
+`archiveSupportCase` calls the archive RPC. `restoreSupportCase` locates the matching `deleted_items` record and uses the existing restore path; ordinary teachers never get a hard-delete action.
+
+- [ ] **Step 5: Run archive/restore/purge authorization tests and commit**
 
 ```bash
 npm run test:student-support
@@ -815,11 +894,15 @@ where schemaname='public' and tablename like 'student_support_%';
 
 Expected: every row `true`.
 
-- [ ] **Step 3: Run Supabase security/performance advisors**
+- [ ] **Step 3: Verify platform audit coverage**
+
+Create one test case/action/observation in development, then query `audit_events` for `source_module='student-support'`. Expected: action metadata exists while private note/family-contact bodies are absent.
+
+- [ ] **Step 4: Run Supabase security/performance advisors**
 
 Fix every new finding caused by Student Support before rollout.
 
-- [ ] **Step 4: Run focused release checks**
+- [ ] **Step 5: Run focused release checks**
 
 ```bash
 npm run verify:student-support
@@ -829,7 +912,7 @@ npx playwright test tests/e2e/student-support-center.spec.js --project=mobile-ch
 npx playwright test tests/e2e/student-support-center.spec.js --project=webkit-desktop
 ```
 
-- [ ] **Step 5: Run repository regression checks**
+- [ ] **Step 6: Run repository regression checks**
 
 ```bash
 npm test
@@ -838,7 +921,7 @@ npm run audit:budget
 npm run test:v11.6.7
 ```
 
-- [ ] **Step 6: Deploy migrations in exact order**
+- [ ] **Step 7: Deploy migrations in exact order**
 
 ```text
 20260915090000_student_support_core.sql
@@ -849,7 +932,7 @@ npm run test:v11.6.7
 
 Run read-only verification after each migration.
 
-- [ ] **Step 7: Production smoke test**
+- [ ] **Step 8: Production smoke test**
 
 Verify all of these facts:
 
@@ -858,17 +941,19 @@ Admin opens #/student-support.
 Unauthorized accounts receive AccessDenied.
 GVCN sees only owned homeroom scope.
 Department Head sees only teachers/classes in their department sync scope.
-Subject teacher can submit observation only for an assigned class.
+Subject teacher can search/submit observations only for assigned classes.
+Search by name/code/class never leaks an out-of-scope student.
 Student 360 reads Attendance/Gradebook without modifying them.
 3 absences in 14 days create one explainable alert; a fourth updates that alert.
 No alert automatically opens a case.
 No case automatically changes outcome.
 No family message sends automatically.
 No AI/model/API request occurs from any Student Support screen.
-Archive does not hard-delete immediately.
+Important mutations appear in Data Governance audit without sensitive note bodies.
+Archive does not hard-delete immediately; only Admin can finalize purge.
 ```
 
-- [ ] **Step 8: Commit final gate**
+- [ ] **Step 9: Commit final gate**
 
 ```bash
 git add scripts/verify-student-support.mjs tests/e2e/student-support-center.spec.js package.json
@@ -891,13 +976,15 @@ Each PR is independently reviewable and must not merge with failing focused test
 
 - Route, launcher, app visibility, and `route:student-support` permission work.
 - RLS enforces Admin/Department Head/GVCN/subject-teacher scope.
+- Global search finds students by name/code/class only inside authorized scope.
 - Student 360 composes existing source data without copying source records.
 - Rules are deterministic, explainable, and duplicate-safe.
 - Alert review never auto-opens a case.
 - Cases/actions/follow-up/notes/family-contact log/timeline work end to end.
+- Important mutations are visible in Data Governance audit without sensitive free-text leakage.
 - Private note visibility is enforced in Postgres.
 - Student/family portal receives no internal Student Support data in V1.
 - Aggregate exports omit private notes.
-- Archive-first deletion uses existing `deleted_items` governance.
+- Archive-first deletion integrates with existing `deleted_items`; only Admin can finalize Student Support purge.
 - `verify:student-support`, build, focused E2E, no-AI audit, smoke tests, and repository regression checks all pass.
 - Production smoke confirms zero AI/model/API calls from Student Support usage.
