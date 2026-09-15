@@ -56,6 +56,7 @@ test('Student Support has no horizontal page overflow at 390px', async ({ page }
 test('Student Support keeps the deterministic no-AI surface visible', async ({ page }) => {
   await openStudentSupport(page);
   await expect(page.getByText(/Không AI|No AI/i).first()).toBeVisible();
-  await expect(page.getByRole('button', { name: /Quy tắc|Rules/i })).toBeVisible();
-  await expect(page.getByRole('button', { name: /Báo cáo|Reports/i })).toBeVisible();
+  const studentSupportNav = page.getByLabel(/Khu vực Student Support|Student Support sections/i);
+  await expect(studentSupportNav.getByRole('button', { name: /Quy tắc|Rules/i })).toBeVisible();
+  await expect(studentSupportNav.getByRole('button', { name: /Báo cáo|Reports/i })).toBeVisible();
 });
