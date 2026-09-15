@@ -37,7 +37,7 @@ export async function loadStudent360Facts({ student = {}, workspaceId = '' } = {
       ? supabase.from('bes_homeroom_attendance').select('*').eq('workspace_id', resolvedWorkspace).eq('student_ref', studentRef).order('attendance_date', { ascending: false }).limit(120)
       : Promise.resolve({ data: [], error: null }),
     resolvedWorkspace
-      ? supabase.from('bes_homeroom_learning_records').select('*').eq('workspace_id', resolvedWorkspace).eq('student_ref', studentRef).order('record_date', { ascending: false }).limit(120)
+      ? supabase.from('bes_homeroom_learning_records').select('*').eq('workspace_id', resolvedWorkspace).eq('student_ref', studentRef).order('created_at', { ascending: false }).limit(120)
       : Promise.resolve({ data: [], error: null }),
     supabase.from('student_support_teacher_observations').select('*').eq('student_ref', studentRef).order('observation_date', { ascending: false }).limit(120),
     loadStudentSupportScope(),
@@ -64,7 +64,7 @@ export async function loadStudent360Facts({ student = {}, workspaceId = '' } = {
       source: 'homeroom',
     })),
     grades: (gradesResult.data || []).map((row) => ({
-      date: row.record_date || row.date || row.created_at || '',
+      date: row.created_at || row.updated_at || '',
       score: Number(row.score ?? row.value ?? row.grade),
       subject: row.subject || '',
       assessmentType: row.assessment_type || row.type || '',
