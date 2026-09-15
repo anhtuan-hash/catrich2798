@@ -37,8 +37,8 @@ assert.match(bootstrap, /button\.style\.setProperty\('--star-energy', String\(en
 assert.match(bootstrap, /button\.addEventListener\('pointermove', onStarPointerMove\)/);
 assert.match(bootstrap, /button\.addEventListener\('pointerleave', onLeave\)/);
 assert.match(bootstrap, /button\.addEventListener\('focus', onFocus\)/);
-assert.match(bootstrap, /button\.removeEventListener\('pointermove', onStarPointerMove\)/);
-assert.match(bootstrap, /effect\.remove\(\)/);
+assert.match(bootstrap, /button\.removeEventListener\('pointermove', binding\.onStarPointerMove\)/);
+assert.match(bootstrap, /binding\.effect\.remove\(\)/);
 assert.doesNotMatch(bootstrap, /document\.createElement\('canvas'\)/, 'Navigation Star effect must not create one canvas loop per button');
 
 // Existing semantic tabs remain discoverable even when permissions hide/reorder them.
