@@ -4,18 +4,14 @@ import fs from 'node:fs';
 const component = fs.readFileSync(new URL('../src/components/GlobalCompactNavigation.jsx', import.meta.url), 'utf8');
 const css = fs.readFileSync(new URL('../src/components/GlobalCompactNavigation.css', import.meta.url), 'utf8');
 
-assert.match(component, /brian-nav__item brian-nav__item--home/);
-assert.match(component, /brian-nav__item brian-nav__item--apps/);
-assert.match(component, /brian-nav__item brian-nav__item--admin/);
-
 assert.match(css, /background:\s*var\(--nav-item-bg,\s*transparent\)/);
-assert.match(css, /background:\s*var\(--nav-item-hover-bg,\s*var\(--nav-hover\)\)/);
-assert.match(css, /background:\s*var\(--nav-item-active-bg,\s*var\(--nav-active-bg\)\)/);
-assert.match(css, /color:\s*var\(--nav-item-text,\s*#41464d\)/);
-assert.match(css, /color:\s*var\(--nav-item-active-text,\s*var\(--nav-active-text\)\)/);
+assert.match(css, /background:\s*var\(--nav-item-hover-bg,\s*var\(--brian-nav-soft\)\)/);
+assert.match(css, /background:\s*var\(--nav-item-active-bg,\s*var\(--brian-nav-soft\)\)/);
+assert.match(css, /color:\s*var\(--nav-item-text,\s*var\(--brian-nav-muted\)\)/);
+assert.match(css, /color:\s*var\(--nav-item-active-text,\s*var\(--brian-nav-ink\)\)/);
 
-function selectorBody(name) {
-  const match = css.match(new RegExp(`\\.brian-nav__item--${name}\\s*\\{([^}]*)\\}`, 's'));
+function selectorBody(position, name) {
+  const match = css.match(new RegExp(`\\.brian-nav__primary\\s*>\\s*button:nth-of-type\\(${position}\\)\\s*\\{([^}]*)\\}`, 's'));
   assert.ok(match, `Missing pastel palette for ${name}`);
   return match[1];
 }
@@ -40,8 +36,14 @@ function contrast(a, b) {
   return (lighter + 0.05) / (darker + 0.05);
 }
 
-const palettes = ['home', 'apps', 'admin'].map((name) => {
-  const body = selectorBody(name);
+const definitions = [
+  [1, 'home'],
+  [2, 'apps'],
+  [3, 'admin'],
+];
+
+const palettes = definitions.map(([position, name]) => {
+  const body = selectorBody(position, name);
   const palette = {
     name,
     bg: readHex(body, '--nav-item-bg'),
@@ -60,9 +62,11 @@ const palettes = ['home', 'apps', 'admin'].map((name) => {
 assert.equal(new Set(palettes.map(({ bg }) => bg)).size, 3, 'Each primary navigation button must have a distinct pastel background');
 assert.equal(new Set(palettes.map(({ activeBg }) => activeBg)).size, 3, 'Each primary navigation button must have a distinct active background');
 
-assert.match(css, /\.brian-nav :is\(button, input, a\):focus-visible\s*\{[^}]*outline:\s*2px solid var\(--nav-focus\)/s);
-assert.match(component, /location\.pathname === '\/' \? 'is-active' : ''/);
-assert.match(component, /isAppsActive \? 'is-active' : ''/);
-assert.match(component, /isAdminActive \? 'is-active' : ''/);
+assert.match(css, /\.brian-nav button:focus-visible,\s*\.brian-chatbot-fab:focus-visible\s*\{[^}]*outline:\s*3px solid/s);
+assert.match(component, /route === 'home' \? 'is-active' : ''/);
+assert.match(component, /route === 'apps' \? 'is-active' : ''/);
+assert.match(component, /route === 'admin' \? 'is-active' : ''/);
+assert.match(component, /canShowApps \? <button/);
+assert.match(component, /isAdmin \? <button/);
 
-console.log('✓ Global navigation uses three distinct accessible pastel palettes without changing active-state logic.');
+console.log('✓ Global navigation uses three distinct accessible pastel palettes without changing route or permission logic.');
