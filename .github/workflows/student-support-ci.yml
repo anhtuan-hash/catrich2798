@@ -11,6 +11,7 @@ on:
       - 'src/main.jsx'
       - 'supabase/migrations/*student_support*'
       - 'tests/unit/student-support-*.test.mjs'
+      - 'tests/css-loader.mjs'
       - 'scripts/verify-student-support.mjs'
       - '.github/workflows/student-support-ci.yml'
   workflow_dispatch:
@@ -40,7 +41,7 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Run Student Support unit tests
-        run: node --test tests/unit/student-support-*.test.mjs
+        run: node --experimental-loader ./tests/css-loader.mjs --test tests/unit/student-support-*.test.mjs
 
       - name: Verify route, permission and no-AI contract
         run: node scripts/verify-student-support.mjs
