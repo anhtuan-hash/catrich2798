@@ -104,6 +104,7 @@ const ContentTransferHub = lazy(() => import('./components/ContentTransferHub.js
 const TransferInboxBanner = lazy(() => import('./components/TransferInboxBanner.jsx'));
 const SyncQueueIndicator = lazy(() => import('./components/SyncQueueIndicator.jsx'));
 const WorkDashboard = lazy(() => import('./pages/WorkDashboard.jsx'));
+const StudentSupportCenter = lazy(() => import('./pages/StudentSupportCenter.jsx'));
 const KnowledgeHub = lazy(() => import('./pages/KnowledgeHub.jsx'));
 const PlatformReadiness = lazy(() => import('./pages/PlatformReadiness.jsx'));
 const CloudOperations = lazy(() => import('./pages/CloudOperations.jsx'));
@@ -113,7 +114,7 @@ const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAcces
 const PwaUpdateBanner = lazy(() => import('./components/PwaUpdateBanner.jsx'));
 const HiddenAppsVault = lazy(() => import('./pages/HiddenAppsVault.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
+const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal']);
 
 function getInitialRoute() {
@@ -142,6 +143,7 @@ const ROUTE_DESIGN_PROFILES = {
   'resource-library': { accent: '#2878D0', soft: '#E7F2FF', ink: '#0D2947' },
   'knowledge-hub': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
   dashboard: { accent: '#315FC4', soft: '#EAF3FF', ink: '#10264A' },
+  'student-support': { accent: '#2F8F76', soft: '#E5F7F0', ink: '#173B31' },
   'platform-readiness': { accent: '#0F766E', soft: '#DFF7F4', ink: '#0C3B38' },
   'cloud-operations': { accent: '#167B68', soft: '#E4F6EF', ink: '#183F3C' },
   'data-governance': { accent: '#A24B35', soft: '#FFF0E8', ink: '#4A1E14' },
@@ -384,6 +386,7 @@ function App() {
       homeroom: ['Homeroom', 'Giáo viên chủ nhiệm'], library: ['Library', 'Thư viện'],
       'resource-library': ['Resource Library', 'Kho học liệu'], 'knowledge-hub': ['Smart Knowledge Library', 'Kho học liệu thông minh'],
       dashboard: ['Work Dashboard', 'Bảng điều hành'],
+      'student-support': ['Student Support Center', 'Trung tâm Hỗ trợ Học sinh'],
       'work-hub': ['Unified Work Hub', 'Trung tâm công việc'], 
       'platform-readiness': ['Platform Readiness', 'Sẵn sàng nền tảng'],
       
@@ -494,6 +497,7 @@ function App() {
             {canAccessRoute && currentRoute === 'resource-library' && currentUser && <ResourceLibrary {...context} />}
             {canAccessRoute && currentRoute === 'knowledge-hub' && currentUser && <KnowledgeHub {...context} />}
             {canAccessRoute && currentRoute === 'dashboard' && currentUser && <WorkDashboard {...context} />}
+            {canAccessRoute && currentRoute === 'student-support' && currentUser && <StudentSupportCenter {...context} />}
             {canAccessRoute && currentRoute === 'platform-readiness' && currentUser && <PlatformReadiness {...context} />}
             {canAccessRoute && currentRoute === 'cloud-operations' && currentUser && <CloudOperations {...context} />}
             {canAccessRoute && currentRoute === 'data-governance' && currentUser && <DataGovernance {...context} />}
