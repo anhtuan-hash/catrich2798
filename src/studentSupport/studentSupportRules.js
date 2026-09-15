@@ -2,6 +2,7 @@ import { STUDENT_SUPPORT_RULE_TYPES } from './studentSupportConstants.js';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const RULE_TYPES = new Set(STUDENT_SUPPORT_RULE_TYPES);
+const ABSENT_SOURCE_STATUSES = new Set(['absent', 'unexcused', 'excused', 'absent_one_period', 'absent_two_periods']);
 
 function text(value) {
   return String(value ?? '').trim();
@@ -68,6 +69,11 @@ function sortChronological(items = []) {
   });
 }
 
+function normalizeAttendanceStatus(value) {
+  const status = text(value).toLowerCase();
+  return ABSENT_SOURCE_STATUSES.has(status) ? 'absent' : status;
+}
+
 function baseResult(rule, overrides = {}) {
   return {
     triggered: false,
@@ -85,11 +91,11 @@ function evaluateAttendanceCount(rule, facts, now) {
   const config = rule?.config || {};
   const threshold = clampInteger(config.threshold, 1, 1, 1000);
   const days = clampInteger(config.days, 14, 1, 3650);
-  const expectedStatus = text(config.status).toLowerCase();
+  const expectedStatus = normalizeAttendanceStatus(config.status);
   const window = rollingWindow(now, days);
   const matches = (facts?.attendance || []).filter((item) => (
     inWindow(item?.date ?? item?.attendanceDate, window)
-    && (!expectedStatus || text(item?.status).toLowerCase() === expectedStatus)
+    && (!expectedStatus || normalizeAttendanceStatus(item?.status) === expectedStatus)
   ));
   return baseResult(rule, {
     triggered: matches.length >= threshold,
