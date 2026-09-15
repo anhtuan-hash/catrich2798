@@ -21,5 +21,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Validate JavaScript syntax
+        run: |
+          node --check src/studentPermanentDeleteRuntime.js
+          node --check src/assignedSchoolClassBootstrap.js
+          node --check src/utils/permanentStudentDeletion.js
+          node --check scripts/test-student-permanent-deletion.mjs
       - name: Run permanent-delete regression test
         run: node scripts/test-student-permanent-deletion.mjs
