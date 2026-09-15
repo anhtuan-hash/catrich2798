@@ -276,6 +276,9 @@ async function syncAssignedSchoolClassWorkspacesInternal(user, options = {}) {
           students: filterPermanentlyDeletedStudents(reconciledBase.students, durableTombstones),
         }
       : reconciledBase;
+    const reconciledActiveStudentCount = (reconciled.students || []).filter((student) => (
+      student?.active !== false && !isDeletedAssignedStudent(student)
+    )).length;
     const next = normalizeHomeroomWorkspace({
       ...reconciled,
       id: workspaceId,
@@ -292,7 +295,7 @@ async function syncAssignedSchoolClassWorkspacesInternal(user, options = {}) {
         adviserName: text(user?.name || user?.email),
         adviserEmail: text(user?.email),
         studentCountTarget: durableTombstones.length
-          ? effectiveActiveStudentCount
+          ? reconciledActiveStudentCount
           : (item.activeStudentCount || item.expectedCount),
       },
       schoolAssignment: {
