@@ -5,6 +5,15 @@ function clean(value) {
   return String(value || '').trim();
 }
 
+export function isMissingStudentSupportSourceError(error) {
+  const code = clean(error?.code).toUpperCase();
+  const message = clean(error?.message || error).toLowerCase();
+  const isMissingCode = code === '42P01' || code === 'PGRST205' || code === 'PGRST202';
+  const referencesStudentSupport = message.includes('student_support_');
+  const missingMessage = /does not exist|could not find|schema cache/.test(message);
+  return referencesStudentSupport && (isMissingCode || missingMessage);
+}
+
 export async function searchScopedStudents(query, limit = 30) {
   if (!supabase) throw new Error('Supabase chưa được cấu hình.');
   const p_query = clean(query);
@@ -43,8 +52,10 @@ export async function loadStudent360Facts({ student = {}, workspaceId = '' } = {
     loadStudentSupportScope(),
   ]);
 
-  for (const result of [attendanceResult, gradesResult, observationsResult]) {
-    if (result?.error) throw result.error;
+  if (attendanceResult?.error) throw attendanceResult.error;
+  if (gradesResult?.error) throw gradesResult.error;
+  if (observationsResult?.error && !isMissingStudentSupportSourceError(observationsResult.error)) {
+    throw observationsResult.error;
   }
 
   return {
@@ -70,7 +81,7 @@ export async function loadStudent360Facts({ student = {}, workspaceId = '' } = {
       assessmentType: row.assessment_type || row.type || '',
       source: 'homeroom',
     })).filter((row) => Number.isFinite(row.score)),
-    observations: observationsResult.data || [],
+    observations: observationsResult.error ? [] : (observationsResult.data || []),
     assignmentScope: scope,
   };
 }
