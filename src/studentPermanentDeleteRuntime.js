@@ -12,6 +12,7 @@ import {
   schoolClassRegistryStorageKey,
 } from './utils/schoolClassRegistry.js';
 import { isSupabaseConfigured, supabase } from './utils/supabase.js';
+import { mergePermanentStudentTombstones } from './utils/permanentStudentDeletion.js';
 
 const PANEL_CLASS = 'bes-permanent-delete-mode';
 const TOOLBAR_CLASS = 'bes-permanent-delete-toolbar';
@@ -115,7 +116,7 @@ function purgeReferences(value, ids) {
   return output;
 }
 
-function buildCleanWorkspace(workspace, ids, user) {
+function buildCleanWorkspace(workspace, ids, user, removedStudents = []) {
   const now = new Date().toISOString();
   const cleaned = purgeReferences(workspace, ids);
   const auditEntry = {
@@ -133,6 +134,11 @@ function buildCleanWorkspace(workspace, ids, user) {
     students: (workspace.students || []).filter((student) => !ids.has(student.id)),
     backups: purgeReferences(workspace.backups || [], ids),
     studentDeletionAudit: (workspace.studentDeletionAudit || []).filter((item) => !ids.has(item.studentId)),
+    studentPermanentDeletionTombstones: mergePermanentStudentTombstones(
+      workspace.studentPermanentDeletionTombstones || [],
+      removedStudents,
+      now,
+    ),
     studentPermanentDeletionAudit: [
       ...(workspace.studentPermanentDeletionAudit || []),
       {
@@ -357,7 +363,7 @@ async function permanentlyDelete(panel, requestedIds = null) {
     if (!removedStudents.length) throw new Error('Danh sách đã thay đổi. Không còn học sinh phù hợp để xóa.');
 
     const ids = new Set(removedStudents.map((student) => student.id));
-    const cleaned = buildCleanWorkspace(workspace, ids, user);
+    const cleaned = buildCleanWorkspace(workspace, ids, user, removedStudents);
     const registry = prepareRegistryRemoval(user, workspace, removedStudents);
 
     persistTombstones(user, workspace, removedStudents);
