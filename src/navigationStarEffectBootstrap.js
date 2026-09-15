@@ -2,6 +2,7 @@ import './components/GlobalNavigationStarEffect.css';
 
 const RUNTIME_FLAG = '__BES_NAV_STAR_EFFECT_V1__';
 const PRIMARY_NAV_SELECTOR = '.brian-nav__primary > button';
+const PRIMARY_NAV_CONTAINER_SELECTOR = '.brian-nav__primary';
 const NAV_LABEL_KEYS = new Map([
   ['Trang chủ', 'home'],
   ['Home', 'home'],
@@ -185,6 +186,19 @@ function scheduleScan() {
   scanFrame = window.requestAnimationFrame(scanNavigation);
 }
 
+function isNavigationMutationNode(node) {
+  if (!(node instanceof Element)) return false;
+  if (node.matches(PRIMARY_NAV_CONTAINER_SELECTOR) || node.matches(PRIMARY_NAV_SELECTOR)) return true;
+  return Boolean(node.querySelector(PRIMARY_NAV_CONTAINER_SELECTOR) || node.querySelector(PRIMARY_NAV_SELECTOR));
+}
+
+function shouldRescanNavigation(mutations) {
+  return mutations.some((mutation) => {
+    const changedNodes = [...mutation.addedNodes, ...mutation.removedNodes];
+    return changedNodes.some(isNavigationMutationNode);
+  });
+}
+
 function installNavigationStarEffect() {
   if (typeof window === 'undefined' || window[RUNTIME_FLAG]) return;
   window[RUNTIME_FLAG] = true;
@@ -193,7 +207,9 @@ function installNavigationStarEffect() {
     scanNavigation();
     const root = document.getElementById('root') || document.body;
     if (root && typeof MutationObserver !== 'undefined') {
-      rootObserver = new MutationObserver(scheduleScan);
+      rootObserver = new MutationObserver((mutations) => {
+        if (shouldRescanNavigation(mutations)) scheduleScan();
+      });
       rootObserver.observe(root, { childList: true, subtree: true });
     }
   };
