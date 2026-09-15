@@ -1,8 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  PRESENTATION_OVERRIDE_EVENT,
+  PRESENTATION_OVERRIDE_STORAGE_KEY,
   readPresentationOverride,
+  readStoredPresentationOverride,
   resolvePresentationMode,
+  writePresentationOverride,
 } from '../../src/device/presentationMode.js';
 
 const base = {
@@ -111,4 +115,39 @@ test('developer override is accepted only when enabled', () => {
   assert.equal(readPresentationOverride('?besPresentation=mobile', true), 'mobile');
   assert.equal(readPresentationOverride('?besPresentation=desktop', true), 'desktop');
   assert.equal(readPresentationOverride('?besPresentation=mobile', false), null);
+});
+
+test('stored presentation override can force desktop hardware into mobile mode', () => {
+  const values = new Map();
+  const storage = {
+    getItem(key) { return values.has(key) ? values.get(key) : null; },
+    setItem(key, value) { values.set(key, String(value)); },
+    removeItem(key) { values.delete(key); },
+  };
+  const events = [];
+  class MockCustomEvent {
+    constructor(type, init = {}) {
+      this.type = type;
+      this.detail = init.detail;
+    }
+  }
+  const windowLike = {
+    localStorage: storage,
+    CustomEvent: MockCustomEvent,
+    dispatchEvent(event) { events.push(event); return true; },
+  };
+
+  assert.equal(readStoredPresentationOverride(storage), null);
+  assert.equal(writePresentationOverride('mobile', windowLike), 'mobile');
+  assert.equal(storage.getItem(PRESENTATION_OVERRIDE_STORAGE_KEY), 'mobile');
+  assert.equal(readStoredPresentationOverride(storage), 'mobile');
+  assert.equal(events.at(-1)?.type, PRESENTATION_OVERRIDE_EVENT);
+  assert.deepEqual(events.at(-1)?.detail, { value: 'mobile' });
+  assert.equal(resolvePresentationMode(base, readStoredPresentationOverride(storage)).presentationMode, 'mobile');
+
+  writePresentationOverride(null, windowLike);
+  assert.equal(storage.getItem(PRESENTATION_OVERRIDE_STORAGE_KEY), null);
+  assert.equal(readStoredPresentationOverride(storage), null);
+  assert.deepEqual(events.at(-1)?.detail, { value: null });
+  assert.equal(resolvePresentationMode(base, null).presentationMode, 'desktop');
 });
