@@ -10,6 +10,7 @@ import {
   transitionSupportCase,
   updateSupportAction,
 } from '../../studentSupport/studentSupportApi.js';
+import { archiveSupportCase } from '../../studentSupport/studentSupportArchive.js';
 import {
   listCaseActions,
   listCaseEvents,
@@ -68,8 +69,8 @@ export default function StudentSupportCaseManager({
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  const visibleCases = useMemo(() => cases.filter((row) => !filterStatus || row.status === filterStatus), [cases, filterStatus]);
-  const selectedCase = useMemo(() => cases.find((row) => row.id === selectedId) || null, [cases, selectedId]);
+  const visibleCases = useMemo(() => cases.filter((row) => !row.archived_at && (!filterStatus || row.status === filterStatus)), [cases, filterStatus]);
+  const selectedCase = useMemo(() => cases.find((row) => row.id === selectedId && !row.archived_at) || null, [cases, selectedId]);
 
   useEffect(() => {
     if (!studentRef || !workspaceId) {
@@ -84,7 +85,7 @@ export default function StudentSupportCaseManager({
   }, [studentRef, workspaceId]);
 
   useEffect(() => {
-    if (selectedId && !cases.some((row) => row.id === selectedId)) setSelectedId('');
+    if (selectedId && !cases.some((row) => row.id === selectedId && !row.archived_at)) setSelectedId('');
   }, [cases, selectedId]);
 
   useEffect(() => {
@@ -152,6 +153,19 @@ export default function StudentSupportCaseManager({
       const row = await transitionSupportCase(selectedCase.id, nextStatus, currentUser);
       onCaseUpdated?.(row);
       setMessage(vi ? 'Đã cập nhật trạng thái hồ sơ.' : 'Case status updated.');
+    } catch (nextError) { setError(nextError?.message || String(nextError)); }
+    finally { setBusy(''); }
+  }
+
+  async function archiveCase() {
+    if (!selectedCase || !guardWrite()) return;
+    if (!window.confirm(vi ? 'Đưa hồ sơ này vào Quản trị dữ liệu? Có thể khôi phục sau.' : 'Archive this case to Data Governance? It can be restored later.')) return;
+    setBusy('archive');
+    try {
+      const row = await archiveSupportCase(selectedCase.id, currentUser);
+      onCaseUpdated?.(row);
+      setSelectedId('');
+      setMessage(vi ? 'Đã lưu trữ hồ sơ. Khôi phục tại Quản trị dữ liệu.' : 'Case archived. Restore it from Data Governance.');
     } catch (nextError) { setError(nextError?.message || String(nextError)); }
     finally { setBusy(''); }
   }
@@ -230,7 +244,7 @@ export default function StudentSupportCaseManager({
       <div className="student-support-case-layout">
         <aside className="student-support-case-list">
           <div className="student-support-case-list-head">
-            <div><strong>{vi ? 'Hồ sơ hỗ trợ' : 'Support cases'}</strong><span>{cases.length}</span></div>
+            <div><strong>{vi ? 'Hồ sơ hỗ trợ' : 'Support cases'}</strong><span>{visibleCases.length}</span></div>
             <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
               <option value="">{vi ? 'Tất cả trạng thái' : 'All statuses'}</option>
               {Object.keys(CASE_TRANSITIONS).map((status) => <option key={status} value={status}>{status}</option>)}
@@ -270,6 +284,7 @@ export default function StudentSupportCaseManager({
                 <div><span>{selectedCase.status}</span><h2>{selectedCase.title}</h2><p>{[selectedCase.category, selectedCase.source_class_name, selectedCase.school_year].filter(Boolean).join(' · ')}</p></div>
                 <div className="student-support-case-transitions">
                   {(CASE_TRANSITIONS[selectedCase.status] || []).map((status) => <button key={status} type="button" disabled={busy === 'status' || databasePending} onClick={() => changeCaseStatus(status)}>{status}</button>)}
+                  <button type="button" className="danger" disabled={busy === 'archive' || databasePending} onClick={archiveCase}>{vi ? 'Lưu trữ' : 'Archive'}</button>
                 </div>
               </header>
 
