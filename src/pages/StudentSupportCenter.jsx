@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import './StudentSupportCenter.css';
 import StudentSupportOverview from '../components/studentSupport/StudentSupportOverview.jsx';
 import StudentSupportAlertQueue from '../components/studentSupport/StudentSupportAlertQueue.jsx';
+import StudentSupportStudentProfile from '../components/studentSupport/StudentSupportStudentProfile.jsx';
 import { listSupportAlerts, listSupportCases } from '../studentSupport/studentSupportApi.js';
 import { buildStudentSupportHash, parseStudentSupportHash } from '../studentSupport/studentSupportIdentity.js';
 import { searchScopedStudents } from '../studentSupport/studentSupportSources.js';
@@ -175,12 +176,13 @@ export default function StudentSupportCenter({ language = 'vi' }) {
       ) : null}
 
       {!loading && !error && activeTab === 'student' ? (
-        <section className="student-support-state-card">
-          <strong>{routeState.studentRef || (vi ? 'Chưa chọn học sinh' : 'No student selected')}</strong>
-          <p>{routeState.studentRef
-            ? (vi ? 'Student 360 sẽ hiển thị chuyên cần, điểm, ghi nhận, cảnh báo và lịch sử hỗ trợ ở Task 8.' : 'Student 360 will show attendance, grades, observations, alerts and support history in Task 8.')
-            : (vi ? 'Dùng ô tìm kiếm phía trên để mở hồ sơ học sinh.' : 'Use the search above to open a student profile.')}</p>
-        </section>
+        <StudentSupportStudentProfile
+          studentRef={routeState.studentRef}
+          workspaceId={routeState.workspaceId}
+          alerts={alerts}
+          cases={cases}
+          language={language}
+        />
       ) : null}
 
       {!loading && !error && ['cases', 'observations', 'rules', 'reports'].includes(activeTab) ? (
