@@ -24,12 +24,14 @@ assert.match(bridge, /attendance-rollcall-head[\s\S]{0,1000}h2/, 'The bridge mus
 assert.match(bridge, /attendance-session-controls[\s\S]{0,1000}type\s*=\s*['"]date['"]/, 'The bridge must provide the attendance-date metadata expected by the existing editor.');
 assert.match(bridge, /bes_extra_attendance_sessions/, 'Extra-class History must resolve the concrete session from the attendance backend.');
 assert.match(bridge, /bes_list_supplemental_history/, 'Supplemental History must resolve the concrete supplemental session from the shared history RPC.');
-assert.match(bridge, /bes-post-confirm-notice[\s\S]{0,1200}is-success|is-success[\s\S]{0,1200}bes-post-confirm-notice/, 'The bridge must detect a successful correction and refresh the visible History detail.');
+assert.match(bridge, /addEventListener\(['"]attendance:saved['"]/, 'The History bridge must refresh from the editor save event instead of scraping transient notice DOM.');
 assert.match(bridge, /\.ahv3__items\s*>\s*button\.is-selected|ahv3__items[^\n]+is-selected/, 'After a correction, the bridge must reload the selected History row so record details are fresh.');
 
 assert.match(editor, /supplemental/, 'The existing post-confirm editor must recognize supplemental sessions.');
 assert.match(editor, /besAttendanceSource|bes-attendance-source/, 'The editor must read the rollcall source discriminator.');
 assert.match(editor, /besAttendanceSessionId|bes-attendance-session-id/, 'The editor must read the supplemental session id directly.');
+assert.match(editor, /\.eq\(['"]id['"],\s*context\.sessionId\)/, 'Extra-class History editing must resolve the exact selected session id when the bridge provides one.');
+assert.match(editor, /CustomEvent\(['"]attendance:saved['"]/, 'A successful post-confirm correction must broadcast attendance:saved so History refreshes deterministically.');
 assert.match(editor, /getSupplementalAttendanceEditSnapshot/, 'The editor must load a normalized supplemental edit snapshot through the supplemental API.');
 assert.match(editor, /updateSupplementalAttendanceSession/, 'The editor must save supplemental corrections through the supplemental API.');
 assert.match(editor, /tardy[\s\S]{0,500}late|late[\s\S]{0,500}tardy/, 'The editor must normalize database tardy status to the shared UI late status.');
