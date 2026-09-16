@@ -116,6 +116,63 @@
   opacity: max(var(--star-energy, .18), .34);
 }
 
+/* Keep the action rail, including the 64px Star, visually separate from the
+   primary rail. The doubled .brian-nav selector intentionally outranks the
+   historical final-navigation authority that is injected later at runtime. */
+html body #root .app-shell[data-route] .brian-nav.brian-nav .brian-nav__actions {
+  position: relative !important;
+  z-index: 4 !important;
+  isolation: isolate !important;
+}
+
+/* On common laptop/desktop widths the fixed-size primary tabs can otherwise
+   overflow their minmax grid track and paint underneath the Star action.
+   Compact the rail early, without hiding destinations or shrinking the Star. */
+@media (max-width: 1600px) and (min-width: 1281px) {
+  html body #root .app-shell[data-route] .brian-nav.brian-nav .brian-nav__brand {
+    gap: 6px !important;
+    padding-right: 10px !important;
+  }
+
+  html body #root .app-shell[data-route] .brian-nav.brian-nav .brian-nav__primary {
+    gap: 2px !important;
+  }
+
+  html body #root .app-shell[data-route] .brian-nav.brian-nav .brian-nav__primary > :is(button,a,[role='button']) {
+    padding: 0 7px 0 27px !important;
+    font-size: 11.5px !important;
+  }
+
+  html body #root .app-shell[data-route] .brian-nav.brian-nav .brian-nav__primary > :is(
+    button:not([class*='brian-nav__']):first-of-type,
+    button:not([class*='brian-nav__']):nth-of-type(2),
+    .brian-nav__dashboard-tab,
+    .brian-nav__homeroom-tab,
+    .brian-nav__gradebook-tab,
+    .brian-nav__reports-tab
+  )::before {
+    left: 8px !important;
+    width: 13px !important;
+    min-width: 13px !important;
+    height: 13px !important;
+    min-height: 13px !important;
+  }
+
+  html body #root .app-shell[data-route] .brian-nav.brian-nav .brian-nav__primary > .brian-nav__ttcm-tab {
+    padding: 0 7px !important;
+  }
+
+  html body #root .app-shell[data-route] .brian-nav.brian-nav .brian-nav__primary > .brian-nav__reports-tab.shows-countdown {
+    min-width: 68px !important;
+    padding: 3px 6px !important;
+  }
+
+  html body #root .app-shell[data-route] .brian-nav.brian-nav .brian-nav__account strong,
+  html body #root .app-shell[data-route] .brian-nav.brian-nav .brian-nav__account-name {
+    max-width: 70px !important;
+  }
+}
+
 @keyframes brian-nav-star-breathe {
   0%, 100% { transform: scale(1.01); }
   50% { transform: scale(1.055); }
