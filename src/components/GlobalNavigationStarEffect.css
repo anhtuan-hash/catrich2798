@@ -1,5 +1,5 @@
 /* Brian English · Star-inspired interaction for the desktop primary nav.
-   Idle state is intentionally static; motion only runs during direct interaction. */
+   Idle state is intentionally static; motion only runs during recent direct interaction. */
 
 .brian-nav__primary > button[data-brian-star-fx='true'] {
   --star-x: 50%;
@@ -86,15 +86,27 @@
   animation-delay: -920ms;
 }
 
-.brian-nav__primary > button[data-brian-star-fx='true'][data-star-active='true'] .brian-nav-star-effect__aura,
+/* Hover/focus retain the visual highlight without an always-running keyframe loop. */
+.brian-nav__primary > button[data-brian-star-fx='true']:hover .brian-nav-star-effect__aura,
 .brian-nav__primary > button[data-brian-star-fx='true']:focus-visible .brian-nav-star-effect__aura {
+  opacity: max(var(--star-energy, .18), .34);
+  transform: scale(1.02);
+  filter: saturate(1.08) brightness(1.02);
+}
+
+.brian-nav__primary > button[data-brian-star-fx='true']:hover .brian-nav-star-effect__sparkle,
+.brian-nav__primary > button[data-brian-star-fx='true']:focus-visible .brian-nav-star-effect__sparkle {
+  opacity: .34;
+}
+
+/* JS enables these keyframes only for a short burst after actual interaction. */
+.brian-nav__primary > button[data-brian-star-fx='true'][data-star-active='true'] .brian-nav-star-effect__aura {
   transform: scale(1.055);
   filter: saturate(1.12) brightness(1.035);
   animation: brian-nav-star-breathe 1.8s ease-in-out infinite;
 }
 
-.brian-nav__primary > button[data-brian-star-fx='true'][data-star-active='true'] .brian-nav-star-effect__sparkle,
-.brian-nav__primary > button[data-brian-star-fx='true']:focus-visible .brian-nav-star-effect__sparkle {
+.brian-nav__primary > button[data-brian-star-fx='true'][data-star-active='true'] .brian-nav-star-effect__sparkle {
   opacity: .88;
   animation: brian-nav-star-twinkle 1.26s ease-in-out infinite;
 }
