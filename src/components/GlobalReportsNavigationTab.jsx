@@ -18,9 +18,9 @@ function compactCountdown(state, language) {
   const minutes = Math.floor(totalMs / 60000);
   const seconds = Math.floor(totalMs / 1000);
 
-  if (days > 0) return language === 'vi' ? `${days}n` : `${days}d`;
-  if (hours > 0) return language === 'vi' ? `${hours}g` : `${hours}h`;
-  if (minutes > 0) return language === 'vi' ? `${minutes}p` : `${minutes}m`;
+  if (days > 0) return language === 'vi' ? `${days} ngày` : `${days}d`;
+  if (hours > 0) return language === 'vi' ? `${hours} giờ` : `${hours}h`;
+  if (minutes > 0) return language === 'vi' ? `${minutes} phút` : `${minutes}m`;
   return `${Math.max(0, seconds)}s`;
 }
 

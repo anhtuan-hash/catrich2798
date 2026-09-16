@@ -66,7 +66,7 @@
   z-index: 1;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 7px;
   min-width: 0;
   margin-left: .3em;
   transform: translate3d(0, 0, 0);
@@ -80,12 +80,24 @@
 }
 
 .brian-nav__reports-countdown {
-  display: block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
   min-width: max-content;
-  padding-left: 4px;
-  border-left: 1px solid rgba(255,255,255,.34);
-  color: rgba(255,255,255,.84);
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid rgba(176, 121, 12, .24);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffeba9 0%, #ffd86f 100%);
+  color: #684900;
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 900;
   line-height: 1;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .72),
+    0 2px 6px rgba(178, 127, 25, .16);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .42);
 }
