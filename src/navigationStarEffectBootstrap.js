@@ -33,9 +33,11 @@ function resolveNavKey(button) {
   return NAV_LABEL_KEYS.get(label) || 'nav';
 }
 
-function centerEffect(button, energy = .18) {
-  const x = Math.max(0, button.offsetWidth / 2);
-  const y = Math.max(0, button.offsetHeight / 2);
+function centerEffect(button, energy = .18, rect = null) {
+  const width = rect?.width ?? button.offsetWidth;
+  const height = rect?.height ?? button.offsetHeight;
+  const x = Math.max(0, width / 2);
+  const y = Math.max(0, height / 2);
   button.style.setProperty('--star-x', `${x}px`);
   button.style.setProperty('--star-y', `${y}px`);
   button.style.setProperty('--star-energy', String(energy));
@@ -76,6 +78,7 @@ function releaseButton(button) {
   button.removeEventListener('blur', binding.onLeave);
   button.removeEventListener('pointerdown', binding.onPointerDown);
   button.removeEventListener('pointerup', binding.onPointerUp);
+  binding.cancelPending();
 
   binding.effect.remove();
   button.removeAttribute('data-brian-star-fx');
@@ -94,6 +97,9 @@ function bindButton(button) {
   button.dataset.brianStarFx = 'true';
   centerEffect(button);
 
+  let cachedRect = null;
+  let pointerFrame = 0;
+  let pendingPointer = null;
   let lastX = button.offsetWidth / 2;
   let lastY = button.offsetHeight / 2;
   let lastAt = performance.now();
@@ -103,12 +109,21 @@ function bindButton(button) {
     else button.removeAttribute('data-star-active');
   };
 
-  const onStarPointerMove = (event) => {
-    const rect = button.getBoundingClientRect();
-    const x = Math.max(0, Math.min(rect.width, event.clientX - rect.left));
-    const y = Math.max(0, Math.min(rect.height, event.clientY - rect.top));
-    const now = performance.now();
-    const elapsed = Math.max(8, now - lastAt);
+  const refreshRect = () => {
+    cachedRect = button.getBoundingClientRect();
+    return cachedRect;
+  };
+
+  const flushPointerMove = () => {
+    pointerFrame = 0;
+    const point = pendingPointer;
+    pendingPointer = null;
+    if (!point || !button.isConnected) return;
+
+    const rect = cachedRect || refreshRect();
+    const x = Math.max(0, Math.min(rect.width, point.clientX - rect.left));
+    const y = Math.max(0, Math.min(rect.height, point.clientY - rect.top));
+    const elapsed = Math.max(8, point.at - lastAt);
     const distance = Math.hypot(x - lastX, y - lastY);
     const speed = distance / elapsed;
     const energy = Math.min(1, .58 + speed * .42);
@@ -120,26 +135,50 @@ function bindButton(button) {
 
     lastX = x;
     lastY = y;
-    lastAt = now;
+    lastAt = point.at;
+  };
+
+  const onStarPointerMove = (event) => {
+    pendingPointer = {
+      clientX: event.clientX,
+      clientY: event.clientY,
+      at: performance.now(),
+    };
+    if (!pointerFrame) pointerFrame = window.requestAnimationFrame(flushPointerMove);
+  };
+
+  const cancelPending = () => {
+    if (pointerFrame) window.cancelAnimationFrame(pointerFrame);
+    pointerFrame = 0;
+    pendingPointer = null;
   };
 
   const onPointerEnter = (event) => {
+    const rect = refreshRect();
+    lastX = Math.max(0, Math.min(rect.width, event.clientX - rect.left));
+    lastY = Math.max(0, Math.min(rect.height, event.clientY - rect.top));
+    lastAt = performance.now();
     setActive(true);
     button.style.setProperty('--star-energy', String(.72));
     onStarPointerMove(event);
   };
 
   const onFocus = () => {
+    const rect = refreshRect();
     setActive(true);
-    centerEffect(button, .78);
+    centerEffect(button, .78, rect);
   };
 
   const onLeave = () => {
+    cancelPending();
     setActive(false);
-    centerEffect(button, .18);
-    lastX = button.offsetWidth / 2;
-    lastY = button.offsetHeight / 2;
+    centerEffect(button, .18, cachedRect);
+    const width = cachedRect?.width ?? button.offsetWidth;
+    const height = cachedRect?.height ?? button.offsetHeight;
+    lastX = width / 2;
+    lastY = height / 2;
     lastAt = performance.now();
+    cachedRect = null;
   };
 
   const onPointerDown = () => {
@@ -168,6 +207,7 @@ function bindButton(button) {
     onFocus,
     onPointerDown,
     onPointerUp,
+    cancelPending,
   });
 }
 
