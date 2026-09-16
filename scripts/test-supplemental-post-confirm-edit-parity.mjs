@@ -11,9 +11,18 @@ const migrationPath = new URL('../supabase/migrations/20260912_supplemental_fina
 assert.match(shell, /data-bes-attendance-source/, 'The shared rollcall must expose its attendance source to the post-confirm editor.');
 assert.match(shell, /data-bes-attendance-session-id/, 'The shared rollcall must expose the concrete session id to the post-confirm editor.');
 
+assert.match(shell, /data-bes-attendance-history-detail/, 'The History detail pane must explicitly identify itself as a post-confirm edit context.');
+assert.match(shell, /data-bes-attendance-history-detail[\s\S]{0,1000}data-bes-attendance-session-id/, 'The History detail pane must expose the selected session id directly.');
+assert.match(shell, /data-bes-attendance-history-detail[\s\S]{0,1200}data-bes-attendance-class-id/, 'The History detail pane must expose the selected class id directly.');
+assert.match(shell, /data-bes-attendance-history-detail[\s\S]{0,1400}data-bes-attendance-date/, 'The History detail pane must expose the selected attendance date directly.');
+assert.match(shell, /addEventListener\(['"]attendance:saved['"]/, 'History must listen for post-confirm saves so its selected-session detail can refresh immediately.');
+
 assert.match(editor, /supplemental/, 'The existing post-confirm editor must recognize supplemental sessions.');
 assert.match(editor, /besAttendanceSource|bes-attendance-source/, 'The editor must read the rollcall source discriminator.');
 assert.match(editor, /besAttendanceSessionId|bes-attendance-session-id/, 'The editor must read the supplemental session id directly.');
+assert.match(editor, /data-bes-attendance-history-detail/, 'The editor must discover History detail as an editable session context, not only the Quick rollcall.');
+assert.match(editor, /\.eq\(['"]id['"],\s*context\.sessionId\)/, 'Extra attendance History edits must resolve the exact selected session by id.');
+assert.match(editor, /CustomEvent\(['"]attendance:saved['"]/, 'A successful correction must broadcast attendance:saved for History refresh.');
 assert.match(editor, /getSupplementalAttendanceEditSnapshot/, 'The editor must load a normalized supplemental edit snapshot through the supplemental API.');
 assert.match(editor, /updateSupplementalAttendanceSession/, 'The editor must save supplemental corrections through the supplemental API.');
 assert.match(editor, /tardy[\s\S]{0,500}late|late[\s\S]{0,500}tardy/, 'The editor must normalize database tardy status to the shared UI late status.');
