@@ -58,6 +58,10 @@ function selectedHistorySnapshot() {
   };
 }
 
+function snapshotKey(snapshot) {
+  return [snapshot?.source, snapshot?.attendanceDate, fold(snapshot?.className), fold(snapshot?.subject), fold(snapshot?.teacherName)].join('|');
+}
+
 function chooseBestExtraSession(rows, snapshot) {
   const list = Array.isArray(rows) ? rows : [];
   if (list.length <= 1) return list[0] || null;
@@ -121,21 +125,24 @@ function ensureCompatibilitySurface(snapshot, resolved) {
   }
 
   const source = snapshot.source;
-  const rawSupplementalId = text(resolved?.id);
   const classId = source === 'supplemental'
     ? text(resolved?.groupId || resolved?.group_id || '')
     : text(resolved?.class_id || '');
-  const sessionId = source === 'supplemental' ? rawSupplementalId : text(resolved?.id || '');
+  const sessionId = text(resolved?.id || '');
 
   surface.dataset.besAttendanceSource = source;
   surface.dataset.besAttendanceSessionId = sessionId;
   surface.dataset.besAttendanceDate = snapshot.attendanceDate;
   surface.dataset.besAttendanceClassId = classId;
+  surface.dataset.besHistoryKey = snapshotKey(snapshot);
 
   const heading = surface.querySelector('.attendance-rollcall-head h2');
   if (heading && heading.textContent !== snapshot.className) heading.textContent = snapshot.className;
   const dateInput = surface.querySelector('.attendance-session-controls input[type="date"]');
-  if (dateInput && dateInput.value !== snapshot.attendanceDate) dateInput.value = snapshot.attendanceDate;
+  if (dateInput && dateInput.value !== snapshot.attendanceDate) {
+    dateInput.value = snapshot.attendanceDate;
+    dateInput.setAttribute('value', snapshot.attendanceDate);
+  }
   const selectedButton = surface.querySelector('.attendance-class-list button.is-selected');
   if (selectedButton) selectedButton.dataset.besAttendanceClassId = classId;
 }
@@ -166,6 +173,9 @@ async function synchronize() {
     clearCompatibilitySurface(snapshot.detail);
     return;
   }
+
+  const existingSurface = snapshot.detail.querySelector(`[${BRIDGE_ATTRIBUTE}]`);
+  if (existingSurface?.dataset?.besHistoryKey === snapshotKey(snapshot)) return;
 
   const client = getRuntimeClient();
   if (!client) return;
@@ -201,10 +211,7 @@ async function install() {
   window[INSTALL_KEY] = true;
   try { await ensureRuntimeReady(); } catch { /* runtime can recover; observer retries */ }
 
-  observer = new MutationObserver((mutations) => {
-    if (mutations.every((mutation) => mutation.target?.closest?.(`[${BRIDGE_ATTRIBUTE}]`) && !mutation.target?.closest?.('.bes-post-confirm-notice'))) return;
-    scheduleSynchronize();
-  });
+  observer = new MutationObserver(() => scheduleSynchronize());
   observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
   scheduleSynchronize();
 }
