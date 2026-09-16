@@ -23,10 +23,8 @@ assert.match(starLogo, /const outer = 14\.8 \* scale;/);
 assert.match(starLogoCss, /--particle-star-start:#6d5cff;/);
 assert.match(starLogoCss, /--particle-star-end:#24c7f4;/);
 assert.match(starLogoCss, /filter:contrast\(1\.24\) saturate\(1\.32\) drop-shadow\(0 0 9px rgba\(88,92,255,\.32\)\);/);
-assert.match(starLogo, /ctx\.shadowColor = 'rgba\(83, 94, 255, 0\.88\)'/);
-assert.match(starLogo, /ctx\.shadowBlur = 4 \+ this\.pointerEnergy \* 6/);
-assert.match(starLogo, /gradient\.addColorStop\(0, `rgba\(109, 92, 255, \$\{0\.22 \+ breath \* 0\.12\}\)`\)/);
-assert.match(starLogo, /gradient\.addColorStop\(0\.46, `rgba\(36, 199, 244, \$\{0\.12 \+ breath \* 0\.06\}\)`\)/);
+assert.match(starLogoCss, /background:radial-gradient\(circle,rgba\(109,92,255,\.24\),rgba\(36,199,244,\.12\) 48%,transparent 74%\);/);
+assert.match(starLogoCss, /\.brian-pulse-logo:hover::after\{[\s\S]*?opacity:\.96;[\s\S]*?transform:scale\(1\.09\);/);
 
 // The bootstrap is loaded once with existing global chrome, before the app mounts.
 assert.match(integration, /import '\.\/navigationStarEffectBootstrap\.js';/);
