@@ -6,14 +6,32 @@ const read = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), '
 const shell = read('src/components/GlobalAttendanceNavigationTab.jsx');
 const editor = read('src/attendancePostConfirmEditBootstrap.js');
 const api = read('src/attendance/supplementalLearningApi.js');
+const routeBootstrap = read('src/supplementalLearningRouteBootstrap.js');
+const bridgePath = new URL('../src/attendanceHistoryPostConfirmBridge.js', import.meta.url);
 const migrationPath = new URL('../supabase/migrations/20260912_supplemental_final_parity.sql', import.meta.url);
 
 assert.match(shell, /data-bes-attendance-source/, 'The shared rollcall must expose its attendance source to the post-confirm editor.');
 assert.match(shell, /data-bes-attendance-session-id/, 'The shared rollcall must expose the concrete session id to the post-confirm editor.');
 
+assert.equal(fs.existsSync(bridgePath), true, 'History must ship a compatibility bridge for the existing post-confirm editor.');
+const bridge = read('src/attendanceHistoryPostConfirmBridge.js');
+assert.match(routeBootstrap, /attendanceHistoryPostConfirmBridge/, 'The always-on attendance bootstrap must install the History post-confirm bridge.');
+assert.match(bridge, /\.ahv3__detail/, 'The bridge must discover the selected History detail pane.');
+assert.match(bridge, /classList\.add\(['"]attendance-rollcall['"]\)|className\s*=\s*['"][^'"]*attendance-rollcall/, 'The bridge must expose History through the editor-compatible attendance-rollcall contract.');
+assert.match(bridge, /data-bes-attendance-source|besAttendanceSource/, 'The bridge must expose whether the selected History item is extra or supplemental.');
+assert.match(bridge, /data-bes-attendance-session-id|besAttendanceSessionId/, 'The bridge must expose the exact selected session id.');
+assert.match(bridge, /attendance-rollcall-head[\s\S]{0,1000}h2/, 'The bridge must provide the class-name metadata expected by the existing editor.');
+assert.match(bridge, /attendance-session-controls[\s\S]{0,1000}type\s*=\s*['"]date['"]/, 'The bridge must provide the attendance-date metadata expected by the existing editor.');
+assert.match(bridge, /bes_extra_attendance_sessions/, 'Extra-class History must resolve the concrete session from the attendance backend.');
+assert.match(bridge, /bes_list_supplemental_history/, 'Supplemental History must resolve the concrete supplemental session from the shared history RPC.');
+assert.match(bridge, /addEventListener\(['"]attendance:saved['"]/, 'The History bridge must refresh from the editor save event instead of scraping transient notice DOM.');
+assert.match(bridge, /\.ahv3__items\s*>\s*button\.is-selected|ahv3__items[^\n]+is-selected/, 'After a correction, the bridge must reload the selected History row so record details are fresh.');
+
 assert.match(editor, /supplemental/, 'The existing post-confirm editor must recognize supplemental sessions.');
 assert.match(editor, /besAttendanceSource|bes-attendance-source/, 'The editor must read the rollcall source discriminator.');
 assert.match(editor, /besAttendanceSessionId|bes-attendance-session-id/, 'The editor must read the supplemental session id directly.');
+assert.match(editor, /\.eq\(['"]id['"],\s*context\.sessionId\)/, 'Extra-class History editing must resolve the exact selected session id when the bridge provides one.');
+assert.match(editor, /CustomEvent\(['"]attendance:saved['"]/, 'A successful post-confirm correction must broadcast attendance:saved so History refreshes deterministically.');
 assert.match(editor, /getSupplementalAttendanceEditSnapshot/, 'The editor must load a normalized supplemental edit snapshot through the supplemental API.');
 assert.match(editor, /updateSupplementalAttendanceSession/, 'The editor must save supplemental corrections through the supplemental API.');
 assert.match(editor, /tardy[\s\S]{0,500}late|late[\s\S]{0,500}tardy/, 'The editor must normalize database tardy status to the shared UI late status.');

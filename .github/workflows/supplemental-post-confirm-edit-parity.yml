@@ -6,6 +6,8 @@ on:
     paths:
       - 'src/components/GlobalAttendanceNavigationTab.jsx'
       - 'src/attendancePostConfirmEditBootstrap.js'
+      - 'src/attendanceHistoryPostConfirmBridge.js'
+      - 'src/supplementalLearningRouteBootstrap.js'
       - 'src/attendance/supplementalLearningApi.js'
       - 'supabase/migrations/20260912_supplemental_final_parity.sql'
       - 'scripts/test-supplemental-post-confirm-edit-parity.mjs'

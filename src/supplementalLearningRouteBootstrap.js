@@ -1,3 +1,4 @@
+import './attendanceHistoryPostConfirmBridge.js';
 import { ensureRuntimeReady, getRuntimeState, subscribeRuntime } from './services/runtime/core.js';
 import { canManageSupplementalLearning } from './supplementalAccess.js';
 

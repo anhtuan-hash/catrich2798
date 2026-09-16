@@ -221,21 +221,20 @@ async function loadSelectedSession({ force = false } = {}) {
     }
 
     activeSource = 'extra';
-    const classId = await resolveClassId(context);
-    if (!classId) {
+    const classId = context.classId || (context.sessionId ? '' : await resolveClassId(context));
+    if (!classId && !context.sessionId) {
       clearState();
       return;
     }
-    const key = `${classId}|${context.attendanceDate}`;
+    const key = context.sessionId ? `extra|${context.sessionId}` : `${classId}|${context.attendanceDate}`;
     if (!force && key === activeKey && activeSession) return;
 
-    const { data: session, error: sessionError } = await client
+    let sessionQuery = client
       .from('bes_extra_attendance_sessions')
-      .select(SESSION_SELECT)
-      .eq('class_id', classId)
-      .eq('attendance_date', context.attendanceDate)
-      .limit(1)
-      .maybeSingle();
+      .select(SESSION_SELECT);
+    if (context.sessionId) sessionQuery = sessionQuery.eq('id', context.sessionId);
+    else sessionQuery = sessionQuery.eq('class_id', classId).eq('attendance_date', context.attendanceDate);
+    const { data: session, error: sessionError } = await sessionQuery.limit(1).maybeSingle();
     if (sessionError) throw sessionError;
 
     activeKey = key;
@@ -539,6 +538,9 @@ async function saveAdjustment() {
   notice = 'Đã lưu điều chỉnh. Sĩ số, báo cáo và lịch sử đã được cập nhật.';
   editing = false;
   await loadSelectedSession({ force: true });
+  window.dispatchEvent(new CustomEvent('attendance:saved', {
+    detail: { source: activeSource, sessionId: activeSession?.id || '', savedAt: Date.now() },
+  }));
   document.querySelector('.attendance-top-actions button[title="Làm mới"]')?.click();
   window.setTimeout(() => queueLoad(true), 250);
 }
