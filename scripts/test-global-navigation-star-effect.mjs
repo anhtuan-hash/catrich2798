@@ -7,7 +7,7 @@ const effectCss = fs.readFileSync(new URL('../src/components/GlobalNavigationSta
 const starLogo = fs.readFileSync(new URL('../src/components/BrianPulseLogo.jsx', import.meta.url), 'utf8');
 const starLogoCss = fs.readFileSync(new URL('../src/components/BrianPulseLogo.css', import.meta.url), 'utf8');
 
-// Keep the new navigation effect visually related to the existing Star logo.
+// Keep the navigation effect visually related to the existing Star logo.
 assert.match(starLogo, /drawStarAura/);
 assert.match(starLogo, /drawSatelliteSparkles/);
 assert.match(starLogo, /pointerEnergy/);
@@ -19,12 +19,12 @@ assert.match(starLogoCss, /@media\(max-width:1120px\)\{[\s\S]*?\.brian-pulse-log
 assert.match(starLogo, /const scale = Math\.min\(width, height\) \/ 54;/);
 assert.match(starLogo, /const outer = 14\.8 \* scale;/);
 
-// Approved vivid palette: strong indigo-to-electric-cyan star, not white-on-pale-cyan.
+// Approved vivid palette remains intact.
 assert.match(starLogoCss, /--particle-star-start:#6d5cff;/);
 assert.match(starLogoCss, /--particle-star-end:#24c7f4;/);
 assert.match(starLogoCss, /filter:contrast\(1\.24\) saturate\(1\.32\) drop-shadow\(0 0 9px rgba\(88,92,255,\.32\)\);/);
 assert.match(starLogoCss, /background:radial-gradient\(circle,rgba\(109,92,255,\.24\),rgba\(36,199,244,\.12\) 48%,transparent 74%\);/);
-assert.match(starLogoCss, /\.brian-pulse-logo:hover::after\{[\s\S]*?opacity:\.96;[\s\S]*?transform:scale\(1\.09\);/);
+assert.match(starLogoCss, /\.brian-pulse-logo:hover::after,[\s\S]*?\.brian-pulse-logo:focus-within::after\{[\s\S]*?animation:brian-star-halo/);
 
 // The bootstrap is loaded once with existing global chrome, before the app mounts.
 assert.match(integration, /import '\.\/navigationStarEffectBootstrap\.js';/);
@@ -34,7 +34,7 @@ assert.match(bootstrap, /const NAV_LABEL_KEYS = new Map\(\[/);
 assert.match(bootstrap, /\['Trang chủ', 'home'\]/);
 assert.match(bootstrap, /\['Ứng dụng', 'apps'\]/);
 
-// Every nav button gets one lightweight DOM effect layer: aura + three sparkles.
+// Every nav button keeps one lightweight DOM effect layer: aura + three sparkles.
 assert.match(bootstrap, /function createNavStarEffect\(button, key\)/);
 assert.match(bootstrap, /effect\.className = 'brian-nav-star-effect'/);
 assert.match(bootstrap, /aura\.className = 'brian-nav-star-effect__aura'/);
@@ -42,17 +42,46 @@ assert.match(bootstrap, /sparkleOne\.className = 'brian-nav-star-effect__sparkle
 assert.match(bootstrap, /sparkleTwo\.className = 'brian-nav-star-effect__sparkle brian-nav-star-effect__sparkle--two'/);
 assert.match(bootstrap, /sparkleThree\.className = 'brian-nav-star-effect__sparkle brian-nav-star-effect__sparkle--three'/);
 assert.match(bootstrap, /button\.appendChild\(effect\)/);
-
-// Pointer position/energy drives the same magnetic-light feel without a canvas per button.
-assert.match(bootstrap, /button\.style\.setProperty\('--star-x', `\$\{x\}px`\)/);
-assert.match(bootstrap, /button\.style\.setProperty\('--star-y', `\$\{y\}px`\)/);
-assert.match(bootstrap, /button\.style\.setProperty\('--star-energy', String\(energy\)\)/);
-assert.match(bootstrap, /button\.addEventListener\('pointermove', onStarPointerMove\)/);
-assert.match(bootstrap, /button\.addEventListener\('pointerleave', onLeave\)/);
-assert.match(bootstrap, /button\.addEventListener\('focus', onFocus\)/);
-assert.match(bootstrap, /button\.removeEventListener\('pointermove', binding\.onStarPointerMove\)/);
-assert.match(bootstrap, /binding\.effect\.remove\(\)/);
 assert.doesNotMatch(bootstrap, /document\.createElement\('canvas'\)/, 'Navigation Star effect must not create one canvas loop per button');
+
+// Performance contract: pointer work is coalesced to at most one DOM update per animation frame.
+assert.match(bootstrap, /let pointerFrame = 0;/);
+assert.match(bootstrap, /let pendingPointer = null;/);
+assert.match(bootstrap, /pointerFrame = window\.requestAnimationFrame\(flushPointerMove\)/);
+assert.match(bootstrap, /if \(pointerFrame\) window\.cancelAnimationFrame\(pointerFrame\);/);
+assert.match(bootstrap, /cachedRect = button\.getBoundingClientRect\(\);/);
+assert.doesNotMatch(
+  bootstrap,
+  /const onStarPointerMove = \(event\) => \{\s*const rect = button\.getBoundingClientRect\(\)/,
+  'pointermove must not force layout on every mouse event',
+);
+
+// Performance contract: nav effects are static while idle and use transform-only sparkle motion.
+assert.match(effectCss, /\.brian-nav-star-effect__aura\s*\{[\s\S]*?animation:\s*none;/);
+assert.match(effectCss, /\[data-star-active='true'\] \.brian-nav-star-effect__aura[\s\S]*?animation:\s*brian-nav-star-breathe/);
+assert.doesNotMatch(effectCss, /will-change:\s*left\s*,\s*top/);
+assert.doesNotMatch(effectCss, /transition:[\s\S]{0,120}?\bleft\s+90ms/);
+assert.doesNotMatch(effectCss, /transition:[\s\S]{0,120}?\btop\s+90ms/);
+assert.match(effectCss, /transform:\s*translate3d\(var\(--star-x/);
+
+// Performance contract: the canvas Star draws once while idle and only runs RAF during interaction/settling.
+assert.match(starLogo, /let renderWidth = 1;/);
+assert.match(starLogo, /let renderHeight = 1;/);
+assert.match(starLogo, /let cachedPalette = null;/);
+assert.match(starLogo, /function startAnimation\(\)/);
+assert.match(starLogo, /function stopAnimation\(\)/);
+assert.match(starLogo, /document\.addEventListener\('visibilitychange', onVisibilityChange\)/);
+assert.match(starLogo, /document\.removeEventListener\('visibilitychange', onVisibilityChange\)/);
+assert.doesNotMatch(
+  starLogo,
+  /function draw\([^)]*\) \{\s*const rect = canvas\.getBoundingClientRect\(\)/,
+  'canvas draw loop must use cached dimensions instead of forcing layout every frame',
+);
+assert.doesNotMatch(
+  starLogo,
+  /resize\(\);\s*if \(!reduceMotion\) frameId = window\.requestAnimationFrame\(animate\);/,
+  'Star canvas must not start an endless RAF loop on mount',
+);
 
 // Existing semantic tabs remain discoverable even when permissions hide/reorder them.
 for (const className of [
@@ -66,12 +95,8 @@ for (const className of [
   assert.match(bootstrap, new RegExp(className));
 }
 
-// CSS carries the Star vocabulary and respects reduced-motion preferences.
-assert.match(effectCss, /\.brian-nav-star-effect__aura/);
-assert.match(effectCss, /radial-gradient\(/);
-assert.match(effectCss, /@keyframes brian-nav-star-breathe/);
-assert.match(effectCss, /@keyframes brian-nav-star-twinkle/);
+// Reduced-motion remains respected.
 assert.match(effectCss, /@media \(prefers-reduced-motion: reduce\)/);
 assert.match(effectCss, /\[data-brian-star-fx='true'\]/);
 
-console.log('✓ Navigation Star effects and the vivid, prominent Star logo contract are intact.');
+console.log('✓ Navigation Star visuals remain intact while idle animation and per-event layout work stay disabled.');

@@ -40,14 +40,21 @@
   background:radial-gradient(circle,rgba(109,92,255,.24),rgba(36,199,244,.12) 48%,transparent 74%);
   opacity:.36;
   transform:scale(.96);
-  animation:brian-star-halo 3.6s ease-in-out infinite;
+  animation:none;
   transition:opacity 200ms ease,transform 260ms cubic-bezier(.2,.8,.2,1);
   pointer-events:none;
   z-index:-1;
 }
 
-.brian-pulse-logo:hover::after{
-  animation:none;
+.brian-pulse-logo:hover::after,
+.brian-pulse-logo:focus-within::after{
+  animation:brian-star-halo 1.8s ease-in-out infinite;
+  opacity:.96;
+  transform:scale(1.09);
+}
+
+.brian-pulse-logo-trigger:focus-visible .brian-pulse-logo::after{
+  animation:brian-star-halo 1.8s ease-in-out infinite;
   opacity:.96;
   transform:scale(1.09);
 }
@@ -233,6 +240,9 @@ html[data-presentation-mode='mobile'][data-presentation-override='mobile'][data-
   .brian-pulse-logo--nav,
   .brian-pulse-logo::after,
   .bes-mobile-desktop-return{transition:none}
-  .brian-pulse-logo::after{animation:none;opacity:.36;transform:none}
+  .brian-pulse-logo::after,
+  .brian-pulse-logo:hover::after,
+  .brian-pulse-logo:focus-within::after,
+  .brian-pulse-logo-trigger:focus-visible .brian-pulse-logo::after{animation:none;opacity:.36;transform:none}
   .bes-mobile-desktop-return:hover{transform:none}
 }

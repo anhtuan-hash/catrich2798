@@ -8,6 +8,7 @@ const FIELD_FORCE = 3.8;
 const SPRING_BG = 0.062;
 const SPRING_STAR = 0.09;
 const FRICTION = 0.845;
+const SETTLE_MS = 360;
 
 function roundedRect(ctx, x, y, width, height, radius) {
   const r = Math.min(radius, Math.abs(width) / 2, Math.abs(height) / 2);
@@ -82,6 +83,11 @@ export default function BrianPulseLogo({ className = '' }) {
     let resizeObserver = null;
     let disposed = false;
     let startedAt = performance.now();
+    let renderWidth = 1;
+    let renderHeight = 1;
+    let cachedPalette = null;
+    let pointerRect = null;
+    let settleUntil = 0;
 
     const pointer = { x: 0, y: 0, lastX: 0, lastY: 0, speed: 0, active: false };
 
@@ -138,6 +144,16 @@ export default function BrianPulseLogo({ className = '' }) {
         this.y += this.vy;
         this.rotation += this.rotationVelocity;
         this.rotation += (this.angle - this.rotation) * 0.075;
+      }
+
+      reset() {
+        this.x = this.homeX;
+        this.y = this.homeY;
+        this.vx = 0;
+        this.vy = 0;
+        this.rotation = this.angle;
+        this.rotationVelocity = 0;
+        this.pointerEnergy = 0;
       }
 
       draw(palette, elapsed) {
@@ -322,41 +338,68 @@ export default function BrianPulseLogo({ className = '' }) {
     }
 
     function draw(update = true, now = performance.now()) {
-      const rect = canvas.getBoundingClientRect();
-      ctx.clearRect(0, 0, rect.width, rect.height);
-      const palette = getPalette();
+      ctx.clearRect(0, 0, renderWidth, renderHeight);
+      const palette = cachedPalette || getPalette();
       const elapsed = now - startedAt;
-      drawStarAura(rect.width, rect.height, elapsed);
+      drawStarAura(renderWidth, renderHeight, elapsed);
       if (update) particles.forEach((particle) => particle.update());
       particles.forEach((particle) => particle.draw(palette, elapsed));
-      drawSatelliteSparkles(rect.width, rect.height, elapsed);
+      drawSatelliteSparkles(renderWidth, renderHeight, elapsed);
       ctx.globalAlpha = 1;
+    }
+
+    function resetParticles() {
+      particles.forEach((particle) => particle.reset());
+      pointer.speed = 0;
+    }
+
+    function stopAnimation() {
+      if (frameId) window.cancelAnimationFrame(frameId);
+      frameId = 0;
+    }
+
+    function startAnimation() {
+      if (reduceMotion || disposed || document.hidden || frameId) return;
+      frameId = window.requestAnimationFrame(animate);
+    }
+
+    function animate(now) {
+      frameId = 0;
+      if (disposed || document.hidden) return;
+
+      pointer.speed *= 0.88;
+      draw(true, now);
+
+      if (pointer.active || now < settleUntil) {
+        frameId = window.requestAnimationFrame(animate);
+        return;
+      }
+
+      resetParticles();
+      draw(false, now);
     }
 
     function resize() {
       const rect = host.getBoundingClientRect();
-      const width = Math.max(1, rect.width);
-      const height = Math.max(1, rect.height);
+      renderWidth = Math.max(1, rect.width);
+      renderHeight = Math.max(1, rect.height);
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      canvas.width = Math.round(width * dpr);
-      canvas.height = Math.round(height * dpr);
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
+      canvas.width = Math.round(renderWidth * dpr);
+      canvas.height = Math.round(renderHeight * dpr);
+      canvas.style.width = `${renderWidth}px`;
+      canvas.style.height = `${renderHeight}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      buildParticles(width, height);
+      cachedPalette = getPalette();
+      pointerRect = null;
+      buildParticles(renderWidth, renderHeight);
       draw(false);
-    }
-
-    function animate(now) {
-      if (disposed) return;
-      pointer.speed *= 0.88;
-      draw(true, now);
-      frameId = window.requestAnimationFrame(animate);
+      if (pointer.active) startAnimation();
     }
 
     function updatePointer(event) {
       if (reduceMotion) return;
-      const rect = canvas.getBoundingClientRect();
+      const rect = pointerRect || canvas.getBoundingClientRect();
+      pointerRect = rect;
       const x = event.clientX - rect.left;
       const y = event.clientY - rect.top;
       const dx = x - pointer.lastX;
@@ -370,21 +413,43 @@ export default function BrianPulseLogo({ className = '' }) {
     }
 
     function onPointerEnter(event) {
-      const rect = canvas.getBoundingClientRect();
-      pointer.lastX = event.clientX - rect.left;
-      pointer.lastY = event.clientY - rect.top;
+      pointerRect = canvas.getBoundingClientRect();
+      pointer.lastX = event.clientX - pointerRect.left;
+      pointer.lastY = event.clientY - pointerRect.top;
       pointer.speed = 0;
+      settleUntil = 0;
       updatePointer(event);
+      startAnimation();
+    }
+
+    function onPointerMove(event) {
+      updatePointer(event);
+      startAnimation();
     }
 
     function onPointerLeave() {
       pointer.active = false;
       pointer.speed = 0;
+      pointerRect = null;
+      settleUntil = performance.now() + SETTLE_MS;
+      startAnimation();
+    }
+
+    function onVisibilityChange() {
+      if (document.hidden) {
+        pointer.active = false;
+        pointerRect = null;
+        stopAnimation();
+        return;
+      }
+      resetParticles();
+      draw(false);
     }
 
     canvas.addEventListener('pointerenter', onPointerEnter);
-    canvas.addEventListener('pointermove', updatePointer);
+    canvas.addEventListener('pointermove', onPointerMove);
     canvas.addEventListener('pointerleave', onPointerLeave);
+    document.addEventListener('visibilitychange', onVisibilityChange);
 
     if (typeof ResizeObserver !== 'undefined') {
       resizeObserver = new ResizeObserver(resize);
@@ -394,15 +459,15 @@ export default function BrianPulseLogo({ className = '' }) {
     }
 
     resize();
-    if (!reduceMotion) frameId = window.requestAnimationFrame(animate);
 
     return () => {
       disposed = true;
-      if (frameId) window.cancelAnimationFrame(frameId);
+      stopAnimation();
       resizeObserver?.disconnect();
       window.removeEventListener('resize', resize);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
       canvas.removeEventListener('pointerenter', onPointerEnter);
-      canvas.removeEventListener('pointermove', updatePointer);
+      canvas.removeEventListener('pointermove', onPointerMove);
       canvas.removeEventListener('pointerleave', onPointerLeave);
     };
   }, []);
