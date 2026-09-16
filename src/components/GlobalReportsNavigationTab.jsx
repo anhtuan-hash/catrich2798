@@ -223,11 +223,10 @@ export default function GlobalReportsNavigationTab({
 
   if (!host || !allowed) return null;
 
-  const departmentLeader = isDepartmentLeaderRole(currentUser?.role);
   const label = language === 'vi' ? 'Báo cáo' : 'Reports';
   const countdown = deadlineState(deadline, now);
   const reportWindowOpen = Boolean(countdown.active && !countdown.expired);
-  const showCountdownUnderLabel = active && departmentLeader && reportWindowOpen;
+  const showCountdownUnderLabel = reportWindowOpen;
   const countdownLabel = reportWindowOpen ? compactCountdown(countdown, language) : '';
   const countdownAccessibleLabel = reportWindowOpen ? accessibleCountdown(countdown, language) : '';
   const deadlineTitle = reportWindowOpen
