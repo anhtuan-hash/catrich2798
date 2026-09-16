@@ -8,6 +8,7 @@ const FIELD_FORCE = 3.8;
 const SPRING_BG = 0.062;
 const SPRING_STAR = 0.09;
 const FRICTION = 0.845;
+const POINTER_ACTIVITY_MS = 180;
 const SETTLE_MS = 360;
 
 function roundedRect(ctx, x, y, width, height, radius) {
@@ -87,6 +88,7 @@ export default function BrianPulseLogo({ className = '' }) {
     let renderHeight = 1;
     let cachedPalette = null;
     let pointerRect = null;
+    let interactionUntil = 0;
     let settleUntil = 0;
 
     const pointer = { x: 0, y: 0, lastX: 0, lastY: 0, speed: 0, active: false };
@@ -367,6 +369,7 @@ export default function BrianPulseLogo({ className = '' }) {
       frameId = 0;
       if (disposed || document.hidden) return;
 
+      if (pointer.active && now >= interactionUntil) pointer.active = false;
       pointer.speed *= 0.88;
       draw(true, now);
 
@@ -398,6 +401,7 @@ export default function BrianPulseLogo({ className = '' }) {
 
     function updatePointer(event) {
       if (reduceMotion) return;
+      const now = performance.now();
       const rect = pointerRect || canvas.getBoundingClientRect();
       pointerRect = rect;
       const x = event.clientX - rect.left;
@@ -410,6 +414,8 @@ export default function BrianPulseLogo({ className = '' }) {
       pointer.lastX = x;
       pointer.lastY = y;
       pointer.active = true;
+      interactionUntil = now + POINTER_ACTIVITY_MS;
+      settleUntil = interactionUntil + SETTLE_MS;
     }
 
     function onPointerEnter(event) {
@@ -417,7 +423,6 @@ export default function BrianPulseLogo({ className = '' }) {
       pointer.lastX = event.clientX - pointerRect.left;
       pointer.lastY = event.clientY - pointerRect.top;
       pointer.speed = 0;
-      settleUntil = 0;
       updatePointer(event);
       startAnimation();
     }
@@ -431,6 +436,7 @@ export default function BrianPulseLogo({ className = '' }) {
       pointer.active = false;
       pointer.speed = 0;
       pointerRect = null;
+      interactionUntil = 0;
       settleUntil = performance.now() + SETTLE_MS;
       startAnimation();
     }
@@ -439,6 +445,8 @@ export default function BrianPulseLogo({ className = '' }) {
       if (document.hidden) {
         pointer.active = false;
         pointerRect = null;
+        interactionUntil = 0;
+        settleUntil = 0;
         stopAnimation();
         return;
       }

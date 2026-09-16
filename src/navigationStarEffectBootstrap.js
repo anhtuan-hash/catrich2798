@@ -3,6 +3,7 @@ import './components/GlobalNavigationStarEffect.css';
 const RUNTIME_FLAG = '__BES_NAV_STAR_EFFECT_V1__';
 const PRIMARY_NAV_SELECTOR = '.brian-nav__primary > button';
 const PRIMARY_NAV_CONTAINER_SELECTOR = '.brian-nav__primary';
+const INTERACTION_IDLE_MS = 320;
 const NAV_LABEL_KEYS = new Map([
   ['Trang chủ', 'home'],
   ['Home', 'home'],
@@ -100,6 +101,8 @@ function bindButton(button) {
   let cachedRect = null;
   let pointerFrame = 0;
   let pendingPointer = null;
+  let motionDeadline = 0;
+  let motionTimer = 0;
   let lastX = button.offsetWidth / 2;
   let lastY = button.offsetHeight / 2;
   let lastAt = performance.now();
@@ -107,6 +110,25 @@ function bindButton(button) {
   const setActive = (active) => {
     if (active) button.dataset.starActive = 'true';
     else button.removeAttribute('data-star-active');
+  };
+
+  function settleMotionIfIdle() {
+    motionTimer = 0;
+    const remaining = motionDeadline - performance.now();
+    if (remaining > 8) {
+      motionTimer = window.setTimeout(settleMotionIfIdle, remaining);
+      return;
+    }
+    motionDeadline = 0;
+    setActive(false);
+    const restingEnergy = button.matches(':hover') || button.matches(':focus-visible') ? .34 : .18;
+    button.style.setProperty('--star-energy', String(restingEnergy));
+  }
+
+  const keepMotionAlive = () => {
+    setActive(true);
+    motionDeadline = performance.now() + INTERACTION_IDLE_MS;
+    if (!motionTimer) motionTimer = window.setTimeout(settleMotionIfIdle, INTERACTION_IDLE_MS);
   };
 
   const refreshRect = () => {
@@ -131,7 +153,7 @@ function bindButton(button) {
     button.style.setProperty('--star-x', `${x}px`);
     button.style.setProperty('--star-y', `${y}px`);
     button.style.setProperty('--star-energy', String(energy));
-    setActive(true);
+    keepMotionAlive();
 
     lastX = x;
     lastY = y;
@@ -149,7 +171,10 @@ function bindButton(button) {
 
   const cancelPending = () => {
     if (pointerFrame) window.cancelAnimationFrame(pointerFrame);
+    if (motionTimer) window.clearTimeout(motionTimer);
     pointerFrame = 0;
+    motionTimer = 0;
+    motionDeadline = 0;
     pendingPointer = null;
   };
 
@@ -158,14 +183,14 @@ function bindButton(button) {
     lastX = Math.max(0, Math.min(rect.width, event.clientX - rect.left));
     lastY = Math.max(0, Math.min(rect.height, event.clientY - rect.top));
     lastAt = performance.now();
-    setActive(true);
+    keepMotionAlive();
     button.style.setProperty('--star-energy', String(.72));
     onStarPointerMove(event);
   };
 
   const onFocus = () => {
     const rect = refreshRect();
-    setActive(true);
+    keepMotionAlive();
     centerEffect(button, .78, rect);
   };
 
@@ -182,11 +207,12 @@ function bindButton(button) {
   };
 
   const onPointerDown = () => {
-    setActive(true);
+    keepMotionAlive();
     button.style.setProperty('--star-energy', String(1));
   };
 
   const onPointerUp = () => {
+    keepMotionAlive();
     button.style.setProperty('--star-energy', String(button.matches(':hover') ? .76 : .28));
   };
 

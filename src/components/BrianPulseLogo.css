@@ -48,13 +48,13 @@
 
 .brian-pulse-logo:hover::after,
 .brian-pulse-logo:focus-within::after{
-  animation:brian-star-halo 1.8s ease-in-out infinite;
+  animation:none;
   opacity:.96;
   transform:scale(1.09);
 }
 
 .brian-pulse-logo-trigger:focus-visible .brian-pulse-logo::after{
-  animation:brian-star-halo 1.8s ease-in-out infinite;
+  animation:none;
   opacity:.96;
   transform:scale(1.09);
 }

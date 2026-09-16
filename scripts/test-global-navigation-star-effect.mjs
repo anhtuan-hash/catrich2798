@@ -24,7 +24,7 @@ assert.match(starLogoCss, /--particle-star-start:#6d5cff;/);
 assert.match(starLogoCss, /--particle-star-end:#24c7f4;/);
 assert.match(starLogoCss, /filter:contrast\(1\.24\) saturate\(1\.32\) drop-shadow\(0 0 9px rgba\(88,92,255,\.32\)\);/);
 assert.match(starLogoCss, /background:radial-gradient\(circle,rgba\(109,92,255,\.24\),rgba\(36,199,244,\.12\) 48%,transparent 74%\);/);
-assert.match(starLogoCss, /\.brian-pulse-logo:hover::after,[\s\S]*?\.brian-pulse-logo:focus-within::after\{[\s\S]*?animation:brian-star-halo/);
+assert.match(starLogoCss, /\.brian-pulse-logo:hover::after,[\s\S]*?\.brian-pulse-logo:focus-within::after\{[\s\S]*?opacity:\.96;[\s\S]*?transform:scale\(1\.09\);/);
 
 // The bootstrap is loaded once with existing global chrome, before the app mounts.
 assert.match(integration, /import '\.\/navigationStarEffectBootstrap\.js';/);
@@ -64,7 +64,20 @@ assert.doesNotMatch(effectCss, /transition:[\s\S]{0,120}?\bleft\s+90ms/);
 assert.doesNotMatch(effectCss, /transition:[\s\S]{0,120}?\btop\s+90ms/);
 assert.match(effectCss, /transform:\s*translate3d\(var\(--star-x/);
 
-// Performance contract: the canvas Star draws once while idle and only runs RAF during interaction/settling.
+// Second-stage performance contract: resting the pointer on a nav button must not keep CSS motion alive forever.
+assert.match(bootstrap, /const INTERACTION_IDLE_MS = \d+;/);
+assert.match(bootstrap, /let motionDeadline = 0;/);
+assert.match(bootstrap, /function settleMotionIfIdle\(\)/);
+assert.match(bootstrap, /motionTimer = window\.setTimeout\(settleMotionIfIdle, INTERACTION_IDLE_MS\)/);
+assert.match(bootstrap, /motionDeadline = performance\.now\(\) \+ INTERACTION_IDLE_MS;/);
+assert.doesNotMatch(
+  effectCss,
+  /\[data-star-active='true'\][\s\S]{0,180}?:focus-visible[\s\S]{0,180}?animation:\s*brian-nav-star-breathe/,
+  'keyboard focus may keep a static glow, but it must not force an infinite nav animation',
+);
+assert.match(effectCss, /button\[data-brian-star-fx='true'\]:hover \.brian-nav-star-effect__aura/);
+
+// Performance contract: the canvas Star draws once while idle and only runs RAF during recent interaction/settling.
 assert.match(starLogo, /let renderWidth = 1;/);
 assert.match(starLogo, /let renderHeight = 1;/);
 assert.match(starLogo, /let cachedPalette = null;/);
@@ -83,6 +96,18 @@ assert.doesNotMatch(
   'Star canvas must not start an endless RAF loop on mount',
 );
 
+// Second-stage canvas contract: pointer hover without movement must settle and stop its RAF loop.
+assert.match(starLogo, /const POINTER_ACTIVITY_MS = \d+;/);
+assert.match(starLogo, /let interactionUntil = 0;/);
+assert.match(starLogo, /interactionUntil = now \+ POINTER_ACTIVITY_MS;/);
+assert.match(starLogo, /if \(pointer\.active && now >= interactionUntil\) pointer\.active = false;/);
+assert.match(starLogo, /if \(pointer\.active \|\| now < settleUntil\)/);
+assert.doesNotMatch(
+  starLogoCss,
+  /animation:brian-star-halo[^;]*infinite/,
+  'the Star halo should use transitions/static hover state instead of an infinite CSS loop',
+);
+
 // Existing semantic tabs remain discoverable even when permissions hide/reorder them.
 for (const className of [
   'brian-nav__dashboard-tab',
@@ -99,4 +124,4 @@ for (const className of [
 assert.match(effectCss, /@media \(prefers-reduced-motion: reduce\)/);
 assert.match(effectCss, /\[data-brian-star-fx='true'\]/);
 
-console.log('✓ Navigation Star visuals remain intact while idle animation and per-event layout work stay disabled.');
+console.log('✓ Navigation Star visuals stay responsive without persistent hover/focus animation loops.');
