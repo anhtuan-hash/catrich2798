@@ -101,3 +101,90 @@
     0 2px 6px rgba(178, 127, 25, .16);
   text-shadow: 0 1px 0 rgba(255, 255, 255, .42);
 }
+
+/* Final countdown override.
+   GlobalNavigationFinal2026 historically turns the report timer into a 10px,
+   two-row chip and makes active-route text white. This selector deliberately
+   outranks that shared authority for this component so the approved gold pill
+   remains readable on every route without changing the report deadline logic. */
+html body #root .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.brian-nav__reports-send.shows-countdown {
+  min-width: max-content !important;
+  min-height: 40px !important;
+  height: 40px !important;
+  max-height: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0 !important;
+  padding: 0 10px 0 31px !important;
+}
+
+html body #root .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.brian-nav__reports-send.shows-countdown::before {
+  position: absolute !important;
+  top: 50% !important;
+  left: 10px !important;
+  grid-column: auto !important;
+  grid-row: auto !important;
+  align-self: auto !important;
+  justify-self: auto !important;
+  transform: translateY(-50%) !important;
+}
+
+html body #root .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.brian-nav__reports-send.shows-countdown .brian-nav__reports-copy {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  margin-left: 0 !important;
+  opacity: 1 !important;
+}
+
+html body #root .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.brian-nav__reports-send.shows-countdown .brian-nav__reports-label {
+  position: static !important;
+  grid-column: auto !important;
+  grid-row: auto !important;
+  align-self: center !important;
+  justify-self: auto !important;
+  font-size: 12.5px !important;
+  line-height: 1 !important;
+}
+
+html body #root .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.brian-nav__reports-send.shows-countdown .brian-nav__reports-countdown {
+  position: static !important;
+  grid-column: auto !important;
+  grid-row: auto !important;
+  align-self: center !important;
+  justify-self: auto !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: max-content !important;
+  max-width: none !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  padding: 0 8px !important;
+  border: 1px solid rgba(176, 121, 12, .28) !important;
+  border-radius: 999px !important;
+  background: linear-gradient(180deg, #ffeba9 0%, #ffd86f 100%) !important;
+  color: #684900 !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  line-height: 20px !important;
+  letter-spacing: -.01em !important;
+  white-space: nowrap !important;
+  text-align: center !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .78),
+    0 2px 6px rgba(178, 127, 25, .18) !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .48) !important;
+  opacity: 1 !important;
+}
+
+html body #root .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.brian-nav__reports-send:is(.is-active,[aria-current='page']) .brian-nav__reports-countdown {
+  border-color: rgba(176, 121, 12, .32) !important;
+  background: linear-gradient(180deg, #ffeba9 0%, #ffd86f 100%) !important;
+  color: #684900 !important;
+  opacity: 1 !important;
+}
