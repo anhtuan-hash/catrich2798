@@ -18,8 +18,15 @@ assert.match(starLogoCss, /\.brian-pulse-logo-trigger\{[\s\S]*?width:64px;[\s\S]
 assert.match(starLogoCss, /@media\(max-width:1120px\)\{[\s\S]*?\.brian-pulse-logo-trigger\{[\s\S]*?width:60px;[\s\S]*?min-width:60px;[\s\S]*?height:60px;[\s\S]*?min-height:60px;[\s\S]*?flex-basis:60px;/);
 assert.match(starLogo, /const scale = Math\.min\(width, height\) \/ 54;/);
 assert.match(starLogo, /const outer = 14\.8 \* scale;/);
-assert.match(starLogoCss, /filter:contrast\(1\.16\) saturate\(1\.08\) drop-shadow\(0 0 7px rgba\(101,211,255,\.2\)\);/);
-assert.match(starLogoCss, /background:radial-gradient\(circle,rgba\(105,218,255,\.22\),rgba\(91,115,255,\.08\) 48%,transparent 74%\);/);
+
+// Approved vivid palette: strong indigo-to-electric-cyan star, not white-on-pale-cyan.
+assert.match(starLogoCss, /--particle-star-start:#6d5cff;/);
+assert.match(starLogoCss, /--particle-star-end:#24c7f4;/);
+assert.match(starLogoCss, /filter:contrast\(1\.24\) saturate\(1\.32\) drop-shadow\(0 0 9px rgba\(88,92,255,\.32\)\);/);
+assert.match(starLogo, /ctx\.shadowColor = 'rgba\(83, 94, 255, 0\.88\)'/);
+assert.match(starLogo, /ctx\.shadowBlur = 4 \+ this\.pointerEnergy \* 6/);
+assert.match(starLogo, /gradient\.addColorStop\(0, `rgba\(109, 92, 255, \$\{0\.22 \+ breath \* 0\.12\}\)`\)/);
+assert.match(starLogo, /gradient\.addColorStop\(0\.46, `rgba\(36, 199, 244, \$\{0\.12 \+ breath \* 0\.06\}\)`\)/);
 
 // The bootstrap is loaded once with existing global chrome, before the app mounts.
 assert.match(integration, /import '\.\/navigationStarEffectBootstrap\.js';/);
@@ -69,4 +76,4 @@ assert.match(effectCss, /@keyframes brian-nav-star-twinkle/);
 assert.match(effectCss, /@media \(prefers-reduced-motion: reduce\)/);
 assert.match(effectCss, /\[data-brian-star-fx='true'\]/);
 
-console.log('✓ Navigation Star effects and the enlarged, clearer Star logo contract are intact.');
+console.log('✓ Navigation Star effects and the vivid, prominent Star logo contract are intact.');
