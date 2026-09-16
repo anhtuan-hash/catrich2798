@@ -2,6 +2,7 @@ import fs from 'node:fs';
 
 const jsx = fs.readFileSync('src/components/GlobalReportsNavigationTab.jsx', 'utf8');
 const css = fs.readFileSync('src/components/GlobalReportsNavigationTab.css', 'utf8');
+const navAuthority = fs.readFileSync('src/styles/GlobalNavigationFinal2026.css', 'utf8');
 
 const checks = [];
 const add = (name, pass) => checks.push({ name, pass: Boolean(pass) });
@@ -15,24 +16,34 @@ add(
   jsx.includes('const showCountdownUnderLabel = reportWindowOpen;')
 );
 add(
-  'Countdown is a compact inline pill',
+  'Component countdown is a compact inline pill',
   css.includes('.brian-nav__reports-countdown')
     && css.includes('display: inline-flex;')
     && css.includes('border-radius: 999px;')
 );
 add(
-  'Countdown pill has a distinct warm background and border',
-  css.includes('background: linear-gradient(')
-    && css.includes('border: 1px solid')
+  'Final navigation authority keeps report countdown horizontally inline',
+  /\.brian-nav__reports-tab\.shows-countdown\s*\{[\s\S]*?display:\s*inline-flex\s*!important;/.test(navAuthority)
+    && !/\.brian-nav__reports-tab\.shows-countdown\s*\{[\s\S]*?display:\s*grid\s*!important;/.test(navAuthority)
 );
 add(
-  'Countdown pill has internal horizontal padding',
-  /\.brian-nav__reports-countdown[\s\S]*padding:\s*[^;]+;/.test(css)
+  'Final navigation authority gives countdown a readable gold pill',
+  /\.brian-nav__reports-countdown\s*\{[\s\S]*?height:\s*22px\s*!important;/.test(navAuthority)
+    && /\.brian-nav__reports-countdown\s*\{[\s\S]*?font-size:\s*10px\s*!important;/.test(navAuthority)
+    && /\.brian-nav__reports-countdown\s*\{[\s\S]*?border:\s*1px solid/.test(navAuthority)
+    && /\.brian-nav__reports-countdown\s*\{[\s\S]*?background:\s*linear-gradient/.test(navAuthority)
+    && /\.brian-nav__reports-countdown\s*\{[\s\S]*?color:\s*#684900\s*!important;/.test(navAuthority)
 );
 add(
-  'Countdown pill stays vertically centered with the report label',
-  /\.brian-nav__reports-copy[\s\S]*align-items:\s*center;/.test(css)
-    && /\.brian-nav__reports-countdown[\s\S]*align-items:\s*center;/.test(css)
+  'Active Reports route preserves dark countdown text and gold pill',
+  /\.brian-nav__reports-tab:is\(\.is-active,\[aria-current='page'\]\) \.brian-nav__reports-countdown\s*\{[\s\S]*?color:\s*#684900\s*!important;/.test(navAuthority)
+    && !/\.brian-nav__reports-tab:is\(\.is-active,\[aria-current='page'\]\) \.brian-nav__reports-countdown\s*\{[\s\S]*?color:\s*#fff\s*!important;/.test(navAuthority)
+);
+add(
+  'Final navigation authority does not clamp countdown to a tiny chip',
+  !/\.brian-nav__reports-countdown\s*\{[\s\S]*?max-width:\s*48px\s*!important;/.test(navAuthority)
+    && !/\.brian-nav__reports-countdown\s*\{[\s\S]*?height:\s*10px\s*!important;/.test(navAuthority)
+    && !/\.brian-nav__reports-countdown\s*\{[\s\S]*?font-size:\s*7\.5px\s*!important;/.test(navAuthority)
 );
 
 for (const item of checks) console.log(`${item.pass ? '✓' : '✗'} ${item.name}`);
