@@ -4,7 +4,6 @@ const INSTALL_KEY = '__besAttendanceHistoryPostConfirmBridgeInstalled';
 const HISTORY_ROOT = '.ahv3__shell[data-attendance-history-v3="true"]';
 const DETAIL_SELECTOR = `${HISTORY_ROOT} .ahv3__detail`;
 const BRIDGE_ATTRIBUTE = 'data-bes-history-post-confirm-bridge';
-const handledSuccessNotices = new WeakSet();
 
 let observer = null;
 let scheduled = false;
@@ -152,20 +151,15 @@ function clearCompatibilitySurface(detail) {
 }
 
 function refreshVisibleHistoryAfterSave() {
-  document.querySelectorAll(`${DETAIL_SELECTOR} .bes-post-confirm-notice.is-success`).forEach((notice) => {
-    if (handledSuccessNotices.has(notice)) return;
-    handledSuccessNotices.add(notice);
-
-    document.querySelector('.attendance-top-actions button[title="Làm mới"]')?.click();
-    window.setTimeout(() => {
-      document.querySelector(`${HISTORY_ROOT} .ahv3__items > button.is-selected`)?.click();
-    }, 250);
-  });
+  if (!document.querySelector(DETAIL_SELECTOR)) return;
+  document.querySelector('.attendance-top-actions button[title="Làm mới"]')?.click();
+  window.setTimeout(() => {
+    document.querySelector(`${HISTORY_ROOT} .ahv3__items > button.is-selected`)?.click();
+  }, 250);
 }
 
 async function synchronize() {
   scheduled = false;
-  refreshVisibleHistoryAfterSave();
 
   const snapshot = selectedHistorySnapshot();
   if (!snapshot?.detail) return;
@@ -213,6 +207,7 @@ async function install() {
 
   observer = new MutationObserver(() => scheduleSynchronize());
   observer.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
+  window.addEventListener('attendance:saved', refreshVisibleHistoryAfterSave);
   scheduleSynchronize();
 }
 
