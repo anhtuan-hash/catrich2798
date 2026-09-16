@@ -2,6 +2,7 @@ import fs from 'node:fs';
 
 const jsx = fs.readFileSync('src/components/GlobalReportsNavigationTab.jsx', 'utf8');
 const css = fs.readFileSync('src/components/GlobalReportsNavigationTab.css', 'utf8');
+const navAuthority = fs.readFileSync('src/styles/GlobalNavigationFinal2026.css', 'utf8');
 
 const checks = [];
 const add = (name, pass) => checks.push({ name, pass: Boolean(pass) });
@@ -15,24 +16,30 @@ add(
   jsx.includes('const showCountdownUnderLabel = reportWindowOpen;')
 );
 add(
-  'Countdown is a compact inline pill',
-  css.includes('.brian-nav__reports-countdown')
-    && css.includes('display: inline-flex;')
-    && css.includes('border-radius: 999px;')
+  'Global nav authority contains the legacy tiny-chip rule that must be outranked',
+  navAuthority.includes('font-size: 7.5px !important;')
+    && navAuthority.includes('height: 10px !important;')
 );
 add(
-  'Countdown pill has a distinct warm background and border',
-  css.includes('background: linear-gradient(')
-    && css.includes('border: 1px solid')
+  'Report component installs a higher-specificity final countdown override',
+  css.includes('html body #root .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.brian-nav__reports-send.shows-countdown')
 );
 add(
-  'Countdown pill has internal horizontal padding',
-  /\.brian-nav__reports-countdown[\s\S]*padding:\s*[^;]+;/.test(css)
+  'Winning override keeps Reports content horizontally inline',
+  /\.brian-nav__reports-tab\.brian-nav__reports-send\.shows-countdown\s*\{[\s\S]*?display:\s*inline-flex\s*!important;/.test(css)
+    && /\.brian-nav__reports-copy\s*\{[\s\S]*?display:\s*inline-flex\s*!important;/.test(css)
 );
 add(
-  'Countdown pill stays vertically centered with the report label',
-  /\.brian-nav__reports-copy[\s\S]*align-items:\s*center;/.test(css)
-    && /\.brian-nav__reports-countdown[\s\S]*align-items:\s*center;/.test(css)
+  'Winning countdown pill is readable and warm gold',
+  /\.brian-nav__reports-countdown\s*\{[\s\S]*?height:\s*22px\s*!important;/.test(css)
+    && /\.brian-nav__reports-countdown\s*\{[\s\S]*?font-size:\s*10px\s*!important;/.test(css)
+    && /\.brian-nav__reports-countdown\s*\{[\s\S]*?border:\s*1px solid/.test(css)
+    && /\.brian-nav__reports-countdown\s*\{[\s\S]*?background:\s*linear-gradient/.test(css)
+    && /\.brian-nav__reports-countdown\s*\{[\s\S]*?color:\s*#684900\s*!important;/.test(css)
+);
+add(
+  'Active Reports route keeps dark countdown text instead of white-on-pale',
+  /\.brian-nav__reports-tab\.brian-nav__reports-send:is\(\.is-active,\[aria-current='page'\]\) \.brian-nav__reports-countdown\s*\{[\s\S]*?color:\s*#684900\s*!important;/.test(css)
 );
 
 for (const item of checks) console.log(`${item.pass ? '✓' : '✗'} ${item.name}`);
