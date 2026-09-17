@@ -7,6 +7,14 @@ function timeValue(value) {
   return Number.isFinite(valueMs) ? valueMs : 0;
 }
 
+function schoolYearFor(value) {
+  const date = value ? new Date(value) : null;
+  if (!date || Number.isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const startYear = date.getMonth() >= 7 ? year : year - 1;
+  return `${startYear}-${startYear + 1}`;
+}
+
 function parseAttachments(value) {
   if (!value) return [];
   let parsed = value;
@@ -40,6 +48,19 @@ function activityLabel(response = {}, attachmentCount = 0) {
   return attachmentCount ? 'Đã gửi tệp' : 'Đã phản hồi';
 }
 
+function activityStatus(response = {}, attachmentCount = 0, fileSubmissionIndex = 0) {
+  const kind = text(response.comment_type).toLowerCase();
+  if (kind === 'submission' && attachmentCount) {
+    return fileSubmissionIndex > 1
+      ? { id: 'resubmitted', label: 'Đã nộp lại' }
+      : { id: 'submitted', label: 'Đã nộp' };
+  }
+  if (kind === 'submission') return { id: 'responded', label: 'Đã phản hồi' };
+  if (kind === 'review') return { id: 'feedback', label: 'Đã góp ý' };
+  if (kind === 'comment') return { id: 'acknowledged', label: 'Đã xác nhận' };
+  return attachmentCount ? { id: 'submitted', label: 'Đã gửi tệp' } : { id: 'responded', label: 'Đã phản hồi' };
+}
+
 export function buildTeacherHistory({ items = [], responses = [], teacherId = '' } = {}) {
   const targetId = text(teacherId);
   const itemsById = new Map((items || []).filter(Boolean).map((item) => [text(item.id), item]));
@@ -48,24 +69,36 @@ export function buildTeacherHistory({ items = [], responses = [], teacherId = ''
     .slice()
     .sort((a, b) => timeValue(a?.created_at) - timeValue(b?.created_at));
 
-  const roundByItem = new Map();
+  const responseRoundByItem = new Map();
+  const fileRoundByItem = new Map();
   const chronological = selected.map((response) => {
     const itemId = text(response?.item_id);
     const item = itemsById.get(itemId) || {};
     const attachments = parseAttachments(response?.attachments);
-    const submissionIndex = (roundByItem.get(itemId) || 0) + 1;
-    roundByItem.set(itemId, submissionIndex);
+    const responseIndex = (responseRoundByItem.get(itemId) || 0) + 1;
+    responseRoundByItem.set(itemId, responseIndex);
+    let fileSubmissionIndex = 0;
+    if (attachments.length) {
+      fileSubmissionIndex = (fileRoundByItem.get(itemId) || 0) + 1;
+      fileRoundByItem.set(itemId, fileSubmissionIndex);
+    }
+    const status = activityStatus(response, attachments.length, fileSubmissionIndex);
     return {
-      id: text(response?.id) || `${itemId}:${response?.created_at || submissionIndex}`,
+      id: text(response?.id) || `${itemId}:${response?.created_at || responseIndex}`,
       itemId,
       itemTitle: text(item?.title) || 'Nội dung TTCM',
       itemType: itemTypeLabel(item),
       body: text(response?.body || response?.content),
       commentType: text(response?.comment_type),
       createdAt: response?.created_at || '',
+      schoolYear: schoolYearFor(response?.created_at),
       attachments,
       attachmentCount: attachments.length,
-      submissionIndex,
+      responseIndex,
+      fileSubmissionIndex,
+      submissionIndex: responseIndex,
+      statusId: status.id,
+      statusLabel: status.label,
       label: activityLabel(response, attachments.length),
     };
   });
@@ -80,7 +113,11 @@ export function buildTeacherHistory({ items = [], responses = [], teacherId = ''
       itemTitle: entry.itemTitle,
       itemType: entry.itemType,
       submittedAt: entry.createdAt,
-      submissionIndex: entry.submissionIndex,
+      schoolYear: entry.schoolYear,
+      responseIndex: entry.responseIndex,
+      submissionIndex: entry.fileSubmissionIndex,
+      statusId: entry.statusId,
+      statusLabel: entry.statusLabel,
     })))
     .sort((a, b) => timeValue(b.submittedAt) - timeValue(a.submittedAt));
 

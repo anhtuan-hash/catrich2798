@@ -37,6 +37,16 @@ const CONTENT_TYPES = [
   { id: 'task', label: 'Yêu cầu thực hiện', helper: 'Theo dõi và phản hồi ngay tại TTCM', glyph: 'task', action: true },
 ];
 
+const HISTORY_FILE_FILTERS = [
+  { id: 'all', label: 'Tất cả' },
+  { id: 'first', label: 'Lần đầu' },
+  { id: 'resubmitted', label: 'Nộp lại' },
+  { id: 'pdf', label: 'PDF' },
+  { id: 'word', label: 'Word' },
+  { id: 'sheet', label: 'Excel' },
+  { id: 'archive', label: 'ZIP/RAR' },
+];
+
 const GLYPHS = {
   campaign: 'M3 10v4h3l4 4V6L6 10H3Zm9-3.5v11l7 3V3.5l-7 3Z',
   folder: 'M3 5h7l2 2h9v12H3V5Zm2 4v8h14V9H5Z',
@@ -97,6 +107,44 @@ function formatFullDate(value) {
   const date = new Date(value); if (Number.isNaN(date.getTime())) return '';
   return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(date);
 }
+function formatHistoryDate(value) {
+  const date = new Date(value); if (Number.isNaN(date.getTime())) return '—';
+  return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
+}
+function formatHistoryTime(value) {
+  const date = new Date(value); if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit' }).format(date);
+}
+function historyRelativeLabel(value) {
+  const date = new Date(value); if (Number.isNaN(date.getTime())) return '';
+  const diffDays = Math.max(0, Math.floor((Date.now() - date.getTime()) / 86400000));
+  if (diffDays === 0) return 'hôm nay';
+  if (diffDays === 1) return '1 ngày trước';
+  if (diffDays < 31) return `${diffDays} ngày trước`;
+  return '';
+}
+function historySchoolYearLabel(value) { return String(value || '').replace('-', '–'); }
+function historyItemTypeClass(label) {
+  if (label === 'Yêu cầu thực hiện') return 'task';
+  if (label === 'Xin góp ý') return 'feedback';
+  if (label === 'Yêu cầu xác nhận') return 'acknowledgement';
+  if (label === 'Tài liệu') return 'resource';
+  if (label === 'Thông báo') return 'announcement';
+  return 'content';
+}
+function historyFileClass(ext) {
+  const value = String(ext || '').toLowerCase();
+  if (value === 'pdf') return 'pdf';
+  if (['doc', 'docx', 'odt', 'rtf'].includes(value)) return 'doc';
+  if (['xls', 'xlsx', 'csv', 'ods'].includes(value)) return 'sheet';
+  if (['ppt', 'pptx', 'odp'].includes(value)) return 'slides';
+  if (['zip', 'rar', '7z', 'tar', 'gz'].includes(value)) return 'archive';
+  return 'file';
+}
+function historyBodyNeedsExpansion(value) {
+  const body = String(value || '');
+  return body.length > 170 || body.split(/\r?\n/).length > 3;
+}
 function dateTimeLocalValue(value) {
   if (!value) return ''; const date = new Date(value); if (Number.isNaN(date.getTime())) return '';
   const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000); return local.toISOString().slice(0, 16);
@@ -139,6 +187,9 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
   const [people, setPeople] = useState([]);
   const [historyTeacherId, setHistoryTeacherId] = useState('');
   const [historyQuery, setHistoryQuery] = useState('');
+  const [historySchoolYear, setHistorySchoolYear] = useState('');
+  const [historyFileFilter, setHistoryFileFilter] = useState('all');
+  const [expandedHistoryIds, setExpandedHistoryIds] = useState(() => new Set());
   const [readIds, setReadIds] = useState(() => readReadIds(currentUser));
   const [filter, setFilter] = useState('all');
   const [kind, setKind] = useState('announcement');
@@ -282,15 +333,39 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
 
   const historyTeacher = useMemo(() => departmentTeachers.find((person) => String(person.id) === String(historyTeacherId)) || null, [departmentTeachers, historyTeacherId]);
   const teacherHistory = useMemo(() => buildTeacherHistory({ items, responses, teacherId: historyTeacherId }), [historyTeacherId, items, responses]);
+  const historyAcademicYears = useMemo(() => [...new Set(teacherHistory.timeline.map((entry) => entry.schoolYear).filter(Boolean))].sort().reverse(), [teacherHistory.timeline]);
+  useEffect(() => {
+    if (!manager) return;
+    if (!historyAcademicYears.length) { if (historySchoolYear) setHistorySchoolYear(''); return; }
+    if (!historySchoolYear || (historySchoolYear !== 'all' && !historyAcademicYears.includes(historySchoolYear))) setHistorySchoolYear(historyAcademicYears[0]);
+  }, [historyAcademicYears, historySchoolYear, manager]);
+  const yearHistoryTimeline = useMemo(() => historySchoolYear && historySchoolYear !== 'all' ? teacherHistory.timeline.filter((entry) => entry.schoolYear === historySchoolYear) : teacherHistory.timeline, [historySchoolYear, teacherHistory.timeline]);
+  const yearHistoryFiles = useMemo(() => historySchoolYear && historySchoolYear !== 'all' ? teacherHistory.files.filter((file) => file.schoolYear === historySchoolYear) : teacherHistory.files, [historySchoolYear, teacherHistory.files]);
+  const historySummary = useMemo(() => ({
+    activityCount: yearHistoryTimeline.length,
+    fileCount: yearHistoryFiles.length,
+    itemCount: new Set(yearHistoryTimeline.map((entry) => entry.itemId).filter(Boolean)).size,
+    latestAt: yearHistoryTimeline[0]?.createdAt || '',
+  }), [yearHistoryFiles.length, yearHistoryTimeline]);
   const historyNeedle = historyQuery.trim().toLowerCase();
   const visibleHistoryTimeline = useMemo(() => {
-    if (!historyNeedle) return teacherHistory.timeline;
-    return teacherHistory.timeline.filter((entry) => `${entry.label} ${entry.itemTitle} ${entry.itemType} ${entry.body}`.toLowerCase().includes(historyNeedle));
-  }, [historyNeedle, teacherHistory.timeline]);
-  const visibleHistoryFiles = useMemo(() => {
-    if (!historyNeedle) return teacherHistory.files;
-    return teacherHistory.files.filter((file) => `${file.name || ''} ${file.itemTitle || ''} ${file.itemType || ''}`.toLowerCase().includes(historyNeedle));
-  }, [historyNeedle, teacherHistory.files]);
+    if (!historyNeedle) return yearHistoryTimeline;
+    return yearHistoryTimeline.filter((entry) => `${entry.label} ${entry.statusLabel} ${entry.itemTitle} ${entry.itemType} ${entry.body}`.toLowerCase().includes(historyNeedle));
+  }, [historyNeedle, yearHistoryTimeline]);
+  const visibleHistoryFiles = useMemo(() => yearHistoryFiles.filter((file) => {
+    if (historyNeedle && !`${file.name || ''} ${file.itemTitle || ''} ${file.itemType || ''} ${file.statusLabel || ''}`.toLowerCase().includes(historyNeedle)) return false;
+    const ext = getWorkHubAttachmentExtension(file);
+    if (historyFileFilter === 'first') return file.statusId === 'submitted';
+    if (historyFileFilter === 'resubmitted') return file.statusId === 'resubmitted';
+    if (historyFileFilter === 'pdf') return ext === 'pdf';
+    if (historyFileFilter === 'word') return ['doc', 'docx', 'odt', 'rtf'].includes(ext);
+    if (historyFileFilter === 'sheet') return ['xls', 'xlsx', 'csv', 'ods'].includes(ext);
+    if (historyFileFilter === 'archive') return ['zip', 'rar', '7z', 'tar', 'gz'].includes(ext);
+    return true;
+  }), [historyFileFilter, historyNeedle, yearHistoryFiles]);
+  function toggleHistoryExpanded(entryId) {
+    setExpandedHistoryIds((current) => { const next = new Set(current); if (next.has(entryId)) next.delete(entryId); else next.add(entryId); return next; });
+  }
 
   const unseenCount = useMemo(() => items.filter((item) => userIsAssignee(item, currentUser?.id) && !readIds.has(String(item.id))).length, [currentUser?.id, items, readIds]);
   const counts = useMemo(() => {
@@ -634,27 +709,29 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
               <section className="ttcm-history-toolbar">
                 <div className="ttcm-history-toolbar-copy"><strong>Hồ sơ hoạt động giáo viên</strong><span>Theo dõi toàn bộ phản hồi, xác nhận và tệp giáo viên đã gửi cho TTCM.</span></div>
                 <div className="ttcm-history-controls">
-                  <label className="ttcm-history-field"><span>Giáo viên</span><select value={historyTeacherId} onChange={(event) => { setHistoryTeacherId(event.target.value); setHistoryQuery(''); }}><option value="">Chọn giáo viên</option>{departmentTeachers.map((person) => <option key={person.id} value={person.id}>{person.name}{person.email ? ` · ${person.email}` : ''}</option>)}</select></label>
+                  <label className="ttcm-history-field"><span>Giáo viên</span><select value={historyTeacherId} onChange={(event) => { setHistoryTeacherId(event.target.value); setHistoryQuery(''); setHistorySchoolYear(''); setHistoryFileFilter('all'); setExpandedHistoryIds(new Set()); }}><option value="">Chọn giáo viên</option>{departmentTeachers.map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}</select></label>
+                  <label className="ttcm-history-field is-year"><span>Năm học</span><select value={historySchoolYear} onChange={(event) => setHistorySchoolYear(event.target.value)} disabled={!historyAcademicYears.length}><option value="all">Tất cả năm học</option>{historyAcademicYears.map((year) => <option key={year} value={year}>{historySchoolYearLabel(year)}</option>)}</select></label>
                   {historyTeacher ? <div className="ttcm-history-teacher"><span className="ttcm-history-avatar">{String(historyTeacher.name || 'GV').trim().split(/\s+/).slice(-2).map((part) => part[0] || '').join('').toUpperCase()}</span><div><b>{historyTeacher.name}</b><small>{historyTeacher.email || 'Giáo viên tổ chuyên môn'}</small></div></div> : null}
                 </div>
               </section>
 
               <section className="ttcm-history-stats" aria-label="Tổng quan hoạt động">
-                <article className="ttcm-history-stat"><span>Lượt hoạt động</span><strong>{teacherHistory.summary.activityCount}</strong><small>Phản hồi / xác nhận đã ghi nhận</small></article>
-                <article className="ttcm-history-stat"><span>Nội dung đã tham gia</span><strong>{teacherHistory.summary.itemCount}</strong><small>Yêu cầu TTCM có tương tác</small></article>
-                <article className="ttcm-history-stat"><span>File đã nộp</span><strong>{teacherHistory.summary.fileCount}</strong><small>Giữ đủ các lần nộp, không ghi đè lịch sử</small></article>
-                <article className="ttcm-history-stat"><span>Hoạt động gần nhất</span><strong>{teacherHistory.summary.latestAt ? formatDate(teacherHistory.summary.latestAt) : '—'}</strong><small>{teacherHistory.summary.latestAt ? formatFullDate(teacherHistory.summary.latestAt) : 'Chưa có dữ liệu'}</small></article>
+                <article className="ttcm-history-stat is-activity"><div className="ttcm-history-stat-head"><span className="ttcm-history-stat-icon"><Icon name="history" size={16} /></span><span>Lượt hoạt động</span></div><strong>{historySummary.activityCount}</strong><small>Phản hồi / xác nhận đã ghi nhận</small></article>
+                <article className="ttcm-history-stat is-content"><div className="ttcm-history-stat-head"><span className="ttcm-history-stat-icon"><Icon name="task" size={16} /></span><span>Nội dung đã tham gia</span></div><strong>{historySummary.itemCount}</strong><small>Yêu cầu TTCM có tương tác</small></article>
+                <article className="ttcm-history-stat is-files"><div className="ttcm-history-stat-head"><span className="ttcm-history-stat-icon"><Icon name="folder" size={16} /></span><span>File đã nộp</span></div><strong>{historySummary.fileCount}</strong><small>Giữ đủ các lần nộp, không ghi đè lịch sử</small></article>
+                <article className="ttcm-history-stat is-latest"><div className="ttcm-history-stat-head"><span className="ttcm-history-stat-icon"><Icon name="calendar" size={16} /></span><span>Hoạt động gần nhất</span></div><strong>{historySummary.latestAt ? formatHistoryDate(historySummary.latestAt) : '—'}</strong><small>{historySummary.latestAt ? [formatHistoryTime(historySummary.latestAt), historyRelativeLabel(historySummary.latestAt)].filter(Boolean).join(' · ') : 'Chưa có dữ liệu'}</small></article>
               </section>
 
               <section className="ttcm-history-grid">
                 <article className="ttcm-history-panel">
-                  <header><div><strong>Lịch sử hoạt động</strong><small>{visibleHistoryTimeline.length} sự kiện</small></div></header>
-                  {historyTeacherId && visibleHistoryTimeline.length ? <div className="ttcm-history-timeline">{visibleHistoryTimeline.map((entry) => <div className="ttcm-history-event" key={entry.id}><span className="ttcm-history-event-dot" /><div className="ttcm-history-event-card"><header><b>{entry.label}</b><time>{formatDate(entry.createdAt)}</time></header><h4>{entry.itemTitle}</h4>{entry.body ? <p>{entry.body}</p> : null}<div className="ttcm-history-event-meta"><span className="ttcm-history-chip">{entry.itemType}</span><span className="ttcm-history-chip">Lần phản hồi {entry.submissionIndex}</span>{entry.attachmentCount ? <span className="ttcm-history-chip is-file">{entry.attachmentCount} file</span> : null}</div></div></div>)}</div> : <div className="ttcm-history-empty"><Icon name="history" size={30} /><strong>{historyTeacherId ? 'Chưa có hoạt động phù hợp' : 'Chọn giáo viên để xem lịch sử'}</strong><span>{historyTeacherId ? 'Các phản hồi, xác nhận và lần nộp tệp mới sẽ tự động xuất hiện tại đây.' : 'TTCM có thể chọn từng giáo viên trong tổ để xem hồ sơ hoạt động.'}</span></div>}
+                  <header><div><strong>Lịch sử hoạt động</strong><small>{visibleHistoryTimeline.length} sự kiện{historySchoolYear && historySchoolYear !== 'all' ? ` · ${historySchoolYearLabel(historySchoolYear)}` : ''}</small></div></header>
+                  {historyTeacherId && visibleHistoryTimeline.length ? <div className="ttcm-history-timeline">{visibleHistoryTimeline.map((entry) => { const expanded = expandedHistoryIds.has(entry.id); const expandable = historyBodyNeedsExpansion(entry.body); return <div className={`ttcm-history-event is-${entry.statusId || 'responded'}`} key={entry.id}><span className="ttcm-history-event-dot" /><div className="ttcm-history-event-card"><header><b>{entry.label}</b><time>{formatDate(entry.createdAt)}</time></header><h4>{entry.itemTitle}</h4>{entry.body ? <><p className={!expanded && expandable ? 'is-clamped' : undefined}>{entry.body}</p>{expandable ? <button type="button" className="ttcm-history-expand" onClick={() => toggleHistoryExpanded(entry.id)}>{expanded ? 'Thu gọn' : 'Xem đầy đủ'}</button> : null}</> : null}<div className="ttcm-history-event-meta"><span className={`ttcm-history-chip is-${historyItemTypeClass(entry.itemType)}`}>{entry.itemType}</span><span className="ttcm-history-chip">Phản hồi #{entry.responseIndex}</span><span className={`ttcm-history-status is-${entry.statusId || 'responded'}`}>{entry.statusLabel || 'Đã phản hồi'}</span>{entry.attachmentCount ? <><span className="ttcm-history-chip is-file">Lần nộp file #{entry.fileSubmissionIndex}</span><span className="ttcm-history-chip is-file">{entry.attachmentCount} file</span></> : null}</div></div></div>; })}</div> : <div className="ttcm-history-empty"><Icon name="history" size={30} /><strong>{historyTeacherId ? 'Chưa có hoạt động phù hợp' : 'Chọn giáo viên để xem lịch sử'}</strong><span>{historyTeacherId ? 'Các phản hồi, xác nhận và lần nộp tệp mới sẽ tự động xuất hiện tại đây.' : 'TTCM có thể chọn từng giáo viên trong tổ để xem hồ sơ hoạt động.'}</span></div>}
                 </article>
 
                 <article className="ttcm-history-panel">
-                  <header><div><strong>Danh sách file đã nộp</strong><small>{visibleHistoryFiles.length}/{teacherHistory.summary.fileCount} file</small></div><input className="ttcm-history-search" type="search" value={historyQuery} onChange={(event) => setHistoryQuery(event.target.value)} placeholder="Tìm file hoặc nội dung TTCM…" aria-label="Tìm file giáo viên đã nộp" /></header>
-                  {historyTeacherId && visibleHistoryFiles.length ? <div className="ttcm-history-files"><table className="ttcm-history-table"><thead><tr><th>File</th><th>Nội dung TTCM</th><th>Ngày nộp</th><th>Lần nộp</th><th>Thao tác</th></tr></thead><tbody>{visibleHistoryFiles.map((file) => { const ext = getWorkHubAttachmentExtension(file); const relatedItem = items.find((item) => String(item.id) === String(file.itemId)) || { id: file.itemId, title: file.itemTitle }; return <tr key={file.id}><td><div className="ttcm-history-file-name"><span className="ttcm-history-file-badge">{ext ? ext.slice(0, 4).toUpperCase() : 'FILE'}</span><div><b title={file.name}>{file.name || 'Tệp đính kèm'}</b><small>{[ext ? ext.toUpperCase() : '', formatFileSize(file.size)].filter(Boolean).join(' · ') || 'Tệp TTCM'}</small></div></div></td><td><b>{file.itemTitle}</b><br /><small>{file.itemType}</small></td><td>{formatFullDate(file.submittedAt) || '—'}</td><td><span className="ttcm-history-round">Lần {file.submissionIndex}</span></td><td><div className="ttcm-history-actions"><button type="button" onClick={() => previewAttachment(relatedItem, file)} title="Xem trước" aria-label={`Xem ${file.name || 'tệp'}`}><Icon name="eye" size={17} /></button><button type="button" onClick={() => downloadAttachment(relatedItem, file)} title="Tải về" aria-label={`Tải ${file.name || 'tệp'}`}><Icon name="download" size={17} /></button></div></td></tr>; })}</tbody></table></div> : <div className="ttcm-history-empty"><Icon name="folder" size={30} /><strong>{historyTeacherId ? (historyQuery ? 'Không tìm thấy file phù hợp' : 'Giáo viên chưa nộp file') : 'Chưa chọn giáo viên'}</strong><span>Toàn bộ tệp đính kèm trong các lần phản hồi TTCM sẽ được tập hợp ở đây và vẫn giữ riêng từng lần nộp.</span></div>}
+                  <header><div><strong>Danh sách file đã nộp</strong><small>{visibleHistoryFiles.length}/{historySummary.fileCount} file{historySchoolYear && historySchoolYear !== 'all' ? ` · ${historySchoolYearLabel(historySchoolYear)}` : ''}</small></div><input className="ttcm-history-search" type="search" value={historyQuery} onChange={(event) => setHistoryQuery(event.target.value)} placeholder="Tìm tên file hoặc nội dung TTCM…" aria-label="Tìm file giáo viên đã nộp" /></header>
+                  <div className="ttcm-history-filter-chips" aria-label="Bộ lọc file nhanh">{HISTORY_FILE_FILTERS.map((filterOption) => <button type="button" key={filterOption.id} className={`ttcm-history-filter-chip is-${filterOption.id} ${historyFileFilter === filterOption.id ? 'is-selected' : ''}`} aria-pressed={historyFileFilter === filterOption.id} onClick={() => setHistoryFileFilter(filterOption.id)}>{filterOption.label}</button>)}</div>
+                  {historyTeacherId && visibleHistoryFiles.length ? <div className="ttcm-history-files"><table className="ttcm-history-table"><thead><tr><th>File</th><th>Nội dung TTCM</th><th>Ngày nộp</th><th>Lần nộp</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody>{visibleHistoryFiles.map((file) => { const ext = getWorkHubAttachmentExtension(file); const relatedItem = items.find((item) => String(item.id) === String(file.itemId)) || { id: file.itemId, title: file.itemTitle }; return <tr key={file.id}><td><div className="ttcm-history-file-name"><span className={`ttcm-history-file-badge is-${historyFileClass(ext)}`}>{ext ? ext.slice(0, 4).toUpperCase() : 'FILE'}</span><div><b title={file.name}>{file.name || 'Tệp đính kèm'}</b><small>{[ext ? ext.toUpperCase() : '', formatFileSize(file.size)].filter(Boolean).join(' · ') || 'Tệp TTCM'}</small></div></div></td><td><b>{file.itemTitle}</b><br /><small>{file.itemType}</small></td><td>{formatFullDate(file.submittedAt) || '—'}</td><td><span className={`ttcm-history-round ${file.submissionIndex > 1 ? 'is-later' : ''}`}>Lần {file.submissionIndex}</span></td><td><span className={`ttcm-history-status is-${file.statusId || 'submitted'}`}>{file.statusLabel || 'Đã nộp'}</span></td><td><div className="ttcm-history-actions"><button type="button" onClick={() => previewAttachment(relatedItem, file)} title="Xem trước" aria-label={`Xem ${file.name || 'tệp'}`}><Icon name="eye" size={17} /></button><button type="button" onClick={() => downloadAttachment(relatedItem, file)} title="Tải về" aria-label={`Tải ${file.name || 'tệp'}`}><Icon name="download" size={17} /></button></div></td></tr>; })}</tbody></table></div> : <div className="ttcm-history-empty"><Icon name="folder" size={30} /><strong>{historyTeacherId ? ((historyQuery || historyFileFilter !== 'all') ? 'Không tìm thấy file phù hợp' : 'Giáo viên chưa nộp file') : 'Chưa chọn giáo viên'}</strong><span>Toàn bộ tệp đính kèm trong các lần phản hồi TTCM sẽ được tập hợp ở đây và vẫn giữ riêng từng lần nộp.</span></div>}
                 </article>
               </section>
             </main>
