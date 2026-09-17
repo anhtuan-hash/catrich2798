@@ -57,7 +57,7 @@ check(/\.work-schedule-timeline-event[^}]*min-height\s*:\s*8[2-9]px/.test(css), 
 check(/\.work-schedule-timeline-event>span:not\(\.work-schedule-event-icon\)[^}]*font-size\s*:\s*1[0-1](?:\.5)?px/.test(css), 'improves event title readability');
 check(/\.work-schedule-category-filters button[^}]*min-height\s*:\s*3[6-9]px/.test(css), 'makes category chips easier to scan and click');
 check(css.includes('.work-schedule-timeline-board'), 'styles the seven-column timeline board');
-check(/grid-template-columns\s*:\s*repeat\(7\s*,\s*minmax\(176px\s*,\s*1fr\)\)/.test(css), 'uses seven equal timeline columns on desktop');
+check(/grid-template-columns\s*:\s*repeat\(7\s*,\s*minmax\(192px\s*,\s*1fr\)\)/.test(css), 'uses seven equal timeline columns on desktop');
 check(/border-left\s*:\s*1px\s+dashed/.test(css), 'draws the vertical timeline rails');
 check(css.includes('.work-schedule-timeline-event.is-meeting'), 'styles meeting events');
 check(css.includes('.work-schedule-timeline-event.is-training'), 'styles training events');
