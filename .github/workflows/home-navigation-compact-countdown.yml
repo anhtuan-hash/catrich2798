@@ -1,0 +1,40 @@
+name: Home navigation compact countdown
+
+on:
+  pull_request:
+    paths:
+      - 'src/components/GlobalReportsNavigationTab.jsx'
+      - 'src/components/GlobalReportsNavigationTab.css'
+      - 'src/styles/GlobalNavigationCompactPills.css'
+      - 'src/styles/GlobalNavigationFinal2026.css'
+      - 'scripts/test-report-navbar-countdown-pill.mjs'
+      - '.github/workflows/home-navigation-compact-countdown.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/components/GlobalReportsNavigationTab.jsx'
+      - 'src/components/GlobalReportsNavigationTab.css'
+      - 'src/styles/GlobalNavigationCompactPills.css'
+      - 'src/styles/GlobalNavigationFinal2026.css'
+      - 'scripts/test-report-navbar-countdown-pill.mjs'
+      - '.github/workflows/home-navigation-compact-countdown.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  compact-countdown-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Verify compact navbar and detailed report countdown
+        run: node scripts/test-report-navbar-countdown-pill.mjs
