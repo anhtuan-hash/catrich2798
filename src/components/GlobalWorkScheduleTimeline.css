@@ -1,0 +1,718 @@
+/*
+ * TTCM shared work schedule — approved illustrated weekly timeline.
+ * Presentation-only skin. All data, permissions and mutations remain in
+ * GlobalWorkScheduleCenter.jsx.
+ */
+
+.ttcm-m3-module-scroll .work-schedule-center {
+  --tl-blue: #1268e8;
+  --tl-blue-2: #4d93ff;
+  --tl-ink: #0c2747;
+  --tl-muted: #66809d;
+  --tl-line: #d8e6f5;
+  --tl-sky: #eff7ff;
+  --tl-mint: #20a874;
+  --tl-orange: #ef8f4a;
+  --tl-violet: #8156e8;
+  --tl-shadow: 0 18px 42px rgba(37, 75, 124, .10);
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin: 8px 14px 14px;
+  padding: 0 18px 14px;
+  border: 1px solid #cfe0f1;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(24, 63, 108, .06);
+}
+
+/* Soft cloud wash behind the complete hero. */
+.ttcm-m3-module-scroll .work-schedule-center::before {
+  content: '';
+  position: absolute;
+  z-index: -2;
+  inset: 0 0 auto;
+  height: 258px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 82% 13%, rgba(125, 207, 255, .22) 0 80px, transparent 82px),
+    radial-gradient(circle at 68% 12%, rgba(204, 224, 255, .62) 0 120px, transparent 123px),
+    linear-gradient(120deg, #f7fbff 0%, #f4f9ff 46%, #eaf9f7 100%);
+}
+
+/* Scenic quote footer — mountains and trees are deploy-safe inline SVG. */
+.ttcm-m3-module-scroll .work-schedule-center::after {
+  content: '❝  Lịch làm việc khoa học là nền tảng của một tập thể vững mạnh.\A      Cùng nhau tạo nên những giá trị tốt đẹp hơn mỗi ngày!                         Giáo dục là hành trình cùng nhau lớn lên ♡';
+  display: block;
+  min-height: 82px;
+  margin: 14px 0 0;
+  padding: 20px 300px 14px 56px;
+  border: 1px solid #d6e7f7;
+  border-radius: 16px;
+  white-space: pre-wrap;
+  color: #4473a6;
+  font-size: 12px;
+  font-style: italic;
+  font-weight: 650;
+  line-height: 1.55;
+  letter-spacing: -.01em;
+  background-color: #f8fcff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='720' height='150' viewBox='0 0 720 150'%3E%3Cpath d='M210 138L310 72l70 48 78-76 93 95z' fill='%23e3f0fb'/%3E%3Cpath d='M328 140l92-72 62 44 60-56 110 84z' fill='%23d4e9f8'/%3E%3Cpath d='M438 139l74-55 54 29 47-42 92 68z' fill='%23c8e4f1'/%3E%3Cg fill='%2398c7d4'%3E%3Cpath d='M490 136l8-29 8 29z'/%3E%3Cpath d='M520 139l10-42 10 42z'/%3E%3Cpath d='M552 139l8-33 8 33z'/%3E%3Cpath d='M585 139l11-48 11 48z'/%3E%3Cpath d='M625 139l9-39 9 39z'/%3E%3C/g%3E%3Cpath d='M0 142h720' stroke='%23bcd9ec' stroke-width='2'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right bottom;
+  background-size: 52% 100%;
+}
+
+/* ===== HERO ===== */
+.ttcm-m3-module-scroll .work-schedule-toolbar {
+  position: relative;
+  min-height: 128px;
+  margin: 0 -18px;
+  padding: 25px 520px 15px 28px;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+}
+
+.ttcm-m3-module-scroll .work-schedule-toolbar > div:first-child {
+  position: relative;
+  z-index: 3;
+}
+
+.ttcm-m3-module-scroll .work-schedule-eyebrow {
+  color: #1261b2;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .16em;
+}
+
+.ttcm-m3-module-scroll .work-schedule-toolbar h2 {
+  margin: 5px 0 5px;
+  color: var(--tl-ink);
+  font-size: clamp(32px, 3vw, 48px);
+  font-weight: 900;
+  line-height: 1.02;
+  letter-spacing: -.052em;
+}
+
+.ttcm-m3-module-scroll .work-schedule-toolbar p {
+  max-width: 690px;
+  margin: 0;
+  color: #5e7b9c;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* Full calendar + plants + books artwork from the approved mockup. */
+.ttcm-m3-module-scroll .work-schedule-toolbar::before {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  top: 18px;
+  right: 24px;
+  width: 470px;
+  height: 155px;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='205' viewBox='0 0 600 205'%3E%3Cdefs%3E%3ClinearGradient id='c' x1='0' x2='1'%3E%3Cstop stop-color='%23f9fcff'/%3E%3Cstop offset='1' stop-color='%23d9ebff'/%3E%3C/linearGradient%3E%3ClinearGradient id='b' x1='0' x2='1'%3E%3Cstop stop-color='%2380b4ef'/%3E%3Cstop offset='1' stop-color='%234f86c9'/%3E%3C/linearGradient%3E%3Cfilter id='s'%3E%3CfeDropShadow dx='0' dy='5' stdDeviation='5' flood-color='%237598b8' flood-opacity='.18'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='410' cy='183' rx='176' ry='16' fill='%23c7ddec' opacity='.45'/%3E%3Cg filter='url(%23s)'%3E%3Crect x='205' y='36' width='154' height='132' rx='11' fill='url(%23c)' stroke='%23c6dcf2'/%3E%3Crect x='219' y='23' width='9' height='27' rx='4' fill='%236996c8'/%3E%3Crect x='244' y='23' width='9' height='27' rx='4' fill='%236996c8'/%3E%3Crect x='269' y='23' width='9' height='27' rx='4' fill='%236996c8'/%3E%3Crect x='294' y='23' width='9' height='27' rx='4' fill='%236996c8'/%3E%3Crect x='319' y='23' width='9' height='27' rx='4' fill='%236996c8'/%3E%3Cg fill='%23eef6ff' stroke='%23c8ddf2'%3E%3Crect x='224' y='64' width='24' height='22' rx='3'/%3E%3Crect x='255' y='64' width='24' height='22' rx='3'/%3E%3Crect x='286' y='64' width='24' height='22' rx='3'/%3E%3Crect x='317' y='64' width='24' height='22' rx='3'/%3E%3Crect x='224' y='94' width='24' height='22' rx='3'/%3E%3Crect x='255' y='94' width='24' height='22' rx='3'/%3E%3Crect x='286' y='94' width='24' height='22' rx='3'/%3E%3Crect x='317' y='94' width='24' height='22' rx='3'/%3E%3C/ g%3E%3Crect x='255' y='64' width='24' height='22' rx='3' fill='%2360c49a'/%3E%3Cpath d='M262 75l5 5 8-12' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3Crect x='317' y='94' width='24' height='22' rx='3' fill='%236aa3f5'/%3E%3Cpath d='M323 105l5 5 8-12' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M361 42l22 109-25 13z' fill='%235f91d1'/%3E%3C/g%3E%3Cg fill='%235ea88d'%3E%3Cpath d='M178 159c-21-39-44-37-53-58 31 2 48 16 53 58z'/%3E%3Cpath d='M175 157c7-46 36-56 42-81-33 10-48 33-42 81z'/%3E%3Cpath d='M191 162c15-30 39-28 51-45-27-3-45 11-51 45z'/%3E%3Cpath d='M415 163c-12-38-35-40-42-61 29 4 44 22 42 61z'/%3E%3Cpath d='M416 163c10-42 35-48 45-69-31 7-44 30-45 69z'/%3E%3C/g%3E%3Cg filter='url(%23s)'%3E%3Crect x='136' y='155' width='62' height='31' rx='8' fill='%23eef7f8' stroke='%23d2e7e8'/%3E%3Crect x='398' y='154' width='52' height='34' rx='8' fill='%23eef7f8' stroke='%23d2e7e8'/%3E%3Crect x='438' y='136' width='132' height='24' rx='5' fill='%23f7fbff' stroke='%23d0deec'/%3E%3Crect x='430' y='158' width='147' height='31' rx='5' fill='url(%23b)'/%3E%3Ctext x='454' y='177' font-family='Arial' font-size='11' fill='white'%3EBetter Teachers%3C/text%3E%3Ctext x='454' y='188' font-family='Arial' font-size='10' fill='%23eaf4ff'%3EBrighter Students%3C/text%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  opacity: .96;
+}
+
+.ttcm-m3-module-scroll .work-schedule-toolbar::after {
+  content: 'Cùng kiến tạo\A môi trường học tập tốt hơn  ♡';
+  position: absolute;
+  z-index: 2;
+  top: 51px;
+  right: 37px;
+  width: 215px;
+  color: #4c83c9;
+  white-space: pre-line;
+  text-align: center;
+  font-family: 'Segoe Print', 'Bradley Hand', cursive;
+  font-size: 13px;
+  font-style: italic;
+  line-height: 1.25;
+  transform: rotate(-5deg);
+  pointer-events: none;
+}
+
+.ttcm-m3-module-scroll .work-schedule-actions {
+  position: absolute;
+  z-index: 8;
+  top: 14px;
+  right: 18px;
+  display: flex;
+  gap: 8px;
+}
+
+.ttcm-m3-module-scroll .work-schedule-actions button {
+  min-height: 42px;
+  padding-inline: 15px;
+  border-radius: 13px;
+  font-size: 11px;
+  font-weight: 850;
+  box-shadow: 0 7px 18px rgba(25, 73, 128, .08);
+  backdrop-filter: blur(8px);
+}
+
+.ttcm-m3-module-scroll .work-schedule-actions .secondary {
+  border-color: #c7daf0;
+  background: rgba(255, 255, 255, .9);
+  color: #174d84;
+}
+
+.ttcm-m3-module-scroll .work-schedule-actions .primary {
+  border-color: #1164df;
+  background: linear-gradient(135deg, #166fe8, #075ccf);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(20, 102, 226, .22);
+}
+
+/* ===== METRICS ===== */
+.ttcm-m3-module-scroll .work-schedule-metrics {
+  position: relative;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin: 2px 0 14px;
+  padding-right: 405px;
+}
+
+.ttcm-m3-module-scroll .work-schedule-metrics article {
+  position: relative;
+  min-height: 82px;
+  padding: 15px 12px 12px 68px;
+  border: 1px solid #d4e3f3;
+  border-radius: 15px;
+  background: rgba(255,255,255,.91);
+  box-shadow: 0 8px 25px rgba(55, 92, 134, .05);
+}
+
+.ttcm-m3-module-scroll .work-schedule-metrics article::before {
+  position: absolute;
+  left: 14px;
+  top: 16px;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.ttcm-m3-module-scroll .work-schedule-metrics article:nth-child(1)::before { content: '▣'; color: #1268e8; background: #e9f2ff; }
+.ttcm-m3-module-scroll .work-schedule-metrics article:nth-child(2)::before { content: '●●'; color: #1c73e8; background: #ebf3ff; font-size: 9px; letter-spacing: -2px; }
+.ttcm-m3-module-scroll .work-schedule-metrics article:nth-child(3)::before { content: '▥'; color: #ed8645; background: #fff0e5; }
+.ttcm-m3-module-scroll .work-schedule-metrics article:nth-child(4)::before { content: '☁'; color: #20a874; background: #e7f8f2; }
+
+.ttcm-m3-module-scroll .work-schedule-metrics article::after {
+  content: '↗  Đồng bộ trực tiếp';
+  display: block;
+  margin-top: 3px;
+  color: #18a36e;
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.ttcm-m3-module-scroll .work-schedule-metrics strong {
+  display: block;
+  color: #0b315c;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.ttcm-m3-module-scroll .work-schedule-metrics span {
+  display: block;
+  margin-top: 5px;
+  color: #5d7691;
+  font-size: 10px;
+  font-weight: 750;
+}
+
+/* ===== WEEK CONTROLS + MOCKUP LEGEND ===== */
+.ttcm-m3-module-scroll .work-schedule-controls {
+  position: relative;
+  z-index: 4;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  margin: 0 -2px 7px;
+  padding: 9px 2px 7px;
+  border: 0;
+  background: #fff;
+}
+
+.ttcm-m3-module-scroll .work-schedule-month-nav {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.ttcm-m3-module-scroll .work-schedule-month-nav strong {
+  min-width: 190px;
+  color: #112d4d;
+  font-size: 14px;
+  font-weight: 880;
+  letter-spacing: -.02em;
+}
+
+.ttcm-m3-module-scroll .work-schedule-month-nav button {
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 10px;
+  border: 1px solid #cadcf0;
+  background: #fff;
+  color: #184e82;
+  box-shadow: 0 3px 10px rgba(41, 83, 129, .04);
+}
+
+.ttcm-m3-module-scroll .work-schedule-month-nav button.today {
+  min-width: auto;
+  padding-inline: 13px;
+  color: #185a9e;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.ttcm-m3-module-scroll .work-schedule-filterbar {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+/* Visual category chips from the approved mockup. Existing functional controls remain beside them. */
+.ttcm-m3-module-scroll .work-schedule-filterbar::before {
+  content: '●  Tất cả    ●  Họp    ●  Đào tạo    ●  Học sinh    ●  Hạn nộp    ●  Khác';
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 13px;
+  border: 1px solid #d7e5f4;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #edf4ff 0 17%, #fff 17% 100%);
+  color: #3d668f;
+  font-size: 9.5px;
+  font-weight: 780;
+  word-spacing: 3px;
+  white-space: nowrap;
+  box-shadow: 0 3px 11px rgba(35, 76, 119, .04);
+}
+
+.ttcm-m3-module-scroll .work-schedule-filterbar > input,
+.ttcm-m3-module-scroll .work-schedule-filterbar > select {
+  height: 34px;
+  border-color: #d9e6f4;
+  border-radius: 10px;
+  background: #fbfdff;
+  color: #55718e;
+  font-size: 9px;
+}
+
+.ttcm-m3-module-scroll .work-schedule-filterbar > input {
+  width: 128px;
+}
+
+.ttcm-m3-module-scroll .work-schedule-filterbar > input::placeholder {
+  color: transparent;
+}
+
+.ttcm-m3-module-scroll .work-schedule-filterbar > input:focus {
+  width: 205px;
+}
+
+.ttcm-m3-module-scroll .work-schedule-view-toggle {
+  padding: 2px;
+  border: 1px solid #dae7f4;
+  border-radius: 10px;
+  background: #f8fbff;
+}
+
+.ttcm-m3-module-scroll .work-schedule-view-toggle button {
+  min-height: 28px;
+  padding-inline: 8px;
+  border-radius: 7px;
+  font-size: 9px;
+}
+
+/* ===== WEEKLY TIMELINE ===== */
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week {
+  position: relative;
+  z-index: 3;
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid #d9e7f5;
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: var(--tl-shadow);
+  scrollbar-width: thin;
+  scrollbar-color: #c7d9eb transparent;
+}
+
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-weekdays {
+  display: none;
+}
+
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(176px, 1fr));
+  min-width: 1232px;
+  background: #fff;
+}
+
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article {
+  position: relative;
+  min-height: 365px;
+  padding: 55px 10px 20px 22px;
+  border: 0;
+  border-right: 1px solid #e2ecf6;
+  background: linear-gradient(180deg, #ffffff 0%, #ffffff 82%, #fbfdff 100%);
+  overflow: visible;
+}
+
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article:last-child {
+  border-right: 0;
+}
+
+/* Weekday names are derived from stable 7-column ordering without touching data logic. */
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article::before {
+  content: 'Thứ 2';
+  position: absolute;
+  top: 14px;
+  left: 22px;
+  color: #53708f;
+  font-size: 10px;
+  font-weight: 820;
+}
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article:nth-child(2)::before { content: 'Thứ 3'; }
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article:nth-child(3)::before { content: 'Thứ 4'; }
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article:nth-child(4)::before { content: 'Thứ 5'; }
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article:nth-child(5)::before { content: 'Thứ 6'; }
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article:nth-child(6)::before { content: 'Thứ 7'; }
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article:nth-child(7)::before { content: 'CN'; }
+
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article > header {
+  position: absolute;
+  top: 28px;
+  left: 22px;
+  right: 10px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article > header time {
+  color: #325a82;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article > header span {
+  min-width: 19px;
+  height: 19px;
+  display: grid;
+  place-items: center;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #eef4fa;
+  color: #6b8299;
+  font-size: 8px;
+  font-weight: 850;
+}
+
+/* Today column uses the pale-blue focus treatment from the mockup. */
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article.today {
+  background: linear-gradient(180deg, #f5f9ff 0%, #eef6ff 100%);
+  box-shadow: inset 0 0 0 1px #82b6ff;
+}
+
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article.today > header time {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  margin-top: -5px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background: var(--tl-blue);
+  color: #fff;
+  box-shadow: 0 7px 16px rgba(18, 104, 232, .24);
+}
+
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article.today::after {
+  content: 'Hôm nay';
+  position: absolute;
+  top: 15px;
+  right: 9px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: #e5f0ff;
+  color: #1268e8;
+  font-size: 8px;
+  font-weight: 850;
+}
+
+/* Dashed vertical timeline rail. */
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article > div {
+  position: relative;
+  min-height: 275px;
+  padding: 20px 0 22px 10px;
+  border-left: 1px dashed #b9d4f4;
+}
+
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article > div::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #6da5ef;
+  box-shadow: 0 0 0 4px #eff6ff;
+}
+
+/* Always retain the mockup's lightweight continuation affordance. */
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article > div::after {
+  content: '+ Xem thêm   ›';
+  position: absolute;
+  left: 9px;
+  bottom: 0;
+  color: #1268e8;
+  font-size: 9px;
+  font-weight: 820;
+}
+
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article > div > button {
+  position: relative;
+  width: 100%;
+  min-height: 69px;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  grid-template-rows: auto auto;
+  align-items: center;
+  column-gap: 7px;
+  row-gap: 1px;
+  margin: 0 0 8px;
+  padding: 8px 8px 8px 8px;
+  border: 1px solid #dce8f4;
+  border-radius: 11px;
+  background: linear-gradient(145deg, #fff, #f9fcff);
+  color: #153b61;
+  text-align: left;
+  box-shadow: 0 5px 15px rgba(39, 77, 119, .055);
+  overflow: visible;
+  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article > div > button:hover {
+  transform: translateY(-2px);
+  border-color: #9fc6f1;
+  box-shadow: 0 10px 20px rgba(34, 83, 139, .10);
+}
+
+/* Timeline event node + icon tile. */
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article > div > button::before {
+  content: '●';
+  grid-column: 1;
+  grid-row: 1 / 3;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #eaf3ff;
+  color: #1b6fe2;
+  font-size: 11px;
+  box-shadow: -21px 0 0 -16px #1b6fe2;
+}
+
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article > div > button.priority-low::before {
+  content: '✦';
+  color: #1d9b6a;
+  background: #e7f8f1;
+  box-shadow: -21px 0 0 -16px #20a874;
+}
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article > div > button.priority-high::before {
+  content: '◆';
+  color: #ef8f4a;
+  background: #fff0e6;
+  box-shadow: -21px 0 0 -16px #ef8f4a;
+}
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article > div > button.priority-urgent::before {
+  content: '!';
+  color: #8156e8;
+  background: #f1ebff;
+  box-shadow: -21px 0 0 -16px #8156e8;
+}
+
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article > div > button time {
+  grid-column: 2;
+  grid-row: 1;
+  margin: 0;
+  color: #607e9c;
+  font-size: 8px;
+  font-weight: 780;
+}
+
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article > div > button span {
+  grid-column: 2;
+  grid-row: 2;
+  display: -webkit-box;
+  overflow: hidden;
+  color: #163c62;
+  font-size: 9.5px;
+  font-weight: 850;
+  line-height: 1.28;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article > .more {
+  position: absolute;
+  left: 29px;
+  bottom: 10px;
+  z-index: 2;
+  border: 0;
+  background: transparent;
+  color: #1268e8;
+  font-size: 9px;
+  font-weight: 850;
+}
+
+/* Friendly Sunday/empty-day art. */
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article:last-child:has(> div:empty)::after {
+  content: '☕\A\A Không có lịch làm việc\A\A Hãy tận hưởng\A ngày nghỉ thật ý nghĩa!';
+  position: absolute;
+  inset: 82px 12px 28px 22px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  padding: 16px;
+  border-radius: 13px;
+  white-space: pre-line;
+  text-align: center;
+  color: #7f94a9;
+  font-size: 9px;
+  font-style: italic;
+  line-height: 1.45;
+  background: linear-gradient(160deg, #fbfdff, #f2f7fb);
+}
+
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid > article:last-child:has(> div:empty)::before {
+  color: #4d6780;
+}
+
+/* Month and agenda remain functionally available, but inherit cleaner surfaces. */
+.ttcm-m3-module-scroll .work-schedule-calendar:not(.is-week),
+.ttcm-m3-module-scroll .work-schedule-agenda {
+  position: relative;
+  z-index: 3;
+  border-radius: 16px;
+  border-color: #d8e6f4;
+  box-shadow: 0 12px 30px rgba(38, 75, 116, .07);
+}
+
+/* Alert surfaces stay above hero artwork. */
+.ttcm-m3-module-scroll .work-schedule-alert {
+  position: relative;
+  z-index: 12;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1320px) {
+  .ttcm-m3-module-scroll .work-schedule-toolbar { padding-right: 430px; }
+  .ttcm-m3-module-scroll .work-schedule-toolbar::before { width: 400px; right: 5px; }
+  .ttcm-m3-module-scroll .work-schedule-toolbar::after { right: 14px; }
+  .ttcm-m3-module-scroll .work-schedule-metrics { padding-right: 310px; }
+  .ttcm-m3-module-scroll .work-schedule-filterbar::before { font-size: 8.5px; word-spacing: 1px; }
+}
+
+@media (max-width: 1080px) {
+  .ttcm-m3-module-scroll .work-schedule-toolbar {
+    min-height: 174px;
+    padding-right: 330px;
+  }
+  .ttcm-m3-module-scroll .work-schedule-toolbar::before { width: 330px; height: 138px; top: 42px; }
+  .ttcm-m3-module-scroll .work-schedule-toolbar::after { display: none; }
+  .ttcm-m3-module-scroll .work-schedule-metrics { padding-right: 0; }
+  .ttcm-m3-module-scroll .work-schedule-controls { grid-template-columns: 1fr; }
+  .ttcm-m3-module-scroll .work-schedule-filterbar { justify-content: flex-start; flex-wrap: wrap; }
+}
+
+@media (max-width: 900px) {
+  .ttcm-m3-module-scroll .work-schedule-center {
+    margin: 6px 8px 10px;
+    padding-inline: 11px;
+    border-radius: 19px;
+  }
+  .ttcm-m3-module-scroll .work-schedule-center::after {
+    min-height: 72px;
+    padding: 18px 145px 12px 38px;
+    background-size: 58% 100%;
+    font-size: 10px;
+  }
+  .ttcm-m3-module-scroll .work-schedule-toolbar {
+    margin-inline: -11px;
+    min-height: 190px;
+    padding: 18px 240px 10px 18px;
+  }
+  .ttcm-m3-module-scroll .work-schedule-toolbar h2 { font-size: 32px; }
+  .ttcm-m3-module-scroll .work-schedule-toolbar::before { width: 265px; right: -20px; top: 55px; opacity: .82; }
+  .ttcm-m3-module-scroll .work-schedule-actions { top: 10px; right: 10px; }
+  .ttcm-m3-module-scroll .work-schedule-actions button { min-height: 36px; padding-inline: 10px; font-size: 9px; }
+  .ttcm-m3-module-scroll .work-schedule-metrics { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .ttcm-m3-module-scroll .work-schedule-filterbar::before { width: 100%; overflow-x: auto; }
+  .ttcm-m3-module-scroll .work-schedule-calendar.is-week .work-schedule-grid {
+    grid-template-columns: repeat(7, minmax(170px, 1fr));
+    min-width: 1190px;
+  }
+}
+
+@media (max-width: 640px) {
+  .ttcm-m3-module-scroll .work-schedule-center::before { height: 310px; }
+  .ttcm-m3-module-scroll .work-schedule-toolbar {
+    min-height: 238px;
+    padding: 72px 16px 12px;
+  }
+  .ttcm-m3-module-scroll .work-schedule-toolbar h2 { font-size: 29px; }
+  .ttcm-m3-module-scroll .work-schedule-toolbar p { font-size: 11px; }
+  .ttcm-m3-module-scroll .work-schedule-toolbar::before {
+    width: 215px;
+    height: 105px;
+    right: -12px;
+    top: 126px;
+    opacity: .65;
+  }
+  .ttcm-m3-module-scroll .work-schedule-actions {
+    left: 12px;
+    right: 12px;
+    justify-content: flex-end;
+    overflow-x: auto;
+  }
+  .ttcm-m3-module-scroll .work-schedule-metrics { grid-template-columns: 1fr 1fr; gap: 7px; }
+  .ttcm-m3-module-scroll .work-schedule-metrics article { min-height: 74px; padding-left: 58px; }
+  .ttcm-m3-module-scroll .work-schedule-metrics article::before { width: 34px; height: 34px; left: 11px; }
+  .ttcm-m3-module-scroll .work-schedule-month-nav { flex-wrap: wrap; }
+  .ttcm-m3-module-scroll .work-schedule-month-nav strong { min-width: 145px; font-size: 12px; }
+  .ttcm-m3-module-scroll .work-schedule-filterbar > input { width: 92px; }
+  .ttcm-m3-module-scroll .work-schedule-filterbar > input:focus { width: 150px; }
+  .ttcm-m3-module-scroll .work-schedule-center::after {
+    padding: 15px 24px;
+    background-size: 85% 100%;
+    background-position: right bottom;
+    color: #37699d;
+  }
+}
