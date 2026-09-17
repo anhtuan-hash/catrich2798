@@ -4,6 +4,7 @@ import { ensureWorkScheduleDatabaseCompatibility } from '../utils/workScheduleDa
 import GlobalWorkScheduleCenter from './GlobalWorkScheduleCenter.jsx';
 import './GlobalWorkScheduleTimeline.css';
 import './GlobalWorkScheduleTimelineArtwork.css';
+import './GlobalWorkScheduleTimelineCategories.css';
 
 export default function GlobalWorkScheduleCompatibleCenter(props) {
   const runtime = useRuntimeCore();
