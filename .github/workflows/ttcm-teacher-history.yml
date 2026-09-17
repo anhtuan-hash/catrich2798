@@ -13,6 +13,7 @@ on:
       - 'src/utils/ttcmTeacherHistory.js'
       - 'scripts/test-ttcm-teacher-history.mjs'
       - 'scripts/test-ttcm-history-usability.mjs'
+      - 'scripts/test-ttcm-history-visual-refresh.mjs'
       - '.github/workflows/ttcm-teacher-history.yml'
 
 jobs:
@@ -33,5 +34,7 @@ jobs:
         run: node scripts/test-ttcm-teacher-history.mjs
       - name: Teacher history usability contract
         run: node scripts/test-ttcm-history-usability.mjs
+      - name: Teacher history visual refresh contract
+        run: node scripts/test-ttcm-history-visual-refresh.mjs
       - name: Production build
         run: npm run build
