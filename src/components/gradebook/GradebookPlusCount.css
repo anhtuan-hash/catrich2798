@@ -1,0 +1,54 @@
+.hr-grade-plus-head,
+.hr-grade-plus-cell {
+  min-width: 118px !important;
+  background: #f3f8ff !important;
+}
+
+.hr-grade-plus-head {
+  color: #174ea6 !important;
+}
+
+.hr-grade-plus-input {
+  width: 76px;
+  border-color: #b8cdf2 !important;
+  background: #fff !important;
+}
+
+.hr-grade-bonus-head,
+.hr-grade-bonus-cell {
+  min-width: 132px !important;
+}
+
+.hr-grade-derived-bonus {
+  min-height: 48px;
+  display: grid;
+  place-content: center;
+  gap: 2px;
+  border: 1px solid #f3d59c;
+  border-radius: 12px;
+  background: #fffdf8;
+}
+
+.hr-grade-derived-bonus strong {
+  color: #8a4f00;
+  font-size: 18px;
+  line-height: 1.1;
+}
+
+.hr-grade-derived-bonus small {
+  color: #7b6a4d;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+@media (max-width: 760px) {
+  .hr-grade-plus-head,
+  .hr-grade-plus-cell {
+    min-width: 104px !important;
+  }
+
+  .hr-grade-bonus-head,
+  .hr-grade-bonus-cell {
+    min-width: 118px !important;
+  }
+}

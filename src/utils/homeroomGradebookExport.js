@@ -11,14 +11,40 @@ export function gradeScoreNumber(value) {
   return Number.isFinite(number) ? Math.max(0, Math.min(10, number)) : null;
 }
 
-export function gradeRoundScore(round, studentId) {
+export function gradePlusCountNumber(value) {
+  if (value === '' || value == null) return null;
+  const number = Number(String(value).replace(',', '.'));
+  if (!Number.isFinite(number) || number < 0) return null;
+  return Math.floor(number);
+}
+
+function gradeRoundStudentIds(round, studentIds) {
+  if (Array.isArray(studentIds)) return studentIds;
+  return Object.keys(round?.plusCounts || {});
+}
+
+export function gradeRoundMaxPlusCount(round, studentIds = null) {
+  return gradeRoundStudentIds(round, studentIds).reduce((maximum, studentId) => {
+    const count = gradePlusCountNumber(round?.plusCounts?.[studentId]) || 0;
+    return Math.max(maximum, count);
+  }, 0);
+}
+
+export function gradeRoundBonus(round, studentId, studentIds = null) {
+  const maximum = gradeRoundMaxPlusCount(round, studentIds);
+  if (maximum <= 0) return 0;
+  const count = gradePlusCountNumber(round?.plusCounts?.[studentId]) || 0;
+  return Math.round(Math.min(1, count / maximum) * 100) / 100;
+}
+
+export function gradeRoundScore(round, studentId, studentIds = null) {
   const row = round?.scores?.[studentId] || {};
   const scores = (round?.columns || [])
     .map((column) => gradeScoreNumber(row[column.id]))
     .filter((value) => value != null);
   if (!scores.length) return null;
   const average = scores.reduce((sum, value) => sum + value, 0) / scores.length;
-  const bonus = gradeScoreNumber(round?.bonus?.[studentId]) || 0;
+  const bonus = gradeRoundBonus(round, studentId, studentIds);
   return Math.round(Math.min(10, average + bonus) * 100) / 100;
 }
 
@@ -37,6 +63,15 @@ export function buildGradeExportColumns(semester) {
         columnId: column.id,
         defaultSelected: false,
       })),
+      {
+        id: `regular.${roundIndex}.plus-count`,
+        label: `TX${roundNumber} · Dấu +`,
+        dialogLabel: 'Dấu +',
+        group,
+        kind: 'regular-plus-count',
+        roundIndex,
+        defaultSelected: false,
+      },
       {
         id: `regular.${roundIndex}.bonus`,
         label: `TX${roundNumber} · Điểm cộng`,
@@ -79,17 +114,20 @@ export function buildGradeExportColumns(semester) {
   ];
 }
 
-export function gradeExportValue(semester, column, studentId) {
+export function gradeExportValue(semester, column, studentId, studentIds = null) {
   if (!column || !studentId) return null;
   if (column.kind === 'regular-score') {
     const round = semester?.regular?.[column.roundIndex];
     return gradeScoreNumber(round?.scores?.[studentId]?.[column.columnId]);
   }
+  if (column.kind === 'regular-plus-count') {
+    return gradePlusCountNumber(semester?.regular?.[column.roundIndex]?.plusCounts?.[studentId]);
+  }
   if (column.kind === 'regular-bonus') {
-    return gradeScoreNumber(semester?.regular?.[column.roundIndex]?.bonus?.[studentId]);
+    return gradeRoundBonus(semester?.regular?.[column.roundIndex], studentId, studentIds);
   }
   if (column.kind === 'regular-result') {
-    return gradeRoundScore(semester?.regular?.[column.roundIndex], studentId);
+    return gradeRoundScore(semester?.regular?.[column.roundIndex], studentId, studentIds);
   }
   if (column.kind === 'midterm') return gradeScoreNumber(semester?.midterm?.scores?.[studentId]);
   if (column.kind === 'final') return gradeScoreNumber(semester?.final?.scores?.[studentId]);
@@ -128,6 +166,13 @@ function classMetadata(workspace, subjectName, semesterId, currentUser) {
   };
 }
 
+function activeStudentIds(students, workspace) {
+  const source = Array.isArray(students) && students.length
+    ? students
+    : (workspace?.students || []).filter((student) => student.active !== false);
+  return source.map((student) => student.id).filter(Boolean);
+}
+
 export function buildClassGradebookWorkbook({
   workspace,
   students,
@@ -142,6 +187,7 @@ export function buildClassGradebookWorkbook({
   const columns = selected ? availableColumns.filter((column) => selected.has(column.id)) : availableColumns;
   if (!columns.length) throw new Error('Hãy chọn ít nhất một cột điểm.');
   const meta = classMetadata(workspace, subjectName, semesterId, currentUser);
+  const studentIds = activeStudentIds(students, workspace);
   const totalColumns = 3 + columns.length;
   const lastColumn = xlsxColumnName(totalColumns);
   const headerRow = 9;
@@ -152,7 +198,7 @@ export function buildClassGradebookWorkbook({
     [xlsxCell('Lớp', 'metaLabel'), xlsxCell(meta.className, 'metaValue'), '', xlsxCell('Năm học', 'metaLabel'), xlsxCell(meta.schoolYear, 'metaValue')],
     [xlsxCell('Môn học', 'metaLabel'), xlsxCell(meta.subjectName, 'metaValue'), '', xlsxCell('Học kỳ', 'metaLabel'), xlsxCell(meta.semesterLabel, 'metaValue')],
     [xlsxCell('Giáo viên', 'metaLabel'), xlsxCell(meta.adviserName, 'metaValue'), '', xlsxCell('Ngày xuất', 'metaLabel'), xlsxCell(meta.exportedAt, 'metaValue')],
-    [xlsxCell('Sổ điểm chỉ gồm các cột giáo viên đã lựa chọn. Điểm TX từng đợt = min(10, trung bình các lần nhập + điểm cộng). Ô trống là điểm chưa nhập.', 'note')],
+    [xlsxCell('Sổ điểm chỉ gồm các cột giáo viên đã lựa chọn. Điểm cộng = số dấu + của học sinh / số dấu + cao nhất lớp (tối đa 1). Điểm TX từng đợt = min(10, trung bình các lần nhập + điểm cộng).', 'note')],
     [],
     [
       xlsxCell('STT', 'header'),
@@ -165,7 +211,7 @@ export function buildClassGradebookWorkbook({
       xlsxCell(student.code || '', 'centered', 'text'),
       xlsxCell(student.fullName || 'Chưa có tên', 'text'),
       ...columns.map((column) => {
-        const value = gradeExportValue(semester, column, student.id);
+        const value = gradeExportValue(semester, column, student.id, studentIds);
         return xlsxCell(value, column.kind === 'regular-result' ? 'score' : 'number', 'number');
       }),
     ]),
@@ -188,7 +234,7 @@ export function buildClassGradebookWorkbook({
         'E6:F6',
         `A7:${lastColumn}7`,
       ],
-      columnWidths: [12, 17, 30, ...columns.map((column) => column.kind === 'regular-score' ? 16 : 14)],
+      columnWidths: [12, 17, 30, ...columns.map((column) => column.kind === 'regular-score' ? 16 : column.kind === 'regular-plus-count' ? 12 : 14)],
       rowHeights: [32, 24, 8, 24, 24, 24, 30, 8, 38],
       freezeRows: headerRow,
       autoFilter: `A${headerRow}:${lastColumn}${headerRow + (students || []).length}`,
@@ -199,6 +245,7 @@ export function buildClassGradebookWorkbook({
 
 export function buildStudentGradeReportWorkbook({
   workspace,
+  students,
   student,
   subjectName,
   semesterId,
@@ -211,6 +258,7 @@ export function buildStudentGradeReportWorkbook({
   const columns = buildGradeExportColumns(semester).filter((column) => selected.has(column.id));
   if (!student) throw new Error('Hãy chọn học sinh cần xuất phiếu điểm.');
   if (!columns.length) throw new Error('Hãy chọn ít nhất một cột điểm.');
+  const studentIds = activeStudentIds(students, workspace);
 
   const tableRow = 10;
   const rows = [
@@ -231,7 +279,7 @@ export function buildStudentGradeReportWorkbook({
       xlsxCell('Trạng thái', 'header'),
     ],
     ...columns.map((column, index) => {
-      const value = gradeExportValue(semester, column, student.id);
+      const value = gradeExportValue(semester, column, student.id, studentIds);
       return [
         xlsxCell(index + 1, 'centered'),
         xlsxCell(column.dialogLabel, 'text'),

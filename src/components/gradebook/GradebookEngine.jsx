@@ -2,6 +2,9 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   buildGradeExportColumns,
   exportClassGradebookXlsx,
+  gradePlusCountNumber,
+  gradeRoundBonus,
+  gradeRoundMaxPlusCount,
   gradeRoundScore as roundScore,
   gradeScoreNumber as scoreNumber,
 } from '../../utils/homeroomGradebookExport.js';
@@ -63,6 +66,7 @@ function makeRound(index = 1) {
     id: `round-${index}`,
     columns: [makeColumn(1)],
     scores: {},
+    plusCounts: {},
     bonus: {},
   };
 }
@@ -87,6 +91,10 @@ function normalizeRound(value, index) {
     id: String(source.id || `round-${index + 1}`),
     columns,
     scores: source.scores && typeof source.scores === 'object' ? source.scores : {},
+    plusCounts: source.plusCounts && typeof source.plusCounts === 'object' ? source.plusCounts : {},
+    // Preserve old manual bonus data so loading/saving an older workspace is
+    // non-destructive. Scoring now ignores this field and derives the bonus
+    // exclusively from plusCounts.
     bonus: source.bonus && typeof source.bonus === 'object' ? source.bonus : {},
   };
 }
@@ -117,6 +125,7 @@ function hasGradebookData(book) {
     if (!semester) return false;
     const regular = semester.regular?.some((round) => (
       Object.values(round?.scores || {}).some((row) => Object.values(row || {}).some((value) => value !== '' && value != null))
+      || Object.values(round?.plusCounts || {}).some((value) => value !== '' && value != null)
       || Object.values(round?.bonus || {}).some((value) => value !== '' && value != null)
     ));
     return regular
@@ -180,7 +189,7 @@ function normalizeGradebook(raw, legacyRecords = []) {
   });
   if (!Object.keys(subjects).length) subjects['tieng-anh'] = normalizeSubject(null, 'Tiếng Anh');
   const activeSubject = subjects[source.activeSubject] ? source.activeSubject : Object.keys(subjects)[0];
-  return migrateLegacyRecords({ version: 2, activeSubject, subjects, updatedAt: source.updatedAt || '' }, legacyRecords);
+  return migrateLegacyRecords({ version: 3, activeSubject, subjects, updatedAt: source.updatedAt || '' }, legacyRecords);
 }
 
 function cleanInput(value) {
@@ -193,6 +202,18 @@ function cleanInput(value) {
 function clampedInput(value) {
   const number = scoreNumber(value);
   return number == null ? '' : String(Math.round(number * 100) / 100);
+}
+
+function cleanPlusCountInput(value) {
+  const text = String(value ?? '').trim();
+  if (text === '') return '';
+  if (!/^\d+$/.test(text)) return null;
+  return text;
+}
+
+function clampedPlusCountInput(value) {
+  const number = gradePlusCountNumber(value);
+  return number == null ? '' : String(number);
 }
 
 function formatScore(value) {
@@ -220,6 +241,23 @@ function ScoreInput({ value, onChange, label }) {
     onBlur={(event) => onChange(clampedInput(event.target.value))}
     onWheel={(event) => event.currentTarget.blur()}
     placeholder="—"
+  />;
+}
+
+function PlusCountInput({ value, onChange, label }) {
+  return <input
+    className="hr-grade-input hr-grade-plus-input"
+    inputMode="numeric"
+    pattern="[0-9]*"
+    aria-label={label}
+    value={value ?? ''}
+    onChange={(event) => {
+      const next = cleanPlusCountInput(event.target.value);
+      if (next !== null) onChange(next);
+    }}
+    onBlur={(event) => onChange(clampedPlusCountInput(event.target.value))}
+    onWheel={(event) => event.currentTarget.blur()}
+    placeholder="0"
   />;
 }
 
@@ -384,6 +422,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     () => (workspace.students || []).filter((student) => student.active !== false),
     [workspace.students],
   );
+  const studentIds = useMemo(() => students.map((student) => student.id), [students]);
   const [gradebook, setGradebook] = useState(() => normalizeGradebook(workspace.learningGradebook, workspace.learningRecords));
   const [activeSubjectKey, setActiveSubjectKey] = useState(() => normalizeGradebook(workspace.learningGradebook, workspace.learningRecords).activeSubject);
   const [semesterId, setSemesterId] = useState('semester1');
@@ -412,6 +451,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const activeView = VIEWS.find((item) => item.id === view) || VIEWS[0];
   const roundIndex = view.startsWith('regular-') ? Number(view.split('-')[1]) : -1;
   const activeRound = roundIndex >= 0 ? activeSemester.regular[roundIndex] : null;
+  const activeRoundMaxPlusCount = activeRound ? gradeRoundMaxPlusCount(activeRound, studentIds) : 0;
   const semesterLabel = SEMESTERS.find((item) => item.id === semesterId)?.label || semesterId;
   const exportColumns = useMemo(() => buildGradeExportColumns(activeSemester), [activeSemester]);
   const exportColumnGroups = useMemo(() => {
@@ -463,8 +503,8 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     round.scores[studentId] = { ...(round.scores[studentId] || {}), [columnId]: value };
   });
 
-  const updateBonus = (studentId, value) => mutate((semester) => {
-    semester.regular[roundIndex].bonus[studentId] = value;
+  const updatePlusCount = (studentId, value) => mutate((semester) => {
+    semester.regular[roundIndex].plusCounts[studentId] = value;
   });
 
   const updateExamScore = (type, studentId, value) => mutate((semester) => {
@@ -578,6 +618,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       const { exportStudentGradeReportPdf } = await import('../../utils/homeroomGradeReportPdf.js');
       const result = await exportStudentGradeReportPdf({
         workspace,
+        students,
         student,
         subjectName: activeSubject?.name,
         semesterId,
@@ -595,8 +636,8 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   };
 
   const totalRegularColumns = activeSemester.regular.reduce((sum, round) => sum + round.columns.length, 0);
-  const completedFourRounds = students.filter((student) => activeSemester.regular.every((round) => roundScore(round, student.id) != null)).length;
-  const activeRoundCoverage = activeRound ? students.filter((student) => roundScore(activeRound, student.id) != null).length : 0;
+  const completedFourRounds = students.filter((student) => activeSemester.regular.every((round) => roundScore(round, student.id, studentIds) != null)).length;
+  const activeRoundCoverage = activeRound ? students.filter((student) => roundScore(activeRound, student.id, studentIds) != null).length : 0;
 
   const renderRegularTable = () => (
     <section className="hr-panel hr-grade-panel">
@@ -604,7 +645,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
         <div>
           <small>Điểm thường xuyên · Đợt {roundIndex + 1}</small>
           <h2>Nhập điểm cho toàn bộ lớp</h2>
-          <p>Điểm đợt = trung bình tất cả các lần nhập trong đợt + điểm cộng; kết quả tối đa 10.</p>
+          <p>Điểm cộng = số dấu + của học sinh / số dấu + cao nhất lớp; tối đa 1 điểm. Điểm đợt = trung bình các lần nhập + điểm cộng, tối đa 10.</p>
         </div>
         <button type="button" className="secondary" onClick={addRegularColumn}>＋ Thêm lần nhập</button>
       </div>
@@ -618,6 +659,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
                 <input value={column.label} onChange={(event) => renameRegularColumn(column.id, event.target.value)} aria-label="Tên cột điểm" />
                 <button type="button" disabled={activeRound.columns.length <= 1} onClick={() => removeRegularColumn(column.id)} title="Xóa cột">×</button>
               </th>)}
+              <th className="hr-grade-plus-head">Dấu +</th>
               <th className="hr-grade-bonus-head">Điểm cộng</th>
               <th className="hr-grade-result-head">Điểm Đợt {roundIndex + 1}</th>
             </tr>
@@ -625,14 +667,17 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
           <tbody>
             {students.map((student, index) => {
               const row = activeRound.scores?.[student.id] || {};
-              const result = roundScore(activeRound, student.id);
+              const plusCount = activeRound.plusCounts?.[student.id] ?? '';
+              const bonus = gradeRoundBonus(activeRound, student.id, studentIds);
+              const result = roundScore(activeRound, student.id, studentIds);
               return <tr key={student.id}>
                 <td className="hr-grade-index">{index + 1}</td>
                 <td className="hr-grade-student"><b>{student.fullName}</b><small>{student.code || 'Chưa có mã học sinh'}</small></td>
                 {activeRound.columns.map((column) => <td key={column.id}>
                   <ScoreInput value={row[column.id]} onChange={(value) => updateRegularScore(student.id, column.id, value)} label={`${student.fullName} · ${column.label}`} />
                 </td>)}
-                <td className="hr-grade-bonus-cell"><ScoreInput value={activeRound.bonus?.[student.id]} onChange={(value) => updateBonus(student.id, value)} label={`${student.fullName} · Điểm cộng`} /></td>
+                <td className="hr-grade-plus-cell"><PlusCountInput value={plusCount} onChange={(value) => updatePlusCount(student.id, value)} label={`${student.fullName} · Số dấu cộng`} /></td>
+                <td className="hr-grade-bonus-cell"><div className="hr-grade-derived-bonus" aria-label={`${student.fullName} · Điểm cộng tự động ${formatScore(bonus)}`}><strong>{formatScore(bonus)}</strong><small>{activeRoundMaxPlusCount > 0 ? `${gradePlusCountNumber(plusCount) || 0}/${activeRoundMaxPlusCount}` : 'Tối đa lớp: 0'}</small></div></td>
                 <td className={`hr-grade-result ${result != null ? 'has-score' : ''}`}><strong>{formatScore(result)}</strong><small>{result != null && result >= 10 ? 'Đã giới hạn 10' : 'Tự động tính'}</small></td>
               </tr>;
             })}
@@ -664,7 +709,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
         <table className="hr-grade-table hr-grade-summary-table">
           <thead><tr><th className="hr-grade-index">STT</th><th className="hr-grade-student">Học sinh</th>{activeSemester.regular.map((_, index) => <th key={index}>TX Đợt {index + 1}</th>)}<th>Giữa kỳ</th><th>Cuối kỳ</th><th>Đã nhập</th></tr></thead>
           <tbody>{students.map((student, index) => {
-            const regular = activeSemester.regular.map((round) => roundScore(round, student.id));
+            const regular = activeSemester.regular.map((round) => roundScore(round, student.id, studentIds));
             const midterm = scoreNumber(activeSemester.midterm.scores?.[student.id]);
             const final = scoreNumber(activeSemester.final.scores?.[student.id]);
             const count = [...regular, midterm, final].filter((value) => value != null).length;
@@ -686,7 +731,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
         <label><span>Môn học</span><select value={activeSubjectKey} onChange={(event) => setActiveSubjectKey(event.target.value)}>{subjectEntries.map(([key, subject]) => <option key={key} value={key}>{subject.name}</option>)}</select></label>
         <div className="hr-grade-new-subject"><label><span>Thêm môn / mở môn mới</span><input value={newSubject} onChange={(event) => setNewSubject(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') openSubject(); }} placeholder="Ví dụ: Toán" /></label><button type="button" className="secondary" onClick={openSubject}>Mở môn</button></div>
       </div>
-      <div className="hr-grade-formula"><span>fx</span><p><b>Công thức điểm thường xuyên từng đợt</b><small>min(10, trung bình các cột điểm trong đợt + điểm cộng)</small></p></div>
+      <div className="hr-grade-formula"><span>fx</span><p><b>Công thức điểm thường xuyên từng đợt</b><small>Điểm cộng = Dấu + / Dấu + cao nhất lớp (≤ 1); Điểm đợt = min(10, trung bình các cột điểm + điểm cộng)</small></p></div>
     </section>
 
     <section className="hr-grade-overview">
@@ -760,7 +805,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
               <legend>{group.label}</legend>
               <div>{group.columns.map((column) => <label key={column.id} className={selectedExportColumns.includes(column.id) ? 'selected' : ''}>
                 <input type="checkbox" checked={selectedExportColumns.includes(column.id)} disabled={Boolean(exporting)} onChange={() => toggleExportColumn(column.id)} />
-                <span><b>{column.dialogLabel}</b><small>{column.kind === 'regular-result' ? 'Tự động tính theo công thức đợt' : column.label}</small></span>
+                <span><b>{column.dialogLabel}</b><small>{column.kind === 'regular-result' ? 'Tự động tính theo công thức đợt' : column.kind === 'regular-bonus' ? 'Tự động theo số dấu + của cả lớp' : column.label}</small></span>
               </label>)}</div>
             </fieldset>)}
           </div>

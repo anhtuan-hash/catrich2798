@@ -7,6 +7,9 @@ import {
   buildGradeExportColumns,
   buildStudentGradeReportWorkbook,
   gradeExportValue,
+  gradePlusCountNumber,
+  gradeRoundBonus,
+  gradeRoundMaxPlusCount,
   gradeRoundScore,
 } from '../src/utils/homeroomGradebookExport.js';
 import { createXlsxBlob } from '../src/utils/xlsxExport.js';
@@ -16,6 +19,7 @@ const students = [
   { id: 'student-1', code: '11A4-01', fullName: 'Nguyễn Minh Anh', active: true },
   { id: 'student-2', code: '11A4-02', fullName: 'Trần Gia Bảo', active: true },
 ];
+const studentIds = students.map((student) => student.id);
 
 const makeRound = (index) => ({
   id: `round-${index}`,
@@ -27,6 +31,11 @@ const makeRound = (index) => ({
     'student-1': { [`r${index}-a`]: 7 + index / 10, [`r${index}-b`]: 8 + index / 10 },
     'student-2': { [`r${index}-a`]: 6 + index / 10 },
   },
+  plusCounts: index === 1
+    ? { 'student-1': 45, 'student-2': 30 }
+    : { 'student-1': 0, 'student-2': 0 },
+  // Legacy manual bonus data may still exist in old saved workspaces, but the
+  // new formula must derive bonus exclusively from plusCounts.
   bonus: { 'student-1': index === 1 ? 0.5 : 0 },
 });
 
@@ -44,12 +53,34 @@ const workspace = {
   },
 };
 
-assert.equal(gradeRoundScore(semester.regular[0], 'student-1'), 8.1, 'round average and bonus should match the gradebook formula');
-assert.equal(gradeRoundScore({ ...semester.regular[0], bonus: { 'student-1': 5 } }, 'student-1'), 10, 'round score should be capped at 10');
+assert.equal(gradePlusCountNumber('45'), 45, 'plus count should accept a non-negative integer');
+assert.equal(gradePlusCountNumber('3.9'), 3, 'plus count normalization should discard a fractional tail defensively');
+assert.equal(gradePlusCountNumber(-1), null, 'negative plus counts are invalid');
+assert.equal(gradeRoundMaxPlusCount(semester.regular[0], studentIds), 45, 'class maximum plus count should be detected');
+assert.equal(gradeRoundBonus(semester.regular[0], 'student-1', studentIds), 1, 'student with the class maximum should receive 1 bonus point');
+assert.equal(gradeRoundBonus(semester.regular[0], 'student-2', studentIds), 0.67, 'other students should receive a proportional bonus rounded to two decimals');
+assert.equal(gradeRoundBonus({ plusCounts: {} }, 'student-1', studentIds), 0, 'an all-zero class must produce zero bonus without division by zero');
+assert.equal(
+  gradeRoundScore({ ...semester.regular[0], plusCounts: undefined, bonus: { 'student-1': 5 } }, 'student-1', studentIds),
+  7.6,
+  'legacy workspaces without plus counts should treat the new derived bonus as zero',
+);
+assert.equal(gradeRoundScore(semester.regular[0], 'student-1', studentIds), 8.6, 'round average should include the derived plus-count bonus');
+assert.equal(
+  gradeRoundScore({
+    ...semester.regular[0],
+    scores: { 'student-1': { 'r1-a': 10, 'r1-b': 10 } },
+    plusCounts: { 'student-1': 45 },
+  }, 'student-1', ['student-1']),
+  10,
+  'round score should still be capped at 10',
+);
 
 const columns = buildGradeExportColumns(semester);
-assert.equal(columns.length, 18, 'four rounds with two attempts, bonus, result plus two exams should produce 18 columns');
-assert.equal(gradeExportValue(semester, columns.find((column) => column.id === 'midterm'), 'student-1'), 8.25);
+assert.equal(columns.length, 22, 'four rounds with two attempts, plus count, derived bonus, result plus two exams should produce 22 columns');
+assert.equal(gradeExportValue(semester, columns.find((column) => column.id === 'regular.0.plus-count'), 'student-1', studentIds), 45);
+assert.equal(gradeExportValue(semester, columns.find((column) => column.id === 'regular.0.bonus'), 'student-2', studentIds), 0.67);
+assert.equal(gradeExportValue(semester, columns.find((column) => column.id === 'midterm'), 'student-1', studentIds), 8.25);
 
 const common = {
   workspace,
@@ -63,7 +94,7 @@ const common = {
 const classWorkbook = buildClassGradebookWorkbook(common);
 assert.match(classWorkbook.fileName, /^So-diem-11A4-Tieng-Anh-Hoc-ky-I\.xlsx$/);
 assert.equal(classWorkbook.sheets[0].rows.length, 11, 'class workbook should include two student rows');
-assert.equal(classWorkbook.sheets[0].rows[8].length, 21, 'class export remains backward-compatible when no selection is provided');
+assert.equal(classWorkbook.sheets[0].rows[8].length, 25, 'class export remains backward-compatible while adding plus-count columns');
 
 const selectedClassWorkbook = buildClassGradebookWorkbook({
   ...common,
@@ -76,7 +107,7 @@ assert.deepEqual(
 );
 assert.deepEqual(
   selectedClassWorkbook.sheets[0].rows[9].map((cell) => cell.value),
-  [1, '11A4-01', 'Nguyễn Minh Anh', 8.1, 8.25, 9],
+  [1, '11A4-01', 'Nguyễn Minh Anh', 8.6, 8.25, 9],
   'selected class columns should retain numeric scores for every student row',
 );
 assert.throws(
