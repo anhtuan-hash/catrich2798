@@ -23,16 +23,21 @@ add(
   jsx.includes('const showCountdownUnderLabel = reportWindowOpen;')
 );
 add(
+  'Legacy nav authority still exists and is deliberately outranked',
+  navAuthority.includes('min-height: 40px !important;')
+    && navAuthority.includes('font-size: 12.5px !important;')
+);
+add(
   'Primary navigation pills use the compact shared 36px geometry',
-  /\.brian-nav__primary > :is\([\s\S]*?min-height:\s*36px\s*!important;[\s\S]*?height:\s*36px\s*!important;[\s\S]*?max-height:\s*36px\s*!important;/.test(navAuthority)
-    && navAuthority.includes('font-size: 11.75px !important;')
-    && navAuthority.includes('padding: 0 9px 0 28px !important;')
+  /\.brian-nav__primary > :is\(button,a,\[role='button'\]\)\s*\{[\s\S]*?min-height:\s*36px\s*!important;[\s\S]*?height:\s*36px\s*!important;[\s\S]*?max-height:\s*36px\s*!important;/.test(css)
+    && css.includes('font-size: 11.75px !important;')
+    && css.includes('padding: 0 9px 0 28px !important;')
 );
 add(
   'Compact nav icons shrink with the pills',
-  navAuthority.includes('left: 9px !important;')
-    && navAuthority.includes('width: 14px !important;')
-    && navAuthority.includes('height: 14px !important;')
+  css.includes('left: 9px !important;')
+    && css.includes('width: 14px !important;')
+    && css.includes('height: 14px !important;')
 );
 add(
   'Report component keeps the countdown inline within the shared compact height',
