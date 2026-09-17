@@ -3,6 +3,7 @@ import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
 import { ensureWorkScheduleDatabaseCompatibility } from '../utils/workScheduleDatabaseCompatibility.js';
 import GlobalWorkScheduleCenter from './GlobalWorkScheduleCenter.jsx';
 import './GlobalWorkScheduleTimeline.css';
+import './GlobalWorkScheduleTimelineArtwork.css';
 
 export default function GlobalWorkScheduleCompatibleCenter(props) {
   const runtime = useRuntimeCore();
