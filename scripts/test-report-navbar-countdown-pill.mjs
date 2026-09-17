@@ -3,6 +3,7 @@ import fs from 'node:fs';
 const jsx = fs.readFileSync('src/components/GlobalReportsNavigationTab.jsx', 'utf8');
 const css = fs.readFileSync('src/components/GlobalReportsNavigationTab.css', 'utf8');
 const navAuthority = fs.readFileSync('src/styles/GlobalNavigationFinal2026.css', 'utf8');
+const navCompact = fs.readFileSync('src/styles/GlobalNavigationCompactPills.css', 'utf8');
 
 const checks = [];
 const add = (name, pass) => checks.push({ name, pass: Boolean(pass) });
@@ -28,26 +29,30 @@ add(
   jsx.includes('const showCountdownUnderLabel = reportWindowOpen;')
 );
 add(
-  'Global nav authority declares one compact pill geometry for all primary destinations',
-  navAuthority.includes('--bes-nav-pill-height: 38px')
-    && navAuthority.includes('--bes-nav-pill-radius: 13px')
-    && navAuthority.includes('--bes-nav-pill-font-size: 12px')
-    && navAuthority.includes('--bes-nav-pill-icon-size: 14px')
+  'Compact nav layer declares one geometry for all primary destinations',
+  navCompact.includes('--bes-nav-pill-height: 38px')
+    && navCompact.includes('--bes-nav-pill-radius: 13px')
+    && navCompact.includes('--bes-nav-pill-font-size: 12px')
+    && navCompact.includes('--bes-nav-pill-icon-size: 14px')
 );
 add(
   'All primary pills consume the shared compact height, radius and type scale',
-  navAuthority.includes('min-height: var(--bes-nav-pill-height) !important;')
-    && navAuthority.includes('height: var(--bes-nav-pill-height) !important;')
-    && navAuthority.includes('max-height: var(--bes-nav-pill-height) !important;')
-    && navAuthority.includes('border-radius: var(--bes-nav-pill-radius) !important;')
-    && navAuthority.includes('font-size: var(--bes-nav-pill-font-size) !important;')
+  navCompact.includes('min-height: var(--bes-nav-pill-height) !important;')
+    && navCompact.includes('height: var(--bes-nav-pill-height) !important;')
+    && navCompact.includes('max-height: var(--bes-nav-pill-height) !important;')
+    && navCompact.includes('border-radius: var(--bes-nav-pill-radius) !important;')
+    && navCompact.includes('font-size: var(--bes-nav-pill-font-size) !important;')
 );
 add(
   'Primary icons are reduced through the shared compact icon token',
-  navAuthority.includes('width: var(--bes-nav-pill-icon-size) !important;')
-    && navAuthority.includes('min-width: var(--bes-nav-pill-icon-size) !important;')
-    && navAuthority.includes('height: var(--bes-nav-pill-icon-size) !important;')
-    && navAuthority.includes('min-height: var(--bes-nav-pill-icon-size) !important;')
+  navCompact.includes('width: var(--bes-nav-pill-icon-size) !important;')
+    && navCompact.includes('min-width: var(--bes-nav-pill-icon-size) !important;')
+    && navCompact.includes('height: var(--bes-nav-pill-icon-size) !important;')
+    && navCompact.includes('min-height: var(--bes-nav-pill-icon-size) !important;')
+);
+add(
+  'Report module loads the compact geometry after its component styles',
+  jsx.includes("import '../styles/GlobalNavigationCompactPills.css';")
 );
 add(
   'Global nav authority contains the legacy tiny-chip rule that must be outranked',
