@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import GradebookEngine from './GradebookEngine.jsx';
+import './GradebookPlusCount.css';
 import editorialCss from '../../styles/GradebookEditorialV2.css?inline';
 import heroCss from '../../styles/GradebookMaterialHeroRuntime.css?inline';
 import { exportStudentGradeReportPdf } from '../../utils/homeroomGradeReportPdf.js';
