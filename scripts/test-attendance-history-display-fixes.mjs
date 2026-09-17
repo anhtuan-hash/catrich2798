@@ -58,6 +58,12 @@ assert.match(
 
 assert.match(
   css,
+  /\.ahv3__shell\s+\.ahv3__detail:not\(:has\(>\s*\.ahv3__proof\)\)\s*>\s*\.ahv3__absent-section\s*\{[\s\S]*?grid-column:\s*2\s*\/\s*3;[\s\S]*?grid-row:\s*7;/,
+  'The final no-proof override must defeat the legacy full-width absence fallback.',
+);
+
+assert.match(
+  css,
   /\.ahv3__shell\s+\.ahv3__detail\s*>\s*\.ahv3__proof\s*\{[\s\S]*?grid-column:\s*1\s*\/\s*-1;[\s\S]*?grid-row:\s*8;/,
   'Optional proof must move below both attendance-state cards instead of competing with them.',
 );
