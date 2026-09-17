@@ -1,6 +1,7 @@
 name: TTCM Teacher History
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - feat/ttcm-teacher-history
