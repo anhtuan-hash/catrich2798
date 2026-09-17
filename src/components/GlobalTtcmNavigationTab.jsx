@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { getRuntimeClient, subscribeTable } from '../services/runtime/core.js';
 import { useRuntimeCore } from '../services/runtime/useRuntimeCore.js';
 import { isDepartmentLeaderRole, normalizeSystemRole, SYSTEM_ROLES } from '../utils/roles.js';
+import { buildTeacherHistory } from '../utils/ttcmTeacherHistory.js';
 import {
   WORK_HUB_ATTACHMENT_ACCEPT,
   WORK_HUB_MAX_ATTACHMENTS,
@@ -21,6 +22,7 @@ import './GlobalWorkScheduleModern.css';
 import './GlobalTtcmNavigationTab.css';
 import './GlobalTtcmMultiAttachments.css';
 import './GlobalTtcmPersonnel.css';
+import './GlobalTtcmTeacherHistory.css';
 import './GlobalTtcmTeacherReaderV2.css';
 
 const WORK_ITEM_COLUMNS = 'id,title,description,item_type,status,priority,visibility,owner_id,created_by,assignee_ids,watcher_ids,due_at,attachments,metadata,source_module,created_at,updated_at,submitted_at,reviewed_at,completed_at';
@@ -51,6 +53,7 @@ const GLYPHS = {
   eye: 'M12 5c-5.5 0-9.5 5-10 7 .5 2 4.5 7 10 7s9.5-5 10-7c-.5-2-4.5-7-10-7Zm0 11a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm0-2a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z',
   delete: 'M7 21a2 2 0 0 1-2-2V7h14v12a2 2 0 0 1-2 2H7Zm1-11v8h2v-8H8Zm6 0v8h2v-8h-2ZM8 4l1-1h6l1 1h4v2H4V4h4Z',
   calendar: 'M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14h18V6c0-1.1-.9-2-2-2Zm0 16H5V9h14v11Z',
+  history: 'M13 3a9 9 0 1 1-8.2 5.3L2 11V4h7L6.3 6.7A7 7 0 1 0 13 5v4h-2V3h2Zm-1 7h2v4.2l3 1.8-1 1.7-4-2.4V10Z',
 };
 
 function Icon({ name, size = 20 }) {
@@ -134,6 +137,8 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
   const [fileViewer, setFileViewer] = useState(null);
   const [items, setItems] = useState(() => readLocalItems(currentUser));
   const [people, setPeople] = useState([]);
+  const [historyTeacherId, setHistoryTeacherId] = useState('');
+  const [historyQuery, setHistoryQuery] = useState('');
   const [readIds, setReadIds] = useState(() => readReadIds(currentUser));
   const [filter, setFilter] = useState('all');
   const [kind, setKind] = useState('announcement');
@@ -167,7 +172,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
   useEffect(() => {
     const openTtcm = (event) => {
       const requestedView = event?.detail?.view;
-      const nextView = ['schedule', 'personnel'].includes(requestedView) ? requestedView : 'feed';
+      const nextView = ['schedule', 'personnel', 'history'].includes(requestedView) ? requestedView : 'feed';
       setWorkspaceView(nextView); setFilter(manager ? 'all' : 'unread'); setSelectedItemId('');
       setOpen(true); setComposeOpen(false); setError('');
     };
@@ -266,6 +271,26 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
     const needle = recipientQuery.trim().toLowerCase(); if (!needle) return departmentRecipients;
     return departmentRecipients.filter((person) => `${person.name} ${person.email}`.toLowerCase().includes(needle));
   }, [departmentRecipients, recipientQuery]);
+
+  useEffect(() => {
+    if (!manager) return;
+    if (!departmentTeachers.length) { if (historyTeacherId) setHistoryTeacherId(''); return; }
+    if (!departmentTeachers.some((person) => String(person.id) === String(historyTeacherId))) {
+      setHistoryTeacherId(String(departmentTeachers[0].id));
+    }
+  }, [departmentTeachers, historyTeacherId, manager]);
+
+  const historyTeacher = useMemo(() => departmentTeachers.find((person) => String(person.id) === String(historyTeacherId)) || null, [departmentTeachers, historyTeacherId]);
+  const teacherHistory = useMemo(() => buildTeacherHistory({ items, responses, teacherId: historyTeacherId }), [historyTeacherId, items, responses]);
+  const historyNeedle = historyQuery.trim().toLowerCase();
+  const visibleHistoryTimeline = useMemo(() => {
+    if (!historyNeedle) return teacherHistory.timeline;
+    return teacherHistory.timeline.filter((entry) => `${entry.label} ${entry.itemTitle} ${entry.itemType} ${entry.body}`.toLowerCase().includes(historyNeedle));
+  }, [historyNeedle, teacherHistory.timeline]);
+  const visibleHistoryFiles = useMemo(() => {
+    if (!historyNeedle) return teacherHistory.files;
+    return teacherHistory.files.filter((file) => `${file.name || ''} ${file.itemTitle || ''} ${file.itemType || ''}`.toLowerCase().includes(historyNeedle));
+  }, [historyNeedle, teacherHistory.files]);
 
   const unseenCount = useMemo(() => items.filter((item) => userIsAssignee(item, currentUser?.id) && !readIds.has(String(item.id))).length, [currentUser?.id, items, readIds]);
   const counts = useMemo(() => {
@@ -482,7 +507,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
           <div className="ttcm-m3-title"><span className="ttcm-m3-title-icon"><Icon name="campaign" size={22} /></span><div><strong>Kênh TTCM</strong><small>{manager ? 'Điều hành và giao tiếp với tổ chuyên môn' : 'Thông báo, tài liệu và yêu cầu từ TTCM'}</small></div></div>
           <div className="ttcm-m3-top-actions">
             {workspaceView === 'feed' && unseenCount > 0 ? <button type="button" className="ttcm-reader-mark-all" onClick={markAllRead}><Icon name="check" size={18} />Đánh dấu tất cả đã đọc</button> : null}
-            <button type="button" className="ttcm-m3-icon-button" onClick={() => loadFeed()} title="Làm mới" aria-label="Làm mới"><Icon name="refresh" /></button>
+            <button type="button" className="ttcm-m3-icon-button" onClick={() => { loadFeed(); if (manager && workspaceView === 'history') { loadPeople(); loadResponses(); } }} title="Làm mới" aria-label="Làm mới"><Icon name="refresh" /></button>
             {manager && workspaceView === 'feed' ? <button type="button" className="ttcm-m3-filled-button" onClick={beginCompose}><Icon name="add" size={18} />Tạo nội dung</button> : null}
             <button type="button" className="ttcm-m3-icon-button" onClick={() => setOpen(false)} title="Đóng" aria-label="Đóng"><Icon name="close" /></button>
           </div>
@@ -493,6 +518,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
             <button type="button" className={workspaceView === 'feed' ? 'is-selected' : ''} onClick={() => setWorkspaceView('feed')}><Icon name="campaign" size={18} />Trao đổi</button>
             <button type="button" className={workspaceView === 'schedule' ? 'is-selected' : ''} onClick={() => setWorkspaceView('schedule')}><Icon name="calendar" size={18} />Lịch làm việc</button>
             <button type="button" className={workspaceView === 'personnel' ? 'is-selected' : ''} onClick={() => setWorkspaceView('personnel')}><Icon name="people" size={18} />Nhân sự</button>
+            {manager ? <button type="button" className={workspaceView === 'history' ? 'is-selected' : ''} onClick={() => { setWorkspaceView('history'); loadPeople(); loadResponses(); }}><Icon name="history" size={18} />Lịch sử & File GV</button> : null}
           </div>
         </div>
 
@@ -603,6 +629,36 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
             </section>
           </main>
         ) : workspaceView === 'schedule' ? <main className="ttcm-m3-schedule-view"><div className="ttcm-m3-schedule-host v1093-work-hub" data-ttcm-schedule-host="true" /><GlobalWorkScheduleCompatibleCenter currentUser={currentUser} language={language} route="ttcm" embedded mountSelector='[data-ttcm-schedule-host="true"]' /></main>
+          : workspaceView === 'history' && manager ? (
+            <main className="ttcm-history-view" role="tabpanel" aria-label="Lịch sử và file giáo viên">
+              <section className="ttcm-history-toolbar">
+                <div className="ttcm-history-toolbar-copy"><strong>Hồ sơ hoạt động giáo viên</strong><span>Theo dõi toàn bộ phản hồi, xác nhận và tệp giáo viên đã gửi cho TTCM.</span></div>
+                <div className="ttcm-history-controls">
+                  <label className="ttcm-history-field"><span>Giáo viên</span><select value={historyTeacherId} onChange={(event) => { setHistoryTeacherId(event.target.value); setHistoryQuery(''); }}><option value="">Chọn giáo viên</option>{departmentTeachers.map((person) => <option key={person.id} value={person.id}>{person.name}{person.email ? ` · ${person.email}` : ''}</option>)}</select></label>
+                  {historyTeacher ? <div className="ttcm-history-teacher"><span className="ttcm-history-avatar">{String(historyTeacher.name || 'GV').trim().split(/\s+/).slice(-2).map((part) => part[0] || '').join('').toUpperCase()}</span><div><b>{historyTeacher.name}</b><small>{historyTeacher.email || 'Giáo viên tổ chuyên môn'}</small></div></div> : null}
+                </div>
+              </section>
+
+              <section className="ttcm-history-stats" aria-label="Tổng quan hoạt động">
+                <article className="ttcm-history-stat"><span>Lượt hoạt động</span><strong>{teacherHistory.summary.activityCount}</strong><small>Phản hồi / xác nhận đã ghi nhận</small></article>
+                <article className="ttcm-history-stat"><span>Nội dung đã tham gia</span><strong>{teacherHistory.summary.itemCount}</strong><small>Yêu cầu TTCM có tương tác</small></article>
+                <article className="ttcm-history-stat"><span>File đã nộp</span><strong>{teacherHistory.summary.fileCount}</strong><small>Giữ đủ các lần nộp, không ghi đè lịch sử</small></article>
+                <article className="ttcm-history-stat"><span>Hoạt động gần nhất</span><strong>{teacherHistory.summary.latestAt ? formatDate(teacherHistory.summary.latestAt) : '—'}</strong><small>{teacherHistory.summary.latestAt ? formatFullDate(teacherHistory.summary.latestAt) : 'Chưa có dữ liệu'}</small></article>
+              </section>
+
+              <section className="ttcm-history-grid">
+                <article className="ttcm-history-panel">
+                  <header><div><strong>Lịch sử hoạt động</strong><small>{visibleHistoryTimeline.length} sự kiện</small></div></header>
+                  {historyTeacherId && visibleHistoryTimeline.length ? <div className="ttcm-history-timeline">{visibleHistoryTimeline.map((entry) => <div className="ttcm-history-event" key={entry.id}><span className="ttcm-history-event-dot" /><div className="ttcm-history-event-card"><header><b>{entry.label}</b><time>{formatDate(entry.createdAt)}</time></header><h4>{entry.itemTitle}</h4>{entry.body ? <p>{entry.body}</p> : null}<div className="ttcm-history-event-meta"><span className="ttcm-history-chip">{entry.itemType}</span><span className="ttcm-history-chip">Lần phản hồi {entry.submissionIndex}</span>{entry.attachmentCount ? <span className="ttcm-history-chip is-file">{entry.attachmentCount} file</span> : null}</div></div></div>)}</div> : <div className="ttcm-history-empty"><Icon name="history" size={30} /><strong>{historyTeacherId ? 'Chưa có hoạt động phù hợp' : 'Chọn giáo viên để xem lịch sử'}</strong><span>{historyTeacherId ? 'Các phản hồi, xác nhận và lần nộp tệp mới sẽ tự động xuất hiện tại đây.' : 'TTCM có thể chọn từng giáo viên trong tổ để xem hồ sơ hoạt động.'}</span></div>}
+                </article>
+
+                <article className="ttcm-history-panel">
+                  <header><div><strong>Danh sách file đã nộp</strong><small>{visibleHistoryFiles.length}/{teacherHistory.summary.fileCount} file</small></div><input className="ttcm-history-search" type="search" value={historyQuery} onChange={(event) => setHistoryQuery(event.target.value)} placeholder="Tìm file hoặc nội dung TTCM…" aria-label="Tìm file giáo viên đã nộp" /></header>
+                  {historyTeacherId && visibleHistoryFiles.length ? <div className="ttcm-history-files"><table className="ttcm-history-table"><thead><tr><th>File</th><th>Nội dung TTCM</th><th>Ngày nộp</th><th>Lần nộp</th><th>Thao tác</th></tr></thead><tbody>{visibleHistoryFiles.map((file) => { const ext = getWorkHubAttachmentExtension(file); const relatedItem = items.find((item) => String(item.id) === String(file.itemId)) || { id: file.itemId, title: file.itemTitle }; return <tr key={file.id}><td><div className="ttcm-history-file-name"><span className="ttcm-history-file-badge">{ext ? ext.slice(0, 4).toUpperCase() : 'FILE'}</span><div><b title={file.name}>{file.name || 'Tệp đính kèm'}</b><small>{[ext ? ext.toUpperCase() : '', formatFileSize(file.size)].filter(Boolean).join(' · ') || 'Tệp TTCM'}</small></div></div></td><td><b>{file.itemTitle}</b><br /><small>{file.itemType}</small></td><td>{formatFullDate(file.submittedAt) || '—'}</td><td><span className="ttcm-history-round">Lần {file.submissionIndex}</span></td><td><div className="ttcm-history-actions"><button type="button" onClick={() => previewAttachment(relatedItem, file)} title="Xem trước" aria-label={`Xem ${file.name || 'tệp'}`}><Icon name="eye" size={17} /></button><button type="button" onClick={() => downloadAttachment(relatedItem, file)} title="Tải về" aria-label={`Tải ${file.name || 'tệp'}`}><Icon name="download" size={17} /></button></div></td></tr>; })}</tbody></table></div> : <div className="ttcm-history-empty"><Icon name="folder" size={30} /><strong>{historyTeacherId ? (historyQuery ? 'Không tìm thấy file phù hợp' : 'Giáo viên chưa nộp file') : 'Chưa chọn giáo viên'}</strong><span>Toàn bộ tệp đính kèm trong các lần phản hồi TTCM sẽ được tập hợp ở đây và vẫn giữ riêng từng lần nộp.</span></div>}
+                </article>
+              </section>
+            </main>
+          )
           : <main className="ttcm-m3-personnel-view" role="tabpanel" aria-label="Nhân sự tổ chuyên môn"><PersonnelLookup currentUser={currentUser} language={language} /></main>}
 
         {fileViewer ? (
