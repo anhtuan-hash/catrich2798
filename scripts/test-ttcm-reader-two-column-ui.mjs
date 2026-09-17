@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 
+// Regression contract for the polished two-column TTCM reader.
 let passed = 0;
 let failed = 0;
 
