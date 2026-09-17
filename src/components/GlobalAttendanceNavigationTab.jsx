@@ -1675,9 +1675,33 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                     <article className="ahv3__rate-card"><b>{selectedSessionAttendanceRate ?? 0}%</b><span>Tỷ lệ chuyên cần</span><span className="ahv3__rate-ring" style={{ '--attendance-rate': `${selectedSessionAttendanceRate ?? 0}%` }} aria-hidden="true" /></article>
                   </div>
 
-                  {selectedLateRecords.length ? <section className="ahv3__late-section"><header><div><strong>Danh sách học sinh đi trễ</strong><span>{selectedLateRecords.length} học sinh</span></div></header><div className="attendance-late-list">{selectedLateRecords.map((record, index) => <div key={record.id}><span>{index + 1}</span><div><b>{record.student_full_name}</b><small>{record.student_code || 'Không có mã HS'} · {attendanceStatusLabel(record.status)} · vẫn tính có mặt</small></div><em>{record.school_class_name || '—'}</em></div>)}</div></section> : null}
+                  <section className={`ahv3__late-section ${!selectedLateRecords.length ? 'is-empty' : ''}`.trim()}>
+                    <header><div><strong>Danh sách học sinh đi trễ</strong><span>{selectedLateRecords.length} học sinh</span></div></header>
+                    {selectedLateRecords.length ? (
+                      <div className="attendance-late-list">
+                        {selectedLateRecords.map((record, index) => <div key={record.id}><span>{index + 1}</span><div><b>{record.student_full_name}</b><small>{record.student_code || 'Không có mã HS'} · {attendanceStatusLabel(record.status)} · vẫn tính có mặt</small></div><em>{record.school_class_name || '—'}</em></div>)}
+                      </div>
+                    ) : (
+                      <div className="ahv3__empty-attendance is-late">
+                        <span aria-hidden="true"><Icon name="late" size={22} /></span>
+                        <div><b>Không có học sinh đi trễ.</b><small>Buổi học không ghi nhận trường hợp đi trễ.</small></div>
+                      </div>
+                    )}
+                  </section>
 
-                  <section className={`ahv3__absent-section ${!selectedAbsentRecords.length ? 'is-empty' : ''}`.trim()}><header><div><strong>Danh sách học sinh vắng</strong><span>{selectedAbsentRecords.length} học sinh</span></div></header>{selectedAbsentRecords.length ? <div className="attendance-absent-list">{selectedAbsentRecords.map((record, index) => <div key={record.id}><span>{index + 1}</span><div><b>{record.student_full_name}</b><small>{record.student_code || 'Không có mã HS'} · {ABSENCE_REASON_OPTIONS.find((item) => item.value === record.absence_reason_code)?.label || 'Chưa ghi lý do'}{record.absence_note ? ` · ${record.absence_note}` : ''}</small></div><em>{record.school_class_name || '—'}</em></div>)}</div> : <div className="ahv3__all-present"><Icon name="check" size={24} /><div><b>Tất cả học sinh đều có mặt.</b><span>Lớp duy trì sĩ số đầy đủ trong buổi học này.</span></div></div>}</section>
+                  <section className={`ahv3__absent-section ${!selectedAbsentRecords.length ? 'is-empty' : ''}`.trim()}>
+                    <header><div><strong>Danh sách học sinh vắng</strong><span>{selectedAbsentRecords.length} học sinh</span></div></header>
+                    {selectedAbsentRecords.length ? (
+                      <div className="attendance-absent-list">
+                        {selectedAbsentRecords.map((record, index) => <div key={record.id}><span>{index + 1}</span><div><b>{record.student_full_name}</b><small>{record.student_code || 'Không có mã HS'} · {ABSENCE_REASON_OPTIONS.find((item) => item.value === record.absence_reason_code)?.label || 'Chưa ghi lý do'}{record.absence_note ? ` · ${record.absence_note}` : ''}</small></div><em>{record.school_class_name || '—'}</em></div>)}
+                      </div>
+                    ) : (
+                      <div className="ahv3__empty-attendance is-absent">
+                        <span aria-hidden="true"><Icon name="check" size={22} /></span>
+                        <div><b>Tất cả học sinh đều có mặt.</b><small>Lớp duy trì sĩ số đầy đủ trong buổi học này.</small></div>
+                      </div>
+                    )}
+                  </section>
 
                   <div className="ahv3__footer-grid"><section className="ahv3__note"><strong>Ghi chú buổi học</strong><p>{selectedSession.note || 'Chưa có ghi chú cho buổi học này.'}</p></section><section className="ahv3__lock"><strong>Nhật ký chốt buổi</strong><div><span>Chốt lúc</span><b>{formatDateTime(selectedSession.checked_at)}</b></div><div><span>Trạng thái</span><b>Đã chốt</b></div></section></div>
                 </>}

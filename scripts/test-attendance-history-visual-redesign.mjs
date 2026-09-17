@@ -53,7 +53,6 @@ for (const [selector, order] of [
   ['ahv3__info-grid', 3],
   ['ahv3__stat-grid', 5],
   ['ahv3__audit-actor-panel', 6],
-  ['ahv3__late-section', 7],
   ['ahv3__footer-grid', 9],
 ]) {
   assert.match(
@@ -64,18 +63,23 @@ for (const [selector, order] of [
 }
 assert.match(
   css,
-  /\.ahv3__shell \.ahv3__detail > \.ahv3__proof\s*\{[^}]*grid-column:\s*1\s*\/\s*2[^}]*order:\s*8/s,
-  'Proof card must occupy the left half of the compact evidence row',
+  /\.ahv3__shell \.ahv3__detail > \.ahv3__late-section\s*\{[^}]*grid-column:\s*1\s*\/\s*2[^}]*grid-row:\s*7[^}]*order:\s*7/s,
+  'Tardy card must occupy the left half of the paired attendance-state row',
 );
 assert.match(
   css,
-  /\.ahv3__shell \.ahv3__detail > \.ahv3__absent-section\s*\{[^}]*grid-column:\s*2\s*\/\s*3[^}]*order:\s*8/s,
-  'Absent-student card must sit beside proof in the right half',
+  /\.ahv3__shell \.ahv3__detail > \.ahv3__absent-section\s*\{[^}]*grid-column:\s*2\s*\/\s*3[^}]*grid-row:\s*7[^}]*order:\s*7/s,
+  'Absent-student card must occupy the right half of the paired attendance-state row',
 );
 assert.match(
   css,
-  /\.ahv3__shell \.ahv3__detail:not\(:has\(> \.ahv3__proof\)\) > \.ahv3__absent-section\s*\{[^}]*grid-column:\s*1\s*\/\s*-1/s,
-  'Absent card must expand full width when there is no proof image',
+  /\.ahv3__shell \.ahv3__detail > \.ahv3__proof\s*\{[^}]*grid-column:\s*1\s*\/\s*-1[^}]*grid-row:\s*8[^}]*order:\s*8/s,
+  'Proof card must sit below both attendance-state cards at full width',
+);
+assert.match(
+  css,
+  /\.ahv3__shell \.ahv3__detail:not\(:has\(> \.ahv3__proof\)\) > \.ahv3__footer-grid\s*\{[^}]*grid-row:\s*8/s,
+  'Footer must close the gap when no proof image exists',
 );
 assert.match(css, /\.ahv3__shell \.ahv3__proof-image img\s*\{[^}]*max-height:\s*165px/s, 'Proof image must match the compact mockup height');
 assert.match(css, /\.ahv3__shell \.ahv3__hero-art::after\s*\{[^}]*content:\s*['"]Tri thức\\A kiến tạo\\A tương lai['"]/s, 'Hero must carry the approved education quote decoration');
