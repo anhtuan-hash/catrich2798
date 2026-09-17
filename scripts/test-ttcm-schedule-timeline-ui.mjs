@@ -36,6 +36,7 @@ check(center.includes('work-schedule-timeline-event'), 'renders timeline event c
 check(center.includes('work-schedule-event-location'), 'shows event location inside timeline cards');
 check(center.includes('work-schedule-empty-day'), 'renders the friendly empty-day panel');
 check(center.includes('work-schedule-timeline-more'), 'renders per-day continuation control');
+check(center.includes('embedded && dayEvents.length > 3'), 'shows continuation only when a day has hidden events');
 check(center.includes('work-schedule-hero-art'), 'adds a semantic hero artwork hook');
 check(center.includes('work-schedule-quote-footer'), 'adds the illustrated quote footer hook');
 check(center.includes('Lịch làm việc khoa học'), 'preserves the approved footer quote');
