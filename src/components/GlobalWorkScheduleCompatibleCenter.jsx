@@ -5,6 +5,7 @@ import GlobalWorkScheduleCenter from './GlobalWorkScheduleCenter.jsx';
 import './GlobalWorkScheduleTimeline.css';
 import './GlobalWorkScheduleTimelineArtwork.css';
 import './GlobalWorkScheduleTimelineCategories.css';
+import './GlobalWorkScheduleTimelineV2.css';
 
 export default function GlobalWorkScheduleCompatibleCenter(props) {
   const runtime = useRuntimeCore();

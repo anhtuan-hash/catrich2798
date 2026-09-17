@@ -2,22 +2,16 @@ import { readFile } from 'node:fs/promises';
 
 let passed = 0;
 let failed = 0;
-
 function check(condition, message) {
-  if (condition) {
-    console.log(`[PASS] ${message}`);
-    passed += 1;
-  } else {
-    console.error(`[FAIL] ${message}`);
-    failed += 1;
-  }
+  if (condition) { console.log(`[PASS] ${message}`); passed += 1; }
+  else { console.error(`[FAIL] ${message}`); failed += 1; }
 }
 
 const wrapper = await readFile(new URL('../src/components/GlobalWorkScheduleCompatibleCenter.jsx', import.meta.url), 'utf8');
 const center = await readFile(new URL('../src/components/GlobalWorkScheduleCenter.jsx', import.meta.url), 'utf8');
-const timelineCss = await readFile(new URL('../src/components/GlobalWorkScheduleTimeline.css', import.meta.url), 'utf8').catch(() => '');
+const css = await readFile(new URL('../src/components/GlobalWorkScheduleTimelineV2.css', import.meta.url), 'utf8').catch(() => '');
 
-// Existing business controls must remain intact.
+// Existing schedule business flows must remain intact.
 check(center.includes('File mẫu'), 'preserves template download action');
 check(center.includes('Upload lịch'), 'preserves schedule upload action');
 check(center.includes('Thêm lịch'), 'preserves manual add action');
@@ -25,29 +19,45 @@ check(center.includes('work-schedule-drawer'), 'preserves event detail drawer');
 check(center.includes('work-schedule-modal import-modal'), 'preserves import preview modal');
 check(center.includes('work-schedule-modal editor-modal'), 'preserves create/edit modal');
 
-// Approved graphical timeline skin.
-check(wrapper.includes("import './GlobalWorkScheduleTimeline.css';"), 'loads the dedicated TTCM timeline skin');
-check(timelineCss.includes('.work-schedule-center::before'), 'adds illustrated pastel hero ambience');
-check(timelineCss.includes('data:image/svg+xml'), 'keeps approved graphics as deploy-safe inline SVG');
-check(timelineCss.includes('Cùng kiến tạo'), 'keeps the handwritten education slogan in hero art');
-check(timelineCss.includes('.work-schedule-metrics article:nth-child(1)::before'), 'adds individual metric icon tiles');
-check(timelineCss.includes('.work-schedule-calendar.is-week .work-schedule-grid'), 'targets the weekly view as a timeline');
-check(timelineCss.includes('grid-template-columns: repeat(7, minmax(176px, 1fr))'), 'keeps seven equal timeline day columns');
-check(timelineCss.includes('.work-schedule-calendar.is-week .work-schedule-grid > article::before'), 'adds weekday labels to timeline columns');
-check(timelineCss.includes('border-left: 1px dashed'), 'draws the vertical timeline rails');
-check(timelineCss.includes('.work-schedule-calendar.is-week .work-schedule-grid > article.today'), 'highlights the current day column');
-check(timelineCss.includes('.work-schedule-calendar.is-week .work-schedule-grid > article > div > button::before'), 'adds timeline event nodes/icons');
-check(timelineCss.includes('.work-schedule-filterbar::before'), 'renders the approved category legend beside week navigation');
-check(timelineCss.includes('Họp'), 'keeps meeting legend chip');
-check(timelineCss.includes('Đào tạo'), 'keeps training legend chip');
-check(timelineCss.includes('Học sinh'), 'keeps student legend chip');
-check(timelineCss.includes('Hạn nộp'), 'keeps deadline legend chip');
-check(timelineCss.includes('.work-schedule-calendar.is-week .work-schedule-grid > article:last-child'), 'styles the Sunday/empty-day state');
-check(timelineCss.includes('Không có lịch làm việc'), 'keeps the friendly empty-day message');
-check(timelineCss.includes('.work-schedule-center::after'), 'adds the scenic quote footer');
-check(timelineCss.includes('Lịch làm việc khoa học'), 'keeps the approved footer quote');
-check(timelineCss.includes('Giáo dục là hành trình'), 'keeps the handwritten footer message');
-check(timelineCss.includes('@media (max-width: 900px)'), 'keeps a responsive narrow-screen timeline');
+// Dedicated timeline behavior / markup from the approved mockup.
+check(center.includes("const [timelineCategory, setTimelineCategory] = useState('all')"), 'adds interactive timeline category state');
+check(center.includes('scheduleCategoryForEvent'), 'classifies schedule events into mockup categories');
+check(center.includes('work-schedule-category-filters'), 'renders real category filter chips');
+check(center.includes("['all', 'Tất cả'"), 'includes all category filter');
+check(center.includes("['meeting', 'Họp'"), 'includes meeting category filter');
+check(center.includes("['training', 'Đào tạo'"), 'includes training category filter');
+check(center.includes("['student', 'Học sinh'"), 'includes student category filter');
+check(center.includes("['deadline', 'Hạn nộp'"), 'includes deadline category filter');
+check(center.includes("['other', 'Khác'"), 'includes other category filter');
+check(center.includes('work-schedule-timeline-board'), 'renders the dedicated illustrated weekly timeline board');
+check(center.includes('work-schedule-timeline-day'), 'renders styled day columns');
+check(center.includes('work-schedule-timeline-rail'), 'renders vertical rails for day events');
+check(center.includes('work-schedule-timeline-event'), 'renders timeline event cards');
+check(center.includes('work-schedule-event-location'), 'shows event location inside timeline cards');
+check(center.includes('work-schedule-empty-day'), 'renders the friendly empty-day panel');
+check(center.includes('work-schedule-timeline-more'), 'renders per-day continuation control');
+check(center.includes('embedded && dayEvents.length > 3'), 'shows continuation only when a day has hidden events');
+check(center.includes('work-schedule-hero-art'), 'adds a semantic hero artwork hook');
+check(center.includes('work-schedule-quote-footer'), 'adds the illustrated quote footer hook');
+check(center.includes('Lịch làm việc khoa học'), 'preserves the approved footer quote');
+check(center.includes('Giáo dục là hành trình'), 'preserves the handwritten footer message');
 
-console.log(`\nTTCM schedule timeline contract: ${passed} passed, ${failed} failed.`);
+// Production selector fidelity: style the actual TTCM host, not an unrelated wrapper.
+check(wrapper.includes("import './GlobalWorkScheduleTimelineV2.css';"), 'loads the high-fidelity TTCM schedule skin');
+check(css.includes('.ttcm-m3-schedule-host .work-schedule-center'), 'scopes the visual design to the production TTCM schedule host');
+check(css.includes('.work-schedule-hero-art'), 'styles the hero illustration');
+check(css.includes('data:image/svg+xml'), 'preserves approved calendar / plants / books artwork as deploy-safe SVG');
+check(css.includes('.work-schedule-category-filters'), 'styles real category filter chips');
+check(css.includes('.work-schedule-timeline-board'), 'styles the seven-column timeline board');
+check(/grid-template-columns\s*:\s*repeat\(7\s*,\s*minmax\(176px\s*,\s*1fr\)\)/.test(css), 'uses seven equal timeline columns on desktop');
+check(/border-left\s*:\s*1px\s+dashed/.test(css), 'draws the vertical timeline rails');
+check(css.includes('.work-schedule-timeline-event.is-meeting'), 'styles meeting events');
+check(css.includes('.work-schedule-timeline-event.is-training'), 'styles training events');
+check(css.includes('.work-schedule-timeline-event.is-student'), 'styles student events');
+check(css.includes('.work-schedule-timeline-event.is-deadline'), 'styles deadline events');
+check(css.includes('.work-schedule-empty-day'), 'styles the friendly empty-day card');
+check(css.includes('.work-schedule-quote-footer'), 'styles the scenic education footer');
+check(/@media\s*\(max-width\s*:\s*900px\)/.test(css), 'keeps the timeline usable on narrow screens');
+
+console.log(`\nTTCM schedule timeline mockup contract: ${passed} passed, ${failed} failed.`);
 if (failed) process.exit(1);

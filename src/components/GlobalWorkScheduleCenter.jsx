@@ -31,6 +31,52 @@ const PROFILE_CACHE_MAX_AGE = 6 * 60 * 60 * 1000;
 const EXCLUDED_PROFILE_ROLES = new Set(['student', 'learner', 'pupil', 'parent', 'guardian', 'guest']);
 const PRIORITY_LABEL = { low: 'Thấp', normal: 'Bình thường', high: 'Cao', urgent: 'Khẩn' };
 
+const TIMELINE_CATEGORIES = [
+  ['all', 'Tất cả', '#2f7df4'],
+  ['meeting', 'Họp', '#2f7df4'],
+  ['training', 'Đào tạo', '#1cab78'],
+  ['student', 'Học sinh', '#ef8b4a'],
+  ['deadline', 'Hạn nộp', '#8359e8'],
+  ['other', 'Khác', '#92a7bc'],
+];
+
+function normalizeTimelineText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[đĐ]/g, 'd')
+    .toLowerCase();
+}
+
+function scheduleCategoryForEvent(event) {
+  const text = normalizeTimelineText(
+    `${event?.title || ''} ${event?.description || ''} ${event?.note || ''} ${event?.ownerText || ''}`,
+  );
+  if (/\b(hop|hoi nghi|du hop|trien khai)\b/.test(text)) return 'meeting';
+  if (/tap huan|thao giang|dao tao|chuyen de|boi duong/.test(text)) return 'training';
+  if (/hoc sinh|lop truong|khen thuong|\bhs\b/.test(text)) return 'student';
+  if (/han nop|nop bai|nop bao cao|hoan tat|deadline|bao cao/.test(text)) return 'deadline';
+  return 'other';
+}
+
+function timelineCategoryGlyph(category) {
+  if (category === 'meeting') return '●●';
+  if (category === 'training') return '◆';
+  if (category === 'student') return '●';
+  if (category === 'deadline') return '▣';
+  return '✦';
+}
+
+function formatTimelineDay(value, language) {
+  return new Intl.DateTimeFormat(language === 'vi' ? 'vi-VN' : 'en-US', { day: '2-digit', month: '2-digit' }).format(value);
+}
+
+function timelineWeekday(value, language) {
+  const labelsVi = ['CN', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+  if (language === 'vi') return labelsVi[value.getDay()] || '';
+  return new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(value);
+}
+
 function normalizeRole(value) {
   return String(value || '').trim().toLowerCase().replace(/[\s-]+/g, '_');
 }
@@ -332,6 +378,8 @@ export default function GlobalWorkScheduleCenter({
   const [cursor, setCursor] = useState(() => embedded ? startOfWeek(new Date()) : startOfMonth(new Date()));
   const [query, setQuery] = useState('');
   const [scope, setScope] = useState(() => embedded ? 'all' : 'upcoming');
+  const [timelineCategory, setTimelineCategory] = useState('all');
+  const [expandedTimelineDays, setExpandedTimelineDays] = useState(() => new Set());
   const [selectedId, setSelectedId] = useState(hashState.eventId);
   const [importOpen, setImportOpen] = useState(false);
   const [importPreview, setImportPreview] = useState(null);
@@ -538,6 +586,20 @@ export default function GlobalWorkScheduleCenter({
     });
     return map;
   }, [filteredEvents]);
+
+  const timelineEvents = useMemo(
+    () => filteredEvents.filter((event) => timelineCategory === 'all' || scheduleCategoryForEvent(event) === timelineCategory),
+    [filteredEvents, timelineCategory],
+  );
+  const timelineEventsByDay = useMemo(() => {
+    const map = new Map();
+    timelineEvents.forEach((event) => {
+      const key = dayKey(event.startAt);
+      if (!map.has(key)) map.set(key, []);
+      map.get(key).push(event);
+    });
+    return map;
+  }, [timelineEvents]);
 
   const selectedEvent = events.find((event) => event.id === selectedId) || null;
   const existingFingerprints = useMemo(() => new Set(events.map((event) => event.fingerprint).filter(Boolean)), [events]);
@@ -822,6 +884,7 @@ export default function GlobalWorkScheduleCenter({
             <h2>Lịch làm việc dùng chung</h2>
             <p>Lịch chung của tổ được đồng bộ trực tiếp giữa Kênh TTCM, Dashboard và Automation Center.</p>
           </div>
+          <div className="work-schedule-hero-art" aria-hidden="true" />
           <div className="work-schedule-actions">
             {leader ? <>
               <button type="button" className="secondary" onClick={() => downloadTextFile('mau-lich-lam-viec.csv', makeScheduleTemplateCsv())}>⇩ File mẫu</button>
@@ -849,7 +912,9 @@ export default function GlobalWorkScheduleCenter({
             <button type="button" aria-label={calendarMode === 'week' ? 'Tuần sau' : 'Tháng sau'} onClick={() => setCursor(calendarMode === 'week' ? addWeeks(cursor, 1) : addMonths(cursor, 1))}>›</button>
             <button type="button" className="today" onClick={() => setCursor(calendarMode === 'week' ? startOfWeek(new Date()) : startOfMonth(new Date()))}>Hôm nay</button>
           </div>
-          <div className="work-schedule-filterbar">
+          {embedded ? <div className="work-schedule-category-filters" aria-label="Lọc lịch theo loại hoạt động">
+            {TIMELINE_CATEGORIES.map(([id, label, color]) => <button type="button" key={id} className={timelineCategory === id ? 'is-selected' : ''} aria-pressed={timelineCategory === id} style={{ '--category': color }} onClick={() => setTimelineCategory(id)}><i />{label}</button>)}
+          </div> : <div className="work-schedule-filterbar">
             <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm nội dung, địa điểm, phụ trách…" />
             <select value={scope} onChange={(event) => setScope(event.target.value)}>
               <option value="upcoming">Sắp tới</option>
@@ -861,22 +926,25 @@ export default function GlobalWorkScheduleCenter({
               <button type="button" className={calendarMode === 'month' ? 'active' : ''} onClick={() => { setCalendarMode('month'); setCursor(startOfMonth(cursor)); }}>Tháng</button>
               <button type="button" className={calendarMode === 'agenda' ? 'active' : ''} onClick={() => setCalendarMode('agenda')}>Danh sách</button>
             </div>
-          </div>
+          </div>}
         </div>
 
-        {calendarMode !== 'agenda' ? <div className={'work-schedule-calendar ' + (calendarMode === 'week' ? 'is-week' : '')}>
+        {calendarMode !== 'agenda' ? <div className={'work-schedule-calendar ' + (calendarMode === 'week' ? 'is-week' : '') + (embedded ? ' work-schedule-timeline-board' : '')}>
           <div className="work-schedule-weekdays">{['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((day) => <span key={day}>{day}</span>)}</div>
           <div className="work-schedule-grid">{cells.map((date) => {
             const key = dayKey(date);
-            const dayEvents = eventsByDay.get(key) || [];
+            const dayEvents = (embedded ? timelineEventsByDay : eventsByDay).get(key) || [];
             const outside = calendarMode === 'month' && date.getMonth() !== cursor.getMonth();
             const today = key === dayKey(new Date());
-            return <article key={key} className={`${outside ? 'outside' : ''} ${today ? 'today' : ''}`}>
-              <header><time>{date.getDate()}</time>{dayEvents.length ? <span>{dayEvents.length}</span> : null}</header>
-              <div>{dayEvents.slice(0, 3).map((event) => <button key={event.id} type="button" className={`priority-${event.priority}`} onClick={() => setSelectedId(event.id)} title={event.title}>
-                <time>{formatTime(event.startAt, language)}</time><span>{event.title}</span>
-              </button>)}</div>
-              {dayEvents.length > 3 ? <button type="button" className="more" onClick={() => setCalendarMode('agenda')}>+{dayEvents.length - 3} hoạt động</button> : null}
+            const dayExpanded = expandedTimelineDays.has(key);
+            const visibleDayEvents = embedded ? (dayExpanded ? dayEvents : dayEvents.slice(0, 3)) : dayEvents.slice(0, 3);
+            return <article key={key} className={`${embedded ? 'work-schedule-timeline-day ' : ''}${outside ? 'outside ' : ''}${today ? 'today is-today ' : ''}${embedded && !dayEvents.length ? 'is-empty' : ''}`}>
+              {embedded ? <><header className="work-schedule-timeline-day-head"><span className="work-schedule-day-orb" aria-hidden="true">{today ? date.getDate() : '⌖'}</span><div><strong>{timelineWeekday(date, language)}</strong><time>{formatTimelineDay(date, language)}</time></div>{today ? <em>Hôm nay</em> : null}</header><div className="work-schedule-day-count"><i />{dayEvents.length} hoạt động</div></> : <header><time>{date.getDate()}</time>{dayEvents.length ? <span>{dayEvents.length}</span> : null}</header>}
+              <div className={embedded ? 'work-schedule-timeline-rail' : undefined}>{visibleDayEvents.map((event) => { const category = scheduleCategoryForEvent(event); return <button key={event.id} type="button" className={`priority-${event.priority} ${embedded ? `work-schedule-timeline-event is-${category}` : ''}`} onClick={() => setSelectedId(event.id)} title={event.title}>
+                {embedded ? <span className="work-schedule-event-icon" aria-hidden="true">{timelineCategoryGlyph(category)}</span> : null}<time>{formatTime(event.startAt, language)}</time><span>{event.title}</span>{embedded && event.location ? <small className="work-schedule-event-location">▣ {event.location}</small> : null}
+              </button>; })}</div>
+              {embedded && !dayEvents.length ? <div className="work-schedule-empty-day"><span aria-hidden="true">☕</span><strong>Không có lịch làm việc</strong><small>Hãy tận hưởng ngày nghỉ thật ý nghĩa!</small></div> : null}
+              {embedded && dayEvents.length > 3 ? <button type="button" className="more work-schedule-timeline-more" onClick={() => setExpandedTimelineDays((current) => { const next = new Set(current); if (next.has(key)) next.delete(key); else next.add(key); return next; })}>{dayExpanded ? 'Thu gọn' : `+ ${dayEvents.length - 3} hoạt động`} <span>›</span></button> : (!embedded && dayEvents.length > 3 ? <button type="button" className="more" onClick={() => setCalendarMode('agenda')}>+{dayEvents.length - 3} hoạt động</button> : null)}
             </article>;
           })}</div>
         </div> : <div className="work-schedule-agenda">
@@ -887,6 +955,7 @@ export default function GlobalWorkScheduleCenter({
           </article>)}
           {!filteredEvents.length ? <div className="work-schedule-empty"><strong>Chưa có hoạt động phù hợp</strong><span>TTCM/Admin có thể upload file mẫu hoặc thêm lịch thủ công.</span></div> : null}
         </div>}
+        {embedded ? <footer className="work-schedule-quote-footer"><div><b aria-hidden="true">“</b><p><strong>Lịch làm việc khoa học là nền tảng của một tập thể vững mạnh.</strong><span>Cùng nhau tạo nên những giá trị tốt đẹp hơn mỗi ngày!</span></p></div><em>Giáo dục là hành trình cùng nhau lớn lên ♡</em></footer> : null}
       </section> : null}
 
       {importOpen ? <div className="work-schedule-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) setImportOpen(false); }}>

@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - style/ttcm-schedule-timeline
+      - style/ttcm-schedule-timeline-mockup
   pull_request:
     paths:
       - 'src/components/GlobalWorkScheduleCenter.jsx'
@@ -11,6 +12,7 @@ on:
       - 'src/components/GlobalWorkScheduleTimeline.css'
       - 'src/components/GlobalWorkScheduleTimelineArtwork.css'
       - 'src/components/GlobalWorkScheduleTimelineCategories.css'
+      - 'src/components/GlobalWorkScheduleTimelineV2.css'
       - 'scripts/test-ttcm-schedule-timeline-ui.mjs'
       - '.github/workflows/ttcm-schedule-timeline.yml'
 
