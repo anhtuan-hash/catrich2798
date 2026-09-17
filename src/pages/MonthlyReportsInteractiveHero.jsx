@@ -3,11 +3,14 @@ import {
   CalendarDays,
   CheckCircle2,
   ChevronDown,
-  ClipboardCheck,
+  CircleCheckBig,
+  ClipboardList,
+  Clock3,
   Eye,
-  FileCheck2,
-  Layers3,
+  Lightbulb,
   PencilLine,
+  Save,
+  Send,
   ShieldCheck,
   Sparkles,
 } from 'lucide-react';
@@ -20,12 +23,19 @@ const EMPTY_SNAPSHOT = Object.freeze({
   completed: 0,
   total: 0,
   completeSections: 0,
+  sectionComplete: [false, false, false, false, false],
   status: 'draft',
   statusLabel: 'Bản nháp',
   teacher: '',
   department: '',
   schoolYear: '',
   locked: false,
+  hasDeadline: false,
+  deadlineLabel: '',
+  countdownLabel: '',
+  deadlineExpired: false,
+  canSave: false,
+  canSubmit: false,
 });
 
 const STATUS_META = Object.freeze({
@@ -46,7 +56,7 @@ const STATUS_META = Object.freeze({
   },
   draft: {
     label: 'Bản nháp',
-    description: 'Báo cáo đang được hoàn thiện',
+    description: 'Báo cáo đang được bạn biên tập',
     tone: 'draft',
   },
   missing: {
@@ -55,6 +65,22 @@ const STATUS_META = Object.freeze({
     tone: 'draft',
   },
 });
+
+const SECTION_META = Object.freeze([
+  { number: '01', title: 'Công tác tổ chức', tone: 'blue' },
+  { number: '02', title: 'Số liệu chuyên môn', tone: 'green' },
+  { number: '03', title: 'Tình hình chuyên môn', tone: 'violet' },
+  { number: '04', title: 'Kế hoạch thời gian tới', tone: 'amber' },
+  { number: '05', title: 'Ý kiến, kiến nghị', tone: 'red' },
+]);
+
+const GUIDE_ITEMS = Object.freeze([
+  'Nhập đầy đủ các nội dung theo từng phần.',
+  'Số liệu nhập số nguyên; nếu không phát sinh vui lòng nhập 0.',
+  'Kiểm tra kỹ trước khi gửi báo cáo.',
+  'Liên hệ TTCM nếu cần hỗ trợ.',
+  'Báo cáo là căn cứ đánh giá thi đua cuối năm.',
+]);
 
 const parseCompletion = (root) => {
   const meter = root?.querySelector('.mr-completion');
@@ -93,11 +119,16 @@ const setNativeValue = (input, value) => {
   input.dispatchEvent(new Event('change', { bubbles: true }));
 };
 
+const findWorkspaceButton = (pattern) => {
+  const buttons = [...document.querySelectorAll('.btp-report-grid .mr-teacher-shell .mr-sticky-actions button')];
+  return buttons.find((button) => pattern.test(button.textContent || '')) || null;
+};
+
 export default function MonthlyReportsInteractiveHero() {
   const [snapshot, setSnapshot] = useState(EMPTY_SNAPSHOT);
 
   const readWorkspace = useCallback(() => {
-    const root = document.querySelector('.btp-shell .mr-teacher-shell');
+    const root = document.querySelector('.btp-report-grid .mr-teacher-shell');
     if (!root) {
       setSnapshot(EMPTY_SNAPSHOT);
       return;
@@ -111,18 +142,29 @@ export default function MonthlyReportsInteractiveHero() {
     const metadataValue = (index) => metadata[index]?.querySelector('strong')?.textContent?.trim() || '';
     const schoolYearText = root.querySelector('.mr-hero p')?.textContent || '';
     const schoolYear = schoolYearText.match(/Năm học\s+([^·]+)/i)?.[1]?.trim() || '';
+    const sections = [...root.querySelectorAll('.mr-form-stack > .mr-section')];
+    const deadlineCard = root.querySelector('.mr-deadline-card');
+    const saveButton = findWorkspaceButton(/Lưu nháp|Đang lưu/i);
+    const submitButton = findWorkspaceButton(/Gửi TTCM/i);
 
     setSnapshot({
       ready: true,
       month: monthInput?.value || '',
       ...completion,
-      completeSections: root.querySelectorAll('.mr-section.is-complete').length,
+      completeSections: sections.filter((section) => section.classList.contains('is-complete')).length,
+      sectionComplete: SECTION_META.map((_, index) => Boolean(sections[index]?.classList.contains('is-complete'))),
       status,
       statusLabel: statusElement?.textContent?.trim() || STATUS_META[status]?.label || 'Bản nháp',
       teacher: metadataValue(0),
       department: metadataValue(1),
       schoolYear,
       locked: ['approved', 'submitted'].includes(status),
+      hasDeadline: Boolean(deadlineCard),
+      deadlineLabel: deadlineCard?.querySelector('.mr-deadline-copy strong')?.textContent?.trim() || '',
+      countdownLabel: deadlineCard?.querySelector('.mr-countdown strong')?.textContent?.trim() || '',
+      deadlineExpired: Boolean(deadlineCard?.classList.contains('is-expired')),
+      canSave: Boolean(saveButton && !saveButton.disabled),
+      canSubmit: Boolean(submitButton && !submitButton.disabled),
     });
   }, []);
 
@@ -153,52 +195,22 @@ export default function MonthlyReportsInteractiveHero() {
   }, [readWorkspace]);
 
   const statusMeta = STATUS_META[snapshot.status] || STATUS_META.draft;
-  const progressLabel = snapshot.percent >= 100 ? 'Hoàn tất' : snapshot.percent >= 80 ? 'Sắp hoàn tất' : 'Đang thực hiện';
   const reportMonthNumber = /^\d{4}-\d{2}$/.test(snapshot.month)
     ? String(Number(snapshot.month.slice(5, 7)))
     : '';
 
-  const metrics = useMemo(() => [
-    {
-      icon: ClipboardCheck,
-      value: `${snapshot.completed}/${snapshot.total || 0}`,
-      label: 'Mục bắt buộc hoàn tất',
-      tone: 'blue',
-    },
-    {
-      icon: CheckCircle2,
-      value: `${snapshot.percent}%`,
-      label: 'Tiến độ hoàn thiện',
-      tone: 'green',
-    },
-    {
-      icon: Layers3,
-      value: `${snapshot.completeSections}/5`,
-      label: 'Phần báo cáo hoàn chỉnh',
-      tone: 'orange',
-    },
-    {
-      icon: FileCheck2,
-      value: statusMeta.label,
-      label: 'Trạng thái báo cáo',
-      tone: 'violet',
-    },
-  ], [snapshot.completed, snapshot.total, snapshot.percent, snapshot.completeSections, statusMeta.label]);
-
   const handleMonthChange = (event) => {
-    const actualInput = document.querySelector('.btp-shell .mr-teacher-shell .mr-top-actions input[type="month"]');
+    const actualInput = document.querySelector('.btp-report-grid .mr-teacher-shell .mr-top-actions input[type="month"]');
     setNativeValue(actualInput, event.target.value);
     window.setTimeout(readWorkspace, 0);
   };
 
-  const handlePreview = () => {
-    const buttons = [...document.querySelectorAll('.btp-shell .mr-teacher-shell .mr-sticky-actions button')];
-    const previewButton = buttons.find((button) => /Xem trước/i.test(button.textContent || ''));
-    previewButton?.click();
-  };
+  const handlePreview = () => findWorkspaceButton(/Xem trước/i)?.click();
+  const handleSaveDraft = () => findWorkspaceButton(/Lưu nháp|Đang lưu/i)?.click();
+  const handleSubmit = () => findWorkspaceButton(/Gửi TTCM/i)?.click();
 
   const scrollToEditor = (focus = false) => {
-    const root = document.querySelector('.btp-shell .mr-teacher-shell');
+    const root = document.querySelector('.btp-report-grid .mr-teacher-shell');
     const target = root?.querySelector('.mr-form-stack');
     target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     if (focus && !snapshot.locked) {
@@ -207,85 +219,103 @@ export default function MonthlyReportsInteractiveHero() {
   };
 
   const scrollToSection = (index) => {
-    const sections = document.querySelectorAll('.btp-shell .mr-teacher-shell .mr-section');
+    const sections = document.querySelectorAll('.btp-report-grid .mr-teacher-shell .mr-section');
     sections[index]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
+
+  const sectionRows = useMemo(() => SECTION_META.map((section, index) => ({
+    ...section,
+    complete: Boolean(snapshot.sectionComplete[index]),
+  })), [snapshot.sectionComplete]);
 
   if (!snapshot.ready) return null;
 
   return (
-    <section className="mr-material-hero" aria-label="Tổng quan báo cáo tháng">
-      <div className="mr-material-hero__glow" aria-hidden="true" />
-      <div className="mr-material-hero__content">
-        <div className="mr-material-hero__intro">
-          <div className="mr-material-hero__eyebrow"><Sparkles /> BRIAN REPORTS</div>
-          <h1>
-            Báo cáo công việc tháng
-            {reportMonthNumber && (
-              <span className="mr-material-hero__month-ink" style={{ color: 'var(--hero-orange)' }}> {reportMonthNumber}</span>
-            )}
-          </h1>
-          <p>Tổng hợp, theo dõi và đánh giá toàn bộ hoạt động giảng dạy và công việc của bạn theo từng tháng.</p>
-          <span className="mr-material-hero__rule" aria-hidden="true" />
+    <>
+      <section className="mr-report-lead" aria-label="Báo cáo công việc tháng">
+        <div className="mr-report-lead__eyebrow"><Sparkles /> BRIAN REPORTS</div>
+        <h1>
+          Báo cáo công<br />việc tháng
+          {reportMonthNumber && <span> {reportMonthNumber}</span>}
+        </h1>
+        <p>Tổng kết · Chia sẻ · Phát triển cùng Brian English</p>
+        <div className="mr-report-lead__note" aria-hidden="true">Mỗi nỗ lực<br />đều tạo nên<br />sự thay đổi tích cực!</div>
+        <div className="mr-report-lead__badge" aria-hidden="true">Better<br />Teachers<br />Brighter<br />Futures</div>
+      </section>
 
-          <div className="mr-material-hero__metrics" aria-label="Chỉ số nhanh">
-            {metrics.map(({ icon: Icon, value, label, tone }, index) => (
-              <button
-                key={label}
-                type="button"
-                className={`mr-material-metric is-${tone}`}
-                onClick={() => index < 3 ? scrollToSection(Math.min(index, 4)) : scrollToEditor(false)}
-                aria-label={`${label}: ${value}`}
-              >
-                <span><Icon /></span>
-                <div><strong>{value}</strong><small>{label}</small></div>
+      <aside className="mr-report-sidebar" aria-label="Trạng thái và hướng dẫn báo cáo">
+        <section className="mr-report-side-card mr-report-side-status">
+          <h2>Trạng thái báo cáo</h2>
+
+          <label className="mr-report-month-picker">
+            <CalendarDays />
+            <strong>{monthLabel(snapshot.month)}</strong>
+            <ChevronDown />
+            <input type="month" value={snapshot.month} onChange={handleMonthChange} aria-label="Chọn tháng báo cáo" />
+          </label>
+
+          <button type="button" className={`mr-report-status-row is-${statusMeta.tone}`} onClick={() => scrollToEditor(false)}>
+            <span><ShieldCheck /></span>
+            <div><strong>{statusMeta.label}</strong><small>{statusMeta.description}</small></div>
+          </button>
+
+          <div className="mr-report-side-progress">
+            <div><span>Tiến độ hoàn thành</span><strong>{snapshot.percent}%</strong></div>
+            <div className="mr-report-side-progress__track"><i style={{ width: `${snapshot.percent}%` }} /></div>
+            <p><span>{snapshot.completed}/{snapshot.total || 0} mục bắt buộc đã hoàn thành</span><button type="button" onClick={() => scrollToEditor(false)}>Xem chi tiết →</button></p>
+          </div>
+
+          {snapshot.hasDeadline && (
+            <div className={`mr-report-deadline ${snapshot.deadlineExpired ? 'is-expired' : ''}`}>
+              <span><Clock3 /></span>
+              <div>
+                <small>Thời hạn nộp báo cáo</small>
+                <strong>{snapshot.deadlineExpired ? 'Đã hết hạn' : snapshot.countdownLabel || 'Đang cập nhật'}</strong>
+                {snapshot.deadlineLabel && <p>Hạn nộp: {snapshot.deadlineLabel}</p>}
+              </div>
+            </div>
+          )}
+
+          <div className="mr-report-side-actions">
+            <button type="button" className="is-preview" onClick={handlePreview}><Eye /> Xem báo cáo</button>
+            <div>
+              <button type="button" onClick={() => scrollToEditor(!snapshot.locked)}><PencilLine /> {snapshot.locked ? 'Xem các phần' : 'Chỉnh sửa báo cáo'}</button>
+              <button type="button" className="is-save" disabled={!snapshot.canSave} onClick={handleSaveDraft}><Save /> Lưu bản nháp</button>
+            </div>
+            {!snapshot.locked && (
+              <button type="button" className="is-submit" disabled={!snapshot.canSubmit} onClick={handleSubmit}><Send /> Gửi TTCM</button>
+            )}
+          </div>
+        </section>
+
+        <section className="mr-report-side-card mr-report-side-sections">
+          <div className="mr-report-side-heading">
+            <h2>Tình trạng các phần</h2>
+            <span>{snapshot.completeSections}/5 hoàn thành</span>
+          </div>
+          <div className="mr-report-section-list">
+            {sectionRows.map((section, index) => (
+              <button key={section.number} type="button" className={`is-${section.tone} ${section.complete ? 'is-complete' : ''}`} onClick={() => scrollToSection(index)}>
+                <span><ClipboardList /></span>
+                <div><strong><b>Phần {section.number}</b> {section.title}</strong><small>{section.complete ? 'Đã hoàn thành' : index === 1 ? 'Chưa có số liệu' : 'Chưa có nội dung'}</small></div>
+                {section.complete && <CheckCircle2 />}
               </button>
             ))}
           </div>
-        </div>
+        </section>
 
-        <div className="mr-material-hero__panel">
-          <div className="mr-material-hero__top-controls">
-            <label className="mr-material-month">
-              <span>THÁNG BÁO CÁO</span>
-              <div>
-                <CalendarDays />
-                <strong>{monthLabel(snapshot.month)}</strong>
-                <ChevronDown />
-              </div>
-              <input type="month" value={snapshot.month} onChange={handleMonthChange} aria-label="Chọn tháng báo cáo" />
-            </label>
-
-            <button type="button" className={`mr-material-status is-${statusMeta.tone}`} onClick={() => scrollToEditor(false)}>
-              <span><ShieldCheck /></span>
-              <div><strong>{statusMeta.label}</strong><small>{statusMeta.description}</small></div>
-            </button>
-          </div>
-
-          <button type="button" className="mr-material-progress" onClick={() => scrollToEditor(false)} aria-label={`Tiến độ hoàn thiện ${snapshot.percent}%`}>
-            <div className="mr-material-progress__head"><span>TIẾN ĐỘ HOÀN THÀNH</span><strong>{snapshot.percent}%</strong></div>
-            <div className="mr-material-progress__track"><i style={{ width: `${snapshot.percent}%` }} /></div>
-            <div className="mr-material-progress__foot">
-              <span>{snapshot.completed}/{snapshot.total || 0} mục bắt buộc đã hoàn tất</span>
-              <b>{progressLabel}</b>
-            </div>
-          </button>
-
-          <div className="mr-material-actions">
-            <button type="button" className="is-primary" onClick={handlePreview}><Eye /> Xem báo cáo</button>
-            <button type="button" className="is-secondary" onClick={() => scrollToEditor(!snapshot.locked)}>
-              <PencilLine /> {snapshot.locked ? 'Xem các phần' : 'Chỉnh sửa báo cáo'}
-            </button>
-          </div>
-
-          <div className="mr-material-hero__context">
-            <span>{snapshot.teacher || 'Giáo viên'}</span>
-            <i aria-hidden="true" />
-            <span>{snapshot.department || 'Tổ chuyên môn'}</span>
-            {snapshot.schoolYear && <><i aria-hidden="true" /><span>Năm học {snapshot.schoolYear}</span></>}
-          </div>
-        </div>
-      </div>
-    </section>
+        <section className="mr-report-side-card mr-report-side-guide">
+          <div className="mr-report-side-heading mr-report-side-heading--guide"><Lightbulb /><h2>Hướng dẫn &amp; Lưu ý nhanh</h2></div>
+          <ul>
+            {GUIDE_ITEMS.map((item) => <li key={item}><CircleCheckBig /> <span>{item}</span></li>)}
+          </ul>
+          <blockquote>
+            “Giáo dục hôm nay<br />vì những cơ hội ngày mai”
+            <span>♥</span>
+            <small>— Brian English —</small>
+          </blockquote>
+        </section>
+      </aside>
+    </>
   );
 }

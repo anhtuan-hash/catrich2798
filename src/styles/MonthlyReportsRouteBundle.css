@@ -7,6 +7,9 @@
 @import './MonthlyReportsHorizontalCardsV12.css';
 @import './MonthlyReportsEditorialV13.css';
 @import './MonthlyReportsEditorialV14.css';
-/* V17 is the single final reports presentation authority. It replaces the
-   old V15/V16 route zoom layers with real typography, spacing and geometry. */
+/* V17 remains the compatibility base for legacy report states. */
 @import './MonthlyReportsEditorialMaterialV17.css';
+/* V18 is the final personal-report content authority: approved two-column
+   editor + status rail. It intentionally does not style global navigation or
+   the site footer. */
+@import './MonthlyReportsTwoColumnV18.css';
