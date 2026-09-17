@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 
+// Final verification contract for the refined TTCM teacher-history workspace.
 let passed = 0;
 let failed = 0;
 
