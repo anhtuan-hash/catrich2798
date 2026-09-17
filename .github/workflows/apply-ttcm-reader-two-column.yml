@@ -26,6 +26,18 @@ jobs:
         with:
           node-version: '22'
           cache: npm
+      - name: Normalize applicator template
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('scripts/apply-ttcm-reader-two-column.mjs')
+          text = path.read_text()
+          before = "{feedQuery ? \\`/${counts.all}\\` : ''}"
+          after = "{feedQuery ? '/' + counts.all : ''}"
+          if before not in text:
+              raise SystemExit('Expected feed count template was not found')
+          path.write_text(text.replace(before, after))
+          PY
       - name: Apply approved redesign
         run: node scripts/apply-ttcm-reader-two-column.mjs
       - name: Verify UI contract
