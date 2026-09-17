@@ -1,0 +1,214 @@
+import { readFile, writeFile } from 'node:fs/promises';
+
+const centerPath = 'src/components/GlobalWorkScheduleCenter.jsx';
+const wrapperPath = 'src/components/GlobalWorkScheduleCompatibleCenter.jsx';
+const cssPath = 'src/components/GlobalWorkScheduleTimelineV2.css';
+const workflowPath = '.github/workflows/ttcm-schedule-timeline.yml';
+
+function replaceOnce(source, before, after, label) {
+  if (!source.includes(before)) throw new Error(`Missing anchor: ${label}`);
+  return source.replace(before, after);
+}
+
+let center = await readFile(centerPath, 'utf8');
+let wrapper = await readFile(wrapperPath, 'utf8');
+let workflow = await readFile(workflowPath, 'utf8');
+
+if (!center.includes('function scheduleCategoryForEvent')) {
+  center = replaceOnce(
+    center,
+    "const PRIORITY_LABEL = { low: 'Thấp', normal: 'Bình thường', high: 'Cao', urgent: 'Khẩn' };",
+    `const PRIORITY_LABEL = { low: 'Thấp', normal: 'Bình thường', high: 'Cao', urgent: 'Khẩn' };\n\nconst TIMELINE_CATEGORIES = [\n  ['all', 'Tất cả', '#2f7df4'],\n  ['meeting', 'Họp', '#2f7df4'],\n  ['training', 'Đào tạo', '#1cab78'],\n  ['student', 'Học sinh', '#ef8b4a'],\n  ['deadline', 'Hạn nộp', '#8359e8'],\n  ['other', 'Khác', '#92a7bc'],\n];\n\nfunction normalizeTimelineText(value) {\n  return String(value || '')\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .replace(/[đĐ]/g, 'd')\n    .toLowerCase();\n}\n\nfunction scheduleCategoryForEvent(event) {\n  const text = normalizeTimelineText(\n    \`${'${event?.title || \'\'}'} ${'${event?.description || \'\'}'} ${'${event?.note || \'\'}'} ${'${event?.ownerText || \'\'}'}\`,\n  );\n  if (/\\b(hop|hoi nghi|du hop|trien khai)\\b/.test(text)) return 'meeting';\n  if (/tap huan|thao giang|dao tao|chuyen de|boi duong/.test(text)) return 'training';\n  if (/hoc sinh|lop truong|khen thuong|\\bhs\\b/.test(text)) return 'student';\n  if (/han nop|nop bai|nop bao cao|hoan tat|deadline|bao cao/.test(text)) return 'deadline';\n  return 'other';\n}\n\nfunction timelineCategoryGlyph(category) {\n  if (category === 'meeting') return '●●';\n  if (category === 'training') return '◆';\n  if (category === 'student') return '●';\n  if (category === 'deadline') return '▣';\n  return '✦';\n}\n\nfunction formatTimelineDay(value, language) {\n  return new Intl.DateTimeFormat(language === 'vi' ? 'vi-VN' : 'en-US', { day: '2-digit', month: '2-digit' }).format(value);\n}\n\nfunction timelineWeekday(value, language) {\n  const labelsVi = ['CN', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];\n  if (language === 'vi') return labelsVi[value.getDay()] || '';\n  return new Intl.DateTimeFormat('en-US', { weekday: 'short' }).format(value);\n}`,
+    'timeline category helpers',
+  );
+}
+
+if (!center.includes("const [timelineCategory, setTimelineCategory] = useState('all')")) {
+  center = replaceOnce(
+    center,
+    "  const [scope, setScope] = useState(() => embedded ? 'all' : 'upcoming');\n  const [selectedId, setSelectedId] = useState(hashState.eventId);",
+    "  const [scope, setScope] = useState(() => embedded ? 'all' : 'upcoming');\n  const [timelineCategory, setTimelineCategory] = useState('all');\n  const [expandedTimelineDays, setExpandedTimelineDays] = useState(() => new Set());\n  const [selectedId, setSelectedId] = useState(hashState.eventId);",
+    'timeline category state',
+  );
+}
+
+if (!center.includes('const timelineEventsByDay = useMemo')) {
+  center = replaceOnce(
+    center,
+    `  const eventsByDay = useMemo(() => {\n    const map = new Map();\n    filteredEvents.forEach((event) => {\n      const key = dayKey(event.startAt);\n      if (!map.has(key)) map.set(key, []);\n      map.get(key).push(event);\n    });\n    return map;\n  }, [filteredEvents]);`,
+    `  const eventsByDay = useMemo(() => {\n    const map = new Map();\n    filteredEvents.forEach((event) => {\n      const key = dayKey(event.startAt);\n      if (!map.has(key)) map.set(key, []);\n      map.get(key).push(event);\n    });\n    return map;\n  }, [filteredEvents]);\n\n  const timelineEvents = useMemo(\n    () => filteredEvents.filter((event) => timelineCategory === 'all' || scheduleCategoryForEvent(event) === timelineCategory),\n    [filteredEvents, timelineCategory],\n  );\n  const timelineEventsByDay = useMemo(() => {\n    const map = new Map();\n    timelineEvents.forEach((event) => {\n      const key = dayKey(event.startAt);\n      if (!map.has(key)) map.set(key, []);\n      map.get(key).push(event);\n    });\n    return map;\n  }, [timelineEvents]);`,
+    'timeline filtered event map',
+  );
+}
+
+if (!center.includes('className="work-schedule-hero-art"')) {
+  center = replaceOnce(
+    center,
+    `          <div className="work-schedule-actions">`,
+    `          <div className="work-schedule-hero-art" aria-hidden="true" />\n          <div className="work-schedule-actions">`,
+    'hero artwork hook',
+  );
+}
+
+const oldFilterbar = `          <div className="work-schedule-filterbar">\n            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm nội dung, địa điểm, phụ trách…" />\n            <select value={scope} onChange={(event) => setScope(event.target.value)}>\n              <option value="upcoming">Sắp tới</option>\n              <option value="all">Tất cả</option>\n              <option value="past">Đã qua</option>\n            </select>\n            <div className="work-schedule-view-toggle">\n              <button type="button" className={calendarMode === 'week' ? 'active' : ''} onClick={() => { setCalendarMode('week'); setCursor(startOfWeek(cursor)); }}>Tuần</button>\n              <button type="button" className={calendarMode === 'month' ? 'active' : ''} onClick={() => { setCalendarMode('month'); setCursor(startOfMonth(cursor)); }}>Tháng</button>\n              <button type="button" className={calendarMode === 'agenda' ? 'active' : ''} onClick={() => setCalendarMode('agenda')}>Danh sách</button>\n            </div>\n          </div>`;
+const newFilterbar = `          {embedded ? <div className="work-schedule-category-filters" aria-label="Lọc lịch theo loại hoạt động">\n            {TIMELINE_CATEGORIES.map(([id, label, color]) => <button type="button" key={id} className={timelineCategory === id ? 'is-selected' : ''} aria-pressed={timelineCategory === id} style={{ '--category': color }} onClick={() => setTimelineCategory(id)}><i />{label}</button>)}\n          </div> : <div className="work-schedule-filterbar">\n            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm nội dung, địa điểm, phụ trách…" />\n            <select value={scope} onChange={(event) => setScope(event.target.value)}>\n              <option value="upcoming">Sắp tới</option>\n              <option value="all">Tất cả</option>\n              <option value="past">Đã qua</option>\n            </select>\n            <div className="work-schedule-view-toggle">\n              <button type="button" className={calendarMode === 'week' ? 'active' : ''} onClick={() => { setCalendarMode('week'); setCursor(startOfWeek(cursor)); }}>Tuần</button>\n              <button type="button" className={calendarMode === 'month' ? 'active' : ''} onClick={() => { setCalendarMode('month'); setCursor(startOfMonth(cursor)); }}>Tháng</button>\n              <button type="button" className={calendarMode === 'agenda' ? 'active' : ''} onClick={() => setCalendarMode('agenda')}>Danh sách</button>\n            </div>\n          </div>}`;
+if (!center.includes('className="work-schedule-category-filters"')) {
+  center = replaceOnce(center, oldFilterbar, newFilterbar, 'real timeline category filters');
+}
+
+if (!center.includes("embedded ? ' work-schedule-timeline-board'")) {
+  center = replaceOnce(
+    center,
+    `<div className={'work-schedule-calendar ' + (calendarMode === 'week' ? 'is-week' : '')}>`,
+    `<div className={'work-schedule-calendar ' + (calendarMode === 'week' ? 'is-week' : '') + (embedded ? ' work-schedule-timeline-board' : '')}>`,
+    'timeline board class',
+  );
+}
+
+center = center.replace(
+  `<div className="work-schedule-grid">{cells.map((date) => {\n            const key = dayKey(date);\n            const dayEvents = eventsByDay.get(key) || [];\n            const outside = calendarMode === 'month' && date.getMonth() !== cursor.getMonth();\n            const today = key === dayKey(new Date());\n            return <article key={key} className={\`${'${outside ? \'outside\' : \'\'}'} ${'${today ? \'today\' : \'\'}'}\`}>\n              <header><time>{date.getDate()}</time>{dayEvents.length ? <span>{dayEvents.length}</span> : null}</header>\n              <div>{dayEvents.slice(0, 3).map((event) => <button key={event.id} type="button" className={\`priority-${'${event.priority}'}\`} onClick={() => setSelectedId(event.id)} title={event.title}>\n                <time>{formatTime(event.startAt, language)}</time><span>{event.title}</span>\n              </button>)}</div>\n              {dayEvents.length > 3 ? <button type="button" className="more" onClick={() => setCalendarMode('agenda')}>+{dayEvents.length - 3} hoạt động</button> : null}\n            </article>;\n          })}</div>`,
+  `<div className="work-schedule-grid">{cells.map((date) => {\n            const key = dayKey(date);\n            const dayEvents = (embedded ? timelineEventsByDay : eventsByDay).get(key) || [];\n            const outside = calendarMode === 'month' && date.getMonth() !== cursor.getMonth();\n            const today = key === dayKey(new Date());\n            const dayExpanded = expandedTimelineDays.has(key);\n            const visibleDayEvents = embedded ? (dayExpanded ? dayEvents : dayEvents.slice(0, 3)) : dayEvents.slice(0, 3);\n            return <article key={key} className={\`${'${embedded ? \'work-schedule-timeline-day \' : \'\'}'}${'${outside ? \'outside \' : \'\'}'}${'${today ? \'today is-today \' : \'\'}'}${'${embedded && !dayEvents.length ? \'is-empty\' : \'\'}'}\`}>\n              {embedded ? <><header className="work-schedule-timeline-day-head"><span className="work-schedule-day-orb" aria-hidden="true">{today ? date.getDate() : '⌖'}</span><div><strong>{timelineWeekday(date, language)}</strong><time>{formatTimelineDay(date, language)}</time></div>{today ? <em>Hôm nay</em> : null}</header><div className="work-schedule-day-count"><i />{dayEvents.length} hoạt động</div></> : <header><time>{date.getDate()}</time>{dayEvents.length ? <span>{dayEvents.length}</span> : null}</header>}\n              <div className={embedded ? 'work-schedule-timeline-rail' : undefined}>{visibleDayEvents.map((event) => { const category = scheduleCategoryForEvent(event); return <button key={event.id} type="button" className={\`priority-${'${event.priority}'} ${'${embedded ? `work-schedule-timeline-event is-${category}` : \'\'}'}\`} onClick={() => setSelectedId(event.id)} title={event.title}>\n                {embedded ? <span className="work-schedule-event-icon" aria-hidden="true">{timelineCategoryGlyph(category)}</span> : null}<time>{formatTime(event.startAt, language)}</time><span>{event.title}</span>{embedded && event.location ? <small className="work-schedule-event-location">▣ {event.location}</small> : null}\n              </button>; })}</div>\n              {embedded && !dayEvents.length ? <div className="work-schedule-empty-day"><span aria-hidden="true">☕</span><strong>Không có lịch làm việc</strong><small>Hãy tận hưởng ngày nghỉ thật ý nghĩa!</small></div> : null}\n              {embedded && dayEvents.length ? <button type="button" className="more work-schedule-timeline-more" onClick={() => setExpandedTimelineDays((current) => { const next = new Set(current); if (next.has(key)) next.delete(key); else next.add(key); return next; })}>{dayExpanded ? 'Thu gọn' : '+ Xem thêm'} <span>›</span></button> : (!embedded && dayEvents.length > 3 ? <button type="button" className="more" onClick={() => setCalendarMode('agenda')}>+{dayEvents.length - 3} hoạt động</button> : null)}\n            </article>;\n          })}</div>`,
+);
+
+if (!center.includes('work-schedule-timeline-day-head')) throw new Error('Missing anchor: timeline day renderer');
+
+if (!center.includes('className="work-schedule-quote-footer"')) {
+  center = replaceOnce(
+    center,
+    `        </div>}\n      </section> : null}`,
+    `        </div>}\n        {embedded ? <footer className="work-schedule-quote-footer"><div><b aria-hidden="true">“</b><p><strong>Lịch làm việc khoa học là nền tảng của một tập thể vững mạnh.</strong><span>Cùng nhau tạo nên những giá trị tốt đẹp hơn mỗi ngày!</span></p></div><em>Giáo dục là hành trình cùng nhau lớn lên ♡</em></footer> : null}\n      </section> : null}`,
+    'illustrated quote footer',
+  );
+}
+
+if (!wrapper.includes("import './GlobalWorkScheduleTimelineV2.css';")) {
+  wrapper = replaceOnce(
+    wrapper,
+    "import './GlobalWorkScheduleTimelineCategories.css';",
+    "import './GlobalWorkScheduleTimelineCategories.css';\nimport './GlobalWorkScheduleTimelineV2.css';",
+    'V2 schedule CSS import',
+  );
+}
+
+if (!workflow.includes("GlobalWorkScheduleTimelineV2.css")) {
+  workflow = replaceOnce(
+    workflow,
+    "      - 'src/components/GlobalWorkScheduleTimelineCategories.css'",
+    "      - 'src/components/GlobalWorkScheduleTimelineCategories.css'\n      - 'src/components/GlobalWorkScheduleTimelineV2.css'",
+    'workflow V2 CSS path',
+  );
+}
+
+const css = String.raw`/* TTCM Schedule Timeline V2 — production-scoped mockup fidelity */
+.ttcm-m3-schedule-host .work-schedule-center {
+  --tl-blue:#176fe8; --tl-ink:#102b4b; --tl-muted:#66809d; --tl-line:#d5e4f3;
+  --tl-green:#1ca979; --tl-orange:#ef8c4a; --tl-violet:#8359e8; --tl-gray:#92a7bc;
+  position:relative; isolation:isolate; overflow:hidden; margin:8px 14px 16px; padding:0 18px 14px;
+  border:1px solid #ccdfef; border-radius:24px; background:#fff;
+  box-shadow:0 16px 44px rgba(33,72,119,.08);
+}
+.ttcm-m3-schedule-host .work-schedule-center::before {
+  content:''; position:absolute; z-index:-2; inset:0 0 auto; height:270px; pointer-events:none;
+  background:radial-gradient(circle at 86% 13%,rgba(115,205,255,.22) 0 92px,transparent 94px),radial-gradient(circle at 70% 18%,rgba(198,220,255,.46) 0 145px,transparent 148px),linear-gradient(120deg,#f8fcff 0%,#f4f9ff 48%,#ebfaf8 100%);
+}
+.ttcm-m3-schedule-host .work-schedule-toolbar {position:relative; min-height:182px; margin:0 -18px; padding:28px 530px 16px 28px; border:0; background:transparent; overflow:hidden;}
+.ttcm-m3-schedule-host .work-schedule-toolbar>div:first-child {position:relative;z-index:4;}
+.ttcm-m3-schedule-host .work-schedule-eyebrow {color:#1262b6;font-size:10px;font-weight:900;letter-spacing:.17em;}
+.ttcm-m3-schedule-host .work-schedule-toolbar h2 {margin:6px 0 6px;color:var(--tl-ink);font-size:clamp(35px,3.1vw,49px);font-weight:900;line-height:1.02;letter-spacing:-.052em;}
+.ttcm-m3-schedule-host .work-schedule-toolbar p {max-width:670px;margin:0;color:#5e7896;font-size:13px;line-height:1.55;}
+.ttcm-m3-schedule-host .work-schedule-hero-art {position:absolute;z-index:1;right:24px;top:22px;width:500px;height:174px;pointer-events:none;background-repeat:no-repeat;background-position:center;background-size:contain;opacity:.97;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='620' height='220' viewBox='0 0 620 220'%3E%3Cdefs%3E%3ClinearGradient id='cal' x1='0' x2='1'%3E%3Cstop stop-color='%23ffffff'/%3E%3Cstop offset='1' stop-color='%23dcecff'/%3E%3C/linearGradient%3E%3ClinearGradient id='book' x1='0' x2='1'%3E%3Cstop stop-color='%237eb1eb'/%3E%3Cstop offset='1' stop-color='%234d82c2'/%3E%3C/linearGradient%3E%3Cfilter id='s'%3E%3CfeDropShadow dx='0' dy='7' stdDeviation='6' flood-color='%235b7d9f' flood-opacity='.20'/%3E%3C/filter%3E%3C/defs%3E%3Cellipse cx='405' cy='195' rx='194' ry='18' fill='%23bcd5e7' opacity='.35'/%3E%3Cg fill='%2368ad92'%3E%3Cpath d='M157 176C140 141 119 133 101 111c33-1 52 18 56 65z'/%3E%3Cpath d='M160 175c0-45 25-64 34-88-32 13-45 42-34 88z'/%3E%3Cpath d='M424 178c-8-41-31-52-43-72 31 8 45 30 43 72z'/%3E%3Cpath d='M428 176c8-44 33-56 48-75-34 7-50 33-48 75z'/%3E%3C/g%3E%3Cg filter='url(%23s)'%3E%3Crect x='124' y='171' width='72' height='31' rx='8' fill='%23f1f8f9' stroke='%23cfe3e5'/%3E%3Crect x='399' y='171' width='65' height='32' rx='8' fill='%23f1f8f9' stroke='%23cfe3e5'/%3E%3Crect x='209' y='35' width='164' height='142' rx='13' fill='url(%23cal)' stroke='%23c4d9ef'/%3E%3Crect x='209' y='35' width='164' height='25' rx='13' fill='%23eef6ff'/%3E%3Crect x='222' y='22' width='9' height='28' rx='4' fill='%236b99ca'/%3E%3Crect x='249' y='22' width='9' height='28' rx='4' fill='%236b99ca'/%3E%3Crect x='276' y='22' width='9' height='28' rx='4' fill='%236b99ca'/%3E%3Crect x='303' y='22' width='9' height='28' rx='4' fill='%236b99ca'/%3E%3Crect x='330' y='22' width='9' height='28' rx='4' fill='%236b99ca'/%3E%3Cg fill='%23f7fbff' stroke='%23c9dcf0'%3E%3Crect x='226' y='72' width='25' height='22' rx='3'/%3E%3Crect x='258' y='72' width='25' height='22' rx='3'/%3E%3Crect x='290' y='72' width='25' height='22' rx='3'/%3E%3Crect x='322' y='72' width='25' height='22' rx='3'/%3E%3Crect x='226' y='102' width='25' height='22' rx='3'/%3E%3Crect x='258' y='102' width='25' height='22' rx='3'/%3E%3Crect x='290' y='102' width='25' height='22' rx='3'/%3E%3Crect x='322' y='102' width='25' height='22' rx='3'/%3E%3C/g%3E%3Crect x='258' y='72' width='25' height='22' rx='3' fill='%2364c69d'/%3E%3Cpath d='M265 82l5 5 8-12' fill='none' stroke='%23fff' stroke-width='3'/%3E%3Crect x='322' y='102' width='25' height='22' rx='3' fill='%236aa4f4'/%3E%3Cpath d='M328 112l5 5 8-12' fill='none' stroke='%23fff' stroke-width='3'/%3E%3Cpath d='M377 43l25 119-27 16z' fill='%235b8dc9'/%3E%3Crect x='447' y='144' width='134' height='23' rx='5' fill='%23fbfdff' stroke='%23cadbeb'/%3E%3Crect x='438' y='164' width='150' height='36' rx='6' fill='url(%23book)'/%3E%3Ctext x='465' y='181' font-family='Arial' font-size='11' fill='white'%3EBetter Teachers%3C/text%3E%3Ctext x='465' y='193' font-family='Arial' font-size='9' fill='%23e9f4ff'%3EBrighter Students%3C/text%3E%3C/g%3E%3C/svg%3E");}
+.ttcm-m3-schedule-host .work-schedule-hero-art::after {content:'Cùng kiến tạo\A môi trường học tập tốt hơn  ♡';position:absolute;right:10px;top:20px;width:215px;white-space:pre-line;text-align:center;color:#4e82c4;font-family:'Segoe Print','Bradley Hand',cursive;font-size:13px;font-style:italic;line-height:1.22;transform:rotate(-5deg);}
+.ttcm-m3-schedule-host .work-schedule-actions {position:absolute;z-index:8;top:15px;right:19px;display:flex;gap:8px;}
+.ttcm-m3-schedule-host .work-schedule-actions button {min-height:42px;padding-inline:15px;border-radius:13px;font-size:11px;font-weight:850;box-shadow:0 7px 18px rgba(25,73,128,.09);backdrop-filter:blur(8px);}
+.ttcm-m3-schedule-host .work-schedule-actions .secondary {border-color:#c7daf0;background:rgba(255,255,255,.92);color:#174d84;}
+.ttcm-m3-schedule-host .work-schedule-actions .primary {border-color:#1164df;background:linear-gradient(135deg,#176fe8,#075bcf);color:#fff;box-shadow:0 10px 24px rgba(20,102,226,.22);}
+
+.ttcm-m3-schedule-host .work-schedule-metrics {position:relative;z-index:5;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:-2px 0 14px;padding-right:395px;}
+.ttcm-m3-schedule-host .work-schedule-metrics article {position:relative;min-height:86px;padding:14px 12px 12px 68px;border:1px solid #d3e2f2;border-radius:15px;background:rgba(255,255,255,.94);box-shadow:0 8px 25px rgba(55,92,134,.055);}
+.ttcm-m3-schedule-host .work-schedule-metrics article::before {position:absolute;left:14px;top:16px;width:40px;height:40px;display:grid;place-items:center;border-radius:12px;font-size:18px;font-weight:900;}
+.ttcm-m3-schedule-host .work-schedule-metrics article:nth-child(1)::before {content:'▣';color:#1268e8;background:#e9f2ff;}
+.ttcm-m3-schedule-host .work-schedule-metrics article:nth-child(2)::before {content:'●●';color:#1c73e8;background:#ebf3ff;font-size:8px;letter-spacing:-2px;}
+.ttcm-m3-schedule-host .work-schedule-metrics article:nth-child(3)::before {content:'▥';color:#ed8645;background:#fff0e5;}
+.ttcm-m3-schedule-host .work-schedule-metrics article:nth-child(4)::before {content:'☁';color:#20a874;background:#e7f8f2;}
+.ttcm-m3-schedule-host .work-schedule-metrics strong {display:block;color:#123b6a;font-size:25px;font-weight:900;line-height:1;}
+.ttcm-m3-schedule-host .work-schedule-metrics span {display:block;margin-top:8px;color:#607a97;font-size:10px;font-weight:760;}
+
+.ttcm-m3-schedule-host .work-schedule-controls {position:relative;z-index:6;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:14px;margin:0 -2px 9px;padding:9px 2px 8px;border:0;background:#fff;}
+.ttcm-m3-schedule-host .work-schedule-month-nav {display:flex;align-items:center;gap:9px;}
+.ttcm-m3-schedule-host .work-schedule-month-nav strong {min-width:210px;color:#112d4d;font-size:14px;font-weight:880;letter-spacing:-.02em;}
+.ttcm-m3-schedule-host .work-schedule-month-nav button {min-width:36px;min-height:36px;border:1px solid #cadcf0;border-radius:10px;background:#fff;color:#184e82;box-shadow:0 3px 10px rgba(41,83,129,.04);font-weight:850;}
+.ttcm-m3-schedule-host .work-schedule-month-nav button.today {min-width:auto;padding-inline:13px;color:#185a9e;font-size:10px;font-weight:800;}
+.ttcm-m3-schedule-host .work-schedule-category-filters {display:flex;justify-content:flex-end;align-items:center;gap:7px;min-width:0;overflow-x:auto;scrollbar-width:none;}
+.ttcm-m3-schedule-host .work-schedule-category-filters::-webkit-scrollbar {display:none;}
+.ttcm-m3-schedule-host .work-schedule-category-filters button {flex:0 0 auto;min-height:34px;display:inline-flex;align-items:center;gap:7px;padding:0 13px;border:1px solid #d9e6f3;border-radius:999px;background:#fff;color:#58718d;font:inherit;font-size:9.5px;font-weight:780;cursor:pointer;box-shadow:0 3px 11px rgba(35,76,119,.035);}
+.ttcm-m3-schedule-host .work-schedule-category-filters button i {width:8px;height:8px;border-radius:50%;background:var(--category,#93a8bc);box-shadow:0 0 0 3px color-mix(in srgb,var(--category,#93a8bc) 11%,transparent);}
+.ttcm-m3-schedule-host .work-schedule-category-filters button.is-selected {border-color:#c0d8f8;background:#eaf3ff;color:#185fae;}
+
+.ttcm-m3-schedule-host .work-schedule-timeline-board {position:relative;z-index:4;overflow-x:auto;overflow-y:hidden;border:1px solid #d8e7f5;border-radius:17px;background:#fff;box-shadow:0 18px 42px rgba(37,75,124,.10);scrollbar-width:thin;scrollbar-color:#c7d9eb transparent;}
+.ttcm-m3-schedule-host .work-schedule-timeline-board .work-schedule-weekdays {display:none;}
+.ttcm-m3-schedule-host .work-schedule-timeline-board .work-schedule-grid {display:grid;grid-template-columns:repeat(7,minmax(176px,1fr));min-width:1232px;background:#fff;}
+.ttcm-m3-schedule-host .work-schedule-timeline-day {position:relative;min-height:385px;padding:72px 10px 34px 22px;border:0;border-right:1px solid #e2ecf6;background:linear-gradient(180deg,#fff 0%,#fff 82%,#fbfdff 100%);overflow:visible;}
+.ttcm-m3-schedule-host .work-schedule-timeline-day:last-child {border-right:0;}
+.ttcm-m3-schedule-host .work-schedule-timeline-day.is-today {background:linear-gradient(180deg,#f7faff 0%,#edf5ff 100%);box-shadow:inset 0 0 0 1px #8abaff;}
+.ttcm-m3-schedule-host .work-schedule-timeline-day-head {position:absolute;top:12px;left:14px;right:10px;height:43px;display:flex;align-items:center;gap:8px;padding:0;border:0;background:transparent;}
+.ttcm-m3-schedule-host .work-schedule-day-orb {width:28px;height:28px;display:grid;place-items:center;border-radius:50%;background:#edf4fc;color:#7895b5;font-size:10px;font-weight:900;box-shadow:0 0 0 5px #f8fbff;}
+.ttcm-m3-schedule-host .is-today .work-schedule-day-orb {width:34px;height:34px;margin-left:-3px;background:#1268e8;color:#fff;font-size:12px;box-shadow:0 7px 16px rgba(18,104,232,.23);}
+.ttcm-m3-schedule-host .work-schedule-timeline-day-head>div {min-width:0;}
+.ttcm-m3-schedule-host .work-schedule-timeline-day-head strong {display:block;color:#476584;font-size:10px;font-weight:850;}
+.ttcm-m3-schedule-host .work-schedule-timeline-day-head time {display:block;margin-top:2px;color:#2f587f;font-size:13px;font-weight:900;}
+.ttcm-m3-schedule-host .work-schedule-timeline-day-head em {margin-left:auto;padding:4px 7px;border-radius:999px;background:#e3efff;color:#1268e8;font-size:8px;font-style:normal;font-weight:850;}
+.ttcm-m3-schedule-host .work-schedule-day-count {position:absolute;top:56px;left:22px;right:8px;display:flex;align-items:center;gap:7px;color:#6a829b;font-size:8.5px;}
+.ttcm-m3-schedule-host .work-schedule-day-count i {width:6px;height:6px;border-radius:50%;background:#6da5ef;}
+.ttcm-m3-schedule-host .work-schedule-timeline-rail {position:relative;min-height:260px;margin-top:12px;padding:6px 0 24px 10px;border-left:1px dashed #b8d4f3;}
+.ttcm-m3-schedule-host .work-schedule-timeline-rail::before {content:'';position:absolute;left:-4px;top:0;width:7px;height:7px;border-radius:50%;background:#6da5ef;box-shadow:0 0 0 4px #eff6ff;}
+.ttcm-m3-schedule-host .work-schedule-timeline-event {position:relative;width:100%;min-height:73px;display:grid;grid-template-columns:38px minmax(0,1fr);grid-template-rows:auto auto auto;align-items:center;column-gap:7px;row-gap:1px;margin:0 0 8px;padding:8px;border:1px solid #dce8f4;border-radius:11px;background:linear-gradient(145deg,#fff,#f9fcff);color:#153b61;text-align:left;box-shadow:0 5px 15px rgba(39,77,119,.055);overflow:visible;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease;}
+.ttcm-m3-schedule-host .work-schedule-timeline-event:hover {transform:translateY(-2px);border-color:#9fc6f1;box-shadow:0 10px 20px rgba(34,83,139,.10);}
+.ttcm-m3-schedule-host .work-schedule-event-icon {grid-column:1;grid-row:1/4;width:34px;height:34px;display:grid!important;place-items:center;border-radius:10px;background:#eaf3ff;color:#1b6fe2;font-size:9px!important;font-weight:900;box-shadow:-21px 0 0 -16px currentColor;}
+.ttcm-m3-schedule-host .work-schedule-timeline-event>time {grid-column:2;grid-row:1;margin:0;color:#607e9c;font-size:8px;font-weight:780;}
+.ttcm-m3-schedule-host .work-schedule-timeline-event>span:not(.work-schedule-event-icon) {grid-column:2;grid-row:2;display:-webkit-box;overflow:hidden;color:#163c62;font-size:9.5px;font-weight:850;line-height:1.28;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+.ttcm-m3-schedule-host .work-schedule-event-location {grid-column:2;grid-row:3;display:block;overflow:hidden;margin-top:2px;color:#7c91a6;font-size:7.5px;font-weight:650;text-overflow:ellipsis;white-space:nowrap;}
+.ttcm-m3-schedule-host .work-schedule-timeline-event.is-meeting .work-schedule-event-icon {color:#246fdf;background:#e9f3ff;}
+.ttcm-m3-schedule-host .work-schedule-timeline-event.is-training .work-schedule-event-icon {color:#16966a;background:#e7f8f1;}
+.ttcm-m3-schedule-host .work-schedule-timeline-event.is-student .work-schedule-event-icon {color:#e97f38;background:#fff0e5;}
+.ttcm-m3-schedule-host .work-schedule-timeline-event.is-deadline .work-schedule-event-icon {color:#7650d7;background:#f1ebff;}
+.ttcm-m3-schedule-host .work-schedule-timeline-event.is-other .work-schedule-event-icon {color:#5f82a5;background:#eef4fa;}
+.ttcm-m3-schedule-host .work-schedule-timeline-event.is-meeting {border-top-color:#cfe1fb;}
+.ttcm-m3-schedule-host .work-schedule-timeline-event.is-training {border-top-color:#ccebdd;}
+.ttcm-m3-schedule-host .work-schedule-timeline-event.is-student {border-top-color:#f6dcc9;}
+.ttcm-m3-schedule-host .work-schedule-timeline-event.is-deadline {border-top-color:#ded2fb;}
+.ttcm-m3-schedule-host .work-schedule-timeline-more {position:absolute;left:31px;bottom:10px;border:0!important;background:transparent!important;color:#1268e8!important;font-size:9px!important;font-weight:850!important;box-shadow:none!important;}
+.ttcm-m3-schedule-host .work-schedule-timeline-more span {font-size:13px;}
+.ttcm-m3-schedule-host .work-schedule-empty-day {position:absolute;inset:82px 12px 28px 22px;display:grid;place-items:center;align-content:center;gap:5px;padding:16px;border-radius:13px;text-align:center;color:#7f94a9;background:linear-gradient(160deg,#fbfdff,#f2f7fb);}
+.ttcm-m3-schedule-host .work-schedule-empty-day>span {font-size:31px;filter:grayscale(.25);}
+.ttcm-m3-schedule-host .work-schedule-empty-day strong {color:#758ba1;font-size:9.5px;}
+.ttcm-m3-schedule-host .work-schedule-empty-day small {max-width:120px;color:#8da0b1;font-size:8px;font-style:italic;line-height:1.45;}
+.ttcm-m3-schedule-host .work-schedule-timeline-day.is-empty .work-schedule-timeline-rail {display:none;}
+
+.ttcm-m3-schedule-host .work-schedule-quote-footer {position:relative;z-index:3;min-height:82px;display:flex;align-items:center;justify-content:space-between;gap:20px;margin:14px 0 0;padding:15px 310px 13px 20px;border:1px solid #d6e7f7;border-radius:16px;color:#4473a6;background-color:#f8fcff;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='720' height='150' viewBox='0 0 720 150'%3E%3Cpath d='M210 138L310 72l70 48 78-76 93 95z' fill='%23e3f0fb'/%3E%3Cpath d='M328 140l92-72 62 44 60-56 110 84z' fill='%23d4e9f8'/%3E%3Cpath d='M438 139l74-55 54 29 47-42 92 68z' fill='%23c8e4f1'/%3E%3Cg fill='%2398c7d4'%3E%3Cpath d='M490 136l8-29 8 29z'/%3E%3Cpath d='M520 139l10-42 10 42z'/%3E%3Cpath d='M552 139l8-33 8 33z'/%3E%3Cpath d='M585 139l11-48 11 48z'/%3E%3Cpath d='M625 139l9-39 9 39z'/%3E%3C/g%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right bottom;background-size:52% 100%;}
+.ttcm-m3-schedule-host .work-schedule-quote-footer>div {display:flex;align-items:flex-start;gap:12px;min-width:0;}
+.ttcm-m3-schedule-host .work-schedule-quote-footer b {color:#a7c9e8;font-family:Georgia,serif;font-size:50px;line-height:.7;}
+.ttcm-m3-schedule-host .work-schedule-quote-footer p {margin:0;}
+.ttcm-m3-schedule-host .work-schedule-quote-footer strong {display:block;color:#4b79a9;font-size:10px;font-style:italic;font-weight:720;}
+.ttcm-m3-schedule-host .work-schedule-quote-footer p span {display:block;margin-top:4px;color:#7692ae;font-size:8.5px;}
+.ttcm-m3-schedule-host .work-schedule-quote-footer em {position:absolute;right:235px;top:22px;width:220px;color:#4b83c4;font-family:'Segoe Print','Bradley Hand',cursive;font-size:12px;font-style:italic;line-height:1.25;transform:rotate(-4deg);}
+
+.ttcm-m3-schedule-host .work-schedule-alert {position:relative;z-index:15;}
+
+@media (max-width:1320px){
+  .ttcm-m3-schedule-host .work-schedule-toolbar{padding-right:430px}.ttcm-m3-schedule-host .work-schedule-hero-art{width:410px;right:0}.ttcm-m3-schedule-host .work-schedule-metrics{padding-right:300px}.ttcm-m3-schedule-host .work-schedule-category-filters{justify-content:flex-start}
+}
+@media (max-width:1080px){
+  .ttcm-m3-schedule-host .work-schedule-toolbar{min-height:210px;padding-right:330px}.ttcm-m3-schedule-host .work-schedule-hero-art{width:340px;height:150px;top:58px;right:-10px}.ttcm-m3-schedule-host .work-schedule-hero-art::after{display:none}.ttcm-m3-schedule-host .work-schedule-metrics{padding-right:0}.ttcm-m3-schedule-host .work-schedule-controls{grid-template-columns:1fr}.ttcm-m3-schedule-host .work-schedule-category-filters{justify-content:flex-start}
+}
+@media (max-width:900px){
+  .ttcm-m3-schedule-host .work-schedule-center{margin:6px 8px 10px;padding-inline:11px;border-radius:19px}.ttcm-m3-schedule-host .work-schedule-toolbar{margin-inline:-11px;min-height:198px;padding:18px 250px 10px 18px}.ttcm-m3-schedule-host .work-schedule-toolbar h2{font-size:32px}.ttcm-m3-schedule-host .work-schedule-hero-art{width:270px;right:-20px;top:60px;opacity:.83}.ttcm-m3-schedule-host .work-schedule-actions{top:10px;right:10px}.ttcm-m3-schedule-host .work-schedule-actions button{min-height:36px;padding-inline:10px;font-size:9px}.ttcm-m3-schedule-host .work-schedule-metrics{grid-template-columns:repeat(2,minmax(0,1fr));}.ttcm-m3-schedule-host .work-schedule-timeline-board .work-schedule-grid{grid-template-columns:repeat(7,minmax(176px,1fr));min-width:1232px}.ttcm-m3-schedule-host .work-schedule-quote-footer{padding-right:155px;background-size:62% 100%}.ttcm-m3-schedule-host .work-schedule-quote-footer em{right:90px;top:22px;width:180px;font-size:10px}
+}
+@media (max-width:640px){
+  .ttcm-m3-schedule-host .work-schedule-center::before{height:325px}.ttcm-m3-schedule-host .work-schedule-toolbar{min-height:245px;padding:72px 16px 12px}.ttcm-m3-schedule-host .work-schedule-toolbar h2{font-size:29px}.ttcm-m3-schedule-host .work-schedule-toolbar p{font-size:11px}.ttcm-m3-schedule-host .work-schedule-hero-art{width:220px;height:108px;right:-12px;top:132px;opacity:.65}.ttcm-m3-schedule-host .work-schedule-actions{left:12px;right:12px;justify-content:flex-end;overflow-x:auto}.ttcm-m3-schedule-host .work-schedule-metrics{grid-template-columns:1fr 1fr;gap:7px}.ttcm-m3-schedule-host .work-schedule-metrics article{min-height:74px;padding-left:58px}.ttcm-m3-schedule-host .work-schedule-metrics article::before{width:34px;height:34px;left:11px}.ttcm-m3-schedule-host .work-schedule-month-nav{flex-wrap:wrap}.ttcm-m3-schedule-host .work-schedule-month-nav strong{min-width:145px;font-size:12px}.ttcm-m3-schedule-host .work-schedule-quote-footer{padding:14px 20px;background-size:86% 100%;}.ttcm-m3-schedule-host .work-schedule-quote-footer em{display:none}
+}`;
+
+await writeFile(centerPath, center);
+await writeFile(wrapperPath, wrapper);
+await writeFile(cssPath, css);
+await writeFile(workflowPath, workflow);
+console.log('Applied TTCM schedule timeline mockup implementation.');
