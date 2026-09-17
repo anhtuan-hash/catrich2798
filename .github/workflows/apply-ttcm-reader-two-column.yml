@@ -1,0 +1,47 @@
+name: Apply TTCM Reader Redesign
+
+on:
+  push:
+    branches:
+      - style/ttcm-reader-two-column
+    paths:
+      - 'scripts/apply-ttcm-reader-two-column.mjs'
+      - '.github/workflows/apply-ttcm-reader-two-column.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: style/ttcm-reader-two-column
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Apply approved redesign
+        run: node scripts/apply-ttcm-reader-two-column.mjs
+      - name: Verify UI contract
+        run: node scripts/test-ttcm-reader-two-column-ui.mjs
+      - name: Install dependencies
+        run: npm ci
+      - name: Production build
+        run: npm run build
+      - name: Commit generated implementation
+        run: |
+          if git diff --quiet -- src/components/GlobalTtcmNavigationTab.jsx src/components/GlobalTtcmTeacherReaderV2.css; then
+            echo "No implementation changes to commit."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/components/GlobalTtcmNavigationTab.jsx src/components/GlobalTtcmTeacherReaderV2.css
+          git commit -m "style(ttcm): simplify Trao đổi workspace"
+          git push origin HEAD:style/ttcm-reader-two-column
