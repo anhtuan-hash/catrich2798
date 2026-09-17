@@ -35,17 +35,33 @@ check(component.indexOf('>Chỉnh sửa</button>') < component.indexOf('>Xem ph�
 check(component.indexOf('>Xem phản hồi</button>') < component.lastIndexOf("'Phản hồi / hoàn thành'"), 'keeps the primary response action last');
 check(component.includes('markAllRead') && component.includes('ttcm-reader-mark-all-quiet'), 'preserves mark-all-read as a quiet list action');
 
-check(css.includes('grid-template-columns: minmax(390px, .96fr) minmax(0, 1.04fr);'), 'keeps the balanced two-column desktop workspace');
+// Mockup fidelity: tasteful decorative graphics and card-like composition.
+check(component.includes('ttcm-reader-header-art'), 'adds the abstract pastel header artwork layer');
+check(component.includes('ttcm-reader-header-motto'), 'adds the subtle TTCM header motto');
+check(component.includes('ttcm-reader-card-chevron'), 'adds the circular card chevron from the approved mockup');
+check(component.includes('ttcm-reader-detail-art'), 'adds the decorative document illustration in the detail panel');
+check(component.includes('ttcm-reader-detail-art-card'), 'builds the detail illustration as lightweight CSS geometry');
+
+check(css.includes('grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);'), 'uses the equal two-panel desktop composition from the mockup');
+check(css.includes('.ttcm-reader-header-art'), 'styles the abstract pastel header artwork');
+check(css.includes('.ttcm-reader-header-motto'), 'styles the handwritten-style header motto');
+check(css.includes('.ttcm-reader-toolbar .ttcm-m3-workspace-tabs button.is-selected::after'), 'uses an active-tab underline treatment');
+check(css.includes('.ttcm-reader-workspace') && css.includes('gap: 12px;'), 'separates list and detail into individual cards');
+check(css.includes('.ttcm-reader-list,') && css.includes('.ttcm-reader-detail {') && css.includes('border-radius: 18px;'), 'rounds both main reader panels');
+check(css.includes('.ttcm-reader-card-chevron'), 'styles the circular chevron control');
+check(css.includes('.ttcm-reader-detail-art-card'), 'styles the floating document illustration');
+check(css.includes('linear-gradient(135deg'), 'uses layered pastel gradients rather than a flat white header');
+check(css.includes('box-shadow: 0 18px 42px'), 'uses soft premium panel shadows');
 check(css.includes('.ttcm-reader-list-tools'), 'styles list-level search and sort controls');
 check(css.includes('.ttcm-reader-detail-head {') && css.includes('display: none;'), 'hides the redundant detail toolbar on desktop');
 check(css.includes('@media (max-width: 900px)') && css.includes('.ttcm-reader-detail-head { display: flex;'), 'restores the back toolbar on narrow screens');
-check(css.includes('.ttcm-reader-card.is-selected') && css.includes('inset 3px 0 0 #0b67eb'), 'gives the selected card a restrained left accent');
-check(css.includes('font-size: clamp(24px, 1.8vw, 30px);'), 'reduces oversized detail title scale');
+check(css.includes('.ttcm-reader-card.is-selected') && css.includes('inset 4px 0 0 #0b67eb'), 'gives the selected card the stronger mockup left accent');
+check(css.includes('font-size: clamp(25px, 1.9vw, 32px);'), 'uses the approved detail-title scale');
 check(css.includes('.ttcm-reader-detail-card { min-height: auto;'), 'removes forced empty height from detail card');
 check(css.includes('.ttcm-reader-filter-chips button') && css.includes('font-size: 11px;'), 'improves filter-chip readability');
 check(css.includes('.ttcm-reader-card-status.is-overdue'), 'styles overdue state as a compact pill');
 check(css.includes('.ttcm-reader-response-preview'), 'styles response preview rows');
 check(css.includes('@media (max-width: 900px)'), 'keeps a responsive single-column reader on narrow screens');
 
-console.log(`\nTTCM reader polish contract: ${passed} passed, ${failed} failed.`);
+console.log(`\nTTCM reader mockup-fidelity contract: ${passed} passed, ${failed} failed.`);
 if (failed) process.exit(1);
