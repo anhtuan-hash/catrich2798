@@ -1,0 +1,47 @@
+/* Semantic event accents inferred from the existing event title attribute. */
+
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week button[title*='họp' i]::before,
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week button[title*='hội nghị' i]::before {
+  content: '●●';
+  color: #196fe0;
+  background: #e9f3ff;
+  font-size: 7px;
+  letter-spacing: -2px;
+  box-shadow: -21px 0 0 -16px #2a78e4;
+}
+
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week button[title*='tập huấn' i]::before,
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week button[title*='thao giảng' i]::before,
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week button[title*='đào tạo' i]::before {
+  content: '✦';
+  color: #15956a;
+  background: #e7f8f1;
+  box-shadow: -21px 0 0 -16px #20a874;
+}
+
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week button[title*='học sinh' i]::before,
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week button[title*='HS ' i]::before,
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week button[title*='lớp trưởng' i]::before {
+  content: '●';
+  color: #e97f38;
+  background: #fff0e5;
+  box-shadow: -21px 0 0 -16px #ef8f4a;
+}
+
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week button[title*='hạn ' i]::before,
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week button[title*='nộp ' i]::before,
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week button[title*='hoàn tất' i]::before {
+  content: '▣';
+  color: #7650d7;
+  background: #f1ebff;
+  box-shadow: -21px 0 0 -16px #8156e8;
+}
+
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week button[title*='họp' i],
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week button[title*='hội nghị' i] { border-top-color: #cfe1fb; }
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week button[title*='tập huấn' i],
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week button[title*='thao giảng' i] { border-top-color: #ccebdd; }
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week button[title*='học sinh' i],
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week button[title*='HS ' i] { border-top-color: #f6dcc9; }
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week button[title*='hạn ' i],
+.ttcm-m3-module-scroll .work-schedule-calendar.is-week button[title*='nộp ' i] { border-top-color: #ded2fb; }
