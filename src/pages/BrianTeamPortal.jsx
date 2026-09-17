@@ -22,8 +22,10 @@ export default function BrianTeamPortal(props) {
   if (!isLeader) {
     return (
       <div className="btp-shell">
-        <MonthlyReportsInteractiveHero />
-        <MonthlyReportsWorkspace currentUser={currentUser} />
+        <div className="btp-report-grid">
+          <MonthlyReportsInteractiveHero />
+          <MonthlyReportsWorkspace currentUser={currentUser} />
+        </div>
       </div>
     );
   }
@@ -61,7 +63,12 @@ export default function BrianTeamPortal(props) {
         </button>
       </nav>
 
-      {view === 'mine' && <><MonthlyReportsInteractiveHero /><MonthlyReportsWorkspace currentUser={teacherViewUser} /></>}
+      {view === 'mine' && (
+        <div className="btp-report-grid">
+          <MonthlyReportsInteractiveHero />
+          <MonthlyReportsWorkspace currentUser={teacherViewUser} />
+        </div>
+      )}
       {view === 'reports' && <MonthlyReportsWorkspace currentUser={currentUser} />}
       {view === 'history' && <MonthlyReportsHistory currentUser={currentUser} />}
       {view === 'team' && <PersonnelHub {...props} />}
