@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import JSZip from 'jszip';
 import { PDFDocument } from 'pdf-lib';
+import * as gradebookExport from '../src/utils/homeroomGradebookExport.js';
 import {
   buildClassGradebookWorkbook,
   buildGradeExportColumns,
@@ -16,8 +17,8 @@ import { createXlsxBlob } from '../src/utils/xlsxExport.js';
 import { buildStudentGradeReportPdf } from '../src/utils/homeroomGradeReportPdf.js';
 
 const students = [
-  { id: 'student-1', code: '11A4-01', fullName: 'Nguyễn Minh Anh', active: true },
-  { id: 'student-2', code: '11A4-02', fullName: 'Trần Gia Bảo', active: true },
+  { id: 'student-1', code: '11A4-01', fullName: 'Nguyễn Minh Anh', dateOfBirth: '10/09/2010', active: true },
+  { id: 'student-2', code: '11A4-02', fullName: 'Trần Gia Bảo', dateOfBirth: '21/09/2010', active: true },
 ];
 const studentIds = students.map((student) => student.id);
 
@@ -49,6 +50,7 @@ const workspace = {
   classProfile: {
     className: '11A4',
     schoolYear: '2026-2027',
+    grade: '11',
     adviserName: 'Tuấn Nguyễn Anh',
   },
 };
@@ -133,6 +135,78 @@ assert.ok(
   'autoFilter must precede mergeCells for strict Excel-compatible OOXML',
 );
 
+assert.equal(
+  typeof gradebookExport.buildOfficialClassGradebookWorkbook,
+  'function',
+  'official school-format class export should be implemented',
+);
+assert.equal(
+  typeof gradebookExport.gradeSemesterAverage,
+  'function',
+  'official export should expose the school weighted semester-average calculation',
+);
+
+const officialWorkbook = gradebookExport.buildOfficialClassGradebookWorkbook(common);
+assert.match(officialWorkbook.fileName, /^so_diem_chi_tiet_lop_11A4_mon_ngoai_ngu\.xlsx$/i);
+assert.equal(officialWorkbook.sheets[0].name, 'ngoai_ngu_11A4');
+assert.deepEqual(
+  officialWorkbook.sheets[0].rows[0].map((cell) => cell?.value ?? cell),
+  ['SỞ GIÁO DỤC VÀ ĐÀO TẠO TP. HỒ CHÍ MINH'],
+  'official export should preserve the uploaded template authority line',
+);
+assert.equal(
+  officialWorkbook.sheets[0].rows[2][0].value,
+  'BẢNG ĐIỂM CHI TIẾT - MÔN NGOẠI NGỮ - HỌC KỲ 1 - NĂM HỌC 2026-2027',
+  'official export title should follow the uploaded template wording',
+);
+assert.equal(officialWorkbook.sheets[0].rows[3][0].value, 'Khối 11 - Lớp 11A4');
+assert.deepEqual(
+  officialWorkbook.sheets[0].rows[5].map((cell) => cell?.value ?? cell),
+  ['STT', 'Mã học sinh', 'Họ và tên', '', 'Ngày sinh', 'ĐĐGtx', '', '', '', 'ĐĐGgk', 'ĐĐGck', 'ĐTB \nmhk', 'Nhận xét'],
+  'first header row should match the uploaded gradebook structure',
+);
+assert.deepEqual(
+  officialWorkbook.sheets[0].rows[6].map((cell) => cell?.value ?? cell),
+  ['', '', '', '', '', 'TX1', 'TX2', 'TX3', 'TX4', 'GK1', 'CK1', '', ''],
+  'second header row should expose exactly four TX rounds plus GK1 and CK1',
+);
+assert.deepEqual(
+  officialWorkbook.sheets[0].rows[7].map((cell) => cell?.value ?? cell),
+  [1, '11A4-01', 'Nguyễn Minh', 'Anh', '10/09/2010', 8.6, 7.7, 7.8, 7.9, 8.25, 9, 8.4, ''],
+  'official export should map round results, split the final name token, and calculate the weighted semester average',
+);
+assert.equal(
+  gradebookExport.gradeSemesterAverage(semester, 'student-1', studentIds),
+  8.4,
+  'semester average should use TX weight 1, midterm weight 2, and final weight 3, rounded to one decimal',
+);
+assert.equal(
+  gradebookExport.gradeSemesterAverage({ regular: [], midterm: { scores: {} }, final: { scores: {} } }, 'student-1', studentIds),
+  null,
+  'semester average should stay blank when the student has no entered scores',
+);
+assert.ok(officialWorkbook.sheets[0].merges.includes('F6:I6'), 'ĐĐGtx header should span TX1-TX4');
+assert.ok(officialWorkbook.sheets[0].merges.includes('C6:D7'), 'student name header should span the two name columns');
+const officialRows = officialWorkbook.sheets[0].rows;
+assert.equal(officialRows[11][3].value, 'Tốt');
+assert.equal(officialRows[11][5].value, '01');
+assert.equal(officialRows[11][8].value, '50%');
+assert.equal(officialRows[12][3].value, 'Khá');
+assert.equal(officialRows[12][5].value, '01');
+assert.equal(officialRows[12][8].value, '50%');
+assert.equal(officialRows[13][5].value, '00');
+assert.equal(officialRows[14][5].value, '00');
+
+const officialBlob = await createXlsxBlob(officialWorkbook);
+assert.ok(officialBlob.size > 2500, 'official school workbook should produce a non-empty XLSX package');
+const officialZip = await JSZip.loadAsync(await officialBlob.arrayBuffer());
+const officialSheetXml = await officialZip.file('xl/worksheets/sheet1.xml').async('string');
+assert.match(officialSheetXml, /BẢNG ĐIỂM CHI TIẾT - MÔN NGOẠI NGỮ/);
+assert.match(officialSheetXml, /TX1/);
+assert.match(officialSheetXml, /THỐNG KÊ HỌC KỲ 1/);
+assert.doesNotMatch(officialSheetXml, /Dấu \+/);
+assert.doesNotMatch(officialSheetXml, /Điểm cộng/);
+
 const selectedColumnIds = columns.filter((column) => column.defaultSelected).map((column) => column.id);
 const personalWorkbook = buildStudentGradeReportWorkbook({
   ...common,
@@ -190,6 +264,7 @@ const outputDirectory = process.env.BES_EXPORT_TEST_OUTPUT;
 if (outputDirectory) {
   await fs.mkdir(outputDirectory, { recursive: true });
   await fs.writeFile(`${outputDirectory}/so-diem-lop-mau.xlsx`, new Uint8Array(await classBlob.arrayBuffer()));
+  await fs.writeFile(`${outputDirectory}/so-diem-chuan-nha-truong.xlsx`, new Uint8Array(await officialBlob.arrayBuffer()));
   await fs.writeFile(`${outputDirectory}/phieu-diem-ca-nhan-mau.xlsx`, new Uint8Array(await personalBlob.arrayBuffer()));
   await fs.writeFile(`${outputDirectory}/phieu-diem-ca-nhan-mau.pdf`, personalPdf.bytes);
   await fs.writeFile(`${outputDirectory}/phieu-diem-ca-nhan-nhieu-cot-mau.pdf`, paginatedPdf.bytes);
