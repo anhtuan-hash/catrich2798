@@ -9,6 +9,8 @@ on:
       - 'src/components/GlobalWorkScheduleCenter.jsx'
       - 'src/components/GlobalWorkScheduleCompatibleCenter.jsx'
       - 'src/components/GlobalWorkScheduleTimeline.css'
+      - 'src/components/GlobalWorkScheduleTimelineArtwork.css'
+      - 'src/components/GlobalWorkScheduleTimelineCategories.css'
       - 'scripts/test-ttcm-schedule-timeline-ui.mjs'
       - '.github/workflows/ttcm-schedule-timeline.yml'
 
