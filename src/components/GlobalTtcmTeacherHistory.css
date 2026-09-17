@@ -5,7 +5,7 @@
   flex-direction: column;
   gap: 16px;
   padding: 18px;
-  overflow: auto;
+  overflow: hidden;
   background: #f8fafc;
 }
 
@@ -88,15 +88,16 @@
 .ttcm-history-stat strong { display: block; margin-top: 7px; color: #0f172a; font-size: 23px; line-height: 1.1; }
 .ttcm-history-stat small { display: block; margin-top: 5px; overflow: hidden; color: #64748b; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 
-.ttcm-history-grid { min-height: 480px; display: grid; grid-template-columns: minmax(320px, .9fr) minmax(520px, 1.4fr); gap: 14px; }
-.ttcm-history-panel { min-width: 0; border: 1px solid #e2e8f0; border-radius: 18px; background: #fff; overflow: hidden; box-shadow: 0 8px 24px rgba(15, 23, 42, .045); }
+.ttcm-history-grid { min-height: 0; flex: 1 1 auto; display: grid; grid-template-columns: minmax(320px, .9fr) minmax(520px, 1.4fr); gap: 14px; }
+.ttcm-history-panel { min-width: 0; min-height: 0; display: flex; flex-direction: column; border: 1px solid #e2e8f0; border-radius: 18px; background: #fff; overflow: hidden; box-shadow: 0 8px 24px rgba(15, 23, 42, .045); }
 .ttcm-history-panel > header { min-height: 62px; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px; border-bottom: 1px solid #e2e8f0; }
 .ttcm-history-panel > header strong { display: block; color: #0f172a; font-size: 15px; }
 .ttcm-history-panel > header small { display: block; margin-top: 2px; color: #64748b; font-size: 11px; }
-.ttcm-history-search { width: min(280px, 42vw); }
+.ttcm-history-search-wrap { width: min(300px, 42vw); min-width: 220px; margin-left: auto; flex: 0 1 300px; }
+.ttcm-history-search { width: 100%; }
 
 .ttcm-history-filter-chips { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; padding: 10px 14px; border-bottom: 1px solid #eef2f7; background: #fbfdff; }
-.ttcm-history-filter-chip { min-height: 30px; padding: 0 10px; border: 1px solid #dbe3ee; border-radius: 999px; background: #fff; color: #526176; font-size: 10px; font-weight: 900; cursor: pointer; }
+.ttcm-history-filter-chip { min-height: 30px; padding: 0 10px; border: 1px solid #dbe3ee; border-radius: 999px; background: #fff; color: #526176; font-size: 10px; font-weight: 900; font-variant-numeric: tabular-nums; cursor: pointer; }
 .ttcm-history-filter-chip:hover { border-color: #93c5fd; background: #eff6ff; color: #1d4ed8; }
 .ttcm-history-filter-chip.is-selected { border-color: #93c5fd; background: #dbeafe; color: #1d4ed8; }
 .ttcm-history-filter-chip.is-resubmitted.is-selected { border-color: #c4b5fd; background: #ede9fe; color: #6d28d9; }
@@ -105,6 +106,7 @@
 .ttcm-history-filter-chip.is-sheet.is-selected { border-color: #bbf7d0; background: #f0fdf4; color: #15803d; }
 .ttcm-history-filter-chip.is-archive.is-selected { border-color: #ddd6fe; background: #f5f3ff; color: #7c3aed; }
 
+.ttcm-history-scroll-region { flex: 1 1 auto; min-height: 0; overflow: auto; scrollbar-width: thin; }
 .ttcm-history-timeline { padding: 10px 14px 16px 20px; }
 .ttcm-history-event { --event-accent: #2563eb; --event-ring: #dbeafe; position: relative; display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 12px; padding: 10px 0 14px; }
 .ttcm-history-event.is-resubmitted { --event-accent: #7c3aed; --event-ring: #ede9fe; }
@@ -119,10 +121,13 @@
 .ttcm-history-event-card b { color: #0f172a; font-size: 13px; }
 .ttcm-history-event-card time { flex: 0 0 auto; color: #64748b; font-size: 11px; }
 .ttcm-history-event-card h4 { margin: 4px 0 0; color: #334155; font-size: 13px; }
+.ttcm-history-item-link { padding: 0; border: 0; background: transparent; color: #334155; font: inherit; font-weight: 800; text-align: left; cursor: pointer; }
+.ttcm-history-item-link:hover { color: #1d4ed8; text-decoration: underline; text-underline-offset: 2px; }
 .ttcm-history-event-card p { margin: 5px 0 0; color: #526176; font-size: 12px; line-height: 1.5; white-space: pre-wrap; }
 .ttcm-history-event-card p.is-clamped { display: -webkit-box; overflow: hidden; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 .ttcm-history-expand { margin: 4px 0 0; padding: 0; border: 0; background: transparent; color: #2563eb; font-size: 11px; font-weight: 800; cursor: pointer; }
-.ttcm-history-event-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.ttcm-history-event-primary { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.ttcm-history-meta-line { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; color: #64748b; font-size: 10.5px; font-weight: 700; }
 .ttcm-history-chip,
 .ttcm-history-status { display: inline-flex; align-items: center; min-height: 23px; padding: 0 8px; border-radius: 999px; font-size: 10px; font-weight: 900; }
 .ttcm-history-chip { background: #f1f5f9; color: #475569; }
@@ -138,11 +143,12 @@
 .ttcm-history-status.is-feedback { background: #fdf2f8; color: #be185d; }
 .ttcm-history-status.is-responded { background: #ecfeff; color: #0e7490; }
 
-.ttcm-history-files { overflow-x: auto; }
+.ttcm-history-files { overflow: auto; }
 .ttcm-history-table { width: 100%; border-collapse: collapse; min-width: 820px; }
 .ttcm-history-table th { padding: 10px 12px; background: #f8fafc; color: #526176; font-size: 10px; font-weight: 900; letter-spacing: .035em; text-align: left; text-transform: uppercase; }
 .ttcm-history-table td { padding: 11px 12px; border-top: 1px solid #f1f5f9; color: #334155; font-size: 12px; vertical-align: middle; }
-.ttcm-history-table tbody tr:hover { background: #fbfdff; }
+.ttcm-history-table tbody tr { transition: background .14s ease; }
+.ttcm-history-table tbody tr:hover { background: #f7fbff; }
 .ttcm-history-file-name { display: flex; align-items: center; gap: 9px; min-width: 220px; }
 .ttcm-history-file-badge { width: 40px; height: 35px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 10px; background: #f1f5f9; color: #475569; font-size: 9px; font-weight: 900; }
 .ttcm-history-file-badge.is-pdf { background: #fef2f2; color: #dc2626; }
@@ -175,9 +181,11 @@
   .ttcm-history-stats { grid-template-columns: 1fr 1fr; gap: 8px; }
   .ttcm-history-stat { padding: 12px 12px 12px 16px; }
   .ttcm-history-stat strong { font-size: 19px; }
+  .ttcm-history-view { overflow: auto; }
   .ttcm-history-panel > header { align-items: stretch; flex-direction: column; }
+  .ttcm-history-search-wrap { width: 100%; min-width: 0; flex-basis: auto; }
   .ttcm-history-search { width: 100%; }
-  .ttcm-history-grid { min-height: 0; }
+  .ttcm-history-grid { min-height: 0; flex: none; }
   .ttcm-history-filter-chips { overflow-x: auto; flex-wrap: nowrap; }
   .ttcm-history-filter-chip { flex: 0 0 auto; }
 }

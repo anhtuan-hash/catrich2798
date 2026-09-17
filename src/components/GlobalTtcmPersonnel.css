@@ -263,11 +263,6 @@
   box-shadow: var(--ttcm-shadow-1) !important;
 }
 
-/* Requested removal: Nhân sự tab. */
-.ttcm-m3-workspace-tabs > button:nth-child(3) {
-  display: none !important;
-}
-
 .ttcm-m3-filters {
   display: inline-flex !important;
   gap: 6px !important;
@@ -304,11 +299,6 @@
 .ttcm-m3-schedule-caption {
   color: var(--ttcm-muted) !important;
   font-size: 12.5px !important;
-}
-
-/* Hide legacy personnel surface if an old event tries to open it. */
-.ttcm-m3-personnel-view {
-  display: none !important;
 }
 
 /* --------------------------------------------------------------------------
