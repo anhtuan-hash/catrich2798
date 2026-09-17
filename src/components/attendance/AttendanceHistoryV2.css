@@ -2171,6 +2171,15 @@
   align-self: stretch;
 }
 
+/* Defeat the older high-specificity no-proof fallback. In the approved
+   layout the absence card stays in column two beside the tardy card even
+   when there is no proof image. */
+.ahv3__shell .ahv3__detail:not(:has(> .ahv3__proof)) > .ahv3__absent-section {
+  grid-column: 2 / 3;
+  grid-row: 7;
+  order: 7;
+}
+
 .ahv3__shell .ahv3__detail > .ahv3__proof {
   grid-column: 1 / -1;
   grid-row: 8;
@@ -2290,7 +2299,8 @@
 
 @media (max-width: 900px) {
   .ahv3__shell .ahv3__detail > .ahv3__late-section,
-  .ahv3__shell .ahv3__detail > .ahv3__absent-section {
+  .ahv3__shell .ahv3__detail > .ahv3__absent-section,
+  .ahv3__shell .ahv3__detail:not(:has(> .ahv3__proof)) > .ahv3__absent-section {
     grid-column: 1 / -1;
     grid-row: auto;
   }
