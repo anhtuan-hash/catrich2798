@@ -5,6 +5,7 @@ on:
     paths:
       - 'src/components/GlobalReportsNavigationTab.jsx'
       - 'src/components/GlobalReportsNavigationTab.css'
+      - 'src/styles/GlobalNavigationCompactPills.css'
       - 'src/styles/GlobalNavigationFinal2026.css'
       - 'scripts/test-report-navbar-countdown-pill.mjs'
       - '.github/workflows/home-navigation-compact-countdown.yml'
@@ -14,6 +15,7 @@ on:
     paths:
       - 'src/components/GlobalReportsNavigationTab.jsx'
       - 'src/components/GlobalReportsNavigationTab.css'
+      - 'src/styles/GlobalNavigationCompactPills.css'
       - 'src/styles/GlobalNavigationFinal2026.css'
       - 'scripts/test-report-navbar-countdown-pill.mjs'
       - '.github/workflows/home-navigation-compact-countdown.yml'
