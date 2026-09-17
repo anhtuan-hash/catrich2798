@@ -1,0 +1,66 @@
+/* Brian English — compact primary navigation geometry.
+   Loaded with the Reports navigation module and intentionally uses a slightly
+   higher-specificity selector than GlobalNavigationFinal2026 so geometry stays
+   consistent even though the runtime authority style node is appended last. */
+
+html {
+  --bes-nav-pill-height: 38px !important;
+  --bes-nav-pill-radius: 13px !important;
+  --bes-nav-pill-font-size: 12px !important;
+  --bes-nav-pill-icon-size: 14px !important;
+}
+
+html body #root .app-shell[data-route] .brian-nav__primary.brian-nav__primary {
+  gap: 3px !important;
+}
+
+html body #root .app-shell[data-route] .brian-nav__primary.brian-nav__primary > :is(button,a,[role='button']) {
+  min-height: var(--bes-nav-pill-height) !important;
+  height: var(--bes-nav-pill-height) !important;
+  max-height: var(--bes-nav-pill-height) !important;
+  gap: 4px !important;
+  padding: 0 9px 0 29px !important;
+  border-radius: var(--bes-nav-pill-radius) !important;
+  font-size: var(--bes-nav-pill-font-size) !important;
+  letter-spacing: -.01em !important;
+}
+
+html body #root .app-shell[data-route] .brian-nav__primary.brian-nav__primary > :is(
+  button:not([class*='brian-nav__']):first-of-type,
+  button:not([class*='brian-nav__']):nth-of-type(2),
+  .brian-nav__dashboard-tab,
+  .brian-nav__homeroom-tab,
+  .brian-nav__gradebook-tab,
+  .brian-nav__reports-tab
+)::before {
+  left: 9px !important;
+  width: var(--bes-nav-pill-icon-size) !important;
+  min-width: var(--bes-nav-pill-icon-size) !important;
+  height: var(--bes-nav-pill-icon-size) !important;
+  min-height: var(--bes-nav-pill-icon-size) !important;
+}
+
+/* TTCM and Attendance use real SVG icons rather than the shared pseudo icon. */
+html body #root .app-shell[data-route] .brian-nav__primary.brian-nav__primary > .brian-nav__ttcm-tab,
+html body #root .app-shell[data-route] .brian-nav__primary.brian-nav__primary > .brian-nav__attendance-tab {
+  padding: 0 9px !important;
+  gap: 5px !important;
+}
+
+html body #root .app-shell[data-route] .brian-nav__primary.brian-nav__primary .brian-nav__ttcm-tab .ttcm-m3-icon,
+html body #root .app-shell[data-route] .brian-nav__primary.brian-nav__primary .brian-nav__attendance-tab .attendance-icon {
+  width: var(--bes-nav-pill-icon-size) !important;
+  min-width: var(--bes-nav-pill-icon-size) !important;
+  height: var(--bes-nav-pill-icon-size) !important;
+  min-height: var(--bes-nav-pill-icon-size) !important;
+}
+
+@media (max-width: 1360px) {
+  html body #root .app-shell[data-route] .brian-nav__primary.brian-nav__primary {
+    gap: 2px !important;
+  }
+
+  html body #root .app-shell[data-route] .brian-nav__primary.brian-nav__primary > :is(button,a,[role='button']) {
+    padding-right: 8px !important;
+  }
+}
