@@ -265,3 +265,42 @@
   .ttcm-reader-manager-footer { flex: 0 0 auto; }
   .ttcm-reader-primary, .ttcm-reader-secondary { min-height: 42px; padding-inline: 12px; white-space: nowrap; }
 }
+
+
+/* TTCM Reader polish — hierarchy and control placement */
+.ttcm-reader-list-head { min-height: 76px; padding: 12px 18px 10px; gap: 14px; }
+.ttcm-reader-list-copy { min-width: 0; flex: 1 1 auto; }
+.ttcm-reader-list-tools { min-width: 0; display: flex; align-items: center; justify-content: flex-end; gap: 7px; }
+.ttcm-reader-list-tools .ttcm-reader-search { width: min(230px, 18vw); min-width: 158px; height: 36px; }
+.ttcm-reader-list-tools .ttcm-reader-sort { height: 36px; }
+.ttcm-reader-list-tools .ttcm-reader-mark-all-quiet { width: 36px; min-height: 36px; justify-content: center; padding: 0; font-size: 0; border: 1px solid #d8e2ee; background: #fff; }
+.ttcm-reader-filter-chips button { min-height: 36px; padding-inline: 11px; font-size: 11px; }
+.ttcm-reader-card.is-selected { border-color: #88b2ff; background: #f4f8ff; box-shadow: inset 3px 0 0 #0b67eb, 0 8px 18px rgba(30, 76, 140, .08); }
+.ttcm-reader-card-titleline time { color: #65758a; font-size: 10px; font-weight: 700; }
+.ttcm-reader-detail-head { display: none; }
+.ttcm-reader-detail-scroll { padding: 12px 18px 18px; }
+.ttcm-reader-detail-card { min-height: auto; padding: 20px 24px 22px; }
+.ttcm-reader-detail h2 { margin-bottom: 18px; font-size: clamp(24px, 1.8vw, 30px); }
+.ttcm-reader-message::after { margin-top: 20px; }
+.ttcm-reader-response-preview { margin-top: 18px; padding-top: 14px; }
+.ttcm-reader-detail-footer { min-height: 70px; padding-block: 10px; }
+
+@media (max-width: 1160px) {
+  .ttcm-reader-list-head { align-items: flex-start; flex-direction: column; }
+  .ttcm-reader-list-tools { width: 100%; justify-content: stretch; }
+  .ttcm-reader-list-tools .ttcm-reader-search { width: auto; flex: 1 1 auto; }
+}
+
+@media (max-width: 900px) {
+  .ttcm-reader-detail-head { display: flex; min-height: 52px; padding: 8px 14px; }
+  .ttcm-reader-back { display: inline-flex; align-items: center; min-height: 36px; }
+}
+
+@media (max-width: 640px) {
+  .ttcm-reader-list-head { min-height: auto; padding: 10px 13px 8px; }
+  .ttcm-reader-list-tools { gap: 6px; }
+  .ttcm-reader-list-tools .ttcm-reader-search { width: 100%; min-width: 0; }
+  .ttcm-reader-list-tools .ttcm-reader-sort { max-width: 108px; }
+  .ttcm-reader-detail-card { padding: 16px 15px 18px; }
+  .ttcm-reader-detail h2 { font-size: 23px; }
+}

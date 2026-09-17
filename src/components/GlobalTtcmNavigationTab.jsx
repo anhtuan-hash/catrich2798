@@ -103,6 +103,12 @@ function formatDate(value) {
   const date = new Date(value); if (Number.isNaN(date.getTime())) return '';
   return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }).format(date);
 }
+function formatReaderTimestamp(value) {
+  const date = new Date(value); if (Number.isNaN(date.getTime())) return '';
+  const dayMonth = new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit' }).format(date);
+  const time = new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit' }).format(date);
+  return dayMonth + ' · ' + time;
+}
 function formatFullDate(value) {
   const date = new Date(value); if (Number.isNaN(date.getTime())) return '';
   return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(date);
@@ -635,8 +641,12 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
           <main className="ttcm-reader-workspace">
             <section className="ttcm-reader-list" aria-label="Danh sách thông báo">
               <header className="ttcm-reader-list-head">
-                <div><span>Thông báo mới nhất</span><small>{filteredItems.length}{feedQuery ? '/' + counts.all : ''} nội dung</small></div>
-                {unseenCount > 0 ? <button type="button" className="ttcm-reader-mark-all-quiet" onClick={markAllRead}><Icon name="check" size={16} />Đánh dấu tất cả đã đọc</button> : null}
+                <div className="ttcm-reader-list-copy"><span>Thông báo mới nhất</span><small>{filteredItems.length}{feedQuery ? '/' + counts.all : ''} nội dung</small></div>
+                <div className="ttcm-reader-list-tools">
+                  <label className="ttcm-reader-search"><span aria-hidden="true">⌕</span><input type="search" value={feedQuery} onChange={(event) => setFeedQuery(event.target.value)} placeholder="Tìm kiếm thông báo…" aria-label="Tìm kiếm thông báo TTCM" /></label>
+                  <select className="ttcm-reader-sort" value={feedSort} onChange={(event) => setFeedSort(event.target.value)} aria-label="Sắp xếp thông báo"><option value="newest">Mới nhất</option><option value="oldest">Cũ nhất</option></select>
+                  {unseenCount > 0 ? <button type="button" className="ttcm-reader-mark-all-quiet" onClick={markAllRead} title="Đánh dấu tất cả đã đọc" aria-label="Đánh dấu tất cả đã đọc"><Icon name="check" size={16} /></button> : null}
+                </div>
               </header>
               <div className="ttcm-reader-filter-chips" aria-label="Bộ lọc thông báo">
                 {[
@@ -664,7 +674,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
                       onClick={() => openItem(item)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openItem(item); } }}>
                       <span className="ttcm-reader-card-icon"><Icon name={type.glyph} size={20} /></span>
                       <div className="ttcm-reader-card-body">
-                        <div className="ttcm-reader-card-titleline"><h3>{item.title}</h3><time>{formatDate(item.created_at || item.updated_at)}</time></div>
+                        <div className="ttcm-reader-card-titleline"><h3>{item.title}</h3><time>{formatReaderTimestamp(item.created_at || item.updated_at)}</time></div>
                         {item.description ? <p>{item.description}</p> : <p className="is-muted">Nhấn để xem nội dung chi tiết.</p>}
                         <div className="ttcm-reader-card-foot">
                           <span className={`ttcm-reader-card-status ${statusClass}`}><i />{statusLabel}</span>
@@ -681,10 +691,6 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
             <section className="ttcm-reader-detail" aria-label="Nội dung thông báo">
               <header className="ttcm-reader-detail-head">
                 <button type="button" className="ttcm-reader-back" onClick={() => setSelectedItemId('')}>← Quay lại danh sách</button>
-                <div className="ttcm-reader-detail-tools">
-                  <label className="ttcm-reader-search"><span aria-hidden="true">⌕</span><input type="search" value={feedQuery} onChange={(event) => setFeedQuery(event.target.value)} placeholder="Tìm kiếm thông báo…" aria-label="Tìm kiếm thông báo TTCM" /></label>
-                  <select className="ttcm-reader-sort" value={feedSort} onChange={(event) => setFeedSort(event.target.value)} aria-label="Sắp xếp thông báo"><option value="newest">Mới nhất</option><option value="oldest">Cũ nhất</option></select>
-                </div>
               </header>
               {selectedItem ? (
                 <>
@@ -728,14 +734,14 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
                     <span className="ttcm-reader-footer-spacer" />
                     {canActOnSelected ? (
                       <div className={manager ? 'ttcm-reader-manager-footer' : undefined}>
-                        {manager && canManageSelected ? <button type="button" className="ttcm-reader-secondary" onClick={() => { setResponseViewerItem(selectedItem); loadResponses(); }}><Icon name="people" size={18} />Phản hồi ({responsesForItem(selectedItem.id).length})</button> : null}
+                        {manager && canManageSelected ? <button type="button" className="ttcm-reader-secondary" onClick={() => beginEdit(selectedItem)}><Icon name="edit" size={18} />Chỉnh sửa</button> : null}
+                        {manager && canManageSelected ? <button type="button" className="ttcm-reader-secondary" onClick={() => { setResponseViewerItem(selectedItem); loadResponses(); }}><Icon name="people" size={18} />Xem phản hồi</button> : null}
                         {selectedType?.id === 'acknowledgement'
                           ? <button type="button" className="ttcm-reader-primary" disabled={busy} onClick={() => acknowledge(selectedItem)}><Icon name="check" size={18} />Xác nhận đã nhận</button>
                           : <button type="button" className="ttcm-reader-primary" onClick={() => beginResponse(selectedItem)}><Icon name="arrow" size={18} />{selectedType?.id === 'feedback' ? 'Gửi góp ý' : 'Phản hồi / hoàn thành'}</button>}
-                        {manager && canManageSelected ? <button type="button" className="ttcm-reader-secondary" onClick={() => beginEdit(selectedItem)}><Icon name="edit" size={18} />Chỉnh sửa</button> : null}
                       </div>
                     ) : canManageSelected ? (
-                      <div className="ttcm-reader-manager-footer"><button type="button" className="ttcm-reader-secondary" onClick={() => { setResponseViewerItem(selectedItem); loadResponses(); }}><Icon name="people" size={18} />Phản hồi ({responsesForItem(selectedItem.id).length})</button><button type="button" className="ttcm-reader-primary" onClick={() => beginEdit(selectedItem)}><Icon name="edit" size={18} />Chỉnh sửa</button></div>
+                      <div className="ttcm-reader-manager-footer"><button type="button" className="ttcm-reader-secondary" onClick={() => beginEdit(selectedItem)}><Icon name="edit" size={18} />Chỉnh sửa</button><button type="button" className="ttcm-reader-secondary" onClick={() => { setResponseViewerItem(selectedItem); loadResponses(); }}><Icon name="people" size={18} />Xem phản hồi</button></div>
                     ) : (
                       <button type="button" className={`ttcm-reader-primary ${selectedUnread ? '' : 'is-done'}`} onClick={() => markRead(selectedItem.id)} disabled={!selectedUnread}><Icon name="check" size={18} />{selectedUnread ? 'Đánh dấu đã đọc' : 'Đã đọc'}</button>
                     )}
