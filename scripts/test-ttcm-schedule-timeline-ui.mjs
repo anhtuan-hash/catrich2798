@@ -39,6 +39,9 @@ check(center.includes('work-schedule-timeline-more'), 'renders per-day continuat
 check(center.includes('embedded && dayEvents.length > 3'), 'shows continuation only when a day has hidden events');
 check(center.includes('work-schedule-hero-art'), 'adds a semantic hero artwork hook');
 check(center.includes('work-schedule-quote-footer'), 'adds the illustrated quote footer hook');
+check(center.includes('work-schedule-day-date'), 'renders a neutral date label that avoids inherited today-pill styling');
+check(center.includes('>{date.getDate()}</span>'), 'uses the real day number in every timeline day orb');
+check(!center.includes("today ? date.getDate() : '⌖'"), 'removes decorative crosshair day markers');
 check(center.includes('Lịch làm việc khoa học'), 'preserves the approved footer quote');
 check(center.includes('Giáo dục là hành trình'), 'preserves the handwritten footer message');
 
@@ -48,8 +51,13 @@ check(css.includes('.ttcm-m3-schedule-host .work-schedule-center'), 'scopes the 
 check(css.includes('.work-schedule-hero-art'), 'styles the hero illustration');
 check(css.includes('data:image/svg+xml'), 'preserves approved calendar / plants / books artwork as deploy-safe SVG');
 check(css.includes('.work-schedule-category-filters'), 'styles real category filter chips');
+check(/\.work-schedule-metrics\s*\{[^}]*padding-right\s*:\s*0/.test(css), 'balances metric cards across the full timeline width');
+check(/\.work-schedule-toolbar\s*\{[^}]*min-height\s*:\s*16[0-8]px/.test(css), 'reduces hero height so more timeline content is visible above the fold');
+check(/\.work-schedule-timeline-event[^}]*min-height\s*:\s*8[2-9]px/.test(css), 'gives timeline event cards more breathing room');
+check(/\.work-schedule-timeline-event>span:not\(\.work-schedule-event-icon\)[^}]*font-size\s*:\s*1[0-1](?:\.5)?px/.test(css), 'improves event title readability');
+check(/\.work-schedule-category-filters button[^}]*min-height\s*:\s*3[6-9]px/.test(css), 'makes category chips easier to scan and click');
 check(css.includes('.work-schedule-timeline-board'), 'styles the seven-column timeline board');
-check(/grid-template-columns\s*:\s*repeat\(7\s*,\s*minmax\(176px\s*,\s*1fr\)\)/.test(css), 'uses seven equal timeline columns on desktop');
+check(/grid-template-columns\s*:\s*repeat\(7\s*,\s*minmax\(192px\s*,\s*1fr\)\)/.test(css), 'uses seven equal timeline columns on desktop');
 check(/border-left\s*:\s*1px\s+dashed/.test(css), 'draws the vertical timeline rails');
 check(css.includes('.work-schedule-timeline-event.is-meeting'), 'styles meeting events');
 check(css.includes('.work-schedule-timeline-event.is-training'), 'styles training events');
