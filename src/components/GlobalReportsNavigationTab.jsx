@@ -14,14 +14,14 @@ function compactCountdown(state, language) {
 
   const totalMs = Math.max(0, Number(state.totalMs || 0));
   const days = Math.floor(totalMs / 86400000);
-  const hours = Math.floor(totalMs / 3600000);
-  const minutes = Math.floor(totalMs / 60000);
-  const seconds = Math.floor(totalMs / 1000);
+  const hours = Math.floor((totalMs % 86400000) / 3600000);
+  const minutes = Math.floor((totalMs % 3600000) / 60000);
+  const seconds = Math.floor((totalMs % 60000) / 1000);
+  const pad = (value) => String(value).padStart(2, '0');
+  const clock = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 
-  if (days > 0) return language === 'vi' ? `${days} ngày` : `${days}d`;
-  if (hours > 0) return language === 'vi' ? `${hours} giờ` : `${hours}h`;
-  if (minutes > 0) return language === 'vi' ? `${minutes} phút` : `${minutes}m`;
-  return `${Math.max(0, seconds)}s`;
+  if (days > 0) return language === 'vi' ? `${days} ngày ${clock}` : `${days}d ${clock}`;
+  return clock;
 }
 
 function accessibleCountdown(state, language) {
