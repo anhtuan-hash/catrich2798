@@ -5,12 +5,15 @@ on:
   push:
     branches:
       - feat/ttcm-teacher-history
+      - feat/ttcm-history-usability-polish
   pull_request:
     paths:
       - 'src/components/GlobalTtcmNavigationTab.jsx'
       - 'src/components/GlobalTtcmTeacherHistory.css'
+      - 'src/components/GlobalTtcmPersonnel.css'
       - 'src/utils/ttcmTeacherHistory.js'
       - 'scripts/test-ttcm-teacher-history.mjs'
+      - 'scripts/test-ttcm-history-usability.mjs'
       - '.github/workflows/ttcm-teacher-history.yml'
 
 jobs:
@@ -29,5 +32,7 @@ jobs:
         run: npm ci
       - name: Teacher history contract
         run: node scripts/test-ttcm-teacher-history.mjs
+      - name: Teacher history usability contract
+        run: node scripts/test-ttcm-history-usability.mjs
       - name: Production build
         run: npm run build
