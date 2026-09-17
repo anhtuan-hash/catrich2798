@@ -35,21 +35,16 @@ check(component.indexOf('>Chỉnh sửa</button>') < component.indexOf('>Xem ph�
 check(component.indexOf('>Xem phản hồi</button>') < component.lastIndexOf("'Phản hồi / hoàn thành'"), 'keeps the primary response action last');
 check(component.includes('markAllRead') && component.includes('ttcm-reader-mark-all-quiet'), 'preserves mark-all-read as a quiet list action');
 
-// Mockup fidelity: tasteful decorative graphics and card-like composition.
-check(component.includes('ttcm-reader-header-art'), 'adds the abstract pastel header artwork layer');
-check(component.includes('ttcm-reader-header-motto'), 'adds the subtle TTCM header motto');
-check(component.includes('ttcm-reader-card-chevron'), 'adds the circular card chevron from the approved mockup');
-check(component.includes('ttcm-reader-detail-art'), 'adds the decorative document illustration in the detail panel');
-check(component.includes('ttcm-reader-detail-art-card'), 'builds the detail illustration as lightweight CSS geometry');
-
+// Mockup fidelity: graphical treatment implemented with lightweight CSS geometry.
 check(css.includes('grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);'), 'uses the equal two-panel desktop composition from the mockup');
-check(css.includes('.ttcm-reader-header-art'), 'styles the abstract pastel header artwork');
-check(css.includes('.ttcm-reader-header-motto'), 'styles the handwritten-style header motto');
+check(css.includes('.ttcm-reader-shell .ttcm-m3-topbar::before'), 'adds the abstract pastel header artwork layer');
+check(css.includes('.ttcm-reader-shell .ttcm-m3-topbar::after') && css.includes('Kết nối'), 'adds the subtle TTCM header motto');
 check(css.includes('.ttcm-reader-toolbar .ttcm-m3-workspace-tabs button.is-selected::after'), 'uses an active-tab underline treatment');
 check(css.includes('.ttcm-reader-workspace') && css.includes('gap: 12px;'), 'separates list and detail into individual cards');
 check(css.includes('.ttcm-reader-list,') && css.includes('.ttcm-reader-detail {') && css.includes('border-radius: 18px;'), 'rounds both main reader panels');
-check(css.includes('.ttcm-reader-card-chevron'), 'styles the circular chevron control');
-check(css.includes('.ttcm-reader-detail-art-card'), 'styles the floating document illustration');
+check(css.includes('.ttcm-reader-card::after') && css.includes("content: '›';"), 'adds the circular card chevron from the approved mockup');
+check(css.includes('.ttcm-reader-detail-card::before'), 'adds soft ambient artwork to the detail panel');
+check(css.includes('.ttcm-reader-detail-card::after') && css.includes('rotate(8deg)'), 'adds the floating document illustration using CSS geometry');
 check(css.includes('linear-gradient(135deg'), 'uses layered pastel gradients rather than a flat white header');
 check(css.includes('box-shadow: 0 18px 42px'), 'uses soft premium panel shadows');
 check(css.includes('.ttcm-reader-list-tools'), 'styles list-level search and sort controls');
