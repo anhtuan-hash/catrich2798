@@ -7,7 +7,6 @@ import {
   ClipboardList,
   Clock3,
   Eye,
-  FileCheck2,
   Lightbulb,
   PencilLine,
   Save,
