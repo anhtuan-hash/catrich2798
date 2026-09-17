@@ -14,7 +14,7 @@ function bottom(box) {
 }
 
 test.describe('Attendance History V3 late / absence flow', () => {
-  test('two tardy rows, zero absences and footer remain in normal vertical flow', async ({ page }) => {
+  test('tardy and empty absence cards share the approved paired row without clipping', async ({ page }) => {
     await page.setViewportSize({ width: 1512, height: 982 });
     await page.setContent(`
       <div class="attendance-layer">
@@ -48,7 +48,7 @@ test.describe('Attendance History V3 late / absence flow', () => {
                 </section>
                 <section class="ahv3__absent-section is-empty" data-testid="absent-section">
                   <header><div><strong>Danh sách học sinh vắng</strong><span>0 học sinh</span></div></header>
-                  <div class="ahv3__all-present"><div><b>Tất cả học sinh đều có mặt.</b><span>Lớp duy trì sĩ số đầy đủ trong buổi học này.</span></div></div>
+                  <div class="ahv3__empty-attendance is-absent" data-testid="absent-empty"><span></span><div><b>Tất cả học sinh đều có mặt.</b><small>Lớp duy trì sĩ số đầy đủ trong buổi học này.</small></div></div>
                 </section>
                 <div class="ahv3__footer-grid" data-testid="footer-grid"><section class="ahv3__note"><strong>Ghi chú buổi học</strong><p>Chưa có ghi chú cho buổi học này.</p></section><section class="ahv3__lock"><strong>Nhật ký chốt buổi</strong><div><span>Chốt lúc</span><b>17:17:15 10/09/2026</b></div><div><span>Trạng thái</span><b>Đã chốt</b></div></section></div>
               </section>
@@ -66,20 +66,29 @@ test.describe('Attendance History V3 late / absence flow', () => {
     const lateSection = await page.getByTestId('late-section').boundingBox();
     const lateRows = await page.getByTestId('late-row').evaluateAll((nodes) => nodes.map((node) => node.getBoundingClientRect().toJSON()));
     const absentSection = await page.getByTestId('absent-section').boundingBox();
+    const absentEmpty = await page.getByTestId('absent-empty').boundingBox();
     const footerGrid = await page.getByTestId('footer-grid').boundingBox();
 
     expect(lateSection).not.toBeNull();
     expect(absentSection).not.toBeNull();
+    expect(absentEmpty).not.toBeNull();
     expect(footerGrid).not.toBeNull();
     expect(lateRows).toHaveLength(2);
 
-    console.log('late-flow-boxes', JSON.stringify({ lateSection, lateRows, absentSection, footerGrid }));
+    console.log('late-flow-boxes', JSON.stringify({ lateSection, lateRows, absentSection, absentEmpty, footerGrid }));
 
     expect(lateRows[0].height).toBeGreaterThanOrEqual(35);
     expect(lateRows[1].height).toBeGreaterThanOrEqual(35);
     expect(lateRows[1].y).toBeGreaterThanOrEqual(bottom(lateRows[0]) - 1);
     expect(bottom(lateRows[1])).toBeLessThanOrEqual(bottom(lateSection) + 1);
-    expect(absentSection.y).toBeGreaterThanOrEqual(bottom(lateSection) + 7);
-    expect(footerGrid.y).toBeGreaterThanOrEqual(bottom(absentSection) + 7);
+
+    expect(Math.abs(lateSection.y - absentSection.y)).toBeLessThanOrEqual(2);
+    expect(absentSection.x).toBeGreaterThanOrEqual(lateSection.x + lateSection.width + 7);
+    expect(absentEmpty.height).toBeGreaterThanOrEqual(62);
+    expect(absentEmpty.y).toBeGreaterThanOrEqual(absentSection.y);
+    expect(bottom(absentEmpty)).toBeLessThanOrEqual(bottom(absentSection) + 1);
+
+    const pairedBottom = Math.max(bottom(lateSection), bottom(absentSection));
+    expect(footerGrid.y).toBeGreaterThanOrEqual(pairedBottom + 7);
   });
 });
