@@ -161,6 +161,7 @@ function typeForItem(item) {
 }
 function isActionItem(item) { return Boolean(item?.metadata?.ttcm_action_required || typeForItem(item).action); }
 function isDoneItem(item) { return ['completed', 'approved', 'archived'].includes(String(item?.status || '').toLowerCase()); }
+function isOverdueItem(item) { const due = item?.due_at ? new Date(item.due_at).getTime() : 0; return Boolean(due && due <= Date.now() && !isDoneItem(item)); }
 function formatFileSize(value) {
   const bytes = Number(value || 0); if (!bytes) return '';
   if (bytes < 1024) return `${bytes} B`; if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
@@ -192,6 +193,8 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
   const [expandedHistoryIds, setExpandedHistoryIds] = useState(() => new Set());
   const [readIds, setReadIds] = useState(() => readReadIds(currentUser));
   const [filter, setFilter] = useState('all');
+  const [feedQuery, setFeedQuery] = useState('');
+  const [feedSort, setFeedSort] = useState('newest');
   const [kind, setKind] = useState('announcement');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -401,24 +404,31 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
     };
   }, [currentUser?.id, items, readIds]);
 
-  const filteredItems = useMemo(() => items.filter((item) => {
-    if (filter === 'all') return true;
-    if (filter === 'unread') return userIsAssignee(item, currentUser?.id) && !readIds.has(String(item.id));
-    if (filter === 'action') return isActionItem(item);
-    if (filter === 'due') { const due = item.due_at ? new Date(item.due_at).getTime() : 0; return Boolean(due && due >= Date.now() && !isDoneItem(item)); }
-    if (filter === 'done') return isDoneItem(item);
-    return true;
-  }), [currentUser?.id, filter, items, readIds]);
+  const feedNeedle = feedQuery.trim().toLowerCase();
+  const filteredItems = useMemo(() => {
+    const visible = items.filter((item) => {
+      if (filter === 'unread' && !(userIsAssignee(item, currentUser?.id) && !readIds.has(String(item.id)))) return false;
+      if (filter === 'action' && !isActionItem(item)) return false;
+      if (filter === 'due') { const due = item.due_at ? new Date(item.due_at).getTime() : 0; if (!(due && due >= Date.now() && !isDoneItem(item))) return false; }
+      if (filter === 'done' && !isDoneItem(item)) return false;
+      if (feedNeedle && !`${item.title || ''} ${item.description || ''} ${typeForItem(item).label}`.toLowerCase().includes(feedNeedle)) return false;
+      return true;
+    });
+    return [...visible].sort((left, right) => {
+      const leftTime = new Date(left.created_at || left.updated_at || 0).getTime() || 0;
+      const rightTime = new Date(right.created_at || right.updated_at || 0).getTime() || 0;
+      return feedSort === 'oldest' ? leftTime - rightTime : rightTime - leftTime;
+    });
+  }, [currentUser?.id, feedNeedle, feedSort, filter, items, readIds]);
 
-  const selectedItem = useMemo(() => filteredItems.find((item) => String(item.id) === String(selectedItemId)) || filteredItems[0] || null, [filteredItems, selectedItemId]);
+  const selectedItem = useMemo(() => selectedItemId ? filteredItems.find((item) => String(item.id) === String(selectedItemId)) || null : null, [filteredItems, selectedItemId]);
   const editingAttachments = useMemo(() => {
     if (!editingId) return []; const editingItem = items.find((item) => String(item.id) === String(editingId));
     return Array.isArray(editingItem?.attachments) ? editingItem.attachments : [];
   }, [editingId, items]);
 
   useEffect(() => {
-    if (!filteredItems.length) { setSelectedItemId(''); return; }
-    if (!filteredItems.some((item) => String(item.id) === String(selectedItemId))) setSelectedItemId(String(filteredItems[0].id));
+    if (selectedItemId && !filteredItems.some((item) => String(item.id) === String(selectedItemId))) setSelectedItemId('');
   }, [filteredItems, selectedItemId]);
 
   function responsesForItem(itemId) { return responses.filter((entry) => String(entry.item_id) === String(itemId)); }
@@ -603,7 +613,6 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
         <header className="ttcm-m3-topbar">
           <div className="ttcm-m3-title"><span className="ttcm-m3-title-icon"><Icon name="campaign" size={22} /></span><div><strong>Kênh TTCM</strong><small>{manager ? 'Điều hành và giao tiếp với tổ chuyên môn' : 'Thông báo, tài liệu và yêu cầu từ TTCM'}</small></div></div>
           <div className="ttcm-m3-top-actions">
-            {workspaceView === 'feed' && unseenCount > 0 ? <button type="button" className="ttcm-reader-mark-all" onClick={markAllRead}><Icon name="check" size={18} />Đánh dấu tất cả đã đọc</button> : null}
             <button type="button" className="ttcm-m3-icon-button" onClick={() => { loadFeed(); if (manager && workspaceView === 'history') { loadPeople(); loadResponses(); } }} title="Làm mới" aria-label="Làm mới"><Icon name="refresh" /></button>
             {manager && workspaceView === 'feed' ? <button type="button" className="ttcm-m3-filled-button" onClick={beginCompose}><Icon name="add" size={18} />Tạo nội dung</button> : null}
             <button type="button" className="ttcm-m3-icon-button" onClick={() => setOpen(false)} title="Đóng" aria-label="Đóng"><Icon name="close" /></button>
@@ -624,95 +633,105 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
 
         {workspaceView === 'feed' ? (
           <main className="ttcm-reader-workspace">
-            <aside className="ttcm-reader-sidebar" aria-label="Hộp thư TTCM">
-              <div className="ttcm-reader-sidebar-title">HỘP THƯ</div>
-              {[
-                ['all', 'Tất cả', '#64748b'],
-                ['unread', 'Chưa đọc', '#1795e6'],
-                ['action', 'Cần xử lý', '#e6a21a'],
-                ['due', 'Sắp đến hạn', '#e45d4f'],
-                ['done', 'Hoàn tất', '#32a76d'],
-              ].map(([id, label, color]) => (
-                <button key={id} type="button" className={filter === id ? 'is-selected' : ''} onClick={() => { setFilter(id); setSelectedItemId(''); }}>
-                  <span className="ttcm-reader-dot" style={{ '--dot': color }} /><span>{label}</span><b>{counts[id]}</b>
-                </button>
-              ))}
-              <div className="ttcm-reader-brand">Brian English</div>
-            </aside>
-
             <section className="ttcm-reader-list" aria-label="Danh sách thông báo">
-              <header className="ttcm-reader-list-head"><div><span>{filter === 'unread' ? 'Thông báo chưa đọc' : filter === 'action' ? 'Nội dung cần xử lý' : filter === 'due' ? 'Nội dung sắp đến hạn' : filter === 'done' ? 'Nội dung hoàn tất' : 'Thông báo mới nhất'}</span><small>{filteredItems.length} nội dung</small></div></header>
+              <header className="ttcm-reader-list-head">
+                <div><span>Thông báo mới nhất</span><small>{filteredItems.length}{feedQuery ? '/' + counts.all : ''} nội dung</small></div>
+                {unseenCount > 0 ? <button type="button" className="ttcm-reader-mark-all-quiet" onClick={markAllRead}><Icon name="check" size={16} />Đánh dấu tất cả đã đọc</button> : null}
+              </header>
+              <div className="ttcm-reader-filter-chips" aria-label="Bộ lọc thông báo">
+                {[
+                  ['all', 'Tất cả', '#2563eb'],
+                  ['unread', 'Chưa đọc', '#1685e6'],
+                  ['action', 'Cần xử lý', '#e59a11'],
+                  ['due', 'Sắp đến hạn', '#ef5350'],
+                  ['done', 'Hoàn tất', '#23a66f'],
+                ].map(([id, label, color]) => (
+                  <button key={id} type="button" className={filter === id ? 'is-selected' : ''} aria-pressed={filter === id} onClick={() => { setFilter(id); setSelectedItemId(''); }}>
+                    <span className="ttcm-reader-dot" style={{ '--dot': color }} /><span>{label}</span><b>{counts[id]}</b>
+                  </button>
+                ))}
+              </div>
               <div className="ttcm-reader-list-scroll">
                 {loading ? <div className="ttcm-reader-empty">Đang đồng bộ kênh TTCM…</div> : null}
                 {!loading && filteredItems.map((item) => {
                   const type = typeForItem(item); const unread = userIsAssignee(item, currentUser?.id) && !readIds.has(String(item.id));
                   const active = String(selectedItem?.id || '') === String(item.id); const attachments = Array.isArray(item.attachments) ? item.attachments : [];
+                  const overdue = isOverdueItem(item); const done = isDoneItem(item);
+                  const statusLabel = done ? 'Hoàn tất' : overdue ? 'Hết hạn' : unread ? 'Chưa đọc' : isActionItem(item) ? 'Cần xử lý' : 'Đã đọc';
+                  const statusClass = done ? 'is-done' : overdue ? 'is-overdue' : unread ? 'is-unread' : isActionItem(item) ? 'is-action' : 'is-read';
                   return (
                     <article key={item.id} role="button" tabIndex={0} className={`ttcm-reader-card is-${type.id} ${unread ? 'is-unread' : ''} ${active ? 'is-selected' : ''}`}
                       onClick={() => openItem(item)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); openItem(item); } }}>
                       <span className="ttcm-reader-card-icon"><Icon name={type.glyph} size={20} /></span>
                       <div className="ttcm-reader-card-body">
-                        <div className="ttcm-reader-card-meta"><span>{type.label}</span><time>{formatDate(item.created_at || item.updated_at)}</time>{unread ? <b>Mới</b> : null}</div>
-                        <h3>{item.title}</h3>
+                        <div className="ttcm-reader-card-titleline"><h3>{item.title}</h3><time>{formatDate(item.created_at || item.updated_at)}</time></div>
                         {item.description ? <p>{item.description}</p> : <p className="is-muted">Nhấn để xem nội dung chi tiết.</p>}
                         <div className="ttcm-reader-card-foot">
-                          {item.due_at ? <span className="ttcm-reader-due">Hạn {formatDate(item.due_at)} · {dueLabel(item.due_at)}</span> : null}
-                          {attachments.length ? <span>{attachments.length} tệp đính kèm</span> : null}
+                          <span className={`ttcm-reader-card-status ${statusClass}`}><i />{statusLabel}</span>
+                          {attachments.length ? <span className="ttcm-reader-card-filecount">{attachments.length} tệp</span> : null}
                         </div>
                       </div>
-                      <span className="ttcm-reader-chevron">›</span>
                     </article>
                   );
                 })}
-                {!loading && !filteredItems.length ? <div className="ttcm-reader-empty"><Icon name="campaign" size={30} /><strong>Không có nội dung trong mục này</strong><span>{manager ? 'Tạo nội dung mới hoặc chọn bộ lọc khác.' : 'Thông báo mới từ TTCM sẽ xuất hiện tại đây.'}</span></div> : null}
+                {!loading && !filteredItems.length ? <div className="ttcm-reader-empty"><Icon name="campaign" size={30} /><strong>Không có nội dung phù hợp</strong><span>{feedQuery ? 'Thử từ khóa khác hoặc xóa tìm kiếm.' : (manager ? 'Tạo nội dung mới hoặc chọn bộ lọc khác.' : 'Thông báo mới từ TTCM sẽ xuất hiện tại đây.')}</span></div> : null}
               </div>
             </section>
 
             <section className="ttcm-reader-detail" aria-label="Nội dung thông báo">
+              <header className="ttcm-reader-detail-head">
+                <button type="button" className="ttcm-reader-back" onClick={() => setSelectedItemId('')}>← Quay lại danh sách</button>
+                <div className="ttcm-reader-detail-tools">
+                  <label className="ttcm-reader-search"><span aria-hidden="true">⌕</span><input type="search" value={feedQuery} onChange={(event) => setFeedQuery(event.target.value)} placeholder="Tìm kiếm thông báo…" aria-label="Tìm kiếm thông báo TTCM" /></label>
+                  <select className="ttcm-reader-sort" value={feedSort} onChange={(event) => setFeedSort(event.target.value)} aria-label="Sắp xếp thông báo"><option value="newest">Mới nhất</option><option value="oldest">Cũ nhất</option></select>
+                </div>
+              </header>
               {selectedItem ? (
                 <>
-                  <header className="ttcm-reader-detail-head">
-                    <button type="button" className="ttcm-reader-back" onClick={() => setSelectedItemId('')}>← Quay lại danh sách</button>
-                    <div className="ttcm-reader-detail-actions">
-                      {canManageSelected ? <button type="button" onClick={() => beginEdit(selectedItem)} title="Chỉnh sửa"><Icon name="edit" size={18} /></button> : null}
-                    </div>
-                  </header>
                   <div className="ttcm-reader-detail-scroll">
-                    <div className="ttcm-reader-detail-meta"><span className={`is-${selectedType?.id || 'announcement'}`}>{selectedType?.label || 'Thông báo'}</span><time>{formatFullDate(selectedItem.created_at || selectedItem.updated_at)}</time>{selectedUnread ? <b>Mới</b> : null}</div>
-                    <h2>{selectedItem.title}</h2>
-                    {selectedItem.due_at ? <div className="ttcm-reader-detail-due"><Icon name="calendar" size={18} /><div><span>Hạn xử lý</span><b>{formatFullDate(selectedItem.due_at)}</b></div><em>{dueLabel(selectedItem.due_at)}</em></div> : null}
-                    <div className="ttcm-reader-message">{selectedItem.description ? selectedItem.description : 'TTCM chưa nhập nội dung mô tả bổ sung cho thông báo này.'}</div>
+                    <article className="ttcm-reader-detail-card">
+                      <div className="ttcm-reader-detail-meta"><span className={`is-${selectedType?.id || 'announcement'}`}>{selectedType?.label || 'Thông báo'}</span><time>{formatFullDate(selectedItem.created_at || selectedItem.updated_at)}</time>{selectedUnread ? <b>Mới</b> : null}{selectedItem.due_at ? <em className={isOverdueItem(selectedItem) ? 'is-overdue' : ''}>{isOverdueItem(selectedItem) ? 'Hết hạn' : dueLabel(selectedItem.due_at)}</em> : null}</div>
+                      <h2>{selectedItem.title}</h2>
+                      <div className="ttcm-reader-message">{selectedItem.description ? selectedItem.description : 'TTCM chưa nhập nội dung mô tả bổ sung cho thông báo này.'}</div>
 
-                    {selectedAttachments.length ? (
-                      <section className="ttcm-reader-files">
-                        <header><div><strong>Tệp đính kèm</strong><small>{selectedAttachments.length} tệp</small></div><button type="button" onClick={() => downloadAllAttachments(selectedItem)}><Icon name="download" size={17} />Tải xuống tất cả</button></header>
-                        <div>
-                          {selectedAttachments.map((attachment, index) => {
-                            const ext = getWorkHubAttachmentExtension(attachment); const meta = [ext ? ext.toUpperCase() : 'FILE', formatFileSize(attachment.size)].filter(Boolean).join(' · ');
-                            return (
-                              <article key={`${attachment.path || attachment.name}-${index}`} className="ttcm-reader-file-row">
-                                <span className={`ttcm-reader-file-type is-${ext || 'file'}`}>{ext ? ext.slice(0, 4).toUpperCase() : 'FILE'}</span>
-                                <div><b>{attachment.name || `Tệp ${index + 1}`}</b><small>{meta}</small></div>
-                                <div className="ttcm-reader-file-actions">
-                                  <button type="button" onClick={() => previewAttachment(selectedItem, attachment)} title="Xem trước"><Icon name="eye" size={18} /></button>
-                                  {canManageSelected ? <button type="button" onClick={() => editAttachment(selectedItem, attachment)} title="Sửa trực tiếp"><Icon name="edit" size={18} /></button> : null}
-                                  <button type="button" onClick={() => downloadAttachment(selectedItem, attachment)} title="Tải về"><Icon name="download" size={18} /></button>
-                                </div>
-                              </article>
-                            );
-                          })}
-                        </div>
-                      </section>
-                    ) : null}
+                      {selectedAttachments.length ? (
+                        <section className="ttcm-reader-files">
+                          <header><div><strong>Tệp đính kèm ({selectedAttachments.length})</strong><small>Tài liệu gắn với nội dung này</small></div><button type="button" onClick={() => downloadAllAttachments(selectedItem)}><Icon name="download" size={17} />Tải tất cả</button></header>
+                          <div>
+                            {selectedAttachments.map((attachment, index) => {
+                              const ext = getWorkHubAttachmentExtension(attachment); const meta = [ext ? ext.toUpperCase() : 'FILE', formatFileSize(attachment.size)].filter(Boolean).join(' · ');
+                              return (
+                                <article key={`${attachment.path || attachment.name}-${index}`} className="ttcm-reader-file-row">
+                                  <span className={`ttcm-reader-file-type is-${ext || 'file'}`}>{ext ? ext.slice(0, 4).toUpperCase() : 'FILE'}</span>
+                                  <div><b>{attachment.name || `Tệp ${index + 1}`}</b><small>{meta}</small></div>
+                                  <div className="ttcm-reader-file-actions">
+                                    <button type="button" onClick={() => previewAttachment(selectedItem, attachment)} title="Xem trước"><Icon name="eye" size={18} /></button>
+                                    {canManageSelected ? <button type="button" onClick={() => editAttachment(selectedItem, attachment)} title="Sửa trực tiếp"><Icon name="edit" size={18} /></button> : null}
+                                    <button type="button" onClick={() => downloadAttachment(selectedItem, attachment)} title="Tải về"><Icon name="download" size={18} /></button>
+                                  </div>
+                                </article>
+                              );
+                            })}
+                          </div>
+                        </section>
+                      ) : null}
+
+                      {responsesForItem(selectedItem.id).length ? (
+                        <section className="ttcm-reader-response-preview">
+                          <header><div><Icon name="people" size={18} /><strong>Phản hồi ({responsesForItem(selectedItem.id).length})</strong></div><button type="button" onClick={() => { setResponseViewerItem(selectedItem); loadResponses(); }}>Xem tất cả →</button></header>
+                          <div>{responsesForItem(selectedItem.id).slice(0, 2).map((entry) => { const author = responseAuthor(entry.author_id); const initials = author.trim().split(/\s+/).slice(-2).map((part) => part[0] || '').join('').toUpperCase(); return <article key={entry.id || `${entry.author_id}:${entry.created_at}`}><span>{initials || 'GV'}</span><div><b>{author}</b><p>{entry.body || 'Đã phản hồi nội dung này.'}</p></div><time>{formatFullDate(entry.created_at)}</time></article>; })}</div>
+                        </section>
+                      ) : null}
+                    </article>
                   </div>
                   <footer className="ttcm-reader-detail-footer">
-                    {selectedAttachments.length ? <button type="button" className="ttcm-reader-secondary" onClick={() => previewAttachment(selectedItem, selectedAttachments[0])}><Icon name="eye" size={18} />Xem tệp</button> : <span />}
+                    <span className="ttcm-reader-footer-spacer" />
                     {canActOnSelected ? (
                       <div className={manager ? 'ttcm-reader-manager-footer' : undefined}>
                         {manager && canManageSelected ? <button type="button" className="ttcm-reader-secondary" onClick={() => { setResponseViewerItem(selectedItem); loadResponses(); }}><Icon name="people" size={18} />Phản hồi ({responsesForItem(selectedItem.id).length})</button> : null}
                         {selectedType?.id === 'acknowledgement'
                           ? <button type="button" className="ttcm-reader-primary" disabled={busy} onClick={() => acknowledge(selectedItem)}><Icon name="check" size={18} />Xác nhận đã nhận</button>
-                          : <button type="button" className="ttcm-reader-primary" onClick={() => beginResponse(selectedItem)}>{selectedType?.id === 'feedback' ? 'Gửi góp ý' : 'Phản hồi / hoàn thành'}<Icon name="arrow" size={18} /></button>}
+                          : <button type="button" className="ttcm-reader-primary" onClick={() => beginResponse(selectedItem)}><Icon name="arrow" size={18} />{selectedType?.id === 'feedback' ? 'Gửi góp ý' : 'Phản hồi / hoàn thành'}</button>}
                         {manager && canManageSelected ? <button type="button" className="ttcm-reader-secondary" onClick={() => beginEdit(selectedItem)}><Icon name="edit" size={18} />Chỉnh sửa</button> : null}
                       </div>
                     ) : canManageSelected ? (
@@ -722,7 +741,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
                     )}
                   </footer>
                 </>
-              ) : <div className="ttcm-reader-detail-empty"><span><Icon name="campaign" size={32} /></span><strong>Chọn một thông báo để đọc</strong><p>Nội dung đầy đủ, thời hạn và tệp đính kèm sẽ hiển thị tại đây.</p></div>}
+              ) : <div className="ttcm-reader-detail-empty"><span><Icon name="campaign" size={32} /></span><strong>Chọn một thông báo để đọc</strong><p>Nội dung, tệp đính kèm và phản hồi sẽ hiển thị tại đây.</p></div>}
             </section>
           </main>
         ) : workspaceView === 'schedule' ? <main className="ttcm-m3-schedule-view"><div className="ttcm-m3-schedule-host v1093-work-hub" data-ttcm-schedule-host="true" /><GlobalWorkScheduleCompatibleCenter currentUser={currentUser} language={language} route="ttcm" embedded mountSelector='[data-ttcm-schedule-host="true"]' /></main>
