@@ -48,6 +48,285 @@ export function gradeRoundScore(round, studentId, studentIds = null) {
   return Math.round(Math.min(10, average + bonus) * 100) / 100;
 }
 
+export function gradeSemesterAverage(semester, studentId, studentIds = null) {
+  const regularScores = (semester?.regular || [])
+    .map((round) => gradeRoundScore(round, studentId, studentIds))
+    .filter((value) => value != null);
+  const midterm = gradeScoreNumber(semester?.midterm?.scores?.[studentId]);
+  const final = gradeScoreNumber(semester?.final?.scores?.[studentId]);
+
+  let weightedTotal = regularScores.reduce((sum, value) => sum + value, 0);
+  let weight = regularScores.length;
+  if (midterm != null) {
+    weightedTotal += midterm * 2;
+    weight += 2;
+  }
+  if (final != null) {
+    weightedTotal += final * 3;
+    weight += 3;
+  }
+  if (!weight) return null;
+  return Math.round((weightedTotal / weight) * 10) / 10;
+}
+
+function gradeSemesterBand(value) {
+  if (value == null || !Number.isFinite(value)) return '';
+  if (value >= 8) return 'Tốt';
+  if (value >= 6.5) return 'Khá';
+  if (value >= 5) return 'Đạt';
+  return 'Chưa Đạt';
+}
+
+function semesterNumber(semesterId) {
+  return String(semesterId || '').toLowerCase().includes('2') ? 2 : 1;
+}
+
+function normalizedAscii(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D');
+}
+
+function officialSubjectLabel(subjectName) {
+  const normalized = normalizedAscii(subjectName).trim().toLowerCase();
+  if (normalized.includes('tieng anh') || normalized.includes('english') || normalized.includes('ngoai ngu')) {
+    return 'NGOẠI NGỮ';
+  }
+  return String(subjectName || 'Môn học').trim().toLocaleUpperCase('vi-VN');
+}
+
+function officialSubjectFilePart(subjectName) {
+  const label = officialSubjectLabel(subjectName);
+  if (label === 'NGOẠI NGỮ') return 'ngoai_ngu';
+  return normalizedAscii(label)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '') || 'mon_hoc';
+}
+
+function officialClassFilePart(className) {
+  return normalizedAscii(className)
+    .replace(/[^a-zA-Z0-9.]+/g, '_')
+    .replace(/^_+|_+$/g, '') || 'lop';
+}
+
+function gradeLevel(profile, className) {
+  const configured = String(profile?.grade || '').trim();
+  if (configured) return configured.replace(/^Khối\s*/i, '').trim();
+  const match = String(className || '').match(/\d{1,2}/);
+  return match?.[0] || '';
+}
+
+function splitStudentName(fullName) {
+  const parts = String(fullName || '').trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return ['', ''];
+  if (parts.length === 1) return ['', parts[0]];
+  return [parts.slice(0, -1).join(' '), parts.at(-1)];
+}
+
+function studentBirthDate(student) {
+  const value = student?.dateOfBirth
+    || student?.birthDate
+    || student?.birthdate
+    || student?.birthday
+    || student?.dob
+    || student?.ngaySinh
+    || '';
+  if (!value) return '';
+  const text = String(value).trim();
+  const iso = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  return iso ? `${iso[3]}/${iso[2]}/${iso[1]}` : text;
+}
+
+function studentRemark(student) {
+  return String(student?.gradeRemark || student?.remark || student?.comment || '').trim();
+}
+
+function percentageText(count, total) {
+  if (!total || !count) return '0%';
+  const percentage = Math.round((count / total) * 1000) / 10;
+  return `${Number.isInteger(percentage) ? percentage : percentage.toFixed(1)}%`;
+}
+
+function twoDigitCount(value) {
+  return String(Math.max(0, Number(value) || 0)).padStart(2, '0');
+}
+
+function officialScoreCell(value) {
+  return xlsxCell(value == null ? '' : value, 'score', value == null ? undefined : 'number');
+}
+
+export function buildOfficialClassGradebookWorkbook({
+  workspace,
+  students,
+  subjectName,
+  semesterId,
+  semester,
+  currentUser,
+}) {
+  const profile = workspace?.classProfile || {};
+  const activeStudents = (Array.isArray(students) ? students : (workspace?.students || []))
+    .filter((student) => student?.active !== false);
+  const studentIds = activeStudents.map((student) => student.id).filter(Boolean);
+  const className = String(profile.className || 'Chưa thiết lập').trim() || 'Chưa thiết lập';
+  const schoolYear = String(profile.schoolYear || '').trim() || '—';
+  const grade = gradeLevel(profile, className);
+  const termNumber = semesterNumber(semesterId);
+  const officialSubject = officialSubjectLabel(subjectName);
+  const subjectPart = officialSubjectFilePart(subjectName);
+  const classPart = officialClassFilePart(className);
+  const adviserName = profile.adviserName || currentUser?.name || currentUser?.email || 'Giáo viên';
+
+  const studentRows = activeStudents.map((student, index) => {
+    const [familyName, givenName] = splitStudentName(student.fullName || '');
+    const tx = Array.from({ length: 4 }, (_, roundIndex) => (
+      gradeRoundScore(semester?.regular?.[roundIndex], student.id, studentIds)
+    ));
+    const midterm = gradeScoreNumber(semester?.midterm?.scores?.[student.id]);
+    const final = gradeScoreNumber(semester?.final?.scores?.[student.id]);
+    const average = gradeSemesterAverage(semester, student.id, studentIds);
+    return [
+      xlsxCell(index + 1, 'centered'),
+      xlsxCell(String(student.code || ''), 'centered', 'text'),
+      xlsxCell(familyName, 'text'),
+      xlsxCell(givenName, 'text'),
+      xlsxCell(studentBirthDate(student), 'centered', 'text'),
+      ...tx.map(officialScoreCell),
+      officialScoreCell(midterm),
+      officialScoreCell(final),
+      officialScoreCell(average),
+      xlsxCell(studentRemark(student), 'text'),
+    ];
+  });
+
+  const averages = activeStudents
+    .map((student) => gradeSemesterAverage(semester, student.id, studentIds))
+    .filter((value) => value != null);
+  const bandCounts = {
+    Tốt: 0,
+    Khá: 0,
+    Đạt: 0,
+    'Chưa Đạt': 0,
+  };
+  averages.forEach((value) => {
+    const band = gradeSemesterBand(value);
+    if (band) bandCounts[band] += 1;
+  });
+  const gradedCount = averages.length;
+  const statistics = [
+    ['Tốt', bandCounts.Tốt],
+    ['Khá', bandCounts.Khá],
+    ['Đạt', bandCounts.Đạt],
+    ['Chưa Đạt', bandCounts['Chưa Đạt']],
+  ];
+
+  const rows = [
+    [xlsxCell('SỞ GIÁO DỤC VÀ ĐÀO TẠO TP. HỒ CHÍ MINH', 'subtitle')],
+    [xlsxCell('TRƯỜNG TRUNG - TIỂU HỌC PÉTRUS KÝ', 'subtitle')],
+    [xlsxCell(`BẢNG ĐIỂM CHI TIẾT - MÔN ${officialSubject} - HỌC KỲ ${termNumber} - NĂM HỌC ${schoolYear}`, 'subtitle')],
+    [xlsxCell(`${grade ? `Khối ${grade} - ` : ''}Lớp ${className}`, 'subtitle')],
+    [],
+    [
+      xlsxCell('STT', 'header'),
+      xlsxCell('Mã học sinh', 'header'),
+      xlsxCell('Họ và tên', 'header'),
+      xlsxCell('', 'header'),
+      xlsxCell('Ngày sinh', 'header'),
+      xlsxCell('ĐĐGtx', 'header'),
+      xlsxCell('', 'header'),
+      xlsxCell('', 'header'),
+      xlsxCell('', 'header'),
+      xlsxCell('ĐĐGgk', 'header'),
+      xlsxCell('ĐĐGck', 'header'),
+      xlsxCell('ĐTB \nmhk', 'header'),
+      xlsxCell('Nhận xét', 'header'),
+    ],
+    [
+      xlsxCell('', 'header'),
+      xlsxCell('', 'header'),
+      xlsxCell('', 'header'),
+      xlsxCell('', 'header'),
+      xlsxCell('', 'header'),
+      xlsxCell('TX1', 'header'),
+      xlsxCell('TX2', 'header'),
+      xlsxCell('TX3', 'header'),
+      xlsxCell('TX4', 'header'),
+      xlsxCell('GK1', 'header'),
+      xlsxCell('CK1', 'header'),
+      xlsxCell('', 'header'),
+      xlsxCell('', 'header'),
+    ],
+    ...studentRows,
+  ];
+
+  const statisticsTitleRow = rows.length + 1;
+  rows.push(
+    [xlsxCell(`THỐNG KÊ HỌC KỲ ${termNumber}`, 'section')],
+    [],
+  );
+  const statisticsStartRow = rows.length + 1;
+  statistics.forEach(([label, count], index) => {
+    rows.push([
+      xlsxCell(index === 0 ? 'Số học sinh đạt' : index === 1 ? 'Số lượng - Tỉ lệ (%)' : '', index <= 1 ? 'metaLabel' : 'plain'),
+      xlsxCell('', 'plain'),
+      xlsxCell('', 'plain'),
+      xlsxCell(label, index === 3 ? 'text' : 'metaLabel'),
+      xlsxCell('', 'plain'),
+      xlsxCell(twoDigitCount(count), 'centered', 'text'),
+      xlsxCell('', 'plain'),
+      xlsxCell('-', 'centered', 'text'),
+      xlsxCell(percentageText(count, gradedCount), 'centered', 'text'),
+      xlsxCell('', 'plain'),
+    ]);
+  });
+
+  const merges = [
+    'A1:L1',
+    'A2:L2',
+    'A3:L3',
+    'A4:J4',
+    'A6:A7',
+    'B6:B7',
+    'C6:D7',
+    'E6:E7',
+    'F6:I6',
+    'J6:J7',
+    'K6:K7',
+    'L6:L7',
+    'M6:M7',
+    `A${statisticsTitleRow}:J${statisticsTitleRow + 1}`,
+    `A${statisticsStartRow}:C${statisticsStartRow}`,
+    `D${statisticsStartRow}:E${statisticsStartRow}`,
+    `F${statisticsStartRow}:G${statisticsStartRow}`,
+    `I${statisticsStartRow}:J${statisticsStartRow}`,
+    `A${statisticsStartRow + 1}:C${statisticsStartRow + 1}`,
+    `D${statisticsStartRow + 1}:E${statisticsStartRow + 1}`,
+    `F${statisticsStartRow + 1}:G${statisticsStartRow + 1}`,
+    `I${statisticsStartRow + 1}:J${statisticsStartRow + 1}`,
+    `D${statisticsStartRow + 2}:E${statisticsStartRow + 2}`,
+    `F${statisticsStartRow + 2}:G${statisticsStartRow + 2}`,
+    `I${statisticsStartRow + 2}:J${statisticsStartRow + 2}`,
+    `D${statisticsStartRow + 3}:E${statisticsStartRow + 3}`,
+    `F${statisticsStartRow + 3}:G${statisticsStartRow + 3}`,
+    `I${statisticsStartRow + 3}:J${statisticsStartRow + 3}`,
+  ];
+
+  return {
+    fileName: `so_diem_chi_tiet_lop_${classPart}_mon_${subjectPart}.xlsx`,
+    creator: adviserName,
+    sheets: [{
+      name: `${subjectPart}_${className}`.slice(0, 31),
+      rows,
+      merges,
+      columnWidths: [5, 5.86, 22, 7, 10.14, 6.43, 6.43, 6.43, 6.43, 6.43, 6.43, 6, 9.14],
+      rowHeights: [17.25, 17.25, 20, 12.75, 12.75, 30, 12.75, ...activeStudents.map(() => 12.75), 12.75, 12.75, 12.75, 12.75, 12.75, 12.75],
+      landscape: true,
+    }],
+  };
+}
+
 export function buildGradeExportColumns(semester) {
   const regular = (semester?.regular || []).flatMap((round, roundIndex) => {
     const roundNumber = roundIndex + 1;
@@ -307,7 +586,7 @@ export function buildStudentGradeReportWorkbook({
 }
 
 export async function exportClassGradebookXlsx(input) {
-  return downloadXlsx(buildClassGradebookWorkbook(input));
+  return downloadXlsx(buildOfficialClassGradebookWorkbook(input));
 }
 
 export async function exportStudentGradeReportXlsx(input) {
