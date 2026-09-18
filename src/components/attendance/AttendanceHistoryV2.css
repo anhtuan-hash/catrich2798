@@ -3368,3 +3368,117 @@ body .attendance-shell:has(.ahv3__shell[data-attendance-history-timeline="true"]
     grid-template-columns: minmax(0, 1fr) auto !important;
   }
 }
+
+
+/* Timeline regression hardening: one filter toolbar, stable detail scroll, compact post-confirm editor. */
+.ahv3__shell[data-attendance-history-timeline="true"] .ahv3__detail {
+  overflow-anchor: none !important;
+}
+
+.ahv3__shell[data-attendance-history-timeline="true"] .ah-mockup-filterbar,
+.ahv3__shell[data-attendance-history-timeline="true"] .ahv3__filters,
+.ahv3__shell[data-attendance-history-timeline="true"] .ahv3__date-filters {
+  display: none !important;
+}
+
+.ahv3__shell[data-attendance-history-timeline="true"] .bes-post-confirm-edit-card {
+  overflow-anchor: none;
+  margin: 10px 14px 8px !important;
+}
+
+.ahv3__shell[data-attendance-history-timeline="true"] .bes-post-confirm-edit-card.is-open {
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  grid-template-areas:
+    "copy summary"
+    "action action";
+  align-items: center !important;
+  gap: 10px 12px !important;
+  padding: 12px 14px !important;
+}
+
+.ahv3__shell[data-attendance-history-timeline="true"] .bes-post-confirm-edit-card.is-locked {
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  grid-template-areas:
+    "copy summary"
+    "action action";
+  align-items: center !important;
+  gap: 10px 12px !important;
+  padding: 12px 14px !important;
+}
+
+.ahv3__shell[data-attendance-history-timeline="true"] .bes-post-confirm-card-copy {
+  grid-area: copy;
+  min-width: 0 !important;
+  align-items: flex-start !important;
+}
+
+.ahv3__shell[data-attendance-history-timeline="true"] .bes-post-confirm-card-copy > div {
+  min-width: 0 !important;
+}
+
+.ahv3__shell[data-attendance-history-timeline="true"] .bes-post-confirm-card-copy strong {
+  display: block;
+  font-size: 11px !important;
+  line-height: 1.3 !important;
+}
+
+.ahv3__shell[data-attendance-history-timeline="true"] .bes-post-confirm-card-copy p,
+.ahv3__shell[data-attendance-history-timeline="true"] .bes-post-confirm-card-copy small {
+  font-size: 8.5px !important;
+  line-height: 1.45 !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+
+.ahv3__shell[data-attendance-history-timeline="true"] .bes-post-confirm-card-summary {
+  grid-area: summary;
+  min-width: 84px !important;
+  padding: 7px 9px !important;
+}
+
+.ahv3__shell[data-attendance-history-timeline="true"] .bes-post-confirm-card-action {
+  grid-area: action;
+  grid-column: 1 / -1;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  min-width: 0;
+}
+
+.ahv3__shell[data-attendance-history-timeline="true"] .bes-post-confirm-card-action strong {
+  min-width: 0;
+  white-space: normal !important;
+  font-size: 9px !important;
+}
+
+.ahv3__shell[data-attendance-history-timeline="true"] .bes-post-confirm-card-action button {
+  flex: 0 0 auto;
+  min-height: 32px;
+  padding: 8px 11px !important;
+  font-size: 9px !important;
+}
+
+@media (max-width: 760px) {
+  .ahv3__shell[data-attendance-history-timeline="true"] .bes-post-confirm-edit-card.is-open,
+  .ahv3__shell[data-attendance-history-timeline="true"] .bes-post-confirm-edit-card.is-locked {
+    grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "copy"
+      "summary"
+      "action";
+  }
+
+  .ahv3__shell[data-attendance-history-timeline="true"] .bes-post-confirm-card-summary {
+    justify-self: start;
+  }
+
+  .ahv3__shell[data-attendance-history-timeline="true"] .bes-post-confirm-card-action {
+    align-items: stretch !important;
+    flex-direction: column;
+  }
+
+  .ahv3__shell[data-attendance-history-timeline="true"] .bes-post-confirm-card-action button {
+    width: 100%;
+  }
+}
