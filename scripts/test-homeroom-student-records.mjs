@@ -150,3 +150,11 @@ assert.match(component,/Danh sách học sinh/);
 assert.match(component,/Thông tin ưu tiên theo kế hoạch nhà trường/);
 assert.match(component,/Thông tin bổ sung/);
 assert.match(component,/Đối chiếu dữ liệu đa nguồn/);
+
+assert.match(component,/sr-compare-dashboard-mock/);
+assert.match(component,/Đối chiếu dữ liệu đa nguồn/);
+assert.match(component,/Thông tin ưu tiên theo kế hoạch nhà trường/);
+assert.match(component,/Định danh & mã số/);
+assert.match(component,/Cha mẹ \/ gia đình/);
+assert.match(component,/sr-students-foot/);
+assert.match(component,/Nhập Excel cả lớp/);
