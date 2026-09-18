@@ -118,6 +118,18 @@ for (const required of [
 }
 assert.match(bootstrapSource, /hasAttendanceTabAccess\(currentProfile\(\), 'report'\)/, 'Report permission must bypass expiry in the client UI');
 assert.match(bootstrapSource, /setInterval\([\s\S]*1000/, 'Countdown must refresh while the dialog is open');
+assert.match(bootstrapSource, /function tickPostConfirmAccess\(/, 'Countdown refresh must use a lightweight access tick');
+assert.doesNotMatch(
+  bootstrapSource,
+  /setInterval\(\(\) => \{[\s\S]*?queueRender\(\)[\s\S]*?\},\s*1000\)/,
+  'The one-second timer must not rebuild the full post-confirm editor DOM',
+);
+assert.match(bootstrapSource, /restoreHistoryScroll\(/, 'History scroll position must survive required editor re-renders');
+assert.match(
+  postConfirmCssSource,
+  /\.bes-history-post-confirm-bridge \.bes-post-confirm-students\s*\{[\s\S]*?max-height:\s*none[\s\S]*?overflow:\s*visible/,
+  'History post-confirm editor must avoid a nested student-list scrollbar',
+);
 assert.match(bootstrapSource, /attendance-top-actions[\s\S]*Làm mới|title="Làm mới"|\[title="Làm mới"\]/, 'Saving an adjustment must refresh the React attendance view');
 assert.match(
   bootstrapSource,

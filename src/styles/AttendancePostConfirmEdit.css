@@ -485,3 +485,23 @@
     order: 99;
   }
 }
+
+
+/* Smooth post-confirm editing inside History.
+   History owns the only vertical scrollbar; the student list must not create a
+   nested scroller, and browser scroll anchoring must not fight editor reflows. */
+.ahv3__shell .ahv3__detail:has(> .bes-history-post-confirm-bridge) {
+  overflow-anchor: none;
+}
+
+.ahv3__shell .bes-history-post-confirm-bridge,
+.ahv3__shell .bes-history-post-confirm-bridge .bes-post-confirm-edit-card {
+  overflow-anchor: none;
+}
+
+.ahv3__shell .bes-history-post-confirm-bridge .bes-post-confirm-students {
+  max-height: none;
+  overflow: visible;
+  overscroll-behavior: auto;
+  scrollbar-gutter: auto;
+}

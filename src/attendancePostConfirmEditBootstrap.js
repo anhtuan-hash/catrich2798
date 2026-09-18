@@ -388,10 +388,18 @@ function ensureCard() {
   return card;
 }
 
+function restoreHistoryScroll(container, scrollTop) {
+  if (!container || !Number.isFinite(scrollTop)) return;
+  container.scrollTop = scrollTop;
+}
+
 function renderCard() {
   renderQueued = false;
   const card = ensureCard();
   if (!card) return;
+
+  const historyScrollContainer = card.closest('.ahv3__detail');
+  const historyScrollTop = historyScrollContainer?.scrollTop;
 
   const access = localAccess();
   if (!access.allowed && editing) editing = false;
@@ -414,17 +422,18 @@ function renderCard() {
       </div>
       <div class="bes-post-confirm-card-summary"><b>${summary.present}/${summary.total}</b><span>có mặt</span><em>${summary.late} đi trễ · ${summary.absent} vắng</em></div>
       <div class="bes-post-confirm-card-action">
-        <strong>${escapeHtml(accessHeading(access))}</strong>
+        <strong data-bes-post-confirm-access-heading="true">${escapeHtml(accessHeading(access))}</strong>
         ${access.allowed ? `<button type="button" data-action="open" ${loading ? 'disabled' : ''}>Điều chỉnh điểm danh</button>` : ''}
       </div>
       ${notice ? `<div class="bes-post-confirm-notice is-success">${escapeHtml(notice)}</div>` : ''}
       ${errorMessage && access.reason !== 'server_access_unavailable' ? `<div class="bes-post-confirm-notice is-error">${escapeHtml(errorMessage)}</div>` : ''}`;
+    restoreHistoryScroll(historyScrollContainer, historyScrollTop);
     return;
   }
 
   card.className = `${CARD_CLASS} is-editing`;
   card.innerHTML = `<header class="bes-post-confirm-editor-head">
-      <div><span aria-hidden="true">✎</span><div><strong>Điều chỉnh điểm danh</strong><p>${escapeHtml(accessHeading(access))} · chốt lúc ${escapeHtml(formatVietnamTime(activeSession.checked_at))}</p></div></div>
+      <div><span aria-hidden="true">✎</span><div><strong>Điều chỉnh điểm danh</strong><p data-bes-post-confirm-access-heading="true">${escapeHtml(accessHeading(access))} · chốt lúc ${escapeHtml(formatVietnamTime(activeSession.checked_at))}</p></div></div>
       <div class="bes-post-confirm-live-summary"><b>${summary.present}/${summary.total}</b><span>có mặt</span><em>${summary.absent} vắng</em></div>
     </header>
     <div class="bes-post-confirm-editor-note">Chọn đúng trạng thái <b>Có mặt</b>, <b>Đi trễ</b> hoặc <b>Vắng</b>. Đi trễ vẫn tính là có mặt; hệ thống lưu người sửa, thời gian và trạng thái trước/sau.</div>
@@ -434,6 +443,7 @@ function renderCard() {
       <div><button type="button" class="is-secondary" data-action="cancel" ${saving ? 'disabled' : ''}>Hủy điều chỉnh</button><button type="button" class="is-primary" data-action="save" ${saving ? 'disabled' : ''}>${saving ? 'Đang lưu…' : 'Lưu điều chỉnh'}</button></div>
     </footer>
     ${errorMessage ? `<div class="bes-post-confirm-notice is-error">${escapeHtml(errorMessage)}</div>` : ''}`;
+  restoreHistoryScroll(historyScrollContainer, historyScrollTop);
 }
 
 function queueRender() {
@@ -610,6 +620,26 @@ function onDocumentChange(event) {
   }
 }
 
+function tickPostConfirmAccess() {
+  if (!activeSession || activeSession.session_status !== 'completed') return;
+
+  const access = localAccess();
+  if (!access.allowed) {
+    if (editing) editing = false;
+    queueRender();
+    return;
+  }
+
+  const card = document.querySelector(`.${CARD_CLASS}`);
+  const heading = card?.querySelector('[data-bes-post-confirm-access-heading="true"]');
+  if (!heading) return;
+
+  const nextText = editing
+    ? `${accessHeading(access)} · chốt lúc ${formatVietnamTime(activeSession.checked_at)}`
+    : accessHeading(access);
+  if (heading.textContent !== nextText) heading.textContent = nextText;
+}
+
 function startObserver() {
   if (!document.body || observer) return;
   observer = new MutationObserver((mutations) => {
@@ -618,9 +648,7 @@ function startObserver() {
   });
   observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'value'] });
   document.addEventListener('change', onDocumentChange, true);
-  timer = window.setInterval(() => {
-    if (activeSession?.session_status === 'completed') queueRender();
-  }, 1000);
+  timer = window.setInterval(tickPostConfirmAccess, 1000);
   queueLoad(true);
 }
 
