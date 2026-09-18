@@ -1667,6 +1667,10 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                 <div className="ahv3__filters is-sync-only" aria-hidden="true">
                   <label><span>Loại lớp</span><select tabIndex={-1} value={historyType} onChange={(event) => setHistoryType(event.target.value)}><option value="all">Tất cả loại lớp</option><option value="remedial">Phụ đạo</option><option value="gifted">Bồi dưỡng HSG</option>{canSeeSupplementalHistory ? <option value="supplemental">Học bổ sung</option> : null}</select></label>
                 </div>
+                <div className="ahv3__date-filters" hidden aria-hidden="true" style={{ display: 'none' }}>
+                  <label><span>Từ ngày</span><input tabIndex={-1} type="date" value={historyDateFrom} readOnly /></label>
+                  <label><span>Đến ngày</span><input tabIndex={-1} type="date" value={historyDateTo} readOnly /></label>
+                </div>
               </header>
 
               <div className="ahv3__timeline-workspace">
