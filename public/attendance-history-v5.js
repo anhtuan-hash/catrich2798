@@ -115,6 +115,32 @@
     });
   }
 
+  function cleanupTimelineActivityFilters(shell, root) {
+    if (!shell || !root) return;
+
+    shell.querySelectorAll('.ah-mockup-filterbar').forEach((node) => node.remove());
+
+    const toolbar = root.querySelector('.ahv3__timeline-toolbar');
+    if (toolbar?.hasAttribute(DUPLICATE_ATTRIBUTE)) restoreNodeVisibility(toolbar);
+
+    root.querySelectorAll('.ahv3__filters, .ahv3__date-filters').forEach((node) => {
+      node.removeAttribute(DUPLICATE_ATTRIBUTE);
+      node.removeAttribute(TYPE_FILTER_ATTRIBUTE);
+      node.removeAttribute('data-ah-v6-visible-type-filter');
+      node.setAttribute('aria-hidden', 'true');
+      node.hidden = true;
+      node.style.setProperty('display', 'none', 'important');
+    });
+
+    root.querySelectorAll(`[${TYPE_FILTER_ATTRIBUTE}]`).forEach((node) => {
+      node.removeAttribute(TYPE_FILTER_ATTRIBUTE);
+      node.removeAttribute('data-ah-v6-visible-type-filter');
+      node.setAttribute('aria-hidden', 'true');
+      node.hidden = true;
+      node.style.setProperty('display', 'none', 'important');
+    });
+  }
+
   function hideDuplicateActivityFilters(shell) {
     if (!shell) return;
 
@@ -333,7 +359,7 @@
     });
     if (!root || !activeShell) return;
     if (root.matches('[data-attendance-history-timeline="true"]')) {
-      restoreDuplicateActivityFilters(activeShell);
+      cleanupTimelineActivityFilters(activeShell, root);
       removeMobileDetailControls(root);
       activeShell.classList.remove('ah-history-v5');
       return;
