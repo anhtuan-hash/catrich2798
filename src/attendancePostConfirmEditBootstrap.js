@@ -107,7 +107,7 @@ function selectedContext() {
   if (!rollcall) return null;
   const className = text(rollcall.querySelector('.attendance-rollcall-head h2')?.textContent).trim();
   const attendanceDate = text(rollcall.querySelector('.attendance-session-controls input[type="date"]')?.value).trim();
-  const selectedButton = document.querySelector('.attendance-class-list button.is-selected');
+  const selectedButton = rollcall.querySelector('.attendance-class-list button.is-selected');
   const classId = text(
     selectedButton?.dataset?.besAttendanceClassId
       || selectedButton?.getAttribute?.('data-bes-attendance-class-id'),

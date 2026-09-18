@@ -135,6 +135,11 @@
       if (!activeShell || shell !== activeShell) shell.classList.remove('ah-history-pixel-v6');
     });
     if (!root || !activeShell) return;
+    if (root.matches('[data-attendance-history-timeline="true"]')) {
+      activeShell.classList.remove('ah-history-v5', 'ah-history-pixel-v6');
+      root.querySelectorAll(`[${META_ATTRIBUTE}], [${ART_ATTRIBUTE}]`).forEach((node) => node.remove());
+      return;
+    }
 
     activeShell.classList.add('ah-history-v5', 'ah-history-pixel-v6');
     restoreMockupTypeFilter(root);

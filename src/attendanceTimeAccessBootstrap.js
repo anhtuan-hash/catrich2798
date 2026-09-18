@@ -103,12 +103,16 @@ function classByName(name) {
   return classes.find((row) => lower(row.class_name) === normalized && row.active !== false) || null;
 }
 
+function activeRollcall() {
+  return document.querySelector('.attendance-rollcall:not([data-bes-history-post-confirm-bridge])');
+}
+
 function selectedTeacherValue() {
-  return String(document.querySelector('.attendance-session-controls label.is-teacher select')?.value || '').trim();
+  return String(activeRollcall()?.querySelector('.attendance-session-controls label.is-teacher select')?.value || '').trim();
 }
 
 function selectedClassRow() {
-  return classByName(document.querySelector('.attendance-rollcall-head h2')?.textContent || '');
+  return classByName(activeRollcall()?.querySelector('.attendance-rollcall-head h2')?.textContent || '');
 }
 
 function evaluateClass() {
@@ -167,7 +171,7 @@ function setTimeLocked(node, locked) {
 }
 
 function releaseTeacherOptionGuard() {
-  const select = document.querySelector('.attendance-session-controls label.is-teacher select');
+  const select = activeRollcall()?.querySelector('.attendance-session-controls label.is-teacher select');
   if (!select) return;
   Array.from(select.options || []).forEach((option) => {
     if (!option.hasAttribute('data-bes-teacher-option-lock')) return;
@@ -179,7 +183,7 @@ function releaseTeacherOptionGuard() {
 }
 
 function lockRollcallControls(locked) {
-  const rollcall = document.querySelector('.attendance-rollcall');
+  const rollcall = activeRollcall();
   if (!rollcall) return;
   const selector = [
     '.attendance-session-controls select',
@@ -199,8 +203,8 @@ function lockRollcallControls(locked) {
 }
 
 function ensureStatusBanner(result, classRow) {
-  const controls = document.querySelector('.attendance-session-controls');
-  const rollcall = document.querySelector('.attendance-rollcall');
+  const rollcall = activeRollcall();
+  const controls = rollcall?.querySelector('.attendance-session-controls');
   if (!controls || !rollcall || !classRow) {
     document.querySelector('.bes-attendance-access-status')?.remove();
     return;

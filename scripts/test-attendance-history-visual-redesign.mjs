@@ -8,6 +8,11 @@ const css = read('src/components/attendance/AttendanceHistoryV2.css');
 const legacyCss = read('public/attendance-ui-polish.css');
 const stripJs = read('public/bes-remove-visible-search-bars.js');
 const indexHtml = read('index.html');
+const legacyMockupRuntime = read('public/attendance-history-mockup-v4.js');
+const legacyV5Runtime = read('public/attendance-history-v5.js');
+const legacyV6Runtime = read('public/attendance-history-pixel-v6.js');
+const historyPostConfirmBridge = read('src/attendanceHistoryPostConfirmBridge.js');
+const attendanceTimeAccess = read('src/attendanceTimeAccessBootstrap.js');
 
 assert.match(component, /import ['"]\.\/attendance\/AttendanceHistoryV2\.css['"];/, 'History stylesheet must stay explicitly loaded');
 assert.match(component, /className="ahv3__shell"[^>]*data-attendance-history-v3="true"/, 'History must render from the isolated ahv3 root');
@@ -115,5 +120,19 @@ assert.match(css, /\.ahv3__detail-dashboard\s*\{[\s\S]*background:\s*linear-grad
 assert.match(css, /\.ahv3__student-strip\s*\{[\s\S]*display:\s*grid/, 'Student preview must use a stable grid');
 assert.match(css, /\.ahv3__session-log\s*\{[\s\S]*position:\s*relative/, 'Session activity log must own its timeline positioning');
 assert.match(css, /:has\(\.ahv3__shell\[data-attendance-history-timeline="true"\]\) \.ah-mockup-filterbar\s*\{[\s\S]*display:\s*none\s*!important/, 'Legacy injected activity filterbar must be hidden for the new React timeline workspace');
+
+
+// New timeline must be isolated from the retired V4/V5/V6 DOM mutators.
+for (const [name, source] of [
+  ['V4 mockup runtime', legacyMockupRuntime],
+  ['V5 runtime', legacyV5Runtime],
+  ['V6 pixel runtime', legacyV6Runtime],
+]) {
+  assert.match(source, /data-attendance-history-timeline/, `${name} must explicitly detect the React timeline root`);
+  assert.match(source, /classList\.remove\([^)]*ah-history/, `${name} must remove its legacy shell class when the timeline root is active`);
+}
+assert.match(historyPostConfirmBridge, /data-bes-history-post-confirm-bridge/, 'History post-confirm bridge must keep an explicit compatibility marker');
+assert.match(attendanceTimeAccess, /:not\(\[data-bes-history-post-confirm-bridge\]\)/, 'Time-access runtime must ignore the hidden History compatibility rollcall');
+assert.doesNotMatch(attendanceTimeAccess, /document\.querySelector\('\.attendance-rollcall'\)/, 'Time-access runtime must not bind to the first generic rollcall because History owns a hidden bridge');
 
 console.log('Attendance History V3 approved mockup contract OK');
