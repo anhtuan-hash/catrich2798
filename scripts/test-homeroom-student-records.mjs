@@ -1,0 +1,20 @@
+
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+const workspace = await readFile(new URL('../src/pages/HomeroomWorkspace.jsx', import.meta.url), 'utf8');
+const data = await readFile(new URL('../src/data/homeroom.js', import.meta.url), 'utf8');
+const component = await readFile(new URL('../src/components/homeroom/StudentRecordsTab.jsx', import.meta.url), 'utf8');
+const scanner = await readFile(new URL('../src/utils/studentRecordScanner.js', import.meta.url), 'utf8');
+const store = await readFile(new URL('../src/utils/homeroomStore.js', import.meta.url), 'utf8');
+assert.match(data,/key: 'studentRecords'.*Hồ sơ học sinh/);
+assert.match(workspace,/<StudentRecordsTab workspace=\{workspace\} onCommit=\{commit\} currentUser=\{currentUser\}/);
+assert.match(store,/studentRecords:\s*\{\}/);
+assert.match(component,/Quét hồ sơ thông minh/);
+assert.match(component,/Quét màn hình/);
+assert.match(component,/Đối chiếu 3 nguồn/);
+assert.match(component,/Xuất biên bản/);
+assert.match(component,/saveStudentRecordMedia/);
+assert.match(scanner,/TextDetector/);
+assert.match(scanner,/Tesseract\.js|tesseract\.js/);
+assert.match(scanner,/vie\+eng/);
+console.log('PASS: homeroom student-records app integrated.');

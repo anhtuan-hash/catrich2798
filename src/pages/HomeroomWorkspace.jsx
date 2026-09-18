@@ -9,6 +9,7 @@ import HomeroomClassProfileEditor from '../components/homeroom/HomeroomClassProf
 import SubjectStudentsTab from '../components/homeroom/SubjectStudentsTab.jsx';
 import HomeroomNavigationPalette from '../components/homeroom/HomeroomNavigationPalette.jsx';
 import HomeroomGlassHero from '../components/homeroom/HomeroomGlassHero.jsx';
+import StudentRecordsTab from '../components/homeroom/StudentRecordsTab.jsx';
 import {
   ClassLifecycleTab,
   DataSafetyTab,
@@ -384,6 +385,7 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
       {visibleTab === 'overview' ? <HomeroomOverviewCompactTab workspace={workspace} goTab={setActiveTab} /> : null}
       {visibleTab === 'classes' ? <ClassLifecycleTab workspace={workspace} catalog={catalog} currentId={workspaceId} onSwitch={switchWorkspace} onCreate={createWorkspace} onDuplicate={duplicateWorkspace} onStatusChange={changeWorkspaceStatus} currentUser={currentUser} /> : null}
       {visibleTab === 'students' ? (subjectMode ? <SubjectStudentsTab workspace={workspace} onCommit={commit} /> : <StudentsTab workspace={workspace} onCommit={commit} />) : null}
+      {visibleTab === 'studentRecords' ? <StudentRecordsTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
       {visibleTab === 'attendance' ? <AttendanceTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
       {visibleTab === 'conduct' ? <HomeroomConductTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
       {visibleTab === 'safety' ? <DataSafetyTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}

@@ -32,6 +32,7 @@ export const HOMEROOM_TABS = [
   { key: 'overview', icon: '▦', titleVi: 'Tổng quan', title: 'Overview' },
   { key: 'classes', icon: '▥', titleVi: 'Lớp & năm học', title: 'Classes & years' },
   { key: 'students', icon: '♙', titleVi: 'Học sinh', title: 'Students' },
+  { key: 'studentRecords', icon: '▤', titleVi: 'Hồ sơ học sinh', title: 'Student records' },
   { key: 'attendance', icon: '✓', titleVi: 'Điểm danh', title: 'Attendance' },
   { key: 'conduct', icon: '100', titleVi: 'Rèn luyện', title: 'Conduct' },
   { key: 'safety', icon: '⌾', titleVi: 'An toàn dữ liệu', title: 'Data safety' },
