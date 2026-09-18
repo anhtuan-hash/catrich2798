@@ -115,6 +115,41 @@ function formatDateTime(value) {
   }).format(date);
 }
 
+function historyDateValue(value) {
+  const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) return null;
+  return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12, 0, 0);
+}
+
+function historyMonthLabel(value) {
+  const date = historyDateValue(value);
+  return date ? `Tháng ${date.getMonth() + 1}/${date.getFullYear()}` : 'Khác';
+}
+
+function historyDayLabel(value) {
+  const date = historyDateValue(value);
+  if (!date) return { dayMonth: '--/--', weekday: '' };
+  const weekday = ['CN', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'][date.getDay()];
+  return {
+    dayMonth: `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}`,
+    weekday,
+  };
+}
+
+function historyTimeParts(value) {
+  const text = String(value || '').trim();
+  if (!text) return { start: '—', end: '—' };
+  const normalized = text.replace(/h/g, ':').replace(/\s+/g, ' ');
+  const parts = normalized.split(/\s*(?:đến|–|—|-)\s*/i).filter(Boolean);
+  return { start: parts[0] || '—', end: parts[1] || '—' };
+}
+
+function historyInitials(value) {
+  const words = String(value || '').trim().split(/\s+/).filter(Boolean);
+  if (!words.length) return 'HS';
+  return words.slice(-2).map((word) => word[0]?.toUpperCase() || '').join('');
+}
+
 function sameClassIdentity(row, group) {
   return row?.class_type === group?.class_type
     && fold(row?.class_name) === fold(group?.class_name)
