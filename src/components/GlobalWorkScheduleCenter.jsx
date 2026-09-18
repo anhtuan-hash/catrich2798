@@ -207,6 +207,22 @@ function addWeeks(value, amount) {
   return date;
 }
 
+function addDays(value, amount) {
+  const date = new Date(value);
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + amount);
+  return date;
+}
+
+function formatDailyHeading(value, language) {
+  const locale = language === 'vi' ? 'vi-VN' : 'en-US';
+  const weekday = language === 'vi'
+    ? timelineWeekday(value, language)
+    : new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(value);
+  const date = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(value);
+  return `${weekday}  •  ${date}`;
+}
+
 function weekCells(cursor) {
   const monday = startOfWeek(cursor);
   return Array.from({ length: 7 }, (_, index) => {
@@ -376,6 +392,11 @@ export default function GlobalWorkScheduleCenter({
   const [profiles, setProfiles] = useState(readCachedProfiles);
   const [calendarMode, setCalendarMode] = useState(() => embedded ? 'week' : 'month');
   const [cursor, setCursor] = useState(() => embedded ? startOfWeek(new Date()) : startOfMonth(new Date()));
+  const [dailyCursor, setDailyCursor] = useState(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+  });
   const [query, setQuery] = useState('');
   const [scope, setScope] = useState(() => embedded ? 'all' : 'upcoming');
   const [timelineCategory, setTimelineCategory] = useState('all');
@@ -600,6 +621,30 @@ export default function GlobalWorkScheduleCenter({
     });
     return map;
   }, [timelineEvents]);
+
+  const dailyKey = dayKey(dailyCursor);
+  const dailyAllEvents = useMemo(
+    () => filteredEvents.filter((event) => dayKey(event.startAt) === dailyKey),
+    [dailyKey, filteredEvents],
+  );
+  const dailyEvents = useMemo(
+    () => dailyAllEvents.filter((event) => timelineCategory === 'all' || scheduleCategoryForEvent(event) === timelineCategory),
+    [dailyAllEvents, timelineCategory],
+  );
+  const dailyCategoryCounts = useMemo(() => {
+    const counts = { meeting: 0, training: 0, student: 0, deadline: 0, other: 0 };
+    dailyAllEvents.forEach((event) => {
+      const category = scheduleCategoryForEvent(event);
+      counts[category] = (counts[category] || 0) + 1;
+    });
+    return counts;
+  }, [dailyAllEvents]);
+  const dailyNextEvents = useMemo(() => {
+    const selectedIsToday = dailyKey === dayKey(new Date());
+    const now = Date.now();
+    const future = dailyAllEvents.filter((event) => !selectedIsToday || new Date(event.startAt).getTime() >= now);
+    return (future.length ? future : dailyAllEvents).slice(0, 2);
+  }, [dailyAllEvents, dailyKey]);
 
   const selectedEvent = events.find((event) => event.id === selectedId) || null;
   const existingFingerprints = useMemo(() => new Set(events.map((event) => event.fingerprint).filter(Boolean)), [events]);
@@ -906,12 +951,17 @@ export default function GlobalWorkScheduleCenter({
         </div>
 
         <div className="work-schedule-controls">
-          <div className="work-schedule-month-nav">
+          {embedded ? <div className="work-schedule-daily-nav" aria-label="Điều hướng lịch theo ngày">
+            <button type="button" className="work-schedule-daily-arrow" aria-label="Ngày trước" onClick={() => setDailyCursor((value) => addDays(value, -1))}>‹</button>
+            <strong>{formatDailyHeading(dailyCursor, language)}</strong>
+            <button type="button" className="work-schedule-daily-arrow" aria-label="Ngày sau" onClick={() => setDailyCursor((value) => addDays(value, 1))}>›</button>
+            <button type="button" className="today" onClick={() => { const today = new Date(); today.setHours(0, 0, 0, 0); setDailyCursor(today); }}>Hôm nay</button>
+          </div> : <div className="work-schedule-month-nav">
             <button type="button" aria-label={calendarMode === 'week' ? 'Tuần trước' : 'Tháng trước'} onClick={() => setCursor(calendarMode === 'week' ? addWeeks(cursor, -1) : addMonths(cursor, -1))}>‹</button>
             <strong>{calendarMode === 'week' ? formatWeekRange(cursor, language) : formatMonth(cursor, language)}</strong>
             <button type="button" aria-label={calendarMode === 'week' ? 'Tuần sau' : 'Tháng sau'} onClick={() => setCursor(calendarMode === 'week' ? addWeeks(cursor, 1) : addMonths(cursor, 1))}>›</button>
             <button type="button" className="today" onClick={() => setCursor(calendarMode === 'week' ? startOfWeek(new Date()) : startOfMonth(new Date()))}>Hôm nay</button>
-          </div>
+          </div>}
           {embedded ? <div className="work-schedule-category-filters" aria-label="Lọc lịch theo loại hoạt động">
             {TIMELINE_CATEGORIES.map(([id, label, color]) => <button type="button" key={id} className={timelineCategory === id ? 'is-selected' : ''} aria-pressed={timelineCategory === id} style={{ '--category': color }} onClick={() => setTimelineCategory(id)}><i />{label}</button>)}
           </div> : <div className="work-schedule-filterbar">
@@ -930,40 +980,80 @@ export default function GlobalWorkScheduleCenter({
         </div>
 
         {calendarMode !== 'agenda' ? (
-          embedded ? <section className="work-schedule-editorial-stage" aria-label="Timeline lịch làm việc theo tuần">
-            {cells.map((date) => {
-              const key = dayKey(date);
-              const dayEvents = timelineEventsByDay.get(key) || [];
-              const today = key === dayKey(new Date());
-              const dayExpanded = expandedTimelineDays.has(key);
-              const visibleDayEvents = dayExpanded ? dayEvents : dayEvents.slice(0, 3);
-              return <article key={key} className={`work-schedule-day-track ${today ? 'is-today ' : ''}${!dayEvents.length ? 'is-empty' : ''}`}>
-                <header className="work-schedule-day-label">
-                  <span className="work-schedule-day-orb" aria-hidden="true">{date.getDate()}</span>
-                  <div className="work-schedule-day-label-copy">
-                    <strong>{timelineWeekday(date, language)}</strong>
-                    <time>{formatTimelineDay(date, language)}</time>
-                  </div>
-                  {today ? <em>Hôm nay</em> : null}
-                </header>
-                <div className="work-schedule-day-count"><i />{dayEvents.length} hoạt động</div>
-
-                {dayEvents.length ? <div className="work-schedule-timeline-rail">
-                  {visibleDayEvents.map((event) => {
-                    const category = scheduleCategoryForEvent(event);
-                    return <button key={event.id} type="button" className={`priority-${event.priority} work-schedule-timeline-event is-${category}`} onClick={() => setSelectedId(event.id)} title={event.title}>
+          embedded ? <section className="work-schedule-daily-shell" aria-label="Lịch làm việc theo ngày">
+            <div className="work-schedule-daily-main">
+              <div className="work-schedule-daily-list">
+                {dailyEvents.map((event) => {
+                  const category = scheduleCategoryForEvent(event);
+                  const categoryMeta = TIMELINE_CATEGORIES.find(([id]) => id === category);
+                  return <button key={event.id} type="button" className={`work-schedule-daily-event is-${category}`} onClick={() => setSelectedId(event.id)} title={event.title}>
+                    <span className="work-schedule-daily-time">
+                      <strong>{formatTime(event.startAt, language)}</strong>
+                      <small>{event.endAt ? formatTime(event.endAt, language) : '—'}</small>
+                    </span>
+                    <span className="work-schedule-daily-node" aria-hidden="true"><i /></span>
+                    <span className="work-schedule-daily-card">
                       <span className="work-schedule-event-icon" aria-hidden="true">{timelineCategoryGlyph(category)}</span>
-                      <span className="work-schedule-event-copy">
-                        <time>{formatTime(event.startAt, language)}</time>
+                      <span className="work-schedule-daily-card-copy">
                         <strong>{event.title}</strong>
-                        {event.location ? <small className="work-schedule-event-location">{event.location}</small> : null}
+                        <span>
+                          {event.location ? <small>⌖ {event.location}</small> : null}
+                          {(event.attendees || event.ownerText) ? <small>♟ {event.attendees || event.ownerText}</small> : null}
+                        </span>
                       </span>
+                      <span className={`work-schedule-daily-category is-${category}`}><i />{categoryMeta?.[1] || 'Khác'}</span>
+                      <span className="work-schedule-daily-more" aria-hidden="true">•••</span>
+                    </span>
+                  </button>;
+                })}
+                {!dailyEvents.length ? <div className="work-schedule-daily-empty"><span aria-hidden="true">☕</span><strong>Không có lịch làm việc</strong><small>{timelineCategory === 'all' ? 'Hãy tận hưởng ngày nghỉ thật ý nghĩa!' : 'Không có hoạt động thuộc bộ lọc đang chọn.'}</small></div> : null}
+              </div>
+            </div>
+
+            <aside className="work-schedule-daily-sidebar">
+              <section className="work-schedule-daily-summary">
+                <header>
+                  <span className="work-schedule-daily-summary-icon" aria-hidden="true">▣</span>
+                  <div><strong>{dailyKey === dayKey(new Date()) ? 'Hoạt động hôm nay' : 'Hoạt động trong ngày'}</strong><small>{timelineWeekday(dailyCursor, language)}, {new Intl.DateTimeFormat(language === 'vi' ? 'vi-VN' : 'en-US', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(dailyCursor)}</small></div>
+                  <b>{dailyAllEvents.length}<small>hoạt động</small></b>
+                </header>
+                <div className="work-schedule-daily-summary-grid">
+                  {['student', 'meeting', 'training', 'deadline', 'other'].map((id) => {
+                    const [, label, color] = TIMELINE_CATEGORIES.find(([categoryId]) => categoryId === id) || [id, id, '#92a7bc'];
+                    return <article key={id} style={{ '--summary': color }}><strong>{dailyCategoryCounts[id] || 0}</strong><span>{label}</span></article>;
+                  })}
+                </div>
+              </section>
+
+              <section className="work-schedule-daily-quote">
+                <b aria-hidden="true">“</b>
+                <p>Mỗi ngày chủ động một kế hoạch,<br />là thêm một bước gần tới môi trường học tập tốt đẹp hơn.</p>
+                <span className="work-schedule-daily-quote-art" aria-hidden="true" />
+              </section>
+
+              <section className="work-schedule-daily-next">
+                <header><div><span aria-hidden="true">◷</span><strong>Tiếp theo</strong></div><button type="button" onClick={() => setTimelineCategory('all')}>Xem tất cả →</button></header>
+                <div>
+                  {dailyNextEvents.map((event) => {
+                    const category = scheduleCategoryForEvent(event);
+                    const categoryMeta = TIMELINE_CATEGORIES.find(([id]) => id === category);
+                    return <button key={event.id} type="button" className="work-schedule-daily-next-item" onClick={() => setSelectedId(event.id)}>
+                      <time><strong>{formatTime(event.startAt, language)}</strong><small>{event.endAt ? formatTime(event.endAt, language) : '—'}</small></time>
+                      <span className={`is-${category}`} aria-hidden="true"><i /></span>
+                      <div><strong>{event.title}</strong><small>{event.location || event.ownerText || 'Lịch làm việc dùng chung'}</small></div>
+                      <em className={`is-${category}`}>{categoryMeta?.[1] || 'Khác'}</em>
                     </button>;
                   })}
-                  {dayEvents.length > 3 ? <button type="button" className="work-schedule-more-chip" onClick={() => setExpandedTimelineDays((current) => { const next = new Set(current); if (next.has(key)) next.delete(key); else next.add(key); return next; })}>{dayExpanded ? 'Thu gọn' : `+${dayEvents.length - 3} nữa`} <span>›</span></button> : null}
-                </div> : <div className="work-schedule-empty-day"><span aria-hidden="true">☕</span><strong>Không có lịch làm việc</strong><small>Hãy tận hưởng ngày nghỉ thật ý nghĩa!</small></div>}
-              </article>;
-            })}
+                  {!dailyNextEvents.length ? <div className="work-schedule-daily-next-empty">Không còn hoạt động tiếp theo trong ngày.</div> : null}
+                </div>
+              </section>
+
+              <section className="work-schedule-daily-footer-note">
+                <span aria-hidden="true">◎</span>
+                <div><strong>Giáo dục là hành trình cùng nhau lớn lên ♡</strong><small>Những kế hoạch hôm nay tạo nên những giá trị tốt đẹp hơn ngày mai.</small></div>
+                <i aria-hidden="true" />
+              </section>
+            </aside>
           </section> : <div className={'work-schedule-calendar ' + (calendarMode === 'week' ? 'is-week' : '')}>
             <div className="work-schedule-weekdays">{['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((day) => <span key={day}>{day}</span>)}</div>
             <div className="work-schedule-grid">{cells.map((date) => {
@@ -986,7 +1076,6 @@ export default function GlobalWorkScheduleCenter({
           </article>)}
           {!filteredEvents.length ? <div className="work-schedule-empty"><strong>Chưa có hoạt động phù hợp</strong><span>TTCM/Admin có thể upload file mẫu hoặc thêm lịch thủ công.</span></div> : null}
         </div>}
-        {embedded ? <footer className="work-schedule-quote-footer"><div><b aria-hidden="true">“</b><p><strong>Lịch làm việc khoa học là nền tảng của một tập thể vững mạnh.</strong><span>Cùng nhau tạo nên những giá trị tốt đẹp hơn mỗi ngày!</span></p></div><em>Giáo dục là hành trình cùng nhau lớn lên ♡</em></footer> : null}
       </section> : null}
 
       {importOpen ? <div className="work-schedule-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) setImportOpen(false); }}>
