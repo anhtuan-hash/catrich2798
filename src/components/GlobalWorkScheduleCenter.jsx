@@ -1018,7 +1018,10 @@ export default function GlobalWorkScheduleCenter({
                   <b>{dailyAllEvents.length}<small>hoạt động</small></b>
                 </header>
                 <div className="work-schedule-daily-summary-grid">
-                  {TIMELINE_CATEGORIES.filter(([id]) => id !== 'all').map(([id, label, color]) => <article key={id} style={{ '--summary': color }}><strong>{dailyCategoryCounts[id] || 0}</strong><span>{label}</span></article>)}
+                  {['student', 'meeting', 'training', 'deadline', 'other'].map((id) => {
+                    const [, label, color] = TIMELINE_CATEGORIES.find(([categoryId]) => categoryId === id) || [id, id, '#92a7bc'];
+                    return <article key={id} style={{ '--summary': color }}><strong>{dailyCategoryCounts[id] || 0}</strong><span>{label}</span></article>;
+                  })}
                 </div>
               </section>
 
