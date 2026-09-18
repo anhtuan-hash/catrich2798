@@ -2577,7 +2577,11 @@
   min-height:0;
   overflow-y:auto!important;
   overflow-x:hidden!important;
-  padding:10px 13px 22px 14px!important;
+  padding:0 13px 0 14px!important;
+  scroll-snap-type:y mandatory;
+  scroll-behavior:smooth;
+  overscroll-behavior-y:contain;
+  scrollbar-width:thin;
   background:
     radial-gradient(circle at 11% 12%, rgba(146,195,255,.11), transparent 22%),
     linear-gradient(180deg,#fbfdff 0%,#fff 100%)!important;
@@ -2585,18 +2589,24 @@
 }
 .ahv3__timeline-rail::before {
   content:'';
-  position:absolute;
+  position:sticky;
+  z-index:1;
+  display:block;
   left:104px;
-  top:21px;
-  bottom:24px;
+  top:0;
+  width:0;
+  height:100%;
+  margin-bottom:-100%;
   border-left:2px solid #b9d6fb;
   pointer-events:none;
 }
 .ahv3__month-marker {
-  position:relative;
-  z-index:3;
+  position:absolute;
+  z-index:4;
+  top:14px;
+  left:1px;
   width:max-content;
-  margin:4px 0 8px 1px;
+  margin:0;
   padding:5px 9px;
   border:1px solid #d8e8fb;
   border-radius:999px;
@@ -2612,8 +2622,16 @@
   display:grid;
   grid-template-columns:77px 28px minmax(0,1fr);
   align-items:center;
+  align-content:center;
   gap:0;
-  margin-bottom:10px;
+  width:100%;
+  min-height:100%;
+  height:100%;
+  margin:0;
+  padding:44px 0 28px;
+  box-sizing:border-box;
+  scroll-snap-align:start;
+  scroll-snap-stop:always;
 }
 .ahv3__timeline-date {
   align-self:start;
@@ -2652,7 +2670,7 @@
 .ahv3__timeline-item {
   position:relative;
   min-width:0;
-  min-height:94px;
+  min-height:126px;
   display:grid;
   grid-template-columns:42px minmax(0,1fr) 70px 18px;
   align-items:center;
@@ -3480,5 +3498,44 @@ body .attendance-shell:has(.ahv3__shell[data-attendance-history-timeline="true"]
 
   .ahv3__shell[data-attendance-history-timeline="true"] .bes-post-confirm-card-action button {
     width: 100%;
+  }
+}
+
+
+/* Single-session history viewport: one class per scroll page. */
+.ahv3__shell[data-attendance-history-timeline="true"] .ahv3__timeline-pane {
+  min-height:0 !important;
+}
+
+.ahv3__shell[data-attendance-history-timeline="true"] .ahv3__timeline-rail {
+  contain:layout paint;
+}
+
+.ahv3__shell[data-attendance-history-timeline="true"] .ahv3__timeline-row + .ahv3__timeline-row {
+  border-top:1px solid transparent;
+}
+
+.ahv3__shell[data-attendance-history-timeline="true"] .ahv3__timeline-date {
+  padding-top:0;
+  align-self:center;
+}
+
+.ahv3__shell[data-attendance-history-timeline="true"] .ahv3__timeline-item {
+  align-self:center;
+}
+
+.ahv3__shell[data-attendance-history-timeline="true"] .ahv3__timeline-item .ahv3__card-title b {
+  font-size:13px;
+}
+
+.ahv3__shell[data-attendance-history-timeline="true"] .ahv3__timeline-item .ahv3__card-copy > small,
+.ahv3__shell[data-attendance-history-timeline="true"] .ahv3__timeline-item .ahv3__card-copy > time {
+  font-size:9px;
+}
+
+@media (max-width:900px) {
+  .ahv3__timeline-row {
+    min-height:320px;
+    height:320px;
   }
 }
