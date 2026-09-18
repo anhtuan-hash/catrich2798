@@ -130,3 +130,10 @@ assert.match(component,/Khớp hoàn toàn/);
 assert.match(component,/Cần xác nhận/);
 assert.match(component,/Sai lệch/);
 assert.match(component,/Đã chốt hồ sơ gốc/);
+
+assert.match(component,/sr-compare-dashboard-v2/);
+assert.match(component,/Hiển thị tất cả/);
+assert.match(component,/Tìm trường thông tin/);
+assert.match(component,/compareGroupTone/);
+assert.match(component,/Khớp hoàn toàn/);
+assert.match(component,/Sai lệch/);
