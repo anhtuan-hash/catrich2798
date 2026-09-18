@@ -158,3 +158,7 @@ assert.match(component,/Định danh & mã số/);
 assert.match(component,/Cha mẹ \/ gia đình/);
 assert.match(component,/sr-students-foot/);
 assert.match(component,/Nhập Excel cả lớp/);
+
+assert.match(component,/sr-workspace/);
+assert.match(component,/sr-summary-grid/);
+assert.match(component,/sr-students-foot/);
