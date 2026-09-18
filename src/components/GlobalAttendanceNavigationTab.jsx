@@ -275,6 +275,8 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const [historyProofLoading, setHistoryProofLoading] = useState(false);
   const fileRef = useRef(null);
   const proofInputRef = useRef(null);
+  const historyTimelineRailRef = useRef(null);
+  const historyTimelineScrollTimerRef = useRef(null);
 
   const systemRole = normalizeSystemRole(runtime.role || currentUser?.role, SYSTEM_ROLES.GUEST);
   const isAttendanceAdmin = systemRole === SYSTEM_ROLES.ADMIN;
@@ -317,6 +319,10 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     const canOpenCurrentView = view === 'quick' ? canUseQuickAttendance : view === 'archive' ? canOpenArchive : canAccessAttendanceView(view);
     if (!canOpenCurrentView) setView(firstAllowedView);
   }, [open, allowed, firstAllowedView, view, currentUser?.permissions, systemRole, canUseQuickAttendance]);
+
+  useEffect(() => () => {
+    if (historyTimelineScrollTimerRef.current) window.clearTimeout(historyTimelineScrollTimerRef.current);
+  }, []);
 
   async function loadAll({ keepSelection = true } = {}) {
     if (!client || !runtime.ready || !runtime.session || !allowed) return;
@@ -1227,6 +1233,26 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     if (recordError) setError(recordError.message);
     else setRecords(data || []);
   }
+
+  function handleHistoryTimelineScroll() {
+    if (historySelectionMode) return;
+    const rail = historyTimelineRailRef.current;
+    if (!rail) return;
+    if (historyTimelineScrollTimerRef.current) window.clearTimeout(historyTimelineScrollTimerRef.current);
+    historyTimelineScrollTimerRef.current = window.setTimeout(() => {
+      const items = Array.from(rail.querySelectorAll('[data-history-session-id]'));
+      if (!items.length) return;
+      const viewportCenter = rail.scrollTop + rail.clientHeight / 2;
+      const nearest = items.reduce((best, item) => {
+        const center = item.offsetTop + item.offsetHeight / 2;
+        const distance = Math.abs(center - viewportCenter);
+        if (!best || distance < best.distance) return { item, distance };
+        return best;
+      }, null);
+      const sessionId = nearest?.item?.getAttribute('data-history-session-id') || '';
+      if (sessionId && String(sessionId) !== String(selectedSessionId)) loadSessionRecords(sessionId);
+    }, 120);
+  }
   async function deleteAttendanceSession(session) {
     if (!session || busy || !client || !canDeleteAttendanceHistory) return;
     const confirmed = window.confirm(`Đưa buổi điểm danh của lớp “${session.class_name}” ngày ${formatDate(session.attendance_date)} vào Kho lưu trữ?\n\nBuổi này sẽ không còn xuất hiện trong Lịch sử/Báo cáo và có thể khôi phục lại sau.`);
@@ -1680,7 +1706,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                     <span>{historyDateRangeInvalid ? 'Khoảng ngày không hợp lệ' : `${filteredHistory.length} buổi`}</span>
                   </header>
                   {historySelectionMode ? <div className="ahv3__bulk-toolbar"><button type="button" disabled={busy || !filteredHistory.length} onClick={toggleAllFilteredHistorySelection}>{allFilteredHistorySelected ? 'Bỏ chọn kết quả' : 'Chọn tất cả kết quả'}</button><span>Đã chọn <b>{selectedHistorySessionIds.length}</b> buổi</span><button type="button" className="is-danger" disabled={busy || !selectedHistorySessionIds.length} onClick={deleteSelectedHistorySessions}><Icon name="trash" size={16} />{busy ? 'Đang lưu trữ…' : `Lưu trữ ${selectedHistorySessionIds.length} buổi`}</button></div> : null}
-                  <div className="ahv3__items ahv3__timeline-rail">{filteredHistory.map((session, historyIndex) => {
+                  <div ref={historyTimelineRailRef} onScroll={handleHistoryTimelineScroll} className="ahv3__items ahv3__timeline-rail">{filteredHistory.map((session, historyIndex) => {
                     const rate = session.session_status === 'cancelled' || !Number(session.total_students) ? null : Math.round((Number(session.present_count || 0) / Number(session.total_students)) * 100);
                     const isBulkSelected = selectedHistorySessionIdSet.has(String(session.id));
                     const dateBits = historyDayLabel(session.attendance_date);
@@ -1689,8 +1715,8 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                     const showMonth = monthKey !== previousMonthKey;
                     const iconName = isSupplementalHistorySession(session) ? 'attendance' : session.class_type === 'gifted' ? 'book' : 'people';
                     return <React.Fragment key={session.id}>
-                      {showMonth ? <div className="ahv3__month-marker">{historyMonthLabel(session.attendance_date)}</div> : null}
-                      <div className="ahv3__timeline-row">
+                      <div className="ahv3__timeline-row" data-history-session-id={session.id}>
+                        {showMonth ? <div className="ahv3__month-marker">{historyMonthLabel(session.attendance_date)}</div> : null}
                         <div className="ahv3__timeline-date"><strong>{dateBits.dayMonth}</strong><small>{dateBits.weekday}</small></div>
                         <span className={`ahv3__timeline-node is-${session.class_type}`} aria-hidden="true" />
                         <button type="button" className={`ahv3__timeline-item ah-kind-${isSupplementalHistorySession(session) ? 'supplemental' : session.class_type} ${String(selectedSessionId) === String(session.id) && !historySelectionMode ? 'is-selected' : ''}${historySelectionMode ? ' is-bulk-mode' : ''}${isBulkSelected ? ' is-bulk-selected' : ''}`.trim()} aria-pressed={historySelectionMode ? isBulkSelected : undefined} onClick={() => { if (historySelectionMode) toggleHistoryBulkSelection(session.id); else loadSessionRecords(session.id); }}>
