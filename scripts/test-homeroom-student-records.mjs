@@ -67,13 +67,17 @@ const excelModule = await import(new URL('../src/utils/vneduExcelImport.js', imp
 const excelMatrix = [
   ['TRƯỜNG TRUNG - TIỂU HỌC PÉTRUS KÝ'],
   ['DANH SÁCH HỌC SINH'],
-  ['Mã học sinh','Mã VEMIS','Mã MOET','Số đăng bộ','Họ và tên','Giới tính','Dân tộc','Ngày sinh','Chỗ ở hiện nay','Nơi thường trú','Quê quán','Nơi sinh','Nơi khai sinh','Số căn cước','Tên cha','Đ.thoại cha','Tên mẹ','Đ.thoại mẹ','Điện thoại HS'],
+  ['Mã học sinh','Mã VEMIS','Mã MOET','Số đăng bộ','Họ và tên','Giới tính','Dân tộc','Ngày sinh','Chỗ ở hiện nay','Nơi thường trú','Quê quán','Nơi sinh','Nơi khai sinh','Căn cước','Tên cha','Đ.thoại cha','Tên mẹ','Đ.thoại mẹ','Điện thoại HS'],
   ['2004949387','','7456839782','7456839782','Nguyễn Hoàng Minh Khang','Nam','Kinh','15/07/2009','Chung cư Sora Garden','19/19 Nguyễn An Ninh','Bình Dương','Bệnh viện Từ Dũ','TP Hồ Chí Minh','074209010550','Nguyễn Hoàng Thanh','0913954019','Nguyễn Thị Mỹ Trang','0936885579',''],
 ];
 const parsedExcel = excelModule.parseVneduMatrix(excelMatrix,'Danh sách học sinh');
 assert.equal(parsedExcel.students.length,1);
 assert.equal(parsedExcel.students[0].fields.fullName,'Nguyễn Hoàng Minh Khang');
 assert.equal(parsedExcel.students[0].fields.citizenId,'074209010550');
+assert.equal(excelModule.parseVneduMatrix([
+  ['Họ và tên','Căn cước','Ngày sinh'],
+  ['Nguyễn A','074209006607','01/01/2009'],
+],'ds học sinh').students[0].fields.citizenId,'074209006607');
 assert.equal(parsedExcel.students[0].identifiers.studentCode,'2004949387');
 assert.equal(parsedExcel.students[0].rawColumns['Họ và tên'],'Nguyễn Hoàng Minh Khang');
 assert.ok(Object.keys(parsedExcel.students[0].rawColumns).length >= 10);

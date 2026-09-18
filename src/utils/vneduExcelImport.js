@@ -10,7 +10,7 @@ const FIELD_ALIASES = Object.freeze({
   birthRegistrationPlace: ['nơi khai sinh','noi khai sinh'],
   currentAddress: ['chỗ ở hiện nay','cho o hien nay','chỗ ở hn','cho o hn'],
   permanentAddress: ['nơi thường trú','noi thuong tru','thường trú','thuong tru'],
-  citizenId: ['số căn cước','so can cuoc','cccd','số định danh','so dinh danh','số định danh cá nhân'],
+  citizenId: ['căn cước','can cuoc','số căn cước','so can cuoc','căn cước công dân','can cuoc cong dan','cccd','số định danh','so dinh danh','số định danh cá nhân'],
   phone: ['điện thoại hs','dien thoai hs','đ.thoại hs','d.thoai hs','sdt hs'],
   fatherName: ['tên cha','ten cha','họ tên cha','ho ten cha'],
   fatherPhone: ['điện thoại cha','dien thoai cha','đ.thoại cha','d.thoai cha'],
