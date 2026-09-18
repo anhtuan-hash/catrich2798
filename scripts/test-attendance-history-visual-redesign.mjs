@@ -157,7 +157,7 @@ assert.match(
 );
 assert.match(
   css,
-  /body \.attendance-shell:has\(\.ahv3__shell\[data-attendance-history-timeline="true"\]\) \.bes-post-confirm-edit-card\.is-open\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+auto\s+minmax\(150px,\s*auto\)/s,
+  /body \.attendance-shell:has\(\.ahv3__shell\[data-attendance-history-timeline="true"\]\) \.bes-post-confirm-edit-card\.is-open,[\s\S]*?\.bes-post-confirm-edit-card\.is-locked\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+auto\s+minmax\(150px,\s*auto\)/s,
   'Post-confirm editor summary must remain readable in the timeline detail pane',
 );
 
