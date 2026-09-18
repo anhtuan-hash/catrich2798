@@ -139,6 +139,26 @@ function compareGroupTone(group){
 function CompareDashboard({record,student,className,progress,updateCanonical}){
   const [statusFilter,setStatusFilter]=useState('all');
   const [compareQuery,setCompareQuery]=useState('');
+  const [showBackTop,setShowBackTop]=useState(false);
+  const compareTopRef=useRef(null);
+  const compareHeadRef=useRef(null);
+  const compareBodyRef=useRef(null);
+  useEffect(()=>{
+    const update=()=>{
+      const node=compareTopRef.current;
+      if(!node){setShowBackTop(false);return;}
+      const rect=node.getBoundingClientRect();
+      setShowBackTop(rect.top<-520&&rect.bottom>160);
+    };
+    update();
+    window.addEventListener('scroll',update,{passive:true});
+    window.addEventListener('resize',update);
+    return()=>{window.removeEventListener('scroll',update);window.removeEventListener('resize',update);};
+  },[]);
+  const syncCompareX=(event)=>{
+    if(compareHeadRef.current)compareHeadRef.current.scrollLeft=event.currentTarget.scrollLeft;
+  };
+  const goCompareTop=()=>compareTopRef.current?.scrollIntoView({behavior:'smooth',block:'start'});
   const vnedu=standardizeStudentSource('vnedu',record.sources?.vnedu);
   const moet=standardizeStudentSource('moet',record.sources?.moet);
   const rows=STANDARD_COMPARE_FIELDS.map((field)=>{
@@ -162,7 +182,7 @@ function CompareDashboard({record,student,className,progress,updateCanonical}){
   });
 
   let lastGroup='';
-  return <section className="sr-compare-dashboard sr-compare-dashboard-v2">
+  return <section ref={compareTopRef} className="sr-compare-dashboard sr-compare-dashboard-v2 sr-compare-natural-scroll">
     <div className="sr-compare-dashboard-head">
       <div className="sr-compare-title">
         <span className="sr-compare-title-icon"><RefreshCw size={24}/></span>
@@ -201,31 +221,35 @@ function CompareDashboard({record,student,className,progress,updateCanonical}){
       </div>
     </div>
 
-    <div className="sr-compare-table-wrap sr-compare-table-v2">
-      <div className="sr-compare-grid sr-compare-grid-head">
-        <div>Thông tin trường</div>
-        <div><span>Hồ sơ gốc</span><small>Nhập tay / Scan</small></div>
-        <div><span>vnEdu</span><small>Excel / OCR</small></div>
-        <div><span>MOET</span><small>Excel / OCR</small></div>
-        <div>Trạng thái</div>
+    <div className="sr-compare-table-shell">
+      <div ref={compareHeadRef} className="sr-compare-head-window" aria-hidden="true">
+        <div className="sr-compare-grid sr-compare-grid-head sr-compare-grid-head-fixed">
+          <div>Thông tin trường</div>
+          <div><span>Hồ sơ gốc</span><small>Nhập tay / Scan</small></div>
+          <div><span>vnEdu</span><small>Excel / OCR</small></div>
+          <div><span>MOET</span><small>Excel / OCR</small></div>
+          <div>Trạng thái</div>
+        </div>
       </div>
-      <div className="sr-compare-grid-body">
-        {filteredRows.map((row)=>{
-          const showGroup=row.group!==lastGroup;
-          lastGroup=row.group;
-          const tone=compareGroupTone(row.group);
-          return <Fragment key={row.key}>
-            {showGroup?<div className={'sr-compare-group-row tone-'+tone}><span>{row.group}</span></div>:null}
-            <div className={'sr-compare-grid sr-compare-row is-'+row.state.id}>
-              <div className="sr-compare-label"><span>{compareFieldIcon(row.key)}</span><b>{row.label}</b></div>
-              <div className="sr-compare-canonical"><input value={row.canonical} onChange={(e)=>updateCanonical(row.key,e.target.value)} placeholder="Chưa xác nhận"/></div>
-              <div className={'sr-compare-value '+(!text(row.vnedu)?'is-empty':'')}><span>{row.vnedu||'—'}</span></div>
-              <div className={'sr-compare-value '+(!text(row.moet)?'is-empty':'')}><span>{row.moet||'—'}</span></div>
-              <div className="sr-compare-status"><span className={'is-'+row.state.id}>{row.state.id==='match'?<Check size={14}/>:<AlertTriangle size={14}/>} {row.state.label}</span></div>
-            </div>
-          </Fragment>;
-        })}
-        {!filteredRows.length?<div className="sr-compare-empty"><Search size={22}/><b>Không có trường phù hợp</b><span>Thử đổi bộ lọc hoặc từ khóa tìm kiếm.</span></div>:null}
+      <div ref={compareBodyRef} className="sr-compare-table-wrap sr-compare-table-v2 sr-compare-xscroll" onScroll={syncCompareX}>
+        <div className="sr-compare-grid-body">
+          {filteredRows.map((row)=>{
+            const showGroup=row.group!==lastGroup;
+            lastGroup=row.group;
+            const tone=compareGroupTone(row.group);
+            return <Fragment key={row.key}>
+              {showGroup?<div className={'sr-compare-group-row tone-'+tone}><span>{row.group}</span></div>:null}
+              <div className={'sr-compare-grid sr-compare-row is-'+row.state.id}>
+                <div className="sr-compare-label"><span>{compareFieldIcon(row.key)}</span><b>{row.label}</b></div>
+                <div className="sr-compare-canonical"><input value={row.canonical} onChange={(e)=>updateCanonical(row.key,e.target.value)} placeholder="Chưa xác nhận"/></div>
+                <div className={'sr-compare-value '+(!text(row.vnedu)?'is-empty':'')}><span>{row.vnedu||'—'}</span></div>
+                <div className={'sr-compare-value '+(!text(row.moet)?'is-empty':'')}><span>{row.moet||'—'}</span></div>
+                <div className="sr-compare-status"><span className={'is-'+row.state.id}>{row.state.id==='match'?<Check size={14}/>:<AlertTriangle size={14}/>} {row.state.label}</span></div>
+              </div>
+            </Fragment>;
+          })}
+          {!filteredRows.length?<div className="sr-compare-empty"><Search size={22}/><b>Không có trường phù hợp</b><span>Thử đổi bộ lọc hoặc từ khóa tìm kiếm.</span></div>:null}
+        </div>
       </div>
     </div>
 
@@ -235,6 +259,7 @@ function CompareDashboard({record,student,className,progress,updateCanonical}){
       <span className="is-mismatch"><i/>Sai lệch giữa các nguồn</span>
       <span className="is-locked"><i/>Hồ sơ gốc đã được xác nhận</span>
     </div>
+    <button type="button" className={'sr-compare-backtop '+(showBackTop?'is-visible':'')} onClick={goCompareTop} aria-label="Lên đầu bảng đối chiếu">↑ <span>Lên đầu bảng</span></button>
   </section>;
 }
 

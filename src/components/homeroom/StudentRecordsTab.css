@@ -503,3 +503,151 @@
   .sr-compare-tools{align-items:stretch;flex-direction:column}
   .sr-compare-filter select,.sr-compare-search{width:100%;min-width:0}
 }
+
+
+/* Compare natural-scroll system v2 — one vertical page, horizontal table only */
+/* Scope is limited to StudentRecordsTab compare content. Global header/footer are untouched. */
+.sr-compare-natural-scroll{
+  overflow:visible;
+}
+
+/* Header is separated from the horizontal body scroller.
+   This prevents a second vertical scroll container while keeping columns aligned. */
+.sr-compare-table-shell{
+  position:relative;
+  min-width:0;
+  border:1px solid #d9e5f0;
+  border-radius:15px;
+  background:#fff;
+  box-shadow:0 7px 22px rgba(34,61,91,.045);
+}
+.sr-compare-head-window{
+  position:sticky;
+  top:148px;
+  z-index:35;
+  width:100%;
+  overflow:hidden;
+  border-radius:14px 14px 0 0;
+  background:linear-gradient(180deg,#edf4fa,#e7f0f8);
+  box-shadow:0 4px 12px rgba(31,58,88,.075);
+}
+.sr-compare-head-window .sr-compare-grid{
+  min-width:1000px;
+}
+.sr-compare-grid-head-fixed{
+  position:relative;
+  top:auto;
+  z-index:1;
+}
+.sr-compare-grid-head-fixed>div:first-child{
+  position:sticky;
+  left:0;
+  z-index:4;
+  background:linear-gradient(180deg,#edf4fa,#e7f0f8);
+  box-shadow:5px 0 12px rgba(38,65,96,.055);
+}
+
+/* Horizontal-only table body. No fixed height and no vertical overflow. */
+.sr-compare-xscroll{
+  width:100%;
+  max-height:none !important;
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+  overscroll-behavior-x:contain;
+  overscroll-behavior-y:auto;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+  scrollbar-color:#9eb4c9 #edf3f8;
+  border:0;
+  border-radius:0 0 14px 14px;
+  box-shadow:none;
+}
+.sr-compare-xscroll::-webkit-scrollbar{
+  height:10px;
+}
+.sr-compare-xscroll::-webkit-scrollbar-track{
+  background:#edf3f8;
+}
+.sr-compare-xscroll::-webkit-scrollbar-thumb{
+  border:2px solid #edf3f8;
+  border-radius:999px;
+  background:#9eb4c9;
+}
+.sr-compare-xscroll::-webkit-scrollbar-thumb:hover{
+  background:#7897b5;
+}
+.sr-compare-xscroll .sr-compare-grid-body{
+  min-width:1000px;
+}
+.sr-compare-xscroll .sr-compare-row>div:first-child{
+  position:sticky;
+  left:0;
+  z-index:5;
+  box-shadow:5px 0 12px rgba(38,65,96,.04);
+}
+.sr-compare-xscroll .sr-compare-row.is-match>div:first-child{background:#f3fbf7}
+.sr-compare-xscroll .sr-compare-row.is-review>div:first-child{background:#fff9ed}
+.sr-compare-xscroll .sr-compare-row.is-mismatch>div:first-child{background:#fff2f2}
+
+/* Group labels stay in the normal document flow; no nested sticky rows. */
+.sr-compare-xscroll .sr-compare-group-row{
+  position:relative;
+  top:auto;
+  z-index:1;
+}
+
+/* Floating helper appears only after scrolling deep into the comparison section. */
+.sr-compare-backtop{
+  position:fixed;
+  right:92px;
+  bottom:92px;
+  z-index:45;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  min-height:36px;
+  padding:0 12px;
+  border:1px solid #c9d9ea;
+  border-radius:999px;
+  background:rgba(255,255,255,.96);
+  color:#2467b7;
+  box-shadow:0 8px 24px rgba(34,65,100,.16);
+  font-size:9px;
+  font-weight:850;
+  opacity:0;
+  pointer-events:none;
+  transform:translateY(8px);
+  transition:opacity .16s ease,transform .16s ease,box-shadow .16s ease;
+}
+.sr-compare-backtop.is-visible{
+  opacity:1;
+  pointer-events:auto;
+  transform:translateY(0);
+}
+.sr-compare-backtop:hover{
+  box-shadow:0 10px 28px rgba(34,65,100,.22);
+}
+
+/* The filter/search bar remains normal-flow to avoid competing with app navigation. */
+.sr-compare-natural-scroll .sr-compare-toolbar{
+  position:relative;
+  top:auto;
+  z-index:1;
+}
+
+/* On narrower screens, rely entirely on native page scrolling.
+   Horizontal table scrolling is retained; sticky table header is disabled. */
+@media(max-width:1100px){
+  .sr-compare-head-window{
+    position:relative;
+    top:auto;
+  }
+}
+@media(max-width:760px){
+  .sr-compare-backtop{
+    right:18px;
+    bottom:82px;
+    padding:0 10px;
+  }
+  .sr-compare-backtop span{display:none}
+}

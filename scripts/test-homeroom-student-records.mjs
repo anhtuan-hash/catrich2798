@@ -137,3 +137,9 @@ assert.match(component,/Tìm trường thông tin/);
 assert.match(component,/compareGroupTone/);
 assert.match(component,/Khớp hoàn toàn/);
 assert.match(component,/Sai lệch/);
+
+assert.match(component,/sr-compare-natural-scroll/);
+assert.match(component,/sr-compare-head-window/);
+assert.match(component,/sr-compare-xscroll/);
+assert.match(component,/Lên đầu bảng/);
+assert.match(component,/syncCompareX/);
