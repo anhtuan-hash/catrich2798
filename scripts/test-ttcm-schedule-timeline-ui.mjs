@@ -30,7 +30,6 @@ check(center.includes("['training', 'Đào tạo'"), 'includes training category
 check(center.includes("['student', 'Học sinh'"), 'includes student category filter');
 check(center.includes("['deadline', 'Hạn nộp'"), 'includes deadline category filter');
 check(center.includes("['other', 'Khác'"), 'includes other category filter');
-check(center.includes('work-schedule-timeline-board'), 'renders the dedicated illustrated weekly timeline board');
 check(center.includes('work-schedule-editorial-stage'), 'uses a dedicated editorial timeline renderer for embedded TTCM');
 check(center.includes('work-schedule-day-track'), 'renders independent day tracks instead of calendar table cells');
 check(center.includes('work-schedule-day-label'), 'groups weekday, date and today state into one day header');
@@ -62,15 +61,7 @@ check(/\.work-schedule-toolbar\s*\{[^}]*min-height\s*:\s*16[0-8]px/.test(css), '
 check(/\.work-schedule-timeline-event[^}]*min-height\s*:\s*8[2-9]px/.test(css), 'gives timeline event cards more breathing room');
 check(/\.work-schedule-timeline-event>span:not\(\.work-schedule-event-icon\)[^}]*font-size\s*:\s*1[0-1](?:\.5)?px/.test(css), 'improves event title readability');
 check(/\.work-schedule-category-filters button[^}]*min-height\s*:\s*3[6-9]px/.test(css), 'makes category chips easier to scan and click');
-check(css.includes('.work-schedule-timeline-board'), 'styles the seven-column timeline board');
-check(/grid-template-columns\s*:\s*repeat\(7\s*,\s*minmax\(0\s*,\s*1fr\)\)/.test(css), 'fits all seven timeline days inside the desktop board');
-check(/\.work-schedule-timeline-board \.work-schedule-grid[^}]*min-width\s*:\s*0/.test(css), 'avoids desktop horizontal clipping of Sunday');
-check(/\.work-schedule-event-icon[^}]*width\s*:\s*28px/.test(css), 'reduces event icon footprint to give titles more room');
-check(/\.work-schedule-event-icon[^}]*font-size\s*:\s*0/.test(css), 'simplifies category artwork into a quiet visual marker');
 check(!center.includes('▣ {event.location}'), 'removes the redundant location glyph from event metadata');
-check(/\.work-schedule-timeline-more[^}]*position\s*:\s*relative/.test(css), 'keeps hidden-event continuation close to the last visible card');
-check(/\.work-schedule-empty-day[^}]*min-height\s*:\s*11[0-9]px/.test(css), 'uses a compact empty-day card instead of a full-height panel');
-check(/\.work-schedule-event-location[^}]*font-size\s*:\s*9px/.test(css), 'improves event metadata readability');
 check(/border-left\s*:\s*1px\s+dashed/.test(css), 'draws the vertical timeline rails');
 check(css.includes('.work-schedule-timeline-event.is-meeting'), 'styles meeting events');
 check(css.includes('.work-schedule-timeline-event.is-training'), 'styles training events');
@@ -79,6 +70,11 @@ check(css.includes('.work-schedule-timeline-event.is-deadline'), 'styles deadlin
 check(css.includes('.work-schedule-empty-day'), 'styles the friendly empty-day card');
 check(css.includes('.work-schedule-quote-footer'), 'styles the scenic education footer');
 check(css.includes('.work-schedule-editorial-stage'), 'styles the editorial timeline canvas');
+check(/\.work-schedule-editorial-stage\s*\{[^}]*grid-template-columns\s*:\s*repeat\(7\s*,\s*minmax\(0\s*,\s*1fr\)\)/.test(css), 'fits seven editorial day tracks across desktop');
+check(/\.work-schedule-editorial-stage \.work-schedule-event-icon\s*\{[^}]*width\s*:\s*24px/.test(css), 'uses compact quiet category markers');
+check(/\.work-schedule-more-chip\s*\{[^}]*width\s*:\s*auto/.test(css), 'renders +N continuation as a compact chip');
+check(/\.work-schedule-editorial-stage \.work-schedule-empty-day\s*\{[^}]*min-height\s*:\s*12[0-9]px/.test(css), 'keeps the empty Sunday state compact');
+check(/\.work-schedule-editorial-stage \.work-schedule-event-location\s*\{[^}]*font-size\s*:\s*9px/.test(css), 'keeps event metadata readable');
 check(/\.work-schedule-editorial-stage\s*\{[^}]*gap\s*:\s*1[0-4]px/.test(css), 'separates day tracks with editorial whitespace instead of table borders');
 check(/\.work-schedule-day-track\s*\{[^}]*border-radius\s*:\s*1[4-9]px/.test(css), 'renders each day as an independent rounded track');
 check(/\.work-schedule-day-track\s*\{[^}]*border\s*:\s*0/.test(css), 'removes the full-height calendar cell border treatment');
