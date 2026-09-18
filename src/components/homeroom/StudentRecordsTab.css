@@ -315,3 +315,6 @@
 .sr-compare-legend{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:1px 4px;color:#718297;font-size:9.5px}.sr-compare-legend span{display:flex;align-items:center;gap:6px}.sr-compare-legend i{width:8px;height:8px;border-radius:50%}.sr-compare-legend .is-match i{background:#25a86c}.sr-compare-legend .is-review i{background:#d99213}.sr-compare-legend .is-mismatch i{background:#dd4c4c}
 @media(max-width:1100px){.sr-compare-dashboard-head{grid-template-columns:1fr}.sr-compare-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.sr-compare-title h2{font-size:20px}.sr-compare-title p{font-size:11px}.sr-compare-student{grid-template-columns:auto 1fr}.sr-compare-student-progress{grid-column:1/-1;width:100%}.sr-compare-summary{grid-template-columns:1fr}.sr-compare-dashboard{padding:10px}}
+
+.sr-compare-group-row{min-width:980px;padding:9px 12px;border-top:1px solid #d9e4ee;border-bottom:1px solid #e6edf4;background:#f3f7fb;color:#3c5a78}.sr-compare-group-row span{display:inline-flex;padding:4px 8px;border-radius:999px;background:#e5eef8;font-size:9px;font-weight:850;letter-spacing:.02em}
+.sr-compare-status>span.is-empty{background:#eef2f6;color:#7b8999}

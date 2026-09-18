@@ -1,11 +1,12 @@
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertTriangle, Camera, Check, ChevronDown, ChevronRight, ClipboardCheck, CloudUpload, Database, Download, FileCheck2, FileSpreadsheet, FileText, History, IdCard, MonitorUp, Pencil, RefreshCw, Save, Search, ShieldCheck, Trash2, Upload, UserRound, Users, X } from 'lucide-react';
 import { recognizeStudentRecordImage, STUDENT_RECORD_FIELD_LABELS } from '../../utils/studentRecordScanner.js';
 import { deleteStudentRecordMedia, getStudentRecordMedia, saveStudentRecordMedia } from '../../utils/studentRecordMediaStore.js';
 import { cleanupStudentRecordCloudOrphans, deleteStudentRecordCloudMedia, downloadStudentRecordCloudMedia, studentRecordCloudEnabled, uploadStudentRecordCloudMedia } from '../../utils/studentRecordCloudStore.js';
 import { matchVneduImportRows, readVneduExcelFile } from '../../utils/vneduExcelImport.js';
 import { readMoetExcelFile } from '../../utils/moetExcelImport.js';
+import { STANDARD_COMPARE_FIELDS, compareStandardizedValue, standardizeStudentSource } from '../../utils/studentRecordCompareStandardizer.js';
 import './StudentRecordsTab.css';
 
 const EMPTY_SOURCE = Object.freeze({ fields: {}, captures: [], updatedAt: '' });
@@ -113,75 +114,60 @@ export default function StudentRecordsTab({workspace,onCommit,currentUser}){
     {preview?<div className="sr-modal-layer" role="presentation" onMouseDown={(e)=>{if(e.target===e.currentTarget)closePreview();}}><section className="sr-preview"><header><b>{preview.capture.name}</b><button type="button" onClick={closePreview}><X size={19}/></button></header><img src={preview.url} alt={preview.capture.name}/></section></div>:null}
   </div>;
 }
-function compareState(canonical,vnedu,moet){
-  const values=[canonical,vnedu,moet].map((value)=>text(value)).filter(Boolean);
-  const normalizedValues=values.map(normalized);
-  if(values.length>=2&&new Set(normalizedValues).size===1)return {id:'match',label:'Khớp'};
-  if(values.length>=2&&new Set(normalizedValues).size>1)return {id:'mismatch',label:'Sai lệch'};
-  return {id:'review',label:'Cần xác nhận'};
-}
 function compareFieldIcon(key){
   if(key==='fullName')return <UserRound size={17}/>;
-  if(key==='gender'||key==='fatherName'||key==='motherName')return <Users size={17}/>;
-  if(key==='citizenId')return <ShieldCheck size={17}/>;
+  if(key==='gender'||key.startsWith('father')||key.startsWith('mother'))return <Users size={17}/>;
+  if(key==='citizenId'||key==='ministryId'||key.includes('Issue'))return <ShieldCheck size={17}/>;
   if(key==='birthDate')return <ClipboardCheck size={17}/>;
-  if(key==='birthPlace'||key==='hometown'||key==='birthRegistrationPlace'||key==='currentAddress'||key==='permanentAddress')return <IdCard size={17}/>;
-  if(key==='phone'||key==='fatherPhone'||key==='motherPhone')return <Database size={17}/>;
+  if(key.includes('Address')||key.includes('Ward')||key.includes('Province')||key.includes('birthPlace')||key.includes('hometown'))return <IdCard size={17}/>;
+  if(key.includes('Phone'))return <Database size={17}/>;
   return <FileText size={17}/>;
 }
 function CompareDashboard({record,student,className,progress,updateCanonical}){
-  const rows=REQUIRED_COMPARE_FIELDS.map((key)=>{
-    const canonical=record.canonical?.[key]||'';
-    const vnedu=record.sources?.vnedu?.fields?.[key]||'';
-    const moet=record.sources?.moet?.fields?.[key]||'';
-    return {key,label:STUDENT_RECORD_FIELD_LABELS[key],canonical,vnedu,moet,state:compareState(canonical,vnedu,moet)};
+  const vnedu=standardizeStudentSource('vnedu',record.sources?.vnedu);
+  const moet=standardizeStudentSource('moet',record.sources?.moet);
+  const rows=STANDARD_COMPARE_FIELDS.map((field)=>{
+    const canonical=record.canonical?.[field.key]||'';
+    const vneduValue=vnedu[field.key]||'';
+    const moetValue=moet[field.key]||'';
+    return {...field,canonical,vnedu:vneduValue,moet:moetValue,state:compareStandardizedValue(field,vneduValue,moetValue)};
   });
-  const matchCount=rows.filter((row)=>row.state.id==='match').length;
-  const reviewCount=rows.filter((row)=>row.state.id==='review').length;
-  const mismatchCount=rows.filter((row)=>row.state.id==='mismatch').length;
-  const lockedCount=rows.filter((row)=>text(row.canonical)).length;
+  const visibleRows=rows.filter((row)=>row.state.id!=='empty'||text(row.canonical));
+  const matchCount=visibleRows.filter((row)=>row.state.id==='match').length;
+  const reviewCount=visibleRows.filter((row)=>row.state.id==='review').length;
+  const mismatchCount=visibleRows.filter((row)=>row.state.id==='mismatch').length;
+  const lockedCount=visibleRows.filter((row)=>text(row.canonical)).length;
   const initials=text(student?.fullName).split(/\s+/).slice(-2).map((part)=>part[0]||'').join('').toUpperCase();
 
+  let lastGroup='';
   return <section className="sr-compare-dashboard">
     <div className="sr-compare-dashboard-head">
-      <div className="sr-compare-title">
-        <span className="sr-compare-title-icon"><RefreshCw size={24}/></span>
-        <div><h2>Đối chiếu 3 nguồn</h2><p>So sánh hồ sơ gốc, vnEdu và MOET để xác nhận thông tin chính xác.</p></div>
-      </div>
-      <div className="sr-compare-student">
-        <span className="sr-compare-avatar">{initials}</span>
-        <div className="sr-compare-student-copy"><b>{student?.fullName||'Học sinh'}</b><span>{className?'Lớp '+className:''}{student?.code?' · Mã HS: '+student.code:''}</span></div>
-        <div className="sr-compare-student-progress"><strong>{progress}%</strong><span>Hoàn thành hồ sơ</span><i><em style={{width:progress+'%'}}/></i></div>
-      </div>
+      <div className="sr-compare-title"><span className="sr-compare-title-icon"><RefreshCw size={24}/></span><div><h2>Đối chiếu dữ liệu đã chuẩn hoá</h2><p>vnEdu và MOET được quy về cùng một bộ trường trước khi so sánh; khác cách đặt tên cột không còn bị tính là sai lệch.</p></div></div>
+      <div className="sr-compare-student"><span className="sr-compare-avatar">{initials}</span><div className="sr-compare-student-copy"><b>{student?.fullName||'Học sinh'}</b><span>{className?'Lớp '+className:''}{student?.code?' · Mã HS: '+student.code:''}</span></div><div className="sr-compare-student-progress"><strong>{progress}%</strong><span>Hoàn thành hồ sơ</span><i><em style={{width:progress+'%'}}/></i></div></div>
     </div>
-
     <div className="sr-compare-summary">
-      <article className="is-match"><span><Check size={22}/></span><div><small>Khớp hoàn toàn</small><b>{matchCount}</b><em>trường thông tin</em></div></article>
-      <article className="is-review"><span><AlertTriangle size={22}/></span><div><small>Cần xác nhận</small><b>{reviewCount}</b><em>trường thông tin</em></div></article>
-      <article className="is-mismatch"><span><AlertTriangle size={22}/></span><div><small>Sai lệch</small><b>{mismatchCount}</b><em>trường thông tin</em></div></article>
+      <article className="is-match"><span><Check size={22}/></span><div><small>Khớp sau chuẩn hoá</small><b>{matchCount}</b><em>trường thông tin</em></div></article>
+      <article className="is-review"><span><AlertTriangle size={22}/></span><div><small>Thiếu một nguồn</small><b>{reviewCount}</b><em>trường cần kiểm tra</em></div></article>
+      <article className="is-mismatch"><span><AlertTriangle size={22}/></span><div><small>Sai lệch thực</small><b>{mismatchCount}</b><em>trường thông tin</em></div></article>
       <article className="is-locked"><span><FileCheck2 size={22}/></span><div><small>Đã chốt hồ sơ gốc</small><b>{lockedCount}</b><em>trường thông tin</em></div></article>
     </div>
-
     <div className="sr-compare-table-wrap">
-      <div className="sr-compare-grid sr-compare-grid-head">
-        <div>Thông tin</div><div>Hồ sơ gốc</div><div>vnEdu</div><div>MOET</div><div>Trạng thái</div>
-      </div>
+      <div className="sr-compare-grid sr-compare-grid-head"><div>Thông tin chuẩn</div><div>Hồ sơ gốc</div><div>vnEdu</div><div>MOET</div><div>Trạng thái</div></div>
       <div className="sr-compare-grid-body">
-        {rows.map((row)=><div key={row.key} className={'sr-compare-grid sr-compare-row is-'+row.state.id}>
-          <div className="sr-compare-label"><span>{compareFieldIcon(row.key)}</span><b>{row.label}</b></div>
-          <div className="sr-compare-canonical"><input value={row.canonical} onChange={(e)=>updateCanonical(row.key,e.target.value)} placeholder="Chưa xác nhận"/></div>
-          <div className={'sr-compare-value '+(!text(row.vnedu)?'is-empty':'')}>{row.vnedu||'—'}</div>
-          <div className={'sr-compare-value '+(!text(row.moet)?'is-empty':'')}>{row.moet||'—'}</div>
-          <div className="sr-compare-status"><span className={'is-'+row.state.id}>{row.state.id==='match'?<Check size={14}/>:<AlertTriangle size={14}/>} {row.state.label}</span></div>
-        </div>)}
+        {visibleRows.map((row)=>{
+          const showGroup=row.group!==lastGroup;
+          lastGroup=row.group;
+          return <Fragment key={row.key}>{showGroup?<div className="sr-compare-group-row"><span>{row.group}</span></div>:null}<div className={'sr-compare-grid sr-compare-row is-'+row.state.id}>
+            <div className="sr-compare-label"><span>{compareFieldIcon(row.key)}</span><b>{row.label}</b></div>
+            <div className="sr-compare-canonical"><input value={row.canonical} onChange={(e)=>updateCanonical(row.key,e.target.value)} placeholder="Chưa xác nhận"/></div>
+            <div className={'sr-compare-value '+(!text(row.vnedu)?'is-empty':'')}>{row.vnedu||'—'}</div>
+            <div className={'sr-compare-value '+(!text(row.moet)?'is-empty':'')}>{row.moet||'—'}</div>
+            <div className="sr-compare-status"><span className={'is-'+row.state.id}>{row.state.id==='match'?<Check size={14}/>:<AlertTriangle size={14}/>} {row.state.label}</span></div>
+          </div></Fragment>;
+        })}
       </div>
     </div>
-
-    <div className="sr-compare-legend">
-      <span className="is-match"><i/>Khớp giữa các nguồn</span>
-      <span className="is-review"><i/>Thiếu nguồn hoặc chưa chốt hồ sơ gốc</span>
-      <span className="is-mismatch"><i/>Có dữ liệu không đồng nhất</span>
-    </div>
+    <div className="sr-compare-legend"><span className="is-match"><i/>Khớp sau chuẩn hoá định dạng</span><span className="is-review"><i/>Chỉ có dữ liệu ở một nguồn</span><span className="is-mismatch"><i/>Hai nguồn có dữ liệu nhưng khác nhau</span></div>
   </section>;
 }
 

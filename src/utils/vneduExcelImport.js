@@ -148,6 +148,20 @@ function headerMap(headers) {
   return { fields, identifiers, extra };
 }
 
+const VNEDU_POSITIONAL_HEADERS = Object.freeze({
+  12:'Khu phố/Tổ chỗ ở hiện nay',
+  13:'Phường/Xã chỗ ở hiện nay',
+  14:'Tỉnh/TP chỗ ở hiện nay',
+  16:'Khu phố/Tổ hộ khẩu thường trú',
+  17:'Phường/Xã hộ khẩu thường trú',
+  18:'Tỉnh/TP hộ khẩu thường trú',
+  20:'Phường/Xã nơi sinh',
+  21:'Tỉnh/TP nơi sinh',
+  23:'Phường/Xã quê quán',
+  24:'Tỉnh/TP quê quán',
+  26:'Tỉnh/TP khai sinh',
+});
+
 function nonEmptyRawColumns(headers, row, mapping) {
   const used = new Set([
     ...Object.values(mapping.fields || {}),
@@ -160,7 +174,7 @@ function nonEmptyRawColumns(headers, row, mapping) {
   (headers || []).forEach((header, index) => {
     const value = text(row?.[index]);
     if (!value) return;
-    const baseLabel = text(header) || ('Cột ' + (index + 1));
+    const baseLabel = text(header) || VNEDU_POSITIONAL_HEADERS[index + 1] || ('Cột ' + (index + 1));
     const count = (seen.get(baseLabel) || 0) + 1;
     seen.set(baseLabel, count);
     const label = count > 1 ? baseLabel + ' (' + count + ')' : baseLabel;
