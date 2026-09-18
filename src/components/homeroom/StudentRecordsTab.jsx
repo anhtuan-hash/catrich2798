@@ -103,7 +103,7 @@ export default function StudentRecordsTab({workspace,onCommit,currentUser}){
       {section==='paper'?<section className="sr-section"><div className="sr-section-head"><div><h3>Checklist hồ sơ</h3><p>Đúng theo nội dung BGH yêu cầu kiểm tra.</p></div><button type="button" onClick={()=>openScanner('paper')}><Camera size={16}/>Chụp hồ sơ</button></div><div className="sr-doc-grid">{PAPER_DOCS.filter((doc)=>doc.key!=='grade10Admission'||['11','12'].includes(grade)).map((doc)=>{const status=selectedRecord.checklist?.[doc.key]||'missing';return <article key={doc.key} className={'is-'+status}><span>{status==='complete'?<Check size={20}/>:status==='review'?<ClipboardCheck size={20}/>:<AlertTriangle size={20}/>}</span><div><b>{doc.label}</b><small>{doc.helper}</small></div><select value={status} onChange={(e)=>setDocStatus(doc.key,e.target.value)}><option value="missing">Thiếu</option><option value="review">Cần kiểm tra</option><option value="complete">Đã đủ</option></select></article>;})}</div><SourceCaptures sourceKey="paper" record={selectedRecord} openCapture={openCapture} removeCapture={removeCapture}/></section>:null}
       {section==='vnedu'?<section className="sr-section sr-vnedu-full"><div className="sr-section-head sr-source-head"><div><h3>Thông tin trên vnEdu</h3><p>{editingSource==='vnedu'?'Đang nhập tay các trường đối chiếu chính. Thay đổi chỉ được ghi khi nhấn Lưu.':'Hiển thị đầy đủ dữ liệu đã nhập từ file Excel vnEdu, kèm thông tin OCR và chỉnh sửa thủ công.'}</p></div><div className="sr-field-toolbar"><button type="button" onClick={()=>openScanner('vnedu')} disabled={sourceSaving}><MonitorUp size={16}/>Quét màn hình</button>{editingSource==='vnedu'?<><button type="button" className="is-neutral" onClick={cancelSourceEdit} disabled={sourceSaving}><X size={16}/>Hủy</button><button type="button" className="is-save" onClick={()=>saveSourceManual('vnedu')} disabled={sourceSaving}><Save size={16}/>{sourceSaving?'Đang lưu…':'Lưu thay đổi'}</button></>:<><button type="button" className="is-manual" onClick={()=>beginSourceEdit('vnedu')} disabled={sourceSaving}><Pencil size={16}/>Nhập tay</button><button type="button" className="is-danger" onClick={()=>clearSourceInfo('vnedu')} disabled={sourceSaving||(!Object.keys(selectedRecord.sources.vnedu.fields||{}).length&&!selectedRecord.sources.vnedu.excel&&!(selectedRecord.sources.vnedu.captures||[]).length)}><Trash2 size={16}/>Xóa sạch dữ liệu</button></>}</div></div><VneduFullProfile student={selectedStudent} className={workspace.classProfile?.className||''} source={selectedRecord.sources.vnedu} editing={editingSource==='vnedu'} draft={sourceDraft} setDraft={setSourceDraft}/>{editingSource==='vnedu'?<div className="sr-manual-savebar"><span><Pencil size={15}/>Đang chỉnh sửa thủ công · chưa lưu</span><div><button type="button" className="sr-outline" onClick={cancelSourceEdit} disabled={sourceSaving}>Hủy</button><button type="button" className="sr-primary" onClick={()=>saveSourceManual('vnedu')} disabled={sourceSaving}><Save size={15}/>{sourceSaving?'Đang lưu…':'Lưu'}</button></div></div>:null}<SourceCaptures sourceKey="vnedu" record={selectedRecord} openCapture={openCapture} removeCapture={removeCapture}/></section>:null}
       {section==='moet'?<section className="sr-section sr-moet-full"><div className="sr-section-head sr-source-head"><div><h3>Thông tin trên CSDL (MOET)</h3><p>{editingSource==='moet'?'Đang nhập tay các trường đối chiếu chính. Thay đổi chỉ được ghi khi nhấn Lưu.':'Dữ liệu cả lớp có thể nhập từ Excel MOET; màn hình này hiển thị đầy đủ dữ liệu trong file, OCR bổ sung và chỉnh tay từng học sinh.'}</p></div><div className="sr-field-toolbar"><button type="button" onClick={()=>openScanner('moet')} disabled={sourceSaving}><MonitorUp size={16}/>Quét màn hình</button>{editingSource==='moet'?<><button type="button" className="is-neutral" onClick={cancelSourceEdit} disabled={sourceSaving}><X size={16}/>Hủy</button><button type="button" className="is-save" onClick={()=>saveSourceManual('moet')} disabled={sourceSaving}><Save size={16}/>{sourceSaving?'Đang lưu…':'Lưu thay đổi'}</button></>:<><button type="button" className="is-manual" onClick={()=>beginSourceEdit('moet')} disabled={sourceSaving}><Pencil size={16}/>Nhập tay</button><button type="button" className="is-danger" onClick={()=>clearSourceInfo('moet')} disabled={sourceSaving||(!Object.keys(selectedRecord.sources.moet.fields||{}).length&&!selectedRecord.sources.moet.excel&&!(selectedRecord.sources.moet.captures||[]).length)}><Trash2 size={16}/>Xóa sạch dữ liệu</button></>}</div></div><MoetFullProfile student={selectedStudent} className={workspace.classProfile?.className||''} source={selectedRecord.sources.moet} editing={editingSource==='moet'} draft={sourceDraft} setDraft={setSourceDraft}/>{editingSource==='moet'?<div className="sr-manual-savebar"><span><Pencil size={15}/>Đang chỉnh sửa thủ công · chưa lưu</span><div><button type="button" className="sr-outline" onClick={cancelSourceEdit} disabled={sourceSaving}>Hủy</button><button type="button" className="sr-primary" onClick={()=>saveSourceManual('moet')} disabled={sourceSaving}><Save size={15}/>{sourceSaving?'Đang lưu…':'Lưu'}</button></div></div>:null}<SourceCaptures sourceKey="moet" record={selectedRecord} openCapture={openCapture} removeCapture={removeCapture}/></section>:null}
-      {section==='compare'?<section className="sr-section"><div className="sr-section-head"><div><h3>Đối chiếu 3 nguồn</h3><p>Hồ sơ gốc ↔ vnEdu ↔ MOET.</p></div></div><div className="sr-compare-wrap"><table className="sr-compare"><thead><tr><th>Thông tin</th><th>Hồ sơ gốc</th><th>vnEdu</th><th>MOET</th></tr></thead><tbody>{REQUIRED_COMPARE_FIELDS.map((key)=>{const canonical=selectedRecord.canonical?.[key]||'';const vn=selectedRecord.sources.vnedu.fields?.[key]||'';const moet=selectedRecord.sources.moet.fields?.[key]||'';const values=[canonical,vn,moet].filter(text).map(normalized);const mismatch=values.length>=2&&new Set(values).size>1;return <tr key={key} className={mismatch?'mismatch':''}><th>{STUDENT_RECORD_FIELD_LABELS[key]}</th><td><input value={canonical} onChange={(e)=>updateCanonical(key,e.target.value)} placeholder="Chưa xác nhận"/></td><td>{vn||'—'}</td><td>{moet||'—'}</td></tr>;})}</tbody></table></div><div className="sr-issues"><h3>Cần xử lý ngay ({selectedIssues.length})</h3>{selectedIssues.length?selectedIssues.map((issue)=><article key={issue.key}><AlertTriangle size={17}/><div><b>{issue.label}</b><p>{issue.detail}</p></div><ChevronRight size={16}/></article>):<div className="sr-no-issues"><Check size={22}/><span>Chưa phát hiện sai lệch giữa các nguồn đã nhập.</span></div>}</div></section>:null}
+      {section==='compare'?<CompareDashboard record={selectedRecord} student={selectedStudent} className={workspace.classProfile?.className||''} progress={recordProgress(selectedRecord,grade)} updateCanonical={updateCanonical}/>:null}
       {section==='history'?<section className="sr-section"><div className="sr-section-head"><div><h3>Lịch sử hồ sơ</h3><p>Ghi nhận những lần quét, xác nhận và chỉnh sửa.</p></div></div><div className="sr-history">{[...(selectedRecord.audit||[])].reverse().map((entry)=><article key={entry.id}><span/><div><b>{entry.action}</b><p>{entry.by}</p></div><time>{displayDate(entry.at)}</time></article>)}{!selectedRecord.audit?.length?<p className="sr-muted">Chưa có lịch sử.</p>:null}</div></section>:null}
       <footer className="sr-detail-footer"><button type="button" className="sr-outline" onClick={()=>openScanner('auto')}><Upload size={16}/>Thêm ảnh minh chứng</button><button type="button" className="sr-primary" onClick={verifyComplete}><Check size={16}/>Xác nhận hoàn tất</button></footer></>:null}</main>
     </div>
@@ -113,6 +113,78 @@ export default function StudentRecordsTab({workspace,onCommit,currentUser}){
     {preview?<div className="sr-modal-layer" role="presentation" onMouseDown={(e)=>{if(e.target===e.currentTarget)closePreview();}}><section className="sr-preview"><header><b>{preview.capture.name}</b><button type="button" onClick={closePreview}><X size={19}/></button></header><img src={preview.url} alt={preview.capture.name}/></section></div>:null}
   </div>;
 }
+function compareState(canonical,vnedu,moet){
+  const values=[canonical,vnedu,moet].map((value)=>text(value)).filter(Boolean);
+  const normalizedValues=values.map(normalized);
+  if(values.length>=2&&new Set(normalizedValues).size===1)return {id:'match',label:'Khớp'};
+  if(values.length>=2&&new Set(normalizedValues).size>1)return {id:'mismatch',label:'Sai lệch'};
+  return {id:'review',label:'Cần xác nhận'};
+}
+function compareFieldIcon(key){
+  if(key==='fullName')return <UserRound size={17}/>;
+  if(key==='gender'||key==='fatherName'||key==='motherName')return <Users size={17}/>;
+  if(key==='citizenId')return <ShieldCheck size={17}/>;
+  if(key==='birthDate')return <ClipboardCheck size={17}/>;
+  if(key==='birthPlace'||key==='hometown'||key==='birthRegistrationPlace'||key==='currentAddress'||key==='permanentAddress')return <IdCard size={17}/>;
+  if(key==='phone'||key==='fatherPhone'||key==='motherPhone')return <Database size={17}/>;
+  return <FileText size={17}/>;
+}
+function CompareDashboard({record,student,className,progress,updateCanonical}){
+  const rows=REQUIRED_COMPARE_FIELDS.map((key)=>{
+    const canonical=record.canonical?.[key]||'';
+    const vnedu=record.sources?.vnedu?.fields?.[key]||'';
+    const moet=record.sources?.moet?.fields?.[key]||'';
+    return {key,label:STUDENT_RECORD_FIELD_LABELS[key],canonical,vnedu,moet,state:compareState(canonical,vnedu,moet)};
+  });
+  const matchCount=rows.filter((row)=>row.state.id==='match').length;
+  const reviewCount=rows.filter((row)=>row.state.id==='review').length;
+  const mismatchCount=rows.filter((row)=>row.state.id==='mismatch').length;
+  const lockedCount=rows.filter((row)=>text(row.canonical)).length;
+  const initials=text(student?.fullName).split(/\s+/).slice(-2).map((part)=>part[0]||'').join('').toUpperCase();
+
+  return <section className="sr-compare-dashboard">
+    <div className="sr-compare-dashboard-head">
+      <div className="sr-compare-title">
+        <span className="sr-compare-title-icon"><RefreshCw size={24}/></span>
+        <div><h2>Đối chiếu 3 nguồn</h2><p>So sánh hồ sơ gốc, vnEdu và MOET để xác nhận thông tin chính xác.</p></div>
+      </div>
+      <div className="sr-compare-student">
+        <span className="sr-compare-avatar">{initials}</span>
+        <div className="sr-compare-student-copy"><b>{student?.fullName||'Học sinh'}</b><span>{className?'Lớp '+className:''}{student?.code?' · Mã HS: '+student.code:''}</span></div>
+        <div className="sr-compare-student-progress"><strong>{progress}%</strong><span>Hoàn thành hồ sơ</span><i><em style={{width:progress+'%'}}/></i></div>
+      </div>
+    </div>
+
+    <div className="sr-compare-summary">
+      <article className="is-match"><span><Check size={22}/></span><div><small>Khớp hoàn toàn</small><b>{matchCount}</b><em>trường thông tin</em></div></article>
+      <article className="is-review"><span><AlertTriangle size={22}/></span><div><small>Cần xác nhận</small><b>{reviewCount}</b><em>trường thông tin</em></div></article>
+      <article className="is-mismatch"><span><AlertTriangle size={22}/></span><div><small>Sai lệch</small><b>{mismatchCount}</b><em>trường thông tin</em></div></article>
+      <article className="is-locked"><span><FileCheck2 size={22}/></span><div><small>Đã chốt hồ sơ gốc</small><b>{lockedCount}</b><em>trường thông tin</em></div></article>
+    </div>
+
+    <div className="sr-compare-table-wrap">
+      <div className="sr-compare-grid sr-compare-grid-head">
+        <div>Thông tin</div><div>Hồ sơ gốc</div><div>vnEdu</div><div>MOET</div><div>Trạng thái</div>
+      </div>
+      <div className="sr-compare-grid-body">
+        {rows.map((row)=><div key={row.key} className={'sr-compare-grid sr-compare-row is-'+row.state.id}>
+          <div className="sr-compare-label"><span>{compareFieldIcon(row.key)}</span><b>{row.label}</b></div>
+          <div className="sr-compare-canonical"><input value={row.canonical} onChange={(e)=>updateCanonical(row.key,e.target.value)} placeholder="Chưa xác nhận"/></div>
+          <div className={'sr-compare-value '+(!text(row.vnedu)?'is-empty':'')}>{row.vnedu||'—'}</div>
+          <div className={'sr-compare-value '+(!text(row.moet)?'is-empty':'')}>{row.moet||'—'}</div>
+          <div className="sr-compare-status"><span className={'is-'+row.state.id}>{row.state.id==='match'?<Check size={14}/>:<AlertTriangle size={14}/>} {row.state.label}</span></div>
+        </div>)}
+      </div>
+    </div>
+
+    <div className="sr-compare-legend">
+      <span className="is-match"><i/>Khớp giữa các nguồn</span>
+      <span className="is-review"><i/>Thiếu nguồn hoặc chưa chốt hồ sơ gốc</span>
+      <span className="is-mismatch"><i/>Có dữ liệu không đồng nhất</span>
+    </div>
+  </section>;
+}
+
 function MoetFullProfile({student,className,source,editing,draft,setDraft}){
   const fields=source?.fields||{};
   const excel=source?.excel||{};

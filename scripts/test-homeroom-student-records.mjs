@@ -123,3 +123,10 @@ assert.match(component,/tone-mother/);
 assert.match(component,/tone-guardian/);
 assert.match(component,/Thông tin mở rộng/);
 assert.match(component,/sr-vnedu-extended/);
+
+assert.match(component,/CompareDashboard/);
+assert.match(component,/sr-compare-dashboard/);
+assert.match(component,/Khớp hoàn toàn/);
+assert.match(component,/Cần xác nhận/);
+assert.match(component,/Sai lệch/);
+assert.match(component,/Đã chốt hồ sơ gốc/);
