@@ -367,6 +367,9 @@ async function syncAssignedSchoolClassWorkspacesInternal(user, options = {}) {
           type: 'homeroom.navigate',
           workspaceId: homeroomWorkspaceId,
           tab: 'overview',
+          // This sync can run again after the app is already open. The receiver
+          // preserves the current tab when this workspace is already active.
+          preserveTab: true,
           source: 'assigned-school-class-sync',
         },
       }));

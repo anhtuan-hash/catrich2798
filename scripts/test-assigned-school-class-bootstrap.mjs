@@ -3,6 +3,8 @@ import fs from 'node:fs';
 
 const syncSource = fs.readFileSync(new URL('../src/assignedSchoolClassBootstrap.js', import.meta.url), 'utf8');
 const bootstrapSource = fs.readFileSync(new URL('../src/applicationBootstrap.jsx', import.meta.url), 'utf8');
+const workspaceSource = fs.readFileSync(new URL('../src/pages/HomeroomWorkspace.jsx', import.meta.url), 'utf8');
+const preferredSource = fs.readFileSync(new URL('../src/preferredHomeroomEntry.js', import.meta.url), 'utf8');
 const sqlSource = fs.readFileSync(new URL('../supabase/school-class-registry.sql', import.meta.url), 'utf8');
 
 assert.match(syncSource, /get_my_assigned_school_classes/);
@@ -17,6 +19,15 @@ assert.match(syncSource, /openDefaultHomeroom/);
 assert.match(syncSource, /setCurrentHomeroomWorkspaceId\(user, homeroomWorkspaceId\)/);
 assert.match(syncSource, /enteringHomeroomApp/);
 assert.match(syncSource, /bes-school-class-assignment-synced/);
+assert.match(syncSource, /preserveTab:\s*true/);
+assert.match(preferredSource, /preserveTab:\s*!changed/);
+assert.match(workspaceSource, /if \(targetWorkspaceId !== workspaceId\) \{[\s\S]*setCommandTarget/);
+assert.match(workspaceSource, /canPreserveCurrentTab/);
+assert.doesNotMatch(
+  workspaceSource,
+  /setCurrentHomeroomWorkspaceId\(currentUser, targetWorkspaceId\);\s*setCommandTarget\(\{ workspaceId: targetWorkspaceId, tab: 'overview'/,
+  'Repeated assignment sync must not reset an already-open Homeroom tab to Overview.',
+);
 
 const prepareIndex = bootstrapSource.indexOf('prepareAssignedSchoolClasses');
 const mainIndex = bootstrapSource.indexOf("import('./main.jsx')");

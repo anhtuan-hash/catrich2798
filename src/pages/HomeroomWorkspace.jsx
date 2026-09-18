@@ -164,8 +164,15 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
       if (!targetWorkspaceId) return;
       window.__besAssignedHomeroomWorkspaceId = targetWorkspaceId;
       setCurrentHomeroomWorkspaceId(currentUser, targetWorkspaceId);
-      setCommandTarget({ workspaceId: targetWorkspaceId, tab: 'overview', studentQuery: '' });
-      if (targetWorkspaceId !== workspaceId) setWorkspaceId(targetWorkspaceId);
+
+      // Background assignment syncs are frequent and may fire while the teacher
+      // is working inside another Homeroom tab. If the authoritative workspace
+      // is already open, do not manufacture an "overview" navigation command:
+      // doing so used to kick users back to Tổng quan whenever they changed tabs.
+      if (targetWorkspaceId !== workspaceId) {
+        setCommandTarget({ workspaceId: targetWorkspaceId, tab: 'overview', studentQuery: '', preserveTab: false });
+        setWorkspaceId(targetWorkspaceId);
+      }
     };
     window.addEventListener('bes-school-class-assignment-synced', onAssignedHomeroom);
 
@@ -199,6 +206,7 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
         workspaceId: targetWorkspaceId,
         tab: String(action.tab || 'overview'),
         studentQuery: String(action.studentQuery || ''),
+        preserveTab: action.preserveTab === true,
       });
       if (targetWorkspaceId && targetWorkspaceId !== workspaceId) {
         setCurrentHomeroomWorkspaceId(currentUser, targetWorkspaceId);
@@ -215,7 +223,12 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   useEffect(() => {
     if (!commandTarget || loading) return;
     if (commandTarget.workspaceId && commandTarget.workspaceId !== workspace.id) return;
-    const requestedTab = commandTarget.tab || getDefaultClassTab(workspace);
+    const canPreserveCurrentTab = commandTarget.preserveTab === true
+      && (!commandTarget.workspaceId || commandTarget.workspaceId === workspace.id)
+      && isClassTabAllowed(activeTab, workspace, currentUser?.role === 'admin');
+    const requestedTab = canPreserveCurrentTab
+      ? activeTab
+      : (commandTarget.tab || getDefaultClassTab(workspace));
     setActiveTab(isClassTabAllowed(requestedTab, workspace, currentUser?.role === 'admin') ? requestedTab : getDefaultClassTab(workspace));
     if (commandTarget.studentQuery) {
       window.setTimeout(() => {

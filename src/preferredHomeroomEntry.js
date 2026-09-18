@@ -88,13 +88,14 @@ function preferredLocalWorkspace(user) {
     : null;
 }
 
-function switchHomeroomWorkspaceInPlace(preferred) {
+function switchHomeroomWorkspaceInPlace(preferred, options = {}) {
   if (!preferred?.id || typeof window === 'undefined' || !isHomeroomRoute()) return;
   window.dispatchEvent(new CustomEvent('bes-homeroom-command', {
     detail: {
       type: 'homeroom.navigate',
       workspaceId: preferred.id,
       tab: 'overview',
+      preserveTab: options.preserveTab === true,
       source: preferred.source || 'preferred-homeroom',
     },
   }));
@@ -127,7 +128,9 @@ async function applyPreferredWorkspace(preferred, options = {}) {
   // correct id. React may still be holding a stale workspaceId from an earlier
   // render, and this command makes the authoritative server selection idempotent.
   if (changed || options.forceNavigate === true) publishPreferredSelection(preferred);
-  switchHomeroomWorkspaceInPlace(preferred);
+  // Re-confirming the same server-assigned class must not reset the user's
+  // current Homeroom tab. Only a real workspace change gets the default Overview.
+  switchHomeroomWorkspaceInPlace(preferred, { preserveTab: !changed });
 
   return {
     ok: true,
