@@ -2524,7 +2524,7 @@
 }
 
 .ahv3__timeline-pane,
-.ahv3__detail {
+.ahv3__shell[data-attendance-history-timeline="true"] > .ahv3__timeline-workspace > .ahv3__detail {
   min-width:0;
   min-height:0;
   border:1px solid #dce8f5!important;
@@ -2799,7 +2799,7 @@
 }
 .ahv3__timeline-item.is-bulk-mode { padding-left:44px; }
 
-.ahv3__detail {
+.ahv3__shell[data-attendance-history-timeline="true"] > .ahv3__timeline-workspace > .ahv3__detail {
   display:block!important;
   padding:0!important;
   overflow-y:auto!important;
