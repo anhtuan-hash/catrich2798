@@ -57,7 +57,14 @@ check(/\.work-schedule-timeline-event[^}]*min-height\s*:\s*8[2-9]px/.test(css), 
 check(/\.work-schedule-timeline-event>span:not\(\.work-schedule-event-icon\)[^}]*font-size\s*:\s*1[0-1](?:\.5)?px/.test(css), 'improves event title readability');
 check(/\.work-schedule-category-filters button[^}]*min-height\s*:\s*3[6-9]px/.test(css), 'makes category chips easier to scan and click');
 check(css.includes('.work-schedule-timeline-board'), 'styles the seven-column timeline board');
-check(/grid-template-columns\s*:\s*repeat\(7\s*,\s*minmax\(192px\s*,\s*1fr\)\)/.test(css), 'uses seven equal timeline columns on desktop');
+check(/grid-template-columns\s*:\s*repeat\(7\s*,\s*minmax\(0\s*,\s*1fr\)\)/.test(css), 'fits all seven timeline days inside the desktop board');
+check(/\.work-schedule-timeline-board \.work-schedule-grid[^}]*min-width\s*:\s*0/.test(css), 'avoids desktop horizontal clipping of Sunday');
+check(/\.work-schedule-event-icon[^}]*width\s*:\s*28px/.test(css), 'reduces event icon footprint to give titles more room');
+check(/\.work-schedule-event-icon[^}]*font-size\s*:\s*0/.test(css), 'simplifies category artwork into a quiet visual marker');
+check(!center.includes('▣ {event.location}'), 'removes the redundant location glyph from event metadata');
+check(/\.work-schedule-timeline-more[^}]*position\s*:\s*relative/.test(css), 'keeps hidden-event continuation close to the last visible card');
+check(/\.work-schedule-empty-day[^}]*min-height\s*:\s*11[0-9]px/.test(css), 'uses a compact empty-day card instead of a full-height panel');
+check(/\.work-schedule-event-location[^}]*font-size\s*:\s*9px/.test(css), 'improves event metadata readability');
 check(/border-left\s*:\s*1px\s+dashed/.test(css), 'draws the vertical timeline rails');
 check(css.includes('.work-schedule-timeline-event.is-meeting'), 'styles meeting events');
 check(css.includes('.work-schedule-timeline-event.is-training'), 'styles training events');
