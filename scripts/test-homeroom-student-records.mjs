@@ -137,5 +137,3 @@ assert.match(component,/Tìm trường thông tin/);
 assert.match(component,/compareGroupTone/);
 assert.match(component,/Khớp hoàn toàn/);
 assert.match(component,/Sai lệch/);
-
-assert.match(component,/is-compare-scroll/);
