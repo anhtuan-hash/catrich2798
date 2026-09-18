@@ -332,6 +332,12 @@
       }
     });
     if (!root || !activeShell) return;
+    if (root.matches('[data-attendance-history-timeline="true"]')) {
+      restoreDuplicateActivityFilters(activeShell);
+      removeMobileDetailControls(root);
+      activeShell.classList.remove('ah-history-v5');
+      return;
+    }
 
     activeShell.classList.add('ah-history-v5');
     hideDuplicateActivityFilters(activeShell);
