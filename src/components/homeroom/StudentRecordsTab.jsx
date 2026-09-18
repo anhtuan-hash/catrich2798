@@ -1,6 +1,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertTriangle, Camera, Check, ChevronRight, ClipboardCheck, CloudUpload, Database, Download, FileCheck2, FileSpreadsheet, FileText, History, IdCard, MonitorUp, Pencil, RefreshCw, Save, Search, ShieldCheck, Trash2, Upload, UserRound, Users, X } from 'lucide-react';
+import { AlertTriangle, Camera, Check, ChevronDown, ChevronRight, ClipboardCheck, CloudUpload, Database, Download, FileCheck2, FileSpreadsheet, FileText, History, IdCard, MonitorUp, Pencil, RefreshCw, Save, Search, ShieldCheck, Trash2, Upload, UserRound, Users, X } from 'lucide-react';
 import { recognizeStudentRecordImage, STUDENT_RECORD_FIELD_LABELS } from '../../utils/studentRecordScanner.js';
 import { deleteStudentRecordMedia, getStudentRecordMedia, saveStudentRecordMedia } from '../../utils/studentRecordMediaStore.js';
 import { cleanupStudentRecordCloudOrphans, deleteStudentRecordCloudMedia, downloadStudentRecordCloudMedia, studentRecordCloudEnabled, uploadStudentRecordCloudMedia } from '../../utils/studentRecordCloudStore.js';
@@ -115,69 +115,48 @@ function VneduFullProfile({student,className,source,editing,draft,setDraft}){
   const fieldValue=(key)=>editing?(draft?.[key]||''):(fields?.[key]||'');
   const editField=(key,value)=>setDraft((current)=>({...current,[key]:value}));
   const identifierCards=[
-    ['studentCode','Mã HS'],['moetCode','Mã MOET'],['vemisCode','Mã VEMIS'],['registerBook','Số đăng bộ'],
+    ['studentCode','Mã HS','blue',ids.studentCode],
+    ['moetCode','Mã MOET','violet',ids.moetCode],
+    ['vemisCode','Mã VEMIS','amber',ids.vemisCode],
+    ['registerBook','Số đăng bộ','green',ids.registerBook],
+    ['citizenId','CCCD','rose',fieldValue('citizenId')],
   ];
   const otherEntries=Object.entries(unmapped).filter(([,value])=>text(value));
-  return <div className="sr-vnedu-profile">
+  const extraEntries=Object.entries(extra).filter(([,value])=>text(value));
+  const extendedCount=extraEntries.length+otherEntries.length;
+  const initials=text(student?.fullName).split(/\s+/).slice(-2).map((part)=>part[0]||'').join('').toUpperCase();
+  return <div className="sr-vnedu-profile sr-vnedu-color-layout">
     <div className="sr-vnedu-profile-head">
-      <div className="sr-vnedu-person"><span className="sr-vnedu-avatar">{text(student?.fullName).split(/\s+/).slice(-2).map((part)=>part[0]||'').join('').toUpperCase()}</span><div><h3>{fields.fullName||student?.fullName||'Học sinh'}</h3><p>{className?'Lớp '+className:''}{student?.code?' · Mã lớp: '+student.code:''}</p></div></div>
-      <div className="sr-vnedu-id-card-row">{identifierCards.map(([key,label])=><div className="sr-vnedu-id-card" key={key}><span>{label}</span><b>{ids[key]||'—'}</b></div>)}</div>
-      <div className={'sr-vnedu-import-state '+(excel.fileName?'is-imported':'')}><FileSpreadsheet size={18}/><div><b>{excel.fileName?'Đã nhập từ Excel':'Chưa nhập Excel'}</b><span>{excel.fileName?<>{excel.fileName}<br/>Dòng {excel.rowNumber||'—'}{excel.importedAt?' · '+displayDate(excel.importedAt):''}</>:'Dùng nút Nhập Excel vnEdu ở đầu app'}</span></div></div>
+      <div className="sr-vnedu-person"><span className="sr-vnedu-avatar">{initials}</span><div className="sr-vnedu-person-copy"><h3>{fields.fullName||student?.fullName||'Học sinh'}</h3><p>{className?'Lớp '+className:''}{student?.code?' · Mã lớp: '+student.code:''}</p><div className="sr-vnedu-person-chips"><span>{fieldValue('birthDate')||displayDate(student?.birthDate)||'Chưa có ngày sinh'}</span><span>{fieldValue('gender')||student?.gender||'Chưa có giới tính'}</span></div></div></div>
+      <div className="sr-vnedu-id-card-row">{identifierCards.map(([key,label,tone,value])=><div className={'sr-vnedu-id-card tone-'+tone+(text(value)?'':' is-missing')} key={key}><span>{label}</span><b>{text(value)||'—'}</b>{!text(value)?<em>Thiếu</em>:null}</div>)}</div>
+      <div className={'sr-vnedu-import-state '+(excel.fileName?'is-imported':'')}><span className="sr-vnedu-import-icon">{excel.fileName?<Check size={17}/>:<FileSpreadsheet size={17}/>}</span><div><b>{excel.fileName?'Đã nhập từ Excel':'Chưa nhập Excel'}</b><span>{excel.fileName?<>{excel.fileName}<br/>Dòng {excel.rowNumber||'—'}{excel.importedAt?' · '+displayDate(excel.importedAt):''}</>:'Dùng nút Nhập Excel vnEdu ở đầu app'}</span></div></div>
     </div>
-
     <div className="sr-vnedu-card-grid">
-      <VneduSection title="Thông tin cá nhân" icon={<UserRound size={17}/>}>
-        <VneduEditable label="Họ và tên" fieldKey="fullName" value={fieldValue('fullName')} editing={editing} onChange={editField}/>
-        <VneduEditable label="Giới tính" fieldKey="gender" value={fieldValue('gender')} editing={editing} onChange={editField}/>
-        <VneduEditable label="Ngày sinh" fieldKey="birthDate" value={fieldValue('birthDate')} editing={editing} onChange={editField}/>
-        <VneduValue label="Dân tộc" value={extra.ethnicity}/>
-        <VneduValue label="Quốc tịch" value={extra.nationality}/>
-        <VneduValue label="Tôn giáo" value={extra.religion}/>
-        <VneduEditable wide label="Nơi sinh" fieldKey="birthPlace" value={fieldValue('birthPlace')} editing={editing} onChange={editField}/>
-        <VneduEditable wide label="Nơi khai sinh" fieldKey="birthRegistrationPlace" value={fieldValue('birthRegistrationPlace')} editing={editing} onChange={editField}/>
-        <VneduEditable wide label="Quê quán" fieldKey="hometown" value={fieldValue('hometown')} editing={editing} onChange={editField}/>
-        <VneduValue label="Tên gọi khác" value={extra.otherName}/>
-        <VneduValue label="DT trên giấy KS" value={extra.birthCertificateEthnicity}/>
+      <VneduSection title="Thông tin cơ bản" icon={<UserRound size={18}/>} tone="blue">
+        <VneduEditable label="Họ và tên" fieldKey="fullName" value={fieldValue('fullName')} editing={editing} onChange={editField}/><VneduEditable label="Giới tính" fieldKey="gender" value={fieldValue('gender')} editing={editing} onChange={editField}/><VneduEditable label="Ngày sinh" fieldKey="birthDate" value={fieldValue('birthDate')} editing={editing} onChange={editField}/><VneduValue label="Dân tộc" value={extra.ethnicity}/><VneduValue label="Quốc tịch" value={extra.nationality}/><VneduValue label="Tôn giáo" value={extra.religion}/><VneduEditable wide label="Nơi sinh" fieldKey="birthPlace" value={fieldValue('birthPlace')} editing={editing} onChange={editField}/><VneduEditable wide label="Nơi khai sinh" fieldKey="birthRegistrationPlace" value={fieldValue('birthRegistrationPlace')} editing={editing} onChange={editField}/><VneduEditable wide label="Quê quán" fieldKey="hometown" value={fieldValue('hometown')} editing={editing} onChange={editField}/>
       </VneduSection>
-
-      <VneduSection title="Thông tin cư trú" icon={<IdCard size={17}/>}>
-        <VneduEditable wide label="Chỗ ở hiện nay" fieldKey="currentAddress" value={fieldValue('currentAddress')} editing={editing} onChange={editField}/>
-        <VneduEditable wide label="Nơi thường trú" fieldKey="permanentAddress" value={fieldValue('permanentAddress')} editing={editing} onChange={editField}/>
-        <VneduValue wide label="Khu dân cư" value={extra.residentialArea}/>
-        <VneduValue label="Loại cư trú" value={extra.residenceType}/>
+      <VneduSection title="Thông tin cư trú" icon={<IdCard size={18}/>} tone="green">
+        <VneduEditable wide label="Chỗ ở hiện nay" fieldKey="currentAddress" value={fieldValue('currentAddress')} editing={editing} onChange={editField}/><VneduEditable wide label="Nơi thường trú" fieldKey="permanentAddress" value={fieldValue('permanentAddress')} editing={editing} onChange={editField}/><VneduValue wide label="Khu dân cư" value={extra.residentialArea}/><VneduValue label="Loại cư trú" value={extra.residenceType}/>
       </VneduSection>
-
-      <VneduSection title="Thông tin học sinh trong hệ thống" icon={<Database size={17}/>}>
-        {identifierCards.map(([key,label])=><VneduValue key={key} label={label} value={ids[key]}/>)}
-        <VneduValue label="Ngày vào trường" value={extra.enrollmentDate}/>
-        <VneduEditable label="Điện thoại học sinh" fieldKey="phone" value={fieldValue('phone')} editing={editing} onChange={editField}/>
-        <VneduValue label="Điện thoại SLL" value={extra.contactPhone}/>
-        <VneduValue label="Email SLL" value={extra.contactEmail}/>
-        <VneduEditable label="CCCD / Định danh" fieldKey="citizenId" value={fieldValue('citizenId')} editing={editing} onChange={editField}/>
-        <VneduValue label="Ngày cấp CCCD" value={extra.citizenIdIssueDate}/>
-        <VneduValue wide label="Nơi cấp CCCD" value={extra.citizenIdIssuePlace}/>
+      <VneduSection title="Thông tin học sinh trong hệ thống" icon={<Database size={18}/>} tone="violet">
+        <VneduValue label="Mã HS" value={ids.studentCode}/><VneduValue label="Mã MOET" value={ids.moetCode}/><VneduValue label="Mã VEMIS" value={ids.vemisCode}/><VneduValue label="Số đăng bộ" value={ids.registerBook}/><VneduValue label="Ngày vào trường" value={extra.enrollmentDate}/><VneduEditable label="Điện thoại học sinh" fieldKey="phone" value={fieldValue('phone')} editing={editing} onChange={editField}/><VneduValue label="Điện thoại SLL" value={extra.contactPhone}/><VneduValue label="Email SLL" value={extra.contactEmail}/><VneduEditable label="CCCD / Định danh" fieldKey="citizenId" value={fieldValue('citizenId')} editing={editing} onChange={editField}/><VneduValue label="Ngày cấp CCCD" value={extra.citizenIdIssueDate}/><VneduValue wide label="Nơi cấp CCCD" value={extra.citizenIdIssuePlace}/>
       </VneduSection>
-
-      <VneduSection title="Thông tin gia đình" icon={<Users size={17}/>}>
-        <div className="sr-vnedu-family-column"><h4>Thông tin cha</h4><VneduEditable label="Họ tên cha" fieldKey="fatherName" value={fieldValue('fatherName')} editing={editing} onChange={editField}/><VneduValue label="Năm sinh" value={extra.fatherBirthYear}/><VneduValue label="Nghề nghiệp" value={extra.fatherOccupation}/><VneduValue label="Đơn vị công tác" value={extra.fatherWorkplace}/><VneduEditable label="Điện thoại" fieldKey="fatherPhone" value={fieldValue('fatherPhone')} editing={editing} onChange={editField}/><VneduValue label="CCCD" value={extra.fatherCitizenId}/></div>
-        <div className="sr-vnedu-family-column"><h4>Thông tin mẹ</h4><VneduEditable label="Họ tên mẹ" fieldKey="motherName" value={fieldValue('motherName')} editing={editing} onChange={editField}/><VneduValue label="Năm sinh" value={extra.motherBirthYear}/><VneduValue label="Nghề nghiệp" value={extra.motherOccupation}/><VneduValue label="Đơn vị công tác" value={extra.motherWorkplace}/><VneduEditable label="Điện thoại" fieldKey="motherPhone" value={fieldValue('motherPhone')} editing={editing} onChange={editField}/><VneduValue label="CCCD" value={extra.motherCitizenId}/></div>
-        <div className="sr-vnedu-family-column sr-vnedu-guardian"><h4>Người đỡ đầu (nếu có)</h4><VneduValue label="Họ tên" value={extra.guardianName}/><VneduValue label="Năm sinh" value={extra.guardianBirthYear}/><VneduValue label="Nghề nghiệp" value={extra.guardianOccupation}/><VneduValue label="Đơn vị công tác" value={extra.guardianWorkplace}/><VneduValue label="Điện thoại" value={extra.guardianPhone}/><VneduValue label="CCCD" value={extra.guardianCitizenId}/></div>
+      <VneduSection title="Thông tin gia đình" icon={<Users size={18}/>} tone="orange" variant="family">
+        <div className="sr-vnedu-family-column tone-father"><h4><span>Cha</span></h4><VneduEditable label="Họ tên" fieldKey="fatherName" value={fieldValue('fatherName')} editing={editing} onChange={editField}/><VneduValue label="Năm sinh" value={extra.fatherBirthYear}/><VneduValue label="Nghề nghiệp" value={extra.fatherOccupation}/><VneduValue label="Đơn vị công tác" value={extra.fatherWorkplace}/><VneduEditable label="Điện thoại" fieldKey="fatherPhone" value={fieldValue('fatherPhone')} editing={editing} onChange={editField}/><VneduValue label="CCCD" value={extra.fatherCitizenId}/></div>
+        <div className="sr-vnedu-family-column tone-mother"><h4><span>Mẹ</span></h4><VneduEditable label="Họ tên" fieldKey="motherName" value={fieldValue('motherName')} editing={editing} onChange={editField}/><VneduValue label="Năm sinh" value={extra.motherBirthYear}/><VneduValue label="Nghề nghiệp" value={extra.motherOccupation}/><VneduValue label="Đơn vị công tác" value={extra.motherWorkplace}/><VneduEditable label="Điện thoại" fieldKey="motherPhone" value={fieldValue('motherPhone')} editing={editing} onChange={editField}/><VneduValue label="CCCD" value={extra.motherCitizenId}/></div>
+        <div className="sr-vnedu-family-column tone-guardian"><h4><span>Người đỡ đầu</span><small>nếu có</small></h4><VneduValue label="Họ tên" value={extra.guardianName}/><VneduValue label="Năm sinh" value={extra.guardianBirthYear}/><VneduValue label="Nghề nghiệp" value={extra.guardianOccupation}/><VneduValue label="Đơn vị công tác" value={extra.guardianWorkplace}/><VneduValue label="Điện thoại" value={extra.guardianPhone}/><VneduValue label="CCCD" value={extra.guardianCitizenId}/></div>
       </VneduSection>
     </div>
-
-    <VneduSection title="Thông tin bổ sung" icon={<FileText size={17}/>} full>
-      <VneduValue label="Diện chính sách" value={extra.policyCategory}/>
-      <VneduValue label="Khuyết tật" value={extra.disability}/>
-      <VneduValue label="Diện ưu tiên" value={extra.priorityCategory}/>
-      <VneduValue label="Diện ưu đãi" value={extra.benefitCategory}/>
-      <VneduValue label="Ảnh học sinh" value={extra.studentPhoto}/>
-      <VneduValue wide label="Ghi chú" value={extra.notes}/>
-    </VneduSection>
-
-    {otherEntries.length?<VneduSection title={'Các cột khác từ file Excel ('+otherEntries.length+')'} icon={<FileSpreadsheet size={17}/>} full><div className="sr-vnedu-unmapped">{otherEntries.map(([label,value])=><VneduValue key={label} label={label} value={value}/>)}</div></VneduSection>:null}
+    <details className="sr-vnedu-extended">
+      <summary><span className="sr-vnedu-extended-icon"><FileSpreadsheet size={18}/></span><strong>Thông tin mở rộng</strong><span>Các trường khác từ Excel</span><em>{extendedCount} trường dữ liệu</em><ChevronDown size={18}/></summary>
+      <div className="sr-vnedu-extended-body">
+        <VneduSection title="Thông tin bổ sung" icon={<FileText size={18}/>} tone="purple" full><VneduValue label="Tên gọi khác" value={extra.otherName}/><VneduValue label="DT trên giấy KS" value={extra.birthCertificateEthnicity}/><VneduValue label="Diện chính sách" value={extra.policyCategory}/><VneduValue label="Khuyết tật" value={extra.disability}/><VneduValue label="Diện ưu tiên" value={extra.priorityCategory}/><VneduValue label="Diện ưu đãi" value={extra.benefitCategory}/><VneduValue label="Ảnh học sinh" value={extra.studentPhoto}/><VneduValue wide label="Ghi chú" value={extra.notes}/></VneduSection>
+        {otherEntries.length?<VneduSection title={'Các cột chưa ánh xạ ('+otherEntries.length+')'} icon={<FileSpreadsheet size={18}/>} tone="slate" full><div className="sr-vnedu-unmapped">{otherEntries.map(([label,value])=><VneduValue key={label} label={label} value={value}/>)}</div></VneduSection>:null}
+      </div>
+    </details>
   </div>;
 }
-function VneduSection({title,icon,children,full=false}){return <section className={'sr-vnedu-card '+(full?'is-full':'')}><header>{icon}<h3>{title}</h3></header><div className="sr-vnedu-card-body">{children}</div></section>;}
+function VneduSection({title,icon,children,full=false,tone='blue',variant=''}){return <section className={'sr-vnedu-card tone-'+tone+(full?' is-full':'')+(variant?' is-'+variant:'')}><header>{icon}<h3>{title}</h3></header><div className="sr-vnedu-card-body">{children}</div></section>;}
 function VneduValue({label,value,wide=false}){return <div className={'sr-vnedu-field '+(wide?'is-wide':'')}><span>{label}</span><b className={!text(value)?'is-empty':''}>{text(value)||'Chưa có dữ liệu'}</b></div>;}
 function VneduEditable({label,fieldKey,value,editing,onChange,wide=false}){return <div className={'sr-vnedu-field '+(wide?'is-wide':'')+(editing?' is-editing':'')}><span>{label}</span>{editing?<input value={value||''} onChange={(e)=>onChange(fieldKey,e.target.value)} placeholder="Nhập thông tin…"/>:<b className={!text(value)?'is-empty':''}>{text(value)||'Chưa có dữ liệu'}</b>}</div>;}
 

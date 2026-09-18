@@ -112,3 +112,14 @@ assert.equal(parsedLayout.fields.phone, '0936885579');
 const numericGuard = scannerModule.parseStudentRecordText('CCCD: 074209010550');
 assert.equal(numericGuard.fields.phone, undefined);
 console.log('PASS: homeroom student-records app integrated with layout-aware OCR.');
+
+assert.match(component,/sr-vnedu-color-layout/);
+assert.match(component,/tone="blue"/);
+assert.match(component,/tone="green"/);
+assert.match(component,/tone="violet"/);
+assert.match(component,/tone="orange"/);
+assert.match(component,/tone-father/);
+assert.match(component,/tone-mother/);
+assert.match(component,/tone-guardian/);
+assert.match(component,/Thông tin mở rộng/);
+assert.match(component,/sr-vnedu-extended/);
