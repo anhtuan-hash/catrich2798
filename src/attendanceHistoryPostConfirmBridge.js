@@ -120,7 +120,11 @@ function ensureCompatibilitySurface(snapshot, resolved) {
       <div class="attendance-rollcall-head" hidden><h2></h2></div>
       <div class="attendance-session-controls" hidden><input type="date" /></div>
       <div class="attendance-class-list" hidden><button type="button" class="is-selected" data-bes-attendance-class-id=""></button></div>`;
-    detail.prepend(surface);
+    surface.querySelectorAll('[hidden]').forEach((node) => node.style.setProperty('display', 'none', 'important'));
+    const timelineRoot = detail.closest(`${HISTORY_ROOT}[data-attendance-history-timeline="true"]`);
+    const timelineAnchor = timelineRoot ? detail.querySelector('.ahv3__dashboard-stats') : null;
+    if (timelineAnchor) timelineAnchor.insertAdjacentElement('afterend', surface);
+    else detail.prepend(surface);
   }
 
   const source = snapshot.source;
@@ -154,7 +158,7 @@ function refreshVisibleHistoryAfterSave() {
   if (!document.querySelector(DETAIL_SELECTOR)) return;
   document.querySelector('.attendance-top-actions button[title="Làm mới"]')?.click();
   window.setTimeout(() => {
-    document.querySelector(`${HISTORY_ROOT} .ahv3__items > button.is-selected`)?.click();
+    document.querySelector(`${HISTORY_ROOT} .ahv3__timeline-item.is-selected, ${HISTORY_ROOT} .ahv3__items > button.is-selected`)?.click();
   }, 250);
 }
 
