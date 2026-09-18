@@ -95,4 +95,25 @@ for (const iconName of ['people', 'check', 'late', 'absent']) {
 assert.match(component, /<article className="is-late">[\s\S]*?selectedLateRecords\.length[\s\S]*?<span>Đi trễ<\/span>/, 'History summary must expose a dedicated tardy card');
 assert.match(component, /<article className="is-present">[\s\S]*?selectedSession\.present_count[\s\S]*?<span>Có mặt<\/span>/, 'Present count must remain sourced from present_count');
 
+
+// Approved 2026-09-18 timeline mockup.
+assert.match(component, /data-attendance-history-timeline="true"/, 'History must opt into the new timeline workspace');
+assert.match(component, /className="ahv3__timeline-toolbar"/, 'Timeline mockup must own the full-width toolbar');
+assert.match(component, /ahv3__timeline-pane/, 'Timeline mockup must render a dedicated history rail');
+assert.match(component, /ahv3__timeline-item/, 'History sessions must render as timeline cards');
+assert.match(component, /className="ahv3__month-marker"/, 'History timeline must render month separators');
+assert.match(component, /ahv3__detail-dashboard/, 'Selected-session detail must use the dashboard composition');
+assert.match(component, /className="ahv3__student-strip"/, 'Selected-session detail must preview students');
+assert.match(component, /className="ahv3__session-note"/, 'Selected-session detail must include the mockup note card');
+assert.match(component, /className="ahv3__session-log"/, 'Selected-session detail must expose an activity timeline');
+assert.match(component, /ahv3__book-art/, 'Selected-session hero must keep the open-book illustration hook');
+assert.match(css, /\.ahv3__shell\[data-attendance-history-timeline="true"\]\s*\{[\s\S]*grid-template-rows:\s*auto\s+minmax\(0,\s*1fr\)/, 'Timeline workspace must reserve a full-width toolbar row');
+assert.match(css, /\.ahv3__timeline-workspace\s*\{[\s\S]*grid-template-columns:\s*minmax\(500px,\s*\.96fr\)\s+minmax\(0,\s*1\.04fr\)/, 'Timeline/detail proportions must match the approved mockup');
+assert.match(css, /\.ahv3__timeline-rail::before\s*\{[\s\S]*border-left:\s*2px\s+solid\s+#b9d6fb/, 'Timeline rail must use the mockup blue vertical line');
+assert.match(css, /\.ahv3__month-marker\s*\{[\s\S]*border-radius:\s*999px/, 'Month markers must use compact pills');
+assert.match(css, /\.ahv3__detail-dashboard\s*\{[\s\S]*background:\s*linear-gradient/, 'Selected-session dashboard must use the warm illustrated surface');
+assert.match(css, /\.ahv3__student-strip\s*\{[\s\S]*display:\s*grid/, 'Student preview must use a stable grid');
+assert.match(css, /\.ahv3__session-log\s*\{[\s\S]*position:\s*relative/, 'Session activity log must own its timeline positioning');
+assert.match(css, /:has\(\.ahv3__shell\[data-attendance-history-timeline="true"\]\) \.ah-mockup-filterbar\s*\{[\s\S]*display:\s*none\s*!important/, 'Legacy injected activity filterbar must be hidden for the new React timeline workspace');
+
 console.log('Attendance History V3 approved mockup contract OK');
