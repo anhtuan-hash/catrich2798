@@ -392,6 +392,15 @@ function renderCard() {
   const card = ensureCard();
   if (!card) return;
 
+  const timelineDetail = card.closest('.ahv3__shell[data-attendance-history-timeline="true"] .ahv3__detail');
+  const previousScrollTop = timelineDetail?.scrollTop || 0;
+  const restoreTimelineScroll = () => {
+    if (!timelineDetail) return;
+    window.requestAnimationFrame(() => {
+      timelineDetail.scrollTop = previousScrollTop;
+    });
+  };
+
   const access = localAccess();
   if (!access.allowed && editing) editing = false;
   const summary = statusSummary();
@@ -418,6 +427,7 @@ function renderCard() {
       </div>
       ${notice ? `<div class="bes-post-confirm-notice is-success">${escapeHtml(notice)}</div>` : ''}
       ${errorMessage && access.reason !== 'server_access_unavailable' ? `<div class="bes-post-confirm-notice is-error">${escapeHtml(errorMessage)}</div>` : ''}`;
+    restoreTimelineScroll();
     return;
   }
 
@@ -433,6 +443,7 @@ function renderCard() {
       <div><button type="button" class="is-secondary" data-action="cancel" ${saving ? 'disabled' : ''}>Hủy điều chỉnh</button><button type="button" class="is-primary" data-action="save" ${saving ? 'disabled' : ''}>${saving ? 'Đang lưu…' : 'Lưu điều chỉnh'}</button></div>
     </footer>
     ${errorMessage ? `<div class="bes-post-confirm-notice is-error">${escapeHtml(errorMessage)}</div>` : ''}`;
+  restoreTimelineScroll();
 }
 
 function queueRender() {
