@@ -467,14 +467,22 @@ export async function saveHomeroomWorkspace(workspace, user) {
   const expectedRevision = text(prepared.syncMeta?.cloudUpdatedAt);
   const { data: existing, error: readError } = await supabase
     .from(WORKSPACE_TABLE)
-    .select('updated_at')
+    .select('updated_at,payload')
     .eq('owner_id', user.id)
     .eq('workspace_id', prepared.id)
     .maybeSingle();
   if (readError) return { ok: false, offline: mode !== 'cloud-only', message: readError.message, workspace: local };
 
   if (existing) {
-    if (!expectedRevision || !sameRevision(existing.updated_at, expectedRevision)) return conflictResult(local);
+    if (!expectedRevision || !sameRevision(existing.updated_at, expectedRevision)) {
+      const currentCloud = existing.payload
+        ? decorateWorkspace({
+            ...existing.payload,
+            syncMeta: { ...(existing.payload.syncMeta || {}), cloudUpdatedAt: existing.updated_at || '' },
+          }, user, true)
+        : local;
+      return conflictResult(currentCloud);
+    }
   } else if (expectedRevision) {
     return conflictResult(local, 'Bản ghi cloud đã bị xóa hoặc thay đổi. Hãy tải lại lớp trước khi lưu.');
   }
@@ -498,7 +506,21 @@ export async function saveHomeroomWorkspace(workspace, user) {
       .eq('updated_at', expectedRevision)
       .select('updated_at')
       .maybeSingle());
-    if (!error && !data) return conflictResult(local);
+    if (!error && !data) {
+      const { data: latest } = await supabase
+        .from(WORKSPACE_TABLE)
+        .select('updated_at,payload')
+        .eq('owner_id', user.id)
+        .eq('workspace_id', payload.id)
+        .maybeSingle();
+      const currentCloud = latest?.payload
+        ? decorateWorkspace({
+            ...latest.payload,
+            syncMeta: { ...(latest.payload.syncMeta || {}), cloudUpdatedAt: latest.updated_at || '' },
+          }, user, true)
+        : local;
+      return conflictResult(currentCloud);
+    }
   } else {
     ({ data, error } = await supabase
       .from(WORKSPACE_TABLE)

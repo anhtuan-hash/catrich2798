@@ -73,6 +73,44 @@ function getInitialWorkspace(user, workspaceId) {
   return local ? normalizeHomeroomWorkspace(local, user) : makeDefaultHomeroomWorkspace(user);
 }
 
+function stableJson(value) {
+  try { return JSON.stringify(value ?? null); } catch { return ''; }
+}
+
+function workspaceOutsideStudentRecords(workspace) {
+  if (!workspace || typeof workspace !== 'object') return {};
+  const {
+    studentRecords,
+    auditLogs,
+    backups,
+    updatedAt,
+    syncMeta,
+    ...rest
+  } = workspace;
+  return rest;
+}
+
+function changedStudentRecordIds(before, after) {
+  const previous = before?.studentRecords || {};
+  const next = after?.studentRecords || {};
+  const ids = new Set([...Object.keys(previous), ...Object.keys(next)]);
+  return [...ids].filter((id) => stableJson(previous[id]) !== stableJson(next[id]));
+}
+
+function isStudentRecordsOnlyChange(before, after) {
+  return stableJson(workspaceOutsideStudentRecords(before)) === stableJson(workspaceOutsideStudentRecords(after))
+    && changedStudentRecordIds(before, after).length > 0;
+}
+
+function mergeStudentRecordDelta(before, after, latest) {
+  const mergedRecords = { ...(latest?.studentRecords || {}) };
+  changedStudentRecordIds(before, after).forEach((id) => {
+    if (Object.prototype.hasOwnProperty.call(after?.studentRecords || {}, id)) mergedRecords[id] = after.studentRecords[id];
+    else delete mergedRecords[id];
+  });
+  return { ...latest, studentRecords: mergedRecords };
+}
+
 export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   // Server assignment, when available, is stronger than any stale local current-id.
   // applicationBootstrap resolves it before first mount on a direct Homeroom entry.
@@ -253,13 +291,33 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   };
 
   const commit = async (next, successMessage = 'Đã lưu dữ liệu.') => {
-    const normalized = prepareWorkspaceCommit(workspace, next, currentUser, successMessage);
+    const previousWorkspace = workspace;
+    let normalized = prepareWorkspaceCommit(previousWorkspace, next, currentUser, successMessage);
     setWorkspace(normalized);
     setClassDraft(normalized.classProfile);
     homeroomSessionCache.set(snapshotKey(currentUser, normalized.id), normalized);
     saveLocalHomeroomWorkspace(normalized, currentUser);
     setSaving(true);
-    const result = await saveHomeroomWorkspace(normalized, currentUser);
+    let result = await saveHomeroomWorkspace(normalized, currentUser);
+
+    // Student-record edits are frequent and may collide with a background class
+    // sync or another harmless workspace write. Retry them safely by applying
+    // only the changed student-record entries on top of the latest cloud payload.
+    // This is especially important for destructive edits: without this retry,
+    // "Xóa thông tin" looked successful locally but the old cloud fields came
+    // back after a page refresh.
+    if (!result.ok
+      && result.code === 'workspace-conflict'
+      && result.workspace
+      && isStudentRecordsOnlyChange(previousWorkspace, normalized)) {
+      const latestCloud = normalizeHomeroomWorkspace(result.workspace, currentUser);
+      const merged = mergeStudentRecordDelta(previousWorkspace, normalized, latestCloud);
+      normalized = prepareWorkspaceCommit(latestCloud, merged, currentUser, successMessage);
+      saveLocalHomeroomWorkspace(normalized, currentUser);
+      homeroomSessionCache.set(snapshotKey(currentUser, normalized.id), normalized);
+      result = await saveHomeroomWorkspace(normalized, currentUser);
+    }
+
     setSaving(false);
     if (result.ok) {
       const saved = result.workspace || normalized;

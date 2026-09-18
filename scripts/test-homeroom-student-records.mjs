@@ -22,6 +22,7 @@ assert.match(component,/Xóa thông tin/);
 assert.match(component,/Lưu thay đổi/);
 assert.match(component,/saveSourceManual/);
 assert.match(component,/clearSourceInfo/);
+assert.match(component,/Đã xóa thông tin.*đồng bộ thay đổi/);
 assert.match(component,/readOnly=\{!editing\}/);
 assert.doesNotMatch(component,/onChange=\{\(e\)=>\{const source=selectedRecord\.sources\[section\];patchRecord/, 'vnEdu/MOET fields must not auto-save on every keystroke.');
 assert.match(scanner,/TextDetector/);
