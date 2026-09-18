@@ -211,4 +211,15 @@ assert.match(
   'Timeline post-confirm actions must span the card width below the copy and summary',
 );
 
+
+// Single-session timeline viewport: show one class at a time and navigate by vertical snap scroll.
+assert.match(component, /ref=\{historyTimelineRailRef\}/, 'History timeline must own a dedicated scroll viewport ref');
+assert.match(component, /data-history-session-id=\{session\.id\}/, 'Each timeline session must expose a stable scroll-snap identity');
+assert.match(component, /onScroll=\{handleHistoryTimelineScroll\}/, 'Timeline scroll must update the active session after snapping');
+assert.match(component, /function handleHistoryTimelineScroll\(/, 'Timeline must implement scroll-driven session selection');
+assert.match(css, /\.ahv3__timeline-rail\s*\{[^}]*scroll-snap-type:\s*y\s+mandatory/s, 'Timeline rail must use mandatory vertical snap scrolling');
+assert.match(css, /\.ahv3__timeline-row\s*\{[^}]*min-height:\s*100%[^}]*scroll-snap-align:\s*start/s, 'Each timeline row must fill the viewport so only one class is shown');
+assert.match(css, /\.ahv3__timeline-row\s*\{[^}]*scroll-snap-stop:\s*always/s, 'Each class must stop as a single scroll page');
+assert.match(css, /\.ahv3__month-marker\s*\{[^}]*position:\s*absolute/s, 'Month marker must not consume a second scroll page');
+
 console.log('Attendance History V3 approved mockup contract OK');
