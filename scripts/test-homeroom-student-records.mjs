@@ -32,10 +32,32 @@ assert.match(scanner,/tessedit_pageseg_mode/);
 assert.match(scanner,/SPARSE_TEXT/);
 assert.match(scanner,/Never infer a phone from an arbitrary number/);
 const cloud = await readFile(new URL('../src/utils/studentRecordCloudStore.js', import.meta.url), 'utf8');
+const vneduExcel = await readFile(new URL('../src/utils/vneduExcelImport.js', import.meta.url), 'utf8');
 assert.match(cloud,/student-records-private/);
 assert.match(cloud,/optimizeStudentRecordImage/);
+assert.match(vneduExcel,/\.xls\|xlsx/);
+assert.match(vneduExcel,/xlsx@0\.18\.5/);
+assert.match(vneduExcel,/parseVneduMatrix/);
+assert.match(vneduExcel,/matchVneduImportRows/);
+assert.match(component,/Nhập Excel cả lớp/);
+assert.match(component,/Xác nhận nhập cả lớp/);
 assert.doesNotMatch(component,/rawText:scanResult/, 'Raw OCR text must not be persisted in workspace metadata.');
 const scannerModule = await import(new URL('../src/utils/studentRecordScanner.js', import.meta.url));
+const excelModule = await import(new URL('../src/utils/vneduExcelImport.js', import.meta.url));
+const excelMatrix = [
+  ['TRƯỜNG TRUNG - TIỂU HỌC PÉTRUS KÝ'],
+  ['DANH SÁCH HỌC SINH'],
+  ['Mã học sinh','Mã VEMIS','Mã MOET','Số đăng bộ','Họ và tên','Giới tính','Dân tộc','Ngày sinh','Chỗ ở hiện nay','Nơi thường trú','Quê quán','Nơi sinh','Nơi khai sinh','Số căn cước','Tên cha','Đ.thoại cha','Tên mẹ','Đ.thoại mẹ','Điện thoại HS'],
+  ['2004949387','','7456839782','7456839782','Nguyễn Hoàng Minh Khang','Nam','Kinh','15/07/2009','Chung cư Sora Garden','19/19 Nguyễn An Ninh','Bình Dương','Bệnh viện Từ Dũ','TP Hồ Chí Minh','074209010550','Nguyễn Hoàng Thanh','0913954019','Nguyễn Thị Mỹ Trang','0936885579',''],
+];
+const parsedExcel = excelModule.parseVneduMatrix(excelMatrix,'Danh sách học sinh');
+assert.equal(parsedExcel.students.length,1);
+assert.equal(parsedExcel.students[0].fields.fullName,'Nguyễn Hoàng Minh Khang');
+assert.equal(parsedExcel.students[0].fields.citizenId,'074209010550');
+assert.equal(parsedExcel.students[0].identifiers.studentCode,'2004949387');
+const matchedExcel = excelModule.matchVneduImportRows(parsedExcel.students,[{id:'s1',fullName:'Nguyễn Hoàng Minh Khang',birthDate:'15/07/2009',active:true}]);
+assert.equal(matchedExcel[0].studentId,'s1');
+assert.equal(matchedExcel[0].matchStatus,'exact');
 const sampleTsv = [
   'level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext',
   '5\t1\t1\t1\t1\t1\t10\t10\t30\t12\t95\tHọ',
