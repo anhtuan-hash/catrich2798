@@ -929,25 +929,56 @@ export default function GlobalWorkScheduleCenter({
           </div>}
         </div>
 
-        {calendarMode !== 'agenda' ? <div className={'work-schedule-calendar ' + (calendarMode === 'week' ? 'is-week' : '') + (embedded ? ' work-schedule-timeline-board' : '')}>
-          <div className="work-schedule-weekdays">{['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((day) => <span key={day}>{day}</span>)}</div>
-          <div className="work-schedule-grid">{cells.map((date) => {
-            const key = dayKey(date);
-            const dayEvents = (embedded ? timelineEventsByDay : eventsByDay).get(key) || [];
-            const outside = calendarMode === 'month' && date.getMonth() !== cursor.getMonth();
-            const today = key === dayKey(new Date());
-            const dayExpanded = expandedTimelineDays.has(key);
-            const visibleDayEvents = embedded ? (dayExpanded ? dayEvents : dayEvents.slice(0, 3)) : dayEvents.slice(0, 3);
-            return <article key={key} className={`${embedded ? 'work-schedule-timeline-day ' : ''}${outside ? 'outside ' : ''}${today ? 'today is-today ' : ''}${embedded && !dayEvents.length ? 'is-empty' : ''}`}>
-              {embedded ? <><header className="work-schedule-timeline-day-head"><span className="work-schedule-day-orb" aria-hidden="true">{date.getDate()}</span><div><strong>{timelineWeekday(date, language)}</strong><span className="work-schedule-day-date">{formatTimelineDay(date, language)}</span></div>{today ? <em>Hôm nay</em> : null}</header><div className="work-schedule-day-count"><i />{dayEvents.length} hoạt động</div></> : <header><time>{date.getDate()}</time>{dayEvents.length ? <span>{dayEvents.length}</span> : null}</header>}
-              <div className={embedded ? 'work-schedule-timeline-rail' : undefined}>{visibleDayEvents.map((event) => { const category = scheduleCategoryForEvent(event); return <button key={event.id} type="button" className={`priority-${event.priority} ${embedded ? `work-schedule-timeline-event is-${category}` : ''}`} onClick={() => setSelectedId(event.id)} title={event.title}>
-                {embedded ? <span className="work-schedule-event-icon" aria-hidden="true">{timelineCategoryGlyph(category)}</span> : null}<time>{formatTime(event.startAt, language)}</time><span>{event.title}</span>{embedded && event.location ? <small className="work-schedule-event-location">{event.location}</small> : null}
-              </button>; })}</div>
-              {embedded && !dayEvents.length ? <div className="work-schedule-empty-day"><span aria-hidden="true">☕</span><strong>Không có lịch làm việc</strong><small>Hãy tận hưởng ngày nghỉ thật ý nghĩa!</small></div> : null}
-              {embedded && dayEvents.length > 3 ? <button type="button" className="more work-schedule-timeline-more" onClick={() => setExpandedTimelineDays((current) => { const next = new Set(current); if (next.has(key)) next.delete(key); else next.add(key); return next; })}>{dayExpanded ? 'Thu gọn' : `+ ${dayEvents.length - 3} hoạt động`} <span>›</span></button> : (!embedded && dayEvents.length > 3 ? <button type="button" className="more" onClick={() => setCalendarMode('agenda')}>+{dayEvents.length - 3} hoạt động</button> : null)}
-            </article>;
-          })}</div>
-        </div> : <div className="work-schedule-agenda">
+        {calendarMode !== 'agenda' ? (
+          embedded ? <section className="work-schedule-editorial-stage" aria-label="Timeline lịch làm việc theo tuần">
+            {cells.map((date) => {
+              const key = dayKey(date);
+              const dayEvents = timelineEventsByDay.get(key) || [];
+              const today = key === dayKey(new Date());
+              const dayExpanded = expandedTimelineDays.has(key);
+              const visibleDayEvents = dayExpanded ? dayEvents : dayEvents.slice(0, 3);
+              return <article key={key} className={`work-schedule-day-track ${today ? 'is-today ' : ''}${!dayEvents.length ? 'is-empty' : ''}`}>
+                <header className="work-schedule-day-label">
+                  <span className="work-schedule-day-orb" aria-hidden="true">{date.getDate()}</span>
+                  <div className="work-schedule-day-label-copy">
+                    <strong>{timelineWeekday(date, language)}</strong>
+                    <time>{formatTimelineDay(date, language)}</time>
+                  </div>
+                  {today ? <em>Hôm nay</em> : null}
+                </header>
+                <div className="work-schedule-day-count"><i />{dayEvents.length} hoạt động</div>
+
+                {dayEvents.length ? <div className="work-schedule-timeline-rail">
+                  {visibleDayEvents.map((event) => {
+                    const category = scheduleCategoryForEvent(event);
+                    return <button key={event.id} type="button" className={`priority-${event.priority} work-schedule-timeline-event is-${category}`} onClick={() => setSelectedId(event.id)} title={event.title}>
+                      <span className="work-schedule-event-icon" aria-hidden="true">{timelineCategoryGlyph(category)}</span>
+                      <span className="work-schedule-event-copy">
+                        <time>{formatTime(event.startAt, language)}</time>
+                        <strong>{event.title}</strong>
+                        {event.location ? <small className="work-schedule-event-location">{event.location}</small> : null}
+                      </span>
+                    </button>;
+                  })}
+                  {dayEvents.length > 3 ? <button type="button" className="work-schedule-more-chip" onClick={() => setExpandedTimelineDays((current) => { const next = new Set(current); if (next.has(key)) next.delete(key); else next.add(key); return next; })}>{dayExpanded ? 'Thu gọn' : `+${dayEvents.length - 3} nữa`} <span>›</span></button> : null}
+                </div> : <div className="work-schedule-empty-day"><span aria-hidden="true">☕</span><strong>Không có lịch làm việc</strong><small>Hãy tận hưởng ngày nghỉ thật ý nghĩa!</small></div>}
+              </article>;
+            })}
+          </section> : <div className={'work-schedule-calendar ' + (calendarMode === 'week' ? 'is-week' : '')}>
+            <div className="work-schedule-weekdays">{['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'].map((day) => <span key={day}>{day}</span>)}</div>
+            <div className="work-schedule-grid">{cells.map((date) => {
+              const key = dayKey(date);
+              const dayEvents = eventsByDay.get(key) || [];
+              const outside = calendarMode === 'month' && date.getMonth() !== cursor.getMonth();
+              const today = key === dayKey(new Date());
+              return <article key={key} className={`${outside ? 'outside ' : ''}${today ? 'today ' : ''}`}>
+                <header><time>{date.getDate()}</time>{dayEvents.length ? <span>{dayEvents.length}</span> : null}</header>
+                <div>{dayEvents.slice(0, 3).map((event) => <button key={event.id} type="button" className={`priority-${event.priority}`} onClick={() => setSelectedId(event.id)} title={event.title}><time>{formatTime(event.startAt, language)}</time><span>{event.title}</span></button>)}</div>
+                {dayEvents.length > 3 ? <button type="button" className="more" onClick={() => setCalendarMode('agenda')}>+{dayEvents.length - 3} hoạt động</button> : null}
+              </article>;
+            })}</div>
+          </div>
+        ) : <div className="work-schedule-agenda">
           {filteredEvents.map((event) => <article key={event.id} onClick={() => setSelectedId(event.id)}>
             <div className="work-schedule-date-tile"><strong>{new Date(event.startAt).getDate()}</strong><span>{new Intl.DateTimeFormat('vi-VN', { month: 'short' }).format(new Date(event.startAt))}</span></div>
             <div className="work-schedule-agenda-main"><div><span className={`work-schedule-priority priority-${event.priority}`}>{PRIORITY_LABEL[event.priority] || event.priority}</span><time>{formatTime(event.startAt, language)}{event.endAt ? ` – ${formatTime(event.endAt, language)}` : ''}</time></div><h3>{event.title}</h3><p>{event.description || event.note || 'Không có ghi chú bổ sung.'}</p><footer>{event.location ? <span>⌖ {event.location}</span> : null}{event.ownerText ? <span>◎ {event.ownerText}</span> : null}{event.attendees ? <span>◉ {event.attendees}</span> : null}</footer></div>
