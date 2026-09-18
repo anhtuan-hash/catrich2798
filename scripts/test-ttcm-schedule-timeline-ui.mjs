@@ -10,6 +10,7 @@ function check(condition, message) {
 const wrapper = await readFile(new URL('../src/components/GlobalWorkScheduleCompatibleCenter.jsx', import.meta.url), 'utf8');
 const center = await readFile(new URL('../src/components/GlobalWorkScheduleCenter.jsx', import.meta.url), 'utf8');
 const css = await readFile(new URL('../src/components/GlobalWorkScheduleTimelineV2.css', import.meta.url), 'utf8').catch(() => '');
+const nav = await readFile(new URL('../src/components/GlobalTtcmNavigationTab.jsx', import.meta.url), 'utf8');
 
 // Existing schedule business flows must remain intact.
 check(center.includes('File mẫu'), 'preserves template download action');
@@ -30,6 +31,11 @@ check(center.includes("['student', 'Học sinh'"), 'includes student category fi
 check(center.includes("['deadline', 'Hạn nộp'"), 'includes deadline category filter');
 check(center.includes("['other', 'Khác'"), 'includes other category filter');
 check(center.includes('work-schedule-timeline-board'), 'renders the dedicated illustrated weekly timeline board');
+check(center.includes('work-schedule-editorial-stage'), 'uses a dedicated editorial timeline renderer for embedded TTCM');
+check(center.includes('work-schedule-day-track'), 'renders independent day tracks instead of calendar table cells');
+check(center.includes('work-schedule-day-label'), 'groups weekday, date and today state into one day header');
+check(center.includes('work-schedule-event-copy'), 'uses a dedicated readable event-copy block');
+check(center.includes('work-schedule-more-chip'), 'uses a compact continuation chip beside each day timeline');
 check(center.includes('work-schedule-timeline-day'), 'renders styled day columns');
 check(center.includes('work-schedule-timeline-rail'), 'renders vertical rails for day events');
 check(center.includes('work-schedule-timeline-event'), 'renders timeline event cards');
@@ -72,6 +78,12 @@ check(css.includes('.work-schedule-timeline-event.is-student'), 'styles student 
 check(css.includes('.work-schedule-timeline-event.is-deadline'), 'styles deadline events');
 check(css.includes('.work-schedule-empty-day'), 'styles the friendly empty-day card');
 check(css.includes('.work-schedule-quote-footer'), 'styles the scenic education footer');
+check(css.includes('.work-schedule-editorial-stage'), 'styles the editorial timeline canvas');
+check(/\.work-schedule-editorial-stage\s*\{[^}]*gap\s*:\s*1[0-4]px/.test(css), 'separates day tracks with editorial whitespace instead of table borders');
+check(/\.work-schedule-day-track\s*\{[^}]*border-radius\s*:\s*1[4-9]px/.test(css), 'renders each day as an independent rounded track');
+check(/\.work-schedule-day-track\s*\{[^}]*border\s*:\s*0/.test(css), 'removes the full-height calendar cell border treatment');
+check(/\.work-schedule-event-copy strong[^}]*font-size\s*:\s*1[1-3]px/.test(css), 'keeps event titles readable in the editorial cards');
+check(nav.includes("querySelector('.ttcm-m3-schedule-view')") && nav.includes('scrollTop = 0'), 'resets schedule scroll position so the approved hero is visible on entry');
 check(/@media\s*\(max-width\s*:\s*900px\)/.test(css), 'keeps the timeline usable on narrow screens');
 
 console.log(`\nTTCM schedule timeline mockup contract: ${passed} passed, ${failed} failed.`);
