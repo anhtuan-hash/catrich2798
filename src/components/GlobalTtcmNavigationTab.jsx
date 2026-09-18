@@ -244,6 +244,16 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
     return () => window.removeEventListener('bes-ttcm-open', openTtcm);
   }, [manager]);
 
+  useEffect(() => {
+    if (!open || workspaceView !== 'schedule' || typeof window === 'undefined') return undefined;
+    const frame = window.requestAnimationFrame(() => {
+      const scheduleView = rootRef.current?.querySelector('.ttcm-m3-schedule-view');
+      if (scheduleView) scheduleView.scrollTop = 0;
+      if (rootRef.current) rootRef.current.scrollTop = 0;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [open, workspaceView]);
+
   useEffect(() => { setItems(readLocalItems(currentUser)); setReadIds(readReadIds(currentUser)); }, [currentUser?.id, currentUser?.email]);
   useEffect(() => () => { if (fileViewer?.objectUrl) URL.revokeObjectURL(fileViewer.objectUrl); }, [fileViewer?.objectUrl]);
 
