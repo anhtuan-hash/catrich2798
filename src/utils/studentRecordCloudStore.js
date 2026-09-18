@@ -104,6 +104,40 @@ export async function deleteStudentRecordCloudMedia(path) {
   return error ? { ok: false, message: error.message } : { ok: true };
 }
 
+export async function cleanupStudentRecordCloudOrphans({ workspaceId, studentId, keepPaths = [] }) {
+  if (!isSupabaseConfigured || !supabase) return { ok: false, offline: true, removed: 0 };
+  const user = await authUser();
+  if (!user?.id) return { ok: false, offline: true, removed: 0 };
+  const prefix = [
+    user.id,
+    safeSegment(workspaceId, 'default'),
+    safeSegment(studentId, 'student'),
+  ].join('/');
+  const keep = new Set((keepPaths || []).filter(Boolean));
+  const stale = [];
+  let offset = 0;
+  while (true) {
+    const { data, error } = await supabase.storage.from(STUDENT_RECORD_BUCKET).list(prefix, {
+      limit: 100,
+      offset,
+      sortBy: { column: 'name', order: 'asc' },
+    });
+    if (error) return { ok: false, message: error.message, removed: 0 };
+    const items = data || [];
+    items.forEach((item) => {
+      const fullPath = prefix + '/' + item.name;
+      if (!keep.has(fullPath)) stale.push(fullPath);
+    });
+    if (items.length < 100) break;
+    offset += items.length;
+  }
+  if (!stale.length) return { ok: true, removed: 0 };
+  const { error: removeError } = await supabase.storage.from(STUDENT_RECORD_BUCKET).remove(stale);
+  return removeError
+    ? { ok: false, message: removeError.message, removed: 0 }
+    : { ok: true, removed: stale.length };
+}
+
 export function studentRecordCloudEnabled() {
   return Boolean(isSupabaseConfigured && supabase);
 }
