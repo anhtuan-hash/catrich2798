@@ -191,6 +191,12 @@
 
     const shell = shellFor(root);
     if (!shell) return;
+    if (root.matches('[data-attendance-history-timeline="true"]')) {
+      cleanupMockupArtifacts(shell);
+      if (observedShell && observedShell !== shell) cleanupMockupArtifacts(observedShell);
+      observedShell = null;
+      return;
+    }
     if (observedShell && observedShell !== shell) cleanupMockupArtifacts(observedShell);
     observedShell = shell;
     shell.classList.add('ah-history-mockup');
