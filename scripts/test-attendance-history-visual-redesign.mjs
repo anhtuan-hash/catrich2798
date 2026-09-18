@@ -135,4 +135,30 @@ assert.match(historyPostConfirmBridge, /data-bes-history-post-confirm-bridge/, '
 assert.match(attendanceTimeAccess, /:not\(\[data-bes-history-post-confirm-bridge\]\)/, 'Time-access runtime must ignore the hidden History compatibility rollcall');
 assert.doesNotMatch(attendanceTimeAccess, /document\.querySelector\('\.attendance-rollcall'\)/, 'Time-access runtime must not bind to the first generic rollcall because History owns a hidden bridge');
 
+
+// Timeline production hardening: stale V4/V5/V6 assets must not be able to recreate the three-column regression.
+assert.match(indexHtml, /attendance-history-mockup-v4\.js\?v=3/, 'V4 history runtime cache key must be bumped after timeline isolation fix');
+assert.match(indexHtml, /attendance-history-v5\.js\?v=4/, 'V5 history runtime cache key must be bumped after timeline isolation fix');
+assert.match(indexHtml, /attendance-history-pixel-v6\.js\?v=2/, 'V6 history runtime cache key must be bumped after timeline isolation fix');
+assert.match(
+  css,
+  /body \.attendance-shell:has\(\.ahv3__shell\[data-attendance-history-timeline="true"\]\) \.ah-mockup-filterbar\s*\{[^}]*display:\s*none\s*!important/s,
+  'Timeline must hide the legacy injected filterbar even when stale legacy shell classes survive',
+);
+assert.match(
+  css,
+  /body \.attendance-shell:has\(\.ahv3__shell\[data-attendance-history-timeline="true"\]\) \.ahv3__shell\[data-attendance-history-timeline="true"\]\s*\{[^}]*grid-template-columns:\s*1fr\s*!important/s,
+  'Timeline root must force one-column root structure regardless of stale V4/V5 shell classes',
+);
+assert.match(
+  css,
+  /body \.attendance-shell:has\(\.ahv3__shell\[data-attendance-history-timeline="true"\]\) \.ahv3__timeline-workspace\s*\{[^}]*grid-template-columns:\s*minmax\(500px,\s*\.96fr\)\s+minmax\(0,\s*1\.04fr\)\s*!important/s,
+  'Timeline workspace must harden the intended two-column rail/detail split',
+);
+assert.match(
+  css,
+  /body \.attendance-shell:has\(\.ahv3__shell\[data-attendance-history-timeline="true"\]\) \.bes-post-confirm-edit-card\.is-open,[\s\S]*?\.bes-post-confirm-edit-card\.is-locked\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+auto\s+minmax\(150px,\s*auto\)/s,
+  'Post-confirm editor summary must remain readable in the timeline detail pane',
+);
+
 console.log('Attendance History V3 approved mockup contract OK');

@@ -3297,3 +3297,74 @@ body .attendance-shell.ah-history-mockup .ahv3__shell[data-attendance-history-ti
   .ahv3__detail-more-body .ahv3__stat-grid,
   .ahv3__detail-more-body .ahv3__footer-grid { grid-template-columns:1fr; }
 }
+
+
+/* Production cascade hardening for the React timeline history.
+   These selectors intentionally outrank cached V4/V5/V6 shell classes. */
+body .attendance-shell:has(.ahv3__shell[data-attendance-history-timeline="true"]) .ah-mockup-filterbar {
+  display: none !important;
+}
+
+body .attendance-shell:has(.ahv3__shell[data-attendance-history-timeline="true"]) .ahv3__shell[data-attendance-history-timeline="true"] {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  gap: 12px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: 100% !important;
+}
+
+body .attendance-shell:has(.ahv3__shell[data-attendance-history-timeline="true"]) .ahv3__timeline-workspace {
+  display: grid !important;
+  grid-template-columns: minmax(500px, .96fr) minmax(0, 1.04fr) !important;
+  gap: 14px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+}
+
+body .attendance-shell:has(.ahv3__shell[data-attendance-history-timeline="true"]) .ahv3__timeline-pane,
+body .attendance-shell:has(.ahv3__shell[data-attendance-history-timeline="true"]) .ahv3__detail {
+  min-width: 0 !important;
+}
+
+body .attendance-shell:has(.ahv3__shell[data-attendance-history-timeline="true"]) .ahv3__detail {
+  display: block !important;
+  padding: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+body .attendance-shell:has(.ahv3__shell[data-attendance-history-timeline="true"]) .bes-post-confirm-edit-card.is-open,
+body .attendance-shell:has(.ahv3__shell[data-attendance-history-timeline="true"]) .bes-post-confirm-edit-card.is-locked {
+  grid-template-columns: minmax(0, 1fr) auto minmax(150px, auto) !important;
+  gap: 12px !important;
+}
+
+body .attendance-shell:has(.ahv3__shell[data-attendance-history-timeline="true"]) .bes-post-confirm-card-copy {
+  min-width: 0 !important;
+}
+
+body .attendance-shell:has(.ahv3__shell[data-attendance-history-timeline="true"]) .bes-post-confirm-card-copy strong,
+body .attendance-shell:has(.ahv3__shell[data-attendance-history-timeline="true"]) .bes-post-confirm-card-copy p,
+body .attendance-shell:has(.ahv3__shell[data-attendance-history-timeline="true"]) .bes-post-confirm-card-copy small {
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+@media (max-width: 1180px) {
+  body .attendance-shell:has(.ahv3__shell[data-attendance-history-timeline="true"]) .ahv3__timeline-workspace {
+    grid-template-columns: minmax(430px, .9fr) minmax(0, 1.1fr) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  body .attendance-shell:has(.ahv3__shell[data-attendance-history-timeline="true"]) .ahv3__timeline-workspace {
+    grid-template-columns: 1fr !important;
+  }
+  body .attendance-shell:has(.ahv3__shell[data-attendance-history-timeline="true"]) .bes-post-confirm-edit-card.is-open,
+  body .attendance-shell:has(.ahv3__shell[data-attendance-history-timeline="true"]) .bes-post-confirm-edit-card.is-locked {
+    grid-template-columns: minmax(0, 1fr) auto !important;
+  }
+}
