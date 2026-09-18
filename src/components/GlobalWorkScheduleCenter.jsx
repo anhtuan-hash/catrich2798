@@ -207,6 +207,22 @@ function addWeeks(value, amount) {
   return date;
 }
 
+function addDays(value, amount) {
+  const date = new Date(value);
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + amount);
+  return date;
+}
+
+function formatDailyHeading(value, language) {
+  const locale = language === 'vi' ? 'vi-VN' : 'en-US';
+  const weekday = language === 'vi'
+    ? timelineWeekday(value, language)
+    : new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(value);
+  const date = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit', year: 'numeric' }).format(value);
+  return `${weekday}  •  ${date}`;
+}
+
 function weekCells(cursor) {
   const monday = startOfWeek(cursor);
   return Array.from({ length: 7 }, (_, index) => {
