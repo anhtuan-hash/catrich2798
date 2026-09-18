@@ -392,6 +392,11 @@ export default function GlobalWorkScheduleCenter({
   const [profiles, setProfiles] = useState(readCachedProfiles);
   const [calendarMode, setCalendarMode] = useState(() => embedded ? 'week' : 'month');
   const [cursor, setCursor] = useState(() => embedded ? startOfWeek(new Date()) : startOfMonth(new Date()));
+  const [dailyCursor, setDailyCursor] = useState(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return today;
+  });
   const [query, setQuery] = useState('');
   const [scope, setScope] = useState(() => embedded ? 'all' : 'upcoming');
   const [timelineCategory, setTimelineCategory] = useState('all');
