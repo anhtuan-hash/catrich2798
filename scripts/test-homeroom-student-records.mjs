@@ -143,3 +143,10 @@ assert.match(component,/sr-compare-head-window/);
 assert.match(component,/sr-compare-xscroll/);
 assert.match(component,/Lên đầu bảng/);
 assert.match(component,/syncCompareX/);
+
+
+assert.match(component,/sr-unified-ui/);
+assert.match(component,/Danh sách học sinh/);
+assert.match(component,/Thông tin ưu tiên theo kế hoạch nhà trường/);
+assert.match(component,/Thông tin bổ sung/);
+assert.match(component,/Đối chiếu dữ liệu đa nguồn/);
