@@ -612,7 +612,7 @@
   flex-direction:column;
   justify-content:center;
 }
-.ttcm-m3-schedule-host .work-schedule-daily-card-copy>strong {
+.ttcm-m3-schedule-host .work-schedule-daily-card-copy strong {
   overflow:hidden;
   color:#14385c;
   font-size:14px;
