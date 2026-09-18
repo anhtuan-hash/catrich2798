@@ -30,23 +30,33 @@ const EXTRA_ALIASES = Object.freeze({
   ethnicity: ['dân tộc','dan toc'],
   religion: ['tôn giáo','ton giao'],
   nationality: ['quốc tịch','quoc tich'],
+  otherName: ['tên gọi khác','ten goi khac','tên khác','ten khac'],
+  residentialArea: ['khu dân cư','khu dan cu'],
+  citizenIdIssueDate: ['ngày cấp căn cước','ngay cap can cuoc','ngày cấp cccd','ngay cap cccd','ngày cấp','ngay cap'],
+  citizenIdIssuePlace: ['nơi cấp căn cước','noi cap can cuoc','nơi cấp cccd','noi cap cccd','nơi cấp','noi cap'],
   policyCategory: ['diện chính sách','dien chinh sach'],
   disability: ['khuyết tật','khuyet tat'],
   priorityCategory: ['diện ưu tiên','dien uu tien'],
   benefitCategory: ['diện ưu đãi','dien uu dai'],
-  residenceType: ['n.trú, b.trú','n.tru, b.tru','n.trú,b.trú'],
+  residenceType: ['n.trú, b.trú','n.tru, b.tru','n.trú,b.trú','n.trú b.trú','n.tru b.tru'],
   contactPhone: ['điện thoại sll','dien thoai sll','đ.thoại sll','d.thoai sll'],
   contactEmail: ['email sll'],
+  birthCertificateEthnicity: ['dt trên giấy ks','dt tren giay ks','dân tộc trên giấy ks','dan toc tren giay ks'],
   fatherBirthYear: ['năm sinh cha','nam sinh cha'],
   fatherOccupation: ['nghề nghiệp cha','nghe nghiep cha'],
+  fatherWorkplace: ['đơn vị công tác cha','don vi cong tac cha','đơn vị ctác cha','don vi ctac cha'],
   fatherCitizenId: ['căn cước cha','can cuoc cha'],
   motherBirthYear: ['năm sinh mẹ','nam sinh me'],
   motherOccupation: ['nghề nghiệp mẹ','nghe nghiep me'],
+  motherWorkplace: ['đơn vị công tác mẹ','don vi cong tac me','đơn vị ctác mẹ','don vi ctac me'],
   motherCitizenId: ['căn cước mẹ','can cuoc me'],
   guardianName: ['người đỡ đầu','nguoi do dau'],
   guardianBirthYear: ['năm sinh người đỡ đầu','nam sinh nguoi do dau'],
   guardianOccupation: ['nghề nghiệp người đỡ đầu','nghe nghiep nguoi do dau'],
+  guardianWorkplace: ['đơn vị công tác người đỡ đầu','don vi cong tac nguoi do dau'],
+  guardianPhone: ['điện thoại người đỡ đầu','dien thoai nguoi do dau'],
   guardianCitizenId: ['căn cước nđđ','can cuoc ndd','căn cước người đỡ đầu'],
+  studentPhoto: ['ảnh h.sinh','anh h.sinh','ảnh học sinh','anh hoc sinh'],
   notes: ['ghi chú','ghi chu'],
 });
 
@@ -138,6 +148,28 @@ function headerMap(headers) {
   return { fields, identifiers, extra };
 }
 
+function nonEmptyRawColumns(headers, row, mapping) {
+  const used = new Set([
+    ...Object.values(mapping.fields || {}),
+    ...Object.values(mapping.identifiers || {}),
+    ...Object.values(mapping.extra || {}),
+  ]);
+  const rawColumns = {};
+  const unmappedColumns = {};
+  const seen = new Map();
+  (headers || []).forEach((header, index) => {
+    const value = text(row?.[index]);
+    if (!value) return;
+    const baseLabel = text(header) || ('Cột ' + (index + 1));
+    const count = (seen.get(baseLabel) || 0) + 1;
+    seen.set(baseLabel, count);
+    const label = count > 1 ? baseLabel + ' (' + count + ')' : baseLabel;
+    rawColumns[label] = value;
+    if (!used.has(index)) unmappedColumns[label] = value;
+  });
+  return { rawColumns, unmappedColumns };
+}
+
 export function parseVneduMatrix(matrix, sheetName = 'Sheet1') {
   const rows = Array.isArray(matrix) ? matrix : [];
   let headerRowIndex = rows.findIndex(looksLikeHeader);
@@ -180,13 +212,16 @@ export function parseVneduMatrix(matrix, sheetName = 'Sheet1') {
       const value = text(row[index]);
       if (value) extra[key] = value;
     });
+    const { rawColumns, unmappedColumns } = nonEmptyRawColumns(headers, row, mapping);
 
     students.push({
       rowNumber: rowIndex + 1,
       fields,
       identifiers,
       extra,
-      mappedCount: Object.keys(fields).length + Object.keys(identifiers).length + Object.keys(extra).length,
+      rawColumns,
+      unmappedColumns,
+      mappedCount: Object.keys(rawColumns).length,
     });
   }
 
