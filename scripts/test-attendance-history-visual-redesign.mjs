@@ -13,6 +13,7 @@ const legacyV5Runtime = read('public/attendance-history-v5.js');
 const legacyV6Runtime = read('public/attendance-history-pixel-v6.js');
 const historyPostConfirmBridge = read('src/attendanceHistoryPostConfirmBridge.js');
 const attendanceTimeAccess = read('src/attendanceTimeAccessBootstrap.js');
+const postConfirmEdit = read('src/attendancePostConfirmEditBootstrap.js');
 
 assert.match(component, /import ['"]\.\/attendance\/AttendanceHistoryV2\.css['"];/, 'History stylesheet must stay explicitly loaded');
 assert.match(component, /className="ahv3__shell"[^>]*data-attendance-history-v3="true"/, 'History must render from the isolated ahv3 root');
@@ -159,6 +160,55 @@ assert.match(
   css,
   /body \.attendance-shell:has\(\.ahv3__shell\[data-attendance-history-timeline="true"\]\) \.bes-post-confirm-edit-card\.is-open,[\s\S]*?\.bes-post-confirm-edit-card\.is-locked\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+auto\s+minmax\(150px,\s*auto\)/s,
   'Post-confirm editor summary must remain readable in the timeline detail pane',
+);
+
+
+// Regression: timeline must not resurrect legacy classification bars or jump detail after async post-confirm load.
+assert.match(legacyV5Runtime, /function cleanupTimelineActivityFilters\(/, 'V5 runtime must own a timeline-specific legacy-filter cleanup');
+assert.match(
+  legacyV5Runtime,
+  /if \(root\.matches\('\[data-attendance-history-timeline="true"\]'\)\) \{[\s\S]*cleanupTimelineActivityFilters\(activeShell, root\)[\s\S]*return;/,
+  'Timeline branch must clean legacy filters instead of restoring them',
+);
+assert.doesNotMatch(
+  legacyV5Runtime,
+  /if \(root\.matches\('\[data-attendance-history-timeline="true"\]'\)\) \{[\s\S]{0,240}restoreDuplicateActivityFilters\(activeShell\)/,
+  'Timeline branch must never restore duplicate activity filters',
+);
+assert.match(
+  legacyV5Runtime,
+  /querySelectorAll\('\.ah-mockup-filterbar'\)[\s\S]*\.remove\(\)/,
+  'Timeline cleanup must remove the injected V4 classification bar',
+);
+assert.match(
+  legacyV5Runtime,
+  /\.ahv3__filters, \.ahv3__date-filters/,
+  'Timeline cleanup must keep sync-only native filters hidden',
+);
+assert.match(
+  postConfirmEdit,
+  /const timelineDetail = card\.closest\('\.ahv3__shell\[data-attendance-history-timeline="true"\] \.ahv3__detail'\)/,
+  'Post-confirm renderer must detect the timeline detail scroll container',
+);
+assert.match(
+  postConfirmEdit,
+  /timelineDetail\.scrollTop = previousScrollTop/,
+  'Post-confirm async rendering must preserve the selected detail scroll position',
+);
+assert.match(
+  css,
+  /\.ahv3__shell\[data-attendance-history-timeline="true"\] \.ahv3__detail\s*\{[^}]*overflow-anchor:\s*none\s*!important/s,
+  'Timeline detail must disable browser scroll anchoring during async compatibility injection',
+);
+assert.match(
+  css,
+  /\.ahv3__shell\[data-attendance-history-timeline="true"\] \.bes-post-confirm-edit-card\.is-open\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\)\s+auto\s*!important/s,
+  'Timeline post-confirm card must use a compact two-column layout instead of crushing copy',
+);
+assert.match(
+  css,
+  /\.ahv3__shell\[data-attendance-history-timeline="true"\] \.bes-post-confirm-card-action\s*\{[^}]*grid-column:\s*1\s*\/\s*-1/s,
+  'Timeline post-confirm actions must span the card width below the copy and summary',
 );
 
 console.log('Attendance History V3 approved mockup contract OK');
