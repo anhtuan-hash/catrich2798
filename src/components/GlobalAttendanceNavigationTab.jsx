@@ -1461,6 +1461,8 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const selectedSessionAttendanceRate = selectedSession?.session_status === 'completed' && Number(selectedSession.total_students) > 0
     ? Math.round((Number(selectedSession.present_count || 0) / Number(selectedSession.total_students)) * 100)
     : 0;
+  const selectedSessionTimeParts = selectedSession ? historyTimeParts(selectedSession.teaching_time_range) : { start: '—', end: '—' };
+  const selectedStudentPreview = records.slice(0, 5);
 
   if (!host || !allowed) return null;
 
