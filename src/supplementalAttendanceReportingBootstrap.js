@@ -110,6 +110,14 @@ function ensureFilter() {
     return;
   }
 
+  const nativeTimelineHistory = activeTab === 'history'
+    && Boolean(document.querySelector('.ahv3__shell[data-attendance-history-timeline="true"]'));
+  if (nativeTimelineHistory) {
+    document.getElementById(FILTER_ID)?.remove();
+    closePanel();
+    return;
+  }
+
   let bar = document.getElementById(FILTER_ID);
   if (!bar) {
     bar = document.createElement('section');

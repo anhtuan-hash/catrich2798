@@ -18,6 +18,12 @@ assert.match(source, /loadAttendanceActivities/);
 assert.match(source, /buổi hủy không vào mẫu số/i, 'report must explain cancelled-session denominator rule');
 assert.match(source, /window\.print\(\)/, 'supplemental report needs print/PDF path');
 assert.match(source, /syncLegacyHistoryFilter/, 'activity filter must actively synchronize the existing History class-type filter');
+assert.match(source, /nativeTimelineHistory/, 'reporting bootstrap must detect the native React History timeline');
+assert.match(
+  source,
+  /if \(nativeTimelineHistory\) \{[\s\S]*document\.getElementById\(FILTER_ID\)\?\.remove\(\)[\s\S]*closePanel\(\)[\s\S]*return;/,
+  'native History timeline must remove the supplemental duplicate filterbar and stop legacy panel rendering',
+);
 assert.match(source, /enrichment[\s\S]{0,160}gifted|gifted[\s\S]{0,160}enrichment/, 'Bồi dưỡng activity filter must map to the legacy gifted class_type');
 assert.match(legacyHistorySource, /<option value="remedial">Phụ đạo<\/option>/);
 assert.match(legacyHistorySource, /<option value="gifted">Bồi dưỡng HSG<\/option>/);
