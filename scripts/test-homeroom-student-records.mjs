@@ -20,8 +20,40 @@ assert.match(component,/Đồng bộ ảnh/);
 assert.match(scanner,/TextDetector/);
 assert.match(scanner,/Tesseract\.js|tesseract\.js/);
 assert.match(scanner,/vie\+eng/);
+assert.match(scanner,/parseStudentRecordTsv/);
+assert.match(scanner,/tessedit_pageseg_mode/);
+assert.match(scanner,/SPARSE_TEXT/);
+assert.match(scanner,/Never infer a phone from an arbitrary number/);
 const cloud = await readFile(new URL('../src/utils/studentRecordCloudStore.js', import.meta.url), 'utf8');
 assert.match(cloud,/student-records-private/);
 assert.match(cloud,/optimizeStudentRecordImage/);
 assert.doesNotMatch(component,/rawText:scanResult/, 'Raw OCR text must not be persisted in workspace metadata.');
-console.log('PASS: homeroom student-records app integrated.');
+const scannerModule = await import(new URL('../src/utils/studentRecordScanner.js', import.meta.url));
+const sampleTsv = [
+  'level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext',
+  '5\t1\t1\t1\t1\t1\t10\t10\t30\t12\t95\tHọ',
+  '5\t1\t1\t1\t1\t2\t45\t10\t20\t12\t95\tvà',
+  '5\t1\t1\t1\t1\t3\t70\t10\t25\t12\t95\ttên:',
+  '5\t1\t1\t1\t1\t4\t110\t10\t55\t12\t95\tNguyễn',
+  '5\t1\t1\t1\t1\t5\t170\t10\t50\t12\t95\tHoàng',
+  '5\t1\t1\t1\t1\t6\t225\t10\t35\t12\t95\tMinh',
+  '5\t1\t1\t1\t1\t7\t265\t10\t45\t12\t95\tKhang',
+  '5\t1\t1\t1\t1\t8\t350\t10\t35\t12\t95\tNgày',
+  '5\t1\t1\t1\t1\t9\t390\t10\t35\t12\t95\tsinh:',
+  '5\t1\t1\t1\t1\t10\t440\t10\t75\t12\t95\t15/07/2009',
+  '5\t1\t1\t1\t2\t1\t10\t40\t30\t12\t95\tSố',
+  '5\t1\t1\t1\t2\t2\t45\t40\t55\t12\t95\tcăn',
+  '5\t1\t1\t1\t2\t3\t105\t40\t55\t12\t95\tcước:',
+  '5\t1\t1\t1\t2\t4\t170\t40\t95\t12\t95\t074209010550',
+  '5\t1\t1\t1\t2\t5\t350\t40\t55\t12\t95\tĐ.thoại',
+  '5\t1\t1\t1\t2\t6\t410\t40\t35\t12\t95\tSLL:',
+  '5\t1\t1\t1\t2\t7\t455\t40\t85\t12\t95\t0936885579',
+].join('\n');
+const parsedLayout = scannerModule.parseStudentRecordTsv(sampleTsv, 'vnedu', { fullName: 'Nguyễn Hoàng Minh Khang' });
+assert.equal(parsedLayout.fields.fullName, 'Nguyễn Hoàng Minh Khang');
+assert.equal(parsedLayout.fields.birthDate, '15/07/2009');
+assert.equal(parsedLayout.fields.citizenId, '074209010550');
+assert.equal(parsedLayout.fields.phone, '0936885579');
+const numericGuard = scannerModule.parseStudentRecordText('CCCD: 074209010550');
+assert.equal(numericGuard.fields.phone, undefined);
+console.log('PASS: homeroom student-records app integrated with layout-aware OCR.');
