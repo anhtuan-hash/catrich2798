@@ -103,7 +103,8 @@ function formatVietnamTime(value) {
 }
 
 function selectedContext() {
-  const rollcall = document.querySelector('.attendance-rollcall');
+  const rollcall = document.querySelector('[data-bes-history-post-confirm-bridge="true"]')
+    || document.querySelector('.attendance-rollcall');
   if (!rollcall) return null;
   const className = text(rollcall.querySelector('.attendance-rollcall-head h2')?.textContent).trim();
   const attendanceDate = text(rollcall.querySelector('.attendance-session-controls input[type="date"]')?.value).trim();

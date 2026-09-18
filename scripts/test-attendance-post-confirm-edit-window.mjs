@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 
 const utilityUrl = new URL('../src/utils/attendancePostConfirmEdit.js', import.meta.url);
 const bootstrapUrl = new URL('../src/attendancePostConfirmEditBootstrap.js', import.meta.url);
+const historyBridgeUrl = new URL('../src/attendanceHistoryPostConfirmBridge.js', import.meta.url);
+const postConfirmCssUrl = new URL('../src/styles/AttendancePostConfirmEdit.css', import.meta.url);
 const migrationUrl = new URL('../supabase/migrations/20260909_attendance_post_confirm_edit_window.sql', import.meta.url);
 const supplementalBaseMigrationUrl = new URL('../supabase/migrations/20260912_supplemental_final_parity.sql', import.meta.url);
 const delegatedMigrationUrl = new URL('../supabase/migrations/20260915_delegated_attendance_post_confirm_edit.sql', import.meta.url);
@@ -103,6 +105,8 @@ assert.ok(fs.existsSync(supplementalBaseMigrationUrl), 'Supplemental final-parit
 assert.ok(fs.existsSync(delegatedMigrationUrl), 'Delegated attendance post-confirm migration must exist');
 
 const bootstrapSource = fs.readFileSync(bootstrapUrl, 'utf8');
+const historyBridgeSource = fs.readFileSync(historyBridgeUrl, 'utf8');
+const postConfirmCssSource = fs.readFileSync(postConfirmCssUrl, 'utf8');
 for (const required of [
   'bes_get_extra_attendance_edit_access',
   'bes_update_extra_attendance_session',
@@ -115,6 +119,25 @@ for (const required of [
 assert.match(bootstrapSource, /hasAttendanceTabAccess\(currentProfile\(\), 'report'\)/, 'Report permission must bypass expiry in the client UI');
 assert.match(bootstrapSource, /setInterval\([\s\S]*1000/, 'Countdown must refresh while the dialog is open');
 assert.match(bootstrapSource, /attendance-top-actions[\s\S]*Làm mới|title="Làm mới"|\[title="Làm mới"\]/, 'Saving an adjustment must refresh the React attendance view');
+assert.match(
+  bootstrapSource,
+  /data-bes-history-post-confirm-bridge="true"/,
+  'Post-confirm runtime must read the dedicated history compatibility surface before the regular rollcall panel',
+);
+assert.match(historyBridgeSource, /normalizeCompatibilitySurface/, 'History bridge must normalize its own layout');
+assert.match(historyBridgeSource, /detail\.append\(surface\)/, 'History bridge must live at the end of the detail flow');
+assert.doesNotMatch(historyBridgeSource, /classList\.add\('attendance-rollcall'\)/, 'History bridge must not inherit the real rollcall layout');
+assert.doesNotMatch(historyBridgeSource, /style\.display\s*=\s*['"]contents['"]/, 'History bridge must not use display: contents inside the two-column history grid');
+assert.match(
+  postConfirmCssSource,
+  /\.ahv3__shell \.ahv3__detail > \.bes-history-post-confirm-bridge\s*\{[\s\S]*?grid-column:\s*1\s*\/\s*-1/,
+  'History adjustment bridge must span the full detail width',
+);
+assert.match(
+  postConfirmCssSource,
+  /\.bes-history-post-confirm-bridge > \.bes-post-confirm-edit-card\s*\{[\s\S]*?width:\s*100%/,
+  'History adjustment card must fill the bridge instead of being squeezed into one grid column',
+);
 
 const migrationSource = fs.readFileSync(migrationUrl, 'utf8');
 for (const required of [

@@ -107,21 +107,28 @@ async function resolveSupplementalSession(client, snapshot) {
     || null;
 }
 
+function normalizeCompatibilitySurface(detail, surface) {
+  if (!detail || !surface) return;
+  surface.classList.remove('attendance-rollcall');
+  surface.style.removeProperty('display');
+  if (detail.lastElementChild !== surface) detail.append(surface);
+}
+
 function ensureCompatibilitySurface(snapshot, resolved) {
   const detail = snapshot.detail;
   let surface = detail.querySelector(`[${BRIDGE_ATTRIBUTE}]`);
   if (!surface) {
     surface = document.createElement('div');
     surface.className = 'bes-history-post-confirm-bridge';
-    surface.classList.add('attendance-rollcall');
     surface.setAttribute(BRIDGE_ATTRIBUTE, 'true');
-    surface.style.display = 'contents';
     surface.innerHTML = `
       <div class="attendance-rollcall-head" hidden><h2></h2></div>
       <div class="attendance-session-controls" hidden><input type="date" /></div>
       <div class="attendance-class-list" hidden><button type="button" class="is-selected" data-bes-attendance-class-id=""></button></div>`;
-    detail.prepend(surface);
+    detail.append(surface);
   }
+
+  normalizeCompatibilitySurface(detail, surface);
 
   const source = snapshot.source;
   const classId = source === 'supplemental'
@@ -169,7 +176,10 @@ async function synchronize() {
   }
 
   const existingSurface = snapshot.detail.querySelector(`[${BRIDGE_ATTRIBUTE}]`);
-  if (existingSurface?.dataset?.besHistoryKey === snapshotKey(snapshot)) return;
+  if (existingSurface?.dataset?.besHistoryKey === snapshotKey(snapshot)) {
+    normalizeCompatibilitySurface(snapshot.detail, existingSurface);
+    return;
+  }
 
   const client = getRuntimeClient();
   if (!client) return;

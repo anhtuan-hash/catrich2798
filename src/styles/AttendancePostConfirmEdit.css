@@ -442,3 +442,46 @@
 .bes-post-confirm-student.is-late{background:color-mix(in srgb,#ffddb8 42%,#fff)}
 .bes-post-confirm-status-toggle{grid-template-columns:repeat(3,minmax(0,1fr))!important}
 .bes-post-confirm-status-toggle button.is-late{background:#ffddb8!important;color:#8b5000!important}
+
+
+/* History post-confirm adjustment bridge
+   The compatibility surface is a real full-width history grid item. Keeping it
+   out of .attendance-rollcall avoids legacy rollcall grid/overflow rules that
+   previously squeezed the adjustment card into one column and clipped its action. */
+.ahv3__shell .ahv3__detail > .bes-history-post-confirm-bridge {
+  grid-column: 1 / -1;
+  grid-row: auto;
+  order: 99;
+  display: block !important;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  align-self: start;
+  margin: 0;
+  padding: 0 0 4px;
+}
+
+.ahv3__shell .bes-history-post-confirm-bridge > [hidden] {
+  display: none !important;
+}
+
+.ahv3__shell .bes-history-post-confirm-bridge > .bes-post-confirm-edit-card {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin: 0;
+  scroll-margin-block: 14px;
+}
+
+.ahv3__shell .bes-history-post-confirm-bridge > .bes-post-confirm-edit-card.is-open,
+.ahv3__shell .bes-history-post-confirm-bridge > .bes-post-confirm-edit-card.is-locked,
+.ahv3__shell .bes-history-post-confirm-bridge > .bes-post-confirm-edit-card.is-editing {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 900px) {
+  .ahv3__shell .ahv3__detail > .bes-history-post-confirm-bridge {
+    grid-column: 1 / -1;
+    order: 99;
+  }
+}
