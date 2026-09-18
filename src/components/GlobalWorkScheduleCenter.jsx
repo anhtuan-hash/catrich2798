@@ -622,6 +622,30 @@ export default function GlobalWorkScheduleCenter({
     return map;
   }, [timelineEvents]);
 
+  const dailyKey = dayKey(dailyCursor);
+  const dailyAllEvents = useMemo(
+    () => filteredEvents.filter((event) => dayKey(event.startAt) === dailyKey),
+    [dailyKey, filteredEvents],
+  );
+  const dailyEvents = useMemo(
+    () => dailyAllEvents.filter((event) => timelineCategory === 'all' || scheduleCategoryForEvent(event) === timelineCategory),
+    [dailyAllEvents, timelineCategory],
+  );
+  const dailyCategoryCounts = useMemo(() => {
+    const counts = { meeting: 0, training: 0, student: 0, deadline: 0, other: 0 };
+    dailyAllEvents.forEach((event) => {
+      const category = scheduleCategoryForEvent(event);
+      counts[category] = (counts[category] || 0) + 1;
+    });
+    return counts;
+  }, [dailyAllEvents]);
+  const dailyNextEvents = useMemo(() => {
+    const selectedIsToday = dailyKey === dayKey(new Date());
+    const now = Date.now();
+    const future = dailyAllEvents.filter((event) => !selectedIsToday || new Date(event.startAt).getTime() >= now);
+    return (future.length ? future : dailyAllEvents).slice(0, 2);
+  }, [dailyAllEvents, dailyKey]);
+
   const selectedEvent = events.find((event) => event.id === selectedId) || null;
   const existingFingerprints = useMemo(() => new Set(events.map((event) => event.fingerprint).filter(Boolean)), [events]);
 
