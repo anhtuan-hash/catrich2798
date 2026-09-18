@@ -205,13 +205,16 @@
 
 .ttcm-reader-detail-footer { min-height: 76px; display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding: 12px 22px; border-top: 1px solid #e3e9f0; background: #fff; }
 .ttcm-reader-footer-spacer { flex: 1 1 auto; }
-.ttcm-reader-primary, .ttcm-reader-secondary { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 18px; border-radius: 11px; font: inherit; font-size: 11.5px; font-weight: 820; cursor: pointer; }
+.ttcm-reader-primary, .ttcm-reader-secondary, .ttcm-reader-danger { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 0 18px; border-radius: 11px; font: inherit; font-size: 11.5px; font-weight: 820; cursor: pointer; }
 .ttcm-reader-primary { border: 1px solid #0a61df; background: #0b67eb; color: #fff; box-shadow: 0 5px 14px rgba(11,103,235,.14); }
 .ttcm-reader-primary:hover { background: #075acb; }
 .ttcm-reader-primary:disabled, .ttcm-reader-primary.is-done { border-color: #cee6d9; background: #edf8f2; color: #2f8559; box-shadow: none; cursor: default; }
 .ttcm-reader-secondary { border: 1px solid #bcd2f2; background: #fff; color: #1461c9; }
 .ttcm-reader-secondary:hover { background: #f5f9ff; }
-.ttcm-reader-manager-footer { display: flex; align-items: center; justify-content: flex-end; gap: 8px; margin-left: auto; }
+.ttcm-reader-danger { border: 1px solid #f1b9b6; background: #fff8f7; color: #c6403a; }
+.ttcm-reader-danger:hover { border-color: #e28f89; background: #fff0ee; color: #b52f2a; }
+.ttcm-reader-danger:disabled { opacity: .55; cursor: wait; }
+.ttcm-reader-manager-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; margin-left: auto; }
 
 .ttcm-reader-empty, .ttcm-reader-detail-empty { min-height: 230px; display: grid; place-items: center; align-content: center; gap: 8px; padding: 30px; color: #8b96a5; text-align: center; }
 .ttcm-reader-empty strong, .ttcm-reader-detail-empty strong { color: #435168; font-size: 14px; }

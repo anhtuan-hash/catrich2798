@@ -31,6 +31,11 @@ check(component.includes("isOverdueItem(selectedItem) ? 'Hết hạn'"), 'keeps 
 check(component.includes('ttcm-reader-response-preview'), 'shows a compact response preview in the detail panel');
 check(component.includes('.slice(0, 2).map((entry)'), 'limits inline response preview to two recent rows');
 check(component.includes('>Xem phản hồi</button>'), 'uses a non-duplicated response footer label');
+check(component.includes('deleteCommunication(selectedItem)'), 'exposes delete for manager-owned TTCM content');
+check(component.includes("isActionItem(selectedItem) ? 'Xóa việc đã giao' : 'Xóa nội dung'"), 'labels assigned-work deletion clearly');
+check(component.includes("setResponses((current) => current.filter"), 'clears deleted-item responses from local TTCM state');
+check(component.includes('responseAttachments = responsesForItem(item.id)'), 'cleans response attachments when deleting assigned work');
+check(css.includes('.ttcm-reader-danger'), 'styles the destructive TTCM delete action separately');
 check(component.indexOf('>Chỉnh sửa</button>') < component.indexOf('>Xem phản hồi</button>'), 'places edit before response viewer in manager footer');
 check(component.indexOf('>Xem phản hồi</button>') < component.lastIndexOf("'Phản hồi / hoàn thành'"), 'keeps the primary response action last');
 check(component.includes('markAllRead') && component.includes('ttcm-reader-mark-all-quiet'), 'preserves mark-all-read as a quiet list action');

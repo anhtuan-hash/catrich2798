@@ -515,17 +515,49 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
   }
 
   async function deleteCommunication(item) {
-    if (!manager || busy || !item) return; if (!(item.created_by === currentUser?.id || item.owner_id === currentUser?.id)) return;
-    if (!window.confirm(`Xóa “${item.title}”?\n\nNội dung sẽ biến mất khỏi Kênh TTCM. Hành động này không thể hoàn tác.`)) return;
+    if (!manager || busy || !item) return;
+    if (!(item.created_by === currentUser?.id || item.owner_id === currentUser?.id)) return;
+
+    const assignment = isActionItem(item);
+    const confirmTitle = assignment ? 'Xóa việc đã giao' : 'Xóa nội dung';
+    if (!window.confirm(`${confirmTitle} “${item.title}”?\n\nNội dung, phản hồi và các tệp liên quan sẽ biến mất khỏi Kênh TTCM. Hành động này không thể hoàn tác.`)) return;
+
     setBusy(true); setError(''); setNotice('');
     try {
       if (client && runtime.ready && runtime.session) {
-        const attachments = Array.isArray(item.attachments) ? item.attachments : []; if (attachments.length) { const result = await removeWorkHubSubmissionFiles(attachments); if (!result.ok) throw new Error(result.message || 'Không thể xóa tệp đính kèm.'); }
-        const { error: deleteError } = await client.from('work_hub_items').delete().eq('id', item.id).eq('created_by', currentUser.id); if (deleteError) throw deleteError;
+        const itemAttachments = Array.isArray(item.attachments) ? item.attachments : [];
+        const responseAttachments = responsesForItem(item.id)
+          .flatMap((entry) => Array.isArray(entry.attachments) ? entry.attachments : []);
+        const attachments = [...itemAttachments, ...responseAttachments];
+        if (attachments.length) {
+          const result = await removeWorkHubSubmissionFiles(attachments);
+          if (!result.ok) throw new Error(result.message || 'Không thể xóa tệp liên quan.');
+        }
+
+        const { data: deletedRows, error: deleteError } = await client
+          .from('work_hub_items')
+          .delete()
+          .eq('id', item.id)
+          .eq('created_by', currentUser.id)
+          .select('id');
+        if (deleteError) throw deleteError;
+        if (!deletedRows?.length) throw new Error('Không thể xóa việc đã giao hoặc bạn không còn quyền xóa nội dung này.');
       }
-      const next = items.filter((entry) => String(entry.id) !== String(item.id)); setItems(next); writeLocalItems(currentUser, next); setSelectedItemId('');
-      setNotice('Đã xóa nội dung TTCM.'); window.setTimeout(() => setNotice(''), 3200);
-    } catch (deleteError) { setError(deleteError?.message || 'Không thể xóa nội dung TTCM.'); } finally { setBusy(false); }
+
+      const next = items.filter((entry) => String(entry.id) !== String(item.id));
+      setItems(next);
+      setResponses((current) => current.filter((entry) => String(entry.item_id) !== String(item.id)));
+      writeLocalItems(currentUser, next);
+      setSelectedItemId('');
+      if (String(responseViewerItem?.id || '') === String(item.id)) setResponseViewerItem(null);
+      if (String(responseItem?.id || '') === String(item.id)) setResponseItem(null);
+      setNotice(assignment ? 'Đã xóa việc đã giao khỏi Kênh TTCM.' : 'Đã xóa nội dung TTCM.');
+      window.setTimeout(() => setNotice(''), 3200);
+    } catch (deleteError) {
+      setError(deleteError?.message || (assignment ? 'Không thể xóa việc đã giao.' : 'Không thể xóa nội dung TTCM.'));
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function saveCommunication(event) {
@@ -744,6 +776,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
                     <span className="ttcm-reader-footer-spacer" />
                     {canActOnSelected ? (
                       <div className={manager ? 'ttcm-reader-manager-footer' : undefined}>
+                        {manager && canManageSelected ? <button type="button" className="ttcm-reader-danger" disabled={busy} onClick={() => deleteCommunication(selectedItem)} title={isActionItem(selectedItem) ? 'Xóa việc đã giao' : 'Xóa nội dung'}><Icon name="delete" size={18} />{busy ? 'Đang xóa…' : (isActionItem(selectedItem) ? 'Xóa việc đã giao' : 'Xóa nội dung')}</button> : null}
                         {manager && canManageSelected ? <button type="button" className="ttcm-reader-secondary" onClick={() => beginEdit(selectedItem)}><Icon name="edit" size={18} />Chỉnh sửa</button> : null}
                         {manager && canManageSelected ? <button type="button" className="ttcm-reader-secondary" onClick={() => { setResponseViewerItem(selectedItem); loadResponses(); }}><Icon name="people" size={18} />Xem phản hồi</button> : null}
                         {selectedType?.id === 'acknowledgement'
@@ -751,7 +784,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
                           : <button type="button" className="ttcm-reader-primary" onClick={() => beginResponse(selectedItem)}><Icon name="arrow" size={18} />{selectedType?.id === 'feedback' ? 'Gửi góp ý' : 'Phản hồi / hoàn thành'}</button>}
                       </div>
                     ) : canManageSelected ? (
-                      <div className="ttcm-reader-manager-footer"><button type="button" className="ttcm-reader-secondary" onClick={() => beginEdit(selectedItem)}><Icon name="edit" size={18} />Chỉnh sửa</button><button type="button" className="ttcm-reader-secondary" onClick={() => { setResponseViewerItem(selectedItem); loadResponses(); }}><Icon name="people" size={18} />Xem phản hồi</button></div>
+                      <div className="ttcm-reader-manager-footer"><button type="button" className="ttcm-reader-danger" disabled={busy} onClick={() => deleteCommunication(selectedItem)} title={isActionItem(selectedItem) ? 'Xóa việc đã giao' : 'Xóa nội dung'}><Icon name="delete" size={18} />{busy ? 'Đang xóa…' : (isActionItem(selectedItem) ? 'Xóa việc đã giao' : 'Xóa nội dung')}</button><button type="button" className="ttcm-reader-secondary" onClick={() => beginEdit(selectedItem)}><Icon name="edit" size={18} />Chỉnh sửa</button><button type="button" className="ttcm-reader-secondary" onClick={() => { setResponseViewerItem(selectedItem); loadResponses(); }}><Icon name="people" size={18} />Xem phản hồi</button></div>
                     ) : (
                       <button type="button" className={`ttcm-reader-primary ${selectedUnread ? '' : 'is-done'}`} onClick={() => markRead(selectedItem.id)} disabled={!selectedUnread}><Icon name="check" size={18} />{selectedUnread ? 'Đánh dấu đã đọc' : 'Đã đọc'}</button>
                     )}
