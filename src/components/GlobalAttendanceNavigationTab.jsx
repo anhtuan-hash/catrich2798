@@ -1657,11 +1657,11 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                     <div className="ahv3__advanced-filter-panel" data-bes-keep-search="true">
                       <label><span>Từ ngày</span><input type="date" value={historyDateFrom} max={historyDateTo || undefined} onChange={(event) => setHistoryDateFrom(event.target.value)} /></label>
                       <label><span>Đến ngày</span><input type="date" value={historyDateTo} min={historyDateFrom || undefined} onChange={(event) => setHistoryDateTo(event.target.value)} /></label>
-                      <button type="button" disabled={!historyHasFilters} onClick={() => { setHistoryQuery(''); setHistoryType('all'); setHistorySort('desc'); setHistoryDateFrom(''); setHistoryDateTo(''); }}><Icon name="refresh" size={13} />Xóa lọc</button>
+                      <button type="button" disabled={!historyHasFilters} onClick={() => { setHistoryQuery(''); setHistoryType('all'); setHistorySort('desc'); setHistoryDateFrom(''); setHistoryDateTo(''); }}><Icon name="refresh" size={13} />Xóa bộ lọc</button>
                     </div>
                   </details>
                   <span className="ahv3__timeline-total">Hiển thị <b>{filteredHistory.length}</b> buổi</span>
-                  <select className="ahv3__timeline-sort" value={historySort} onChange={(event) => setHistorySort(event.target.value)} aria-label="Sắp xếp lịch sử"><option value="desc">Mới nhất → cũ nhất</option><option value="asc">Cũ nhất → mới nhất</option></select>
+                  <select className="ahv3__timeline-sort" value={historySort} onChange={(event) => setHistorySort(event.target.value)} aria-label="Sắp xếp theo ngày"><option value="desc">Mới nhất → cũ nhất</option><option value="asc">Cũ nhất → mới nhất</option></select>
                   {canDeleteAttendanceHistory ? <button type="button" className={`ahv3__multi-button ${historySelectionMode ? 'is-active' : ''}`} disabled={busy} onClick={toggleHistorySelectionMode}>{historySelectionMode ? 'Thoát chọn' : 'Chọn nhiều'}</button> : null}
                 </div>
                 <div className="ahv3__filters is-sync-only" aria-hidden="true">
