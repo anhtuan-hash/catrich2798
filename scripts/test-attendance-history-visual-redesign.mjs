@@ -99,14 +99,14 @@ assert.match(component, /<article className="is-present">[\s\S]*?selectedSession
 // Approved 2026-09-18 timeline mockup.
 assert.match(component, /data-attendance-history-timeline="true"/, 'History must opt into the new timeline workspace');
 assert.match(component, /className="ahv3__timeline-toolbar"/, 'Timeline mockup must own the full-width toolbar');
-assert.match(component, /className="ahv3__timeline-pane"/, 'Timeline mockup must render a dedicated history rail');
-assert.match(component, /className="ahv3__timeline-item"/, 'History sessions must render as timeline cards');
+assert.match(component, /ahv3__timeline-pane/, 'Timeline mockup must render a dedicated history rail');
+assert.match(component, /ahv3__timeline-item/, 'History sessions must render as timeline cards');
 assert.match(component, /className="ahv3__month-marker"/, 'History timeline must render month separators');
-assert.match(component, /className="ahv3__detail-dashboard"/, 'Selected-session detail must use the dashboard composition');
+assert.match(component, /ahv3__detail-dashboard/, 'Selected-session detail must use the dashboard composition');
 assert.match(component, /className="ahv3__student-strip"/, 'Selected-session detail must preview students');
 assert.match(component, /className="ahv3__session-note"/, 'Selected-session detail must include the mockup note card');
 assert.match(component, /className="ahv3__session-log"/, 'Selected-session detail must expose an activity timeline');
-assert.match(component, /className="ahv3__book-art"/, 'Selected-session hero must keep the open-book illustration hook');
+assert.match(component, /ahv3__book-art/, 'Selected-session hero must keep the open-book illustration hook');
 assert.match(css, /\.ahv3__shell\[data-attendance-history-timeline="true"\]\s*\{[\s\S]*grid-template-rows:\s*auto\s+minmax\(0,\s*1fr\)/, 'Timeline workspace must reserve a full-width toolbar row');
 assert.match(css, /\.ahv3__timeline-workspace\s*\{[\s\S]*grid-template-columns:\s*minmax\(500px,\s*\.96fr\)\s+minmax\(0,\s*1\.04fr\)/, 'Timeline/detail proportions must match the approved mockup');
 assert.match(css, /\.ahv3__timeline-rail::before\s*\{[\s\S]*border-left:\s*2px\s+solid\s+#b9d6fb/, 'Timeline rail must use the mockup blue vertical line');
