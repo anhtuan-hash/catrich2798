@@ -389,13 +389,29 @@ export async function loadHomeroomWorkspace(user, workspaceId = 'default') {
   const localUpdated = Date.parse(local?.updatedAt || 0) || 0;
   if (local && localUpdated > cloudUpdated) {
     const expected = text(local.syncMeta?.cloudUpdatedAt);
-    const conflict = Boolean(expected && !sameRevision(expected, cloudUpdatedAt));
-    const selected = conflict ? local : { ...local, syncMeta: { ...(local.syncMeta || {}), cloudUpdatedAt: cloudUpdatedAt || expected } };
-    persistByPrivacyMode(selected, user);
-    rememberPersistenceBaseline(selected, user);
-    return { ok: true, workspace: selected, source: conflict ? 'local-conflict' : 'local', conflict };
+
+    // A brand-new device can create a fresh local/default snapshot whose updatedAt
+    // is newer than the real cloud row simply because it was opened later. Such a
+    // snapshot has no known cloud revision and must NEVER replace account data.
+    //
+    // Only trust a newer local copy when it is a proven descendant of the current
+    // cloud revision. If it points at another revision, keep it as a conflict; if
+    // it has no revision at all, cloud is authoritative.
+    if (expected && sameRevision(expected, cloudUpdatedAt)) {
+      const selected = { ...local, syncMeta: { ...(local.syncMeta || {}), cloudUpdatedAt: cloudUpdatedAt || expected } };
+      persistByPrivacyMode(selected, user);
+      rememberPersistenceBaseline(selected, user);
+      return { ok: true, workspace: selected, source: 'local' };
+    }
+
+    if (expected && !sameRevision(expected, cloudUpdatedAt)) {
+      persistByPrivacyMode(local, user);
+      rememberPersistenceBaseline(local, user);
+      return { ok: true, workspace: local, source: 'local-conflict', conflict: true };
+    }
   }
 
+  // Cloud wins on a fresh browser/device and becomes the new local cache.
   persistByPrivacyMode(cloud, user);
   rememberPersistenceBaseline(cloud, user);
   return { ok: true, workspace: cloud, source: 'cloud' };
