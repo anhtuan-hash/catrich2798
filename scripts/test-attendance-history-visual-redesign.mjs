@@ -139,7 +139,7 @@ assert.doesNotMatch(attendanceTimeAccess, /document\.querySelector\('\.attendanc
 
 // Timeline production hardening: stale V4/V5/V6 assets must not be able to recreate the three-column regression.
 assert.match(indexHtml, /attendance-history-mockup-v4\.js\?v=3/, 'V4 history runtime cache key must be bumped after timeline isolation fix');
-assert.match(indexHtml, /attendance-history-v5\.js\?v=4/, 'V5 history runtime cache key must be bumped after timeline isolation fix');
+assert.match(indexHtml, /attendance-history-v5\.js\?v=5/, 'V5 history runtime cache key must be bumped after timeline isolation fix');
 assert.match(indexHtml, /attendance-history-pixel-v6\.js\?v=2/, 'V6 history runtime cache key must be bumped after timeline isolation fix');
 assert.match(
   css,
