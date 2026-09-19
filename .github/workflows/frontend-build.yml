@@ -157,6 +157,9 @@ jobs:
       - name: Verify Question Bank zero-cost paste import
         run: node scripts/test-question-bank-paste-import.mjs
 
+      - name: Verify Question Bank exam manager
+        run: node scripts/test-question-bank-exam-manager.mjs
+
       - name: Verify critical browser smoke gate
         run: node scripts/test-critical-e2e-contract.mjs
 
