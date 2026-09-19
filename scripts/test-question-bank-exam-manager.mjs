@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {
+  auditExamQuality,
   buildExamExportHtml,
   buildExamSections,
   createVariantOptionOrder,
@@ -57,6 +58,29 @@ assert.match(sections[1].context, /PASSAGE A/);
 assert.match(sections[4].context, /OPEN DAY/);
 assert.match(sections[5].context, /REPAIR CAFE/);
 
+const audit = auditExamQuality(items);
+assert.equal(audit.ready, true, 'valid 40-question TN THPT structure should pass hard quality gates');
+assert.equal(audit.structureOk, true);
+assert.equal(audit.totalQuestions, 40);
+assert.equal(audit.totalSections, 6);
+assert.equal(audit.errors.length, 0);
+assert.equal(audit.distributions.answers.B, 40);
+assert.ok(audit.warnings.length > 0, 'imbalanced answers / missing optional metadata should be warnings, not hard failures');
+
+const brokenAudit = auditExamQuality(items.map((entry, index) => (
+  index === 0 ? { ...entry, options: ['A', 'B', 'C'] } : entry
+)));
+assert.equal(brokenAudit.ready, false, 'question with fewer than four options must block publishing');
+assert.ok(brokenAudit.errors.some((message) => /đúng 4 phương án/.test(message)));
+
+const sameTypeBundledSections = buildExamSections([
+  { ...item(1, 'functional-cloze'), _bundle: { id: 'bundle-a', bundle_type: 'functional_cloze_6', context_text: 'A' } },
+  { ...item(2, 'functional-cloze'), _bundle: { id: 'bundle-a', bundle_type: 'functional_cloze_6', context_text: 'A' } },
+  { ...item(3, 'functional-cloze'), _bundle: { id: 'bundle-b', bundle_type: 'functional_cloze_6', context_text: 'B' } },
+  { ...item(4, 'functional-cloze'), _bundle: { id: 'bundle-b', bundle_type: 'functional_cloze_6', context_text: 'B' } },
+]);
+assert.equal(sameTypeBundledSections.length, 2, 'consecutive bundles of the same type must remain separate sections');
+
 const split = splitExamStem(items[5].stem, 6);
 assert.match(split.context, /Questions 6–10/);
 assert.equal(split.question, 'Which option fits blank (6)?');
@@ -100,6 +124,10 @@ for (const token of [
   'Sửa thông tin',
   'Đáp án nhanh',
   'Xóa đề',
+  'EXAM QUALITY AUDIT',
+  'Kiểm tra & phát hành',
+  'Phân bố đáp án',
+  'Mức nhận thức',
 ]) {
   assert.ok(page.includes(token), `Question Bank exam manager missing UI: ${token}`);
 }
@@ -108,6 +136,9 @@ assert.ok(page.includes("createExamCopy({ variant: false })"), 'duplicate action
 assert.ok(page.includes("createVariantBatch(4)"), 'four-variant action must be wired');
 assert.ok(page.includes("saveExamMetadata"), 'exam metadata editor must be wired');
 assert.ok(page.includes("deleteSelectedExam"), 'safe exam delete must be wired');
+assert.ok(page.includes("publishSelectedExam"), 'quality-gated publish action must be wired');
+assert.ok(page.includes("selectedExamAudit.ready"), 'publish UI must be gated by deterministic quality audit');
+assert.ok(page.includes("auditExamQuality(selectedTestItems)"), 'Assessment Manager must audit the selected exam');
 assert.ok(page.includes("assessment_test_items').delete().eq('test_id', selectedTest.id)"), 'exam delete must remove joins first');
 assert.ok(page.includes("assessment_tests').delete().eq('id', selectedTest.id)"), 'exam delete must remove only the test after joins');
 assert.ok(!/assessment_items'\)\.delete\(\)/.test(page), 'deleting an exam must never delete bank questions');

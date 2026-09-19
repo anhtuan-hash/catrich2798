@@ -67,9 +67,13 @@ export function buildExamSections(items = []) {
   const sections = [];
   ordered.forEach((item) => {
     const type = blockTypeForItem(item);
+    const currentSection = sections[sections.length - 1];
+    const currentBundleId = currentSection?.bundle?.id || '';
+    const itemBundleId = item._bundle?.id || '';
     const shouldStartNew = !sections.length
-      || sections[sections.length - 1].type !== type
-      || (isSectionIntro(item.stem) && sections[sections.length - 1].items.length > 0);
+      || currentSection.type !== type
+      || (currentBundleId && itemBundleId && currentBundleId !== itemBundleId)
+      || (isSectionIntro(item.stem) && currentSection.items.length > 0);
 
     if (shouldStartNew) {
       sections.push({
@@ -105,6 +109,168 @@ export function buildExamSections(items = []) {
       instructions,
     };
   });
+}
+
+function incrementCounter(counter, key) {
+  const normalized = valueText(key) || 'unknown';
+  counter[normalized] = Number(counter[normalized] || 0) + 1;
+}
+
+function sortedCounter(counter = {}) {
+  return Object.fromEntries(
+    Object.entries(counter).sort((a, b) => String(a[0]).localeCompare(String(b[0]), 'en', { numeric: true })),
+  );
+}
+
+export function auditExamQuality(items = []) {
+  const ordered = [...items].sort((a, b) => Number(a.position || 0) - Number(b.position || 0));
+  const sections = buildExamSections(ordered);
+  const errors = [];
+  const warnings = [];
+  const info = [];
+  const answerDistribution = { A: 0, B: 0, C: 0, D: 0 };
+  const cognitiveDistribution = {};
+  const difficultyDistribution = {};
+  const cefrDistribution = {};
+  const typeCounts = {};
+  const positions = [];
+  const ids = [];
+  const fingerprints = [];
+  let missingExplanation = 0;
+  let missingMetadata = 0;
+  let missingContext = 0;
+
+  ordered.forEach((item, index) => {
+    const position = Number(item.position || index + 1);
+    positions.push(position);
+    if (item.id) ids.push(item.id);
+    if (item.fingerprint) fingerprints.push(item.fingerprint);
+
+    const answer = effectiveAnswer(item);
+    if (Object.hasOwn(answerDistribution, answer)) answerDistribution[answer] += 1;
+    else errors.push(`Câu ${position}: đáp án đúng không phải A/B/C/D.`);
+
+    const options = visibleOptions(item);
+    if (options.length !== 4) errors.push(`Câu ${position}: có ${options.length} phương án, cần đúng 4 phương án.`);
+    if (options.some((option) => !valueText(option.text))) errors.push(`Câu ${position}: có phương án trống.`);
+
+    if (!valueText(item.stem)) errors.push(`Câu ${position}: thiếu nội dung câu hỏi.`);
+    if (!valueText(item.explanation)) missingExplanation += 1;
+
+    const metadataFields = [item.cefr, item.cognitive_level, item.difficulty, item.topic];
+    if (metadataFields.some((value) => value === null || value === undefined || valueText(value) === '')) missingMetadata += 1;
+
+    incrementCounter(cognitiveDistribution, item.cognitive_level);
+    incrementCounter(difficultyDistribution, item.difficulty);
+    incrementCounter(cefrDistribution, item.cefr);
+    incrementCounter(typeCounts, blockTypeForItem(item));
+  });
+
+  const expectedPositions = Array.from({ length: ordered.length }, (_, index) => index + 1);
+  const uniquePositions = new Set(positions);
+  if (uniquePositions.size !== positions.length) errors.push('Có số thứ tự câu bị trùng.');
+  if (positions.length && !positions.every((value, index) => value === expectedPositions[index])) {
+    errors.push('Thứ tự câu không liên tục từ 1 đến hết đề.');
+  }
+
+  if (new Set(ids).size !== ids.length) errors.push('Có cùng một câu hỏi được lặp lại nhiều lần trong đề.');
+  if (fingerprints.length && new Set(fingerprints).size !== fingerprints.length) warnings.push('Phát hiện câu có fingerprint trùng nhau trong cùng đề.');
+
+  sections.forEach((section) => {
+    if (['discourse_cloze_5', 'reading_8', 'reading_10', 'functional_cloze_6'].includes(section.type) && !valueText(section.context)) {
+      missingContext += 1;
+    }
+  });
+  if (missingContext) errors.push(`${missingContext} block Reading/Cloze thiếu ngữ liệu chung.`);
+
+  const isTnThpt = ordered.length === 40 || ordered.some((item) =>
+    (Array.isArray(item.tags) ? item.tags : []).some((tag) => /tnthpt/i.test(String(tag))),
+  );
+
+  let structureOk = true;
+  if (isTnThpt) {
+    const sectionTypeCounts = {};
+    sections.forEach((section) => incrementCounter(sectionTypeCounts, section.type));
+    const expectedItemCounts = {
+      arrangement_5: 5,
+      discourse_cloze_5: 5,
+      reading_10: 10,
+      reading_8: 8,
+      functional_cloze_6: 12,
+    };
+    if (ordered.length !== 40) {
+      structureOk = false;
+      errors.push(`Đề TN THPT hiện có ${ordered.length}/40 câu.`);
+    }
+    Object.entries(expectedItemCounts).forEach(([type, count]) => {
+      if (Number(typeCounts[type] || 0) !== count) {
+        structureOk = false;
+        errors.push(`${blockLabel(type)}: có ${typeCounts[type] || 0} câu, cần ${count}.`);
+      }
+    });
+    if (Number(sectionTypeCounts.functional_cloze_6 || 0) !== 2) {
+      structureOk = false;
+      errors.push(`Functional Cloze phải gồm 2 chùm riêng; hiện có ${sectionTypeCounts.functional_cloze_6 || 0}.`);
+    }
+    for (const type of ['arrangement_5', 'discourse_cloze_5', 'reading_10', 'reading_8']) {
+      if (Number(sectionTypeCounts[type] || 0) !== 1) {
+        structureOk = false;
+        errors.push(`${blockLabel(type)} phải có đúng 1 block.`);
+      }
+    }
+    if (sections.length !== 6) {
+      structureOk = false;
+      errors.push(`Đề TN THPT phải có 6 block; hiện nhận diện ${sections.length}.`);
+    }
+  }
+
+  if (missingExplanation) warnings.push(`${missingExplanation} câu chưa có giải thích.`);
+  if (missingMetadata) warnings.push(`${missingMetadata} câu thiếu ít nhất một metadata chính (CEFR, nhận thức, độ khó, chủ đề).`);
+
+  const answerValues = Object.values(answerDistribution);
+  const answerSpread = Math.max(...answerValues) - Math.min(...answerValues);
+  if (ordered.length >= 20 && answerSpread > Math.max(4, Math.round(ordered.length * 0.15))) {
+    warnings.push(`Phân bố đáp án A–D lệch khá nhiều (chênh tối đa ${answerSpread} câu).`);
+  }
+
+  const cognitiveTotal = ordered.length || 1;
+  const cognitivePercent = {};
+  Object.entries(cognitiveDistribution).forEach(([key, count]) => {
+    cognitivePercent[key] = Math.round((count / cognitiveTotal) * 100);
+  });
+
+  if (isTnThpt) {
+    const recognition = cognitivePercent.recognition || 0;
+    const comprehension = cognitivePercent.comprehension || 0;
+    const application = cognitivePercent.application || 0;
+    info.push(`Nhận biết ${recognition}% · Thông hiểu ${comprehension}% · Vận dụng ${application}%.`);
+  }
+
+  const ready = errors.length === 0;
+  return {
+    ready,
+    structureOk,
+    isTnThpt,
+    totalQuestions: ordered.length,
+    totalSections: sections.length,
+    errors,
+    warnings,
+    info,
+    counts: {
+      missingExplanation,
+      missingMetadata,
+      missingContext,
+      duplicateItems: ids.length - new Set(ids).size,
+    },
+    distributions: {
+      answers: answerDistribution,
+      cognitive: sortedCounter(cognitiveDistribution),
+      difficulty: sortedCounter(difficultyDistribution),
+      cefr: sortedCounter(cefrDistribution),
+      types: sortedCounter(typeCounts),
+    },
+    sections,
+  };
 }
 
 export function optionOrderForItem(item = {}) {
