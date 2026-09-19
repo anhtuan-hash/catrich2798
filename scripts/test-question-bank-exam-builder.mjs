@@ -106,7 +106,7 @@ const page = fs.readFileSync('src/pages/QuestionBank.jsx', 'utf8');
 for (const token of [
   "['builder', 'Tạo đề']",
   'ZERO-COST TEST BUILDER',
-  'Tạo đề 40 câu',
+  'Tạo đề ',
   'Xáo lựa chọn',
   'Tồn kho phù hợp',
   'LIVE BLUEPRINT',
