@@ -247,9 +247,11 @@
             "type": "string",
             "enum": [
               "private",
+              "personal",
               "department"
             ],
-            "default": "private"
+            "default": "private",
+            "description": "Use private/personal for owner-only content; Brian normalizes both to the table-specific private value. Use department to share within the department."
           },
           "status": {
             "type": "string",
@@ -257,9 +259,13 @@
               "draft",
               "review",
               "approved",
+              "published",
+              "closed",
+              "retired",
               "archived"
             ],
-            "default": "draft"
+            "default": "draft",
+            "description": "Brian normalizes compatible status aliases to the target table's allowed values."
           },
           "metadata": {
             "type": "object",
@@ -346,9 +352,11 @@
             "type": "string",
             "enum": [
               "private",
+              "personal",
               "department"
             ],
-            "default": "private"
+            "default": "private",
+            "description": "Use private/personal for owner-only content; Brian normalizes both to the table-specific private value. Use department to share within the department."
           },
           "status": {
             "type": "string",
@@ -356,9 +364,13 @@
               "draft",
               "review",
               "approved",
+              "published",
+              "closed",
+              "retired",
               "archived"
             ],
-            "default": "draft"
+            "default": "draft",
+            "description": "Brian normalizes compatible status aliases to the target table's allowed values."
           },
           "bundlePosition": {
             "type": "integer",
@@ -400,9 +412,11 @@
             "type": "string",
             "enum": [
               "private",
+              "personal",
               "department"
             ],
-            "default": "private"
+            "default": "private",
+            "description": "Use private/personal for owner-only content; Brian normalizes both to the table-specific private value. Use department to share within the department."
           },
           "status": {
             "type": "string",
@@ -410,9 +424,13 @@
               "draft",
               "review",
               "approved",
+              "published",
+              "closed",
+              "retired",
               "archived"
             ],
-            "default": "draft"
+            "default": "draft",
+            "description": "Brian normalizes compatible status aliases to the target table's allowed values."
           },
           "tags": {
             "type": "array",
