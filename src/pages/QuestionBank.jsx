@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../utils/supabase.js';
 import { parseQuestionBankPaste } from '../utils/questionBankPasteParser.js';
 import {
+  auditExamQuality,
   buildExamExportHtml,
   buildExamSections,
   createVariantOptionOrder,
@@ -266,6 +267,10 @@ OpenAPI: ${openApiUrl}`;
 
   const selectedExamSections = useMemo(
     () => buildExamSections(selectedTestItems),
+    [selectedTestItems],
+  );
+  const selectedExamAudit = useMemo(
+    () => auditExamQuality(selectedTestItems),
     [selectedTestItems],
   );
 
@@ -773,6 +778,46 @@ OpenAPI: ${openApiUrl}`;
     }
   };
 
+  const publishSelectedExam = async () => {
+    if (!selectedTest?.id || !userId || !supabase) return;
+    if (!selectedExamAudit.ready) {
+      setMessage(`Chưa thể phát hành: còn ${selectedExamAudit.errors.length} lỗi bắt buộc trong Quality Audit.`);
+      return;
+    }
+    setExamActionBusy('publish');
+    setMessage('');
+    try {
+      const updateResult = await supabase.from('assessment_tests')
+        .update({
+          status: 'published',
+          import_metadata: {
+            ...(selectedTest.import_metadata || {}),
+            qualityAudit: {
+              auditedAt: new Date().toISOString(),
+              totalQuestions: selectedExamAudit.totalQuestions,
+              totalSections: selectedExamAudit.totalSections,
+              warningCount: selectedExamAudit.warnings.length,
+              structureOk: selectedExamAudit.structureOk,
+            },
+          },
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', selectedTest.id)
+        .eq('owner_id', userId)
+        .select('*')
+        .single();
+      if (updateResult.error) throw updateResult.error;
+      setSelectedTest(updateResult.data);
+      setExamEdit((current) => ({ ...current, status: 'published' }));
+      await loadData();
+      setMessage(`Đã phát hành đề sau khi Quality Audit đạt yêu cầu. Còn ${selectedExamAudit.warnings.length} cảnh báo tham khảo.`);
+    } catch (error) {
+      setMessage(error?.message || 'Không thể phát hành đề thi.');
+    } finally {
+      setExamActionBusy('');
+    }
+  };
+
   const exportSelectedExam = (format) => {
     if (!selectedTest || !selectedTestItems.length) return;
     try {
@@ -1025,6 +1070,15 @@ OpenAPI: ${openApiUrl}`;
                   <button type="button" className="qb-primary" onClick={() => createVariantBatch(4)} disabled={Boolean(examActionBusy) || !selectedTestItems.length}>
                     {examActionBusy === 'variant-batch' ? 'Đang tạo 4 mã…' : 'Tạo 4 mã đề'}
                   </button>
+                  <button
+                    type="button"
+                    className={selectedExamAudit.ready ? 'qb-publish' : 'qb-publish is-blocked'}
+                    onClick={publishSelectedExam}
+                    disabled={Boolean(examActionBusy) || !selectedTestItems.length || !selectedExamAudit.ready || selectedTest.status === 'published'}
+                    title={selectedExamAudit.ready ? 'Quality Audit đạt yêu cầu' : 'Cần sửa các lỗi bắt buộc trước khi phát hành'}
+                  >
+                    {examActionBusy === 'publish' ? 'Đang phát hành…' : selectedTest.status === 'published' ? 'Đã phát hành' : 'Kiểm tra & phát hành'}
+                  </button>
                   <button type="button" className={deleteExamArmed ? 'qb-danger is-armed' : 'qb-danger'} onClick={deleteSelectedExam} disabled={Boolean(examActionBusy)}>
                     {examActionBusy === 'delete' ? 'Đang xóa…' : deleteExamArmed ? 'Xác nhận xóa đề' : 'Xóa đề'}
                   </button>
@@ -1065,8 +1119,65 @@ OpenAPI: ${openApiUrl}`;
                 <article><span>Tổng câu</span><strong>{selectedTestItems.length || testCounts[selectedTest.id] || 0}</strong></article>
                 <article><span>Thời gian</span><strong>{selectedTest.settings?.durationMinutes || 50}'</strong></article>
                 <article><span>Số block</span><strong>{selectedExamSections.length}</strong></article>
-                <article><span>Phiên bản xuất</span><strong>{showExamAnswers ? 'Giáo viên' : 'Học sinh'}</strong></article>
+                <article><span>Quality Audit</span><strong className={selectedExamAudit.ready ? 'is-ready' : 'is-not-ready'}>{selectedExamAudit.ready ? 'Đạt' : `${selectedExamAudit.errors.length} lỗi`}</strong></article>
               </div>
+
+              {selectedTestItems.length ? (
+                <section className={selectedExamAudit.ready ? 'qb-quality-audit is-ready' : 'qb-quality-audit has-errors'}>
+                  <div className="qb-quality-head">
+                    <div>
+                      <span>EXAM QUALITY AUDIT</span>
+                      <h3>{selectedExamAudit.ready ? 'Đủ điều kiện phát hành' : 'Cần chỉnh trước khi phát hành'}</h3>
+                      <p>Kiểm tra tự động cấu trúc TN THPT, phương án, đáp án, ngữ liệu, metadata và phân bố đáp án.</p>
+                    </div>
+                    <div className="qb-quality-badge">
+                      <b>{selectedExamAudit.ready ? 'PASS' : 'CHECK'}</b>
+                      <small>{selectedExamAudit.errors.length} lỗi · {selectedExamAudit.warnings.length} cảnh báo</small>
+                    </div>
+                  </div>
+
+                  <div className="qb-quality-summary">
+                    <article><span>Cấu trúc</span><strong>{selectedExamAudit.structureOk ? 'Đúng form' : 'Chưa đúng'}</strong><small>{selectedExamAudit.totalQuestions} câu · {selectedExamAudit.totalSections} block</small></article>
+                    <article><span>Giải thích</span><strong>{selectedExamAudit.counts.missingExplanation ? `Thiếu ${selectedExamAudit.counts.missingExplanation}` : 'Đủ'}</strong><small>Không chặn phát hành</small></article>
+                    <article><span>Metadata</span><strong>{selectedExamAudit.counts.missingMetadata ? `Thiếu ${selectedExamAudit.counts.missingMetadata}` : 'Đủ'}</strong><small>CEFR · nhận thức · độ khó · chủ đề</small></article>
+                    <article><span>Trùng câu</span><strong>{selectedExamAudit.counts.duplicateItems || 0}</strong><small>Trong cùng đề</small></article>
+                  </div>
+
+                  <div className="qb-quality-columns">
+                    <div className="qb-quality-distribution">
+                      <div className="qb-quality-subhead"><strong>Phân bố đáp án</strong><span>A–D</span></div>
+                      {Object.entries(selectedExamAudit.distributions.answers).map(([answer, count]) => {
+                        const percent = selectedExamAudit.totalQuestions ? Math.round((count / selectedExamAudit.totalQuestions) * 100) : 0;
+                        return <div className="qb-quality-row" key={answer}>
+                          <b>{answer}</b>
+                          <div><i style={{ width: `${percent}%` }} /></div>
+                          <span>{count} · {percent}%</span>
+                        </div>;
+                      })}
+                    </div>
+                    <div className="qb-quality-distribution">
+                      <div className="qb-quality-subhead"><strong>Mức nhận thức</strong><span>Toàn đề</span></div>
+                      {Object.entries(selectedExamAudit.distributions.cognitive).map(([level, count]) => {
+                        const percent = selectedExamAudit.totalQuestions ? Math.round((count / selectedExamAudit.totalQuestions) * 100) : 0;
+                        return <div className="qb-quality-row" key={level}>
+                          <b>{cognitiveLabel(level)}</b>
+                          <div><i style={{ width: `${percent}%` }} /></div>
+                          <span>{count} · {percent}%</span>
+                        </div>;
+                      })}
+                    </div>
+                  </div>
+
+                  {selectedExamAudit.errors.length || selectedExamAudit.warnings.length ? (
+                    <div className="qb-quality-messages">
+                      {selectedExamAudit.errors.length ? <div className="is-error"><b>Lỗi bắt buộc</b>{selectedExamAudit.errors.map((item) => <span key={item}>• {item}</span>)}</div> : null}
+                      {selectedExamAudit.warnings.length ? <div className="is-warning"><b>Cảnh báo</b>{selectedExamAudit.warnings.map((item) => <span key={item}>• {item}</span>)}</div> : null}
+                    </div>
+                  ) : (
+                    <div className="qb-quality-clean">Không phát hiện lỗi cấu trúc hoặc dữ liệu bắt buộc.</div>
+                  )}
+                </section>
+              ) : null}
 
               {showExamAnswers && selectedTestItems.length ? (
                 <div className="qb-answer-key">
