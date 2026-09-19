@@ -10,9 +10,9 @@ const now = new Date().toISOString();
 for (const file of ['public/version.json', 'public/release-manifest.json']) {
   if (!fs.existsSync(file)) continue;
   const value = JSON.parse(fs.readFileSync(file, 'utf8'));
-  value.version = '11.6.31';
-  if (file.endsWith('version.json')) value.releaseName = 'Question Bank Schema Fix';
-  else value.release = 'Question Bank Schema Fix';
+  value.version = '11.6.32';
+  if (file.endsWith('version.json')) value.releaseName = 'Question Bank Clean Import';
+  else value.release = 'Question Bank Clean Import';
   value.runtimeCore = '2.6.7';
   value.runtime = '2.6.7';
   value.requiresSql = false;
@@ -28,4 +28,4 @@ for (const file of ['public/version.json', 'public/release-manifest.json']) {
   fs.writeFileSync(file, JSON.stringify(value, null, 2) + '\n');
 }
 
-console.log('Version registry synchronized: 11.6.31 · Question Bank Schema Fix');
+console.log('Version registry synchronized: 11.6.32 · Question Bank Clean Import');

@@ -606,7 +606,7 @@ OpenAPI: ${openApiUrl}`;
             <div className="qb-question-list">
               {filteredQuestions.map((item, index) => (
                 <article className="qb-question-card" key={item.id}>
-                  <div className="qb-question-number">{String(index + 1).padStart(2, '0')}</div>
+                  <div className="qb-question-number">{String(item.bundle_position || index + 1).padStart(2, '0')}</div>
                   <div className="qb-question-main">
                     <div className="qb-chips">
                       {item.grade ? <span>Khối {item.grade}</span> : null}
@@ -615,7 +615,7 @@ OpenAPI: ${openApiUrl}`;
                       {item.grammar_point ? <span>{item.grammar_point}</span> : null}
                       {item.source_kind === 'chatgpt' ? <span className="is-chatgpt">ChatGPT</span> : null}
                     </div>
-                    <strong className="qb-stem">{compact(item.stem, 420)}</strong>
+                    <strong className="qb-stem">{compact(displayQuestionStem(item.stem, item.bundle_position), 420)}</strong>
                     {Array.isArray(item.options) && item.options.length ? (
                       <div className="qb-options">{item.options.map((option, optionIndex) => <span key={optionIndex}><b>{String.fromCharCode(65 + optionIndex)}.</b> {compact(option, 180)}</span>)}</div>
                     ) : null}
