@@ -74,12 +74,36 @@ function averageUsage(items = []) {
   return items.reduce((sum, item) => sum + Number(item.usage_count || 0), 0) / items.length;
 }
 
-function candidateScore(candidate, filters, seed) {
+function cognitiveTargetScore(candidate, selected, filters) {
+  const targets = filters.cognitiveTargets;
+  const totalItems = Number(filters.totalItems || 0);
+  if (!targets || !totalItems) return 0;
+  const levels = ['recognition', 'comprehension', 'application'];
+  const current = Object.fromEntries(levels.map((level) => [
+    level,
+    selected.filter((item) => normalize(item.cognitive_level) === level).length,
+  ]));
+  const candidateCounts = Object.fromEntries(levels.map((level) => [
+    level,
+    (candidate.items || []).filter((item) => normalize(item.cognitive_level) === level).length,
+  ]));
+
+  return levels.reduce((score, level) => {
+    const targetCount = (Number(targets[level] || 0) / 100) * totalItems;
+    const shortage = Math.max(0, targetCount - current[level]);
+    const useful = Math.min(shortage, candidateCounts[level]);
+    const overshoot = Math.max(0, candidateCounts[level] - shortage);
+    return score + useful * 1.4 - overshoot * 0.35;
+  }, 0);
+}
+
+function candidateScore(candidate, filters, seed, selected = []) {
   const usagePenalty = Math.min(20, averageUsage(candidate.items || [])) / 20;
   const cefrBoost = cefrScore(candidate, filters.cefr);
   const cognitiveBoost = cognitiveScore(candidate, filters.cognitiveLevel);
+  const targetBoost = cognitiveTargetScore(candidate, selected, filters);
   const jitter = scoreWithSeed(candidate.id, seed);
-  return (cefrBoost * 3) + (cognitiveBoost * 2) + jitter - usagePenalty;
+  return (cefrBoost * 3) + (cognitiveBoost * 2) + targetBoost + jitter - usagePenalty;
 }
 
 export function buildBankInventory(questions = [], bundles = []) {
@@ -138,7 +162,7 @@ export function selectExamFromBank({
       .filter((candidate) => matchesTopic(candidate, filters.topic))
       .filter((candidate) => matchesGrade(candidate, filters.grade))
       .filter((candidate) => candidate.items.every((item) => !usedIds.has(item.id)))
-      .sort((a, b) => candidateScore(b, filters, seed) - candidateScore(a, filters, seed));
+      .sort((a, b) => candidateScore(b, filters, seed, selected) - candidateScore(a, filters, seed, selected));
 
     const picked = candidates.slice(0, bundleCount);
     if (picked.length < bundleCount) {
@@ -173,7 +197,7 @@ export function selectExamFromBank({
         .sort((a, b) => {
           const aCandidate = { id: a.id, items: [a] };
           const bCandidate = { id: b.id, items: [b] };
-          return candidateScore(bCandidate, filters, seed) - candidateScore(aCandidate, filters, seed);
+          return candidateScore(bCandidate, filters, seed, selected) - candidateScore(aCandidate, filters, seed, selected);
         });
       const picked = candidates.slice(0, part.count);
       if (picked.length < part.count) {
