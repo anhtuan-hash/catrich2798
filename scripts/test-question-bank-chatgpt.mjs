@@ -39,7 +39,7 @@ assert.ok(handlerSource.includes("function testStatusValue"), 'Question Bank han
 assert.ok(handlerSource.includes("normalized.replace(new RegExp"), 'Question Bank option labels must be stripped before persistence.');
 assert.ok(handlerSource.includes("cleanupCreatedBundle"), 'Question Bank imports must clean up newly created empty bundles after write failures.');
 assert.ok(page.includes("item.bundle_position || index + 1"), 'Question Bank cards must show bundle position when available.');
-assert.ok(page.includes("displayQuestionStem"), 'Question Bank cards must avoid repeating the question number in the stem.');
+assert.ok(page.includes("function displayQuestionStem("), 'Question Bank must define the bundled question stem formatter.');
 assert.ok(!/assessment_items[\s\S]{0,1200}visibility:\s*'private'/.test(page), 'Question Bank UI must not write private visibility directly into assessment_items.');
 assert.ok(!streamlinedCleanup.includes("'assessment-core'"), 'assessment-core must never be retired by the streamlined catalog build cleanup.');
 assert.ok(!page.includes("localStorage.setItem") || !page.includes('generatedKey'), 'Raw Brian connector key must not be intentionally persisted to localStorage.');

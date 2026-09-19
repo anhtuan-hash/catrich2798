@@ -24,6 +24,12 @@ function answerLabel(value) {
   return text(value) || '—';
 }
 
+function displayQuestionStem(value, bundlePosition) {
+  const raw = text(value);
+  if (!bundlePosition) return raw;
+  return raw.replace(/^\s*(?:Question|Câu|Q)\s*\d+\s*[.)：:-]?\s*/i, '').trim() || raw;
+}
+
 function statusLabel(status) {
   const map = { draft: 'Bản nháp', approved: 'Đã duyệt', review: 'Chờ duyệt', archived: 'Lưu trữ' };
   return map[text(status).toLowerCase()] || text(status) || 'Bản nháp';
