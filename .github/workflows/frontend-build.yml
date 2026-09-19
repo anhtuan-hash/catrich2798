@@ -151,6 +151,9 @@ jobs:
       - name: Verify Vercel Hobby function budget
         run: node scripts/test-vercel-hobby-function-budget.mjs
 
+      - name: Verify Question Bank ChatGPT contract
+        run: node scripts/test-question-bank-chatgpt.mjs
+
       - name: Verify critical browser smoke gate
         run: node scripts/test-critical-e2e-contract.mjs
 

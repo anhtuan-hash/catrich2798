@@ -79,6 +79,7 @@ export default function QuestionBank({ currentUser }) {
   const [cefr, setCefr] = useState('');
   const [showNew, setShowNew] = useState(false);
   const [generatedKey, setGeneratedKey] = useState('');
+  const [testingConnection, setTestingConnection] = useState(false);
   const [disconnectArmed, setDisconnectArmed] = useState(false);
   const [draft, setDraft] = useState({
     stem: '',
@@ -98,6 +99,20 @@ export default function QuestionBank({ currentUser }) {
   const openApiUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/brian-question-bank-openapi.json`
     : '/brian-question-bank-openapi.json';
+
+  const gptInstructionText = `Bạn là trợ lý soạn đề Tiếng Anh có kết nối với Brian Question Bank.
+
+Quy tắc làm việc:
+1. Khi tôi yêu cầu soạn một đề hoàn chỉnh, hãy hoàn thiện toàn bộ nội dung trước, kiểm tra mỗi câu trắc nghiệm chỉ có một đáp án đúng hợp lý, rồi dùng action saveBrianExam để lưu đề vào Brian.
+2. Khi tôi yêu cầu tạo một nhóm câu hỏi rời, dùng saveBrianQuestions.
+3. Với reading, cloze, notice, dialogue hoặc bất kỳ ngữ liệu chung nào, phải giữ nguyên ngữ liệu trong bundle và lưu các câu hỏi đi kèm theo đúng thứ tự.
+4. Gắn metadata khi có thể: grade, CEFR, skill, topic, cognitiveLevel, difficulty, grammarPoint, tags, schoolYear.
+5. Trước khi tạo lại nội dung cũ, có thể dùng searchBrianQuestions để tìm câu đã có trong Brian.
+6. Khi tôi yêu cầu mở lại một đề đã lưu và có testId, dùng getBrianExam.
+7. Sau khi lưu, báo rõ số câu mới, số câu trùng được tái sử dụng và testId của đề.
+8. Không bao giờ yêu cầu mật khẩu Brian hoặc Supabase key của tôi. Chỉ dùng khóa Action đã được cấu hình trong Authentication.
+
+OpenAPI: ${openApiUrl}`;
 
   const loadData = useCallback(async () => {
     if (!userId || !supabase) return;
@@ -263,6 +278,34 @@ export default function QuestionBank({ currentUser }) {
     }
   };
 
+  const testConnection = async () => {
+    if (!generatedKey) {
+      setMessage('Hãy tạo khóa mới trong phiên này để kiểm tra kết nối.');
+      return;
+    }
+    setTestingConnection(true);
+    setMessage('');
+    try {
+      const response = await fetch('/api/question-bank/search-questions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${generatedKey}`,
+        },
+        body: JSON.stringify({ filters: {}, limit: 1 }),
+      });
+      const body = await response.json().catch(() => ({}));
+      if (!response.ok || body?.ok === false) {
+        throw new Error(body?.error || `HTTP ${response.status}`);
+      }
+      setMessage('Kết nối Brian Question Bank hoạt động tốt. ChatGPT có thể dùng 4 action.');
+    } catch (error) {
+      setMessage(`Kiểm tra kết nối thất bại: ${error?.message || 'Không xác định'}`);
+    } finally {
+      setTestingConnection(false);
+    }
+  };
+
   const copyValue = async (value, success) => {
     try {
       await navigator.clipboard.writeText(value);
@@ -406,22 +449,32 @@ export default function QuestionBank({ currentUser }) {
             <div className="qb-section-head"><div><p>SECURE CONNECTOR</p><h2>Kết nối ChatGPT</h2></div><span className={integration?.active ? 'qb-live' : 'qb-offline'}>{integration?.active ? '● Đang hoạt động' : '○ Chưa kết nối'}</span></div>
             <div className="qb-connect-steps">
               <article><b>1</b><div><strong>Tạo khóa Brian</strong><p>Khóa riêng cho Ngân hàng câu hỏi. Brian chỉ lưu SHA-256 hash, không lưu khóa gốc.</p></div></article>
-              <article><b>2</b><div><strong>Thêm Action vào ChatGPT</strong><p>Dùng OpenAPI URL bên dưới và chọn Bearer API key làm phương thức xác thực.</p></div></article>
-              <article><b>3</b><div><strong>Soạn đề như bình thường</strong><p>Sau khi hoàn tất, yêu cầu ChatGPT lưu đề hoặc câu hỏi vào Brian.</p></div></article>
+              <article><b>2</b><div><strong>Import Action vào GPT</strong><p>Trong phần Actions của GPT, import OpenAPI URL bên dưới và đặt Authentication là API key dạng Bearer.</p></div></article>
+              <article><b>3</b><div><strong>Dán hướng dẫn & kiểm tra</strong><p>Sao chép bộ Instructions đã chuẩn bị sẵn, sau đó chạy kiểm tra kết nối ngay trong Brian.</p></div></article>
+            </div>
+
+            <div className="qb-action-grid" aria-label="Các ChatGPT action của Brian">
+              <span><b>saveBrianExam</b><small>Lưu đề hoàn chỉnh</small></span>
+              <span><b>saveBrianQuestions</b><small>Lưu câu hỏi / chùm bài</small></span>
+              <span><b>searchBrianQuestions</b><small>Tìm câu đã có</small></span>
+              <span><b>getBrianExam</b><small>Mở lại đề</small></span>
             </div>
 
             <div className="qb-connect-box">
               <label><span>OpenAPI URL</span><div className="qb-copy-row"><input readOnly value={openApiUrl} /><button type="button" onClick={() => copyValue(openApiUrl, 'Đã sao chép OpenAPI URL.')}>Sao chép</button></div></label>
-              {generatedKey ? <label><span>Khóa kết nối — chỉ hiển thị trong phiên này</span><div className="qb-copy-row"><input readOnly value={generatedKey} /><button type="button" onClick={() => copyValue(generatedKey, 'Đã sao chép khóa kết nối.')}>Sao chép</button></div><small>Hãy lưu khóa vào phần Authentication của Action. Nếu mất khóa, tạo khóa mới.</small></label> : null}
+              {generatedKey ? <label><span>Khóa kết nối — chỉ hiển thị trong phiên này</span><div className="qb-copy-row"><input readOnly value={generatedKey} /><button type="button" onClick={() => copyValue(generatedKey, 'Đã sao chép khóa kết nối.')}>Sao chép</button></div><small>Dán khóa này vào Authentication của Action. Brian không thể hiện lại khóa sau khi anh rời trang; nếu mất khóa, hãy tạo khóa mới.</small></label> : null}
+              <label><span>Instructions cho GPT</span><div className="qb-instruction-box"><textarea readOnly rows="11" value={gptInstructionText} /><button type="button" onClick={() => copyValue(gptInstructionText, 'Đã sao chép Instructions cho GPT.')}>Sao chép Instructions</button></div></label>
               <div className="qb-connect-actions">
                 <button type="button" className="qb-primary" onClick={createChatGptKey}>{integration?.active ? 'Tạo khóa mới' : 'Tạo khóa kết nối'}</button>
+                {generatedKey ? <button type="button" className="qb-secondary" onClick={testConnection} disabled={testingConnection}>{testingConnection ? 'Đang kiểm tra…' : 'Kiểm tra kết nối'}</button> : null}
                 {integration?.active ? <button type="button" className={disconnectArmed ? 'qb-danger is-armed' : 'qb-danger'} onClick={disconnect}>Ngắt kết nối</button> : null}
               </div>
             </div>
 
             <div className="qb-prompt">
-              <span>Lệnh mẫu sau khi đã kết nối</span>
-              <blockquote>“Sau khi soạn xong đề này, hãy dùng Brian Question Bank để lưu toàn bộ đề, đáp án, giải thích và metadata vào Ngân hàng câu hỏi Brian.”</blockquote>
+              <span>Cách dùng sau khi kết nối</span>
+              <blockquote>“Soạn cho tôi đề này theo yêu cầu. Khi hoàn tất, tự lưu bản đầy đủ vào Brian Question Bank.”</blockquote>
+              <small>ChatGPT có thể vẫn yêu cầu xác nhận trước một write action tùy cài đặt quyền của tài khoản.</small>
             </div>
           </div>
 
