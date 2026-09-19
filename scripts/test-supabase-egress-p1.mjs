@@ -16,8 +16,12 @@ check(classStore.includes('.update(row)'), 'Existing homeroom rows must use an e
 check(classStore.includes(".eq('updated_at', expectedRevision)"), 'Homeroom updates must use optimistic concurrency.');
 check(classStore.includes('.insert(row)'), 'New homeroom rows must use an explicit insert path.');
 check(classStore.includes(".select('updated_at')"), 'Homeroom writes must request only the cloud revision.');
-check(!/\.update\(row\)[\s\S]{0,500}\.select\([^)]*payload/.test(classStore), 'Homeroom update response must not request payload.');
-check(!/\.insert\(row\)[\s\S]{0,300}\.select\([^)]*payload/.test(classStore), 'Homeroom insert response must not request payload.');
+const homeroomUpdateWrite = classStore.match(/\.update\(row\)[\s\S]*?\.maybeSingle\(\)/)?.[0] || '';
+const homeroomInsertWrite = classStore.match(/\.insert\(row\)[\s\S]*?\.maybeSingle\(\)/)?.[0] || '';
+const homeroomUpdateSelect = homeroomUpdateWrite.match(/\.select\(([^)]*)\)/)?.[1] || '';
+const homeroomInsertSelect = homeroomInsertWrite.match(/\.select\(([^)]*)\)/)?.[1] || '';
+check(homeroomUpdateSelect.includes('updated_at') && !homeroomUpdateSelect.includes('payload'), 'Homeroom update response must not request payload.');
+check(homeroomInsertSelect.includes('updated_at') && !homeroomInsertSelect.includes('payload'), 'Homeroom insert response must not request payload.');
 check(supabase.includes("'/rest/v1/collaboration_comments', 'id,space_id,thread_id"), 'Collaboration comment projection is missing.');
 check(supabase.includes("'/rest/v1/audit_events', 'id,actor_id,actor_email"), 'Audit projection is missing.');
 check(supabase.includes('const READ_LIMIT_CAPS = ['), 'Read limit caps are missing.');
