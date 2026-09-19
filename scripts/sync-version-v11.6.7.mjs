@@ -10,9 +10,9 @@ const now = new Date().toISOString();
 for (const file of ['public/version.json', 'public/release-manifest.json']) {
   if (!fs.existsSync(file)) continue;
   const value = JSON.parse(fs.readFileSync(file, 'utf8'));
-  value.version = '11.6.7';
-  if (file.endsWith('version.json')) value.releaseName = 'Streamlined Application Catalog';
-  else value.release = 'Streamlined Application Catalog';
+  value.version = '11.6.28';
+  if (file.endsWith('version.json')) value.releaseName = 'Question Bank Live';
+  else value.release = 'Question Bank Live';
   value.runtimeCore = '2.6.7';
   value.runtime = '2.6.7';
   value.requiresSql = false;
@@ -28,4 +28,4 @@ for (const file of ['public/version.json', 'public/release-manifest.json']) {
   fs.writeFileSync(file, JSON.stringify(value, null, 2) + '\n');
 }
 
-console.log('Version registry synchronized: 11.6.7 · streamlined application catalog');
+console.log('Version registry synchronized: 11.6.28 · Question Bank Live');
