@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Brian Question Bank",
-    "version": "1.0.0",
-    "description": "Securely save, search, and retrieve the signed-in Brian user's English assessment questions and exams. Use save_exam after drafting a complete exam; use save_questions for standalone items or a shared passage bundle. Never send the user's Brian password."
+    "version": "1.1.0",
+    "description": "Connect ChatGPT to Brian's Question Bank. Use saveBrianExam after completing a full exam, saveBrianQuestions for standalone or bundled questions, searchBrianQuestions to reuse existing items, and getBrianExam to reopen a saved exam. Preserve shared reading/cloze stimuli as bundle objects. Never request or transmit the user's Brian password."
   },
   "servers": [
     {
@@ -16,11 +16,11 @@
     }
   ],
   "paths": {
-    "/api/question-bank": {
+    "/api/question-bank/save-exam": {
       "post": {
-        "operationId": "useBrianQuestionBank",
-        "summary": "Save or retrieve Question Bank content",
-        "description": "Choose action save_questions, save_exam, search_questions, or get_exam. Preserve passages as bundle objects so their questions stay together.",
+        "operationId": "saveBrianExam",
+        "summary": "Save a completed exam to Brian",
+        "description": "Default persistence action after a complete exam has been drafted for the Brian-linked workflow. Save the full exam, answer key, explanations, metadata, optional blueprint, and any shared bundle context.",
         "requestBody": {
           "required": true,
           "content": {
@@ -28,141 +28,167 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "action"
+                  "exam"
                 ],
                 "properties": {
-                  "action": {
-                    "type": "string",
-                    "enum": [
-                      "save_questions",
-                      "save_exam",
-                      "search_questions",
-                      "get_exam"
-                    ]
-                  },
                   "requestId": {
-                    "type": "string",
-                    "description": "Optional idempotency/audit reference."
+                    "type": "string"
                   },
                   "meta": {
                     "type": "object",
                     "additionalProperties": true
                   },
-                  "bundle": {
-                    "type": "object",
-                    "properties": {
-                      "title": {
-                        "type": "string"
-                      },
-                      "bundleType": {
-                        "type": "string"
-                      },
-                      "contextText": {
-                        "type": "string"
-                      },
-                      "instructions": {
-                        "type": "string"
-                      },
-                      "topic": {
-                        "type": "string"
-                      },
-                      "skill": {
-                        "type": "string"
-                      },
-                      "grade": {
-                        "type": "integer"
-                      },
-                      "unitName": {
-                        "type": "string"
-                      },
-                      "schoolYear": {
-                        "type": "string"
-                      },
-                      "source": {
-                        "type": "string"
-                      },
-                      "sourceReference": {
-                        "type": "string"
-                      },
-                      "visibility": {
-                        "type": "string",
-                        "enum": [
-                          "private",
-                          "department"
-                        ]
-                      }
-                    },
-                    "additionalProperties": true
-                  },
-                  "questions": {
-                    "type": "array",
-                    "maxItems": 200,
-                    "items": {
-                      "$ref": "#/components/schemas/Question"
-                    }
-                  },
                   "exam": {
                     "$ref": "#/components/schemas/Exam"
-                  },
-                  "filters": {
-                    "type": "object",
-                    "properties": {
-                      "query": {
-                        "type": "string"
-                      },
-                      "grade": {
-                        "type": "integer"
-                      },
-                      "cefr": {
-                        "type": "string"
-                      },
-                      "skill": {
-                        "type": "string"
-                      },
-                      "questionType": {
-                        "type": "string"
-                      },
-                      "cognitiveLevel": {
-                        "type": "string"
-                      },
-                      "topic": {
-                        "type": "string"
-                      },
-                      "grammarPoint": {
-                        "type": "string"
-                      },
-                      "status": {
-                        "type": "string"
-                      }
-                    },
-                    "additionalProperties": false
-                  },
-                  "limit": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 100
-                  },
-                  "testId": {
-                    "type": "string"
                   }
                 },
-                "additionalProperties": true
+                "additionalProperties": false
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Question Bank operation completed successfully."
+            "description": "Exam saved. Returns the Brian test and question IDs."
           },
           "400": {
-            "description": "Invalid request."
+            "description": "Invalid exam payload."
           },
           "401": {
             "description": "Connection key missing, invalid, or inactive."
           },
           "429": {
             "description": "Rate limit reached."
+          }
+        }
+      }
+    },
+    "/api/question-bank/save-questions": {
+      "post": {
+        "operationId": "saveBrianQuestions",
+        "summary": "Save questions to Brian",
+        "description": "Save standalone questions or a context-aware bundle such as a reading passage, cloze text, notice, dialogue, or other shared stimulus. Duplicate fingerprints are reused instead of inserted twice.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "questions"
+                ],
+                "properties": {
+                  "requestId": {
+                    "type": "string"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "bundle": {
+                    "$ref": "#/components/schemas/Bundle"
+                  },
+                  "questions": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 200,
+                    "items": {
+                      "$ref": "#/components/schemas/Question"
+                    }
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Questions saved or matched to existing items."
+          },
+          "400": {
+            "description": "Invalid question payload."
+          },
+          "401": {
+            "description": "Connection key missing, invalid, or inactive."
+          },
+          "429": {
+            "description": "Rate limit reached."
+          }
+        }
+      }
+    },
+    "/api/question-bank/search-questions": {
+      "post": {
+        "operationId": "searchBrianQuestions",
+        "summary": "Search the user's Brian Question Bank",
+        "description": "Search before drafting when reuse is helpful, or when the user asks to find existing questions. Results belong to the connected Brian account.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "filters": {
+                    "$ref": "#/components/schemas/SearchFilters"
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100,
+                    "default": 30
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Matching question-bank items."
+          },
+          "401": {
+            "description": "Connection key missing, invalid, or inactive."
+          }
+        }
+      }
+    },
+    "/api/question-bank/get-exam": {
+      "post": {
+        "operationId": "getBrianExam",
+        "summary": "Open a saved Brian exam",
+        "description": "Retrieve one exam and its ordered question items from the connected Brian account.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "testId"
+                ],
+                "properties": {
+                  "testId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Saved exam and ordered items."
+          },
+          "401": {
+            "description": "Connection key missing, invalid, or inactive."
+          },
+          "404": {
+            "description": "Exam not found in this connected account."
           }
         }
       }
@@ -173,10 +199,75 @@
       "BrianQuestionBankKey": {
         "type": "http",
         "scheme": "bearer",
-        "description": "The one-time Brian Question Bank connection key generated inside Brian."
+        "description": "Paste the one-time Brian Question Bank connection key generated in Brian. Brian stores only its SHA-256 hash."
       }
     },
     "schemas": {
+      "Bundle": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "bundleType": {
+            "type": "string",
+            "description": "Examples: reading, cloze, notice, dialogue, passage."
+          },
+          "contextText": {
+            "type": "string",
+            "description": "The complete shared stimulus/passage. Do not split it across questions."
+          },
+          "instructions": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string"
+          },
+          "skill": {
+            "type": "string"
+          },
+          "grade": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "unitName": {
+            "type": "string"
+          },
+          "schoolYear": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "sourceReference": {
+            "type": "string"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "private",
+              "department"
+            ],
+            "default": "private"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "review",
+              "approved",
+              "archived"
+            ],
+            "default": "draft"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      },
       "Question": {
         "type": "object",
         "required": [
@@ -190,7 +281,8 @@
             "type": "array",
             "items": {
               "type": "string"
-            }
+            },
+            "maxItems": 12
           },
           "correctAnswer": {
             "type": "string"
@@ -199,7 +291,8 @@
             "type": "string"
           },
           "questionType": {
-            "type": "string"
+            "type": "string",
+            "description": "Examples: mcq, cloze, reading, true_false, sentence_rewrite."
           },
           "skill": {
             "type": "string"
@@ -212,7 +305,11 @@
           },
           "cognitiveLevel": {
             "type": "string",
-            "description": "recognition, comprehension, or application"
+            "enum": [
+              "recognition",
+              "comprehension",
+              "application"
+            ]
           },
           "difficulty": {
             "type": "integer",
@@ -250,7 +347,8 @@
             "enum": [
               "private",
               "department"
-            ]
+            ],
+            "default": "private"
           },
           "status": {
             "type": "string",
@@ -259,7 +357,12 @@
               "review",
               "approved",
               "archived"
-            ]
+            ],
+            "default": "draft"
+          },
+          "bundlePosition": {
+            "type": "integer",
+            "minimum": 1
           },
           "points": {
             "type": "number"
@@ -278,13 +381,17 @@
             "type": "string"
           },
           "grade": {
-            "type": "integer"
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
           },
           "schoolYear": {
             "type": "string"
           },
           "durationMinutes": {
-            "type": "integer"
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 600
           },
           "instructions": {
             "type": "string"
@@ -294,7 +401,91 @@
             "enum": [
               "private",
               "department"
+            ],
+            "default": "private"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "review",
+              "approved",
+              "archived"
+            ],
+            "default": "draft"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source": {
+            "type": "string",
+            "default": "ChatGPT"
+          },
+          "sourceReference": {
+            "type": "string"
+          },
+          "bundle": {
+            "$ref": "#/components/schemas/Bundle"
+          },
+          "blueprint": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "settings": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "meta": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "questions": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 200,
+            "items": {
+              "$ref": "#/components/schemas/Question"
+            }
+          }
+        },
+        "additionalProperties": true
+      },
+      "SearchFilters": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          },
+          "grade": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "cefr": {
+            "type": "string"
+          },
+          "skill": {
+            "type": "string"
+          },
+          "questionType": {
+            "type": "string"
+          },
+          "cognitiveLevel": {
+            "type": "string",
+            "enum": [
+              "recognition",
+              "comprehension",
+              "application"
             ]
+          },
+          "topic": {
+            "type": "string"
+          },
+          "grammarPoint": {
+            "type": "string"
           },
           "status": {
             "type": "string",
@@ -304,36 +495,9 @@
               "approved",
               "archived"
             ]
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "source": {
-            "type": "string"
-          },
-          "sourceReference": {
-            "type": "string"
-          },
-          "bundle": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "blueprint": {
-            "type": "object",
-            "additionalProperties": true
-          },
-          "questions": {
-            "type": "array",
-            "maxItems": 200,
-            "items": {
-              "$ref": "#/components/schemas/Question"
-            }
           }
         },
-        "additionalProperties": true
+        "additionalProperties": false
       }
     }
   }
