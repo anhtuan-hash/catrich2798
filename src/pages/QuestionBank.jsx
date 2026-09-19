@@ -585,7 +585,7 @@ OpenAPI: ${openApiUrl}`;
       if (pasteMeta.saveAsExam && orderedItems.length) {
         const testInsert = await supabase.from('assessment_tests').insert({
           owner_id: userId,
-          blueprint_id: null,
+          blueprint_id: activeBuilderBlueprint.id === 'builtin-tnthpt-40' ? null : activeBuilderBlueprint.id,
           visibility: 'personal',
           title: text(pasteMeta.title || pastePreview.title || `Đề nhập từ ChatGPT · ${new Date().toLocaleDateString('vi-VN')}`),
           status: 'draft',
@@ -628,6 +628,169 @@ OpenAPI: ${openApiUrl}`;
     }
   };
 
+  const resetBlueprintDraft = () => {
+    setBlueprintEditingId('');
+    setBlueprintDeleteArmed('');
+    setBlueprintDraft({
+      title: 'Ma trận mới',
+      visibility: 'personal',
+      criteria: defaultBlueprintCriteria(),
+    });
+  };
+
+  const editBlueprint = (blueprint) => {
+    setBlueprintEditingId(blueprint.id);
+    setBlueprintDeleteArmed('');
+    setBlueprintDraft({
+      title: text(blueprint.title),
+      visibility: text(blueprint.visibility) === 'department' ? 'department' : 'personal',
+      criteria: normalizeBlueprintCriteria(blueprint.criteria || {}),
+    });
+    setActiveTab('blueprints');
+  };
+
+  const toggleBlueprintPart = (type) => {
+    const def = BLUEPRINT_PART_CATALOG.find((part) => part.type === type);
+    if (!def) return;
+    setBlueprintDraft((current) => {
+      const criteria = normalizeBlueprintCriteria(current.criteria);
+      const exists = criteria.parts.some((part) => part.type === type);
+      let parts;
+      if (exists) {
+        parts = criteria.parts.filter((part) => part.type !== type);
+      } else {
+        const part = def.mode === 'items'
+          ? { type: def.type, label: def.label, mode: 'items', count: def.defaultCount || 1 }
+          : {
+            type: def.type,
+            label: def.label,
+            mode: 'bundles',
+            bundleCount: def.defaultBundleCount || 1,
+            itemCount: def.fixedItemsPerBundle || 1,
+          };
+        const byType = new Map(criteria.parts.map((item) => [item.type, item]));
+        byType.set(type, part);
+        parts = BLUEPRINT_PART_CATALOG.map((catalog) => byType.get(catalog.type)).filter(Boolean);
+      }
+      return { ...current, criteria: { ...criteria, preset: 'custom', parts } };
+    });
+  };
+
+  const updateBlueprintPart = (type, patch) => {
+    setBlueprintDraft((current) => {
+      const criteria = normalizeBlueprintCriteria(current.criteria);
+      return {
+        ...current,
+        criteria: {
+          ...criteria,
+          preset: 'custom',
+          parts: criteria.parts.map((part) => part.type === type ? { ...part, ...patch } : part),
+        },
+      };
+    });
+  };
+
+  const updateBlueprintCriteria = (patch) => {
+    setBlueprintDraft((current) => ({
+      ...current,
+      criteria: { ...normalizeBlueprintCriteria(current.criteria), ...patch, preset: 'custom' },
+    }));
+  };
+
+  const saveBlueprint = async () => {
+    if (!userId || !supabase || blueprintSaving) return;
+    const validation = validateBlueprint(blueprintDraft.criteria);
+    if (!text(blueprintDraft.title)) {
+      setMessage('Tên ma trận không được để trống.');
+      return;
+    }
+    if (!validation.valid) {
+      setMessage(validation.errors[0] || 'Ma trận chưa hợp lệ.');
+      return;
+    }
+    setBlueprintSaving(true);
+    setMessage('');
+    try {
+      const row = {
+        owner_id: userId,
+        visibility: blueprintDraft.visibility === 'department' ? 'department' : 'personal',
+        title: text(blueprintDraft.title),
+        total_items: validation.total,
+        criteria: validation.normalized,
+        updated_at: new Date().toISOString(),
+      };
+      let result;
+      if (blueprintEditingId) {
+        result = await supabase.from('assessment_blueprints')
+          .update(row)
+          .eq('id', blueprintEditingId)
+          .eq('owner_id', userId)
+          .select('*')
+          .single();
+      } else {
+        result = await supabase.from('assessment_blueprints')
+          .insert(row)
+          .select('*')
+          .single();
+      }
+      if (result.error) throw result.error;
+      await loadData();
+      setBlueprintEditingId(result.data.id);
+      setBlueprintDraft({
+        title: result.data.title,
+        visibility: result.data.visibility === 'department' ? 'department' : 'personal',
+        criteria: normalizeBlueprintCriteria(result.data.criteria || {}),
+      });
+      setMessage(blueprintEditingId ? 'Đã cập nhật ma trận.' : 'Đã lưu ma trận mới.');
+    } catch (error) {
+      setMessage(error?.message || 'Không thể lưu ma trận.');
+    } finally {
+      setBlueprintSaving(false);
+    }
+  };
+
+  const deleteBlueprint = async (blueprint) => {
+    if (!blueprint?.id || !userId || !supabase) return;
+    if (blueprintDeleteArmed !== blueprint.id) {
+      setBlueprintDeleteArmed(blueprint.id);
+      setMessage('Nhấn “Xác nhận xóa” để xóa ma trận. Các đề đã tạo vẫn được giữ nguyên.');
+      return;
+    }
+    setBlueprintSaving(true);
+    try {
+      const result = await supabase.from('assessment_blueprints')
+        .delete()
+        .eq('id', blueprint.id)
+        .eq('owner_id', userId);
+      if (result.error) throw result.error;
+      if (selectedBuilderBlueprintId === blueprint.id) setSelectedBuilderBlueprintId('builtin-tnthpt-40');
+      if (blueprintEditingId === blueprint.id) resetBlueprintDraft();
+      await loadData();
+      setBlueprintDeleteArmed('');
+      setMessage('Đã xóa ma trận. Các đề đã tạo không bị xóa.');
+    } catch (error) {
+      setMessage(error?.message || 'Không thể xóa ma trận.');
+    } finally {
+      setBlueprintSaving(false);
+    }
+  };
+
+  const useBlueprintInBuilder = (blueprint) => {
+    const criteria = blueprint?.id === 'builtin-tnthpt-40'
+      ? defaultBlueprintCriteria()
+      : normalizeBlueprintCriteria(blueprint?.criteria || {});
+    const id = blueprint?.id || 'builtin-tnthpt-40';
+    setSelectedBuilderBlueprintId(id);
+    setBuilderConfig((current) => ({
+      ...current,
+      title: `${blueprint?.title || 'TN THPT 40 câu'} – Set mới`,
+      grade: criteria.grade || current.grade,
+      cefr: criteria.cefr || current.cefr,
+    }));
+    setBuilderSeed((value) => value + 1);
+    setActiveTab('builder');
+  };
+
   const saveBuiltExam = async () => {
     if (!userId || !supabase || builderSaving) return;
     if (!builderSelection.complete) {
@@ -655,11 +818,12 @@ OpenAPI: ${openApiUrl}`;
           durationMinutes,
           builder: 'question-bank',
           builderSeed,
-          blueprint: 'tnthpt_40',
+          blueprint: activeBuilderBlueprint.id,
+          blueprintTitle: activeBuilderBlueprint.title,
         },
         grade: Number.parseInt(builderConfig.grade, 10) || 12,
         school_year: text(builderConfig.schoolYear),
-        tags: ['TNTHPT2025-2026', 'bank-builder', 'no-ai-cost'],
+        tags: ['bank-builder', 'no-ai-cost', ...(builderCriteria.preset === 'tnthpt_40' ? ['TNTHPT2025-2026'] : ['custom-blueprint'])],
         source_kind: 'manual',
         source_reference: 'Brian Question Bank Builder',
         import_metadata: {
@@ -670,6 +834,13 @@ OpenAPI: ${openApiUrl}`;
             cognitiveLevel: builderConfig.cognitiveLevel,
             topic: builderConfig.topic,
           },
+          blueprint: {
+            id: activeBuilderBlueprint.id,
+            title: activeBuilderBlueprint.title,
+            totalItems: activeBuilderBlueprint.total_items || builderSelection.items.length,
+            criteria: builderCriteria,
+          },
+          cognitiveTarget: builderCognitiveFit,
           audit: {
             structureOk: builderSelection.audit.structureOk,
             warningCount: builderSelection.audit.warnings.length,
@@ -701,7 +872,7 @@ OpenAPI: ${openApiUrl}`;
       await loadData();
       setActiveTab('tests');
       await openExam(newTest);
-      setMessage('Đã tạo đề 40 câu từ ngân hàng, không gọi AI và không phát sinh phí AI.');
+      setMessage(`Đã tạo đề ${builderSelection.items.length} câu từ ma trận “${activeBuilderBlueprint.title}”, không gọi AI và không phát sinh phí AI.`);
       setBuilderSeed((value) => value + 1);
     } catch (error) {
       if (newTest?.id) {
