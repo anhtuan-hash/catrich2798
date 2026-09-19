@@ -212,7 +212,18 @@ async function saveBundle(session, bundle, payloadMeta) {
     updated_at: new Date().toISOString(),
   };
   const { data, error } = await session.db.from('assessment_bundles').insert(row).select('*').single();
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (String(error.code || '') === '23505') {
+      const { data: raced, error: racedError } = await session.db
+        .from('assessment_bundles')
+        .select('*')
+        .eq('owner_id', session.ownerId)
+        .eq('fingerprint', fingerprint)
+        .maybeSingle();
+      if (!racedError && raced) return { row: raced, created: false, fingerprint };
+    }
+    throw new Error(error.message);
+  }
   return { row: data, created: true, fingerprint };
 }
 
@@ -268,7 +279,13 @@ async function saveQuestions(session, payload, { recordEvent = true } = {}) {
   }
 
   const existing = await findByFingerprints(session.db, session.ownerId, rows.map((row) => row.fingerprint));
-  const freshRows = rows.filter((row) => !existing.has(row.fingerprint));
+  const freshByFingerprint = new Map();
+  rows.forEach((row) => {
+    if (!existing.has(row.fingerprint) && !freshByFingerprint.has(row.fingerprint)) {
+      freshByFingerprint.set(row.fingerprint, row);
+    }
+  });
+  const freshRows = [...freshByFingerprint.values()];
   let inserted = [];
   if (freshRows.length) {
     const { data, error } = await session.db.from('assessment_items').insert(freshRows).select('id,fingerprint,stem');
@@ -414,8 +431,8 @@ async function searchQuestions(session, payload) {
   if (filters.status) query = query.eq('status', statusValue(filters.status));
   if (filters.topic) query = query.ilike('topic', `%${cleanInline(filters.topic, 120)}%`);
   if (filters.grammarPoint || filters.grammar_point) query = query.ilike('grammar_point', `%${cleanInline(filters.grammarPoint ?? filters.grammar_point, 120)}%`);
-  const term = cleanInline(filters.query ?? filters.search ?? '', 160);
-  if (term) query = query.or(`stem.ilike.%${term.replace(/[%(),]/g, '')}%,topic.ilike.%${term.replace(/[%(),]/g, '')}%`);
+  const term = cleanInline(filters.query ?? filters.search ?? '', 160).replace(/[%_]/g, '');
+  if (term) query = query.ilike('stem', `%${term}%`);
 
   const { data, error } = await query;
   if (error) throw new Error(error.message);
