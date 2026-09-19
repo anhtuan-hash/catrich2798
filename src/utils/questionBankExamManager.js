@@ -122,7 +122,7 @@ function sortedCounter(counter = {}) {
   );
 }
 
-export function auditExamQuality(items = []) {
+export function auditExamQuality(items = [], options = {}) {
   const ordered = [...items].sort((a, b) => Number(a.position || 0) - Number(b.position || 0));
   const sections = buildExamSections(ordered);
   const errors = [];
@@ -183,9 +183,10 @@ export function auditExamQuality(items = []) {
   });
   if (missingContext) errors.push(`${missingContext} block Reading/Cloze thiếu ngữ liệu chung.`);
 
-  const isTnThpt = ordered.length === 40 || ordered.some((item) =>
+  const detectedTnThpt = ordered.length === 40 || ordered.some((item) =>
     (Array.isArray(item.tags) ? item.tags : []).some((tag) => /tnthpt/i.test(String(tag))),
   );
+  const isTnThpt = typeof options.isTnThpt === 'boolean' ? options.isTnThpt : detectedTnThpt;
 
   let structureOk = true;
   if (isTnThpt) {
