@@ -1533,13 +1533,13 @@ OpenAPI: ${openApiUrl}`;
 
           <div className="qb-builder-hero">
             <div>
-              <span className="qb-builder-kicker">TN THPT 2025–2026 PRESET</span>
-              <h3>Đề 40 câu theo đúng cấu trúc đã kiểm định</h3>
-              <p>Brian chọn nguyên chùm Reading/Cloze để không làm mất ngữ liệu, đồng thời lấy 5 câu Arrangement độc lập. Mỗi lần “Xáo lựa chọn” sẽ ưu tiên tổ hợp khác trong kho.</p>
+              <span className="qb-builder-kicker">ACTIVE BLUEPRINT</span>
+              <h3>{activeBuilderBlueprint.title}</h3>
+              <p>Brian chọn nguyên chùm Reading/Cloze để không làm mất ngữ liệu, ưu tiên câu ít dùng và ráp đề theo đúng ma trận đang chọn. “Xáo lựa chọn” tạo tổ hợp khác mà không gọi AI.</p>
             </div>
             <div className="qb-builder-total">
               <strong>{builderSelection.items.length}</strong>
-              <span>/ 40 câu</span>
+              <span>/ {activeBuilderBlueprint.total_items || builderSelection.items.length} câu</span>
               <small>{builderSelection.complete ? 'Đủ dữ liệu để tạo đề' : builderSelection.missing.length + ' phần còn thiếu'}</small>
             </div>
           </div>
@@ -1547,6 +1547,21 @@ OpenAPI: ${openApiUrl}`;
           <div className="qb-builder-layout">
             <section className="qb-builder-settings">
               <h3>Thông tin đề</h3>
+              <label className="qb-builder-wide"><span>Ma trận đang dùng</span>
+                <select
+                  value={selectedBuilderBlueprintId}
+                  onChange={(event) => {
+                    const id = event.target.value;
+                    const blueprint = id === 'builtin-tnthpt-40'
+                      ? { id, title: 'TN THPT 40 câu · mặc định', criteria: defaultBlueprintCriteria() }
+                      : blueprints.find((item) => item.id === id);
+                    if (blueprint) useBlueprintInBuilder(blueprint);
+                  }}
+                >
+                  <option value="builtin-tnthpt-40">TN THPT 40 câu · mặc định</option>
+                  {blueprints.map((blueprint) => <option key={blueprint.id} value={blueprint.id}>{blueprint.title} · {blueprint.total_items} câu</option>)}
+                </select>
+              </label>
               <label className="qb-builder-wide"><span>Tên đề</span><input value={builderConfig.title} onChange={(event) => setBuilderConfig({ ...builderConfig, title: event.target.value })} /></label>
               <div className="qb-builder-fields">
                 <label><span>Khối</span><select value={builderConfig.grade} onChange={(event) => setBuilderConfig({ ...builderConfig, grade: event.target.value })}><option value="12">12</option><option value="11">11</option><option value="10">10</option></select></label>
@@ -1559,7 +1574,7 @@ OpenAPI: ${openApiUrl}`;
               <div className="qb-builder-actions">
                 <button type="button" className="qb-secondary" onClick={() => setBuilderSeed((value) => value + 1)}>↻ Xáo lựa chọn</button>
                 <button type="button" className="qb-primary" onClick={saveBuiltExam} disabled={builderSaving || !builderSelection.complete || !builderSelection.audit.ready}>
-                  {builderSaving ? 'Đang tạo đề…' : 'Tạo đề 40 câu'}
+                  {builderSaving ? 'Đang tạo đề…' : 'Tạo đề ' + (activeBuilderBlueprint.total_items || builderSelection.items.length) + ' câu'}
                 </button>
               </div>
               <small className="qb-builder-note">Lần chọn #{builderSeed} · câu hỏi được tái sử dụng từ ngân hàng, không nhân bản nội dung.</small>
@@ -1568,11 +1583,18 @@ OpenAPI: ${openApiUrl}`;
             <aside className="qb-builder-stock">
               <h3>Tồn kho phù hợp</h3>
               <div className="qb-builder-stock-grid">
-                <article className={(builderStock.arrangement_5?.items || 0) >= 5 ? 'is-ok' : 'is-low'}><span>Arrangement</span><strong>{builderStock.arrangement_5?.items || 0}</strong><small>Cần 5 câu</small></article>
-                <article className={(builderStock.discourse_cloze_5?.bundles || 0) >= 1 ? 'is-ok' : 'is-low'}><span>Discourse Cloze</span><strong>{builderStock.discourse_cloze_5?.bundles || 0}</strong><small>Cần 1 chùm</small></article>
-                <article className={(builderStock.reading_10?.bundles || 0) >= 1 ? 'is-ok' : 'is-low'}><span>Reading 10</span><strong>{builderStock.reading_10?.bundles || 0}</strong><small>Cần 1 chùm</small></article>
-                <article className={(builderStock.reading_8?.bundles || 0) >= 1 ? 'is-ok' : 'is-low'}><span>Reading 8</span><strong>{builderStock.reading_8?.bundles || 0}</strong><small>Cần 1 chùm</small></article>
-                <article className={(builderStock.functional_cloze_6?.bundles || 0) >= 2 ? 'is-ok' : 'is-low'}><span>Functional Cloze</span><strong>{builderStock.functional_cloze_6?.bundles || 0}</strong><small>Cần 2 chùm</small></article>
+                {builderCriteria.parts.map((part) => {
+                  const stock = builderStock[part.type] || { bundles: 0, items: 0 };
+                  const required = part.mode === 'items' ? Number(part.count || 0) : Number(part.bundleCount || 0);
+                  const available = part.mode === 'items' ? Number(stock.items || 0) : Number(stock.bundles || 0);
+                  return (
+                    <article className={available >= required ? 'is-ok' : 'is-low'} key={part.type}>
+                      <span>{part.label}</span>
+                      <strong>{available}</strong>
+                      <small>{part.mode === 'items' ? 'Cần ' + required + ' câu' : 'Cần ' + required + ' chùm × ' + part.itemCount}</small>
+                    </article>
+                  );
+                })}
               </div>
             </aside>
           </div>
@@ -1605,10 +1627,10 @@ OpenAPI: ${openApiUrl}`;
             </div>
 
             <div className="qb-builder-metrics">
-              <article><span>Nhận biết</span><strong>{builderSelection.audit.distributions.cognitive.recognition || 0}</strong></article>
-              <article><span>Thông hiểu</span><strong>{builderSelection.audit.distributions.cognitive.comprehension || 0}</strong></article>
-              <article><span>Vận dụng</span><strong>{builderSelection.audit.distributions.cognitive.application || 0}</strong></article>
-              <article><span>Đáp án A/B/C/D</span><strong>{Object.values(builderSelection.audit.distributions.answers).join(' / ')}</strong></article>
+              <article><span>Nhận biết</span><strong>{builderSelection.audit.distributions.cognitive.recognition || 0}</strong><small>{builderCognitiveFit.actual.recognition}% / mục tiêu {builderCognitiveFit.target.recognition}%</small></article>
+              <article><span>Thông hiểu</span><strong>{builderSelection.audit.distributions.cognitive.comprehension || 0}</strong><small>{builderCognitiveFit.actual.comprehension}% / mục tiêu {builderCognitiveFit.target.comprehension}%</small></article>
+              <article><span>Vận dụng</span><strong>{builderSelection.audit.distributions.cognitive.application || 0}</strong><small>{builderCognitiveFit.actual.application}% / mục tiêu {builderCognitiveFit.target.application}%</small></article>
+              <article><span>Đáp án A/B/C/D</span><strong>{Object.values(builderSelection.audit.distributions.answers).join(' / ')}</strong><small>{builderCognitiveFit.withinTolerance ? 'Nhận thức trong sai số ±' + builderCognitiveFit.tolerance + '%' : 'Nhận thức lệch mục tiêu'}</small></article>
             </div>
 
             {builderSelection.audit.warnings.length ? (
