@@ -365,14 +365,101 @@ async function saveQuestions(session, payload, { recordEvent = true } = {}) {
   };
 }
 
+function inferredBundleType(question = {}) {
+  const tags = cleanArray(question.tags, 24, 120).map((tag) => tag.toLowerCase());
+  if (tags.some((tag) => tag.includes('arrangement'))) return '';
+  if (tags.some((tag) => tag.includes('discourse-cloze'))) return 'discourse_cloze_5';
+  if (tags.some((tag) => tag.includes('reading-10'))) return 'reading_10';
+  if (tags.some((tag) => tag.includes('reading-8'))) return 'reading_8';
+  if (tags.some((tag) => tag.includes('functional-cloze'))) return 'functional_cloze_6';
+  return '';
+}
+
+function splitExamQuestionContext(stem, questionNumber) {
+  const raw = cleanText(stem || '', 30000);
+  if (!raw) return { context: '', question: '' };
+  const marker = new RegExp('(?:^|\\n)\\s*Question\\s+' + Number(questionNumber || 0) + '\\s*[.)：:-]\\s*', 'i');
+  const match = marker.exec(raw);
+  if (!match || match.index <= 0) return { context: '', question: raw };
+  return {
+    context: raw.slice(0, match.index).trim(),
+    question: raw.slice(match.index + match[0].length).trim(),
+  };
+}
+
+function deriveExamBundlePayload(questions = [], exam = {}) {
+  if (!Array.isArray(questions) || !questions.length) return null;
+  const cloned = questions.map((question) => ({ ...(question || {}) }));
+  const bundles = [];
+  let current = null;
+
+  cloned.forEach((question, index) => {
+    const type = inferredBundleType(question);
+    if (!type) {
+      current = null;
+      return;
+    }
+    const stem = cleanText(question.stem ?? question.question ?? '', 30000);
+    const startsSection = /^\s*Questions?\s+\d+\s*[–-]\s*\d+\s*:/i.test(stem);
+    if (!current || current.type !== type || startsSection) {
+      const split = splitExamQuestionContext(stem, index + 1);
+      if (!split.context) {
+        current = null;
+        return;
+      }
+      const contextLines = split.context.split(/\n+/).map((line) => line.trim()).filter(Boolean);
+      const firstLine = contextLines[0] || '';
+      const titleLine = contextLines[1] || `${type.replace(/_/g, ' ')} ${index + 1}`;
+      const contextText = contextLines.slice(1).join('\n\n') || split.context;
+      const key = `${type}_${index + 1}`;
+      const bundle = {
+        key,
+        title: titleLine,
+        bundleType: type,
+        contextText,
+        instructions: firstLine,
+        topic: question.topic || '',
+        skill: question.skill || (type.startsWith('reading') ? 'Reading' : 'Use of English'),
+        grade: question.grade ?? exam.grade,
+        schoolYear: question.schoolYear ?? question.school_year ?? exam.schoolYear ?? exam.school_year,
+        source: exam.source ?? 'ChatGPT',
+        sourceReference: exam.sourceReference ?? exam.source_reference ?? '',
+        visibility: exam.visibility,
+        status: 'draft',
+        metadata: {
+          inferredFromExam: true,
+          startQuestion: index + 1,
+        },
+      };
+      bundles.push(bundle);
+      current = { key, type, count: 0 };
+      question.stem = split.question;
+    }
+    question.bundleKey = current.key;
+    current.count += 1;
+    question.bundlePosition = current.count;
+  });
+
+  return bundles.length ? { bundles, questions: cloned } : null;
+}
+
 async function saveExamQuestions(session, questions, exam, payload, meta) {
-  const bundles = Array.isArray(exam.bundles)
+  let workingQuestions = questions;
+  let bundles = Array.isArray(exam.bundles)
     ? exam.bundles.filter((bundle) => bundle && typeof bundle === 'object')
     : [];
 
+  if (!bundles.length && !exam.bundle && !payload.bundle) {
+    const inferred = deriveExamBundlePayload(questions, exam);
+    if (inferred) {
+      bundles = inferred.bundles;
+      workingQuestions = inferred.questions;
+    }
+  }
+
   if (!bundles.length) {
     const legacy = await saveQuestions(session, {
-      questions,
+      questions: workingQuestions,
       bundle: exam.bundle || payload.bundle,
       meta,
     }, { recordEvent: false });
@@ -395,7 +482,7 @@ async function saveExamQuestions(session, questions, exam, payload, meta) {
 
   const groups = new Map();
   const standalone = [];
-  questions.forEach((question, index) => {
+  workingQuestions.forEach((question, index) => {
     const key = cleanInline(question?.bundleKey ?? question?.bundle_key ?? '', 120);
     if (!key) {
       standalone.push(index);
@@ -408,7 +495,7 @@ async function saveExamQuestions(session, questions, exam, payload, meta) {
     groups.get(key).push(index);
   });
 
-  const orderedItems = new Array(questions.length);
+  const orderedItems = new Array(workingQuestions.length);
   let importedCount = 0;
   let reusedCount = 0;
   let bundleCreatedCount = 0;
@@ -417,7 +504,7 @@ async function saveExamQuestions(session, questions, exam, payload, meta) {
   const persistGroup = async (indexes, bundle) => {
     if (!indexes.length) return;
     const result = await saveQuestions(session, {
-      questions: indexes.map((index) => questions[index]),
+      questions: indexes.map((index) => workingQuestions[index]),
       bundle,
       meta,
     }, { recordEvent: false });
