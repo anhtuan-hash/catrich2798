@@ -1,6 +1,15 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../utils/supabase.js';
 import { parseQuestionBankPaste } from '../utils/questionBankPasteParser.js';
+import {
+  buildExamExportHtml,
+  buildExamSections,
+  createVariantOptionOrder,
+  effectiveAnswer,
+  nextExamCode,
+  splitExamStem,
+  visibleOptions,
+} from '../utils/questionBankExamManager.js';
 import './QuestionBank.css';
 
 const TABS = [
@@ -38,6 +47,32 @@ function statusLabel(status) {
 function cognitiveLabel(value) {
   const map = { recognition: 'Nhận biết', comprehension: 'Thông hiểu', application: 'Vận dụng' };
   return map[text(value).toLowerCase()] || text(value) || '—';
+}
+
+function safeFileName(value) {
+  return text(value).replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ').trim() || 'Brian-English-Exam';
+}
+
+function downloadWordDocument(html, title) {
+  const blob = new Blob(['\ufeff', html], { type: 'application/msword;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = `${safeFileName(title)}.doc`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function printExamPdf(html) {
+  const popup = window.open('', '_blank', 'noopener,noreferrer');
+  if (!popup) throw new Error('Trình duyệt đang chặn cửa sổ xuất PDF. Hãy cho phép pop-up cho Brian.');
+  popup.document.open();
+  popup.document.write(html);
+  popup.document.close();
+  popup.focus();
+  window.setTimeout(() => popup.print(), 250);
 }
 
 function bytesToBase64Url(bytes) {
@@ -86,6 +121,11 @@ export default function QuestionBank({ currentUser }) {
   const [bundles, setBundles] = useState([]);
   const [tests, setTests] = useState([]);
   const [testCounts, setTestCounts] = useState({});
+  const [selectedTest, setSelectedTest] = useState(null);
+  const [selectedTestItems, setSelectedTestItems] = useState([]);
+  const [examDetailLoading, setExamDetailLoading] = useState(false);
+  const [showExamAnswers, setShowExamAnswers] = useState(false);
+  const [examActionBusy, setExamActionBusy] = useState('');
   const [integration, setIntegration] = useState(null);
   const [importEvents, setImportEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -212,6 +252,11 @@ OpenAPI: ${openApiUrl}`;
     tests: tests.length,
     total: questions.length,
   }), [questions, bundles, tests]);
+
+  const selectedExamSections = useMemo(
+    () => buildExamSections(selectedTestItems),
+    [selectedTestItems],
+  );
 
   const updateOption = (index, value) => {
     setDraft((current) => {
