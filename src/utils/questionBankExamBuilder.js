@@ -123,6 +123,7 @@ export function selectExamFromBank({
   blueprint = TNTHPT_40_BLUEPRINT,
   filters = {},
   seed = 1,
+  auditOptions = {},
 } = {}) {
   const inventory = buildBankInventory(questions, bundles);
   const usedIds = new Set();
@@ -196,7 +197,7 @@ export function selectExamFromBank({
   return {
     items: selected,
     missing,
-    audit: auditExamQuality(selected),
+    audit: auditExamQuality(selected, auditOptions),
     inventory,
     complete: missing.length === 0,
   };
