@@ -1409,6 +1409,121 @@ OpenAPI: ${openApiUrl}`;
       ) : null}
 
 
+
+      {!loading && activeTab === 'blueprints' ? (
+        <div className="qb-panel qb-blueprints">
+          <div className="qb-section-head">
+            <div><p>ASSESSMENT BLUEPRINT STUDIO</p><h2>Ma trận đề</h2></div>
+            <span>Lưu cấu trúc đề dùng lại nhiều lần. Ma trận không chứa câu hỏi và không phát sinh phí AI.</span>
+          </div>
+
+          <div className="qb-blueprint-library">
+            <article className="qb-blueprint-card is-builtin">
+              <div className="qb-blueprint-card-top"><span>MẶC ĐỊNH</span><b>40 câu</b></div>
+              <h3>TN THPT 40 câu · 2025–2026</h3>
+              <p>5 Arrangement · 5 Discourse Cloze · 10 Reading · 8 Reading · 2 × 6 Functional Cloze.</p>
+              <div className="qb-blueprint-card-actions">
+                <button type="button" className="qb-primary" onClick={() => useBlueprintInBuilder({ id: 'builtin-tnthpt-40', title: 'TN THPT 40 câu · mặc định' })}>Dùng tạo đề</button>
+              </div>
+            </article>
+
+            {blueprints.map((blueprint) => {
+              const criteria = normalizeBlueprintCriteria(blueprint.criteria || {});
+              return (
+                <article className="qb-blueprint-card" key={blueprint.id}>
+                  <div className="qb-blueprint-card-top"><span>{blueprint.visibility === 'department' ? 'TỔ CHUYÊN MÔN' : 'CÁ NHÂN'}</span><b>{blueprint.total_items} câu</b></div>
+                  <h3>{blueprint.title}</h3>
+                  <p>{criteria.parts.map((part) => part.mode === 'items' ? part.label + ' ' + part.count : part.label + ' ' + part.bundleCount + '×' + part.itemCount).join(' · ')}</p>
+                  <div className="qb-blueprint-targets">
+                    <span>NB {criteria.cognitiveTargets.recognition}%</span>
+                    <span>TH {criteria.cognitiveTargets.comprehension}%</span>
+                    <span>VD {criteria.cognitiveTargets.application}%</span>
+                    <span>±{criteria.tolerance}%</span>
+                  </div>
+                  <div className="qb-blueprint-card-actions">
+                    <button type="button" className="qb-primary" onClick={() => useBlueprintInBuilder(blueprint)}>Dùng tạo đề</button>
+                    <button type="button" className="qb-secondary" onClick={() => editBlueprint(blueprint)}>Sửa</button>
+                    <button type="button" className={blueprintDeleteArmed === blueprint.id ? 'qb-danger is-armed' : 'qb-danger'} onClick={() => deleteBlueprint(blueprint)}>
+                      {blueprintDeleteArmed === blueprint.id ? 'Xác nhận xóa' : 'Xóa'}
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          <section className="qb-blueprint-editor">
+            <div className="qb-blueprint-editor-head">
+              <div>
+                <span>{blueprintEditingId ? 'EDIT BLUEPRINT' : 'NEW BLUEPRINT'}</span>
+                <h3>{blueprintEditingId ? 'Chỉnh sửa ma trận' : 'Tạo ma trận mới'}</h3>
+              </div>
+              <div className={blueprintValidation.valid ? 'qb-blueprint-valid' : 'qb-blueprint-invalid'}>
+                <b>{blueprintValidation.total}</b><small>câu</small>
+              </div>
+            </div>
+
+            <div className="qb-blueprint-basic">
+              <label className="qb-blueprint-title"><span>Tên ma trận</span><input value={blueprintDraft.title} onChange={(event) => setBlueprintDraft({ ...blueprintDraft, title: event.target.value })} /></label>
+              <label><span>Phạm vi</span><select value={blueprintDraft.visibility} onChange={(event) => setBlueprintDraft({ ...blueprintDraft, visibility: event.target.value })}><option value="personal">Cá nhân</option><option value="department">Tổ chuyên môn</option></select></label>
+              <label><span>Khối mặc định</span><select value={blueprintDraft.criteria.grade} onChange={(event) => updateBlueprintCriteria({ grade: event.target.value })}><option value="12">12</option><option value="11">11</option><option value="10">10</option></select></label>
+              <label><span>CEFR mặc định</span><select value={blueprintDraft.criteria.cefr} onChange={(event) => updateBlueprintCriteria({ cefr: event.target.value })}><option value="B1-B2">B1–B2</option><option value="B1">B1</option><option value="B2">B2</option><option value="A2">A2</option></select></label>
+            </div>
+
+            <div className="qb-blueprint-cognitive">
+              <div><span>TỈ LỆ NHẬN THỨC</span><strong>Tổng phải bằng 100%</strong></div>
+              <label><span>Nhận biết</span><div><input type="number" min="0" max="100" value={blueprintDraft.criteria.cognitiveTargets.recognition} onChange={(event) => updateBlueprintCriteria({ cognitiveTargets: { ...blueprintDraft.criteria.cognitiveTargets, recognition: Number(event.target.value) } })} /><b>%</b></div></label>
+              <label><span>Thông hiểu</span><div><input type="number" min="0" max="100" value={blueprintDraft.criteria.cognitiveTargets.comprehension} onChange={(event) => updateBlueprintCriteria({ cognitiveTargets: { ...blueprintDraft.criteria.cognitiveTargets, comprehension: Number(event.target.value) } })} /><b>%</b></div></label>
+              <label><span>Vận dụng</span><div><input type="number" min="0" max="100" value={blueprintDraft.criteria.cognitiveTargets.application} onChange={(event) => updateBlueprintCriteria({ cognitiveTargets: { ...blueprintDraft.criteria.cognitiveTargets, application: Number(event.target.value) } })} /><b>%</b></div></label>
+              <label><span>Sai số cho phép</span><div><input type="number" min="0" max="50" value={blueprintDraft.criteria.tolerance} onChange={(event) => updateBlueprintCriteria({ tolerance: Number(event.target.value) })} /><b>%</b></div></label>
+            </div>
+
+            <div className="qb-blueprint-parts">
+              <div className="qb-blueprint-parts-head"><span>Dạng bài</span><span>Cấu hình</span><span>Tổng</span></div>
+              {BLUEPRINT_PART_CATALOG.map((catalog) => {
+                const part = blueprintDraft.criteria.parts.find((item) => item.type === catalog.type);
+                const enabled = Boolean(part);
+                const partTotal = !part ? 0 : part.mode === 'items' ? Number(part.count || 0) : Number(part.bundleCount || 0) * Number(part.itemCount || 0);
+                return (
+                  <article className={enabled ? 'is-enabled' : ''} key={catalog.type}>
+                    <label className="qb-blueprint-toggle">
+                      <input type="checkbox" checked={enabled} onChange={() => toggleBlueprintPart(catalog.type)} />
+                      <span><strong>{catalog.label}</strong><small>{catalog.mode === 'items' ? 'Câu độc lập' : 'Chùm ngữ liệu'}</small></span>
+                    </label>
+                    <div className="qb-blueprint-part-controls">
+                      {enabled && part.mode === 'items' ? (
+                        <label><span>Số câu</span><input type="number" min="1" max="200" value={part.count} onChange={(event) => updateBlueprintPart(catalog.type, { count: Number(event.target.value) })} /></label>
+                      ) : null}
+                      {enabled && part.mode === 'bundles' ? (
+                        <>
+                          <label><span>Số chùm</span><input type="number" min="1" max="20" value={part.bundleCount} onChange={(event) => updateBlueprintPart(catalog.type, { bundleCount: Number(event.target.value) })} /></label>
+                          <label><span>Câu/chùm</span><input type="number" min="1" max="50" value={part.itemCount} onChange={(event) => updateBlueprintPart(catalog.type, { itemCount: Number(event.target.value) })} /></label>
+                        </>
+                      ) : null}
+                    </div>
+                    <b className="qb-blueprint-part-total">{partTotal}</b>
+                  </article>
+                );
+              })}
+            </div>
+
+            {!blueprintValidation.valid || blueprintValidation.warnings.length ? (
+              <div className={blueprintValidation.valid ? 'qb-blueprint-feedback is-warning' : 'qb-blueprint-feedback is-error'}>
+                {blueprintValidation.errors.map((item) => <span key={item}>• {item}</span>)}
+                {blueprintValidation.warnings.map((item) => <span key={item}>⚠ {item}</span>)}
+              </div>
+            ) : null}
+
+            <div className="qb-blueprint-editor-actions">
+              <button type="button" className="qb-ghost" onClick={resetBlueprintDraft}>Ma trận mới</button>
+              <button type="button" className="qb-primary" onClick={saveBlueprint} disabled={blueprintSaving || !blueprintValidation.valid}>
+                {blueprintSaving ? 'Đang lưu…' : blueprintEditingId ? 'Lưu thay đổi' : 'Lưu ma trận'}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
       {!loading && activeTab === 'builder' ? (
         <div className="qb-panel qb-builder">
           <div className="qb-section-head">
