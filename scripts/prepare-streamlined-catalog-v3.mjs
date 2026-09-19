@@ -6,13 +6,13 @@ const exists = (file) => fs.existsSync(file);
 const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const appSlugs = [
-  'classroom-screen', 'content-ecosystem', 'assessment-core',
+  'classroom-screen', 'content-ecosystem',
   'automation-center', 'collaboration-hub', 'knowledge-train',
   'crossword-trial', 'flying-words', 'exam-studio', 'word2graph',
   'reading-studio', 'student-practice', 'random-group-generator',
   'word-orbit', 'activity-graph',
 ];
-const routeSlugs = ['content-ecosystem', 'assessment-core', 'automation-center', 'collaboration-hub', 'practice'];
+const routeSlugs = ['content-ecosystem', 'automation-center', 'collaboration-hub', 'practice'];
 const toolComponents = [
   'WordGraphStudio', 'ReadingStudio', 'ExamStudioUploadPage',
   'StudentPractice', 'ActivityGraphStudio', 'ClassroomScreenHost',
