@@ -6,6 +6,13 @@ import {
   selectExamFromBank,
 } from '../utils/questionBankExamBuilder.js';
 import {
+  BLUEPRINT_PART_CATALOG,
+  compareCognitiveTargets,
+  defaultBlueprintCriteria,
+  normalizeBlueprintCriteria,
+  validateBlueprint,
+} from '../utils/questionBankBlueprints.js';
+import {
   auditExamQuality,
   buildExamExportHtml,
   buildExamSections,
@@ -20,6 +27,7 @@ import './QuestionBank.css';
 const TABS = [
   ['questions', 'Kho câu hỏi'],
   ['bundles', 'Chùm bài'],
+  ['blueprints', 'Ma trận'],
   ['builder', 'Tạo đề'],
   ['tests', 'Đề thi'],
   ['import', 'Nhập từ ChatGPT'],
@@ -135,6 +143,16 @@ export default function QuestionBank({ currentUser }) {
   const [bundles, setBundles] = useState([]);
   const [tests, setTests] = useState([]);
   const [testCounts, setTestCounts] = useState({});
+  const [blueprints, setBlueprints] = useState([]);
+  const [selectedBuilderBlueprintId, setSelectedBuilderBlueprintId] = useState('builtin-tnthpt-40');
+  const [blueprintEditingId, setBlueprintEditingId] = useState('');
+  const [blueprintSaving, setBlueprintSaving] = useState(false);
+  const [blueprintDeleteArmed, setBlueprintDeleteArmed] = useState('');
+  const [blueprintDraft, setBlueprintDraft] = useState({
+    title: 'Ma trận TN THPT 40 câu',
+    visibility: 'personal',
+    criteria: defaultBlueprintCriteria(),
+  });
   const [builderSeed, setBuilderSeed] = useState(1);
   const [builderSaving, setBuilderSaving] = useState(false);
   const [builderConfig, setBuilderConfig] = useState({
@@ -223,7 +241,7 @@ OpenAPI: ${openApiUrl}`;
     setLoading(true);
     setMessage('');
     try {
-      const [itemsResult, bundlesResult, testsResult, integrationResult, eventsResult] = await Promise.all([
+      const [itemsResult, bundlesResult, testsResult, blueprintsResult, integrationResult, eventsResult] = await Promise.all([
         supabase.from('assessment_items')
           .select('id,bundle_id,bundle_position,status,question_type,stem,options,correct_answer,explanation,skill,cefr,topic,cognitive_level,difficulty,source,usage_count,grade,unit_name,school_year,grammar_point,tags,source_kind,source_reference,created_at,updated_at')
           .eq('owner_id', userId).order('updated_at', { ascending: false }).limit(500),
@@ -231,6 +249,8 @@ OpenAPI: ${openApiUrl}`;
           .select('*').eq('owner_id', userId).order('updated_at', { ascending: false }).limit(200),
         supabase.from('assessment_tests')
           .select('*').eq('owner_id', userId).order('updated_at', { ascending: false }).limit(200),
+        supabase.from('assessment_blueprints')
+          .select('*').eq('owner_id', userId).order('updated_at', { ascending: false }).limit(100),
         supabase.from('question_bank_integrations')
           .select('id,provider,label,active,last_used_at,created_at,updated_at')
           .eq('owner_id', userId).eq('provider', 'chatgpt').maybeSingle(),
@@ -238,7 +258,7 @@ OpenAPI: ${openApiUrl}`;
           .select('id,request_id,imported_items,reused_items,imported_bundles,imported_tests,details,created_at')
           .eq('owner_id', userId).order('created_at', { ascending: false }).limit(12),
       ]);
-      for (const result of [itemsResult, bundlesResult, testsResult, integrationResult, eventsResult]) {
+      for (const result of [itemsResult, bundlesResult, testsResult, blueprintsResult, integrationResult, eventsResult]) {
         if (result?.error) throw result.error;
       }
       const nextTests = testsResult.data || [];
@@ -256,6 +276,7 @@ OpenAPI: ${openApiUrl}`;
       setBundles(bundlesResult.data || []);
       setTests(nextTests);
       setTestCounts(counts);
+      setBlueprints(blueprintsResult.data || []);
       setIntegration(integrationResult.data || null);
       setImportEvents(eventsResult.data || []);
     } catch (error) {
@@ -289,19 +310,52 @@ OpenAPI: ${openApiUrl}`;
     () => builderAvailability(questions, bundles),
     [questions, bundles],
   );
+  const activeBuilderBlueprint = useMemo(() => {
+    if (selectedBuilderBlueprintId === 'builtin-tnthpt-40') {
+      return {
+        id: 'builtin-tnthpt-40',
+        title: 'TN THPT 40 câu · mặc định',
+        total_items: 40,
+        criteria: defaultBlueprintCriteria(),
+      };
+    }
+    return blueprints.find((item) => item.id === selectedBuilderBlueprintId) || {
+      id: 'builtin-tnthpt-40',
+      title: 'TN THPT 40 câu · mặc định',
+      total_items: 40,
+      criteria: defaultBlueprintCriteria(),
+    };
+  }, [blueprints, selectedBuilderBlueprintId]);
+  const builderCriteria = useMemo(
+    () => normalizeBlueprintCriteria(activeBuilderBlueprint.criteria || {}),
+    [activeBuilderBlueprint],
+  );
   const builderSelection = useMemo(
     () => selectExamFromBank({
       questions,
       bundles,
+      blueprint: builderCriteria.parts,
       filters: {
-        grade: builderConfig.grade,
-        cefr: builderConfig.cefr,
+        grade: builderConfig.grade || builderCriteria.grade,
+        cefr: builderConfig.cefr || builderCriteria.cefr,
         cognitiveLevel: builderConfig.cognitiveLevel,
         topic: builderConfig.topic,
       },
       seed: builderSeed,
     }),
-    [questions, bundles, builderConfig, builderSeed],
+    [questions, bundles, builderConfig, builderSeed, builderCriteria],
+  );
+  const builderCognitiveFit = useMemo(
+    () => compareCognitiveTargets(
+      builderSelection.audit,
+      builderCriteria.cognitiveTargets,
+      builderCriteria.tolerance,
+    ),
+    [builderSelection.audit, builderCriteria],
+  );
+  const blueprintValidation = useMemo(
+    () => validateBlueprint(blueprintDraft.criteria),
+    [blueprintDraft.criteria],
   );
 
   const selectedExamSections = useMemo(
