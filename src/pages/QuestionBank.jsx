@@ -995,7 +995,7 @@ OpenAPI: ${openApiUrl}`;
           {selectedTest ? (
             <div className="qb-exam-manager">
               <div className="qb-exam-manager-head">
-                <button type="button" className="qb-back" onClick={() => { setSelectedTest(null); setSelectedTestItems([]); setShowExamAnswers(false); }}>← Danh sách đề</button>
+                <button type="button" className="qb-back" onClick={() => { setSelectedTest(null); setSelectedTestItems([]); setShowExamAnswers(false); setEditingExam(false); setDeleteExamArmed(false); }}>← Danh sách đề</button>
                 <div className="qb-exam-title">
                   <p>ASSESSMENT MANAGER</p>
                   <h2>{selectedTest.title}</h2>
@@ -1008,6 +1008,9 @@ OpenAPI: ${openApiUrl}`;
                   </div>
                 </div>
                 <div className="qb-exam-actions">
+                  <button type="button" className={editingExam ? 'qb-secondary is-active' : 'qb-secondary'} onClick={() => { setEditingExam((value) => !value); setDeleteExamArmed(false); }}>
+                    {editingExam ? 'Đóng chỉnh sửa' : 'Sửa thông tin'}
+                  </button>
                   <button type="button" className={showExamAnswers ? 'qb-secondary is-active' : 'qb-secondary'} onClick={() => setShowExamAnswers((value) => !value)}>
                     {showExamAnswers ? 'Ẩn đáp án' : 'Hiện đáp án'}
                   </button>
@@ -1016,11 +1019,47 @@ OpenAPI: ${openApiUrl}`;
                   <button type="button" className="qb-secondary" onClick={() => createExamCopy({ variant: false })} disabled={Boolean(examActionBusy) || !selectedTestItems.length}>
                     {examActionBusy === 'duplicate' ? 'Đang nhân bản…' : 'Nhân bản'}
                   </button>
-                  <button type="button" className="qb-primary" onClick={() => createExamCopy({ variant: true })} disabled={Boolean(examActionBusy) || !selectedTestItems.length}>
-                    {examActionBusy === 'variant' ? 'Đang tạo mã…' : 'Tạo mã đề mới'}
+                  <button type="button" className="qb-secondary" onClick={() => createExamCopy({ variant: true })} disabled={Boolean(examActionBusy) || !selectedTestItems.length}>
+                    {examActionBusy === 'variant' ? 'Đang tạo mã…' : 'Tạo 1 mã'}
+                  </button>
+                  <button type="button" className="qb-primary" onClick={() => createVariantBatch(4)} disabled={Boolean(examActionBusy) || !selectedTestItems.length}>
+                    {examActionBusy === 'variant-batch' ? 'Đang tạo 4 mã…' : 'Tạo 4 mã đề'}
+                  </button>
+                  <button type="button" className={deleteExamArmed ? 'qb-danger is-armed' : 'qb-danger'} onClick={deleteSelectedExam} disabled={Boolean(examActionBusy)}>
+                    {examActionBusy === 'delete' ? 'Đang xóa…' : deleteExamArmed ? 'Xác nhận xóa đề' : 'Xóa đề'}
                   </button>
                 </div>
               </div>
+
+              {editingExam ? (
+                <div className="qb-exam-edit">
+                  <label className="qb-exam-edit-title"><span>Tên đề</span><input value={examEdit.title} onChange={(event) => setExamEdit({ ...examEdit, title: event.target.value })} /></label>
+                  <label><span>Năm học</span><input value={examEdit.schoolYear} onChange={(event) => setExamEdit({ ...examEdit, schoolYear: event.target.value })} placeholder="2026-2027" /></label>
+                  <label><span>Thời gian (phút)</span><input type="number" min="1" max="600" value={examEdit.durationMinutes} onChange={(event) => setExamEdit({ ...examEdit, durationMinutes: event.target.value })} /></label>
+                  <label><span>Trạng thái</span>
+                    <select value={examEdit.status} onChange={(event) => setExamEdit({ ...examEdit, status: event.target.value })}>
+                      <option value="draft">Bản nháp</option>
+                      <option value="published">Đã phát hành</option>
+                      <option value="closed">Đã đóng</option>
+                      <option value="archived">Lưu trữ</option>
+                    </select>
+                  </label>
+                  <div className="qb-exam-edit-actions">
+                    <button type="button" className="qb-primary" onClick={saveExamMetadata} disabled={examActionBusy === 'metadata'}>
+                      {examActionBusy === 'metadata' ? 'Đang lưu…' : 'Lưu thay đổi'}
+                    </button>
+                    <button type="button" className="qb-ghost" onClick={() => {
+                      setExamEdit({
+                        title: text(selectedTest.title),
+                        schoolYear: text(selectedTest.school_year),
+                        durationMinutes: String(selectedTest.settings?.durationMinutes || 50),
+                        status: text(selectedTest.status) || 'draft',
+                      });
+                      setEditingExam(false);
+                    }}>Hủy</button>
+                  </div>
+                </div>
+              ) : null}
 
               <div className="qb-exam-overview">
                 <article><span>Tổng câu</span><strong>{selectedTestItems.length || testCounts[selectedTest.id] || 0}</strong></article>
@@ -1028,6 +1067,20 @@ OpenAPI: ${openApiUrl}`;
                 <article><span>Số block</span><strong>{selectedExamSections.length}</strong></article>
                 <article><span>Phiên bản xuất</span><strong>{showExamAnswers ? 'Giáo viên' : 'Học sinh'}</strong></article>
               </div>
+
+              {showExamAnswers && selectedTestItems.length ? (
+                <div className="qb-answer-key">
+                  <div className="qb-answer-key-head">
+                    <div><span>ANSWER KEY</span><strong>Đáp án nhanh</strong></div>
+                    <small>{selectedTestItems.length} câu · tự cập nhật theo mã đề hiện tại</small>
+                  </div>
+                  <div className="qb-answer-key-grid">
+                    {selectedTestItems.map((item) => (
+                      <span key={`key-${item.position}-${item.id}`}><b>{item.position}</b>{effectiveAnswer(item)}</span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
 
               {examDetailLoading ? <div className="qb-loading">Đang mở đầy đủ đề thi…</div> : null}
 
