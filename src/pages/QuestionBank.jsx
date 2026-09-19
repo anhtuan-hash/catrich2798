@@ -40,7 +40,15 @@ function displayQuestionStem(value, bundlePosition) {
 }
 
 function statusLabel(status) {
-  const map = { draft: 'Bản nháp', approved: 'Đã duyệt', review: 'Chờ duyệt', archived: 'Lưu trữ' };
+  const map = {
+    draft: 'Bản nháp',
+    review: 'Chờ duyệt',
+    approved: 'Đã duyệt',
+    published: 'Đã phát hành',
+    closed: 'Đã đóng',
+    retired: 'Ngừng dùng',
+    archived: 'Lưu trữ',
+  };
   return map[text(status).toLowerCase()] || text(status) || 'Bản nháp';
 }
 
@@ -842,17 +850,131 @@ OpenAPI: ${openApiUrl}`;
 
       {!loading && activeTab === 'tests' ? (
         <div className="qb-panel">
-          <div className="qb-section-head"><div><p>ASSESSMENT LIBRARY</p><h2>Đề thi</h2></div><span>Đề được lưu riêng, nhưng tái sử dụng câu hỏi trong cùng ngân hàng.</span></div>
-          {tests.length ? <div className="qb-grid">{tests.map((test) => (
-            <article className="qb-test-card" key={test.id}>
-              <div className="qb-test-icon">EXAM</div>
-              <div>
-                <div className="qb-chips"><span>{statusLabel(test.status)}</span>{test.source_kind === 'chatgpt' ? <span className="is-chatgpt">ChatGPT</span> : null}</div>
-                <h3>{test.title}</h3>
-                <p>{testCounts[test.id] || 0} câu hỏi · {test.grade ? `Khối ${test.grade}` : 'Chưa gắn khối'}{test.school_year ? ` · ${test.school_year}` : ''}</p>
+          {selectedTest ? (
+            <div className="qb-exam-manager">
+              <div className="qb-exam-manager-head">
+                <button type="button" className="qb-back" onClick={() => { setSelectedTest(null); setSelectedTestItems([]); setShowExamAnswers(false); }}>← Danh sách đề</button>
+                <div className="qb-exam-title">
+                  <p>ASSESSMENT MANAGER</p>
+                  <h2>{selectedTest.title}</h2>
+                  <div className="qb-chips">
+                    <span>{statusLabel(selectedTest.status)}</span>
+                    {selectedTest.source_kind === 'chatgpt' ? <span className="is-chatgpt">ChatGPT</span> : null}
+                    {selectedTest.settings?.examCode ? <span>Mã {selectedTest.settings.examCode}</span> : null}
+                    <span>{selectedTest.grade ? `Khối ${selectedTest.grade}` : 'Chưa gắn khối'}</span>
+                    {selectedTest.school_year ? <span>{selectedTest.school_year}</span> : null}
+                  </div>
+                </div>
+                <div className="qb-exam-actions">
+                  <button type="button" className={showExamAnswers ? 'qb-secondary is-active' : 'qb-secondary'} onClick={() => setShowExamAnswers((value) => !value)}>
+                    {showExamAnswers ? 'Ẩn đáp án' : 'Hiện đáp án'}
+                  </button>
+                  <button type="button" className="qb-secondary" onClick={() => exportSelectedExam('word')} disabled={!selectedTestItems.length}>Xuất Word</button>
+                  <button type="button" className="qb-secondary" onClick={() => exportSelectedExam('pdf')} disabled={!selectedTestItems.length}>Xuất PDF</button>
+                  <button type="button" className="qb-secondary" onClick={() => createExamCopy({ variant: false })} disabled={Boolean(examActionBusy) || !selectedTestItems.length}>
+                    {examActionBusy === 'duplicate' ? 'Đang nhân bản…' : 'Nhân bản'}
+                  </button>
+                  <button type="button" className="qb-primary" onClick={() => createExamCopy({ variant: true })} disabled={Boolean(examActionBusy) || !selectedTestItems.length}>
+                    {examActionBusy === 'variant' ? 'Đang tạo mã…' : 'Tạo mã đề mới'}
+                  </button>
+                </div>
               </div>
-            </article>
-          ))}</div> : <EmptyState title="Chưa có đề thi" hint="Sau khi ChatGPT soạn đề, dùng lệnh “lưu vào Ngân hàng câu hỏi Brian” để đề xuất hiện tại đây." />}
+
+              <div className="qb-exam-overview">
+                <article><span>Tổng câu</span><strong>{selectedTestItems.length || testCounts[selectedTest.id] || 0}</strong></article>
+                <article><span>Thời gian</span><strong>{selectedTest.settings?.durationMinutes || 50}'</strong></article>
+                <article><span>Số block</span><strong>{selectedExamSections.length}</strong></article>
+                <article><span>Phiên bản xuất</span><strong>{showExamAnswers ? 'Giáo viên' : 'Học sinh'}</strong></article>
+              </div>
+
+              {examDetailLoading ? <div className="qb-loading">Đang mở đầy đủ đề thi…</div> : null}
+
+              {!examDetailLoading && selectedExamSections.length ? (
+                <div className="qb-exam-sections">
+                  {selectedExamSections.map((section) => (
+                    <section className="qb-exam-section" key={section.key}>
+                      <header>
+                        <div>
+                          <span>PART {section.index}</span>
+                          <h3>{section.label}</h3>
+                        </div>
+                        <b>Questions {section.start}–{section.end}</b>
+                      </header>
+
+                      {section.context ? (
+                        <div className="qb-exam-context">
+                          <span>SHARED TEXT / INSTRUCTIONS</span>
+                          <div>{section.context}</div>
+                        </div>
+                      ) : null}
+
+                      <div className="qb-exam-question-list">
+                        {section.items.map((item) => {
+                          const stemParts = splitExamStem(item.stem, item.position);
+                          const options = visibleOptions(item);
+                          return (
+                            <article className="qb-exam-question" key={`${selectedTest.id}-${item.id}-${item.position}`}>
+                              <div className="qb-exam-qnum">{String(item.position).padStart(2, '0')}</div>
+                              <div className="qb-exam-qbody">
+                                <strong>{stemParts.question || displayQuestionStem(item.stem, item.bundle_position)}</strong>
+                                {options.length ? (
+                                  <div className="qb-exam-options">
+                                    {options.map((option, optionIndex) => (
+                                      <span key={`${item.id}-${option.sourceIndex}`}>
+                                        <b>{String.fromCharCode(65 + optionIndex)}.</b> {option.text}
+                                      </span>
+                                    ))}
+                                  </div>
+                                ) : null}
+                                <div className="qb-card-meta qb-exam-meta">
+                                  {item.cefr ? <span>{item.cefr}</span> : null}
+                                  {item.cognitive_level ? <span>{cognitiveLabel(item.cognitive_level)}</span> : null}
+                                  {item.difficulty ? <span>Độ khó {item.difficulty}/5</span> : null}
+                                  {item.topic ? <span>{item.topic}</span> : null}
+                                  {item.grammar_point ? <span>{item.grammar_point}</span> : null}
+                                </div>
+                                {showExamAnswers ? (
+                                  <div className="qb-exam-answer">
+                                    <div><b>Đáp án {effectiveAnswer(item)}</b>{item.explanation ? <span>{item.explanation}</span> : null}</div>
+                                  </div>
+                                ) : null}
+                              </div>
+                            </article>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              ) : null}
+
+              {!examDetailLoading && !selectedTestItems.length ? (
+                <EmptyState title="Đề chưa có câu hỏi" hint="Brian không tìm thấy liên kết câu hỏi cho đề này." />
+              ) : null}
+            </div>
+          ) : (
+            <>
+              <div className="qb-section-head"><div><p>ASSESSMENT LIBRARY</p><h2>Đề thi</h2></div><span>Bấm vào một đề để mở toàn bộ nội dung, đáp án, metadata và công cụ xuất đề.</span></div>
+              {tests.length ? <div className="qb-grid">{tests.map((test) => (
+                <article
+                  className="qb-test-card is-clickable"
+                  key={test.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => openExam(test)}
+                  onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') openExam(test); }}
+                >
+                  <div className="qb-test-icon">EXAM</div>
+                  <div>
+                    <div className="qb-chips"><span>{statusLabel(test.status)}</span>{test.source_kind === 'chatgpt' ? <span className="is-chatgpt">ChatGPT</span> : null}{test.settings?.examCode ? <span>Mã {test.settings.examCode}</span> : null}</div>
+                    <h3>{test.title}</h3>
+                    <p>{testCounts[test.id] || 0} câu hỏi · {test.grade ? `Khối ${test.grade}` : 'Chưa gắn khối'}{test.school_year ? ` · ${test.school_year}` : ''}</p>
+                    <small>Mở đề →</small>
+                  </div>
+                </article>
+              ))}</div> : <EmptyState title="Chưa có đề thi" hint="Sau khi ChatGPT soạn đề, dùng lệnh “lưu vào Ngân hàng câu hỏi Brian” để đề xuất hiện tại đây." />}
+            </>
+          )}
         </div>
       ) : null}
 
