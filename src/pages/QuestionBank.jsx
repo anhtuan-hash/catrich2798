@@ -1181,6 +1181,103 @@ OpenAPI: ${openApiUrl}`;
         </div>
       ) : null}
 
+
+      {!loading && activeTab === 'builder' ? (
+        <div className="qb-panel qb-builder">
+          <div className="qb-section-head">
+            <div><p>ZERO-COST TEST BUILDER</p><h2>Tạo đề từ ngân hàng</h2></div>
+            <span>Ráp đề trực tiếp từ câu hỏi đã lưu · không gọi AI · không phát sinh phí AI.</span>
+          </div>
+
+          <div className="qb-builder-hero">
+            <div>
+              <span className="qb-builder-kicker">TN THPT 2025–2026 PRESET</span>
+              <h3>Đề 40 câu theo đúng cấu trúc đã kiểm định</h3>
+              <p>Brian chọn nguyên chùm Reading/Cloze để không làm mất ngữ liệu, đồng thời lấy 5 câu Arrangement độc lập. Mỗi lần “Xáo lựa chọn” sẽ ưu tiên tổ hợp khác trong kho.</p>
+            </div>
+            <div className="qb-builder-total">
+              <strong>{builderSelection.items.length}</strong>
+              <span>/ 40 câu</span>
+              <small>{builderSelection.complete ? 'Đủ dữ liệu để tạo đề' : builderSelection.missing.length + ' phần còn thiếu'}</small>
+            </div>
+          </div>
+
+          <div className="qb-builder-layout">
+            <section className="qb-builder-settings">
+              <h3>Thông tin đề</h3>
+              <label className="qb-builder-wide"><span>Tên đề</span><input value={builderConfig.title} onChange={(event) => setBuilderConfig({ ...builderConfig, title: event.target.value })} /></label>
+              <div className="qb-builder-fields">
+                <label><span>Khối</span><select value={builderConfig.grade} onChange={(event) => setBuilderConfig({ ...builderConfig, grade: event.target.value })}><option value="12">12</option><option value="11">11</option><option value="10">10</option></select></label>
+                <label><span>Năm học</span><input value={builderConfig.schoolYear} onChange={(event) => setBuilderConfig({ ...builderConfig, schoolYear: event.target.value })} /></label>
+                <label><span>Thời gian</span><input type="number" min="1" max="600" value={builderConfig.durationMinutes} onChange={(event) => setBuilderConfig({ ...builderConfig, durationMinutes: event.target.value })} /></label>
+                <label><span>CEFR ưu tiên</span><select value={builderConfig.cefr} onChange={(event) => setBuilderConfig({ ...builderConfig, cefr: event.target.value })}><option value="B1-B2">B1–B2</option><option value="B1">B1</option><option value="B2">B2</option></select></label>
+                <label><span>Nhận thức ưu tiên</span><select value={builderConfig.cognitiveLevel} onChange={(event) => setBuilderConfig({ ...builderConfig, cognitiveLevel: event.target.value })}><option value="">Tự cân bằng</option><option value="recognition">Nhận biết</option><option value="comprehension">Thông hiểu</option><option value="application">Vận dụng</option></select></label>
+                <label><span>Lọc chủ đề</span><input value={builderConfig.topic} onChange={(event) => setBuilderConfig({ ...builderConfig, topic: event.target.value })} placeholder="VD: environment" /></label>
+              </div>
+              <div className="qb-builder-actions">
+                <button type="button" className="qb-secondary" onClick={() => setBuilderSeed((value) => value + 1)}>↻ Xáo lựa chọn</button>
+                <button type="button" className="qb-primary" onClick={saveBuiltExam} disabled={builderSaving || !builderSelection.complete || !builderSelection.audit.ready}>
+                  {builderSaving ? 'Đang tạo đề…' : 'Tạo đề 40 câu'}
+                </button>
+              </div>
+              <small className="qb-builder-note">Lần chọn #{builderSeed} · câu hỏi được tái sử dụng từ ngân hàng, không nhân bản nội dung.</small>
+            </section>
+
+            <aside className="qb-builder-stock">
+              <h3>Tồn kho phù hợp</h3>
+              <div className="qb-builder-stock-grid">
+                <article className={(builderStock.arrangement_5?.items || 0) >= 5 ? 'is-ok' : 'is-low'}><span>Arrangement</span><strong>{builderStock.arrangement_5?.items || 0}</strong><small>Cần 5 câu</small></article>
+                <article className={(builderStock.discourse_cloze_5?.bundles || 0) >= 1 ? 'is-ok' : 'is-low'}><span>Discourse Cloze</span><strong>{builderStock.discourse_cloze_5?.bundles || 0}</strong><small>Cần 1 chùm</small></article>
+                <article className={(builderStock.reading_10?.bundles || 0) >= 1 ? 'is-ok' : 'is-low'}><span>Reading 10</span><strong>{builderStock.reading_10?.bundles || 0}</strong><small>Cần 1 chùm</small></article>
+                <article className={(builderStock.reading_8?.bundles || 0) >= 1 ? 'is-ok' : 'is-low'}><span>Reading 8</span><strong>{builderStock.reading_8?.bundles || 0}</strong><small>Cần 1 chùm</small></article>
+                <article className={(builderStock.functional_cloze_6?.bundles || 0) >= 2 ? 'is-ok' : 'is-low'}><span>Functional Cloze</span><strong>{builderStock.functional_cloze_6?.bundles || 0}</strong><small>Cần 2 chùm</small></article>
+              </div>
+            </aside>
+          </div>
+
+          {builderSelection.missing.length ? (
+            <div className="qb-builder-missing">
+              <strong>Chưa đủ dữ liệu cho bộ lọc hiện tại</strong>
+              {builderSelection.missing.map((item) => <span key={item.type + '-' + item.message}>• {item.message}</span>)}
+              <small>Hãy bỏ bớt bộ lọc hoặc thêm câu/chùm bài tương ứng vào ngân hàng.</small>
+            </div>
+          ) : null}
+
+          <section className="qb-builder-preview">
+            <div className="qb-builder-preview-head">
+              <div><span>LIVE BLUEPRINT</span><h3>Bản ráp đề hiện tại</h3></div>
+              <div className={builderSelection.audit.ready ? 'qb-builder-pass' : 'qb-builder-check'}>
+                <b>{builderSelection.audit.ready ? 'READY' : 'CHECK'}</b>
+                <small>{builderSelection.audit.errors.length} lỗi · {builderSelection.audit.warnings.length} cảnh báo</small>
+              </div>
+            </div>
+
+            <div className="qb-builder-blueprint">
+              {builderSelection.audit.sections.map((section) => (
+                <article key={'builder-' + section.key}>
+                  <div><span>P{section.index}</span><strong>{section.label}</strong></div>
+                  <p>{section.bundle?.title || (section.type === 'arrangement_5' ? '5 câu độc lập từ ngân hàng' : 'Chùm được chọn từ kho')}</p>
+                  <small>Questions {section.start}–{section.end}</small>
+                </article>
+              ))}
+            </div>
+
+            <div className="qb-builder-metrics">
+              <article><span>Nhận biết</span><strong>{builderSelection.audit.distributions.cognitive.recognition || 0}</strong></article>
+              <article><span>Thông hiểu</span><strong>{builderSelection.audit.distributions.cognitive.comprehension || 0}</strong></article>
+              <article><span>Vận dụng</span><strong>{builderSelection.audit.distributions.cognitive.application || 0}</strong></article>
+              <article><span>Đáp án A/B/C/D</span><strong>{Object.values(builderSelection.audit.distributions.answers).join(' / ')}</strong></article>
+            </div>
+
+            {builderSelection.audit.warnings.length ? (
+              <div className="qb-builder-warnings">
+                {builderSelection.audit.warnings.slice(0, 5).map((warning) => <span key={warning}>⚠ {warning}</span>)}
+              </div>
+            ) : null}
+          </section>
+        </div>
+      ) : null}
+
       {!loading && activeTab === 'tests' ? (
         <div className="qb-panel">
           {selectedTest ? (
