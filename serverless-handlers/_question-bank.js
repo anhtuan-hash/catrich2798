@@ -498,7 +498,7 @@ export default async function handler(req, res) {
   try {
     const session = await authorize(req);
     const payload = req.body && typeof req.body === 'object' ? req.body : {};
-    const action = cleanInline(payload.action, 60).toLowerCase();
+    const action = cleanInline(payload.action || req.query?.action, 60).toLowerCase();
 
     if (action === 'save_questions') {
       const result = await saveQuestions(session, payload);
