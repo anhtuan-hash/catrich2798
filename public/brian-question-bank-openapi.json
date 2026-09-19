@@ -1,0 +1,340 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Brian Question Bank",
+    "version": "1.0.0",
+    "description": "Securely save, search, and retrieve the signed-in Brian user's English assessment questions and exams. Use save_exam after drafting a complete exam; use save_questions for standalone items or a shared passage bundle. Never send the user's Brian password."
+  },
+  "servers": [
+    {
+      "url": "https://esl-brian.vercel.app"
+    }
+  ],
+  "security": [
+    {
+      "BrianQuestionBankKey": []
+    }
+  ],
+  "paths": {
+    "/api/question-bank": {
+      "post": {
+        "operationId": "useBrianQuestionBank",
+        "summary": "Save or retrieve Question Bank content",
+        "description": "Choose action save_questions, save_exam, search_questions, or get_exam. Preserve passages as bundle objects so their questions stay together.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "action"
+                ],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "save_questions",
+                      "save_exam",
+                      "search_questions",
+                      "get_exam"
+                    ]
+                  },
+                  "requestId": {
+                    "type": "string",
+                    "description": "Optional idempotency/audit reference."
+                  },
+                  "meta": {
+                    "type": "object",
+                    "additionalProperties": true
+                  },
+                  "bundle": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "bundleType": {
+                        "type": "string"
+                      },
+                      "contextText": {
+                        "type": "string"
+                      },
+                      "instructions": {
+                        "type": "string"
+                      },
+                      "topic": {
+                        "type": "string"
+                      },
+                      "skill": {
+                        "type": "string"
+                      },
+                      "grade": {
+                        "type": "integer"
+                      },
+                      "unitName": {
+                        "type": "string"
+                      },
+                      "schoolYear": {
+                        "type": "string"
+                      },
+                      "source": {
+                        "type": "string"
+                      },
+                      "sourceReference": {
+                        "type": "string"
+                      },
+                      "visibility": {
+                        "type": "string",
+                        "enum": [
+                          "private",
+                          "department"
+                        ]
+                      }
+                    },
+                    "additionalProperties": true
+                  },
+                  "questions": {
+                    "type": "array",
+                    "maxItems": 200,
+                    "items": {
+                      "$ref": "#/components/schemas/Question"
+                    }
+                  },
+                  "exam": {
+                    "$ref": "#/components/schemas/Exam"
+                  },
+                  "filters": {
+                    "type": "object",
+                    "properties": {
+                      "query": {
+                        "type": "string"
+                      },
+                      "grade": {
+                        "type": "integer"
+                      },
+                      "cefr": {
+                        "type": "string"
+                      },
+                      "skill": {
+                        "type": "string"
+                      },
+                      "questionType": {
+                        "type": "string"
+                      },
+                      "cognitiveLevel": {
+                        "type": "string"
+                      },
+                      "topic": {
+                        "type": "string"
+                      },
+                      "grammarPoint": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "type": "string"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 100
+                  },
+                  "testId": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Question Bank operation completed successfully."
+          },
+          "400": {
+            "description": "Invalid request."
+          },
+          "401": {
+            "description": "Connection key missing, invalid, or inactive."
+          },
+          "429": {
+            "description": "Rate limit reached."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BrianQuestionBankKey": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "The one-time Brian Question Bank connection key generated inside Brian."
+      }
+    },
+    "schemas": {
+      "Question": {
+        "type": "object",
+        "required": [
+          "stem"
+        ],
+        "properties": {
+          "stem": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "correctAnswer": {
+            "type": "string"
+          },
+          "explanation": {
+            "type": "string"
+          },
+          "questionType": {
+            "type": "string"
+          },
+          "skill": {
+            "type": "string"
+          },
+          "cefr": {
+            "type": "string"
+          },
+          "topic": {
+            "type": "string"
+          },
+          "cognitiveLevel": {
+            "type": "string",
+            "description": "recognition, comprehension, or application"
+          },
+          "difficulty": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "grade": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "unitName": {
+            "type": "string"
+          },
+          "schoolYear": {
+            "type": "string"
+          },
+          "grammarPoint": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source": {
+            "type": "string"
+          },
+          "sourceReference": {
+            "type": "string"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "private",
+              "department"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "review",
+              "approved",
+              "archived"
+            ]
+          },
+          "points": {
+            "type": "number"
+          }
+        },
+        "additionalProperties": true
+      },
+      "Exam": {
+        "type": "object",
+        "required": [
+          "title",
+          "questions"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "grade": {
+            "type": "integer"
+          },
+          "schoolYear": {
+            "type": "string"
+          },
+          "durationMinutes": {
+            "type": "integer"
+          },
+          "instructions": {
+            "type": "string"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "private",
+              "department"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "review",
+              "approved",
+              "archived"
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "source": {
+            "type": "string"
+          },
+          "sourceReference": {
+            "type": "string"
+          },
+          "bundle": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "blueprint": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "questions": {
+            "type": "array",
+            "maxItems": 200,
+            "items": {
+              "$ref": "#/components/schemas/Question"
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}
