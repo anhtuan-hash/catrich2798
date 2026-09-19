@@ -114,3 +114,30 @@ html body #root .app-shell[data-route="assessment-core"] main#bes-main-content >
 .qb-answer-key-grid b{font-size:9px;color:#8791a3;font-weight:800}
 @media(max-width:1100px){.qb-exam-edit{grid-template-columns:1fr 1fr}.qb-exam-edit-title{grid-column:1/-1}.qb-answer-key-grid{grid-template-columns:repeat(8,minmax(0,1fr))}}
 @media(max-width:700px){.qb-exam-edit{grid-template-columns:1fr}.qb-exam-edit-title{grid-column:auto}.qb-answer-key-head{align-items:flex-start;flex-direction:column}.qb-answer-key-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.qb-exam-edit-actions{justify-content:stretch}.qb-exam-edit-actions button{flex:1}}
+
+
+/* Exam Quality Audit */
+.qb-exam-overview strong.is-ready{color:#16784a}.qb-exam-overview strong.is-not-ready{color:#b23c3c}
+.qb-publish{border:1px solid #1d7a50;background:#1d7a50;color:#fff;border-radius:10px;padding:10px 13px;font:inherit;font-size:12px;font-weight:900;cursor:pointer}
+.qb-publish:hover{background:#176640}.qb-publish:disabled{opacity:.55;cursor:not-allowed}.qb-publish.is-blocked{background:#f7f8fb;color:#9aa3b3;border-color:#dfe4ec}
+.qb-quality-audit{border:1px solid #dfe5ef;border-radius:18px;background:#fff;padding:16px;display:grid;gap:14px}
+.qb-quality-audit.is-ready{border-color:#bfe0ce;background:linear-gradient(180deg,#fbfffc 0%,#fff 44%)}
+.qb-quality-audit.has-errors{border-color:#efd0d0;background:linear-gradient(180deg,#fffafa 0%,#fff 44%)}
+.qb-quality-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+.qb-quality-head>div:first-child>span{display:block;color:#315fc4;font-size:9px;font-weight:900;letter-spacing:.12em;margin-bottom:4px}
+.qb-quality-head h3{margin:0;color:#17233f;font-size:19px}.qb-quality-head p{margin:5px 0 0;color:#768196;font-size:12px;line-height:1.5}
+.qb-quality-badge{min-width:112px;padding:10px 12px;border-radius:12px;background:#f5f7fb;text-align:center}.qb-quality-badge b{display:block;font-size:15px;color:#23324f}.qb-quality-badge small{display:block;margin-top:3px;color:#7b8597;font-size:9px}
+.qb-quality-audit.is-ready .qb-quality-badge{background:#eaf7ef}.qb-quality-audit.is-ready .qb-quality-badge b{color:#16784a}
+.qb-quality-audit.has-errors .qb-quality-badge{background:#fff0f0}.qb-quality-audit.has-errors .qb-quality-badge b{color:#b23c3c}
+.qb-quality-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.qb-quality-summary article{border:1px solid #e4e8ef;border-radius:12px;background:#fafbfc;padding:11px 12px}
+.qb-quality-summary span{display:block;color:#7c8699;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.05em}
+.qb-quality-summary strong{display:block;margin-top:4px;color:#1b2945;font-size:14px}.qb-quality-summary small{display:block;margin-top:3px;color:#8a93a3;font-size:9px;line-height:1.35}
+.qb-quality-columns{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.qb-quality-distribution{border:1px solid #e5e9f0;border-radius:13px;padding:12px;background:#fcfdff}
+.qb-quality-subhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}.qb-quality-subhead strong{font-size:12px;color:#24324e}.qb-quality-subhead span{font-size:9px;color:#919aaa;text-transform:uppercase}
+.qb-quality-row{display:grid;grid-template-columns:90px minmax(0,1fr) 62px;align-items:center;gap:8px;margin:7px 0}.qb-quality-row>b{font-size:10px;color:#4a5770;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.qb-quality-row>div{height:7px;border-radius:999px;background:#edf0f5;overflow:hidden}.qb-quality-row i{display:block;height:100%;min-width:2px;border-radius:999px;background:#315fc4}.qb-quality-row>span{font-size:9px;color:#727d90;text-align:right}
+.qb-quality-messages{display:grid;grid-template-columns:1fr 1fr;gap:10px}.qb-quality-messages>div{display:grid;gap:5px;padding:11px 12px;border-radius:12px;font-size:10px;line-height:1.45}.qb-quality-messages b{font-size:11px}.qb-quality-messages .is-error{background:#fff0f0;color:#8d3030;border:1px solid #f0cece}.qb-quality-messages .is-warning{background:#fff9e9;color:#80621b;border:1px solid #f0e1b3}
+.qb-quality-clean{padding:10px 12px;border-radius:11px;background:#eef8f2;color:#216c49;font-size:11px;font-weight:800}
+@media(max-width:900px){.qb-quality-summary{grid-template-columns:1fr 1fr}.qb-quality-columns,.qb-quality-messages{grid-template-columns:1fr}}
+@media(max-width:560px){.qb-quality-head{flex-direction:column}.qb-quality-badge{width:100%}.qb-quality-summary{grid-template-columns:1fr 1fr}.qb-quality-row{grid-template-columns:78px minmax(0,1fr) 54px}}
