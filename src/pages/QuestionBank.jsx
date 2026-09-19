@@ -137,6 +137,10 @@ export default function QuestionBank({ currentUser }) {
   const [examActionBusy, setExamActionBusy] = useState('');
   const [editingExam, setEditingExam] = useState(false);
   const [deleteExamArmed, setDeleteExamArmed] = useState(false);
+  const [examFocusMode, setExamFocusMode] = useState(false);
+  const [focusedExamSection, setFocusedExamSection] = useState('');
+  const [collapsedExamSections, setCollapsedExamSections] = useState({});
+  const [collapsedExamContexts, setCollapsedExamContexts] = useState({});
   const [examEdit, setExamEdit] = useState({ title: '', schoolYear: '', durationMinutes: '50', status: 'draft' });
   const [integration, setIntegration] = useState(null);
   const [importEvents, setImportEvents] = useState([]);
@@ -273,6 +277,23 @@ OpenAPI: ${openApiUrl}`;
     () => auditExamQuality(selectedTestItems),
     [selectedTestItems],
   );
+  const visibleExamSections = useMemo(() => {
+    if (!examFocusMode) return selectedExamSections;
+    const target = focusedExamSection || selectedExamSections[0]?.key || '';
+    return selectedExamSections.filter((section) => section.key === target);
+  }, [examFocusMode, focusedExamSection, selectedExamSections]);
+
+  const jumpToExamSection = (sectionKey) => {
+    setFocusedExamSection(sectionKey);
+    if (examFocusMode) return;
+    window.requestAnimationFrame(() => {
+      document.getElementById(`qb-exam-section-${sectionKey}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
+  const toggleAllExamSections = (collapsed) => {
+    setCollapsedExamSections(Object.fromEntries(selectedExamSections.map((section) => [section.key, collapsed])));
+  };
 
   const updateOption = (index, value) => {
     setDraft((current) => {
@@ -526,6 +547,10 @@ OpenAPI: ${openApiUrl}`;
     setShowExamAnswers(false);
     setEditingExam(false);
     setDeleteExamArmed(false);
+    setExamFocusMode(false);
+    setFocusedExamSection('');
+    setCollapsedExamSections({});
+    setCollapsedExamContexts({});
     setExamEdit({
       title: text(test.title),
       schoolYear: text(test.school_year),
@@ -1040,7 +1065,7 @@ OpenAPI: ${openApiUrl}`;
           {selectedTest ? (
             <div className="qb-exam-manager">
               <div className="qb-exam-manager-head">
-                <button type="button" className="qb-back" onClick={() => { setSelectedTest(null); setSelectedTestItems([]); setShowExamAnswers(false); setEditingExam(false); setDeleteExamArmed(false); }}>← Danh sách đề</button>
+                <button type="button" className="qb-back" onClick={() => { setSelectedTest(null); setSelectedTestItems([]); setShowExamAnswers(false); setEditingExam(false); setDeleteExamArmed(false); setExamFocusMode(false); setFocusedExamSection(''); setCollapsedExamSections({}); setCollapsedExamContexts({}); }}>← Danh sách đề</button>
                 <div className="qb-exam-title">
                   <p>ASSESSMENT MANAGER</p>
                   <h2>{selectedTest.title}</h2>
@@ -1196,62 +1221,134 @@ OpenAPI: ${openApiUrl}`;
               {examDetailLoading ? <div className="qb-loading">Đang mở đầy đủ đề thi…</div> : null}
 
               {!examDetailLoading && selectedExamSections.length ? (
-                <div className="qb-exam-sections">
-                  {selectedExamSections.map((section) => (
-                    <section className="qb-exam-section" key={section.key}>
-                      <header>
-                        <div>
-                          <span>PART {section.index}</span>
-                          <h3>{section.label}</h3>
-                        </div>
-                        <b>Questions {section.start}–{section.end}</b>
-                      </header>
+                <>
+                  <nav className="qb-exam-navigator" aria-label="Điều hướng các phần của đề">
+                    <div className="qb-exam-nav-scroll">
+                      {selectedExamSections.map((section) => {
+                        const active = examFocusMode
+                          ? (focusedExamSection || selectedExamSections[0]?.key) === section.key
+                          : false;
+                        return (
+                          <button
+                            type="button"
+                            key={`nav-${section.key}`}
+                            className={active ? 'is-active' : ''}
+                            onClick={() => jumpToExamSection(section.key)}
+                          >
+                            <b>P{section.index}</b>
+                            <span>{section.label.replace(/ · \d+ câu$/, '')}</span>
+                            <small>{section.start}–{section.end}</small>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="qb-exam-nav-tools">
+                      <button
+                        type="button"
+                        className={examFocusMode ? 'is-active' : ''}
+                        onClick={() => {
+                          const next = !examFocusMode;
+                          setExamFocusMode(next);
+                          if (next && !focusedExamSection) setFocusedExamSection(selectedExamSections[0]?.key || '');
+                        }}
+                      >
+                        {examFocusMode ? 'Hiện toàn đề' : 'Tập trung 1 phần'}
+                      </button>
+                      {!examFocusMode ? <button type="button" onClick={() => toggleAllExamSections(true)}>Thu gọn tất cả</button> : null}
+                      {!examFocusMode ? <button type="button" onClick={() => toggleAllExamSections(false)}>Mở tất cả</button> : null}
+                    </div>
+                  </nav>
 
-                      {section.context ? (
-                        <div className="qb-exam-context">
-                          <span>SHARED TEXT / INSTRUCTIONS</span>
-                          <div>{section.context}</div>
-                        </div>
-                      ) : null}
+                  <div className={examFocusMode ? 'qb-exam-sections is-focus-mode' : 'qb-exam-sections'}>
+                    {visibleExamSections.map((section) => {
+                      const sectionCollapsed = Boolean(collapsedExamSections[section.key]);
+                      const contextCollapsed = collapsedExamContexts[section.key] !== false;
+                      return (
+                        <section
+                          className={sectionCollapsed ? 'qb-exam-section is-collapsed' : 'qb-exam-section'}
+                          key={section.key}
+                          id={`qb-exam-section-${section.key}`}
+                        >
+                          <header>
+                            <div>
+                              <span>PART {section.index}</span>
+                              <h3>{section.label}</h3>
+                            </div>
+                            <div className="qb-exam-section-tools">
+                              <b>Questions {section.start}–{section.end}</b>
+                              {section.context ? (
+                                <button
+                                  type="button"
+                                  onClick={() => setCollapsedExamContexts((current) => ({ ...current, [section.key]: !contextCollapsed }))}
+                                >
+                                  {contextCollapsed ? 'Mở ngữ liệu' : 'Thu ngữ liệu'}
+                                </button>
+                              ) : null}
+                              <button
+                                type="button"
+                                onClick={() => setCollapsedExamSections((current) => ({ ...current, [section.key]: !sectionCollapsed }))}
+                              >
+                                {sectionCollapsed ? 'Mở phần' : 'Thu phần'}
+                              </button>
+                            </div>
+                          </header>
 
-                      <div className="qb-exam-question-list">
-                        {section.items.map((item) => {
-                          const stemParts = splitExamStem(item.stem, item.position);
-                          const options = visibleOptions(item);
-                          return (
-                            <article className="qb-exam-question" key={`${selectedTest.id}-${item.id}-${item.position}`}>
-                              <div className="qb-exam-qnum">{String(item.position).padStart(2, '0')}</div>
-                              <div className="qb-exam-qbody">
-                                <strong>{stemParts.question || displayQuestionStem(item.stem, item.bundle_position)}</strong>
-                                {options.length ? (
-                                  <div className="qb-exam-options">
-                                    {options.map((option, optionIndex) => (
-                                      <span key={`${item.id}-${option.sourceIndex}`}>
-                                        <b>{String.fromCharCode(65 + optionIndex)}.</b> {option.text}
-                                      </span>
-                                    ))}
+                          {!sectionCollapsed ? (
+                            <>
+                              {section.context ? (
+                                <div className={contextCollapsed ? 'qb-exam-context is-collapsed' : 'qb-exam-context'}>
+                                  <div className="qb-exam-context-head">
+                                    <span>SHARED TEXT / INSTRUCTIONS</span>
+                                    <small>{section.context.length.toLocaleString('vi-VN')} ký tự</small>
                                   </div>
-                                ) : null}
-                                <div className="qb-card-meta qb-exam-meta">
-                                  {item.cefr ? <span>{item.cefr}</span> : null}
-                                  {item.cognitive_level ? <span>{cognitiveLabel(item.cognitive_level)}</span> : null}
-                                  {item.difficulty ? <span>Độ khó {item.difficulty}/5</span> : null}
-                                  {item.topic ? <span>{item.topic}</span> : null}
-                                  {item.grammar_point ? <span>{item.grammar_point}</span> : null}
+                                  {contextCollapsed
+                                    ? <p>{compact(section.context, 260)}</p>
+                                    : <div>{section.context}</div>}
                                 </div>
-                                {showExamAnswers ? (
-                                  <div className="qb-exam-answer">
-                                    <div><b>Đáp án {effectiveAnswer(item)}</b>{item.explanation ? <span>{item.explanation}</span> : null}</div>
-                                  </div>
-                                ) : null}
+                              ) : null}
+
+                              <div className="qb-exam-question-list">
+                                {section.items.map((item) => {
+                                  const stemParts = splitExamStem(item.stem, item.position);
+                                  const options = visibleOptions(item);
+                                  return (
+                                    <article className="qb-exam-question" key={`${selectedTest.id}-${item.id}-${item.position}`}>
+                                      <div className="qb-exam-qnum">{String(item.position).padStart(2, '0')}</div>
+                                      <div className="qb-exam-qbody">
+                                        <strong>{stemParts.question || displayQuestionStem(item.stem, item.bundle_position)}</strong>
+                                        {options.length ? (
+                                          <div className="qb-exam-options">
+                                            {options.map((option, optionIndex) => (
+                                              <span key={`${item.id}-${option.sourceIndex}`}>
+                                                <b>{String.fromCharCode(65 + optionIndex)}.</b> {option.text}
+                                              </span>
+                                            ))}
+                                          </div>
+                                        ) : null}
+                                        <div className="qb-card-meta qb-exam-meta">
+                                          {item.cefr ? <span>{item.cefr}</span> : null}
+                                          {item.cognitive_level ? <span>{cognitiveLabel(item.cognitive_level)}</span> : null}
+                                          {item.difficulty ? <span>Độ khó {item.difficulty}/5</span> : null}
+                                          {item.topic ? <span>{item.topic}</span> : null}
+                                          {item.grammar_point ? <span>{item.grammar_point}</span> : null}
+                                        </div>
+                                        {showExamAnswers ? (
+                                          <div className="qb-exam-answer">
+                                            <div><b>Đáp án {effectiveAnswer(item)}</b>{item.explanation ? <span>{item.explanation}</span> : null}</div>
+                                          </div>
+                                        ) : null}
+                                      </div>
+                                    </article>
+                                  );
+                                })}
                               </div>
-                            </article>
-                          );
-                        })}
-                      </div>
-                    </section>
-                  ))}
-                </div>
+                            </>
+                          ) : null}
+                        </section>
+                      );
+                    })}
+                  </div>
+                </>
               ) : null}
 
               {!examDetailLoading && !selectedTestItems.length ? (

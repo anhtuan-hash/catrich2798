@@ -10,9 +10,9 @@ const now = new Date().toISOString();
 for (const file of ['public/version.json', 'public/release-manifest.json']) {
   if (!fs.existsSync(file)) continue;
   const value = JSON.parse(fs.readFileSync(file, 'utf8'));
-  value.version = '11.6.37';
-  if (file.endsWith('version.json')) value.releaseName = 'Exam Quality Gate';
-  else value.release = 'Exam Quality Gate';
+  value.version = '11.6.38';
+  if (file.endsWith('version.json')) value.releaseName = 'Exam Navigator';
+  else value.release = 'Exam Navigator';
   value.runtimeCore = '2.6.7';
   value.runtime = '2.6.7';
   value.requiresSql = false;
@@ -28,4 +28,4 @@ for (const file of ['public/version.json', 'public/release-manifest.json']) {
   fs.writeFileSync(file, JSON.stringify(value, null, 2) + '\n');
 }
 
-console.log('Version registry synchronized: 11.6.37 · Exam Quality Gate');
+console.log('Version registry synchronized: 11.6.38 · Exam Navigator');

@@ -141,3 +141,26 @@ html body #root .app-shell[data-route="assessment-core"] main#bes-main-content >
 .qb-quality-clean{padding:10px 12px;border-radius:11px;background:#eef8f2;color:#216c49;font-size:11px;font-weight:800}
 @media(max-width:900px){.qb-quality-summary{grid-template-columns:1fr 1fr}.qb-quality-columns,.qb-quality-messages{grid-template-columns:1fr}}
 @media(max-width:560px){.qb-quality-head{flex-direction:column}.qb-quality-badge{width:100%}.qb-quality-summary{grid-template-columns:1fr 1fr}.qb-quality-row{grid-template-columns:78px minmax(0,1fr) 54px}}
+
+
+/* Exam Navigator */
+.qb-exam-navigator{position:sticky;top:76px;z-index:18;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 10px;border:1px solid #dce3ee;border-radius:15px;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);box-shadow:0 10px 28px rgba(20,33,61,.08)}
+.qb-exam-nav-scroll{display:flex;gap:7px;overflow-x:auto;scrollbar-width:thin;padding-bottom:1px}
+.qb-exam-nav-scroll>button{display:grid;grid-template-columns:auto minmax(80px,1fr) auto;align-items:center;gap:6px;min-width:max-content;border:1px solid #e0e5ee;border-radius:10px;background:#f8faff;padding:8px 9px;font:inherit;color:#4e5a72;cursor:pointer}
+.qb-exam-nav-scroll>button:hover,.qb-exam-nav-scroll>button.is-active{border-color:#9fb5e8;background:#edf3ff;color:#214eaa}
+.qb-exam-nav-scroll b{font-size:10px;color:#315fc4}.qb-exam-nav-scroll span{font-size:10px;font-weight:800}.qb-exam-nav-scroll small{font-size:9px;color:#8993a5}
+.qb-exam-nav-tools{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.qb-exam-nav-tools button,.qb-exam-section-tools button{border:1px solid #dfe5ee;background:#fff;border-radius:9px;padding:7px 9px;font:inherit;font-size:10px;font-weight:800;color:#526079;cursor:pointer}
+.qb-exam-nav-tools button:hover,.qb-exam-section-tools button:hover,.qb-exam-nav-tools button.is-active{background:#17233f;color:#fff;border-color:#17233f}
+.qb-exam-section{scroll-margin-top:150px}
+.qb-exam-section.is-collapsed>header{border-bottom:0}
+.qb-exam-section-tools{display:flex;align-items:center;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.qb-exam-section-tools>b{font-size:11px;color:#65718a;padding:7px 9px;border-radius:9px;background:#fff;border:1px solid #e0e5ef;white-space:nowrap}
+.qb-exam-context-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.qb-exam-context-head>span{display:block;color:#866d2d;font-size:9px;font-weight:900;letter-spacing:.09em}
+.qb-exam-context-head>small{font-size:9px;color:#99907d}
+.qb-exam-context.is-collapsed{background:#fffdf7}
+.qb-exam-context.is-collapsed p{margin:0;color:#777066;font-size:11px;line-height:1.55;font-style:italic}
+.qb-exam-sections.is-focus-mode .qb-exam-section{box-shadow:0 14px 40px rgba(20,33,61,.08)}
+@media(max-width:980px){.qb-exam-navigator{top:68px;grid-template-columns:1fr}.qb-exam-nav-tools{justify-content:flex-start}.qb-exam-section{scroll-margin-top:190px}}
+@media(max-width:620px){.qb-exam-navigator{top:58px;padding:8px}.qb-exam-nav-scroll>button{grid-template-columns:auto auto;min-width:116px}.qb-exam-nav-scroll>button span{grid-column:1/-1;white-space:nowrap}.qb-exam-nav-tools{display:grid;grid-template-columns:1fr 1fr}.qb-exam-nav-tools button:first-child{grid-column:1/-1}.qb-exam-section>header{gap:10px}.qb-exam-section-tools{width:100%;justify-content:flex-start}}
