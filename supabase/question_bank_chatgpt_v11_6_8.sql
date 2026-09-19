@@ -32,9 +32,9 @@ on public.assessment_bundles
 for select
 to authenticated
 using (
-  owner_id = auth.uid()
+  owner_id = (select auth.uid())
   or visibility = 'department'
-  or public.bes_v1093_is_leader(auth.uid())
+  or public.(select public.bes_v1093_is_leader((select auth.uid())))
 );
 
 drop policy if exists assessment_bundles_insert_brian_qb on public.assessment_bundles;
@@ -42,22 +42,22 @@ create policy assessment_bundles_insert_brian_qb
 on public.assessment_bundles
 for insert
 to authenticated
-with check (owner_id = auth.uid());
+with check (owner_id = (select auth.uid()));
 
 drop policy if exists assessment_bundles_update_brian_qb on public.assessment_bundles;
 create policy assessment_bundles_update_brian_qb
 on public.assessment_bundles
 for update
 to authenticated
-using (owner_id = auth.uid() or public.bes_v1093_is_leader(auth.uid()))
-with check (owner_id = auth.uid() or public.bes_v1093_is_leader(auth.uid()));
+using (owner_id = (select auth.uid()) or public.(select public.bes_v1093_is_leader((select auth.uid()))))
+with check (owner_id = (select auth.uid()) or public.(select public.bes_v1093_is_leader((select auth.uid()))));
 
 drop policy if exists assessment_bundles_delete_brian_qb on public.assessment_bundles;
 create policy assessment_bundles_delete_brian_qb
 on public.assessment_bundles
 for delete
 to authenticated
-using (owner_id = auth.uid() or public.bes_v1093_is_leader(auth.uid()));
+using (owner_id = (select auth.uid()) or public.(select public.bes_v1093_is_leader((select auth.uid()))));
 
 alter table public.assessment_items
   add column if not exists bundle_id uuid references public.assessment_bundles(id) on delete set null,
@@ -101,29 +101,29 @@ create policy question_bank_integrations_owner_select
 on public.question_bank_integrations
 for select
 to authenticated
-using (owner_id = auth.uid());
+using (owner_id = (select auth.uid()));
 
 drop policy if exists question_bank_integrations_owner_insert on public.question_bank_integrations;
 create policy question_bank_integrations_owner_insert
 on public.question_bank_integrations
 for insert
 to authenticated
-with check (owner_id = auth.uid());
+with check (owner_id = (select auth.uid()));
 
 drop policy if exists question_bank_integrations_owner_update on public.question_bank_integrations;
 create policy question_bank_integrations_owner_update
 on public.question_bank_integrations
 for update
 to authenticated
-using (owner_id = auth.uid())
-with check (owner_id = auth.uid());
+using (owner_id = (select auth.uid()))
+with check (owner_id = (select auth.uid()));
 
 drop policy if exists question_bank_integrations_owner_delete on public.question_bank_integrations;
 create policy question_bank_integrations_owner_delete
 on public.question_bank_integrations
 for delete
 to authenticated
-using (owner_id = auth.uid());
+using (owner_id = (select auth.uid()));
 
 create table if not exists public.assessment_import_events (
   id uuid primary key default gen_random_uuid(),
@@ -147,7 +147,7 @@ create policy assessment_import_events_owner_read
 on public.assessment_import_events
 for select
 to authenticated
-using (owner_id = auth.uid());
+using (owner_id = (select auth.uid()));
 
 create index if not exists assessment_bundles_owner_updated_idx
   on public.assessment_bundles(owner_id, updated_at desc);
@@ -171,6 +171,8 @@ create index if not exists assessment_tests_owner_updated_idx
   on public.assessment_tests(owner_id, updated_at desc);
 create index if not exists assessment_import_events_owner_created_idx
   on public.assessment_import_events(owner_id, created_at desc);
+create index if not exists assessment_import_events_integration_idx
+  on public.assessment_import_events(integration_id);
 
 revoke all on table public.assessment_bundles from anon;
 revoke all on table public.question_bank_integrations from anon;
