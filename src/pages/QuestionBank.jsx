@@ -663,7 +663,7 @@ OpenAPI: ${openApiUrl}`;
         </div>
       ) : null}
 
-      {!loading && activeTab === 'import' ? (
+      {activeTab === 'import' ? (
         <div className="qb-panel qb-paste-import">
           <div className="qb-section-head">
             <div><p>ZERO-COST IMPORT</p><h2>Nhập từ ChatGPT</h2></div>

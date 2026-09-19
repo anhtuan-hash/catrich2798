@@ -79,5 +79,6 @@ assert.ok(!/openai|anthropic|gemini/i.test(parserSource), 'zero-cost parser must
 assert.ok(pageSource.includes('Nhập từ ChatGPT'), 'Question Bank must expose the paste-import tab');
 assert.ok(pageSource.includes('Không gọi OpenAI API'), 'UI must state the zero-cost behavior');
 assert.ok(pageSource.includes("source_kind: 'chatgpt_paste'"), 'paste imports must be traceable by source kind');
+assert.ok(!pageSource.includes("!loading && activeTab === 'import'"), 'paste-import tab must not wait for Supabase sync');
 
 console.log('PASS: zero-cost Question Bank paste import parser and UI contract are intact.');
