@@ -342,6 +342,7 @@ OpenAPI: ${openApiUrl}`;
         topic: builderConfig.topic,
       },
       seed: builderSeed,
+      auditOptions: { isTnThpt: builderCriteria.preset === 'tnthpt_40' },
     }),
     [questions, bundles, builderConfig, builderSeed, builderCriteria],
   );
