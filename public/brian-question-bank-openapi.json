@@ -2,8 +2,8 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Brian Question Bank",
-    "version": "1.1.0",
-    "description": "Connect ChatGPT to Brian's Question Bank. Use saveBrianExam after completing a full exam, saveBrianQuestions for standalone or bundled questions, searchBrianQuestions to reuse existing items, and getBrianExam to reopen a saved exam. Preserve shared reading/cloze stimuli as bundle objects. Never request or transmit the user's Brian password."
+    "version": "1.2.0",
+    "description": "Connect ChatGPT to Brian's Question Bank. Full exams can contain multiple context bundles. Use exam.bundles with stable bundle keys, and set question.bundleKey so reading/cloze items are linked to the correct shared stimulus. Never request or transmit the user's Brian password."
   },
   "servers": [
     {
@@ -20,7 +20,7 @@
       "post": {
         "operationId": "saveBrianExam",
         "summary": "Save a completed exam to Brian",
-        "description": "Default persistence action after a complete exam has been drafted for the Brian-linked workflow. Save the full exam, answer key, explanations, metadata, optional blueprint, and any shared bundle context.",
+        "description": "Save a complete exam, answer key, explanations and metadata. For exams with multiple shared texts, send exam.bundles[] with unique bundle.key values and assign bundleKey on every related question. Arrangement/standalone questions may omit bundleKey.",
         "requestBody": {
           "required": true,
           "content": {
@@ -49,7 +49,7 @@
         },
         "responses": {
           "200": {
-            "description": "Exam saved. Returns the Brian test and question IDs."
+            "description": "Exam saved. Returns Brian test ID, ordered question IDs, and all linked bundle rows."
           },
           "400": {
             "description": "Invalid exam payload."
@@ -159,7 +159,7 @@
       "post": {
         "operationId": "getBrianExam",
         "summary": "Open a saved Brian exam",
-        "description": "Retrieve one exam and its ordered question items from the connected Brian account.",
+        "description": "Retrieve one exam, its ordered question items, option order, and linked bundle records from the connected Brian account.",
         "requestBody": {
           "required": true,
           "content": {
@@ -182,7 +182,7 @@
         },
         "responses": {
           "200": {
-            "description": "Saved exam and ordered items."
+            "description": "Saved exam, ordered items, and linked bundles."
           },
           "401": {
             "description": "Connection key missing, invalid, or inactive."
@@ -270,6 +270,10 @@
           "metadata": {
             "type": "object",
             "additionalProperties": true
+          },
+          "key": {
+            "type": "string",
+            "description": "Stable key used only inside the exam payload to link questions to this bundle, for example reading10_1 or functional_cloze_2."
           }
         },
         "additionalProperties": true
@@ -379,6 +383,10 @@
           },
           "points": {
             "type": "number"
+          },
+          "bundleKey": {
+            "type": "string",
+            "description": "When saving a full exam with exam.bundles, set this to the matching bundle.key. Omit for standalone questions such as arrangement items."
           }
         },
         "additionalProperties": true
@@ -447,7 +455,8 @@
             "type": "string"
           },
           "bundle": {
-            "$ref": "#/components/schemas/Bundle"
+            "$ref": "#/components/schemas/Bundle",
+            "description": "Legacy single-bundle field. Prefer bundles[] + question.bundleKey for a full exam with several reading/cloze blocks."
           },
           "blueprint": {
             "type": "object",
@@ -467,6 +476,13 @@
             "maxItems": 200,
             "items": {
               "$ref": "#/components/schemas/Question"
+            }
+          },
+          "bundles": {
+            "type": "array",
+            "description": "Preferred for full exams containing multiple passages/texts. Give every bundle a unique key and reference it from each related question using bundleKey.",
+            "items": {
+              "$ref": "#/components/schemas/Bundle"
             }
           }
         },

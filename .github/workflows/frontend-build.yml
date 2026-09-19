@@ -160,6 +160,9 @@ jobs:
       - name: Verify Question Bank exam manager
         run: node scripts/test-question-bank-exam-manager.mjs
 
+      - name: Verify Question Bank multi-bundle exams
+        run: node scripts/test-question-bank-multi-bundle-exam.mjs
+
       - name: Verify critical browser smoke gate
         run: node scripts/test-critical-e2e-contract.mjs
 
