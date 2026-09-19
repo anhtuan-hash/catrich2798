@@ -339,6 +339,8 @@ OpenAPI: ${openApiUrl}`;
         grade: builderConfig.grade || builderCriteria.grade,
         cefr: builderConfig.cefr || builderCriteria.cefr,
         cognitiveLevel: builderConfig.cognitiveLevel,
+        cognitiveTargets: builderCriteria.cognitiveTargets,
+        totalItems: activeBuilderBlueprint.total_items || 40,
         topic: builderConfig.topic,
       },
       seed: builderSeed,
@@ -800,6 +802,10 @@ OpenAPI: ${openApiUrl}`;
     }
     if (!builderSelection.audit.ready) {
       setMessage(`Bản ráp hiện còn ${builderSelection.audit.errors.length} lỗi bắt buộc. Chưa thể lưu đề.`);
+      return;
+    }
+    if (builderCriteria.enforceCognitive && !builderCognitiveFit.withinTolerance) {
+      setMessage('Tỉ lệ nhận thức đang nằm ngoài sai số cho phép của ma trận. Hãy Xáo lựa chọn hoặc bổ sung câu phù hợp vào ngân hàng.');
       return;
     }
 
@@ -1438,7 +1444,7 @@ OpenAPI: ${openApiUrl}`;
                     <span>NB {criteria.cognitiveTargets.recognition}%</span>
                     <span>TH {criteria.cognitiveTargets.comprehension}%</span>
                     <span>VD {criteria.cognitiveTargets.application}%</span>
-                    <span>±{criteria.tolerance}%</span>
+                    <span>±{criteria.tolerance}%</span>{criteria.enforceCognitive ? <span>Bắt buộc</span> : null}
                   </div>
                   <div className="qb-blueprint-card-actions">
                     <button type="button" className="qb-primary" onClick={() => useBlueprintInBuilder(blueprint)}>Dùng tạo đề</button>
@@ -1476,6 +1482,7 @@ OpenAPI: ${openApiUrl}`;
               <label><span>Thông hiểu</span><div><input type="number" min="0" max="100" value={blueprintDraft.criteria.cognitiveTargets.comprehension} onChange={(event) => updateBlueprintCriteria({ cognitiveTargets: { ...blueprintDraft.criteria.cognitiveTargets, comprehension: Number(event.target.value) } })} /><b>%</b></div></label>
               <label><span>Vận dụng</span><div><input type="number" min="0" max="100" value={blueprintDraft.criteria.cognitiveTargets.application} onChange={(event) => updateBlueprintCriteria({ cognitiveTargets: { ...blueprintDraft.criteria.cognitiveTargets, application: Number(event.target.value) } })} /><b>%</b></div></label>
               <label><span>Sai số cho phép</span><div><input type="number" min="0" max="50" value={blueprintDraft.criteria.tolerance} onChange={(event) => updateBlueprintCriteria({ tolerance: Number(event.target.value) })} /><b>%</b></div></label>
+              <label className="qb-blueprint-enforce"><input type="checkbox" checked={Boolean(blueprintDraft.criteria.enforceCognitive)} onChange={(event) => updateBlueprintCriteria({ enforceCognitive: event.target.checked })} /><span>Bắt buộc tỉ lệ khi tạo đề</span></label>
             </div>
 
             <div className="qb-blueprint-parts">
@@ -1573,7 +1580,7 @@ OpenAPI: ${openApiUrl}`;
               </div>
               <div className="qb-builder-actions">
                 <button type="button" className="qb-secondary" onClick={() => setBuilderSeed((value) => value + 1)}>↻ Xáo lựa chọn</button>
-                <button type="button" className="qb-primary" onClick={saveBuiltExam} disabled={builderSaving || !builderSelection.complete || !builderSelection.audit.ready}>
+                <button type="button" className="qb-primary" onClick={saveBuiltExam} disabled={builderSaving || !builderSelection.complete || !builderSelection.audit.ready || (builderCriteria.enforceCognitive && !builderCognitiveFit.withinTolerance)}>
                   {builderSaving ? 'Đang tạo đề…' : 'Tạo đề ' + (activeBuilderBlueprint.total_items || builderSelection.items.length) + ' câu'}
                 </button>
               </div>
@@ -1630,7 +1637,7 @@ OpenAPI: ${openApiUrl}`;
               <article><span>Nhận biết</span><strong>{builderSelection.audit.distributions.cognitive.recognition || 0}</strong><small>{builderCognitiveFit.actual.recognition}% / mục tiêu {builderCognitiveFit.target.recognition}%</small></article>
               <article><span>Thông hiểu</span><strong>{builderSelection.audit.distributions.cognitive.comprehension || 0}</strong><small>{builderCognitiveFit.actual.comprehension}% / mục tiêu {builderCognitiveFit.target.comprehension}%</small></article>
               <article><span>Vận dụng</span><strong>{builderSelection.audit.distributions.cognitive.application || 0}</strong><small>{builderCognitiveFit.actual.application}% / mục tiêu {builderCognitiveFit.target.application}%</small></article>
-              <article><span>Đáp án A/B/C/D</span><strong>{Object.values(builderSelection.audit.distributions.answers).join(' / ')}</strong><small>{builderCognitiveFit.withinTolerance ? 'Nhận thức trong sai số ±' + builderCognitiveFit.tolerance + '%' : 'Nhận thức lệch mục tiêu'}</small></article>
+              <article><span>Đáp án A/B/C/D</span><strong>{Object.values(builderSelection.audit.distributions.answers).join(' / ')}</strong><small>{builderCognitiveFit.withinTolerance ? 'Nhận thức trong sai số ±' + builderCognitiveFit.tolerance + '%' : builderCriteria.enforceCognitive ? 'Lệch mục tiêu · đang khóa lưu' : 'Nhận thức lệch mục tiêu'}</small></article>
             </div>
 
             {builderSelection.audit.warnings.length ? (
