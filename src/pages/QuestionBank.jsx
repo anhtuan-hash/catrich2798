@@ -2,6 +2,10 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../utils/supabase.js';
 import { parseQuestionBankPaste } from '../utils/questionBankPasteParser.js';
 import {
+  builderAvailability,
+  selectExamFromBank,
+} from '../utils/questionBankExamBuilder.js';
+import {
   auditExamQuality,
   buildExamExportHtml,
   buildExamSections,
@@ -16,6 +20,7 @@ import './QuestionBank.css';
 const TABS = [
   ['questions', 'Kho câu hỏi'],
   ['bundles', 'Chùm bài'],
+  ['builder', 'Tạo đề'],
   ['tests', 'Đề thi'],
   ['import', 'Nhập từ ChatGPT'],
   ['chatgpt', 'API / Plugin'],
@@ -130,6 +135,17 @@ export default function QuestionBank({ currentUser }) {
   const [bundles, setBundles] = useState([]);
   const [tests, setTests] = useState([]);
   const [testCounts, setTestCounts] = useState({});
+  const [builderSeed, setBuilderSeed] = useState(1);
+  const [builderSaving, setBuilderSaving] = useState(false);
+  const [builderConfig, setBuilderConfig] = useState({
+    title: 'Đề TN THPT từ ngân hàng – Set mới',
+    grade: '12',
+    schoolYear: '2026-2027',
+    durationMinutes: '50',
+    cefr: 'B1-B2',
+    cognitiveLevel: '',
+    topic: '',
+  });
   const [selectedTest, setSelectedTest] = useState(null);
   const [selectedTestItems, setSelectedTestItems] = useState([]);
   const [examDetailLoading, setExamDetailLoading] = useState(false);
@@ -268,6 +284,25 @@ OpenAPI: ${openApiUrl}`;
     tests: tests.length,
     total: questions.length,
   }), [questions, bundles, tests]);
+
+  const builderStock = useMemo(
+    () => builderAvailability(questions, bundles),
+    [questions, bundles],
+  );
+  const builderSelection = useMemo(
+    () => selectExamFromBank({
+      questions,
+      bundles,
+      filters: {
+        grade: builderConfig.grade,
+        cefr: builderConfig.cefr,
+        cognitiveLevel: builderConfig.cognitiveLevel,
+        topic: builderConfig.topic,
+      },
+      seed: builderSeed,
+    }),
+    [questions, bundles, builderConfig, builderSeed],
+  );
 
   const selectedExamSections = useMemo(
     () => buildExamSections(selectedTestItems),
@@ -536,6 +571,92 @@ OpenAPI: ${openApiUrl}`;
       setMessage(error?.message || 'Không thể lưu nội dung đã dán.');
     } finally {
       setPasteSaving(false);
+    }
+  };
+
+  const saveBuiltExam = async () => {
+    if (!userId || !supabase || builderSaving) return;
+    if (!builderSelection.complete) {
+      setMessage('Ngân hàng chưa đủ dữ liệu để ráp đúng cấu trúc 40 câu. Xem các mục còn thiếu trong Tạo đề.');
+      return;
+    }
+    if (!builderSelection.audit.ready) {
+      setMessage(`Bản ráp hiện còn ${builderSelection.audit.errors.length} lỗi bắt buộc. Chưa thể lưu đề.`);
+      return;
+    }
+
+    const title = text(builderConfig.title) || 'Đề TN THPT từ ngân hàng';
+    const durationMinutes = Math.max(1, Math.min(600, Number.parseInt(builderConfig.durationMinutes, 10) || 50));
+    setBuilderSaving(true);
+    setMessage('');
+    let newTest = null;
+    try {
+      const now = new Date().toISOString();
+      const insertResult = await supabase.from('assessment_tests').insert({
+        owner_id: userId,
+        visibility: 'personal',
+        title,
+        status: 'draft',
+        settings: {
+          durationMinutes,
+          builder: 'question-bank',
+          builderSeed,
+          blueprint: 'tnthpt_40',
+        },
+        grade: Number.parseInt(builderConfig.grade, 10) || 12,
+        school_year: text(builderConfig.schoolYear),
+        tags: ['TNTHPT2025-2026', 'bank-builder', 'no-ai-cost'],
+        source_kind: 'manual',
+        source_reference: 'Brian Question Bank Builder',
+        import_metadata: {
+          builder: 'question-bank',
+          createdAt: now,
+          filters: {
+            cefr: builderConfig.cefr,
+            cognitiveLevel: builderConfig.cognitiveLevel,
+            topic: builderConfig.topic,
+          },
+          audit: {
+            structureOk: builderSelection.audit.structureOk,
+            warningCount: builderSelection.audit.warnings.length,
+          },
+        },
+        updated_at: now,
+      }).select('*').single();
+      if (insertResult.error) throw insertResult.error;
+      newTest = insertResult.data;
+
+      const joinRows = builderSelection.items.map((item) => ({
+        test_id: newTest.id,
+        item_id: item.id,
+        position: Number(item.position),
+        option_order: [],
+        points: 1,
+      }));
+      const joinResult = await supabase.from('assessment_test_items').insert(joinRows);
+      if (joinResult.error) throw joinResult.error;
+
+      try {
+        await supabase.rpc('bes_assessment_increment_usage', {
+          p_item_ids: builderSelection.items.map((item) => item.id),
+        });
+      } catch {
+        // Usage statistics are non-critical; the exam itself is already valid.
+      }
+
+      await loadData();
+      setActiveTab('tests');
+      await openExam(newTest);
+      setMessage('Đã tạo đề 40 câu từ ngân hàng, không gọi AI và không phát sinh phí AI.');
+      setBuilderSeed((value) => value + 1);
+    } catch (error) {
+      if (newTest?.id) {
+        await supabase.from('assessment_test_items').delete().eq('test_id', newTest.id);
+        await supabase.from('assessment_tests').delete().eq('id', newTest.id).eq('owner_id', userId);
+      }
+      setMessage(error?.message || 'Không thể tạo đề từ ngân hàng.');
+    } finally {
+      setBuilderSaving(false);
     }
   };
 
