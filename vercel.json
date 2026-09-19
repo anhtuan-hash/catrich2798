@@ -112,6 +112,22 @@
       "destination": "/api/news-feed?scope=article"
     },
     {
+      "source": "/api/question-bank/get-exam",
+      "destination": "/api/gateway?handler=question-bank&action=get_exam"
+    },
+    {
+      "source": "/api/question-bank/search-questions",
+      "destination": "/api/gateway?handler=question-bank&action=search_questions"
+    },
+    {
+      "source": "/api/question-bank/save-exam",
+      "destination": "/api/gateway?handler=question-bank&action=save_exam"
+    },
+    {
+      "source": "/api/question-bank/save-questions",
+      "destination": "/api/gateway?handler=question-bank&action=save_questions"
+    },
+    {
       "source": "/api/question-bank",
       "destination": "/api/gateway?handler=question-bank"
     },
