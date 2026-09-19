@@ -53,13 +53,37 @@ function gradeValue(value) {
   return grade || null;
 }
 
-function visibilityValue(value) {
-  return cleanInline(value, 32).toLowerCase() === 'department' ? 'department' : 'private';
+function legacyVisibilityValue(value) {
+  const visibility = cleanInline(value, 32).toLowerCase();
+  return visibility === 'department' ? 'department' : 'personal';
 }
 
-function statusValue(value) {
+function bundleVisibilityValue(value) {
+  const visibility = cleanInline(value, 32).toLowerCase();
+  return visibility === 'department' ? 'department' : 'private';
+}
+
+function itemStatusValue(value) {
+  const status = cleanInline(value, 32).toLowerCase();
+  if (['draft', 'approved', 'retired', 'archived'].includes(status)) return status;
+  if (status === 'review') return 'draft';
+  if (status === 'published') return 'approved';
+  if (status === 'closed') return 'archived';
+  return 'draft';
+}
+
+function bundleStatusValue(value) {
   const status = cleanInline(value, 32).toLowerCase();
   return ['draft', 'approved', 'archived', 'review'].includes(status) ? status : 'draft';
+}
+
+function testStatusValue(value) {
+  const status = cleanInline(value, 32).toLowerCase();
+  if (['draft', 'published', 'closed', 'archived'].includes(status)) return status;
+  if (status === 'approved') return 'published';
+  if (status === 'review') return 'draft';
+  if (status === 'retired') return 'archived';
+  return 'draft';
 }
 
 function cognitiveValue(value) {
@@ -188,7 +212,7 @@ async function saveBundle(session, bundle, payloadMeta) {
 
   const row = {
     owner_id: session.ownerId,
-    visibility: visibilityValue(bundle.visibility),
+    visibility: bundleVisibilityValue(bundle.visibility),
     title,
     bundle_type: cleanInline(bundle.bundleType ?? bundle.bundle_type ?? 'passage', 80) || 'passage',
     context_text: contextText,
@@ -201,7 +225,7 @@ async function saveBundle(session, bundle, payloadMeta) {
     source: cleanInline(bundle.source ?? payloadMeta.source ?? 'ChatGPT', 500),
     source_kind: 'chatgpt',
     source_reference: cleanText(bundle.sourceReference ?? bundle.source_reference ?? payloadMeta.sourceReference ?? '', 1000),
-    status: statusValue(bundle.status),
+    status: bundleStatusValue(bundle.status),
     fingerprint,
     metadata: {
       ...(bundle.metadata && typeof bundle.metadata === 'object' ? bundle.metadata : {}),
@@ -234,8 +258,8 @@ function questionRow(question, session, bundleInfo, payloadMeta, index) {
     owner_id: session.ownerId,
     bundle_id: bundleInfo.row?.id || null,
     bundle_position: bundleInfo.row ? (clampInt(question.bundlePosition ?? question.bundle_position, 1, 999, index + 1)) : null,
-    visibility: visibilityValue(question.visibility ?? payloadMeta.visibility),
-    status: statusValue(question.status ?? payloadMeta.status),
+    visibility: legacyVisibilityValue(question.visibility ?? payloadMeta.visibility),
+    status: itemStatusValue(question.status ?? payloadMeta.status),
     question_type: cleanInline(question.questionType ?? question.question_type ?? 'mcq', 80) || 'mcq',
     stem: cleanText(question.stem ?? question.question ?? '', 30000),
     options,
@@ -348,7 +372,7 @@ async function saveExam(session, payload) {
   if (blueprint) {
     const { data, error } = await session.db.from('assessment_blueprints').insert({
       owner_id: session.ownerId,
-      visibility: visibilityValue(blueprint.visibility ?? exam.visibility),
+      visibility: legacyVisibilityValue(blueprint.visibility ?? exam.visibility),
       title: cleanInline(blueprint.title || `${exam.title || 'Exam'} blueprint`, 500),
       total_items: savedQuestions.itemIds.length,
       criteria: blueprint.criteria && typeof blueprint.criteria === 'object' ? blueprint.criteria : blueprint,
@@ -361,9 +385,9 @@ async function saveExam(session, payload) {
   const testRow = {
     owner_id: session.ownerId,
     blueprint_id: blueprintId,
-    visibility: visibilityValue(exam.visibility),
+    visibility: legacyVisibilityValue(exam.visibility),
     title: cleanInline(exam.title || 'ChatGPT exam', 500),
-    status: statusValue(exam.status),
+    status: testStatusValue(exam.status),
     grade: gradeValue(exam.grade),
     school_year: cleanInline(exam.schoolYear ?? exam.school_year ?? '', 40),
     tags: cleanArray(exam.tags, 24, 120),
@@ -428,7 +452,7 @@ async function searchQuestions(session, payload) {
   if (filters.skill) query = query.eq('skill', cleanInline(filters.skill, 120));
   if (filters.questionType || filters.question_type) query = query.eq('question_type', cleanInline(filters.questionType ?? filters.question_type, 80));
   if (filters.cognitiveLevel || filters.cognitive_level) query = query.eq('cognitive_level', cognitiveValue(filters.cognitiveLevel ?? filters.cognitive_level));
-  if (filters.status) query = query.eq('status', statusValue(filters.status));
+  if (filters.status) query = query.eq('status', itemStatusValue(filters.status));
   if (filters.topic) query = query.ilike('topic', `%${cleanInline(filters.topic, 120)}%`);
   if (filters.grammarPoint || filters.grammar_point) query = query.ilike('grammar_point', `%${cleanInline(filters.grammarPoint ?? filters.grammar_point, 120)}%`);
   const term = cleanInline(filters.query ?? filters.search ?? '', 160).replace(/[%_]/g, '');
