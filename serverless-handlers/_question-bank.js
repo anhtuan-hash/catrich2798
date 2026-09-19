@@ -365,6 +365,93 @@ async function saveQuestions(session, payload, { recordEvent = true } = {}) {
   };
 }
 
+async function saveExamQuestions(session, questions, exam, payload, meta) {
+  const bundles = Array.isArray(exam.bundles)
+    ? exam.bundles.filter((bundle) => bundle && typeof bundle === 'object')
+    : [];
+
+  if (!bundles.length) {
+    const legacy = await saveQuestions(session, {
+      questions,
+      bundle: exam.bundle || payload.bundle,
+      meta,
+    }, { recordEvent: false });
+    return {
+      ...legacy,
+      bundleRows: legacy.bundle ? [legacy.bundle] : [],
+      bundleCreatedCount: legacy.bundleCreated ? 1 : 0,
+    };
+  }
+
+  const bundleDefs = new Map();
+  bundles.forEach((bundle, index) => {
+    const key = cleanInline(bundle.key ?? bundle.bundleKey ?? bundle.bundle_key ?? `bundle-${index + 1}`, 120)
+      || `bundle-${index + 1}`;
+    if (bundleDefs.has(key)) {
+      throw Object.assign(new Error(`Duplicate exam bundle key: ${key}`), { status: 400 });
+    }
+    bundleDefs.set(key, bundle);
+  });
+
+  const groups = new Map();
+  const standalone = [];
+  questions.forEach((question, index) => {
+    const key = cleanInline(question?.bundleKey ?? question?.bundle_key ?? '', 120);
+    if (!key) {
+      standalone.push(index);
+      return;
+    }
+    if (!bundleDefs.has(key)) {
+      throw Object.assign(new Error(`Question ${index + 1} references unknown bundleKey "${key}".`), { status: 400 });
+    }
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(index);
+  });
+
+  const orderedItems = new Array(questions.length);
+  let importedCount = 0;
+  let reusedCount = 0;
+  let bundleCreatedCount = 0;
+  const bundleRows = [];
+
+  const persistGroup = async (indexes, bundle) => {
+    if (!indexes.length) return;
+    const result = await saveQuestions(session, {
+      questions: indexes.map((index) => questions[index]),
+      bundle,
+      meta,
+    }, { recordEvent: false });
+    result.items.forEach((item, localIndex) => {
+      orderedItems[indexes[localIndex]] = item;
+    });
+    importedCount += result.importedCount;
+    reusedCount += result.reusedCount;
+    if (result.bundle) bundleRows.push(result.bundle);
+    if (result.bundleCreated) bundleCreatedCount += 1;
+  };
+
+  for (const [key, indexes] of groups.entries()) {
+    await persistGroup(indexes, bundleDefs.get(key));
+  }
+  await persistGroup(standalone, null);
+
+  const missing = orderedItems.findIndex((item) => !item?.id);
+  if (missing >= 0) {
+    throw new Error(`Question ${missing + 1} could not be persisted in the exam.`);
+  }
+
+  return {
+    items: orderedItems,
+    itemIds: orderedItems.map((row) => row.id),
+    importedCount,
+    reusedCount,
+    bundleRows,
+    bundleCreatedCount,
+    bundle: bundleRows.length === 1 ? bundleRows[0] : null,
+    bundleCreated: bundleCreatedCount > 0,
+  };
+}
+
 async function saveExam(session, payload) {
   const exam = payload.exam && typeof payload.exam === 'object' ? payload.exam : payload;
   const questions = Array.isArray(exam.questions) ? exam.questions : [];
@@ -380,11 +467,7 @@ async function saveExam(session, payload) {
     visibility: exam.visibility,
     status: exam.questionStatus ?? 'draft',
   };
-  const savedQuestions = await saveQuestions(session, {
-    questions,
-    bundle: exam.bundle || payload.bundle,
-    meta,
-  }, { recordEvent: false });
+  const savedQuestions = await saveExamQuestions(session, questions, exam, payload, meta);
 
   let blueprintId = null;
   const blueprint = exam.blueprint && typeof exam.blueprint === 'object' ? exam.blueprint : null;
@@ -447,13 +530,18 @@ async function saveExam(session, payload) {
   await recordImport(session, payload, {
     importedItems: savedQuestions.importedCount,
     reusedItems: savedQuestions.reusedCount,
-    importedBundles: savedQuestions.bundleCreated ? 1 : 0,
+    importedBundles: Number(savedQuestions.bundleCreatedCount || (savedQuestions.bundleCreated ? 1 : 0)),
     importedTests: 1,
     title: test.title,
     testId: test.id,
   });
 
-  return { test, questionIds: savedQuestions.itemIds, bundle: savedQuestions.bundle };
+  return {
+    test,
+    questionIds: savedQuestions.itemIds,
+    bundle: savedQuestions.bundle,
+    bundles: savedQuestions.bundleRows || (savedQuestions.bundle ? [savedQuestions.bundle] : []),
+  };
 }
 
 async function searchQuestions(session, payload) {
@@ -502,13 +590,35 @@ async function getExam(session, payload) {
   if (joinError) throw new Error(joinError.message);
   const ids = (joins || []).map((row) => row.item_id);
   let items = [];
+  let bundles = [];
   if (ids.length) {
     const { data, error: itemsError } = await session.db.from('assessment_items').select('*').in('id', ids);
     if (itemsError) throw new Error(itemsError.message);
     const map = new Map((data || []).map((item) => [item.id, item]));
-    items = (joins || []).map((join) => ({ ...map.get(join.item_id), position: join.position, points: join.points, option_order: join.option_order }));
+    const bundleIds = [...new Set((data || []).map((item) => item.bundle_id).filter(Boolean))];
+    let bundleMap = new Map();
+    if (bundleIds.length) {
+      const { data: bundleRows, error: bundleError } = await session.db
+        .from('assessment_bundles')
+        .select('*')
+        .eq('owner_id', session.ownerId)
+        .in('id', bundleIds);
+      if (bundleError) throw new Error(bundleError.message);
+      bundles = bundleRows || [];
+      bundleMap = new Map(bundles.map((bundle) => [bundle.id, bundle]));
+    }
+    items = (joins || []).map((join) => {
+      const item = map.get(join.item_id) || {};
+      return {
+        ...item,
+        position: join.position,
+        points: join.points,
+        option_order: join.option_order,
+        bundle: item.bundle_id ? (bundleMap.get(item.bundle_id) || null) : null,
+      };
+    });
   }
-  return { test, items };
+  return { test, items, bundles };
 }
 
 async function recordImport(session, payload, counts) {
