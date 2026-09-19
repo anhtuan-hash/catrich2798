@@ -1,0 +1,44 @@
+.ahv3__shell .ahv3__actions .ahv3__adjust-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid #a9dec5 !important;
+  background: #ecfaf3 !important;
+  color: #17794d !important;
+  cursor: pointer;
+}
+
+.ahv3__shell .ahv3__actions .ahv3__adjust-button:hover:not(:disabled) {
+  border-color: #72c79f !important;
+  background: #def6ea !important;
+  color: #0e6a40 !important;
+}
+
+.ahv3__shell .ahv3__adjust-button:disabled {
+  opacity: .62;
+  cursor: wait;
+}
+
+@media (max-width: 900px) {
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-sheet-actions .ahv3__adjust-button.is-mobile-proxy {
+    order: -1 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    width: 100% !important;
+    min-height: 50px !important;
+    margin: 0 !important;
+    border: 1px solid #168456 !important;
+    border-radius: 13px !important;
+    background: #15945a !important;
+    color: #fff !important;
+    box-shadow: 0 8px 18px rgba(21, 148, 90, .16) !important;
+    font: 800 12px/1.2 system-ui, sans-serif !important;
+  }
+
+  html body .attendance-shell.ah-history-v5 .ahv3__mobile-sheet-actions .ahv3__adjust-button.is-mobile-proxy:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+}
