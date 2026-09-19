@@ -58,6 +58,13 @@ export const APP_DESIGN_PROFILES = {
     icon: 'lesson',
     style: 'Lesson canvas',
     styleVi: 'Khung giáo án sáng tạo'},
+  'assessment-core': {
+    accent: '#315FC4',
+    soft: '#EAF0FF',
+    ink: '#14213D',
+    icon: 'exam',
+    style: 'Question bank workspace',
+    styleVi: 'Ngân hàng câu hỏi & đề thi'},
   'exam-studio': {
     accent: '#123C69',
     soft: '#DCEBFA',
