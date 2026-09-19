@@ -106,7 +106,7 @@ const page = fs.readFileSync('src/pages/QuestionBank.jsx', 'utf8');
 for (const token of [
   "['builder', 'Tạo đề']",
   'ZERO-COST TEST BUILDER',
-  'Tạo đề 40 câu',
+  'Tạo đề ',
   'Xáo lựa chọn',
   'Tồn kho phù hợp',
   'LIVE BLUEPRINT',
@@ -115,6 +115,6 @@ for (const token of [
   assert.ok(page.includes(token), `Question Bank builder missing: ${token}`);
 }
 assert.ok(page.includes("source_reference: 'Brian Question Bank Builder'"));
-assert.ok(page.includes("tags: ['TNTHPT2025-2026', 'bank-builder', 'no-ai-cost']"));
+assert.ok(page.includes("'bank-builder', 'no-ai-cost'"));
 
 console.log('PASS: zero-cost Question Bank Exam Builder contract is intact.');

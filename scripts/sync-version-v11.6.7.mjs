@@ -10,9 +10,9 @@ const now = new Date().toISOString();
 for (const file of ['public/version.json', 'public/release-manifest.json']) {
   if (!fs.existsSync(file)) continue;
   const value = JSON.parse(fs.readFileSync(file, 'utf8'));
-  value.version = '11.6.39';
-  if (file.endsWith('version.json')) value.releaseName = 'Question Bank Builder';
-  else value.release = 'Question Bank Builder';
+  value.version = '11.6.40';
+  if (file.endsWith('version.json')) value.releaseName = 'Blueprint Studio';
+  else value.release = 'Blueprint Studio';
   value.runtimeCore = '2.6.7';
   value.runtime = '2.6.7';
   value.requiresSql = false;
@@ -28,4 +28,4 @@ for (const file of ['public/version.json', 'public/release-manifest.json']) {
   fs.writeFileSync(file, JSON.stringify(value, null, 2) + '\n');
 }
 
-console.log('Version registry synchronized: 11.6.39 · Question Bank Builder');
+console.log('Version registry synchronized: 11.6.40 · Blueprint Studio');

@@ -6,6 +6,13 @@ import {
   selectExamFromBank,
 } from '../utils/questionBankExamBuilder.js';
 import {
+  BLUEPRINT_PART_CATALOG,
+  compareCognitiveTargets,
+  defaultBlueprintCriteria,
+  normalizeBlueprintCriteria,
+  validateBlueprint,
+} from '../utils/questionBankBlueprints.js';
+import {
   auditExamQuality,
   buildExamExportHtml,
   buildExamSections,
@@ -20,6 +27,7 @@ import './QuestionBank.css';
 const TABS = [
   ['questions', 'Kho câu hỏi'],
   ['bundles', 'Chùm bài'],
+  ['blueprints', 'Ma trận'],
   ['builder', 'Tạo đề'],
   ['tests', 'Đề thi'],
   ['import', 'Nhập từ ChatGPT'],
@@ -135,6 +143,16 @@ export default function QuestionBank({ currentUser }) {
   const [bundles, setBundles] = useState([]);
   const [tests, setTests] = useState([]);
   const [testCounts, setTestCounts] = useState({});
+  const [blueprints, setBlueprints] = useState([]);
+  const [selectedBuilderBlueprintId, setSelectedBuilderBlueprintId] = useState('builtin-tnthpt-40');
+  const [blueprintEditingId, setBlueprintEditingId] = useState('');
+  const [blueprintSaving, setBlueprintSaving] = useState(false);
+  const [blueprintDeleteArmed, setBlueprintDeleteArmed] = useState('');
+  const [blueprintDraft, setBlueprintDraft] = useState({
+    title: 'Ma trận TN THPT 40 câu',
+    visibility: 'personal',
+    criteria: defaultBlueprintCriteria(),
+  });
   const [builderSeed, setBuilderSeed] = useState(1);
   const [builderSaving, setBuilderSaving] = useState(false);
   const [builderConfig, setBuilderConfig] = useState({
@@ -223,7 +241,7 @@ OpenAPI: ${openApiUrl}`;
     setLoading(true);
     setMessage('');
     try {
-      const [itemsResult, bundlesResult, testsResult, integrationResult, eventsResult] = await Promise.all([
+      const [itemsResult, bundlesResult, testsResult, blueprintsResult, integrationResult, eventsResult] = await Promise.all([
         supabase.from('assessment_items')
           .select('id,bundle_id,bundle_position,status,question_type,stem,options,correct_answer,explanation,skill,cefr,topic,cognitive_level,difficulty,source,usage_count,grade,unit_name,school_year,grammar_point,tags,source_kind,source_reference,created_at,updated_at')
           .eq('owner_id', userId).order('updated_at', { ascending: false }).limit(500),
@@ -231,6 +249,8 @@ OpenAPI: ${openApiUrl}`;
           .select('*').eq('owner_id', userId).order('updated_at', { ascending: false }).limit(200),
         supabase.from('assessment_tests')
           .select('*').eq('owner_id', userId).order('updated_at', { ascending: false }).limit(200),
+        supabase.from('assessment_blueprints')
+          .select('*').eq('owner_id', userId).order('updated_at', { ascending: false }).limit(100),
         supabase.from('question_bank_integrations')
           .select('id,provider,label,active,last_used_at,created_at,updated_at')
           .eq('owner_id', userId).eq('provider', 'chatgpt').maybeSingle(),
@@ -238,7 +258,7 @@ OpenAPI: ${openApiUrl}`;
           .select('id,request_id,imported_items,reused_items,imported_bundles,imported_tests,details,created_at')
           .eq('owner_id', userId).order('created_at', { ascending: false }).limit(12),
       ]);
-      for (const result of [itemsResult, bundlesResult, testsResult, integrationResult, eventsResult]) {
+      for (const result of [itemsResult, bundlesResult, testsResult, blueprintsResult, integrationResult, eventsResult]) {
         if (result?.error) throw result.error;
       }
       const nextTests = testsResult.data || [];
@@ -256,6 +276,7 @@ OpenAPI: ${openApiUrl}`;
       setBundles(bundlesResult.data || []);
       setTests(nextTests);
       setTestCounts(counts);
+      setBlueprints(blueprintsResult.data || []);
       setIntegration(integrationResult.data || null);
       setImportEvents(eventsResult.data || []);
     } catch (error) {
@@ -289,19 +310,55 @@ OpenAPI: ${openApiUrl}`;
     () => builderAvailability(questions, bundles),
     [questions, bundles],
   );
+  const activeBuilderBlueprint = useMemo(() => {
+    if (selectedBuilderBlueprintId === 'builtin-tnthpt-40') {
+      return {
+        id: 'builtin-tnthpt-40',
+        title: 'TN THPT 40 câu · mặc định',
+        total_items: 40,
+        criteria: defaultBlueprintCriteria(),
+      };
+    }
+    return blueprints.find((item) => item.id === selectedBuilderBlueprintId) || {
+      id: 'builtin-tnthpt-40',
+      title: 'TN THPT 40 câu · mặc định',
+      total_items: 40,
+      criteria: defaultBlueprintCriteria(),
+    };
+  }, [blueprints, selectedBuilderBlueprintId]);
+  const builderCriteria = useMemo(
+    () => normalizeBlueprintCriteria(activeBuilderBlueprint.criteria || {}),
+    [activeBuilderBlueprint],
+  );
   const builderSelection = useMemo(
     () => selectExamFromBank({
       questions,
       bundles,
+      blueprint: builderCriteria.parts,
       filters: {
-        grade: builderConfig.grade,
-        cefr: builderConfig.cefr,
+        grade: builderConfig.grade || builderCriteria.grade,
+        cefr: builderConfig.cefr || builderCriteria.cefr,
         cognitiveLevel: builderConfig.cognitiveLevel,
+        cognitiveTargets: builderCriteria.cognitiveTargets,
+        totalItems: activeBuilderBlueprint.total_items || 40,
         topic: builderConfig.topic,
       },
       seed: builderSeed,
+      auditOptions: { isTnThpt: builderCriteria.preset === 'tnthpt_40' },
     }),
-    [questions, bundles, builderConfig, builderSeed],
+    [questions, bundles, builderConfig, builderSeed, builderCriteria],
+  );
+  const builderCognitiveFit = useMemo(
+    () => compareCognitiveTargets(
+      builderSelection.audit,
+      builderCriteria.cognitiveTargets,
+      builderCriteria.tolerance,
+    ),
+    [builderSelection.audit, builderCriteria],
+  );
+  const blueprintValidation = useMemo(
+    () => validateBlueprint(blueprintDraft.criteria),
+    [blueprintDraft.criteria],
   );
 
   const selectedExamSections = useMemo(
@@ -531,7 +588,7 @@ OpenAPI: ${openApiUrl}`;
       if (pasteMeta.saveAsExam && orderedItems.length) {
         const testInsert = await supabase.from('assessment_tests').insert({
           owner_id: userId,
-          blueprint_id: null,
+          blueprint_id: activeBuilderBlueprint.id === 'builtin-tnthpt-40' ? null : activeBuilderBlueprint.id,
           visibility: 'personal',
           title: text(pasteMeta.title || pastePreview.title || `Đề nhập từ ChatGPT · ${new Date().toLocaleDateString('vi-VN')}`),
           status: 'draft',
@@ -574,18 +631,185 @@ OpenAPI: ${openApiUrl}`;
     }
   };
 
+  const resetBlueprintDraft = () => {
+    setBlueprintEditingId('');
+    setBlueprintDeleteArmed('');
+    setBlueprintDraft({
+      title: 'Ma trận mới',
+      visibility: 'personal',
+      criteria: defaultBlueprintCriteria(),
+    });
+  };
+
+  const editBlueprint = (blueprint) => {
+    setBlueprintEditingId(blueprint.id);
+    setBlueprintDeleteArmed('');
+    setBlueprintDraft({
+      title: text(blueprint.title),
+      visibility: text(blueprint.visibility) === 'department' ? 'department' : 'personal',
+      criteria: normalizeBlueprintCriteria(blueprint.criteria || {}),
+    });
+    setActiveTab('blueprints');
+  };
+
+  const toggleBlueprintPart = (type) => {
+    const def = BLUEPRINT_PART_CATALOG.find((part) => part.type === type);
+    if (!def) return;
+    setBlueprintDraft((current) => {
+      const criteria = normalizeBlueprintCriteria(current.criteria);
+      const exists = criteria.parts.some((part) => part.type === type);
+      let parts;
+      if (exists) {
+        parts = criteria.parts.filter((part) => part.type !== type);
+      } else {
+        const part = def.mode === 'items'
+          ? { type: def.type, label: def.label, mode: 'items', count: def.defaultCount || 1 }
+          : {
+            type: def.type,
+            label: def.label,
+            mode: 'bundles',
+            bundleCount: def.defaultBundleCount || 1,
+            itemCount: def.fixedItemsPerBundle || 1,
+          };
+        const byType = new Map(criteria.parts.map((item) => [item.type, item]));
+        byType.set(type, part);
+        parts = BLUEPRINT_PART_CATALOG.map((catalog) => byType.get(catalog.type)).filter(Boolean);
+      }
+      return { ...current, criteria: { ...criteria, preset: 'custom', parts } };
+    });
+  };
+
+  const updateBlueprintPart = (type, patch) => {
+    setBlueprintDraft((current) => {
+      const criteria = normalizeBlueprintCriteria(current.criteria);
+      return {
+        ...current,
+        criteria: {
+          ...criteria,
+          preset: 'custom',
+          parts: criteria.parts.map((part) => part.type === type ? { ...part, ...patch } : part),
+        },
+      };
+    });
+  };
+
+  const updateBlueprintCriteria = (patch) => {
+    setBlueprintDraft((current) => ({
+      ...current,
+      criteria: { ...normalizeBlueprintCriteria(current.criteria), ...patch, preset: 'custom' },
+    }));
+  };
+
+  const saveBlueprint = async () => {
+    if (!userId || !supabase || blueprintSaving) return;
+    const validation = validateBlueprint(blueprintDraft.criteria);
+    if (!text(blueprintDraft.title)) {
+      setMessage('Tên ma trận không được để trống.');
+      return;
+    }
+    if (!validation.valid) {
+      setMessage(validation.errors[0] || 'Ma trận chưa hợp lệ.');
+      return;
+    }
+    setBlueprintSaving(true);
+    setMessage('');
+    try {
+      const row = {
+        owner_id: userId,
+        visibility: blueprintDraft.visibility === 'department' ? 'department' : 'personal',
+        title: text(blueprintDraft.title),
+        total_items: validation.total,
+        criteria: validation.normalized,
+        updated_at: new Date().toISOString(),
+      };
+      let result;
+      if (blueprintEditingId) {
+        result = await supabase.from('assessment_blueprints')
+          .update(row)
+          .eq('id', blueprintEditingId)
+          .eq('owner_id', userId)
+          .select('*')
+          .single();
+      } else {
+        result = await supabase.from('assessment_blueprints')
+          .insert(row)
+          .select('*')
+          .single();
+      }
+      if (result.error) throw result.error;
+      await loadData();
+      setBlueprintEditingId(result.data.id);
+      setBlueprintDraft({
+        title: result.data.title,
+        visibility: result.data.visibility === 'department' ? 'department' : 'personal',
+        criteria: normalizeBlueprintCriteria(result.data.criteria || {}),
+      });
+      setMessage(blueprintEditingId ? 'Đã cập nhật ma trận.' : 'Đã lưu ma trận mới.');
+    } catch (error) {
+      setMessage(error?.message || 'Không thể lưu ma trận.');
+    } finally {
+      setBlueprintSaving(false);
+    }
+  };
+
+  const deleteBlueprint = async (blueprint) => {
+    if (!blueprint?.id || !userId || !supabase) return;
+    if (blueprintDeleteArmed !== blueprint.id) {
+      setBlueprintDeleteArmed(blueprint.id);
+      setMessage('Nhấn “Xác nhận xóa” để xóa ma trận. Các đề đã tạo vẫn được giữ nguyên.');
+      return;
+    }
+    setBlueprintSaving(true);
+    try {
+      const result = await supabase.from('assessment_blueprints')
+        .delete()
+        .eq('id', blueprint.id)
+        .eq('owner_id', userId);
+      if (result.error) throw result.error;
+      if (selectedBuilderBlueprintId === blueprint.id) setSelectedBuilderBlueprintId('builtin-tnthpt-40');
+      if (blueprintEditingId === blueprint.id) resetBlueprintDraft();
+      await loadData();
+      setBlueprintDeleteArmed('');
+      setMessage('Đã xóa ma trận. Các đề đã tạo không bị xóa.');
+    } catch (error) {
+      setMessage(error?.message || 'Không thể xóa ma trận.');
+    } finally {
+      setBlueprintSaving(false);
+    }
+  };
+
+  const useBlueprintInBuilder = (blueprint) => {
+    const criteria = blueprint?.id === 'builtin-tnthpt-40'
+      ? defaultBlueprintCriteria()
+      : normalizeBlueprintCriteria(blueprint?.criteria || {});
+    const id = blueprint?.id || 'builtin-tnthpt-40';
+    setSelectedBuilderBlueprintId(id);
+    setBuilderConfig((current) => ({
+      ...current,
+      title: `${blueprint?.title || 'TN THPT 40 câu'} – Set mới`,
+      grade: criteria.grade || current.grade,
+      cefr: criteria.cefr || current.cefr,
+    }));
+    setBuilderSeed((value) => value + 1);
+    setActiveTab('builder');
+  };
+
   const saveBuiltExam = async () => {
     if (!userId || !supabase || builderSaving) return;
     if (!builderSelection.complete) {
-      setMessage('Ngân hàng chưa đủ dữ liệu để ráp đúng cấu trúc 40 câu. Xem các mục còn thiếu trong Tạo đề.');
+      setMessage('Ngân hàng chưa đủ dữ liệu để ráp đúng ma trận đang chọn. Xem các mục còn thiếu trong Tạo đề.');
       return;
     }
     if (!builderSelection.audit.ready) {
       setMessage(`Bản ráp hiện còn ${builderSelection.audit.errors.length} lỗi bắt buộc. Chưa thể lưu đề.`);
       return;
     }
+    if (builderCriteria.enforceCognitive && !builderCognitiveFit.withinTolerance) {
+      setMessage('Tỉ lệ nhận thức đang nằm ngoài sai số cho phép của ma trận. Hãy Xáo lựa chọn hoặc bổ sung câu phù hợp vào ngân hàng.');
+      return;
+    }
 
-    const title = text(builderConfig.title) || 'Đề TN THPT từ ngân hàng';
+    const title = text(builderConfig.title) || 'Đề từ Ngân hàng câu hỏi';
     const durationMinutes = Math.max(1, Math.min(600, Number.parseInt(builderConfig.durationMinutes, 10) || 50));
     setBuilderSaving(true);
     setMessage('');
@@ -594,6 +818,7 @@ OpenAPI: ${openApiUrl}`;
       const now = new Date().toISOString();
       const insertResult = await supabase.from('assessment_tests').insert({
         owner_id: userId,
+        blueprint_id: activeBuilderBlueprint.id === 'builtin-tnthpt-40' ? null : activeBuilderBlueprint.id,
         visibility: 'personal',
         title,
         status: 'draft',
@@ -601,11 +826,12 @@ OpenAPI: ${openApiUrl}`;
           durationMinutes,
           builder: 'question-bank',
           builderSeed,
-          blueprint: 'tnthpt_40',
+          blueprint: activeBuilderBlueprint.id,
+          blueprintTitle: activeBuilderBlueprint.title,
         },
         grade: Number.parseInt(builderConfig.grade, 10) || 12,
         school_year: text(builderConfig.schoolYear),
-        tags: ['TNTHPT2025-2026', 'bank-builder', 'no-ai-cost'],
+        tags: ['bank-builder', 'no-ai-cost', ...(builderCriteria.preset === 'tnthpt_40' ? ['TNTHPT2025-2026'] : ['custom-blueprint'])],
         source_kind: 'manual',
         source_reference: 'Brian Question Bank Builder',
         import_metadata: {
@@ -616,6 +842,13 @@ OpenAPI: ${openApiUrl}`;
             cognitiveLevel: builderConfig.cognitiveLevel,
             topic: builderConfig.topic,
           },
+          blueprint: {
+            id: activeBuilderBlueprint.id,
+            title: activeBuilderBlueprint.title,
+            totalItems: activeBuilderBlueprint.total_items || builderSelection.items.length,
+            criteria: builderCriteria,
+          },
+          cognitiveTarget: builderCognitiveFit,
           audit: {
             structureOk: builderSelection.audit.structureOk,
             warningCount: builderSelection.audit.warnings.length,
@@ -647,7 +880,7 @@ OpenAPI: ${openApiUrl}`;
       await loadData();
       setActiveTab('tests');
       await openExam(newTest);
-      setMessage('Đã tạo đề 40 câu từ ngân hàng, không gọi AI và không phát sinh phí AI.');
+      setMessage(`Đã tạo đề ${builderSelection.items.length} câu từ ma trận “${activeBuilderBlueprint.title}”, không gọi AI và không phát sinh phí AI.`);
       setBuilderSeed((value) => value + 1);
     } catch (error) {
       if (newTest?.id) {
@@ -1182,6 +1415,122 @@ OpenAPI: ${openApiUrl}`;
       ) : null}
 
 
+
+      {!loading && activeTab === 'blueprints' ? (
+        <div className="qb-panel qb-blueprints">
+          <div className="qb-section-head">
+            <div><p>ASSESSMENT BLUEPRINT STUDIO</p><h2>Ma trận đề</h2></div>
+            <span>Lưu cấu trúc đề dùng lại nhiều lần. Ma trận không chứa câu hỏi và không phát sinh phí AI.</span>
+          </div>
+
+          <div className="qb-blueprint-library">
+            <article className="qb-blueprint-card is-builtin">
+              <div className="qb-blueprint-card-top"><span>MẶC ĐỊNH</span><b>40 câu</b></div>
+              <h3>TN THPT 40 câu · 2025–2026</h3>
+              <p>5 Arrangement · 5 Discourse Cloze · 10 Reading · 8 Reading · 2 × 6 Functional Cloze.</p>
+              <div className="qb-blueprint-card-actions">
+                <button type="button" className="qb-primary" onClick={() => useBlueprintInBuilder({ id: 'builtin-tnthpt-40', title: 'TN THPT 40 câu · mặc định' })}>Dùng tạo đề</button>
+              </div>
+            </article>
+
+            {blueprints.map((blueprint) => {
+              const criteria = normalizeBlueprintCriteria(blueprint.criteria || {});
+              return (
+                <article className="qb-blueprint-card" key={blueprint.id}>
+                  <div className="qb-blueprint-card-top"><span>{blueprint.visibility === 'department' ? 'TỔ CHUYÊN MÔN' : 'CÁ NHÂN'}</span><b>{blueprint.total_items} câu</b></div>
+                  <h3>{blueprint.title}</h3>
+                  <p>{criteria.parts.map((part) => part.mode === 'items' ? part.label + ' ' + part.count : part.label + ' ' + part.bundleCount + '×' + part.itemCount).join(' · ')}</p>
+                  <div className="qb-blueprint-targets">
+                    <span>NB {criteria.cognitiveTargets.recognition}%</span>
+                    <span>TH {criteria.cognitiveTargets.comprehension}%</span>
+                    <span>VD {criteria.cognitiveTargets.application}%</span>
+                    <span>±{criteria.tolerance}%</span>{criteria.enforceCognitive ? <span>Bắt buộc</span> : null}
+                  </div>
+                  <div className="qb-blueprint-card-actions">
+                    <button type="button" className="qb-primary" onClick={() => useBlueprintInBuilder(blueprint)}>Dùng tạo đề</button>
+                    <button type="button" className="qb-secondary" onClick={() => editBlueprint(blueprint)}>Sửa</button>
+                    <button type="button" className={blueprintDeleteArmed === blueprint.id ? 'qb-danger is-armed' : 'qb-danger'} onClick={() => deleteBlueprint(blueprint)}>
+                      {blueprintDeleteArmed === blueprint.id ? 'Xác nhận xóa' : 'Xóa'}
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          <section className="qb-blueprint-editor">
+            <div className="qb-blueprint-editor-head">
+              <div>
+                <span>{blueprintEditingId ? 'EDIT BLUEPRINT' : 'NEW BLUEPRINT'}</span>
+                <h3>{blueprintEditingId ? 'Chỉnh sửa ma trận' : 'Tạo ma trận mới'}</h3>
+              </div>
+              <div className={blueprintValidation.valid ? 'qb-blueprint-valid' : 'qb-blueprint-invalid'}>
+                <b>{blueprintValidation.total}</b><small>câu</small>
+              </div>
+            </div>
+
+            <div className="qb-blueprint-basic">
+              <label className="qb-blueprint-title"><span>Tên ma trận</span><input value={blueprintDraft.title} onChange={(event) => setBlueprintDraft({ ...blueprintDraft, title: event.target.value })} /></label>
+              <label><span>Phạm vi</span><select value={blueprintDraft.visibility} onChange={(event) => setBlueprintDraft({ ...blueprintDraft, visibility: event.target.value })}><option value="personal">Cá nhân</option><option value="department">Tổ chuyên môn</option></select></label>
+              <label><span>Khối mặc định</span><select value={blueprintDraft.criteria.grade} onChange={(event) => updateBlueprintCriteria({ grade: event.target.value })}><option value="12">12</option><option value="11">11</option><option value="10">10</option></select></label>
+              <label><span>CEFR mặc định</span><select value={blueprintDraft.criteria.cefr} onChange={(event) => updateBlueprintCriteria({ cefr: event.target.value })}><option value="B1-B2">B1–B2</option><option value="B1">B1</option><option value="B2">B2</option><option value="A2">A2</option></select></label>
+            </div>
+
+            <div className="qb-blueprint-cognitive">
+              <div><span>TỈ LỆ NHẬN THỨC</span><strong>Tổng phải bằng 100%</strong></div>
+              <label><span>Nhận biết</span><div><input type="number" min="0" max="100" value={blueprintDraft.criteria.cognitiveTargets.recognition} onChange={(event) => updateBlueprintCriteria({ cognitiveTargets: { ...blueprintDraft.criteria.cognitiveTargets, recognition: Number(event.target.value) } })} /><b>%</b></div></label>
+              <label><span>Thông hiểu</span><div><input type="number" min="0" max="100" value={blueprintDraft.criteria.cognitiveTargets.comprehension} onChange={(event) => updateBlueprintCriteria({ cognitiveTargets: { ...blueprintDraft.criteria.cognitiveTargets, comprehension: Number(event.target.value) } })} /><b>%</b></div></label>
+              <label><span>Vận dụng</span><div><input type="number" min="0" max="100" value={blueprintDraft.criteria.cognitiveTargets.application} onChange={(event) => updateBlueprintCriteria({ cognitiveTargets: { ...blueprintDraft.criteria.cognitiveTargets, application: Number(event.target.value) } })} /><b>%</b></div></label>
+              <label><span>Sai số cho phép</span><div><input type="number" min="0" max="50" value={blueprintDraft.criteria.tolerance} onChange={(event) => updateBlueprintCriteria({ tolerance: Number(event.target.value) })} /><b>%</b></div></label>
+              <label className="qb-blueprint-enforce"><input type="checkbox" checked={Boolean(blueprintDraft.criteria.enforceCognitive)} onChange={(event) => updateBlueprintCriteria({ enforceCognitive: event.target.checked })} /><span>Bắt buộc tỉ lệ khi tạo đề</span></label>
+            </div>
+
+            <div className="qb-blueprint-parts">
+              <div className="qb-blueprint-parts-head"><span>Dạng bài</span><span>Cấu hình</span><span>Tổng</span></div>
+              {BLUEPRINT_PART_CATALOG.map((catalog) => {
+                const part = blueprintDraft.criteria.parts.find((item) => item.type === catalog.type);
+                const enabled = Boolean(part);
+                const partTotal = !part ? 0 : part.mode === 'items' ? Number(part.count || 0) : Number(part.bundleCount || 0) * Number(part.itemCount || 0);
+                return (
+                  <article className={enabled ? 'is-enabled' : ''} key={catalog.type}>
+                    <label className="qb-blueprint-toggle">
+                      <input type="checkbox" checked={enabled} onChange={() => toggleBlueprintPart(catalog.type)} />
+                      <span><strong>{catalog.label}</strong><small>{catalog.mode === 'items' ? 'Câu độc lập' : 'Chùm ngữ liệu'}</small></span>
+                    </label>
+                    <div className="qb-blueprint-part-controls">
+                      {enabled && part.mode === 'items' ? (
+                        <label><span>Số câu</span><input type="number" min="1" max="200" value={part.count} onChange={(event) => updateBlueprintPart(catalog.type, { count: Number(event.target.value) })} /></label>
+                      ) : null}
+                      {enabled && part.mode === 'bundles' ? (
+                        <>
+                          <label><span>Số chùm</span><input type="number" min="1" max="20" value={part.bundleCount} onChange={(event) => updateBlueprintPart(catalog.type, { bundleCount: Number(event.target.value) })} /></label>
+                          <label><span>Câu/chùm</span><input type="number" min="1" max="50" value={part.itemCount} onChange={(event) => updateBlueprintPart(catalog.type, { itemCount: Number(event.target.value) })} /></label>
+                        </>
+                      ) : null}
+                    </div>
+                    <b className="qb-blueprint-part-total">{partTotal}</b>
+                  </article>
+                );
+              })}
+            </div>
+
+            {!blueprintValidation.valid || blueprintValidation.warnings.length ? (
+              <div className={blueprintValidation.valid ? 'qb-blueprint-feedback is-warning' : 'qb-blueprint-feedback is-error'}>
+                {blueprintValidation.errors.map((item) => <span key={item}>• {item}</span>)}
+                {blueprintValidation.warnings.map((item) => <span key={item}>⚠ {item}</span>)}
+              </div>
+            ) : null}
+
+            <div className="qb-blueprint-editor-actions">
+              <button type="button" className="qb-ghost" onClick={resetBlueprintDraft}>Ma trận mới</button>
+              <button type="button" className="qb-primary" onClick={saveBlueprint} disabled={blueprintSaving || !blueprintValidation.valid}>
+                {blueprintSaving ? 'Đang lưu…' : blueprintEditingId ? 'Lưu thay đổi' : 'Lưu ma trận'}
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
       {!loading && activeTab === 'builder' ? (
         <div className="qb-panel qb-builder">
           <div className="qb-section-head">
@@ -1191,13 +1540,13 @@ OpenAPI: ${openApiUrl}`;
 
           <div className="qb-builder-hero">
             <div>
-              <span className="qb-builder-kicker">TN THPT 2025–2026 PRESET</span>
-              <h3>Đề 40 câu theo đúng cấu trúc đã kiểm định</h3>
-              <p>Brian chọn nguyên chùm Reading/Cloze để không làm mất ngữ liệu, đồng thời lấy 5 câu Arrangement độc lập. Mỗi lần “Xáo lựa chọn” sẽ ưu tiên tổ hợp khác trong kho.</p>
+              <span className="qb-builder-kicker">ACTIVE BLUEPRINT</span>
+              <h3>{activeBuilderBlueprint.title}</h3>
+              <p>Brian chọn nguyên chùm Reading/Cloze để không làm mất ngữ liệu, ưu tiên câu ít dùng và ráp đề theo đúng ma trận đang chọn. “Xáo lựa chọn” tạo tổ hợp khác mà không gọi AI.</p>
             </div>
             <div className="qb-builder-total">
               <strong>{builderSelection.items.length}</strong>
-              <span>/ 40 câu</span>
+              <span>/ {activeBuilderBlueprint.total_items || builderSelection.items.length} câu</span>
               <small>{builderSelection.complete ? 'Đủ dữ liệu để tạo đề' : builderSelection.missing.length + ' phần còn thiếu'}</small>
             </div>
           </div>
@@ -1205,6 +1554,21 @@ OpenAPI: ${openApiUrl}`;
           <div className="qb-builder-layout">
             <section className="qb-builder-settings">
               <h3>Thông tin đề</h3>
+              <label className="qb-builder-wide"><span>Ma trận đang dùng</span>
+                <select
+                  value={selectedBuilderBlueprintId}
+                  onChange={(event) => {
+                    const id = event.target.value;
+                    const blueprint = id === 'builtin-tnthpt-40'
+                      ? { id, title: 'TN THPT 40 câu · mặc định', criteria: defaultBlueprintCriteria() }
+                      : blueprints.find((item) => item.id === id);
+                    if (blueprint) useBlueprintInBuilder(blueprint);
+                  }}
+                >
+                  <option value="builtin-tnthpt-40">TN THPT 40 câu · mặc định</option>
+                  {blueprints.map((blueprint) => <option key={blueprint.id} value={blueprint.id}>{blueprint.title} · {blueprint.total_items} câu</option>)}
+                </select>
+              </label>
               <label className="qb-builder-wide"><span>Tên đề</span><input value={builderConfig.title} onChange={(event) => setBuilderConfig({ ...builderConfig, title: event.target.value })} /></label>
               <div className="qb-builder-fields">
                 <label><span>Khối</span><select value={builderConfig.grade} onChange={(event) => setBuilderConfig({ ...builderConfig, grade: event.target.value })}><option value="12">12</option><option value="11">11</option><option value="10">10</option></select></label>
@@ -1216,8 +1580,8 @@ OpenAPI: ${openApiUrl}`;
               </div>
               <div className="qb-builder-actions">
                 <button type="button" className="qb-secondary" onClick={() => setBuilderSeed((value) => value + 1)}>↻ Xáo lựa chọn</button>
-                <button type="button" className="qb-primary" onClick={saveBuiltExam} disabled={builderSaving || !builderSelection.complete || !builderSelection.audit.ready}>
-                  {builderSaving ? 'Đang tạo đề…' : 'Tạo đề 40 câu'}
+                <button type="button" className="qb-primary" onClick={saveBuiltExam} disabled={builderSaving || !builderSelection.complete || !builderSelection.audit.ready || (builderCriteria.enforceCognitive && !builderCognitiveFit.withinTolerance)}>
+                  {builderSaving ? 'Đang tạo đề…' : 'Tạo đề ' + (activeBuilderBlueprint.total_items || builderSelection.items.length) + ' câu'}
                 </button>
               </div>
               <small className="qb-builder-note">Lần chọn #{builderSeed} · câu hỏi được tái sử dụng từ ngân hàng, không nhân bản nội dung.</small>
@@ -1226,11 +1590,18 @@ OpenAPI: ${openApiUrl}`;
             <aside className="qb-builder-stock">
               <h3>Tồn kho phù hợp</h3>
               <div className="qb-builder-stock-grid">
-                <article className={(builderStock.arrangement_5?.items || 0) >= 5 ? 'is-ok' : 'is-low'}><span>Arrangement</span><strong>{builderStock.arrangement_5?.items || 0}</strong><small>Cần 5 câu</small></article>
-                <article className={(builderStock.discourse_cloze_5?.bundles || 0) >= 1 ? 'is-ok' : 'is-low'}><span>Discourse Cloze</span><strong>{builderStock.discourse_cloze_5?.bundles || 0}</strong><small>Cần 1 chùm</small></article>
-                <article className={(builderStock.reading_10?.bundles || 0) >= 1 ? 'is-ok' : 'is-low'}><span>Reading 10</span><strong>{builderStock.reading_10?.bundles || 0}</strong><small>Cần 1 chùm</small></article>
-                <article className={(builderStock.reading_8?.bundles || 0) >= 1 ? 'is-ok' : 'is-low'}><span>Reading 8</span><strong>{builderStock.reading_8?.bundles || 0}</strong><small>Cần 1 chùm</small></article>
-                <article className={(builderStock.functional_cloze_6?.bundles || 0) >= 2 ? 'is-ok' : 'is-low'}><span>Functional Cloze</span><strong>{builderStock.functional_cloze_6?.bundles || 0}</strong><small>Cần 2 chùm</small></article>
+                {builderCriteria.parts.map((part) => {
+                  const stock = builderStock[part.type] || { bundles: 0, items: 0 };
+                  const required = part.mode === 'items' ? Number(part.count || 0) : Number(part.bundleCount || 0);
+                  const available = part.mode === 'items' ? Number(stock.items || 0) : Number(stock.bundles || 0);
+                  return (
+                    <article className={available >= required ? 'is-ok' : 'is-low'} key={part.type}>
+                      <span>{part.label}</span>
+                      <strong>{available}</strong>
+                      <small>{part.mode === 'items' ? 'Cần ' + required + ' câu' : 'Cần ' + required + ' chùm × ' + part.itemCount}</small>
+                    </article>
+                  );
+                })}
               </div>
             </aside>
           </div>
@@ -1263,10 +1634,10 @@ OpenAPI: ${openApiUrl}`;
             </div>
 
             <div className="qb-builder-metrics">
-              <article><span>Nhận biết</span><strong>{builderSelection.audit.distributions.cognitive.recognition || 0}</strong></article>
-              <article><span>Thông hiểu</span><strong>{builderSelection.audit.distributions.cognitive.comprehension || 0}</strong></article>
-              <article><span>Vận dụng</span><strong>{builderSelection.audit.distributions.cognitive.application || 0}</strong></article>
-              <article><span>Đáp án A/B/C/D</span><strong>{Object.values(builderSelection.audit.distributions.answers).join(' / ')}</strong></article>
+              <article><span>Nhận biết</span><strong>{builderSelection.audit.distributions.cognitive.recognition || 0}</strong><small>{builderCognitiveFit.actual.recognition}% / mục tiêu {builderCognitiveFit.target.recognition}%</small></article>
+              <article><span>Thông hiểu</span><strong>{builderSelection.audit.distributions.cognitive.comprehension || 0}</strong><small>{builderCognitiveFit.actual.comprehension}% / mục tiêu {builderCognitiveFit.target.comprehension}%</small></article>
+              <article><span>Vận dụng</span><strong>{builderSelection.audit.distributions.cognitive.application || 0}</strong><small>{builderCognitiveFit.actual.application}% / mục tiêu {builderCognitiveFit.target.application}%</small></article>
+              <article><span>Đáp án A/B/C/D</span><strong>{Object.values(builderSelection.audit.distributions.answers).join(' / ')}</strong><small>{builderCognitiveFit.withinTolerance ? 'Nhận thức trong sai số ±' + builderCognitiveFit.tolerance + '%' : builderCriteria.enforceCognitive ? 'Lệch mục tiêu · đang khóa lưu' : 'Nhận thức lệch mục tiêu'}</small></article>
             </div>
 
             {builderSelection.audit.warnings.length ? (
