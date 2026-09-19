@@ -728,6 +728,8 @@ async function recordImport(session, payload, counts) {
   if (error) console.error('[question-bank] import audit failed', error.message);
 }
 
+export { deriveExamBundlePayload, splitExamQuestionContext };
+
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     res.setHeader('Allow', 'POST, OPTIONS');
