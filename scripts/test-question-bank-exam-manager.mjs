@@ -128,6 +128,10 @@ for (const token of [
   'Kiểm tra & phát hành',
   'Phân bố đáp án',
   'Mức nhận thức',
+  'Tập trung 1 phần',
+  'Thu gọn tất cả',
+  'Mở ngữ liệu',
+  'Thu phần',
 ]) {
   assert.ok(page.includes(token), `Question Bank exam manager missing UI: ${token}`);
 }
@@ -139,6 +143,10 @@ assert.ok(page.includes("deleteSelectedExam"), 'safe exam delete must be wired')
 assert.ok(page.includes("publishSelectedExam"), 'quality-gated publish action must be wired');
 assert.ok(page.includes("selectedExamAudit.ready"), 'publish UI must be gated by deterministic quality audit');
 assert.ok(page.includes("auditExamQuality(selectedTestItems)"), 'Assessment Manager must audit the selected exam');
+assert.ok(page.includes("visibleExamSections"), 'Exam Navigator must support focused section rendering');
+assert.ok(page.includes("scrollIntoView({ behavior: 'smooth'"), 'Exam Navigator must support smooth section jumps');
+assert.ok(page.includes("collapsedExamContexts"), 'Exam Navigator must support compact shared-text previews');
+assert.ok(page.includes("collapsedExamSections"), 'Exam Navigator must support collapsing full blocks');
 assert.ok(page.includes("assessment_test_items').delete().eq('test_id', selectedTest.id)"), 'exam delete must remove joins first');
 assert.ok(page.includes("assessment_tests').delete().eq('id', selectedTest.id)"), 'exam delete must remove only the test after joins');
 assert.ok(!/assessment_items'\)\.delete\(\)/.test(page), 'deleting an exam must never delete bank questions');
