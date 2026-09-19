@@ -7,6 +7,7 @@ import workHubArchiveResource from '../serverless-handlers/_work-hub-archive-res
 import workHubFileAccess from '../serverless-handlers/_work-hub-file-access.js';
 import workHubFileAction from '../serverless-handlers/_work-hub-file-action.js';
 import workHubFile from '../serverless-handlers/_work-hub-file.js';
+import questionBank from '../serverless-handlers/_question-bank.js';
 
 const handlers = Object.freeze({
   'briefing-weather': briefingWeather,
@@ -18,6 +19,7 @@ const handlers = Object.freeze({
   'work-hub-file-access': workHubFileAccess,
   'work-hub-file-action': workHubFileAction,
   'work-hub-file': workHubFile,
+  'question-bank': questionBank,
 });
 
 export default async function gateway(req, res) {

@@ -112,6 +112,10 @@
       "destination": "/api/news-feed?scope=article"
     },
     {
+      "source": "/api/question-bank",
+      "destination": "/api/gateway?handler=question-bank"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },

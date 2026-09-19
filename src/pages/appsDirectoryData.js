@@ -4,7 +4,7 @@ import { launchRoute } from '../utils/navigation.js';
 import { ROUTE_APP_SHORTCUTS } from '../data/appVisibilityRegistry.js';
 
 export const APP_ORDER = [
-  'hidden-apps-vault', 'gradebook-studio', 'thpt-practice-hub', 'resource-library-hub', 'lesson-plan-ai', 'textlab-activities', 'flying-words', 'exam-studio', 'reading-studio',
+  'hidden-apps-vault', 'gradebook-studio', 'assessment-core', 'thpt-practice-hub', 'resource-library-hub', 'lesson-plan-ai', 'textlab-activities', 'flying-words', 'exam-studio', 'reading-studio',
   'news-reader', 'vietnam-tax', 'word2graph', 'textcare', 'student-practice',
   'shared-game-games4esl', 'shared-game-wordwall', 'shared-game-educaplay', 'shared-game-learningapps', 'shared-game-h5p', 'shared-game-genially',
   'shared-game-bookwidgets', 'shared-game-classtools', 'shared-game-kahoot', 'shared-game-scattergories', 'shared-game-baamboozle',
