@@ -95,3 +95,22 @@ html body #root .app-shell[data-route="assessment-core"] main#bes-main-content >
 .qb-exam-answer span{color:#6c5f37}
 @media(max-width:900px){.qb-exam-overview{grid-template-columns:repeat(2,1fr)}.qb-exam-options{grid-template-columns:1fr}.qb-exam-manager-head{grid-template-columns:1fr}.qb-back{justify-self:start}}
 @media(max-width:560px){.qb-exam-overview{grid-template-columns:1fr 1fr}.qb-exam-section>header{align-items:flex-start;flex-direction:column}.qb-exam-question{grid-template-columns:34px minmax(0,1fr);padding:13px 12px}.qb-exam-qnum{width:32px;height:32px}.qb-exam-actions{display:grid;grid-template-columns:1fr 1fr}.qb-exam-actions button{width:100%}}
+
+
+/* Exam lifecycle */
+.qb-danger{border:1px solid #f1c7c7;background:#fff7f7;color:#b93838;border-radius:10px;padding:10px 13px;font:inherit;font-size:12px;font-weight:800;cursor:pointer}
+.qb-danger:hover{background:#fff0f0}.qb-danger.is-armed{background:#b93838;border-color:#b93838;color:#fff}
+.qb-danger:disabled{opacity:.55;cursor:not-allowed}
+.qb-exam-edit{display:grid;grid-template-columns:minmax(260px,2fr) repeat(3,minmax(130px,1fr));gap:10px;padding:15px;border:1px solid #dce4f2;border-radius:16px;background:#f8faff}
+.qb-exam-edit label{display:grid;gap:6px}.qb-exam-edit label>span{font-size:10px;font-weight:900;color:#6a768c;text-transform:uppercase;letter-spacing:.045em}
+.qb-exam-edit input,.qb-exam-edit select{width:100%;min-height:42px;border:1px solid #d7deea;border-radius:10px;background:#fff;padding:9px 11px;font:inherit;color:#17233f}
+.qb-exam-edit-actions{grid-column:1/-1;display:flex;gap:8px;justify-content:flex-end}
+.qb-answer-key{border:1px solid #dfe5ef;border-radius:17px;background:#fff;padding:14px 15px}
+.qb-answer-key-head{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:11px}
+.qb-answer-key-head>div{display:grid;gap:2px}.qb-answer-key-head span{font-size:9px;font-weight:900;letter-spacing:.11em;color:#315fc4}.qb-answer-key-head strong{font-size:17px;color:#17233f}
+.qb-answer-key-head small{color:#7a8496;font-size:11px}
+.qb-answer-key-grid{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:6px}
+.qb-answer-key-grid>span{display:flex;align-items:center;justify-content:center;gap:6px;min-height:34px;border-radius:9px;background:#f5f7fb;color:#26344f;font-weight:900;font-size:12px}
+.qb-answer-key-grid b{font-size:9px;color:#8791a3;font-weight:800}
+@media(max-width:1100px){.qb-exam-edit{grid-template-columns:1fr 1fr}.qb-exam-edit-title{grid-column:1/-1}.qb-answer-key-grid{grid-template-columns:repeat(8,minmax(0,1fr))}}
+@media(max-width:700px){.qb-exam-edit{grid-template-columns:1fr}.qb-exam-edit-title{grid-column:auto}.qb-answer-key-head{align-items:flex-start;flex-direction:column}.qb-answer-key-grid{grid-template-columns:repeat(5,minmax(0,1fr))}.qb-exam-edit-actions{justify-content:stretch}.qb-exam-edit-actions button{flex:1}}
