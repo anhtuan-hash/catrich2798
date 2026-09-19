@@ -134,6 +134,9 @@ export default function QuestionBank({ currentUser }) {
   const [examDetailLoading, setExamDetailLoading] = useState(false);
   const [showExamAnswers, setShowExamAnswers] = useState(false);
   const [examActionBusy, setExamActionBusy] = useState('');
+  const [editingExam, setEditingExam] = useState(false);
+  const [deleteExamArmed, setDeleteExamArmed] = useState(false);
+  const [examEdit, setExamEdit] = useState({ title: '', schoolYear: '', durationMinutes: '50', status: 'draft' });
   const [integration, setIntegration] = useState(null);
   const [importEvents, setImportEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -516,6 +519,14 @@ OpenAPI: ${openApiUrl}`;
     setSelectedTestItems([]);
     setExamDetailLoading(true);
     setShowExamAnswers(false);
+    setEditingExam(false);
+    setDeleteExamArmed(false);
+    setExamEdit({
+      title: text(test.title),
+      schoolYear: text(test.school_year),
+      durationMinutes: String(test.settings?.durationMinutes || 50),
+      status: text(test.status) || 'draft',
+    });
     setMessage('');
     try {
       const joinsResult = await supabase.from('assessment_test_items')
@@ -626,6 +637,137 @@ OpenAPI: ${openApiUrl}`;
         : 'Đã nhân bản đề. Bản sao dùng lại toàn bộ câu hỏi gốc.');
     } catch (error) {
       setMessage(error?.message || (variant ? 'Không thể tạo mã đề mới.' : 'Không thể nhân bản đề.'));
+    } finally {
+      setExamActionBusy('');
+    }
+  };
+
+  const saveExamMetadata = async () => {
+    if (!selectedTest?.id || !userId || !supabase) return;
+    const title = text(examEdit.title);
+    if (!title) {
+      setMessage('Tên đề không được để trống.');
+      return;
+    }
+    setExamActionBusy('metadata');
+    setMessage('');
+    try {
+      const durationMinutes = Math.max(1, Math.min(600, Number.parseInt(examEdit.durationMinutes, 10) || 50));
+      const settings = { ...(selectedTest.settings || {}), durationMinutes };
+      const updateResult = await supabase.from('assessment_tests')
+        .update({
+          title,
+          school_year: text(examEdit.schoolYear),
+          status: ['draft', 'published', 'closed', 'archived'].includes(examEdit.status) ? examEdit.status : 'draft',
+          settings,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', selectedTest.id)
+        .eq('owner_id', userId)
+        .select('*')
+        .single();
+      if (updateResult.error) throw updateResult.error;
+      setSelectedTest(updateResult.data);
+      setExamEdit({
+        title: updateResult.data.title,
+        schoolYear: updateResult.data.school_year || '',
+        durationMinutes: String(updateResult.data.settings?.durationMinutes || 50),
+        status: updateResult.data.status || 'draft',
+      });
+      setEditingExam(false);
+      await loadData();
+      setMessage('Đã cập nhật thông tin đề thi.');
+    } catch (error) {
+      setMessage(error?.message || 'Không thể cập nhật đề thi.');
+    } finally {
+      setExamActionBusy('');
+    }
+  };
+
+  const createVariantBatch = async (count = 4) => {
+    if (!selectedTest?.id || !selectedTestItems.length || !userId || !supabase) return;
+    const total = Math.max(1, Math.min(8, Number(count) || 4));
+    setExamActionBusy('variant-batch');
+    setMessage('');
+    const created = [];
+    try {
+      const firstCode = Number.parseInt(nextExamCode(tests), 10) || 101;
+      const baseTitle = text(selectedTest.title).replace(/\s*[·–-]\s*Mã\s*\d+\s*$/i, '').trim();
+      for (let offset = 0; offset < total; offset += 1) {
+        const code = String(firstCode + offset);
+        const now = new Date().toISOString();
+        const insertResult = await supabase.from('assessment_tests').insert({
+          owner_id: userId,
+          blueprint_id: selectedTest.blueprint_id || null,
+          visibility: 'personal',
+          title: `${baseTitle} · Mã ${code}`,
+          status: 'draft',
+          settings: {
+            ...(selectedTest.settings || {}),
+            examCode: code,
+            variantOf: selectedTest.id,
+            variantCreatedAt: now,
+          },
+          grade: selectedTest.grade || null,
+          school_year: text(selectedTest.school_year),
+          tags: [...new Set([...(selectedTest.tags || []), 'variant'])],
+          source_kind: 'manual',
+          source_reference: `Variant of ${selectedTest.id}`,
+          import_metadata: {
+            manager: 'Brian Question Bank',
+            operation: 'create_variant_batch',
+            sourceTestId: selectedTest.id,
+            createdAt: now,
+          },
+          updated_at: now,
+        }).select('*').single();
+        if (insertResult.error) throw insertResult.error;
+        const test = insertResult.data;
+        const joinRows = selectedTestItems.map((item) => ({
+          test_id: test.id,
+          item_id: item.id || item.item_id,
+          position: Number(item.position),
+          option_order: createVariantOptionOrder(item, code),
+          points: Number(item.points || 1),
+        }));
+        const joinResult = await supabase.from('assessment_test_items').insert(joinRows);
+        if (joinResult.error) {
+          await supabase.from('assessment_tests').delete().eq('id', test.id).eq('owner_id', userId);
+          throw joinResult.error;
+        }
+        created.push(test);
+      }
+      await loadData();
+      setMessage(`Đã tạo ${created.length} mã đề: ${created.map((test) => test.settings?.examCode).join(', ')}. Câu hỏi gốc không bị nhân bản.`);
+    } catch (error) {
+      setMessage(error?.message || 'Không thể tạo bộ mã đề.');
+    } finally {
+      setExamActionBusy('');
+    }
+  };
+
+  const deleteSelectedExam = async () => {
+    if (!selectedTest?.id || !userId || !supabase) return;
+    if (!deleteExamArmed) {
+      setDeleteExamArmed(true);
+      setMessage('Nhấn “Xóa đề” thêm một lần để xác nhận. Câu hỏi và chùm bài trong ngân hàng sẽ được giữ nguyên.');
+      return;
+    }
+    setExamActionBusy('delete');
+    setMessage('');
+    try {
+      const joinsDelete = await supabase.from('assessment_test_items').delete().eq('test_id', selectedTest.id);
+      if (joinsDelete.error) throw joinsDelete.error;
+      const testDelete = await supabase.from('assessment_tests').delete().eq('id', selectedTest.id).eq('owner_id', userId);
+      if (testDelete.error) throw testDelete.error;
+      setSelectedTest(null);
+      setSelectedTestItems([]);
+      setDeleteExamArmed(false);
+      setEditingExam(false);
+      await loadData();
+      setMessage('Đã xóa đề thi. Toàn bộ câu hỏi và chùm bài vẫn được giữ trong ngân hàng.');
+    } catch (error) {
+      setMessage(error?.message || 'Không thể xóa đề thi.');
     } finally {
       setExamActionBusy('');
     }
@@ -853,7 +995,7 @@ OpenAPI: ${openApiUrl}`;
           {selectedTest ? (
             <div className="qb-exam-manager">
               <div className="qb-exam-manager-head">
-                <button type="button" className="qb-back" onClick={() => { setSelectedTest(null); setSelectedTestItems([]); setShowExamAnswers(false); }}>← Danh sách đề</button>
+                <button type="button" className="qb-back" onClick={() => { setSelectedTest(null); setSelectedTestItems([]); setShowExamAnswers(false); setEditingExam(false); setDeleteExamArmed(false); }}>← Danh sách đề</button>
                 <div className="qb-exam-title">
                   <p>ASSESSMENT MANAGER</p>
                   <h2>{selectedTest.title}</h2>
@@ -866,6 +1008,9 @@ OpenAPI: ${openApiUrl}`;
                   </div>
                 </div>
                 <div className="qb-exam-actions">
+                  <button type="button" className={editingExam ? 'qb-secondary is-active' : 'qb-secondary'} onClick={() => { setEditingExam((value) => !value); setDeleteExamArmed(false); }}>
+                    {editingExam ? 'Đóng chỉnh sửa' : 'Sửa thông tin'}
+                  </button>
                   <button type="button" className={showExamAnswers ? 'qb-secondary is-active' : 'qb-secondary'} onClick={() => setShowExamAnswers((value) => !value)}>
                     {showExamAnswers ? 'Ẩn đáp án' : 'Hiện đáp án'}
                   </button>
@@ -874,11 +1019,47 @@ OpenAPI: ${openApiUrl}`;
                   <button type="button" className="qb-secondary" onClick={() => createExamCopy({ variant: false })} disabled={Boolean(examActionBusy) || !selectedTestItems.length}>
                     {examActionBusy === 'duplicate' ? 'Đang nhân bản…' : 'Nhân bản'}
                   </button>
-                  <button type="button" className="qb-primary" onClick={() => createExamCopy({ variant: true })} disabled={Boolean(examActionBusy) || !selectedTestItems.length}>
-                    {examActionBusy === 'variant' ? 'Đang tạo mã…' : 'Tạo mã đề mới'}
+                  <button type="button" className="qb-secondary" onClick={() => createExamCopy({ variant: true })} disabled={Boolean(examActionBusy) || !selectedTestItems.length}>
+                    {examActionBusy === 'variant' ? 'Đang tạo mã…' : 'Tạo 1 mã'}
+                  </button>
+                  <button type="button" className="qb-primary" onClick={() => createVariantBatch(4)} disabled={Boolean(examActionBusy) || !selectedTestItems.length}>
+                    {examActionBusy === 'variant-batch' ? 'Đang tạo 4 mã…' : 'Tạo 4 mã đề'}
+                  </button>
+                  <button type="button" className={deleteExamArmed ? 'qb-danger is-armed' : 'qb-danger'} onClick={deleteSelectedExam} disabled={Boolean(examActionBusy)}>
+                    {examActionBusy === 'delete' ? 'Đang xóa…' : deleteExamArmed ? 'Xác nhận xóa đề' : 'Xóa đề'}
                   </button>
                 </div>
               </div>
+
+              {editingExam ? (
+                <div className="qb-exam-edit">
+                  <label className="qb-exam-edit-title"><span>Tên đề</span><input value={examEdit.title} onChange={(event) => setExamEdit({ ...examEdit, title: event.target.value })} /></label>
+                  <label><span>Năm học</span><input value={examEdit.schoolYear} onChange={(event) => setExamEdit({ ...examEdit, schoolYear: event.target.value })} placeholder="2026-2027" /></label>
+                  <label><span>Thời gian (phút)</span><input type="number" min="1" max="600" value={examEdit.durationMinutes} onChange={(event) => setExamEdit({ ...examEdit, durationMinutes: event.target.value })} /></label>
+                  <label><span>Trạng thái</span>
+                    <select value={examEdit.status} onChange={(event) => setExamEdit({ ...examEdit, status: event.target.value })}>
+                      <option value="draft">Bản nháp</option>
+                      <option value="published">Đã phát hành</option>
+                      <option value="closed">Đã đóng</option>
+                      <option value="archived">Lưu trữ</option>
+                    </select>
+                  </label>
+                  <div className="qb-exam-edit-actions">
+                    <button type="button" className="qb-primary" onClick={saveExamMetadata} disabled={examActionBusy === 'metadata'}>
+                      {examActionBusy === 'metadata' ? 'Đang lưu…' : 'Lưu thay đổi'}
+                    </button>
+                    <button type="button" className="qb-ghost" onClick={() => {
+                      setExamEdit({
+                        title: text(selectedTest.title),
+                        schoolYear: text(selectedTest.school_year),
+                        durationMinutes: String(selectedTest.settings?.durationMinutes || 50),
+                        status: text(selectedTest.status) || 'draft',
+                      });
+                      setEditingExam(false);
+                    }}>Hủy</button>
+                  </div>
+                </div>
+              ) : null}
 
               <div className="qb-exam-overview">
                 <article><span>Tổng câu</span><strong>{selectedTestItems.length || testCounts[selectedTest.id] || 0}</strong></article>
@@ -886,6 +1067,20 @@ OpenAPI: ${openApiUrl}`;
                 <article><span>Số block</span><strong>{selectedExamSections.length}</strong></article>
                 <article><span>Phiên bản xuất</span><strong>{showExamAnswers ? 'Giáo viên' : 'Học sinh'}</strong></article>
               </div>
+
+              {showExamAnswers && selectedTestItems.length ? (
+                <div className="qb-answer-key">
+                  <div className="qb-answer-key-head">
+                    <div><span>ANSWER KEY</span><strong>Đáp án nhanh</strong></div>
+                    <small>{selectedTestItems.length} câu · tự cập nhật theo mã đề hiện tại</small>
+                  </div>
+                  <div className="qb-answer-key-grid">
+                    {selectedTestItems.map((item) => (
+                      <span key={`key-${item.position}-${item.id}`}><b>{item.position}</b>{effectiveAnswer(item)}</span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
 
               {examDetailLoading ? <div className="qb-loading">Đang mở đầy đủ đề thi…</div> : null}
 
