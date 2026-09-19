@@ -164,3 +164,31 @@ html body #root .app-shell[data-route="assessment-core"] main#bes-main-content >
 .qb-exam-sections.is-focus-mode .qb-exam-section{box-shadow:0 14px 40px rgba(20,33,61,.08)}
 @media(max-width:980px){.qb-exam-navigator{top:68px;grid-template-columns:1fr}.qb-exam-nav-tools{justify-content:flex-start}.qb-exam-section{scroll-margin-top:190px}}
 @media(max-width:620px){.qb-exam-navigator{top:58px;padding:8px}.qb-exam-nav-scroll>button{grid-template-columns:auto auto;min-width:116px}.qb-exam-nav-scroll>button span{grid-column:1/-1;white-space:nowrap}.qb-exam-nav-tools{display:grid;grid-template-columns:1fr 1fr}.qb-exam-nav-tools button:first-child{grid-column:1/-1}.qb-exam-section>header{gap:10px}.qb-exam-section-tools{width:100%;justify-content:flex-start}}
+
+
+/* Zero-cost Exam Builder */
+.qb-builder{display:grid;gap:18px}
+.qb-builder-hero{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;padding:20px;border-radius:20px;background:linear-gradient(135deg,#f4f7ff 0%,#fffaf2 100%);border:1px solid #e1e6f0}
+.qb-builder-kicker{display:inline-block;color:#315fc4;font-size:9px;font-weight:900;letter-spacing:.13em;margin-bottom:6px}
+.qb-builder-hero h3{margin:0;color:#17233f;font-size:23px;letter-spacing:-.025em}.qb-builder-hero p{margin:8px 0 0;color:#65718a;font-size:12px;line-height:1.6;max-width:760px}
+.qb-builder-total{min-width:150px;padding:16px 18px;border-radius:17px;background:#17233f;color:#fff;text-align:center}
+.qb-builder-total strong{font-size:32px;line-height:1}.qb-builder-total>span{font-size:14px;font-weight:800;margin-left:4px}.qb-builder-total small{display:block;margin-top:7px;color:#dce5fb;font-size:9px}
+.qb-builder-layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(260px,.85fr);gap:14px}
+.qb-builder-settings,.qb-builder-stock,.qb-builder-preview{border:1px solid #dfe5ef;border-radius:18px;background:#fff;padding:16px}
+.qb-builder-settings h3,.qb-builder-stock h3{margin:0 0 12px;color:#17233f;font-size:16px}
+.qb-builder-settings label{display:grid;gap:6px}.qb-builder-settings label>span{font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.05em;color:#7b8598}
+.qb-builder-settings input,.qb-builder-settings select{width:100%;min-height:42px;border:1px solid #d8dfea;border-radius:10px;background:#fff;padding:9px 10px;font:inherit;color:#1c2944}
+.qb-builder-wide{margin-bottom:10px}.qb-builder-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.qb-builder-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}.qb-builder-note{display:block;margin-top:8px;color:#8a93a4;font-size:9px;text-align:right}
+.qb-builder-stock-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.qb-builder-stock-grid article{padding:11px;border:1px solid #e3e8ef;border-radius:12px;background:#fafbfc}.qb-builder-stock-grid article:last-child{grid-column:1/-1}
+.qb-builder-stock-grid span{display:block;color:#6d788e;font-size:9px;font-weight:800}.qb-builder-stock-grid strong{display:block;margin-top:4px;font-size:20px;color:#17233f}.qb-builder-stock-grid small{display:block;margin-top:2px;color:#929baa;font-size:9px}
+.qb-builder-stock-grid article.is-ok{border-color:#cce4d6;background:#f7fcf9}.qb-builder-stock-grid article.is-ok strong{color:#16784a}.qb-builder-stock-grid article.is-low{border-color:#efd0d0;background:#fff8f8}.qb-builder-stock-grid article.is-low strong{color:#b23c3c}
+.qb-builder-missing{display:grid;gap:5px;padding:13px 14px;border-radius:13px;background:#fff3f3;border:1px solid #efcfcf;color:#8b3636;font-size:11px}.qb-builder-missing strong{font-size:12px}.qb-builder-missing small{margin-top:3px;color:#9b6969}
+.qb-builder-preview{display:grid;gap:14px}.qb-builder-preview-head{display:flex;align-items:flex-start;justify-content:space-between;gap:15px}.qb-builder-preview-head span{display:block;color:#315fc4;font-size:9px;font-weight:900;letter-spacing:.1em}.qb-builder-preview-head h3{margin:3px 0 0;font-size:18px;color:#17233f}
+.qb-builder-pass,.qb-builder-check{min-width:112px;padding:9px 11px;border-radius:11px;text-align:center}.qb-builder-pass{background:#eaf7ef;color:#16784a}.qb-builder-check{background:#fff1f1;color:#a13e3e}.qb-builder-pass b,.qb-builder-check b{display:block;font-size:13px}.qb-builder-pass small,.qb-builder-check small{display:block;margin-top:2px;font-size:8px}
+.qb-builder-blueprint{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}.qb-builder-blueprint article{min-width:0;padding:11px;border:1px solid #e2e7ef;border-radius:12px;background:#f9fbff}.qb-builder-blueprint article>div{display:flex;gap:6px;align-items:center}.qb-builder-blueprint article>div>span{display:grid;place-items:center;width:25px;height:25px;border-radius:8px;background:#e9efff;color:#315fc4;font-size:9px;font-weight:900}.qb-builder-blueprint strong{font-size:10px;color:#2c3953;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.qb-builder-blueprint p{margin:8px 0 5px;color:#66728a;font-size:9px;line-height:1.35;min-height:25px}.qb-builder-blueprint small{color:#929baa;font-size:8px}
+.qb-builder-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.qb-builder-metrics article{padding:10px 11px;border-radius:11px;background:#f6f8fc;border:1px solid #e6eaf0}.qb-builder-metrics span{display:block;color:#7e889a;font-size:8px;font-weight:900;text-transform:uppercase}.qb-builder-metrics strong{display:block;margin-top:4px;color:#22304b;font-size:14px}
+.qb-builder-warnings{display:grid;gap:5px;padding:10px 12px;border-radius:11px;background:#fff9ea;border:1px solid #f0e1b7;color:#7c611c;font-size:10px}
+@media(max-width:1100px){.qb-builder-layout{grid-template-columns:1fr}.qb-builder-blueprint{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:720px){.qb-builder-hero{grid-template-columns:1fr}.qb-builder-total{min-width:0}.qb-builder-fields{grid-template-columns:1fr 1fr}.qb-builder-blueprint{grid-template-columns:1fr 1fr}.qb-builder-metrics{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.qb-builder-fields,.qb-builder-blueprint{grid-template-columns:1fr}.qb-builder-actions{display:grid;grid-template-columns:1fr}.qb-builder-actions button{width:100%}}

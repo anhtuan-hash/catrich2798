@@ -2,6 +2,10 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../utils/supabase.js';
 import { parseQuestionBankPaste } from '../utils/questionBankPasteParser.js';
 import {
+  builderAvailability,
+  selectExamFromBank,
+} from '../utils/questionBankExamBuilder.js';
+import {
   auditExamQuality,
   buildExamExportHtml,
   buildExamSections,
@@ -16,6 +20,7 @@ import './QuestionBank.css';
 const TABS = [
   ['questions', 'Kho câu hỏi'],
   ['bundles', 'Chùm bài'],
+  ['builder', 'Tạo đề'],
   ['tests', 'Đề thi'],
   ['import', 'Nhập từ ChatGPT'],
   ['chatgpt', 'API / Plugin'],
@@ -130,6 +135,17 @@ export default function QuestionBank({ currentUser }) {
   const [bundles, setBundles] = useState([]);
   const [tests, setTests] = useState([]);
   const [testCounts, setTestCounts] = useState({});
+  const [builderSeed, setBuilderSeed] = useState(1);
+  const [builderSaving, setBuilderSaving] = useState(false);
+  const [builderConfig, setBuilderConfig] = useState({
+    title: 'Đề TN THPT từ ngân hàng – Set mới',
+    grade: '12',
+    schoolYear: '2026-2027',
+    durationMinutes: '50',
+    cefr: 'B1-B2',
+    cognitiveLevel: '',
+    topic: '',
+  });
   const [selectedTest, setSelectedTest] = useState(null);
   const [selectedTestItems, setSelectedTestItems] = useState([]);
   const [examDetailLoading, setExamDetailLoading] = useState(false);
@@ -268,6 +284,25 @@ OpenAPI: ${openApiUrl}`;
     tests: tests.length,
     total: questions.length,
   }), [questions, bundles, tests]);
+
+  const builderStock = useMemo(
+    () => builderAvailability(questions, bundles),
+    [questions, bundles],
+  );
+  const builderSelection = useMemo(
+    () => selectExamFromBank({
+      questions,
+      bundles,
+      filters: {
+        grade: builderConfig.grade,
+        cefr: builderConfig.cefr,
+        cognitiveLevel: builderConfig.cognitiveLevel,
+        topic: builderConfig.topic,
+      },
+      seed: builderSeed,
+    }),
+    [questions, bundles, builderConfig, builderSeed],
+  );
 
   const selectedExamSections = useMemo(
     () => buildExamSections(selectedTestItems),
@@ -536,6 +571,92 @@ OpenAPI: ${openApiUrl}`;
       setMessage(error?.message || 'Không thể lưu nội dung đã dán.');
     } finally {
       setPasteSaving(false);
+    }
+  };
+
+  const saveBuiltExam = async () => {
+    if (!userId || !supabase || builderSaving) return;
+    if (!builderSelection.complete) {
+      setMessage('Ngân hàng chưa đủ dữ liệu để ráp đúng cấu trúc 40 câu. Xem các mục còn thiếu trong Tạo đề.');
+      return;
+    }
+    if (!builderSelection.audit.ready) {
+      setMessage(`Bản ráp hiện còn ${builderSelection.audit.errors.length} lỗi bắt buộc. Chưa thể lưu đề.`);
+      return;
+    }
+
+    const title = text(builderConfig.title) || 'Đề TN THPT từ ngân hàng';
+    const durationMinutes = Math.max(1, Math.min(600, Number.parseInt(builderConfig.durationMinutes, 10) || 50));
+    setBuilderSaving(true);
+    setMessage('');
+    let newTest = null;
+    try {
+      const now = new Date().toISOString();
+      const insertResult = await supabase.from('assessment_tests').insert({
+        owner_id: userId,
+        visibility: 'personal',
+        title,
+        status: 'draft',
+        settings: {
+          durationMinutes,
+          builder: 'question-bank',
+          builderSeed,
+          blueprint: 'tnthpt_40',
+        },
+        grade: Number.parseInt(builderConfig.grade, 10) || 12,
+        school_year: text(builderConfig.schoolYear),
+        tags: ['TNTHPT2025-2026', 'bank-builder', 'no-ai-cost'],
+        source_kind: 'manual',
+        source_reference: 'Brian Question Bank Builder',
+        import_metadata: {
+          builder: 'question-bank',
+          createdAt: now,
+          filters: {
+            cefr: builderConfig.cefr,
+            cognitiveLevel: builderConfig.cognitiveLevel,
+            topic: builderConfig.topic,
+          },
+          audit: {
+            structureOk: builderSelection.audit.structureOk,
+            warningCount: builderSelection.audit.warnings.length,
+          },
+        },
+        updated_at: now,
+      }).select('*').single();
+      if (insertResult.error) throw insertResult.error;
+      newTest = insertResult.data;
+
+      const joinRows = builderSelection.items.map((item) => ({
+        test_id: newTest.id,
+        item_id: item.id,
+        position: Number(item.position),
+        option_order: [],
+        points: 1,
+      }));
+      const joinResult = await supabase.from('assessment_test_items').insert(joinRows);
+      if (joinResult.error) throw joinResult.error;
+
+      try {
+        await supabase.rpc('bes_assessment_increment_usage', {
+          p_item_ids: builderSelection.items.map((item) => item.id),
+        });
+      } catch {
+        // Usage statistics are non-critical; the exam itself is already valid.
+      }
+
+      await loadData();
+      setActiveTab('tests');
+      await openExam(newTest);
+      setMessage('Đã tạo đề 40 câu từ ngân hàng, không gọi AI và không phát sinh phí AI.');
+      setBuilderSeed((value) => value + 1);
+    } catch (error) {
+      if (newTest?.id) {
+        await supabase.from('assessment_test_items').delete().eq('test_id', newTest.id);
+        await supabase.from('assessment_tests').delete().eq('id', newTest.id).eq('owner_id', userId);
+      }
+      setMessage(error?.message || 'Không thể tạo đề từ ngân hàng.');
+    } finally {
+      setBuilderSaving(false);
     }
   };
 
@@ -1057,6 +1178,103 @@ OpenAPI: ${openApiUrl}`;
               <div className="qb-card-meta"><span>{bundle.grade ? `Khối ${bundle.grade}` : 'Nhiều khối'}</span><span>{bundle.skill || bundle.topic || 'General'}</span><span>{bundle.source_kind === 'chatgpt' ? 'ChatGPT' : 'Brian'}</span></div>
             </article>;
           })}</div> : <EmptyState title="Chưa có chùm bài" hint="Khi ChatGPT tạo reading, cloze hoặc một cụm câu dùng chung ngữ liệu, Brian sẽ lưu chúng thành chùm." />}
+        </div>
+      ) : null}
+
+
+      {!loading && activeTab === 'builder' ? (
+        <div className="qb-panel qb-builder">
+          <div className="qb-section-head">
+            <div><p>ZERO-COST TEST BUILDER</p><h2>Tạo đề từ ngân hàng</h2></div>
+            <span>Ráp đề trực tiếp từ câu hỏi đã lưu · không gọi AI · không phát sinh phí AI.</span>
+          </div>
+
+          <div className="qb-builder-hero">
+            <div>
+              <span className="qb-builder-kicker">TN THPT 2025–2026 PRESET</span>
+              <h3>Đề 40 câu theo đúng cấu trúc đã kiểm định</h3>
+              <p>Brian chọn nguyên chùm Reading/Cloze để không làm mất ngữ liệu, đồng thời lấy 5 câu Arrangement độc lập. Mỗi lần “Xáo lựa chọn” sẽ ưu tiên tổ hợp khác trong kho.</p>
+            </div>
+            <div className="qb-builder-total">
+              <strong>{builderSelection.items.length}</strong>
+              <span>/ 40 câu</span>
+              <small>{builderSelection.complete ? 'Đủ dữ liệu để tạo đề' : builderSelection.missing.length + ' phần còn thiếu'}</small>
+            </div>
+          </div>
+
+          <div className="qb-builder-layout">
+            <section className="qb-builder-settings">
+              <h3>Thông tin đề</h3>
+              <label className="qb-builder-wide"><span>Tên đề</span><input value={builderConfig.title} onChange={(event) => setBuilderConfig({ ...builderConfig, title: event.target.value })} /></label>
+              <div className="qb-builder-fields">
+                <label><span>Khối</span><select value={builderConfig.grade} onChange={(event) => setBuilderConfig({ ...builderConfig, grade: event.target.value })}><option value="12">12</option><option value="11">11</option><option value="10">10</option></select></label>
+                <label><span>Năm học</span><input value={builderConfig.schoolYear} onChange={(event) => setBuilderConfig({ ...builderConfig, schoolYear: event.target.value })} /></label>
+                <label><span>Thời gian</span><input type="number" min="1" max="600" value={builderConfig.durationMinutes} onChange={(event) => setBuilderConfig({ ...builderConfig, durationMinutes: event.target.value })} /></label>
+                <label><span>CEFR ưu tiên</span><select value={builderConfig.cefr} onChange={(event) => setBuilderConfig({ ...builderConfig, cefr: event.target.value })}><option value="B1-B2">B1–B2</option><option value="B1">B1</option><option value="B2">B2</option></select></label>
+                <label><span>Nhận thức ưu tiên</span><select value={builderConfig.cognitiveLevel} onChange={(event) => setBuilderConfig({ ...builderConfig, cognitiveLevel: event.target.value })}><option value="">Tự cân bằng</option><option value="recognition">Nhận biết</option><option value="comprehension">Thông hiểu</option><option value="application">Vận dụng</option></select></label>
+                <label><span>Lọc chủ đề</span><input value={builderConfig.topic} onChange={(event) => setBuilderConfig({ ...builderConfig, topic: event.target.value })} placeholder="VD: environment" /></label>
+              </div>
+              <div className="qb-builder-actions">
+                <button type="button" className="qb-secondary" onClick={() => setBuilderSeed((value) => value + 1)}>↻ Xáo lựa chọn</button>
+                <button type="button" className="qb-primary" onClick={saveBuiltExam} disabled={builderSaving || !builderSelection.complete || !builderSelection.audit.ready}>
+                  {builderSaving ? 'Đang tạo đề…' : 'Tạo đề 40 câu'}
+                </button>
+              </div>
+              <small className="qb-builder-note">Lần chọn #{builderSeed} · câu hỏi được tái sử dụng từ ngân hàng, không nhân bản nội dung.</small>
+            </section>
+
+            <aside className="qb-builder-stock">
+              <h3>Tồn kho phù hợp</h3>
+              <div className="qb-builder-stock-grid">
+                <article className={(builderStock.arrangement_5?.items || 0) >= 5 ? 'is-ok' : 'is-low'}><span>Arrangement</span><strong>{builderStock.arrangement_5?.items || 0}</strong><small>Cần 5 câu</small></article>
+                <article className={(builderStock.discourse_cloze_5?.bundles || 0) >= 1 ? 'is-ok' : 'is-low'}><span>Discourse Cloze</span><strong>{builderStock.discourse_cloze_5?.bundles || 0}</strong><small>Cần 1 chùm</small></article>
+                <article className={(builderStock.reading_10?.bundles || 0) >= 1 ? 'is-ok' : 'is-low'}><span>Reading 10</span><strong>{builderStock.reading_10?.bundles || 0}</strong><small>Cần 1 chùm</small></article>
+                <article className={(builderStock.reading_8?.bundles || 0) >= 1 ? 'is-ok' : 'is-low'}><span>Reading 8</span><strong>{builderStock.reading_8?.bundles || 0}</strong><small>Cần 1 chùm</small></article>
+                <article className={(builderStock.functional_cloze_6?.bundles || 0) >= 2 ? 'is-ok' : 'is-low'}><span>Functional Cloze</span><strong>{builderStock.functional_cloze_6?.bundles || 0}</strong><small>Cần 2 chùm</small></article>
+              </div>
+            </aside>
+          </div>
+
+          {builderSelection.missing.length ? (
+            <div className="qb-builder-missing">
+              <strong>Chưa đủ dữ liệu cho bộ lọc hiện tại</strong>
+              {builderSelection.missing.map((item) => <span key={item.type + '-' + item.message}>• {item.message}</span>)}
+              <small>Hãy bỏ bớt bộ lọc hoặc thêm câu/chùm bài tương ứng vào ngân hàng.</small>
+            </div>
+          ) : null}
+
+          <section className="qb-builder-preview">
+            <div className="qb-builder-preview-head">
+              <div><span>LIVE BLUEPRINT</span><h3>Bản ráp đề hiện tại</h3></div>
+              <div className={builderSelection.audit.ready ? 'qb-builder-pass' : 'qb-builder-check'}>
+                <b>{builderSelection.audit.ready ? 'READY' : 'CHECK'}</b>
+                <small>{builderSelection.audit.errors.length} lỗi · {builderSelection.audit.warnings.length} cảnh báo</small>
+              </div>
+            </div>
+
+            <div className="qb-builder-blueprint">
+              {builderSelection.audit.sections.map((section) => (
+                <article key={'builder-' + section.key}>
+                  <div><span>P{section.index}</span><strong>{section.label}</strong></div>
+                  <p>{section.bundle?.title || (section.type === 'arrangement_5' ? '5 câu độc lập từ ngân hàng' : 'Chùm được chọn từ kho')}</p>
+                  <small>Questions {section.start}–{section.end}</small>
+                </article>
+              ))}
+            </div>
+
+            <div className="qb-builder-metrics">
+              <article><span>Nhận biết</span><strong>{builderSelection.audit.distributions.cognitive.recognition || 0}</strong></article>
+              <article><span>Thông hiểu</span><strong>{builderSelection.audit.distributions.cognitive.comprehension || 0}</strong></article>
+              <article><span>Vận dụng</span><strong>{builderSelection.audit.distributions.cognitive.application || 0}</strong></article>
+              <article><span>Đáp án A/B/C/D</span><strong>{Object.values(builderSelection.audit.distributions.answers).join(' / ')}</strong></article>
+            </div>
+
+            {builderSelection.audit.warnings.length ? (
+              <div className="qb-builder-warnings">
+                {builderSelection.audit.warnings.slice(0, 5).map((warning) => <span key={warning}>⚠ {warning}</span>)}
+              </div>
+            ) : null}
+          </section>
         </div>
       ) : null}
 
