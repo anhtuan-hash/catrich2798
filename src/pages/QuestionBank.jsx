@@ -223,7 +223,7 @@ OpenAPI: ${openApiUrl}`;
       const fingerprint = await questionFingerprint(draft);
       const row = {
         owner_id: userId,
-        visibility: 'private',
+        visibility: 'personal',
         status: 'draft',
         question_type: 'mcq',
         stem: text(draft.stem),
@@ -338,7 +338,7 @@ OpenAPI: ${openApiUrl}`;
             owner_id: userId,
             bundle_id: savedBundle?.id || null,
             bundle_position: savedBundle ? index + 1 : null,
-            visibility: 'private',
+            visibility: 'personal',
             status: 'draft',
             question_type: text(question.questionType || (question.options?.length ? 'mcq' : 'short_answer')),
             stem: text(question.stem),
@@ -409,7 +409,7 @@ OpenAPI: ${openApiUrl}`;
         const testInsert = await supabase.from('assessment_tests').insert({
           owner_id: userId,
           blueprint_id: null,
-          visibility: 'private',
+          visibility: 'personal',
           title: text(pasteMeta.title || pastePreview.title || `Đề nhập từ ChatGPT · ${new Date().toLocaleDateString('vi-VN')}`),
           status: 'draft',
           grade: Number(pasteMeta.grade || pastePreview.metadata?.grade || 0) || null,
