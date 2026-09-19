@@ -97,11 +97,13 @@ function cognitiveValue(value) {
 
 function normalizeOptions(value) {
   if (!Array.isArray(value)) return [];
-  return value.slice(0, 12).map((option) => {
-    if (option && typeof option === 'object') {
-      return cleanText(option.text ?? option.value ?? option.label ?? '', 4000);
-    }
-    return cleanText(option, 4000);
+  return value.slice(0, 12).map((option, index) => {
+    let normalized = option && typeof option === 'object'
+      ? cleanText(option.text ?? option.value ?? option.label ?? '', 4000)
+      : cleanText(option, 4000);
+    const expected = String.fromCharCode(65 + index);
+    normalized = normalized.replace(new RegExp('^\\s*' + expected + '\\s*[.\\):\\-]\\s*', 'i'), '').trim();
+    return normalized;
   }).filter(Boolean);
 }
 
@@ -296,10 +298,24 @@ async function saveQuestions(session, payload, { recordEvent = true } = {}) {
     throw Object.assign(new Error(`A single import may contain at most ${MAX_BATCH} questions.`), { status: 400 });
   }
   const meta = payload.meta && typeof payload.meta === 'object' ? payload.meta : payload;
-  const bundleInfo = await saveBundle(session, payload.bundle, meta);
-  const rows = questions.map((question, index) => questionRow(question || {}, session, bundleInfo, meta, index));
-  if (rows.some((row) => !row.stem)) {
+  if (questions.some((question) => !cleanText(question?.stem ?? question?.question ?? '', 30000))) {
     throw Object.assign(new Error('Every question must include a non-empty stem/question field.'), { status: 400 });
+  }
+  const bundleInfo = await saveBundle(session, payload.bundle, meta);
+  const cleanupCreatedBundle = async () => {
+    if (!bundleInfo.created || !bundleInfo.row?.id) return;
+    const { count } = await session.db.from('assessment_items')
+      .select('id', { count: 'exact', head: true })
+      .eq('bundle_id', bundleInfo.row.id);
+    if (!count) await session.db.from('assessment_bundles').delete().eq('id', bundleInfo.row.id).eq('owner_id', session.ownerId);
+  };
+
+  let rows;
+  try {
+    rows = questions.map((question, index) => questionRow(question || {}, session, bundleInfo, meta, index));
+  } catch (error) {
+    await cleanupCreatedBundle();
+    throw error;
   }
 
   const existing = await findByFingerprints(session.db, session.ownerId, rows.map((row) => row.fingerprint));
@@ -314,7 +330,10 @@ async function saveQuestions(session, payload, { recordEvent = true } = {}) {
   if (freshRows.length) {
     const { data, error } = await session.db.from('assessment_items').insert(freshRows).select('id,fingerprint,stem');
     if (error) {
-      if (String(error.code || '') !== '23505') throw new Error(error.message);
+      if (String(error.code || '') !== '23505') {
+        await cleanupCreatedBundle();
+        throw new Error(error.message);
+      }
     } else {
       inserted = data || [];
     }
