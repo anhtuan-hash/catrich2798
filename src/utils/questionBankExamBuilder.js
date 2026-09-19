@@ -107,7 +107,12 @@ export function buildBankInventory(questions = [], bundles = []) {
     });
   });
 
-  const standaloneItems = (questions || []).filter((item) => blockTypeForItem(item) === 'arrangement_5');
+  const standaloneItems = (questions || []).filter((item) => {
+    if (blockTypeForItem(item) !== 'arrangement_5') return false;
+    if (!item.bundle_id) return true;
+    const bundleType = valueText(bundleMap.get(item.bundle_id)?.bundle_type).toLowerCase();
+    return bundleType === 'arrangement_5';
+  });
 
   return { bundleCandidates, standaloneItems };
 }
