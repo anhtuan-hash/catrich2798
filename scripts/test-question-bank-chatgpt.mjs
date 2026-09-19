@@ -6,6 +6,7 @@ const vercel = JSON.parse(read('vercel.json'));
 const openapi = JSON.parse(read('public/brian-question-bank-openapi.json'));
 const handler = read('serverless-handlers/_question-bank.js');
 const page = read('src/pages/QuestionBank.jsx');
+const streamlinedCleanup = read('scripts/prepare-streamlined-catalog-v3.mjs');
 
 const routes = new Map((vercel.rewrites || []).map((item) => [item.source, item.destination]));
 const expectedRoutes = {
@@ -30,6 +31,7 @@ assert.ok(handler.includes("payload.action || req.query?.action"), 'Question Ban
 assert.ok(page.includes('Kiểm tra kết nối'), 'Question Bank setup wizard must expose a connection test.');
 assert.ok(page.includes('Instructions cho GPT'), 'Question Bank setup wizard must provide copyable GPT instructions.');
 assert.ok(page.includes('saveBrianExam') && page.includes('searchBrianQuestions'), 'Question Bank UI must name the dedicated ChatGPT actions.');
+assert.ok(!streamlinedCleanup.includes("'assessment-core'"), 'assessment-core must never be retired by the streamlined catalog build cleanup.');
 assert.ok(!page.includes("localStorage.setItem") || !page.includes('generatedKey'), 'Raw Brian connector key must not be intentionally persisted to localStorage.');
 
 console.log('PASS: Brian Question Bank ChatGPT action contract is intact.');
