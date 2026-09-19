@@ -34,7 +34,7 @@ async function openQuestionBank(page) {
   await expect(page.locator('#bes-main-content > .qb-shell')).toBeVisible({ timeout: 10_000 });
   await expect(page.getByRole('heading', { name: /Ngân hàng/i }).first()).toBeVisible();
   await expect(page.getByRole('button', { name: /Kho câu hỏi/i })).toBeVisible();
-  await expect(page.getByRole('button', { name: /Kết nối ChatGPT/i }).first()).toBeVisible();
+  await expect(page.getByRole('button', { name: /Nhập từ ChatGPT/i }).first()).toBeVisible();
   await expect(page.locator('#bes-main-content')).not.toHaveCSS('height', '0px');
   await expect(pageErrors, `Unhandled Question Bank errors: ${pageErrors.join('\n')}`).toEqual([]);
 }
@@ -48,4 +48,14 @@ test('Question Bank route stays visible on a 16:9 desktop viewport', async ({ pa
   await openQuestionBank(page);
   const box = await page.locator('.qb-shell').boundingBox();
   expect(box?.height || 0).toBeGreaterThan(300);
+});
+
+
+test('Question Bank exposes the zero-cost ChatGPT paste-import workspace', async ({ page }) => {
+  await openQuestionBank(page);
+  await page.getByRole('button', { name: /^Nhập từ ChatGPT$/i }).first().click();
+  await expect(page.getByRole('heading', { name: /^Nhập từ ChatGPT$/i })).toBeVisible();
+  await expect(page.getByText(/Không gọi OpenAI API/i)).toBeVisible();
+  await expect(page.getByRole('button', { name: /Phân tích nội dung/i })).toBeVisible();
+  await expect(page.locator('.qb-paste-textarea textarea')).toBeVisible();
 });
