@@ -501,7 +501,11 @@ function App() {
             {canAccessRoute && currentRoute === 'knowledge-hub' && currentUser && <KnowledgeHub {...context} />}
             {canAccessRoute && currentRoute === 'dashboard' && currentUser && <WorkDashboard {...context} />}
             {canAccessRoute && currentRoute === 'student-support' && currentUser && <StudentSupportCenter {...context} />}
-            {canAccessRoute && currentRoute === 'assessment-core' && currentUser && <QuestionBank {...context} />}
+            {canAccessRoute && currentRoute === 'assessment-core' && currentUser && (
+              <AppErrorBoundary scope="question-bank" label={language === 'vi' ? 'Ngân hàng câu hỏi' : 'Question Bank'}>
+                <QuestionBank {...context} />
+              </AppErrorBoundary>
+            )}
             {canAccessRoute && currentRoute === 'platform-readiness' && currentUser && <PlatformReadiness {...context} />}
             {canAccessRoute && currentRoute === 'cloud-operations' && currentUser && <CloudOperations {...context} />}
             {canAccessRoute && currentRoute === 'data-governance' && currentUser && <DataGovernance {...context} />}
