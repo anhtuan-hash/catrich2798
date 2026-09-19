@@ -29,6 +29,13 @@ export const APPS = [
     api: false, featured: true, hideable: false,
   },
   {
+    slug: 'assessment-core', route: 'assessment-core', icon: 'QB', tone: 'blue', group: 'Assessment', groupVi: 'Kiểm tra đánh giá',
+    title: 'Question Bank', titleVi: 'Ngân hàng câu hỏi',
+    desc: 'Store reusable questions, preserve context bundles, manage exams and receive completed drafts directly from ChatGPT.',
+    descVi: 'Lưu câu hỏi tái sử dụng, giữ nguyên chùm ngữ liệu, quản lý đề thi và nhận đề hoàn chỉnh trực tiếp từ ChatGPT.',
+    status: 'Questions · Bundles · Exams · ChatGPT', statusVi: 'Câu hỏi · Chùm bài · Đề thi · ChatGPT', api: true, featured: true,
+  },
+  {
     slug: 'thpt-practice-hub', icon: 'TH', tone: 'orange', group: 'Exam Preparation', groupVi: 'Luyện thi THPT',
     title: 'THPT Interactive Practice Hub', titleVi: 'Luyện thi THPT',
     desc: 'Upload, review, organize and run interactive HTML exam-preparation lessons directly inside Brian.',
