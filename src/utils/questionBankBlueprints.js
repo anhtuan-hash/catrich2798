@@ -38,6 +38,7 @@ export function defaultBlueprintCriteria() {
     cefr: 'B1-B2',
     cognitiveTargets: { ...DEFAULT_COGNITIVE_TARGETS },
     tolerance: 10,
+    enforceCognitive: false,
     parts: TNTHPT_40_BLUEPRINT.map((part) => ({ ...part })),
   };
 }
@@ -81,6 +82,7 @@ export function normalizeBlueprintCriteria(criteria = {}) {
       application: int(targets.application, DEFAULT_COGNITIVE_TARGETS.application),
     },
     tolerance: Math.max(0, Math.min(50, int(criteria.tolerance, 10))),
+    enforceCognitive: Boolean(criteria.enforceCognitive),
     parts,
   };
 }
