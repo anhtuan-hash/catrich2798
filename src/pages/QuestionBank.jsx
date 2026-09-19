@@ -502,6 +502,148 @@ OpenAPI: ${openApiUrl}`;
     }
   };
 
+  const openExam = async (test) => {
+    if (!test?.id || !userId || !supabase) return;
+    setSelectedTest(test);
+    setSelectedTestItems([]);
+    setExamDetailLoading(true);
+    setShowExamAnswers(false);
+    setMessage('');
+    try {
+      const joinsResult = await supabase.from('assessment_test_items')
+        .select('item_id,position,option_order,points')
+        .eq('test_id', test.id)
+        .order('position', { ascending: true });
+      if (joinsResult.error) throw joinsResult.error;
+      const joins = joinsResult.data || [];
+      const itemIds = joins.map((row) => row.item_id);
+      if (!itemIds.length) {
+        setSelectedTestItems([]);
+        return;
+      }
+
+      const itemsResult = await supabase.from('assessment_items')
+        .select('*')
+        .in('id', itemIds);
+      if (itemsResult.error) throw itemsResult.error;
+      const itemMap = new Map((itemsResult.data || []).map((item) => [item.id, item]));
+      const bundleIds = [...new Set((itemsResult.data || []).map((item) => item.bundle_id).filter(Boolean))];
+      let bundleMap = new Map();
+      if (bundleIds.length) {
+        const bundleResult = await supabase.from('assessment_bundles').select('*').in('id', bundleIds);
+        if (bundleResult.error) throw bundleResult.error;
+        bundleMap = new Map((bundleResult.data || []).map((bundle) => [bundle.id, bundle]));
+      }
+
+      const merged = joins.map((join) => {
+        const item = itemMap.get(join.item_id) || {};
+        const bundle = item.bundle_id ? bundleMap.get(item.bundle_id) : null;
+        return {
+          ...item,
+          item_id: join.item_id,
+          position: join.position,
+          option_order: join.option_order || [],
+          points: join.points,
+          bundle_type: bundle?.bundle_type || '',
+          _bundle: bundle || null,
+        };
+      });
+      setSelectedTestItems(merged);
+    } catch (error) {
+      setMessage(error?.message || 'Không thể mở chi tiết đề thi.');
+    } finally {
+      setExamDetailLoading(false);
+    }
+  };
+
+  const createExamCopy = async ({ variant = false } = {}) => {
+    if (!selectedTest?.id || !selectedTestItems.length || !userId || !supabase) return;
+    const actionName = variant ? 'variant' : 'duplicate';
+    setExamActionBusy(actionName);
+    setMessage('');
+    try {
+      const now = new Date().toISOString();
+      const code = variant ? nextExamCode(tests) : '';
+      const baseTitle = text(selectedTest.title).replace(/\s*[·–-]\s*Mã\s*\d+\s*$/i, '').trim();
+      const title = variant
+        ? `${baseTitle} · Mã ${code}`
+        : `${baseTitle} – Bản sao`;
+      const settings = {
+        ...(selectedTest.settings || {}),
+        ...(variant
+          ? { examCode: code, variantOf: selectedTest.id, variantCreatedAt: now }
+          : { duplicatedFrom: selectedTest.id, duplicatedAt: now }),
+      };
+
+      const insertResult = await supabase.from('assessment_tests').insert({
+        owner_id: userId,
+        blueprint_id: selectedTest.blueprint_id || null,
+        visibility: 'personal',
+        title,
+        status: 'draft',
+        settings,
+        grade: selectedTest.grade || null,
+        school_year: text(selectedTest.school_year),
+        tags: [...new Set([...(selectedTest.tags || []), variant ? 'variant' : 'duplicate'])],
+        source_kind: 'manual',
+        source_reference: variant ? `Variant of ${selectedTest.id}` : `Duplicate of ${selectedTest.id}`,
+        import_metadata: {
+          manager: 'Brian Question Bank',
+          operation: variant ? 'create_variant' : 'duplicate_exam',
+          sourceTestId: selectedTest.id,
+          createdAt: now,
+        },
+        updated_at: now,
+      }).select('*').single();
+      if (insertResult.error) throw insertResult.error;
+      const newTest = insertResult.data;
+
+      const joinRows = selectedTestItems.map((item) => ({
+        test_id: newTest.id,
+        item_id: item.id || item.item_id,
+        position: Number(item.position),
+        option_order: variant ? createVariantOptionOrder(item, code) : (Array.isArray(item.option_order) ? item.option_order : []),
+        points: Number(item.points || 1),
+      }));
+      const joinResult = await supabase.from('assessment_test_items').insert(joinRows);
+      if (joinResult.error) {
+        await supabase.from('assessment_tests').delete().eq('id', newTest.id).eq('owner_id', userId);
+        throw joinResult.error;
+      }
+
+      await loadData();
+      await openExam(newTest);
+      setMessage(variant
+        ? `Đã tạo Mã ${code}. Câu hỏi được tái sử dụng, phương án A–D đã được đảo an toàn.`
+        : 'Đã nhân bản đề. Bản sao dùng lại toàn bộ câu hỏi gốc.');
+    } catch (error) {
+      setMessage(error?.message || (variant ? 'Không thể tạo mã đề mới.' : 'Không thể nhân bản đề.'));
+    } finally {
+      setExamActionBusy('');
+    }
+  };
+
+  const exportSelectedExam = (format) => {
+    if (!selectedTest || !selectedTestItems.length) return;
+    try {
+      const html = buildExamExportHtml({
+        test: selectedTest,
+        items: selectedTestItems,
+        teacherMode: showExamAnswers,
+      });
+      const suffix = showExamAnswers ? ' - Ban GV' : ' - Ban HS';
+      if (format === 'word') {
+        downloadWordDocument(html, `${selectedTest.title}${suffix}`);
+        setMessage(`Đã xuất Word ${showExamAnswers ? 'bản giáo viên' : 'bản học sinh'}.`);
+      } else {
+        printExamPdf(html);
+        setMessage('Đã mở bản in PDF. Chọn “Save as PDF/Lưu dưới dạng PDF” trong hộp thoại in.');
+      }
+    } catch (error) {
+      setMessage(error?.message || 'Không thể xuất đề.');
+    }
+  };
+
   const createChatGptKey = async () => {
     if (!userId || !supabase || !crypto?.subtle) return;
     setMessage('');
