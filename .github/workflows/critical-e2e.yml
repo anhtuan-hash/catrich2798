@@ -81,6 +81,9 @@ jobs:
       - name: Run WebKit critical browser smoke
         run: npx playwright test tests/e2e/critical-smoke.spec.js --project=webkit-desktop
 
+      - name: Verify Question Bank route in Chromium
+        run: npx playwright test tests/e2e/question-bank-route.spec.js --project=chromium-desktop
+
       - name: Verify Student Support in Chromium
         run: npx playwright test tests/e2e/student-support-center.spec.js --project=chromium-desktop
 
