@@ -90,11 +90,27 @@ assert.match(teacherHtml, /<b>Answer:<\/b>/);
 assert.match(teacherHtml, /Teacher version/);
 
 const page = fs.readFileSync('src/pages/QuestionBank.jsx', 'utf8');
-for (const token of ['ASSESSMENT MANAGER', 'Xuất Word', 'Xuất PDF', 'Nhân bản', 'Tạo mã đề mới']) {
+for (const token of [
+  'ASSESSMENT MANAGER',
+  'Xuất Word',
+  'Xuất PDF',
+  'Nhân bản',
+  'Tạo 1 mã',
+  'Tạo 4 mã đề',
+  'Sửa thông tin',
+  'Đáp án nhanh',
+  'Xóa đề',
+]) {
   assert.ok(page.includes(token), `Question Bank exam manager missing UI: ${token}`);
 }
-assert.ok(page.includes("createExamCopy({ variant: true })"), 'variant action must be wired');
+assert.ok(page.includes("createExamCopy({ variant: true })"), 'single variant action must be wired');
 assert.ok(page.includes("createExamCopy({ variant: false })"), 'duplicate action must be wired');
+assert.ok(page.includes("createVariantBatch(4)"), 'four-variant action must be wired');
+assert.ok(page.includes("saveExamMetadata"), 'exam metadata editor must be wired');
+assert.ok(page.includes("deleteSelectedExam"), 'safe exam delete must be wired');
+assert.ok(page.includes("assessment_test_items').delete().eq('test_id', selectedTest.id)"), 'exam delete must remove joins first');
+assert.ok(page.includes("assessment_tests').delete().eq('id', selectedTest.id)"), 'exam delete must remove only the test after joins');
+assert.ok(!/assessment_items'\)\.delete\(\)/.test(page), 'deleting an exam must never delete bank questions');
 assert.ok(page.includes("effectiveAnswer(item)"), 'teacher answer display must respect option order');
 
 console.log('PASS: Question Bank full exam manager contract is intact.');
