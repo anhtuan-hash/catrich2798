@@ -794,7 +794,7 @@ OpenAPI: ${openApiUrl}`;
   const saveBuiltExam = async () => {
     if (!userId || !supabase || builderSaving) return;
     if (!builderSelection.complete) {
-      setMessage('Ngân hàng chưa đủ dữ liệu để ráp đúng cấu trúc 40 câu. Xem các mục còn thiếu trong Tạo đề.');
+      setMessage('Ngân hàng chưa đủ dữ liệu để ráp đúng ma trận đang chọn. Xem các mục còn thiếu trong Tạo đề.');
       return;
     }
     if (!builderSelection.audit.ready) {
@@ -802,7 +802,7 @@ OpenAPI: ${openApiUrl}`;
       return;
     }
 
-    const title = text(builderConfig.title) || 'Đề TN THPT từ ngân hàng';
+    const title = text(builderConfig.title) || 'Đề từ Ngân hàng câu hỏi';
     const durationMinutes = Math.max(1, Math.min(600, Number.parseInt(builderConfig.durationMinutes, 10) || 50));
     setBuilderSaving(true);
     setMessage('');
@@ -811,6 +811,7 @@ OpenAPI: ${openApiUrl}`;
       const now = new Date().toISOString();
       const insertResult = await supabase.from('assessment_tests').insert({
         owner_id: userId,
+        blueprint_id: activeBuilderBlueprint.id === 'builtin-tnthpt-40' ? null : activeBuilderBlueprint.id,
         visibility: 'personal',
         title,
         status: 'draft',
