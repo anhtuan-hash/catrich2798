@@ -115,4 +115,16 @@ assert.match(
   'the global navigation must route Attendance through the read-only access adapter',
 );
 
+const mobileShell = fs.readFileSync(`${repoRoot}src/components/mobile/MobileAppShell.jsx`, 'utf8');
+assert.match(
+  mobileShell,
+  /withAttendanceReadOnlyAccess/,
+  'the mobile shell must use the same read-only Attendance adapter as desktop navigation',
+);
+assert.match(
+  mobileShell,
+  /hasAnyAttendanceAccess\(attendanceUser\)/,
+  'the mobile Attendance shortcut must be visible to regular authenticated users through the read-only adapter',
+);
+
 console.log('Attendance read-only access contract: OK');
