@@ -37,6 +37,11 @@ function fingerprintDuplicates(questions = []) {
 
 export function analyzeBankHealth(questions = [], bundles = []) {
   const usage = (questions || []).map((item) => Number(item.usage_count || 0));
+  const inventory = buildBankInventory(questions, bundles);
+  const eligibleIds = new Set([
+    ...inventory.standaloneItems.map((item) => item.id),
+    ...inventory.bundleCandidates.flatMap((candidate) => candidate.items.map((item) => item.id)),
+  ]);
   const metadataMissing = (questions || []).filter((item) =>
     !text(item.cefr)
     || !text(item.cognitive_level)
@@ -72,6 +77,8 @@ export function analyzeBankHealth(questions = [], bundles = []) {
   return {
     total,
     bundles: bundles.length,
+    builderEligible: eligibleIds.size,
+    outsideBuilderPool: Math.max(0, total - eligibleIds.size),
     neverUsed,
     usedOnce,
     reused,
