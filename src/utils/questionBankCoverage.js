@@ -1,4 +1,4 @@
-import { buildBankInventory } from './questionBankExamBuilder.js';
+import { buildBankInventory, itemMatchesPartFilters } from './questionBankExamBuilder.js';
 import { normalizeBlueprintCriteria } from './questionBankBlueprints.js';
 
 function text(value) {
@@ -106,8 +106,10 @@ export function analyzeBlueprintCoverage({
 
   const rows = criteria.parts.map((part) => {
     if (part.mode === 'items') {
-      const candidates = inventory.standaloneItems
-        .filter((item) => gradeMatches(item.grade, criteria.grade));
+      const pool = part.type === 'standalone_mcq' ? inventory.standaloneMcqItems : inventory.arrangementItems;
+      const candidates = pool
+        .filter((item) => gradeMatches(item.grade, criteria.grade))
+        .filter((item) => itemMatchesPartFilters(item, part));
       const available = candidates.length;
       const requiredPerSet = Number(part.count || 0);
       const requiredForTarget = requiredPerSet * requestedSets;
@@ -129,7 +131,8 @@ export function analyzeBlueprintCoverage({
     const candidates = inventory.bundleCandidates
       .filter((candidate) => candidate.type === part.type)
       .filter((candidate) => candidate.size === Number(part.itemCount || 0))
-      .filter((candidate) => bundleGradeMatches(candidate, criteria.grade));
+      .filter((candidate) => bundleGradeMatches(candidate, criteria.grade))
+      .filter((candidate) => candidate.items.every((item) => itemMatchesPartFilters(item, part)));
     const available = candidates.length;
     const requiredPerSet = Number(part.bundleCount || 0);
     const requiredForTarget = requiredPerSet * requestedSets;
