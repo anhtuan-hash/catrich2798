@@ -220,5 +220,8 @@ jobs:
       - name: Verify public route restoration v11.9.3
         run: node scripts/test-public-route-restoration-v11.9.3.mjs
 
+      - name: Verify release metadata v11.9.3
+        run: node scripts/test-release-metadata-v11.9.3.mjs
+
       - name: Build production bundle
         run: npm run build
