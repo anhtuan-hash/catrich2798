@@ -84,6 +84,18 @@ jobs:
       - name: Verify Question Bank route in Chromium
         run: npx playwright test tests/e2e/question-bank-route.spec.js --project=chromium-desktop
 
+      - name: Verify Classroom public join in Chromium
+        run: npx playwright test tests/e2e/classroom-delivery.spec.js --project=chromium-desktop
+
+      - name: Verify Classroom public join in WebKit
+        run: npx playwright test tests/e2e/classroom-delivery.spec.js --project=webkit-desktop
+
+      - name: Verify Homeroom public portal in Chromium
+        run: npx playwright test tests/e2e/homeroom-portal.spec.js --project=chromium-desktop
+
+      - name: Verify Homeroom public portal in WebKit
+        run: npx playwright test tests/e2e/homeroom-portal.spec.js --project=webkit-desktop
+
       - name: Verify Student Support in Chromium
         run: npx playwright test tests/e2e/student-support-center.spec.js --project=chromium-desktop
 
