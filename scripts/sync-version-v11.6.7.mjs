@@ -10,9 +10,9 @@ const now = new Date().toISOString();
 for (const file of ['public/version.json', 'public/release-manifest.json']) {
   if (!fs.existsSync(file)) continue;
   const value = JSON.parse(fs.readFileSync(file, 'utf8'));
-  value.version = '11.6.42';
-  if (file.endsWith('version.json')) value.releaseName = 'Bundle Reader';
-  else value.release = 'Bundle Reader';
+  value.version = '11.7.0';
+  if (file.endsWith('version.json')) value.releaseName = 'Question Bank Management Suite';
+  else value.release = 'Question Bank Management Suite';
   value.runtimeCore = '2.6.7';
   value.runtime = '2.6.7';
   value.requiresSql = false;
@@ -28,4 +28,4 @@ for (const file of ['public/version.json', 'public/release-manifest.json']) {
   fs.writeFileSync(file, JSON.stringify(value, null, 2) + '\n');
 }
 
-console.log('Version registry synchronized: 11.6.42 · Bundle Reader');
+console.log('Version registry synchronized: 11.7.0 · Question Bank Management Suite');

@@ -122,6 +122,7 @@ export function buildBankInventory(questions = [], bundles = []) {
     const type = valueText(bundle?.bundle_type).toLowerCase();
     if (!['functional_cloze_6', 'discourse_cloze_5', 'reading_8', 'reading_10'].includes(type)) return;
     const ordered = [...items].sort((a, b) => Number(a.bundle_position || 0) - Number(b.bundle_position || 0));
+    if (String(bundle?.status || 'draft').toLowerCase() === 'archived') return;
     bundleCandidates.push({
       id: bundleId,
       type,
@@ -132,6 +133,7 @@ export function buildBankInventory(questions = [], bundles = []) {
   });
 
   const standaloneItems = (questions || []).filter((item) => {
+    if (String(item.status || 'draft').toLowerCase() === 'archived') return false;
     if (blockTypeForItem(item) !== 'arrangement_5') return false;
     if (!item.bundle_id) return true;
     const bundleType = valueText(bundleMap.get(item.bundle_id)?.bundle_type).toLowerCase();
@@ -162,6 +164,7 @@ export function selectExamFromBank({
       .filter((candidate) => matchesTopic(candidate, filters.topic))
       .filter((candidate) => matchesGrade(candidate, filters.grade))
       .filter((candidate) => candidate.items.every((item) => !usedIds.has(item.id)))
+      .filter((candidate) => !filters.approvedOnly || candidate.items.every((item) => String(item.status || '').toLowerCase() === 'approved'))
       .sort((a, b) => candidateScore(b, filters, seed, selected) - candidateScore(a, filters, seed, selected));
 
     const picked = candidates.slice(0, bundleCount);
@@ -191,6 +194,7 @@ export function selectExamFromBank({
     if (part.mode === 'items') {
       const candidates = inventory.standaloneItems
         .filter((item) => !usedIds.has(item.id))
+        .filter((item) => !filters.approvedOnly || String(item.status || '').toLowerCase() === 'approved')
         .filter((item) => !filters.grade || !item.grade || String(item.grade) === String(filters.grade))
         .filter((item) => !filters.topic || [item.topic, item.skill, ...(item.tags || [])]
           .map(normalize).join(' ').includes(normalize(filters.topic)))
