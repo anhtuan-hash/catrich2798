@@ -46,14 +46,7 @@ import { installAiRemovalGuard } from './utils/aiRemovalGuard.js';
 import { installRetiredFeatureCleanup } from './utils/retiredFeatureCleanup.js';
 import { installGlobalMotionSystem } from './utils/globalMotionSystem.js';
 import { installGlobalFontSystem } from './utils/globalFontSystem.js';
-import { installGlobalRuntimeDiagnostics } from './utils/runtimeDiagnostics.js';
-import { RUNTIME_CORE_VERSION } from './config/version.js';
 
-if (typeof window !== 'undefined') {
-  window.__BES_APP_VERSION = APP_VERSION;
-  window.__BES_RUNTIME_VERSION = RUNTIME_CORE_VERSION;
-}
-installGlobalRuntimeDiagnostics();
 runConfigurationMigrations();
 installGlobalMotionSystem();
 installGlobalFontSystem();
