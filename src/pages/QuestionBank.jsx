@@ -1588,7 +1588,7 @@ OpenAPI: ${openApiUrl}`;
           </div>
 
           <div className="qb-health-grid">
-            <article><span>Tổng câu</span><strong>{bankHealth.total}</strong><small>{bankHealth.bundles} chùm bài</small></article>
+            <article><span>Tổng câu</span><strong>{bankHealth.total}</strong><small>{bankHealth.builderEligible} câu thuộc pool tạo đề · {bankHealth.outsideBuilderPool} ngoài pool</small></article>
             <article><span>Chưa từng dùng</span><strong>{bankHealth.neverUsed}</strong><small>{bankHealth.usedOnce} câu đã dùng 1 lần</small></article>
             <article><span>Metadata đầy đủ</span><strong>{bankHealth.completeness}%</strong><small>{bankHealth.metadataMissing} câu còn thiếu</small></article>
             <article><span>Trùng fingerprint</span><strong>{bankHealth.duplicateFingerprints}</strong><small>{bankHealth.uniqueTopics} chủ đề khác nhau</small></article>
