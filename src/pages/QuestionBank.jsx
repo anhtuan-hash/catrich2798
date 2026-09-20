@@ -28,6 +28,7 @@ import {
   visibleOptions,
 } from '../utils/questionBankExamManager.js';
 import QuestionBankManagementSuite from './question-bank/QuestionBankManagementSuite.jsx';
+import QuestionBankQualityControl from './question-bank/QuestionBankQualityControl.jsx';
 import './QuestionBank.css';
 
 const TABS = [
@@ -36,6 +37,7 @@ const TABS = [
   ['manage', 'Quản trị'],
   ['blueprints', 'Ma trận'],
   ['coverage', 'Phủ ma trận'],
+  ['quality', 'Chất lượng'],
   ['builder', 'Tạo đề'],
   ['tests', 'Đề thi'],
   ['import', 'Nhập từ ChatGPT'],
@@ -142,6 +144,23 @@ function EmptyState({ title, hint }) {
       <p>{hint}</p>
     </div>
   );
+}
+
+async function fetchAllOwnedRows(table, columns, userId, { order = 'updated_at', pageSize = 1000 } = {}) {
+  const rows = [];
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await supabase
+      .from(table)
+      .select(columns)
+      .eq('owner_id', userId)
+      .order(order, { ascending: false })
+      .range(from, from + pageSize - 1);
+    if (error) return { data: rows, error };
+    const page = data || [];
+    rows.push(...page);
+    if (page.length < pageSize) break;
+  }
+  return { data: rows, error: null };
 }
 
 export default function QuestionBank({ currentUser }) {
@@ -260,11 +279,12 @@ OpenAPI: ${openApiUrl}`;
     setMessage('');
     try {
       const [itemsResult, bundlesResult, testsResult, blueprintsResult, integrationResult, eventsResult] = await Promise.all([
-        supabase.from('assessment_items')
-          .select('id,bundle_id,bundle_position,status,question_type,stem,options,correct_answer,explanation,skill,cefr,topic,cognitive_level,difficulty,source,usage_count,grade,unit_name,school_year,grammar_point,tags,source_kind,source_reference,created_at,updated_at')
-          .eq('owner_id', userId).order('updated_at', { ascending: false }).limit(500),
-        supabase.from('assessment_bundles')
-          .select('*').eq('owner_id', userId).order('updated_at', { ascending: false }).limit(200),
+        fetchAllOwnedRows(
+          'assessment_items',
+          'id,bundle_id,bundle_position,status,question_type,stem,options,correct_answer,explanation,skill,cefr,topic,cognitive_level,difficulty,source,usage_count,grade,unit_name,school_year,grammar_point,tags,source_kind,source_reference,created_at,updated_at',
+          userId,
+        ),
+        fetchAllOwnedRows('assessment_bundles', '*', userId, { pageSize: 500 }),
         supabase.from('assessment_tests')
           .select('*').eq('owner_id', userId).order('updated_at', { ascending: false }).limit(200),
         supabase.from('assessment_blueprints')
@@ -1873,6 +1893,25 @@ OpenAPI: ${openApiUrl}`;
               </div>
             </section>
           </div>
+        </div>
+      ) : null}
+
+      {!loading && activeTab === 'quality' ? (
+        <div className="qb-panel">
+          <QuestionBankQualityControl
+            blueprints={blueprints}
+            onOpenQuestion={(itemId) => {
+              setManageTargetQuestionId(itemId);
+              setManageTargetBundleId('');
+              setActiveTab('manage');
+            }}
+            onOpenBundle={async (bundleId) => {
+              const bundle = bundles.find((item) => item.id === bundleId);
+              if (!bundle) return;
+              setActiveTab('bundles');
+              await openBundle(bundle);
+            }}
+          />
         </div>
       ) : null}
 
