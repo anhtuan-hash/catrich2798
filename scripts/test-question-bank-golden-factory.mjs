@@ -124,7 +124,7 @@ for (const token of [
   'qb_create_practice_share',
 ]) assert.ok(suite.includes(token),'Management UI missing: '+token);
 
-assert.ok(main.includes("'practice'"));
+assert.ok(main.includes("'qb-practice'"));
 assert.ok(main.includes('QuestionBankPractice'));
 assert.ok(publicPractice.includes('qb_public_practice_get'));
 assert.ok(publicPractice.includes('qb_public_practice_submit'));
