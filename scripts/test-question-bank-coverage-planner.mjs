@@ -64,6 +64,8 @@ for (let i = 1; i <= 13; i += 1) addBundle('f' + i, 'functional_cloze_6', 6);
 
 const health = analyzeBankHealth(questions, bundles);
 assert.equal(health.total, questions.length);
+assert.equal(health.builderEligible, questions.length);
+assert.equal(health.outsideBuilderPool, 0);
 assert.ok(health.neverUsed > 0);
 assert.equal(health.metadataMissing, 0);
 assert.equal(health.missingExplanation, 0);
