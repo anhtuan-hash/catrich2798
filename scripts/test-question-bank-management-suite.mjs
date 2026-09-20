@@ -30,10 +30,11 @@ const questions = [
   base('q1','Students should reduce plastic waste at school.','A',{fingerprint:'same'}),
   base('q2','Students should reduce plastic waste at school.','B',{fingerprint:'same',usage_count:2}),
   base('q3','Students can reduce plastic waste in their school.','C',{cefr:'B2',cognitive_level:'application'}),
-  base('q4','A completely unrelated item about astronomy.','D',{topic:'science',status:'draft'}),
+  base('q4','Students can reduce plastic waste at their school.','D',{cefr:'B2',cognitive_level:'application'}),
+  base('q5','A completely unrelated item about astronomy.','A',{topic:'science',status:'draft'}),
 ];
 
-assert.ok(textSimilarity(questions[0].stem, questions[2].stem) > 0.5);
+assert.ok(textSimilarity(questions[2].stem, questions[3].stem) > 0.5);
 const duplicates = findDuplicateGroups(questions,0.5);
 assert.ok(duplicates.some((group)=>group.kind==='exact'));
 assert.ok(duplicates.some((group)=>group.kind==='near'));
@@ -60,14 +61,14 @@ assert.equal(imported[0].correct_answer,'B');
 assert.deepEqual(imported[0].tags,['tag1','tag2']);
 
 const dashboard = managementDashboard(questions,[],[]);
-assert.equal(dashboard.total,4);
-assert.equal(dashboard.statuses.approved,3);
+assert.equal(dashboard.total,5);
+assert.equal(dashboard.statuses.approved,4);
 assert.equal(dashboard.statuses.draft,1);
 assert.ok(dashboard.duplicateGroups>=1);
 
 const topics = taxonomySuggestions(questions,'topic');
 assert.equal(topics[0].value,'environment');
-assert.equal(topics[0].count,3);
+assert.equal(topics[0].count,4);
 
 const page = fs.readFileSync('src/pages/QuestionBank.jsx','utf8');
 const suite = fs.readFileSync('src/pages/question-bank/QuestionBankManagementSuite.jsx','utf8');
