@@ -58,11 +58,17 @@ export function buildExamBatch({
     let bestPenalty = Number.POSITIVE_INFINITY;
     for (let attempt = 0; attempt < maxAttemptsPerExam; attempt += 1) {
       const seed = Number(seedBase) + examIndex * 1009 + attempt * 7919;
+      const priorIds = exams.flatMap((exam) => exam.items.map((item) => item.id));
       const candidate = selectExamFromBank({
         questions,
         bundles,
         blueprint,
-        filters,
+        filters: {
+          ...filters,
+          excludeIds: allowedOverlap === 0
+            ? [...new Set([...(filters.excludeIds || []), ...priorIds])]
+            : (filters.excludeIds || []),
+        },
         seed,
         auditOptions,
       });
