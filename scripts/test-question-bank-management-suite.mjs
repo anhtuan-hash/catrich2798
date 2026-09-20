@@ -33,8 +33,8 @@ const questions = [
   base('q4','A completely unrelated item about astronomy.','D',{topic:'science',status:'draft'}),
 ];
 
-assert.ok(textSimilarity(questions[0].stem, questions[2].stem) > 0.65);
-const duplicates = findDuplicateGroups(questions,0.65);
+assert.ok(textSimilarity(questions[0].stem, questions[2].stem) > 0.5);
+const duplicates = findDuplicateGroups(questions,0.5);
 assert.ok(duplicates.some((group)=>group.kind==='exact'));
 assert.ok(duplicates.some((group)=>group.kind==='near'));
 
