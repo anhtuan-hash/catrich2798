@@ -6,6 +6,9 @@ const quality = fs.readFileSync('src/pages/question-bank/QuestionBankQualityCont
 const css = fs.readFileSync('src/pages/question-bank/QuestionBankQualityControl.css', 'utf8');
 const sql = fs.readFileSync('supabase/question_bank_quality_control_v11_8_1.sql', 'utf8');
 
+assert.ok(page.includes('fetchAllOwnedRows'), 'Question Bank must page through the complete bank.');
+assert.ok(!page.includes(".limit(500)"), 'Question Bank must not truncate the item pool at 500 rows.');
+
 for (const token of [
   "import QuestionBankQualityControl from './question-bank/QuestionBankQualityControl.jsx';",
   "['quality', 'Chất lượng']",
