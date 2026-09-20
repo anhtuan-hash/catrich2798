@@ -1,6 +1,7 @@
 import { TNTHPT_40_BLUEPRINT } from './questionBankExamBuilder.js';
 
 export const BLUEPRINT_PART_CATALOG = [
+  { type: 'standalone_mcq', label: 'Standalone MCQ', mode: 'items', defaultCount: 20, fixedItemsPerBundle: null },
   { type: 'arrangement_5', label: 'Arrangement', mode: 'items', defaultCount: 5, fixedItemsPerBundle: null },
   { type: 'discourse_cloze_5', label: 'Discourse Cloze', mode: 'bundles', defaultBundleCount: 1, fixedItemsPerBundle: 5 },
   { type: 'reading_10', label: 'Reading 10', mode: 'bundles', defaultBundleCount: 1, fixedItemsPerBundle: 10 },
@@ -58,6 +59,7 @@ export function normalizeBlueprintCriteria(criteria = {}) {
           label: part.label || def.label,
           mode: 'items',
           count: int(part.count, def.defaultCount || 0),
+          filters: part.filters && typeof part.filters === 'object' ? { ...part.filters } : {},
         };
       }
       return {
@@ -66,6 +68,7 @@ export function normalizeBlueprintCriteria(criteria = {}) {
         mode: 'bundles',
         bundleCount: int(part.bundleCount, def.defaultBundleCount || 1),
         itemCount: int(part.itemCount, def.fixedItemsPerBundle || 1),
+        filters: part.filters && typeof part.filters === 'object' ? { ...part.filters } : {},
       };
     })
     .filter(Boolean);

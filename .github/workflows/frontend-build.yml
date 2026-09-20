@@ -178,6 +178,9 @@ jobs:
       - name: Verify Question Bank Management Suite
         run: node scripts/test-question-bank-management-suite.mjs
 
+      - name: Verify Question Bank Golden Factory
+        run: node scripts/test-question-bank-golden-factory.mjs
+
       - name: Verify critical browser smoke gate
         run: node scripts/test-critical-e2e-contract.mjs
 

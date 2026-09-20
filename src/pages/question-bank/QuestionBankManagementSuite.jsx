@@ -13,7 +13,9 @@ import {
   spreadsheetRowsToQuestions,
   taxonomySuggestions,
 } from '../../utils/questionBankManagement.js';
-import { blockTypeForItem } from '../../utils/questionBankExamManager.js';
+import { blockTypeForItem, buildExamExportHtml } from '../../utils/questionBankExamManager.js';
+import { defaultBlueprintCriteria, normalizeBlueprintCriteria } from '../../utils/questionBankBlueprints.js';
+import { batchAnswerKeyCsv, buildExamBatch } from '../../utils/questionBankExamFactory.js';
 
 const ADMIN_TABS = [
   ['dashboard', 'Tổng quan'],
@@ -21,9 +23,11 @@ const ADMIN_TABS = [
   ['bulk', 'Hàng loạt'],
   ['duplicates', 'Trùng lặp'],
   ['review', 'Duyệt'],
+  ['department', 'TTCM'],
   ['taxonomy', 'Phân loại'],
   ['io', 'Nhập / Xuất'],
   ['composer', 'Ráp đề'],
+  ['factory', 'Exam Factory'],
   ['practice', 'Luyện tập'],
   ['analytics', 'Phân tích'],
   ['backup', 'Sao lưu'],
@@ -184,6 +188,7 @@ export default function QuestionBankManagementSuite({
   const [responses, setResponses] = useState([]);
   const [recentItemVersions, setRecentItemVersions] = useState([]);
   const [recentBundleVersions, setRecentBundleVersions] = useState([]);
+  const [departmentStats, setDepartmentStats] = useState([]);
 
   const [selectedQuestionId, setSelectedQuestionId] = useState(targetQuestionId || '');
   const [selectedBundleId, setSelectedBundleId] = useState(targetBundleId || '');
@@ -215,12 +220,22 @@ export default function QuestionBankManagementSuite({
   const [draggedComposerIndex, setDraggedComposerIndex] = useState(null);
   const [replaceTargetId, setReplaceTargetId] = useState('');
 
+  const [examBatches, setExamBatches] = useState([]);
+  const [factoryBlueprintId, setFactoryBlueprintId] = useState('builtin-tnthpt-40');
+  const [factoryTitle, setFactoryTitle] = useState('TN THPT Golden Batch');
+  const [factoryCount, setFactoryCount] = useState(10);
+  const [factoryMaxOverlap, setFactoryMaxOverlap] = useState(0);
+  const [factoryDifficultyTolerance, setFactoryDifficultyTolerance] = useState(0.5);
+  const [factoryPreview, setFactoryPreview] = useState(null);
+  const [factorySeed, setFactorySeed] = useState(20260920);
+
   const [practiceTitle, setPracticeTitle] = useState('Bài luyện từ Ngân hàng câu hỏi');
   const [practiceCount, setPracticeCount] = useState(10);
   const [activePractice, setActivePractice] = useState(null);
   const [activePracticeItems, setActivePracticeItems] = useState([]);
   const [practiceAnswers, setPracticeAnswers] = useState({});
   const [practiceResult, setPracticeResult] = useState(null);
+  const [practiceShare, setPracticeShare] = useState(null);
 
   const [restoreArmed, setRestoreArmed] = useState('');
 
@@ -229,6 +244,14 @@ export default function QuestionBankManagementSuite({
   const duplicateGroups = useMemo(() => findDuplicateGroups(questions.filter((item) => qbNorm(item.status) !== 'archived'), duplicateThreshold), [questions, duplicateThreshold]);
   const performance = useMemo(() => responsePerformance(questions, attempts, responses), [questions, attempts, responses]);
   const taxonomyCandidates = useMemo(() => taxonomySuggestions(questions, taxonomyKind), [questions, taxonomyKind]);
+
+  const activeFactoryBlueprint = useMemo(() => {
+    if (factoryBlueprintId === 'builtin-tnthpt-40') {
+      return { id: 'builtin-tnthpt-40', title: 'TN THPT 40 câu · mặc định', total_items: 40, criteria: defaultBlueprintCriteria() };
+    }
+    return blueprints.find((item) => item.id === factoryBlueprintId)
+      || { id: 'builtin-tnthpt-40', title: 'TN THPT 40 câu · mặc định', total_items: 40, criteria: defaultBlueprintCriteria() };
+  }, [factoryBlueprintId, blueprints]);
 
   const composerCandidates = useMemo(() => {
     const needle = qbNorm(composerQuery);
@@ -242,7 +265,7 @@ export default function QuestionBankManagementSuite({
     if (!userId) return;
     setAuxLoading(true);
     try {
-      const [taxonomyResult, snapshotResult, practiceResultData, attemptResult, responseResult, itemVersionResult, bundleVersionResult] = await Promise.all([
+      const [taxonomyResult, snapshotResult, practiceResultData, attemptResult, responseResult, itemVersionResult, bundleVersionResult, batchResult, departmentStatsResult] = await Promise.all([
         supabase.from('assessment_taxonomy_terms').select('*').order('kind').order('canonical_value').limit(1000),
         supabase.from('assessment_bank_snapshots').select('id,title,item_count,bundle_count,blueprint_count,test_count,created_at').eq('owner_id', userId).order('created_at', { ascending: false }).limit(50),
         supabase.from('assessment_practice_sets').select('*').order('updated_at', { ascending: false }).limit(100),
@@ -250,8 +273,10 @@ export default function QuestionBankManagementSuite({
         supabase.from('assessment_practice_responses').select('*').limit(5000),
         supabase.from('assessment_item_versions').select('id,item_id,version_no,reason,created_at').order('created_at', { ascending: false }).limit(100),
         supabase.from('assessment_bundle_versions').select('id,bundle_id,version_no,reason,created_at').order('created_at', { ascending: false }).limit(100),
+        supabase.from('assessment_exam_batches').select('*').order('created_at', { ascending: false }).limit(100),
+        supabase.rpc('qb_department_contributor_stats'),
       ]);
-      for (const result of [taxonomyResult, snapshotResult, practiceResultData, attemptResult, responseResult, itemVersionResult, bundleVersionResult]) {
+      for (const result of [taxonomyResult, snapshotResult, practiceResultData, attemptResult, responseResult, itemVersionResult, bundleVersionResult, batchResult, departmentStatsResult]) {
         if (result.error) throw result.error;
       }
       setTaxonomies(taxonomyResult.data || []);
@@ -261,6 +286,8 @@ export default function QuestionBankManagementSuite({
       setResponses(responseResult.data || []);
       setRecentItemVersions(itemVersionResult.data || []);
       setRecentBundleVersions(bundleVersionResult.data || []);
+      setExamBatches(batchResult.data || []);
+      setDepartmentStats(departmentStatsResult.data || []);
     } catch (error) {
       onMessage?.(error?.message || 'Không thể tải dữ liệu Quản trị.');
     } finally {
@@ -832,6 +859,194 @@ export default function QuestionBankManagementSuite({
     } finally { setBusy(''); }
   }
 
+
+  function generateFactoryPreview() {
+    const criteria = normalizeBlueprintCriteria(activeFactoryBlueprint.criteria || {});
+    const result = buildExamBatch({
+      questions,
+      bundles,
+      blueprint: criteria.parts,
+      filters: {
+        grade: criteria.grade,
+        cefr: criteria.cefr,
+        approvedOnly: true,
+        cognitiveTargets: criteria.cognitiveTargets,
+        totalItems: activeFactoryBlueprint.total_items || 40,
+      },
+      count: factoryCount,
+      maxOverlap: factoryMaxOverlap,
+      difficultyTolerance: factoryDifficultyTolerance,
+      seedBase: factorySeed,
+      auditOptions: { isTnThpt: criteria.preset === 'tnthpt_40' },
+    });
+    setFactoryPreview(result);
+    if (!result.complete) {
+      onMessage?.(`Factory tạo được ${result.exams.length}/${result.requested} đề theo giới hạn hiện tại. Hãy giảm số đề, tăng overlap hoặc bổ sung kho.`);
+    } else {
+      onMessage?.(`Factory đã tìm được ${result.exams.length} đề; overlap tối đa ${result.summary.maxOverlap}, độ lệch difficulty ${result.summary.difficultySpread.toFixed(2)}.`);
+    }
+  }
+
+  function factoryItemsForExport(exam) {
+    return exam.items.map((item, index) => ({
+      ...item,
+      option_order: exam.optionOrders?.[index] || [],
+    }));
+  }
+
+  function exportFactoryAnswerKey() {
+    if (!factoryPreview?.exams?.length) return onMessage?.('Hãy tạo preview trước.');
+    const titles = factoryPreview.exams.map((_, index) => `${factoryTitle} · Set ${String(index + 1).padStart(2,'0')}`);
+    downloadText(
+      batchAnswerKeyCsv(factoryPreview.exams, titles),
+      `brian-factory-answer-key-${new Date().toISOString().slice(0,10)}.csv`,
+      'text/csv;charset=utf-8',
+    );
+  }
+
+  function factoryCombinedHtml(teacherMode = false) {
+    if (!factoryPreview?.exams?.length) return '';
+    const criteria = normalizeBlueprintCriteria(activeFactoryBlueprint.criteria || {});
+    const bodies = factoryPreview.exams.map((exam, index) => {
+      const test = {
+        title: `${factoryTitle} · Set ${String(index + 1).padStart(2,'0')}`,
+        grade: Number(criteria.grade) || 12,
+        school_year: '',
+        settings: {
+          durationMinutes: criteria.preset === 'tnthpt_40' ? 50 : 45,
+          examCode: String(index + 1).padStart(3,'0'),
+        },
+      };
+      const html = buildExamExportHtml({ test, items: factoryItemsForExport(exam), teacherMode });
+      const match = html.match(/<body>([\s\S]*?)<\/body>/i);
+      return `<section class="factory-set">${match?.[1] || html}</section>`;
+    }).join('');
+    return `<!doctype html><html><head><meta charset="utf-8"><title>${factoryTitle}</title><style>
+      @page{size:A4;margin:16mm}body{font-family:Arial,"Times New Roman",sans-serif;color:#111;font-size:11pt;line-height:1.45}
+      .factory-set{page-break-after:always}.factory-set:last-child{page-break-after:auto}
+      h1{text-align:center;font-size:17pt}.sub{text-align:center;margin-bottom:18px;color:#444}
+      h2{font-size:13pt;border-bottom:1px solid #777;padding-bottom:5px;margin:20px 0 10px}
+      .passage{background:#f7f7f7;border:1px solid #ddd;padding:10px;margin:8px 0 12px}
+      .question{page-break-inside:avoid;margin:0 0 13px}.options{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;margin-left:14px}
+      .answer{margin-top:6px;padding:6px 8px;background:#fff7db;border-left:3px solid #d9a400}.meta{font-size:9pt;color:#666;margin-top:4px}
+    </style></head><body>${bodies}</body></html>`;
+  }
+
+  function exportFactoryWord(teacherMode = false) {
+    const html = factoryCombinedHtml(teacherMode);
+    if (!html) return onMessage?.('Hãy tạo preview trước.');
+    downloadText(
+      html,
+      `brian-factory-${teacherMode ? 'teacher-' : ''}${new Date().toISOString().slice(0,10)}.doc`,
+      'application/msword',
+    );
+  }
+
+  function printFactoryPdf() {
+    const html = factoryCombinedHtml(false);
+    if (!html) return onMessage?.('Hãy tạo preview trước.');
+    const popup = window.open('', '_blank', 'noopener,noreferrer');
+    if (!popup) return onMessage?.('Trình duyệt đang chặn cửa sổ in. Hãy cho phép pop-up rồi thử lại.');
+    popup.document.open();
+    popup.document.write(html);
+    popup.document.close();
+    popup.focus();
+    window.setTimeout(() => popup.print(), 350);
+  }
+
+  async function saveFactoryBatch() {
+    if (!factoryPreview?.complete || !factoryPreview.exams?.length) return onMessage?.('Preview chưa đạt đủ số đề yêu cầu.');
+    setBusy('factory-save');
+    let batch = null;
+    const createdTestIds = [];
+    try {
+      const criteria = normalizeBlueprintCriteria(activeFactoryBlueprint.criteria || {});
+      const batchResult = await supabase.from('assessment_exam_batches').insert({
+        owner_id: userId,
+        blueprint_id: activeFactoryBlueprint.id === 'builtin-tnthpt-40' ? null : activeFactoryBlueprint.id,
+        title: qbText(factoryTitle) || 'Exam Factory Batch',
+        requested_count: factoryPreview.requested,
+        created_count: 0,
+        max_overlap: Number(factoryMaxOverlap) || 0,
+        difficulty_tolerance: Number(factoryDifficultyTolerance) || 0,
+        status: 'draft',
+        settings: { seed: factorySeed, approvedOnly: true, criteria },
+        summary: factoryPreview.summary,
+        updated_at: new Date().toISOString(),
+      }).select('*').single();
+      if (batchResult.error) throw batchResult.error;
+      batch = batchResult.data;
+
+      for (let index = 0; index < factoryPreview.exams.length; index += 1) {
+        const exam = factoryPreview.exams[index];
+        const title = `${qbText(factoryTitle) || 'Exam Factory Batch'} · Set ${String(index + 1).padStart(2,'0')}`;
+        const testResult = await supabase.from('assessment_tests').insert({
+          owner_id: userId,
+          blueprint_id: activeFactoryBlueprint.id === 'builtin-tnthpt-40' ? null : activeFactoryBlueprint.id,
+          exam_batch_id: batch.id,
+          visibility: 'personal',
+          title,
+          status: 'draft',
+          settings: {
+            durationMinutes: criteria.preset === 'tnthpt_40' ? 50 : 45,
+            examCode: String(index + 1).padStart(3,'0'),
+            factory: true,
+            factorySeed: exam.seed,
+            maxOverlap: factoryMaxOverlap,
+          },
+          grade: Number(criteria.grade) || null,
+          school_year: '',
+          tags: ['exam-factory','no-ai-cost', ...(criteria.preset === 'tnthpt_40' ? ['TNTHPT2025-2026'] : [])],
+          source_kind: 'manual',
+          source_reference: 'Brian Exam Factory',
+          import_metadata: {
+            factoryBatchId: batch.id,
+            difficulty: exam.difficulty,
+            overlaps: exam.overlaps,
+            audit: { ready: exam.audit.ready, warnings: exam.audit.warnings.length },
+          },
+          updated_at: new Date().toISOString(),
+        }).select('*').single();
+        if (testResult.error) throw testResult.error;
+        createdTestIds.push(testResult.data.id);
+
+        const joins = exam.items.map((item, itemIndex) => ({
+          test_id: testResult.data.id,
+          item_id: item.id,
+          position: itemIndex + 1,
+          option_order: exam.optionOrders?.[itemIndex] || [],
+          points: 1,
+        }));
+        const joinResult = await supabase.from('assessment_test_items').insert(joins);
+        if (joinResult.error) throw joinResult.error;
+      }
+
+      const uniqueIds = [...new Set(factoryPreview.exams.flatMap((exam) => exam.items.map((item) => item.id)))];
+      if (uniqueIds.length) await supabase.rpc('bes_assessment_increment_usage', { p_item_ids: uniqueIds });
+
+      const done = await supabase.from('assessment_exam_batches').update({
+        created_count: createdTestIds.length,
+        status: createdTestIds.length === factoryPreview.requested ? 'complete' : 'partial',
+        summary: factoryPreview.summary,
+        updated_at: new Date().toISOString(),
+      }).eq('id', batch.id);
+      if (done.error) throw done.error;
+
+      await onReload?.();
+      await loadAux();
+      onMessage?.(`Đã lưu batch ${createdTestIds.length} đề vào Brian. Mỗi đề đã có option order cân bằng A–D.`);
+    } catch (error) {
+      if (createdTestIds.length) {
+        await supabase.from('assessment_test_items').delete().in('test_id', createdTestIds);
+        await supabase.from('assessment_tests').delete().in('id', createdTestIds);
+      }
+      if (batch?.id) await supabase.from('assessment_exam_batches').delete().eq('id', batch.id);
+      onMessage?.(error?.message || 'Không thể lưu Exam Factory batch.');
+    } finally {
+      setBusy('');
+    }
+  }
+
   async function createPracticeSet() {
     const source = selectedIds.length
       ? questions.filter((item) => selectedIds.includes(item.id))
@@ -856,6 +1071,54 @@ export default function QuestionBankManagementSuite({
       if (practice?.id) await supabase.from('assessment_practice_sets').delete().eq('id', practice.id);
       onMessage?.(error?.message || 'Không thể tạo bài luyện.');
     } finally { setBusy(''); }
+  }
+
+  async function createPracticeShare(practice) {
+    setBusy(`practice-share-${practice.id}`);
+    try {
+      const result = await supabase.rpc('qb_create_practice_share', {
+        p_practice_id: practice.id,
+        p_expires_at: null,
+        p_max_attempts: 1000,
+      });
+      if (result.error) throw result.error;
+      const row = Array.isArray(result.data) ? result.data[0] : result.data;
+      if (!row?.token) throw new Error('Không nhận được token chia sẻ.');
+      const url = `${window.location.origin}${window.location.pathname}#/qb-practice?token=${encodeURIComponent(row.token)}`;
+      setPracticeShare({ practiceId: practice.id, title: practice.title, url });
+      try { await navigator.clipboard.writeText(url); } catch { /* copy button remains available */ }
+      await loadAux();
+      onMessage?.('Đã tạo link học sinh và sao chép vào clipboard. Token cũ của bài này đã được vô hiệu hóa.');
+    } catch (error) {
+      onMessage?.(error?.message || 'Không thể tạo link học sinh.');
+    } finally {
+      setBusy('');
+    }
+  }
+
+  async function disablePracticeShare(practice) {
+    setBusy(`practice-disable-${practice.id}`);
+    try {
+      const result = await supabase.rpc('qb_disable_practice_share', { p_practice_id: practice.id });
+      if (result.error) throw result.error;
+      if (practiceShare?.practiceId === practice.id) setPracticeShare(null);
+      await loadAux();
+      onMessage?.('Đã tắt link học sinh của bài luyện.');
+    } catch (error) {
+      onMessage?.(error?.message || 'Không thể tắt link học sinh.');
+    } finally {
+      setBusy('');
+    }
+  }
+
+  async function copyPracticeShare() {
+    if (!practiceShare?.url) return;
+    try {
+      await navigator.clipboard.writeText(practiceShare.url);
+      onMessage?.('Đã sao chép link học sinh.');
+    } catch {
+      onMessage?.('Không thể tự sao chép; hãy chọn link và sao chép thủ công.');
+    }
   }
 
   async function openPractice(practice) {
@@ -1075,7 +1338,7 @@ export default function QuestionBankManagementSuite({
             <select value={filters.cefr} onChange={(e) => setFilters({ ...filters, cefr:e.target.value })}><option value="">Tất cả CEFR</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option></select>
             <select value={filters.cognitive} onChange={(e) => setFilters({ ...filters, cognitive:e.target.value })}><option value="">Tất cả nhận thức</option><option value="recognition">Nhận biết</option><option value="comprehension">Thông hiểu</option><option value="application">Vận dụng</option></select>
             <select value={filters.status} onChange={(e) => setFilters({ ...filters, status:e.target.value })}><option value="">Tất cả trạng thái</option><option value="draft">Bản nháp</option><option value="review">Chờ duyệt</option><option value="approved">Đã duyệt</option><option value="archived">Lưu trữ</option></select>
-            <select value={filters.visibility} onChange={(e) => setFilters({ ...filters, visibility:e.target.value })}><option value="">Mọi phạm vi</option><option value="personal">Cá nhân</option><option value="private">Riêng tư</option><option value="department">Tổ chuyên môn</option></select>
+            <select value={filters.visibility} onChange={(e) => setFilters({ ...filters, visibility:e.target.value })}><option value="">Mọi phạm vi</option><option value="personal">Cá nhân</option><option value="department">Tổ chuyên môn</option></select>
             <select value={filters.usage} onChange={(e) => setFilters({ ...filters, usage:e.target.value })}><option value="">Mọi mức dùng</option><option value="unused">Chưa dùng</option><option value="used">Đã dùng</option><option value="heavy">Dùng nhiều ≥4</option></select>
             <select value={filters.bundle} onChange={(e) => setFilters({ ...filters, bundle:e.target.value })}><option value="">Câu/chùm</option><option value="standalone">Độc lập</option><option value="bundled">Trong chùm</option></select>
             <input placeholder="Topic" value={filters.topic} onChange={(e) => setFilters({ ...filters, topic:e.target.value })} />
@@ -1086,7 +1349,7 @@ export default function QuestionBankManagementSuite({
             <button type="button" className="qb-secondary" onClick={() => setSelectedIds(filtered.map((item) => item.id))}>Chọn tất cả {filtered.length}</button>
             <button type="button" className="qb-ghost" onClick={() => setSelectedIds([])}>Bỏ chọn</button>
             <select value={bulkPatch.status} onChange={(e) => setBulkPatch({ ...bulkPatch, status:e.target.value })}><option value="">Trạng thái — giữ nguyên</option><option value="draft">Bản nháp</option><option value="review">Chờ duyệt</option><option value="approved">Đã duyệt</option><option value="archived">Lưu trữ</option></select>
-            <select value={bulkPatch.visibility} onChange={(e) => setBulkPatch({ ...bulkPatch, visibility:e.target.value })}><option value="">Phạm vi — giữ nguyên</option><option value="personal">Cá nhân</option><option value="private">Riêng tư</option><option value="department">Tổ chuyên môn</option></select>
+            <select value={bulkPatch.visibility} onChange={(e) => setBulkPatch({ ...bulkPatch, visibility:e.target.value })}><option value="">Phạm vi — giữ nguyên</option><option value="personal">Cá nhân</option><option value="department">Tổ chuyên môn</option></select>
             <select value={bulkPatch.cefr} onChange={(e) => setBulkPatch({ ...bulkPatch, cefr:e.target.value })}><option value="">CEFR — giữ nguyên</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option></select>
             <select value={bulkPatch.cognitive_level} onChange={(e) => setBulkPatch({ ...bulkPatch, cognitive_level:e.target.value })}><option value="">Nhận thức — giữ nguyên</option><option value="recognition">Nhận biết</option><option value="comprehension">Thông hiểu</option><option value="application">Vận dụng</option></select>
             <select value={bulkPatch.difficulty} onChange={(e) => setBulkPatch({ ...bulkPatch, difficulty:e.target.value })}><option value="">Độ khó — giữ nguyên</option>{[1,2,3,4,5].map((v)=><option key={v}>{v}</option>)}</select>
@@ -1120,6 +1383,43 @@ export default function QuestionBankManagementSuite({
         </section>
       ) : null}
 
+      {tab === 'department' ? (
+        <section className="qb-admin-section">
+          <div className="qb-section-head">
+            <div><p>DEPARTMENT QUESTION BANK</p><h2>Tổ chuyên môn · kiểm duyệt & đóng góp</h2></div>
+            <span>Chỉ thành viên cùng tổ được xem nội dung chia sẻ; TTCM có quyền kiểm duyệt.</span>
+          </div>
+          <div className="qb-department-kpis">
+            <article><span>Thành viên</span><strong>{departmentStats.length}</strong><small>đang hoạt động trong tổ</small></article>
+            <article><span>Câu chia sẻ</span><strong>{departmentStats.reduce((sum,row)=>sum+Number(row.department_items||0),0)}</strong><small>visibility = department</small></article>
+            <article><span>Chờ duyệt</span><strong>{departmentStats.reduce((sum,row)=>sum+Number(row.review_items||0),0)}</strong><small>cần TTCM xử lý</small></article>
+            <article><span>Đã duyệt</span><strong>{departmentStats.reduce((sum,row)=>sum+Number(row.approved_items||0),0)}</strong><small>sẵn sàng dùng chung</small></article>
+          </div>
+          <div className="qb-department-table">
+            <header><span>Giáo viên</span><span>Vai trò</span><span>Chia sẻ</span><span>Draft</span><span>Review</span><span>Approved</span><span>Bundles</span><span>Đề</span><span>Cập nhật gần nhất</span></header>
+            {departmentStats.map((row)=>(
+              <article key={row.user_id}>
+                <div><strong>{row.display_name || row.email || 'Thành viên'}</strong><small>{row.email || '—'}</small></div>
+                <span>{row.member_role || 'member'}</span>
+                <b>{Number(row.department_items||0)}</b>
+                <b>{Number(row.draft_items||0)}</b>
+                <b className={Number(row.review_items||0)>0?'needs-review':''}>{Number(row.review_items||0)}</b>
+                <b className="approved">{Number(row.approved_items||0)}</b>
+                <b>{Number(row.bundle_count||0)}</b>
+                <b>{Number(row.test_count||0)}</b>
+                <small>{formatTime(row.latest_contribution)}</small>
+              </article>
+            ))}
+          </div>
+          <div className="qb-department-flow">
+            <article><b>1</b><div><strong>Giáo viên tạo câu</strong><p>Đặt phạm vi “Tổ chuyên môn” và giữ trạng thái Draft trong lúc biên tập.</p></div></article>
+            <article><b>2</b><div><strong>Gửi duyệt</strong><p>Draft → Review. Câu xuất hiện trong hàng chờ của TTCM.</p></div></article>
+            <article><b>3</b><div><strong>TTCM kiểm tra</strong><p>Kiểm tra ngữ liệu, distractor, đáp án, metadata; có thể Duyệt hoặc Trả lại kèm ghi chú.</p></div></article>
+            <article><b>4</b><div><strong>Dùng chung</strong><p>Approved được phép vào Builder/Exam Factory khi bật “Chỉ dùng câu Approved”.</p></div></article>
+          </div>
+        </section>
+      ) : null}
+
       {tab === 'taxonomy' ? (
         <section className="qb-admin-section">
           <div className="qb-section-head"><div><p>TAXONOMY MANAGER</p><h2>Chuẩn hóa phân loại</h2></div><span>Topic · Grammar · Tags · Skill · Question Type · Source</span></div>
@@ -1145,12 +1445,79 @@ export default function QuestionBankManagementSuite({
         </section>
       ) : null}
 
+      {tab === 'factory' ? (
+        <section className="qb-admin-section">
+          <div className="qb-section-head">
+            <div><p>EXAM FACTORY</p><h2>Tạo batch đề hàng loạt</h2></div>
+            <span>Ma trận + số đề + overlap + difficulty · chỉ dùng câu Approved · không gọi AI.</span>
+          </div>
+
+          <div className="qb-factory-controls">
+            <label><span>Ma trận</span>
+              <select value={factoryBlueprintId} onChange={(e) => { setFactoryBlueprintId(e.target.value); setFactoryPreview(null); }}>
+                <option value="builtin-tnthpt-40">TN THPT 40 câu · mặc định</option>
+                {blueprints.map((bp) => <option key={bp.id} value={bp.id}>{bp.title} · {bp.total_items} câu</option>)}
+              </select>
+            </label>
+            <label><span>Tên batch</span><input value={factoryTitle} onChange={(e)=>setFactoryTitle(e.target.value)} /></label>
+            <label><span>Số lượng đề</span><input type="number" min="1" max="100" value={factoryCount} onChange={(e)=>{setFactoryCount(Math.max(1,Math.min(100,Number(e.target.value)||1)));setFactoryPreview(null);}} /></label>
+            <label><span>Overlap tối đa</span><input type="number" min="0" max="40" value={factoryMaxOverlap} onChange={(e)=>{setFactoryMaxOverlap(Math.max(0,Number(e.target.value)||0));setFactoryPreview(null);}} /></label>
+            <label><span>Sai số độ khó</span><input type="number" min="0" max="3" step="0.05" value={factoryDifficultyTolerance} onChange={(e)=>{setFactoryDifficultyTolerance(Math.max(0,Number(e.target.value)||0));setFactoryPreview(null);}} /></label>
+            <label><span>Seed</span><input type="number" value={factorySeed} onChange={(e)=>{setFactorySeed(Number(e.target.value)||1);setFactoryPreview(null);}} /></label>
+            <button type="button" className="qb-primary" onClick={generateFactoryPreview}>Tạo preview</button>
+          </div>
+
+          {factoryPreview ? (
+            <>
+              <div className="qb-factory-summary">
+                <article className={factoryPreview.complete ? 'is-ready' : 'is-gap'}><span>Trạng thái</span><strong>{factoryPreview.complete ? 'READY' : 'PARTIAL'}</strong><small>{factoryPreview.exams.length}/{factoryPreview.requested} đề</small></article>
+                <article><span>Câu unique</span><strong>{factoryPreview.summary.totalUniqueItems}</strong><small>trong toàn batch</small></article>
+                <article><span>Overlap max</span><strong>{factoryPreview.summary.maxOverlap}</strong><small>mục tiêu ≤ {factoryMaxOverlap}</small></article>
+                <article><span>Difficulty TB</span><strong>{factoryPreview.summary.averageDifficulty.toFixed(2)}</strong><small>spread {factoryPreview.summary.difficultySpread.toFixed(2)}</small></article>
+              </div>
+
+              <div className="qb-factory-list">
+                {factoryPreview.exams.map((exam,index) => (
+                  <article key={exam.uniqueKey}>
+                    <div><b>SET {String(index+1).padStart(2,'0')}</b><strong>{exam.items.length} câu</strong></div>
+                    <span>Difficulty {exam.difficulty.toFixed(2)}</span>
+                    <span>Overlap max {exam.maxOverlap}</span>
+                    <span>{exam.audit.warnings.length} cảnh báo</span>
+                    <small>Seed {exam.seed}</small>
+                  </article>
+                ))}
+              </div>
+
+              {factoryPreview.rejected.length ? (
+                <div className="qb-factory-rejected">{factoryPreview.rejected.map((entry)=><span key={entry.index}>⚠ Set {entry.index}: {entry.reason}</span>)}</div>
+              ) : null}
+
+              <div className="qb-factory-actions">
+                <button type="button" className="qb-secondary" onClick={exportFactoryAnswerKey}>Answer key CSV</button>
+                <button type="button" className="qb-secondary" onClick={() => exportFactoryWord(false)}>Word học sinh</button>
+                <button type="button" className="qb-secondary" onClick={() => exportFactoryWord(true)}>Word giáo viên</button>
+                <button type="button" className="qb-secondary" onClick={printFactoryPdf}>In / PDF</button>
+                <button type="button" className="qb-primary" onClick={saveFactoryBatch} disabled={!factoryPreview.complete || busy==='factory-save'}>{busy==='factory-save'?'Đang lưu batch…':'Lưu toàn bộ batch'}</button>
+              </div>
+            </>
+          ) : (
+            <div className="qb-empty"><strong>Chưa có preview batch</strong><p>Brian sẽ thử nhiều seed và chỉ nhận tổ hợp đạt overlap + độ khó theo giới hạn đã đặt.</p></div>
+          )}
+
+          <div className="qb-factory-history">
+            <div><span>BATCH HISTORY</span><strong>{examBatches.length} batch</strong></div>
+            {examBatches.slice(0,50).map((batch)=><article key={batch.id}><div><strong>{batch.title}</strong><small>{formatTime(batch.created_at)} · {batch.created_count}/{batch.requested_count} đề · overlap ≤ {batch.max_overlap}</small></div><span>{localStatus(batch.status)}</span></article>)}
+          </div>
+        </section>
+      ) : null}
+
       {tab === 'practice' ? (
         <section className="qb-admin-section">
           <div className="qb-section-head"><div><p>STUDENT PRACTICE MODE</p><h2>Bài luyện & chấm tự động</h2></div><span>Tạo từ câu đã chọn hoặc câu Approved ít dùng nhất.</span></div>
           {!activePractice ? <>
             <div className="qb-practice-create"><input value={practiceTitle} onChange={(e)=>setPracticeTitle(e.target.value)} /><input type="number" min="1" max="100" value={practiceCount} onChange={(e)=>setPracticeCount(Number(e.target.value)||10)} /><button type="button" className="qb-primary" onClick={createPracticeSet}>Tạo bài luyện {selectedIds.length ? 'từ '+selectedIds.length+' câu đã chọn' : ''}</button></div>
-            <div className="qb-practice-list">{practiceSets.map((practice)=><article key={practice.id}><div><strong>{practice.title}</strong><small>{localStatus(practice.status)} · {formatTime(practice.updated_at)}</small></div><button type="button" onClick={() => openPractice(practice)}>Làm thử / Mở</button></article>)}</div>
+            <div className="qb-practice-list">{practiceSets.map((practice)=><article key={practice.id}><div><strong>{practice.title}</strong><small>{localStatus(practice.status)} · {formatTime(practice.updated_at)}</small></div><div className="qb-practice-actions"><button type="button" onClick={() => openPractice(practice)}>Làm thử / Mở</button><button type="button" onClick={() => createPracticeShare(practice)} disabled={busy===`practice-share-${practice.id}`}>Tạo link học sinh</button><button type="button" onClick={() => disablePracticeShare(practice)} disabled={busy===`practice-disable-${practice.id}`}>Tắt link</button></div></article>)}</div>
+            {practiceShare ? <div className="qb-practice-share"><div><span>LINK HỌC SINH · chỉ hiện trong phiên này</span><strong>{practiceShare.title}</strong></div><input readOnly value={practiceShare.url} onFocus={(e)=>e.target.select()} /><button type="button" className="qb-secondary" onClick={copyPracticeShare}>Sao chép</button></div> : null}
           </> : <div className="qb-practice-player"><header><button type="button" className="qb-back" onClick={() => {setActivePractice(null);setPracticeResult(null);}}>← Danh sách</button><div><h3>{activePractice.title}</h3><span>{activePracticeItems.length} câu</span></div></header>{activePracticeItems.map((item,index)=>{const bundle=bundles.find((b)=>b.id===item.bundle_id);const showContext=item.bundle_id && (index===0 || activePracticeItems[index-1]?.bundle_id!==item.bundle_id);return <React.Fragment key={item.id}>{showContext ? <div className="qb-practice-context"><b>{bundle?.title}</b><p>{bundle?.context_text}</p></div> : null}<article><strong>Question {index+1}. {item.stem}</strong><div>{(item.options||[]).map((option,optionIndex)=>{const letter=String.fromCharCode(65+optionIndex);return <label key={letter}><input type="radio" name={item.id} value={letter} checked={practiceAnswers[item.id]===letter} onChange={()=>setPracticeAnswers({...practiceAnswers,[item.id]:letter})} /><span><b>{letter}.</b> {option}</span></label>})}</div>{practiceResult ? <p className={qbText(practiceAnswers[item.id]).toUpperCase()===qbText(item.correct_answer).toUpperCase()?'correct':'wrong'}>Đáp án: {item.correct_answer}. {item.explanation}</p> : null}</article></React.Fragment>})}{practiceResult ? <div className="qb-practice-score">Kết quả: <b>{practiceResult.score}/{practiceResult.maxScore}</b></div> : <button type="button" className="qb-primary" onClick={submitPractice}>Nộp bài & chấm</button>}</div>}
         </section>
       ) : null}
