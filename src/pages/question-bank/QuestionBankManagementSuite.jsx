@@ -854,6 +854,194 @@ export default function QuestionBankManagementSuite({
     } finally { setBusy(''); }
   }
 
+
+  function generateFactoryPreview() {
+    const criteria = normalizeBlueprintCriteria(activeFactoryBlueprint.criteria || {});
+    const result = buildExamBatch({
+      questions,
+      bundles,
+      blueprint: criteria.parts,
+      filters: {
+        grade: criteria.grade,
+        cefr: criteria.cefr,
+        approvedOnly: true,
+        cognitiveTargets: criteria.cognitiveTargets,
+        totalItems: activeFactoryBlueprint.total_items || 40,
+      },
+      count: factoryCount,
+      maxOverlap: factoryMaxOverlap,
+      difficultyTolerance: factoryDifficultyTolerance,
+      seedBase: factorySeed,
+      auditOptions: { isTnThpt: criteria.preset === 'tnthpt_40' },
+    });
+    setFactoryPreview(result);
+    if (!result.complete) {
+      onMessage?.(`Factory tạo được ${result.exams.length}/${result.requested} đề theo giới hạn hiện tại. Hãy giảm số đề, tăng overlap hoặc bổ sung kho.`);
+    } else {
+      onMessage?.(`Factory đã tìm được ${result.exams.length} đề; overlap tối đa ${result.summary.maxOverlap}, độ lệch difficulty ${result.summary.difficultySpread.toFixed(2)}.`);
+    }
+  }
+
+  function factoryItemsForExport(exam) {
+    return exam.items.map((item, index) => ({
+      ...item,
+      option_order: exam.optionOrders?.[index] || [],
+    }));
+  }
+
+  function exportFactoryAnswerKey() {
+    if (!factoryPreview?.exams?.length) return onMessage?.('Hãy tạo preview trước.');
+    const titles = factoryPreview.exams.map((_, index) => `${factoryTitle} · Set ${String(index + 1).padStart(2,'0')}`);
+    downloadText(
+      batchAnswerKeyCsv(factoryPreview.exams, titles),
+      `brian-factory-answer-key-${new Date().toISOString().slice(0,10)}.csv`,
+      'text/csv;charset=utf-8',
+    );
+  }
+
+  function factoryCombinedHtml(teacherMode = false) {
+    if (!factoryPreview?.exams?.length) return '';
+    const criteria = normalizeBlueprintCriteria(activeFactoryBlueprint.criteria || {});
+    const bodies = factoryPreview.exams.map((exam, index) => {
+      const test = {
+        title: `${factoryTitle} · Set ${String(index + 1).padStart(2,'0')}`,
+        grade: Number(criteria.grade) || 12,
+        school_year: '',
+        settings: {
+          durationMinutes: criteria.preset === 'tnthpt_40' ? 50 : 45,
+          examCode: String(index + 1).padStart(3,'0'),
+        },
+      };
+      const html = buildExamExportHtml({ test, items: factoryItemsForExport(exam), teacherMode });
+      const match = html.match(/<body>([\s\S]*?)<\/body>/i);
+      return `<section class="factory-set">${match?.[1] || html}</section>`;
+    }).join('');
+    return `<!doctype html><html><head><meta charset="utf-8"><title>${factoryTitle}</title><style>
+      @page{size:A4;margin:16mm}body{font-family:Arial,"Times New Roman",sans-serif;color:#111;font-size:11pt;line-height:1.45}
+      .factory-set{page-break-after:always}.factory-set:last-child{page-break-after:auto}
+      h1{text-align:center;font-size:17pt}.sub{text-align:center;margin-bottom:18px;color:#444}
+      h2{font-size:13pt;border-bottom:1px solid #777;padding-bottom:5px;margin:20px 0 10px}
+      .passage{background:#f7f7f7;border:1px solid #ddd;padding:10px;margin:8px 0 12px}
+      .question{page-break-inside:avoid;margin:0 0 13px}.options{display:grid;grid-template-columns:1fr 1fr;gap:4px 18px;margin-left:14px}
+      .answer{margin-top:6px;padding:6px 8px;background:#fff7db;border-left:3px solid #d9a400}.meta{font-size:9pt;color:#666;margin-top:4px}
+    </style></head><body>${bodies}</body></html>`;
+  }
+
+  function exportFactoryWord(teacherMode = false) {
+    const html = factoryCombinedHtml(teacherMode);
+    if (!html) return onMessage?.('Hãy tạo preview trước.');
+    downloadText(
+      html,
+      `brian-factory-${teacherMode ? 'teacher-' : ''}${new Date().toISOString().slice(0,10)}.doc`,
+      'application/msword',
+    );
+  }
+
+  function printFactoryPdf() {
+    const html = factoryCombinedHtml(false);
+    if (!html) return onMessage?.('Hãy tạo preview trước.');
+    const popup = window.open('', '_blank', 'noopener,noreferrer');
+    if (!popup) return onMessage?.('Trình duyệt đang chặn cửa sổ in. Hãy cho phép pop-up rồi thử lại.');
+    popup.document.open();
+    popup.document.write(html);
+    popup.document.close();
+    popup.focus();
+    window.setTimeout(() => popup.print(), 350);
+  }
+
+  async function saveFactoryBatch() {
+    if (!factoryPreview?.complete || !factoryPreview.exams?.length) return onMessage?.('Preview chưa đạt đủ số đề yêu cầu.');
+    setBusy('factory-save');
+    let batch = null;
+    const createdTestIds = [];
+    try {
+      const criteria = normalizeBlueprintCriteria(activeFactoryBlueprint.criteria || {});
+      const batchResult = await supabase.from('assessment_exam_batches').insert({
+        owner_id: userId,
+        blueprint_id: activeFactoryBlueprint.id === 'builtin-tnthpt-40' ? null : activeFactoryBlueprint.id,
+        title: qbText(factoryTitle) || 'Exam Factory Batch',
+        requested_count: factoryPreview.requested,
+        created_count: 0,
+        max_overlap: Number(factoryMaxOverlap) || 0,
+        difficulty_tolerance: Number(factoryDifficultyTolerance) || 0,
+        status: 'draft',
+        settings: { seed: factorySeed, approvedOnly: true, criteria },
+        summary: factoryPreview.summary,
+        updated_at: new Date().toISOString(),
+      }).select('*').single();
+      if (batchResult.error) throw batchResult.error;
+      batch = batchResult.data;
+
+      for (let index = 0; index < factoryPreview.exams.length; index += 1) {
+        const exam = factoryPreview.exams[index];
+        const title = `${qbText(factoryTitle) || 'Exam Factory Batch'} · Set ${String(index + 1).padStart(2,'0')}`;
+        const testResult = await supabase.from('assessment_tests').insert({
+          owner_id: userId,
+          blueprint_id: activeFactoryBlueprint.id === 'builtin-tnthpt-40' ? null : activeFactoryBlueprint.id,
+          exam_batch_id: batch.id,
+          visibility: 'personal',
+          title,
+          status: 'draft',
+          settings: {
+            durationMinutes: criteria.preset === 'tnthpt_40' ? 50 : 45,
+            examCode: String(index + 1).padStart(3,'0'),
+            factory: true,
+            factorySeed: exam.seed,
+            maxOverlap: factoryMaxOverlap,
+          },
+          grade: Number(criteria.grade) || null,
+          school_year: '',
+          tags: ['exam-factory','no-ai-cost', ...(criteria.preset === 'tnthpt_40' ? ['TNTHPT2025-2026'] : [])],
+          source_kind: 'manual',
+          source_reference: 'Brian Exam Factory',
+          import_metadata: {
+            factoryBatchId: batch.id,
+            difficulty: exam.difficulty,
+            overlaps: exam.overlaps,
+            audit: { ready: exam.audit.ready, warnings: exam.audit.warnings.length },
+          },
+          updated_at: new Date().toISOString(),
+        }).select('*').single();
+        if (testResult.error) throw testResult.error;
+        createdTestIds.push(testResult.data.id);
+
+        const joins = exam.items.map((item, itemIndex) => ({
+          test_id: testResult.data.id,
+          item_id: item.id,
+          position: itemIndex + 1,
+          option_order: exam.optionOrders?.[itemIndex] || [],
+          points: 1,
+        }));
+        const joinResult = await supabase.from('assessment_test_items').insert(joins);
+        if (joinResult.error) throw joinResult.error;
+      }
+
+      const uniqueIds = [...new Set(factoryPreview.exams.flatMap((exam) => exam.items.map((item) => item.id)))];
+      if (uniqueIds.length) await supabase.rpc('bes_assessment_increment_usage', { p_item_ids: uniqueIds });
+
+      const done = await supabase.from('assessment_exam_batches').update({
+        created_count: createdTestIds.length,
+        status: createdTestIds.length === factoryPreview.requested ? 'complete' : 'partial',
+        summary: factoryPreview.summary,
+        updated_at: new Date().toISOString(),
+      }).eq('id', batch.id);
+      if (done.error) throw done.error;
+
+      await onReload?.();
+      await loadAux();
+      onMessage?.(`Đã lưu batch ${createdTestIds.length} đề vào Brian. Mỗi đề đã có option order cân bằng A–D.`);
+    } catch (error) {
+      if (createdTestIds.length) {
+        await supabase.from('assessment_test_items').delete().in('test_id', createdTestIds);
+        await supabase.from('assessment_tests').delete().in('id', createdTestIds);
+      }
+      if (batch?.id) await supabase.from('assessment_exam_batches').delete().eq('id', batch.id);
+      onMessage?.(error?.message || 'Không thể lưu Exam Factory batch.');
+    } finally {
+      setBusy('');
+    }
+  }
+
   async function createPracticeSet() {
     const source = selectedIds.length
       ? questions.filter((item) => selectedIds.includes(item.id))
