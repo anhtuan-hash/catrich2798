@@ -114,9 +114,10 @@ const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAcces
 const PwaUpdateBanner = lazy(() => import('./components/PwaUpdateBanner.jsx'));
 const HiddenAppsVault = lazy(() => import('./pages/HiddenAppsVault.jsx'));
 const QuestionBank = lazy(() => import('./pages/QuestionBank.jsx'));
+const QuestionBankPractice = lazy(() => import('./pages/QuestionBankPractice.jsx'));
 
 const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
-const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal']);
+const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'practice']);
 
 function getInitialRoute() {
   const href = window.location.href || '';
@@ -506,6 +507,7 @@ function App() {
                 <QuestionBank {...context} />
               </AppErrorBoundary>
             )}
+            {currentRoute === 'practice' && <QuestionBankPractice />}
             {canAccessRoute && currentRoute === 'platform-readiness' && currentUser && <PlatformReadiness {...context} />}
             {canAccessRoute && currentRoute === 'cloud-operations' && currentUser && <CloudOperations {...context} />}
             {canAccessRoute && currentRoute === 'data-governance' && currentUser && <DataGovernance {...context} />}
