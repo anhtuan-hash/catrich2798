@@ -184,6 +184,9 @@ jobs:
       - name: Verify Question Bank Quality Control
         run: node scripts/test-question-bank-quality-control.mjs
 
+      - name: Verify Question Bank public Practice
+        run: node scripts/test-question-bank-public-practice.mjs
+
       - name: Verify critical browser smoke gate
         run: node scripts/test-critical-e2e-contract.mjs
 
