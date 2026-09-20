@@ -100,7 +100,7 @@ export default function QuestionBankQualityControl({
           p_target_exams: Math.max(1, Math.min(100, Number(targetExams) || 10)),
           p_item_limit: 100,
         }),
-        supabase.rpc('qb_golden_bank_issues', { p_limit: 300 }),
+        supabase.rpc('qb_golden_bank_issues', { p_limit: 1000 }),
       ]);
       if (dashboardResult.error) throw dashboardResult.error;
       if (issuesResult.error) throw issuesResult.error;
