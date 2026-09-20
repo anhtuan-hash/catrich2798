@@ -13,7 +13,9 @@ import {
   spreadsheetRowsToQuestions,
   taxonomySuggestions,
 } from '../../utils/questionBankManagement.js';
-import { blockTypeForItem } from '../../utils/questionBankExamManager.js';
+import { blockTypeForItem, buildExamExportHtml } from '../../utils/questionBankExamManager.js';
+import { defaultBlueprintCriteria, normalizeBlueprintCriteria } from '../../utils/questionBankBlueprints.js';
+import { batchAnswerKeyCsv, buildExamBatch } from '../../utils/questionBankExamFactory.js';
 
 const ADMIN_TABS = [
   ['dashboard', 'Tổng quan'],
@@ -24,6 +26,7 @@ const ADMIN_TABS = [
   ['taxonomy', 'Phân loại'],
   ['io', 'Nhập / Xuất'],
   ['composer', 'Ráp đề'],
+  ['factory', 'Exam Factory'],
   ['practice', 'Luyện tập'],
   ['analytics', 'Phân tích'],
   ['backup', 'Sao lưu'],
@@ -215,6 +218,15 @@ export default function QuestionBankManagementSuite({
   const [draggedComposerIndex, setDraggedComposerIndex] = useState(null);
   const [replaceTargetId, setReplaceTargetId] = useState('');
 
+  const [examBatches, setExamBatches] = useState([]);
+  const [factoryBlueprintId, setFactoryBlueprintId] = useState('builtin-tnthpt-40');
+  const [factoryTitle, setFactoryTitle] = useState('TN THPT Golden Batch');
+  const [factoryCount, setFactoryCount] = useState(10);
+  const [factoryMaxOverlap, setFactoryMaxOverlap] = useState(0);
+  const [factoryDifficultyTolerance, setFactoryDifficultyTolerance] = useState(0.5);
+  const [factoryPreview, setFactoryPreview] = useState(null);
+  const [factorySeed, setFactorySeed] = useState(20260920);
+
   const [practiceTitle, setPracticeTitle] = useState('Bài luyện từ Ngân hàng câu hỏi');
   const [practiceCount, setPracticeCount] = useState(10);
   const [activePractice, setActivePractice] = useState(null);
@@ -230,6 +242,14 @@ export default function QuestionBankManagementSuite({
   const performance = useMemo(() => responsePerformance(questions, attempts, responses), [questions, attempts, responses]);
   const taxonomyCandidates = useMemo(() => taxonomySuggestions(questions, taxonomyKind), [questions, taxonomyKind]);
 
+  const activeFactoryBlueprint = useMemo(() => {
+    if (factoryBlueprintId === 'builtin-tnthpt-40') {
+      return { id: 'builtin-tnthpt-40', title: 'TN THPT 40 câu · mặc định', total_items: 40, criteria: defaultBlueprintCriteria() };
+    }
+    return blueprints.find((item) => item.id === factoryBlueprintId)
+      || { id: 'builtin-tnthpt-40', title: 'TN THPT 40 câu · mặc định', total_items: 40, criteria: defaultBlueprintCriteria() };
+  }, [factoryBlueprintId, blueprints]);
+
   const composerCandidates = useMemo(() => {
     const needle = qbNorm(composerQuery);
     return questions.filter((item) => qbNorm(item.status) !== 'archived')
@@ -242,7 +262,7 @@ export default function QuestionBankManagementSuite({
     if (!userId) return;
     setAuxLoading(true);
     try {
-      const [taxonomyResult, snapshotResult, practiceResultData, attemptResult, responseResult, itemVersionResult, bundleVersionResult] = await Promise.all([
+      const [taxonomyResult, snapshotResult, practiceResultData, attemptResult, responseResult, itemVersionResult, bundleVersionResult, batchResult] = await Promise.all([
         supabase.from('assessment_taxonomy_terms').select('*').order('kind').order('canonical_value').limit(1000),
         supabase.from('assessment_bank_snapshots').select('id,title,item_count,bundle_count,blueprint_count,test_count,created_at').eq('owner_id', userId).order('created_at', { ascending: false }).limit(50),
         supabase.from('assessment_practice_sets').select('*').order('updated_at', { ascending: false }).limit(100),
@@ -250,8 +270,9 @@ export default function QuestionBankManagementSuite({
         supabase.from('assessment_practice_responses').select('*').limit(5000),
         supabase.from('assessment_item_versions').select('id,item_id,version_no,reason,created_at').order('created_at', { ascending: false }).limit(100),
         supabase.from('assessment_bundle_versions').select('id,bundle_id,version_no,reason,created_at').order('created_at', { ascending: false }).limit(100),
+        supabase.from('assessment_exam_batches').select('*').order('created_at', { ascending: false }).limit(100),
       ]);
-      for (const result of [taxonomyResult, snapshotResult, practiceResultData, attemptResult, responseResult, itemVersionResult, bundleVersionResult]) {
+      for (const result of [taxonomyResult, snapshotResult, practiceResultData, attemptResult, responseResult, itemVersionResult, bundleVersionResult, batchResult]) {
         if (result.error) throw result.error;
       }
       setTaxonomies(taxonomyResult.data || []);
@@ -261,6 +282,7 @@ export default function QuestionBankManagementSuite({
       setResponses(responseResult.data || []);
       setRecentItemVersions(itemVersionResult.data || []);
       setRecentBundleVersions(bundleVersionResult.data || []);
+      setExamBatches(batchResult.data || []);
     } catch (error) {
       onMessage?.(error?.message || 'Không thể tải dữ liệu Quản trị.');
     } finally {
