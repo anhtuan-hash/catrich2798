@@ -13,6 +13,7 @@ assert.match(component, /<option value="supplemental">Học bổ sung<\/option>/
 assert.match(component, /supplementalHistorySessions/, 'Native history must merge supplemental rows into the same filtered history list.');
 assert.match(component, /loadSupplementalSessionRecords/, 'Selecting a supplemental row must render its participants in the native detail panel.');
 assert.match(component, /isSupplementalHistorySession/, 'Source-aware history behavior must prevent extra-class mutations from being used on supplemental rows.');
-assert.match(access, /SUPPLEMENTAL_MANAGER_PROFILE_ID/, 'Supplemental history visibility must keep the approved manager identity contract.');
+assert.match(access, /attendance:manage/, 'Supplemental history visibility must use explicit attendance:manage permission.');
+assert.doesNotMatch(access, /SUPPLEMENTAL_MANAGER_PROFILE_ID|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i, 'Supplemental history visibility must not depend on a privileged identity constant.');
 
 console.log('Attendance History supplemental integration contract OK');
