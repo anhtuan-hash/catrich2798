@@ -132,7 +132,7 @@
     "verify:no-ai": "npm run build && npm run audit:no-ai",
     "audit:removed-content-apps": "node scripts/audit-content-apps-removed.mjs",
     "verify:v11.9.2": "npm run version:sync && node scripts/test-production-certification-v11.9.2.mjs && npm run build && npm test",
-    "verify:v11.9.3": "npm run version:sync && node scripts/test-production-certification-v11.9.2.mjs && node scripts/test-public-route-restoration-v11.9.3.mjs && npm run build && npm test"
+    "verify:v11.9.3": "npm run version:sync && node scripts/test-production-certification-v11.9.2.mjs && node scripts/test-public-route-restoration-v11.9.3.mjs && node scripts/test-release-metadata-v11.9.3.mjs && npm run build && npm test"
   },
   "dependencies": {
     "@pdf-lib/fontkit": "^1.1.1",
