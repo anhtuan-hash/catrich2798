@@ -10,7 +10,6 @@ const mustExist = (relativePath) => {
   return read(relativePath);
 };
 
-const managerUuid = '4c89bfa1-9e3f-4965-a082-99f6e974f5ba';
 const ui = read('src/supplementalLearningBootstrap.js');
 const api = read('src/attendance/supplementalLearningApi.js');
 const quick = read('src/supplementalAttendanceQuickBootstrap.js');
@@ -19,6 +18,7 @@ const route = read('src/supplementalLearningRouteBootstrap.js');
 const access = mustExist('src/supplementalAccess.js');
 const migration = mustExist('supabase/migrations/20260911150000_supplemental_classes_simplification.sql');
 const authHardening = mustExist('supabase/migrations/20260911151000_supplemental_classes_authorization_hardening.sql');
+const permissionHardening = mustExist('supabase/permission_driven_attendance_access_v11_9_4.sql');
 
 assert.match(ui, /Lớp học bổ sung/, 'The management UI must be class-centric.');
 for (const forbidden of ['Nhóm dài ngày', 'Buổi phát sinh', 'Liên kết với học sinh chính thức']) {
@@ -42,7 +42,8 @@ assert.match(ui, /async function importMembersFromFile/, 'Supplemental class man
 assert.match(ui, /upsertSupplementalClassMember\(client,[\s\S]{0,500}groupId: classId/, 'Imported students must stay in the Học bổ sung backend/domain.');
 assert.match(ui, /importMembersFromFile\(event\.target\.files\?\.\[0\], selected\.id\)/, 'The selected supplemental class must receive the uploaded roster.');
 
-assert.ok(access.includes(managerUuid), 'The frontend visibility guard must use the stable Hồng Thắm profile UUID.');
+assert.match(access, /attendance:manage/, 'The frontend visibility guard must use the explicit attendance:manage permission.');
+assert.doesNotMatch(access, /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i, 'The frontend visibility guard must not hardcode a privileged profile UUID.');
 assert.match(access, /approved/, 'The frontend visibility guard must require an approved profile.');
 assert.match(access, /admin|administrator/, 'The frontend visibility guard must allow approved Admins.');
 for (const entry of [ui, reporting, route]) {
@@ -69,15 +70,11 @@ for (const rpcName of [
 assert.ok(migration.includes('bes_supplemental_group_teachers'), 'Migration must add normalized multi-teacher metadata.');
 assert.ok(migration.includes('archived_at') && migration.includes('archived_by'), 'Migration must add archive audit fields.');
 assert.ok(migration.includes('bes_require_supplemental_manager'), 'Migration must define the strict supplemental manager guard.');
-assert.ok(migration.includes(managerUuid), 'Backend guard must use the stable Hồng Thắm profile UUID.');
 assert.match(migration, /42501/, 'Permission denial should use SQLSTATE 42501.');
-
-const strictGuardStart = migration.indexOf('bes_require_supplemental_manager');
-assert.ok(strictGuardStart >= 0, 'Strict supplemental guard must exist.');
-const strictGuardSlice = migration.slice(strictGuardStart, strictGuardStart + 5000);
-for (const genericPermission of ['route:attendance', 'attendance:quick', 'attendance:manage', 'attendance:history', 'attendance:report']) {
-  assert.ok(!strictGuardSlice.includes(genericPermission), `Strict supplemental guard must not authorize generic permission ${genericPermission}`);
-}
+assert.match(permissionHardening, /create or replace function private\.bes_is_supplemental_manager/i, 'Forward hardening must replace the supplemental manager predicate.');
+assert.match(permissionHardening, /attendance:manage/, 'Current backend authorization must use attendance:manage.');
+assert.doesNotMatch(permissionHardening, /4c89bfa1-9e3f-4965-a082-99f6e974f5ba/i, 'Current backend authorization must not hardcode the former manager UUID.');
+assert.doesNotMatch(permissionHardening, /hongtham@accounts\.brianenglish\.studio/i, 'Current backend authorization must not hardcode a privileged email.');
 
 assert.match(migration, /bes_require_supplemental_admin[\s\S]*bes_require_supplemental_manager/, 'Legacy supplemental admin guard must delegate to the strict manager rule.');
 assert.match(migration, /bes_require_supplemental_reader[\s\S]*bes_require_supplemental_manager/, 'Legacy supplemental reader guard must delegate to the strict manager rule.');
