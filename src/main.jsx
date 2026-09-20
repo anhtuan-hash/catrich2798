@@ -111,7 +111,6 @@ const CloudOperations = lazy(() => import('./pages/CloudOperations.jsx'));
 const DataGovernance = lazy(() => import('./pages/DataGovernance.jsx'));
 const ProductionHardening = lazy(() => import('./pages/ProductionHardening.jsx'));
 const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAccessibilityAnnouncer.jsx'));
-const PwaUpdateBanner = lazy(() => import('./components/PwaUpdateBanner.jsx'));
 const HiddenAppsVault = lazy(() => import('./pages/HiddenAppsVault.jsx'));
 const QuestionBank = lazy(() => import('./pages/QuestionBank.jsx'));
 const QuestionBankPractice = lazy(() => import('./pages/QuestionBankPractice.jsx'));
@@ -543,7 +542,6 @@ function App() {
             <SyncQueueIndicator currentUser={currentUser} language={language} externalLauncher />
           </Suspense>
         </> : null}
-        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? <Suspense fallback={null}><PwaUpdateBanner language={language} /></Suspense> : null}
         <Footer language={language} currentUser={currentUser} />
       </div>
     </>
