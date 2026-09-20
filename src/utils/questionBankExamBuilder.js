@@ -69,7 +69,7 @@ function cognitiveScore(candidate, cognitiveLevel) {
   return matching / values.length;
 }
 
-function itemMatchesPartFilters(item, part = {}) {
+export function itemMatchesPartFilters(item, part = {}) {
   const filters = part.filters || {};
   if (filters.tag) {
     const needle = normalize(filters.tag);
