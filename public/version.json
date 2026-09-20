@@ -1,7 +1,7 @@
 {
-  "version": "11.9.3",
+  "version": "11.9.4",
   "channel": "stable",
-  "releaseName": "Golden Bank & Exam Factory · Production Certified · Public Routes Restored",
+  "releaseName": "Golden Bank & Exam Factory · Production Certified · Permission-Driven Access",
   "runtimeCore": "2.6.7",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
