@@ -11,8 +11,10 @@ for (const file of ['public/version.json', 'public/release-manifest.json']) {
   if (!fs.existsSync(file)) continue;
   const value = JSON.parse(fs.readFileSync(file, 'utf8'));
   value.version = '11.9.3';
-  if (file.endsWith('version.json')) value.releaseName = 'Golden Bank & Exam Factory · Production Certified · Public Routes Restored';
-  else value.release = 'Golden Bank & Exam Factory · Production Certified · Public Routes Restored';
+  value.releaseName = 'Golden Bank & Exam Factory · Production Certified · Public Routes Restored';
+  if (file.endsWith('release-manifest.json')) {
+    value.release = 'Golden Bank & Exam Factory · Production Certified · Public Routes Restored';
+  }
   value.runtimeCore = '2.6.7';
   value.runtime = '2.6.7';
   value.requiresSql = false;
