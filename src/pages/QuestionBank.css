@@ -344,3 +344,21 @@ html body #root .app-shell[data-route="assessment-core"] main#bes-main-content >
 @media(max-width:1200px){.qb-factory-controls{grid-template-columns:1fr 1fr 1fr}.qb-factory-controls label:nth-child(1),.qb-factory-controls label:nth-child(2){grid-column:span 1}.qb-factory-controls button{width:100%}}
 @media(max-width:760px){.qb-factory-controls,.qb-factory-summary{grid-template-columns:1fr 1fr}.qb-factory-controls label:nth-child(1),.qb-factory-controls label:nth-child(2),.qb-factory-controls button{grid-column:1/-1}.qb-factory-list article{grid-template-columns:1fr 1fr}.qb-factory-list article>div{grid-column:1/-1}.qb-factory-list article>small{text-align:left}.qb-factory-actions{display:grid;grid-template-columns:1fr 1fr}.qb-factory-actions button{width:100%}}
 @media(max-width:480px){.qb-factory-controls,.qb-factory-summary,.qb-factory-actions{grid-template-columns:1fr}}
+
+
+/* Department Question Bank */
+.qb-department-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.qb-department-kpis article{padding:12px;border:1px solid #e1e6ee;border-radius:13px;background:#fff}
+.qb-department-kpis span{display:block;font-size:8px;font-weight:900;text-transform:uppercase;color:#7c8698}
+.qb-department-kpis strong{display:block;margin-top:4px;font-size:21px;color:#22304b}
+.qb-department-kpis small{display:block;margin-top:3px;font-size:8px;color:#929aa8}
+.qb-department-table{border:1px solid #e0e5ed;border-radius:13px;overflow:auto;background:#fff}
+.qb-department-table>header,.qb-department-table>article{display:grid;grid-template-columns:minmax(170px,1.6fr) 90px repeat(6,72px) 120px;gap:8px;align-items:center;min-width:900px;padding:9px 10px}
+.qb-department-table>header{background:#f4f6fa;font-size:8px;font-weight:900;color:#758095;text-transform:uppercase}
+.qb-department-table>article{border-top:1px solid #edf0f4}
+.qb-department-table article>div{display:grid;gap:2px}.qb-department-table strong{font-size:9px;color:#2d3b55}.qb-department-table small{font-size:8px;color:#929aa8}.qb-department-table span,.qb-department-table b{font-size:9px;color:#58657a}.qb-department-table b.needs-review{color:#ae6b00}.qb-department-table b.approved{color:#16784a}
+.qb-department-flow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.qb-department-flow article{display:grid;grid-template-columns:31px 1fr;gap:9px;align-items:start;padding:11px;border:1px solid #e1e6ee;border-radius:12px;background:#f9fbfe}
+.qb-department-flow article>b{display:grid;place-items:center;width:29px;height:29px;border-radius:9px;background:#eaf0ff;color:#315fc4;font-size:10px}.qb-department-flow strong{font-size:10px;color:#2d3b55}.qb-department-flow p{margin:4px 0 0;font-size:8px;line-height:1.45;color:#7d8798}
+@media(max-width:900px){.qb-department-kpis,.qb-department-flow{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.qb-department-kpis,.qb-department-flow{grid-template-columns:1fr}}
