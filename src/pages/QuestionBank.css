@@ -2538,3 +2538,860 @@ html body #root .app-shell[data-route="assessment-core"] main#bes-main-content >
     width:100vw;
   }
 }
+
+/* ===== Brian Assessment Core · Apple-inspired v5 ===== */
+.qb-shell-v5{
+  --apple-bg:#f5f5f7;
+  --apple-bg-elev:#fbfbfd;
+  --apple-surface:rgba(255,255,255,.72);
+  --apple-surface-strong:rgba(255,255,255,.9);
+  --apple-glass:rgba(255,255,255,.58);
+  --apple-glass-border:rgba(17,24,39,.08);
+  --apple-separator:rgba(60,60,67,.16);
+  --apple-label:#1d1d1f;
+  --apple-secondary:#6e6e73;
+  --apple-tertiary:#98989d;
+  --apple-blue:#007aff;
+  --apple-blue-hover:#0071e3;
+  --apple-green:#34c759;
+  --apple-red:#ff3b30;
+  --apple-orange:#ff9500;
+  --apple-shadow:0 10px 30px rgba(0,0,0,.055);
+  --apple-shadow-float:0 18px 48px rgba(0,0,0,.10);
+  max-width:1740px;
+  padding:14px clamp(16px,2vw,30px) 70px;
+  color:var(--apple-label);
+  background:
+    radial-gradient(circle at 84% 3%,rgba(0,122,255,.055),transparent 28rem),
+    linear-gradient(180deg,#fafafa 0%,var(--apple-bg) 38rem,var(--apple-bg) 100%);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+
+/* Liquid-glass horizontal navigation */
+.qb-shell-v5 .qb-tabs-horizontal{
+  position:sticky;
+  top:10px;
+  z-index:30;
+  display:flex;
+  align-items:center;
+  gap:3px;
+  width:max-content;
+  max-width:100%;
+  min-height:0;
+  margin:0 auto 20px;
+  padding:5px;
+  border:1px solid rgba(255,255,255,.78);
+  border-radius:18px;
+  background:rgba(246,246,248,.68);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.86),
+    0 10px 28px rgba(0,0,0,.07);
+  backdrop-filter:blur(28px) saturate(180%);
+  -webkit-backdrop-filter:blur(28px) saturate(180%);
+  overflow-x:auto;
+  overflow-y:hidden;
+  scrollbar-width:none;
+}
+.qb-shell-v5 .qb-tabs-horizontal::-webkit-scrollbar{display:none}
+.qb-shell-v5 .qb-tabs-horizontal button{
+  position:relative;
+  flex:0 0 auto;
+  min-height:38px;
+  padding:8px 12px;
+  gap:7px;
+  border:0;
+  border-radius:13px;
+  color:#5b5b60;
+  background:transparent;
+  box-shadow:none;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:-.01em;
+  transition:background .18s ease,color .18s ease,transform .18s ease,box-shadow .18s ease;
+}
+.qb-shell-v5 .qb-tabs-horizontal button::after,
+.qb-shell-v5 .qb-tabs-horizontal button::before{display:none!important}
+.qb-shell-v5 .qb-tabs-horizontal button:hover{
+  color:#1d1d1f;
+  background:rgba(255,255,255,.72);
+}
+.qb-shell-v5 .qb-tabs-horizontal button:active{transform:scale(.985)}
+.qb-shell-v5 .qb-tabs-horizontal button.active{
+  color:#111;
+  background:rgba(255,255,255,.96);
+  box-shadow:
+    0 1px 1px rgba(0,0,0,.04),
+    0 4px 12px rgba(0,0,0,.08);
+}
+.qb-shell-v5 .qb-tabs-horizontal button.active svg{color:var(--apple-blue)}
+.qb-shell-v5 .qb-tabs-horizontal button svg{opacity:.88}
+.qb-shell-v5 .qb-tabs-signature{display:none}
+
+/* Large-title header, content first */
+.qb-apple-header{
+  position:relative;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:26px;
+  min-height:132px;
+  padding:24px 4px 22px;
+}
+.qb-apple-title-block{
+  min-width:0;
+  max-width:920px;
+}
+.qb-apple-kicker{
+  margin:0 0 7px;
+  color:#85858a;
+  font-size:11px;
+  line-height:1.2;
+  font-weight:650;
+  letter-spacing:.055em;
+  text-transform:uppercase;
+}
+.qb-apple-title-block h1{
+  margin:0;
+  color:#1d1d1f;
+  font-size:clamp(44px,4.2vw,66px);
+  line-height:.98;
+  font-weight:760;
+  letter-spacing:-.055em;
+}
+.qb-apple-title-block>p:last-child{
+  margin:11px 0 0;
+  max-width:780px;
+  color:#6e6e73;
+  font-size:15px;
+  line-height:1.55;
+  letter-spacing:-.012em;
+}
+.qb-apple-header-actions{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  flex:0 0 auto;
+  padding-bottom:4px;
+}
+.qb-shell-v5 .qb-apple-glass-button,
+.qb-shell-v5 .qb-apple-primary-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  min-height:42px;
+  padding:9px 14px;
+  border-radius:999px;
+  font-size:12.5px;
+  font-weight:650;
+  letter-spacing:-.01em;
+}
+.qb-shell-v5 .qb-apple-glass-button{
+  color:#2f2f33;
+  border:1px solid rgba(255,255,255,.8);
+  background:rgba(255,255,255,.62);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.9),
+    0 5px 16px rgba(0,0,0,.055);
+  backdrop-filter:blur(22px) saturate(160%);
+  -webkit-backdrop-filter:blur(22px) saturate(160%);
+}
+.qb-shell-v5 .qb-apple-glass-button:hover{background:rgba(255,255,255,.84)}
+.qb-shell-v5 .qb-apple-primary-button{
+  color:#fff;
+  border-color:transparent;
+  background:var(--apple-blue);
+  box-shadow:none;
+}
+.qb-shell-v5 .qb-apple-primary-button:hover{background:var(--apple-blue-hover)}
+.qb-apple-module-symbol{
+  width:62px;
+  height:62px;
+  display:grid;
+  place-items:center;
+  flex:0 0 auto;
+  margin-bottom:4px;
+  color:#67676c;
+  border:1px solid rgba(255,255,255,.8);
+  border-radius:19px;
+  background:rgba(255,255,255,.58);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.9),
+    0 8px 24px rgba(0,0,0,.055);
+  backdrop-filter:blur(24px) saturate(160%);
+  -webkit-backdrop-filter:blur(24px) saturate(160%);
+}
+
+/* Metrics as one translucent grouped surface */
+.qb-apple-metrics{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:0;
+  margin:0 0 16px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.78);
+  border-radius:20px;
+  background:rgba(255,255,255,.64);
+  box-shadow:var(--apple-shadow);
+  backdrop-filter:blur(28px) saturate(165%);
+  -webkit-backdrop-filter:blur(28px) saturate(165%);
+}
+.qb-apple-metrics article{
+  position:relative;
+  display:grid;
+  grid-template-columns:42px 1fr;
+  align-items:center;
+  gap:10px;
+  min-height:82px;
+  padding:14px 16px;
+}
+.qb-apple-metrics article+article::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:17px;
+  bottom:17px;
+  width:1px;
+  background:rgba(60,60,67,.12);
+}
+.qb-apple-metric-symbol{
+  width:38px;
+  height:38px;
+  display:grid;
+  place-items:center;
+  color:var(--apple-blue);
+  border-radius:12px;
+  background:rgba(0,122,255,.09);
+}
+.qb-apple-metrics small{
+  display:block;
+  margin-bottom:2px;
+  color:#7d7d82;
+  font-size:10px;
+  font-weight:550;
+}
+.qb-apple-metrics strong{
+  display:block;
+  color:#1d1d1f;
+  font-size:23px;
+  line-height:1.05;
+  font-weight:700;
+  letter-spacing:-.035em;
+}
+
+/* Messages become system banners */
+.qb-shell-v5 .qb-message,
+.qb-shell-v5 .qb-loading{
+  margin:10px 0 0;
+  padding:10px 13px;
+  border:1px solid rgba(0,122,255,.12);
+  border-radius:13px;
+  color:#275b91;
+  background:rgba(232,244,255,.74);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  font-size:11.5px;
+  box-shadow:none;
+}
+
+/* Main surfaces: material, not boxed-dashboard */
+.qb-shell-v5 .qb-panel,
+.qb-shell-v5 .qb-builder-settings,
+.qb-shell-v5 .qb-builder-stock,
+.qb-shell-v5 .qb-builder-preview,
+.qb-shell-v5 .qb-blueprint-library,
+.qb-shell-v5 .qb-coverage-controls,
+.qb-shell-v5 .qb-quality-head,
+.qb-shell-v5 .qb-connect-box,
+.qb-shell-v5 .qb-paste-editor,
+.qb-shell-v5 .qb-paste-settings,
+.qb-shell-v5 .qb-admin-section{
+  border:1px solid rgba(255,255,255,.82);
+  border-radius:20px;
+  background:rgba(255,255,255,.72);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.9),
+    0 10px 30px rgba(0,0,0,.045);
+  backdrop-filter:blur(24px) saturate(155%);
+  -webkit-backdrop-filter:blur(24px) saturate(155%);
+}
+.qb-shell-v5 .qb-section-head h2{
+  color:#1d1d1f;
+  font-size:25px;
+  font-weight:700;
+  letter-spacing:-.035em;
+}
+.qb-shell-v5 .qb-section-head p{
+  color:#8a8a8f;
+  font-size:9px;
+  letter-spacing:.11em;
+}
+.qb-shell-v5 .qb-section-head>span{
+  color:#7d7d82;
+  font-size:11px;
+}
+
+/* Apple-like form controls */
+.qb-shell-v5 input,
+.qb-shell-v5 select,
+.qb-shell-v5 textarea{
+  color:#1d1d1f;
+  border:1px solid rgba(60,60,67,.14);
+  border-radius:11px;
+  background:rgba(255,255,255,.82);
+  box-shadow:
+    inset 0 1px 1px rgba(0,0,0,.025),
+    0 1px 0 rgba(255,255,255,.65);
+  font-family:inherit;
+}
+.qb-shell-v5 input::placeholder,
+.qb-shell-v5 textarea::placeholder{color:#a1a1a6}
+.qb-shell-v5 input:hover,
+.qb-shell-v5 select:hover,
+.qb-shell-v5 textarea:hover{border-color:rgba(60,60,67,.22)}
+.qb-shell-v5 input:focus,
+.qb-shell-v5 select:focus,
+.qb-shell-v5 textarea:focus{
+  outline:none;
+  border-color:rgba(0,122,255,.62);
+  box-shadow:0 0 0 3px rgba(0,122,255,.13);
+}
+.qb-shell-v5 .qb-primary{
+  color:#fff;
+  border-color:transparent;
+  border-radius:999px;
+  background:var(--apple-blue);
+  box-shadow:none;
+}
+.qb-shell-v5 .qb-primary:hover{background:var(--apple-blue-hover)}
+.qb-shell-v5 .qb-secondary{
+  color:#2e2e32;
+  border:1px solid rgba(60,60,67,.11);
+  border-radius:999px;
+  background:rgba(255,255,255,.8);
+  box-shadow:none;
+}
+.qb-shell-v5 .qb-secondary:hover{background:#fff}
+.qb-shell-v5 .qb-danger{
+  color:#d9362e;
+  border-radius:999px;
+  background:rgba(255,59,48,.08);
+  border-color:rgba(255,59,48,.12);
+}
+
+/* Skill segmented control */
+.qb-shell-v5 .qb-question-workspace{
+  margin-top:0;
+  overflow:hidden;
+  border-radius:22px;
+}
+.qb-shell-v5 .qb-skill-tabs{
+  min-height:auto;
+  margin:12px 12px 0;
+  padding:4px;
+  gap:3px;
+  border:0;
+  border-radius:14px;
+  background:rgba(118,118,128,.10);
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.qb-shell-v5 .qb-skill-tabs::-webkit-scrollbar{display:none}
+.qb-shell-v5 .qb-skill-tabs button{
+  min-height:34px;
+  padding:7px 11px;
+  border-radius:10px;
+  color:#5d5d62;
+  font-size:10.5px;
+  font-weight:600;
+}
+.qb-shell-v5 .qb-skill-tabs button::after{display:none}
+.qb-shell-v5 .qb-skill-tabs button:hover{color:#1d1d1f}
+.qb-shell-v5 .qb-skill-tabs button.active{
+  color:#1d1d1f;
+  background:rgba(255,255,255,.94);
+  box-shadow:
+    0 1px 1px rgba(0,0,0,.04),
+    0 2px 7px rgba(0,0,0,.08);
+}
+.qb-shell-v5 .qb-skill-tabs button span{
+  min-width:auto;
+  height:auto;
+  padding:0;
+  color:#98989d;
+  background:transparent!important;
+  font-size:8.5px;
+}
+
+/* Toolbar floats above content */
+.qb-shell-v5 .qb-toolbar-editorial{
+  display:grid;
+  grid-template-columns:minmax(320px,1.6fr) 138px 128px auto;
+  align-items:end;
+  gap:8px;
+  margin:10px 12px 12px;
+  padding:9px;
+  border:1px solid rgba(255,255,255,.74);
+  border-radius:16px;
+  background:rgba(246,246,248,.66);
+  box-shadow:0 5px 16px rgba(0,0,0,.04);
+  backdrop-filter:blur(22px) saturate(150%);
+  -webkit-backdrop-filter:blur(22px) saturate(150%);
+}
+.qb-shell-v5 .qb-toolbar-editorial label>span{
+  color:#8e8e93!important;
+  font-size:8px!important;
+  font-weight:650!important;
+  letter-spacing:.04em!important;
+}
+.qb-shell-v5 .qb-toolbar-editorial input,
+.qb-shell-v5 .qb-toolbar-editorial select{
+  min-height:37px;
+  font-size:10.5px;
+}
+.qb-shell-v5 .qb-toolbar-editorial .qb-small{
+  min-height:37px;
+  padding-inline:13px;
+  font-size:10.5px;
+}
+
+/* Table = inset grouped list */
+.qb-shell-v5 .qb-question-table{
+  max-height:min(60vh,680px);
+  margin:0 12px;
+  border:1px solid rgba(60,60,67,.10);
+  border-radius:16px;
+  background:rgba(255,255,255,.68);
+  overflow:auto;
+}
+.qb-shell-v5 .qb-question-table-head{
+  position:sticky;
+  top:0;
+  z-index:5;
+  min-height:37px;
+  color:#8e8e93;
+  border-bottom:1px solid rgba(60,60,67,.10);
+  background:rgba(247,247,249,.86);
+  backdrop-filter:blur(18px) saturate(145%);
+  -webkit-backdrop-filter:blur(18px) saturate(145%);
+  font-size:8px;
+  font-weight:650;
+}
+.qb-shell-v5 .qb-question-row{
+  min-height:58px;
+  border-bottom:1px solid rgba(60,60,67,.085);
+  background:transparent;
+  transition:background .13s ease;
+}
+.qb-shell-v5 .qb-question-row:hover,
+.qb-shell-v5 .qb-question-row:focus{
+  background:rgba(0,122,255,.045);
+  box-shadow:none;
+}
+.qb-shell-v5 .qb-question-row:last-child{border-bottom:0}
+.qb-shell-v5 .qb-row-question strong{
+  color:#262629;
+  font-size:10.8px;
+  font-weight:600;
+}
+.qb-shell-v5 .qb-row-question small{
+  color:#929297;
+  font-size:8.3px;
+}
+.qb-shell-v5 .qb-row-number,
+.qb-shell-v5 .qb-row-date,
+.qb-shell-v5 .qb-row-skill{color:#7d7d82}
+.qb-shell-v5 .qb-row-pill{
+  min-height:21px;
+  padding:3px 7px;
+  color:#66666b;
+  background:rgba(118,118,128,.10);
+  font-size:7.7px;
+  font-weight:600;
+}
+.qb-shell-v5 .qb-row-pill.is-blue{color:#2467ae;background:rgba(0,122,255,.09)}
+.qb-shell-v5 .qb-row-pill.is-green,
+.qb-shell-v5 .qb-row-pill.is-chatgpt{color:#28724a;background:rgba(52,199,89,.10)}
+.qb-shell-v5 .qb-row-pill.is-amber{color:#8b5d12;background:rgba(255,149,0,.11)}
+.qb-shell-v5 .qb-row-pill.is-red{color:#a9413b;background:rgba(255,59,48,.09)}
+.qb-shell-v5 .qb-row-more{
+  opacity:0;
+  color:#747479;
+  border-radius:999px;
+}
+.qb-shell-v5 .qb-question-row:hover .qb-row-more,
+.qb-shell-v5 .qb-question-row:focus .qb-row-more{opacity:1}
+.qb-shell-v5 .qb-question-pagination{
+  margin:0 12px;
+  min-height:50px;
+  color:#8a8a8f;
+  border:0;
+  background:transparent;
+}
+.qb-shell-v5 .qb-question-pagination button,
+.qb-shell-v5 .qb-question-pagination b{
+  width:30px;
+  height:30px;
+  border-radius:999px;
+}
+.qb-shell-v5 .qb-question-pagination button{
+  color:#626267;
+  border-color:rgba(60,60,67,.11);
+  background:rgba(255,255,255,.7);
+}
+.qb-shell-v5 .qb-question-pagination b{background:var(--apple-blue)}
+
+/* Form sheet */
+.qb-shell-v5 .qb-new-form,
+.qb-shell-v5 .qb-blueprint-editor,
+.qb-shell-v5 .qb-exam-edit{
+  margin:0 12px 12px;
+  border:1px solid rgba(60,60,67,.10);
+  border-radius:18px;
+  background:rgba(255,255,255,.76);
+  box-shadow:none;
+}
+
+/* Cards become clean inset surfaces */
+.qb-shell-v5 .qb-grid{gap:10px}
+.qb-shell-v5 .qb-bundle-card,
+.qb-shell-v5 .qb-test-card,
+.qb-shell-v5 .qb-blueprint-card{
+  border:1px solid rgba(60,60,67,.10);
+  border-radius:18px;
+  background:rgba(255,255,255,.72);
+  box-shadow:none;
+}
+.qb-shell-v5 .qb-bundle-card:hover,
+.qb-shell-v5 .qb-test-card.is-clickable:hover,
+.qb-shell-v5 .qb-blueprint-card:hover{
+  transform:translateY(-1px);
+  border-color:rgba(0,122,255,.18);
+  background:rgba(255,255,255,.9);
+  box-shadow:0 10px 24px rgba(0,0,0,.055);
+}
+.qb-shell-v5 .qb-bundle-card h3,
+.qb-shell-v5 .qb-test-card h3{color:#252528}
+.qb-shell-v5 .qb-bundle-card p,
+.qb-shell-v5 .qb-test-card p{color:#7d7d82}
+.qb-shell-v5 .qb-card-meta span{
+  color:#727277;
+  border-color:rgba(60,60,67,.08);
+  background:rgba(118,118,128,.08);
+}
+
+/* Admin secondary navigation as segmented material */
+.qb-shell-v5 .qb-admin-tabs{
+  display:flex;
+  gap:3px;
+  padding:4px;
+  border:0;
+  border-radius:14px;
+  background:rgba(118,118,128,.10);
+}
+.qb-shell-v5 .qb-admin-tabs button{
+  min-height:33px;
+  border-radius:10px;
+  color:#66666b;
+  background:transparent;
+  font-size:9.5px!important;
+  font-weight:600;
+}
+.qb-shell-v5 .qb-admin-tabs button.active{
+  color:#1d1d1f;
+  background:rgba(255,255,255,.94);
+  box-shadow:0 2px 8px rgba(0,0,0,.07);
+}
+
+/* Reduce color noise in data-heavy cards */
+.qb-shell-v5 .qb-quality-summary article,
+.qb-shell-v5 .qb-coverage-summary article,
+.qb-shell-v5 .qb-admin-kpis article,
+.qb-shell-v5 .qb-health-grid article,
+.qb-shell-v5 .qb-exam-overview article{
+  border:1px solid rgba(60,60,67,.09);
+  border-radius:16px;
+  background:rgba(255,255,255,.7);
+  box-shadow:none;
+}
+.qb-shell-v5 .qb-builder-total{
+  border-radius:16px;
+  background:linear-gradient(145deg,#26262a,#3a3a3f);
+  box-shadow:none;
+}
+
+/* Import & developer surfaces */
+.qb-shell-v5 .qb-paste-banner>div,
+.qb-shell-v5 .qb-connect-steps article,
+.qb-shell-v5 .qb-action-grid span{
+  border:1px solid rgba(60,60,67,.09);
+  border-radius:14px;
+  background:rgba(255,255,255,.66);
+}
+.qb-shell-v5 .qb-paste-savebar{
+  border-radius:16px;
+  background:rgba(38,38,42,.92);
+  backdrop-filter:blur(18px);
+}
+.qb-shell-v5 .qb-prompt{
+  border-radius:16px;
+  background:#1c1c1e;
+  box-shadow:none;
+}
+
+/* Sheet-like question preview */
+.qb-shell-v5 .qb-question-drawer-layer{
+  background:rgba(0,0,0,.16);
+  backdrop-filter:blur(9px) saturate(120%);
+  -webkit-backdrop-filter:blur(9px) saturate(120%);
+}
+.qb-shell-v5 .qb-question-drawer{
+  width:min(500px,94vw);
+  margin:8px 8px 8px 0;
+  height:calc(100% - 16px);
+  overflow:auto;
+  border:1px solid rgba(255,255,255,.75);
+  border-radius:26px;
+  background:rgba(248,248,250,.92);
+  box-shadow:-18px 0 50px rgba(0,0,0,.14);
+  backdrop-filter:blur(30px) saturate(160%);
+  -webkit-backdrop-filter:blur(30px) saturate(160%);
+}
+.qb-shell-v5 .qb-question-drawer>header{
+  border-bottom:1px solid rgba(60,60,67,.10);
+  background:rgba(248,248,250,.82);
+}
+.qb-shell-v5 .qb-question-drawer>header h3{color:#1d1d1f}
+.qb-shell-v5 .qb-drawer-close{
+  border-color:rgba(60,60,67,.10);
+  border-radius:999px;
+  color:#646469;
+  background:rgba(118,118,128,.10);
+}
+.qb-shell-v5 .qb-drawer-meta span{
+  color:#65656a;
+  background:rgba(118,118,128,.10);
+}
+.qb-shell-v5 .qb-drawer-options>div,
+.qb-shell-v5 .qb-drawer-facts>div{
+  border-color:rgba(60,60,67,.09);
+  background:rgba(255,255,255,.72);
+}
+.qb-shell-v5 .qb-drawer-options>div.is-correct{
+  border-color:rgba(52,199,89,.2);
+  background:rgba(52,199,89,.08);
+}
+.qb-shell-v5 .qb-drawer-explanation{
+  background:rgba(118,118,128,.08);
+}
+.qb-shell-v5 .qb-question-drawer>footer{
+  border-top:1px solid rgba(60,60,67,.10);
+  background:rgba(248,248,250,.82);
+}
+
+/* Accessibility / motion */
+@media(prefers-reduced-motion:reduce){
+  .qb-shell-v5 *,
+  .qb-shell-v5 *::before,
+  .qb-shell-v5 *::after{
+    scroll-behavior:auto!important;
+    animation-duration:.001ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.001ms!important;
+  }
+}
+
+/* Dark appearance for the Assessment workspace */
+@media(prefers-color-scheme:dark){
+  .qb-shell-v5{
+    --apple-bg:#111113;
+    --apple-bg-elev:#1c1c1e;
+    --apple-surface:rgba(28,28,30,.72);
+    --apple-surface-strong:rgba(36,36,38,.9);
+    --apple-glass:rgba(30,30,32,.64);
+    --apple-glass-border:rgba(255,255,255,.08);
+    --apple-separator:rgba(84,84,88,.55);
+    --apple-label:#f5f5f7;
+    --apple-secondary:#a1a1a6;
+    --apple-tertiary:#77777c;
+    color:#f5f5f7;
+    background:
+      radial-gradient(circle at 84% 3%,rgba(10,132,255,.09),transparent 30rem),
+      linear-gradient(180deg,#151517 0,#111113 38rem,#111113 100%);
+  }
+  .qb-shell-v5 .qb-tabs-horizontal{
+    border-color:rgba(255,255,255,.07);
+    background:rgba(36,36,38,.66);
+    box-shadow:0 10px 30px rgba(0,0,0,.26);
+  }
+  .qb-shell-v5 .qb-tabs-horizontal button{color:#b0b0b5}
+  .qb-shell-v5 .qb-tabs-horizontal button:hover{color:#fff;background:rgba(255,255,255,.07)}
+  .qb-shell-v5 .qb-tabs-horizontal button.active{
+    color:#fff;
+    background:rgba(99,99,102,.36);
+    box-shadow:0 2px 12px rgba(0,0,0,.2);
+  }
+  .qb-apple-title-block h1,
+  .qb-apple-metrics strong,
+  .qb-shell-v5 .qb-section-head h2,
+  .qb-shell-v5 .qb-bundle-card h3,
+  .qb-shell-v5 .qb-test-card h3,
+  .qb-shell-v5 .qb-row-question strong,
+  .qb-shell-v5 .qb-question-drawer>header h3{color:#f5f5f7}
+  .qb-apple-title-block>p:last-child,
+  .qb-apple-kicker{color:#a1a1a6}
+  .qb-apple-metrics,
+  .qb-shell-v5 .qb-panel,
+  .qb-shell-v5 .qb-builder-settings,
+  .qb-shell-v5 .qb-builder-stock,
+  .qb-shell-v5 .qb-builder-preview,
+  .qb-shell-v5 .qb-blueprint-library,
+  .qb-shell-v5 .qb-coverage-controls,
+  .qb-shell-v5 .qb-quality-head,
+  .qb-shell-v5 .qb-connect-box,
+  .qb-shell-v5 .qb-paste-editor,
+  .qb-shell-v5 .qb-paste-settings,
+  .qb-shell-v5 .qb-admin-section,
+  .qb-shell-v5 .qb-bundle-card,
+  .qb-shell-v5 .qb-test-card,
+  .qb-shell-v5 .qb-blueprint-card{
+    border-color:rgba(255,255,255,.065);
+    background:rgba(28,28,30,.68);
+    box-shadow:0 12px 32px rgba(0,0,0,.16);
+  }
+  .qb-shell-v5 input,
+  .qb-shell-v5 select,
+  .qb-shell-v5 textarea{
+    color:#f5f5f7;
+    border-color:rgba(255,255,255,.09);
+    background:rgba(58,58,60,.48);
+  }
+  .qb-shell-v5 input::placeholder,
+  .qb-shell-v5 textarea::placeholder{color:#737378}
+  .qb-shell-v5 .qb-secondary,
+  .qb-shell-v5 .qb-apple-glass-button{
+    color:#f2f2f4;
+    border-color:rgba(255,255,255,.08);
+    background:rgba(58,58,60,.54);
+  }
+  .qb-shell-v5 .qb-apple-module-symbol{
+    color:#c7c7cc;
+    border-color:rgba(255,255,255,.06);
+    background:rgba(58,58,60,.45);
+  }
+  .qb-shell-v5 .qb-skill-tabs,
+  .qb-shell-v5 .qb-admin-tabs{background:rgba(118,118,128,.18)}
+  .qb-shell-v5 .qb-skill-tabs button,
+  .qb-shell-v5 .qb-admin-tabs button{color:#b0b0b5}
+  .qb-shell-v5 .qb-skill-tabs button.active,
+  .qb-shell-v5 .qb-admin-tabs button.active{
+    color:#fff;
+    background:rgba(99,99,102,.42);
+  }
+  .qb-shell-v5 .qb-toolbar-editorial{
+    border-color:rgba(255,255,255,.06);
+    background:rgba(36,36,38,.62);
+  }
+  .qb-shell-v5 .qb-question-table{
+    border-color:rgba(255,255,255,.07);
+    background:rgba(28,28,30,.58);
+  }
+  .qb-shell-v5 .qb-question-table-head{
+    color:#a1a1a6;
+    border-color:rgba(255,255,255,.06);
+    background:rgba(36,36,38,.88);
+  }
+  .qb-shell-v5 .qb-question-row{border-color:rgba(255,255,255,.055)}
+  .qb-shell-v5 .qb-question-row:hover{background:rgba(10,132,255,.08)}
+  .qb-shell-v5 .qb-row-question small,
+  .qb-shell-v5 .qb-row-date,
+  .qb-shell-v5 .qb-row-number,
+  .qb-shell-v5 .qb-row-skill{color:#8e8e93}
+  .qb-shell-v5 .qb-question-drawer{
+    color:#f5f5f7;
+    border-color:rgba(255,255,255,.07);
+    background:rgba(28,28,30,.92);
+  }
+  .qb-shell-v5 .qb-question-drawer>header,
+  .qb-shell-v5 .qb-question-drawer>footer{background:rgba(28,28,30,.84)}
+  .qb-shell-v5 .qb-drawer-options>div,
+  .qb-shell-v5 .qb-drawer-facts>div{
+    color:#d2d2d7;
+    border-color:rgba(255,255,255,.07);
+    background:rgba(58,58,60,.42);
+  }
+  .qb-shell-v5 .qb-drawer-explanation{background:rgba(118,118,128,.14)}
+}
+
+/* Responsive behavior keeps horizontal navigation */
+@media(max-width:980px){
+  .qb-apple-header{
+    align-items:flex-start;
+    flex-direction:column;
+    min-height:0;
+    padding:20px 2px 18px;
+  }
+  .qb-apple-header-actions{padding-bottom:0}
+  .qb-apple-module-symbol{display:none}
+  .qb-apple-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .qb-apple-metrics article:nth-child(3)::before{display:none}
+  .qb-apple-metrics article:nth-child(n+3){border-top:1px solid rgba(60,60,67,.10)}
+  .qb-shell-v5 .qb-toolbar-editorial{grid-template-columns:1fr 1fr}
+  .qb-shell-v5 .qb-toolbar-editorial .qb-search{grid-column:1/-1}
+}
+@media(max-width:640px){
+  .qb-shell-v5{
+    padding:8px 8px 48px;
+  }
+  .qb-shell-v5 .qb-tabs-horizontal{
+    top:6px;
+    width:100%;
+    justify-content:flex-start;
+    margin-bottom:12px;
+    border-radius:16px;
+  }
+  .qb-shell-v5 .qb-tabs-horizontal button{
+    min-height:36px;
+    padding:7px 10px;
+    font-size:10.5px;
+  }
+  .qb-apple-title-block h1{font-size:38px}
+  .qb-apple-title-block>p:last-child{font-size:13px}
+  .qb-apple-header-actions{
+    width:100%;
+  }
+  .qb-shell-v5 .qb-apple-glass-button,
+  .qb-shell-v5 .qb-apple-primary-button{
+    flex:1 1 0;
+    min-width:0;
+  }
+  .qb-apple-metrics article{
+    grid-template-columns:36px 1fr;
+    min-height:72px;
+    padding:11px 12px;
+  }
+  .qb-apple-metric-symbol{
+    width:33px;
+    height:33px;
+    border-radius:10px;
+  }
+  .qb-apple-metrics strong{font-size:20px}
+  .qb-shell-v5 .qb-toolbar-editorial{grid-template-columns:1fr}
+  .qb-shell-v5 .qb-toolbar-editorial .qb-search{grid-column:auto}
+  .qb-shell-v5 .qb-question-table{
+    max-height:64vh;
+    margin-inline:8px;
+  }
+  .qb-shell-v5 .qb-question-pagination{margin-inline:8px}
+  .qb-shell-v5 .qb-skill-tabs{margin-inline:8px}
+  .qb-shell-v5 .qb-toolbar-editorial{margin-inline:8px}
+  .qb-shell-v5 .qb-question-drawer{
+    width:100vw;
+    height:100%;
+    margin:0;
+    border-radius:0;
+    border:0;
+  }
+}
