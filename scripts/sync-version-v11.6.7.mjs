@@ -10,9 +10,9 @@ const now = new Date().toISOString();
 for (const file of ['public/version.json', 'public/release-manifest.json']) {
   if (!fs.existsSync(file)) continue;
   const value = JSON.parse(fs.readFileSync(file, 'utf8'));
-  value.version = '11.6.41';
-  if (file.endsWith('version.json')) value.releaseName = 'Coverage Planner';
-  else value.release = 'Coverage Planner';
+  value.version = '11.6.42';
+  if (file.endsWith('version.json')) value.releaseName = 'Bundle Reader';
+  else value.release = 'Bundle Reader';
   value.runtimeCore = '2.6.7';
   value.runtime = '2.6.7';
   value.requiresSql = false;
@@ -28,4 +28,4 @@ for (const file of ['public/version.json', 'public/release-manifest.json']) {
   fs.writeFileSync(file, JSON.stringify(value, null, 2) + '\n');
 }
 
-console.log('Version registry synchronized: 11.6.41 · Coverage Planner');
+console.log('Version registry synchronized: 11.6.42 · Bundle Reader');
