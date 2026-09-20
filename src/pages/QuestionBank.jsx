@@ -1,4 +1,20 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  BarChart3,
+  Bot,
+  Code2,
+  Database,
+  FilePlus2,
+  FileText,
+  GraduationCap,
+  Grid2X2,
+  Layers3,
+  MoreHorizontal,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  Target,
+} from 'lucide-react';
 import { supabase } from '../utils/supabase.js';
 import { parseQuestionBankPaste } from '../utils/questionBankPasteParser.js';
 import {
@@ -43,6 +59,30 @@ const TABS = [
   ['import', 'Nhập từ ChatGPT'],
   ['chatgpt', 'API / Plugin'],
 ];
+
+const TAB_ICONS = {
+  questions: Database,
+  bundles: Layers3,
+  manage: BarChart3,
+  blueprints: Grid2X2,
+  coverage: Target,
+  quality: ShieldCheck,
+  builder: FilePlus2,
+  tests: GraduationCap,
+  import: Sparkles,
+  chatgpt: Code2,
+};
+
+const QUESTION_SKILLS = ['Reading', 'Vocabulary', 'Grammar', 'Listening', 'Speaking', 'Writing'];
+
+function formatShortDate(value) {
+  if (!value) return '—';
+  try {
+    return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(value));
+  } catch {
+    return '—';
+  }
+}
 
 function text(value) {
   return String(value ?? '').trim();
@@ -220,6 +260,9 @@ export default function QuestionBank({ currentUser }) {
   const [query, setQuery] = useState('');
   const [grade, setGrade] = useState('');
   const [cefr, setCefr] = useState('');
+  const [questionSkill, setQuestionSkill] = useState('');
+  const [questionPage, setQuestionPage] = useState(1);
+  const [questionPageSize, setQuestionPageSize] = useState(10);
   const [showNew, setShowNew] = useState(false);
   const [generatedKey, setGeneratedKey] = useState('');
   const [testingConnection, setTestingConnection] = useState(false);
@@ -331,11 +374,30 @@ OpenAPI: ${openApiUrl}`;
     return questions.filter((item) => {
       if (grade && String(item.grade || '') !== grade) return false;
       if (cefr && text(item.cefr).toUpperCase() !== cefr) return false;
+      if (questionSkill && text(item.skill).toLowerCase() !== questionSkill.toLowerCase()) return false;
       if (!needle) return true;
       return [item.stem, item.topic, item.grammar_point, item.skill, ...(item.tags || [])]
         .some((value) => text(value).toLowerCase().includes(needle));
     });
-  }, [questions, query, grade, cefr]);
+  }, [questions, query, grade, cefr, questionSkill]);
+
+  const questionSkillCounts = useMemo(() => {
+    const counts = Object.fromEntries(QUESTION_SKILLS.map((skill) => [skill, 0]));
+    questions.forEach((item) => {
+      const key = QUESTION_SKILLS.find((skill) => text(item.skill).toLowerCase() === skill.toLowerCase());
+      if (key) counts[key] += 1;
+    });
+    return counts;
+  }, [questions]);
+
+  const questionPageCount = Math.max(1, Math.ceil(filteredQuestions.length / questionPageSize));
+  const safeQuestionPage = Math.min(questionPage, questionPageCount);
+  const questionStartIndex = (safeQuestionPage - 1) * questionPageSize;
+  const pagedQuestions = filteredQuestions.slice(questionStartIndex, questionStartIndex + questionPageSize);
+
+  useEffect(() => {
+    setQuestionPage(1);
+  }, [query, grade, cefr, questionSkill, questionPageSize]);
 
   const sourceStats = useMemo(() => ({
     chatgpt: questions.filter((item) => text(item.source_kind).startsWith('chatgpt')).length,
@@ -1428,60 +1490,122 @@ OpenAPI: ${openApiUrl}`;
   };
 
   return (
-    <section className="qb-shell qb-shell-v2">
-      <header className="qb-hero">
-        <div>
+    <section className="qb-shell qb-shell-v2 qb-shell-v3">
+      <nav className="qb-tabs qb-tabs-horizontal" aria-label="Ngân hàng câu hỏi">
+        {TABS.map(([id, label]) => {
+          const Icon = TAB_ICONS[id] || Database;
+          return (
+            <button
+              key={id}
+              type="button"
+              data-tab={id}
+              aria-current={activeTab === id ? 'page' : undefined}
+              className={activeTab === id ? 'active' : ''}
+              onClick={() => setActiveTab(id)}
+            >
+              <Icon size={17} strokeWidth={1.9} aria-hidden="true" />
+              <span>{label}</span>
+            </button>
+          );
+        })}
+        <span className="qb-tabs-signature" aria-hidden="true">BETTER QUESTIONS · BRIGHTER LEARNERS</span>
+      </nav>
+
+      <header className="qb-hero qb-hero-editorial">
+        <div className="qb-hero-copy">
           <p className="qb-eyebrow">BRIAN ENGLISH · ASSESSMENT CORE</p>
-          <h1>Ngân hàng <em>câu hỏi</em></h1>
-          <p className="qb-lede">Lưu câu hỏi, giữ nguyên chùm ngữ liệu, quản lý đề thi và nhận đề trực tiếp từ ChatGPT.</p>
+          <h1>Ngân hàng câu hỏi</h1>
+          <p className="qb-lede">Lưu câu hỏi, tổ chức nội dung, quản lý đề thi và khai thác sức mạnh AI — tất cả trong một nơi.</p>
           <div className="qb-hero-actions">
-            <button type="button" className="qb-primary" onClick={() => { setActiveTab('questions'); setShowNew(true); }}>+ Thêm câu hỏi</button>
-            <button type="button" className="qb-secondary" onClick={() => setActiveTab('import')}>Dán từ ChatGPT</button>
+            <button type="button" className="qb-primary" onClick={() => { setActiveTab('questions'); setShowNew(true); }}>
+              <FilePlus2 size={18} aria-hidden="true" /> Thêm câu hỏi
+            </button>
+            <button type="button" className="qb-secondary" onClick={() => setActiveTab('import')}>
+              <Bot size={18} aria-hidden="true" /> Dán từ ChatGPT
+            </button>
           </div>
         </div>
-        <div className="qb-hero-card" aria-label="Tổng quan ngân hàng câu hỏi">
-          <span className="qb-orbit qb-orbit-a" />
-          <span className="qb-orbit qb-orbit-b" />
-          <div className="qb-hero-logo">QB</div>
-          <strong>{sourceStats.total}</strong>
-          <small>câu hỏi đã lưu</small>
-          <div className="qb-mini-stats">
-            <span><b>{sourceStats.chatgpt}</b> từ ChatGPT</span>
-            <span><b>{sourceStats.tests}</b> đề thi</span>
+
+        <div className="qb-hero-art" aria-hidden="true">
+          <div className="qb-art-book">
+            <span className="qb-art-book-page qb-art-book-page-left" />
+            <span className="qb-art-book-page qb-art-book-page-right" />
+            <span className="qb-art-book-spine" />
           </div>
+          <div className="qb-art-card">
+            <Search size={34} strokeWidth={2.2} />
+            <span />
+            <span />
+            <span className="short" />
+          </div>
+          <div className="qb-art-cap"><GraduationCap size={42} /></div>
+          <div className="qb-art-copy">
+            <em>Knowledge Builds</em>
+            <em>Brighter Futures</em>
+          </div>
+          <blockquote>“Câu hỏi tốt kiến tạo tư duy tốt hơn.”<small>— Brian English</small></blockquote>
         </div>
       </header>
 
-      <div className="qb-stats">
-        <article><span>Tổng câu hỏi</span><strong>{sourceStats.total}</strong></article>
-        <article><span>Chùm bài</span><strong>{sourceStats.bundles}</strong></article>
-        <article><span>Đề thi</span><strong>{sourceStats.tests}</strong></article>
-        <article><span>Từ ChatGPT</span><strong>{sourceStats.chatgpt}</strong></article>
+      <div className="qb-stats qb-stats-editorial">
+        <article>
+          <div className="qb-stat-icon is-blue"><Database size={23} /></div>
+          <div className="qb-stat-copy"><span>Tổng câu hỏi</span><strong>{sourceStats.total.toLocaleString('vi-VN')}</strong><small>Ngân hàng hiện tại</small></div>
+          <i className="qb-stat-wave is-blue" aria-hidden="true" />
+        </article>
+        <article>
+          <div className="qb-stat-icon is-violet"><Layers3 size={23} /></div>
+          <div className="qb-stat-copy"><span>Chùm bài</span><strong>{sourceStats.bundles.toLocaleString('vi-VN')}</strong><small>Giữ nguyên ngữ liệu</small></div>
+          <i className="qb-stat-wave is-violet" aria-hidden="true" />
+        </article>
+        <article>
+          <div className="qb-stat-icon is-cyan"><FileText size={23} /></div>
+          <div className="qb-stat-copy"><span>Đề thi</span><strong>{sourceStats.tests.toLocaleString('vi-VN')}</strong><small>Đã lưu trong Brian</small></div>
+          <i className="qb-stat-wave is-cyan" aria-hidden="true" />
+        </article>
+        <article>
+          <div className="qb-stat-icon is-green"><Bot size={23} /></div>
+          <div className="qb-stat-copy"><span>Từ ChatGPT</span><strong>{sourceStats.chatgpt.toLocaleString('vi-VN')}</strong><small>Không phát sinh phí AI</small></div>
+          <i className="qb-stat-wave is-green" aria-hidden="true" />
+        </article>
       </div>
-
-      <nav className="qb-tabs" aria-label="Ngân hàng câu hỏi">
-        {TABS.map(([id, label]) => (
-          <button key={id} type="button" data-tab={id} aria-current={activeTab === id ? 'page' : undefined} className={activeTab === id ? 'active' : ''} onClick={() => setActiveTab(id)}>{label}</button>
-        ))}
-      </nav>
 
       {message ? <div className="qb-message" role="status">{message}</div> : null}
       {loading ? <div className="qb-loading">Đang đồng bộ dữ liệu…</div> : null}
 
       {!loading && activeTab === 'questions' ? (
-        <div className="qb-panel">
-          <div className="qb-toolbar">
-            <label className="qb-search"><span>Tìm</span><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nội dung, chủ đề, grammar, tag…" /></label>
-            <label><span>Khối</span><select value={grade} onChange={(e) => setGrade(e.target.value)}><option value="">Tất cả</option><option>10</option><option>11</option><option>12</option></select></label>
+        <div className="qb-panel qb-question-workspace">
+          <div className="qb-skill-tabs" role="tablist" aria-label="Lọc theo kỹ năng">
+            <button type="button" className={!questionSkill ? 'active' : ''} onClick={() => setQuestionSkill('')}>
+              Tất cả <span>{sourceStats.total.toLocaleString('vi-VN')}</span>
+            </button>
+            {QUESTION_SKILLS.map((skill) => (
+              <button key={skill} type="button" className={questionSkill === skill ? 'active' : ''} onClick={() => setQuestionSkill(skill)}>
+                {skill} <span>{questionSkillCounts[skill].toLocaleString('vi-VN')}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="qb-toolbar qb-toolbar-editorial">
+            <label className="qb-search">
+              <span>Tìm kiếm</span>
+              <div className="qb-search-control">
+                <Search size={17} aria-hidden="true" />
+                <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Nội dung câu hỏi, chủ đề, grammar, tag…" />
+              </div>
+            </label>
+            <label><span>Khối lớp</span><select value={grade} onChange={(e) => setGrade(e.target.value)}><option value="">Tất cả</option><option>10</option><option>11</option><option>12</option></select></label>
             <label><span>CEFR</span><select value={cefr} onChange={(e) => setCefr(e.target.value)}><option value="">Tất cả</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option></select></label>
-            <button type="button" className="qb-primary qb-small" onClick={() => setShowNew((value) => !value)}>{showNew ? 'Đóng' : '+ Thêm câu'}</button>
+            <button type="button" className="qb-primary qb-small" onClick={() => setShowNew((value) => !value)}>
+              {showNew ? 'Đóng biểu mẫu' : '+ Thêm câu'}
+            </button>
           </div>
 
           {showNew ? (
             <form className="qb-new-form" onSubmit={saveManualQuestion}>
               <div className="qb-form-head"><strong>Thêm câu hỏi thủ công</strong><small>Câu mới được lưu ở trạng thái Bản nháp và riêng tư.</small></div>
               <label className="qb-span-2"><span>Câu hỏi</span><textarea required rows="3" value={draft.stem} onChange={(e) => setDraft({ ...draft, stem: e.target.value })} /></label>
-              {draft.options.map((option, index) => <label key={index}><span>Phương án {String.fromCharCode(65 + index)}</span><input value={option} onChange={(e) => updateOption(index, e.target.value)} /></label>)}
+              {draft.options.map((option, index) => <label key={index}><span>Phương án {String.fromCharCode(65 + index)}</span><input value={option} onChange={(e) => updateOption(index, e.target.value })} /></label>)}
               <label><span>Đáp án</span><select value={draft.correctAnswer} onChange={(e) => setDraft({ ...draft, correctAnswer: e.target.value })}><option>A</option><option>B</option><option>C</option><option>D</option></select></label>
               <label><span>Khối</span><select value={draft.grade} onChange={(e) => setDraft({ ...draft, grade: e.target.value })}><option>10</option><option>11</option><option>12</option></select></label>
               <label><span>CEFR</span><select value={draft.cefr} onChange={(e) => setDraft({ ...draft, cefr: e.target.value })}><option>A2</option><option>B1</option><option>B2</option><option>C1</option></select></label>
@@ -1495,46 +1619,67 @@ OpenAPI: ${openApiUrl}`;
           ) : null}
 
           {filteredQuestions.length ? (
-            <div className="qb-question-list">
-              {filteredQuestions.map((item, index) => (
-                <article
-                  className="qb-question-card is-openable"
-                  key={item.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => { setManageTargetQuestionId(item.id); setManageTargetBundleId(''); setActiveTab('manage'); }}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter' || event.key === ' ') {
-                      event.preventDefault();
-                      setManageTargetQuestionId(item.id);
-                      setManageTargetBundleId('');
-                      setActiveTab('manage');
-                    }
-                  }}
-                >
-                  <div className="qb-question-number">{String(item.bundle_position || index + 1).padStart(2, '0')}</div>
-                  <div className="qb-question-main">
-                    <div className="qb-chips">
-                      {item.grade ? <span>Khối {item.grade}</span> : null}
-                      {item.cefr ? <span>{item.cefr}</span> : null}
-                      <span>{cognitiveLabel(item.cognitive_level)}</span>
-                      {item.grammar_point ? <span>{item.grammar_point}</span> : null}
-                      {item.source_kind === 'chatgpt' ? <span className="is-chatgpt">ChatGPT</span> : null}
-                    </div>
-                    <strong className="qb-stem">{compact(displayQuestionStem(item.stem, item.bundle_position), 420)}</strong>
-                    {Array.isArray(item.options) && item.options.length ? (
-                      <div className="qb-options">{item.options.map((option, optionIndex) => <span key={optionIndex}><b>{String.fromCharCode(65 + optionIndex)}.</b> {compact(option, 180)}</span>)}</div>
-                    ) : null}
-                    <div className="qb-question-foot">
-                      <span>Đáp án: <b>{answerLabel(item.correct_answer)}</b></span>
-                      <span>{item.topic || item.skill || 'Chưa gắn chủ đề'}</span>
-                      <span>{statusLabel(item.status)}</span>
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          ) : <EmptyState title="Chưa có câu hỏi phù hợp" hint="Thêm thủ công hoặc gửi một đề từ ChatGPT vào Brian." />}
+            <>
+              <div className="qb-question-table" role="table" aria-label="Danh sách câu hỏi">
+                <div className="qb-question-table-head" role="row">
+                  <span>#</span>
+                  <span>Nội dung câu hỏi</span>
+                  <span>Chủ đề</span>
+                  <span>Kỹ năng</span>
+                  <span>Mức độ</span>
+                  <span>Nguồn</span>
+                  <span>Cập nhật</span>
+                  <span />
+                </div>
+                <div className="qb-question-table-body">
+                  {pagedQuestions.map((item, index) => (
+                    <article
+                      className="qb-question-row is-openable"
+                      key={item.id}
+                      role="row"
+                      tabIndex={0}
+                      onClick={() => { setManageTargetQuestionId(item.id); setManageTargetBundleId(''); setActiveTab('manage'); }}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          setManageTargetQuestionId(item.id);
+                          setManageTargetBundleId('');
+                          setActiveTab('manage');
+                        }
+                      }}
+                    >
+                      <span className="qb-row-number">{questionStartIndex + index + 1}</span>
+                      <div className="qb-row-question">
+                        <strong>{compact(displayQuestionStem(item.stem, item.bundle_position), 175)}</strong>
+                        <small>Đáp án: <b>{answerLabel(item.correct_answer)}</b>{item.cefr ? ' · ' + item.cefr : ''}{item.status ? ' · ' + statusLabel(item.status) : ''}</small>
+                      </div>
+                      <span><em className="qb-row-pill is-blue">{item.topic || item.grammar_point || 'Chưa gắn'}</em></span>
+                      <span className="qb-row-skill">{item.skill || 'Use of English'}</span>
+                      <span><em className={Number(item.difficulty || 2) >= 4 ? 'qb-row-pill is-red' : Number(item.difficulty || 2) <= 2 ? 'qb-row-pill is-green' : 'qb-row-pill is-amber'}>{cognitiveLabel(item.cognitive_level)}</em></span>
+                      <span><em className={text(item.source_kind).startsWith('chatgpt') ? 'qb-row-pill is-chatgpt' : 'qb-row-pill'}>{text(item.source_kind).startsWith('chatgpt') ? 'ChatGPT' : statusLabel(item.status)}</em></span>
+                      <span className="qb-row-date">{formatShortDate(item.updated_at || item.created_at)}</span>
+                      <span className="qb-row-more" aria-hidden="true"><MoreHorizontal size={18} /></span>
+                    </article>
+                  ))}
+                </div>
+              </div>
+
+              <div className="qb-question-pagination">
+                <span>Hiển thị {questionStartIndex + 1}–{Math.min(questionStartIndex + questionPageSize, filteredQuestions.length)} trong {filteredQuestions.length.toLocaleString('vi-VN')} câu hỏi</span>
+                <div>
+                  <button type="button" disabled={safeQuestionPage <= 1} onClick={() => setQuestionPage((page) => Math.max(1, page - 1))}>‹</button>
+                  <b>{safeQuestionPage}</b>
+                  <span>/ {questionPageCount}</span>
+                  <button type="button" disabled={safeQuestionPage >= questionPageCount} onClick={() => setQuestionPage((page) => Math.min(questionPageCount, page + 1))}>›</button>
+                  <select value={questionPageSize} onChange={(e) => setQuestionPageSize(Number(e.target.value))} aria-label="Số câu trên mỗi trang">
+                    <option value="10">10 / trang</option>
+                    <option value="20">20 / trang</option>
+                    <option value="50">50 / trang</option>
+                  </select>
+                </div>
+              </div>
+            </>
+          ) : <EmptyState title="Chưa có câu hỏi phù hợp" hint="Thay đổi bộ lọc, thêm câu thủ công hoặc gửi một đề từ ChatGPT vào Brian." />}
         </div>
       ) : null}
 
