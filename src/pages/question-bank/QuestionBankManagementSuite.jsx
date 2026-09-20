@@ -700,9 +700,18 @@ export default function QuestionBankManagementSuite({
         row.fingerprint = await questionFingerprint(row, '');
         rows.push(row);
       }
-      const result = await supabase.from('assessment_items').upsert(rows, { onConflict: 'owner_id,fingerprint', ignoreDuplicates: true }).select('id');
-      if (result.error) throw result.error;
-      setImportResult(`Đã xử lý ${rows.length} dòng; câu trùng fingerprint được bỏ qua.`);
+      const fingerprints = rows.map((row) => row.fingerprint).filter(Boolean);
+      const existingResult = fingerprints.length
+        ? await supabase.from('assessment_items').select('fingerprint').eq('owner_id', userId).in('fingerprint', fingerprints)
+        : { data: [], error: null };
+      if (existingResult.error) throw existingResult.error;
+      const existing = new Set((existingResult.data || []).map((row) => row.fingerprint));
+      const freshRows = rows.filter((row) => !existing.has(row.fingerprint));
+      if (freshRows.length) {
+        const result = await supabase.from('assessment_items').insert(freshRows).select('id');
+        if (result.error) throw result.error;
+      }
+      setImportResult(`Đã xử lý ${rows.length} dòng; nhập mới ${freshRows.length}, bỏ qua ${rows.length - freshRows.length} câu trùng fingerprint.`);
       await onReload?.();
     } catch (error) { setImportResult(error?.message || 'Import thất bại.'); }
     finally { setBusy(''); }
@@ -1022,7 +1031,7 @@ export default function QuestionBankManagementSuite({
                 <label><span>Unit</span><input value={questionEdit.unit_name} onChange={(e) => setQuestionEdit({ ...questionEdit, unit_name: e.target.value })} /></label>
                 <label><span>Năm học</span><input value={questionEdit.school_year} onChange={(e) => setQuestionEdit({ ...questionEdit, school_year: e.target.value })} /></label>
                 <label><span>Trạng thái</span><select value={questionEdit.status} onChange={(e) => setQuestionEdit({ ...questionEdit, status: e.target.value })}><option value="draft">Bản nháp</option><option value="review">Chờ duyệt</option><option value="approved">Đã duyệt</option><option value="archived">Lưu trữ</option></select></label>
-                <label><span>Phạm vi</span><select value={questionEdit.visibility} onChange={(e) => setQuestionEdit({ ...questionEdit, visibility: e.target.value })}><option value="personal">Cá nhân</option><option value="private">Riêng tư</option><option value="department">Tổ chuyên môn</option></select></label>
+                <label><span>Phạm vi</span><select value={questionEdit.visibility} onChange={(e) => setQuestionEdit({ ...questionEdit, visibility: e.target.value })}><option value="personal">Cá nhân</option><option value="department">Tổ chuyên môn</option></select></label>
                 <label className="span-2"><span>Tags</span><input value={questionEdit.tags} onChange={(e) => setQuestionEdit({ ...questionEdit, tags: e.target.value })} /></label>
                 <label className="span-2"><span>Giải thích</span><textarea rows="3" value={questionEdit.explanation} onChange={(e) => setQuestionEdit({ ...questionEdit, explanation: e.target.value })} /></label>
                 <label className="span-2"><span>Ghi chú duyệt</span><textarea rows="2" value={questionEdit.review_note} onChange={(e) => setQuestionEdit({ ...questionEdit, review_note: e.target.value })} /></label>
