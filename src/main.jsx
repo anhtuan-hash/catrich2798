@@ -528,14 +528,14 @@ function App() {
           </Suspense>
         </main>
 
-        {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
+        {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal', 'classroom-join'].includes(currentRoute) && (
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="global-autosave" label={language === 'vi' ? 'tự lưu' : 'autosave'}>
               <GlobalAutosave route={currentRoute} selectedTool={selectedTool} currentUser={currentUser} language={language} />
             </AppErrorBoundary>
           </Suspense>
         )}
-        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'dashboard'].includes(currentRoute) ? <>
+        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'dashboard'].includes(currentRoute) ? <>
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="content-transfer" label={language === 'vi' ? 'gửi nội dung' : 'content transfer'}>
               <ContentTransferHub currentUser={currentUser} currentRoute={currentRoute} selectedTool={selectedTool} language={language} accent={activeDesignProfile.accent} appVisibility={appVisibility} />
