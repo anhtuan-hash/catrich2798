@@ -1,6 +1,7 @@
 export const RUNTIME_ERROR_EVENT = 'bes-runtime-error';
 const ERROR_LOG_KEY = 'bes-runtime-errors-v1084';
 const MAX_ERRORS = 40;
+let globalDiagnosticsInstalled = false;
 
 function safeRead() {
   if (typeof window === 'undefined') return [];
@@ -34,7 +35,66 @@ export function recordRuntimeError(input = {}) {
     window.__besLastRenderError = record;
     try { window.dispatchEvent(new CustomEvent(RUNTIME_ERROR_EVENT, { detail: record })); } catch { /* optional */ }
   }
+  reportRuntimeErrorRemote(record);
   return record;
+}
+
+function reportRuntimeErrorRemote(record) {
+  if (typeof window === 'undefined') return;
+  const client = window.BESSupabase;
+  if (!client?.rpc) return;
+
+  const payload = {
+    route: String(record.route || '').slice(0, 300),
+    scope: String(record.scope || 'runtime').slice(0, 120),
+    message: String(record.message || '').slice(0, 800),
+    stack: String(record.stack || '').slice(0, 6000),
+    componentStack: String(record.componentStack || '').slice(0, 6000),
+    userAgent: String(record.userAgent || '').slice(0, 500),
+    online: Boolean(record.online),
+    appVersion: String(window.__BES_APP_VERSION || '').slice(0, 40),
+    runtimeVersion: String(window.__BES_RUNTIME_VERSION || '').slice(0, 40),
+  };
+
+  window.setTimeout(() => {
+    Promise.resolve(client.rpc('app_report_runtime_error', { p_payload: payload }))
+      .catch(() => undefined);
+  }, 0);
+}
+
+export function installGlobalRuntimeDiagnostics() {
+  if (typeof window === 'undefined' || globalDiagnosticsInstalled) return () => {};
+  globalDiagnosticsInstalled = true;
+
+  const onError = (event) => {
+    try {
+      recordRuntimeError({
+        scope: 'window-error',
+        message: String(event?.message || event?.error?.message || 'Unhandled window error'),
+        stack: String(event?.error?.stack || ''),
+      });
+    } catch { /* diagnostics must never break the app */ }
+  };
+
+  const onUnhandledRejection = (event) => {
+    try {
+      const reason = event?.reason;
+      recordRuntimeError({
+        scope: 'unhandled-rejection',
+        message: String(reason?.message || reason || 'Unhandled promise rejection'),
+        stack: String(reason?.stack || ''),
+      });
+    } catch { /* diagnostics must never break the app */ }
+  };
+
+  window.addEventListener('error', onError);
+  window.addEventListener('unhandledrejection', onUnhandledRejection);
+
+  return () => {
+    window.removeEventListener('error', onError);
+    window.removeEventListener('unhandledrejection', onUnhandledRejection);
+    globalDiagnosticsInstalled = false;
+  };
 }
 
 export function getRuntimeErrors() {
