@@ -23,6 +23,7 @@ const ADMIN_TABS = [
   ['bulk', 'Hàng loạt'],
   ['duplicates', 'Trùng lặp'],
   ['review', 'Duyệt'],
+  ['department', 'TTCM'],
   ['taxonomy', 'Phân loại'],
   ['io', 'Nhập / Xuất'],
   ['composer', 'Ráp đề'],
@@ -187,6 +188,7 @@ export default function QuestionBankManagementSuite({
   const [responses, setResponses] = useState([]);
   const [recentItemVersions, setRecentItemVersions] = useState([]);
   const [recentBundleVersions, setRecentBundleVersions] = useState([]);
+  const [departmentStats, setDepartmentStats] = useState([]);
 
   const [selectedQuestionId, setSelectedQuestionId] = useState(targetQuestionId || '');
   const [selectedBundleId, setSelectedBundleId] = useState(targetBundleId || '');
@@ -262,7 +264,7 @@ export default function QuestionBankManagementSuite({
     if (!userId) return;
     setAuxLoading(true);
     try {
-      const [taxonomyResult, snapshotResult, practiceResultData, attemptResult, responseResult, itemVersionResult, bundleVersionResult, batchResult] = await Promise.all([
+      const [taxonomyResult, snapshotResult, practiceResultData, attemptResult, responseResult, itemVersionResult, bundleVersionResult, batchResult, departmentStatsResult] = await Promise.all([
         supabase.from('assessment_taxonomy_terms').select('*').order('kind').order('canonical_value').limit(1000),
         supabase.from('assessment_bank_snapshots').select('id,title,item_count,bundle_count,blueprint_count,test_count,created_at').eq('owner_id', userId).order('created_at', { ascending: false }).limit(50),
         supabase.from('assessment_practice_sets').select('*').order('updated_at', { ascending: false }).limit(100),
@@ -271,8 +273,9 @@ export default function QuestionBankManagementSuite({
         supabase.from('assessment_item_versions').select('id,item_id,version_no,reason,created_at').order('created_at', { ascending: false }).limit(100),
         supabase.from('assessment_bundle_versions').select('id,bundle_id,version_no,reason,created_at').order('created_at', { ascending: false }).limit(100),
         supabase.from('assessment_exam_batches').select('*').order('created_at', { ascending: false }).limit(100),
+        supabase.rpc('qb_department_contributor_stats'),
       ]);
-      for (const result of [taxonomyResult, snapshotResult, practiceResultData, attemptResult, responseResult, itemVersionResult, bundleVersionResult, batchResult]) {
+      for (const result of [taxonomyResult, snapshotResult, practiceResultData, attemptResult, responseResult, itemVersionResult, bundleVersionResult, batchResult, departmentStatsResult]) {
         if (result.error) throw result.error;
       }
       setTaxonomies(taxonomyResult.data || []);
@@ -283,6 +286,7 @@ export default function QuestionBankManagementSuite({
       setRecentItemVersions(itemVersionResult.data || []);
       setRecentBundleVersions(bundleVersionResult.data || []);
       setExamBatches(batchResult.data || []);
+      setDepartmentStats(departmentStatsResult.data || []);
     } catch (error) {
       onMessage?.(error?.message || 'Không thể tải dữ liệu Quản trị.');
     } finally {
@@ -1285,7 +1289,7 @@ export default function QuestionBankManagementSuite({
             <select value={filters.cefr} onChange={(e) => setFilters({ ...filters, cefr:e.target.value })}><option value="">Tất cả CEFR</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option></select>
             <select value={filters.cognitive} onChange={(e) => setFilters({ ...filters, cognitive:e.target.value })}><option value="">Tất cả nhận thức</option><option value="recognition">Nhận biết</option><option value="comprehension">Thông hiểu</option><option value="application">Vận dụng</option></select>
             <select value={filters.status} onChange={(e) => setFilters({ ...filters, status:e.target.value })}><option value="">Tất cả trạng thái</option><option value="draft">Bản nháp</option><option value="review">Chờ duyệt</option><option value="approved">Đã duyệt</option><option value="archived">Lưu trữ</option></select>
-            <select value={filters.visibility} onChange={(e) => setFilters({ ...filters, visibility:e.target.value })}><option value="">Mọi phạm vi</option><option value="personal">Cá nhân</option><option value="private">Riêng tư</option><option value="department">Tổ chuyên môn</option></select>
+            <select value={filters.visibility} onChange={(e) => setFilters({ ...filters, visibility:e.target.value })}><option value="">Mọi phạm vi</option><option value="personal">Cá nhân</option><option value="department">Tổ chuyên môn</option></select>
             <select value={filters.usage} onChange={(e) => setFilters({ ...filters, usage:e.target.value })}><option value="">Mọi mức dùng</option><option value="unused">Chưa dùng</option><option value="used">Đã dùng</option><option value="heavy">Dùng nhiều ≥4</option></select>
             <select value={filters.bundle} onChange={(e) => setFilters({ ...filters, bundle:e.target.value })}><option value="">Câu/chùm</option><option value="standalone">Độc lập</option><option value="bundled">Trong chùm</option></select>
             <input placeholder="Topic" value={filters.topic} onChange={(e) => setFilters({ ...filters, topic:e.target.value })} />
@@ -1296,7 +1300,7 @@ export default function QuestionBankManagementSuite({
             <button type="button" className="qb-secondary" onClick={() => setSelectedIds(filtered.map((item) => item.id))}>Chọn tất cả {filtered.length}</button>
             <button type="button" className="qb-ghost" onClick={() => setSelectedIds([])}>Bỏ chọn</button>
             <select value={bulkPatch.status} onChange={(e) => setBulkPatch({ ...bulkPatch, status:e.target.value })}><option value="">Trạng thái — giữ nguyên</option><option value="draft">Bản nháp</option><option value="review">Chờ duyệt</option><option value="approved">Đã duyệt</option><option value="archived">Lưu trữ</option></select>
-            <select value={bulkPatch.visibility} onChange={(e) => setBulkPatch({ ...bulkPatch, visibility:e.target.value })}><option value="">Phạm vi — giữ nguyên</option><option value="personal">Cá nhân</option><option value="private">Riêng tư</option><option value="department">Tổ chuyên môn</option></select>
+            <select value={bulkPatch.visibility} onChange={(e) => setBulkPatch({ ...bulkPatch, visibility:e.target.value })}><option value="">Phạm vi — giữ nguyên</option><option value="personal">Cá nhân</option><option value="department">Tổ chuyên môn</option></select>
             <select value={bulkPatch.cefr} onChange={(e) => setBulkPatch({ ...bulkPatch, cefr:e.target.value })}><option value="">CEFR — giữ nguyên</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option></select>
             <select value={bulkPatch.cognitive_level} onChange={(e) => setBulkPatch({ ...bulkPatch, cognitive_level:e.target.value })}><option value="">Nhận thức — giữ nguyên</option><option value="recognition">Nhận biết</option><option value="comprehension">Thông hiểu</option><option value="application">Vận dụng</option></select>
             <select value={bulkPatch.difficulty} onChange={(e) => setBulkPatch({ ...bulkPatch, difficulty:e.target.value })}><option value="">Độ khó — giữ nguyên</option>{[1,2,3,4,5].map((v)=><option key={v}>{v}</option>)}</select>
@@ -1326,6 +1330,43 @@ export default function QuestionBankManagementSuite({
           <label className="qb-review-note"><span>Ghi chú dùng cho thao tác duyệt</span><input value={reviewNote} onChange={(e) => setReviewNote(e.target.value)} placeholder="Ví dụ: kiểm tra lại distractor B…" /></label>
           <div className="qb-review-columns">
             {['draft','review','approved'].map((status) => <section key={status}><header><strong>{localStatus(status)}</strong><span>{questions.filter((item)=>qbNorm(item.status)===status).length}</span></header>{questions.filter((item)=>qbNorm(item.status)===status).slice(0,100).map((item) => <article key={item.id}><p>{qbText(item.stem).slice(0,150)}</p><small>{item.cefr} · {cognitiveLabel(item.cognitive_level)} · {item.topic || '—'}</small><div><button type="button" onClick={() => { setSelectedQuestionId(item.id); setTab('editor'); }}>Xem</button>{status === 'draft' ? <button type="button" onClick={() => reviewItem(item,'review')}>Gửi duyệt</button> : null}{status === 'review' ? <><button type="button" className="approve" onClick={() => reviewItem(item,'approved')}>Duyệt</button><button type="button" onClick={() => reviewItem(item,'draft')}>Trả lại</button></> : null}{status === 'approved' ? <button type="button" onClick={() => reviewItem(item,'archived')}>Lưu trữ</button> : null}</div></article>)}</section>)}
+          </div>
+        </section>
+      ) : null}
+
+      {tab === 'department' ? (
+        <section className="qb-admin-section">
+          <div className="qb-section-head">
+            <div><p>DEPARTMENT QUESTION BANK</p><h2>Tổ chuyên môn · kiểm duyệt & đóng góp</h2></div>
+            <span>Chỉ thành viên cùng tổ được xem nội dung chia sẻ; TTCM có quyền kiểm duyệt.</span>
+          </div>
+          <div className="qb-department-kpis">
+            <article><span>Thành viên</span><strong>{departmentStats.length}</strong><small>đang hoạt động trong tổ</small></article>
+            <article><span>Câu chia sẻ</span><strong>{departmentStats.reduce((sum,row)=>sum+Number(row.department_items||0),0)}</strong><small>visibility = department</small></article>
+            <article><span>Chờ duyệt</span><strong>{departmentStats.reduce((sum,row)=>sum+Number(row.review_items||0),0)}</strong><small>cần TTCM xử lý</small></article>
+            <article><span>Đã duyệt</span><strong>{departmentStats.reduce((sum,row)=>sum+Number(row.approved_items||0),0)}</strong><small>sẵn sàng dùng chung</small></article>
+          </div>
+          <div className="qb-department-table">
+            <header><span>Giáo viên</span><span>Vai trò</span><span>Chia sẻ</span><span>Draft</span><span>Review</span><span>Approved</span><span>Bundles</span><span>Đề</span><span>Cập nhật gần nhất</span></header>
+            {departmentStats.map((row)=>(
+              <article key={row.user_id}>
+                <div><strong>{row.display_name || row.email || 'Thành viên'}</strong><small>{row.email || '—'}</small></div>
+                <span>{row.member_role || 'member'}</span>
+                <b>{Number(row.department_items||0)}</b>
+                <b>{Number(row.draft_items||0)}</b>
+                <b className={Number(row.review_items||0)>0?'needs-review':''}>{Number(row.review_items||0)}</b>
+                <b className="approved">{Number(row.approved_items||0)}</b>
+                <b>{Number(row.bundle_count||0)}</b>
+                <b>{Number(row.test_count||0)}</b>
+                <small>{formatTime(row.latest_contribution)}</small>
+              </article>
+            ))}
+          </div>
+          <div className="qb-department-flow">
+            <article><b>1</b><div><strong>Giáo viên tạo câu</strong><p>Đặt phạm vi “Tổ chuyên môn” và giữ trạng thái Draft trong lúc biên tập.</p></div></article>
+            <article><b>2</b><div><strong>Gửi duyệt</strong><p>Draft → Review. Câu xuất hiện trong hàng chờ của TTCM.</p></div></article>
+            <article><b>3</b><div><strong>TTCM kiểm tra</strong><p>Kiểm tra ngữ liệu, distractor, đáp án, metadata; có thể Duyệt hoặc Trả lại kèm ghi chú.</p></div></article>
+            <article><b>4</b><div><strong>Dùng chung</strong><p>Approved được phép vào Builder/Exam Factory khi bật “Chỉ dùng câu Approved”.</p></div></article>
           </div>
         </section>
       ) : null}
