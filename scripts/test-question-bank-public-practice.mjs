@@ -6,6 +6,7 @@ const css = fs.readFileSync('src/pages/QuestionBankPractice.css', 'utf8');
 const main = fs.readFileSync('src/main.jsx', 'utf8');
 const sql = fs.readFileSync('supabase/question_bank_public_practice_v11_8_0.sql', 'utf8');
 const balancedSql = fs.readFileSync('supabase/question_bank_public_practice_balanced_options_v11_8_3.sql', 'utf8');
+const inheritSql = fs.readFileSync('supabase/question_bank_practice_option_order_trigger_v11_8_4.sql', 'utf8');
 
 for (const token of [
   'function formatClock(totalSeconds)',
@@ -53,6 +54,13 @@ assert.ok(
   balancedSql.includes("select jsonb_agg(i.options -> (x.src::int) order by x.ord)"),
   'Public practice must render options in the stored balanced order.',
 );
+
+for (const token of [
+  'qb_practice_item_inherit_option_order',
+  "ps.settings->>'sourceTestId'",
+  'trg_qb_practice_item_inherit_option_order',
+  'new.option_order := v_order',
+]) assert.ok(inheritSql.includes(token), 'Future practice option-order inheritance missing: ' + token);
 
 assert.ok(!page.includes('Math.random('), 'Public practice must not synthesize fake telemetry.');
 assert.ok(!page.includes('mockData'), 'Public practice must not use mock student data.');
