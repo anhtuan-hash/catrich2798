@@ -13,6 +13,11 @@ import {
   validateBlueprint,
 } from '../utils/questionBankBlueprints.js';
 import {
+  analyzeBankHealth,
+  analyzeBlueprintCoverage,
+  buildCoverageGapPrompt,
+} from '../utils/questionBankCoverage.js';
+import {
   auditExamQuality,
   buildExamExportHtml,
   buildExamSections,
@@ -28,6 +33,7 @@ const TABS = [
   ['questions', 'Kho câu hỏi'],
   ['bundles', 'Chùm bài'],
   ['blueprints', 'Ma trận'],
+  ['coverage', 'Phủ ma trận'],
   ['builder', 'Tạo đề'],
   ['tests', 'Đề thi'],
   ['import', 'Nhập từ ChatGPT'],
@@ -153,6 +159,9 @@ export default function QuestionBank({ currentUser }) {
     visibility: 'personal',
     criteria: defaultBlueprintCriteria(),
   });
+  const [coverageBlueprintId, setCoverageBlueprintId] = useState('builtin-tnthpt-40');
+  const [coverageTargetSets, setCoverageTargetSets] = useState(5);
+  const [coverageSchoolYear, setCoverageSchoolYear] = useState('2026-2027');
   const [builderSeed, setBuilderSeed] = useState(1);
   const [builderSaving, setBuilderSaving] = useState(false);
   const [builderConfig, setBuilderConfig] = useState({
@@ -305,6 +314,45 @@ OpenAPI: ${openApiUrl}`;
     tests: tests.length,
     total: questions.length,
   }), [questions, bundles, tests]);
+
+  const bankHealth = useMemo(
+    () => analyzeBankHealth(questions, bundles),
+    [questions, bundles],
+  );
+  const coverageBlueprint = useMemo(() => {
+    if (coverageBlueprintId === 'builtin-tnthpt-40') {
+      return {
+        id: 'builtin-tnthpt-40',
+        title: 'TN THPT 40 câu · mặc định',
+        total_items: 40,
+        criteria: defaultBlueprintCriteria(),
+      };
+    }
+    return blueprints.find((item) => item.id === coverageBlueprintId) || {
+      id: 'builtin-tnthpt-40',
+      title: 'TN THPT 40 câu · mặc định',
+      total_items: 40,
+      criteria: defaultBlueprintCriteria(),
+    };
+  }, [blueprints, coverageBlueprintId]);
+  const coverageAnalysis = useMemo(
+    () => analyzeBlueprintCoverage({
+      questions,
+      bundles,
+      blueprint: coverageBlueprint,
+      targetSets: coverageTargetSets,
+    }),
+    [questions, bundles, coverageBlueprint, coverageTargetSets],
+  );
+  const coverageGapPrompt = useMemo(
+    () => buildCoverageGapPrompt({
+      blueprintTitle: coverageBlueprint.title,
+      coverage: coverageAnalysis,
+      schoolYear: coverageSchoolYear,
+      sourceFormat: coverageAnalysis.criteria.preset === 'tnthpt_40' ? 'TN THPT Tiếng Anh 2025–2026' : 'Ma trận Brian đã lưu',
+    }),
+    [coverageBlueprint, coverageAnalysis, coverageSchoolYear],
+  );
 
   const builderStock = useMemo(
     () => builderAvailability(questions, bundles),
