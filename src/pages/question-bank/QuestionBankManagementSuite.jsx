@@ -1084,7 +1084,7 @@ export default function QuestionBankManagementSuite({
       if (result.error) throw result.error;
       const row = Array.isArray(result.data) ? result.data[0] : result.data;
       if (!row?.token) throw new Error('Không nhận được token chia sẻ.');
-      const url = `${window.location.origin}${window.location.pathname}#/practice?token=${encodeURIComponent(row.token)}`;
+      const url = `${window.location.origin}${window.location.pathname}#/qb-practice?token=${encodeURIComponent(row.token)}`;
       setPracticeShare({ practiceId: practice.id, title: practice.title, url });
       try { await navigator.clipboard.writeText(url); } catch { /* copy button remains available */ }
       await loadAux();
