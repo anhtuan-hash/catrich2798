@@ -1,6 +1,6 @@
 {
-  "version": "11.6.7",
-  "release": "Streamlined Application Catalog",
+  "version": "11.9.3",
+  "release": "Golden Bank & Exam Factory · Production Certified · Public Routes Restored",
   "runtime": "2.6.7",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -92,7 +92,7 @@
   "listeningLabRouteRetired": true,
   "listeningLabConnectedWorkflowRemoved": true,
   "retiredWorkspaceTabCleanup": true,
-  "releaseName": "Free Provider Hub — Expanded Catalog & Responsive Layout",
+  "releaseName": "Golden Bank & Exam Factory · Production Certified · Public Routes Restored",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
