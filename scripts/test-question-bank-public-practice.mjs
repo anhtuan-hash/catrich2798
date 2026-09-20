@@ -5,6 +5,7 @@ const page = fs.readFileSync('src/pages/QuestionBankPractice.jsx', 'utf8');
 const css = fs.readFileSync('src/pages/QuestionBankPractice.css', 'utf8');
 const main = fs.readFileSync('src/main.jsx', 'utf8');
 const sql = fs.readFileSync('supabase/question_bank_public_practice_v11_8_0.sql', 'utf8');
+const balancedSql = fs.readFileSync('supabase/question_bank_public_practice_balanced_options_v11_8_3.sql', 'utf8');
 
 for (const token of [
   'function formatClock(totalSeconds)',
@@ -37,6 +38,21 @@ for (const token of [
   'assessment_practice_share_tokens',
   'assessment_practice_responses',
 ]) assert.ok(sql.includes(token), 'Public practice SQL contract missing: ' + token);
+
+
+for (const token of [
+  'add column if not exists option_order jsonb',
+  "ps.settings->>'sourceTestId'",
+  "jsonb_array_length(pi.option_order)=4",
+  "'answerSpace','canonical-source-option'",
+  "mapped.source_answer=upper(left(i.correct_answer,1))",
+  "'correctAnswer'",
+]) assert.ok(balancedSql.includes(token), 'Balanced public practice SQL contract missing: ' + token);
+
+assert.ok(
+  balancedSql.includes("select jsonb_agg(i.options -> (x.src::int) order by x.ord)"),
+  'Public practice must render options in the stored balanced order.',
+);
 
 assert.ok(!page.includes('Math.random('), 'Public practice must not synthesize fake telemetry.');
 assert.ok(!page.includes('mockData'), 'Public practice must not use mock student data.');
