@@ -69,6 +69,31 @@ function cognitiveScore(candidate, cognitiveLevel) {
   return matching / values.length;
 }
 
+function itemMatchesPartFilters(item, part = {}) {
+  const filters = part.filters || {};
+  if (filters.tag) {
+    const needle = normalize(filters.tag);
+    if (!(item.tags || []).some((tag) => normalize(tag).includes(needle))) return false;
+  }
+  if (filters.grammar) {
+    if (!normalize(item.grammar_point).includes(normalize(filters.grammar))) return false;
+  }
+  if (filters.skill) {
+    if (normalize(item.skill) !== normalize(filters.skill)) return false;
+  }
+  if (filters.questionType) {
+    if (normalize(item.question_type) !== normalize(filters.questionType)) return false;
+  }
+  if (filters.topic) {
+    if (!normalize(item.topic).includes(normalize(filters.topic))) return false;
+  }
+  if (filters.cefr) {
+    const allowed = Array.isArray(filters.cefr) ? filters.cefr : [filters.cefr];
+    if (!allowed.map((value) => valueText(value).toUpperCase()).includes(valueText(item.cefr).toUpperCase())) return false;
+  }
+  return true;
+}
+
 function averageUsage(items = []) {
   if (!items.length) return 0;
   return items.reduce((sum, item) => sum + Number(item.usage_count || 0), 0) / items.length;
@@ -132,15 +157,26 @@ export function buildBankInventory(questions = [], bundles = []) {
     });
   });
 
-  const standaloneItems = (questions || []).filter((item) => {
+  const arrangementItems = (questions || []).filter((item) => {
     if (String(item.status || 'draft').toLowerCase() === 'archived') return false;
     if (blockTypeForItem(item) !== 'arrangement_5') return false;
     if (!item.bundle_id) return true;
     const bundleType = valueText(bundleMap.get(item.bundle_id)?.bundle_type).toLowerCase();
     return bundleType === 'arrangement_5';
   });
+  const standaloneMcqItems = (questions || []).filter((item) => {
+    if (String(item.status || 'draft').toLowerCase() === 'archived') return false;
+    if (item.bundle_id) return false;
+    if (blockTypeForItem(item) === 'arrangement_5') return false;
+    return Array.isArray(item.options) && item.options.length === 4;
+  });
 
-  return { bundleCandidates, standaloneItems };
+  return {
+    bundleCandidates,
+    standaloneItems: arrangementItems,
+    arrangementItems,
+    standaloneMcqItems,
+  };
 }
 
 export function selectExamFromBank({
@@ -164,6 +200,7 @@ export function selectExamFromBank({
       .filter((candidate) => matchesTopic(candidate, filters.topic))
       .filter((candidate) => matchesGrade(candidate, filters.grade))
       .filter((candidate) => candidate.items.every((item) => !usedIds.has(item.id)))
+      .filter((candidate) => !filters.excludeIds || candidate.items.every((item) => !filters.excludeIds.includes(item.id)))
       .filter((candidate) => !filters.approvedOnly || candidate.items.every((item) => String(item.status || '').toLowerCase() === 'approved'))
       .sort((a, b) => candidateScore(b, filters, seed, selected) - candidateScore(a, filters, seed, selected));
 
@@ -192,12 +229,17 @@ export function selectExamFromBank({
 
   blueprint.forEach((part) => {
     if (part.mode === 'items') {
-      const candidates = inventory.standaloneItems
+      const pool = part.type === 'standalone_mcq'
+        ? inventory.standaloneMcqItems
+        : inventory.arrangementItems;
+      const candidates = pool
         .filter((item) => !usedIds.has(item.id))
+        .filter((item) => !filters.excludeIds || !filters.excludeIds.includes(item.id))
         .filter((item) => !filters.approvedOnly || String(item.status || '').toLowerCase() === 'approved')
         .filter((item) => !filters.grade || !item.grade || String(item.grade) === String(filters.grade))
         .filter((item) => !filters.topic || [item.topic, item.skill, ...(item.tags || [])]
           .map(normalize).join(' ').includes(normalize(filters.topic)))
+        .filter((item) => itemMatchesPartFilters(item, part))
         .sort((a, b) => {
           const aCandidate = { id: a.id, items: [a] };
           const bCandidate = { id: b.id, items: [b] };
@@ -239,6 +281,7 @@ export function builderAvailability(questions = [], bundles = []) {
     byType[candidate.type].bundles += 1;
     byType[candidate.type].items += candidate.items.length;
   });
-  byType.arrangement_5 = { bundles: 0, items: inventory.standaloneItems.length };
+  byType.arrangement_5 = { bundles: 0, items: inventory.arrangementItems.length };
+  byType.standalone_mcq = { bundles: 0, items: inventory.standaloneMcqItems.length };
   return byType;
 }
