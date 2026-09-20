@@ -1579,6 +1579,96 @@ OpenAPI: ${openApiUrl}`;
         </div>
       ) : null}
 
+
+      {!loading && activeTab === 'coverage' ? (
+        <div className="qb-panel qb-coverage">
+          <div className="qb-section-head">
+            <div><p>BANK COVERAGE PLANNER</p><h2>Phủ ma trận</h2></div>
+            <span>Đo sức khỏe kho và tính chính xác cần bổ sung gì để tạo nhiều đề không trùng.</span>
+          </div>
+
+          <div className="qb-health-grid">
+            <article><span>Tổng câu</span><strong>{bankHealth.total}</strong><small>{bankHealth.bundles} chùm bài</small></article>
+            <article><span>Chưa từng dùng</span><strong>{bankHealth.neverUsed}</strong><small>{bankHealth.usedOnce} câu đã dùng 1 lần</small></article>
+            <article><span>Metadata đầy đủ</span><strong>{bankHealth.completeness}%</strong><small>{bankHealth.metadataMissing} câu còn thiếu</small></article>
+            <article><span>Trùng fingerprint</span><strong>{bankHealth.duplicateFingerprints}</strong><small>{bankHealth.uniqueTopics} chủ đề khác nhau</small></article>
+            <article><span>Dùng nhiều nhất</span><strong>{bankHealth.maxUsage}</strong><small>{bankHealth.heavilyUsed} câu dùng ≥ 4 lần</small></article>
+          </div>
+
+          <div className="qb-coverage-controls">
+            <label><span>Ma trận cần phủ</span>
+              <select value={coverageBlueprintId} onChange={(event) => setCoverageBlueprintId(event.target.value)}>
+                <option value="builtin-tnthpt-40">TN THPT 40 câu · mặc định</option>
+                {blueprints.map((blueprint) => <option key={blueprint.id} value={blueprint.id}>{blueprint.title} · {blueprint.total_items} câu</option>)}
+              </select>
+            </label>
+            <label><span>Mục tiêu đề không trùng</span><input type="number" min="1" max="100" value={coverageTargetSets} onChange={(event) => setCoverageTargetSets(Math.max(1, Math.min(100, Number(event.target.value) || 1)))} /></label>
+            <label><span>Năm học</span><input value={coverageSchoolYear} onChange={(event) => setCoverageSchoolYear(event.target.value)} /></label>
+            <button type="button" className="qb-primary" onClick={() => useBlueprintInBuilder(coverageBlueprint)} disabled={!coverageAnalysis.readyForOneSet}>Dùng ma trận để tạo đề</button>
+          </div>
+
+          <div className="qb-coverage-summary">
+            <article className={coverageAnalysis.readyForTarget ? 'is-ready' : 'is-gap'}>
+              <span>Khả năng hiện tại</span>
+              <strong>{coverageAnalysis.maxUniqueSets}</strong>
+              <small>đề không trùng hoàn toàn</small>
+            </article>
+            <article><span>Mục tiêu</span><strong>{coverageAnalysis.targetSets}</strong><small>đề không trùng</small></article>
+            <article><span>Độ phủ mục tiêu</span><strong>{coverageAnalysis.coveragePercent}%</strong><small>{coverageAnalysis.readyForTarget ? 'Đã đủ tồn kho' : 'Còn khoảng trống'}</small></article>
+            <article><span>Nút thắt</span><strong>{coverageAnalysis.bottleneck?.label || '—'}</strong><small>{coverageAnalysis.bottleneck ? 'Tối đa ' + coverageAnalysis.bottleneck.maxUniqueSets + ' đề' : 'Chưa có dữ liệu'}</small></article>
+          </div>
+
+          <section className="qb-coverage-table">
+            <div className="qb-coverage-table-head">
+              <span>Dạng bài</span><span>Có sẵn</span><span>Cần / đề</span><span>Cần cho mục tiêu</span><span>Thiếu</span><span>Độ phủ</span>
+            </div>
+            {coverageAnalysis.rows.map((row) => (
+              <article key={row.type} className={row.deficit ? 'has-gap' : 'is-covered'}>
+                <div><strong>{row.label}</strong><small>{row.mode === 'bundles' ? 'Chùm × ' + row.itemCount + ' câu' : 'Câu độc lập'}</small></div>
+                <b>{row.available}</b>
+                <b>{row.requiredPerSet}</b>
+                <b>{row.requiredForTarget}</b>
+                <b className={row.deficit ? 'is-deficit' : ''}>{row.deficit || '—'}</b>
+                <div className="qb-coverage-meter"><i style={{ width: row.coveragePercent + '%' }} /><span>{row.coveragePercent}%</span></div>
+              </article>
+            ))}
+          </section>
+
+          <div className="qb-coverage-lower">
+            <section className="qb-coverage-distribution">
+              <div className="qb-coverage-subhead"><span>BANK HEALTH</span><h3>Phân bố kho</h3></div>
+              <div className="qb-health-distributions">
+                <article>
+                  <strong>CEFR</strong>
+                  {Object.entries(bankHealth.distributions.cefr).sort().map(([key, value]) => <span key={key}><b>{key}</b><i>{value}</i></span>)}
+                </article>
+                <article>
+                  <strong>Nhận thức</strong>
+                  {Object.entries(bankHealth.distributions.cognitive).map(([key, value]) => <span key={key}><b>{cognitiveLabel(key)}</b><i>{value}</i></span>)}
+                </article>
+                <article>
+                  <strong>Độ khó</strong>
+                  {Object.entries(bankHealth.distributions.difficulty).sort().map(([key, value]) => <span key={key}><b>Mức {key}</b><i>{value}</i></span>)}
+                </article>
+              </div>
+            </section>
+
+            <section className="qb-gap-planner">
+              <div className="qb-coverage-subhead">
+                <span>GAP PLANNER</span>
+                <h3>Yêu cầu bổ sung cho GPT</h3>
+                <p>Prompt được tạo từ chính khoảng trống của kho. Brian không gọi AI; anh chỉ sao chép sang GPT đã kết nối.</p>
+              </div>
+              <textarea readOnly rows="16" value={coverageGapPrompt} />
+              <div className="qb-gap-actions">
+                <button type="button" className="qb-secondary" onClick={() => copyValue(coverageGapPrompt, 'Đã sao chép yêu cầu bổ sung theo khoảng trống ma trận.')}>Sao chép yêu cầu bổ sung</button>
+                <button type="button" className="qb-primary" onClick={() => setActiveTab('chatgpt')}>Mở hướng dẫn GPT</button>
+              </div>
+            </section>
+          </div>
+        </div>
+      ) : null}
+
       {!loading && activeTab === 'builder' ? (
         <div className="qb-panel qb-builder">
           <div className="qb-section-head">
