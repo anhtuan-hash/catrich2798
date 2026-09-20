@@ -15,7 +15,8 @@ const css = [
 assert.match(source, /canManageSupplementalLearning/, 'supplemental management must use the dedicated access guard');
 assert.match(access, /approved/, 'supplemental visibility must require an approved profile');
 assert.match(access, /admin|administrator/, 'approved Admins must be allowed');
-assert.match(access, /4c89bfa1-9e3f-4965-a082-99f6e974f5ba/i, 'the approved Hồng Thắm profile must be explicitly allowed');
+assert.match(access, /attendance:manage/, 'supplemental visibility must use the explicit attendance:manage permission');
+assert.doesNotMatch(access, /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i, 'supplemental visibility must not hardcode a privileged profile id');
 
 for (const label of [
   'Lớp học bổ sung', 'Tạo lớp học bổ sung', 'Quản lý', 'Điểm danh', 'Lịch sử', 'Xóa lớp',

@@ -1,6 +1,6 @@
 {
-  "version": "11.9.3",
-  "release": "Golden Bank & Exam Factory · Production Certified · Public Routes Restored",
+  "version": "11.9.4",
+  "release": "Golden Bank & Exam Factory · Production Certified · Permission-Driven Access",
   "runtime": "2.6.7",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -92,7 +92,7 @@
   "listeningLabRouteRetired": true,
   "listeningLabConnectedWorkflowRemoved": true,
   "retiredWorkspaceTabCleanup": true,
-  "releaseName": "Golden Bank & Exam Factory · Production Certified · Public Routes Restored",
+  "releaseName": "Golden Bank & Exam Factory · Production Certified · Permission-Driven Access",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
