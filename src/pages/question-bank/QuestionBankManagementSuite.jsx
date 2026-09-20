@@ -55,6 +55,39 @@ function formatTime(value) {
   catch { return String(value); }
 }
 
+function validPracticeOptionOrder(order) {
+  return Array.isArray(order)
+    && order.length === 4
+    && new Set(order.map((value) => Number(value))).size === 4
+    && order.every((value) => Number.isInteger(Number(value)) && Number(value) >= 0 && Number(value) <= 3);
+}
+
+function practiceOptionOrder(item) {
+  return validPracticeOptionOrder(item?.practice_option_order)
+    ? item.practice_option_order.map((value) => Number(value))
+    : [0,1,2,3];
+}
+
+function practiceVisibleOptions(item) {
+  const options = Array.isArray(item?.options) ? item.options : [];
+  return practiceOptionOrder(item).map((sourceIndex) => options[sourceIndex]);
+}
+
+function practiceSourceAnswer(item, visibleAnswer) {
+  const visible = qbText(visibleAnswer).toUpperCase();
+  if (!/^[A-D]$/.test(visible)) return '';
+  const sourceIndex = practiceOptionOrder(item)[visible.charCodeAt(0) - 65];
+  return String.fromCharCode(65 + Number(sourceIndex || 0));
+}
+
+function practiceVisibleCorrectAnswer(item) {
+  const source = qbText(item?.correct_answer).toUpperCase();
+  if (!/^[A-D]$/.test(source)) return source;
+  const sourceIndex = source.charCodeAt(0) - 65;
+  const visibleIndex = practiceOptionOrder(item).indexOf(sourceIndex);
+  return String.fromCharCode(65 + Math.max(0, visibleIndex));
+}
+
 function downloadText(content, filename, type = 'text/plain;charset=utf-8') {
   const blob = new Blob([content], { type });
   const url = URL.createObjectURL(blob);
@@ -1062,7 +1095,14 @@ export default function QuestionBankManagementSuite({
       }).select('*').single();
       if (result.error) throw result.error;
       practice = result.data;
-      const joins = source.map((item,index) => ({ practice_id: practice.id, item_id: item.id, position: index+1, points: 1 }));
+      const optionOrders = balancedOptionOrders(source, `practice-${practice.id}`);
+      const joins = source.map((item,index) => ({
+        practice_id: practice.id,
+        item_id: item.id,
+        position: index+1,
+        points: 1,
+        option_order: optionOrders[index],
+      }));
       const joinResult = await supabase.from('assessment_practice_items').insert(joins);
       if (joinResult.error) throw joinResult.error;
       await loadAux();
@@ -1128,7 +1168,12 @@ export default function QuestionBankManagementSuite({
       if (result.error) throw result.error;
       const map = new Map(questions.map((item) => [item.id,item]));
       setActivePractice(practice);
-      setActivePracticeItems((result.data || []).map((row) => ({ ...map.get(row.item_id), practice_position: row.position, practice_points: row.points })).filter((item) => item.id));
+      setActivePracticeItems((result.data || []).map((row) => ({
+        ...map.get(row.item_id),
+        practice_position: row.position,
+        practice_points: row.points,
+        practice_option_order: row.option_order,
+      })).filter((item) => item.id));
       setPracticeAnswers({});
       setPracticeResult(null);
     } catch (error) { onMessage?.(error?.message || 'Không thể mở bài luyện.'); }
@@ -1140,23 +1185,14 @@ export default function QuestionBankManagementSuite({
     setBusy('practice-submit');
     try {
       const maxScore = activePracticeItems.reduce((sum,item) => sum + Number(item.practice_points || 1), 0);
-      const score = activePracticeItems.reduce((sum,item) => sum + (qbText(practiceAnswers[item.id]).toUpperCase() === qbText(item.correct_answer).toUpperCase() ? Number(item.practice_points || 1) : 0), 0);
-      const attemptResult = await supabase.from('assessment_practice_attempts').insert({
-        practice_id: activePractice.id, learner_id: userId, status: 'submitted', score, max_score: maxScore,
-        submitted_at: new Date().toISOString(), metadata: { source: 'QuestionBankPracticeMode' },
-      }).select('*').single();
-      if (attemptResult.error) throw attemptResult.error;
-      const responseRows = activePracticeItems.map((item) => ({
-        attempt_id: attemptResult.data.id, item_id: item.id, selected_answer: qbText(practiceAnswers[item.id]).toUpperCase(),
-        is_correct: qbText(practiceAnswers[item.id]).toUpperCase() === qbText(item.correct_answer).toUpperCase(),
-      }));
-      const responseResult = await supabase.from('assessment_practice_responses').insert(responseRows);
-      if (responseResult.error) throw responseResult.error;
-      await supabase.rpc('qb_recompute_item_statistics', { p_item_ids: activePracticeItems.map((item) => item.id) });
+      const score = activePracticeItems.reduce((sum,item) => {
+        const selectedSource = practiceSourceAnswer(item, practiceAnswers[item.id]);
+        const isCorrect = qbText(selectedSource).toUpperCase() === qbText(item.correct_answer).toUpperCase();
+        return sum + (isCorrect ? Number(item.practice_points || 1) : 0);
+      }, 0);
       setPracticeResult({ score, maxScore });
-      await onReload?.();
-      await loadAux();
-    } catch (error) { onMessage?.(error?.message || 'Không thể nộp bài luyện.'); }
+      onMessage?.('Đã chấm bản xem thử. Brian không ghi lượt xem thử của giáo viên vào Item Performance; chỉ bài học sinh nộp qua link công khai mới tạo telemetry.');
+    } catch (error) { onMessage?.(error?.message || 'Không thể chấm bản xem thử.'); }
     finally { setBusy(''); }
   }
 
@@ -1518,7 +1554,7 @@ export default function QuestionBankManagementSuite({
             <div className="qb-practice-create"><input value={practiceTitle} onChange={(e)=>setPracticeTitle(e.target.value)} /><input type="number" min="1" max="100" value={practiceCount} onChange={(e)=>setPracticeCount(Number(e.target.value)||10)} /><button type="button" className="qb-primary" onClick={createPracticeSet}>Tạo bài luyện {selectedIds.length ? 'từ '+selectedIds.length+' câu đã chọn' : ''}</button></div>
             <div className="qb-practice-list">{practiceSets.map((practice)=><article key={practice.id}><div><strong>{practice.title}</strong><small>{localStatus(practice.status)} · {formatTime(practice.updated_at)}</small></div><div className="qb-practice-actions"><button type="button" onClick={() => openPractice(practice)}>Làm thử / Mở</button><button type="button" onClick={() => createPracticeShare(practice)} disabled={busy===`practice-share-${practice.id}`}>Tạo link học sinh</button><button type="button" onClick={() => disablePracticeShare(practice)} disabled={busy===`practice-disable-${practice.id}`}>Tắt link</button></div></article>)}</div>
             {practiceShare ? <div className="qb-practice-share"><div><span>LINK HỌC SINH · chỉ hiện trong phiên này</span><strong>{practiceShare.title}</strong></div><input readOnly value={practiceShare.url} onFocus={(e)=>e.target.select()} /><button type="button" className="qb-secondary" onClick={copyPracticeShare}>Sao chép</button></div> : null}
-          </> : <div className="qb-practice-player"><header><button type="button" className="qb-back" onClick={() => {setActivePractice(null);setPracticeResult(null);}}>← Danh sách</button><div><h3>{activePractice.title}</h3><span>{activePracticeItems.length} câu</span></div></header>{activePracticeItems.map((item,index)=>{const bundle=bundles.find((b)=>b.id===item.bundle_id);const showContext=item.bundle_id && (index===0 || activePracticeItems[index-1]?.bundle_id!==item.bundle_id);return <React.Fragment key={item.id}>{showContext ? <div className="qb-practice-context"><b>{bundle?.title}</b><p>{bundle?.context_text}</p></div> : null}<article><strong>Question {index+1}. {item.stem}</strong><div>{(item.options||[]).map((option,optionIndex)=>{const letter=String.fromCharCode(65+optionIndex);return <label key={letter}><input type="radio" name={item.id} value={letter} checked={practiceAnswers[item.id]===letter} onChange={()=>setPracticeAnswers({...practiceAnswers,[item.id]:letter})} /><span><b>{letter}.</b> {option}</span></label>})}</div>{practiceResult ? <p className={qbText(practiceAnswers[item.id]).toUpperCase()===qbText(item.correct_answer).toUpperCase()?'correct':'wrong'}>Đáp án: {item.correct_answer}. {item.explanation}</p> : null}</article></React.Fragment>})}{practiceResult ? <div className="qb-practice-score">Kết quả: <b>{practiceResult.score}/{practiceResult.maxScore}</b></div> : <button type="button" className="qb-primary" onClick={submitPractice}>Nộp bài & chấm</button>}</div>}
+          </> : <div className="qb-practice-player"><header><button type="button" className="qb-back" onClick={() => {setActivePractice(null);setPracticeResult(null);}}>← Danh sách</button><div><h3>{activePractice.title}</h3><span>{activePracticeItems.length} câu</span></div></header>{activePracticeItems.map((item,index)=>{const bundle=bundles.find((b)=>b.id===item.bundle_id);const showContext=item.bundle_id && (index===0 || activePracticeItems[index-1]?.bundle_id!==item.bundle_id);const visibleOptions=practiceVisibleOptions(item);const selectedSource=practiceSourceAnswer(item,practiceAnswers[item.id]);const isCorrect=qbText(selectedSource).toUpperCase()===qbText(item.correct_answer).toUpperCase();const visibleCorrect=practiceVisibleCorrectAnswer(item);return <React.Fragment key={item.id}>{showContext ? <div className="qb-practice-context"><b>{bundle?.title}</b><p>{bundle?.context_text}</p></div> : null}<article><strong>Question {index+1}. {item.stem}</strong><div>{visibleOptions.map((option,optionIndex)=>{const letter=String.fromCharCode(65+optionIndex);return <label key={letter}><input type="radio" name={item.id} value={letter} checked={practiceAnswers[item.id]===letter} onChange={()=>setPracticeAnswers({...practiceAnswers,[item.id]:letter})} /><span><b>{letter}.</b> {option}</span></label>})}</div>{practiceResult ? <p className={isCorrect?'correct':'wrong'}>Đáp án: {visibleCorrect}. {item.explanation}</p> : null}</article></React.Fragment>})}{practiceResult ? <div className="qb-practice-score">Kết quả: <b>{practiceResult.score}/{practiceResult.maxScore}</b></div> : <button type="button" className="qb-primary" onClick={submitPractice}>Nộp bài & chấm</button>}</div>}
         </section>
       ) : null}
 
