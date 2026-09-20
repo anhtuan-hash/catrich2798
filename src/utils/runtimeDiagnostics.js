@@ -34,7 +34,31 @@ export function recordRuntimeError(input = {}) {
     window.__besLastRenderError = record;
     try { window.dispatchEvent(new CustomEvent(RUNTIME_ERROR_EVENT, { detail: record })); } catch { /* optional */ }
   }
+  reportRuntimeErrorRemote(record);
   return record;
+}
+
+function reportRuntimeErrorRemote(record) {
+  if (typeof window === 'undefined') return;
+  const client = window.BESSupabase;
+  if (!client?.rpc) return;
+
+  const payload = {
+    route: String(record.route || '').slice(0, 300),
+    scope: String(record.scope || 'runtime').slice(0, 120),
+    message: String(record.message || '').slice(0, 800),
+    stack: String(record.stack || '').slice(0, 6000),
+    componentStack: String(record.componentStack || '').slice(0, 6000),
+    userAgent: String(record.userAgent || '').slice(0, 500),
+    online: Boolean(record.online),
+    appVersion: String(window.__BES_APP_VERSION || '').slice(0, 40),
+    runtimeVersion: String(window.__BES_RUNTIME_VERSION || '').slice(0, 40),
+  };
+
+  window.setTimeout(() => {
+    Promise.resolve(client.rpc('app_report_runtime_error', { p_payload: payload }))
+      .catch(() => undefined);
+  }, 0);
 }
 
 export function getRuntimeErrors() {

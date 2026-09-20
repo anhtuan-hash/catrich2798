@@ -70,6 +70,23 @@ function send(payload) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })).catch(() => {});
+
+  const client = window.BESSupabase;
+  if (client?.rpc) {
+    const databasePayload = {
+      route: payload.route,
+      scope: payload.kind,
+      message: payload.message,
+      stack: payload.stack,
+      componentStack: '',
+      userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : '',
+      online: typeof navigator !== 'undefined' ? navigator.onLine : true,
+      appVersion: payload.version,
+      runtimeVersion: String(window.BESRuntimeCore?.version || ''),
+    };
+    Promise.resolve(client.rpc('app_report_runtime_error', { p_payload: databasePayload }))
+      .catch(() => {});
+  }
 }
 
 export function installClientErrorTelemetry({ appVersion = '' } = {}) {
