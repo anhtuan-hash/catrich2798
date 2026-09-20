@@ -235,6 +235,7 @@ export default function QuestionBankManagementSuite({
   const [activePracticeItems, setActivePracticeItems] = useState([]);
   const [practiceAnswers, setPracticeAnswers] = useState({});
   const [practiceResult, setPracticeResult] = useState(null);
+  const [practiceShare, setPracticeShare] = useState(null);
 
   const [restoreArmed, setRestoreArmed] = useState('');
 
@@ -1072,6 +1073,54 @@ export default function QuestionBankManagementSuite({
     } finally { setBusy(''); }
   }
 
+  async function createPracticeShare(practice) {
+    setBusy(`practice-share-${practice.id}`);
+    try {
+      const result = await supabase.rpc('qb_create_practice_share', {
+        p_practice_id: practice.id,
+        p_expires_at: null,
+        p_max_attempts: 1000,
+      });
+      if (result.error) throw result.error;
+      const row = Array.isArray(result.data) ? result.data[0] : result.data;
+      if (!row?.token) throw new Error('Không nhận được token chia sẻ.');
+      const url = `${window.location.origin}${window.location.pathname}#/practice?token=${encodeURIComponent(row.token)}`;
+      setPracticeShare({ practiceId: practice.id, title: practice.title, url });
+      try { await navigator.clipboard.writeText(url); } catch { /* copy button remains available */ }
+      await loadAux();
+      onMessage?.('Đã tạo link học sinh và sao chép vào clipboard. Token cũ của bài này đã được vô hiệu hóa.');
+    } catch (error) {
+      onMessage?.(error?.message || 'Không thể tạo link học sinh.');
+    } finally {
+      setBusy('');
+    }
+  }
+
+  async function disablePracticeShare(practice) {
+    setBusy(`practice-disable-${practice.id}`);
+    try {
+      const result = await supabase.rpc('qb_disable_practice_share', { p_practice_id: practice.id });
+      if (result.error) throw result.error;
+      if (practiceShare?.practiceId === practice.id) setPracticeShare(null);
+      await loadAux();
+      onMessage?.('Đã tắt link học sinh của bài luyện.');
+    } catch (error) {
+      onMessage?.(error?.message || 'Không thể tắt link học sinh.');
+    } finally {
+      setBusy('');
+    }
+  }
+
+  async function copyPracticeShare() {
+    if (!practiceShare?.url) return;
+    try {
+      await navigator.clipboard.writeText(practiceShare.url);
+      onMessage?.('Đã sao chép link học sinh.');
+    } catch {
+      onMessage?.('Không thể tự sao chép; hãy chọn link và sao chép thủ công.');
+    }
+  }
+
   async function openPractice(practice) {
     setBusy('practice-open');
     try {
@@ -1467,7 +1516,8 @@ export default function QuestionBankManagementSuite({
           <div className="qb-section-head"><div><p>STUDENT PRACTICE MODE</p><h2>Bài luyện & chấm tự động</h2></div><span>Tạo từ câu đã chọn hoặc câu Approved ít dùng nhất.</span></div>
           {!activePractice ? <>
             <div className="qb-practice-create"><input value={practiceTitle} onChange={(e)=>setPracticeTitle(e.target.value)} /><input type="number" min="1" max="100" value={practiceCount} onChange={(e)=>setPracticeCount(Number(e.target.value)||10)} /><button type="button" className="qb-primary" onClick={createPracticeSet}>Tạo bài luyện {selectedIds.length ? 'từ '+selectedIds.length+' câu đã chọn' : ''}</button></div>
-            <div className="qb-practice-list">{practiceSets.map((practice)=><article key={practice.id}><div><strong>{practice.title}</strong><small>{localStatus(practice.status)} · {formatTime(practice.updated_at)}</small></div><button type="button" onClick={() => openPractice(practice)}>Làm thử / Mở</button></article>)}</div>
+            <div className="qb-practice-list">{practiceSets.map((practice)=><article key={practice.id}><div><strong>{practice.title}</strong><small>{localStatus(practice.status)} · {formatTime(practice.updated_at)}</small></div><div className="qb-practice-actions"><button type="button" onClick={() => openPractice(practice)}>Làm thử / Mở</button><button type="button" onClick={() => createPracticeShare(practice)} disabled={busy===`practice-share-${practice.id}`}>Tạo link học sinh</button><button type="button" onClick={() => disablePracticeShare(practice)} disabled={busy===`practice-disable-${practice.id}`}>Tắt link</button></div></article>)}</div>
+            {practiceShare ? <div className="qb-practice-share"><div><span>LINK HỌC SINH · chỉ hiện trong phiên này</span><strong>{practiceShare.title}</strong></div><input readOnly value={practiceShare.url} onFocus={(e)=>e.target.select()} /><button type="button" className="qb-secondary" onClick={copyPracticeShare}>Sao chép</button></div> : null}
           </> : <div className="qb-practice-player"><header><button type="button" className="qb-back" onClick={() => {setActivePractice(null);setPracticeResult(null);}}>← Danh sách</button><div><h3>{activePractice.title}</h3><span>{activePracticeItems.length} câu</span></div></header>{activePracticeItems.map((item,index)=>{const bundle=bundles.find((b)=>b.id===item.bundle_id);const showContext=item.bundle_id && (index===0 || activePracticeItems[index-1]?.bundle_id!==item.bundle_id);return <React.Fragment key={item.id}>{showContext ? <div className="qb-practice-context"><b>{bundle?.title}</b><p>{bundle?.context_text}</p></div> : null}<article><strong>Question {index+1}. {item.stem}</strong><div>{(item.options||[]).map((option,optionIndex)=>{const letter=String.fromCharCode(65+optionIndex);return <label key={letter}><input type="radio" name={item.id} value={letter} checked={practiceAnswers[item.id]===letter} onChange={()=>setPracticeAnswers({...practiceAnswers,[item.id]:letter})} /><span><b>{letter}.</b> {option}</span></label>})}</div>{practiceResult ? <p className={qbText(practiceAnswers[item.id]).toUpperCase()===qbText(item.correct_answer).toUpperCase()?'correct':'wrong'}>Đáp án: {item.correct_answer}. {item.explanation}</p> : null}</article></React.Fragment>})}{practiceResult ? <div className="qb-practice-score">Kết quả: <b>{practiceResult.score}/{practiceResult.maxScore}</b></div> : <button type="button" className="qb-primary" onClick={submitPractice}>Nộp bài & chấm</button>}</div>}
         </section>
       ) : null}
