@@ -214,5 +214,8 @@ jobs:
       - name: Verify app-wide v11.9.0 hardening
         run: node scripts/test-app-wide-hardening-v11.9.0.mjs
 
+      - name: Verify production certification v11.9.2
+        run: node scripts/test-production-certification-v11.9.2.mjs
+
       - name: Build production bundle
         run: npm run build
