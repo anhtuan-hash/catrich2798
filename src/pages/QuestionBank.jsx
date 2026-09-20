@@ -180,6 +180,7 @@ export default function QuestionBank({ currentUser }) {
     cefr: 'B1-B2',
     cognitiveLevel: '',
     topic: '',
+    approvedOnly: false,
   });
   const [selectedTest, setSelectedTest] = useState(null);
   const [selectedTestItems, setSelectedTestItems] = useState([]);
@@ -395,6 +396,7 @@ OpenAPI: ${openApiUrl}`;
         grade: builderConfig.grade || builderCriteria.grade,
         cefr: builderConfig.cefr || builderCriteria.cefr,
         cognitiveLevel: builderConfig.cognitiveLevel,
+        approvedOnly: Boolean(builderConfig.approvedOnly),
         cognitiveTargets: builderCriteria.cognitiveTargets,
         totalItems: activeBuilderBlueprint.total_items || 40,
         topic: builderConfig.topic,
@@ -1920,6 +1922,7 @@ OpenAPI: ${openApiUrl}`;
                 <label><span>CEFR ưu tiên</span><select value={builderConfig.cefr} onChange={(event) => setBuilderConfig({ ...builderConfig, cefr: event.target.value })}><option value="B1-B2">B1–B2</option><option value="B1">B1</option><option value="B2">B2</option></select></label>
                 <label><span>Nhận thức ưu tiên</span><select value={builderConfig.cognitiveLevel} onChange={(event) => setBuilderConfig({ ...builderConfig, cognitiveLevel: event.target.value })}><option value="">Tự cân bằng</option><option value="recognition">Nhận biết</option><option value="comprehension">Thông hiểu</option><option value="application">Vận dụng</option></select></label>
                 <label><span>Lọc chủ đề</span><input value={builderConfig.topic} onChange={(event) => setBuilderConfig({ ...builderConfig, topic: event.target.value })} placeholder="VD: environment" /></label>
+                <label className="qb-builder-approved"><span>Chế độ duyệt</span><label><input type="checkbox" checked={Boolean(builderConfig.approvedOnly)} onChange={(event) => setBuilderConfig({ ...builderConfig, approvedOnly: event.target.checked })} /> Chỉ dùng câu Approved</label></label>
               </div>
               <div className="qb-builder-actions">
                 <button type="button" className="qb-secondary" onClick={() => setBuilderSeed((value) => value + 1)}>↻ Xáo lựa chọn</button>
