@@ -1355,6 +1355,72 @@ export default function QuestionBankManagementSuite({
         </section>
       ) : null}
 
+      {tab === 'factory' ? (
+        <section className="qb-admin-section">
+          <div className="qb-section-head">
+            <div><p>EXAM FACTORY</p><h2>Tạo batch đề hàng loạt</h2></div>
+            <span>Ma trận + số đề + overlap + difficulty · chỉ dùng câu Approved · không gọi AI.</span>
+          </div>
+
+          <div className="qb-factory-controls">
+            <label><span>Ma trận</span>
+              <select value={factoryBlueprintId} onChange={(e) => { setFactoryBlueprintId(e.target.value); setFactoryPreview(null); }}>
+                <option value="builtin-tnthpt-40">TN THPT 40 câu · mặc định</option>
+                {blueprints.map((bp) => <option key={bp.id} value={bp.id}>{bp.title} · {bp.total_items} câu</option>)}
+              </select>
+            </label>
+            <label><span>Tên batch</span><input value={factoryTitle} onChange={(e)=>setFactoryTitle(e.target.value)} /></label>
+            <label><span>Số lượng đề</span><input type="number" min="1" max="100" value={factoryCount} onChange={(e)=>{setFactoryCount(Math.max(1,Math.min(100,Number(e.target.value)||1)));setFactoryPreview(null);}} /></label>
+            <label><span>Overlap tối đa</span><input type="number" min="0" max="40" value={factoryMaxOverlap} onChange={(e)=>{setFactoryMaxOverlap(Math.max(0,Number(e.target.value)||0));setFactoryPreview(null);}} /></label>
+            <label><span>Sai số độ khó</span><input type="number" min="0" max="3" step="0.05" value={factoryDifficultyTolerance} onChange={(e)=>{setFactoryDifficultyTolerance(Math.max(0,Number(e.target.value)||0));setFactoryPreview(null);}} /></label>
+            <label><span>Seed</span><input type="number" value={factorySeed} onChange={(e)=>{setFactorySeed(Number(e.target.value)||1);setFactoryPreview(null);}} /></label>
+            <button type="button" className="qb-primary" onClick={generateFactoryPreview}>Tạo preview</button>
+          </div>
+
+          {factoryPreview ? (
+            <>
+              <div className="qb-factory-summary">
+                <article className={factoryPreview.complete ? 'is-ready' : 'is-gap'}><span>Trạng thái</span><strong>{factoryPreview.complete ? 'READY' : 'PARTIAL'}</strong><small>{factoryPreview.exams.length}/{factoryPreview.requested} đề</small></article>
+                <article><span>Câu unique</span><strong>{factoryPreview.summary.totalUniqueItems}</strong><small>trong toàn batch</small></article>
+                <article><span>Overlap max</span><strong>{factoryPreview.summary.maxOverlap}</strong><small>mục tiêu ≤ {factoryMaxOverlap}</small></article>
+                <article><span>Difficulty TB</span><strong>{factoryPreview.summary.averageDifficulty.toFixed(2)}</strong><small>spread {factoryPreview.summary.difficultySpread.toFixed(2)}</small></article>
+              </div>
+
+              <div className="qb-factory-list">
+                {factoryPreview.exams.map((exam,index) => (
+                  <article key={exam.uniqueKey}>
+                    <div><b>SET {String(index+1).padStart(2,'0')}</b><strong>{exam.items.length} câu</strong></div>
+                    <span>Difficulty {exam.difficulty.toFixed(2)}</span>
+                    <span>Overlap max {exam.maxOverlap}</span>
+                    <span>{exam.audit.warnings.length} cảnh báo</span>
+                    <small>Seed {exam.seed}</small>
+                  </article>
+                ))}
+              </div>
+
+              {factoryPreview.rejected.length ? (
+                <div className="qb-factory-rejected">{factoryPreview.rejected.map((entry)=><span key={entry.index}>⚠ Set {entry.index}: {entry.reason}</span>)}</div>
+              ) : null}
+
+              <div className="qb-factory-actions">
+                <button type="button" className="qb-secondary" onClick={exportFactoryAnswerKey}>Answer key CSV</button>
+                <button type="button" className="qb-secondary" onClick={() => exportFactoryWord(false)}>Word học sinh</button>
+                <button type="button" className="qb-secondary" onClick={() => exportFactoryWord(true)}>Word giáo viên</button>
+                <button type="button" className="qb-secondary" onClick={printFactoryPdf}>In / PDF</button>
+                <button type="button" className="qb-primary" onClick={saveFactoryBatch} disabled={!factoryPreview.complete || busy==='factory-save'}>{busy==='factory-save'?'Đang lưu batch…':'Lưu toàn bộ batch'}</button>
+              </div>
+            </>
+          ) : (
+            <div className="qb-empty"><strong>Chưa có preview batch</strong><p>Brian sẽ thử nhiều seed và chỉ nhận tổ hợp đạt overlap + độ khó theo giới hạn đã đặt.</p></div>
+          )}
+
+          <div className="qb-factory-history">
+            <div><span>BATCH HISTORY</span><strong>{examBatches.length} batch</strong></div>
+            {examBatches.slice(0,50).map((batch)=><article key={batch.id}><div><strong>{batch.title}</strong><small>{formatTime(batch.created_at)} · {batch.created_count}/{batch.requested_count} đề · overlap ≤ {batch.max_overlap}</small></div><span>{localStatus(batch.status)}</span></article>)}
+          </div>
+        </section>
+      ) : null}
+
       {tab === 'practice' ? (
         <section className="qb-admin-section">
           <div className="qb-section-head"><div><p>STUDENT PRACTICE MODE</p><h2>Bài luyện & chấm tự động</h2></div><span>Tạo từ câu đã chọn hoặc câu Approved ít dùng nhất.</span></div>
