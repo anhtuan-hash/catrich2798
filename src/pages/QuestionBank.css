@@ -362,3 +362,10 @@ html body #root .app-shell[data-route="assessment-core"] main#bes-main-content >
 .qb-department-flow article>b{display:grid;place-items:center;width:29px;height:29px;border-radius:9px;background:#eaf0ff;color:#315fc4;font-size:10px}.qb-department-flow strong{font-size:10px;color:#2d3b55}.qb-department-flow p{margin:4px 0 0;font-size:8px;line-height:1.45;color:#7d8798}
 @media(max-width:900px){.qb-department-kpis,.qb-department-flow{grid-template-columns:1fr 1fr}}
 @media(max-width:520px){.qb-department-kpis,.qb-department-flow{grid-template-columns:1fr}}
+
+
+.qb-practice-list article{grid-template-columns:minmax(0,1fr) auto}
+.qb-practice-actions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
+.qb-practice-share{display:grid;grid-template-columns:minmax(170px,.8fr) minmax(260px,2fr) auto;gap:8px;align-items:center;padding:11px;border:1px solid #cbd8f2;border-radius:12px;background:#f6f9ff}
+.qb-practice-share>div{display:grid;gap:2px}.qb-practice-share span{font-size:8px;font-weight:900;color:#315fc4;letter-spacing:.06em}.qb-practice-share strong{font-size:9px;color:#2d3b55}.qb-practice-share input{min-height:39px;border:1px solid #d5deeb;border-radius:9px;background:#fff;padding:8px 9px;font:inherit;font-size:9px;color:#3d4a61}
+@media(max-width:760px){.qb-practice-share{grid-template-columns:1fr}.qb-practice-actions{justify-content:flex-start}.qb-practice-list article{grid-template-columns:1fr}}
