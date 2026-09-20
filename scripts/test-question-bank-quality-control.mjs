@@ -5,6 +5,8 @@ const page = fs.readFileSync('src/pages/QuestionBank.jsx', 'utf8');
 const quality = fs.readFileSync('src/pages/question-bank/QuestionBankQualityControl.jsx', 'utf8');
 const css = fs.readFileSync('src/pages/question-bank/QuestionBankQualityControl.css', 'utf8');
 const sql = fs.readFileSync('supabase/question_bank_quality_control_v11_8_1.sql', 'utf8');
+const hardeningSql = fs.readFileSync('supabase/question_bank_performance_security_hardening_v11_8_2.sql', 'utf8');
+const auditFixSql = fs.readFileSync('supabase/question_bank_audit_bundle_ready_fix_v11_8_2.sql', 'utf8');
 
 assert.ok(page.includes('fetchAllOwnedRows'), 'Question Bank must page through the complete bank.');
 assert.ok(!page.includes(".limit(500)"), 'Question Bank must not truncate the item pool at 500 rows.');
@@ -45,6 +47,21 @@ for (const token of [
   'revoke execute on function public.qb_quality_dashboard(uuid,integer,integer) from anon;',
   'grant execute on function public.qb_quality_dashboard(uuid,integer,integer) to authenticated;',
 ]) assert.ok(sql.includes(token), 'Quality Control SQL missing: ' + token);
+
+
+for (const token of [
+  'assessment_exam_batches_blueprint_idx',
+  'assessment_practice_share_tokens_practice_idx',
+  'assessment_test_items_item_idx',
+  'assessment_tests_blueprint_idx',
+  'owner_id = (select auth.uid())',
+  'revoke execute on function public.qb_current_department_id(uuid) from authenticated;',
+]) assert.ok(hardeningSql.includes(token), 'Question Bank hardening SQL missing: ' + token);
+
+for (const token of [
+  "approved_count=expected_count",
+  "approvedReady requires both approved bundle status and all child items approved",
+]) assert.ok(auditFixSql.includes(token), 'Golden Bank audit fix missing: ' + token);
 
 assert.ok(!quality.includes('Math.random('), 'Quality Control must not synthesize fake analytics.');
 assert.ok(!quality.includes('mockData'), 'Quality Control must not use mock analytics.');
