@@ -27,11 +27,13 @@ import {
   splitExamStem,
   visibleOptions,
 } from '../utils/questionBankExamManager.js';
+import QuestionBankManagementSuite from './question-bank/QuestionBankManagementSuite.jsx';
 import './QuestionBank.css';
 
 const TABS = [
   ['questions', 'Kho câu hỏi'],
   ['bundles', 'Chùm bài'],
+  ['manage', 'Quản trị'],
   ['blueprints', 'Ma trận'],
   ['coverage', 'Phủ ma trận'],
   ['builder', 'Tạo đề'],
@@ -148,6 +150,8 @@ export default function QuestionBank({ currentUser }) {
   const [questions, setQuestions] = useState([]);
   const [bundles, setBundles] = useState([]);
   const [selectedBundle, setSelectedBundle] = useState(null);
+  const [manageTargetQuestionId, setManageTargetQuestionId] = useState('');
+  const [manageTargetBundleId, setManageTargetBundleId] = useState('');
   const [selectedBundleTests, setSelectedBundleTests] = useState([]);
   const [bundleDetailLoading, setBundleDetailLoading] = useState(false);
   const [showBundleAnswers, setShowBundleAnswers] = useState(false);
@@ -1471,7 +1475,21 @@ OpenAPI: ${openApiUrl}`;
           {filteredQuestions.length ? (
             <div className="qb-question-list">
               {filteredQuestions.map((item, index) => (
-                <article className="qb-question-card" key={item.id}>
+                <article
+                  className="qb-question-card is-openable"
+                  key={item.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => { setManageTargetQuestionId(item.id); setManageTargetBundleId(''); setActiveTab('manage'); }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      setManageTargetQuestionId(item.id);
+                      setManageTargetBundleId('');
+                      setActiveTab('manage');
+                    }
+                  }}
+                >
                   <div className="qb-question-number">{String(item.bundle_position || index + 1).padStart(2, '0')}</div>
                   <div className="qb-question-main">
                     <div className="qb-chips">
@@ -1542,6 +1560,11 @@ OpenAPI: ${openApiUrl}`;
                       setQuery(selectedBundle.title || selectedBundle.topic || '');
                       setActiveTab('questions');
                     }}>Xem trong kho câu hỏi</button>
+                    <button type="button" className="qb-primary" onClick={() => {
+                      setManageTargetBundleId(selectedBundle.id);
+                      setManageTargetQuestionId('');
+                      setActiveTab('manage');
+                    }}>Chỉnh sửa chùm</button>
                   </div>
                 </div>
 
@@ -1621,6 +1644,30 @@ OpenAPI: ${openApiUrl}`;
       ) : null}
 
 
+
+      {!loading && activeTab === 'manage' ? (
+        <div className="qb-panel">
+          <QuestionBankManagementSuite
+            currentUser={currentUser}
+            questions={questions}
+            bundles={bundles}
+            tests={tests}
+            blueprints={blueprints}
+            targetQuestionId={manageTargetQuestionId}
+            targetBundleId={manageTargetBundleId}
+            onClearTargets={() => { setManageTargetQuestionId(''); setManageTargetBundleId(''); }}
+            onReload={loadData}
+            onMessage={setMessage}
+            onOpenExam={async (test) => { setActiveTab('tests'); await openExam(test); }}
+            onOpenBundle={async (bundle) => { setActiveTab('bundles'); await openBundle(bundle); }}
+            onOpenImportText={(raw) => {
+              setPasteText(raw);
+              setPastePreview(parseQuestionBankPaste(raw, pasteMeta));
+              setActiveTab('import');
+            }}
+          />
+        </div>
+      ) : null}
 
       {!loading && activeTab === 'blueprints' ? (
         <div className="qb-panel qb-blueprints">
