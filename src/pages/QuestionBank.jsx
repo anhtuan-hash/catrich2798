@@ -1563,7 +1563,7 @@ OpenAPI: ${openApiUrl}`;
   };
 
   return (
-    <section className="qb-shell qb-shell-v2 qb-shell-v3 qb-shell-v4">
+    <section className="qb-shell qb-shell-v2 qb-shell-v3 qb-shell-v4 qb-shell-v5">
       <nav className="qb-tabs qb-tabs-horizontal" aria-label="Ngân hàng câu hỏi">
         {TABS.map(([id, label]) => {
           const Icon = TAB_ICONS[id] || Database;
@@ -1584,67 +1584,46 @@ OpenAPI: ${openApiUrl}`;
         <span className="qb-tabs-signature" aria-hidden="true">BETTER QUESTIONS · BRIGHTER LEARNERS</span>
       </nav>
 
-      <header className={`qb-hero qb-hero-editorial qb-hero-v4 ${activeTab === 'questions' ? 'is-featured' : 'is-compact'}`}>
-        <div className="qb-hero-copy">
-          <p className="qb-eyebrow">BRIAN ENGLISH · {activeMeta.kicker}</p>
+      <header className="qb-apple-header">
+        <div className="qb-apple-title-block">
+          <p className="qb-apple-kicker">Brian English · {activeMeta.kicker}</p>
           <h1>{activeMeta.title}</h1>
-          <p className="qb-lede">{activeMeta.subtitle}</p>
-          {activeTab === 'questions' ? (
-            <div className="qb-hero-actions">
-              <button type="button" className="qb-primary" onClick={() => { setActiveTab('questions'); setShowNew(true); }}>
-                <FilePlus2 size={17} aria-hidden="true" /> Thêm câu hỏi
-              </button>
-              <button type="button" className="qb-secondary" onClick={() => setActiveTab('import')}>
-                <Bot size={17} aria-hidden="true" /> Dán từ ChatGPT
-              </button>
-            </div>
-          ) : null}
+          <p>{activeMeta.subtitle}</p>
         </div>
 
         {activeTab === 'questions' ? (
-          <div className="qb-hero-art qb-hero-art-v4" aria-hidden="true">
-            <div className="qb-art-book">
-              <span className="qb-art-book-page qb-art-book-page-left" />
-              <span className="qb-art-book-page qb-art-book-page-right" />
-              <span className="qb-art-book-spine" />
-            </div>
-            <div className="qb-art-card">
-              <Search size={31} strokeWidth={2.1} />
-              <span />
-              <span />
-              <span className="short" />
-            </div>
-            <div className="qb-art-cap"><GraduationCap size={38} /></div>
-            <div className="qb-art-copy">
-              <em>Better questions.</em>
-              <em>Brighter learners.</em>
-            </div>
+          <div className="qb-apple-header-actions">
+            <button type="button" className="qb-secondary qb-apple-glass-button" onClick={() => setActiveTab('import')}>
+              <Bot size={16} aria-hidden="true" /> Dán từ ChatGPT
+            </button>
+            <button type="button" className="qb-primary qb-apple-primary-button" onClick={() => { setActiveTab('questions'); setShowNew(true); }}>
+              <FilePlus2 size={16} aria-hidden="true" /> Thêm câu hỏi
+            </button>
           </div>
         ) : (
-          <div className="qb-hero-module-mark" aria-hidden="true">
-            <span><ActiveTabIcon size={28} strokeWidth={1.7} /></span>
-            <small>{activeMeta.kicker}</small>
+          <div className="qb-apple-module-symbol" aria-hidden="true">
+            <ActiveTabIcon size={26} strokeWidth={1.75} />
           </div>
         )}
       </header>
 
       {activeTab === 'questions' ? (
-        <div className="qb-stats qb-stats-editorial qb-stats-v4">
+        <div className="qb-apple-metrics" aria-label="Tổng quan ngân hàng">
           <article>
-            <div className="qb-stat-icon is-blue"><Database size={21} /></div>
-            <div className="qb-stat-copy"><span>Tổng câu hỏi</span><strong>{sourceStats.total.toLocaleString('vi-VN')}</strong><small>Ngân hàng hiện tại</small></div>
+            <span className="qb-apple-metric-symbol"><Database size={17} /></span>
+            <div><small>Tổng câu hỏi</small><strong>{sourceStats.total.toLocaleString('vi-VN')}</strong></div>
           </article>
           <article>
-            <div className="qb-stat-icon is-violet"><Layers3 size={21} /></div>
-            <div className="qb-stat-copy"><span>Chùm bài</span><strong>{sourceStats.bundles.toLocaleString('vi-VN')}</strong><small>Ngữ liệu có cấu trúc</small></div>
+            <span className="qb-apple-metric-symbol"><Layers3 size={17} /></span>
+            <div><small>Chùm bài</small><strong>{sourceStats.bundles.toLocaleString('vi-VN')}</strong></div>
           </article>
           <article>
-            <div className="qb-stat-icon is-cyan"><FileText size={21} /></div>
-            <div className="qb-stat-copy"><span>Đề thi</span><strong>{sourceStats.tests.toLocaleString('vi-VN')}</strong><small>Đã lưu trong Brian</small></div>
+            <span className="qb-apple-metric-symbol"><FileText size={17} /></span>
+            <div><small>Đề thi</small><strong>{sourceStats.tests.toLocaleString('vi-VN')}</strong></div>
           </article>
           <article>
-            <div className="qb-stat-icon is-green"><Bot size={21} /></div>
-            <div className="qb-stat-copy"><span>Từ ChatGPT</span><strong>{sourceStats.chatgpt.toLocaleString('vi-VN')}</strong><small>Nguồn nhập hiện tại</small></div>
+            <span className="qb-apple-metric-symbol"><Bot size={17} /></span>
+            <div><small>Từ ChatGPT</small><strong>{sourceStats.chatgpt.toLocaleString('vi-VN')}</strong></div>
           </article>
         </div>
       ) : null}
