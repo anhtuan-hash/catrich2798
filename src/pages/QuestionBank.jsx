@@ -28,6 +28,7 @@ import {
   visibleOptions,
 } from '../utils/questionBankExamManager.js';
 import QuestionBankManagementSuite from './question-bank/QuestionBankManagementSuite.jsx';
+import QuestionBankQualityControl from './question-bank/QuestionBankQualityControl.jsx';
 import './QuestionBank.css';
 
 const TABS = [
@@ -36,6 +37,7 @@ const TABS = [
   ['manage', 'Quản trị'],
   ['blueprints', 'Ma trận'],
   ['coverage', 'Phủ ma trận'],
+  ['quality', 'Chất lượng'],
   ['builder', 'Tạo đề'],
   ['tests', 'Đề thi'],
   ['import', 'Nhập từ ChatGPT'],
@@ -1873,6 +1875,25 @@ OpenAPI: ${openApiUrl}`;
               </div>
             </section>
           </div>
+        </div>
+      ) : null}
+
+      {!loading && activeTab === 'quality' ? (
+        <div className="qb-panel">
+          <QuestionBankQualityControl
+            blueprints={blueprints}
+            onOpenQuestion={(itemId) => {
+              setManageTargetQuestionId(itemId);
+              setManageTargetBundleId('');
+              setActiveTab('manage');
+            }}
+            onOpenBundle={async (bundleId) => {
+              const bundle = bundles.find((item) => item.id === bundleId);
+              if (!bundle) return;
+              setActiveTab('bundles');
+              await openBundle(bundle);
+            }}
+          />
         </div>
       ) : null}
 
