@@ -21,7 +21,7 @@ for (const token of [
 assert.ok(page.includes('role="button"'), 'bundle cards must be keyboard/click openable');
 assert.ok(page.includes("tabIndex={0}"), 'bundle cards must be keyboard focusable');
 assert.ok(page.includes("assessment_test_items"), 'bundle reader must resolve related exams');
-assert.ok(page.includes("questions.filter((item) => item.bundle_id === selectedBundle.id)"), 'bundle reader must render only bundle items');
+assert.ok(/questions\s*\.filter\(\(item\) => item\.bundle_id === selectedBundle\.id\)/.test(page), 'bundle reader must render only bundle items');
 assert.ok(css.includes('.qb-bundle-card.is-openable'));
 assert.ok(css.includes('.qb-bundle-reader'));
 assert.ok(css.includes('.qb-bundle-full-context'));
