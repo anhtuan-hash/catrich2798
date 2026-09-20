@@ -9,25 +9,27 @@ const telemetry = fs.readFileSync('src/utils/clientErrorTelemetry.js','utf8');
 const diagnostics = fs.readFileSync('src/utils/runtimeDiagnostics.js','utf8');
 const vercel = JSON.parse(fs.readFileSync('vercel.json','utf8'));
 
+const compact = (value) => value.replace(/\s+/g, '');
+
 for (const token of [
   'app_public_rate_limit_allow',
   "'classroom_join'",
   "'classroom_submit'",
   "current_item_id<>left(coalesce(p_item_id,''),160)",
-  "- 'correctAnswer'",
+  "-'correctAnswer'",
   "pg_column_size(p_response)>65536",
-]) assert.ok(classroom.includes(token), 'Classroom hardening missing: '+token);
+]) assert.ok(compact(classroom).includes(compact(token)), 'Classroom hardening missing: '+token);
 
 for (const token of [
-  "trg_bes_homeroom_hash_legacy_pins",
-  ") - 'pins'",
+  'trg_bes_homeroom_hash_legacy_pins',
+  ")-'pins'",
   "'homeroom_portal_get'",
   "'homeroom_subject_feedback'",
-  "v_expected_hash<>v_hash",
-  "extensions.digest",
-]) assert.ok(homeroom.includes(token), 'Homeroom hardening missing: '+token);
+  'v_expected_hash<>v_hash',
+  'extensions.digest',
+]) assert.ok(compact(homeroom).includes(compact(token)), 'Homeroom hardening missing: '+token);
 
-assert.ok(!homeroom.includes("v_legacy"), 'Homeroom public auth must not retain plaintext PIN fallback.');
+assert.ok(!homeroom.includes('v_legacy'), 'Homeroom public auth must not retain plaintext PIN fallback.');
 
 for (const token of [
   'create table if not exists public.app_runtime_errors',
@@ -40,9 +42,9 @@ for (const token of [
   "'creating'",
   "application_version','11.9.2'",
   'assessment_practice_responses',
-  'c.contype=\'p\'',
+  "c.contype='p'",
   'on conflict (%3$s) do update',
-]) assert.ok(backup.includes(token), 'Backup/restore certification missing: '+token);
+]) assert.ok(compact(backup).includes(compact(token)), 'Backup/restore certification missing: '+token);
 
 assert.ok(telemetry.includes("client.rpc('app_report_runtime_error'"), 'Browser errors must persist to authenticated runtime telemetry.');
 assert.ok(diagnostics.includes('reportRuntimeErrorRemote(record)'), 'React render errors must persist to runtime telemetry.');
