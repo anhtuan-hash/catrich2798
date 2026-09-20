@@ -94,6 +94,23 @@ for(const token of [
   'createSnapshot','restoreSnapshot',
 ]) assert.ok(suite.includes(token),'Management Suite missing: '+token);
 
+
+for(const token of [
+  'practiceVisibleOptions',
+  'practiceSourceAnswer',
+  'practiceVisibleCorrectAnswer',
+  'option_order: optionOrders[index]',
+  'Brian không ghi lượt xem thử của giáo viên vào Item Performance',
+]) assert.ok(suite.includes(token),'Practice preview telemetry/balancing guard missing: '+token);
+
+const previewStart = suite.indexOf('async function submitPractice()');
+const previewEnd = suite.indexOf('async function recomputeAnalytics()', previewStart);
+assert.ok(previewStart >= 0 && previewEnd > previewStart, 'Practice preview function boundaries missing.');
+const previewBlock = suite.slice(previewStart, previewEnd);
+assert.ok(!previewBlock.includes("from('assessment_practice_attempts').insert"), 'Teacher preview must not create practice attempts.');
+assert.ok(!previewBlock.includes("from('assessment_practice_responses').insert"), 'Teacher preview must not create practice responses.');
+assert.ok(!previewBlock.includes("qb_recompute_item_statistics"), 'Teacher preview must not alter item telemetry.');
+
 assert.ok(suite.includes("itemRefs.tests.length || itemRefs.practices.length"),'hard delete must be blocked by live references');
 assert.ok(suite.includes("qb_merge_items"),'duplicate merge must use safe RPC');
 assert.ok(builder.includes('filters.approvedOnly'),'builder must support approved-only mode');
