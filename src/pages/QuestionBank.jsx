@@ -1605,7 +1605,7 @@ OpenAPI: ${openApiUrl}`;
             <form className="qb-new-form" onSubmit={saveManualQuestion}>
               <div className="qb-form-head"><strong>Thêm câu hỏi thủ công</strong><small>Câu mới được lưu ở trạng thái Bản nháp và riêng tư.</small></div>
               <label className="qb-span-2"><span>Câu hỏi</span><textarea required rows="3" value={draft.stem} onChange={(e) => setDraft({ ...draft, stem: e.target.value })} /></label>
-              {draft.options.map((option, index) => <label key={index}><span>Phương án {String.fromCharCode(65 + index)}</span><input value={option} onChange={(e) => updateOption(index, e.target.value })} /></label>)}
+              {draft.options.map((option, index) => <label key={index}><span>Phương án {String.fromCharCode(65 + index)}</span><input value={option} onChange={(e) => updateOption(index, e.target.value)} /></label>)}
               <label><span>Đáp án</span><select value={draft.correctAnswer} onChange={(e) => setDraft({ ...draft, correctAnswer: e.target.value })}><option>A</option><option>B</option><option>C</option><option>D</option></select></label>
               <label><span>Khối</span><select value={draft.grade} onChange={(e) => setDraft({ ...draft, grade: e.target.value })}><option>10</option><option>11</option><option>12</option></select></label>
               <label><span>CEFR</span><select value={draft.cefr} onChange={(e) => setDraft({ ...draft, cefr: e.target.value })}><option>A2</option><option>B1</option><option>B2</option><option>C1</option></select></label>
