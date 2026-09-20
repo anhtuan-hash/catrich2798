@@ -172,6 +172,9 @@ jobs:
       - name: Verify Question Bank Coverage Planner
         run: node scripts/test-question-bank-coverage-planner.mjs
 
+      - name: Verify Question Bank Bundle Reader
+        run: node scripts/test-question-bank-bundle-reader.mjs
+
       - name: Verify critical browser smoke gate
         run: node scripts/test-critical-e2e-contract.mjs
 

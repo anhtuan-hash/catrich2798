@@ -147,6 +147,10 @@ export default function QuestionBank({ currentUser }) {
   const [activeTab, setActiveTab] = useState('questions');
   const [questions, setQuestions] = useState([]);
   const [bundles, setBundles] = useState([]);
+  const [selectedBundle, setSelectedBundle] = useState(null);
+  const [selectedBundleTests, setSelectedBundleTests] = useState([]);
+  const [bundleDetailLoading, setBundleDetailLoading] = useState(false);
+  const [showBundleAnswers, setShowBundleAnswers] = useState(false);
   const [tests, setTests] = useState([]);
   const [testCounts, setTestCounts] = useState({});
   const [blueprints, setBlueprints] = useState([]);
@@ -677,6 +681,53 @@ OpenAPI: ${openApiUrl}`;
     } finally {
       setPasteSaving(false);
     }
+  };
+
+  const openBundle = async (bundle) => {
+    if (!bundle?.id) return;
+    setSelectedBundle(bundle);
+    setSelectedBundleTests([]);
+    setShowBundleAnswers(false);
+    setBundleDetailLoading(true);
+    setMessage('');
+    try {
+      const itemIds = questions.filter((item) => item.bundle_id === bundle.id).map((item) => item.id);
+      if (!itemIds.length || !supabase) return;
+      const joins = await supabase.from('assessment_test_items')
+        .select('test_id,item_id,position')
+        .in('item_id', itemIds);
+      if (joins.error) throw joins.error;
+      const testIds = [...new Set((joins.data || []).map((row) => row.test_id).filter(Boolean))];
+      const related = testIds
+        .map((id) => tests.find((test) => test.id === id))
+        .filter(Boolean)
+        .map((test) => ({
+          ...test,
+          bundlePositions: (joins.data || [])
+            .filter((row) => row.test_id === test.id)
+            .map((row) => Number(row.position))
+            .sort((a, b) => a - b),
+        }));
+      setSelectedBundleTests(related);
+    } catch (error) {
+      setMessage(error?.message || 'Không thể mở chi tiết chùm bài.');
+    } finally {
+      setBundleDetailLoading(false);
+    }
+  };
+
+  const closeBundle = () => {
+    setSelectedBundle(null);
+    setSelectedBundleTests([]);
+    setShowBundleAnswers(false);
+    setBundleDetailLoading(false);
+  };
+
+  const openBundleExam = async (test) => {
+    if (!test) return;
+    closeBundle();
+    setActiveTab('tests');
+    await openExam(test);
   };
 
   const resetBlueprintDraft = () => {
@@ -1449,16 +1500,123 @@ OpenAPI: ${openApiUrl}`;
 
       {!loading && activeTab === 'bundles' ? (
         <div className="qb-panel">
-          <div className="qb-section-head"><div><p>CONTEXT-AWARE BANK</p><h2>Chùm bài</h2></div><span>Một ngữ liệu được giữ nguyên cùng toàn bộ câu hỏi đi kèm.</span></div>
-          {bundles.length ? <div className="qb-grid">{bundles.map((bundle) => {
-            const count = questions.filter((item) => item.bundle_id === bundle.id).length;
-            return <article className="qb-bundle-card" key={bundle.id}>
-              <div className="qb-bundle-top"><span>{bundle.bundle_type || 'passage'}</span><b>{count} câu</b></div>
-              <h3>{bundle.title || 'Chùm bài chưa đặt tên'}</h3>
-              <p>{compact(bundle.context_text, 360) || 'Chưa có nội dung ngữ liệu.'}</p>
-              <div className="qb-card-meta"><span>{bundle.grade ? `Khối ${bundle.grade}` : 'Nhiều khối'}</span><span>{bundle.skill || bundle.topic || 'General'}</span><span>{bundle.source_kind === 'chatgpt' ? 'ChatGPT' : 'Brian'}</span></div>
-            </article>;
-          })}</div> : <EmptyState title="Chưa có chùm bài" hint="Khi ChatGPT tạo reading, cloze hoặc một cụm câu dùng chung ngữ liệu, Brian sẽ lưu chúng thành chùm." />}
+          {!selectedBundle ? (
+            <>
+              <div className="qb-section-head"><div><p>CONTEXT-AWARE BANK</p><h2>Chùm bài</h2></div><span>Bấm vào một thẻ để mở toàn bộ ngữ liệu và câu hỏi đi kèm.</span></div>
+              {bundles.length ? <div className="qb-grid">{bundles.map((bundle) => {
+                const count = questions.filter((item) => item.bundle_id === bundle.id).length;
+                return <article
+                  className="qb-bundle-card is-openable"
+                  key={bundle.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => openBundle(bundle)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      openBundle(bundle);
+                    }
+                  }}
+                >
+                  <div className="qb-bundle-top"><span>{bundle.bundle_type || 'passage'}</span><b>{count} câu</b></div>
+                  <h3>{bundle.title || 'Chùm bài chưa đặt tên'}</h3>
+                  <p>{compact(bundle.context_text, 360) || 'Chưa có nội dung ngữ liệu.'}</p>
+                  <div className="qb-card-meta"><span>{bundle.grade ? `Khối ${bundle.grade}` : 'Nhiều khối'}</span><span>{bundle.skill || bundle.topic || 'General'}</span><span>{bundle.source_kind === 'chatgpt' ? 'ChatGPT' : 'Brian'}</span></div>
+                  <div className="qb-bundle-open-hint"><span>Mở chi tiết</span><b>→</b></div>
+                </article>;
+              })}</div> : <EmptyState title="Chưa có chùm bài" hint="Khi ChatGPT tạo reading, cloze hoặc một cụm câu dùng chung ngữ liệu, Brian sẽ lưu chúng thành chùm." />}
+            </>
+          ) : (() => {
+            const bundleItems = questions
+              .filter((item) => item.bundle_id === selectedBundle.id)
+              .sort((a, b) => Number(a.bundle_position || 0) - Number(b.bundle_position || 0));
+            return (
+              <div className="qb-bundle-reader">
+                <div className="qb-bundle-reader-toolbar">
+                  <button type="button" className="qb-back" onClick={closeBundle}>← Tất cả chùm bài</button>
+                  <div className="qb-bundle-reader-actions">
+                    <button type="button" className={showBundleAnswers ? 'qb-secondary is-active' : 'qb-secondary'} onClick={() => setShowBundleAnswers((value) => !value)}>
+                      {showBundleAnswers ? 'Ẩn đáp án' : 'Hiện đáp án'}
+                    </button>
+                    <button type="button" className="qb-secondary" onClick={() => {
+                      setQuery(selectedBundle.title || selectedBundle.topic || '');
+                      setActiveTab('questions');
+                    }}>Xem trong kho câu hỏi</button>
+                  </div>
+                </div>
+
+                <section className="qb-bundle-reader-head">
+                  <div>
+                    <span>{selectedBundle.bundle_type || 'PASSAGE'}</span>
+                    <h2>{selectedBundle.title || 'Chùm bài chưa đặt tên'}</h2>
+                    <p>{selectedBundle.instructions || 'Ngữ liệu dùng chung cho toàn bộ câu hỏi trong chùm.'}</p>
+                  </div>
+                  <div className="qb-bundle-reader-count"><strong>{bundleItems.length}</strong><span>câu hỏi</span></div>
+                </section>
+
+                <div className="qb-bundle-reader-meta">
+                  <span>{selectedBundle.grade ? `Khối ${selectedBundle.grade}` : 'Nhiều khối'}</span>
+                  {selectedBundle.skill ? <span>{selectedBundle.skill}</span> : null}
+                  {selectedBundle.topic ? <span>{selectedBundle.topic}</span> : null}
+                  {selectedBundle.school_year ? <span>{selectedBundle.school_year}</span> : null}
+                  <span>{selectedBundle.source_kind === 'chatgpt' ? 'ChatGPT' : 'Brian'}</span>
+                  <span>{statusLabel(selectedBundle.status)}</span>
+                </div>
+
+                <section className="qb-bundle-full-context">
+                  <div className="qb-bundle-context-label"><span>SHARED TEXT / FULL CONTEXT</span><small>{text(selectedBundle.context_text).length.toLocaleString('vi-VN')} ký tự</small></div>
+                  <div>{selectedBundle.context_text || 'Chưa có nội dung ngữ liệu.'}</div>
+                </section>
+
+                {bundleDetailLoading ? <div className="qb-loading">Đang tải liên kết đề thi…</div> : null}
+
+                {selectedBundleTests.length ? (
+                  <section className="qb-bundle-related-tests">
+                    <div className="qb-bundle-related-head"><span>USED IN EXAMS</span><strong>Đề thi đang sử dụng chùm này</strong></div>
+                    <div>
+                      {selectedBundleTests.map((test) => (
+                        <button type="button" key={test.id} onClick={() => openBundleExam(test)}>
+                          <span>{test.title}</span>
+                          <small>{test.bundlePositions?.length ? `Questions ${Math.min(...test.bundlePositions)}–${Math.max(...test.bundlePositions)}` : 'Mở đề thi'}</small>
+                          <b>→</b>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+
+                <section className="qb-bundle-reader-questions">
+                  <div className="qb-bundle-related-head"><span>QUESTION SET</span><strong>Toàn bộ câu hỏi trong chùm</strong></div>
+                  {bundleItems.map((item, index) => (
+                    <article className="qb-bundle-reader-question" key={item.id}>
+                      <div className="qb-bundle-reader-number">{String(item.bundle_position || index + 1).padStart(2, '0')}</div>
+                      <div className="qb-bundle-reader-body">
+                        <strong>{displayQuestionStem(item.stem, item.bundle_position)}</strong>
+                        {Array.isArray(item.options) && item.options.length ? (
+                          <div className="qb-options">
+                            {item.options.map((option, optionIndex) => <span key={optionIndex}><b>{String.fromCharCode(65 + optionIndex)}.</b> {option}</span>)}
+                          </div>
+                        ) : null}
+                        <div className="qb-chips">
+                          {item.cefr ? <span>{item.cefr}</span> : null}
+                          {item.cognitive_level ? <span>{cognitiveLabel(item.cognitive_level)}</span> : null}
+                          {item.difficulty ? <span>Độ khó {item.difficulty}/5</span> : null}
+                          {item.grammar_point ? <span>{item.grammar_point}</span> : null}
+                          {item.topic ? <span>{item.topic}</span> : null}
+                        </div>
+                        {showBundleAnswers ? (
+                          <div className="qb-bundle-answer">
+                            <b>Đáp án {answerLabel(item.correct_answer)}</b>
+                            {item.explanation ? <span>{item.explanation}</span> : <span>Chưa có giải thích.</span>}
+                          </div>
+                        ) : null}
+                      </div>
+                    </article>
+                  ))}
+                </section>
+              </div>
+            );
+          })()}
         </div>
       ) : null}
 
