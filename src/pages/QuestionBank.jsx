@@ -1428,7 +1428,7 @@ OpenAPI: ${openApiUrl}`;
   };
 
   return (
-    <section className="qb-shell">
+    <section className="qb-shell qb-shell-v2">
       <header className="qb-hero">
         <div>
           <p className="qb-eyebrow">BRIAN ENGLISH · ASSESSMENT CORE</p>
@@ -1461,7 +1461,7 @@ OpenAPI: ${openApiUrl}`;
 
       <nav className="qb-tabs" aria-label="Ngân hàng câu hỏi">
         {TABS.map(([id, label]) => (
-          <button key={id} type="button" className={activeTab === id ? 'active' : ''} onClick={() => setActiveTab(id)}>{label}</button>
+          <button key={id} type="button" data-tab={id} aria-current={activeTab === id ? 'page' : undefined} className={activeTab === id ? 'active' : ''} onClick={() => setActiveTab(id)}>{label}</button>
         ))}
       </nav>
 
