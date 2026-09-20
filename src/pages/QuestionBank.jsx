@@ -120,7 +120,7 @@ const TAB_META = {
   },
   import: {
     kicker: 'ZERO-COST IMPORT',
-    title: 'Nhập từ ChatGPT',
+    title: 'Nhập nội dung từ ChatGPT',
     subtitle: 'Dán nội dung, kiểm tra cấu trúc và xem trước trước khi lưu vào ngân hàng.',
   },
   chatgpt: {
