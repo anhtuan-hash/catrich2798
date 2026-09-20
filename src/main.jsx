@@ -114,9 +114,10 @@ const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAcces
 const HiddenAppsVault = lazy(() => import('./pages/HiddenAppsVault.jsx'));
 const QuestionBank = lazy(() => import('./pages/QuestionBank.jsx'));
 const QuestionBankPractice = lazy(() => import('./pages/QuestionBankPractice.jsx'));
+const ClassroomJoin = lazy(() => import('./pages/ClassroomJoin.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'homeroom', 'homeroom-portal', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
-const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'qb-practice']);
+const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'homeroom', 'homeroom-portal', 'classroom-join', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
+const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'qb-practice']);
 
 function getInitialRoute() {
   const href = window.location.href || '';
@@ -140,6 +141,7 @@ const ROUTE_DESIGN_PROFILES = {
   games: { accent: '#5B2A86', soft: '#E9DAFF', ink: '#20102F' },
   homeroom: { accent: '#1F8F70', soft: '#DDF7ED', ink: '#0B382B' },
   'homeroom-portal': { accent: '#1F8F70', soft: '#DDF7ED', ink: '#0B382B' },
+  'classroom-join': { accent: '#315FC4', soft: '#EAF0FF', ink: '#14213D' },
   library: { accent: '#6FBA7B', soft: '#E4F6E6', ink: '#17351D' },
   'resource-library': { accent: '#2878D0', soft: '#E7F2FF', ink: '#0D2947' },
   'knowledge-hub': { accent: '#315FC4', soft: '#EAF0FF', ink: '#10264A' },
@@ -438,7 +440,7 @@ function App() {
           '--active-app-ink': activeDesignProfile.ink,
         }}
       >
-        {!['homeroom-portal'].includes(currentRoute) ? <div className="bes-top-chrome">
+        {!['homeroom-portal', 'classroom-join'].includes(currentRoute) ? <div className="bes-top-chrome">
           <Suspense fallback={null}>
             <StatusMenuBar route={currentRoute} {...context} />
           </Suspense>
@@ -447,7 +449,7 @@ function App() {
           </AppErrorBoundary>
         </div> : null}
 
-        {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal'].includes(currentRoute) && (
+        {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal', 'classroom-join'].includes(currentRoute) && (
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="command-palette" label={language === 'vi' ? 'tìm kiếm nhanh' : 'command palette'}>
               <GlobalCommandPalette
@@ -467,7 +469,7 @@ function App() {
           <Suspense fallback={null}>
           </Suspense>
         ) : null}
-        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal'].includes(currentRoute) ? (
+        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute) ? (
           <Suspense fallback={null}>
             <TransferInboxBanner currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} language={language} />
           </Suspense>
@@ -496,6 +498,7 @@ function App() {
             {canAccessRoute && currentRoute === 'tools' && currentUser && <SpecialTools tools={accessibleTools} {...context} />}
             {canAccessRoute && currentRoute === 'homeroom' && currentUser && <HomeroomWorkspace {...context} />}
             {currentRoute === 'homeroom-portal' && <HomeroomPortal {...context} />}
+            {currentRoute === 'classroom-join' && <ClassroomJoin />}
             {currentRoute === 'resources' && <Resources items={RESOURCE_ITEMS} {...context} />}
             {canAccessRoute && currentRoute === 'library' && currentUser && <Library {...context} />}
             {canAccessRoute && currentRoute === 'resource-library' && currentUser && <ResourceLibrary {...context} />}
@@ -542,7 +545,7 @@ function App() {
             <SyncQueueIndicator currentUser={currentUser} language={language} externalLauncher />
           </Suspense>
         </> : null}
-        <Footer language={language} currentUser={currentUser} />
+        {!['homeroom-portal', 'classroom-join'].includes(currentRoute) ? <Footer language={language} currentUser={currentUser} /> : null}
       </div>
     </>
   );
