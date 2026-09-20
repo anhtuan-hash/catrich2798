@@ -169,6 +169,9 @@ jobs:
       - name: Verify Question Bank Blueprint Studio
         run: node scripts/test-question-bank-blueprint-studio.mjs
 
+      - name: Verify Question Bank Coverage Planner
+        run: node scripts/test-question-bank-coverage-planner.mjs
+
       - name: Verify critical browser smoke gate
         run: node scripts/test-critical-e2e-contract.mjs
 
