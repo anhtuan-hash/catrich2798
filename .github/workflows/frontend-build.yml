@@ -217,5 +217,8 @@ jobs:
       - name: Verify production certification v11.9.2
         run: node scripts/test-production-certification-v11.9.2.mjs
 
+      - name: Verify public route restoration v11.9.3
+        run: node scripts/test-public-route-restoration-v11.9.3.mjs
+
       - name: Build production bundle
         run: npm run build
