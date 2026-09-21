@@ -45,6 +45,7 @@ import {
   splitExamStem,
   visibleOptions,
 } from '../utils/questionBankExamManager.js';
+import { buildInteractiveExamHtml } from '../utils/questionBankInteractiveExport.js';
 import QuestionBankManagementSuite from './question-bank/QuestionBankManagementSuite.jsx';
 import QuestionBankQualityControl from './question-bank/QuestionBankQualityControl.jsx';
 import AssessmentCoreHeroGraphic from './question-bank/AssessmentCoreHeroGraphic.jsx';
@@ -187,6 +188,18 @@ function downloadWordDocument(html, title) {
   const anchor = document.createElement('a');
   anchor.href = url;
   anchor.download = `${safeFileName(title)}.doc`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function downloadHtmlDocument(html, title) {
+  const blob = new Blob(['\ufeff', html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = `${safeFileName(title)}.html`;
   document.body.appendChild(anchor);
   anchor.click();
   anchor.remove();
@@ -1516,9 +1529,24 @@ OpenAPI: ${openApiUrl}`;
     }
   };
 
-  const exportSelectedExam = (format) => {
+  const exportSelectedExam = async (format) => {
     if (!selectedTest || !selectedTestItems.length) return;
+    const isInteractive = format === 'interactive';
+    if (isInteractive) {
+      setExamActionBusy('interactive-export');
+      setMessage('Đang tạo file HTML tương tác offline…');
+    }
     try {
+      if (isInteractive) {
+        const interactiveHtml = await buildInteractiveExamHtml({
+          test: selectedTest,
+          items: selectedTestItems,
+        });
+        downloadHtmlDocument(interactiveHtml, `${selectedTest.title} - Tuong tac`);
+        setMessage('Đã xuất HTML tương tác. File chạy độc lập/offline và phản hồi đúng-sai ngay khi chọn.');
+        return;
+      }
+
       const html = buildExamExportHtml({
         test: selectedTest,
         items: selectedTestItems,
@@ -1534,6 +1562,8 @@ OpenAPI: ${openApiUrl}`;
       }
     } catch (error) {
       setMessage(error?.message || 'Không thể xuất đề.');
+    } finally {
+      if (isInteractive) setExamActionBusy('');
     }
   };
 
@@ -2428,6 +2458,15 @@ OpenAPI: ${openApiUrl}`;
                   </button>
                   <button type="button" className="qb-secondary" onClick={() => exportSelectedExam('word')} disabled={!selectedTestItems.length}>Xuất Word</button>
                   <button type="button" className="qb-secondary" onClick={() => exportSelectedExam('pdf')} disabled={!selectedTestItems.length}>Xuất PDF</button>
+                  <button
+                    type="button"
+                    className="qb-interactive-export"
+                    onClick={() => exportSelectedExam('interactive')}
+                    disabled={Boolean(examActionBusy) || !selectedTestItems.length}
+                    title="Xuất một file HTML chạy offline, mỗi màn hình một câu hỏi và phản hồi đúng-sai ngay lập tức"
+                  >
+                    {examActionBusy === 'interactive-export' ? 'Đang tạo HTML…' : 'Xuất HTML tương tác'}
+                  </button>
                   <button type="button" className="qb-secondary" onClick={() => createExamCopy({ variant: false })} disabled={Boolean(examActionBusy) || !selectedTestItems.length}>
                     {examActionBusy === 'duplicate' ? 'Đang nhân bản…' : 'Nhân bản'}
                   </button>
