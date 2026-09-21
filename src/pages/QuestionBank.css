@@ -5760,3 +5760,19 @@ html body #root .app-shell[data-route="assessment-core"] main#bes-main-content >
 .qb-shell-v7 .qb-v7-admin-row.is-action.action-1>i>em{background:linear-gradient(90deg,#f1aa28,#ffca62)}
 .qb-shell-v7 .qb-v7-admin-row.is-action.action-2>i>em{background:linear-gradient(90deg,#ef6152,#ff9a8f)}
 .qb-shell-v7 .qb-v7-admin-row.is-action.action-3>i>em{background:linear-gradient(90deg,#7554ee,#ae94ff)}
+
+@media(prefers-reduced-motion:reduce){
+  .qb-shell-v7 *,
+  .qb-shell-v7 *::before,
+  .qb-shell-v7 *::after{
+    scroll-behavior:auto!important;
+    transition-duration:.001ms!important;
+    animation-duration:.001ms!important;
+    animation-iteration-count:1!important;
+  }
+  .qb-shell-v7 .qb-bundle-card:hover,
+  .qb-shell-v7 .qb-test-card:hover,
+  .qb-shell-v7 .qb-primary:hover{
+    transform:none!important;
+  }
+}
