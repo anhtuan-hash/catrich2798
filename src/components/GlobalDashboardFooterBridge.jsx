@@ -4,6 +4,7 @@ import Footer from './Footer.jsx';
 
 export default function GlobalDashboardFooterBridge({ route, language }) {
   const [host, setHost] = useState(null);
+  const [compactFooter, setCompactFooter] = useState(false);
 
   useEffect(() => {
     if (route !== 'dashboard' || typeof document === 'undefined') {
@@ -11,13 +12,20 @@ export default function GlobalDashboardFooterBridge({ route, language }) {
       return undefined;
     }
 
-    const resolveHost = () => setHost(document.querySelector('.app-shell'));
+    const resolveHost = () => {
+      setHost(document.querySelector('.app-shell'));
+      setCompactFooter(window.location.hash.startsWith('#/assessment-core'));
+    };
     resolveHost();
     const frame = window.requestAnimationFrame(resolveHost);
-    return () => window.cancelAnimationFrame(frame);
+    window.addEventListener('hashchange', resolveHost);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('hashchange', resolveHost);
+    };
   }, [route]);
 
   if (route !== 'dashboard' || !host) return null;
 
-  return createPortal(<Footer language={language} />, host);
+  return createPortal(<Footer language={language} compact={compactFooter} />, host);
 }
