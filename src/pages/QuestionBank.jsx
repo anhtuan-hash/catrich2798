@@ -1622,7 +1622,7 @@ OpenAPI: ${openApiUrl}`;
   };
 
   return (
-    <section className="qb-shell qb-shell-v2 qb-shell-v3 qb-shell-v4 qb-shell-v5 qb-shell-v6" data-qb-tab={activeTab}>
+    <section className="qb-shell qb-shell-v2 qb-shell-v3 qb-shell-v4 qb-shell-v5 qb-shell-v6 qb-shell-v7" data-qb-tab={activeTab}>
       <nav className="qb-tabs qb-tabs-horizontal" aria-label="Ngân hàng câu hỏi">
         {TABS.map(([id, label]) => {
           const Icon = TAB_ICONS[id] || Database;
