@@ -7,7 +7,9 @@ import './directClassRosterImportBootstrap.js';
 import './removeKnowledgeHubRuntime.js';
 import './tesolMethodRouteRegistry.js';
 import './components/GlobalHomeroomMaterial3Refinement.css';
+import './styles/GlobalRegionalFontSystem.css';
 import { bootstrapPublicTypographyBeforeApp } from './publicTypographyBootstrap.js';
+import { installRegionalFontSystem } from './utils/globalRegionalFontSystem.js';
 import { bootstrapBrianThemeRuntime } from './theme/brianTheme.js';
 
 const MAX_WAIT_MS = 20000;
@@ -324,6 +326,10 @@ async function startApplication() {
   // Typography is system chrome, not an authenticated preference. Resolve the
   // Admin-selected public typography before Brian renders its first frame.
   await bootstrapPublicTypographyBeforeApp();
+  // Regional typography is application chrome too. Install its persistent +
+  // realtime runtime globally so a fresh/incognito session does not depend on
+  // visiting Settings before custom navigation/hero fonts become active.
+  installRegionalFontSystem();
   await prepareAuthenticatedLandingBeforeMain();
 
   // Server assignment wins absolutely. Only when the RPC returns no explicit
