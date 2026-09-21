@@ -43,25 +43,6 @@ const VIETNAMESE_DETAILS = {
 };
 
 function DetailRow({ type, children }) {
-  if (compact) {
-    return (
-      <footer
-        className={`footer footer-v10 signature-footer-v75 signature-footer-v50 signature-footer-collapsible signature-footer-assessment-compact ${isVi ? 'signature-footer-v50-vi' : 'signature-footer-v50-en'}`}
-        aria-label={isVi ? 'Thông tin English Hub' : 'English Hub information'}
-        data-app-shell-footer="true"
-        data-footer-mode="compact"
-      >
-        <div className="signature-footer-static-summary">
-          <span className="signature-footer-summary">
-            <strong>English Hub v{APP_VERSION}</strong>
-            <span className="signature-footer-summary-separator" aria-hidden="true">•</span>
-            <span>{content.copyright}</span>
-          </span>
-        </div>
-      </footer>
-    );
-  }
-
   return (
     <li className={`signature-footer-v50-detail detail-${type}`}>
       <span className="signature-footer-v50-detail-icon" aria-hidden="true" />
@@ -73,13 +54,18 @@ function DetailRow({ type, children }) {
 export default function Footer({ language, compact = false }) {
   const isVi = language === 'vi';
   const content = isVi ? VIETNAMESE_DETAILS : ENGLISH_DETAILS;
+  const compactMode = compact
+    || (typeof window !== 'undefined' && String(window.location.hash || '').startsWith('#/assessment-core'))
+    || (typeof document !== 'undefined' && document.querySelector('.app-shell')?.dataset?.route === 'assessment-core');
 
   return (
     <footer
-      className={`footer footer-v10 signature-footer-v75 signature-footer-v50 signature-footer-collapsible ${compact ? 'signature-footer-assessment-compact' : ''} ${isVi ? 'signature-footer-v50-vi' : 'signature-footer-v50-en'}`}
+      className={`footer footer-v10 signature-footer-v75 signature-footer-v50 signature-footer-collapsible ${compactMode ? 'signature-footer-assessment-compact' : ''} ${isVi ? 'signature-footer-v50-vi' : 'signature-footer-v50-en'}`}
       aria-label={isVi ? 'Thông tin English Hub' : 'English Hub information'}
       data-app-shell-footer="true"
+      data-footer-mode={compactMode ? 'compact' : 'full'}
     >
+      {!compactMode ? (
       <div id="english-hub-footer-details" className="signature-footer-expanded-panel">
         <div className="signature-footer-v50-main">
           <section className="signature-footer-v50-brand" aria-label="English Hub, Pétrus Ký and Cambridge Assessment English">
@@ -122,6 +108,7 @@ export default function Footer({ language, compact = false }) {
 
         <div className="signature-footer-expanded-note">{content.examiner}</div>
       </div>
+      ) : null}
 
       <div className="signature-footer-static-summary">
         <span className="signature-footer-summary">
