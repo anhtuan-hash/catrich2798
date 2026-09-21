@@ -334,7 +334,7 @@ export default function AssessmentCoreHeroGraphic({ tab='questions' }) {
   const floorId=`qbHeroFloor-${tab}`;
 
   return (
-    <div className="qb-v7-hero-graphic" style={{'--qb-accent':c.accent,'--qb-accent-2':c.accent2}}>
+    <div className="qb-v6-hero-graphic qb-v7-hero-graphic" style={{'--qb-accent':c.accent,'--qb-accent-2':c.accent2}}>
       <svg viewBox="0 0 520 250" role="img" aria-label="">
         <defs>
           <linearGradient id={gradientId} x1="0" x2="1" y1="0" y2="1">
