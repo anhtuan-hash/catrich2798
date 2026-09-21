@@ -545,13 +545,7 @@ function App() {
             <SyncQueueIndicator currentUser={currentUser} language={language} externalLauncher />
           </Suspense>
         </> : null}
-        {!['homeroom-portal', 'classroom-join'].includes(currentRoute) ? (
-          <Footer
-            language={language}
-            currentUser={currentUser}
-            compact={currentRoute === 'assessment-core'}
-          />
-        ) : null}
+        {!['homeroom-portal', 'classroom-join'].includes(currentRoute) ? <Footer language={language} currentUser={currentUser} /> : null}
       </div>
     </>
   );
