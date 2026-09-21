@@ -5,7 +5,10 @@ import {
   getGlobalFontPresetDefinition,
 } from './utils/globalFontSystem.js';
 import { applyGlobalCustomFont } from './utils/globalCustomFont.js';
-import { applyRegionalFontSettings } from './utils/globalRegionalFontSystem.js';
+import {
+  applyRegionalFontSettings,
+  getRegionalCustomFontFamily,
+} from './utils/globalRegionalFontSystem.js';
 
 const SETTINGS_TABLE = 'brian_global_font_settings';
 const BOOT_STYLE_ID = 'bes-public-typography-boot-style';
@@ -74,6 +77,19 @@ async function waitForAppliedFont(preset) {
   ]);
 }
 
+async function waitForRegionalCustomFonts(regionFonts = {}) {
+  if (typeof document === 'undefined' || !document.fonts?.load || !regionFonts || typeof regionFonts !== 'object') return;
+  const families = Object.entries(regionFonts)
+    .filter(([, value]) => value && typeof value === 'object' && String(value.preset || '').toLowerCase() === 'custom' && value.url)
+    .map(([regionId]) => getRegionalCustomFontFamily(regionId));
+  if (!families.length) return;
+
+  await Promise.all(families.map((family) => Promise.race([
+    document.fonts.load(`400 16px "${family}"`).catch(() => []),
+    timeout(MAX_FONT_WAIT_MS),
+  ])));
+}
+
 function customConfigFromRow(row = {}) {
   return {
     name: row.custom_font_name || 'Font tùy chỉnh',
@@ -136,7 +152,10 @@ export function bootstrapPublicTypographyBeforeApp() {
         preset = applyRow(row);
         source = 'server';
       }
-      await waitForAppliedFont(preset);
+      await Promise.all([
+        waitForAppliedFont(preset),
+        waitForRegionalCustomFonts(row?.region_fonts),
+      ]);
     } catch (error) {
       console.warn('[PublicTypographyBootstrap] Using cached/system fallback.', error);
     } finally {
