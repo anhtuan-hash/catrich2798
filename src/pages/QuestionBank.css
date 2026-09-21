@@ -4831,3 +4831,351 @@ html body #root .app-shell[data-route="assessment-core"] main#bes-main-content >
   .qb-v6-test-toolbar{grid-template-columns:1fr}
   .qb-v6-view-toggle{width:max-content}
 }
+
+/* ===== Assessment Core V6.1 · density and workflow polish ===== */
+
+/* Question bank: improve reading comfort and keep the desktop title to two lines. */
+.qb-shell-v6[data-qb-tab="questions"] .qb-v6-hero{
+  grid-template-columns:minmax(0,1.05fr) minmax(420px,.95fr);
+}
+.qb-shell-v6[data-qb-tab="questions"] .qb-v6-hero h1{
+  max-width:620px;
+  font-size:clamp(43px,4.1vw,60px);
+}
+.qb-shell-v6 .qb-question-row{
+  min-height:61px;
+}
+.qb-shell-v6 .qb-row-question strong{
+  font-size:11.4px;
+  line-height:1.38;
+}
+.qb-shell-v6 .qb-row-question small{
+  font-size:8.7px;
+  line-height:1.35;
+}
+.qb-shell-v6 .qb-row-number,
+.qb-shell-v6 .qb-row-skill,
+.qb-shell-v6 .qb-row-date{
+  font-size:8.6px;
+}
+.qb-shell-v6 .qb-row-pill{
+  min-height:22px;
+  font-size:7.9px;
+}
+.qb-shell-v6 .qb-question-table-head{
+  font-size:8.2px;
+}
+.qb-v6-preview-stem{
+  font-size:12px;
+}
+.qb-v6-preview-options>div{
+  font-size:10px;
+}
+
+/* Bundle library: finite pages, stronger library-card hierarchy. */
+.qb-shell-v6 .qb-bundle-card{
+  min-height:146px;
+  padding:16px 82px 15px 82px;
+}
+.qb-v6-bundle-icon{
+  left:16px;
+  top:18px;
+  width:50px;
+  height:50px;
+}
+.qb-shell-v6 .qb-bundle-card h3{
+  max-width:calc(100% - 8px);
+  font-size:14.5px;
+  line-height:1.33;
+}
+.qb-shell-v6 .qb-bundle-card p{
+  min-height:30px;
+  margin:6px 0 10px;
+  font-size:10.2px;
+  line-height:1.48;
+}
+.qb-shell-v6 .qb-bundle-top span,
+.qb-shell-v6 .qb-bundle-top b{
+  font-size:8.5px;
+}
+.qb-shell-v6 .qb-bundle-card .qb-card-meta span{
+  font-size:7.8px;
+}
+.qb-v6-bundle-date{
+  right:16px;
+  top:46px;
+  font-size:8px;
+}
+.qb-v61-library-pagination{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-top:10px;
+  padding:10px 12px;
+  border:1px solid #e4eaf3;
+  border-radius:13px;
+  color:#8290a5;
+  background:#fbfcfe;
+  font-size:9px;
+}
+.qb-v61-library-pagination>div{
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+.qb-v61-library-pagination button,
+.qb-v61-library-pagination b{
+  width:30px;
+  height:30px;
+  display:grid;
+  place-items:center;
+  border-radius:9px;
+  font:inherit;
+}
+.qb-v61-library-pagination button{
+  border:1px solid #dfe6ef;
+  color:#536986;
+  background:#fff;
+  cursor:pointer;
+}
+.qb-v61-library-pagination button:disabled{
+  opacity:.42;
+  cursor:not-allowed;
+}
+.qb-v61-library-pagination b{
+  color:#fff;
+  background:var(--v6-accent);
+}
+
+/* Blueprint editor is now task-driven and collapsed until requested. */
+.qb-v61-blueprint-head{
+  align-items:flex-end;
+}
+.qb-v61-blueprint-head-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+  max-width:640px;
+}
+.qb-v61-blueprint-head-actions>span{
+  color:#7f8da2;
+  font-size:10px;
+  text-align:right;
+}
+.qb-v61-blueprint-head-actions .qb-primary{
+  flex:0 0 auto;
+  min-height:38px;
+  padding:8px 13px;
+  font-size:10px;
+}
+.qb-v61-blueprint-editor-tools{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.qb-v61-blueprint-editor-tools>.qb-secondary{
+  min-height:38px;
+  padding:8px 11px;
+  font-size:9px;
+}
+.qb-v61-blueprint-collapsed{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-top:10px;
+  padding:13px 15px;
+  border:1px dashed #cfc8fb;
+  border-radius:15px;
+  color:#4d3f9b;
+  background:linear-gradient(135deg,#fbfaff,#f5f2ff);
+  text-align:left;
+  cursor:pointer;
+}
+.qb-v61-blueprint-collapsed>span{
+  width:38px;
+  height:38px;
+  display:grid;
+  place-items:center;
+  flex:0 0 auto;
+  border-radius:11px;
+  color:#fff;
+  background:linear-gradient(135deg,#7454f5,#5a3de6);
+  font-size:20px;
+  box-shadow:0 7px 15px rgba(104,72,245,.18);
+}
+.qb-v61-blueprint-collapsed b{
+  display:block;
+  color:#263866;
+  font-size:11px;
+}
+.qb-v61-blueprint-collapsed small{
+  display:block;
+  margin-top:2px;
+  color:#8490a4;
+  font-size:8.5px;
+}
+
+/* Test library: remove inherited empty grid column and use the card width correctly. */
+.qb-shell-v6 .qb-test-card{
+  display:block!important;
+  grid-template-columns:none!important;
+  min-height:126px;
+  padding:14px 48px 14px 78px;
+}
+.qb-v61-test-body{
+  width:100%;
+  min-width:0;
+  padding-right:22px;
+}
+.qb-shell-v6 .qb-test-card .qb-chips{
+  max-width:calc(100% - 8px);
+  margin:0 0 6px;
+}
+.qb-shell-v6 .qb-test-card h3{
+  display:-webkit-box;
+  max-width:100%;
+  margin:3px 0 5px;
+  overflow:hidden;
+  color:#17315d;
+  font-size:13.5px;
+  line-height:1.35;
+  font-weight:780;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;
+}
+.qb-shell-v6 .qb-test-card p{
+  max-width:100%;
+  font-size:9px;
+  line-height:1.4;
+}
+.qb-shell-v6 .qb-test-card small{
+  display:inline-block;
+  margin-top:6px;
+  font-size:8.5px;
+}
+.qb-v6-test-date{
+  right:14px;
+  bottom:13px;
+  font-size:8px;
+}
+.qb-v6-test-grid.is-list .qb-test-card{
+  min-height:94px;
+  padding-top:13px;
+  padding-bottom:13px;
+}
+.qb-v6-test-grid.is-list .qb-test-card h3{
+  -webkit-line-clamp:1;
+}
+
+/* Test builder: normalize the Approved-only control. */
+.qb-shell-v6 .qb-builder-approved{
+  align-content:start;
+}
+.qb-shell-v6 .qb-builder-approved>label{
+  display:inline-flex!important;
+  align-items:center;
+  gap:8px;
+  min-height:38px;
+  width:max-content;
+  padding:7px 10px;
+  border:1px solid #e0e6ef;
+  border-radius:10px;
+  background:#fafbfe;
+  color:#405775;
+  font-size:9.5px;
+  font-weight:650;
+}
+.qb-shell-v6 .qb-builder-approved input[type="checkbox"]{
+  appearance:auto!important;
+  -webkit-appearance:checkbox!important;
+  width:17px!important;
+  min-width:17px!important;
+  max-width:17px!important;
+  height:17px!important;
+  min-height:17px!important;
+  max-height:17px!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:4px!important;
+  box-shadow:none!important;
+  accent-color:var(--v6-accent);
+}
+
+/* Import: keep the editor large enough to work in without wasting a desktop screen. */
+.qb-shell-v6 .qb-paste-textarea textarea{
+  min-height:285px;
+  max-height:420px;
+}
+
+/* API / Plugin: keep the timeline useful without letting it dictate page height. */
+.qb-shell-v6 .qb-import-history{
+  align-self:start;
+  max-height:650px;
+  overflow-y:auto;
+  padding:14px;
+  scrollbar-width:thin;
+  scrollbar-color:#b7d9c9 transparent;
+}
+.qb-shell-v6 .qb-import-history h3{
+  position:sticky;
+  top:-14px;
+  z-index:2;
+  margin:-14px -14px 5px;
+  padding:14px 14px 10px;
+  background:rgba(255,255,255,.96);
+  backdrop-filter:blur(10px);
+}
+.qb-shell-v6 .qb-import-history article{
+  padding-top:11px;
+  padding-bottom:11px;
+}
+
+/* General hierarchy: tiny metadata should still remain readable on desktop. */
+.qb-shell-v6 .qb-card-meta span,
+.qb-shell-v6 .qb-chips span{
+  font-size:max(8px,.5rem);
+}
+.qb-shell-v6 .qb-section-head>span{
+  line-height:1.45;
+}
+
+@media(max-width:1080px){
+  .qb-shell-v6[data-qb-tab="questions"] .qb-v6-hero{
+    grid-template-columns:1fr;
+  }
+  .qb-v61-blueprint-head{
+    align-items:flex-start;
+  }
+  .qb-v61-blueprint-head-actions{
+    align-items:flex-end;
+    flex-direction:column;
+  }
+  .qb-v61-blueprint-head-actions>span{
+    text-align:left;
+  }
+}
+@media(max-width:760px){
+  .qb-v61-library-pagination{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .qb-v61-blueprint-head-actions{
+    width:100%;
+    align-items:flex-start;
+  }
+  .qb-v61-blueprint-head-actions .qb-primary{
+    width:100%;
+  }
+  .qb-shell-v6 .qb-test-card{
+    min-height:118px;
+    padding-left:72px;
+  }
+  .qb-shell-v6 .qb-import-history{
+    max-height:none;
+    overflow:visible;
+  }
+}

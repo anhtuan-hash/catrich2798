@@ -204,3 +204,41 @@ html[data-theme="dark"] .metro-clean-system .signature-footer-expanded-note,
   order:2147483647!important;
   margin-top:auto!important;
 }
+
+/* Assessment Core: compact product footer. */
+.metro-clean-system .signature-footer-collapsible.signature-footer-assessment-compact{
+  width:min(1540px,calc(100% - 32px))!important;
+  max-width:calc(100% - 32px)!important;
+  margin:18px auto 0!important;
+  border-radius:16px!important;
+  background:rgba(255,255,255,.84)!important;
+  box-shadow:0 8px 22px rgba(36,68,112,.06)!important;
+  backdrop-filter:blur(18px) saturate(145%);
+  -webkit-backdrop-filter:blur(18px) saturate(145%);
+}
+.metro-clean-system .signature-footer-assessment-compact .signature-footer-expanded-panel{
+  display:none!important;
+}
+.metro-clean-system .signature-footer-assessment-compact .signature-footer-static-summary{
+  min-height:46px!important;
+  justify-content:center!important;
+  padding:9px 16px!important;
+}
+.metro-clean-system .signature-footer-assessment-compact .signature-footer-summary{
+  font-size:.76rem!important;
+}
+html[data-theme="dark"] .metro-clean-system .signature-footer-collapsible.signature-footer-assessment-compact,
+.theme-dark .metro-clean-system .signature-footer-collapsible.signature-footer-assessment-compact{
+  background:rgba(28,33,42,.88)!important;
+}
+@media(max-width:760px){
+  .metro-clean-system .signature-footer-collapsible.signature-footer-assessment-compact{
+    width:calc(100% - 16px)!important;
+    max-width:calc(100% - 16px)!important;
+    margin-top:12px!important;
+    border-radius:14px!important;
+  }
+  .metro-clean-system .signature-footer-assessment-compact .signature-footer-static-summary{
+    justify-content:flex-start!important;
+  }
+}
