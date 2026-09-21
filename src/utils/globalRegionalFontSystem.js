@@ -80,11 +80,25 @@ let retryTimers = [];
 let fontSizeRuntimeObserver = null;
 let fontSizeRuntimeFrame = 0;
 let fontSizeRuntimeSettings = {};
+let fontFamilyRuntimeObserver = null;
+let fontFamilyRuntimeFrame = 0;
+let fontFamilyRuntimeSettings = {};
 const previewObjectUrls = new Map();
 const fontSizeRuntimeOriginal = new Map();
+const fontFamilyRuntimeOriginal = new Map();
 
 function definitionFor(preset) {
   return GLOBAL_FONT_PRESETS.find((item) => item.id === preset) || null;
+}
+
+function restoreRuntimeFontFamilies() {
+  fontFamilyRuntimeOriginal.forEach((original, node) => {
+    if (!node?.style) return;
+    if (original.value) node.style.setProperty('font-family', original.value, original.priority || '');
+    else node.style.removeProperty('font-family');
+    node.removeAttribute('data-bes-regional-font-family-runtime');
+  });
+  fontFamilyRuntimeOriginal.clear();
 }
 
 function restoreRuntimeFontSizes() {
@@ -155,6 +169,59 @@ function syncRuntimeRegionalFontSizes(settings) {
     });
     const host = document.body || document.documentElement;
     if (host) fontSizeRuntimeObserver.observe(host, { childList: true, subtree: true });
+  }
+}
+
+function applyRuntimeFontFamily(regionId, value) {
+  const selector = FONT_SIZE_RUNTIME_SELECTORS[regionId];
+  if (!selector || !value || typeof document === 'undefined') return;
+  const family = getRegionalFontFamily(regionId, value);
+  document.querySelectorAll(selector).forEach((node) => {
+    if (runtimeNodeExcluded(node, regionId)) return;
+    if (!fontFamilyRuntimeOriginal.has(node)) {
+      fontFamilyRuntimeOriginal.set(node, {
+        value: node.style.getPropertyValue('font-family'),
+        priority: node.style.getPropertyPriority('font-family'),
+      });
+    }
+    node.style.setProperty('font-family', family, 'important');
+    node.setAttribute('data-bes-regional-font-family-runtime', regionId);
+  });
+}
+
+function performRuntimeFontFamilySync() {
+  if (typeof document === 'undefined') return;
+  restoreRuntimeFontFamilies();
+  FONT_SIZE_RUNTIME_ORDER.forEach((regionId) => {
+    const value = fontFamilyRuntimeSettings?.[regionId];
+    if (value) applyRuntimeFontFamily(regionId, value);
+  });
+}
+
+function scheduleRuntimeFontFamilySync() {
+  if (typeof window === 'undefined' || fontFamilyRuntimeFrame) return;
+  fontFamilyRuntimeFrame = window.requestAnimationFrame(() => {
+    fontFamilyRuntimeFrame = 0;
+    performRuntimeFontFamilySync();
+  });
+}
+
+function syncRuntimeRegionalFontFamilies(settings) {
+  if (typeof document === 'undefined') return;
+  fontFamilyRuntimeSettings = normalizeRegionalFontSettings(settings);
+  const active = GLOBAL_FONT_REGIONS.some((region) => Boolean(fontFamilyRuntimeSettings[region.id]));
+  performRuntimeFontFamilySync();
+  if (!active) {
+    fontFamilyRuntimeObserver?.disconnect();
+    fontFamilyRuntimeObserver = null;
+    return;
+  }
+  if (!fontFamilyRuntimeObserver && typeof MutationObserver === 'function') {
+    fontFamilyRuntimeObserver = new MutationObserver((records) => {
+      if (records.some((record) => record.addedNodes?.length)) scheduleRuntimeFontFamilySync();
+    });
+    const host = document.body || document.documentElement;
+    if (host) fontFamilyRuntimeObserver.observe(host, { childList: true, subtree: true });
   }
 }
 
@@ -386,6 +453,10 @@ export function applyRegionalFontSettings(input = {}, options = {}) {
         root.style.removeProperty(`--bes-font-size-${region.id}`);
       }
     });
+    // CSS variables remain the declarative authority, while the live DOM
+    // runtime is the final safeguard against route-specific !important rules
+    // and React remounts (notably Login/Auth and the global navigation).
+    syncRuntimeRegionalFontFamilies(settings);
     syncRuntimeRegionalFontSizes(settings);
 
     root.dataset.regionalFontsSource = source;
