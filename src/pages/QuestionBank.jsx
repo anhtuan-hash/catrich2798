@@ -508,6 +508,8 @@ OpenAPI: ${openApiUrl}`;
     [questions, selectedQuestionPreviewId],
   );
 
+  const questionPreview = selectedQuestionPreview || pagedQuestions[0] || filteredQuestions[0] || null;
+
   const activeMeta = TAB_META[activeTab] || TAB_META.questions;
   const ActiveTabIcon = TAB_ICONS[activeTab] || Database;
 
@@ -1733,7 +1735,9 @@ OpenAPI: ${openApiUrl}`;
 
           {filteredQuestions.length ? (
             <>
-              <div className="qb-question-table" role="table" aria-label="Danh sách câu hỏi">
+              <div className="qb-v6-question-browser">
+                <div className="qb-v6-question-list">
+                  <div className="qb-question-table" role="table" aria-label="Danh sách câu hỏi">
                 <div className="qb-question-table-head" role="row">
                   <span>#</span>
                   <span>Nội dung câu hỏi</span>
@@ -1788,6 +1792,64 @@ OpenAPI: ${openApiUrl}`;
                     <option value="50">50 / trang</option>
                   </select>
                 </div>
+              </div>
+                </div>
+
+                <aside className="qb-v6-question-preview" aria-label="Xem trước câu hỏi">
+                  {questionPreview ? (
+                    <>
+                      <div className="qb-v6-preview-head">
+                        <div><span>XEM TRƯỚC CÂU HỎI</span><strong>Chi tiết nhanh</strong></div>
+                        <button
+                          type="button"
+                          aria-label="Mở trong Quản trị"
+                          onClick={() => {
+                            setManageTargetQuestionId(questionPreview.id);
+                            setManageTargetBundleId('');
+                            setActiveTab('manage');
+                          }}
+                        >
+                          <ArrowRight size={16} />
+                        </button>
+                      </div>
+                      <div className="qb-v6-preview-tags">
+                        <span>{questionPreview.skill || 'Use of English'}</span>
+                        <span className="is-success">{cognitiveLabel(questionPreview.cognitive_level)}</span>
+                        {questionPreview.cefr ? <span>{questionPreview.cefr}</span> : null}
+                      </div>
+                      <div className="qb-v6-preview-stem">
+                        {displayQuestionStem(questionPreview.stem, questionPreview.bundle_position)}
+                      </div>
+                      {Array.isArray(questionPreview.options) && questionPreview.options.length ? (
+                        <div className="qb-v6-preview-options">
+                          {questionPreview.options.map((option, optionIndex) => {
+                            const label = String.fromCharCode(65 + optionIndex);
+                            const correct = label === answerLabel(questionPreview.correct_answer).toUpperCase();
+                            return (
+                              <div className={correct ? 'is-correct' : ''} key={optionIndex}>
+                                <b>{label}</b><span>{option}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : null}
+                      <div className="qb-v6-preview-footer">
+                        <span>{questionPreview.topic || questionPreview.grammar_point || 'Chưa gắn chủ đề'}</span>
+                        <button
+                          type="button"
+                          className="qb-primary"
+                          onClick={() => {
+                            setManageTargetQuestionId(questionPreview.id);
+                            setManageTargetBundleId('');
+                            setActiveTab('manage');
+                          }}
+                        >
+                          Chỉnh sửa
+                        </button>
+                      </div>
+                    </>
+                  ) : null}
+                </aside>
               </div>
             </>
           ) : <EmptyState title="Chưa có câu hỏi phù hợp" hint="Thay đổi bộ lọc, thêm câu thủ công hoặc gửi một đề từ ChatGPT vào Brian." />}
