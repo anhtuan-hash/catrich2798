@@ -59,3 +59,33 @@ test('Question Bank exposes the zero-cost ChatGPT paste-import workspace', async
   await expect(page.getByRole('button', { name: /Phân tích nội dung/i })).toBeVisible();
   await expect(page.locator('.qb-paste-textarea textarea')).toBeVisible();
 });
+
+test('Assessment Core V6 keeps illustrated horizontal navigation across all modules', async ({ page }) => {
+  await page.setViewportSize({ width: 1536, height: 960 });
+  await openQuestionBank(page);
+
+  await expect(page.locator('.qb-shell.qb-shell-v6')).toBeVisible();
+  await expect(page.locator('.qb-tabs-horizontal button')).toHaveCount(10);
+  await expect(page.locator('.qb-v6-hero')).toBeVisible();
+  await expect(page.locator('.qb-v6-hero-graphic svg')).toBeVisible();
+
+  const modules = [
+    ['Kho câu hỏi', 'questions'],
+    ['Chùm bài', 'bundles'],
+    ['Quản trị', 'manage'],
+    ['Ma trận', 'blueprints'],
+    ['Phủ ma trận', 'coverage'],
+    ['Chất lượng', 'quality'],
+    ['Tạo đề', 'builder'],
+    ['Đề thi', 'tests'],
+    ['Nhập từ ChatGPT', 'import'],
+    ['API / Plugin', 'chatgpt'],
+  ];
+
+  for (const [label, tab] of modules) {
+    await page.getByRole('button', { name: label, exact: true }).first().click();
+    await expect(page.locator('.qb-shell.qb-shell-v6')).toHaveAttribute('data-qb-tab', tab);
+    await expect(page.locator('.qb-v6-hero')).toBeVisible();
+    await expect(page.locator('.qb-v6-hero-graphic svg')).toBeVisible();
+  }
+});
