@@ -47,6 +47,7 @@ import {
 } from '../utils/questionBankExamManager.js';
 import QuestionBankManagementSuite from './question-bank/QuestionBankManagementSuite.jsx';
 import QuestionBankQualityControl from './question-bank/QuestionBankQualityControl.jsx';
+import AssessmentCoreHeroGraphic from './question-bank/AssessmentCoreHeroGraphic.jsx';
 import './QuestionBank.css';
 
 const TABS = [
@@ -319,6 +320,11 @@ export default function QuestionBank({ currentUser }) {
   const [questionPage, setQuestionPage] = useState(1);
   const [questionPageSize, setQuestionPageSize] = useState(10);
   const [selectedQuestionPreviewId, setSelectedQuestionPreviewId] = useState('');
+  const [bundleQuery, setBundleQuery] = useState('');
+  const [bundleGrade, setBundleGrade] = useState('');
+  const [testQuery, setTestQuery] = useState('');
+  const [testGrade, setTestGrade] = useState('');
+  const [testStatus, setTestStatus] = useState('');
   const [showNew, setShowNew] = useState(false);
   const [generatedKey, setGeneratedKey] = useState('');
   const [testingConnection, setTestingConnection] = useState(false);
@@ -461,6 +467,41 @@ OpenAPI: ${openApiUrl}`;
     tests: tests.length,
     total: questions.length,
   }), [questions, bundles, tests]);
+
+  const bundleStats = useMemo(() => ({
+    total: bundles.length,
+    approved: bundles.filter((item) => text(item.status).toLowerCase() === 'approved').length,
+    chatgpt: bundles.filter((item) => text(item.source_kind).startsWith('chatgpt')).length,
+    grades: new Set(bundles.map((item) => text(item.grade)).filter(Boolean)).size,
+  }), [bundles]);
+
+  const filteredBundles = useMemo(() => {
+    const needle = bundleQuery.trim().toLowerCase();
+    return bundles.filter((bundle) => {
+      if (bundleGrade && text(bundle.grade) !== bundleGrade) return false;
+      if (!needle) return true;
+      return [bundle.title, bundle.context_text, bundle.topic, bundle.skill, bundle.bundle_type]
+        .some((value) => text(value).toLowerCase().includes(needle));
+    });
+  }, [bundles, bundleQuery, bundleGrade]);
+
+  const testStats = useMemo(() => ({
+    total: tests.length,
+    published: tests.filter((item) => text(item.status).toLowerCase() === 'published').length,
+    draft: tests.filter((item) => !text(item.status) || text(item.status).toLowerCase() === 'draft').length,
+    chatgpt: tests.filter((item) => text(item.source_kind).startsWith('chatgpt')).length,
+  }), [tests]);
+
+  const filteredTests = useMemo(() => {
+    const needle = testQuery.trim().toLowerCase();
+    return tests.filter((test) => {
+      if (testGrade && text(test.grade) !== testGrade) return false;
+      if (testStatus && text(test.status).toLowerCase() !== testStatus.toLowerCase()) return false;
+      if (!needle) return true;
+      return [test.title, test.school_year, test.settings?.examCode]
+        .some((value) => text(value).toLowerCase().includes(needle));
+    });
+  }, [tests, testQuery, testGrade, testStatus]);
 
   const selectedQuestionPreview = useMemo(
     () => questions.find((item) => item.id === selectedQuestionPreviewId) || null,
@@ -1563,7 +1604,7 @@ OpenAPI: ${openApiUrl}`;
   };
 
   return (
-    <section className="qb-shell qb-shell-v2 qb-shell-v3 qb-shell-v4 qb-shell-v5">
+    <section className="qb-shell qb-shell-v2 qb-shell-v3 qb-shell-v4 qb-shell-v5 qb-shell-v6" data-qb-tab={activeTab}>
       <nav className="qb-tabs qb-tabs-horizontal" aria-label="Ngân hàng câu hỏi">
         {TABS.map(([id, label]) => {
           const Icon = TAB_ICONS[id] || Database;
@@ -1584,47 +1625,61 @@ OpenAPI: ${openApiUrl}`;
         <span className="qb-tabs-signature" aria-hidden="true">BETTER QUESTIONS · BRIGHTER LEARNERS</span>
       </nav>
 
-      <header className="qb-apple-header">
-        <div className="qb-apple-title-block">
-          <p className="qb-apple-kicker">Brian English · {activeMeta.kicker}</p>
+      <header className="qb-v6-hero">
+        <div className="qb-v6-hero-copy">
+          <p className="qb-v6-kicker">BRIAN ENGLISH · {activeMeta.kicker}</p>
           <h1>{activeMeta.title}</h1>
-          <p>{activeMeta.subtitle}</p>
+          <p className="qb-v6-subtitle">{activeMeta.subtitle}</p>
+          {activeTab === 'questions' ? (
+            <div className="qb-v6-hero-actions">
+              <button type="button" className="qb-secondary" onClick={() => setActiveTab('import')}>
+                <Bot size={16} aria-hidden="true" /> Dán từ ChatGPT
+              </button>
+              <button type="button" className="qb-primary" onClick={() => { setActiveTab('questions'); setShowNew(true); }}>
+                <FilePlus2 size={16} aria-hidden="true" /> Thêm câu hỏi
+              </button>
+            </div>
+          ) : activeTab === 'tests' ? (
+            <div className="qb-v6-hero-actions">
+              <button type="button" className="qb-primary" onClick={() => setActiveTab('builder')}>
+                <FilePlus2 size={16} aria-hidden="true" /> Tạo đề mới
+              </button>
+            </div>
+          ) : activeTab === 'bundles' ? (
+            <div className="qb-v6-hero-actions">
+              <button type="button" className="qb-primary" onClick={() => setActiveTab('import')}>
+                <Sparkles size={16} aria-hidden="true" /> Nhập chùm bài
+              </button>
+            </div>
+          ) : null}
         </div>
-
-        {activeTab === 'questions' ? (
-          <div className="qb-apple-header-actions">
-            <button type="button" className="qb-secondary qb-apple-glass-button" onClick={() => setActiveTab('import')}>
-              <Bot size={16} aria-hidden="true" /> Dán từ ChatGPT
-            </button>
-            <button type="button" className="qb-primary qb-apple-primary-button" onClick={() => { setActiveTab('questions'); setShowNew(true); }}>
-              <FilePlus2 size={16} aria-hidden="true" /> Thêm câu hỏi
-            </button>
-          </div>
-        ) : (
-          <div className="qb-apple-module-symbol" aria-hidden="true">
-            <ActiveTabIcon size={26} strokeWidth={1.75} />
-          </div>
-        )}
+        <AssessmentCoreHeroGraphic tab={activeTab} />
       </header>
 
       {activeTab === 'questions' ? (
-        <div className="qb-apple-metrics" aria-label="Tổng quan ngân hàng">
-          <article>
-            <span className="qb-apple-metric-symbol"><Database size={17} /></span>
-            <div><small>Tổng câu hỏi</small><strong>{sourceStats.total.toLocaleString('vi-VN')}</strong></div>
-          </article>
-          <article>
-            <span className="qb-apple-metric-symbol"><Layers3 size={17} /></span>
-            <div><small>Chùm bài</small><strong>{sourceStats.bundles.toLocaleString('vi-VN')}</strong></div>
-          </article>
-          <article>
-            <span className="qb-apple-metric-symbol"><FileText size={17} /></span>
-            <div><small>Đề thi</small><strong>{sourceStats.tests.toLocaleString('vi-VN')}</strong></div>
-          </article>
-          <article>
-            <span className="qb-apple-metric-symbol"><Bot size={17} /></span>
-            <div><small>Từ ChatGPT</small><strong>{sourceStats.chatgpt.toLocaleString('vi-VN')}</strong></div>
-          </article>
+        <div className="qb-v6-metric-grid qb-v6-metric-grid-4" aria-label="Tổng quan ngân hàng">
+          <article className="is-blue"><span><Database size={21} /></span><div><small>Tổng câu hỏi</small><strong>{sourceStats.total.toLocaleString('vi-VN')}</strong><em>Toàn bộ ngân hàng</em></div></article>
+          <article className="is-green"><span><Layers3 size={21} /></span><div><small>Chùm bài</small><strong>{sourceStats.bundles.toLocaleString('vi-VN')}</strong><em>Ngữ liệu có cấu trúc</em></div></article>
+          <article className="is-violet"><span><FileText size={21} /></span><div><small>Đề thi</small><strong>{sourceStats.tests.toLocaleString('vi-VN')}</strong><em>Đã lưu trong Brian</em></div></article>
+          <article className="is-orange"><span><Bot size={21} /></span><div><small>Từ ChatGPT</small><strong>{sourceStats.chatgpt.toLocaleString('vi-VN')}</strong><em>Nguồn nhập hiện tại</em></div></article>
+        </div>
+      ) : null}
+
+      {activeTab === 'bundles' ? (
+        <div className="qb-v6-metric-grid qb-v6-metric-grid-4" aria-label="Tổng quan chùm bài">
+          <article className="is-blue"><span><Layers3 size={21} /></span><div><small>Tổng số chùm</small><strong>{bundleStats.total.toLocaleString('vi-VN')}</strong><em>Đang lưu trong Brian</em></div></article>
+          <article className="is-green"><span><ShieldCheck size={21} /></span><div><small>Đã duyệt</small><strong>{bundleStats.approved.toLocaleString('vi-VN')}</strong><em>Sẵn sàng sử dụng</em></div></article>
+          <article className="is-violet"><span><Bot size={21} /></span><div><small>Từ ChatGPT</small><strong>{bundleStats.chatgpt.toLocaleString('vi-VN')}</strong><em>Nguồn nhập tự động</em></div></article>
+          <article className="is-orange"><span><Grid2X2 size={21} /></span><div><small>Khối đang có</small><strong>{bundleStats.grades.toLocaleString('vi-VN')}</strong><em>Phạm vi dữ liệu</em></div></article>
+        </div>
+      ) : null}
+
+      {activeTab === 'tests' && !selectedTest ? (
+        <div className="qb-v6-metric-grid qb-v6-metric-grid-4" aria-label="Tổng quan đề thi">
+          <article className="is-blue"><span><GraduationCap size={21} /></span><div><small>Tổng số đề</small><strong>{testStats.total.toLocaleString('vi-VN')}</strong><em>Thư viện Assessment</em></div></article>
+          <article className="is-green"><span><ShieldCheck size={21} /></span><div><small>Đã phát hành</small><strong>{testStats.published.toLocaleString('vi-VN')}</strong><em>Đề đang sử dụng</em></div></article>
+          <article className="is-violet"><span><FileText size={21} /></span><div><small>Bản nháp</small><strong>{testStats.draft.toLocaleString('vi-VN')}</strong><em>Đang biên tập</em></div></article>
+          <article className="is-orange"><span><Bot size={21} /></span><div><small>Từ ChatGPT</small><strong>{testStats.chatgpt.toLocaleString('vi-VN')}</strong><em>Nguồn tạo đề</em></div></article>
         </div>
       ) : null}
 
