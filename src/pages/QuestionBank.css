@@ -4683,3 +4683,80 @@ html body #root .app-shell[data-route="assessment-core"] main#bes-main-content >
   .qb-shell-v6 .qb-paste-layout{grid-template-columns:1fr}
   .qb-shell-v6 .qb-paste-banner{grid-template-columns:1fr}
 }
+
+/* V6 micro-graphics: make data cards feel illustrated rather than flat. */
+.qb-shell-v6 .qb-v6-metric-grid article::before{
+  content:"";
+  position:absolute;
+  right:15px;
+  bottom:16px;
+  width:54px;
+  height:32px;
+  opacity:.22;
+  background:
+    linear-gradient(to top,currentColor 0 100%) 0 100%/7px 34% no-repeat,
+    linear-gradient(to top,currentColor 0 100%) 15px 100%/7px 58% no-repeat,
+    linear-gradient(to top,currentColor 0 100%) 30px 100%/7px 82% no-repeat,
+    linear-gradient(to top,currentColor 0 100%) 45px 100%/7px 100% no-repeat;
+}
+.qb-shell-v6 .qb-health-grid article::after,
+.qb-shell-v6 .qb-quality-kpis article::after{
+  content:"";
+  position:absolute;
+  right:14px;
+  bottom:15px;
+  width:44px;
+  height:28px;
+  opacity:.18;
+  color:var(--v6-accent);
+  background:
+    linear-gradient(to top,currentColor 0 100%) 0 100%/6px 32% no-repeat,
+    linear-gradient(to top,currentColor 0 100%) 12px 100%/6px 62% no-repeat,
+    linear-gradient(to top,currentColor 0 100%) 24px 100%/6px 82% no-repeat,
+    linear-gradient(to top,currentColor 0 100%) 36px 100%/6px 100% no-repeat;
+}
+.qb-shell-v6 .qb-health-grid article,
+.qb-shell-v6 .qb-quality-kpis article{position:relative;overflow:hidden}
+.qb-shell-v6 .qb-quality-kpis .is-ready::after{color:#20b978}
+.qb-shell-v6 .qb-quality-kpis .is-review::after{color:#f1a51e}
+.qb-shell-v6 .qb-quality-kpis .is-blocked::after{color:#ef5b6e}
+.qb-shell-v6 .qb-builder-stock-grid article{
+  position:relative;
+  overflow:hidden;
+}
+.qb-shell-v6 .qb-builder-stock-grid article::after{
+  content:"";
+  position:absolute;
+  right:-8px;
+  bottom:-12px;
+  width:56px;
+  height:56px;
+  border-radius:18px;
+  transform:rotate(18deg);
+  background:currentColor;
+  opacity:.055;
+}
+.qb-shell-v6 .qb-builder-stock-grid article:nth-child(1){color:#159d67}
+.qb-shell-v6 .qb-builder-stock-grid article:nth-child(2){color:#7654ed}
+.qb-shell-v6 .qb-builder-stock-grid article:nth-child(3){color:#1683ff}
+.qb-shell-v6 .qb-builder-stock-grid article:nth-child(4){color:#ef8a22}
+.qb-shell-v6 .qb-builder-stock-grid article:nth-child(5){color:#dca51e}
+.qb-shell-v6 .qb-builder-stock-grid article span,
+.qb-shell-v6 .qb-builder-stock-grid article strong,
+.qb-shell-v6 .qb-builder-stock-grid article small{position:relative;z-index:1}
+.qb-shell-v6 .qb-blueprint-card::after{
+  content:"";
+  position:absolute;
+  right:12px;
+  top:13px;
+  width:24px;
+  height:24px;
+  border-radius:8px;
+  background:
+    linear-gradient(var(--v6-accent),var(--v6-accent)) 5px 5px/5px 5px no-repeat,
+    linear-gradient(var(--v6-accent),var(--v6-accent)) 14px 5px/5px 5px no-repeat,
+    linear-gradient(var(--v6-accent),var(--v6-accent)) 5px 14px/5px 5px no-repeat,
+    linear-gradient(var(--v6-accent),var(--v6-accent)) 14px 14px/5px 5px no-repeat,
+    color-mix(in srgb,var(--v6-soft) 70%,white);
+  opacity:.65;
+}
