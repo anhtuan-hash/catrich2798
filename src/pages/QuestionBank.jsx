@@ -322,6 +322,8 @@ export default function QuestionBank({ currentUser }) {
   const [selectedQuestionPreviewId, setSelectedQuestionPreviewId] = useState('');
   const [bundleQuery, setBundleQuery] = useState('');
   const [bundleGrade, setBundleGrade] = useState('');
+  const [bundlePage, setBundlePage] = useState(1);
+  const [blueprintEditorOpen, setBlueprintEditorOpen] = useState(false);
   const [testQuery, setTestQuery] = useState('');
   const [testGrade, setTestGrade] = useState('');
   const [testStatus, setTestStatus] = useState('');
@@ -485,6 +487,16 @@ OpenAPI: ${openApiUrl}`;
         .some((value) => text(value).toLowerCase().includes(needle));
     });
   }, [bundles, bundleQuery, bundleGrade]);
+
+  const bundlePageSize = 20;
+  const bundlePageCount = Math.max(1, Math.ceil(filteredBundles.length / bundlePageSize));
+  const safeBundlePage = Math.min(bundlePage, bundlePageCount);
+  const bundleStartIndex = (safeBundlePage - 1) * bundlePageSize;
+  const pagedBundles = filteredBundles.slice(bundleStartIndex, bundleStartIndex + bundlePageSize);
+
+  useEffect(() => {
+    setBundlePage(1);
+  }, [bundleQuery, bundleGrade]);
 
   const testStats = useMemo(() => ({
     total: tests.length,
@@ -938,6 +950,7 @@ OpenAPI: ${openApiUrl}`;
   const resetBlueprintDraft = () => {
     setBlueprintEditingId('');
     setBlueprintDeleteArmed('');
+    setBlueprintEditorOpen(true);
     setBlueprintDraft({
       title: 'Ma trận mới',
       visibility: 'personal',
@@ -948,6 +961,7 @@ OpenAPI: ${openApiUrl}`;
   const editBlueprint = (blueprint) => {
     setBlueprintEditingId(blueprint.id);
     setBlueprintDeleteArmed('');
+    setBlueprintEditorOpen(true);
     setBlueprintDraft({
       title: text(blueprint.title),
       visibility: text(blueprint.visibility) === 'department' ? 'department' : 'personal',
@@ -1049,6 +1063,7 @@ OpenAPI: ${openApiUrl}`;
         criteria: normalizeBlueprintCriteria(result.data.criteria || {}),
       });
       setMessage(blueprintEditingId ? 'Đã cập nhật ma trận.' : 'Đã lưu ma trận mới.');
+      setBlueprintEditorOpen(false);
     } catch (error) {
       setMessage(error?.message || 'Không thể lưu ma trận.');
     } finally {
@@ -1870,7 +1885,8 @@ OpenAPI: ${openApiUrl}`;
                 <label><span>Khối lớp</span><select value={bundleGrade} onChange={(event) => setBundleGrade(event.target.value)}><option value="">Tất cả</option><option>10</option><option>11</option><option>12</option></select></label>
                 <button type="button" className="qb-primary" onClick={() => setActiveTab('import')}><Sparkles size={15} /> Nhập chùm bài</button>
               </div>
-              {filteredBundles.length ? <div className="qb-grid qb-v6-bundle-grid">{filteredBundles.map((bundle) => {
+              {filteredBundles.length ? <>
+                <div className="qb-grid qb-v6-bundle-grid">{pagedBundles.map((bundle) => {
                 const count = questions.filter((item) => item.bundle_id === bundle.id).length;
                 return <article
                   className="qb-bundle-card is-openable"
@@ -1893,7 +1909,17 @@ OpenAPI: ${openApiUrl}`;
                   <time className="qb-v6-bundle-date">{formatShortDate(bundle.updated_at || bundle.created_at)}</time>
                   <div className="qb-bundle-open-hint"><span>Mở chi tiết</span><b>→</b></div>
                 </article>;
-              })}</div> : <EmptyState title="Chưa có chùm bài" hint="Khi ChatGPT tạo reading, cloze hoặc một cụm câu dùng chung ngữ liệu, Brian sẽ lưu chúng thành chùm." />}
+              })}</div>
+                <div className="qb-v61-library-pagination">
+                  <span>Hiển thị {bundleStartIndex + 1}–{Math.min(bundleStartIndex + bundlePageSize, filteredBundles.length)} trong {filteredBundles.length.toLocaleString('vi-VN')} chùm</span>
+                  <div>
+                    <button type="button" disabled={safeBundlePage <= 1} onClick={() => setBundlePage((page) => Math.max(1, page - 1))}>‹</button>
+                    <b>{safeBundlePage}</b>
+                    <span>/ {bundlePageCount}</span>
+                    <button type="button" disabled={safeBundlePage >= bundlePageCount} onClick={() => setBundlePage((page) => Math.min(bundlePageCount, page + 1))}>›</button>
+                  </div>
+                </div>
+              </> : <EmptyState title="Chưa có chùm bài" hint="Khi ChatGPT tạo reading, cloze hoặc một cụm câu dùng chung ngữ liệu, Brian sẽ lưu chúng thành chùm." />}
             </>
           ) : (() => {
             const bundleItems = questions
@@ -2022,9 +2048,12 @@ OpenAPI: ${openApiUrl}`;
 
       {!loading && activeTab === 'blueprints' ? (
         <div className="qb-panel qb-blueprints">
-          <div className="qb-section-head">
+          <div className="qb-section-head qb-v61-blueprint-head">
             <div><p>ASSESSMENT BLUEPRINT STUDIO</p><h2>Ma trận đề</h2></div>
-            <span>Lưu cấu trúc đề dùng lại nhiều lần. Ma trận không chứa câu hỏi và không phát sinh phí AI.</span>
+            <div className="qb-v61-blueprint-head-actions">
+              <span>Lưu cấu trúc đề dùng lại nhiều lần. Ma trận không chứa câu hỏi và không phát sinh phí AI.</span>
+              <button type="button" className="qb-primary" onClick={resetBlueprintDraft}>+ Ma trận mới</button>
+            </div>
           </div>
 
           <div className="qb-blueprint-library">
@@ -2062,14 +2091,18 @@ OpenAPI: ${openApiUrl}`;
             })}
           </div>
 
+          {blueprintEditorOpen ? (
           <section className="qb-blueprint-editor">
             <div className="qb-blueprint-editor-head">
               <div>
                 <span>{blueprintEditingId ? 'EDIT BLUEPRINT' : 'NEW BLUEPRINT'}</span>
                 <h3>{blueprintEditingId ? 'Chỉnh sửa ma trận' : 'Tạo ma trận mới'}</h3>
               </div>
-              <div className={blueprintValidation.valid ? 'qb-blueprint-valid' : 'qb-blueprint-invalid'}>
-                <b>{blueprintValidation.total}</b><small>câu</small>
+              <div className="qb-v61-blueprint-editor-tools">
+                <div className={blueprintValidation.valid ? 'qb-blueprint-valid' : 'qb-blueprint-invalid'}>
+                  <b>{blueprintValidation.total}</b><small>câu</small>
+                </div>
+                <button type="button" className="qb-secondary" onClick={() => setBlueprintEditorOpen(false)}>Thu gọn</button>
               </div>
             </div>
 
@@ -2132,6 +2165,12 @@ OpenAPI: ${openApiUrl}`;
               </button>
             </div>
           </section>
+          ) : (
+            <button type="button" className="qb-v61-blueprint-collapsed" onClick={resetBlueprintDraft}>
+              <span>＋</span>
+              <div><b>Tạo ma trận mới</b><small>Mở trình thiết kế khi bạn cần thêm một blueprint mới.</small></div>
+            </button>
+          )}
         </div>
       ) : null}
 
@@ -2681,7 +2720,7 @@ OpenAPI: ${openApiUrl}`;
                   onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') openExam(test); }}
                 >
                   <div className="qb-test-icon">EXAM</div>
-                  <div>
+                  <div className="qb-v61-test-body">
                     <div className="qb-chips"><span>{statusLabel(test.status)}</span>{test.source_kind === 'chatgpt' ? <span className="is-chatgpt">ChatGPT</span> : null}{test.settings?.examCode ? <span>Mã {test.settings.examCode}</span> : null}</div>
                     <h3>{test.title}</h3>
                     <p>{testCounts[test.id] || 0} câu hỏi · {test.grade ? `Khối ${test.grade}` : 'Chưa gắn khối'}{test.school_year ? ` · ${test.school_year}` : ''}</p>
