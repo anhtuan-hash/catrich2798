@@ -5776,3 +5776,35 @@ html body #root .app-shell[data-route="assessment-core"] main#bes-main-content >
     transform:none!important;
   }
 }
+
+/* Interactive HTML exam export */
+.qb-shell-v7 .qb-interactive-export{
+  appearance:none;
+  min-height:40px;
+  padding:10px 14px;
+  border:1px solid rgba(15,132,255,.2);
+  border-radius:12px;
+  background:
+    radial-gradient(circle at 100% 0,rgba(94,92,230,.12),transparent 8rem),
+    linear-gradient(135deg,#eef7ff,#f7f4ff);
+  color:#1359a4;
+  font:inherit;
+  font-size:12px;
+  font-weight:900;
+  cursor:pointer;
+  box-shadow:0 7px 18px rgba(10,132,255,.08);
+  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease;
+}
+.qb-shell-v7 .qb-interactive-export:hover:not(:disabled){
+  transform:translateY(-1px);
+  border-color:rgba(10,132,255,.38);
+  box-shadow:0 11px 24px rgba(10,132,255,.13);
+}
+.qb-shell-v7 .qb-interactive-export:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+  transform:none;
+}
+@media(max-width:560px){
+  .qb-shell-v7 .qb-interactive-export{width:100%}
+}
