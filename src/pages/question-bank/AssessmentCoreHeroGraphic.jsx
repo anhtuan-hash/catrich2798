@@ -1,170 +1,143 @@
 import React from 'react';
 
 const SCENES = {
-  questions: {
-    accent: '#1683ff',
-    accent2: '#57c7ff',
-    soft: '#eaf6ff',
-    shirt: '#1677d9',
-    phrase: ['Better Questions', 'Brighter Learners'],
-  },
-  bundles: {
-    accent: '#7758f6',
-    accent2: '#24c6a4',
-    soft: '#f2edff',
-    shirt: '#5d67e8',
-    phrase: ['Better Learning', 'Bigger Progress'],
-  },
-  manage: {
-    accent: '#163f7b',
-    accent2: '#ff9f2f',
-    soft: '#eef4ff',
-    shirt: '#1467bb',
-    phrase: ['Manage Quality', 'Empower Learning'],
-  },
-  blueprints: {
-    accent: '#6648f3',
-    accent2: '#2c8cff',
-    soft: '#f3efff',
-    shirt: '#2f65cc',
-    phrase: ['Design Better Tests', 'for Brighter Learners'],
-  },
-  coverage: {
-    accent: '#1682ff',
-    accent2: '#22ba72',
-    soft: '#eaf8ff',
-    shirt: '#1573cf',
-    phrase: ['Map Coverage', 'Create Better Assessments'],
-  },
-  quality: {
-    accent: '#18a76f',
-    accent2: '#6ed8b1',
-    soft: '#eafaf4',
-    shirt: '#159c67',
-    phrase: ['Quality Questions', 'Better Learners'],
-  },
-  builder: {
-    accent: '#6948f6',
-    accent2: '#ffb52e',
-    soft: '#f3efff',
-    shirt: '#3a6bdc',
-    phrase: ['Build Better Tests', 'Brighter Learners'],
-  },
-  tests: {
-    accent: '#135dc8',
-    accent2: '#27a3ff',
-    soft: '#edf5ff',
-    shirt: '#1667c9',
-    phrase: ['Better Assessments', 'Brighter Learners'],
-  },
-  import: {
-    accent: '#128cff',
-    accent2: '#1fbd83',
-    soft: '#eaf7ff',
-    shirt: '#1687d7',
-    phrase: ['From AI Ideas', 'to Great Learning'],
-  },
-  chatgpt: {
-    accent: '#16a36b',
-    accent2: '#0a5060',
-    soft: '#eaf9f2',
-    shirt: '#0f766e',
-    phrase: ['Build Smarter', 'Learning Together'],
-  },
+  questions: { accent:'#1683ff', accent2:'#54c4ff', soft:'#eaf6ff', phrase:'Question intelligence', eyebrow:'Content graph' },
+  bundles: { accent:'#7454f5', accent2:'#22c4a4', soft:'#f2efff', phrase:'Context-first learning', eyebrow:'Structured bundles' },
+  manage: { accent:'#153f7b', accent2:'#ff9f2f', soft:'#eef4ff', phrase:'Operational clarity', eyebrow:'Control center' },
+  blueprints: { accent:'#6848f5', accent2:'#2b8cff', soft:'#f3efff', phrase:'Assessment architecture', eyebrow:'Blueprint studio' },
+  coverage: { accent:'#1583ff', accent2:'#22ba72', soft:'#eaf8ff', phrase:'Coverage intelligence', eyebrow:'Gap planner' },
+  quality: { accent:'#18a76f', accent2:'#68d6b0', soft:'#eafaf4', phrase:'Quality by design', eyebrow:'Golden bank' },
+  builder: { accent:'#6948f6', accent2:'#ffb52e', soft:'#f3efff', phrase:'Compose with confidence', eyebrow:'Test builder' },
+  tests: { accent:'#135dc8', accent2:'#27a3ff', soft:'#edf5ff', phrase:'Assessment library', eyebrow:'Exam operations' },
+  import: { accent:'#128cff', accent2:'#1fbd83', soft:'#eaf7ff', phrase:'From raw text to structure', eyebrow:'Zero-cost import' },
+  chatgpt: { accent:'#16a36b', accent2:'#0a5060', soft:'#eaf9f2', phrase:'Connected assessment stack', eyebrow:'Developer connector' },
 };
 
-function TinySpark({ x, y, color = '#ffbf2f', size = 12 }) {
+function Spark({ x, y, color, size=8, opacity=.8 }) {
+  return (
+    <g transform={`translate(${x} ${y})`} opacity={opacity}>
+      <path d={`M0 -${size} L2.5 -2.5 L${size} 0 L2.5 2.5 L0 ${size} L-2.5 2.5 L-${size} 0 L-2.5 -2.5Z`} fill={color} />
+    </g>
+  );
+}
+
+function GlassPanel({ x, y, w, h, accent, children, radius=16, opacity=.97 }) {
   return (
     <g transform={`translate(${x} ${y})`}>
-      <path d={`M0 -${size} L3 -3 L${size} 0 L3 3 L0 ${size} L-3 3 L-${size} 0 L-3 -3Z`} fill={color} opacity="0.9" />
+      <rect width={w} height={h} rx={radius} fill="#fff" opacity={opacity} stroke={accent} strokeOpacity=".18" />
+      <rect x="1" y="1" width={w-2} height={Math.max(18,h*.22)} rx={radius-1} fill={accent} opacity=".035" />
+      {children}
     </g>
   );
 }
 
-function FloatingChip({ x, y, width = 86, label, color, icon = '✓' }) {
+function MiniMetric({ x, y, color, label, value, w=90 }) {
   return (
     <g transform={`translate(${x} ${y})`}>
-      <rect width={width} height="34" rx="10" fill="#fff" opacity="0.97" stroke={color} strokeOpacity="0.22" />
-      <circle cx="17" cy="17" r="10" fill={color} opacity="0.15" />
-      <text x="17" y="21" textAnchor="middle" fontSize="12" fontWeight="800" fill={color}>{icon}</text>
-      <text x="34" y="21" fontSize="10" fontWeight="750" fill="#23405f">{label}</text>
+      <rect width={w} height="48" rx="13" fill="#fff" stroke={color} strokeOpacity=".16" />
+      <circle cx="16" cy="16" r="7" fill={color} opacity=".14" />
+      <circle cx="16" cy="16" r="3" fill={color} />
+      <text x="29" y="17" fontSize="7.5" fontWeight="800" fill="#6c7e96">{label}</text>
+      <text x="12" y="37" fontSize="15" fontWeight="850" fill="#15315d">{value}</text>
     </g>
   );
 }
 
-function IllustratedStudent({ accent, shirt }) {
-  return (
-    <g transform="translate(278 52)">
-      <ellipse cx="105" cy="174" rx="110" ry="23" fill="#1b5db8" opacity="0.1" />
-      <path d="M67 99c18-18 58-17 77 2 18 20 21 67 11 91H52c-8-35-2-74 15-93Z" fill={shirt} />
-      <path d="M75 103c10 13 49 14 61-2l11 77H62l13-75Z" fill={accent} opacity="0.3" />
-      <path d="M85 93c3 16 35 20 42 1v16c-7 18-36 17-43 0l1-17Z" fill="#f2b491" />
-      <ellipse cx="106" cy="65" rx="42" ry="45" fill="#f7c3a1" />
-      <path d="M69 67c-2-30 19-53 49-51 21 1 35 15 37 29-6-5-12-8-20-9 1 8-1 13-7 18-12 9-34 4-47 16-4 4-8 8-12 11 0-5-1-9 0-14Z" fill="#17385d" />
-      <path d="M72 55c5-20 19-34 37-37-1 5-1 9 1 13-15 5-27 13-38 24Z" fill="#204b7d" opacity="0.9" />
-      <circle cx="92" cy="66" r="3" fill="#17385d" />
-      <circle cx="121" cy="66" r="3" fill="#17385d" />
-      <path d="M95 80c8 6 15 6 23 0" fill="none" stroke="#b9694f" strokeWidth="2.5" strokeLinecap="round" />
-      <path d="M75 55c-9 3-12 11-10 19 2 7 7 9 12 7" fill="#f7c3a1" />
-      <path d="M145 58c9 2 12 10 10 18-2 7-8 10-13 7" fill="#f7c3a1" />
-      <path d="M54 125c-14 13-22 36-23 60l19 2c5-23 10-39 24-49l-20-13Z" fill="#f2b491" />
-      <path d="M154 129c14 13 22 34 23 56l-19 2c-4-21-10-37-23-48l19-10Z" fill="#f2b491" />
-      <g transform="translate(65 137) rotate(-6 55 38)">
-        <rect x="0" y="0" width="112" height="72" rx="11" fill="#1e3557" />
-        <rect x="7" y="7" width="98" height="58" rx="8" fill="#e9f5ff" />
-        <rect x="17" y="17" width="42" height="6" rx="3" fill={accent} opacity="0.9" />
-        <rect x="17" y="30" width="72" height="4" rx="2" fill="#91a8c0" />
-        <rect x="17" y="40" width="58" height="4" rx="2" fill="#b4c4d2" />
-        <rect x="17" y="50" width="67" height="4" rx="2" fill="#b4c4d2" />
-      </g>
-    </g>
-  );
-}
-
-function Books({ accent, x = 58, y = 150 }) {
+function DocumentCard({ x, y, w=118, h=82, accent, title='QUESTION', lines=3, badge }) {
   return (
     <g transform={`translate(${x} ${y})`}>
-      <rect width="126" height="20" rx="6" fill={accent} opacity=".95" />
-      <rect y="-24" width="112" height="20" rx="6" fill="#5b73ef" />
-      <rect y="-48" width="118" height="20" rx="6" fill="#21b47a" />
-      <rect y="-72" width="102" height="20" rx="6" fill="#ffbd31" />
-      <rect x="12" y="-67" width="45" height="5" rx="2.5" fill="#fff" opacity=".88" />
-      <rect x="12" y="-43" width="56" height="5" rx="2.5" fill="#fff" opacity=".88" />
-      <rect x="12" y="-19" width="48" height="5" rx="2.5" fill="#fff" opacity=".88" />
-      <rect x="12" y="5" width="65" height="5" rx="2.5" fill="#fff" opacity=".88" />
+      <rect width={w} height={h} rx="14" fill="#fff" stroke={accent} strokeOpacity=".2" />
+      <rect x="12" y="12" width="26" height="7" rx="3.5" fill={accent} opacity=".82" />
+      <text x="44" y="18" fontSize="7.5" fontWeight="850" fill="#2c4569">{title}</text>
+      {Array.from({length:lines}).map((_,i)=>(
+        <rect key={i} x="12" y={32+i*13} width={w-(i===lines-1?42:25)} height="5" rx="2.5" fill="#c7d5e6" opacity={.9-i*.12} />
+      ))}
+      {badge ? <g transform={`translate(${w-34} ${h-27})`}><rect width="22" height="16" rx="6" fill={accent} opacity=".11" /><text x="11" y="11" textAnchor="middle" fontSize="7" fontWeight="850" fill={accent}>{badge}</text></g> : null}
     </g>
   );
 }
 
-function QuestionScene({ c }) {
+function Donut({ x, y, color, percent=72, r=24 }) {
+  const circumference=2*Math.PI*r;
+  const dash=circumference*(percent/100);
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <circle cx="0" cy="0" r={r} fill="none" stroke="#e7edf5" strokeWidth="8" />
+      <circle cx="0" cy="0" r={r} fill="none" stroke={color} strokeWidth="8" strokeLinecap="round"
+        strokeDasharray={`${dash} ${circumference-dash}`} transform="rotate(-90)" />
+      <text x="0" y="4" textAnchor="middle" fontSize="11" fontWeight="850" fill="#17315d">{percent}%</text>
+    </g>
+  );
+}
+
+function BarChart({ x, y, accent, accent2, values=[36,58,78,92], width=120, height=84 }) {
+  const barW=16;
+  const gap=(width-values.length*barW)/(values.length-1);
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <line x1="0" y1={height} x2={width} y2={height} stroke="#dfe7f1" strokeWidth="2" />
+      {values.map((v,i)=>{
+        const h=Math.max(12,(v/100)*height);
+        const bx=i*(barW+gap);
+        return <rect key={i} x={bx} y={height-h} width={barW} height={h} rx="6" fill={i===values.length-1?accent:accent2} opacity={.6+i*.1} />;
+      })}
+    </g>
+  );
+}
+
+function Connector({ x1,y1,x2,y2,color, dashed=false }) {
+  const mid=(x1+x2)/2;
+  return <path d={`M${x1} ${y1} C${mid} ${y1},${mid} ${y2},${x2} ${y2}`} fill="none" stroke={color} strokeWidth="3" strokeLinecap="round" strokeDasharray={dashed?'5 6':undefined} opacity=".5" />;
+}
+
+function Node({ x,y,label,color,w=76 }) {
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <rect width={w} height="34" rx="11" fill="#fff" stroke={color} strokeOpacity=".22" />
+      <circle cx="15" cy="17" r="7" fill={color} opacity=".15" />
+      <circle cx="15" cy="17" r="3" fill={color} />
+      <text x="29" y="21" fontSize="8.4" fontWeight="800" fill="#264464">{label}</text>
+    </g>
+  );
+}
+
+function QuestionsScene({ c }) {
   return (
     <>
-      <Books accent={c.accent} x={92} y={196} />
-      <FloatingChip x={178} y={54} width={92} label="Reading" color={c.accent} icon="Aa" />
-      <FloatingChip x={180} y={98} width={90} label="Grammar" color="#22b573" icon="✓" />
-      <TinySpark x={230} y={164} color="#ffc247" />
-      <circle cx="238" cy="174" r="22" fill="#fff3bd" />
-      <path d="M238 157c-9 0-16 7-16 16 0 6 3 10 8 13v8h16v-8c5-3 8-7 8-13 0-9-7-16-16-16Z" fill="#ffbf29" />
-      <IllustratedStudent accent={c.accent} shirt={c.shirt} />
+      <DocumentCard x={76} y={54} w={132} h={96} accent={c.accent} title="QUESTION" badge="B1" />
+      <DocumentCard x={110} y={80} w={132} h={96} accent={c.accent2} title="READING" badge="A" />
+      <GlassPanel x={254} y={58} w={174} h={118} accent={c.accent}>
+        <text x="16" y="25" fontSize="9" fontWeight="850" fill="#3a5578">QUESTION BANK</text>
+        <rect x="16" y="38" width="116" height="7" rx="3.5" fill="#d9e5f2" />
+        <rect x="16" y="53" width="94" height="7" rx="3.5" fill="#d9e5f2" />
+        <rect x="16" y="71" width="74" height="20" rx="7" fill={c.accent} opacity=".1" />
+        <text x="53" y="85" textAnchor="middle" fontSize="8" fontWeight="850" fill={c.accent}>1887 ITEMS</text>
+        <Donut x={140} y={75} color={c.accent} percent={86} r={20} />
+      </GlassPanel>
+      <Node x={236} y={184} label="Grammar" color="#22b573" />
+      <Node x={325} y={184} label="Reading" color={c.accent} />
+      <Connector x1={208} y1={126} x2={260} y2={184} color={c.accent} dashed />
+      <Connector x1={242} y1={128} x2={350} y2={184} color={c.accent2} dashed />
     </>
   );
 }
 
-function BundleScene({ c }) {
+function BundlesScene({ c }) {
   return (
     <>
-      <g transform="translate(85 65)">
-        {[0,1,2].map((i) => (
-          <g key={i} transform={`translate(${i*34} ${i*25})`}>
-            <rect width="118" height="68" rx="13" fill="#fff" stroke={c.accent} strokeOpacity=".2" />
-            <rect x="13" y="15" width="24" height="24" rx="7" fill={i===0?'#e9f3ff':i===1?'#ecfbf4':'#fff5da'} />
-            <path d="M47 18h52M47 30h41M13 51h86" stroke="#b6c4d4" strokeWidth="5" strokeLinecap="round" opacity=".65" />
-          </g>
-        ))}
-      </g>
-      <FloatingChip x={206} y={50} label="Reading" color={c.accent} />
-      <FloatingChip x={213} y={92} label="Vocabulary" color="#7b5cf5" />
-      <IllustratedStudent accent={c.accent} shirt={c.shirt} />
+      {[0,1,2].map(i=>(
+        <g key={i} transform={`translate(${80+i*48} ${52+i*34})`}>
+          <rect width="145" height="82" rx="15" fill="#fff" stroke={c.accent} strokeOpacity=".18" />
+          <rect x="14" y="15" width="30" height="30" rx="10" fill={i===0?c.soft:i===1?'#eafaf4':'#fff5df'} />
+          <rect x="54" y="18" width="70" height="7" rx="3.5" fill="#b9c8da" />
+          <rect x="54" y="34" width="55" height="5" rx="2.5" fill="#d2dce8" />
+          <rect x="14" y="58" width="42" height="12" rx="6" fill={c.accent} opacity=".09" />
+          <rect x="63" y="58" width="52" height="12" rx="6" fill={c.accent2} opacity=".1" />
+        </g>
+      ))}
+      <MiniMetric x={300} y={62} color={c.accent} label="BUNDLES" value="304" w={92} />
+      <MiniMetric x={318} y={119} color={c.accent2} label="APPROVED" value="201" w={100} />
+      <Spark x={430} y={78} color={c.accent2} size={8} />
     </>
   );
 }
@@ -172,41 +145,41 @@ function BundleScene({ c }) {
 function ManageScene({ c }) {
   return (
     <>
-      <g transform="translate(82 62)">
-        <rect width="142" height="128" rx="18" fill="#fff" stroke={c.accent} strokeOpacity=".2" />
-        <text x="18" y="27" fontSize="12" fontWeight="800" fill="#23405f">CONTROL</text>
-        <rect x="18" y="39" width="88" height="10" rx="5" fill="#dbe8f6" />
-        <rect x="18" y="60" width="38" height="38" rx="10" fill="#eaf3ff" />
-        <rect x="65" y="60" width="38" height="38" rx="10" fill="#ecfaf3" />
-        <rect x="112" y="60" width="18" height="38" rx="7" fill="#fff3dc" />
-        <path d="M25 88l10-12 10 6 8-18" fill="none" stroke={c.accent2} strokeWidth="4" strokeLinecap="round" />
-        <path d="M73 87l8-8 7 4 8-15" fill="none" stroke="#23b97d" strokeWidth="4" strokeLinecap="round" />
-        <rect x="18" y="108" width="112" height="7" rx="3.5" fill="#c9d8e7" opacity=".65" />
-      </g>
-      <g transform="translate(223 74)">
-        <circle cx="24" cy="24" r="24" fill="#fff1df" />
-        <path d="M24 7v7M24 34v7M7 24h7M34 24h7M12 12l5 5M31 31l5 5M36 12l-5 5M17 31l-5 5" stroke={c.accent2} strokeWidth="4" strokeLinecap="round" />
-        <circle cx="24" cy="24" r="8" fill={c.accent2} />
-      </g>
-      <IllustratedStudent accent={c.accent} shirt={c.shirt} />
+      <GlassPanel x={72} y={48} w={190} h={142} accent={c.accent}>
+        <text x="16" y="26" fontSize="9" fontWeight="850" fill="#355274">CONTROL CENTER</text>
+        <MiniMetric x={15} y={42} color={c.accent} label="TOTAL" value="1887" w={74} />
+        <MiniMetric x={98} y={42} color="#18a76f" label="READY" value="71%" w={74} />
+        <BarChart x={20} y={103} accent={c.accent2} accent2={c.accent} values={[36,50,68,84]} width={140} height={28} />
+      </GlassPanel>
+      <GlassPanel x={285} y={68} w={148} h={104} accent={c.accent2}>
+        <text x="16" y="24" fontSize="8.5" fontWeight="850" fill="#385475">QUEUE</text>
+        {[['Duplicates','337'],['Unused','1469'],['Metadata','95']].map((row,i)=>(
+          <g key={row[0]} transform={`translate(16 ${38+i*20})`}>
+            <circle cx="5" cy="5" r="4" fill={i===0?'#ff7f69':i===1?'#7654ed':'#2b96ed'} opacity=".85" />
+            <text x="16" y="8" fontSize="7.5" fontWeight="700" fill="#5c6f88">{row[0]}</text>
+            <text x="110" y="8" textAnchor="end" fontSize="8" fontWeight="850" fill="#16315d">{row[1]}</text>
+          </g>
+        ))}
+      </GlassPanel>
+      <Connector x1={262} y1={112} x2={285} y2={112} color={c.accent2} />
     </>
   );
 }
 
-function BlueprintScene({ c }) {
+function BlueprintsScene({ c }) {
   return (
     <>
-      <g transform="translate(82 62)">
-        <rect width="154" height="124" rx="18" fill="#fff" stroke={c.accent} strokeOpacity=".2" />
-        <rect x="18" y="17" width="118" height="18" rx="7" fill={c.soft} />
-        <text x="28" y="30" fontSize="11" fontWeight="800" fill={c.accent}>TEST BLUEPRINT</text>
-        {[0,1,2,3].map(r => [0,1,2,3].map(col => (
-          <rect key={r+'-'+col} x={20+col*28} y={48+r*16} width="24" height="12" rx="3" fill={(r+col)%3===0?c.accent:'#e8edf5'} opacity={(r+col)%3===0?.75:1} />
+      <GlassPanel x={70} y={46} w={224} h={150} accent={c.accent}>
+        <text x="16" y="25" fontSize="9" fontWeight="850" fill="#3f4f73">ASSESSMENT BLUEPRINT</text>
+        {Array.from({length:4}).map((_,r)=>Array.from({length:5}).map((__,col)=>(
+          <rect key={r+'-'+col} x={18+col*36} y={45+r*24} width="28" height="15" rx="4"
+            fill={(r+col)%3===0?c.accent:'#edf0f7'} opacity={(r+col)%3===0?.82:1} />
         )))}
-      </g>
-      <FloatingChip x={212} y={58} label="Plan" color={c.accent} />
-      <FloatingChip x={216} y={100} label="Assess" color="#22b573" />
-      <IllustratedStudent accent={c.accent} shirt={c.shirt} />
+      </GlassPanel>
+      <MiniMetric x={320} y={58} color={c.accent} label="TOTAL" value="40" />
+      <Node x={326} y={118} label="Plan" color={c.accent} w={82} />
+      <Node x={326} y={160} label="Assess" color="#22b573" w={82} />
+      <Connector x1={294} y1={96} x2={326} y2={135} color={c.accent} />
     </>
   );
 }
@@ -214,21 +187,21 @@ function BlueprintScene({ c }) {
 function CoverageScene({ c }) {
   return (
     <>
-      <g transform="translate(80 74)">
-        {[0,1,2,3,4].map((i) => <rect key={i} x={i*29} y={90-(i*17)} width="20" height={38+i*17} rx="7" fill={i%2?c.accent2:c.accent} opacity={.65+.07*i} />)}
-        <path d="M0 100 C34 78 50 86 80 54 S126 41 145 25" fill="none" stroke="#23b97d" strokeWidth="5" strokeLinecap="round" />
-      </g>
-      <g transform="translate(204 57)">
-        <rect width="82" height="100" rx="16" fill="#fff" stroke={c.accent} strokeOpacity=".18" />
-        {[0,1,2].map(i => (
-          <g key={i} transform={`translate(14 ${17+i*25})`}>
-            <rect width="13" height="13" rx="4" fill="#22b573" />
-            <path d="M3 7l3 3 5-6" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            <rect x="22" y="3" width="40" height="6" rx="3" fill="#c8d7e8" />
+      <GlassPanel x={70} y={48} w={214} h={144} accent={c.accent}>
+        <text x="16" y="24" fontSize="9" fontWeight="850" fill="#385474">COVERAGE MAP</text>
+        <BarChart x={18} y={45} accent={c.accent} accent2={c.accent2} values={[42,58,72,88,100]} width={154} height={68} />
+        <path d="M18 105 C46 88 72 94 98 68 S143 47 173 31" fill="none" stroke={c.accent2} strokeWidth="4" strokeLinecap="round" />
+      </GlassPanel>
+      <GlassPanel x={308} y={58} w={120} h={124} accent={c.accent2}>
+        <text x="14" y="22" fontSize="8.5" fontWeight="850" fill="#34536f">TARGET</text>
+        {[0,1,2].map(i=>(
+          <g key={i} transform={`translate(14 ${37+i*25})`}>
+            <rect width="14" height="14" rx="4" fill={c.accent2} />
+            <path d="M3 7l3 3 5-6" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+            <rect x="24" y="4" width={54-i*8} height="6" rx="3" fill="#c9d8e7" />
           </g>
         ))}
-      </g>
-      <IllustratedStudent accent={c.accent} shirt={c.shirt} />
+      </GlassPanel>
     </>
   );
 }
@@ -236,13 +209,18 @@ function CoverageScene({ c }) {
 function QualityScene({ c }) {
   return (
     <>
-      <g transform="translate(102 55)">
-        <path d="M55 0 99 14v36c0 34-21 55-44 66C32 105 11 84 11 50V14L55 0Z" fill={c.accent} />
-        <path d="M35 54l14 14 29-33" fill="none" stroke="#fff" strokeWidth="9" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M55 8v98" stroke="#fff" strokeOpacity=".11" strokeWidth="2" />
+      <g transform="translate(82 50)">
+        <path d="M68 0 120 17v44c0 39-25 64-52 77C41 125 16 100 16 61V17L68 0Z" fill={c.accent} />
+        <path d="M43 64l17 17 36-42" fill="none" stroke="#fff" strokeWidth="10" strokeLinecap="round" strokeLinejoin="round" />
       </g>
-      <Books accent={c.accent} x={154} y={205} />
-      <IllustratedStudent accent={c.accent} shirt={c.shirt} />
+      <GlassPanel x={235} y={55} w={190} h={132} accent={c.accent}>
+        <text x="16" y="25" fontSize="9" fontWeight="850" fill="#35506d">GOLDEN BANK</text>
+        <MiniMetric x={15} y={40} color="#18a76f" label="READY" value="1332" w={76} />
+        <MiniMetric x={99} y={40} color="#f1a51e" label="REVIEW" value="100" w={76} />
+        <rect x="16" y="101" width="150" height="10" rx="5" fill="#e8eef4" />
+        <rect x="16" y="101" width="112" height="10" rx="5" fill={c.accent} />
+        <text x="16" y="124" fontSize="7.5" fontWeight="750" fill="#6b7d91">STRUCTURAL HEALTH 75%</text>
+      </GlassPanel>
     </>
   );
 }
@@ -250,19 +228,24 @@ function QualityScene({ c }) {
 function BuilderScene({ c }) {
   return (
     <>
-      <g transform="translate(78 80)">
-        <rect width="74" height="42" rx="10" fill="#5b57ed" />
-        <rect x="25" y="50" width="88" height="42" rx="10" fill="#8955ee" />
-        <rect x="52" y="100" width="97" height="42" rx="10" fill="#ffb82d" />
-        <text x="37" y="26" fill="#fff" fontSize="10" fontWeight="800">SELECT</text>
-        <text x="45" y="76" fill="#fff" fontSize="10" fontWeight="800">CUSTOMIZE</text>
-        <text x="75" y="126" fill="#fff" fontSize="10" fontWeight="800">CREATE</text>
-      </g>
-      <g transform="translate(210 68)">
-        <path d="M28 0h24a8 8 0 0 1 8 8v17h17a8 8 0 0 1 8 8v24a8 8 0 0 1-8 8H60v17a8 8 0 0 1-8 8H28a8 8 0 0 1-8-8V65H3a8 8 0 0 1-8-8V33a8 8 0 0 1 8-8h17V8a8 8 0 0 1 8-8Z" fill={c.accent} opacity=".9" />
-        <circle cx="40" cy="44" r="9" fill="#fff" opacity=".85" />
-      </g>
-      <IllustratedStudent accent={c.accent} shirt={c.shirt} />
+      <Node x={74} y={54} label="Select" color={c.accent} w={84} />
+      <Node x={74} y={101} label="Customize" color="#8c5cf2" w={104} />
+      <Node x={74} y={148} label="Create" color={c.accent2} w={86} />
+      <Connector x1={158} y1={71} x2={212} y2={118} color={c.accent} />
+      <Connector x1={178} y1={118} x2={212} y2={118} color="#8c5cf2" />
+      <Connector x1={160} y1={165} x2={212} y2={118} color={c.accent2} />
+      <GlassPanel x={212} y={58} w={204} h={132} accent={c.accent}>
+        <text x="16" y="24" fontSize="9" fontWeight="850" fill="#3a4f76">LIVE BLUEPRINT</text>
+        {[0,1,2,3,4].map((i)=>(
+          <g key={i} transform={`translate(${16+i*36} 48)`}>
+            <rect width="28" height="64" rx="8" fill={i%2?c.soft:'#eef5ff'} stroke={c.accent} strokeOpacity=".12" />
+            <text x="14" y="18" textAnchor="middle" fontSize="7" fontWeight="850" fill={c.accent}>P{i+1}</text>
+            <rect x="7" y="29" width="14" height="4" rx="2" fill="#bdcbe0" />
+            <rect x="7" y="39" width="11" height="4" rx="2" fill="#d0dae8" />
+            <rect x="7" y="49" width="15" height="4" rx="2" fill="#d0dae8" />
+          </g>
+        ))}
+      </GlassPanel>
     </>
   );
 }
@@ -270,25 +253,20 @@ function BuilderScene({ c }) {
 function TestsScene({ c }) {
   return (
     <>
-      <Books accent={c.accent} x={88} y={202} />
-      <g transform="translate(196 54)">
-        <rect width="92" height="122" rx="14" fill="#fff" stroke={c.accent} strokeOpacity=".2" />
-        <rect x="25" y="-8" width="42" height="19" rx="7" fill={c.accent} />
-        <text x="46" y="5" textAnchor="middle" fill="#fff" fontSize="10" fontWeight="800">EXAM</text>
-        {[0,1,2].map(i => (
-          <g key={i} transform={`translate(14 ${26+i*25})`}>
-            <rect width="13" height="13" rx="4" fill="#eaf2fb" />
-            <path d="M3 7l3 3 5-6" fill="none" stroke={c.accent} strokeWidth="2.2" />
-            <rect x="22" y="3" width="49" height="6" rx="3" fill="#bcccdc" />
-          </g>
-        ))}
-      </g>
-      <g transform="translate(275 42)">
-        <circle cx="30" cy="30" r="25" fill="#eaf3ff" />
-        <circle cx="30" cy="30" r="18" fill="#fff" stroke={c.accent} strokeWidth="3" />
-        <path d="M30 18v13l9 6" fill="none" stroke={c.accent} strokeWidth="3" strokeLinecap="round" />
-      </g>
-      <IllustratedStudent accent={c.accent} shirt={c.shirt} />
+      {[0,1,2].map((i)=>(
+        <g key={i} transform={`translate(${76+i*48} ${67+i*25})`}>
+          <rect width="124" height="92" rx="14" fill="#fff" stroke={c.accent} strokeOpacity=".18" />
+          <rect x="14" y="14" width="34" height="16" rx="6" fill={c.accent} opacity=".12" />
+          <text x="31" y="25" textAnchor="middle" fontSize="7.2" fontWeight="850" fill={c.accent}>EXAM</text>
+          {[0,1,2].map(r=><rect key={r} x="14" y={42+r*12} width={73-r*9} height="5" rx="2.5" fill="#cbd8e7" />)}
+        </g>
+      ))}
+      <GlassPanel x={300} y={56} w={128} h={120} accent={c.accent2}>
+        <text x="14" y="22" fontSize="8.5" fontWeight="850" fill="#39516f">LIBRARY</text>
+        <Donut x={40} y={68} color={c.accent} percent={94} r={21} />
+        <text x="75" y="60" fontSize="8" fontWeight="750" fill="#718197">Published</text>
+        <text x="75" y="79" fontSize="18" fontWeight="850" fill="#17315d">16</text>
+      </GlassPanel>
     </>
   );
 }
@@ -296,28 +274,24 @@ function TestsScene({ c }) {
 function ImportScene({ c }) {
   return (
     <>
-      <g transform="translate(102 76)">
-        <rect width="116" height="93" rx="18" fill="#fff" stroke={c.accent} strokeOpacity=".22" />
-        <circle cx="58" cy="37" r="28" fill="#dff4ff" />
-        <rect x="35" y="25" width="46" height="28" rx="12" fill="#2a5479" />
-        <circle cx="48" cy="39" r="4" fill="#5df5e5" />
-        <circle cx="68" cy="39" r="4" fill="#5df5e5" />
-        <path d="M45 64h27" stroke={c.accent} strokeWidth="5" strokeLinecap="round" />
-      </g>
-      <g transform="translate(216 62)">
-        <rect width="92" height="122" rx="16" fill="#fff" stroke={c.accent} strokeOpacity=".2" />
-        <rect width="92" height="22" rx="16" fill={c.accent} />
-        {[0,1,2].map(i => (
-          <g key={i} transform={`translate(15 ${40+i*25})`}>
-            <circle cx="6" cy="6" r="6" fill="#22b573" />
-            <path d="M3 6l2 2 4-5" fill="none" stroke="#fff" strokeWidth="1.8" />
-            <rect x="20" y="3" width="49" height="6" rx="3" fill="#c6d5e5" />
+      <GlassPanel x={70} y={62} w={120} h={108} accent={c.accent}>
+        <text x="14" y="23" fontSize="8.5" fontWeight="850" fill="#38516e">RAW INPUT</text>
+        {[0,1,2,3].map(i=><rect key={i} x="14" y={38+i*13} width={78-i*7} height="5" rx="2.5" fill="#c7d5e6" />)}
+      </GlassPanel>
+      <Node x={212} y={92} label="Parse" color={c.accent} w={82} />
+      <Connector x1={190} y1={116} x2={212} y2={109} color={c.accent} />
+      <Connector x1={294} y1={109} x2={320} y2={109} color={c.accent2} />
+      <GlassPanel x={320} y={52} w={118} h={132} accent={c.accent2}>
+        <text x="14" y="23" fontSize="8.5" fontWeight="850" fill="#36536d">STRUCTURE</text>
+        {[0,1,2].map(i=>(
+          <g key={i} transform={`translate(14 ${42+i*25})`}>
+            <circle cx="7" cy="7" r="7" fill={c.accent2} />
+            <path d="M3 7l3 3 5-6" fill="none" stroke="#fff" strokeWidth="2" />
+            <rect x="22" y="4" width={58-i*8} height="6" rx="3" fill="#c8d6e5" />
           </g>
         ))}
-      </g>
-      <path d="M205 112h18" stroke={c.accent2} strokeWidth="6" strokeLinecap="round" />
-      <path d="m218 103 10 9-10 9" fill="none" stroke={c.accent2} strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-      <IllustratedStudent accent={c.accent} shirt={c.shirt} />
+      </GlassPanel>
+      <Spark x={303} y={75} color={c.accent2} size={7} />
     </>
   );
 }
@@ -325,63 +299,65 @@ function ImportScene({ c }) {
 function ApiScene({ c }) {
   return (
     <>
-      <g transform="translate(86 70)">
-        <rect width="145" height="104" rx="17" fill="#103844" />
-        <path d="m40 37-19 16 19 16M105 37l19 16-19 16M82 24 62 82" fill="none" stroke="#2ee196" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" />
-      </g>
-      {['API','ChatGPT','Plugin'].map((label,i) => (
-        <g key={label} transform={`translate(242 ${58+i*43})`}>
-          <rect width="84" height="32" rx="10" fill="#fff" stroke={c.accent} strokeOpacity=".25" />
-          <text x="42" y="21" textAnchor="middle" fontSize="11" fontWeight="800" fill="#135d48">{label}</text>
-          <path d="M84 16h24" stroke="#24c67f" strokeWidth="3" />
-        </g>
-      ))}
-      <IllustratedStudent accent={c.accent} shirt={c.shirt} />
+      <GlassPanel x={66} y={56} w={152} h={126} accent={c.accent2}>
+        <rect x="14" y="14" width="124" height="88" rx="12" fill="#0d3340" />
+        <path d="m50 44-18 15 18 15M102 44l18 15-18 15M82 34 66 82" fill="none" stroke="#36dda0" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+        <text x="14" y="117" fontSize="7.5" fontWeight="780" fill="#5d7488">OPENAPI CONNECTOR</text>
+      </GlassPanel>
+      <Node x={276} y={52} label="Brian" color={c.accent} w={86} />
+      <Node x={334} y={105} label="ChatGPT" color="#16a36b" w={98} />
+      <Node x={276} y={158} label="Plugin" color="#0a5060" w={86} />
+      <Connector x1={218} y1={119} x2={276} y2={69} color={c.accent} />
+      <Connector x1={218} y1={119} x2={334} y2={122} color="#16a36b" />
+      <Connector x1={218} y1={119} x2={276} y2={175} color="#0a5060" />
     </>
   );
 }
 
-const SCENE_RENDERERS = {
-  questions: QuestionScene,
-  bundles: BundleScene,
-  manage: ManageScene,
-  blueprints: BlueprintScene,
-  coverage: CoverageScene,
-  quality: QualityScene,
-  builder: BuilderScene,
-  tests: TestsScene,
-  import: ImportScene,
-  chatgpt: ApiScene,
+const SCENE_RENDERERS={
+  questions:QuestionsScene,
+  bundles:BundlesScene,
+  manage:ManageScene,
+  blueprints:BlueprintsScene,
+  coverage:CoverageScene,
+  quality:QualityScene,
+  builder:BuilderScene,
+  tests:TestsScene,
+  import:ImportScene,
+  chatgpt:ApiScene,
 };
 
-export default function AssessmentCoreHeroGraphic({ tab = 'questions' }) {
-  const c = SCENES[tab] || SCENES.questions;
-  const Scene = SCENE_RENDERERS[tab] || QuestionScene;
+export default function AssessmentCoreHeroGraphic({ tab='questions' }) {
+  const c=SCENES[tab] || SCENES.questions;
+  const Scene=SCENE_RENDERERS[tab] || QuestionsScene;
+  const gradientId=`qbHeroGlow-${tab}`;
+  const floorId=`qbHeroFloor-${tab}`;
+
   return (
-    <div className="qb-v6-hero-graphic" style={{ '--qb-accent': c.accent, '--qb-accent-2': c.accent2 }}>
+    <div className="qb-v6-hero-graphic qb-v7-hero-graphic" style={{'--qb-accent':c.accent,'--qb-accent-2':c.accent2}}>
       <svg viewBox="0 0 520 250" role="img" aria-label="">
         <defs>
-          <linearGradient id="qbGlow" x1="0" x2="1" y1="0" y2="1">
-            <stop offset="0%" stopColor={c.soft} stopOpacity="0.2" />
-            <stop offset="100%" stopColor={c.accent} stopOpacity="0.16" />
+          <linearGradient id={gradientId} x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0%" stopColor={c.soft} stopOpacity=".16" />
+            <stop offset="100%" stopColor={c.accent} stopOpacity=".11" />
           </linearGradient>
-          <linearGradient id="qbFloor" x1="0" x2="1">
-            <stop offset="0%" stopColor={c.accent} stopOpacity="0.03" />
-            <stop offset="50%" stopColor={c.accent2} stopOpacity="0.12" />
-            <stop offset="100%" stopColor={c.accent} stopOpacity="0.03" />
+          <linearGradient id={floorId} x1="0" x2="1">
+            <stop offset="0%" stopColor={c.accent} stopOpacity=".02" />
+            <stop offset="50%" stopColor={c.accent2} stopOpacity=".10" />
+            <stop offset="100%" stopColor={c.accent} stopOpacity=".02" />
           </linearGradient>
         </defs>
-        <path d="M0 180C87 123 143 207 229 153s160-109 291-56v153H0Z" fill="url(#qbGlow)" />
-        <ellipse cx="290" cy="218" rx="218" ry="24" fill="url(#qbFloor)" />
-        <circle cx="454" cy="48" r="50" fill={c.accent} opacity=".035" />
-        <circle cx="465" cy="46" r="30" fill={c.accent2} opacity=".05" />
+        <path d="M18 196C118 132 164 205 250 155s146-91 248-57v135H18Z" fill={`url(#${gradientId})`} />
+        <ellipse cx="278" cy="216" rx="218" ry="21" fill={`url(#${floorId})`} />
+        <circle cx="448" cy="46" r="52" fill={c.accent} opacity=".03" />
+        <circle cx="462" cy="48" r="31" fill={c.accent2} opacity=".045" />
         <Scene c={c} />
-        <TinySpark x={456} y={77} color={c.accent2} size={8} />
-        <TinySpark x={430} y={130} color="#ffc249" size={6} />
+        <Spark x={457} y={77} color={c.accent2} size={7} opacity=".72" />
+        <Spark x={431} y={134} color={c.accent} size={5} opacity=".58" />
       </svg>
-      <div className="qb-v6-handwritten" aria-hidden="true">
-        <span>{c.phrase[0]}</span>
-        <span>{c.phrase[1]}</span>
+      <div className="qb-v7-hero-label" aria-hidden="true">
+        <small>{c.eyebrow}</small>
+        <strong>{c.phrase}</strong>
       </div>
     </div>
   );

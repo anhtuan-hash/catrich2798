@@ -60,14 +60,15 @@ test('Question Bank exposes the zero-cost ChatGPT paste-import workspace', async
   await expect(page.locator('.qb-paste-textarea textarea')).toBeVisible();
 });
 
-test('Assessment Core V6 keeps illustrated horizontal navigation across all modules', async ({ page }) => {
+test('Assessment Core V7 keeps premium horizontal navigation across all modules', async ({ page }) => {
   await page.setViewportSize({ width: 1536, height: 960 });
   await openQuestionBank(page);
 
-  await expect(page.locator('.qb-shell.qb-shell-v6')).toBeVisible();
+  await expect(page.locator('.qb-shell.qb-shell-v7')).toBeVisible();
   await expect(page.locator('.qb-tabs-horizontal button')).toHaveCount(10);
   await expect(page.locator('.qb-v6-hero')).toBeVisible();
-  await expect(page.locator('.qb-v6-hero-graphic svg')).toBeVisible();
+  await expect(page.locator('.qb-v7-hero-graphic svg')).toBeVisible();
+  await expect(page.locator('.qb-v7-hero-label')).toBeVisible();
 
   const modules = [
     ['Kho câu hỏi', 'questions'],
@@ -84,8 +85,30 @@ test('Assessment Core V6 keeps illustrated horizontal navigation across all modu
 
   for (const [label, tab] of modules) {
     await page.getByRole('button', { name: label, exact: true }).first().click();
-    await expect(page.locator('.qb-shell.qb-shell-v6')).toHaveAttribute('data-qb-tab', tab);
+    await expect(page.locator('.qb-shell.qb-shell-v7')).toHaveAttribute('data-qb-tab', tab);
     await expect(page.locator('.qb-v6-hero')).toBeVisible();
-    await expect(page.locator('.qb-v6-hero-graphic svg')).toBeVisible();
+    await expect(page.locator('.qb-v7-hero-graphic svg')).toBeVisible();
+    await expect(page.locator('.qb-v7-hero-label')).toBeVisible();
   }
 });
+
+test('Assessment Core V7 uses compact footer without the profile cards', async ({ page }) => {
+  await page.setViewportSize({ width: 1536, height: 960 });
+  await openQuestionBank(page);
+
+  const footer = page.locator('footer[data-app-shell-footer="true"]');
+  await expect(footer).toHaveAttribute('data-footer-mode', 'compact');
+  await expect(footer.locator('.signature-footer-static-summary')).toBeVisible();
+  await expect(footer.locator('.signature-footer-expanded-panel')).toHaveCount(0);
+  await expect(footer.getByText(/English Hub v/i)).toBeVisible();
+});
+
+test('Assessment Core V7 hero is product graphics only', async ({ page }) => {
+  await page.setViewportSize({ width: 1536, height: 960 });
+  await openQuestionBank(page);
+
+  await expect(page.locator('.qb-v7-hero-graphic svg')).toBeVisible();
+  await expect(page.locator('.qb-v6-handwritten')).toHaveCount(0);
+  await expect(page.locator('.qb-v7-hero-label')).toBeVisible();
+});
+

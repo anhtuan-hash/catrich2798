@@ -1297,10 +1297,32 @@ export default function QuestionBankManagementSuite({
             <article><span>Chưa dùng</span><strong>{dashboard.unused}</strong><small>{dashboard.heavy} câu dùng ≥ 4 lần</small></article>
             <article><span>Thiếu metadata</span><strong>{dashboard.missingMetadata}</strong><small>topic / CEFR / nhận thức / độ khó</small></article>
           </div>
-          <div className="qb-admin-dashboard-grid">
-            <article><h3>Vòng đời câu hỏi</h3>{Object.entries(dashboard.statuses).map(([key,value]) => <div key={key}><span>{localStatus(key)}</span><b>{value}</b></div>)}</article>
-            <article><h3>Phạm vi chia sẻ</h3>{Object.entries(dashboard.visibility).map(([key,value]) => <div key={key}><span>{key === 'department' ? 'Tổ chuyên môn' : 'Cá nhân'}</span><b>{value}</b></div>)}</article>
-            <article><h3>Việc cần xử lý</h3><div><span>Duyệt câu đang chờ</span><b>{dashboard.statuses.review || 0}</b></div><div><span>Nhóm trùng cần xem</span><b>{dashboard.duplicateGroups}</b></div><div><span>Câu chưa dùng</span><b>{dashboard.unused}</b></div></article>
+          <div className="qb-admin-dashboard-grid qb-v7-admin-dashboard-grid">
+            <article>
+              <div className="qb-v7-admin-card-head"><h3>Vòng đời câu hỏi</h3><span>Lifecycle</span></div>
+              {Object.entries(dashboard.statuses).map(([key,value]) => {
+                const ratio = Math.min(100, Math.round(Number(value || 0) / Math.max(1, Number(dashboard.total || 0)) * 100));
+                return <div className="qb-v7-admin-row" key={key}><span>{localStatus(key)}</span><b>{value}</b><i><em style={{ width: `${ratio}%` }} /></i></div>;
+              })}
+            </article>
+            <article>
+              <div className="qb-v7-admin-card-head"><h3>Phạm vi chia sẻ</h3><span>Visibility</span></div>
+              {Object.entries(dashboard.visibility).map(([key,value]) => {
+                const ratio = Math.min(100, Math.round(Number(value || 0) / Math.max(1, Number(dashboard.total || 0)) * 100));
+                return <div className="qb-v7-admin-row" key={key}><span>{key === 'department' ? 'Tổ chuyên môn' : 'Cá nhân'}</span><b>{value}</b><i><em style={{ width: `${ratio}%` }} /></i></div>;
+              })}
+            </article>
+            <article>
+              <div className="qb-v7-admin-card-head"><h3>Việc cần xử lý</h3><span>Action queue</span></div>
+              {[
+                ['Duyệt câu đang chờ', dashboard.statuses.review || 0],
+                ['Nhóm trùng cần xem', dashboard.duplicateGroups],
+                ['Câu chưa dùng', dashboard.unused],
+              ].map(([label,value], index) => {
+                const ratio = Math.min(100, Math.round(Number(value || 0) / Math.max(1, Number(dashboard.total || 0)) * 100));
+                return <div className={`qb-v7-admin-row is-action action-${index+1}`} key={label}><span>{label}</span><b>{value}</b><i><em style={{ width: `${ratio}%` }} /></i></div>;
+              })}
+            </article>
           </div>
         </section>
       ) : null}
