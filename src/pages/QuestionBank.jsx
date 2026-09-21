@@ -81,52 +81,52 @@ const TAB_META = {
   questions: {
     kicker: 'CONTENT LIBRARY',
     title: 'Ngân hàng câu hỏi',
-    subtitle: 'Lưu, tìm kiếm và tổ chức câu hỏi theo đúng cấu trúc giảng dạy của Brian.',
+    subtitle: 'Hệ thống câu hỏi chuẩn hóa, đa dạng và luôn được cập nhật, phục vụ dạy học, kiểm tra và đánh giá toàn diện năng lực tiếng Anh.',
   },
   bundles: {
     kicker: 'CONTEXT LIBRARY',
     title: 'Chùm bài',
-    subtitle: 'Quản lý ngữ liệu dùng chung và toàn bộ câu hỏi đi kèm theo đúng thứ tự.',
+    subtitle: 'Các bài học được nhóm theo chủ đề, bám sát chương trình và giữ nguyên ngữ liệu chung để luyện tập có chiều sâu.',
   },
   manage: {
     kicker: 'CONTROL CENTER',
     title: 'Quản trị ngân hàng',
-    subtitle: 'Kiểm soát vòng đời câu hỏi, duyệt nội dung, trùng lặp, phân loại và lịch sử thay đổi.',
+    subtitle: 'Quản lý, kiểm soát và tối ưu ngân hàng câu hỏi để đảm bảo chất lượng, tính nhất quán và khả năng sử dụng trong toàn hệ thống.',
   },
   blueprints: {
     kicker: 'BLUEPRINT STUDIO',
     title: 'Ma trận đề',
-    subtitle: 'Thiết kế và lưu cấu trúc đề để tái sử dụng ổn định trong nhiều lần tạo đề.',
+    subtitle: 'Thiết kế khung cấu trúc đề theo chuẩn năng lực, bám sát chương trình và mục tiêu đánh giá; lưu để tái sử dụng ổn định.',
   },
   coverage: {
     kicker: 'COVERAGE PLANNER',
     title: 'Phủ ma trận',
-    subtitle: 'Đo mức độ sẵn sàng của kho và phát hiện chính xác phần nội dung còn thiếu.',
+    subtitle: 'Phân tích độ phủ nội dung theo ma trận, xác định khoảng trống và đề xuất bổ sung để tạo nhiều đề không trùng.',
   },
   quality: {
     kicker: 'QUALITY CONTROL',
     title: 'Chất lượng ngân hàng',
-    subtitle: 'Theo dõi độ sạch, khả năng sử dụng và các lỗi cần xử lý trước khi ra đề.',
+    subtitle: 'Kiểm soát chất lượng, đảm bảo ma trận, theo dõi dữ liệu học sinh và gom hàng đợi cần duyệt trên cùng một màn hình.',
   },
   builder: {
     kicker: 'TEST BUILDER',
     title: 'Tạo đề từ ngân hàng',
-    subtitle: 'Ráp đề trực tiếp từ câu hỏi đã lưu, giữ nguyên chùm ngữ liệu và không phát sinh phí AI.',
+    subtitle: 'Kết hợp sức mạnh dữ liệu để tạo đề nhanh, chính xác và phù hợp với mục tiêu đánh giá, không làm mất ngữ liệu chung.',
   },
   tests: {
     kicker: 'ASSESSMENT LIBRARY',
     title: 'Đề thi',
-    subtitle: 'Lưu trữ, mở lại, quản lý và xuất các đề đã tạo trong Brian.',
+    subtitle: 'Kho đề thi được tổ chức rõ ràng, hỗ trợ mở lại, quản lý, xuất đề và tái sử dụng nhanh trong dạy học và kiểm tra.',
   },
   import: {
     kicker: 'ZERO-COST IMPORT',
     title: 'Nhập nội dung từ ChatGPT',
-    subtitle: 'Dán nội dung, kiểm tra cấu trúc và xem trước trước khi lưu vào ngân hàng.',
+    subtitle: 'Chuyển nội dung đề, câu hỏi và bài tập từ ChatGPT vào Brian; kiểm tra cấu trúc, chuẩn hóa metadata rồi mới lưu.',
   },
   chatgpt: {
     kicker: 'DEVELOPER CONNECTOR',
     title: 'API / Plugin',
-    subtitle: 'Kết nối Brian với ChatGPT và các ứng dụng khác bằng các action đã được chuẩn hóa.',
+    subtitle: 'Kết nối sức mạnh AI với ngân hàng câu hỏi Brian English bằng OpenAPI và các action chuẩn hóa, an toàn và dễ mở rộng.',
   },
 };
 
