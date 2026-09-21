@@ -43,6 +43,25 @@ const VIETNAMESE_DETAILS = {
 };
 
 function DetailRow({ type, children }) {
+  if (compact) {
+    return (
+      <footer
+        className={`footer footer-v10 signature-footer-v75 signature-footer-v50 signature-footer-collapsible signature-footer-assessment-compact ${isVi ? 'signature-footer-v50-vi' : 'signature-footer-v50-en'}`}
+        aria-label={isVi ? 'Thông tin English Hub' : 'English Hub information'}
+        data-app-shell-footer="true"
+        data-footer-mode="compact"
+      >
+        <div className="signature-footer-static-summary">
+          <span className="signature-footer-summary">
+            <strong>English Hub v{APP_VERSION}</strong>
+            <span className="signature-footer-summary-separator" aria-hidden="true">•</span>
+            <span>{content.copyright}</span>
+          </span>
+        </div>
+      </footer>
+    );
+  }
+
   return (
     <li className={`signature-footer-v50-detail detail-${type}`}>
       <span className="signature-footer-v50-detail-icon" aria-hidden="true" />
