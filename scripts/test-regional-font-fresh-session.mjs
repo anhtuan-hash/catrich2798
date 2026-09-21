@@ -35,6 +35,14 @@ assert.match(regionalRuntime, /BrianRegionalCustom/);
 assert.match(regionalRuntime, /@font-face/);
 assert.match(regionalRuntime, /root\.dataset\[attrKey\].*custom/s);
 assert.match(regionalRuntime, /--bes-font-\$\{region\.id\}/);
+assert.match(regionalRuntime, /function syncRuntimeRegionalFontFamilies/);
+assert.match(regionalRuntime, /style\.setProperty\('font-family', family, 'important'\)/);
+assert.match(regionalRuntime, /data-bes-regional-font-family-runtime/);
+assert.match(
+  regionalRuntime,
+  /MutationObserver\([\s\S]*scheduleRuntimeFontFamilySync/,
+  'regional font family runtime must reapply after React route remounts',
+);
 
 for (const selector of [
   "html[data-font-region-page-title]",
