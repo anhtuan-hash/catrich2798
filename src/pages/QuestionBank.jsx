@@ -14,7 +14,6 @@ import {
   ShieldCheck,
   Sparkles,
   Target,
-  X,
   ArrowRight,
 } from 'lucide-react';
 import { supabase } from '../utils/supabase.js';
@@ -1856,88 +1855,20 @@ OpenAPI: ${openApiUrl}`;
         </div>
       ) : null}
 
-      {!loading && activeTab === 'questions' && selectedQuestionPreview ? (
-        <div className="qb-question-drawer-layer" role="presentation" onMouseDown={(event) => {
-          if (event.target === event.currentTarget) setSelectedQuestionPreviewId('');
-        }}>
-          <aside className="qb-question-drawer" role="dialog" aria-modal="true" aria-label="Chi tiết câu hỏi">
-            <header>
-              <div>
-                <p>QUESTION PREVIEW</p>
-                <h3>Chi tiết câu hỏi</h3>
-              </div>
-              <button type="button" className="qb-drawer-close" onClick={() => setSelectedQuestionPreviewId('')} aria-label="Đóng">
-                <X size={18} />
-              </button>
-            </header>
-
-            <div className="qb-drawer-meta">
-              {selectedQuestionPreview.grade ? <span>Khối {selectedQuestionPreview.grade}</span> : null}
-              {selectedQuestionPreview.cefr ? <span>{selectedQuestionPreview.cefr}</span> : null}
-              <span>{selectedQuestionPreview.skill || 'Use of English'}</span>
-              <span>{cognitiveLabel(selectedQuestionPreview.cognitive_level)}</span>
-              {text(selectedQuestionPreview.source_kind).startsWith('chatgpt') ? <span className="is-chatgpt">ChatGPT</span> : null}
-            </div>
-
-            <section className="qb-drawer-question">
-              <small>NỘI DUNG</small>
-              <strong>{displayQuestionStem(selectedQuestionPreview.stem, selectedQuestionPreview.bundle_position)}</strong>
-            </section>
-
-            {Array.isArray(selectedQuestionPreview.options) && selectedQuestionPreview.options.length ? (
-              <div className="qb-drawer-options">
-                {selectedQuestionPreview.options.map((option, optionIndex) => {
-                  const optionLabel = String.fromCharCode(65 + optionIndex);
-                  const isCorrect = optionLabel === answerLabel(selectedQuestionPreview.correct_answer).toUpperCase();
-                  return (
-                    <div className={isCorrect ? 'is-correct' : ''} key={optionIndex}>
-                      <b>{optionLabel}</b>
-                      <span>{option}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : null}
-
-            <div className="qb-drawer-facts">
-              <div><span>Chủ đề</span><b>{selectedQuestionPreview.topic || 'Chưa gắn'}</b></div>
-              <div><span>Grammar</span><b>{selectedQuestionPreview.grammar_point || '—'}</b></div>
-              <div><span>Trạng thái</span><b>{statusLabel(selectedQuestionPreview.status)}</b></div>
-              <div><span>Cập nhật</span><b>{formatShortDate(selectedQuestionPreview.updated_at || selectedQuestionPreview.created_at)}</b></div>
-            </div>
-
-            {selectedQuestionPreview.explanation ? (
-              <section className="qb-drawer-explanation">
-                <small>GIẢI THÍCH</small>
-                <p>{selectedQuestionPreview.explanation}</p>
-              </section>
-            ) : null}
-
-            <footer>
-              <button type="button" className="qb-secondary" onClick={() => setSelectedQuestionPreviewId('')}>Đóng</button>
-              <button
-                type="button"
-                className="qb-primary"
-                onClick={() => {
-                  setManageTargetQuestionId(selectedQuestionPreview.id);
-                  setManageTargetBundleId('');
-                  setSelectedQuestionPreviewId('');
-                  setActiveTab('manage');
-                }}
-              >
-                Mở trong Quản trị <ArrowRight size={16} />
-              </button>
-            </footer>
-          </aside>
-        </div>
-      ) : null}
-
       {!loading && activeTab === 'bundles' ? (
         <div className="qb-panel">
           {!selectedBundle ? (
             <>
-              <div className="qb-section-head"><div><p>CONTEXT-AWARE BANK</p><h2>Chùm bài</h2></div><span>Bấm vào một thẻ để mở toàn bộ ngữ liệu và câu hỏi đi kèm.</span></div>
-              {bundles.length ? <div className="qb-grid">{bundles.map((bundle) => {
+              <div className="qb-section-head qb-v6-section-head"><div><p>CONTEXT-AWARE BANK</p><h2>Thư viện chùm bài</h2></div><span>Bấm vào một thẻ để mở toàn bộ ngữ liệu và câu hỏi đi kèm.</span></div>
+              <div className="qb-v6-library-toolbar">
+                <label className="qb-v6-library-search">
+                  <Search size={16} aria-hidden="true" />
+                  <input value={bundleQuery} onChange={(event) => setBundleQuery(event.target.value)} placeholder="Tìm chùm bài theo tên, chủ đề, kỹ năng…" />
+                </label>
+                <label><span>Khối lớp</span><select value={bundleGrade} onChange={(event) => setBundleGrade(event.target.value)}><option value="">Tất cả</option><option>10</option><option>11</option><option>12</option></select></label>
+                <button type="button" className="qb-primary" onClick={() => setActiveTab('import')}><Sparkles size={15} /> Nhập chùm bài</button>
+              </div>
+              {filteredBundles.length ? <div className="qb-grid qb-v6-bundle-grid">{filteredBundles.map((bundle) => {
                 const count = questions.filter((item) => item.bundle_id === bundle.id).length;
                 return <article
                   className="qb-bundle-card is-openable"
@@ -1952,6 +1883,7 @@ OpenAPI: ${openApiUrl}`;
                     }
                   }}
                 >
+                  <div className="qb-v6-bundle-icon" aria-hidden="true"><Layers3 size={22} /></div>
                   <div className="qb-bundle-top"><span>{bundle.bundle_type || 'passage'}</span><b>{count} câu</b></div>
                   <h3>{bundle.title || 'Chùm bài chưa đặt tên'}</h3>
                   <p>{compact(bundle.context_text, 360) || 'Chưa có nội dung ngữ liệu.'}</p>
@@ -2725,8 +2657,14 @@ OpenAPI: ${openApiUrl}`;
             </div>
           ) : (
             <>
-              <div className="qb-section-head"><div><p>ASSESSMENT LIBRARY</p><h2>Đề thi</h2></div><span>Bấm vào một đề để mở toàn bộ nội dung, đáp án, metadata và công cụ xuất đề.</span></div>
-              {tests.length ? <div className="qb-grid">{tests.map((test) => (
+              <div className="qb-section-head qb-v6-section-head"><div><p>ASSESSMENT LIBRARY</p><h2>Danh sách đề thi</h2></div><span>Quản lý, tìm kiếm và mở nhanh các đề thi đã tạo trong hệ thống.</span></div>
+              <div className="qb-v6-library-toolbar qb-v6-test-toolbar">
+                <label className="qb-v6-library-search"><Search size={16} aria-hidden="true" /><input value={testQuery} onChange={(event) => setTestQuery(event.target.value)} placeholder="Tìm đề thi theo tên, mã đề, năm học…" /></label>
+                <label><span>Khối lớp</span><select value={testGrade} onChange={(event) => setTestGrade(event.target.value)}><option value="">Tất cả</option><option>10</option><option>11</option><option>12</option></select></label>
+                <label><span>Trạng thái</span><select value={testStatus} onChange={(event) => setTestStatus(event.target.value)}><option value="">Tất cả</option><option value="draft">Bản nháp</option><option value="published">Đã phát hành</option><option value="closed">Đã đóng</option><option value="archived">Lưu trữ</option></select></label>
+                <button type="button" className="qb-primary" onClick={() => setActiveTab('builder')}><FilePlus2 size={15} /> Tạo đề mới</button>
+              </div>
+              {filteredTests.length ? <div className="qb-grid qb-v6-test-grid">{filteredTests.map((test) => (
                 <article
                   className="qb-test-card is-clickable"
                   key={test.id}
