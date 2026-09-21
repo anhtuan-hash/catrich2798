@@ -9,12 +9,12 @@ import {
   GraduationCap,
   Grid2X2,
   Layers3,
+  List,
   MoreHorizontal,
   Search,
   ShieldCheck,
   Sparkles,
   Target,
-  X,
   ArrowRight,
 } from 'lucide-react';
 import { supabase } from '../utils/supabase.js';
@@ -47,6 +47,7 @@ import {
 } from '../utils/questionBankExamManager.js';
 import QuestionBankManagementSuite from './question-bank/QuestionBankManagementSuite.jsx';
 import QuestionBankQualityControl from './question-bank/QuestionBankQualityControl.jsx';
+import AssessmentCoreHeroGraphic from './question-bank/AssessmentCoreHeroGraphic.jsx';
 import './QuestionBank.css';
 
 const TABS = [
@@ -81,52 +82,52 @@ const TAB_META = {
   questions: {
     kicker: 'CONTENT LIBRARY',
     title: 'Ngân hàng câu hỏi',
-    subtitle: 'Lưu, tìm kiếm và tổ chức câu hỏi theo đúng cấu trúc giảng dạy của Brian.',
+    subtitle: 'Hệ thống câu hỏi chuẩn hóa, đa dạng và luôn được cập nhật, phục vụ dạy học, kiểm tra và đánh giá toàn diện năng lực tiếng Anh.',
   },
   bundles: {
     kicker: 'CONTEXT LIBRARY',
     title: 'Chùm bài',
-    subtitle: 'Quản lý ngữ liệu dùng chung và toàn bộ câu hỏi đi kèm theo đúng thứ tự.',
+    subtitle: 'Các bài học được nhóm theo chủ đề, bám sát chương trình và giữ nguyên ngữ liệu chung để luyện tập có chiều sâu.',
   },
   manage: {
     kicker: 'CONTROL CENTER',
     title: 'Quản trị ngân hàng',
-    subtitle: 'Kiểm soát vòng đời câu hỏi, duyệt nội dung, trùng lặp, phân loại và lịch sử thay đổi.',
+    subtitle: 'Quản lý, kiểm soát và tối ưu ngân hàng câu hỏi để đảm bảo chất lượng, tính nhất quán và khả năng sử dụng trong toàn hệ thống.',
   },
   blueprints: {
     kicker: 'BLUEPRINT STUDIO',
     title: 'Ma trận đề',
-    subtitle: 'Thiết kế và lưu cấu trúc đề để tái sử dụng ổn định trong nhiều lần tạo đề.',
+    subtitle: 'Thiết kế khung cấu trúc đề theo chuẩn năng lực, bám sát chương trình và mục tiêu đánh giá; lưu để tái sử dụng ổn định.',
   },
   coverage: {
     kicker: 'COVERAGE PLANNER',
     title: 'Phủ ma trận',
-    subtitle: 'Đo mức độ sẵn sàng của kho và phát hiện chính xác phần nội dung còn thiếu.',
+    subtitle: 'Phân tích độ phủ nội dung theo ma trận, xác định khoảng trống và đề xuất bổ sung để tạo nhiều đề không trùng.',
   },
   quality: {
     kicker: 'QUALITY CONTROL',
     title: 'Chất lượng ngân hàng',
-    subtitle: 'Theo dõi độ sạch, khả năng sử dụng và các lỗi cần xử lý trước khi ra đề.',
+    subtitle: 'Kiểm soát chất lượng, đảm bảo ma trận, theo dõi dữ liệu học sinh và gom hàng đợi cần duyệt trên cùng một màn hình.',
   },
   builder: {
     kicker: 'TEST BUILDER',
     title: 'Tạo đề từ ngân hàng',
-    subtitle: 'Ráp đề trực tiếp từ câu hỏi đã lưu, giữ nguyên chùm ngữ liệu và không phát sinh phí AI.',
+    subtitle: 'Kết hợp sức mạnh dữ liệu để tạo đề nhanh, chính xác và phù hợp với mục tiêu đánh giá, không làm mất ngữ liệu chung.',
   },
   tests: {
     kicker: 'ASSESSMENT LIBRARY',
     title: 'Đề thi',
-    subtitle: 'Lưu trữ, mở lại, quản lý và xuất các đề đã tạo trong Brian.',
+    subtitle: 'Kho đề thi được tổ chức rõ ràng, hỗ trợ mở lại, quản lý, xuất đề và tái sử dụng nhanh trong dạy học và kiểm tra.',
   },
   import: {
     kicker: 'ZERO-COST IMPORT',
     title: 'Nhập nội dung từ ChatGPT',
-    subtitle: 'Dán nội dung, kiểm tra cấu trúc và xem trước trước khi lưu vào ngân hàng.',
+    subtitle: 'Chuyển nội dung đề, câu hỏi và bài tập từ ChatGPT vào Brian; kiểm tra cấu trúc, chuẩn hóa metadata rồi mới lưu.',
   },
   chatgpt: {
     kicker: 'DEVELOPER CONNECTOR',
     title: 'API / Plugin',
-    subtitle: 'Kết nối Brian với ChatGPT và các ứng dụng khác bằng các action đã được chuẩn hóa.',
+    subtitle: 'Kết nối sức mạnh AI với ngân hàng câu hỏi Brian English bằng OpenAPI và các action chuẩn hóa, an toàn và dễ mở rộng.',
   },
 };
 
@@ -319,6 +320,12 @@ export default function QuestionBank({ currentUser }) {
   const [questionPage, setQuestionPage] = useState(1);
   const [questionPageSize, setQuestionPageSize] = useState(10);
   const [selectedQuestionPreviewId, setSelectedQuestionPreviewId] = useState('');
+  const [bundleQuery, setBundleQuery] = useState('');
+  const [bundleGrade, setBundleGrade] = useState('');
+  const [testQuery, setTestQuery] = useState('');
+  const [testGrade, setTestGrade] = useState('');
+  const [testStatus, setTestStatus] = useState('');
+  const [testViewMode, setTestViewMode] = useState('grid');
   const [showNew, setShowNew] = useState(false);
   const [generatedKey, setGeneratedKey] = useState('');
   const [testingConnection, setTestingConnection] = useState(false);
@@ -462,10 +469,47 @@ OpenAPI: ${openApiUrl}`;
     total: questions.length,
   }), [questions, bundles, tests]);
 
+  const bundleStats = useMemo(() => ({
+    total: bundles.length,
+    approved: bundles.filter((item) => text(item.status).toLowerCase() === 'approved').length,
+    chatgpt: bundles.filter((item) => text(item.source_kind).startsWith('chatgpt')).length,
+    grades: new Set(bundles.map((item) => text(item.grade)).filter(Boolean)).size,
+  }), [bundles]);
+
+  const filteredBundles = useMemo(() => {
+    const needle = bundleQuery.trim().toLowerCase();
+    return bundles.filter((bundle) => {
+      if (bundleGrade && text(bundle.grade) !== bundleGrade) return false;
+      if (!needle) return true;
+      return [bundle.title, bundle.context_text, bundle.topic, bundle.skill, bundle.bundle_type]
+        .some((value) => text(value).toLowerCase().includes(needle));
+    });
+  }, [bundles, bundleQuery, bundleGrade]);
+
+  const testStats = useMemo(() => ({
+    total: tests.length,
+    published: tests.filter((item) => text(item.status).toLowerCase() === 'published').length,
+    draft: tests.filter((item) => !text(item.status) || text(item.status).toLowerCase() === 'draft').length,
+    chatgpt: tests.filter((item) => text(item.source_kind).startsWith('chatgpt')).length,
+  }), [tests]);
+
+  const filteredTests = useMemo(() => {
+    const needle = testQuery.trim().toLowerCase();
+    return tests.filter((test) => {
+      if (testGrade && text(test.grade) !== testGrade) return false;
+      if (testStatus && text(test.status).toLowerCase() !== testStatus.toLowerCase()) return false;
+      if (!needle) return true;
+      return [test.title, test.school_year, test.settings?.examCode]
+        .some((value) => text(value).toLowerCase().includes(needle));
+    });
+  }, [tests, testQuery, testGrade, testStatus]);
+
   const selectedQuestionPreview = useMemo(
     () => questions.find((item) => item.id === selectedQuestionPreviewId) || null,
     [questions, selectedQuestionPreviewId],
   );
+
+  const questionPreview = selectedQuestionPreview || pagedQuestions[0] || filteredQuestions[0] || null;
 
   const activeMeta = TAB_META[activeTab] || TAB_META.questions;
   const ActiveTabIcon = TAB_ICONS[activeTab] || Database;
@@ -1563,7 +1607,7 @@ OpenAPI: ${openApiUrl}`;
   };
 
   return (
-    <section className="qb-shell qb-shell-v2 qb-shell-v3 qb-shell-v4 qb-shell-v5">
+    <section className="qb-shell qb-shell-v2 qb-shell-v3 qb-shell-v4 qb-shell-v5 qb-shell-v6" data-qb-tab={activeTab}>
       <nav className="qb-tabs qb-tabs-horizontal" aria-label="Ngân hàng câu hỏi">
         {TABS.map(([id, label]) => {
           const Icon = TAB_ICONS[id] || Database;
@@ -1584,47 +1628,61 @@ OpenAPI: ${openApiUrl}`;
         <span className="qb-tabs-signature" aria-hidden="true">BETTER QUESTIONS · BRIGHTER LEARNERS</span>
       </nav>
 
-      <header className="qb-apple-header">
-        <div className="qb-apple-title-block">
-          <p className="qb-apple-kicker">Brian English · {activeMeta.kicker}</p>
+      <header className="qb-v6-hero">
+        <div className="qb-v6-hero-copy">
+          <p className="qb-v6-kicker">BRIAN ENGLISH · {activeMeta.kicker}</p>
           <h1>{activeMeta.title}</h1>
-          <p>{activeMeta.subtitle}</p>
+          <p className="qb-v6-subtitle">{activeMeta.subtitle}</p>
+          {activeTab === 'questions' ? (
+            <div className="qb-v6-hero-actions">
+              <button type="button" className="qb-secondary" onClick={() => setActiveTab('import')}>
+                <Bot size={16} aria-hidden="true" /> Dán từ ChatGPT
+              </button>
+              <button type="button" className="qb-primary" onClick={() => { setActiveTab('questions'); setShowNew(true); }}>
+                <FilePlus2 size={16} aria-hidden="true" /> Thêm câu hỏi
+              </button>
+            </div>
+          ) : activeTab === 'tests' ? (
+            <div className="qb-v6-hero-actions">
+              <button type="button" className="qb-primary" onClick={() => setActiveTab('builder')}>
+                <FilePlus2 size={16} aria-hidden="true" /> Tạo đề mới
+              </button>
+            </div>
+          ) : activeTab === 'bundles' ? (
+            <div className="qb-v6-hero-actions">
+              <button type="button" className="qb-primary" onClick={() => setActiveTab('import')}>
+                <Sparkles size={16} aria-hidden="true" /> Nhập chùm bài
+              </button>
+            </div>
+          ) : null}
         </div>
-
-        {activeTab === 'questions' ? (
-          <div className="qb-apple-header-actions">
-            <button type="button" className="qb-secondary qb-apple-glass-button" onClick={() => setActiveTab('import')}>
-              <Bot size={16} aria-hidden="true" /> Dán từ ChatGPT
-            </button>
-            <button type="button" className="qb-primary qb-apple-primary-button" onClick={() => { setActiveTab('questions'); setShowNew(true); }}>
-              <FilePlus2 size={16} aria-hidden="true" /> Thêm câu hỏi
-            </button>
-          </div>
-        ) : (
-          <div className="qb-apple-module-symbol" aria-hidden="true">
-            <ActiveTabIcon size={26} strokeWidth={1.75} />
-          </div>
-        )}
+        <AssessmentCoreHeroGraphic tab={activeTab} />
       </header>
 
       {activeTab === 'questions' ? (
-        <div className="qb-apple-metrics" aria-label="Tổng quan ngân hàng">
-          <article>
-            <span className="qb-apple-metric-symbol"><Database size={17} /></span>
-            <div><small>Tổng câu hỏi</small><strong>{sourceStats.total.toLocaleString('vi-VN')}</strong></div>
-          </article>
-          <article>
-            <span className="qb-apple-metric-symbol"><Layers3 size={17} /></span>
-            <div><small>Chùm bài</small><strong>{sourceStats.bundles.toLocaleString('vi-VN')}</strong></div>
-          </article>
-          <article>
-            <span className="qb-apple-metric-symbol"><FileText size={17} /></span>
-            <div><small>Đề thi</small><strong>{sourceStats.tests.toLocaleString('vi-VN')}</strong></div>
-          </article>
-          <article>
-            <span className="qb-apple-metric-symbol"><Bot size={17} /></span>
-            <div><small>Từ ChatGPT</small><strong>{sourceStats.chatgpt.toLocaleString('vi-VN')}</strong></div>
-          </article>
+        <div className="qb-v6-metric-grid qb-v6-metric-grid-4" aria-label="Tổng quan ngân hàng">
+          <article className="is-blue"><span><Database size={21} /></span><div><small>Tổng câu hỏi</small><strong>{sourceStats.total.toLocaleString('vi-VN')}</strong><em>Toàn bộ ngân hàng</em></div></article>
+          <article className="is-green"><span><Layers3 size={21} /></span><div><small>Chùm bài</small><strong>{sourceStats.bundles.toLocaleString('vi-VN')}</strong><em>Ngữ liệu có cấu trúc</em></div></article>
+          <article className="is-violet"><span><FileText size={21} /></span><div><small>Đề thi</small><strong>{sourceStats.tests.toLocaleString('vi-VN')}</strong><em>Đã lưu trong Brian</em></div></article>
+          <article className="is-orange"><span><Bot size={21} /></span><div><small>Từ ChatGPT</small><strong>{sourceStats.chatgpt.toLocaleString('vi-VN')}</strong><em>Nguồn nhập hiện tại</em></div></article>
+        </div>
+      ) : null}
+
+      {activeTab === 'bundles' ? (
+        <div className="qb-v6-metric-grid qb-v6-metric-grid-4" aria-label="Tổng quan chùm bài">
+          <article className="is-blue"><span><Layers3 size={21} /></span><div><small>Tổng số chùm</small><strong>{bundleStats.total.toLocaleString('vi-VN')}</strong><em>Đang lưu trong Brian</em></div></article>
+          <article className="is-green"><span><ShieldCheck size={21} /></span><div><small>Đã duyệt</small><strong>{bundleStats.approved.toLocaleString('vi-VN')}</strong><em>Sẵn sàng sử dụng</em></div></article>
+          <article className="is-violet"><span><Bot size={21} /></span><div><small>Từ ChatGPT</small><strong>{bundleStats.chatgpt.toLocaleString('vi-VN')}</strong><em>Nguồn nhập tự động</em></div></article>
+          <article className="is-orange"><span><Grid2X2 size={21} /></span><div><small>Khối đang có</small><strong>{bundleStats.grades.toLocaleString('vi-VN')}</strong><em>Phạm vi dữ liệu</em></div></article>
+        </div>
+      ) : null}
+
+      {activeTab === 'tests' && !selectedTest ? (
+        <div className="qb-v6-metric-grid qb-v6-metric-grid-4" aria-label="Tổng quan đề thi">
+          <article className="is-blue"><span><GraduationCap size={21} /></span><div><small>Tổng số đề</small><strong>{testStats.total.toLocaleString('vi-VN')}</strong><em>Thư viện Assessment</em></div></article>
+          <article className="is-green"><span><ShieldCheck size={21} /></span><div><small>Đã phát hành</small><strong>{testStats.published.toLocaleString('vi-VN')}</strong><em>Đề đang sử dụng</em></div></article>
+          <article className="is-violet"><span><FileText size={21} /></span><div><small>Bản nháp</small><strong>{testStats.draft.toLocaleString('vi-VN')}</strong><em>Đang biên tập</em></div></article>
+          <article className="is-orange"><span><Bot size={21} /></span><div><small>Từ ChatGPT</small><strong>{testStats.chatgpt.toLocaleString('vi-VN')}</strong><em>Nguồn tạo đề</em></div></article>
         </div>
       ) : null}
 
@@ -1678,7 +1736,9 @@ OpenAPI: ${openApiUrl}`;
 
           {filteredQuestions.length ? (
             <>
-              <div className="qb-question-table" role="table" aria-label="Danh sách câu hỏi">
+              <div className="qb-v6-question-browser">
+                <div className="qb-v6-question-list">
+                  <div className="qb-question-table" role="table" aria-label="Danh sách câu hỏi">
                 <div className="qb-question-table-head" role="row">
                   <span>#</span>
                   <span>Nội dung câu hỏi</span>
@@ -1692,7 +1752,7 @@ OpenAPI: ${openApiUrl}`;
                 <div className="qb-question-table-body">
                   {pagedQuestions.map((item, index) => (
                     <article
-                      className="qb-question-row is-openable"
+                      className={`qb-question-row is-openable ${questionPreview?.id === item.id ? 'is-selected' : ''}`}
                       key={item.id}
                       role="row"
                       tabIndex={0}
@@ -1734,84 +1794,66 @@ OpenAPI: ${openApiUrl}`;
                   </select>
                 </div>
               </div>
+                </div>
+
+                <aside className="qb-v6-question-preview" aria-label="Xem trước câu hỏi">
+                  {questionPreview ? (
+                    <>
+                      <div className="qb-v6-preview-head">
+                        <div><span>XEM TRƯỚC CÂU HỎI</span><strong>Chi tiết nhanh</strong></div>
+                        <button
+                          type="button"
+                          aria-label="Mở trong Quản trị"
+                          onClick={() => {
+                            setManageTargetQuestionId(questionPreview.id);
+                            setManageTargetBundleId('');
+                            setActiveTab('manage');
+                          }}
+                        >
+                          <ArrowRight size={16} />
+                        </button>
+                      </div>
+                      <div className="qb-v6-preview-tags">
+                        <span>{questionPreview.skill || 'Use of English'}</span>
+                        <span className="is-success">{cognitiveLabel(questionPreview.cognitive_level)}</span>
+                        {questionPreview.cefr ? <span>{questionPreview.cefr}</span> : null}
+                      </div>
+                      <div className="qb-v6-preview-stem">
+                        {displayQuestionStem(questionPreview.stem, questionPreview.bundle_position)}
+                      </div>
+                      {Array.isArray(questionPreview.options) && questionPreview.options.length ? (
+                        <div className="qb-v6-preview-options">
+                          {questionPreview.options.map((option, optionIndex) => {
+                            const label = String.fromCharCode(65 + optionIndex);
+                            const correct = label === answerLabel(questionPreview.correct_answer).toUpperCase();
+                            return (
+                              <div className={correct ? 'is-correct' : ''} key={optionIndex}>
+                                <b>{label}</b><span>{option}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : null}
+                      <div className="qb-v6-preview-footer">
+                        <span>{questionPreview.topic || questionPreview.grammar_point || 'Chưa gắn chủ đề'}</span>
+                        <button
+                          type="button"
+                          className="qb-primary"
+                          onClick={() => {
+                            setManageTargetQuestionId(questionPreview.id);
+                            setManageTargetBundleId('');
+                            setActiveTab('manage');
+                          }}
+                        >
+                          Chỉnh sửa
+                        </button>
+                      </div>
+                    </>
+                  ) : null}
+                </aside>
+              </div>
             </>
           ) : <EmptyState title="Chưa có câu hỏi phù hợp" hint="Thay đổi bộ lọc, thêm câu thủ công hoặc gửi một đề từ ChatGPT vào Brian." />}
-        </div>
-      ) : null}
-
-      {!loading && activeTab === 'questions' && selectedQuestionPreview ? (
-        <div className="qb-question-drawer-layer" role="presentation" onMouseDown={(event) => {
-          if (event.target === event.currentTarget) setSelectedQuestionPreviewId('');
-        }}>
-          <aside className="qb-question-drawer" role="dialog" aria-modal="true" aria-label="Chi tiết câu hỏi">
-            <header>
-              <div>
-                <p>QUESTION PREVIEW</p>
-                <h3>Chi tiết câu hỏi</h3>
-              </div>
-              <button type="button" className="qb-drawer-close" onClick={() => setSelectedQuestionPreviewId('')} aria-label="Đóng">
-                <X size={18} />
-              </button>
-            </header>
-
-            <div className="qb-drawer-meta">
-              {selectedQuestionPreview.grade ? <span>Khối {selectedQuestionPreview.grade}</span> : null}
-              {selectedQuestionPreview.cefr ? <span>{selectedQuestionPreview.cefr}</span> : null}
-              <span>{selectedQuestionPreview.skill || 'Use of English'}</span>
-              <span>{cognitiveLabel(selectedQuestionPreview.cognitive_level)}</span>
-              {text(selectedQuestionPreview.source_kind).startsWith('chatgpt') ? <span className="is-chatgpt">ChatGPT</span> : null}
-            </div>
-
-            <section className="qb-drawer-question">
-              <small>NỘI DUNG</small>
-              <strong>{displayQuestionStem(selectedQuestionPreview.stem, selectedQuestionPreview.bundle_position)}</strong>
-            </section>
-
-            {Array.isArray(selectedQuestionPreview.options) && selectedQuestionPreview.options.length ? (
-              <div className="qb-drawer-options">
-                {selectedQuestionPreview.options.map((option, optionIndex) => {
-                  const optionLabel = String.fromCharCode(65 + optionIndex);
-                  const isCorrect = optionLabel === answerLabel(selectedQuestionPreview.correct_answer).toUpperCase();
-                  return (
-                    <div className={isCorrect ? 'is-correct' : ''} key={optionIndex}>
-                      <b>{optionLabel}</b>
-                      <span>{option}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : null}
-
-            <div className="qb-drawer-facts">
-              <div><span>Chủ đề</span><b>{selectedQuestionPreview.topic || 'Chưa gắn'}</b></div>
-              <div><span>Grammar</span><b>{selectedQuestionPreview.grammar_point || '—'}</b></div>
-              <div><span>Trạng thái</span><b>{statusLabel(selectedQuestionPreview.status)}</b></div>
-              <div><span>Cập nhật</span><b>{formatShortDate(selectedQuestionPreview.updated_at || selectedQuestionPreview.created_at)}</b></div>
-            </div>
-
-            {selectedQuestionPreview.explanation ? (
-              <section className="qb-drawer-explanation">
-                <small>GIẢI THÍCH</small>
-                <p>{selectedQuestionPreview.explanation}</p>
-              </section>
-            ) : null}
-
-            <footer>
-              <button type="button" className="qb-secondary" onClick={() => setSelectedQuestionPreviewId('')}>Đóng</button>
-              <button
-                type="button"
-                className="qb-primary"
-                onClick={() => {
-                  setManageTargetQuestionId(selectedQuestionPreview.id);
-                  setManageTargetBundleId('');
-                  setSelectedQuestionPreviewId('');
-                  setActiveTab('manage');
-                }}
-              >
-                Mở trong Quản trị <ArrowRight size={16} />
-              </button>
-            </footer>
-          </aside>
         </div>
       ) : null}
 
@@ -1819,8 +1861,16 @@ OpenAPI: ${openApiUrl}`;
         <div className="qb-panel">
           {!selectedBundle ? (
             <>
-              <div className="qb-section-head"><div><p>CONTEXT-AWARE BANK</p><h2>Chùm bài</h2></div><span>Bấm vào một thẻ để mở toàn bộ ngữ liệu và câu hỏi đi kèm.</span></div>
-              {bundles.length ? <div className="qb-grid">{bundles.map((bundle) => {
+              <div className="qb-section-head qb-v6-section-head"><div><p>CONTEXT-AWARE BANK</p><h2>Thư viện chùm bài</h2></div><span>Bấm vào một thẻ để mở toàn bộ ngữ liệu và câu hỏi đi kèm.</span></div>
+              <div className="qb-v6-library-toolbar">
+                <label className="qb-v6-library-search">
+                  <Search size={16} aria-hidden="true" />
+                  <input value={bundleQuery} onChange={(event) => setBundleQuery(event.target.value)} placeholder="Tìm chùm bài theo tên, chủ đề, kỹ năng…" />
+                </label>
+                <label><span>Khối lớp</span><select value={bundleGrade} onChange={(event) => setBundleGrade(event.target.value)}><option value="">Tất cả</option><option>10</option><option>11</option><option>12</option></select></label>
+                <button type="button" className="qb-primary" onClick={() => setActiveTab('import')}><Sparkles size={15} /> Nhập chùm bài</button>
+              </div>
+              {filteredBundles.length ? <div className="qb-grid qb-v6-bundle-grid">{filteredBundles.map((bundle) => {
                 const count = questions.filter((item) => item.bundle_id === bundle.id).length;
                 return <article
                   className="qb-bundle-card is-openable"
@@ -1835,10 +1885,12 @@ OpenAPI: ${openApiUrl}`;
                     }
                   }}
                 >
+                  <div className="qb-v6-bundle-icon" aria-hidden="true"><Layers3 size={22} /></div>
                   <div className="qb-bundle-top"><span>{bundle.bundle_type || 'passage'}</span><b>{count} câu</b></div>
                   <h3>{bundle.title || 'Chùm bài chưa đặt tên'}</h3>
                   <p>{compact(bundle.context_text, 360) || 'Chưa có nội dung ngữ liệu.'}</p>
                   <div className="qb-card-meta"><span>{bundle.grade ? `Khối ${bundle.grade}` : 'Nhiều khối'}</span><span>{bundle.skill || bundle.topic || 'General'}</span><span>{bundle.source_kind === 'chatgpt' ? 'ChatGPT' : 'Brian'}</span></div>
+                  <time className="qb-v6-bundle-date">{formatShortDate(bundle.updated_at || bundle.created_at)}</time>
                   <div className="qb-bundle-open-hint"><span>Mở chi tiết</span><b>→</b></div>
                 </article>;
               })}</div> : <EmptyState title="Chưa có chùm bài" hint="Khi ChatGPT tạo reading, cloze hoặc một cụm câu dùng chung ngữ liệu, Brian sẽ lưu chúng thành chùm." />}
@@ -2608,8 +2660,18 @@ OpenAPI: ${openApiUrl}`;
             </div>
           ) : (
             <>
-              <div className="qb-section-head"><div><p>ASSESSMENT LIBRARY</p><h2>Đề thi</h2></div><span>Bấm vào một đề để mở toàn bộ nội dung, đáp án, metadata và công cụ xuất đề.</span></div>
-              {tests.length ? <div className="qb-grid">{tests.map((test) => (
+              <div className="qb-section-head qb-v6-section-head"><div><p>ASSESSMENT LIBRARY</p><h2>Danh sách đề thi</h2></div><span>Quản lý, tìm kiếm và mở nhanh các đề thi đã tạo trong hệ thống.</span></div>
+              <div className="qb-v6-library-toolbar qb-v6-test-toolbar">
+                <label className="qb-v6-library-search"><Search size={16} aria-hidden="true" /><input value={testQuery} onChange={(event) => setTestQuery(event.target.value)} placeholder="Tìm đề thi theo tên, mã đề, năm học…" /></label>
+                <label><span>Khối lớp</span><select value={testGrade} onChange={(event) => setTestGrade(event.target.value)}><option value="">Tất cả</option><option>10</option><option>11</option><option>12</option></select></label>
+                <label><span>Trạng thái</span><select value={testStatus} onChange={(event) => setTestStatus(event.target.value)}><option value="">Tất cả</option><option value="draft">Bản nháp</option><option value="published">Đã phát hành</option><option value="closed">Đã đóng</option><option value="archived">Lưu trữ</option></select></label>
+                <div className="qb-v6-view-toggle" aria-label="Kiểu hiển thị đề thi">
+                  <button type="button" className={testViewMode === 'grid' ? 'is-active' : ''} onClick={() => setTestViewMode('grid')} aria-label="Dạng lưới"><Grid2X2 size={15} /></button>
+                  <button type="button" className={testViewMode === 'list' ? 'is-active' : ''} onClick={() => setTestViewMode('list')} aria-label="Dạng danh sách"><List size={15} /></button>
+                </div>
+                <button type="button" className="qb-primary" onClick={() => setActiveTab('builder')}><FilePlus2 size={15} /> Tạo đề mới</button>
+              </div>
+              {filteredTests.length ? <div className={`qb-grid qb-v6-test-grid ${testViewMode === 'list' ? 'is-list' : ''}`}>{filteredTests.map((test) => (
                 <article
                   className="qb-test-card is-clickable"
                   key={test.id}
@@ -2625,6 +2687,8 @@ OpenAPI: ${openApiUrl}`;
                     <p>{testCounts[test.id] || 0} câu hỏi · {test.grade ? `Khối ${test.grade}` : 'Chưa gắn khối'}{test.school_year ? ` · ${test.school_year}` : ''}</p>
                     <small>Mở đề →</small>
                   </div>
+                  <time className="qb-v6-test-date">{formatShortDate(test.updated_at || test.created_at)}</time>
+                  <span className="qb-v6-test-more" aria-hidden="true"><MoreHorizontal size={17} /></span>
                 </article>
               ))}</div> : <EmptyState title="Chưa có đề thi" hint="Sau khi ChatGPT soạn đề, dùng lệnh “lưu vào Ngân hàng câu hỏi Brian” để đề xuất hiện tại đây." />}
             </>
