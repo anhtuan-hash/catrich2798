@@ -9,6 +9,7 @@ import {
   GraduationCap,
   Grid2X2,
   Layers3,
+  List,
   MoreHorizontal,
   Search,
   ShieldCheck,
@@ -324,6 +325,7 @@ export default function QuestionBank({ currentUser }) {
   const [testQuery, setTestQuery] = useState('');
   const [testGrade, setTestGrade] = useState('');
   const [testStatus, setTestStatus] = useState('');
+  const [testViewMode, setTestViewMode] = useState('grid');
   const [showNew, setShowNew] = useState(false);
   const [generatedKey, setGeneratedKey] = useState('');
   const [testingConnection, setTestingConnection] = useState(false);
@@ -1750,7 +1752,7 @@ OpenAPI: ${openApiUrl}`;
                 <div className="qb-question-table-body">
                   {pagedQuestions.map((item, index) => (
                     <article
-                      className="qb-question-row is-openable"
+                      className={`qb-question-row is-openable ${questionPreview?.id === item.id ? 'is-selected' : ''}`}
                       key={item.id}
                       role="row"
                       tabIndex={0}
@@ -1888,6 +1890,7 @@ OpenAPI: ${openApiUrl}`;
                   <h3>{bundle.title || 'Chùm bài chưa đặt tên'}</h3>
                   <p>{compact(bundle.context_text, 360) || 'Chưa có nội dung ngữ liệu.'}</p>
                   <div className="qb-card-meta"><span>{bundle.grade ? `Khối ${bundle.grade}` : 'Nhiều khối'}</span><span>{bundle.skill || bundle.topic || 'General'}</span><span>{bundle.source_kind === 'chatgpt' ? 'ChatGPT' : 'Brian'}</span></div>
+                  <time className="qb-v6-bundle-date">{formatShortDate(bundle.updated_at || bundle.created_at)}</time>
                   <div className="qb-bundle-open-hint"><span>Mở chi tiết</span><b>→</b></div>
                 </article>;
               })}</div> : <EmptyState title="Chưa có chùm bài" hint="Khi ChatGPT tạo reading, cloze hoặc một cụm câu dùng chung ngữ liệu, Brian sẽ lưu chúng thành chùm." />}
@@ -2662,9 +2665,13 @@ OpenAPI: ${openApiUrl}`;
                 <label className="qb-v6-library-search"><Search size={16} aria-hidden="true" /><input value={testQuery} onChange={(event) => setTestQuery(event.target.value)} placeholder="Tìm đề thi theo tên, mã đề, năm học…" /></label>
                 <label><span>Khối lớp</span><select value={testGrade} onChange={(event) => setTestGrade(event.target.value)}><option value="">Tất cả</option><option>10</option><option>11</option><option>12</option></select></label>
                 <label><span>Trạng thái</span><select value={testStatus} onChange={(event) => setTestStatus(event.target.value)}><option value="">Tất cả</option><option value="draft">Bản nháp</option><option value="published">Đã phát hành</option><option value="closed">Đã đóng</option><option value="archived">Lưu trữ</option></select></label>
+                <div className="qb-v6-view-toggle" aria-label="Kiểu hiển thị đề thi">
+                  <button type="button" className={testViewMode === 'grid' ? 'is-active' : ''} onClick={() => setTestViewMode('grid')} aria-label="Dạng lưới"><Grid2X2 size={15} /></button>
+                  <button type="button" className={testViewMode === 'list' ? 'is-active' : ''} onClick={() => setTestViewMode('list')} aria-label="Dạng danh sách"><List size={15} /></button>
+                </div>
                 <button type="button" className="qb-primary" onClick={() => setActiveTab('builder')}><FilePlus2 size={15} /> Tạo đề mới</button>
               </div>
-              {filteredTests.length ? <div className="qb-grid qb-v6-test-grid">{filteredTests.map((test) => (
+              {filteredTests.length ? <div className={`qb-grid qb-v6-test-grid ${testViewMode === 'list' ? 'is-list' : ''}`}>{filteredTests.map((test) => (
                 <article
                   className="qb-test-card is-clickable"
                   key={test.id}
@@ -2680,6 +2687,8 @@ OpenAPI: ${openApiUrl}`;
                     <p>{testCounts[test.id] || 0} câu hỏi · {test.grade ? `Khối ${test.grade}` : 'Chưa gắn khối'}{test.school_year ? ` · ${test.school_year}` : ''}</p>
                     <small>Mở đề →</small>
                   </div>
+                  <time className="qb-v6-test-date">{formatShortDate(test.updated_at || test.created_at)}</time>
+                  <span className="qb-v6-test-more" aria-hidden="true"><MoreHorizontal size={17} /></span>
                 </article>
               ))}</div> : <EmptyState title="Chưa có đề thi" hint="Sau khi ChatGPT soạn đề, dùng lệnh “lưu vào Ngân hàng câu hỏi Brian” để đề xuất hiện tại đây." />}
             </>
