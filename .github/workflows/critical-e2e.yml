@@ -78,6 +78,9 @@ jobs:
       - name: Run Chromium critical browser smoke
         run: npx playwright test tests/e2e/critical-smoke.spec.js --project=chromium-desktop
 
+      - name: Verify custom regional fonts on fresh login
+        run: npx playwright test tests/e2e/regional-font-auth-runtime.spec.js --project=chromium-desktop
+
       - name: Run WebKit critical browser smoke
         run: npx playwright test tests/e2e/critical-smoke.spec.js --project=webkit-desktop
 
