@@ -51,13 +51,13 @@ function DetailRow({ type, children }) {
   );
 }
 
-export default function Footer({ language }) {
+export default function Footer({ language, compact = false }) {
   const isVi = language === 'vi';
   const content = isVi ? VIETNAMESE_DETAILS : ENGLISH_DETAILS;
 
   return (
     <footer
-      className={`footer footer-v10 signature-footer-v75 signature-footer-v50 signature-footer-collapsible ${isVi ? 'signature-footer-v50-vi' : 'signature-footer-v50-en'}`}
+      className={`footer footer-v10 signature-footer-v75 signature-footer-v50 signature-footer-collapsible ${compact ? 'signature-footer-assessment-compact' : ''} ${isVi ? 'signature-footer-v50-vi' : 'signature-footer-v50-en'}`}
       aria-label={isVi ? 'Thông tin English Hub' : 'English Hub information'}
       data-app-shell-footer="true"
     >
