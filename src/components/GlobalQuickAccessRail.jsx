@@ -342,7 +342,13 @@ export default function GlobalQuickAccessRail({
   const [customizerQuery, setCustomizerQuery] = useState('');
   const [dragId, setDragId] = useState('');
   const [collapsing, setCollapsing] = useState(false);
+  const [commandQuery, setCommandQuery] = useState('');
+  const [recentIds, setRecentIds] = useState([]);
+  const [badges, setBadges] = useState({});
+  const [peekItemId, setPeekItemId] = useState('');
+  const [actionMenuItemId, setActionMenuItemId] = useState('');
   const closeTimerRef = useRef(0);
+  const peekTimerRef = useRef(0);
   const collapseMotionTimerRef = useRef(0);
   const layoutFrameRef = useRef(0);
   const layoutSettleTimerRef = useRef(0);
@@ -350,6 +356,7 @@ export default function GlobalQuickAccessRail({
   const rootRef = useRef(null);
   const railRef = useRef(null);
   const panelRef = useRef(null);
+  const commandInputRef = useRef(null);
 
   const catalog = useMemo(() => {
     const byId = new Map();
@@ -371,8 +378,29 @@ export default function GlobalQuickAccessRail({
   const allowedIds = useMemo(() => catalog.map((item) => item.id), [catalog]);
   const allowedKey = allowedIds.join('|');
   const [config, setConfig] = useState(() => loadQuickAccessConfig(currentUser, allowedIds));
+  const mode = ['auto', 'pin', 'focus'].includes(config.mode)
+    ? config.mode
+    : (config.pinned ? 'pin' : 'auto');
+  const isPinned = mode === 'pin';
+  const selectedItems = useMemo(() => config.items
+    .map((id) => catalog.find((item) => item.id === id))
+    .filter(Boolean)
+    .slice(0, QUICK_ACCESS_MAX_ITEMS), [config.items, catalog]);
+  const recentItems = useMemo(() => recentIds
+    .map((id) => catalog.find((item) => item.id === id))
+    .filter(Boolean)
+    .slice(0, 3), [recentIds, catalog]);
+  const commandNeedle = commandQuery.trim().toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
+  const commandResults = useMemo(() => {
+    if (!commandNeedle) return [];
+    return catalog
+      .filter((item) => `${item.label || ''} ${item.labelVi || ''} ${item.id || ''}`
+        .toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US')
+        .includes(commandNeedle))
+      .slice(0, 8);
+  }, [catalog, commandNeedle, language]);
 
-  const expanded = hovered || config.pinned || customizing;
+  const expanded = hovered || isPinned || customizing;
 
   const openRail = useCallback(() => {
     window.clearTimeout(closeTimerRef.current);
@@ -382,11 +410,11 @@ export default function GlobalQuickAccessRail({
   }, []);
 
   const collapseRail = useCallback((force = false) => {
-    if (!force && (config.pinned || customizing)) return;
+    if (!force && (isPinned || customizing)) return;
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
 
-    if (hovered || config.pinned || customizing) {
+    if (hovered || isPinned || customizing) {
       setCollapsing(true);
       setHovered(false);
       collapseMotionTimerRef.current = window.setTimeout(() => {
@@ -396,7 +424,7 @@ export default function GlobalQuickAccessRail({
     }
 
     setHovered(false);
-  }, [config.pinned, customizing, hovered]);
+  }, [isPinned, customizing, hovered]);
 
   useEffect(() => {
     if (!currentUser || !allowedIds.length) return undefined;
