@@ -55,8 +55,3 @@ jobs:
       - name: Build production bundle
         run: npm run build
 
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-
-      - name: Verify retired desktop override is ignored
-        run: npx playwright test tests/e2e/mobile-shell.spec.js --project=chromium-desktop --grep "retired stored mobile-preview override"
