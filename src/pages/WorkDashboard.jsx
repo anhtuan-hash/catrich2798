@@ -203,6 +203,15 @@ function DashboardHeroDoodles({ language }) {
   </div>;
 }
 
+function DashboardHeroCloudscape() {
+  return <svg className="editorial-hero-cloudscape" viewBox="0 0 1200 190" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <path d="M0 162C42 128 79 135 109 151c30-37 84-48 126-17 28-39 82-48 119-15 31-31 87-31 120 5 31-25 83-21 108 15 33-39 94-43 130-5 25-26 75-25 102 8 38-35 101-33 132 10 41-31 94-21 115 10 28-13 78-6 139 28H0Z" fill="#dff4ff" opacity=".84"/>
+    <path d="M0 177c63-45 116-29 142-3 40-38 101-31 125 5 52-48 123-38 149 1 49-45 120-37 147 2 48-42 116-33 143 4 54-47 126-36 151 4 44-34 103-29 136 4 37-24 98-21 147-1v21H0Z" fill="#e7fbf0" opacity=".80"/>
+    <path d="M190 190c25-42 57-60 90-38 16-36 43-54 73-39 24-32 59-37 83-10 23-22 63-15 80 15 19 26 19 51 17 72H190Z" fill="#ffe7f1" opacity=".73"/>
+    <path d="M60 166c-18-32-7-59 17-64 3 25 1 45-17 64Zm19 1c-1-39 22-63 45-55-7 24-20 43-45 55Zm-6-6c-28-16-36-46-18-59 15 19 23 38 18 59Z" fill="#8fd59f" opacity=".62"/>
+  </svg>;
+}
+
 function DashboardCalendarDoodle({ language }) {
   return <span className="gd-calendar-doodle" aria-hidden="true">
     <span>{language === 'vi' ? <>Kế hoạch tốt<br />mở ra ngày tuyệt vời! ✨</> : <>A good plan<br />opens a great day! ✨</>}</span>
@@ -319,6 +328,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
     <div className="gd-shell">
       <section className="gd-top-grid">
         <header className="editorial-hero">
+          <DashboardHeroCloudscape />
           <DashboardHeroDoodles language={language} />
           <div className="editorial-hero-copy">
             <div className="editorial-hero-meta">
@@ -326,7 +336,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
               <span className="editorial-hero-date">{heroDate}</span>
             </div>
 
-            <div className="editorial-hero-heading">
+            <div className={`editorial-hero-heading${name.length > 18 ? ' is-long-name' : name.length > 13 ? ' is-medium-name' : ''}`}>
               <span className="editorial-hero-hello">{t.hello},</span>
               <h1>{name}<span className="editorial-hero-wave" aria-hidden="true">👋</span></h1>
             </div>
