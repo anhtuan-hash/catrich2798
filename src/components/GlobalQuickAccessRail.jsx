@@ -609,7 +609,7 @@ export default function GlobalQuickAccessRail({
       const editable = event.target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag);
       const key = String(event.key || '').toLowerCase();
 
-      if (!editable && !event.repeat && (event.metaKey || event.ctrlKey) && !event.altKey && key === 'k') {
+      if (!editable && !event.repeat && event.altKey && !event.ctrlKey && !event.metaKey && key === 'k') {
         if (currentRoute === 'home') return;
         event.preventDefault();
         setCommanding(true);
@@ -1043,7 +1043,7 @@ export default function GlobalQuickAccessRail({
                 <X size={15} aria-hidden="true" />
               </button>
             ) : (
-              <span className="bqa-command-kbd"><kbd>⌘</kbd><kbd>K</kbd></span>
+              <span className="bqa-command-kbd"><kbd>Alt</kbd><kbd>K</kbd></span>
             )}
           </div>
 
@@ -1141,7 +1141,7 @@ export default function GlobalQuickAccessRail({
             </button>
             <div className="bqa-account-note">
               <span className="bqa-sync-note"><Check size={15} aria-hidden="true" />{language === 'vi' ? 'Lưu theo tài khoản' : 'Saved to your account'}</span>
-              <span className="bqa-shortcut-hint"><kbd>Alt</kbd><b>1–9</b><em>·</em><kbd>⌘</kbd><b>K</b></span>
+              <span className="bqa-shortcut-hint"><kbd>Alt</kbd><b>1–9</b><em>·</em><kbd>Alt</kbd><b>K</b></span>
             </div>
           </footer>
         </section>
