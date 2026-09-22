@@ -11,6 +11,7 @@ assert.ok(main.includes("GlobalQuickAccessRail = lazy"), 'Quick Access must be l
 assert.ok(main.includes("currentRoute !== 'home'"), 'Quick Access must not render on Home.');
 assert.ok(main.includes('scope="quick-access-rail"'), 'Quick Access must be protected by the global error boundary.');
 assert.ok(main.includes('appVisibility={appVisibility}'), 'Quick Access must receive app visibility state.');
+assert.ok(main.includes('data-quick-access-layout={quickAccessEnabled'), 'App shell must expose the global Quick Access layout contract.');
 assert.ok(!rail.includes("currentRoute === 'dashboard'"), 'Dashboard must not be filtered out by the Quick Access component.');
 
 for (const token of [
@@ -40,6 +41,13 @@ for (const token of [
   'customizerQuery',
   'bqa-customizer-search',
   'data-route={currentRoute}',
+  'QUICK_ACCESS_SAFE_AREA_MIN_WIDTH',
+  'measureQuickAccessContentBaseline',
+  'quickAccessSafeShift',
+  'data.quickAccessSafeShift',
+  'quickAccessState',
+  'ResizeObserver',
+  'MutationObserver',
   'is-collapsing',
   'data-motion={collapsing ?',
   'collapseRail',
@@ -63,6 +71,14 @@ for (const token of [
   '.bqa-customizer-search',
   '.bqa-shortcut-hint',
   'Quick Access Apple Pencil Morph V1',
+  'Brian Global Quick Access Safe Area V1',
+  '[data-quick-access-layout="true"] > #bes-main-content',
+  'margin-inline-start: var(--bqa-content-safe-shift, 0px)',
+  'max-width: calc(100% - var(--bqa-content-safe-shift, 0px))',
+  '[data-quick-access-state="pinned"] > #bes-main-content',
+  'footer[data-app-shell-footer="true"]',
+  '@media (min-width: 768px) and (max-width: 1279px)',
+  '@media (max-width: 767px)',
   '@keyframes bqa-pencil-open',
   '@keyframes bqa-pencil-collapse',
   'clip-path: inset(0 89% 88% 0 round 22px)',
@@ -90,4 +106,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: global Quick Access rail is Dashboard-visible and uses the approved Apple Pencil morph, while remaining account-aware, searchable, keyboard-accessible, permission-aware, font-safe, responsive, overlay-only and capped at 10 shortcuts.');
+console.log('PASS: global Quick Access rail uses the approved Apple Pencil morph and a shell-level collision-safe area, while remaining Dashboard-visible, account-aware, searchable, keyboard-accessible, permission-aware, font-safe, responsive and capped at 10 shortcuts.');
