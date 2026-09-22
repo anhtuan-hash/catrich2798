@@ -14,6 +14,8 @@ assert.ok(main.includes('appVisibility={appVisibility}'), 'Quick Access must rec
 assert.ok(main.includes('data-quick-access-layout={quickAccessEnabled'), 'App shell must expose the global Quick Access layout contract.');
 assert.ok(main.includes('data-quick-access-safe-frame={quickAccessEnabled'), 'Routed content must use the shell-level Quick Access safe frame.');
 assert.ok(!rail.includes("currentRoute === 'dashboard'"), 'Dashboard must not be filtered out by the Quick Access component.');
+assert.ok(rail.includes('createPortal(quickAccessUi, document.body)'), 'Quick Access must be portaled above route stacking contexts.');
+assert.ok(rail.includes("root.style.fontFamily = shellStyle.fontFamily"), 'Portaled Quick Access must inherit the active Brian custom font.');
 
 for (const token of [
   'QUICK_ACCESS_MAX_ITEMS',
@@ -69,9 +71,10 @@ for (const token of [
   '318px',
   '@media (max-width: 760px), (hover: none)',
   '@media (prefers-reduced-motion: reduce)',
-  '.app-shell[data-route="dashboard"] .bqa-root',
+  '.bqa-root[data-route="dashboard"]',
   '.bqa-customizer-search',
   '.bqa-shortcut-hint',
+  'body > .bqa-root',
   'Quick Access Apple Pencil Morph V1',
   'Brian Global Quick Access Safe Area V1',
   '[data-quick-access-layout="true"] > #bes-main-content > .bqa-content-safe-frame',
