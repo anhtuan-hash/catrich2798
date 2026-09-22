@@ -69,10 +69,11 @@ export function normalizeQuickAccessConfig(raw, allowedIds = []) {
   }
   if (source && typeof source === 'object' && !Array.isArray(source) && source.config) source = source.config;
   source = source && typeof source === 'object' && !Array.isArray(source) ? source : {};
+  const hasExplicitItems = Array.isArray(source.items) || typeof source.items === 'string';
   const items = cleanIds(source.items, allowedIds);
   return {
     version: 1,
-    items: (items.length ? items : defaults.items).slice(0, QUICK_ACCESS_MAX_ITEMS),
+    items: (hasExplicitItems ? items : defaults.items).slice(0, QUICK_ACCESS_MAX_ITEMS),
     pinned: Boolean(source.pinned),
     updatedAt: Number(source.updatedAt) || 0,
   };
