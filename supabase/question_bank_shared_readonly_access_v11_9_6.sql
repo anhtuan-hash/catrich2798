@@ -90,7 +90,6 @@ as $function$
     current_access.leader,
     current_access.leader,
     case
-      when current_access.leader then array[auth.uid()]::uuid[]
       when current_access.allowed then coalesce((select array_agg(owner_id order by owner_id) from leader_owners), array[]::uuid[])
       else array[]::uuid[]
     end
