@@ -536,13 +536,49 @@ body .auth-google-submit {
   box-shadow: 0 12px 24px rgba(7, 62, 102, .16) !important;
 }
 
-body .auth-google-submit:hover {
+body .auth-google-submit:hover:not(:disabled) {
   background: var(--auth-blue-deep) !important;
 }
 
-body .auth-google-submit > span {
+body .auth-google-submit:disabled {
+  cursor: wait !important;
+  opacity: .94 !important;
+  box-shadow: 0 8px 18px rgba(7, 62, 102, .12) !important;
+}
+
+body .auth-google-submit-label {
+  min-width: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+body .auth-google-submit-arrow {
+  flex: 0 0 auto !important;
   font-family: Georgia, serif !important;
   font-size: 1.15rem !important;
+}
+
+body .auth-google-submit-spinner {
+  width: 18px !important;
+  height: 18px !important;
+  flex: 0 0 18px !important;
+  border: 2px solid rgba(255, 255, 255, .36) !important;
+  border-top-color: #fff !important;
+  border-radius: 999px !important;
+  animation: auth-google-submit-spin .7s linear infinite !important;
+}
+
+@keyframes auth-google-submit-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body .auth-google-submit-spinner {
+    animation: none !important;
+    border-color: rgba(255, 255, 255, .45) !important;
+    border-top-color: #fff !important;
+  }
 }
 
 body .auth-google-divider {
