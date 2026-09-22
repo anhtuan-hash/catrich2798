@@ -79,7 +79,7 @@ for (const token of [
   'QUICK_ACCESS_MODES',
   "mode !== 'focus'",
   'data-mode={mode}',
-  'event.metaKey || event.ctrlKey',
+  "event.altKey && !event.ctrlKey && !event.metaKey && key === 'k'",
   "key === 'k'",
 ]) {
   assert.ok(rail.includes(token), `Quick Access behavior missing: ${token}`);
