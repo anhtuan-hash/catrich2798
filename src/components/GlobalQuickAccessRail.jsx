@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   AppWindow,
   BookOpenCheck,
@@ -437,7 +438,7 @@ export default function GlobalQuickAccessRail({
     if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
 
     const root = rootRef.current;
-    const shell = root?.closest?.('.app-shell');
+    const shell = document.querySelector('.app-shell');
     const main = shell?.querySelector?.(':scope > #bes-main-content');
     const footer = shell?.querySelector?.(':scope > footer[data-app-shell-footer="true"]');
     if (!root || !shell || !main) return undefined;
@@ -463,6 +464,9 @@ export default function GlobalQuickAccessRail({
           clearSafeArea();
           return;
         }
+
+        const shellStyle = window.getComputedStyle(shell);
+        if (shellStyle?.fontFamily) root.style.fontFamily = shellStyle.fontFamily;
 
         const rail = railRef.current;
         const panel = panelRef.current;
@@ -530,6 +534,7 @@ export default function GlobalQuickAccessRail({
       delete shell.dataset.quickAccessSafeShift;
       delete shell.dataset.quickAccessState;
       if (footer) delete footer.dataset.quickAccessOcclusionGuard;
+      root.style.removeProperty('font-family');
     };
   }, [
     currentRoute,
@@ -599,7 +604,7 @@ export default function GlobalQuickAccessRail({
     setDragId('');
   };
 
-  return (
+  const quickAccessUi = (
     <>
       <div
         ref={rootRef}
@@ -850,4 +855,8 @@ export default function GlobalQuickAccessRail({
       ) : null}
     </>
   );
+
+  return typeof document !== 'undefined'
+    ? createPortal(quickAccessUi, document.body)
+    : quickAccessUi;
 }
