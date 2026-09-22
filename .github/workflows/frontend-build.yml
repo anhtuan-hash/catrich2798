@@ -82,6 +82,9 @@ jobs:
       - name: Verify Dashboard footer V12
         run: node scripts/test-dashboard-footer-v12.mjs
 
+      - name: Verify global Dashboard footer V13
+        run: node scripts/test-global-dashboard-footer-v13.mjs
+
       - name: Verify global Quick Access rail
         run: node scripts/test-global-quick-access-rail.mjs
 

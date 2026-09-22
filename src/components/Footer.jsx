@@ -75,23 +75,19 @@ function DetailRow({ type, children }) {
   );
 }
 
-export default function Footer({ language, compact = false, route = '' }) {
+export default function Footer({ language, route = '' }) {
   const isVi = language === 'vi';
   const resolvedRoute = route || (typeof document !== 'undefined' ? (document.querySelector('.app-shell')?.dataset?.route || '') : '');
   const content = isVi ? VIETNAMESE_DETAILS : ENGLISH_DETAILS;
-  const compactMode = compact
-    || (typeof window !== 'undefined' && String(window.location.hash || '').startsWith('#/assessment-core'))
-    || (typeof document !== 'undefined' && document.querySelector('.app-shell')?.dataset?.route === 'assessment-core');
 
   return (
     <footer
-      className={`footer footer-v10 signature-footer-v75 signature-footer-v50 signature-footer-collapsible ${compactMode ? 'signature-footer-assessment-compact' : ''} ${isVi ? 'signature-footer-v50-vi' : 'signature-footer-v50-en'}`}
+      className={`footer footer-v10 signature-footer-v75 signature-footer-v50 signature-footer-collapsible signature-footer-dashboard-global ${isVi ? 'signature-footer-v50-vi' : 'signature-footer-v50-en'}`}
       aria-label={isVi ? 'Thông tin English Hub' : 'English Hub information'}
       data-app-shell-footer="true"
-      data-footer-mode={compactMode ? 'compact' : 'full'}
+      data-footer-mode="full"
       data-footer-route={resolvedRoute || undefined}
     >
-      {!compactMode ? (
       <div id="english-hub-footer-details" className="signature-footer-expanded-panel">
         <div className="signature-footer-v50-main">
           <section className="signature-footer-v50-brand" aria-label="English Hub, Pétrus Ký and Cambridge Assessment English">
@@ -134,9 +130,8 @@ export default function Footer({ language, compact = false, route = '' }) {
 
         <div className="signature-footer-expanded-note">{content.examiner}</div>
       </div>
-      ) : null}
 
-      {resolvedRoute === 'dashboard' ? <DashboardFooterArtwork /> : null}
+      <DashboardFooterArtwork />
 
       <div className="signature-footer-static-summary">
         <span className="signature-footer-summary">

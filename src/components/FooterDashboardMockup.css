@@ -388,3 +388,300 @@ html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-foo
     font-size: 12px !important;
   }
 }
+
+
+/* Global footer V13 · Dashboard footer becomes canonical site-wide */
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] {
+  --dashboard-shell-width: min(1520px, calc(100% - clamp(32px, 6vw, 96px)));
+  position: relative !important;
+  isolation: isolate !important;
+  box-sizing: border-box !important;
+  width: var(--dashboard-shell-width) !important;
+  max-width: 1520px !important;
+  margin: 8px auto 18px !important;
+  padding: 14px 14px 46px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(145, 188, 232, .34) !important;
+  border-radius: 24px !important;
+  background: linear-gradient(180deg, rgba(250,253,255,.99), #f6fbff 72%, #f1f8ff 100%) !important;
+  box-shadow:
+    0 16px 36px rgba(57, 102, 151, .055),
+    inset 0 1px 0 rgba(255,255,255,.98) !important;
+  color: #17334f !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"]::before,
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"]::after {
+  content: none !important;
+  display: none !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] > .signature-footer-expanded-panel {
+  position: relative !important;
+  z-index: 3 !important;
+  display: block !important;
+  width: 100% !important;
+  overflow: visible !important;
+  border-top: 0 !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-main {
+  display: grid !important;
+  grid-template-columns: .95fr 1.08fr 1.07fr !important;
+  gap: 16px !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-main > section {
+  position: relative !important;
+  min-width: 0 !important;
+  min-height: 246px !important;
+  height: auto !important;
+  padding: 22px 24px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(137, 181, 226, .38) !important;
+  border-radius: 20px !important;
+  box-shadow:
+    0 12px 26px rgba(57, 102, 151, .055),
+    inset 0 1px 0 rgba(255,255,255,.98) !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-brand {
+  background: linear-gradient(145deg, #eef7ff 0%, #f9fcff 58%, #eef9f0 100%) !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-profile {
+  background: linear-gradient(145deg, #eefbf5 0%, #fbfffc 58%, #eaf8f5 100%) !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-credentials {
+  background: linear-gradient(145deg, #fff9e8 0%, #fffdf8 58%, #fff3dc 100%) !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-brian-logo {
+  width: min(220px, 82%) !important;
+  max-height: 90px !important;
+  margin: 4px auto 18px !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-affiliations {
+  width: min(100%, 282px) !important;
+  margin-inline: auto !important;
+  padding-top: 15px !important;
+  border-top: 1px solid rgba(120, 164, 210, .15) !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-affiliations img {
+  height: 64px !important;
+  filter: saturate(.92) contrast(1.02) !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-logo-divider {
+  height: 52px !important;
+  background: rgba(105, 145, 187, .16) !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-brand::after {
+  margin-top: 14px !important;
+  color: #7890a6 !important;
+  font-size: .74rem !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-language-badge {
+  min-width: 37px !important;
+  height: 30px !important;
+  margin-bottom: 8px !important;
+  padding-inline: 10px !important;
+  border-radius: 10px !important;
+  background: #15945a !important;
+  box-shadow: none !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-profile h2 {
+  margin-bottom: 7px !important;
+  color: #14784b !important;
+  font-size: clamp(1.08rem, 1.35vw, 1.38rem) !important;
+  line-height: 1.15 !important;
+  letter-spacing: .005em !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-details {
+  margin-top: 0 !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-detail {
+  min-height: 34px !important;
+  grid-template-columns: 25px minmax(0, 1fr) !important;
+  gap: 8px !important;
+  padding: 4px 0 !important;
+  border-bottom-color: rgba(119, 161, 199, .12) !important;
+  font-size: .79rem !important;
+  line-height: 1.36 !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-detail-icon {
+  width: 22px !important;
+  height: 22px !important;
+  background: #dcf5e6 !important;
+  box-shadow: none !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-section-label {
+  margin-bottom: 7px !important;
+  color: #df6414 !important;
+  font-size: .82rem !important;
+  line-height: 1.25 !important;
+  letter-spacing: .04em !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-credentials > ul > li {
+  min-height: 34px !important;
+  grid-template-columns: 20px minmax(0, 1fr) !important;
+  gap: 8px !important;
+  padding: 5px 0 !important;
+  border-bottom-color: rgba(183, 139, 54, .12) !important;
+  font-size: .79rem !important;
+  line-height: 1.36 !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-star {
+  color: #e8ad00 !important;
+  font-size: .88rem !important;
+  filter: none !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-expanded-note {
+  position: relative !important;
+  z-index: 5 !important;
+  display: flex !important;
+  justify-content: center !important;
+  width: 100% !important;
+  margin: 8px 0 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #71869c !important;
+  font-size: .70rem !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-dashboard-artwork {
+  position: absolute !important;
+  z-index: 1 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  height: 48px !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-dashboard-landscape {
+  position: absolute !important;
+  inset: auto 0 -16px 0 !important;
+  width: 100% !important;
+  height: 55px !important;
+  opacity: .58 !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-dashboard-signoff {
+  position: absolute !important;
+  right: 28px !important;
+  bottom: 12px !important;
+  color: #3678da !important;
+  font-size: 13px !important;
+  font-style: italic !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  letter-spacing: 0 !important;
+  transform: rotate(-2.5deg) !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.9) !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] > .signature-footer-static-summary {
+  position: relative !important;
+  z-index: 5 !important;
+  display: flex !important;
+  justify-content: center !important;
+  width: max-content !important;
+  max-width: calc(100% - 300px) !important;
+  min-height: 22px !important;
+  margin: 5px auto 0 !important;
+  padding: 6px 0 0 !important;
+  border: 0 !important;
+  border-top: 1px solid rgba(132, 171, 212, .16) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-summary {
+  justify-content: center !important;
+  font-size: .76rem !important;
+  line-height: 1.25 !important;
+  text-align: center !important;
+}
+
+@media (max-width: 1040px) {
+  html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] {
+    padding-bottom: 44px !important;
+  }
+
+  html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-main {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-credentials {
+    grid-column: 1 / -1 !important;
+  }
+
+  html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-main > section {
+    min-height: 0 !important;
+  }
+}
+
+@media (max-width: 720px) {
+  html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] {
+    width: calc(100% - 16px) !important;
+    max-width: calc(100% - 16px) !important;
+    margin: 8px auto 12px !important;
+    padding: 10px 10px 48px !important;
+    border-radius: 20px !important;
+  }
+
+  html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-main {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-credentials {
+    grid-column: auto !important;
+  }
+
+  html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-v50-main > section {
+    padding: 20px !important;
+  }
+
+  html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-dashboard-artwork {
+    height: 44px !important;
+  }
+
+  html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-dashboard-signoff {
+    right: 14px !important;
+    bottom: 12px !important;
+    font-size: 12px !important;
+  }
+
+  html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] > .signature-footer-static-summary {
+    max-width: calc(100% - 150px) !important;
+    margin-left: 0 !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body #root .app-shell.metro-clean-system > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] .signature-footer-dashboard-signoff {
+    transform: none !important;
+  }
+}
