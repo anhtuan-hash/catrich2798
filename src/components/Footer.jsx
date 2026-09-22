@@ -3,6 +3,7 @@ import { APP_VERSION } from '../config/version.js';
 import './FooterCompactDisclosure.css';
 import './FooterAuthCards.css';
 import './FooterIntegrity.css';
+import './FooterDashboardMockup.css';
 
 const ENGLISH_DETAILS = {
   language: 'EN',
