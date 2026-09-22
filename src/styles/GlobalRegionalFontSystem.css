@@ -102,11 +102,27 @@ html[data-font-region-page-title] body :not(#bes-regional-a#bes-regional-b#bes-r
   font-family: var(--bes-font-pageTitle) !important;
 }
 
-/* Newswire. */
-html[data-font-region-newswire] body .brian-editorial-brief :not(#bes-regional-a#bes-regional-b#bes-regional-c):is(
-  div, span, strong, b, em, small, p, button, a
+/* Newswire.
+   Support the retired editorial-brief hook and the current Brian Newswire.
+   Apply the region family to the surface itself and all textual descendants so
+   route/admin/control font authorities cannot mask an explicit Newswire choice. */
+html[data-font-region-newswire] body :is(.brian-editorial-brief, .brian-newswire),
+html[data-font-region-newswire] body :is(.brian-editorial-brief, .brian-newswire) :not(#bes-regional-a#bes-regional-b#bes-regional-c):is(
+  div, span, strong, b, em, small, p, button, a, time
 ) {
   font-family: var(--bes-font-newswire) !important;
+}
+
+/* Newswire text size. The runtime synchronizer mirrors this rule for nodes that
+   mount after settings are applied, while this CSS makes the live preview
+   immediate on the already-mounted briefing bar. */
+html[data-font-size-newswire] body :is(.brian-editorial-brief, .brian-newswire) :not(
+  .material-symbols-outlined,
+  .material-symbols-rounded,
+  .material-symbols-sharp,
+  .material-icons
+):is(div, span, strong, b, em, small, p, button, a, time) {
+  font-size: var(--bes-font-size-newswire) !important;
 }
 
 /* Primary navigation font family. */
