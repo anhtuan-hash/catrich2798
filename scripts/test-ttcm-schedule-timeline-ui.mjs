@@ -46,11 +46,16 @@ check(!center.includes('work-schedule-day-track'), 'removes cramped weekly day c
 check(center.includes('File mẫu'), 'keeps schedule template flow available');
 check(center.includes('Upload lịch'), 'keeps upload flow available');
 check(center.includes('Thêm lịch'), 'keeps add schedule flow available');
+check(center.includes('work-schedule-embedded-actions'), 'shows schedule management actions inside embedded TTCM daily view');
+check(center.includes('⇧ Tải lên lịch'), 'restores a visible upload action in embedded TTCM schedule');
+check(center.includes('accept=".xlsx,.csv"'), 'keeps XLSX and CSV upload support');
 
 // Production selector fidelity: match the approved daily mockup.
 check(wrapper.includes("import './GlobalWorkScheduleTimelineV2.css';"), 'loads the TTCM schedule skin');
 check(css.includes('.ttcm-m3-schedule-host .work-schedule-center'), 'scopes the design to TTCM schedule host');
 check(css.includes('.work-schedule-daily-shell'), 'styles the daily shell');
+check(css.includes('.work-schedule-embedded-actions'), 'styles compact embedded schedule management controls');
+check(css.includes('.work-schedule-embedded-actions button.is-upload'), 'visually prioritizes the restored upload action');
 check(/\.work-schedule-daily-shell\s*\{[^}]*grid-template-columns\s*:\s*minmax\(0\s*,\s*2fr\)\s+minmax\(300px\s*,\s*1fr\)/.test(css), 'uses a two-thirds timeline and one-third summary rail');
 check(/\.work-schedule-daily-event\s*\{[^}]*min-height\s*:\s*7[0-9]px/.test(css), 'gives daily events comfortable card height');
 check(/\.work-schedule-daily-card-copy strong[^}]*font-size\s*:\s*1[3-5]px/.test(css), 'keeps daily event titles readable');
