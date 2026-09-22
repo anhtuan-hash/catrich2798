@@ -661,7 +661,7 @@ export default function GlobalQuickAccessRail({
       window.cancelAnimationFrame(layoutFrameRef.current);
       layoutFrameRef.current = window.requestAnimationFrame(() => {
         const coarsePointer = window.matchMedia?.('(pointer: coarse)')?.matches === true;
-        const reserveMode = window.innerWidth >= QUICK_ACCESS_SAFE_AREA_MIN_WIDTH && !coarsePointer;
+        const reserveMode = mode !== 'focus' && window.innerWidth >= QUICK_ACCESS_SAFE_AREA_MIN_WIDTH && !coarsePointer;
         shell.dataset.quickAccessSafeMode = reserveMode ? 'reserve' : 'overlay';
 
         if (!reserveMode) {
@@ -768,6 +768,7 @@ export default function GlobalQuickAccessRail({
     currentRoute,
     selectedTool?.slug,
     pinned,
+    mode,
     allowedKey,
     appVisibility?.ready,
   ]);
@@ -897,7 +898,7 @@ export default function GlobalQuickAccessRail({
     <>
       <div
         ref={rootRef}
-        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} is-${mode} ${customizing ? 'is-customizing' : ''}`}
+        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} is-${mode} ${peekItem ? 'has-peek' : ''} ${customizing ? 'is-customizing' : ''}`}
         data-quick-access="true"
         data-motion={collapsing ? 'collapsing' : (expanded ? 'open' : 'rest')}
         data-route={currentRoute}
