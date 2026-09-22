@@ -86,7 +86,7 @@ for (const token of [
   'z-index: 2147482500 !important',
   'z-index: 2147482600',
   'footer[data-app-shell-footer="true"]',
-  '@media (min-width: 768px) and (max-width: 1279px)',
+  'data-quick-access-safe-mode="overlay"',
   '@media (max-width: 767px)',
   '@keyframes bqa-pencil-open',
   '@keyframes bqa-pencil-collapse',
