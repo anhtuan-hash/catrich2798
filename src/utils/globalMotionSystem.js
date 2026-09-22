@@ -201,6 +201,7 @@ const MODAL_SELECTOR = '[role="dialog"],dialog,[class*="modal"],[class*="dialog"
 const DRAWER_SELECTOR = '[class*="drawer"],[class*="sheet"],[data-drawer]';
 const POPOVER_SELECTOR = '[role="menu"],[role="listbox"],[role="tooltip"],[class*="popover"],[class*="dropdown"],[class*="menu-popover"]';
 const LIST_SELECTOR = '[data-motion-list-item],.app-card,.student-card,.report-card,.dashboard-card,.summary-card,[class*="list-item"],[role="row"]';
+const MOTION_ISOLATION_SELECTOR = '[data-global-motion-isolate="true"]';
 
 let installed = false;
 let realtimeUnsubscribe = null;
@@ -495,8 +496,12 @@ function isVisible(node) {
   return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
 }
 
+function isMotionIsolated(node) {
+  return Boolean(node?.closest?.(MOTION_ISOLATION_SELECTOR));
+}
+
 function markTabPanel(panel) {
-  if (!panel?.matches?.(TAB_PANEL_SELECTOR) || !isVisible(panel)) return;
+  if (!panel?.matches?.(TAB_PANEL_SELECTOR) || !isVisible(panel) || isMotionIsolated(panel)) return;
   const now = Date.now();
   const previous = tabMotionTimestamps.get(panel) || 0;
   if (now - previous < 100) return;
@@ -532,13 +537,13 @@ function installTabActivationListener() {
 }
 
 function markEntrant(node, kind) {
-  if (!node?.isConnected || !isVisible(node)) return;
+  if (!node?.isConnected || !isVisible(node) || isMotionIsolated(node)) return;
   node.dataset.globalMotionEnter = kind;
   window.setTimeout(() => { if (node?.isConnected && node.dataset.globalMotionEnter === kind) delete node.dataset.globalMotionEnter; }, 760);
 }
 
 function collectEntrants(root) {
-  if (!root || root.nodeType !== 1) return;
+  if (!root || root.nodeType !== 1 || isMotionIsolated(root)) return;
   const groups = [
     [MODAL_SELECTOR, 'modal'],
     [DRAWER_SELECTOR, 'drawer'],
@@ -554,6 +559,7 @@ function collectEntrants(root) {
 
   const listNodes = root.matches?.(LIST_SELECTOR) ? [root] : [...(root.querySelectorAll?.(LIST_SELECTOR) || [])];
   listNodes.slice(0, 8).forEach((node, index) => {
+    if (isMotionIsolated(node)) return;
     node.dataset.globalListEnter = 'true';
     node.style.setProperty('--gm-list-index', String(index));
     window.setTimeout(() => { if (node?.isConnected) delete node.dataset.globalListEnter; }, 900);
