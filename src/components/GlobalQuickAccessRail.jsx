@@ -296,8 +296,10 @@ export default function GlobalQuickAccessRail({
   const [customizerQuery, setCustomizerQuery] = useState('');
   const [dragId, setDragId] = useState('');
   const [collapsing, setCollapsing] = useState(false);
+  const [openSettled, setOpenSettled] = useState(false);
   const closeTimerRef = useRef(0);
   const collapseMotionTimerRef = useRef(0);
+  const openSettleTimerRef = useRef(0);
   const layoutFrameRef = useRef(0);
   const layoutSettleTimerRef = useRef(0);
   const layoutVerifyTimerRef = useRef(0);
@@ -376,7 +378,23 @@ export default function GlobalQuickAccessRail({
   useEffect(() => () => {
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
+    window.clearTimeout(openSettleTimerRef.current);
   }, []);
+
+  useEffect(() => {
+    window.clearTimeout(openSettleTimerRef.current);
+    if (!expanded) {
+      setOpenSettled(false);
+      return undefined;
+    }
+
+    setOpenSettled(false);
+    openSettleTimerRef.current = window.setTimeout(() => {
+      setOpenSettled(true);
+    }, 380);
+
+    return () => window.clearTimeout(openSettleTimerRef.current);
+  }, [expanded]);
 
   useEffect(() => {
     if (!customizing) return undefined;
@@ -630,7 +648,7 @@ export default function GlobalQuickAccessRail({
     <>
       <div
         ref={rootRef}
-        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${config.pinned ? 'is-pinned' : ''} ${customizing ? 'is-customizing' : ''}`}
+        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${openSettled ? 'is-open-settled' : ''} ${collapsing ? 'is-collapsing' : ''} ${config.pinned ? 'is-pinned' : ''} ${customizing ? 'is-customizing' : ''}`}
         data-quick-access="true"
         data-motion={collapsing ? 'collapsing' : (expanded ? 'open' : 'rest')}
         data-route={currentRoute}
@@ -641,14 +659,22 @@ export default function GlobalQuickAccessRail({
         <div
           className="bqa-edge-trigger"
           aria-hidden="true"
-          onPointerEnter={enter}
+          onPointerEnter={openRail}
+          onMouseEnter={openRail}
           onPointerDown={(event) => {
             if (event.pointerType === 'touch' || event.pointerType === 'pen') openRail();
           }}
         />
         <div className="bqa-hover-bridge" aria-hidden="true" onPointerEnter={enter} />
 
-        <aside ref={railRef} className="bqa-rail" aria-label={language === 'vi' ? 'Thanh truy cập nhanh' : 'Quick access'}>
+        <aside
+          ref={railRef}
+          className="bqa-rail"
+          aria-label={language === 'vi' ? 'Thanh truy cập nhanh' : 'Quick access'}
+          onPointerEnter={openRail}
+          onMouseEnter={openRail}
+          onFocusCapture={openRail}
+        >
           <button
             type="button"
             className="bqa-brand"
@@ -701,6 +727,8 @@ export default function GlobalQuickAccessRail({
         <section
           ref={panelRef}
           className="bqa-panel"
+          onPointerEnter={openRail}
+          onMouseEnter={openRail}
           aria-hidden={!expanded}
           inert={expanded ? undefined : true}
           onAnimationEnd={(event) => {
