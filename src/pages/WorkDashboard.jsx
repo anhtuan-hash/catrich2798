@@ -12,6 +12,7 @@ import '../styles/teacher-dashboard-calendar-split.css';
 import '../styles/teacher-dashboard-compact-layout.css';
 import '../styles/teacher-dashboard-google-colorful.css';
 import '../styles/teacher-dashboard-editorial-hero.css';
+import '../styles/teacher-dashboard-timeline-v2.css';
 import DashboardNewsHub from '../components/DashboardNewsHub.jsx';
 
 const COPY = {
@@ -98,9 +99,45 @@ function Empty({ children }) { return <div className="gd-empty"><span><Icon name
 function Surface({ title, subtitle, icon, action, actionLabel, children, id, className = '', note = '' }) {
   return <article className={`gd-surface ${className}`} id={id}><header className="gd-surface-header"><div className="gd-surface-heading"><span className="gd-heading-icon"><Icon name={icon} size={20} /></span><div><h2>{title}</h2>{subtitle ? <p>{subtitle}</p> : null}</div></div>{note ? <span className="gd-surface-note" aria-hidden="true">{note}</span> : null}{action ? <button type="button" className="gd-text-button" onClick={action}>{actionLabel}<Icon name="arrow" size={18} /></button> : null}</header><div className="gd-surface-body">{children}</div></article>;
 }
-function CalendarEvent({ item, language, locale, t }) {
+function getEventVisual(item, language, index = 0) {
+  const vi = language === 'vi';
+  const haystack = `${item?.title || ''} ${item?.description || ''} ${item?.owner || ''} ${item?.sourceLabel || ''}`.toLowerCase();
+  if (/kiểm tra|thi |exam|test|assessment/.test(haystack)) return { tone: 'green', icon: 'task', label: vi ? 'KIỂM TRA' : 'ASSESSMENT' };
+  if (/nghị quyết|học tập|tập huấn|bồi dưỡng|training|study|learning/.test(haystack)) return { tone: 'blue', icon: 'school', label: vi ? 'HỌC TẬP' : 'LEARNING' };
+  if (/an toàn|triển khai|kế hoạch|công văn|phối hợp|safety|implement|plan/.test(haystack)) return { tone: 'orange', icon: 'warning', label: vi ? 'TRIỂN KHAI' : 'ACTION' };
+  if (/shcm|chuyên môn|tổ |professional|department/.test(haystack)) return { tone: 'purple', icon: 'people', label: vi ? 'CHUYÊN MÔN' : 'PROFESSIONAL' };
+  const fallback = [
+    { tone: 'green', icon: 'task', label: vi ? 'CÔNG VIỆC' : 'TASK' },
+    { tone: 'blue', icon: 'school', label: vi ? 'HỌC TẬP' : 'LEARNING' },
+    { tone: 'orange', icon: 'warning', label: vi ? 'TRIỂN KHAI' : 'ACTION' },
+    { tone: 'purple', icon: 'people', label: vi ? 'CHUYÊN MÔN' : 'PROFESSIONAL' },
+    { tone: 'pink', icon: 'calendar', label: vi ? 'SỰ KIỆN' : 'EVENT' },
+  ];
+  return fallback[index % fallback.length];
+}
+
+function CalendarEvent({ item, language, locale, t, index = 0 }) {
   const state = getDashboardDueState(item.date, item.done);
-  return <button type="button" className={`gd-event is-${state}`} onClick={() => openDashboardTarget(item)}><span className="gd-event-time"><strong>{eventTimeLabel(item.date, t, locale)}</strong><small>{dashboardDueLabel(item.date, item.done, language)}</small></span><span className="gd-event-color" aria-hidden="true" /><span className="gd-event-copy"><strong>{item.title}</strong>{item.description ? <p>{item.description}</p> : null}<small>{t.source}: {item.owner || item.sourceLabel}</small></span><Icon name="arrow" size={20} /></button>;
+  const visual = getEventVisual(item, language, index);
+  return <button
+    type="button"
+    className={`gd-event gd-timeline-event tone-${visual.tone} is-${state}`}
+    onClick={() => openDashboardTarget(item)}
+  >
+    <span className="gd-event-time">
+      <strong>{eventTimeLabel(item.date, t, locale)}</strong>
+      <small>{dashboardDueLabel(item.date, item.done, language)}</small>
+    </span>
+    <span className="gd-timeline-rail" aria-hidden="true"><i /></span>
+    <span className="gd-event-orb" aria-hidden="true"><Icon name={visual.icon} size={22} /></span>
+    <span className="gd-event-copy">
+      <strong>{item.title}</strong>
+      {item.description ? <p><Icon name="task" size={13} />{item.description}</p> : null}
+      <small><Icon name="people" size={13} />{t.source}: {item.owner || item.sourceLabel}</small>
+    </span>
+    <span className="gd-event-kind"><Icon name={visual.icon} size={16} />{visual.label}</span>
+    <span className="gd-event-chevron"><Icon name="arrow" size={18} /></span>
+  </button>;
 }
 
 function DashboardHeroIllustration() {
@@ -214,12 +251,39 @@ function DashboardHeroCloudscape() {
 
 function DashboardCalendarDoodle({ language }) {
   return <span className="gd-calendar-doodle" aria-hidden="true">
-    <span>{language === 'vi' ? <>Kế hoạch tốt<br />mở ra ngày tuyệt vời! ✨</> : <>A good plan<br />opens a great day! ✨</>}</span>
-    <svg viewBox="0 0 80 80" focusable="false">
-      <rect x="13" y="18" width="54" height="48" rx="10" fill="#fff" stroke="currentColor" strokeWidth="2" />
-      <path d="M13 31h54" stroke="currentColor" strokeWidth="2" />
-      <path d="M27 12v15M53 12v15" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
-      <path d="m27 47 8 8 18-19" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+    <span className="gd-calendar-doodle-note">
+      {language === 'vi' ? <>Kế hoạch tốt<br />mở ra ngày tuyệt vời! ✨</> : <>A good plan<br />opens a great day! ✨</>}
+      <small>{language === 'vi' ? 'Từng bước nhỏ · Một ngày tiến bộ' : 'Small steps · Big progress'}</small>
+    </span>
+    <svg className="gd-calendar-doodle-art" viewBox="0 0 260 120" focusable="false">
+      <defs>
+        <linearGradient id="gdCalPaper" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ffffff" /><stop offset="1" stopColor="#eaf2ff" /></linearGradient>
+        <linearGradient id="gdCalBlue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#42a5ff" /><stop offset="1" stopColor="#5b5cf6" /></linearGradient>
+        <linearGradient id="gdCalPurple" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#8a67ff" /><stop offset="1" stopColor="#5f4bea" /></linearGradient>
+        <filter id="gdCalShadow" x="-30%" y="-40%" width="180%" height="200%"><feDropShadow dx="0" dy="7" stdDeviation="7" floodColor="#526aab" floodOpacity=".18" /></filter>
+      </defs>
+      <ellipse cx="142" cy="104" rx="100" ry="11" fill="#9cb9e8" opacity=".18" />
+      <g transform="translate(14 69) rotate(-6)" filter="url(#gdCalShadow)">
+        <rect x="0" y="14" width="90" height="15" rx="7.5" fill="#7257e8" />
+        <rect x="8" y="1" width="80" height="15" rx="7.5" fill="#ffa7bb" />
+        <rect x="15" y="-11" width="76" height="15" rx="7.5" fill="#ffcb6b" />
+      </g>
+      <g transform="translate(92 11) rotate(7)" filter="url(#gdCalShadow)">
+        <rect x="0" y="7" width="82" height="82" rx="13" fill="url(#gdCalPaper)" stroke="#c8d9f2" strokeWidth="2" />
+        <rect x="0" y="7" width="82" height="22" rx="13" fill="url(#gdCalBlue)" />
+        <rect x="0" y="20" width="82" height="10" fill="url(#gdCalBlue)" />
+        {[17,35,53,71].map((x) => <rect key={x} x={x} y="0" width="7" height="22" rx="3.5" fill="#376ee5" />)}
+        <rect x="22" y="41" width="39" height="35" rx="10" fill="#e7f2ff" />
+        <path d="m31 57 8 8 16-18" fill="none" stroke="#3f78ef" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+      </g>
+      <g transform="translate(183 24)">
+        <path d="M20 70V29" stroke="#4c996b" strokeWidth="4" strokeLinecap="round" />
+        <path d="M20 45C5 36 2 24 8 16c12 2 19 11 17 23M20 55c14-14 28-15 35-8-4 12-14 18-31 15M20 34c8-16 21-21 30-16-1 12-9 21-25 24" fill="#65b881" />
+        <rect x="4" y="67" width="35" height="20" rx="6" fill="url(#gdCalPurple)" />
+      </g>
+      <g fill="#fff" opacity=".9">
+        <circle cx="79" cy="23" r="2.5" /><circle cx="196" cy="12" r="2.2" /><circle cx="217" cy="16" r="1.8" />
+      </g>
     </svg>
   </span>;
 }
@@ -371,15 +435,31 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
         </header>
       </section>
       {error ? <div className="gd-alert"><Icon name="warning" size={22} /><div><strong>{t.partial}</strong><small>{error}</small></div><button type="button" className="gd-text-button" onClick={() => refresh()}>{t.retry}</button></div> : null}
-      <article className="gd-calendar gd-calendar-today" id="dashboard-calendar">
-        <header className="gd-calendar-header"><div className="gd-calendar-title"><span><Icon name="calendar" size={22} /></span><div><h2>{t.calendar}</h2><p>{t.calendarSummary}</p></div></div><DashboardCalendarDoodle language={language} /><button type="button" className="gd-text-button" onClick={() => openTtcm('schedule')}>{t.openCalendar}<Icon name="arrow" size={18} /></button></header>
-        <div className="gd-today-layout">
-          <header className="gd-today-overview">
-            <div className="gd-today-date-mark"><strong>{todayDate.getDate()}</strong><span>{new Intl.DateTimeFormat(locale, { month: 'short' }).format(todayDate)}</span></div>
-            <div className="gd-today-heading"><span>{t.selectedDay}</span><h3>{todayWeekday}</h3><p>{todayDateLabel}</p></div>
-            <span className="gd-count-chip">{todayEvents.length} {t.events}</span>
-          </header>
-          <div className="gd-agenda-list gd-agenda-list-today">{initialLoading ? <Empty>{t.refreshing}</Empty> : todayEvents.length ? todayEvents.map((item) => <CalendarEvent key={item.id} item={item} language={language} locale={locale} t={t} />) : <Empty>{t.emptyCalendar}</Empty>}</div>
+      <article className="gd-calendar gd-calendar-today gd-calendar-timeline-v2" id="dashboard-calendar">
+        <header className="gd-calendar-header">
+          <div className="gd-calendar-kicker">02 / TODAY</div>
+          <div className="gd-calendar-title"><span><Icon name="calendar" size={24} /></span><div><h2>{t.calendar}</h2><p>{t.calendarSummary}</p></div></div>
+          <DashboardCalendarDoodle language={language} />
+          <span className="gd-calendar-edition">DAILY SCHEDULE / BRIAN</span>
+          <button type="button" className="gd-text-button" onClick={() => openTtcm('schedule')}><Icon name="calendar" size={16} />{t.openCalendar}<Icon name="arrow" size={18} /></button>
+        </header>
+        <div className="gd-today-layout gd-today-layout-v2">
+          <aside className="gd-date-poster">
+            <div className="gd-date-poster-main">
+              <strong>{String(todayDate.getDate()).padStart(2, '0')}</strong>
+              <span>{new Intl.DateTimeFormat(locale, { month: 'long' }).format(todayDate)}</span>
+              <b>{todayWeekday}</b>
+            </div>
+            <div className="gd-date-poster-landscape" aria-hidden="true"><i /><i /><i /></div>
+            <p>{language === 'vi' ? <>Hôm nay<br />cũng là một<br />bước tiến! ✨</> : <>Today is<br />another step<br />forward! ✨</>}</p>
+          </aside>
+          <section className="gd-timeline-panel">
+            <div className="gd-timeline-head">
+              <div><span>{t.selectedDay}</span><strong>{todayDateLabel}</strong></div>
+              <span className="gd-count-chip">{todayEvents.length} {t.events}</span>
+            </div>
+            <div className="gd-agenda-list gd-agenda-list-today gd-agenda-timeline">{initialLoading ? <Empty>{t.refreshing}</Empty> : todayEvents.length ? todayEvents.map((item, index) => <CalendarEvent key={item.id} item={item} language={language} locale={locale} t={t} index={index} />) : <Empty>{t.emptyCalendar}</Empty>}</div>
+          </section>
         </div>
       </article>
       <DashboardNewsHub language={language} />
