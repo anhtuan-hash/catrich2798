@@ -28,148 +28,172 @@ function Detail({ icon, label, value }) {
 }
 
 function CampusScene() {
-  const leftWindows = Array.from({ length: 12 });
-  const sideWindows = Array.from({ length: 8 });
+  const towerWindows = Array.from({ length: 15 });
+  const wingWindows = Array.from({ length: 12 });
 
   return <div className="hr-campus-scene" aria-hidden="true">
-    <svg className="hr-campus-scene__svg" viewBox="0 0 820 540" preserveAspectRatio="xMidYMid slice">
+    <svg className="hr-campus-scene__svg" viewBox="0 0 860 540" preserveAspectRatio="xMidYMid slice">
       <defs>
         <linearGradient id="hrSky" x1="0" y1="0" x2=".9" y2="1">
-          <stop offset="0" stopColor="#a8d5ff" />
-          <stop offset=".48" stopColor="#d8ecff" />
-          <stop offset="1" stopColor="#f8fbff" />
+          <stop offset="0" stopColor="#8ec9ff" />
+          <stop offset=".45" stopColor="#cfe9ff" />
+          <stop offset=".78" stopColor="#eef8ff" />
+          <stop offset="1" stopColor="#ffffff" />
         </linearGradient>
-        <linearGradient id="hrSun" x1=".2" y1="0" x2=".8" y2="1">
-          <stop offset="0" stopColor="#fff5cf" stopOpacity=".96" />
-          <stop offset=".5" stopColor="#ffffff" stopOpacity=".5" />
+        <radialGradient id="hrSun" cx=".78" cy=".08" r=".62">
+          <stop offset="0" stopColor="#fff8d8" stopOpacity=".98" />
+          <stop offset=".2" stopColor="#fffdf3" stopOpacity=".72" />
+          <stop offset=".62" stopColor="#ffffff" stopOpacity=".16" />
           <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id="hrGlassWing" x1=".05" y1=".1" x2=".96" y2=".92">
+          <stop offset="0" stopColor="#214c78" />
+          <stop offset=".28" stopColor="#467aa7" />
+          <stop offset=".62" stopColor="#82b9df" />
+          <stop offset="1" stopColor="#d8effc" />
         </linearGradient>
-        <linearGradient id="hrGlassDark" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#315c88" />
-          <stop offset=".35" stopColor="#547da5" />
-          <stop offset=".72" stopColor="#90b9da" />
-          <stop offset="1" stopColor="#d7ebf8" />
+        <linearGradient id="hrGlassWindow" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#e8f7ff" />
+          <stop offset=".23" stopColor="#bfe4fa" />
+          <stop offset=".58" stopColor="#6ca7d2" />
+          <stop offset=".86" stopColor="#4777a5" />
+          <stop offset="1" stopColor="#315e8b" />
         </linearGradient>
-        <linearGradient id="hrGlassLight" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#edf8ff" />
-          <stop offset=".35" stopColor="#c2e4fb" />
-          <stop offset=".7" stopColor="#75add7" />
-          <stop offset="1" stopColor="#3f6f9e" />
+        <linearGradient id="hrGlassReflection" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#ffffff" stopOpacity=".76" />
+          <stop offset=".28" stopColor="#ffffff" stopOpacity=".16" />
+          <stop offset=".62" stopColor="#9fd7ff" stopOpacity=".04" />
+          <stop offset="1" stopColor="#ffffff" stopOpacity=".38" />
         </linearGradient>
         <linearGradient id="hrFacade" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#ffffff" />
-          <stop offset=".5" stopColor="#f7f9fb" />
-          <stop offset="1" stopColor="#dfe7ef" />
+          <stop offset=".42" stopColor="#fbfcfd" />
+          <stop offset=".74" stopColor="#edf2f6" />
+          <stop offset="1" stopColor="#d8e1ea" />
         </linearGradient>
         <linearGradient id="hrFacadeEdge" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#edf3f8" />
-          <stop offset="1" stopColor="#b6c7d7" />
+          <stop offset="0" stopColor="#f6f9fb" />
+          <stop offset=".55" stopColor="#d8e2eb" />
+          <stop offset="1" stopColor="#a9bdcf" />
+        </linearGradient>
+        <linearGradient id="hrCanopy" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#e8f2f8" />
+          <stop offset="1" stopColor="#becfdd" />
         </linearGradient>
         <linearGradient id="hrGround" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#b9d99b" />
-          <stop offset="1" stopColor="#6f9f5f" />
+          <stop offset="0" stopColor="#c4dfa8" />
+          <stop offset=".6" stopColor="#8dbb73" />
+          <stop offset="1" stopColor="#6d9e5e" />
         </linearGradient>
         <linearGradient id="hrLeaf" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#78b56e" />
-          <stop offset=".55" stopColor="#3d865c" />
-          <stop offset="1" stopColor="#245f48" />
+          <stop offset="0" stopColor="#82bf78" />
+          <stop offset=".45" stopColor="#4d9665" />
+          <stop offset="1" stopColor="#245f49" />
         </linearGradient>
         <filter id="hrBuildingShadow" x="-30%" y="-30%" width="170%" height="190%">
-          <feDropShadow dx="0" dy="18" stdDeviation="16" floodColor="#294c70" floodOpacity=".22" />
+          <feDropShadow dx="0" dy="20" stdDeviation="17" floodColor="#244d74" floodOpacity=".22" />
         </filter>
         <filter id="hrSoftBlur" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="13" />
+          <feGaussianBlur stdDeviation="14" />
         </filter>
         <filter id="hrLeafBlur" x="-50%" y="-50%" width="200%" height="200%">
-          <feGaussianBlur stdDeviation="4" />
+          <feGaussianBlur stdDeviation="5" />
+        </filter>
+        <filter id="hrFacadeTexture" x="-15%" y="-15%" width="130%" height="130%">
+          <feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="8" result="noise" />
+          <feColorMatrix in="noise" type="saturate" values="0" result="mono" />
+          <feComponentTransfer in="mono" result="faded">
+            <feFuncA type="table" tableValues="0 .035" />
+          </feComponentTransfer>
+          <feBlend in="SourceGraphic" in2="faded" mode="multiply" />
+        </filter>
+        <filter id="hrWarmGlow" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="18" />
         </filter>
       </defs>
 
-      <rect width="820" height="540" fill="url(#hrSky)" />
-      <ellipse cx="670" cy="48" rx="180" ry="126" fill="url(#hrSun)" filter="url(#hrSoftBlur)" />
-      <ellipse cx="120" cy="58" rx="120" ry="78" fill="#ffffff" opacity=".22" filter="url(#hrSoftBlur)" />
+      <rect width="860" height="540" fill="url(#hrSky)" />
+      <rect width="860" height="540" fill="url(#hrSun)" />
+      <ellipse cx="670" cy="74" rx="138" ry="82" fill="#fff2b2" opacity=".18" filter="url(#hrWarmGlow)" />
+      <path d="M575 -10 L708 -10 L448 540 L337 540 Z" fill="#fff5c9" opacity=".08" />
 
-      <path d="M0 475 C112 448 225 447 336 468 C461 493 583 501 820 450 L820 540 L0 540 Z" fill="url(#hrGround)" />
-      <path d="M0 503 C148 474 305 482 433 506 C564 532 688 512 820 486 L820 540 L0 540 Z" fill="#dceccf" opacity=".78" />
+      <path d="M0 466 C129 438 258 450 379 475 C506 501 653 497 860 446 L860 540 L0 540 Z" fill="url(#hrGround)" />
+      <path d="M0 504 C172 476 324 486 455 510 C593 535 731 510 860 482 L860 540 L0 540 Z" fill="#e5f0da" opacity=".76" />
 
       <g filter="url(#hrBuildingShadow)">
-        <path d="M118 224 L354 91 L402 101 L402 447 L148 447 Z" fill="url(#hrGlassDark)" />
-        <path d="M402 101 L689 58 C728 52 758 79 760 116 L772 447 L402 447 Z" fill="url(#hrFacade)" />
-        <path d="M689 58 C726 55 755 79 758 116 L770 447 L706 447 L699 112 C698 91 690 75 674 65 Z" fill="url(#hrFacadeEdge)" opacity=".98" />
-        <path d="M402 101 L436 96 L447 447 L402 447 Z" fill="#d3dee9" />
-        <path d="M447 111 L504 102 L510 447 L452 447 Z" fill="#f8fafc" />
-        <path d="M150 414 L771 414 L772 447 L148 447 Z" fill="#ccd9e5" opacity=".92" />
+        <path d="M122 237 L335 102 C351 92 371 89 390 94 L431 105 L431 446 L151 446 Z" fill="url(#hrGlassWing)" />
+        <path d="M431 105 L678 69 C731 61 771 91 775 139 L786 446 L431 446 Z" fill="url(#hrFacade)" filter="url(#hrFacadeTexture)" />
+        <path d="M661 72 C713 66 748 91 752 136 L762 446 L704 446 L698 132 C697 105 686 86 661 72 Z" fill="url(#hrFacadeEdge)" />
+        <path d="M430 105 L467 100 L475 446 L431 446 Z" fill="#cfdae4" />
+        <path d="M474 113 L520 107 L527 446 L482 446 Z" fill="#f7fafc" />
+        <path d="M151 414 L786 414 L787 446 L151 446 Z" fill="url(#hrCanopy)" opacity=".96" />
       </g>
 
       <g opacity=".92">
-        {leftWindows.map((_, index) => {
+        {wingWindows.map((_, index) => {
           const col = index % 3;
           const row = Math.floor(index / 3);
-          return <rect
-            key={`left-${index}`}
-            x={166 + col * 64}
-            y={196 + row * 59}
-            width="46"
-            height="39"
-            rx="2.5"
-            fill="url(#hrGlassLight)"
-            opacity={.8 + (col * .05)}
-          />;
+          const x = 172 + col * 67;
+          const y = 207 + row * 56;
+          return <g key={`wing-${index}`}>
+            <rect x={x} y={y} width="48" height="37" rx="3" fill="url(#hrGlassWindow)" />
+            <path d={`M${x + 2} ${y + 2} L${x + 35} ${y + 2} L${x + 16} ${y + 35} L${x + 2} ${y + 35} Z`} fill="url(#hrGlassReflection)" opacity=".34" />
+          </g>;
         })}
       </g>
 
-      <g fill="none" stroke="#cad5df" strokeWidth="2" opacity=".72">
-        <path d="M523 101 L530 423" />
-        <path d="M582 92 L588 423" />
-        <path d="M641 83 L646 423" />
-        <path d="M704 82 L712 423" />
-      </g>
-
-      <g opacity=".94">
-        {sideWindows.map((_, index) => {
-          const col = index % 4;
-          const row = Math.floor(index / 4);
-          return <rect
-            key={`side-${index}`}
-            x={528 + col * 53}
-            y={260 + row * 72}
-            width="33"
-            height="50"
-            rx="2"
-            fill="url(#hrGlassLight)"
-          />;
-        })}
-      </g>
-
-      <g transform="translate(544 166) rotate(-6)">
-        <text x="0" y="0" fill="#75859a" fontFamily="Georgia, 'Times New Roman', serif" fontSize="21" opacity=".9">Better</text>
-        <text x="-2" y="28" fill="#75859a" fontFamily="Georgia, 'Times New Roman', serif" fontSize="21" opacity=".9">Students</text>
-        <text x="-5" y="56" fill="#75859a" fontFamily="Georgia, 'Times New Roman', serif" fontSize="21" opacity=".9">Brighter</text>
-        <text x="-8" y="84" fill="#75859a" fontFamily="Georgia, 'Times New Roman', serif" fontSize="21" opacity=".9">Tomorrows</text>
+      <g fill="none" stroke="#c7d4df" strokeWidth="1.8" opacity=".76">
+        <path d="M537 104 L544 423" />
+        <path d="M594 96 L600 423" />
+        <path d="M651 87 L657 423" />
+        <path d="M709 88 L716 423" />
       </g>
 
       <g opacity=".96">
-        <path d="M42 540 C49 478 72 426 116 380 C113 431 114 486 111 540 Z" fill="#245f48" />
-        <path d="M93 438 C58 423 31 395 16 360 C52 365 87 382 112 409 Z" fill="url(#hrLeaf)" />
-        <path d="M109 409 C90 368 95 333 112 304 C137 339 146 377 133 414 Z" fill="url(#hrLeaf)" />
-        <path d="M112 469 C154 444 194 438 227 451 C201 478 164 495 120 499 Z" fill="url(#hrLeaf)" />
-        <path d="M130 421 C165 389 203 375 236 381 C213 414 178 436 139 448 Z" fill="url(#hrLeaf)" />
-
-        <path d="M700 540 C704 492 720 452 753 418 C758 465 757 506 755 540 Z" fill="#255f47" />
-        <path d="M739 457 C707 442 684 419 671 391 C703 394 732 408 754 431 Z" fill="url(#hrLeaf)" />
-        <path d="M753 423 C741 387 748 354 768 329 C785 363 789 397 777 429 Z" fill="url(#hrLeaf)" />
+        {towerWindows.map((_, index) => {
+          const col = index % 5;
+          const row = Math.floor(index / 5);
+          const x = 529 + col * 43;
+          const y = 247 + row * 64;
+          return <g key={`tower-${index}`}>
+            <rect x={x} y={y} width="29" height="45" rx="2.5" fill="url(#hrGlassWindow)" />
+            <rect x={x + 2} y={y + 2} width="7" height="40" rx="2" fill="#ffffff" opacity=".16" />
+          </g>;
+        })}
       </g>
 
-      <g opacity=".66" filter="url(#hrLeafBlur)">
-        <circle cx="36" cy="37" r="35" fill="#4c8a5c" />
-        <circle cx="77" cy="22" r="27" fill="#6fa66c" />
-        <circle cx="112" cy="47" r="32" fill="#457b55" />
-        <circle cx="804" cy="36" r="27" fill="#5c985f" />
+      <path d="M424 116 C500 101 579 90 670 77" fill="none" stroke="#ffffff" strokeWidth="3" opacity=".66" />
+      <path d="M434 126 C514 113 594 102 678 91" fill="none" stroke="#dfe9f1" strokeWidth="1" opacity=".72" />
+
+      <g transform="translate(548 171) rotate(-5)">
+        <text x="0" y="0" fill="#687c93" fontFamily="Georgia, 'Times New Roman', serif" fontSize="20" opacity=".74">Better</text>
+        <text x="-1" y="26" fill="#687c93" fontFamily="Georgia, 'Times New Roman', serif" fontSize="20" opacity=".72">Students</text>
+        <text x="-3" y="52" fill="#687c93" fontFamily="Georgia, 'Times New Roman', serif" fontSize="20" opacity=".7">Brighter</text>
+        <text x="-5" y="78" fill="#687c93" fontFamily="Georgia, 'Times New Roman', serif" fontSize="20" opacity=".68">Tomorrows</text>
       </g>
 
-      <g opacity=".24" fill="#ffffff" filter="url(#hrSoftBlur)">
-        <circle cx="628" cy="88" r="42" />
-        <circle cx="742" cy="126" r="26" />
+      <g opacity=".97">
+        <path d="M40 540 C46 476 71 420 116 373 C114 431 114 486 111 540 Z" fill="#235e47" />
+        <path d="M93 433 C56 417 29 387 14 350 C54 357 88 373 114 402 Z" fill="url(#hrLeaf)" />
+        <path d="M110 403 C91 360 97 323 116 293 C141 329 150 369 134 410 Z" fill="url(#hrLeaf)" />
+        <path d="M113 465 C157 438 197 433 233 446 C204 476 166 493 120 497 Z" fill="url(#hrLeaf)" />
+        <path d="M131 416 C168 382 208 368 243 375 C219 410 181 432 139 444 Z" fill="url(#hrLeaf)" />
+
+        <path d="M722 540 C726 488 744 445 780 408 C785 460 784 506 782 540 Z" fill="#255f47" />
+        <path d="M758 451 C723 434 696 408 683 378 C717 383 747 397 771 422 Z" fill="url(#hrLeaf)" />
+        <path d="M778 417 C764 377 772 341 793 314 C812 352 816 390 802 424 Z" fill="url(#hrLeaf)" />
+      </g>
+
+      <g opacity=".58" filter="url(#hrLeafBlur)">
+        <circle cx="28" cy="36" r="37" fill="#4e8b5d" />
+        <circle cx="71" cy="18" r="29" fill="#78ad72" />
+        <circle cx="111" cy="46" r="33" fill="#477c57" />
+        <circle cx="850" cy="33" r="30" fill="#58945e" />
+      </g>
+
+      <g opacity=".18" fill="#ffffff" filter="url(#hrSoftBlur)">
+        <circle cx="618" cy="84" r="45" />
+        <circle cx="745" cy="118" r="28" />
       </g>
     </svg>
     <div className="hr-campus-scene__veil" />
