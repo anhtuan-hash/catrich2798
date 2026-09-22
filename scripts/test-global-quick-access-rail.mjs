@@ -24,6 +24,7 @@ for (const token of [
 
 assert.match(prefs, /QUICK_ACCESS_MAX_ITEMS\s*=\s*10/, 'Quick Access must cap shortcuts at 10.');
 assert.ok(prefs.includes("storageKey(user)"), 'Local fallback must be scoped per account.');
+assert.ok(prefs.includes('updatedAt: 0'), 'New-device defaults must not outrank an existing cloud configuration.');
 
 for (const token of [
   'bqa-edge-trigger',
