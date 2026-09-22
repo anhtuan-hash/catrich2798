@@ -1127,3 +1127,478 @@ body:has(.app-shell[data-route="dashboard"]) .footer .signature-footer-v50-star 
     transform: none !important;
   }
 }
+
+
+/* Dashboard Mockup Parity V3 · preserve full approved graphic language · 2026-09-22 */
+
+/* Raise visual saturation/contrast to the approved mockup without changing the regional font authority. */
+.app-shell[data-route="dashboard"] .gd-page {
+  background:
+    radial-gradient(circle at 3% 4%, rgba(186,235,255,.78), transparent 24rem),
+    radial-gradient(circle at 96% 7%, rgba(255,222,241,.66), transparent 21rem),
+    radial-gradient(circle at 88% 46%, rgba(220,211,255,.44), transparent 23rem),
+    radial-gradient(circle at 12% 72%, rgba(210,246,235,.38), transparent 24rem),
+    linear-gradient(180deg, #f3faff 0%, #f7fbff 45%, #f5fbfa 100%) !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero {
+  min-height: 500px !important;
+  padding-top: 48px !important;
+  padding-bottom: 42px !important;
+  border-color: rgba(109,180,250,.68) !important;
+  background:
+    radial-gradient(circle at 6% 23%, rgba(185,230,152,.56) 0 6.6rem, transparent 6.7rem),
+    radial-gradient(circle at 19% 114%, rgba(179,228,255,.95) 0 11rem, transparent 11.1rem),
+    radial-gradient(circle at 39% 114%, rgba(255,221,239,.88) 0 9rem, transparent 9.1rem),
+    radial-gradient(circle at 84% 11%, rgba(255,237,174,.78) 0 6.4rem, transparent 6.5rem),
+    radial-gradient(circle at 96% 57%, rgba(214,238,255,.78) 0 8rem, transparent 8.1rem),
+    linear-gradient(116deg, #f8fdff 0%, #eefdff 37%, #f1f7ff 66%, #fff4fb 100%) !important;
+  box-shadow:
+    0 24px 60px rgba(51,113,178,.12),
+    inset 0 1px 0 rgba(255,255,255,.96) !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero h1 {
+  color: #0a2b63 !important;
+  font-size: clamp(62px, 5.25vw, 84px) !important;
+  font-weight: 900 !important;
+  letter-spacing: -.055em !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-hello {
+  color: #274c7a !important;
+  font-size: clamp(31px, 2.75vw, 45px) !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-copy {
+  z-index: 5;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-stage {
+  min-height: 390px !important;
+  z-index: 4;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-stage::before {
+  inset: 68px 0 20px 4% !important;
+  background:
+    radial-gradient(circle at 23% 31%, rgba(255,255,255,.92), transparent 23%),
+    radial-gradient(circle at 74% 63%, rgba(218,250,232,.58), transparent 24%),
+    linear-gradient(145deg, rgba(205,238,255,.97), rgba(232,226,255,.85) 56%, rgba(255,230,242,.88)) !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-visual {
+  inset: 24px -42px -34px -8px !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-art {
+  width: min(108%, 735px) !important;
+  max-height: 430px !important;
+}
+
+/* Exact graphic accents visible in the approved mockup: paper plane, sun, swoosh and handwritten editorial note. */
+.app-shell[data-route="dashboard"] .editorial-hero-doodles {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.app-shell[data-route="dashboard"] .editorial-plane-doodle {
+  position: absolute;
+  top: 77px;
+  left: 38%;
+  width: 108px;
+  color: #3996f7;
+  transform: rotate(-7deg);
+  opacity: .94;
+}
+
+.app-shell[data-route="dashboard"] .editorial-sun-doodle {
+  position: absolute;
+  top: 157px;
+  left: 54.6%;
+  width: 74px;
+  color: #ffad06;
+  transform: rotate(9deg);
+}
+
+.app-shell[data-route="dashboard"] .editorial-swoosh-doodle {
+  position: absolute;
+  top: 236px;
+  left: 51.4%;
+  width: 118px;
+  color: #f3aa00;
+  transform: rotate(-5deg);
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-note {
+  position: absolute;
+  top: 278px;
+  left: 44.2%;
+  color: #2f7ee8;
+  font-size: 19px;
+  font-style: italic;
+  font-weight: 760;
+  line-height: 1.03;
+  text-align: center;
+  transform: rotate(-8deg);
+  text-shadow: 0 1px 0 rgba(255,255,255,.75);
+}
+
+.app-shell[data-route="dashboard"] .editorial-status-card {
+  min-height: 60px !important;
+  border-color: rgba(164,201,241,.88) !important;
+  border-radius: 14px !important;
+  background: rgba(255,255,255,.91) !important;
+  box-shadow: 0 10px 24px rgba(54,105,166,.10) !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-today-chip {
+  min-height: 40px !important;
+  border-radius: 12px !important;
+  background: rgba(255,255,255,.94) !important;
+}
+
+/* TODAY header gets the large cloud/lilac art panel and handwritten planning note. */
+.app-shell[data-route="dashboard"] .gd-calendar-header {
+  overflow: hidden;
+  min-height: 142px !important;
+  background:
+    radial-gradient(circle at 4% 92%, rgba(197,229,255,.95) 0 7.6rem, transparent 7.7rem),
+    radial-gradient(circle at 26% 104%, rgba(231,218,255,.90) 0 8.6rem, transparent 8.7rem),
+    radial-gradient(circle at 48% 114%, rgba(255,224,238,.90) 0 7rem, transparent 7.1rem),
+    radial-gradient(circle at 73% 44%, rgba(226,214,255,.95), transparent 10rem),
+    radial-gradient(circle at 94% 72%, rgba(201,240,255,.96), transparent 9rem),
+    linear-gradient(105deg, #eef8ff, #f3efff 58%, #edfaff) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-header::before,
+.app-shell[data-route="dashboard"] .gd-calendar-header::after {
+  z-index: 3;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-title,
+.app-shell[data-route="dashboard"] .gd-calendar-header > .gd-text-button {
+  position: relative;
+  z-index: 4;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-doodle {
+  position: absolute;
+  z-index: 2;
+  right: 178px;
+  top: 26px;
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  color: #7a54ed;
+  pointer-events: none;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-doodle > span {
+  color: #6e4de0;
+  font-size: 17px;
+  font-style: italic;
+  font-weight: 750;
+  line-height: 1.05;
+  text-align: right;
+  transform: rotate(-5deg);
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-doodle svg {
+  width: 66px;
+  height: 66px;
+  color: #815ef2;
+  transform: rotate(9deg);
+  filter: drop-shadow(0 8px 12px rgba(106,77,219,.13));
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-title > span {
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 15px !important;
+  background: rgba(255,255,255,.76) !important;
+  box-shadow: 0 9px 21px rgba(43,105,180,.10) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-title h2 {
+  font-size: 38px !important;
+  font-weight: 850 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-today .gd-today-overview {
+  background:
+    linear-gradient(90deg, #fff, #fff 70%, rgba(255,247,251,.84)) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-today .gd-today-date-mark strong {
+  font-size: 54px !important;
+  font-weight: 900 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-today .gd-today-heading h3 {
+  font-size: clamp(30px, 2.5vw, 38px) !important;
+  font-weight: 850 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-today .gd-today-overview > .gd-count-chip {
+  min-height: 38px !important;
+  padding: 0 15px !important;
+  background: #ffe8f2 !important;
+  color: #e83b80 !important;
+  border-color: #ffc9de !important;
+  font-size: 11px !important;
+}
+
+/* News section: stronger warm top wash and the exact megaphone treatment. */
+.app-shell[data-route="dashboard"] .dnh::before {
+  padding-top: 17px !important;
+  padding-bottom: 14px !important;
+  background:
+    radial-gradient(circle at 8% 20%, rgba(255,231,193,.90), transparent 8rem),
+    radial-gradient(circle at 91% 12%, rgba(255,208,232,.94), transparent 11rem),
+    linear-gradient(100deg, #fff8ec, #fff0df 54%, #ffeef6) !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-icon {
+  width: 48px !important;
+  height: 48px !important;
+  background: linear-gradient(145deg, #ff8d22, #f15414) !important;
+  box-shadow: 0 10px 22px rgba(242,92,23,.24) !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.app-shell[data-route="dashboard"] .dnh-head {
+  min-height: 100px !important;
+  background:
+    radial-gradient(circle at 79% 0%, rgba(255,232,241,.56), transparent 10rem),
+    linear-gradient(90deg, #fffaf5, #fff8fa) !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-title h2 {
+  font-size: 24px !important;
+  font-weight: 850 !important;
+}
+
+/* Quick-actions panel: preserve the mint artwork and handwritten focus message. */
+.app-shell[data-route="dashboard"] .gd-quick-surface .gd-surface-header {
+  position: relative;
+  overflow: hidden;
+  min-height: 96px !important;
+  background:
+    radial-gradient(circle at 62% 85%, rgba(182,245,226,.86), transparent 12rem),
+    radial-gradient(circle at 90% 18%, rgba(214,248,239,.94), transparent 11rem),
+    linear-gradient(98deg, #e8fbf7, #e8fbf5 58%, #eefdf9) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-quick-surface .gd-surface-header::before {
+  content: '';
+  position: absolute;
+  right: 38px;
+  bottom: -35px;
+  width: 170px;
+  height: 90px;
+  border: 2px solid rgba(47,166,130,.16);
+  border-radius: 50% 50% 0 0;
+  transform: rotate(-10deg);
+}
+
+.app-shell[data-route="dashboard"] .gd-quick-surface .gd-heading-icon {
+  width: 50px !important;
+  height: 50px !important;
+  background: linear-gradient(145deg, #29c99b, #0da875) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-quick-surface .gd-heading-icon .gd-icon {
+  width: 23px;
+  height: 23px;
+}
+
+.app-shell[data-route="dashboard"] .gd-quick-surface .gd-surface-heading h2 {
+  font-size: 25px !important;
+  font-weight: 850 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-surface-note {
+  position: absolute;
+  right: 45px;
+  top: 22px;
+  max-width: 300px;
+  color: #2786a6;
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 740;
+  line-height: 1.2;
+  text-align: right;
+  transform: rotate(-3deg);
+}
+
+.app-shell[data-route="dashboard"] .gd-surface-note::after {
+  content: '♡';
+  margin-left: 8px;
+  color: #2ba582;
+  font-size: 20px;
+}
+
+/* Footer artwork from the approved mockup: soft leaf fields, sky waves and closing handwritten sign-off. */
+body:has(.app-shell[data-route="dashboard"]) .footer {
+  position: relative !important;
+  overflow: hidden !important;
+  padding-bottom: 76px !important;
+  background:
+    radial-gradient(circle at 8% 89%, rgba(201,236,255,.62), transparent 14rem),
+    radial-gradient(circle at 25% 96%, rgba(218,246,231,.64), transparent 11rem),
+    radial-gradient(circle at 83% 96%, rgba(222,215,255,.64), transparent 14rem),
+    linear-gradient(180deg, rgba(255,255,255,0), rgba(242,250,255,.92)) !important;
+}
+
+body:has(.app-shell[data-route="dashboard"]) .footer::before {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  left: -5%;
+  right: -5%;
+  bottom: -58px;
+  height: 132px;
+  background:
+    radial-gradient(ellipse at 8% 42%, #d7f0ff 0 22%, transparent 23%),
+    radial-gradient(ellipse at 25% 54%, #dff6ea 0 20%, transparent 21%),
+    radial-gradient(ellipse at 48% 50%, #dbeeff 0 24%, transparent 25%),
+    radial-gradient(ellipse at 72% 55%, #e6e0ff 0 22%, transparent 23%),
+    radial-gradient(ellipse at 91% 43%, #d8edff 0 20%, transparent 21%);
+  opacity: .92;
+  pointer-events: none;
+}
+
+body:has(.app-shell[data-route="dashboard"]) .footer::after {
+  content: 'Teach Better Together ♡';
+  position: absolute;
+  z-index: 2;
+  right: 46px;
+  bottom: 34px;
+  color: #337de5;
+  font-size: 19px;
+  font-style: italic;
+  font-weight: 760;
+  transform: rotate(-7deg);
+  pointer-events: none;
+}
+
+body:has(.app-shell[data-route="dashboard"]) .footer > * {
+  position: relative;
+  z-index: 1;
+}
+
+body:has(.app-shell[data-route="dashboard"]) .footer .signature-footer-v50-brand {
+  background:
+    radial-gradient(circle at 5% 8%, rgba(255,255,255,.94), transparent 6rem),
+    radial-gradient(circle at 0% 100%, rgba(178,226,255,.56), transparent 9rem),
+    radial-gradient(circle at 100% 100%, rgba(207,242,214,.62), transparent 8rem),
+    linear-gradient(145deg, #eaf5ff, #f7fbff 60%, #edf9ef) !important;
+}
+
+body:has(.app-shell[data-route="dashboard"]) .footer .signature-footer-v50-profile {
+  background:
+    radial-gradient(circle at 100% 100%, rgba(194,241,225,.60), transparent 8rem),
+    linear-gradient(145deg, #eefbf5, #f9fefa 58%, #eefaf8) !important;
+}
+
+body:has(.app-shell[data-route="dashboard"]) .footer .signature-footer-v50-credentials {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255,232,191,.52), transparent 8rem),
+    linear-gradient(145deg, #fff8e7, #fffdf7 58%, #fff1d7) !important;
+}
+
+body:has(.app-shell[data-route="dashboard"]) .footer .signature-footer-v50-brand,
+body:has(.app-shell[data-route="dashboard"]) .footer .signature-footer-v50-profile,
+body:has(.app-shell[data-route="dashboard"]) .footer .signature-footer-v50-credentials {
+  border-radius: 22px !important;
+  border-color: rgba(143,187,235,.46) !important;
+  box-shadow: 0 18px 38px rgba(64,111,160,.09) !important;
+}
+
+@media (max-width: 1180px) {
+  .app-shell[data-route="dashboard"] .editorial-plane-doodle { left: 36%; width: 94px; }
+  .app-shell[data-route="dashboard"] .editorial-sun-doodle { left: 53%; width: 65px; }
+  .app-shell[data-route="dashboard"] .editorial-swoosh-doodle { left: 50%; width: 106px; }
+  .app-shell[data-route="dashboard"] .editorial-hero-note { left: 42%; font-size: 17px; }
+  .app-shell[data-route="dashboard"] .gd-calendar-doodle { right: 160px; }
+  .app-shell[data-route="dashboard"] .gd-surface-note { max-width: 240px; font-size: 14px; }
+}
+
+@media (max-width: 920px) {
+  .app-shell[data-route="dashboard"] .editorial-plane-doodle,
+  .app-shell[data-route="dashboard"] .editorial-sun-doodle,
+  .app-shell[data-route="dashboard"] .editorial-swoosh-doodle,
+  .app-shell[data-route="dashboard"] .editorial-hero-note {
+    display: none;
+  }
+
+  .app-shell[data-route="dashboard"] .editorial-hero {
+    min-height: 0 !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-calendar-doodle {
+    right: 150px;
+    opacity: .88;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-calendar-doodle > span {
+    display: none;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-surface-note {
+    display: none;
+  }
+
+  body:has(.app-shell[data-route="dashboard"]) .footer::after {
+    right: 24px;
+    bottom: 24px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-shell[data-route="dashboard"] .editorial-hero {
+    padding-top: 28px !important;
+    padding-bottom: 22px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .editorial-hero h1 {
+    font-size: clamp(42px, 12vw, 56px) !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-calendar-header {
+    min-height: 126px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-calendar-doodle {
+    display: none;
+  }
+
+  body:has(.app-shell[data-route="dashboard"]) .footer {
+    padding-bottom: 58px !important;
+  }
+
+  body:has(.app-shell[data-route="dashboard"]) .footer::after {
+    right: 20px;
+    bottom: 20px;
+    font-size: 14px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell[data-route="dashboard"] .editorial-plane-doodle,
+  .app-shell[data-route="dashboard"] .editorial-sun-doodle,
+  .app-shell[data-route="dashboard"] .editorial-swoosh-doodle,
+  .app-shell[data-route="dashboard"] .editorial-hero-note,
+  .app-shell[data-route="dashboard"] .gd-calendar-doodle,
+  .app-shell[data-route="dashboard"] .gd-surface-note {
+    transform: none !important;
+  }
+}
