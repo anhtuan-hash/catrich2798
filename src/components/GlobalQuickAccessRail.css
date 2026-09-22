@@ -1234,8 +1234,25 @@ button.bqa-customizer-row:disabled {
 .bqa-root.is-pinned,
 .bqa-root.is-collapsing {
   width: calc(var(--bqa-rail-width) + 8px + var(--bqa-panel-width));
-  pointer-events: auto;
+  pointer-events: none;
   z-index: 12000 !important;
+}
+
+.bqa-hover-bridge {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  bottom: 0;
+  left: var(--bqa-rail-width);
+  width: 8px;
+  pointer-events: none;
+  background: transparent;
+}
+
+.bqa-root.is-open .bqa-hover-bridge,
+.bqa-root.is-pinned .bqa-hover-bridge,
+.bqa-root.is-collapsing .bqa-hover-bridge {
+  pointer-events: auto;
 }
 
 /* Mid-size screens keep the content width intact and reduce the resting rail to
