@@ -3,6 +3,7 @@ import './BrianNewswireBar.css';
 
 const FEED_TTL = 8 * 60 * 1000;
 const ROTATE_MS = 6500;
+const TRANSITION_MS = 640;
 const CACHE_KEY = 'bes-news-feed-v2:vi:all';
 const OPEN_ITEM_KEY = 'bes-newswire-open-item-v1';
 
@@ -97,6 +98,11 @@ export default function BrianNewswireBar({ language = 'vi' }) {
   const [loading, setLoading] = useState(() => !readCache()?.items?.length);
   const [now, setNow] = useState(() => new Date());
   const requestRef = useRef(0);
+  const activeIndexRef = useRef(0);
+  const transitionRef = useRef(null);
+  const transitionTimerRef = useRef(null);
+  const transitionTokenRef = useRef(0);
+  const [transition, setTransition] = useState(null);
 
   const visibleItems = useMemo(
     () => items.filter((item) => item?.title).slice(0, 12),
@@ -107,6 +113,14 @@ export default function BrianNewswireBar({ language = 'vi' }) {
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 60 * 1000);
     return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    activeIndexRef.current = activeIndex;
+  }, [activeIndex]);
+
+  useEffect(() => () => {
+    if (transitionTimerRef.current) window.clearTimeout(transitionTimerRef.current);
   }, []);
 
   useEffect(() => {
@@ -144,38 +158,85 @@ export default function BrianNewswireBar({ language = 'vi' }) {
 
   useEffect(() => {
     if (activeIndex < visibleItems.length) return;
+    activeIndexRef.current = 0;
+    transitionRef.current = null;
+    setTransition(null);
     setActiveIndex(0);
   }, [activeIndex, visibleItems.length]);
+
+  function move(delta) {
+    const length = visibleItems.length;
+    if (length < 2 || transitionRef.current) return;
+
+    const fromIndex = Math.min(activeIndexRef.current, length - 1);
+    const toIndex = (fromIndex + delta + length) % length;
+    const from = visibleItems[fromIndex];
+    const to = visibleItems[toIndex];
+    if (!from || !to || from === to) return;
+
+    activeIndexRef.current = toIndex;
+    setActiveIndex(toIndex);
+
+    const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    if (prefersReducedMotion) return;
+
+    const token = ++transitionTokenRef.current;
+    const nextTransition = {
+      from,
+      to,
+      direction: delta < 0 ? 'backward' : 'forward',
+      token,
+    };
+    transitionRef.current = nextTransition;
+    setTransition(nextTransition);
+
+    if (transitionTimerRef.current) window.clearTimeout(transitionTimerRef.current);
+    transitionTimerRef.current = window.setTimeout(() => {
+      if (transitionRef.current?.token !== token) return;
+      transitionRef.current = null;
+      setTransition(null);
+    }, TRANSITION_MS);
+  }
 
   useEffect(() => {
     if (paused || hovered || visibleItems.length < 2) return undefined;
     const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
     const delay = prefersReducedMotion ? 10000 : ROTATE_MS;
-    const timer = window.setInterval(() => {
-      setActiveIndex((index) => (index + 1) % visibleItems.length);
-    }, delay);
+    const timer = window.setInterval(() => move(1), delay);
     return () => window.clearInterval(timer);
   }, [hovered, paused, visibleItems.length]);
 
-  const move = (delta) => {
-    if (!visibleItems.length) return;
-    setActiveIndex((index) => (index + delta + visibleItems.length) % visibleItems.length);
-  };
-
-  const openItem = () => {
-    if (!current) return;
+  const openItem = (item = current) => {
+    if (!item) return;
     try {
-      window.sessionStorage.setItem(OPEN_ITEM_KEY, JSON.stringify(current));
+      window.sessionStorage.setItem(OPEN_ITEM_KEY, JSON.stringify(item));
     } catch {
       // Navigation still works without the hand-off cache.
     }
-    window.dispatchEvent(new CustomEvent('bes-newswire-open-item', { detail: { item: current } }));
+    window.dispatchEvent(new CustomEvent('bes-newswire-open-item', { detail: { item } }));
     window.location.hash = '#/news';
   };
 
   const openAll = () => {
     window.location.hash = '#/news';
   };
+
+  const renderStory = (item, extraClass = '', options = {}) => (
+    <button
+      key={options.key || item.id || item.link || item.title}
+      type="button"
+      className={`brian-newswire__story${extraClass ? ` ${extraClass}` : ''}`}
+      onClick={() => openItem(item)}
+      title={item.title}
+      aria-hidden={options.hidden || undefined}
+      tabIndex={options.hidden ? -1 : undefined}
+    >
+      <span className="brian-newswire__category">{categoryLabel(item, t)}</span>
+      <strong>{item.title}</strong>
+      <span className="brian-newswire__sep" aria-hidden="true">•</span>
+      <time>{relativeTime(item.publishedAt, language, t)}</time>
+    </button>
+  );
 
   if (!loading && !current) return null;
 
@@ -202,23 +263,19 @@ export default function BrianNewswireBar({ language = 'vi' }) {
 
       <div className="brian-newswire__divider is-short" aria-hidden="true" />
 
-      <div className="brian-newswire__story-wrap" aria-live="polite">
+      <div
+        className={`brian-newswire__story-wrap${transition ? ` is-transitioning is-${transition.direction}` : ''}`}
+        aria-live="polite"
+        aria-atomic="true"
+      >
         {loading && !current ? (
           <div className="brian-newswire__story is-loading">{t.loading}</div>
-        ) : current ? (
-          <button
-            key={current.id || current.link || activeIndex}
-            type="button"
-            className="brian-newswire__story"
-            onClick={openItem}
-            title={current.title}
-          >
-            <span className="brian-newswire__category">{categoryLabel(current, t)}</span>
-            <strong>{current.title}</strong>
-            <span className="brian-newswire__sep" aria-hidden="true">•</span>
-            <time>{relativeTime(current.publishedAt, language, t)}</time>
-          </button>
-        ) : null}
+        ) : transition ? (
+          <>
+            {renderStory(transition.from, 'is-motion-layer is-exit', { hidden: true, key: `${transition.token}-from` })}
+            {renderStory(transition.to, 'is-motion-layer is-enter', { key: `${transition.token}-to` })}
+          </>
+        ) : current ? renderStory(current) : null}
       </div>
 
       <div className="brian-newswire__controls">
