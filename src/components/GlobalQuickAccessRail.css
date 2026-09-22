@@ -1320,11 +1320,11 @@ button.bqa-customizer-row:disabled {
 
 /* Portaled launcher authority · escape every route-level transform/stacking context. */
 body > .bqa-root {
-  z-index: 12000 !important;
+  z-index: 2147482500 !important;
 }
 
 body > .bqa-root.is-open,
 body > .bqa-root.is-pinned,
 body > .bqa-root.is-collapsing {
-  z-index: 12000 !important;
+  z-index: 2147482500 !important;
 }
