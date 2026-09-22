@@ -28,96 +28,148 @@ function Detail({ icon, label, value }) {
 }
 
 function CampusScene() {
-  const windows = Array.from({ length: 13 });
+  const leftWindows = Array.from({ length: 12 });
+  const sideWindows = Array.from({ length: 8 });
+
   return <div className="hr-campus-scene" aria-hidden="true">
-    <svg className="hr-campus-scene__svg" viewBox="0 0 780 560" preserveAspectRatio="xMidYMid slice">
+    <svg className="hr-campus-scene__svg" viewBox="0 0 820 540" preserveAspectRatio="xMidYMid slice">
       <defs>
-        <linearGradient id="hrSky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#94c8ff" />
-          <stop offset=".56" stopColor="#dcedff" />
-          <stop offset="1" stopColor="#f7fbff" />
+        <linearGradient id="hrSky" x1="0" y1="0" x2=".9" y2="1">
+          <stop offset="0" stopColor="#a8d5ff" />
+          <stop offset=".48" stopColor="#d8ecff" />
+          <stop offset="1" stopColor="#f8fbff" />
         </linearGradient>
-        <linearGradient id="hrFacade" x1="0" y1=".1" x2="1" y2=".9">
+        <linearGradient id="hrSun" x1=".2" y1="0" x2=".8" y2="1">
+          <stop offset="0" stopColor="#fff5cf" stopOpacity=".96" />
+          <stop offset=".5" stopColor="#ffffff" stopOpacity=".5" />
+          <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
+        </linearGradient>
+        <linearGradient id="hrGlassDark" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#315c88" />
+          <stop offset=".35" stopColor="#547da5" />
+          <stop offset=".72" stopColor="#90b9da" />
+          <stop offset="1" stopColor="#d7ebf8" />
+        </linearGradient>
+        <linearGradient id="hrGlassLight" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#edf8ff" />
+          <stop offset=".35" stopColor="#c2e4fb" />
+          <stop offset=".7" stopColor="#75add7" />
+          <stop offset="1" stopColor="#3f6f9e" />
+        </linearGradient>
+        <linearGradient id="hrFacade" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stopColor="#ffffff" />
-          <stop offset=".54" stopColor="#eef2f8" />
-          <stop offset="1" stopColor="#dce5ef" />
+          <stop offset=".5" stopColor="#f7f9fb" />
+          <stop offset="1" stopColor="#dfe7ef" />
         </linearGradient>
-        <linearGradient id="hrSide" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#cbd9e8" />
-          <stop offset="1" stopColor="#8ea9c3" />
-        </linearGradient>
-        <linearGradient id="hrGlass" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#e9f6ff" />
-          <stop offset=".5" stopColor="#9cc7ed" />
-          <stop offset="1" stopColor="#557ca8" />
+        <linearGradient id="hrFacadeEdge" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#edf3f8" />
+          <stop offset="1" stopColor="#b6c7d7" />
         </linearGradient>
         <linearGradient id="hrGround" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#b6d89c" />
-          <stop offset="1" stopColor="#78ab65" />
+          <stop offset="0" stopColor="#b9d99b" />
+          <stop offset="1" stopColor="#6f9f5f" />
         </linearGradient>
-        <filter id="hrSoftShadow" x="-30%" y="-30%" width="160%" height="180%">
-          <feDropShadow dx="0" dy="16" stdDeviation="14" floodColor="#315274" floodOpacity=".24" />
+        <linearGradient id="hrLeaf" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#78b56e" />
+          <stop offset=".55" stopColor="#3d865c" />
+          <stop offset="1" stopColor="#245f48" />
+        </linearGradient>
+        <filter id="hrBuildingShadow" x="-30%" y="-30%" width="170%" height="190%">
+          <feDropShadow dx="0" dy="18" stdDeviation="16" floodColor="#294c70" floodOpacity=".22" />
         </filter>
-        <filter id="hrBlur">
-          <feGaussianBlur stdDeviation="9" />
+        <filter id="hrSoftBlur" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="13" />
+        </filter>
+        <filter id="hrLeafBlur" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="4" />
         </filter>
       </defs>
 
-      <rect width="780" height="560" fill="url(#hrSky)" />
-      <circle cx="680" cy="82" r="96" fill="#ffffff" opacity=".32" filter="url(#hrBlur)" />
-      <circle cx="110" cy="90" r="68" fill="#ffffff" opacity=".22" filter="url(#hrBlur)" />
-      <path d="M0 500 C140 454 245 470 362 500 C512 536 650 498 780 468 L780 560 L0 560 Z" fill="url(#hrGround)" />
+      <rect width="820" height="540" fill="url(#hrSky)" />
+      <ellipse cx="670" cy="48" rx="180" ry="126" fill="url(#hrSun)" filter="url(#hrSoftBlur)" />
+      <ellipse cx="120" cy="58" rx="120" ry="78" fill="#ffffff" opacity=".22" filter="url(#hrSoftBlur)" />
 
-      <g filter="url(#hrSoftShadow)">
-        <path d="M208 128 C208 99 229 78 258 74 L568 32 C601 28 628 52 628 84 L628 455 L208 455 Z" fill="url(#hrFacade)" />
-        <path d="M628 84 L760 146 L760 455 L628 455 Z" fill="url(#hrSide)" />
-        <path d="M249 143 C249 120 266 104 290 101 L325 96 L325 455 L249 455 Z" fill="#dfe8f2" />
-        <path d="M325 96 L617 58 L617 455 L325 455 Z" fill="#fbfcfe" />
-        <path d="M222 417 L748 417 L748 455 L222 455 Z" fill="#d5e0eb" />
+      <path d="M0 475 C112 448 225 447 336 468 C461 493 583 501 820 450 L820 540 L0 540 Z" fill="url(#hrGround)" />
+      <path d="M0 503 C148 474 305 482 433 506 C564 532 688 512 820 486 L820 540 L0 540 Z" fill="#dceccf" opacity=".78" />
+
+      <g filter="url(#hrBuildingShadow)">
+        <path d="M118 224 L354 91 L402 101 L402 447 L148 447 Z" fill="url(#hrGlassDark)" />
+        <path d="M402 101 L689 58 C728 52 758 79 760 116 L772 447 L402 447 Z" fill="url(#hrFacade)" />
+        <path d="M689 58 C726 55 755 79 758 116 L770 447 L706 447 L699 112 C698 91 690 75 674 65 Z" fill="url(#hrFacadeEdge)" opacity=".98" />
+        <path d="M402 101 L436 96 L447 447 L402 447 Z" fill="#d3dee9" />
+        <path d="M447 111 L504 102 L510 447 L452 447 Z" fill="#f8fafc" />
+        <path d="M150 414 L771 414 L772 447 L148 447 Z" fill="#ccd9e5" opacity=".92" />
       </g>
 
-      <g opacity=".98">
-        <rect x="272" y="161" width="47" height="70" rx="3" fill="url(#hrGlass)" />
-        <rect x="272" y="246" width="47" height="70" rx="3" fill="url(#hrGlass)" />
-        <rect x="272" y="331" width="47" height="70" rx="3" fill="url(#hrGlass)" />
-        {windows.map((_, index) => {
-          const col = index % 5;
-          const row = Math.floor(index / 5);
-          return <rect key={index} x={357 + col * 48} y={143 + row * 91} width="34" height="66" rx="2" fill="url(#hrGlass)" />;
+      <g opacity=".92">
+        {leftWindows.map((_, index) => {
+          const col = index % 3;
+          const row = Math.floor(index / 3);
+          return <rect
+            key={`left-${index}`}
+            x={166 + col * 64}
+            y={196 + row * 59}
+            width="46"
+            height="39"
+            rx="2.5"
+            fill="url(#hrGlassLight)"
+            opacity={.8 + (col * .05)}
+          />;
         })}
-        <rect x="643" y="183" width="33" height="181" rx="2" fill="#6789aa" />
-        <rect x="686" y="203" width="28" height="161" rx="2" fill="#5c7d9e" />
       </g>
 
-      <g fill="none" stroke="#c6d3e1" strokeWidth="2" opacity=".85">
-        <path d="M338 117 L338 426" />
-        <path d="M403 105 L403 426" />
-        <path d="M468 96 L468 426" />
-        <path d="M533 85 L533 426" />
-        <path d="M597 74 L597 426" />
+      <g fill="none" stroke="#cad5df" strokeWidth="2" opacity=".72">
+        <path d="M523 101 L530 423" />
+        <path d="M582 92 L588 423" />
+        <path d="M641 83 L646 423" />
+        <path d="M704 82 L712 423" />
       </g>
 
-      <g transform="translate(454 158) rotate(-7)">
-        <text x="0" y="0" fill="#67809b" fontFamily="Georgia, serif" fontSize="24" opacity=".84">Better</text>
-        <text x="-2" y="30" fill="#67809b" fontFamily="Georgia, serif" fontSize="24" opacity=".84">Students</text>
-        <text x="-4" y="60" fill="#67809b" fontFamily="Georgia, serif" fontSize="24" opacity=".84">Brighter</text>
-        <text x="-6" y="90" fill="#67809b" fontFamily="Georgia, serif" fontSize="24" opacity=".84">Tomorrows</text>
+      <g opacity=".94">
+        {sideWindows.map((_, index) => {
+          const col = index % 4;
+          const row = Math.floor(index / 4);
+          return <rect
+            key={`side-${index}`}
+            x={528 + col * 53}
+            y={260 + row * 72}
+            width="33"
+            height="50"
+            rx="2"
+            fill="url(#hrGlassLight)"
+          />;
+        })}
+      </g>
+
+      <g transform="translate(544 166) rotate(-6)">
+        <text x="0" y="0" fill="#75859a" fontFamily="Georgia, 'Times New Roman', serif" fontSize="21" opacity=".9">Better</text>
+        <text x="-2" y="28" fill="#75859a" fontFamily="Georgia, 'Times New Roman', serif" fontSize="21" opacity=".9">Students</text>
+        <text x="-5" y="56" fill="#75859a" fontFamily="Georgia, 'Times New Roman', serif" fontSize="21" opacity=".9">Brighter</text>
+        <text x="-8" y="84" fill="#75859a" fontFamily="Georgia, 'Times New Roman', serif" fontSize="21" opacity=".9">Tomorrows</text>
       </g>
 
       <g opacity=".96">
-        <path d="M106 560 C110 476 133 430 184 393 C174 445 169 504 173 560 Z" fill="#2b6f4e" />
-        <path d="M150 454 C105 436 80 412 63 377 C102 383 137 399 167 429 Z" fill="#3c8257" />
-        <path d="M164 422 C132 383 128 347 138 316 C168 342 183 377 184 414 Z" fill="#4f9563" />
-        <path d="M174 476 C217 446 254 438 289 445 C263 476 228 494 184 503 Z" fill="#4a8d5c" />
-        <path d="M187 410 C218 374 252 355 286 354 C269 393 238 420 195 435 Z" fill="#4b915d" />
-        <path d="M673 560 C676 497 695 455 730 424 C732 475 731 516 729 560 Z" fill="#256646" />
-        <path d="M704 468 C672 449 655 426 649 402 C678 407 702 420 721 443 Z" fill="#478c5e" />
+        <path d="M42 540 C49 478 72 426 116 380 C113 431 114 486 111 540 Z" fill="#245f48" />
+        <path d="M93 438 C58 423 31 395 16 360 C52 365 87 382 112 409 Z" fill="url(#hrLeaf)" />
+        <path d="M109 409 C90 368 95 333 112 304 C137 339 146 377 133 414 Z" fill="url(#hrLeaf)" />
+        <path d="M112 469 C154 444 194 438 227 451 C201 478 164 495 120 499 Z" fill="url(#hrLeaf)" />
+        <path d="M130 421 C165 389 203 375 236 381 C213 414 178 436 139 448 Z" fill="url(#hrLeaf)" />
+
+        <path d="M700 540 C704 492 720 452 753 418 C758 465 757 506 755 540 Z" fill="#255f47" />
+        <path d="M739 457 C707 442 684 419 671 391 C703 394 732 408 754 431 Z" fill="url(#hrLeaf)" />
+        <path d="M753 423 C741 387 748 354 768 329 C785 363 789 397 777 429 Z" fill="url(#hrLeaf)" />
       </g>
 
-      <g fill="#ffffff" opacity=".33" filter="url(#hrBlur)">
-        <circle cx="81" cy="65" r="30" />
-        <circle cx="146" cy="35" r="24" />
-        <circle cx="746" cy="72" r="34" />
+      <g opacity=".66" filter="url(#hrLeafBlur)">
+        <circle cx="36" cy="37" r="35" fill="#4c8a5c" />
+        <circle cx="77" cy="22" r="27" fill="#6fa66c" />
+        <circle cx="112" cy="47" r="32" fill="#457b55" />
+        <circle cx="804" cy="36" r="27" fill="#5c985f" />
+      </g>
+
+      <g opacity=".24" fill="#ffffff" filter="url(#hrSoftBlur)">
+        <circle cx="628" cy="88" r="42" />
+        <circle cx="742" cy="126" r="26" />
       </g>
     </svg>
     <div className="hr-campus-scene__veil" />
@@ -191,7 +243,7 @@ export default function HomeroomGlassHero({
       <blockquote className="hr-campus-hero__quote">
         {vi ? '“Những điều lớn lao luôn bắt đầu từ những nỗ lực bền bỉ mỗi ngày.”' : '“Great things begin with consistent effort, every day.”'}
       </blockquote>
-      <p className="hr-campus-hero__tagline">{vi ? 'SAME CLASS  •  BRIGHTER TOMORROW' : 'SAME CLASS  •  BRIGHTER TOMORROW'}</p>
+      <p className="hr-campus-hero__tagline">SAME CLASS &nbsp;•&nbsp; BRIGHTER TOMORROW</p>
 
       <div className="hr-campus-hero__ledger" aria-label={vi ? 'Thông tin lớp' : 'Class information'}>
         <Detail icon="calendar" label={vi ? 'Năm học' : 'School year'} value={schoolYear} />
@@ -210,7 +262,7 @@ export default function HomeroomGlassHero({
 
     <div className="hr-campus-hero__art-copy" aria-hidden="true">
       <span className="hr-campus-hero__class-mark">• &nbsp; {className} &nbsp; •</span>
-      <span className="hr-campus-hero__motto">{vi ? <>DISCIPLINE<br />CREATES<br />FREEDOM</> : <>DISCIPLINE<br />CREATES<br />FREEDOM</>}</span>
+      <span className="hr-campus-hero__motto">DISCIPLINE<br />CREATES<br />FREEDOM</span>
       <span className="hr-campus-hero__brand">BRIAN ENGLISH</span>
     </div>
 
@@ -225,6 +277,7 @@ export default function HomeroomGlassHero({
         <span><small>{vi ? 'Sĩ số' : 'Students'}</small><strong>{activeStudents}</strong></span>
       </div>
       <div className="hr-campus-profile__status"><i className={syncState === 'cloud' ? 'is-cloud' : ''} />{syncLabel}</div>
+      <span className="hr-campus-profile__next" aria-hidden="true">›</span>
     </aside>
   </section>;
 }
