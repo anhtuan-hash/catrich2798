@@ -115,6 +115,13 @@ export const ATTENDANCE_PERMISSION_GROUP = {
   ids: [...ATTENDANCE_PERMISSION_ITEMS, ...ATTENDANCE_ACTION_PERMISSION_ITEMS].map((item) => item.id),
 };
 
+export const ASSESSMENT_PERMISSION_GROUP = {
+  key: 'assessment-core',
+  title: 'Assessment Core',
+  titleVi: 'Ngân hàng câu hỏi & đề thi',
+  ids: [ROUTE_PERMISSION_IDS['assessment-core']],
+};
+
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup']);
 const RETIRED_ROUTES = new Set(['library', 'practice']);
 
@@ -283,7 +290,10 @@ export const PERMISSION_ITEMS = [
   ...TOOL_PERMISSION_ITEMS,
 ];
 export const ALL_PERMISSION_IDS = PERMISSION_ITEMS.map((item) => item.id);
-export const EXPLICIT_PERMISSION_IDS = [...ATTENDANCE_PERMISSION_GROUP.ids];
+export const EXPLICIT_PERMISSION_IDS = [
+  ...ASSESSMENT_PERMISSION_GROUP.ids,
+  ...ATTENDANCE_PERMISSION_GROUP.ids,
+];
 const EXPLICIT_PERMISSION_SET = new Set(EXPLICIT_PERMISSION_IDS);
 
 export const PERMISSION_GROUPS = [
@@ -291,7 +301,9 @@ export const PERMISSION_GROUPS = [
     key: 'content',
     title: 'Content & system access',
     titleVi: 'Nội dung & hệ thống',
-    ids: CORE_PERMISSION_ITEMS.map((item) => item.id),
+    ids: CORE_PERMISSION_ITEMS
+      .filter((item) => item.id !== ROUTE_PERMISSION_IDS['assessment-core'])
+      .map((item) => item.id),
   },
   ATTENDANCE_PERMISSION_GROUP,
   {
@@ -405,6 +417,7 @@ export function getFirstAllowedAttendanceTab(user) {
 export function hasPermissionId(user, permissionId) {
   if (!user) return false;
   if (isAdminRole(user.role)) return true;
+  if (permissionId === ROUTE_PERMISSION_IDS['assessment-core'] && isDepartmentLeaderRole(user.role)) return true;
   if (permissionId === ROUTE_PERMISSION_IDS.attendance) return hasAnyAttendanceAccess(user);
   const permissions = normalizePermissions(user.permissions);
   if (EXPLICIT_PERMISSION_SET.has(permissionId)) return permissions.allowed.includes(permissionId);
@@ -487,10 +500,18 @@ export function summarizePermissions(user, language = 'vi') {
   const permissions = normalizePermissions(user.permissions);
   if (permissions.mode === PERMISSION_MODE_ALL) {
     const attendanceCount = ATTENDANCE_PERMISSION_GROUP.ids.filter((id) => permissions.allowed.includes(id)).length;
-    if (!attendanceCount) return language === 'vi' ? 'Toàn quyền giáo viên · chưa cấp Điểm danh' : 'Full teacher access · no Attendance grant';
+    const assessmentGranted = permissions.allowed.includes(ROUTE_PERMISSION_IDS['assessment-core']);
+    if (!attendanceCount && !assessmentGranted) {
+      return language === 'vi'
+        ? 'Toàn quyền giáo viên · chưa cấp Điểm danh / Ngân hàng câu hỏi'
+        : 'Full teacher access · no Attendance / Assessment Core grant';
+    }
+    const assessmentLabel = assessmentGranted
+      ? (language === 'vi' ? 'Ngân hàng câu hỏi: có' : 'Assessment Core: yes')
+      : (language === 'vi' ? 'Ngân hàng câu hỏi: chưa cấp' : 'Assessment Core: not granted');
     return language === 'vi'
-      ? `Toàn quyền giáo viên · ${attendanceCount}/${ATTENDANCE_PERMISSION_GROUP.ids.length} quyền Điểm danh`
-      : `Full teacher access · ${attendanceCount}/${ATTENDANCE_PERMISSION_GROUP.ids.length} Attendance permissions`;
+      ? `Toàn quyền giáo viên · ${assessmentLabel} · ${attendanceCount}/${ATTENDANCE_PERMISSION_GROUP.ids.length} quyền Điểm danh`
+      : `Full teacher access · ${assessmentLabel} · ${attendanceCount}/${ATTENDANCE_PERMISSION_GROUP.ids.length} Attendance permissions`;
   }
   const count = permissions.allowed.length;
   return language === 'vi' ? `${count}/${ALL_PERMISSION_IDS.length} quyền được cấp` : `${count}/${ALL_PERMISSION_IDS.length} permissions granted`;
