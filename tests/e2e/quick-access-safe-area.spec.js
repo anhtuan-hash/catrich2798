@@ -184,6 +184,72 @@ test.describe('Global Quick Access safe area', () => {
     expect(state.width).toBeGreaterThanOrEqual(310);
   });
 
+  test('Quick Access V2: command search and quick peek work without leaving the route', async ({ page }) => {
+    await page.goto('/#/apps');
+    await expect(page.locator('.bqa-root')).toBeVisible();
+
+    await page.locator('.bqa-rail').hover();
+    await expect(page.locator('.bqa-panel')).toBeVisible();
+
+    const search = page.locator('.bqa-command-search input');
+    await search.fill('ngân hàng');
+    await expect(page.locator('.bqa-panel-list.is-command-results')).toContainText('Ngân hàng câu hỏi');
+
+    await search.fill('');
+    const ttcmItem = page.locator('.bqa-panel-item').filter({ hasText: 'TTCM' }).first();
+    await ttcmItem.hover();
+    await expect(page.locator('.bqa-peek-card')).toBeVisible({ timeout: 1_200 });
+    await expect(page.locator('.bqa-peek-card')).toContainText('Mở bảng tin');
+    await expect(page).toHaveURL(/#\/apps$/);
+  });
+
+  test('Quick Access V2: notification badges surface unread work items', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem('bes-global-notifications:quick-access-safe-area-admin', JSON.stringify([
+        {
+          id: 'work-hub:v2-badge-test',
+          title: 'Việc cần xem',
+          target: '#/work-hub',
+          source: 'work-hub-notification',
+          category: 'work',
+          read: false,
+        },
+      ]));
+    });
+
+    await page.goto('/#/apps');
+    await expect(page.locator('.bqa-root')).toBeVisible();
+
+    const ttcmButton = page.locator('.bqa-rail-button').filter({ has: page.locator('svg') }).filter({ hasText: '' }).nth(5);
+    await expect(page.locator('.bqa-rail-badge')).toHaveCount(1);
+    await expect(page.locator('.bqa-rail-badge')).toContainText('1');
+    await expect(ttcmButton).toBeVisible();
+  });
+
+  test('Quick Access V2: Focus mode hides permanent chrome and reopens from the edge', async ({ page }) => {
+    await page.goto('/#/apps');
+    await expect(page.locator('.bqa-root')).toBeVisible();
+
+    await page.locator('.bqa-rail').hover();
+    await expect(page.locator('.bqa-panel')).toBeVisible();
+    await page.locator('.bqa-mode-switch').getByRole('radio', { name: 'Focus' }).click();
+
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-mode', 'focus');
+    await expect(page.locator('.bqa-root')).toHaveClass(/is-focus/);
+    await expect(page.locator('.bqa-root')).toHaveClass(/is-collapsed/);
+
+    const railState = await page.locator('.bqa-rail').evaluate((rail) => {
+      const style = getComputedStyle(rail);
+      return { opacity: Number(style.opacity), pointerEvents: style.pointerEvents };
+    });
+    expect(railState.opacity).toBeLessThan(0.05);
+    expect(railState.pointerEvents).toBe('none');
+
+    await page.locator('.bqa-edge-trigger').hover({ position: { x: 1, y: 60 } });
+    await expect(page.locator('.bqa-root')).toHaveClass(/is-open/);
+    await expect(page.locator('.bqa-panel')).toBeVisible();
+  });
+
   test('Dashboard: collapsed Quick Access panel leaves no visible ghost beside the rail', async ({ page }) => {
     await page.goto('/#/dashboard');
     await expect(page.locator('.bqa-root')).toBeVisible();
