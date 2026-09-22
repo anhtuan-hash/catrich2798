@@ -24,6 +24,7 @@ import './GlobalTtcmMultiAttachments.css';
 import './GlobalTtcmPersonnel.css';
 import './GlobalTtcmTeacherHistory.css';
 import './GlobalTtcmTeacherReaderV2.css';
+import './GlobalTtcmColorfulScheduleV2.css';
 
 const WORK_ITEM_COLUMNS = 'id,title,description,item_type,status,priority,visibility,owner_id,created_by,assignee_ids,watcher_ids,due_at,attachments,metadata,source_module,created_at,updated_at,submitted_at,reviewed_at,completed_at';
 const LOCAL_FEED_PREFIX = 'bes-ttcm-feed-v1';
