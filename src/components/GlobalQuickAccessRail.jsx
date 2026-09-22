@@ -347,6 +347,7 @@ export default function GlobalQuickAccessRail({
   const [badges, setBadges] = useState({});
   const [peekItemId, setPeekItemId] = useState('');
   const [actionMenuItemId, setActionMenuItemId] = useState('');
+  const [commandFocusRequest, setCommandFocusRequest] = useState(0);
   const closeTimerRef = useRef(0);
   const peekTimerRef = useRef(0);
   const collapseMotionTimerRef = useRef(0);
@@ -537,7 +538,7 @@ export default function GlobalQuickAccessRail({
         event.preventDefault();
         openRail();
         setCommandQuery('');
-        window.setTimeout(() => commandInputRef.current?.focus(), 30);
+        setCommandFocusRequest((value) => value + 1);
         return;
       }
 
@@ -564,6 +565,20 @@ export default function GlobalQuickAccessRail({
       window.removeEventListener('keydown', onShortcut);
     };
   }, [isPinned, customizing, expanded, collapseRail, openRail, selectedItems, currentUser?.id, allowedKey]);
+
+  useEffect(() => {
+    if (!commandFocusRequest || !expanded || typeof window === 'undefined') return undefined;
+    let secondFrame = 0;
+    const firstFrame = window.requestAnimationFrame(() => {
+      secondFrame = window.requestAnimationFrame(() => {
+        commandInputRef.current?.focus({ preventScroll: true });
+      });
+    });
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      if (secondFrame) window.cancelAnimationFrame(secondFrame);
+    };
+  }, [commandFocusRequest, expanded]);
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
