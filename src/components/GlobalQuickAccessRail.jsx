@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AppWindow,
   BookOpenCheck,
@@ -238,7 +238,9 @@ export default function GlobalQuickAccessRail({
   const [customizing, setCustomizing] = useState(false);
   const [customizerQuery, setCustomizerQuery] = useState('');
   const [dragId, setDragId] = useState('');
+  const [collapsing, setCollapsing] = useState(false);
   const closeTimerRef = useRef(0);
+  const collapseMotionTimerRef = useRef(0);
 
   const catalog = useMemo(() => {
     const byId = new Map();
@@ -261,6 +263,32 @@ export default function GlobalQuickAccessRail({
   const allowedKey = allowedIds.join('|');
   const [config, setConfig] = useState(() => loadQuickAccessConfig(currentUser, allowedIds));
 
+  const expanded = hovered || config.pinned || customizing;
+
+  const openRail = useCallback(() => {
+    window.clearTimeout(closeTimerRef.current);
+    window.clearTimeout(collapseMotionTimerRef.current);
+    setCollapsing(false);
+    setHovered(true);
+  }, []);
+
+  const collapseRail = useCallback((force = false) => {
+    if (!force && (config.pinned || customizing)) return;
+    window.clearTimeout(closeTimerRef.current);
+    window.clearTimeout(collapseMotionTimerRef.current);
+
+    if (hovered || config.pinned || customizing) {
+      setCollapsing(true);
+      setHovered(false);
+      collapseMotionTimerRef.current = window.setTimeout(() => {
+        setCollapsing(false);
+      }, 290);
+      return;
+    }
+
+    setHovered(false);
+  }, [config.pinned, customizing, hovered]);
+
   useEffect(() => {
     if (!currentUser || !allowedIds.length) return undefined;
     let alive = true;
@@ -282,12 +310,18 @@ export default function GlobalQuickAccessRail({
     };
   }, [currentUser?.id, currentUser?.authId, currentUser?.email, allowedKey]);
 
-  useEffect(() => () => window.clearTimeout(closeTimerRef.current), []);
+  useEffect(() => () => {
+    window.clearTimeout(closeTimerRef.current);
+    window.clearTimeout(collapseMotionTimerRef.current);
+  }, []);
 
   useEffect(() => {
     if (!customizing) return undefined;
     const onKeyDown = (event) => {
-      if (event.key === 'Escape') setCustomizing(false);
+      if (event.key === 'Escape') {
+        setCustomizerQuery('');
+        setCustomizing(false);
+      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
@@ -298,10 +332,10 @@ export default function GlobalQuickAccessRail({
 
     const onOutsidePointerDown = (event) => {
       if (event.target?.closest?.('.bqa-root')) return;
-      setHovered(false);
+      collapseRail(false);
     };
     const onEscape = (event) => {
-      if (event.key === 'Escape') setHovered(false);
+      if (event.key === 'Escape') collapseRail(false);
     };
 
     document.addEventListener('pointerdown', onOutsidePointerDown, true);
@@ -310,13 +344,13 @@ export default function GlobalQuickAccessRail({
       document.removeEventListener('pointerdown', onOutsidePointerDown, true);
       window.removeEventListener('keydown', onEscape);
     };
-  }, [hovered, config.pinned, customizing]);
+  }, [hovered, config.pinned, customizing, collapseRail]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
 
     const onNavigationStart = () => {
-      if (!config.pinned && !customizing) setHovered(false);
+      if (!config.pinned && !customizing) collapseRail(false);
     };
     const onShortcut = (event) => {
       const tag = String(event.target?.tagName || '').toLowerCase();
@@ -324,7 +358,8 @@ export default function GlobalQuickAccessRail({
       if (editable || event.repeat) return;
       if (event.altKey && !event.ctrlKey && !event.metaKey && String(event.key || '').toLowerCase() === 'q') {
         event.preventDefault();
-        setHovered((value) => !value);
+        if (expanded && !config.pinned && !customizing) collapseRail(false);
+        else openRail();
       }
     };
 
@@ -334,7 +369,7 @@ export default function GlobalQuickAccessRail({
       window.removeEventListener('bes-navigation-start', onNavigationStart);
       window.removeEventListener('keydown', onShortcut);
     };
-  }, [config.pinned, customizing]);
+  }, [config.pinned, customizing, expanded, collapseRail, openRail]);
 
   if (!currentUser || currentRoute === 'home' || !catalog.length) return null;
 
@@ -351,8 +386,6 @@ export default function GlobalQuickAccessRail({
       return haystack.includes(customizerNeedle);
     })
     : availableItems;
-  const expanded = hovered || config.pinned || customizing;
-
   const persist = (next) => {
     setConfig(next);
     saveQuickAccessConfigToCloud(currentUser, next, allowedIds).then((result) => {
@@ -361,19 +394,18 @@ export default function GlobalQuickAccessRail({
   };
 
   const enter = () => {
-    window.clearTimeout(closeTimerRef.current);
-    setHovered(true);
+    openRail();
   };
 
   const leave = () => {
     window.clearTimeout(closeTimerRef.current);
     if (config.pinned || customizing) return;
-    closeTimerRef.current = window.setTimeout(() => setHovered(false), 320);
+    closeTimerRef.current = window.setTimeout(() => collapseRail(false), 340);
   };
 
   const activateItem = (item, sourceEl) => {
     runAction(item, sourceEl);
-    if (!config.pinned) setHovered(false);
+    if (!config.pinned) collapseRail(false);
   };
 
   const togglePinned = () => persist({ ...config, pinned: !config.pinned });
@@ -402,8 +434,9 @@ export default function GlobalQuickAccessRail({
   return (
     <>
       <div
-        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${config.pinned ? 'is-pinned' : ''}`}
+        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${config.pinned ? 'is-pinned' : ''}`}
         data-quick-access="true"
+        data-motion={collapsing ? 'collapsing' : (expanded ? 'open' : 'rest')}
         data-route={currentRoute}
         onPointerEnter={enter}
         onPointerLeave={leave}
@@ -416,7 +449,11 @@ export default function GlobalQuickAccessRail({
             type="button"
             className="bqa-brand"
             aria-label={expanded ? (language === 'vi' ? 'Thu gọn thanh truy cập nhanh' : 'Collapse quick access') : (language === 'vi' ? 'Mở thanh truy cập nhanh' : 'Open quick access')}
-            onClick={() => setHovered((value) => !value)}
+            aria-expanded={expanded}
+            onClick={() => {
+              if (expanded && !config.pinned && !customizing) collapseRail(false);
+              else openRail();
+            }}
           >
             <span aria-hidden="true">B</span>
           </button>
