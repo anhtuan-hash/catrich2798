@@ -310,7 +310,7 @@ export default function GlobalQuickAccessRail({
     };
   }, [hovered, config.pinned, customizing]);
 
-  if (!currentUser || currentRoute === 'home' || !catalog.length) return null;
+  if (!currentUser || currentRoute === 'home' || currentRoute === 'dashboard' || !catalog.length) return null;
 
   const selectedItems = config.items
     .map((id) => catalog.find((item) => item.id === id))
