@@ -9,7 +9,10 @@ const hardeningSql = fs.readFileSync('supabase/question_bank_performance_securit
 const auditFixSql = fs.readFileSync('supabase/question_bank_audit_bundle_ready_fix_v11_8_2.sql', 'utf8');
 const departmentAccessSql = fs.readFileSync('supabase/question_bank_restore_department_rls_access_v11_8_5.sql', 'utf8');
 
-assert.ok(page.includes('fetchAllOwnedRows'), 'Question Bank must page through the complete bank.');
+assert.ok(
+  page.includes('fetchAllOwnedRows') || page.includes('fetchAllAccessibleRows'),
+  'Question Bank must page through the complete accessible bank.',
+);
 assert.ok(!page.includes(".limit(500)"), 'Question Bank must not truncate the item pool at 500 rows.');
 
 for (const token of [
