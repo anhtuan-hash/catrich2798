@@ -109,7 +109,7 @@ export default function GlobalFlatNavigation(props) {
         </button>
       ) : null}
 
-      {!mobile ? <GlobalPinnedNavigationHub route={props.route} /> : null}
+      {!mobile && props.route !== 'dashboard' ? <GlobalPinnedNavigationHub route={props.route} /> : null}
       <GlobalPageLaunchEffect route={props.route} />
       <GlobalWindows8Experience route={props.route} />
       <GlobalWindowsPhone8Loading />
