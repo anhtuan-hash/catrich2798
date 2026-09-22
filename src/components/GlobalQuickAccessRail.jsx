@@ -619,6 +619,7 @@ export default function GlobalQuickAccessRail({
             if (event.pointerType === 'touch' || event.pointerType === 'pen') openRail();
           }}
         />
+        <div className="bqa-hover-bridge" aria-hidden="true" onPointerEnter={enter} />
 
         <aside ref={railRef} className="bqa-rail" aria-label={language === 'vi' ? 'Thanh truy cập nhanh' : 'Quick access'}>
           <button
