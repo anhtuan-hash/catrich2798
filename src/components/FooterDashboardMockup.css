@@ -1,6 +1,6 @@
-/* Dashboard footer — approved mockup authority.
-   This file is intentionally singular: no legacy V4/V5/V6 layers are stacked here.
-   It loads after FooterIntegrity.css and owns only the Dashboard footer presentation. */
+/* Dashboard footer — Mockup Parity V8.
+   One route-scoped authority, loaded after FooterIntegrity.css.
+   Artwork is real SVG/DOM, not stacked pseudo-element patches. */
 
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] {
   position: relative !important;
@@ -8,68 +8,29 @@ html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-foo
   box-sizing: border-box !important;
   width: min(1480px, calc(100% - 40px)) !important;
   max-width: calc(100% - 40px) !important;
-  margin: 10px auto 18px !important;
-  padding: 18px 18px 92px !important;
+  margin: 8px auto 18px !important;
+  padding: 18px 18px 78px !important;
   overflow: hidden !important;
-  border: 1px solid rgba(145, 190, 235, .52) !important;
+  border: 1px solid rgba(142, 188, 234, .50) !important;
   border-radius: 28px !important;
-  background: linear-gradient(180deg, #f8fcff 0%, #f7fbff 64%, #eef8ff 100%) !important;
-  box-shadow: 0 18px 42px rgba(61, 108, 157, .08) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.98) 0%, #f7fcff 54%, #eef8ff 100%) !important;
+  box-shadow:
+    0 20px 46px rgba(54, 103, 157, .085),
+    inset 0 1px 0 rgba(255,255,255,.98) !important;
   color: #17334f !important;
 }
 
-/* Low watercolor landscape only. No large radial discs. */
-html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"]::before {
-  content: '' !important;
-  position: absolute !important;
-  z-index: 0 !important;
-  left: -3% !important;
-  right: -3% !important;
-  bottom: -28px !important;
-  height: 104px !important;
-  display: block !important;
-  background:
-    radial-gradient(ellipse 16% 62% at 2% 84%, #d7efff 0 74%, transparent 76%),
-    radial-gradient(ellipse 18% 66% at 18% 92%, #dff6e9 0 74%, transparent 76%),
-    radial-gradient(ellipse 19% 66% at 35% 86%, #d8efff 0 74%, transparent 76%),
-    radial-gradient(ellipse 17% 62% at 52% 94%, #e4f7ec 0 74%, transparent 76%),
-    radial-gradient(ellipse 19% 65% at 69% 87%, #dcecff 0 74%, transparent 76%),
-    radial-gradient(ellipse 18% 63% at 85% 93%, #e7e1ff 0 74%, transparent 76%),
-    radial-gradient(ellipse 16% 62% at 99% 84%, #d8edff 0 74%, transparent 76%) !important;
-  opacity: .96 !important;
-  pointer-events: none !important;
-}
-
-/* Closing handwritten sign-off lives in its own footer zone, below all cards. */
+/* Disable legacy footer pseudo artwork completely; V8 uses real SVG markup. */
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"]::before,
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"]::after {
-  content: 'Teach Better Together ♡' !important;
-  position: absolute !important;
-  z-index: 6 !important;
-  right: 36px !important;
-  bottom: 35px !important;
-  display: block !important;
-  width: auto !important;
-  height: auto !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  background: none !important;
-  color: #337ee7 !important;
-  font-size: 18px !important;
-  font-style: italic !important;
-  font-weight: 760 !important;
-  line-height: 1.05 !important;
-  letter-spacing: .01em !important;
-  transform: rotate(-6deg) !important;
-  box-shadow: none !important;
-  pointer-events: none !important;
-}
-
-html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] > * {
-  position: relative !important;
-  z-index: 2 !important;
+  content: none !important;
+  display: none !important;
 }
 
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] > .signature-footer-expanded-panel {
+  position: relative !important;
+  z-index: 3 !important;
   display: block !important;
   overflow: visible !important;
   border-top: 0 !important;
@@ -78,7 +39,7 @@ html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-foo
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-main {
   display: grid !important;
   grid-template-columns: .95fr 1.08fr 1.07fr !important;
-  gap: 16px !important;
+  gap: 17px !important;
   align-items: stretch !important;
   width: 100% !important;
   margin: 0 !important;
@@ -86,84 +47,213 @@ html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-foo
 }
 
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-main > section {
+  position: relative !important;
   min-width: 0 !important;
-  min-height: 300px !important;
-  padding: 25px 26px !important;
+  min-height: 286px !important;
+  padding: 26px 27px !important;
   overflow: hidden !important;
-  border: 1px solid rgba(137, 184, 231, .50) !important;
-  border-radius: 22px !important;
+  border: 1px solid rgba(130, 180, 231, .46) !important;
+  border-radius: 24px !important;
   box-shadow:
-    0 17px 36px rgba(57, 102, 151, .085),
-    inset 0 1px 0 rgba(255,255,255,.95) !important;
+    0 16px 34px rgba(57, 102, 151, .075),
+    inset 0 1px 0 rgba(255,255,255,.96) !important;
 }
 
-/* Use linear pastel washes only, preventing the oversized circular artifact
-   visible in the V6 production screenshot. */
+/* Softer, editorial card surfaces — no large radial circles. */
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-brand {
-  background: linear-gradient(145deg, #eaf5ff 0%, #f9fcff 58%, #eef9ef 100%) !important;
+  background:
+    linear-gradient(156deg, rgba(255,255,255,.72) 0 18%, transparent 18.2%),
+    linear-gradient(145deg, #e9f5ff 0%, #f9fcff 59%, #ebf8ee 100%) !important;
 }
 
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-profile {
-  background: linear-gradient(145deg, #eefbf5 0%, #fbfffc 58%, #eefaf8 100%) !important;
+  background:
+    linear-gradient(158deg, rgba(255,255,255,.72) 0 16%, transparent 16.2%),
+    linear-gradient(145deg, #ebfaf3 0%, #fbfffc 58%, #e8f8f4 100%) !important;
 }
 
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-credentials {
-  background: linear-gradient(145deg, #fff9e8 0%, #fffdf8 60%, #fff4df 100%) !important;
+  background:
+    linear-gradient(158deg, rgba(255,255,255,.68) 0 16%, transparent 16.2%),
+    linear-gradient(145deg, #fff6df 0%, #fffdf8 59%, #ffedce 100%) !important;
+}
+
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-card-doodle {
+  position: absolute !important;
+  z-index: 0 !important;
+  right: 15px !important;
+  top: 14px !important;
+  width: 72px !important;
+  height: 58px !important;
+  pointer-events: none !important;
+  opacity: .38 !important;
+}
+
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-card-doodle.is-brand {
+  color: #55a97a !important;
+  left: 13px !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: 10px !important;
+  width: 82px !important;
+  height: 64px !important;
+  opacity: .28 !important;
+}
+
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-card-doodle.is-profile {
+  color: #4aa889 !important;
+}
+
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-card-doodle.is-credentials {
+  color: #e5a913 !important;
+}
+
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-brand > *,
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-profile > *,
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-credentials > * {
+  position: relative !important;
+  z-index: 2 !important;
 }
 
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-brian-logo {
-  width: min(238px, 86%) !important;
-  max-height: 96px !important;
-  margin-bottom: 18px !important;
+  width: min(224px, 82%) !important;
+  max-height: 91px !important;
+  margin: 4px auto 20px !important;
 }
 
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-affiliations {
-  padding-top: 17px !important;
+  width: min(100%, 300px) !important;
+  margin-inline: auto !important;
+  padding-top: 18px !important;
+  border-top-color: rgba(120, 164, 210, .18) !important;
 }
 
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-affiliations img {
-  height: 76px !important;
+  height: 71px !important;
+  filter: saturate(.92) contrast(1.02) !important;
+}
+
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-logo-divider {
+  height: 58px !important;
+  background: rgba(105, 145, 187, .20) !important;
 }
 
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-language-badge {
-  background: #15945a !important;
+  background: linear-gradient(135deg, #15945a, #18a86d) !important;
+  box-shadow: 0 7px 15px rgba(21,148,90,.16) !important;
 }
 
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-profile h2 {
   color: #14784b !important;
+  letter-spacing: .01em !important;
+}
+
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-details {
+  margin-top: 2px !important;
+}
+
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-detail {
+  min-height: 39px !important;
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+  border-bottom-color: rgba(119, 161, 199, .15) !important;
 }
 
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-detail-icon {
-  background: #dff6e8 !important;
+  width: 27px !important;
+  height: 27px !important;
+  background: #dcf5e6 !important;
+  box-shadow: inset 0 0 0 1px rgba(21,148,90,.05) !important;
 }
 
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-section-label {
+  margin-bottom: 12px !important;
   color: #df6414 !important;
+  letter-spacing: .045em !important;
+}
+
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-credentials > ul > li {
+  min-height: 38px !important;
+  padding-top: 7px !important;
+  padding-bottom: 7px !important;
+  border-bottom-color: rgba(183, 139, 54, .15) !important;
 }
 
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-star {
   color: #e8ad00 !important;
+  filter: drop-shadow(0 2px 4px rgba(232,173,0,.12)) !important;
 }
 
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-expanded-note {
   display: flex !important;
   justify-content: center !important;
-  margin: 13px 0 0 !important;
-  color: #6a829a !important;
+  margin: 12px 0 0 !important;
+  color: #71869c !important;
+  font-size: .76rem !important;
+}
+
+/* Real footer illustration: watercolor hills, leaves, doodle plane and signoff. */
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-dashboard-artwork {
+  position: absolute !important;
+  z-index: 4 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  height: 92px !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+}
+
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-dashboard-landscape {
+  position: absolute !important;
+  inset: auto 0 -6px 0 !important;
+  width: 100% !important;
+  height: 86px !important;
+  opacity: .92 !important;
+}
+
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-dashboard-plane {
+  position: absolute !important;
+  right: 235px !important;
+  bottom: 27px !important;
+  width: 58px !important;
+  height: 42px !important;
+  color: #6b8ff0 !important;
+  opacity: .54 !important;
+  transform: rotate(-7deg) !important;
+}
+
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-dashboard-signoff {
+  position: absolute !important;
+  right: 34px !important;
+  bottom: 26px !important;
+  color: #337ee7 !important;
+  font-size: 18px !important;
+  font-style: italic !important;
+  font-weight: 760 !important;
+  line-height: 1.05 !important;
+  letter-spacing: .01em !important;
+  transform: rotate(-5deg) !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.85) !important;
 }
 
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] > .signature-footer-static-summary {
+  position: relative !important;
+  z-index: 5 !important;
   display: flex !important;
   justify-content: center !important;
-  margin-top: 9px !important;
-  padding: 11px 0 0 !important;
-  border-top: 1px solid rgba(132, 171, 212, .24) !important;
+  width: max-content !important;
+  max-width: calc(100% - 420px) !important;
+  min-height: 28px !important;
+  margin: 8px auto 0 !important;
+  padding: 9px 0 0 !important;
+  border-top: 1px solid rgba(132, 171, 212, .22) !important;
   background: transparent !important;
 }
 
 @media (max-width: 1040px) {
   html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] {
-    padding-bottom: 82px !important;
+    padding-bottom: 74px !important;
   }
 
   html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-main {
@@ -177,14 +267,18 @@ html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-foo
   html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-main > section {
     min-height: 0 !important;
   }
+
+  html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] > .signature-footer-static-summary {
+    max-width: calc(100% - 320px) !important;
+  }
 }
 
 @media (max-width: 720px) {
   html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] {
     width: calc(100% - 16px) !important;
     max-width: calc(100% - 16px) !important;
-    margin: 10px auto 12px !important;
-    padding: 12px 12px 66px !important;
+    margin: 8px auto 12px !important;
+    padding: 12px 12px 58px !important;
     border-radius: 22px !important;
   }
 
@@ -197,15 +291,34 @@ html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-foo
     grid-column: auto !important;
   }
 
-  html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"]::after {
-    right: 18px !important;
-    bottom: 21px !important;
+  html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-card-doodle {
+    opacity: .22 !important;
+  }
+
+  html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-dashboard-artwork {
+    height: 70px !important;
+  }
+
+  html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-dashboard-plane {
+    display: none !important;
+  }
+
+  html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-dashboard-signoff {
+    right: 16px !important;
+    bottom: 18px !important;
     font-size: 14px !important;
+  }
+
+  html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] > .signature-footer-static-summary {
+    max-width: calc(100% - 170px) !important;
+    min-width: 0 !important;
+    margin-left: 0 !important;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"]::after {
+  html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-dashboard-plane,
+  html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-dashboard-signoff {
     transform: none !important;
   }
 }
