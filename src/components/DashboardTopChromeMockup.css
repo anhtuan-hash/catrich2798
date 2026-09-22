@@ -119,3 +119,46 @@ html body:has(.app-shell[data-route="dashboard"]) .app-shell[data-route="dashboa
     scroll-behavior: auto !important;
   }
 }
+
+
+/* Dashboard V6 direct route authority */
+.bes-top-chrome[data-route="dashboard"] {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  inset: auto !important;
+  z-index: 120 !important;
+  width: var(--bes-layout-stage-width, min(1600px, calc(100vw - 40px))) !important;
+  max-width: var(--bes-layout-reference-width, 1600px) !important;
+  margin: 8px auto 0 !important;
+  transform: none !important;
+  translate: none !important;
+}
+
+.bes-top-chrome[data-route="dashboard"] + [data-bes-pinned-hub-spacer] {
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.bes-top-chrome[data-route="dashboard"] .brian-nav {
+  position: relative !important;
+  top: auto !important;
+}
+
+.bes-top-chrome[data-route="dashboard"] .brian-newswire {
+  position: relative !important;
+  top: auto !important;
+  bottom: auto !important;
+}
+
+@media (max-width: 820px) {
+  .bes-top-chrome[data-route="dashboard"] {
+    width: calc(100% - 16px) !important;
+    margin-top: 6px !important;
+  }
+}
