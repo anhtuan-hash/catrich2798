@@ -70,6 +70,9 @@ jobs:
       - name: Verify Dashboard mockup parity V8
         run: node scripts/test-dashboard-mockup-parity-v8.mjs
 
+      - name: Verify Dashboard mockup parity V9
+        run: node scripts/test-dashboard-mockup-parity-v9.mjs
+
       - name: Verify global Quick Access rail
         run: node scripts/test-global-quick-access-rail.mjs
 
