@@ -76,6 +76,7 @@ for (const token of [
   '[data-quick-access-layout="true"] > #bes-main-content > .bqa-content-safe-frame',
   'padding-inline-start: var(--bqa-content-safe-shift, 0px)',
   '[data-quick-access-state="pinned"] > #bes-main-content > .bqa-content-safe-frame',
+  'width: calc(var(--bqa-rail-width) + 8px + var(--bqa-panel-width))',
   'footer[data-app-shell-footer="true"]',
   '@media (min-width: 768px) and (max-width: 1279px)',
   '@media (max-width: 767px)',
