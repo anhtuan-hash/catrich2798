@@ -189,3 +189,33 @@ html body:has(.app-shell[data-route="dashboard"]) .app-shell[data-route="dashboa
   transform: none !important;
   will-change: auto !important;
 }
+
+
+/* Dashboard V9 top-chrome density polish */
+html body:has(.app-shell[data-route="dashboard"]) .brian-nav {
+  min-height: 52px !important;
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+  border-radius: 16px !important;
+}
+
+html body:has(.app-shell[data-route="dashboard"]) .brian-nav__primary {
+  gap: 3px !important;
+}
+
+html body:has(.app-shell[data-route="dashboard"]) .brian-nav__primary > * {
+  min-height: 35px !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
+}
+
+html body:has(.app-shell[data-route="dashboard"]) .brian-nav__icon {
+  width: 35px !important;
+  height: 35px !important;
+}
+
+html body:has(.app-shell[data-route="dashboard"]) .brian-newswire {
+  min-height: 41px !important;
+  margin-top: 6px !important;
+  border-radius: 14px !important;
+}
