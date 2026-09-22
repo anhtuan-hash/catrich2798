@@ -31,6 +31,9 @@ jobs:
       - name: Verify font upload and live preview contract
         run: node scripts/test-font-upload-live-preview.mjs
 
+      - name: Verify global Brian Newswire contract
+        run: node scripts/test-global-brian-newswire.mjs
+
       - name: Verify Hero Theme Studio contract
         run: node scripts/test-hero-theme-studio.mjs
 
