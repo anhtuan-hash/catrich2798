@@ -466,3 +466,664 @@
   .app-shell[data-route="dashboard"] .gd-agenda-date-badge { width: 72px !important; }
   .app-shell[data-route="dashboard"] .gd-agenda-date-badge strong { font-size: 46px !important; }
 }
+
+/* Dashboard Colorful V2 · approved pastel editorial direction · 2026-09-22 */
+.app-shell[data-route="dashboard"] .gd-page {
+  --gd-v2-sky: #eaf7ff;
+  --gd-v2-sky-strong: #d5efff;
+  --gd-v2-blue: #1769e0;
+  --gd-v2-indigo: #4d55e7;
+  --gd-v2-violet: #8b5cf6;
+  --gd-v2-mint: #daf7ee;
+  --gd-v2-green: #16a675;
+  --gd-v2-peach: #fff0df;
+  --gd-v2-orange: #ff7a1a;
+  --gd-v2-pink: #ffe6f1;
+  --gd-v2-rose: #f04f8b;
+  --gd-v2-yellow: #fff4c8;
+  --gd-v2-ink: #112c55;
+  --gd-v2-muted: #65758b;
+  --gd-v2-border: #b9d8ff;
+  background:
+    radial-gradient(circle at 8% 3%, rgba(198,239,255,.64), transparent 23rem),
+    radial-gradient(circle at 92% 8%, rgba(255,224,240,.50), transparent 20rem),
+    radial-gradient(circle at 78% 54%, rgba(224,214,255,.34), transparent 24rem),
+    linear-gradient(180deg, #f5fbff 0%, #f7fbff 48%, #f8fcfb 100%) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-shell {
+  gap: 24px !important;
+}
+
+/* HERO — brighter, warmer and more dimensional while keeping the approved editorial structure. */
+.app-shell[data-route="dashboard"] .editorial-hero {
+  --ed-ink: var(--gd-v2-ink);
+  --ed-blue: var(--gd-v2-blue);
+  --ed-blue-deep: #114da9;
+  min-height: 458px;
+  margin-bottom: 18px;
+  border: 1px solid rgba(119,179,244,.58) !important;
+  border-top: 1px solid rgba(119,179,244,.75) !important;
+  border-radius: 20px !important;
+  background:
+    radial-gradient(circle at 7% 19%, rgba(182,226,151,.42) 0 5.8rem, transparent 5.9rem),
+    radial-gradient(circle at 27% 108%, rgba(194,235,255,.78) 0 8.7rem, transparent 8.8rem),
+    radial-gradient(circle at 45% 111%, rgba(255,224,238,.78) 0 7.8rem, transparent 7.9rem),
+    radial-gradient(circle at 86% 11%, rgba(255,238,184,.62) 0 5.6rem, transparent 5.7rem),
+    linear-gradient(115deg, #f8fdff 0%, #effaff 35%, #f8f8ff 66%, #fff7fc 100%) !important;
+  box-shadow:
+    0 22px 54px rgba(46,100,161,.09),
+    inset 0 1px 0 rgba(255,255,255,.92) !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero::before {
+  left: 54%;
+  background: linear-gradient(180deg, transparent, rgba(102,153,221,.20) 15%, rgba(102,153,221,.20) 85%, transparent);
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero::after {
+  color: rgba(37,87,145,.55);
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-copy::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  left: -54px;
+  top: 126px;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: rgba(210,241,255,.64);
+  filter: blur(.2px);
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-copy::after {
+  color: rgba(23,105,224,.045);
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-eyebrow {
+  color: #1769e0 !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-eyebrow > span {
+  background: linear-gradient(90deg, #1769e0, #73b8ff) !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-date {
+  border-left-color: rgba(112,154,207,.35);
+  color: #647992;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-hello {
+  color: #244a78 !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero h1 {
+  color: #0d2d5b !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,.8);
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-wave {
+  display: inline-grid;
+  place-items: center;
+  margin-left: 10px;
+  transform: rotate(-7deg);
+  filter: saturate(1.15);
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-lead {
+  color: #5e7189 !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-primary-action {
+  border-color: #1769e0 !important;
+  background: linear-gradient(135deg, #1b72ef, #2955e8) !important;
+  box-shadow: 0 10px 22px rgba(23,105,224,.22) !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-primary-action:hover {
+  border-color: #115ecf !important;
+  background: linear-gradient(135deg, #1264dc, #244bd2) !important;
+  box-shadow: 0 12px 26px rgba(23,105,224,.26) !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-secondary-action {
+  border-color: #bdd9f8 !important;
+  background: rgba(255,255,255,.76) !important;
+  color: #245da9 !important;
+  box-shadow: 0 7px 18px rgba(71,120,181,.08) !important;
+  backdrop-filter: blur(10px);
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-links button {
+  color: #47637f !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-links button:hover {
+  color: #1769e0 !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-stage {
+  isolation: isolate;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-stage::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 72px 6% 28px 8%;
+  border-radius: 48% 52% 45% 55% / 54% 42% 58% 46%;
+  background:
+    radial-gradient(circle at 34% 32%, rgba(255,255,255,.86), transparent 28%),
+    linear-gradient(145deg, rgba(211,239,255,.92), rgba(236,231,255,.78) 55%, rgba(255,236,244,.80));
+  box-shadow: 0 22px 55px rgba(84,128,184,.09);
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-visual {
+  filter: saturate(1.16) contrast(1.015);
+}
+
+.app-shell[data-route="dashboard"] .editorial-status {
+  border: 0 !important;
+  gap: 9px !important;
+  background: transparent !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-status-card {
+  min-height: 56px;
+  padding: 7px 13px;
+  border: 1px solid rgba(181,207,239,.80) !important;
+  border-radius: 13px !important;
+  background: rgba(255,255,255,.80) !important;
+  box-shadow: 0 8px 20px rgba(59,104,159,.075);
+  backdrop-filter: blur(12px);
+}
+
+.app-shell[data-route="dashboard"] .editorial-status-card + .editorial-status-card {
+  border-left: 1px solid rgba(181,207,239,.80) !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-status-time .editorial-status-icon {
+  border-radius: 9px;
+  background: #eaf3ff;
+}
+
+.app-shell[data-route="dashboard"] .editorial-status-weather .editorial-weather-symbol {
+  border-radius: 9px;
+  background: #fff5ce;
+}
+
+.app-shell[data-route="dashboard"] .editorial-status-card:hover {
+  border-color: #9ec8f6 !important;
+  background: rgba(255,255,255,.94) !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-today-chip {
+  min-height: 37px;
+  padding: 0 12px;
+  border-color: #c7dcf6 !important;
+  border-radius: 11px !important;
+  background: rgba(255,255,255,.88) !important;
+  color: #526c89 !important;
+  box-shadow: 0 7px 18px rgba(54,99,154,.08);
+}
+
+.app-shell[data-route="dashboard"] .editorial-today-chip strong {
+  color: #1769e0 !important;
+}
+
+/* TODAY — cool blue/lilac banner, pink count chip, colored timeline markers. */
+.app-shell[data-route="dashboard"] .gd-calendar,
+.app-shell[data-route="dashboard"] .gd-surface,
+.app-shell[data-route="dashboard"] .dnh {
+  border: 1px solid rgba(146,190,239,.62) !important;
+  border-top: 1px solid rgba(146,190,239,.80) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 18px 42px rgba(70,112,159,.075) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar {
+  overflow: hidden;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-header {
+  min-height: 126px !important;
+  padding: 48px 30px 22px !important;
+  border-bottom-color: rgba(159,190,228,.40) !important;
+  background:
+    radial-gradient(circle at 78% 12%, rgba(228,211,255,.78), transparent 10rem),
+    radial-gradient(circle at 93% 78%, rgba(208,241,255,.85), transparent 12rem),
+    linear-gradient(110deg, #f0f7ff, #f4f1ff 55%, #eef9ff) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-header::before {
+  color: #1769e0 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-header::after {
+  color: #7f91ac !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-title > span {
+  width: 42px !important;
+  height: 42px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px solid rgba(136,180,238,.38) !important;
+  border-radius: 13px !important;
+  background: rgba(255,255,255,.64) !important;
+  color: #1769e0 !important;
+  box-shadow: 0 7px 16px rgba(23,105,224,.08);
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-title h2,
+.app-shell[data-route="dashboard"] .gd-surface-heading h2 {
+  color: #17365f !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-title p,
+.app-shell[data-route="dashboard"] .gd-surface-heading p {
+  color: #6d7e95 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-header .gd-text-button {
+  min-height: 38px !important;
+  padding: 0 13px !important;
+  border: 1px solid #c1d8f5 !important;
+  border-radius: 11px !important;
+  background: rgba(255,255,255,.70) !important;
+  color: #1769e0 !important;
+  letter-spacing: .02em !important;
+  text-transform: none !important;
+  box-shadow: 0 6px 15px rgba(37,99,166,.06);
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-header .gd-text-button:hover {
+  border-color: #9bc4f2 !important;
+  background: #fff !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-today .gd-today-overview {
+  min-height: 104px;
+  padding: 21px 30px;
+  background:
+    linear-gradient(90deg, rgba(255,255,255,1), rgba(252,253,255,.96)) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-today .gd-today-date-mark strong {
+  color: #1769e0 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-today .gd-today-heading > span {
+  color: #1769e0 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-today .gd-today-heading h3 {
+  color: #16335a !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-today .gd-today-overview > .gd-count-chip {
+  min-height: 34px !important;
+  padding: 0 12px !important;
+  border: 1px solid #ffd0e1 !important;
+  border-radius: 999px !important;
+  background: #fff0f6 !important;
+  color: #db3c78 !important;
+  box-shadow: 0 5px 12px rgba(220,70,126,.05);
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-list-today {
+  padding-bottom: 12px;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-list-today .gd-event {
+  min-height: 76px !important;
+  margin: 0 10px;
+  padding-left: 16px !important;
+  padding-right: 16px !important;
+  border-bottom-color: #edf0f5 !important;
+  border-radius: 12px !important;
+  transition: transform .16s ease, background-color .16s ease, box-shadow .16s ease;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-list-today .gd-event:hover {
+  background: linear-gradient(90deg, #f8fbff, #fff) !important;
+  box-shadow: 0 6px 15px rgba(54,102,162,.045) !important;
+  transform: translateX(2px);
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-list-today .gd-event-color {
+  width: 4px !important;
+  border-radius: 999px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-list-today .gd-event:nth-child(4n + 1) .gd-event-color {
+  background: #18a875 !important;
+}
+.app-shell[data-route="dashboard"] .gd-agenda-list-today .gd-event:nth-child(4n + 2) .gd-event-color {
+  background: #2a75eb !important;
+}
+.app-shell[data-route="dashboard"] .gd-agenda-list-today .gd-event:nth-child(4n + 3) .gd-event-color {
+  background: #ff9b1b !important;
+}
+.app-shell[data-route="dashboard"] .gd-agenda-list-today .gd-event:nth-child(4n) .gd-event-color {
+  background: #8b5cf6 !important;
+}
+
+/* NEWSROOM — warm peach/rose masthead and vivid active channel. */
+.app-shell[data-route="dashboard"] .dnh {
+  position: relative;
+  overflow: hidden !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh::before {
+  border-bottom-color: rgba(231,179,148,.42) !important;
+  background:
+    radial-gradient(circle at 83% 10%, rgba(255,215,235,.88), transparent 10rem),
+    linear-gradient(100deg, #fff7eb, #fff1e4 52%, #fff1f7) !important;
+  color: #ef6a1c !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-head {
+  background:
+    linear-gradient(90deg, rgba(255,250,244,.98), rgba(255,247,250,.98)) !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-icon {
+  width: 42px !important;
+  height: 42px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 50% !important;
+  background: linear-gradient(145deg, #ff8b2e, #f25d18) !important;
+  color: #fff !important;
+  box-shadow: 0 9px 20px rgba(238,102,27,.20);
+}
+
+.app-shell[data-route="dashboard"] .dnh-title > div > span,
+.app-shell[data-route="dashboard"] .dnh-featured-copy > span,
+.app-shell[data-route="dashboard"] .dnh-view-all {
+  color: #1769e0 !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-tabs {
+  padding: 3px !important;
+  border-color: #d8e4f5 !important;
+  border-radius: 11px !important;
+  background: #fff !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-tabs button {
+  border-radius: 8px !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-tabs button.is-active {
+  background: linear-gradient(135deg, #1769e0, #3155dd) !important;
+  color: #fff !important;
+  box-shadow: 0 5px 12px rgba(23,105,224,.20) !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-featured-media {
+  border-radius: 14px !important;
+  overflow: hidden !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-featured-media em {
+  border-radius: 999px !important;
+  background: #38b874 !important;
+  color: #fff !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-featured-copy strong {
+  color: #16365f !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-featured-copy > span:last-child {
+  color: #1769e0 !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-story {
+  border-radius: 12px !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-story:hover {
+  background: #f8fbff !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-story-media {
+  border-radius: 10px !important;
+  overflow: hidden !important;
+}
+
+/* QUICK ACTIONS — mint band + individual pastel action pills. */
+.app-shell[data-route="dashboard"] .gd-quick-surface {
+  overflow: hidden;
+  border-color: rgba(154,218,203,.72) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-quick-surface .gd-surface-header {
+  min-height: 80px !important;
+  border-bottom-color: rgba(145,213,199,.45) !important;
+  background:
+    radial-gradient(circle at 80% 40%, rgba(201,248,233,.78), transparent 13rem),
+    linear-gradient(100deg, #ebfbf7, #e7faf6 57%, #effcff) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-quick-surface .gd-heading-icon {
+  width: 42px !important;
+  height: 42px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 50% !important;
+  background: linear-gradient(145deg, #23c797, #12a878) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 18px rgba(18,168,120,.20);
+}
+
+.app-shell[data-route="dashboard"] .gd-quick-surface .gd-surface-heading h2 {
+  color: #195c50 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-quick-surface .gd-surface-body {
+  padding: 14px 18px 16px !important;
+  background: linear-gradient(180deg, #fff, #fbfefd) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-quick-actions {
+  gap: 9px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-quick-action {
+  min-height: 45px !important;
+  padding: 0 14px !important;
+  border: 1px solid transparent !important;
+  border-radius: 13px !important;
+  font-weight: 760 !important;
+  transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease;
+}
+
+.app-shell[data-route="dashboard"] .gd-quick-action > span {
+  width: 29px !important;
+  height: 29px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 9px !important;
+  background: rgba(255,255,255,.68) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-quick-action:nth-child(1) {
+  border-color: #c8dcff !important;
+  background: #edf4ff !important;
+  color: #1769e0 !important;
+}
+.app-shell[data-route="dashboard"] .gd-quick-action:nth-child(2) {
+  border-color: #c7ecd8 !important;
+  background: #eaf8ef !important;
+  color: #1b8554 !important;
+}
+.app-shell[data-route="dashboard"] .gd-quick-action:nth-child(3) {
+  border-color: #ffe2a5 !important;
+  background: #fff7dc !important;
+  color: #b8790a !important;
+}
+.app-shell[data-route="dashboard"] .gd-quick-action:nth-child(4) {
+  border-color: #dccdff !important;
+  background: #f2ecff !important;
+  color: #7547d8 !important;
+}
+.app-shell[data-route="dashboard"] .gd-quick-action:nth-child(5) {
+  border-color: #ffd0e3 !important;
+  background: #fff0f6 !important;
+  color: #d9447d !important;
+}
+.app-shell[data-route="dashboard"] .gd-quick-action:nth-child(6) {
+  border-color: #bfe9e7 !important;
+  background: #e9faf9 !important;
+  color: #168c88 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-quick-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(53,93,140,.08) !important;
+}
+
+/* Dashboard footer cards — keep content and font system intact, add only gentle color fields. */
+.app-shell[data-route="dashboard"] + .footer .signature-footer-expanded-panel,
+.app-shell[data-route="dashboard"] ~ .footer .signature-footer-expanded-panel,
+body:has(.app-shell[data-route="dashboard"]) .footer .signature-footer-expanded-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+body:has(.app-shell[data-route="dashboard"]) .footer .signature-footer-v50-main {
+  gap: 16px !important;
+}
+
+body:has(.app-shell[data-route="dashboard"]) .footer .signature-footer-v50-brand,
+body:has(.app-shell[data-route="dashboard"]) .footer .signature-footer-v50-profile,
+body:has(.app-shell[data-route="dashboard"]) .footer .signature-footer-v50-credentials {
+  border: 1px solid rgba(164,194,229,.46) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 15px 34px rgba(65,105,151,.07) !important;
+}
+
+body:has(.app-shell[data-route="dashboard"]) .footer .signature-footer-v50-brand {
+  background:
+    radial-gradient(circle at 12% 9%, rgba(255,255,255,.74), transparent 6rem),
+    linear-gradient(145deg, #e9f4ff, #f5f9ff 55%, #edf9ef) !important;
+}
+
+body:has(.app-shell[data-route="dashboard"]) .footer .signature-footer-v50-profile {
+  background:
+    linear-gradient(145deg, #f0fbf5, #f7fdf9 58%, #eef9f7) !important;
+}
+
+body:has(.app-shell[data-route="dashboard"]) .footer .signature-footer-v50-credentials {
+  background:
+    linear-gradient(145deg, #fff9e9, #fffdf7 55%, #fff4df) !important;
+}
+
+body:has(.app-shell[data-route="dashboard"]) .footer .signature-footer-v50-language-badge {
+  background: #168a53 !important;
+  color: #fff !important;
+}
+
+body:has(.app-shell[data-route="dashboard"]) .footer .signature-footer-v50-section-label {
+  color: #d86613 !important;
+}
+
+body:has(.app-shell[data-route="dashboard"]) .footer .signature-footer-v50-star {
+  color: #e7b20b !important;
+}
+
+/* Subtle entrance only; no geometry-changing motion. */
+@keyframes gd-v2-soft-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar,
+.app-shell[data-route="dashboard"] .dnh,
+.app-shell[data-route="dashboard"] .gd-quick-surface {
+  animation: gd-v2-soft-in .32s ease both;
+}
+
+.app-shell[data-route="dashboard"] .dnh { animation-delay: .035s; }
+.app-shell[data-route="dashboard"] .gd-quick-surface { animation-delay: .07s; }
+
+@media (max-width: 920px) {
+  .app-shell[data-route="dashboard"] .editorial-hero {
+    border-radius: 18px !important;
+    background:
+      radial-gradient(circle at 12% 12%, rgba(192,237,255,.60), transparent 10rem),
+      radial-gradient(circle at 90% 82%, rgba(255,223,239,.56), transparent 9rem),
+      linear-gradient(180deg, #f8fdff, #f3f8ff) !important;
+  }
+
+  .app-shell[data-route="dashboard"] .editorial-hero-stage::before {
+    inset: 60px 3% 18px;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-calendar-header {
+    min-height: 118px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-shell[data-route="dashboard"] .gd-page {
+    background:
+      radial-gradient(circle at 15% 0%, rgba(205,240,255,.52), transparent 16rem),
+      linear-gradient(180deg, #f7fbff, #f8fcfb) !important;
+  }
+
+  .app-shell[data-route="dashboard"] .editorial-hero,
+  .app-shell[data-route="dashboard"] .gd-calendar,
+  .app-shell[data-route="dashboard"] .gd-surface,
+  .app-shell[data-route="dashboard"] .dnh {
+    border-radius: 16px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .editorial-hero-copy::before {
+    display: none;
+  }
+
+  .app-shell[data-route="dashboard"] .editorial-status-card {
+    border-radius: 11px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-calendar-header {
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-calendar-today .gd-today-overview {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-agenda-list-today {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-agenda-list-today .gd-event {
+    margin: 0;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-quick-surface .gd-surface-body {
+    padding: 12px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell[data-route="dashboard"] .gd-calendar,
+  .app-shell[data-route="dashboard"] .dnh,
+  .app-shell[data-route="dashboard"] .gd-quick-surface,
+  .app-shell[data-route="dashboard"] .gd-quick-action,
+  .app-shell[data-route="dashboard"] .gd-agenda-list-today .gd-event {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+}
