@@ -122,7 +122,7 @@ html body:has(.app-shell[data-route="dashboard"]) .app-shell[data-route="dashboa
 
 
 /* Dashboard V6 direct route authority */
-.bes-top-chrome[data-route="dashboard"] {
+.app-shell[data-route="dashboard"] > .bes-top-chrome {
   position: relative !important;
   top: auto !important;
   left: auto !important;
@@ -137,7 +137,7 @@ html body:has(.app-shell[data-route="dashboard"]) .app-shell[data-route="dashboa
   translate: none !important;
 }
 
-.bes-top-chrome[data-route="dashboard"] + [data-bes-pinned-hub-spacer] {
+.app-shell[data-route="dashboard"] > .bes-top-chrome + [data-bes-pinned-hub-spacer] {
   display: none !important;
   height: 0 !important;
   min-height: 0 !important;
@@ -145,19 +145,19 @@ html body:has(.app-shell[data-route="dashboard"]) .app-shell[data-route="dashboa
   padding: 0 !important;
 }
 
-.bes-top-chrome[data-route="dashboard"] .brian-nav {
+.app-shell[data-route="dashboard"] > .bes-top-chrome .brian-nav {
   position: relative !important;
   top: auto !important;
 }
 
-.bes-top-chrome[data-route="dashboard"] .brian-newswire {
+.app-shell[data-route="dashboard"] > .bes-top-chrome .brian-newswire {
   position: relative !important;
   top: auto !important;
   bottom: auto !important;
 }
 
 @media (max-width: 820px) {
-  .bes-top-chrome[data-route="dashboard"] {
+  .app-shell[data-route="dashboard"] > .bes-top-chrome {
     width: calc(100% - 16px) !important;
     margin-top: 6px !important;
   }
