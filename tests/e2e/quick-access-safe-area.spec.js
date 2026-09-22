@@ -122,6 +122,41 @@ test.describe('Global Quick Access safe area', () => {
     });
   }
 
+  test('Apps: hovering the rail fully expands the Quick Access panel', async ({ page }) => {
+    await page.goto('/#/apps');
+    await expect(page.locator('.bqa-root')).toBeVisible();
+    await page.waitForTimeout(900);
+
+    await page.locator('.bqa-rail').hover();
+    await expect(page.locator('.bqa-root')).toHaveClass(/is-open/);
+    await expect(page.locator('.bqa-root')).toHaveClass(/is-open-settled/, { timeout: 1_500 });
+
+    const panelState = await page.locator('.bqa-panel').evaluate((panel) => {
+      const style = getComputedStyle(panel);
+      const rect = panel.getBoundingClientRect();
+      const header = panel.querySelector('.bqa-panel-header');
+      const headerStyle = header ? getComputedStyle(header) : null;
+      return {
+        visibility: style.visibility,
+        opacity: Number(style.opacity),
+        pointerEvents: style.pointerEvents,
+        width: Math.round(rect.width),
+        height: Math.round(rect.height),
+        clipPath: style.clipPath,
+        transform: style.transform,
+        headerOpacity: Number(headerStyle?.opacity || 0),
+      };
+    });
+
+    expect(panelState.visibility).toBe('visible');
+    expect(panelState.opacity).toBeGreaterThan(0.99);
+    expect(panelState.pointerEvents).toBe('auto');
+    expect(panelState.width).toBeGreaterThanOrEqual(310);
+    expect(panelState.height).toBeGreaterThan(380);
+    expect(panelState.headerOpacity).toBeGreaterThan(0.99);
+    expect(panelState.clipPath).not.toContain('89%');
+  });
+
   test('Dashboard: collapsed Quick Access panel leaves no visible ghost beside the rail', async ({ page }) => {
     await page.goto('/#/dashboard');
     await expect(page.locator('.bqa-root')).toBeVisible();
