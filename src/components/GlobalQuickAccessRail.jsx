@@ -10,7 +10,6 @@ import {
   Gauge,
   GripVertical,
   LayoutGrid,
-  PanelLeftClose,
   Pin,
   PinOff,
   Settings,
@@ -292,6 +291,25 @@ export default function GlobalQuickAccessRail({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [customizing]);
 
+  useEffect(() => {
+    if (!hovered || config.pinned || customizing || typeof document === 'undefined') return undefined;
+
+    const onOutsidePointerDown = (event) => {
+      if (event.target?.closest?.('.bqa-root')) return;
+      setHovered(false);
+    };
+    const onEscape = (event) => {
+      if (event.key === 'Escape') setHovered(false);
+    };
+
+    document.addEventListener('pointerdown', onOutsidePointerDown, true);
+    window.addEventListener('keydown', onEscape);
+    return () => {
+      document.removeEventListener('pointerdown', onOutsidePointerDown, true);
+      window.removeEventListener('keydown', onEscape);
+    };
+  }, [hovered, config.pinned, customizing]);
+
   if (!currentUser || currentRoute === 'home' || !catalog.length) return null;
 
   const selectedItems = config.items
@@ -350,6 +368,7 @@ export default function GlobalQuickAccessRail({
         data-quick-access="true"
         onPointerEnter={enter}
         onPointerLeave={leave}
+        onFocusCapture={enter}
       >
         <div className="bqa-edge-trigger" aria-hidden="true" onPointerEnter={enter} />
 
@@ -398,7 +417,7 @@ export default function GlobalQuickAccessRail({
           </button>
         </aside>
 
-        <section className="bqa-panel" aria-hidden={!expanded}>
+        <section className="bqa-panel" aria-hidden={!expanded} inert={expanded ? undefined : true}>
           <header className="bqa-panel-header">
             <div>
               <strong>{language === 'vi' ? 'Thanh truy cập nhanh' : 'Quick access'}</strong>
