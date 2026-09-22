@@ -40,6 +40,10 @@ for (const token of [
   'customizerQuery',
   'bqa-customizer-search',
   'data-route={currentRoute}',
+  'is-collapsing',
+  'data-motion={collapsing ?',
+  'collapseRail',
+  'openRail',
   'draggable',
   'Tùy chỉnh thanh truy cập nhanh',
   "document.querySelector('.brian-nav__attendance-tab')",
@@ -58,6 +62,13 @@ for (const token of [
   '.app-shell[data-route="dashboard"] .bqa-root',
   '.bqa-customizer-search',
   '.bqa-shortcut-hint',
+  'Quick Access Apple Pencil Morph V1',
+  '@keyframes bqa-pencil-open',
+  '@keyframes bqa-pencil-collapse',
+  'clip-path: inset(0 89% 88% 0 round 22px)',
+  'transform-origin: 0 30px',
+  '.bqa-root.is-collapsing .bqa-panel',
+  '.bqa-root.is-collapsing .bqa-brand',
 ]) {
   assert.ok(css.includes(token), `Quick Access visual contract missing: ${token}`);
 }
@@ -79,4 +90,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: global Quick Access rail is Dashboard-visible, account-aware, searchable, keyboard-accessible, permission-aware, font-safe, responsive, overlay-only and capped at 10 shortcuts.');
+console.log('PASS: global Quick Access rail is Dashboard-visible and uses the approved Apple Pencil morph, while remaining account-aware, searchable, keyboard-accessible, permission-aware, font-safe, responsive, overlay-only and capped at 10 shortcuts.');
