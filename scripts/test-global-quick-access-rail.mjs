@@ -65,6 +65,7 @@ for (const token of [
   "document.querySelector('.brian-nav__attendance-tab')",
   "document.querySelector('.brian-nav__ttcm-tab')",
   'bqa-command-search',
+  'data-bes-keep-search="true"',
   'commandInputRef',
   'commanding',
   "data-commanding={commanding ? 'true' : 'false'}",
