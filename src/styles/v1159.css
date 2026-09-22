@@ -3,11 +3,12 @@ body {
   scroll-behavior: auto !important;
 }
 
-/* Retire motion globally while preserving static layout. */
+/* Retire motion globally while preserving static layout.
+   Brian Newswire plus the two explicit app-launch surfaces below are intentional exceptions. */
 body,
-html body :not(#brian-motion-retired-a#brian-motion-retired-b):not(.brian-newswire):not(.brian-newswire *),
-html body :not(#brian-motion-retired-a#brian-motion-retired-b):not(.brian-newswire):not(.brian-newswire *)::before,
-html body :not(#brian-motion-retired-a#brian-motion-retired-b):not(.brian-newswire):not(.brian-newswire *)::after {
+html body :not(#brian-motion-retired-a#brian-motion-retired-b):not(.brian-newswire):not(.brian-newswire *):not(.attendance-layer):not(.attendance-shell):not(.ttcm-m3-layer):not(.ttcm-m3-shell),
+html body :not(#brian-motion-retired-a#brian-motion-retired-b):not(.brian-newswire):not(.brian-newswire *):not(.attendance-layer):not(.attendance-shell):not(.ttcm-m3-layer):not(.ttcm-m3-shell)::before,
+html body :not(#brian-motion-retired-a#brian-motion-retired-b):not(.brian-newswire):not(.brian-newswire *):not(.attendance-layer):not(.attendance-shell):not(.ttcm-m3-layer):not(.ttcm-m3-shell)::after {
   animation: none !important;
   animation-name: none !important;
   animation-duration: 0s !important;

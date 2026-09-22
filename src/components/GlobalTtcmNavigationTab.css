@@ -81,6 +81,13 @@ html.bes-ttcm-hub-open body { overflow: hidden; }
   background: rgba(22, 26, 30, .38);
   backdrop-filter: blur(3px);
   -webkit-backdrop-filter: blur(3px);
+  perspective: 1500px;
+  animation-name: ttcm-win8-layer-in !important;
+  animation-duration: 260ms !important;
+  animation-timing-function: cubic-bezier(.10, .90, .20, 1) !important;
+  animation-fill-mode: both !important;
+  animation-iteration-count: 1 !important;
+  animation-play-state: running !important;
 }
 .ttcm-m3-shell {
   position: relative;
@@ -94,7 +101,45 @@ html.bes-ttcm-hub-open body { overflow: hidden; }
   background: var(--ttcm-paper);
   color: var(--ttcm-ink);
   box-shadow: var(--ttcm-shadow);
+  transform-origin: 50% 18%;
+  backface-visibility: hidden;
+  will-change: opacity, transform, filter;
+  animation-name: ttcm-win8-shell-in !important;
+  animation-duration: 460ms !important;
+  animation-timing-function: cubic-bezier(.10, .90, .20, 1) !important;
+  animation-fill-mode: both !important;
+  animation-iteration-count: 1 !important;
+  animation-play-state: running !important;
 }
+
+@keyframes ttcm-win8-layer-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes ttcm-win8-shell-in {
+  0% {
+    opacity: .03;
+    transform: translate3d(42px, 34px, -190px) scale(.78) rotateY(-1.2deg);
+    filter: saturate(.84) brightness(1.06);
+  }
+  48% {
+    opacity: 1;
+    transform: translate3d(-3px, -2px, 0) scale(1.012) rotateY(0deg);
+    filter: saturate(1) brightness(1);
+  }
+  76% {
+    opacity: 1;
+    transform: translate3d(1px, 0, 0) scale(.998);
+    filter: none;
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: none;
+  }
+}
+
 .ttcm-m3-icon { display: block; fill: currentColor; }
 
 /* Editorial masthead. */

@@ -5,6 +5,14 @@ const launchCss = fs.readFileSync(
   new URL('../public/attendance-windows8-launch.css', import.meta.url),
   'utf8',
 );
+const ttcmCss = fs.readFileSync(
+  new URL('../src/components/GlobalTtcmNavigationTab.css', import.meta.url),
+  'utf8',
+);
+const globalMotionCss = fs.readFileSync(
+  new URL('../src/styles/v1159.css', import.meta.url),
+  'utf8',
+);
 
 assert.match(
   launchCss,
@@ -24,4 +32,27 @@ assert.doesNotMatch(
   'Attendance Windows 8 launch must not be disabled by reduced-motion preferences because this app effect is configured as always-on',
 );
 
-console.log('Attendance Windows 8 always-on launch contract OK');
+assert.match(
+  ttcmCss,
+  /\.ttcm-m3-layer\s*\{[\s\S]*?animation-name\s*:\s*ttcm-win8-layer-in/i,
+  'TTCM backdrop must use the Windows 8 launch animation',
+);
+
+assert.match(
+  ttcmCss,
+  /\.ttcm-m3-shell\s*\{[\s\S]*?animation-name\s*:\s*ttcm-win8-shell-in/i,
+  'TTCM app shell must use the Windows 8 launch animation',
+);
+
+assert.match(
+  ttcmCss,
+  /@keyframes\s+ttcm-win8-shell-in[\s\S]*?translate3d\([^)]*-190px\)[\s\S]*?scale\(\.78\)/i,
+  'TTCM launch must include the Metro-style depth/zoom entrance',
+);
+
+assert.ok(globalMotionCss.includes(':not(.attendance-layer)'), 'Global motion retirement must exempt Attendance backdrop');
+assert.ok(globalMotionCss.includes(':not(.attendance-shell)'), 'Global motion retirement must exempt Attendance shell');
+assert.ok(globalMotionCss.includes(':not(.ttcm-m3-layer)'), 'Global motion retirement must exempt TTCM backdrop');
+assert.ok(globalMotionCss.includes(':not(.ttcm-m3-shell)'), 'Global motion retirement must exempt TTCM shell');
+
+console.log('Attendance + TTCM Windows 8 launch motion contract OK');
