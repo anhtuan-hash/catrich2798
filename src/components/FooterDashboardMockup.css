@@ -175,3 +175,102 @@
     transform: none !important;
   }
 }
+
+
+/* Dashboard footer V5 fallback authority · route-aware regardless of portal host */
+html body:has(.app-shell[data-route="dashboard"]) .metro-clean-system > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] {
+  position: relative !important;
+  isolation: isolate !important;
+  margin-top: 10px !important;
+  padding: 18px 18px 82px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(151, 194, 236, .50) !important;
+  border-radius: 28px !important;
+  background:
+    radial-gradient(circle at 4% 12%, rgba(201, 235, 255, .86), transparent 14rem),
+    radial-gradient(circle at 27% 96%, rgba(202, 244, 220, .88), transparent 16rem),
+    radial-gradient(circle at 79% 100%, rgba(222, 211, 255, .82), transparent 17rem),
+    linear-gradient(180deg, #f7fcff 0%, #f4fbff 58%, #eaf6ff 100%) !important;
+  box-shadow: 0 18px 42px rgba(61, 108, 157, .08) !important;
+}
+
+html body:has(.app-shell[data-route="dashboard"]) .metro-clean-system > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"]::before {
+  content: '' !important;
+  position: absolute !important;
+  z-index: 0 !important;
+  left: -4% !important;
+  right: -4% !important;
+  bottom: -38px !important;
+  height: 138px !important;
+  display: block !important;
+  background:
+    radial-gradient(ellipse at 2% 46%, #cbeaff 0 18%, transparent 19%),
+    radial-gradient(ellipse at 14% 56%, #dcf5e8 0 20%, transparent 21%),
+    radial-gradient(ellipse at 31% 47%, #d4edff 0 22%, transparent 23%),
+    radial-gradient(ellipse at 49% 60%, #e1f7eb 0 18%, transparent 19%),
+    radial-gradient(ellipse at 67% 49%, #d2eaff 0 23%, transparent 24%),
+    radial-gradient(ellipse at 83% 57%, #e3dcff 0 22%, transparent 23%),
+    radial-gradient(ellipse at 97% 47%, #cee8ff 0 19%, transparent 20%) !important;
+  opacity: 1 !important;
+  pointer-events: none !important;
+}
+
+html body:has(.app-shell[data-route="dashboard"]) .metro-clean-system > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"]::after {
+  content: 'Teach Better Together ♡' !important;
+  position: absolute !important;
+  z-index: 5 !important;
+  right: 34px !important;
+  bottom: 29px !important;
+  display: block !important;
+  color: #347ee6 !important;
+  font-size: 18px !important;
+  font-style: italic !important;
+  font-weight: 760 !important;
+  line-height: 1.05 !important;
+  transform: rotate(-7deg) !important;
+  pointer-events: none !important;
+}
+
+html body:has(.app-shell[data-route="dashboard"]) .metro-clean-system > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] > * {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+html body:has(.app-shell[data-route="dashboard"]) .metro-clean-system > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-main > section {
+  border-color: rgba(133, 181, 230, .52) !important;
+  box-shadow:
+    0 17px 36px rgba(57, 102, 151, .085),
+    inset 0 1px 0 rgba(255,255,255,.95) !important;
+}
+
+html body:has(.app-shell[data-route="dashboard"]) .metro-clean-system > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-brand {
+  background:
+    radial-gradient(circle at 10% 12%, rgba(255,255,255,.98), transparent 7rem),
+    radial-gradient(circle at 0% 100%, rgba(164, 219, 255, .72), transparent 10rem),
+    radial-gradient(circle at 100% 100%, rgba(187, 239, 205, .76), transparent 9rem),
+    linear-gradient(145deg, #e5f3ff, #f8fbff 55%, #ebf8ed) !important;
+}
+
+html body:has(.app-shell[data-route="dashboard"]) .metro-clean-system > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-profile {
+  background:
+    radial-gradient(circle at 100% 100%, rgba(174, 236, 215, .76), transparent 10rem),
+    linear-gradient(145deg, #e9faf2, #fbfffc 58%, #eaf8f5) !important;
+}
+
+html body:has(.app-shell[data-route="dashboard"]) .metro-clean-system > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-credentials {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(255, 220, 164, .70), transparent 10rem),
+    linear-gradient(145deg, #fff5de, #fffdf7 57%, #ffedcf) !important;
+}
+
+@media (max-width: 720px) {
+  html body:has(.app-shell[data-route="dashboard"]) .metro-clean-system > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] {
+    padding-bottom: 62px !important;
+  }
+
+  html body:has(.app-shell[data-route="dashboard"]) .metro-clean-system > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"]::after {
+    right: 18px !important;
+    bottom: 20px !important;
+    font-size: 14px !important;
+  }
+}
