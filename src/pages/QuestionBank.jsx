@@ -47,6 +47,7 @@ import {
   splitExamStem,
   visibleOptions,
 } from '../utils/questionBankExamManager.js';
+import { buildInteractiveExamHtml } from '../utils/questionBankInteractiveExport.js';
 import QuestionBankManagementSuite from './question-bank/QuestionBankManagementSuite.jsx';
 import QuestionBankQualityControl from './question-bank/QuestionBankQualityControl.jsx';
 import AssessmentCoreHeroGraphic from './question-bank/AssessmentCoreHeroGraphic.jsx';
@@ -202,6 +203,18 @@ function downloadWordDocument(html, title) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+function downloadHtmlDocument(html, title) {
+  const blob = new Blob(['\ufeff', html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = `${safeFileName(title)}.html`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
 function printExamPdf(html) {
   const popup = window.open('', '_blank', 'noopener,noreferrer');
   if (!popup) throw new Error('Trình duyệt đang chặn cửa sổ xuất PDF. Hãy cho phép pop-up cho Brian.');
@@ -332,6 +345,16 @@ export default function QuestionBank({ currentUser }) {
   const [collapsedExamSections, setCollapsedExamSections] = useState({});
   const [collapsedExamContexts, setCollapsedExamContexts] = useState({});
   const [examEdit, setExamEdit] = useState({ title: '', schoolYear: '', durationMinutes: '50', status: 'draft' });
+  const [interactiveExportOpen, setInteractiveExportOpen] = useState(false);
+  const [interactivePreviewHtml, setInteractivePreviewHtml] = useState('');
+  const [interactivePreviewBusy, setInteractivePreviewBusy] = useState(false);
+  const [interactiveExportSettings, setInteractiveExportSettings] = useState({
+    durationMinutes: 50,
+    shuffleOptions: false,
+    showExplanation: true,
+    sound: true,
+    motion: 'soft',
+  });
   const [integration, setIntegration] = useState(null);
   const [importEvents, setImportEvents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1611,6 +1634,64 @@ OpenAPI: ${openApiUrl}`;
     }
   };
 
+  const buildInteractivePreview = async (settings) => {
+    if (!selectedTest || !selectedTestItems.length) return '';
+    setInteractivePreviewBusy(true);
+    try {
+      const html = await buildInteractiveExamHtml({
+        test: selectedTest,
+        items: selectedTestItems,
+        options: settings,
+      });
+      setInteractivePreviewHtml(html);
+      return html;
+    } catch (error) {
+      setInteractivePreviewHtml('');
+      setMessage(error?.message || 'Không thể tạo bản xem trước HTML tương tác.');
+      return '';
+    } finally {
+      setInteractivePreviewBusy(false);
+    }
+  };
+
+  const openInteractiveExport = async () => {
+    if (!selectedTest || !selectedTestItems.length) return;
+    const duration = Number(selectedTest?.settings?.durationMinutes || examEdit.durationMinutes || 50);
+    const nextSettings = {
+      durationMinutes: Number.isFinite(duration) && duration >= 0 ? duration : 50,
+      shuffleOptions: false,
+      showExplanation: true,
+      sound: true,
+      motion: 'soft',
+    };
+    setInteractiveExportSettings(nextSettings);
+    setInteractiveExportOpen(true);
+    setMessage('');
+    await buildInteractivePreview(nextSettings);
+  };
+
+  const updateInteractiveExportSetting = (key, value) => {
+    const nextSettings = { ...interactiveExportSettings, [key]: value };
+    setInteractiveExportSettings(nextSettings);
+    buildInteractivePreview(nextSettings);
+  };
+
+  const downloadInteractiveExport = async () => {
+    if (!selectedTest || !selectedTestItems.length) return;
+    setExamActionBusy('interactive-export');
+    try {
+      const html = interactivePreviewHtml || await buildInteractivePreview(interactiveExportSettings);
+      if (!html) return;
+      downloadHtmlDocument(html, `${selectedTest.title} - Tuong tac V3.2 SAFE`);
+      setMessage('Đã xuất HTML tương tác V3.2 SAFE. File chạy độc lập/offline và dùng font hệ thống an toàn.');
+      setInteractiveExportOpen(false);
+    } catch (error) {
+      setMessage(error?.message || 'Không thể xuất HTML tương tác.');
+    } finally {
+      setExamActionBusy('');
+    }
+  };
+
   const createChatGptKey = async () => {
     if (!accessState.can_contribute) {
       setMessage('Chỉ Admin/TTCM được tạo kết nối ghi dữ liệu vào Question Bank.');
@@ -2631,6 +2712,15 @@ OpenAPI: ${openApiUrl}`;
                   </button>
                   <button type="button" className="qb-secondary" onClick={() => exportSelectedExam('word')} disabled={!selectedTestItems.length}>Xuất Word</button>
                   <button type="button" className="qb-secondary" onClick={() => exportSelectedExam('pdf')} disabled={!selectedTestItems.length}>Xuất PDF</button>
+                  <button
+                    type="button"
+                    className="qb-interactive-export"
+                    onClick={openInteractiveExport}
+                    disabled={Boolean(examActionBusy) || !selectedTestItems.length}
+                    title="Xem trước rồi tải một file HTML tương tác chạy độc lập/offline"
+                  >
+                    Xuất HTML tương tác
+                  </button>
                   <button type="button" className="qb-secondary" onClick={() => createExamCopy({ variant: false })} disabled={Boolean(examActionBusy) || !selectedTestItems.length}>
                     {examActionBusy === 'duplicate' ? 'Đang nhân bản…' : 'Nhân bản'}
                   </button>
@@ -3028,6 +3118,79 @@ OpenAPI: ${openApiUrl}`;
               ) : null}
             </section>
           ) : null}
+        </div>
+      ) : null}
+
+      {interactiveExportOpen ? (
+        <div className="qb-interactive-preview-backdrop" role="presentation" onMouseDown={(event) => {
+          if (event.target === event.currentTarget) setInteractiveExportOpen(false);
+        }}>
+          <section className="qb-interactive-preview-dialog" role="dialog" aria-modal="true" aria-label="Xem trước HTML tương tác">
+            <header className="qb-interactive-preview-head">
+              <div>
+                <p>INTERACTIVE HTML · V3.2 SAFE</p>
+                <h2>Xem trước trước khi tải</h2>
+                <span>Template độc lập UTF-8 · không dùng GlobalFontSystem · không tải font/CSS/JS từ Internet.</span>
+              </div>
+              <button type="button" className="qb-ghost" onClick={() => setInteractiveExportOpen(false)}>Đóng</button>
+            </header>
+
+            <div className="qb-interactive-preview-settings">
+              <label>
+                <span>Thời gian (phút)</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="600"
+                  value={interactiveExportSettings.durationMinutes}
+                  onChange={(event) => updateInteractiveExportSetting('durationMinutes', Math.max(0, Number(event.target.value || 0)))}
+                />
+                <small>0 = không giới hạn</small>
+              </label>
+              <label>
+                <span>Hiệu ứng</span>
+                <select value={interactiveExportSettings.motion} onChange={(event) => updateInteractiveExportSetting('motion', event.target.value)}>
+                  <option value="none">Tắt</option>
+                  <option value="soft">Nhẹ</option>
+                  <option value="lively">Sinh động</option>
+                </select>
+              </label>
+              <label className="qb-interactive-switch">
+                <input type="checkbox" checked={interactiveExportSettings.shuffleOptions} onChange={(event) => updateInteractiveExportSetting('shuffleOptions', event.target.checked)} />
+                <span><b>Xáo trộn phương án</b><small>Đáp án đúng được remap theo phương án sau khi trộn.</small></span>
+              </label>
+              <label className="qb-interactive-switch">
+                <input type="checkbox" checked={interactiveExportSettings.showExplanation} onChange={(event) => updateInteractiveExportSetting('showExplanation', event.target.checked)} />
+                <span><b>Hiện giải thích</b><small>Hiển thị sau khi học sinh chọn đáp án.</small></span>
+              </label>
+              <label className="qb-interactive-switch">
+                <input type="checkbox" checked={interactiveExportSettings.sound} onChange={(event) => updateInteractiveExportSetting('sound', event.target.checked)} />
+                <span><b>Âm thanh phản hồi</b><small>Dùng Web Audio nội bộ, không tải file âm thanh ngoài.</small></span>
+              </label>
+            </div>
+
+            <div className={interactivePreviewBusy ? 'qb-interactive-frame-wrap is-loading' : 'qb-interactive-frame-wrap'}>
+              {interactivePreviewBusy ? <div className="qb-interactive-frame-loading">Đang dựng bản xem trước…</div> : null}
+              {interactivePreviewHtml ? (
+                <iframe
+                  title="Bản xem trước HTML tương tác"
+                  srcDoc={interactivePreviewHtml}
+                  sandbox="allow-scripts"
+                />
+              ) : null}
+            </div>
+
+            <footer className="qb-interactive-preview-actions">
+              <div>
+                <ShieldCheck size={17} aria-hidden="true" />
+                <span>Font của Brian trong app được giữ nguyên. File HTML dùng system font stack riêng.</span>
+              </div>
+              <button type="button" className="qb-secondary" onClick={() => buildInteractivePreview(interactiveExportSettings)} disabled={interactivePreviewBusy}>Làm mới xem trước</button>
+              <button type="button" className="qb-primary" onClick={downloadInteractiveExport} disabled={interactivePreviewBusy || Boolean(examActionBusy) || !interactivePreviewHtml}>
+                {examActionBusy === 'interactive-export' ? 'Đang tạo file…' : 'Tải file HTML'}
+              </button>
+            </footer>
+          </section>
         </div>
       ) : null}
 
