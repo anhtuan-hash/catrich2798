@@ -21,8 +21,8 @@ for (const token of [
 }
 
 assert.ok(
-  footer.includes('data-footer-route={route || undefined}'),
-  'Footer must expose route for direct dashboard styling.',
+  footer.includes('data-footer-route={resolvedRoute || undefined}'),
+  'Footer must expose its resolved route for direct dashboard styling.',
 );
 
 for (const token of [
