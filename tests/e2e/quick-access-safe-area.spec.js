@@ -188,7 +188,7 @@ test.describe('Global Quick Access safe area', () => {
     await page.goto('/#/apps');
     await expect(page.locator('.bqa-root')).toBeVisible();
 
-    await page.keyboard.press('Control+K');
+    await page.keyboard.press('Alt+K');
     await expect(page.locator('.bqa-root')).toHaveAttribute('data-commanding', 'true');
     await expect(page.locator('.bqa-panel')).toBeVisible();
 
