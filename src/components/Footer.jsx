@@ -52,8 +52,9 @@ function DetailRow({ type, children }) {
   );
 }
 
-export default function Footer({ language, compact = false }) {
+export default function Footer({ language, compact = false, route = '' }) {
   const isVi = language === 'vi';
+  const resolvedRoute = route || (typeof document !== 'undefined' ? (document.querySelector('.app-shell')?.dataset?.route || '') : '');
   const content = isVi ? VIETNAMESE_DETAILS : ENGLISH_DETAILS;
   const compactMode = compact
     || (typeof window !== 'undefined' && String(window.location.hash || '').startsWith('#/assessment-core'))
@@ -65,6 +66,7 @@ export default function Footer({ language, compact = false }) {
       aria-label={isVi ? 'Thông tin English Hub' : 'English Hub information'}
       data-app-shell-footer="true"
       data-footer-mode={compactMode ? 'compact' : 'full'}
+      data-footer-route={resolvedRoute || undefined}
     >
       {!compactMode ? (
       <div id="english-hub-footer-details" className="signature-footer-expanded-panel">

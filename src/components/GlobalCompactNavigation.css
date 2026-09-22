@@ -257,3 +257,42 @@
   .brian-chatbot-fab b { display: none; }
 }
 
+
+
+/* Dashboard V6 static top chrome authority */
+.app-shell[data-route="dashboard"] > .bes-top-chrome {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  inset: auto !important;
+  z-index: 120 !important;
+  transform: none !important;
+  translate: none !important;
+  margin: 0 !important;
+}
+
+.app-shell[data-route="dashboard"] > [data-bes-pinned-hub-spacer] {
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.app-shell[data-route="dashboard"] > .bes-top-chrome[data-bes-pinned-hub="true"] {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  inset: auto !important;
+}
+
+@media (max-width: 820px) {
+  .app-shell[data-route="dashboard"] > .bes-top-chrome {
+    position: relative !important;
+    top: auto !important;
+  }
+}
