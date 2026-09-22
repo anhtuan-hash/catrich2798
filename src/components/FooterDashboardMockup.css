@@ -1,12 +1,12 @@
-/* Dashboard footer — Mockup Parity V10.
-   Clean editorial footer aligned to the Dashboard grid.
-   No diagonal card wedges, no oversized doodles, no oversized landscape. */
+/* Dashboard footer — Mockup Parity V11.
+   Clean editorial footer aligned to the exact Dashboard grid.
+   No dead decorative DOM, no oversized artwork, no width drift. */
 
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] {
   position: relative !important;
   isolation: isolate !important;
   box-sizing: border-box !important;
-  width: min(1520px, calc(100% - clamp(32px, 6vw, 96px))) !important;
+  width: var(--dashboard-shell-width) !important;
   max-width: 1520px !important;
   margin: 8px auto 18px !important;
   padding: 14px 14px 64px !important;
@@ -68,11 +68,6 @@ html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-foo
 
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-credentials {
   background: linear-gradient(145deg, #fff9e8 0%, #fffdf8 58%, #fff3dc 100%) !important;
-}
-
-/* V8/V9 doodles were visually too loud versus the reference. */
-html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-card-doodle {
-  display: none !important;
 }
 
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-brian-logo {
@@ -191,9 +186,6 @@ html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-foo
   opacity: .64 !important;
 }
 
-html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-dashboard-plane {
-  display: none !important;
-}
 
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-dashboard-signoff {
   position: absolute !important;
