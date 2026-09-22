@@ -33,17 +33,19 @@ for (const token of [
 }
 
 for (const token of [
-  'Dashboard V6 direct route authority',
+  'Mockup Parity V10',
   '.app-shell[data-route="dashboard"] > .bes-top-chrome',
+  'position: static !important',
   '.brian-newswire',
+  'width: 100% !important',
 ]) {
-  assert.ok(chromeCss.includes(token), `Top chrome V6 token missing: ${token}`);
+  assert.ok(chromeCss.includes(token), `Top chrome visual contract missing: ${token}`);
 }
 
 for (const token of [
-  'Mockup Parity V8',
+  'Mockup Parity V10',
   '[data-footer-route="dashboard"]',
-  'padding: 18px 18px 78px !important',
+  'padding: 14px 14px 64px !important',
   '.signature-footer-dashboard-landscape',
   '.signature-footer-dashboard-signoff',
 ]) {
@@ -52,7 +54,7 @@ for (const token of [
 assert.ok(footer.includes('Teach Better Together ♡'), 'Dashboard footer sign-off must remain in the real DOM artwork.');
 
 assert.ok(
-  !/Dashboard V6 direct route authority[\s\S]*font-family\s*:/i.test(chromeCss),
+  !/Mockup Parity V10[\s\S]*font-family\s*:/i.test(chromeCss),
   'Dashboard top chrome V6 must not override custom/regional font authority.',
 );
 
