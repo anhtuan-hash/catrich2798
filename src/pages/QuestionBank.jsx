@@ -16,8 +16,10 @@ import {
   Sparkles,
   Target,
   ArrowRight,
+  Users,
 } from 'lucide-react';
 import { supabase } from '../utils/supabase.js';
+import { isAdminRole, isDepartmentLeaderRole } from '../utils/roles.js';
 import { parseQuestionBankPaste } from '../utils/questionBankPasteParser.js';
 import {
   builderAvailability,
@@ -54,6 +56,7 @@ const TABS = [
   ['questions', 'Kho câu hỏi'],
   ['bundles', 'Chùm bài'],
   ['manage', 'Quản trị'],
+  ['share', 'Phân quyền'],
   ['blueprints', 'Ma trận'],
   ['coverage', 'Phủ ma trận'],
   ['quality', 'Chất lượng'],
@@ -67,6 +70,7 @@ const TAB_ICONS = {
   questions: Database,
   bundles: Layers3,
   manage: BarChart3,
+  share: Users,
   blueprints: Grid2X2,
   coverage: Target,
   quality: ShieldCheck,
@@ -93,6 +97,11 @@ const TAB_META = {
     kicker: 'CONTROL CENTER',
     title: 'Quản trị ngân hàng',
     subtitle: 'Quản lý, kiểm soát và tối ưu ngân hàng câu hỏi để đảm bảo chất lượng, tính nhất quán và khả năng sử dụng trong toàn hệ thống.',
+  },
+  share: {
+    kicker: 'ACCESS CONTROL',
+    title: 'Chia sẻ quyền sử dụng',
+    subtitle: 'Admin/TTCM cấp quyền cho giáo viên sử dụng ngân hàng dùng chung. Giáo viên chỉ được khai thác dữ liệu và tạo đề, không được tự thêm, sửa hoặc xóa câu hỏi.',
   },
   blueprints: {
     kicker: 'BLUEPRINT STUDIO',
@@ -242,13 +251,15 @@ function EmptyState({ title, hint }) {
   );
 }
 
-async function fetchAllOwnedRows(table, columns, userId, { order = 'updated_at', pageSize = 1000 } = {}) {
+async function fetchAllAccessibleRows(table, columns, ownerIds, { order = 'updated_at', pageSize = 1000 } = {}) {
+  const ids = [...new Set((ownerIds || []).filter(Boolean))];
+  if (!ids.length) return { data: [], error: null };
   const rows = [];
   for (let from = 0; ; from += pageSize) {
     const { data, error } = await supabase
       .from(table)
       .select(columns)
-      .eq('owner_id', userId)
+      .in('owner_id', ids)
       .order(order, { ascending: false })
       .range(from, from + pageSize - 1);
     if (error) return { data: rows, error };
@@ -261,6 +272,18 @@ async function fetchAllOwnedRows(table, columns, userId, { order = 'updated_at',
 
 export default function QuestionBank({ currentUser }) {
   const userId = currentUser?.id || '';
+  const leaderHint = Boolean(isAdminRole(currentUser?.role) || isDepartmentLeaderRole(currentUser?.role));
+  const [accessReady, setAccessReady] = useState(false);
+  const [accessState, setAccessState] = useState({
+    can_use: true,
+    can_share: leaderHint,
+    can_contribute: leaderHint,
+    shared_owner_ids: leaderHint && userId ? [userId] : [],
+  });
+  const [shareUsers, setShareUsers] = useState([]);
+  const [shareSearch, setShareSearch] = useState('');
+  const [shareLoading, setShareLoading] = useState(false);
+  const [shareBusy, setShareBusy] = useState('');
   const [activeTab, setActiveTab] = useState('questions');
   const [questions, setQuestions] = useState([]);
   const [bundles, setBundles] = useState([]);
@@ -381,22 +404,65 @@ Quy tắc làm việc:
 
 OpenAPI: ${openApiUrl}`;
 
-  const loadData = useCallback(async () => {
+  const loadAccessControl = useCallback(async () => {
     if (!userId || !supabase) return;
+    try {
+      const { data, error } = await supabase.rpc('qb_access_state');
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
+      setAccessState({
+        can_use: Boolean(row?.can_use),
+        can_share: Boolean(row?.can_share),
+        can_contribute: Boolean(row?.can_contribute),
+        shared_owner_ids: Array.isArray(row?.shared_owner_ids) ? row.shared_owner_ids : [],
+      });
+    } catch {
+      setAccessState({
+        can_use: true,
+        can_share: leaderHint,
+        can_contribute: leaderHint,
+        shared_owner_ids: leaderHint && userId ? [userId] : [],
+      });
+    } finally {
+      setAccessReady(true);
+    }
+  }, [userId, leaderHint]);
+
+  useEffect(() => { loadAccessControl(); }, [loadAccessControl]);
+
+  const accessibleOwnerIds = useMemo(
+    () => [...new Set([userId, ...(accessState.shared_owner_ids || [])].filter(Boolean))],
+    [userId, accessState.shared_owner_ids],
+  );
+
+  const visibleTabs = useMemo(() => {
+    if (accessState.can_contribute) {
+      return TABS.filter(([id]) => id !== 'share' || accessState.can_share);
+    }
+    return TABS.filter(([id]) => ['questions', 'bundles', 'builder', 'tests'].includes(id));
+  }, [accessState.can_contribute, accessState.can_share]);
+
+  useEffect(() => {
+    if (!accessReady) return;
+    if (!visibleTabs.some(([id]) => id === activeTab)) setActiveTab('questions');
+  }, [accessReady, activeTab, visibleTabs]);
+
+  const loadData = useCallback(async () => {
+    if (!userId || !supabase || !accessReady) return;
     setLoading(true);
     setMessage('');
     try {
       const [itemsResult, bundlesResult, testsResult, blueprintsResult, integrationResult, eventsResult] = await Promise.all([
-        fetchAllOwnedRows(
+        fetchAllAccessibleRows(
           'assessment_items',
           'id,bundle_id,bundle_position,status,question_type,stem,options,correct_answer,explanation,skill,cefr,topic,cognitive_level,difficulty,source,usage_count,grade,unit_name,school_year,grammar_point,tags,source_kind,source_reference,created_at,updated_at',
-          userId,
+          accessibleOwnerIds,
         ),
-        fetchAllOwnedRows('assessment_bundles', '*', userId, { pageSize: 500 }),
+        fetchAllAccessibleRows('assessment_bundles', '*', accessibleOwnerIds, { pageSize: 500 }),
         supabase.from('assessment_tests')
-          .select('*').eq('owner_id', userId).order('updated_at', { ascending: false }).limit(200),
+          .select('*').in('owner_id', accessibleOwnerIds).order('updated_at', { ascending: false }).limit(200),
         supabase.from('assessment_blueprints')
-          .select('*').eq('owner_id', userId).order('updated_at', { ascending: false }).limit(100),
+          .select('*').in('owner_id', accessibleOwnerIds).order('updated_at', { ascending: false }).limit(100),
         supabase.from('question_bank_integrations')
           .select('id,provider,label,active,last_used_at,created_at,updated_at')
           .eq('owner_id', userId).eq('provider', 'chatgpt').maybeSingle(),
@@ -430,7 +496,7 @@ OpenAPI: ${openApiUrl}`;
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, accessReady, accessibleOwnerIds]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
@@ -666,6 +732,10 @@ OpenAPI: ${openApiUrl}`;
 
   const saveManualQuestion = async (event) => {
     event.preventDefault();
+    if (!accessState.can_contribute) {
+      setMessage('Tài khoản giáo viên chỉ được sử dụng ngân hàng, chưa được phép thêm câu hỏi.');
+      return;
+    }
     if (!userId || !text(draft.stem)) return;
     setMessage('');
     try {
@@ -730,6 +800,10 @@ OpenAPI: ${openApiUrl}`;
   };
 
   const savePasteImport = async () => {
+    if (!accessState.can_contribute) {
+      setMessage('Tài khoản giáo viên chưa được phép nhập hoặc thêm câu hỏi vào ngân hàng.');
+      return;
+    }
     if (!userId || !supabase || !pastePreview?.questions?.length) return;
     setPasteSaving(true);
     setMessage('');
@@ -1538,6 +1612,10 @@ OpenAPI: ${openApiUrl}`;
   };
 
   const createChatGptKey = async () => {
+    if (!accessState.can_contribute) {
+      setMessage('Chỉ Admin/TTCM được tạo kết nối ghi dữ liệu vào Question Bank.');
+      return;
+    }
     if (!userId || !supabase || !crypto?.subtle) return;
     setMessage('');
     try {
@@ -1612,6 +1690,58 @@ OpenAPI: ${openApiUrl}`;
     }
   };
 
+  const loadShareUsers = useCallback(async () => {
+    if (!accessState.can_share || !supabase) {
+      setShareUsers([]);
+      return;
+    }
+    setShareLoading(true);
+    try {
+      const { data, error } = await supabase.rpc('qb_list_access_users');
+      if (error) throw error;
+      setShareUsers(Array.isArray(data) ? data : []);
+    } catch (error) {
+      setMessage(error?.message || 'Không thể tải danh sách giáo viên để phân quyền.');
+    } finally {
+      setShareLoading(false);
+    }
+  }, [accessState.can_share]);
+
+  useEffect(() => {
+    if (accessReady && accessState.can_share) loadShareUsers();
+  }, [accessReady, accessState.can_share, loadShareUsers]);
+
+  const toggleSharedAccess = async (user) => {
+    if (!accessState.can_share || !user?.user_id || user.inherited_leader_access) return;
+    const nextEnabled = !user.assessment_enabled;
+    setShareBusy(user.user_id);
+    setMessage('');
+    try {
+      const { error } = await supabase.rpc('qb_set_user_access', {
+        p_user_id: user.user_id,
+        p_enabled: nextEnabled,
+      });
+      if (error) throw error;
+      setShareUsers((current) => current.map((entry) => (
+        entry.user_id === user.user_id ? { ...entry, assessment_enabled: nextEnabled } : entry
+      )));
+      setMessage(nextEnabled
+        ? `Đã cấp quyền sử dụng Ngân hàng câu hỏi cho ${user.full_name || user.email}.`
+        : `Đã thu hồi quyền sử dụng Ngân hàng câu hỏi của ${user.full_name || user.email}.`);
+    } catch (error) {
+      setMessage(error?.message || 'Không thể cập nhật quyền sử dụng Question Bank.');
+    } finally {
+      setShareBusy('');
+    }
+  };
+
+  const filteredShareUsers = useMemo(() => {
+    const needle = shareSearch.trim().toLowerCase();
+    if (!needle) return shareUsers;
+    return shareUsers.filter((user) => [user.full_name, user.email, user.role]
+      .some((value) => text(value).toLowerCase().includes(needle)));
+  }, [shareUsers, shareSearch]);
+
   const copyValue = async (value, success) => {
     try {
       await navigator.clipboard.writeText(value);
@@ -1624,7 +1754,7 @@ OpenAPI: ${openApiUrl}`;
   return (
     <section className="qb-shell qb-shell-v2 qb-shell-v3 qb-shell-v4 qb-shell-v5 qb-shell-v6 qb-shell-v7" data-qb-tab={activeTab}>
       <nav className="qb-tabs qb-tabs-horizontal" aria-label="Ngân hàng câu hỏi">
-        {TABS.map(([id, label]) => {
+        {visibleTabs.map(([id, label]) => {
           const Icon = TAB_ICONS[id] || Database;
           return (
             <button
@@ -1648,7 +1778,7 @@ OpenAPI: ${openApiUrl}`;
           <p className="qb-v6-kicker">BRIAN ENGLISH · {activeMeta.kicker}</p>
           <h1>{activeMeta.title}</h1>
           <p className="qb-v6-subtitle">{activeMeta.subtitle}</p>
-          {activeTab === 'questions' ? (
+          {activeTab === 'questions' && accessState.can_contribute ? (
             <div className="qb-v6-hero-actions">
               <button type="button" className="qb-secondary" onClick={() => setActiveTab('import')}>
                 <Bot size={16} aria-hidden="true" /> Dán từ ChatGPT
@@ -1663,7 +1793,7 @@ OpenAPI: ${openApiUrl}`;
                 <FilePlus2 size={16} aria-hidden="true" /> Tạo đề mới
               </button>
             </div>
-          ) : activeTab === 'bundles' ? (
+          ) : activeTab === 'bundles' && accessState.can_contribute ? (
             <div className="qb-v6-hero-actions">
               <button type="button" className="qb-primary" onClick={() => setActiveTab('import')}>
                 <Sparkles size={16} aria-hidden="true" /> Nhập chùm bài
@@ -1673,6 +1803,16 @@ OpenAPI: ${openApiUrl}`;
         </div>
         <AssessmentCoreHeroGraphic tab={activeTab} />
       </header>
+
+      {accessReady && accessState.can_use && !accessState.can_contribute ? (
+        <div className="qb-readonly-banner" role="status">
+          <ShieldCheck size={18} aria-hidden="true" />
+          <div>
+            <strong>Chế độ giáo viên · chỉ sử dụng</strong>
+            <span>Anh/chị có thể xem kho dùng chung và tạo đề từ dữ liệu hiện có. Không thể thêm, sửa hoặc xóa câu hỏi/chùm bài.</span>
+          </div>
+        </div>
+      ) : null}
 
       {activeTab === 'questions' ? (
         <div className="qb-v6-metric-grid qb-v6-metric-grid-4" aria-label="Tổng quan ngân hàng">
@@ -1727,12 +1867,14 @@ OpenAPI: ${openApiUrl}`;
             </label>
             <label><span>Khối lớp</span><select value={grade} onChange={(e) => setGrade(e.target.value)}><option value="">Tất cả</option><option>10</option><option>11</option><option>12</option></select></label>
             <label><span>CEFR</span><select value={cefr} onChange={(e) => setCefr(e.target.value)}><option value="">Tất cả</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option></select></label>
-            <button type="button" className="qb-primary qb-small" onClick={() => setShowNew((value) => !value)}>
-              {showNew ? 'Đóng biểu mẫu' : '+ Thêm câu'}
-            </button>
+            {accessState.can_contribute ? (
+              <button type="button" className="qb-primary qb-small" onClick={() => setShowNew((value) => !value)}>
+                {showNew ? 'Đóng biểu mẫu' : '+ Thêm câu'}
+              </button>
+            ) : null}
           </div>
 
-          {showNew ? (
+          {accessState.can_contribute && showNew ? (
             <form className="qb-new-form" onSubmit={saveManualQuestion}>
               <div className="qb-form-head"><strong>Thêm câu hỏi thủ công</strong><small>Câu mới được lưu ở trạng thái Bản nháp và riêng tư.</small></div>
               <label className="qb-span-2"><span>Câu hỏi</span><textarea required rows="3" value={draft.stem} onChange={(e) => setDraft({ ...draft, stem: e.target.value })} /></label>
@@ -1816,17 +1958,19 @@ OpenAPI: ${openApiUrl}`;
                     <>
                       <div className="qb-v6-preview-head">
                         <div><span>XEM TRƯỚC CÂU HỎI</span><strong>Chi tiết nhanh</strong></div>
-                        <button
-                          type="button"
-                          aria-label="Mở trong Quản trị"
-                          onClick={() => {
-                            setManageTargetQuestionId(questionPreview.id);
-                            setManageTargetBundleId('');
-                            setActiveTab('manage');
-                          }}
-                        >
-                          <ArrowRight size={16} />
-                        </button>
+                        {accessState.can_contribute ? (
+                          <button
+                            type="button"
+                            aria-label="Mở trong Quản trị"
+                            onClick={() => {
+                              setManageTargetQuestionId(questionPreview.id);
+                              setManageTargetBundleId('');
+                              setActiveTab('manage');
+                            }}
+                          >
+                            <ArrowRight size={16} />
+                          </button>
+                        ) : null}
                       </div>
                       <div className="qb-v6-preview-tags">
                         <span>{questionPreview.skill || 'Use of English'}</span>
@@ -1851,17 +1995,19 @@ OpenAPI: ${openApiUrl}`;
                       ) : null}
                       <div className="qb-v6-preview-footer">
                         <span>{questionPreview.topic || questionPreview.grammar_point || 'Chưa gắn chủ đề'}</span>
-                        <button
-                          type="button"
-                          className="qb-primary"
-                          onClick={() => {
-                            setManageTargetQuestionId(questionPreview.id);
-                            setManageTargetBundleId('');
-                            setActiveTab('manage');
-                          }}
-                        >
-                          Chỉnh sửa
-                        </button>
+                        {accessState.can_contribute ? (
+                          <button
+                            type="button"
+                            className="qb-primary"
+                            onClick={() => {
+                              setManageTargetQuestionId(questionPreview.id);
+                              setManageTargetBundleId('');
+                              setActiveTab('manage');
+                            }}
+                          >
+                            Chỉnh sửa
+                          </button>
+                        ) : <span className="qb-readonly-chip">Chỉ xem</span>}
                       </div>
                     </>
                   ) : null}
@@ -1883,7 +2029,7 @@ OpenAPI: ${openApiUrl}`;
                   <input value={bundleQuery} onChange={(event) => setBundleQuery(event.target.value)} placeholder="Tìm chùm bài theo tên, chủ đề, kỹ năng…" />
                 </label>
                 <label><span>Khối lớp</span><select value={bundleGrade} onChange={(event) => setBundleGrade(event.target.value)}><option value="">Tất cả</option><option>10</option><option>11</option><option>12</option></select></label>
-                <button type="button" className="qb-primary" onClick={() => setActiveTab('import')}><Sparkles size={15} /> Nhập chùm bài</button>
+                {accessState.can_contribute ? <button type="button" className="qb-primary" onClick={() => setActiveTab('import')}><Sparkles size={15} /> Nhập chùm bài</button> : null}
               </div>
               {filteredBundles.length ? <>
                 <div className="qb-grid qb-v6-bundle-grid">{pagedBundles.map((bundle) => {
@@ -1937,11 +2083,13 @@ OpenAPI: ${openApiUrl}`;
                       setQuery(selectedBundle.title || selectedBundle.topic || '');
                       setActiveTab('questions');
                     }}>Xem trong kho câu hỏi</button>
-                    <button type="button" className="qb-primary" onClick={() => {
-                      setManageTargetBundleId(selectedBundle.id);
-                      setManageTargetQuestionId('');
-                      setActiveTab('manage');
-                    }}>Chỉnh sửa chùm</button>
+                    {accessState.can_contribute ? (
+                      <button type="button" className="qb-primary" onClick={() => {
+                        setManageTargetBundleId(selectedBundle.id);
+                        setManageTargetQuestionId('');
+                        setActiveTab('manage');
+                      }}>Chỉnh sửa chùm</button>
+                    ) : null}
                   </div>
                 </div>
 
@@ -2022,7 +2170,7 @@ OpenAPI: ${openApiUrl}`;
 
 
 
-      {!loading && activeTab === 'manage' ? (
+      {!loading && accessState.can_contribute && activeTab === 'manage' ? (
         <div className="qb-panel">
           <QuestionBankManagementSuite
             currentUser={currentUser}
@@ -2043,6 +2191,61 @@ OpenAPI: ${openApiUrl}`;
               setActiveTab('import');
             }}
           />
+        </div>
+      ) : null}
+
+      {!loading && accessState.can_share && activeTab === 'share' ? (
+        <div className="qb-panel qb-share-access">
+          <div className="qb-section-head">
+            <div><p>ACCESS CONTROL</p><h2>Chia sẻ quyền sử dụng</h2></div>
+            <span>Admin/TTCM cấp quyền vào Assessment Core. Giáo viên được cấp quyền không có quyền thêm/sửa/xóa câu hỏi.</span>
+          </div>
+          <div className="qb-share-toolbar">
+            <label>
+              <Search size={16} aria-hidden="true" />
+              <input value={shareSearch} onChange={(event) => setShareSearch(event.target.value)} placeholder="Tìm giáo viên theo tên hoặc email…" />
+            </label>
+            <button type="button" className="qb-secondary" disabled={shareLoading} onClick={loadShareUsers}>
+              {shareLoading ? 'Đang tải…' : 'Làm mới'}
+            </button>
+          </div>
+          <div className="qb-share-policy">
+            <ShieldCheck size={20} aria-hidden="true" />
+            <div>
+              <strong>Quyền “Sử dụng” là read-only đối với ngân hàng câu hỏi</strong>
+              <span>Giáo viên có thể tìm kiếm, xem chùm bài, dùng Builder và tạo đề cá nhân. Mọi thao tác thêm, sửa, xóa hoặc nhập câu hỏi vẫn chỉ dành cho Admin/TTCM.</span>
+            </div>
+          </div>
+          <div className="qb-share-list">
+            {filteredShareUsers.map((user) => (
+              <article key={user.user_id} className={user.assessment_enabled ? 'is-enabled' : ''}>
+                <div className="qb-share-avatar" aria-hidden="true">{text(user.full_name || user.email).slice(0, 1).toUpperCase()}</div>
+                <div className="qb-share-person">
+                  <strong>{user.full_name || user.email || 'Giáo viên'}</strong>
+                  <span>{user.email || '—'} · {user.inherited_leader_access ? 'Admin/TTCM' : 'Giáo viên'}</span>
+                </div>
+                <div className="qb-share-state">
+                  <b>{user.assessment_enabled ? 'Đã cấp quyền' : 'Chưa cấp'}</b>
+                  <small>{user.inherited_leader_access ? 'Quyền kế thừa theo vai trò' : 'Quyền sử dụng · không được thêm câu hỏi'}</small>
+                </div>
+                <button
+                  type="button"
+                  className={user.assessment_enabled ? 'qb-secondary' : 'qb-primary'}
+                  disabled={shareBusy === user.user_id || user.inherited_leader_access}
+                  onClick={() => toggleSharedAccess(user)}
+                >
+                  {user.inherited_leader_access
+                    ? 'Luôn được phép'
+                    : shareBusy === user.user_id
+                      ? 'Đang lưu…'
+                      : user.assessment_enabled ? 'Thu hồi' : 'Cấp quyền sử dụng'}
+                </button>
+              </article>
+            ))}
+            {!shareLoading && !filteredShareUsers.length ? (
+              <EmptyState title="Không có giáo viên phù hợp" hint="Thử thay đổi từ khóa tìm kiếm hoặc kiểm tra trạng thái duyệt tài khoản." />
+            ) : null}
+          </div>
         </div>
       ) : null}
 
@@ -2264,7 +2467,7 @@ OpenAPI: ${openApiUrl}`;
         </div>
       ) : null}
 
-      {!loading && activeTab === 'quality' ? (
+      {!loading && accessState.can_contribute && activeTab === 'quality' ? (
         <div className="qb-panel">
           <QuestionBankQualityControl
             blueprints={blueprints}
@@ -2735,7 +2938,7 @@ OpenAPI: ${openApiUrl}`;
         </div>
       ) : null}
 
-      {activeTab === 'import' ? (
+      {accessState.can_contribute && activeTab === 'import' ? (
         <div className="qb-panel qb-paste-import">
           <div className="qb-section-head">
             <div><p>ZERO-COST IMPORT</p><h2>Nhập từ ChatGPT</h2></div>
@@ -2828,7 +3031,7 @@ OpenAPI: ${openApiUrl}`;
         </div>
       ) : null}
 
-      {!loading && activeTab === 'chatgpt' ? (
+      {!loading && accessState.can_contribute && activeTab === 'chatgpt' ? (
         <div className="qb-panel qb-connect">
           <div className="qb-connect-main">
             <div className="qb-section-head"><div><p>ADVANCED CONNECTOR</p><h2>API / Plugin</h2></div><span className={integration?.active ? 'qb-live' : 'qb-offline'}>{integration?.active ? '● API Brian sẵn sàng' : '○ Chưa tạo khóa API'}</span></div>
