@@ -39,30 +39,35 @@ assert.ok(launchCss, 'Windows 8 attendance launch stylesheet must exist');
 assert.match(indexHtml, /attendance-windows8-launch\.css\?v=2/i,
   'Application shell must load the current Windows 8 attendance launch stylesheet');
 
-assert.match(
+assert.doesNotMatch(
   launchCss,
   /@keyframes\s+attendance-win8-layer-in/i,
-  'Attendance backdrop must define a dedicated Windows 8 style launch animation',
+  'Attendance backdrop must stay static so the app does not stack a second launch effect',
 );
 assert.match(
   launchCss,
   /@keyframes\s+attendance-win8-shell-in/i,
   'Attendance shell must define a dedicated Windows 8 style app launch animation',
 );
-assert.match(
+assert.doesNotMatch(
   launchCss,
-  /\.attendance-layer\s*\{[^}]*animation-name\s*:\s*attendance-win8-layer-in/i,
-  'Attendance backdrop must play the Windows 8 launch animation when opened',
+  /\.attendance-layer\s*\{[^}]*animation-name/i,
+  'Attendance backdrop must not animate independently from the app shell',
 );
 assert.match(
   launchCss,
   /\.attendance-shell\s*\{[^}]*animation-name\s*:\s*attendance-win8-shell-in/i,
-  'Attendance shell must play the Windows 8 app launch animation when opened',
+  'Attendance shell must play the single Windows 8 app launch animation when opened',
 );
 assert.match(
   launchCss,
-  /attendance-win8-shell-in[\s\S]*?scale\(\.78\)[\s\S]*?scale\(1\.016\)[\s\S]*?scale\(1\)/i,
-  'Windows 8 launch must visibly expand the app from a compact tile-like state into the full workspace',
+  /attendance-win8-shell-in[\s\S]*?scale\(\.82\)[\s\S]*?scale\(1\)/i,
+  'Windows 8 launch must expand once from a compact tile-like state into the full workspace',
+);
+assert.doesNotMatch(
+  launchCss,
+  /scale\(1\.016\)|scale\(\.996\)/i,
+  'Windows 8 launch must not use the previous multi-stage bounce that looked like two effects',
 );
 assert.doesNotMatch(
   launchCss,

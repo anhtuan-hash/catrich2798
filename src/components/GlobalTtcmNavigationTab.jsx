@@ -656,7 +656,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
   const canActOnSelected = Boolean(selectedItem && userIsAssignee(selectedItem, currentUser?.id) && isActionItem(selectedItem));
 
   const panel = open && typeof document !== 'undefined' ? createPortal(
-    <div className="ttcm-m3-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !composeOpen) setOpen(false); }}>
+    <div className="ttcm-m3-layer" data-global-motion-isolate="true" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !composeOpen) setOpen(false); }}>
       <section ref={rootRef} className="ttcm-m3-shell ttcm-reader-shell" role="dialog" aria-modal="true" aria-label="Kênh TTCM">
         <header className="ttcm-m3-topbar">
           <div className="ttcm-m3-title"><span className="ttcm-m3-title-icon"><Icon name="campaign" size={22} /></span><div><strong>Kênh TTCM</strong><small>{manager ? 'Điều hành và giao tiếp với tổ chuyên môn' : 'Thông báo, tài liệu và yêu cầu từ TTCM'}</small></div></div>
