@@ -5915,3 +5915,246 @@ html body #root .app-shell[data-route="assessment-core"] main#bes-main-content >
     width:100%;
   }
 }
+
+
+/* Interactive HTML export V3.2 SAFE
+   App chrome inherits Brian typography, while the exported iframe owns a fully
+   isolated document/font stack. Do not bind this surface to exported fonts. */
+.qb-shell-v7 .qb-interactive-export{
+  appearance:none;
+  min-height:40px;
+  padding:10px 14px;
+  border:1px solid rgba(15,132,255,.22);
+  border-radius:12px;
+  background:
+    radial-gradient(circle at 100% 0,rgba(94,92,230,.12),transparent 8rem),
+    linear-gradient(135deg,#eef7ff,#f7f4ff);
+  color:#1359a4;
+  font:inherit;
+  font-size:12px;
+  font-weight:900;
+  cursor:pointer;
+  box-shadow:0 7px 18px rgba(10,132,255,.08);
+  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease;
+}
+.qb-shell-v7 .qb-interactive-export:hover:not(:disabled){
+  transform:translateY(-1px);
+  border-color:rgba(10,132,255,.38);
+  box-shadow:0 11px 24px rgba(10,132,255,.13);
+}
+.qb-shell-v7 .qb-interactive-export:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+  transform:none;
+}
+.qb-interactive-preview-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:10050;
+  display:grid;
+  place-items:center;
+  padding:18px;
+  background:rgba(12,29,52,.56);
+  backdrop-filter:blur(16px) saturate(120%);
+}
+.qb-interactive-preview-dialog{
+  width:min(1500px,96vw);
+  height:min(940px,94vh);
+  min-height:620px;
+  display:grid;
+  grid-template-rows:auto auto minmax(0,1fr) auto;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.72);
+  border-radius:26px;
+  background:#f7faff;
+  box-shadow:0 34px 100px rgba(10,34,66,.28);
+}
+.qb-interactive-preview-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+  padding:18px 20px 14px;
+  border-bottom:1px solid #e0e9f4;
+  background:linear-gradient(135deg,#ffffff,#f5f9ff);
+}
+.qb-interactive-preview-head>div{min-width:0}
+.qb-interactive-preview-head p{
+  margin:0 0 3px;
+  color:#0877db;
+  font-size:9px;
+  font-weight:900;
+  letter-spacing:.13em;
+}
+.qb-interactive-preview-head h2{
+  margin:0;
+  color:#15385f;
+  font-size:20px;
+  letter-spacing:-.025em;
+}
+.qb-interactive-preview-head span{
+  display:block;
+  margin-top:5px;
+  color:#70849e;
+  font-size:9.5px;
+  line-height:1.5;
+}
+.qb-interactive-preview-settings{
+  display:grid;
+  grid-template-columns:140px 150px repeat(3,minmax(180px,1fr));
+  gap:9px;
+  padding:10px 14px;
+  border-bottom:1px solid #e1e9f3;
+  background:#fff;
+}
+.qb-interactive-preview-settings>label{
+  min-height:60px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  gap:4px;
+  padding:8px 10px;
+  border:1px solid #e0e8f2;
+  border-radius:13px;
+  background:#fbfdff;
+}
+.qb-interactive-preview-settings>label>span:first-child{
+  color:#58718f;
+  font-size:8.5px;
+  font-weight:850;
+}
+.qb-interactive-preview-settings input[type="number"],
+.qb-interactive-preview-settings select{
+  width:100%;
+  min-height:31px;
+  border:1px solid #d6e2ee;
+  border-radius:9px;
+  padding:5px 8px;
+  background:#fff;
+  color:#24476c;
+  font:inherit;
+  font-size:9.5px;
+  font-weight:750;
+}
+.qb-interactive-preview-settings small{
+  color:#91a0b2;
+  font-size:7.8px;
+}
+.qb-interactive-preview-settings .qb-interactive-switch{
+  flex-direction:row;
+  align-items:flex-start;
+  justify-content:flex-start;
+  gap:8px;
+}
+.qb-interactive-switch input{
+  width:16px;
+  height:16px;
+  margin:3px 0 0;
+  flex:0 0 auto;
+  accent-color:#0a84ff;
+}
+.qb-interactive-switch span{
+  display:grid;
+  gap:2px;
+  min-width:0;
+}
+.qb-interactive-switch b{
+  color:#315779;
+  font-size:9px;
+}
+.qb-interactive-switch small{
+  white-space:normal;
+  line-height:1.35;
+}
+.qb-interactive-frame-wrap{
+  position:relative;
+  min-height:0;
+  padding:12px;
+  background:
+    linear-gradient(45deg,#eef3f9 25%,transparent 25%),
+    linear-gradient(-45deg,#eef3f9 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#eef3f9 75%),
+    linear-gradient(-45deg,transparent 75%,#eef3f9 75%);
+  background-size:20px 20px;
+  background-position:0 0,0 10px,10px -10px,-10px 0;
+}
+.qb-interactive-frame-wrap iframe{
+  width:100%;
+  height:100%;
+  min-height:0;
+  display:block;
+  border:1px solid #cfdceb;
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 12px 34px rgba(23,55,91,.10);
+}
+.qb-interactive-frame-wrap.is-loading iframe{opacity:.42}
+.qb-interactive-frame-loading{
+  position:absolute;
+  inset:12px;
+  z-index:2;
+  display:grid;
+  place-items:center;
+  border-radius:16px;
+  background:rgba(249,252,255,.78);
+  color:#54718f;
+  font-size:11px;
+  font-weight:800;
+  backdrop-filter:blur(4px);
+}
+.qb-interactive-preview-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:9px;
+  padding:10px 14px;
+  border-top:1px solid #e0e9f3;
+  background:#fff;
+}
+.qb-interactive-preview-actions>div{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin-right:auto;
+  color:#55708c;
+  font-size:8.8px;
+}
+.qb-interactive-preview-actions>div svg{color:#16845d;flex:0 0 auto}
+@media(max-width:1120px){
+  .qb-interactive-preview-settings{
+    grid-template-columns:130px 140px repeat(3,minmax(150px,1fr));
+    overflow-x:auto;
+  }
+  .qb-interactive-preview-dialog{
+    width:98vw;
+    height:96vh;
+  }
+}
+@media(max-width:720px){
+  .qb-interactive-preview-backdrop{padding:0}
+  .qb-interactive-preview-dialog{
+    width:100vw;
+    height:100vh;
+    min-height:0;
+    border-radius:0;
+  }
+  .qb-interactive-preview-head{padding:12px}
+  .qb-interactive-preview-head h2{font-size:17px}
+  .qb-interactive-preview-settings{
+    grid-template-columns:150px 150px 190px 190px 190px;
+    padding:8px;
+  }
+  .qb-interactive-frame-wrap{padding:6px}
+  .qb-interactive-preview-actions{
+    flex-wrap:wrap;
+    padding:8px;
+  }
+  .qb-interactive-preview-actions>div{
+    width:100%;
+    margin-right:0;
+  }
+  .qb-interactive-preview-actions>button{
+    flex:1 1 auto;
+  }
+  .qb-shell-v7 .qb-interactive-export{width:100%}
+}
