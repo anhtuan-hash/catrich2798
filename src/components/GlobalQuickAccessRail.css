@@ -1029,15 +1029,15 @@ button.bqa-customizer-row:disabled {
     border-radius: 26px;
   }
   72% {
-    opacity: .86;
-    transform: translate3d(-10px, 0, 0) scaleX(.34) scaleY(.44);
-    clip-path: inset(0 68% 58% 0 round 28px);
+    opacity: .52;
+    transform: translate3d(-38px, 0, 0) scaleX(.22) scaleY(.30);
+    clip-path: inset(0 82% 74% 0 round 28px);
     border-radius: 30px;
   }
   100% {
     opacity: 0;
-    transform: translate3d(-16px, 0, 0) scaleX(.06) scaleY(.12);
-    clip-path: inset(0 89% 88% 0 round 22px);
+    transform: translate3d(-64px, 0, 0) scaleX(.035) scaleY(.08);
+    clip-path: inset(0 100% 100% 0 round 22px);
     border-radius: 30px;
   }
 }
@@ -1373,3 +1373,28 @@ body:has(.app-shell[data-quick-access-safe-mode="overlay"]) > .bqa-root.is-colla
   width: 0;
   opacity: 0;
 }
+
+
+/* Collapsed-panel ghost fix · 2026-09-22
+   The Apple Pencil shell may animate, but no panel text or glass surface may
+   remain visible beside the rail after collapse. */
+.bqa-root.is-collapsed:not(.is-collapsing) .bqa-panel {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  clip-path: inset(0 100% 100% 0 round 22px) !important;
+  transform: translate3d(calc(-1 * (var(--bqa-rail-width) + 8px)), 0, 0) scaleX(.035) scaleY(.08) !important;
+}
+
+.bqa-root.is-collapsing .bqa-panel-header,
+.bqa-root.is-collapsing .bqa-panel-list,
+.bqa-root.is-collapsing .bqa-panel-footer {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  transition: none !important;
+}
+
+.bqa-root.is-collapsing .bqa-panel {
+  z-index: 1 !important;
+}
+

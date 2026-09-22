@@ -122,6 +122,34 @@ test.describe('Global Quick Access safe area', () => {
     });
   }
 
+  test('Dashboard: collapsed Quick Access panel leaves no visible ghost beside the rail', async ({ page }) => {
+    await page.goto('/#/dashboard');
+    await expect(page.locator('.bqa-root')).toBeVisible();
+    await page.waitForTimeout(1100);
+
+    await expect(page.locator('.bqa-root')).toHaveClass(/is-collapsed/);
+    await expect(page.locator('.bqa-root')).not.toHaveClass(/is-collapsing/);
+    await expect(page.locator('.bqa-panel')).toBeHidden();
+
+    const state = await page.locator('.bqa-panel').evaluate((panel) => {
+      const style = getComputedStyle(panel);
+      const header = panel.querySelector('.bqa-panel-header');
+      const headerStyle = header ? getComputedStyle(header) : null;
+      return {
+        visibility: style.visibility,
+        opacity: Number(style.opacity),
+        pointerEvents: style.pointerEvents,
+        headerVisibility: headerStyle?.visibility || '',
+        headerOpacity: Number(headerStyle?.opacity || 0),
+      };
+    });
+
+    expect(state.visibility).toBe('hidden');
+    expect(state.opacity).toBe(0);
+    expect(state.pointerEvents).toBe('none');
+    expect(state.headerOpacity).toBe(0);
+  });
+
   test('pinned panel reflows content instead of covering it', async ({ page }) => {
     await page.goto('/#/apps');
     await expect(page.locator('.bqa-root')).toBeVisible();
