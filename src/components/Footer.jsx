@@ -61,23 +61,9 @@ function DashboardFooterArtwork() {
           <path d="m116 17 5 7 8-3-4 8 7 5-9 1-1 9-5-8-8 3 4-8-7-5 9-1Z" fill="#b9a9ff" stroke="none" />
         </g>
       </svg>
-      <svg className="signature-footer-dashboard-plane" viewBox="0 0 120 84" focusable="false">
-        <path d="M8 35 108 7 74 77 50 47 8 35Z" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinejoin="round" />
-        <path d="M50 47 91 24M50 47l4 24 20-14" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-      </svg>
       <span className="signature-footer-dashboard-signoff">Teach Better Together ♡</span>
     </div>
   );
-}
-
-function FooterCardDoodle({ type }) {
-  if (type === 'brand') {
-    return <svg className="signature-footer-card-doodle is-brand" viewBox="0 0 90 70" aria-hidden="true"><path d="M13 58c0-24 10-40 29-49M15 49C5 37 3 25 8 15M28 36c13-11 25-13 36-7" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /><circle cx="69" cy="17" r="4" fill="currentColor" opacity=".35" /><circle cx="77" cy="29" r="2.5" fill="currentColor" opacity=".24" /></svg>;
-  }
-  if (type === 'profile') {
-    return <svg className="signature-footer-card-doodle is-profile" viewBox="0 0 100 72" aria-hidden="true"><path d="M8 52c23-30 41-27 55-8 9-20 22-29 31-26" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /><path d="M78 8v12M72 14h12" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" /></svg>;
-  }
-  return <svg className="signature-footer-card-doodle is-credentials" viewBox="0 0 96 72" aria-hidden="true"><path d="m22 16 5 9 10 1-7 7 2 10-10-5-9 5 2-10-7-7 10-1 4-9Z" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinejoin="round" /><path d="M58 13v14M51 20h14M75 37l3 6 7 1-5 5 1 7-6-4-6 4 2-7-5-5 7-1 2-6Z" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" /></svg>;
 }
 
 function DetailRow({ type, children }) {
@@ -109,7 +95,6 @@ export default function Footer({ language, compact = false, route = '' }) {
       <div id="english-hub-footer-details" className="signature-footer-expanded-panel">
         <div className="signature-footer-v50-main">
           <section className="signature-footer-v50-brand" aria-label="English Hub, Pétrus Ký and Cambridge Assessment English">
-            {resolvedRoute === 'dashboard' ? <FooterCardDoodle type="brand" /> : null}
             <img
               className="signature-footer-v50-brian-logo"
               src="/brian-english-brand-logo.png"
@@ -123,7 +108,6 @@ export default function Footer({ language, compact = false, route = '' }) {
           </section>
 
           <section className="signature-footer-v50-profile">
-            {resolvedRoute === 'dashboard' ? <FooterCardDoodle type="profile" /> : null}
             <span className="signature-footer-v50-language-badge">{content.language}</span>
             <h2>{content.name}</h2>
             <ul className="signature-footer-v50-details">
@@ -136,7 +120,6 @@ export default function Footer({ language, compact = false, route = '' }) {
           </section>
 
           <section className="signature-footer-v50-credentials">
-            {resolvedRoute === 'dashboard' ? <FooterCardDoodle type="credentials" /> : null}
             <span className="signature-footer-v50-section-label">{content.credentialsTitle}</span>
             <ul>
               {content.credentials.map((item) => (
