@@ -536,6 +536,8 @@ export default function GlobalQuickAccessRail({
       const key = String(event.key || '').toLowerCase();
       if ((event.metaKey || event.ctrlKey) && !event.altKey && key === 'k') {
         event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation?.();
         openRail();
         setCommandQuery('');
         setCommandFocusRequest((value) => value + 1);
@@ -559,10 +561,10 @@ export default function GlobalQuickAccessRail({
     };
 
     window.addEventListener('bes-navigation-start', onNavigationStart);
-    window.addEventListener('keydown', onShortcut);
+    window.addEventListener('keydown', onShortcut, true);
     return () => {
       window.removeEventListener('bes-navigation-start', onNavigationStart);
-      window.removeEventListener('keydown', onShortcut);
+      window.removeEventListener('keydown', onShortcut, true);
     };
   }, [isPinned, customizing, expanded, collapseRail, openRail, selectedItems, currentUser?.id, allowedKey]);
 
@@ -986,6 +988,7 @@ export default function GlobalQuickAccessRail({
               onChange={(event) => setCommandQuery(event.target.value)}
               placeholder={language === 'vi' ? 'Tìm ứng dụng hoặc lệnh…' : 'Search apps or commands…'}
               aria-label={language === 'vi' ? 'Tìm nhanh ứng dụng' : 'Quick app search'}
+              tabIndex={expanded ? 0 : -1}
             />
             {commandQuery ? (
               <button type="button" onClick={() => { setCommandQuery(''); commandInputRef.current?.focus(); }} aria-label={language === 'vi' ? 'Xóa tìm kiếm' : 'Clear search'}>
