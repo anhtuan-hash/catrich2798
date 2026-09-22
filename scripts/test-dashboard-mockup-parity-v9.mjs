@@ -34,22 +34,23 @@ for (const token of [
 }
 
 for (const token of [
-  'Dashboard footer V9 · final illustrated-card refinement',
-  'padding: 20px 20px 92px !important',
-  'min-height: 298px !important',
-  'min-height: 42px !important',
+  'Dashboard footer — Mockup Parity V10',
+  'padding: 14px 14px 64px !important',
+  'min-height: 258px !important',
+  'min-height: 35px !important',
   '.signature-footer-dashboard-artwork',
-  'height: 106px !important',
+  'height: 62px !important',
 ]) {
-  assert.ok(footer.includes(token), `Footer V9 refinement missing: ${token}`);
+  assert.ok(footer.includes(token), `Footer final refinement missing: ${token}`);
 }
 
 for (const token of [
-  'Dashboard V9 top-chrome density polish',
+  'Mockup Parity V10',
   'min-height: 52px !important',
   'min-height: 41px !important',
+  'margin: 8px auto 0 !important',
 ]) {
-  assert.ok(chrome.includes(token), `Top chrome V9 token missing: ${token}`);
+  assert.ok(chrome.includes(token), `Top chrome final token missing: ${token}`);
 }
 
 assert.ok(!/font-family\s*:/i.test(v9), 'Dashboard V9 must preserve custom/regional font authority.');
