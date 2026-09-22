@@ -958,7 +958,6 @@ export default function GlobalQuickAccessRail({
           onPointerEnter={openRail}
           onMouseEnter={openRail}
           aria-hidden={!expanded}
-          inert={expanded ? undefined : true}
           onAnimationEnd={(event) => {
             if (event.target === event.currentTarget && collapsing) setCollapsing(false);
           }}
