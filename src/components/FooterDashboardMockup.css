@@ -1,346 +1,95 @@
-/* Dashboard-only footer convergence with the approved colorful mockup.
-   Imported after FooterIntegrity.css so the canonical footer keeps its data,
-   while Dashboard receives the final decorative authority. */
+/* Dashboard footer — approved mockup authority.
+   This file is intentionally singular: no legacy V4/V5/V6 layers are stacked here.
+   It loads after FooterIntegrity.css and owns only the Dashboard footer presentation. */
 
-.app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] {
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] {
   position: relative !important;
   isolation: isolate !important;
-  width: min(1480px, calc(100% - 40px)) !important;
-  max-width: calc(100% - 40px) !important;
-  margin: 14px auto 18px !important;
-  padding: 18px 18px 76px !important;
-  overflow: hidden !important;
-  border: 1px solid rgba(171, 202, 235, .48) !important;
-  border-radius: 28px !important;
-  background:
-    radial-gradient(circle at 5% 12%, rgba(211, 239, 255, .82), transparent 13rem),
-    radial-gradient(circle at 28% 96%, rgba(213, 246, 225, .82), transparent 15rem),
-    radial-gradient(circle at 78% 100%, rgba(229, 219, 255, .76), transparent 16rem),
-    linear-gradient(180deg, #f8fcff 0%, #f6fbff 62%, #eef8ff 100%) !important;
-  box-shadow: 0 18px 42px rgba(61, 108, 157, .07) !important;
-}
-
-.app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"]::before {
-  content: '' !important;
-  position: absolute !important;
-  z-index: 0 !important;
-  left: -4% !important;
-  right: -4% !important;
-  bottom: -47px !important;
-  height: 126px !important;
-  background:
-    radial-gradient(ellipse at 3% 48%, #cdeaff 0 17%, transparent 18%),
-    radial-gradient(ellipse at 15% 57%, #e0f6ea 0 18%, transparent 19%),
-    radial-gradient(ellipse at 31% 50%, #d7efff 0 20%, transparent 21%),
-    radial-gradient(ellipse at 48% 60%, #e7f8ef 0 17%, transparent 18%),
-    radial-gradient(ellipse at 66% 51%, #d8ecff 0 21%, transparent 22%),
-    radial-gradient(ellipse at 82% 58%, #e6dfff 0 20%, transparent 21%),
-    radial-gradient(ellipse at 96% 48%, #d2eaff 0 18%, transparent 19%) !important;
-  opacity: .98 !important;
-  pointer-events: none !important;
-}
-
-.app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"]::after {
-  content: 'Teach Better Together ♡' !important;
-  position: absolute !important;
-  z-index: 3 !important;
-  right: 34px !important;
-  bottom: 28px !important;
-  color: #347ee6 !important;
-  font-size: 18px !important;
-  font-style: italic !important;
-  font-weight: 760 !important;
-  line-height: 1.05 !important;
-  transform: rotate(-7deg) !important;
-  pointer-events: none !important;
-}
-
-.app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] > * {
-  position: relative !important;
-  z-index: 2 !important;
-}
-
-.app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-main {
-  gap: 16px !important;
-}
-
-.app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-main > section {
-  min-height: 300px !important;
-  padding: 25px 26px !important;
-  border: 1px solid rgba(142, 185, 231, .48) !important;
-  border-radius: 22px !important;
-  box-shadow:
-    0 16px 34px rgba(58, 102, 149, .08),
-    inset 0 1px 0 rgba(255,255,255,.92) !important;
-}
-
-.app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-brand {
-  background:
-    radial-gradient(circle at 10% 12%, rgba(255,255,255,.94), transparent 6rem),
-    radial-gradient(circle at 0% 100%, rgba(176, 225, 255, .60), transparent 9rem),
-    radial-gradient(circle at 100% 100%, rgba(198, 242, 213, .68), transparent 8rem),
-    linear-gradient(145deg, #e8f4ff, #f8fbff 56%, #eef9ef) !important;
-}
-
-.app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-profile {
-  background:
-    radial-gradient(circle at 100% 100%, rgba(191, 241, 223, .70), transparent 9rem),
-    radial-gradient(circle at 6% 6%, rgba(255,255,255,.90), transparent 7rem),
-    linear-gradient(145deg, #ecfbf4, #fbfffc 58%, #edf9f7) !important;
-}
-
-.app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-credentials {
-  background:
-    radial-gradient(circle at 100% 0%, rgba(255, 226, 178, .62), transparent 9rem),
-    linear-gradient(145deg, #fff7e3, #fffdf7 57%, #fff1d7) !important;
-}
-
-.app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-brian-logo {
-  width: min(238px, 86%) !important;
-  max-height: 96px !important;
-  margin-bottom: 18px !important;
-}
-
-.app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-affiliations {
-  padding-top: 17px !important;
-}
-
-.app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-affiliations img {
-  height: 76px !important;
-}
-
-.app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-language-badge {
-  background: #15945a !important;
-}
-
-.app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-profile h2 {
-  color: #14784b !important;
-}
-
-.app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-detail-icon {
-  background: #dff6e8 !important;
-}
-
-.app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-section-label {
-  color: #df6414 !important;
-}
-
-.app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-star {
-  color: #e8ad00 !important;
-}
-
-.app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-expanded-note {
-  margin-top: 14px !important;
-  color: #6a829a !important;
-}
-
-.app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] > .signature-footer-static-summary {
-  margin-top: 10px !important;
-  padding-top: 12px !important;
-  border-top-color: rgba(132, 171, 212, .24) !important;
-}
-
-@media (max-width: 1040px) {
-  .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] {
-    padding-bottom: 66px !important;
-  }
-
-  .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-main > section {
-    min-height: 0 !important;
-  }
-}
-
-@media (max-width: 720px) {
-  .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] {
-    width: calc(100% - 16px) !important;
-    max-width: calc(100% - 16px) !important;
-    margin: 10px auto 12px !important;
-    padding: 12px 12px 58px !important;
-    border-radius: 22px !important;
-  }
-
-  .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"]::after {
-    right: 18px !important;
-    bottom: 20px !important;
-    font-size: 14px !important;
-  }
-
-  .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-main {
-    gap: 13px !important;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"]::after {
-    transform: none !important;
-  }
-}
-
-
-/* Dashboard footer V5 fallback authority · route-aware regardless of portal host */
-html body:has(.app-shell[data-route="dashboard"]) .metro-clean-system > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] {
-  position: relative !important;
-  isolation: isolate !important;
-  margin-top: 10px !important;
-  padding: 18px 18px 82px !important;
-  overflow: hidden !important;
-  border: 1px solid rgba(151, 194, 236, .50) !important;
-  border-radius: 28px !important;
-  background:
-    radial-gradient(circle at 4% 12%, rgba(201, 235, 255, .86), transparent 14rem),
-    radial-gradient(circle at 27% 96%, rgba(202, 244, 220, .88), transparent 16rem),
-    radial-gradient(circle at 79% 100%, rgba(222, 211, 255, .82), transparent 17rem),
-    linear-gradient(180deg, #f7fcff 0%, #f4fbff 58%, #eaf6ff 100%) !important;
-  box-shadow: 0 18px 42px rgba(61, 108, 157, .08) !important;
-}
-
-html body:has(.app-shell[data-route="dashboard"]) .metro-clean-system > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"]::before {
-  content: '' !important;
-  position: absolute !important;
-  z-index: 0 !important;
-  left: -4% !important;
-  right: -4% !important;
-  bottom: -38px !important;
-  height: 138px !important;
-  display: block !important;
-  background:
-    radial-gradient(ellipse at 2% 46%, #cbeaff 0 18%, transparent 19%),
-    radial-gradient(ellipse at 14% 56%, #dcf5e8 0 20%, transparent 21%),
-    radial-gradient(ellipse at 31% 47%, #d4edff 0 22%, transparent 23%),
-    radial-gradient(ellipse at 49% 60%, #e1f7eb 0 18%, transparent 19%),
-    radial-gradient(ellipse at 67% 49%, #d2eaff 0 23%, transparent 24%),
-    radial-gradient(ellipse at 83% 57%, #e3dcff 0 22%, transparent 23%),
-    radial-gradient(ellipse at 97% 47%, #cee8ff 0 19%, transparent 20%) !important;
-  opacity: 1 !important;
-  pointer-events: none !important;
-}
-
-html body:has(.app-shell[data-route="dashboard"]) .metro-clean-system > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"]::after {
-  content: 'Teach Better Together ♡' !important;
-  position: absolute !important;
-  z-index: 5 !important;
-  right: 34px !important;
-  bottom: 29px !important;
-  display: block !important;
-  color: #347ee6 !important;
-  font-size: 18px !important;
-  font-style: italic !important;
-  font-weight: 760 !important;
-  line-height: 1.05 !important;
-  transform: rotate(-7deg) !important;
-  pointer-events: none !important;
-}
-
-html body:has(.app-shell[data-route="dashboard"]) .metro-clean-system > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] > * {
-  position: relative !important;
-  z-index: 2 !important;
-}
-
-html body:has(.app-shell[data-route="dashboard"]) .metro-clean-system > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-main > section {
-  border-color: rgba(133, 181, 230, .52) !important;
-  box-shadow:
-    0 17px 36px rgba(57, 102, 151, .085),
-    inset 0 1px 0 rgba(255,255,255,.95) !important;
-}
-
-html body:has(.app-shell[data-route="dashboard"]) .metro-clean-system > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-brand {
-  background:
-    radial-gradient(circle at 10% 12%, rgba(255,255,255,.98), transparent 7rem),
-    radial-gradient(circle at 0% 100%, rgba(164, 219, 255, .72), transparent 10rem),
-    radial-gradient(circle at 100% 100%, rgba(187, 239, 205, .76), transparent 9rem),
-    linear-gradient(145deg, #e5f3ff, #f8fbff 55%, #ebf8ed) !important;
-}
-
-html body:has(.app-shell[data-route="dashboard"]) .metro-clean-system > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-profile {
-  background:
-    radial-gradient(circle at 100% 100%, rgba(174, 236, 215, .76), transparent 10rem),
-    linear-gradient(145deg, #e9faf2, #fbfffc 58%, #eaf8f5) !important;
-}
-
-html body:has(.app-shell[data-route="dashboard"]) .metro-clean-system > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] .signature-footer-v50-credentials {
-  background:
-    radial-gradient(circle at 100% 0%, rgba(255, 220, 164, .70), transparent 10rem),
-    linear-gradient(145deg, #fff5de, #fffdf7 57%, #ffedcf) !important;
-}
-
-@media (max-width: 720px) {
-  html body:has(.app-shell[data-route="dashboard"]) .metro-clean-system > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"] {
-    padding-bottom: 62px !important;
-  }
-
-  html body:has(.app-shell[data-route="dashboard"]) .metro-clean-system > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"]::after {
-    right: 18px !important;
-    bottom: 20px !important;
-    font-size: 14px !important;
-  }
-}
-
-
-/* Dashboard footer V6 direct route refinement */
-footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] {
-  position: relative !important;
-  isolation: isolate !important;
+  box-sizing: border-box !important;
   width: min(1480px, calc(100% - 40px)) !important;
   max-width: calc(100% - 40px) !important;
   margin: 10px auto 18px !important;
-  padding: 18px 18px 112px !important;
+  padding: 18px 18px 92px !important;
   overflow: hidden !important;
-  border: 1px solid rgba(145, 190, 235, .50) !important;
+  border: 1px solid rgba(145, 190, 235, .52) !important;
   border-radius: 28px !important;
-  background:
-    linear-gradient(180deg, #f8fcff 0%, #f7fcff 55%, #eef8ff 100%) !important;
+  background: linear-gradient(180deg, #f8fcff 0%, #f7fbff 64%, #eef8ff 100%) !important;
   box-shadow: 0 18px 42px rgba(61, 108, 157, .08) !important;
+  color: #17334f !important;
 }
 
-footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"]::before {
+/* Low watercolor landscape only. No large radial discs. */
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"]::before {
   content: '' !important;
   position: absolute !important;
   z-index: 0 !important;
   left: -3% !important;
   right: -3% !important;
-  bottom: -22px !important;
-  height: 112px !important;
+  bottom: -28px !important;
+  height: 104px !important;
   display: block !important;
   background:
-    radial-gradient(ellipse at 4% 64%, #d8efff 0 14%, transparent 15%),
-    radial-gradient(ellipse at 18% 72%, #e0f6ea 0 15%, transparent 16%),
-    radial-gradient(ellipse at 34% 66%, #d8efff 0 17%, transparent 18%),
-    radial-gradient(ellipse at 51% 74%, #e6f8ee 0 14%, transparent 15%),
-    radial-gradient(ellipse at 68% 66%, #dcecff 0 17%, transparent 18%),
-    radial-gradient(ellipse at 84% 72%, #e8e1ff 0 16%, transparent 17%),
-    radial-gradient(ellipse at 98% 64%, #d7ecff 0 14%, transparent 15%) !important;
+    radial-gradient(ellipse 16% 62% at 2% 84%, #d7efff 0 74%, transparent 76%),
+    radial-gradient(ellipse 18% 66% at 18% 92%, #dff6e9 0 74%, transparent 76%),
+    radial-gradient(ellipse 19% 66% at 35% 86%, #d8efff 0 74%, transparent 76%),
+    radial-gradient(ellipse 17% 62% at 52% 94%, #e4f7ec 0 74%, transparent 76%),
+    radial-gradient(ellipse 19% 65% at 69% 87%, #dcecff 0 74%, transparent 76%),
+    radial-gradient(ellipse 18% 63% at 85% 93%, #e7e1ff 0 74%, transparent 76%),
+    radial-gradient(ellipse 16% 62% at 99% 84%, #d8edff 0 74%, transparent 76%) !important;
   opacity: .96 !important;
   pointer-events: none !important;
 }
 
-footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"]::after {
+/* Closing handwritten sign-off lives in its own footer zone, below all cards. */
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"]::after {
   content: 'Teach Better Together ♡' !important;
   position: absolute !important;
   z-index: 6 !important;
-  right: 34px !important;
-  bottom: 34px !important;
+  right: 36px !important;
+  bottom: 35px !important;
   display: block !important;
+  width: auto !important;
+  height: auto !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
   color: #337ee7 !important;
   font-size: 18px !important;
   font-style: italic !important;
   font-weight: 760 !important;
   line-height: 1.05 !important;
+  letter-spacing: .01em !important;
   transform: rotate(-6deg) !important;
+  box-shadow: none !important;
   pointer-events: none !important;
 }
 
-footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] > * {
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] > * {
   position: relative !important;
   z-index: 2 !important;
 }
 
-footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-main {
-  gap: 16px !important;
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] > .signature-footer-expanded-panel {
+  display: block !important;
+  overflow: visible !important;
+  border-top: 0 !important;
 }
 
-footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-main > section {
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-main {
+  display: grid !important;
+  grid-template-columns: .95fr 1.08fr 1.07fr !important;
+  gap: 16px !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-main > section {
+  min-width: 0 !important;
   min-height: 300px !important;
   padding: 25px 26px !important;
+  overflow: hidden !important;
   border: 1px solid rgba(137, 184, 231, .50) !important;
   border-radius: 22px !important;
   box-shadow:
@@ -348,44 +97,115 @@ footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-fo
     inset 0 1px 0 rgba(255,255,255,.95) !important;
 }
 
-footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-brand {
-  background:
-    radial-gradient(circle at 0% 100%, rgba(173, 224, 255, .56), transparent 9rem),
-    radial-gradient(circle at 100% 100%, rgba(196, 241, 211, .58), transparent 8rem),
-    linear-gradient(145deg, #eaf5ff, #f9fcff 60%, #eef9ef) !important;
+/* Use linear pastel washes only, preventing the oversized circular artifact
+   visible in the V6 production screenshot. */
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-brand {
+  background: linear-gradient(145deg, #eaf5ff 0%, #f9fcff 58%, #eef9ef 100%) !important;
 }
 
-footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-profile {
-  background:
-    radial-gradient(circle at 100% 100%, rgba(192, 240, 224, .56), transparent 8rem),
-    linear-gradient(145deg, #eefbf5, #fbfffc 58%, #eefaf8) !important;
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-profile {
+  background: linear-gradient(145deg, #eefbf5 0%, #fbfffc 58%, #eefaf8 100%) !important;
 }
 
-footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-credentials {
-  background:
-    radial-gradient(circle at 100% 0%, rgba(255, 229, 185, .46), transparent 8rem),
-    linear-gradient(145deg, #fff9e8, #fffdf8 60%, #fff4df) !important;
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-credentials {
+  background: linear-gradient(145deg, #fff9e8 0%, #fffdf8 60%, #fff4df 100%) !important;
 }
 
-footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-expanded-note {
-  margin-top: 14px !important;
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-brian-logo {
+  width: min(238px, 86%) !important;
+  max-height: 96px !important;
+  margin-bottom: 18px !important;
 }
 
-footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] > .signature-footer-static-summary {
-  margin-top: 10px !important;
-  padding-top: 12px !important;
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-affiliations {
+  padding-top: 17px !important;
+}
+
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-affiliations img {
+  height: 76px !important;
+}
+
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-language-badge {
+  background: #15945a !important;
+}
+
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-profile h2 {
+  color: #14784b !important;
+}
+
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-detail-icon {
+  background: #dff6e8 !important;
+}
+
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-section-label {
+  color: #df6414 !important;
+}
+
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-star {
+  color: #e8ad00 !important;
+}
+
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-expanded-note {
+  display: flex !important;
+  justify-content: center !important;
+  margin: 13px 0 0 !important;
+  color: #6a829a !important;
+}
+
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] > .signature-footer-static-summary {
+  display: flex !important;
+  justify-content: center !important;
+  margin-top: 9px !important;
+  padding: 11px 0 0 !important;
+  border-top: 1px solid rgba(132, 171, 212, .24) !important;
+  background: transparent !important;
+}
+
+@media (max-width: 1040px) {
+  html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] {
+    padding-bottom: 82px !important;
+  }
+
+  html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-main {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-credentials {
+    grid-column: 1 / -1 !important;
+  }
+
+  html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-main > section {
+    min-height: 0 !important;
+  }
 }
 
 @media (max-width: 720px) {
-  footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] {
+  html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] {
     width: calc(100% - 16px) !important;
     max-width: calc(100% - 16px) !important;
-    padding: 12px 12px 72px !important;
+    margin: 10px auto 12px !important;
+    padding: 12px 12px 66px !important;
+    border-radius: 22px !important;
   }
 
-  footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"]::after {
+  html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-main {
+    grid-template-columns: 1fr !important;
+    gap: 13px !important;
+  }
+
+  html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"] .signature-footer-v50-credentials {
+    grid-column: auto !important;
+  }
+
+  html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"]::after {
     right: 18px !important;
-    bottom: 22px !important;
+    bottom: 21px !important;
     font-size: 14px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-app-shell-footer="true"][data-footer-route="dashboard"]::after {
+    transform: none !important;
   }
 }
