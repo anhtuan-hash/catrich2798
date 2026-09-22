@@ -78,15 +78,20 @@
 }
 .brian-newswire__story-wrap{
   min-width:0;
-  min-height:34px;
+  height:max(34px,2.4em);
   position:relative;
-  display:flex;
+  display:grid;
   align-items:center;
   overflow:hidden;
+  contain:layout paint;
+}
+.brian-newswire__story-wrap .brian-newswire__story{
+  grid-area:1 / 1;
+  align-self:center;
 }
 .brian-newswire__story-wrap.is-transitioning .brian-newswire__story{
-  position:absolute;
-  inset:0;
+  position:relative;
+  inset:auto;
 }
 .brian-newswire__story.is-motion-layer{
   will-change:transform,opacity;
@@ -210,22 +215,22 @@
 }
 .brian-newswire__all:hover{text-decoration:underline}
 @keyframes brian-newswire-exit-forward{
-  from{opacity:1;transform:translate3d(0,0,0) scale(1)}
-  to{opacity:0;transform:translate3d(0,-8px,0) scale(.994)}
+  from{opacity:1;transform:translate3d(0,0,0)}
+  to{opacity:0;transform:translate3d(-8px,0,0)}
 }
 @keyframes brian-newswire-enter-forward{
-  from{opacity:0;transform:translate3d(0,11px,0) scale(.994)}
+  from{opacity:0;transform:translate3d(10px,0,0)}
   45%{opacity:.72}
-  to{opacity:1;transform:translate3d(0,0,0) scale(1)}
+  to{opacity:1;transform:translate3d(0,0,0)}
 }
 @keyframes brian-newswire-exit-backward{
-  from{opacity:1;transform:translate3d(0,0,0) scale(1)}
-  to{opacity:0;transform:translate3d(0,8px,0) scale(.994)}
+  from{opacity:1;transform:translate3d(0,0,0)}
+  to{opacity:0;transform:translate3d(8px,0,0)}
 }
 @keyframes brian-newswire-enter-backward{
-  from{opacity:0;transform:translate3d(0,-11px,0) scale(.994)}
+  from{opacity:0;transform:translate3d(-10px,0,0)}
   45%{opacity:.72}
-  to{opacity:1;transform:translate3d(0,0,0) scale(1)}
+  to{opacity:1;transform:translate3d(0,0,0)}
 }
 @media (prefers-reduced-motion:reduce){
   .brian-newswire__story.is-motion-layer{animation:none}
@@ -254,7 +259,7 @@
   .brian-newswire__label strong{font-size:9.5px}
   .brian-newswire__label small{font-size:6.5px}
   .brian-newswire__live{width:7px;height:7px;flex-basis:7px}
-  .brian-newswire__story-wrap{min-height:42px}
+  .brian-newswire__story-wrap{height:max(46px,3.25em)}
   .brian-newswire__story{
     display:grid;
     grid-template-columns:auto 1fr;
