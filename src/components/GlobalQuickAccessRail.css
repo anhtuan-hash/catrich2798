@@ -466,7 +466,7 @@
 
 .bqa-customizer-backdrop {
   position: fixed;
-  z-index: 240;
+  z-index: 2147482600;
   inset: 0;
   display: grid;
   place-items: center;
@@ -1235,7 +1235,7 @@ button.bqa-customizer-row:disabled {
 .bqa-root.is-collapsing {
   width: calc(var(--bqa-rail-width) + 8px + var(--bqa-panel-width));
   pointer-events: none;
-  z-index: 12000 !important;
+  z-index: 2147482500 !important;
 }
 
 .bqa-hover-bridge {
