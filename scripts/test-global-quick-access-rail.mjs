@@ -25,12 +25,15 @@ for (const token of [
 assert.match(prefs, /QUICK_ACCESS_MAX_ITEMS\s*=\s*10/, 'Quick Access must cap shortcuts at 10.');
 assert.ok(prefs.includes("storageKey(user)"), 'Local fallback must be scoped per account.');
 assert.ok(prefs.includes('updatedAt: 0'), 'New-device defaults must not outrank an existing cloud configuration.');
+assert.ok(prefs.includes('hasExplicitItems'), 'An explicitly empty shortcut list must remain empty instead of resetting to defaults.');
 
 for (const token of [
   'bqa-edge-trigger',
   'is-pinned',
   'onPointerEnter',
   'onPointerLeave',
+  'onOutsidePointerDown',
+  'inert={expanded ? undefined : true}',
   'draggable',
   'Tùy chỉnh thanh truy cập nhanh',
   "document.querySelector('.brian-nav__attendance-tab')",
