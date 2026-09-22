@@ -123,7 +123,7 @@ test.describe('Global Quick Access safe area', () => {
     await page.goto('/#/apps');
     await expect(page.locator('.bqa-root')).toBeVisible();
 
-    await page.locator('.bqa-brand').click();
+    await page.locator('.bqa-rail').hover();
     await expect(page.locator('.bqa-root')).toHaveClass(/is-open/);
     await page.locator('.bqa-pin').click();
 
