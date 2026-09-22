@@ -6,6 +6,8 @@ const css = fs.readFileSync('src/components/BrianNewswireBar.css', 'utf8');
 const slot = fs.readFileSync('src/components/GlobalEditorialBriefBar.jsx', 'utf8');
 const nav = fs.readFileSync('src/components/GlobalFlatNavigation.jsx', 'utf8');
 const reader = fs.readFileSync('src/pages/NewsReader.jsx', 'utf8');
+const regionalCss = fs.readFileSync('src/styles/GlobalRegionalFontSystem.css', 'utf8');
+const regionalRuntime = fs.readFileSync('src/utils/globalRegionalFontSystem.js', 'utf8');
 
 assert.match(bar, /fetch\('\/api\/news-feed\?language=vi&category=all'\)/);
 assert.match(bar, /ROTATE_MS = 6500/);
@@ -23,6 +25,13 @@ assert.match(css, /backdrop-filter:blur\(20px\)/);
 assert.match(css, /@media\(max-width:620px\)/);
 assert.match(css, /@media \(prefers-reduced-motion:reduce\)/);
 assert.equal(css.includes('marquee'), false, 'newswire must not use legacy marquee motion');
+
+assert.match(regionalCss, /:is\(\.brian-editorial-brief, \.brian-newswire\)/);
+assert.match(regionalCss, /font-family: var\(--bes-font-newswire\) !important/);
+assert.match(regionalCss, /data-font-size-newswire/);
+assert.match(regionalCss, /font-size: var\(--bes-font-size-newswire\) !important/);
+assert.match(regionalRuntime, /:is\(\.brian-editorial-brief,\.brian-newswire\) :is\(div,span,strong,b,em,small,p,button,a,time\)/);
+assert.match(regionalRuntime, /closest\?\.\('\.brian-editorial-brief,\.brian-newswire'\)/);
 
 assert.match(slot, /<BrianNewswireBar language=\{language\} \/>/);
 assert.match(slot, /if \(!currentUser \|\| HIDDEN_ROUTES\.has\(route\)\) return null/);

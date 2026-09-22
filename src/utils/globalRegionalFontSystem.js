@@ -34,7 +34,7 @@ const FONT_SIZE_RUNTIME_SELECTORS = Object.freeze({
   controls: "button,[role='button'],[role='tab'],[role='option'],[role='menuitem'],input,textarea,select,option,label,legend,summary",
   sectionHeading: "h2,h3,h4,[class*='section-title'],[class*='section-heading'],[class*='card-title']",
   pageTitle: "h1,[class*='page-title'],[class*='hero-title'],[class*='hero-heading'],[class*='hero'] [class*='title']",
-  newswire: ".brian-editorial-brief :is(div,span,strong,b,em,small,p,button,a)",
+  newswire: ":is(.brian-editorial-brief,.brian-newswire) :is(div,span,strong,b,em,small,p,button,a,time)",
   navigation: ".brian-nav__brand > span,.brian-nav__primary > :is(button,a,[role='button']),.brian-nav__account-name,.brian-nav__account :is(strong,span)",
 });
 
@@ -102,7 +102,7 @@ function runtimeNodeExcluded(node, regionId) {
   if (node.matches?.('.material-symbols-outlined,.material-symbols-rounded,.material-symbols-sharp,.material-icons,code,pre,kbd,samp')) return true;
   if (node.closest?.('code,pre,kbd,samp')) return true;
   if (regionId !== 'navigation' && node.closest?.('.brian-nav')) return true;
-  if (regionId !== 'newswire' && node.closest?.('.brian-editorial-brief')) return true;
+  if (regionId !== 'newswire' && node.closest?.('.brian-editorial-brief,.brian-newswire')) return true;
   return false;
 }
 
