@@ -398,6 +398,7 @@ export default function GlobalQuickAccessRail({
   const [customizerQuery, setCustomizerQuery] = useState('');
   const [dragId, setDragId] = useState('');
   const [collapsing, setCollapsing] = useState(false);
+  const [commanding, setCommanding] = useState(false);
   const [commandQuery, setCommandQuery] = useState('');
   const [peekItemId, setPeekItemId] = useState('');
   const [badges, setBadges] = useState({});
@@ -468,7 +469,7 @@ export default function GlobalQuickAccessRail({
       .slice(0, 8);
   }, [catalog, commandQuery, language]);
 
-  const expanded = hovered || pinned || customizing;
+  const expanded = hovered || pinned || customizing || commanding;
 
   const openRail = useCallback(() => {
     window.clearTimeout(closeTimerRef.current);
@@ -478,7 +479,7 @@ export default function GlobalQuickAccessRail({
   }, []);
 
   const collapseRail = useCallback((force = false) => {
-    if (!force && (pinned || customizing)) return;
+    if (!force && (pinned || customizing || commanding)) return;
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
 
@@ -492,7 +493,7 @@ export default function GlobalQuickAccessRail({
     }
 
     setHovered(false);
-  }, [pinned, customizing, hovered]);
+  }, [pinned, customizing, commanding, hovered]);
 
   useEffect(() => {
     if (!currentUser || !allowedIds.length) return undefined;
@@ -577,7 +578,14 @@ export default function GlobalQuickAccessRail({
       collapseRail(false);
     };
     const onEscape = (event) => {
-      if (event.key === 'Escape') collapseRail(false);
+      if (event.key !== 'Escape') return;
+      if (commanding) {
+        setCommanding(false);
+        setCommandQuery('');
+        collapseRail(true);
+        return;
+      }
+      collapseRail(false);
     };
 
     document.addEventListener('pointerdown', onOutsidePointerDown, true);
@@ -586,13 +594,15 @@ export default function GlobalQuickAccessRail({
       document.removeEventListener('pointerdown', onOutsidePointerDown, true);
       window.removeEventListener('keydown', onEscape);
     };
-  }, [hovered, pinned, customizing, collapseRail]);
+  }, [hovered, pinned, customizing, commanding, collapseRail]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
 
     const onNavigationStart = () => {
-      if (!pinned && !customizing) collapseRail(false);
+      setCommanding(false);
+      setCommandQuery('');
+      if (!pinned && !customizing) collapseRail(true);
     };
     const onShortcut = (event) => {
       const tag = String(event.target?.tagName || '').toLowerCase();
@@ -602,9 +612,12 @@ export default function GlobalQuickAccessRail({
       if (!editable && !event.repeat && (event.metaKey || event.ctrlKey) && !event.altKey && key === 'k') {
         if (currentRoute === 'home') return;
         event.preventDefault();
-        openRail();
+        setCommanding(true);
         setCommandQuery('');
-        window.requestAnimationFrame(() => commandInputRef.current?.focus());
+        openRail();
+        window.requestAnimationFrame(() => {
+          window.requestAnimationFrame(() => commandInputRef.current?.focus());
+        });
         return;
       }
 
@@ -612,8 +625,13 @@ export default function GlobalQuickAccessRail({
 
       if (event.altKey && !event.ctrlKey && !event.metaKey && key === 'q') {
         event.preventDefault();
-        if (expanded && !pinned && !customizing) collapseRail(false);
-        else openRail();
+        if (expanded && !pinned && !customizing) {
+          setCommanding(false);
+          setCommandQuery('');
+          collapseRail(true);
+        } else {
+          openRail();
+        }
         return;
       }
 
@@ -820,16 +838,17 @@ export default function GlobalQuickAccessRail({
 
   const leave = () => {
     window.clearTimeout(closeTimerRef.current);
-    if (pinned || customizing) return;
+    if (pinned || customizing || commanding) return;
     closeTimerRef.current = window.setTimeout(() => collapseRail(false), 300);
   };
 
   const activateItem = (item, sourceEl) => {
     rememberRecent(item?.id);
+    setCommanding(false);
     setCommandQuery('');
     setPeekItemId('');
     runAction(item, sourceEl);
-    if (!pinned) collapseRail(false);
+    if (!pinned) collapseRail(true);
   };
 
   const togglePinned = () => setMode(pinned ? 'auto' : 'pin');
@@ -903,6 +922,7 @@ export default function GlobalQuickAccessRail({
         data-motion={collapsing ? 'collapsing' : (expanded ? 'open' : 'rest')}
         data-route={currentRoute}
         data-mode={mode}
+        data-commanding={commanding ? 'true' : 'false'}
         onPointerEnter={enter}
         onPointerLeave={leave}
         onFocusCapture={enter}
@@ -1013,12 +1033,13 @@ export default function GlobalQuickAccessRail({
             <input
               ref={commandInputRef}
               value={commandQuery}
+              onFocus={() => setCommanding(true)}
               onChange={(event) => setCommandQuery(event.target.value)}
               placeholder={language === 'vi' ? 'Tìm ứng dụng hoặc tính năng…' : 'Find an app or action…'}
               aria-label={language === 'vi' ? 'Tìm trong Quick Access' : 'Search Quick Access'}
             />
             {commandQuery ? (
-              <button type="button" onClick={() => { setCommandQuery(''); commandInputRef.current?.focus(); }} aria-label={language === 'vi' ? 'Xóa tìm kiếm' : 'Clear search'}>
+              <button type="button" onClick={() => { setCommanding(true); setCommandQuery(''); commandInputRef.current?.focus(); }} aria-label={language === 'vi' ? 'Xóa tìm kiếm' : 'Clear search'}>
                 <X size={15} aria-hidden="true" />
               </button>
             ) : (
