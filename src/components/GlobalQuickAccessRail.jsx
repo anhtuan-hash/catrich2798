@@ -450,6 +450,39 @@ export default function GlobalQuickAccessRail({
   useEffect(() => () => {
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
+    window.clearTimeout(peekTimerRef.current);
+  }, []);
+
+  useEffect(() => {
+    setRecentIds(loadQuickAccessRecent(currentUser, allowedIds));
+  }, [currentUser?.id, currentUser?.authId, currentUser?.email, allowedKey]);
+
+  useEffect(() => {
+    const currentItem = catalog.find((item) => activeItem(item, currentRoute, selectedTool));
+    if (!currentItem) return;
+    setRecentIds(pushQuickAccessRecent(currentUser, currentItem.id, allowedIds));
+  }, [currentRoute, selectedTool?.slug, currentUser?.id, allowedKey]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const initial = window.__BRIAN_QUICK_ACCESS_BADGES__;
+    if (initial && typeof initial === 'object') setBadges(initial);
+
+    const onBadges = (event) => {
+      const detail = event?.detail;
+      if (!detail) return;
+      if (detail.id) {
+        setBadges((current) => ({ ...current, [String(detail.id)]: detail.value }));
+        return;
+      }
+      const patch = detail.badges && typeof detail.badges === 'object' ? detail.badges : detail;
+      if (patch && typeof patch === 'object') {
+        setBadges((current) => ({ ...current, ...patch }));
+      }
+    };
+
+    window.addEventListener(QUICK_ACCESS_BADGE_EVENT, onBadges);
+    return () => window.removeEventListener(QUICK_ACCESS_BADGE_EVENT, onBadges);
   }, []);
 
   useEffect(() => {
@@ -465,14 +498,19 @@ export default function GlobalQuickAccessRail({
   }, [customizing]);
 
   useEffect(() => {
-    if (!hovered || config.pinned || customizing || typeof document === 'undefined') return undefined;
+    if (!hovered || isPinned || customizing || typeof document === 'undefined') return undefined;
 
     const onOutsidePointerDown = (event) => {
       if (event.target?.closest?.('.bqa-root')) return;
       collapseRail(false);
     };
     const onEscape = (event) => {
-      if (event.key === 'Escape') collapseRail(false);
+      if (event.key === 'Escape') {
+        setActionMenuItemId('');
+        setPeekItemId('');
+        setCommandQuery('');
+        collapseRail(false);
+      }
     };
 
     document.addEventListener('pointerdown', onOutsidePointerDown, true);
@@ -481,22 +519,41 @@ export default function GlobalQuickAccessRail({
       document.removeEventListener('pointerdown', onOutsidePointerDown, true);
       window.removeEventListener('keydown', onEscape);
     };
-  }, [hovered, config.pinned, customizing, collapseRail]);
+  }, [hovered, isPinned, customizing, collapseRail]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
 
     const onNavigationStart = () => {
-      if (!config.pinned && !customizing) collapseRail(false);
+      if (!isPinned && !customizing) collapseRail(false);
     };
     const onShortcut = (event) => {
       const tag = String(event.target?.tagName || '').toLowerCase();
       const editable = event.target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag);
-      if (editable || event.repeat) return;
-      if (event.altKey && !event.ctrlKey && !event.metaKey && String(event.key || '').toLowerCase() === 'q') {
+      if (event.repeat) return;
+
+      const key = String(event.key || '').toLowerCase();
+      if ((event.metaKey || event.ctrlKey) && !event.altKey && key === 'k') {
         event.preventDefault();
-        if (expanded && !config.pinned && !customizing) collapseRail(false);
+        openRail();
+        setCommandQuery('');
+        window.setTimeout(() => commandInputRef.current?.focus(), 30);
+        return;
+      }
+
+      if (!editable && event.altKey && !event.ctrlKey && !event.metaKey && key === 'q') {
+        event.preventDefault();
+        if (expanded && !isPinned && !customizing) collapseRail(false);
         else openRail();
+        return;
+      }
+
+      if (!editable && event.altKey && !event.ctrlKey && !event.metaKey && /^[1-9]$/.test(key)) {
+        const item = selectedItems[Number(key) - 1];
+        if (!item) return;
+        event.preventDefault();
+        setRecentIds(pushQuickAccessRecent(currentUser, item.id, allowedIds));
+        runAction(item, document.querySelector(`[data-bqa-item-id="${item.id}"]`));
       }
     };
 
@@ -506,7 +563,7 @@ export default function GlobalQuickAccessRail({
       window.removeEventListener('bes-navigation-start', onNavigationStart);
       window.removeEventListener('keydown', onShortcut);
     };
-  }, [config.pinned, customizing, expanded, collapseRail, openRail]);
+  }, [isPinned, customizing, expanded, collapseRail, openRail, selectedItems, currentUser?.id, allowedKey]);
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
