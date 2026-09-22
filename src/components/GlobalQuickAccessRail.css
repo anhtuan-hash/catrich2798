@@ -1209,8 +1209,9 @@ button.bqa-customizer-row:disabled {
 @media (min-width: 1280px) {
   .app-shell[data-quick-access-layout="true"] > #bes-main-content {
     box-sizing: border-box;
-    margin-inline-start: var(--bqa-content-safe-shift, 0px);
-    max-width: calc(100% - var(--bqa-content-safe-shift, 0px));
+    margin-inline-start: var(--bqa-content-safe-shift, 0px) !important;
+    max-width: calc(100% - var(--bqa-content-safe-shift, 0px)) !important;
+    min-width: 0 !important;
     transition:
       margin-inline-start 235ms cubic-bezier(.22, 1, .36, 1),
       max-width 235ms cubic-bezier(.22, 1, .36, 1);
@@ -1220,13 +1221,20 @@ button.bqa-customizer-row:disabled {
      viewport, so the rail can never cover footer text/cards while scrolling. */
   .app-shell[data-quick-access-layout="true"] > footer[data-app-shell-footer="true"] {
     position: relative !important;
-    z-index: 150 !important;
+    z-index: 220 !important;
     isolation: isolate;
   }
 
   .app-shell[data-quick-access-layout="true"][data-quick-access-state="pinned"] > #bes-main-content {
     transition-duration: 260ms;
   }
+}
+
+/* Open/pinned panels must sit above route heroes/cards so every control remains
+   clickable. Collapsed state keeps its quieter route-specific stacking. */
+.bqa-root.is-open,
+.bqa-root.is-pinned {
+  z-index: 190;
 }
 
 /* Mid-size screens keep the content width intact and reduce the resting rail to
