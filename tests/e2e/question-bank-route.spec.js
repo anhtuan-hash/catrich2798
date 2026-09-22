@@ -65,7 +65,7 @@ test('Assessment Core V7 keeps premium horizontal navigation across all modules'
   await openQuestionBank(page);
 
   await expect(page.locator('.qb-shell.qb-shell-v7')).toBeVisible();
-  await expect(page.locator('.qb-tabs-horizontal button')).toHaveCount(10);
+  await expect(page.locator('.qb-tabs-horizontal button')).toHaveCount(11);
   await expect(page.locator('.qb-v6-hero')).toBeVisible();
   await expect(page.locator('.qb-v7-hero-graphic svg')).toBeVisible();
   await expect(page.locator('.qb-v7-hero-label')).toBeVisible();
@@ -74,6 +74,7 @@ test('Assessment Core V7 keeps premium horizontal navigation across all modules'
     ['Kho câu hỏi', 'questions'],
     ['Chùm bài', 'bundles'],
     ['Quản trị', 'manage'],
+    ['Phân quyền', 'share'],
     ['Ma trận', 'blueprints'],
     ['Phủ ma trận', 'coverage'],
     ['Chất lượng', 'quality'],
