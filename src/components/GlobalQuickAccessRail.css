@@ -1234,8 +1234,16 @@ button.bqa-customizer-row:disabled {
 .bqa-root.is-pinned,
 .bqa-root.is-collapsing {
   width: calc(var(--bqa-rail-width) + 8px + var(--bqa-panel-width));
-  pointer-events: none;
   z-index: 2147482500 !important;
+}
+
+.bqa-root.is-open,
+.bqa-root.is-pinned {
+  pointer-events: auto;
+}
+
+.bqa-root.is-collapsing {
+  pointer-events: none;
 }
 
 .bqa-hover-bridge {
