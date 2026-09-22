@@ -22,8 +22,8 @@
   --hrc-muted:#73859d;
   position:relative;
   isolation:isolate;
-  height:500px;
-  min-height:500px;
+  height:490px;
+  min-height:490px;
   margin:0 0 16px!important;
   overflow:hidden;
   border:1px solid rgba(61,108,166,.17)!important;
@@ -45,11 +45,11 @@
   content:"";
   position:absolute;
   z-index:2;
-  top:-3%;
-  bottom:-3%;
-  left:-2%;
-  width:52%;
-  border-radius:0 43% 43% 0 / 0 54% 54% 0;
+  top:-4%;
+  bottom:-4%;
+  left:-2.2%;
+  width:48.6%;
+  border-radius:0 39% 39% 0 / 0 52% 52% 0;
   background:
     radial-gradient(circle at 18% 14%,rgba(221,243,255,.76),transparent 22rem),
     linear-gradient(133deg,rgba(255,255,255,.998) 0%,rgba(253,254,255,.992) 66%,rgba(247,251,255,.965) 100%);
@@ -61,7 +61,7 @@
   content:"";
   position:absolute;
   z-index:3;
-  left:50.8%;
+  left:47.8%;
   top:-11%;
   width:1px;
   height:122%;
@@ -73,17 +73,17 @@
 .hr-page .hr-campus-scene {
   position:absolute;
   z-index:0;
-  inset:0 0 0 43.5%;
+  inset:0 0 0 39.5%;
   overflow:hidden;
   background:linear-gradient(180deg,#a6d5ff 0%,#e0f0ff 62%,#f7fbff 100%)!important;
-  filter:saturate(1.09) contrast(1.035);
+  filter:saturate(1.13) contrast(1.055);
 }
 
 .hr-page .hr-campus-scene__svg {
   display:block;
   width:100%;
   height:100%;
-  transform:scale(1.04) translateX(.8%);
+  transform:scale(1.055) translateX(.2%);
   transform-origin:center;
 }
 
@@ -92,16 +92,16 @@
   inset:0;
   pointer-events:none;
   background:
-    linear-gradient(90deg,rgba(247,252,255,.92) 0%,rgba(240,249,255,.34) 11%,rgba(237,248,255,.06) 24%,transparent 37%),
-    linear-gradient(180deg,rgba(255,255,255,.01),rgba(22,66,112,.045));
+    linear-gradient(90deg,rgba(247,252,255,.88) 0%,rgba(240,249,255,.24) 10%,rgba(237,248,255,.04) 21%,transparent 34%),
+    linear-gradient(180deg,rgba(255,255,255,0),rgba(22,66,112,.035));
 }
 
 .hr-page .hr-campus-hero__copy {
   position:relative;
   z-index:5;
-  width:50.2%;
+  width:47.2%;
   min-width:0;
-  padding:43px 32px 34px 58px!important;
+  padding:41px 27px 32px 58px!important;
 }
 
 .hr-page .hr-campus-hero__eyebrow {
@@ -121,7 +121,7 @@
   -webkit-text-fill-color:var(--hrc-navy)!important;
   background:none!important;
   font-family:"Google Sans","Google Sans Text",Roboto,Arial,sans-serif!important;
-  font-size:clamp(64px,5.25vw,88px)!important;
+  font-size:clamp(62px,5vw,84px)!important;
   font-weight:760!important;
   line-height:.9!important;
   letter-spacing:-.064em!important;
@@ -154,7 +154,7 @@
 
 .hr-page .hr-campus-hero__quote {
   position:relative;
-  max-width:440px!important;
+  max-width:420px!important;
   margin:0!important;
   padding:0 0 0 40px!important;
   border:0!important;
@@ -192,7 +192,7 @@
 .hr-page .hr-campus-hero__ledger {
   display:grid!important;
   grid-template-columns:repeat(4,minmax(0,1fr))!important;
-  width:min(100%,570px)!important;
+  width:min(100%,548px)!important;
   margin-top:20px!important;
   padding:12px 10px!important;
   border:1px solid rgba(68,113,171,.13)!important;
@@ -395,17 +395,17 @@
 .hr-page .hr-campus-profile {
   position:absolute!important;
   z-index:7!important;
-  right:31px!important;
-  bottom:24px!important;
-  width:min(312px,29%)!important;
+  right:42px!important;
+  bottom:38px!important;
+  width:min(318px,29.5%)!important;
   min-height:164px!important;
   padding:18px 20px 15px!important;
   border:1px solid rgba(255,255,255,.93)!important;
   border-radius:19px!important;
-  background:rgba(255,255,255,.965)!important;
+  background:rgba(255,255,255,.975)!important;
   color:#173763!important;
   box-shadow:
-    0 24px 54px rgba(28,63,105,.17),
+    0 24px 54px rgba(28,63,105,.19),
     inset 0 1px 0 rgba(255,255,255,.98)!important;
   backdrop-filter:blur(20px) saturate(1.08)!important;
   -webkit-backdrop-filter:blur(20px) saturate(1.08)!important;
@@ -553,30 +553,31 @@
 /* Desktop compression */
 @media (max-width:1320px) {
   .hr-page .hr-campus-hero {
-    height:486px!important;
-    min-height:486px!important;
+    height:478px!important;
+    min-height:478px!important;
   }
 
   .hr-page .hr-campus-hero::before {
-    width:54%!important;
+    width:51.5%!important;
   }
 
   .hr-page .hr-campus-scene {
-    left:42.5%!important;
+    left:40.5%!important;
   }
 
   .hr-page .hr-campus-hero__copy {
-    width:54%!important;
-    padding:39px 24px 32px 44px!important;
+    width:50.8%!important;
+    padding:38px 22px 30px 44px!important;
   }
 
   .hr-page .hr-campus-hero h1 {
-    font-size:clamp(60px,5.25vw,82px)!important;
+    font-size:clamp(58px,5vw,78px)!important;
   }
 
   .hr-page .hr-campus-profile {
-    right:20px!important;
-    width:min(302px,30.5%)!important;
+    right:28px!important;
+    bottom:32px!important;
+    width:min(304px,30.5%)!important;
   }
 }
 
