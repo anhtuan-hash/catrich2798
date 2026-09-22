@@ -575,7 +575,7 @@ export default function GlobalQuickAccessRail({
     const footer = shell?.querySelector?.(':scope > footer[data-app-shell-footer="true"]');
     if (!root || !shell || !main || !safeFrame) return undefined;
 
-    shell.dataset.quickAccessState = isPinned ? 'pinned' : 'rest';
+    shell.dataset.quickAccessState = isPinned ? 'pinned' : (mode === 'focus' ? 'focus' : 'rest');
 
     const clearSafeArea = () => {
       shell.style.removeProperty('--bqa-content-safe-shift');
@@ -586,7 +586,7 @@ export default function GlobalQuickAccessRail({
       window.cancelAnimationFrame(layoutFrameRef.current);
       layoutFrameRef.current = window.requestAnimationFrame(() => {
         const coarsePointer = window.matchMedia?.('(pointer: coarse)')?.matches === true;
-        const reserveMode = window.innerWidth >= QUICK_ACCESS_SAFE_AREA_MIN_WIDTH && !coarsePointer;
+        const reserveMode = mode !== 'focus' && window.innerWidth >= QUICK_ACCESS_SAFE_AREA_MIN_WIDTH && !coarsePointer;
         shell.dataset.quickAccessSafeMode = reserveMode ? 'reserve' : 'overlay';
 
         if (!reserveMode) {
@@ -646,7 +646,7 @@ export default function GlobalQuickAccessRail({
           }
         }, 330);
 
-        shell.dataset.quickAccessState = isPinned ? 'pinned' : 'rest';
+        shell.dataset.quickAccessState = isPinned ? 'pinned' : (mode === 'focus' ? 'focus' : 'rest');
 
         if (footer) footer.dataset.quickAccessOcclusionGuard = 'true';
         if (panel) panel.dataset.safeBoundary = String(Math.round(safeBoundary));
@@ -693,6 +693,7 @@ export default function GlobalQuickAccessRail({
     currentRoute,
     selectedTool?.slug,
     isPinned,
+    mode,
     allowedKey,
     appVisibility?.ready,
   ]);
