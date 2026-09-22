@@ -25,10 +25,9 @@ const phoneEnvironment = {
 assert.equal(resolvePresentationMode(desktopEnvironment, null).presentationMode, 'desktop');
 assert.equal(resolvePresentationMode(phoneEnvironment, null).presentationMode, 'mobile');
 
-const hook = read('src/hooks/usePresentationMode.js');
 const portal = read('src/components/HomeParticleSignaturePortal.jsx');
-const navigation = read('src/components/GlobalFlatNavigation.jsx');
 const css = read('src/components/BrianPulseLogo.css');
+const navigation = read('src/components/GlobalFlatNavigation.jsx');
 
 assert.match(portal, /brian-pulse-logo-trigger--static/);
 assert.doesNotMatch(portal, /writePresentationOverride/);
@@ -36,17 +35,11 @@ assert.doesNotMatch(portal, /onClick\s*=/);
 assert.doesNotMatch(portal, /<button/);
 assert.doesNotMatch(portal, /Chuyển sang giao diện mobile/);
 
-assert.doesNotMatch(hook, /readStoredPresentationOverride/);
-assert.doesNotMatch(hook, /PRESENTATION_OVERRIDE_EVENT/);
-assert.match(hook, /removeItem\(PRESENTATION_OVERRIDE_STORAGE_KEY\)/);
-
-assert.doesNotMatch(navigation, /writePresentationOverride/);
-assert.doesNotMatch(navigation, /forcedMobile/);
-assert.doesNotMatch(navigation, /bes-mobile-desktop-return/);
-
 assert.match(css, /\.brian-pulse-logo-trigger\s*\{[^}]*cursor\s*:\s*default/i);
 assert.match(css, /\.brian-pulse-logo-trigger \.brian-pulse-logo__canvas\s*\{\s*cursor\s*:\s*default/i);
-assert.doesNotMatch(css, /data-presentation-override=['"]mobile['"]/);
-assert.doesNotMatch(css, /bes-mobile-desktop-return/);
 
-console.log('✓ Star is decorative; desktop → mobile toggle retired');
+// Keep device-driven mobile presentation intact; only the Star entry point is retired.
+assert.match(navigation, /MobileAppShell/);
+assert.match(navigation, /presentation\.presentationMode === 'mobile'/);
+
+console.log('✓ Star is decorative and cannot switch desktop to mobile mode');
