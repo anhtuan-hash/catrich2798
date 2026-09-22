@@ -1207,14 +1207,12 @@ button.bqa-customizer-row:disabled {
 }
 
 @media (min-width: 1280px) {
-  .app-shell[data-quick-access-layout="true"] > #bes-main-content {
+  .app-shell[data-quick-access-layout="true"] > #bes-main-content > .bqa-content-safe-frame {
     box-sizing: border-box;
-    margin-inline-start: var(--bqa-content-safe-shift, 0px) !important;
-    max-width: calc(100% - var(--bqa-content-safe-shift, 0px)) !important;
-    min-width: 0 !important;
-    transition:
-      margin-inline-start 235ms cubic-bezier(.22, 1, .36, 1),
-      max-width 235ms cubic-bezier(.22, 1, .36, 1);
+    width: 100%;
+    min-width: 0;
+    padding-inline-start: var(--bqa-content-safe-shift, 0px);
+    transition: padding-inline-start 235ms cubic-bezier(.22, 1, .36, 1);
   }
 
   /* The canonical global footer paints above the fixed rail when it enters the
@@ -1225,7 +1223,7 @@ button.bqa-customizer-row:disabled {
     isolation: isolate;
   }
 
-  .app-shell[data-quick-access-layout="true"][data-quick-access-state="pinned"] > #bes-main-content {
+  .app-shell[data-quick-access-layout="true"][data-quick-access-state="pinned"] > #bes-main-content > .bqa-content-safe-frame {
     transition-duration: 260ms;
   }
 }
@@ -1234,7 +1232,7 @@ button.bqa-customizer-row:disabled {
    clickable. Collapsed state keeps its quieter route-specific stacking. */
 .bqa-root.is-open,
 .bqa-root.is-pinned {
-  z-index: 190;
+  z-index: 12000 !important;
 }
 
 /* Mid-size screens keep the content width intact and reduce the resting rail to
@@ -1244,9 +1242,9 @@ button.bqa-customizer-row:disabled {
     --bqa-content-safe-shift: 0px !important;
   }
 
-  .app-shell[data-quick-access-layout="true"] > #bes-main-content {
-    margin-inline-start: 0 !important;
-    max-width: 100% !important;
+  .app-shell[data-quick-access-layout="true"] > #bes-main-content > .bqa-content-safe-frame {
+    width: 100% !important;
+    padding-inline-start: 0 !important;
   }
 
   .bqa-root.is-collapsed:not(.is-pinned) .bqa-rail {
@@ -1272,9 +1270,9 @@ button.bqa-customizer-row:disabled {
     --bqa-content-safe-shift: 0px !important;
   }
 
-  .app-shell[data-quick-access-layout="true"] > #bes-main-content {
-    margin-inline-start: 0 !important;
-    max-width: 100% !important;
+  .app-shell[data-quick-access-layout="true"] > #bes-main-content > .bqa-content-safe-frame {
+    width: 100% !important;
+    padding-inline-start: 0 !important;
   }
 
   .bqa-root.is-collapsed:not(.is-pinned) .bqa-rail {
@@ -1294,7 +1292,7 @@ button.bqa-customizer-row:disabled {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .app-shell[data-quick-access-layout="true"] > #bes-main-content {
+  .app-shell[data-quick-access-layout="true"] > #bes-main-content > .bqa-content-safe-frame {
     transition: none !important;
   }
 }
