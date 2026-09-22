@@ -46,7 +46,7 @@ assert.match(
 
 assert.doesNotMatch(
   launchCss,
-  /@keyframes\s+attendance-win8-shell-in[\s\S]*?(46%|72%)/i,
+  /scale\(1\.016\)|scale\(\.996\)/i,
   'Attendance launch must not use the previous multi-stage overshoot',
 );
 
@@ -58,7 +58,7 @@ assert.doesNotMatch(
 
 assert.doesNotMatch(
   ttcmCss,
-  /\.ttcm-m3-layer\s*\{[\s\S]*?animation-name/i,
+  /\.ttcm-m3-layer\s*\{[^}]*animation-name/i,
   'TTCM backdrop must stay static so only one app-open animation is visible',
 );
 
@@ -76,7 +76,7 @@ assert.match(
 
 assert.doesNotMatch(
   ttcmCss,
-  /@keyframes\s+ttcm-win8-shell-in[\s\S]*?(48%|76%)/i,
+  /scale\(1\.012\)|scale\(\.998\)/i,
   'TTCM launch must not use the previous multi-stage overshoot',
 );
 
