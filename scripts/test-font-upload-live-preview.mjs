@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 
 const panel = fs.readFileSync('src/components/admin/RegionalFontAdminPanel.jsx', 'utf8');
+const globalPanel = fs.readFileSync('src/components/admin/GlobalFontAdminPanel.jsx', 'utf8');
+const mainEntry = fs.readFileSync('src/main.jsx', 'utf8');
 const css = fs.readFileSync('src/components/admin/RegionalFontAdminPanel.css', 'utf8');
 const system = fs.readFileSync('src/utils/globalRegionalFontSystem.js', 'utf8');
 const runtimeCss = fs.readFileSync('src/styles/GlobalRegionalFontSystem.css', 'utf8');
@@ -10,6 +12,11 @@ const utilitySlot = fs.readFileSync('src/components/GlobalEnglishHubBrand.jsx', 
 const legacyScale = fs.readFileSync('src/utils/fontScale.js', 'utf8');
 
 const assertions = [
+  ['global preset selection previews immediately across the app', globalPanel.includes("source: 'admin-live-selection'") && globalPanel.includes("applyGlobalFontPreset(id")],
+  ['selecting an existing custom font previews immediately', globalPanel.includes("source: 'admin-live-selection-custom'") && globalPanel.includes('applyGlobalCustomFont(')],
+  ['choosing a custom font file previews immediately', globalPanel.includes('const previewResult = previewGlobalCustomFont(file') && globalPanel.includes('Previewing the selected font across the interface')],
+  ['regional font authority stylesheet is loaded globally', mainEntry.includes("import './styles/GlobalRegionalFontSystem.css';")],
+  ['regional font runtime is installed globally', mainEntry.includes("import { installRegionalFontSystem } from './utils/globalRegionalFontSystem.js';") && mainEntry.includes('installRegionalFontSystem();')],
   ['shared custom upload panel is removed', !panel.includes('regional-font-upload__preview') && !panel.includes('Tải font của riêng bạn')],
   ['every region card renders its own upload control', panel.includes('regional-font-card__custom-upload') && panel.includes('GLOBAL_FONT_REGIONS.map')],
   ['every region has a custom-font selector option', panel.includes('Font cá nhân cho khu vực này…') && panel.includes('value="custom"')],
