@@ -1231,7 +1231,10 @@ button.bqa-customizer-row:disabled {
 /* Open/pinned panels must sit above route heroes/cards so every control remains
    clickable. Collapsed state keeps its quieter route-specific stacking. */
 .bqa-root.is-open,
-.bqa-root.is-pinned {
+.bqa-root.is-pinned,
+.bqa-root.is-collapsing {
+  width: calc(var(--bqa-rail-width) + 8px + var(--bqa-panel-width));
+  pointer-events: auto;
   z-index: 12000 !important;
 }
 
