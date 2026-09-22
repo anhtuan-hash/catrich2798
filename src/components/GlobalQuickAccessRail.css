@@ -1398,3 +1398,25 @@ body:has(.app-shell[data-quick-access-safe-mode="overlay"]) > .bqa-root.is-colla
   z-index: 1 !important;
 }
 
+
+
+/* Hover-open finalization · 2026-09-22
+   Apple Pencil motion gets its full 330 ms, then the panel is hard-set to the
+   fully expanded geometry so no browser can leave it stuck in a clipped frame. */
+.bqa-root.is-open.is-open-settled .bqa-panel {
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  clip-path: inset(0 0 0 0 round 22px) !important;
+  transform: translate3d(0, 0, 0) scale(1) !important;
+}
+
+.bqa-root.is-open.is-open-settled .bqa-panel-header,
+.bqa-root.is-open.is-open-settled .bqa-panel-list,
+.bqa-root.is-open.is-open-settled .bqa-panel-footer,
+.bqa-root.is-open.is-open-settled .bqa-panel-item {
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: translate3d(0, 0, 0) scale(1) !important;
+}
+
