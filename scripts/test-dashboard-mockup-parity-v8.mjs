@@ -17,12 +17,13 @@ for (const token of [
 }
 
 for (const token of [
-  'Dashboard V8 runtime-static capture guard',
+  'Mockup Parity V10',
   '[data-dashboard-static-chrome="true"]',
   'position: static !important',
+  'width: min(1520px, calc(100% - clamp(32px, 6vw, 96px))) !important',
   'will-change: auto !important',
 ]) {
-  assert.ok(chrome.includes(token), `Dashboard chrome V8 token missing: ${token}`);
+  assert.ok(chrome.includes(token), `Dashboard chrome visual contract missing: ${token}`);
 }
 
 const marker = '/* Dashboard Mockup Parity V8 · section-by-section 100-point refinement · 2026-09-22 */';
@@ -53,14 +54,14 @@ for (const token of [
 }
 
 for (const token of [
-  'Dashboard footer — Mockup Parity V8',
+  'Dashboard footer — Mockup Parity V10',
   'content: none !important',
   '.signature-footer-card-doodle',
   '.signature-footer-dashboard-artwork',
   '.signature-footer-dashboard-landscape',
   '.signature-footer-dashboard-signoff',
 ]) {
-  assert.ok(footer.includes(token), `Footer V8 style token missing: ${token}`);
+  assert.ok(footer.includes(token), `Footer visual contract missing: ${token}`);
 }
 
 for (const className of ['brand', 'profile', 'credentials']) {

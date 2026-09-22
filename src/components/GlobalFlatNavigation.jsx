@@ -96,7 +96,7 @@ export default function GlobalFlatNavigation(props) {
     const chrome = document.querySelector('.app-shell > .bes-top-chrome');
     if (!chrome) return undefined;
 
-    const ownedProperties = ['position', 'top', 'right', 'bottom', 'left', 'inset', 'transform', 'translate'];
+    const ownedProperties = ['position', 'top', 'right', 'bottom', 'left', 'inset', 'transform', 'translate', 'width', 'max-width', 'margin'];
     if (props.route === 'dashboard') {
       chrome.dataset.dashboardStaticChrome = 'true';
       chrome.style.setProperty('position', 'static', 'important');
@@ -107,6 +107,9 @@ export default function GlobalFlatNavigation(props) {
       chrome.style.setProperty('inset', 'auto', 'important');
       chrome.style.setProperty('transform', 'none', 'important');
       chrome.style.setProperty('translate', 'none', 'important');
+      chrome.style.setProperty('width', 'min(1520px, calc(100% - clamp(32px, 6vw, 96px)))', 'important');
+      chrome.style.setProperty('max-width', '1520px', 'important');
+      chrome.style.setProperty('margin', '8px auto 0', 'important');
     } else if (chrome.dataset.dashboardStaticChrome === 'true') {
       delete chrome.dataset.dashboardStaticChrome;
       ownedProperties.forEach((property) => chrome.style.removeProperty(property));

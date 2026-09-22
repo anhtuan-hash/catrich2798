@@ -14,7 +14,7 @@ assert.ok(
 
 for (const token of [
   'body:has(.app-shell[data-route="dashboard"]) .bes-top-chrome',
-  'position: relative !important',
+  'position: static !important',
   'top: auto !important',
   '.brian-newswire',
   '.gd-page',
@@ -41,7 +41,7 @@ for (const token of [
 }
 
 for (const token of [
-  'Mockup Parity V8',
+  'Mockup Parity V10',
   '[data-footer-route="dashboard"]',
   '.signature-footer-v50-brand',
   '.signature-footer-v50-profile',
