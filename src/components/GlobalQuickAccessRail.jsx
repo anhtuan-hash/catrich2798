@@ -1028,7 +1028,7 @@ export default function GlobalQuickAccessRail({
             </button>
           </header>
 
-          <div className="bqa-command-search">
+          <div className="bqa-command-search" data-bes-keep-search="true" role="search">
             <Search size={16} aria-hidden="true" />
             <input
               ref={commandInputRef}
