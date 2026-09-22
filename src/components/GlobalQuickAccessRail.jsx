@@ -6,7 +6,12 @@ import {
   Boxes,
   CalendarDays,
   Check,
+  ChevronRight,
   ClipboardCheck,
+  Clock3,
+  Command,
+  Eye,
+  MoreHorizontal,
   FileText,
   Gauge,
   GripVertical,
@@ -33,8 +38,49 @@ import {
   loadQuickAccessConfigFromCloud,
   saveQuickAccessConfigToCloud,
   subscribeQuickAccessConfig,
+  loadQuickAccessRecent,
+  pushQuickAccessRecent,
 } from '../utils/quickAccessPreferences.js';
 import './GlobalQuickAccessRail.css';
+
+const QUICK_ACCESS_BADGE_EVENT = 'bes-quick-access-badges';
+const QUICK_ACCESS_PEEK_DELAY = 320;
+
+function normalizeBadgeValue(value) {
+  if (value === null || value === undefined || value === false || value === 0 || value === '0') return '';
+  if (typeof value === 'number') return value > 99 ? '99+' : String(Math.max(0, Math.round(value)));
+  const text = String(value).trim();
+  return text.length > 3 ? text.slice(0, 3) : text;
+}
+
+function itemDescription(item, language) {
+  const vi = {
+    'route:dashboard': 'Tổng quan công việc và lịch trong ngày.',
+    'route:apps': 'Mở kho ứng dụng dành cho giáo viên.',
+    'route:homeroom': 'Hồ sơ lớp, học sinh và công tác chủ nhiệm.',
+    'tool:gradebook-studio': 'Quản lý điểm và dữ liệu học tập.',
+    'action:reports': 'Theo dõi và tổng hợp báo cáo chuyên môn.',
+    'action:ttcm': 'Không gian làm việc của tổ chuyên môn.',
+    'action:attendance': 'Mở công cụ điểm danh nhanh.',
+    'action:schedule': 'Lịch và kế hoạch làm việc của tổ.',
+    'route:assessment-core': 'Ngân hàng câu hỏi và cấu trúc đề.',
+    'route:resource-library': 'Kho tài liệu và học liệu dùng chung.',
+  };
+  const en = {
+    'route:dashboard': 'Daily work and schedule overview.',
+    'route:apps': 'Open the teacher app directory.',
+    'route:homeroom': 'Class records, students and homeroom tools.',
+    'tool:gradebook-studio': 'Manage grades and learning records.',
+    'action:reports': 'Professional reports and summaries.',
+    'action:ttcm': 'Department workspace.',
+    'action:attendance': 'Open fast attendance.',
+    'action:schedule': 'Department work schedule.',
+    'route:assessment-core': 'Question bank and exam structures.',
+    'route:resource-library': 'Shared resources and documents.',
+  };
+  return (language === 'vi' ? vi : en)[item?.id]
+    || (language === 'vi' ? 'Mở nhanh ứng dụng hoặc tính năng này.' : 'Quickly open this app or feature.');
+}
 
 const STATIC_ITEMS = [
   {
