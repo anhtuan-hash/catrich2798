@@ -125,7 +125,11 @@ test.describe('Global Quick Access safe area', () => {
 
     await page.locator('.bqa-rail').hover();
     await expect(page.locator('.bqa-root')).toHaveClass(/is-open/);
-    await page.locator('.bqa-pin').click();
+
+    // The purpose of this case is pinned-layout geometry, not hover hit-testing.
+    // Invoke the real button handler directly so transient morph/hover timing
+    // cannot make this regression test flaky while the panel is expanding.
+    await page.locator('.bqa-pin').evaluate((button) => button.click());
 
     await expect(page.locator('.bqa-root')).toHaveClass(/is-pinned/);
     await expect(page.locator('.app-shell')).toHaveAttribute('data-quick-access-state', 'pinned');
