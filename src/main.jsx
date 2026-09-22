@@ -356,6 +356,13 @@ function App() {
 
   const setGlobalLoading = (active, label = '') => setLoadingState({ active, label: label || (language === 'vi' ? 'Đang tải...' : 'Loading...') });
 
+  const quickAccessEnabled = Boolean(
+    currentUser
+    && canAccessRoute
+    && currentRoute !== 'home'
+    && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute)
+  );
+
   const context = {
     language,
     setLanguage,
@@ -438,6 +445,7 @@ function App() {
         data-windows-indicator={indicatorMode}
         data-app-version={APP_VERSION}
         data-burs="comfortable"
+        data-quick-access-layout={quickAccessEnabled ? 'true' : 'false'}
         style={{
           '--active-app-accent': activeDesignProfile.accent,
           '--active-app-soft': activeDesignProfile.soft,
@@ -453,7 +461,7 @@ function App() {
           </AppErrorBoundary>
         </div> : null}
 
-        {currentUser && canAccessRoute && currentRoute !== 'home' && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute) && (
+        {quickAccessEnabled && (
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="quick-access-rail" label={language === 'vi' ? 'thanh truy cập nhanh' : 'quick access'}>
               <GlobalQuickAccessRail
