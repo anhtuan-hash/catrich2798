@@ -299,6 +299,7 @@ export default function GlobalQuickAccessRail({
   const closeTimerRef = useRef(0);
   const collapseMotionTimerRef = useRef(0);
   const layoutFrameRef = useRef(0);
+  const layoutSettleTimerRef = useRef(0);
   const rootRef = useRef(null);
   const railRef = useRef(null);
   const panelRef = useRef(null);
@@ -485,6 +486,11 @@ export default function GlobalQuickAccessRail({
 
         shell.style.setProperty('--bqa-content-safe-shift', `${nextShift}px`);
         shell.dataset.quickAccessSafeShift = String(nextShift);
+
+        if (Math.abs(nextShift - currentShift) >= 1) {
+          window.clearTimeout(layoutSettleTimerRef.current);
+          layoutSettleTimerRef.current = window.setTimeout(measureAndApply, 290);
+        }
         shell.dataset.quickAccessState = config.pinned ? 'pinned' : 'rest';
 
         if (footer) footer.dataset.quickAccessOcclusionGuard = 'true';
@@ -513,6 +519,7 @@ export default function GlobalQuickAccessRail({
     return () => {
       window.clearTimeout(settleA);
       window.clearTimeout(settleB);
+      window.clearTimeout(layoutSettleTimerRef.current);
       window.cancelAnimationFrame(layoutFrameRef.current);
       resizeObserver?.disconnect();
       mutationObserver?.disconnect();
