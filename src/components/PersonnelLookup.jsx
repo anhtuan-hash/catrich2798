@@ -334,6 +334,20 @@ export default function PersonnelLookup({ currentUser, language = 'vi' }) {
     setNotice('');
   };
 
+  const startEditingPersonWithDegree = (person) => {
+    const source = !leaderView && person.proposedProfile ? person.proposedProfile : person.approvedProfile || person;
+    const nextDraft = cleanPersonnelRecord(source);
+    const currentDegrees = degreeList(nextDraft);
+    const nextDegree = createEmptyPersonnelDegree(currentDegrees.length);
+    nextDegree.isHighest = currentDegrees.length === 0;
+    nextDraft.degrees = [...currentDegrees, nextDegree];
+    setSelectedId(person.id);
+    setDraft(nextDraft);
+    setProposalNote(person.proposalNote || '');
+    setEditing(true);
+    setNotice('');
+  };
+
   const replaceItem = (item) => {
     setItems((current) => [item, ...current.filter((entry) => entry.profileUserId !== item.profileUserId)]);
   };
@@ -426,12 +440,68 @@ export default function PersonnelLookup({ currentUser, language = 'vi' }) {
           {!loading && !filteredPeople.length ? <div className="gpl-empty"><MaterialIcon name="search" size={28} /><p>{t.empty}</p></div> : null}
           {filteredPeople.map((person) => <button type="button" className={`gpl-person-row${person.workflowStatus === 'submitted' ? ' has-pending' : ''}`} key={person.id} onClick={() => openProfile(person)}><span className="gpl-person-cell"><span className="gpl-avatar">{person.avatarUrl ? <img src={person.avatarUrl} alt="" /> : initials(person.name)}</span><span className="gpl-person-name"><strong>{person.name}</strong><small>{person.email}</small></span></span><span className="gpl-position-cell"><strong>{person.position || t.positionTeacher}</strong><small>{employmentLabel(person.employmentType, t)}</small></span><span className={`gpl-qualification-cell${degreeList(person).length ? '' : ' is-missing'}`}><b>{person.degreeLevel ? degreeLabel(person.degreeLevel, language) : t.noQualification}<span className="gpl-degree-count">{degreeList(person).length}</span></b><small>{person.major || t.noMajor}</small></span><span className="gpl-assignment-cell"><strong>{person.assignment || t.noAssignment}</strong><small>{person.department}</small></span><span><em className={`gpl-workflow-status is-${person.workflowStatus}`}>{statusLabel(person.workflowStatus, t)}</em></span><span className="gpl-row-arrow"><MaterialIcon name="arrow" size={20} /></span></button>)}
         </div></div>
-      </> : selected ? <section className="gpl-teacher-summary">
-        <div className="gpl-teacher-identity"><span className="gpl-profile-avatar">{selected.avatarUrl ? <img src={selected.avatarUrl} alt="" /> : initials(selected.name)}</span><div><span>{t.linkedAccount}</span><h3>{selected.name}</h3><p>{selected.email}</p></div><em className={`gpl-workflow-status is-${selected.workflowStatus}`}>{statusLabel(selected.workflowStatus, t)}</em></div>
-        {selected.workflowStatus === 'submitted' ? <div className="gpl-teacher-message is-pending"><MaterialIcon name="sync" size={21} /><div><strong>{t.waitingMessage}</strong><small>{selected.proposalNote || t.proposalHeading}</small></div></div> : null}
-        {selected.workflowStatus === 'changes_requested' ? <div className="gpl-teacher-message is-changes"><MaterialIcon name="warning" size={21} /><div><strong>{t.changesMessage}</strong><small>{selected.reviewNote || t.reviewerFeedback}</small></div></div> : null}
-        <div className="gpl-teacher-facts"><div><small>{t.highestLevel}</small><strong>{selected.degreeLevel ? degreeLabel(selected.degreeLevel, language) : t.noQualification}</strong><span>{degreeList(selected).length} {t.degreeCount} · {selected.major || t.noMajor}</span></div><div><small>{t.assignment}</small><strong>{selected.assignment || t.noAssignment}</strong><span>{selected.department}</span></div><div><small>{t.lastUpdated}</small><strong>{formatMoment(selected.updatedAt, language)}</strong><span>{t.syncMessage}</span></div></div>
-        <div className="gpl-teacher-actions"><button type="button" className="gpl-button outlined" onClick={() => openProfile(selected)}>{t.profile}<MaterialIcon name="arrow" size={18} /></button><button type="button" className="gpl-button filled" onClick={() => startEditingPerson(selected)}><MaterialIcon name="edit" size={18} />{selected.proposedProfile ? t.updateProposal : t.propose}</button></div>
+      </> : selected ? <section className="gpl-teacher-summary gpl-teacher-dashboard">
+        <div className="gpl-teacher-layout">
+          <div className="gpl-teacher-primary">
+            <section className="gpl-teacher-hero-card">
+              <div className="gpl-teacher-hero-main">
+                <span className="gpl-profile-avatar gpl-teacher-hero-avatar">{selected.avatarUrl ? <img src={selected.avatarUrl} alt="" /> : initials(selected.name)}<i className="gpl-teacher-online-dot" aria-hidden="true" /></span>
+                <div className="gpl-teacher-hero-copy">
+                  <h3>{selected.name}</h3>
+                  <div className="gpl-teacher-hero-meta">
+                    <span><MaterialIcon name="account" size={17} />{selected.position || t.positionTeacher}</span>
+                    <span><MaterialIcon name="groups" size={17} />{selected.department || t.eyebrow}</span>
+                    <span><MaterialIcon name="send" size={17} />{selected.email || '—'}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="gpl-teacher-quote" aria-hidden="true"><span>“</span><p>Good teachers<br />change the world<br />one student at a time.</p></div>
+              <button type="button" className="gpl-button outlined gpl-teacher-edit-cta" onClick={() => startEditingPerson(selected)}><MaterialIcon name="edit" size={18} />{selected.proposedProfile ? t.updateProposal : t.propose}</button>
+            </section>
+
+            {selected.workflowStatus === 'submitted' ? <div className="gpl-teacher-message is-pending"><MaterialIcon name="sync" size={21} /><div><strong>{t.waitingMessage}</strong><small>{selected.proposalNote || t.proposalHeading}</small></div></div> : null}
+            {selected.workflowStatus === 'changes_requested' ? <div className="gpl-teacher-message is-changes"><MaterialIcon name="warning" size={21} /><div><strong>{t.changesMessage}</strong><small>{selected.reviewNote || t.reviewerFeedback}</small></div></div> : null}
+
+            <div className="gpl-teacher-facts gpl-teacher-facts-modern">
+              <div><span className="gpl-teacher-fact-icon is-green"><MaterialIcon name="school" size={22} /></span><p><small>{t.position}</small><strong>{selected.position || t.positionTeacher}</strong></p></div>
+              <div><span className="gpl-teacher-fact-icon is-purple"><MaterialIcon name="groups" size={22} /></span><p><small>{t.department}</small><strong>{selected.department || t.eyebrow}</strong></p></div>
+              <div><span className="gpl-teacher-fact-icon is-red"><MaterialIcon name="badge" size={22} /></span><p><small>{t.status}</small><strong className="gpl-teacher-active-status">{t[selected.employmentStatus] || t.active}</strong></p></div>
+            </div>
+
+            <section className="gpl-teacher-personal-card">
+              <header><div><span className="gpl-section-icon"><MaterialIcon name="account" size={20} /></span><strong>Thông tin cá nhân</strong></div><button type="button" className="gpl-button outlined gpl-teacher-small-action" onClick={() => startEditingPerson(selected)}><MaterialIcon name="edit" size={16} />Chỉnh sửa</button></header>
+              <dl>
+                <div><dt>Họ và tên</dt><dd>{selected.name}</dd></div>
+                <div><dt>Email</dt><dd>{selected.email || '—'}</dd></div>
+                <div><dt>{t.position}</dt><dd>{selected.position || t.positionTeacher}</dd></div>
+                <div><dt>{t.department}</dt><dd>{selected.department || t.eyebrow}</dd></div>
+                <div><dt>{t.employmentType}</dt><dd>{employmentLabel(selected.employmentType, t)}</dd></div>
+                <div><dt>{t.phone}</dt><dd>{selected.phone || t.notUpdated || 'Chưa cập nhật'}</dd></div>
+                <div><dt>{t.assignment}</dt><dd>{selected.assignment || t.noAssignment}</dd></div>
+              </dl>
+            </section>
+
+            <footer className="gpl-teacher-update-strip"><span><MaterialIcon name="clock" size={17} />{t.lastUpdated}: <strong>{formatMoment(selected.updatedAt, language)}</strong></span><span><MaterialIcon name="sync" size={16} />Dữ liệu được lưu tự động</span></footer>
+          </div>
+
+          <aside className="gpl-teacher-secondary">
+            <section className="gpl-teacher-side-card gpl-teacher-progress-card">
+              <header><div><span className="gpl-section-icon"><MaterialIcon name="badge" size={20} /></span><strong>Tiến độ chuyên môn</strong></div><em>{degreeList(selected).length}</em></header>
+              <button type="button" onClick={() => openProfile(selected)}><span className="gpl-teacher-side-icon is-green"><MaterialIcon name="school" size={19} /></span><span><strong>Văn bằng chuyên môn</strong><small>{degreeList(selected).length} {t.degreeCount} · {selected.degreeLevel ? degreeLabel(selected.degreeLevel, language) : t.noQualification}</small></span><MaterialIcon name="arrow" size={19} /></button>
+              <button type="button" onClick={() => startEditingPerson(selected)}><span className="gpl-teacher-side-icon is-amber"><MaterialIcon name="work" size={19} /></span><span><strong>Phân công công tác</strong><small>{selected.assignment || t.noAssignment}</small></span><MaterialIcon name="arrow" size={19} /></button>
+            </section>
+
+            <section className="gpl-teacher-side-card gpl-teacher-degree-card">
+              <header><div><span className="gpl-section-icon"><MaterialIcon name="school" size={20} /></span><strong>{t.degrees}</strong><em>{degreeList(selected).length}</em></div><button type="button" className="gpl-side-add-button" onClick={() => startEditingPersonWithDegree(selected)}><MaterialIcon name="add" size={17} />{t.addDegree}</button></header>
+              {degreeList(selected).length ? <div className="gpl-teacher-side-list">{degreeList(selected).map((degree, index) => <article key={degree.id || index}><span className="gpl-teacher-side-doc"><MaterialIcon name="school" size={18} /></span><div><strong>{degreeLabel(degree.level, language) || t.noQualification}{degree.degreeName ? ' · ' + degree.degreeName : ''}</strong><small>{degree.major || t.noMajor}</small><small>{[degree.institution, degree.graduationYear].filter(Boolean).join(' · ') || t.missing}</small></div>{degree.isHighest ? <em>{t.highestBadge}</em> : null}</article>)}</div> : <div className="gpl-teacher-side-empty"><span><MaterialIcon name="school" size={24} /></span><strong>Chưa khai báo văn bằng</strong><small>{t.multipleDegreeHint}</small></div>}
+            </section>
+
+            <section className="gpl-teacher-side-card gpl-teacher-certificate-card">
+              <header><div><span className="gpl-section-icon"><MaterialIcon name="badge" size={20} /></span><strong>Chứng chỉ / Văn bằng khác</strong><em>{selected.otherDegrees ? selected.otherDegrees.split('\n').filter(Boolean).length : 0}</em></div><button type="button" className="gpl-side-add-button" onClick={() => startEditingPerson(selected)}><MaterialIcon name="add" size={17} />Thêm chứng chỉ</button></header>
+              {selected.otherDegrees ? <div className="gpl-teacher-side-list">{selected.otherDegrees.split('\n').filter(Boolean).map((item, index) => <article key={index}><span className="gpl-teacher-side-doc is-purple"><MaterialIcon name="badge" size={18} /></span><div><strong>{item}</strong><small>Đã lưu trong hồ sơ chuyên môn</small></div></article>)}</div> : <div className="gpl-teacher-side-empty"><span><MaterialIcon name="badge" size={24} /></span><strong>Chưa có chứng chỉ/văn bằng khác</strong><small>Mỗi chứng chỉ hoặc văn bằng sẽ hiển thị trên một dòng.</small></div>}
+            </section>
+          </aside>
+        </div>
       </section> : null}
     </div>
 
