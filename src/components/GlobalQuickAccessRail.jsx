@@ -650,7 +650,7 @@ export default function GlobalQuickAccessRail({
     const footer = shell?.querySelector?.(':scope > footer[data-app-shell-footer="true"]');
     if (!root || !shell || !main || !safeFrame) return undefined;
 
-    shell.dataset.quickAccessState = config.pinned ? 'pinned' : 'rest';
+    shell.dataset.quickAccessState = pinned ? 'pinned' : 'rest';
 
     const clearSafeArea = () => {
       shell.style.removeProperty('--bqa-content-safe-shift');
@@ -691,12 +691,12 @@ export default function GlobalQuickAccessRail({
           ? railRect.right
           : rootRect.left + railWidth;
 
-        const pinnedBoundary = config.pinned
+        const pinnedBoundary = pinned
           ? rootRect.left + railWidth + 8 + panelWidth
           : collapsedBoundary;
 
-        const safeBoundary = (config.pinned ? pinnedBoundary : collapsedBoundary) + QUICK_ACCESS_SAFE_GAP;
-        const maxShift = config.pinned ? QUICK_ACCESS_SAFE_MAX_PINNED : QUICK_ACCESS_SAFE_MAX_COLLAPSED;
+        const safeBoundary = (pinned ? pinnedBoundary : collapsedBoundary) + QUICK_ACCESS_SAFE_GAP;
+        const maxShift = pinned ? QUICK_ACCESS_SAFE_MAX_PINNED : QUICK_ACCESS_SAFE_MAX_COLLAPSED;
         const delta = safeBoundary - actualMinLeft;
         const nextShift = Math.max(0, Math.min(maxShift, Math.ceil(currentShift + delta)));
 
@@ -713,7 +713,7 @@ export default function GlobalQuickAccessRail({
           const verifiedMinLeft = measureQuickAccessContentBaseline(safeFrame);
           const stillOccluded = Number.isFinite(verifiedMinLeft) && verifiedMinLeft < safeBoundary - 0.5;
 
-          if (stillOccluded && !config.pinned) {
+          if (stillOccluded && !pinned) {
             shell.dataset.quickAccessSafeMode = 'overlay';
             clearSafeArea();
           } else {
@@ -721,7 +721,7 @@ export default function GlobalQuickAccessRail({
           }
         }, 330);
 
-        shell.dataset.quickAccessState = config.pinned ? 'pinned' : 'rest';
+        shell.dataset.quickAccessState = pinned ? 'pinned' : 'rest';
 
         if (footer) footer.dataset.quickAccessOcclusionGuard = 'true';
         if (panel) panel.dataset.safeBoundary = String(Math.round(safeBoundary));
@@ -767,17 +767,12 @@ export default function GlobalQuickAccessRail({
   }, [
     currentRoute,
     selectedTool?.slug,
-    config.pinned,
+    pinned,
     allowedKey,
     appVisibility?.ready,
   ]);
 
   if (!currentUser || currentRoute === 'home' || !catalog.length) return null;
-
-  const selectedItems = config.items
-    .map((id) => catalog.find((item) => item.id === id))
-    .filter(Boolean)
-    .slice(0, QUICK_ACCESS_MAX_ITEMS);
 
   const availableItems = catalog.filter((item) => !config.items.includes(item.id));
   const customizerNeedle = customizerQuery.trim().toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
@@ -794,22 +789,86 @@ export default function GlobalQuickAccessRail({
     });
   };
 
+  const rememberRecent = (id) => {
+    if (!id) return;
+    const recent = [id, ...(config.recent || []).filter((itemId) => itemId !== id)].slice(0, QUICK_ACCESS_RECENT_MAX);
+    persist({ ...config, recent });
+  };
+
+  const schedulePeek = (id) => {
+    window.clearTimeout(peekTimerRef.current);
+    peekTimerRef.current = window.setTimeout(() => setPeekItemId(id), 280);
+  };
+
+  const clearPeek = (delay = 120) => {
+    window.clearTimeout(peekTimerRef.current);
+    peekTimerRef.current = window.setTimeout(() => setPeekItemId(''), delay);
+  };
+
+  const setMode = (nextMode) => {
+    if (!QUICK_ACCESS_MODES.includes(nextMode)) return;
+    persist({ ...config, mode: nextMode, pinned: nextMode === 'pin' });
+    setPeekItemId('');
+    if (nextMode === 'pin') setHovered(true);
+    if (nextMode === 'focus') setHovered(false);
+  };
+
   const enter = () => {
     openRail();
   };
 
   const leave = () => {
     window.clearTimeout(closeTimerRef.current);
-    if (config.pinned || customizing) return;
-    closeTimerRef.current = window.setTimeout(() => collapseRail(false), 340);
+    if (pinned || customizing) return;
+    closeTimerRef.current = window.setTimeout(() => collapseRail(false), 300);
   };
 
   const activateItem = (item, sourceEl) => {
+    rememberRecent(item?.id);
+    setCommandQuery('');
+    setPeekItemId('');
     runAction(item, sourceEl);
-    if (!config.pinned) collapseRail(false);
+    if (!pinned) collapseRail(false);
   };
 
-  const togglePinned = () => persist({ ...config, pinned: !config.pinned });
+  const togglePinned = () => setMode(pinned ? 'auto' : 'pin');
+
+  const quickActionsFor = (item) => {
+    if (!item) return [];
+
+    if (item.id === 'action:ttcm') {
+      return [
+        { id: 'feed', label: language === 'vi' ? 'Mở bảng tin' : 'Open feed', run: () => openTtcm('feed') },
+        { id: 'schedule', label: language === 'vi' ? 'Mở kế hoạch' : 'Open schedule', run: () => openTtcm('schedule') },
+        { id: 'personnel', label: language === 'vi' ? 'Nhân sự tổ' : 'Department people', run: () => openTtcm('personnel') },
+      ];
+    }
+
+    if (item.id === 'action:schedule') {
+      return [
+        { id: 'schedule', label: language === 'vi' ? 'Mở kế hoạch công tác' : 'Open work schedule', run: () => openTtcm('schedule') },
+        { id: 'feed', label: language === 'vi' ? 'Xem bảng tin TTCM' : 'View department feed', run: () => openTtcm('feed') },
+      ];
+    }
+
+    if (item.id === 'route:apps') {
+      return [
+        { id: 'open', label: language === 'vi' ? 'Mở kho ứng dụng' : 'Open app directory', run: () => runAction(item, null) },
+        { id: 'customize', label: language === 'vi' ? 'Tùy biến launcher' : 'Customize launcher', run: () => { setCustomizerQuery(''); setCustomizing(true); } },
+      ];
+    }
+
+    if (item.id === 'action:reports') {
+      return [
+        { id: 'open', label: language === 'vi' ? 'Mở báo cáo' : 'Open reports', run: () => runAction(item, null) },
+        { id: 'people', label: language === 'vi' ? 'Nhân sự & quản lý tổ' : 'People & department', run: () => openTtcm('personnel') },
+      ];
+    }
+
+    return [
+      { id: 'open', label: language === 'vi' ? 'Mở ứng dụng' : 'Open app', run: () => runAction(item, null) },
+    ];
+  };
 
   const removeItem = (id) => {
     const next = config.items.filter((itemId) => itemId !== id);
@@ -836,10 +895,11 @@ export default function GlobalQuickAccessRail({
     <>
       <div
         ref={rootRef}
-        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${config.pinned ? 'is-pinned' : ''} ${customizing ? 'is-customizing' : ''}`}
+        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} is-${mode} ${customizing ? 'is-customizing' : ''}`}
         data-quick-access="true"
         data-motion={collapsing ? 'collapsing' : (expanded ? 'open' : 'rest')}
         data-route={currentRoute}
+        data-mode={mode}
         onPointerEnter={enter}
         onPointerLeave={leave}
         onFocusCapture={enter}
@@ -869,7 +929,7 @@ export default function GlobalQuickAccessRail({
             aria-label={expanded ? (language === 'vi' ? 'Thu gọn thanh truy cập nhanh' : 'Collapse quick access') : (language === 'vi' ? 'Mở thanh truy cập nhanh' : 'Open quick access')}
             aria-expanded={expanded}
             onClick={() => {
-              if (expanded && !config.pinned && !customizing) collapseRail(false);
+              if (expanded && !pinned && !customizing) collapseRail(false);
               else openRail();
             }}
           >
