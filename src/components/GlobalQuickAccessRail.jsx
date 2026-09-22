@@ -230,8 +230,8 @@ function runAction(item, sourceEl) {
 
 const QUICK_ACCESS_SAFE_AREA_MIN_WIDTH = 1024;
 const QUICK_ACCESS_SAFE_GAP = 12;
-const QUICK_ACCESS_SAFE_MAX_COLLAPSED = 240;
-const QUICK_ACCESS_SAFE_MAX_PINNED = 560;
+const QUICK_ACCESS_SAFE_MAX_COLLAPSED = 320;
+const QUICK_ACCESS_SAFE_MAX_PINNED = 720;
 const QUICK_ACCESS_COLLISION_SELECTOR = [
   'button',
   'a[href]',
@@ -301,6 +301,7 @@ export default function GlobalQuickAccessRail({
   const collapseMotionTimerRef = useRef(0);
   const layoutFrameRef = useRef(0);
   const layoutSettleTimerRef = useRef(0);
+  const layoutVerifyTimerRef = useRef(0);
   const rootRef = useRef(null);
   const railRef = useRef(null);
   const panelRef = useRef(null);
@@ -499,6 +500,20 @@ export default function GlobalQuickAccessRail({
           window.clearTimeout(layoutSettleTimerRef.current);
           layoutSettleTimerRef.current = window.setTimeout(measureAndApply, 290);
         }
+
+        window.clearTimeout(layoutVerifyTimerRef.current);
+        layoutVerifyTimerRef.current = window.setTimeout(() => {
+          const actualMinLeft = measureQuickAccessContentBaseline(main, 0);
+          const stillOccluded = Number.isFinite(actualMinLeft) && actualMinLeft < safeBoundary - 0.5;
+
+          if (stillOccluded && !config.pinned) {
+            shell.dataset.quickAccessSafeMode = 'overlay';
+            clearSafeArea();
+          } else {
+            shell.dataset.quickAccessSafeMode = 'reserve';
+          }
+        }, 330);
+
         shell.dataset.quickAccessState = config.pinned ? 'pinned' : 'rest';
 
         if (footer) footer.dataset.quickAccessOcclusionGuard = 'true';
@@ -528,6 +543,7 @@ export default function GlobalQuickAccessRail({
       window.clearTimeout(settleA);
       window.clearTimeout(settleB);
       window.clearTimeout(layoutSettleTimerRef.current);
+      window.clearTimeout(layoutVerifyTimerRef.current);
       window.cancelAnimationFrame(layoutFrameRef.current);
       resizeObserver?.disconnect();
       mutationObserver?.disconnect();
