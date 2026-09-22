@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import Navigation from './GlobalCompactNavigation.jsx';
 import MobileAppShell from './mobile/MobileAppShell.jsx';
 import usePresentationMode from '../hooks/usePresentationMode.js';
+import { writePresentationOverride } from '../device/presentationMode.js';
 import GlobalWindowsPhone8Loading from './GlobalWindowsPhone8Loading.jsx';
 import GlobalPageLaunchEffect from './GlobalPageLaunchEffect.jsx';
 import GlobalWindows8Experience from './GlobalWindows8Experience.jsx';
@@ -54,6 +55,10 @@ import './GlobalNavigationPastelPalette.css';
 export default function GlobalFlatNavigation(props) {
   const presentation = usePresentationMode();
   const mobile = presentation.presentationMode === 'mobile';
+  const forcedMobile = mobile && presentation.override === 'mobile' && presentation.deviceClass !== 'phone';
+  const returnLabel = props.language === 'en' ? 'Desktop' : 'Máy tính';
+  const returnAria = props.language === 'en' ? 'Return to desktop layout' : 'Trở về giao diện máy tính';
+
   useEffect(() => {
     const root = document.documentElement;
     const shell = document.querySelector('.app-shell');
@@ -90,6 +95,18 @@ export default function GlobalFlatNavigation(props) {
     <>
       <GlobalNativeTextScaleReset />
       {mobile ? <MobileAppShell {...props} /> : <Navigation {...props} />}
+      {forcedMobile ? (
+        <button
+          type="button"
+          className="bes-mobile-desktop-return"
+          onClick={() => writePresentationOverride(null)}
+          aria-label={returnAria}
+          title={returnAria}
+        >
+          <span aria-hidden="true">▣</span>
+          <strong>{returnLabel}</strong>
+        </button>
+      ) : null}
 
       {!mobile ? <GlobalPinnedNavigationHub route={props.route} /> : null}
       <GlobalPageLaunchEffect route={props.route} />
