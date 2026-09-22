@@ -1385,6 +1385,39 @@ body:has(.app-shell[data-route="dashboard"]) .footer .signature-footer-v50-star 
   font-weight: 850 !important;
 }
 
+/* Global Newswire on Dashboard — make the top briefing bar match the brighter mockup treatment. */
+.app-shell[data-route="dashboard"] .brian-newswire {
+  border-color: rgba(111,164,236,.42) !important;
+  background:
+    radial-gradient(circle at 3% 50%, rgba(120,211,255,.15), transparent 12rem),
+    radial-gradient(circle at 93% 40%, rgba(225,213,255,.16), transparent 12rem),
+    linear-gradient(180deg, rgba(255,255,255,.96), rgba(246,250,255,.94)) !important;
+  box-shadow:
+    0 10px 26px rgba(47,97,158,.09),
+    inset 0 1px rgba(255,255,255,.98) !important;
+}
+
+.app-shell[data-route="dashboard"] .brian-newswire::before {
+  width: 4px !important;
+  background: linear-gradient(180deg, #27d97f, #42b9ff) !important;
+}
+
+.app-shell[data-route="dashboard"] .brian-newswire__live {
+  background: #20c86d !important;
+  box-shadow: 0 0 0 4px rgba(32,200,109,.10) !important;
+}
+
+.app-shell[data-route="dashboard"] .brian-newswire__category {
+  border-color: rgba(39,110,221,.18) !important;
+  background: linear-gradient(135deg, #e8f2ff, #edf0ff) !important;
+  color: #2168d3 !important;
+}
+
+.app-shell[data-route="dashboard"] .brian-newswire__controls button {
+  border-color: rgba(72,126,195,.18) !important;
+  background: rgba(255,255,255,.95) !important;
+}
+
 /* Quick-actions panel: preserve the mint artwork and handwritten focus message. */
 .app-shell[data-route="dashboard"] .gd-quick-surface .gd-surface-header {
   position: relative;
