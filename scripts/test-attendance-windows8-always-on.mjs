@@ -34,19 +34,19 @@ assert.doesNotMatch(
 
 assert.match(
   ttcmCss,
-  /\\.ttcm-m3-layer\\s*\\{[\\s\\S]*?animation-name\\s*:\\s*ttcm-win8-layer-in/i,
+  /\.ttcm-m3-layer\s*\{[\s\S]*?animation-name\s*:\s*ttcm-win8-layer-in/i,
   'TTCM backdrop must use the Windows 8 launch animation',
 );
 
 assert.match(
   ttcmCss,
-  /\\.ttcm-m3-shell\\s*\\{[\\s\\S]*?animation-name\\s*:\\s*ttcm-win8-shell-in/i,
+  /\.ttcm-m3-shell\s*\{[\s\S]*?animation-name\s*:\s*ttcm-win8-shell-in/i,
   'TTCM app shell must use the Windows 8 launch animation',
 );
 
 assert.match(
   ttcmCss,
-  /@keyframes\\s+ttcm-win8-shell-in[\\s\\S]*?translate3d\\([^)]*-190px\\)[\\s\\S]*?scale\\(\\.78\\)/i,
+  /@keyframes\s+ttcm-win8-shell-in[\s\S]*?translate3d\([^)]*-190px\)[\s\S]*?scale\(\.78\)/i,
   'TTCM launch must include the Metro-style depth/zoom entrance',
 );
 
