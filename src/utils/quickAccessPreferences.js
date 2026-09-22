@@ -57,7 +57,7 @@ export function createDefaultQuickAccessConfig(allowedIds = []) {
     version: 1,
     items: [...preferred, ...fallback].slice(0, QUICK_ACCESS_MAX_ITEMS),
     pinned: false,
-    updatedAt: Date.now(),
+    updatedAt: 0,
   };
 }
 
@@ -74,7 +74,7 @@ export function normalizeQuickAccessConfig(raw, allowedIds = []) {
     version: 1,
     items: (items.length ? items : defaults.items).slice(0, QUICK_ACCESS_MAX_ITEMS),
     pinned: Boolean(source.pinned),
-    updatedAt: Number(source.updatedAt) || Date.now(),
+    updatedAt: Number(source.updatedAt) || 0,
   };
 }
 
