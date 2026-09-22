@@ -923,6 +923,7 @@ export default function GlobalWorkScheduleCenter({
       </nav> : null}
 
       {view === 'schedule' ? <section className="work-schedule-center" aria-label="Lịch làm việc dùng chung">
+        {leader ? <input ref={fileInputRef} hidden type="file" accept=".xlsx,.csv" onChange={(event) => readImportFile(event.target.files?.[0] || null)} /> : null}
         <header className="work-schedule-toolbar">
           <div>
             <span className="work-schedule-eyebrow">SYSTEM-WIDE WORK CALENDAR</span>
@@ -933,7 +934,6 @@ export default function GlobalWorkScheduleCenter({
           <div className="work-schedule-actions">
             {leader ? <>
               <button type="button" className="secondary" onClick={() => downloadTextFile('mau-lich-lam-viec.csv', makeScheduleTemplateCsv())}>⇩ File mẫu</button>
-              <input ref={fileInputRef} hidden type="file" accept=".xlsx,.csv" onChange={(event) => readImportFile(event.target.files?.[0] || null)} />
               <button type="button" className="secondary" disabled={busy} onClick={() => fileInputRef.current?.click()}>⇧ Upload lịch</button>
               <button type="button" className="primary" onClick={() => setEditor(defaultEditor())}>＋ Thêm lịch</button>
             </> : <span className="work-schedule-readonly">Chế độ xem lịch chung</span>}
@@ -962,8 +962,15 @@ export default function GlobalWorkScheduleCenter({
             <button type="button" aria-label={calendarMode === 'week' ? 'Tuần sau' : 'Tháng sau'} onClick={() => setCursor(calendarMode === 'week' ? addWeeks(cursor, 1) : addMonths(cursor, 1))}>›</button>
             <button type="button" className="today" onClick={() => setCursor(calendarMode === 'week' ? startOfWeek(new Date()) : startOfMonth(new Date()))}>Hôm nay</button>
           </div>}
-          {embedded ? <div className="work-schedule-category-filters" aria-label="Lọc lịch theo loại hoạt động">
-            {TIMELINE_CATEGORIES.map(([id, label, color]) => <button type="button" key={id} className={timelineCategory === id ? 'is-selected' : ''} aria-pressed={timelineCategory === id} style={{ '--category': color }} onClick={() => setTimelineCategory(id)}><i />{label}</button>)}
+          {embedded ? <div className="work-schedule-embedded-tools">
+            {leader ? <div className="work-schedule-embedded-actions" aria-label="Quản lý lịch làm việc">
+              <button type="button" className="is-template" onClick={() => downloadTextFile('mau-lich-lam-viec.csv', makeScheduleTemplateCsv())} title="Tải file CSV mẫu">⇩ Mẫu</button>
+              <button type="button" className="is-upload" disabled={busy} onClick={() => fileInputRef.current?.click()} title="Tải lên lịch làm việc từ XLSX hoặc CSV">⇧ Tải lên lịch</button>
+              <button type="button" className="is-add" disabled={busy} onClick={() => setEditor(defaultEditor())} title="Thêm hoạt động thủ công">＋ Thêm</button>
+            </div> : null}
+            <div className="work-schedule-category-filters" aria-label="Lọc lịch theo loại hoạt động">
+              {TIMELINE_CATEGORIES.map(([id, label, color]) => <button type="button" key={id} className={timelineCategory === id ? 'is-selected' : ''} aria-pressed={timelineCategory === id} style={{ '--category': color }} onClick={() => setTimelineCategory(id)}><i />{label}</button>)}
+            </div>
           </div> : <div className="work-schedule-filterbar">
             <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm nội dung, địa điểm, phụ trách…" />
             <select value={scope} onChange={(event) => setScope(event.target.value)}>
