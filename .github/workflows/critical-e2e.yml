@@ -75,6 +75,12 @@ jobs:
       - name: Verify supplemental route bootstrap contract
         run: node scripts/test-supplemental-learning-route-bootstrap-contract.mjs
 
+      - name: Verify Quick Access safe area in Chromium
+        run: npx playwright test tests/e2e/quick-access-safe-area.spec.js --project=chromium-desktop
+
+      - name: Verify Quick Access safe area in WebKit
+        run: npx playwright test tests/e2e/quick-access-safe-area.spec.js --project=webkit-desktop
+
       - name: Run Chromium critical browser smoke
         run: npx playwright test tests/e2e/critical-smoke.spec.js --project=chromium-desktop
 
