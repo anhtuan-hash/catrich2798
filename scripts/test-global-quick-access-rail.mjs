@@ -66,6 +66,8 @@ for (const token of [
   "document.querySelector('.brian-nav__ttcm-tab')",
   'bqa-command-search',
   'commandInputRef',
+  'commanding',
+  "data-commanding={commanding ? 'true' : 'false'}",
   'commandResults',
   'recentItems',
   'bqa-recent-section',
