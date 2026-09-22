@@ -403,7 +403,7 @@
 
 .bqa-customizer-backdrop {
   position: fixed;
-  z-index: 116;
+  z-index: 240;
   inset: 0;
   display: grid;
   place-items: center;
