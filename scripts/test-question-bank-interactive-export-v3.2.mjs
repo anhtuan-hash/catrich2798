@@ -126,9 +126,19 @@ assert.equal(template.includes('GlobalFontSystem'), false);
 assert.equal(template.includes('GlobalRegionalFontSystem'), false);
 assert.equal(template.includes('font-family:Inter'), false, 'offline player must not rely on Inter being installed');
 assert.match(template, /font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans",Arial,sans-serif/);
-assert.match(template, /grid-template-columns:minmax\(0,1\.08fr\) minmax\(0,1fr\)/);
+assert.match(template, /grid-template-columns:minmax\(0,1\.04fr\) minmax\(0,\.96fr\)/);
 assert.match(template, /@media\(max-width:1020px\).*grid-template-columns:1fr/s);
 assert.match(template, /overflow-wrap:anywhere/);
+assert.match(template, /body\.font-medium\{--q-size:38px;--option-size:18px;--arr-size:17px\}/);
+assert.match(template, /\.question-pane\.is-extra-long \.question/);
+assert.match(template, /\.arrangement-row\{/);
+assert.match(template, /function arrangementParts\(value\)/);
+assert.match(template, /function renderQuestionText\(q\)/);
+assert.match(template, /stage\.classList\.toggle\('is-dense',isArrangement\|\|rawQuestion\.length>220\)/);
+assert.match(template, /pane\.classList\.toggle\('is-extra-long',rawQuestion\.length>360&&!isArrangement\)/);
+assert.match(template, /re=\/\(\^\|\\s\)\(\[a-e\]\)\\\.\\s\+\/gi/);
+assert.match(template, /\.question-pane\{display:flex;flex-direction:column;justify-content:flex-start;overflow:auto/);
+assert.match(template, /\.stage-wrap\{position:relative;min-height:560px;height:calc\(100vh - 188px\);height:calc\(100dvh - 188px\)\}/);
 assert.match(template, /var mixed=\$\('shuffle'\)\.checked\?mix\(pack\):pack/);
 assert.match(template, /var answer=mixed\.findIndex\(function\(x\)\{return x\.correct;\}\)/);
 
@@ -153,4 +163,4 @@ assert.equal(exporterSource.includes('globalFontSystem'), false);
 assert.equal(exporterSource.includes('globalRegionalFontSystem'), false);
 assert.match(exporterSource, /brian-interactive-exam-v3\.2-safe\.html/);
 
-console.log('PASS: Question Bank interactive HTML V3.2 SAFE + font isolation contract.');
+console.log('PASS: Question Bank interactive HTML V3.2 SAFE + adaptive layout + font isolation contract.');
