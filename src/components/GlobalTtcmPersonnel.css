@@ -811,3 +811,736 @@ html body .brian-nav__primary .brian-nav__ttcm-tab > .brian-nav__ttcm-badge {
   overflow: visible !important;
   z-index: 20 !important;
 }
+
+
+/* TTCM teacher personnel profile — approved 2026 mockup */
+.ttcm-m3-personnel-view {
+  position: relative !important;
+  background: #f7f9fc !important;
+}
+
+.ttcm-m3-personnel-view .gpl-directory.is-teacher {
+  width: min(100%, 1220px) !important;
+  max-width: none !important;
+  margin: 0 auto !important;
+  padding: 0 !important;
+  background: transparent !important;
+  color: #172033 !important;
+}
+
+.ttcm-m3-personnel-view .gpl-directory.is-teacher > .gpl-header {
+  display: none !important;
+}
+
+.ttcm-m3-personnel-view .gpl-directory.is-teacher > .gpl-body {
+  padding: 2px 0 22px !important;
+  background: transparent !important;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-dashboard {
+  padding: 0 !important;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(330px, .94fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-primary,
+.ttcm-m3-personnel-view .gpl-teacher-secondary {
+  min-width: 0;
+  display: grid;
+  gap: 14px;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-hero-card {
+  position: relative;
+  min-height: 204px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, .72fr);
+  gap: 18px;
+  align-items: center;
+  padding: 24px 24px 22px;
+  overflow: hidden;
+  border: 1px solid #dce7f5;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 88% 84%, rgba(41, 179, 152, .16) 0 11%, transparent 11.5%),
+    radial-gradient(circle at 94% 64%, rgba(66, 133, 244, .12) 0 14%, transparent 14.5%),
+    linear-gradient(132deg, #edf8ff 0%, #f8fbff 47%, #f1fbf5 100%);
+  box-shadow: 0 8px 28px rgba(55, 84, 122, .08);
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-hero-card::after {
+  content: '';
+  position: absolute;
+  right: 20px;
+  bottom: -34px;
+  width: 150px;
+  height: 150px;
+  border: 2px solid rgba(40, 164, 135, .12);
+  border-radius: 54% 46% 62% 38%;
+  transform: rotate(-26deg);
+  pointer-events: none;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-hero-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-hero-avatar {
+  position: relative;
+  width: 104px !important;
+  height: 104px !important;
+  flex: 0 0 104px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: linear-gradient(145deg, #77a8f5, #648fea) !important;
+  color: #fff !important;
+  font-size: 34px !important;
+  font-weight: 760 !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.34), 0 12px 24px rgba(65, 113, 194, .18) !important;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-hero-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-online-dot {
+  position: absolute;
+  right: 5px;
+  bottom: 7px;
+  width: 22px;
+  height: 22px;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  background: #1bb34a;
+  box-shadow: 0 2px 5px rgba(25, 95, 53, .18);
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-hero-copy {
+  min-width: 0;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-hero-copy h3 {
+  margin: 0 0 12px !important;
+  color: #14213a !important;
+  font-size: clamp(23px, 2vw, 31px) !important;
+  font-weight: 760 !important;
+  line-height: 1.08 !important;
+  letter-spacing: -.025em !important;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-hero-meta {
+  display: grid;
+  gap: 8px;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-hero-meta > span {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #2f435f;
+  font-size: 13px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-hero-meta .gpl-icon {
+  flex: 0 0 auto;
+  color: #4978b7;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-quote {
+  position: relative;
+  z-index: 1;
+  min-height: 124px;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 19px 20px;
+  border: 1px solid rgba(255,255,255,.88);
+  border-radius: 20px;
+  background: rgba(255,255,255,.54);
+  color: #5780bd;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-quote > span {
+  align-self: flex-start;
+  color: #6394d4;
+  font-size: 38px;
+  font-weight: 800;
+  line-height: .8;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-quote p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.48;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-edit-cta {
+  position: absolute !important;
+  right: 22px;
+  bottom: 16px;
+  z-index: 2;
+  min-height: 40px !important;
+  padding: 0 15px !important;
+  border-color: #8db8f4 !important;
+  background: rgba(255,255,255,.9) !important;
+  color: #0b57d0 !important;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-facts-modern {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-facts-modern > div {
+  min-height: 88px !important;
+  display: grid !important;
+  grid-template-columns: 50px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 14px 16px !important;
+  border: 1px solid #e0e6ef !important;
+  border-radius: 16px !important;
+  background: #fff !important;
+  box-shadow: 0 4px 14px rgba(58, 80, 108, .045) !important;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-facts-modern > div > p {
+  min-width: 0;
+  margin: 0;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-facts-modern small {
+  margin: 0 !important;
+  color: #718096 !important;
+  font-size: 11px !important;
+  letter-spacing: .02em !important;
+  text-transform: none !important;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-facts-modern strong {
+  margin-top: 3px !important;
+  color: #152238 !important;
+  font-size: 14px !important;
+  line-height: 1.32 !important;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-fact-icon,
+.ttcm-m3-personnel-view .gpl-section-icon,
+.ttcm-m3-personnel-view .gpl-teacher-side-icon,
+.ttcm-m3-personnel-view .gpl-teacher-side-doc {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-fact-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-fact-icon.is-green { background: #ddf7ec; color: #0b9a72; }
+.ttcm-m3-personnel-view .gpl-teacher-fact-icon.is-purple { background: #efe7ff; color: #8253e6; }
+.ttcm-m3-personnel-view .gpl-teacher-fact-icon.is-red { background: #ffe7ee; color: #ea4f71; }
+
+.ttcm-m3-personnel-view .gpl-teacher-active-status {
+  display: inline-flex !important;
+  width: fit-content;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #dcf8e7;
+  color: #0b7d46 !important;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-personal-card,
+.ttcm-m3-personnel-view .gpl-teacher-side-card {
+  border: 1px solid #e0e6ef;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 4px 16px rgba(58, 80, 108, .05);
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-personal-card {
+  overflow: hidden;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-personal-card > header,
+.ttcm-m3-personnel-view .gpl-teacher-side-card > header {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 14px 11px 16px;
+  border-bottom: 1px solid #edf0f4;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-personal-card > header > div,
+.ttcm-m3-personnel-view .gpl-teacher-side-card > header > div {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.ttcm-m3-personnel-view .gpl-section-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: #eaf3ff;
+  color: #1c73d2;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-personal-card > header strong,
+.ttcm-m3-personnel-view .gpl-teacher-side-card > header strong {
+  color: #152238;
+  font-size: 14px;
+  font-weight: 760;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-personal-card dl {
+  margin: 0;
+  padding: 0 14px 8px;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-personal-card dl > div {
+  min-height: 43px;
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 8px 10px;
+  border-bottom: 1px solid #edf0f4;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-personal-card dl > div:last-child {
+  border-bottom: 0;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-personal-card dt {
+  color: #52647d;
+  font-size: 12px;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-personal-card dd {
+  min-width: 0;
+  margin: 0;
+  color: #20334e;
+  font-size: 12.5px;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-small-action {
+  min-height: 34px !important;
+  padding: 0 11px !important;
+  border-color: #d2dceb !important;
+  background: #f7faff !important;
+  color: #355b83 !important;
+  font-size: 11px !important;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-update-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 2px 8px 0;
+  color: #6c7c91;
+  font-size: 11px;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-update-strip > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-update-strip strong {
+  color: #536983;
+  font-weight: 700;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-progress-card {
+  padding-bottom: 8px;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-progress-card > header > em,
+.ttcm-m3-personnel-view .gpl-teacher-side-card > header > div > em {
+  min-width: 24px;
+  height: 24px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #edf5ff;
+  color: #226dcc;
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-progress-card > button {
+  width: calc(100% - 20px);
+  min-height: 58px;
+  margin: 8px 10px 0;
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 13px;
+  background: #fbfcfe;
+  color: #2d405a;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-progress-card > button:hover {
+  background: #f2f7fd;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-progress-card > button > span:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-progress-card > button strong {
+  color: #233752;
+  font-size: 12.5px;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-progress-card > button small {
+  overflow: hidden;
+  color: #718096;
+  font-size: 10.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-side-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-side-icon.is-green { background: #dcf7eb; color: #169b73; }
+.ttcm-m3-personnel-view .gpl-teacher-side-icon.is-amber { background: #fff0db; color: #d38419; }
+
+.ttcm-m3-personnel-view .gpl-side-add-button {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 11px;
+  border: 1px solid #b7d1f7;
+  border-radius: 17px;
+  background: #f5f9ff;
+  color: #0b57d0;
+  font-size: 10.5px;
+  font-weight: 760;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.ttcm-m3-personnel-view .gpl-side-add-button:hover {
+  background: #eaf3ff;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-side-list {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-side-list article {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid #edf0f5;
+  border-radius: 12px;
+  background: #fbfcfe;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-side-list article > div {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-side-list article strong {
+  color: #263a56;
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-side-list article small {
+  color: #77869a;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-side-list article > em {
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: #e4f7eb;
+  color: #18794c;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-side-doc {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: #edf5ff;
+  color: #3d75bd;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-side-doc.is-purple {
+  background: #f0eaff;
+  color: #7651cf;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-side-empty {
+  min-height: 122px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 5px;
+  padding: 16px;
+  color: #76869b;
+  text-align: center;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-side-empty > span {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #f2f5f9;
+  color: #8190a3;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-side-empty strong {
+  color: #53667f;
+  font-size: 11.5px;
+}
+
+.ttcm-m3-personnel-view .gpl-teacher-side-empty small {
+  max-width: 270px;
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+/* Teacher profile editor stays inside the TTCM app instead of opening as an unstyled page. */
+.ttcm-m3-personnel-view .gpl-drawer-layer {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 80 !important;
+  display: grid !important;
+  place-items: center !important;
+  padding: 14px !important;
+  background: rgba(29, 41, 57, .34) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+.ttcm-m3-personnel-view .gpl-drawer.gpl-workflow-drawer {
+  width: min(980px, 100%) !important;
+  height: auto !important;
+  max-height: 100% !important;
+  overflow: auto !important;
+  border: 1px solid #dbe3ee !important;
+  border-radius: 22px !important;
+  background: #fff !important;
+  color: #172033 !important;
+  box-shadow: 0 24px 70px rgba(31, 47, 67, .24) !important;
+}
+
+.ttcm-m3-personnel-view .gpl-drawer-header {
+  min-height: 62px !important;
+  padding: 0 16px !important;
+  border-bottom: 1px solid #e7ebf1 !important;
+  background: rgba(255,255,255,.96) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.ttcm-m3-personnel-view .gpl-profile-hero {
+  min-height: 132px !important;
+  padding: 22px 24px !important;
+  background: linear-gradient(135deg, #eef7ff, #f7fbff 54%, #f0faf6) !important;
+}
+
+.ttcm-m3-personnel-view .gpl-profile-content,
+.ttcm-m3-personnel-view .gpl-form {
+  padding: 16px 20px 24px !important;
+}
+
+.ttcm-m3-personnel-view .gpl-form {
+  gap: 14px !important;
+}
+
+.ttcm-m3-personnel-view .gpl-form section,
+.ttcm-m3-personnel-view .gpl-profile-content section {
+  border-radius: 16px !important;
+  box-shadow: none !important;
+}
+
+.ttcm-m3-personnel-view .gpl-form input,
+.ttcm-m3-personnel-view .gpl-form select,
+.ttcm-m3-personnel-view .gpl-form textarea,
+.ttcm-m3-personnel-view .gpl-proposal-note textarea {
+  min-height: 40px !important;
+  border: 1px solid #cfd9e6 !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  color: #23344d !important;
+  outline: 0 !important;
+}
+
+.ttcm-m3-personnel-view .gpl-form textarea,
+.ttcm-m3-personnel-view .gpl-proposal-note textarea {
+  min-height: 86px !important;
+  padding: 10px 12px !important;
+}
+
+.ttcm-m3-personnel-view .gpl-form input:focus,
+.ttcm-m3-personnel-view .gpl-form select:focus,
+.ttcm-m3-personnel-view .gpl-form textarea:focus,
+.ttcm-m3-personnel-view .gpl-proposal-note textarea:focus {
+  border-color: #7dabed !important;
+  box-shadow: 0 0 0 3px rgba(66,133,244,.1) !important;
+}
+
+.ttcm-m3-personnel-view .gpl-form-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  padding: 12px 0 0 !important;
+  background: linear-gradient(to top, #fff 72%, rgba(255,255,255,0));
+}
+
+.ttcm-m3-personnel-view .gpl-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  min-height: 38px !important;
+  padding: 0 14px !important;
+  border-radius: 11px !important;
+  font-size: 11.5px !important;
+  font-weight: 740 !important;
+  cursor: pointer !important;
+}
+
+.ttcm-m3-personnel-view .gpl-button.outlined {
+  border: 1px solid #c7d5e7 !important;
+  background: #fff !important;
+  color: #355a82 !important;
+}
+
+.ttcm-m3-personnel-view .gpl-button.filled {
+  border: 1px solid #0b57d0 !important;
+  background: #0b57d0 !important;
+  color: #fff !important;
+}
+
+.ttcm-m3-personnel-view .gpl-button.filled:hover {
+  background: #0848ad !important;
+}
+
+@media (max-width: 1040px) {
+  .ttcm-m3-personnel-view .gpl-teacher-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .ttcm-m3-personnel-view .gpl-teacher-secondary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .ttcm-m3-personnel-view .gpl-teacher-progress-card {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .ttcm-m3-personnel-view .gpl-teacher-hero-card {
+    min-height: 0;
+    grid-template-columns: 1fr;
+    padding: 18px;
+  }
+
+  .ttcm-m3-personnel-view .gpl-teacher-hero-main {
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .ttcm-m3-personnel-view .gpl-teacher-hero-avatar {
+    width: 78px !important;
+    height: 78px !important;
+    flex-basis: 78px !important;
+    font-size: 26px !important;
+  }
+
+  .ttcm-m3-personnel-view .gpl-teacher-quote {
+    display: none;
+  }
+
+  .ttcm-m3-personnel-view .gpl-teacher-edit-cta {
+    position: static !important;
+    width: fit-content;
+    margin-top: 2px;
+  }
+
+  .ttcm-m3-personnel-view .gpl-teacher-facts-modern,
+  .ttcm-m3-personnel-view .gpl-teacher-secondary {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ttcm-m3-personnel-view .gpl-teacher-progress-card {
+    grid-column: auto;
+  }
+
+  .ttcm-m3-personnel-view .gpl-teacher-personal-card dl > div {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+
+  .ttcm-m3-personnel-view .gpl-teacher-update-strip {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ttcm-m3-personnel-view .gpl-drawer-layer {
+    padding: 8px !important;
+  }
+
+  .ttcm-m3-personnel-view .gpl-drawer.gpl-workflow-drawer {
+    border-radius: 16px !important;
+  }
+}
