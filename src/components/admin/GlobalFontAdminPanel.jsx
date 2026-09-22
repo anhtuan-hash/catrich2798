@@ -65,6 +65,24 @@ export default function GlobalFontAdminPanel({ currentUser, language = 'vi' }) {
   const choose = (id) => {
     setSelected(id);
     setMessage('');
+
+    // Restore the original Brian behavior: selecting a font previews it
+    // immediately across the whole application. Persistence remains explicit
+    // and happens only when Admin presses "Apply site-wide".
+    if (id === 'custom') {
+      if (customConfig?.url) {
+        applyGlobalCustomFont(
+          { ...customConfig, name: customName || customConfig.name },
+          { persist: false, source: 'admin-live-selection-custom' },
+        );
+      }
+      return;
+    }
+
+    applyGlobalFontPreset(id, {
+      persist: false,
+      source: 'admin-live-selection',
+    });
   };
 
   const chooseFile = (event) => {
@@ -77,12 +95,24 @@ export default function GlobalFontAdminPanel({ currentUser, language = 'vi' }) {
       event.target.value = '';
       return;
     }
+
+    const nextName = (!customName || customName === customConfig?.name)
+      ? baseName(file.name)
+      : customName;
+
     setFontFile(file);
     setSelected('custom');
-    if (!customName || customName === customConfig?.name) setCustomName(baseName(file.name));
-    setMessage(vi
-      ? 'Đã chọn tệp font. Bạn có thể xem thử trước hoặc tải lên và áp dụng cho toàn hệ thống.'
-      : 'Font file selected. Preview it or upload and apply it site-wide.');
+    if (nextName !== customName) setCustomName(nextName);
+
+    // File selection itself is the preview action. This is intentionally
+    // synchronous from the user's point of view: the uploaded font should
+    // visibly replace the active typography before anything is persisted.
+    const previewResult = previewGlobalCustomFont(file, nextName || baseName(file.name));
+    setMessage(previewResult?.ok
+      ? (vi
+        ? 'Đang xem thử trực tiếp font vừa chọn trên toàn giao diện. Bấm “Tải lên & áp dụng” để lưu cho mọi tài khoản.'
+        : 'Previewing the selected font across the interface. Click “Upload & apply” to save it for every account.')
+      : (previewResult?.message || (vi ? 'Không thể xem thử font.' : 'Could not preview the font.')));
   };
 
   const preview = () => {
