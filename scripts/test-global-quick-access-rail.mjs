@@ -80,6 +80,8 @@ for (const token of [
   'width: calc(var(--bqa-rail-width) + 8px + var(--bqa-panel-width))',
   '.bqa-hover-bridge',
   'width: 8px',
+  'z-index: 2147482500 !important',
+  'z-index: 2147482600',
   'footer[data-app-shell-footer="true"]',
   '@media (min-width: 768px) and (max-width: 1279px)',
   '@media (max-width: 767px)',
