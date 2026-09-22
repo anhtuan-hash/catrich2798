@@ -103,6 +103,7 @@ const routes = [
 
 test.describe('Global Quick Access safe area', () => {
   test.beforeEach(async ({ page }) => {
+    await page.setViewportSize({ width: 1536, height: 960 });
     await installDemoSession(page);
   });
 
@@ -112,7 +113,7 @@ test.describe('Global Quick Access safe area', () => {
       await expect(page.locator('.app-shell')).toHaveAttribute('data-route', expectedRoute);
       await expect(page.locator('.bqa-root')).toBeVisible();
       await expect(page.locator('.app-shell')).toHaveAttribute('data-quick-access-layout', 'true');
-      await page.waitForTimeout(650);
+      await page.waitForTimeout(1100);
 
       const report = await getOcclusionReport(page, '.bqa-rail');
       expect(report.missing, JSON.stringify(report, null, 2)).toBe(false);
