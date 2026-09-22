@@ -99,7 +99,7 @@
   border-radius:20px;
   background:transparent;
   color:inherit;
-  cursor:pointer;
+  cursor:default;
   -webkit-tap-highlight-color:transparent;
 }
 
@@ -124,7 +124,7 @@
   filter:drop-shadow(0 7px 15px rgba(88,92,255,.24));
 }
 
-.brian-pulse-logo-trigger .brian-pulse-logo__canvas{cursor:pointer}
+.brian-pulse-logo-trigger .brian-pulse-logo__canvas{cursor:default}
 
 html body .brian-nav__actions > .brian-pulse-logo-trigger{order:1!important}
 html body .brian-nav__actions > .brian-nav__ai-wrap{order:2!important}

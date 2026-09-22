@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import BrianPulseLogo from './BrianPulseLogo.jsx';
-import { writePresentationOverride } from '../device/presentationMode.js';
 
 export default function HomeParticleSignaturePortal({ currentUser }) {
   const [navTarget, setNavTarget] = useState(null);
@@ -31,15 +30,9 @@ export default function HomeParticleSignaturePortal({ currentUser }) {
   if (!currentUser || !navTarget) return null;
 
   return createPortal(
-    <button
-      type="button"
-      className="brian-pulse-logo-trigger"
-      onClick={() => writePresentationOverride('mobile')}
-      aria-label="Chuyển sang giao diện mobile"
-      title="Chuyển sang giao diện mobile"
-    >
+    <span className="brian-pulse-logo-trigger brian-pulse-logo-trigger--static">
       <BrianPulseLogo className="brian-pulse-logo--nav" />
-    </button>,
+    </span>,
     navTarget,
   );
 }

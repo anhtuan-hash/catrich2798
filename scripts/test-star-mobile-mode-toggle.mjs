@@ -1,40 +1,8 @@
 import fs from 'node:fs';
 import assert from 'node:assert/strict';
-import {
-  PRESENTATION_OVERRIDE_EVENT,
-  PRESENTATION_OVERRIDE_STORAGE_KEY,
-  readStoredPresentationOverride,
-  resolvePresentationMode,
-  writePresentationOverride,
-} from '../src/device/presentationMode.js';
+import { resolvePresentationMode } from '../src/device/presentationMode.js';
 
 const read = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
-
-const values = new Map();
-const storage = {
-  getItem(key) { return values.has(key) ? values.get(key) : null; },
-  setItem(key, value) { values.set(key, String(value)); },
-  removeItem(key) { values.delete(key); },
-};
-const events = [];
-class MockCustomEvent {
-  constructor(type, init = {}) {
-    this.type = type;
-    this.detail = init.detail;
-  }
-}
-const windowLike = {
-  localStorage: storage,
-  CustomEvent: MockCustomEvent,
-  dispatchEvent(event) { events.push(event); return true; },
-};
-
-assert.equal(readStoredPresentationOverride(storage), null);
-assert.equal(writePresentationOverride('mobile', windowLike), 'mobile');
-assert.equal(storage.getItem(PRESENTATION_OVERRIDE_STORAGE_KEY), 'mobile');
-assert.equal(readStoredPresentationOverride(storage), 'mobile');
-assert.equal(events.at(-1)?.type, PRESENTATION_OVERRIDE_EVENT);
-assert.deepEqual(events.at(-1)?.detail, { value: 'mobile' });
 
 const desktopEnvironment = {
   userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
@@ -44,36 +12,34 @@ const desktopEnvironment = {
   screenHeight: 900,
   orientationType: 'landscape-primary',
 };
-assert.equal(resolvePresentationMode(desktopEnvironment, 'mobile').presentationMode, 'mobile');
+const phoneEnvironment = {
+  userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 19_0 like Mac OS X)',
+  platform: 'iPhone',
+  maxTouchPoints: 5,
+  userAgentDataMobile: true,
+  screenWidth: 393,
+  screenHeight: 852,
+  orientationType: 'portrait-primary',
+};
+
 assert.equal(resolvePresentationMode(desktopEnvironment, null).presentationMode, 'desktop');
+assert.equal(resolvePresentationMode(phoneEnvironment, null).presentationMode, 'mobile');
 
-writePresentationOverride(null, windowLike);
-assert.equal(storage.getItem(PRESENTATION_OVERRIDE_STORAGE_KEY), null);
-assert.equal(readStoredPresentationOverride(storage), null);
-assert.deepEqual(events.at(-1)?.detail, { value: null });
-
-const presentation = read('src/device/presentationMode.js');
-const hook = read('src/hooks/usePresentationMode.js');
 const portal = read('src/components/HomeParticleSignaturePortal.jsx');
-const navigation = read('src/components/GlobalFlatNavigation.jsx');
 const css = read('src/components/BrianPulseLogo.css');
+const navigation = read('src/components/GlobalFlatNavigation.jsx');
 
-assert.match(presentation, /PRESENTATION_OVERRIDE_STORAGE_KEY/);
-assert.match(presentation, /PRESENTATION_OVERRIDE_EVENT/);
-assert.match(presentation, /readStoredPresentationOverride/);
-assert.match(presentation, /writePresentationOverride/);
-assert.match(hook, /readStoredPresentationOverride/);
-assert.match(hook, /PRESENTATION_OVERRIDE_EVENT/);
-assert.match(hook, /window\.addEventListener\(PRESENTATION_OVERRIDE_EVENT/);
-assert.match(portal, /writePresentationOverride\('mobile'\)/);
-assert.match(portal, /brian-pulse-logo-trigger/);
-assert.match(portal, /Chuyển sang giao diện mobile/);
-assert.match(navigation, /presentation\.override === 'mobile'/);
-assert.match(navigation, /bes-mobile-desktop-return/);
-assert.match(navigation, /writePresentationOverride\(null\)/);
-assert.match(navigation, /presentationOverride/);
-assert.match(css, /brian-pulse-logo-trigger/);
-assert.match(css, /data-presentation-override=['"]mobile['"]/);
-assert.match(css, /bes-mobile-desktop-return/);
+assert.match(portal, /brian-pulse-logo-trigger--static/);
+assert.doesNotMatch(portal, /writePresentationOverride/);
+assert.doesNotMatch(portal, /onClick\s*=/);
+assert.doesNotMatch(portal, /<button/);
+assert.doesNotMatch(portal, /Chuyển sang giao diện mobile/);
 
-console.log('✓ star → mobile presentation mode contract');
+assert.match(css, /\.brian-pulse-logo-trigger\s*\{[^}]*cursor\s*:\s*default/i);
+assert.match(css, /\.brian-pulse-logo-trigger \.brian-pulse-logo__canvas\s*\{\s*cursor\s*:\s*default/i);
+
+// Keep device-driven mobile presentation intact; only the Star entry point is retired.
+assert.match(navigation, /MobileAppShell/);
+assert.match(navigation, /presentation\.presentationMode === 'mobile'/);
+
+console.log('✓ Star is decorative and cannot switch desktop to mobile mode');
