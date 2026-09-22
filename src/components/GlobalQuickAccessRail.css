@@ -1209,11 +1209,11 @@ button.bqa-customizer-row:disabled {
 .app-shell[data-quick-access-layout="true"][data-quick-access-safe-mode="reserve"] > #bes-main-content > .bqa-content-safe-frame {
   position: relative;
   box-sizing: border-box;
-  inset-inline-start: var(--bqa-content-safe-shift, 0px);
   width: calc(100% - var(--bqa-content-safe-shift, 0px));
   min-width: 0;
+  translate: var(--bqa-content-safe-shift, 0px) 0;
   transition:
-    inset-inline-start 235ms cubic-bezier(.22, 1, .36, 1),
+    translate 235ms cubic-bezier(.22, 1, .36, 1),
     width 235ms cubic-bezier(.22, 1, .36, 1);
 }
 
@@ -1235,7 +1235,7 @@ button.bqa-customizer-row:disabled {
 .bqa-root.is-pinned,
 .bqa-root.is-collapsing {
   width: calc(var(--bqa-rail-width) + 8px + var(--bqa-panel-width));
-  z-index: 2147483646 !important;
+  z-index: 2147483647 !important;
 }
 
 .bqa-root.is-open,
@@ -1272,7 +1272,7 @@ button.bqa-customizer-row:disabled {
 
 .app-shell[data-quick-access-layout="true"][data-quick-access-safe-mode="overlay"] > #bes-main-content > .bqa-content-safe-frame {
   position: relative;
-  inset-inline-start: 0 !important;
+  translate: 0 0 !important;
   width: 100% !important;
 }
 
@@ -1337,7 +1337,7 @@ body > .bqa-root {
 body > .bqa-root.is-open,
 body > .bqa-root.is-pinned,
 body > .bqa-root.is-collapsing {
-  z-index: 2147483646 !important;
+  z-index: 2147483647 !important;
 }
 
 /* Portal-aware edge peek: only active when the app shell runtime says overlay mode. */
