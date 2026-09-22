@@ -228,7 +228,7 @@ function runAction(item, sourceEl) {
   }
 }
 
-const QUICK_ACCESS_SAFE_AREA_MIN_WIDTH = 1280;
+const QUICK_ACCESS_SAFE_AREA_MIN_WIDTH = 1024;
 const QUICK_ACCESS_SAFE_GAP = 12;
 const QUICK_ACCESS_SAFE_MAX_COLLAPSED = 240;
 const QUICK_ACCESS_SAFE_MAX_PINNED = 560;
@@ -453,7 +453,11 @@ export default function GlobalQuickAccessRail({
     const measureAndApply = () => {
       window.cancelAnimationFrame(layoutFrameRef.current);
       layoutFrameRef.current = window.requestAnimationFrame(() => {
-        if (!window.matchMedia(`(min-width: ${QUICK_ACCESS_SAFE_AREA_MIN_WIDTH}px)`).matches) {
+        const coarsePointer = window.matchMedia?.('(pointer: coarse)')?.matches === true;
+        const reserveMode = window.innerWidth >= QUICK_ACCESS_SAFE_AREA_MIN_WIDTH && !coarsePointer;
+        shell.dataset.quickAccessSafeMode = reserveMode ? 'reserve' : 'overlay';
+
+        if (!reserveMode) {
           clearSafeArea();
           return;
         }
@@ -533,6 +537,7 @@ export default function GlobalQuickAccessRail({
       shell.style.removeProperty('--bqa-content-safe-shift');
       delete shell.dataset.quickAccessSafeShift;
       delete shell.dataset.quickAccessState;
+      delete shell.dataset.quickAccessSafeMode;
       if (footer) delete footer.dataset.quickAccessOcclusionGuard;
       root.style.removeProperty('font-family');
     };
