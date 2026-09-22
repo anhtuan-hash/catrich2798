@@ -405,7 +405,7 @@ Quy tắc làm việc:
 OpenAPI: ${openApiUrl}`;
 
   const loadAccessControl = useCallback(async () => {
-    if (!userId || !supabase || !accessReady) return;
+    if (!userId || !supabase) return;
     try {
       const { data, error } = await supabase.rpc('qb_access_state');
       if (error) throw error;
@@ -448,7 +448,7 @@ OpenAPI: ${openApiUrl}`;
   }, [accessReady, activeTab, visibleTabs]);
 
   const loadData = useCallback(async () => {
-    if (!userId || !supabase) return;
+    if (!userId || !supabase || !accessReady) return;
     setLoading(true);
     setMessage('');
     try {
