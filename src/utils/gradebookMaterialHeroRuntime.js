@@ -208,10 +208,72 @@ function renderHero(container) {
     : '<div class="gbe-m3-preview-empty">Mở một thành phần điểm để xem dữ liệu trực tiếp.</div>';
 
   container.innerHTML = `
+    <div class="gbe-m3-pastel-orb is-blue" aria-hidden="true"></div>
+    <div class="gbe-m3-pastel-orb is-lilac" aria-hidden="true"></div>
+    <div class="gbe-m3-pastel-orb is-pink" aria-hidden="true"></div>
+    <div class="gbe-m3-pastel-orb is-peach" aria-hidden="true"></div>
+    <div class="gbe-m3-pastel-orb is-coral" aria-hidden="true"></div>
+    <div class="gbe-m3-dot-field" aria-hidden="true"></div>
+
+    <div class="gbe-m3-art gbe-m3-art-left" aria-hidden="true">
+      <svg viewBox="0 0 220 270" focusable="false">
+        <g class="gbe-m3-leaf-cluster">
+          <path d="M55 194C44 150 50 111 72 77" />
+          <path d="M61 158C32 146 18 124 20 98" />
+          <path d="M67 130C96 112 112 87 111 61" />
+          <path d="M49 176C26 171 12 158 8 138" />
+          <path d="M74 112C96 105 112 89 119 69" />
+          <ellipse cx="29" cy="107" rx="22" ry="10" transform="rotate(34 29 107)" />
+          <ellipse cx="99" cy="83" rx="23" ry="10" transform="rotate(-42 99 83)" />
+          <ellipse cx="23" cy="146" rx="20" ry="9" transform="rotate(28 23 146)" />
+        </g>
+        <g class="gbe-m3-book-stack">
+          <rect x="20" y="198" width="124" height="27" rx="7" />
+          <rect x="11" y="223" width="142" height="25" rx="7" />
+          <rect x="27" y="246" width="128" height="23" rx="7" />
+          <text x="34" y="216">Knowledge</text>
+          <text x="27" y="240">Better You</text>
+          <text x="39" y="263">Brighter Tomorrow</text>
+        </g>
+      </svg>
+    </div>
+
+    <div class="gbe-m3-art gbe-m3-art-right" aria-hidden="true">
+      <svg viewBox="0 0 250 390" focusable="false">
+        <g class="gbe-m3-right-leaves">
+          <path d="M156 230C164 174 181 129 211 89" />
+          <ellipse cx="187" cy="141" rx="34" ry="15" transform="rotate(-52 187 141)" />
+          <ellipse cx="214" cy="103" rx="31" ry="14" transform="rotate(-61 214 103)" />
+          <ellipse cx="171" cy="183" rx="30" ry="14" transform="rotate(-39 171 183)" />
+        </g>
+        <g class="gbe-m3-sticky-note">
+          <rect x="125" y="175" width="100" height="108" rx="8" />
+          <path d="M134 187c28 8 52 7 82-2" />
+          <text x="142" y="214">Học</text>
+          <text x="139" y="235">tốt hơn</text>
+          <text x="137" y="256">mỗi ngày</text>
+          <circle cx="194" cy="265" r="11" />
+          <path d="M189 264c3 4 7 4 10 0" />
+        </g>
+        <g class="gbe-m3-pencil">
+          <path d="M88 378 113 242 136 247 111 382Z" />
+          <path d="m113 242 9-25 14 30" />
+          <path d="M102 299 126 304" />
+        </g>
+        <g class="gbe-m3-notebook">
+          <path d="M134 384 158 272 233 289 210 390Z" />
+          <path d="M163 296 218 308M160 312l55 12M157 328l55 12M154 344l45 10" />
+        </g>
+      </svg>
+    </div>
+
+    <div class="gbe-m3-corner-note" aria-hidden="true">Good Students<br/>Brighter<br/>Tomorrow...</div>
+
     <div class="gbe-m3-hero-copy">
       <span class="gbe-m3-eyebrow">GRADEBOOK</span>
       <h1>Sổ điểm <i aria-hidden="true">✦</i></h1>
       <p>Quản lý điểm số khoa học · Minh bạch · Hiệu quả</p>
+      <div class="gbe-m3-hand-note" aria-hidden="true"><span>Mỗi nỗ lực<br/>đều tạo nên<br/>kết quả tốt đẹp</span><b>♥</b></div>
 
       <div class="gbe-m3-class-switcher" aria-label="Chọn lớp đang mở">
         ${classTabs}
@@ -249,9 +311,9 @@ function renderHero(container) {
       </div>
 
       <div class="gbe-m3-mini-stats">
-        <article><span>▤</span><b>${escapeHtml(stats.totalColumns)}</b><small>Cột TX</small></article>
-        <article><span>♙</span><b>${escapeHtml(stats.students)}</b><small>Học sinh</small></article>
-        <article><span>▦</span><b>${escapeHtml(stats.activeBooks)}</b><small>Sổ điểm</small></article>
+        <article class="is-blue"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 9 9-5 9 5-9 5-9-5Z"/><path d="M7 12v5c3 2 7 2 10 0v-5"/></svg></span><b>${escapeHtml(stats.totalColumns)}</b><small>Cột TX</small></article>
+        <article class="is-mint"><span aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="16" cy="9" r="2.5"/><path d="M3.5 19c.5-4 2.7-6 5.5-6s5 2 5.5 6"/><path d="M13 19c.3-3 1.8-4.6 4-4.6 2 0 3.5 1.6 3.9 4.6"/></svg></span><b>${escapeHtml(stats.students)}</b><small>Học sinh</small></article>
+        <article class="is-peach"><span aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="16" rx="2"/><path d="M9 4.5h6M9 9h6M9 12h6M9 15h4"/></svg></span><b>${escapeHtml(stats.activeBooks)}</b><small>Sổ điểm</small></article>
       </div>
 
       <div class="gbe-m3-preview-card">
@@ -260,7 +322,7 @@ function renderHero(container) {
         ${previewRows}
       </div>
 
-      <div class="gbe-m3-tip"><span>✦</span><p><b>Mẹo:</b> Chọn lớp, học kỳ hoặc thành phần điểm ngay trên hero.</p><button type="button" data-gbe-action="view" data-value="TX · Đợt 1">Bắt đầu nhập</button></div>
+      <div class="gbe-m3-tip"><span aria-hidden="true">💡</span><p><b>Mẹo:</b> Chọn lớp, học kỳ hoặc thành phần điểm ngay trên hero.</p><button type="button" data-gbe-action="view" data-value="TX · Đợt 1">Bắt đầu nhập <i aria-hidden="true">›</i></button></div>
     </div>`;
 }
 

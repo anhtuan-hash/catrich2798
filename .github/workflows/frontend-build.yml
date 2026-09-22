@@ -277,5 +277,8 @@ jobs:
       - name: Verify canonical leader guards v11.9.5
         run: node scripts/test-canonical-leader-guards-v11.9.5.mjs
 
+      - name: Verify Gradebook colorful hero V1
+        run: node scripts/test-gradebook-colorful-hero-v1.mjs
+
       - name: Build production bundle
         run: npm run build
