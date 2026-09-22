@@ -52,6 +52,9 @@ jobs:
       - name: Verify approved Dashboard Colorful V2
         run: node scripts/test-dashboard-colorful-v2.mjs
 
+      - name: Verify Dashboard mockup parity V3
+        run: node scripts/test-dashboard-mockup-parity-v3.mjs
+
       - name: Verify global 10-bar Wave Loader is retired
         run: node scripts/test-no-global-wave-loader.mjs
 

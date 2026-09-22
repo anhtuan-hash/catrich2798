@@ -57,6 +57,13 @@ function NewsImage({ item, featured = false }) {
     ? <img src={item.image} alt="" loading={featured ? 'eager' : 'lazy'} referrerPolicy="no-referrer" />
     : <span className="dnh-image-fallback" aria-hidden="true"><b>NEWS</b><i /><i /><i /></span>;
 }
+function NewsroomMegaphoneIcon() {
+  return <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+    <path d="M4 14.2v5.6c0 1 .8 1.8 1.8 1.8h3.4l2.2 6.3c.3.8 1.2 1.2 2 .9l2.3-.8c.8-.3 1.2-1.2.9-2l-1.6-4.4h1.5c4.9 0 8.4 1.5 11.5 4.1V8.3c-3.1 2.6-6.6 4.1-11.5 4.1H5.8c-1 0-1.8.8-1.8 1.8Z" fill="currentColor"/>
+    <path d="M29.4 12.3c1.7 1.9 1.7 5.5 0 7.4" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"/>
+  </svg>;
+}
+
 function ReaderBlocks({ blocks = [] }) {
   return blocks.map((block, index) => {
     const key = `${block.type || 'p'}:${index}:${block.text?.slice(0, 16) || block.src || ''}`;
@@ -157,7 +164,7 @@ export default function DashboardNewsHub({ language = 'vi' }) {
   return <>
     <section className={`dnh${expanded ? ' is-expanded' : ''}`} aria-label={t.title} ref={hubRef}>
       <header className="dnh-head">
-        <div className="dnh-title"><span className="dnh-icon" aria-hidden="true">N</span><div><span>{t.eyebrow}</span><h2>{t.title}</h2><p>{t.subtitle}</p></div></div>
+        <div className="dnh-title"><span className="dnh-icon" aria-hidden="true"><NewsroomMegaphoneIcon /></span><div><span>{t.eyebrow}</span><h2>{t.title}</h2><p>{t.subtitle}</p></div></div>
         <div className="dnh-actions">
           <div className="dnh-tabs" role="tablist" aria-label={t.title}>
             <button type="button" role="tab" aria-selected={channel === 'vi'} className={channel === 'vi' ? 'is-active' : ''} onClick={() => setChannel('vi')}>{t.vi}</button>

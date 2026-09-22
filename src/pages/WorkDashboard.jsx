@@ -61,6 +61,7 @@ const ICON_PATHS = {
   game: 'M15 7.5V6a3 3 0 0 0-6 0v1.5A5.5 5.5 0 0 0 3.5 13v5.5A2.5 2.5 0 0 0 6 21c.69 0 1.35-.29 1.82-.8L10 17.8h4l2.18 2.4A2.5 2.5 0 0 0 20.5 18.5V13A5.5 5.5 0 0 0 15 7.5ZM11 6a1 1 0 0 1 2 0v1h-2V6Zm-3 9H6v-2H4v-2h2V9h2v2h2v2H8v2Zm7.5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm3-3a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z',
   magic: 'M12 2l1.4 3.1L16.5 6.5l-3.1 1.4L12 11l-1.4-3.1L7.5 6.5l3.1-1.4L12 2Zm-7 9 1.05 2.45L8.5 14.5l-2.45 1.05L5 18l-1.05-2.45L1.5 14.5l2.45-1.05L5 11Zm10.3 1.3 6.4 6.4-2 2-6.4-6.4 2-2Z',
   clock: 'M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2Zm1 11h-5V6h2v5h3v2Z',
+  bolt: 'M13 2 4 14h7l-1 8 9-12h-7l1-8Z',
 };
 
 function Icon({ name, size = 20 }) {
@@ -94,8 +95,8 @@ function weatherText(code, language) {
 }
 function openTtcm(view = 'feed') { window.dispatchEvent(new CustomEvent('bes-ttcm-open', { detail: { view } })); }
 function Empty({ children }) { return <div className="gd-empty"><span><Icon name="calendar" size={24} /></span><p>{children}</p></div>; }
-function Surface({ title, subtitle, icon, action, actionLabel, children, id, className = '' }) {
-  return <article className={`gd-surface ${className}`} id={id}><header className="gd-surface-header"><div className="gd-surface-heading"><span className="gd-heading-icon"><Icon name={icon} size={20} /></span><div><h2>{title}</h2>{subtitle ? <p>{subtitle}</p> : null}</div></div>{action ? <button type="button" className="gd-text-button" onClick={action}>{actionLabel}<Icon name="arrow" size={18} /></button> : null}</header><div className="gd-surface-body">{children}</div></article>;
+function Surface({ title, subtitle, icon, action, actionLabel, children, id, className = '', note = '' }) {
+  return <article className={`gd-surface ${className}`} id={id}><header className="gd-surface-header"><div className="gd-surface-heading"><span className="gd-heading-icon"><Icon name={icon} size={20} /></span><div><h2>{title}</h2>{subtitle ? <p>{subtitle}</p> : null}</div></div>{note ? <span className="gd-surface-note" aria-hidden="true">{note}</span> : null}{action ? <button type="button" className="gd-text-button" onClick={action}>{actionLabel}<Icon name="arrow" size={18} /></button> : null}</header><div className="gd-surface-body">{children}</div></article>;
 }
 function CalendarEvent({ item, language, locale, t }) {
   const state = getDashboardDueState(item.date, item.done);
@@ -146,7 +147,72 @@ function DashboardHeroIllustration() {
       <path d="M58 18c-14-31-28 1-15 24 9-19 18-16 15-24Zm17 2c10-32 31-10 20 19-11-17-20-10-20-19Zm-5 10c-1-31-25-22-24 6 10-13 18-9 24-6Z" fill="#4ba86b" />
     </g>
     <path d="M160 80l7 16 16 7-16 7-7 16-7-16-16-7 16-7 7-16Z" fill="#fff" opacity=".98" />
+
+    <g filter="url(#edShadow)" transform="translate(300 347)">
+      <rect x="0" y="30" width="226" height="24" rx="10" fill="#1e7495" />
+      <rect x="18" y="14" width="216" height="24" rx="10" fill="#55a48f" />
+      <rect x="38" y="0" width="204" height="24" rx="10" fill="#f1c96d" />
+      <path d="M28 35h164" stroke="#dff8f4" strokeWidth="2" opacity=".75" />
+      <path d="M57 19h132" stroke="#edf8eb" strokeWidth="2" opacity=".75" />
+    </g>
+
+    <g filter="url(#edShadow)" transform="translate(500 281)">
+      <rect x="0" y="15" width="112" height="98" rx="20" fill="#ffffff" stroke="#cad9e9" strokeWidth="2" />
+      <path d="M111 40h24a21 21 0 0 1 0 42h-24" fill="none" stroke="#cad9e9" strokeWidth="4" />
+      <text x="56" y="48" textAnchor="middle" fill="#244f86" fontSize="11" fontWeight="800">TEACH</text>
+      <text x="56" y="65" textAnchor="middle" fill="#244f86" fontSize="11" fontWeight="800">INSPIRE</text>
+      <text x="56" y="82" textAnchor="middle" fill="#244f86" fontSize="11" fontWeight="800">GROW</text>
+      <path d="M50 93c5 7 11 7 16 0" fill="none" stroke="#f08b9d" strokeWidth="2.5" strokeLinecap="round" />
+    </g>
+
+    <g transform="translate(598 118) rotate(4)">
+      <rect width="105" height="95" rx="7" fill="#fff4b7" stroke="#efd67b" strokeWidth="1.5" />
+      <circle cx="17" cy="16" r="4" fill="#ef7f60" />
+      <text x="53" y="35" textAnchor="middle" fill="#816b34" fontSize="12" fontWeight="800">Mỗi ngày</text>
+      <text x="53" y="53" textAnchor="middle" fill="#816b34" fontSize="12" fontWeight="800">tốt hơn</text>
+      <text x="53" y="71" textAnchor="middle" fill="#816b34" fontSize="12" fontWeight="800">một chút ♡</text>
+    </g>
+
+    <g transform="translate(84 182)">
+      <ellipse cx="30" cy="114" rx="35" ry="8" fill="#bad2c2" opacity=".45" />
+      <rect x="12" y="61" width="38" height="56" rx="10" fill="#f4efe4" stroke="#d8dddf" />
+      <path d="M31 62c-9-23-31-20-31-6 16-2 23 3 31 6Zm8-2c7-31 31-33 37-17-17 5-24 10-37 17Zm-3 1c-3-34 14-43 23-32-6 11-14 20-23 32Z" fill="#5ab77b" />
+      <path d="M26 61c-17-21-29-4-21 10 7-9 12-10 21-10Z" fill="#78c58f" />
+    </g>
   </svg>;
+}
+
+function DashboardHeroDoodles({ language }) {
+  const note = language === 'vi'
+    ? <>Giáo dục<br />kiến tạo<br />tương lai ♡</>
+    : <>Teach today.<br />Shape tomorrow.<br />Grow together ♡</>;
+  return <div className="editorial-hero-doodles" aria-hidden="true">
+    <svg className="editorial-plane-doodle" viewBox="0 0 150 110" focusable="false">
+      <path d="M12 44 134 10 92 96 62 58 12 44Z" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinejoin="round" />
+      <path d="M62 58 111 29M62 58l5 31 25-17" fill="none" stroke="currentColor" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10 81c20 8 36 6 49-5" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeDasharray="5 8" />
+    </svg>
+    <svg className="editorial-sun-doodle" viewBox="0 0 120 120" focusable="false">
+      <circle cx="60" cy="60" r="21" fill="none" stroke="currentColor" strokeWidth="5" />
+      {[0,45,90,135,180,225,270,315].map((angle) => <line key={angle} x1="60" y1="10" x2="60" y2="28" stroke="currentColor" strokeWidth="5" strokeLinecap="round" transform={`rotate(${angle} 60 60)`} />)}
+    </svg>
+    <svg className="editorial-swoosh-doodle" viewBox="0 0 150 70" focusable="false">
+      <path d="M8 41c25-33 41 18 70-11 14-14 25-17 61-8-14 7-25 16-31 36" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+    <span className="editorial-hero-note">{note}</span>
+  </div>;
+}
+
+function DashboardCalendarDoodle({ language }) {
+  return <span className="gd-calendar-doodle" aria-hidden="true">
+    <span>{language === 'vi' ? <>Kế hoạch tốt<br />mở ra ngày tuyệt vời! ✨</> : <>A good plan<br />opens a great day! ✨</>}</span>
+    <svg viewBox="0 0 80 80" focusable="false">
+      <rect x="13" y="18" width="54" height="48" rx="10" fill="#fff" stroke="currentColor" strokeWidth="2" />
+      <path d="M13 31h54" stroke="currentColor" strokeWidth="2" />
+      <path d="M27 12v15M53 12v15" stroke="currentColor" strokeWidth="5" strokeLinecap="round" />
+      <path d="m27 47 8 8 18-19" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  </span>;
 }
 
 export default function WorkDashboard({ currentUser, language = 'vi' }) {
@@ -253,6 +319,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
     <div className="gd-shell">
       <section className="gd-top-grid">
         <header className="editorial-hero">
+          <DashboardHeroDoodles language={language} />
           <div className="editorial-hero-copy">
             <div className="editorial-hero-meta">
               <span className="editorial-hero-eyebrow"><span aria-hidden="true" />{t.eyebrow}</span>
@@ -295,7 +362,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
       </section>
       {error ? <div className="gd-alert"><Icon name="warning" size={22} /><div><strong>{t.partial}</strong><small>{error}</small></div><button type="button" className="gd-text-button" onClick={() => refresh()}>{t.retry}</button></div> : null}
       <article className="gd-calendar gd-calendar-today" id="dashboard-calendar">
-        <header className="gd-calendar-header"><div className="gd-calendar-title"><span><Icon name="calendar" size={22} /></span><div><h2>{t.calendar}</h2><p>{t.calendarSummary}</p></div></div><button type="button" className="gd-text-button" onClick={() => openTtcm('schedule')}>{t.openCalendar}<Icon name="arrow" size={18} /></button></header>
+        <header className="gd-calendar-header"><div className="gd-calendar-title"><span><Icon name="calendar" size={22} /></span><div><h2>{t.calendar}</h2><p>{t.calendarSummary}</p></div></div><DashboardCalendarDoodle language={language} /><button type="button" className="gd-text-button" onClick={() => openTtcm('schedule')}>{t.openCalendar}<Icon name="arrow" size={18} /></button></header>
         <div className="gd-today-layout">
           <header className="gd-today-overview">
             <div className="gd-today-date-mark"><strong>{todayDate.getDate()}</strong><span>{new Intl.DateTimeFormat(locale, { month: 'short' }).format(todayDate)}</span></div>
@@ -306,7 +373,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
         </div>
       </article>
       <DashboardNewsHub language={language} />
-      <Surface title={t.quickActions} icon="apps" className="gd-quick-surface"><div className="gd-quick-actions">{quickActions.map(([icon, label, target]) => <button type="button" key={label} className="gd-quick-action" onClick={() => { if (String(target).startsWith('ttcm:')) openTtcm(String(target).split(':')[1] || 'feed'); else window.location.hash = target; }}><span><Icon name={icon} size={20} /></span>{label}</button>)}</div></Surface>
+      <Surface title={t.quickActions} icon="bolt" className="gd-quick-surface" note={language === 'vi' ? 'Tiết kiệm thời gian · Tập trung cho điều quan trọng ♡' : 'Save time · Focus on what matters ♡'}><div className="gd-quick-actions">{quickActions.map(([icon, label, target]) => <button type="button" key={label} className="gd-quick-action" onClick={() => { if (String(target).startsWith('ttcm:')) openTtcm(String(target).split(':')[1] || 'feed'); else window.location.hash = target; }}><span><Icon name={icon} size={20} /></span>{label}</button>)}</div></Surface>
     </div>
   </section>;
 }
