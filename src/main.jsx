@@ -444,7 +444,7 @@ function App() {
           '--active-app-ink': activeDesignProfile.ink,
         }}
       >
-        {!['homeroom-portal', 'classroom-join'].includes(currentRoute) ? <div className="bes-top-chrome">
+        {!['homeroom-portal', 'classroom-join'].includes(currentRoute) ? <div className="bes-top-chrome" data-route={currentRoute}>
           <Suspense fallback={null}>
             <StatusMenuBar route={currentRoute} {...context} />
           </Suspense>
@@ -563,7 +563,7 @@ function App() {
             <SyncQueueIndicator currentUser={currentUser} language={language} externalLauncher />
           </Suspense>
         </> : null}
-        {!['homeroom-portal', 'classroom-join'].includes(currentRoute) ? <Footer language={language} currentUser={currentUser} /> : null}
+        {!['homeroom-portal', 'classroom-join'].includes(currentRoute) ? <Footer language={language} currentUser={currentUser} route={currentRoute} /> : null}
       </div>
     </>
   );
