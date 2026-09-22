@@ -61,6 +61,9 @@ jobs:
       - name: Verify Dashboard mockup parity V5
         run: node scripts/test-dashboard-mockup-parity-v5.mjs
 
+      - name: Verify global Quick Access rail
+        run: node scripts/test-global-quick-access-rail.mjs
+
       - name: Verify global 10-bar Wave Loader is retired
         run: node scripts/test-no-global-wave-loader.mjs
 

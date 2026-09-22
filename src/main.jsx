@@ -98,6 +98,7 @@ const HomeroomWorkspace = lazy(() => import('./pages/HomeroomWorkspace.jsx'));
 const HomeroomPortal = lazy(() => import('./pages/HomeroomPortal.jsx'));
 const StatusMenuBar = lazy(() => import('./components/StatusMenuBar.jsx'));
 const GlobalCommandPalette = lazy(() => import('./components/GlobalCommandPalette.jsx'));
+const GlobalQuickAccessRail = lazy(() => import('./components/GlobalQuickAccessRail.jsx'));
 const SharedChatbotDrawer = lazy(() => import('./components/SharedChatbotDrawer.jsx'));
 const GlobalAutosave = lazy(() => import('./components/GlobalAutosave.jsx'));
 const GlobalRuntimeGuard = lazy(() => import('./components/GlobalRuntimeGuard.jsx'));
@@ -451,6 +452,20 @@ function App() {
             <GlobalFlatNavigation route={currentRoute} selectedTool={selectedTool} onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }} {...context} />
           </AppErrorBoundary>
         </div> : null}
+
+        {currentUser && canAccessRoute && currentRoute !== 'home' && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute) && (
+          <Suspense fallback={null}>
+            <AppErrorBoundary compact scope="quick-access-rail" label={language === 'vi' ? 'thanh truy cập nhanh' : 'quick access'}>
+              <GlobalQuickAccessRail
+                currentUser={currentUser}
+                currentRoute={currentRoute}
+                selectedTool={selectedTool}
+                language={language}
+                appVisibility={appVisibility}
+              />
+            </AppErrorBoundary>
+          </Suspense>
+        )}
 
         {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal', 'classroom-join'].includes(currentRoute) && (
           <Suspense fallback={null}>
