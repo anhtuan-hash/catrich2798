@@ -1,26 +1,21 @@
-# Star → Mobile presentation mode
+# Star mobile-mode toggle — retired
 
-## Goal
-Turn the animated particle-star logo in the desktop navigation into a presentation-mode switch that opens Brian English's real mobile shell inside a desktop browser, with a clear way back to desktop.
+## Status
+Retired on 2026-09-22.
 
-## Design
-- Keep automatic device detection as the default.
-- Clicking the desktop star writes a persistent `mobile` presentation override to `localStorage` and emits a same-tab change event.
-- `usePresentationMode` listens for the override event and `storage`, so the shell swaps without reload.
-- The existing `MobileAppShell` remains the source of truth for mobile navigation; no duplicate mobile UI is introduced.
-- When mobile is forced from desktop, constrain the app to a phone-width stage and expose a small Desktop return button.
-- Clearing the override returns to normal automatic device detection.
+## Current behavior
+- The particle Star remains in the desktop navigation as a decorative Brian English visual.
+- Clicking or tapping the Star no longer changes presentation mode.
+- Real phones and portrait tablets still use the automatic mobile shell.
+- Desktop browsers stay on the desktop layout.
+- Any legacy `bes-presentation-override` value left by the old Star toggle is ignored and cleared by the presentation-mode hook.
 
-## Files
-- `src/device/presentationMode.js`: persistent override read/write helpers and event constant.
-- `src/hooks/usePresentationMode.js`: resolve query/stored override and react to changes.
-- `src/components/HomeParticleSignaturePortal.jsx`: make the nav star an accessible button and activate mobile mode.
-- `src/components/GlobalFlatNavigation.jsx`: mark forced mode on the root and render the Desktop return control.
-- `src/components/BrianPulseLogo.css`: interactive star/forced-phone-stage styles.
-- `scripts/test-star-mobile-mode-toggle.mjs`: contract checks for storage, event wiring, star action, mobile shell reuse, and return action.
+## Removed behavior
+- Star click → persistent `mobile` override.
+- Desktop phone-width preview stage.
+- Floating “Máy tính / Desktop” return control.
 
-## Verification
-1. Run `node scripts/test-star-mobile-mode-toggle.mjs`.
-2. Run `npm run build`.
-3. Run `npm test`.
-4. Verify CI/deployment after merge.
+## Regression coverage
+- `scripts/test-star-mobile-mode-toggle.mjs` now asserts the Star is non-interactive and cannot write a presentation override.
+- `tests/e2e/mobile-shell.spec.js` verifies a stale desktop mobile-preview override is ignored and cleared.
+- Automatic mobile behavior for actual phones/tablets remains covered by the existing mobile-shell tests.
