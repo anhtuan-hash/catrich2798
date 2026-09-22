@@ -40,10 +40,11 @@ assert.ok(
   'Legacy stacked Dashboard footer authorities must be removed.',
 );
 
-assert.ok(
-  !/\.signature-footer-v50-(?:brand|profile|credentials)[^{]*\{[\s\S]*?radial-gradient/i.test(footer),
-  'Footer cards must not use radial-gradient artwork that can create oversized circles.',
-);
+for (const className of ['brand', 'profile', 'credentials']) {
+  const match = footer.match(new RegExp('\\.signature-footer-v50-' + className + '\\s*\\{([^}]*)\\}', 'i'));
+  assert.ok(match, `Footer card style missing: ${className}`);
+  assert.ok(!/radial-gradient/i.test(match[1]), `Footer card ${className} must not use radial-gradient artwork.`);
+}
 
 assert.ok(
   !/font-family\s*:/i.test(footer),
