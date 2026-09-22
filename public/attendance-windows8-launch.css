@@ -2,18 +2,12 @@
    This effect is intentionally always-on for Attendance. */
 
 .attendance-layer {
-  animation-name: attendance-win8-layer-in !important;
-  animation-duration: 260ms !important;
-  animation-timing-function: cubic-bezier(.10, .90, .20, 1) !important;
-  animation-fill-mode: both !important;
-  animation-iteration-count: 1 !important;
-  animation-play-state: running !important;
   perspective: 1400px;
 }
 
 .attendance-shell {
   animation-name: attendance-win8-shell-in !important;
-  animation-duration: 430ms !important;
+  animation-duration: 420ms !important;
   animation-timing-function: cubic-bezier(.10, .90, .20, 1) !important;
   animation-fill-mode: both !important;
   animation-iteration-count: 1 !important;
@@ -23,40 +17,15 @@
   will-change: opacity, transform, filter;
 }
 
-@keyframes attendance-win8-layer-in {
-  0% {
-    opacity: 0;
-    background: rgba(19, 29, 42, 0);
-    backdrop-filter: blur(0);
-    -webkit-backdrop-filter: blur(0);
-  }
-  100% {
-    opacity: 1;
-    background: rgba(19, 29, 42, .38);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-  }
-}
-
 @keyframes attendance-win8-shell-in {
   0% {
-    opacity: .04;
-    transform: translate3d(0, 44px, -160px) scale(.78) rotateX(2deg);
-    filter: saturate(.82) brightness(1.06);
-  }
-  46% {
-    opacity: 1;
-    transform: translate3d(0, -3px, 0) scale(1.016) rotateX(0deg);
-    filter: saturate(1) brightness(1);
-  }
-  72% {
-    opacity: 1;
-    transform: translate3d(0, 1px, 0) scale(.996);
-    filter: none;
+    opacity: .02;
+    transform: translate3d(0, 28px, -150px) scale(.82) rotateX(1.2deg);
+    filter: saturate(.9) brightness(1.035);
   }
   100% {
     opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
+    transform: translate3d(0, 0, 0) scale(1) rotateX(0deg);
     filter: none;
   }
 }
