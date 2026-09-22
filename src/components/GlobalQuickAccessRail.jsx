@@ -824,12 +824,16 @@ export default function GlobalQuickAccessRail({
     setDragId('');
   };
 
+  const peekItem = catalog.find((item) => item.id === peekItemId) || null;
+  const actionMenuItem = catalog.find((item) => item.id === actionMenuItemId) || null;
+
   const quickAccessUi = (
     <>
       <div
         ref={rootRef}
-        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${config.pinned ? 'is-pinned' : ''} ${customizing ? 'is-customizing' : ''}`}
+        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${isPinned ? 'is-pinned' : ''} ${mode === 'focus' ? 'is-focus-mode' : ''} ${customizing ? 'is-customizing' : ''}`}
         data-quick-access="true"
+        data-mode={mode}
         data-motion={collapsing ? 'collapsing' : (expanded ? 'open' : 'rest')}
         data-route={currentRoute}
         onPointerEnter={enter}
@@ -861,7 +865,7 @@ export default function GlobalQuickAccessRail({
             aria-label={expanded ? (language === 'vi' ? 'Thu gọn thanh truy cập nhanh' : 'Collapse quick access') : (language === 'vi' ? 'Mở thanh truy cập nhanh' : 'Open quick access')}
             aria-expanded={expanded}
             onClick={() => {
-              if (expanded && !config.pinned && !customizing) collapseRail(false);
+              if (expanded && !isPinned && !customizing) collapseRail(false);
               else openRail();
             }}
           >
@@ -869,21 +873,28 @@ export default function GlobalQuickAccessRail({
           </button>
 
           <div className="bqa-rail-items">
-            {selectedItems.map((item) => {
+            {selectedItems.map((item, index) => {
               const Icon = item.icon || Boxes;
               const active = activeItem(item, currentRoute, selectedTool);
+              const badge = normalizeBadgeValue(badges[item.id]);
               return (
                 <button
                   type="button"
                   key={item.id}
+                  data-bqa-item-id={item.id}
                   className={`bqa-rail-button ${active ? 'is-active' : ''}`}
                   style={{ '--bqa-accent': item.accent }}
-                  title={labelFor(item, language)}
+                  title={`${labelFor(item, language)} · Alt+${index + 1}`}
                   aria-label={labelFor(item, language)}
                   aria-current={active ? 'page' : undefined}
+                  onPointerEnter={() => schedulePeek(item.id)}
+                  onPointerLeave={cancelPeek}
+                  onFocus={() => schedulePeek(item.id)}
+                  onBlur={cancelPeek}
                   onClick={(event) => activateItem(item, event.currentTarget)}
                 >
                   <Icon size={20} strokeWidth={2} aria-hidden="true" />
+                  {badge ? <span className="bqa-badge" aria-label={language === 'vi' ? `${badge} thông báo` : `${badge} notifications`}>{badge}</span> : null}
                 </button>
               );
             })}
@@ -892,8 +903,8 @@ export default function GlobalQuickAccessRail({
           <button
             type="button"
             className="bqa-rail-settings"
-            title={language === 'vi' ? 'Tùy chỉnh lối tắt' : 'Customize shortcuts'}
-            aria-label={language === 'vi' ? 'Tùy chỉnh lối tắt' : 'Customize shortcuts'}
+            title={language === 'vi' ? 'Trung tâm điều khiển' : 'Control center'}
+            aria-label={language === 'vi' ? 'Trung tâm điều khiển' : 'Control center'}
             onClick={() => {
               setHovered(true);
               setCustomizerQuery('');
@@ -903,6 +914,22 @@ export default function GlobalQuickAccessRail({
             <Settings size={19} aria-hidden="true" />
           </button>
         </aside>
+
+        {peekItem && expanded && !customizing ? (
+          <aside className="bqa-peek-card" aria-live="polite" onPointerEnter={() => window.clearTimeout(peekTimerRef.current)}>
+            <span className="bqa-peek-kicker">{language === 'vi' ? 'XEM NHANH' : 'QUICK PEEK'}</span>
+            <strong>{labelFor(peekItem, language)}</strong>
+            <p>{itemDescription(peekItem, language)}</p>
+            <div>
+              <button type="button" onClick={(event) => activateItem(peekItem, event.currentTarget)}>
+                {language === 'vi' ? 'Mở' : 'Open'} <ChevronRight size={15} aria-hidden="true" />
+              </button>
+              <button type="button" aria-label={language === 'vi' ? 'Thao tác nhanh' : 'Quick actions'} onClick={() => { setActionMenuItemId(peekItem.id); setPeekItemId(''); }}>
+                <MoreHorizontal size={17} aria-hidden="true" />
+              </button>
+            </div>
+          </aside>
+        ) : null}
 
         <section
           ref={panelRef}
@@ -917,62 +944,143 @@ export default function GlobalQuickAccessRail({
         >
           <header className="bqa-panel-header">
             <div>
-              <strong>{language === 'vi' ? 'Thanh truy cập nhanh' : 'Quick access'}</strong>
-              <span>{language === 'vi' ? `Tối đa ${QUICK_ACCESS_MAX_ITEMS} ứng dụng · Rê chuột để mở` : `Up to ${QUICK_ACCESS_MAX_ITEMS} apps · Hover to open`}</span>
+              <strong>{language === 'vi' ? 'Brian Quick Access' : 'Brian Quick Access'}</strong>
+              <span>{language === 'vi' ? 'Tìm, mở và thao tác nhanh mà không rời trang' : 'Search, launch and act without leaving the page'}</span>
             </div>
             <button
               type="button"
-              className={`bqa-pin ${config.pinned ? 'is-active' : ''}`}
-              aria-pressed={config.pinned}
-              title={config.pinned ? (language === 'vi' ? 'Bỏ ghim' : 'Unpin') : (language === 'vi' ? 'Ghim thanh' : 'Pin rail')}
+              className={`bqa-pin ${isPinned ? 'is-active' : ''}`}
+              aria-pressed={isPinned}
+              title={isPinned ? (language === 'vi' ? 'Chuyển về tự động' : 'Use auto mode') : (language === 'vi' ? 'Ghim thanh' : 'Pin rail')}
               onClick={togglePinned}
             >
-              {config.pinned ? <PinOff size={18} aria-hidden="true" /> : <Pin size={18} aria-hidden="true" />}
+              {isPinned ? <PinOff size={18} aria-hidden="true" /> : <Pin size={18} aria-hidden="true" />}
             </button>
           </header>
 
-          <div className="bqa-panel-list" role="list">
-            {selectedItems.map((item) => {
-              const Icon = item.icon || Boxes;
-              const active = activeItem(item, currentRoute, selectedTool);
-              return (
-                <button
-                  type="button"
-                  role="listitem"
-                  key={item.id}
-                  draggable
-                  className={`bqa-panel-item ${active ? 'is-active' : ''}`}
-                  style={{ '--bqa-accent': item.accent }}
-                  onDragStart={(event) => {
-                    setDragId(item.id);
-                    event.dataTransfer.effectAllowed = 'move';
-                    event.dataTransfer.setData('text/plain', item.id);
-                  }}
-                  onDragEnd={() => setDragId('')}
-                  onDragOver={(event) => {
-                    if (!dragId) return;
-                    event.preventDefault();
-                    event.dataTransfer.dropEffect = 'move';
-                  }}
-                  onDrop={(event) => {
-                    event.preventDefault();
-                    moveDraggedBefore(item.id);
-                  }}
-                  onClick={(event) => activateItem(item, event.currentTarget)}
-                >
-                  <span className="bqa-item-icon"><Icon size={20} strokeWidth={2} aria-hidden="true" /></span>
-                  <span className="bqa-item-label">{labelFor(item, language)}</span>
-                  {active ? <Check className="bqa-item-check" size={17} aria-hidden="true" /> : null}
-                  <GripVertical className="bqa-item-grip" size={17} aria-hidden="true" />
+          <label className="bqa-command-search">
+            <Command size={17} aria-hidden="true" />
+            <input
+              ref={commandInputRef}
+              type="search"
+              value={commandQuery}
+              onChange={(event) => setCommandQuery(event.target.value)}
+              placeholder={language === 'vi' ? 'Tìm ứng dụng hoặc lệnh…' : 'Search apps or commands…'}
+              aria-label={language === 'vi' ? 'Tìm nhanh ứng dụng' : 'Quick app search'}
+            />
+            {commandQuery ? (
+              <button type="button" onClick={() => { setCommandQuery(''); commandInputRef.current?.focus(); }} aria-label={language === 'vi' ? 'Xóa tìm kiếm' : 'Clear search'}>
+                <X size={14} aria-hidden="true" />
+              </button>
+            ) : <kbd>{navigator?.platform?.toLowerCase?.().includes('mac') ? '⌘K' : 'Ctrl K'}</kbd>}
+          </label>
+
+          {!commandNeedle && recentItems.length ? (
+            <section className="bqa-recent" aria-label={language === 'vi' ? 'Ứng dụng gần đây' : 'Recent apps'}>
+              <div className="bqa-section-title"><Clock3 size={14} aria-hidden="true" /><span>{language === 'vi' ? 'Gần đây' : 'Recent'}</span></div>
+              <div className="bqa-recent-chips">
+                {recentItems.map((item) => {
+                  const Icon = item.icon || Boxes;
+                  return (
+                    <button type="button" key={item.id} style={{ '--bqa-accent': item.accent }} onClick={(event) => activateItem(item, event.currentTarget)}>
+                      <Icon size={15} aria-hidden="true" />
+                      <span>{labelFor(item, language)}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
+
+          {commandNeedle ? (
+            <div className="bqa-command-results" role="listbox" aria-label={language === 'vi' ? 'Kết quả tìm nhanh' : 'Quick search results'}>
+              <div className="bqa-section-title"><Search size={14} aria-hidden="true" /><span>{language === 'vi' ? 'Kết quả' : 'Results'}</span></div>
+              {commandResults.map((item) => {
+                const Icon = item.icon || Boxes;
+                const badge = normalizeBadgeValue(badges[item.id]);
+                return (
+                  <button type="button" role="option" key={item.id} style={{ '--bqa-accent': item.accent }} onClick={(event) => activateItem(item, event.currentTarget)}>
+                    <span className="bqa-item-icon"><Icon size={18} aria-hidden="true" /></span>
+                    <span><strong>{labelFor(item, language)}</strong><small>{itemDescription(item, language)}</small></span>
+                    {badge ? <b className="bqa-inline-badge">{badge}</b> : <ChevronRight size={16} aria-hidden="true" />}
+                  </button>
+                );
+              })}
+              {!commandResults.length ? <p className="bqa-command-empty">{language === 'vi' ? 'Không tìm thấy ứng dụng phù hợp.' : 'No matching app found.'}</p> : null}
+            </div>
+          ) : (
+            <div className="bqa-panel-list" role="list">
+              {selectedItems.map((item) => {
+                const Icon = item.icon || Boxes;
+                const active = activeItem(item, currentRoute, selectedTool);
+                const badge = normalizeBadgeValue(badges[item.id]);
+                return (
+                  <div
+                    role="listitem"
+                    key={item.id}
+                    draggable
+                    className={`bqa-panel-row ${active ? 'is-active' : ''}`}
+                    style={{ '--bqa-accent': item.accent }}
+                    onDragStart={(event) => {
+                      setDragId(item.id);
+                      event.dataTransfer.effectAllowed = 'move';
+                      event.dataTransfer.setData('text/plain', item.id);
+                    }}
+                    onDragEnd={() => setDragId('')}
+                    onDragOver={(event) => {
+                      if (!dragId) return;
+                      event.preventDefault();
+                      event.dataTransfer.dropEffect = 'move';
+                    }}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      moveDraggedBefore(item.id);
+                    }}
+                  >
+                    <button type="button" className="bqa-panel-item" onClick={(event) => activateItem(item, event.currentTarget)}>
+                      <span className="bqa-item-icon"><Icon size={20} strokeWidth={2} aria-hidden="true" /></span>
+                      <span className="bqa-item-label">{labelFor(item, language)}</span>
+                      {badge ? <span className="bqa-inline-badge">{badge}</span> : (active ? <Check className="bqa-item-check" size={17} aria-hidden="true" /> : null)}
+                      <GripVertical className="bqa-item-grip" size={17} aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      className="bqa-more"
+                      aria-label={language === 'vi' ? `Thao tác nhanh cho ${labelFor(item, language)}` : `Quick actions for ${labelFor(item, language)}`}
+                      aria-expanded={actionMenuItemId === item.id}
+                      onClick={() => setActionMenuItemId((current) => current === item.id ? '' : item.id)}
+                    >
+                      <MoreHorizontal size={17} aria-hidden="true" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {actionMenuItem ? (
+            <div className="bqa-action-popover" role="menu">
+              <header>
+                <strong>{labelFor(actionMenuItem, language)}</strong>
+                <button type="button" onClick={() => setActionMenuItemId('')} aria-label={language === 'vi' ? 'Đóng' : 'Close'}><X size={15} aria-hidden="true" /></button>
+              </header>
+              {quickActionsFor(actionMenuItem).map((action) => (
+                <button type="button" role="menuitem" key={action.id} onClick={(event) => runQuickAction(actionMenuItem, action.id, event.currentTarget)}>
+                  <span>{action.label}</span><ChevronRight size={15} aria-hidden="true" />
                 </button>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          ) : null}
 
           <footer className="bqa-panel-footer">
-            <button type="button" onClick={() => { setCustomizerQuery(''); setCustomizing(true); }}>
+            <div className="bqa-mode-switch" aria-label={language === 'vi' ? 'Chế độ thanh bên' : 'Sidebar mode'}>
+              <button type="button" className={mode === 'auto' ? 'is-active' : ''} onClick={() => setMode('auto')}><Eye size={15} aria-hidden="true" /><span>{language === 'vi' ? 'Tự động' : 'Auto'}</span></button>
+              <button type="button" className={mode === 'pin' ? 'is-active' : ''} onClick={() => setMode('pin')}><Pin size={15} aria-hidden="true" /><span>{language === 'vi' ? 'Ghim' : 'Pin'}</span></button>
+              <button type="button" className={mode === 'focus' ? 'is-active' : ''} onClick={() => setMode('focus')}><Command size={15} aria-hidden="true" /><span>{language === 'vi' ? 'Tập trung' : 'Focus'}</span></button>
+            </div>
+            <button type="button" className="bqa-customize-entry" onClick={() => { setCustomizerQuery(''); setCustomizing(true); }}>
               <Settings size={18} aria-hidden="true" />
-              <span><strong>{language === 'vi' ? 'Tùy chỉnh lối tắt' : 'Customize shortcuts'}</strong><small>{language === 'vi' ? 'Sắp xếp, ẩn/hiện ứng dụng' : 'Reorder and choose apps'}</small></span>
+              <span><strong>{language === 'vi' ? 'Tùy chỉnh launcher' : 'Customize launcher'}</strong><small>{language === 'vi' ? 'Sắp xếp, ẩn/hiện ứng dụng' : 'Reorder and choose apps'}</small></span>
             </button>
             <div className="bqa-account-note">
               <span className="bqa-sync-note"><Check size={15} aria-hidden="true" />{language === 'vi' ? 'Lưu theo tài khoản' : 'Saved to your account'}</span>
