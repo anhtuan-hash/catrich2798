@@ -12,6 +12,7 @@ assert.ok(main.includes("currentRoute !== 'home'"), 'Quick Access must not rende
 assert.ok(main.includes('scope="quick-access-rail"'), 'Quick Access must be protected by the global error boundary.');
 assert.ok(main.includes('appVisibility={appVisibility}'), 'Quick Access must receive app visibility state.');
 assert.ok(main.includes('data-quick-access-layout={quickAccessEnabled'), 'App shell must expose the global Quick Access layout contract.');
+assert.ok(main.includes('data-quick-access-safe-frame={quickAccessEnabled'), 'Routed content must use the shell-level Quick Access safe frame.');
 assert.ok(!rail.includes("currentRoute === 'dashboard'"), 'Dashboard must not be filtered out by the Quick Access component.');
 
 for (const token of [
@@ -72,10 +73,9 @@ for (const token of [
   '.bqa-shortcut-hint',
   'Quick Access Apple Pencil Morph V1',
   'Brian Global Quick Access Safe Area V1',
-  '[data-quick-access-layout="true"] > #bes-main-content',
-  'margin-inline-start: var(--bqa-content-safe-shift, 0px)',
-  'max-width: calc(100% - var(--bqa-content-safe-shift, 0px))',
-  '[data-quick-access-state="pinned"] > #bes-main-content',
+  '[data-quick-access-layout="true"] > #bes-main-content > .bqa-content-safe-frame',
+  'padding-inline-start: var(--bqa-content-safe-shift, 0px)',
+  '[data-quick-access-state="pinned"] > #bes-main-content > .bqa-content-safe-frame',
   'footer[data-app-shell-footer="true"]',
   '@media (min-width: 768px) and (max-width: 1279px)',
   '@media (max-width: 767px)',
