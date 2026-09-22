@@ -26,7 +26,7 @@ assert.equal(css.includes('marquee'), false, 'newswire must not use legacy marqu
 
 assert.match(slot, /<BrianNewswireBar language=\{language\} \/>/);
 assert.match(slot, /if \(!currentUser \|\| HIDDEN_ROUTES\.has\(route\)\) return null/);
-assert.match(nav, /<GlobalEditorialBriefBar route=\{props\.route\} language=\{props\.language\} currentUser=\{props\.currentUser\} \/>/);
+assert.match(nav, /!mobile \? <GlobalEditorialBriefBar route=\{props\.route\} language=\{props\.language\} currentUser=\{props\.currentUser\} \/> : null/);
 
 assert.match(reader, /NEWSWIRE_OPEN_ITEM_KEY = 'bes-newswire-open-item-v1'/);
 assert.match(reader, /window\.addEventListener\('bes-newswire-open-item'/);
