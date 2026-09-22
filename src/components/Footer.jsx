@@ -52,7 +52,7 @@ function DetailRow({ type, children }) {
   );
 }
 
-export default function Footer({ language, compact = false }) {
+export default function Footer({ language, compact = false, route = '' }) {
   const isVi = language === 'vi';
   const content = isVi ? VIETNAMESE_DETAILS : ENGLISH_DETAILS;
   const compactMode = compact
@@ -65,6 +65,7 @@ export default function Footer({ language, compact = false }) {
       aria-label={isVi ? 'Thông tin English Hub' : 'English Hub information'}
       data-app-shell-footer="true"
       data-footer-mode={compactMode ? 'compact' : 'full'}
+      data-footer-route={route || undefined}
     >
       {!compactMode ? (
       <div id="english-hub-footer-details" className="signature-footer-expanded-panel">
