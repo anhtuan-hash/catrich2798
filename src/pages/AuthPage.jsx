@@ -163,6 +163,7 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
   const [okMsg, setOkMsg] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const [recoveryMode, setRecoveryMode] = useState(
     () => window.location.href.includes('recovery=1') || window.location.href.includes('type=recovery'),
   );
@@ -190,6 +191,22 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
     return language === 'vi' ? 'Đăng nhập giáo viên' : 'Teacher sign in';
   }, [isRegister, language, recoveryMode]);
 
+  const runPrimaryAction = async (loadingMessage, action) => {
+    setSubmitLoading(true);
+    setGlobalLoading?.(true, loadingMessage);
+    try {
+      return await action();
+    } catch (error) {
+      return {
+        ok: false,
+        message: error instanceof Error ? error.message : String(error || 'Authentication failed.'),
+      };
+    } finally {
+      setSubmitLoading(false);
+      setGlobalLoading?.(false);
+    }
+  };
+
   const submit = async (event) => {
     event.preventDefault();
     setMsg('');
@@ -216,9 +233,10 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
         return;
       }
 
-      setGlobalLoading?.(true, language === 'vi' ? 'Đang cập nhật mật khẩu...' : 'Updating password...');
-      const res = await updatePassword(form.password);
-      setGlobalLoading?.(false);
+      const res = await runPrimaryAction(
+        language === 'vi' ? 'Đang cập nhật mật khẩu...' : 'Updating password...',
+        () => updatePassword(form.password),
+      );
 
       if (!res.ok) {
         setMsg(language === 'vi' ? translateLoginError(res.message) : res.message);
@@ -246,9 +264,10 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
         return;
       }
 
-      setGlobalLoading?.(true, language === 'vi' ? 'Đang tạo tài khoản...' : 'Creating account...');
-      const res = await registerTeacher(form);
-      setGlobalLoading?.(false);
+      const res = await runPrimaryAction(
+        language === 'vi' ? 'Đang tạo tài khoản...' : 'Creating account...',
+        () => registerTeacher(form),
+      );
 
       if (!res.ok) {
         setMsg(res.message || (language === 'vi' ? 'Không thể tạo tài khoản.' : 'Could not create account.'));
@@ -275,9 +294,10 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
       return;
     }
 
-    setGlobalLoading?.(true, language === 'vi' ? 'Đang đăng nhập...' : 'Signing in...');
-    const res = await loginUser(form);
-    setGlobalLoading?.(false);
+    const res = await runPrimaryAction(
+      language === 'vi' ? 'Đang đăng nhập...' : 'Signing in...',
+      () => loginUser(form),
+    );
 
     if (!res.ok) {
       setMsg(language === 'vi' ? translateLoginError(res.message) : res.message);
@@ -475,13 +495,29 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
           {msg ? <div className="auth-message auth-google-message is-error">{msg}</div> : null}
           {okMsg ? <div className="auth-message success-message auth-google-message is-success">{okMsg}</div> : null}
 
-          <button className="auth-google-submit" type="submit">
-            {recoveryMode
-              ? (language === 'vi' ? 'Cập nhật mật khẩu' : 'Update password')
-              : isRegister
-                ? (language === 'vi' ? 'Tạo tài khoản' : 'Create account')
-                : (language === 'vi' ? 'Đăng nhập' : 'Sign in')}
-            <span aria-hidden="true">→</span>
+          <button
+            className="auth-google-submit"
+            type="submit"
+            disabled={submitLoading || googleLoading}
+            aria-busy={submitLoading}
+          >
+            <span className="auth-google-submit-label">
+              {submitLoading ? <span className="auth-google-submit-spinner" aria-hidden="true" /> : null}
+              <span>
+                {submitLoading
+                  ? recoveryMode
+                    ? (language === 'vi' ? 'Đang cập nhật...' : 'Updating...')
+                    : isRegister
+                      ? (language === 'vi' ? 'Đang tạo tài khoản...' : 'Creating account...')
+                      : (language === 'vi' ? 'Đang đăng nhập...' : 'Signing in...')
+                  : recoveryMode
+                    ? (language === 'vi' ? 'Cập nhật mật khẩu' : 'Update password')
+                    : isRegister
+                      ? (language === 'vi' ? 'Tạo tài khoản' : 'Create account')
+                      : (language === 'vi' ? 'Đăng nhập' : 'Sign in')}
+              </span>
+            </span>
+            <span className="auth-google-submit-arrow" aria-hidden="true">{submitLoading ? '…' : '→'}</span>
           </button>
 
           {!recoveryMode && configured ? (
@@ -490,7 +526,7 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
               <button
                 type="button"
                 className="auth-google-google-button"
-                disabled={googleLoading}
+                disabled={googleLoading || submitLoading}
                 onClick={signInGoogle}
               >
                 <span className="auth-google-google-mark" aria-hidden="true">G</span>
