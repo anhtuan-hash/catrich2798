@@ -13,12 +13,10 @@ assert.ok(
   'Dashboard must not mount the pinned navigation runtime.',
 );
 
-for (const token of [
-  'data-route={currentRoute}',
-  'route={currentRoute}',
-]) {
-  assert.ok(main.includes(token), `Main route exposure missing: ${token}`);
-}
+assert.ok(
+  main.includes("!['homeroom-portal', 'classroom-join'].includes(currentRoute) ? <div className=\"bes-top-chrome\">"),
+  'Canonical top-chrome mount must remain intact for public-route contracts.',
+);
 
 assert.ok(
   footer.includes('data-footer-route={resolvedRoute || undefined}'),
@@ -36,7 +34,7 @@ for (const token of [
 
 for (const token of [
   'Dashboard V6 direct route authority',
-  '.bes-top-chrome[data-route="dashboard"]',
+  '.app-shell[data-route="dashboard"] > .bes-top-chrome',
   '.brian-newswire',
 ]) {
   assert.ok(chromeCss.includes(token), `Top chrome V6 token missing: ${token}`);
