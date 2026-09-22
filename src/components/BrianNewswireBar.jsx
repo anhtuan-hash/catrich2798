@@ -95,6 +95,7 @@ export default function BrianNewswireBar({ language = 'vi' }) {
   const [paused, setPaused] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [loading, setLoading] = useState(() => !readCache()?.items?.length);
+  const [now, setNow] = useState(() => new Date());
   const requestRef = useRef(0);
 
   const visibleItems = useMemo(
@@ -102,6 +103,11 @@ export default function BrianNewswireBar({ language = 'vi' }) {
     [items],
   );
   const current = visibleItems[activeIndex] || null;
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), 60 * 1000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const cached = readCache();
@@ -190,8 +196,8 @@ export default function BrianNewswireBar({ language = 'vi' }) {
 
       <div className="brian-newswire__divider" aria-hidden="true" />
 
-      <div className="brian-newswire__clock" aria-label={new Intl.DateTimeFormat(language === 'vi' ? 'vi-VN' : 'en-GB', { hour: '2-digit', minute: '2-digit' }).format(new Date())}>
-        {new Intl.DateTimeFormat(language === 'vi' ? 'vi-VN' : 'en-GB', { hour: '2-digit', minute: '2-digit' }).format(new Date())}
+      <div className="brian-newswire__clock" aria-label={new Intl.DateTimeFormat(language === 'vi' ? 'vi-VN' : 'en-GB', { hour: '2-digit', minute: '2-digit' }).format(now)}>
+        {new Intl.DateTimeFormat(language === 'vi' ? 'vi-VN' : 'en-GB', { hour: '2-digit', minute: '2-digit' }).format(now)}
       </div>
 
       <div className="brian-newswire__divider is-short" aria-hidden="true" />
