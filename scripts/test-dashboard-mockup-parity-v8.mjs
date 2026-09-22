@@ -17,10 +17,11 @@ for (const token of [
 }
 
 for (const token of [
-  'Mockup Parity V10',
+  'Mockup Parity V11',
   '[data-dashboard-static-chrome="true"]',
   'position: static !important',
-  'width: min(1520px, calc(100% - clamp(32px, 6vw, 96px))) !important',
+  '--dashboard-shell-width: min(1520px, calc(100% - clamp(32px, 6vw, 96px)))',
+  'width: var(--dashboard-shell-width) !important',
   'will-change: auto !important',
 ]) {
   assert.ok(chrome.includes(token), `Dashboard chrome visual contract missing: ${token}`);
@@ -44,9 +45,7 @@ for (const token of [
 
 for (const token of [
   'function DashboardFooterArtwork()',
-  'function FooterCardDoodle({ type })',
   'signature-footer-dashboard-landscape',
-  'signature-footer-dashboard-plane',
   'signature-footer-dashboard-signoff',
   'Teach Better Together ♡',
 ]) {
@@ -54,9 +53,8 @@ for (const token of [
 }
 
 for (const token of [
-  'Dashboard footer — Mockup Parity V10',
+  'Dashboard footer — Mockup Parity V11',
   'content: none !important',
-  '.signature-footer-card-doodle',
   '.signature-footer-dashboard-artwork',
   '.signature-footer-dashboard-landscape',
   '.signature-footer-dashboard-signoff',
