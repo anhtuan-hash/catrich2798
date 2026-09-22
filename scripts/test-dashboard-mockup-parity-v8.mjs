@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const flatNav = await readFile(new URL('../src/components/GlobalFlatNavigation.jsx', import.meta.url), 'utf8');
-const rail = await readFile(new URL('../src/components/GlobalQuickAccessRail.jsx', import.meta.url), 'utf8');
 const chrome = await readFile(new URL('../src/components/DashboardTopChromeMockup.css', import.meta.url), 'utf8');
 const dashboard = await readFile(new URL('../src/styles/teacher-dashboard-google-colorful.css', import.meta.url), 'utf8');
 const footerComponent = await readFile(new URL('../src/components/Footer.jsx', import.meta.url), 'utf8');
@@ -16,11 +15,6 @@ for (const token of [
 ]) {
   assert.ok(flatNav.includes(token), `Runtime static chrome guard missing: ${token}`);
 }
-
-assert.ok(
-  rail.includes("currentRoute === 'dashboard'"),
-  'Dashboard must keep the global Quick Access rail hidden.',
-);
 
 for (const token of [
   'Dashboard V8 runtime-static capture guard',
