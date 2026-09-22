@@ -5,9 +5,9 @@ body {
 
 /* Retire motion globally while preserving static layout. */
 body,
-html body :not(#brian-motion-retired-a#brian-motion-retired-b),
-html body :not(#brian-motion-retired-a#brian-motion-retired-b)::before,
-html body :not(#brian-motion-retired-a#brian-motion-retired-b)::after {
+html body :not(#brian-motion-retired-a#brian-motion-retired-b):not(.brian-newswire):not(.brian-newswire *),
+html body :not(#brian-motion-retired-a#brian-motion-retired-b):not(.brian-newswire):not(.brian-newswire *)::before,
+html body :not(#brian-motion-retired-a#brian-motion-retired-b):not(.brian-newswire):not(.brian-newswire *)::after {
   animation: none !important;
   animation-name: none !important;
   animation-duration: 0s !important;
@@ -29,7 +29,7 @@ html body :not(#brian-motion-retired-a#brian-motion-retired-b)::after {
   mix-blend-mode: normal !important;
 }
 
-html body :not(#brian-motion-retired-a#brian-motion-retired-b):is(
+html body :not(#brian-motion-retired-a#brian-motion-retired-b):not(.brian-newswire):not(.brian-newswire *):is(
   button,
   a,
   [role='button'],
