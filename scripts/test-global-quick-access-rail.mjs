@@ -44,7 +44,7 @@ for (const token of [
   'QUICK_ACCESS_SAFE_AREA_MIN_WIDTH',
   'measureQuickAccessContentBaseline',
   'quickAccessSafeShift',
-  'data.quickAccessSafeShift',
+  'shell.dataset.quickAccessSafeShift',
   'quickAccessState',
   'ResizeObserver',
   'MutationObserver',
