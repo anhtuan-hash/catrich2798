@@ -31,6 +31,10 @@ assert.match(prefs, /QUICK_ACCESS_MAX_ITEMS\s*=\s*10/, 'Quick Access must cap sh
 assert.ok(prefs.includes("storageKey(user)"), 'Local fallback must be scoped per account.');
 assert.ok(prefs.includes('updatedAt: 0'), 'New-device defaults must not outrank an existing cloud configuration.');
 assert.ok(prefs.includes('hasExplicitItems'), 'An explicitly empty shortcut list must remain empty instead of resetting to defaults.');
+assert.ok(prefs.includes("mode: 'auto'"), 'Quick Access V2 must default to Auto mode.');
+assert.ok(prefs.includes("recent: []"), 'Quick Access V2 must keep a recent-app history per account.');
+assert.ok(prefs.includes("version: 2"), 'Quick Access account config must migrate to V2 without changing its storage key.');
+assert.ok(prefs.includes("mode === 'pin'"), 'Legacy pinned state must normalize into the V2 Pin mode.');
 
 for (const token of [
   'bqa-edge-trigger',
@@ -60,6 +64,24 @@ for (const token of [
   'Tùy chỉnh thanh truy cập nhanh',
   "document.querySelector('.brian-nav__attendance-tab')",
   "document.querySelector('.brian-nav__ttcm-tab')",
+  'bqa-command-search',
+  'data-bes-keep-search="true"',
+  'commandInputRef',
+  'commanding',
+  "data-commanding={commanding ? 'true' : 'false'}",
+  'commandResults',
+  'recentItems',
+  'bqa-recent-section',
+  'readQuickAccessBadges',
+  'bqa-rail-badge',
+  'bqa-panel-badge',
+  'bqa-peek-card',
+  'quickActionsFor',
+  'QUICK_ACCESS_MODES',
+  "mode !== 'focus'",
+  'data-mode={mode}',
+  "event.altKey && !event.ctrlKey && !event.metaKey && key === 'k'",
+  "key === 'k'",
 ]) {
   assert.ok(rail.includes(token), `Quick Access behavior missing: ${token}`);
 }
@@ -95,6 +117,15 @@ for (const token of [
   '.bqa-root.is-collapsing .bqa-brand',
   'scale3d(.14, .70, 1)',
   'transition:',
+  'Brian Quick Access V2',
+  '.bqa-command-search',
+  '.bqa-recent-section',
+  '.bqa-rail-badge',
+  '.bqa-panel-badge',
+  '.bqa-peek-card',
+  '.bqa-peek-actions',
+  '.bqa-mode-switch',
+  '.bqa-root.is-focus.is-collapsed',
 ]) {
   assert.ok(css.includes(token), `Quick Access visual contract missing: ${token}`);
 }
@@ -118,4 +149,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: global Quick Access rail uses the approved Apple Pencil morph and a shell-level collision-safe area, while remaining Dashboard-visible, account-aware, searchable, keyboard-accessible, permission-aware, font-safe, responsive and capped at 10 shortcuts.');
+console.log('PASS: Quick Access V2 keeps the smooth Apple Pencil morph and safe-area contract while adding account-synced Auto/Pin/Focus modes, recent apps, dynamic badges, command search, quick peek/actions, role-aware access and keyboard shortcuts.');

@@ -3,6 +3,8 @@ import { isSupabaseConfigured, supabase } from './supabase.js';
 export const QUICK_ACCESS_MAX_ITEMS = 10;
 export const QUICK_ACCESS_EVENT = 'bes-quick-access-updated';
 const QUICK_ACCESS_KEY = 'bes-quick-access-v1';
+const QUICK_ACCESS_MODES = new Set(['auto', 'pin', 'focus']);
+const QUICK_ACCESS_RECENT_MAX = 3;
 
 export const DEFAULT_QUICK_ACCESS_IDS = [
   'route:dashboard',
@@ -49,14 +51,26 @@ function cleanIds(ids, allowedIds = []) {
     .slice(0, QUICK_ACCESS_MAX_ITEMS);
 }
 
+function cleanRecentIds(ids, allowedIds = []) {
+  return cleanIds(ids, allowedIds).slice(0, QUICK_ACCESS_RECENT_MAX);
+}
+
+function normalizeMode(value, pinned = false) {
+  const mode = String(value || '').trim().toLowerCase();
+  if (QUICK_ACCESS_MODES.has(mode)) return mode;
+  return pinned ? 'pin' : 'auto';
+}
+
 export function createDefaultQuickAccessConfig(allowedIds = []) {
   const allowed = new Set((Array.isArray(allowedIds) ? allowedIds : []).map(String));
   const preferred = DEFAULT_QUICK_ACCESS_IDS.filter((id) => !allowed.size || allowed.has(id));
   const fallback = (Array.isArray(allowedIds) ? allowedIds : []).filter((id) => !preferred.includes(id));
   return {
-    version: 1,
+    version: 2,
     items: [...preferred, ...fallback].slice(0, QUICK_ACCESS_MAX_ITEMS),
+    mode: 'auto',
     pinned: false,
+    recent: [],
     updatedAt: 0,
   };
 }
@@ -71,10 +85,13 @@ export function normalizeQuickAccessConfig(raw, allowedIds = []) {
   source = source && typeof source === 'object' && !Array.isArray(source) ? source : {};
   const hasExplicitItems = Array.isArray(source.items) || typeof source.items === 'string';
   const items = cleanIds(source.items, allowedIds);
+  const mode = normalizeMode(source.mode, Boolean(source.pinned));
   return {
-    version: 1,
+    version: 2,
     items: (hasExplicitItems ? items : defaults.items).slice(0, QUICK_ACCESS_MAX_ITEMS),
-    pinned: Boolean(source.pinned),
+    mode,
+    pinned: mode === 'pin',
+    recent: cleanRecentIds(source.recent, allowedIds),
     updatedAt: Number(source.updatedAt) || 0,
   };
 }
