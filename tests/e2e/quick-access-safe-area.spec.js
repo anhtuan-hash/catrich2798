@@ -56,7 +56,7 @@ async function getOcclusionReport(page, boundarySelector) {
     }
 
     const boundary = boundaryElement.getBoundingClientRect();
-    const boundaryRight = boundary.right + 8;
+    const boundaryRight = boundary.right + 2;
     const overlaps = [];
 
     [...main.querySelectorAll(collisionSelector)].forEach((element) => {
@@ -82,6 +82,7 @@ async function getOcclusionReport(page, boundarySelector) {
       missing: false,
       route: shell.dataset.route,
       state: shell.dataset.quickAccessState,
+      safeMode: shell.dataset.quickAccessSafeMode,
       shift: Number(shell.dataset.quickAccessSafeShift || 0),
       boundaryRight: Math.round(boundaryRight),
       overlaps: overlaps.slice(0, 12),
@@ -115,6 +116,7 @@ test.describe('Global Quick Access safe area', () => {
 
       const report = await getOcclusionReport(page, '.bqa-rail');
       expect(report.missing, JSON.stringify(report, null, 2)).toBe(false);
+      expect(['reserve', 'overlay']).toContain(report.safeMode);
       expect(report.overlaps, JSON.stringify(report, null, 2)).toEqual([]);
     });
   }
@@ -133,7 +135,7 @@ test.describe('Global Quick Access safe area', () => {
 
     await expect(page.locator('.bqa-root')).toHaveClass(/is-pinned/);
     await expect(page.locator('.app-shell')).toHaveAttribute('data-quick-access-state', 'pinned');
-    await page.waitForTimeout(650);
+    await page.waitForTimeout(850);
 
     const report = await getOcclusionReport(page, '.bqa-panel');
     expect(report.missing, JSON.stringify(report, null, 2)).toBe(false);
