@@ -10,6 +10,7 @@ import {
   Gauge,
   GripVertical,
   LayoutGrid,
+  Search,
   Pin,
   PinOff,
   Settings,
@@ -235,6 +236,7 @@ export default function GlobalQuickAccessRail({
 }) {
   const [hovered, setHovered] = useState(false);
   const [customizing, setCustomizing] = useState(false);
+  const [customizerQuery, setCustomizerQuery] = useState('');
   const [dragId, setDragId] = useState('');
   const closeTimerRef = useRef(0);
 
@@ -310,7 +312,31 @@ export default function GlobalQuickAccessRail({
     };
   }, [hovered, config.pinned, customizing]);
 
-  if (!currentUser || currentRoute === 'home' || currentRoute === 'dashboard' || !catalog.length) return null;
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const onNavigationStart = () => {
+      if (!config.pinned && !customizing) setHovered(false);
+    };
+    const onShortcut = (event) => {
+      const tag = String(event.target?.tagName || '').toLowerCase();
+      const editable = event.target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag);
+      if (editable || event.repeat) return;
+      if (event.altKey && !event.ctrlKey && !event.metaKey && String(event.key || '').toLowerCase() === 'q') {
+        event.preventDefault();
+        setHovered((value) => !value);
+      }
+    };
+
+    window.addEventListener('bes-navigation-start', onNavigationStart);
+    window.addEventListener('keydown', onShortcut);
+    return () => {
+      window.removeEventListener('bes-navigation-start', onNavigationStart);
+      window.removeEventListener('keydown', onShortcut);
+    };
+  }, [config.pinned, customizing]);
+
+  if (!currentUser || currentRoute === 'home' || !catalog.length) return null;
 
   const selectedItems = config.items
     .map((id) => catalog.find((item) => item.id === id))
@@ -318,6 +344,13 @@ export default function GlobalQuickAccessRail({
     .slice(0, QUICK_ACCESS_MAX_ITEMS);
 
   const availableItems = catalog.filter((item) => !config.items.includes(item.id));
+  const customizerNeedle = customizerQuery.trim().toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
+  const filteredAvailableItems = customizerNeedle
+    ? availableItems.filter((item) => {
+      const haystack = `${item.label || ''} ${item.labelVi || ''}`.toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
+      return haystack.includes(customizerNeedle);
+    })
+    : availableItems;
   const expanded = hovered || config.pinned || customizing;
 
   const persist = (next) => {
@@ -336,6 +369,11 @@ export default function GlobalQuickAccessRail({
     window.clearTimeout(closeTimerRef.current);
     if (config.pinned || customizing) return;
     closeTimerRef.current = window.setTimeout(() => setHovered(false), 320);
+  };
+
+  const activateItem = (item, sourceEl) => {
+    runAction(item, sourceEl);
+    if (!config.pinned) setHovered(false);
   };
 
   const togglePinned = () => persist({ ...config, pinned: !config.pinned });
@@ -366,6 +404,7 @@ export default function GlobalQuickAccessRail({
       <div
         className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${config.pinned ? 'is-pinned' : ''}`}
         data-quick-access="true"
+        data-route={currentRoute}
         onPointerEnter={enter}
         onPointerLeave={leave}
         onFocusCapture={enter}
@@ -395,7 +434,7 @@ export default function GlobalQuickAccessRail({
                   title={labelFor(item, language)}
                   aria-label={labelFor(item, language)}
                   aria-current={active ? 'page' : undefined}
-                  onClick={(event) => runAction(item, event.currentTarget)}
+                  onClick={(event) => activateItem(item, event.currentTarget)}
                 >
                   <Icon size={20} strokeWidth={2} aria-hidden="true" />
                 </button>
@@ -410,6 +449,7 @@ export default function GlobalQuickAccessRail({
             aria-label={language === 'vi' ? 'Tùy chỉnh lối tắt' : 'Customize shortcuts'}
             onClick={() => {
               setHovered(true);
+              setCustomizerQuery('');
               setCustomizing(true);
             }}
           >
@@ -461,7 +501,7 @@ export default function GlobalQuickAccessRail({
                     event.preventDefault();
                     moveDraggedBefore(item.id);
                   }}
-                  onClick={(event) => runAction(item, event.currentTarget)}
+                  onClick={(event) => activateItem(item, event.currentTarget)}
                 >
                   <span className="bqa-item-icon"><Icon size={20} strokeWidth={2} aria-hidden="true" /></span>
                   <span className="bqa-item-label">{labelFor(item, language)}</span>
@@ -473,13 +513,13 @@ export default function GlobalQuickAccessRail({
           </div>
 
           <footer className="bqa-panel-footer">
-            <button type="button" onClick={() => setCustomizing(true)}>
+            <button type="button" onClick={() => { setCustomizerQuery(''); setCustomizing(true); }}>
               <Settings size={18} aria-hidden="true" />
               <span><strong>{language === 'vi' ? 'Tùy chỉnh lối tắt' : 'Customize shortcuts'}</strong><small>{language === 'vi' ? 'Sắp xếp, ẩn/hiện ứng dụng' : 'Reorder and choose apps'}</small></span>
             </button>
             <div className="bqa-account-note">
-              <Check size={15} aria-hidden="true" />
-              <span>{language === 'vi' ? 'Lưu theo tài khoản' : 'Saved to your account'}</span>
+              <span className="bqa-sync-note"><Check size={15} aria-hidden="true" />{language === 'vi' ? 'Lưu theo tài khoản' : 'Saved to your account'}</span>
+              <span className="bqa-shortcut-hint"><kbd>Alt</kbd><b>Q</b></span>
             </div>
           </footer>
         </section>
@@ -487,7 +527,7 @@ export default function GlobalQuickAccessRail({
 
       {customizing ? (
         <div className="bqa-customizer-backdrop" role="presentation" onMouseDown={(event) => {
-          if (event.target === event.currentTarget) setCustomizing(false);
+          if (event.target === event.currentTarget) { setCustomizerQuery(''); setCustomizing(false); }
         }}>
           <section className="bqa-customizer" role="dialog" aria-modal="true" aria-labelledby="bqa-customizer-title">
             <header>
@@ -496,7 +536,7 @@ export default function GlobalQuickAccessRail({
                 <h2 id="bqa-customizer-title">{language === 'vi' ? 'Tùy chỉnh thanh truy cập nhanh' : 'Customize quick access'}</h2>
                 <p>{language === 'vi' ? 'Chọn tối đa 10 ứng dụng hoặc tính năng. Thứ tự được đồng bộ theo tài khoản.' : 'Choose up to 10 apps or features. Order syncs with your account.'}</p>
               </div>
-              <button type="button" className="bqa-customizer-close" onClick={() => setCustomizing(false)} aria-label={language === 'vi' ? 'Đóng' : 'Close'}>
+              <button type="button" className="bqa-customizer-close" onClick={() => { setCustomizerQuery(''); setCustomizing(false); }} aria-label={language === 'vi' ? 'Đóng' : 'Close'}>
                 <X size={20} aria-hidden="true" />
               </button>
             </header>
@@ -544,8 +584,24 @@ export default function GlobalQuickAccessRail({
               <span>{language === 'vi' ? 'Ứng dụng & tính năng khác' : 'Other apps & features'}</span>
             </div>
 
+            <label className="bqa-customizer-search">
+              <Search size={18} aria-hidden="true" />
+              <input
+                type="search"
+                value={customizerQuery}
+                onChange={(event) => setCustomizerQuery(event.target.value)}
+                placeholder={language === 'vi' ? 'Tìm ứng dụng hoặc tính năng…' : 'Search apps or features…'}
+                aria-label={language === 'vi' ? 'Tìm ứng dụng hoặc tính năng' : 'Search apps or features'}
+              />
+              {customizerQuery ? (
+                <button type="button" onClick={() => setCustomizerQuery('')} aria-label={language === 'vi' ? 'Xóa tìm kiếm' : 'Clear search'}>
+                  <X size={16} aria-hidden="true" />
+                </button>
+              ) : null}
+            </label>
+
             <div className="bqa-customizer-available">
-              {availableItems.map((item) => {
+              {filteredAvailableItems.map((item) => {
                 const Icon = item.icon || Boxes;
                 const disabled = config.items.length >= QUICK_ACCESS_MAX_ITEMS;
                 return (
@@ -562,12 +618,18 @@ export default function GlobalQuickAccessRail({
                   </button>
                 );
               })}
-              {!availableItems.length ? <div className="bqa-customizer-empty">{language === 'vi' ? 'Bạn đã chọn toàn bộ mục hiện có.' : 'You selected every available item.'}</div> : null}
+              {!filteredAvailableItems.length ? (
+                <div className="bqa-customizer-empty">
+                  {customizerNeedle
+                    ? (language === 'vi' ? 'Không tìm thấy ứng dụng hoặc tính năng phù hợp.' : 'No matching app or feature.')
+                    : (language === 'vi' ? 'Bạn đã chọn toàn bộ mục hiện có.' : 'You selected every available item.')}
+                </div>
+              ) : null}
             </div>
 
             <footer>
               <button type="button" className="bqa-reset" onClick={reset}>{language === 'vi' ? 'Khôi phục mặc định' : 'Reset defaults'}</button>
-              <button type="button" className="bqa-done" onClick={() => setCustomizing(false)}>{language === 'vi' ? 'Xong' : 'Done'}</button>
+              <button type="button" className="bqa-done" onClick={() => { setCustomizerQuery(''); setCustomizing(false); }}>{language === 'vi' ? 'Xong' : 'Done'}</button>
             </footer>
           </section>
         </div>
