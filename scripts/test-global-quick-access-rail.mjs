@@ -11,6 +11,7 @@ assert.ok(main.includes("GlobalQuickAccessRail = lazy"), 'Quick Access must be l
 assert.ok(main.includes("currentRoute !== 'home'"), 'Quick Access must not render on Home.');
 assert.ok(main.includes('scope="quick-access-rail"'), 'Quick Access must be protected by the global error boundary.');
 assert.ok(main.includes('appVisibility={appVisibility}'), 'Quick Access must receive app visibility state.');
+assert.ok(!rail.includes("currentRoute === 'dashboard'"), 'Dashboard must not be filtered out by the Quick Access component.');
 
 for (const token of [
   'QUICK_ACCESS_MAX_ITEMS',
@@ -34,6 +35,11 @@ for (const token of [
   'onPointerLeave',
   'onOutsidePointerDown',
   'inert={expanded ? undefined : true}',
+  'bes-navigation-start',
+  'event.altKey',
+  'customizerQuery',
+  'bqa-customizer-search',
+  'data-route={currentRoute}',
   'draggable',
   'Tùy chỉnh thanh truy cập nhanh',
   "document.querySelector('.brian-nav__attendance-tab')",
@@ -49,6 +55,9 @@ for (const token of [
   '318px',
   '@media (max-width: 760px), (hover: none)',
   '@media (prefers-reduced-motion: reduce)',
+  '.app-shell[data-route="dashboard"] .bqa-root',
+  '.bqa-customizer-search',
+  '.bqa-shortcut-hint',
 ]) {
   assert.ok(css.includes(token), `Quick Access visual contract missing: ${token}`);
 }
@@ -70,4 +79,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: global Quick Access rail is account-aware, permission-aware, font-safe, responsive, overlay-only and capped at 10 shortcuts.');
+console.log('PASS: global Quick Access rail is Dashboard-visible, account-aware, searchable, keyboard-accessible, permission-aware, font-safe, responsive, overlay-only and capped at 10 shortcuts.');
