@@ -1207,12 +1207,15 @@ button.bqa-customizer-row:disabled {
 }
 
 .app-shell[data-quick-access-layout="true"][data-quick-access-safe-mode="reserve"] > #bes-main-content > .bqa-content-safe-frame {
-    box-sizing: border-box;
-    width: 100%;
-    min-width: 0;
-    padding-inline-start: var(--bqa-content-safe-shift, 0px);
-    transition: padding-inline-start 235ms cubic-bezier(.22, 1, .36, 1);
-  }
+  position: relative;
+  box-sizing: border-box;
+  inset-inline-start: var(--bqa-content-safe-shift, 0px);
+  width: calc(100% - var(--bqa-content-safe-shift, 0px));
+  min-width: 0;
+  transition:
+    inset-inline-start 235ms cubic-bezier(.22, 1, .36, 1),
+    width 235ms cubic-bezier(.22, 1, .36, 1);
+}
 
   /* The canonical global footer paints above the fixed rail when it enters the
      viewport, so the rail can never cover footer text/cards while scrolling. */
@@ -1232,7 +1235,7 @@ button.bqa-customizer-row:disabled {
 .bqa-root.is-pinned,
 .bqa-root.is-collapsing {
   width: calc(var(--bqa-rail-width) + 8px + var(--bqa-panel-width));
-  z-index: 2147482500 !important;
+  z-index: 2147483646 !important;
 }
 
 .bqa-root.is-open,
@@ -1268,14 +1271,15 @@ button.bqa-customizer-row:disabled {
 }
 
 .app-shell[data-quick-access-layout="true"][data-quick-access-safe-mode="overlay"] > #bes-main-content > .bqa-content-safe-frame {
+  position: relative;
+  inset-inline-start: 0 !important;
   width: 100% !important;
-  padding-inline-start: 0 !important;
 }
 
 @media (min-width: 768px) {
   .app-shell[data-quick-access-safe-mode="overlay"] ~ .bqa-root.is-collapsed:not(.is-pinned) .bqa-rail,
   body > .bqa-root.is-collapsed:not(.is-pinned) .bqa-rail {
-    transform: translate3d(calc(-100% + 18px), 0, 0);
+    transform: translate3d(calc(-100% - 6px), 0, 0);
     opacity: .68;
     border-color: rgba(138, 181, 222, .24);
     box-shadow: 0 8px 18px rgba(39, 86, 130, .05);
@@ -1327,13 +1331,13 @@ button.bqa-customizer-row:disabled {
 
 /* Portaled launcher authority · escape every route-level transform/stacking context. */
 body > .bqa-root {
-  z-index: 2147482500 !important;
+  z-index: 64 !important;
 }
 
 body > .bqa-root.is-open,
 body > .bqa-root.is-pinned,
 body > .bqa-root.is-collapsing {
-  z-index: 2147482500 !important;
+  z-index: 2147483646 !important;
 }
 
 /* Portal-aware edge peek: only active when the app shell runtime says overlay mode. */
@@ -1343,8 +1347,29 @@ body:has(.app-shell[data-quick-access-safe-mode="reserve"]) > .bqa-root.is-colla
 }
 
 body:has(.app-shell[data-quick-access-safe-mode="overlay"]) > .bqa-root.is-collapsed:not(.is-pinned) .bqa-rail {
-  transform: translate3d(calc(-100% + 18px), 0, 0);
+  transform: translate3d(calc(-100% - 6px), 0, 0);
   opacity: .68;
   border-color: rgba(138, 181, 222, .24);
   box-shadow: 0 8px 18px rgba(39, 86, 130, .05);
+}
+
+
+/* Edge-only fallback marker: accessible hover/touch target without covering route content. */
+.bqa-edge-trigger::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 38%;
+  width: 3px;
+  height: 54px;
+  border-radius: 0 4px 4px 0;
+  background: linear-gradient(180deg, rgba(22,118,205,.72), rgba(106,84,221,.58));
+  opacity: .48;
+  transition: opacity 160ms ease, width 180ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.bqa-root.is-open .bqa-edge-trigger::after,
+.bqa-root.is-pinned .bqa-edge-trigger::after {
+  width: 0;
+  opacity: 0;
 }
