@@ -930,3 +930,292 @@
     transition:none!important;
   }
 }
+
+
+/* 2026-09-22 production visual QA
+   Fixes inherited agenda scrolling (which could reopen halfway down the list),
+   strengthens timeline depth, and enlarges the approved masthead illustration. */
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-today-layout-v2 {
+  align-items:stretch!important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-timeline-panel {
+  overflow:visible!important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-agenda-list,
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-agenda-list-today,
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-agenda-timeline {
+  max-height:none!important;
+  height:auto!important;
+  overflow:visible!important;
+  overflow-y:visible!important;
+  padding:0!important;
+  margin:0!important;
+  gap:0!important;
+  scrollbar-width:none!important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-agenda-list::-webkit-scrollbar,
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-agenda-list-today::-webkit-scrollbar,
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-agenda-timeline::-webkit-scrollbar {
+  display:none!important;
+}
+
+/* Masthead composition: make the illustration read as a real visual anchor,
+   rather than a small icon floating in empty space. */
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-calendar-header {
+  grid-template-columns:minmax(270px,.88fr) minmax(440px,1.18fr) auto!important;
+  column-gap:16px!important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-calendar-doodle {
+  grid-template-columns:minmax(170px,.82fr) 258px!important;
+  gap:2px!important;
+  height:100px!important;
+  transform:translateY(2px)!important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-calendar-doodle-note {
+  font-size:18px!important;
+  line-height:1.04!important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-calendar-doodle-note small {
+  margin-top:7px!important;
+  font-size:7.7px!important;
+  opacity:.86!important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-calendar-doodle-art {
+  width:252px!important;
+  height:112px!important;
+  transform:translateY(1px) scale(1.04)!important;
+  transform-origin:center!important;
+}
+
+/* A little more separation between the date poster and schedule, matching the mockup. */
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-today-layout-v2 {
+  grid-template-columns:174px minmax(0,1fr)!important;
+  gap:18px!important;
+  padding:17px!important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-date-poster {
+  min-height:100%!important;
+  box-shadow:
+    0 18px 34px rgba(57,105,188,.15),
+    inset 0 1px 0 rgba(255,255,255,.32)!important;
+}
+
+/* Timeline header remains compact so all 5 live events can be visible without an inner scroller. */
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-timeline-head {
+  min-height:52px!important;
+  padding:9px 18px 8px!important;
+}
+
+/* Event rows: subtle color wash, card-like depth, stronger hierarchy. */
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-timeline-event {
+  --tone-wash:rgba(47,125,246,.055);
+  grid-template-columns:96px 26px 60px minmax(0,1fr) 136px 30px!important;
+  gap:11px!important;
+  min-height:96px!important;
+  margin:0!important;
+  padding:10px 14px 10px 0!important;
+  background:
+    linear-gradient(90deg,var(--tone-wash) 0%,rgba(255,255,255,.985) 18%,#fff 58%)!important;
+  border-bottom:1px solid rgba(128,161,205,.16)!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.82),
+    0 1px 0 rgba(31,70,116,.015)!important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-timeline-event.tone-green {
+  --tone-wash:rgba(34,171,120,.065);
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-timeline-event.tone-blue {
+  --tone-wash:rgba(47,125,246,.06);
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-timeline-event.tone-orange {
+  --tone-wash:rgba(255,138,25,.065);
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-timeline-event.tone-purple {
+  --tone-wash:rgba(118,82,239,.06);
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-timeline-event.tone-pink {
+  --tone-wash:rgba(232,90,154,.06);
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-timeline-event:hover {
+  background:
+    linear-gradient(90deg,var(--tone-soft) 0%,rgba(255,255,255,.99) 24%,#fff 100%)!important;
+  box-shadow:
+    inset 3px 0 0 var(--tone),
+    0 10px 24px rgba(49,84,129,.07)!important;
+}
+
+/* Time column is quieter so the eye follows node → icon → content. */
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-event-time {
+  padding:0 8px 0 17px!important;
+  background:transparent!important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-event-time strong {
+  font-size:15px!important;
+  font-weight:820!important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-event-time small {
+  max-width:68px!important;
+  color:#68819f!important;
+  -webkit-text-fill-color:#68819f!important;
+  font-size:9.5px!important;
+}
+
+/* Continuous rail + luminous nodes. */
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-timeline-rail {
+  width:26px!important;
+  min-width:26px!important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-timeline-rail::before,
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-timeline-rail::after {
+  left:12px!important;
+  width:2px!important;
+  background:repeating-linear-gradient(
+    to bottom,
+    rgba(170,194,224,.58) 0 7px,
+    rgba(170,194,224,.08) 7px 12px
+  )!important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-timeline-rail i {
+  left:4px!important;
+  width:17px!important;
+  height:17px!important;
+  border:3px solid #fff!important;
+  box-shadow:
+    0 0 0 5px color-mix(in srgb,var(--tone) 10%,transparent),
+    0 4px 11px color-mix(in srgb,var(--tone) 27%,transparent)!important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-event-orb {
+  width:48px!important;
+  height:48px!important;
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb,var(--tone) 11%,transparent),
+    0 8px 18px color-mix(in srgb,var(--tone) 9%,transparent)!important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-event-copy {
+  gap:4px!important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-event-copy > strong {
+  font-size:13.8px!important;
+  font-weight:790!important;
+  line-height:1.3!important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-event-copy p,
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-event-copy small {
+  font-size:10.2px!important;
+  line-height:1.36!important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-event-kind {
+  min-width:116px!important;
+  min-height:35px!important;
+  padding:0 12px!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.5)!important;
+}
+
+/* Rounded first/last schedule rows make the timeline panel feel like a designed surface. */
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-timeline-event:first-child {
+  border-top-left-radius:0!important;
+  border-top-right-radius:0!important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-timeline-event:last-child {
+  border-bottom-left-radius:17px!important;
+  border-bottom-right-radius:17px!important;
+}
+
+/* Protect against browser scroll restoration inside the old agenda scroller. */
+.app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-agenda-timeline {
+  scroll-behavior:auto!important;
+  overscroll-behavior:contain!important;
+}
+
+/* Responsive tuning after removing the inner scroller. */
+@media (max-width:1260px) {
+  .app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-calendar-header {
+    grid-template-columns:minmax(245px,.86fr) minmax(360px,1.08fr) auto!important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-calendar-doodle {
+    grid-template-columns:minmax(145px,.8fr) 212px!important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-calendar-doodle-art {
+    width:210px!important;
+    height:102px!important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-today-layout-v2 {
+    grid-template-columns:154px minmax(0,1fr)!important;
+    gap:14px!important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-timeline-event {
+    grid-template-columns:80px 23px 52px minmax(0,1fr) 112px 26px!important;
+    gap:8px!important;
+    min-height:94px!important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-event-orb {
+    width:43px!important;
+    height:43px!important;
+  }
+}
+
+@media (max-width:980px) {
+  .app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-calendar-header {
+    grid-template-columns:minmax(230px,1fr) auto!important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-today-layout-v2 {
+    grid-template-columns:134px minmax(0,1fr)!important;
+    gap:12px!important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-timeline-event {
+    grid-template-columns:70px 20px 44px minmax(0,1fr) 25px!important;
+    min-height:98px!important;
+  }
+}
+
+@media (max-width:700px) {
+  .app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-today-layout-v2 {
+    grid-template-columns:1fr!important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-timeline-event {
+    grid-template-columns:62px 17px 39px minmax(0,1fr) 22px!important;
+    min-height:108px!important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-timeline-rail i {
+    left:2px!important;
+    width:15px!important;
+    height:15px!important;
+    box-shadow:
+      0 0 0 4px color-mix(in srgb,var(--tone) 10%,transparent),
+      0 3px 9px color-mix(in srgb,var(--tone) 24%,transparent)!important;
+  }
+}
