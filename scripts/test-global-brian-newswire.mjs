@@ -8,9 +8,14 @@ const nav = fs.readFileSync('src/components/GlobalFlatNavigation.jsx', 'utf8');
 const reader = fs.readFileSync('src/pages/NewsReader.jsx', 'utf8');
 const regionalCss = fs.readFileSync('src/styles/GlobalRegionalFontSystem.css', 'utf8');
 const regionalRuntime = fs.readFileSync('src/utils/globalRegionalFontSystem.js', 'utf8');
+const motionReset = fs.readFileSync('src/styles/v1159.css', 'utf8');
 
 assert.match(bar, /fetch\('\/api\/news-feed\?language=vi&category=all'\)/);
 assert.match(bar, /ROTATE_MS = 6500/);
+assert.match(bar, /TRANSITION_MS = 640/);
+assert.match(bar, /direction: delta < 0 \? 'backward' : 'forward'/);
+assert.match(bar, /is-motion-layer is-exit/);
+assert.match(bar, /is-motion-layer is-enter/);
 assert.match(bar, /onMouseEnter=\{\(\) => setHovered\(true\)\}/);
 assert.match(bar, /setPaused\(\(value\) => !value\)/);
 assert.match(bar, /bes-newswire-open-item/);
@@ -22,9 +27,14 @@ assert.match(bar, /aria-label=\{t\.next\}/);
 
 assert.match(css, /font-family:var\(--bes-font-newswire,var\(--bes-global-font-family,inherit\)\)/);
 assert.match(css, /backdrop-filter:blur\(20px\)/);
+assert.match(css, /brian-newswire-enter-forward/);
+assert.match(css, /brian-newswire-exit-forward/);
+assert.match(css, /brian-newswire-enter-backward/);
+assert.match(css, /brian-newswire-exit-backward/);
 assert.match(css, /@media\(max-width:620px\)/);
 assert.match(css, /@media \(prefers-reduced-motion:reduce\)/);
 assert.equal(css.includes('marquee'), false, 'newswire must not use legacy marquee motion');
+assert.match(motionReset, /:not\(\.brian-newswire\):not\(\.brian-newswire \*\)/);
 
 assert.match(regionalCss, /:is\(\.brian-editorial-brief, \.brian-newswire\)/);
 assert.match(regionalCss, /font-family: var\(--bes-font-newswire\) !important/);
