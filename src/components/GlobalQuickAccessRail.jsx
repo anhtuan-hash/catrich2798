@@ -891,6 +891,8 @@ export default function GlobalQuickAccessRail({
     setDragId('');
   };
 
+  const peekItem = catalog.find((item) => item.id === peekItemId) || null;
+
   const quickAccessUi = (
     <>
       <div
@@ -940,6 +942,7 @@ export default function GlobalQuickAccessRail({
             {selectedItems.map((item) => {
               const Icon = item.icon || Boxes;
               const active = activeItem(item, currentRoute, selectedTool);
+              const badge = badges[item.id] || 0;
               return (
                 <button
                   type="button"
@@ -949,9 +952,14 @@ export default function GlobalQuickAccessRail({
                   title={labelFor(item, language)}
                   aria-label={labelFor(item, language)}
                   aria-current={active ? 'page' : undefined}
+                  onPointerEnter={() => schedulePeek(item.id)}
+                  onPointerLeave={() => clearPeek()}
+                  onFocus={() => schedulePeek(item.id)}
+                  onBlur={() => clearPeek()}
                   onClick={(event) => activateItem(item, event.currentTarget)}
                 >
                   <Icon size={20} strokeWidth={2} aria-hidden="true" />
+                  {badge ? <span className="bqa-rail-badge" aria-label={`${badge} thông báo`}>{badge}</span> : null}
                 </button>
               );
             })}
@@ -990,64 +998,164 @@ export default function GlobalQuickAccessRail({
             </div>
             <button
               type="button"
-              className={`bqa-pin ${config.pinned ? 'is-active' : ''}`}
-              aria-pressed={config.pinned}
-              title={config.pinned ? (language === 'vi' ? 'Bỏ ghim' : 'Unpin') : (language === 'vi' ? 'Ghim thanh' : 'Pin rail')}
+              className={`bqa-pin ${pinned ? 'is-active' : ''}`}
+              aria-pressed={pinned}
+              title={pinned ? (language === 'vi' ? 'Bỏ ghim' : 'Unpin') : (language === 'vi' ? 'Ghim thanh' : 'Pin rail')}
               onClick={togglePinned}
             >
-              {config.pinned ? <PinOff size={18} aria-hidden="true" /> : <Pin size={18} aria-hidden="true" />}
+              {pinned ? <PinOff size={18} aria-hidden="true" /> : <Pin size={18} aria-hidden="true" />}
             </button>
           </header>
 
-          <div className="bqa-panel-list" role="list">
-            {selectedItems.map((item) => {
+          <div className="bqa-command-search">
+            <Search size={16} aria-hidden="true" />
+            <input
+              ref={commandInputRef}
+              value={commandQuery}
+              onChange={(event) => setCommandQuery(event.target.value)}
+              placeholder={language === 'vi' ? 'Tìm ứng dụng hoặc tính năng…' : 'Find an app or action…'}
+              aria-label={language === 'vi' ? 'Tìm trong Quick Access' : 'Search Quick Access'}
+            />
+            {commandQuery ? (
+              <button type="button" onClick={() => { setCommandQuery(''); commandInputRef.current?.focus(); }} aria-label={language === 'vi' ? 'Xóa tìm kiếm' : 'Clear search'}>
+                <X size={15} aria-hidden="true" />
+              </button>
+            ) : (
+              <span className="bqa-command-kbd"><kbd>⌘</kbd><kbd>K</kbd></span>
+            )}
+          </div>
+
+          {!commandQuery && recentItems.length ? (
+            <section className="bqa-recent-section" aria-label={language === 'vi' ? 'Ứng dụng gần đây' : 'Recent apps'}>
+              <div className="bqa-section-label"><Clock3 size={14} aria-hidden="true" /><span>{language === 'vi' ? 'Gần đây' : 'Recent'}</span></div>
+              <div className="bqa-recent-row">
+                {recentItems.map((item) => {
+                  const Icon = item.icon || Boxes;
+                  return (
+                    <button
+                      type="button"
+                      key={`recent:${item.id}`}
+                      style={{ '--bqa-accent': item.accent }}
+                      onPointerEnter={() => schedulePeek(item.id)}
+                      onPointerLeave={() => clearPeek()}
+                      onClick={(event) => activateItem(item, event.currentTarget)}
+                      title={labelFor(item, language)}
+                    >
+                      <span><Icon size={16} strokeWidth={2} aria-hidden="true" /></span>
+                      <b>{labelFor(item, language)}</b>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
+
+          <div className={`bqa-panel-list ${commandQuery ? 'is-command-results' : ''}`} role="list">
+            {(commandQuery ? commandResults : selectedItems).map((item) => {
               const Icon = item.icon || Boxes;
               const active = activeItem(item, currentRoute, selectedTool);
+              const badge = badges[item.id] || 0;
               return (
                 <button
                   type="button"
                   role="listitem"
                   key={item.id}
-                  draggable
+                  draggable={!commandQuery}
                   className={`bqa-panel-item ${active ? 'is-active' : ''}`}
                   style={{ '--bqa-accent': item.accent }}
+                  onPointerEnter={() => schedulePeek(item.id)}
+                  onPointerLeave={() => clearPeek()}
+                  onFocus={() => schedulePeek(item.id)}
+                  onBlur={() => clearPeek()}
                   onDragStart={(event) => {
+                    if (commandQuery) return;
                     setDragId(item.id);
                     event.dataTransfer.effectAllowed = 'move';
                     event.dataTransfer.setData('text/plain', item.id);
                   }}
                   onDragEnd={() => setDragId('')}
                   onDragOver={(event) => {
-                    if (!dragId) return;
+                    if (!dragId || commandQuery) return;
                     event.preventDefault();
                     event.dataTransfer.dropEffect = 'move';
                   }}
                   onDrop={(event) => {
+                    if (commandQuery) return;
                     event.preventDefault();
                     moveDraggedBefore(item.id);
                   }}
                   onClick={(event) => activateItem(item, event.currentTarget)}
                 >
                   <span className="bqa-item-icon"><Icon size={20} strokeWidth={2} aria-hidden="true" /></span>
-                  <span className="bqa-item-label">{labelFor(item, language)}</span>
-                  {active ? <Check className="bqa-item-check" size={17} aria-hidden="true" /> : null}
-                  <GripVertical className="bqa-item-grip" size={17} aria-hidden="true" />
+                  <span className="bqa-item-label">
+                    <strong>{labelFor(item, language)}</strong>
+                    {commandQuery ? <small>{descriptionFor(item, language)}</small> : null}
+                  </span>
+                  {badge ? <span className="bqa-panel-badge">{badge}</span> : (active ? <Check className="bqa-item-check" size={17} aria-hidden="true" /> : null)}
+                  {commandQuery ? <ChevronRight className="bqa-item-go" size={17} aria-hidden="true" /> : <GripVertical className="bqa-item-grip" size={17} aria-hidden="true" />}
                 </button>
               );
             })}
+            {commandQuery && !commandResults.length ? (
+              <div className="bqa-command-empty">{language === 'vi' ? 'Không tìm thấy ứng dụng phù hợp.' : 'No matching app found.'}</div>
+            ) : null}
           </div>
 
           <footer className="bqa-panel-footer">
+            <div className="bqa-mode-switch" role="radiogroup" aria-label={language === 'vi' ? 'Chế độ thanh bên' : 'Sidebar mode'}>
+              <button type="button" className={mode === 'auto' ? 'is-active' : ''} onClick={() => setMode('auto')} role="radio" aria-checked={mode === 'auto'}>
+                <Gauge size={15} aria-hidden="true" /><span>{language === 'vi' ? 'Tự động' : 'Auto'}</span>
+              </button>
+              <button type="button" className={mode === 'pin' ? 'is-active' : ''} onClick={() => setMode('pin')} role="radio" aria-checked={mode === 'pin'}>
+                <Pin size={15} aria-hidden="true" /><span>{language === 'vi' ? 'Ghim' : 'Pin'}</span>
+              </button>
+              <button type="button" className={mode === 'focus' ? 'is-active' : ''} onClick={() => setMode('focus')} role="radio" aria-checked={mode === 'focus'}>
+                <EyeOff size={15} aria-hidden="true" /><span>Focus</span>
+              </button>
+            </div>
             <button type="button" onClick={() => { setCustomizerQuery(''); setCustomizing(true); }}>
               <Settings size={18} aria-hidden="true" />
               <span><strong>{language === 'vi' ? 'Tùy chỉnh lối tắt' : 'Customize shortcuts'}</strong><small>{language === 'vi' ? 'Sắp xếp, ẩn/hiện ứng dụng' : 'Reorder and choose apps'}</small></span>
             </button>
             <div className="bqa-account-note">
               <span className="bqa-sync-note"><Check size={15} aria-hidden="true" />{language === 'vi' ? 'Lưu theo tài khoản' : 'Saved to your account'}</span>
-              <span className="bqa-shortcut-hint"><kbd>Alt</kbd><b>Q</b></span>
+              <span className="bqa-shortcut-hint"><kbd>Alt</kbd><b>1–9</b><em>·</em><kbd>⌘</kbd><b>K</b></span>
             </div>
           </footer>
         </section>
+
+        {expanded && peekItem ? (
+          <aside
+            className="bqa-peek-card"
+            style={{ '--bqa-accent': peekItem.accent }}
+            onPointerEnter={() => { window.clearTimeout(peekTimerRef.current); }}
+            onPointerLeave={() => clearPeek(80)}
+          >
+            <div className="bqa-peek-head">
+              <span className="bqa-peek-icon">{React.createElement(peekItem.icon || Boxes, { size: 20, strokeWidth: 2, 'aria-hidden': true })}</span>
+              <div>
+                <strong>{labelFor(peekItem, language)}</strong>
+                <small>{badges[peekItem.id] ? (language === 'vi' ? `${badges[peekItem.id]} mục cần xem` : `${badges[peekItem.id]} items need attention`) : (language === 'vi' ? 'Sẵn sàng' : 'Ready')}</small>
+              </div>
+            </div>
+            <p>{descriptionFor(peekItem, language)}</p>
+            <div className="bqa-peek-actions">
+              {quickActionsFor(peekItem).map((action) => (
+                <button
+                  type="button"
+                  key={action.id}
+                  onClick={() => {
+                    action.run();
+                    rememberRecent(peekItem.id);
+                    if (action.id !== 'customize' && !pinned) collapseRail(false);
+                  }}
+                >
+                  <span>{action.label}</span><ChevronRight size={15} aria-hidden="true" />
+                </button>
+              ))}
+            </div>
+          </aside>
+        ) : null}
       </div>
 
       {customizing ? (
