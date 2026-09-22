@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
 import {
-  PRESENTATION_OVERRIDE_EVENT,
   PRESENTATION_OVERRIDE_STORAGE_KEY,
   readBrowserPresentationEnvironment,
   readPresentationOverride,
-  readStoredPresentationOverride,
   resolvePresentationMode,
 } from '../device/presentationMode.js';
 
@@ -19,9 +17,7 @@ function readCurrent() {
     };
   }
 
-  const queryOverride = readPresentationOverride(window.location.search, Boolean(import.meta.env.DEV));
-  const storedOverride = readStoredPresentationOverride(window.localStorage);
-  const override = queryOverride || storedOverride;
+  const override = readPresentationOverride(window.location.search, Boolean(import.meta.env.DEV));
   return {
     ...resolvePresentationMode(readBrowserPresentationEnvironment(window, navigator), override),
     override,
@@ -32,26 +28,23 @@ export default function usePresentationMode() {
   const [state, setState] = useState(readCurrent);
 
   useEffect(() => {
+    // The retired desktop Star → mobile toggle used a persistent override.
+    // Clear that legacy flag once so nobody is left stuck in the old preview mode.
+    try { window.localStorage?.removeItem(PRESENTATION_OVERRIDE_STORAGE_KEY); } catch { /* optional storage */ }
+
     let frame = 0;
     const update = () => {
       window.cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(() => setState(readCurrent()));
     };
-    const onStorage = (event) => {
-      if (!event?.key || event.key === PRESENTATION_OVERRIDE_STORAGE_KEY) update();
-    };
     const orientation = window.screen?.orientation;
     window.addEventListener('resize', update, { passive: true });
     window.addEventListener('orientationchange', update, { passive: true });
-    window.addEventListener(PRESENTATION_OVERRIDE_EVENT, update);
-    window.addEventListener('storage', onStorage);
     orientation?.addEventListener?.('change', update);
     return () => {
       window.cancelAnimationFrame(frame);
       window.removeEventListener('resize', update);
       window.removeEventListener('orientationchange', update);
-      window.removeEventListener(PRESENTATION_OVERRIDE_EVENT, update);
-      window.removeEventListener('storage', onStorage);
       orientation?.removeEventListener?.('change', update);
     };
   }, []);
