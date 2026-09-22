@@ -44,7 +44,7 @@ for (const token of [
   'onPointerLeave',
   'onOutsidePointerDown',
   'bqa-hover-bridge',
-  'inert={expanded ? undefined : true}',
+  'aria-hidden={!expanded}',
   'bes-navigation-start',
   'event.altKey',
   'customizerQuery',
