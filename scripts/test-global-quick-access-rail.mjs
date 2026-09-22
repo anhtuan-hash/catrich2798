@@ -23,11 +23,16 @@ for (const token of [
   'saveQuickAccessConfigToCloud',
   'subscribeQuickAccessConfig',
   'bes_quick_access_settings',
+  'QUICK_ACCESS_MODES',
+  'loadQuickAccessRecent',
+  'pushQuickAccessRecent',
 ]) {
   assert.ok(prefs.includes(token), `Preference contract missing: ${token}`);
 }
 
 assert.match(prefs, /QUICK_ACCESS_MAX_ITEMS\s*=\s*10/, 'Quick Access must cap shortcuts at 10.');
+assert.ok(prefs.includes('version: 2'), 'Quick Access V2 config must use version 2.');
+assert.ok(prefs.includes("mode: 'auto'"), 'Quick Access V2 must default to Auto mode.');
 assert.ok(prefs.includes("storageKey(user)"), 'Local fallback must be scoped per account.');
 assert.ok(prefs.includes('updatedAt: 0'), 'New-device defaults must not outrank an existing cloud configuration.');
 assert.ok(prefs.includes('hasExplicitItems'), 'An explicitly empty shortcut list must remain empty instead of resetting to defaults.');
@@ -56,6 +61,18 @@ for (const token of [
   'data-motion={collapsing ?',
   'collapseRail',
   'openRail',
+  'QUICK_ACCESS_BADGE_EVENT',
+  'commandQuery',
+  'recentIds',
+  'peekItemId',
+  'actionMenuItemId',
+  'bqa-command-search',
+  'bqa-recent',
+  'bqa-peek-card',
+  'bqa-mode-switch',
+  'is-focus-mode',
+  'pushQuickAccessRecent',
+  'event.metaKey || event.ctrlKey',
   'draggable',
   'Tùy chỉnh thanh truy cập nhanh',
   "document.querySelector('.brian-nav__attendance-tab')",
@@ -95,6 +112,14 @@ for (const token of [
   '.bqa-root.is-collapsing .bqa-brand',
   'scale3d(.14, .70, 1)',
   'transition:',
+  'Brian Quick Access V2 · command center',
+  '.bqa-badge',
+  '.bqa-command-search',
+  '.bqa-recent-chips',
+  '.bqa-peek-card',
+  '.bqa-action-popover',
+  '.bqa-mode-switch',
+  '.bqa-root.is-focus-mode.is-collapsed',
 ]) {
   assert.ok(css.includes(token), `Quick Access visual contract missing: ${token}`);
 }
@@ -118,4 +143,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: global Quick Access rail uses the approved Apple Pencil morph and a shell-level collision-safe area, while remaining Dashboard-visible, account-aware, searchable, keyboard-accessible, permission-aware, font-safe, responsive and capped at 10 shortcuts.');
+console.log('PASS: Brian Quick Access V2 has smooth motion, Auto/Pin/Focus modes, command search, recents, badges, Quick Peek, quick actions, account sync, permission filtering and a 10-shortcut cap.');
