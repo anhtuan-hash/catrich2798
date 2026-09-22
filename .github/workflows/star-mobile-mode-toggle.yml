@@ -1,4 +1,4 @@
-name: Star Mobile Mode Toggle
+name: Star Static Decoration Guard
 
 on:
   pull_request:
@@ -30,7 +30,7 @@ permissions:
   contents: read
 
 jobs:
-  star-mobile-mode:
+  star-static-decoration:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -46,7 +46,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Verify star mobile-mode contract
+      - name: Verify Star no longer toggles mobile mode
         run: node scripts/test-star-mobile-mode-toggle.mjs
 
       - name: Verify presentation-mode unit tests
@@ -58,5 +58,5 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Verify forced mobile preview and desktop return
-        run: npx playwright test tests/e2e/mobile-shell.spec.js --project=chromium-desktop --grep "desktop stored override"
+      - name: Verify retired desktop override is ignored
+        run: npx playwright test tests/e2e/mobile-shell.spec.js --project=chromium-desktop --grep "retired stored mobile-preview override"
