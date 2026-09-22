@@ -145,10 +145,10 @@ var audioCtx=null;
 var $=function(id){return document.getElementById(id);};
 function esc(value){var map={'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};return String(value==null?'':value).replace(/[&<>"']/g,function(ch){return map[ch];});}
 function arrangementParts(value){
-  var source=String(value==null?'':value).trim(),re=/(^|\\s)([a-e])\\.\\s+/gi,m,matches=[];
+  var source=String(value==null?'':value).trim(),re=/(^|\s)([a-e])\.\s+/gi,m,matches=[];
   while((m=re.exec(source))!==null){matches.push({index:m.index+(m[1]?m[1].length:0),label:m[2].toLowerCase(),start:re.lastIndex});}
   if(matches.length<3)return null;
-  var intro=source.slice(0,matches[0].index).trim().replace(/[\\s:;-]+$/,'').trim();
+  var intro=source.slice(0,matches[0].index).trim().replace(/[\s:;-]+$/,'').trim();
   var items=matches.map(function(entry,i){return {label:entry.label,text:source.slice(entry.start,i+1<matches.length?matches[i+1].index:source.length).trim()};}).filter(function(item){return item.text;});
   return items.length>=3?{intro:intro,items:items}:null;
 }
