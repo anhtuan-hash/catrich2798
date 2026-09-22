@@ -41,13 +41,13 @@ for (const token of [
 }
 
 for (const token of [
-  'Dashboard footer V6 direct route refinement',
+  'approved mockup authority',
   '[data-footer-route="dashboard"]',
-  'padding: 18px 18px 112px !important',
+  'padding: 18px 18px 92px !important',
   "content: 'Teach Better Together ♡'",
-  'linear-gradient(180deg, #f8fcff 0%, #f7fcff 55%, #eef8ff 100%)',
+  'linear-gradient(180deg, #f8fcff 0%, #f7fbff 64%, #eef8ff 100%)',
 ]) {
-  assert.ok(footerCss.includes(token), `Footer V6 token missing: ${token}`);
+  assert.ok(footerCss.includes(token), `Footer visual contract missing: ${token}`);
 }
 
 assert.ok(
