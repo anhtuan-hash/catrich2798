@@ -568,17 +568,23 @@ export default function GlobalQuickAccessRail({
     };
   }, [isPinned, customizing, expanded, collapseRail, openRail, selectedItems, currentUser?.id, allowedKey]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!commandFocusRequest || !expanded || typeof window === 'undefined') return undefined;
-    let secondFrame = 0;
-    const firstFrame = window.requestAnimationFrame(() => {
-      secondFrame = window.requestAnimationFrame(() => {
-        commandInputRef.current?.focus({ preventScroll: true });
-      });
-    });
+
+    const focusSearch = () => {
+      const input = commandInputRef.current;
+      if (!input) return;
+      input.focus({ preventScroll: true });
+      try { input.setSelectionRange(input.value.length, input.value.length); } catch { /* search input selection is best effort */ }
+    };
+
+    focusSearch();
+    const retryA = window.setTimeout(focusSearch, 60);
+    const retryB = window.setTimeout(focusSearch, 180);
+
     return () => {
-      window.cancelAnimationFrame(firstFrame);
-      if (secondFrame) window.cancelAnimationFrame(secondFrame);
+      window.clearTimeout(retryA);
+      window.clearTimeout(retryB);
     };
   }, [commandFocusRequest, expanded]);
 
@@ -981,6 +987,7 @@ export default function GlobalQuickAccessRail({
           <label className="bqa-command-search">
             <Command size={17} aria-hidden="true" />
             <input
+              key={`bqa-command-${commandFocusRequest}`}
               ref={commandInputRef}
               type="search"
               value={commandQuery}
@@ -988,6 +995,7 @@ export default function GlobalQuickAccessRail({
               placeholder={language === 'vi' ? 'Tìm ứng dụng hoặc lệnh…' : 'Search apps or commands…'}
               aria-label={language === 'vi' ? 'Tìm nhanh ứng dụng' : 'Quick app search'}
               tabIndex={expanded ? 0 : -1}
+              autoFocus={commandFocusRequest > 0}
             />
             {commandQuery ? (
               <button type="button" onClick={() => { setCommandQuery(''); commandInputRef.current?.focus(); }} aria-label={language === 'vi' ? 'Xóa tìm kiếm' : 'Clear search'}>
