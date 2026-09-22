@@ -958,3 +958,238 @@ button.bqa-customizer-row:disabled {
     transition: none !important;
   }
 }
+
+
+
+/* Quick Access Apple Pencil Morph V1 · approved interactive prototype · 2026-09-22
+   The panel compresses into the B-anchor instead of merely sliding sideways. */
+.bqa-panel {
+  transform-origin: 0 30px;
+  will-change: transform, clip-path, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  clip-path: inset(0 89% 88% 0 round 22px);
+  opacity: 0;
+  transform: translate3d(-16px, 0, 0) scaleX(.06) scaleY(.12);
+  transition: none;
+}
+
+.bqa-root.is-open .bqa-panel {
+  visibility: visible;
+  pointer-events: auto;
+  animation: bqa-pencil-open 330ms cubic-bezier(.20, .90, .20, 1.12) both;
+}
+
+.bqa-root.is-collapsing .bqa-panel {
+  visibility: visible !important;
+  pointer-events: none;
+  animation: bqa-pencil-collapse 280ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+.bqa-root.is-collapsed:not(.is-collapsing) .bqa-panel {
+  visibility: hidden;
+}
+
+@keyframes bqa-pencil-open {
+  0% {
+    opacity: 0;
+    transform: translate3d(-18px, 0, 0) scaleX(.07) scaleY(.13);
+    clip-path: inset(0 89% 88% 0 round 22px);
+    border-radius: 28px;
+  }
+  44% {
+    opacity: 1;
+    transform: translate3d(1px, 0, 0) scaleX(1.025) scaleY(.992);
+    clip-path: inset(0 0 0 0 round 24px);
+    border-radius: 25px;
+  }
+  72% {
+    transform: translate3d(0, 0, 0) scaleX(.994) scaleY(1.006);
+    clip-path: inset(0 0 0 0 round 23px);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scaleX(1) scaleY(1);
+    clip-path: inset(0 0 0 0 round 22px);
+    border-radius: 22px;
+  }
+}
+
+@keyframes bqa-pencil-collapse {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scaleX(1) scaleY(1);
+    clip-path: inset(0 0 0 0 round 22px);
+    border-radius: 22px;
+  }
+  34% {
+    opacity: 1;
+    transform: translate3d(-2px, 0, 0) scaleX(.92) scaleY(1.025);
+    clip-path: inset(3% 5% 3% 0 round 26px);
+    border-radius: 26px;
+  }
+  72% {
+    opacity: .86;
+    transform: translate3d(-10px, 0, 0) scaleX(.34) scaleY(.44);
+    clip-path: inset(0 68% 58% 0 round 28px);
+    border-radius: 30px;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(-16px, 0, 0) scaleX(.06) scaleY(.12);
+    clip-path: inset(0 89% 88% 0 round 22px);
+    border-radius: 30px;
+  }
+}
+
+/* Content disappears slightly ahead of the shell on collapse, then staggers back
+   after the shell has started expanding. This is what creates the Pencil-like squeeze. */
+.bqa-panel-header,
+.bqa-panel-list,
+.bqa-panel-footer {
+  opacity: 0;
+  transform: translate3d(-8px, 0, 0) scale(.985);
+  transition:
+    opacity 90ms ease,
+    transform 130ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.bqa-root.is-open .bqa-panel-header,
+.bqa-root.is-open .bqa-panel-list,
+.bqa-root.is-open .bqa-panel-footer {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  transition:
+    opacity 170ms ease,
+    transform 210ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.bqa-root.is-open .bqa-panel-header {
+  transition-delay: 54ms;
+}
+
+.bqa-root.is-open .bqa-panel-list {
+  transition-delay: 68ms;
+}
+
+.bqa-root.is-open .bqa-panel-footer {
+  transition-delay: 92ms;
+}
+
+.bqa-root.is-collapsing .bqa-panel-header,
+.bqa-root.is-collapsing .bqa-panel-list,
+.bqa-root.is-collapsing .bqa-panel-footer {
+  opacity: 0;
+  transform: translate3d(-10px, 0, 0) scale(.97);
+  transition-delay: 0ms;
+}
+
+.bqa-panel-item {
+  opacity: 0;
+  transform: translate3d(-12px, 0, 0) scale(.98);
+  transition:
+    opacity 135ms ease,
+    transform 190ms cubic-bezier(.22, 1, .36, 1),
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.bqa-root.is-open .bqa-panel-item {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.bqa-root.is-open .bqa-panel-item:nth-child(1) { transition-delay: 66ms; }
+.bqa-root.is-open .bqa-panel-item:nth-child(2) { transition-delay: 78ms; }
+.bqa-root.is-open .bqa-panel-item:nth-child(3) { transition-delay: 90ms; }
+.bqa-root.is-open .bqa-panel-item:nth-child(4) { transition-delay: 102ms; }
+.bqa-root.is-open .bqa-panel-item:nth-child(5) { transition-delay: 114ms; }
+.bqa-root.is-open .bqa-panel-item:nth-child(6) { transition-delay: 126ms; }
+.bqa-root.is-open .bqa-panel-item:nth-child(7) { transition-delay: 138ms; }
+.bqa-root.is-open .bqa-panel-item:nth-child(8) { transition-delay: 150ms; }
+.bqa-root.is-open .bqa-panel-item:nth-child(9) { transition-delay: 162ms; }
+.bqa-root.is-open .bqa-panel-item:nth-child(10) { transition-delay: 174ms; }
+
+.bqa-root.is-collapsing .bqa-panel-item {
+  opacity: 0;
+  transform: translate3d(-12px, 0, 0) scale(.96);
+  transition-delay: 0ms !important;
+  transition-duration: 70ms, 100ms, 100ms, 100ms, 100ms;
+}
+
+.bqa-root.is-open .bqa-rail {
+  box-shadow:
+    0 18px 42px rgba(39, 86, 130, .15),
+    inset 0 1px 0 rgba(255,255,255,.96);
+}
+
+.bqa-root.is-collapsing .bqa-brand {
+  animation: bqa-pencil-anchor-pulse 280ms cubic-bezier(.22, 1, .36, 1);
+}
+
+@keyframes bqa-pencil-anchor-pulse {
+  0%, 100% { transform: scale(1); }
+  38% { transform: scale(.965); }
+  70% { transform: scale(1.035); }
+}
+
+/* Dashboard V9's edge-peek remains in force at rest, but it must not hide the
+   panel while the Pencil collapse animation is still visibly converging. */
+.app-shell[data-route="dashboard"] .bqa-root.is-collapsing .bqa-panel {
+  visibility: visible !important;
+}
+
+/* Touch devices keep the same morph but reduce overshoot to avoid a rubbery drawer. */
+@media (max-width: 760px), (hover: none) {
+  .bqa-panel {
+    transform-origin: 0 28px;
+  }
+
+  .bqa-root.is-open .bqa-panel {
+    animation-duration: 285ms;
+    animation-timing-function: cubic-bezier(.22, 1, .36, 1);
+  }
+
+  .bqa-root.is-collapsing .bqa-panel {
+    animation-duration: 245ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bqa-root.is-open .bqa-panel,
+  .bqa-root.is-collapsing .bqa-panel,
+  .bqa-root.is-collapsing .bqa-brand {
+    animation: none !important;
+  }
+
+  .bqa-panel {
+    clip-path: none !important;
+    transform: none !important;
+  }
+
+  .bqa-root.is-open .bqa-panel {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .bqa-root.is-collapsed .bqa-panel {
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+
+  .bqa-panel-header,
+  .bqa-panel-list,
+  .bqa-panel-footer,
+  .bqa-panel-item {
+    transition: none !important;
+    transform: none !important;
+  }
+
+  .bqa-root.is-open .bqa-panel-header,
+  .bqa-root.is-open .bqa-panel-list,
+  .bqa-root.is-open .bqa-panel-footer,
+  .bqa-root.is-open .bqa-panel-item {
+    opacity: 1 !important;
+  }
+}
