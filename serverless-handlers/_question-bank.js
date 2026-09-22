@@ -175,10 +175,21 @@ async function authorize(req) {
     authError.status = 401;
     throw authError;
   }
+  const { data: canContribute, error: accessError } = await db.rpc(
+    'qb_can_contribute_assessment_for_user',
+    { target_user: data.owner_id },
+  );
+  if (accessError) throw Object.assign(new Error(accessError.message), { status: 500 });
+
   await db.from('question_bank_integrations')
     .update({ last_used_at: new Date().toISOString(), updated_at: new Date().toISOString() })
     .eq('id', data.id);
-  return { db, integration: data, ownerId: data.owner_id };
+  return {
+    db,
+    integration: data,
+    ownerId: data.owner_id,
+    canContribute: Boolean(canContribute),
+  };
 }
 
 async function findByFingerprints(db, ownerId, fingerprints = []) {
@@ -741,6 +752,13 @@ export default async function handler(req, res) {
     const session = await authorize(req);
     const payload = req.body && typeof req.body === 'object' ? req.body : {};
     const action = cleanInline(payload.action || req.query?.action, 60).toLowerCase();
+
+    if ((action === 'save_questions' || action === 'save_exam') && !session.canContribute) {
+      return send(res, 403, {
+        ok: false,
+        error: 'This account has read-only Assessment Core access. Only Admin/TTCM may add questions.',
+      });
+    }
 
     if (action === 'save_questions') {
       const result = await saveQuestions(session, payload);
