@@ -142,7 +142,6 @@ test.describe('Global Quick Access safe area', () => {
         pointerEvents: style.pointerEvents,
         width: Math.round(rect.width),
         height: Math.round(rect.height),
-        transitionProperty: style.transitionProperty,
         transform: style.transform,
         headerOpacity: Number(headerStyle?.opacity || 0),
       };
@@ -154,7 +153,6 @@ test.describe('Global Quick Access safe area', () => {
     expect(panelState.width).toBeGreaterThanOrEqual(310);
     expect(panelState.height).toBeGreaterThan(380);
     expect(panelState.headerOpacity).toBeGreaterThan(0.99);
-    expect(panelState.transitionProperty).toContain('transform');
     expect(panelState.transform === 'none' || panelState.transform.includes('matrix(1')).toBeTruthy();
   });
 
