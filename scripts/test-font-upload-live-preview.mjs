@@ -10,6 +10,7 @@ const accountBridge = fs.readFileSync('src/components/GlobalAccountTextSizeBridg
 const accountBridgeCss = fs.readFileSync('src/components/GlobalAccountTextSizeBridge.css', 'utf8');
 const utilitySlot = fs.readFileSync('src/components/GlobalEnglishHubBrand.jsx', 'utf8');
 const legacyScale = fs.readFileSync('src/utils/fontScale.js', 'utf8');
+const vercelConfig = fs.readFileSync('vercel.json', 'utf8');
 
 const assertions = [
   ['global preset selection previews immediately across the app', globalPanel.includes("source: 'admin-live-selection'") && globalPanel.includes("applyGlobalFontPreset(id")],
@@ -17,6 +18,7 @@ const assertions = [
   ['choosing a custom font file previews immediately', globalPanel.includes('const previewResult = previewGlobalCustomFont(file') && globalPanel.includes('Previewing the selected font across the interface')],
   ['regional font authority stylesheet is loaded globally', mainEntry.includes("import './styles/GlobalRegionalFontSystem.css';")],
   ['regional font runtime is installed globally', mainEntry.includes("import { installRegionalFontSystem } from './utils/globalRegionalFontSystem.js';") && mainEntry.includes('installRegionalFontSystem();')],
+  ['CSP allows Google and Supabase font assets', vercelConfig.includes("font-src 'self' data: https://fonts.gstatic.com https://*.supabase.co;")],
   ['shared custom upload panel is removed', !panel.includes('regional-font-upload__preview') && !panel.includes('Tải font của riêng bạn')],
   ['every region card renders its own upload control', panel.includes('regional-font-card__custom-upload') && panel.includes('GLOBAL_FONT_REGIONS.map')],
   ['every region has a custom-font selector option', panel.includes('Font cá nhân cho khu vực này…') && panel.includes('value="custom"')],
