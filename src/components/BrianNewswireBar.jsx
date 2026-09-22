@@ -163,6 +163,7 @@ export default function BrianNewswireBar({ language = 'vi' }) {
     } catch {
       // Navigation still works without the hand-off cache.
     }
+    window.dispatchEvent(new CustomEvent('bes-newswire-open-item', { detail: { item: current } }));
     window.location.hash = '#/news';
   };
 
