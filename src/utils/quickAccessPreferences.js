@@ -1,0 +1,188 @@
+import { isSupabaseConfigured, supabase } from './supabase.js';
+
+export const QUICK_ACCESS_MAX_ITEMS = 10;
+export const QUICK_ACCESS_EVENT = 'bes-quick-access-updated';
+const QUICK_ACCESS_KEY = 'bes-quick-access-v1';
+
+export const DEFAULT_QUICK_ACCESS_IDS = [
+  'route:dashboard',
+  'route:apps',
+  'route:homeroom',
+  'tool:gradebook-studio',
+  'action:reports',
+  'action:ttcm',
+  'action:attendance',
+  'action:schedule',
+  'route:assessment-core',
+  'route:resource-library',
+];
+
+function userKey(user) {
+  return String(user?.id || user?.authId || user?.email || 'guest').trim().toLowerCase();
+}
+
+function storageKey(user) {
+  return `${QUICK_ACCESS_KEY}:${userKey(user)}`;
+}
+
+function safeGet(key) {
+  if (typeof window === 'undefined') return '';
+  try { return window.localStorage?.getItem(key) || ''; } catch { return ''; }
+}
+
+function safeSet(key, value) {
+  if (typeof window === 'undefined') return;
+  try { window.localStorage?.setItem(key, value); } catch { /* local cache is best effort */ }
+}
+
+function cleanIds(ids, allowedIds = []) {
+  const allowed = new Set((Array.isArray(allowedIds) ? allowedIds : []).map(String));
+  const seen = new Set();
+  return (Array.isArray(ids) ? ids : [])
+    .map((id) => String(id || '').trim())
+    .filter((id) => {
+      if (!id || seen.has(id)) return false;
+      if (allowed.size && !allowed.has(id)) return false;
+      seen.add(id);
+      return true;
+    })
+    .slice(0, QUICK_ACCESS_MAX_ITEMS);
+}
+
+export function createDefaultQuickAccessConfig(allowedIds = []) {
+  const allowed = new Set((Array.isArray(allowedIds) ? allowedIds : []).map(String));
+  const preferred = DEFAULT_QUICK_ACCESS_IDS.filter((id) => !allowed.size || allowed.has(id));
+  const fallback = (Array.isArray(allowedIds) ? allowedIds : []).filter((id) => !preferred.includes(id));
+  return {
+    version: 1,
+    items: [...preferred, ...fallback].slice(0, QUICK_ACCESS_MAX_ITEMS),
+    pinned: false,
+    updatedAt: Date.now(),
+  };
+}
+
+export function normalizeQuickAccessConfig(raw, allowedIds = []) {
+  const defaults = createDefaultQuickAccessConfig(allowedIds);
+  let source = raw;
+  if (typeof source === 'string') {
+    try { source = JSON.parse(source); } catch { source = null; }
+  }
+  if (source && typeof source === 'object' && !Array.isArray(source) && source.config) source = source.config;
+  source = source && typeof source === 'object' && !Array.isArray(source) ? source : {};
+  const items = cleanIds(source.items, allowedIds);
+  return {
+    version: 1,
+    items: (items.length ? items : defaults.items).slice(0, QUICK_ACCESS_MAX_ITEMS),
+    pinned: Boolean(source.pinned),
+    updatedAt: Number(source.updatedAt) || Date.now(),
+  };
+}
+
+function emit(config) {
+  if (typeof window === 'undefined') return;
+  try { window.dispatchEvent(new CustomEvent(QUICK_ACCESS_EVENT, { detail: config })); } catch { /* optional */ }
+}
+
+export function loadQuickAccessConfig(user, allowedIds = []) {
+  const raw = safeGet(storageKey(user));
+  if (!raw) return createDefaultQuickAccessConfig(allowedIds);
+  try { return normalizeQuickAccessConfig(JSON.parse(raw), allowedIds); }
+  catch { return createDefaultQuickAccessConfig(allowedIds); }
+}
+
+export function saveQuickAccessConfig(user, config, allowedIds = []) {
+  const normalized = normalizeQuickAccessConfig({ ...config, updatedAt: Date.now() }, allowedIds);
+  safeSet(storageKey(user), JSON.stringify(normalized));
+  emit(normalized);
+  return normalized;
+}
+
+function cloudUserId(user) {
+  const id = String(user?.id || user?.authId || '').trim();
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id) ? id : '';
+}
+
+export async function loadQuickAccessConfigFromCloud(user, allowedIds = []) {
+  const local = loadQuickAccessConfig(user, allowedIds);
+  const userId = cloudUserId(user);
+  if (!userId || !isSupabaseConfigured || !supabase) return { config: local, cloud: false, source: 'local' };
+
+  try {
+    const { data, error } = await supabase
+      .from('bes_quick_access_settings')
+      .select('config, updated_at')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data?.config) return { config: local, cloud: false, source: 'local-empty-cloud' };
+
+    const cloud = normalizeQuickAccessConfig(data.config, allowedIds);
+    const chosen = Number(cloud.updatedAt || 0) >= Number(local.updatedAt || 0) ? cloud : local;
+    safeSet(storageKey(user), JSON.stringify(chosen));
+    emit(chosen);
+    return { config: chosen, cloud: chosen === cloud, source: chosen === cloud ? 'cloud' : 'local-newer' };
+  } catch (error) {
+    return { config: local, cloud: false, source: 'local-fallback', error };
+  }
+}
+
+export async function saveQuickAccessConfigToCloud(user, config, allowedIds = []) {
+  const normalized = saveQuickAccessConfig(user, config, allowedIds);
+  const userId = cloudUserId(user);
+  if (!userId || !isSupabaseConfigured || !supabase) return { config: normalized, cloud: false, source: 'local' };
+
+  try {
+    const { error } = await supabase
+      .from('bes_quick_access_settings')
+      .upsert({
+        user_id: userId,
+        config: normalized,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'user_id' });
+    if (error) throw error;
+    return { config: normalized, cloud: true, source: 'cloud' };
+  } catch (error) {
+    return { config: normalized, cloud: false, source: 'local-fallback', error };
+  }
+}
+
+export function subscribeQuickAccessConfig(user, allowedIds, callback) {
+  if (typeof window === 'undefined') return () => {};
+  const onLocal = (event) => callback?.(normalizeQuickAccessConfig(event?.detail, allowedIds));
+  const onStorage = (event) => {
+    if (event?.key !== storageKey(user)) return;
+    callback?.(loadQuickAccessConfig(user, allowedIds));
+  };
+  window.addEventListener(QUICK_ACCESS_EVENT, onLocal);
+  window.addEventListener('storage', onStorage);
+
+  const userId = cloudUserId(user);
+  let channel = null;
+  if (userId && isSupabaseConfigured && supabase) {
+    try {
+      channel = supabase
+        .channel(`bes-quick-access-${userId}`)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'bes_quick_access_settings',
+          filter: `user_id=eq.${userId}`,
+        }, (payload) => {
+          const next = normalizeQuickAccessConfig(payload?.new?.config, allowedIds);
+          safeSet(storageKey(user), JSON.stringify(next));
+          callback?.(next);
+        })
+        .subscribe();
+    } catch {
+      channel = null;
+    }
+  }
+
+  return () => {
+    window.removeEventListener(QUICK_ACCESS_EVENT, onLocal);
+    window.removeEventListener('storage', onStorage);
+    if (channel && supabase) {
+      try { supabase.removeChannel(channel); } catch { /* cleanup is best effort */ }
+    }
+  };
+}
