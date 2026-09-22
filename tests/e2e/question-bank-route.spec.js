@@ -31,7 +31,7 @@ async function openQuestionBank(page) {
   await page.goto('/#/assessment-core');
   await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'assessment-core');
   await expect(page.getByRole('heading', { name: /Chưa được cấp quyền|Permission required/i })).toHaveCount(0);
-  await expect(page.locator('#bes-main-content > .qb-shell')).toBeVisible({ timeout: 10_000 });
+  await expect(page.locator('#bes-main-content > .bqa-content-safe-frame > .qb-shell')).toBeVisible({ timeout: 10_000 });
   await expect(page.getByRole('heading', { name: /Ngân hàng/i }).first()).toBeVisible();
   await expect(page.getByRole('button', { name: /Kho câu hỏi/i })).toBeVisible();
   await expect(page.getByRole('button', { name: /Nhập từ ChatGPT/i }).first()).toBeVisible();
@@ -93,14 +93,15 @@ test('Assessment Core V7 keeps premium horizontal navigation across all modules'
   }
 });
 
-test('Assessment Core V7 uses compact footer without the profile cards', async ({ page }) => {
+test('Assessment Core V7 uses the canonical global Dashboard footer', async ({ page }) => {
   await page.setViewportSize({ width: 1536, height: 960 });
   await openQuestionBank(page);
 
   const footer = page.locator('footer[data-app-shell-footer="true"]');
-  await expect(footer).toHaveAttribute('data-footer-mode', 'compact');
+  await expect(footer).toHaveAttribute('data-footer-mode', 'full');
+  await expect(footer).toHaveClass(/signature-footer-dashboard-global/);
+  await expect(footer.locator('.signature-footer-expanded-panel')).toBeVisible();
   await expect(footer.locator('.signature-footer-static-summary')).toBeVisible();
-  await expect(footer.locator('.signature-footer-expanded-panel')).toHaveCount(0);
   await expect(footer.getByText(/English Hub v/i)).toBeVisible();
 });
 
