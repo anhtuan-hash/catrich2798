@@ -188,10 +188,12 @@ test.describe('Global Quick Access safe area', () => {
     await page.goto('/#/apps');
     await expect(page.locator('.bqa-root')).toBeVisible();
 
-    await page.locator('.bqa-rail').hover();
+    await page.keyboard.press('Control+K');
     await expect(page.locator('.bqa-panel')).toBeVisible();
 
     const search = page.locator('.bqa-command-search input');
+    await expect(search).toBeVisible();
+    await expect(search).toBeFocused();
     await search.fill('ngân hàng');
     await expect(page.locator('.bqa-panel-list.is-command-results')).toContainText('Ngân hàng câu hỏi');
 
