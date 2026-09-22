@@ -220,10 +220,9 @@ test.describe('Global Quick Access safe area', () => {
     await page.goto('/#/apps');
     await expect(page.locator('.bqa-root')).toBeVisible();
 
-    const ttcmButton = page.locator('.bqa-rail-button').filter({ has: page.locator('svg') }).filter({ hasText: '' }).nth(5);
-    await expect(page.locator('.bqa-rail-badge')).toHaveCount(1);
-    await expect(page.locator('.bqa-rail-badge')).toContainText('1');
+    const ttcmButton = page.locator('.bqa-rail-button[aria-label="TTCM"]');
     await expect(ttcmButton).toBeVisible();
+    await expect(ttcmButton.locator('.bqa-rail-badge')).toHaveText('1');
   });
 
   test('Quick Access V2: Focus mode hides permanent chrome and reopens from the edge', async ({ page }) => {
