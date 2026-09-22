@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   AppWindow,
   BookOpenCheck,
@@ -227,6 +227,63 @@ function runAction(item, sourceEl) {
   }
 }
 
+const QUICK_ACCESS_SAFE_AREA_MIN_WIDTH = 1280;
+const QUICK_ACCESS_SAFE_GAP = 12;
+const QUICK_ACCESS_SAFE_MAX_COLLAPSED = 96;
+const QUICK_ACCESS_SAFE_MAX_PINNED = 430;
+const QUICK_ACCESS_COLLISION_SELECTOR = [
+  'button',
+  'a[href]',
+  'input',
+  'select',
+  'textarea',
+  '[role="button"]',
+  '[role="tab"]',
+  '[role="gridcell"]',
+  '[role="columnheader"]',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'label',
+  'th',
+  'td',
+].join(',');
+
+function parseCssPixels(value, fallback = 0) {
+  const parsed = Number.parseFloat(String(value || '').trim());
+  return Number.isFinite(parsed) ? parsed : fallback;
+}
+
+function isQuickAccessCollisionCandidate(element) {
+  if (!element || typeof window === 'undefined') return false;
+  if (element.closest?.('[aria-hidden="true"]')) return false;
+  const style = window.getComputedStyle(element);
+  if (!style || style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity || 1) <= 0.01) return false;
+  if (style.position === 'fixed') return false;
+  const rect = element.getBoundingClientRect();
+  if (rect.width < 2 || rect.height < 2) return false;
+  if (rect.right <= 0 || rect.left >= window.innerWidth) return false;
+  return true;
+}
+
+function measureQuickAccessContentBaseline(main, currentShift = 0) {
+  if (!main) return Number.POSITIVE_INFINITY;
+  const candidates = [...main.querySelectorAll(QUICK_ACCESS_COLLISION_SELECTOR)];
+  let minLeft = Number.POSITIVE_INFINITY;
+
+  candidates.forEach((element) => {
+    if (!isQuickAccessCollisionCandidate(element)) return;
+    const rect = element.getBoundingClientRect();
+    const baselineLeft = rect.left - currentShift;
+    if (Number.isFinite(baselineLeft)) minLeft = Math.min(minLeft, baselineLeft);
+  });
+
+  return minLeft;
+}
+
 export default function GlobalQuickAccessRail({
   currentUser,
   currentRoute = 'home',
@@ -241,6 +298,10 @@ export default function GlobalQuickAccessRail({
   const [collapsing, setCollapsing] = useState(false);
   const closeTimerRef = useRef(0);
   const collapseMotionTimerRef = useRef(0);
+  const layoutFrameRef = useRef(0);
+  const rootRef = useRef(null);
+  const railRef = useRef(null);
+  const panelRef = useRef(null);
 
   const catalog = useMemo(() => {
     const byId = new Map();
@@ -371,6 +432,106 @@ export default function GlobalQuickAccessRail({
     };
   }, [config.pinned, customizing, expanded, collapseRail, openRail]);
 
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
+
+    const root = rootRef.current;
+    const shell = root?.closest?.('.app-shell');
+    const main = shell?.querySelector?.(':scope > #bes-main-content');
+    const footer = shell?.querySelector?.(':scope > footer[data-app-shell-footer="true"]');
+    if (!root || !shell || !main) return undefined;
+
+    shell.dataset.quickAccessState = config.pinned ? 'pinned' : 'rest';
+
+    const clearSafeArea = () => {
+      shell.style.removeProperty('--bqa-content-safe-shift');
+      shell.dataset.quickAccessSafeShift = '0';
+    };
+
+    const measureAndApply = () => {
+      window.cancelAnimationFrame(layoutFrameRef.current);
+      layoutFrameRef.current = window.requestAnimationFrame(() => {
+        if (!window.matchMedia(`(min-width: ${QUICK_ACCESS_SAFE_AREA_MIN_WIDTH}px)`).matches) {
+          clearSafeArea();
+          return;
+        }
+
+        const currentShift = parseCssPixels(shell.dataset.quickAccessSafeShift, 0);
+        const baselineLeft = measureQuickAccessContentBaseline(main, currentShift);
+        if (!Number.isFinite(baselineLeft)) {
+          clearSafeArea();
+          return;
+        }
+
+        const rail = railRef.current;
+        const panel = panelRef.current;
+        const railRect = rail?.getBoundingClientRect?.();
+        const rootRect = root.getBoundingClientRect();
+        const rootStyle = window.getComputedStyle(root);
+        const railWidth = parseCssPixels(rootStyle.getPropertyValue('--bqa-rail-width'), 56);
+        const panelWidth = parseCssPixels(rootStyle.getPropertyValue('--bqa-panel-width'), 318);
+
+        const collapsedBoundary = Number.isFinite(railRect?.right)
+          ? railRect.right
+          : rootRect.left + railWidth;
+
+        const pinnedBoundary = config.pinned
+          ? rootRect.left + railWidth + 8 + panelWidth
+          : collapsedBoundary;
+
+        const safeBoundary = (config.pinned ? pinnedBoundary : collapsedBoundary) + QUICK_ACCESS_SAFE_GAP;
+        const maxShift = config.pinned ? QUICK_ACCESS_SAFE_MAX_PINNED : QUICK_ACCESS_SAFE_MAX_COLLAPSED;
+        const nextShift = Math.max(0, Math.min(maxShift, Math.ceil(safeBoundary - baselineLeft)));
+
+        shell.style.setProperty('--bqa-content-safe-shift', `${nextShift}px`);
+        shell.dataset.quickAccessSafeShift = String(nextShift);
+        shell.dataset.quickAccessState = config.pinned ? 'pinned' : 'rest';
+
+        if (footer) footer.dataset.quickAccessOcclusionGuard = 'true';
+        if (panel) panel.dataset.safeBoundary = String(Math.round(safeBoundary));
+      });
+    };
+
+    const onResize = () => measureAndApply();
+    const resizeObserver = typeof ResizeObserver === 'function'
+      ? new ResizeObserver(measureAndApply)
+      : null;
+    const mutationObserver = typeof MutationObserver === 'function'
+      ? new MutationObserver(measureAndApply)
+      : null;
+
+    resizeObserver?.observe(main);
+    mutationObserver?.observe(main, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden', 'style'] });
+    window.addEventListener('resize', onResize, { passive: true });
+    window.addEventListener('bes-font-settings-updated', measureAndApply);
+    window.addEventListener('bes-regional-font-updated', measureAndApply);
+
+    measureAndApply();
+    const settleA = window.setTimeout(measureAndApply, 120);
+    const settleB = window.setTimeout(measureAndApply, 420);
+
+    return () => {
+      window.clearTimeout(settleA);
+      window.clearTimeout(settleB);
+      window.cancelAnimationFrame(layoutFrameRef.current);
+      resizeObserver?.disconnect();
+      mutationObserver?.disconnect();
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('bes-font-settings-updated', measureAndApply);
+      window.removeEventListener('bes-regional-font-updated', measureAndApply);
+      shell.style.removeProperty('--bqa-content-safe-shift');
+      delete shell.dataset.quickAccessSafeShift;
+      delete shell.dataset.quickAccessState;
+      if (footer) delete footer.dataset.quickAccessOcclusionGuard;
+    };
+  }, [
+    currentRoute,
+    selectedTool?.slug,
+    config.pinned,
+    allowedKey,
+    appVisibility?.ready,
+  ]);
+
   if (!currentUser || currentRoute === 'home' || !catalog.length) return null;
 
   const selectedItems = config.items
@@ -434,6 +595,7 @@ export default function GlobalQuickAccessRail({
   return (
     <>
       <div
+        ref={rootRef}
         className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${config.pinned ? 'is-pinned' : ''}`}
         data-quick-access="true"
         data-motion={collapsing ? 'collapsing' : (expanded ? 'open' : 'rest')}
@@ -442,9 +604,16 @@ export default function GlobalQuickAccessRail({
         onPointerLeave={leave}
         onFocusCapture={enter}
       >
-        <div className="bqa-edge-trigger" aria-hidden="true" onPointerEnter={enter} />
+        <div
+          className="bqa-edge-trigger"
+          aria-hidden="true"
+          onPointerEnter={enter}
+          onPointerDown={(event) => {
+            if (event.pointerType === 'touch' || event.pointerType === 'pen') openRail();
+          }}
+        />
 
-        <aside className="bqa-rail" aria-label={language === 'vi' ? 'Thanh truy cập nhanh' : 'Quick access'}>
+        <aside ref={railRef} className="bqa-rail" aria-label={language === 'vi' ? 'Thanh truy cập nhanh' : 'Quick access'}>
           <button
             type="button"
             className="bqa-brand"
@@ -494,7 +663,7 @@ export default function GlobalQuickAccessRail({
           </button>
         </aside>
 
-        <section className="bqa-panel" aria-hidden={!expanded} inert={expanded ? undefined : true}>
+        <section ref={panelRef} className="bqa-panel" aria-hidden={!expanded} inert={expanded ? undefined : true}>
           <header className="bqa-panel-header">
             <div>
               <strong>{language === 'vi' ? 'Thanh truy cập nhanh' : 'Quick access'}</strong>
