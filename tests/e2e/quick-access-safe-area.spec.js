@@ -184,6 +184,54 @@ test.describe('Global Quick Access safe area', () => {
     expect(state.width).toBeGreaterThanOrEqual(310);
   });
 
+  test('V2: Ctrl/Cmd+K opens command search and finds apps', async ({ page }) => {
+    await page.goto('/#/apps');
+    await expect(page.locator('.bqa-root')).toBeVisible();
+    await page.waitForTimeout(700);
+
+    await page.keyboard.press(process.platform === 'darwin' ? 'Meta+K' : 'Control+K');
+    await expect(page.locator('.bqa-root')).toHaveClass(/is-open/);
+    const search = page.locator('.bqa-command-search input');
+    await expect(search).toBeFocused();
+    await search.fill('Chủ nhiệm');
+    await expect(page.locator('.bqa-command-results')).toContainText('Chủ nhiệm');
+  });
+
+  test('V2: badge events render on the matching rail icon', async ({ page }) => {
+    await page.goto('/#/apps');
+    await expect(page.locator('.bqa-root')).toBeVisible();
+    await page.evaluate(() => {
+      window.dispatchEvent(new CustomEvent('bes-quick-access-badges', {
+        detail: { id: 'action:ttcm', value: 7 },
+      }));
+    });
+    await expect(page.locator('[data-bqa-item-id="action:ttcm"] .bqa-badge')).toHaveText('7');
+  });
+
+  test('V2: Focus mode hides the resting rail and reopens from the edge', async ({ page }) => {
+    await page.goto('/#/apps');
+    await page.locator('.bqa-rail').hover();
+    await expect(page.locator('.bqa-root')).toHaveClass(/is-open/);
+    await page.getByRole('button', { name: /Tập trung|Focus/ }).click();
+    await page.mouse.move(900, 700);
+    await page.waitForTimeout(420);
+
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-mode', 'focus');
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-quick-access-safe-mode', 'overlay');
+
+    await page.locator('.bqa-edge-trigger').hover({ force: true });
+    await expect(page.locator('.bqa-root')).toHaveClass(/is-open/);
+  });
+
+  test('V2: quick actions menu opens from a shortcut row', async ({ page }) => {
+    await page.goto('/#/apps');
+    await page.locator('.bqa-rail').hover();
+    await expect(page.locator('.bqa-root')).toHaveClass(/is-open/);
+    await page.locator('.bqa-panel-row').first().locator('.bqa-more').click();
+    await expect(page.locator('.bqa-action-popover')).toBeVisible();
+    await expect(page.locator('.bqa-action-popover')).toContainText(/Mở ứng dụng|Open app/);
+  });
+
   test('Dashboard: collapsed Quick Access panel leaves no visible ghost beside the rail', async ({ page }) => {
     await page.goto('/#/dashboard');
     await expect(page.locator('.bqa-root')).toBeVisible();

@@ -6,7 +6,12 @@ import {
   Boxes,
   CalendarDays,
   Check,
+  ChevronRight,
   ClipboardCheck,
+  Clock3,
+  Command,
+  Eye,
+  MoreHorizontal,
   FileText,
   Gauge,
   GripVertical,
@@ -33,8 +38,49 @@ import {
   loadQuickAccessConfigFromCloud,
   saveQuickAccessConfigToCloud,
   subscribeQuickAccessConfig,
+  loadQuickAccessRecent,
+  pushQuickAccessRecent,
 } from '../utils/quickAccessPreferences.js';
 import './GlobalQuickAccessRail.css';
+
+const QUICK_ACCESS_BADGE_EVENT = 'bes-quick-access-badges';
+const QUICK_ACCESS_PEEK_DELAY = 320;
+
+function normalizeBadgeValue(value) {
+  if (value === null || value === undefined || value === false || value === 0 || value === '0') return '';
+  if (typeof value === 'number') return value > 99 ? '99+' : String(Math.max(0, Math.round(value)));
+  const text = String(value).trim();
+  return text.length > 3 ? text.slice(0, 3) : text;
+}
+
+function itemDescription(item, language) {
+  const vi = {
+    'route:dashboard': 'Tổng quan công việc và lịch trong ngày.',
+    'route:apps': 'Mở kho ứng dụng dành cho giáo viên.',
+    'route:homeroom': 'Hồ sơ lớp, học sinh và công tác chủ nhiệm.',
+    'tool:gradebook-studio': 'Quản lý điểm và dữ liệu học tập.',
+    'action:reports': 'Theo dõi và tổng hợp báo cáo chuyên môn.',
+    'action:ttcm': 'Không gian làm việc của tổ chuyên môn.',
+    'action:attendance': 'Mở công cụ điểm danh nhanh.',
+    'action:schedule': 'Lịch và kế hoạch làm việc của tổ.',
+    'route:assessment-core': 'Ngân hàng câu hỏi và cấu trúc đề.',
+    'route:resource-library': 'Kho tài liệu và học liệu dùng chung.',
+  };
+  const en = {
+    'route:dashboard': 'Daily work and schedule overview.',
+    'route:apps': 'Open the teacher app directory.',
+    'route:homeroom': 'Class records, students and homeroom tools.',
+    'tool:gradebook-studio': 'Manage grades and learning records.',
+    'action:reports': 'Professional reports and summaries.',
+    'action:ttcm': 'Department workspace.',
+    'action:attendance': 'Open fast attendance.',
+    'action:schedule': 'Department work schedule.',
+    'route:assessment-core': 'Question bank and exam structures.',
+    'route:resource-library': 'Shared resources and documents.',
+  };
+  return (language === 'vi' ? vi : en)[item?.id]
+    || (language === 'vi' ? 'Mở nhanh ứng dụng hoặc tính năng này.' : 'Quickly open this app or feature.');
+}
 
 const STATIC_ITEMS = [
   {
@@ -296,7 +342,14 @@ export default function GlobalQuickAccessRail({
   const [customizerQuery, setCustomizerQuery] = useState('');
   const [dragId, setDragId] = useState('');
   const [collapsing, setCollapsing] = useState(false);
+  const [commandQuery, setCommandQuery] = useState('');
+  const [recentIds, setRecentIds] = useState([]);
+  const [badges, setBadges] = useState({});
+  const [peekItemId, setPeekItemId] = useState('');
+  const [actionMenuItemId, setActionMenuItemId] = useState('');
+  const [commandFocusRequest, setCommandFocusRequest] = useState(0);
   const closeTimerRef = useRef(0);
+  const peekTimerRef = useRef(0);
   const collapseMotionTimerRef = useRef(0);
   const layoutFrameRef = useRef(0);
   const layoutSettleTimerRef = useRef(0);
@@ -304,6 +357,7 @@ export default function GlobalQuickAccessRail({
   const rootRef = useRef(null);
   const railRef = useRef(null);
   const panelRef = useRef(null);
+  const commandInputRef = useRef(null);
 
   const catalog = useMemo(() => {
     const byId = new Map();
@@ -325,8 +379,29 @@ export default function GlobalQuickAccessRail({
   const allowedIds = useMemo(() => catalog.map((item) => item.id), [catalog]);
   const allowedKey = allowedIds.join('|');
   const [config, setConfig] = useState(() => loadQuickAccessConfig(currentUser, allowedIds));
+  const mode = ['auto', 'pin', 'focus'].includes(config.mode)
+    ? config.mode
+    : (config.pinned ? 'pin' : 'auto');
+  const isPinned = mode === 'pin';
+  const selectedItems = useMemo(() => config.items
+    .map((id) => catalog.find((item) => item.id === id))
+    .filter(Boolean)
+    .slice(0, QUICK_ACCESS_MAX_ITEMS), [config.items, catalog]);
+  const recentItems = useMemo(() => recentIds
+    .map((id) => catalog.find((item) => item.id === id))
+    .filter(Boolean)
+    .slice(0, 3), [recentIds, catalog]);
+  const commandNeedle = commandQuery.trim().toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
+  const commandResults = useMemo(() => {
+    if (!commandNeedle) return [];
+    return catalog
+      .filter((item) => `${item.label || ''} ${item.labelVi || ''} ${item.id || ''}`
+        .toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US')
+        .includes(commandNeedle))
+      .slice(0, 8);
+  }, [catalog, commandNeedle, language]);
 
-  const expanded = hovered || config.pinned || customizing;
+  const expanded = hovered || isPinned || customizing;
 
   const openRail = useCallback(() => {
     window.clearTimeout(closeTimerRef.current);
@@ -336,11 +411,11 @@ export default function GlobalQuickAccessRail({
   }, []);
 
   const collapseRail = useCallback((force = false) => {
-    if (!force && (config.pinned || customizing)) return;
+    if (!force && (isPinned || customizing)) return;
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
 
-    if (hovered || config.pinned || customizing) {
+    if (hovered || isPinned || customizing) {
       setCollapsing(true);
       setHovered(false);
       collapseMotionTimerRef.current = window.setTimeout(() => {
@@ -350,7 +425,7 @@ export default function GlobalQuickAccessRail({
     }
 
     setHovered(false);
-  }, [config.pinned, customizing, hovered]);
+  }, [isPinned, customizing, hovered]);
 
   useEffect(() => {
     if (!currentUser || !allowedIds.length) return undefined;
@@ -376,6 +451,39 @@ export default function GlobalQuickAccessRail({
   useEffect(() => () => {
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
+    window.clearTimeout(peekTimerRef.current);
+  }, []);
+
+  useEffect(() => {
+    setRecentIds(loadQuickAccessRecent(currentUser, allowedIds));
+  }, [currentUser?.id, currentUser?.authId, currentUser?.email, allowedKey]);
+
+  useEffect(() => {
+    const currentItem = catalog.find((item) => activeItem(item, currentRoute, selectedTool));
+    if (!currentItem) return;
+    setRecentIds(pushQuickAccessRecent(currentUser, currentItem.id, allowedIds));
+  }, [currentRoute, selectedTool?.slug, currentUser?.id, allowedKey]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const initial = window.__BRIAN_QUICK_ACCESS_BADGES__;
+    if (initial && typeof initial === 'object') setBadges(initial);
+
+    const onBadges = (event) => {
+      const detail = event?.detail;
+      if (!detail) return;
+      if (detail.id) {
+        setBadges((current) => ({ ...current, [String(detail.id)]: detail.value }));
+        return;
+      }
+      const patch = detail.badges && typeof detail.badges === 'object' ? detail.badges : detail;
+      if (patch && typeof patch === 'object') {
+        setBadges((current) => ({ ...current, ...patch }));
+      }
+    };
+
+    window.addEventListener(QUICK_ACCESS_BADGE_EVENT, onBadges);
+    return () => window.removeEventListener(QUICK_ACCESS_BADGE_EVENT, onBadges);
   }, []);
 
   useEffect(() => {
@@ -391,14 +499,19 @@ export default function GlobalQuickAccessRail({
   }, [customizing]);
 
   useEffect(() => {
-    if (!hovered || config.pinned || customizing || typeof document === 'undefined') return undefined;
+    if (!hovered || isPinned || customizing || typeof document === 'undefined') return undefined;
 
     const onOutsidePointerDown = (event) => {
       if (event.target?.closest?.('.bqa-root')) return;
       collapseRail(false);
     };
     const onEscape = (event) => {
-      if (event.key === 'Escape') collapseRail(false);
+      if (event.key === 'Escape') {
+        setActionMenuItemId('');
+        setPeekItemId('');
+        setCommandQuery('');
+        collapseRail(false);
+      }
     };
 
     document.addEventListener('pointerdown', onOutsidePointerDown, true);
@@ -407,32 +520,73 @@ export default function GlobalQuickAccessRail({
       document.removeEventListener('pointerdown', onOutsidePointerDown, true);
       window.removeEventListener('keydown', onEscape);
     };
-  }, [hovered, config.pinned, customizing, collapseRail]);
+  }, [hovered, isPinned, customizing, collapseRail]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
 
     const onNavigationStart = () => {
-      if (!config.pinned && !customizing) collapseRail(false);
+      if (!isPinned && !customizing) collapseRail(false);
     };
     const onShortcut = (event) => {
       const tag = String(event.target?.tagName || '').toLowerCase();
       const editable = event.target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag);
-      if (editable || event.repeat) return;
-      if (event.altKey && !event.ctrlKey && !event.metaKey && String(event.key || '').toLowerCase() === 'q') {
+      if (event.repeat) return;
+
+      const key = String(event.key || '').toLowerCase();
+      if ((event.metaKey || event.ctrlKey) && !event.altKey && key === 'k') {
         event.preventDefault();
-        if (expanded && !config.pinned && !customizing) collapseRail(false);
+        event.stopPropagation();
+        event.stopImmediatePropagation?.();
+        openRail();
+        setCommandQuery('');
+        setCommandFocusRequest((value) => value + 1);
+        return;
+      }
+
+      if (!editable && event.altKey && !event.ctrlKey && !event.metaKey && key === 'q') {
+        event.preventDefault();
+        if (expanded && !isPinned && !customizing) collapseRail(false);
         else openRail();
+        return;
+      }
+
+      if (!editable && event.altKey && !event.ctrlKey && !event.metaKey && /^[1-9]$/.test(key)) {
+        const item = selectedItems[Number(key) - 1];
+        if (!item) return;
+        event.preventDefault();
+        setRecentIds(pushQuickAccessRecent(currentUser, item.id, allowedIds));
+        runAction(item, document.querySelector(`[data-bqa-item-id="${item.id}"]`));
       }
     };
 
     window.addEventListener('bes-navigation-start', onNavigationStart);
-    window.addEventListener('keydown', onShortcut);
+    window.addEventListener('keydown', onShortcut, true);
     return () => {
       window.removeEventListener('bes-navigation-start', onNavigationStart);
-      window.removeEventListener('keydown', onShortcut);
+      window.removeEventListener('keydown', onShortcut, true);
     };
-  }, [config.pinned, customizing, expanded, collapseRail, openRail]);
+  }, [isPinned, customizing, expanded, collapseRail, openRail, selectedItems, currentUser?.id, allowedKey]);
+
+  useLayoutEffect(() => {
+    if (!commandFocusRequest || !expanded || typeof window === 'undefined') return undefined;
+
+    const focusSearch = () => {
+      const input = commandInputRef.current;
+      if (!input) return;
+      input.focus({ preventScroll: true });
+      try { input.setSelectionRange(input.value.length, input.value.length); } catch { /* search input selection is best effort */ }
+    };
+
+    focusSearch();
+    const retryA = window.setTimeout(focusSearch, 60);
+    const retryB = window.setTimeout(focusSearch, 180);
+
+    return () => {
+      window.clearTimeout(retryA);
+      window.clearTimeout(retryB);
+    };
+  }, [commandFocusRequest, expanded]);
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
@@ -444,7 +598,7 @@ export default function GlobalQuickAccessRail({
     const footer = shell?.querySelector?.(':scope > footer[data-app-shell-footer="true"]');
     if (!root || !shell || !main || !safeFrame) return undefined;
 
-    shell.dataset.quickAccessState = config.pinned ? 'pinned' : 'rest';
+    shell.dataset.quickAccessState = isPinned ? 'pinned' : (mode === 'focus' ? 'focus' : 'rest');
 
     const clearSafeArea = () => {
       shell.style.removeProperty('--bqa-content-safe-shift');
@@ -455,7 +609,7 @@ export default function GlobalQuickAccessRail({
       window.cancelAnimationFrame(layoutFrameRef.current);
       layoutFrameRef.current = window.requestAnimationFrame(() => {
         const coarsePointer = window.matchMedia?.('(pointer: coarse)')?.matches === true;
-        const reserveMode = window.innerWidth >= QUICK_ACCESS_SAFE_AREA_MIN_WIDTH && !coarsePointer;
+        const reserveMode = mode !== 'focus' && window.innerWidth >= QUICK_ACCESS_SAFE_AREA_MIN_WIDTH && !coarsePointer;
         shell.dataset.quickAccessSafeMode = reserveMode ? 'reserve' : 'overlay';
 
         if (!reserveMode) {
@@ -485,12 +639,12 @@ export default function GlobalQuickAccessRail({
           ? railRect.right
           : rootRect.left + railWidth;
 
-        const pinnedBoundary = config.pinned
+        const pinnedBoundary = isPinned
           ? rootRect.left + railWidth + 8 + panelWidth
           : collapsedBoundary;
 
-        const safeBoundary = (config.pinned ? pinnedBoundary : collapsedBoundary) + QUICK_ACCESS_SAFE_GAP;
-        const maxShift = config.pinned ? QUICK_ACCESS_SAFE_MAX_PINNED : QUICK_ACCESS_SAFE_MAX_COLLAPSED;
+        const safeBoundary = (isPinned ? pinnedBoundary : collapsedBoundary) + QUICK_ACCESS_SAFE_GAP;
+        const maxShift = isPinned ? QUICK_ACCESS_SAFE_MAX_PINNED : QUICK_ACCESS_SAFE_MAX_COLLAPSED;
         const delta = safeBoundary - actualMinLeft;
         const nextShift = Math.max(0, Math.min(maxShift, Math.ceil(currentShift + delta)));
 
@@ -507,7 +661,7 @@ export default function GlobalQuickAccessRail({
           const verifiedMinLeft = measureQuickAccessContentBaseline(safeFrame);
           const stillOccluded = Number.isFinite(verifiedMinLeft) && verifiedMinLeft < safeBoundary - 0.5;
 
-          if (stillOccluded && !config.pinned) {
+          if (stillOccluded && !isPinned) {
             shell.dataset.quickAccessSafeMode = 'overlay';
             clearSafeArea();
           } else {
@@ -515,7 +669,7 @@ export default function GlobalQuickAccessRail({
           }
         }, 330);
 
-        shell.dataset.quickAccessState = config.pinned ? 'pinned' : 'rest';
+        shell.dataset.quickAccessState = isPinned ? 'pinned' : (mode === 'focus' ? 'focus' : 'rest');
 
         if (footer) footer.dataset.quickAccessOcclusionGuard = 'true';
         if (panel) panel.dataset.safeBoundary = String(Math.round(safeBoundary));
@@ -561,17 +715,13 @@ export default function GlobalQuickAccessRail({
   }, [
     currentRoute,
     selectedTool?.slug,
-    config.pinned,
+    isPinned,
+    mode,
     allowedKey,
     appVisibility?.ready,
   ]);
 
   if (!currentUser || currentRoute === 'home' || !catalog.length) return null;
-
-  const selectedItems = config.items
-    .map((id) => catalog.find((item) => item.id === id))
-    .filter(Boolean)
-    .slice(0, QUICK_ACCESS_MAX_ITEMS);
 
   const availableItems = catalog.filter((item) => !config.items.includes(item.id));
   const customizerNeedle = customizerQuery.trim().toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
@@ -594,16 +744,88 @@ export default function GlobalQuickAccessRail({
 
   const leave = () => {
     window.clearTimeout(closeTimerRef.current);
-    if (config.pinned || customizing) return;
+    if (isPinned || customizing) return;
     closeTimerRef.current = window.setTimeout(() => collapseRail(false), 340);
   };
 
-  const activateItem = (item, sourceEl) => {
-    runAction(item, sourceEl);
-    if (!config.pinned) collapseRail(false);
+  const recordRecent = (item) => {
+    if (!item?.id) return;
+    setRecentIds(pushQuickAccessRecent(currentUser, item.id, allowedIds));
   };
 
-  const togglePinned = () => persist({ ...config, pinned: !config.pinned });
+  const activateItem = (item, sourceEl) => {
+    recordRecent(item);
+    setActionMenuItemId('');
+    setPeekItemId('');
+    runAction(item, sourceEl);
+    if (!isPinned) collapseRail(false);
+  };
+
+  const setMode = (nextMode) => {
+    const modeValue = ['auto', 'pin', 'focus'].includes(nextMode) ? nextMode : 'auto';
+    persist({ ...config, mode: modeValue, pinned: modeValue === 'pin' });
+    if (modeValue === 'pin') openRail();
+    if (modeValue === 'focus') collapseRail(true);
+  };
+
+  const togglePinned = () => setMode(isPinned ? 'auto' : 'pin');
+
+  const schedulePeek = (itemId) => {
+    window.clearTimeout(peekTimerRef.current);
+    peekTimerRef.current = window.setTimeout(() => {
+      setPeekItemId(itemId);
+    }, QUICK_ACCESS_PEEK_DELAY);
+  };
+
+  const cancelPeek = () => {
+    window.clearTimeout(peekTimerRef.current);
+    setPeekItemId('');
+  };
+
+  const promoteItem = (id) => {
+    if (!id || config.items[0] === id) return;
+    const next = [id, ...config.items.filter((itemId) => itemId !== id)];
+    persist({ ...config, items: next.slice(0, QUICK_ACCESS_MAX_ITEMS) });
+  };
+
+  const runQuickAction = (item, action, sourceEl) => {
+    if (!item || !action) return;
+    if (action === 'open') {
+      activateItem(item, sourceEl);
+      return;
+    }
+    if (action === 'schedule') {
+      recordRecent(item);
+      openTtcm('schedule');
+    } else if (action === 'attendance') {
+      recordRecent(item);
+      runAction({ action: 'attendance' }, sourceEl);
+    } else if (action === 'promote') {
+      promoteItem(item.id);
+    } else if (action === 'remove') {
+      removeItem(item.id);
+    }
+    setActionMenuItemId('');
+  };
+
+  const quickActionsFor = (item) => {
+    const actions = [
+      { id: 'open', label: language === 'vi' ? 'Mở ứng dụng' : 'Open app' },
+    ];
+    if (item?.id === 'action:ttcm' || item?.id === 'route:dashboard') {
+      actions.push({ id: 'schedule', label: language === 'vi' ? 'Mở kế hoạch' : 'Open schedule' });
+    }
+    if (item?.id === 'route:homeroom') {
+      actions.push({ id: 'attendance', label: language === 'vi' ? 'Điểm danh nhanh' : 'Quick attendance' });
+    }
+    if (config.items.includes(item?.id) && config.items[0] !== item?.id) {
+      actions.push({ id: 'promote', label: language === 'vi' ? 'Đưa lên đầu' : 'Move to top' });
+    }
+    if (config.items.includes(item?.id)) {
+      actions.push({ id: 'remove', label: language === 'vi' ? 'Bỏ khỏi thanh' : 'Remove from rail' });
+    }
+    return actions;
+  };
 
   const removeItem = (id) => {
     const next = config.items.filter((itemId) => itemId !== id);
@@ -626,12 +848,19 @@ export default function GlobalQuickAccessRail({
     setDragId('');
   };
 
+  const peekItem = catalog.find((item) => item.id === peekItemId) || null;
+  const actionMenuItem = catalog.find((item) => item.id === actionMenuItemId) || null;
+  const commandHint = typeof navigator !== 'undefined' && String(navigator.platform || '').toLowerCase().includes('mac')
+    ? '⌘K'
+    : 'Ctrl K';
+
   const quickAccessUi = (
     <>
       <div
         ref={rootRef}
-        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${config.pinned ? 'is-pinned' : ''} ${customizing ? 'is-customizing' : ''}`}
+        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${isPinned ? 'is-pinned' : ''} ${mode === 'focus' ? 'is-focus-mode' : ''} ${customizing ? 'is-customizing' : ''}`}
         data-quick-access="true"
+        data-mode={mode}
         data-motion={collapsing ? 'collapsing' : (expanded ? 'open' : 'rest')}
         data-route={currentRoute}
         onPointerEnter={enter}
@@ -663,7 +892,7 @@ export default function GlobalQuickAccessRail({
             aria-label={expanded ? (language === 'vi' ? 'Thu gọn thanh truy cập nhanh' : 'Collapse quick access') : (language === 'vi' ? 'Mở thanh truy cập nhanh' : 'Open quick access')}
             aria-expanded={expanded}
             onClick={() => {
-              if (expanded && !config.pinned && !customizing) collapseRail(false);
+              if (expanded && !isPinned && !customizing) collapseRail(false);
               else openRail();
             }}
           >
@@ -671,21 +900,28 @@ export default function GlobalQuickAccessRail({
           </button>
 
           <div className="bqa-rail-items">
-            {selectedItems.map((item) => {
+            {selectedItems.map((item, index) => {
               const Icon = item.icon || Boxes;
               const active = activeItem(item, currentRoute, selectedTool);
+              const badge = normalizeBadgeValue(badges[item.id]);
               return (
                 <button
                   type="button"
                   key={item.id}
+                  data-bqa-item-id={item.id}
                   className={`bqa-rail-button ${active ? 'is-active' : ''}`}
                   style={{ '--bqa-accent': item.accent }}
-                  title={labelFor(item, language)}
+                  title={`${labelFor(item, language)} · Alt+${index + 1}`}
                   aria-label={labelFor(item, language)}
                   aria-current={active ? 'page' : undefined}
+                  onPointerEnter={() => schedulePeek(item.id)}
+                  onPointerLeave={cancelPeek}
+                  onFocus={() => schedulePeek(item.id)}
+                  onBlur={cancelPeek}
                   onClick={(event) => activateItem(item, event.currentTarget)}
                 >
                   <Icon size={20} strokeWidth={2} aria-hidden="true" />
+                  {badge ? <span className="bqa-badge" aria-label={language === 'vi' ? `${badge} thông báo` : `${badge} notifications`}>{badge}</span> : null}
                 </button>
               );
             })}
@@ -694,8 +930,8 @@ export default function GlobalQuickAccessRail({
           <button
             type="button"
             className="bqa-rail-settings"
-            title={language === 'vi' ? 'Tùy chỉnh lối tắt' : 'Customize shortcuts'}
-            aria-label={language === 'vi' ? 'Tùy chỉnh lối tắt' : 'Customize shortcuts'}
+            title={language === 'vi' ? 'Trung tâm điều khiển' : 'Control center'}
+            aria-label={language === 'vi' ? 'Trung tâm điều khiển' : 'Control center'}
             onClick={() => {
               setHovered(true);
               setCustomizerQuery('');
@@ -706,75 +942,174 @@ export default function GlobalQuickAccessRail({
           </button>
         </aside>
 
+        {peekItem && expanded && !customizing ? (
+          <aside className="bqa-peek-card" aria-live="polite" onPointerEnter={() => window.clearTimeout(peekTimerRef.current)}>
+            <span className="bqa-peek-kicker">{language === 'vi' ? 'XEM NHANH' : 'QUICK PEEK'}</span>
+            <strong>{labelFor(peekItem, language)}</strong>
+            <p>{itemDescription(peekItem, language)}</p>
+            <div>
+              <button type="button" onClick={(event) => activateItem(peekItem, event.currentTarget)}>
+                {language === 'vi' ? 'Mở' : 'Open'} <ChevronRight size={15} aria-hidden="true" />
+              </button>
+              <button type="button" aria-label={language === 'vi' ? 'Thao tác nhanh' : 'Quick actions'} onClick={() => { setActionMenuItemId(peekItem.id); setPeekItemId(''); }}>
+                <MoreHorizontal size={17} aria-hidden="true" />
+              </button>
+            </div>
+          </aside>
+        ) : null}
+
         <section
           ref={panelRef}
           className="bqa-panel"
           onPointerEnter={openRail}
           onMouseEnter={openRail}
           aria-hidden={!expanded}
-          inert={expanded ? undefined : true}
           onAnimationEnd={(event) => {
             if (event.target === event.currentTarget && collapsing) setCollapsing(false);
           }}
         >
           <header className="bqa-panel-header">
             <div>
-              <strong>{language === 'vi' ? 'Thanh truy cập nhanh' : 'Quick access'}</strong>
-              <span>{language === 'vi' ? `Tối đa ${QUICK_ACCESS_MAX_ITEMS} ứng dụng · Rê chuột để mở` : `Up to ${QUICK_ACCESS_MAX_ITEMS} apps · Hover to open`}</span>
+              <strong>{language === 'vi' ? 'Brian Quick Access' : 'Brian Quick Access'}</strong>
+              <span>{language === 'vi' ? 'Tìm, mở và thao tác nhanh mà không rời trang' : 'Search, launch and act without leaving the page'}</span>
             </div>
             <button
               type="button"
-              className={`bqa-pin ${config.pinned ? 'is-active' : ''}`}
-              aria-pressed={config.pinned}
-              title={config.pinned ? (language === 'vi' ? 'Bỏ ghim' : 'Unpin') : (language === 'vi' ? 'Ghim thanh' : 'Pin rail')}
+              className={`bqa-pin ${isPinned ? 'is-active' : ''}`}
+              aria-pressed={isPinned}
+              title={isPinned ? (language === 'vi' ? 'Chuyển về tự động' : 'Use auto mode') : (language === 'vi' ? 'Ghim thanh' : 'Pin rail')}
               onClick={togglePinned}
             >
-              {config.pinned ? <PinOff size={18} aria-hidden="true" /> : <Pin size={18} aria-hidden="true" />}
+              {isPinned ? <PinOff size={18} aria-hidden="true" /> : <Pin size={18} aria-hidden="true" />}
             </button>
           </header>
 
-          <div className="bqa-panel-list" role="list">
-            {selectedItems.map((item) => {
-              const Icon = item.icon || Boxes;
-              const active = activeItem(item, currentRoute, selectedTool);
-              return (
-                <button
-                  type="button"
-                  role="listitem"
-                  key={item.id}
-                  draggable
-                  className={`bqa-panel-item ${active ? 'is-active' : ''}`}
-                  style={{ '--bqa-accent': item.accent }}
-                  onDragStart={(event) => {
-                    setDragId(item.id);
-                    event.dataTransfer.effectAllowed = 'move';
-                    event.dataTransfer.setData('text/plain', item.id);
-                  }}
-                  onDragEnd={() => setDragId('')}
-                  onDragOver={(event) => {
-                    if (!dragId) return;
-                    event.preventDefault();
-                    event.dataTransfer.dropEffect = 'move';
-                  }}
-                  onDrop={(event) => {
-                    event.preventDefault();
-                    moveDraggedBefore(item.id);
-                  }}
-                  onClick={(event) => activateItem(item, event.currentTarget)}
-                >
-                  <span className="bqa-item-icon"><Icon size={20} strokeWidth={2} aria-hidden="true" /></span>
-                  <span className="bqa-item-label">{labelFor(item, language)}</span>
-                  {active ? <Check className="bqa-item-check" size={17} aria-hidden="true" /> : null}
-                  <GripVertical className="bqa-item-grip" size={17} aria-hidden="true" />
+          <label className="bqa-command-search">
+            <Command size={17} aria-hidden="true" />
+            <input
+              key={`bqa-command-${commandFocusRequest}`}
+              ref={commandInputRef}
+              type="search"
+              value={commandQuery}
+              onChange={(event) => setCommandQuery(event.target.value)}
+              placeholder={language === 'vi' ? 'Tìm ứng dụng hoặc lệnh…' : 'Search apps or commands…'}
+              aria-label={language === 'vi' ? 'Tìm nhanh ứng dụng' : 'Quick app search'}
+              tabIndex={expanded ? 0 : -1}
+              autoFocus={commandFocusRequest > 0}
+            />
+            {commandQuery ? (
+              <button type="button" onClick={() => { setCommandQuery(''); commandInputRef.current?.focus(); }} aria-label={language === 'vi' ? 'Xóa tìm kiếm' : 'Clear search'}>
+                <X size={14} aria-hidden="true" />
+              </button>
+            ) : <kbd>{commandHint}</kbd>}
+          </label>
+
+          {!commandNeedle && recentItems.length ? (
+            <section className="bqa-recent" aria-label={language === 'vi' ? 'Ứng dụng gần đây' : 'Recent apps'}>
+              <div className="bqa-section-title"><Clock3 size={14} aria-hidden="true" /><span>{language === 'vi' ? 'Gần đây' : 'Recent'}</span></div>
+              <div className="bqa-recent-chips">
+                {recentItems.map((item) => {
+                  const Icon = item.icon || Boxes;
+                  return (
+                    <button type="button" key={item.id} style={{ '--bqa-accent': item.accent }} onClick={(event) => activateItem(item, event.currentTarget)}>
+                      <Icon size={15} aria-hidden="true" />
+                      <span>{labelFor(item, language)}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
+
+          {commandNeedle ? (
+            <div className="bqa-command-results" role="listbox" aria-label={language === 'vi' ? 'Kết quả tìm nhanh' : 'Quick search results'}>
+              <div className="bqa-section-title"><Search size={14} aria-hidden="true" /><span>{language === 'vi' ? 'Kết quả' : 'Results'}</span></div>
+              {commandResults.map((item) => {
+                const Icon = item.icon || Boxes;
+                const badge = normalizeBadgeValue(badges[item.id]);
+                return (
+                  <button type="button" role="option" key={item.id} style={{ '--bqa-accent': item.accent }} onClick={(event) => activateItem(item, event.currentTarget)}>
+                    <span className="bqa-item-icon"><Icon size={18} aria-hidden="true" /></span>
+                    <span><strong>{labelFor(item, language)}</strong><small>{itemDescription(item, language)}</small></span>
+                    {badge ? <b className="bqa-inline-badge">{badge}</b> : <ChevronRight size={16} aria-hidden="true" />}
+                  </button>
+                );
+              })}
+              {!commandResults.length ? <p className="bqa-command-empty">{language === 'vi' ? 'Không tìm thấy ứng dụng phù hợp.' : 'No matching app found.'}</p> : null}
+            </div>
+          ) : (
+            <div className="bqa-panel-list" role="list">
+              {selectedItems.map((item) => {
+                const Icon = item.icon || Boxes;
+                const active = activeItem(item, currentRoute, selectedTool);
+                const badge = normalizeBadgeValue(badges[item.id]);
+                return (
+                  <div
+                    role="listitem"
+                    key={item.id}
+                    draggable
+                    className={`bqa-panel-row ${active ? 'is-active' : ''}`}
+                    style={{ '--bqa-accent': item.accent }}
+                    onDragStart={(event) => {
+                      setDragId(item.id);
+                      event.dataTransfer.effectAllowed = 'move';
+                      event.dataTransfer.setData('text/plain', item.id);
+                    }}
+                    onDragEnd={() => setDragId('')}
+                    onDragOver={(event) => {
+                      if (!dragId) return;
+                      event.preventDefault();
+                      event.dataTransfer.dropEffect = 'move';
+                    }}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      moveDraggedBefore(item.id);
+                    }}
+                  >
+                    <button type="button" className="bqa-panel-item" onClick={(event) => activateItem(item, event.currentTarget)}>
+                      <span className="bqa-item-icon"><Icon size={20} strokeWidth={2} aria-hidden="true" /></span>
+                      <span className="bqa-item-label">{labelFor(item, language)}</span>
+                      {badge ? <span className="bqa-inline-badge">{badge}</span> : (active ? <Check className="bqa-item-check" size={17} aria-hidden="true" /> : null)}
+                      <GripVertical className="bqa-item-grip" size={17} aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      className="bqa-more"
+                      aria-label={language === 'vi' ? `Thao tác nhanh cho ${labelFor(item, language)}` : `Quick actions for ${labelFor(item, language)}`}
+                      aria-expanded={actionMenuItemId === item.id}
+                      onClick={() => setActionMenuItemId((current) => current === item.id ? '' : item.id)}
+                    >
+                      <MoreHorizontal size={17} aria-hidden="true" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {actionMenuItem ? (
+            <div className="bqa-action-popover" role="menu">
+              <header>
+                <strong>{labelFor(actionMenuItem, language)}</strong>
+                <button type="button" onClick={() => setActionMenuItemId('')} aria-label={language === 'vi' ? 'Đóng' : 'Close'}><X size={15} aria-hidden="true" /></button>
+              </header>
+              {quickActionsFor(actionMenuItem).map((action) => (
+                <button type="button" role="menuitem" key={action.id} onClick={(event) => runQuickAction(actionMenuItem, action.id, event.currentTarget)}>
+                  <span>{action.label}</span><ChevronRight size={15} aria-hidden="true" />
                 </button>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          ) : null}
 
           <footer className="bqa-panel-footer">
-            <button type="button" onClick={() => { setCustomizerQuery(''); setCustomizing(true); }}>
+            <div className="bqa-mode-switch" aria-label={language === 'vi' ? 'Chế độ thanh bên' : 'Sidebar mode'}>
+              <button type="button" className={mode === 'auto' ? 'is-active' : ''} onClick={() => setMode('auto')}><Eye size={15} aria-hidden="true" /><span>{language === 'vi' ? 'Tự động' : 'Auto'}</span></button>
+              <button type="button" className={mode === 'pin' ? 'is-active' : ''} onClick={() => setMode('pin')}><Pin size={15} aria-hidden="true" /><span>{language === 'vi' ? 'Ghim' : 'Pin'}</span></button>
+              <button type="button" className={mode === 'focus' ? 'is-active' : ''} onClick={() => setMode('focus')}><Command size={15} aria-hidden="true" /><span>{language === 'vi' ? 'Tập trung' : 'Focus'}</span></button>
+            </div>
+            <button type="button" className="bqa-customize-entry" onClick={() => { setCustomizerQuery(''); setCustomizing(true); }}>
               <Settings size={18} aria-hidden="true" />
-              <span><strong>{language === 'vi' ? 'Tùy chỉnh lối tắt' : 'Customize shortcuts'}</strong><small>{language === 'vi' ? 'Sắp xếp, ẩn/hiện ứng dụng' : 'Reorder and choose apps'}</small></span>
+              <span><strong>{language === 'vi' ? 'Tùy chỉnh launcher' : 'Customize launcher'}</strong><small>{language === 'vi' ? 'Sắp xếp, ẩn/hiện ứng dụng' : 'Reorder and choose apps'}</small></span>
             </button>
             <div className="bqa-account-note">
               <span className="bqa-sync-note"><Check size={15} aria-hidden="true" />{language === 'vi' ? 'Lưu theo tài khoản' : 'Saved to your account'}</span>
