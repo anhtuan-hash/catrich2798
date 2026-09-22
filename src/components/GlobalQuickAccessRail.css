@@ -466,7 +466,7 @@
 
 .bqa-customizer-backdrop {
   position: fixed;
-  z-index: 240;
+  z-index: 2147482600;
   inset: 0;
   display: grid;
   place-items: center;
@@ -773,13 +773,13 @@ button.bqa-customizer-row:disabled {
 
 /* Dashboard keeps its top chrome in normal flow, so the rail needs an explicit
    stacking/offset authority rather than being removed from the composition. */
-.app-shell[data-route="dashboard"] .bqa-root {
+.bqa-root[data-route="dashboard"] {
   z-index: 132;
   top: clamp(146px, 16vh, 172px);
   height: min(630px, calc(100vh - 188px));
 }
 
-.app-shell[data-route="dashboard"] .bqa-edge-trigger {
+.bqa-root[data-route="dashboard"] .bqa-edge-trigger {
   z-index: 131;
   top: 126px;
   height: calc(100vh - 148px);
@@ -792,7 +792,7 @@ button.bqa-customizer-row:disabled {
     min-height: 360px;
   }
 
-  .app-shell[data-route="dashboard"] .bqa-root {
+  .bqa-root[data-route="dashboard"] {
     top: 126px;
     height: calc(100vh - 146px);
     min-height: 340px;
@@ -820,12 +820,12 @@ button.bqa-customizer-row:disabled {
     min-height: 330px;
   }
 
-  .app-shell[data-route="dashboard"] .bqa-root {
+  .bqa-root[data-route="dashboard"] {
     top: 92px;
     height: min(590px, calc(100vh - 112px));
   }
 
-  .app-shell[data-route="dashboard"] .bqa-edge-trigger {
+  .bqa-root[data-route="dashboard"] .bqa-edge-trigger {
     top: 82px;
     height: calc(100vh - 96px);
   }
@@ -920,7 +920,7 @@ button.bqa-customizer-row:disabled {
 
 
 /* Dashboard V9 mockup-safe edge-peek */
-.app-shell[data-route="dashboard"] .bqa-root {
+.bqa-root[data-route="dashboard"] {
   left: 0;
 }
 
@@ -932,24 +932,24 @@ button.bqa-customizer-row:disabled {
     border-color 180ms ease !important;
 }
 
-.app-shell[data-route="dashboard"] .bqa-root.is-collapsed:not(.is-pinned) .bqa-rail {
+.bqa-root[data-route="dashboard"].is-collapsed:not(.is-pinned) .bqa-rail {
   transform: translate3d(-44px, 0, 0);
   opacity: .56;
   border-color: rgba(138, 181, 222, .24);
   box-shadow: 0 8px 18px rgba(39, 86, 130, .05);
 }
 
-.app-shell[data-route="dashboard"] .bqa-root.is-open .bqa-rail,
-.app-shell[data-route="dashboard"] .bqa-root.is-pinned .bqa-rail {
+.bqa-root[data-route="dashboard"].is-open .bqa-rail,
+.bqa-root[data-route="dashboard"].is-pinned .bqa-rail {
   transform: translate3d(8px, 0, 0);
   opacity: 1;
 }
 
-.app-shell[data-route="dashboard"] .bqa-root.is-collapsed:not(.is-pinned) .bqa-panel {
+.bqa-root[data-route="dashboard"].is-collapsed:not(.is-pinned) .bqa-panel {
   visibility: hidden;
 }
 
-.app-shell[data-route="dashboard"] .bqa-edge-trigger {
+.bqa-root[data-route="dashboard"] .bqa-edge-trigger {
   width: 16px;
 }
 
@@ -1136,7 +1136,7 @@ button.bqa-customizer-row:disabled {
 
 /* Dashboard V9's edge-peek remains in force at rest, but it must not hide the
    panel while the Pencil collapse animation is still visibly converging. */
-.app-shell[data-route="dashboard"] .bqa-root.is-collapsing .bqa-panel {
+.bqa-root[data-route="dashboard"].is-collapsing .bqa-panel {
   visibility: visible !important;
 }
 
@@ -1192,4 +1192,184 @@ button.bqa-customizer-row:disabled {
   .bqa-root.is-open .bqa-panel-item {
     opacity: 1 !important;
   }
+}
+
+
+
+/* Brian Global Quick Access Safe Area V1 · 2026-09-22
+   One shell-level contract for every authenticated route.
+   Desktop reserves only the measured amount that would otherwise be covered.
+   Hover expansion remains overlay-only; pinned expansion reflows the page.
+   Tablet/mobile use an edge-peek instead of sacrificing content width. */
+
+.app-shell[data-quick-access-layout="true"] {
+  --bqa-content-safe-shift: 0px;
+}
+
+.app-shell[data-quick-access-layout="true"][data-quick-access-safe-mode="reserve"] > #bes-main-content > .bqa-content-safe-frame {
+  position: relative;
+  box-sizing: border-box;
+  width: calc(100% - var(--bqa-content-safe-shift, 0px));
+  min-width: 0;
+  translate: var(--bqa-content-safe-shift, 0px) 0;
+  transition:
+    translate 235ms cubic-bezier(.22, 1, .36, 1),
+    width 235ms cubic-bezier(.22, 1, .36, 1);
+}
+
+  /* The canonical global footer paints above the fixed rail when it enters the
+     viewport, so the rail can never cover footer text/cards while scrolling. */
+ .app-shell[data-quick-access-layout="true"][data-quick-access-safe-mode="reserve"] > footer[data-app-shell-footer="true"] {
+    position: relative !important;
+    z-index: 220 !important;
+    isolation: isolate;
+  }
+
+.app-shell[data-quick-access-layout="true"][data-quick-access-safe-mode="reserve"][data-quick-access-state="pinned"] > #bes-main-content > .bqa-content-safe-frame {
+  transition-duration: 260ms;
+}
+
+/* Open/pinned panels must sit above route heroes/cards so every control remains
+   clickable. Collapsed state keeps its quieter route-specific stacking. */
+.bqa-root.is-open,
+.bqa-root.is-pinned,
+.bqa-root.is-collapsing {
+  width: calc(var(--bqa-rail-width) + 8px + var(--bqa-panel-width));
+  z-index: 2147483647 !important;
+}
+
+.bqa-root.is-open,
+.bqa-root.is-pinned {
+  pointer-events: auto;
+}
+
+.bqa-root.is-collapsing {
+  pointer-events: none;
+}
+
+.bqa-hover-bridge {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  bottom: 0;
+  left: var(--bqa-rail-width);
+  width: 8px;
+  pointer-events: none;
+  background: transparent;
+}
+
+.bqa-root.is-open .bqa-hover-bridge,
+.bqa-root.is-pinned .bqa-hover-bridge,
+.bqa-root.is-collapsing .bqa-hover-bridge {
+  pointer-events: auto;
+}
+
+/* Mid-size screens keep the content width intact and reduce the resting rail to
+   a quiet edge affordance. Opening remains an intentional overlay. */
+.app-shell[data-quick-access-layout="true"][data-quick-access-safe-mode="overlay"] {
+  --bqa-content-safe-shift: 0px !important;
+}
+
+.app-shell[data-quick-access-layout="true"][data-quick-access-safe-mode="overlay"] > #bes-main-content > .bqa-content-safe-frame {
+  position: relative;
+  translate: 0 0 !important;
+  width: 100% !important;
+}
+
+@media (min-width: 768px) {
+  .app-shell[data-quick-access-safe-mode="overlay"] ~ .bqa-root.is-collapsed:not(.is-pinned) .bqa-rail,
+  body > .bqa-root.is-collapsed:not(.is-pinned) .bqa-rail {
+    transform: translate3d(calc(-100% - 6px), 0, 0);
+    opacity: .68;
+    border-color: rgba(138, 181, 222, .24);
+    box-shadow: 0 8px 18px rgba(39, 86, 130, .05);
+  }
+
+  .bqa-root.is-open .bqa-rail,
+  .bqa-root.is-pinned .bqa-rail {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+
+  .bqa-edge-trigger {
+    width: 20px;
+  }
+}
+
+@media (max-width: 767px) {
+  .app-shell[data-quick-access-layout="true"] {
+    --bqa-content-safe-shift: 0px !important;
+  }
+
+  .app-shell[data-quick-access-layout="true"] > #bes-main-content > .bqa-content-safe-frame {
+    width: 100% !important;
+    padding-inline-start: 0 !important;
+  }
+
+  .bqa-root.is-collapsed:not(.is-pinned) .bqa-rail {
+    transform: translate3d(calc(-100% + 16px), 0, 0);
+    opacity: .72;
+  }
+
+  .bqa-root.is-open .bqa-rail,
+  .bqa-root.is-pinned .bqa-rail {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+
+  .bqa-edge-trigger {
+    width: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell[data-quick-access-layout="true"] > #bes-main-content > .bqa-content-safe-frame {
+    transition: none !important;
+  }
+}
+
+
+/* Portaled launcher authority · escape every route-level transform/stacking context. */
+body > .bqa-root {
+  z-index: 64 !important;
+}
+
+body > .bqa-root.is-open,
+body > .bqa-root.is-pinned,
+body > .bqa-root.is-collapsing {
+  z-index: 2147483647 !important;
+}
+
+/* Portal-aware edge peek: only active when the app shell runtime says overlay mode. */
+body:has(.app-shell[data-quick-access-safe-mode="reserve"]) > .bqa-root.is-collapsed:not(.is-pinned) .bqa-rail {
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
+}
+
+body:has(.app-shell[data-quick-access-safe-mode="overlay"]) > .bqa-root.is-collapsed:not(.is-pinned) .bqa-rail {
+  transform: translate3d(calc(-100% - 6px), 0, 0);
+  opacity: .68;
+  border-color: rgba(138, 181, 222, .24);
+  box-shadow: 0 8px 18px rgba(39, 86, 130, .05);
+}
+
+
+/* Edge-only fallback marker: accessible hover/touch target without covering route content. */
+.bqa-edge-trigger::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 38%;
+  width: 3px;
+  height: 54px;
+  border-radius: 0 4px 4px 0;
+  background: linear-gradient(180deg, rgba(22,118,205,.72), rgba(106,84,221,.58));
+  opacity: .48;
+  transition: opacity 160ms ease, width 180ms cubic-bezier(.22, 1, .36, 1);
+}
+
+.bqa-root.is-open .bqa-edge-trigger::after,
+.bqa-root.is-pinned .bqa-edge-trigger::after {
+  width: 0;
+  opacity: 0;
 }
