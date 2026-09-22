@@ -575,7 +575,7 @@ export default function GlobalQuickAccessRail({
     const footer = shell?.querySelector?.(':scope > footer[data-app-shell-footer="true"]');
     if (!root || !shell || !main || !safeFrame) return undefined;
 
-    shell.dataset.quickAccessState = config.pinned ? 'pinned' : 'rest';
+    shell.dataset.quickAccessState = isPinned ? 'pinned' : 'rest';
 
     const clearSafeArea = () => {
       shell.style.removeProperty('--bqa-content-safe-shift');
@@ -616,12 +616,12 @@ export default function GlobalQuickAccessRail({
           ? railRect.right
           : rootRect.left + railWidth;
 
-        const pinnedBoundary = config.pinned
+        const pinnedBoundary = isPinned
           ? rootRect.left + railWidth + 8 + panelWidth
           : collapsedBoundary;
 
-        const safeBoundary = (config.pinned ? pinnedBoundary : collapsedBoundary) + QUICK_ACCESS_SAFE_GAP;
-        const maxShift = config.pinned ? QUICK_ACCESS_SAFE_MAX_PINNED : QUICK_ACCESS_SAFE_MAX_COLLAPSED;
+        const safeBoundary = (isPinned ? pinnedBoundary : collapsedBoundary) + QUICK_ACCESS_SAFE_GAP;
+        const maxShift = isPinned ? QUICK_ACCESS_SAFE_MAX_PINNED : QUICK_ACCESS_SAFE_MAX_COLLAPSED;
         const delta = safeBoundary - actualMinLeft;
         const nextShift = Math.max(0, Math.min(maxShift, Math.ceil(currentShift + delta)));
 
@@ -638,7 +638,7 @@ export default function GlobalQuickAccessRail({
           const verifiedMinLeft = measureQuickAccessContentBaseline(safeFrame);
           const stillOccluded = Number.isFinite(verifiedMinLeft) && verifiedMinLeft < safeBoundary - 0.5;
 
-          if (stillOccluded && !config.pinned) {
+          if (stillOccluded && !isPinned) {
             shell.dataset.quickAccessSafeMode = 'overlay';
             clearSafeArea();
           } else {
@@ -646,7 +646,7 @@ export default function GlobalQuickAccessRail({
           }
         }, 330);
 
-        shell.dataset.quickAccessState = config.pinned ? 'pinned' : 'rest';
+        shell.dataset.quickAccessState = isPinned ? 'pinned' : 'rest';
 
         if (footer) footer.dataset.quickAccessOcclusionGuard = 'true';
         if (panel) panel.dataset.safeBoundary = String(Math.round(safeBoundary));
@@ -692,17 +692,12 @@ export default function GlobalQuickAccessRail({
   }, [
     currentRoute,
     selectedTool?.slug,
-    config.pinned,
+    isPinned,
     allowedKey,
     appVisibility?.ready,
   ]);
 
   if (!currentUser || currentRoute === 'home' || !catalog.length) return null;
-
-  const selectedItems = config.items
-    .map((id) => catalog.find((item) => item.id === id))
-    .filter(Boolean)
-    .slice(0, QUICK_ACCESS_MAX_ITEMS);
 
   const availableItems = catalog.filter((item) => !config.items.includes(item.id));
   const customizerNeedle = customizerQuery.trim().toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
@@ -725,16 +720,88 @@ export default function GlobalQuickAccessRail({
 
   const leave = () => {
     window.clearTimeout(closeTimerRef.current);
-    if (config.pinned || customizing) return;
+    if (isPinned || customizing) return;
     closeTimerRef.current = window.setTimeout(() => collapseRail(false), 340);
   };
 
-  const activateItem = (item, sourceEl) => {
-    runAction(item, sourceEl);
-    if (!config.pinned) collapseRail(false);
+  const recordRecent = (item) => {
+    if (!item?.id) return;
+    setRecentIds(pushQuickAccessRecent(currentUser, item.id, allowedIds));
   };
 
-  const togglePinned = () => persist({ ...config, pinned: !config.pinned });
+  const activateItem = (item, sourceEl) => {
+    recordRecent(item);
+    setActionMenuItemId('');
+    setPeekItemId('');
+    runAction(item, sourceEl);
+    if (!isPinned) collapseRail(false);
+  };
+
+  const setMode = (nextMode) => {
+    const modeValue = ['auto', 'pin', 'focus'].includes(nextMode) ? nextMode : 'auto';
+    persist({ ...config, mode: modeValue, pinned: modeValue === 'pin' });
+    if (modeValue === 'pin') openRail();
+    if (modeValue === 'focus') collapseRail(true);
+  };
+
+  const togglePinned = () => setMode(isPinned ? 'auto' : 'pin');
+
+  const schedulePeek = (itemId) => {
+    window.clearTimeout(peekTimerRef.current);
+    peekTimerRef.current = window.setTimeout(() => {
+      setPeekItemId(itemId);
+    }, QUICK_ACCESS_PEEK_DELAY);
+  };
+
+  const cancelPeek = () => {
+    window.clearTimeout(peekTimerRef.current);
+    setPeekItemId('');
+  };
+
+  const promoteItem = (id) => {
+    if (!id || config.items[0] === id) return;
+    const next = [id, ...config.items.filter((itemId) => itemId !== id)];
+    persist({ ...config, items: next.slice(0, QUICK_ACCESS_MAX_ITEMS) });
+  };
+
+  const runQuickAction = (item, action, sourceEl) => {
+    if (!item || !action) return;
+    if (action === 'open') {
+      activateItem(item, sourceEl);
+      return;
+    }
+    if (action === 'schedule') {
+      recordRecent(item);
+      openTtcm('schedule');
+    } else if (action === 'attendance') {
+      recordRecent(item);
+      runAction({ action: 'attendance' }, sourceEl);
+    } else if (action === 'promote') {
+      promoteItem(item.id);
+    } else if (action === 'remove') {
+      removeItem(item.id);
+    }
+    setActionMenuItemId('');
+  };
+
+  const quickActionsFor = (item) => {
+    const actions = [
+      { id: 'open', label: language === 'vi' ? 'Mở ứng dụng' : 'Open app' },
+    ];
+    if (item?.id === 'action:ttcm' || item?.id === 'route:dashboard') {
+      actions.push({ id: 'schedule', label: language === 'vi' ? 'Mở kế hoạch' : 'Open schedule' });
+    }
+    if (item?.id === 'route:homeroom') {
+      actions.push({ id: 'attendance', label: language === 'vi' ? 'Điểm danh nhanh' : 'Quick attendance' });
+    }
+    if (config.items.includes(item?.id) && config.items[0] !== item?.id) {
+      actions.push({ id: 'promote', label: language === 'vi' ? 'Đưa lên đầu' : 'Move to top' });
+    }
+    if (config.items.includes(item?.id)) {
+      actions.push({ id: 'remove', label: language === 'vi' ? 'Bỏ khỏi thanh' : 'Remove from rail' });
+    }
+    return actions;
+  };
 
   const removeItem = (id) => {
     const next = config.items.filter((itemId) => itemId !== id);
