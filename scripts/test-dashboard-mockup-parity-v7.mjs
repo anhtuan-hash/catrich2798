@@ -6,8 +6,12 @@ const footer = await readFile(new URL('../src/components/FooterDashboardMockup.c
 const footerComponent = await readFile(new URL('../src/components/Footer.jsx', import.meta.url), 'utf8');
 
 assert.ok(
-  rail.includes("currentRoute === 'dashboard'"),
-  'Dashboard must not render the global Quick Access rail in the approved mockup composition.',
+  !rail.includes("currentRoute === 'dashboard'"),
+  'Dashboard must render the global Quick Access rail; only Home excludes it.',
+);
+assert.ok(
+  rail.includes('data-route={currentRoute}'),
+  'Quick Access must expose the active route so Dashboard can apply its own safe offset/stacking authority.',
 );
 
 assert.ok(
@@ -55,4 +59,4 @@ const opens=(footer.match(/{/g)||[]).length;
 const closes=(footer.match(/}/g)||[]).length;
 assert.equal(opens, closes, 'Dashboard footer V7 CSS braces must be balanced.');
 
-console.log('PASS: Dashboard V7 removes the left rail, collapses footer CSS to one authority, removes giant circle artifacts and protects font authority.');
+console.log('PASS: Dashboard V7 preserves footer authority while allowing the global Quick Access rail with route-scoped positioning and font safety.');
