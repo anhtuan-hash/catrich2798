@@ -478,21 +478,21 @@ export default function GlobalQuickAccessRail({
   }, []);
 
   const collapseRail = useCallback((force = false) => {
-    if (!force && (config.pinned || customizing)) return;
+    if (!force && (pinned || customizing)) return;
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
 
-    if (hovered || config.pinned || customizing) {
+    if (hovered || pinned || customizing) {
       setCollapsing(true);
       setHovered(false);
       collapseMotionTimerRef.current = window.setTimeout(() => {
         setCollapsing(false);
-      }, 290);
+      }, 250);
       return;
     }
 
     setHovered(false);
-  }, [config.pinned, customizing, hovered]);
+  }, [pinned, customizing, hovered]);
 
   useEffect(() => {
     if (!currentUser || !allowedIds.length) return undefined;
@@ -518,7 +518,44 @@ export default function GlobalQuickAccessRail({
   useEffect(() => () => {
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
+    window.clearTimeout(peekTimerRef.current);
+    window.cancelAnimationFrame(badgeFrameRef.current);
   }, []);
+
+  const refreshBadges = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    window.cancelAnimationFrame(badgeFrameRef.current);
+    badgeFrameRef.current = window.requestAnimationFrame(() => {
+      setBadges(readQuickAccessBadges(currentUser));
+    });
+  }, [currentUser?.id, currentUser?.email]);
+
+  useEffect(() => {
+    if (!currentUser || typeof window === 'undefined' || typeof document === 'undefined') return undefined;
+    refreshBadges();
+
+    const onStorage = (event) => {
+      if (!event?.key || event.key === quickAccessNotificationKey(currentUser)) refreshBadges();
+    };
+    const onNotification = () => window.setTimeout(refreshBadges, 0);
+    const onFocus = () => refreshBadges();
+    const nav = document.querySelector('.brian-nav__primary');
+    const observer = nav && typeof MutationObserver === 'function'
+      ? new MutationObserver(refreshBadges)
+      : null;
+
+    observer?.observe(nav, { childList: true, subtree: true, characterData: true });
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('bes-global-notification', onNotification);
+    window.addEventListener('focus', onFocus);
+
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('bes-global-notification', onNotification);
+      window.removeEventListener('focus', onFocus);
+    };
+  }, [currentUser?.id, currentUser?.email, currentRoute, refreshBadges]);
 
   useEffect(() => {
     if (!customizing) return undefined;
@@ -533,7 +570,7 @@ export default function GlobalQuickAccessRail({
   }, [customizing]);
 
   useEffect(() => {
-    if (!hovered || config.pinned || customizing || typeof document === 'undefined') return undefined;
+    if (!hovered || pinned || customizing || typeof document === 'undefined') return undefined;
 
     const onOutsidePointerDown = (event) => {
       if (event.target?.closest?.('.bqa-root')) return;
@@ -549,22 +586,49 @@ export default function GlobalQuickAccessRail({
       document.removeEventListener('pointerdown', onOutsidePointerDown, true);
       window.removeEventListener('keydown', onEscape);
     };
-  }, [hovered, config.pinned, customizing, collapseRail]);
+  }, [hovered, pinned, customizing, collapseRail]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
 
     const onNavigationStart = () => {
-      if (!config.pinned && !customizing) collapseRail(false);
+      if (!pinned && !customizing) collapseRail(false);
     };
     const onShortcut = (event) => {
       const tag = String(event.target?.tagName || '').toLowerCase();
       const editable = event.target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag);
-      if (editable || event.repeat) return;
-      if (event.altKey && !event.ctrlKey && !event.metaKey && String(event.key || '').toLowerCase() === 'q') {
+      const key = String(event.key || '').toLowerCase();
+
+      if (!editable && !event.repeat && (event.metaKey || event.ctrlKey) && !event.altKey && key === 'k') {
+        if (currentRoute === 'home') return;
         event.preventDefault();
-        if (expanded && !config.pinned && !customizing) collapseRail(false);
+        openRail();
+        setCommandQuery('');
+        window.requestAnimationFrame(() => commandInputRef.current?.focus());
+        return;
+      }
+
+      if (editable || event.repeat) return;
+
+      if (event.altKey && !event.ctrlKey && !event.metaKey && key === 'q') {
+        event.preventDefault();
+        if (expanded && !pinned && !customizing) collapseRail(false);
         else openRail();
+        return;
+      }
+
+      if (event.altKey && !event.ctrlKey && !event.metaKey && /^[1-9]$/.test(key)) {
+        const item = selectedItems[Number(key) - 1];
+        if (!item) return;
+        event.preventDefault();
+        const recent = [item.id, ...(config.recent || []).filter((id) => id !== item.id)].slice(0, QUICK_ACCESS_RECENT_MAX);
+        const next = { ...config, recent };
+        setConfig(next);
+        saveQuickAccessConfigToCloud(currentUser, next, allowedIds).then((result) => {
+          if (result?.config) setConfig(result.config);
+        });
+        runAction(item, null);
+        if (!pinned) collapseRail(false);
       }
     };
 
@@ -574,7 +638,7 @@ export default function GlobalQuickAccessRail({
       window.removeEventListener('bes-navigation-start', onNavigationStart);
       window.removeEventListener('keydown', onShortcut);
     };
-  }, [config.pinned, customizing, expanded, collapseRail, openRail]);
+  }, [pinned, customizing, expanded, collapseRail, openRail, currentRoute, selectedItems, config, currentUser, allowedKey]);
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
