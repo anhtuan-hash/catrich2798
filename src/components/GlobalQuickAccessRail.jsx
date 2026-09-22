@@ -698,7 +698,15 @@ export default function GlobalQuickAccessRail({
           </button>
         </aside>
 
-        <section ref={panelRef} className="bqa-panel" aria-hidden={!expanded} inert={expanded ? undefined : true}>
+        <section
+          ref={panelRef}
+          className="bqa-panel"
+          aria-hidden={!expanded}
+          inert={expanded ? undefined : true}
+          onAnimationEnd={(event) => {
+            if (event.target === event.currentTarget && collapsing) setCollapsing(false);
+          }}
+        >
           <header className="bqa-panel-header">
             <div>
               <strong>{language === 'vi' ? 'Thanh truy cập nhanh' : 'Quick access'}</strong>
