@@ -92,6 +92,34 @@ export default function GlobalFlatNavigation(props) {
     };
   }, [presentation.presentationMode, presentation.deviceClass, presentation.orientation, presentation.override, mobile]);
 
+  useEffect(() => {
+    const chrome = document.querySelector('.app-shell > .bes-top-chrome');
+    if (!chrome) return undefined;
+
+    const ownedProperties = ['position', 'top', 'right', 'bottom', 'left', 'inset', 'transform', 'translate'];
+    if (props.route === 'dashboard') {
+      chrome.dataset.dashboardStaticChrome = 'true';
+      chrome.style.setProperty('position', 'static', 'important');
+      chrome.style.setProperty('top', 'auto', 'important');
+      chrome.style.setProperty('right', 'auto', 'important');
+      chrome.style.setProperty('bottom', 'auto', 'important');
+      chrome.style.setProperty('left', 'auto', 'important');
+      chrome.style.setProperty('inset', 'auto', 'important');
+      chrome.style.setProperty('transform', 'none', 'important');
+      chrome.style.setProperty('translate', 'none', 'important');
+    } else if (chrome.dataset.dashboardStaticChrome === 'true') {
+      delete chrome.dataset.dashboardStaticChrome;
+      ownedProperties.forEach((property) => chrome.style.removeProperty(property));
+    }
+
+    return () => {
+      if (chrome.dataset.dashboardStaticChrome === 'true') {
+        delete chrome.dataset.dashboardStaticChrome;
+        ownedProperties.forEach((property) => chrome.style.removeProperty(property));
+      }
+    };
+  }, [props.route]);
+
   return (
     <>
       <GlobalNativeTextScaleReset />

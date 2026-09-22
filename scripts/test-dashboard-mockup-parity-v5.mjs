@@ -5,6 +5,7 @@ const nav = await readFile(new URL('../src/components/GlobalFlatNavigation.jsx',
 const chrome = await readFile(new URL('../src/components/DashboardTopChromeMockup.css', import.meta.url), 'utf8');
 const dashboardStyles = await readFile(new URL('../src/styles/teacher-dashboard-google-colorful.css', import.meta.url), 'utf8');
 const footerStyles = await readFile(new URL('../src/components/FooterDashboardMockup.css', import.meta.url), 'utf8');
+const footerComponent = await readFile(new URL('../src/components/Footer.jsx', import.meta.url), 'utf8');
 
 assert.ok(
   nav.includes("import './DashboardTopChromeMockup.css';"),
@@ -40,15 +41,16 @@ for (const token of [
 }
 
 for (const token of [
-  'approved mockup authority',
+  'Mockup Parity V8',
   '[data-footer-route="dashboard"]',
-  "content: 'Teach Better Together ♡'",
   '.signature-footer-v50-brand',
   '.signature-footer-v50-profile',
   '.signature-footer-v50-credentials',
+  '.signature-footer-dashboard-artwork',
 ]) {
   assert.ok(footerStyles.includes(token), `Dashboard footer visual contract missing: ${token}`);
 }
+assert.ok(footerComponent.includes('Teach Better Together ♡'), 'Dashboard footer sign-off must remain in the real DOM artwork.');
 
 assert.ok(!/font-family\s*:/i.test(v5), 'Dashboard V5 must not override custom/regional font authority.');
 assert.ok(!/font-family\s*:/i.test(chrome), 'Dashboard top chrome V5 must not override custom/regional font authority.');

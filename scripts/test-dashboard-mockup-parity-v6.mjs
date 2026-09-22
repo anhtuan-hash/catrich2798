@@ -41,14 +41,15 @@ for (const token of [
 }
 
 for (const token of [
-  'approved mockup authority',
+  'Mockup Parity V8',
   '[data-footer-route="dashboard"]',
-  'padding: 18px 18px 92px !important',
-  "content: 'Teach Better Together ♡'",
-  'linear-gradient(180deg, #f8fcff 0%, #f7fbff 64%, #eef8ff 100%)',
+  'padding: 18px 18px 78px !important',
+  '.signature-footer-dashboard-landscape',
+  '.signature-footer-dashboard-signoff',
 ]) {
   assert.ok(footerCss.includes(token), `Footer visual contract missing: ${token}`);
 }
+assert.ok(footer.includes('Teach Better Together ♡'), 'Dashboard footer sign-off must remain in the real DOM artwork.');
 
 assert.ok(
   !/Dashboard V6 direct route authority[\s\S]*font-family\s*:/i.test(chromeCss),

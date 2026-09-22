@@ -41,14 +41,15 @@ assert.ok(
 
 for (const token of [
   '.app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible',
-  "content: 'Teach Better Together ♡'",
   '.signature-footer-v50-brand',
   '.signature-footer-v50-profile',
   '.signature-footer-v50-credentials',
+  '.signature-footer-dashboard-artwork',
   '@media (max-width: 720px)',
 ]) {
-  assert.ok(footerStyles.includes(token), `Dashboard footer V4 token missing: ${token}`);
+  assert.ok(footerStyles.includes(token), `Dashboard footer visual contract missing: ${token}`);
 }
+assert.ok(footer.includes('Teach Better Together ♡'), 'Dashboard footer sign-off must remain in real DOM artwork.');
 
 assert.ok(!/font-family\s*:/i.test(v4), 'V4 dashboard layer must not override regional/custom fonts.');
 assert.ok(!/font-family\s*:/i.test(footerStyles), 'Dashboard footer layer must not override regional/custom fonts.');

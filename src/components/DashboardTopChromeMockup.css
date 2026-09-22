@@ -162,3 +162,30 @@ html body:has(.app-shell[data-route="dashboard"]) .app-shell[data-route="dashboa
     margin-top: 6px !important;
   }
 }
+
+
+/* Dashboard V8 runtime-static capture guard */
+.bes-top-chrome[data-dashboard-static-chrome="true"],
+.app-shell[data-route="dashboard"] > .bes-top-chrome[data-dashboard-static-chrome="true"] {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  inset: auto !important;
+  transform: none !important;
+  translate: none !important;
+  contain: layout style !important;
+  will-change: auto !important;
+}
+
+.bes-top-chrome[data-dashboard-static-chrome="true"] .brian-nav,
+.bes-top-chrome[data-dashboard-static-chrome="true"] .brian-newswire {
+  position: relative !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  transform: none !important;
+  will-change: auto !important;
+}

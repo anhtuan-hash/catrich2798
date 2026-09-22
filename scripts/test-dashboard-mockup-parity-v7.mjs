@@ -20,23 +20,24 @@ assert.ok(
 );
 
 for (const token of [
-  'approved mockup authority',
+  'Mockup Parity V8',
   '[data-footer-route="dashboard"]',
-  "content: 'Teach Better Together ♡'",
-  'padding: 18px 18px 92px !important',
-  'No large radial discs',
+  'padding: 18px 18px 78px !important',
+  'no large radial circles',
   '.signature-footer-v50-brand',
   '.signature-footer-v50-profile',
   '.signature-footer-v50-credentials',
+  '.signature-footer-dashboard-artwork',
 ]) {
-  assert.ok(footer.includes(token), `Dashboard footer V7 token missing: ${token}`);
+  assert.ok(footer.includes(token), `Dashboard footer V7+ token missing: ${token}`);
 }
 
 assert.equal(
-  (footer.match(/Dashboard footer — approved mockup authority/g) || []).length,
+  (footer.match(/Dashboard footer — Mockup Parity V8/g) || []).length,
   1,
   'Dashboard footer must have one visual authority layer only.',
 );
+assert.ok(footerComponent.includes('Teach Better Together ♡'), 'Dashboard footer sign-off must remain in real DOM artwork.');
 
 assert.ok(
   !footer.includes('Dashboard footer V5 fallback authority') &&
