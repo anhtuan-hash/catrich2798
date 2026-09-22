@@ -129,7 +129,7 @@ test.describe('Global Quick Access safe area', () => {
 
     await page.locator('.bqa-rail').hover();
     await expect(page.locator('.bqa-root')).toHaveClass(/is-open/);
-    await expect(page.locator('.bqa-root')).toHaveClass(/is-open-settled/, { timeout: 1_500 });
+    await page.waitForTimeout(330);
 
     const panelState = await page.locator('.bqa-panel').evaluate((panel) => {
       const style = getComputedStyle(panel);
@@ -142,7 +142,6 @@ test.describe('Global Quick Access safe area', () => {
         pointerEvents: style.pointerEvents,
         width: Math.round(rect.width),
         height: Math.round(rect.height),
-        clipPath: style.clipPath,
         transform: style.transform,
         headerOpacity: Number(headerStyle?.opacity || 0),
       };
@@ -154,7 +153,35 @@ test.describe('Global Quick Access safe area', () => {
     expect(panelState.width).toBeGreaterThanOrEqual(310);
     expect(panelState.height).toBeGreaterThan(380);
     expect(panelState.headerOpacity).toBeGreaterThan(0.99);
-    expect(panelState.clipPath).not.toContain('89%');
+    expect(panelState.transform === 'none' || panelState.transform.includes('matrix(1')).toBeTruthy();
+  });
+
+  test('Apps: pointer reversal remains stable during Quick Access motion', async ({ page }) => {
+    await page.goto('/#/apps');
+    await expect(page.locator('.bqa-root')).toBeVisible();
+    await page.waitForTimeout(700);
+
+    await page.locator('.bqa-rail').hover();
+    await page.waitForTimeout(90);
+    await page.mouse.move(900, 700);
+    await page.waitForTimeout(80);
+    await page.locator('.bqa-rail').hover();
+    await page.waitForTimeout(280);
+
+    await expect(page.locator('.bqa-root')).toHaveClass(/is-open/);
+    const state = await page.locator('.bqa-panel').evaluate((panel) => {
+      const style = getComputedStyle(panel);
+      const rect = panel.getBoundingClientRect();
+      return {
+        opacity: Number(style.opacity),
+        width: Math.round(rect.width),
+        visibility: style.visibility,
+      };
+    });
+
+    expect(state.visibility).toBe('visible');
+    expect(state.opacity).toBeGreaterThan(0.98);
+    expect(state.width).toBeGreaterThanOrEqual(310);
   });
 
   test('Dashboard: collapsed Quick Access panel leaves no visible ghost beside the rail', async ({ page }) => {

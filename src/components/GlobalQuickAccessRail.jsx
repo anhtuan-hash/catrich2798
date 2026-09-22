@@ -296,10 +296,8 @@ export default function GlobalQuickAccessRail({
   const [customizerQuery, setCustomizerQuery] = useState('');
   const [dragId, setDragId] = useState('');
   const [collapsing, setCollapsing] = useState(false);
-  const [openSettled, setOpenSettled] = useState(false);
   const closeTimerRef = useRef(0);
   const collapseMotionTimerRef = useRef(0);
-  const openSettleTimerRef = useRef(0);
   const layoutFrameRef = useRef(0);
   const layoutSettleTimerRef = useRef(0);
   const layoutVerifyTimerRef = useRef(0);
@@ -378,23 +376,7 @@ export default function GlobalQuickAccessRail({
   useEffect(() => () => {
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
-    window.clearTimeout(openSettleTimerRef.current);
   }, []);
-
-  useEffect(() => {
-    window.clearTimeout(openSettleTimerRef.current);
-    if (!expanded) {
-      setOpenSettled(false);
-      return undefined;
-    }
-
-    setOpenSettled(false);
-    openSettleTimerRef.current = window.setTimeout(() => {
-      setOpenSettled(true);
-    }, 380);
-
-    return () => window.clearTimeout(openSettleTimerRef.current);
-  }, [expanded]);
 
   useEffect(() => {
     if (!customizing) return undefined;
@@ -648,7 +630,7 @@ export default function GlobalQuickAccessRail({
     <>
       <div
         ref={rootRef}
-        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${openSettled ? 'is-open-settled' : ''} ${collapsing ? 'is-collapsing' : ''} ${config.pinned ? 'is-pinned' : ''} ${customizing ? 'is-customizing' : ''}`}
+        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${config.pinned ? 'is-pinned' : ''} ${customizing ? 'is-customizing' : ''}`}
         data-quick-access="true"
         data-motion={collapsing ? 'collapsing' : (expanded ? 'open' : 'rest')}
         data-route={currentRoute}

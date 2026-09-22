@@ -75,14 +75,10 @@ for (const token of [
   '.bqa-customizer-search',
   '.bqa-shortcut-hint',
   'body > .bqa-root',
-  'Quick Access Apple Pencil Morph V1',
+  'Quick Access Apple Pencil Smooth Morph V2',
   'Brian Global Quick Access Safe Area V1',
-  'Collapsed-panel ghost fix',
-  'Hover-open finalization',
-  'is-open-settled',
-  '.bqa-root.is-open.is-open-settled .bqa-panel',
+  'Collapsed-panel final-state guard',
   '.bqa-root.is-collapsed:not(.is-collapsing) .bqa-panel',
-  'clip-path: inset(0 100% 100% 0 round 22px)',
   '[data-quick-access-layout="true"] > #bes-main-content > .bqa-content-safe-frame',
   'translate: var(--bqa-content-safe-shift, 0px) 0',
   '[data-quick-access-state="pinned"] > #bes-main-content > .bqa-content-safe-frame',
@@ -94,16 +90,17 @@ for (const token of [
   'footer[data-app-shell-footer="true"]',
   'data-quick-access-safe-mode="overlay"',
   '@media (max-width: 767px)',
-  '@keyframes bqa-pencil-open',
-  '@keyframes bqa-pencil-collapse',
-  'clip-path: inset(0 89% 88% 0 round 22px)',
   'transform-origin: 0 30px',
   '.bqa-root.is-collapsing .bqa-panel',
   '.bqa-root.is-collapsing .bqa-brand',
+  'scale3d(.14, .70, 1)',
+  'transition:',
 ]) {
   assert.ok(css.includes(token), `Quick Access visual contract missing: ${token}`);
 }
 
+assert.ok(!css.includes('clip-path: inset(0 89%'), 'Quick Access open/close motion must not animate expensive clip-path geometry.');
+assert.ok(!rail.includes('openSettled'), 'Quick Access must not use a timer-based post-animation snap state.');
 assert.ok(!/font-family\s*:/i.test(css), 'Quick Access CSS must not override Brian custom fonts.');
 assert.ok(!/\.app-shell\s*\{/.test(css), 'Quick Access CSS must not mutate global app-shell layout.');
 assert.ok(!/body\s*\{/.test(css), 'Quick Access CSS must remain component-scoped.');
