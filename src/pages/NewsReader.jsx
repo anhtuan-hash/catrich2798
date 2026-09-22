@@ -46,6 +46,7 @@ const TEXT = {
 const FEED_CACHE_TTL = 10 * 60 * 1000;
 const ARTICLE_CACHE_TTL = 6 * 60 * 60 * 1000;
 const PAGE_SIZE = 12;
+const NEWSWIRE_OPEN_ITEM_KEY = 'bes-newswire-open-item-v1';
 
 function formatDate(value, language, compact = false) {
   if (!value) return '';
@@ -143,6 +144,27 @@ export default function NewsReader({ language = 'vi' }) {
   useEffect(() => { setSource('all'); setVisibleCount(PAGE_SIZE); loadNews(); return () => { requestIdRef.current += 1; }; /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [channel, effectiveCategory]);
   useEffect(() => { if (!selected) return undefined; document.documentElement.classList.add('news-g4-reader-open'); const onEscape = (event) => { if (event.key === 'Escape') closeReader(); }; window.addEventListener('keydown', onEscape); return () => { document.documentElement.classList.remove('news-g4-reader-open'); window.removeEventListener('keydown', onEscape); }; /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [selected]);
   useEffect(() => () => window.speechSynthesis?.cancel(), []);
+
+  useEffect(() => {
+    const openQueuedItem = (candidate) => {
+      const item = candidate && typeof candidate === 'object' ? candidate : null;
+      if (!item?.title) return;
+      openArticle(item);
+      try { window.sessionStorage.removeItem(NEWSWIRE_OPEN_ITEM_KEY); } catch { /* optional */ }
+    };
+
+    try {
+      const raw = window.sessionStorage.getItem(NEWSWIRE_OPEN_ITEM_KEY);
+      if (raw) openQueuedItem(JSON.parse(raw));
+    } catch {
+      // A malformed optional hand-off should never block the newsroom.
+    }
+
+    const onNewswireOpen = (event) => openQueuedItem(event.detail?.item);
+    window.addEventListener('bes-newswire-open-item', onNewswireOpen);
+    return () => window.removeEventListener('bes-newswire-open-item', onNewswireOpen);
+    /* eslint-disable-next-line react-hooks/exhaustive-deps */
+  }, []);
 
   const savedIds = useMemo(() => new Set(savedItems.map((item) => item.id)), [savedItems]);
   const filtered = useMemo(() => (payload.items || []).filter((item) => (source === 'all' || item.source === source) && (!savedOnly || savedIds.has(item.id))), [payload.items, source, savedOnly, savedIds]);
