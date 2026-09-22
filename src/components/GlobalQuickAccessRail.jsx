@@ -270,16 +270,15 @@ function isQuickAccessCollisionCandidate(element) {
   return true;
 }
 
-function measureQuickAccessContentBaseline(main, currentShift = 0) {
-  if (!main) return Number.POSITIVE_INFINITY;
-  const candidates = [...main.querySelectorAll(QUICK_ACCESS_COLLISION_SELECTOR)];
+function measureQuickAccessContentBaseline(container) {
+  if (!container) return Number.POSITIVE_INFINITY;
+  const candidates = [...container.querySelectorAll(QUICK_ACCESS_COLLISION_SELECTOR)];
   let minLeft = Number.POSITIVE_INFINITY;
 
   candidates.forEach((element) => {
     if (!isQuickAccessCollisionCandidate(element)) return;
     const rect = element.getBoundingClientRect();
-    const baselineLeft = rect.left - currentShift;
-    if (Number.isFinite(baselineLeft)) minLeft = Math.min(minLeft, baselineLeft);
+    if (Number.isFinite(rect.left)) minLeft = Math.min(minLeft, rect.left);
   });
 
   return minLeft;
@@ -441,8 +440,9 @@ export default function GlobalQuickAccessRail({
     const root = rootRef.current;
     const shell = document.querySelector('.app-shell');
     const main = shell?.querySelector?.(':scope > #bes-main-content');
+    const safeFrame = main?.querySelector?.(':scope > .bqa-content-safe-frame');
     const footer = shell?.querySelector?.(':scope > footer[data-app-shell-footer="true"]');
-    if (!root || !shell || !main) return undefined;
+    if (!root || !shell || !main || !safeFrame) return undefined;
 
     shell.dataset.quickAccessState = config.pinned ? 'pinned' : 'rest';
 
@@ -464,8 +464,8 @@ export default function GlobalQuickAccessRail({
         }
 
         const currentShift = parseCssPixels(shell.dataset.quickAccessSafeShift, 0);
-        const baselineLeft = measureQuickAccessContentBaseline(main, currentShift);
-        if (!Number.isFinite(baselineLeft)) {
+        const actualMinLeft = measureQuickAccessContentBaseline(safeFrame);
+        if (!Number.isFinite(actualMinLeft)) {
           clearSafeArea();
           return;
         }
@@ -491,7 +491,8 @@ export default function GlobalQuickAccessRail({
 
         const safeBoundary = (config.pinned ? pinnedBoundary : collapsedBoundary) + QUICK_ACCESS_SAFE_GAP;
         const maxShift = config.pinned ? QUICK_ACCESS_SAFE_MAX_PINNED : QUICK_ACCESS_SAFE_MAX_COLLAPSED;
-        const nextShift = Math.max(0, Math.min(maxShift, Math.ceil(safeBoundary - baselineLeft)));
+        const delta = safeBoundary - actualMinLeft;
+        const nextShift = Math.max(0, Math.min(maxShift, Math.ceil(currentShift + delta)));
 
         shell.style.setProperty('--bqa-content-safe-shift', `${nextShift}px`);
         shell.dataset.quickAccessSafeShift = String(nextShift);
@@ -503,8 +504,8 @@ export default function GlobalQuickAccessRail({
 
         window.clearTimeout(layoutVerifyTimerRef.current);
         layoutVerifyTimerRef.current = window.setTimeout(() => {
-          const actualMinLeft = measureQuickAccessContentBaseline(main, 0);
-          const stillOccluded = Number.isFinite(actualMinLeft) && actualMinLeft < safeBoundary - 0.5;
+          const verifiedMinLeft = measureQuickAccessContentBaseline(safeFrame);
+          const stillOccluded = Number.isFinite(verifiedMinLeft) && verifiedMinLeft < safeBoundary - 0.5;
 
           if (stillOccluded && !config.pinned) {
             shell.dataset.quickAccessSafeMode = 'overlay';
@@ -529,8 +530,8 @@ export default function GlobalQuickAccessRail({
       ? new MutationObserver(measureAndApply)
       : null;
 
-    resizeObserver?.observe(main);
-    mutationObserver?.observe(main, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden', 'style'] });
+    resizeObserver?.observe(safeFrame);
+    mutationObserver?.observe(safeFrame, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden', 'style'] });
     window.addEventListener('resize', onResize, { passive: true });
     window.addEventListener('bes-font-settings-updated', measureAndApply);
     window.addEventListener('bes-regional-font-updated', measureAndApply);
@@ -629,7 +630,7 @@ export default function GlobalQuickAccessRail({
     <>
       <div
         ref={rootRef}
-        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${config.pinned ? 'is-pinned' : ''}`}
+        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${config.pinned ? 'is-pinned' : ''} ${customizing ? 'is-customizing' : ''}`}
         data-quick-access="true"
         data-motion={collapsing ? 'collapsing' : (expanded ? 'open' : 'rest')}
         data-route={currentRoute}
