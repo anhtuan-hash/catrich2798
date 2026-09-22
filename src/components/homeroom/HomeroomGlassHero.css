@@ -710,3 +710,331 @@
     transition:none;
   }
 }
+
+
+/* 2026-09-22 visual QA polish
+   The older global Homeroom theme uses !important for generic h1/p/em/button rules.
+   These scoped declarations intentionally win only inside the new campus hero. */
+.hr-page .hr-campus-hero{
+  min-height:500px!important;
+  border-color:rgba(54,105,171,.18)!important;
+  border-radius:20px!important;
+  background:linear-gradient(135deg,#f9fcff 0%,#edf7ff 42%,#d9edff 100%)!important;
+  box-shadow:0 20px 48px rgba(40,82,128,.11)!important;
+}
+
+.hr-page .hr-campus-hero::before{
+  top:0!important;
+  left:0!important;
+  width:55.5%!important;
+  height:100%!important;
+  border-radius:0 33% 33% 0 / 0 48% 48% 0!important;
+  background:
+    radial-gradient(circle at 14% 13%,rgba(219,242,255,.72),transparent 24rem),
+    linear-gradient(132deg,rgba(255,255,255,.995) 0%,rgba(253,254,255,.995) 64%,rgba(247,251,255,.97) 100%)!important;
+  box-shadow:18px 0 42px rgba(52,101,155,.055)!important;
+}
+
+.hr-page .hr-campus-hero::after{
+  display:none!important;
+}
+
+.hr-page .hr-campus-scene{
+  left:44%!important;
+  filter:saturate(1.12) contrast(1.04)!important;
+}
+
+.hr-page .hr-campus-scene__svg{
+  transform:scale(1.035) translateX(1.2%)!important;
+}
+
+.hr-page .hr-campus-scene__veil{
+  background:
+    linear-gradient(90deg,rgba(247,252,255,.94) 0%,rgba(242,250,255,.36) 12%,rgba(239,248,255,.08) 25%,transparent 39%),
+    linear-gradient(180deg,rgba(255,255,255,.02),rgba(17,63,112,.055))!important;
+}
+
+.hr-page .hr-campus-hero__copy{
+  width:51.5%!important;
+  padding:46px 30px 38px 58px!important;
+}
+
+.hr-page .hr-campus-hero__eyebrow{
+  margin:0 0 13px!important;
+  color:#244d83!important;
+  -webkit-text-fill-color:#244d83!important;
+  font-size:13.5px!important;
+  font-weight:720!important;
+  letter-spacing:-.012em!important;
+}
+
+.hr-page .hr-campus-hero h1{
+  max-width:620px!important;
+  margin:0!important;
+  color:var(--hrc-navy-deep)!important;
+  -webkit-text-fill-color:var(--hrc-navy-deep)!important;
+  background:none!important;
+  font-family:inherit!important;
+  font-size:clamp(64px,5.85vw,92px)!important;
+  font-weight:790!important;
+  line-height:.9!important;
+  letter-spacing:-.062em!important;
+}
+
+.hr-page .hr-campus-hero h1 em,
+.hr-page .hr-campus-hero #hr-material-hero-title{
+  color:transparent!important;
+  -webkit-text-fill-color:transparent!important;
+  background:linear-gradient(112deg,#1269f5 0%,#26a0fa 54%,#7b62ff 100%)!important;
+  -webkit-background-clip:text!important;
+  background-clip:text!important;
+  font-style:normal!important;
+  filter:drop-shadow(0 9px 18px rgba(50,113,235,.10))!important;
+}
+
+.hr-page .hr-campus-hero__accent{
+  width:72px!important;
+  height:2px!important;
+  margin:18px 0 17px!important;
+  background:linear-gradient(90deg,#426eff,#7a71ff)!important;
+  box-shadow:none!important;
+}
+
+.hr-page .hr-campus-hero__quote{
+  max-width:435px!important;
+  margin:0!important;
+  padding:0 0 0 40px!important;
+  color:#345279!important;
+  -webkit-text-fill-color:#345279!important;
+  font-size:14px!important;
+  font-weight:570!important;
+  line-height:1.45!important;
+}
+
+.hr-page .hr-campus-hero__quote::before{
+  left:0!important;
+  top:-11px!important;
+  color:#7669ff!important;
+  font-size:42px!important;
+}
+
+.hr-page .hr-campus-hero__tagline{
+  margin:16px 0 0!important;
+  color:#6f829e!important;
+  -webkit-text-fill-color:#6f829e!important;
+  font-size:7.8px!important;
+  font-weight:850!important;
+  letter-spacing:.245em!important;
+}
+
+.hr-page .hr-campus-hero__ledger{
+  width:min(100%,570px)!important;
+  margin-top:19px!important;
+  padding:12px 10px!important;
+  border:1px solid rgba(67,113,173,.13)!important;
+  border-radius:13px!important;
+  background:rgba(255,255,255,.88)!important;
+  box-shadow:0 12px 28px rgba(62,101,147,.075)!important;
+  backdrop-filter:blur(14px)!important;
+  -webkit-backdrop-filter:blur(14px)!important;
+}
+
+.hr-page .hr-campus-detail{
+  gap:7px!important;
+  padding:0 10px!important;
+}
+
+.hr-page .hr-campus-detail:first-child{
+  padding-left:4px!important;
+}
+
+.hr-page .hr-campus-detail + .hr-campus-detail{
+  border-left:1px solid rgba(44,84,136,.115)!important;
+}
+
+.hr-page .hr-campus-detail__icon{
+  width:27px!important;
+  height:27px!important;
+  color:#176af0!important;
+}
+
+.hr-page .hr-campus-detail small{
+  color:#7f8ea3!important;
+  -webkit-text-fill-color:#7f8ea3!important;
+  font-size:7.2px!important;
+  font-weight:830!important;
+}
+
+.hr-page .hr-campus-detail strong{
+  color:#173e75!important;
+  -webkit-text-fill-color:#173e75!important;
+  font-size:10.6px!important;
+  font-weight:790!important;
+}
+
+.hr-page .hr-campus-hero__actions{
+  gap:8px!important;
+  width:min(100%,590px)!important;
+  margin-top:17px!important;
+}
+
+.hr-page .hr-campus-hero__actions button{
+  min-height:41px!important;
+  padding:0 15px!important;
+  border:1px solid rgba(38,82,140,.15)!important;
+  border-radius:999px!important;
+  background:rgba(255,255,255,.92)!important;
+  color:#174678!important;
+  font-family:inherit!important;
+  font-size:10.7px!important;
+  font-weight:780!important;
+  line-height:1!important;
+  box-shadow:0 8px 18px rgba(41,80,126,.075)!important;
+}
+
+.hr-page .hr-campus-hero__actions button:hover{
+  transform:translateY(-2px)!important;
+  border-color:rgba(18,105,245,.3)!important;
+  background:#fff!important;
+  box-shadow:0 12px 24px rgba(31,82,145,.13)!important;
+}
+
+.hr-page .hr-campus-hero__actions button.is-dark{
+  border-color:transparent!important;
+  background:linear-gradient(135deg,#0a2d69,#0b4b98)!important;
+  color:#fff!important;
+  box-shadow:0 11px 24px rgba(8,41,96,.2)!important;
+}
+
+.hr-page .hr-campus-hero__actions button.is-primary{
+  border-color:transparent!important;
+  background:linear-gradient(105deg,#1269f5 0%,#2d84fb 58%,#7863ff 100%)!important;
+  color:#fff!important;
+  box-shadow:0 11px 24px rgba(46,104,239,.22)!important;
+}
+
+.hr-page .hr-campus-hero__art-copy{
+  top:31px!important;
+  right:31px!important;
+  gap:14px!important;
+}
+
+.hr-page .hr-campus-hero__class-mark{
+  color:#1b559c!important;
+  -webkit-text-fill-color:#1b559c!important;
+  font-size:14px!important;
+  font-weight:760!important;
+}
+
+.hr-page .hr-campus-hero__motto{
+  padding-left:16px!important;
+  color:#285a9b!important;
+  -webkit-text-fill-color:#285a9b!important;
+  font-size:12px!important;
+  font-weight:650!important;
+  line-height:1.67!important;
+  letter-spacing:.14em!important;
+  text-shadow:0 1px 0 rgba(255,255,255,.55)!important;
+}
+
+.hr-page .hr-campus-hero__brand{
+  color:#677f9f!important;
+  -webkit-text-fill-color:#677f9f!important;
+  font-size:6.8px!important;
+  font-weight:850!important;
+}
+
+.hr-page .hr-campus-profile{
+  right:28px!important;
+  bottom:24px!important;
+  width:min(326px,29.5%)!important;
+  min-height:166px!important;
+  padding:19px 21px 15px!important;
+  border:1px solid rgba(255,255,255,.9)!important;
+  border-radius:19px!important;
+  background:rgba(255,255,255,.925)!important;
+  box-shadow:0 24px 54px rgba(28,63,105,.17)!important;
+  backdrop-filter:blur(20px) saturate(1.1)!important;
+  -webkit-backdrop-filter:blur(20px) saturate(1.1)!important;
+}
+
+.hr-page .hr-campus-profile__avatar{
+  width:52px!important;
+  height:52px!important;
+  background:linear-gradient(145deg,#0a3b7e,#0d5ea9)!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  font-size:16px!important;
+  box-shadow:0 9px 20px rgba(16,73,136,.21)!important;
+}
+
+.hr-page .hr-campus-profile__top strong{
+  color:#153969!important;
+  -webkit-text-fill-color:#153969!important;
+  font-size:12.5px!important;
+  font-weight:820!important;
+}
+
+.hr-page .hr-campus-profile__top small,
+.hr-page .hr-campus-profile__top a{
+  color:#657991!important;
+  -webkit-text-fill-color:#657991!important;
+}
+
+.hr-page .hr-campus-profile__stats small{
+  color:#8291a5!important;
+  -webkit-text-fill-color:#8291a5!important;
+}
+
+.hr-page .hr-campus-profile__stats strong{
+  color:#123f78!important;
+  -webkit-text-fill-color:#123f78!important;
+}
+
+.hr-page .hr-campus-profile__status{
+  color:#63768d!important;
+  -webkit-text-fill-color:#63768d!important;
+}
+
+@media (max-width:1320px){
+  .hr-page .hr-campus-hero{min-height:490px!important;}
+  .hr-page .hr-campus-hero::before{width:58%!important;}
+  .hr-page .hr-campus-scene{left:42.5%!important;}
+  .hr-page .hr-campus-hero__copy{width:55%!important;padding:40px 26px 34px 44px!important;}
+  .hr-page .hr-campus-hero h1{font-size:clamp(60px,5.55vw,84px)!important;}
+  .hr-page .hr-campus-profile{width:min(308px,30.5%)!important;right:20px!important;}
+}
+
+@media (max-width:1100px){
+  .hr-page .hr-campus-hero{min-height:640px!important;}
+  .hr-page .hr-campus-hero::before{
+    width:100%!important;
+    height:62%!important;
+    border-radius:0 0 32% 0 / 0 0 16% 0!important;
+  }
+  .hr-page .hr-campus-scene{left:0!important;top:38%!important;}
+  .hr-page .hr-campus-hero__copy{width:72%!important;padding:32px 36px 28px!important;}
+  .hr-page .hr-campus-hero h1{font-size:62px!important;}
+  .hr-page .hr-campus-profile{width:304px!important;max-width:46%!important;}
+}
+
+@media (max-width:760px){
+  .hr-page .hr-campus-hero{min-height:745px!important;border-radius:15px!important;}
+  .hr-page .hr-campus-hero::before{height:66%!important;border-radius:0 0 24% 0 / 0 0 10% 0!important;}
+  .hr-page .hr-campus-scene{top:50%!important;}
+  .hr-page .hr-campus-hero__copy{width:100%!important;padding:26px 20px 24px!important;}
+  .hr-page .hr-campus-hero h1{font-size:clamp(50px,14vw,68px)!important;}
+  .hr-page .hr-campus-hero__ledger{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+  .hr-page .hr-campus-hero__actions{display:grid!important;grid-template-columns:1fr 1fr!important;width:100%!important;}
+  .hr-page .hr-campus-hero__actions button{width:100%!important;}
+  .hr-page .hr-campus-profile{left:16px!important;right:16px!important;bottom:16px!important;width:auto!important;max-width:none!important;}
+}
+
+@media (max-width:520px){
+  .hr-page .hr-campus-hero{min-height:705px!important;}
+  .hr-page .hr-campus-hero::before{height:70%!important;}
+  .hr-page .hr-campus-scene{top:54%!important;}
+  .hr-page .hr-campus-hero__copy{padding:22px 15px 20px!important;}
+  .hr-page .hr-campus-hero h1{font-size:52px!important;}
+  .hr-page .hr-campus-hero__actions button{min-height:40px!important;font-size:10px!important;}
+}
