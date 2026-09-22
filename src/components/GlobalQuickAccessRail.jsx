@@ -6,7 +6,10 @@ import {
   Boxes,
   CalendarDays,
   Check,
+  ChevronRight,
   ClipboardCheck,
+  Clock3,
+  EyeOff,
   FileText,
   Gauge,
   GripVertical,
@@ -132,6 +135,105 @@ const STATIC_ITEMS = [
 
 function labelFor(item, language) {
   return language === 'vi' ? (item.labelVi || item.label) : (item.label || item.labelVi);
+}
+
+const QUICK_ACCESS_RECENT_MAX = 3;
+const QUICK_ACCESS_MODES = ['auto', 'pin', 'focus'];
+
+function descriptionFor(item, language) {
+  if (!item) return '';
+  const fromApp = language === 'vi'
+    ? (item.app?.descVi || item.app?.desc)
+    : (item.app?.desc || item.app?.descVi);
+  if (fromApp) return fromApp;
+
+  const vi = {
+    'route:dashboard': 'Tổng quan lịch làm việc, thông tin và tác vụ quan trọng.',
+    'route:apps': 'Kho ứng dụng và tiện ích dành cho giáo viên.',
+    'route:homeroom': 'Không gian quản lý lớp chủ nhiệm, học sinh và hồ sơ.',
+    'tool:gradebook-studio': 'Danh sách lớp và sổ điểm dành cho giáo viên.',
+    'action:reports': 'Tổng hợp báo cáo chuyên môn và số liệu tổ.',
+    'action:ttcm': 'Bảng tin, nhiệm vụ, nhân sự và hoạt động của tổ chuyên môn.',
+    'action:attendance': 'Mở nhanh công cụ điểm danh và theo dõi buổi học.',
+    'action:schedule': 'Kế hoạch và lịch công tác của tổ chuyên môn.',
+    'route:assessment-core': 'Ngân hàng câu hỏi, chùm bài và đề kiểm tra.',
+    'route:resource-library': 'Kho tài liệu và học liệu dùng chung.',
+  };
+  const en = {
+    'route:dashboard': 'Overview of schedules, updates and important tasks.',
+    'route:apps': 'Teacher app and utility directory.',
+    'route:homeroom': 'Homeroom students, records and class management.',
+    'tool:gradebook-studio': 'Class rosters and teacher gradebooks.',
+    'action:reports': 'Department reports and professional summaries.',
+    'action:ttcm': 'Department feed, tasks, people and professional activity.',
+    'action:attendance': 'Open attendance and lesson tracking quickly.',
+    'action:schedule': 'Department work schedule and planning.',
+    'route:assessment-core': 'Question bank, bundles and assessments.',
+    'route:resource-library': 'Shared documents and teaching resources.',
+  };
+  return (language === 'vi' ? vi : en)[item.id] || '';
+}
+
+function quickAccessNotificationKey(user) {
+  return `bes-global-notifications:${user?.id || user?.email || 'guest'}`;
+}
+
+function clampBadge(value) {
+  const count = Math.max(0, Number(value) || 0);
+  return Math.min(count, 99);
+}
+
+function notificationItemId(item = {}) {
+  const target = String(item?.target || item?.href || '').toLowerCase();
+  const source = String(item?.source || '').toLowerCase();
+  const category = String(item?.category || '').toLowerCase();
+
+  if (target.includes('attendance') || source.includes('attendance') || category === 'attendance') return 'action:attendance';
+  if (target.includes('schedule') || source.includes('schedule') || category === 'schedule') return 'action:schedule';
+  if (target.includes('homeroom') || source.includes('homeroom') || category === 'homeroom') return 'route:homeroom';
+  if (target.includes('brian-team') || target.includes('report') || source.includes('report') || category === 'report') return 'action:reports';
+  if (target.includes('ttcm') || target.includes('work-hub') || source.includes('work-hub') || source.includes('ttcm') || category === 'work') return 'action:ttcm';
+  return 'route:dashboard';
+}
+
+function readDomNumericBadge(selector) {
+  if (typeof document === 'undefined') return 0;
+  const root = document.querySelector(selector);
+  if (!root) return 0;
+  const candidates = [
+    ...root.querySelectorAll('[class*="badge"], [class*="count"], [data-count]'),
+    ...root.querySelectorAll('sup, small'),
+  ];
+  for (const node of candidates) {
+    const raw = String(node?.dataset?.count || node?.textContent || '').trim();
+    const match = raw.match(/^\d{1,3}$/);
+    if (!match) continue;
+    const style = window.getComputedStyle(node);
+    if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity || 1) <= 0.01) continue;
+    return clampBadge(match[0]);
+  }
+  return 0;
+}
+
+function readQuickAccessBadges(user) {
+  const counts = {};
+  if (typeof window === 'undefined') return counts;
+
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(quickAccessNotificationKey(user)) || '[]');
+    if (Array.isArray(parsed)) {
+      parsed.filter((item) => !item?.read).forEach((item) => {
+        const id = notificationItemId(item);
+        counts[id] = clampBadge((counts[id] || 0) + 1);
+      });
+    }
+  } catch {
+    // Notification cache is optional.
+  }
+
+  const ttcmDomCount = readDomNumericBadge('.brian-nav__ttcm-tab');
+  if (ttcmDomCount) counts['action:ttcm'] = Math.max(counts['action:ttcm'] || 0, ttcmDomCount);
+  return counts;
 }
 
 function dynamicAppItem(app) {
@@ -296,11 +398,17 @@ export default function GlobalQuickAccessRail({
   const [customizerQuery, setCustomizerQuery] = useState('');
   const [dragId, setDragId] = useState('');
   const [collapsing, setCollapsing] = useState(false);
+  const [commandQuery, setCommandQuery] = useState('');
+  const [peekItemId, setPeekItemId] = useState('');
+  const [badges, setBadges] = useState({});
   const closeTimerRef = useRef(0);
   const collapseMotionTimerRef = useRef(0);
   const layoutFrameRef = useRef(0);
   const layoutSettleTimerRef = useRef(0);
   const layoutVerifyTimerRef = useRef(0);
+  const peekTimerRef = useRef(0);
+  const badgeFrameRef = useRef(0);
+  const commandInputRef = useRef(null);
   const rootRef = useRef(null);
   const railRef = useRef(null);
   const panelRef = useRef(null);
@@ -325,8 +433,42 @@ export default function GlobalQuickAccessRail({
   const allowedIds = useMemo(() => catalog.map((item) => item.id), [catalog]);
   const allowedKey = allowedIds.join('|');
   const [config, setConfig] = useState(() => loadQuickAccessConfig(currentUser, allowedIds));
+  const mode = QUICK_ACCESS_MODES.includes(config.mode) ? config.mode : (config.pinned ? 'pin' : 'auto');
+  const pinned = mode === 'pin';
 
-  const expanded = hovered || config.pinned || customizing;
+  const selectedItems = useMemo(() => (
+    (config.items || [])
+      .map((id) => catalog.find((item) => item.id === id))
+      .filter(Boolean)
+      .slice(0, QUICK_ACCESS_MAX_ITEMS)
+  ), [catalog, config.items]);
+
+  const recentItems = useMemo(() => (
+    (config.recent || [])
+      .map((id) => catalog.find((item) => item.id === id))
+      .filter(Boolean)
+      .slice(0, QUICK_ACCESS_RECENT_MAX)
+  ), [catalog, config.recent]);
+
+  const commandResults = useMemo(() => {
+    const needle = commandQuery.trim().toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
+    if (!needle) return [];
+    return catalog
+      .filter((item) => {
+        const haystack = [
+          item.label,
+          item.labelVi,
+          item.app?.group,
+          item.app?.groupVi,
+          item.app?.desc,
+          item.app?.descVi,
+        ].filter(Boolean).join(' ').toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
+        return haystack.includes(needle);
+      })
+      .slice(0, 8);
+  }, [catalog, commandQuery, language]);
+
+  const expanded = hovered || pinned || customizing;
 
   const openRail = useCallback(() => {
     window.clearTimeout(closeTimerRef.current);
