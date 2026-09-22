@@ -187,6 +187,9 @@ jobs:
       - name: Verify Question Bank Quality Control
         run: node scripts/test-question-bank-quality-control.mjs
 
+      - name: Verify Question Bank shared read-only access
+        run: node scripts/test-question-bank-shared-readonly-access.mjs
+
       - name: Verify Question Bank public Practice
         run: node scripts/test-question-bank-public-practice.mjs
 
