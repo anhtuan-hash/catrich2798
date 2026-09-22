@@ -40,14 +40,14 @@ for (const token of [
 }
 
 for (const token of [
-  'Dashboard footer V5 fallback authority',
-  'body:has(.app-shell[data-route="dashboard"])',
+  'approved mockup authority',
+  '[data-footer-route="dashboard"]',
   "content: 'Teach Better Together ♡'",
   '.signature-footer-v50-brand',
   '.signature-footer-v50-profile',
   '.signature-footer-v50-credentials',
 ]) {
-  assert.ok(footerStyles.includes(token), `Dashboard footer V5 token missing: ${token}`);
+  assert.ok(footerStyles.includes(token), `Dashboard footer visual contract missing: ${token}`);
 }
 
 assert.ok(!/font-family\s*:/i.test(v5), 'Dashboard V5 must not override custom/regional font authority.');
