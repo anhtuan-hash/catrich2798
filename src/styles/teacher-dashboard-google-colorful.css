@@ -2219,3 +2219,132 @@ body:has(.app-shell[data-route="dashboard"]) .footer .signature-footer-v50-crede
     transform: none !important;
   }
 }
+
+
+/* Dashboard Mockup Parity V9 · final pixel-density refinement · 2026-09-22 */
+
+/* HERO: preserve artwork, tighten editorial balance. */
+.app-shell[data-route="dashboard"] .editorial-hero {
+  border-radius: 22px !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-copy {
+  padding-left: 2px !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-heading h1 {
+  line-height: .93 !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-links {
+  margin-top: 15px !important;
+}
+
+/* TODAY: remove a little dead air while keeping the doodle field. */
+.app-shell[data-route="dashboard"] .gd-calendar-header {
+  min-height: 142px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-title h2 {
+  font-size: 38px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-doodle {
+  right: 170px !important;
+  top: 22px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-today .gd-today-overview {
+  min-height: 98px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-agenda-list-today .gd-event {
+  min-height: 78px !important;
+}
+
+/* NEWSROOM: widen the story rail enough for complete two-line titles. */
+.app-shell[data-route="dashboard"] .dnh-grid {
+  grid-template-columns: minmax(0, 1.55fr) minmax(330px, .95fr) !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-featured {
+  min-height: 338px !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-featured-copy {
+  padding: 28px 32px !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-story {
+  grid-template-columns: 112px minmax(0, 1fr) !important;
+  gap: 12px !important;
+  min-height: 84px !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-story-copy strong {
+  font-size: 12.5px !important;
+  line-height: 1.32 !important;
+  -webkit-line-clamp: 2 !important;
+}
+
+/* QUICK ACTIONS: keep all six labels single-line at desktop width. */
+.app-shell[data-route="dashboard"] .gd-quick-surface .gd-surface-header {
+  min-height: 100px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-quick-surface .gd-surface-body {
+  padding: 15px 17px 18px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-quick-actions {
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, .96fr)
+    minmax(0, 1.06fr)
+    minmax(0, 1.40fr)
+    minmax(0, 1fr)
+    minmax(0, 1.08fr) !important;
+  gap: 9px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-quick-action {
+  min-height: 52px !important;
+  padding: 0 12px !important;
+  gap: 8px !important;
+  white-space: nowrap !important;
+  font-size: clamp(10.5px, .72vw, 12px) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-quick-action > span {
+  width: 30px !important;
+  height: 30px !important;
+  flex-basis: 30px !important;
+}
+
+@media (max-width: 1220px) {
+  .app-shell[data-route="dashboard"] .gd-quick-actions {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-quick-action {
+    font-size: 12px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .dnh-grid {
+    grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr) !important;
+  }
+}
+
+@media (max-width: 820px) {
+  .app-shell[data-route="dashboard"] .gd-calendar-header {
+    min-height: 132px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-quick-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-quick-action {
+    white-space: normal !important;
+  }
+}
