@@ -826,6 +826,9 @@ export default function GlobalQuickAccessRail({
 
   const peekItem = catalog.find((item) => item.id === peekItemId) || null;
   const actionMenuItem = catalog.find((item) => item.id === actionMenuItemId) || null;
+  const commandHint = typeof navigator !== 'undefined' && String(navigator.platform || '').toLowerCase().includes('mac')
+    ? '⌘K'
+    : 'Ctrl K';
 
   const quickAccessUi = (
     <>
@@ -972,7 +975,7 @@ export default function GlobalQuickAccessRail({
               <button type="button" onClick={() => { setCommandQuery(''); commandInputRef.current?.focus(); }} aria-label={language === 'vi' ? 'Xóa tìm kiếm' : 'Clear search'}>
                 <X size={14} aria-hidden="true" />
               </button>
-            ) : <kbd>{navigator?.platform?.toLowerCase?.().includes('mac') ? '⌘K' : 'Ctrl K'}</kbd>}
+            ) : <kbd>{commandHint}</kbd>}
           </label>
 
           {!commandNeedle && recentItems.length ? (
