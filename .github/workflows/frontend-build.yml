@@ -280,5 +280,8 @@ jobs:
       - name: Verify Gradebook colorful hero V1
         run: node scripts/test-gradebook-colorful-hero-v1.mjs
 
+      - name: Verify Gradebook colorful workspace V1
+        run: node scripts/test-gradebook-colorful-workspace-v1.mjs
+
       - name: Build production bundle
         run: npm run build
