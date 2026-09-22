@@ -1635,3 +1635,258 @@ body:has(.app-shell[data-route="dashboard"]) .footer .signature-footer-v50-crede
     transform: none !important;
   }
 }
+
+
+/* Dashboard Mockup Parity V4 · production screenshot convergence · 2026-09-22 */
+
+/* 1. Close the vertical rhythm gap seen between Quick Actions and the canonical footer. */
+.app-shell[data-route="dashboard"] .gd-page {
+  padding-bottom: 22px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-shell {
+  gap: 22px !important;
+}
+
+/* 2. Hero: force the live custom-font title to preserve the mockup's single-line composition. */
+.app-shell[data-route="dashboard"] .editorial-hero {
+  grid-template-columns: minmax(0, 1.2fr) minmax(430px, .8fr) !important;
+  min-height: 500px !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-copy {
+  max-width: 720px !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-heading h1 {
+  max-width: none !important;
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  word-break: keep-all !important;
+  hyphens: none !important;
+  font-size: clamp(56px, 4.55vw, 74px) !important;
+  line-height: .91 !important;
+  letter-spacing: -.072em !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-heading.is-medium-name h1 {
+  font-size: clamp(52px, 4.2vw, 69px) !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-heading.is-long-name h1 {
+  font-size: clamp(46px, 3.7vw, 62px) !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-cloudscape {
+  position: absolute;
+  z-index: 0;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  width: 100%;
+  height: 128px;
+  pointer-events: none;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-copy,
+.app-shell[data-route="dashboard"] .editorial-hero-stage {
+  z-index: 4 !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-doodles {
+  z-index: 3 !important;
+}
+
+/* Keep the approved artwork dominant on the right, matching the mockup's illustration scale. */
+.app-shell[data-route="dashboard"] .editorial-hero-visual {
+  inset: 18px -46px -42px -16px !important;
+}
+
+.app-shell[data-route="dashboard"] .editorial-hero-art {
+  width: min(112%, 760px) !important;
+  max-height: 444px !important;
+}
+
+/* 3. Today block: prevent the live custom font from stacking 22 vertically. */
+.app-shell[data-route="dashboard"] .gd-calendar-today .gd-today-overview {
+  grid-template-columns: 94px minmax(0, 1fr) auto !important;
+  gap: 20px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-today .gd-today-date-mark {
+  width: 94px !important;
+  min-width: 94px !important;
+  padding-right: 20px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-today .gd-today-date-mark strong {
+  display: block !important;
+  width: auto !important;
+  min-width: max-content !important;
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+  font-size: 52px !important;
+  line-height: .9 !important;
+  letter-spacing: -.085em !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-today .gd-today-date-mark span {
+  white-space: nowrap !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-title h2 {
+  font-size: 36px !important;
+  line-height: 1 !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-calendar-doodle {
+  right: 166px !important;
+  top: 24px !important;
+}
+
+/* 4. Newsroom: remove the dead grey area under the lead image and match the tall mockup crop. */
+.app-shell[data-route="dashboard"] .dnh-grid {
+  min-height: 350px !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-featured {
+  grid-template-columns: minmax(235px, .95fr) minmax(290px, 1.05fr) !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-featured-media {
+  position: relative !important;
+  min-height: 330px !important;
+  height: 100% !important;
+  background: #eaf3fb !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-featured-media > img {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center center !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-featured-copy {
+  padding: 26px 25px !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-featured-copy strong {
+  font-size: 23px !important;
+  line-height: 1.16 !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-list {
+  min-height: 330px !important;
+}
+
+.app-shell[data-route="dashboard"] .dnh-story {
+  min-height: 82px !important;
+}
+
+/* 5. Quick actions: the production screenshot was still too compressed compared with the mockup. */
+.app-shell[data-route="dashboard"] .gd-quick-surface .gd-surface-header {
+  min-height: 92px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-quick-surface .gd-surface-body {
+  padding: 14px 18px 18px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-quick-actions {
+  gap: 11px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-quick-action {
+  min-height: 50px !important;
+  padding: 0 16px !important;
+  border-radius: 14px !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-quick-action > span {
+  width: 31px !important;
+  height: 31px !important;
+}
+
+/* Desktop-only fine positioning from the reference mockup. */
+@media (min-width: 1181px) {
+  .app-shell[data-route="dashboard"] .editorial-plane-doodle {
+    top: 70px !important;
+    left: 38.5% !important;
+  }
+  .app-shell[data-route="dashboard"] .editorial-sun-doodle {
+    top: 151px !important;
+    left: 55.5% !important;
+  }
+  .app-shell[data-route="dashboard"] .editorial-swoosh-doodle {
+    top: 229px !important;
+    left: 52% !important;
+  }
+  .app-shell[data-route="dashboard"] .editorial-hero-note {
+    top: 276px !important;
+    left: 45.2% !important;
+  }
+}
+
+@media (max-width: 1180px) {
+  .app-shell[data-route="dashboard"] .editorial-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(420px, 1fr) !important;
+  }
+  .app-shell[data-route="dashboard"] .editorial-hero-heading h1 {
+    font-size: clamp(48px, 4.8vw, 62px) !important;
+  }
+}
+
+@media (max-width: 920px) {
+  .app-shell[data-route="dashboard"] .editorial-hero {
+    grid-template-columns: 1fr !important;
+  }
+
+  .app-shell[data-route="dashboard"] .editorial-hero-cloudscape {
+    height: 100px;
+  }
+
+  .app-shell[data-route="dashboard"] .editorial-hero-heading h1 {
+    white-space: normal !important;
+    word-break: normal !important;
+  }
+
+  .app-shell[data-route="dashboard"] .dnh-featured {
+    grid-template-columns: minmax(220px, .9fr) minmax(0, 1.1fr) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-shell[data-route="dashboard"] .dnh-featured {
+    grid-template-columns: 1fr !important;
+  }
+
+  .app-shell[data-route="dashboard"] .dnh-featured-media {
+    min-height: 230px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-shell[data-route="dashboard"] .gd-page {
+    padding-bottom: 12px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-calendar-today .gd-today-overview {
+    grid-template-columns: 72px minmax(0, 1fr) !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-calendar-today .gd-today-date-mark {
+    width: 72px !important;
+    min-width: 72px !important;
+    padding-right: 12px !important;
+  }
+
+  .app-shell[data-route="dashboard"] .gd-calendar-today .gd-today-date-mark strong {
+    font-size: 42px !important;
+  }
+}
