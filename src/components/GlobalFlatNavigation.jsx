@@ -107,7 +107,7 @@ export default function GlobalFlatNavigation(props) {
       chrome.style.setProperty('inset', 'auto', 'important');
       chrome.style.setProperty('transform', 'none', 'important');
       chrome.style.setProperty('translate', 'none', 'important');
-      chrome.style.setProperty('width', 'min(1520px, calc(100% - clamp(32px, 6vw, 96px)))', 'important');
+      chrome.style.setProperty('width', 'var(--dashboard-shell-width)', 'important');
       chrome.style.setProperty('max-width', '1520px', 'important');
       chrome.style.setProperty('margin', '8px auto 0', 'important');
     } else if (chrome.dataset.dashboardStaticChrome === 'true') {

@@ -20,7 +20,7 @@ assert.ok(
 );
 
 for (const token of [
-  'Mockup Parity V10',
+  'Mockup Parity V11',
   '[data-footer-route="dashboard"]',
   'padding: 14px 14px 64px !important',
   '.signature-footer-v50-brand',
@@ -32,7 +32,7 @@ for (const token of [
 }
 
 assert.equal(
-  (footer.match(/Dashboard footer — Mockup Parity V10/g) || []).length,
+  (footer.match(/Dashboard footer — Mockup Parity V11/g) || []).length,
   1,
   'Dashboard footer must have one visual authority layer only.',
 );

@@ -34,7 +34,7 @@ for (const token of [
 }
 
 for (const token of [
-  'Dashboard footer — Mockup Parity V10',
+  'Dashboard footer — Mockup Parity V11',
   'padding: 14px 14px 64px !important',
   'min-height: 258px !important',
   'min-height: 35px !important',
@@ -45,7 +45,7 @@ for (const token of [
 }
 
 for (const token of [
-  'Mockup Parity V10',
+  'Mockup Parity V11',
   'min-height: 52px !important',
   'min-height: 41px !important',
   'margin: 8px auto 0 !important',

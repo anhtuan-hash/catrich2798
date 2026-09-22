@@ -41,7 +41,7 @@ for (const token of [
 }
 
 for (const token of [
-  'Mockup Parity V10',
+  'Mockup Parity V11',
   '[data-footer-route="dashboard"]',
   '.signature-footer-v50-brand',
   '.signature-footer-v50-profile',

@@ -1,5 +1,9 @@
-/* Dashboard top chrome — Mockup Parity V10.
-   One authority only. Aligns navigation + newswire to the exact .gd-shell width. */
+/* Dashboard top chrome — Mockup Parity V11.
+   One authority only. Aligns navigation + newswire to the exact Dashboard grid. */
+
+.app-shell[data-route="dashboard"] {
+  --dashboard-shell-width: min(1520px, calc(100% - clamp(32px, 6vw, 96px)));
+}
 
 html body:has(.app-shell[data-route="dashboard"]) .bes-top-chrome,
 .app-shell[data-route="dashboard"] > .bes-top-chrome,
@@ -12,7 +16,7 @@ html body:has(.app-shell[data-route="dashboard"]) .bes-top-chrome,
   inset: auto !important;
   z-index: 120 !important;
   display: block !important;
-  width: min(1520px, calc(100% - clamp(32px, 6vw, 96px))) !important;
+  width: var(--dashboard-shell-width) !important;
   max-width: 1520px !important;
   margin: 8px auto 0 !important;
   transform: none !important;

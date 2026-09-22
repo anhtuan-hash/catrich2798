@@ -33,7 +33,7 @@ for (const token of [
 }
 
 for (const token of [
-  'Mockup Parity V10',
+  'Mockup Parity V11',
   '.app-shell[data-route="dashboard"] > .bes-top-chrome',
   'position: static !important',
   '.brian-newswire',
@@ -43,7 +43,7 @@ for (const token of [
 }
 
 for (const token of [
-  'Mockup Parity V10',
+  'Mockup Parity V11',
   '[data-footer-route="dashboard"]',
   'padding: 14px 14px 64px !important',
   '.signature-footer-dashboard-landscape',
@@ -54,7 +54,7 @@ for (const token of [
 assert.ok(footer.includes('Teach Better Together ♡'), 'Dashboard footer sign-off must remain in the real DOM artwork.');
 
 assert.ok(
-  !/Mockup Parity V10[\s\S]*font-family\s*:/i.test(chromeCss),
+  !/Mockup Parity V11[\s\S]*font-family\s*:/i.test(chromeCss),
   'Dashboard top chrome V6 must not override custom/regional font authority.',
 );
 
