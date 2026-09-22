@@ -42,7 +42,7 @@ for (const token of [
   'position: fixed',
   'pointer-events: none',
   'translate3d',
-  '320px',
+  '318px',
   '@media (max-width: 760px), (hover: none)',
   '@media (prefers-reduced-motion: reduce)',
 ]) {
