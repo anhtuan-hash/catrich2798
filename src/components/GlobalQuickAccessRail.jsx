@@ -43,6 +43,8 @@ import {
   QUICK_ACCESS_MOTIONS,
   QUICK_ACCESS_DENSITIES,
   QUICK_ACCESS_SIDES,
+  QUICK_ACCESS_WORKFLOW_MAX,
+  QUICK_ACCESS_WORKFLOW_STEPS_MAX,
   createDefaultQuickAccessConfig,
   loadQuickAccessConfig,
   loadQuickAccessConfigFromCloud,
@@ -414,6 +416,39 @@ function runAction(item, sourceEl) {
 const QUICK_ACCESS_HISTORY_MAX = 6;
 const QUICK_ACCESS_RESUME_MAX = 4;
 
+function quickAccessWorkflowRunStorageKey(user) {
+  return `bes-quick-access-workflow-run:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessWorkflowRun(user) {
+  if (typeof window === 'undefined') return null;
+  try {
+    const value = JSON.parse(window.sessionStorage?.getItem(quickAccessWorkflowRunStorageKey(user)) || 'null');
+    if (!value || typeof value !== 'object') return null;
+    const workflowId = String(value.workflowId || '').trim();
+    const nextIndex = Math.max(0, Number(value.nextIndex) || 0);
+    return workflowId ? { workflowId, nextIndex } : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveQuickAccessWorkflowRun(user, value) {
+  if (typeof window === 'undefined') return;
+  try {
+    if (!value?.workflowId) {
+      window.sessionStorage?.removeItem(quickAccessWorkflowRunStorageKey(user));
+      return;
+    }
+    window.sessionStorage?.setItem(
+      quickAccessWorkflowRunStorageKey(user),
+      JSON.stringify({ workflowId: String(value.workflowId), nextIndex: Math.max(0, Number(value.nextIndex) || 0) }),
+    );
+  } catch {
+    // Workflow run state is best effort.
+  }
+}
+
 function quickAccessHistoryUserKey(user) {
   return String(user?.id || user?.authId || user?.email || 'guest').trim().toLowerCase();
 }
@@ -569,6 +604,10 @@ export default function GlobalQuickAccessRail({
   const [commandPaletteQuery, setCommandPaletteQuery] = useState('');
   const [commandPaletteIndex, setCommandPaletteIndex] = useState(0);
   const [quickCreateOpen, setQuickCreateOpen] = useState(false);
+  const [workflowCenterOpen, setWorkflowCenterOpen] = useState(false);
+  const [workflowDraftName, setWorkflowDraftName] = useState('');
+  const [workflowDraftIds, setWorkflowDraftIds] = useState([]);
+  const [activeWorkflowRun, setActiveWorkflowRun] = useState(() => loadQuickAccessWorkflowRun(currentUser));
   const [backStack, setBackStack] = useState(() => loadQuickAccessHistory(currentUser));
   const [backStackOpen, setBackStackOpen] = useState(false);
   const [resumeItems, setResumeItems] = useState(() => loadQuickAccessResume(currentUser));
@@ -639,7 +678,7 @@ export default function GlobalQuickAccessRail({
   const showLabels = config.labels !== false;
   const pinned = sidebarMode === 'pin';
   const focusMode = sidebarMode === 'focus';
-  const expanded = hovered || pinned || customizing || notificationCenterOpen;
+  const expanded = hovered || pinned || customizing || notificationCenterOpen || workflowCenterOpen;
 
   const openRail = useCallback(() => {
     window.clearTimeout(closeTimerRef.current);
@@ -680,11 +719,11 @@ export default function GlobalQuickAccessRail({
   }, []);
 
   const collapseRail = useCallback((force = false) => {
-    if (!force && (pinned || customizing || notificationCenterOpen)) return;
+    if (!force && (pinned || customizing || notificationCenterOpen || workflowCenterOpen)) return;
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
 
-    if (hovered || pinned || customizing || notificationCenterOpen) {
+    if (hovered || pinned || customizing || notificationCenterOpen || workflowCenterOpen) {
       setCollapsing(true);
       setHovered(false);
       collapseMotionTimerRef.current = window.setTimeout(() => {
@@ -695,15 +734,15 @@ export default function GlobalQuickAccessRail({
 
     setHovered(false);
     setBackStackOpen(false);
-  }, [pinned, customizing, notificationCenterOpen, hovered]);
+  }, [pinned, customizing, notificationCenterOpen, workflowCenterOpen, hovered]);
 
   useEffect(() => {
-    if (!notificationCenterOpen || typeof window === 'undefined') return;
+    if ((!notificationCenterOpen && !workflowCenterOpen) || typeof window === 'undefined') return;
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
     setCollapsing(false);
     setHovered(true);
-  }, [notificationCenterOpen]);
+  }, [notificationCenterOpen, workflowCenterOpen]);
 
   useEffect(() => {
     if (!currentUser || !allowedIds.length) return undefined;
@@ -1581,7 +1620,7 @@ export default function GlobalQuickAccessRail({
 
   const leave = () => {
     window.clearTimeout(closeTimerRef.current);
-    if (pinned || customizing || notificationCenterOpen) return;
+    if (pinned || customizing || notificationCenterOpen || workflowCenterOpen) return;
     closeTimerRef.current = window.setTimeout(() => collapseRail(false), 340);
   };
 
