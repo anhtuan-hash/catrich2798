@@ -141,6 +141,62 @@ function labelFor(item, language) {
   return language === 'vi' ? (item.labelVi || item.label) : (item.label || item.labelVi);
 }
 
+function descriptionFor(item, language) {
+  if (!item) return '';
+  if (language === 'vi') {
+    return item.descriptionVi
+      || item.app?.descriptionVi
+      || item.app?.description
+      || 'Mở nhanh ứng dụng hoặc tính năng này.';
+  }
+  return item.description
+    || item.app?.description
+    || item.app?.descriptionVi
+    || 'Open this app or feature quickly.';
+}
+
+function contextIdsFor(currentRoute, selectedTool) {
+  if (currentRoute === 'homeroom') return ['action:attendance', 'tool:gradebook-studio', 'route:resource-library'];
+  if (currentRoute === 'assessment-core') return ['route:resource-library', 'route:apps', 'route:dashboard'];
+  if (currentRoute === 'resource-library') return ['route:assessment-core', 'route:apps', 'route:dashboard'];
+  if (currentRoute === 'tool' && selectedTool?.slug === 'brian-team') return ['action:ttcm', 'action:schedule', 'route:resource-library'];
+  if (currentRoute === 'tool' && selectedTool?.slug === 'gradebook-studio') return ['route:homeroom', 'action:attendance', 'route:dashboard'];
+  if (currentRoute === 'apps') return ['route:dashboard', 'route:assessment-core', 'route:resource-library'];
+  return ['route:apps', 'route:homeroom', 'action:attendance'];
+}
+
+function quickActionDescriptors(item, language) {
+  const vi = language === 'vi';
+  if (!item) return [];
+  if (item.id === 'action:ttcm') {
+    return [
+      { id: 'ttcm-feed', label: vi ? 'Mở kênh TTCM' : 'Open TTCM feed', action: 'ttcm-feed' },
+      { id: 'ttcm-schedule', label: vi ? 'Mở kế hoạch' : 'Open schedule', action: 'ttcm-schedule' },
+      { id: 'ttcm-personnel', label: vi ? 'Nhân sự tổ' : 'Department people', action: 'ttcm-personnel' },
+    ];
+  }
+  if (item.id === 'action:schedule') {
+    return [
+      { id: 'ttcm-schedule', label: vi ? 'Mở lịch làm việc' : 'Open work schedule', action: 'ttcm-schedule' },
+      { id: 'ttcm-feed', label: vi ? 'Kênh TTCM' : 'TTCM feed', action: 'ttcm-feed' },
+    ];
+  }
+  if (item.id === 'action:attendance') {
+    return [{ id: 'attendance', label: vi ? 'Điểm danh ngay' : 'Open attendance', action: 'attendance' }];
+  }
+  return [{ id: 'open', label: vi ? 'Mở ứng dụng' : 'Open app', action: 'open' }];
+}
+
+function readBadgeSnapshot() {
+  if (typeof document === 'undefined') return {};
+  const next = {};
+  const ttcmBadge = document.querySelector('.brian-nav__ttcm-badge');
+  if (ttcmBadge) next['action:ttcm'] = String(ttcmBadge.textContent || '').trim();
+  const reportCountdown = document.querySelector('.brian-nav__reports-countdown');
+  if (reportCountdown) next['action:reports'] = 'dot';
+  return next;
+}
+
 function dynamicAppItem(app) {
   const route = String(app?.route || '').trim();
   const slug = String(app?.slug || '').trim();
