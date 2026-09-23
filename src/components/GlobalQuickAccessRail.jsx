@@ -506,6 +506,58 @@ function saveQuickAccessWorkflowRun(user, value) {
   }
 }
 
+const QUICK_ACCESS_SPATIAL_SCROLL_MAX = 24;
+
+function quickAccessSpatialStorageKey(user) {
+  return `bes-quick-access-spatial-v1:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessSpatialMemory(user) {
+  const fallback = { workspace: '', side: '', lastItemId: '', scroll: {}, updatedAt: 0 };
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const raw = JSON.parse(window.localStorage?.getItem(quickAccessSpatialStorageKey(user)) || 'null');
+    if (!raw || typeof raw !== 'object') return fallback;
+    const scrollEntries = Object.entries(raw.scroll && typeof raw.scroll === 'object' ? raw.scroll : {})
+      .filter(([key, value]) => key && Number.isFinite(Number(value)))
+      .slice(-QUICK_ACCESS_SPATIAL_SCROLL_MAX);
+    return {
+      workspace: QUICK_ACCESS_WORKSPACES.includes(String(raw.workspace || '')) ? String(raw.workspace) : '',
+      side: QUICK_ACCESS_SIDES.includes(String(raw.side || '')) ? String(raw.side) : '',
+      lastItemId: String(raw.lastItemId || '').trim(),
+      scroll: Object.fromEntries(scrollEntries.map(([key, value]) => [key, Math.max(0, Number(value) || 0)])),
+      updatedAt: Number(raw.updatedAt) || 0,
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+function saveQuickAccessSpatialMemory(user, memory) {
+  if (typeof window === 'undefined') return;
+  try {
+    const scrollEntries = Object.entries(memory?.scroll && typeof memory.scroll === 'object' ? memory.scroll : {})
+      .filter(([key, value]) => key && Number.isFinite(Number(value)))
+      .slice(-QUICK_ACCESS_SPATIAL_SCROLL_MAX);
+    const safe = {
+      workspace: QUICK_ACCESS_WORKSPACES.includes(String(memory?.workspace || '')) ? String(memory.workspace) : '',
+      side: QUICK_ACCESS_SIDES.includes(String(memory?.side || '')) ? String(memory.side) : '',
+      lastItemId: String(memory?.lastItemId || '').trim(),
+      scroll: Object.fromEntries(scrollEntries.map(([key, value]) => [key, Math.max(0, Number(value) || 0)])),
+      updatedAt: Number(memory?.updatedAt) || Date.now(),
+    };
+    window.localStorage?.setItem(quickAccessSpatialStorageKey(user), JSON.stringify(safe));
+  } catch {
+    // Device-local spatial memory is best effort.
+  }
+}
+
+function spatialContextKey(currentRoute, selectedTool, workspace) {
+  const route = String(currentRoute || 'unknown').trim() || 'unknown';
+  const tool = String(selectedTool?.slug || '').trim();
+  return `${workspace || 'all'}:${route}${tool ? `:${tool}` : ''}`;
+}
+
 function quickAccessClassroomModeStorageKey(user) {
   return `bes-quick-access-classroom-mode:${quickAccessHistoryUserKey(user)}`;
 }
@@ -686,6 +738,7 @@ export default function GlobalQuickAccessRail({
   const [workflowDraftIds, setWorkflowDraftIds] = useState([]);
   const [activeWorkflowRun, setActiveWorkflowRun] = useState(() => loadQuickAccessWorkflowRun(currentUser));
   const [classroomMode, setClassroomMode] = useState(() => loadQuickAccessClassroomMode(currentUser));
+  const [deviceSpatial, setDeviceSpatial] = useState(() => loadQuickAccessSpatialMemory(currentUser));
   const [timeTick, setTimeTick] = useState(() => Date.now());
   const [backStack, setBackStack] = useState(() => loadQuickAccessHistory(currentUser));
   const [backStackOpen, setBackStackOpen] = useState(false);
@@ -713,6 +766,7 @@ export default function GlobalQuickAccessRail({
   const capsuleTimerRef = useRef(0);
   const magneticTimerRef = useRef(0);
   const badgeFrameRef = useRef(0);
+  const spatialScrollTimerRef = useRef(0);
   const commandInputRef = useRef(null);
   const commandPaletteInputRef = useRef(null);
   const layoutFrameRef = useRef(0);
@@ -748,11 +802,18 @@ export default function GlobalQuickAccessRail({
   const [config, setConfig] = useState(() => loadQuickAccessConfig(currentUser, allowedIds));
 
   const sidebarMode = config.mode || (config.pinned ? 'pin' : 'auto');
-  const workspace = QUICK_ACCESS_WORKSPACES.includes(config.workspace) ? config.workspace : 'all';
+  const spatialMemoryEnabled = config.spatialMemory !== false;
+  const configWorkspace = QUICK_ACCESS_WORKSPACES.includes(config.workspace) ? config.workspace : 'all';
+  const configRailSide = QUICK_ACCESS_SIDES.includes(config.side) ? config.side : 'left';
+  const workspace = spatialMemoryEnabled && QUICK_ACCESS_WORKSPACES.includes(deviceSpatial.workspace)
+    ? deviceSpatial.workspace
+    : configWorkspace;
   const railSize = QUICK_ACCESS_SIZES.includes(config.size) ? config.size : 'm';
   const motionMode = QUICK_ACCESS_MOTIONS.includes(config.motion) ? config.motion : 'fluid';
   const density = QUICK_ACCESS_DENSITIES.includes(config.density) ? config.density : 'comfortable';
-  const railSide = QUICK_ACCESS_SIDES.includes(config.side) ? config.side : 'left';
+  const railSide = spatialMemoryEnabled && QUICK_ACCESS_SIDES.includes(deviceSpatial.side)
+    ? deviceSpatial.side
+    : configRailSide;
   const visualTheme = QUICK_ACCESS_THEMES.includes(config.theme) ? config.theme : 'glass';
   const hoverDelay = Math.max(80, Math.min(700, Number(config.hoverDelay) || 220));
   const showLabels = config.labels !== false;
@@ -849,6 +910,7 @@ export default function GlobalQuickAccessRail({
   useEffect(() => {
     setActiveWorkflowRun(loadQuickAccessWorkflowRun(currentUser));
     setClassroomMode(loadQuickAccessClassroomMode(currentUser));
+    setDeviceSpatial(loadQuickAccessSpatialMemory(currentUser));
     setWorkflowCenterOpen(false);
     setWorkflowDraftName('');
     setWorkflowDraftIds([]);
@@ -880,12 +942,24 @@ export default function GlobalQuickAccessRail({
     };
   }, []);
 
+  useEffect(() => {
+    if (!spatialMemoryEnabled || !expanded || typeof window === 'undefined') return undefined;
+    const key = spatialContextKey(currentRoute, selectedTool, workspace);
+    const top = Math.max(0, Number(deviceSpatial.scroll?.[key]) || 0);
+    const frame = window.requestAnimationFrame(() => {
+      const panel = panelRef.current;
+      if (panel && Math.abs(panel.scrollTop - top) > 1) panel.scrollTop = top;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [spatialMemoryEnabled, expanded, currentRoute, selectedTool?.slug, workspace]);
+
   useEffect(() => () => {
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
     window.clearTimeout(peekTimerRef.current);
     window.clearTimeout(capsuleTimerRef.current);
     window.clearTimeout(magneticTimerRef.current);
+    window.clearTimeout(spatialScrollTimerRef.current);
     window.cancelAnimationFrame(badgeFrameRef.current);
   }, []);
 
@@ -1548,7 +1622,11 @@ export default function GlobalQuickAccessRail({
         : 'Notifications, badges and administrative tools are hidden for safer presenting.',
     }
     : contextCopyFor(currentRoute, selectedTool, language);
+  const lastSpatialItem = spatialMemoryEnabled
+    ? presentationCatalog.find((item) => item.id === deviceSpatial.lastItemId && workspaceAllowsItem(effectiveWorkspace, item)) || null
+    : null;
   const workingItem = workspaceItems.find((item) => activeItem(item, currentRoute, selectedTool))
+    || lastSpatialItem
     || contextItems[0]
     || recentItems[0]
     || workspaceItems[0]
@@ -1765,13 +1843,57 @@ export default function GlobalQuickAccessRail({
     });
   };
 
+  const updateSpatialMemory = (patchOrUpdater) => {
+    setDeviceSpatial((current) => {
+      const patch = typeof patchOrUpdater === 'function'
+        ? patchOrUpdater(current)
+        : patchOrUpdater;
+      const next = {
+        ...current,
+        ...(patch && typeof patch === 'object' ? patch : {}),
+        updatedAt: Date.now(),
+      };
+      saveQuickAccessSpatialMemory(currentUser, next);
+      return next;
+    });
+  };
+
+  const clearDeviceSpatialMemory = () => {
+    const next = { workspace: '', side: '', lastItemId: '', scroll: {}, updatedAt: Date.now() };
+    setDeviceSpatial(next);
+    saveQuickAccessSpatialMemory(currentUser, next);
+    if (panelRef.current) panelRef.current.scrollTop = 0;
+  };
+
   const setWorkspace = (nextWorkspace) => {
     const safeWorkspace = QUICK_ACCESS_WORKSPACES.includes(nextWorkspace) ? nextWorkspace : 'all';
-    persist({ ...config, workspace: safeWorkspace });
+    if (spatialMemoryEnabled) updateSpatialMemory({ workspace: safeWorkspace });
+    else persist({ ...config, workspace: safeWorkspace });
     setQuickCreateOpen(false);
     setWorkflowCenterOpen(false);
     setCommandQuery('');
     setCommandActiveIndex(0);
+  };
+
+  const setRailSide = (nextSide) => {
+    const safeSide = QUICK_ACCESS_SIDES.includes(nextSide) ? nextSide : 'left';
+    if (spatialMemoryEnabled) updateSpatialMemory({ side: safeSide });
+    else persist({ ...config, side: safeSide });
+  };
+
+  const setSpatialMemoryEnabled = (enabled) => {
+    const nextEnabled = Boolean(enabled);
+    if (nextEnabled) {
+      updateSpatialMemory({ workspace, side: railSide });
+      persist({ ...config, spatialMemory: true });
+      return;
+    }
+    persist({
+      ...config,
+      spatialMemory: false,
+      workspace,
+      side: railSide,
+    });
   };
 
   const setClassroomPresentationMode = (enabled) => {
@@ -1815,6 +1937,7 @@ export default function GlobalQuickAccessRail({
 
   const activateItem = (item, sourceEl) => {
     if (!item) return;
+    if (spatialMemoryEnabled) updateSpatialMemory({ lastItemId: item.id });
     const recent = [item.id, ...(config.recent || []).filter((id) => id !== item.id)].slice(0, QUICK_ACCESS_RECENT_MAX);
     const nextConfig = { ...config, recent };
     setConfig(nextConfig);
@@ -2031,7 +2154,10 @@ export default function GlobalQuickAccessRail({
     persist({ ...config, items: [...config.items, id] });
   };
 
-  const reset = () => persist(createDefaultQuickAccessConfig(allowedIds));
+  const reset = () => {
+    clearDeviceSpatialMemory();
+    persist(createDefaultQuickAccessConfig(allowedIds));
+  };
 
   const moveDraggedBefore = (targetId) => {
     if (!dragId || dragId === targetId) return;
@@ -2167,6 +2293,7 @@ export default function GlobalQuickAccessRail({
         data-side={railSide}
         data-theme-style={visualTheme}
         data-labels={showLabels ? 'show' : 'hide'}
+        data-spatial-memory={spatialMemoryEnabled ? 'true' : 'false'}
         data-time-aware={timeAwareEnabled ? 'true' : 'false'}
         data-time-band={timeContext.id}
         style={{ '--bqa-magnet': magneticStrength }}
@@ -2469,6 +2596,17 @@ export default function GlobalQuickAccessRail({
           className="bqa-panel"
           onPointerEnter={openRail}
           onMouseEnter={openRail}
+          onScroll={(event) => {
+            if (!spatialMemoryEnabled || typeof window === 'undefined') return;
+            const top = Math.max(0, Number(event.currentTarget.scrollTop) || 0);
+            const key = spatialContextKey(currentRoute, selectedTool, workspace);
+            window.clearTimeout(spatialScrollTimerRef.current);
+            spatialScrollTimerRef.current = window.setTimeout(() => {
+              updateSpatialMemory((current) => ({
+                scroll: { ...(current.scroll || {}), [key]: top },
+              }));
+            }, 120);
+          }}
           aria-hidden={!expanded}
           inert={expanded ? undefined : true}
           onAnimationEnd={(event) => {
@@ -3220,7 +3358,7 @@ export default function GlobalQuickAccessRail({
                 <span>{language === 'vi' ? 'Vị trí' : 'Side'}</span>
                 <div className="bqa-segmented">
                   {QUICK_ACCESS_SIDES.map((side) => (
-                    <button type="button" key={side} className={railSide === side ? 'is-active' : ''} onClick={() => updatePersonalization({ side })}>
+                    <button type="button" key={side} className={railSide === side ? 'is-active' : ''} onClick={() => setRailSide(side)}>
                       {side === 'left' ? (language === 'vi' ? 'Trái' : 'Left') : (language === 'vi' ? 'Phải' : 'Right')}
                     </button>
                   ))}
@@ -3252,6 +3390,21 @@ export default function GlobalQuickAccessRail({
                 <span>{language === 'vi' ? 'Ưu tiên theo thời gian' : 'Time-aware priorities'}</span>
                 <input type="checkbox" checked={timeAwareEnabled} onChange={(event) => updatePersonalization({ timeAware: event.target.checked })} />
               </label>
+
+              <div className="bqa-spatial-control">
+                <label className="bqa-personalize-toggle">
+                  <span>
+                    {language === 'vi' ? 'Ghi nhớ bố cục trên thiết bị' : 'Remember layout on this device'}
+                    <small>{language === 'vi' ? 'Vị trí · không gian · ứng dụng cuối · độ cuộn' : 'Side · workspace · last app · scroll position'}</small>
+                  </span>
+                  <input type="checkbox" checked={spatialMemoryEnabled} onChange={(event) => setSpatialMemoryEnabled(event.target.checked)} />
+                </label>
+                {spatialMemoryEnabled ? (
+                  <button type="button" onClick={clearDeviceSpatialMemory}>
+                    {language === 'vi' ? 'Quên bố cục thiết bị' : 'Forget device layout'}
+                  </button>
+                ) : null}
+              </div>
             </section>
 
             <div className="bqa-customizer-selected">

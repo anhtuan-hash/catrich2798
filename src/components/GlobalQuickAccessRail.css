@@ -5396,3 +5396,85 @@ html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-
     transition: none !important;
   }
 }
+
+
+/* Brian Quick Access V4.12 · device spatial memory · 2026-09-23 */
+.bqa-spatial-control {
+  display: grid;
+  gap: 6px;
+  margin-top: 3px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(116,147,178,.13);
+}
+
+.bqa-spatial-control .bqa-personalize-toggle {
+  margin: 0;
+}
+
+.bqa-spatial-control .bqa-personalize-toggle > span {
+  display: grid;
+  gap: 2px;
+}
+
+.bqa-spatial-control .bqa-personalize-toggle small {
+  color: #8b9baa;
+  font-size: 7.7px;
+  font-weight: 520;
+  line-height: 1.3;
+}
+
+.bqa-spatial-control > button {
+  appearance: none;
+  justify-self: start;
+  min-height: 28px;
+  padding: 0 9px;
+  border: 1px solid rgba(104,132,160,.17);
+  border-radius: 9px;
+  color: #6b7e90;
+  background: rgba(247,250,253,.92);
+  font: inherit;
+  font-size: 8.2px;
+  font-weight: 730;
+  cursor: pointer;
+  transition: border-color 140ms ease,background-color 140ms ease,color 140ms ease;
+}
+
+.bqa-spatial-control > button:hover,
+.bqa-spatial-control > button:focus-visible {
+  border-color: rgba(77,111,165,.28);
+  color: #405d79;
+  background: #fff;
+  outline: none;
+}
+
+.bqa-root[data-spatial-memory="true"] .bqa-panel-header {
+  position: relative;
+}
+
+.bqa-root[data-spatial-memory="true"] .bqa-panel-header::after {
+  content: '';
+  position: absolute;
+  right: 14px;
+  bottom: -1px;
+  width: 22px;
+  height: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb,var(--bqa-theme-accent,#2e75b6) 45%,transparent);
+  opacity: .38;
+  pointer-events: none;
+}
+
+.bqa-root[data-side="right"][data-spatial-memory="true"] .bqa-panel-header::after {
+  right: auto;
+  left: 14px;
+}
+
+.bqa-root[data-motion-mode="reduced"] .bqa-spatial-control > button {
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bqa-spatial-control > button {
+    transition: none !important;
+  }
+}

@@ -54,7 +54,8 @@ assert.ok(prefs.includes('workflows: []'), 'Quick Access defaults to no saved wo
 assert.ok(prefs.includes('timeAware: true'), 'Quick Access defaults to time-aware priorities enabled.');
 assert.ok(prefs.includes("theme: 'glass'"), 'Quick Access defaults to the Glass sidebar theme.');
 assert.ok(prefs.includes("['glass', 'paper', 'color', 'minimal']"), 'Quick Access must persist the supported sidebar themes.');
-assert.ok(prefs.includes('version: 7'), 'Quick Access preference schema must be V7 for sidebar themes.');
+assert.ok(prefs.includes('spatialMemory: true'), 'Quick Access defaults to device spatial memory enabled.');
+assert.ok(prefs.includes('version: 8'), 'Quick Access preference schema must be V8 for device spatial memory.');
 assert.match(prefs, /QUICK_ACCESS_WORKFLOW_MAX\s*=\s*4/, 'Quick Access must cap saved workflow bundles at 4.');
 assert.match(prefs, /QUICK_ACCESS_WORKFLOW_STEPS_MAX\s*=\s*5/, 'Quick Access must cap workflow steps at 5.');
 assert.ok(prefs.includes('cleanWorkflows'), 'Quick Access must permission-filter persisted workflow bundles.');
@@ -136,6 +137,18 @@ for (const token of [
   'QUICK_ACCESS_THEMES.map',
   'bqa-theme-picker',
   'bqa-theme-preview',
+  'quickAccessSpatialStorageKey',
+  'loadQuickAccessSpatialMemory',
+  'saveQuickAccessSpatialMemory',
+  'spatialContextKey',
+  'deviceSpatial',
+  'spatialMemoryEnabled',
+  'updateSpatialMemory',
+  'clearDeviceSpatialMemory',
+  'setSpatialMemoryEnabled',
+  'setRailSide',
+  'data-spatial-memory={spatialMemoryEnabled',
+  'spatialScrollTimerRef',
   'dataset.brianClassroomMode',
   'bes-classroom-presentation-mode',
   'bqa-rail-classroom',
@@ -279,6 +292,9 @@ for (const token of [
   'Brian Quick Access V4.9 · time-aware workspace',
   'Brian Quick Access V4.10 · classroom presentation mode',
   'Brian Quick Access V4.11 · sidebar themes',
+  'Brian Quick Access V4.12 · device spatial memory',
+  '.bqa-spatial-control',
+  '[data-spatial-memory="true"]',
   '[data-theme-style="glass"]',
   '[data-theme-style="paper"]',
   '[data-theme-style="color"]',
@@ -383,4 +399,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access V4.11 adds account-synced Glass, Paper, Color and Minimal sidebar themes with workspace-aware accents while preserving Classroom Mode, time-aware priorities, true mirror geometry and custom fonts.');
+console.log('PASS: Quick Access V4.12 adds device-local spatial memory for side, workspace, last app and panel scroll position while preserving account themes, Classroom Mode, true mirror geometry and custom fonts.');
