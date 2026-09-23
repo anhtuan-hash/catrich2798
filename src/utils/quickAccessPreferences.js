@@ -9,7 +9,7 @@ export const QUICK_ACCESS_WORKSPACES = ['all', 'teaching', 'homeroom', 'departme
 export const QUICK_ACCESS_SIZES = ['s', 'm', 'l'];
 export const QUICK_ACCESS_MOTIONS = ['reduced', 'normal', 'fluid'];
 export const QUICK_ACCESS_DENSITIES = ['compact', 'comfortable'];
-export const QUICK_ACCESS_SIDES = ['left', 'right'];
+export const QUICK_ACCESS_SIDES = ['left'];
 export const QUICK_ACCESS_THEMES = ['glass', 'paper', 'color', 'minimal'];
 export const QUICK_ACCESS_WORKFLOW_MAX = 4;
 export const QUICK_ACCESS_WORKFLOW_STEPS_MAX = 5;
@@ -86,7 +86,7 @@ export function createDefaultQuickAccessConfig(allowedIds = []) {
   const preferred = DEFAULT_QUICK_ACCESS_IDS.filter((id) => !allowed.size || allowed.has(id));
   const fallback = (Array.isArray(allowedIds) ? allowedIds : []).filter((id) => !preferred.includes(id));
   return {
-    version: 9,
+    version: 10,
     items: [...preferred, ...fallback].slice(0, QUICK_ACCESS_MAX_ITEMS),
     recent: [],
     workspace: 'all',
@@ -129,8 +129,9 @@ export function normalizeQuickAccessConfig(raw, allowedIds = []) {
   const motion = QUICK_ACCESS_MOTIONS.includes(requestedMotion) ? requestedMotion : 'fluid';
   const requestedDensity = String(source.density || '').trim().toLowerCase();
   const density = QUICK_ACCESS_DENSITIES.includes(requestedDensity) ? requestedDensity : 'comfortable';
-  const requestedSide = String(source.side || '').trim().toLowerCase();
-  const side = QUICK_ACCESS_SIDES.includes(requestedSide) ? requestedSide : 'left';
+  // Quick Access is intentionally locked to the left edge. Any legacy/cloud
+  // "right" value is normalized away so it cannot reappear on another device.
+  const side = 'left';
   const requestedTheme = String(source.theme || '').trim().toLowerCase();
   const theme = QUICK_ACCESS_THEMES.includes(requestedTheme) ? requestedTheme : 'glass';
   const hoverDelay = Math.max(80, Math.min(700, Number(source.hoverDelay) || 220));
@@ -140,7 +141,7 @@ export function normalizeQuickAccessConfig(raw, allowedIds = []) {
   const spatialMemory = source.spatialMemory !== false;
   const contextMemory = source.contextMemory !== false;
   return {
-    version: 9,
+    version: 10,
     items: (hasExplicitItems ? items : defaults.items).slice(0, QUICK_ACCESS_MAX_ITEMS),
     recent,
     workspace,
