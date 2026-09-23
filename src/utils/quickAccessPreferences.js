@@ -6,6 +6,10 @@ const QUICK_ACCESS_KEY = 'bes-quick-access-v1';
 export const QUICK_ACCESS_MODES = ['auto', 'pin', 'focus'];
 export const QUICK_ACCESS_RECENT_MAX = 3;
 export const QUICK_ACCESS_WORKSPACES = ['all', 'teaching', 'homeroom', 'department'];
+export const QUICK_ACCESS_SIZES = ['s', 'm', 'l'];
+export const QUICK_ACCESS_MOTIONS = ['reduced', 'normal', 'fluid'];
+export const QUICK_ACCESS_DENSITIES = ['compact', 'comfortable'];
+export const QUICK_ACCESS_SIDES = ['left', 'right'];
 
 export const DEFAULT_QUICK_ACCESS_IDS = [
   'route:dashboard',
@@ -57,11 +61,17 @@ export function createDefaultQuickAccessConfig(allowedIds = []) {
   const preferred = DEFAULT_QUICK_ACCESS_IDS.filter((id) => !allowed.size || allowed.has(id));
   const fallback = (Array.isArray(allowedIds) ? allowedIds : []).filter((id) => !preferred.includes(id));
   return {
-    version: 3,
+    version: 4,
     items: [...preferred, ...fallback].slice(0, QUICK_ACCESS_MAX_ITEMS),
     recent: [],
     workspace: 'all',
     mode: 'auto',
+    size: 'm',
+    motion: 'fluid',
+    density: 'comfortable',
+    side: 'left',
+    hoverDelay: 220,
+    labels: true,
     pinned: false,
     updatedAt: 0,
   };
@@ -83,12 +93,28 @@ export function normalizeQuickAccessConfig(raw, allowedIds = []) {
   const mode = QUICK_ACCESS_MODES.includes(requestedMode) ? requestedMode : (legacyPinned ? 'pin' : 'auto');
   const requestedWorkspace = String(source.workspace || '').trim().toLowerCase();
   const workspace = QUICK_ACCESS_WORKSPACES.includes(requestedWorkspace) ? requestedWorkspace : 'all';
+  const requestedSize = String(source.size || '').trim().toLowerCase();
+  const size = QUICK_ACCESS_SIZES.includes(requestedSize) ? requestedSize : 'm';
+  const requestedMotion = String(source.motion || '').trim().toLowerCase();
+  const motion = QUICK_ACCESS_MOTIONS.includes(requestedMotion) ? requestedMotion : 'fluid';
+  const requestedDensity = String(source.density || '').trim().toLowerCase();
+  const density = QUICK_ACCESS_DENSITIES.includes(requestedDensity) ? requestedDensity : 'comfortable';
+  const requestedSide = String(source.side || '').trim().toLowerCase();
+  const side = QUICK_ACCESS_SIDES.includes(requestedSide) ? requestedSide : 'left';
+  const hoverDelay = Math.max(80, Math.min(700, Number(source.hoverDelay) || 220));
+  const labels = source.labels !== false;
   return {
-    version: 3,
+    version: 4,
     items: (hasExplicitItems ? items : defaults.items).slice(0, QUICK_ACCESS_MAX_ITEMS),
     recent,
     workspace,
     mode,
+    size,
+    motion,
+    density,
+    side,
+    hoverDelay,
+    labels,
     pinned: mode === 'pin',
     updatedAt: Number(source.updatedAt) || 0,
   };
