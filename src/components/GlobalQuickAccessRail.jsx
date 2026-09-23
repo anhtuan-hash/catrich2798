@@ -1458,6 +1458,10 @@ export default function GlobalQuickAccessRail({
     ? Math.min(activeWorkflow.items.length, Math.max(0, Number(activeWorkflowRun?.nextIndex) || 0))
     : 0;
   const activeWorkflowNextItem = activeWorkflow?.items?.[activeWorkflowNextIndex] || null;
+  const workflowCandidateItems = [
+    ...selectedItems,
+    ...catalog.filter((item) => !selectedItems.some((selected) => selected.id === item.id)),
+  ].slice(0, 18);
 
   const notificationItems = (() => {
     const byId = new Map();
@@ -1985,7 +1989,7 @@ export default function GlobalQuickAccessRail({
 
       <div
         ref={rootRef}
-        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${focusMode ? 'is-focus' : ''} ${customizing ? 'is-customizing' : ''} ${notificationCenterOpen ? 'is-alerts-open' : ''}`}
+        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${focusMode ? 'is-focus' : ''} ${customizing ? 'is-customizing' : ''} ${notificationCenterOpen ? 'is-alerts-open' : ''} ${workflowCenterOpen ? 'is-workflow-open' : ''}`}
         data-quick-access="true"
         data-sidebar-mode={sidebarMode}
         data-workspace={workspace}
@@ -2120,6 +2124,27 @@ export default function GlobalQuickAccessRail({
 
           <button
             type="button"
+            className={`bqa-rail-workflows ${workflowCenterOpen ? 'is-active' : ''} ${activeWorkflow ? 'has-active' : ''}`}
+            title={language === 'vi' ? 'Quy trình nhanh' : 'Workflow bundles'}
+            aria-label={language === 'vi' ? 'Mở quy trình nhanh' : 'Open workflow bundles'}
+            aria-expanded={workflowCenterOpen}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              window.clearTimeout(closeTimerRef.current);
+              setHovered(true);
+              setQuickCreateOpen(false);
+              setNotificationCenterOpen(false);
+              setBackStackOpen(false);
+              setWorkflowCenterOpen((value) => !value);
+            }}
+          >
+            <Boxes size={17} aria-hidden="true" />
+            {workflowBundles.length ? <span>{workflowBundles.length}</span> : null}
+          </button>
+
+          <button
+            type="button"
             className={`bqa-rail-create ${quickCreateOpen ? 'is-active' : ''}`}
             title={language === 'vi' ? 'Tạo nhanh' : 'Quick create'}
             aria-label={language === 'vi' ? 'Tạo nhanh' : 'Quick create'}
@@ -2127,6 +2152,8 @@ export default function GlobalQuickAccessRail({
             onClick={() => {
               openRail();
               setCommandQuery('');
+              setWorkflowCenterOpen(false);
+              setNotificationCenterOpen(false);
               setQuickCreateOpen((value) => !value);
             }}
           >
@@ -2161,6 +2188,7 @@ export default function GlobalQuickAccessRail({
                 setCollapsing(false);
                 setHovered(true);
                 setQuickCreateOpen(false);
+                setWorkflowCenterOpen(false);
                 setBackStackOpen(false);
                 setNotificationCenterOpen(true);
               }}
@@ -2177,6 +2205,8 @@ export default function GlobalQuickAccessRail({
             aria-label={language === 'vi' ? 'Tùy chỉnh lối tắt' : 'Customize shortcuts'}
             onClick={() => {
               setHovered(true);
+              setWorkflowCenterOpen(false);
+              setNotificationCenterOpen(false);
               setCustomizerQuery('');
               setCustomizing(true);
             }}
