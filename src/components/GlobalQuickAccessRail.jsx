@@ -1790,6 +1790,67 @@ export default function GlobalQuickAccessRail({
     }
   };
 
+  const toggleWorkflowDraftItem = (itemId) => {
+    setWorkflowDraftIds((current) => {
+      if (current.includes(itemId)) return current.filter((id) => id !== itemId);
+      if (current.length >= QUICK_ACCESS_WORKFLOW_STEPS_MAX) return current;
+      return [...current, itemId];
+    });
+  };
+
+  const saveWorkflowBundle = () => {
+    if (!workflowDraftIds.length || workflowBundles.length >= QUICK_ACCESS_WORKFLOW_MAX) return;
+    const workflow = {
+      id: `workflow-${Date.now().toString(36)}`,
+      name: workflowDraftName.trim() || (language === 'vi' ? `Quy trình ${workflowBundles.length + 1}` : `Workflow ${workflowBundles.length + 1}`),
+      itemIds: workflowDraftIds.slice(0, QUICK_ACCESS_WORKFLOW_STEPS_MAX),
+    };
+    persist({ ...config, workflows: [...workflowBundles.map(({ id, name, itemIds }) => ({ id, name, itemIds })), workflow] });
+    setWorkflowDraftName('');
+    setWorkflowDraftIds([]);
+  };
+
+  const deleteWorkflowBundle = (workflowId) => {
+    const next = workflowBundles
+      .filter((workflow) => workflow.id !== workflowId)
+      .map(({ id, name, itemIds }) => ({ id, name, itemIds }));
+    persist({ ...config, workflows: next });
+    if (activeWorkflowRun?.workflowId === workflowId) {
+      setActiveWorkflowRun(null);
+      saveQuickAccessWorkflowRun(currentUser, null);
+    }
+  };
+
+  const runWorkflowStep = (workflow, index, sourceEl = null) => {
+    const item = workflow?.items?.[index];
+    if (!item) return;
+    const nextRun = { workflowId: workflow.id, nextIndex: index + 1 };
+    setActiveWorkflowRun(nextRun);
+    saveQuickAccessWorkflowRun(currentUser, nextRun);
+    setWorkflowCenterOpen(false);
+    activateItem(item, sourceEl);
+  };
+
+  const startWorkflowBundle = (workflow, sourceEl = null) => {
+    if (!workflow?.items?.length) return;
+    runWorkflowStep(workflow, 0, sourceEl);
+  };
+
+  const continueWorkflowBundle = (sourceEl = null) => {
+    if (!activeWorkflow) return;
+    if (activeWorkflowNextIndex >= activeWorkflow.items.length) {
+      setActiveWorkflowRun(null);
+      saveQuickAccessWorkflowRun(currentUser, null);
+      return;
+    }
+    runWorkflowStep(activeWorkflow, activeWorkflowNextIndex, sourceEl);
+  };
+
+  const finishWorkflowBundle = () => {
+    setActiveWorkflowRun(null);
+    saveQuickAccessWorkflowRun(currentUser, null);
+  };
+
   const removeItem = (id) => {
     const next = config.items.filter((itemId) => itemId !== id);
     persist({ ...config, items: next });
