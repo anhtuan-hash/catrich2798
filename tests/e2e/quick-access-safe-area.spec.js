@@ -290,6 +290,39 @@ test.describe('Global Quick Access safe area', () => {
     expect(Math.abs(railAfter.left - railBefore.left)).toBeLessThan(0.5);
   });
 
+  test('V4.2: live status capsules render API-driven status and progress', async ({ page }) => {
+    await page.goto('/#/apps');
+    await expect(page.locator('.bqa-root')).toBeVisible();
+
+    await page.evaluate(() => {
+      window.BrianQuickAccessCapsules?.set?.({
+        itemId: 'route:apps',
+        label: 'Ứng dụng',
+        text: '3 cập nhật mới',
+        tone: 'warning',
+        progress: 40,
+      });
+    });
+
+    const appsButton = page.locator('.bqa-rail-button[aria-label="Ứng dụng"]');
+    await appsButton.hover();
+    await page.waitForTimeout(180);
+
+    const capsule = page.locator('.bqa-status-capsule');
+    await expect(capsule).toBeVisible();
+    await expect(capsule).toContainText('Ứng dụng');
+    await expect(capsule).toContainText('3 cập nhật mới');
+    await expect(capsule).toHaveClass(/is-warning/);
+
+    const progress = await capsule.locator('.bqa-status-capsule-progress > i').evaluate((bar) => getComputedStyle(bar).width);
+    expect(Number.parseFloat(progress)).toBeGreaterThan(0);
+
+    await page.evaluate(() => window.BrianQuickAccessCapsules?.clear?.('route:apps'));
+    await page.mouse.move(800, 700);
+    await page.waitForTimeout(160);
+    await expect(capsule).toBeHidden();
+  });
+
   test('V3.3.1: right side is a true mirror with rail on the screen edge and panel expanding inward', async ({ page }) => {
     await page.goto('/#/dashboard');
     await expect(page.locator('.bqa-root')).toBeVisible();
