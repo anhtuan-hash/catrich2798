@@ -7,11 +7,17 @@ const css = await readFile(new URL('../src/components/GlobalQuickAccessRail.css'
 const navCss = await readFile(new URL('../src/components/GlobalUnifiedNavigationHub.css', import.meta.url), 'utf8');
 const prefs = await readFile(new URL('../src/utils/quickAccessPreferences.js', import.meta.url), 'utf8');
 const migration = await readFile(new URL('../supabase/quick_access_settings_v11_9_6.sql', import.meta.url), 'utf8');
+const appsCards = await readFile(new URL('../src/pages/appsDirectoryComponents.jsx', import.meta.url), 'utf8');
+const appsList = await readFile(new URL('../src/pages/appsDirectoryListComponents.jsx', import.meta.url), 'utf8');
 
 assert.ok(main.includes("GlobalQuickAccessRail = lazy"), 'Quick Access must be lazy-loaded by the app shell.');
 assert.ok(main.includes("usePresentationMode"), 'Quick Access web-only gating must use the canonical presentation-mode resolver.');
 assert.ok(main.includes("quickAccessWebAllowed = presentation.presentationMode === 'desktop'"), 'Quick Access must be enabled only for the desktop/web presentation.');
 assert.ok(css.includes('html.bes-mobile-shell-active .bqa-root'), 'Mobile shell must hard-hide the desktop Quick Access rail as a CSS fail-safe.');
+assert.ok(appsCards.includes("application/x-brian-app-id"), 'Apps Directory window cards must expose a Quick Access drag payload.');
+assert.ok(appsList.includes("application/x-brian-app-id"), 'Apps Directory list cards must expose a Quick Access drag payload.');
+assert.ok(appsCards.includes("draggable={!locked}"), 'Unlocked Apps Directory cards must be draggable outside edit mode.');
+assert.ok(appsList.includes("draggable={!locked}"), 'Unlocked editorial app cards must be draggable outside edit mode.');
 assert.ok(main.includes("currentRoute !== 'home'"), 'Quick Access must not render on Home.');
 assert.ok(main.includes('scope="quick-access-rail"'), 'Quick Access must be protected by the global error boundary.');
 assert.ok(main.includes('appVisibility={appVisibility}'), 'Quick Access must receive app visibility state.');
@@ -228,6 +234,30 @@ for (const token of [
   'bes-quick-access-handoff',
   'handleRailHandoffDrop',
   'data-rail-capacity={railCapacity}',
+  'attentionLevelForItem',
+  'bqa-attention-halo',
+  'data-attention-level={attentionLevel}',
+  'loadQuickAccessBookmarks',
+  'saveQuickAccessBookmarks',
+  'BrianQuickAccessState',
+  'saveCurrentAppBookmark',
+  'restoreAppStateBookmark',
+  'bqa-bookmark-marker',
+  'loadQuickAccessDoubleClickActions',
+  'saveQuickAccessDoubleClickActions',
+  'doubleClickDescriptorFor',
+  'handleRailDoubleClick',
+  'bqa-double-click-control',
+  'handleCommandDrop',
+  'bqa-command-drop-zone',
+  'application/x-brian-app-id',
+  'loadQuickAccessTrail',
+  'saveQuickAccessTrail',
+  'bqa-session-trail',
+  'bqa-trail-popover',
+  'navigateSessionTrail',
+  'data-trail-count={sessionTrail.length}',
+  'data-rail-capacity={railCapacity}',
   'dataset.brianClassroomMode',
   'bes-classroom-presentation-mode',
   'bqa-rail-classroom',
@@ -382,6 +412,13 @@ for (const token of [
   '.bqa-snapshot-control',
   'Brian Quick Access V5 extended',
   'Brian Quick Access V6 wave 1',
+  'Brian Quick Access V6 wave 2',
+  '.bqa-attention-halo',
+  '.bqa-bookmark-marker',
+  '.bqa-session-trail',
+  '.bqa-trail-popover',
+  '.bqa-command-drop-zone',
+  '.bqa-double-click-control',
   '.bqa-rail-workspace',
   '.bqa-workspace-popover',
   '.bqa-rail-overflow',
@@ -513,4 +550,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access V6 wave 1 adds Active App Actions, Progress Ring, Smart Overflow, Drag-to-App Handoff and Workspace Switcher while preserving V5, fixed-left web-only layout, permissions, footer safe-area and custom fonts.');
+console.log('PASS: Quick Access V6 is complete: wave 1 + Attention Halo, App State Bookmark, Double-click Quick Action, Command Drop Zone and Visual Session Trail, preserving fixed-left web-only layout, V5 contracts, permissions, footer safe-area and custom fonts.');
