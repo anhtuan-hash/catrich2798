@@ -2061,6 +2061,41 @@ export default function GlobalQuickAccessRail({
           </button>
         </aside>
 
+        {notificationCenterOpen ? (
+          <section className="bqa-notification-center bqa-notification-popover" aria-label={language === 'vi' ? 'Trung tâm thông báo' : 'Notification center'}>
+            <header>
+              <span><Bell size={14} aria-hidden="true" />{language === 'vi' ? 'Thông báo' : 'Notifications'}</span>
+              <div>
+                <b>{notificationCount}</b>
+                <button type="button" onClick={() => setNotificationCenterOpen(false)} aria-label={language === 'vi' ? 'Đóng thông báo' : 'Close notifications'}><X size={14} aria-hidden="true" /></button>
+              </div>
+            </header>
+            <div className="bqa-notification-list">
+              {notificationItems.map((entry) => {
+                const item = catalog.find((candidate) => candidate.id === entry.itemId);
+                const Icon = item?.icon || Bell;
+                return (
+                  <button
+                    type="button"
+                    key={entry.id}
+                    className={`bqa-notification-row is-${entry.tone || 'info'}`}
+                    onClick={(event) => openNotification(entry, event.currentTarget)}
+                  >
+                    <span className="bqa-notification-icon" style={{ '--bqa-accent': item?.accent || '#2e6fae' }}><Icon size={16} aria-hidden="true" /></span>
+                    <span className="bqa-notification-copy">
+                      <strong>{entry.title}</strong>
+                      <small>{entry.text || (language === 'vi' ? 'Mở để xem chi tiết' : 'Open for details')}</small>
+                    </span>
+                    <ChevronRight size={14} aria-hidden="true" />
+                  </button>
+                );
+              })}
+            </div>
+            <footer>{language === 'vi' ? 'Chỉ hiển thị các cập nhật bạn có quyền truy cập.' : 'Only updates you are allowed to access are shown.'}</footer>
+          </section>
+        ) : null}
+
+
         {activeCapsule ? (
           <aside
             className={`bqa-status-capsule is-${activeCapsule.tone || 'info'}`}
@@ -2167,40 +2202,6 @@ export default function GlobalQuickAccessRail({
               </button>
             ))}
           </nav>
-
-          {notificationCenterOpen ? (
-            <section className="bqa-notification-center" aria-label={language === 'vi' ? 'Trung tâm thông báo' : 'Notification center'}>
-              <header>
-                <span><Bell size={14} aria-hidden="true" />{language === 'vi' ? 'Thông báo' : 'Notifications'}</span>
-                <div>
-                  <b>{notificationCount}</b>
-                  <button type="button" onClick={() => setNotificationCenterOpen(false)} aria-label={language === 'vi' ? 'Đóng thông báo' : 'Close notifications'}><X size={14} aria-hidden="true" /></button>
-                </div>
-              </header>
-              <div className="bqa-notification-list">
-                {notificationItems.map((entry) => {
-                  const item = catalog.find((candidate) => candidate.id === entry.itemId);
-                  const Icon = item?.icon || Bell;
-                  return (
-                    <button
-                      type="button"
-                      key={entry.id}
-                      className={`bqa-notification-row is-${entry.tone || 'info'}`}
-                      onClick={(event) => openNotification(entry, event.currentTarget)}
-                    >
-                      <span className="bqa-notification-icon" style={{ '--bqa-accent': item?.accent || '#2e6fae' }}><Icon size={16} aria-hidden="true" /></span>
-                      <span className="bqa-notification-copy">
-                        <strong>{entry.title}</strong>
-                        <small>{entry.text || (language === 'vi' ? 'Mở để xem chi tiết' : 'Open for details')}</small>
-                      </span>
-                      <ChevronRight size={14} aria-hidden="true" />
-                    </button>
-                  );
-                })}
-              </div>
-              <footer>{language === 'vi' ? 'Chỉ hiển thị các cập nhật bạn có quyền truy cập.' : 'Only updates you are allowed to access are shown.'}</footer>
-            </section>
-          ) : null}
 
           <label className="bqa-command-search" data-bes-keep-search="true">
             <Search size={17} aria-hidden="true" />
