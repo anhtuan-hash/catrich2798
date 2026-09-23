@@ -738,6 +738,7 @@ export default function GlobalQuickAccessRail({
   const [workflowDraftIds, setWorkflowDraftIds] = useState([]);
   const [activeWorkflowRun, setActiveWorkflowRun] = useState(() => loadQuickAccessWorkflowRun(currentUser));
   const [classroomMode, setClassroomMode] = useState(() => loadQuickAccessClassroomMode(currentUser));
+  const [deviceSpatial, setDeviceSpatial] = useState(() => loadQuickAccessSpatialMemory(currentUser));
   const [timeTick, setTimeTick] = useState(() => Date.now());
   const [backStack, setBackStack] = useState(() => loadQuickAccessHistory(currentUser));
   const [backStackOpen, setBackStackOpen] = useState(false);
@@ -765,6 +766,7 @@ export default function GlobalQuickAccessRail({
   const capsuleTimerRef = useRef(0);
   const magneticTimerRef = useRef(0);
   const badgeFrameRef = useRef(0);
+  const spatialScrollTimerRef = useRef(0);
   const commandInputRef = useRef(null);
   const commandPaletteInputRef = useRef(null);
   const layoutFrameRef = useRef(0);
@@ -800,11 +802,18 @@ export default function GlobalQuickAccessRail({
   const [config, setConfig] = useState(() => loadQuickAccessConfig(currentUser, allowedIds));
 
   const sidebarMode = config.mode || (config.pinned ? 'pin' : 'auto');
-  const workspace = QUICK_ACCESS_WORKSPACES.includes(config.workspace) ? config.workspace : 'all';
+  const spatialMemoryEnabled = config.spatialMemory !== false;
+  const configWorkspace = QUICK_ACCESS_WORKSPACES.includes(config.workspace) ? config.workspace : 'all';
+  const configRailSide = QUICK_ACCESS_SIDES.includes(config.side) ? config.side : 'left';
+  const workspace = spatialMemoryEnabled && QUICK_ACCESS_WORKSPACES.includes(deviceSpatial.workspace)
+    ? deviceSpatial.workspace
+    : configWorkspace;
   const railSize = QUICK_ACCESS_SIZES.includes(config.size) ? config.size : 'm';
   const motionMode = QUICK_ACCESS_MOTIONS.includes(config.motion) ? config.motion : 'fluid';
   const density = QUICK_ACCESS_DENSITIES.includes(config.density) ? config.density : 'comfortable';
-  const railSide = QUICK_ACCESS_SIDES.includes(config.side) ? config.side : 'left';
+  const railSide = spatialMemoryEnabled && QUICK_ACCESS_SIDES.includes(deviceSpatial.side)
+    ? deviceSpatial.side
+    : configRailSide;
   const visualTheme = QUICK_ACCESS_THEMES.includes(config.theme) ? config.theme : 'glass';
   const hoverDelay = Math.max(80, Math.min(700, Number(config.hoverDelay) || 220));
   const showLabels = config.labels !== false;
