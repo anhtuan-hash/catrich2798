@@ -2038,7 +2038,7 @@ export default function GlobalQuickAccessRail({
                 setHovered(true);
                 setQuickCreateOpen(false);
                 setBackStackOpen(false);
-                setNotificationCenterOpen((value) => !value);
+                setNotificationCenterOpen(true);
               }}
             >
               <Bell size={17} aria-hidden="true" />
