@@ -3392,3 +3392,164 @@ body > .bqa-root[data-side="right"] {
     transition: none !important;
   }
 }
+
+
+/* Brian Quick Access V4.5 · persistent session resume · 2026-09-23 */
+.bqa-resume-card {
+  position: relative;
+  min-height: 72px;
+  margin: 7px 0 8px;
+  display: grid;
+  grid-template-columns: 36px minmax(0,1fr) auto;
+  grid-template-areas:
+    "icon copy dismiss"
+    "icon progress go";
+  align-items: center;
+  gap: 5px 9px;
+  padding: 9px 9px 9px 10px;
+  border: 1px solid rgba(87,139,195,.24);
+  border-radius: 15px;
+  color: #234763;
+  background:
+    radial-gradient(circle at 100% 0, rgba(221,235,255,.72), transparent 110px),
+    linear-gradient(135deg, rgba(247,252,255,.98), rgba(242,248,255,.96));
+  box-shadow: 0 10px 28px rgba(40,79,117,.09);
+}
+
+.bqa-resume-icon {
+  grid-area: icon;
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  color: var(--bqa-accent,#2e6fae);
+  background: color-mix(in srgb,var(--bqa-accent,#2e6fae) 11%,white);
+}
+
+.bqa-resume-copy {
+  grid-area: copy;
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.bqa-resume-copy > small {
+  color: #577da1;
+  font-size: 7.7px;
+  font-weight: 870;
+  letter-spacing: .06em;
+}
+
+.bqa-resume-copy > strong,
+.bqa-resume-copy > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bqa-resume-copy > strong {
+  font-size: 10.8px;
+}
+
+.bqa-resume-copy > span {
+  color: #8194a7;
+  font-size: 8.8px;
+}
+
+.bqa-resume-progress {
+  grid-area: progress;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: center;
+  gap: 7px;
+}
+
+.bqa-resume-progress::before {
+  content: "";
+  grid-column: 1;
+  grid-row: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(96,146,195,.17);
+}
+
+.bqa-resume-progress > i {
+  grid-column: 1;
+  grid-row: 1;
+  height: 4px;
+  min-width: 2px;
+  max-width: 100%;
+  border-radius: 999px;
+  background: #2f7ccc;
+}
+
+.bqa-resume-progress > b {
+  grid-column: 2;
+  grid-row: 1;
+  color: #4779a8;
+  font-size: 8.5px;
+}
+
+.bqa-resume-go {
+  grid-area: go;
+  appearance: none;
+  min-height: 27px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: 0;
+  border-radius: 9px;
+  color: #fff;
+  background: linear-gradient(180deg,#3588e4,#1d6dc1);
+  font: inherit;
+  font-size: 8.8px;
+  font-weight: 820;
+  cursor: pointer;
+  box-shadow: 0 5px 12px rgba(39,104,168,.16);
+}
+
+.bqa-resume-dismiss {
+  grid-area: dismiss;
+  appearance: none;
+  width: 23px;
+  height: 23px;
+  display: grid;
+  place-items: center;
+  align-self: start;
+  border: 0;
+  border-radius: 8px;
+  color: #8397aa;
+  background: rgba(237,244,250,.92);
+  cursor: pointer;
+}
+
+.bqa-resume-go:hover,
+.bqa-resume-go:focus-visible,
+.bqa-resume-dismiss:hover,
+.bqa-resume-dismiss:focus-visible {
+  outline: none;
+  filter: brightness(.98);
+  transform: translateY(-1px);
+}
+
+.bqa-root[data-density="compact"] .bqa-resume-card {
+  min-height: 64px;
+  padding-block: 7px;
+}
+
+.bqa-root[data-motion-mode="reduced"] .bqa-resume-go,
+.bqa-root[data-motion-mode="reduced"] .bqa-resume-dismiss {
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bqa-resume-go,
+  .bqa-resume-dismiss {
+    transition: none !important;
+  }
+}
