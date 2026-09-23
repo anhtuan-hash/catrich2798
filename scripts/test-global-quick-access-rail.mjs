@@ -380,6 +380,10 @@ assert.ok(!rail.includes('openSettled'), 'Quick Access must not use a timer-base
 assert.ok(!rail.includes("QUICK_ACCESS_SIDES.map"), 'Quick Access must not render a side selector.');
 assert.ok(!rail.includes("setRailSide"), 'Quick Access must not expose side-switching behavior.');
 assert.ok(!rail.includes("'Phải' : 'Right'"), 'Quick Access must not expose the right-side option.');
+assert.ok(css.includes('Quick Access larger scrollbar hotfix'), 'Quick Access must include the larger scrollbar hotfix.');
+assert.ok(css.includes('scrollbar-gutter: stable'), 'Quick Access scroll surfaces must reserve stable scrollbar space.');
+assert.match(css, /::-webkit-scrollbar[\s\S]*?width:\s*12px/, 'Quick Access desktop scrollbars must be 12px wide.');
+assert.ok(css.includes('min-height: 56px'), 'Quick Access scrollbar thumb must provide a larger grab target.');
 assert.ok(!/font-family\s*:/i.test(css), 'Quick Access CSS must not override Brian custom fonts.');
 assert.ok(!/\.app-shell\s*\{/.test(css), 'Quick Access CSS must not mutate global app-shell layout.');
 assert.ok(!/body\s*\{/.test(css), 'Quick Access CSS must remain component-scoped.');
@@ -408,4 +412,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access V4.13.1 permanently locks the rail to the left edge, normalizes legacy right-side settings, and preserves route memory, themes, classroom mode, workflows, permissions and custom fonts.');
+console.log('PASS: Quick Access V4.13.2 keeps the rail permanently left, enlarges all primary scrollbars, and preserves route memory, themes, classroom mode, workflows, permissions and custom fonts.');
