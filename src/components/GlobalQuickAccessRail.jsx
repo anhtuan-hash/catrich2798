@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import {
   AppWindow,
   Bell,
+  Bookmark,
   BookOpenCheck,
   Boxes,
   CalendarDays,
@@ -925,6 +926,103 @@ function keyboardLetterForItem(item, index = 0) {
   return pool[index % pool.length];
 }
 
+const QUICK_ACCESS_BOOKMARK_MAX = 10;
+const QUICK_ACCESS_TRAIL_MAX = 5;
+
+function quickAccessBookmarkStorageKey(user) {
+  return `bes-quick-access-bookmarks-v6:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessBookmarks(user) {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = JSON.parse(window.localStorage?.getItem(quickAccessBookmarkStorageKey(user)) || '{}');
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+    return Object.fromEntries(
+      Object.entries(raw)
+        .filter(([itemId, value]) => itemId && value && typeof value === 'object' && typeof value.target === 'string')
+        .slice(-QUICK_ACCESS_BOOKMARK_MAX),
+    );
+  } catch {
+    return {};
+  }
+}
+
+function saveQuickAccessBookmarks(user, bookmarks) {
+  if (typeof window === 'undefined') return;
+  try {
+    const safe = Object.fromEntries(
+      Object.entries(bookmarks && typeof bookmarks === 'object' ? bookmarks : {})
+        .filter(([itemId, value]) => itemId && value && typeof value === 'object' && typeof value.target === 'string')
+        .slice(-QUICK_ACCESS_BOOKMARK_MAX),
+    );
+    window.localStorage?.setItem(quickAccessBookmarkStorageKey(user), JSON.stringify(safe));
+  } catch {
+    // App State Bookmarks are account-scoped device state.
+  }
+}
+
+function quickAccessDoubleClickStorageKey(user) {
+  return `bes-quick-access-double-click-v6:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessDoubleClickActions(user) {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = JSON.parse(window.localStorage?.getItem(quickAccessDoubleClickStorageKey(user)) || '{}');
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+    return Object.fromEntries(
+      Object.entries(raw)
+        .filter(([itemId, actionId]) => itemId && typeof actionId === 'string' && actionId.trim())
+        .slice(0, 40),
+    );
+  } catch {
+    return {};
+  }
+}
+
+function saveQuickAccessDoubleClickActions(user, actions) {
+  if (typeof window === 'undefined') return;
+  try {
+    const safe = Object.fromEntries(
+      Object.entries(actions && typeof actions === 'object' ? actions : {})
+        .filter(([itemId, actionId]) => itemId && typeof actionId === 'string' && actionId.trim())
+        .slice(0, 40),
+    );
+    window.localStorage?.setItem(quickAccessDoubleClickStorageKey(user), JSON.stringify(safe));
+  } catch {
+    // Double-click actions are personal device preferences.
+  }
+}
+
+function quickAccessTrailStorageKey(user) {
+  return `bes-quick-access-trail-v6:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessTrail(user) {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = JSON.parse(window.sessionStorage?.getItem(quickAccessTrailStorageKey(user)) || '[]');
+    return (Array.isArray(raw) ? raw : [])
+      .filter((entry) => entry && typeof entry.itemId === 'string' && typeof entry.target === 'string')
+      .slice(0, QUICK_ACCESS_TRAIL_MAX);
+  } catch {
+    return [];
+  }
+}
+
+function saveQuickAccessTrail(user, trail) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.sessionStorage?.setItem(
+      quickAccessTrailStorageKey(user),
+      JSON.stringify((Array.isArray(trail) ? trail : []).slice(0, QUICK_ACCESS_TRAIL_MAX)),
+    );
+  } catch {
+    // Visual Session Trail intentionally lasts only for the browser session.
+  }
+}
+
 function quickAccessClassroomModeStorageKey(user) {
   return `bes-quick-access-classroom-mode:${quickAccessHistoryUserKey(user)}`;
 }
@@ -1129,6 +1227,11 @@ export default function GlobalQuickAccessRail({
   const [activeActionsItemId, setActiveActionsItemId] = useState('');
   const [activeActionsTop, setActiveActionsTop] = useState(118);
   const [handoffTargetId, setHandoffTargetId] = useState('');
+  const [appBookmarks, setAppBookmarks] = useState(() => loadQuickAccessBookmarks(currentUser));
+  const [doubleClickActions, setDoubleClickActions] = useState(() => loadQuickAccessDoubleClickActions(currentUser));
+  const [commandDropActive, setCommandDropActive] = useState(false);
+  const [sessionTrail, setSessionTrail] = useState(() => loadQuickAccessTrail(currentUser));
+  const [trailOpen, setTrailOpen] = useState(false);
   const [timeTick, setTimeTick] = useState(() => Date.now());
   const [backStack, setBackStack] = useState(() => loadQuickAccessHistory(currentUser));
   const [backStackOpen, setBackStackOpen] = useState(false);
@@ -1173,6 +1276,8 @@ export default function GlobalQuickAccessRail({
   const shelfFilesRef = useRef(new Map());
   const activeActionsTimerRef = useRef(0);
   const handoffPacketRef = useRef(null);
+  const railClickTimerRef = useRef(0);
+  const stateProvidersRef = useRef(new Map());
 
   const catalog = useMemo(() => {
     const byId = new Map();
