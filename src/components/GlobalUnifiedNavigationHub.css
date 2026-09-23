@@ -328,14 +328,15 @@ html body .app-shell[data-route] .bes-top-chrome[data-bes-pinned-hub='true'][dat
 /* Brian classroom presentation privacy contract.
    Quick Access owns the session switch; the shared hub reacts without changing
    the signed-in user's permissions or persisted account configuration. */
-html[data-brian-classroom-mode='true'] body .app-shell[data-route] .brian-nav__reports-tab,
-html[data-brian-classroom-mode='true'] body .app-shell[data-route] .brian-nav__ttcm-tab,
-html[data-brian-classroom-mode='true'] body .app-shell[data-route] .brian-nav__bell,
-html[data-brian-classroom-mode='true'] body .app-shell[data-route] .brian-nav__notifications,
-html[data-brian-classroom-mode='true'] body .app-shell[data-route] .brian-notification-center,
-html[data-brian-classroom-mode='true'] body .app-shell[data-route] .brian-nav__account-menu {
+html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.brian-nav__reports-send,
+html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-nav__primary > .brian-nav__ttcm-tab,
+html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-nav__actions .brian-nav__bell,
+html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-nav__notifications,
+html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-notification-center,
+html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-nav__account-menu {
   display: none !important;
   visibility: hidden !important;
+  opacity: 0 !important;
   pointer-events: none !important;
 }
 
