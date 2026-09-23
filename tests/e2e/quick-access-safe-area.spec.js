@@ -589,7 +589,10 @@ test.describe('Global Quick Access safe area', () => {
     await page.locator('.bqa-rail-settings').click();
     const resetSpatial = page.locator('.bqa-spatial-control').getByRole('button', { name: 'Quên bố cục thiết bị' });
     await resetSpatial.click();
-    await expect(page.locator('.bqa-root')).toHaveAttribute('data-workspace', 'all');
+    // V4.13 preserves the current workspace as the account fallback when
+    // route-context memory is disabled, so clearing device spatial state must
+    // reset side/scroll without unexpectedly jumping workspace tabs.
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-workspace', 'homeroom');
     await expect(page.locator('.bqa-root')).toHaveAttribute('data-side', 'left');
   });
 
