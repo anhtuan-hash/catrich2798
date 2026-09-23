@@ -639,7 +639,7 @@ export default function GlobalQuickAccessRail({
   const showLabels = config.labels !== false;
   const pinned = sidebarMode === 'pin';
   const focusMode = sidebarMode === 'focus';
-  const expanded = hovered || pinned || customizing;
+  const expanded = hovered || pinned || customizing || notificationCenterOpen;
 
   const openRail = useCallback(() => {
     window.clearTimeout(closeTimerRef.current);
@@ -680,11 +680,11 @@ export default function GlobalQuickAccessRail({
   }, []);
 
   const collapseRail = useCallback((force = false) => {
-    if (!force && (pinned || customizing)) return;
+    if (!force && (pinned || customizing || notificationCenterOpen)) return;
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
 
-    if (hovered || pinned || customizing) {
+    if (hovered || pinned || customizing || notificationCenterOpen) {
       setCollapsing(true);
       setHovered(false);
       collapseMotionTimerRef.current = window.setTimeout(() => {
@@ -695,7 +695,7 @@ export default function GlobalQuickAccessRail({
 
     setHovered(false);
     setBackStackOpen(false);
-  }, [pinned, customizing, hovered]);
+  }, [pinned, customizing, notificationCenterOpen, hovered]);
 
   useEffect(() => {
     if (!currentUser || !allowedIds.length) return undefined;
@@ -1573,7 +1573,7 @@ export default function GlobalQuickAccessRail({
 
   const leave = () => {
     window.clearTimeout(closeTimerRef.current);
-    if (pinned || customizing) return;
+    if (pinned || customizing || notificationCenterOpen) return;
     closeTimerRef.current = window.setTimeout(() => collapseRail(false), 340);
   };
 
