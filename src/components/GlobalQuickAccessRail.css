@@ -5482,13 +5482,52 @@ html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-
 
 /* Brian Quick Access V4.13 · route workspace memory · 2026-09-23 */
 .bqa-context-memory-control {
-  border-color: rgba(72,121,184,.18);
+  display: grid;
+  gap: 6px;
+  margin-top: 3px;
+  padding-top: 7px;
+  border-top: 1px solid rgba(72,121,184,.18);
   background:
     linear-gradient(180deg,rgba(246,251,255,.96),rgba(241,247,253,.92));
 }
 
+.bqa-context-memory-control .bqa-personalize-toggle {
+  margin: 0;
+}
+
+.bqa-context-memory-control .bqa-personalize-toggle > span {
+  display: grid;
+  gap: 2px;
+}
+
 .bqa-context-memory-control .bqa-personalize-toggle > span > small {
   color: #8094a8;
+  font-size: 7.7px;
+  font-weight: 520;
+  line-height: 1.3;
+}
+
+.bqa-context-memory-control > button {
+  appearance: none;
+  justify-self: start;
+  min-height: 28px;
+  padding: 0 9px;
+  border: 1px solid rgba(104,132,160,.17);
+  border-radius: 9px;
+  color: #6b7e90;
+  background: rgba(247,250,253,.92);
+  font: inherit;
+  font-size: 8.2px;
+  font-weight: 730;
+  cursor: pointer;
+}
+
+.bqa-context-memory-control > button:hover,
+.bqa-context-memory-control > button:focus-visible {
+  border-color: rgba(77,111,165,.28);
+  color: #405d79;
+  background: #fff;
+  outline: none;
 }
 
 .bqa-root[data-context-memory="true"] .bqa-workspace-tabs {
