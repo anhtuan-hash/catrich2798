@@ -796,15 +796,17 @@ test.describe('Global Quick Access safe area', () => {
 
   test('V6: Progress Ring reflects app progress from the existing capsule API', async ({ page }) => {
     await page.goto('/#/dashboard');
+    const active = page.locator('.bqa-rail-button.is-active').first();
+    await expect(active).toBeVisible();
+    await expect.poll(async () => page.evaluate(() => typeof window.BrianQuickAccessCapsules?.set)).toBe('function');
     await page.evaluate(() => {
-      window.BrianQuickAccessCapsules?.set?.({
+      window.BrianQuickAccessCapsules.set({
         itemId: 'route:dashboard',
         label: 'Dashboard',
         text: 'Đang đồng bộ',
         progress: 64,
       });
     });
-    const active = page.locator('.bqa-rail-button.is-active').first();
     await expect(active).toHaveClass(/has-progress/);
     await expect(active.locator('.bqa-progress-ring')).toHaveAttribute('aria-label', '64%');
   });
@@ -834,6 +836,8 @@ test.describe('Global Quick Access safe area', () => {
 
   test('V6: Drag-to-App Handoff publishes a consumable packet', async ({ page }) => {
     await page.goto('/#/apps');
+    await expect(page.locator('.bqa-rail-button').first()).toBeVisible();
+    await expect.poll(async () => page.evaluate(() => typeof window.BrianQuickAccessHandoff?.peek)).toBe('function');
     await page.evaluate(() => {
       window.__v6HandoffSeen = null;
       window.addEventListener('bes-quick-access-handoff', (event) => {
@@ -847,10 +851,11 @@ test.describe('Global Quick Access safe area', () => {
       const transfer = new DataTransfer();
       transfer.setData('text/plain', 'https://example.com/brian-v6');
       transfer.setData('text/uri-list', 'https://example.com/brian-v6');
-      target?.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: transfer }));
+      target.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: transfer }));
+      target.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: transfer }));
     });
     await expect.poll(async () => page.evaluate(() => window.__v6HandoffSeen?.kind || '')).toBe('url');
-    const packet = await page.evaluate(() => window.BrianQuickAccessHandoff?.peek?.());
+    const packet = await page.evaluate(() => window.BrianQuickAccessHandoff.peek());
     expect(packet?.targetItemId).toBeTruthy();
     expect(packet?.url).toBe('https://example.com/brian-v6');
   });
