@@ -686,6 +686,34 @@ export default function GlobalQuickAccessRail({
   }, [language]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const maxDistance = 34;
+    const openDistance = 9;
+    const onPointerMove = (event) => {
+      if (customizing || pinned) return;
+      const distance = railSide === 'right'
+        ? Math.max(0, window.innerWidth - Number(event.clientX || 0))
+        : Math.max(0, Number(event.clientX || 0));
+      if (distance > maxDistance) {
+        setMagneticStrength((current) => current === 0 ? current : 0);
+        window.clearTimeout(magneticTimerRef.current);
+        return;
+      }
+      const strength = Math.max(0, Math.min(1, (maxDistance - distance) / maxDistance));
+      setMagneticStrength(strength);
+      if (distance <= openDistance) {
+        window.clearTimeout(magneticTimerRef.current);
+        magneticTimerRef.current = window.setTimeout(() => openRail(), Math.min(hoverDelay, 180));
+      }
+    };
+    window.addEventListener('pointermove', onPointerMove, { passive: true });
+    return () => {
+      window.removeEventListener('pointermove', onPointerMove);
+      window.clearTimeout(magneticTimerRef.current);
+    };
+  }, [railSide, hoverDelay, customizing, pinned, openRail]);
+
+  useEffect(() => {
     if (!customizing) return undefined;
     const onKeyDown = (event) => {
       if (event.key === 'Escape') {
@@ -725,12 +753,21 @@ export default function GlobalQuickAccessRail({
     const onShortcut = (event) => {
       const tag = String(event.target?.tagName || '').toLowerCase();
       const editable = event.target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag);
-      if (event.repeat) return;
+      if (event.repeat && !(event.altKey && event.code === 'Backquote')) return;
 
       if ((event.metaKey || event.ctrlKey) && !event.altKey && String(event.key || '').toLowerCase() === 'k') {
         event.preventDefault();
         openRail();
         window.setTimeout(() => commandInputRef.current?.focus(), 40);
+        return;
+      }
+
+      if (!editable && event.altKey && !event.ctrlKey && !event.metaKey && event.code === 'Backquote') {
+        const items = switcherItemsRef.current || [];
+        if (!items.length) return;
+        event.preventDefault();
+        setAppSwitcherOpen(true);
+        setAppSwitcherIndex((index) => (index + 1) % items.length);
         return;
       }
 
@@ -751,13 +788,27 @@ export default function GlobalQuickAccessRail({
       }
     };
 
+    const onShortcutUp = (event) => {
+      if (event.key !== 'Alt') return;
+      setAppSwitcherOpen((open) => {
+        if (open) {
+          const items = switcherItemsRef.current || [];
+          const target = items[appSwitcherIndex % Math.max(items.length, 1)];
+          if (target) window.setTimeout(() => activateItemRef.current?.(target, null), 0);
+        }
+        return false;
+      });
+    };
+
     window.addEventListener('bes-navigation-start', onNavigationStart);
     window.addEventListener('keydown', onShortcut);
+    window.addEventListener('keyup', onShortcutUp);
     return () => {
       window.removeEventListener('bes-navigation-start', onNavigationStart);
       window.removeEventListener('keydown', onShortcut);
+      window.removeEventListener('keyup', onShortcutUp);
     };
-  }, [pinned, customizing, expanded, collapseRail, openRail]);
+  }, [pinned, customizing, expanded, collapseRail, openRail, appSwitcherIndex]);
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
