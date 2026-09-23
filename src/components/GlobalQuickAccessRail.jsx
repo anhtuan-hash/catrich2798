@@ -2365,6 +2365,8 @@ export default function GlobalQuickAccessRail({
         data-theme-style={visualTheme}
         data-labels={showLabels ? 'show' : 'hide'}
         data-spatial-memory={spatialMemoryEnabled ? 'true' : 'false'}
+        data-context-memory={contextMemoryEnabled ? 'true' : 'false'}
+        data-context-key={routeContextKey}
         data-time-aware={timeAwareEnabled ? 'true' : 'false'}
         data-time-band={timeContext.id}
         style={{ '--bqa-magnet': magneticStrength }}
@@ -3473,6 +3475,21 @@ export default function GlobalQuickAccessRail({
                 {spatialMemoryEnabled ? (
                   <button type="button" onClick={clearDeviceSpatialMemory}>
                     {language === 'vi' ? 'Quên bố cục thiết bị' : 'Forget device layout'}
+                  </button>
+                ) : null}
+              </div>
+
+              <div className="bqa-spatial-control bqa-context-memory-control">
+                <label className="bqa-personalize-toggle">
+                  <span>
+                    {language === 'vi' ? 'Nhớ không gian theo từng trang' : 'Remember workspace per page'}
+                    <small>{language === 'vi' ? 'Mỗi trang sẽ mở lại đúng tab không gian bạn dùng lần cuối.' : 'Each page reopens the workspace tab you last used there.'}</small>
+                  </span>
+                  <input type="checkbox" checked={contextMemoryEnabled} onChange={(event) => setContextMemoryEnabled(event.target.checked)} />
+                </label>
+                {contextMemoryEnabled && Object.keys(routeWorkspaceMemory).length ? (
+                  <button type="button" onClick={clearRouteWorkspaceMemory}>
+                    {language === 'vi' ? 'Quên ngữ cảnh đã nhớ' : 'Forget page contexts'}
                   </button>
                 ) : null}
               </div>
