@@ -2154,7 +2154,10 @@ export default function GlobalQuickAccessRail({
     persist({ ...config, items: [...config.items, id] });
   };
 
-  const reset = () => persist(createDefaultQuickAccessConfig(allowedIds));
+  const reset = () => {
+    clearDeviceSpatialMemory();
+    persist(createDefaultQuickAccessConfig(allowedIds));
+  };
 
   const moveDraggedBefore = (targetId) => {
     if (!dragId || dragId === targetId) return;
