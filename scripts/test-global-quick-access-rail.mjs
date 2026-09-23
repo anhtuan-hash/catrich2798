@@ -26,6 +26,8 @@ for (const token of [
   'QUICK_ACCESS_MOTIONS',
   'QUICK_ACCESS_DENSITIES',
   'QUICK_ACCESS_SIDES',
+  'QUICK_ACCESS_WORKFLOW_MAX',
+  'QUICK_ACCESS_WORKFLOW_STEPS_MAX',
   'loadQuickAccessConfigFromCloud',
   'saveQuickAccessConfigToCloud',
   'subscribeQuickAccessConfig',
@@ -46,6 +48,11 @@ assert.ok(prefs.includes("density: 'comfortable'"), 'Quick Access defaults to co
 assert.ok(prefs.includes("side: 'left'"), 'Quick Access defaults to the left side.');
 assert.ok(prefs.includes('hoverDelay: 220'), 'Quick Access defaults to a 220ms edge hover delay.');
 assert.ok(prefs.includes('labels: true'), 'Quick Access helper labels default on.');
+assert.ok(prefs.includes('workflows: []'), 'Quick Access defaults to no saved workflow bundles.');
+assert.ok(prefs.includes('version: 5'), 'Quick Access preference schema must be V5 for workflow bundles.');
+assert.match(prefs, /QUICK_ACCESS_WORKFLOW_MAX\s*=\s*4/, 'Quick Access must cap saved workflow bundles at 4.');
+assert.match(prefs, /QUICK_ACCESS_WORKFLOW_STEPS_MAX\s*=\s*5/, 'Quick Access must cap workflow steps at 5.');
+assert.ok(prefs.includes('cleanWorkflows'), 'Quick Access must permission-filter persisted workflow bundles.');
 assert.ok(prefs.includes('recent: []'), 'Quick Access defaults to an empty recent-app list.');
 assert.ok(prefs.includes("storageKey(user)"), 'Local fallback must be scoped per account.');
 assert.ok(prefs.includes('updatedAt: 0'), 'New-device defaults must not outrank an existing cloud configuration.');
@@ -95,6 +102,25 @@ for (const token of [
   'openNotification',
   'bqa-rail-notifications',
   'bqa-notification-center',
+  'workflowCenterOpen',
+  'workflowDraftIds',
+  'activeWorkflowRun',
+  'quickAccessWorkflowRunStorageKey',
+  'loadQuickAccessWorkflowRun',
+  'saveQuickAccessWorkflowRun',
+  'workflowBundles',
+  'workflowCandidateItems',
+  'toggleWorkflowDraftItem',
+  'saveWorkflowBundle',
+  'deleteWorkflowBundle',
+  'startWorkflowBundle',
+  'continueWorkflowBundle',
+  'finishWorkflowBundle',
+  'data-workflow-center="true"',
+  'data-workflow-active="true"',
+  'bqa-rail-workflows',
+  'bqa-workflow-center',
+  'bqa-workflow-picker',
   'capsuleSnapshotFor',
   'showCapsule',
   'hideCapsule',
@@ -220,6 +246,14 @@ for (const token of [
   'Brian Quick Access V4.5 · persistent session resume',
   'Brian Quick Access V4.6 · notification center',
   'Brian Quick Access V4.7 · full-screen Command Palette',
+  'Brian Quick Access V4.8 · workflow bundles',
+  '.bqa-rail-workflows',
+  '.bqa-workflow-center',
+  '.bqa-workflow-active',
+  '.bqa-workflow-progress',
+  '.bqa-workflow-card',
+  '.bqa-workflow-picker',
+  '.bqa-workflow-save',
   '.bqa-rail-notifications',
   '.bqa-notification-center',
   '.bqa-notification-row',
@@ -292,4 +326,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access V4.7 includes V4.6 notification center plus the full-screen permission-aware Command Palette while preserving session resume, back stack, Quick Peek, status capsules, Adaptive Dock, true mirror geometry, permissions and custom fonts.');
+console.log('PASS: Quick Access V4.8 adds permission-filtered account-synced workflow bundles with resumable step execution while preserving Command Palette, notifications, session resume, true mirror geometry, permissions and custom fonts.');
