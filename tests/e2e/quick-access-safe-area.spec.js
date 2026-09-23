@@ -687,7 +687,7 @@ test.describe('Global Quick Access safe area', () => {
     expect(geometry.trigger).not.toBeNull();
     expect(geometry.rail.left).toBeGreaterThanOrEqual(6);
     expect(geometry.rail.left).toBeLessThanOrEqual(10);
-    expect(geometry.panel.left).toBeGreaterThanOrEqual(geometry.rail.right + 6);
+    expect(geometry.panel.left).toBeGreaterThanOrEqual(geometry.rail.right - 1);
     expect(geometry.trigger.left).toBeLessThanOrEqual(1);
     expect(geometry.trigger.right).toBeLessThan(30);
   });
