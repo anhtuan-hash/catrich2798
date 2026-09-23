@@ -1041,3 +1041,231 @@
     transition:none!important;
   }
 }
+
+
+/* 2026-09-23 motion QA
+   Make the approved aurora visibly alive while keeping it premium and GPU-friendly. */
+
+.auth-google-page {
+  background-size:
+    128% 128%,
+    136% 136%,
+    160% 160% !important;
+  background-position:
+    0% 8%,
+    100% 0%,
+    50% 50% !important;
+  animation: authPageGradientShift 12s ease-in-out infinite alternate !important;
+}
+
+.auth-aurora-field::before {
+  content:"" !important;
+  position:absolute !important;
+  z-index:0 !important;
+  width:760px !important;
+  height:760px !important;
+  left:9% !important;
+  top:-340px !important;
+  border-radius:48% !important;
+  pointer-events:none !important;
+  opacity:.32 !important;
+  filter:blur(24px) !important;
+  background:
+    conic-gradient(
+      from 210deg at 50% 50%,
+      rgba(70,163,255,0) 0deg,
+      rgba(70,163,255,.26) 45deg,
+      rgba(72,226,207,.23) 95deg,
+      rgba(133,104,255,.25) 152deg,
+      rgba(133,104,255,0) 220deg,
+      rgba(70,163,255,0) 360deg
+    ) !important;
+  animation: authAuroraRibbon 16s ease-in-out infinite alternate !important;
+  will-change:transform,opacity !important;
+}
+
+.auth-aurora-field::after {
+  content:"" !important;
+  position:absolute !important;
+  z-index:0 !important;
+  left:-24% !important;
+  top:38% !important;
+  width:48% !important;
+  height:180px !important;
+  border-radius:50% !important;
+  pointer-events:none !important;
+  opacity:.25 !important;
+  filter:blur(38px) !important;
+  background:linear-gradient(
+    90deg,
+    rgba(255,255,255,0) 0%,
+    rgba(133,222,255,.60) 35%,
+    rgba(181,145,255,.52) 62%,
+    rgba(255,255,255,0) 100%
+  ) !important;
+  transform:rotate(-10deg) !important;
+  animation: authAuroraSweep 10s ease-in-out infinite !important;
+  will-change:transform,opacity !important;
+}
+
+.auth-aurora {
+  filter:blur(54px) !important;
+}
+
+.auth-aurora-one {
+  opacity:.68 !important;
+  animation:authAuroraOneVisible 9s cubic-bezier(.45,.05,.3,1) infinite alternate !important;
+}
+
+.auth-aurora-two {
+  opacity:.58 !important;
+  animation:authAuroraTwoVisible 11s cubic-bezier(.45,.05,.3,1) infinite alternate !important;
+}
+
+.auth-aurora-three {
+  opacity:.48 !important;
+  animation:authAuroraThreeVisible 10s cubic-bezier(.45,.05,.3,1) infinite alternate !important;
+}
+
+.auth-aurora-glow {
+  animation:authAuroraGlowVisible 13s ease-in-out infinite alternate !important;
+}
+
+@keyframes authPageGradientShift {
+  0% {
+    background-position:0% 10%,100% 0%,50% 50%;
+  }
+  50% {
+    background-position:12% 2%,88% 13%,56% 45%;
+  }
+  100% {
+    background-position:22% 14%,78% 2%,45% 58%;
+  }
+}
+
+@keyframes authAuroraOneVisible {
+  0% {
+    transform:translate3d(-22px,18px,0) scale(.96);
+    opacity:.56;
+  }
+  50% {
+    transform:translate3d(118px,-54px,0) scale(1.13);
+    opacity:.76;
+  }
+  100% {
+    transform:translate3d(205px,42px,0) scale(1.01);
+    opacity:.64;
+  }
+}
+
+@keyframes authAuroraTwoVisible {
+  0% {
+    transform:translate3d(28px,-16px,0) scale(1.02);
+    opacity:.48;
+  }
+  48% {
+    transform:translate3d(-126px,66px,0) scale(1.12);
+    opacity:.67;
+  }
+  100% {
+    transform:translate3d(-208px,-28px,0) scale(.97);
+    opacity:.53;
+  }
+}
+
+@keyframes authAuroraThreeVisible {
+  0% {
+    transform:translate3d(12px,58px,0) scale(.94);
+    opacity:.36;
+  }
+  52% {
+    transform:translate3d(-92px,-96px,0) scale(1.16);
+    opacity:.56;
+  }
+  100% {
+    transform:translate3d(76px,-24px,0) scale(1.02);
+    opacity:.43;
+  }
+}
+
+@keyframes authAuroraGlowVisible {
+  0% {
+    transform:translate3d(-2%,1%,0) rotate(-1.5deg) scale(1);
+    opacity:.50;
+  }
+  50% {
+    transform:translate3d(2.5%,-1.6%,0) rotate(2deg) scale(1.035);
+    opacity:.76;
+  }
+  100% {
+    transform:translate3d(-1%,2.2%,0) rotate(-2deg) scale(.995);
+    opacity:.57;
+  }
+}
+
+@keyframes authAuroraRibbon {
+  0% {
+    transform:translate3d(-90px,-20px,0) rotate(-7deg) scale(.92);
+    opacity:.20;
+  }
+  52% {
+    transform:translate3d(88px,72px,0) rotate(10deg) scale(1.08);
+    opacity:.38;
+  }
+  100% {
+    transform:translate3d(176px,18px,0) rotate(17deg) scale(.99);
+    opacity:.28;
+  }
+}
+
+@keyframes authAuroraSweep {
+  0% {
+    transform:translate3d(-10%,0,0) rotate(-10deg) scaleX(.88);
+    opacity:.10;
+  }
+  35% {
+    opacity:.34;
+  }
+  70% {
+    opacity:.30;
+  }
+  100% {
+    transform:translate3d(285%,42px,0) rotate(-10deg) scaleX(1.10);
+    opacity:.08;
+  }
+}
+
+/* Keep animation visible on tablets/mobile too, but slightly quieter. */
+@media (max-width:680px) {
+  .auth-google-page {
+    animation-duration:14s !important;
+  }
+
+  .auth-aurora {
+    filter:blur(46px) !important;
+  }
+
+  .auth-aurora-one,
+  .auth-aurora-two,
+  .auth-aurora-three {
+    opacity:.46 !important;
+  }
+
+  .auth-aurora-field::before {
+    opacity:.20 !important;
+  }
+
+  .auth-aurora-field::after {
+    opacity:.16 !important;
+  }
+}
+
+@media (prefers-reduced-motion:reduce) {
+  .auth-google-page,
+  .auth-aurora,
+  .auth-aurora-glow,
+  .auth-aurora-field::before,
+  .auth-aurora-field::after {
+    animation:none !important;
+  }
+}
