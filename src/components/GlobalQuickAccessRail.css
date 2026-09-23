@@ -4148,3 +4148,39 @@ body > .bqa-root[data-side="right"] {
   transform: translate3d(0, 0, 0) scale3d(1, 1, 1) !important;
 }
 
+
+
+/* V4.6 notification popover escape hatch · keeps the center outside panel clipping. */
+.bqa-root.is-notification-center > .bqa-notification-popover {
+  position: absolute !important;
+  z-index: 12;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: calc(var(--bqa-rail-width) + 8px) !important;
+  right: auto !important;
+  width: var(--bqa-panel-width) !important;
+  min-height: 0;
+  margin: 0;
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  overflow: hidden;
+}
+
+.bqa-root[data-side="right"].is-notification-center > .bqa-notification-popover {
+  left: auto !important;
+  right: calc(var(--bqa-rail-width) + 8px) !important;
+}
+
+@media (max-width: 760px), (hover: none) {
+  .bqa-root.is-notification-center > .bqa-notification-popover {
+    left: calc(var(--bqa-rail-width) + 6px) !important;
+    width: var(--bqa-panel-width) !important;
+  }
+
+  .bqa-root[data-side="right"].is-notification-center > .bqa-notification-popover {
+    left: auto !important;
+    right: calc(var(--bqa-rail-width) + 6px) !important;
+  }
+}
