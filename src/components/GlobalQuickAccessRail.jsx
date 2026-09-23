@@ -3716,7 +3716,7 @@ export default function GlobalQuickAccessRail({
 
       <div
         ref={rootRef}
-        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${focusMode ? 'is-focus' : ''} ${customizing ? 'is-customizing' : ''} ${notificationCenterOpen ? 'is-alerts-open' : ''} ${workflowCenterOpen ? 'is-workflow-open' : ''} ${classroomMode ? 'is-classroom-mode' : ''} ${overflowOpen ? 'is-overflow-open' : ''} ${workspaceSwitcherOpen ? 'is-workspace-switcher-open' : ''}`}
+        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${focusMode ? 'is-focus' : ''} ${customizing ? 'is-customizing' : ''} ${notificationCenterOpen ? 'is-alerts-open' : ''} ${workflowCenterOpen ? 'is-workflow-open' : ''} ${classroomMode ? 'is-classroom-mode' : ''} ${overflowOpen ? 'is-overflow-open' : ''} ${workspaceSwitcherOpen ? 'is-workspace-switcher-open' : ''} ${trailOpen ? 'is-trail-open' : ''} ${commandDropActive ? 'is-command-drop-active' : ''}`}
         data-quick-access="true"
         data-sidebar-mode={sidebarMode}
         data-workspace={effectiveWorkspace}
@@ -3735,6 +3735,9 @@ export default function GlobalQuickAccessRail({
         data-reading-mode={compactReadingMode ? 'compact' : 'normal'}
         data-rail-capacity={railCapacity}
         data-overflow-count={railOverflowItems.length}
+        data-bookmark-count={Object.keys(appBookmarks).length}
+        data-trail-count={sessionTrail.length}
+        data-command-drop={commandDropActive ? 'active' : 'idle'}
         data-precision-drag={precisionDrag ? 'true' : 'false'}
         data-keyboard-layer={keyboardLayer ? 'true' : 'false'}
         data-context-key={routeContextKey}
@@ -3823,6 +3826,27 @@ export default function GlobalQuickAccessRail({
             </button>
           ) : null}
 
+          {!classroomMode && sessionTrail.length > 1 ? (
+            <button
+              type="button"
+              className={`bqa-session-trail ${trailOpen ? 'is-active' : ''}`}
+              title={language === 'vi' ? 'Dấu vết phiên làm việc' : 'Session trail'}
+              aria-label={language === 'vi' ? 'Mở dấu vết phiên làm việc' : 'Open session trail'}
+              aria-expanded={trailOpen}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                setOverflowOpen(false);
+                setWorkspaceSwitcherOpen(false);
+                setTrailOpen((value) => !value);
+              }}
+            >
+              <span className="bqa-trail-line" aria-hidden="true">
+                {sessionTrail.slice(0, QUICK_ACCESS_TRAIL_MAX).map((entry, index) => <i key={`${entry.itemId}-${entry.at}-${index}`} />)}
+              </span>
+            </button>
+          ) : null}
+
           <div
             className="bqa-rail-items"
             data-adaptive-dock="true"
@@ -3832,6 +3856,9 @@ export default function GlobalQuickAccessRail({
               const Icon = item.icon || Boxes;
               const active = activeItem(item, currentRoute, selectedTool);
               const progress = progressForItem(item);
+              const attentionLevel = attentionLevelForItem(item);
+              const bookmarked = Boolean(bookmarkForItem(item));
+              const doubleClickDescriptor = doubleClickDescriptorFor(item);
               const dockDistance = dockHoverIndex < 0
                 ? (active ? 'active' : 'rest')
                 : String(Math.min(3, Math.abs(index - dockHoverIndex)));
@@ -3839,8 +3866,11 @@ export default function GlobalQuickAccessRail({
                 <button
                   type="button"
                   key={item.id}
-                  className={`bqa-rail-button ${active ? 'is-active' : ''} ${progress != null ? 'has-progress' : ''} ${handoffTargetId === item.id ? 'is-handoff-target' : ''}`}
+                  className={`bqa-rail-button ${active ? 'is-active' : ''} ${progress != null ? 'has-progress' : ''} ${handoffTargetId === item.id ? 'is-handoff-target' : ''} ${attentionLevel ? `has-attention attention-${attentionLevel}` : ''} ${bookmarked ? 'has-bookmark' : ''} ${doubleClickDescriptor ? 'has-double-click' : ''}`}
                   style={{ '--bqa-accent': item.accent, '--bqa-app-progress': progress ?? 0 }}
+                  data-attention-level={attentionLevel}
+                  data-bookmarked={bookmarked ? 'true' : 'false'}
+                  data-double-click-action={doubleClickDescriptor?.id || ''}
                   title={displayLabelFor(item)}
                   aria-label={displayLabelFor(item)}
                   aria-current={active ? 'page' : undefined}
@@ -3880,10 +3910,13 @@ export default function GlobalQuickAccessRail({
                     setPeekItemId('');
                     setActionItemId(item.id);
                   }}
-                  onClick={(event) => activateItem(item, event.currentTarget)}
+                  onClick={(event) => handleRailClick(item, event)}
+                  onDoubleClick={(event) => handleRailDoubleClick(item, event)}
                 >
+                  {attentionLevel ? <span className={`bqa-attention-halo level-${attentionLevel}`} aria-hidden="true" /> : null}
                   {progress != null ? <span className="bqa-progress-ring" aria-label={`${Math.round(progress)}%`} /> : null}
                   <Icon size={20} strokeWidth={2} aria-hidden="true" />
+                  {bookmarked ? <Bookmark className="bqa-bookmark-marker" size={9} fill="currentColor" aria-label={language === 'vi' ? 'Đã lưu mốc' : 'Bookmarked'} /> : null}
                   {appHealth[item.id] ? (
                     <span className={`bqa-health-dot is-${appHealth[item.id].state}`} title={appHealth[item.id].message || appHealth[item.id].state} aria-label={appHealth[item.id].message || appHealth[item.id].state} />
                   ) : null}
@@ -3915,6 +3948,31 @@ export default function GlobalQuickAccessRail({
               <MoreHorizontal size={18} aria-hidden="true" />
               <span>{railOverflowItems.length}</span>
             </button>
+          ) : null}
+
+          {precisionDrag ? (
+            <div
+              className={`bqa-command-drop-zone ${commandDropActive ? 'is-active' : ''}`}
+              role="button"
+              tabIndex={0}
+              aria-label={language === 'vi' ? 'Thả ứng dụng để thêm vào thanh bên' : 'Drop app to add to sidebar'}
+              onDragEnter={(event) => {
+                event.preventDefault();
+                setCommandDropActive(true);
+              }}
+              onDragOver={(event) => {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'copy';
+                setCommandDropActive(true);
+              }}
+              onDragLeave={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget)) setCommandDropActive(false);
+              }}
+              onDrop={handleCommandDrop}
+            >
+              <Plus size={15} aria-hidden="true" />
+              <span>{language === 'vi' ? 'Thả app' : 'Drop app'}</span>
+            </div>
           ) : null}
 
           {!classroomMode ? (
@@ -4027,6 +4085,28 @@ export default function GlobalQuickAccessRail({
             <Settings size={19} aria-hidden="true" />
           </button>
         </aside>
+
+        {trailOpen && sessionTrail.length ? (
+          <section className="bqa-trail-popover" aria-label={language === 'vi' ? 'Dấu vết phiên làm việc' : 'Session trail'}>
+            <header>
+              <span>{language === 'vi' ? 'Phiên hiện tại' : 'Current session'}</span>
+              <small>{sessionTrail.length}</small>
+            </header>
+            <div>
+              {sessionTrail.map((entry, index) => {
+                const item = presentationCatalog.find((candidate) => candidate.id === entry.itemId);
+                const Icon = item?.icon || Clock3;
+                return (
+                  <button type="button" key={`${entry.itemId}-${entry.at}-${index}`} onClick={(event) => navigateSessionTrail(entry, event.currentTarget)}>
+                    <span className="bqa-trail-step"><i>{index + 1}</i><Icon size={14} aria-hidden="true" /></span>
+                    <span><b>{item ? displayLabelFor(item) : entry.label}</b><small>{new Date(entry.at).toLocaleTimeString(language === 'vi' ? 'vi-VN' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</small></span>
+                    <ChevronRight size={12} aria-hidden="true" />
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
 
         {workspaceSwitcherOpen ? (
           <section className="bqa-workspace-popover" aria-label={language === 'vi' ? 'Không gian làm việc' : 'Workspaces'}>
@@ -4886,6 +4966,31 @@ export default function GlobalQuickAccessRail({
                 <ChevronRight size={14} aria-hidden="true" />
               </button>
             ))}
+            <button type="button" role="menuitem" onClick={() => {
+              saveCurrentAppBookmark(actionItem.id);
+              setActionItemId('');
+            }}>
+              <Bookmark size={14} aria-hidden="true" />
+              <span>{bookmarkForItem(actionItem) ? (language === 'vi' ? 'Cập nhật mốc hiện tại' : 'Update current bookmark') : (language === 'vi' ? 'Lưu mốc hiện tại' : 'Save current bookmark')}</span>
+              <ChevronRight size={14} aria-hidden="true" />
+            </button>
+            {bookmarkForItem(actionItem) ? (
+              <button type="button" role="menuitem" onClick={(event) => restoreAppStateBookmark(actionItem, event.currentTarget)}>
+                <Clock3 size={14} aria-hidden="true" />
+                <span>{language === 'vi' ? 'Quay lại mốc đã lưu' : 'Restore saved state'}</span>
+                <ChevronRight size={14} aria-hidden="true" />
+              </button>
+            ) : null}
+            {bookmarkForItem(actionItem) ? (
+              <button type="button" role="menuitem" onClick={() => {
+                removeAppStateBookmark(actionItem.id);
+                setActionItemId('');
+              }}>
+                <X size={14} aria-hidden="true" />
+                <span>{language === 'vi' ? 'Xóa mốc đã lưu' : 'Remove bookmark'}</span>
+                <ChevronRight size={14} aria-hidden="true" />
+              </button>
+            ) : null}
             <button type="button" role="menuitem" onClick={() => copyDeepLink(actionItem)}>
               <AppWindow size={14} aria-hidden="true" />
               <span>{language === 'vi' ? 'Sao chép liên kết đến đây' : 'Copy deep link'}</span>
@@ -5088,6 +5193,27 @@ export default function GlobalQuickAccessRail({
                     {language === 'vi' ? 'Quên ngữ cảnh đã nhớ' : 'Forget page contexts'}
                   </button>
                 ) : null}
+              </div>
+
+              <div className="bqa-double-click-control">
+                <header>
+                  <strong>{language === 'vi' ? 'Double-click Quick Action' : 'Double-click Quick Action'}</strong>
+                  <small>{language === 'vi' ? 'Đặt hành động riêng khi nhấp đúp icon; click đơn vẫn mở ứng dụng.' : 'Choose a double-click action; single click still opens the app.'}</small>
+                </header>
+                <div>
+                  {selectedItems.map((item) => {
+                    const actions = quickActionDescriptors(item, language);
+                    return (
+                      <label key={item.id}>
+                        <span>{labelFor(item, language)}</span>
+                        <select value={doubleClickActions[item.id] || ''} onChange={(event) => setDoubleClickAction(item.id, event.target.value)}>
+                          <option value="">{language === 'vi' ? 'Không dùng' : 'Disabled'}</option>
+                          {actions.map((descriptor) => <option key={descriptor.id} value={descriptor.id}>{descriptor.label}</option>)}
+                        </select>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="bqa-alias-control">
