@@ -374,6 +374,8 @@ export default function GlobalQuickAccessRail({
   const rootRef = useRef(null);
   const railRef = useRef(null);
   const panelRef = useRef(null);
+  const selectedItemsRef = useRef([]);
+  const activateItemRef = useRef(null);
 
   const catalog = useMemo(() => {
     const byId = new Map();
@@ -396,7 +398,7 @@ export default function GlobalQuickAccessRail({
   const allowedKey = allowedIds.join('|');
   const [config, setConfig] = useState(() => loadQuickAccessConfig(currentUser, allowedIds));
 
-  const sidebarMode = config.mode || (pinned ? 'pin' : 'auto');
+  const sidebarMode = config.mode || (config.pinned ? 'pin' : 'auto');
   const pinned = sidebarMode === 'pin';
   const focusMode = sidebarMode === 'focus';
   const expanded = hovered || pinned || customizing;
@@ -449,6 +451,24 @@ export default function GlobalQuickAccessRail({
   useEffect(() => () => {
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
+    window.clearTimeout(peekTimerRef.current);
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+    const syncBadges = () => setBadges((current) => ({ ...current, ...readBadgeSnapshot() }));
+    const onBadgeEvent = (event) => {
+      const detail = event?.detail && typeof event.detail === 'object' ? event.detail : {};
+      setBadges((current) => ({ ...current, ...detail }));
+    };
+    syncBadges();
+    const observer = new MutationObserver(syncBadges);
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    window.addEventListener('bes-quick-access-badges', onBadgeEvent);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('bes-quick-access-badges', onBadgeEvent);
+    };
   }, []);
 
   useEffect(() => {
@@ -491,7 +511,25 @@ export default function GlobalQuickAccessRail({
     const onShortcut = (event) => {
       const tag = String(event.target?.tagName || '').toLowerCase();
       const editable = event.target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag);
-      if (editable || event.repeat) return;
+      if (event.repeat) return;
+
+      if ((event.metaKey || event.ctrlKey) && !event.altKey && String(event.key || '').toLowerCase() === 'k') {
+        event.preventDefault();
+        openRail();
+        window.setTimeout(() => commandInputRef.current?.focus(), 40);
+        return;
+      }
+
+      if (!editable && event.altKey && !event.ctrlKey && !event.metaKey && /^[1-9]$/.test(String(event.key || ''))) {
+        const item = selectedItemsRef.current?.[Number(event.key) - 1];
+        if (item) {
+          event.preventDefault();
+          activateItemRef.current?.(item, null);
+        }
+        return;
+      }
+
+      if (editable) return;
       if (event.altKey && !event.ctrlKey && !event.metaKey && String(event.key || '').toLowerCase() === 'q') {
         event.preventDefault();
         if (expanded && !pinned && !customizing) collapseRail(false);
