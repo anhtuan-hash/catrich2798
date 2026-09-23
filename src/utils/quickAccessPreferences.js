@@ -5,6 +5,7 @@ export const QUICK_ACCESS_EVENT = 'bes-quick-access-updated';
 const QUICK_ACCESS_KEY = 'bes-quick-access-v1';
 export const QUICK_ACCESS_MODES = ['auto', 'pin', 'focus'];
 export const QUICK_ACCESS_RECENT_MAX = 3;
+export const QUICK_ACCESS_WORKSPACES = ['all', 'teaching', 'homeroom', 'department'];
 
 export const DEFAULT_QUICK_ACCESS_IDS = [
   'route:dashboard',
@@ -56,9 +57,10 @@ export function createDefaultQuickAccessConfig(allowedIds = []) {
   const preferred = DEFAULT_QUICK_ACCESS_IDS.filter((id) => !allowed.size || allowed.has(id));
   const fallback = (Array.isArray(allowedIds) ? allowedIds : []).filter((id) => !preferred.includes(id));
   return {
-    version: 2,
+    version: 3,
     items: [...preferred, ...fallback].slice(0, QUICK_ACCESS_MAX_ITEMS),
     recent: [],
+    workspace: 'all',
     mode: 'auto',
     pinned: false,
     updatedAt: 0,
@@ -79,10 +81,13 @@ export function normalizeQuickAccessConfig(raw, allowedIds = []) {
   const legacyPinned = Boolean(source.pinned);
   const requestedMode = String(source.mode || '').trim().toLowerCase();
   const mode = QUICK_ACCESS_MODES.includes(requestedMode) ? requestedMode : (legacyPinned ? 'pin' : 'auto');
+  const requestedWorkspace = String(source.workspace || '').trim().toLowerCase();
+  const workspace = QUICK_ACCESS_WORKSPACES.includes(requestedWorkspace) ? requestedWorkspace : 'all';
   return {
-    version: 2,
+    version: 3,
     items: (hasExplicitItems ? items : defaults.items).slice(0, QUICK_ACCESS_MAX_ITEMS),
     recent,
+    workspace,
     mode,
     pinned: mode === 'pin',
     updatedAt: Number(source.updatedAt) || 0,
