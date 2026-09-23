@@ -6,6 +6,10 @@ const QUICK_ACCESS_KEY = 'bes-quick-access-v1';
 export const QUICK_ACCESS_MODES = ['auto', 'pin', 'focus'];
 export const QUICK_ACCESS_RECENT_MAX = 3;
 export const QUICK_ACCESS_WORKSPACES = ['all', 'teaching', 'homeroom', 'department'];
+export const QUICK_ACCESS_SIZES = ['compact', 'standard', 'large'];
+export const QUICK_ACCESS_SIDES = ['left', 'right'];
+export const QUICK_ACCESS_MOTIONS = ['reduced', 'standard', 'fluid'];
+export const QUICK_ACCESS_HOVER_DELAYS = [180, 340, 520];
 
 export const DEFAULT_QUICK_ACCESS_IDS = [
   'route:dashboard',
@@ -57,10 +61,16 @@ export function createDefaultQuickAccessConfig(allowedIds = []) {
   const preferred = DEFAULT_QUICK_ACCESS_IDS.filter((id) => !allowed.size || allowed.has(id));
   const fallback = (Array.isArray(allowedIds) ? allowedIds : []).filter((id) => !preferred.includes(id));
   return {
-    version: 3,
+    version: 4,
     items: [...preferred, ...fallback].slice(0, QUICK_ACCESS_MAX_ITEMS),
     recent: [],
     workspace: 'all',
+    appearance: {
+      size: 'standard',
+      side: 'left',
+      motion: 'standard',
+      hoverDelay: 340,
+    },
     mode: 'auto',
     pinned: false,
     updatedAt: 0,
@@ -83,11 +93,23 @@ export function normalizeQuickAccessConfig(raw, allowedIds = []) {
   const mode = QUICK_ACCESS_MODES.includes(requestedMode) ? requestedMode : (legacyPinned ? 'pin' : 'auto');
   const requestedWorkspace = String(source.workspace || '').trim().toLowerCase();
   const workspace = QUICK_ACCESS_WORKSPACES.includes(requestedWorkspace) ? requestedWorkspace : 'all';
+  const appearanceSource = source.appearance && typeof source.appearance === 'object' ? source.appearance : {};
+  const requestedSize = String(appearanceSource.size || '').trim().toLowerCase();
+  const requestedSide = String(appearanceSource.side || '').trim().toLowerCase();
+  const requestedMotion = String(appearanceSource.motion || '').trim().toLowerCase();
+  const requestedHoverDelay = Number(appearanceSource.hoverDelay);
+  const appearance = {
+    size: QUICK_ACCESS_SIZES.includes(requestedSize) ? requestedSize : 'standard',
+    side: QUICK_ACCESS_SIDES.includes(requestedSide) ? requestedSide : 'left',
+    motion: QUICK_ACCESS_MOTIONS.includes(requestedMotion) ? requestedMotion : 'standard',
+    hoverDelay: QUICK_ACCESS_HOVER_DELAYS.includes(requestedHoverDelay) ? requestedHoverDelay : 340,
+  };
   return {
-    version: 3,
+    version: 4,
     items: (hasExplicitItems ? items : defaults.items).slice(0, QUICK_ACCESS_MAX_ITEMS),
     recent,
     workspace,
+    appearance,
     mode,
     pinned: mode === 'pin',
     updatedAt: Number(source.updatedAt) || 0,

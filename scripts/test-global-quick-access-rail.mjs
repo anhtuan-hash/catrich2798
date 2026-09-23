@@ -22,6 +22,10 @@ for (const token of [
   'QUICK_ACCESS_RECENT_MAX',
   'QUICK_ACCESS_MODES',
   'QUICK_ACCESS_WORKSPACES',
+  'QUICK_ACCESS_SIZES',
+  'QUICK_ACCESS_SIDES',
+  'QUICK_ACCESS_MOTIONS',
+  'QUICK_ACCESS_HOVER_DELAYS',
   'loadQuickAccessConfigFromCloud',
   'saveQuickAccessConfigToCloud',
   'subscribeQuickAccessConfig',
@@ -36,6 +40,10 @@ assert.ok(prefs.includes("['auto', 'pin', 'focus']"), 'Quick Access must persist
 assert.ok(prefs.includes("mode: 'auto'"), 'Quick Access defaults to Auto mode.');
 assert.ok(prefs.includes("workspace: 'all'"), 'Quick Access defaults to the All workspace.');
 assert.ok(prefs.includes("['all', 'teaching', 'homeroom', 'department']"), 'Quick Access must persist the supported workspaces.');
+assert.ok(prefs.includes("size: 'standard'"), 'Quick Access defaults to Standard rail size.');
+assert.ok(prefs.includes("side: 'left'"), 'Quick Access defaults to the left edge.');
+assert.ok(prefs.includes("motion: 'standard'"), 'Quick Access defaults to standard motion.');
+assert.ok(prefs.includes('hoverDelay: 340'), 'Quick Access defaults to the normal auto-hide delay.');
 assert.ok(prefs.includes('recent: []'), 'Quick Access defaults to an empty recent-app list.');
 assert.ok(prefs.includes("storageKey(user)"), 'Local fallback must be scoped per account.');
 assert.ok(prefs.includes('updatedAt: 0'), 'New-device defaults must not outrank an existing cloud configuration.');
@@ -83,6 +91,16 @@ for (const token of [
   'runQuickCreate',
   'executeCommand',
   'commandActiveIndex',
+  'switcherOpen',
+  'switcherItemsRef',
+  'bqa-app-switcher',
+  'updateMagneticEdge',
+  'measureQuickAccessContentRightEdge',
+  'data-rail-size={railSize}',
+  'data-rail-side={railSide}',
+  'data-motion-profile={motionProfile}',
+  'setAppearancePatch',
+  'bqa-customizer-appearance',
   'bqa-workspace-tabs',
   'bqa-quick-create-sheet',
   'bqa-rail-create',
@@ -137,6 +155,14 @@ for (const token of [
   'Brian Quick Access V2 · productivity layer',
   'Brian Quick Access V3.1 · contextual smart stack + live activity',
   'Brian Quick Access V3.2 · workspaces + quick create + Command Search V2',
+  'Brian Quick Access V3.3 · app switcher + magnetic edge + personalization',
+  '.bqa-app-switcher-backdrop',
+  '.bqa-app-switcher',
+  '.bqa-customizer-appearance',
+  '[data-rail-side="right"]',
+  '[data-rail-size="compact"]',
+  '[data-motion-profile="fluid"]',
+  '--bqa-content-safe-inset',
   '.bqa-workspace-tabs',
   '.bqa-rail-create',
   '.bqa-quick-create-sheet',
@@ -178,4 +204,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access V3.2 adds account-synced workspaces, Quick Create and action-aware Command Search V2 while preserving V3.1 Live Activity, permissions, font safety, responsive safe-area and the 10-shortcut cap.');
+console.log('PASS: Quick Access V3.3 adds keyboard app switching, magnetic edge affordance, side/size/motion personalization and side-aware safe-area while preserving V3.2 commands, permissions, font safety and the 10-shortcut cap.');

@@ -1151,12 +1151,13 @@ button.bqa-customizer-row:disabled {
 
 .app-shell[data-quick-access-layout="true"] {
   --bqa-content-safe-shift: 0px;
+  --bqa-content-safe-inset: 0px;
 }
 
 .app-shell[data-quick-access-layout="true"][data-quick-access-safe-mode="reserve"] > #bes-main-content > .bqa-content-safe-frame {
   position: relative;
   box-sizing: border-box;
-  width: calc(100% - var(--bqa-content-safe-shift, 0px));
+  width: calc(100% - var(--bqa-content-safe-inset, 0px));
   min-width: 0;
   translate: var(--bqa-content-safe-shift, 0px) 0;
   transition:
@@ -2483,6 +2484,395 @@ body:has(.app-shell[data-quick-access-safe-mode="overlay"]) > .bqa-root.is-colla
 @media (prefers-reduced-motion: reduce) {
   .bqa-workspace-tabs > button,
   .bqa-rail-create {
+    transition: none !important;
+  }
+}
+
+
+/* Brian Quick Access V3.3 · app switcher + magnetic edge + personalization · 2026-09-23
+   Scoped to Quick Access. Keeps route layout and active Brian fonts intact. */
+
+.bqa-root {
+  --bqa-magnetic: 0;
+  --bqa-magnetic-alpha: .48;
+  --bqa-magnetic-scale: 1;
+}
+
+.bqa-root[data-rail-size="compact"] {
+  --bqa-rail-width: 50px;
+  --bqa-panel-width: 316px;
+}
+
+.bqa-root[data-rail-size="standard"] {
+  --bqa-rail-width: 56px;
+  --bqa-panel-width: 338px;
+}
+
+.bqa-root[data-rail-size="large"] {
+  --bqa-rail-width: 64px;
+  --bqa-panel-width: 358px;
+}
+
+.bqa-root[data-rail-size="compact"] .bqa-brand,
+.bqa-root[data-rail-size="compact"] .bqa-rail-button,
+.bqa-root[data-rail-size="compact"] .bqa-rail-settings {
+  width: 36px;
+  min-height: 36px;
+}
+
+.bqa-root[data-rail-size="large"] .bqa-brand,
+.bqa-root[data-rail-size="large"] .bqa-rail-button,
+.bqa-root[data-rail-size="large"] .bqa-rail-settings {
+  width: 44px;
+  min-height: 44px;
+}
+
+.bqa-root[data-rail-side="right"] {
+  left: auto;
+  right: 8px;
+  justify-content: flex-end;
+}
+
+.bqa-root[data-rail-side="right"] .bqa-edge-trigger {
+  left: auto;
+  right: 0;
+}
+
+.bqa-root[data-rail-side="right"] .bqa-panel {
+  left: auto;
+  right: calc(var(--bqa-rail-width) + 8px);
+  transform: translate3d(24px, 0, 0) scale(.985);
+  transform-origin: right center;
+}
+
+.bqa-root[data-rail-side="right"].is-open .bqa-panel,
+.bqa-root[data-rail-side="right"].is-pinned .bqa-panel {
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+.bqa-root[data-rail-side="right"] .bqa-hover-bridge {
+  left: auto;
+  right: var(--bqa-rail-width);
+}
+
+.bqa-root[data-rail-side="right"] .bqa-rail-button::before {
+  left: auto;
+  right: -6px;
+  border-radius: 4px 0 0 4px;
+}
+
+.bqa-root[data-rail-side="right"] .bqa-peek-card {
+  left: auto;
+  right: calc(8px + var(--bqa-rail-width) + 8px + var(--bqa-panel-width) + 10px);
+  animation-name: bqa-peek-in-right;
+}
+
+.bqa-root[data-rail-side="right"] .bqa-action-sheet {
+  left: auto;
+  right: calc(var(--bqa-rail-width) + 16px);
+}
+
+@keyframes bqa-peek-in-right {
+  from { opacity: 0; transform: translate3d(6px,0,0) scale(.985); }
+  to { opacity: 1; transform: translate3d(0,0,0) scale(1); }
+}
+
+.bqa-root[data-rail-side="right"] .bqa-edge-trigger::after {
+  left: auto;
+  right: 0;
+  border-radius: 4px 0 0 4px;
+  transform-origin: right center;
+}
+
+.bqa-root[data-rail-side="left"] .bqa-edge-trigger::after {
+  transform-origin: left center;
+}
+
+.bqa-edge-trigger::after {
+  opacity: var(--bqa-magnetic-alpha, .48);
+  transform: scaleX(var(--bqa-magnetic-scale, 1));
+  box-shadow: 0 0 14px rgba(45,126,205, calc(.05 + var(--bqa-magnetic, 0) * .22));
+}
+
+body:has(.app-shell[data-quick-access-safe-mode="overlay"]) > .bqa-root[data-rail-side="right"].is-collapsed:not(.is-pinned) .bqa-rail {
+  transform: translate3d(calc(100% + 6px), 0, 0);
+  opacity: .68;
+}
+
+body:has(.app-shell[data-quick-access-safe-mode="reserve"]) > .bqa-root[data-rail-side="right"].is-collapsed:not(.is-pinned) .bqa-rail {
+  transform: translate3d(0, 0, 0);
+  opacity: 1;
+}
+
+@media (min-width: 768px) {
+  .bqa-root[data-rail-side="right"].is-collapsed:not(.is-pinned) .bqa-rail {
+    transform: translate3d(calc(100% + 6px), 0, 0);
+  }
+
+  body:has(.app-shell[data-quick-access-safe-mode="reserve"]) > .bqa-root[data-rail-side="right"].is-collapsed:not(.is-pinned) .bqa-rail {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (max-width: 767px) {
+  .bqa-root[data-rail-side="right"].is-collapsed:not(.is-pinned) .bqa-rail {
+    transform: translate3d(calc(100% - 16px), 0, 0);
+  }
+}
+
+.bqa-root[data-motion-profile="reduced"] .bqa-panel,
+.bqa-root[data-motion-profile="reduced"] .bqa-rail,
+.bqa-root[data-motion-profile="reduced"] .bqa-brand,
+.bqa-root[data-motion-profile="reduced"] .bqa-panel-item,
+.bqa-root[data-motion-profile="reduced"] .bqa-smart-section button,
+.bqa-root[data-motion-profile="reduced"] .bqa-rail-button {
+  transition-duration: 90ms !important;
+  animation-duration: 90ms !important;
+}
+
+.bqa-root[data-motion-profile="fluid"] .bqa-panel {
+  transition-duration: 310ms, 230ms !important;
+  transition-timing-function: cubic-bezier(.16, 1, .3, 1), ease !important;
+}
+
+.bqa-root[data-motion-profile="fluid"] .bqa-brand,
+.bqa-root[data-motion-profile="fluid"] .bqa-panel-item,
+.bqa-root[data-motion-profile="fluid"] .bqa-smart-section button,
+.bqa-root[data-motion-profile="fluid"] .bqa-rail-button {
+  transition-duration: 230ms !important;
+  transition-timing-function: cubic-bezier(.16, 1, .3, 1) !important;
+}
+
+.bqa-app-switcher-backdrop {
+  position: fixed;
+  z-index: 2147483647;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(18, 37, 59, .12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.bqa-app-switcher {
+  width: min(720px, calc(100vw - 48px));
+  padding: 16px;
+  border: 1px solid rgba(137,171,205,.34);
+  border-radius: 24px;
+  color: #173957;
+  background:
+    radial-gradient(circle at 15% 0, rgba(218,239,255,.74), transparent 150px),
+    radial-gradient(circle at 100% 100%, rgba(235,227,255,.68), transparent 180px),
+    rgba(255,255,255,.96);
+  box-shadow: 0 30px 80px rgba(25,58,91,.24);
+  animation: bqa-switcher-in 170ms cubic-bezier(.22,1,.36,1);
+}
+
+@keyframes bqa-switcher-in {
+  from { opacity: 0; transform: translate3d(0,8px,0) scale(.985); }
+  to { opacity: 1; transform: translate3d(0,0,0) scale(1); }
+}
+
+.bqa-app-switcher > header {
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 4px 10px;
+}
+
+.bqa-app-switcher > header > span {
+  color: #54708a;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: .08em;
+}
+
+.bqa-app-switcher > header > small {
+  color: #8798a9;
+  font-size: 9.5px;
+}
+
+.bqa-app-switcher-grid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 9px;
+}
+
+.bqa-app-switcher-grid > button {
+  appearance: none;
+  min-width: 0;
+  min-height: 116px;
+  padding: 12px;
+  display: grid;
+  grid-template-rows: 42px auto auto;
+  align-content: start;
+  gap: 5px;
+  border: 1px solid rgba(139,173,206,.20);
+  border-radius: 17px;
+  color: #244866;
+  background: rgba(250,252,255,.88);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 160ms cubic-bezier(.22,1,.36,1), border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.bqa-app-switcher-grid > button:hover,
+.bqa-app-switcher-grid > button:focus-visible,
+.bqa-app-switcher-grid > button.is-active {
+  transform: translateY(-2px);
+  border-color: rgba(49,119,194,.36);
+  background: #eef7ff;
+  box-shadow: 0 12px 26px rgba(45,99,151,.12), inset 0 0 0 1px rgba(48,119,194,.06);
+  outline: none;
+}
+
+.bqa-app-switcher-grid > button > span {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  color: var(--bqa-accent,#2e6fae);
+  background: color-mix(in srgb,var(--bqa-accent,#2e6fae) 11%,white);
+}
+
+.bqa-app-switcher-grid strong,
+.bqa-app-switcher-grid small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bqa-app-switcher-grid strong {
+  white-space: nowrap;
+  font-size: 12.5px;
+}
+
+.bqa-app-switcher-grid small {
+  display: -webkit-box;
+  color: #8496a8;
+  font-size: 9.5px;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.bqa-customizer-appearance {
+  margin: 10px 22px 0;
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(139,176,212,.24);
+  border-radius: 14px;
+  background: rgba(248,251,255,.90);
+}
+
+.bqa-customizer-appearance > header {
+  display: grid;
+  gap: 2px;
+  padding: 0 2px 3px;
+}
+
+.bqa-customizer-appearance > header strong {
+  color: #315471;
+  font-size: 11px;
+}
+
+.bqa-customizer-appearance > header small {
+  color: #8b9bac;
+  font-size: 8.8px;
+}
+
+.bqa-appearance-row {
+  min-height: 34px;
+  display: grid;
+  grid-template-columns: 96px minmax(0,1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.bqa-appearance-row > span {
+  color: #6f8498;
+  font-size: 9.5px;
+  font-weight: 760;
+}
+
+.bqa-appearance-row > div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.bqa-appearance-row button {
+  appearance: none;
+  min-height: 27px;
+  padding: 0 8px;
+  border: 1px solid rgba(140,176,211,.22);
+  border-radius: 8px;
+  color: #6b8196;
+  background: #fff;
+  font: inherit;
+  font-size: 8.8px;
+  font-weight: 740;
+  cursor: pointer;
+}
+
+.bqa-appearance-row button:hover,
+.bqa-appearance-row button:focus-visible {
+  color: #2467aa;
+  border-color: rgba(67,130,196,.30);
+  background: #f1f8ff;
+  outline: none;
+}
+
+.bqa-appearance-row button.is-active {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(180deg,#3286df,#1f68b6);
+  box-shadow: 0 4px 10px rgba(45,105,164,.16);
+}
+
+@media (max-width: 760px), (hover: none) {
+  .bqa-app-switcher-backdrop {
+    padding: 14px;
+  }
+
+  .bqa-app-switcher {
+    width: min(520px, calc(100vw - 28px));
+    padding: 12px;
+    border-radius: 20px;
+  }
+
+  .bqa-app-switcher-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+
+  .bqa-app-switcher > header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .bqa-appearance-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .bqa-appearance-row > div {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bqa-app-switcher,
+  .bqa-app-switcher-grid > button,
+  .bqa-edge-trigger::after {
+    animation: none !important;
     transition: none !important;
   }
 }
