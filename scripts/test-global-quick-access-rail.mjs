@@ -213,6 +213,21 @@ for (const token of [
   'bqa-key-hint',
   'data-keyboard-layer={keyboardLayer',
   'data-reading-mode={compactReadingMode',
+  'railCapacity',
+  'railOverflowItems',
+  'data-overflow-count={railOverflowItems.length}',
+  'bqa-rail-overflow',
+  'bqa-overflow-popover',
+  'bqa-rail-workspace',
+  'bqa-workspace-popover',
+  'bqa-active-actions',
+  'showActiveQuickActions',
+  'bqa-progress-ring',
+  'progressForItem',
+  'BrianQuickAccessHandoff',
+  'bes-quick-access-handoff',
+  'handleRailHandoffDrop',
+  'data-rail-capacity={railCapacity}',
   'dataset.brianClassroomMode',
   'bes-classroom-presentation-mode',
   'bqa-rail-classroom',
@@ -366,6 +381,14 @@ for (const token of [
   '.bqa-parking-shelf',
   '.bqa-snapshot-control',
   'Brian Quick Access V5 extended',
+  'Brian Quick Access V6 wave 1',
+  '.bqa-rail-workspace',
+  '.bqa-workspace-popover',
+  '.bqa-rail-overflow',
+  '.bqa-overflow-popover',
+  '.bqa-active-actions',
+  '.bqa-progress-ring',
+  '.bqa-rail-button.is-handoff-target',
   'Quick Access footer safe-area V2',
   'translate: var(--bqa-footer-safe-offset, 0px) 0',
   'calc(100% - clamp(32px, 6vw, 96px) - var(--bqa-content-safe-shift, 0px))',
@@ -490,4 +513,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access V5 completes folding, sticky headers, Scroll Navigator, Temporary Shelf, Deep Links, Context Lock, Undo, health, aliases, Screen Guard, Parking, Usage Insights, Snapshots, Precision Drag, Keyboard Navigation and Compact Reading while preserving the fixed-left 12px native scrollbar, permissions and custom fonts.');
+console.log('PASS: Quick Access V6 wave 1 adds Active App Actions, Progress Ring, Smart Overflow, Drag-to-App Handoff and Workspace Switcher while preserving V5, fixed-left web-only layout, permissions, footer safe-area and custom fonts.');
