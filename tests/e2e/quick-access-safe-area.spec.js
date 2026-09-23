@@ -344,6 +344,36 @@ test.describe('Global Quick Access safe area', () => {
     await expect(peek.locator('.bqa-peek-open')).toBeVisible();
   });
 
+  test('V4.6: notification center aggregates permitted Quick Access updates', async ({ page }) => {
+    await page.goto('/#/apps');
+    await expect(page.locator('.bqa-root')).toBeVisible();
+
+    await page.evaluate(() => {
+      window.BrianQuickAccessNotifications?.push?.({
+        id: 'qa-notification-center-test',
+        itemId: 'route:apps',
+        title: 'Ứng dụng',
+        text: 'Có 2 cập nhật cần xem',
+        tone: 'warning',
+      });
+    });
+
+    const bell = page.locator('.bqa-rail-notifications');
+    await expect(bell).toBeVisible();
+    await expect(bell).toContainText('1');
+    await bell.click();
+
+    const center = page.locator('.bqa-notification-center');
+    await expect(center).toBeVisible();
+    await expect(center).toContainText('Thông báo');
+    await expect(center).toContainText('Ứng dụng');
+    await expect(center).toContainText('Có 2 cập nhật cần xem');
+
+    await page.evaluate(() => window.BrianQuickAccessNotifications?.clear?.('qa-notification-center-test'));
+    await page.waitForTimeout(120);
+    await expect(page.locator('.bqa-rail-notifications')).toBeHidden();
+  });
+
   test('V3.3.1: right side is a true mirror with rail on the screen edge and panel expanding inward', async ({ page }) => {
     await page.goto('/#/dashboard');
     await expect(page.locator('.bqa-root')).toBeVisible();
