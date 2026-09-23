@@ -150,7 +150,7 @@ for (const token of [
   'bqa-peek-actions',
   'runQuickAction(peekItem',
   'data-smart-stack="true"',
-  'data-workspace={workspace}',
+  'data-workspace={effectiveWorkspace}',
   'workspaceAllowsItem',
   'quickCreateDescriptors',
   'quickCreateOpen',
