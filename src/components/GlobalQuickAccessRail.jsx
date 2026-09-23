@@ -1112,6 +1112,9 @@ export default function GlobalQuickAccessRail({
     : [];
 
   const peekItem = catalog.find((item) => item.id === peekItemId) || null;
+  const peekActions = peekItem
+    ? quickActionDescriptors(peekItem, language).filter((descriptor) => descriptor.id !== 'open').slice(0, 3)
+    : [];
   const actionItem = catalog.find((item) => item.id === actionItemId) || null;
 
   const availableItems = catalog.filter((item) => !config.items.includes(item.id));
@@ -1818,6 +1821,21 @@ export default function GlobalQuickAccessRail({
                 {badges[peekItem.id] === 'dot'
                   ? (language === 'vi' ? 'Có cập nhật mới' : 'New update available')
                   : (language === 'vi' ? `${badges[peekItem.id]} mục cần chú ý` : `${badges[peekItem.id]} items need attention`)}
+              </div>
+            ) : null}
+            {peekActions.length ? (
+              <div className="bqa-peek-actions" role="group" aria-label={language === 'vi' ? 'Thao tác ngay' : 'Quick actions'}>
+                {peekActions.map((descriptor) => (
+                  <button
+                    type="button"
+                    key={descriptor.id}
+                    onClick={(event) => runQuickAction(peekItem, descriptor, event.currentTarget)}
+                  >
+                    <Zap size={13} aria-hidden="true" />
+                    <span>{descriptor.label}</span>
+                    <ChevronRight size={13} aria-hidden="true" />
+                  </button>
+                ))}
               </div>
             ) : null}
             <button type="button" className="bqa-peek-open" onClick={(event) => activateItem(peekItem, event.currentTarget)}>
