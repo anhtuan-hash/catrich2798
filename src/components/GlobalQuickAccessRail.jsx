@@ -1094,6 +1094,55 @@ export default function GlobalQuickAccessRail({
             </div>
           </footer>
         </section>
+
+        {peekItem ? (
+          <aside
+            className="bqa-peek-card"
+            style={{ top: peekTop }}
+            onPointerEnter={() => window.clearTimeout(peekTimerRef.current)}
+            onPointerLeave={hidePeek}
+            aria-label={language === 'vi' ? `Xem nhanh ${labelFor(peekItem, language)}` : `Quick peek ${labelFor(peekItem, language)}`}
+          >
+            <div className="bqa-peek-top">
+              <span className="bqa-peek-icon" style={{ '--bqa-accent': peekItem.accent }}>
+                {React.createElement(peekItem.icon || Boxes, { size: 20, 'aria-hidden': true })}
+              </span>
+              <div><strong>{labelFor(peekItem, language)}</strong><small>{descriptionFor(peekItem, language)}</small></div>
+            </div>
+            {badges[peekItem.id] ? (
+              <div className="bqa-peek-status">
+                <span className="bqa-peek-status-dot" />
+                {badges[peekItem.id] === 'dot'
+                  ? (language === 'vi' ? 'Có cập nhật mới' : 'New update available')
+                  : (language === 'vi' ? `${badges[peekItem.id]} mục cần chú ý` : `${badges[peekItem.id]} items need attention`)}
+              </div>
+            ) : null}
+            <button type="button" className="bqa-peek-open" onClick={(event) => activateItem(peekItem, event.currentTarget)}>
+              {language === 'vi' ? 'Mở' : 'Open'} <ChevronRight size={15} aria-hidden="true" />
+            </button>
+          </aside>
+        ) : null}
+
+        {actionItem ? (
+          <div className="bqa-action-sheet" role="menu" aria-label={language === 'vi' ? 'Thao tác nhanh' : 'Quick actions'}>
+            <header>
+              <strong>{labelFor(actionItem, language)}</strong>
+              <button type="button" onClick={() => setActionItemId('')} aria-label={language === 'vi' ? 'Đóng' : 'Close'}><X size={14} aria-hidden="true" /></button>
+            </header>
+            {quickActionDescriptors(actionItem, language).map((descriptor) => (
+              <button
+                type="button"
+                role="menuitem"
+                key={descriptor.id}
+                onClick={(event) => runQuickAction(actionItem, descriptor, event.currentTarget)}
+              >
+                <Zap size={14} aria-hidden="true" />
+                <span>{descriptor.label}</span>
+                <ChevronRight size={14} aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+        ) : null}
       </div>
 
       {customizing ? (
@@ -1116,6 +1165,18 @@ export default function GlobalQuickAccessRail({
               <strong>{language === 'vi' ? 'Đã chọn' : 'Selected'}</strong>
               <span>{config.items.length}/{QUICK_ACCESS_MAX_ITEMS}</span>
             </div>
+
+            <section className="bqa-customizer-mode" aria-label={language === 'vi' ? 'Chế độ thanh bên' : 'Sidebar mode'}>
+              <button type="button" className={sidebarMode === 'auto' ? 'is-active' : ''} onClick={() => setSidebarMode('auto')}>
+                <Zap size={17} aria-hidden="true" /><span><strong>Auto</strong><small>{language === 'vi' ? 'Tự thu gọn' : 'Auto hide'}</small></span>
+              </button>
+              <button type="button" className={sidebarMode === 'pin' ? 'is-active' : ''} onClick={() => setSidebarMode('pin')}>
+                <Pin size={17} aria-hidden="true" /><span><strong>Pin</strong><small>{language === 'vi' ? 'Luôn mở' : 'Always open'}</small></span>
+              </button>
+              <button type="button" className={sidebarMode === 'focus' ? 'is-active' : ''} onClick={() => setSidebarMode('focus')}>
+                <EyeOff size={17} aria-hidden="true" /><span><strong>Focus</strong><small>{language === 'vi' ? 'Chỉ hiện ở mép' : 'Edge only'}</small></span>
+              </button>
+            </section>
 
             <div className="bqa-customizer-selected">
               {selectedItems.map((item) => {
