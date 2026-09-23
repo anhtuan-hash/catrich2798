@@ -1768,7 +1768,6 @@ export default function GlobalQuickAccessRail({
     setUndoStack([]);
     shelfFilesRef.current.clear();
     stateProvidersRef.current.clear();
-    trailRouteRef.current = null;
   }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
 
   useLayoutEffect(() => {
