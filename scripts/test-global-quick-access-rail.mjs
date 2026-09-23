@@ -48,6 +48,7 @@ assert.ok(prefs.includes("size: 'm'"), 'Quick Access defaults to medium size.');
 assert.ok(prefs.includes("motion: 'fluid'"), 'Quick Access defaults to fluid motion.');
 assert.ok(prefs.includes("density: 'comfortable'"), 'Quick Access defaults to comfortable density.');
 assert.ok(prefs.includes("side: 'left'"), 'Quick Access defaults to the left side.');
+assert.ok(prefs.includes("QUICK_ACCESS_SIDES = ['left']"), 'Quick Access must only support the left edge.');
 assert.ok(prefs.includes('hoverDelay: 220'), 'Quick Access defaults to a 220ms edge hover delay.');
 assert.ok(prefs.includes('labels: true'), 'Quick Access helper labels default on.');
 assert.ok(prefs.includes('workflows: []'), 'Quick Access defaults to no saved workflow bundles.');
@@ -56,7 +57,7 @@ assert.ok(prefs.includes("theme: 'glass'"), 'Quick Access defaults to the Glass 
 assert.ok(prefs.includes("['glass', 'paper', 'color', 'minimal']"), 'Quick Access must persist the supported sidebar themes.');
 assert.ok(prefs.includes('spatialMemory: true'), 'Quick Access defaults to device spatial memory enabled.');
 assert.ok(prefs.includes('contextMemory: true'), 'Quick Access defaults to route workspace memory enabled.');
-assert.ok(prefs.includes('version: 9'), 'Quick Access preference schema must be V9 for route workspace memory.');
+assert.ok(prefs.includes('version: 10'), 'Quick Access preference schema must be V10 for fixed-left layout.');
 assert.match(prefs, /QUICK_ACCESS_WORKFLOW_MAX\s*=\s*4/, 'Quick Access must cap saved workflow bundles at 4.');
 assert.match(prefs, /QUICK_ACCESS_WORKFLOW_STEPS_MAX\s*=\s*5/, 'Quick Access must cap workflow steps at 5.');
 assert.ok(prefs.includes('cleanWorkflows'), 'Quick Access must permission-filter persisted workflow bundles.');
@@ -147,7 +148,6 @@ for (const token of [
   'updateSpatialMemory',
   'clearDeviceSpatialMemory',
   'setSpatialMemoryEnabled',
-  'setRailSide',
   'data-spatial-memory={spatialMemoryEnabled',
   'spatialScrollTimerRef',
   'quickAccessContextMemoryStorageKey',
@@ -236,7 +236,6 @@ for (const token of [
   'data-motion-mode={motionMode}',
   'data-density={density}',
   'data-side={railSide}',
-  "const rightSide = railSide === 'right'",
   'bqa-app-switcher',
   'bqa-personalize-panel',
   'updatePersonalization',
@@ -292,7 +291,6 @@ for (const token of [
   'Brian Quick Access V3.1 · contextual smart stack + live activity',
   'Brian Quick Access V3.2 · workspaces + quick create + Command Search V2',
   'Brian Quick Access V3.3 · magnetic reveal + app switcher + personalization',
-  'Brian Quick Access V3.3.1 · true mirrored right-side layout',
   'Brian Quick Access V4.1 · Adaptive Dock',
   'Brian Quick Access V4.2 · live status capsules',
   'Brian Quick Access V4.3 · interactive Quick Peek',
@@ -350,13 +348,8 @@ for (const token of [
   '[data-dock-distance="0"]',
   '--bqa-dock-scale: 1.12',
   '--bqa-dock-inward',
-  'flex-direction: row-reverse',
-  'transform-origin: 100% 30px',
-  'bqa-peek-in-right',
-  'right: calc(var(--bqa-rail-width) + 16px)',
   '.bqa-app-switcher',
   '.bqa-personalize-panel',
-  '[data-side="right"]',
   '[data-size="l"]',
   '[data-motion-mode="reduced"]',
   '[data-density="compact"]',
@@ -384,6 +377,9 @@ for (const token of [
 
 assert.ok(!css.includes('clip-path: inset(0 89%'), 'Quick Access open/close motion must not animate expensive clip-path geometry.');
 assert.ok(!rail.includes('openSettled'), 'Quick Access must not use a timer-based post-animation snap state.');
+assert.ok(!rail.includes("QUICK_ACCESS_SIDES.map"), 'Quick Access must not render a side selector.');
+assert.ok(!rail.includes("setRailSide"), 'Quick Access must not expose side-switching behavior.');
+assert.ok(!rail.includes("'Phải' : 'Right'"), 'Quick Access must not expose the right-side option.');
 assert.ok(!/font-family\s*:/i.test(css), 'Quick Access CSS must not override Brian custom fonts.');
 assert.ok(!/\.app-shell\s*\{/.test(css), 'Quick Access CSS must not mutate global app-shell layout.');
 assert.ok(!/body\s*\{/.test(css), 'Quick Access CSS must remain component-scoped.');
@@ -412,4 +408,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access V4.13 adds route-scoped workspace memory while preserving device spatial memory, themes, classroom mode, workflows, permissions and custom fonts.');
+console.log('PASS: Quick Access V4.13.1 permanently locks the rail to the left edge, normalizes legacy right-side settings, and preserves route memory, themes, classroom mode, workflows, permissions and custom fonts.');
