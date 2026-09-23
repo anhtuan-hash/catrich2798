@@ -364,40 +364,6 @@ test.describe('Global Quick Access safe area', () => {
     await bell.click();
 
     const center = page.locator('.bqa-notification-center');
-    const notificationDiagnostic = await center.evaluate((element) => {
-      const root = element.closest('.bqa-root');
-      const panel = root?.querySelector('.bqa-panel');
-      const rail = root?.querySelector('.bqa-rail');
-      const styleOf = (node) => {
-        if (!node) return null;
-        const style = getComputedStyle(node);
-        const rect = node.getBoundingClientRect();
-        return {
-          display: style.display,
-          visibility: style.visibility,
-          opacity: style.opacity,
-          position: style.position,
-          overflow: style.overflow,
-          transform: style.transform,
-          translate: style.translate,
-          width: style.width,
-          height: style.height,
-          rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height, right: rect.right, bottom: rect.bottom },
-        };
-      };
-      return {
-        rootClass: root?.className || '',
-        root: styleOf(root),
-        rail: styleOf(rail),
-        panel: styleOf(panel),
-        center: styleOf(element),
-        htmlMotion: {
-          popover: document.documentElement.getAttribute('data-motion-popover'),
-          reduced: matchMedia('(prefers-reduced-motion: reduce)').matches,
-        },
-      };
-    });
-    console.log('V4.6_NOTIFICATION_DIAGNOSTIC', JSON.stringify(notificationDiagnostic));
     await expect(center).toBeVisible();
     await expect(center).toContainText('Thông báo');
     await expect(center).toContainText('Ứng dụng');
