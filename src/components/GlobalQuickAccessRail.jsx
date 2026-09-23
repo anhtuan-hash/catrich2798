@@ -655,10 +655,23 @@ export default function GlobalQuickAccessRail({
       if (input && !inertAncestor) {
         try { input.focus({ preventScroll: true }); } catch { input.focus?.(); }
       }
-      // Opening the rail removes inert and runs motion/layout effects across a few
-      // frames. Re-assert focus briefly so Chromium/WebKit cannot hand focus back
-      // to the page body during that transition.
       if (attempts < 12) window.setTimeout(tryFocus, 80);
+    };
+    window.requestAnimationFrame(tryFocus);
+  }, []);
+
+  const focusCommandPaletteInput = useCallback(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    let attempts = 0;
+    const tryFocus = () => {
+      attempts += 1;
+      const input = commandPaletteInputRef.current;
+      const inertAncestor = input?.closest?.('[inert]');
+      if (input && !inertAncestor) {
+        input.tabIndex = 0;
+        try { input.focus({ preventScroll: true }); } catch { input.focus?.(); }
+      }
+      if (attempts < 14) window.setTimeout(tryFocus, 70);
     };
     window.requestAnimationFrame(tryFocus);
   }, []);
@@ -1077,7 +1090,7 @@ export default function GlobalQuickAccessRail({
         setCommandPaletteQuery('');
         setCommandPaletteIndex(0);
         setCommandPaletteOpen(true);
-        window.setTimeout(() => commandPaletteInputRef.current?.focus({ preventScroll: true }), 30);
+        focusCommandPaletteInput();
         return;
       }
 
@@ -1127,7 +1140,7 @@ export default function GlobalQuickAccessRail({
       window.removeEventListener('keydown', onShortcut);
       window.removeEventListener('keyup', onShortcutUp);
     };
-  }, [pinned, customizing, expanded, collapseRail, openRail, appSwitcherIndex]);
+  }, [pinned, customizing, expanded, collapseRail, openRail, focusCommandPaletteInput, appSwitcherIndex]);
 
   useEffect(() => {
     if (!commandPaletteOpen || typeof window === 'undefined') return undefined;
@@ -1139,12 +1152,11 @@ export default function GlobalQuickAccessRail({
       setCommandPaletteIndex(0);
     };
     window.addEventListener('keydown', onKeyDown);
-    const focusTimer = window.setTimeout(() => commandPaletteInputRef.current?.focus({ preventScroll: true }), 30);
+    focusCommandPaletteInput();
     return () => {
-      window.clearTimeout(focusTimer);
       window.removeEventListener('keydown', onKeyDown);
     };
-  }, [commandPaletteOpen]);
+  }, [commandPaletteOpen, focusCommandPaletteInput]);
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
@@ -1637,11 +1649,14 @@ export default function GlobalQuickAccessRail({
           }}
         >
           <section className="bqa-command-palette" role="dialog" aria-modal="true" aria-label={language === 'vi' ? 'Bảng lệnh Brian' : 'Brian Command Palette'}>
-            <header className="bqa-command-palette-search">
+            <header className="bqa-command-palette-search" data-bes-keep-search="true">
               <span className="bqa-command-palette-logo" aria-hidden="true"><Command size={19} /></span>
               <input
                 ref={commandPaletteInputRef}
                 type="search"
+                autoFocus
+                tabIndex={0}
+                data-bes-keep-search="true"
                 value={commandPaletteQuery}
                 onChange={(event) => {
                   setCommandPaletteQuery(event.target.value);
