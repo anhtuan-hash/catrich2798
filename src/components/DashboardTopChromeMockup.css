@@ -8,7 +8,7 @@
 html body:has(.app-shell[data-route="dashboard"]) .bes-top-chrome,
 .app-shell[data-route="dashboard"] > .bes-top-chrome,
 .bes-top-chrome[data-dashboard-static-chrome="true"] {
-  position: static !important;
+  position: relative !important;
   top: auto !important;
   right: auto !important;
   bottom: auto !important;
@@ -16,6 +16,7 @@ html body:has(.app-shell[data-route="dashboard"]) .bes-top-chrome,
   inset: auto !important;
   z-index: 120 !important;
   display: block !important;
+  overflow: visible !important;
   width: var(--dashboard-shell-width) !important;
   max-width: 1520px !important;
   margin: 8px auto 0 !important;
@@ -77,6 +78,18 @@ html body:has(.app-shell[data-route="dashboard"]) .brian-nav__primary > * {
 
 html body:has(.app-shell[data-route="dashboard"]) .brian-nav__actions {
   gap: 4px !important;
+}
+
+/* Account + notification popovers must escape the header and paint above the Dashboard hero. */
+html body:has(.app-shell[data-route="dashboard"]) .brian-nav__popover-wrap,
+.bes-top-chrome[data-dashboard-static-chrome="true"] .brian-nav__popover-wrap {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+html body:has(.app-shell[data-route="dashboard"]) .brian-nav__popover,
+.bes-top-chrome[data-dashboard-static-chrome="true"] .brian-nav__popover {
+  z-index: 20 !important;
 }
 
 html body:has(.app-shell[data-route="dashboard"]) .brian-nav__icon {
