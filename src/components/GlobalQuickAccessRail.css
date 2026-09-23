@@ -4124,13 +4124,18 @@ body > .bqa-root[data-side="right"] {
 
 .bqa-root.is-notification-center .bqa-notification-center {
   display: flex !important;
+  position: absolute !important;
+  z-index: 12;
+  top: 78px;
+  right: 12px;
+  bottom: 72px;
+  left: 12px;
+  width: auto;
   min-height: 180px;
-  flex: 1 1 180px;
   opacity: 1 !important;
   visibility: visible !important;
   pointer-events: auto !important;
-  position: relative;
-  z-index: 4;
+  overflow: hidden;
 }
 .bqa-root.is-notification-center .bqa-panel {
   visibility: visible !important;
