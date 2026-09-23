@@ -9,6 +9,9 @@ const prefs = await readFile(new URL('../src/utils/quickAccessPreferences.js', i
 const migration = await readFile(new URL('../supabase/quick_access_settings_v11_9_6.sql', import.meta.url), 'utf8');
 
 assert.ok(main.includes("GlobalQuickAccessRail = lazy"), 'Quick Access must be lazy-loaded by the app shell.');
+assert.ok(main.includes("usePresentationMode"), 'Quick Access web-only gating must use the canonical presentation-mode resolver.');
+assert.ok(main.includes("quickAccessWebAllowed = presentation.presentationMode === 'desktop'"), 'Quick Access must be enabled only for the desktop/web presentation.');
+assert.ok(css.includes('html.bes-mobile-shell-active .bqa-root'), 'Mobile shell must hard-hide the desktop Quick Access rail as a CSS fail-safe.');
 assert.ok(main.includes("currentRoute !== 'home'"), 'Quick Access must not render on Home.');
 assert.ok(main.includes('scope="quick-access-rail"'), 'Quick Access must be protected by the global error boundary.');
 assert.ok(main.includes('appVisibility={appVisibility}'), 'Quick Access must receive app visibility state.');

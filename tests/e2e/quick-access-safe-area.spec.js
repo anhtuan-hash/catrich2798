@@ -184,6 +184,16 @@ test.describe('Global Quick Access safe area', () => {
     expect(state.width).toBeGreaterThanOrEqual(310);
   });
 
+  test('V5 web-only: mobile presentation never mounts the desktop Quick Access rail', async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem('bes-presentation-override', 'mobile'));
+    await page.goto('/#/apps');
+
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-presentation', 'mobile');
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-quick-access-layout', 'false');
+    await expect(page.locator('.bqa-root')).toHaveCount(0);
+    await expect(page.locator('.bes-mobile-bottomnav')).toBeVisible();
+  });
+
   test('V4.7: Command Palette opens with Ctrl/Cmd+K and returns permission-aware apps', async ({ page }) => {
     await page.goto('/#/apps');
     await expect(page.locator('.bqa-root')).toBeVisible();
