@@ -1769,7 +1769,7 @@ export default function GlobalQuickAccessRail({
     stateProvidersRef.current.clear();
   }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (typeof window === 'undefined' || !catalog.length || currentRoute === 'home') return;
     const item = catalog.find((candidate) => activeItem(candidate, currentRoute, selectedTool));
     if (!item) return;
@@ -1925,6 +1925,23 @@ export default function GlobalQuickAccessRail({
       }
       if (!previousTarget || previousTarget === nextTarget || previousTarget === '#/home') return;
 
+      const previousItem = catalog.find((candidate) => String(candidate.target || '') === previousTarget);
+      if (previousItem) {
+        const trailEntry = {
+          itemId: previousItem.id,
+          target: previousTarget,
+          label: labelFor(previousItem, language),
+          at: Date.now(),
+        };
+        setSessionTrail((current) => {
+          const previous = Array.isArray(current) ? current : [];
+          const next = [trailEntry, ...previous.filter((candidate) => candidate.itemId !== trailEntry.itemId || candidate.target !== trailEntry.target)]
+            .slice(0, QUICK_ACCESS_TRAIL_MAX);
+          saveQuickAccessTrail(currentUser, next);
+          return next;
+        });
+      }
+
       const entry = {
         target: previousTarget,
         label: navigationLabelForTarget(previousTarget, catalog, language),
@@ -2053,7 +2070,7 @@ export default function GlobalQuickAccessRail({
     const onKeyDown = (event) => {
       const tag = String(event.target?.tagName || '').toLowerCase();
       const editable = event.target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag);
-      setPrecisionDrag(Boolean(event.altKey));
+      setPrecisionDrag(event.key === 'Alt' || Boolean(event.altKey));
       if (editable) return;
 
       if (event.altKey && !event.ctrlKey && !event.metaKey && String(event.key || '').toLowerCase() === 'k') {
