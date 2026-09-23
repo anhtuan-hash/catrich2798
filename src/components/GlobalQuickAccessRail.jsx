@@ -1279,6 +1279,7 @@ export default function GlobalQuickAccessRail({
   const railClickTimerRef = useRef(0);
   const stateProvidersRef = useRef(new Map());
   const restoreBookmarkRef = useRef(null);
+  const trailRouteRef = useRef(null);
 
   const catalog = useMemo(() => {
     const byId = new Map();
@@ -1767,6 +1768,7 @@ export default function GlobalQuickAccessRail({
     setUndoStack([]);
     shelfFilesRef.current.clear();
     stateProvidersRef.current.clear();
+    trailRouteRef.current = null;
   }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
 
   useLayoutEffect(() => {
@@ -1779,10 +1781,13 @@ export default function GlobalQuickAccessRail({
       label: labelFor(item, language),
       at: Date.now(),
     };
+    const previousRouteEntry = trailRouteRef.current;
+    trailRouteRef.current = entry;
     setSessionTrail((current) => {
       const previous = Array.isArray(current) ? current : [];
-      if (previous[0]?.itemId === entry.itemId && previous[0]?.target === entry.target) return previous;
-      const next = [entry, ...previous.filter((candidate) => candidate.itemId !== entry.itemId || candidate.target !== entry.target)]
+      const seed = [entry, previousRouteEntry, ...previous].filter(Boolean);
+      const next = seed
+        .filter((candidate, index, all) => all.findIndex((value) => value.itemId === candidate.itemId && value.target === candidate.target) === index)
         .slice(0, QUICK_ACCESS_TRAIL_MAX);
       saveQuickAccessTrail(currentUser, next);
       return next;
@@ -3827,6 +3832,22 @@ export default function GlobalQuickAccessRail({
           onPointerEnter={openRail}
           onMouseEnter={openRail}
           onFocusCapture={openRail}
+          onDragEnter={(event) => {
+            const types = Array.from(event.dataTransfer?.types || []);
+            if (event.altKey || types.includes('application/x-brian-app-id') || types.includes('application/x-brian-quick-access-item')) {
+              event.preventDefault();
+              setCommandDropActive(true);
+              openRail();
+            }
+          }}
+          onDragOver={(event) => {
+            const types = Array.from(event.dataTransfer?.types || []);
+            if (event.altKey || types.includes('application/x-brian-app-id') || types.includes('application/x-brian-quick-access-item')) {
+              event.preventDefault();
+              event.dataTransfer.dropEffect = 'copy';
+              setCommandDropActive(true);
+            }
+          }}
         >
           <button
             type="button"
