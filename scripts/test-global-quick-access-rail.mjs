@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 const main = await readFile(new URL('../src/main.jsx', import.meta.url), 'utf8');
 const rail = await readFile(new URL('../src/components/GlobalQuickAccessRail.jsx', import.meta.url), 'utf8');
 const css = await readFile(new URL('../src/components/GlobalQuickAccessRail.css', import.meta.url), 'utf8');
+const navCss = await readFile(new URL('../src/components/GlobalUnifiedNavigationHub.css', import.meta.url), 'utf8');
 const prefs = await readFile(new URL('../src/utils/quickAccessPreferences.js', import.meta.url), 'utf8');
 const migration = await readFile(new URL('../supabase/quick_access_settings_v11_9_6.sql', import.meta.url), 'utf8');
 
@@ -120,6 +121,18 @@ for (const token of [
   'timeAwareContextFor',
   'timeAwareEnabled',
   'timeAwareItems',
+  'classroomModeAllowsItem',
+  'quickAccessClassroomModeStorageKey',
+  'loadQuickAccessClassroomMode',
+  'saveQuickAccessClassroomMode',
+  'classroomMode',
+  'setClassroomPresentationMode',
+  'data-classroom-mode={classroomMode',
+  'data-brian-classroom-mode',
+  'bes-classroom-presentation-mode',
+  'bqa-rail-classroom',
+  'bqa-classroom-banner',
+  'data-classroom-presentation="true"',
   'data-time-aware={timeAwareEnabled',
   'data-time-band={timeContext.id}',
   'bqa-time-aware',
@@ -256,6 +269,10 @@ for (const token of [
   'Brian Quick Access V4.7 · full-screen Command Palette',
   'Brian Quick Access V4.8 · workflow bundles',
   'Brian Quick Access V4.9 · time-aware workspace',
+  'Brian Quick Access V4.10 · classroom presentation mode',
+  '.bqa-rail-classroom',
+  '.bqa-classroom-banner',
+  '.bqa-root.is-classroom-mode .bqa-rail-badge',
   '.bqa-time-aware',
   '[data-time-band="morning"]',
   '[data-time-band="teaching"]',
@@ -335,8 +352,19 @@ for (const token of [
   assert.ok(migration.toLowerCase().includes(token.toLowerCase()), `Quick Access migration missing: ${token}`);
 }
 
+for (const token of [
+  "html[data-brian-classroom-mode='true']",
+  '.brian-nav__reports-tab',
+  '.brian-nav__ttcm-tab',
+  '.brian-nav__bell',
+  '.brian-nav__account > strong',
+  '.brian-nav__account-menu',
+]) {
+  assert.ok(navCss.includes(token), `Classroom navigation privacy contract missing: ${token}`);
+}
+
 const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access V4.9 adds rule-based time-aware workspace priorities with an account-synced opt-out while preserving V4.8 workflows, Command Palette, notifications, true mirror geometry, permissions and custom fonts.');
+console.log('PASS: Quick Access V4.10 adds session-scoped Classroom Presentation Mode with classroom-safe tools, hidden badges/management alerts, masked account identity and one-click restoration while preserving V4.9 time-aware priorities and true mirror geometry.');
