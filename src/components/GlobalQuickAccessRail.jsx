@@ -1537,7 +1537,15 @@ export default function GlobalQuickAccessRail({
     .filter((item) => !recentItems.some((recent) => recent.id === item.id))
     .slice(0, 3);
 
-  const contextCopy = contextCopyFor(currentRoute, selectedTool, language);
+  const contextCopy = classroomMode
+    ? {
+      kicker: language === 'vi' ? 'TRÌNH CHIẾU' : 'PRESENTATION',
+      title: language === 'vi' ? 'Không gian lớp học' : 'Classroom workspace',
+      description: language === 'vi'
+        ? 'Đã ẩn thông báo, badge và công cụ quản trị để trình chiếu an toàn hơn.'
+        : 'Notifications, badges and administrative tools are hidden for safer presenting.',
+    }
+    : contextCopyFor(currentRoute, selectedTool, language);
   const workingItem = workspaceItems.find((item) => activeItem(item, currentRoute, selectedTool))
     || contextItems[0]
     || recentItems[0]
@@ -1780,6 +1788,16 @@ export default function GlobalQuickAccessRail({
     if (next) {
       window.clearTimeout(closeTimerRef.current);
       setHovered(true);
+      const routeSignature = `${currentRoute || ''} ${selectedTool?.slug || ''}`.toLowerCase();
+      if (/(brian-team|settings|admin|report|ttcm|audit|governance)/i.test(routeSignature)) {
+        launchRoute({
+          target: '#/dashboard',
+          label: 'CL',
+          color: '#2f7d69',
+          sourceEl: null,
+          meta: { source: 'quick-access-classroom-mode' },
+        });
+      }
     }
   };
 
