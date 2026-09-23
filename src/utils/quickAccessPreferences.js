@@ -85,7 +85,7 @@ export function createDefaultQuickAccessConfig(allowedIds = []) {
   const preferred = DEFAULT_QUICK_ACCESS_IDS.filter((id) => !allowed.size || allowed.has(id));
   const fallback = (Array.isArray(allowedIds) ? allowedIds : []).filter((id) => !preferred.includes(id));
   return {
-    version: 5,
+    version: 6,
     items: [...preferred, ...fallback].slice(0, QUICK_ACCESS_MAX_ITEMS),
     recent: [],
     workspace: 'all',
@@ -97,6 +97,7 @@ export function createDefaultQuickAccessConfig(allowedIds = []) {
     hoverDelay: 220,
     labels: true,
     workflows: [],
+    timeAware: true,
     pinned: false,
     updatedAt: 0,
   };
@@ -129,8 +130,9 @@ export function normalizeQuickAccessConfig(raw, allowedIds = []) {
   const hoverDelay = Math.max(80, Math.min(700, Number(source.hoverDelay) || 220));
   const labels = source.labels !== false;
   const workflows = cleanWorkflows(source.workflows, allowedIds);
+  const timeAware = source.timeAware !== false;
   return {
-    version: 5,
+    version: 6,
     items: (hasExplicitItems ? items : defaults.items).slice(0, QUICK_ACCESS_MAX_ITEMS),
     recent,
     workspace,
@@ -142,6 +144,7 @@ export function normalizeQuickAccessConfig(raw, allowedIds = []) {
     hoverDelay,
     labels,
     workflows,
+    timeAware,
     pinned: mode === 'pin',
     updatedAt: Number(source.updatedAt) || 0,
   };
