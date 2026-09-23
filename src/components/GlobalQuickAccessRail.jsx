@@ -975,6 +975,10 @@ export default function GlobalQuickAccessRail({
     .filter((item) => !recentItems.some((recent) => recent.id === item.id))
     .slice(0, 3);
   const primaryActivity = liveActivities[0] || null;
+  const switcherItems = [
+    ...recentItems,
+    ...workspaceItems.filter((item) => !recentItems.some((recent) => recent.id === item.id)),
+  ].slice(0, 6);
 
   const workspaceOptions = [
     { id: 'all', label: language === 'vi' ? 'Tất cả' : 'All' },
@@ -1067,6 +1071,7 @@ export default function GlobalQuickAccessRail({
   };
 
   selectedItemsRef.current = workspaceItems;
+  switcherItemsRef.current = switcherItems;
   activateItemRef.current = activateItem;
 
   const setSidebarMode = (mode) => {
@@ -1075,6 +1080,8 @@ export default function GlobalQuickAccessRail({
     if (nextMode === 'pin') openRail();
     else if (nextMode === 'focus') collapseRail(true);
   };
+
+  const updatePersonalization = (patch) => persist({ ...config, ...patch });
 
   const togglePinned = () => setSidebarMode(pinned ? 'auto' : 'pin');
 
@@ -1164,6 +1171,12 @@ export default function GlobalQuickAccessRail({
         data-quick-access="true"
         data-sidebar-mode={sidebarMode}
         data-workspace={workspace}
+        data-size={railSize}
+        data-motion-mode={motionMode}
+        data-density={density}
+        data-side={railSide}
+        data-labels={showLabels ? 'show' : 'hide'}
+        style={{ '--bqa-magnet': magneticStrength }}
         data-motion={collapsing ? 'collapsing' : (expanded ? 'open' : 'rest')}
         data-route={currentRoute}
         onPointerEnter={enter}
@@ -1173,8 +1186,14 @@ export default function GlobalQuickAccessRail({
         <div
           className="bqa-edge-trigger"
           aria-hidden="true"
-          onPointerEnter={openRail}
-          onMouseEnter={openRail}
+          onPointerEnter={() => {
+            window.clearTimeout(magneticTimerRef.current);
+            magneticTimerRef.current = window.setTimeout(openRail, hoverDelay);
+          }}
+          onMouseEnter={() => {
+            window.clearTimeout(magneticTimerRef.current);
+            magneticTimerRef.current = window.setTimeout(openRail, hoverDelay);
+          }}
           onPointerDown={(event) => {
             if (event.pointerType === 'touch' || event.pointerType === 'pen') openRail();
           }}
