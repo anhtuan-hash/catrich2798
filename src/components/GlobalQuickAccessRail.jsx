@@ -2061,6 +2061,8 @@ export default function GlobalQuickAccessRail({
         data-density={density}
         data-side={railSide}
         data-labels={showLabels ? 'show' : 'hide'}
+        data-time-aware={timeAwareEnabled ? 'true' : 'false'}
+        data-time-band={timeContext.id}
         style={{ '--bqa-magnet': magneticStrength }}
         data-motion={collapsing ? 'collapsing' : (expanded ? 'open' : 'rest')}
         data-route={currentRoute}
@@ -2657,6 +2659,31 @@ export default function GlobalQuickAccessRail({
                 </span>
               </div>
 
+              {timeAwareItems.length ? (
+                <section className="bqa-time-aware" data-time-aware="true" data-time-band={timeContext.id}>
+                  <header>
+                    <span><Clock3 size={14} aria-hidden="true" />{timeContext.kicker}</span>
+                    <small>{language === 'vi' ? 'Theo giờ trên thiết bị' : 'Based on device time'}</small>
+                  </header>
+                  <div className="bqa-time-aware-copy">
+                    <strong>{timeContext.title}</strong>
+                    <span>{timeContext.description}</span>
+                  </div>
+                  <div className="bqa-time-aware-items">
+                    {timeAwareItems.map((item) => {
+                      const Icon = item.icon || Boxes;
+                      return (
+                        <button type="button" key={item.id} onClick={(event) => activateItem(item, event.currentTarget)}>
+                          <span style={{ '--bqa-accent': item.accent }}><Icon size={15} aria-hidden="true" /></span>
+                          <b>{labelFor(item, language)}</b>
+                          <ChevronRight size={13} aria-hidden="true" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              ) : null}
+
               {primaryResume ? (
                 <section className="bqa-resume-card" data-session-resume="true">
                   <span className="bqa-resume-icon" style={{ '--bqa-accent': primaryResume.item.accent }}>
@@ -3053,6 +3080,11 @@ export default function GlobalQuickAccessRail({
               <label className="bqa-personalize-toggle">
                 <span>{language === 'vi' ? 'Hiện nhãn hỗ trợ' : 'Show helper labels'}</span>
                 <input type="checkbox" checked={showLabels} onChange={(event) => updatePersonalization({ labels: event.target.checked })} />
+              </label>
+
+              <label className="bqa-personalize-toggle">
+                <span>{language === 'vi' ? 'Ưu tiên theo thời gian' : 'Time-aware priorities'}</span>
+                <input type="checkbox" checked={timeAwareEnabled} onChange={(event) => updatePersonalization({ timeAware: event.target.checked })} />
               </label>
             </section>
 
