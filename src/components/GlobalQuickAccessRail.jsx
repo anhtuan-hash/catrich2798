@@ -2322,6 +2322,146 @@ export default function GlobalQuickAccessRail({
             </div>
           </header>
 
+          {workflowCenterOpen ? (
+            <section className="bqa-workflow-center" data-workflow-center="true" aria-label={language === 'vi' ? 'Quy trình nhanh' : 'Workflow bundles'}>
+              <header className="bqa-workflow-header">
+                <span><Boxes size={14} aria-hidden="true" />{language === 'vi' ? 'Quy trình nhanh' : 'Workflow bundles'}</span>
+                <div>
+                  <b>{workflowBundles.length}/{QUICK_ACCESS_WORKFLOW_MAX}</b>
+                  <button type="button" onClick={() => setWorkflowCenterOpen(false)} aria-label={language === 'vi' ? 'Đóng quy trình' : 'Close workflows'}>
+                    <X size={14} aria-hidden="true" />
+                  </button>
+                </div>
+              </header>
+
+              {activeWorkflow ? (
+                <div className="bqa-workflow-active" data-workflow-active="true">
+                  <div className="bqa-workflow-active-top">
+                    <span>
+                      <small>{language === 'vi' ? 'ĐANG CHẠY' : 'IN PROGRESS'}</small>
+                      <strong>{activeWorkflow.name}</strong>
+                    </span>
+                    <b>{activeWorkflowNextIndex}/{activeWorkflow.items.length}</b>
+                  </div>
+                  <div className="bqa-workflow-progress" aria-label={`${activeWorkflowNextIndex}/${activeWorkflow.items.length}`}>
+                    <i style={{ width: `${Math.round((activeWorkflowNextIndex / Math.max(activeWorkflow.items.length, 1)) * 100)}%` }} />
+                  </div>
+                  <div className="bqa-workflow-next">
+                    {activeWorkflowNextItem ? (
+                      <>
+                        <span style={{ '--bqa-accent': activeWorkflowNextItem.accent }}>
+                          {React.createElement(activeWorkflowNextItem.icon || Boxes, { size: 16, 'aria-hidden': true })}
+                        </span>
+                        <div>
+                          <small>{language === 'vi' ? 'BƯỚC TIẾP THEO' : 'NEXT STEP'}</small>
+                          <strong>{labelFor(activeWorkflowNextItem, language)}</strong>
+                        </div>
+                        <button type="button" onClick={(event) => continueWorkflowBundle(event.currentTarget)}>
+                          {language === 'vi' ? 'Mở' : 'Open'} <ChevronRight size={13} aria-hidden="true" />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <span className="is-done"><Check size={16} aria-hidden="true" /></span>
+                        <div>
+                          <small>{language === 'vi' ? 'HOÀN TẤT' : 'COMPLETE'}</small>
+                          <strong>{language === 'vi' ? 'Đã đi hết quy trình' : 'Workflow completed'}</strong>
+                        </div>
+                        <button type="button" onClick={finishWorkflowBundle}>{language === 'vi' ? 'Xong' : 'Done'}</button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ) : null}
+
+              {workflowBundles.length ? (
+                <div className="bqa-workflow-list">
+                  {workflowBundles.map((workflow) => (
+                    <article className="bqa-workflow-card" key={workflow.id}>
+                      <div className="bqa-workflow-card-copy">
+                        <strong>{workflow.name}</strong>
+                        <small>{language === 'vi' ? `${workflow.items.length} bước` : `${workflow.items.length} steps`}</small>
+                      </div>
+                      <div className="bqa-workflow-sequence" aria-label={workflow.name}>
+                        {workflow.items.map((item, index) => (
+                          <span key={item.id} style={{ '--bqa-accent': item.accent }} title={labelFor(item, language)}>
+                            {React.createElement(item.icon || Boxes, { size: 14, 'aria-hidden': true })}
+                            <i>{index + 1}</i>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="bqa-workflow-actions">
+                        <button type="button" className="is-start" onClick={(event) => startWorkflowBundle(workflow, event.currentTarget)}>
+                          <Zap size={13} aria-hidden="true" />{language === 'vi' ? 'Bắt đầu' : 'Start'}
+                        </button>
+                        <button type="button" onClick={() => deleteWorkflowBundle(workflow.id)} aria-label={language === 'vi' ? `Xóa ${workflow.name}` : `Delete ${workflow.name}`}>
+                          <X size={13} aria-hidden="true" />
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="bqa-workflow-empty">
+                  <Boxes size={22} aria-hidden="true" />
+                  <strong>{language === 'vi' ? 'Chưa có quy trình nào' : 'No workflow bundles yet'}</strong>
+                  <span>{language === 'vi' ? 'Chọn nhiều công cụ bên dưới để tạo một luồng làm việc dùng lại.' : 'Select multiple tools below to create a reusable flow.'}</span>
+                </div>
+              )}
+
+              {workflowBundles.length < QUICK_ACCESS_WORKFLOW_MAX ? (
+                <div className="bqa-workflow-builder">
+                  <label>
+                    <span>{language === 'vi' ? 'Tên quy trình' : 'Workflow name'}</span>
+                    <input
+                      type="text"
+                      value={workflowDraftName}
+                      maxLength={42}
+                      onChange={(event) => setWorkflowDraftName(event.target.value)}
+                      placeholder={language === 'vi' ? 'Ví dụ: Buổi sáng' : 'Example: Morning routine'}
+                    />
+                  </label>
+                  <div className="bqa-workflow-builder-head">
+                    <span>{language === 'vi' ? 'Chọn các bước' : 'Choose steps'}</span>
+                    <b>{workflowDraftIds.length}/{QUICK_ACCESS_WORKFLOW_STEPS_MAX}</b>
+                  </div>
+                  <div className="bqa-workflow-picker">
+                    {workflowCandidateItems.map((item) => {
+                      const selected = workflowDraftIds.includes(item.id);
+                      const Icon = item.icon || Boxes;
+                      return (
+                        <button
+                          type="button"
+                          key={item.id}
+                          className={selected ? 'is-selected' : ''}
+                          aria-pressed={selected}
+                          onClick={() => toggleWorkflowDraftItem(item.id)}
+                        >
+                          <span style={{ '--bqa-accent': item.accent }}><Icon size={15} aria-hidden="true" /></span>
+                          <strong>{labelFor(item, language)}</strong>
+                          {selected ? <Check size={13} aria-hidden="true" /> : <Plus size={13} aria-hidden="true" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button
+                    type="button"
+                    className="bqa-workflow-save"
+                    disabled={!workflowDraftIds.length}
+                    onClick={saveWorkflowBundle}
+                  >
+                    <Plus size={14} aria-hidden="true" />
+                    {language === 'vi' ? 'Lưu quy trình' : 'Save workflow'}
+                  </button>
+                </div>
+              ) : (
+                <div className="bqa-workflow-limit">
+                  {language === 'vi' ? `Đã đạt giới hạn ${QUICK_ACCESS_WORKFLOW_MAX} quy trình.` : `You reached the ${QUICK_ACCESS_WORKFLOW_MAX}-workflow limit.`}
+                </div>
+              )}
+            </section>
+          ) : null}
+
           {backStackOpen && backStack.length ? (
             <section className="bqa-back-stack" aria-label={language === 'vi' ? 'Lịch sử điều hướng' : 'Navigation history'}>
               <header>
