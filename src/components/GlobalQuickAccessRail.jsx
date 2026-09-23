@@ -550,6 +550,24 @@ export default function GlobalQuickAccessRail({
     setHovered(true);
   }, []);
 
+  const focusCommandInput = useCallback(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    let attempts = 0;
+    const tryFocus = () => {
+      attempts += 1;
+      const input = commandInputRef.current;
+      const inertAncestor = input?.closest?.('[inert]');
+      if (input && !inertAncestor) {
+        try { input.focus({ preventScroll: true }); } catch { input.focus?.(); }
+      }
+      // Opening the rail removes inert and runs motion/layout effects across a few
+      // frames. Re-assert focus briefly so Chromium/WebKit cannot hand focus back
+      // to the page body during that transition.
+      if (attempts < 12) window.setTimeout(tryFocus, 80);
+    };
+    window.requestAnimationFrame(tryFocus);
+  }, []);
+
   const collapseRail = useCallback((force = false) => {
     if (!force && (pinned || customizing)) return;
     window.clearTimeout(closeTimerRef.current);
@@ -816,7 +834,7 @@ export default function GlobalQuickAccessRail({
       if ((event.metaKey || event.ctrlKey) && !event.altKey && String(event.key || '').toLowerCase() === 'k') {
         event.preventDefault();
         openRail();
-        window.setTimeout(() => commandInputRef.current?.focus(), 40);
+        focusCommandInput();
         return;
       }
 
@@ -866,7 +884,7 @@ export default function GlobalQuickAccessRail({
       window.removeEventListener('keydown', onShortcut);
       window.removeEventListener('keyup', onShortcutUp);
     };
-  }, [pinned, customizing, expanded, collapseRail, openRail, appSwitcherIndex]);
+  }, [pinned, customizing, expanded, collapseRail, openRail, focusCommandInput, appSwitcherIndex]);
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
@@ -1112,6 +1130,9 @@ export default function GlobalQuickAccessRail({
     : [];
 
   const peekItem = catalog.find((item) => item.id === peekItemId) || null;
+  const peekActions = peekItem
+    ? quickActionDescriptors(peekItem, language).filter((descriptor) => descriptor.id !== 'open').slice(0, 3)
+    : [];
   const actionItem = catalog.find((item) => item.id === actionItemId) || null;
 
   const availableItems = catalog.filter((item) => !config.items.includes(item.id));
@@ -1818,6 +1839,21 @@ export default function GlobalQuickAccessRail({
                 {badges[peekItem.id] === 'dot'
                   ? (language === 'vi' ? 'Có cập nhật mới' : 'New update available')
                   : (language === 'vi' ? `${badges[peekItem.id]} mục cần chú ý` : `${badges[peekItem.id]} items need attention`)}
+              </div>
+            ) : null}
+            {peekActions.length ? (
+              <div className="bqa-peek-actions" role="group" aria-label={language === 'vi' ? 'Thao tác ngay' : 'Quick actions'}>
+                {peekActions.map((descriptor) => (
+                  <button
+                    type="button"
+                    key={descriptor.id}
+                    onClick={(event) => runQuickAction(peekItem, descriptor, event.currentTarget)}
+                  >
+                    <Zap size={13} aria-hidden="true" />
+                    <span>{descriptor.label}</span>
+                    <ChevronRight size={13} aria-hidden="true" />
+                  </button>
+                ))}
               </div>
             ) : null}
             <button type="button" className="bqa-peek-open" onClick={(event) => activateItem(peekItem, event.currentTarget)}>
