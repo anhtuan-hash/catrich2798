@@ -361,12 +361,14 @@ export default function GlobalQuickAccessRail({
   const [peekItemId, setPeekItemId] = useState('');
   const [peekTop, setPeekTop] = useState(92);
   const [actionItemId, setActionItemId] = useState('');
+  const [actionTop, setActionTop] = useState(118);
   const [badges, setBadges] = useState({});
   const [dragId, setDragId] = useState('');
   const [collapsing, setCollapsing] = useState(false);
   const closeTimerRef = useRef(0);
   const collapseMotionTimerRef = useRef(0);
   const peekTimerRef = useRef(0);
+  const badgeFrameRef = useRef(0);
   const commandInputRef = useRef(null);
   const layoutFrameRef = useRef(0);
   const layoutSettleTimerRef = useRef(0);
@@ -452,11 +454,17 @@ export default function GlobalQuickAccessRail({
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
     window.clearTimeout(peekTimerRef.current);
+    window.cancelAnimationFrame(badgeFrameRef.current);
   }, []);
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
-    const syncBadges = () => setBadges((current) => ({ ...current, ...readBadgeSnapshot() }));
+    const syncBadges = () => {
+      window.cancelAnimationFrame(badgeFrameRef.current);
+      badgeFrameRef.current = window.requestAnimationFrame(() => {
+        setBadges((current) => ({ ...current, ...readBadgeSnapshot() }));
+      });
+    };
     const onBadgeEvent = (event) => {
       const detail = event?.detail && typeof event.detail === 'object' ? event.detail : {};
       setBadges((current) => ({ ...current, ...detail }));
@@ -467,6 +475,7 @@ export default function GlobalQuickAccessRail({
     window.addEventListener('bes-quick-access-badges', onBadgeEvent);
     return () => {
       observer.disconnect();
+      window.cancelAnimationFrame(badgeFrameRef.current);
       window.removeEventListener('bes-quick-access-badges', onBadgeEvent);
     };
   }, []);
@@ -930,7 +939,7 @@ export default function GlobalQuickAccessRail({
               <button
                 type="button"
                 className={sidebarMode === 'pin' ? 'is-active' : ''}
-                onClick={() => setSidebarMode('pin')}
+                onClick={() => setSidebarMode(sidebarMode === 'pin' ? 'auto' : 'pin')}
                 title={language === 'vi' ? 'Ghim luôn mở' : 'Keep pinned'}
                 aria-label={language === 'vi' ? 'Ghim luôn mở' : 'Keep pinned'}
               >
@@ -1068,8 +1077,11 @@ export default function GlobalQuickAccessRail({
                         aria-label={language === 'vi' ? `Thao tác nhanh cho ${labelFor(item, language)}` : `Quick actions for ${labelFor(item, language)}`}
                         aria-haspopup="menu"
                         aria-expanded={actionItemId === item.id}
-                        onClick={() => {
+                        onClick={(event) => {
                           setPeekItemId('');
+                          const rect = event.currentTarget.getBoundingClientRect();
+                          const rootRect = rootRef.current?.getBoundingClientRect?.();
+                          if (rootRect) setActionTop(Math.max(76, Math.min(rootRect.height - 170, rect.top - rootRect.top - 8)));
                           setActionItemId((value) => value === item.id ? '' : item.id);
                         }}
                       >
@@ -1124,7 +1136,7 @@ export default function GlobalQuickAccessRail({
         ) : null}
 
         {actionItem ? (
-          <div className="bqa-action-sheet" role="menu" aria-label={language === 'vi' ? 'Thao tác nhanh' : 'Quick actions'}>
+          <div className="bqa-action-sheet" style={{ top: actionTop }} role="menu" aria-label={language === 'vi' ? 'Thao tác nhanh' : 'Quick actions'}>
             <header>
               <strong>{labelFor(actionItem, language)}</strong>
               <button type="button" onClick={() => setActionItemId('')} aria-label={language === 'vi' ? 'Đóng' : 'Close'}><X size={14} aria-hidden="true" /></button>
