@@ -6932,10 +6932,9 @@ html body #root .app-shell.metro-clean-system[data-quick-access-layout="true"][d
   overflow: visible;
 }
 
-.bqa-rail-button.has-progress::after {
-  content: '';
+.bqa-progress-ring {
   position: absolute;
-  z-index: -1;
+  z-index: 0;
   inset: -4px;
   border-radius: inherit;
   background:
@@ -6945,13 +6944,6 @@ html body #root .app-shell.metro-clean-system[data-quick-access-layout="true"][d
     );
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px));
   mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px));
-  pointer-events: none;
-}
-
-.bqa-progress-ring {
-  position: absolute;
-  inset: -4px;
-  border-radius: inherit;
   pointer-events: none;
 }
 
