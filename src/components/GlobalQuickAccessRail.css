@@ -2795,3 +2795,160 @@ body:has(.app-shell[data-quick-access-safe-mode="overlay"]) > .bqa-root.is-colla
     animation: none !important;
   }
 }
+
+
+/* Brian Quick Access V3.3.1 · true mirrored right-side layout · 2026-09-23
+   Right mode is a real mirror: rail stays on the physical screen edge and
+   panel/peek/actions expand inward. No route content reflow is introduced. */
+.bqa-root[data-side="right"] {
+  left: auto !important;
+  right: 8px !important;
+  flex-direction: row-reverse;
+}
+
+.bqa-root[data-side="right"] .bqa-rail {
+  order: 0;
+}
+
+.bqa-root[data-side="right"] .bqa-panel {
+  left: auto !important;
+  right: calc(var(--bqa-rail-width) + 8px) !important;
+  transform-origin: 100% 30px !important;
+  transform: translate3d(42px, 0, 0) scale3d(.14, .70, 1);
+}
+
+.bqa-root[data-side="right"].is-open .bqa-panel,
+.bqa-root[data-side="right"].is-pinned .bqa-panel {
+  transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+}
+
+.bqa-root[data-side="right"].is-collapsing .bqa-panel,
+.bqa-root[data-side="right"].is-collapsed:not(.is-collapsing) .bqa-panel {
+  transform: translate3d(42px, 0, 0) scale3d(.14, .70, 1) !important;
+}
+
+.bqa-root[data-side="right"] .bqa-panel-header,
+.bqa-root[data-side="right"] .bqa-panel-list,
+.bqa-root[data-side="right"] .bqa-panel-footer,
+.bqa-root[data-side="right"] .bqa-panel-item {
+  transform: translate3d(7px, 0, 0);
+}
+
+.bqa-root[data-side="right"].is-open .bqa-panel-header,
+.bqa-root[data-side="right"].is-open .bqa-panel-list,
+.bqa-root[data-side="right"].is-open .bqa-panel-footer,
+.bqa-root[data-side="right"].is-open .bqa-panel-item,
+.bqa-root[data-side="right"].is-pinned .bqa-panel-header,
+.bqa-root[data-side="right"].is-pinned .bqa-panel-list,
+.bqa-root[data-side="right"].is-pinned .bqa-panel-footer,
+.bqa-root[data-side="right"].is-pinned .bqa-panel-item {
+  transform: translate3d(0, 0, 0);
+}
+
+.bqa-root[data-side="right"].is-collapsing .bqa-panel-header,
+.bqa-root[data-side="right"].is-collapsing .bqa-panel-list,
+.bqa-root[data-side="right"].is-collapsing .bqa-panel-footer,
+.bqa-root[data-side="right"].is-collapsing .bqa-panel-item {
+  transform: translate3d(7px, 0, 0);
+}
+
+.bqa-root[data-side="right"] .bqa-panel-item:hover,
+.bqa-root[data-side="right"] .bqa-panel-item:focus-visible {
+  transform: translateX(-2px);
+  box-shadow: inset -3px 0 0 color-mix(in srgb, var(--bqa-accent, #2e6fae) 70%, transparent);
+}
+
+.bqa-root[data-side="right"] .bqa-panel-item.is-active {
+  box-shadow: inset -3px 0 0 var(--bqa-accent, #2e6fae);
+}
+
+.bqa-root[data-side="right"] .bqa-rail-button::before {
+  left: auto;
+  right: -6px;
+  border-radius: 4px 0 0 4px;
+}
+
+.bqa-root[data-side="right"] .bqa-hover-bridge {
+  left: auto !important;
+  right: var(--bqa-rail-width) !important;
+}
+
+.bqa-root[data-side="right"] .bqa-edge-trigger {
+  left: auto !important;
+  right: 0 !important;
+}
+
+.bqa-root[data-side="right"] .bqa-edge-trigger::after {
+  left: auto;
+  right: 0;
+  border-radius: 4px 0 0 4px;
+}
+
+.bqa-root[data-side="right"] .bqa-action-sheet {
+  left: auto !important;
+  right: calc(var(--bqa-rail-width) + 16px) !important;
+}
+
+.bqa-root[data-side="right"] .bqa-peek-card {
+  left: auto !important;
+  right: calc(8px + var(--bqa-rail-width) + 8px + var(--bqa-panel-width) + 10px) !important;
+  animation-name: bqa-peek-in-right;
+}
+
+@keyframes bqa-peek-in-right {
+  from { opacity: 0; transform: translate3d(6px,0,0) scale(.985); }
+  to { opacity: 1; transform: translate3d(0,0,0) scale(1); }
+}
+
+/* The old edge-peek rules are left-oriented; mirror every final-state override. */
+@media (min-width: 768px) {
+  body:has(.app-shell[data-quick-access-safe-mode="overlay"]) > .bqa-root[data-side="right"].is-collapsed:not(.is-pinned) .bqa-rail,
+  .app-shell[data-quick-access-layout="true"][data-quick-access-safe-mode="overlay"] ~ .bqa-root[data-side="right"].is-collapsed:not(.is-pinned) .bqa-rail,
+  .bqa-root[data-side="right"][data-route="dashboard"].is-collapsed:not(.is-pinned) .bqa-rail {
+    transform: translate3d(calc(100% + 6px), 0, 0) !important;
+  }
+
+  .bqa-root[data-side="right"].is-open .bqa-rail,
+  .bqa-root[data-side="right"].is-pinned .bqa-rail,
+  .bqa-root[data-side="right"][data-route="dashboard"].is-open .bqa-rail,
+  .bqa-root[data-side="right"][data-route="dashboard"].is-pinned .bqa-rail {
+    transform: translate3d(0, 0, 0) !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .bqa-root[data-side="right"].is-collapsed:not(.is-pinned) .bqa-rail {
+    transform: translate3d(calc(100% - 16px), 0, 0) !important;
+  }
+
+  .bqa-root[data-side="right"].is-open .bqa-rail,
+  .bqa-root[data-side="right"].is-pinned .bqa-rail {
+    transform: translate3d(0, 0, 0) !important;
+  }
+}
+
+.bqa-root[data-side="right"].is-focus.is-collapsed:not(.is-collapsing) .bqa-rail {
+  transform: translate3d(calc(100% + 10px),0,0) !important;
+}
+
+.bqa-root[data-side="right"].is-focus.is-open .bqa-rail {
+  transform: translate3d(0,0,0) !important;
+}
+
+/* Right mode never reserves the shell's left-safe-area contract. */
+.app-shell[data-quick-access-safe-mode="overlay"] ~ .bqa-root[data-side="right"],
+body > .bqa-root[data-side="right"] {
+  --bqa-side-sign: -1;
+}
+
+@media (max-width: 760px), (hover: none) {
+  .bqa-root[data-side="right"] .bqa-panel {
+    transform-origin: 100% 28px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bqa-root[data-side="right"] .bqa-peek-card {
+    animation: none !important;
+  }
+}
