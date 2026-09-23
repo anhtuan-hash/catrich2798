@@ -1310,14 +1310,17 @@ export default function GlobalQuickAccessRail({
 
   useEffect(() => {
     if (!spatialMemoryEnabled || !expanded || typeof window === 'undefined') return undefined;
-    const key = spatialContextKey(currentRoute, selectedTool, workspace);
+    const memoryWorkspace = contextLock?.locked && QUICK_ACCESS_WORKSPACES.includes(contextLock.workspace)
+      ? contextLock.workspace
+      : workspace;
+    const key = spatialContextKey(currentRoute, selectedTool, memoryWorkspace);
     const top = Math.max(0, Number(deviceSpatial.scroll?.[key]) || 0);
     const frame = window.requestAnimationFrame(() => {
       const panel = panelScrollRef.current;
       if (panel && Math.abs(panel.scrollTop - top) > 1) panel.scrollTop = top;
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [spatialMemoryEnabled, expanded, currentRoute, selectedTool?.slug, workspace]);
+  }, [spatialMemoryEnabled, expanded, currentRoute, selectedTool?.slug, workspace, contextLock?.locked, contextLock?.workspace]);
 
   useEffect(() => () => {
     window.clearTimeout(closeTimerRef.current);
@@ -3505,6 +3508,24 @@ export default function GlobalQuickAccessRail({
           className="bqa-panel"
           onPointerEnter={openRail}
           onMouseEnter={openRail}
+          onScroll={(event) => {
+            // V4.12 compatibility: older callers/tests dispatch scroll on the
+            // panel shell itself. V5 owns real scrolling in .bqa-panel-scroll,
+            // but we still persist a spatial-memory entry from this legacy
+            // event so upgrades do not silently discard the old contract.
+            if (event.target !== event.currentTarget || !spatialMemoryEnabled || typeof window === 'undefined') return;
+            const memoryWorkspace = contextLock?.locked && QUICK_ACCESS_WORKSPACES.includes(contextLock.workspace)
+              ? contextLock.workspace
+              : workspace;
+            const key = spatialContextKey(currentRoute, selectedTool, memoryWorkspace);
+            const top = Math.max(0, Number(panelScrollRef.current?.scrollTop ?? event.currentTarget.scrollTop) || 0);
+            window.clearTimeout(spatialScrollTimerRef.current);
+            spatialScrollTimerRef.current = window.setTimeout(() => {
+              updateSpatialMemory((current) => ({
+                scroll: { ...(current.scroll || {}), [key]: top },
+              }));
+            }, 120);
+          }}
           aria-hidden={!expanded}
           inert={expanded ? undefined : true}
           onAnimationEnd={(event) => {
