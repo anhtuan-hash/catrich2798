@@ -128,7 +128,6 @@ export default function Footer({ language, route = '' }) {
           </section>
         </div>
 
-        <div className="signature-footer-expanded-note">{content.examiner}</div>
       </div>
 
       <DashboardFooterArtwork />
