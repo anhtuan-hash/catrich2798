@@ -1832,6 +1832,7 @@ export default function GlobalQuickAccessRail({
     setActiveWorkflowRun(nextRun);
     saveQuickAccessWorkflowRun(currentUser, nextRun);
     setWorkflowCenterOpen(false);
+    collapseRail(true);
     activateItem(item, sourceEl);
   };
 
