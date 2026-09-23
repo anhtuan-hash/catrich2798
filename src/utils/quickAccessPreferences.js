@@ -10,6 +10,7 @@ export const QUICK_ACCESS_SIZES = ['s', 'm', 'l'];
 export const QUICK_ACCESS_MOTIONS = ['reduced', 'normal', 'fluid'];
 export const QUICK_ACCESS_DENSITIES = ['compact', 'comfortable'];
 export const QUICK_ACCESS_SIDES = ['left', 'right'];
+export const QUICK_ACCESS_THEMES = ['glass', 'paper', 'color', 'minimal'];
 export const QUICK_ACCESS_WORKFLOW_MAX = 4;
 export const QUICK_ACCESS_WORKFLOW_STEPS_MAX = 5;
 
@@ -85,7 +86,7 @@ export function createDefaultQuickAccessConfig(allowedIds = []) {
   const preferred = DEFAULT_QUICK_ACCESS_IDS.filter((id) => !allowed.size || allowed.has(id));
   const fallback = (Array.isArray(allowedIds) ? allowedIds : []).filter((id) => !preferred.includes(id));
   return {
-    version: 6,
+    version: 7,
     items: [...preferred, ...fallback].slice(0, QUICK_ACCESS_MAX_ITEMS),
     recent: [],
     workspace: 'all',
@@ -94,6 +95,7 @@ export function createDefaultQuickAccessConfig(allowedIds = []) {
     motion: 'fluid',
     density: 'comfortable',
     side: 'left',
+    theme: 'glass',
     hoverDelay: 220,
     labels: true,
     workflows: [],
@@ -127,12 +129,14 @@ export function normalizeQuickAccessConfig(raw, allowedIds = []) {
   const density = QUICK_ACCESS_DENSITIES.includes(requestedDensity) ? requestedDensity : 'comfortable';
   const requestedSide = String(source.side || '').trim().toLowerCase();
   const side = QUICK_ACCESS_SIDES.includes(requestedSide) ? requestedSide : 'left';
+  const requestedTheme = String(source.theme || '').trim().toLowerCase();
+  const theme = QUICK_ACCESS_THEMES.includes(requestedTheme) ? requestedTheme : 'glass';
   const hoverDelay = Math.max(80, Math.min(700, Number(source.hoverDelay) || 220));
   const labels = source.labels !== false;
   const workflows = cleanWorkflows(source.workflows, allowedIds);
   const timeAware = source.timeAware !== false;
   return {
-    version: 6,
+    version: 7,
     items: (hasExplicitItems ? items : defaults.items).slice(0, QUICK_ACCESS_MAX_ITEMS),
     recent,
     workspace,
@@ -141,6 +145,7 @@ export function normalizeQuickAccessConfig(raw, allowedIds = []) {
     motion,
     density,
     side,
+    theme,
     hoverDelay,
     labels,
     workflows,
