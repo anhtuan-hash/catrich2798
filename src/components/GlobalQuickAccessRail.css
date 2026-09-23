@@ -4184,3 +4184,16 @@ body > .bqa-root[data-side="right"] {
     right: calc(var(--bqa-rail-width) + 6px) !important;
   }
 }
+
+
+/* V4.6 global-motion isolation · Quick Access owns this popover's motion.
+   The impossible multi-ID :not() intentionally outranks the global motion engine's
+   specificity guard without changing markup or global animation behavior. */
+.bqa-root.is-notification-center > .bqa-notification-popover:not(#bqa-v46-a#bqa-v46-b#bqa-v46-c#bqa-v46-d) {
+  animation: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  scale: 1 !important;
+  translate: none !important;
+}
