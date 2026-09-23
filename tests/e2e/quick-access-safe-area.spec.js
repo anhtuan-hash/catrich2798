@@ -184,16 +184,19 @@ test.describe('Global Quick Access safe area', () => {
     expect(state.width).toBeGreaterThanOrEqual(310);
   });
 
-  test('V2: command search opens with Ctrl/Cmd+K and returns apps', async ({ page }) => {
+  test('V4.7: Command Palette opens with Ctrl/Cmd+K and returns permission-aware apps', async ({ page }) => {
     await page.goto('/#/apps');
     await expect(page.locator('.bqa-root')).toBeVisible();
     await page.keyboard.press(process.platform === 'darwin' ? 'Meta+K' : 'Control+K');
 
-    await expect(page.locator('.bqa-root')).toHaveClass(/is-open/);
-    const input = page.locator('.bqa-command-search input');
+    await expect(page.locator('.bqa-command-palette')).toBeVisible();
+    const input = page.locator('.bqa-command-palette-search input');
     await expect(input).toBeFocused();
     await input.fill('Dashboard');
-    await expect(page.locator('.bqa-command-result')).toContainText('Dashboard');
+    await expect(page.locator('.bqa-command-palette-result').first()).toContainText('Dashboard');
+
+    await page.keyboard.press('Escape');
+    await expect(page.locator('.bqa-command-palette')).toBeHidden();
   });
 
   test('V2: Focus mode hides the resting rail and edge hover restores it', async ({ page }) => {
