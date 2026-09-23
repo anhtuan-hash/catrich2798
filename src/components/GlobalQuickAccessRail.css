@@ -7452,7 +7452,7 @@ html body #root .app-shell.metro-clean-system[data-quick-access-layout="true"][d
   width: 38px;
   min-height: 43px;
   flex: 0 0 auto;
-  display: grid;
+  display: none;
   place-items: center;
   gap: 1px;
   margin: 3px auto;
@@ -7470,6 +7470,11 @@ html body #root .app-shell.metro-clean-system[data-quick-access-layout="true"][d
   font-size: 6.8px;
   font-weight: 820;
   line-height: 1.05;
+}
+
+.bqa-command-drop-zone.is-precision-visible,
+.bqa-command-drop-zone.is-active {
+  display: grid;
 }
 
 .bqa-command-drop-zone.is-active {
