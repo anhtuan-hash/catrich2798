@@ -1839,13 +1839,57 @@ export default function GlobalQuickAccessRail({
     });
   };
 
+  const updateSpatialMemory = (patchOrUpdater) => {
+    setDeviceSpatial((current) => {
+      const patch = typeof patchOrUpdater === 'function'
+        ? patchOrUpdater(current)
+        : patchOrUpdater;
+      const next = {
+        ...current,
+        ...(patch && typeof patch === 'object' ? patch : {}),
+        updatedAt: Date.now(),
+      };
+      saveQuickAccessSpatialMemory(currentUser, next);
+      return next;
+    });
+  };
+
+  const clearDeviceSpatialMemory = () => {
+    const next = { workspace: '', side: '', lastItemId: '', scroll: {}, updatedAt: Date.now() };
+    setDeviceSpatial(next);
+    saveQuickAccessSpatialMemory(currentUser, next);
+    if (panelRef.current) panelRef.current.scrollTop = 0;
+  };
+
   const setWorkspace = (nextWorkspace) => {
     const safeWorkspace = QUICK_ACCESS_WORKSPACES.includes(nextWorkspace) ? nextWorkspace : 'all';
-    persist({ ...config, workspace: safeWorkspace });
+    if (spatialMemoryEnabled) updateSpatialMemory({ workspace: safeWorkspace });
+    else persist({ ...config, workspace: safeWorkspace });
     setQuickCreateOpen(false);
     setWorkflowCenterOpen(false);
     setCommandQuery('');
     setCommandActiveIndex(0);
+  };
+
+  const setRailSide = (nextSide) => {
+    const safeSide = QUICK_ACCESS_SIDES.includes(nextSide) ? nextSide : 'left';
+    if (spatialMemoryEnabled) updateSpatialMemory({ side: safeSide });
+    else persist({ ...config, side: safeSide });
+  };
+
+  const setSpatialMemoryEnabled = (enabled) => {
+    const nextEnabled = Boolean(enabled);
+    if (nextEnabled) {
+      updateSpatialMemory({ workspace, side: railSide });
+      persist({ ...config, spatialMemory: true });
+      return;
+    }
+    persist({
+      ...config,
+      spatialMemory: false,
+      workspace,
+      side: railSide,
+    });
   };
 
   const setClassroomPresentationMode = (enabled) => {
@@ -1889,6 +1933,7 @@ export default function GlobalQuickAccessRail({
 
   const activateItem = (item, sourceEl) => {
     if (!item) return;
+    if (spatialMemoryEnabled) updateSpatialMemory({ lastItemId: item.id });
     const recent = [item.id, ...(config.recent || []).filter((id) => id !== item.id)].slice(0, QUICK_ACCESS_RECENT_MAX);
     const nextConfig = { ...config, recent };
     setConfig(nextConfig);
