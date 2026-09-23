@@ -4126,3 +4126,14 @@ body > .bqa-root[data-side="right"] {
   opacity: 1;
   visibility: visible;
 }
+.bqa-root.is-notification-center .bqa-panel {
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translate3d(0, 0, 0) scale3d(1, 1, 1) !important;
+}
+
+.bqa-root[data-side="right"].is-notification-center .bqa-panel {
+  transform: translate3d(0, 0, 0) scale3d(1, 1, 1) !important;
+}
+
