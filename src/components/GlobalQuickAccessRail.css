@@ -3060,32 +3060,24 @@ body > .bqa-root[data-side="right"] {
   -webkit-backdrop-filter: blur(18px) saturate(1.08);
   pointer-events: auto;
   transform-origin: left center;
-  animation: bqa-capsule-in 150ms cubic-bezier(.22,1,.36,1);
+  animation: bqa-capsule-in-left 150ms cubic-bezier(.22,1,.36,1);
 }
 
 .bqa-root[data-side="right"] .bqa-status-capsule {
   left: auto;
   right: calc(8px + var(--bqa-rail-width) + 12px);
   transform-origin: right center;
+  animation-name: bqa-capsule-in-right;
 }
 
-@keyframes bqa-capsule-in {
-  from {
-    opacity: 0;
-    transform: translate3d(calc(-1 * var(--bqa-inward-sign, -1) * 5px),0,0) scale(.975);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0,0,0) scale(1);
-  }
+@keyframes bqa-capsule-in-left {
+  from { opacity: 0; transform: translate3d(-5px,0,0) scale(.975); }
+  to { opacity: 1; transform: translate3d(0,0,0) scale(1); }
 }
 
-.bqa-root[data-side="left"] .bqa-status-capsule {
-  --bqa-inward-sign: 1;
-}
-
-.bqa-root[data-side="right"] .bqa-status-capsule {
-  --bqa-inward-sign: -1;
+@keyframes bqa-capsule-in-right {
+  from { opacity: 0; transform: translate3d(5px,0,0) scale(.975); }
+  to { opacity: 1; transform: translate3d(0,0,0) scale(1); }
 }
 
 .bqa-status-capsule-dot {
