@@ -4110,19 +4110,19 @@ body > .bqa-root[data-side="right"] {
 
 
 /* V4.6 active surface owns the panel body so it cannot be flex-shrunk to zero. */
-.bqa-root.is-notification-center .bqa-command-search,
-.bqa-root.is-notification-center .bqa-command-results,
-.bqa-root.is-notification-center .bqa-context-banner,
-.bqa-root.is-notification-center .bqa-smart-stack,
-.bqa-root.is-notification-center .bqa-live-activity,
-.bqa-root.is-notification-center .bqa-panel-list,
-.bqa-root.is-notification-center .bqa-resume-card,
-.bqa-root.is-notification-center .bqa-back-stack,
-.bqa-root.is-notification-center .bqa-quick-create-sheet {
+.bqa-root.is-alerts-open .bqa-command-search,
+.bqa-root.is-alerts-open .bqa-command-results,
+.bqa-root.is-alerts-open .bqa-context-banner,
+.bqa-root.is-alerts-open .bqa-smart-stack,
+.bqa-root.is-alerts-open .bqa-live-activity,
+.bqa-root.is-alerts-open .bqa-panel-list,
+.bqa-root.is-alerts-open .bqa-resume-card,
+.bqa-root.is-alerts-open .bqa-back-stack,
+.bqa-root.is-alerts-open .bqa-quick-create-sheet {
   display: none !important;
 }
 
-.bqa-root.is-notification-center .bqa-notification-center {
+.bqa-root.is-alerts-open .bqa-notification-center {
   display: flex !important;
   position: absolute !important;
   z-index: 12;
@@ -4137,21 +4137,21 @@ body > .bqa-root[data-side="right"] {
   pointer-events: auto !important;
   overflow: hidden;
 }
-.bqa-root.is-notification-center .bqa-panel {
+.bqa-root.is-alerts-open .bqa-panel {
   visibility: visible !important;
   opacity: 1 !important;
   pointer-events: auto !important;
   transform: translate3d(0, 0, 0) scale3d(1, 1, 1) !important;
 }
 
-.bqa-root[data-side="right"].is-notification-center .bqa-panel {
+.bqa-root[data-side="right"].is-alerts-open .bqa-panel {
   transform: translate3d(0, 0, 0) scale3d(1, 1, 1) !important;
 }
 
 
 
 /* V4.6 notification popover escape hatch · keeps the center outside panel clipping. */
-.bqa-root.is-notification-center > .bqa-notification-surface {
+.bqa-root.is-alerts-open > .bqa-notification-surface {
   position: absolute !important;
   z-index: 12;
   top: 0 !important;
@@ -4168,18 +4168,18 @@ body > .bqa-root[data-side="right"] {
   overflow: hidden;
 }
 
-.bqa-root[data-side="right"].is-notification-center > .bqa-notification-surface {
+.bqa-root[data-side="right"].is-alerts-open > .bqa-notification-surface {
   left: auto !important;
   right: calc(var(--bqa-rail-width) + 8px) !important;
 }
 
 @media (max-width: 760px), (hover: none) {
-  .bqa-root.is-notification-center > .bqa-notification-surface {
+  .bqa-root.is-alerts-open > .bqa-notification-surface {
     left: calc(var(--bqa-rail-width) + 6px) !important;
     width: var(--bqa-panel-width) !important;
   }
 
-  .bqa-root[data-side="right"].is-notification-center > .bqa-notification-surface {
+  .bqa-root[data-side="right"].is-alerts-open > .bqa-notification-surface {
     left: auto !important;
     right: calc(var(--bqa-rail-width) + 6px) !important;
   }
