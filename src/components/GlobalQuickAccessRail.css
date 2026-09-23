@@ -3215,3 +3215,180 @@ body > .bqa-root[data-side="right"] {
     transition: none !important;
   }
 }
+
+
+/* Brian Quick Access V4.4 · navigation back stack · 2026-09-23 */
+.bqa-rail-back {
+  appearance: none;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  margin: 3px auto 2px;
+  border: 1px solid rgba(91,134,179,.18);
+  border-radius: 12px;
+  color: #52708c;
+  background: rgba(244,249,253,.92);
+  box-shadow: 0 5px 14px rgba(45,81,116,.07);
+  cursor: pointer;
+  transition:
+    transform 150ms cubic-bezier(.22,1,.36,1),
+    color 150ms ease,
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.bqa-rail-back:hover,
+.bqa-rail-back:focus-visible,
+.bqa-rail-back.is-active {
+  color: #1f6fbc;
+  background: #eaf5ff;
+  box-shadow: 0 8px 18px rgba(42,95,147,.12);
+  outline: none;
+  transform: translate3d(calc(var(--bqa-dock-inward,1) * 1.5px),0,0) scale(1.04);
+}
+
+.bqa-back-stack {
+  margin: 7px 0 8px;
+  padding: 8px;
+  border: 1px solid rgba(112,151,191,.24);
+  border-radius: 15px;
+  color: #244563;
+  background:
+    radial-gradient(circle at 0 0, rgba(225,239,255,.72), transparent 120px),
+    rgba(250,253,255,.98);
+  box-shadow: 0 10px 26px rgba(41,79,116,.09);
+  animation: bqa-history-in 150ms cubic-bezier(.22,1,.36,1);
+}
+
+@keyframes bqa-history-in {
+  from { opacity: 0; transform: translate3d(0,-4px,0) scale(.985); }
+  to { opacity: 1; transform: translate3d(0,0,0) scale(1); }
+}
+
+.bqa-back-stack > header {
+  min-height: 27px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 2px 6px 3px;
+}
+
+.bqa-back-stack > header > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #587590;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.bqa-back-stack > header > button {
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  color: #7790a6;
+  background: #edf4fa;
+  cursor: pointer;
+}
+
+.bqa-back-stack > div {
+  display: grid;
+  gap: 4px;
+}
+
+.bqa-back-stack > div > button {
+  appearance: none;
+  min-height: 39px;
+  display: grid;
+  grid-template-columns: 22px minmax(0,1fr) auto 14px;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 7px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: #284a68;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 140ms cubic-bezier(.22,1,.36,1),
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.bqa-back-stack > div > button:hover,
+.bqa-back-stack > div > button:focus-visible {
+  transform: translateX(calc(var(--bqa-dock-inward,1) * 1px));
+  border-color: rgba(73,133,194,.19);
+  background: #eef7ff;
+  outline: none;
+}
+
+.bqa-back-stack > div > button > span:first-child {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  color: #3976b2;
+  background: #e6f2fd;
+  font-size: 8px;
+  font-weight: 850;
+}
+
+.bqa-back-stack strong,
+.bqa-back-stack small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bqa-back-stack strong {
+  font-size: 10px;
+}
+
+.bqa-back-stack small {
+  max-width: 78px;
+  color: #90a0ae;
+  font-size: 8px;
+}
+
+.bqa-root[data-size="s"] .bqa-rail-back {
+  width: 32px;
+  height: 32px;
+}
+
+.bqa-root[data-size="l"] .bqa-rail-back {
+  width: 40px;
+  height: 40px;
+}
+
+.bqa-root[data-side="right"] .bqa-back-stack > div > button:hover,
+.bqa-root[data-side="right"] .bqa-back-stack > div > button:focus-visible {
+  transform: translateX(-1px);
+}
+
+.bqa-root[data-motion-mode="reduced"] .bqa-back-stack,
+.bqa-root[data-motion-mode="reduced"] .bqa-rail-back {
+  animation: none !important;
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bqa-back-stack,
+  .bqa-rail-back {
+    animation: none !important;
+    transition: none !important;
+  }
+}
