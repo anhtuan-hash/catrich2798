@@ -1758,8 +1758,56 @@ export default function GlobalQuickAccessRail({
     setScreenGuard(loadQuickAccessScreenGuard(currentUser));
     setCompactReadingMode(loadQuickAccessReadingMode(currentUser));
     setUsageInsights(loadQuickAccessUsage(currentUser));
+    setAppBookmarks(loadQuickAccessBookmarks(currentUser));
+    setDoubleClickActions(loadQuickAccessDoubleClickActions(currentUser));
+    setSessionTrail(loadQuickAccessTrail(currentUser));
+    setTrailOpen(false);
+    setCommandDropActive(false);
     setUndoStack([]);
     shelfFilesRef.current.clear();
+    stateProvidersRef.current.clear();
+  }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !catalog.length || currentRoute === 'home') return;
+    const item = catalog.find((candidate) => activeItem(candidate, currentRoute, selectedTool));
+    if (!item) return;
+    const entry = {
+      itemId: item.id,
+      target: String(window.location.hash || item.target || ''),
+      label: labelFor(item, language),
+      at: Date.now(),
+    };
+    setSessionTrail((current) => {
+      const previous = Array.isArray(current) ? current : [];
+      if (previous[0]?.itemId === entry.itemId && previous[0]?.target === entry.target) return previous;
+      const next = [entry, ...previous.filter((candidate) => candidate.itemId !== entry.itemId || candidate.target !== entry.target)]
+        .slice(0, QUICK_ACCESS_TRAIL_MAX);
+      saveQuickAccessTrail(currentUser, next);
+      return next;
+    });
+  }, [currentRoute, selectedTool?.slug, allowedKey, language, currentUser?.id, currentUser?.authId, currentUser?.email]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const previousApi = window.BrianQuickAccessState;
+    window.BrianQuickAccessState = {
+      register: (itemId, provider = {}) => {
+        const id = String(itemId || '').trim();
+        if (!id || !provider || typeof provider !== 'object') return () => {};
+        stateProvidersRef.current.set(id, provider);
+        return () => {
+          if (stateProvidersRef.current.get(id) === provider) stateProvidersRef.current.delete(id);
+        };
+      },
+      bookmark: (itemId) => window.dispatchEvent(new CustomEvent('bes-quick-access-bookmark-save', { detail: { itemId } })),
+      restore: (itemId) => window.dispatchEvent(new CustomEvent('bes-quick-access-bookmark-restore', { detail: { itemId } })),
+      list: () => loadQuickAccessBookmarks(currentUser),
+    };
+    return () => {
+      if (previousApi) window.BrianQuickAccessState = previousApi;
+      else delete window.BrianQuickAccessState;
+    };
   }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
 
   useEffect(() => {
@@ -1927,6 +1975,44 @@ export default function GlobalQuickAccessRail({
     };
   }, [hoverDelay, customizing, pinned, openRail]);
 
+  const saveCurrentAppBookmark = useCallback((requestedItemId = '') => {
+    if (typeof window === 'undefined') return false;
+    const item = requestedItemId
+      ? catalog.find((candidate) => candidate.id === requestedItemId)
+      : catalog.find((candidate) => activeItem(candidate, currentRoute, selectedTool));
+    if (!item) return false;
+    const provider = stateProvidersRef.current.get(item.id);
+    let appState = null;
+    try {
+      appState = typeof provider?.capture === 'function' ? provider.capture() : null;
+    } catch {
+      appState = null;
+    }
+    const bookmark = {
+      itemId: item.id,
+      target: String(window.location.hash || item.target || ''),
+      label: labelFor(item, language),
+      scrollY: Math.max(0, Math.round(window.scrollY || document.documentElement?.scrollTop || 0)),
+      state: cloneQuickAccessState(appState, null),
+      savedAt: Date.now(),
+    };
+    setAppBookmarks((current) => {
+      const next = { ...(current || {}), [item.id]: bookmark };
+      const entries = Object.entries(next).sort((a, b) => Number(b[1]?.savedAt || 0) - Number(a[1]?.savedAt || 0)).slice(0, QUICK_ACCESS_BOOKMARK_MAX);
+      const safe = Object.fromEntries(entries);
+      saveQuickAccessBookmarks(currentUser, safe);
+      return safe;
+    });
+    return true;
+  }, [catalog, currentRoute, selectedTool?.slug, language, currentUser?.id, currentUser?.authId, currentUser?.email]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const onSave = (event) => saveCurrentAppBookmark(String(event?.detail?.itemId || ''));
+    window.addEventListener('bes-quick-access-bookmark-save', onSave);
+    return () => window.removeEventListener('bes-quick-access-bookmark-save', onSave);
+  }, [saveCurrentAppBookmark]);
+
   useEffect(() => {
     if (!customizing) return undefined;
     const onKeyDown = (event) => {
@@ -2013,6 +2099,12 @@ export default function GlobalQuickAccessRail({
       const editable = event.target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag);
       if (event.repeat && !(event.altKey && event.code === 'Backquote')) return;
 
+      if ((event.metaKey || event.ctrlKey) && event.shiftKey && !event.altKey && String(event.key || '').toLowerCase() === 's') {
+        event.preventDefault();
+        saveCurrentAppBookmark('');
+        return;
+      }
+
       if ((event.metaKey || event.ctrlKey) && !event.altKey && String(event.key || '').toLowerCase() === 'k') {
         event.preventDefault();
         setCommandPaletteQuery('');
@@ -2068,7 +2160,7 @@ export default function GlobalQuickAccessRail({
       window.removeEventListener('keydown', onShortcut);
       window.removeEventListener('keyup', onShortcutUp);
     };
-  }, [pinned, customizing, expanded, collapseRail, openRail, focusCommandPaletteInput, appSwitcherIndex]);
+  }, [pinned, customizing, expanded, collapseRail, openRail, focusCommandPaletteInput, appSwitcherIndex, saveCurrentAppBookmark]);
 
   useEffect(() => {
     if (!commandPaletteOpen || typeof window === 'undefined') return undefined;
