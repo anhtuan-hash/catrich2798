@@ -723,6 +723,66 @@ test.describe('Global Quick Access safe area', () => {
     await expect(page.locator('.bqa-command-palette-backdrop')).toBeVisible();
   });
 
+  test('global footer follows the same Quick Access safe area', async ({ page }) => {
+    await page.goto('/#/apps');
+    const root = page.locator('.bqa-root');
+    const shell = page.locator('.app-shell');
+    const rail = page.locator('.bqa-rail');
+    const footer = page.locator('footer[data-app-shell-footer="true"]');
+
+    await expect(root).toBeVisible();
+    await expect(footer).toBeVisible();
+    await page.waitForTimeout(950);
+
+    const restGeometry = await page.evaluate(() => {
+      const shell = document.querySelector('.app-shell');
+      const rail = document.querySelector('.bqa-rail');
+      const footer = document.querySelector('footer[data-app-shell-footer="true"]');
+      if (!shell || !rail || !footer) return null;
+      const railRect = rail.getBoundingClientRect();
+      const footerRect = footer.getBoundingClientRect();
+      return {
+        safeMode: shell.dataset.quickAccessSafeMode || '',
+        shift: Number(shell.dataset.quickAccessSafeShift || 0),
+        railRight: railRect.right,
+        footerLeft: footerRect.left,
+      };
+    });
+
+    expect(restGeometry).toBeTruthy();
+    if (restGeometry.safeMode === 'reserve') {
+      expect(restGeometry.shift).toBeGreaterThan(0);
+      expect(restGeometry.footerLeft).toBeGreaterThanOrEqual(restGeometry.railRight + 8);
+    }
+
+    await rail.hover();
+    await expect(root).toHaveClass(/is-open/);
+    await page.locator('.bqa-mode-switch button').nth(1).click();
+    await expect(root).toHaveClass(/is-pinned/);
+    await expect(shell).toHaveAttribute('data-quick-access-state', 'pinned');
+    await page.waitForTimeout(900);
+
+    const pinnedGeometry = await page.evaluate(() => {
+      const shell = document.querySelector('.app-shell');
+      const panel = document.querySelector('.bqa-panel');
+      const footer = document.querySelector('footer[data-app-shell-footer="true"]');
+      if (!shell || !panel || !footer) return null;
+      const panelRect = panel.getBoundingClientRect();
+      const footerRect = footer.getBoundingClientRect();
+      return {
+        safeMode: shell.dataset.quickAccessSafeMode || '',
+        shift: Number(shell.dataset.quickAccessSafeShift || 0),
+        panelRight: panelRect.right,
+        footerLeft: footerRect.left,
+      };
+    });
+
+    expect(pinnedGeometry).toBeTruthy();
+    expect(pinnedGeometry.safeMode).toBe('reserve');
+    expect(pinnedGeometry.shift).toBeGreaterThan(0);
+    expect(pinnedGeometry.footerLeft).toBeGreaterThanOrEqual(pinnedGeometry.panelRight + 8);
+  });
+
   test('pinned panel reflows content instead of covering it', async ({ page }) => {
     await page.goto('/#/apps');
     await expect(page.locator('.bqa-root')).toBeVisible();
