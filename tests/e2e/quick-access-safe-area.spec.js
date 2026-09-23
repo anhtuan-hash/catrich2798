@@ -259,6 +259,42 @@ test.describe('Global Quick Access safe area', () => {
     expect(state.headerOpacity).toBe(0);
   });
 
+  test('V4.1: Adaptive Dock applies proximity distances without changing rail geometry', async ({ page }) => {
+    await page.goto('/#/apps');
+    await expect(page.locator('.bqa-root')).toBeVisible();
+    const buttons = page.locator('.bqa-rail-items[data-adaptive-dock="true"] .bqa-rail-button');
+    await expect(buttons).toHaveCount(await buttons.count());
+    expect(await buttons.count()).toBeGreaterThanOrEqual(3);
+
+    const railBefore = await page.locator('.bqa-rail').evaluate((rail) => {
+      const rect = rail.getBoundingClientRect();
+      return { left: rect.left, right: rect.right, width: rect.width };
+    });
+
+    await buttons.nth(2).hover();
+    await page.waitForTimeout(220);
+
+    await expect(buttons.nth(2)).toHaveAttribute('data-dock-distance', '0');
+    await expect(buttons.nth(1)).toHaveAttribute('data-dock-distance', '1');
+    await expect(buttons.nth(0)).toHaveAttribute('data-dock-distance', '2');
+
+    const motion = await Promise.all([0, 1, 2].map((index) => buttons.nth(index).evaluate((button) => ({
+      transform: getComputedStyle(button).transform,
+      rect: button.getBoundingClientRect().width,
+    }))));
+
+    expect(motion[2].transform).not.toBe('none');
+    expect(motion[1].transform).not.toBe('none');
+    expect(motion[2].rect).toBeGreaterThan(motion[0].rect);
+
+    const railAfter = await page.locator('.bqa-rail').evaluate((rail) => {
+      const rect = rail.getBoundingClientRect();
+      return { left: rect.left, right: rect.right, width: rect.width };
+    });
+    expect(Math.abs(railAfter.width - railBefore.width)).toBeLessThan(0.5);
+    expect(Math.abs(railAfter.left - railBefore.left)).toBeLessThan(0.5);
+  });
+
   test('V3.3.1: right side is a true mirror with rail on the screen edge and panel expanding inward', async ({ page }) => {
     await page.goto('/#/dashboard');
     await expect(page.locator('.bqa-root')).toBeVisible();
