@@ -3479,7 +3479,7 @@ export default function GlobalQuickAccessRail({
                 ) : null}
               </div>
 
-              <div className="bqa-spatial-control bqa-context-memory-control">
+              <div className="bqa-context-memory-control">
                 <label className="bqa-personalize-toggle">
                   <span>
                     {language === 'vi' ? 'Nhớ không gian theo từng trang' : 'Remember workspace per page'}
