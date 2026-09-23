@@ -2240,3 +2240,249 @@ body:has(.app-shell[data-quick-access-safe-mode="overlay"]) > .bqa-root.is-colla
     transition: none !important;
   }
 }
+
+
+/* Brian Quick Access V3.2 · workspaces + quick create + Command Search V2 · 2026-09-23 */
+.bqa-workspace-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 8px 0 7px;
+  padding: 3px;
+  border: 1px solid rgba(132,166,201,.22);
+  border-radius: 12px;
+  background: rgba(242,247,252,.86);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.bqa-workspace-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.bqa-workspace-tabs > button {
+  appearance: none;
+  min-width: max-content;
+  min-height: 29px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 9px;
+  color: #71869a;
+  background: transparent;
+  font: inherit;
+  font-size: 9.5px;
+  font-weight: 780;
+  cursor: pointer;
+  transition: transform 150ms cubic-bezier(.22,1,.36,1), color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+}
+
+.bqa-workspace-tabs > button:hover,
+.bqa-workspace-tabs > button:focus-visible {
+  color: #2469b1;
+  background: rgba(231,242,253,.94);
+  outline: none;
+}
+
+.bqa-workspace-tabs > button.is-active {
+  color: #1f5fa4;
+  background: #fff;
+  box-shadow: 0 3px 10px rgba(50,91,129,.10), inset 0 0 0 1px rgba(91,137,181,.12);
+}
+
+.bqa-rail-create {
+  appearance: none;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  margin: 4px auto 2px;
+  border: 1px solid rgba(82,143,205,.18);
+  border-radius: 12px;
+  color: #236fbd;
+  background: linear-gradient(180deg, rgba(240,248,255,.98), rgba(229,242,255,.96));
+  box-shadow: 0 6px 14px rgba(45,104,160,.08);
+  cursor: pointer;
+  transition: transform 170ms cubic-bezier(.22,1,.36,1), box-shadow 170ms ease, background-color 170ms ease;
+}
+
+.bqa-rail-create:hover,
+.bqa-rail-create:focus-visible,
+.bqa-rail-create.is-active {
+  transform: scale(1.06);
+  outline: none;
+  background: #e4f2ff;
+  box-shadow: 0 8px 18px rgba(45,104,160,.14);
+}
+
+.bqa-rail-create.is-active {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(180deg,#358bea,#1e6bc0);
+}
+
+.bqa-quick-create-sheet {
+  margin: 5px 0 8px;
+  padding: 8px;
+  border: 1px solid rgba(111,150,191,.24);
+  border-radius: 15px;
+  color: #264562;
+  background:
+    radial-gradient(circle at 100% 0, rgba(222,235,255,.68), transparent 100px),
+    rgba(251,253,255,.98);
+  box-shadow: 0 12px 28px rgba(45,83,120,.10);
+}
+
+.bqa-quick-create-sheet > header {
+  min-height: 27px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 2px 6px 4px;
+}
+
+.bqa-quick-create-sheet > header > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #4e6e8b;
+  font-size: 9.5px;
+  font-weight: 850;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+
+.bqa-quick-create-sheet > header > button {
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  color: #71879c;
+  background: rgba(235,242,249,.9);
+  cursor: pointer;
+}
+
+.bqa-quick-create-sheet > div {
+  display: grid;
+  gap: 4px;
+}
+
+.bqa-quick-create-sheet > div > button {
+  appearance: none;
+  min-height: 48px;
+  display: grid;
+  grid-template-columns: 32px minmax(0,1fr) 16px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 7px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  color: #264562;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bqa-quick-create-sheet > div > button:hover,
+.bqa-quick-create-sheet > div > button:focus-visible {
+  border-color: rgba(82,139,198,.18);
+  background: rgba(239,247,255,.94);
+  outline: none;
+}
+
+.bqa-quick-create-sheet > div > button > span:first-child {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  color: var(--bqa-accent,#2e6fae);
+  background: color-mix(in srgb,var(--bqa-accent,#2e6fae) 10%,white);
+}
+
+.bqa-quick-create-sheet > div > button > span:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.bqa-quick-create-sheet strong,
+.bqa-quick-create-sheet small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bqa-quick-create-sheet strong {
+  font-size: 10.5px;
+}
+
+.bqa-quick-create-sheet small {
+  color: #8799aa;
+  font-size: 8.8px;
+}
+
+.bqa-command-result {
+  grid-template-columns: 34px minmax(0,1fr) auto;
+}
+
+.bqa-command-result.is-active,
+.bqa-command-result[aria-selected="true"] {
+  border-color: rgba(58,126,199,.28);
+  background: #edf6ff;
+  box-shadow: inset 3px 0 0 rgba(45,119,196,.72);
+}
+
+.bqa-command-kind {
+  min-width: 31px;
+  height: 19px;
+  padding: 0 6px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #6f8498;
+  background: #edf2f7;
+  font-size: 7.5px;
+  font-weight: 850;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.bqa-command-kind.is-action {
+  color: #6451b8;
+  background: #eeeafd;
+}
+
+.bqa-root[data-workspace="teaching"] .bqa-context-banner {
+  border-color: rgba(91,120,213,.24);
+}
+
+.bqa-root[data-workspace="homeroom"] .bqa-context-banner {
+  border-color: rgba(207,82,148,.22);
+}
+
+.bqa-root[data-workspace="department"] .bqa-context-banner {
+  border-color: rgba(119,80,214,.24);
+}
+
+@media (max-width: 760px), (hover: none) {
+  .bqa-workspace-tabs {
+    margin-inline: -1px;
+  }
+
+  .bqa-quick-create-sheet {
+    margin-bottom: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bqa-workspace-tabs > button,
+  .bqa-rail-create {
+    transition: none !important;
+  }
+}
