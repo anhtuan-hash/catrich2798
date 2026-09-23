@@ -128,7 +128,7 @@ for (const token of [
   'classroomMode',
   'setClassroomPresentationMode',
   'data-classroom-mode={classroomMode',
-  'data-brian-classroom-mode',
+  'dataset.brianClassroomMode',
   'bes-classroom-presentation-mode',
   'bqa-rail-classroom',
   'bqa-classroom-banner',
