@@ -1,522 +1,642 @@
-/* Teacher login production visual.
-   Scoped to AuthPage. Global header and global signature footer are untouched. */
+/* AuthPage — simple, colorful teacher login.
+   Scope: body of the auth page only. Global header and shared footer are intentionally untouched. */
 
 .auth-google-page {
-  position: relative !important;
-  overflow: hidden !important;
-  padding: 34px 28px 12px !important;
+  --auth-blue:#1677ff;
+  --auth-cyan:#22b8d8;
+  --auth-violet:#7357f6;
+  --auth-mint:#18b67a;
+  --auth-orange:#ff9a32;
+  --auth-ink:#102d59;
+  --auth-muted:#6f829b;
+  --auth-line:#dce8f5;
+  position:relative!important;
+  overflow:hidden!important;
+  padding:30px 28px 18px!important;
   background:
-    radial-gradient(circle at 7% 13%, rgba(198,235,255,.68), transparent 24rem),
-    radial-gradient(circle at 92% 10%, rgba(226,214,255,.48), transparent 22rem),
-    radial-gradient(circle at 82% 68%, rgba(207,248,232,.38), transparent 19rem),
-    linear-gradient(180deg,#fbfdff 0%,#f4f9ff 100%) !important;
+    radial-gradient(circle at 8% 15%,rgba(191,232,255,.42),transparent 25rem),
+    radial-gradient(circle at 92% 10%,rgba(225,215,255,.40),transparent 24rem),
+    radial-gradient(circle at 72% 78%,rgba(205,247,231,.30),transparent 20rem),
+    linear-gradient(180deg,#fbfdff 0%,#f4f9ff 100%)!important;
 }
 
 .auth-google-page::before,
 .auth-google-page::after {
-  content: "";
-  position: absolute;
-  pointer-events: none;
-  border-radius: 50%;
+  content:"";
+  position:absolute;
+  pointer-events:none;
+  border-radius:50%;
+  filter:blur(1px);
 }
 
 .auth-google-page::before {
-  width: 280px;
-  height: 280px;
-  left: -110px;
-  bottom: 10%;
-  background: rgba(201,244,228,.38);
+  width:220px;
+  height:220px;
+  left:-82px;
+  bottom:11%;
+  background:rgba(194,241,225,.38);
 }
 
 .auth-google-page::after {
-  width: 330px;
-  height: 330px;
-  right: -120px;
-  bottom: 4%;
-  background: rgba(225,214,255,.34);
+  width:260px;
+  height:260px;
+  right:-98px;
+  bottom:6%;
+  background:rgba(224,211,255,.36);
 }
 
 .auth-google-stage {
-  position: relative !important;
-  z-index: 2 !important;
-  width: min(1420px, calc(100% - 18px)) !important;
-  margin: 0 auto !important;
-  display: grid !important;
-  grid-template-columns: minmax(0,1.28fr) minmax(390px,.78fr) !important;
-  gap: 34px !important;
-  align-items: center !important;
+  position:relative!important;
+  z-index:2!important;
+  width:min(1180px,calc(100% - 10px))!important;
+  margin:0 auto!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1.16fr) minmax(390px,.84fr)!important;
+  gap:26px!important;
+  align-items:stretch!important;
 }
 
-/* ===== LEFT VISUAL ===== */
+/* ---------- LEFT PANEL ---------- */
 .auth-google-visual {
-  position: relative !important;
-  min-height: 680px !important;
-  display: grid !important;
-  grid-template-rows: auto minmax(0,1fr) auto !important;
-  gap: 12px !important;
-  overflow: hidden !important;
-  padding: 30px 32px 22px !important;
-  border: 1px solid rgba(133,178,226,.20) !important;
-  border-radius: 30px !important;
+  position:relative!important;
+  min-height:620px!important;
+  display:grid!important;
+  grid-template-columns:minmax(215px,.72fr) minmax(300px,1.28fr)!important;
+  grid-template-rows:auto minmax(0,1fr)!important;
+  grid-template-areas:
+    "copy copy"
+    "features art"!important;
+  gap:18px 20px!important;
+  overflow:hidden!important;
+  padding:34px 34px 28px!important;
+  border:1px solid rgba(132,178,226,.20)!important;
+  border-radius:28px!important;
   background:
-    radial-gradient(circle at 78% 15%,rgba(195,233,255,.70),transparent 18rem),
-    radial-gradient(circle at 18% 92%,rgba(220,247,232,.74),transparent 14rem),
-    linear-gradient(135deg,#f9fdff 0%,#eef9ff 58%,#f7fbff 100%) !important;
-  box-shadow: 0 24px 58px rgba(50,92,139,.10) !important;
+    radial-gradient(circle at 78% 18%,rgba(197,235,255,.82),transparent 19rem),
+    radial-gradient(circle at 7% 88%,rgba(214,247,232,.74),transparent 15rem),
+    radial-gradient(circle at 94% 88%,rgba(224,214,255,.58),transparent 13rem),
+    linear-gradient(135deg,#fafeff 0%,#eef8ff 58%,#f7fbff 100%)!important;
+  box-shadow:
+    0 24px 54px rgba(46,88,134,.10),
+    inset 0 1px 0 rgba(255,255,255,.94)!important;
+}
+
+.auth-google-visual::before {
+  content:"";
+  position:absolute;
+  top:22px;
+  right:28px;
+  width:104px;
+  height:104px;
+  border-radius:28px;
+  background:
+    radial-gradient(circle at 20% 25%,#ffffff 0 3px,transparent 4px),
+    radial-gradient(circle at 70% 18%,#ffffff 0 2px,transparent 3px),
+    linear-gradient(145deg,rgba(116,87,246,.15),rgba(34,184,216,.08));
+  transform:rotate(12deg);
+  pointer-events:none;
 }
 
 .auth-google-copy {
-  position: relative !important;
-  z-index: 5 !important;
-  max-width: 620px !important;
-  margin: 0 !important;
-  padding: 0 !important;
+  grid-area:copy!important;
+  position:relative!important;
+  z-index:5!important;
+  max-width:600px!important;
+  margin:0!important;
+  padding:0!important;
 }
 
 .auth-google-kicker {
-  color: #1767c3 !important;
-  -webkit-text-fill-color: #1767c3 !important;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
-  font-size: 10px !important;
-  font-weight: 900 !important;
-  letter-spacing: .20em !important;
-  text-transform: uppercase !important;
+  display:inline-flex!important;
+  align-items:center!important;
+  min-height:30px!important;
+  padding:0 12px!important;
+  border-radius:999px!important;
+  background:linear-gradient(90deg,#e7f3ff,#e8f8ff)!important;
+  color:#1768c5!important;
+  -webkit-text-fill-color:#1768c5!important;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif!important;
+  font-size:9px!important;
+  font-weight:900!important;
+  letter-spacing:.15em!important;
+  text-transform:uppercase!important;
 }
 
 .auth-editorial-rule {
-  display: none !important;
+  display:none!important;
 }
 
 .auth-google-copy h1 {
-  max-width: 560px !important;
-  margin: 14px 0 10px !important;
-  color: #10366e !important;
-  -webkit-text-fill-color: #10366e !important;
-  background: none !important;
-  font-size: clamp(52px,4.7vw,74px) !important;
-  font-weight: 780 !important;
-  line-height: .91 !important;
-  letter-spacing: -.055em !important;
+  max-width:570px!important;
+  margin:16px 0 12px!important;
+  color:var(--auth-ink)!important;
+  -webkit-text-fill-color:var(--auth-ink)!important;
+  background:none!important;
+  font-family:"Google Sans","Google Sans Text",Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif!important;
+  font-size:clamp(52px,4.6vw,72px)!important;
+  font-style:normal!important;
+  font-weight:820!important;
+  line-height:.94!important;
+  letter-spacing:-.055em!important;
 }
 
 .auth-google-copy h1::after {
-  content: "";
-  display: block;
-  width: 154px;
-  height: 7px;
-  margin: 12px 0 0 5px;
-  border-radius: 999px;
-  background: linear-gradient(90deg,#37cf62,#86df6b 56%,#4dc9ff) !important;
-  transform: rotate(-2deg);
+  content:"";
+  display:block;
+  width:150px;
+  height:7px;
+  margin:13px 0 0 4px;
+  border-radius:999px;
+  background:linear-gradient(90deg,#31d35f,#7de56d 55%,#49c8ff)!important;
+  transform:rotate(-1.5deg);
 }
 
 .auth-google-copy p {
-  max-width: 520px !important;
-  margin: 0 !important;
-  color: #536d8b !important;
-  -webkit-text-fill-color: #536d8b !important;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
-  font-size: 14px !important;
-  font-weight: 540 !important;
-  line-height: 1.55 !important;
+  max-width:520px!important;
+  margin:0!important;
+  color:#536d89!important;
+  -webkit-text-fill-color:#536d89!important;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif!important;
+  font-size:13.5px!important;
+  font-weight:540!important;
+  line-height:1.55!important;
 }
 
-/* Real static asset — no data URI and no CSS redraw. */
+/* The teacher illustration is deliberately cropped to the right side of the existing asset,
+   hiding the old embedded headline/text and keeping only the character + workspace. */
 .auth-google-visual-art {
-  position: relative !important;
-  z-index: 3 !important;
-  min-height: 330px !important;
-  height: 330px !important;
-  margin: 4px 0 0 !important;
-  overflow: hidden !important;
-  border-radius: 24px !important;
-  background: #eaf7ff !important;
+  grid-area:art!important;
+  position:relative!important;
+  align-self:end!important;
+  min-height:330px!important;
+  height:330px!important;
+  overflow:hidden!important;
+  border:1px solid rgba(132,177,225,.18)!important;
+  border-radius:24px!important;
+  background:#eaf7ff!important;
   box-shadow:
-    0 18px 38px rgba(45,88,134,.12),
-    inset 0 1px 0 rgba(255,255,255,.75) !important;
+    0 18px 38px rgba(47,91,139,.13),
+    inset 0 1px 0 rgba(255,255,255,.85)!important;
 }
 
-.auth-google-visual-art::before {
-  content: "";
-  position: absolute;
-  z-index: 2;
-  inset: 0 0 auto 0;
-  height: 25px;
-  pointer-events: none;
-  background: linear-gradient(180deg,rgba(245,251,255,.98),rgba(245,251,255,.48),rgba(245,251,255,0));
+.auth-google-visual-art::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.16),transparent 30%),
+    linear-gradient(90deg,rgba(241,249,255,.16),transparent 22%);
 }
 
 .auth-teacher-artwork {
-  position: absolute !important;
-  z-index: 1 !important;
-  inset: 0 !important;
-  display: block !important;
-  width: 100% !important;
-  height: 100% !important;
-  max-width: none !important;
-  object-fit: cover !important;
-  object-position: center 50% !important;
-  border: 0 !important;
-  border-radius: inherit !important;
-  background: transparent !important;
-  opacity: 1 !important;
-  filter: saturate(1.035) contrast(1.015) !important;
+  position:absolute!important;
+  inset:0!important;
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  object-fit:cover!important;
+  object-position:72% 50%!important;
+  border:0!important;
+  border-radius:inherit!important;
+  opacity:1!important;
+  filter:saturate(1.05) contrast(1.015)!important;
 }
 
 .auth-teacher-message {
-  display: none !important;
+  display:none!important;
 }
 
+/* Compact benefits */
 .auth-google-feature-list {
-  position: relative !important;
-  z-index: 6 !important;
-  display: grid !important;
-  grid-template-columns: repeat(3,1fr) !important;
-  gap: 1px !important;
-  margin: 0 !important;
-  overflow: hidden !important;
-  border: 1px solid rgba(132,176,224,.20) !important;
-  border-radius: 18px !important;
-  background: #dce8f4 !important;
-  box-shadow: 0 12px 28px rgba(55,90,130,.06) !important;
+  grid-area:features!important;
+  align-self:center!important;
+  position:relative!important;
+  z-index:6!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:10px!important;
+  margin:0!important;
+  overflow:visible!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
 }
 
 .auth-google-feature-list article {
-  min-width: 0 !important;
-  display: grid !important;
-  grid-template-columns: 38px minmax(0,1fr) !important;
-  gap: 9px !important;
-  align-items: start !important;
-  padding: 14px 13px !important;
-  background: rgba(255,255,255,.92) !important;
+  min-width:0!important;
+  display:grid!important;
+  grid-template-columns:40px minmax(0,1fr)!important;
+  gap:10px!important;
+  align-items:center!important;
+  padding:12px 13px!important;
+  border:1px solid rgba(125,169,219,.18)!important;
+  border-radius:15px!important;
+  background:rgba(255,255,255,.82)!important;
+  box-shadow:0 8px 20px rgba(48,83,126,.055)!important;
+  backdrop-filter:blur(10px)!important;
+  -webkit-backdrop-filter:blur(10px)!important;
+}
+
+.auth-google-feature-list article:nth-child(1) {
+  background:linear-gradient(120deg,rgba(234,244,255,.96),rgba(255,255,255,.88))!important;
+}
+
+.auth-google-feature-list article:nth-child(2) {
+  background:linear-gradient(120deg,rgba(232,250,241,.96),rgba(255,255,255,.88))!important;
+}
+
+.auth-google-feature-list article:nth-child(3) {
+  background:linear-gradient(120deg,rgba(246,236,255,.96),rgba(255,255,255,.88))!important;
 }
 
 .auth-google-feature-icon {
-  width: 35px !important;
-  height: 35px !important;
-  border-radius: 50% !important;
+  display:grid!important;
+  place-items:center!important;
+  width:38px!important;
+  height:38px!important;
+  border-radius:12px!important;
+}
+
+.auth-google-feature-icon svg {
+  width:20px!important;
+  height:20px!important;
+  fill:currentColor!important;
 }
 
 .auth-google-feature-icon.is-shield {
-  background: #e8f3ff !important;
-  color: #2174e7 !important;
+  background:#e4f1ff!important;
+  color:#2477e8!important;
 }
 
 .auth-google-feature-icon.is-apps {
-  background: #e8faee !important;
-  color: #14aa62 !important;
+  background:#e4f8ec!important;
+  color:#16aa66!important;
 }
 
 .auth-google-feature-icon.is-sync {
-  background: #f2eaff !important;
-  color: #8a50e8 !important;
+  background:#f1e8ff!important;
+  color:#8756e8!important;
 }
 
 .auth-google-feature-list strong {
-  color: #12365f !important;
-  -webkit-text-fill-color: #12365f !important;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
-  font-size: 11.5px !important;
-  font-weight: 850 !important;
-  line-height: 1.24 !important;
+  color:#153861!important;
+  -webkit-text-fill-color:#153861!important;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif!important;
+  font-size:11.5px!important;
+  font-weight:830!important;
+  line-height:1.2!important;
 }
 
 .auth-google-feature-list small {
-  color: #70839a !important;
-  -webkit-text-fill-color: #70839a !important;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
-  font-size: 8.8px !important;
-  line-height: 1.42 !important;
+  display:block!important;
+  margin-top:3px!important;
+  color:#74869c!important;
+  -webkit-text-fill-color:#74869c!important;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif!important;
+  font-size:8.7px!important;
+  line-height:1.38!important;
 }
 
-/* ===== LOGIN CARD ===== */
+/* ---------- FORM ---------- */
 .auth-google-form {
-  position: relative !important;
-  align-self: center !important;
-  width: 100% !important;
-  max-width: 520px !important;
-  margin: auto !important;
-  padding: 31px 31px 26px !important;
-  border: 1px solid rgba(119,163,215,.28) !important;
-  border-radius: 28px !important;
-  background: rgba(255,255,255,.97) !important;
-  box-shadow: 0 28px 68px rgba(50,86,127,.15) !important;
-  backdrop-filter: blur(18px) saturate(1.05) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(1.05) !important;
+  position:relative!important;
+  align-self:center!important;
+  width:100%!important;
+  max-width:465px!important;
+  margin:auto!important;
+  padding:28px 28px 24px!important;
+  overflow:hidden!important;
+  border:1px solid rgba(118,162,213,.26)!important;
+  border-radius:26px!important;
+  background:rgba(255,255,255,.97)!important;
+  box-shadow:
+    0 28px 64px rgba(44,79,122,.14),
+    inset 0 1px 0 rgba(255,255,255,.96)!important;
+  backdrop-filter:blur(18px) saturate(1.05)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(1.05)!important;
 }
 
 .auth-google-form::before {
-  height: 4px !important;
-  background: linear-gradient(90deg,#1678ef,#39a5ff,#7558f3) !important;
+  content:""!important;
+  position:absolute!important;
+  inset:0 0 auto!important;
+  height:4px!important;
+  background:linear-gradient(90deg,var(--auth-blue),var(--auth-cyan),var(--auth-violet))!important;
+}
+
+.auth-google-form::after {
+  content:""!important;
+  position:absolute!important;
+  top:-74px!important;
+  right:-80px!important;
+  width:190px!important;
+  height:190px!important;
+  border-radius:50%!important;
+  background:radial-gradient(circle,rgba(113,85,246,.10),rgba(113,85,246,0) 68%)!important;
+  pointer-events:none!important;
 }
 
 .auth-google-form-header {
-  grid-template-columns: 56px minmax(0,1fr) !important;
-  gap: 14px !important;
-  margin-bottom: 8px !important;
+  position:relative!important;
+  z-index:2!important;
+  display:grid!important;
+  grid-template-columns:52px minmax(0,1fr)!important;
+  gap:13px!important;
+  align-items:center!important;
+  margin-bottom:20px!important;
 }
 
 .auth-google-form-icon {
-  width: 54px !important;
-  height: 54px !important;
-  border-radius: 16px !important;
-  background: linear-gradient(145deg,#e8f4ff,#eef0ff) !important;
-  color: #126fe8 !important;
+  display:grid!important;
+  place-items:center!important;
+  width:50px!important;
+  height:50px!important;
+  border-radius:15px!important;
+  background:linear-gradient(145deg,#e8f4ff,#eef0ff)!important;
+  color:#126fe8!important;
+  box-shadow:inset 0 0 0 1px rgba(34,115,229,.05)!important;
 }
 
 .auth-google-form-icon svg {
-  width: 26px !important;
-  height: 26px !important;
+  width:24px!important;
+  height:24px!important;
+  fill:currentColor!important;
 }
 
 .auth-google-form-kicker {
-  color: #1768c4 !important;
-  -webkit-text-fill-color: #1768c4 !important;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
-  font-size: 9px !important;
-  font-weight: 900 !important;
-  letter-spacing: .14em !important;
-  text-transform: uppercase !important;
+  color:#1768c4!important;
+  -webkit-text-fill-color:#1768c4!important;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif!important;
+  font-size:8.5px!important;
+  font-weight:900!important;
+  letter-spacing:.14em!important;
+  text-transform:uppercase!important;
 }
 
 .auth-google-form-header h2 {
-  margin: 5px 0 4px !important;
-  color: #102d59 !important;
-  -webkit-text-fill-color: #102d59 !important;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
-  font-size: 23px !important;
-  font-weight: 850 !important;
-  letter-spacing: -.035em !important;
+  margin:4px 0 3px!important;
+  color:#102d59!important;
+  -webkit-text-fill-color:#102d59!important;
+  font-family:"Google Sans","Google Sans Text",Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif!important;
+  font-size:22px!important;
+  font-weight:830!important;
+  line-height:1.05!important;
+  letter-spacing:-.035em!important;
 }
 
 .auth-google-form-header p {
-  color: #708199 !important;
-  -webkit-text-fill-color: #708199 !important;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
-  font-size: 11.5px !important;
+  margin:0!important;
+  color:#71829a!important;
+  -webkit-text-fill-color:#71829a!important;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif!important;
+  font-size:10.8px!important;
+  line-height:1.38!important;
+}
+
+.auth-google-fields {
+  gap:13px!important;
 }
 
 .auth-google-field {
-  color: #243a56 !important;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
-  font-size: 11px !important;
-  font-weight: 800 !important;
+  color:#243a56!important;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif!important;
+  font-size:10.5px!important;
+  font-weight:800!important;
 }
 
 .auth-google-field > div {
-  min-height: 51px !important;
-  border: 1px solid #dce4ec !important;
-  border-radius: 13px !important;
-  background: #fff !important;
-  box-shadow: 0 2px 7px rgba(44,77,116,.02) !important;
+  min-height:49px!important;
+  border:1px solid #dbe4ed!important;
+  border-radius:13px!important;
+  background:#fff!important;
+  box-shadow:0 2px 8px rgba(44,77,116,.025)!important;
+  transition:border-color .18s ease,box-shadow .18s ease!important;
 }
 
 .auth-google-field > div:focus-within {
-  border-color: #88b8f1 !important;
-  box-shadow: 0 0 0 4px rgba(37,121,237,.09) !important;
+  border-color:#89b8f2!important;
+  box-shadow:0 0 0 4px rgba(37,121,237,.09)!important;
+}
+
+.auth-google-field i {
+  color:#72859c!important;
 }
 
 .auth-google-field input {
-  color: #17345c !important;
-  -webkit-text-fill-color: #17345c !important;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
-  font-size: 12px !important;
+  color:#17345c!important;
+  -webkit-text-fill-color:#17345c!important;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif!important;
+  font-size:11.5px!important;
 }
 
 .auth-google-label-row button {
-  color: #0873e8 !important;
-  -webkit-text-fill-color: #0873e8 !important;
-  font-size: 10.5px !important;
+  color:#0873e8!important;
+  -webkit-text-fill-color:#0873e8!important;
+  font-size:10px!important;
 }
 
 .auth-google-password-toggle {
-  border-radius: 9px !important;
-  background: #f1f3f5 !important;
+  border-radius:9px!important;
+  background:#f1f3f5!important;
+  color:#56677c!important;
 }
 
 .auth-google-submit {
-  min-height: 50px !important;
-  border: 0 !important;
-  border-radius: 13px !important;
-  background: linear-gradient(105deg,#116fe8 0%,#2d8cf8 55%,#7657f3 100%) !important;
-  box-shadow: 0 12px 26px rgba(49,92,222,.22) !important;
-  color: #fff !important;
-  -webkit-text-fill-color: #fff !important;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
-  font-size: 12px !important;
-  font-weight: 850 !important;
+  min-height:49px!important;
+  margin-top:3px!important;
+  border:0!important;
+  border-radius:13px!important;
+  background:linear-gradient(105deg,#126fe8 0%,#2f91f9 54%,#7357f6 100%)!important;
+  box-shadow:0 12px 26px rgba(48,94,222,.21)!important;
+  color:#fff!important;
+  -webkit-text-fill-color:#fff!important;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif!important;
+  font-size:11.5px!important;
+  font-weight:850!important;
+  transition:transform .18s ease,box-shadow .18s ease!important;
 }
 
 .auth-google-submit:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: 0 16px 30px rgba(49,92,222,.25) !important;
+  transform:translateY(-1px)!important;
+  box-shadow:0 16px 30px rgba(48,94,222,.25)!important;
 }
 
 .auth-google-divider {
-  margin: 4px 0 !important;
+  margin:2px 0!important;
 }
 
 .auth-google-google-button {
-  min-height: 48px !important;
-  border: 1px solid #dce3eb !important;
-  border-radius: 12px !important;
-  background: #fff !important;
-  color: #243853 !important;
-  -webkit-text-fill-color: #243853 !important;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
-  font-size: 11.5px !important;
-  font-weight: 800 !important;
+  min-height:46px!important;
+  border:1px solid #dae3ed!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  color:#243853!important;
+  -webkit-text-fill-color:#243853!important;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif!important;
+  font-size:11px!important;
+  font-weight:800!important;
+}
+
+.auth-google-google-button:hover {
+  border-color:#bad0e9!important;
+  background:#f8fbff!important;
 }
 
 .auth-google-google-note {
-  color: #7b8a9d !important;
-  -webkit-text-fill-color: #7b8a9d !important;
-  font-size: 9.5px !important;
+  color:#7b8b9f!important;
+  -webkit-text-fill-color:#7b8b9f!important;
+  font-size:9.2px!important;
 }
 
 .auth-google-secondary {
-  color: #0872e4 !important;
-  -webkit-text-fill-color: #0872e4 !important;
-  font-size: 11px !important;
-  font-weight: 820 !important;
+  color:#0872e4!important;
+  -webkit-text-fill-color:#0872e4!important;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif!important;
+  font-size:10.5px!important;
+  font-weight:820!important;
 }
 
 .auth-google-security-note {
-  border-top-color: #e6ebf1 !important;
-  color: #6d7d90 !important;
+  margin-top:2px!important;
+  border-top-color:#e6ebf1!important;
+  color:#6d7d90!important;
+}
+
+.auth-google-security-note svg {
+  color:#16a36c!important;
+  fill:currentColor!important;
 }
 
 .auth-google-security-note small {
-  font-size: 9.5px !important;
+  font-size:9.2px!important;
 }
 
-/* This is page-local only. The site's shared header/footer CSS is not modified. */
+/* Keep the page-local copyright strip visually unchanged from the current production treatment. */
 .auth-google-page-footer {
-  position: relative !important;
-  z-index: 2 !important;
-  color: #72849b !important;
-  -webkit-text-fill-color: #72849b !important;
+  position:relative!important;
+  z-index:2!important;
+  color:#72849b!important;
+  -webkit-text-fill-color:#72849b!important;
 }
 
-@media (max-width: 1120px) {
+/* ---------- RESPONSIVE ---------- */
+@media (max-width:1080px) {
   .auth-google-stage {
-    grid-template-columns: minmax(0,1.1fr) minmax(370px,.9fr) !important;
-    gap: 22px !important;
+    grid-template-columns:minmax(0,1.05fr) minmax(370px,.95fr)!important;
+    gap:20px!important;
   }
 
   .auth-google-visual {
-    min-height: 635px !important;
-    padding-inline: 24px !important;
+    min-height:590px!important;
+    grid-template-columns:minmax(190px,.72fr) minmax(270px,1.28fr)!important;
+    padding:28px 24px 24px!important;
   }
 
   .auth-google-copy h1 {
-    max-width: 500px !important;
-    font-size: clamp(48px,5.5vw,66px) !important;
+    font-size:clamp(48px,5.4vw,64px)!important;
   }
 
   .auth-google-visual-art {
-    min-height: 300px !important;
-    height: 300px !important;
-  }
-
-  .auth-google-feature-list article {
-    grid-template-columns: 32px minmax(0,1fr) !important;
-    padding: 12px 10px !important;
-  }
-
-  .auth-google-feature-icon {
-    width: 30px !important;
-    height: 30px !important;
+    height:300px!important;
+    min-height:300px!important;
   }
 }
 
-@media (max-width: 900px) {
+@media (max-width:900px) {
   .auth-google-page {
-    padding-inline: 14px !important;
+    padding-inline:14px!important;
   }
 
   .auth-google-stage {
-    grid-template-columns: 1fr !important;
-    max-width: 760px !important;
+    grid-template-columns:1fr!important;
+    max-width:760px!important;
   }
 
   .auth-google-visual {
-    min-height: 610px !important;
-  }
-
-  .auth-google-visual-art {
-    height: 320px !important;
+    min-height:auto!important;
   }
 
   .auth-google-form {
-    max-width: 720px !important;
-    margin-top: -34px !important;
-    z-index: 10 !important;
+    max-width:720px!important;
+    margin-top:-18px!important;
+    z-index:8!important;
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width:640px) {
   .auth-google-page {
-    padding: 16px 10px 4px !important;
+    padding:14px 10px 4px!important;
   }
 
   .auth-google-stage {
-    width: 100% !important;
-    gap: 12px !important;
+    width:100%!important;
+    gap:12px!important;
   }
 
   .auth-google-visual {
-    min-height: auto !important;
-    padding: 22px 16px 16px !important;
-    border-radius: 22px !important;
+    grid-template-columns:1fr!important;
+    grid-template-rows:auto auto auto!important;
+    grid-template-areas:
+      "copy"
+      "art"
+      "features"!important;
+    gap:14px!important;
+    padding:22px 16px 16px!important;
+    border-radius:22px!important;
   }
 
   .auth-google-copy h1 {
-    max-width: 95% !important;
-    font-size: clamp(42px,12vw,56px) !important;
+    max-width:96%!important;
+    font-size:clamp(40px,12vw,54px)!important;
   }
 
   .auth-google-copy p {
-    max-width: 92% !important;
-    font-size: 12px !important;
+    max-width:94%!important;
+    font-size:12px!important;
   }
 
   .auth-google-visual-art {
-    min-height: 245px !important;
-    height: 245px !important;
-    border-radius: 18px !important;
+    min-height:250px!important;
+    height:250px!important;
+    border-radius:18px!important;
   }
 
   .auth-teacher-artwork {
-    object-position: 54% 50% !important;
+    object-position:70% 50%!important;
   }
 
   .auth-google-feature-list {
-    grid-template-columns: 1fr !important;
+    grid-template-columns:1fr!important;
+    gap:8px!important;
   }
 
   .auth-google-feature-list article {
-    grid-template-columns: 34px minmax(0,1fr) !important;
+    padding:10px 12px!important;
   }
 
   .auth-google-form {
-    margin-top: -20px !important;
-    padding: 24px 17px 20px !important;
-    border-radius: 22px !important;
+    margin-top:-8px!important;
+    padding:23px 17px 20px!important;
+    border-radius:22px!important;
   }
 
   .auth-google-form-header {
-    grid-template-columns: 48px minmax(0,1fr) !important;
+    grid-template-columns:46px minmax(0,1fr)!important;
+    gap:11px!important;
   }
 
   .auth-google-form-icon {
-    width: 46px !important;
-    height: 46px !important;
+    width:44px!important;
+    height:44px!important;
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .auth-google-submit {
-    transition: none !important;
+@media (prefers-reduced-motion:reduce) {
+  .auth-google-submit,
+  .auth-google-field > div {
+    transition:none!important;
   }
 }
