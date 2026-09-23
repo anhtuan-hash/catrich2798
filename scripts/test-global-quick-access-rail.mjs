@@ -165,7 +165,48 @@ for (const token of [
   'clearRouteWorkspaceMemory',
   'setContextMemoryEnabled',
   'data-context-memory={contextMemoryEnabled',
+  'data-context-lock={contextLock?.locked',
   'data-context-key={routeContextKey}',
+  'loadQuickAccessSectionFolds',
+  'saveQuickAccessSectionFolds',
+  'loadQuickAccessContextLock',
+  'saveQuickAccessContextLock',
+  'QUICK_ACCESS_UNDO_MAX',
+  'bqa-panel-scroll',
+  'handlePanelScroll',
+  'toggleSectionFold',
+  'bqa-scroll-navigator',
+  'jumpToSection',
+  'bqa-context-lock',
+  'toggleContextLock',
+  'bqa-undo-center',
+  'restoreUndoEntry',
+  'bqa-parking-shelf',
+  'parkItem',
+  'openParkedItem',
+  'bqa-snapshot-control',
+  'createSidebarSnapshot',
+  'restoreSidebarSnapshot',
+  'loadQuickAccessShelf',
+  'bqa-temporary-shelf',
+  'addItemToShelf',
+  'handleShelfDrop',
+  'copyDeepLink',
+  'BrianQuickAccessHealth',
+  'bes-quick-access-health',
+  'searchAliases',
+  'setAliasForItem',
+  'privateItemIds',
+  'bqa-screen-guard',
+  'data-screen-guard={screenGuard',
+  'usageInsights',
+  'bqa-usage-insights',
+  'recordUsage',
+  'data-precision-drag={precisionDrag',
+  'keyboardLetterForItem',
+  'bqa-key-hint',
+  'data-keyboard-layer={keyboardLayer',
+  'data-reading-mode={compactReadingMode',
   'dataset.brianClassroomMode',
   'bes-classroom-presentation-mode',
   'bqa-rail-classroom',
@@ -309,6 +350,27 @@ for (const token of [
   'Brian Quick Access V4.12 · device spatial memory',
   'Brian Quick Access V4.13 · route workspace memory',
   '.bqa-spatial-control',
+  'Brian Quick Access V5 core',
+  '.bqa-panel-scroll',
+  '.bqa-scroll-navigator',
+  '.bqa-sticky-section-header',
+  '.bqa-section-toggle',
+  '.bqa-context-lock',
+  '.bqa-undo-center',
+  '.bqa-parking-shelf',
+  '.bqa-snapshot-control',
+  'Brian Quick Access V5 extended',
+  '.bqa-temporary-shelf',
+  '.bqa-health-dot',
+  '.bqa-key-hint',
+  '.bqa-keyboard-overlay',
+  '.bqa-screen-guard',
+  '.bqa-alias-control',
+  '.bqa-private-items-control',
+  '.bqa-usage-insights',
+  '[data-precision-drag="true"]',
+  '[data-reading-mode="compact"]',
+  '[data-context-lock="true"]',
   '[data-spatial-memory="true"]',
   '[data-theme-style="glass"]',
   '[data-theme-style="paper"]',
@@ -388,6 +450,9 @@ assert.ok(css.includes('Quick Access larger scrollbar hotfix'), 'Quick Access mu
 assert.ok(css.includes('scrollbar-gutter: stable'), 'Quick Access scroll surfaces must reserve stable scrollbar space.');
 assert.match(css, /::-webkit-scrollbar[\s\S]*?width:\s*12px/, 'Quick Access desktop scrollbars must be 12px wide.');
 assert.ok(css.includes('min-height: 56px'), 'Quick Access scrollbar thumb must provide a larger grab target.');
+assert.ok(css.includes('.bqa-panel-scroll::-webkit-scrollbar'), 'V5 unified panel body must retain the native scrollbar.');
+assert.match(css, /\.bqa-panel-scroll::\-webkit\-scrollbar\s*\{[\s\S]*?width:\s*12px/, 'V5 panel body scrollbar must remain 12px wide.');
+assert.ok(css.includes('The navigator is intentionally separate from the native 12px scrollbar'), 'Scroll Navigator must remain separate from the native scrollbar.');
 assert.ok(!/font-family\s*:/i.test(css), 'Quick Access CSS must not override Brian custom fonts.');
 assert.ok(!/\.app-shell\s*\{/.test(css), 'Quick Access CSS must not mutate global app-shell layout.');
 assert.ok(!/body\s*\{/.test(css), 'Quick Access CSS must remain component-scoped.');
@@ -416,4 +481,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access compact-panel cleanup removes inline search, current-context and Working Now while preserving full-screen Command Palette, Recent/Pinned, fixed-left geometry, permissions and custom fonts.');
+console.log('PASS: Quick Access V5 completes folding, sticky headers, Scroll Navigator, Temporary Shelf, Deep Links, Context Lock, Undo, health, aliases, Screen Guard, Parking, Usage Insights, Snapshots, Precision Drag, Keyboard Navigation and Compact Reading while preserving the fixed-left 12px native scrollbar, permissions and custom fonts.');
