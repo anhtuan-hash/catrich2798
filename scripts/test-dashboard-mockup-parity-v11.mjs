@@ -11,6 +11,9 @@ for (const token of [
   '--dashboard-shell-width: min(1520px, calc(100% - clamp(32px, 6vw, 96px)))',
   'width: var(--dashboard-shell-width) !important',
   'margin: 8px auto 0 !important',
+  'position: relative !important',
+  'overflow: visible !important',
+  '.brian-nav__popover',
 ]) {
   assert.ok(chrome.includes(token), `Dashboard V11 top chrome token missing: ${token}`);
 }
@@ -18,6 +21,9 @@ for (const token of [
 for (const token of [
   "style.setProperty('width', 'var(--dashboard-shell-width)', 'important')",
   "style.setProperty('margin', '8px auto 0', 'important')",
+  "style.setProperty('position', 'relative', 'important')",
+  "style.setProperty('z-index', '120', 'important')",
+  "style.setProperty('overflow', 'visible', 'important')",
 ]) {
   assert.ok(flatNav.includes(token), `Dashboard V11 runtime alignment missing: ${token}`);
 }
@@ -47,4 +53,4 @@ for (const [name, source] of [['chrome V11', chrome], ['footer V11', footer]]) {
   assert.equal(opens, closes, `${name} CSS braces must be balanced.`);
 }
 
-console.log('PASS: Dashboard V11 uses one shared shell width and removes hidden footer decoration from markup and CSS.');
+console.log('PASS: Dashboard V11 keeps the shared shell grid, preserves footer cleanup, and keeps account/notification popovers above Dashboard content.');
