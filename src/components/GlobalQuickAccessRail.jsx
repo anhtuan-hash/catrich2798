@@ -1923,6 +1923,7 @@ export default function GlobalQuickAccessRail({
 
     const clearSafeArea = () => {
       shell.style.removeProperty('--bqa-content-safe-shift');
+      shell.style.removeProperty('--bqa-footer-safe-offset');
       shell.dataset.quickAccessSafeShift = '0';
     };
 
@@ -1941,7 +1942,12 @@ export default function GlobalQuickAccessRail({
         }
 
         const currentShift = parseCssPixels(shell.dataset.quickAccessSafeShift, 0);
-        const actualMinLeft = measureQuickAccessContentBaseline(safeFrame);
+        const mainMinLeft = measureQuickAccessContentBaseline(safeFrame);
+        const footerRect = footer?.getBoundingClientRect?.();
+        const footerMinLeft = Number.isFinite(footerRect?.left)
+          ? footerRect.left
+          : Number.POSITIVE_INFINITY;
+        const actualMinLeft = Math.min(mainMinLeft, footerMinLeft);
         if (!Number.isFinite(actualMinLeft)) {
           clearSafeArea();
           return;
@@ -1972,6 +1978,7 @@ export default function GlobalQuickAccessRail({
         const nextShift = Math.max(0, Math.min(maxShift, Math.ceil(currentShift + delta)));
 
         shell.style.setProperty('--bqa-content-safe-shift', `${nextShift}px`);
+        shell.style.setProperty('--bqa-footer-safe-offset', `${nextShift / 2}px`);
         shell.dataset.quickAccessSafeShift = String(nextShift);
 
         if (Math.abs(nextShift - currentShift) >= 1) {
@@ -1981,7 +1988,12 @@ export default function GlobalQuickAccessRail({
 
         window.clearTimeout(layoutVerifyTimerRef.current);
         layoutVerifyTimerRef.current = window.setTimeout(() => {
-          const verifiedMinLeft = measureQuickAccessContentBaseline(safeFrame);
+          const verifiedMainMinLeft = measureQuickAccessContentBaseline(safeFrame);
+          const verifiedFooterRect = footer?.getBoundingClientRect?.();
+          const verifiedFooterMinLeft = Number.isFinite(verifiedFooterRect?.left)
+            ? verifiedFooterRect.left
+            : Number.POSITIVE_INFINITY;
+          const verifiedMinLeft = Math.min(verifiedMainMinLeft, verifiedFooterMinLeft);
           const stillOccluded = Number.isFinite(verifiedMinLeft) && verifiedMinLeft < safeBoundary - 0.5;
 
           if (stillOccluded && !pinned) {
@@ -2008,6 +2020,7 @@ export default function GlobalQuickAccessRail({
       : null;
 
     resizeObserver?.observe(safeFrame);
+    if (footer) resizeObserver?.observe(footer);
     mutationObserver?.observe(safeFrame, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden', 'style'] });
     window.addEventListener('resize', onResize, { passive: true });
     window.addEventListener('bes-font-settings-updated', measureAndApply);
@@ -2029,6 +2042,7 @@ export default function GlobalQuickAccessRail({
       window.removeEventListener('bes-font-settings-updated', measureAndApply);
       window.removeEventListener('bes-regional-font-updated', measureAndApply);
       shell.style.removeProperty('--bqa-content-safe-shift');
+      shell.style.removeProperty('--bqa-footer-safe-offset');
       delete shell.dataset.quickAccessSafeShift;
       delete shell.dataset.quickAccessState;
       delete shell.dataset.quickAccessSafeMode;
