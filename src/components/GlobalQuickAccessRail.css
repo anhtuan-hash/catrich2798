@@ -6810,3 +6810,400 @@ html body #root .app-shell.metro-clean-system[data-quick-access-layout="true"][d
     transition: none !important;
   }
 }
+
+
+/* Brian Quick Access V6 wave 1 · 2026-09-23
+   Active App Actions · Progress Ring · Smart Overflow · Drag-to-App Handoff
+   · Rail Workspace Switcher. Desktop/web-only behavior remains inherited from
+   the shell gate; rail stays fixed on the left. */
+
+.bqa-rail-workspace {
+  appearance: none;
+  position: relative;
+  width: 34px;
+  height: 30px;
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: 14px 9px;
+  place-content: center;
+  gap: 2px;
+  margin: 1px auto 4px;
+  border: 1px solid rgba(90,132,173,.16);
+  border-radius: 10px;
+  color: #52708d;
+  background: rgba(246,250,254,.94);
+  box-shadow: 0 4px 12px rgba(43,78,111,.055);
+  font: inherit;
+  cursor: pointer;
+  transition: transform 150ms cubic-bezier(.22,1,.36,1), background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.bqa-rail-workspace > span {
+  font-size: 8px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.bqa-rail-workspace:hover,
+.bqa-rail-workspace:focus-visible,
+.bqa-rail-workspace.is-active {
+  color: var(--bqa-theme-accent, #2e75b6);
+  border-color: color-mix(in srgb, var(--bqa-theme-accent, #2e75b6) 28%, transparent);
+  background: color-mix(in srgb, var(--bqa-theme-accent-soft, rgba(46,117,182,.10)) 72%, white);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.bqa-workspace-popover,
+.bqa-overflow-popover,
+.bqa-active-actions {
+  position: fixed;
+  z-index: 2147483646;
+  left: calc(12px + var(--bqa-rail-width, 56px) + 10px);
+  border: 1px solid rgba(105,140,176,.20);
+  border-radius: 13px;
+  background: rgba(251,253,255,.97);
+  box-shadow: 0 16px 36px rgba(33,73,111,.16), inset 0 1px 0 rgba(255,255,255,.98);
+  backdrop-filter: blur(18px) saturate(1.12);
+  -webkit-backdrop-filter: blur(18px) saturate(1.12);
+}
+
+.bqa-workspace-popover {
+  top: 74px;
+  width: 180px;
+  padding: 7px;
+}
+
+.bqa-workspace-popover > header {
+  padding: 4px 6px 7px;
+  color: #75899d;
+  font-size: 8.8px;
+  font-weight: 850;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.bqa-workspace-popover > button {
+  appearance: none;
+  width: 100%;
+  min-height: 34px;
+  display: grid;
+  grid-template-columns: 24px minmax(0,1fr) 15px;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 9px;
+  color: #45647f;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bqa-workspace-popover > button > span {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  color: #3973ab;
+  background: #eef6ff;
+  font-size: 8px;
+  font-weight: 900;
+}
+
+.bqa-workspace-popover > button > b {
+  overflow: hidden;
+  font-size: 9.6px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bqa-workspace-popover > button:hover,
+.bqa-workspace-popover > button:focus-visible,
+.bqa-workspace-popover > button.is-active {
+  color: #245f99;
+  background: #edf6ff;
+  outline: none;
+}
+
+.bqa-rail-button {
+  overflow: visible;
+}
+
+.bqa-rail-button.has-progress::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: -4px;
+  border-radius: inherit;
+  background:
+    conic-gradient(
+      var(--bqa-accent, #2e75b6) calc(var(--bqa-app-progress, 0) * 1%),
+      rgba(126,154,184,.15) 0
+    );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2.5px));
+  pointer-events: none;
+}
+
+.bqa-progress-ring {
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.bqa-rail-button.has-progress {
+  isolation: isolate;
+}
+
+.bqa-rail-button.has-progress > svg {
+  position: relative;
+  z-index: 1;
+}
+
+.bqa-rail-button.is-handoff-target {
+  color: #fff !important;
+  background: var(--bqa-accent, #2e75b6) !important;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--bqa-accent, #2e75b6) 17%, transparent),
+    0 9px 22px color-mix(in srgb, var(--bqa-accent, #2e75b6) 25%, transparent) !important;
+  transform: scale(1.09) !important;
+}
+
+.bqa-rail-button.is-handoff-target::before {
+  opacity: 1 !important;
+}
+
+.bqa-rail-overflow {
+  appearance: none;
+  position: relative;
+  width: 36px;
+  height: 34px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  margin: 2px auto;
+  border: 1px solid rgba(92,132,171,.16);
+  border-radius: 12px;
+  color: #647e96;
+  background: rgba(246,250,254,.94);
+  box-shadow: 0 5px 13px rgba(43,79,113,.055);
+  font: inherit;
+  cursor: pointer;
+  transition: transform 150ms cubic-bezier(.22,1,.36,1), color 150ms ease, background-color 150ms ease;
+}
+
+.bqa-rail-overflow > span {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  color: #fff;
+  background: #5d7b98;
+  font-size: 7.5px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.bqa-rail-overflow:hover,
+.bqa-rail-overflow:focus-visible,
+.bqa-rail-overflow.is-active {
+  color: #2869a7;
+  background: #edf6ff;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.bqa-overflow-popover {
+  top: 150px;
+  width: 220px;
+  max-height: min(420px, calc(100vh - 180px));
+  padding: 7px;
+  overflow: auto;
+}
+
+.bqa-overflow-popover > header {
+  min-height: 29px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 5px 6px;
+  color: #6d8398;
+  font-size: 9px;
+  font-weight: 820;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+
+.bqa-overflow-popover > header > b {
+  min-width: 19px;
+  height: 19px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #3e6f9e;
+  background: #eaf4ff;
+  font-size: 8px;
+}
+
+.bqa-overflow-popover > div {
+  display: grid;
+  gap: 3px;
+}
+
+.bqa-overflow-popover > div > button {
+  appearance: none;
+  width: 100%;
+  min-height: 38px;
+  display: grid;
+  grid-template-columns: 30px minmax(0,1fr) 14px;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 9px;
+  color: #45617c;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bqa-overflow-popover > div > button:hover,
+.bqa-overflow-popover > div > button:focus-visible {
+  color: #245f99;
+  background: #edf6ff;
+  outline: none;
+}
+
+.bqa-overflow-icon {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  color: var(--bqa-accent, #2e75b6);
+  background: color-mix(in srgb, var(--bqa-accent, #2e75b6) 9%, white);
+}
+
+.bqa-overflow-icon > i {
+  position: absolute;
+  inset: -2px;
+  border-radius: 11px;
+  background: conic-gradient(var(--bqa-accent, #2e75b6) calc(var(--bqa-app-progress, 0) * 1%), rgba(126,154,184,.15) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1.5px));
+  pointer-events: none;
+}
+
+.bqa-overflow-popover button > b {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 9.7px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bqa-active-actions {
+  left: calc(12px + var(--bqa-rail-width, 56px) + var(--bqa-panel-width, 318px) + 18px);
+  width: 190px;
+  padding: 7px;
+}
+
+.bqa-active-actions > header {
+  padding: 3px 5px 6px;
+  color: #6e8296;
+}
+
+.bqa-active-actions > header > span {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow: hidden;
+  font-size: 8.8px;
+  font-weight: 820;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bqa-active-actions > div {
+  display: grid;
+  gap: 3px;
+}
+
+.bqa-active-actions button {
+  appearance: none;
+  min-height: 32px;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 12px;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 7px;
+  border: 0;
+  border-radius: 8px;
+  color: #43607b;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bqa-active-actions button:hover,
+.bqa-active-actions button:focus-visible {
+  color: #205f9d;
+  background: #edf6ff;
+  outline: none;
+}
+
+.bqa-active-actions button > span {
+  overflow: hidden;
+  font-size: 9.4px;
+  font-weight: 710;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bqa-root[data-motion-mode="reduced"] .bqa-rail-workspace,
+.bqa-root[data-motion-mode="reduced"] .bqa-rail-overflow,
+.bqa-root[data-motion-mode="reduced"] .bqa-rail-button {
+  transition: none !important;
+}
+
+@media (max-height: 760px) {
+  .bqa-rail-workspace {
+    height: 28px;
+    margin-bottom: 2px;
+  }
+
+  .bqa-rail-overflow {
+    height: 30px;
+  }
+}
+
+@media (max-width: 760px), (hover: none) {
+  .bqa-workspace-popover,
+  .bqa-overflow-popover,
+  .bqa-active-actions {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bqa-rail-workspace,
+  .bqa-rail-overflow,
+  .bqa-rail-button {
+    transition: none !important;
+  }
+}
