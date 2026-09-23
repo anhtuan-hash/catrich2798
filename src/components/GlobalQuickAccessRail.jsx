@@ -6,6 +6,7 @@ import {
   Boxes,
   CalendarDays,
   Check,
+  ChevronLeft,
   ChevronRight,
   Clock3,
   Command,
@@ -409,6 +410,62 @@ function runAction(item, sourceEl) {
   }
 }
 
+const QUICK_ACCESS_HISTORY_MAX = 6;
+
+function quickAccessHistoryUserKey(user) {
+  return String(user?.id || user?.authId || user?.email || 'guest').trim().toLowerCase();
+}
+
+function quickAccessHistoryStorageKey(user) {
+  return `bes-quick-access-history:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessHistory(user) {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = JSON.parse(window.sessionStorage?.getItem(quickAccessHistoryStorageKey(user)) || '[]');
+    return (Array.isArray(raw) ? raw : [])
+      .filter((entry) => entry && typeof entry.target === 'string' && entry.target.startsWith('#/'))
+      .slice(0, QUICK_ACCESS_HISTORY_MAX);
+  } catch {
+    return [];
+  }
+}
+
+function saveQuickAccessHistory(user, entries) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.sessionStorage?.setItem(
+      quickAccessHistoryStorageKey(user),
+      JSON.stringify((Array.isArray(entries) ? entries : []).slice(0, QUICK_ACCESS_HISTORY_MAX)),
+    );
+  } catch {
+    // Session history is best effort.
+  }
+}
+
+function navigationLabelForTarget(target, catalog, language) {
+  const normalized = String(target || '').split('?')[0];
+  const item = (Array.isArray(catalog) ? catalog : []).find((candidate) => candidate?.target === normalized);
+  if (item) return labelFor(item, language);
+
+  const segments = normalized.replace(/^#\/?/, '').split('/').filter(Boolean);
+  if (segments[0] === 'tool' && segments[1]) {
+    return segments[1]
+      .split('-')
+      .filter(Boolean)
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  }
+
+  const route = segments[0] || (language === 'vi' ? 'Trang trước' : 'Previous page');
+  return route
+    .split('-')
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
 const QUICK_ACCESS_SAFE_AREA_MIN_WIDTH = 1024;
 const QUICK_ACCESS_SAFE_GAP = 12;
 const QUICK_ACCESS_SAFE_MAX_COLLAPSED = 320;
@@ -478,6 +535,8 @@ export default function GlobalQuickAccessRail({
   const [commandQuery, setCommandQuery] = useState('');
   const [commandActiveIndex, setCommandActiveIndex] = useState(0);
   const [quickCreateOpen, setQuickCreateOpen] = useState(false);
+  const [backStack, setBackStack] = useState(() => loadQuickAccessHistory(currentUser));
+  const [backStackOpen, setBackStackOpen] = useState(false);
   const [appSwitcherOpen, setAppSwitcherOpen] = useState(false);
   const [appSwitcherIndex, setAppSwitcherIndex] = useState(0);
   const [magneticStrength, setMagneticStrength] = useState(0);
@@ -508,6 +567,7 @@ export default function GlobalQuickAccessRail({
   const panelRef = useRef(null);
   const selectedItemsRef = useRef([]);
   const switcherItemsRef = useRef([]);
+  const suppressHistoryRef = useRef(false);
   const activateItemRef = useRef(null);
 
   const catalog = useMemo(() => {
@@ -583,6 +643,7 @@ export default function GlobalQuickAccessRail({
     }
 
     setHovered(false);
+    setBackStackOpen(false);
   }, [pinned, customizing, hovered]);
 
   useEffect(() => {
@@ -760,6 +821,56 @@ export default function GlobalQuickAccessRail({
       }
     };
   }, [language]);
+
+  useEffect(() => {
+    setBackStack(loadQuickAccessHistory(currentUser));
+    setBackStackOpen(false);
+  }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const onHashChange = (event) => {
+      let previousTarget = '';
+      let nextTarget = '';
+      try {
+        previousTarget = new URL(event.oldURL).hash || '#/home';
+        nextTarget = new URL(event.newURL).hash || '#/home';
+      } catch {
+        previousTarget = '';
+        nextTarget = window.location.hash || '#/home';
+      }
+
+      if (suppressHistoryRef.current) {
+        suppressHistoryRef.current = false;
+        return;
+      }
+      if (!previousTarget || previousTarget === nextTarget || previousTarget === '#/home') return;
+
+      const entry = {
+        target: previousTarget,
+        label: navigationLabelForTarget(previousTarget, catalog, language),
+        at: Date.now(),
+      };
+      setBackStack((current) => {
+        const next = [
+          entry,
+          ...current.filter((candidate) => candidate.target !== entry.target),
+        ].slice(0, QUICK_ACCESS_HISTORY_MAX);
+        saveQuickAccessHistory(currentUser, next);
+        return next;
+      });
+    };
+
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, [
+    currentUser?.id,
+    currentUser?.authId,
+    currentUser?.email,
+    catalog,
+    language,
+  ]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -1262,6 +1373,22 @@ export default function GlobalQuickAccessRail({
     else activateItem(entry.item, sourceEl);
   };
 
+  const navigateBackEntry = (entry, index = 0, sourceEl = null) => {
+    if (!entry?.target) return;
+    const remaining = backStack.slice(Math.max(0, Number(index) + 1));
+    setBackStack(remaining);
+    saveQuickAccessHistory(currentUser, remaining);
+    setBackStackOpen(false);
+    suppressHistoryRef.current = true;
+    launchRoute({
+      target: entry.target,
+      label: '←',
+      color: '#2b76c7',
+      sourceEl,
+      meta: { source: 'quick-access-back-stack' },
+    });
+  };
+
   const removeItem = (id) => {
     const next = config.items.filter((itemId) => itemId !== id);
     persist({ ...config, items: next });
@@ -1352,6 +1479,27 @@ export default function GlobalQuickAccessRail({
           >
             <span aria-hidden="true">B</span>
           </button>
+
+          {backStack.length ? (
+            <button
+              type="button"
+              className={`bqa-rail-back ${backStackOpen ? 'is-active' : ''}`}
+              title={language === 'vi' ? 'Quay lại' : 'Go back'}
+              aria-label={language === 'vi' ? 'Quay lại trang trước' : 'Go back to previous page'}
+              aria-expanded={backStackOpen}
+              onPointerEnter={() => {
+                openRail();
+                setBackStackOpen(true);
+              }}
+              onFocus={() => {
+                openRail();
+                setBackStackOpen(true);
+              }}
+              onClick={(event) => navigateBackEntry(backStack[0], 0, event.currentTarget)}
+            >
+              <ChevronLeft size={18} aria-hidden="true" />
+            </button>
+          ) : null}
 
           <div
             className="bqa-rail-items"
@@ -1521,6 +1669,31 @@ export default function GlobalQuickAccessRail({
               </button>
             </div>
           </header>
+
+          {backStackOpen && backStack.length ? (
+            <section className="bqa-back-stack" aria-label={language === 'vi' ? 'Lịch sử điều hướng' : 'Navigation history'}>
+              <header>
+                <span><ChevronLeft size={14} aria-hidden="true" />{language === 'vi' ? 'Vừa đi qua' : 'Recent places'}</span>
+                <button type="button" onClick={() => setBackStackOpen(false)} aria-label={language === 'vi' ? 'Đóng lịch sử' : 'Close history'}>
+                  <X size={13} aria-hidden="true" />
+                </button>
+              </header>
+              <div>
+                {backStack.slice(0, 5).map((entry, index) => (
+                  <button
+                    type="button"
+                    key={`${entry.target}-${entry.at || index}`}
+                    onClick={(event) => navigateBackEntry(entry, index, event.currentTarget)}
+                  >
+                    <span>{index + 1}</span>
+                    <strong>{entry.label || navigationLabelForTarget(entry.target, catalog, language)}</strong>
+                    <small>{entry.target.replace(/^#\//, '')}</small>
+                    <ChevronRight size={14} aria-hidden="true" />
+                  </button>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           <nav className="bqa-workspace-tabs" aria-label={language === 'vi' ? 'Không gian làm việc' : 'Workspace'}>
             {workspaceOptions.map((option) => (
