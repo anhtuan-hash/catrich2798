@@ -414,6 +414,32 @@ test.describe('Global Quick Access safe area', () => {
     expect(stored?.nextIndex).toBe(1);
   });
 
+  test('V4.9: time-aware workspace shows local-time priorities and can be disabled per account', async ({ page }) => {
+    await page.goto('/#/apps');
+    await expect(page.locator('.bqa-root')).toBeVisible();
+
+    await page.locator('.bqa-rail').hover();
+    const timeAware = page.locator('.bqa-time-aware');
+    await expect(timeAware).toBeVisible();
+    await expect(timeAware).toHaveAttribute('data-time-band', /morning|teaching|wrapup|quiet/);
+    await expect(timeAware.locator('.bqa-time-aware-items button')).toHaveCount(3);
+
+    await page.locator('.bqa-rail-settings').click();
+    const customizer = page.locator('.bqa-customizer');
+    await expect(customizer).toBeVisible();
+
+    const toggle = customizer.locator('.bqa-personalize-toggle').filter({ hasText: 'Ưu tiên theo thời gian' });
+    const checkbox = toggle.locator('input[type="checkbox"]');
+    await expect(checkbox).toBeChecked();
+    await checkbox.uncheck();
+    await expect(checkbox).not.toBeChecked();
+
+    await page.locator('.bqa-done').click();
+    await page.locator('.bqa-rail').hover();
+    await expect(page.locator('.bqa-time-aware')).toHaveCount(0);
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-time-aware', 'false');
+  });
+
   test('V3.3.1: right side is a true mirror with rail on the screen edge and panel expanding inward', async ({ page }) => {
     await page.goto('/#/dashboard');
     await expect(page.locator('.bqa-root')).toBeVisible();

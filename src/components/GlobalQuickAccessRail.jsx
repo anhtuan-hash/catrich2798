@@ -175,6 +175,45 @@ function contextIdsFor(currentRoute, selectedTool) {
   return ['route:apps', 'route:homeroom', 'action:attendance'];
 }
 
+function timeAwareContextFor(hour, language) {
+  const vi = language === 'vi';
+  const safeHour = Math.max(0, Math.min(23, Number(hour) || 0));
+  if (safeHour >= 5 && safeHour < 10) {
+    return {
+      id: 'morning',
+      kicker: vi ? 'BUỔI SÁNG' : 'MORNING',
+      title: vi ? 'Khởi động ngày làm việc' : 'Start the workday',
+      description: vi ? 'Ưu tiên lịch, điểm danh và các việc cần mở đầu ngày.' : 'Prioritize schedule, attendance and start-of-day tasks.',
+      ids: ['route:dashboard', 'action:attendance', 'action:schedule', 'route:homeroom'],
+    };
+  }
+  if (safeHour >= 10 && safeHour < 17) {
+    return {
+      id: 'teaching',
+      kicker: vi ? 'GIỜ DẠY' : 'TEACHING HOURS',
+      title: vi ? 'Ưu tiên công cụ giảng dạy' : 'Teaching tools first',
+      description: vi ? 'Sổ điểm, học liệu và ngân hàng câu hỏi được đưa lên trước.' : 'Gradebook, resources and question bank move to the front.',
+      ids: ['tool:gradebook-studio', 'route:resource-library', 'route:assessment-core', 'route:homeroom'],
+    };
+  }
+  if (safeHour >= 17 && safeHour < 22) {
+    return {
+      id: 'wrapup',
+      kicker: vi ? 'CUỐI NGÀY' : 'WRAP-UP',
+      title: vi ? 'Khép lại công việc trong ngày' : 'Wrap up the day',
+      description: vi ? 'Ưu tiên báo cáo, TTCM và kế hoạch cho ngày tiếp theo.' : 'Prioritize reports, department work and tomorrow planning.',
+      ids: ['action:reports', 'action:ttcm', 'action:schedule', 'route:dashboard'],
+    };
+  }
+  return {
+    id: 'quiet',
+    kicker: vi ? 'CHUẨN BỊ' : 'PREP',
+    title: vi ? 'Không gian chuẩn bị' : 'Preparation workspace',
+    description: vi ? 'Giữ Dashboard, học liệu và kế hoạch ở vị trí dễ truy cập.' : 'Keep Dashboard, resources and planning within easy reach.',
+    ids: ['route:dashboard', 'route:resource-library', 'action:schedule', 'route:apps'],
+  };
+}
+
 function contextCopyFor(currentRoute, selectedTool, language) {
   const vi = language === 'vi';
   if (currentRoute === 'homeroom') {
@@ -608,6 +647,7 @@ export default function GlobalQuickAccessRail({
   const [workflowDraftName, setWorkflowDraftName] = useState('');
   const [workflowDraftIds, setWorkflowDraftIds] = useState([]);
   const [activeWorkflowRun, setActiveWorkflowRun] = useState(() => loadQuickAccessWorkflowRun(currentUser));
+  const [timeTick, setTimeTick] = useState(() => Date.now());
   const [backStack, setBackStack] = useState(() => loadQuickAccessHistory(currentUser));
   const [backStackOpen, setBackStackOpen] = useState(false);
   const [resumeItems, setResumeItems] = useState(() => loadQuickAccessResume(currentUser));
@@ -676,6 +716,7 @@ export default function GlobalQuickAccessRail({
   const railSide = QUICK_ACCESS_SIDES.includes(config.side) ? config.side : 'left';
   const hoverDelay = Math.max(80, Math.min(700, Number(config.hoverDelay) || 220));
   const showLabels = config.labels !== false;
+  const timeAwareEnabled = config.timeAware !== false;
   const pinned = sidebarMode === 'pin';
   const focusMode = sidebarMode === 'focus';
   const expanded = hovered || pinned || customizing || notificationCenterOpen || workflowCenterOpen;
@@ -771,6 +812,19 @@ export default function GlobalQuickAccessRail({
     setWorkflowDraftName('');
     setWorkflowDraftIds([]);
   }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const timer = window.setInterval(() => setTimeTick(Date.now()), 60000);
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') setTimeTick(Date.now());
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, []);
 
   useEffect(() => () => {
     window.clearTimeout(closeTimerRef.current);
@@ -1437,6 +1491,14 @@ export default function GlobalQuickAccessRail({
     .filter((item) => !recentItems.some((recent) => recent.id === item.id))
     .slice(0, 3);
   const primaryActivity = liveActivities[0] || null;
+  const timeContext = timeAwareContextFor(new Date(timeTick).getHours(), language);
+  const timeAwareItems = timeAwareEnabled
+    ? timeContext.ids
+      .map((id) => catalog.find((item) => item.id === id))
+      .filter(Boolean)
+      .filter((item) => workspaceAllowsItem(workspace, item))
+      .slice(0, 3)
+    : [];
   const resumableItems = resumeItems
     .map((resume) => ({ resume, item: catalog.find((item) => item.id === resume.itemId) }))
     .filter((entry) => Boolean(entry.item))
@@ -1999,6 +2061,8 @@ export default function GlobalQuickAccessRail({
         data-density={density}
         data-side={railSide}
         data-labels={showLabels ? 'show' : 'hide'}
+        data-time-aware={timeAwareEnabled ? 'true' : 'false'}
+        data-time-band={timeContext.id}
         style={{ '--bqa-magnet': magneticStrength }}
         data-motion={collapsing ? 'collapsing' : (expanded ? 'open' : 'rest')}
         data-route={currentRoute}
@@ -2595,6 +2659,31 @@ export default function GlobalQuickAccessRail({
                 </span>
               </div>
 
+              {timeAwareItems.length ? (
+                <section className="bqa-time-aware" data-time-aware="true" data-time-band={timeContext.id}>
+                  <header>
+                    <span><Clock3 size={14} aria-hidden="true" />{timeContext.kicker}</span>
+                    <small>{language === 'vi' ? 'Theo giờ trên thiết bị' : 'Based on device time'}</small>
+                  </header>
+                  <div className="bqa-time-aware-copy">
+                    <strong>{timeContext.title}</strong>
+                    <span>{timeContext.description}</span>
+                  </div>
+                  <div className="bqa-time-aware-items">
+                    {timeAwareItems.map((item) => {
+                      const Icon = item.icon || Boxes;
+                      return (
+                        <button type="button" key={item.id} onClick={(event) => activateItem(item, event.currentTarget)}>
+                          <span style={{ '--bqa-accent': item.accent }}><Icon size={15} aria-hidden="true" /></span>
+                          <b>{labelFor(item, language)}</b>
+                          <ChevronRight size={13} aria-hidden="true" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              ) : null}
+
               {primaryResume ? (
                 <section className="bqa-resume-card" data-session-resume="true">
                   <span className="bqa-resume-icon" style={{ '--bqa-accent': primaryResume.item.accent }}>
@@ -2991,6 +3080,11 @@ export default function GlobalQuickAccessRail({
               <label className="bqa-personalize-toggle">
                 <span>{language === 'vi' ? 'Hiện nhãn hỗ trợ' : 'Show helper labels'}</span>
                 <input type="checkbox" checked={showLabels} onChange={(event) => updatePersonalization({ labels: event.target.checked })} />
+              </label>
+
+              <label className="bqa-personalize-toggle">
+                <span>{language === 'vi' ? 'Ưu tiên theo thời gian' : 'Time-aware priorities'}</span>
+                <input type="checkbox" checked={timeAwareEnabled} onChange={(event) => updatePersonalization({ timeAware: event.target.checked })} />
               </label>
             </section>
 

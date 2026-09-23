@@ -49,7 +49,8 @@ assert.ok(prefs.includes("side: 'left'"), 'Quick Access defaults to the left sid
 assert.ok(prefs.includes('hoverDelay: 220'), 'Quick Access defaults to a 220ms edge hover delay.');
 assert.ok(prefs.includes('labels: true'), 'Quick Access helper labels default on.');
 assert.ok(prefs.includes('workflows: []'), 'Quick Access defaults to no saved workflow bundles.');
-assert.ok(prefs.includes('version: 5'), 'Quick Access preference schema must be V5 for workflow bundles.');
+assert.ok(prefs.includes('timeAware: true'), 'Quick Access defaults to time-aware priorities enabled.');
+assert.ok(prefs.includes('version: 6'), 'Quick Access preference schema must be V6 for time-aware workspace priorities.');
 assert.match(prefs, /QUICK_ACCESS_WORKFLOW_MAX\s*=\s*4/, 'Quick Access must cap saved workflow bundles at 4.');
 assert.match(prefs, /QUICK_ACCESS_WORKFLOW_STEPS_MAX\s*=\s*5/, 'Quick Access must cap workflow steps at 5.');
 assert.ok(prefs.includes('cleanWorkflows'), 'Quick Access must permission-filter persisted workflow bundles.');
@@ -116,6 +117,13 @@ for (const token of [
   'startWorkflowBundle',
   'continueWorkflowBundle',
   'finishWorkflowBundle',
+  'timeAwareContextFor',
+  'timeAwareEnabled',
+  'timeAwareItems',
+  'data-time-aware={timeAwareEnabled',
+  'data-time-band={timeContext.id}',
+  'bqa-time-aware',
+  'Ưu tiên theo thời gian',
   'data-workflow-center="true"',
   'data-workflow-active="true"',
   'bqa-rail-workflows',
@@ -247,6 +255,11 @@ for (const token of [
   'Brian Quick Access V4.6 · notification center',
   'Brian Quick Access V4.7 · full-screen Command Palette',
   'Brian Quick Access V4.8 · workflow bundles',
+  'Brian Quick Access V4.9 · time-aware workspace',
+  '.bqa-time-aware',
+  '[data-time-band="morning"]',
+  '[data-time-band="teaching"]',
+  '[data-time-band="wrapup"]',
   '.bqa-rail-workflows',
   '.bqa-workflow-center',
   '.bqa-workflow-active',
@@ -326,4 +339,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access V4.8 adds permission-filtered account-synced workflow bundles with resumable step execution while preserving Command Palette, notifications, session resume, true mirror geometry, permissions and custom fonts.');
+console.log('PASS: Quick Access V4.9 adds rule-based time-aware workspace priorities with an account-synced opt-out while preserving V4.8 workflows, Command Palette, notifications, true mirror geometry, permissions and custom fonts.');
