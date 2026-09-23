@@ -2886,6 +2886,8 @@ export default function GlobalQuickAccessRail({
             </section>
           ) : null}
 
+          {/* Compact-panel contract: no inline search, context banner, or Working Now card.
+              Cmd/Ctrl+K remains available through the full-screen Command Palette. */}
           <nav className="bqa-workspace-tabs" aria-label={language === 'vi' ? 'Không gian làm việc' : 'Workspace'}>
             {workspaceOptions.map((option) => (
               <button
@@ -2900,42 +2902,8 @@ export default function GlobalQuickAccessRail({
             ))}
           </nav>
 
-          <label className="bqa-command-search" data-bes-keep-search="true">
-            <Search size={17} aria-hidden="true" />
-            <input
-              ref={commandInputRef}
-              type="search"
-              value={commandQuery}
-              onChange={(event) => {
-                setCommandQuery(event.target.value);
-                setCommandActiveIndex(0);
-                setQuickCreateOpen(false);
-              }}
-              onKeyDown={(event) => {
-                if (!commandResults.length) return;
-                if (event.key === 'ArrowDown') {
-                  event.preventDefault();
-                  setCommandActiveIndex((index) => (index + 1) % commandResults.length);
-                } else if (event.key === 'ArrowUp') {
-                  event.preventDefault();
-                  setCommandActiveIndex((index) => (index - 1 + commandResults.length) % commandResults.length);
-                } else if (event.key === 'Enter') {
-                  event.preventDefault();
-                  executeCommand(commandResults[Math.min(commandActiveIndex, commandResults.length - 1)], event.currentTarget);
-                }
-              }}
-              placeholder={language === 'vi' ? 'Tìm ứng dụng, hành động…' : 'Search apps and actions…'}
-              aria-label={language === 'vi' ? 'Tìm lệnh và ứng dụng' : 'Search commands and apps'}
-            />
-            <span className="bqa-command-kbd"><Command size={12} aria-hidden="true" />K</span>
-            {commandQuery ? (
-              <button type="button" onClick={() => setCommandQuery('')} aria-label={language === 'vi' ? 'Xóa tìm kiếm' : 'Clear search'}>
-                <X size={14} aria-hidden="true" />
-              </button>
-            ) : null}
-          </label>
 
-          {quickCreateOpen && !commandNeedle ? (
+          {quickCreateOpen ? (
             <section className="bqa-quick-create-sheet" aria-label={language === 'vi' ? 'Tạo nhanh' : 'Quick create'}>
               <header>
                 <span><Plus size={14} aria-hidden="true" />{language === 'vi' ? 'Tạo nhanh' : 'Quick create'}</span>
@@ -2956,42 +2924,6 @@ export default function GlobalQuickAccessRail({
             </section>
           ) : null}
 
-          {commandNeedle ? (
-            <div className="bqa-command-results" role="listbox" aria-label={language === 'vi' ? 'Kết quả tìm nhanh' : 'Quick search results'}>
-              {commandResults.map((entry, index) => {
-                const item = entry.item;
-                const Icon = entry.kind === 'action' ? Zap : (item?.icon || Boxes);
-                return (
-                  <button
-                    type="button"
-                    key={entry.id}
-                    role="option"
-                    aria-selected={index === commandActiveIndex}
-                    className={`bqa-command-result ${index === commandActiveIndex ? 'is-active' : ''}`}
-                    onMouseEnter={() => setCommandActiveIndex(index)}
-                    onClick={(event) => executeCommand(entry, event.currentTarget)}
-                  >
-                    <span className="bqa-item-icon" style={{ '--bqa-accent': item?.accent || '#2e6fae' }}><Icon size={18} aria-hidden="true" /></span>
-                    <span>
-                      <strong>{entry.label}</strong>
-                      <small>{entry.description}</small>
-                    </span>
-                    <span className={`bqa-command-kind is-${entry.kind}`}>{entry.kind === 'action' ? (language === 'vi' ? 'Lệnh' : 'Action') : (language === 'vi' ? 'App' : 'App')}</span>
-                  </button>
-                );
-              })}
-              {!commandResults.length ? <div className="bqa-command-empty">{language === 'vi' ? 'Không tìm thấy lệnh phù hợp.' : 'No matching command.'}</div> : null}
-            </div>
-          ) : (
-            <>
-              <div className="bqa-context-banner" data-context-route={currentRoute}>
-                <span className="bqa-context-mark" aria-hidden="true"><Zap size={16} /></span>
-                <span className="bqa-context-copy">
-                  <small>{contextCopy.kicker}</small>
-                  <strong>{contextCopy.title}</strong>
-                  <span>{contextCopy.description}</span>
-                </span>
-              </div>
 
               {timeAwareItems.length ? (
                 <section className="bqa-time-aware" data-time-aware="true" data-time-band={timeContext.id}>
@@ -3053,34 +2985,6 @@ export default function GlobalQuickAccessRail({
               ) : null}
 
               <div className="bqa-smart-stack" data-smart-stack="true">
-                {workingItem ? (
-                  <section className="bqa-smart-section is-working">
-                    <header><Zap size={14} aria-hidden="true" /><span>{language === 'vi' ? 'Đang làm' : 'Working now'}</span></header>
-                    <div>
-                      {[workingItem].map((item) => {
-                        const Icon = item.icon || Boxes;
-                        return (
-                          <button
-                            type="button"
-                            key={item.id}
-                            draggable
-                            onDragStart={(event) => {
-                              setDragId(item.id);
-                              event.dataTransfer.effectAllowed = 'copyMove';
-                              event.dataTransfer.setData('text/plain', item.id);
-                            }}
-                            onDragEnd={() => setDragId('')}
-                            onClick={(event) => activateItem(item, event.currentTarget)}
-                          >
-                            <span style={{ '--bqa-accent': item.accent }}><Icon size={16} aria-hidden="true" /></span>
-                            <b>{labelFor(item, language)}</b>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </section>
-                ) : null}
-
                 {recentItems.length ? (
                   <section className="bqa-smart-section is-recent">
                     <header><Clock3 size={14} aria-hidden="true" /><span>{language === 'vi' ? 'Vừa dùng' : 'Recent'}</span></header>
@@ -3227,8 +3131,7 @@ export default function GlobalQuickAccessRail({
                   );
                 })}
               </div>
-            </>
-          )}
+
 
           <footer className="bqa-panel-footer">
             <button type="button" onClick={() => { setCustomizerQuery(''); setCustomizing(true); }}>
