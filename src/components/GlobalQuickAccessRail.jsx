@@ -37,6 +37,10 @@ import {
   QUICK_ACCESS_MAX_ITEMS,
   QUICK_ACCESS_RECENT_MAX,
   QUICK_ACCESS_WORKSPACES,
+  QUICK_ACCESS_SIZES,
+  QUICK_ACCESS_MOTIONS,
+  QUICK_ACCESS_DENSITIES,
+  QUICK_ACCESS_SIDES,
   createDefaultQuickAccessConfig,
   loadQuickAccessConfig,
   loadQuickAccessConfigFromCloud,
@@ -474,6 +478,9 @@ export default function GlobalQuickAccessRail({
   const [commandQuery, setCommandQuery] = useState('');
   const [commandActiveIndex, setCommandActiveIndex] = useState(0);
   const [quickCreateOpen, setQuickCreateOpen] = useState(false);
+  const [appSwitcherOpen, setAppSwitcherOpen] = useState(false);
+  const [appSwitcherIndex, setAppSwitcherIndex] = useState(0);
+  const [magneticStrength, setMagneticStrength] = useState(0);
   const [peekItemId, setPeekItemId] = useState('');
   const [peekTop, setPeekTop] = useState(92);
   const [actionItemId, setActionItemId] = useState('');
@@ -485,6 +492,7 @@ export default function GlobalQuickAccessRail({
   const closeTimerRef = useRef(0);
   const collapseMotionTimerRef = useRef(0);
   const peekTimerRef = useRef(0);
+  const magneticTimerRef = useRef(0);
   const badgeFrameRef = useRef(0);
   const commandInputRef = useRef(null);
   const layoutFrameRef = useRef(0);
@@ -494,6 +502,7 @@ export default function GlobalQuickAccessRail({
   const railRef = useRef(null);
   const panelRef = useRef(null);
   const selectedItemsRef = useRef([]);
+  const switcherItemsRef = useRef([]);
   const activateItemRef = useRef(null);
 
   const catalog = useMemo(() => {
@@ -519,6 +528,12 @@ export default function GlobalQuickAccessRail({
 
   const sidebarMode = config.mode || (config.pinned ? 'pin' : 'auto');
   const workspace = QUICK_ACCESS_WORKSPACES.includes(config.workspace) ? config.workspace : 'all';
+  const railSize = QUICK_ACCESS_SIZES.includes(config.size) ? config.size : 'm';
+  const motionMode = QUICK_ACCESS_MOTIONS.includes(config.motion) ? config.motion : 'fluid';
+  const density = QUICK_ACCESS_DENSITIES.includes(config.density) ? config.density : 'comfortable';
+  const railSide = QUICK_ACCESS_SIDES.includes(config.side) ? config.side : 'left';
+  const hoverDelay = Math.max(80, Math.min(700, Number(config.hoverDelay) || 220));
+  const showLabels = config.labels !== false;
   const pinned = sidebarMode === 'pin';
   const focusMode = sidebarMode === 'focus';
   const expanded = hovered || pinned || customizing;
@@ -572,6 +587,7 @@ export default function GlobalQuickAccessRail({
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
     window.clearTimeout(peekTimerRef.current);
+    window.clearTimeout(magneticTimerRef.current);
     window.cancelAnimationFrame(badgeFrameRef.current);
   }, []);
 
@@ -670,6 +686,34 @@ export default function GlobalQuickAccessRail({
   }, [language]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const maxDistance = 34;
+    const openDistance = 9;
+    const onPointerMove = (event) => {
+      if (customizing || pinned) return;
+      const distance = railSide === 'right'
+        ? Math.max(0, window.innerWidth - Number(event.clientX || 0))
+        : Math.max(0, Number(event.clientX || 0));
+      if (distance > maxDistance) {
+        setMagneticStrength((current) => current === 0 ? current : 0);
+        window.clearTimeout(magneticTimerRef.current);
+        return;
+      }
+      const strength = Math.max(0, Math.min(1, (maxDistance - distance) / maxDistance));
+      setMagneticStrength(strength);
+      if (distance <= openDistance) {
+        window.clearTimeout(magneticTimerRef.current);
+        magneticTimerRef.current = window.setTimeout(() => openRail(), Math.min(hoverDelay, 180));
+      }
+    };
+    window.addEventListener('pointermove', onPointerMove, { passive: true });
+    return () => {
+      window.removeEventListener('pointermove', onPointerMove);
+      window.clearTimeout(magneticTimerRef.current);
+    };
+  }, [railSide, hoverDelay, customizing, pinned, openRail]);
+
+  useEffect(() => {
     if (!customizing) return undefined;
     const onKeyDown = (event) => {
       if (event.key === 'Escape') {
@@ -709,12 +753,21 @@ export default function GlobalQuickAccessRail({
     const onShortcut = (event) => {
       const tag = String(event.target?.tagName || '').toLowerCase();
       const editable = event.target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag);
-      if (event.repeat) return;
+      if (event.repeat && !(event.altKey && event.code === 'Backquote')) return;
 
       if ((event.metaKey || event.ctrlKey) && !event.altKey && String(event.key || '').toLowerCase() === 'k') {
         event.preventDefault();
         openRail();
         window.setTimeout(() => commandInputRef.current?.focus(), 40);
+        return;
+      }
+
+      if (!editable && event.altKey && !event.ctrlKey && !event.metaKey && event.code === 'Backquote') {
+        const items = switcherItemsRef.current || [];
+        if (!items.length) return;
+        event.preventDefault();
+        setAppSwitcherOpen(true);
+        setAppSwitcherIndex((index) => (index + 1) % items.length);
         return;
       }
 
@@ -735,13 +788,27 @@ export default function GlobalQuickAccessRail({
       }
     };
 
+    const onShortcutUp = (event) => {
+      if (event.key !== 'Alt') return;
+      setAppSwitcherOpen((open) => {
+        if (open) {
+          const items = switcherItemsRef.current || [];
+          const target = items[appSwitcherIndex % Math.max(items.length, 1)];
+          if (target) window.setTimeout(() => activateItemRef.current?.(target, null), 0);
+        }
+        return false;
+      });
+    };
+
     window.addEventListener('bes-navigation-start', onNavigationStart);
     window.addEventListener('keydown', onShortcut);
+    window.addEventListener('keyup', onShortcutUp);
     return () => {
       window.removeEventListener('bes-navigation-start', onNavigationStart);
       window.removeEventListener('keydown', onShortcut);
+      window.removeEventListener('keyup', onShortcutUp);
     };
-  }, [pinned, customizing, expanded, collapseRail, openRail]);
+  }, [pinned, customizing, expanded, collapseRail, openRail, appSwitcherIndex]);
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
@@ -908,6 +975,10 @@ export default function GlobalQuickAccessRail({
     .filter((item) => !recentItems.some((recent) => recent.id === item.id))
     .slice(0, 3);
   const primaryActivity = liveActivities[0] || null;
+  const switcherItems = [
+    ...recentItems,
+    ...workspaceItems.filter((item) => !recentItems.some((recent) => recent.id === item.id)),
+  ].slice(0, 6);
 
   const workspaceOptions = [
     { id: 'all', label: language === 'vi' ? 'Tất cả' : 'All' },
@@ -1000,6 +1071,7 @@ export default function GlobalQuickAccessRail({
   };
 
   selectedItemsRef.current = workspaceItems;
+  switcherItemsRef.current = switcherItems;
   activateItemRef.current = activateItem;
 
   const setSidebarMode = (mode) => {
@@ -1008,6 +1080,8 @@ export default function GlobalQuickAccessRail({
     if (nextMode === 'pin') openRail();
     else if (nextMode === 'focus') collapseRail(true);
   };
+
+  const updatePersonalization = (patch) => persist({ ...config, ...patch });
 
   const togglePinned = () => setSidebarMode(pinned ? 'auto' : 'pin');
 
@@ -1097,6 +1171,12 @@ export default function GlobalQuickAccessRail({
         data-quick-access="true"
         data-sidebar-mode={sidebarMode}
         data-workspace={workspace}
+        data-size={railSize}
+        data-motion-mode={motionMode}
+        data-density={density}
+        data-side={railSide}
+        data-labels={showLabels ? 'show' : 'hide'}
+        style={{ '--bqa-magnet': magneticStrength }}
         data-motion={collapsing ? 'collapsing' : (expanded ? 'open' : 'rest')}
         data-route={currentRoute}
         onPointerEnter={enter}
@@ -1106,8 +1186,14 @@ export default function GlobalQuickAccessRail({
         <div
           className="bqa-edge-trigger"
           aria-hidden="true"
-          onPointerEnter={openRail}
-          onMouseEnter={openRail}
+          onPointerEnter={() => {
+            window.clearTimeout(magneticTimerRef.current);
+            magneticTimerRef.current = window.setTimeout(openRail, hoverDelay);
+          }}
+          onMouseEnter={() => {
+            window.clearTimeout(magneticTimerRef.current);
+            magneticTimerRef.current = window.setTimeout(openRail, hoverDelay);
+          }}
           onPointerDown={(event) => {
             if (event.pointerType === 'touch' || event.pointerType === 'pen') openRail();
           }}
@@ -1607,6 +1693,24 @@ export default function GlobalQuickAccessRail({
         ) : null}
       </div>
 
+      {appSwitcherOpen && switcherItems.length ? (
+        <div className="bqa-app-switcher" role="dialog" aria-label={language === 'vi' ? 'Chuyển ứng dụng nhanh' : 'Quick app switcher'}>
+          <div className="bqa-app-switcher-track">
+            {switcherItems.map((item, index) => {
+              const Icon = item.icon || Boxes;
+              const selected = index === (appSwitcherIndex % switcherItems.length);
+              return (
+                <div className={`bqa-app-switcher-item ${selected ? 'is-selected' : ''}`} key={item.id}>
+                  <span style={{ '--bqa-accent': item.accent }}><Icon size={23} aria-hidden="true" /></span>
+                  <strong>{labelFor(item, language)}</strong>
+                </div>
+              );
+            })}
+          </div>
+          <small>{language === 'vi' ? 'Giữ Alt + phím huyền để chuyển · thả Alt để mở' : 'Hold Alt + grave key to cycle · release Alt to open'}</small>
+        </div>
+      ) : null}
+
       {customizing ? (
         <div className="bqa-customizer-backdrop" role="presentation" onMouseDown={(event) => {
           if (event.target === event.currentTarget) { setCustomizerQuery(''); setCustomizing(false); }
@@ -1638,6 +1742,65 @@ export default function GlobalQuickAccessRail({
               <button type="button" className={sidebarMode === 'focus' ? 'is-active' : ''} onClick={() => setSidebarMode('focus')}>
                 <EyeOff size={17} aria-hidden="true" /><span><strong>Focus</strong><small>{language === 'vi' ? 'Chỉ hiện ở mép' : 'Edge only'}</small></span>
               </button>
+            </section>
+
+            <section className="bqa-personalize-panel" aria-label={language === 'vi' ? 'Cá nhân hóa thanh bên' : 'Personalize sidebar'}>
+              <header>
+                <strong>{language === 'vi' ? 'Cá nhân hóa' : 'Personalize'}</strong>
+                <span>{language === 'vi' ? 'Kích thước · chuyển động · vị trí · mật độ' : 'Size · motion · side · density'}</span>
+              </header>
+
+              <div className="bqa-personalize-row">
+                <span>{language === 'vi' ? 'Kích thước' : 'Size'}</span>
+                <div className="bqa-segmented">
+                  {QUICK_ACCESS_SIZES.map((size) => (
+                    <button type="button" key={size} className={railSize === size ? 'is-active' : ''} onClick={() => updatePersonalization({ size })}>{size.toUpperCase()}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bqa-personalize-row">
+                <span>{language === 'vi' ? 'Chuyển động' : 'Motion'}</span>
+                <div className="bqa-segmented">
+                  {QUICK_ACCESS_MOTIONS.map((motion) => (
+                    <button type="button" key={motion} className={motionMode === motion ? 'is-active' : ''} onClick={() => updatePersonalization({ motion })}>
+                      {motion === 'reduced' ? (language === 'vi' ? 'Giảm' : 'Reduced') : motion === 'normal' ? (language === 'vi' ? 'Chuẩn' : 'Normal') : (language === 'vi' ? 'Mượt' : 'Fluid')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bqa-personalize-row">
+                <span>{language === 'vi' ? 'Vị trí' : 'Side'}</span>
+                <div className="bqa-segmented">
+                  {QUICK_ACCESS_SIDES.map((side) => (
+                    <button type="button" key={side} className={railSide === side ? 'is-active' : ''} onClick={() => updatePersonalization({ side })}>
+                      {side === 'left' ? (language === 'vi' ? 'Trái' : 'Left') : (language === 'vi' ? 'Phải' : 'Right')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bqa-personalize-row">
+                <span>{language === 'vi' ? 'Mật độ' : 'Density'}</span>
+                <div className="bqa-segmented">
+                  {QUICK_ACCESS_DENSITIES.map((value) => (
+                    <button type="button" key={value} className={density === value ? 'is-active' : ''} onClick={() => updatePersonalization({ density: value })}>
+                      {value === 'compact' ? (language === 'vi' ? 'Gọn' : 'Compact') : (language === 'vi' ? 'Thoáng' : 'Comfort')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <label className="bqa-personalize-slider">
+                <span>{language === 'vi' ? 'Độ trễ mở mép' : 'Edge hover delay'} <b>{hoverDelay} ms</b></span>
+                <input type="range" min="80" max="700" step="20" value={hoverDelay} onChange={(event) => updatePersonalization({ hoverDelay: Number(event.target.value) })} />
+              </label>
+
+              <label className="bqa-personalize-toggle">
+                <span>{language === 'vi' ? 'Hiện nhãn hỗ trợ' : 'Show helper labels'}</span>
+                <input type="checkbox" checked={showLabels} onChange={(event) => updatePersonalization({ labels: event.target.checked })} />
+              </label>
             </section>
 
             <div className="bqa-customizer-selected">
