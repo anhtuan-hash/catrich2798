@@ -2488,6 +2488,19 @@ export default function GlobalQuickAccessRail({
   })();
   const notificationCount = classroomMode ? 0 : notificationItems.length;
 
+  const attentionLevelForItem = (item) => {
+    if (!item || classroomMode || (screenGuard && privateItemIds.includes(item.id))) return 0;
+    const health = appHealth[item.id];
+    if (health?.state === 'error') return 3;
+    const activity = liveActivities.find((entry) => entry.itemId === item.id);
+    if (activity?.state === 'error') return 3;
+    const related = notificationItems.filter((entry) => entry.itemId === item.id);
+    if (related.some((entry) => entry.tone === 'danger')) return 3;
+    if (health?.state === 'unconfigured' || related.some((entry) => entry.tone === 'warning')) return 2;
+    if (health?.state === 'syncing' || badges[item.id] || related.length) return badges[item.id] === 'dot' ? 1 : 2;
+    return 0;
+  };
+
   const capsuleSnapshotFor = (item) => {
     if (!item) return null;
     const activity = liveActivities.find((entry) => entry.itemId === item.id);
@@ -3215,6 +3228,150 @@ export default function GlobalQuickAccessRail({
     if (!packet) return;
     dispatchHandoff(packet);
     activateItem(item, event.currentTarget);
+  };
+
+  const bookmarkForItem = (item) => (item?.id ? appBookmarks[item.id] || null : null);
+
+  const restoreAppStateBookmark = (itemOrId, sourceEl = null) => {
+    const itemId = typeof itemOrId === 'string' ? itemOrId : itemOrId?.id;
+    const bookmark = itemId ? appBookmarks[itemId] : null;
+    const item = presentationCatalog.find((candidate) => candidate.id === itemId);
+    if (!bookmark || !item) return false;
+    const restoreState = () => {
+      const provider = stateProvidersRef.current.get(item.id);
+      try {
+        if (typeof provider?.restore === 'function') provider.restore(cloneQuickAccessState(bookmark.state, bookmark.state));
+      } catch {
+        // App-owned state restore is best effort.
+      }
+      window.requestAnimationFrame(() => {
+        try { window.scrollTo({ top: Math.max(0, Number(bookmark.scrollY) || 0), behavior: 'auto' }); } catch { /* optional */ }
+      });
+      window.dispatchEvent(new CustomEvent('bes-quick-access-bookmark-restored', { detail: bookmark }));
+    };
+    const currentTarget = String(window.location.hash || '');
+    if (bookmark.target && bookmark.target !== currentTarget) {
+      suppressHistoryRef.current = true;
+      launchRoute({
+        target: bookmark.target,
+        label: labelFor(item, language),
+        color: item.accent || '#2b76c7',
+        sourceEl,
+        meta: { source: 'quick-access-bookmark' },
+      });
+      window.setTimeout(restoreState, 420);
+    } else {
+      restoreState();
+    }
+    setActionItemId('');
+    setTrailOpen(false);
+    if (!pinned) collapseRail(false);
+    return true;
+  };
+
+  const removeAppStateBookmark = (itemId) => {
+    setAppBookmarks((current) => {
+      const next = { ...(current || {}) };
+      delete next[itemId];
+      saveQuickAccessBookmarks(currentUser, next);
+      return next;
+    });
+  };
+
+  const setDoubleClickAction = (itemId, actionId) => {
+    setDoubleClickActions((current) => {
+      const next = { ...(current || {}) };
+      const value = String(actionId || '').trim();
+      if (value) next[itemId] = value;
+      else delete next[itemId];
+      saveQuickAccessDoubleClickActions(currentUser, next);
+      return next;
+    });
+  };
+
+  const doubleClickDescriptorFor = (item) => {
+    const configuredId = String(doubleClickActions[item?.id] || '').trim();
+    if (!configuredId || !item) return null;
+    return quickActionDescriptors(item, language).find((descriptor) => descriptor.id === configuredId) || null;
+  };
+
+  const handleRailClick = (item, event) => {
+    const descriptor = doubleClickDescriptorFor(item);
+    if (!descriptor) {
+      activateItem(item, event.currentTarget);
+      return;
+    }
+    window.clearTimeout(railClickTimerRef.current);
+    const sourceEl = event.currentTarget;
+    railClickTimerRef.current = window.setTimeout(() => activateItem(item, sourceEl), 225);
+  };
+
+  const handleRailDoubleClick = (item, event) => {
+    const descriptor = doubleClickDescriptorFor(item);
+    if (!descriptor) return;
+    event.preventDefault();
+    event.stopPropagation();
+    window.clearTimeout(railClickTimerRef.current);
+    runQuickAction(item, descriptor, event.currentTarget);
+  };
+
+  const resolveDroppedShortcut = (rawValue = '', uriValue = '') => {
+    const raw = String(rawValue || '').trim();
+    const uri = String(uriValue || '').trim();
+    const candidates = [raw, uri]
+      .filter(Boolean)
+      .map((value) => {
+        try {
+          if (/^https?:\/\//i.test(value)) return new URL(value).hash || value;
+        } catch {
+          return value;
+        }
+        return value;
+      });
+    return presentationCatalog.find((item) => candidates.some((value) => {
+      const normalized = String(value || '').trim().toLowerCase();
+      if (!normalized) return false;
+      return [
+        item.id,
+        item.target,
+        item.route,
+        item.tool,
+        item.app?.slug,
+        item.app?.route,
+        labelFor(item, language),
+      ].some((candidate) => String(candidate || '').trim().toLowerCase() === normalized);
+    })) || null;
+  };
+
+  const handleCommandDrop = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setCommandDropActive(false);
+    const transfer = event.dataTransfer;
+    const quickId = String(transfer?.getData('application/x-brian-quick-access-item') || '').trim();
+    const appId = String(transfer?.getData('application/x-brian-app-id') || '').trim();
+    const raw = quickId || appId || String(transfer?.getData('text/plain') || '').trim();
+    const uri = String(transfer?.getData('text/uri-list') || '').trim();
+    const item = resolveDroppedShortcut(raw, uri);
+    if (!item || config.items.includes(item.id) || config.items.length >= QUICK_ACCESS_MAX_ITEMS) return;
+    persistWithUndo(
+      { ...config, items: [...config.items, item.id] },
+      language === 'vi' ? 'Thêm app bằng Drop Zone' : 'Add app from Drop Zone',
+    );
+  };
+
+  const navigateSessionTrail = (entry, sourceEl = null) => {
+    if (!entry?.target) return;
+    const item = presentationCatalog.find((candidate) => candidate.id === entry.itemId);
+    suppressHistoryRef.current = true;
+    launchRoute({
+      target: entry.target,
+      label: item ? labelFor(item, language) : '↶',
+      color: item?.accent || '#2e75b6',
+      sourceEl,
+      meta: { source: 'quick-access-session-trail' },
+    });
+    setTrailOpen(false);
   };
 
   selectedItemsRef.current = workspaceItems;
