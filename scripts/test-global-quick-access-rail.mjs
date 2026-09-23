@@ -127,6 +127,14 @@ for (const token of [
   'dismissResume',
   'data-session-resume="true"',
   'bqa-resume-card',
+  'commandPaletteOpen',
+  'commandPaletteQuery',
+  'commandPaletteIndex',
+  'commandPaletteInputRef',
+  'commandPaletteResults',
+  'executePaletteCommand',
+  'bqa-command-palette-backdrop',
+  'bqa-command-palette-result',
   'appSwitcherOpen',
   'appSwitcherIndex',
   'switcherItemsRef',
@@ -202,6 +210,11 @@ for (const token of [
   'Brian Quick Access V4.3 · interactive Quick Peek',
   'Brian Quick Access V4.4 · navigation back stack',
   'Brian Quick Access V4.5 · persistent session resume',
+  'Brian Quick Access V4.7 · full-screen Command Palette',
+  '.bqa-command-palette-backdrop',
+  '.bqa-command-palette',
+  '.bqa-command-palette-result',
+  '.bqa-command-palette-footer',
   '.bqa-resume-card',
   '.bqa-resume-progress',
   '.bqa-resume-go',
@@ -267,4 +280,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access V4.5 adds persistent permission-aware session resume while preserving V4.4 back stack, V4.3 Quick Peek, V4.2 status capsules, V4.1 Adaptive Dock, true mirror geometry, permissions and custom fonts.');
+console.log('PASS: Quick Access V4.7 adds a full-screen permission-aware Command Palette while preserving V4.5 session resume, V4.4 back stack, V4.3 Quick Peek, V4.2 status capsules, V4.1 Adaptive Dock, true mirror geometry, permissions and custom fonts.');

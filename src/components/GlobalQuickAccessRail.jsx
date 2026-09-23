@@ -564,6 +564,9 @@ export default function GlobalQuickAccessRail({
   const [customizerQuery, setCustomizerQuery] = useState('');
   const [commandQuery, setCommandQuery] = useState('');
   const [commandActiveIndex, setCommandActiveIndex] = useState(0);
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [commandPaletteQuery, setCommandPaletteQuery] = useState('');
+  const [commandPaletteIndex, setCommandPaletteIndex] = useState(0);
   const [quickCreateOpen, setQuickCreateOpen] = useState(false);
   const [backStack, setBackStack] = useState(() => loadQuickAccessHistory(currentUser));
   const [backStackOpen, setBackStackOpen] = useState(false);
@@ -590,6 +593,7 @@ export default function GlobalQuickAccessRail({
   const magneticTimerRef = useRef(0);
   const badgeFrameRef = useRef(0);
   const commandInputRef = useRef(null);
+  const commandPaletteInputRef = useRef(null);
   const layoutFrameRef = useRef(0);
   const layoutSettleTimerRef = useRef(0);
   const layoutVerifyTimerRef = useRef(0);
@@ -651,10 +655,23 @@ export default function GlobalQuickAccessRail({
       if (input && !inertAncestor) {
         try { input.focus({ preventScroll: true }); } catch { input.focus?.(); }
       }
-      // Opening the rail removes inert and runs motion/layout effects across a few
-      // frames. Re-assert focus briefly so Chromium/WebKit cannot hand focus back
-      // to the page body during that transition.
       if (attempts < 12) window.setTimeout(tryFocus, 80);
+    };
+    window.requestAnimationFrame(tryFocus);
+  }, []);
+
+  const focusCommandPaletteInput = useCallback(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    let attempts = 0;
+    const tryFocus = () => {
+      attempts += 1;
+      const input = commandPaletteInputRef.current;
+      const inertAncestor = input?.closest?.('[inert]');
+      if (input && !inertAncestor) {
+        input.tabIndex = 0;
+        try { input.focus({ preventScroll: true }); } catch { input.focus?.(); }
+      }
+      if (attempts < 14) window.setTimeout(tryFocus, 70);
     };
     window.requestAnimationFrame(tryFocus);
   }, []);
@@ -1070,8 +1087,10 @@ export default function GlobalQuickAccessRail({
 
       if ((event.metaKey || event.ctrlKey) && !event.altKey && String(event.key || '').toLowerCase() === 'k') {
         event.preventDefault();
-        openRail();
-        focusCommandInput();
+        setCommandPaletteQuery('');
+        setCommandPaletteIndex(0);
+        setCommandPaletteOpen(true);
+        focusCommandPaletteInput();
         return;
       }
 
@@ -1121,7 +1140,23 @@ export default function GlobalQuickAccessRail({
       window.removeEventListener('keydown', onShortcut);
       window.removeEventListener('keyup', onShortcutUp);
     };
-  }, [pinned, customizing, expanded, collapseRail, openRail, focusCommandInput, appSwitcherIndex]);
+  }, [pinned, customizing, expanded, collapseRail, openRail, focusCommandPaletteInput, appSwitcherIndex]);
+
+  useEffect(() => {
+    if (!commandPaletteOpen || typeof window === 'undefined') return undefined;
+    const onKeyDown = (event) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      setCommandPaletteOpen(false);
+      setCommandPaletteQuery('');
+      setCommandPaletteIndex(0);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    focusCommandPaletteInput();
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [commandPaletteOpen, focusCommandPaletteInput]);
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
@@ -1372,6 +1407,27 @@ export default function GlobalQuickAccessRail({
     }).slice(0, 10)
     : [];
 
+  const commandPaletteNeedle = commandPaletteQuery.trim().toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
+  const defaultPaletteEntries = [];
+  const paletteSeen = new Set();
+  [
+    ...commandEntries.filter((entry) => entry.kind === 'action'),
+    ...recentItems.map((item) => commandEntries.find((entry) => entry.id === `app:${item.id}`)).filter(Boolean),
+    ...workspaceItems.map((item) => commandEntries.find((entry) => entry.id === `app:${item.id}`)).filter(Boolean),
+  ].forEach((entry) => {
+    if (!entry || paletteSeen.has(entry.id)) return;
+    paletteSeen.add(entry.id);
+    defaultPaletteEntries.push(entry);
+  });
+  const commandPaletteResults = (commandPaletteNeedle
+    ? commandEntries.filter((entry) => {
+      const haystack = `${entry.label} ${entry.description} ${entry.keywords || ''}`
+        .toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
+      return haystack.includes(commandPaletteNeedle);
+    })
+    : defaultPaletteEntries
+  ).slice(0, 12);
+
   const peekItem = catalog.find((item) => item.id === peekItemId) || null;
   const peekActions = peekItem
     ? quickActionDescriptors(peekItem, language).filter((descriptor) => descriptor.id !== 'open').slice(0, 3)
@@ -1505,6 +1561,14 @@ export default function GlobalQuickAccessRail({
     else activateItem(entry.item, sourceEl);
   };
 
+  const executePaletteCommand = (entry, sourceEl = null) => {
+    if (!entry) return;
+    setCommandPaletteOpen(false);
+    setCommandPaletteQuery('');
+    setCommandPaletteIndex(0);
+    executeCommand(entry, sourceEl);
+  };
+
   const navigateBackEntry = (entry, index = 0, sourceEl = null) => {
     if (!entry?.target) return;
     const remaining = backStack.slice(Math.max(0, Number(index) + 1));
@@ -1573,6 +1637,103 @@ export default function GlobalQuickAccessRail({
 
   const quickAccessUi = (
     <>
+      {commandPaletteOpen ? (
+        <div
+          className="bqa-command-palette-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target !== event.currentTarget) return;
+            setCommandPaletteOpen(false);
+            setCommandPaletteQuery('');
+            setCommandPaletteIndex(0);
+          }}
+        >
+          <section className="bqa-command-palette" role="dialog" aria-modal="true" aria-label={language === 'vi' ? 'Bảng lệnh Brian' : 'Brian Command Palette'}>
+            <header className="bqa-command-palette-search" data-bes-keep-search="true">
+              <span className="bqa-command-palette-logo" aria-hidden="true"><Command size={19} /></span>
+              <input
+                ref={commandPaletteInputRef}
+                type="search"
+                autoFocus
+                tabIndex={0}
+                data-bes-keep-search="true"
+                value={commandPaletteQuery}
+                onChange={(event) => {
+                  setCommandPaletteQuery(event.target.value);
+                  setCommandPaletteIndex(0);
+                }}
+                onKeyDown={(event) => {
+                  if (!commandPaletteResults.length) return;
+                  if (event.key === 'ArrowDown') {
+                    event.preventDefault();
+                    setCommandPaletteIndex((index) => (index + 1) % commandPaletteResults.length);
+                  } else if (event.key === 'ArrowUp') {
+                    event.preventDefault();
+                    setCommandPaletteIndex((index) => (index - 1 + commandPaletteResults.length) % commandPaletteResults.length);
+                  } else if (event.key === 'Enter') {
+                    event.preventDefault();
+                    executePaletteCommand(
+                      commandPaletteResults[Math.min(commandPaletteIndex, commandPaletteResults.length - 1)],
+                      event.currentTarget,
+                    );
+                  }
+                }}
+                placeholder={language === 'vi' ? 'Tìm ứng dụng hoặc hành động…' : 'Search apps or actions…'}
+                aria-label={language === 'vi' ? 'Tìm ứng dụng hoặc hành động' : 'Search apps or actions'}
+              />
+              <span className="bqa-command-palette-esc">Esc</span>
+            </header>
+
+            <div className="bqa-command-palette-meta">
+              <span>{commandPaletteNeedle ? (language === 'vi' ? 'Kết quả tìm kiếm' : 'Search results') : (language === 'vi' ? 'Gợi ý nhanh' : 'Quick suggestions')}</span>
+              <b>{commandPaletteResults.length}</b>
+            </div>
+
+            <div className="bqa-command-palette-results" role="listbox">
+              {commandPaletteResults.map((entry, index) => {
+                const item = entry.item;
+                const Icon = entry.kind === 'action' ? Zap : (item?.icon || Boxes);
+                const active = index === commandPaletteIndex;
+                return (
+                  <button
+                    type="button"
+                    key={entry.id}
+                    role="option"
+                    aria-selected={active}
+                    className={`bqa-command-palette-result ${active ? 'is-active' : ''}`}
+                    onMouseEnter={() => setCommandPaletteIndex(index)}
+                    onClick={(event) => executePaletteCommand(entry, event.currentTarget)}
+                  >
+                    <span className="bqa-command-palette-icon" style={{ '--bqa-accent': item?.accent || '#2e6fae' }}><Icon size={19} aria-hidden="true" /></span>
+                    <span className="bqa-command-palette-copy">
+                      <strong>{entry.label}</strong>
+                      <small>{entry.description}</small>
+                    </span>
+                    <span className={`bqa-command-palette-kind is-${entry.kind}`}>
+                      {entry.kind === 'action' ? (language === 'vi' ? 'Lệnh' : 'Action') : 'App'}
+                    </span>
+                    <ChevronRight size={15} aria-hidden="true" />
+                  </button>
+                );
+              })}
+              {!commandPaletteResults.length ? (
+                <div className="bqa-command-palette-empty">
+                  <Search size={22} aria-hidden="true" />
+                  <strong>{language === 'vi' ? 'Không tìm thấy kết quả' : 'No results found'}</strong>
+                  <span>{language === 'vi' ? 'Thử từ khóa khác hoặc tên ứng dụng.' : 'Try another keyword or app name.'}</span>
+                </div>
+              ) : null}
+            </div>
+
+            <footer className="bqa-command-palette-footer">
+              <span><kbd>↑</kbd><kbd>↓</kbd>{language === 'vi' ? 'Di chuyển' : 'Navigate'}</span>
+              <span><kbd>Enter</kbd>{language === 'vi' ? 'Mở' : 'Open'}</span>
+              <span><kbd>Esc</kbd>{language === 'vi' ? 'Đóng' : 'Close'}</span>
+            </footer>
+          </section>
+        </div>
+      ) : null}
+
       <div
         ref={rootRef}
         className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${focusMode ? 'is-focus' : ''} ${customizing ? 'is-customizing' : ''}`}
