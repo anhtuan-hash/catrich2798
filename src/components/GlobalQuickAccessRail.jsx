@@ -37,6 +37,10 @@ import {
   QUICK_ACCESS_MAX_ITEMS,
   QUICK_ACCESS_RECENT_MAX,
   QUICK_ACCESS_WORKSPACES,
+  QUICK_ACCESS_SIZES,
+  QUICK_ACCESS_MOTIONS,
+  QUICK_ACCESS_DENSITIES,
+  QUICK_ACCESS_SIDES,
   createDefaultQuickAccessConfig,
   loadQuickAccessConfig,
   loadQuickAccessConfigFromCloud,
@@ -474,6 +478,9 @@ export default function GlobalQuickAccessRail({
   const [commandQuery, setCommandQuery] = useState('');
   const [commandActiveIndex, setCommandActiveIndex] = useState(0);
   const [quickCreateOpen, setQuickCreateOpen] = useState(false);
+  const [appSwitcherOpen, setAppSwitcherOpen] = useState(false);
+  const [appSwitcherIndex, setAppSwitcherIndex] = useState(0);
+  const [magneticStrength, setMagneticStrength] = useState(0);
   const [peekItemId, setPeekItemId] = useState('');
   const [peekTop, setPeekTop] = useState(92);
   const [actionItemId, setActionItemId] = useState('');
@@ -485,6 +492,7 @@ export default function GlobalQuickAccessRail({
   const closeTimerRef = useRef(0);
   const collapseMotionTimerRef = useRef(0);
   const peekTimerRef = useRef(0);
+  const magneticTimerRef = useRef(0);
   const badgeFrameRef = useRef(0);
   const commandInputRef = useRef(null);
   const layoutFrameRef = useRef(0);
@@ -494,6 +502,7 @@ export default function GlobalQuickAccessRail({
   const railRef = useRef(null);
   const panelRef = useRef(null);
   const selectedItemsRef = useRef([]);
+  const switcherItemsRef = useRef([]);
   const activateItemRef = useRef(null);
 
   const catalog = useMemo(() => {
@@ -519,6 +528,12 @@ export default function GlobalQuickAccessRail({
 
   const sidebarMode = config.mode || (config.pinned ? 'pin' : 'auto');
   const workspace = QUICK_ACCESS_WORKSPACES.includes(config.workspace) ? config.workspace : 'all';
+  const railSize = QUICK_ACCESS_SIZES.includes(config.size) ? config.size : 'm';
+  const motionMode = QUICK_ACCESS_MOTIONS.includes(config.motion) ? config.motion : 'fluid';
+  const density = QUICK_ACCESS_DENSITIES.includes(config.density) ? config.density : 'comfortable';
+  const railSide = QUICK_ACCESS_SIDES.includes(config.side) ? config.side : 'left';
+  const hoverDelay = Math.max(80, Math.min(700, Number(config.hoverDelay) || 220));
+  const showLabels = config.labels !== false;
   const pinned = sidebarMode === 'pin';
   const focusMode = sidebarMode === 'focus';
   const expanded = hovered || pinned || customizing;
@@ -572,6 +587,7 @@ export default function GlobalQuickAccessRail({
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
     window.clearTimeout(peekTimerRef.current);
+    window.clearTimeout(magneticTimerRef.current);
     window.cancelAnimationFrame(badgeFrameRef.current);
   }, []);
 
