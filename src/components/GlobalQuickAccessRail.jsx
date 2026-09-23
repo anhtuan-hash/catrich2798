@@ -1764,6 +1764,25 @@ export default function GlobalQuickAccessRail({
     setCommandActiveIndex(0);
   };
 
+  const setClassroomPresentationMode = (enabled) => {
+    const next = Boolean(enabled);
+    setClassroomMode(next);
+    setNotificationCenterOpen(false);
+    setWorkflowCenterOpen(false);
+    setBackStackOpen(false);
+    setQuickCreateOpen(false);
+    setCommandPaletteOpen(false);
+    setCommandPaletteQuery('');
+    setCommandQuery('');
+    setPeekItemId('');
+    setActionItemId('');
+    setCapsuleItemId('');
+    if (next) {
+      window.clearTimeout(closeTimerRef.current);
+      setHovered(true);
+    }
+  };
+
   const enter = () => {
     openRail();
   };
@@ -1806,6 +1825,10 @@ export default function GlobalQuickAccessRail({
 
   const showCapsule = (item, sourceEl) => {
     window.clearTimeout(capsuleTimerRef.current);
+    if (classroomMode) {
+      setCapsuleItemId('');
+      return;
+    }
     const snapshot = capsuleSnapshotFor(item);
     if (!snapshot) {
       setCapsuleItemId('');
@@ -2112,10 +2135,12 @@ export default function GlobalQuickAccessRail({
 
       <div
         ref={rootRef}
-        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${focusMode ? 'is-focus' : ''} ${customizing ? 'is-customizing' : ''} ${notificationCenterOpen ? 'is-alerts-open' : ''} ${workflowCenterOpen ? 'is-workflow-open' : ''}`}
+        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${focusMode ? 'is-focus' : ''} ${customizing ? 'is-customizing' : ''} ${notificationCenterOpen ? 'is-alerts-open' : ''} ${workflowCenterOpen ? 'is-workflow-open' : ''} ${classroomMode ? 'is-classroom-mode' : ''}`}
         data-quick-access="true"
         data-sidebar-mode={sidebarMode}
-        data-workspace={workspace}
+        data-workspace={effectiveWorkspace}
+        data-saved-workspace={workspace}
+        data-classroom-mode={classroomMode ? 'true' : 'false'}
         data-size={railSize}
         data-motion-mode={motionMode}
         data-density={density}
@@ -2617,8 +2642,8 @@ export default function GlobalQuickAccessRail({
               <button
                 type="button"
                 key={option.id}
-                className={workspace === option.id ? 'is-active' : ''}
-                aria-current={workspace === option.id ? 'true' : undefined}
+                className={effectiveWorkspace === option.id ? 'is-active' : ''}
+                aria-current={effectiveWorkspace === option.id ? 'true' : undefined}
                 onClick={() => setWorkspace(option.id)}
               >
                 {option.label}
