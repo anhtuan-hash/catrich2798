@@ -558,6 +558,44 @@ function spatialContextKey(currentRoute, selectedTool, workspace) {
   return `${workspace || 'all'}:${route}${tool ? `:${tool}` : ''}`;
 }
 
+const QUICK_ACCESS_CONTEXT_MEMORY_MAX = 32;
+
+function quickAccessContextMemoryStorageKey(user) {
+  return `bes-quick-access-context-v1:${quickAccessHistoryUserKey(user)}`;
+}
+
+function routeWorkspaceContextKey(currentRoute, selectedTool) {
+  const route = String(currentRoute || 'unknown').trim() || 'unknown';
+  const tool = String(selectedTool?.slug || '').trim();
+  return `${route}${tool ? `:${tool}` : ''}`;
+}
+
+function loadQuickAccessContextMemory(user) {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = JSON.parse(window.localStorage?.getItem(quickAccessContextMemoryStorageKey(user)) || '{}');
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+    const entries = Object.entries(raw)
+      .filter(([key, value]) => key && QUICK_ACCESS_WORKSPACES.includes(String(value || '')))
+      .slice(-QUICK_ACCESS_CONTEXT_MEMORY_MAX);
+    return Object.fromEntries(entries);
+  } catch {
+    return {};
+  }
+}
+
+function saveQuickAccessContextMemory(user, memory) {
+  if (typeof window === 'undefined') return;
+  try {
+    const entries = Object.entries(memory && typeof memory === 'object' ? memory : {})
+      .filter(([key, value]) => key && QUICK_ACCESS_WORKSPACES.includes(String(value || '')))
+      .slice(-QUICK_ACCESS_CONTEXT_MEMORY_MAX);
+    window.localStorage?.setItem(quickAccessContextMemoryStorageKey(user), JSON.stringify(Object.fromEntries(entries)));
+  } catch {
+    // Route workspace memory is device-local and best effort.
+  }
+}
+
 function quickAccessClassroomModeStorageKey(user) {
   return `bes-quick-access-classroom-mode:${quickAccessHistoryUserKey(user)}`;
 }
@@ -739,6 +777,7 @@ export default function GlobalQuickAccessRail({
   const [activeWorkflowRun, setActiveWorkflowRun] = useState(() => loadQuickAccessWorkflowRun(currentUser));
   const [classroomMode, setClassroomMode] = useState(() => loadQuickAccessClassroomMode(currentUser));
   const [deviceSpatial, setDeviceSpatial] = useState(() => loadQuickAccessSpatialMemory(currentUser));
+  const [routeWorkspaceMemory, setRouteWorkspaceMemory] = useState(() => loadQuickAccessContextMemory(currentUser));
   const [timeTick, setTimeTick] = useState(() => Date.now());
   const [backStack, setBackStack] = useState(() => loadQuickAccessHistory(currentUser));
   const [backStackOpen, setBackStackOpen] = useState(false);
@@ -803,11 +842,17 @@ export default function GlobalQuickAccessRail({
 
   const sidebarMode = config.mode || (config.pinned ? 'pin' : 'auto');
   const spatialMemoryEnabled = config.spatialMemory !== false;
+  const contextMemoryEnabled = config.contextMemory !== false;
   const configWorkspace = QUICK_ACCESS_WORKSPACES.includes(config.workspace) ? config.workspace : 'all';
   const configRailSide = QUICK_ACCESS_SIDES.includes(config.side) ? config.side : 'left';
-  const workspace = spatialMemoryEnabled && QUICK_ACCESS_WORKSPACES.includes(deviceSpatial.workspace)
+  const baseWorkspace = spatialMemoryEnabled && QUICK_ACCESS_WORKSPACES.includes(deviceSpatial.workspace)
     ? deviceSpatial.workspace
     : configWorkspace;
+  const routeContextKey = routeWorkspaceContextKey(currentRoute, selectedTool);
+  const rememberedWorkspace = contextMemoryEnabled && QUICK_ACCESS_WORKSPACES.includes(routeWorkspaceMemory[routeContextKey])
+    ? routeWorkspaceMemory[routeContextKey]
+    : '';
+  const workspace = rememberedWorkspace || baseWorkspace;
   const railSize = QUICK_ACCESS_SIZES.includes(config.size) ? config.size : 'm';
   const motionMode = QUICK_ACCESS_MOTIONS.includes(config.motion) ? config.motion : 'fluid';
   const density = QUICK_ACCESS_DENSITIES.includes(config.density) ? config.density : 'comfortable';
@@ -911,6 +956,7 @@ export default function GlobalQuickAccessRail({
     setActiveWorkflowRun(loadQuickAccessWorkflowRun(currentUser));
     setClassroomMode(loadQuickAccessClassroomMode(currentUser));
     setDeviceSpatial(loadQuickAccessSpatialMemory(currentUser));
+    setRouteWorkspaceMemory(loadQuickAccessContextMemory(currentUser));
     setWorkflowCenterOpen(false);
     setWorkflowDraftName('');
     setWorkflowDraftIds([]);
