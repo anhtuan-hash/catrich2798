@@ -530,7 +530,7 @@ test.describe('Global Quick Access safe area', () => {
     await expect(page.locator('.bqa-root')).toHaveAttribute('data-theme-style', 'paper');
   });
 
-  test('V4.12: spatial memory restores device workspace, side, last app and panel position', async ({ page }) => {
+  test('V4.12: spatial memory restores device workspace, fixed-left edge, last app and panel position', async ({ page }) => {
     await page.goto('/#/apps');
     const root = page.locator('.bqa-root');
     await expect(root).toBeVisible();
@@ -561,8 +561,8 @@ test.describe('Global Quick Access safe area', () => {
     await expect(spatialControl).toBeVisible();
     await expect(spatialControl.locator('input[type="checkbox"]')).toBeChecked();
 
-    await customizer.getByRole('button', { name: 'Phải', exact: true }).click();
-    await expect(root).toHaveAttribute('data-side', 'right');
+    await expect(customizer.getByRole('button', { name: 'Phải', exact: true })).toHaveCount(0);
+    await expect(root).toHaveAttribute('data-side', 'left');
     await page.locator('.bqa-done').click();
 
     await page.locator('.bqa-rail-button[aria-label="Dashboard"]').click();
@@ -574,14 +574,14 @@ test.describe('Global Quick Access safe area', () => {
       return key ? JSON.parse(localStorage.getItem(key) || 'null') : null;
     });
     expect(stored?.workspace).toBe('homeroom');
-    expect(stored?.side).toBe('right');
+    expect(stored?.side).toBe('left');
     expect(stored?.lastItemId).toBe('route:dashboard');
     expect(Object.keys(stored?.scroll || {}).length).toBeGreaterThan(0);
 
     await page.reload();
     await expect(page.locator('.bqa-root')).toBeVisible();
     await expect(page.locator('.bqa-root')).toHaveAttribute('data-workspace', 'homeroom');
-    await expect(page.locator('.bqa-root')).toHaveAttribute('data-side', 'right');
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-side', 'left');
 
     await page.locator('.bqa-edge-trigger').hover({ force: true });
     await page.waitForTimeout(420);
@@ -642,26 +642,30 @@ test.describe('Global Quick Access safe area', () => {
     expect(cleared).toEqual({});
   });
 
-  test('V3.3.1: right side is a true mirror with rail on the screen edge and panel expanding inward', async ({ page }) => {
+  test('V4.13.1: Quick Access is permanently locked to the left edge', async ({ page }) => {
     await page.goto('/#/dashboard');
-    await expect(page.locator('.bqa-root')).toBeVisible();
+    const root = page.locator('.bqa-root');
+    await expect(root).toBeVisible();
+    await expect(root).toHaveAttribute('data-side', 'left');
 
     await page.locator('.bqa-rail').hover();
-    await expect(page.locator('.bqa-root')).toHaveClass(/is-open/);
     await page.locator('.bqa-rail-settings').click();
-    await expect(page.locator('.bqa-customizer')).toBeVisible();
-
-    const personalize = page.locator('.bqa-personalize-panel');
-    await expect(personalize).toBeVisible();
-    await personalize.getByRole('button', { name: 'Phải', exact: true }).click();
-    await expect(page.locator('.bqa-root')).toHaveAttribute('data-side', 'right');
-
+    const customizer = page.locator('.bqa-customizer');
+    await expect(customizer).toBeVisible();
+    await expect(customizer.getByText('Vị trí', { exact: true })).toHaveCount(0);
+    await expect(customizer.getByRole('button', { name: 'Phải', exact: true })).toHaveCount(0);
     await page.locator('.bqa-done').click();
-    await page.mouse.move(700, 700);
-    await page.waitForTimeout(650);
 
-    await expect(page.locator('.app-shell')).toHaveAttribute('data-quick-access-safe-mode', 'overlay');
-    await expect(page.locator('.app-shell')).toHaveAttribute('data-quick-access-safe-shift', '0');
+    // Even legacy saved "right" values must be normalized back to left.
+    await page.evaluate(() => {
+      const key = Object.keys(localStorage).find((candidate) => candidate.startsWith('bes-quick-access-v1:'));
+      if (!key) return;
+      const value = JSON.parse(localStorage.getItem(key) || '{}');
+      localStorage.setItem(key, JSON.stringify({ ...value, side: 'right', updatedAt: Date.now() + 1000 }));
+    });
+    await page.reload();
+    await expect(page.locator('.bqa-root')).toBeVisible();
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-side', 'left');
 
     await page.locator('.bqa-edge-trigger').hover({ force: true });
     await page.waitForTimeout(420);
@@ -672,22 +676,20 @@ test.describe('Global Quick Access safe area', () => {
       const panel = document.querySelector('.bqa-panel')?.getBoundingClientRect();
       const trigger = document.querySelector('.bqa-edge-trigger')?.getBoundingClientRect();
       return {
-        width: window.innerWidth,
-        rail: rail ? { left: rail.left, right: rail.right, width: rail.width } : null,
-        panel: panel ? { left: panel.left, right: panel.right, width: panel.width } : null,
-        trigger: trigger ? { left: trigger.left, right: trigger.right, width: trigger.width } : null,
+        rail: rail ? { left: rail.left, right: rail.right } : null,
+        panel: panel ? { left: panel.left, right: panel.right } : null,
+        trigger: trigger ? { left: trigger.left, right: trigger.right } : null,
       };
     });
 
     expect(geometry.rail).not.toBeNull();
     expect(geometry.panel).not.toBeNull();
     expect(geometry.trigger).not.toBeNull();
-    expect(geometry.width - geometry.rail.right).toBeGreaterThanOrEqual(6);
-    expect(geometry.width - geometry.rail.right).toBeLessThanOrEqual(10);
-    expect(geometry.panel.right).toBeLessThanOrEqual(geometry.rail.left - 6);
-    expect(geometry.panel.left).toBeGreaterThanOrEqual(0);
-    expect(geometry.trigger.right).toBeGreaterThanOrEqual(geometry.width - 1);
-    expect(geometry.trigger.left).toBeGreaterThan(geometry.width - 30);
+    expect(geometry.rail.left).toBeGreaterThanOrEqual(6);
+    expect(geometry.rail.left).toBeLessThanOrEqual(10);
+    expect(geometry.panel.left).toBeGreaterThanOrEqual(geometry.rail.right - 1);
+    expect(geometry.trigger.left).toBeLessThanOrEqual(1);
+    expect(geometry.trigger.right).toBeLessThan(30);
   });
 
   test('pinned panel reflows content instead of covering it', async ({ page }) => {
