@@ -362,6 +362,30 @@ function quickActionDescriptors(item, language) {
   if (item.id === 'action:attendance') {
     return [{ id: 'attendance', label: vi ? 'Điểm danh ngay' : 'Open attendance', action: 'attendance' }];
   }
+  if (item.id === 'route:dashboard') {
+    return [
+      { id: 'dashboard-apps', label: vi ? 'Mở ứng dụng' : 'Open apps', targetItemId: 'route:apps' },
+      { id: 'dashboard-schedule', label: vi ? 'Lịch làm việc' : 'Work schedule', action: 'ttcm-schedule' },
+    ];
+  }
+  if (item.id === 'route:homeroom') {
+    return [
+      { id: 'homeroom-attendance', label: vi ? 'Điểm danh' : 'Attendance', action: 'attendance' },
+      { id: 'homeroom-gradebook', label: vi ? 'Sổ điểm' : 'Gradebook', targetItemId: 'tool:gradebook-studio' },
+    ];
+  }
+  if (item.id === 'tool:gradebook-studio') {
+    return [
+      { id: 'gradebook-homeroom', label: vi ? 'Chủ nhiệm' : 'Homeroom', targetItemId: 'route:homeroom' },
+      { id: 'gradebook-dashboard', label: 'Dashboard', targetItemId: 'route:dashboard' },
+    ];
+  }
+  if (item.id === 'action:reports' || item.tool === 'brian-team') {
+    return [
+      { id: 'reports-open', label: vi ? 'Mở báo cáo' : 'Open reports', action: 'open' },
+      { id: 'reports-schedule', label: vi ? 'Kế hoạch TTCM' : 'TTCM schedule', action: 'ttcm-schedule' },
+    ];
+  }
   return [{ id: 'open', label: vi ? 'Mở ứng dụng' : 'Open app', action: 'open' }];
 }
 
@@ -3055,7 +3079,10 @@ export default function GlobalQuickAccessRail({
     else if (descriptor.action === 'ttcm-schedule') openTtcm('schedule');
     else if (descriptor.action === 'ttcm-personnel') openTtcm('personnel');
     else if (descriptor.action === 'attendance') runAction({ action: 'attendance' }, sourceEl);
-    else activateItem(item, sourceEl);
+    else if (descriptor.targetItemId) {
+      const targetItem = presentationCatalog.find((candidate) => candidate.id === descriptor.targetItemId);
+      if (targetItem) activateItem(targetItem, sourceEl);
+    } else activateItem(item, sourceEl);
     setActionItemId('');
     setPeekItemId('');
   };
