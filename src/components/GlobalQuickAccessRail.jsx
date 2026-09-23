@@ -357,10 +357,17 @@ export default function GlobalQuickAccessRail({
   const [hovered, setHovered] = useState(false);
   const [customizing, setCustomizing] = useState(false);
   const [customizerQuery, setCustomizerQuery] = useState('');
+  const [commandQuery, setCommandQuery] = useState('');
+  const [peekItemId, setPeekItemId] = useState('');
+  const [peekTop, setPeekTop] = useState(92);
+  const [actionItemId, setActionItemId] = useState('');
+  const [badges, setBadges] = useState({});
   const [dragId, setDragId] = useState('');
   const [collapsing, setCollapsing] = useState(false);
   const closeTimerRef = useRef(0);
   const collapseMotionTimerRef = useRef(0);
+  const peekTimerRef = useRef(0);
+  const commandInputRef = useRef(null);
   const layoutFrameRef = useRef(0);
   const layoutSettleTimerRef = useRef(0);
   const layoutVerifyTimerRef = useRef(0);
@@ -389,7 +396,10 @@ export default function GlobalQuickAccessRail({
   const allowedKey = allowedIds.join('|');
   const [config, setConfig] = useState(() => loadQuickAccessConfig(currentUser, allowedIds));
 
-  const expanded = hovered || config.pinned || customizing;
+  const sidebarMode = config.mode || (pinned ? 'pin' : 'auto');
+  const pinned = sidebarMode === 'pin';
+  const focusMode = sidebarMode === 'focus';
+  const expanded = hovered || pinned || customizing;
 
   const openRail = useCallback(() => {
     window.clearTimeout(closeTimerRef.current);
@@ -399,11 +409,11 @@ export default function GlobalQuickAccessRail({
   }, []);
 
   const collapseRail = useCallback((force = false) => {
-    if (!force && (config.pinned || customizing)) return;
+    if (!force && (pinned || customizing)) return;
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
 
-    if (hovered || config.pinned || customizing) {
+    if (hovered || pinned || customizing) {
       setCollapsing(true);
       setHovered(false);
       collapseMotionTimerRef.current = window.setTimeout(() => {
@@ -413,7 +423,7 @@ export default function GlobalQuickAccessRail({
     }
 
     setHovered(false);
-  }, [config.pinned, customizing, hovered]);
+  }, [pinned, customizing, hovered]);
 
   useEffect(() => {
     if (!currentUser || !allowedIds.length) return undefined;
@@ -454,7 +464,7 @@ export default function GlobalQuickAccessRail({
   }, [customizing]);
 
   useEffect(() => {
-    if (!hovered || config.pinned || customizing || typeof document === 'undefined') return undefined;
+    if (!hovered || pinned || customizing || typeof document === 'undefined') return undefined;
 
     const onOutsidePointerDown = (event) => {
       if (event.target?.closest?.('.bqa-root')) return;
@@ -470,13 +480,13 @@ export default function GlobalQuickAccessRail({
       document.removeEventListener('pointerdown', onOutsidePointerDown, true);
       window.removeEventListener('keydown', onEscape);
     };
-  }, [hovered, config.pinned, customizing, collapseRail]);
+  }, [hovered, pinned, customizing, collapseRail]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
 
     const onNavigationStart = () => {
-      if (!config.pinned && !customizing) collapseRail(false);
+      if (!pinned && !customizing) collapseRail(false);
     };
     const onShortcut = (event) => {
       const tag = String(event.target?.tagName || '').toLowerCase();
@@ -484,7 +494,7 @@ export default function GlobalQuickAccessRail({
       if (editable || event.repeat) return;
       if (event.altKey && !event.ctrlKey && !event.metaKey && String(event.key || '').toLowerCase() === 'q') {
         event.preventDefault();
-        if (expanded && !config.pinned && !customizing) collapseRail(false);
+        if (expanded && !pinned && !customizing) collapseRail(false);
         else openRail();
       }
     };
@@ -495,7 +505,7 @@ export default function GlobalQuickAccessRail({
       window.removeEventListener('bes-navigation-start', onNavigationStart);
       window.removeEventListener('keydown', onShortcut);
     };
-  }, [config.pinned, customizing, expanded, collapseRail, openRail]);
+  }, [pinned, customizing, expanded, collapseRail, openRail]);
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
@@ -507,7 +517,7 @@ export default function GlobalQuickAccessRail({
     const footer = shell?.querySelector?.(':scope > footer[data-app-shell-footer="true"]');
     if (!root || !shell || !main || !safeFrame) return undefined;
 
-    shell.dataset.quickAccessState = config.pinned ? 'pinned' : 'rest';
+    shell.dataset.quickAccessState = pinned ? 'pinned' : 'rest';
 
     const clearSafeArea = () => {
       shell.style.removeProperty('--bqa-content-safe-shift');
@@ -548,12 +558,12 @@ export default function GlobalQuickAccessRail({
           ? railRect.right
           : rootRect.left + railWidth;
 
-        const pinnedBoundary = config.pinned
+        const pinnedBoundary = pinned
           ? rootRect.left + railWidth + 8 + panelWidth
           : collapsedBoundary;
 
-        const safeBoundary = (config.pinned ? pinnedBoundary : collapsedBoundary) + QUICK_ACCESS_SAFE_GAP;
-        const maxShift = config.pinned ? QUICK_ACCESS_SAFE_MAX_PINNED : QUICK_ACCESS_SAFE_MAX_COLLAPSED;
+        const safeBoundary = (pinned ? pinnedBoundary : collapsedBoundary) + QUICK_ACCESS_SAFE_GAP;
+        const maxShift = pinned ? QUICK_ACCESS_SAFE_MAX_PINNED : QUICK_ACCESS_SAFE_MAX_COLLAPSED;
         const delta = safeBoundary - actualMinLeft;
         const nextShift = Math.max(0, Math.min(maxShift, Math.ceil(currentShift + delta)));
 
@@ -570,7 +580,7 @@ export default function GlobalQuickAccessRail({
           const verifiedMinLeft = measureQuickAccessContentBaseline(safeFrame);
           const stillOccluded = Number.isFinite(verifiedMinLeft) && verifiedMinLeft < safeBoundary - 0.5;
 
-          if (stillOccluded && !config.pinned) {
+          if (stillOccluded && !pinned) {
             shell.dataset.quickAccessSafeMode = 'overlay';
             clearSafeArea();
           } else {
@@ -578,7 +588,7 @@ export default function GlobalQuickAccessRail({
           }
         }, 330);
 
-        shell.dataset.quickAccessState = config.pinned ? 'pinned' : 'rest';
+        shell.dataset.quickAccessState = pinned ? 'pinned' : 'rest';
 
         if (footer) footer.dataset.quickAccessOcclusionGuard = 'true';
         if (panel) panel.dataset.safeBoundary = String(Math.round(safeBoundary));
@@ -624,7 +634,7 @@ export default function GlobalQuickAccessRail({
   }, [
     currentRoute,
     selectedTool?.slug,
-    config.pinned,
+    pinned,
     allowedKey,
     appVisibility?.ready,
   ]);
@@ -657,16 +667,16 @@ export default function GlobalQuickAccessRail({
 
   const leave = () => {
     window.clearTimeout(closeTimerRef.current);
-    if (config.pinned || customizing) return;
+    if (pinned || customizing) return;
     closeTimerRef.current = window.setTimeout(() => collapseRail(false), 340);
   };
 
   const activateItem = (item, sourceEl) => {
     runAction(item, sourceEl);
-    if (!config.pinned) collapseRail(false);
+    if (!pinned) collapseRail(false);
   };
 
-  const togglePinned = () => persist({ ...config, pinned: !config.pinned });
+  const togglePinned = () => persist({ ...config, pinned: !pinned });
 
   const removeItem = (id) => {
     const next = config.items.filter((itemId) => itemId !== id);
@@ -693,7 +703,7 @@ export default function GlobalQuickAccessRail({
     <>
       <div
         ref={rootRef}
-        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${config.pinned ? 'is-pinned' : ''} ${customizing ? 'is-customizing' : ''}`}
+        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${customizing ? 'is-customizing' : ''}`}
         data-quick-access="true"
         data-motion={collapsing ? 'collapsing' : (expanded ? 'open' : 'rest')}
         data-route={currentRoute}
@@ -726,7 +736,7 @@ export default function GlobalQuickAccessRail({
             aria-label={expanded ? (language === 'vi' ? 'Thu gọn thanh truy cập nhanh' : 'Collapse quick access') : (language === 'vi' ? 'Mở thanh truy cập nhanh' : 'Open quick access')}
             aria-expanded={expanded}
             onClick={() => {
-              if (expanded && !config.pinned && !customizing) collapseRail(false);
+              if (expanded && !pinned && !customizing) collapseRail(false);
               else openRail();
             }}
           >
@@ -787,12 +797,12 @@ export default function GlobalQuickAccessRail({
             </div>
             <button
               type="button"
-              className={`bqa-pin ${config.pinned ? 'is-active' : ''}`}
-              aria-pressed={config.pinned}
-              title={config.pinned ? (language === 'vi' ? 'Bỏ ghim' : 'Unpin') : (language === 'vi' ? 'Ghim thanh' : 'Pin rail')}
+              className={`bqa-pin ${pinned ? 'is-active' : ''}`}
+              aria-pressed={pinned}
+              title={pinned ? (language === 'vi' ? 'Bỏ ghim' : 'Unpin') : (language === 'vi' ? 'Ghim thanh' : 'Pin rail')}
               onClick={togglePinned}
             >
-              {config.pinned ? <PinOff size={18} aria-hidden="true" /> : <Pin size={18} aria-hidden="true" />}
+              {pinned ? <PinOff size={18} aria-hidden="true" /> : <Pin size={18} aria-hidden="true" />}
             </button>
           </header>
 
