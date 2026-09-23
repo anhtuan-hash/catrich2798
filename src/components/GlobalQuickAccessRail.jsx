@@ -487,12 +487,16 @@ export default function GlobalQuickAccessRail({
   const [actionItemId, setActionItemId] = useState('');
   const [actionTop, setActionTop] = useState(118);
   const [badges, setBadges] = useState({});
+  const [capsules, setCapsules] = useState({});
+  const [capsuleItemId, setCapsuleItemId] = useState('');
+  const [capsuleTop, setCapsuleTop] = useState(120);
   const [liveActivities, setLiveActivities] = useState([]);
   const [dragId, setDragId] = useState('');
   const [collapsing, setCollapsing] = useState(false);
   const closeTimerRef = useRef(0);
   const collapseMotionTimerRef = useRef(0);
   const peekTimerRef = useRef(0);
+  const capsuleTimerRef = useRef(0);
   const magneticTimerRef = useRef(0);
   const badgeFrameRef = useRef(0);
   const commandInputRef = useRef(null);
@@ -588,6 +592,7 @@ export default function GlobalQuickAccessRail({
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
     window.clearTimeout(peekTimerRef.current);
+    window.clearTimeout(capsuleTimerRef.current);
     window.clearTimeout(magneticTimerRef.current);
     window.cancelAnimationFrame(badgeFrameRef.current);
   }, []);
@@ -622,6 +627,58 @@ export default function GlobalQuickAccessRail({
       observer.disconnect();
       window.cancelAnimationFrame(badgeFrameRef.current);
       window.removeEventListener('bes-quick-access-badges', onBadgeEvent);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const normalizeCapsule = (detail = {}) => {
+      const itemId = String(detail.itemId || detail.id || '').trim();
+      if (!itemId) return null;
+      return {
+        itemId,
+        label: String(detail.label || detail.title || '').trim(),
+        text: String(detail.text || detail.status || '').trim(),
+        tone: ['info', 'success', 'warning', 'danger'].includes(String(detail.tone || '').toLowerCase())
+          ? String(detail.tone).toLowerCase()
+          : 'info',
+        progress: Number.isFinite(Number(detail.progress))
+          ? Math.max(0, Math.min(100, Number(detail.progress)))
+          : null,
+        updatedAt: Date.now(),
+      };
+    };
+
+    const applyCapsule = (detail = {}) => {
+      const itemId = String(detail.itemId || detail.id || '').trim();
+      if (!itemId) return;
+      if (detail.clear === true || detail.state === 'clear') {
+        setCapsules((current) => {
+          const next = { ...current };
+          delete next[itemId];
+          return next;
+        });
+        return;
+      }
+      const next = normalizeCapsule(detail);
+      if (!next) return;
+      setCapsules((current) => ({ ...current, [itemId]: next }));
+    };
+
+    const onCapsule = (event) => applyCapsule(event?.detail || {});
+    const previousApi = window.BrianQuickAccessCapsules;
+    window.BrianQuickAccessCapsules = {
+      set: (detail = {}) => window.dispatchEvent(new CustomEvent('bes-quick-access-capsule', { detail })),
+      clear: (itemId) => window.dispatchEvent(new CustomEvent('bes-quick-access-capsule', { detail: { itemId, clear: true } })),
+    };
+
+    window.addEventListener('bes-quick-access-capsule', onCapsule);
+    return () => {
+      window.removeEventListener('bes-quick-access-capsule', onCapsule);
+      if (window.BrianQuickAccessCapsules === previousApi) return;
+      if (previousApi) window.BrianQuickAccessCapsules = previousApi;
+      else delete window.BrianQuickAccessCapsules;
     };
   }, []);
 
@@ -981,6 +1038,35 @@ export default function GlobalQuickAccessRail({
     .filter((item) => !recentItems.some((recent) => recent.id === item.id))
     .slice(0, 3);
   const primaryActivity = liveActivities[0] || null;
+  const capsuleSnapshotFor = (item) => {
+    if (!item) return null;
+    const activity = liveActivities.find((entry) => entry.itemId === item.id);
+    if (activity) {
+      return {
+        itemId: item.id,
+        label: activity.title || labelFor(item, language),
+        text: activity.status || (activity.progress == null ? (language === 'vi' ? 'Đang xử lí…' : 'Working…') : `${Math.round(activity.progress)}%`),
+        tone: activity.state === 'error' ? 'danger' : activity.state === 'complete' ? 'success' : 'info',
+        progress: activity.progress,
+      };
+    }
+    if (capsules[item.id]) return capsules[item.id];
+    if (badges[item.id]) {
+      return {
+        itemId: item.id,
+        label: labelFor(item, language),
+        text: badges[item.id] === 'dot'
+          ? (language === 'vi' ? 'Có cập nhật mới' : 'New update available')
+          : (language === 'vi' ? `${badges[item.id]} mục cần chú ý` : `${badges[item.id]} items need attention`),
+        tone: 'warning',
+        progress: null,
+      };
+    }
+    return null;
+  };
+  const activeCapsuleItem = catalog.find((item) => item.id === capsuleItemId) || null;
+  const activeCapsule = capsuleSnapshotFor(activeCapsuleItem);
+
   const switcherItems = [
     ...recentItems,
     ...workspaceItems.filter((item) => !recentItems.some((recent) => recent.id === item.id)),
@@ -1091,9 +1177,28 @@ export default function GlobalQuickAccessRail({
 
   const togglePinned = () => setSidebarMode(pinned ? 'auto' : 'pin');
 
+  const showCapsule = (item, sourceEl) => {
+    window.clearTimeout(capsuleTimerRef.current);
+    const snapshot = capsuleSnapshotFor(item);
+    if (!snapshot) {
+      setCapsuleItemId('');
+      return;
+    }
+    capsuleTimerRef.current = window.setTimeout(() => {
+      const rect = sourceEl?.getBoundingClientRect?.();
+      if (rect) setCapsuleTop(Math.max(86, Math.min(window.innerHeight - 96, rect.top - 4)));
+      setCapsuleItemId(item.id);
+    }, 110);
+  };
+
+  const hideCapsule = () => {
+    window.clearTimeout(capsuleTimerRef.current);
+    capsuleTimerRef.current = window.setTimeout(() => setCapsuleItemId(''), 90);
+  };
+
   const showPeek = (item, sourceEl) => {
     window.clearTimeout(peekTimerRef.current);
-    if (!item || actionItemId) return;
+    if (!item || actionItemId || capsuleSnapshotFor(item)) return;
     peekTimerRef.current = window.setTimeout(() => {
       const rect = sourceEl?.getBoundingClientRect?.();
       if (rect) setPeekTop(Math.max(86, Math.min(window.innerHeight - 210, rect.top - 8)));
@@ -1250,15 +1355,21 @@ export default function GlobalQuickAccessRail({
                   data-dock-distance={dockDistance}
                   onPointerEnter={(event) => {
                     setDockHoverIndex(index);
+                    showCapsule(item, event.currentTarget);
                     showPeek(item, event.currentTarget);
                   }}
-                  onPointerLeave={hidePeek}
+                  onPointerLeave={() => {
+                    hideCapsule();
+                    hidePeek();
+                  }}
                   onFocus={(event) => {
                     setDockHoverIndex(index);
+                    showCapsule(item, event.currentTarget);
                     showPeek(item, event.currentTarget);
                   }}
                   onBlur={() => {
                     setDockHoverIndex(-1);
+                    hideCapsule();
                     hidePeek();
                   }}
                   onContextMenu={(event) => {
@@ -1321,6 +1432,27 @@ export default function GlobalQuickAccessRail({
             <Settings size={19} aria-hidden="true" />
           </button>
         </aside>
+
+        {activeCapsule ? (
+          <aside
+            className={`bqa-status-capsule is-${activeCapsule.tone || 'info'}`}
+            style={{ top: capsuleTop }}
+            aria-live="polite"
+            onPointerEnter={() => window.clearTimeout(capsuleTimerRef.current)}
+            onPointerLeave={hideCapsule}
+          >
+            <span className="bqa-status-capsule-dot" aria-hidden="true" />
+            <span className="bqa-status-capsule-copy">
+              <strong>{activeCapsule.label || labelFor(activeCapsuleItem, language)}</strong>
+              <small>{activeCapsule.text}</small>
+            </span>
+            {activeCapsule.progress != null ? (
+              <span className="bqa-status-capsule-progress" aria-label={`${Math.round(activeCapsule.progress)}%`}>
+                <i style={{ width: `${activeCapsule.progress}%` }} />
+              </span>
+            ) : null}
+          </aside>
+        ) : null}
 
         <section
           ref={panelRef}
