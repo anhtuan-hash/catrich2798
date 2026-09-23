@@ -860,6 +860,137 @@ test.describe('Global Quick Access safe area', () => {
     expect(packet?.url).toBe('https://example.com/brian-v6');
   });
 
+  test('V6.6: Attention Halo escalates from app health without replacing badges', async ({ page }) => {
+    await page.goto('/#/dashboard');
+    const active = page.locator('.bqa-rail-button.is-active').first();
+    await expect(active).toBeVisible();
+    await expect.poll(async () => page.evaluate(() => typeof window.BrianQuickAccessHealth?.set)).toBe('function');
+
+    await page.evaluate(() => {
+      window.BrianQuickAccessHealth.set('route:dashboard', 'error', 'Needs attention');
+    });
+
+    await expect(active).toHaveAttribute('data-attention-level', '3');
+    await expect(active).toHaveClass(/attention-3/);
+    await expect(active.locator('.bqa-attention-halo')).toBeVisible();
+  });
+
+  test('V6.7: App State Bookmark saves with Ctrl+Shift+S and restores the exact app route', async ({ page }) => {
+    await page.goto('/#/dashboard');
+    await expect(page.locator('.bqa-rail-button.is-active')).toBeVisible();
+    await expect.poll(async () => page.evaluate(() => typeof window.BrianQuickAccessState?.restore)).toBe('function');
+
+    await page.keyboard.press('Control+Shift+S');
+    await expect.poll(async () => Number(await page.locator('.bqa-root').getAttribute('data-bookmark-count') || 0)).toBeGreaterThan(0);
+    await expect(page.locator('.bqa-rail-button.is-active .bqa-bookmark-marker')).toBeVisible();
+
+    await page.goto('/#/apps');
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'apps');
+    await page.evaluate(() => window.BrianQuickAccessState.restore('route:dashboard'));
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'dashboard');
+  });
+
+  test('V6.8: configured double-click action runs without firing the normal single-click route', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem(
+        'bes-quick-access-double-click-v6:quick-access-safe-area-admin',
+        JSON.stringify({ 'route:dashboard': 'dashboard-apps' }),
+      );
+    });
+    await page.goto('/#/dashboard');
+    const active = page.locator('.bqa-rail-button.is-active').first();
+    await expect(active).toHaveAttribute('data-double-click-action', 'dashboard-apps');
+    await active.dblclick();
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'apps');
+  });
+
+  test('V6.9: Alt Command Drop Zone accepts an Apps Directory shortcut payload', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem(
+        'bes-quick-access-v1:quick-access-safe-area-admin',
+        JSON.stringify({
+          version: 10,
+          items: ['route:dashboard', 'route:apps', 'route:homeroom'],
+          recent: [],
+          workspace: 'all',
+          mode: 'auto',
+          size: 'm',
+          motion: 'fluid',
+          density: 'comfortable',
+          side: 'left',
+          theme: 'glass',
+          hoverDelay: 220,
+          labels: true,
+          workflows: [],
+          timeAware: true,
+          spatialMemory: true,
+          contextMemory: true,
+          pinned: false,
+          updatedAt: Date.now(),
+        }),
+      );
+    });
+    await page.goto('/#/apps');
+    await expect(page.locator('.bqa-rail')).toBeVisible();
+
+    await page.evaluate(() => {
+      const rail = document.querySelector('.bqa-rail');
+      const transfer = new DataTransfer();
+      transfer.setData('application/x-brian-app-id', 'tool:textlab-activities');
+      transfer.setData('application/x-brian-quick-access-item', 'tool:textlab-activities');
+      transfer.setData('text/plain', 'tool:textlab-activities');
+      rail.dispatchEvent(new DragEvent('dragenter', { bubbles: true, cancelable: true, altKey: true, dataTransfer: transfer }));
+      rail.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, altKey: true, dataTransfer: transfer }));
+    });
+
+    const zone = page.locator('.bqa-command-drop-zone');
+    await expect(zone).toBeVisible();
+
+    await page.evaluate(() => {
+      const zone = document.querySelector('.bqa-command-drop-zone');
+      const transfer = new DataTransfer();
+      transfer.setData('application/x-brian-app-id', 'tool:textlab-activities');
+      transfer.setData('application/x-brian-quick-access-item', 'tool:textlab-activities');
+      transfer.setData('text/plain', 'tool:textlab-activities');
+      zone.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, altKey: true, dataTransfer: transfer }));
+      zone.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, altKey: true, dataTransfer: transfer }));
+    });
+
+    await expect.poll(async () => page.evaluate(() => {
+      try {
+        const raw = JSON.parse(window.localStorage.getItem('bes-quick-access-v1:quick-access-safe-area-admin') || '{}');
+        return Array.isArray(raw.items) && raw.items.includes('tool:textlab-activities');
+      } catch {
+        return false;
+      }
+    })).toBe(true);
+  });
+
+  test('V6.10: Visual Session Trail records navigation and returns to an earlier app', async ({ page }) => {
+    await page.goto('/#/dashboard');
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'dashboard');
+
+    await page.evaluate(() => { window.location.hash = '#/apps'; });
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'apps');
+
+    await page.evaluate(() => { window.location.hash = '#/homeroom'; });
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'homeroom');
+
+    // The trail represents recent transitions plus the current context when
+    // available. Immediately after two navigations it must already expose at
+    // least two useful steps and continue growing up to five.
+    await expect.poll(async () => Number(await page.locator('.bqa-root').getAttribute('data-trail-count') || 0)).toBeGreaterThanOrEqual(2);
+    await page.locator('.bqa-session-trail').click();
+    const trail = page.locator('.bqa-trail-popover');
+    await expect(trail).toBeVisible();
+    expect(await trail.locator('button').count()).toBeGreaterThanOrEqual(2);
+
+    const appsStep = trail.locator('button').filter({ hasText: 'Ứng dụng' }).first();
+    await expect(appsStep).toBeVisible();
+    await appsStep.click();
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'apps');
+  });
+
   test('pinned panel reflows content instead of covering it', async ({ page }) => {
     await page.goto('/#/apps');
     await expect(page.locator('.bqa-root')).toBeVisible();

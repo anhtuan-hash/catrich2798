@@ -54,10 +54,20 @@ export function AppWindowCard({ item, language, currentUser, editMode, config, g
     <article
       className={`flat-app-window-card flat-app-window-drawer ${item.isHiddenFolder ? 'hidden-app-folder-card' : ''} ${locked ? 'is-locked' : ''} ${editMode ? 'is-launcher-editing' : ''} ${hidden ? 'is-launcher-hidden' : ''}`}
       style={{ '--app-accent': profile.accent, '--app-soft': profile.soft, '--app-ink': profile.ink }}
-      draggable={editMode}
-      onDragStart={(event) => onDragStart?.(event, itemId)}
+      draggable={!locked}
+      onDragStart={(event) => {
+        if (editMode) {
+          onDragStart?.(event, itemId);
+          return;
+        }
+        const quickAccessId = item.route ? `route:${item.route}` : `tool:${item.slug}`;
+        event.dataTransfer.effectAllowed = 'copy';
+        event.dataTransfer.setData('application/x-brian-app-id', quickAccessId);
+        event.dataTransfer.setData('application/x-brian-quick-access-item', quickAccessId);
+        event.dataTransfer.setData('text/plain', quickAccessId);
+      }}
       onDragOver={(event) => { if (editMode) event.preventDefault(); }}
-      onDrop={(event) => onDrop?.(event, itemId)}
+      onDrop={(event) => { if (editMode) onDrop?.(event, itemId); }}
       data-launcher-item={itemId}
     >
       {editMode && <div className="launcher-drag-handle" title={language === 'vi' ? 'Kéo để sắp xếp' : 'Drag to reorder'}>⋮⋮</div>}

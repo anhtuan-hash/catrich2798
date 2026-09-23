@@ -73,10 +73,20 @@ export default function AppListRow({
     <article
       className={`editorial-app-card ${item.shared ? 'is-shared' : ''} ${locked ? 'is-locked' : ''} ${hidden ? 'is-hidden' : ''} ${editMode ? 'is-editing' : ''}`}
       style={{ '--app-accent': profile.accent, '--app-soft': profile.soft, '--app-ink': profile.ink }}
-      draggable={editMode}
-      onDragStart={(event) => onDragStart?.(event, itemId)}
+      draggable={!locked}
+      onDragStart={(event) => {
+        if (editMode) {
+          onDragStart?.(event, itemId);
+          return;
+        }
+        const quickAccessId = item.route ? `route:${item.route}` : `tool:${item.slug}`;
+        event.dataTransfer.effectAllowed = 'copy';
+        event.dataTransfer.setData('application/x-brian-app-id', quickAccessId);
+        event.dataTransfer.setData('application/x-brian-quick-access-item', quickAccessId);
+        event.dataTransfer.setData('text/plain', quickAccessId);
+      }}
       onDragOver={(event) => { if (editMode) event.preventDefault(); }}
-      onDrop={(event) => onDrop?.(event, itemId)}
+      onDrop={(event) => { if (editMode) onDrop?.(event, itemId); }}
       data-launcher-item={itemId}
       data-app-pinned={pinned ? 'true' : 'false'}
       data-app-nav={inNav ? 'true' : 'false'}

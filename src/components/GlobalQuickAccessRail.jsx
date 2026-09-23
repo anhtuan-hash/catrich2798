@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import {
   AppWindow,
   Bell,
+  Bookmark,
   BookOpenCheck,
   Boxes,
   CalendarDays,
@@ -925,6 +926,103 @@ function keyboardLetterForItem(item, index = 0) {
   return pool[index % pool.length];
 }
 
+const QUICK_ACCESS_BOOKMARK_MAX = 10;
+const QUICK_ACCESS_TRAIL_MAX = 5;
+
+function quickAccessBookmarkStorageKey(user) {
+  return `bes-quick-access-bookmarks-v6:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessBookmarks(user) {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = JSON.parse(window.localStorage?.getItem(quickAccessBookmarkStorageKey(user)) || '{}');
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+    return Object.fromEntries(
+      Object.entries(raw)
+        .filter(([itemId, value]) => itemId && value && typeof value === 'object' && typeof value.target === 'string')
+        .slice(-QUICK_ACCESS_BOOKMARK_MAX),
+    );
+  } catch {
+    return {};
+  }
+}
+
+function saveQuickAccessBookmarks(user, bookmarks) {
+  if (typeof window === 'undefined') return;
+  try {
+    const safe = Object.fromEntries(
+      Object.entries(bookmarks && typeof bookmarks === 'object' ? bookmarks : {})
+        .filter(([itemId, value]) => itemId && value && typeof value === 'object' && typeof value.target === 'string')
+        .slice(-QUICK_ACCESS_BOOKMARK_MAX),
+    );
+    window.localStorage?.setItem(quickAccessBookmarkStorageKey(user), JSON.stringify(safe));
+  } catch {
+    // App State Bookmarks are account-scoped device state.
+  }
+}
+
+function quickAccessDoubleClickStorageKey(user) {
+  return `bes-quick-access-double-click-v6:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessDoubleClickActions(user) {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = JSON.parse(window.localStorage?.getItem(quickAccessDoubleClickStorageKey(user)) || '{}');
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+    return Object.fromEntries(
+      Object.entries(raw)
+        .filter(([itemId, actionId]) => itemId && typeof actionId === 'string' && actionId.trim())
+        .slice(0, 40),
+    );
+  } catch {
+    return {};
+  }
+}
+
+function saveQuickAccessDoubleClickActions(user, actions) {
+  if (typeof window === 'undefined') return;
+  try {
+    const safe = Object.fromEntries(
+      Object.entries(actions && typeof actions === 'object' ? actions : {})
+        .filter(([itemId, actionId]) => itemId && typeof actionId === 'string' && actionId.trim())
+        .slice(0, 40),
+    );
+    window.localStorage?.setItem(quickAccessDoubleClickStorageKey(user), JSON.stringify(safe));
+  } catch {
+    // Double-click actions are personal device preferences.
+  }
+}
+
+function quickAccessTrailStorageKey(user) {
+  return `bes-quick-access-trail-v6:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessTrail(user) {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = JSON.parse(window.sessionStorage?.getItem(quickAccessTrailStorageKey(user)) || '[]');
+    return (Array.isArray(raw) ? raw : [])
+      .filter((entry) => entry && typeof entry.itemId === 'string' && typeof entry.target === 'string')
+      .slice(0, QUICK_ACCESS_TRAIL_MAX);
+  } catch {
+    return [];
+  }
+}
+
+function saveQuickAccessTrail(user, trail) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.sessionStorage?.setItem(
+      quickAccessTrailStorageKey(user),
+      JSON.stringify((Array.isArray(trail) ? trail : []).slice(0, QUICK_ACCESS_TRAIL_MAX)),
+    );
+  } catch {
+    // Visual Session Trail intentionally lasts only for the browser session.
+  }
+}
+
 function quickAccessClassroomModeStorageKey(user) {
   return `bes-quick-access-classroom-mode:${quickAccessHistoryUserKey(user)}`;
 }
@@ -1129,6 +1227,11 @@ export default function GlobalQuickAccessRail({
   const [activeActionsItemId, setActiveActionsItemId] = useState('');
   const [activeActionsTop, setActiveActionsTop] = useState(118);
   const [handoffTargetId, setHandoffTargetId] = useState('');
+  const [appBookmarks, setAppBookmarks] = useState(() => loadQuickAccessBookmarks(currentUser));
+  const [doubleClickActions, setDoubleClickActions] = useState(() => loadQuickAccessDoubleClickActions(currentUser));
+  const [commandDropActive, setCommandDropActive] = useState(false);
+  const [sessionTrail, setSessionTrail] = useState(() => loadQuickAccessTrail(currentUser));
+  const [trailOpen, setTrailOpen] = useState(false);
   const [timeTick, setTimeTick] = useState(() => Date.now());
   const [backStack, setBackStack] = useState(() => loadQuickAccessHistory(currentUser));
   const [backStackOpen, setBackStackOpen] = useState(false);
@@ -1173,6 +1276,10 @@ export default function GlobalQuickAccessRail({
   const shelfFilesRef = useRef(new Map());
   const activeActionsTimerRef = useRef(0);
   const handoffPacketRef = useRef(null);
+  const railClickTimerRef = useRef(0);
+  const stateProvidersRef = useRef(new Map());
+  const restoreBookmarkRef = useRef(null);
+  const trailRouteRef = useRef(null);
 
   const catalog = useMemo(() => {
     const byId = new Map();
@@ -1653,8 +1760,59 @@ export default function GlobalQuickAccessRail({
     setScreenGuard(loadQuickAccessScreenGuard(currentUser));
     setCompactReadingMode(loadQuickAccessReadingMode(currentUser));
     setUsageInsights(loadQuickAccessUsage(currentUser));
+    setAppBookmarks(loadQuickAccessBookmarks(currentUser));
+    setDoubleClickActions(loadQuickAccessDoubleClickActions(currentUser));
+    setSessionTrail(loadQuickAccessTrail(currentUser));
+    setTrailOpen(false);
+    setCommandDropActive(false);
     setUndoStack([]);
     shelfFilesRef.current.clear();
+    stateProvidersRef.current.clear();
+  }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
+
+  useLayoutEffect(() => {
+    if (typeof window === 'undefined' || !catalog.length || currentRoute === 'home') return;
+    const item = catalog.find((candidate) => activeItem(candidate, currentRoute, selectedTool));
+    if (!item) return;
+    const entry = {
+      itemId: item.id,
+      target: String(window.location.hash || item.target || ''),
+      label: labelFor(item, language),
+      at: Date.now(),
+    };
+    const previousRouteEntry = trailRouteRef.current;
+    trailRouteRef.current = entry;
+    setSessionTrail((current) => {
+      const previous = Array.isArray(current) ? current : [];
+      const seed = [entry, previousRouteEntry, ...previous].filter(Boolean);
+      const next = seed
+        .filter((candidate, index, all) => all.findIndex((value) => value.itemId === candidate.itemId && value.target === candidate.target) === index)
+        .slice(0, QUICK_ACCESS_TRAIL_MAX);
+      saveQuickAccessTrail(currentUser, next);
+      return next;
+    });
+  }, [currentRoute, selectedTool?.slug, allowedKey, language, currentUser?.id, currentUser?.authId, currentUser?.email]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const previousApi = window.BrianQuickAccessState;
+    window.BrianQuickAccessState = {
+      register: (itemId, provider = {}) => {
+        const id = String(itemId || '').trim();
+        if (!id || !provider || typeof provider !== 'object') return () => {};
+        stateProvidersRef.current.set(id, provider);
+        return () => {
+          if (stateProvidersRef.current.get(id) === provider) stateProvidersRef.current.delete(id);
+        };
+      },
+      bookmark: (itemId) => window.dispatchEvent(new CustomEvent('bes-quick-access-bookmark-save', { detail: { itemId } })),
+      restore: (itemId) => restoreBookmarkRef.current?.(String(itemId || ''), null) || false,
+      list: () => loadQuickAccessBookmarks(currentUser),
+    };
+    return () => {
+      if (previousApi) window.BrianQuickAccessState = previousApi;
+      else delete window.BrianQuickAccessState;
+    };
   }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
 
   useEffect(() => {
@@ -1771,6 +1929,23 @@ export default function GlobalQuickAccessRail({
       }
       if (!previousTarget || previousTarget === nextTarget || previousTarget === '#/home') return;
 
+      const previousItem = catalog.find((candidate) => String(candidate.target || '') === previousTarget);
+      if (previousItem) {
+        const trailEntry = {
+          itemId: previousItem.id,
+          target: previousTarget,
+          label: labelFor(previousItem, language),
+          at: Date.now(),
+        };
+        setSessionTrail((current) => {
+          const previous = Array.isArray(current) ? current : [];
+          const next = [trailEntry, ...previous.filter((candidate) => candidate.itemId !== trailEntry.itemId || candidate.target !== trailEntry.target)]
+            .slice(0, QUICK_ACCESS_TRAIL_MAX);
+          saveQuickAccessTrail(currentUser, next);
+          return next;
+        });
+      }
+
       const entry = {
         target: previousTarget,
         label: navigationLabelForTarget(previousTarget, catalog, language),
@@ -1822,6 +1997,47 @@ export default function GlobalQuickAccessRail({
     };
   }, [hoverDelay, customizing, pinned, openRail]);
 
+  const saveCurrentAppBookmark = useCallback((requestedItemId = '') => {
+    if (typeof window === 'undefined') return false;
+    const item = requestedItemId
+      ? catalog.find((candidate) => candidate.id === requestedItemId)
+      : catalog.find((candidate) => activeItem(candidate, currentRoute, selectedTool));
+    if (!item) return false;
+    const isCurrentItem = activeItem(item, currentRoute, selectedTool);
+    const provider = stateProvidersRef.current.get(item.id);
+    let appState = null;
+    if (isCurrentItem) {
+      try {
+        appState = typeof provider?.capture === 'function' ? provider.capture() : null;
+      } catch {
+        appState = null;
+      }
+    }
+    const bookmark = {
+      itemId: item.id,
+      target: String(isCurrentItem ? (window.location.hash || item.target || '') : (item.target || '')),
+      label: labelFor(item, language),
+      scrollY: isCurrentItem ? Math.max(0, Math.round(window.scrollY || document.documentElement?.scrollTop || 0)) : 0,
+      state: cloneQuickAccessState(appState, null),
+      savedAt: Date.now(),
+    };
+    setAppBookmarks((current) => {
+      const next = { ...(current || {}), [item.id]: bookmark };
+      const entries = Object.entries(next).sort((a, b) => Number(b[1]?.savedAt || 0) - Number(a[1]?.savedAt || 0)).slice(0, QUICK_ACCESS_BOOKMARK_MAX);
+      const safe = Object.fromEntries(entries);
+      saveQuickAccessBookmarks(currentUser, safe);
+      return safe;
+    });
+    return true;
+  }, [catalog, currentRoute, selectedTool?.slug, language, currentUser?.id, currentUser?.authId, currentUser?.email]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const onSave = (event) => saveCurrentAppBookmark(String(event?.detail?.itemId || ''));
+    window.addEventListener('bes-quick-access-bookmark-save', onSave);
+    return () => window.removeEventListener('bes-quick-access-bookmark-save', onSave);
+  }, [saveCurrentAppBookmark]);
+
   useEffect(() => {
     if (!customizing) return undefined;
     const onKeyDown = (event) => {
@@ -1858,7 +2074,11 @@ export default function GlobalQuickAccessRail({
     const onKeyDown = (event) => {
       const tag = String(event.target?.tagName || '').toLowerCase();
       const editable = event.target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag);
-      setPrecisionDrag(Boolean(event.altKey));
+      const altPressed = event.key === 'Alt'
+        || event.code === 'AltLeft'
+        || event.code === 'AltRight'
+        || Boolean(event.altKey);
+      if (altPressed) setPrecisionDrag(true);
       if (editable) return;
 
       if (event.altKey && !event.ctrlKey && !event.metaKey && String(event.key || '').toLowerCase() === 'k') {
@@ -1889,10 +2109,14 @@ export default function GlobalQuickAccessRail({
     const onBlur = () => setPrecisionDrag(false);
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
+    document.addEventListener('keydown', onKeyDown, true);
+    document.addEventListener('keyup', onKeyUp, true);
     window.addEventListener('blur', onBlur);
     return () => {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
+      document.removeEventListener('keydown', onKeyDown, true);
+      document.removeEventListener('keyup', onKeyUp, true);
       window.removeEventListener('blur', onBlur);
     };
   }, [keyboardLayer, openRail]);
@@ -1907,6 +2131,12 @@ export default function GlobalQuickAccessRail({
       const tag = String(event.target?.tagName || '').toLowerCase();
       const editable = event.target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag);
       if (event.repeat && !(event.altKey && event.code === 'Backquote')) return;
+
+      if ((event.metaKey || event.ctrlKey) && event.shiftKey && !event.altKey && String(event.key || '').toLowerCase() === 's') {
+        event.preventDefault();
+        saveCurrentAppBookmark('');
+        return;
+      }
 
       if ((event.metaKey || event.ctrlKey) && !event.altKey && String(event.key || '').toLowerCase() === 'k') {
         event.preventDefault();
@@ -1963,7 +2193,7 @@ export default function GlobalQuickAccessRail({
       window.removeEventListener('keydown', onShortcut);
       window.removeEventListener('keyup', onShortcutUp);
     };
-  }, [pinned, customizing, expanded, collapseRail, openRail, focusCommandPaletteInput, appSwitcherIndex]);
+  }, [pinned, customizing, expanded, collapseRail, openRail, focusCommandPaletteInput, appSwitcherIndex, saveCurrentAppBookmark]);
 
   useEffect(() => {
     if (!commandPaletteOpen || typeof window === 'undefined') return undefined;
@@ -2154,6 +2384,30 @@ export default function GlobalQuickAccessRail({
     : initialRailVisibleItems;
   const railVisibleIds = new Set(railVisibleItems.map((item) => item.id));
   const railOverflowItems = workspaceItems.filter((item) => !railVisibleIds.has(item.id));
+  const currentTrailItem = presentationCatalog.find((item) => activeItem(item, currentRoute, selectedTool)) || null;
+  const currentTrailEntry = currentTrailItem
+    ? {
+      itemId: currentTrailItem.id,
+      target: String(typeof window !== 'undefined' ? (window.location.hash || currentTrailItem.target || '') : (currentTrailItem.target || '')),
+      label: labelFor(currentTrailItem, language),
+      at: Date.now(),
+    }
+    : null;
+  const backStackTrailEntries = backStack
+    .map((entry) => {
+      const item = presentationCatalog.find((candidate) => String(candidate.target || '') === String(entry.target || ''));
+      return item ? {
+        itemId: item.id,
+        target: entry.target,
+        label: labelFor(item, language),
+        at: Number(entry.at) || Date.now(),
+      } : null;
+    })
+    .filter(Boolean);
+  const visualSessionTrail = [currentTrailEntry, ...sessionTrail, ...backStackTrailEntries]
+    .filter(Boolean)
+    .filter((entry, index, all) => all.findIndex((candidate) => candidate.itemId === entry.itemId && candidate.target === entry.target) === index)
+    .slice(0, QUICK_ACCESS_TRAIL_MAX);
 
   const recentItems = (config.recent || [])
     .map((id) => presentationCatalog.find((item) => item.id === id))
@@ -2290,6 +2544,20 @@ export default function GlobalQuickAccessRail({
       .slice(0, 8);
   })();
   const notificationCount = classroomMode ? 0 : notificationItems.length;
+
+  const attentionLevelForItem = (item) => {
+    if (!item || classroomMode || (screenGuard && privateItemIds.includes(item.id))) return 0;
+    const health = appHealth[item.id];
+    if (health?.state === 'error') return 3;
+    const activity = liveActivities.find((entry) => entry.itemId === item.id);
+    if (activity?.state === 'error') return 3;
+    const related = notificationItems.filter((entry) => entry.itemId === item.id);
+    if (related.some((entry) => entry.tone === 'danger')) return 3;
+    const nonBadgeWarning = related.some((entry) => entry.tone === 'warning' && entry.source !== 'badge');
+    if (health?.state === 'unconfigured' || nonBadgeWarning || (badges[item.id] && badges[item.id] !== 'dot')) return 2;
+    if (health?.state === 'syncing' || badges[item.id] === 'dot' || related.length) return 1;
+    return 0;
+  };
 
   const capsuleSnapshotFor = (item) => {
     if (!item) return null;
@@ -3020,6 +3288,152 @@ export default function GlobalQuickAccessRail({
     activateItem(item, event.currentTarget);
   };
 
+  const bookmarkForItem = (item) => (item?.id ? appBookmarks[item.id] || null : null);
+
+  const restoreAppStateBookmark = (itemOrId, sourceEl = null) => {
+    const itemId = typeof itemOrId === 'string' ? itemOrId : itemOrId?.id;
+    const bookmark = itemId ? appBookmarks[itemId] : null;
+    const item = presentationCatalog.find((candidate) => candidate.id === itemId);
+    if (!bookmark || !item) return false;
+    const restoreState = () => {
+      const provider = stateProvidersRef.current.get(item.id);
+      try {
+        if (typeof provider?.restore === 'function') provider.restore(cloneQuickAccessState(bookmark.state, bookmark.state));
+      } catch {
+        // App-owned state restore is best effort.
+      }
+      window.requestAnimationFrame(() => {
+        try { window.scrollTo({ top: Math.max(0, Number(bookmark.scrollY) || 0), behavior: 'auto' }); } catch { /* optional */ }
+      });
+      window.dispatchEvent(new CustomEvent('bes-quick-access-bookmark-restored', { detail: bookmark }));
+    };
+    const currentTarget = String(window.location.hash || '');
+    if (bookmark.target && bookmark.target !== currentTarget) {
+      suppressHistoryRef.current = true;
+      launchRoute({
+        target: bookmark.target,
+        label: labelFor(item, language),
+        color: item.accent || '#2b76c7',
+        sourceEl,
+        meta: { source: 'quick-access-bookmark' },
+      });
+      window.setTimeout(restoreState, 420);
+    } else {
+      restoreState();
+    }
+    setActionItemId('');
+    setTrailOpen(false);
+    if (!pinned) collapseRail(false);
+    return true;
+  };
+
+  const removeAppStateBookmark = (itemId) => {
+    setAppBookmarks((current) => {
+      const next = { ...(current || {}) };
+      delete next[itemId];
+      saveQuickAccessBookmarks(currentUser, next);
+      return next;
+    });
+  };
+
+  const setDoubleClickAction = (itemId, actionId) => {
+    setDoubleClickActions((current) => {
+      const next = { ...(current || {}) };
+      const value = String(actionId || '').trim();
+      if (value) next[itemId] = value;
+      else delete next[itemId];
+      saveQuickAccessDoubleClickActions(currentUser, next);
+      return next;
+    });
+  };
+
+  const doubleClickDescriptorFor = (item) => {
+    const configuredId = String(doubleClickActions[item?.id] || '').trim();
+    if (!configuredId || !item) return null;
+    return quickActionDescriptors(item, language).find((descriptor) => descriptor.id === configuredId) || null;
+  };
+
+  const handleRailClick = (item, event) => {
+    const descriptor = doubleClickDescriptorFor(item);
+    if (!descriptor) {
+      activateItem(item, event.currentTarget);
+      return;
+    }
+    window.clearTimeout(railClickTimerRef.current);
+    const sourceEl = event.currentTarget;
+    railClickTimerRef.current = window.setTimeout(() => activateItem(item, sourceEl), 225);
+  };
+
+  const handleRailDoubleClick = (item, event) => {
+    const descriptor = doubleClickDescriptorFor(item);
+    if (!descriptor) return;
+    event.preventDefault();
+    event.stopPropagation();
+    window.clearTimeout(railClickTimerRef.current);
+    runQuickAction(item, descriptor, event.currentTarget);
+  };
+
+  const resolveDroppedShortcut = (rawValue = '', uriValue = '') => {
+    const raw = String(rawValue || '').trim();
+    const uri = String(uriValue || '').trim();
+    const candidates = [raw, uri]
+      .filter(Boolean)
+      .map((value) => {
+        try {
+          if (/^https?:\/\//i.test(value)) return new URL(value).hash || value;
+        } catch {
+          return value;
+        }
+        return value;
+      });
+    return presentationCatalog.find((item) => candidates.some((value) => {
+      const normalized = String(value || '').trim().toLowerCase();
+      if (!normalized) return false;
+      return [
+        item.id,
+        item.target,
+        item.route,
+        item.tool,
+        item.app?.slug,
+        item.app?.route,
+        labelFor(item, language),
+      ].some((candidate) => String(candidate || '').trim().toLowerCase() === normalized);
+    })) || null;
+  };
+
+  const handleCommandDrop = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setCommandDropActive(false);
+    const transfer = event.dataTransfer;
+    const quickId = String(transfer?.getData('application/x-brian-quick-access-item') || '').trim();
+    const appId = String(transfer?.getData('application/x-brian-app-id') || '').trim();
+    const raw = quickId || appId || String(transfer?.getData('text/plain') || '').trim();
+    const uri = String(transfer?.getData('text/uri-list') || '').trim();
+    const item = resolveDroppedShortcut(raw, uri);
+    if (!item || config.items.includes(item.id) || config.items.length >= QUICK_ACCESS_MAX_ITEMS) return;
+    persistWithUndo(
+      { ...config, items: [...config.items, item.id] },
+      language === 'vi' ? 'Thêm app bằng Drop Zone' : 'Add app from Drop Zone',
+    );
+  };
+
+  restoreBookmarkRef.current = restoreAppStateBookmark;
+
+  const navigateSessionTrail = (entry, sourceEl = null) => {
+    if (!entry?.target) return;
+    const item = presentationCatalog.find((candidate) => candidate.id === entry.itemId);
+    suppressHistoryRef.current = true;
+    launchRoute({
+      target: entry.target,
+      label: item ? labelFor(item, language) : '↶',
+      color: item?.accent || '#2e75b6',
+      sourceEl,
+      meta: { source: 'quick-access-session-trail' },
+    });
+    setTrailOpen(false);
+  };
+
   selectedItemsRef.current = workspaceItems;
   switcherItemsRef.current = switcherItems;
   activateItemRef.current = activateItem;
@@ -3359,7 +3773,7 @@ export default function GlobalQuickAccessRail({
 
       <div
         ref={rootRef}
-        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${focusMode ? 'is-focus' : ''} ${customizing ? 'is-customizing' : ''} ${notificationCenterOpen ? 'is-alerts-open' : ''} ${workflowCenterOpen ? 'is-workflow-open' : ''} ${classroomMode ? 'is-classroom-mode' : ''} ${overflowOpen ? 'is-overflow-open' : ''} ${workspaceSwitcherOpen ? 'is-workspace-switcher-open' : ''}`}
+        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${focusMode ? 'is-focus' : ''} ${customizing ? 'is-customizing' : ''} ${notificationCenterOpen ? 'is-alerts-open' : ''} ${workflowCenterOpen ? 'is-workflow-open' : ''} ${classroomMode ? 'is-classroom-mode' : ''} ${overflowOpen ? 'is-overflow-open' : ''} ${workspaceSwitcherOpen ? 'is-workspace-switcher-open' : ''} ${trailOpen ? 'is-trail-open' : ''} ${commandDropActive ? 'is-command-drop-active' : ''}`}
         data-quick-access="true"
         data-sidebar-mode={sidebarMode}
         data-workspace={effectiveWorkspace}
@@ -3378,6 +3792,9 @@ export default function GlobalQuickAccessRail({
         data-reading-mode={compactReadingMode ? 'compact' : 'normal'}
         data-rail-capacity={railCapacity}
         data-overflow-count={railOverflowItems.length}
+        data-bookmark-count={Object.keys(appBookmarks).length}
+        data-trail-count={visualSessionTrail.length}
+        data-command-drop={commandDropActive ? 'active' : 'idle'}
         data-precision-drag={precisionDrag ? 'true' : 'false'}
         data-keyboard-layer={keyboardLayer ? 'true' : 'false'}
         data-context-key={routeContextKey}
@@ -3414,6 +3831,22 @@ export default function GlobalQuickAccessRail({
           onPointerEnter={openRail}
           onMouseEnter={openRail}
           onFocusCapture={openRail}
+          onDragEnter={(event) => {
+            const types = Array.from(event.dataTransfer?.types || []);
+            if (event.altKey || types.includes('application/x-brian-app-id') || types.includes('application/x-brian-quick-access-item')) {
+              event.preventDefault();
+              setCommandDropActive(true);
+              openRail();
+            }
+          }}
+          onDragOver={(event) => {
+            const types = Array.from(event.dataTransfer?.types || []);
+            if (event.altKey || types.includes('application/x-brian-app-id') || types.includes('application/x-brian-quick-access-item')) {
+              event.preventDefault();
+              event.dataTransfer.dropEffect = 'copy';
+              setCommandDropActive(true);
+            }
+          }}
         >
           <button
             type="button"
@@ -3466,6 +3899,27 @@ export default function GlobalQuickAccessRail({
             </button>
           ) : null}
 
+          {!classroomMode && visualSessionTrail.length > 1 ? (
+            <button
+              type="button"
+              className={`bqa-session-trail ${trailOpen ? 'is-active' : ''}`}
+              title={language === 'vi' ? 'Dấu vết phiên làm việc' : 'Session trail'}
+              aria-label={language === 'vi' ? 'Mở dấu vết phiên làm việc' : 'Open session trail'}
+              aria-expanded={trailOpen}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                setOverflowOpen(false);
+                setWorkspaceSwitcherOpen(false);
+                setTrailOpen((value) => !value);
+              }}
+            >
+              <span className="bqa-trail-line" aria-hidden="true">
+                {visualSessionTrail.slice(0, QUICK_ACCESS_TRAIL_MAX).map((entry, index) => <i key={`${entry.itemId}-${entry.at}-${index}`} />)}
+              </span>
+            </button>
+          ) : null}
+
           <div
             className="bqa-rail-items"
             data-adaptive-dock="true"
@@ -3475,6 +3929,9 @@ export default function GlobalQuickAccessRail({
               const Icon = item.icon || Boxes;
               const active = activeItem(item, currentRoute, selectedTool);
               const progress = progressForItem(item);
+              const attentionLevel = attentionLevelForItem(item);
+              const bookmarked = Boolean(bookmarkForItem(item));
+              const doubleClickDescriptor = doubleClickDescriptorFor(item);
               const dockDistance = dockHoverIndex < 0
                 ? (active ? 'active' : 'rest')
                 : String(Math.min(3, Math.abs(index - dockHoverIndex)));
@@ -3482,8 +3939,11 @@ export default function GlobalQuickAccessRail({
                 <button
                   type="button"
                   key={item.id}
-                  className={`bqa-rail-button ${active ? 'is-active' : ''} ${progress != null ? 'has-progress' : ''} ${handoffTargetId === item.id ? 'is-handoff-target' : ''}`}
+                  className={`bqa-rail-button ${active ? 'is-active' : ''} ${progress != null ? 'has-progress' : ''} ${handoffTargetId === item.id ? 'is-handoff-target' : ''} ${attentionLevel ? `has-attention attention-${attentionLevel}` : ''} ${bookmarked ? 'has-bookmark' : ''} ${doubleClickDescriptor ? 'has-double-click' : ''}`}
                   style={{ '--bqa-accent': item.accent, '--bqa-app-progress': progress ?? 0 }}
+                  data-attention-level={attentionLevel}
+                  data-bookmarked={bookmarked ? 'true' : 'false'}
+                  data-double-click-action={doubleClickDescriptor?.id || ''}
                   title={displayLabelFor(item)}
                   aria-label={displayLabelFor(item)}
                   aria-current={active ? 'page' : undefined}
@@ -3523,10 +3983,13 @@ export default function GlobalQuickAccessRail({
                     setPeekItemId('');
                     setActionItemId(item.id);
                   }}
-                  onClick={(event) => activateItem(item, event.currentTarget)}
+                  onClick={(event) => handleRailClick(item, event)}
+                  onDoubleClick={(event) => handleRailDoubleClick(item, event)}
                 >
+                  {attentionLevel ? <span className={`bqa-attention-halo level-${attentionLevel}`} aria-hidden="true" /> : null}
                   {progress != null ? <span className="bqa-progress-ring" aria-label={`${Math.round(progress)}%`} /> : null}
                   <Icon size={20} strokeWidth={2} aria-hidden="true" />
+                  {bookmarked ? <Bookmark className="bqa-bookmark-marker" size={9} fill="currentColor" aria-label={language === 'vi' ? 'Đã lưu mốc' : 'Bookmarked'} /> : null}
                   {appHealth[item.id] ? (
                     <span className={`bqa-health-dot is-${appHealth[item.id].state}`} title={appHealth[item.id].message || appHealth[item.id].state} aria-label={appHealth[item.id].message || appHealth[item.id].state} />
                   ) : null}
@@ -3559,6 +4022,30 @@ export default function GlobalQuickAccessRail({
               <span>{railOverflowItems.length}</span>
             </button>
           ) : null}
+
+          <div
+            className={`bqa-command-drop-zone ${precisionDrag ? 'is-precision-visible' : ''} ${commandDropActive ? 'is-active' : ''}`}
+            role="button"
+            tabIndex={precisionDrag || commandDropActive ? 0 : -1}
+            aria-hidden={!precisionDrag && !commandDropActive}
+            aria-label={language === 'vi' ? 'Thả ứng dụng để thêm vào thanh bên' : 'Drop app to add to sidebar'}
+            onDragEnter={(event) => {
+              event.preventDefault();
+              setCommandDropActive(true);
+            }}
+            onDragOver={(event) => {
+              event.preventDefault();
+              event.dataTransfer.dropEffect = 'copy';
+              setCommandDropActive(true);
+            }}
+            onDragLeave={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) setCommandDropActive(false);
+            }}
+            onDrop={handleCommandDrop}
+          >
+            <Plus size={15} aria-hidden="true" />
+            <span>{language === 'vi' ? 'Thả app' : 'Drop app'}</span>
+          </div>
 
           {!classroomMode ? (
             <button
@@ -3670,6 +4157,28 @@ export default function GlobalQuickAccessRail({
             <Settings size={19} aria-hidden="true" />
           </button>
         </aside>
+
+        {trailOpen && visualSessionTrail.length ? (
+          <section className="bqa-trail-popover" aria-label={language === 'vi' ? 'Dấu vết phiên làm việc' : 'Session trail'}>
+            <header>
+              <span>{language === 'vi' ? 'Phiên hiện tại' : 'Current session'}</span>
+              <small>{visualSessionTrail.length}</small>
+            </header>
+            <div>
+              {visualSessionTrail.map((entry, index) => {
+                const item = presentationCatalog.find((candidate) => candidate.id === entry.itemId);
+                const Icon = item?.icon || Clock3;
+                return (
+                  <button type="button" key={`${entry.itemId}-${entry.at}-${index}`} onClick={(event) => navigateSessionTrail(entry, event.currentTarget)}>
+                    <span className="bqa-trail-step"><i>{index + 1}</i><Icon size={14} aria-hidden="true" /></span>
+                    <span><b>{item ? displayLabelFor(item) : entry.label}</b><small>{new Date(entry.at).toLocaleTimeString(language === 'vi' ? 'vi-VN' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</small></span>
+                    <ChevronRight size={12} aria-hidden="true" />
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
 
         {workspaceSwitcherOpen ? (
           <section className="bqa-workspace-popover" aria-label={language === 'vi' ? 'Không gian làm việc' : 'Workspaces'}>
@@ -4529,6 +5038,31 @@ export default function GlobalQuickAccessRail({
                 <ChevronRight size={14} aria-hidden="true" />
               </button>
             ))}
+            <button type="button" role="menuitem" onClick={() => {
+              saveCurrentAppBookmark(actionItem.id);
+              setActionItemId('');
+            }}>
+              <Bookmark size={14} aria-hidden="true" />
+              <span>{bookmarkForItem(actionItem) ? (language === 'vi' ? 'Cập nhật mốc hiện tại' : 'Update current bookmark') : (language === 'vi' ? 'Lưu mốc hiện tại' : 'Save current bookmark')}</span>
+              <ChevronRight size={14} aria-hidden="true" />
+            </button>
+            {bookmarkForItem(actionItem) ? (
+              <button type="button" role="menuitem" onClick={(event) => restoreAppStateBookmark(actionItem, event.currentTarget)}>
+                <Clock3 size={14} aria-hidden="true" />
+                <span>{language === 'vi' ? 'Quay lại mốc đã lưu' : 'Restore saved state'}</span>
+                <ChevronRight size={14} aria-hidden="true" />
+              </button>
+            ) : null}
+            {bookmarkForItem(actionItem) ? (
+              <button type="button" role="menuitem" onClick={() => {
+                removeAppStateBookmark(actionItem.id);
+                setActionItemId('');
+              }}>
+                <X size={14} aria-hidden="true" />
+                <span>{language === 'vi' ? 'Xóa mốc đã lưu' : 'Remove bookmark'}</span>
+                <ChevronRight size={14} aria-hidden="true" />
+              </button>
+            ) : null}
             <button type="button" role="menuitem" onClick={() => copyDeepLink(actionItem)}>
               <AppWindow size={14} aria-hidden="true" />
               <span>{language === 'vi' ? 'Sao chép liên kết đến đây' : 'Copy deep link'}</span>
@@ -4731,6 +5265,27 @@ export default function GlobalQuickAccessRail({
                     {language === 'vi' ? 'Quên ngữ cảnh đã nhớ' : 'Forget page contexts'}
                   </button>
                 ) : null}
+              </div>
+
+              <div className="bqa-double-click-control">
+                <header>
+                  <strong>{language === 'vi' ? 'Double-click Quick Action' : 'Double-click Quick Action'}</strong>
+                  <small>{language === 'vi' ? 'Đặt hành động riêng khi nhấp đúp icon; click đơn vẫn mở ứng dụng.' : 'Choose a double-click action; single click still opens the app.'}</small>
+                </header>
+                <div>
+                  {selectedItems.map((item) => {
+                    const actions = quickActionDescriptors(item, language);
+                    return (
+                      <label key={item.id}>
+                        <span>{labelFor(item, language)}</span>
+                        <select value={doubleClickActions[item.id] || ''} onChange={(event) => setDoubleClickAction(item.id, event.target.value)}>
+                          <option value="">{language === 'vi' ? 'Không dùng' : 'Disabled'}</option>
+                          {actions.map((descriptor) => <option key={descriptor.id} value={descriptor.id}>{descriptor.label}</option>)}
+                        </select>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="bqa-alias-control">
