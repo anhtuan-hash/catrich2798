@@ -910,6 +910,7 @@ export default function GlobalQuickAccessRail({
   useEffect(() => {
     setActiveWorkflowRun(loadQuickAccessWorkflowRun(currentUser));
     setClassroomMode(loadQuickAccessClassroomMode(currentUser));
+    setDeviceSpatial(loadQuickAccessSpatialMemory(currentUser));
     setWorkflowCenterOpen(false);
     setWorkflowDraftName('');
     setWorkflowDraftIds([]);
@@ -941,12 +942,24 @@ export default function GlobalQuickAccessRail({
     };
   }, []);
 
+  useEffect(() => {
+    if (!spatialMemoryEnabled || !expanded || typeof window === 'undefined') return undefined;
+    const key = spatialContextKey(currentRoute, selectedTool, workspace);
+    const top = Math.max(0, Number(deviceSpatial.scroll?.[key]) || 0);
+    const frame = window.requestAnimationFrame(() => {
+      const panel = panelRef.current;
+      if (panel && Math.abs(panel.scrollTop - top) > 1) panel.scrollTop = top;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [spatialMemoryEnabled, expanded, currentRoute, selectedTool?.slug, workspace]);
+
   useEffect(() => () => {
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
     window.clearTimeout(peekTimerRef.current);
     window.clearTimeout(capsuleTimerRef.current);
     window.clearTimeout(magneticTimerRef.current);
+    window.clearTimeout(spatialScrollTimerRef.current);
     window.cancelAnimationFrame(badgeFrameRef.current);
   }, []);
 
