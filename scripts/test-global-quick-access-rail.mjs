@@ -100,6 +100,10 @@ for (const token of [
   'appSwitcherIndex',
   'switcherItemsRef',
   'magneticStrength',
+  'dockHoverIndex',
+  'data-adaptive-dock="true"',
+  'data-dock-distance={dockDistance}',
+  'setDockHoverIndex',
   'event.code === \'Backquote\'',
   'data-size={railSize}',
   'data-motion-mode={motionMode}',
@@ -162,6 +166,11 @@ for (const token of [
   'Brian Quick Access V3.2 · workspaces + quick create + Command Search V2',
   'Brian Quick Access V3.3 · magnetic reveal + app switcher + personalization',
   'Brian Quick Access V3.3.1 · true mirrored right-side layout',
+  'Brian Quick Access V4.1 · Adaptive Dock',
+  '[data-adaptive-dock="true"]',
+  '[data-dock-distance="0"]',
+  '--bqa-dock-scale: 1.12',
+  '--bqa-dock-inward',
   'flex-direction: row-reverse',
   'transform-origin: 100% 30px',
   'bqa-peek-in-right',
@@ -213,4 +222,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access V3.3.1 uses true mirrored right-side geometry with inward panel motion, right-edge reveal, mirrored peek/actions and overlay-only right safe-area while preserving all V3.3 capabilities.');
+console.log('PASS: Quick Access V4.1 adds fine-pointer Adaptive Dock proximity motion while preserving V3.3.1 true mirror geometry, safe-area behavior, permissions, custom fonts and reduced-motion fallbacks.');
