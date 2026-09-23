@@ -595,6 +595,133 @@ function saveQuickAccessContextMemory(user, memory) {
   }
 }
 
+const QUICK_ACCESS_PARKING_MAX = 5;
+const QUICK_ACCESS_SNAPSHOT_MAX = 6;
+const QUICK_ACCESS_UNDO_MAX = 5;
+
+function quickAccessSectionFoldStorageKey(user) {
+  return `bes-quick-access-folds-v5:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessSectionFolds(user) {
+  const fallback = { recent: false, pinned: false, apps: false };
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const raw = JSON.parse(window.localStorage?.getItem(quickAccessSectionFoldStorageKey(user)) || '{}');
+    return {
+      recent: raw?.recent === true,
+      pinned: raw?.pinned === true,
+      apps: raw?.apps === true,
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+function saveQuickAccessSectionFolds(user, folds) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage?.setItem(quickAccessSectionFoldStorageKey(user), JSON.stringify({
+      recent: folds?.recent === true,
+      pinned: folds?.pinned === true,
+      apps: folds?.apps === true,
+    }));
+  } catch {
+    // Section folding is account-scoped device state.
+  }
+}
+
+function quickAccessContextLockStorageKey(user) {
+  return `bes-quick-access-context-lock-v5:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessContextLock(user) {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = JSON.parse(window.sessionStorage?.getItem(quickAccessContextLockStorageKey(user)) || 'null');
+    if (!raw?.locked || !QUICK_ACCESS_WORKSPACES.includes(String(raw.workspace || ''))) return null;
+    return {
+      locked: true,
+      workspace: String(raw.workspace),
+      route: String(raw.route || ''),
+      tool: String(raw.tool || ''),
+      at: Number(raw.at) || Date.now(),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function saveQuickAccessContextLock(user, lock) {
+  if (typeof window === 'undefined') return;
+  try {
+    if (!lock?.locked) window.sessionStorage?.removeItem(quickAccessContextLockStorageKey(user));
+    else window.sessionStorage?.setItem(quickAccessContextLockStorageKey(user), JSON.stringify(lock));
+  } catch {
+    // Context lock intentionally lasts only for the browser session.
+  }
+}
+
+function quickAccessParkingStorageKey(user) {
+  return `bes-quick-access-parking-v5:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessParking(user) {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = JSON.parse(window.sessionStorage?.getItem(quickAccessParkingStorageKey(user)) || '[]');
+    return (Array.isArray(raw) ? raw : [])
+      .filter((entry) => entry && typeof entry.itemId === 'string')
+      .slice(0, QUICK_ACCESS_PARKING_MAX);
+  } catch {
+    return [];
+  }
+}
+
+function saveQuickAccessParking(user, entries) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.sessionStorage?.setItem(
+      quickAccessParkingStorageKey(user),
+      JSON.stringify((Array.isArray(entries) ? entries : []).slice(0, QUICK_ACCESS_PARKING_MAX)),
+    );
+  } catch {
+    // Parking is session-scoped by design.
+  }
+}
+
+function quickAccessSnapshotStorageKey(user) {
+  return `bes-quick-access-snapshots-v5:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessSnapshots(user) {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = JSON.parse(window.localStorage?.getItem(quickAccessSnapshotStorageKey(user)) || '[]');
+    return (Array.isArray(raw) ? raw : [])
+      .filter((entry) => entry && typeof entry.id === 'string' && entry.config && typeof entry.config === 'object')
+      .slice(0, QUICK_ACCESS_SNAPSHOT_MAX);
+  } catch {
+    return [];
+  }
+}
+
+function saveQuickAccessSnapshots(user, entries) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage?.setItem(
+      quickAccessSnapshotStorageKey(user),
+      JSON.stringify((Array.isArray(entries) ? entries : []).slice(0, QUICK_ACCESS_SNAPSHOT_MAX)),
+    );
+  } catch {
+    // Snapshots are account-scoped local backups.
+  }
+}
+
+function cloneQuickAccessState(value, fallback = null) {
+  try { return JSON.parse(JSON.stringify(value)); } catch { return fallback; }
+}
+
 function quickAccessClassroomModeStorageKey(user) {
   return `bes-quick-access-classroom-mode:${quickAccessHistoryUserKey(user)}`;
 }
@@ -777,6 +904,13 @@ export default function GlobalQuickAccessRail({
   const [classroomMode, setClassroomMode] = useState(() => loadQuickAccessClassroomMode(currentUser));
   const [deviceSpatial, setDeviceSpatial] = useState(() => loadQuickAccessSpatialMemory(currentUser));
   const [routeWorkspaceMemory, setRouteWorkspaceMemory] = useState(() => loadQuickAccessContextMemory(currentUser));
+  const [sectionFolds, setSectionFolds] = useState(() => loadQuickAccessSectionFolds(currentUser));
+  const [contextLock, setContextLock] = useState(() => loadQuickAccessContextLock(currentUser));
+  const [parkedItems, setParkedItems] = useState(() => loadQuickAccessParking(currentUser));
+  const [sidebarSnapshots, setSidebarSnapshots] = useState(() => loadQuickAccessSnapshots(currentUser));
+  const [undoStack, setUndoStack] = useState([]);
+  const [undoOpen, setUndoOpen] = useState(false);
+  const [activeScrollSection, setActiveScrollSection] = useState('apps');
   const [timeTick, setTimeTick] = useState(() => Date.now());
   const [backStack, setBackStack] = useState(() => loadQuickAccessHistory(currentUser));
   const [backStackOpen, setBackStackOpen] = useState(false);
@@ -813,6 +947,7 @@ export default function GlobalQuickAccessRail({
   const rootRef = useRef(null);
   const railRef = useRef(null);
   const panelRef = useRef(null);
+  const panelScrollRef = useRef(null);
   const selectedItemsRef = useRef([]);
   const switcherItemsRef = useRef([]);
   const suppressHistoryRef = useRef(false);
@@ -989,7 +1124,7 @@ export default function GlobalQuickAccessRail({
     const key = spatialContextKey(currentRoute, selectedTool, workspace);
     const top = Math.max(0, Number(deviceSpatial.scroll?.[key]) || 0);
     const frame = window.requestAnimationFrame(() => {
-      const panel = panelRef.current;
+      const panel = panelScrollRef.current;
       if (panel && Math.abs(panel.scrollTop - top) > 1) panel.scrollTop = top;
     });
     return () => window.cancelAnimationFrame(frame);
@@ -1629,7 +1764,11 @@ export default function GlobalQuickAccessRail({
   const presentationCatalog = classroomMode
     ? catalog.filter((item) => classroomModeAllowsItem(item))
     : catalog;
-  const effectiveWorkspace = classroomMode && workspace === 'department' ? 'teaching' : workspace;
+  const lockedWorkspace = contextLock?.locked && QUICK_ACCESS_WORKSPACES.includes(contextLock.workspace)
+    ? contextLock.workspace
+    : '';
+  const workspaceSource = lockedWorkspace || workspace;
+  const effectiveWorkspace = classroomMode && workspaceSource === 'department' ? 'teaching' : workspaceSource;
 
   const selectedItems = config.items
     .map((id) => presentationCatalog.find((item) => item.id === id))
@@ -1687,6 +1826,16 @@ export default function GlobalQuickAccessRail({
     .filter((entry) => Boolean(entry.item))
     .slice(0, QUICK_ACCESS_RESUME_MAX);
   const primaryResume = resumableItems[0] || null;
+  const scrollSections = [
+    workflowCenterOpen ? { id: 'workflow', label: language === 'vi' ? 'Quy trình' : 'Workflow' } : null,
+    timeAwareItems.length ? { id: 'time', label: language === 'vi' ? 'Theo giờ' : 'Time aware' } : null,
+    primaryResume ? { id: 'resume', label: language === 'vi' ? 'Tiếp tục' : 'Resume' } : null,
+    recentItems.length ? { id: 'recent', label: language === 'vi' ? 'Vừa dùng' : 'Recent' } : null,
+    pinnedSmartItems.length ? { id: 'pinned', label: language === 'vi' ? 'Đã ghim' : 'Pinned' } : null,
+    primaryActivity ? { id: 'activity', label: language === 'vi' ? 'Hoạt động' : 'Activity' } : null,
+    parkedItems.length ? { id: 'parking', label: language === 'vi' ? 'Đang đỗ' : 'Parked' } : null,
+    { id: 'apps', label: language === 'vi' ? 'Ứng dụng' : 'Apps' },
+  ].filter(Boolean);
   const workflowBundles = (Array.isArray(config.workflows) ? config.workflows : [])
     .map((workflow) => ({
       ...workflow,
@@ -1881,6 +2030,172 @@ export default function GlobalQuickAccessRail({
     });
   };
 
+  const captureUndoState = () => ({
+    config: cloneQuickAccessState(config, config),
+    sectionFolds: cloneQuickAccessState(sectionFolds, sectionFolds),
+    deviceSpatial: cloneQuickAccessState(deviceSpatial, deviceSpatial),
+    routeWorkspaceMemory: cloneQuickAccessState(routeWorkspaceMemory, routeWorkspaceMemory),
+    parkedItems: cloneQuickAccessState(parkedItems, parkedItems),
+  });
+
+  const pushUndo = (label) => {
+    const entry = {
+      id: `undo-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+      label,
+      at: Date.now(),
+      state: captureUndoState(),
+    };
+    setUndoStack((current) => [entry, ...current].slice(0, QUICK_ACCESS_UNDO_MAX));
+  };
+
+  const persistWithUndo = (next, label) => {
+    pushUndo(label);
+    persist(next);
+  };
+
+  const restoreUndoEntry = (entry) => {
+    if (!entry?.state) return;
+    const state = entry.state;
+    if (state.config) persist(state.config);
+    if (state.sectionFolds) {
+      setSectionFolds(state.sectionFolds);
+      saveQuickAccessSectionFolds(currentUser, state.sectionFolds);
+    }
+    if (state.deviceSpatial) {
+      setDeviceSpatial(state.deviceSpatial);
+      saveQuickAccessSpatialMemory(currentUser, state.deviceSpatial);
+    }
+    if (state.routeWorkspaceMemory) {
+      setRouteWorkspaceMemory(state.routeWorkspaceMemory);
+      saveQuickAccessContextMemory(currentUser, state.routeWorkspaceMemory);
+    }
+    if (state.parkedItems) {
+      setParkedItems(state.parkedItems);
+      saveQuickAccessParking(currentUser, state.parkedItems);
+    }
+    setUndoStack((current) => current.filter((candidate) => candidate.id !== entry.id));
+    setUndoOpen(false);
+  };
+
+  const toggleSectionFold = (sectionId) => {
+    if (!['recent', 'pinned', 'apps'].includes(sectionId)) return;
+    setSectionFolds((current) => {
+      const next = { ...current, [sectionId]: !current?.[sectionId] };
+      saveQuickAccessSectionFolds(currentUser, next);
+      return next;
+    });
+  };
+
+  const toggleContextLock = () => {
+    if (contextLock?.locked) {
+      setContextLock(null);
+      saveQuickAccessContextLock(currentUser, null);
+      return;
+    }
+    const next = {
+      locked: true,
+      workspace: effectiveWorkspace,
+      route: String(currentRoute || ''),
+      tool: String(selectedTool?.slug || ''),
+      at: Date.now(),
+    };
+    setContextLock(next);
+    saveQuickAccessContextLock(currentUser, next);
+  };
+
+  const updateParking = (next) => {
+    const safe = (Array.isArray(next) ? next : []).slice(0, QUICK_ACCESS_PARKING_MAX);
+    setParkedItems(safe);
+    saveQuickAccessParking(currentUser, safe);
+  };
+
+  const parkItem = (item) => {
+    if (!item) return;
+    const currentTarget = typeof window !== 'undefined' && activeItem(item, currentRoute, selectedTool)
+      ? String(window.location.hash || item.target || '')
+      : String(item.target || '');
+    const entry = {
+      itemId: item.id,
+      target: currentTarget,
+      at: Date.now(),
+    };
+    const next = [entry, ...parkedItems.filter((candidate) => candidate.itemId !== item.id)].slice(0, QUICK_ACCESS_PARKING_MAX);
+    updateParking(next);
+    setActionItemId('');
+  };
+
+  const removeParkedItem = (itemId) => {
+    pushUndo(language === 'vi' ? 'Bỏ tác vụ đang đỗ' : 'Remove parked task');
+    updateParking(parkedItems.filter((entry) => entry.itemId !== itemId));
+  };
+
+  const jumpToSection = (sectionId) => {
+    const scroller = panelScrollRef.current;
+    const section = scroller?.querySelector?.(`[data-bqa-section="${sectionId}"]`);
+    if (!scroller || !section) return;
+    const top = Math.max(0, section.offsetTop - 6);
+    scroller.scrollTo({ top, behavior: motionMode === 'reduced' ? 'auto' : 'smooth' });
+    setActiveScrollSection(sectionId);
+  };
+
+  const handlePanelScroll = (event) => {
+    const scroller = event.currentTarget;
+    const top = Math.max(0, Number(scroller.scrollTop) || 0);
+    let currentSection = scrollSections[0]?.id || 'apps';
+    scrollSections.forEach((section) => {
+      const node = scroller.querySelector?.(`[data-bqa-section="${section.id}"]`);
+      if (node && node.offsetTop <= top + 42) currentSection = section.id;
+    });
+    setActiveScrollSection(currentSection);
+
+    if (!spatialMemoryEnabled || typeof window === 'undefined') return;
+    const key = spatialContextKey(currentRoute, selectedTool, effectiveWorkspace);
+    window.clearTimeout(spatialScrollTimerRef.current);
+    spatialScrollTimerRef.current = window.setTimeout(() => {
+      updateSpatialMemory((current) => ({
+        scroll: { ...(current.scroll || {}), [key]: top },
+      }));
+    }, 120);
+  };
+
+  const createSidebarSnapshot = () => {
+    const now = new Date();
+    const snapshot = {
+      id: `snapshot-${Date.now().toString(36)}`,
+      name: language === 'vi'
+        ? `Bố cục ${now.toLocaleDateString('vi-VN')} · ${now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`
+        : `Layout ${now.toLocaleDateString()} · ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+      at: Date.now(),
+      workspace: effectiveWorkspace,
+      config: cloneQuickAccessState(config, config),
+      sectionFolds: cloneQuickAccessState(sectionFolds, sectionFolds),
+    };
+    const next = [snapshot, ...sidebarSnapshots].slice(0, QUICK_ACCESS_SNAPSHOT_MAX);
+    setSidebarSnapshots(next);
+    saveQuickAccessSnapshots(currentUser, next);
+  };
+
+  const restoreSidebarSnapshot = (snapshot) => {
+    if (!snapshot?.config) return;
+    pushUndo(language === 'vi' ? 'Khôi phục snapshot' : 'Restore snapshot');
+    persist(snapshot.config);
+    if (snapshot.sectionFolds) {
+      setSectionFolds(snapshot.sectionFolds);
+      saveQuickAccessSectionFolds(currentUser, snapshot.sectionFolds);
+    }
+    if (QUICK_ACCESS_WORKSPACES.includes(snapshot.workspace)) {
+      if (spatialMemoryEnabled) updateSpatialMemory({ workspace: snapshot.workspace });
+      if (contextMemoryEnabled) updateRouteWorkspaceMemory(routeContextKey, snapshot.workspace);
+    }
+    setCustomizing(false);
+  };
+
+  const deleteSidebarSnapshot = (snapshotId) => {
+    const next = sidebarSnapshots.filter((snapshot) => snapshot.id !== snapshotId);
+    setSidebarSnapshots(next);
+    saveQuickAccessSnapshots(currentUser, next);
+  };
+
   const updateSpatialMemory = (patchOrUpdater) => {
     setDeviceSpatial((current) => {
       const patch = typeof patchOrUpdater === 'function'
@@ -1900,7 +2215,7 @@ export default function GlobalQuickAccessRail({
     const next = { workspace: '', side: '', lastItemId: '', scroll: {}, updatedAt: Date.now() };
     setDeviceSpatial(next);
     saveQuickAccessSpatialMemory(currentUser, next);
-    if (panelRef.current) panelRef.current.scrollTop = 0;
+    if (panelScrollRef.current) panelScrollRef.current.scrollTop = 0;
   };
 
   const updateRouteWorkspaceMemory = (contextKey, nextWorkspace) => {
@@ -1929,9 +2244,15 @@ export default function GlobalQuickAccessRail({
 
   const setWorkspace = (nextWorkspace) => {
     const safeWorkspace = QUICK_ACCESS_WORKSPACES.includes(nextWorkspace) ? nextWorkspace : 'all';
+    if (safeWorkspace !== effectiveWorkspace) pushUndo(language === 'vi' ? 'Đổi không gian làm việc' : 'Change workspace');
     if (contextMemoryEnabled) updateRouteWorkspaceMemory(routeContextKey, safeWorkspace);
     if (spatialMemoryEnabled) updateSpatialMemory({ workspace: safeWorkspace });
     else persist({ ...config, workspace: safeWorkspace });
+    if (contextLock?.locked) {
+      const nextLock = { ...contextLock, workspace: safeWorkspace, at: Date.now() };
+      setContextLock(nextLock);
+      saveQuickAccessContextLock(currentUser, nextLock);
+    }
     setQuickCreateOpen(false);
     setWorkflowCenterOpen(false);
     setCommandQuery('');
@@ -2006,6 +2327,35 @@ export default function GlobalQuickAccessRail({
     setActionItemId('');
     runAction(item, sourceEl);
     if (!pinned) collapseRail(false);
+  };
+
+  const openParkedItem = (entry, sourceEl = null) => {
+    if (!entry) return;
+    const item = presentationCatalog.find((candidate) => candidate.id === entry.itemId);
+    if (!item) {
+      updateParking(parkedItems.filter((candidate) => candidate.itemId !== entry.itemId));
+      return;
+    }
+    const target = String(entry.target || '');
+    if (target.startsWith('#/') && target !== item.target) {
+      if (spatialMemoryEnabled) updateSpatialMemory({ lastItemId: item.id });
+      const recent = [item.id, ...(config.recent || []).filter((id) => id !== item.id)].slice(0, QUICK_ACCESS_RECENT_MAX);
+      const nextConfig = { ...config, recent };
+      setConfig(nextConfig);
+      saveQuickAccessConfigToCloud(currentUser, nextConfig, allowedIds).then((result) => {
+        if (result?.config) setConfig(result.config);
+      });
+      launchRoute({
+        target,
+        label: labelFor(item, language),
+        color: item.accent || '#2b76c7',
+        sourceEl,
+        meta: { source: 'quick-access-parking' },
+      });
+      if (!pinned) collapseRail(false);
+      return;
+    }
+    activateItem(item, sourceEl);
   };
 
   selectedItemsRef.current = workspaceItems;
@@ -2154,7 +2504,10 @@ export default function GlobalQuickAccessRail({
       name: workflowDraftName.trim() || (language === 'vi' ? `Quy trình ${workflowBundles.length + 1}` : `Workflow ${workflowBundles.length + 1}`),
       itemIds: workflowDraftIds.slice(0, QUICK_ACCESS_WORKFLOW_STEPS_MAX),
     };
-    persist({ ...config, workflows: [...workflowBundles.map(({ id, name, itemIds }) => ({ id, name, itemIds })), workflow] });
+    persistWithUndo(
+      { ...config, workflows: [...workflowBundles.map(({ id, name, itemIds }) => ({ id, name, itemIds })), workflow] },
+      language === 'vi' ? 'Tạo quy trình' : 'Create workflow',
+    );
     setWorkflowDraftName('');
     setWorkflowDraftIds([]);
   };
@@ -2163,7 +2516,7 @@ export default function GlobalQuickAccessRail({
     const next = workflowBundles
       .filter((workflow) => workflow.id !== workflowId)
       .map(({ id, name, itemIds }) => ({ id, name, itemIds }));
-    persist({ ...config, workflows: next });
+    persistWithUndo({ ...config, workflows: next }, language === 'vi' ? 'Xóa quy trình' : 'Delete workflow');
     if (activeWorkflowRun?.workflowId === workflowId) {
       setActiveWorkflowRun(null);
       saveQuickAccessWorkflowRun(currentUser, null);
@@ -2203,15 +2556,16 @@ export default function GlobalQuickAccessRail({
 
   const removeItem = (id) => {
     const next = config.items.filter((itemId) => itemId !== id);
-    persist({ ...config, items: next });
+    persistWithUndo({ ...config, items: next }, language === 'vi' ? 'Bỏ lối tắt' : 'Remove shortcut');
   };
 
   const addItem = (id) => {
     if (config.items.length >= QUICK_ACCESS_MAX_ITEMS || config.items.includes(id)) return;
-    persist({ ...config, items: [...config.items, id] });
+    persistWithUndo({ ...config, items: [...config.items, id] }, language === 'vi' ? 'Thêm lối tắt' : 'Add shortcut');
   };
 
   const reset = () => {
+    pushUndo(language === 'vi' ? 'Khôi phục mặc định' : 'Reset defaults');
     clearDeviceSpatialMemory();
     persist(createDefaultQuickAccessConfig(allowedIds));
   };
@@ -2221,7 +2575,7 @@ export default function GlobalQuickAccessRail({
     const next = config.items.filter((id) => id !== dragId);
     const targetIndex = next.indexOf(targetId);
     next.splice(targetIndex < 0 ? next.length : targetIndex, 0, dragId);
-    persist({ ...config, items: next });
+    persistWithUndo({ ...config, items: next }, language === 'vi' ? 'Đổi thứ tự lối tắt' : 'Reorder shortcuts');
     setDragId('');
   };
 
@@ -2232,7 +2586,7 @@ export default function GlobalQuickAccessRail({
         setDragId('');
         return;
       }
-      persist({ ...config, items: [...config.items, dragId] });
+      persistWithUndo({ ...config, items: [...config.items, dragId] }, language === 'vi' ? 'Ghim lối tắt' : 'Pin shortcut');
     }
     setDragId('');
   };
@@ -2352,6 +2706,7 @@ export default function GlobalQuickAccessRail({
         data-labels={showLabels ? 'show' : 'hide'}
         data-spatial-memory={spatialMemoryEnabled ? 'true' : 'false'}
         data-context-memory={contextMemoryEnabled ? 'true' : 'false'}
+        data-context-lock={contextLock?.locked ? 'true' : 'false'}
         data-context-key={routeContextKey}
         data-time-aware={timeAwareEnabled ? 'true' : 'false'}
         data-time-band={timeContext.id}
@@ -2655,17 +3010,6 @@ export default function GlobalQuickAccessRail({
           className="bqa-panel"
           onPointerEnter={openRail}
           onMouseEnter={openRail}
-          onScroll={(event) => {
-            if (!spatialMemoryEnabled || typeof window === 'undefined') return;
-            const top = Math.max(0, Number(event.currentTarget.scrollTop) || 0);
-            const key = spatialContextKey(currentRoute, selectedTool, workspace);
-            window.clearTimeout(spatialScrollTimerRef.current);
-            spatialScrollTimerRef.current = window.setTimeout(() => {
-              updateSpatialMemory((current) => ({
-                scroll: { ...(current.scroll || {}), [key]: top },
-              }));
-            }, 120);
-          }}
           aria-hidden={!expanded}
           inert={expanded ? undefined : true}
           onAnimationEnd={(event) => {
@@ -2677,7 +3021,20 @@ export default function GlobalQuickAccessRail({
               <strong>{language === 'vi' ? 'Brian Quick Access' : 'Brian Quick Access'}</strong>
               <span>{language === 'vi' ? 'Gần đây · gợi ý ngữ cảnh · lệnh nhanh' : 'Recents · contextual suggestions · quick commands'}</span>
             </div>
-            <div className="bqa-mode-switch" role="group" aria-label={language === 'vi' ? 'Chế độ thanh bên' : 'Sidebar mode'}>
+            <div className="bqa-panel-header-actions">
+              <button
+                type="button"
+                className={`bqa-context-lock ${contextLock?.locked ? 'is-active' : ''}`}
+                aria-pressed={Boolean(contextLock?.locked)}
+                title={contextLock?.locked
+                  ? (language === 'vi' ? 'Mở khóa ngữ cảnh' : 'Unlock context')
+                  : (language === 'vi' ? 'Khóa ngữ cảnh hiện tại' : 'Lock current context')}
+                onClick={toggleContextLock}
+              >
+                <ShieldCheck size={15} aria-hidden="true" />
+                <span>{contextLock?.locked ? (language === 'vi' ? 'Đã khóa' : 'Locked') : (language === 'vi' ? 'Khóa' : 'Lock')}</span>
+              </button>
+              <div className="bqa-mode-switch" role="group" aria-label={language === 'vi' ? 'Chế độ thanh bên' : 'Sidebar mode'}>
               <button
                 type="button"
                 className={sidebarMode === 'auto' ? 'is-active' : ''}
@@ -2705,8 +3062,15 @@ export default function GlobalQuickAccessRail({
               >
                 <EyeOff size={16} aria-hidden="true" />
               </button>
+              </div>
             </div>
           </header>
+
+          <div
+            ref={panelScrollRef}
+            className="bqa-panel-scroll"
+            onScroll={handlePanelScroll}
+          >
 
           {classroomMode ? (
             <section className="bqa-classroom-banner" data-classroom-presentation="true">
@@ -2722,7 +3086,7 @@ export default function GlobalQuickAccessRail({
           ) : null}
 
           {workflowCenterOpen ? (
-            <section className="bqa-workflow-center" data-workflow-center="true" aria-label={language === 'vi' ? 'Quy trình nhanh' : 'Workflow bundles'}>
+            <section className="bqa-workflow-center" data-workflow-center="true" data-bqa-section="workflow" aria-label={language === 'vi' ? 'Quy trình nhanh' : 'Workflow bundles'}>
               <header className="bqa-workflow-header">
                 <span><Boxes size={14} aria-hidden="true" />{language === 'vi' ? 'Quy trình nhanh' : 'Workflow bundles'}</span>
                 <div>
@@ -2926,7 +3290,7 @@ export default function GlobalQuickAccessRail({
 
 
               {timeAwareItems.length ? (
-                <section className="bqa-time-aware" data-time-aware="true" data-time-band={timeContext.id}>
+                <section className="bqa-time-aware" data-time-aware="true" data-time-band={timeContext.id} data-bqa-section="time">
                   <header>
                     <span><Clock3 size={14} aria-hidden="true" />{timeContext.kicker}</span>
                     <small>{language === 'vi' ? 'Theo giờ trên thiết bị' : 'Based on device time'}</small>
@@ -2951,7 +3315,7 @@ export default function GlobalQuickAccessRail({
               ) : null}
 
               {primaryResume ? (
-                <section className="bqa-resume-card" data-session-resume="true">
+                <section className="bqa-resume-card" data-session-resume="true" data-bqa-section="resume">
                   <span className="bqa-resume-icon" style={{ '--bqa-accent': primaryResume.item.accent }}>
                     {React.createElement(primaryResume.item.icon || Boxes, { size: 18, 'aria-hidden': true })}
                   </span>
@@ -2986,9 +3350,16 @@ export default function GlobalQuickAccessRail({
 
               <div className="bqa-smart-stack" data-smart-stack="true">
                 {recentItems.length ? (
-                  <section className="bqa-smart-section is-recent">
-                    <header><Clock3 size={14} aria-hidden="true" /><span>{language === 'vi' ? 'Vừa dùng' : 'Recent'}</span></header>
-                    <div>
+                  <section className={`bqa-smart-section is-recent ${sectionFolds.recent ? 'is-folded' : ''}`} data-bqa-section="recent">
+                    <header className="bqa-sticky-section-header">
+                      <button type="button" className="bqa-section-toggle" onClick={() => toggleSectionFold('recent')} aria-expanded={!sectionFolds.recent}>
+                        <Clock3 size={14} aria-hidden="true" />
+                        <span>{language === 'vi' ? 'Vừa dùng' : 'Recent'}</span>
+                        <b>{recentItems.length}</b>
+                        <ChevronRight className="bqa-section-chevron" size={14} aria-hidden="true" />
+                      </button>
+                    </header>
+                    {!sectionFolds.recent ? <div>
                       {recentItems.map((item) => {
                         const Icon = item.icon || Boxes;
                         return (
@@ -3009,14 +3380,21 @@ export default function GlobalQuickAccessRail({
                           </button>
                         );
                       })}
-                    </div>
+                    </div> : null}
                   </section>
                 ) : null}
 
                 {pinnedSmartItems.length ? (
-                  <section className="bqa-smart-section is-pinned-smart">
-                    <header><Star size={14} aria-hidden="true" /><span>{language === 'vi' ? 'Đã ghim' : 'Pinned'}</span></header>
-                    <div>
+                  <section className={`bqa-smart-section is-pinned-smart ${sectionFolds.pinned ? 'is-folded' : ''}`} data-bqa-section="pinned">
+                    <header className="bqa-sticky-section-header">
+                      <button type="button" className="bqa-section-toggle" onClick={() => toggleSectionFold('pinned')} aria-expanded={!sectionFolds.pinned}>
+                        <Star size={14} aria-hidden="true" />
+                        <span>{language === 'vi' ? 'Đã ghim' : 'Pinned'}</span>
+                        <b>{pinnedSmartItems.length}</b>
+                        <ChevronRight className="bqa-section-chevron" size={14} aria-hidden="true" />
+                      </button>
+                    </header>
+                    {!sectionFolds.pinned ? <div>
                       {pinnedSmartItems.map((item) => {
                         const Icon = item.icon || Boxes;
                         return (
@@ -3037,13 +3415,13 @@ export default function GlobalQuickAccessRail({
                           </button>
                         );
                       })}
-                    </div>
+                    </div> : null}
                   </section>
                 ) : null}
               </div>
 
               {primaryActivity ? (
-                <section className={`bqa-live-activity is-${primaryActivity.state}`} aria-live="polite">
+                <section className={`bqa-live-activity is-${primaryActivity.state}`} data-bqa-section="activity" aria-live="polite">
                   <div className="bqa-live-activity-ring" style={{ '--bqa-progress': `${primaryActivity.progress ?? 0}` }}>
                     <Zap size={15} aria-hidden="true" />
                   </div>
@@ -3056,7 +3434,44 @@ export default function GlobalQuickAccessRail({
                 </section>
               ) : null}
 
-              <div
+              {parkedItems.length ? (
+                <section className="bqa-parking-shelf" data-bqa-section="parking">
+                  <header>
+                    <span><Boxes size={14} aria-hidden="true" />{language === 'vi' ? 'Đang đỗ' : 'Parked'}</span>
+                    <small>{parkedItems.length}/{QUICK_ACCESS_PARKING_MAX}</small>
+                  </header>
+                  <div>
+                    {parkedItems.map((entry) => {
+                      const item = presentationCatalog.find((candidate) => candidate.id === entry.itemId);
+                      if (!item) return null;
+                      const Icon = item.icon || Boxes;
+                      return (
+                        <span className="bqa-parked-chip" key={entry.itemId}>
+                          <button type="button" onClick={(event) => openParkedItem(entry, event.currentTarget)}>
+                            <Icon size={14} aria-hidden="true" />
+                            <b>{labelFor(item, language)}</b>
+                          </button>
+                          <button type="button" className="bqa-parked-remove" onClick={() => removeParkedItem(entry.itemId)} aria-label={language === 'vi' ? 'Bỏ khỏi khay đỗ' : 'Remove parked app'}>
+                            <X size={11} aria-hidden="true" />
+                          </button>
+                        </span>
+                      );
+                    })}
+                  </div>
+                </section>
+              ) : null}
+
+              <section className={`bqa-apps-section ${sectionFolds.apps ? 'is-folded' : ''}`} data-bqa-section="apps">
+                <header className="bqa-sticky-section-header bqa-apps-section-header">
+                  <button type="button" className="bqa-section-toggle" onClick={() => toggleSectionFold('apps')} aria-expanded={!sectionFolds.apps}>
+                    <LayoutGrid size={14} aria-hidden="true" />
+                    <span>{language === 'vi' ? 'Ứng dụng' : 'Apps'}</span>
+                    <b>{workspaceItems.length}</b>
+                    <ChevronRight className="bqa-section-chevron" size={14} aria-hidden="true" />
+                  </button>
+                </header>
+                {!sectionFolds.apps ? (
+                <div
                 className={`bqa-panel-list ${dragId ? 'is-drop-ready' : ''}`}
                 role="list"
                 data-favorites-dropzone="true"
@@ -3131,7 +3546,46 @@ export default function GlobalQuickAccessRail({
                   );
                 })}
               </div>
+              ) : null}
+              </section>
 
+              {undoStack.length ? (
+                <section className="bqa-undo-center" data-bqa-section="undo">
+                  <button type="button" className="bqa-undo-toggle" onClick={() => setUndoOpen((value) => !value)} aria-expanded={undoOpen}>
+                    <ChevronLeft size={14} aria-hidden="true" />
+                    <span><strong>{language === 'vi' ? 'Hoàn tác' : 'Undo'}</strong><small>{undoStack[0]?.label}</small></span>
+                    <b>{undoStack.length}</b>
+                  </button>
+                  {undoOpen ? (
+                    <div className="bqa-undo-list">
+                      {undoStack.map((entry) => (
+                        <button type="button" key={entry.id} onClick={() => restoreUndoEntry(entry)}>
+                          <span>{entry.label}</span>
+                          <small>{language === 'vi' ? 'Khôi phục trạng thái trước' : 'Restore previous state'}</small>
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </section>
+              ) : null}
+
+          </div>
+
+          <nav className="bqa-scroll-navigator" aria-label={language === 'vi' ? 'Điều hướng nhanh trong thanh bên' : 'Sidebar scroll navigator'}>
+            {scrollSections.map((section) => (
+              <button
+                type="button"
+                key={section.id}
+                className={activeScrollSection === section.id ? 'is-active' : ''}
+                onClick={() => jumpToSection(section.id)}
+                title={section.label}
+                aria-label={section.label}
+                aria-current={activeScrollSection === section.id ? 'true' : undefined}
+              >
+                <span />
+              </button>
+            ))}
+          </nav>
 
           <footer className="bqa-panel-footer">
             <button type="button" onClick={() => { setCustomizerQuery(''); setCustomizing(true); }}>
@@ -3206,6 +3660,11 @@ export default function GlobalQuickAccessRail({
                 <ChevronRight size={14} aria-hidden="true" />
               </button>
             ))}
+            <button type="button" role="menuitem" onClick={() => parkItem(actionItem)}>
+              <Boxes size={14} aria-hidden="true" />
+              <span>{language === 'vi' ? 'Đỗ tác vụ tại đây' : 'Park this app'}</span>
+              <ChevronRight size={14} aria-hidden="true" />
+            </button>
           </div>
         ) : null}
       </div>
@@ -3370,6 +3829,32 @@ export default function GlobalQuickAccessRail({
                     {language === 'vi' ? 'Quên ngữ cảnh đã nhớ' : 'Forget page contexts'}
                   </button>
                 ) : null}
+              </div>
+
+              <div className="bqa-snapshot-control">
+                <header>
+                  <span>
+                    <strong>{language === 'vi' ? 'Sidebar Snapshot' : 'Sidebar Snapshot'}</strong>
+                    <small>{language === 'vi' ? 'Sao lưu bố cục trước khi thử cách sắp xếp mới.' : 'Back up the layout before trying a new arrangement.'}</small>
+                  </span>
+                  <button type="button" onClick={createSidebarSnapshot}>
+                    <Plus size={13} aria-hidden="true" />
+                    {language === 'vi' ? 'Lưu' : 'Save'}
+                  </button>
+                </header>
+                {sidebarSnapshots.length ? (
+                  <div className="bqa-snapshot-list">
+                    {sidebarSnapshots.map((snapshot) => (
+                      <div key={snapshot.id}>
+                        <span><strong>{snapshot.name}</strong><small>{new Date(snapshot.at).toLocaleString(language === 'vi' ? 'vi-VN' : 'en-US')}</small></span>
+                        <button type="button" onClick={() => restoreSidebarSnapshot(snapshot)}>{language === 'vi' ? 'Khôi phục' : 'Restore'}</button>
+                        <button type="button" onClick={() => deleteSidebarSnapshot(snapshot.id)} aria-label={language === 'vi' ? 'Xóa snapshot' : 'Delete snapshot'}><X size={12} aria-hidden="true" /></button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <small className="bqa-snapshot-empty">{language === 'vi' ? 'Chưa có snapshot.' : 'No snapshots yet.'}</small>
+                )}
               </div>
             </section>
 
