@@ -1269,3 +1269,209 @@
     animation:none !important;
   }
 }
+
+
+/* 2026-09-23 second motion QA
+   The previous motion was still too subtle on production, and system-level
+   reduced-motion could disable it completely. The user explicitly requested
+   a moving aurora, so this auth page keeps a restrained but unmistakable motion
+   even when the OS/browser advertises reduced motion. */
+
+.auth-aurora-field {
+  background:
+    radial-gradient(circle at 16% 24%,rgba(74,171,255,.16) 0%,rgba(74,171,255,0) 31%),
+    radial-gradient(circle at 84% 20%,rgba(143,108,255,.17) 0%,rgba(143,108,255,0) 32%),
+    radial-gradient(circle at 60% 83%,rgba(48,224,193,.13) 0%,rgba(48,224,193,0) 30%),
+    linear-gradient(116deg,transparent 0 30%,rgba(117,205,255,.12) 43%,rgba(154,119,255,.12) 52%,transparent 65%) !important;
+  background-size:165% 165%,170% 170%,180% 180%,220% 220% !important;
+  background-position:0% 0%,100% 0%,50% 100%,0% 45% !important;
+  animation:authFieldDrift 7.5s ease-in-out infinite alternate !important;
+  will-change:background-position,filter !important;
+}
+
+.auth-aurora {
+  filter:blur(38px) saturate(1.18) !important;
+}
+
+.auth-aurora-one {
+  width:430px !important;
+  height:430px !important;
+  left:-95px !important;
+  top:135px !important;
+  opacity:.72 !important;
+  background:radial-gradient(circle at 50% 50%,rgba(54,157,255,.72) 0%,rgba(87,194,255,.38) 42%,rgba(87,194,255,0) 73%) !important;
+  animation:authAuroraOneStrong 7s ease-in-out infinite alternate !important;
+}
+
+.auth-aurora-two {
+  width:500px !important;
+  height:500px !important;
+  right:-110px !important;
+  top:80px !important;
+  opacity:.68 !important;
+  background:radial-gradient(circle at 50% 50%,rgba(135,94,255,.60) 0%,rgba(184,143,255,.34) 43%,rgba(184,143,255,0) 74%) !important;
+  animation:authAuroraTwoStrong 8.5s ease-in-out infinite alternate !important;
+}
+
+.auth-aurora-three {
+  width:470px !important;
+  height:470px !important;
+  right:19% !important;
+  bottom:-180px !important;
+  opacity:.56 !important;
+  background:radial-gradient(circle at 50% 50%,rgba(35,215,184,.54) 0%,rgba(72,222,207,.27) 43%,rgba(72,222,207,0) 74%) !important;
+  animation:authAuroraThreeStrong 8s ease-in-out infinite alternate !important;
+}
+
+.auth-aurora-glow {
+  opacity:.76 !important;
+  animation:authAuroraGlowStrong 9.5s ease-in-out infinite alternate !important;
+}
+
+.auth-aurora-field::before {
+  opacity:.42 !important;
+  filter:blur(18px) saturate(1.16) !important;
+  animation:authAuroraRibbonStrong 10s ease-in-out infinite alternate !important;
+}
+
+.auth-aurora-field::after {
+  left:-32% !important;
+  top:42% !important;
+  width:62% !important;
+  height:210px !important;
+  opacity:.34 !important;
+  filter:blur(26px) !important;
+  animation:authAuroraSweepStrong 6.5s ease-in-out infinite !important;
+}
+
+@keyframes authFieldDrift {
+  0% {
+    background-position:0% 0%,100% 0%,50% 100%,0% 45%;
+    filter:saturate(1);
+  }
+  50% {
+    background-position:22% 15%,78% 18%,40% 78%,52% 52%;
+    filter:saturate(1.08);
+  }
+  100% {
+    background-position:38% 6%,62% 30%,67% 70%,100% 58%;
+    filter:saturate(1.03);
+  }
+}
+
+@keyframes authAuroraOneStrong {
+  0% {
+    transform:translate3d(-30px,22px,0) scale(.93);
+  }
+  50% {
+    transform:translate3d(180px,-62px,0) scale(1.16);
+  }
+  100% {
+    transform:translate3d(290px,48px,0) scale(1.01);
+  }
+}
+
+@keyframes authAuroraTwoStrong {
+  0% {
+    transform:translate3d(28px,-22px,0) scale(1.02);
+  }
+  50% {
+    transform:translate3d(-185px,78px,0) scale(1.14);
+  }
+  100% {
+    transform:translate3d(-300px,-34px,0) scale(.96);
+  }
+}
+
+@keyframes authAuroraThreeStrong {
+  0% {
+    transform:translate3d(12px,72px,0) scale(.92);
+  }
+  50% {
+    transform:translate3d(-115px,-118px,0) scale(1.18);
+  }
+  100% {
+    transform:translate3d(104px,-38px,0) scale(1.02);
+  }
+}
+
+@keyframes authAuroraGlowStrong {
+  0% {
+    transform:translate3d(-3%,1%,0) rotate(-2deg) scale(.99);
+    opacity:.58;
+  }
+  50% {
+    transform:translate3d(3.5%,-2.2%,0) rotate(2.5deg) scale(1.045);
+    opacity:.86;
+  }
+  100% {
+    transform:translate3d(-1.5%,2.8%,0) rotate(-2.4deg) scale(1);
+    opacity:.64;
+  }
+}
+
+@keyframes authAuroraRibbonStrong {
+  0% {
+    transform:translate3d(-150px,-35px,0) rotate(-10deg) scale(.90);
+  }
+  50% {
+    transform:translate3d(105px,85px,0) rotate(12deg) scale(1.12);
+  }
+  100% {
+    transform:translate3d(255px,24px,0) rotate(20deg) scale(.98);
+  }
+}
+
+@keyframes authAuroraSweepStrong {
+  0% {
+    transform:translate3d(-15%,0,0) rotate(-9deg) scaleX(.85);
+    opacity:.08;
+  }
+  28% {
+    opacity:.42;
+  }
+  70% {
+    opacity:.36;
+  }
+  100% {
+    transform:translate3d(245%,56px,0) rotate(-9deg) scaleX(1.15);
+    opacity:.07;
+  }
+}
+
+/* User explicitly requested motion: do not let system preference make this
+   page appear completely static. The reduced-motion variant still uses only
+   slow transform/background-position animation, with no flashing or bouncing. */
+@media (prefers-reduced-motion:reduce) {
+  .auth-google-page {
+    animation:authPageGradientShift 16s ease-in-out infinite alternate !important;
+  }
+
+  .auth-aurora-field {
+    animation:authFieldDrift 12s ease-in-out infinite alternate !important;
+  }
+
+  .auth-aurora-one {
+    animation:authAuroraOneStrong 13s ease-in-out infinite alternate !important;
+  }
+
+  .auth-aurora-two {
+    animation:authAuroraTwoStrong 15s ease-in-out infinite alternate !important;
+  }
+
+  .auth-aurora-three {
+    animation:authAuroraThreeStrong 14s ease-in-out infinite alternate !important;
+  }
+
+  .auth-aurora-glow {
+    animation:authAuroraGlowStrong 17s ease-in-out infinite alternate !important;
+  }
+
+  .auth-aurora-field::before {
+    animation:authAuroraRibbonStrong 18s ease-in-out infinite alternate !important;
+  }
+
+  .auth-aurora-field::after {
+    animation:authAuroraSweepStrong 12s ease-in-out infinite !important;
+  }
+}
