@@ -91,6 +91,9 @@ for (const token of [
   'showCapsule',
   'hideCapsule',
   'bqa-status-capsule',
+  'peekActions',
+  'bqa-peek-actions',
+  'runQuickAction(peekItem',
   'data-smart-stack="true"',
   'data-workspace={workspace}',
   'workspaceAllowsItem',
@@ -174,6 +177,8 @@ for (const token of [
   'Brian Quick Access V3.3.1 · true mirrored right-side layout',
   'Brian Quick Access V4.1 · Adaptive Dock',
   'Brian Quick Access V4.2 · live status capsules',
+  'Brian Quick Access V4.3 · interactive Quick Peek',
+  '.bqa-peek-actions',
   '.bqa-status-capsule',
   '.bqa-status-capsule-progress',
   'bqa-capsule-in-left',
@@ -233,4 +238,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access V4.2 adds mirrored live status capsules and a public capsule event/API while preserving V4.1 Adaptive Dock, true mirror geometry, permissions, custom fonts and reduced-motion fallbacks.');
+console.log('PASS: Quick Access V4.3 adds interactive contextual actions to Quick Peek while preserving V4.2 status capsules, V4.1 Adaptive Dock, true mirror geometry, permissions and custom fonts.');
