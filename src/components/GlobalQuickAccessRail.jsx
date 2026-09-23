@@ -6,11 +6,16 @@ import {
   Boxes,
   CalendarDays,
   Check,
+  ChevronRight,
+  Clock3,
+  Command,
   ClipboardCheck,
   FileText,
   Gauge,
   GripVertical,
+  EyeOff,
   LayoutGrid,
+  MoreHorizontal,
   Search,
   Pin,
   PinOff,
@@ -18,6 +23,7 @@ import {
   ShieldCheck,
   Star,
   UsersRound,
+  Zap,
   X,
 } from 'lucide-react';
 import { APPS } from '../data/apps.js';
@@ -28,6 +34,7 @@ import { isAdminRole, isDepartmentLeaderRole } from '../utils/roles.js';
 import { launchRoute } from '../utils/navigation.js';
 import {
   QUICK_ACCESS_MAX_ITEMS,
+  QUICK_ACCESS_RECENT_MAX,
   createDefaultQuickAccessConfig,
   loadQuickAccessConfig,
   loadQuickAccessConfigFromCloud,
