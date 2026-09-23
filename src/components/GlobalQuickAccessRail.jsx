@@ -1278,6 +1278,7 @@ export default function GlobalQuickAccessRail({
   const handoffPacketRef = useRef(null);
   const railClickTimerRef = useRef(0);
   const stateProvidersRef = useRef(new Map());
+  const restoreBookmarkRef = useRef(null);
 
   const catalog = useMemo(() => {
     const byId = new Map();
@@ -1801,7 +1802,7 @@ export default function GlobalQuickAccessRail({
         };
       },
       bookmark: (itemId) => window.dispatchEvent(new CustomEvent('bes-quick-access-bookmark-save', { detail: { itemId } })),
-      restore: (itemId) => window.dispatchEvent(new CustomEvent('bes-quick-access-bookmark-restore', { detail: { itemId } })),
+      restore: (itemId) => restoreBookmarkRef.current?.(String(itemId || ''), null) || false,
       list: () => loadQuickAccessBookmarks(currentUser),
     };
     return () => {
@@ -3359,6 +3360,8 @@ export default function GlobalQuickAccessRail({
       language === 'vi' ? 'Thêm app bằng Drop Zone' : 'Add app from Drop Zone',
     );
   };
+
+  restoreBookmarkRef.current = restoreAppStateBookmark;
 
   const navigateSessionTrail = (entry, sourceEl = null) => {
     if (!entry?.target) return;
