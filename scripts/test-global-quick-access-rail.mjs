@@ -55,7 +55,8 @@ assert.ok(prefs.includes('timeAware: true'), 'Quick Access defaults to time-awar
 assert.ok(prefs.includes("theme: 'glass'"), 'Quick Access defaults to the Glass sidebar theme.');
 assert.ok(prefs.includes("['glass', 'paper', 'color', 'minimal']"), 'Quick Access must persist the supported sidebar themes.');
 assert.ok(prefs.includes('spatialMemory: true'), 'Quick Access defaults to device spatial memory enabled.');
-assert.ok(prefs.includes('version: 8'), 'Quick Access preference schema must be V8 for device spatial memory.');
+assert.ok(prefs.includes('contextMemory: true'), 'Quick Access defaults to route workspace memory enabled.');
+assert.ok(prefs.includes('version: 9'), 'Quick Access preference schema must be V9 for route workspace memory.');
 assert.match(prefs, /QUICK_ACCESS_WORKFLOW_MAX\s*=\s*4/, 'Quick Access must cap saved workflow bundles at 4.');
 assert.match(prefs, /QUICK_ACCESS_WORKFLOW_STEPS_MAX\s*=\s*5/, 'Quick Access must cap workflow steps at 5.');
 assert.ok(prefs.includes('cleanWorkflows'), 'Quick Access must permission-filter persisted workflow bundles.');
@@ -149,6 +150,17 @@ for (const token of [
   'setRailSide',
   'data-spatial-memory={spatialMemoryEnabled',
   'spatialScrollTimerRef',
+  'quickAccessContextMemoryStorageKey',
+  'routeWorkspaceContextKey',
+  'loadQuickAccessContextMemory',
+  'saveQuickAccessContextMemory',
+  'routeWorkspaceMemory',
+  'contextMemoryEnabled',
+  'updateRouteWorkspaceMemory',
+  'clearRouteWorkspaceMemory',
+  'setContextMemoryEnabled',
+  'data-context-memory={contextMemoryEnabled',
+  'data-context-key={routeContextKey}',
   'dataset.brianClassroomMode',
   'bes-classroom-presentation-mode',
   'bqa-rail-classroom',
@@ -293,6 +305,7 @@ for (const token of [
   'Brian Quick Access V4.10 · classroom presentation mode',
   'Brian Quick Access V4.11 · sidebar themes',
   'Brian Quick Access V4.12 · device spatial memory',
+  'Brian Quick Access V4.13 · route workspace memory',
   '.bqa-spatial-control',
   '[data-spatial-memory="true"]',
   '[data-theme-style="glass"]',
@@ -399,4 +412,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access V4.12 adds device-local spatial memory for side, workspace, last app and panel scroll position while preserving account themes, Classroom Mode, true mirror geometry and custom fonts.');
+console.log('PASS: Quick Access V4.13 adds route-scoped workspace memory while preserving device spatial memory, themes, classroom mode, workflows, permissions and custom fonts.');
