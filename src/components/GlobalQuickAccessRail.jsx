@@ -684,6 +684,29 @@ export default function GlobalQuickAccessRail({
     .filter(Boolean)
     .slice(0, QUICK_ACCESS_MAX_ITEMS);
 
+  const recentItems = (config.recent || [])
+    .map((id) => catalog.find((item) => item.id === id))
+    .filter(Boolean)
+    .slice(0, QUICK_ACCESS_RECENT_MAX);
+
+  const contextItems = contextIdsFor(currentRoute, selectedTool)
+    .map((id) => catalog.find((item) => item.id === id))
+    .filter(Boolean)
+    .filter((item) => !recentItems.some((recent) => recent.id === item.id))
+    .slice(0, 3);
+
+  const commandNeedle = commandQuery.trim().toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
+  const commandResults = commandNeedle
+    ? catalog.filter((item) => {
+      const haystack = `${item.label || ''} ${item.labelVi || ''} ${descriptionFor(item, language)}`
+        .toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
+      return haystack.includes(commandNeedle);
+    }).slice(0, 8)
+    : [];
+
+  const peekItem = catalog.find((item) => item.id === peekItemId) || null;
+  const actionItem = catalog.find((item) => item.id === actionItemId) || null;
+
   const availableItems = catalog.filter((item) => !config.items.includes(item.id));
   const customizerNeedle = customizerQuery.trim().toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
   const filteredAvailableItems = customizerNeedle
@@ -710,11 +733,57 @@ export default function GlobalQuickAccessRail({
   };
 
   const activateItem = (item, sourceEl) => {
+    if (!item) return;
+    const recent = [item.id, ...(config.recent || []).filter((id) => id !== item.id)].slice(0, QUICK_ACCESS_RECENT_MAX);
+    const nextConfig = { ...config, recent };
+    setConfig(nextConfig);
+    saveQuickAccessConfigToCloud(currentUser, nextConfig, allowedIds).then((result) => {
+      if (result?.config) setConfig(result.config);
+    });
+    setCommandQuery('');
+    setPeekItemId('');
+    setActionItemId('');
     runAction(item, sourceEl);
     if (!pinned) collapseRail(false);
   };
 
-  const togglePinned = () => persist({ ...config, pinned: !pinned });
+  selectedItemsRef.current = selectedItems;
+  activateItemRef.current = activateItem;
+
+  const setSidebarMode = (mode) => {
+    const nextMode = ['auto', 'pin', 'focus'].includes(mode) ? mode : 'auto';
+    persist({ ...config, mode: nextMode, pinned: nextMode === 'pin' });
+    if (nextMode === 'pin') openRail();
+    else if (nextMode === 'focus') collapseRail(true);
+  };
+
+  const togglePinned = () => setSidebarMode(pinned ? 'auto' : 'pin');
+
+  const showPeek = (item, sourceEl) => {
+    window.clearTimeout(peekTimerRef.current);
+    if (!item || actionItemId) return;
+    peekTimerRef.current = window.setTimeout(() => {
+      const rect = sourceEl?.getBoundingClientRect?.();
+      if (rect) setPeekTop(Math.max(86, Math.min(window.innerHeight - 210, rect.top - 8)));
+      setPeekItemId(item.id);
+    }, 360);
+  };
+
+  const hidePeek = () => {
+    window.clearTimeout(peekTimerRef.current);
+    peekTimerRef.current = window.setTimeout(() => setPeekItemId(''), 110);
+  };
+
+  const runQuickAction = (item, descriptor, sourceEl = null) => {
+    if (!item || !descriptor) return;
+    if (descriptor.action === 'ttcm-feed') openTtcm('feed');
+    else if (descriptor.action === 'ttcm-schedule') openTtcm('schedule');
+    else if (descriptor.action === 'ttcm-personnel') openTtcm('personnel');
+    else if (descriptor.action === 'attendance') runAction({ action: 'attendance' }, sourceEl);
+    else activateItem(item, sourceEl);
+    setActionItemId('');
+    setPeekItemId('');
+  };
 
   const removeItem = (id) => {
     const next = config.items.filter((itemId) => itemId !== id);
