@@ -1982,18 +1982,21 @@ export default function GlobalQuickAccessRail({
       ? catalog.find((candidate) => candidate.id === requestedItemId)
       : catalog.find((candidate) => activeItem(candidate, currentRoute, selectedTool));
     if (!item) return false;
+    const isCurrentItem = activeItem(item, currentRoute, selectedTool);
     const provider = stateProvidersRef.current.get(item.id);
     let appState = null;
-    try {
-      appState = typeof provider?.capture === 'function' ? provider.capture() : null;
-    } catch {
-      appState = null;
+    if (isCurrentItem) {
+      try {
+        appState = typeof provider?.capture === 'function' ? provider.capture() : null;
+      } catch {
+        appState = null;
+      }
     }
     const bookmark = {
       itemId: item.id,
-      target: String(window.location.hash || item.target || ''),
+      target: String(isCurrentItem ? (window.location.hash || item.target || '') : (item.target || '')),
       label: labelFor(item, language),
-      scrollY: Math.max(0, Math.round(window.scrollY || document.documentElement?.scrollTop || 0)),
+      scrollY: isCurrentItem ? Math.max(0, Math.round(window.scrollY || document.documentElement?.scrollTop || 0)) : 0,
       state: cloneQuickAccessState(appState, null),
       savedAt: Date.now(),
     };
@@ -2497,8 +2500,9 @@ export default function GlobalQuickAccessRail({
     if (activity?.state === 'error') return 3;
     const related = notificationItems.filter((entry) => entry.itemId === item.id);
     if (related.some((entry) => entry.tone === 'danger')) return 3;
-    if (health?.state === 'unconfigured' || related.some((entry) => entry.tone === 'warning')) return 2;
-    if (health?.state === 'syncing' || badges[item.id] || related.length) return badges[item.id] === 'dot' ? 1 : 2;
+    const nonBadgeWarning = related.some((entry) => entry.tone === 'warning' && entry.source !== 'badge');
+    if (health?.state === 'unconfigured' || nonBadgeWarning || (badges[item.id] && badges[item.id] !== 'dot')) return 2;
+    if (health?.state === 'syncing' || badges[item.id] === 'dot' || related.length) return 1;
     return 0;
   };
 
