@@ -323,3 +323,41 @@ html body .app-shell[data-route] .bes-top-chrome[data-bes-pinned-hub='true'][dat
     width: calc(100% - 16px) !important;
   }
 }
+
+
+/* Brian classroom presentation privacy contract.
+   Quick Access owns the session switch; the shared hub reacts without changing
+   the signed-in user's permissions or persisted account configuration. */
+html[data-brian-classroom-mode='true'] body .app-shell[data-route] .brian-nav__reports-tab,
+html[data-brian-classroom-mode='true'] body .app-shell[data-route] .brian-nav__ttcm-tab,
+html[data-brian-classroom-mode='true'] body .app-shell[data-route] .brian-nav__bell,
+html[data-brian-classroom-mode='true'] body .app-shell[data-route] .brian-nav__notifications,
+html[data-brian-classroom-mode='true'] body .app-shell[data-route] .brian-notification-center,
+html[data-brian-classroom-mode='true'] body .app-shell[data-route] .brian-nav__account-menu {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+html[data-brian-classroom-mode='true'] body .app-shell[data-route] .brian-nav__ttcm-badge,
+html[data-brian-classroom-mode='true'] body .app-shell[data-route] .brian-nav__reports-countdown {
+  display: none !important;
+}
+
+html[data-brian-classroom-mode='true'] body .app-shell[data-route] .brian-nav__account {
+  min-width: 46px !important;
+  width: 46px !important;
+  grid-template-columns: 36px !important;
+  gap: 0 !important;
+  padding: 4px 5px !important;
+  overflow: hidden !important;
+}
+
+html[data-brian-classroom-mode='true'] body .app-shell[data-route] .brian-nav__account > strong,
+html[data-brian-classroom-mode='true'] body .app-shell[data-route] .brian-nav__account > i {
+  display: none !important;
+}
+
+html[data-brian-classroom-mode='true'] body .app-shell[data-route] .brian-nav__actions {
+  gap: 6px !important;
+}
