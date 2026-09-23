@@ -1109,13 +1109,19 @@ export default function GlobalQuickAccessRail({
         ? Math.max(0, window.innerWidth - Number(event?.clientX || window.innerWidth))
         : Math.max(0, Number(event?.clientX || 0));
       const strength = Math.max(0, Math.min(1, 1 - (distance / 32)));
-      rootRef.current?.style.setProperty('--bqa-magnetic', strength.toFixed(3));
+      const root = rootRef.current;
+      root?.style.setProperty('--bqa-magnetic', strength.toFixed(3));
+      root?.style.setProperty('--bqa-magnetic-alpha', (0.42 + (strength * 0.5)).toFixed(3));
+      root?.style.setProperty('--bqa-magnetic-scale', (1 + (strength * 1.35)).toFixed(3));
     });
   };
 
   const resetMagneticEdge = () => {
     window.cancelAnimationFrame(magneticFrameRef.current);
-    rootRef.current?.style.setProperty('--bqa-magnetic', '0');
+    const root = rootRef.current;
+    root?.style.setProperty('--bqa-magnetic', '0');
+    root?.style.setProperty('--bqa-magnetic-alpha', '0.48');
+    root?.style.setProperty('--bqa-magnetic-scale', '1');
   };
 
   const activateItem = (item, sourceEl) => {
