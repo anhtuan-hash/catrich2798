@@ -231,6 +231,56 @@ test.describe('Global Quick Access safe area', () => {
     await expect(page.locator('.bqa-action-sheet [role="menuitem"]').first()).toBeVisible();
   });
 
+  test('V3.3: app switcher opens from keyboard and supports arrow navigation', async ({ page }) => {
+    await page.goto('/#/apps');
+    await expect(page.locator('.bqa-root')).toBeVisible();
+
+    await page.keyboard.press('Alt+Shift+Q');
+    const switcher = page.locator('.bqa-app-switcher');
+    await expect(switcher).toBeVisible();
+
+    const cards = page.locator('.bqa-app-switcher-grid > button');
+    await expect(cards.first()).toBeVisible();
+    const count = await cards.count();
+    expect(count).toBeGreaterThan(0);
+
+    await page.keyboard.press('ArrowRight');
+    await expect(cards.nth(Math.min(1, count - 1))).toHaveClass(/is-active/);
+    await page.keyboard.press('Escape');
+    await expect(switcher).toBeHidden();
+  });
+
+  test('V3.3: personalization applies size and side without changing global typography', async ({ page }) => {
+    await page.goto('/#/apps');
+    await expect(page.locator('.bqa-root')).toBeVisible();
+    await page.locator('.bqa-rail').hover();
+    await expect(page.locator('.bqa-root')).toHaveClass(/is-open/);
+
+    await page.locator('.bqa-panel-footer > button').click();
+    const appearance = page.locator('.bqa-customizer-appearance');
+    await expect(appearance).toBeVisible();
+
+    const rows = appearance.locator('.bqa-appearance-row');
+    await rows.nth(0).getByRole('button').filter({ hasText: /Lớn|Large/ }).click();
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-rail-size', 'large');
+
+    await rows.nth(1).getByRole('button').filter({ hasText: /Phải|Right/ }).click();
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-rail-side', 'right');
+
+    const fontContract = await page.locator('.bqa-root').evaluate((root) => ({
+      inline: root.style.fontFamily,
+      computed: getComputedStyle(root).fontFamily,
+      shell: getComputedStyle(document.querySelector('.app-shell')).fontFamily,
+    }));
+    expect(fontContract.computed).toBe(fontContract.shell);
+
+    // Restore defaults so this cloud-synced preference cannot affect later cases.
+    await rows.nth(0).getByRole('button').filter({ hasText: /Chuẩn|Standard/ }).click();
+    await rows.nth(1).getByRole('button').filter({ hasText: /Trái|Left/ }).click();
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-rail-size', 'standard');
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-rail-side', 'left');
+  });
+
   test('Dashboard: collapsed Quick Access panel leaves no visible ghost beside the rail', async ({ page }) => {
     await page.goto('/#/dashboard');
     await expect(page.locator('.bqa-root')).toBeVisible();
