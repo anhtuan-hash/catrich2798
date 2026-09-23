@@ -810,8 +810,9 @@ export default function GlobalQuickAccessRail({
     <>
       <div
         ref={rootRef}
-        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${customizing ? 'is-customizing' : ''}`}
+        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${focusMode ? 'is-focus' : ''} ${customizing ? 'is-customizing' : ''}`}
         data-quick-access="true"
+        data-sidebar-mode={sidebarMode}
         data-motion={collapsing ? 'collapsing' : (expanded ? 'open' : 'rest')}
         data-route={currentRoute}
         onPointerEnter={enter}
@@ -863,9 +864,23 @@ export default function GlobalQuickAccessRail({
                   title={labelFor(item, language)}
                   aria-label={labelFor(item, language)}
                   aria-current={active ? 'page' : undefined}
+                  onPointerEnter={(event) => showPeek(item, event.currentTarget)}
+                  onPointerLeave={hidePeek}
+                  onFocus={(event) => showPeek(item, event.currentTarget)}
+                  onBlur={hidePeek}
+                  onContextMenu={(event) => {
+                    event.preventDefault();
+                    setPeekItemId('');
+                    setActionItemId(item.id);
+                  }}
                   onClick={(event) => activateItem(item, event.currentTarget)}
                 >
                   <Icon size={20} strokeWidth={2} aria-hidden="true" />
+                  {badges[item.id] ? (
+                    <span className={`bqa-rail-badge ${badges[item.id] === 'dot' ? 'is-dot' : ''}`}>
+                      {badges[item.id] === 'dot' ? '' : badges[item.id]}
+                    </span>
+                  ) : null}
                 </button>
               );
             })}
