@@ -1911,8 +1911,33 @@ export default function GlobalQuickAccessRail({
     if (panelRef.current) panelRef.current.scrollTop = 0;
   };
 
+  const updateRouteWorkspaceMemory = (contextKey, nextWorkspace) => {
+    const safeWorkspace = QUICK_ACCESS_WORKSPACES.includes(nextWorkspace) ? nextWorkspace : 'all';
+    setRouteWorkspaceMemory((current) => {
+      const next = { ...current, [contextKey]: safeWorkspace };
+      saveQuickAccessContextMemory(currentUser, next);
+      return next;
+    });
+  };
+
+  const clearRouteWorkspaceMemory = () => {
+    setRouteWorkspaceMemory({});
+    saveQuickAccessContextMemory(currentUser, {});
+  };
+
+  const setContextMemoryEnabled = (enabled) => {
+    const nextEnabled = Boolean(enabled);
+    if (nextEnabled) {
+      updateRouteWorkspaceMemory(routeContextKey, workspace);
+      persist({ ...config, contextMemory: true });
+      return;
+    }
+    persist({ ...config, contextMemory: false, workspace });
+  };
+
   const setWorkspace = (nextWorkspace) => {
     const safeWorkspace = QUICK_ACCESS_WORKSPACES.includes(nextWorkspace) ? nextWorkspace : 'all';
+    if (contextMemoryEnabled) updateRouteWorkspaceMemory(routeContextKey, safeWorkspace);
     if (spatialMemoryEnabled) updateSpatialMemory({ workspace: safeWorkspace });
     else persist({ ...config, workspace: safeWorkspace });
     setQuickCreateOpen(false);
