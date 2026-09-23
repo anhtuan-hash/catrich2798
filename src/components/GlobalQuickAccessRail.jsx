@@ -2290,6 +2290,7 @@ export default function GlobalQuickAccessRail({
         data-side={railSide}
         data-theme-style={visualTheme}
         data-labels={showLabels ? 'show' : 'hide'}
+        data-spatial-memory={spatialMemoryEnabled ? 'true' : 'false'}
         data-time-aware={timeAwareEnabled ? 'true' : 'false'}
         data-time-band={timeContext.id}
         style={{ '--bqa-magnet': magneticStrength }}
@@ -2592,6 +2593,17 @@ export default function GlobalQuickAccessRail({
           className="bqa-panel"
           onPointerEnter={openRail}
           onMouseEnter={openRail}
+          onScroll={(event) => {
+            if (!spatialMemoryEnabled || typeof window === 'undefined') return;
+            const top = Math.max(0, Number(event.currentTarget.scrollTop) || 0);
+            const key = spatialContextKey(currentRoute, selectedTool, workspace);
+            window.clearTimeout(spatialScrollTimerRef.current);
+            spatialScrollTimerRef.current = window.setTimeout(() => {
+              updateSpatialMemory((current) => ({
+                scroll: { ...(current.scroll || {}), [key]: top },
+              }));
+            }, 120);
+          }}
           aria-hidden={!expanded}
           inert={expanded ? undefined : true}
           onAnimationEnd={(event) => {
@@ -3343,7 +3355,7 @@ export default function GlobalQuickAccessRail({
                 <span>{language === 'vi' ? 'Vị trí' : 'Side'}</span>
                 <div className="bqa-segmented">
                   {QUICK_ACCESS_SIDES.map((side) => (
-                    <button type="button" key={side} className={railSide === side ? 'is-active' : ''} onClick={() => updatePersonalization({ side })}>
+                    <button type="button" key={side} className={railSide === side ? 'is-active' : ''} onClick={() => setRailSide(side)}>
                       {side === 'left' ? (language === 'vi' ? 'Trái' : 'Left') : (language === 'vi' ? 'Phải' : 'Right')}
                     </button>
                   ))}
@@ -3375,6 +3387,21 @@ export default function GlobalQuickAccessRail({
                 <span>{language === 'vi' ? 'Ưu tiên theo thời gian' : 'Time-aware priorities'}</span>
                 <input type="checkbox" checked={timeAwareEnabled} onChange={(event) => updatePersonalization({ timeAware: event.target.checked })} />
               </label>
+
+              <div className="bqa-spatial-control">
+                <label className="bqa-personalize-toggle">
+                  <span>
+                    {language === 'vi' ? 'Ghi nhớ bố cục trên thiết bị' : 'Remember layout on this device'}
+                    <small>{language === 'vi' ? 'Vị trí · không gian · ứng dụng cuối · độ cuộn' : 'Side · workspace · last app · scroll position'}</small>
+                  </span>
+                  <input type="checkbox" checked={spatialMemoryEnabled} onChange={(event) => setSpatialMemoryEnabled(event.target.checked)} />
+                </label>
+                {spatialMemoryEnabled ? (
+                  <button type="button" onClick={clearDeviceSpatialMemory}>
+                    {language === 'vi' ? 'Quên bố cục thiết bị' : 'Forget device layout'}
+                  </button>
+                ) : null}
+              </div>
             </section>
 
             <div className="bqa-customizer-selected">
