@@ -1622,7 +1622,11 @@ export default function GlobalQuickAccessRail({
         : 'Notifications, badges and administrative tools are hidden for safer presenting.',
     }
     : contextCopyFor(currentRoute, selectedTool, language);
+  const lastSpatialItem = spatialMemoryEnabled
+    ? presentationCatalog.find((item) => item.id === deviceSpatial.lastItemId && workspaceAllowsItem(effectiveWorkspace, item)) || null
+    : null;
   const workingItem = workspaceItems.find((item) => activeItem(item, currentRoute, selectedTool))
+    || lastSpatialItem
     || contextItems[0]
     || recentItems[0]
     || workspaceItems[0]
