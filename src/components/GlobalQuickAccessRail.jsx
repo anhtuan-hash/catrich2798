@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useSta
 import { createPortal } from 'react-dom';
 import {
   AppWindow,
+  Bell,
   BookOpenCheck,
   Boxes,
   CalendarDays,
@@ -580,6 +581,8 @@ export default function GlobalQuickAccessRail({
   const [actionItemId, setActionItemId] = useState('');
   const [actionTop, setActionTop] = useState(118);
   const [badges, setBadges] = useState({});
+  const [notifications, setNotifications] = useState([]);
+  const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
   const [capsules, setCapsules] = useState({});
   const [capsuleItemId, setCapsuleItemId] = useState('');
   const [capsuleTop, setCapsuleTop] = useState(120);
@@ -756,6 +759,58 @@ export default function GlobalQuickAccessRail({
       window.removeEventListener('bes-quick-access-badges', onBadgeEvent);
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const normalizeNotification = (detail = {}) => {
+      const id = String(detail.notificationId || detail.id || '').trim();
+      if (!id) return null;
+      const itemId = String(detail.itemId || '').trim();
+      return {
+        id,
+        itemId,
+        title: String(detail.title || (language === 'vi' ? 'Cập nhật mới' : 'New update')).trim(),
+        text: String(detail.text || detail.message || detail.status || '').trim(),
+        tone: ['info', 'success', 'warning', 'danger'].includes(String(detail.tone || '').toLowerCase())
+          ? String(detail.tone).toLowerCase()
+          : 'info',
+        updatedAt: Number(detail.updatedAt) || Date.now(),
+        source: 'custom',
+      };
+    };
+
+    const applyNotification = (detail = {}) => {
+      const id = String(detail.notificationId || detail.id || '').trim();
+      if (!id) return;
+      if (detail.clear === true || detail.state === 'clear') {
+        setNotifications((current) => current.filter((entry) => entry.id !== id));
+        return;
+      }
+      const next = normalizeNotification(detail);
+      if (!next) return;
+      setNotifications((current) => [
+        next,
+        ...current.filter((entry) => entry.id !== next.id),
+      ].sort((a, b) => Number(b.updatedAt || 0) - Number(a.updatedAt || 0)).slice(0, 20));
+    };
+
+    const onNotification = (event) => applyNotification(event?.detail || {});
+    const previousApi = window.BrianQuickAccessNotifications;
+    window.BrianQuickAccessNotifications = {
+      push: (detail = {}) => window.dispatchEvent(new CustomEvent('bes-quick-access-notification', { detail })),
+      clear: (id) => window.dispatchEvent(new CustomEvent('bes-quick-access-notification', { detail: { id, clear: true } })),
+      clearAll: () => setNotifications([]),
+    };
+
+    window.addEventListener('bes-quick-access-notification', onNotification);
+    return () => {
+      window.removeEventListener('bes-quick-access-notification', onNotification);
+      if (window.BrianQuickAccessNotifications === previousApi) return;
+      if (previousApi) window.BrianQuickAccessNotifications = previousApi;
+      else delete window.BrianQuickAccessNotifications;
+    };
+  }, [language]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -1334,6 +1389,61 @@ export default function GlobalQuickAccessRail({
     .slice(0, QUICK_ACCESS_RESUME_MAX);
   const primaryResume = resumableItems[0] || null;
 
+  const notificationItems = (() => {
+    const byId = new Map();
+    notifications.forEach((entry) => byId.set(`custom:${entry.id}`, entry));
+
+    liveActivities.forEach((activity) => {
+      if (!['complete', 'error'].includes(activity.state)) return;
+      const item = catalog.find((candidate) => candidate.id === activity.itemId);
+      byId.set(`activity:${activity.id}`, {
+        id: `activity:${activity.id}`,
+        itemId: activity.itemId,
+        title: activity.title || labelFor(item, language),
+        text: activity.status || (activity.state === 'complete'
+          ? (language === 'vi' ? 'Đã hoàn tất' : 'Completed')
+          : (language === 'vi' ? 'Có lỗi cần kiểm tra' : 'Needs attention')),
+        tone: activity.state === 'error' ? 'danger' : 'success',
+        updatedAt: activity.updatedAt,
+        source: 'activity',
+      });
+    });
+
+    Object.values(capsules).forEach((capsule) => {
+      byId.set(`capsule:${capsule.itemId}`, {
+        id: `capsule:${capsule.itemId}`,
+        itemId: capsule.itemId,
+        title: capsule.label || labelFor(catalog.find((item) => item.id === capsule.itemId), language),
+        text: capsule.text,
+        tone: capsule.tone || 'info',
+        updatedAt: capsule.updatedAt,
+        source: 'capsule',
+      });
+    });
+
+    Object.entries(badges).forEach(([itemId, value]) => {
+      const item = catalog.find((candidate) => candidate.id === itemId);
+      if (!item) return;
+      byId.set(`badge:${itemId}`, {
+        id: `badge:${itemId}`,
+        itemId,
+        title: labelFor(item, language),
+        text: value === 'dot'
+          ? (language === 'vi' ? 'Có cập nhật mới' : 'New update available')
+          : (language === 'vi' ? `${value} mục cần chú ý` : `${value} items need attention`),
+        tone: 'warning',
+        updatedAt: 0,
+        source: 'badge',
+      });
+    });
+
+    return [...byId.values()]
+      .filter((entry) => !entry.itemId || catalog.some((item) => item.id === entry.itemId))
+      .sort((a, b) => Number(b.updatedAt || 0) - Number(a.updatedAt || 0))
+      .slice(0, 8);
+  })();
+  const notificationCount = notificationItems.length;
+
   const capsuleSnapshotFor = (item) => {
     if (!item) return null;
     const activity = liveActivities.find((entry) => entry.itemId === item.id);
@@ -1567,6 +1677,13 @@ export default function GlobalQuickAccessRail({
     setCommandPaletteQuery('');
     setCommandPaletteIndex(0);
     executeCommand(entry, sourceEl);
+  };
+
+  const openNotification = (entry, sourceEl = null) => {
+    if (!entry) return;
+    const item = catalog.find((candidate) => candidate.id === entry.itemId);
+    if (item) activateItem(item, sourceEl);
+    setNotificationCenterOpen(false);
   };
 
   const navigateBackEntry = (entry, index = 0, sourceEl = null) => {
@@ -1897,6 +2014,25 @@ export default function GlobalQuickAccessRail({
             </button>
           ) : null}
 
+          {notificationCount ? (
+            <button
+              type="button"
+              className={`bqa-rail-notifications ${notificationCenterOpen ? 'is-active' : ''}`}
+              title={language === 'vi' ? 'Thông báo' : 'Notifications'}
+              aria-label={language === 'vi' ? `Thông báo: ${notificationCount}` : `Notifications: ${notificationCount}`}
+              aria-expanded={notificationCenterOpen}
+              onClick={() => {
+                openRail();
+                setQuickCreateOpen(false);
+                setBackStackOpen(false);
+                setNotificationCenterOpen((value) => !value);
+              }}
+            >
+              <Bell size={17} aria-hidden="true" />
+              <span>{notificationCount > 9 ? '9+' : notificationCount}</span>
+            </button>
+          ) : null}
+
           <button
             type="button"
             className="bqa-rail-settings"
@@ -2018,6 +2154,40 @@ export default function GlobalQuickAccessRail({
               </button>
             ))}
           </nav>
+
+          {notificationCenterOpen ? (
+            <section className="bqa-notification-center" aria-label={language === 'vi' ? 'Trung tâm thông báo' : 'Notification center'}>
+              <header>
+                <span><Bell size={14} aria-hidden="true" />{language === 'vi' ? 'Thông báo' : 'Notifications'}</span>
+                <div>
+                  <b>{notificationCount}</b>
+                  <button type="button" onClick={() => setNotificationCenterOpen(false)} aria-label={language === 'vi' ? 'Đóng thông báo' : 'Close notifications'}><X size={14} aria-hidden="true" /></button>
+                </div>
+              </header>
+              <div className="bqa-notification-list">
+                {notificationItems.map((entry) => {
+                  const item = catalog.find((candidate) => candidate.id === entry.itemId);
+                  const Icon = item?.icon || Bell;
+                  return (
+                    <button
+                      type="button"
+                      key={entry.id}
+                      className={`bqa-notification-row is-${entry.tone || 'info'}`}
+                      onClick={(event) => openNotification(entry, event.currentTarget)}
+                    >
+                      <span className="bqa-notification-icon" style={{ '--bqa-accent': item?.accent || '#2e6fae' }}><Icon size={16} aria-hidden="true" /></span>
+                      <span className="bqa-notification-copy">
+                        <strong>{entry.title}</strong>
+                        <small>{entry.text || (language === 'vi' ? 'Mở để xem chi tiết' : 'Open for details')}</small>
+                      </span>
+                      <ChevronRight size={14} aria-hidden="true" />
+                    </button>
+                  );
+                })}
+              </div>
+              <footer>{language === 'vi' ? 'Chỉ hiển thị các cập nhật bạn có quyền truy cập.' : 'Only updates you are allowed to access are shown.'}</footer>
+            </section>
+          ) : null}
 
           <label className="bqa-command-search" data-bes-keep-search="true">
             <Search size={17} aria-hidden="true" />
