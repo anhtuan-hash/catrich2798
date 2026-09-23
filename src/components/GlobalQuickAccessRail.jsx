@@ -831,9 +831,13 @@ export default function GlobalQuickAccessRail({
       window.cancelAnimationFrame(layoutFrameRef.current);
       layoutFrameRef.current = window.requestAnimationFrame(() => {
         const coarsePointer = window.matchMedia?.('(pointer: coarse)')?.matches === true;
-        const reserveMode = window.innerWidth >= QUICK_ACCESS_SAFE_AREA_MIN_WIDTH && !coarsePointer;
+        const rightSide = railSide === 'right';
+        const reserveMode = !rightSide && window.innerWidth >= QUICK_ACCESS_SAFE_AREA_MIN_WIDTH && !coarsePointer;
         shell.dataset.quickAccessSafeMode = reserveMode ? 'reserve' : 'overlay';
 
+        // The existing shell safe-frame contract reserves space from the left.
+        // Right-side Quick Access is intentionally overlay-only so switching sides
+        // can never shove Dashboard/heroes horizontally or create a false left gap.
         if (!reserveMode) {
           clearSafeArea();
           return;
@@ -938,6 +942,7 @@ export default function GlobalQuickAccessRail({
     currentRoute,
     selectedTool?.slug,
     pinned,
+    railSide,
     allowedKey,
     appVisibility?.ready,
   ]);
