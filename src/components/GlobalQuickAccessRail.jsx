@@ -2070,7 +2070,11 @@ export default function GlobalQuickAccessRail({
     const onKeyDown = (event) => {
       const tag = String(event.target?.tagName || '').toLowerCase();
       const editable = event.target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag);
-      setPrecisionDrag(event.key === 'Alt' || Boolean(event.altKey));
+      const altPressed = event.key === 'Alt'
+        || event.code === 'AltLeft'
+        || event.code === 'AltRight'
+        || Boolean(event.altKey);
+      if (altPressed) setPrecisionDrag(true);
       if (editable) return;
 
       if (event.altKey && !event.ctrlKey && !event.metaKey && String(event.key || '').toLowerCase() === 'k') {
@@ -2101,10 +2105,14 @@ export default function GlobalQuickAccessRail({
     const onBlur = () => setPrecisionDrag(false);
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
+    document.addEventListener('keydown', onKeyDown, true);
+    document.addEventListener('keyup', onKeyUp, true);
     window.addEventListener('blur', onBlur);
     return () => {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
+      document.removeEventListener('keydown', onKeyDown, true);
+      document.removeEventListener('keyup', onKeyUp, true);
       window.removeEventListener('blur', onBlur);
     };
   }, [keyboardLayer, openRail]);
@@ -2372,6 +2380,30 @@ export default function GlobalQuickAccessRail({
     : initialRailVisibleItems;
   const railVisibleIds = new Set(railVisibleItems.map((item) => item.id));
   const railOverflowItems = workspaceItems.filter((item) => !railVisibleIds.has(item.id));
+  const currentTrailItem = presentationCatalog.find((item) => activeItem(item, currentRoute, selectedTool)) || null;
+  const currentTrailEntry = currentTrailItem
+    ? {
+      itemId: currentTrailItem.id,
+      target: String(typeof window !== 'undefined' ? (window.location.hash || currentTrailItem.target || '') : (currentTrailItem.target || '')),
+      label: labelFor(currentTrailItem, language),
+      at: Date.now(),
+    }
+    : null;
+  const backStackTrailEntries = backStack
+    .map((entry) => {
+      const item = presentationCatalog.find((candidate) => String(candidate.target || '') === String(entry.target || ''));
+      return item ? {
+        itemId: item.id,
+        target: entry.target,
+        label: labelFor(item, language),
+        at: Number(entry.at) || Date.now(),
+      } : null;
+    })
+    .filter(Boolean);
+  const visualSessionTrail = [currentTrailEntry, ...sessionTrail, ...backStackTrailEntries]
+    .filter(Boolean)
+    .filter((entry, index, all) => all.findIndex((candidate) => candidate.itemId === entry.itemId && candidate.target === entry.target) === index)
+    .slice(0, QUICK_ACCESS_TRAIL_MAX);
 
   const recentItems = (config.recent || [])
     .map((id) => presentationCatalog.find((item) => item.id === id))
@@ -3757,7 +3789,7 @@ export default function GlobalQuickAccessRail({
         data-rail-capacity={railCapacity}
         data-overflow-count={railOverflowItems.length}
         data-bookmark-count={Object.keys(appBookmarks).length}
-        data-trail-count={sessionTrail.length}
+        data-trail-count={visualSessionTrail.length}
         data-command-drop={commandDropActive ? 'active' : 'idle'}
         data-precision-drag={precisionDrag ? 'true' : 'false'}
         data-keyboard-layer={keyboardLayer ? 'true' : 'false'}
@@ -3847,7 +3879,7 @@ export default function GlobalQuickAccessRail({
             </button>
           ) : null}
 
-          {!classroomMode && sessionTrail.length > 1 ? (
+          {!classroomMode && visualSessionTrail.length > 1 ? (
             <button
               type="button"
               className={`bqa-session-trail ${trailOpen ? 'is-active' : ''}`}
@@ -3863,7 +3895,7 @@ export default function GlobalQuickAccessRail({
               }}
             >
               <span className="bqa-trail-line" aria-hidden="true">
-                {sessionTrail.slice(0, QUICK_ACCESS_TRAIL_MAX).map((entry, index) => <i key={`${entry.itemId}-${entry.at}-${index}`} />)}
+                {visualSessionTrail.slice(0, QUICK_ACCESS_TRAIL_MAX).map((entry, index) => <i key={`${entry.itemId}-${entry.at}-${index}`} />)}
               </span>
             </button>
           ) : null}
@@ -3971,30 +4003,29 @@ export default function GlobalQuickAccessRail({
             </button>
           ) : null}
 
-          {precisionDrag ? (
-            <div
-              className={`bqa-command-drop-zone ${commandDropActive ? 'is-active' : ''}`}
-              role="button"
-              tabIndex={0}
-              aria-label={language === 'vi' ? 'Thả ứng dụng để thêm vào thanh bên' : 'Drop app to add to sidebar'}
-              onDragEnter={(event) => {
-                event.preventDefault();
-                setCommandDropActive(true);
-              }}
-              onDragOver={(event) => {
-                event.preventDefault();
-                event.dataTransfer.dropEffect = 'copy';
-                setCommandDropActive(true);
-              }}
-              onDragLeave={(event) => {
-                if (!event.currentTarget.contains(event.relatedTarget)) setCommandDropActive(false);
-              }}
-              onDrop={handleCommandDrop}
-            >
-              <Plus size={15} aria-hidden="true" />
-              <span>{language === 'vi' ? 'Thả app' : 'Drop app'}</span>
-            </div>
-          ) : null}
+          <div
+            className={`bqa-command-drop-zone ${precisionDrag ? 'is-precision-visible' : ''} ${commandDropActive ? 'is-active' : ''}`}
+            role="button"
+            tabIndex={precisionDrag || commandDropActive ? 0 : -1}
+            aria-hidden={!precisionDrag && !commandDropActive}
+            aria-label={language === 'vi' ? 'Thả ứng dụng để thêm vào thanh bên' : 'Drop app to add to sidebar'}
+            onDragEnter={(event) => {
+              event.preventDefault();
+              setCommandDropActive(true);
+            }}
+            onDragOver={(event) => {
+              event.preventDefault();
+              event.dataTransfer.dropEffect = 'copy';
+              setCommandDropActive(true);
+            }}
+            onDragLeave={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget)) setCommandDropActive(false);
+            }}
+            onDrop={handleCommandDrop}
+          >
+            <Plus size={15} aria-hidden="true" />
+            <span>{language === 'vi' ? 'Thả app' : 'Drop app'}</span>
+          </div>
 
           {!classroomMode ? (
             <button
@@ -4107,14 +4138,14 @@ export default function GlobalQuickAccessRail({
           </button>
         </aside>
 
-        {trailOpen && sessionTrail.length ? (
+        {trailOpen && visualSessionTrail.length ? (
           <section className="bqa-trail-popover" aria-label={language === 'vi' ? 'Dấu vết phiên làm việc' : 'Session trail'}>
             <header>
               <span>{language === 'vi' ? 'Phiên hiện tại' : 'Current session'}</span>
-              <small>{sessionTrail.length}</small>
+              <small>{visualSessionTrail.length}</small>
             </header>
             <div>
-              {sessionTrail.map((entry, index) => {
+              {visualSessionTrail.map((entry, index) => {
                 const item = presentationCatalog.find((candidate) => candidate.id === entry.itemId);
                 const Icon = item?.icon || Clock3;
                 return (
