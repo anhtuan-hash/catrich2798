@@ -411,6 +411,7 @@ function runAction(item, sourceEl) {
 }
 
 const QUICK_ACCESS_HISTORY_MAX = 6;
+const QUICK_ACCESS_RESUME_MAX = 4;
 
 function quickAccessHistoryUserKey(user) {
   return String(user?.id || user?.authId || user?.email || 'guest').trim().toLowerCase();
@@ -441,6 +442,35 @@ function saveQuickAccessHistory(user, entries) {
     );
   } catch {
     // Session history is best effort.
+  }
+}
+
+function quickAccessResumeStorageKey(user) {
+  return `bes-quick-access-resume:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessResume(user) {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = JSON.parse(window.localStorage?.getItem(quickAccessResumeStorageKey(user)) || '[]');
+    return (Array.isArray(raw) ? raw : [])
+      .filter((entry) => entry && typeof entry.id === 'string' && typeof entry.itemId === 'string')
+      .sort((a, b) => Number(b.updatedAt || 0) - Number(a.updatedAt || 0))
+      .slice(0, QUICK_ACCESS_RESUME_MAX);
+  } catch {
+    return [];
+  }
+}
+
+function saveQuickAccessResume(user, entries) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage?.setItem(
+      quickAccessResumeStorageKey(user),
+      JSON.stringify((Array.isArray(entries) ? entries : []).slice(0, QUICK_ACCESS_RESUME_MAX)),
+    );
+  } catch {
+    // Resume persistence is best effort.
   }
 }
 
@@ -537,6 +567,7 @@ export default function GlobalQuickAccessRail({
   const [quickCreateOpen, setQuickCreateOpen] = useState(false);
   const [backStack, setBackStack] = useState(() => loadQuickAccessHistory(currentUser));
   const [backStackOpen, setBackStackOpen] = useState(false);
+  const [resumeItems, setResumeItems] = useState(() => loadQuickAccessResume(currentUser));
   const [appSwitcherOpen, setAppSwitcherOpen] = useState(false);
   const [appSwitcherIndex, setAppSwitcherIndex] = useState(0);
   const [magneticStrength, setMagneticStrength] = useState(0);
@@ -825,7 +856,102 @@ export default function GlobalQuickAccessRail({
   useEffect(() => {
     setBackStack(loadQuickAccessHistory(currentUser));
     setBackStackOpen(false);
+    setResumeItems(loadQuickAccessResume(currentUser));
   }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const normalizeResume = (detail = {}) => {
+      const id = String(detail.resumeId || detail.id || detail.itemId || '').trim();
+      const itemId = String(detail.itemId || '').trim();
+      if (!id || !itemId) return null;
+      const numericProgress = Number(detail.progress);
+      const rawEvent = String(detail.event || detail.resumeEvent || '').trim();
+      const rawDetail = detail.resumeDetail && typeof detail.resumeDetail === 'object'
+        ? detail.resumeDetail
+        : (detail.detail && typeof detail.detail === 'object' ? detail.detail : {});
+      return {
+        id,
+        itemId,
+        title: String(detail.title || (language === 'vi' ? 'Tiếp tục công việc' : 'Resume work')).trim(),
+        subtitle: String(detail.subtitle || detail.status || '').trim(),
+        progress: Number.isFinite(numericProgress) ? Math.max(0, Math.min(100, numericProgress)) : null,
+        event: rawEvent,
+        detail: rawDetail,
+        updatedAt: Number(detail.updatedAt) || Date.now(),
+      };
+    };
+
+    const commitResume = (updater) => {
+      setResumeItems((current) => {
+        const next = typeof updater === 'function' ? updater(current) : updater;
+        const normalized = (Array.isArray(next) ? next : [])
+          .sort((a, b) => Number(b.updatedAt || 0) - Number(a.updatedAt || 0))
+          .slice(0, QUICK_ACCESS_RESUME_MAX);
+        saveQuickAccessResume(currentUser, normalized);
+        return normalized;
+      });
+    };
+
+    const applyResume = (detail = {}) => {
+      const id = String(detail.resumeId || detail.id || detail.itemId || '').trim();
+      if (!id) return;
+      if (detail.clear === true || detail.state === 'clear') {
+        commitResume((current) => current.filter((entry) => entry.id !== id));
+        return;
+      }
+      const next = normalizeResume(detail);
+      if (!next) return;
+      commitResume((current) => [
+        next,
+        ...current.filter((entry) => entry.id !== next.id),
+      ]);
+    };
+
+    const onResume = (event) => applyResume(event?.detail || {});
+    const onActivityResume = (event) => {
+      const detail = event?.detail && typeof event.detail === 'object' ? event.detail : {};
+      const itemId = String(detail.itemId || '').trim();
+      if (!itemId) return;
+      const activityId = `activity:${String(detail.id || itemId)}`;
+      const state = String(detail.state || 'running').toLowerCase();
+      if (detail.clear === true || ['clear', 'complete'].includes(state)) {
+        applyResume({ id: activityId, clear: true });
+        return;
+      }
+      if (state !== 'running') return;
+      applyResume({
+        id: activityId,
+        itemId,
+        title: detail.title,
+        subtitle: detail.status,
+        progress: detail.progress,
+      });
+    };
+
+    const previousApi = window.BrianQuickAccessResume;
+    window.BrianQuickAccessResume = {
+      set: (detail = {}) => window.dispatchEvent(new CustomEvent('bes-quick-access-resume', { detail })),
+      clear: (id) => window.dispatchEvent(new CustomEvent('bes-quick-access-resume', { detail: { id, clear: true } })),
+      list: () => loadQuickAccessResume(currentUser),
+    };
+
+    window.addEventListener('bes-quick-access-resume', onResume);
+    window.addEventListener('bes-quick-access-activity', onActivityResume);
+    return () => {
+      window.removeEventListener('bes-quick-access-resume', onResume);
+      window.removeEventListener('bes-quick-access-activity', onActivityResume);
+      if (window.BrianQuickAccessResume === previousApi) return;
+      if (previousApi) window.BrianQuickAccessResume = previousApi;
+      else delete window.BrianQuickAccessResume;
+    };
+  }, [
+    currentUser?.id,
+    currentUser?.authId,
+    currentUser?.email,
+    language,
+  ]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -1167,6 +1293,12 @@ export default function GlobalQuickAccessRail({
     .filter((item) => !recentItems.some((recent) => recent.id === item.id))
     .slice(0, 3);
   const primaryActivity = liveActivities[0] || null;
+  const resumableItems = resumeItems
+    .map((resume) => ({ resume, item: catalog.find((item) => item.id === resume.itemId) }))
+    .filter((entry) => Boolean(entry.item))
+    .slice(0, QUICK_ACCESS_RESUME_MAX);
+  const primaryResume = resumableItems[0] || null;
+
   const capsuleSnapshotFor = (item) => {
     if (!item) return null;
     const activity = liveActivities.find((entry) => entry.itemId === item.id);
@@ -1387,6 +1519,23 @@ export default function GlobalQuickAccessRail({
       sourceEl,
       meta: { source: 'quick-access-back-stack' },
     });
+  };
+
+  const dismissResume = (id) => {
+    const next = resumeItems.filter((entry) => entry.id !== id);
+    setResumeItems(next);
+    saveQuickAccessResume(currentUser, next);
+  };
+
+  const resumeTask = (entry, sourceEl = null) => {
+    if (!entry?.resume || !entry?.item) return;
+    const { resume, item } = entry;
+    activateItem(item, sourceEl);
+    if (resume.event && typeof window !== 'undefined') {
+      window.setTimeout(() => {
+        window.dispatchEvent(new CustomEvent(resume.event, { detail: resume.detail || {} }));
+      }, 360);
+    }
   };
 
   const removeItem = (id) => {
@@ -1801,6 +1950,40 @@ export default function GlobalQuickAccessRail({
                   <span>{contextCopy.description}</span>
                 </span>
               </div>
+
+              {primaryResume ? (
+                <section className="bqa-resume-card" data-session-resume="true">
+                  <span className="bqa-resume-icon" style={{ '--bqa-accent': primaryResume.item.accent }}>
+                    {React.createElement(primaryResume.item.icon || Boxes, { size: 18, 'aria-hidden': true })}
+                  </span>
+                  <span className="bqa-resume-copy">
+                    <small>{language === 'vi' ? 'TIẾP TỤC' : 'RESUME'}</small>
+                    <strong>{primaryResume.resume.title}</strong>
+                    <span>{primaryResume.resume.subtitle || labelFor(primaryResume.item, language)}</span>
+                  </span>
+                  {primaryResume.resume.progress != null ? (
+                    <span className="bqa-resume-progress">
+                      <i style={{ width: `${primaryResume.resume.progress}%` }} />
+                      <b>{Math.round(primaryResume.resume.progress)}%</b>
+                    </span>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="bqa-resume-go"
+                    onClick={(event) => resumeTask(primaryResume, event.currentTarget)}
+                  >
+                    {language === 'vi' ? 'Tiếp tục' : 'Resume'} <ChevronRight size={13} aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    className="bqa-resume-dismiss"
+                    onClick={() => dismissResume(primaryResume.resume.id)}
+                    aria-label={language === 'vi' ? 'Ẩn công việc này' : 'Dismiss this task'}
+                  >
+                    <X size={12} aria-hidden="true" />
+                  </button>
+                </section>
+              ) : null}
 
               <div className="bqa-smart-stack" data-smart-stack="true">
                 {workingItem ? (
