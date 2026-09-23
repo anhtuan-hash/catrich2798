@@ -931,7 +931,18 @@ test.describe('Global Quick Access safe area', () => {
       );
     });
     await page.goto('/#/apps');
-    await page.keyboard.down('Alt');
+    await expect(page.locator('.bqa-rail')).toBeVisible();
+
+    await page.evaluate(() => {
+      const rail = document.querySelector('.bqa-rail');
+      const transfer = new DataTransfer();
+      transfer.setData('application/x-brian-app-id', 'tool:textlab-activities');
+      transfer.setData('application/x-brian-quick-access-item', 'tool:textlab-activities');
+      transfer.setData('text/plain', 'tool:textlab-activities');
+      rail.dispatchEvent(new DragEvent('dragenter', { bubbles: true, cancelable: true, altKey: true, dataTransfer: transfer }));
+      rail.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, altKey: true, dataTransfer: transfer }));
+    });
+
     const zone = page.locator('.bqa-command-drop-zone');
     await expect(zone).toBeVisible();
 
@@ -941,9 +952,8 @@ test.describe('Global Quick Access safe area', () => {
       transfer.setData('application/x-brian-app-id', 'tool:textlab-activities');
       transfer.setData('application/x-brian-quick-access-item', 'tool:textlab-activities');
       transfer.setData('text/plain', 'tool:textlab-activities');
-      zone.dispatchEvent(new DragEvent('dragenter', { bubbles: true, cancelable: true, dataTransfer: transfer }));
-      zone.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: transfer }));
-      zone.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: transfer }));
+      zone.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, altKey: true, dataTransfer: transfer }));
+      zone.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, altKey: true, dataTransfer: transfer }));
     });
 
     await expect.poll(async () => page.evaluate(() => {
@@ -954,7 +964,6 @@ test.describe('Global Quick Access safe area', () => {
         return false;
       }
     })).toBe(true);
-    await page.keyboard.up('Alt');
   });
 
   test('V6.10: Visual Session Trail records navigation and returns to an earlier app', async ({ page }) => {
