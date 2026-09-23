@@ -86,7 +86,7 @@ export function createDefaultQuickAccessConfig(allowedIds = []) {
   const preferred = DEFAULT_QUICK_ACCESS_IDS.filter((id) => !allowed.size || allowed.has(id));
   const fallback = (Array.isArray(allowedIds) ? allowedIds : []).filter((id) => !preferred.includes(id));
   return {
-    version: 8,
+    version: 9,
     items: [...preferred, ...fallback].slice(0, QUICK_ACCESS_MAX_ITEMS),
     recent: [],
     workspace: 'all',
@@ -101,6 +101,7 @@ export function createDefaultQuickAccessConfig(allowedIds = []) {
     workflows: [],
     timeAware: true,
     spatialMemory: true,
+    contextMemory: true,
     pinned: false,
     updatedAt: 0,
   };
@@ -137,8 +138,9 @@ export function normalizeQuickAccessConfig(raw, allowedIds = []) {
   const workflows = cleanWorkflows(source.workflows, allowedIds);
   const timeAware = source.timeAware !== false;
   const spatialMemory = source.spatialMemory !== false;
+  const contextMemory = source.contextMemory !== false;
   return {
-    version: 8,
+    version: 9,
     items: (hasExplicitItems ? items : defaults.items).slice(0, QUICK_ACCESS_MAX_ITEMS),
     recent,
     workspace,
@@ -153,6 +155,7 @@ export function normalizeQuickAccessConfig(raw, allowedIds = []) {
     workflows,
     timeAware,
     spatialMemory,
+    contextMemory,
     pinned: mode === 'pin',
     updatedAt: Number(source.updatedAt) || 0,
   };
