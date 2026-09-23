@@ -1748,7 +1748,7 @@ export default function GlobalQuickAccessRail({
     : [];
   const actionItem = presentationCatalog.find((item) => item.id === actionItemId) || null;
 
-  const availableItems = catalog.filter((item) => !config.items.includes(item.id));
+  const availableItems = (classroomMode ? presentationCatalog : catalog).filter((item) => !config.items.includes(item.id));
   const customizerNeedle = customizerQuery.trim().toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
   const filteredAvailableItems = customizerNeedle
     ? availableItems.filter((item) => {
@@ -2999,7 +2999,7 @@ export default function GlobalQuickAccessRail({
                           <span className="bqa-item-label">{labelFor(item, language)}</span>
                           <small>{language === 'vi' ? `Alt+${index + 1}` : `Alt+${index + 1}`}</small>
                         </span>
-                        {badges[item.id] ? (
+                        {!classroomMode && badges[item.id] ? (
                           <span className={`bqa-panel-badge ${badges[item.id] === 'dot' ? 'is-dot' : ''}`}>
                             {badges[item.id] === 'dot' ? '' : badges[item.id]}
                           </span>
