@@ -256,7 +256,7 @@ for (const token of [
   'bqa-session-trail',
   'bqa-trail-popover',
   'navigateSessionTrail',
-  'data-trail-count={sessionTrail.length}',
+  'data-trail-count={visualSessionTrail.length}',
   'data-rail-capacity={railCapacity}',
   'dataset.brianClassroomMode',
   'bes-classroom-presentation-mode',
