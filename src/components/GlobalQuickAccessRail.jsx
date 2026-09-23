@@ -43,6 +43,8 @@ import {
   QUICK_ACCESS_MOTIONS,
   QUICK_ACCESS_DENSITIES,
   QUICK_ACCESS_SIDES,
+  QUICK_ACCESS_WORKFLOW_MAX,
+  QUICK_ACCESS_WORKFLOW_STEPS_MAX,
   createDefaultQuickAccessConfig,
   loadQuickAccessConfig,
   loadQuickAccessConfigFromCloud,
@@ -414,6 +416,39 @@ function runAction(item, sourceEl) {
 const QUICK_ACCESS_HISTORY_MAX = 6;
 const QUICK_ACCESS_RESUME_MAX = 4;
 
+function quickAccessWorkflowRunStorageKey(user) {
+  return `bes-quick-access-workflow-run:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessWorkflowRun(user) {
+  if (typeof window === 'undefined') return null;
+  try {
+    const value = JSON.parse(window.sessionStorage?.getItem(quickAccessWorkflowRunStorageKey(user)) || 'null');
+    if (!value || typeof value !== 'object') return null;
+    const workflowId = String(value.workflowId || '').trim();
+    const nextIndex = Math.max(0, Number(value.nextIndex) || 0);
+    return workflowId ? { workflowId, nextIndex } : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveQuickAccessWorkflowRun(user, value) {
+  if (typeof window === 'undefined') return;
+  try {
+    if (!value?.workflowId) {
+      window.sessionStorage?.removeItem(quickAccessWorkflowRunStorageKey(user));
+      return;
+    }
+    window.sessionStorage?.setItem(
+      quickAccessWorkflowRunStorageKey(user),
+      JSON.stringify({ workflowId: String(value.workflowId), nextIndex: Math.max(0, Number(value.nextIndex) || 0) }),
+    );
+  } catch {
+    // Workflow run state is best effort.
+  }
+}
+
 function quickAccessHistoryUserKey(user) {
   return String(user?.id || user?.authId || user?.email || 'guest').trim().toLowerCase();
 }
@@ -569,6 +604,10 @@ export default function GlobalQuickAccessRail({
   const [commandPaletteQuery, setCommandPaletteQuery] = useState('');
   const [commandPaletteIndex, setCommandPaletteIndex] = useState(0);
   const [quickCreateOpen, setQuickCreateOpen] = useState(false);
+  const [workflowCenterOpen, setWorkflowCenterOpen] = useState(false);
+  const [workflowDraftName, setWorkflowDraftName] = useState('');
+  const [workflowDraftIds, setWorkflowDraftIds] = useState([]);
+  const [activeWorkflowRun, setActiveWorkflowRun] = useState(() => loadQuickAccessWorkflowRun(currentUser));
   const [backStack, setBackStack] = useState(() => loadQuickAccessHistory(currentUser));
   const [backStackOpen, setBackStackOpen] = useState(false);
   const [resumeItems, setResumeItems] = useState(() => loadQuickAccessResume(currentUser));
@@ -639,7 +678,7 @@ export default function GlobalQuickAccessRail({
   const showLabels = config.labels !== false;
   const pinned = sidebarMode === 'pin';
   const focusMode = sidebarMode === 'focus';
-  const expanded = hovered || pinned || customizing || notificationCenterOpen;
+  const expanded = hovered || pinned || customizing || notificationCenterOpen || workflowCenterOpen;
 
   const openRail = useCallback(() => {
     window.clearTimeout(closeTimerRef.current);
@@ -680,11 +719,11 @@ export default function GlobalQuickAccessRail({
   }, []);
 
   const collapseRail = useCallback((force = false) => {
-    if (!force && (pinned || customizing || notificationCenterOpen)) return;
+    if (!force && (pinned || customizing || notificationCenterOpen || workflowCenterOpen)) return;
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
 
-    if (hovered || pinned || customizing || notificationCenterOpen) {
+    if (hovered || pinned || customizing || notificationCenterOpen || workflowCenterOpen) {
       setCollapsing(true);
       setHovered(false);
       collapseMotionTimerRef.current = window.setTimeout(() => {
@@ -695,15 +734,15 @@ export default function GlobalQuickAccessRail({
 
     setHovered(false);
     setBackStackOpen(false);
-  }, [pinned, customizing, notificationCenterOpen, hovered]);
+  }, [pinned, customizing, notificationCenterOpen, workflowCenterOpen, hovered]);
 
   useEffect(() => {
-    if (!notificationCenterOpen || typeof window === 'undefined') return;
+    if ((!notificationCenterOpen && !workflowCenterOpen) || typeof window === 'undefined') return;
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
     setCollapsing(false);
     setHovered(true);
-  }, [notificationCenterOpen]);
+  }, [notificationCenterOpen, workflowCenterOpen]);
 
   useEffect(() => {
     if (!currentUser || !allowedIds.length) return undefined;
@@ -725,6 +764,13 @@ export default function GlobalQuickAccessRail({
       unsubscribe?.();
     };
   }, [currentUser?.id, currentUser?.authId, currentUser?.email, allowedKey]);
+
+  useEffect(() => {
+    setActiveWorkflowRun(loadQuickAccessWorkflowRun(currentUser));
+    setWorkflowCenterOpen(false);
+    setWorkflowDraftName('');
+    setWorkflowDraftIds([]);
+  }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
 
   useEffect(() => () => {
     window.clearTimeout(closeTimerRef.current);
@@ -1396,6 +1442,26 @@ export default function GlobalQuickAccessRail({
     .filter((entry) => Boolean(entry.item))
     .slice(0, QUICK_ACCESS_RESUME_MAX);
   const primaryResume = resumableItems[0] || null;
+  const workflowBundles = (Array.isArray(config.workflows) ? config.workflows : [])
+    .map((workflow) => ({
+      ...workflow,
+      items: workflow.itemIds
+        .map((id) => catalog.find((item) => item.id === id))
+        .filter(Boolean),
+    }))
+    .filter((workflow) => workflow.items.length)
+    .slice(0, QUICK_ACCESS_WORKFLOW_MAX);
+  const activeWorkflow = activeWorkflowRun
+    ? workflowBundles.find((workflow) => workflow.id === activeWorkflowRun.workflowId) || null
+    : null;
+  const activeWorkflowNextIndex = activeWorkflow
+    ? Math.min(activeWorkflow.items.length, Math.max(0, Number(activeWorkflowRun?.nextIndex) || 0))
+    : 0;
+  const activeWorkflowNextItem = activeWorkflow?.items?.[activeWorkflowNextIndex] || null;
+  const workflowCandidateItems = [
+    ...selectedItems,
+    ...catalog.filter((item) => !selectedItems.some((selected) => selected.id === item.id)),
+  ].slice(0, 18);
 
   const notificationItems = (() => {
     const byId = new Map();
@@ -1571,6 +1637,7 @@ export default function GlobalQuickAccessRail({
     const safeWorkspace = QUICK_ACCESS_WORKSPACES.includes(nextWorkspace) ? nextWorkspace : 'all';
     persist({ ...config, workspace: safeWorkspace });
     setQuickCreateOpen(false);
+    setWorkflowCenterOpen(false);
     setCommandQuery('');
     setCommandActiveIndex(0);
   };
@@ -1581,7 +1648,7 @@ export default function GlobalQuickAccessRail({
 
   const leave = () => {
     window.clearTimeout(closeTimerRef.current);
-    if (pinned || customizing || notificationCenterOpen) return;
+    if (pinned || customizing || notificationCenterOpen || workflowCenterOpen) return;
     closeTimerRef.current = window.setTimeout(() => collapseRail(false), 340);
   };
 
@@ -1727,6 +1794,68 @@ export default function GlobalQuickAccessRail({
     }
   };
 
+  const toggleWorkflowDraftItem = (itemId) => {
+    setWorkflowDraftIds((current) => {
+      if (current.includes(itemId)) return current.filter((id) => id !== itemId);
+      if (current.length >= QUICK_ACCESS_WORKFLOW_STEPS_MAX) return current;
+      return [...current, itemId];
+    });
+  };
+
+  const saveWorkflowBundle = () => {
+    if (!workflowDraftIds.length || workflowBundles.length >= QUICK_ACCESS_WORKFLOW_MAX) return;
+    const workflow = {
+      id: `workflow-${Date.now().toString(36)}`,
+      name: workflowDraftName.trim() || (language === 'vi' ? `Quy trình ${workflowBundles.length + 1}` : `Workflow ${workflowBundles.length + 1}`),
+      itemIds: workflowDraftIds.slice(0, QUICK_ACCESS_WORKFLOW_STEPS_MAX),
+    };
+    persist({ ...config, workflows: [...workflowBundles.map(({ id, name, itemIds }) => ({ id, name, itemIds })), workflow] });
+    setWorkflowDraftName('');
+    setWorkflowDraftIds([]);
+  };
+
+  const deleteWorkflowBundle = (workflowId) => {
+    const next = workflowBundles
+      .filter((workflow) => workflow.id !== workflowId)
+      .map(({ id, name, itemIds }) => ({ id, name, itemIds }));
+    persist({ ...config, workflows: next });
+    if (activeWorkflowRun?.workflowId === workflowId) {
+      setActiveWorkflowRun(null);
+      saveQuickAccessWorkflowRun(currentUser, null);
+    }
+  };
+
+  const runWorkflowStep = (workflow, index, sourceEl = null) => {
+    const item = workflow?.items?.[index];
+    if (!item) return;
+    const nextRun = { workflowId: workflow.id, nextIndex: index + 1 };
+    setActiveWorkflowRun(nextRun);
+    saveQuickAccessWorkflowRun(currentUser, nextRun);
+    setWorkflowCenterOpen(false);
+    collapseRail(true);
+    activateItem(item, sourceEl);
+  };
+
+  const startWorkflowBundle = (workflow, sourceEl = null) => {
+    if (!workflow?.items?.length) return;
+    runWorkflowStep(workflow, 0, sourceEl);
+  };
+
+  const continueWorkflowBundle = (sourceEl = null) => {
+    if (!activeWorkflow) return;
+    if (activeWorkflowNextIndex >= activeWorkflow.items.length) {
+      setActiveWorkflowRun(null);
+      saveQuickAccessWorkflowRun(currentUser, null);
+      return;
+    }
+    runWorkflowStep(activeWorkflow, activeWorkflowNextIndex, sourceEl);
+  };
+
+  const finishWorkflowBundle = () => {
+    setActiveWorkflowRun(null);
+    saveQuickAccessWorkflowRun(currentUser, null);
+  };
+
   const removeItem = (id) => {
     const next = config.items.filter((itemId) => itemId !== id);
     persist({ ...config, items: next });
@@ -1861,7 +1990,7 @@ export default function GlobalQuickAccessRail({
 
       <div
         ref={rootRef}
-        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${focusMode ? 'is-focus' : ''} ${customizing ? 'is-customizing' : ''} ${notificationCenterOpen ? 'is-alerts-open' : ''}`}
+        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${focusMode ? 'is-focus' : ''} ${customizing ? 'is-customizing' : ''} ${notificationCenterOpen ? 'is-alerts-open' : ''} ${workflowCenterOpen ? 'is-workflow-open' : ''}`}
         data-quick-access="true"
         data-sidebar-mode={sidebarMode}
         data-workspace={workspace}
@@ -1996,6 +2125,27 @@ export default function GlobalQuickAccessRail({
 
           <button
             type="button"
+            className={`bqa-rail-workflows ${workflowCenterOpen ? 'is-active' : ''} ${activeWorkflow ? 'has-active' : ''}`}
+            title={language === 'vi' ? 'Quy trình nhanh' : 'Workflow bundles'}
+            aria-label={language === 'vi' ? 'Mở quy trình nhanh' : 'Open workflow bundles'}
+            aria-expanded={workflowCenterOpen}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              window.clearTimeout(closeTimerRef.current);
+              setHovered(true);
+              setQuickCreateOpen(false);
+              setNotificationCenterOpen(false);
+              setBackStackOpen(false);
+              setWorkflowCenterOpen((value) => !value);
+            }}
+          >
+            <Boxes size={17} aria-hidden="true" />
+            {workflowBundles.length ? <span>{workflowBundles.length}</span> : null}
+          </button>
+
+          <button
+            type="button"
             className={`bqa-rail-create ${quickCreateOpen ? 'is-active' : ''}`}
             title={language === 'vi' ? 'Tạo nhanh' : 'Quick create'}
             aria-label={language === 'vi' ? 'Tạo nhanh' : 'Quick create'}
@@ -2003,6 +2153,8 @@ export default function GlobalQuickAccessRail({
             onClick={() => {
               openRail();
               setCommandQuery('');
+              setWorkflowCenterOpen(false);
+              setNotificationCenterOpen(false);
               setQuickCreateOpen((value) => !value);
             }}
           >
@@ -2037,6 +2189,7 @@ export default function GlobalQuickAccessRail({
                 setCollapsing(false);
                 setHovered(true);
                 setQuickCreateOpen(false);
+                setWorkflowCenterOpen(false);
                 setBackStackOpen(false);
                 setNotificationCenterOpen(true);
               }}
@@ -2053,6 +2206,8 @@ export default function GlobalQuickAccessRail({
             aria-label={language === 'vi' ? 'Tùy chỉnh lối tắt' : 'Customize shortcuts'}
             onClick={() => {
               setHovered(true);
+              setWorkflowCenterOpen(false);
+              setNotificationCenterOpen(false);
               setCustomizerQuery('');
               setCustomizing(true);
             }}
@@ -2167,6 +2322,146 @@ export default function GlobalQuickAccessRail({
               </button>
             </div>
           </header>
+
+          {workflowCenterOpen ? (
+            <section className="bqa-workflow-center" data-workflow-center="true" aria-label={language === 'vi' ? 'Quy trình nhanh' : 'Workflow bundles'}>
+              <header className="bqa-workflow-header">
+                <span><Boxes size={14} aria-hidden="true" />{language === 'vi' ? 'Quy trình nhanh' : 'Workflow bundles'}</span>
+                <div>
+                  <b>{workflowBundles.length}/{QUICK_ACCESS_WORKFLOW_MAX}</b>
+                  <button type="button" onClick={() => setWorkflowCenterOpen(false)} aria-label={language === 'vi' ? 'Đóng quy trình' : 'Close workflows'}>
+                    <X size={14} aria-hidden="true" />
+                  </button>
+                </div>
+              </header>
+
+              {activeWorkflow ? (
+                <div className="bqa-workflow-active" data-workflow-active="true">
+                  <div className="bqa-workflow-active-top">
+                    <span>
+                      <small>{language === 'vi' ? 'ĐANG CHẠY' : 'IN PROGRESS'}</small>
+                      <strong>{activeWorkflow.name}</strong>
+                    </span>
+                    <b>{activeWorkflowNextIndex}/{activeWorkflow.items.length}</b>
+                  </div>
+                  <div className="bqa-workflow-progress" aria-label={`${activeWorkflowNextIndex}/${activeWorkflow.items.length}`}>
+                    <i style={{ width: `${Math.round((activeWorkflowNextIndex / Math.max(activeWorkflow.items.length, 1)) * 100)}%` }} />
+                  </div>
+                  <div className="bqa-workflow-next">
+                    {activeWorkflowNextItem ? (
+                      <>
+                        <span style={{ '--bqa-accent': activeWorkflowNextItem.accent }}>
+                          {React.createElement(activeWorkflowNextItem.icon || Boxes, { size: 16, 'aria-hidden': true })}
+                        </span>
+                        <div>
+                          <small>{language === 'vi' ? 'BƯỚC TIẾP THEO' : 'NEXT STEP'}</small>
+                          <strong>{labelFor(activeWorkflowNextItem, language)}</strong>
+                        </div>
+                        <button type="button" onClick={(event) => continueWorkflowBundle(event.currentTarget)}>
+                          {language === 'vi' ? 'Mở' : 'Open'} <ChevronRight size={13} aria-hidden="true" />
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <span className="is-done"><Check size={16} aria-hidden="true" /></span>
+                        <div>
+                          <small>{language === 'vi' ? 'HOÀN TẤT' : 'COMPLETE'}</small>
+                          <strong>{language === 'vi' ? 'Đã đi hết quy trình' : 'Workflow completed'}</strong>
+                        </div>
+                        <button type="button" onClick={finishWorkflowBundle}>{language === 'vi' ? 'Xong' : 'Done'}</button>
+                      </>
+                    )}
+                  </div>
+                </div>
+              ) : null}
+
+              {workflowBundles.length ? (
+                <div className="bqa-workflow-list">
+                  {workflowBundles.map((workflow) => (
+                    <article className="bqa-workflow-card" key={workflow.id}>
+                      <div className="bqa-workflow-card-copy">
+                        <strong>{workflow.name}</strong>
+                        <small>{language === 'vi' ? `${workflow.items.length} bước` : `${workflow.items.length} steps`}</small>
+                      </div>
+                      <div className="bqa-workflow-sequence" aria-label={workflow.name}>
+                        {workflow.items.map((item, index) => (
+                          <span key={item.id} style={{ '--bqa-accent': item.accent }} title={labelFor(item, language)}>
+                            {React.createElement(item.icon || Boxes, { size: 14, 'aria-hidden': true })}
+                            <i>{index + 1}</i>
+                          </span>
+                        ))}
+                      </div>
+                      <div className="bqa-workflow-actions">
+                        <button type="button" className="is-start" onClick={(event) => startWorkflowBundle(workflow, event.currentTarget)}>
+                          <Zap size={13} aria-hidden="true" />{language === 'vi' ? 'Bắt đầu' : 'Start'}
+                        </button>
+                        <button type="button" onClick={() => deleteWorkflowBundle(workflow.id)} aria-label={language === 'vi' ? `Xóa ${workflow.name}` : `Delete ${workflow.name}`}>
+                          <X size={13} aria-hidden="true" />
+                        </button>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <div className="bqa-workflow-empty">
+                  <Boxes size={22} aria-hidden="true" />
+                  <strong>{language === 'vi' ? 'Chưa có quy trình nào' : 'No workflow bundles yet'}</strong>
+                  <span>{language === 'vi' ? 'Chọn nhiều công cụ bên dưới để tạo một luồng làm việc dùng lại.' : 'Select multiple tools below to create a reusable flow.'}</span>
+                </div>
+              )}
+
+              {workflowBundles.length < QUICK_ACCESS_WORKFLOW_MAX ? (
+                <div className="bqa-workflow-builder">
+                  <label>
+                    <span>{language === 'vi' ? 'Tên quy trình' : 'Workflow name'}</span>
+                    <input
+                      type="text"
+                      value={workflowDraftName}
+                      maxLength={42}
+                      onChange={(event) => setWorkflowDraftName(event.target.value)}
+                      placeholder={language === 'vi' ? 'Ví dụ: Buổi sáng' : 'Example: Morning routine'}
+                    />
+                  </label>
+                  <div className="bqa-workflow-builder-head">
+                    <span>{language === 'vi' ? 'Chọn các bước' : 'Choose steps'}</span>
+                    <b>{workflowDraftIds.length}/{QUICK_ACCESS_WORKFLOW_STEPS_MAX}</b>
+                  </div>
+                  <div className="bqa-workflow-picker">
+                    {workflowCandidateItems.map((item) => {
+                      const selected = workflowDraftIds.includes(item.id);
+                      const Icon = item.icon || Boxes;
+                      return (
+                        <button
+                          type="button"
+                          key={item.id}
+                          className={selected ? 'is-selected' : ''}
+                          aria-pressed={selected}
+                          onClick={() => toggleWorkflowDraftItem(item.id)}
+                        >
+                          <span style={{ '--bqa-accent': item.accent }}><Icon size={15} aria-hidden="true" /></span>
+                          <strong>{labelFor(item, language)}</strong>
+                          {selected ? <Check size={13} aria-hidden="true" /> : <Plus size={13} aria-hidden="true" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button
+                    type="button"
+                    className="bqa-workflow-save"
+                    disabled={!workflowDraftIds.length}
+                    onClick={saveWorkflowBundle}
+                  >
+                    <Plus size={14} aria-hidden="true" />
+                    {language === 'vi' ? 'Lưu quy trình' : 'Save workflow'}
+                  </button>
+                </div>
+              ) : (
+                <div className="bqa-workflow-limit">
+                  {language === 'vi' ? `Đã đạt giới hạn ${QUICK_ACCESS_WORKFLOW_MAX} quy trình.` : `You reached the ${QUICK_ACCESS_WORKFLOW_MAX}-workflow limit.`}
+                </div>
+              )}
+            </section>
+          ) : null}
 
           {backStackOpen && backStack.length ? (
             <section className="bqa-back-stack" aria-label={language === 'vi' ? 'Lịch sử điều hướng' : 'Navigation history'}>
