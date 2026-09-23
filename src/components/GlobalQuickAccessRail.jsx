@@ -732,6 +732,7 @@ export default function GlobalQuickAccessRail({
     if (typeof window === 'undefined') return undefined;
 
     const onNavigationStart = () => {
+      setSwitcherOpen(false);
       if (!pinned && !customizing) collapseRail(false);
     };
     const onShortcut = (event) => {
@@ -739,7 +740,57 @@ export default function GlobalQuickAccessRail({
       const editable = event.target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag);
       if (event.repeat) return;
 
-      if ((event.metaKey || event.ctrlKey) && !event.altKey && String(event.key || '').toLowerCase() === 'k') {
+      const key = String(event.key || '').toLowerCase();
+      if (switcherOpen) {
+        const items = switcherItemsRef.current || [];
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          setSwitcherOpen(false);
+          return;
+        }
+        if (items.length && ['ArrowRight', 'ArrowDown'].includes(event.key)) {
+          event.preventDefault();
+          setSwitcherIndex((index) => (index + 1) % items.length);
+          return;
+        }
+        if (items.length && ['ArrowLeft', 'ArrowUp'].includes(event.key)) {
+          event.preventDefault();
+          setSwitcherIndex((index) => (index - 1 + items.length) % items.length);
+          return;
+        }
+        if (items.length && event.key === 'Enter') {
+          event.preventDefault();
+          const item = items[Math.min(switcherIndex, items.length - 1)];
+          setSwitcherOpen(false);
+          if (item) activateItemRef.current?.(item, null);
+          return;
+        }
+      }
+
+      if (!editable && event.altKey && event.shiftKey && !event.ctrlKey && !event.metaKey && key === 'q') {
+        const items = switcherItemsRef.current || [];
+        if (items.length) {
+          event.preventDefault();
+          setSwitcherIndex(0);
+          setSwitcherOpen(true);
+          setQuickCreateOpen(false);
+          setPeekItemId('');
+          setActionItemId('');
+        }
+        return;
+      }
+
+      if (!editable && event.altKey && !event.shiftKey && !event.ctrlKey && !event.metaKey && key === '`') {
+        const items = switcherItemsRef.current || [];
+        if (items.length) {
+          event.preventDefault();
+          setSwitcherOpen(true);
+          setSwitcherIndex((index) => (index + 1) % items.length);
+        }
+        return;
+      }
+
+      if ((event.metaKey || event.ctrlKey) && !event.altKey && key === 'k') {
         event.preventDefault();
         openRail();
         window.setTimeout(() => commandInputRef.current?.focus(), 40);
@@ -756,7 +807,7 @@ export default function GlobalQuickAccessRail({
       }
 
       if (editable) return;
-      if (event.altKey && !event.ctrlKey && !event.metaKey && String(event.key || '').toLowerCase() === 'q') {
+      if (event.altKey && !event.shiftKey && !event.ctrlKey && !event.metaKey && key === 'q') {
         event.preventDefault();
         if (expanded && !pinned && !customizing) collapseRail(false);
         else openRail();
@@ -769,7 +820,7 @@ export default function GlobalQuickAccessRail({
       window.removeEventListener('bes-navigation-start', onNavigationStart);
       window.removeEventListener('keydown', onShortcut);
     };
-  }, [pinned, customizing, expanded, collapseRail, openRail]);
+  }, [pinned, customizing, expanded, switcherOpen, switcherIndex, collapseRail, openRail]);
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
@@ -936,6 +987,9 @@ export default function GlobalQuickAccessRail({
     .filter((item) => !recentItems.some((recent) => recent.id === item.id))
     .slice(0, 3);
   const primaryActivity = liveActivities[0] || null;
+  const switcherItems = [...new Map(
+    [...recentItems, ...workspaceItems].map((item) => [item.id, item]),
+  ).values()].slice(0, 6);
 
   const workspaceOptions = [
     { id: 'all', label: language === 'vi' ? 'Tất cả' : 'All' },
@@ -994,6 +1048,19 @@ export default function GlobalQuickAccessRail({
     });
   };
 
+  const setAppearancePatch = (patch) => {
+    persist({
+      ...config,
+      appearance: {
+        size: railSize,
+        side: railSide,
+        motion: motionProfile,
+        hoverDelay,
+        ...patch,
+      },
+    });
+  };
+
   const setWorkspace = (nextWorkspace) => {
     const safeWorkspace = QUICK_ACCESS_WORKSPACES.includes(nextWorkspace) ? nextWorkspace : 'all';
     persist({ ...config, workspace: safeWorkspace });
@@ -1009,7 +1076,7 @@ export default function GlobalQuickAccessRail({
   const leave = () => {
     window.clearTimeout(closeTimerRef.current);
     if (pinned || customizing) return;
-    closeTimerRef.current = window.setTimeout(() => collapseRail(false), 340);
+    closeTimerRef.current = window.setTimeout(() => collapseRail(false), hoverDelay);
   };
 
   const activateItem = (item, sourceEl) => {
@@ -1028,6 +1095,7 @@ export default function GlobalQuickAccessRail({
   };
 
   selectedItemsRef.current = workspaceItems;
+  switcherItemsRef.current = switcherItems;
   activateItemRef.current = activateItem;
 
   const setSidebarMode = (mode) => {
