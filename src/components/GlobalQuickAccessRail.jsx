@@ -1693,6 +1693,24 @@ export default function GlobalQuickAccessRail({
         ) : null}
       </div>
 
+      {appSwitcherOpen && switcherItems.length ? (
+        <div className="bqa-app-switcher" role="dialog" aria-label={language === 'vi' ? 'Chuyển ứng dụng nhanh' : 'Quick app switcher'}>
+          <div className="bqa-app-switcher-track">
+            {switcherItems.map((item, index) => {
+              const Icon = item.icon || Boxes;
+              const selected = index === (appSwitcherIndex % switcherItems.length);
+              return (
+                <div className={`bqa-app-switcher-item ${selected ? 'is-selected' : ''}`} key={item.id}>
+                  <span style={{ '--bqa-accent': item.accent }}><Icon size={23} aria-hidden="true" /></span>
+                  <strong>{labelFor(item, language)}</strong>
+                </div>
+              );
+            })}
+          </div>
+          <small>{language === 'vi' ? 'Giữ Alt + phím huyền để chuyển · thả Alt để mở' : 'Hold Alt + grave key to cycle · release Alt to open'}</small>
+        </div>
+      ) : null}
+
       {customizing ? (
         <div className="bqa-customizer-backdrop" role="presentation" onMouseDown={(event) => {
           if (event.target === event.currentTarget) { setCustomizerQuery(''); setCustomizing(false); }
@@ -1724,6 +1742,65 @@ export default function GlobalQuickAccessRail({
               <button type="button" className={sidebarMode === 'focus' ? 'is-active' : ''} onClick={() => setSidebarMode('focus')}>
                 <EyeOff size={17} aria-hidden="true" /><span><strong>Focus</strong><small>{language === 'vi' ? 'Chỉ hiện ở mép' : 'Edge only'}</small></span>
               </button>
+            </section>
+
+            <section className="bqa-personalize-panel" aria-label={language === 'vi' ? 'Cá nhân hóa thanh bên' : 'Personalize sidebar'}>
+              <header>
+                <strong>{language === 'vi' ? 'Cá nhân hóa' : 'Personalize'}</strong>
+                <span>{language === 'vi' ? 'Kích thước · chuyển động · vị trí · mật độ' : 'Size · motion · side · density'}</span>
+              </header>
+
+              <div className="bqa-personalize-row">
+                <span>{language === 'vi' ? 'Kích thước' : 'Size'}</span>
+                <div className="bqa-segmented">
+                  {QUICK_ACCESS_SIZES.map((size) => (
+                    <button type="button" key={size} className={railSize === size ? 'is-active' : ''} onClick={() => updatePersonalization({ size })}>{size.toUpperCase()}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bqa-personalize-row">
+                <span>{language === 'vi' ? 'Chuyển động' : 'Motion'}</span>
+                <div className="bqa-segmented">
+                  {QUICK_ACCESS_MOTIONS.map((motion) => (
+                    <button type="button" key={motion} className={motionMode === motion ? 'is-active' : ''} onClick={() => updatePersonalization({ motion })}>
+                      {motion === 'reduced' ? (language === 'vi' ? 'Giảm' : 'Reduced') : motion === 'normal' ? (language === 'vi' ? 'Chuẩn' : 'Normal') : (language === 'vi' ? 'Mượt' : 'Fluid')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bqa-personalize-row">
+                <span>{language === 'vi' ? 'Vị trí' : 'Side'}</span>
+                <div className="bqa-segmented">
+                  {QUICK_ACCESS_SIDES.map((side) => (
+                    <button type="button" key={side} className={railSide === side ? 'is-active' : ''} onClick={() => updatePersonalization({ side })}>
+                      {side === 'left' ? (language === 'vi' ? 'Trái' : 'Left') : (language === 'vi' ? 'Phải' : 'Right')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bqa-personalize-row">
+                <span>{language === 'vi' ? 'Mật độ' : 'Density'}</span>
+                <div className="bqa-segmented">
+                  {QUICK_ACCESS_DENSITIES.map((value) => (
+                    <button type="button" key={value} className={density === value ? 'is-active' : ''} onClick={() => updatePersonalization({ density: value })}>
+                      {value === 'compact' ? (language === 'vi' ? 'Gọn' : 'Compact') : (language === 'vi' ? 'Thoáng' : 'Comfort')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <label className="bqa-personalize-slider">
+                <span>{language === 'vi' ? 'Độ trễ mở mép' : 'Edge hover delay'} <b>{hoverDelay} ms</b></span>
+                <input type="range" min="80" max="700" step="20" value={hoverDelay} onChange={(event) => updatePersonalization({ hoverDelay: Number(event.target.value) })} />
+              </label>
+
+              <label className="bqa-personalize-toggle">
+                <span>{language === 'vi' ? 'Hiện nhãn hỗ trợ' : 'Show helper labels'}</span>
+                <input type="checkbox" checked={showLabels} onChange={(event) => updatePersonalization({ labels: event.target.checked })} />
+              </label>
             </section>
 
             <div className="bqa-customizer-selected">
