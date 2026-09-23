@@ -1643,7 +1643,7 @@ export default function GlobalQuickAccessRail({
       .sort((a, b) => Number(b.updatedAt || 0) - Number(a.updatedAt || 0))
       .slice(0, 8);
   })();
-  const notificationCount = notificationItems.length;
+  const notificationCount = classroomMode ? 0 : notificationItems.length;
 
   const capsuleSnapshotFor = (item) => {
     if (!item) return null;
@@ -2211,7 +2211,7 @@ export default function GlobalQuickAccessRail({
             <span aria-hidden="true">B</span>
           </button>
 
-          {backStack.length ? (
+          {!classroomMode && backStack.length ? (
             <button
               type="button"
               className={`bqa-rail-back ${backStackOpen ? 'is-active' : ''}`}
@@ -2280,7 +2280,7 @@ export default function GlobalQuickAccessRail({
                   onClick={(event) => activateItem(item, event.currentTarget)}
                 >
                   <Icon size={20} strokeWidth={2} aria-hidden="true" />
-                  {badges[item.id] ? (
+                  {!classroomMode && badges[item.id] ? (
                     <span className={`bqa-rail-badge ${badges[item.id] === 'dot' ? 'is-dot' : ''}`}>
                       {badges[item.id] === 'dot' ? '' : badges[item.id]}
                     </span>
@@ -2290,26 +2290,29 @@ export default function GlobalQuickAccessRail({
             })}
           </div>
 
-          <button
-            type="button"
-            className={`bqa-rail-workflows ${workflowCenterOpen ? 'is-active' : ''} ${activeWorkflow ? 'has-active' : ''}`}
-            title={language === 'vi' ? 'Quy trình nhanh' : 'Workflow bundles'}
-            aria-label={language === 'vi' ? 'Mở quy trình nhanh' : 'Open workflow bundles'}
-            aria-expanded={workflowCenterOpen}
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              window.clearTimeout(closeTimerRef.current);
-              setHovered(true);
-              setQuickCreateOpen(false);
-              setNotificationCenterOpen(false);
-              setBackStackOpen(false);
-              setWorkflowCenterOpen((value) => !value);
-            }}
-          >
-            <Boxes size={17} aria-hidden="true" />
-            {workflowBundles.length ? <span>{workflowBundles.length}</span> : null}
-          </button>
+          {!classroomMode ? (
+            <button
+              type="button"
+              className={`bqa-rail-workflows ${workflowCenterOpen ? 'is-active' : ''} ${activeWorkflow ? 'has-active' : ''}`}
+              title={language === 'vi' ? 'Quy trình nhanh' : 'Workflow bundles'}
+              aria-label={language === 'vi' ? 'Mở quy trình nhanh' : 'Open workflow bundles'}
+              aria-expanded={workflowCenterOpen}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                window.clearTimeout(closeTimerRef.current);
+                setHovered(true);
+                setQuickCreateOpen(false);
+                setNotificationCenterOpen(false);
+                setBackStackOpen(false);
+                setWorkflowCenterOpen((value) => !value);
+              }}
+            >
+              <Boxes size={17} aria-hidden="true" />
+              {workflowBundles.length ? <span>{workflowBundles.length}</span> : null}
+            </button>
+
+          ) : null}
 
           <button
             type="button"
@@ -2365,6 +2368,21 @@ export default function GlobalQuickAccessRail({
               <span>{notificationCount > 9 ? '9+' : notificationCount}</span>
             </button>
           ) : null}
+
+          <button
+            type="button"
+            className={`bqa-rail-classroom ${classroomMode ? 'is-active' : ''}`}
+            title={classroomMode
+              ? (language === 'vi' ? 'Thoát chế độ trình chiếu' : 'Exit presentation mode')
+              : (language === 'vi' ? 'Chế độ trình chiếu lớp học' : 'Classroom presentation mode')}
+            aria-label={classroomMode
+              ? (language === 'vi' ? 'Thoát chế độ trình chiếu lớp học' : 'Exit classroom presentation mode')
+              : (language === 'vi' ? 'Bật chế độ trình chiếu lớp học' : 'Enable classroom presentation mode')}
+            aria-pressed={classroomMode}
+            onClick={() => setClassroomPresentationMode(!classroomMode)}
+          >
+            <Presentation size={18} aria-hidden="true" />
+          </button>
 
           <button
             type="button"
@@ -2489,6 +2507,19 @@ export default function GlobalQuickAccessRail({
               </button>
             </div>
           </header>
+
+          {classroomMode ? (
+            <section className="bqa-classroom-banner" data-classroom-presentation="true">
+              <span className="bqa-classroom-banner-icon"><Presentation size={16} aria-hidden="true" /></span>
+              <span>
+                <small>{language === 'vi' ? 'ĐANG TRÌNH CHIẾU' : 'PRESENTATION MODE'}</small>
+                <strong>{language === 'vi' ? 'Chỉ hiển thị công cụ phù hợp trong lớp' : 'Only classroom-safe tools are visible'}</strong>
+              </span>
+              <button type="button" onClick={() => setClassroomPresentationMode(false)}>
+                {language === 'vi' ? 'Thoát' : 'Exit'}
+              </button>
+            </section>
+          ) : null}
 
           {workflowCenterOpen ? (
             <section className="bqa-workflow-center" data-workflow-center="true" aria-label={language === 'vi' ? 'Quy trình nhanh' : 'Workflow bundles'}>
