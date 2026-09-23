@@ -374,6 +374,46 @@ test.describe('Global Quick Access safe area', () => {
     await expect(page.locator('.bqa-rail-notifications')).toBeHidden();
   });
 
+  test('V4.8: workflow bundles persist selected steps and resume one step at a time', async ({ page }) => {
+    await page.goto('/#/apps');
+    await expect(page.locator('.bqa-root')).toBeVisible();
+
+    const workflowButton = page.locator('.bqa-rail-workflows');
+    await expect(workflowButton).toBeVisible();
+    await workflowButton.click();
+
+    const center = page.locator('.bqa-workflow-center');
+    await expect(center).toBeVisible();
+    await center.locator('input[type="text"]').fill('Buổi sáng');
+
+    const picker = center.locator('.bqa-workflow-picker');
+    await picker.getByRole('button', { name: /Dashboard/i }).click();
+    await picker.getByRole('button', { name: /Ứng dụng/i }).click();
+    await expect(center.locator('.bqa-workflow-builder-head')).toContainText('2/5');
+
+    await center.locator('.bqa-workflow-save').click();
+    const card = center.locator('.bqa-workflow-card').filter({ hasText: 'Buổi sáng' });
+    await expect(card).toBeVisible();
+    await expect(card).toContainText('2 bước');
+
+    await card.getByRole('button', { name: /Bắt đầu/i }).click();
+    await expect(page).toHaveURL(/#\/dashboard/);
+
+    await expect(page.locator('.bqa-root')).toBeVisible();
+    await page.locator('.bqa-rail-workflows').click();
+    const active = page.locator('.bqa-workflow-active');
+    await expect(active).toBeVisible();
+    await expect(active).toContainText('Buổi sáng');
+    await expect(active).toContainText('1/2');
+    await expect(active).toContainText('Ứng dụng');
+
+    const stored = await page.evaluate(() => {
+      const key = Object.keys(sessionStorage).find((candidate) => candidate.startsWith('bes-quick-access-workflow-run:'));
+      return key ? JSON.parse(sessionStorage.getItem(key) || 'null') : null;
+    });
+    expect(stored?.nextIndex).toBe(1);
+  });
+
   test('V3.3.1: right side is a true mirror with rail on the screen edge and panel expanding inward', async ({ page }) => {
     await page.goto('/#/dashboard');
     await expect(page.locator('.bqa-root')).toBeVisible();
