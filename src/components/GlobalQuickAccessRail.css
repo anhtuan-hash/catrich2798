@@ -4123,8 +4123,14 @@ body > .bqa-root[data-side="right"] {
 }
 
 .bqa-root.is-notification-center .bqa-notification-center {
-  opacity: 1;
-  visibility: visible;
+  display: flex !important;
+  min-height: 180px;
+  flex: 1 1 180px;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 4;
 }
 .bqa-root.is-notification-center .bqa-panel {
   visibility: visible !important;
