@@ -559,9 +559,11 @@ export default function GlobalQuickAccessRail({
       const inertAncestor = input?.closest?.('[inert]');
       if (input && !inertAncestor) {
         try { input.focus({ preventScroll: true }); } catch { input.focus?.(); }
-        if (document.activeElement === input) return;
       }
-      if (attempts < 8) window.setTimeout(tryFocus, 40);
+      // Opening the rail removes inert and runs motion/layout effects across a few
+      // frames. Re-assert focus briefly so Chromium/WebKit cannot hand focus back
+      // to the page body during that transition.
+      if (attempts < 12) window.setTimeout(tryFocus, 80);
     };
     window.requestAnimationFrame(tryFocus);
   }, []);
