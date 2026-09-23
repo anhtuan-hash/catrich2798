@@ -3152,3 +3152,66 @@ body > .bqa-root[data-side="right"] {
     display: none;
   }
 }
+
+
+/* Brian Quick Access V4.3 · interactive Quick Peek · 2026-09-23 */
+.bqa-peek-actions {
+  margin-top: 9px;
+  display: grid;
+  gap: 5px;
+}
+
+.bqa-peek-actions > button {
+  appearance: none;
+  width: 100%;
+  min-height: 34px;
+  display: grid;
+  grid-template-columns: 18px minmax(0,1fr) 14px;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  border: 1px solid rgba(118,157,196,.20);
+  border-radius: 10px;
+  color: #294e70;
+  background: rgba(245,250,255,.92);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 145ms cubic-bezier(.22,1,.36,1),
+    border-color 145ms ease,
+    background-color 145ms ease,
+    color 145ms ease;
+}
+
+.bqa-peek-actions > button:hover,
+.bqa-peek-actions > button:focus-visible {
+  transform: translateY(-1px);
+  border-color: rgba(64,126,191,.28);
+  color: #165fa9;
+  background: #edf6ff;
+  outline: none;
+}
+
+.bqa-peek-actions > button > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 9.8px;
+  font-weight: 760;
+}
+
+.bqa-peek-actions + .bqa-peek-open {
+  margin-top: 7px;
+}
+
+.bqa-root[data-motion-mode="reduced"] .bqa-peek-actions > button {
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bqa-peek-actions > button {
+    transition: none !important;
+  }
+}
