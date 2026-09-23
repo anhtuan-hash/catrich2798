@@ -85,6 +85,12 @@ for (const token of [
   'liveActivities',
   'BrianQuickAccessActivity',
   'bes-quick-access-activity',
+  'BrianQuickAccessCapsules',
+  'bes-quick-access-capsule',
+  'capsuleSnapshotFor',
+  'showCapsule',
+  'hideCapsule',
+  'bqa-status-capsule',
   'data-smart-stack="true"',
   'data-workspace={workspace}',
   'workspaceAllowsItem',
@@ -167,6 +173,11 @@ for (const token of [
   'Brian Quick Access V3.3 · magnetic reveal + app switcher + personalization',
   'Brian Quick Access V3.3.1 · true mirrored right-side layout',
   'Brian Quick Access V4.1 · Adaptive Dock',
+  'Brian Quick Access V4.2 · live status capsules',
+  '.bqa-status-capsule',
+  '.bqa-status-capsule-progress',
+  'bqa-capsule-in-left',
+  'bqa-capsule-in-right',
   '[data-adaptive-dock="true"]',
   '[data-dock-distance="0"]',
   '--bqa-dock-scale: 1.12',
@@ -222,4 +233,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access V4.1 adds fine-pointer Adaptive Dock proximity motion while preserving V3.3.1 true mirror geometry, safe-area behavior, permissions, custom fonts and reduced-motion fallbacks.');
+console.log('PASS: Quick Access V4.2 adds mirrored live status capsules and a public capsule event/API while preserving V4.1 Adaptive Dock, true mirror geometry, permissions, custom fonts and reduced-motion fallbacks.');
