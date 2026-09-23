@@ -5533,3 +5533,101 @@ html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-
 .bqa-root[data-context-memory="true"] .bqa-workspace-tabs {
   box-shadow: inset 0 -1px 0 rgba(64,111,172,.06);
 }
+
+
+/* Quick Access left-only + larger scrollbar hotfix · 2026-09-23
+   Keep the rail on the stable left-edge layout and make every useful scroll
+   surface substantially easier to see and drag on desktop. */
+.bqa-root {
+  right: auto;
+}
+
+.bqa-panel-list,
+.bqa-customizer-selected,
+.bqa-customizer-available,
+.bqa-command-results,
+.bqa-command-palette-results,
+.bqa-notification-center,
+.bqa-workflow-center,
+.bqa-workflow-picker,
+.bqa-back-stack {
+  scrollbar-gutter: stable;
+  scrollbar-width: auto;
+  scrollbar-color: rgba(74, 108, 154, .72) rgba(223, 232, 243, .58);
+}
+
+.bqa-panel-list::-webkit-scrollbar,
+.bqa-customizer-selected::-webkit-scrollbar,
+.bqa-customizer-available::-webkit-scrollbar,
+.bqa-command-results::-webkit-scrollbar,
+.bqa-command-palette-results::-webkit-scrollbar,
+.bqa-notification-center::-webkit-scrollbar,
+.bqa-workflow-center::-webkit-scrollbar,
+.bqa-workflow-picker::-webkit-scrollbar,
+.bqa-back-stack::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.bqa-panel-list::-webkit-scrollbar-track,
+.bqa-customizer-selected::-webkit-scrollbar-track,
+.bqa-customizer-available::-webkit-scrollbar-track,
+.bqa-command-results::-webkit-scrollbar-track,
+.bqa-command-palette-results::-webkit-scrollbar-track,
+.bqa-notification-center::-webkit-scrollbar-track,
+.bqa-workflow-center::-webkit-scrollbar-track,
+.bqa-workflow-picker::-webkit-scrollbar-track,
+.bqa-back-stack::-webkit-scrollbar-track {
+  margin-block: 4px;
+  border-radius: 999px;
+  background: rgba(223, 232, 243, .58);
+}
+
+.bqa-panel-list::-webkit-scrollbar-thumb,
+.bqa-customizer-selected::-webkit-scrollbar-thumb,
+.bqa-customizer-available::-webkit-scrollbar-thumb,
+.bqa-command-results::-webkit-scrollbar-thumb,
+.bqa-command-palette-results::-webkit-scrollbar-thumb,
+.bqa-notification-center::-webkit-scrollbar-thumb,
+.bqa-workflow-center::-webkit-scrollbar-thumb,
+.bqa-workflow-picker::-webkit-scrollbar-thumb,
+.bqa-back-stack::-webkit-scrollbar-thumb {
+  min-height: 56px;
+  border: 2px solid rgba(223, 232, 243, .72);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(93, 129, 180, .94), rgba(66, 101, 149, .94));
+  background-clip: padding-box;
+}
+
+.bqa-panel-list::-webkit-scrollbar-thumb:hover,
+.bqa-customizer-selected::-webkit-scrollbar-thumb:hover,
+.bqa-customizer-available::-webkit-scrollbar-thumb:hover,
+.bqa-command-results::-webkit-scrollbar-thumb:hover,
+.bqa-command-palette-results::-webkit-scrollbar-thumb:hover,
+.bqa-notification-center::-webkit-scrollbar-thumb:hover,
+.bqa-workflow-center::-webkit-scrollbar-thumb:hover,
+.bqa-workflow-picker::-webkit-scrollbar-thumb:hover,
+.bqa-back-stack::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(72, 111, 166, .98), rgba(52, 87, 137, .98));
+  background-clip: padding-box;
+}
+
+.bqa-panel-list::-webkit-scrollbar-thumb:active,
+.bqa-customizer-selected::-webkit-scrollbar-thumb:active,
+.bqa-customizer-available::-webkit-scrollbar-thumb:active,
+.bqa-command-results::-webkit-scrollbar-thumb:active,
+.bqa-command-palette-results::-webkit-scrollbar-thumb:active,
+.bqa-notification-center::-webkit-scrollbar-thumb:active,
+.bqa-workflow-center::-webkit-scrollbar-thumb:active,
+.bqa-workflow-picker::-webkit-scrollbar-thumb:active,
+.bqa-back-stack::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, rgba(56, 95, 151, 1), rgba(43, 76, 124, 1));
+  background-clip: padding-box;
+}
+
+/* Give the modal list a little breathing room so the larger thumb never
+   crowds row content. */
+.bqa-customizer-selected,
+.bqa-customizer-available {
+  padding-right: 4px;
+}
