@@ -3863,3 +3863,326 @@ body > .bqa-root[data-side="right"] {
     transition: none !important;
   }
 }
+
+
+/* Brian Quick Access V4.6 · notification center · 2026-09-23 */
+.bqa-rail-notifications {
+  appearance: none;
+  position: relative;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  margin: 3px auto 2px;
+  border: 1px solid rgba(91,134,179,.18);
+  border-radius: 12px;
+  color: #52708c;
+  background: rgba(244,249,253,.92);
+  box-shadow: 0 5px 14px rgba(45,81,116,.07);
+  cursor: pointer;
+  transition:
+    transform 150ms cubic-bezier(.22,1,.36,1),
+    color 150ms ease,
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.bqa-rail-notifications:hover,
+.bqa-rail-notifications:focus-visible,
+.bqa-rail-notifications.is-active {
+  color: #1f6fbc;
+  background: #eaf5ff;
+  box-shadow: 0 8px 18px rgba(42,95,147,.12);
+  outline: none;
+  transform: translate3d(calc(var(--bqa-dock-inward,1) * 1.5px),0,0) scale(1.04);
+}
+
+.bqa-rail-notifications > span {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  display: grid;
+  place-items: center;
+  border: 2px solid rgba(255,255,255,.98);
+  border-radius: 999px;
+  color: #fff;
+  background: #ef4c62;
+  box-shadow: 0 3px 8px rgba(188,45,67,.22);
+  font-size: 8px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.bqa-root[data-side="right"] .bqa-rail-notifications > span {
+  right: auto;
+  left: -4px;
+}
+
+.bqa-notification-center {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin: 7px 0 8px;
+  padding: 8px;
+  border: 1px solid rgba(112,151,191,.24);
+  border-radius: 15px;
+  color: #244563;
+  background:
+    radial-gradient(circle at 100% 0, rgba(228,237,255,.72), transparent 120px),
+    rgba(250,253,255,.98);
+  box-shadow: 0 10px 26px rgba(41,79,116,.09);
+  animation: bqa-notification-in 150ms cubic-bezier(.22,1,.36,1);
+}
+
+@keyframes bqa-notification-in {
+  from { opacity: 0; transform: translate3d(0,-4px,0) scale(.985); }
+  to { opacity: 1; transform: translate3d(0,0,0) scale(1); }
+}
+
+.bqa-notification-center > header {
+  min-height: 29px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 2px 7px 3px;
+}
+
+.bqa-notification-center > header > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #52728f;
+  font-size: 9.5px;
+  font-weight: 850;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.bqa-notification-center > header > div {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bqa-notification-center > header b {
+  min-width: 22px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  padding: 0 6px;
+  border-radius: 999px;
+  color: #286db1;
+  background: #eaf4ff;
+  font-size: 9px;
+}
+
+.bqa-notification-center > header button {
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  color: #71879c;
+  background: #edf4fa;
+  cursor: pointer;
+}
+
+.bqa-notification-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: 5px;
+  max-height: none;
+  overflow: auto;
+  scrollbar-width: thin;
+}
+
+.bqa-notification-row {
+  appearance: none;
+  min-height: 50px;
+  display: grid;
+  grid-template-columns: 32px minmax(0,1fr) 14px;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 7px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  color: #274865;
+  background: rgba(247,251,255,.82);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    transform 145ms cubic-bezier(.22,1,.36,1),
+    border-color 145ms ease,
+    background-color 145ms ease;
+}
+
+.bqa-notification-row:hover,
+.bqa-notification-row:focus-visible {
+  transform: translate3d(calc(var(--bqa-dock-inward,1) * 1px),0,0);
+  border-color: rgba(71,130,190,.22);
+  background: #eef7ff;
+  outline: none;
+}
+
+.bqa-notification-icon {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  color: var(--bqa-accent,#2e6fae);
+  background: color-mix(in srgb,var(--bqa-accent,#2e6fae) 10%,white);
+}
+
+.bqa-notification-row.is-warning .bqa-notification-icon {
+  color: #b87810;
+  background: #fff5dc;
+}
+
+.bqa-notification-row.is-danger .bqa-notification-icon {
+  color: #c6485c;
+  background: #ffedf0;
+}
+
+.bqa-notification-row.is-success .bqa-notification-icon {
+  color: #27855a;
+  background: #e9f8ef;
+}
+
+.bqa-notification-copy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.bqa-notification-copy strong,
+.bqa-notification-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bqa-notification-copy strong {
+  font-size: 10.4px;
+  font-weight: 800;
+}
+
+.bqa-notification-copy small {
+  color: #8296a8;
+  font-size: 8.9px;
+}
+
+.bqa-notification-center > footer {
+  margin-top: 7px;
+  padding: 7px 3px 1px;
+  border-top: 1px solid rgba(125,159,193,.14);
+  color: #8799aa;
+  font-size: 8.5px;
+  line-height: 1.35;
+}
+
+.bqa-root[data-motion-mode="reduced"] .bqa-notification-center,
+.bqa-root[data-motion-mode="reduced"] .bqa-notification-row,
+.bqa-root[data-motion-mode="reduced"] .bqa-rail-notifications {
+  animation: none !important;
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bqa-notification-center,
+  .bqa-notification-row,
+  .bqa-rail-notifications {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+
+/* V4.6 active surface owns the panel body so it cannot be flex-shrunk to zero. */
+.bqa-root.is-alerts-open .bqa-command-search,
+.bqa-root.is-alerts-open .bqa-command-results,
+.bqa-root.is-alerts-open .bqa-context-banner,
+.bqa-root.is-alerts-open .bqa-smart-stack,
+.bqa-root.is-alerts-open .bqa-live-activity,
+.bqa-root.is-alerts-open .bqa-panel-list,
+.bqa-root.is-alerts-open .bqa-resume-card,
+.bqa-root.is-alerts-open .bqa-back-stack,
+.bqa-root.is-alerts-open .bqa-quick-create-sheet {
+  display: none !important;
+}
+
+.bqa-root.is-alerts-open .bqa-notification-center {
+  display: flex !important;
+  position: absolute !important;
+  z-index: 12;
+  top: 78px;
+  right: 12px;
+  bottom: 72px;
+  left: 12px;
+  width: auto;
+  min-height: 180px;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  overflow: hidden;
+}
+.bqa-root.is-alerts-open .bqa-panel {
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translate3d(0, 0, 0) scale3d(1, 1, 1) !important;
+}
+
+.bqa-root[data-side="right"].is-alerts-open .bqa-panel {
+  transform: translate3d(0, 0, 0) scale3d(1, 1, 1) !important;
+}
+
+
+
+/* V4.6 notification popover escape hatch · keeps the center outside panel clipping. */
+.bqa-root.is-alerts-open > .bqa-notification-surface {
+  position: absolute !important;
+  z-index: 12;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: calc(var(--bqa-rail-width) + 8px) !important;
+  right: auto !important;
+  width: var(--bqa-panel-width) !important;
+  min-height: 0;
+  margin: 0;
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  overflow: hidden;
+}
+
+.bqa-root[data-side="right"].is-alerts-open > .bqa-notification-surface {
+  left: auto !important;
+  right: calc(var(--bqa-rail-width) + 8px) !important;
+}
+
+@media (max-width: 760px), (hover: none) {
+  .bqa-root.is-alerts-open > .bqa-notification-surface {
+    left: calc(var(--bqa-rail-width) + 6px) !important;
+    width: var(--bqa-panel-width) !important;
+  }
+
+  .bqa-root[data-side="right"].is-alerts-open > .bqa-notification-surface {
+    left: auto !important;
+    right: calc(var(--bqa-rail-width) + 6px) !important;
+  }
+}
+
+
