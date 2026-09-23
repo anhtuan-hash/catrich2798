@@ -259,6 +259,54 @@ test.describe('Global Quick Access safe area', () => {
     expect(state.headerOpacity).toBe(0);
   });
 
+  test('V3.3.1: right side is a true mirror with rail on the screen edge and panel expanding inward', async ({ page }) => {
+    await page.goto('/#/dashboard');
+    await expect(page.locator('.bqa-root')).toBeVisible();
+
+    await page.locator('.bqa-rail').hover();
+    await expect(page.locator('.bqa-root')).toHaveClass(/is-open/);
+    await page.locator('.bqa-rail-settings').click();
+    await expect(page.locator('.bqa-customizer')).toBeVisible();
+
+    const personalize = page.locator('.bqa-personalize-panel');
+    await expect(personalize).toBeVisible();
+    await personalize.getByRole('button', { name: 'Phải', exact: true }).click();
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-side', 'right');
+
+    await page.locator('.bqa-done').click();
+    await page.mouse.move(700, 700);
+    await page.waitForTimeout(650);
+
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-quick-access-safe-mode', 'overlay');
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-quick-access-safe-shift', '0');
+
+    await page.locator('.bqa-edge-trigger').hover({ force: true });
+    await page.waitForTimeout(420);
+    await expect(page.locator('.bqa-root')).toHaveClass(/is-open/);
+
+    const geometry = await page.evaluate(() => {
+      const rail = document.querySelector('.bqa-rail')?.getBoundingClientRect();
+      const panel = document.querySelector('.bqa-panel')?.getBoundingClientRect();
+      const trigger = document.querySelector('.bqa-edge-trigger')?.getBoundingClientRect();
+      return {
+        width: window.innerWidth,
+        rail: rail ? { left: rail.left, right: rail.right, width: rail.width } : null,
+        panel: panel ? { left: panel.left, right: panel.right, width: panel.width } : null,
+        trigger: trigger ? { left: trigger.left, right: trigger.right, width: trigger.width } : null,
+      };
+    });
+
+    expect(geometry.rail).not.toBeNull();
+    expect(geometry.panel).not.toBeNull();
+    expect(geometry.trigger).not.toBeNull();
+    expect(geometry.width - geometry.rail.right).toBeGreaterThanOrEqual(6);
+    expect(geometry.width - geometry.rail.right).toBeLessThanOrEqual(10);
+    expect(geometry.panel.right).toBeLessThanOrEqual(geometry.rail.left - 6);
+    expect(geometry.panel.left).toBeGreaterThanOrEqual(0);
+    expect(geometry.trigger.right).toBeGreaterThanOrEqual(geometry.width - 1);
+    expect(geometry.trigger.left).toBeGreaterThan(geometry.width - 30);
+  });
+
   test('pinned panel reflows content instead of covering it', async ({ page }) => {
     await page.goto('/#/apps');
     await expect(page.locator('.bqa-root')).toBeVisible();

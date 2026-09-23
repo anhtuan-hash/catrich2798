@@ -105,6 +105,7 @@ for (const token of [
   'data-motion-mode={motionMode}',
   'data-density={density}',
   'data-side={railSide}',
+  "const rightSide = railSide === 'right'",
   'bqa-app-switcher',
   'bqa-personalize-panel',
   'updatePersonalization',
@@ -160,6 +161,11 @@ for (const token of [
   'Brian Quick Access V3.1 · contextual smart stack + live activity',
   'Brian Quick Access V3.2 · workspaces + quick create + Command Search V2',
   'Brian Quick Access V3.3 · magnetic reveal + app switcher + personalization',
+  'Brian Quick Access V3.3.1 · true mirrored right-side layout',
+  'flex-direction: row-reverse',
+  'transform-origin: 100% 30px',
+  'bqa-peek-in-right',
+  'right: calc(var(--bqa-rail-width) + 16px)',
   '.bqa-app-switcher',
   '.bqa-personalize-panel',
   '[data-side="right"]',
@@ -207,4 +213,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access V3.3 adds magnetic edge reveal, Alt+grave app switching and persisted personalization while preserving V3.2 workspaces, Quick Create, command actions, permissions, font safety and safe-area behavior.');
+console.log('PASS: Quick Access V3.3.1 uses true mirrored right-side geometry with inward panel motion, right-edge reveal, mirrored peek/actions and overlay-only right safe-area while preserving all V3.3 capabilities.');
