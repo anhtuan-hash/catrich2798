@@ -3361,7 +3361,7 @@ export default function GlobalQuickAccessRail({
             <section className="bqa-personalize-panel" aria-label={language === 'vi' ? 'Cá nhân hóa thanh bên' : 'Personalize sidebar'}>
               <header>
                 <strong>{language === 'vi' ? 'Cá nhân hóa' : 'Personalize'}</strong>
-                <span>{language === 'vi' ? 'Giao diện · kích thước · chuyển động · vị trí · mật độ' : 'Theme · size · motion · side · density'}</span>
+                <span>{language === 'vi' ? 'Giao diện · kích thước · chuyển động · mật độ' : 'Theme · size · motion · density'}</span>
               </header>
 
               <div className="bqa-theme-picker" role="group" aria-label={language === 'vi' ? 'Giao diện thanh bên' : 'Sidebar theme'}>
