@@ -506,6 +506,58 @@ function saveQuickAccessWorkflowRun(user, value) {
   }
 }
 
+const QUICK_ACCESS_SPATIAL_SCROLL_MAX = 24;
+
+function quickAccessSpatialStorageKey(user) {
+  return `bes-quick-access-spatial-v1:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessSpatialMemory(user) {
+  const fallback = { workspace: '', side: '', lastItemId: '', scroll: {}, updatedAt: 0 };
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const raw = JSON.parse(window.localStorage?.getItem(quickAccessSpatialStorageKey(user)) || 'null');
+    if (!raw || typeof raw !== 'object') return fallback;
+    const scrollEntries = Object.entries(raw.scroll && typeof raw.scroll === 'object' ? raw.scroll : {})
+      .filter(([key, value]) => key && Number.isFinite(Number(value)))
+      .slice(-QUICK_ACCESS_SPATIAL_SCROLL_MAX);
+    return {
+      workspace: QUICK_ACCESS_WORKSPACES.includes(String(raw.workspace || '')) ? String(raw.workspace) : '',
+      side: QUICK_ACCESS_SIDES.includes(String(raw.side || '')) ? String(raw.side) : '',
+      lastItemId: String(raw.lastItemId || '').trim(),
+      scroll: Object.fromEntries(scrollEntries.map(([key, value]) => [key, Math.max(0, Number(value) || 0)])),
+      updatedAt: Number(raw.updatedAt) || 0,
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+function saveQuickAccessSpatialMemory(user, memory) {
+  if (typeof window === 'undefined') return;
+  try {
+    const scrollEntries = Object.entries(memory?.scroll && typeof memory.scroll === 'object' ? memory.scroll : {})
+      .filter(([key, value]) => key && Number.isFinite(Number(value)))
+      .slice(-QUICK_ACCESS_SPATIAL_SCROLL_MAX);
+    const safe = {
+      workspace: QUICK_ACCESS_WORKSPACES.includes(String(memory?.workspace || '')) ? String(memory.workspace) : '',
+      side: QUICK_ACCESS_SIDES.includes(String(memory?.side || '')) ? String(memory.side) : '',
+      lastItemId: String(memory?.lastItemId || '').trim(),
+      scroll: Object.fromEntries(scrollEntries.map(([key, value]) => [key, Math.max(0, Number(value) || 0)])),
+      updatedAt: Number(memory?.updatedAt) || Date.now(),
+    };
+    window.localStorage?.setItem(quickAccessSpatialStorageKey(user), JSON.stringify(safe));
+  } catch {
+    // Device-local spatial memory is best effort.
+  }
+}
+
+function spatialContextKey(currentRoute, selectedTool, workspace) {
+  const route = String(currentRoute || 'unknown').trim() || 'unknown';
+  const tool = String(selectedTool?.slug || '').trim();
+  return `${workspace || 'all'}:${route}${tool ? `:${tool}` : ''}`;
+}
+
 function quickAccessClassroomModeStorageKey(user) {
   return `bes-quick-access-classroom-mode:${quickAccessHistoryUserKey(user)}`;
 }
