@@ -2062,7 +2062,11 @@ export default function GlobalQuickAccessRail({
         </aside>
 
         {notificationCenterOpen ? (
-          <section className="bqa-notification-center bqa-notification-popover" aria-label={language === 'vi' ? 'Trung tâm thông báo' : 'Notification center'}>
+          <section
+          className="bqa-notification-center bqa-notification-surface"
+          data-global-motion-isolate="true"
+          aria-label={language === 'vi' ? 'Trung tâm thông báo' : 'Notification center'}
+        >
             <header>
               <span><Bell size={14} aria-hidden="true" />{language === 'vi' ? 'Thông báo' : 'Notifications'}</span>
               <div>
