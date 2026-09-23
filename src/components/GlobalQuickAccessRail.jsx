@@ -846,10 +846,24 @@ export default function GlobalQuickAccessRail({
 
   useEffect(() => {
     setActiveWorkflowRun(loadQuickAccessWorkflowRun(currentUser));
+    setClassroomMode(loadQuickAccessClassroomMode(currentUser));
     setWorkflowCenterOpen(false);
     setWorkflowDraftName('');
     setWorkflowDraftIds([]);
   }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined' || typeof window === 'undefined') return;
+    document.documentElement.dataset.brianClassroomMode = classroomMode ? 'true' : 'false';
+    saveQuickAccessClassroomMode(currentUser, classroomMode);
+    window.dispatchEvent(new CustomEvent('bes-classroom-presentation-mode', {
+      detail: { enabled: classroomMode, source: 'quick-access' },
+    }));
+  }, [classroomMode, currentUser?.id, currentUser?.authId, currentUser?.email]);
+
+  useEffect(() => () => {
+    if (typeof document !== 'undefined') delete document.documentElement.dataset.brianClassroomMode;
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
