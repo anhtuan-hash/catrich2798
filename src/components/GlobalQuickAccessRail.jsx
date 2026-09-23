@@ -698,6 +698,14 @@ export default function GlobalQuickAccessRail({
   }, [pinned, customizing, notificationCenterOpen, hovered]);
 
   useEffect(() => {
+    if (!notificationCenterOpen || typeof window === 'undefined') return;
+    window.clearTimeout(closeTimerRef.current);
+    window.clearTimeout(collapseMotionTimerRef.current);
+    setCollapsing(false);
+    setHovered(true);
+  }, [notificationCenterOpen]);
+
+  useEffect(() => {
     if (!currentUser || !allowedIds.length) return undefined;
     let alive = true;
 
