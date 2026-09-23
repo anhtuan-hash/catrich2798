@@ -462,7 +462,17 @@ export default function GlobalQuickAccessRail({
     const syncBadges = () => {
       window.cancelAnimationFrame(badgeFrameRef.current);
       badgeFrameRef.current = window.requestAnimationFrame(() => {
-        setBadges((current) => ({ ...current, ...readBadgeSnapshot() }));
+        const dom = readBadgeSnapshot();
+        setBadges((current) => {
+          const next = { ...current };
+          delete next['action:ttcm'];
+          delete next['action:reports'];
+          Object.assign(next, dom);
+          const currentKeys = Object.keys(current);
+          const nextKeys = Object.keys(next);
+          if (currentKeys.length === nextKeys.length && nextKeys.every((key) => current[key] === next[key])) return current;
+          return next;
+        });
       });
     };
     const onBadgeEvent = (event) => {
