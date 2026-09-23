@@ -184,6 +184,53 @@ test.describe('Global Quick Access safe area', () => {
     expect(state.width).toBeGreaterThanOrEqual(310);
   });
 
+  test('V2: command search opens with Ctrl/Cmd+K and returns apps', async ({ page }) => {
+    await page.goto('/#/apps');
+    await expect(page.locator('.bqa-root')).toBeVisible();
+    await page.keyboard.press(process.platform === 'darwin' ? 'Meta+K' : 'Control+K');
+
+    await expect(page.locator('.bqa-root')).toHaveClass(/is-open/);
+    const input = page.locator('.bqa-command-search input');
+    await expect(input).toBeFocused();
+    await input.fill('Dashboard');
+    await expect(page.locator('.bqa-command-result')).toContainText('Dashboard');
+  });
+
+  test('V2: Focus mode hides the resting rail and edge hover restores it', async ({ page }) => {
+    await page.goto('/#/apps');
+    await expect(page.locator('.bqa-root')).toBeVisible();
+    await page.locator('.bqa-rail').hover();
+    await expect(page.locator('.bqa-root')).toHaveClass(/is-open/);
+
+    await page.locator('.bqa-mode-switch button').nth(2).click();
+    await page.mouse.move(900, 700);
+    await page.waitForTimeout(500);
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-sidebar-mode', 'focus');
+
+    const resting = await page.locator('.bqa-rail').evaluate((rail) => {
+      const style = getComputedStyle(rail);
+      return { opacity: Number(style.opacity), transform: style.transform };
+    });
+    expect(resting.opacity).toBeLessThan(0.1);
+
+    await page.locator('.bqa-edge-trigger').hover({ force: true });
+    await expect(page.locator('.bqa-root')).toHaveClass(/is-open/);
+    await page.waitForTimeout(300);
+    const openedOpacity = await page.locator('.bqa-rail').evaluate((rail) => Number(getComputedStyle(rail).opacity));
+    expect(openedOpacity).toBeGreaterThan(0.95);
+  });
+
+  test('V2: quick actions are available from a shortcut row', async ({ page }) => {
+    await page.goto('/#/apps');
+    await page.locator('.bqa-rail').hover();
+    await expect(page.locator('.bqa-root')).toHaveClass(/is-open/);
+
+    const more = page.locator('.bqa-item-more').first();
+    await more.click();
+    await expect(page.locator('.bqa-action-sheet')).toBeVisible();
+    await expect(page.locator('.bqa-action-sheet [role="menuitem"]').first()).toBeVisible();
+  });
+
   test('Dashboard: collapsed Quick Access panel leaves no visible ghost beside the rail', async ({ page }) => {
     await page.goto('/#/dashboard');
     await expect(page.locator('.bqa-root')).toBeVisible();
