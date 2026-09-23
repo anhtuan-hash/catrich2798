@@ -765,6 +765,13 @@ export default function GlobalQuickAccessRail({
     };
   }, [currentUser?.id, currentUser?.authId, currentUser?.email, allowedKey]);
 
+  useEffect(() => {
+    setActiveWorkflowRun(loadQuickAccessWorkflowRun(currentUser));
+    setWorkflowCenterOpen(false);
+    setWorkflowDraftName('');
+    setWorkflowDraftIds([]);
+  }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
+
   useEffect(() => () => {
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
@@ -1435,6 +1442,22 @@ export default function GlobalQuickAccessRail({
     .filter((entry) => Boolean(entry.item))
     .slice(0, QUICK_ACCESS_RESUME_MAX);
   const primaryResume = resumableItems[0] || null;
+  const workflowBundles = (Array.isArray(config.workflows) ? config.workflows : [])
+    .map((workflow) => ({
+      ...workflow,
+      items: workflow.itemIds
+        .map((id) => catalog.find((item) => item.id === id))
+        .filter(Boolean),
+    }))
+    .filter((workflow) => workflow.items.length)
+    .slice(0, QUICK_ACCESS_WORKFLOW_MAX);
+  const activeWorkflow = activeWorkflowRun
+    ? workflowBundles.find((workflow) => workflow.id === activeWorkflowRun.workflowId) || null
+    : null;
+  const activeWorkflowNextIndex = activeWorkflow
+    ? Math.min(activeWorkflow.items.length, Math.max(0, Number(activeWorkflowRun?.nextIndex) || 0))
+    : 0;
+  const activeWorkflowNextItem = activeWorkflow?.items?.[activeWorkflowNextIndex] || null;
 
   const notificationItems = (() => {
     const byId = new Map();
@@ -1610,6 +1633,7 @@ export default function GlobalQuickAccessRail({
     const safeWorkspace = QUICK_ACCESS_WORKSPACES.includes(nextWorkspace) ? nextWorkspace : 'all';
     persist({ ...config, workspace: safeWorkspace });
     setQuickCreateOpen(false);
+    setWorkflowCenterOpen(false);
     setCommandQuery('');
     setCommandActiveIndex(0);
   };
