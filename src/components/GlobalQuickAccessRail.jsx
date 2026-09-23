@@ -522,7 +522,7 @@ function loadQuickAccessSpatialMemory(user) {
       .slice(-QUICK_ACCESS_SPATIAL_SCROLL_MAX);
     return {
       workspace: QUICK_ACCESS_WORKSPACES.includes(String(raw.workspace || '')) ? String(raw.workspace) : '',
-      side: QUICK_ACCESS_SIDES.includes(String(raw.side || '')) ? String(raw.side) : '',
+      side: 'left',
       lastItemId: String(raw.lastItemId || '').trim(),
       scroll: Object.fromEntries(scrollEntries.map(([key, value]) => [key, Math.max(0, Number(value) || 0)])),
       updatedAt: Number(raw.updatedAt) || 0,
@@ -540,7 +540,7 @@ function saveQuickAccessSpatialMemory(user, memory) {
       .slice(-QUICK_ACCESS_SPATIAL_SCROLL_MAX);
     const safe = {
       workspace: QUICK_ACCESS_WORKSPACES.includes(String(memory?.workspace || '')) ? String(memory.workspace) : '',
-      side: QUICK_ACCESS_SIDES.includes(String(memory?.side || '')) ? String(memory.side) : '',
+      side: 'left',
       lastItemId: String(memory?.lastItemId || '').trim(),
       scroll: Object.fromEntries(scrollEntries.map(([key, value]) => [key, Math.max(0, Number(value) || 0)])),
       updatedAt: Number(memory?.updatedAt) || Date.now(),
@@ -1354,9 +1354,7 @@ export default function GlobalQuickAccessRail({
     const openDistance = 9;
     const onPointerMove = (event) => {
       if (customizing || pinned) return;
-      const distance = railSide === 'right'
-        ? Math.max(0, window.innerWidth - Number(event.clientX || 0))
-        : Math.max(0, Number(event.clientX || 0));
+      const distance = Math.max(0, Number(event.clientX || 0));
       if (distance > maxDistance) {
         setMagneticStrength((current) => current === 0 ? current : 0);
         window.clearTimeout(magneticTimerRef.current);
@@ -1374,7 +1372,7 @@ export default function GlobalQuickAccessRail({
       window.removeEventListener('pointermove', onPointerMove);
       window.clearTimeout(magneticTimerRef.current);
     };
-  }, [railSide, hoverDelay, customizing, pinned, openRail]);
+  }, [hoverDelay, customizing, pinned, openRail]);
 
   useEffect(() => {
     if (!customizing) return undefined;
