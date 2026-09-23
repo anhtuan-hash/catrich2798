@@ -9,7 +9,7 @@ const footer = await readFile(new URL('../src/components/FooterDashboardMockup.c
 
 for (const token of [
   "chrome.dataset.dashboardStaticChrome = 'true'",
-  "style.setProperty('position', 'static', 'important')",
+  "style.setProperty('position', 'relative', 'important')",
   "style.setProperty('top', 'auto', 'important')",
   "style.setProperty('transform', 'none', 'important')",
 ]) {
@@ -19,7 +19,8 @@ for (const token of [
 for (const token of [
   'Mockup Parity V11',
   '[data-dashboard-static-chrome="true"]',
-  'position: static !important',
+  'position: relative !important',
+  'overflow: visible !important',
   '--dashboard-shell-width: min(1520px, calc(100% - clamp(32px, 6vw, 96px)))',
   'width: var(--dashboard-shell-width) !important',
   'will-change: auto !important',
