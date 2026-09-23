@@ -43,7 +43,6 @@ import {
   QUICK_ACCESS_SIZES,
   QUICK_ACCESS_MOTIONS,
   QUICK_ACCESS_DENSITIES,
-  QUICK_ACCESS_SIDES,
   QUICK_ACCESS_THEMES,
   QUICK_ACCESS_WORKFLOW_MAX,
   QUICK_ACCESS_WORKFLOW_STEPS_MAX,
@@ -844,7 +843,6 @@ export default function GlobalQuickAccessRail({
   const spatialMemoryEnabled = config.spatialMemory !== false;
   const contextMemoryEnabled = config.contextMemory !== false;
   const configWorkspace = QUICK_ACCESS_WORKSPACES.includes(config.workspace) ? config.workspace : 'all';
-  const configRailSide = QUICK_ACCESS_SIDES.includes(config.side) ? config.side : 'left';
   const baseWorkspace = spatialMemoryEnabled && QUICK_ACCESS_WORKSPACES.includes(deviceSpatial.workspace)
     ? deviceSpatial.workspace
     : configWorkspace;
@@ -856,9 +854,7 @@ export default function GlobalQuickAccessRail({
   const railSize = QUICK_ACCESS_SIZES.includes(config.size) ? config.size : 'm';
   const motionMode = QUICK_ACCESS_MOTIONS.includes(config.motion) ? config.motion : 'fluid';
   const density = QUICK_ACCESS_DENSITIES.includes(config.density) ? config.density : 'comfortable';
-  const railSide = spatialMemoryEnabled && QUICK_ACCESS_SIDES.includes(deviceSpatial.side)
-    ? deviceSpatial.side
-    : configRailSide;
+  const railSide = 'left';
   const visualTheme = QUICK_ACCESS_THEMES.includes(config.theme) ? config.theme : 'glass';
   const hoverDelay = Math.max(80, Math.min(700, Number(config.hoverDelay) || 220));
   const showLabels = config.labels !== false;
@@ -1516,13 +1512,11 @@ export default function GlobalQuickAccessRail({
       window.cancelAnimationFrame(layoutFrameRef.current);
       layoutFrameRef.current = window.requestAnimationFrame(() => {
         const coarsePointer = window.matchMedia?.('(pointer: coarse)')?.matches === true;
-        const rightSide = railSide === 'right';
-        const reserveMode = !rightSide && window.innerWidth >= QUICK_ACCESS_SAFE_AREA_MIN_WIDTH && !coarsePointer;
+        const reserveMode = window.innerWidth >= QUICK_ACCESS_SAFE_AREA_MIN_WIDTH && !coarsePointer;
         shell.dataset.quickAccessSafeMode = reserveMode ? 'reserve' : 'overlay';
 
-        // The existing shell safe-frame contract reserves space from the left.
-        // Right-side Quick Access is intentionally overlay-only so switching sides
-        // can never shove Dashboard/heroes horizontally or create a false left gap.
+        // Quick Access is fixed to the left edge, so the existing shell safe-frame
+        // contract can consistently reserve space from the left on desktop.
         if (!reserveMode) {
           clearSafeArea();
           return;
@@ -1946,24 +1940,18 @@ export default function GlobalQuickAccessRail({
     setCommandActiveIndex(0);
   };
 
-  const setRailSide = (nextSide) => {
-    const safeSide = QUICK_ACCESS_SIDES.includes(nextSide) ? nextSide : 'left';
-    if (spatialMemoryEnabled) updateSpatialMemory({ side: safeSide });
-    else persist({ ...config, side: safeSide });
-  };
-
   const setSpatialMemoryEnabled = (enabled) => {
     const nextEnabled = Boolean(enabled);
     if (nextEnabled) {
-      updateSpatialMemory({ workspace, side: railSide });
-      persist({ ...config, spatialMemory: true });
+      updateSpatialMemory({ workspace, side: 'left' });
+      persist({ ...config, spatialMemory: true, side: 'left' });
       return;
     }
     persist({
       ...config,
       spatialMemory: false,
       workspace,
-      side: railSide,
+      side: 'left',
     });
   };
 
@@ -3428,17 +3416,6 @@ export default function GlobalQuickAccessRail({
               </div>
 
               <div className="bqa-personalize-row">
-                <span>{language === 'vi' ? 'Vị trí' : 'Side'}</span>
-                <div className="bqa-segmented">
-                  {QUICK_ACCESS_SIDES.map((side) => (
-                    <button type="button" key={side} className={railSide === side ? 'is-active' : ''} onClick={() => setRailSide(side)}>
-                      {side === 'left' ? (language === 'vi' ? 'Trái' : 'Left') : (language === 'vi' ? 'Phải' : 'Right')}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="bqa-personalize-row">
                 <span>{language === 'vi' ? 'Mật độ' : 'Density'}</span>
                 <div className="bqa-segmented">
                   {QUICK_ACCESS_DENSITIES.map((value) => (
@@ -3468,7 +3445,7 @@ export default function GlobalQuickAccessRail({
                 <label className="bqa-personalize-toggle">
                   <span>
                     {language === 'vi' ? 'Ghi nhớ bố cục trên thiết bị' : 'Remember layout on this device'}
-                    <small>{language === 'vi' ? 'Vị trí · không gian · ứng dụng cuối · độ cuộn' : 'Side · workspace · last app · scroll position'}</small>
+                    <small>{language === 'vi' ? 'Không gian · ứng dụng cuối · độ cuộn' : 'Workspace · last app · scroll position'}</small>
                   </span>
                   <input type="checkbox" checked={spatialMemoryEnabled} onChange={(event) => setSpatialMemoryEnabled(event.target.checked)} />
                 </label>
