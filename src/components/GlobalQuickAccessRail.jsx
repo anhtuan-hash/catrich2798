@@ -722,6 +722,185 @@ function cloneQuickAccessState(value, fallback = null) {
   try { return JSON.parse(JSON.stringify(value)); } catch { return fallback; }
 }
 
+const QUICK_ACCESS_SHELF_MAX = 5;
+
+function quickAccessShelfStorageKey(user) {
+  return `bes-quick-access-shelf-v5:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessShelf(user) {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = JSON.parse(window.sessionStorage?.getItem(quickAccessShelfStorageKey(user)) || '[]');
+    return (Array.isArray(raw) ? raw : [])
+      .filter((entry) => entry && typeof entry.id === 'string' && ['item', 'text', 'url'].includes(entry.type))
+      .slice(0, QUICK_ACCESS_SHELF_MAX);
+  } catch {
+    return [];
+  }
+}
+
+function saveQuickAccessShelf(user, entries) {
+  if (typeof window === 'undefined') return;
+  try {
+    const persistable = (Array.isArray(entries) ? entries : [])
+      .filter((entry) => entry && entry.type !== 'file')
+      .slice(0, QUICK_ACCESS_SHELF_MAX);
+    window.sessionStorage?.setItem(quickAccessShelfStorageKey(user), JSON.stringify(persistable));
+  } catch {
+    // Shelf is intentionally session-scoped.
+  }
+}
+
+function quickAccessAliasesStorageKey(user) {
+  return `bes-quick-access-aliases-v5:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessAliases(user) {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = JSON.parse(window.localStorage?.getItem(quickAccessAliasesStorageKey(user)) || '{}');
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+    return Object.fromEntries(
+      Object.entries(raw)
+        .filter(([key, value]) => key && typeof value === 'string' && value.trim())
+        .slice(0, 40),
+    );
+  } catch {
+    return {};
+  }
+}
+
+function saveQuickAccessAliases(user, aliases) {
+  if (typeof window === 'undefined') return;
+  try {
+    const safe = Object.fromEntries(
+      Object.entries(aliases && typeof aliases === 'object' ? aliases : {})
+        .filter(([key, value]) => key && typeof value === 'string' && value.trim())
+        .slice(0, 40),
+    );
+    window.localStorage?.setItem(quickAccessAliasesStorageKey(user), JSON.stringify(safe));
+  } catch {
+    // Search aliases are account-scoped device preferences.
+  }
+}
+
+function quickAccessPrivateItemsStorageKey(user) {
+  return `bes-quick-access-private-v5:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessPrivateItems(user) {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = JSON.parse(window.localStorage?.getItem(quickAccessPrivateItemsStorageKey(user)) || '[]');
+    return [...new Set((Array.isArray(raw) ? raw : []).map((id) => String(id || '').trim()).filter(Boolean))].slice(0, 40);
+  } catch {
+    return [];
+  }
+}
+
+function saveQuickAccessPrivateItems(user, ids) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage?.setItem(
+      quickAccessPrivateItemsStorageKey(user),
+      JSON.stringify([...new Set((Array.isArray(ids) ? ids : []).map((id) => String(id || '').trim()).filter(Boolean))].slice(0, 40)),
+    );
+  } catch {
+    // Private-item choices are account-scoped device preferences.
+  }
+}
+
+function quickAccessScreenGuardStorageKey(user) {
+  return `bes-quick-access-screen-guard-v5:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessScreenGuard(user) {
+  if (typeof window === 'undefined') return false;
+  try { return window.sessionStorage?.getItem(quickAccessScreenGuardStorageKey(user)) === 'true'; }
+  catch { return false; }
+}
+
+function saveQuickAccessScreenGuard(user, enabled) {
+  if (typeof window === 'undefined') return;
+  try {
+    if (enabled) window.sessionStorage?.setItem(quickAccessScreenGuardStorageKey(user), 'true');
+    else window.sessionStorage?.removeItem(quickAccessScreenGuardStorageKey(user));
+  } catch {
+    // Screen Guard intentionally lasts only for the browser session.
+  }
+}
+
+function quickAccessReadingModeStorageKey(user) {
+  return `bes-quick-access-reading-v5:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessReadingMode(user) {
+  if (typeof window === 'undefined') return false;
+  try { return window.localStorage?.getItem(quickAccessReadingModeStorageKey(user)) === 'compact'; }
+  catch { return false; }
+}
+
+function saveQuickAccessReadingMode(user, enabled) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage?.setItem(quickAccessReadingModeStorageKey(user), enabled ? 'compact' : 'normal');
+  } catch {
+    // Compact Reading Mode is account-scoped device state.
+  }
+}
+
+function quickAccessUsageStorageKey(user) {
+  return `bes-quick-access-usage-v5:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessUsage(user) {
+  const fallback = { apps: {}, commandSearches: 0, workflowRuns: 0 };
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const raw = JSON.parse(window.localStorage?.getItem(quickAccessUsageStorageKey(user)) || 'null');
+    if (!raw || typeof raw !== 'object') return fallback;
+    return {
+      apps: raw.apps && typeof raw.apps === 'object' && !Array.isArray(raw.apps) ? raw.apps : {},
+      commandSearches: Math.max(0, Number(raw.commandSearches) || 0),
+      workflowRuns: Math.max(0, Number(raw.workflowRuns) || 0),
+    };
+  } catch {
+    return fallback;
+  }
+}
+
+function saveQuickAccessUsage(user, usage) {
+  if (typeof window === 'undefined') return;
+  try {
+    const appEntries = Object.entries(usage?.apps && typeof usage.apps === 'object' ? usage.apps : {})
+      .filter(([id, entry]) => id && entry && Number(entry.opens) >= 0)
+      .sort((a, b) => Number(b[1]?.lastUsed || 0) - Number(a[1]?.lastUsed || 0))
+      .slice(0, 60);
+    window.localStorage?.setItem(quickAccessUsageStorageKey(user), JSON.stringify({
+      apps: Object.fromEntries(appEntries),
+      commandSearches: Math.max(0, Number(usage?.commandSearches) || 0),
+      workflowRuns: Math.max(0, Number(usage?.workflowRuns) || 0),
+    }));
+  } catch {
+    // Usage Insights are local-only and never reorder shortcuts automatically.
+  }
+}
+
+function keyboardLetterForItem(item, index = 0) {
+  const preferred = {
+    'route:dashboard': 'D',
+    'route:apps': 'A',
+    'route:homeroom': 'H',
+    'tool:gradebook-studio': 'S',
+    'action:reports': 'B',
+    'action:ttcm': 'T',
+  };
+  if (preferred[item?.id]) return preferred[item.id];
+  const pool = 'FGJKLMNPRUVWXYZ';
+  return pool[index % pool.length];
+}
+
 function quickAccessClassroomModeStorageKey(user) {
   return `bes-quick-access-classroom-mode:${quickAccessHistoryUserKey(user)}`;
 }
@@ -911,6 +1090,15 @@ export default function GlobalQuickAccessRail({
   const [undoStack, setUndoStack] = useState([]);
   const [undoOpen, setUndoOpen] = useState(false);
   const [activeScrollSection, setActiveScrollSection] = useState('apps');
+  const [shelfItems, setShelfItems] = useState(() => loadQuickAccessShelf(currentUser));
+  const [searchAliases, setSearchAliases] = useState(() => loadQuickAccessAliases(currentUser));
+  const [privateItemIds, setPrivateItemIds] = useState(() => loadQuickAccessPrivateItems(currentUser));
+  const [screenGuard, setScreenGuard] = useState(() => loadQuickAccessScreenGuard(currentUser));
+  const [compactReadingMode, setCompactReadingMode] = useState(() => loadQuickAccessReadingMode(currentUser));
+  const [usageInsights, setUsageInsights] = useState(() => loadQuickAccessUsage(currentUser));
+  const [appHealth, setAppHealth] = useState({});
+  const [precisionDrag, setPrecisionDrag] = useState(false);
+  const [keyboardLayer, setKeyboardLayer] = useState(false);
   const [timeTick, setTimeTick] = useState(() => Date.now());
   const [backStack, setBackStack] = useState(() => loadQuickAccessHistory(currentUser));
   const [backStackOpen, setBackStackOpen] = useState(false);
@@ -952,6 +1140,7 @@ export default function GlobalQuickAccessRail({
   const switcherItemsRef = useRef([]);
   const suppressHistoryRef = useRef(false);
   const activateItemRef = useRef(null);
+  const shelfFilesRef = useRef(new Map());
 
   const catalog = useMemo(() => {
     const byId = new Map();
@@ -1175,6 +1364,43 @@ export default function GlobalQuickAccessRail({
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
+    const allowedStates = new Set(['ready', 'syncing', 'error', 'unconfigured']);
+    const applyHealth = (detail = {}) => {
+      const itemId = String(detail.itemId || detail.id || '').trim();
+      if (!itemId) return;
+      if (detail.clear === true || detail.state === 'clear') {
+        setAppHealth((current) => {
+          const next = { ...current };
+          delete next[itemId];
+          return next;
+        });
+        return;
+      }
+      const state = String(detail.state || 'ready').toLowerCase();
+      const nextHealth = {
+        state: allowedStates.has(state) ? state : 'ready',
+        message: String(detail.message || detail.text || '').trim(),
+        updatedAt: Date.now(),
+      };
+      setAppHealth((current) => ({ ...current, [itemId]: nextHealth }));
+    };
+    const onHealth = (event) => applyHealth(event?.detail || {});
+    const previousApi = window.BrianQuickAccessHealth;
+    window.BrianQuickAccessHealth = {
+      set: (itemId, state = 'ready', message = '') => window.dispatchEvent(new CustomEvent('bes-quick-access-health', { detail: { itemId, state, message } })),
+      clear: (itemId) => window.dispatchEvent(new CustomEvent('bes-quick-access-health', { detail: { itemId, clear: true } })),
+      clearAll: () => setAppHealth({}),
+    };
+    window.addEventListener('bes-quick-access-health', onHealth);
+    return () => {
+      window.removeEventListener('bes-quick-access-health', onHealth);
+      if (previousApi) window.BrianQuickAccessHealth = previousApi;
+      else delete window.BrianQuickAccessHealth;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
 
     const normalizeNotification = (detail = {}) => {
       const id = String(detail.notificationId || detail.id || '').trim();
@@ -1342,6 +1568,18 @@ export default function GlobalQuickAccessRail({
     setBackStack(loadQuickAccessHistory(currentUser));
     setBackStackOpen(false);
     setResumeItems(loadQuickAccessResume(currentUser));
+    setSectionFolds(loadQuickAccessSectionFolds(currentUser));
+    setContextLock(loadQuickAccessContextLock(currentUser));
+    setParkedItems(loadQuickAccessParking(currentUser));
+    setSidebarSnapshots(loadQuickAccessSnapshots(currentUser));
+    setShelfItems(loadQuickAccessShelf(currentUser));
+    setSearchAliases(loadQuickAccessAliases(currentUser));
+    setPrivateItemIds(loadQuickAccessPrivateItems(currentUser));
+    setScreenGuard(loadQuickAccessScreenGuard(currentUser));
+    setCompactReadingMode(loadQuickAccessReadingMode(currentUser));
+    setUsageInsights(loadQuickAccessUsage(currentUser));
+    setUndoStack([]);
+    shelfFilesRef.current.clear();
   }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
 
   useEffect(() => {
@@ -1539,6 +1777,50 @@ export default function GlobalQuickAccessRail({
       window.removeEventListener('keydown', onEscape);
     };
   }, [hovered, pinned, customizing, collapseRail]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const onKeyDown = (event) => {
+      const tag = String(event.target?.tagName || '').toLowerCase();
+      const editable = event.target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag);
+      setPrecisionDrag(Boolean(event.altKey));
+      if (editable) return;
+
+      if (event.altKey && !event.ctrlKey && !event.metaKey && String(event.key || '').toLowerCase() === 'k') {
+        event.preventDefault();
+        setKeyboardLayer((current) => !current);
+        openRail();
+        return;
+      }
+
+      if (keyboardLayer && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          setKeyboardLayer(false);
+          return;
+        }
+        const key = String(event.key || '').toUpperCase();
+        const match = (selectedItemsRef.current || []).find((item, index) => keyboardLetterForItem(item, index) === key);
+        if (match) {
+          event.preventDefault();
+          setKeyboardLayer(false);
+          activateItemRef.current?.(match, null);
+        }
+      }
+    };
+    const onKeyUp = (event) => {
+      if (event.key === 'Alt') setPrecisionDrag(false);
+    };
+    const onBlur = () => setPrecisionDrag(false);
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
+    window.addEventListener('blur', onBlur);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
+      window.removeEventListener('blur', onBlur);
+    };
+  }, [keyboardLayer, openRail]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -1834,6 +2116,7 @@ export default function GlobalQuickAccessRail({
     pinnedSmartItems.length ? { id: 'pinned', label: language === 'vi' ? 'Đã ghim' : 'Pinned' } : null,
     primaryActivity ? { id: 'activity', label: language === 'vi' ? 'Hoạt động' : 'Activity' } : null,
     parkedItems.length ? { id: 'parking', label: language === 'vi' ? 'Đang đỗ' : 'Parked' } : null,
+    shelfItems.length ? { id: 'shelf', label: language === 'vi' ? 'Khay tạm' : 'Shelf' } : null,
     { id: 'apps', label: language === 'vi' ? 'Ứng dụng' : 'Apps' },
   ].filter(Boolean);
   const workflowBundles = (Array.isArray(config.workflows) ? config.workflows : [])
@@ -1956,6 +2239,25 @@ export default function GlobalQuickAccessRail({
     return option.id !== 'department' || presentationCatalog.some((item) => workspaceAllowsItem('department', item));
   });
 
+  const itemIsGuarded = (item) => Boolean(screenGuard && item?.id && privateItemIds.includes(item.id));
+  const displayLabelFor = (item) => itemIsGuarded(item)
+    ? (language === 'vi' ? 'Mục riêng tư' : 'Private item')
+    : labelFor(item, language);
+  const usageRows = Object.entries(usageInsights.apps || {})
+    .map(([itemId, entry]) => ({
+      itemId,
+      item: catalog.find((candidate) => candidate.id === itemId),
+      opens: Math.max(0, Number(entry?.opens) || 0),
+      lastUsed: Number(entry?.lastUsed) || 0,
+    }))
+    .filter((entry) => Boolean(entry.item))
+    .sort((a, b) => b.opens - a.opens)
+    .slice(0, 5);
+  const staleUsageCount = Object.values(usageInsights.apps || {}).filter((entry) => {
+    const lastUsed = Number(entry?.lastUsed) || 0;
+    return lastUsed > 0 && Date.now() - lastUsed > 30 * 24 * 60 * 60 * 1000;
+  }).length;
+
   const quickCreateItems = quickCreateDescriptors(language)
     .map((descriptor) => ({ descriptor, item: presentationCatalog.find((item) => item.id === descriptor.itemId) }))
     .filter((entry) => Boolean(entry.item));
@@ -1976,7 +2278,7 @@ export default function GlobalQuickAccessRail({
       kind: 'app',
       label: labelFor(item, language),
       description: descriptionFor(item, language),
-      keywords: `${item.label || ''} ${item.labelVi || ''}`,
+      keywords: `${item.label || ''} ${item.labelVi || ''} ${searchAliases[item.id] || ''}`,
       item,
     })),
   ];
@@ -2196,6 +2498,188 @@ export default function GlobalQuickAccessRail({
     saveQuickAccessSnapshots(currentUser, next);
   };
 
+  const updateShelf = (next) => {
+    const safe = (Array.isArray(next) ? next : []).slice(0, QUICK_ACCESS_SHELF_MAX);
+    setShelfItems(safe);
+    saveQuickAccessShelf(currentUser, safe);
+  };
+
+  const addItemToShelf = (item) => {
+    if (!item) return;
+    const entry = {
+      id: `shelf-item-${item.id}`,
+      type: 'item',
+      itemId: item.id,
+      label: labelFor(item, language),
+      at: Date.now(),
+    };
+    updateShelf([entry, ...shelfItems.filter((candidate) => candidate.id !== entry.id)].slice(0, QUICK_ACCESS_SHELF_MAX));
+    setActionItemId('');
+  };
+
+  const handleShelfDrop = (event) => {
+    event.preventDefault();
+    const incoming = [];
+    const files = [...(event.dataTransfer?.files || [])].slice(0, QUICK_ACCESS_SHELF_MAX);
+    files.forEach((file) => {
+      const id = `shelf-file-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+      shelfFilesRef.current.set(id, file);
+      incoming.push({ id, type: 'file', label: file.name, size: file.size, at: Date.now() });
+    });
+
+    if (!incoming.length) {
+      const raw = String(event.dataTransfer?.getData('text/plain') || '').trim();
+      const item = catalog.find((candidate) => candidate.id === raw);
+      if (item) {
+        incoming.push({ id: `shelf-item-${item.id}`, type: 'item', itemId: item.id, label: labelFor(item, language), at: Date.now() });
+      } else if (raw) {
+        const type = /^https?:\/\//i.test(raw) ? 'url' : 'text';
+        incoming.push({
+          id: `shelf-${type}-${Date.now().toString(36)}`,
+          type,
+          value: raw.slice(0, 4000),
+          label: type === 'url' ? raw.replace(/^https?:\/\//i, '').slice(0, 52) : raw.slice(0, 72),
+          at: Date.now(),
+        });
+      }
+    }
+
+    if (!incoming.length) return;
+    const incomingIds = new Set(incoming.map((entry) => entry.id));
+    updateShelf([...incoming, ...shelfItems.filter((entry) => !incomingIds.has(entry.id))].slice(0, QUICK_ACCESS_SHELF_MAX));
+  };
+
+  const removeShelfItem = (id) => {
+    shelfFilesRef.current.delete(id);
+    updateShelf(shelfItems.filter((entry) => entry.id !== id));
+  };
+
+  const activateShelfItem = async (entry, sourceEl = null) => {
+    if (!entry) return;
+    if (entry.type === 'item') {
+      const item = presentationCatalog.find((candidate) => candidate.id === entry.itemId);
+      if (item) activateItem(item, sourceEl);
+      return;
+    }
+    if (entry.type === 'url' && entry.value) {
+      window.open(entry.value, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    if (entry.type === 'text' && entry.value) {
+      try { await navigator.clipboard?.writeText(entry.value); } catch { /* clipboard is best effort */ }
+    }
+  };
+
+  const dragShelfItem = (entry, event) => {
+    if (!entry || !event?.dataTransfer) return;
+    event.dataTransfer.effectAllowed = 'copy';
+    if (entry.type === 'item') {
+      event.dataTransfer.setData('text/plain', entry.itemId);
+      event.dataTransfer.setData('application/x-brian-quick-access-item', entry.itemId);
+    } else if (entry.type === 'file') {
+      const file = shelfFilesRef.current.get(entry.id);
+      if (file) {
+        try { event.dataTransfer.items?.add(file); } catch { /* browser may disallow adding file items */ }
+        event.dataTransfer.setData('text/plain', file.name);
+      } else {
+        event.dataTransfer.setData('text/plain', entry.label || '');
+      }
+    } else {
+      event.dataTransfer.setData('text/plain', entry.value || '');
+      if (entry.type === 'url') event.dataTransfer.setData('text/uri-list', entry.value || '');
+    }
+  };
+
+  const setAliasForItem = (itemId, value) => {
+    const trimmed = String(value || '').slice(0, 80);
+    setSearchAliases((current) => {
+      const next = { ...current };
+      if (trimmed.trim()) next[itemId] = trimmed;
+      else delete next[itemId];
+      saveQuickAccessAliases(currentUser, next);
+      return next;
+    });
+  };
+
+  const togglePrivateItem = (itemId) => {
+    setPrivateItemIds((current) => {
+      const next = current.includes(itemId) ? current.filter((id) => id !== itemId) : [...current, itemId];
+      saveQuickAccessPrivateItems(currentUser, next);
+      return next;
+    });
+  };
+
+  const setScreenGuardEnabled = (enabled) => {
+    const next = Boolean(enabled);
+    setScreenGuard(next);
+    saveQuickAccessScreenGuard(currentUser, next);
+    if (next) {
+      setPeekItemId('');
+      setCapsuleItemId('');
+    }
+  };
+
+  const setReadingMode = (enabled) => {
+    const next = Boolean(enabled);
+    setCompactReadingMode(next);
+    saveQuickAccessReadingMode(currentUser, next);
+  };
+
+  const recordUsage = (kind, itemId = '') => {
+    setUsageInsights((current) => {
+      const next = cloneQuickAccessState(current, { apps: {}, commandSearches: 0, workflowRuns: 0 })
+        || { apps: {}, commandSearches: 0, workflowRuns: 0 };
+      if (kind === 'open' && itemId) {
+        const previous = next.apps?.[itemId] || {};
+        next.apps = {
+          ...(next.apps || {}),
+          [itemId]: {
+            opens: Math.max(0, Number(previous.opens) || 0) + 1,
+            lastUsed: Date.now(),
+          },
+        };
+      } else if (kind === 'command') {
+        next.commandSearches = Math.max(0, Number(next.commandSearches) || 0) + 1;
+      } else if (kind === 'workflow') {
+        next.workflowRuns = Math.max(0, Number(next.workflowRuns) || 0) + 1;
+      }
+      saveQuickAccessUsage(currentUser, next);
+      return next;
+    });
+  };
+
+  const copyTextToClipboard = async (text) => {
+    if (!text || typeof window === 'undefined') return false;
+    try {
+      await navigator.clipboard?.writeText(text);
+      return true;
+    } catch {
+      try {
+        const node = document.createElement('textarea');
+        node.value = text;
+        node.setAttribute('readonly', '');
+        node.style.position = 'fixed';
+        node.style.opacity = '0';
+        document.body.appendChild(node);
+        node.select();
+        const ok = document.execCommand('copy');
+        node.remove();
+        return ok;
+      } catch {
+        return false;
+      }
+    }
+  };
+
+  const copyDeepLink = async (item) => {
+    if (!item || typeof window === 'undefined') return;
+    const exactHash = activeItem(item, currentRoute, selectedTool) ? String(window.location.hash || item.target || '') : String(item.target || '');
+    const base = window.location.href.split('#')[0];
+    const href = exactHash.startsWith('#') ? `${base}${exactHash}` : `${base}#/`;
+    await copyTextToClipboard(href);
+    setActionItemId('');
+  };
+
   const updateSpatialMemory = (patchOrUpdater) => {
     setDeviceSpatial((current) => {
       const patch = typeof patchOrUpdater === 'function'
@@ -2315,6 +2799,7 @@ export default function GlobalQuickAccessRail({
 
   const activateItem = (item, sourceEl) => {
     if (!item) return;
+    recordUsage('open', item.id);
     if (spatialMemoryEnabled) updateSpatialMemory({ lastItemId: item.id });
     const recent = [item.id, ...(config.recent || []).filter((id) => id !== item.id)].slice(0, QUICK_ACCESS_RECENT_MAX);
     const nextConfig = { ...config, recent };
@@ -2398,7 +2883,7 @@ export default function GlobalQuickAccessRail({
 
   const showPeek = (item, sourceEl) => {
     window.clearTimeout(peekTimerRef.current);
-    if (!item || actionItemId || capsuleSnapshotFor(item)) return;
+    if (!item || actionItemId || capsuleSnapshotFor(item) || itemIsGuarded(item)) return;
     peekTimerRef.current = window.setTimeout(() => {
       const rect = sourceEl?.getBoundingClientRect?.();
       if (rect) setPeekTop(Math.max(86, Math.min(window.innerHeight - 210, rect.top - 8)));
@@ -2443,6 +2928,7 @@ export default function GlobalQuickAccessRail({
 
   const executePaletteCommand = (entry, sourceEl = null) => {
     if (!entry) return;
+    recordUsage('command');
     setCommandPaletteOpen(false);
     setCommandPaletteQuery('');
     setCommandPaletteIndex(0);
@@ -2536,6 +3022,7 @@ export default function GlobalQuickAccessRail({
 
   const startWorkflowBundle = (workflow, sourceEl = null) => {
     if (!workflow?.items?.length) return;
+    recordUsage('workflow');
     runWorkflowStep(workflow, 0, sourceEl);
   };
 
@@ -2707,6 +3194,10 @@ export default function GlobalQuickAccessRail({
         data-spatial-memory={spatialMemoryEnabled ? 'true' : 'false'}
         data-context-memory={contextMemoryEnabled ? 'true' : 'false'}
         data-context-lock={contextLock?.locked ? 'true' : 'false'}
+        data-screen-guard={screenGuard ? 'true' : 'false'}
+        data-reading-mode={compactReadingMode ? 'compact' : 'normal'}
+        data-precision-drag={precisionDrag ? 'true' : 'false'}
+        data-keyboard-layer={keyboardLayer ? 'true' : 'false'}
         data-context-key={routeContextKey}
         data-time-aware={timeAwareEnabled ? 'true' : 'false'}
         data-time-band={timeContext.id}
@@ -2793,8 +3284,8 @@ export default function GlobalQuickAccessRail({
                   key={item.id}
                   className={`bqa-rail-button ${active ? 'is-active' : ''}`}
                   style={{ '--bqa-accent': item.accent }}
-                  title={labelFor(item, language)}
-                  aria-label={labelFor(item, language)}
+                  title={displayLabelFor(item)}
+                  aria-label={displayLabelFor(item)}
                   aria-current={active ? 'page' : undefined}
                   data-dock-distance={dockDistance}
                   onPointerEnter={(event) => {
@@ -2824,7 +3315,11 @@ export default function GlobalQuickAccessRail({
                   onClick={(event) => activateItem(item, event.currentTarget)}
                 >
                   <Icon size={20} strokeWidth={2} aria-hidden="true" />
-                  {!classroomMode && badges[item.id] ? (
+                  {appHealth[item.id] ? (
+                    <span className={`bqa-health-dot is-${appHealth[item.id].state}`} title={appHealth[item.id].message || appHealth[item.id].state} aria-label={appHealth[item.id].message || appHealth[item.id].state} />
+                  ) : null}
+                  {keyboardLayer ? <kbd className="bqa-key-hint">{keyboardLetterForItem(item, index)}</kbd> : null}
+                  {!classroomMode && !itemIsGuarded(item) && badges[item.id] ? (
                     <span className={`bqa-rail-badge ${badges[item.id] === 'dot' ? 'is-dot' : ''}`}>
                       {badges[item.id] === 'dot' ? '' : badges[item.id]}
                     </span>
@@ -3022,6 +3517,18 @@ export default function GlobalQuickAccessRail({
               <span>{language === 'vi' ? 'Gần đây · gợi ý ngữ cảnh · lệnh nhanh' : 'Recents · contextual suggestions · quick commands'}</span>
             </div>
             <div className="bqa-panel-header-actions">
+              <button
+                type="button"
+                className={`bqa-screen-guard ${screenGuard ? 'is-active' : ''}`}
+                aria-pressed={screenGuard}
+                title={screenGuard
+                  ? (language === 'vi' ? 'Tắt Screen Guard' : 'Disable Screen Guard')
+                  : (language === 'vi' ? 'Che các mục nhạy cảm' : 'Mask private items')}
+                onClick={() => setScreenGuardEnabled(!screenGuard)}
+              >
+                <EyeOff size={15} aria-hidden="true" />
+                <span>{language === 'vi' ? 'Che' : 'Guard'}</span>
+              </button>
               <button
                 type="button"
                 className={`bqa-context-lock ${contextLock?.locked ? 'is-active' : ''}`}
@@ -3375,8 +3882,8 @@ export default function GlobalQuickAccessRail({
                             onDragEnd={() => setDragId('')}
                             onClick={(event) => activateItem(item, event.currentTarget)}
                           >
-                            <span style={{ '--bqa-accent': item.accent }}><Icon size={16} aria-hidden="true" /></span>
-                            <b>{labelFor(item, language)}</b>
+                            <span className="bqa-mini-icon" style={{ '--bqa-accent': item.accent }}><Icon size={16} aria-hidden="true" />{appHealth[item.id] ? <i className={`bqa-health-dot is-${appHealth[item.id].state}`} /> : null}</span>
+                            <b>{displayLabelFor(item)}</b>
                           </button>
                         );
                       })}
@@ -3410,8 +3917,8 @@ export default function GlobalQuickAccessRail({
                             onDragEnd={() => setDragId('')}
                             onClick={(event) => activateItem(item, event.currentTarget)}
                           >
-                            <span style={{ '--bqa-accent': item.accent }}><Icon size={16} aria-hidden="true" /></span>
-                            <b>{labelFor(item, language)}</b>
+                            <span className="bqa-mini-icon" style={{ '--bqa-accent': item.accent }}><Icon size={16} aria-hidden="true" />{appHealth[item.id] ? <i className={`bqa-health-dot is-${appHealth[item.id].state}`} /> : null}</span>
+                            <b>{displayLabelFor(item)}</b>
                           </button>
                         );
                       })}
@@ -3460,6 +3967,41 @@ export default function GlobalQuickAccessRail({
                   </div>
                 </section>
               ) : null}
+
+              <section
+                className={`bqa-temporary-shelf ${shelfItems.length ? 'has-items' : 'is-empty'}`}
+                data-bqa-section="shelf"
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = 'copy';
+                }}
+                onDrop={handleShelfDrop}
+              >
+                <header>
+                  <span><ClipboardCheck size={14} aria-hidden="true" />{language === 'vi' ? 'Khay tạm' : 'Temporary Shelf'}</span>
+                  <small>{shelfItems.length}/{QUICK_ACCESS_SHELF_MAX}</small>
+                </header>
+                {shelfItems.length ? (
+                  <div className="bqa-shelf-items">
+                    {shelfItems.map((entry) => {
+                      const item = entry.type === 'item' ? presentationCatalog.find((candidate) => candidate.id === entry.itemId) : null;
+                      const Icon = item?.icon || (entry.type === 'file' ? FileText : entry.type === 'url' ? AppWindow : ClipboardCheck);
+                      const label = item ? displayLabelFor(item) : entry.label;
+                      return (
+                        <span className={`bqa-shelf-chip is-${entry.type}`} key={entry.id} draggable onDragStart={(event) => dragShelfItem(entry, event)}>
+                          <button type="button" onClick={(event) => activateShelfItem(entry, event.currentTarget)} title={label}>
+                            <Icon size={13} aria-hidden="true" />
+                            <b>{label}</b>
+                          </button>
+                          <button type="button" className="bqa-shelf-remove" onClick={() => removeShelfItem(entry.id)} aria-label={language === 'vi' ? 'Bỏ khỏi khay tạm' : 'Remove from shelf'}><X size={10} aria-hidden="true" /></button>
+                        </span>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <span className="bqa-shelf-empty">{language === 'vi' ? 'Thả app, URL, đoạn text hoặc file vào đây' : 'Drop an app, URL, text or file here'}</span>
+                )}
+              </section>
 
               <section className={`bqa-apps-section ${sectionFolds.apps ? 'is-folded' : ''}`} data-bqa-section="apps">
                 <header className="bqa-sticky-section-header bqa-apps-section-header">
@@ -3512,13 +4054,16 @@ export default function GlobalQuickAccessRail({
                         moveDraggedBefore(item.id);
                       }}
                     >
-                      <button type="button" className="bqa-panel-item-main" onClick={(event) => activateItem(item, event.currentTarget)}>
-                        <span className="bqa-item-icon"><Icon size={20} strokeWidth={2} aria-hidden="true" /></span>
+                      <button type="button" className="bqa-panel-item-main" onClick={(event) => {
+                        if (precisionDrag) return;
+                        activateItem(item, event.currentTarget);
+                      }}>
+                        <span className="bqa-item-icon"><Icon size={20} strokeWidth={2} aria-hidden="true" />{appHealth[item.id] ? <i className={`bqa-health-dot is-${appHealth[item.id].state}`} title={appHealth[item.id].message || appHealth[item.id].state} /> : null}</span>
                         <span className="bqa-item-copy">
-                          <span className="bqa-item-label">{labelFor(item, language)}</span>
+                          <span className="bqa-item-label">{displayLabelFor(item)}</span>
                           <small>{language === 'vi' ? `Alt+${index + 1}` : `Alt+${index + 1}`}</small>
                         </span>
-                        {!classroomMode && badges[item.id] ? (
+                        {!classroomMode && !itemIsGuarded(item) && badges[item.id] ? (
                           <span className={`bqa-panel-badge ${badges[item.id] === 'dot' ? 'is-dot' : ''}`}>
                             {badges[item.id] === 'dot' ? '' : badges[item.id]}
                           </span>
@@ -3645,7 +4190,7 @@ export default function GlobalQuickAccessRail({
         {actionItem ? (
           <div className="bqa-action-sheet" style={{ top: actionTop }} role="menu" aria-label={language === 'vi' ? 'Thao tác nhanh' : 'Quick actions'}>
             <header>
-              <strong>{labelFor(actionItem, language)}</strong>
+              <strong>{displayLabelFor(actionItem)}</strong>
               <button type="button" onClick={() => setActionItemId('')} aria-label={language === 'vi' ? 'Đóng' : 'Close'}><X size={14} aria-hidden="true" /></button>
             </header>
             {quickActionDescriptors(actionItem, language).map((descriptor) => (
@@ -3660,6 +4205,16 @@ export default function GlobalQuickAccessRail({
                 <ChevronRight size={14} aria-hidden="true" />
               </button>
             ))}
+            <button type="button" role="menuitem" onClick={() => copyDeepLink(actionItem)}>
+              <AppWindow size={14} aria-hidden="true" />
+              <span>{language === 'vi' ? 'Sao chép liên kết đến đây' : 'Copy deep link'}</span>
+              <ChevronRight size={14} aria-hidden="true" />
+            </button>
+            <button type="button" role="menuitem" onClick={() => addItemToShelf(actionItem)}>
+              <ClipboardCheck size={14} aria-hidden="true" />
+              <span>{language === 'vi' ? 'Đưa vào khay tạm' : 'Add to Temporary Shelf'}</span>
+              <ChevronRight size={14} aria-hidden="true" />
+            </button>
             <button type="button" role="menuitem" onClick={() => parkItem(actionItem)}>
               <Boxes size={14} aria-hidden="true" />
               <span>{language === 'vi' ? 'Đỗ tác vụ tại đây' : 'Park this app'}</span>
@@ -3684,6 +4239,13 @@ export default function GlobalQuickAccessRail({
             })}
           </div>
           <small>{language === 'vi' ? 'Giữ Alt + phím huyền để chuyển · thả Alt để mở' : 'Hold Alt + grave key to cycle · release Alt to open'}</small>
+        </div>
+      ) : null}
+
+      {keyboardLayer ? (
+        <div className="bqa-keyboard-overlay" role="status" aria-live="polite">
+          <Command size={14} aria-hidden="true" />
+          <span>{language === 'vi' ? 'Keyboard Navigation · nhấn chữ trên icon · Esc để thoát' : 'Keyboard Navigation · press an icon letter · Esc to exit'}</span>
         </div>
       ) : null}
 
@@ -3801,6 +4363,22 @@ export default function GlobalQuickAccessRail({
                 <input type="checkbox" checked={timeAwareEnabled} onChange={(event) => updatePersonalization({ timeAware: event.target.checked })} />
               </label>
 
+              <label className="bqa-personalize-toggle">
+                <span>
+                  {language === 'vi' ? 'Compact Reading Mode' : 'Compact Reading Mode'}
+                  <small>{language === 'vi' ? 'Giảm trang trí, ưu tiên icon + tên + badge.' : 'Reduce decoration and prioritize icon + name + badge.'}</small>
+                </span>
+                <input type="checkbox" checked={compactReadingMode} onChange={(event) => setReadingMode(event.target.checked)} />
+              </label>
+
+              <label className="bqa-personalize-toggle">
+                <span>
+                  {language === 'vi' ? 'Private Screen Guard' : 'Private Screen Guard'}
+                  <small>{language === 'vi' ? 'Che badge, preview và tên của mục nhạy cảm khi bật.' : 'Mask badges, previews and names for private items.'}</small>
+                </span>
+                <input type="checkbox" checked={screenGuard} onChange={(event) => setScreenGuardEnabled(event.target.checked)} />
+              </label>
+
               <div className="bqa-spatial-control">
                 <label className="bqa-personalize-toggle">
                   <span>
@@ -3829,6 +4407,69 @@ export default function GlobalQuickAccessRail({
                     {language === 'vi' ? 'Quên ngữ cảnh đã nhớ' : 'Forget page contexts'}
                   </button>
                 ) : null}
+              </div>
+
+              <div className="bqa-alias-control">
+                <header>
+                  <strong>{language === 'vi' ? 'Search Aliases' : 'Search Aliases'}</strong>
+                  <small>{language === 'vi' ? 'Tự đặt từ khóa ngắn cho Command Search.' : 'Set personal keywords for Command Search.'}</small>
+                </header>
+                <div>
+                  {selectedItems.map((item) => (
+                    <label key={item.id}>
+                      <span>{labelFor(item, language)}</span>
+                      <input
+                        type="text"
+                        value={searchAliases[item.id] || ''}
+                        maxLength={80}
+                        onChange={(event) => setAliasForItem(item.id, event.target.value)}
+                        placeholder={language === 'vi' ? 'vd: dd, cn, đề' : 'e.g. att, hm, quiz'}
+                      />
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bqa-private-items-control">
+                <header>
+                  <strong>{language === 'vi' ? 'Mục nhạy cảm' : 'Private items'}</strong>
+                  <small>{language === 'vi' ? 'Screen Guard chỉ che các mục bạn đánh dấu ở đây.' : 'Screen Guard masks only the items selected here.'}</small>
+                </header>
+                <div>
+                  {selectedItems.map((item) => (
+                    <label key={item.id}>
+                      <input type="checkbox" checked={privateItemIds.includes(item.id)} onChange={() => togglePrivateItem(item.id)} />
+                      <span>{labelFor(item, language)}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bqa-usage-insights">
+                <header>
+                  <span>
+                    <strong>{language === 'vi' ? 'Usage Insights' : 'Usage Insights'}</strong>
+                    <small>{language === 'vi' ? 'Chỉ thống kê; Brian không tự sắp xếp icon.' : 'Information only; Brian never reorders icons automatically.'}</small>
+                  </span>
+                  <b>{language === 'vi' ? `${staleUsageCount} ít dùng` : `${staleUsageCount} stale`}</b>
+                </header>
+                <div className="bqa-usage-summary">
+                  <span><b>{usageInsights.commandSearches || 0}</b><small>Command Search</small></span>
+                  <span><b>{usageInsights.workflowRuns || 0}</b><small>{language === 'vi' ? 'Workflow đã chạy' : 'Workflow runs'}</small></span>
+                </div>
+                {usageRows.length ? (
+                  <div className="bqa-usage-list">
+                    {usageRows.map((entry) => (
+                      <div key={entry.itemId}>
+                        <span>{labelFor(entry.item, language)}</span>
+                        <b>{entry.opens}</b>
+                        <small>{entry.lastUsed ? new Date(entry.lastUsed).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US') : '—'}</small>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <small className="bqa-usage-empty">{language === 'vi' ? 'Chưa có dữ liệu sử dụng.' : 'No usage data yet.'}</small>
+                )}
               </div>
 
               <div className="bqa-snapshot-control">
