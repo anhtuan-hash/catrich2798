@@ -14,7 +14,8 @@ assert.ok(
 
 for (const token of [
   'body:has(.app-shell[data-route="dashboard"]) .bes-top-chrome',
-  'position: static !important',
+  'position: relative !important',
+  'overflow: visible !important',
   'top: auto !important',
   '.brian-newswire',
   '.gd-page',

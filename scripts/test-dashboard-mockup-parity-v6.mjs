@@ -27,6 +27,7 @@ for (const token of [
   'Dashboard V6 static top chrome authority',
   '.app-shell[data-route="dashboard"] > .bes-top-chrome',
   'position: relative !important',
+  'overflow: visible !important',
   '[data-bes-pinned-hub-spacer]',
 ]) {
   assert.ok(navCss.includes(token), `Navigation V6 token missing: ${token}`);
@@ -35,7 +36,7 @@ for (const token of [
 for (const token of [
   'Mockup Parity V11',
   '.app-shell[data-route="dashboard"] > .bes-top-chrome',
-  'position: static !important',
+  'position: relative !important',
   '.brian-newswire',
   'width: 100% !important',
 ]) {

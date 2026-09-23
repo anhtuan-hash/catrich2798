@@ -268,6 +268,7 @@
   bottom: auto !important;
   inset: auto !important;
   z-index: 120 !important;
+  overflow: visible !important;
   transform: none !important;
   translate: none !important;
   margin: 0 !important;
