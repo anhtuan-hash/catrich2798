@@ -3923,6 +3923,10 @@ body > .bqa-root[data-side="right"] {
 }
 
 .bqa-notification-center {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   margin: 7px 0 8px;
   padding: 8px;
   border: 1px solid rgba(112,151,191,.24);
@@ -3992,9 +3996,12 @@ body > .bqa-root[data-side="right"] {
 }
 
 .bqa-notification-list {
+  flex: 1 1 auto;
+  min-height: 0;
   display: grid;
+  align-content: start;
   gap: 5px;
-  max-height: 286px;
+  max-height: none;
   overflow: auto;
   scrollbar-width: thin;
 }
@@ -4099,4 +4106,23 @@ body > .bqa-root[data-side="right"] {
     animation: none !important;
     transition: none !important;
   }
+}
+
+
+/* V4.6 active surface owns the panel body so it cannot be flex-shrunk to zero. */
+.bqa-root.is-notification-center .bqa-command-search,
+.bqa-root.is-notification-center .bqa-command-results,
+.bqa-root.is-notification-center .bqa-context-banner,
+.bqa-root.is-notification-center .bqa-smart-stack,
+.bqa-root.is-notification-center .bqa-live-activity,
+.bqa-root.is-notification-center .bqa-panel-list,
+.bqa-root.is-notification-center .bqa-resume-card,
+.bqa-root.is-notification-center .bqa-back-stack,
+.bqa-root.is-notification-center .bqa-quick-create-sheet {
+  display: none !important;
+}
+
+.bqa-root.is-notification-center .bqa-notification-center {
+  opacity: 1;
+  visibility: visible;
 }
