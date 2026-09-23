@@ -19,6 +19,7 @@ import {
   Search,
   Pin,
   PinOff,
+  Plus,
   Settings,
   ShieldCheck,
   Star,
@@ -35,6 +36,7 @@ import { launchRoute } from '../utils/navigation.js';
 import {
   QUICK_ACCESS_MAX_ITEMS,
   QUICK_ACCESS_RECENT_MAX,
+  QUICK_ACCESS_WORKSPACES,
   createDefaultQuickAccessConfig,
   loadQuickAccessConfig,
   loadQuickAccessConfigFromCloud,
@@ -214,6 +216,67 @@ function contextCopyFor(currentRoute, selectedTool, language) {
     title: vi ? 'Không gian làm việc Brian' : 'Brian workspace',
     description: vi ? 'Thanh bên tự thay đổi theo trang đang mở mà không làm dịch nội dung.' : 'The sidebar adapts to the current page without shifting content.',
   };
+}
+
+function workspaceAllowsItem(workspace, item) {
+  if (!item || workspace === 'all') return Boolean(item);
+  const id = String(item.id || '');
+  if (workspace === 'teaching') {
+    return ['route:assessment-core', 'route:resource-library', 'tool:gradebook-studio', 'route:apps', 'route:dashboard'].includes(id)
+      || id.startsWith('tool:');
+  }
+  if (workspace === 'homeroom') {
+    return ['route:homeroom', 'action:attendance', 'tool:gradebook-studio', 'route:resource-library', 'route:dashboard'].includes(id);
+  }
+  if (workspace === 'department') {
+    return ['action:ttcm', 'action:schedule', 'action:reports', 'route:resource-library', 'route:dashboard'].includes(id);
+  }
+  return true;
+}
+
+function quickCreateDescriptors(language) {
+  const vi = language === 'vi';
+  return [
+    {
+      id: 'create-exam',
+      label: vi ? 'Tạo đề mới' : 'Create exam',
+      description: vi ? 'Mở ngân hàng câu hỏi và bắt đầu đề mới.' : 'Open Question Bank and start a new exam.',
+      itemId: 'route:assessment-core',
+      event: 'bes-assessment-quick-create',
+      detail: { type: 'exam' },
+      keywords: 'tạo đề new exam assessment đề thi',
+    },
+    {
+      id: 'add-question',
+      label: vi ? 'Thêm câu hỏi' : 'Add question',
+      description: vi ? 'Đi thẳng tới quy trình thêm câu hỏi.' : 'Jump into the question-authoring flow.',
+      itemId: 'route:assessment-core',
+      event: 'bes-assessment-quick-create',
+      detail: { type: 'question' },
+      keywords: 'thêm câu hỏi question bank add question',
+    },
+    {
+      id: 'create-report',
+      label: vi ? 'Tạo báo cáo' : 'Create report',
+      description: vi ? 'Mở khu vực báo cáo Brian Team.' : 'Open the Brian Team reporting area.',
+      itemId: 'action:reports',
+      keywords: 'báo cáo report thống kê',
+    },
+    {
+      id: 'attendance-now',
+      label: vi ? 'Điểm danh ngay' : 'Take attendance',
+      description: vi ? 'Mở nhanh công cụ điểm danh.' : 'Open attendance immediately.',
+      itemId: 'action:attendance',
+      keywords: 'điểm danh attendance lớp class',
+    },
+    {
+      id: 'work-schedule',
+      label: vi ? 'Mở lịch làm việc' : 'Open work schedule',
+      description: vi ? 'Mở kế hoạch làm việc TTCM.' : 'Open the department work schedule.',
+      itemId: 'action:schedule',
+      keywords: 'lịch kế hoạch schedule work plan ttcm',
+    },
+  ];
 }
 
 function quickActionDescriptors(item, language) {
@@ -409,6 +472,8 @@ export default function GlobalQuickAccessRail({
   const [customizing, setCustomizing] = useState(false);
   const [customizerQuery, setCustomizerQuery] = useState('');
   const [commandQuery, setCommandQuery] = useState('');
+  const [commandActiveIndex, setCommandActiveIndex] = useState(0);
+  const [quickCreateOpen, setQuickCreateOpen] = useState(false);
   const [peekItemId, setPeekItemId] = useState('');
   const [peekTop, setPeekTop] = useState(92);
   const [actionItemId, setActionItemId] = useState('');
@@ -453,6 +518,7 @@ export default function GlobalQuickAccessRail({
   const [config, setConfig] = useState(() => loadQuickAccessConfig(currentUser, allowedIds));
 
   const sidebarMode = config.mode || (config.pinned ? 'pin' : 'auto');
+  const workspace = QUICK_ACCESS_WORKSPACES.includes(config.workspace) ? config.workspace : 'all';
   const pinned = sidebarMode === 'pin';
   const focusMode = sidebarMode === 'focus';
   const expanded = hovered || pinned || customizing;
@@ -816,35 +882,70 @@ export default function GlobalQuickAccessRail({
     .filter(Boolean)
     .slice(0, QUICK_ACCESS_MAX_ITEMS);
 
+  const workspaceItems = selectedItems.filter((item) => workspaceAllowsItem(workspace, item));
+
   const recentItems = (config.recent || [])
     .map((id) => catalog.find((item) => item.id === id))
     .filter(Boolean)
+    .filter((item) => workspaceAllowsItem(workspace, item))
     .slice(0, QUICK_ACCESS_RECENT_MAX);
 
   const contextItems = contextIdsFor(currentRoute, selectedTool)
     .map((id) => catalog.find((item) => item.id === id))
     .filter(Boolean)
+    .filter((item) => workspaceAllowsItem(workspace, item))
     .filter((item) => !recentItems.some((recent) => recent.id === item.id))
     .slice(0, 3);
 
   const contextCopy = contextCopyFor(currentRoute, selectedTool, language);
-  const workingItem = catalog.find((item) => activeItem(item, currentRoute, selectedTool))
+  const workingItem = workspaceItems.find((item) => activeItem(item, currentRoute, selectedTool))
     || contextItems[0]
     || recentItems[0]
+    || workspaceItems[0]
     || null;
-  const pinnedSmartItems = selectedItems
+  const pinnedSmartItems = workspaceItems
     .filter((item) => item.id !== workingItem?.id)
     .filter((item) => !recentItems.some((recent) => recent.id === item.id))
     .slice(0, 3);
   const primaryActivity = liveActivities[0] || null;
 
+  const workspaceOptions = [
+    { id: 'all', label: language === 'vi' ? 'Tất cả' : 'All' },
+    { id: 'teaching', label: language === 'vi' ? 'Giảng dạy' : 'Teaching' },
+    { id: 'homeroom', label: language === 'vi' ? 'Chủ nhiệm' : 'Homeroom' },
+    { id: 'department', label: 'TTCM' },
+  ].filter((option) => option.id !== 'department' || catalog.some((item) => workspaceAllowsItem('department', item)));
+
+  const quickCreateItems = quickCreateDescriptors(language)
+    .map((descriptor) => ({ descriptor, item: catalog.find((item) => item.id === descriptor.itemId) }))
+    .filter((entry) => Boolean(entry.item));
+
   const commandNeedle = commandQuery.trim().toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
+  const commandEntries = [
+    ...quickCreateItems.map((entry) => ({
+      id: `action:${entry.descriptor.id}`,
+      kind: 'action',
+      label: entry.descriptor.label,
+      description: entry.descriptor.description,
+      keywords: entry.descriptor.keywords,
+      item: entry.item,
+      payload: entry,
+    })),
+    ...catalog.map((item) => ({
+      id: `app:${item.id}`,
+      kind: 'app',
+      label: labelFor(item, language),
+      description: descriptionFor(item, language),
+      keywords: `${item.label || ''} ${item.labelVi || ''}`,
+      item,
+    })),
+  ];
   const commandResults = commandNeedle
-    ? catalog.filter((item) => {
-      const haystack = `${item.label || ''} ${item.labelVi || ''} ${descriptionFor(item, language)}`
+    ? commandEntries.filter((entry) => {
+      const haystack = `${entry.label} ${entry.description} ${entry.keywords || ''}`
         .toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
       return haystack.includes(commandNeedle);
-    }).slice(0, 8)
+    }).slice(0, 10)
     : [];
 
   const peekItem = catalog.find((item) => item.id === peekItemId) || null;
@@ -863,6 +964,14 @@ export default function GlobalQuickAccessRail({
     saveQuickAccessConfigToCloud(currentUser, next, allowedIds).then((result) => {
       if (result?.config) setConfig(result.config);
     });
+  };
+
+  const setWorkspace = (nextWorkspace) => {
+    const safeWorkspace = QUICK_ACCESS_WORKSPACES.includes(nextWorkspace) ? nextWorkspace : 'all';
+    persist({ ...config, workspace: safeWorkspace });
+    setQuickCreateOpen(false);
+    setCommandQuery('');
+    setCommandActiveIndex(0);
   };
 
   const enter = () => {
@@ -890,7 +999,7 @@ export default function GlobalQuickAccessRail({
     if (!pinned) collapseRail(false);
   };
 
-  selectedItemsRef.current = selectedItems;
+  selectedItemsRef.current = workspaceItems;
   activateItemRef.current = activateItem;
 
   const setSidebarMode = (mode) => {
@@ -926,6 +1035,25 @@ export default function GlobalQuickAccessRail({
     else activateItem(item, sourceEl);
     setActionItemId('');
     setPeekItemId('');
+  };
+
+  const runQuickCreate = (entry, sourceEl = null) => {
+    if (!entry?.descriptor || !entry?.item) return;
+    setQuickCreateOpen(false);
+    setCommandQuery('');
+    setCommandActiveIndex(0);
+    activateItem(entry.item, sourceEl);
+    if (entry.descriptor.event && typeof window !== 'undefined') {
+      window.setTimeout(() => {
+        window.dispatchEvent(new CustomEvent(entry.descriptor.event, { detail: entry.descriptor.detail || {} }));
+      }, 320);
+    }
+  };
+
+  const executeCommand = (entry, sourceEl = null) => {
+    if (!entry) return;
+    if (entry.kind === 'action') runQuickCreate(entry.payload, sourceEl);
+    else activateItem(entry.item, sourceEl);
   };
 
   const removeItem = (id) => {
@@ -968,6 +1096,7 @@ export default function GlobalQuickAccessRail({
         className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${focusMode ? 'is-focus' : ''} ${customizing ? 'is-customizing' : ''}`}
         data-quick-access="true"
         data-sidebar-mode={sidebarMode}
+        data-workspace={workspace}
         data-motion={collapsing ? 'collapsing' : (expanded ? 'open' : 'rest')}
         data-route={currentRoute}
         onPointerEnter={enter}
@@ -1007,7 +1136,7 @@ export default function GlobalQuickAccessRail({
           </button>
 
           <div className="bqa-rail-items">
-            {selectedItems.map((item) => {
+            {workspaceItems.map((item) => {
               const Icon = item.icon || Boxes;
               const active = activeItem(item, currentRoute, selectedTool);
               return (
@@ -1040,6 +1169,21 @@ export default function GlobalQuickAccessRail({
               );
             })}
           </div>
+
+          <button
+            type="button"
+            className={`bqa-rail-create ${quickCreateOpen ? 'is-active' : ''}`}
+            title={language === 'vi' ? 'Tạo nhanh' : 'Quick create'}
+            aria-label={language === 'vi' ? 'Tạo nhanh' : 'Quick create'}
+            aria-expanded={quickCreateOpen}
+            onClick={() => {
+              openRail();
+              setCommandQuery('');
+              setQuickCreateOpen((value) => !value);
+            }}
+          >
+            <Plus size={18} aria-hidden="true" />
+          </button>
 
           {primaryActivity ? (
             <button
@@ -1116,14 +1260,45 @@ export default function GlobalQuickAccessRail({
             </div>
           </header>
 
+          <nav className="bqa-workspace-tabs" aria-label={language === 'vi' ? 'Không gian làm việc' : 'Workspace'}>
+            {workspaceOptions.map((option) => (
+              <button
+                type="button"
+                key={option.id}
+                className={workspace === option.id ? 'is-active' : ''}
+                aria-current={workspace === option.id ? 'true' : undefined}
+                onClick={() => setWorkspace(option.id)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </nav>
+
           <label className="bqa-command-search" data-bes-keep-search="true">
             <Search size={17} aria-hidden="true" />
             <input
               ref={commandInputRef}
               type="search"
               value={commandQuery}
-              onChange={(event) => setCommandQuery(event.target.value)}
-              placeholder={language === 'vi' ? 'Tìm và mở nhanh…' : 'Search and open…'}
+              onChange={(event) => {
+                setCommandQuery(event.target.value);
+                setCommandActiveIndex(0);
+                setQuickCreateOpen(false);
+              }}
+              onKeyDown={(event) => {
+                if (!commandResults.length) return;
+                if (event.key === 'ArrowDown') {
+                  event.preventDefault();
+                  setCommandActiveIndex((index) => (index + 1) % commandResults.length);
+                } else if (event.key === 'ArrowUp') {
+                  event.preventDefault();
+                  setCommandActiveIndex((index) => (index - 1 + commandResults.length) % commandResults.length);
+                } else if (event.key === 'Enter') {
+                  event.preventDefault();
+                  executeCommand(commandResults[Math.min(commandActiveIndex, commandResults.length - 1)], event.currentTarget);
+                }
+              }}
+              placeholder={language === 'vi' ? 'Tìm ứng dụng, hành động…' : 'Search apps and actions…'}
               aria-label={language === 'vi' ? 'Tìm lệnh và ứng dụng' : 'Search commands and apps'}
             />
             <span className="bqa-command-kbd"><Command size={12} aria-hidden="true" />K</span>
@@ -1134,21 +1309,48 @@ export default function GlobalQuickAccessRail({
             ) : null}
           </label>
 
+          {quickCreateOpen && !commandNeedle ? (
+            <section className="bqa-quick-create-sheet" aria-label={language === 'vi' ? 'Tạo nhanh' : 'Quick create'}>
+              <header>
+                <span><Plus size={14} aria-hidden="true" />{language === 'vi' ? 'Tạo nhanh' : 'Quick create'}</span>
+                <button type="button" onClick={() => setQuickCreateOpen(false)} aria-label={language === 'vi' ? 'Đóng tạo nhanh' : 'Close quick create'}><X size={14} aria-hidden="true" /></button>
+              </header>
+              <div>
+                {quickCreateItems.map((entry) => {
+                  const Icon = entry.item.icon || Boxes;
+                  return (
+                    <button type="button" key={entry.descriptor.id} onClick={(event) => runQuickCreate(entry, event.currentTarget)}>
+                      <span style={{ '--bqa-accent': entry.item.accent }}><Icon size={17} aria-hidden="true" /></span>
+                      <span><strong>{entry.descriptor.label}</strong><small>{entry.descriptor.description}</small></span>
+                      <ChevronRight size={15} aria-hidden="true" />
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          ) : null}
+
           {commandNeedle ? (
             <div className="bqa-command-results" role="listbox" aria-label={language === 'vi' ? 'Kết quả tìm nhanh' : 'Quick search results'}>
-              {commandResults.map((item) => {
-                const Icon = item.icon || Boxes;
+              {commandResults.map((entry, index) => {
+                const item = entry.item;
+                const Icon = entry.kind === 'action' ? Zap : (item?.icon || Boxes);
                 return (
                   <button
                     type="button"
-                    key={item.id}
+                    key={entry.id}
                     role="option"
-                    className="bqa-command-result"
-                    onClick={(event) => activateItem(item, event.currentTarget)}
+                    aria-selected={index === commandActiveIndex}
+                    className={`bqa-command-result ${index === commandActiveIndex ? 'is-active' : ''}`}
+                    onMouseEnter={() => setCommandActiveIndex(index)}
+                    onClick={(event) => executeCommand(entry, event.currentTarget)}
                   >
-                    <span className="bqa-item-icon" style={{ '--bqa-accent': item.accent }}><Icon size={18} aria-hidden="true" /></span>
-                    <span><strong>{labelFor(item, language)}</strong><small>{descriptionFor(item, language)}</small></span>
-                    <ChevronRight size={16} aria-hidden="true" />
+                    <span className="bqa-item-icon" style={{ '--bqa-accent': item?.accent || '#2e6fae' }}><Icon size={18} aria-hidden="true" /></span>
+                    <span>
+                      <strong>{entry.label}</strong>
+                      <small>{entry.description}</small>
+                    </span>
+                    <span className={`bqa-command-kind is-${entry.kind}`}>{entry.kind === 'action' ? (language === 'vi' ? 'Lệnh' : 'Action') : (language === 'vi' ? 'App' : 'App')}</span>
                   </button>
                 );
               })}
@@ -1279,7 +1481,7 @@ export default function GlobalQuickAccessRail({
                   dropToFavorites();
                 }}
               >
-                {selectedItems.map((item, index) => {
+                {workspaceItems.map((item, index) => {
                   const Icon = item.icon || Boxes;
                   const active = activeItem(item, currentRoute, selectedTool);
                   return (

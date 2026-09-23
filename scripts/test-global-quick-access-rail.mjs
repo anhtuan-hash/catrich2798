@@ -21,6 +21,7 @@ for (const token of [
   'QUICK_ACCESS_MAX_ITEMS',
   'QUICK_ACCESS_RECENT_MAX',
   'QUICK_ACCESS_MODES',
+  'QUICK_ACCESS_WORKSPACES',
   'loadQuickAccessConfigFromCloud',
   'saveQuickAccessConfigToCloud',
   'subscribeQuickAccessConfig',
@@ -33,6 +34,8 @@ assert.match(prefs, /QUICK_ACCESS_MAX_ITEMS\s*=\s*10/, 'Quick Access must cap sh
 assert.match(prefs, /QUICK_ACCESS_RECENT_MAX\s*=\s*3/, 'Quick Access must cap recent apps at 3.');
 assert.ok(prefs.includes("['auto', 'pin', 'focus']"), 'Quick Access must persist Auto / Pin / Focus modes.');
 assert.ok(prefs.includes("mode: 'auto'"), 'Quick Access defaults to Auto mode.');
+assert.ok(prefs.includes("workspace: 'all'"), 'Quick Access defaults to the All workspace.');
+assert.ok(prefs.includes("['all', 'teaching', 'homeroom', 'department']"), 'Quick Access must persist the supported workspaces.');
 assert.ok(prefs.includes('recent: []'), 'Quick Access defaults to an empty recent-app list.');
 assert.ok(prefs.includes("storageKey(user)"), 'Local fallback must be scoped per account.');
 assert.ok(prefs.includes('updatedAt: 0'), 'New-device defaults must not outrank an existing cloud configuration.');
@@ -73,6 +76,16 @@ for (const token of [
   'BrianQuickAccessActivity',
   'bes-quick-access-activity',
   'data-smart-stack="true"',
+  'data-workspace={workspace}',
+  'workspaceAllowsItem',
+  'quickCreateDescriptors',
+  'quickCreateOpen',
+  'runQuickCreate',
+  'executeCommand',
+  'commandActiveIndex',
+  'bqa-workspace-tabs',
+  'bqa-quick-create-sheet',
+  'bqa-rail-create',
   'data-favorites-dropzone="true"',
   'dropToFavorites',
   'bqa-live-activity',
@@ -123,6 +136,11 @@ for (const token of [
   'scale3d(.14, .70, 1)',
   'Brian Quick Access V2 · productivity layer',
   'Brian Quick Access V3.1 · contextual smart stack + live activity',
+  'Brian Quick Access V3.2 · workspaces + quick create + Command Search V2',
+  '.bqa-workspace-tabs',
+  '.bqa-rail-create',
+  '.bqa-quick-create-sheet',
+  '.bqa-command-kind',
   '.bqa-context-banner',
   '.bqa-smart-stack',
   '.bqa-live-activity',
@@ -160,4 +178,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access V3.1 adds contextual workspace copy, Smart Stack, Live Activity API, drag-to-favorites, while preserving V2 permissions, font safety, responsive safe-area and the 10-shortcut cap.');
+console.log('PASS: Quick Access V3.2 adds account-synced workspaces, Quick Create and action-aware Command Search V2 while preserving V3.1 Live Activity, permissions, font safety, responsive safe-area and the 10-shortcut cap.');
