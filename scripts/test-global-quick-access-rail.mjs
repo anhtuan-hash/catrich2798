@@ -68,6 +68,14 @@ for (const token of [
   'contextIdsFor',
   'quickActionDescriptors',
   'readBadgeSnapshot',
+  'contextCopyFor',
+  'liveActivities',
+  'BrianQuickAccessActivity',
+  'bes-quick-access-activity',
+  'data-smart-stack="true"',
+  'data-favorites-dropzone="true"',
+  'dropToFavorites',
+  'bqa-live-activity',
   'bqa-command-search',
   'bqa-smart-section',
   'bqa-peek-card',
@@ -114,6 +122,12 @@ for (const token of [
   '.bqa-root.is-collapsing .bqa-brand',
   'scale3d(.14, .70, 1)',
   'Brian Quick Access V2 · productivity layer',
+  'Brian Quick Access V3.1 · contextual smart stack + live activity',
+  '.bqa-context-banner',
+  '.bqa-smart-stack',
+  '.bqa-live-activity',
+  '.bqa-rail-activity',
+  '.bqa-panel-list.is-drop-ready',
   '.bqa-rail-badge',
   '.bqa-mode-switch',
   '.bqa-command-search',
@@ -146,4 +160,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access V2 is account-aware, role-aware, recent/context smart, command-searchable, badge-ready, peek/action capable, keyboard-accessible, Auto/Pin/Focus aware, font-safe, responsive and capped at 10 shortcuts.');
+console.log('PASS: Quick Access V3.1 adds contextual workspace copy, Smart Stack, Live Activity API, drag-to-favorites, while preserving V2 permissions, font safety, responsive safe-area and the 10-shortcut cap.');
