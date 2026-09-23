@@ -530,6 +530,61 @@ test.describe('Global Quick Access safe area', () => {
     await expect(page.locator('.bqa-root')).toHaveAttribute('data-theme-style', 'paper');
   });
 
+  test('V4.12: spatial memory restores device workspace, side, last app and panel position', async ({ page }) => {
+    await page.goto('/#/apps');
+    const root = page.locator('.bqa-root');
+    await expect(root).toBeVisible();
+    await expect(root).toHaveAttribute('data-spatial-memory', 'true');
+
+    await page.locator('.bqa-rail').hover();
+    const workspaceTabs = page.locator('.bqa-workspace-tabs');
+    await workspaceTabs.getByRole('button', { name: 'Chủ nhiệm', exact: true }).click();
+    await expect(root).toHaveAttribute('data-workspace', 'homeroom');
+
+    const panel = page.locator('.bqa-panel');
+    await panel.evaluate((element) => {
+      element.scrollTop = Math.min(24, Math.max(0, element.scrollHeight - element.clientHeight));
+      element.dispatchEvent(new Event('scroll', { bubbles: true }));
+    });
+    await page.waitForTimeout(180);
+
+    await page.locator('.bqa-rail-settings').click();
+    const customizer = page.locator('.bqa-customizer');
+    await expect(customizer).toBeVisible();
+    const spatialControl = customizer.locator('.bqa-spatial-control');
+    await expect(spatialControl).toBeVisible();
+    await expect(spatialControl.locator('input[type="checkbox"]')).toBeChecked();
+
+    await customizer.getByRole('button', { name: 'Phải', exact: true }).click();
+    await expect(root).toHaveAttribute('data-side', 'right');
+    await page.locator('.bqa-done').click();
+
+    await page.locator('.bqa-rail-button[aria-label="Dashboard"]').click();
+    await expect(page).toHaveURL(/#\/dashboard/);
+    await page.waitForTimeout(180);
+
+    const stored = await page.evaluate(() => {
+      const key = Object.keys(localStorage).find((candidate) => candidate.startsWith('bes-quick-access-spatial-v1:'));
+      return key ? JSON.parse(localStorage.getItem(key) || 'null') : null;
+    });
+    expect(stored?.workspace).toBe('homeroom');
+    expect(stored?.side).toBe('right');
+    expect(stored?.lastItemId).toBe('route:dashboard');
+    expect(Object.keys(stored?.scroll || {}).length).toBeGreaterThan(0);
+
+    await page.reload();
+    await expect(page.locator('.bqa-root')).toBeVisible();
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-workspace', 'homeroom');
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-side', 'right');
+
+    await page.locator('.bqa-rail').hover();
+    await page.locator('.bqa-rail-settings').click();
+    const resetSpatial = page.locator('.bqa-spatial-control').getByRole('button', { name: 'Quên bố cục thiết bị' });
+    await resetSpatial.click();
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-workspace', 'all');
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-side', 'left');
+  });
+
   test('V3.3.1: right side is a true mirror with rail on the screen edge and panel expanding inward', async ({ page }) => {
     await page.goto('/#/dashboard');
     await expect(page.locator('.bqa-root')).toBeVisible();
