@@ -914,57 +914,174 @@ export default function GlobalQuickAccessRail({
         >
           <header className="bqa-panel-header">
             <div>
-              <strong>{language === 'vi' ? 'Thanh truy cập nhanh' : 'Quick access'}</strong>
-              <span>{language === 'vi' ? `Tối đa ${QUICK_ACCESS_MAX_ITEMS} ứng dụng · Rê chuột để mở` : `Up to ${QUICK_ACCESS_MAX_ITEMS} apps · Hover to open`}</span>
+              <strong>{language === 'vi' ? 'Brian Quick Access' : 'Brian Quick Access'}</strong>
+              <span>{language === 'vi' ? 'Gần đây · gợi ý ngữ cảnh · lệnh nhanh' : 'Recents · contextual suggestions · quick commands'}</span>
             </div>
-            <button
-              type="button"
-              className={`bqa-pin ${pinned ? 'is-active' : ''}`}
-              aria-pressed={pinned}
-              title={pinned ? (language === 'vi' ? 'Bỏ ghim' : 'Unpin') : (language === 'vi' ? 'Ghim thanh' : 'Pin rail')}
-              onClick={togglePinned}
-            >
-              {pinned ? <PinOff size={18} aria-hidden="true" /> : <Pin size={18} aria-hidden="true" />}
-            </button>
+            <div className="bqa-mode-switch" role="group" aria-label={language === 'vi' ? 'Chế độ thanh bên' : 'Sidebar mode'}>
+              <button
+                type="button"
+                className={sidebarMode === 'auto' ? 'is-active' : ''}
+                onClick={() => setSidebarMode('auto')}
+                title={language === 'vi' ? 'Tự động thu gọn' : 'Auto hide'}
+                aria-label={language === 'vi' ? 'Tự động thu gọn' : 'Auto hide'}
+              >
+                <Zap size={16} aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className={sidebarMode === 'pin' ? 'is-active' : ''}
+                onClick={() => setSidebarMode('pin')}
+                title={language === 'vi' ? 'Ghim luôn mở' : 'Keep pinned'}
+                aria-label={language === 'vi' ? 'Ghim luôn mở' : 'Keep pinned'}
+              >
+                {pinned ? <PinOff size={16} aria-hidden="true" /> : <Pin size={16} aria-hidden="true" />}
+              </button>
+              <button
+                type="button"
+                className={sidebarMode === 'focus' ? 'is-active' : ''}
+                onClick={() => setSidebarMode('focus')}
+                title={language === 'vi' ? 'Focus: ẩn tối đa' : 'Focus: hide rail'}
+                aria-label={language === 'vi' ? 'Focus: ẩn tối đa' : 'Focus: hide rail'}
+              >
+                <EyeOff size={16} aria-hidden="true" />
+              </button>
+            </div>
           </header>
 
-          <div className="bqa-panel-list" role="list">
-            {selectedItems.map((item) => {
-              const Icon = item.icon || Boxes;
-              const active = activeItem(item, currentRoute, selectedTool);
-              return (
-                <button
-                  type="button"
-                  role="listitem"
-                  key={item.id}
-                  draggable
-                  className={`bqa-panel-item ${active ? 'is-active' : ''}`}
-                  style={{ '--bqa-accent': item.accent }}
-                  onDragStart={(event) => {
-                    setDragId(item.id);
-                    event.dataTransfer.effectAllowed = 'move';
-                    event.dataTransfer.setData('text/plain', item.id);
-                  }}
-                  onDragEnd={() => setDragId('')}
-                  onDragOver={(event) => {
-                    if (!dragId) return;
-                    event.preventDefault();
-                    event.dataTransfer.dropEffect = 'move';
-                  }}
-                  onDrop={(event) => {
-                    event.preventDefault();
-                    moveDraggedBefore(item.id);
-                  }}
-                  onClick={(event) => activateItem(item, event.currentTarget)}
-                >
-                  <span className="bqa-item-icon"><Icon size={20} strokeWidth={2} aria-hidden="true" /></span>
-                  <span className="bqa-item-label">{labelFor(item, language)}</span>
-                  {active ? <Check className="bqa-item-check" size={17} aria-hidden="true" /> : null}
-                  <GripVertical className="bqa-item-grip" size={17} aria-hidden="true" />
-                </button>
-              );
-            })}
-          </div>
+          <label className="bqa-command-search" data-bes-keep-search="true">
+            <Search size={17} aria-hidden="true" />
+            <input
+              ref={commandInputRef}
+              type="search"
+              value={commandQuery}
+              onChange={(event) => setCommandQuery(event.target.value)}
+              placeholder={language === 'vi' ? 'Tìm và mở nhanh…' : 'Search and open…'}
+              aria-label={language === 'vi' ? 'Tìm lệnh và ứng dụng' : 'Search commands and apps'}
+            />
+            <span className="bqa-command-kbd"><Command size={12} aria-hidden="true" />K</span>
+            {commandQuery ? (
+              <button type="button" onClick={() => setCommandQuery('')} aria-label={language === 'vi' ? 'Xóa tìm kiếm' : 'Clear search'}>
+                <X size={14} aria-hidden="true" />
+              </button>
+            ) : null}
+          </label>
+
+          {commandNeedle ? (
+            <div className="bqa-command-results" role="listbox" aria-label={language === 'vi' ? 'Kết quả tìm nhanh' : 'Quick search results'}>
+              {commandResults.map((item) => {
+                const Icon = item.icon || Boxes;
+                return (
+                  <button
+                    type="button"
+                    key={item.id}
+                    role="option"
+                    className="bqa-command-result"
+                    onClick={(event) => activateItem(item, event.currentTarget)}
+                  >
+                    <span className="bqa-item-icon" style={{ '--bqa-accent': item.accent }}><Icon size={18} aria-hidden="true" /></span>
+                    <span><strong>{labelFor(item, language)}</strong><small>{descriptionFor(item, language)}</small></span>
+                    <ChevronRight size={16} aria-hidden="true" />
+                  </button>
+                );
+              })}
+              {!commandResults.length ? <div className="bqa-command-empty">{language === 'vi' ? 'Không tìm thấy lệnh phù hợp.' : 'No matching command.'}</div> : null}
+            </div>
+          ) : (
+            <>
+              {recentItems.length ? (
+                <section className="bqa-smart-section is-recent">
+                  <header><Clock3 size={14} aria-hidden="true" /><span>{language === 'vi' ? 'Gần đây' : 'Recent'}</span></header>
+                  <div>
+                    {recentItems.map((item) => {
+                      const Icon = item.icon || Boxes;
+                      return (
+                        <button type="button" key={item.id} onClick={(event) => activateItem(item, event.currentTarget)}>
+                          <span style={{ '--bqa-accent': item.accent }}><Icon size={16} aria-hidden="true" /></span>
+                          <b>{labelFor(item, language)}</b>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              ) : null}
+
+              {contextItems.length ? (
+                <section className="bqa-smart-section is-context">
+                  <header><Zap size={14} aria-hidden="true" /><span>{language === 'vi' ? 'Gợi ý cho trang này' : 'Suggested here'}</span></header>
+                  <div>
+                    {contextItems.map((item) => {
+                      const Icon = item.icon || Boxes;
+                      return (
+                        <button type="button" key={item.id} onClick={(event) => activateItem(item, event.currentTarget)}>
+                          <span style={{ '--bqa-accent': item.accent }}><Icon size={16} aria-hidden="true" /></span>
+                          <b>{labelFor(item, language)}</b>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+              ) : null}
+
+              <div className="bqa-panel-list" role="list">
+                {selectedItems.map((item, index) => {
+                  const Icon = item.icon || Boxes;
+                  const active = activeItem(item, currentRoute, selectedTool);
+                  return (
+                    <div
+                      role="listitem"
+                      key={item.id}
+                      draggable
+                      className={`bqa-panel-item ${active ? 'is-active' : ''}`}
+                      style={{ '--bqa-accent': item.accent }}
+                      onDragStart={(event) => {
+                        setDragId(item.id);
+                        event.dataTransfer.effectAllowed = 'move';
+                        event.dataTransfer.setData('text/plain', item.id);
+                      }}
+                      onDragEnd={() => setDragId('')}
+                      onDragOver={(event) => {
+                        if (!dragId) return;
+                        event.preventDefault();
+                        event.dataTransfer.dropEffect = 'move';
+                      }}
+                      onDrop={(event) => {
+                        event.preventDefault();
+                        moveDraggedBefore(item.id);
+                      }}
+                    >
+                      <button type="button" className="bqa-panel-item-main" onClick={(event) => activateItem(item, event.currentTarget)}>
+                        <span className="bqa-item-icon"><Icon size={20} strokeWidth={2} aria-hidden="true" /></span>
+                        <span className="bqa-item-copy">
+                          <span className="bqa-item-label">{labelFor(item, language)}</span>
+                          <small>{language === 'vi' ? `Alt+${index + 1}` : `Alt+${index + 1}`}</small>
+                        </span>
+                        {badges[item.id] ? (
+                          <span className={`bqa-panel-badge ${badges[item.id] === 'dot' ? 'is-dot' : ''}`}>
+                            {badges[item.id] === 'dot' ? '' : badges[item.id]}
+                          </span>
+                        ) : null}
+                        {active ? <Check className="bqa-item-check" size={17} aria-hidden="true" /> : null}
+                      </button>
+                      <button
+                        type="button"
+                        className="bqa-item-more"
+                        aria-label={language === 'vi' ? `Thao tác nhanh cho ${labelFor(item, language)}` : `Quick actions for ${labelFor(item, language)}`}
+                        aria-haspopup="menu"
+                        aria-expanded={actionItemId === item.id}
+                        onClick={() => {
+                          setPeekItemId('');
+                          setActionItemId((value) => value === item.id ? '' : item.id);
+                        }}
+                      >
+                        <MoreHorizontal size={17} aria-hidden="true" />
+                      </button>
+                      <GripVertical className="bqa-item-grip" size={16} aria-hidden="true" />
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
 
           <footer className="bqa-panel-footer">
             <button type="button" onClick={() => { setCustomizerQuery(''); setCustomizing(true); }}>
