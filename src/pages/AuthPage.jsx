@@ -135,7 +135,7 @@ function AuthVisualPanel({ language, title, recoveryMode, isRegister, configured
       <div className="auth-google-visual-art">
         <img
           className="auth-teacher-artwork"
-          src="/auth/teacher-login-scene.jpg"
+          src="/auth/teacher-login-scene-v2.jpg"
           alt={language === 'vi'
             ? 'Minh hoạ giáo viên nam đang làm việc cùng laptop, sách và cây xanh'
             : 'Male teacher working with a laptop, books and plants'}
