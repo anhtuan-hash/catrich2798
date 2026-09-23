@@ -362,6 +362,30 @@ function quickActionDescriptors(item, language) {
   if (item.id === 'action:attendance') {
     return [{ id: 'attendance', label: vi ? 'Điểm danh ngay' : 'Open attendance', action: 'attendance' }];
   }
+  if (item.id === 'route:dashboard') {
+    return [
+      { id: 'dashboard-apps', label: vi ? 'Mở ứng dụng' : 'Open apps', targetItemId: 'route:apps' },
+      { id: 'dashboard-schedule', label: vi ? 'Lịch làm việc' : 'Work schedule', action: 'ttcm-schedule' },
+    ];
+  }
+  if (item.id === 'route:homeroom') {
+    return [
+      { id: 'homeroom-attendance', label: vi ? 'Điểm danh' : 'Attendance', action: 'attendance' },
+      { id: 'homeroom-gradebook', label: vi ? 'Sổ điểm' : 'Gradebook', targetItemId: 'tool:gradebook-studio' },
+    ];
+  }
+  if (item.id === 'tool:gradebook-studio') {
+    return [
+      { id: 'gradebook-homeroom', label: vi ? 'Chủ nhiệm' : 'Homeroom', targetItemId: 'route:homeroom' },
+      { id: 'gradebook-dashboard', label: 'Dashboard', targetItemId: 'route:dashboard' },
+    ];
+  }
+  if (item.id === 'action:reports' || item.tool === 'brian-team') {
+    return [
+      { id: 'reports-open', label: vi ? 'Mở báo cáo' : 'Open reports', action: 'open' },
+      { id: 'reports-schedule', label: vi ? 'Kế hoạch TTCM' : 'TTCM schedule', action: 'ttcm-schedule' },
+    ];
+  }
   return [{ id: 'open', label: vi ? 'Mở ứng dụng' : 'Open app', action: 'open' }];
 }
 
@@ -1099,6 +1123,12 @@ export default function GlobalQuickAccessRail({
   const [appHealth, setAppHealth] = useState({});
   const [precisionDrag, setPrecisionDrag] = useState(false);
   const [keyboardLayer, setKeyboardLayer] = useState(false);
+  const [railCapacity, setRailCapacity] = useState(QUICK_ACCESS_MAX_ITEMS);
+  const [overflowOpen, setOverflowOpen] = useState(false);
+  const [workspaceSwitcherOpen, setWorkspaceSwitcherOpen] = useState(false);
+  const [activeActionsItemId, setActiveActionsItemId] = useState('');
+  const [activeActionsTop, setActiveActionsTop] = useState(118);
+  const [handoffTargetId, setHandoffTargetId] = useState('');
   const [timeTick, setTimeTick] = useState(() => Date.now());
   const [backStack, setBackStack] = useState(() => loadQuickAccessHistory(currentUser));
   const [backStackOpen, setBackStackOpen] = useState(false);
@@ -1141,6 +1171,8 @@ export default function GlobalQuickAccessRail({
   const suppressHistoryRef = useRef(false);
   const activateItemRef = useRef(null);
   const shelfFilesRef = useRef(new Map());
+  const activeActionsTimerRef = useRef(0);
+  const handoffPacketRef = useRef(null);
 
   const catalog = useMemo(() => {
     const byId = new Map();
@@ -1250,6 +1282,20 @@ export default function GlobalQuickAccessRail({
     setCollapsing(false);
     setHovered(true);
   }, [notificationCenterOpen, workflowCenterOpen]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const updateCapacity = () => {
+      const height = Math.max(560, Number(window.innerHeight) || 900);
+      const reserved = 390;
+      const itemPitch = railSize === 'l' ? 52 : railSize === 's' ? 40 : 46;
+      const next = Math.max(4, Math.min(QUICK_ACCESS_MAX_ITEMS, Math.floor((height - reserved) / itemPitch)));
+      setRailCapacity(next);
+    };
+    updateCapacity();
+    window.addEventListener('resize', updateCapacity, { passive: true });
+    return () => window.removeEventListener('resize', updateCapacity);
+  }, [railSize]);
 
   useEffect(() => {
     if (!currentUser || !allowedIds.length) return undefined;
@@ -1399,6 +1445,32 @@ export default function GlobalQuickAccessRail({
       window.removeEventListener('bes-quick-access-health', onHealth);
       if (previousApi) window.BrianQuickAccessHealth = previousApi;
       else delete window.BrianQuickAccessHealth;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const previousApi = window.BrianQuickAccessHandoff;
+    window.BrianQuickAccessHandoff = {
+      peek: () => handoffPacketRef.current || window.__BRIAN_QUICK_ACCESS_HANDOFF__ || null,
+      consume: (targetItemId = '') => {
+        const packet = handoffPacketRef.current || window.__BRIAN_QUICK_ACCESS_HANDOFF__ || null;
+        if (!packet) return null;
+        if (targetItemId && packet.targetItemId !== targetItemId) return null;
+        handoffPacketRef.current = null;
+        delete window.__BRIAN_QUICK_ACCESS_HANDOFF__;
+        try { window.sessionStorage?.removeItem('bes-quick-access-handoff-v6'); } catch { /* optional */ }
+        return packet;
+      },
+      clear: () => {
+        handoffPacketRef.current = null;
+        delete window.__BRIAN_QUICK_ACCESS_HANDOFF__;
+        try { window.sessionStorage?.removeItem('bes-quick-access-handoff-v6'); } catch { /* optional */ }
+      },
+    };
+    return () => {
+      if (previousApi) window.BrianQuickAccessHandoff = previousApi;
+      else delete window.BrianQuickAccessHandoff;
     };
   }, []);
 
@@ -2075,6 +2147,13 @@ export default function GlobalQuickAccessRail({
     .slice(0, QUICK_ACCESS_MAX_ITEMS);
 
   const workspaceItems = selectedItems.filter((item) => workspaceAllowsItem(effectiveWorkspace, item));
+  const activeWorkspaceItem = workspaceItems.find((item) => activeItem(item, currentRoute, selectedTool)) || null;
+  const initialRailVisibleItems = workspaceItems.slice(0, railCapacity);
+  const railVisibleItems = activeWorkspaceItem && !initialRailVisibleItems.some((item) => item.id === activeWorkspaceItem.id) && initialRailVisibleItems.length
+    ? [...initialRailVisibleItems.slice(0, -1), activeWorkspaceItem]
+    : initialRailVisibleItems;
+  const railVisibleIds = new Set(railVisibleItems.map((item) => item.id));
+  const railOverflowItems = workspaceItems.filter((item) => !railVisibleIds.has(item.id));
 
   const recentItems = (config.recent || [])
     .map((id) => presentationCatalog.find((item) => item.id === id))
@@ -2240,6 +2319,11 @@ export default function GlobalQuickAccessRail({
   };
   const activeCapsuleItem = classroomMode ? null : (presentationCatalog.find((item) => item.id === capsuleItemId) || null);
   const activeCapsule = capsuleSnapshotFor(activeCapsuleItem);
+  const progressForItem = (item) => {
+    const snapshot = capsuleSnapshotFor(item);
+    const value = Number(snapshot?.progress);
+    return Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : null;
+  };
 
   const switcherItems = [
     ...recentItems,
@@ -2333,6 +2417,10 @@ export default function GlobalQuickAccessRail({
     ? quickActionDescriptors(peekItem, language).filter((descriptor) => descriptor.id !== 'open').slice(0, 3)
     : [];
   const actionItem = presentationCatalog.find((item) => item.id === actionItemId) || null;
+  const activeActionsItem = presentationCatalog.find((item) => item.id === activeActionsItemId) || null;
+  const activeActions = activeActionsItem
+    ? quickActionDescriptors(activeActionsItem, language).slice(0, 3)
+    : [];
 
   const availableItems = (classroomMode ? presentationCatalog : catalog).filter((item) => !config.items.includes(item.id));
   const customizerNeedle = customizerQuery.trim().toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
@@ -2827,6 +2915,9 @@ export default function GlobalQuickAccessRail({
     setCommandQuery('');
     setPeekItemId('');
     setActionItemId('');
+    setOverflowOpen(false);
+    setWorkspaceSwitcherOpen(false);
+    setActiveActionsItemId('');
     runAction(item, sourceEl);
     if (!pinned) collapseRail(false);
   };
@@ -2858,6 +2949,75 @@ export default function GlobalQuickAccessRail({
       return;
     }
     activateItem(item, sourceEl);
+  };
+
+  const showActiveQuickActions = (item, sourceEl) => {
+    window.clearTimeout(activeActionsTimerRef.current);
+    if (!item || !activeItem(item, currentRoute, selectedTool)) {
+      setActiveActionsItemId('');
+      return;
+    }
+    const actions = quickActionDescriptors(item, language);
+    if (!actions.length) return;
+    const rect = sourceEl?.getBoundingClientRect?.();
+    if (rect) setActiveActionsTop(Math.max(86, Math.min(window.innerHeight - 170, rect.top - 4)));
+    setActiveActionsItemId(item.id);
+  };
+
+  const hideActiveQuickActions = () => {
+    window.clearTimeout(activeActionsTimerRef.current);
+    activeActionsTimerRef.current = window.setTimeout(() => setActiveActionsItemId(''), 180);
+  };
+
+  const parseHandoffPacket = (item, event) => {
+    if (!item || !event?.dataTransfer) return null;
+    const transfer = event.dataTransfer;
+    const files = [...(transfer.files || [])].slice(0, 5);
+    const sourceItemId = String(transfer.getData('application/x-brian-quick-access-item') || '').trim();
+    const uri = String(transfer.getData('text/uri-list') || '').trim();
+    const textValue = String(transfer.getData('text/plain') || '').trim();
+    const packet = {
+      id: `handoff-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+      targetItemId: item.id,
+      sourceItemId,
+      kind: files.length ? 'files' : uri ? 'url' : sourceItemId ? 'app' : 'text',
+      text: uri || textValue,
+      url: uri || (/^https?:\/\//i.test(textValue) ? textValue : ''),
+      files,
+      fileMeta: files.map((file) => ({ name: file.name, size: file.size, type: file.type })),
+      createdAt: Date.now(),
+      source: 'quick-access-v6-handoff',
+    };
+    if (!files.length && !packet.text && !sourceItemId) return null;
+    return packet;
+  };
+
+  const dispatchHandoff = (packet) => {
+    if (!packet || typeof window === 'undefined') return;
+    handoffPacketRef.current = packet;
+    window.__BRIAN_QUICK_ACCESS_HANDOFF__ = packet;
+    try {
+      const persistable = { ...packet, files: [] };
+      window.sessionStorage?.setItem('bes-quick-access-handoff-v6', JSON.stringify(persistable));
+    } catch {
+      // Handoff persistence is best effort.
+    }
+    window.dispatchEvent(new CustomEvent('bes-quick-access-handoff', { detail: packet }));
+    window.setTimeout(() => {
+      if (handoffPacketRef.current?.id === packet.id) {
+        window.dispatchEvent(new CustomEvent('bes-quick-access-handoff', { detail: packet }));
+      }
+    }, 420);
+  };
+
+  const handleRailHandoffDrop = (item, event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setHandoffTargetId('');
+    const packet = parseHandoffPacket(item, event);
+    if (!packet) return;
+    dispatchHandoff(packet);
+    activateItem(item, event.currentTarget);
   };
 
   selectedItemsRef.current = workspaceItems;
@@ -2919,7 +3079,10 @@ export default function GlobalQuickAccessRail({
     else if (descriptor.action === 'ttcm-schedule') openTtcm('schedule');
     else if (descriptor.action === 'ttcm-personnel') openTtcm('personnel');
     else if (descriptor.action === 'attendance') runAction({ action: 'attendance' }, sourceEl);
-    else activateItem(item, sourceEl);
+    else if (descriptor.targetItemId) {
+      const targetItem = presentationCatalog.find((candidate) => candidate.id === descriptor.targetItemId);
+      if (targetItem) activateItem(targetItem, sourceEl);
+    } else activateItem(item, sourceEl);
     setActionItemId('');
     setPeekItemId('');
   };
@@ -3196,7 +3359,7 @@ export default function GlobalQuickAccessRail({
 
       <div
         ref={rootRef}
-        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${focusMode ? 'is-focus' : ''} ${customizing ? 'is-customizing' : ''} ${notificationCenterOpen ? 'is-alerts-open' : ''} ${workflowCenterOpen ? 'is-workflow-open' : ''} ${classroomMode ? 'is-classroom-mode' : ''}`}
+        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${focusMode ? 'is-focus' : ''} ${customizing ? 'is-customizing' : ''} ${notificationCenterOpen ? 'is-alerts-open' : ''} ${workflowCenterOpen ? 'is-workflow-open' : ''} ${classroomMode ? 'is-classroom-mode' : ''} ${overflowOpen ? 'is-overflow-open' : ''} ${workspaceSwitcherOpen ? 'is-workspace-switcher-open' : ''}`}
         data-quick-access="true"
         data-sidebar-mode={sidebarMode}
         data-workspace={effectiveWorkspace}
@@ -3213,6 +3376,8 @@ export default function GlobalQuickAccessRail({
         data-context-lock={contextLock?.locked ? 'true' : 'false'}
         data-screen-guard={screenGuard ? 'true' : 'false'}
         data-reading-mode={compactReadingMode ? 'compact' : 'normal'}
+        data-rail-capacity={railCapacity}
+        data-overflow-count={railOverflowItems.length}
         data-precision-drag={precisionDrag ? 'true' : 'false'}
         data-keyboard-layer={keyboardLayer ? 'true' : 'false'}
         data-context-key={routeContextKey}
@@ -3263,6 +3428,23 @@ export default function GlobalQuickAccessRail({
             <span aria-hidden="true">B</span>
           </button>
 
+          <button
+            type="button"
+            className={`bqa-rail-workspace ${workspaceSwitcherOpen ? 'is-active' : ''}`}
+            title={language === 'vi' ? 'Đổi không gian làm việc' : 'Switch workspace'}
+            aria-label={language === 'vi' ? 'Đổi không gian làm việc' : 'Switch workspace'}
+            aria-expanded={workspaceSwitcherOpen}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              setOverflowOpen(false);
+              setWorkspaceSwitcherOpen((value) => !value);
+            }}
+          >
+            <LayoutGrid size={14} aria-hidden="true" />
+            <span>{effectiveWorkspace === 'teaching' ? 'G' : effectiveWorkspace === 'homeroom' ? 'C' : effectiveWorkspace === 'department' ? 'T' : 'A'}</span>
+          </button>
+
           {!classroomMode && backStack.length ? (
             <button
               type="button"
@@ -3289,9 +3471,10 @@ export default function GlobalQuickAccessRail({
             data-adaptive-dock="true"
             onPointerLeave={() => setDockHoverIndex(-1)}
           >
-            {workspaceItems.map((item, index) => {
+            {railVisibleItems.map((item, index) => {
               const Icon = item.icon || Boxes;
               const active = activeItem(item, currentRoute, selectedTool);
+              const progress = progressForItem(item);
               const dockDistance = dockHoverIndex < 0
                 ? (active ? 'active' : 'rest')
                 : String(Math.min(3, Math.abs(index - dockHoverIndex)));
@@ -3299,8 +3482,8 @@ export default function GlobalQuickAccessRail({
                 <button
                   type="button"
                   key={item.id}
-                  className={`bqa-rail-button ${active ? 'is-active' : ''}`}
-                  style={{ '--bqa-accent': item.accent }}
+                  className={`bqa-rail-button ${active ? 'is-active' : ''} ${progress != null ? 'has-progress' : ''} ${handoffTargetId === item.id ? 'is-handoff-target' : ''}`}
+                  style={{ '--bqa-accent': item.accent, '--bqa-app-progress': progress ?? 0 }}
                   title={displayLabelFor(item)}
                   aria-label={displayLabelFor(item)}
                   aria-current={active ? 'page' : undefined}
@@ -3309,20 +3492,31 @@ export default function GlobalQuickAccessRail({
                     setDockHoverIndex(index);
                     showCapsule(item, event.currentTarget);
                     showPeek(item, event.currentTarget);
+                    showActiveQuickActions(item, event.currentTarget);
                   }}
                   onPointerLeave={() => {
                     hideCapsule();
                     hidePeek();
+                    hideActiveQuickActions();
                   }}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    event.dataTransfer.dropEffect = 'copy';
+                    setHandoffTargetId(item.id);
+                  }}
+                  onDragLeave={() => setHandoffTargetId((current) => current === item.id ? '' : current)}
+                  onDrop={(event) => handleRailHandoffDrop(item, event)}
                   onFocus={(event) => {
                     setDockHoverIndex(index);
                     showCapsule(item, event.currentTarget);
                     showPeek(item, event.currentTarget);
+                    showActiveQuickActions(item, event.currentTarget);
                   }}
                   onBlur={() => {
                     setDockHoverIndex(-1);
                     hideCapsule();
                     hidePeek();
+                    hideActiveQuickActions();
                   }}
                   onContextMenu={(event) => {
                     event.preventDefault();
@@ -3331,6 +3525,7 @@ export default function GlobalQuickAccessRail({
                   }}
                   onClick={(event) => activateItem(item, event.currentTarget)}
                 >
+                  {progress != null ? <span className="bqa-progress-ring" aria-label={`${Math.round(progress)}%`} /> : null}
                   <Icon size={20} strokeWidth={2} aria-hidden="true" />
                   {appHealth[item.id] ? (
                     <span className={`bqa-health-dot is-${appHealth[item.id].state}`} title={appHealth[item.id].message || appHealth[item.id].state} aria-label={appHealth[item.id].message || appHealth[item.id].state} />
@@ -3345,6 +3540,25 @@ export default function GlobalQuickAccessRail({
               );
             })}
           </div>
+
+          {railOverflowItems.length ? (
+            <button
+              type="button"
+              className={`bqa-rail-overflow ${overflowOpen ? 'is-active' : ''}`}
+              title={language === 'vi' ? `${railOverflowItems.length} ứng dụng khác` : `${railOverflowItems.length} more apps`}
+              aria-label={language === 'vi' ? 'Mở ứng dụng còn lại' : 'Open remaining apps'}
+              aria-expanded={overflowOpen}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                setWorkspaceSwitcherOpen(false);
+                setOverflowOpen((value) => !value);
+              }}
+            >
+              <MoreHorizontal size={18} aria-hidden="true" />
+              <span>{railOverflowItems.length}</span>
+            </button>
+          ) : null}
 
           {!classroomMode ? (
             <button
@@ -3456,6 +3670,81 @@ export default function GlobalQuickAccessRail({
             <Settings size={19} aria-hidden="true" />
           </button>
         </aside>
+
+        {workspaceSwitcherOpen ? (
+          <section className="bqa-workspace-popover" aria-label={language === 'vi' ? 'Không gian làm việc' : 'Workspaces'}>
+            <header>{language === 'vi' ? 'Không gian' : 'Workspace'}</header>
+            {workspaceOptions.map((option) => (
+              <button
+                type="button"
+                key={option.id}
+                className={effectiveWorkspace === option.id ? 'is-active' : ''}
+                onClick={() => {
+                  setWorkspace(option.id);
+                  setWorkspaceSwitcherOpen(false);
+                }}
+              >
+                <span>{option.id === 'teaching' ? 'G' : option.id === 'homeroom' ? 'C' : option.id === 'department' ? 'T' : 'A'}</span>
+                <b>{option.label}</b>
+                {effectiveWorkspace === option.id ? <Check size={13} aria-hidden="true" /> : null}
+              </button>
+            ))}
+          </section>
+        ) : null}
+
+        {overflowOpen && railOverflowItems.length ? (
+          <section className="bqa-overflow-popover" aria-label={language === 'vi' ? 'Ứng dụng còn lại' : 'More apps'}>
+            <header>
+              <span>{language === 'vi' ? 'Ứng dụng khác' : 'More apps'}</span>
+              <b>{railOverflowItems.length}</b>
+            </header>
+            <div>
+              {railOverflowItems.map((item) => {
+                const Icon = item.icon || Boxes;
+                const progress = progressForItem(item);
+                return (
+                  <button type="button" key={item.id} onClick={(event) => activateItem(item, event.currentTarget)}>
+                    <span className="bqa-overflow-icon" style={{ '--bqa-accent': item.accent }}>
+                      <Icon size={16} aria-hidden="true" />
+                      {progress != null ? <i style={{ '--bqa-app-progress': progress }} /> : null}
+                    </span>
+                    <b>{displayLabelFor(item)}</b>
+                    <ChevronRight size={13} aria-hidden="true" />
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        ) : null}
+
+        {activeActionsItem && activeActions.length ? (
+          <section
+            className="bqa-active-actions"
+            style={{ top: `${activeActionsTop}px` }}
+            aria-label={language === 'vi' ? 'Thao tác nhanh ứng dụng hiện tại' : 'Active app quick actions'}
+            onPointerEnter={() => window.clearTimeout(activeActionsTimerRef.current)}
+            onPointerLeave={hideActiveQuickActions}
+          >
+            <header>
+              <span><Zap size={13} aria-hidden="true" />{displayLabelFor(activeActionsItem)}</span>
+            </header>
+            <div>
+              {activeActions.map((descriptor) => (
+                <button
+                  type="button"
+                  key={descriptor.id}
+                  onClick={(event) => {
+                    runQuickAction(activeActionsItem, descriptor, event.currentTarget);
+                    setActiveActionsItemId('');
+                  }}
+                >
+                  <span>{descriptor.label}</span>
+                  <ChevronRight size={12} aria-hidden="true" />
+                </button>
+              ))}
+            </div>
+          </section>
+        ) : null}
 
         {notificationCenterOpen ? (
           <section

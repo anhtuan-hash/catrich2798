@@ -783,6 +783,83 @@ test.describe('Global Quick Access safe area', () => {
     expect(pinnedGeometry.footerLeft).toBeGreaterThanOrEqual(pinnedGeometry.panelRight + 8);
   });
 
+  test('V6: active app exposes contextual quick actions without changing the fixed-left rail', async ({ page }) => {
+    await page.goto('/#/dashboard');
+    const active = page.locator('.bqa-rail-button.is-active').first();
+    await expect(active).toBeVisible();
+    await active.hover();
+    await expect(page.locator('.bqa-active-actions')).toBeVisible();
+    await expect(page.locator('.bqa-active-actions button')).toHaveCount(2);
+    const rootSide = await page.locator('.bqa-root').getAttribute('data-side');
+    expect(rootSide || 'left').toBe('left');
+  });
+
+  test('V6: Progress Ring reflects app progress from the existing capsule API', async ({ page }) => {
+    await page.goto('/#/dashboard');
+    const active = page.locator('.bqa-rail-button.is-active').first();
+    await expect(active).toBeVisible();
+    await expect.poll(async () => page.evaluate(() => typeof window.BrianQuickAccessCapsules?.set)).toBe('function');
+    await page.evaluate(() => {
+      window.BrianQuickAccessCapsules.set({
+        itemId: 'route:dashboard',
+        label: 'Dashboard',
+        text: 'Đang đồng bộ',
+        progress: 64,
+      });
+    });
+    await expect(active).toHaveClass(/has-progress/);
+    await expect(active.locator('.bqa-progress-ring')).toHaveAttribute('aria-label', '64%');
+  });
+
+  test('V6: Smart Overflow keeps active app visible on short desktop viewports', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 640 });
+    await page.goto('/#/apps');
+    const root = page.locator('.bqa-root');
+    await expect(root).toBeVisible();
+    const overflowCount = Number(await root.getAttribute('data-overflow-count') || 0);
+    expect(overflowCount).toBeGreaterThan(0);
+    await expect(page.locator('.bqa-rail-button.is-active')).toBeVisible();
+    await page.locator('.bqa-rail-overflow').click();
+    await expect(page.locator('.bqa-overflow-popover')).toBeVisible();
+  });
+
+  test('V6: Workspace Switcher changes rail workspace without moving the sidebar', async ({ page }) => {
+    await page.goto('/#/apps');
+    await page.locator('.bqa-rail-workspace').click();
+    await expect(page.locator('.bqa-workspace-popover')).toBeVisible();
+    const teaching = page.locator('.bqa-workspace-popover button').filter({ hasText: 'Giảng dạy' });
+    await teaching.click();
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-workspace', 'teaching');
+    const left = await page.locator('.bqa-rail').evaluate((rail) => Math.round(rail.getBoundingClientRect().left));
+    expect(left).toBeLessThanOrEqual(20);
+  });
+
+  test('V6: Drag-to-App Handoff publishes a consumable packet', async ({ page }) => {
+    await page.goto('/#/apps');
+    await expect(page.locator('.bqa-rail-button').first()).toBeVisible();
+    await expect.poll(async () => page.evaluate(() => typeof window.BrianQuickAccessHandoff?.peek)).toBe('function');
+    await page.evaluate(() => {
+      window.__v6HandoffSeen = null;
+      window.addEventListener('bes-quick-access-handoff', (event) => {
+        window.__v6HandoffSeen = {
+          targetItemId: event.detail?.targetItemId || '',
+          kind: event.detail?.kind || '',
+          text: event.detail?.text || '',
+        };
+      }, { once: true });
+      const target = document.querySelector('.bqa-rail-button');
+      const transfer = new DataTransfer();
+      transfer.setData('text/plain', 'https://example.com/brian-v6');
+      transfer.setData('text/uri-list', 'https://example.com/brian-v6');
+      target.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: transfer }));
+      target.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: transfer }));
+    });
+    await expect.poll(async () => page.evaluate(() => window.__v6HandoffSeen?.kind || '')).toBe('url');
+    const packet = await page.evaluate(() => window.BrianQuickAccessHandoff.peek());
+    expect(packet?.targetItemId).toBeTruthy();
+    expect(packet?.url).toBe('https://example.com/brian-v6');
+  });
+
   test('pinned panel reflows content instead of covering it', async ({ page }) => {
     await page.goto('/#/apps');
     await expect(page.locator('.bqa-root')).toBeVisible();
