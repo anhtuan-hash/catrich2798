@@ -550,6 +550,22 @@ export default function GlobalQuickAccessRail({
     setHovered(true);
   }, []);
 
+  const focusCommandInput = useCallback(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    let attempts = 0;
+    const tryFocus = () => {
+      attempts += 1;
+      const input = commandInputRef.current;
+      const inertAncestor = input?.closest?.('[inert]');
+      if (input && !inertAncestor) {
+        try { input.focus({ preventScroll: true }); } catch { input.focus?.(); }
+        if (document.activeElement === input) return;
+      }
+      if (attempts < 8) window.setTimeout(tryFocus, 40);
+    };
+    window.requestAnimationFrame(tryFocus);
+  }, []);
+
   const collapseRail = useCallback((force = false) => {
     if (!force && (pinned || customizing)) return;
     window.clearTimeout(closeTimerRef.current);
@@ -816,7 +832,7 @@ export default function GlobalQuickAccessRail({
       if ((event.metaKey || event.ctrlKey) && !event.altKey && String(event.key || '').toLowerCase() === 'k') {
         event.preventDefault();
         openRail();
-        window.setTimeout(() => commandInputRef.current?.focus(), 40);
+        focusCommandInput();
         return;
       }
 
@@ -866,7 +882,7 @@ export default function GlobalQuickAccessRail({
       window.removeEventListener('keydown', onShortcut);
       window.removeEventListener('keyup', onShortcutUp);
     };
-  }, [pinned, customizing, expanded, collapseRail, openRail, appSwitcherIndex]);
+  }, [pinned, customizing, expanded, collapseRail, openRail, focusCommandInput, appSwitcherIndex]);
 
   useLayoutEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return undefined;
