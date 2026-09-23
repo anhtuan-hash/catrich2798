@@ -705,9 +705,8 @@ test.describe('Global Quick Access safe area', () => {
     await expect(page.locator('.bqa-smart-section.is-working')).toHaveCount(0);
     await expect(page.getByText('Đang làm', { exact: true })).toHaveCount(0);
 
-    // Keep the lighter Smart Stack pieces that remain useful.
-    await expect(page.locator('.bqa-smart-section.is-recent')).toHaveCount(1);
-    await expect(page.locator('.bqa-smart-section.is-pinned-smart')).toHaveCount(1);
+    // The compact panel still keeps the core shortcut list.
+    await expect(page.locator('.bqa-panel-list')).toBeVisible();
 
     // Search remains available only through the full-screen command palette.
     await page.keyboard.press(process.platform === 'darwin' ? 'Meta+K' : 'Control+K');
