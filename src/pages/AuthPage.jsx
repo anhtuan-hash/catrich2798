@@ -132,17 +132,15 @@ function AuthVisualPanel({ language, title, recoveryMode, isRegister, configured
         <p>{description}</p>
       </div>
 
-      <div className="auth-teacher-message" aria-hidden="true">
-        {language === 'vi' ? <>Cùng giáo viên<br />kiến tạo thế hệ học sinh<br />tỏa sáng ♡</> : <>Better teachers<br />brighter learners<br />brighter futures ♡</>}
-      </div>
-
       <div className="auth-google-visual-art">
-        <div
+        <img
           className="auth-teacher-artwork"
-          role="img"
-          aria-label={language === 'vi'
+          src="/auth/teacher-login-scene.jpg"
+          alt={language === 'vi'
             ? 'Minh hoạ giáo viên nam đang làm việc cùng laptop, sách và cây xanh'
             : 'Male teacher working with a laptop, books and plants'}
+          decoding="async"
+          fetchPriority="high"
         />
       </div>
 
