@@ -165,6 +165,57 @@ function contextIdsFor(currentRoute, selectedTool) {
   return ['route:apps', 'route:homeroom', 'action:attendance'];
 }
 
+function contextCopyFor(currentRoute, selectedTool, language) {
+  const vi = language === 'vi';
+  if (currentRoute === 'homeroom') {
+    return {
+      kicker: vi ? 'CHỦ NHIỆM' : 'HOMEROOM',
+      title: vi ? 'Không gian lớp chủ nhiệm' : 'Homeroom workspace',
+      description: vi ? 'Điểm danh, sổ điểm và tài liệu lớp luôn ở ngay bên cạnh.' : 'Attendance, gradebook and class resources stay one step away.',
+    };
+  }
+  if (currentRoute === 'assessment-core') {
+    return {
+      kicker: vi ? 'NGÂN HÀNG CÂU HỎI' : 'QUESTION BANK',
+      title: vi ? 'Không gian ra đề' : 'Assessment workspace',
+      description: vi ? 'Tập trung tài liệu, ứng dụng và lối tắt phục vụ tạo đề.' : 'Keep authoring resources and related apps close at hand.',
+    };
+  }
+  if (currentRoute === 'resource-library') {
+    return {
+      kicker: vi ? 'TÀI LIỆU' : 'RESOURCES',
+      title: vi ? 'Không gian học liệu' : 'Resource workspace',
+      description: vi ? 'Đi nhanh giữa học liệu, ngân hàng câu hỏi và ứng dụng.' : 'Move quickly between resources, question bank and apps.',
+    };
+  }
+  if (currentRoute === 'tool' && selectedTool?.slug === 'brian-team') {
+    return {
+      kicker: vi ? 'BÁO CÁO · TTCM' : 'REPORTS · DEPARTMENT',
+      title: vi ? 'Không gian điều hành tổ' : 'Department workspace',
+      description: vi ? 'Kế hoạch, kênh TTCM và tài liệu quản lí theo đúng ngữ cảnh.' : 'Schedule, department feed and management resources in context.',
+    };
+  }
+  if (currentRoute === 'tool' && selectedTool?.slug === 'gradebook-studio') {
+    return {
+      kicker: vi ? 'SỔ ĐIỂM' : 'GRADEBOOK',
+      title: vi ? 'Không gian theo dõi học tập' : 'Learning progress workspace',
+      description: vi ? 'Chuyển nhanh tới chủ nhiệm, điểm danh và dashboard.' : 'Jump to homeroom, attendance and dashboard without losing flow.',
+    };
+  }
+  if (currentRoute === 'apps') {
+    return {
+      kicker: vi ? 'ỨNG DỤNG' : 'APPS',
+      title: vi ? 'Trung tâm ứng dụng Brian' : 'Brian app center',
+      description: vi ? 'Các lối tắt được ưu tiên theo ứng dụng bạn đang cần.' : 'Shortcuts are prioritized around the apps you need now.',
+    };
+  }
+  return {
+    kicker: vi ? 'BỐI CẢNH HIỆN TẠI' : 'CURRENT CONTEXT',
+    title: vi ? 'Không gian làm việc Brian' : 'Brian workspace',
+    description: vi ? 'Thanh bên tự thay đổi theo trang đang mở mà không làm dịch nội dung.' : 'The sidebar adapts to the current page without shifting content.',
+  };
+}
+
 function quickActionDescriptors(item, language) {
   const vi = language === 'vi';
   if (!item) return [];
@@ -363,6 +414,7 @@ export default function GlobalQuickAccessRail({
   const [actionItemId, setActionItemId] = useState('');
   const [actionTop, setActionTop] = useState(118);
   const [badges, setBadges] = useState({});
+  const [liveActivities, setLiveActivities] = useState([]);
   const [dragId, setDragId] = useState('');
   const [collapsing, setCollapsing] = useState(false);
   const closeTimerRef = useRef(0);
@@ -489,6 +541,67 @@ export default function GlobalQuickAccessRail({
       window.removeEventListener('bes-quick-access-badges', onBadgeEvent);
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+
+    const normalizeActivity = (detail = {}) => {
+      const id = String(detail.id || 'primary').trim();
+      if (!id) return null;
+      const numericProgress = Number(detail.progress);
+      return {
+        id,
+        itemId: String(detail.itemId || '').trim(),
+        title: String(detail.title || (language === 'vi' ? 'Đang xử lí' : 'Working')).trim(),
+        status: String(detail.status || '').trim(),
+        state: ['running', 'complete', 'error'].includes(String(detail.state || '').toLowerCase())
+          ? String(detail.state).toLowerCase()
+          : 'running',
+        progress: Number.isFinite(numericProgress) ? Math.max(0, Math.min(100, numericProgress)) : null,
+        updatedAt: Date.now(),
+      };
+    };
+
+    const applyActivity = (detail = {}) => {
+      const id = String(detail.id || 'primary').trim();
+      if (detail.clear === true || detail.state === 'clear') {
+        setLiveActivities((current) => current.filter((activity) => activity.id !== id));
+        return;
+      }
+      const next = normalizeActivity(detail);
+      if (!next) return;
+      setLiveActivities((current) => [
+        next,
+        ...current.filter((activity) => activity.id !== next.id),
+      ].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, 3));
+    };
+
+    const onActivity = (event) => {
+      const detail = event?.detail && typeof event.detail === 'object' ? event.detail : {};
+      applyActivity(detail);
+    };
+
+    const emitActivity = (detail) => {
+      window.dispatchEvent(new CustomEvent('bes-quick-access-activity', { detail }));
+    };
+    const previousApi = window.BrianQuickAccessActivity;
+    window.BrianQuickAccessActivity = {
+      start: (detail = {}) => emitActivity({ ...detail, state: 'running' }),
+      update: (detail = {}) => emitActivity({ ...detail, state: detail.state || 'running' }),
+      complete: (detail = {}) => emitActivity({ ...detail, progress: detail.progress ?? 100, state: 'complete' }),
+      error: (detail = {}) => emitActivity({ ...detail, state: 'error' }),
+      clear: (id = 'primary') => emitActivity({ id, state: 'clear', clear: true }),
+    };
+
+    window.addEventListener('bes-quick-access-activity', onActivity);
+    return () => {
+      window.removeEventListener('bes-quick-access-activity', onActivity);
+      if (window.BrianQuickAccessActivity && window.BrianQuickAccessActivity !== previousApi) {
+        if (previousApi) window.BrianQuickAccessActivity = previousApi;
+        else delete window.BrianQuickAccessActivity;
+      }
+    };
+  }, [language]);
 
   useEffect(() => {
     if (!customizing) return undefined;
@@ -714,6 +827,17 @@ export default function GlobalQuickAccessRail({
     .filter((item) => !recentItems.some((recent) => recent.id === item.id))
     .slice(0, 3);
 
+  const contextCopy = contextCopyFor(currentRoute, selectedTool, language);
+  const workingItem = catalog.find((item) => activeItem(item, currentRoute, selectedTool))
+    || contextItems[0]
+    || recentItems[0]
+    || null;
+  const pinnedSmartItems = selectedItems
+    .filter((item) => item.id !== workingItem?.id)
+    .filter((item) => !recentItems.some((recent) => recent.id === item.id))
+    .slice(0, 3);
+  const primaryActivity = liveActivities[0] || null;
+
   const commandNeedle = commandQuery.trim().toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
   const commandResults = commandNeedle
     ? catalog.filter((item) => {
@@ -825,6 +949,18 @@ export default function GlobalQuickAccessRail({
     setDragId('');
   };
 
+  const dropToFavorites = () => {
+    if (!dragId) return;
+    if (!config.items.includes(dragId)) {
+      if (config.items.length >= QUICK_ACCESS_MAX_ITEMS) {
+        setDragId('');
+        return;
+      }
+      persist({ ...config, items: [...config.items, dragId] });
+    }
+    setDragId('');
+  };
+
   const quickAccessUi = (
     <>
       <div
@@ -904,6 +1040,19 @@ export default function GlobalQuickAccessRail({
               );
             })}
           </div>
+
+          {primaryActivity ? (
+            <button
+              type="button"
+              className={`bqa-rail-activity is-${primaryActivity.state}`}
+              style={{ '--bqa-progress': `${primaryActivity.progress ?? 0}` }}
+              title={primaryActivity.title}
+              aria-label={primaryActivity.title}
+              onClick={openRail}
+            >
+              <span aria-hidden="true"><Zap size={15} /></span>
+            </button>
+          ) : null}
 
           <button
             type="button"
@@ -1007,41 +1156,129 @@ export default function GlobalQuickAccessRail({
             </div>
           ) : (
             <>
-              {recentItems.length ? (
-                <section className="bqa-smart-section is-recent">
-                  <header><Clock3 size={14} aria-hidden="true" /><span>{language === 'vi' ? 'Gần đây' : 'Recent'}</span></header>
-                  <div>
-                    {recentItems.map((item) => {
-                      const Icon = item.icon || Boxes;
-                      return (
-                        <button type="button" key={item.id} onClick={(event) => activateItem(item, event.currentTarget)}>
-                          <span style={{ '--bqa-accent': item.accent }}><Icon size={16} aria-hidden="true" /></span>
-                          <b>{labelFor(item, language)}</b>
-                        </button>
-                      );
-                    })}
+              <div className="bqa-context-banner" data-context-route={currentRoute}>
+                <span className="bqa-context-mark" aria-hidden="true"><Zap size={16} /></span>
+                <span className="bqa-context-copy">
+                  <small>{contextCopy.kicker}</small>
+                  <strong>{contextCopy.title}</strong>
+                  <span>{contextCopy.description}</span>
+                </span>
+              </div>
+
+              <div className="bqa-smart-stack" data-smart-stack="true">
+                {workingItem ? (
+                  <section className="bqa-smart-section is-working">
+                    <header><Zap size={14} aria-hidden="true" /><span>{language === 'vi' ? 'Đang làm' : 'Working now'}</span></header>
+                    <div>
+                      {[workingItem].map((item) => {
+                        const Icon = item.icon || Boxes;
+                        return (
+                          <button
+                            type="button"
+                            key={item.id}
+                            draggable
+                            onDragStart={(event) => {
+                              setDragId(item.id);
+                              event.dataTransfer.effectAllowed = 'copyMove';
+                              event.dataTransfer.setData('text/plain', item.id);
+                            }}
+                            onDragEnd={() => setDragId('')}
+                            onClick={(event) => activateItem(item, event.currentTarget)}
+                          >
+                            <span style={{ '--bqa-accent': item.accent }}><Icon size={16} aria-hidden="true" /></span>
+                            <b>{labelFor(item, language)}</b>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ) : null}
+
+                {recentItems.length ? (
+                  <section className="bqa-smart-section is-recent">
+                    <header><Clock3 size={14} aria-hidden="true" /><span>{language === 'vi' ? 'Vừa dùng' : 'Recent'}</span></header>
+                    <div>
+                      {recentItems.map((item) => {
+                        const Icon = item.icon || Boxes;
+                        return (
+                          <button
+                            type="button"
+                            key={item.id}
+                            draggable
+                            onDragStart={(event) => {
+                              setDragId(item.id);
+                              event.dataTransfer.effectAllowed = 'copyMove';
+                              event.dataTransfer.setData('text/plain', item.id);
+                            }}
+                            onDragEnd={() => setDragId('')}
+                            onClick={(event) => activateItem(item, event.currentTarget)}
+                          >
+                            <span style={{ '--bqa-accent': item.accent }}><Icon size={16} aria-hidden="true" /></span>
+                            <b>{labelFor(item, language)}</b>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ) : null}
+
+                {pinnedSmartItems.length ? (
+                  <section className="bqa-smart-section is-pinned-smart">
+                    <header><Star size={14} aria-hidden="true" /><span>{language === 'vi' ? 'Đã ghim' : 'Pinned'}</span></header>
+                    <div>
+                      {pinnedSmartItems.map((item) => {
+                        const Icon = item.icon || Boxes;
+                        return (
+                          <button
+                            type="button"
+                            key={item.id}
+                            draggable
+                            onDragStart={(event) => {
+                              setDragId(item.id);
+                              event.dataTransfer.effectAllowed = 'move';
+                              event.dataTransfer.setData('text/plain', item.id);
+                            }}
+                            onDragEnd={() => setDragId('')}
+                            onClick={(event) => activateItem(item, event.currentTarget)}
+                          >
+                            <span style={{ '--bqa-accent': item.accent }}><Icon size={16} aria-hidden="true" /></span>
+                            <b>{labelFor(item, language)}</b>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ) : null}
+              </div>
+
+              {primaryActivity ? (
+                <section className={`bqa-live-activity is-${primaryActivity.state}`} aria-live="polite">
+                  <div className="bqa-live-activity-ring" style={{ '--bqa-progress': `${primaryActivity.progress ?? 0}` }}>
+                    <Zap size={15} aria-hidden="true" />
                   </div>
+                  <div>
+                    <small>{language === 'vi' ? 'HOẠT ĐỘNG ĐANG CHẠY' : 'LIVE ACTIVITY'}</small>
+                    <strong>{primaryActivity.title}</strong>
+                    <span>{primaryActivity.status || (primaryActivity.progress == null ? (language === 'vi' ? 'Đang xử lí…' : 'Working…') : `${Math.round(primaryActivity.progress)}%`)}</span>
+                  </div>
+                  {primaryActivity.progress != null ? <b>{Math.round(primaryActivity.progress)}%</b> : null}
                 </section>
               ) : null}
 
-              {contextItems.length ? (
-                <section className="bqa-smart-section is-context">
-                  <header><Zap size={14} aria-hidden="true" /><span>{language === 'vi' ? 'Gợi ý cho trang này' : 'Suggested here'}</span></header>
-                  <div>
-                    {contextItems.map((item) => {
-                      const Icon = item.icon || Boxes;
-                      return (
-                        <button type="button" key={item.id} onClick={(event) => activateItem(item, event.currentTarget)}>
-                          <span style={{ '--bqa-accent': item.accent }}><Icon size={16} aria-hidden="true" /></span>
-                          <b>{labelFor(item, language)}</b>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </section>
-              ) : null}
-
-              <div className="bqa-panel-list" role="list">
+              <div
+                className={`bqa-panel-list ${dragId ? 'is-drop-ready' : ''}`}
+                role="list"
+                data-favorites-dropzone="true"
+                onDragOver={(event) => {
+                  if (!dragId) return;
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = config.items.includes(dragId) ? 'move' : 'copy';
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  dropToFavorites();
+                }}
+              >
                 {selectedItems.map((item, index) => {
                   const Icon = item.icon || Boxes;
                   const active = activeItem(item, currentRoute, selectedTool);
@@ -1065,6 +1302,7 @@ export default function GlobalQuickAccessRail({
                       }}
                       onDrop={(event) => {
                         event.preventDefault();
+                        event.stopPropagation();
                         moveDraggedBefore(item.id);
                       }}
                     >
