@@ -22,6 +22,7 @@ import {
   Pin,
   PinOff,
   Plus,
+  Presentation,
   Settings,
   ShieldCheck,
   Star,
@@ -265,6 +266,22 @@ function contextCopyFor(currentRoute, selectedTool, language) {
   };
 }
 
+const CLASSROOM_MODE_BLOCKED_IDS = new Set([
+  'action:reports',
+  'action:ttcm',
+  'action:schedule',
+  'tool:brian-team',
+  'route:settings',
+]);
+
+function classroomModeAllowsItem(item) {
+  if (!item) return false;
+  if (item.access === 'department' || item.access === 'reports') return false;
+  if (CLASSROOM_MODE_BLOCKED_IDS.has(String(item.id || ''))) return false;
+  const signature = `${item.id || ''} ${item.route || ''} ${item.tool || ''}`.toLowerCase();
+  return !/(^|[:\s-])(admin|settings|report|ttcm|personnel|audit|governance)([:\s-]|$)/i.test(signature);
+}
+
 function workspaceAllowsItem(workspace, item) {
   if (!item || workspace === 'all') return Boolean(item);
   const id = String(item.id || '');
@@ -488,6 +505,26 @@ function saveQuickAccessWorkflowRun(user, value) {
   }
 }
 
+function quickAccessClassroomModeStorageKey(user) {
+  return `bes-quick-access-classroom-mode:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessClassroomMode(user) {
+  if (typeof window === 'undefined') return false;
+  try { return window.sessionStorage?.getItem(quickAccessClassroomModeStorageKey(user)) === 'true'; }
+  catch { return false; }
+}
+
+function saveQuickAccessClassroomMode(user, enabled) {
+  if (typeof window === 'undefined') return;
+  try {
+    if (enabled) window.sessionStorage?.setItem(quickAccessClassroomModeStorageKey(user), 'true');
+    else window.sessionStorage?.removeItem(quickAccessClassroomModeStorageKey(user));
+  } catch {
+    // Presentation privacy state is session-only by design.
+  }
+}
+
 function quickAccessHistoryUserKey(user) {
   return String(user?.id || user?.authId || user?.email || 'guest').trim().toLowerCase();
 }
@@ -647,6 +684,7 @@ export default function GlobalQuickAccessRail({
   const [workflowDraftName, setWorkflowDraftName] = useState('');
   const [workflowDraftIds, setWorkflowDraftIds] = useState([]);
   const [activeWorkflowRun, setActiveWorkflowRun] = useState(() => loadQuickAccessWorkflowRun(currentUser));
+  const [classroomMode, setClassroomMode] = useState(() => loadQuickAccessClassroomMode(currentUser));
   const [timeTick, setTimeTick] = useState(() => Date.now());
   const [backStack, setBackStack] = useState(() => loadQuickAccessHistory(currentUser));
   const [backStackOpen, setBackStackOpen] = useState(false);
