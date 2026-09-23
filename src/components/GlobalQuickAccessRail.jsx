@@ -1102,6 +1102,22 @@ export default function GlobalQuickAccessRail({
     closeTimerRef.current = window.setTimeout(() => collapseRail(false), hoverDelay);
   };
 
+  const updateMagneticEdge = (event) => {
+    window.cancelAnimationFrame(magneticFrameRef.current);
+    magneticFrameRef.current = window.requestAnimationFrame(() => {
+      const distance = railSide === 'right'
+        ? Math.max(0, window.innerWidth - Number(event?.clientX || window.innerWidth))
+        : Math.max(0, Number(event?.clientX || 0));
+      const strength = Math.max(0, Math.min(1, 1 - (distance / 32)));
+      rootRef.current?.style.setProperty('--bqa-magnetic', strength.toFixed(3));
+    });
+  };
+
+  const resetMagneticEdge = () => {
+    window.cancelAnimationFrame(magneticFrameRef.current);
+    rootRef.current?.style.setProperty('--bqa-magnetic', '0');
+  };
+
   const activateItem = (item, sourceEl) => {
     if (!item) return;
     const recent = [item.id, ...(config.recent || []).filter((id) => id !== item.id)].slice(0, QUICK_ACCESS_RECENT_MAX);
@@ -1216,6 +1232,9 @@ export default function GlobalQuickAccessRail({
         data-quick-access="true"
         data-sidebar-mode={sidebarMode}
         data-workspace={workspace}
+        data-rail-size={railSize}
+        data-rail-side={railSide}
+        data-motion-profile={motionProfile}
         data-motion={collapsing ? 'collapsing' : (expanded ? 'open' : 'rest')}
         data-route={currentRoute}
         onPointerEnter={enter}
@@ -1225,9 +1244,15 @@ export default function GlobalQuickAccessRail({
         <div
           className="bqa-edge-trigger"
           aria-hidden="true"
-          onPointerEnter={openRail}
+          onPointerEnter={(event) => {
+            updateMagneticEdge(event);
+            openRail();
+          }}
+          onPointerMove={updateMagneticEdge}
+          onPointerLeave={resetMagneticEdge}
           onMouseEnter={openRail}
           onPointerDown={(event) => {
+            updateMagneticEdge(event);
             if (event.pointerType === 'touch' || event.pointerType === 'pen') openRail();
           }}
         />
@@ -1665,13 +1690,13 @@ export default function GlobalQuickAccessRail({
           )}
 
           <footer className="bqa-panel-footer">
-            <button type="button" onClick={() => { setCustomizerQuery(''); setCustomizing(true); }}>
+            <button type="button" onClick={() => { setCustomizerQuery(''); setSwitcherOpen(false); setCustomizing(true); }}>
               <Settings size={18} aria-hidden="true" />
               <span><strong>{language === 'vi' ? 'Tùy chỉnh lối tắt' : 'Customize shortcuts'}</strong><small>{language === 'vi' ? 'Sắp xếp, ẩn/hiện ứng dụng' : 'Reorder and choose apps'}</small></span>
             </button>
             <div className="bqa-account-note">
               <span className="bqa-sync-note"><Check size={15} aria-hidden="true" />{language === 'vi' ? 'Lưu theo tài khoản' : 'Saved to your account'}</span>
-              <span className="bqa-shortcut-hint"><kbd>Alt</kbd><b>Q</b></span>
+              <span className="bqa-shortcut-hint" title={language === 'vi' ? 'Alt+Q mở sidebar · Alt+Shift+Q chuyển ứng dụng' : 'Alt+Q opens sidebar · Alt+Shift+Q switches apps'}><kbd>Alt</kbd><b>Q</b></span>
             </div>
           </footer>
         </section>
@@ -1726,6 +1751,45 @@ export default function GlobalQuickAccessRail({
         ) : null}
       </div>
 
+      {switcherOpen && switcherItems.length ? (
+        <div
+          className="bqa-app-switcher-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setSwitcherOpen(false);
+          }}
+        >
+          <section className="bqa-app-switcher" role="dialog" aria-modal="true" aria-label={language === 'vi' ? 'Chuyển ứng dụng nhanh' : 'Quick app switcher'}>
+            <header>
+              <span>{language === 'vi' ? 'CHUYỂN ỨNG DỤNG' : 'APP SWITCHER'}</span>
+              <small>{language === 'vi' ? 'Alt+Shift+Q · phím mũi tên · Enter' : 'Alt+Shift+Q · arrows · Enter'}</small>
+            </header>
+            <div className="bqa-app-switcher-grid">
+              {switcherItems.map((item, index) => {
+                const Icon = item.icon || Boxes;
+                return (
+                  <button
+                    type="button"
+                    key={item.id}
+                    className={index === switcherIndex ? 'is-active' : ''}
+                    aria-current={index === switcherIndex ? 'true' : undefined}
+                    onMouseEnter={() => setSwitcherIndex(index)}
+                    onClick={(event) => {
+                      setSwitcherOpen(false);
+                      activateItem(item, event.currentTarget);
+                    }}
+                  >
+                    <span style={{ '--bqa-accent': item.accent }}><Icon size={24} aria-hidden="true" /></span>
+                    <strong>{labelFor(item, language)}</strong>
+                    <small>{descriptionFor(item, language)}</small>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        </div>
+      ) : null}
+
       {customizing ? (
         <div className="bqa-customizer-backdrop" role="presentation" onMouseDown={(event) => {
           if (event.target === event.currentTarget) { setCustomizerQuery(''); setCustomizing(false); }
@@ -1757,6 +1821,60 @@ export default function GlobalQuickAccessRail({
               <button type="button" className={sidebarMode === 'focus' ? 'is-active' : ''} onClick={() => setSidebarMode('focus')}>
                 <EyeOff size={17} aria-hidden="true" /><span><strong>Focus</strong><small>{language === 'vi' ? 'Chỉ hiện ở mép' : 'Edge only'}</small></span>
               </button>
+            </section>
+
+            <section className="bqa-customizer-appearance" aria-label={language === 'vi' ? 'Cá nhân hóa thanh bên' : 'Sidebar personalization'}>
+              <header>
+                <strong>{language === 'vi' ? 'Cá nhân hóa' : 'Personalize'}</strong>
+                <small>{language === 'vi' ? 'Lưu theo tài khoản, không ảnh hưởng font toàn hệ thống' : 'Saved to your account without overriding global fonts'}</small>
+              </header>
+
+              <div className="bqa-appearance-row">
+                <span>{language === 'vi' ? 'Kích thước' : 'Size'}</span>
+                <div role="group" aria-label={language === 'vi' ? 'Kích thước sidebar' : 'Sidebar size'}>
+                  {[
+                    ['compact', language === 'vi' ? 'Nhỏ' : 'Small'],
+                    ['standard', language === 'vi' ? 'Chuẩn' : 'Standard'],
+                    ['large', language === 'vi' ? 'Lớn' : 'Large'],
+                  ].map(([value, label]) => (
+                    <button type="button" key={value} className={railSize === value ? 'is-active' : ''} onClick={() => setAppearancePatch({ size: value })}>{label}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bqa-appearance-row">
+                <span>{language === 'vi' ? 'Vị trí' : 'Side'}</span>
+                <div role="group" aria-label={language === 'vi' ? 'Vị trí sidebar' : 'Sidebar side'}>
+                  <button type="button" className={railSide === 'left' ? 'is-active' : ''} onClick={() => setAppearancePatch({ side: 'left' })}>{language === 'vi' ? 'Trái' : 'Left'}</button>
+                  <button type="button" className={railSide === 'right' ? 'is-active' : ''} onClick={() => setAppearancePatch({ side: 'right' })}>{language === 'vi' ? 'Phải' : 'Right'}</button>
+                </div>
+              </div>
+
+              <div className="bqa-appearance-row">
+                <span>{language === 'vi' ? 'Chuyển động' : 'Motion'}</span>
+                <div role="group" aria-label={language === 'vi' ? 'Mức chuyển động' : 'Motion profile'}>
+                  {[
+                    ['reduced', language === 'vi' ? 'Giảm' : 'Reduced'],
+                    ['standard', language === 'vi' ? 'Chuẩn' : 'Standard'],
+                    ['fluid', language === 'vi' ? 'Mượt' : 'Fluid'],
+                  ].map(([value, label]) => (
+                    <button type="button" key={value} className={motionProfile === value ? 'is-active' : ''} onClick={() => setAppearancePatch({ motion: value })}>{label}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="bqa-appearance-row">
+                <span>{language === 'vi' ? 'Độ trễ tự thu' : 'Auto-hide delay'}</span>
+                <div role="group" aria-label={language === 'vi' ? 'Độ trễ tự thu' : 'Auto-hide delay'}>
+                  {[
+                    [180, language === 'vi' ? 'Nhanh' : 'Fast'],
+                    [340, language === 'vi' ? 'Vừa' : 'Normal'],
+                    [520, language === 'vi' ? 'Chậm' : 'Slow'],
+                  ].map(([value, label]) => (
+                    <button type="button" key={value} className={hoverDelay === value ? 'is-active' : ''} onClick={() => setAppearancePatch({ hoverDelay: value })}>{label}</button>
+                  ))}
+                </div>
+              </div>
             </section>
 
             <div className="bqa-customizer-selected">
