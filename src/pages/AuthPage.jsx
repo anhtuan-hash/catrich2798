@@ -10,6 +10,7 @@ import {
   updatePassword,
 } from '../utils/auth.js';
 import './AuthPageGoogle.css';
+import './AuthPageTeacherFresh.css';
 
 function FeatureIcon({ type }) {
   if (type === 'shield') {
@@ -111,7 +112,7 @@ function AuthVisualPanel({ language, title, recoveryMode, isRegister, configured
     ];
 
   const description = recoveryMode
-    ? (language === 'vi' ? 'Thiết lập mật khẩu mới để tiếp tục sử dụng English Hub.' : 'Create a new password to continue using English Hub.')
+    ? (language === 'vi' ? 'Thiết lập mật khẩu mới để tiếp tục không gian giáo viên.' : 'Create a new password to continue to your teacher workspace.')
     : isRegister
       ? (language === 'vi' ? 'Tạo tài khoản giáo viên và gửi yêu cầu phê duyệt đến quản trị viên.' : 'Create a teacher account and submit it for administrator approval.')
       : configured
@@ -121,13 +122,8 @@ function AuthVisualPanel({ language, title, recoveryMode, isRegister, configured
   return (
     <section
       className="auth-google-visual"
-      aria-label={language === 'vi' ? 'Giới thiệu trang đăng nhập English Hub' : 'English Hub sign-in overview'}
+      aria-label={language === 'vi' ? 'Giới thiệu trang đăng nhập giáo viên' : 'Teacher sign-in overview'}
     >
-      <div className="auth-google-brand-row">
-        <img src="/brian-english-brand-mark.png" alt="" aria-hidden="true" />
-        <span>English Hub</span>
-      </div>
-
       <div className="auth-google-copy">
         <span className="auth-google-kicker">{language === 'vi' ? 'Không gian giáo viên' : 'Teacher workspace'}</span>
         <span className="auth-editorial-rule auth-editorial-rule-top" aria-hidden="true" />
@@ -136,8 +132,18 @@ function AuthVisualPanel({ language, title, recoveryMode, isRegister, configured
         <p>{description}</p>
       </div>
 
-      <div className="auth-google-visual-art" aria-hidden="true">
-        <EditorialStillLife />
+      <div className="auth-teacher-message" aria-hidden="true">
+        {language === 'vi' ? <>Cùng giáo viên<br />kiến tạo thế hệ học sinh<br />tỏa sáng ♡</> : <>Better teachers<br />brighter learners<br />brighter futures ♡</>}
+      </div>
+
+      <div className="auth-google-visual-art">
+        <div
+          className="auth-teacher-artwork"
+          role="img"
+          aria-label={language === 'vi'
+            ? 'Minh hoạ giáo viên nam đang làm việc cùng laptop, sách và cây xanh'
+            : 'Male teacher working with a laptop, books and plants'}
+        />
       </div>
 
       <div className="auth-google-feature-list">
@@ -380,13 +386,13 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
               </svg>
             </span>
             <div>
-              <span className="auth-google-form-kicker">English Hub</span>
+              <span className="auth-google-form-kicker">{language === 'vi' ? 'Không gian giáo viên' : 'Teacher workspace'}</span>
               <h2>
                 {recoveryMode
                   ? (language === 'vi' ? 'Đặt lại mật khẩu' : 'Reset password')
                   : isRegister
                     ? (language === 'vi' ? 'Tạo tài khoản' : 'Create account')
-                    : (language === 'vi' ? 'Đăng nhập' : 'Sign in')}
+                    : (language === 'vi' ? 'Đăng nhập giáo viên' : 'Teacher sign in')}
               </h2>
               <p>{language === 'vi' ? 'Tiếp tục vào không gian làm việc của bạn.' : 'Continue to your teaching workspace.'}</p>
             </div>
@@ -514,7 +520,7 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
                     ? (language === 'vi' ? 'Cập nhật mật khẩu' : 'Update password')
                     : isRegister
                       ? (language === 'vi' ? 'Tạo tài khoản' : 'Create account')
-                      : (language === 'vi' ? 'Đăng nhập' : 'Sign in')}
+                      : (language === 'vi' ? 'Đăng nhập giáo viên' : 'Teacher sign in')}
               </span>
             </span>
             <span className="auth-google-submit-arrow" aria-hidden="true">{submitLoading ? '…' : '→'}</span>
@@ -556,7 +562,7 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
               ? (language === 'vi' ? 'Quay lại đăng nhập' : 'Back to sign in')
               : isRegister
                 ? (language === 'vi' ? 'Đã có tài khoản? Đăng nhập' : 'Already have an account? Sign in')
-                : (language === 'vi' ? 'Chưa có tài khoản? Tạo tài khoản' : 'New to English Hub? Create account')}
+                : (language === 'vi' ? 'Chưa có tài khoản? Tạo tài khoản' : 'New here? Create account')}
           </button>
 
           {!configured && !recoveryMode && (
@@ -582,7 +588,7 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
       </section>
 
       <footer className="auth-google-page-footer">
-        <span>© 2026 English Hub</span>
+        <span>© 2026 Brian English</span>
         <span>{language === 'vi' ? 'Không gian dạy học số dành cho giáo viên' : 'Digital teaching workspace for educators'}</span>
       </footer>
     </div>
