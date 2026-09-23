@@ -6775,3 +6775,9 @@ html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-
     transition: none !important;
   }
 }
+
+
+/* Quick Access web-only mobile-shell safety */
+html.bes-mobile-shell-active .bqa-root {
+  display: none !important;
+}
