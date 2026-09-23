@@ -165,7 +165,28 @@ for (const token of [
   'clearRouteWorkspaceMemory',
   'setContextMemoryEnabled',
   'data-context-memory={contextMemoryEnabled',
+  'data-context-lock={contextLock?.locked',
   'data-context-key={routeContextKey}',
+  'loadQuickAccessSectionFolds',
+  'saveQuickAccessSectionFolds',
+  'loadQuickAccessContextLock',
+  'saveQuickAccessContextLock',
+  'QUICK_ACCESS_UNDO_MAX',
+  'bqa-panel-scroll',
+  'handlePanelScroll',
+  'toggleSectionFold',
+  'bqa-scroll-navigator',
+  'jumpToSection',
+  'bqa-context-lock',
+  'toggleContextLock',
+  'bqa-undo-center',
+  'restoreUndoEntry',
+  'bqa-parking-shelf',
+  'parkItem',
+  'openParkedItem',
+  'bqa-snapshot-control',
+  'createSidebarSnapshot',
+  'restoreSidebarSnapshot',
   'dataset.brianClassroomMode',
   'bes-classroom-presentation-mode',
   'bqa-rail-classroom',
@@ -309,6 +330,16 @@ for (const token of [
   'Brian Quick Access V4.12 · device spatial memory',
   'Brian Quick Access V4.13 · route workspace memory',
   '.bqa-spatial-control',
+  'Brian Quick Access V5 core',
+  '.bqa-panel-scroll',
+  '.bqa-scroll-navigator',
+  '.bqa-sticky-section-header',
+  '.bqa-section-toggle',
+  '.bqa-context-lock',
+  '.bqa-undo-center',
+  '.bqa-parking-shelf',
+  '.bqa-snapshot-control',
+  '[data-context-lock="true"]',
   '[data-spatial-memory="true"]',
   '[data-theme-style="glass"]',
   '[data-theme-style="paper"]',
@@ -388,6 +419,9 @@ assert.ok(css.includes('Quick Access larger scrollbar hotfix'), 'Quick Access mu
 assert.ok(css.includes('scrollbar-gutter: stable'), 'Quick Access scroll surfaces must reserve stable scrollbar space.');
 assert.match(css, /::-webkit-scrollbar[\s\S]*?width:\s*12px/, 'Quick Access desktop scrollbars must be 12px wide.');
 assert.ok(css.includes('min-height: 56px'), 'Quick Access scrollbar thumb must provide a larger grab target.');
+assert.ok(css.includes('.bqa-panel-scroll::-webkit-scrollbar'), 'V5 unified panel body must retain the native scrollbar.');
+assert.match(css, /\.bqa-panel-scroll::\-webkit\-scrollbar\s*\{[\s\S]*?width:\s*12px/, 'V5 panel body scrollbar must remain 12px wide.');
+assert.ok(css.includes('The navigator is intentionally separate from the native 12px scrollbar'), 'Scroll Navigator must remain separate from the native scrollbar.');
 assert.ok(!/font-family\s*:/i.test(css), 'Quick Access CSS must not override Brian custom fonts.');
 assert.ok(!/\.app-shell\s*\{/.test(css), 'Quick Access CSS must not mutate global app-shell layout.');
 assert.ok(!/body\s*\{/.test(css), 'Quick Access CSS must remain component-scoped.');
@@ -416,4 +450,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access compact-panel cleanup removes inline search, current-context and Working Now while preserving full-screen Command Palette, Recent/Pinned, fixed-left geometry, permissions and custom fonts.');
+console.log('PASS: Quick Access V5 core adds folding, sticky headers, Scroll Navigator, Context Lock, Undo, App Parking and Snapshots while preserving the fixed-left 12px native scrollbar, permissions and custom fonts.');
