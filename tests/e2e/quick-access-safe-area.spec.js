@@ -577,7 +577,9 @@ test.describe('Global Quick Access safe area', () => {
     await expect(page.locator('.bqa-root')).toHaveAttribute('data-workspace', 'homeroom');
     await expect(page.locator('.bqa-root')).toHaveAttribute('data-side', 'right');
 
-    await page.locator('.bqa-rail').hover();
+    await page.locator('.bqa-edge-trigger').hover({ force: true });
+    await page.waitForTimeout(420);
+    await expect(page.locator('.bqa-root')).toHaveClass(/is-open/);
     await page.locator('.bqa-rail-settings').click();
     const resetSpatial = page.locator('.bqa-spatial-control').getByRole('button', { name: 'Quên bố cục thiết bị' });
     await resetSpatial.click();
