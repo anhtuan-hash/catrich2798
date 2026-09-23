@@ -5021,3 +5021,35 @@ body > .bqa-root[data-side="right"] {
     transition: none !important;
   }
 }
+
+
+/* Quick Access presentation chrome override.
+   This stylesheet is guaranteed to load with the rail, so the presentation
+   privacy state outranks late portal-specific navigation styles. */
+html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab.brian-nav__reports-send,
+html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-nav__primary > .brian-nav__ttcm-tab,
+html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-nav__actions .brian-nav__bell,
+html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-nav__notifications,
+html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-notification-center,
+html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-nav__account-menu {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-nav__account {
+  min-width: 46px !important;
+  width: 46px !important;
+  grid-template-columns: 36px !important;
+  gap: 0 !important;
+  padding: 4px 5px !important;
+  overflow: hidden !important;
+}
+
+html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-nav__account > strong,
+html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-nav__account > i,
+html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-nav__ttcm-badge,
+html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-nav__reports-countdown {
+  display: none !important;
+}
