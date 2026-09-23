@@ -4877,3 +4877,147 @@ body > .bqa-root[data-side="right"] {
     transition: none !important;
   }
 }
+
+
+/* Brian Quick Access V4.10 · classroom presentation mode · 2026-09-23 */
+.bqa-rail-classroom {
+  appearance: none;
+  position: relative;
+  width: 36px;
+  min-height: 36px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(43,139,121,.16);
+  border-radius: 12px;
+  color: #2f7f70;
+  background: linear-gradient(180deg,rgba(243,252,249,.98),rgba(232,248,243,.96));
+  box-shadow: 0 6px 15px rgba(42,119,104,.07);
+  font: inherit;
+  cursor: pointer;
+  transition: transform 160ms cubic-bezier(.22,1,.36,1),background-color 160ms ease,color 160ms ease,box-shadow 160ms ease;
+}
+
+.bqa-rail-classroom:hover,
+.bqa-rail-classroom:focus-visible {
+  transform: translateY(-1px) scale(1.035);
+  outline: none;
+  color: #1e6f60;
+  background: #e5f8f1;
+  box-shadow: 0 8px 18px rgba(42,119,104,.12);
+}
+
+.bqa-rail-classroom.is-active {
+  color: #fff;
+  border-color: rgba(28,126,107,.40);
+  background: linear-gradient(145deg,#22a184,#17735f);
+  box-shadow:
+    0 8px 19px rgba(27,115,96,.22),
+    0 0 0 3px rgba(42,166,139,.08);
+}
+
+.bqa-root.is-classroom-mode .bqa-brand::after {
+  background: #22a184;
+  opacity: 1;
+}
+
+.bqa-root.is-classroom-mode .bqa-rail-badge,
+.bqa-root.is-classroom-mode .bqa-panel-badge,
+.bqa-root.is-classroom-mode .bqa-rail-notifications,
+.bqa-root.is-classroom-mode .bqa-rail-activity,
+.bqa-root.is-classroom-mode .bqa-status-capsule {
+  display: none !important;
+}
+
+.bqa-classroom-banner {
+  display: grid;
+  grid-template-columns: 32px minmax(0,1fr) auto;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 8px;
+  padding: 8px 9px;
+  border: 1px solid rgba(34,142,119,.20);
+  border-radius: 13px;
+  background:
+    radial-gradient(circle at 100% 0,rgba(164,235,216,.22),transparent 105px),
+    linear-gradient(180deg,rgba(246,254,251,.98),rgba(238,251,247,.98));
+  box-shadow: 0 8px 20px rgba(39,122,103,.07);
+}
+
+.bqa-classroom-banner-icon {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  color: #fff;
+  background: linear-gradient(145deg,#2bae91,#197b66);
+  box-shadow: 0 6px 13px rgba(27,119,98,.18);
+}
+
+.bqa-classroom-banner > span:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.bqa-classroom-banner small {
+  color: #388c7b;
+  font-size: 7.5px;
+  font-weight: 850;
+  letter-spacing: .055em;
+}
+
+.bqa-classroom-banner strong {
+  overflow: hidden;
+  color: #285b51;
+  font-size: 9.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bqa-classroom-banner > button {
+  appearance: none;
+  min-height: 29px;
+  padding: 0 9px;
+  border: 1px solid rgba(36,139,117,.16);
+  border-radius: 9px;
+  color: #287564;
+  background: rgba(255,255,255,.92);
+  font: inherit;
+  font-size: 8.2px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.bqa-classroom-banner > button:hover,
+.bqa-classroom-banner > button:focus-visible {
+  border-color: rgba(36,139,117,.30);
+  background: #fff;
+  outline: none;
+}
+
+.bqa-root.is-classroom-mode .bqa-panel-header > div:first-child > span {
+  color: #458477;
+}
+
+.bqa-root.is-classroom-mode .bqa-context-banner {
+  border-color: rgba(44,144,122,.17);
+}
+
+.bqa-root[data-motion-mode="reduced"] .bqa-rail-classroom {
+  transition: none !important;
+}
+
+@media (max-width: 760px), (hover: none) {
+  .bqa-classroom-banner {
+    grid-template-columns: 30px minmax(0,1fr) auto;
+    gap: 7px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bqa-rail-classroom {
+    transition: none !important;
+  }
+}
