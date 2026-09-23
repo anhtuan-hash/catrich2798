@@ -105,6 +105,16 @@ for (const token of [
   'bqa-workspace-tabs',
   'bqa-quick-create-sheet',
   'bqa-rail-create',
+  'backStack',
+  'backStackOpen',
+  'quickAccessHistoryStorageKey',
+  'loadQuickAccessHistory',
+  'saveQuickAccessHistory',
+  'navigationLabelForTarget',
+  'navigateBackEntry',
+  'bqa-rail-back',
+  'bqa-back-stack',
+  'quick-access-back-stack',
   'appSwitcherOpen',
   'appSwitcherIndex',
   'switcherItemsRef',
@@ -178,6 +188,9 @@ for (const token of [
   'Brian Quick Access V4.1 · Adaptive Dock',
   'Brian Quick Access V4.2 · live status capsules',
   'Brian Quick Access V4.3 · interactive Quick Peek',
+  'Brian Quick Access V4.4 · navigation back stack',
+  '.bqa-rail-back',
+  '.bqa-back-stack',
   '.bqa-peek-actions',
   '.bqa-status-capsule',
   '.bqa-status-capsule-progress',
@@ -238,4 +251,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access V4.3 adds interactive contextual actions to Quick Peek while preserving V4.2 status capsules, V4.1 Adaptive Dock, true mirror geometry, permissions and custom fonts.');
+console.log('PASS: Quick Access V4.4 adds session-scoped navigation history and back-stack navigation while preserving V4.3 Quick Peek, V4.2 status capsules, V4.1 Adaptive Dock, true mirror geometry, permissions and custom fonts.');
