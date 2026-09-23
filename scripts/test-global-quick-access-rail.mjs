@@ -27,6 +27,7 @@ for (const token of [
   'QUICK_ACCESS_MOTIONS',
   'QUICK_ACCESS_DENSITIES',
   'QUICK_ACCESS_SIDES',
+  'QUICK_ACCESS_THEMES',
   'QUICK_ACCESS_WORKFLOW_MAX',
   'QUICK_ACCESS_WORKFLOW_STEPS_MAX',
   'loadQuickAccessConfigFromCloud',
@@ -51,7 +52,9 @@ assert.ok(prefs.includes('hoverDelay: 220'), 'Quick Access defaults to a 220ms e
 assert.ok(prefs.includes('labels: true'), 'Quick Access helper labels default on.');
 assert.ok(prefs.includes('workflows: []'), 'Quick Access defaults to no saved workflow bundles.');
 assert.ok(prefs.includes('timeAware: true'), 'Quick Access defaults to time-aware priorities enabled.');
-assert.ok(prefs.includes('version: 6'), 'Quick Access preference schema must be V6 for time-aware workspace priorities.');
+assert.ok(prefs.includes("theme: 'glass'"), 'Quick Access defaults to the Glass sidebar theme.');
+assert.ok(prefs.includes("['glass', 'paper', 'color', 'minimal']"), 'Quick Access must persist the supported sidebar themes.');
+assert.ok(prefs.includes('version: 7'), 'Quick Access preference schema must be V7 for sidebar themes.');
 assert.match(prefs, /QUICK_ACCESS_WORKFLOW_MAX\s*=\s*4/, 'Quick Access must cap saved workflow bundles at 4.');
 assert.match(prefs, /QUICK_ACCESS_WORKFLOW_STEPS_MAX\s*=\s*5/, 'Quick Access must cap workflow steps at 5.');
 assert.ok(prefs.includes('cleanWorkflows'), 'Quick Access must permission-filter persisted workflow bundles.');
@@ -128,6 +131,11 @@ for (const token of [
   'classroomMode',
   'setClassroomPresentationMode',
   'data-classroom-mode={classroomMode',
+  'data-theme-style={visualTheme}',
+  'visualTheme',
+  'QUICK_ACCESS_THEMES.map',
+  'bqa-theme-picker',
+  'bqa-theme-preview',
   'dataset.brianClassroomMode',
   'bes-classroom-presentation-mode',
   'bqa-rail-classroom',
@@ -270,6 +278,14 @@ for (const token of [
   'Brian Quick Access V4.8 · workflow bundles',
   'Brian Quick Access V4.9 · time-aware workspace',
   'Brian Quick Access V4.10 · classroom presentation mode',
+  'Brian Quick Access V4.11 · sidebar themes',
+  '[data-theme-style="glass"]',
+  '[data-theme-style="paper"]',
+  '[data-theme-style="color"]',
+  '[data-theme-style="minimal"]',
+  '.bqa-theme-picker',
+  '.bqa-theme-preview',
+  '--bqa-theme-accent',
   '.bqa-rail-classroom',
   '.bqa-classroom-banner',
   '.bqa-root.is-classroom-mode .bqa-rail-badge',
@@ -367,4 +383,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access V4.10 adds session-scoped Classroom Presentation Mode with classroom-safe tools, hidden badges/management alerts, masked account identity and one-click restoration while preserving V4.9 time-aware priorities and true mirror geometry.');
+console.log('PASS: Quick Access V4.11 adds account-synced Glass, Paper, Color and Minimal sidebar themes with workspace-aware accents while preserving Classroom Mode, time-aware priorities, true mirror geometry and custom fonts.');
