@@ -1954,3 +1954,289 @@ body:has(.app-shell[data-quick-access-safe-mode="overlay"]) > .bqa-root.is-colla
     animation: none !important;
   }
 }
+
+
+/* Brian Quick Access V3.1 · contextual smart stack + live activity · 2026-09-23
+   Component-scoped only. Uses transform/opacity and never overrides Brian typography. */
+.bqa-context-banner {
+  margin: 8px 0 7px;
+  min-height: 68px;
+  display: grid;
+  grid-template-columns: 34px minmax(0,1fr);
+  gap: 9px;
+  align-items: center;
+  padding: 9px 10px;
+  border: 1px solid rgba(114,139,222,.22);
+  border-radius: 15px;
+  color: #263b69;
+  background:
+    radial-gradient(circle at 100% 0, rgba(216,207,255,.62), transparent 92px),
+    linear-gradient(135deg, rgba(246,249,255,.98), rgba(242,247,255,.94));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.88);
+}
+
+.bqa-context-mark {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  color: #6750d7;
+  background: rgba(105,80,216,.10);
+  box-shadow: inset 0 0 0 1px rgba(105,80,216,.08);
+}
+
+.bqa-context-copy {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.bqa-context-copy > small {
+  color: #7568b9;
+  font-size: 8px;
+  font-weight: 850;
+  letter-spacing: .07em;
+}
+
+.bqa-context-copy > strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+}
+
+.bqa-context-copy > span {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #7b8da3;
+  font-size: 9.5px;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.bqa-smart-stack {
+  display: grid;
+  gap: 6px;
+  padding: 1px 0 4px;
+}
+
+.bqa-smart-stack .bqa-smart-section {
+  margin-top: 0;
+  padding: 5px 6px 6px;
+  border: 1px solid rgba(139,174,209,.16);
+  border-radius: 13px;
+  background: rgba(250,252,255,.78);
+}
+
+.bqa-smart-stack .bqa-smart-section > header {
+  padding-inline: 2px;
+}
+
+.bqa-smart-section.is-working > header {
+  color: #216fbd;
+}
+
+.bqa-smart-section.is-working {
+  background:
+    linear-gradient(90deg, rgba(232,244,255,.86), rgba(250,252,255,.86));
+}
+
+.bqa-smart-section.is-pinned-smart > header {
+  color: #9a6a12;
+}
+
+.bqa-smart-section.is-pinned-smart {
+  background:
+    linear-gradient(90deg, rgba(255,248,225,.72), rgba(250,252,255,.86));
+}
+
+.bqa-smart-stack .bqa-smart-section > div {
+  grid-template-columns: repeat(3,minmax(0,1fr));
+}
+
+.bqa-smart-stack .bqa-smart-section button[draggable="true"] {
+  cursor: grab;
+}
+
+.bqa-smart-stack .bqa-smart-section button[draggable="true"]:active {
+  cursor: grabbing;
+  transform: scale(.985);
+}
+
+.bqa-panel-list.is-drop-ready {
+  position: relative;
+  border-radius: 14px;
+  outline: 1px dashed rgba(72,129,195,.34);
+  outline-offset: 3px;
+}
+
+.bqa-panel-list.is-drop-ready::before {
+  content: "Favorites";
+  position: absolute;
+  z-index: 2;
+  top: -8px;
+  right: 8px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  color: #5e7c99;
+  background: #fff;
+  font-size: 8px;
+  font-weight: 820;
+  letter-spacing: .04em;
+  pointer-events: none;
+}
+
+.bqa-live-activity {
+  min-height: 54px;
+  margin: 7px 0 6px;
+  display: grid;
+  grid-template-columns: 36px minmax(0,1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid rgba(72,134,199,.24);
+  border-radius: 14px;
+  color: #244766;
+  background:
+    radial-gradient(circle at 100% 50%, rgba(214,239,255,.66), transparent 100px),
+    rgba(248,252,255,.96);
+  box-shadow: 0 8px 20px rgba(46,90,132,.07);
+}
+
+.bqa-live-activity.is-complete {
+  border-color: rgba(50,152,104,.24);
+  background:
+    radial-gradient(circle at 100% 50%, rgba(219,248,231,.72), transparent 100px),
+    rgba(249,254,251,.96);
+}
+
+.bqa-live-activity.is-error {
+  border-color: rgba(213,84,102,.28);
+  background:
+    radial-gradient(circle at 100% 50%, rgba(255,226,231,.72), transparent 100px),
+    rgba(255,250,251,.97);
+}
+
+.bqa-live-activity-ring,
+.bqa-rail-activity {
+  --bqa-progress: 0;
+  position: relative;
+  border-radius: 50%;
+  background: conic-gradient(#2f84dd calc(var(--bqa-progress) * 1%), rgba(159,193,224,.22) 0);
+}
+
+.bqa-live-activity-ring {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  color: #2d76bf;
+}
+
+.bqa-live-activity-ring::before,
+.bqa-rail-activity::before {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border-radius: inherit;
+  background: #fff;
+}
+
+.bqa-live-activity-ring > svg,
+.bqa-rail-activity > span {
+  position: relative;
+  z-index: 1;
+}
+
+.bqa-live-activity > div:nth-child(2) {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+
+.bqa-live-activity small {
+  color: #7990a5;
+  font-size: 7.5px;
+  font-weight: 850;
+  letter-spacing: .06em;
+}
+
+.bqa-live-activity strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10.5px;
+}
+
+.bqa-live-activity span {
+  overflow: hidden;
+  color: #8094a8;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bqa-live-activity > b {
+  min-width: 34px;
+  color: #3576b6;
+  font-size: 10px;
+  text-align: right;
+}
+
+.bqa-rail-activity {
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  margin: 3px auto 2px;
+  border: 0;
+  color: #2473c4;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(41,102,160,.10);
+  transition: transform 160ms cubic-bezier(.22,1,.36,1);
+}
+
+.bqa-rail-activity:hover,
+.bqa-rail-activity:focus-visible {
+  transform: scale(1.08);
+  outline: none;
+}
+
+.bqa-rail-activity.is-complete {
+  background: conic-gradient(#2e9b67 100%, rgba(159,193,224,.22) 0);
+  color: #27885a;
+}
+
+.bqa-rail-activity.is-error {
+  background: conic-gradient(#d95466 100%, rgba(159,193,224,.22) 0);
+  color: #c84c5f;
+}
+
+@media (max-width: 760px), (hover: none) {
+  .bqa-context-banner {
+    min-height: 62px;
+  }
+
+  .bqa-smart-stack .bqa-smart-section > div {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .bqa-smart-stack .bqa-smart-section button[draggable="true"] {
+    cursor: pointer;
+  }
+
+  .bqa-panel-list.is-drop-ready::before {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bqa-rail-activity,
+  .bqa-smart-stack .bqa-smart-section button {
+    transition: none !important;
+  }
+}
