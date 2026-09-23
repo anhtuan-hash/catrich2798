@@ -15,6 +15,11 @@ assert.ok(main.includes('appVisibility={appVisibility}'), 'Quick Access must rec
 assert.ok(main.includes('data-quick-access-layout={quickAccessEnabled'), 'App shell must expose the global Quick Access layout contract.');
 assert.ok(main.includes('data-quick-access-safe-frame={quickAccessEnabled'), 'Routed content must use the shell-level Quick Access safe frame.');
 assert.ok(!rail.includes("currentRoute === 'dashboard'"), 'Dashboard must not be filtered out by the Quick Access component.');
+assert.ok(!rail.includes('className="bqa-command-search"'), 'Compact Quick Access must not render the inline search bar.');
+assert.ok(!rail.includes('className="bqa-context-banner"'), 'Compact Quick Access must not render the current-context banner.');
+assert.ok(!rail.includes('bqa-smart-section is-working'), 'Compact Quick Access must not render the Working Now card.');
+assert.ok(!rail.includes("'Đang làm'"), 'Compact Quick Access must not render the Đang làm label.');
+
 assert.ok(rail.includes('createPortal(quickAccessUi, document.body)'), 'Quick Access must be portaled above route stacking contexts.');
 assert.ok(rail.includes("root.style.fontFamily = shellStyle.fontFamily"), 'Portaled Quick Access must inherit the active Brian custom font.');
 
@@ -242,7 +247,6 @@ for (const token of [
   'data-favorites-dropzone="true"',
   'dropToFavorites',
   'bqa-live-activity',
-  'bqa-command-search',
   'bqa-smart-section',
   'bqa-peek-card',
   'bqa-action-sheet',
@@ -412,4 +416,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access V4.13.2 keeps the rail permanently left, enlarges all primary scrollbars, and preserves route memory, themes, classroom mode, workflows, permissions and custom fonts.');
+console.log('PASS: Quick Access compact-panel cleanup removes inline search, current-context and Working Now while preserving full-screen Command Palette, Recent/Pinned, fixed-left geometry, permissions and custom fonts.');

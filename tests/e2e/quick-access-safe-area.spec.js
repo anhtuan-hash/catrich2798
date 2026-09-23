@@ -692,6 +692,27 @@ test.describe('Global Quick Access safe area', () => {
     expect(geometry.trigger.right).toBeLessThan(30);
   });
 
+  test('compact panel hides inline search, current context and Working Now', async ({ page }) => {
+    await page.goto('/#/settings');
+    const root = page.locator('.bqa-root');
+    await expect(root).toBeVisible();
+
+    await page.locator('.bqa-rail').hover();
+    await expect(root).toHaveClass(/is-open/);
+
+    await expect(page.locator('.bqa-command-search')).toHaveCount(0);
+    await expect(page.locator('.bqa-context-banner')).toHaveCount(0);
+    await expect(page.locator('.bqa-smart-section.is-working')).toHaveCount(0);
+    await expect(page.getByText('Đang làm', { exact: true })).toHaveCount(0);
+
+    // The compact panel still keeps the core shortcut list.
+    await expect(page.locator('.bqa-panel-list')).toBeVisible();
+
+    // Search remains available only through the full-screen command palette.
+    await page.keyboard.press(process.platform === 'darwin' ? 'Meta+K' : 'Control+K');
+    await expect(page.locator('.bqa-command-palette-backdrop')).toBeVisible();
+  });
+
   test('pinned panel reflows content instead of covering it', async ({ page }) => {
     await page.goto('/#/apps');
     await expect(page.locator('.bqa-root')).toBeVisible();
