@@ -5447,6 +5447,10 @@ html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-
   outline: none;
 }
 
+.bqa-root[data-spatial-memory="true"] .bqa-panel-header {
+  position: relative;
+}
+
 .bqa-root[data-spatial-memory="true"] .bqa-panel-header::after {
   content: '';
   position: absolute;
