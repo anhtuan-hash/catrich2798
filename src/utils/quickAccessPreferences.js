@@ -3,6 +3,8 @@ import { isSupabaseConfigured, supabase } from './supabase.js';
 export const QUICK_ACCESS_MAX_ITEMS = 10;
 export const QUICK_ACCESS_EVENT = 'bes-quick-access-updated';
 const QUICK_ACCESS_KEY = 'bes-quick-access-v1';
+export const QUICK_ACCESS_MODES = ['auto', 'pin', 'focus'];
+export const QUICK_ACCESS_RECENT_MAX = 3;
 
 export const DEFAULT_QUICK_ACCESS_IDS = [
   'route:dashboard',
@@ -35,7 +37,7 @@ function safeSet(key, value) {
   try { window.localStorage?.setItem(key, value); } catch { /* local cache is best effort */ }
 }
 
-function cleanIds(ids, allowedIds = []) {
+function cleanIds(ids, allowedIds = [], maxItems = QUICK_ACCESS_MAX_ITEMS) {
   const allowed = new Set((Array.isArray(allowedIds) ? allowedIds : []).map(String));
   const seen = new Set();
   return (Array.isArray(ids) ? ids : [])
@@ -46,7 +48,7 @@ function cleanIds(ids, allowedIds = []) {
       seen.add(id);
       return true;
     })
-    .slice(0, QUICK_ACCESS_MAX_ITEMS);
+    .slice(0, maxItems);
 }
 
 export function createDefaultQuickAccessConfig(allowedIds = []) {
@@ -54,8 +56,10 @@ export function createDefaultQuickAccessConfig(allowedIds = []) {
   const preferred = DEFAULT_QUICK_ACCESS_IDS.filter((id) => !allowed.size || allowed.has(id));
   const fallback = (Array.isArray(allowedIds) ? allowedIds : []).filter((id) => !preferred.includes(id));
   return {
-    version: 1,
+    version: 2,
     items: [...preferred, ...fallback].slice(0, QUICK_ACCESS_MAX_ITEMS),
+    recent: [],
+    mode: 'auto',
     pinned: false,
     updatedAt: 0,
   };
@@ -70,11 +74,17 @@ export function normalizeQuickAccessConfig(raw, allowedIds = []) {
   if (source && typeof source === 'object' && !Array.isArray(source) && source.config) source = source.config;
   source = source && typeof source === 'object' && !Array.isArray(source) ? source : {};
   const hasExplicitItems = Array.isArray(source.items) || typeof source.items === 'string';
-  const items = cleanIds(source.items, allowedIds);
+  const items = cleanIds(source.items, allowedIds, QUICK_ACCESS_MAX_ITEMS);
+  const recent = cleanIds(source.recent, allowedIds, QUICK_ACCESS_RECENT_MAX);
+  const legacyPinned = Boolean(source.pinned);
+  const requestedMode = String(source.mode || '').trim().toLowerCase();
+  const mode = QUICK_ACCESS_MODES.includes(requestedMode) ? requestedMode : (legacyPinned ? 'pin' : 'auto');
   return {
-    version: 1,
+    version: 2,
     items: (hasExplicitItems ? items : defaults.items).slice(0, QUICK_ACCESS_MAX_ITEMS),
-    pinned: Boolean(source.pinned),
+    recent,
+    mode,
+    pinned: mode === 'pin',
     updatedAt: Number(source.updatedAt) || 0,
   };
 }
