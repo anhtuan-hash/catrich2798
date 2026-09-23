@@ -481,6 +481,7 @@ export default function GlobalQuickAccessRail({
   const [appSwitcherOpen, setAppSwitcherOpen] = useState(false);
   const [appSwitcherIndex, setAppSwitcherIndex] = useState(0);
   const [magneticStrength, setMagneticStrength] = useState(0);
+  const [dockHoverIndex, setDockHoverIndex] = useState(-1);
   const [peekItemId, setPeekItemId] = useState('');
   const [peekTop, setPeekTop] = useState(92);
   const [actionItemId, setActionItemId] = useState('');
@@ -1226,10 +1227,17 @@ export default function GlobalQuickAccessRail({
             <span aria-hidden="true">B</span>
           </button>
 
-          <div className="bqa-rail-items">
-            {workspaceItems.map((item) => {
+          <div
+            className="bqa-rail-items"
+            data-adaptive-dock="true"
+            onPointerLeave={() => setDockHoverIndex(-1)}
+          >
+            {workspaceItems.map((item, index) => {
               const Icon = item.icon || Boxes;
               const active = activeItem(item, currentRoute, selectedTool);
+              const dockDistance = dockHoverIndex < 0
+                ? (active ? 'active' : 'rest')
+                : String(Math.min(3, Math.abs(index - dockHoverIndex)));
               return (
                 <button
                   type="button"
@@ -1239,10 +1247,20 @@ export default function GlobalQuickAccessRail({
                   title={labelFor(item, language)}
                   aria-label={labelFor(item, language)}
                   aria-current={active ? 'page' : undefined}
-                  onPointerEnter={(event) => showPeek(item, event.currentTarget)}
+                  data-dock-distance={dockDistance}
+                  onPointerEnter={(event) => {
+                    setDockHoverIndex(index);
+                    showPeek(item, event.currentTarget);
+                  }}
                   onPointerLeave={hidePeek}
-                  onFocus={(event) => showPeek(item, event.currentTarget)}
-                  onBlur={hidePeek}
+                  onFocus={(event) => {
+                    setDockHoverIndex(index);
+                    showPeek(item, event.currentTarget);
+                  }}
+                  onBlur={() => {
+                    setDockHoverIndex(-1);
+                    hidePeek();
+                  }}
                   onContextMenu={(event) => {
                     event.preventDefault();
                     setPeekItemId('');
