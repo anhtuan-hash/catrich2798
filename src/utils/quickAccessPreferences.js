@@ -10,6 +10,8 @@ export const QUICK_ACCESS_SIZES = ['s', 'm', 'l'];
 export const QUICK_ACCESS_MOTIONS = ['reduced', 'normal', 'fluid'];
 export const QUICK_ACCESS_DENSITIES = ['compact', 'comfortable'];
 export const QUICK_ACCESS_SIDES = ['left', 'right'];
+export const QUICK_ACCESS_WORKFLOW_MAX = 4;
+export const QUICK_ACCESS_WORKFLOW_STEPS_MAX = 5;
 
 export const DEFAULT_QUICK_ACCESS_IDS = [
   'route:dashboard',
@@ -56,12 +58,34 @@ function cleanIds(ids, allowedIds = [], maxItems = QUICK_ACCESS_MAX_ITEMS) {
     .slice(0, maxItems);
 }
 
+function cleanWorkflowId(value, index = 0) {
+  const raw = String(value || '').trim().toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+  return raw.slice(0, 48) || `workflow-${index + 1}`;
+}
+
+function cleanWorkflows(value, allowedIds = []) {
+  const input = Array.isArray(value) ? value : [];
+  const seen = new Set();
+  const output = [];
+  input.slice(0, QUICK_ACCESS_WORKFLOW_MAX * 2).forEach((entry, index) => {
+    if (!entry || typeof entry !== 'object') return;
+    let id = cleanWorkflowId(entry.id, index);
+    if (seen.has(id)) id = `${id}-${index + 1}`;
+    seen.add(id);
+    const itemIds = cleanIds(entry.itemIds, allowedIds, QUICK_ACCESS_WORKFLOW_STEPS_MAX);
+    if (!itemIds.length) return;
+    const name = String(entry.name || '').trim().slice(0, 42) || `Workflow ${output.length + 1}`;
+    output.push({ id, name, itemIds });
+  });
+  return output.slice(0, QUICK_ACCESS_WORKFLOW_MAX);
+}
+
 export function createDefaultQuickAccessConfig(allowedIds = []) {
   const allowed = new Set((Array.isArray(allowedIds) ? allowedIds : []).map(String));
   const preferred = DEFAULT_QUICK_ACCESS_IDS.filter((id) => !allowed.size || allowed.has(id));
   const fallback = (Array.isArray(allowedIds) ? allowedIds : []).filter((id) => !preferred.includes(id));
   return {
-    version: 4,
+    version: 5,
     items: [...preferred, ...fallback].slice(0, QUICK_ACCESS_MAX_ITEMS),
     recent: [],
     workspace: 'all',
@@ -72,6 +96,7 @@ export function createDefaultQuickAccessConfig(allowedIds = []) {
     side: 'left',
     hoverDelay: 220,
     labels: true,
+    workflows: [],
     pinned: false,
     updatedAt: 0,
   };
@@ -103,8 +128,9 @@ export function normalizeQuickAccessConfig(raw, allowedIds = []) {
   const side = QUICK_ACCESS_SIDES.includes(requestedSide) ? requestedSide : 'left';
   const hoverDelay = Math.max(80, Math.min(700, Number(source.hoverDelay) || 220));
   const labels = source.labels !== false;
+  const workflows = cleanWorkflows(source.workflows, allowedIds);
   return {
-    version: 4,
+    version: 5,
     items: (hasExplicitItems ? items : defaults.items).slice(0, QUICK_ACCESS_MAX_ITEMS),
     recent,
     workspace,
@@ -115,6 +141,7 @@ export function normalizeQuickAccessConfig(raw, allowedIds = []) {
     side,
     hoverDelay,
     labels,
+    workflows,
     pinned: mode === 'pin',
     updatedAt: Number(source.updatedAt) || 0,
   };
