@@ -2029,17 +2029,13 @@ export default function GlobalQuickAccessRail({
               title={language === 'vi' ? 'Thông báo' : 'Notifications'}
               aria-label={language === 'vi' ? `Thông báo: ${notificationCount}` : `Notifications: ${notificationCount}`}
               aria-expanded={notificationCenterOpen}
-              onPointerDown={(event) => {
+              onClick={(event) => {
                 event.preventDefault();
-                openRail();
-                setQuickCreateOpen(false);
-                setBackStackOpen(false);
-                setNotificationCenterOpen((value) => !value);
-              }}
-              onKeyDown={(event) => {
-                if (!['Enter', ' '].includes(event.key)) return;
-                event.preventDefault();
-                openRail();
+                event.stopPropagation();
+                window.clearTimeout(closeTimerRef.current);
+                window.clearTimeout(collapseMotionTimerRef.current);
+                setCollapsing(false);
+                setHovered(true);
                 setQuickCreateOpen(false);
                 setBackStackOpen(false);
                 setNotificationCenterOpen((value) => !value);
