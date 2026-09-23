@@ -44,6 +44,7 @@ import {
   QUICK_ACCESS_MOTIONS,
   QUICK_ACCESS_DENSITIES,
   QUICK_ACCESS_SIDES,
+  QUICK_ACCESS_THEMES,
   QUICK_ACCESS_WORKFLOW_MAX,
   QUICK_ACCESS_WORKFLOW_STEPS_MAX,
   createDefaultQuickAccessConfig,
@@ -752,6 +753,7 @@ export default function GlobalQuickAccessRail({
   const motionMode = QUICK_ACCESS_MOTIONS.includes(config.motion) ? config.motion : 'fluid';
   const density = QUICK_ACCESS_DENSITIES.includes(config.density) ? config.density : 'comfortable';
   const railSide = QUICK_ACCESS_SIDES.includes(config.side) ? config.side : 'left';
+  const visualTheme = QUICK_ACCESS_THEMES.includes(config.theme) ? config.theme : 'glass';
   const hoverDelay = Math.max(80, Math.min(700, Number(config.hoverDelay) || 220));
   const showLabels = config.labels !== false;
   const timeAwareEnabled = config.timeAware !== false;
@@ -2163,6 +2165,7 @@ export default function GlobalQuickAccessRail({
         data-motion-mode={motionMode}
         data-density={density}
         data-side={railSide}
+        data-theme-style={visualTheme}
         data-labels={showLabels ? 'show' : 'hide'}
         data-time-aware={timeAwareEnabled ? 'true' : 'false'}
         data-time-band={timeContext.id}
@@ -3161,8 +3164,37 @@ export default function GlobalQuickAccessRail({
             <section className="bqa-personalize-panel" aria-label={language === 'vi' ? 'Cá nhân hóa thanh bên' : 'Personalize sidebar'}>
               <header>
                 <strong>{language === 'vi' ? 'Cá nhân hóa' : 'Personalize'}</strong>
-                <span>{language === 'vi' ? 'Kích thước · chuyển động · vị trí · mật độ' : 'Size · motion · side · density'}</span>
+                <span>{language === 'vi' ? 'Giao diện · kích thước · chuyển động · vị trí · mật độ' : 'Theme · size · motion · side · density'}</span>
               </header>
+
+              <div className="bqa-theme-picker" role="group" aria-label={language === 'vi' ? 'Giao diện thanh bên' : 'Sidebar theme'}>
+                {QUICK_ACCESS_THEMES.map((theme) => {
+                  const labels = {
+                    glass: language === 'vi' ? ['Glass', 'Trong suốt'] : ['Glass', 'Translucent'],
+                    paper: language === 'vi' ? ['Paper', 'Sạch & sáng'] : ['Paper', 'Clean & bright'],
+                    color: language === 'vi' ? ['Color', 'Theo không gian'] : ['Color', 'Workspace accent'],
+                    minimal: language === 'vi' ? ['Minimal', 'Tối giản'] : ['Minimal', 'Low chrome'],
+                  };
+                  const [title, subtitle] = labels[theme] || [theme, ''];
+                  return (
+                    <button
+                      type="button"
+                      key={theme}
+                      className={visualTheme === theme ? 'is-active' : ''}
+                      aria-pressed={visualTheme === theme}
+                      onClick={() => updatePersonalization({ theme })}
+                    >
+                      <span className={`bqa-theme-preview is-${theme}`} aria-hidden="true">
+                        <i />
+                        <i />
+                        <i />
+                      </span>
+                      <span><strong>{title}</strong><small>{subtitle}</small></span>
+                      {visualTheme === theme ? <Check size={14} aria-hidden="true" /> : null}
+                    </button>
+                  );
+                })}
+              </div>
 
               <div className="bqa-personalize-row">
                 <span>{language === 'vi' ? 'Kích thước' : 'Size'}</span>

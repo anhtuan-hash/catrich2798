@@ -498,6 +498,38 @@ test.describe('Global Quick Access safe area', () => {
     await page.evaluate(() => window.BrianQuickAccessNotifications?.clear?.('qa-classroom-private-alert'));
   });
 
+  test('V4.11: sidebar themes switch instantly and persist for the account', async ({ page }) => {
+    await page.goto('/#/apps');
+    const root = page.locator('.bqa-root');
+    await expect(root).toBeVisible();
+    await expect(root).toHaveAttribute('data-theme-style', 'glass');
+
+    await page.locator('.bqa-rail').hover();
+    await page.locator('.bqa-rail-settings').click();
+
+    const customizer = page.locator('.bqa-customizer');
+    await expect(customizer).toBeVisible();
+    const themes = customizer.locator('.bqa-theme-picker');
+    await expect(themes).toBeVisible();
+    await expect(themes.locator('> button')).toHaveCount(4);
+
+    const colorTheme = themes.locator('> button').filter({ hasText: 'Color' });
+    await colorTheme.click();
+    await expect(root).toHaveAttribute('data-theme-style', 'color');
+    await expect(colorTheme).toHaveClass(/is-active/);
+
+    await page.locator('.bqa-done').click();
+    await page.reload();
+    await expect(page.locator('.bqa-root')).toBeVisible();
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-theme-style', 'color');
+
+    await page.locator('.bqa-rail').hover();
+    await page.locator('.bqa-rail-settings').click();
+    const paperTheme = page.locator('.bqa-theme-picker > button').filter({ hasText: 'Paper' });
+    await paperTheme.click();
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-theme-style', 'paper');
+  });
+
   test('V3.3.1: right side is a true mirror with rail on the screen edge and panel expanding inward', async ({ page }) => {
     await page.goto('/#/dashboard');
     await expect(page.locator('.bqa-root')).toBeVisible();
