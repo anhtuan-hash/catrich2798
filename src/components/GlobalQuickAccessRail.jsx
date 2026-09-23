@@ -1512,23 +1512,28 @@ export default function GlobalQuickAccessRail({
 
   if (!currentUser || currentRoute === 'home' || !catalog.length) return null;
 
+  const presentationCatalog = classroomMode
+    ? catalog.filter((item) => classroomModeAllowsItem(item))
+    : catalog;
+  const effectiveWorkspace = classroomMode && workspace === 'department' ? 'teaching' : workspace;
+
   const selectedItems = config.items
-    .map((id) => catalog.find((item) => item.id === id))
+    .map((id) => presentationCatalog.find((item) => item.id === id))
     .filter(Boolean)
     .slice(0, QUICK_ACCESS_MAX_ITEMS);
 
-  const workspaceItems = selectedItems.filter((item) => workspaceAllowsItem(workspace, item));
+  const workspaceItems = selectedItems.filter((item) => workspaceAllowsItem(effectiveWorkspace, item));
 
   const recentItems = (config.recent || [])
-    .map((id) => catalog.find((item) => item.id === id))
+    .map((id) => presentationCatalog.find((item) => item.id === id))
     .filter(Boolean)
-    .filter((item) => workspaceAllowsItem(workspace, item))
+    .filter((item) => workspaceAllowsItem(effectiveWorkspace, item))
     .slice(0, QUICK_ACCESS_RECENT_MAX);
 
   const contextItems = contextIdsFor(currentRoute, selectedTool)
-    .map((id) => catalog.find((item) => item.id === id))
+    .map((id) => presentationCatalog.find((item) => item.id === id))
     .filter(Boolean)
-    .filter((item) => workspaceAllowsItem(workspace, item))
+    .filter((item) => workspaceAllowsItem(effectiveWorkspace, item))
     .filter((item) => !recentItems.some((recent) => recent.id === item.id))
     .slice(0, 3);
 
@@ -1542,17 +1547,17 @@ export default function GlobalQuickAccessRail({
     .filter((item) => item.id !== workingItem?.id)
     .filter((item) => !recentItems.some((recent) => recent.id === item.id))
     .slice(0, 3);
-  const primaryActivity = liveActivities[0] || null;
+  const primaryActivity = classroomMode ? null : (liveActivities[0] || null);
   const timeContext = timeAwareContextFor(new Date(timeTick).getHours(), language);
   const timeAwareItems = timeAwareEnabled
     ? timeContext.ids
-      .map((id) => catalog.find((item) => item.id === id))
+      .map((id) => presentationCatalog.find((item) => item.id === id))
       .filter(Boolean)
-      .filter((item) => workspaceAllowsItem(workspace, item))
+      .filter((item) => workspaceAllowsItem(effectiveWorkspace, item))
       .slice(0, 3)
     : [];
-  const resumableItems = resumeItems
-    .map((resume) => ({ resume, item: catalog.find((item) => item.id === resume.itemId) }))
+  const resumableItems = (classroomMode ? [] : resumeItems)
+    .map((resume) => ({ resume, item: presentationCatalog.find((item) => item.id === resume.itemId) }))
     .filter((entry) => Boolean(entry.item))
     .slice(0, QUICK_ACCESS_RESUME_MAX);
   const primaryResume = resumableItems[0] || null;
@@ -1658,7 +1663,7 @@ export default function GlobalQuickAccessRail({
     }
     return null;
   };
-  const activeCapsuleItem = catalog.find((item) => item.id === capsuleItemId) || null;
+  const activeCapsuleItem = classroomMode ? null : (presentationCatalog.find((item) => item.id === capsuleItemId) || null);
   const activeCapsule = capsuleSnapshotFor(activeCapsuleItem);
 
   const switcherItems = [
@@ -1671,10 +1676,13 @@ export default function GlobalQuickAccessRail({
     { id: 'teaching', label: language === 'vi' ? 'Giảng dạy' : 'Teaching' },
     { id: 'homeroom', label: language === 'vi' ? 'Chủ nhiệm' : 'Homeroom' },
     { id: 'department', label: 'TTCM' },
-  ].filter((option) => option.id !== 'department' || catalog.some((item) => workspaceAllowsItem('department', item)));
+  ].filter((option) => {
+    if (option.id === 'department' && classroomMode) return false;
+    return option.id !== 'department' || presentationCatalog.some((item) => workspaceAllowsItem('department', item));
+  });
 
   const quickCreateItems = quickCreateDescriptors(language)
-    .map((descriptor) => ({ descriptor, item: catalog.find((item) => item.id === descriptor.itemId) }))
+    .map((descriptor) => ({ descriptor, item: presentationCatalog.find((item) => item.id === descriptor.itemId) }))
     .filter((entry) => Boolean(entry.item));
 
   const commandNeedle = commandQuery.trim().toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
@@ -1688,7 +1696,7 @@ export default function GlobalQuickAccessRail({
       item: entry.item,
       payload: entry,
     })),
-    ...catalog.map((item) => ({
+    ...presentationCatalog.map((item) => ({
       id: `app:${item.id}`,
       kind: 'app',
       label: labelFor(item, language),
@@ -1726,11 +1734,11 @@ export default function GlobalQuickAccessRail({
     : defaultPaletteEntries
   ).slice(0, 12);
 
-  const peekItem = catalog.find((item) => item.id === peekItemId) || null;
+  const peekItem = presentationCatalog.find((item) => item.id === peekItemId) || null;
   const peekActions = peekItem
     ? quickActionDescriptors(peekItem, language).filter((descriptor) => descriptor.id !== 'open').slice(0, 3)
     : [];
-  const actionItem = catalog.find((item) => item.id === actionItemId) || null;
+  const actionItem = presentationCatalog.find((item) => item.id === actionItemId) || null;
 
   const availableItems = catalog.filter((item) => !config.items.includes(item.id));
   const customizerNeedle = customizerQuery.trim().toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
