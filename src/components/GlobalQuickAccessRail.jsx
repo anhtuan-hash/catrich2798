@@ -1096,6 +1096,7 @@ export default function GlobalQuickAccessRail({
         className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${focusMode ? 'is-focus' : ''} ${customizing ? 'is-customizing' : ''}`}
         data-quick-access="true"
         data-sidebar-mode={sidebarMode}
+        data-workspace={workspace}
         data-motion={collapsing ? 'collapsing' : (expanded ? 'open' : 'rest')}
         data-route={currentRoute}
         onPointerEnter={enter}
