@@ -551,6 +551,12 @@ test.describe('Global Quick Access safe area', () => {
     await page.locator('.bqa-rail-settings').click();
     const customizer = page.locator('.bqa-customizer');
     await expect(customizer).toBeVisible();
+    const contextControl = customizer.locator('.bqa-context-memory-control');
+    await expect(contextControl).toBeVisible();
+    const contextCheckbox = contextControl.locator('input[type="checkbox"]');
+    await expect(contextCheckbox).toBeChecked();
+    await contextCheckbox.uncheck();
+
     const spatialControl = customizer.locator('.bqa-spatial-control');
     await expect(spatialControl).toBeVisible();
     await expect(spatialControl.locator('input[type="checkbox"]')).toBeChecked();
@@ -585,6 +591,52 @@ test.describe('Global Quick Access safe area', () => {
     await resetSpatial.click();
     await expect(page.locator('.bqa-root')).toHaveAttribute('data-workspace', 'all');
     await expect(page.locator('.bqa-root')).toHaveAttribute('data-side', 'left');
+  });
+
+  test('V4.13: route workspace memory restores a different workspace for each page context', async ({ page }) => {
+    await page.goto('/#/apps');
+    const root = page.locator('.bqa-root');
+    await expect(root).toBeVisible();
+    await expect(root).toHaveAttribute('data-context-memory', 'true');
+    await expect(root).toHaveAttribute('data-context-key', 'apps');
+
+    await page.locator('.bqa-rail').hover();
+    await page.locator('.bqa-workspace-tabs').getByRole('button', { name: 'Chủ nhiệm', exact: true }).click();
+    await expect(root).toHaveAttribute('data-workspace', 'homeroom');
+
+    await page.goto('/#/dashboard');
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-context-key', 'dashboard');
+    await page.locator('.bqa-rail').hover();
+    await page.locator('.bqa-workspace-tabs').getByRole('button', { name: 'Giảng dạy', exact: true }).click();
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-workspace', 'teaching');
+
+    await page.goto('/#/apps');
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-context-key', 'apps');
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-workspace', 'homeroom');
+
+    await page.goto('/#/dashboard');
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-context-key', 'dashboard');
+    await expect(page.locator('.bqa-root')).toHaveAttribute('data-workspace', 'teaching');
+
+    const stored = await page.evaluate(() => {
+      const key = Object.keys(localStorage).find((candidate) => candidate.startsWith('bes-quick-access-context-v1:'));
+      return key ? JSON.parse(localStorage.getItem(key) || '{}') : {};
+    });
+    expect(stored.apps).toBe('homeroom');
+    expect(stored.dashboard).toBe('teaching');
+
+    await page.locator('.bqa-rail').hover();
+    await page.locator('.bqa-rail-settings').click();
+    const control = page.locator('.bqa-context-memory-control');
+    await expect(control).toBeVisible();
+    await expect(control.locator('input[type="checkbox"]')).toBeChecked();
+    await control.getByRole('button', { name: 'Quên ngữ cảnh đã nhớ' }).click();
+
+    const cleared = await page.evaluate(() => {
+      const key = Object.keys(localStorage).find((candidate) => candidate.startsWith('bes-quick-access-context-v1:'));
+      return key ? JSON.parse(localStorage.getItem(key) || '{}') : {};
+    });
+    expect(cleared).toEqual({});
   });
 
   test('V3.3.1: right side is a true mirror with rail on the screen edge and panel expanding inward', async ({ page }) => {
