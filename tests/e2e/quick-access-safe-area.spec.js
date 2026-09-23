@@ -323,6 +323,24 @@ test.describe('Global Quick Access safe area', () => {
     await expect(capsule).toBeHidden();
   });
 
+  test('V4.3: Quick Peek exposes contextual actions without opening the app first', async ({ page }) => {
+    await page.goto('/#/apps');
+    await expect(page.locator('.bqa-root')).toBeVisible();
+
+    const attendanceButton = page.locator('.bqa-rail-button[aria-label="Điểm danh"]');
+    await attendanceButton.hover();
+    await page.waitForTimeout(460);
+
+    const peek = page.locator('.bqa-peek-card');
+    await expect(peek).toBeVisible();
+    await expect(peek).toContainText('Điểm danh');
+
+    const actions = peek.locator('.bqa-peek-actions');
+    await expect(actions).toBeVisible();
+    await expect(actions.getByRole('button', { name: /Điểm danh ngay/i })).toBeVisible();
+    await expect(peek.locator('.bqa-peek-open')).toBeVisible();
+  });
+
   test('V3.3.1: right side is a true mirror with rail on the screen edge and panel expanding inward', async ({ page }) => {
     await page.goto('/#/dashboard');
     await expect(page.locator('.bqa-root')).toBeVisible();
