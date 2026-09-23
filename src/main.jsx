@@ -48,6 +48,7 @@ import { installRetiredFeatureCleanup } from './utils/retiredFeatureCleanup.js';
 import { installGlobalMotionSystem } from './utils/globalMotionSystem.js';
 import { installGlobalFontSystem } from './utils/globalFontSystem.js';
 import { installRegionalFontSystem } from './utils/globalRegionalFontSystem.js';
+import usePresentationMode from './hooks/usePresentationMode.js';
 
 runConfigurationMigrations();
 installGlobalMotionSystem();
@@ -184,6 +185,7 @@ function normalizeMetroIntensity(value) {
 }
 
 function App() {
+  const presentation = usePresentationMode();
   const [route, setRoute] = useState(getInitialRoute);
   const [language, setLanguage] = useState(() => localStorage.getItem('bet-language') || 'vi');
   const theme = 'light';
@@ -356,8 +358,13 @@ function App() {
 
   const setGlobalLoading = (active, label = '') => setLoadingState({ active, label: label || (language === 'vi' ? 'Đang tải...' : 'Loading...') });
 
+  // Quick Access is a desktop/web-only affordance. The mobile presentation owns
+  // its own top bar, bottom navigation and drawer, so the desktop rail must not
+  // render or reserve safe-area space while the mobile shell is active.
+  const quickAccessWebAllowed = presentation.presentationMode === 'desktop';
   const quickAccessEnabled = Boolean(
-    currentUser
+    quickAccessWebAllowed
+    && currentUser
     && canAccessRoute
     && currentRoute !== 'home'
     && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute)
