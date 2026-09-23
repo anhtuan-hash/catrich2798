@@ -833,9 +833,11 @@ export default function GlobalQuickAccessRail({
     if (!root || !shell || !main || !safeFrame) return undefined;
 
     shell.dataset.quickAccessState = pinned ? 'pinned' : 'rest';
+    shell.dataset.quickAccessSide = railSide;
 
     const clearSafeArea = () => {
       shell.style.removeProperty('--bqa-content-safe-shift');
+      shell.style.removeProperty('--bqa-content-safe-inset');
       shell.dataset.quickAccessSafeShift = '0';
     };
 
@@ -853,7 +855,9 @@ export default function GlobalQuickAccessRail({
 
         const currentShift = parseCssPixels(shell.dataset.quickAccessSafeShift, 0);
         const actualMinLeft = measureQuickAccessContentBaseline(safeFrame);
-        if (!Number.isFinite(actualMinLeft)) {
+        const actualMaxRight = measureQuickAccessContentRightEdge(safeFrame);
+        const onRight = railSide === 'right';
+        if ((!onRight && !Number.isFinite(actualMinLeft)) || (onRight && !Number.isFinite(actualMaxRight))) {
           clearSafeArea();
           return;
         }
@@ -864,25 +868,37 @@ export default function GlobalQuickAccessRail({
         const rail = railRef.current;
         const panel = panelRef.current;
         const railRect = rail?.getBoundingClientRect?.();
+        const panelRect = panel?.getBoundingClientRect?.();
         const rootRect = root.getBoundingClientRect();
         const rootStyle = window.getComputedStyle(root);
         const railWidth = parseCssPixels(rootStyle.getPropertyValue('--bqa-rail-width'), 56);
         const panelWidth = parseCssPixels(rootStyle.getPropertyValue('--bqa-panel-width'), 318);
 
-        const collapsedBoundary = Number.isFinite(railRect?.right)
+        const leftCollapsedBoundary = Number.isFinite(railRect?.right)
           ? railRect.right
           : rootRect.left + railWidth;
-
-        const pinnedBoundary = pinned
+        const leftPinnedBoundary = pinned
           ? rootRect.left + railWidth + 8 + panelWidth
-          : collapsedBoundary;
+          : leftCollapsedBoundary;
+        const rightCollapsedBoundary = Number.isFinite(railRect?.left)
+          ? railRect.left
+          : rootRect.right - railWidth;
+        const rightPinnedBoundary = pinned && Number.isFinite(panelRect?.left)
+          ? panelRect.left
+          : (pinned ? rootRect.right - railWidth - 8 - panelWidth : rightCollapsedBoundary);
 
-        const safeBoundary = (pinned ? pinnedBoundary : collapsedBoundary) + QUICK_ACCESS_SAFE_GAP;
+        const safeBoundary = onRight
+          ? (pinned ? rightPinnedBoundary : rightCollapsedBoundary) - QUICK_ACCESS_SAFE_GAP
+          : (pinned ? leftPinnedBoundary : leftCollapsedBoundary) + QUICK_ACCESS_SAFE_GAP;
         const maxShift = pinned ? QUICK_ACCESS_SAFE_MAX_PINNED : QUICK_ACCESS_SAFE_MAX_COLLAPSED;
-        const delta = safeBoundary - actualMinLeft;
-        const nextShift = Math.max(0, Math.min(maxShift, Math.ceil(currentShift + delta)));
+        const delta = onRight ? safeBoundary - actualMaxRight : safeBoundary - actualMinLeft;
+        const nextShift = onRight
+          ? Math.min(0, Math.max(-maxShift, Math.floor(currentShift + delta)))
+          : Math.max(0, Math.min(maxShift, Math.ceil(currentShift + delta)));
+        const nextInset = Math.abs(nextShift);
 
         shell.style.setProperty('--bqa-content-safe-shift', `${nextShift}px`);
+        shell.style.setProperty('--bqa-content-safe-inset', `${nextInset}px`);
         shell.dataset.quickAccessSafeShift = String(nextShift);
 
         if (Math.abs(nextShift - currentShift) >= 1) {
@@ -893,7 +909,10 @@ export default function GlobalQuickAccessRail({
         window.clearTimeout(layoutVerifyTimerRef.current);
         layoutVerifyTimerRef.current = window.setTimeout(() => {
           const verifiedMinLeft = measureQuickAccessContentBaseline(safeFrame);
-          const stillOccluded = Number.isFinite(verifiedMinLeft) && verifiedMinLeft < safeBoundary - 0.5;
+          const verifiedMaxRight = measureQuickAccessContentRightEdge(safeFrame);
+          const stillOccluded = onRight
+            ? Number.isFinite(verifiedMaxRight) && verifiedMaxRight > safeBoundary + 0.5
+            : Number.isFinite(verifiedMinLeft) && verifiedMinLeft < safeBoundary - 0.5;
 
           if (stillOccluded && !pinned) {
             shell.dataset.quickAccessSafeMode = 'overlay';
@@ -940,9 +959,11 @@ export default function GlobalQuickAccessRail({
       window.removeEventListener('bes-font-settings-updated', measureAndApply);
       window.removeEventListener('bes-regional-font-updated', measureAndApply);
       shell.style.removeProperty('--bqa-content-safe-shift');
+      shell.style.removeProperty('--bqa-content-safe-inset');
       delete shell.dataset.quickAccessSafeShift;
       delete shell.dataset.quickAccessState;
       delete shell.dataset.quickAccessSafeMode;
+      delete shell.dataset.quickAccessSide;
       if (footer) delete footer.dataset.quickAccessOcclusionGuard;
       root.style.removeProperty('font-family');
     };
@@ -950,6 +971,8 @@ export default function GlobalQuickAccessRail({
     currentRoute,
     selectedTool?.slug,
     pinned,
+    railSide,
+    railSize,
     allowedKey,
     appVisibility?.ready,
   ]);
