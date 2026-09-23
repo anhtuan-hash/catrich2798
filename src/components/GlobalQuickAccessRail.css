@@ -5478,3 +5478,19 @@ html[data-brian-classroom-mode='true'] body #root .app-shell[data-route] .brian-
     transition: none !important;
   }
 }
+
+
+/* Brian Quick Access V4.13 · route workspace memory · 2026-09-23 */
+.bqa-context-memory-control {
+  border-color: rgba(72,121,184,.18);
+  background:
+    linear-gradient(180deg,rgba(246,251,255,.96),rgba(241,247,253,.92));
+}
+
+.bqa-context-memory-control .bqa-personalize-toggle > span > small {
+  color: #8094a8;
+}
+
+.bqa-root[data-context-memory="true"] .bqa-workspace-tabs {
+  box-shadow: inset 0 -1px 0 rgba(64,111,172,.06);
+}
