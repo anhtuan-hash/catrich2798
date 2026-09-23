@@ -1861,7 +1861,7 @@ export default function GlobalQuickAccessRail({
 
       <div
         ref={rootRef}
-        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${focusMode ? 'is-focus' : ''} ${customizing ? 'is-customizing' : ''}`}
+        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${focusMode ? 'is-focus' : ''} ${customizing ? 'is-customizing' : ''} ${notificationCenterOpen ? 'is-notification-center' : ''}`}
         data-quick-access="true"
         data-sidebar-mode={sidebarMode}
         data-workspace={workspace}
