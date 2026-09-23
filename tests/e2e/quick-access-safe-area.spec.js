@@ -440,6 +440,64 @@ test.describe('Global Quick Access safe area', () => {
     await expect(page.locator('.bqa-root')).toHaveAttribute('data-time-aware', 'false');
   });
 
+  test('V4.10: classroom presentation mode masks sensitive chrome and restores it on exit', async ({ page }) => {
+    await page.goto('/#/apps');
+    await expect(page.locator('.bqa-root')).toBeVisible();
+
+    await page.evaluate(() => {
+      window.BrianQuickAccessNotifications?.push?.({
+        id: 'qa-classroom-private-alert',
+        itemId: 'route:apps',
+        title: 'Cập nhật nội bộ',
+        text: 'Thông báo riêng cho giáo viên',
+        tone: 'warning',
+      });
+    });
+
+    await expect(page.locator('.bqa-rail-notifications')).toBeVisible();
+
+    const accountName = page.locator('.brian-nav__account > strong');
+    if (await accountName.count()) await expect(accountName).toBeVisible();
+
+    const presentation = page.locator('.bqa-rail-classroom');
+    await expect(presentation).toBeVisible();
+    await presentation.click();
+
+    const root = page.locator('.bqa-root');
+    await expect(root).toHaveAttribute('data-classroom-mode', 'true');
+    await expect(root).toHaveClass(/is-classroom-mode/);
+    await expect(page.locator('html')).toHaveAttribute('data-brian-classroom-mode', 'true');
+    await expect(page.locator('.bqa-classroom-banner')).toBeVisible();
+
+    await expect(page.locator('.bqa-rail-notifications')).toBeHidden();
+    await expect(page.locator('.bqa-rail-workflows')).toBeHidden();
+    await expect(page.locator('.bqa-rail-button[aria-label="Báo cáo"]')).toHaveCount(0);
+    await expect(page.locator('.bqa-rail-button[aria-label="TTCM"]')).toHaveCount(0);
+    await expect(page.locator('.bqa-rail-button[aria-label="Kế hoạch"]')).toHaveCount(0);
+
+    const reportTab = page.locator('.brian-nav__reports-tab');
+    if (await reportTab.count()) await expect(reportTab).toBeHidden();
+    const ttcmTab = page.locator('.brian-nav__ttcm-tab');
+    if (await ttcmTab.count()) await expect(ttcmTab).toBeHidden();
+    const globalBell = page.locator('.brian-nav__bell');
+    if (await globalBell.count()) await expect(globalBell).toBeHidden();
+    if (await accountName.count()) await expect(accountName).toBeHidden();
+
+    const stored = await page.evaluate(() => {
+      const key = Object.keys(sessionStorage).find((candidate) => candidate.startsWith('bes-quick-access-classroom-mode:'));
+      return key ? sessionStorage.getItem(key) : null;
+    });
+    expect(stored).toBe('true');
+
+    await presentation.click();
+    await expect(root).toHaveAttribute('data-classroom-mode', 'false');
+    await expect(page.locator('html')).toHaveAttribute('data-brian-classroom-mode', 'false');
+    await expect(page.locator('.bqa-classroom-banner')).toHaveCount(0);
+    if (await accountName.count()) await expect(accountName).toBeVisible();
+
+    await page.evaluate(() => window.BrianQuickAccessNotifications?.clear?.('qa-classroom-private-alert'));
+  });
+
   test('V3.3.1: right side is a true mirror with rail on the screen edge and panel expanding inward', async ({ page }) => {
     await page.goto('/#/dashboard');
     await expect(page.locator('.bqa-root')).toBeVisible();

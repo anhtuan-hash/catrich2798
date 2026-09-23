@@ -22,6 +22,7 @@ import {
   Pin,
   PinOff,
   Plus,
+  Presentation,
   Settings,
   ShieldCheck,
   Star,
@@ -265,6 +266,22 @@ function contextCopyFor(currentRoute, selectedTool, language) {
   };
 }
 
+const CLASSROOM_MODE_BLOCKED_IDS = new Set([
+  'action:reports',
+  'action:ttcm',
+  'action:schedule',
+  'tool:brian-team',
+  'route:settings',
+]);
+
+function classroomModeAllowsItem(item) {
+  if (!item) return false;
+  if (item.access === 'department' || item.access === 'reports') return false;
+  if (CLASSROOM_MODE_BLOCKED_IDS.has(String(item.id || ''))) return false;
+  const signature = `${item.id || ''} ${item.route || ''} ${item.tool || ''}`.toLowerCase();
+  return !/(^|[:\s-])(admin|settings|report|ttcm|personnel|audit|governance)([:\s-]|$)/i.test(signature);
+}
+
 function workspaceAllowsItem(workspace, item) {
   if (!item || workspace === 'all') return Boolean(item);
   const id = String(item.id || '');
@@ -488,6 +505,26 @@ function saveQuickAccessWorkflowRun(user, value) {
   }
 }
 
+function quickAccessClassroomModeStorageKey(user) {
+  return `bes-quick-access-classroom-mode:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessClassroomMode(user) {
+  if (typeof window === 'undefined') return false;
+  try { return window.sessionStorage?.getItem(quickAccessClassroomModeStorageKey(user)) === 'true'; }
+  catch { return false; }
+}
+
+function saveQuickAccessClassroomMode(user, enabled) {
+  if (typeof window === 'undefined') return;
+  try {
+    if (enabled) window.sessionStorage?.setItem(quickAccessClassroomModeStorageKey(user), 'true');
+    else window.sessionStorage?.removeItem(quickAccessClassroomModeStorageKey(user));
+  } catch {
+    // Presentation privacy state is session-only by design.
+  }
+}
+
 function quickAccessHistoryUserKey(user) {
   return String(user?.id || user?.authId || user?.email || 'guest').trim().toLowerCase();
 }
@@ -647,6 +684,7 @@ export default function GlobalQuickAccessRail({
   const [workflowDraftName, setWorkflowDraftName] = useState('');
   const [workflowDraftIds, setWorkflowDraftIds] = useState([]);
   const [activeWorkflowRun, setActiveWorkflowRun] = useState(() => loadQuickAccessWorkflowRun(currentUser));
+  const [classroomMode, setClassroomMode] = useState(() => loadQuickAccessClassroomMode(currentUser));
   const [timeTick, setTimeTick] = useState(() => Date.now());
   const [backStack, setBackStack] = useState(() => loadQuickAccessHistory(currentUser));
   const [backStackOpen, setBackStackOpen] = useState(false);
@@ -808,10 +846,24 @@ export default function GlobalQuickAccessRail({
 
   useEffect(() => {
     setActiveWorkflowRun(loadQuickAccessWorkflowRun(currentUser));
+    setClassroomMode(loadQuickAccessClassroomMode(currentUser));
     setWorkflowCenterOpen(false);
     setWorkflowDraftName('');
     setWorkflowDraftIds([]);
   }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined' || typeof window === 'undefined') return;
+    document.documentElement.dataset.brianClassroomMode = classroomMode ? 'true' : 'false';
+    saveQuickAccessClassroomMode(currentUser, classroomMode);
+    window.dispatchEvent(new CustomEvent('bes-classroom-presentation-mode', {
+      detail: { enabled: classroomMode, source: 'quick-access' },
+    }));
+  }, [classroomMode, currentUser?.id, currentUser?.authId, currentUser?.email]);
+
+  useEffect(() => () => {
+    if (typeof document !== 'undefined') delete document.documentElement.dataset.brianClassroomMode;
+  }, []);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -1460,27 +1512,40 @@ export default function GlobalQuickAccessRail({
 
   if (!currentUser || currentRoute === 'home' || !catalog.length) return null;
 
+  const presentationCatalog = classroomMode
+    ? catalog.filter((item) => classroomModeAllowsItem(item))
+    : catalog;
+  const effectiveWorkspace = classroomMode && workspace === 'department' ? 'teaching' : workspace;
+
   const selectedItems = config.items
-    .map((id) => catalog.find((item) => item.id === id))
+    .map((id) => presentationCatalog.find((item) => item.id === id))
     .filter(Boolean)
     .slice(0, QUICK_ACCESS_MAX_ITEMS);
 
-  const workspaceItems = selectedItems.filter((item) => workspaceAllowsItem(workspace, item));
+  const workspaceItems = selectedItems.filter((item) => workspaceAllowsItem(effectiveWorkspace, item));
 
   const recentItems = (config.recent || [])
-    .map((id) => catalog.find((item) => item.id === id))
+    .map((id) => presentationCatalog.find((item) => item.id === id))
     .filter(Boolean)
-    .filter((item) => workspaceAllowsItem(workspace, item))
+    .filter((item) => workspaceAllowsItem(effectiveWorkspace, item))
     .slice(0, QUICK_ACCESS_RECENT_MAX);
 
   const contextItems = contextIdsFor(currentRoute, selectedTool)
-    .map((id) => catalog.find((item) => item.id === id))
+    .map((id) => presentationCatalog.find((item) => item.id === id))
     .filter(Boolean)
-    .filter((item) => workspaceAllowsItem(workspace, item))
+    .filter((item) => workspaceAllowsItem(effectiveWorkspace, item))
     .filter((item) => !recentItems.some((recent) => recent.id === item.id))
     .slice(0, 3);
 
-  const contextCopy = contextCopyFor(currentRoute, selectedTool, language);
+  const contextCopy = classroomMode
+    ? {
+      kicker: language === 'vi' ? 'TRÌNH CHIẾU' : 'PRESENTATION',
+      title: language === 'vi' ? 'Không gian lớp học' : 'Classroom workspace',
+      description: language === 'vi'
+        ? 'Đã ẩn thông báo, badge và công cụ quản trị để trình chiếu an toàn hơn.'
+        : 'Notifications, badges and administrative tools are hidden for safer presenting.',
+    }
+    : contextCopyFor(currentRoute, selectedTool, language);
   const workingItem = workspaceItems.find((item) => activeItem(item, currentRoute, selectedTool))
     || contextItems[0]
     || recentItems[0]
@@ -1490,17 +1555,17 @@ export default function GlobalQuickAccessRail({
     .filter((item) => item.id !== workingItem?.id)
     .filter((item) => !recentItems.some((recent) => recent.id === item.id))
     .slice(0, 3);
-  const primaryActivity = liveActivities[0] || null;
+  const primaryActivity = classroomMode ? null : (liveActivities[0] || null);
   const timeContext = timeAwareContextFor(new Date(timeTick).getHours(), language);
   const timeAwareItems = timeAwareEnabled
     ? timeContext.ids
-      .map((id) => catalog.find((item) => item.id === id))
+      .map((id) => presentationCatalog.find((item) => item.id === id))
       .filter(Boolean)
-      .filter((item) => workspaceAllowsItem(workspace, item))
+      .filter((item) => workspaceAllowsItem(effectiveWorkspace, item))
       .slice(0, 3)
     : [];
-  const resumableItems = resumeItems
-    .map((resume) => ({ resume, item: catalog.find((item) => item.id === resume.itemId) }))
+  const resumableItems = (classroomMode ? [] : resumeItems)
+    .map((resume) => ({ resume, item: presentationCatalog.find((item) => item.id === resume.itemId) }))
     .filter((entry) => Boolean(entry.item))
     .slice(0, QUICK_ACCESS_RESUME_MAX);
   const primaryResume = resumableItems[0] || null;
@@ -1578,7 +1643,7 @@ export default function GlobalQuickAccessRail({
       .sort((a, b) => Number(b.updatedAt || 0) - Number(a.updatedAt || 0))
       .slice(0, 8);
   })();
-  const notificationCount = notificationItems.length;
+  const notificationCount = classroomMode ? 0 : notificationItems.length;
 
   const capsuleSnapshotFor = (item) => {
     if (!item) return null;
@@ -1606,7 +1671,7 @@ export default function GlobalQuickAccessRail({
     }
     return null;
   };
-  const activeCapsuleItem = catalog.find((item) => item.id === capsuleItemId) || null;
+  const activeCapsuleItem = classroomMode ? null : (presentationCatalog.find((item) => item.id === capsuleItemId) || null);
   const activeCapsule = capsuleSnapshotFor(activeCapsuleItem);
 
   const switcherItems = [
@@ -1619,10 +1684,13 @@ export default function GlobalQuickAccessRail({
     { id: 'teaching', label: language === 'vi' ? 'Giảng dạy' : 'Teaching' },
     { id: 'homeroom', label: language === 'vi' ? 'Chủ nhiệm' : 'Homeroom' },
     { id: 'department', label: 'TTCM' },
-  ].filter((option) => option.id !== 'department' || catalog.some((item) => workspaceAllowsItem('department', item)));
+  ].filter((option) => {
+    if (option.id === 'department' && classroomMode) return false;
+    return option.id !== 'department' || presentationCatalog.some((item) => workspaceAllowsItem('department', item));
+  });
 
   const quickCreateItems = quickCreateDescriptors(language)
-    .map((descriptor) => ({ descriptor, item: catalog.find((item) => item.id === descriptor.itemId) }))
+    .map((descriptor) => ({ descriptor, item: presentationCatalog.find((item) => item.id === descriptor.itemId) }))
     .filter((entry) => Boolean(entry.item));
 
   const commandNeedle = commandQuery.trim().toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
@@ -1636,7 +1704,7 @@ export default function GlobalQuickAccessRail({
       item: entry.item,
       payload: entry,
     })),
-    ...catalog.map((item) => ({
+    ...presentationCatalog.map((item) => ({
       id: `app:${item.id}`,
       kind: 'app',
       label: labelFor(item, language),
@@ -1674,13 +1742,13 @@ export default function GlobalQuickAccessRail({
     : defaultPaletteEntries
   ).slice(0, 12);
 
-  const peekItem = catalog.find((item) => item.id === peekItemId) || null;
+  const peekItem = presentationCatalog.find((item) => item.id === peekItemId) || null;
   const peekActions = peekItem
     ? quickActionDescriptors(peekItem, language).filter((descriptor) => descriptor.id !== 'open').slice(0, 3)
     : [];
-  const actionItem = catalog.find((item) => item.id === actionItemId) || null;
+  const actionItem = presentationCatalog.find((item) => item.id === actionItemId) || null;
 
-  const availableItems = catalog.filter((item) => !config.items.includes(item.id));
+  const availableItems = (classroomMode ? presentationCatalog : catalog).filter((item) => !config.items.includes(item.id));
   const customizerNeedle = customizerQuery.trim().toLocaleLowerCase(language === 'vi' ? 'vi-VN' : 'en-US');
   const filteredAvailableItems = customizerNeedle
     ? availableItems.filter((item) => {
@@ -1702,6 +1770,35 @@ export default function GlobalQuickAccessRail({
     setWorkflowCenterOpen(false);
     setCommandQuery('');
     setCommandActiveIndex(0);
+  };
+
+  const setClassroomPresentationMode = (enabled) => {
+    const next = Boolean(enabled);
+    setClassroomMode(next);
+    setNotificationCenterOpen(false);
+    setWorkflowCenterOpen(false);
+    setBackStackOpen(false);
+    setQuickCreateOpen(false);
+    setCommandPaletteOpen(false);
+    setCommandPaletteQuery('');
+    setCommandQuery('');
+    setPeekItemId('');
+    setActionItemId('');
+    setCapsuleItemId('');
+    if (next) {
+      window.clearTimeout(closeTimerRef.current);
+      setHovered(true);
+      const routeSignature = `${currentRoute || ''} ${selectedTool?.slug || ''}`.toLowerCase();
+      if (/(brian-team|settings|admin|report|ttcm|audit|governance)/i.test(routeSignature)) {
+        launchRoute({
+          target: '#/dashboard',
+          label: 'CL',
+          color: '#2f7d69',
+          sourceEl: null,
+          meta: { source: 'quick-access-classroom-mode' },
+        });
+      }
+    }
   };
 
   const enter = () => {
@@ -1746,6 +1843,10 @@ export default function GlobalQuickAccessRail({
 
   const showCapsule = (item, sourceEl) => {
     window.clearTimeout(capsuleTimerRef.current);
+    if (classroomMode) {
+      setCapsuleItemId('');
+      return;
+    }
     const snapshot = capsuleSnapshotFor(item);
     if (!snapshot) {
       setCapsuleItemId('');
@@ -2052,10 +2153,12 @@ export default function GlobalQuickAccessRail({
 
       <div
         ref={rootRef}
-        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${focusMode ? 'is-focus' : ''} ${customizing ? 'is-customizing' : ''} ${notificationCenterOpen ? 'is-alerts-open' : ''} ${workflowCenterOpen ? 'is-workflow-open' : ''}`}
+        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${focusMode ? 'is-focus' : ''} ${customizing ? 'is-customizing' : ''} ${notificationCenterOpen ? 'is-alerts-open' : ''} ${workflowCenterOpen ? 'is-workflow-open' : ''} ${classroomMode ? 'is-classroom-mode' : ''}`}
         data-quick-access="true"
         data-sidebar-mode={sidebarMode}
-        data-workspace={workspace}
+        data-workspace={effectiveWorkspace}
+        data-saved-workspace={workspace}
+        data-classroom-mode={classroomMode ? 'true' : 'false'}
         data-size={railSize}
         data-motion-mode={motionMode}
         data-density={density}
@@ -2108,7 +2211,7 @@ export default function GlobalQuickAccessRail({
             <span aria-hidden="true">B</span>
           </button>
 
-          {backStack.length ? (
+          {!classroomMode && backStack.length ? (
             <button
               type="button"
               className={`bqa-rail-back ${backStackOpen ? 'is-active' : ''}`}
@@ -2177,7 +2280,7 @@ export default function GlobalQuickAccessRail({
                   onClick={(event) => activateItem(item, event.currentTarget)}
                 >
                   <Icon size={20} strokeWidth={2} aria-hidden="true" />
-                  {badges[item.id] ? (
+                  {!classroomMode && badges[item.id] ? (
                     <span className={`bqa-rail-badge ${badges[item.id] === 'dot' ? 'is-dot' : ''}`}>
                       {badges[item.id] === 'dot' ? '' : badges[item.id]}
                     </span>
@@ -2187,26 +2290,29 @@ export default function GlobalQuickAccessRail({
             })}
           </div>
 
-          <button
-            type="button"
-            className={`bqa-rail-workflows ${workflowCenterOpen ? 'is-active' : ''} ${activeWorkflow ? 'has-active' : ''}`}
-            title={language === 'vi' ? 'Quy trình nhanh' : 'Workflow bundles'}
-            aria-label={language === 'vi' ? 'Mở quy trình nhanh' : 'Open workflow bundles'}
-            aria-expanded={workflowCenterOpen}
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              window.clearTimeout(closeTimerRef.current);
-              setHovered(true);
-              setQuickCreateOpen(false);
-              setNotificationCenterOpen(false);
-              setBackStackOpen(false);
-              setWorkflowCenterOpen((value) => !value);
-            }}
-          >
-            <Boxes size={17} aria-hidden="true" />
-            {workflowBundles.length ? <span>{workflowBundles.length}</span> : null}
-          </button>
+          {!classroomMode ? (
+            <button
+              type="button"
+              className={`bqa-rail-workflows ${workflowCenterOpen ? 'is-active' : ''} ${activeWorkflow ? 'has-active' : ''}`}
+              title={language === 'vi' ? 'Quy trình nhanh' : 'Workflow bundles'}
+              aria-label={language === 'vi' ? 'Mở quy trình nhanh' : 'Open workflow bundles'}
+              aria-expanded={workflowCenterOpen}
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                window.clearTimeout(closeTimerRef.current);
+                setHovered(true);
+                setQuickCreateOpen(false);
+                setNotificationCenterOpen(false);
+                setBackStackOpen(false);
+                setWorkflowCenterOpen((value) => !value);
+              }}
+            >
+              <Boxes size={17} aria-hidden="true" />
+              {workflowBundles.length ? <span>{workflowBundles.length}</span> : null}
+            </button>
+
+          ) : null}
 
           <button
             type="button"
@@ -2262,6 +2368,21 @@ export default function GlobalQuickAccessRail({
               <span>{notificationCount > 9 ? '9+' : notificationCount}</span>
             </button>
           ) : null}
+
+          <button
+            type="button"
+            className={`bqa-rail-classroom ${classroomMode ? 'is-active' : ''}`}
+            title={classroomMode
+              ? (language === 'vi' ? 'Thoát chế độ trình chiếu' : 'Exit presentation mode')
+              : (language === 'vi' ? 'Chế độ trình chiếu lớp học' : 'Classroom presentation mode')}
+            aria-label={classroomMode
+              ? (language === 'vi' ? 'Thoát chế độ trình chiếu lớp học' : 'Exit classroom presentation mode')
+              : (language === 'vi' ? 'Bật chế độ trình chiếu lớp học' : 'Enable classroom presentation mode')}
+            aria-pressed={classroomMode}
+            onClick={() => setClassroomPresentationMode(!classroomMode)}
+          >
+            <Presentation size={18} aria-hidden="true" />
+          </button>
 
           <button
             type="button"
@@ -2386,6 +2507,19 @@ export default function GlobalQuickAccessRail({
               </button>
             </div>
           </header>
+
+          {classroomMode ? (
+            <section className="bqa-classroom-banner" data-classroom-presentation="true">
+              <span className="bqa-classroom-banner-icon"><Presentation size={16} aria-hidden="true" /></span>
+              <span>
+                <small>{language === 'vi' ? 'ĐANG TRÌNH CHIẾU' : 'PRESENTATION MODE'}</small>
+                <strong>{language === 'vi' ? 'Chỉ hiển thị công cụ phù hợp trong lớp' : 'Only classroom-safe tools are visible'}</strong>
+              </span>
+              <button type="button" onClick={() => setClassroomPresentationMode(false)}>
+                {language === 'vi' ? 'Thoát' : 'Exit'}
+              </button>
+            </section>
+          ) : null}
 
           {workflowCenterOpen ? (
             <section className="bqa-workflow-center" data-workflow-center="true" aria-label={language === 'vi' ? 'Quy trình nhanh' : 'Workflow bundles'}>
@@ -2557,8 +2691,8 @@ export default function GlobalQuickAccessRail({
               <button
                 type="button"
                 key={option.id}
-                className={workspace === option.id ? 'is-active' : ''}
-                aria-current={workspace === option.id ? 'true' : undefined}
+                className={effectiveWorkspace === option.id ? 'is-active' : ''}
+                aria-current={effectiveWorkspace === option.id ? 'true' : undefined}
                 onClick={() => setWorkspace(option.id)}
               >
                 {option.label}
@@ -2865,7 +2999,7 @@ export default function GlobalQuickAccessRail({
                           <span className="bqa-item-label">{labelFor(item, language)}</span>
                           <small>{language === 'vi' ? `Alt+${index + 1}` : `Alt+${index + 1}`}</small>
                         </span>
-                        {badges[item.id] ? (
+                        {!classroomMode && badges[item.id] ? (
                           <span className={`bqa-panel-badge ${badges[item.id] === 'dot' ? 'is-dot' : ''}`}>
                             {badges[item.id] === 'dot' ? '' : badges[item.id]}
                           </span>
