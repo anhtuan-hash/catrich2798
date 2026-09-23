@@ -98,50 +98,93 @@ function EditorialStillLife() {
   );
 }
 
+function AuthDashboardPreview({ language }) {
+  const vi = language === 'vi';
+  return (
+    <div className="auth-preview-window" aria-hidden="true">
+      <div className="auth-preview-browserbar">
+        <span /><span /><span />
+        <div className="auth-preview-browserline" />
+      </div>
+
+      <div className="auth-preview-app">
+        <aside className="auth-preview-sidebar">
+          <div className="auth-preview-brandmark">B</div>
+          {['⌂', '▦', '▤', '✓', '□', '◌'].map((item, index) => (
+            <span key={`${item}-${index}`} className={index === 0 ? 'is-active' : ''}>{item}</span>
+          ))}
+        </aside>
+
+        <div className="auth-preview-main">
+          <header>
+            <div>
+              <strong>{vi ? 'Xin chào, Thầy/Cô!' : 'Welcome, Teacher!'}</strong>
+              <small>{vi ? 'Cùng tạo nên những thế hệ học viên tự tin hơn mỗi ngày. ✨' : 'Helping learners grow with confidence every day. ✨'}</small>
+            </div>
+          </header>
+
+          <div className="auth-preview-metrics">
+            <article><i className="is-mint">●</i><strong>12</strong><small>{vi ? 'Lớp học đang dạy' : 'Active classes'}</small></article>
+            <article><i className="is-violet">●</i><strong>248</strong><small>{vi ? 'Học viên' : 'Learners'}</small></article>
+            <article><i className="is-blue">●</i><strong>95%</strong><small>{vi ? 'Tỷ lệ hoàn thành' : 'Completion'}</small></article>
+          </div>
+
+          <div className="auth-preview-lower">
+            <section className="auth-preview-activity">
+              <b>{vi ? 'Hoạt động gần đây' : 'Recent activity'}</b>
+              <div><span className="is-violet">▣</span><p>{vi ? 'Nộp bài kiểm tra Unit 3' : 'Unit 3 assessment submitted'}<small>{vi ? '2 giờ trước' : '2 hours ago'}</small></p></div>
+              <div><span className="is-blue">□</span><p>{vi ? '5 học viên nộp bài tập' : '5 learners submitted work'}<small>{vi ? '5 giờ trước' : '5 hours ago'}</small></p></div>
+              <div><span className="is-mint">▦</span><p>{vi ? 'Cập nhật học liệu mới' : 'New resource updated'}<small>{vi ? '1 ngày trước' : '1 day ago'}</small></p></div>
+            </section>
+
+            <section className="auth-preview-quote">
+              <span>“</span>
+              <strong>{vi ? 'Giáo dục là thay đổi cuộc sống.' : 'Education changes lives.'}</strong>
+              <small>— Better Learners<br />Brighter Futures</small>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AuthVisualPanel({ language, title, recoveryMode, isRegister, configured }) {
-  const features = language === 'vi'
+  const vi = language === 'vi';
+  const features = vi
     ? [
-      ['shield', 'Đăng nhập an toàn', configured ? 'Xác thực qua Supabase Auth và phân quyền theo tài khoản.' : 'Chế độ demo dành cho kiểm thử giao diện.'],
-      ['apps', 'Truy cập đúng quyền', 'Ứng dụng, trò chơi và học liệu hiển thị theo tài khoản.'],
-      ['sync', 'Làm việc liền mạch', 'Nhiệm vụ và nội dung được đồng bộ trong hệ thống.'],
+      ['apps', 'Học liệu được cấp quyền', 'Truy cập tài liệu, giáo án và ngân hàng đề.'],
+      ['sync', 'Công cụ hỗ trợ giảng dạy', 'Quản lý lớp học, theo dõi tiến độ học viên.'],
+      ['shield', 'Kết nối cộng đồng', 'Đồng hành cùng đội ngũ giáo viên Brian English.'],
     ]
     : [
-      ['shield', 'Secure sign-in', configured ? 'Authentication powered by Supabase Auth with role-based access.' : 'Demo mode for interface testing.'],
-      ['apps', 'Role-based access', 'Apps, games, and resources follow account permissions.'],
-      ['sync', 'Connected workflow', 'Tasks and content stay connected across the system.'],
+      ['apps', 'Authorized resources', 'Access teaching materials, lesson plans, and question banks.'],
+      ['sync', 'Teaching tools', 'Manage classes and track learner progress.'],
+      ['shield', 'Teacher community', 'Stay connected with the Brian English teaching team.'],
     ];
 
   const description = recoveryMode
-    ? (language === 'vi' ? 'Thiết lập mật khẩu mới để tiếp tục không gian giáo viên.' : 'Create a new password to continue to your teacher workspace.')
+    ? (vi ? 'Thiết lập mật khẩu mới để tiếp tục không gian giáo viên.' : 'Create a new password to continue to your teacher workspace.')
     : isRegister
-      ? (language === 'vi' ? 'Tạo tài khoản giáo viên và gửi yêu cầu phê duyệt đến quản trị viên.' : 'Create a teacher account and submit it for administrator approval.')
+      ? (vi ? 'Tạo tài khoản giáo viên và gửi yêu cầu phê duyệt đến quản trị viên.' : 'Create a teacher account and submit it for administrator approval.')
       : configured
-        ? (language === 'vi' ? 'Đăng nhập để truy cập không gian làm việc, học liệu và các công cụ được cấp quyền.' : 'Sign in to access your workspace, resources, and permitted tools.')
-        : (language === 'vi' ? 'Supabase chưa được cấu hình. Bạn vẫn có thể mở tài khoản demo để kiểm tra giao diện.' : 'Supabase is not configured. Demo accounts remain available for interface testing.');
+        ? (vi
+          ? 'Truy cập không gian làm việc, học liệu và các công cụ được cấp quyền để đồng hành cùng học viên trên hành trình chinh phục tiếng Anh.'
+          : 'Access your workspace, teaching resources, and permitted tools to support learners on their English journey.')
+        : (vi
+          ? 'Supabase chưa được cấu hình. Bạn vẫn có thể mở tài khoản demo để kiểm tra giao diện.'
+          : 'Supabase is not configured. Demo accounts remain available for interface testing.');
 
   return (
     <section
       className="auth-google-visual"
-      aria-label={language === 'vi' ? 'Giới thiệu trang đăng nhập giáo viên' : 'Teacher sign-in overview'}
+      aria-label={vi ? 'Giới thiệu trang đăng nhập giáo viên' : 'Teacher sign-in overview'}
     >
       <div className="auth-google-copy">
-        <span className="auth-google-kicker">{language === 'vi' ? 'Không gian giáo viên' : 'Teacher workspace'}</span>
-        <span className="auth-editorial-rule auth-editorial-rule-top" aria-hidden="true" />
+        <span className="auth-google-kicker">{vi ? 'Không gian giáo viên' : 'Teacher workspace'}</span>
         <h1>{title}</h1>
-        <span className="auth-editorial-rule auth-editorial-rule-bottom" aria-hidden="true" />
+        <span className="auth-google-color-stroke" aria-hidden="true"><i /><i /></span>
         <p>{description}</p>
-      </div>
-
-      <div className="auth-google-visual-art">
-        <img
-          className="auth-teacher-artwork"
-          src="/auth/teacher-login-scene-v2.jpg"
-          alt={language === 'vi'
-            ? 'Minh hoạ giáo viên nam đang làm việc cùng laptop, sách và cây xanh'
-            : 'Male teacher working with a laptop, books and plants'}
-          decoding="async"
-          fetchPriority="high"
-        />
       </div>
 
       <div className="auth-google-feature-list">
@@ -155,6 +198,15 @@ function AuthVisualPanel({ language, title, recoveryMode, isRegister, configured
           </article>
         ))}
       </div>
+
+      <AuthDashboardPreview language={language} />
+
+      <span className="auth-decor-note auth-decor-note-left" aria-hidden="true">
+        {vi ? <>Dạy<br />Kết nối<br />Cùng phát triển</> : <>Teach<br />Connect<br />Grow together</>}
+      </span>
+      <span className="auth-decor-note auth-decor-note-right" aria-hidden="true">
+        Better<br />Learners<br />Brighter<br />Futures
+      </span>
     </section>
   );
 }
@@ -367,6 +419,12 @@ export default function AuthPage({ mode = 'login', language, onLogin, setGlobalL
 
   return (
     <div className="page auth-page auth-page-v51 auth-google-page">
+      <div className="auth-aurora-field" aria-hidden="true">
+        <span className="auth-aurora auth-aurora-one" />
+        <span className="auth-aurora auth-aurora-two" />
+        <span className="auth-aurora auth-aurora-three" />
+        <span className="auth-aurora-glow" />
+      </div>
       <section className="auth-google-stage">
         <AuthVisualPanel
           language={language}
