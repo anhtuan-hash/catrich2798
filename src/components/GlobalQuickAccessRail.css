@@ -7199,3 +7199,392 @@ html body #root .app-shell.metro-clean-system[data-quick-access-layout="true"][d
     transition: none !important;
   }
 }
+
+
+/* Brian Quick Access V6 wave 2 · 2026-09-23
+   Attention Halo · App State Bookmark · Double-click Quick Action
+   · Sidebar Command Drop Zone · Visual Session Trail. */
+
+.bqa-rail-button.has-attention {
+  isolation: isolate;
+}
+
+.bqa-attention-halo {
+  position: absolute;
+  z-index: -1;
+  inset: -5px;
+  border-radius: 13px;
+  pointer-events: none;
+  opacity: .7;
+}
+
+.bqa-rail-button.attention-1 .bqa-attention-halo {
+  box-shadow: 0 0 0 2px rgba(66, 136, 210, .13), 0 0 12px rgba(66, 136, 210, .12);
+}
+
+.bqa-rail-button.attention-2 .bqa-attention-halo {
+  box-shadow: 0 0 0 2px rgba(220, 156, 46, .18), 0 0 15px rgba(220, 156, 46, .18);
+  animation: bqa-attention-soft 2.4s ease-in-out infinite;
+}
+
+.bqa-rail-button.attention-3 .bqa-attention-halo {
+  box-shadow: 0 0 0 2px rgba(219, 73, 88, .22), 0 0 18px rgba(219, 73, 88, .24);
+  animation: bqa-attention-urgent 1.55s ease-in-out infinite;
+}
+
+@keyframes bqa-attention-soft {
+  0%, 100% { opacity: .5; transform: scale(.99); }
+  50% { opacity: .9; transform: scale(1.025); }
+}
+
+@keyframes bqa-attention-urgent {
+  0%, 100% { opacity: .58; transform: scale(.99); }
+  50% { opacity: 1; transform: scale(1.045); }
+}
+
+.bqa-bookmark-marker {
+  position: absolute;
+  z-index: 7;
+  left: -3px;
+  bottom: -4px;
+  padding: 2px;
+  border-radius: 5px;
+  color: #7a5ac8;
+  background: rgba(255,255,255,.97);
+  box-shadow: 0 2px 6px rgba(70,52,118,.14);
+}
+
+.bqa-rail-button.has-double-click::before {
+  content: '••';
+  position: absolute;
+  z-index: 5;
+  left: 50%;
+  bottom: 1px;
+  transform: translateX(-50%);
+  color: color-mix(in srgb, var(--bqa-accent, #2e75b6) 76%, #334b62);
+  font-size: 6px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  line-height: 1;
+  opacity: .42;
+  pointer-events: none;
+}
+
+.bqa-session-trail {
+  appearance: none;
+  width: 30px;
+  height: 32px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  margin: 1px auto 3px;
+  border: 1px solid rgba(102,138,176,.15);
+  border-radius: 10px;
+  color: #71879c;
+  background: rgba(249,251,254,.9);
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease, transform 150ms ease, border-color 150ms ease;
+}
+
+.bqa-session-trail:hover,
+.bqa-session-trail:focus-visible,
+.bqa-session-trail.is-active {
+  color: #2d6fae;
+  border-color: rgba(55,113,172,.25);
+  background: #edf6ff;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.bqa-trail-line {
+  position: relative;
+  width: 9px;
+  height: 23px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.bqa-trail-line::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: 4px;
+  width: 1px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: .28;
+}
+
+.bqa-trail-line > i {
+  position: relative;
+  z-index: 1;
+  width: 5px;
+  height: 5px;
+  border: 1.5px solid #fff;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 1px 4px rgba(31,68,104,.16);
+}
+
+.bqa-trail-popover {
+  position: fixed;
+  z-index: 2147483646;
+  top: 118px;
+  left: calc(12px + var(--bqa-rail-width, 56px) + 10px);
+  width: 224px;
+  padding: 7px;
+  border: 1px solid rgba(105,140,176,.20);
+  border-radius: 13px;
+  background: rgba(251,253,255,.97);
+  box-shadow: 0 16px 36px rgba(33,73,111,.16), inset 0 1px 0 rgba(255,255,255,.98);
+  backdrop-filter: blur(18px) saturate(1.12);
+  -webkit-backdrop-filter: blur(18px) saturate(1.12);
+}
+
+.bqa-trail-popover > header {
+  min-height: 27px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 5px 6px;
+  color: #6f8499;
+}
+
+.bqa-trail-popover > header > span {
+  font-size: 8.8px;
+  font-weight: 850;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.bqa-trail-popover > header > small {
+  min-width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  color: #326da6;
+  background: #eaf4ff;
+  font-size: 8px;
+  font-weight: 820;
+}
+
+.bqa-trail-popover > div {
+  display: grid;
+  gap: 3px;
+}
+
+.bqa-trail-popover button {
+  appearance: none;
+  width: 100%;
+  min-height: 39px;
+  display: grid;
+  grid-template-columns: 32px minmax(0,1fr) 13px;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 9px;
+  color: #47647f;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bqa-trail-popover button:hover,
+.bqa-trail-popover button:focus-visible {
+  color: #245f99;
+  background: #edf6ff;
+  outline: none;
+}
+
+.bqa-trail-step {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  color: #3c75ac;
+  background: #eff6fd;
+}
+
+.bqa-trail-step > i {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 14px;
+  height: 14px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  color: #fff;
+  background: #6386a8;
+  font-size: 6.5px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.bqa-trail-popover button > span:nth-child(2) {
+  min-width: 0;
+  display: grid;
+}
+
+.bqa-trail-popover button b {
+  overflow: hidden;
+  font-size: 9.6px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bqa-trail-popover button small {
+  color: #8c9dad;
+  font-size: 8.2px;
+}
+
+.bqa-command-drop-zone {
+  width: 38px;
+  min-height: 43px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  gap: 1px;
+  margin: 3px auto;
+  padding: 4px 2px;
+  border: 1.5px dashed rgba(56,117,177,.35);
+  border-radius: 11px;
+  color: #3c75aa;
+  background: rgba(237,246,255,.78);
+  font: inherit;
+  text-align: center;
+  transition: transform 140ms ease, background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.bqa-command-drop-zone > span {
+  font-size: 6.8px;
+  font-weight: 820;
+  line-height: 1.05;
+}
+
+.bqa-command-drop-zone.is-active {
+  color: #fff;
+  border-color: #2f76b8;
+  background: #2f76b8;
+  box-shadow: 0 0 0 4px rgba(47,118,184,.13), 0 9px 20px rgba(36,91,143,.20);
+  transform: scale(1.06);
+}
+
+.bqa-double-click-control {
+  margin-top: 8px;
+  padding: 9px;
+  border: 1px solid rgba(105,139,177,.18);
+  border-radius: 13px;
+  background: rgba(247,250,254,.88);
+}
+
+.bqa-double-click-control > header {
+  display: grid;
+  gap: 2px;
+  margin-bottom: 7px;
+}
+
+.bqa-double-click-control > header strong {
+  color: #294e72;
+  font-size: 10.8px;
+}
+
+.bqa-double-click-control > header small {
+  color: #8496a8;
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.bqa-double-click-control > div {
+  display: grid;
+  gap: 5px;
+}
+
+.bqa-double-click-control label {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(78px, .85fr) minmax(0, 1.15fr);
+  align-items: center;
+  gap: 7px;
+}
+
+.bqa-double-click-control label > span {
+  overflow: hidden;
+  color: #4f6c87;
+  font-size: 9.3px;
+  font-weight: 680;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bqa-double-click-control select {
+  width: 100%;
+  min-width: 0;
+  height: 29px;
+  padding: 0 6px;
+  border: 1px solid rgba(111,145,181,.24);
+  border-radius: 8px;
+  color: #294c6d;
+  background: #fff;
+  font: inherit;
+  font-size: 9px;
+  outline: none;
+}
+
+.bqa-double-click-control select:focus {
+  border-color: rgba(49,112,178,.48);
+  box-shadow: 0 0 0 2px rgba(57,123,190,.08);
+}
+
+.bqa-root[data-precision-drag="true"] .bqa-command-drop-zone {
+  animation: bqa-drop-zone-arrive 180ms cubic-bezier(.22,1,.36,1);
+}
+
+@keyframes bqa-drop-zone-arrive {
+  from { opacity: 0; transform: translateY(5px) scale(.94); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-height: 720px) {
+  .bqa-session-trail {
+    height: 28px;
+    margin-bottom: 1px;
+  }
+
+  .bqa-trail-line {
+    height: 19px;
+  }
+
+  .bqa-command-drop-zone {
+    min-height: 34px;
+  }
+
+  .bqa-command-drop-zone > span {
+    display: none;
+  }
+}
+
+@media (max-width: 760px), (hover: none) {
+  .bqa-trail-popover,
+  .bqa-command-drop-zone {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bqa-rail-button.attention-2 .bqa-attention-halo,
+  .bqa-rail-button.attention-3 .bqa-attention-halo,
+  .bqa-root[data-precision-drag="true"] .bqa-command-drop-zone {
+    animation: none !important;
+  }
+}
