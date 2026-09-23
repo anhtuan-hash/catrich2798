@@ -87,6 +87,14 @@ for (const token of [
   'bes-quick-access-activity',
   'BrianQuickAccessCapsules',
   'bes-quick-access-capsule',
+  'BrianQuickAccessNotifications',
+  'bes-quick-access-notification',
+  'notificationCenterOpen',
+  'notificationItems',
+  'notificationCount',
+  'openNotification',
+  'bqa-rail-notifications',
+  'bqa-notification-center',
   'capsuleSnapshotFor',
   'showCapsule',
   'hideCapsule',
@@ -210,7 +218,11 @@ for (const token of [
   'Brian Quick Access V4.3 · interactive Quick Peek',
   'Brian Quick Access V4.4 · navigation back stack',
   'Brian Quick Access V4.5 · persistent session resume',
+  'Brian Quick Access V4.6 · notification center',
   'Brian Quick Access V4.7 · full-screen Command Palette',
+  '.bqa-rail-notifications',
+  '.bqa-notification-center',
+  '.bqa-notification-row',
   '.bqa-command-palette-backdrop',
   '.bqa-command-palette',
   '.bqa-command-palette-result',
@@ -280,4 +292,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access V4.7 adds a full-screen permission-aware Command Palette while preserving V4.5 session resume, V4.4 back stack, V4.3 Quick Peek, V4.2 status capsules, V4.1 Adaptive Dock, true mirror geometry, permissions and custom fonts.');
+console.log('PASS: Quick Access V4.7 includes V4.6 notification center plus the full-screen permission-aware Command Palette while preserving session resume, back stack, Quick Peek, status capsules, Adaptive Dock, true mirror geometry, permissions and custom fonts.');
