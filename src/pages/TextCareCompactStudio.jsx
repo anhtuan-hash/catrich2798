@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import JSZip from 'jszip';
 import { slugify as librarySlugify } from '../utils/library.js';
+import { consumeDashboardDropPacket, peekDashboardDropPacket } from '../utils/dashboardDropZone.js';
 import { loadMammoth, loadPdfjs } from '../utils/documentParsers.js';
 import '../styles/TextCareGoogle.css';
 
@@ -483,6 +484,25 @@ export default function TextCareGoogleStudio({ tool, language }) {
       setLoadingFile(false);
     }
   };
+
+  useEffect(() => {
+    const packet = peekDashboardDropPacket();
+    if (!packet || packet.target !== 'textcare') return;
+
+    const file = Array.isArray(packet.files) ? packet.files[0] : null;
+    if (file) {
+      consumeDashboardDropPacket('textcare');
+      window.setTimeout(() => processFile(file), 0);
+      return;
+    }
+
+    const text = String(packet.text || '').trim();
+    if (text) {
+      consumeDashboardDropPacket('textcare');
+      const synthetic = new File([text], packet.kind === 'url' ? 'dashboard-link.txt' : 'dashboard-text.txt', { type: 'text/plain' });
+      window.setTimeout(() => processFile(synthetic), 0);
+    }
+  }, []);
 
   const handleFileInput = async (event) => {
     await processFile(event.target.files?.[0]);
