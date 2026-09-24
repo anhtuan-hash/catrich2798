@@ -624,6 +624,36 @@ OpenAPI: ${openApiUrl}`;
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [selectedQuestionPreviewId]);
 
+  useEffect(() => {
+    const applyQuickCreate = (type = 'exam') => {
+      const normalized = String(type || 'exam').trim().toLowerCase();
+      if (normalized === 'question') {
+        setActiveTab('questions');
+        setShowNew(true);
+      } else {
+        setSelectedTest(null);
+        setShowNew(false);
+        setActiveTab('builder');
+      }
+      window.setTimeout(() => {
+        const selector = normalized === 'question' ? '.qb-new-question' : '.qb-builder';
+        document.querySelector(selector)?.scrollIntoView({ behavior: 'auto', block: 'start' });
+      }, 80);
+    };
+
+    const onQuickCreate = (event) => applyQuickCreate(event?.detail?.type || 'exam');
+
+    let pending = '';
+    try {
+      pending = window.sessionStorage.getItem('bes-assessment-quick-create-on-load') || '';
+      if (pending) window.sessionStorage.removeItem('bes-assessment-quick-create-on-load');
+    } catch { /* optional */ }
+    if (pending) window.setTimeout(() => applyQuickCreate(pending), 0);
+
+    window.addEventListener('bes-assessment-quick-create', onQuickCreate);
+    return () => window.removeEventListener('bes-assessment-quick-create', onQuickCreate);
+  }, []);
+
   const bankHealth = useMemo(
     () => analyzeBankHealth(questions, bundles),
     [questions, bundles],
