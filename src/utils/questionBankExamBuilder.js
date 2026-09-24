@@ -161,8 +161,16 @@ export function buildBankInventory(questions = [], bundles = []) {
     if (String(item.status || 'draft').toLowerCase() === 'archived') return false;
     if (blockTypeForItem(item) !== 'arrangement_5') return false;
     if (!item.bundle_id) return true;
-    const bundleType = valueText(bundleMap.get(item.bundle_id)?.bundle_type).toLowerCase();
-    return bundleType === 'arrangement_5';
+    const bundle = bundleMap.get(item.bundle_id);
+    const bundleType = valueText(bundle?.bundle_type).toLowerCase();
+    const bundleStatus = valueText(bundle?.status || 'draft').toLowerCase();
+    if (bundleType !== 'arrangement_5' || bundleStatus === 'archived') return false;
+    const siblings = grouped.get(item.bundle_id) || [];
+    const positions = siblings.map((entry) => Number(entry.bundle_position || 0)).filter(Boolean);
+    return siblings.length === 5
+      && new Set(positions).size === 5
+      && Math.min(...positions) === 1
+      && Math.max(...positions) === 5;
   });
   const standaloneMcqItems = (questions || []).filter((item) => {
     if (String(item.status || 'draft').toLowerCase() === 'archived') return false;
@@ -176,6 +184,7 @@ export function buildBankInventory(questions = [], bundles = []) {
     standaloneItems: arrangementItems,
     arrangementItems,
     standaloneMcqItems,
+    bundleMap,
   };
 }
 
@@ -201,7 +210,10 @@ export function selectExamFromBank({
       .filter((candidate) => matchesGrade(candidate, filters.grade))
       .filter((candidate) => candidate.items.every((item) => !usedIds.has(item.id)))
       .filter((candidate) => !filters.excludeIds || candidate.items.every((item) => !filters.excludeIds.includes(item.id)))
-      .filter((candidate) => !filters.approvedOnly || candidate.items.every((item) => String(item.status || '').toLowerCase() === 'approved'))
+      .filter((candidate) => !filters.approvedOnly || (
+        String(candidate.bundle?.status || '').toLowerCase() === 'approved'
+        && candidate.items.every((item) => String(item.status || '').toLowerCase() === 'approved')
+      ))
       .sort((a, b) => candidateScore(b, filters, seed, selected) - candidateScore(a, filters, seed, selected));
 
     const picked = candidates.slice(0, bundleCount);
@@ -235,7 +247,10 @@ export function selectExamFromBank({
       const candidates = pool
         .filter((item) => !usedIds.has(item.id))
         .filter((item) => !filters.excludeIds || !filters.excludeIds.includes(item.id))
-        .filter((item) => !filters.approvedOnly || String(item.status || '').toLowerCase() === 'approved')
+        .filter((item) => !filters.approvedOnly || (
+          String(item.status || '').toLowerCase() === 'approved'
+          && (!item.bundle_id || String(inventory.bundleMap.get(item.bundle_id)?.status || '').toLowerCase() === 'approved')
+        ))
         .filter((item) => !filters.grade || !item.grade || String(item.grade) === String(filters.grade))
         .filter((item) => !filters.topic || [item.topic, item.skill, ...(item.tags || [])]
           .map(normalize).join(' ').includes(normalize(filters.topic)))
