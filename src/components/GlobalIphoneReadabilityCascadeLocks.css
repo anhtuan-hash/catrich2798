@@ -108,3 +108,50 @@
     grid-column: 4 !important;
   }
 }
+
+/* Dashboard News Hub phone cascade lock · 2026-09-24 */
+@media (max-width: 560px) {
+  html body #root .app-shell[data-route="dashboard"] .dnh-grid,
+  html body #root .app-shell[data-route="dashboard"] .dnh-list,
+  html body #root .app-shell[data-route="dashboard"] .dnh-full-grid {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-auto-columns: 0 !important;
+    overflow: hidden !important;
+  }
+
+  html body #root .app-shell[data-route="dashboard"] .dnh-featured {
+    width: 100% !important;
+    min-width: 0 !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-rows: 164px auto !important;
+    overflow: hidden !important;
+  }
+
+  html body #root .app-shell[data-route="dashboard"] .dnh-story {
+    width: 100% !important;
+    min-width: 0 !important;
+    grid-template-columns: 82px minmax(0, 1fr) !important;
+    grid-auto-columns: 0 !important;
+    overflow: hidden !important;
+  }
+
+  html body #root .app-shell[data-route="dashboard"] .dnh-story-copy,
+  html body #root .app-shell[data-route="dashboard"] .dnh-featured-copy,
+  html body #root .app-shell[data-route="dashboard"] .dnh-full-copy {
+    width: auto !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  html body #root .app-shell[data-route="dashboard"] .dnh-story-copy strong,
+  html body #root .app-shell[data-route="dashboard"] .dnh-featured-copy strong,
+  html body #root .app-shell[data-route="dashboard"] .dnh-full-copy strong {
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+}

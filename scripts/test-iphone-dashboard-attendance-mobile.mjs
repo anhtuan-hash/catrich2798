@@ -49,6 +49,15 @@ assert.match(dashboardCss, /\.gd-calendar-timeline-v2\s+\.gd-timeline-event[\s\S
 assert.match(dashboardCss, /\.gd-calendar-timeline-v2\s+\.gd-event-orb,[\s\S]{0,220}?\.gd-event-kind[\s\S]{0,160}?display\s*:\s*none/i, 'Dashboard Timeline V2 must hide desktop-only orb and kind columns on phone');
 assert.match(dashboardCss, /\.gd-calendar-timeline-v2\s+\.gd-event-copy[\s\S]{0,260}?grid-column\s*:\s*3[\s\S]{0,260}?min-width\s*:\s*0/i, 'Dashboard Timeline V2 copy must own the flexible phone column');
 assert.match(locksCss, /\.gd-calendar-timeline-v2\s+\.gd-timeline-event[\s\S]{0,420}?grid-template-columns\s*:\s*62px\s+20px\s+minmax\(0,\s*1fr\)\s+24px/i, 'Phone cascade locks must preserve the Timeline V2 four-column grid');
+const newsCss = read('src/components/DashboardNewsHub.css');
+const newsExpandedCss = read('src/components/DashboardNewsHubExpanded.css');
+assert.match(newsCss, /Dashboard News Hub phone reflow/, 'Dashboard News Hub phone reflow block must exist');
+assert.match(newsCss, /\.dnh-grid[\s\S]{0,420}?grid-template-columns\s*:\s*minmax\(0,\s*1fr\)/i, 'Dashboard News Hub compact grid must collapse to one column on phone');
+assert.match(newsCss, /\.dnh-featured[\s\S]{0,520}?grid-template-columns\s*:\s*minmax\(0,\s*1fr\)/i, 'Featured Dashboard news must become a single-column phone card');
+assert.match(newsCss, /\.dnh-story[\s\S]{0,520}?grid-template-columns\s*:\s*82px\s+minmax\(0,\s*1fr\)/i, 'Dashboard story rows must preserve thumbnail plus flexible copy on phone');
+assert.match(newsCss, /\.dnh-story-copy[\s\S]{0,360}?min-width\s*:\s*0/i, 'Dashboard story copy must be allowed to shrink without vertical text overflow');
+assert.match(newsExpandedCss, /\.dnh-full-grid[\s\S]{0,360}?grid-template-columns\s*:\s*minmax\(0,\s*1fr\)/i, 'Expanded Dashboard news must collapse to one column on phone');
+assert.match(locksCss, /Dashboard News Hub phone cascade lock/, 'Late iPhone cascade lock must protect Dashboard News Hub layout');
 
 assert.match(attendanceCss, /\.attendance-title\s+strong\s*\{[^}]*font-size\s*:\s*(?:24|25|26|27|28)px/i, 'Attendance title must be 24-28px on phone');
 assert.match(attendanceCss, /\.attendance-tabs\s+button\s*\{[^}]*min-height\s*:\s*(?:44|45|46|47|48)px[^}]*font-size\s*:\s*(?:14|14\.5|15)px/i, 'Attendance tabs need readable labels and >=44px touch targets');
