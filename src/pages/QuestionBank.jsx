@@ -2597,6 +2597,15 @@ OpenAPI: ${openApiUrl}`;
         </div>
       ) : null}
 
+      {loading && activeTab === 'builder' ? (
+        <div className="qb-panel qb-builder is-loading" aria-busy="true">
+          <div className="qb-section-head">
+            <div><p>ZERO-COST TEST BUILDER</p><h2>Tạo đề từ ngân hàng</h2></div>
+            <span>Đang đồng bộ ngân hàng câu hỏi để chuẩn bị không gian tạo đề…</span>
+          </div>
+        </div>
+      ) : null}
+
       {!loading && activeTab === 'builder' ? (
         <div className="qb-panel qb-builder">
           <div className="qb-section-head">
