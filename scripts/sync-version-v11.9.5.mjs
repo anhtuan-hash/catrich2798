@@ -6,14 +6,28 @@ import './patch-home-hero-media-optimizer.mjs';
 import './patch-home-hero-static-publisher.mjs';
 
 const now = new Date().toISOString();
+const expectedVersion = '11.9.5';
+const expectedRelease = 'Golden Bank & Exam Factory · Production Certified · Canonical Role Guards';
+
+const indexPath = 'index.html';
+if (fs.existsSync(indexPath)) {
+  const index = fs.readFileSync(indexPath, 'utf8');
+  const next = /<meta\s+name=["']bes-app-version["']\s+content=["'][^"']*["']\s*\/?>/i.test(index)
+    ? index.replace(
+        /<meta\s+name=["']bes-app-version["']\s+content=["'][^"']*["']\s*\/?>/i,
+        `<meta name="bes-app-version" content="${expectedVersion}">`,
+      )
+    : index.replace('</head>', `  <meta name="bes-app-version" content="${expectedVersion}">\n</head>`);
+  fs.writeFileSync(indexPath, next);
+}
 
 for (const file of ['public/version.json', 'public/release-manifest.json']) {
   if (!fs.existsSync(file)) continue;
   const value = JSON.parse(fs.readFileSync(file, 'utf8'));
-  value.version = '11.9.5';
-  value.releaseName = 'Golden Bank & Exam Factory · Production Certified · Canonical Role Guards';
+  value.version = expectedVersion;
+  value.releaseName = expectedRelease;
   if (file.endsWith('release-manifest.json')) {
-    value.release = 'Golden Bank & Exam Factory · Production Certified · Canonical Role Guards';
+    value.release = expectedRelease;
   }
   value.runtimeCore = '2.6.7';
   value.runtime = '2.6.7';
