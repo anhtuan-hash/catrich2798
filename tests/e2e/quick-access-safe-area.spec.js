@@ -942,9 +942,10 @@ test.describe('Global Quick Access safe area', () => {
   test('V6: Visual Session Trail connects recent app navigation and can jump backward', async ({ page }) => {
     await page.goto('/#/apps');
     await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'apps');
-    await page.goto('/#/dashboard');
+
+    await page.locator('.bqa-rail-button[title="Dashboard"]').click();
     await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'dashboard');
-    await page.goto('/#/homeroom');
+    await page.locator('.bqa-rail-button[title="Chủ nhiệm"]').click();
     await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'homeroom');
 
     const root = page.locator('.bqa-root');
