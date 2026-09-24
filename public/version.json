@@ -1,7 +1,7 @@
 {
-  "version": "11.9.5",
+  "version": "11.9.6",
   "channel": "stable",
-  "releaseName": "Golden Bank & Exam Factory · Production Certified · Canonical Role Guards",
+  "releaseName": "Golden Bank & Exam Factory · Production Certified · Brian Plugin/MCP",
   "runtimeCore": "2.6.7",
   "schemaVersion": "11.4.2",
   "requiresSql": false,
