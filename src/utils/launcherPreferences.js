@@ -13,7 +13,6 @@ export const DEFAULT_LAUNCHER_GROUPS = [
 
 const DEFAULT_PINNED = [
   'resource-library-hub',
-  'lesson-plan-ai',
   'textlab-activities',
   'exam-studio',
   'reading-studio',
@@ -22,6 +21,8 @@ const DEFAULT_PINNED = [
 const DEFAULT_ASSIGNMENTS = {};
 
 const RETIRED_LAUNCHER_IDS = new Set([
+  'tool:lesson-plan-ai',
+  'lesson-plan-ai',
   'tool:random-student-picker',
   'random-student-picker',
   'tool:worksheet-factory',

@@ -67,20 +67,20 @@ assert.equal(
   'Dashboard should remain the first landing route when explicitly allowed',
 );
 
-assert.match(
-  appsSource,
-  /slug:\s*['"]lesson-plan-ai['"]/,
-  'Lesson Architect must be registered as lesson-plan-ai',
+assert.equal(
+  /slug:\s*['"]lesson-plan-ai['"]/.test(appsSource),
+  false,
+  'Retired Lesson Architect must not be registered in the app catalog',
 );
-assert.match(
-  toolPageSource,
-  /LessonArchitect/,
-  'ToolPage must load the Lesson Architect module',
+assert.equal(
+  /LessonArchitect|lesson-plan-ai/.test(toolPageSource),
+  false,
+  'ToolPage must not load or route to the retired Lesson Architect module',
 );
-assert.match(
-  homeSource,
-  /['"]lesson-plan-ai['"]/,
-  'Home Lesson Architect card must target the registered lesson-plan-ai tool',
+assert.equal(
+  /['"]lesson-plan-ai['"]|Lesson Architect/.test(homeSource),
+  false,
+  'Home must not advertise the retired Lesson Architect app',
 );
 assert.equal(
   /['"]game-hub['"]/.test(homeSource),

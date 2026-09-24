@@ -526,7 +526,6 @@ function quickActionDescriptors(item, language) {
     return [
       { id: 'teacher-tools-textlab', label: 'Brian TextLab' },
       { id: 'teacher-tools-textcare', label: 'TextCare Fixer', targetItemId: 'tool:textcare' },
-      { id: 'teacher-tools-lesson', label: 'Lesson Architect', targetItemId: 'tool:lesson-plan-ai' },
     ];
   }
   if (item.id === 'route:dashboard') {
@@ -629,7 +628,7 @@ function activeItem(item, currentRoute, selectedTool) {
   if (id === 'action:gradebook-quick') return currentRoute === 'tool' && selectedTool?.slug === 'gradebook-studio';
   if (id === 'action:resource-library') return currentRoute === 'resource-library';
   if (id === 'action:teacher-tools') {
-    return currentRoute === 'tool' && ['textlab-activities', 'textcare', 'lesson-plan-ai'].includes(String(selectedTool?.slug || ''));
+    return currentRoute === 'tool' && ['textlab-activities', 'textcare'].includes(String(selectedTool?.slug || ''));
   }
   if (id.startsWith('action:')) return false;
   if (item.route) return currentRoute === item.route;

@@ -38,7 +38,7 @@ Model và hạn mức dùng chung do Admin quản lý tại `/#/ai-governance`. 
 - Dùng chung phiên đăng nhập và Supabase client của Brian.
 - Module chạy trong Shadow DOM để tránh xung đột CSS.
 - Dữ liệu local tách theo `user.id`.
-- Connected Workflow gửi nội dung sang Lesson Architect, Worksheet Factory, Exam Studio, Activity Studio, Speaking Studio, Reading Studio và WordGraph Studio.
+- Connected Workflow gửi nội dung sang Worksheet Factory, Exam Studio, Activity Studio, Speaking Studio, Reading Studio và WordGraph Studio.
 - Không cài service worker riêng cho module.
 
 ## Lưu ý về font cá nhân
