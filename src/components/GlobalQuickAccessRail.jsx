@@ -147,6 +147,108 @@ const STATIC_ITEMS = [
     icon: AppWindow,
     accent: '#e67a42',
   },
+
+  // Action Dock: task-first shortcuts. These deliberately do not duplicate
+  // header navigation semantics; they answer "what do I want to do now?".
+  {
+    id: 'action:today',
+    label: 'Today',
+    labelVi: 'Hôm nay',
+    action: 'today',
+    icon: CalendarDays,
+    accent: '#2575d9',
+    requiresRoute: 'dashboard',
+    description: 'Open today’s schedule, tasks and upcoming work.',
+    descriptionVi: 'Mở lịch hôm nay, việc cần làm và các mốc sắp tới.',
+  },
+  {
+    id: 'action:attendance-quick',
+    label: 'Quick attendance',
+    labelVi: 'Điểm danh nhanh',
+    action: 'attendance',
+    icon: ClipboardCheck,
+    accent: '#168db1',
+    access: 'authenticated',
+    description: 'Open attendance immediately with the current teaching context.',
+    descriptionVi: 'Vào ngay công cụ điểm danh theo ngữ cảnh dạy học hiện tại.',
+  },
+  {
+    id: 'action:create-exam',
+    label: 'Create exam',
+    labelVi: 'Soạn đề nhanh',
+    action: 'create-exam',
+    icon: Plus,
+    accent: '#6c55d9',
+    requiresRoute: 'assessment-core',
+    description: 'Start a new exam directly from Brian Question Bank.',
+    descriptionVi: 'Bắt đầu tạo đề mới trực tiếp từ Brian Question Bank.',
+  },
+  {
+    id: 'action:question-bank',
+    label: 'Question Bank',
+    labelVi: 'Ngân hàng câu hỏi',
+    action: 'question-bank',
+    icon: Star,
+    accent: '#6647df',
+    requiresRoute: 'assessment-core',
+    description: 'Search questions, bundles and saved exams.',
+    descriptionVi: 'Tìm câu hỏi, chùm bài và các đề đã lưu.',
+  },
+  {
+    id: 'action:student-attention',
+    label: 'Students needing attention',
+    labelVi: 'Học sinh cần chú ý',
+    action: 'student-attention',
+    icon: UsersRound,
+    accent: '#cf4e87',
+    requiresRoute: 'student-support',
+    description: 'Review factual student-support signals and follow-up cases.',
+    descriptionVi: 'Xem tín hiệu cần theo dõi và các trường hợp học sinh cần hỗ trợ.',
+  },
+  {
+    id: 'action:gradebook-quick',
+    label: 'Quick gradebook',
+    labelVi: 'Sổ điểm nhanh',
+    action: 'gradebook-quick',
+    icon: BookOpenCheck,
+    accent: '#d06d4e',
+    requiresTool: 'gradebook-studio',
+    description: 'Return directly to the teacher gradebook.',
+    descriptionVi: 'Mở nhanh sổ điểm giáo viên để tiếp tục nhập và theo dõi điểm.',
+  },
+  {
+    id: 'action:ttcm-today',
+    label: 'Department today',
+    labelVi: 'TTCM hôm nay',
+    action: 'ttcm-today',
+    icon: ShieldCheck,
+    accent: '#6f50d9',
+    access: 'department',
+    description: 'Open today’s department schedule and pending work.',
+    descriptionVi: 'Mở kế hoạch hôm nay và các việc tổ chuyên môn cần xử lý.',
+  },
+  {
+    id: 'action:resource-library',
+    label: 'Teaching resources',
+    labelVi: 'Kho học liệu',
+    action: 'resource-library',
+    icon: AppWindow,
+    accent: '#e67a42',
+    requiresRoute: 'resource-library',
+    description: 'Open shared teaching resources and recently used materials.',
+    descriptionVi: 'Mở kho học liệu dùng chung và tài liệu đang sử dụng.',
+  },
+  {
+    id: 'action:teacher-tools',
+    label: 'Teacher tools',
+    labelVi: 'TextLab / Công cụ',
+    action: 'teacher-tools',
+    icon: Zap,
+    accent: '#315fc4',
+    requiresTool: 'textlab-activities',
+    description: 'Open Brian TextLab and teacher content utilities.',
+    descriptionVi: 'Mở Brian TextLab và nhóm công cụ xử lý nội dung cho giáo viên.',
+  },
 ];
 
 function labelFor(item, language) {
@@ -168,13 +270,13 @@ function descriptionFor(item, language) {
 }
 
 function contextIdsFor(currentRoute, selectedTool) {
-  if (currentRoute === 'homeroom') return ['action:attendance', 'tool:gradebook-studio', 'route:resource-library'];
-  if (currentRoute === 'assessment-core') return ['route:resource-library', 'route:apps', 'route:dashboard'];
-  if (currentRoute === 'resource-library') return ['route:assessment-core', 'route:apps', 'route:dashboard'];
-  if (currentRoute === 'tool' && selectedTool?.slug === 'brian-team') return ['action:ttcm', 'action:schedule', 'route:resource-library'];
-  if (currentRoute === 'tool' && selectedTool?.slug === 'gradebook-studio') return ['route:homeroom', 'action:attendance', 'route:dashboard'];
-  if (currentRoute === 'apps') return ['route:dashboard', 'route:assessment-core', 'route:resource-library'];
-  return ['route:apps', 'route:homeroom', 'action:attendance'];
+  if (currentRoute === 'homeroom') return ['action:attendance-quick', 'action:student-attention', 'action:gradebook-quick'];
+  if (currentRoute === 'assessment-core') return ['action:create-exam', 'action:resource-library', 'action:teacher-tools'];
+  if (currentRoute === 'resource-library') return ['action:create-exam', 'action:question-bank', 'action:teacher-tools'];
+  if (currentRoute === 'tool' && selectedTool?.slug === 'brian-team') return ['action:ttcm-today', 'action:resource-library', 'action:today'];
+  if (currentRoute === 'tool' && selectedTool?.slug === 'gradebook-studio') return ['action:student-attention', 'action:attendance-quick', 'action:today'];
+  if (currentRoute === 'apps') return ['action:today', 'action:create-exam', 'action:teacher-tools'];
+  return ['action:today', 'action:attendance-quick', 'action:create-exam'];
 }
 
 function timeAwareContextFor(hour, language) {
@@ -186,7 +288,7 @@ function timeAwareContextFor(hour, language) {
       kicker: vi ? 'BUỔI SÁNG' : 'MORNING',
       title: vi ? 'Khởi động ngày làm việc' : 'Start the workday',
       description: vi ? 'Ưu tiên lịch, điểm danh và các việc cần mở đầu ngày.' : 'Prioritize schedule, attendance and start-of-day tasks.',
-      ids: ['route:dashboard', 'action:attendance', 'action:schedule', 'route:homeroom'],
+      ids: ['action:today', 'action:attendance-quick', 'action:gradebook-quick', 'action:student-attention'],
     };
   }
   if (safeHour >= 10 && safeHour < 17) {
@@ -195,7 +297,7 @@ function timeAwareContextFor(hour, language) {
       kicker: vi ? 'GIỜ DẠY' : 'TEACHING HOURS',
       title: vi ? 'Ưu tiên công cụ giảng dạy' : 'Teaching tools first',
       description: vi ? 'Sổ điểm, học liệu và ngân hàng câu hỏi được đưa lên trước.' : 'Gradebook, resources and question bank move to the front.',
-      ids: ['tool:gradebook-studio', 'route:resource-library', 'route:assessment-core', 'route:homeroom'],
+      ids: ['action:gradebook-quick', 'action:create-exam', 'action:question-bank', 'action:resource-library'],
     };
   }
   if (safeHour >= 17 && safeHour < 22) {
@@ -204,7 +306,7 @@ function timeAwareContextFor(hour, language) {
       kicker: vi ? 'CUỐI NGÀY' : 'WRAP-UP',
       title: vi ? 'Khép lại công việc trong ngày' : 'Wrap up the day',
       description: vi ? 'Ưu tiên báo cáo, TTCM và kế hoạch cho ngày tiếp theo.' : 'Prioritize reports, department work and tomorrow planning.',
-      ids: ['action:reports', 'action:ttcm', 'action:schedule', 'route:dashboard'],
+      ids: ['action:ttcm-today', 'action:today', 'action:resource-library', 'action:teacher-tools'],
     };
   }
   return {
@@ -212,7 +314,7 @@ function timeAwareContextFor(hour, language) {
     kicker: vi ? 'CHUẨN BỊ' : 'PREP',
     title: vi ? 'Không gian chuẩn bị' : 'Preparation workspace',
     description: vi ? 'Giữ Dashboard, học liệu và kế hoạch ở vị trí dễ truy cập.' : 'Keep Dashboard, resources and planning within easy reach.',
-    ids: ['route:dashboard', 'route:resource-library', 'action:schedule', 'route:apps'],
+    ids: ['action:today', 'action:resource-library', 'action:teacher-tools', 'action:question-bank'],
   };
 }
 
@@ -271,6 +373,7 @@ const CLASSROOM_MODE_BLOCKED_IDS = new Set([
   'action:reports',
   'action:ttcm',
   'action:schedule',
+  'action:ttcm-today',
   'tool:brian-team',
   'route:settings',
 ]);
@@ -287,14 +390,24 @@ function workspaceAllowsItem(workspace, item) {
   if (!item || workspace === 'all') return Boolean(item);
   const id = String(item.id || '');
   if (workspace === 'teaching') {
-    return ['route:assessment-core', 'route:resource-library', 'tool:gradebook-studio', 'route:apps', 'route:dashboard'].includes(id)
-      || id.startsWith('tool:');
+    return [
+      'action:today', 'action:create-exam', 'action:question-bank', 'action:gradebook-quick',
+      'action:resource-library', 'action:teacher-tools',
+      'route:assessment-core', 'route:resource-library', 'tool:gradebook-studio', 'route:apps', 'route:dashboard',
+    ].includes(id) || id.startsWith('tool:');
   }
   if (workspace === 'homeroom') {
-    return ['route:homeroom', 'action:attendance', 'tool:gradebook-studio', 'route:resource-library', 'route:dashboard'].includes(id);
+    return [
+      'action:today', 'action:attendance-quick', 'action:student-attention', 'action:gradebook-quick',
+      'action:resource-library',
+      'route:homeroom', 'action:attendance', 'tool:gradebook-studio', 'route:resource-library', 'route:dashboard',
+    ].includes(id);
   }
   if (workspace === 'department') {
-    return ['action:ttcm', 'action:schedule', 'action:reports', 'route:resource-library', 'route:dashboard'].includes(id);
+    return [
+      'action:today', 'action:ttcm-today', 'action:resource-library',
+      'action:ttcm', 'action:schedule', 'action:reports', 'route:resource-library', 'route:dashboard',
+    ].includes(id);
   }
   return true;
 }
@@ -419,6 +532,10 @@ function dynamicAppItem(app) {
 
 function itemAllowed(item, currentUser, appVisibility) {
   if (!currentUser || !item) return false;
+
+  if (item.requiresRoute && !hasRouteAccess(currentUser, item.requiresRoute, null)) return false;
+  if (item.requiresTool && !hasToolAccess(currentUser, item.requiresTool)) return false;
+
   if (item.access === 'authenticated') return true;
   if (item.access === 'department') return isAdminRole(currentUser.role) || isDepartmentLeaderRole(currentUser.role);
   if (item.access === 'reports') {
@@ -434,7 +551,13 @@ function itemAllowed(item, currentUser, appVisibility) {
     if (!appVisibility?.ready) return false;
     const visibilityId = item.route
       ? visibilityIdForRoute(item.route, null)
-      : visibilityIdForRoute('tool', item.app || { slug: item.tool });
+      : item.tool
+        ? visibilityIdForRoute('tool', item.app || { slug: item.tool })
+        : item.requiresRoute
+          ? visibilityIdForRoute(item.requiresRoute, null)
+          : item.requiresTool
+            ? visibilityIdForRoute('tool', { slug: item.requiresTool })
+            : '';
     if (visibilityId && isAppHiddenForUser(appVisibility.snapshot, currentUser, visibilityId)) return false;
   }
 
@@ -442,7 +565,7 @@ function itemAllowed(item, currentUser, appVisibility) {
 }
 
 function activeItem(item, currentRoute, selectedTool) {
-  if (item.id === 'action:ttcm' || item.id === 'action:schedule' || item.id === 'action:attendance') return false;
+  if (String(item?.id || '').startsWith('action:')) return false;
   if (item.route) return currentRoute === item.route;
   if (item.tool) return currentRoute === 'tool' && selectedTool?.slug === item.tool;
   return false;
@@ -469,7 +592,53 @@ function openTtcm(view = 'feed') {
   }
 }
 
+function launchQuickAccessTarget(target, label, color, sourceEl, source = 'quick-access-action-dock') {
+  if (!target) return;
+  launchRoute({
+    target,
+    label: String(label || 'GO').slice(0, 2).toUpperCase(),
+    color,
+    sourceEl,
+    meta: { source },
+  });
+}
+
 function runAction(item, sourceEl) {
+  if (item.action === 'today') {
+    try { window.sessionStorage.setItem('bes-dashboard-focus-on-load', 'today'); } catch { /* optional */ }
+    launchQuickAccessTarget('#/dashboard', item.labelVi || item.label, item.accent, sourceEl);
+    window.setTimeout(() => window.dispatchEvent(new CustomEvent('bes-dashboard-focus', { detail: { section: 'today', source: 'action-dock' } })), 360);
+    return;
+  }
+  if (item.action === 'create-exam') {
+    launchQuickAccessTarget('#/assessment-core', item.labelVi || item.label, item.accent, sourceEl);
+    window.setTimeout(() => window.dispatchEvent(new CustomEvent('bes-assessment-quick-create', { detail: { type: 'exam', source: 'action-dock' } })), 360);
+    return;
+  }
+  if (item.action === 'question-bank') {
+    launchQuickAccessTarget('#/assessment-core', item.labelVi || item.label, item.accent, sourceEl);
+    return;
+  }
+  if (item.action === 'student-attention') {
+    launchQuickAccessTarget('#/student-support', item.labelVi || item.label, item.accent, sourceEl);
+    return;
+  }
+  if (item.action === 'gradebook-quick') {
+    launchQuickAccessTarget('#/tool/gradebook-studio', item.labelVi || item.label, item.accent, sourceEl);
+    return;
+  }
+  if (item.action === 'ttcm-today') {
+    openTtcm('schedule');
+    return;
+  }
+  if (item.action === 'resource-library') {
+    launchQuickAccessTarget('#/resource-library', item.labelVi || item.label, item.accent, sourceEl);
+    return;
+  }
+  if (item.action === 'teacher-tools') {
+    launchQuickAccessTarget('#/tool/textlab-activities', item.labelVi || item.label, item.accent, sourceEl);
+    return;
+  }
   if (item.action === 'ttcm') {
     openTtcm('feed');
     return;
