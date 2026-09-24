@@ -473,8 +473,58 @@ function quickActionDescriptors(item, language) {
       { id: 'ttcm-feed', label: vi ? 'Kênh TTCM' : 'TTCM feed', action: 'ttcm-feed' },
     ];
   }
-  if (item.id === 'action:attendance') {
+  if (item.id === 'action:attendance' || item.id === 'action:attendance-quick') {
     return [{ id: 'attendance', label: vi ? 'Điểm danh ngay' : 'Open attendance', action: 'attendance' }];
+  }
+  if (item.id === 'action:today') {
+    return [
+      { id: 'today-open', label: vi ? 'Mở Hôm nay' : 'Open Today' },
+      { id: 'today-gradebook', label: vi ? 'Sổ điểm nhanh' : 'Quick gradebook', targetItemId: 'action:gradebook-quick' },
+    ];
+  }
+  if (item.id === 'action:create-exam') {
+    return [
+      { id: 'exam-create', label: vi ? 'Tạo đề mới' : 'Create new exam' },
+      { id: 'exam-bank', label: vi ? 'Mở ngân hàng câu hỏi' : 'Open Question Bank', targetItemId: 'action:question-bank' },
+    ];
+  }
+  if (item.id === 'action:question-bank') {
+    return [
+      { id: 'question-bank-open', label: vi ? 'Mở ngân hàng' : 'Open Question Bank' },
+      { id: 'question-bank-create', label: vi ? 'Soạn đề nhanh' : 'Create exam', targetItemId: 'action:create-exam' },
+    ];
+  }
+  if (item.id === 'action:student-attention') {
+    return [
+      { id: 'student-attention-open', label: vi ? 'Xem học sinh cần chú ý' : 'Review student signals' },
+      { id: 'student-attendance', label: vi ? 'Điểm danh nhanh' : 'Quick attendance', targetItemId: 'action:attendance-quick' },
+    ];
+  }
+  if (item.id === 'action:gradebook-quick') {
+    return [
+      { id: 'gradebook-quick-open', label: vi ? 'Mở sổ điểm' : 'Open gradebook' },
+      { id: 'gradebook-students', label: vi ? 'Học sinh cần chú ý' : 'Students needing attention', targetItemId: 'action:student-attention' },
+    ];
+  }
+  if (item.id === 'action:ttcm-today') {
+    return [
+      { id: 'ttcm-schedule', label: vi ? 'Kế hoạch hôm nay' : 'Today’s schedule', action: 'ttcm-schedule' },
+      { id: 'ttcm-feed', label: vi ? 'Kênh TTCM' : 'TTCM feed', action: 'ttcm-feed' },
+      { id: 'ttcm-personnel', label: vi ? 'Nhân sự tổ' : 'Department people', action: 'ttcm-personnel' },
+    ];
+  }
+  if (item.id === 'action:resource-library') {
+    return [
+      { id: 'resource-open', label: vi ? 'Mở kho học liệu' : 'Open resources' },
+      { id: 'resource-question-bank', label: vi ? 'Ngân hàng câu hỏi' : 'Question Bank', targetItemId: 'action:question-bank' },
+    ];
+  }
+  if (item.id === 'action:teacher-tools') {
+    return [
+      { id: 'teacher-tools-textlab', label: 'Brian TextLab' },
+      { id: 'teacher-tools-textcare', label: 'TextCare Fixer', targetItemId: 'tool:textcare' },
+      { id: 'teacher-tools-lesson', label: 'Lesson Architect', targetItemId: 'tool:lesson-plan-ai' },
+    ];
   }
   if (item.id === 'route:dashboard') {
     return [
@@ -507,7 +557,11 @@ function readBadgeSnapshot() {
   if (typeof document === 'undefined') return {};
   const next = {};
   const ttcmBadge = document.querySelector('.brian-nav__ttcm-badge');
-  if (ttcmBadge) next['action:ttcm'] = String(ttcmBadge.textContent || '').trim();
+  if (ttcmBadge) {
+    const value = String(ttcmBadge.textContent || '').trim();
+    next['action:ttcm'] = value;
+    next['action:ttcm-today'] = value;
+  }
   const reportCountdown = document.querySelector('.brian-nav__reports-countdown');
   if (reportCountdown) next['action:reports'] = 'dot';
   return next;
