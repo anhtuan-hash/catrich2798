@@ -303,34 +303,35 @@ test.describe('Global Quick Access safe area', () => {
     expect(Math.abs(railAfter.left - railBefore.left)).toBeLessThan(0.5);
   });
 
-  test('V4.2: live status capsules render API-driven status and progress', async ({ page }) => {
-    await page.goto('/#/apps');
+  test('V4.2: live status capsules render API-driven status and progress through Action Dock aliases', async ({ page }) => {
+    await page.goto('/#/dashboard');
     await expect(page.locator('.bqa-root')).toBeVisible();
+    await expect.poll(async () => page.evaluate(() => typeof window.BrianQuickAccessCapsules?.set)).toBe('function');
 
     await page.evaluate(() => {
-      window.BrianQuickAccessCapsules?.set?.({
-        itemId: 'route:apps',
-        label: 'Ứng dụng',
+      window.BrianQuickAccessCapsules.set({
+        itemId: 'route:dashboard',
+        label: 'Hôm nay',
         text: '3 cập nhật mới',
         tone: 'warning',
         progress: 40,
       });
     });
 
-    const appsButton = page.locator('.bqa-rail-button[aria-label="Ứng dụng"]');
-    await appsButton.hover();
+    const todayButton = page.locator('.bqa-rail-button[aria-label="Hôm nay"]');
+    await todayButton.hover();
     await page.waitForTimeout(180);
 
     const capsule = page.locator('.bqa-status-capsule');
     await expect(capsule).toBeVisible();
-    await expect(capsule).toContainText('Ứng dụng');
+    await expect(capsule).toContainText('Hôm nay');
     await expect(capsule).toContainText('3 cập nhật mới');
     await expect(capsule).toHaveClass(/is-warning/);
 
     const progress = await capsule.locator('.bqa-status-capsule-progress > i').evaluate((bar) => getComputedStyle(bar).width);
     expect(Number.parseFloat(progress)).toBeGreaterThan(0);
 
-    await page.evaluate(() => window.BrianQuickAccessCapsules?.clear?.('route:apps'));
+    await page.evaluate(() => window.BrianQuickAccessCapsules?.clear?.('route:dashboard'));
     await page.mouse.move(800, 700);
     await page.waitForTimeout(160);
     await expect(capsule).toBeHidden();
@@ -340,13 +341,13 @@ test.describe('Global Quick Access safe area', () => {
     await page.goto('/#/apps');
     await expect(page.locator('.bqa-root')).toBeVisible();
 
-    const attendanceButton = page.locator('.bqa-rail-button[aria-label="Điểm danh"]');
+    const attendanceButton = page.locator('.bqa-rail-button[aria-label="Điểm danh nhanh"]');
     await attendanceButton.hover();
     await page.waitForTimeout(460);
 
     const peek = page.locator('.bqa-peek-card');
     await expect(peek).toBeVisible();
-    await expect(peek).toContainText('Điểm danh');
+    await expect(peek).toContainText('Điểm danh nhanh');
 
     const actions = peek.locator('.bqa-peek-actions');
     await expect(actions).toBeVisible();
@@ -575,7 +576,7 @@ test.describe('Global Quick Access safe area', () => {
     await expect(root).toHaveAttribute('data-side', 'left');
     await page.locator('.bqa-done').click();
 
-    await page.locator('.bqa-rail-button[aria-label="Dashboard"]').click();
+    await page.locator('.bqa-rail-button[aria-label="Hôm nay"]').click();
     await expect(page).toHaveURL(/#\/dashboard/);
     await page.waitForTimeout(180);
 
@@ -585,7 +586,7 @@ test.describe('Global Quick Access safe area', () => {
     });
     expect(stored?.workspace).toBe('homeroom');
     expect(stored?.side).toBe('left');
-    expect(stored?.lastItemId).toBe('route:dashboard');
+    expect(stored?.lastItemId).toBe('action:today');
     expect(Object.keys(stored?.scroll || {}).length).toBeGreaterThan(0);
 
     await page.reload();
