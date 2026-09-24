@@ -11,8 +11,8 @@ for (const file of ['public/version.json', 'public/release-manifest.json']) {
   if (!fs.existsSync(file)) continue;
   const value = JSON.parse(fs.readFileSync(file, 'utf8'));
   value.version = '11.8.0';
-  if (file.endsWith('version.json')) value.releaseName = 'Golden Bank & Exam Factory';
-  else value.release = 'Golden Bank & Exam Factory';
+  if (file.endsWith('version.json')) value.releaseName = 'Golden Bank, Exam Factory & Plugin';
+  else value.release = 'Golden Bank, Exam Factory & Plugin';
   value.runtimeCore = '2.6.7';
   value.runtime = '2.6.7';
   value.requiresSql = false;
@@ -28,4 +28,4 @@ for (const file of ['public/version.json', 'public/release-manifest.json']) {
   fs.writeFileSync(file, JSON.stringify(value, null, 2) + '\n');
 }
 
-console.log('Version registry synchronized: 11.8.0 · Golden Bank & Exam Factory');
+console.log('Version registry synchronized: 11.8.0 · Golden Bank, Exam Factory & Plugin');
