@@ -65,7 +65,22 @@ assert.ok(prefs.includes("theme: 'glass'"), 'Quick Access defaults to the Glass 
 assert.ok(prefs.includes("['glass', 'paper', 'color', 'minimal']"), 'Quick Access must persist the supported sidebar themes.');
 assert.ok(prefs.includes('spatialMemory: true'), 'Quick Access defaults to device spatial memory enabled.');
 assert.ok(prefs.includes('contextMemory: true'), 'Quick Access defaults to route workspace memory enabled.');
-assert.ok(prefs.includes('version: 10'), 'Quick Access preference schema must be V10 for fixed-left layout.');
+assert.ok(prefs.includes('version: 11'), 'Quick Access preference schema must be V11 for the task-first Action Dock.');
+assert.ok(prefs.includes('LEGACY_DEFAULT_QUICK_ACCESS_IDS'), 'Action Dock must retain the legacy default list for safe one-time migration.');
+assert.ok(prefs.includes('isLegacyStockLayout'), 'Action Dock must migrate only the untouched legacy stock layout.');
+for (const id of [
+  'action:today',
+  'action:attendance-quick',
+  'action:create-exam',
+  'action:question-bank',
+  'action:student-attention',
+  'action:gradebook-quick',
+  'action:ttcm-today',
+  'action:resource-library',
+  'action:teacher-tools',
+]) {
+  assert.ok(prefs.includes(`'${id}'`), `Action Dock default missing: ${id}`);
+}
 assert.match(prefs, /QUICK_ACCESS_WORKFLOW_MAX\s*=\s*4/, 'Quick Access must cap saved workflow bundles at 4.');
 assert.match(prefs, /QUICK_ACCESS_WORKFLOW_STEPS_MAX\s*=\s*5/, 'Quick Access must cap workflow steps at 5.');
 assert.ok(prefs.includes('cleanWorkflows'), 'Quick Access must permission-filter persisted workflow bundles.');
@@ -341,6 +356,22 @@ for (const token of [
   'Tùy chỉnh thanh truy cập nhanh',
   "document.querySelector('.brian-nav__attendance-tab')",
   "document.querySelector('.brian-nav__ttcm-tab')",
+  'Brian Action Dock',
+  'action:today',
+  'action:attendance-quick',
+  'action:create-exam',
+  'action:question-bank',
+  'action:student-attention',
+  'action:gradebook-quick',
+  'action:ttcm-today',
+  'action:resource-library',
+  'action:teacher-tools',
+  'requiresRoute',
+  'requiresTool',
+  'bes-dashboard-focus',
+  'bes-assessment-quick-create',
+  "launchQuickAccessTarget('#/student-support'",
+  "launchQuickAccessTarget('#/tool/textlab-activities'",
 ]) {
   assert.ok(rail.includes(token), `Quick Access behavior missing: ${token}`);
 }
@@ -543,4 +574,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Quick Access V6 is complete: wave 1 plus Attention Halo, App State Bookmark, Double-click Quick Actions, Command Drop Zone and Visual Session Trail, while preserving fixed-left web-only layout, V5 behavior, permissions, footer safe-area and custom fonts.');
+console.log('PASS: Brian Action Dock is task-first by default, safely migrates the untouched legacy rail, and preserves Quick Access V5/V6 fixed-left web-only behavior, permissions, footer safe-area and custom fonts.');
