@@ -14,7 +14,7 @@ export const QUICK_ACCESS_THEMES = ['glass', 'paper', 'color', 'minimal'];
 export const QUICK_ACCESS_WORKFLOW_MAX = 4;
 export const QUICK_ACCESS_WORKFLOW_STEPS_MAX = 5;
 
-export const DEFAULT_QUICK_ACCESS_IDS = [
+export const LEGACY_DEFAULT_QUICK_ACCESS_IDS = [
   'route:dashboard',
   'route:apps',
   'route:homeroom',
@@ -25,6 +25,18 @@ export const DEFAULT_QUICK_ACCESS_IDS = [
   'action:schedule',
   'route:assessment-core',
   'route:resource-library',
+];
+
+export const DEFAULT_QUICK_ACCESS_IDS = [
+  'action:today',
+  'action:attendance-quick',
+  'action:create-exam',
+  'action:question-bank',
+  'action:student-attention',
+  'action:gradebook-quick',
+  'action:ttcm-today',
+  'action:resource-library',
+  'action:teacher-tools',
 ];
 
 function userKey(user) {
@@ -86,7 +98,7 @@ export function createDefaultQuickAccessConfig(allowedIds = []) {
   const preferred = DEFAULT_QUICK_ACCESS_IDS.filter((id) => !allowed.size || allowed.has(id));
   const fallback = (Array.isArray(allowedIds) ? allowedIds : []).filter((id) => !preferred.includes(id));
   return {
-    version: 10,
+    version: 11,
     items: [...preferred, ...fallback].slice(0, QUICK_ACCESS_MAX_ITEMS),
     recent: [],
     workspace: 'all',
@@ -116,7 +128,15 @@ export function normalizeQuickAccessConfig(raw, allowedIds = []) {
   if (source && typeof source === 'object' && !Array.isArray(source) && source.config) source = source.config;
   source = source && typeof source === 'object' && !Array.isArray(source) ? source : {};
   const hasExplicitItems = Array.isArray(source.items) || typeof source.items === 'string';
+  const sourceVersion = Math.max(0, Number(source.version) || 0);
   const items = cleanIds(source.items, allowedIds, QUICK_ACCESS_MAX_ITEMS);
+  const legacyExpectedItems = cleanIds(LEGACY_DEFAULT_QUICK_ACCESS_IDS, allowedIds, QUICK_ACCESS_MAX_ITEMS);
+  const isLegacyStockLayout = sourceVersion <= 10
+    && items.length === legacyExpectedItems.length
+    && items.every((id, index) => id === legacyExpectedItems[index]);
+  const migratedItems = isLegacyStockLayout
+    ? cleanIds(DEFAULT_QUICK_ACCESS_IDS, allowedIds, QUICK_ACCESS_MAX_ITEMS)
+    : items;
   const recent = cleanIds(source.recent, allowedIds, QUICK_ACCESS_RECENT_MAX);
   const legacyPinned = Boolean(source.pinned);
   const requestedMode = String(source.mode || '').trim().toLowerCase();
@@ -141,8 +161,8 @@ export function normalizeQuickAccessConfig(raw, allowedIds = []) {
   const spatialMemory = source.spatialMemory !== false;
   const contextMemory = source.contextMemory !== false;
   return {
-    version: 10,
-    items: (hasExplicitItems ? items : defaults.items).slice(0, QUICK_ACCESS_MAX_ITEMS),
+    version: 11,
+    items: (hasExplicitItems ? migratedItems : defaults.items).slice(0, QUICK_ACCESS_MAX_ITEMS),
     recent,
     workspace,
     mode,
