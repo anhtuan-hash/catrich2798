@@ -31,6 +31,7 @@ const RETIRED_STORAGE_PREFIXES = [
   'bes.top5',
   'bes.top-five-arena',
   'bes.teaching-tool-hub',
+  'bes-lesson-architect-curriculum-v1131',
   'bes.game-hub',
   'bes.games',
   'bes.tesol-method',
@@ -99,7 +100,7 @@ function itemLooksRetired(item) {
   if (!item) return false;
   if (typeof item === 'string') return isRetiredPath(item);
   if (typeof item !== 'object') return false;
-  return [item.slug, item.route, item.path, item.href, item.hash, item.target, item.id]
+  return [item.slug, item.toolSlug, item.route, item.path, item.href, item.hash, item.target, item.id]
     .some((value) => value && isRetiredPath(value));
 }
 
