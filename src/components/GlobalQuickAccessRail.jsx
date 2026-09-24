@@ -619,10 +619,35 @@ function itemAllowed(item, currentUser, appVisibility) {
 }
 
 function activeItem(item, currentRoute, selectedTool) {
-  if (String(item?.id || '').startsWith('action:')) return false;
+  const id = String(item?.id || '');
+  if (id === 'action:today') return currentRoute === 'dashboard';
+  if (id === 'action:question-bank') return currentRoute === 'assessment-core';
+  if (id === 'action:student-attention') return currentRoute === 'student-support';
+  if (id === 'action:gradebook-quick') return currentRoute === 'tool' && selectedTool?.slug === 'gradebook-studio';
+  if (id === 'action:resource-library') return currentRoute === 'resource-library';
+  if (id === 'action:teacher-tools') {
+    return currentRoute === 'tool' && ['textlab-activities', 'textcare', 'lesson-plan-ai'].includes(String(selectedTool?.slug || ''));
+  }
+  if (id.startsWith('action:')) return false;
   if (item.route) return currentRoute === item.route;
   if (item.tool) return currentRoute === 'tool' && selectedTool?.slug === item.tool;
   return false;
+}
+
+function statusIdsForItem(item) {
+  const id = String(item?.id || '');
+  const aliases = {
+    'action:today': 'route:dashboard',
+    'action:attendance-quick': 'action:attendance',
+    'action:create-exam': 'route:assessment-core',
+    'action:question-bank': 'route:assessment-core',
+    'action:student-attention': 'route:student-support',
+    'action:gradebook-quick': 'tool:gradebook-studio',
+    'action:ttcm-today': 'action:ttcm',
+    'action:resource-library': 'route:resource-library',
+    'action:teacher-tools': 'tool:textlab-activities',
+  };
+  return [id, aliases[id]].filter(Boolean);
 }
 
 function openTtcm(view = 'feed') {
@@ -2637,7 +2662,8 @@ export default function GlobalQuickAccessRail({
 
   const capsuleSnapshotFor = (item) => {
     if (!item) return null;
-    const activity = liveActivities.find((entry) => entry.itemId === item.id);
+    const statusIds = statusIdsForItem(item);
+    const activity = liveActivities.find((entry) => statusIds.includes(entry.itemId));
     if (activity) {
       return {
         itemId: item.id,
@@ -2647,14 +2673,16 @@ export default function GlobalQuickAccessRail({
         progress: activity.progress,
       };
     }
-    if (capsules[item.id]) return capsules[item.id];
-    if (badges[item.id]) {
+    const capsuleId = statusIds.find((id) => capsules[id]);
+    if (capsuleId) return { ...capsules[capsuleId], itemId: item.id, label: capsules[capsuleId]?.label || labelFor(item, language) };
+    const badgeId = statusIds.find((id) => badges[id]);
+    if (badgeId) {
       return {
         itemId: item.id,
         label: labelFor(item, language),
-        text: badges[item.id] === 'dot'
+        text: badges[badgeId] === 'dot'
           ? (language === 'vi' ? 'Có cập nhật mới' : 'New update available')
-          : (language === 'vi' ? `${badges[item.id]} mục cần chú ý` : `${badges[item.id]} items need attention`),
+          : (language === 'vi' ? `${badges[badgeId]} mục cần chú ý` : `${badges[badgeId]} items need attention`),
         tone: 'warning',
         progress: null,
       };
@@ -2671,18 +2699,19 @@ export default function GlobalQuickAccessRail({
 
   const attentionLevelForItem = (item) => {
     if (!item || classroomMode) return 0;
-    const health = appHealth[item.id];
+    const statusIds = statusIdsForItem(item);
+    const health = statusIds.map((id) => appHealth[id]).find(Boolean);
     if (health?.state === 'error') return 3;
     if (health?.state === 'unconfigured' || health?.state === 'syncing') return 2;
-    const activity = liveActivities.find((entry) => entry.itemId === item.id);
+    const activity = liveActivities.find((entry) => statusIds.includes(entry.itemId));
     if (activity?.state === 'error') return 3;
     if (activity?.state === 'running') return 1;
     const tones = notificationItems
-      .filter((entry) => entry.itemId === item.id)
+      .filter((entry) => statusIds.includes(entry.itemId))
       .map((entry) => entry.tone);
     if (tones.includes('danger')) return 3;
     if (tones.includes('warning')) return 2;
-    if (tones.length || badges[item.id]) return 1;
+    if (tones.length || statusIds.some((id) => badges[id])) return 1;
     return 0;
   };
 
