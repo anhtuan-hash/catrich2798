@@ -6,6 +6,9 @@ const rail = await readFile(new URL('../src/components/GlobalQuickAccessRail.jsx
 const css = await readFile(new URL('../src/components/GlobalQuickAccessRail.css', import.meta.url), 'utf8');
 const navCss = await readFile(new URL('../src/components/GlobalUnifiedNavigationHub.css', import.meta.url), 'utf8');
 const prefs = await readFile(new URL('../src/utils/quickAccessPreferences.js', import.meta.url), 'utf8');
+const dashboard = await readFile(new URL('../src/pages/WorkDashboard.jsx', import.meta.url), 'utf8');
+const questionBank = await readFile(new URL('../src/pages/QuestionBank.jsx', import.meta.url), 'utf8');
+const attendance = await readFile(new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url), 'utf8');
 const migration = await readFile(new URL('../supabase/quick_access_settings_v11_9_6.sql', import.meta.url), 'utf8');
 
 assert.ok(main.includes("GlobalQuickAccessRail = lazy"), 'Quick Access must be lazy-loaded by the app shell.');
@@ -88,6 +91,45 @@ assert.ok(prefs.includes('recent: []'), 'Quick Access defaults to an empty recen
 assert.ok(prefs.includes("storageKey(user)"), 'Local fallback must be scoped per account.');
 assert.ok(prefs.includes('updatedAt: 0'), 'New-device defaults must not outrank an existing cloud configuration.');
 assert.ok(prefs.includes('hasExplicitItems'), 'An explicitly empty shortcut list must remain empty instead of resetting to defaults.');
+
+for (const token of [
+  'bes-dashboard-focus-on-load',
+  'bes-dashboard-focus',
+  'bes-assessment-quick-create-on-load',
+  'bes-assessment-quick-create',
+  'bes-attendance-quick-open',
+  "#/student-support?tab=alerts",
+]) {
+  assert.ok(rail.includes(token), `Action Dock native intent missing in rail: ${token}`);
+}
+
+for (const token of [
+  'bes-dashboard-focus-on-load',
+  "window.addEventListener('bes-dashboard-focus'",
+  "document.querySelector('#dashboard-calendar')",
+]) {
+  assert.ok(dashboard.includes(token), `Dashboard Today intent contract missing: ${token}`);
+}
+
+for (const token of [
+  'bes-assessment-quick-create-on-load',
+  "window.addEventListener('bes-assessment-quick-create'",
+  "setActiveTab('builder')",
+  "document.querySelector(selector)?.scrollIntoView",
+]) {
+  assert.ok(questionBank.includes(token), `Question Bank quick-create contract missing: ${token}`);
+}
+
+for (const token of [
+  'bes-attendance-recent-class-v1:',
+  'readAttendanceSelection',
+  'persistAttendanceSelection',
+  "window.addEventListener('bes-attendance-quick-open'",
+  "setView('quick')",
+  'setOpen(true)',
+]) {
+  assert.ok(attendance.includes(token), `Quick Attendance recent-class contract missing: ${token}`);
+}
 
 for (const token of [
   'bqa-edge-trigger',
@@ -574,4 +616,4 @@ const cssOpen = (css.match(/{/g) || []).length;
 const cssClose = (css.match(/}/g) || []).length;
 assert.equal(cssOpen, cssClose, 'Quick Access CSS braces must be balanced.');
 
-console.log('PASS: Brian Action Dock is task-first by default, safely migrates the untouched legacy rail, and preserves Quick Access V5/V6 fixed-left web-only behavior, permissions, footer safe-area and custom fonts.');
+console.log('PASS: Brian Action Dock is task-first by default, launches native Today/Create Exam/Student Alerts/Quick Attendance intents, safely migrates the untouched legacy rail, and preserves Quick Access V5/V6 fixed-left web-only behavior, permissions, footer safe-area and custom fonts.');
