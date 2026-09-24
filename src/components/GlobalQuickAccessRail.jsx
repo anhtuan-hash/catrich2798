@@ -2469,7 +2469,7 @@ export default function GlobalQuickAccessRail({
   };
   const currentTrailItem = presentationCatalog.find((item) => activeItem(item, currentRoute, selectedTool)) || null;
   const sessionTrailEntries = [
-    currentTrailItem ? { item: currentTrailItem, target: String(window?.location?.hash || currentTrailItem.target || ''), current: true } : null,
+    currentTrailItem ? { item: currentTrailItem, target: String((typeof window !== 'undefined' ? window.location.hash : '') || currentTrailItem.target || ''), current: true } : null,
     ...backStack.map((entry) => ({ item: itemForTrailTarget(entry.target), target: entry.target, entry })),
   ]
     .filter((entry) => entry?.item && entry.target)
