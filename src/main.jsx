@@ -478,7 +478,7 @@ function App() {
           '--active-app-ink': activeDesignProfile.ink,
         }}
       >
-        {!['homeroom-portal', 'classroom-join', 'oauth-consent'].includes(currentRoute) ? <div className="bes-top-chrome">
+        {!['homeroom-portal', 'classroom-join'].includes(currentRoute) ? <div className="bes-top-chrome">
           <Suspense fallback={null}>
             <StatusMenuBar route={currentRoute} {...context} />
           </Suspense>
