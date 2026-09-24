@@ -236,7 +236,7 @@ async function saveBundle(session, bundle, payloadMeta) {
     unit_name: cleanInline(bundle.unitName ?? bundle.unit_name ?? '', 120),
     school_year: cleanInline(bundle.schoolYear ?? bundle.school_year ?? payloadMeta.schoolYear ?? '', 40),
     source: cleanInline(bundle.source ?? payloadMeta.source ?? 'ChatGPT', 500),
-    source_kind: 'chatgpt',
+    source_kind: cleanInline(session.sourceKind || 'chatgpt', 40) || 'chatgpt',
     source_reference: cleanText(bundle.sourceReference ?? bundle.source_reference ?? payloadMeta.sourceReference ?? '', 1000),
     status: bundleStatusValue(bundle.status),
     fingerprint,
@@ -723,7 +723,7 @@ async function recordImport(session, payload, counts) {
   const bodyHash = sha256(JSON.stringify(payload || {}));
   const { error } = await session.db.from('assessment_import_events').insert({
     owner_id: session.ownerId,
-    integration_id: session.integration.id,
+    integration_id: session.integration?.id || null,
     request_id: cleanInline(payload.requestId ?? payload.request_id ?? crypto.randomUUID(), 120),
     source_kind: 'chatgpt',
     imported_items: Number(counts.importedItems || 0),
@@ -739,7 +739,15 @@ async function recordImport(session, payload, counts) {
   if (error) console.error('[question-bank] import audit failed', error.message);
 }
 
-export { deriveExamBundlePayload, splitExamQuestionContext };
+export {
+  deriveExamBundlePayload,
+  splitExamQuestionContext,
+  serverClient,
+  saveQuestions,
+  saveExam,
+  searchQuestions,
+  getExam,
+};
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
