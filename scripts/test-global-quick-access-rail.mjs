@@ -412,7 +412,7 @@ for (const token of [
   'requiresTool',
   'bes-dashboard-focus',
   'bes-assessment-quick-create',
-  "launchQuickAccessTarget('#/student-support'",
+  "launchQuickAccessTarget('#/student-support?tab=alerts'",
   "launchQuickAccessTarget('#/tool/textlab-activities'",
 ]) {
   assert.ok(rail.includes(token), `Quick Access behavior missing: ${token}`);
