@@ -181,6 +181,9 @@ jobs:
       - name: Verify Question Bank Golden Factory
         run: node scripts/test-question-bank-golden-factory.mjs
 
+      - name: Verify Brian Plugin MCP + OAuth
+        run: node scripts/test-brian-plugin-mcp.mjs
+
       - name: Verify critical browser smoke gate
         run: node scripts/test-critical-e2e-contract.mjs
 
