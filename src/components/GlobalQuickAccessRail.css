@@ -7205,6 +7205,16 @@ html body #root .app-shell.metro-clean-system[data-quick-access-layout="true"][d
    Attention Halo · App State Bookmark · Double-click Quick Actions
    · Sidebar Command Drop Zone · Visual Session Trail. */
 
+/* The invisible edge trigger must never sit above interactive rail affordances.
+   In overlay mode the rail is off-edge, so the trigger remains reachable. */
+body > .bqa-root .bqa-edge-trigger {
+  z-index: 1 !important;
+}
+
+body > .bqa-root .bqa-rail {
+  z-index: 3 !important;
+}
+
 .bqa-attention-halo {
   position: absolute;
   z-index: -1;
