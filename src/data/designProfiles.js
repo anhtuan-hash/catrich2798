@@ -51,13 +51,6 @@ export const APP_DESIGN_PROFILES = {
     icon: 'activity',
     style: 'Interactive activity lab',
     styleVi: 'Phòng tạo hoạt động tương tác'},
-  'lesson-plan-ai': {
-    accent: '#E86D1F',
-    soft: '#FFE3CD',
-    ink: '#211510',
-    icon: 'lesson',
-    style: 'Lesson canvas',
-    styleVi: 'Khung giáo án sáng tạo'},
   'assessment-core': {
     accent: '#315FC4',
     soft: '#EAF0FF',
