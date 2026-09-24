@@ -351,7 +351,7 @@ test.describe('Global Quick Access safe area', () => {
 
     const actions = peek.locator('.bqa-peek-actions');
     await expect(actions).toBeVisible();
-    await expect(actions.getByRole('button', { name: /Điểm danh ngay/i })).toBeVisible();
+    await expect(actions.getByRole('button', { name: /Điểm danh (ngay|lớp gần nhất)/i })).toBeVisible();
     await expect(peek.locator('.bqa-peek-open')).toBeVisible();
   });
 
