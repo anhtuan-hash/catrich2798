@@ -4425,8 +4425,8 @@ export default function GlobalQuickAccessRail({
         >
           <header className="bqa-panel-header">
             <div>
-              <strong>{language === 'vi' ? 'Brian Quick Access' : 'Brian Quick Access'}</strong>
-              <span>{language === 'vi' ? 'Gần đây · gợi ý ngữ cảnh · lệnh nhanh' : 'Recents · contextual suggestions · quick commands'}</span>
+              <strong>{language === 'vi' ? 'Brian Action Dock' : 'Brian Action Dock'}</strong>
+              <span>{language === 'vi' ? 'Việc cần làm · thao tác nhanh · đúng ngữ cảnh' : 'Tasks · quick actions · right context'}</span>
             </div>
             <div className="bqa-panel-header-actions">
               <button
