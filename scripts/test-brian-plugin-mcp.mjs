@@ -59,9 +59,9 @@ assert.ok(main.includes("'oauth-consent'"));
 assert.ok(main.includes("pathname === '/oauth/consent'"));
 assert.ok(main.includes('finishLoginNavigation'));
 assert.ok(page.includes('Plugin / MCP'));
-assert.ok(page.includes('MCP SERVER URL — DÙNG ĐỂ TẠO PLUGIN'));
+assert.ok(page.includes('MCP SERVER URL'));
 assert.ok(page.includes('Legacy API / GPT Action'));
-assert.ok(page.includes('fetchAllOwnedRows'), 'Question Bank must paginate beyond the old 500-row cap.');
+assert.ok(page.includes('fetchAllAccessibleRows'), 'Question Bank must paginate accessible items beyond the old 500-row cap.');
 
 // Legacy GPT Action remains available as a safe fallback.
 assert.ok(vercel.rewrites.some((r)=>r.source==='/api/question-bank'));
