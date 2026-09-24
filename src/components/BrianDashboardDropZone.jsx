@@ -98,19 +98,18 @@ function actionsFor(packet, language) {
     resource: { id: 'resource-library', label: vi ? 'Lưu Kho học liệu' : 'Save to Resources', note: vi ? 'Tải lên Drive' : 'Upload to Drive' },
     gradebook: { id: 'gradebook', label: vi ? 'Mở Sổ điểm' : 'Open Gradebook', note: vi ? 'CSV · Excel' : 'CSV · Excel' },
     textlab: { id: 'textlab', label: vi ? 'Tạo hoạt động TextLab' : 'Create in TextLab', note: vi ? 'Từ nội dung đã thả' : 'From dropped content' },
-    lesson: { id: 'lesson', label: vi ? 'Mở Lesson Architect' : 'Open Lesson Architect', note: vi ? 'Dùng làm học liệu bài dạy' : 'Use as lesson material' },
   };
   switch (packet.kind) {
     case 'text':
     case 'text-file':
       return [actions.question, actions.textcare, actions.textlab, actions.resource];
     case 'document':
-      return [actions.textcare, actions.resource, actions.lesson];
+      return [actions.textcare, actions.resource];
     case 'spreadsheet':
       return [actions.gradebook, actions.resource];
     case 'image':
     case 'media':
-      return [actions.resource, actions.lesson, actions.textlab];
+      return [actions.resource, actions.textlab];
     case 'url':
       return [actions.resource, actions.textlab];
     case 'files':
@@ -126,7 +125,6 @@ function routeForAction(id) {
   if (id === 'resource-library') return '#/resource-library';
   if (id === 'gradebook') return '#/tool/gradebook-studio';
   if (id === 'textlab') return '#/tool/textlab-activities';
-  if (id === 'lesson') return '#/tool/lesson-plan-ai';
   return '#/apps';
 }
 

@@ -24,7 +24,6 @@ for (const token of [
   'resource-library',
   'gradebook',
   'textlab',
-  'lesson',
   'onDragEnter',
   'onDrop',
   'navigator.clipboard.readText',
@@ -60,5 +59,6 @@ assert.match(resources, /setShowUpload\(true\)/);
 assert.match(resources, /setFiles\(incomingFiles\)/);
 
 assert.doesNotMatch(component, /GlobalQuickAccessRail|Action Dock|bqa-/i, 'Dashboard Drop Zone must remain independent from sidebar infrastructure.');
+assert.doesNotMatch(component, /Lesson Architect|lesson-plan-ai|id:\s*['"]lesson['"]/i, 'Retired Lesson Architect must not appear in Dashboard Drop Zone actions.');
 
 console.log('PASS: Brian Drop Zone is a standalone Dashboard feature with file/text/link classification, mobile file selection, and direct handoffs to Question Bank, TextCare and Resource Library.');
