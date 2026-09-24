@@ -138,6 +138,12 @@ jobs:
       - name: Verify Giờ GV tab parity in WebKit
         run: npx playwright test tests/e2e/attendance-teacher-time-tab-parity.spec.js --project=webkit-desktop
 
+      - name: Verify Brian Dashboard Drop Zone in Chromium
+        run: npx playwright test tests/e2e/dashboard-drop-zone.spec.js --project=chromium-desktop
+
+      - name: Verify Brian Dashboard Drop Zone in WebKit
+        run: npx playwright test tests/e2e/dashboard-drop-zone.spec.js --project=webkit-desktop
+
       - name: Verify iPhone layout in Chromium
         run: npx playwright test tests/e2e/iphone-dashboard-attendance-layout.spec.js --project=chromium-desktop
 
