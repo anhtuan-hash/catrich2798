@@ -16,7 +16,7 @@ assert.equal(manifest.releaseName, expectedRelease);
 assert.equal(manifest.release, expectedRelease);
 assert.equal(version.runtimeCore, '2.6.7');
 assert.equal(manifest.runtimeCore, '2.6.7');
-assert.ok(sync.includes("value.releaseName = 'Golden Bank & Exam Factory · Production Certified · Canonical Role Guards'"));
+assert.ok(sync.includes('value.releaseName = expectedRelease;'));
 assert.ok(sync.includes('value.release = expectedRelease;'));
 assert.ok(sync.includes('bes-app-version'));
 assert.match(index, /<meta\s+name=["']bes-app-version["']\s+content=["']11\.9\.5["']/i);
