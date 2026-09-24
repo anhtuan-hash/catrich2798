@@ -178,6 +178,9 @@ jobs:
       - name: Verify Question Bank Management Suite
         run: node scripts/test-question-bank-management-suite.mjs
 
+      - name: Verify Question Bank Exam Factory
+        run: node scripts/test-question-bank-exam-factory.mjs
+
       - name: Verify Question Bank Golden Factory
         run: node scripts/test-question-bank-golden-factory.mjs
 
