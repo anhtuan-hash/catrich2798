@@ -64,4 +64,47 @@
   html body .attendance-layer .attendance-shell .attendance-confirm-bar {
     padding-bottom: calc(12px + env(safe-area-inset-bottom)) !important;
   }
+
+  /* Dashboard timeline phone lock: prevent later desktop Timeline V2 !important
+     rules from recreating implicit columns on iPhone. */
+  html body #root .app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-timeline-event {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    grid-template-columns: 62px 20px minmax(0, 1fr) 24px !important;
+    grid-auto-columns: 0 !important;
+    gap: 8px !important;
+    overflow: hidden !important;
+  }
+
+  html body #root .app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-event-orb,
+  html body #root .app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-event-kind {
+    display: none !important;
+  }
+
+  html body #root .app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-event-copy {
+    grid-column: 3 !important;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  html body #root .app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-event-copy > strong {
+    font-size: 15px !important;
+    line-height: 1.3 !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  html body #root .app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-event-time strong {
+    font-size: 14px !important;
+    white-space: nowrap !important;
+    word-break: normal !important;
+  }
+
+  html body #root .app-shell[data-route="dashboard"] .gd-calendar-timeline-v2 .gd-event-chevron {
+    grid-column: 4 !important;
+  }
 }
