@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import {
   AppWindow,
   Bell,
+  Bookmark,
   BookOpenCheck,
   Boxes,
   CalendarDays,
@@ -925,6 +926,76 @@ function keyboardLetterForItem(item, index = 0) {
   return pool[index % pool.length];
 }
 
+const QUICK_ACCESS_BOOKMARK_MAX = 12;
+
+function quickAccessBookmarkStorageKey(user) {
+  return `bes-quick-access-bookmarks-v6:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessBookmarks(user) {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = JSON.parse(window.localStorage?.getItem(quickAccessBookmarkStorageKey(user)) || '{}');
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+    return Object.fromEntries(
+      Object.entries(raw)
+        .filter(([itemId, entry]) => itemId && entry && typeof entry.target === 'string' && entry.target.startsWith('#/'))
+        .sort((a, b) => Number(b[1]?.updatedAt || 0) - Number(a[1]?.updatedAt || 0))
+        .slice(0, QUICK_ACCESS_BOOKMARK_MAX),
+    );
+  } catch {
+    return {};
+  }
+}
+
+function saveQuickAccessBookmarks(user, bookmarks) {
+  if (typeof window === 'undefined') return;
+  try {
+    const safe = Object.fromEntries(
+      Object.entries(bookmarks && typeof bookmarks === 'object' ? bookmarks : {})
+        .filter(([itemId, entry]) => itemId && entry && typeof entry.target === 'string' && entry.target.startsWith('#/'))
+        .sort((a, b) => Number(b[1]?.updatedAt || 0) - Number(a[1]?.updatedAt || 0))
+        .slice(0, QUICK_ACCESS_BOOKMARK_MAX),
+    );
+    window.localStorage?.setItem(quickAccessBookmarkStorageKey(user), JSON.stringify(safe));
+  } catch {
+    // App State Bookmarks are account-scoped device state.
+  }
+}
+
+function quickAccessDoubleClickStorageKey(user) {
+  return `bes-quick-access-double-click-v6:${quickAccessHistoryUserKey(user)}`;
+}
+
+function loadQuickAccessDoubleClickActions(user) {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = JSON.parse(window.localStorage?.getItem(quickAccessDoubleClickStorageKey(user)) || '{}');
+    if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+    return Object.fromEntries(
+      Object.entries(raw)
+        .filter(([itemId, descriptorId]) => itemId && typeof descriptorId === 'string' && descriptorId.trim())
+        .slice(0, 40),
+    );
+  } catch {
+    return {};
+  }
+}
+
+function saveQuickAccessDoubleClickActions(user, actions) {
+  if (typeof window === 'undefined') return;
+  try {
+    const safe = Object.fromEntries(
+      Object.entries(actions && typeof actions === 'object' ? actions : {})
+        .filter(([itemId, descriptorId]) => itemId && typeof descriptorId === 'string' && descriptorId.trim())
+        .slice(0, 40),
+    );
+    window.localStorage?.setItem(quickAccessDoubleClickStorageKey(user), JSON.stringify(safe));
+  } catch {
+    // Double-click actions are account-scoped device preferences.
+  }
+}
+
 function quickAccessClassroomModeStorageKey(user) {
   return `bes-quick-access-classroom-mode:${quickAccessHistoryUserKey(user)}`;
 }
@@ -1129,6 +1200,11 @@ export default function GlobalQuickAccessRail({
   const [activeActionsItemId, setActiveActionsItemId] = useState('');
   const [activeActionsTop, setActiveActionsTop] = useState(118);
   const [handoffTargetId, setHandoffTargetId] = useState('');
+  const [appBookmarks, setAppBookmarks] = useState(() => loadQuickAccessBookmarks(currentUser));
+  const [doubleClickActions, setDoubleClickActions] = useState(() => loadQuickAccessDoubleClickActions(currentUser));
+  const [sessionTrailOpen, setSessionTrailOpen] = useState(false);
+  const [dropZoneActive, setDropZoneActive] = useState(false);
+  const [bookmarkToast, setBookmarkToast] = useState('');
   const [timeTick, setTimeTick] = useState(() => Date.now());
   const [backStack, setBackStack] = useState(() => loadQuickAccessHistory(currentUser));
   const [backStackOpen, setBackStackOpen] = useState(false);
@@ -1173,6 +1249,8 @@ export default function GlobalQuickAccessRail({
   const shelfFilesRef = useRef(new Map());
   const activeActionsTimerRef = useRef(0);
   const handoffPacketRef = useRef(null);
+  const railClickTimersRef = useRef(new Map());
+  const bookmarkToastTimerRef = useRef(0);
 
   const catalog = useMemo(() => {
     const byId = new Map();
@@ -1339,6 +1417,12 @@ export default function GlobalQuickAccessRail({
 
   useEffect(() => () => {
     if (typeof document !== 'undefined') delete document.documentElement.dataset.brianClassroomMode;
+  }, []);
+
+  useEffect(() => () => {
+    railClickTimersRef.current.forEach((timer) => window.clearTimeout(timer));
+    railClickTimersRef.current.clear();
+    window.clearTimeout(bookmarkToastTimerRef.current);
   }, []);
 
   useEffect(() => {
@@ -1653,6 +1737,10 @@ export default function GlobalQuickAccessRail({
     setScreenGuard(loadQuickAccessScreenGuard(currentUser));
     setCompactReadingMode(loadQuickAccessReadingMode(currentUser));
     setUsageInsights(loadQuickAccessUsage(currentUser));
+    setAppBookmarks(loadQuickAccessBookmarks(currentUser));
+    setDoubleClickActions(loadQuickAccessDoubleClickActions(currentUser));
+    setSessionTrailOpen(false);
+    setDropZoneActive(false);
     setUndoStack([]);
     shelfFilesRef.current.clear();
   }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
@@ -1795,6 +1883,39 @@ export default function GlobalQuickAccessRail({
     catalog,
     language,
   ]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return undefined;
+    const onBookmarkShortcut = (event) => {
+      const tag = String(event.target?.tagName || '').toLowerCase();
+      const editable = event.target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag);
+      if (editable) return;
+      if (!(event.metaKey || event.ctrlKey) || !event.shiftKey || String(event.key || '').toLowerCase() !== 's') return;
+      const item = catalog.find((candidate) => activeItem(candidate, currentRoute, selectedTool));
+      if (!item) return;
+      event.preventDefault();
+      const target = String(window.location.hash || item.target || '');
+      if (!target.startsWith('#/')) return;
+      const bookmark = {
+        itemId: item.id,
+        target,
+        label: labelFor(item, language),
+        workspace,
+        scrollY: Math.max(0, Number(window.scrollY) || 0),
+        updatedAt: Date.now(),
+      };
+      setAppBookmarks((current) => {
+        const next = { ...current, [item.id]: bookmark };
+        saveQuickAccessBookmarks(currentUser, next);
+        return next;
+      });
+      setBookmarkToast(language === 'vi' ? `Đã lưu: ${labelFor(item, language)}` : `Saved: ${labelFor(item, language)}`);
+      window.clearTimeout(bookmarkToastTimerRef.current);
+      bookmarkToastTimerRef.current = window.setTimeout(() => setBookmarkToast(''), 1600);
+    };
+    window.addEventListener('keydown', onBookmarkShortcut);
+    return () => window.removeEventListener('keydown', onBookmarkShortcut);
+  }, [catalog, currentRoute, selectedTool?.slug, workspace, language, currentUser?.id, currentUser?.authId, currentUser?.email]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return undefined;
@@ -2325,6 +2446,36 @@ export default function GlobalQuickAccessRail({
     return Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : null;
   };
 
+  const attentionLevelForItem = (item) => {
+    if (!item || classroomMode) return 0;
+    const health = appHealth[item.id];
+    if (health?.state === 'error') return 3;
+    if (health?.state === 'unconfigured' || health?.state === 'syncing') return 2;
+    const activity = liveActivities.find((entry) => entry.itemId === item.id);
+    if (activity?.state === 'error') return 3;
+    if (activity?.state === 'running') return 1;
+    const tones = notificationItems
+      .filter((entry) => entry.itemId === item.id)
+      .map((entry) => entry.tone);
+    if (tones.includes('danger')) return 3;
+    if (tones.includes('warning')) return 2;
+    if (tones.length || badges[item.id]) return 1;
+    return 0;
+  };
+
+  const itemForTrailTarget = (target) => {
+    const normalized = String(target || '').split('?')[0];
+    return presentationCatalog.find((candidate) => candidate.target === normalized) || null;
+  };
+  const currentTrailItem = presentationCatalog.find((item) => activeItem(item, currentRoute, selectedTool)) || null;
+  const sessionTrailEntries = [
+    currentTrailItem ? { item: currentTrailItem, target: String((typeof window !== 'undefined' ? window.location.hash : '') || currentTrailItem.target || ''), current: true } : null,
+    ...backStack.map((entry) => ({ item: itemForTrailTarget(entry.target), target: entry.target, entry })),
+  ]
+    .filter((entry) => entry?.item && entry.target)
+    .filter((entry, index, list) => list.findIndex((candidate) => candidate.item.id === entry.item.id) === index)
+    .slice(0, 5);
+
   const switcherItems = [
     ...recentItems,
     ...workspaceItems.filter((item) => !recentItems.some((recent) => recent.id === item.id)),
@@ -2420,6 +2571,10 @@ export default function GlobalQuickAccessRail({
   const activeActionsItem = presentationCatalog.find((item) => item.id === activeActionsItemId) || null;
   const activeActions = activeActionsItem
     ? quickActionDescriptors(activeActionsItem, language).slice(0, 3)
+    : [];
+  const actionBookmark = actionItem ? appBookmarks[actionItem.id] || null : null;
+  const actionDoubleClickOptions = actionItem
+    ? quickActionDescriptors(actionItem, language)
     : [];
 
   const availableItems = (classroomMode ? presentationCatalog : catalog).filter((item) => !config.items.includes(item.id));
@@ -2902,6 +3057,140 @@ export default function GlobalQuickAccessRail({
     closeTimerRef.current = window.setTimeout(() => collapseRail(false), 340);
   };
 
+  const saveBookmarkForItem = (item) => {
+    if (!item || typeof window === 'undefined') return;
+    const target = activeItem(item, currentRoute, selectedTool)
+      ? String(window.location.hash || item.target || '')
+      : String(item.target || '');
+    if (!target.startsWith('#/')) return;
+    const bookmark = {
+      itemId: item.id,
+      target,
+      label: labelFor(item, language),
+      workspace: effectiveWorkspace,
+      scrollY: activeItem(item, currentRoute, selectedTool) ? Math.max(0, Number(window.scrollY) || 0) : 0,
+      updatedAt: Date.now(),
+    };
+    setAppBookmarks((current) => {
+      const next = { ...current, [item.id]: bookmark };
+      saveQuickAccessBookmarks(currentUser, next);
+      return next;
+    });
+    setBookmarkToast(language === 'vi' ? `Đã lưu: ${labelFor(item, language)}` : `Saved: ${labelFor(item, language)}`);
+    window.clearTimeout(bookmarkToastTimerRef.current);
+    bookmarkToastTimerRef.current = window.setTimeout(() => setBookmarkToast(''), 1600);
+    setActionItemId('');
+  };
+
+  const restoreBookmark = (bookmark, sourceEl = null) => {
+    if (!bookmark?.target) return;
+    if (QUICK_ACCESS_WORKSPACES.includes(bookmark.workspace)) setWorkspace(bookmark.workspace);
+    setActionItemId('');
+    setSessionTrailOpen(false);
+    suppressHistoryRef.current = true;
+    launchRoute({
+      target: bookmark.target,
+      label: '🔖',
+      color: '#6b65c7',
+      sourceEl,
+      meta: { source: 'quick-access-app-bookmark' },
+    });
+    if (typeof window !== 'undefined' && Number(bookmark.scrollY) > 0) {
+      window.setTimeout(() => window.scrollTo({ top: Number(bookmark.scrollY), behavior: motionMode === 'reduced' ? 'auto' : 'smooth' }), 420);
+    }
+  };
+
+  const removeBookmark = (itemId) => {
+    setAppBookmarks((current) => {
+      const next = { ...current };
+      delete next[itemId];
+      saveQuickAccessBookmarks(currentUser, next);
+      return next;
+    });
+    setActionItemId('');
+  };
+
+  const setDoubleClickAction = (itemId, descriptorId) => {
+    setDoubleClickActions((current) => {
+      const next = { ...current };
+      if (descriptorId) next[itemId] = descriptorId;
+      else delete next[itemId];
+      saveQuickAccessDoubleClickActions(currentUser, next);
+      return next;
+    });
+  };
+
+  const handleRailClick = (item, sourceEl) => {
+    const descriptorId = doubleClickActions[item?.id];
+    if (!descriptorId) {
+      activateItem(item, sourceEl);
+      return;
+    }
+    const previous = railClickTimersRef.current.get(item.id);
+    if (previous) window.clearTimeout(previous);
+    const timer = window.setTimeout(() => {
+      railClickTimersRef.current.delete(item.id);
+      activateItem(item, sourceEl);
+    }, 210);
+    railClickTimersRef.current.set(item.id, timer);
+  };
+
+  const handleRailDoubleClick = (item, sourceEl) => {
+    const descriptorId = doubleClickActions[item?.id];
+    if (!descriptorId) return;
+    const pending = railClickTimersRef.current.get(item.id);
+    if (pending) window.clearTimeout(pending);
+    railClickTimersRef.current.delete(item.id);
+    const descriptor = quickActionDescriptors(item, language).find((candidate) => candidate.id === descriptorId);
+    if (descriptor) runQuickAction(item, descriptor, sourceEl);
+  };
+
+  const handleCommandDrop = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setDropZoneActive(false);
+    const raw = String(
+      event.dataTransfer?.getData('application/x-brian-quick-access-item')
+      || event.dataTransfer?.getData('text/plain')
+      || ''
+    ).trim();
+    if (!raw) return;
+    let itemId = raw;
+    if (raw.startsWith('#/')) {
+      const normalized = raw.split('?')[0];
+      const match = catalog.find((candidate) => candidate.target === normalized);
+      itemId = match?.id || '';
+    } else if (/^https?:\/\//i.test(raw)) {
+      try {
+        const url = new URL(raw);
+        const hash = String(url.hash || '');
+        const normalized = hash.split('?')[0];
+        const match = catalog.find((candidate) => candidate.target === normalized);
+        itemId = match?.id || '';
+      } catch {
+        itemId = '';
+      }
+    }
+    if (!itemId || !allowedIds.includes(itemId) || config.items.includes(itemId) || config.items.length >= QUICK_ACCESS_MAX_ITEMS) return;
+    persistWithUndo(
+      { ...config, items: [...config.items, itemId] },
+      language === 'vi' ? 'Thêm lối tắt từ Drop Zone' : 'Add shortcut from Drop Zone',
+    );
+  };
+
+  const navigateTrailEntry = (trail, sourceEl = null) => {
+    if (!trail?.target || trail.current) return;
+    setSessionTrailOpen(false);
+    suppressHistoryRef.current = true;
+    launchRoute({
+      target: trail.target,
+      label: '•',
+      color: trail.item?.accent || '#2b76c7',
+      sourceEl,
+      meta: { source: 'quick-access-session-trail' },
+    });
+  };
+
   const activateItem = (item, sourceEl) => {
     if (!item) return;
     recordUsage('open', item.id);
@@ -3378,6 +3667,9 @@ export default function GlobalQuickAccessRail({
         data-reading-mode={compactReadingMode ? 'compact' : 'normal'}
         data-rail-capacity={railCapacity}
         data-overflow-count={railOverflowItems.length}
+        data-bookmark-count={Object.keys(appBookmarks).length}
+        data-session-trail-count={sessionTrailEntries.length}
+        data-command-drop={precisionDrag ? 'true' : 'false'}
         data-precision-drag={precisionDrag ? 'true' : 'false'}
         data-keyboard-layer={keyboardLayer ? 'true' : 'false'}
         data-context-key={routeContextKey}
@@ -3466,6 +3758,32 @@ export default function GlobalQuickAccessRail({
             </button>
           ) : null}
 
+          {sessionTrailEntries.length > 1 ? (
+            <div
+              className={`bqa-session-trail ${sessionTrailOpen ? 'is-open' : ''}`}
+              aria-label={language === 'vi' ? 'Dấu vết phiên làm việc' : 'Session trail'}
+              onPointerEnter={() => setSessionTrailOpen(true)}
+              onPointerLeave={() => setSessionTrailOpen(false)}
+            >
+              <span className="bqa-session-trail-line" />
+              {sessionTrailEntries.map((trail, index) => (
+                <button
+                  type="button"
+                  key={`${trail.item.id}-${index}`}
+                  className={trail.current ? 'is-current' : ''}
+                  style={{ '--bqa-accent': trail.item.accent }}
+                  title={trail.current
+                    ? (language === 'vi' ? `Đang ở: ${labelFor(trail.item, language)}` : `Current: ${labelFor(trail.item, language)}`)
+                    : labelFor(trail.item, language)}
+                  aria-label={labelFor(trail.item, language)}
+                  onClick={(event) => navigateTrailEntry(trail, event.currentTarget)}
+                >
+                  <span />
+                </button>
+              ))}
+            </div>
+          ) : null}
+
           <div
             className="bqa-rail-items"
             data-adaptive-dock="true"
@@ -3475,6 +3793,8 @@ export default function GlobalQuickAccessRail({
               const Icon = item.icon || Boxes;
               const active = activeItem(item, currentRoute, selectedTool);
               const progress = progressForItem(item);
+              const attentionLevel = attentionLevelForItem(item);
+              const bookmark = appBookmarks[item.id] || null;
               const dockDistance = dockHoverIndex < 0
                 ? (active ? 'active' : 'rest')
                 : String(Math.min(3, Math.abs(index - dockHoverIndex)));
@@ -3482,8 +3802,10 @@ export default function GlobalQuickAccessRail({
                 <button
                   type="button"
                   key={item.id}
-                  className={`bqa-rail-button ${active ? 'is-active' : ''} ${progress != null ? 'has-progress' : ''} ${handoffTargetId === item.id ? 'is-handoff-target' : ''}`}
+                  className={`bqa-rail-button ${active ? 'is-active' : ''} ${progress != null ? 'has-progress' : ''} ${attentionLevel ? `has-attention attention-${attentionLevel}` : ''} ${bookmark ? 'has-bookmark' : ''} ${doubleClickActions[item.id] ? 'has-double-action' : ''} ${handoffTargetId === item.id ? 'is-handoff-target' : ''}`}
                   style={{ '--bqa-accent': item.accent, '--bqa-app-progress': progress ?? 0 }}
+                  data-attention-level={attentionLevel || 0}
+                  data-bookmarked={bookmark ? 'true' : 'false'}
                   title={displayLabelFor(item)}
                   aria-label={displayLabelFor(item)}
                   aria-current={active ? 'page' : undefined}
@@ -3523,9 +3845,33 @@ export default function GlobalQuickAccessRail({
                     setPeekItemId('');
                     setActionItemId(item.id);
                   }}
-                  onClick={(event) => activateItem(item, event.currentTarget)}
+                  onClick={(event) => handleRailClick(item, event.currentTarget)}
+                  onDoubleClick={(event) => {
+                    event.preventDefault();
+                    handleRailDoubleClick(item, event.currentTarget);
+                  }}
                 >
                   {progress != null ? <span className="bqa-progress-ring" aria-label={`${Math.round(progress)}%`} /> : null}
+                  {attentionLevel ? <span className={`bqa-attention-halo level-${attentionLevel}`} aria-hidden="true" /> : null}
+                  {bookmark ? (
+                    <span
+                      className="bqa-bookmark-mark"
+                      role="button"
+                      tabIndex={-1}
+                      title={language === 'vi' ? 'Mở bookmark đã lưu' : 'Open saved bookmark'}
+                      onPointerDown={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                      }}
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        restoreBookmark(bookmark, event.currentTarget);
+                      }}
+                    >
+                      <Bookmark size={8} fill="currentColor" aria-hidden="true" />
+                    </span>
+                  ) : null}
                   <Icon size={20} strokeWidth={2} aria-hidden="true" />
                   {appHealth[item.id] ? (
                     <span className={`bqa-health-dot is-${appHealth[item.id].state}`} title={appHealth[item.id].message || appHealth[item.id].state} aria-label={appHealth[item.id].message || appHealth[item.id].state} />
@@ -3558,6 +3904,25 @@ export default function GlobalQuickAccessRail({
               <MoreHorizontal size={18} aria-hidden="true" />
               <span>{railOverflowItems.length}</span>
             </button>
+          ) : null}
+
+          {precisionDrag ? (
+            <div
+              className={`bqa-command-drop-zone ${dropZoneActive ? 'is-active' : ''}`}
+              role="button"
+              tabIndex={-1}
+              aria-label={language === 'vi' ? 'Thả lối tắt vào đây' : 'Drop shortcut here'}
+              onDragOver={(event) => {
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'copy';
+                setDropZoneActive(true);
+              }}
+              onDragLeave={() => setDropZoneActive(false)}
+              onDrop={handleCommandDrop}
+            >
+              <Plus size={14} aria-hidden="true" />
+              <span>{language === 'vi' ? 'THẢ' : 'DROP'}</span>
+            </div>
           ) : null}
 
           {!classroomMode ? (
@@ -4529,6 +4894,41 @@ export default function GlobalQuickAccessRail({
                 <ChevronRight size={14} aria-hidden="true" />
               </button>
             ))}
+            {actionBookmark ? (
+              <button type="button" role="menuitem" onClick={(event) => restoreBookmark(actionBookmark, event.currentTarget)}>
+                <Bookmark size={14} fill="currentColor" aria-hidden="true" />
+                <span>{language === 'vi' ? 'Mở bookmark ứng dụng' : 'Open app bookmark'}</span>
+                <ChevronRight size={14} aria-hidden="true" />
+              </button>
+            ) : (
+              <button type="button" role="menuitem" onClick={() => saveBookmarkForItem(actionItem)}>
+                <Bookmark size={14} aria-hidden="true" />
+                <span>{language === 'vi' ? 'Lưu trạng thái ứng dụng' : 'Save app state'}</span>
+                <ChevronRight size={14} aria-hidden="true" />
+              </button>
+            )}
+            {actionBookmark ? (
+              <button type="button" role="menuitem" onClick={() => removeBookmark(actionItem.id)}>
+                <X size={14} aria-hidden="true" />
+                <span>{language === 'vi' ? 'Xóa bookmark' : 'Remove bookmark'}</span>
+                <ChevronRight size={14} aria-hidden="true" />
+              </button>
+            ) : null}
+            <label className="bqa-double-click-config" role="menuitem">
+              <span>
+                <Zap size={14} aria-hidden="true" />
+                <b>{language === 'vi' ? 'Double-click' : 'Double-click'}</b>
+              </span>
+              <select
+                value={doubleClickActions[actionItem.id] || ''}
+                onChange={(event) => setDoubleClickAction(actionItem.id, event.target.value)}
+              >
+                <option value="">{language === 'vi' ? 'Mở bình thường' : 'Normal open'}</option>
+                {actionDoubleClickOptions.map((descriptor) => (
+                  <option value={descriptor.id} key={descriptor.id}>{descriptor.label}</option>
+                ))}
+              </select>
+            </label>
             <button type="button" role="menuitem" onClick={() => copyDeepLink(actionItem)}>
               <AppWindow size={14} aria-hidden="true" />
               <span>{language === 'vi' ? 'Sao chép liên kết đến đây' : 'Copy deep link'}</span>
@@ -4563,6 +4963,13 @@ export default function GlobalQuickAccessRail({
             })}
           </div>
           <small>{language === 'vi' ? 'Giữ Alt + phím huyền để chuyển · thả Alt để mở' : 'Hold Alt + grave key to cycle · release Alt to open'}</small>
+        </div>
+      ) : null}
+
+      {bookmarkToast ? (
+        <div className="bqa-bookmark-toast" role="status" aria-live="polite">
+          <Bookmark size={13} fill="currentColor" aria-hidden="true" />
+          <span>{bookmarkToast}</span>
         </div>
       ) : null}
 
@@ -4731,6 +5138,27 @@ export default function GlobalQuickAccessRail({
                     {language === 'vi' ? 'Quên ngữ cảnh đã nhớ' : 'Forget page contexts'}
                   </button>
                 ) : null}
+              </div>
+
+              <div className="bqa-double-click-control">
+                <header>
+                  <strong>{language === 'vi' ? 'Double-click Quick Actions' : 'Double-click Quick Actions'}</strong>
+                  <small>{language === 'vi' ? 'Click đơn vẫn mở app; double-click có thể chạy hành động riêng.' : 'Single click still opens the app; double-click can run a separate action.'}</small>
+                </header>
+                <div>
+                  {selectedItems.map((item) => {
+                    const options = quickActionDescriptors(item, language);
+                    return (
+                      <label key={item.id}>
+                        <span>{labelFor(item, language)}</span>
+                        <select value={doubleClickActions[item.id] || ''} onChange={(event) => setDoubleClickAction(item.id, event.target.value)}>
+                          <option value="">{language === 'vi' ? 'Không đặt' : 'Not set'}</option>
+                          {options.map((descriptor) => <option value={descriptor.id} key={descriptor.id}>{descriptor.label}</option>)}
+                        </select>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="bqa-alias-control">

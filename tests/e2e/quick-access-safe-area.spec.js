@@ -860,6 +860,103 @@ test.describe('Global Quick Access safe area', () => {
     expect(packet?.url).toBe('https://example.com/brian-v6');
   });
 
+  test('V6: Attention Halo escalates independently from numeric badges', async ({ page }) => {
+    await page.goto('/#/dashboard');
+    const active = page.locator('.bqa-rail-button.is-active').first();
+    await expect(active).toBeVisible();
+    await expect.poll(async () => page.evaluate(() => typeof window.BrianQuickAccessHealth?.set)).toBe('function');
+    await page.evaluate(() => window.BrianQuickAccessHealth.set('route:dashboard', 'error', 'Regression attention test'));
+    await expect(active).toHaveAttribute('data-attention-level', '3');
+    await expect(active.locator('.bqa-attention-halo.level-3')).toBeVisible();
+  });
+
+  test('V6: App State Bookmark saves exact app state and restores it from the rail mark', async ({ page }) => {
+    await page.goto('/#/dashboard');
+    await expect(page.locator('.bqa-rail-button.is-active')).toBeVisible();
+    await page.keyboard.press('Control+Shift+S');
+    await expect.poll(async () => Number(await page.locator('.bqa-root').getAttribute('data-bookmark-count') || 0)).toBeGreaterThan(0);
+    const dashboardButton = page.locator('.bqa-rail-button[title="Dashboard"]');
+    await expect(dashboardButton.locator('.bqa-bookmark-mark')).toBeVisible();
+
+    await page.goto('/#/apps');
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'apps');
+    await dashboardButton.locator('.bqa-bookmark-mark').click();
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'dashboard');
+  });
+
+  test('V6: configurable double-click action keeps single click semantics separate', async ({ page }) => {
+    await page.goto('/#/dashboard');
+    const dashboardButton = page.locator('.bqa-rail-button[title="Dashboard"]');
+    await expect(dashboardButton).toBeVisible();
+    await dashboardButton.click({ button: 'right' });
+    const config = page.locator('.bqa-double-click-config select');
+    await expect(config).toBeVisible();
+    await config.selectOption('dashboard-apps');
+    await page.keyboard.press('Escape');
+    await dashboardButton.dblclick();
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'apps');
+  });
+
+  test('V6: Command Drop Zone adds an allowed shortcut while Alt precision mode is held', async ({ page }) => {
+    await page.addInitScript(() => {
+      const key = 'bes-quick-access-v1:quick-access-safe-area-admin';
+      localStorage.setItem(key, JSON.stringify({
+        version: 10,
+        items: ['route:dashboard', 'route:apps', 'route:homeroom'],
+        recent: [],
+        workspace: 'all',
+        mode: 'auto',
+        size: 'm',
+        motion: 'fluid',
+        density: 'comfortable',
+        side: 'left',
+        theme: 'glass',
+        hoverDelay: 220,
+        labels: true,
+        workflows: [],
+        timeAware: true,
+        spatialMemory: true,
+        contextMemory: true,
+        pinned: false,
+        updatedAt: 0,
+      }));
+    });
+    await page.goto('/#/apps');
+    await expect(page.locator('.bqa-root')).toBeVisible();
+    await page.keyboard.down('Alt');
+    const zone = page.locator('.bqa-command-drop-zone');
+    await expect(zone).toBeVisible();
+    await zone.dispatchEvent('dragover', {
+      dataTransfer: { dropEffect: 'copy', effectAllowed: 'copy', types: ['text/plain'] },
+    }).catch(() => {});
+    await page.evaluate(() => {
+      const zone = document.querySelector('.bqa-command-drop-zone');
+      const transfer = new DataTransfer();
+      transfer.setData('text/plain', 'tool:gradebook-studio');
+      zone?.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: transfer }));
+    });
+    await page.keyboard.up('Alt');
+    await expect(page.locator('.bqa-rail-button[title="Sổ điểm"]')).toBeVisible();
+  });
+
+  test('V6: Visual Session Trail connects recent app navigation and can jump backward', async ({ page }) => {
+    await page.goto('/#/apps');
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'apps');
+
+    await page.locator('.bqa-rail-button[title="Dashboard"]').click();
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'dashboard');
+    await page.locator('.bqa-rail-button[title="Chủ nhiệm"]').click();
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'homeroom');
+
+    const root = page.locator('.bqa-root');
+    await expect.poll(async () => Number(await root.getAttribute('data-session-trail-count') || 0)).toBeGreaterThanOrEqual(2);
+    const trail = page.locator('.bqa-session-trail');
+    await expect(trail).toBeVisible();
+    const previous = trail.locator('button:not(.is-current)').first();
+    await previous.click();
+    await expect(page.locator('.app-shell')).not.toHaveAttribute('data-route', 'homeroom');
+  });
+
   test('pinned panel reflows content instead of covering it', async ({ page }) => {
     await page.goto('/#/apps');
     await expect(page.locator('.bqa-root')).toBeVisible();

@@ -7199,3 +7199,354 @@ html body #root .app-shell.metro-clean-system[data-quick-access-layout="true"][d
     transition: none !important;
   }
 }
+
+
+/* Brian Quick Access V6 wave 2 · 2026-09-24
+   Attention Halo · App State Bookmark · Double-click Quick Actions
+   · Sidebar Command Drop Zone · Visual Session Trail. */
+
+/* The invisible edge trigger must never sit above interactive rail affordances.
+   In overlay mode the rail is off-edge, so the trigger remains reachable. */
+body > .bqa-root .bqa-edge-trigger {
+  z-index: 1 !important;
+}
+
+body > .bqa-root .bqa-rail {
+  z-index: 3 !important;
+}
+
+.bqa-attention-halo {
+  position: absolute;
+  z-index: -1;
+  inset: -5px;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: .78;
+}
+
+.bqa-attention-halo.level-1 {
+  box-shadow: 0 0 0 2px rgba(54,135,213,.14), 0 0 14px rgba(54,135,213,.18);
+}
+
+.bqa-attention-halo.level-2 {
+  box-shadow: 0 0 0 2px rgba(224,156,49,.20), 0 0 16px rgba(224,156,49,.24);
+  animation: bqa-attention-pulse 2.1s ease-in-out infinite;
+}
+
+.bqa-attention-halo.level-3 {
+  box-shadow: 0 0 0 2px rgba(223,76,91,.23), 0 0 18px rgba(223,76,91,.28);
+  animation: bqa-attention-pulse 1.35s ease-in-out infinite;
+}
+
+@keyframes bqa-attention-pulse {
+  0%, 100% { opacity: .48; transform: scale(.97); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
+.bqa-bookmark-mark {
+  position: absolute;
+  z-index: 8;
+  left: -5px;
+  bottom: -4px;
+  width: 15px;
+  height: 15px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  color: #6b65c7;
+  background: #f0efff;
+  box-shadow: 0 3px 8px rgba(72,63,157,.18);
+  cursor: pointer;
+  transition: transform 130ms ease, background-color 130ms ease;
+}
+
+.bqa-bookmark-mark:hover {
+  transform: scale(1.13);
+  background: #e8e6ff;
+}
+
+.bqa-rail-button.has-double-action::before {
+  content: '2×';
+  position: absolute;
+  z-index: 7;
+  top: -4px;
+  left: -4px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  color: #4f6680;
+  background: #eef3f8;
+  box-shadow: 0 2px 6px rgba(35,68,99,.13);
+  font-size: 6.5px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.bqa-session-trail {
+  position: absolute;
+  z-index: 9;
+  left: 1px;
+  top: 116px;
+  width: 12px;
+  max-height: 180px;
+  padding: 5px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  pointer-events: auto;
+  opacity: .72;
+  transition: opacity 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+
+.bqa-session-trail:hover,
+.bqa-session-trail.is-open {
+  opacity: 1;
+  background: rgba(250,252,255,.9);
+  box-shadow: 0 5px 14px rgba(37,74,108,.10);
+}
+
+.bqa-session-trail-line {
+  position: absolute;
+  z-index: 0;
+  top: 9px;
+  bottom: 9px;
+  left: 5.5px;
+  width: 1px;
+  border-radius: 999px;
+  background: rgba(115,143,171,.28);
+  pointer-events: none;
+}
+
+.bqa-session-trail > button {
+  appearance: none;
+  position: relative;
+  z-index: 1;
+  width: 11px;
+  height: 11px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.bqa-session-trail > button > span {
+  width: 6px;
+  height: 6px;
+  border: 1.5px solid #fff;
+  border-radius: 999px;
+  background: var(--bqa-accent, #7890a8);
+  box-shadow: 0 1px 4px rgba(37,72,105,.18);
+  transition: transform 130ms ease;
+}
+
+.bqa-session-trail > button:hover > span,
+.bqa-session-trail > button:focus-visible > span {
+  transform: scale(1.38);
+  outline: none;
+}
+
+.bqa-session-trail > button.is-current > span {
+  width: 8px;
+  height: 8px;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--bqa-accent, #2e75b6) 16%, transparent), 0 1px 4px rgba(37,72,105,.18);
+}
+
+.bqa-command-drop-zone {
+  width: 36px;
+  min-height: 36px;
+  margin: 3px auto 2px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 1px;
+  border: 1px dashed rgba(59,116,172,.36);
+  border-radius: 11px;
+  color: #4e7398;
+  background: rgba(238,247,255,.82);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.78);
+  font-size: 6.6px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  line-height: 1;
+  text-transform: uppercase;
+  transition: transform 150ms cubic-bezier(.22,1,.36,1), background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.bqa-command-drop-zone.is-active {
+  color: #fff;
+  border-color: rgba(45,108,170,.78);
+  background: #3479ba;
+  box-shadow: 0 0 0 4px rgba(52,121,186,.14), 0 8px 18px rgba(40,93,145,.18);
+  transform: scale(1.08);
+}
+
+.bqa-double-click-config {
+  min-height: 40px;
+  padding: 5px 7px;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 118px;
+  align-items: center;
+  gap: 7px;
+  border-top: 1px solid rgba(107,139,171,.11);
+  color: #4d6984;
+}
+
+.bqa-double-click-config > span {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bqa-double-click-config b {
+  font-size: 9.5px;
+}
+
+.bqa-double-click-config select {
+  min-width: 0;
+  height: 28px;
+  padding: 0 6px;
+  border: 1px solid rgba(105,139,176,.22);
+  border-radius: 8px;
+  color: #375979;
+  background: #fff;
+  font: inherit;
+  font-size: 8.7px;
+  outline: none;
+}
+
+.bqa-double-click-control {
+  margin-top: 8px;
+  padding: 9px;
+  border: 1px solid rgba(105,139,177,.18);
+  border-radius: 13px;
+  background: rgba(247,250,254,.88);
+}
+
+.bqa-double-click-control > header {
+  display: grid;
+  gap: 2px;
+  margin-bottom: 7px;
+}
+
+.bqa-double-click-control > header strong {
+  color: #294e72;
+  font-size: 10.8px;
+}
+
+.bqa-double-click-control > header small {
+  color: #8496a8;
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.bqa-double-click-control > div {
+  display: grid;
+  gap: 5px;
+}
+
+.bqa-double-click-control label {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(90px,.8fr) minmax(0,1.2fr);
+  align-items: center;
+  gap: 7px;
+}
+
+.bqa-double-click-control label > span {
+  overflow: hidden;
+  color: #4f6c87;
+  font-size: 9.2px;
+  font-weight: 680;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bqa-double-click-control select {
+  width: 100%;
+  min-width: 0;
+  height: 29px;
+  padding: 0 7px;
+  border: 1px solid rgba(111,145,181,.24);
+  border-radius: 8px;
+  color: #294c6d;
+  background: #fff;
+  font: inherit;
+  font-size: 9px;
+  outline: none;
+}
+
+.bqa-double-click-control select:focus {
+  border-color: rgba(49,112,178,.48);
+  box-shadow: 0 0 0 2px rgba(57,123,190,.08);
+}
+
+.bqa-bookmark-toast {
+  position: fixed;
+  z-index: 2147483647;
+  left: 82px;
+  bottom: 28px;
+  min-height: 34px;
+  max-width: min(360px, calc(100vw - 120px));
+  padding: 7px 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(104,96,190,.22);
+  border-radius: 11px;
+  color: #5e57ae;
+  background: rgba(250,249,255,.97);
+  box-shadow: 0 12px 28px rgba(68,60,155,.16);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  font-size: 10px;
+  font-weight: 710;
+  pointer-events: none;
+}
+
+.bqa-root[data-command-drop="true"] .bqa-rail {
+  box-shadow:
+    0 0 0 1px rgba(55,116,176,.10),
+    0 14px 32px rgba(36,74,111,.12);
+}
+
+@media (max-height: 760px) {
+  .bqa-session-trail {
+    top: 104px;
+    gap: 6px;
+  }
+
+  .bqa-bookmark-mark,
+  .bqa-rail-button.has-double-action::before {
+    transform: scale(.9);
+  }
+}
+
+@media (max-width: 760px), (hover: none) {
+  .bqa-session-trail,
+  .bqa-command-drop-zone,
+  .bqa-bookmark-toast {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bqa-attention-halo,
+  .bqa-command-drop-zone,
+  .bqa-bookmark-mark,
+  .bqa-session-trail,
+  .bqa-session-trail > button > span {
+    animation: none !important;
+    transition: none !important;
+  }
+}
