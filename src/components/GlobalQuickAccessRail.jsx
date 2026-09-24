@@ -620,7 +620,7 @@ function itemAllowed(item, currentUser, appVisibility) {
 
 function activeItem(item, currentRoute, selectedTool) {
   const id = String(item?.id || '');
-  if (id === 'action:today') return currentRoute === 'dashboard';
+  if (id === 'action:today') return currentRoute === "dashboard";
   if (id === 'action:question-bank') return currentRoute === 'assessment-core';
   if (id === 'action:student-attention') return currentRoute === 'student-support';
   if (id === 'action:gradebook-quick') return currentRoute === 'tool' && selectedTool?.slug === 'gradebook-studio';
