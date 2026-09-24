@@ -712,9 +712,9 @@ async function recordImport(session, payload, counts) {
   const bodyHash = sha256(JSON.stringify(payload || {}));
   const { error } = await session.db.from('assessment_import_events').insert({
     owner_id: session.ownerId,
-    integration_id: session.integration.id,
+    integration_id: session.integration?.id || null,
     request_id: cleanInline(payload.requestId ?? payload.request_id ?? crypto.randomUUID(), 120),
-    source_kind: 'chatgpt',
+    source_kind: cleanInline(session.sourceKind || 'chatgpt', 40) || 'chatgpt',
     imported_items: Number(counts.importedItems || 0),
     reused_items: Number(counts.reusedItems || 0),
     imported_bundles: Number(counts.importedBundles || 0),
@@ -728,7 +728,15 @@ async function recordImport(session, payload, counts) {
   if (error) console.error('[question-bank] import audit failed', error.message);
 }
 
-export { deriveExamBundlePayload, splitExamQuestionContext };
+export {
+  deriveExamBundlePayload,
+  splitExamQuestionContext,
+  serverClient,
+  saveQuestions,
+  saveExam,
+  searchQuestions,
+  getExam,
+};
 
 export default async function handler(req, res) {
   if (req.method === 'OPTIONS') {
