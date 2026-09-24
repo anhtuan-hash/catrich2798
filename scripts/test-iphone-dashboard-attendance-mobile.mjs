@@ -49,8 +49,8 @@ assert.match(dashboardCss, /\.gd-calendar-timeline-v2\s+\.gd-timeline-event[\s\S
 assert.match(dashboardCss, /\.gd-calendar-timeline-v2\s+\.gd-event-orb,[\s\S]{0,220}?\.gd-event-kind[\s\S]{0,160}?display\s*:\s*none/i, 'Dashboard Timeline V2 must hide desktop-only orb and kind columns on phone');
 assert.match(dashboardCss, /\.gd-calendar-timeline-v2\s+\.gd-event-copy[\s\S]{0,260}?grid-column\s*:\s*3[\s\S]{0,260}?min-width\s*:\s*0/i, 'Dashboard Timeline V2 copy must own the flexible phone column');
 assert.match(locksCss, /\.gd-calendar-timeline-v2\s+\.gd-timeline-event[\s\S]{0,420}?grid-template-columns\s*:\s*62px\s+20px\s+minmax\(0,\s*1fr\)\s+24px/i, 'Phone cascade locks must preserve the Timeline V2 four-column grid');
-const newsCss = await readFile(new URL('../src/components/DashboardNewsHub.css', import.meta.url), 'utf8');
-const newsExpandedCss = await readFile(new URL('../src/components/DashboardNewsHubExpanded.css', import.meta.url), 'utf8');
+const newsCss = read('src/components/DashboardNewsHub.css');
+const newsExpandedCss = read('src/components/DashboardNewsHubExpanded.css');
 assert.match(newsCss, /Dashboard News Hub phone reflow/, 'Dashboard News Hub phone reflow block must exist');
 assert.match(newsCss, /\.dnh-grid[\s\S]{0,420}?grid-template-columns\s*:\s*minmax\(0,\s*1fr\)/i, 'Dashboard News Hub compact grid must collapse to one column on phone');
 assert.match(newsCss, /\.dnh-featured[\s\S]{0,520}?grid-template-columns\s*:\s*minmax\(0,\s*1fr\)/i, 'Featured Dashboard news must become a single-column phone card');
