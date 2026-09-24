@@ -119,13 +119,18 @@ const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAcces
 const HiddenAppsVault = lazy(() => import('./pages/HiddenAppsVault.jsx'));
 const QuestionBank = lazy(() => import('./pages/QuestionBank.jsx'));
 const QuestionBankPractice = lazy(() => import('./pages/QuestionBankPractice.jsx'));
+const BrianOAuthConsent = lazy(() => import('./pages/BrianOAuthConsent.jsx'));
 const ClassroomJoin = lazy(() => import('./pages/ClassroomJoin.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'homeroom', 'homeroom-portal', 'classroom-join', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
-const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'qb-practice']);
+const OAUTH_RESUME_KEY = 'brian-oauth-authorization-id';
+
+const ROUTES = ['home', 'oauth-consent', 'apps', 'news', 'games', 'tools', 'homeroom', 'homeroom-portal', 'classroom-join', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
+const PUBLIC_ROUTES = new Set(['home', 'oauth-consent', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'qb-practice']);
 
 function getInitialRoute() {
   const href = window.location.href || '';
+  const pathname = String(window.location.pathname || '').replace(/\/+$/, '') || '/';
+  if (pathname === '/oauth/consent') return 'oauth-consent';
   const cleanHash = window.location.hash.replace('#/', '').replace('#', '').trim();
   if (href.includes('type=recovery') || href.includes('recovery=1')) return 'login';
   const routeOnly = cleanHash.split('?')[0].split('&')[0];
@@ -175,6 +180,20 @@ const ROUTE_DESIGN_PROFILES = {
 function getActiveDesignProfile(currentRoute, selectedTool) {
   if (currentRoute === 'tool' && selectedTool?.slug) return getAppDesignProfile(selectedTool.slug);
   return ROUTE_DESIGN_PROFILES[currentRoute] || ROUTE_DESIGN_PROFILES.home;
+}
+
+function pendingOauthAuthorizationId() {
+  try { return window.sessionStorage.getItem(OAUTH_RESUME_KEY) || ''; }
+  catch { return ''; }
+}
+
+function finishLoginNavigation(user) {
+  const authorizationId = pendingOauthAuthorizationId();
+  if (authorizationId) {
+    window.location.assign(`/oauth/consent?authorization_id=${encodeURIComponent(authorizationId)}`);
+    return;
+  }
+  window.location.hash = `#/${getFirstAllowedRoute(user)}`;
 }
 
 function normalizeMetroIntensity(value) {
@@ -352,7 +371,7 @@ function App() {
 
   useEffect(() => {
     if (authReady && currentUser && ['login', 'register'].includes(currentRoute)) {
-      window.location.hash = `#/${getFirstAllowedRoute(currentUser)}`;
+      finishLoginNavigation(currentUser);
     }
   }, [authReady, currentUser, currentRoute]);
 
@@ -459,7 +478,7 @@ function App() {
           '--active-app-ink': activeDesignProfile.ink,
         }}
       >
-        {!['homeroom-portal', 'classroom-join'].includes(currentRoute) ? <div className="bes-top-chrome">
+        {!['homeroom-portal', 'classroom-join', 'oauth-consent'].includes(currentRoute) ? <div className="bes-top-chrome">
           <Suspense fallback={null}>
             <StatusMenuBar route={currentRoute} {...context} />
           </Suspense>
@@ -482,7 +501,7 @@ function App() {
           </Suspense>
         )}
 
-        {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal', 'classroom-join'].includes(currentRoute) && (
+        {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal', 'classroom-join', 'oauth-consent'].includes(currentRoute) && (
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="command-palette" label={language === 'vi' ? 'tìm kiếm nhanh' : 'command palette'}>
               <GlobalCommandPalette
@@ -502,12 +521,12 @@ function App() {
           <Suspense fallback={null}>
           </Suspense>
         ) : null}
-        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute) ? (
+        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'oauth-consent'].includes(currentRoute) ? (
           <Suspense fallback={null}>
             <TransferInboxBanner currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} language={language} />
           </Suspense>
         ) : null}
-        {currentUser && !['homeroom-portal', 'classroom-join'].includes(currentRoute) ? (
+        {currentUser && !['homeroom-portal', 'classroom-join', 'oauth-consent'].includes(currentRoute) ? (
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="shared-chatbot-drawer" label={language === 'vi' ? 'chatbot dùng chung' : 'shared chatbot'}>
               <SharedChatbotDrawer currentUser={currentUser} language={language} />
@@ -519,6 +538,7 @@ function App() {
           <div className="bqa-content-safe-frame" data-quick-access-safe-frame={quickAccessEnabled ? 'true' : 'false'}>
           <Suspense fallback={<RouteFallback language={language} />}>
             {currentRoute === 'home' && (!currentUser || visibilityReady) && <Home {...context} />}
+            {currentRoute === 'oauth-consent' && <BrianOAuthConsent currentUser={currentUser} />}
             {currentRoute === 'home' && currentUser && !visibilityReady ? <div className="windows-loader-wrap"><div className="windows-loader-card">{language === 'vi' ? 'Đang đồng bộ danh sách ứng dụng…' : 'Syncing app visibility…'}</div></div> : null}
             {requiresAuth && currentUser && !canAccessRoute && visibilityReady && <AccessDenied language={language} currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} temporarilyHidden={temporarilyHidden} />}
             {requiresAuth && currentUser && !visibilityReady ? <div className="windows-loader-wrap"><div className="windows-loader-card">{language === 'vi' ? 'Đang đồng bộ danh sách ứng dụng…' : 'Syncing app visibility…'}</div></div> : null}
@@ -554,8 +574,8 @@ function App() {
             {canAccessRoute && currentRoute === 'trash' && currentUser && <TrashCenter {...context} />}
             {currentRoute === 'contact' && <Contact {...context} />}
             {canAccessRoute && currentRoute === 'settings' && currentUser && <Settings {...context} />}
-            {currentRoute === 'login' && <AuthPage mode="login" onLogin={(u) => { setCurrentUser(u); window.location.hash = `#/${getFirstAllowedRoute(u)}`; }} {...context} />}
-            {currentRoute === 'register' && <AuthPage mode="register" onLogin={(u) => { if (u) { setCurrentUser(u); window.location.hash = `#/${getFirstAllowedRoute(u)}`; } }} {...context} />}
+            {currentRoute === 'login' && <AuthPage mode="login" onLogin={(u) => { setCurrentUser(u); finishLoginNavigation(u); }} {...context} />}
+            {currentRoute === 'register' && <AuthPage mode="register" onLogin={(u) => { if (u) { setCurrentUser(u); finishLoginNavigation(u); } }} {...context} />}
             {canAccessRoute && currentRoute === 'admin' && currentUser && <AdminPage {...context} />}
             {currentRoute === 'setup' && <SupabaseSetup {...context} />}
             {canAccessRoute && currentRoute === 'tool' && currentUser && <ToolPage tool={selectedTool} {...context} />}
@@ -580,7 +600,7 @@ function App() {
             <SyncQueueIndicator currentUser={currentUser} language={language} externalLauncher />
           </Suspense>
         </> : null}
-        {!['homeroom-portal', 'classroom-join'].includes(currentRoute) ? <Footer language={language} currentUser={currentUser} /> : null}
+        {!['homeroom-portal', 'classroom-join', 'oauth-consent'].includes(currentRoute) ? <Footer language={language} currentUser={currentUser} /> : null}
       </div>
     </>
   );
