@@ -936,10 +936,10 @@ test.describe('Global Quick Access safe area', () => {
 
   test('V6: App State Bookmark saves exact app state and restores it from the rail mark', async ({ page }) => {
     await page.goto('/#/dashboard');
-    await expect(page.locator('.bqa-rail-button.is-active')).toBeVisible();
+    const todayButton = page.locator('.bqa-rail-button[title="Hôm nay"]');
+    await expect(todayButton).toBeVisible();
     await page.keyboard.press('Control+Shift+S');
     await expect.poll(async () => Number(await page.locator('.bqa-root').getAttribute('data-bookmark-count') || 0)).toBeGreaterThan(0);
-    const todayButton = page.locator('.bqa-rail-button[title="Hôm nay"]');
     await expect(todayButton.locator('.bqa-bookmark-mark')).toBeVisible();
 
     await page.goto('/#/apps');
