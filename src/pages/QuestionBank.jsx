@@ -134,6 +134,23 @@ async function bundleFingerprint(bundle) {
   }));
 }
 
+async function fetchAllOwnedRows(table, select, ownerId, { pageSize = 1000, order = 'updated_at', maxRows = 20000 } = {}) {
+  const all = [];
+  for (let from = 0; from < maxRows; from += pageSize) {
+    const to = Math.min(maxRows - 1, from + pageSize - 1);
+    const result = await supabase.from(table)
+      .select(select)
+      .eq('owner_id', ownerId)
+      .order(order, { ascending: false })
+      .range(from, to);
+    if (result.error) throw result.error;
+    const rows = result.data || [];
+    all.push(...rows);
+    if (rows.length < pageSize) break;
+  }
+  return { data: all, error: null };
+}
+
 function EmptyState({ title, hint }) {
   return (
     <div className="qb-empty">
@@ -266,15 +283,14 @@ OpenAPI: ${openApiUrl}`;
     setMessage('');
     try {
       const [itemsResult, bundlesResult, testsResult, blueprintsResult, integrationResult, eventsResult] = await Promise.all([
-        supabase.from('assessment_items')
-          .select('id,bundle_id,bundle_position,status,question_type,stem,options,correct_answer,explanation,skill,cefr,topic,cognitive_level,difficulty,source,usage_count,grade,unit_name,school_year,grammar_point,tags,source_kind,source_reference,created_at,updated_at')
-          .eq('owner_id', userId).order('updated_at', { ascending: false }).limit(500),
-        supabase.from('assessment_bundles')
-          .select('*').eq('owner_id', userId).order('updated_at', { ascending: false }).limit(200),
-        supabase.from('assessment_tests')
-          .select('*').eq('owner_id', userId).order('updated_at', { ascending: false }).limit(200),
-        supabase.from('assessment_blueprints')
-          .select('*').eq('owner_id', userId).order('updated_at', { ascending: false }).limit(100),
+        fetchAllOwnedRows(
+          'assessment_items',
+          'id,bundle_id,bundle_position,status,question_type,stem,options,correct_answer,explanation,skill,cefr,topic,cognitive_level,difficulty,source,usage_count,grade,unit_name,school_year,grammar_point,tags,source_kind,source_reference,created_at,updated_at',
+          userId,
+        ),
+        fetchAllOwnedRows('assessment_bundles', '*', userId),
+        fetchAllOwnedRows('assessment_tests', '*', userId),
+        fetchAllOwnedRows('assessment_blueprints', '*', userId, { maxRows: 2000 }),
         supabase.from('question_bank_integrations')
           .select('id,provider,label,active,last_used_at,created_at,updated_at')
           .eq('owner_id', userId).eq('provider', 'chatgpt').maybeSingle(),
@@ -288,10 +304,14 @@ OpenAPI: ${openApiUrl}`;
       const nextTests = testsResult.data || [];
       let counts = {};
       if (nextTests.length) {
-        const { data, error } = await supabase.from('assessment_test_items')
-          .select('test_id').in('test_id', nextTests.map((item) => item.id));
-        if (error) throw error;
-        counts = (data || []).reduce((acc, item) => {
+        const allJoins = [];
+        for (let offset = 0; offset < nextTests.length; offset += 100) {
+          const ids = nextTests.slice(offset, offset + 100).map((item) => item.id);
+          const { data, error } = await supabase.from('assessment_test_items').select('test_id').in('test_id', ids);
+          if (error) throw error;
+          allJoins.push(...(data || []));
+        }
+        counts = allJoins.reduce((acc, item) => {
           acc[item.test_id] = (acc[item.test_id] || 0) + 1;
           return acc;
         }, {});
