@@ -9,3 +9,10 @@
 .brian-oauth-actions{display:grid;grid-template-columns:1fr 1.5fr;gap:9px;margin-top:20px}.brian-oauth-primary,.brian-oauth-secondary{min-height:44px;border-radius:11px;padding:10px 15px;font:inherit;font-size:12px;font-weight:800;cursor:pointer}.brian-oauth-primary{border:1px solid #13294d;background:#13294d;color:#fff}.brian-oauth-secondary{border:1px solid #d4dce8;background:#fff;color:#41506a}.brian-oauth-primary:disabled,.brian-oauth-secondary:disabled{opacity:.55;cursor:not-allowed}.brian-oauth-foot{display:block;margin-top:12px;text-align:center;color:#919baa;font-size:9px}
 .brian-oauth-state{display:grid;justify-items:center;gap:10px;padding:50px 0}.brian-oauth-state h1{font-size:18px}.brian-oauth-spinner{width:28px;height:28px;border:3px solid #dfe6ef;border-top-color:#315fc4;border-radius:50%;animation:brianOAuthSpin .8s linear infinite}@keyframes brianOAuthSpin{to{transform:rotate(360deg)}}
 @media(max-width:620px){.brian-oauth-page{padding:14px}.brian-oauth-card{padding:20px;border-radius:18px}.brian-oauth-card h1{font-size:25px}.brian-oauth-client>div{grid-template-columns:1fr;gap:4px}.brian-oauth-actions{grid-template-columns:1fr}}
+
+
+/* Keep the canonical global chrome mount intact for regression contracts,
+   while the OAuth consent surface remains visually isolated. */
+.app-shell[data-route="oauth-consent"] > .bes-top-chrome {
+  display: none !important;
+}
