@@ -386,7 +386,7 @@ function App() {
     && currentUser
     && canAccessRoute
     && currentRoute !== 'home'
-    && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute)
+    && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'oauth-consent'].includes(currentRoute)
   );
 
   const context = {
@@ -583,14 +583,14 @@ function App() {
           </div>
         </main>
 
-        {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal', 'classroom-join'].includes(currentRoute) && (
+        {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal', 'classroom-join', 'oauth-consent'].includes(currentRoute) && (
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="global-autosave" label={language === 'vi' ? 'tự lưu' : 'autosave'}>
               <GlobalAutosave route={currentRoute} selectedTool={selectedTool} currentUser={currentUser} language={language} />
             </AppErrorBoundary>
           </Suspense>
         )}
-        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'dashboard'].includes(currentRoute) ? <>
+        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'dashboard', 'oauth-consent'].includes(currentRoute) ? <>
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="content-transfer" label={language === 'vi' ? 'gửi nội dung' : 'content transfer'}>
               <ContentTransferHub currentUser={currentUser} currentRoute={currentRoute} selectedTool={selectedTool} language={language} accent={activeDesignProfile.accent} appVisibility={appVisibility} />
