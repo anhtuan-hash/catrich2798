@@ -18,6 +18,7 @@ import {
   upsertResourceCloud,
 } from '../utils/resourceLibrary.js';
 import { emitAutomationEvent } from '../utils/automationEngine.js';
+import { consumeDashboardDropPacket, peekDashboardDropPacket } from '../utils/dashboardDropZone.js';
 import { recordAuditEvent, softDeleteEntity } from '../utils/collaborationGovernance.js';
 import {
   RESOURCE_CATEGORY_FALLBACK,
@@ -170,6 +171,50 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
   const inputRef = useRef(null);
   const folderViewRef = useRef(null);
   const repairInFlightRef = useRef(false);
+
+  useEffect(() => {
+    let requested = '';
+    try {
+      requested = window.sessionStorage.getItem('bes-resource-library-drop-on-load') || '';
+      if (requested) window.sessionStorage.removeItem('bes-resource-library-drop-on-load');
+    } catch { /* optional */ }
+    if (!requested) return;
+
+    const packet = peekDashboardDropPacket();
+    if (!packet || packet.target !== 'resource-library') return;
+
+    const incomingFiles = Array.isArray(packet.files) ? packet.files.filter(Boolean) : [];
+    const firstName = incomingFiles[0]?.name || packet.fileMeta?.[0]?.name || '';
+    if (incomingFiles.length) {
+      setFiles(incomingFiles);
+      setForm((current) => ({
+        ...current,
+        title: current.title || firstName.replace(/\.[^.]+$/, ''),
+      }));
+      setShowUpload(true);
+      setDriveMessage(language === 'vi'
+        ? 'Brian Drop Zone đã đưa file vào khu vực tải lên. Kiểm tra thông tin trước khi lưu.'
+        : 'Brian Drop Zone moved the file into the upload form. Review the details before saving.');
+      consumeDashboardDropPacket('resource-library');
+      return;
+    }
+
+    const textValue = String(packet.url || packet.text || '').trim();
+    if (textValue) {
+      const synthetic = new File([textValue], packet.kind === 'url' ? 'dashboard-link.txt' : 'dashboard-text.txt', { type: 'text/plain' });
+      setFiles([synthetic]);
+      setForm((current) => ({
+        ...current,
+        title: current.title || (packet.kind === 'url' ? 'Liên kết từ Dashboard' : 'Văn bản từ Dashboard'),
+        source: current.source || (packet.kind === 'url' ? textValue : ''),
+      }));
+      setShowUpload(true);
+      setDriveMessage(language === 'vi'
+        ? 'Brian Drop Zone đã chuyển nội dung vào biểu mẫu tải học liệu.'
+        : 'Brian Drop Zone moved the content into the resource upload form.');
+      consumeDashboardDropPacket('resource-library');
+    }
+  }, [language]);
 
   const refreshLibrary = useCallback(async () => {
     let syncResult = await syncResourcesFromCloud().catch((error) => ({ ok: false, reason: error.message }));

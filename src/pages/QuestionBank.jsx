@@ -654,6 +654,23 @@ OpenAPI: ${openApiUrl}`;
     return () => window.removeEventListener('bes-assessment-quick-create', onQuickCreate);
   }, []);
 
+  useEffect(() => {
+    let droppedText = '';
+    try {
+      droppedText = window.sessionStorage.getItem('bes-dashboard-drop-question-text') || '';
+      if (droppedText) window.sessionStorage.removeItem('bes-dashboard-drop-question-text');
+    } catch { /* optional */ }
+    if (!droppedText.trim()) return;
+
+    setPasteText(droppedText);
+    setPastePreview(parseQuestionBankPaste(droppedText, pasteMeta));
+    setPasteResult(null);
+    setActiveTab('import');
+    window.setTimeout(() => {
+      document.querySelector('.qb-paste-import')?.scrollIntoView({ behavior: 'auto', block: 'start' });
+    }, 80);
+  }, []);
+
   const bankHealth = useMemo(
     () => analyzeBankHealth(questions, bundles),
     [questions, bundles],
