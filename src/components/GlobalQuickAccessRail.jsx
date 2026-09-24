@@ -2696,6 +2696,11 @@ export default function GlobalQuickAccessRail({
     const value = Number(snapshot?.progress);
     return Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : null;
   };
+  const healthForItem = (item) => statusIdsForItem(item).map((id) => appHealth[id]).find(Boolean) || null;
+  const badgeForItem = (item) => {
+    const statusId = statusIdsForItem(item).find((id) => badges[id]);
+    return statusId ? badges[statusId] : '';
+  };
 
   const attentionLevelForItem = (item) => {
     if (!item || classroomMode) return 0;
@@ -4045,6 +4050,8 @@ export default function GlobalQuickAccessRail({
               const Icon = item.icon || Boxes;
               const active = activeItem(item, currentRoute, selectedTool);
               const progress = progressForItem(item);
+              const health = healthForItem(item);
+              const badge = badgeForItem(item);
               const attentionLevel = attentionLevelForItem(item);
               const bookmark = appBookmarks[item.id] || null;
               const dockDistance = dockHoverIndex < 0
@@ -4125,13 +4132,13 @@ export default function GlobalQuickAccessRail({
                     </span>
                   ) : null}
                   <Icon size={20} strokeWidth={2} aria-hidden="true" />
-                  {appHealth[item.id] ? (
-                    <span className={`bqa-health-dot is-${appHealth[item.id].state}`} title={appHealth[item.id].message || appHealth[item.id].state} aria-label={appHealth[item.id].message || appHealth[item.id].state} />
+                  {health ? (
+                    <span className={`bqa-health-dot is-${health.state}`} title={health.message || health.state} aria-label={health.message || health.state} />
                   ) : null}
                   {keyboardLayer ? <kbd className="bqa-key-hint">{keyboardLetterForItem(item, index)}</kbd> : null}
-                  {!classroomMode && !itemIsGuarded(item) && badges[item.id] ? (
-                    <span className={`bqa-rail-badge ${badges[item.id] === 'dot' ? 'is-dot' : ''}`}>
-                      {badges[item.id] === 'dot' ? '' : badges[item.id]}
+                  {!classroomMode && !itemIsGuarded(item) && badge ? (
+                    <span className={`bqa-rail-badge ${badge === 'dot' ? 'is-dot' : ''}`}>
+                      {badge === 'dot' ? '' : badge}
                     </span>
                   ) : null}
                 </button>
@@ -4823,7 +4830,7 @@ export default function GlobalQuickAccessRail({
                             onDragEnd={() => setDragId('')}
                             onClick={(event) => activateItem(item, event.currentTarget)}
                           >
-                            <span className="bqa-mini-icon" style={{ '--bqa-accent': item.accent }}><Icon size={16} aria-hidden="true" />{appHealth[item.id] ? <i className={`bqa-health-dot is-${appHealth[item.id].state}`} /> : null}</span>
+                            <span className="bqa-mini-icon" style={{ '--bqa-accent': item.accent }}><Icon size={16} aria-hidden="true" />{healthForItem(item) ? <i className={`bqa-health-dot is-${healthForItem(item).state}`} /> : null}</span>
                             <b>{displayLabelFor(item)}</b>
                           </button>
                         );
@@ -4858,7 +4865,7 @@ export default function GlobalQuickAccessRail({
                             onDragEnd={() => setDragId('')}
                             onClick={(event) => activateItem(item, event.currentTarget)}
                           >
-                            <span className="bqa-mini-icon" style={{ '--bqa-accent': item.accent }}><Icon size={16} aria-hidden="true" />{appHealth[item.id] ? <i className={`bqa-health-dot is-${appHealth[item.id].state}`} /> : null}</span>
+                            <span className="bqa-mini-icon" style={{ '--bqa-accent': item.accent }}><Icon size={16} aria-hidden="true" />{healthForItem(item) ? <i className={`bqa-health-dot is-${healthForItem(item).state}`} /> : null}</span>
                             <b>{displayLabelFor(item)}</b>
                           </button>
                         );
@@ -4999,14 +5006,14 @@ export default function GlobalQuickAccessRail({
                         if (precisionDrag) return;
                         activateItem(item, event.currentTarget);
                       }}>
-                        <span className="bqa-item-icon"><Icon size={20} strokeWidth={2} aria-hidden="true" />{appHealth[item.id] ? <i className={`bqa-health-dot is-${appHealth[item.id].state}`} title={appHealth[item.id].message || appHealth[item.id].state} /> : null}</span>
+                        <span className="bqa-item-icon"><Icon size={20} strokeWidth={2} aria-hidden="true" />{healthForItem(item) ? <i className={`bqa-health-dot is-${healthForItem(item).state}`} title={healthForItem(item).message || healthForItem(item).state} /> : null}</span>
                         <span className="bqa-item-copy">
                           <span className="bqa-item-label">{displayLabelFor(item)}</span>
                           <small>{language === 'vi' ? `Alt+${index + 1}` : `Alt+${index + 1}`}</small>
                         </span>
-                        {!classroomMode && !itemIsGuarded(item) && badges[item.id] ? (
-                          <span className={`bqa-panel-badge ${badges[item.id] === 'dot' ? 'is-dot' : ''}`}>
-                            {badges[item.id] === 'dot' ? '' : badges[item.id]}
+                        {!classroomMode && !itemIsGuarded(item) && badgeForItem(item) ? (
+                          <span className={`bqa-panel-badge ${badgeForItem(item) === 'dot' ? 'is-dot' : ''}`}>
+                            {badgeForItem(item) === 'dot' ? '' : badgeForItem(item)}
                           </span>
                         ) : null}
                         {active ? <Check className="bqa-item-check" size={17} aria-hidden="true" /> : null}
