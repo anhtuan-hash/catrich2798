@@ -115,7 +115,7 @@ const STATIC_ITEMS = [
     id: 'action:attendance',
     label: 'Attendance',
     labelVi: 'Điểm danh',
-    action: 'attendance',
+    action: 'attendance-quick',
     icon: ClipboardCheck,
     accent: '#168db1',
     access: 'authenticated',
@@ -473,8 +473,11 @@ function quickActionDescriptors(item, language) {
       { id: 'ttcm-feed', label: vi ? 'Kênh TTCM' : 'TTCM feed', action: 'ttcm-feed' },
     ];
   }
-  if (item.id === 'action:attendance' || item.id === 'action:attendance-quick') {
+  if (item.id === 'action:attendance') {
     return [{ id: 'attendance', label: vi ? 'Điểm danh ngay' : 'Open attendance', action: 'attendance' }];
+  }
+  if (item.id === 'action:attendance-quick') {
+    return [{ id: 'attendance-quick', label: vi ? 'Điểm danh lớp gần nhất' : 'Open recent class attendance', action: 'attendance-quick' }];
   }
   if (item.id === 'action:today') {
     return [
@@ -690,6 +693,7 @@ function runAction(item, sourceEl) {
     return;
   }
   if (item.action === 'create-exam') {
+    try { window.sessionStorage.setItem('bes-assessment-quick-create-on-load', 'exam'); } catch { /* optional */ }
     launchQuickAccessTarget('#/assessment-core', item.labelVi || item.label, item.accent, sourceEl);
     window.setTimeout(() => window.dispatchEvent(new CustomEvent('bes-assessment-quick-create', { detail: { type: 'exam', source: 'action-dock' } })), 360);
     return;
@@ -699,7 +703,15 @@ function runAction(item, sourceEl) {
     return;
   }
   if (item.action === 'student-attention') {
-    launchQuickAccessTarget('#/student-support', item.labelVi || item.label, item.accent, sourceEl);
+    launchQuickAccessTarget('#/student-support?tab=alerts', item.labelVi || item.label, item.accent, sourceEl);
+    return;
+  }
+  if (item.action === 'attendance-quick') {
+    window.dispatchEvent(new CustomEvent('bes-attendance-quick-open', { detail: { source: 'action-dock' } }));
+    window.setTimeout(() => {
+      if (document.documentElement.classList.contains('bes-attendance-open')) return;
+      document.querySelector('.brian-nav__attendance-tab')?.click();
+    }, 90);
     return;
   }
   if (item.action === 'gradebook-quick') {
@@ -3628,6 +3640,7 @@ export default function GlobalQuickAccessRail({
     else if (descriptor.action === 'ttcm-schedule') openTtcm('schedule');
     else if (descriptor.action === 'ttcm-personnel') openTtcm('personnel');
     else if (descriptor.action === 'attendance') runAction({ action: 'attendance' }, sourceEl);
+    else if (descriptor.action === 'attendance-quick') runAction({ action: 'attendance-quick' }, sourceEl);
     else if (descriptor.targetItemId) {
       const targetItem = presentationCatalog.find((candidate) => candidate.id === descriptor.targetItemId);
       if (targetItem) activateItem(targetItem, sourceEl);
