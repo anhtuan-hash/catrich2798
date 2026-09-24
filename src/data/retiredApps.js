@@ -7,6 +7,9 @@ const normalize = (value) => String(value || '')
 // These apps are permanently removed. Keep both the real production slugs and
 // older aliases here so stale shortcuts/bookmarks can never resurrect them.
 export const RETIRED_APP_SLUGS = Object.freeze([
+  'lesson-plan-ai',
+  'lessonarchitect',
+  'lesson-architect',
   'news-feed',
   'top-five-arena',
   'top-5-arena',
@@ -21,6 +24,7 @@ export const RETIRED_APP_SLUGS = Object.freeze([
 ]);
 
 export const RETIRED_ROUTE_IDS = Object.freeze([
+  'lesson-plan-ai',
   'news-feed',
   'top-five-arena',
   'top-5-arena',
