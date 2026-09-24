@@ -351,7 +351,7 @@ test.describe('Global Quick Access safe area', () => {
 
     const actions = peek.locator('.bqa-peek-actions');
     await expect(actions).toBeVisible();
-    await expect(actions.getByRole('button', { name: /Điểm danh ngay/i })).toBeVisible();
+    await expect(actions.getByRole('button', { name: /Điểm danh (ngay|lớp gần nhất)/i })).toBeVisible();
     await expect(peek.locator('.bqa-peek-open')).toBeVisible();
   });
 
@@ -845,6 +845,36 @@ test.describe('Global Quick Access safe area', () => {
 
     await rail.locator('.bqa-rail-button[title="Soạn đề nhanh"]').click();
     await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'assessment-core');
+  });
+
+  test('Action Dock: native teacher intents land on the exact working surfaces', async ({ page }) => {
+    await page.goto('/#/apps');
+    const rail = page.locator('.bqa-rail');
+    await expect(rail).toBeVisible();
+
+    await rail.locator('.bqa-rail-button[title="Hôm nay"]').click();
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'dashboard');
+    await expect(page.locator('#dashboard-calendar')).toBeVisible();
+    await expect.poll(async () => page.evaluate(() => sessionStorage.getItem('bes-dashboard-focus-on-load'))).toBeNull();
+
+    await page.goto('/#/apps');
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'apps');
+    await page.locator('.bqa-rail-button[title="Soạn đề nhanh"]').click();
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'assessment-core');
+    await expect(page.locator('.qb-builder')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('.qb-builder')).toContainText('Tạo đề từ ngân hàng');
+    await expect.poll(async () => page.evaluate(() => sessionStorage.getItem('bes-assessment-quick-create-on-load'))).toBeNull();
+
+    await page.goto('/#/apps');
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'apps');
+    await page.locator('.bqa-rail-button[title="Học sinh cần chú ý"]').click();
+    await expect(page).toHaveURL(/#\/student-support\?tab=alerts/);
+    await expect(page.locator('.student-support-tabs button.is-active')).toContainText('Cảnh báo');
+
+    await page.goto('/#/apps');
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'apps');
+    await page.locator('.bqa-rail-button[title="Điểm danh nhanh"]').click();
+    await expect(page.locator('html')).toHaveClass(/bes-attendance-open/);
   });
 
   test('V6: active app exposes contextual quick actions without changing the fixed-left rail', async ({ page }) => {

@@ -92,6 +92,23 @@ function fold(value) {
   return String(value || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
 }
 
+function attendanceSelectionStorageKey(user) {
+  const identity = String(user?.id || user?.authId || user?.email || 'guest').trim().toLowerCase();
+  return `bes-attendance-recent-class-v1:${identity}`;
+}
+
+function readAttendanceSelection(user) {
+  if (typeof window === 'undefined') return '';
+  try { return window.localStorage.getItem(attendanceSelectionStorageKey(user)) || ''; } catch { return ''; }
+}
+
+function persistAttendanceSelection(user, classId) {
+  if (typeof window === 'undefined') return;
+  const value = String(classId || '').trim();
+  if (!value || value.startsWith('supplemental:')) return;
+  try { window.localStorage.setItem(attendanceSelectionStorageKey(user), value); } catch { /* best effort */ }
+}
+
 function vietnamDateString(date = new Date()) {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: VIETNAM_TIME_ZONE,
@@ -199,7 +216,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const [calendarSessions, setCalendarSessions] = useState([]);
   const [teacherDaySessions, setTeacherDaySessions] = useState([]);
   const [dayRecords, setDayRecords] = useState([]);
-  const [selectedClassId, setSelectedClassId] = useState('');
+  const [selectedClassId, setSelectedClassId] = useState(() => readAttendanceSelection(currentUser));
   const [selectedSessionId, setSelectedSessionId] = useState('');
   const [attendanceDate, setAttendanceDate] = useState(today);
   const [sessionTeacher, setSessionTeacher] = useState('');
@@ -276,6 +293,22 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     document.documentElement.classList.add('bes-attendance-open');
     return () => document.documentElement.classList.remove('bes-attendance-open');
   }, [open]);
+
+  useEffect(() => {
+    if (!selectedClassId) return;
+    persistAttendanceSelection(currentUser, selectedClassId);
+  }, [selectedClassId, currentUser?.id, currentUser?.authId, currentUser?.email]);
+
+  useEffect(() => {
+    const openQuickAttendance = () => {
+      if (!allowed || !canUseQuickAttendance) return;
+      setError('');
+      setView('quick');
+      setOpen(true);
+    };
+    window.addEventListener('bes-attendance-quick-open', openQuickAttendance);
+    return () => window.removeEventListener('bes-attendance-quick-open', openQuickAttendance);
+  }, [allowed, canUseQuickAttendance]);
 
   useEffect(() => {
     if (!open || !allowed || !firstAllowedView) return;

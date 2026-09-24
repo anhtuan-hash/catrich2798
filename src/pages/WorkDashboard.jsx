@@ -378,7 +378,30 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
     ['school', t.methodsHub, '#/tool/teaching-methods-hub'], ['game', t.games, '#/games'], ...(snapshot.homeroom ? [['people', t.openHomeroom, '#/homeroom']] : []),
   ];
 
-  const scrollToCalendar = () => document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'auto', block: 'start' });
+  const scrollToCalendar = useCallback(() => {
+    document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'auto', block: 'start' });
+  }, []);
+
+  useEffect(() => {
+    const focusTodaySection = () => {
+      window.requestAnimationFrame(() => scrollToCalendar());
+    };
+    const onDashboardFocus = (event) => {
+      if (String(event?.detail?.section || '') !== 'today') return;
+      focusTodaySection();
+    };
+
+    let pending = '';
+    try {
+      pending = window.sessionStorage.getItem('bes-dashboard-focus-on-load') || '';
+      if (pending) window.sessionStorage.removeItem('bes-dashboard-focus-on-load');
+    } catch { /* optional */ }
+    if (pending === 'today') window.setTimeout(focusTodaySection, 80);
+
+    window.addEventListener('bes-dashboard-focus', onDashboardFocus);
+    return () => window.removeEventListener('bes-dashboard-focus', onDashboardFocus);
+  }, [scrollToCalendar]);
+
   const focusNearestEvent = () => {
     if (nextEvent?.date && dateKey(nextEvent.date) !== todayKey) {
       openTtcm('schedule');
