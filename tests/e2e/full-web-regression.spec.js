@@ -51,7 +51,6 @@ const roleMatrix = [
       ['#/dashboard', 'dashboard'],
       ['#/homeroom', 'homeroom'],
       ['#/tool/gradebook-studio', 'tool'],
-      ['#/tool/lesson-plan-ai', 'tool'],
       ['#/resource-library', 'resource-library'],
       ['#/knowledge-hub', 'knowledge-hub'],
       ['#/settings', 'settings'],
@@ -67,7 +66,6 @@ const roleMatrix = [
       ['#/dashboard', 'dashboard'],
       ['#/homeroom', 'homeroom'],
       ['#/tool/gradebook-studio', 'tool'],
-      ['#/tool/lesson-plan-ai', 'tool'],
       ['#/resource-library', 'resource-library'],
       ['#/knowledge-hub', 'knowledge-hub'],
       ['#/settings', 'settings'],
@@ -83,7 +81,6 @@ const roleMatrix = [
       ['#/dashboard', 'dashboard'],
       ['#/homeroom', 'homeroom'],
       ['#/tool/gradebook-studio', 'tool'],
-      ['#/tool/lesson-plan-ai', 'tool'],
       ['#/resource-library', 'resource-library'],
       ['#/knowledge-hub', 'knowledge-hub'],
       ['#/settings', 'settings'],
@@ -116,12 +113,11 @@ test('legacy Admin route resolves to the intended Settings-merged admin workspac
   await expect(pageErrors, `Unhandled browser errors for merged Admin Settings route: ${pageErrors.join('\n')}`).toEqual([]);
 });
 
-test('Lesson Architect opens its real module instead of falling back to Apps', async ({ page }) => {
+test('retired Lesson Architect route no longer boots as a tool', async ({ page }) => {
   await installDemoSession(page, demoUser('teacher'));
   await page.goto('/#/tool/lesson-plan-ai');
-  await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'tool');
-  await expect(page).toHaveURL(/#\/tool\/lesson-plan-ai/);
-  await expect(page.locator('#bes-main-content')).toContainText(/Lesson Architect/i);
+  await expect(page.locator('.app-shell')).not.toHaveAttribute('data-route', 'tool');
+  await expect(page.locator('#bes-main-content')).not.toContainText(/Lesson Architect/i);
 });
 
 test('teacher without route:dashboard falls back from Home and login without using Dashboard', async ({ page }) => {
