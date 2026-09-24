@@ -14,6 +14,7 @@ import '../styles/teacher-dashboard-google-colorful.css';
 import '../styles/teacher-dashboard-editorial-hero.css';
 import '../styles/teacher-dashboard-timeline-v2.css';
 import DashboardNewsHub from '../components/DashboardNewsHub.jsx';
+import BrianDashboardDropZone from '../components/BrianDashboardDropZone.jsx';
 
 const COPY = {
   vi: {
@@ -457,6 +458,9 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
           </div>
         </header>
       </section>
+
+      <BrianDashboardDropZone language={language} />
+
       {error ? <div className="gd-alert"><Icon name="warning" size={22} /><div><strong>{t.partial}</strong><small>{error}</small></div><button type="button" className="gd-text-button" onClick={() => refresh()}>{t.retry}</button></div> : null}
       <article className="gd-calendar gd-calendar-today gd-calendar-timeline-v2" id="dashboard-calendar">
         <header className="gd-calendar-header">
