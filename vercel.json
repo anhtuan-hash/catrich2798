@@ -132,6 +132,14 @@
       "destination": "/api/gateway?handler=question-bank"
     },
     {
+      "source": "/mcp",
+      "destination": "/api/gateway?handler=brian-mcp"
+    },
+    {
+      "source": "/.well-known/oauth-protected-resource",
+      "destination": "/api/gateway?handler=brian-oauth-resource"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },

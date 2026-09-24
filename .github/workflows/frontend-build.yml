@@ -244,6 +244,9 @@ jobs:
       - name: Verify Question Bank public Practice hardening v11.9.1
         run: node scripts/test-question-bank-public-practice-hardening-v11.9.1.mjs
 
+      - name: Verify Brian Plugin MCP + OAuth
+        run: node scripts/test-brian-plugin-mcp.mjs
+
       - name: Verify critical browser smoke gate
         run: node scripts/test-critical-e2e-contract.mjs
 
@@ -274,8 +277,8 @@ jobs:
       - name: Verify public route restoration v11.9.3
         run: node scripts/test-public-route-restoration-v11.9.3.mjs
 
-      - name: Verify release metadata v11.9.5
-        run: node scripts/test-release-metadata-v11.9.5.mjs
+      - name: Verify release metadata v11.9.6
+        run: node scripts/test-release-metadata-v11.9.6.mjs
 
       - name: Verify permission-driven access v11.9.4
         run: node scripts/test-permission-driven-access-v11.9.4.mjs

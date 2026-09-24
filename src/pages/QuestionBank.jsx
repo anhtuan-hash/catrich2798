@@ -64,7 +64,7 @@ const TABS = [
   ['builder', 'Tạo đề'],
   ['tests', 'Đề thi'],
   ['import', 'Nhập từ ChatGPT'],
-  ['chatgpt', 'API / Plugin'],
+  ['chatgpt', 'Plugin / API'],
 ];
 
 const TAB_ICONS = {
@@ -409,6 +409,12 @@ export default function QuestionBank({ currentUser }) {
     tags: '',
   });
 
+  const mcpUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/mcp`
+    : '/mcp';
+  const oauthResourceUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/.well-known/oauth-protected-resource`
+    : '/.well-known/oauth-protected-resource';
   const openApiUrl = typeof window !== 'undefined'
     ? `${window.location.origin}/brian-question-bank-openapi.json`
     : '/brian-question-bank-openapi.json';
@@ -3251,39 +3257,76 @@ OpenAPI: ${openApiUrl}`;
       ) : null}
 
       {!loading && accessState.can_contribute && activeTab === 'chatgpt' ? (
-        <div className="qb-panel qb-connect">
+        <div className="qb-panel qb-connect qb-plugin-connect">
           <div className="qb-connect-main">
-            <div className="qb-section-head"><div><p>ADVANCED CONNECTOR</p><h2>API / Plugin</h2></div><span className={integration?.active ? 'qb-live' : 'qb-offline'}>{integration?.active ? '● API Brian sẵn sàng' : '○ Chưa tạo khóa API'}</span></div>
-            <div className="qb-free-recommendation"><strong>Khuyến nghị cho ChatGPT Plus</strong><span>Dùng thẻ “Nhập từ ChatGPT” — không cần GPT Builder, không cần API OpenAI và không phát sinh phí AI.</span></div>
-            <div className="qb-connect-steps">
-              <article><b>1</b><div><strong>Tạo khóa Brian</strong><p>Khóa riêng cho Ngân hàng câu hỏi. Brian chỉ lưu SHA-256 hash, không lưu khóa gốc.</p></div></article>
-              <article><b>2</b><div><strong>GPT Action (tùy chọn)</strong><p>Chỉ dùng nếu tài khoản của anh vẫn có quyền Edit một GPT cũ; nếu không, bỏ qua bước này.</p></div></article>
-              <article><b>3</b><div><strong>Sẵn sàng cho Plugin</strong><p>Backend 4 action được giữ lại để tái sử dụng khi Brian được đóng gói thành Plugin/App sau này.</p></div></article>
+            <div className="qb-section-head">
+              <div><p>BRIAN CHATGPT PLUGIN</p><h2>Plugin / MCP</h2></div>
+              <span className="qb-live">● MCP server sẵn sàng</span>
             </div>
 
-            <div className="qb-action-grid" aria-label="Các ChatGPT action của Brian">
-              <span><b>saveBrianExam</b><small>Lưu đề hoàn chỉnh</small></span>
-              <span><b>saveBrianQuestions</b><small>Lưu câu hỏi / chùm bài</small></span>
-              <span><b>searchBrianQuestions</b><small>Tìm câu đã có</small></span>
-              <span><b>getBrianExam</b><small>Mở lại đề</small></span>
-            </div>
-
-            <div className="qb-connect-box">
-              <label><span>OpenAPI URL</span><div className="qb-copy-row"><input readOnly value={openApiUrl} /><button type="button" onClick={() => copyValue(openApiUrl, 'Đã sao chép OpenAPI URL.')}>Sao chép</button></div></label>
-              {generatedKey ? <label><span>Khóa kết nối — chỉ hiển thị trong phiên này</span><div className="qb-copy-row"><input readOnly value={generatedKey} /><button type="button" onClick={() => copyValue(generatedKey, 'Đã sao chép khóa kết nối.')}>Sao chép</button></div><small>Dán khóa này vào Authentication của Action. Brian không thể hiện lại khóa sau khi anh rời trang; nếu mất khóa, hãy tạo khóa mới.</small></label> : null}
-              <label><span>Instructions cho GPT</span><div className="qb-instruction-box"><textarea readOnly rows="11" value={gptInstructionText} /><button type="button" onClick={() => copyValue(gptInstructionText, 'Đã sao chép Instructions cho GPT.')}>Sao chép Instructions</button></div></label>
-              <div className="qb-connect-actions">
-                <button type="button" className="qb-primary" onClick={createChatGptKey}>{integration?.active ? 'Tạo khóa mới' : 'Tạo khóa kết nối'}</button>
-                {generatedKey ? <button type="button" className="qb-secondary" onClick={testConnection} disabled={testingConnection}>{testingConnection ? 'Đang kiểm tra…' : 'Kiểm tra kết nối'}</button> : null}
-                {integration?.active ? <button type="button" className={disconnectArmed ? 'qb-danger is-armed' : 'qb-danger'} onClick={disconnect}>Ngắt kết nối</button> : null}
+            <div className="qb-plugin-primary-card">
+              <div className="qb-plugin-primary-icon">&lt;/&gt;</div>
+              <div>
+                <span>LUỒNG KẾT NỐI KHUYẾN NGHỊ</span>
+                <strong>ChatGPT ↔ Brian Question Bank qua Plugin</strong>
+                <p>Đăng nhập bằng chính tài khoản Brian qua OAuth. Không dán mật khẩu Brian, Supabase service key hoặc OpenAI API key vào ChatGPT.</p>
               </div>
+              <em>OAuth + MCP</em>
+            </div>
+
+            <div className="qb-connect-steps qb-plugin-steps">
+              <article><b>1</b><div><strong>Bật OAuth Server trong Supabase</strong><p>Authentication → OAuth Server; Authorization Path: <code>https://esl-brian.vercel.app/oauth/consent</code>; bật Dynamic Client Registration.</p></div></article>
+              <article><b>2</b><div><strong>Bật Developer mode trong ChatGPT</strong><p>Trong cài đặt ChatGPT, bật Developer mode nếu giao diện Plugin yêu cầu.</p></div></article>
+              <article><b>3</b><div><strong>Thêm Personal Plugin</strong><p>Dùng MCP server URL của Brian bên dưới.</p></div></article>
+              <article><b>4</b><div><strong>Install / Connect</strong><p>ChatGPT mở màn hình Brian; đăng nhập rồi bấm “Cho phép & kết nối”.</p></div></article>
+            </div>
+
+            <div className="qb-connect-box qb-plugin-endpoints">
+              <label>
+                <span>MCP SERVER URL</span>
+                <div className="qb-copy-row"><input readOnly value={mcpUrl} /><button type="button" className="qb-primary" onClick={() => copyValue(mcpUrl, 'Đã sao chép Brian MCP URL.')}>Sao chép MCP URL</button></div>
+              </label>
+              <label>
+                <span>OAUTH RESOURCE METADATA</span>
+                <div className="qb-copy-row"><input readOnly value={oauthResourceUrl} /><button type="button" onClick={() => copyValue(oauthResourceUrl, 'Đã sao chép OAuth metadata URL.')}>Sao chép</button></div>
+              </label>
+              <small className="qb-plugin-security-note">MCP xác thực access token với Supabase Auth và ánh xạ mọi thao tác vào đúng tài khoản Brian đã cấp quyền.</small>
+            </div>
+
+            <div className="qb-action-grid" aria-label="Các tool của Brian Plugin">
+              <span><b>save_brian_exam</b><small>Lưu đề hoàn chỉnh</small></span>
+              <span><b>save_brian_questions</b><small>Lưu câu hỏi / chùm bài</small></span>
+              <span><b>search_brian_questions</b><small>Tìm câu đã có</small></span>
+              <span><b>get_brian_exam</b><small>Mở lại đề</small></span>
+            </div>
+
+            <div className="qb-plugin-status-strip">
+              <span><b>MCP</b><em>Đã dựng</em></span>
+              <span><b>OAuth consent UI</b><em>Đã dựng</em></span>
+              <span><b>Legacy API</b><em>Fallback</em></span>
+              <span><b>Supabase OAuth</b><em>Cần bật một lần</em></span>
             </div>
 
             <div className="qb-prompt">
-              <span>Cách dùng sau khi kết nối</span>
-              <blockquote>“Soạn cho tôi đề này theo yêu cầu. Khi hoàn tất, tự lưu bản đầy đủ vào Brian Question Bank.”</blockquote>
-              <small>ChatGPT có thể vẫn yêu cầu xác nhận trước một write action tùy cài đặt quyền của tài khoản.</small>
+              <span>Cách dùng sau khi cài Plugin</span>
+              <blockquote>“Tạo 2 reading_8 mới theo form TN THPT 2025–2026, kiểm tra đáp án, tránh trùng với Brian rồi lưu trực tiếp vào Brian Question Bank.”</blockquote>
+              <small>Plugin có thể tìm kho trước khi tạo và gọi tool lưu trực tiếp khi anh yêu cầu.</small>
             </div>
+
+            <details className="qb-legacy-connector">
+              <summary>Legacy API / GPT Action — giữ lại cho GPT cũ</summary>
+              <div className="qb-free-recommendation"><strong>Fallback tương thích</strong><span>OpenAPI Action và Brian key cũ tiếp tục hoạt động song song với Plugin.</span></div>
+              <div className="qb-connect-box">
+                <label><span>OpenAPI URL</span><div className="qb-copy-row"><input readOnly value={openApiUrl} /><button type="button" onClick={() => copyValue(openApiUrl, 'Đã sao chép OpenAPI URL.')}>Sao chép</button></div></label>
+                {generatedKey ? <label><span>Khóa Action — chỉ hiển thị trong phiên này</span><div className="qb-copy-row"><input readOnly value={generatedKey} /><button type="button" onClick={() => copyValue(generatedKey, 'Đã sao chép khóa kết nối.')}>Sao chép</button></div><small>Khóa này chỉ dùng cho GPT Action cũ, không dùng cho Plugin/MCP.</small></label> : null}
+                <label><span>Instructions cho GPT Action cũ</span><div className="qb-instruction-box"><textarea readOnly rows="8" value={gptInstructionText} /><button type="button" onClick={() => copyValue(gptInstructionText, 'Đã sao chép Instructions cho GPT.')}>Sao chép Instructions</button></div></label>
+                <div className="qb-connect-actions">
+                  <button type="button" className="qb-secondary" onClick={createChatGptKey}>{integration?.active ? 'Tạo lại khóa Action' : 'Tạo khóa Action'}</button>
+                  {generatedKey ? <button type="button" className="qb-secondary" onClick={testConnection} disabled={testingConnection}>{testingConnection ? 'Đang kiểm tra…' : 'Kiểm tra API cũ'}</button> : null}
+                  {integration?.active ? <button type="button" className={disconnectArmed ? 'qb-danger is-armed' : 'qb-danger'} onClick={disconnect}>Ngắt API cũ</button> : null}
+                </div>
+              </div>
+            </details>
           </div>
 
           <aside className="qb-import-history">

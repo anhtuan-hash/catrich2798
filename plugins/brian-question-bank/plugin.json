@@ -1,0 +1,35 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "brian-question-bank",
+  "version": "1.0.0",
+  "description": "Search, save and reopen English assessment questions, shared bundles and exams in Brian Question Bank.",
+  "author": {
+    "name": "Brian English",
+    "url": "https://esl-brian.vercel.app"
+  },
+  "homepage": "https://esl-brian.vercel.app/#/assessment-core",
+  "repository": "https://github.com/anhtuan-hash/catrich2798",
+  "keywords": [
+    "education",
+    "english",
+    "question-bank",
+    "assessment",
+    "mcp"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Brian Question Bank",
+        "shortDescription": "Search and save English questions and exams in Brian.",
+        "longDescription": "Connect ChatGPT to Brian Question Bank to search existing items, preserve Reading/Cloze bundles, save new questions and save complete exams.",
+        "developerName": "Brian English",
+        "category": "Education",
+        "capabilities": [
+          "Read",
+          "Write"
+        ],
+        "websiteURL": "https://esl-brian.vercel.app"
+      }
+    }
+  }
+}

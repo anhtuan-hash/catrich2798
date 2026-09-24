@@ -1,6 +1,6 @@
 {
-  "version": "11.9.5",
-  "release": "Golden Bank & Exam Factory · Production Certified · Canonical Role Guards",
+  "version": "11.9.6",
+  "release": "Golden Bank & Exam Factory · Production Certified · Brian Plugin/MCP",
   "runtime": "2.6.7",
   "schema": "11.4.2",
   "connectedTeachingSuite": true,
@@ -92,7 +92,7 @@
   "listeningLabRouteRetired": true,
   "listeningLabConnectedWorkflowRemoved": true,
   "retiredWorkspaceTabCleanup": true,
-  "releaseName": "Golden Bank & Exam Factory · Production Certified · Canonical Role Guards",
+  "releaseName": "Golden Bank & Exam Factory · Production Certified · Brian Plugin/MCP",
   "providerHubInputStability": true,
   "providerKeyPasteGuard": true,
   "bursComfortable": true,
