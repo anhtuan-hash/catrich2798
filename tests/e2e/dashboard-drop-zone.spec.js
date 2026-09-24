@@ -65,7 +65,7 @@ test('Brian Drop Zone stages a dropped file in Resource Library upload form', as
   const modal = page.locator('.resource-upload-modal');
   await expect(modal).toBeVisible({ timeout: 15000 });
   await expect(modal).toContainText('Unit-1-worksheet.txt');
-  await expect(modal.locator('input').first()).toHaveValue('Unit-1-worksheet');
+  await expect(modal.locator('.resource-form input').first()).toHaveValue('Unit-1-worksheet');
 });
 
 test('Brian Drop Zone stays compact and usable on phone width', async ({ page }) => {
