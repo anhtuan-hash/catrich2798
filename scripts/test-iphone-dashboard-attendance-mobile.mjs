@@ -45,6 +45,10 @@ assert.match(dashboardCss, /\.editorial-primary-action\s*\{[^}]*min-height\s*:\s
 assert.match(dashboardCss, /\.gd-event-time\s+strong[\s\S]{0,260}?font-size\s*:\s*(?:14|14\.5|15)px/i, 'Dashboard agenda times must be >=14px');
 assert.match(dashboardCss, /\.gd-event-copy\s+strong[\s\S]{0,260}?font-size\s*:\s*(?:15|15\.5|16)px/i, 'Dashboard agenda titles must be 15-16px');
 assert.match(dashboardCss, /\.gd-event-copy\s+p[\s\S]{0,320}?display\s*:\s*-webkit-box/i, 'Dashboard event notes should be visible with controlled line clamping');
+assert.match(dashboardCss, /\.gd-calendar-timeline-v2\s+\.gd-timeline-event[\s\S]{0,520}?grid-template-columns\s*:\s*62px\s+20px\s+minmax\(0,\s*1fr\)\s+24px/i, 'Dashboard Timeline V2 must use a four-column phone grid without implicit desktop columns');
+assert.match(dashboardCss, /\.gd-calendar-timeline-v2\s+\.gd-event-orb,[\s\S]{0,220}?\.gd-event-kind[\s\S]{0,160}?display\s*:\s*none/i, 'Dashboard Timeline V2 must hide desktop-only orb and kind columns on phone');
+assert.match(dashboardCss, /\.gd-calendar-timeline-v2\s+\.gd-event-copy[\s\S]{0,260}?grid-column\s*:\s*3[\s\S]{0,260}?min-width\s*:\s*0/i, 'Dashboard Timeline V2 copy must own the flexible phone column');
+assert.match(locksCss, /\.gd-calendar-timeline-v2\s+\.gd-timeline-event[\s\S]{0,420}?grid-template-columns\s*:\s*62px\s+20px\s+minmax\(0,\s*1fr\)\s+24px/i, 'Phone cascade locks must preserve the Timeline V2 four-column grid');
 
 assert.match(attendanceCss, /\.attendance-title\s+strong\s*\{[^}]*font-size\s*:\s*(?:24|25|26|27|28)px/i, 'Attendance title must be 24-28px on phone');
 assert.match(attendanceCss, /\.attendance-tabs\s+button\s*\{[^}]*min-height\s*:\s*(?:44|45|46|47|48)px[^}]*font-size\s*:\s*(?:14|14\.5|15)px/i, 'Attendance tabs need readable labels and >=44px touch targets');
