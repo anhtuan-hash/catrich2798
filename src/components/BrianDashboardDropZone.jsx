@@ -174,9 +174,17 @@ export default function BrianDashboardDropZone({ language = 'vi' }) {
     }
   };
 
-  const launch = (actionId) => {
+  const launch = async (actionId) => {
     if (!packet) return;
-    const routed = setDashboardDropPacket({ ...packet, target: actionId, routedAt: Date.now() });
+    let prepared = { ...packet };
+    if (actionId === 'question-bank' && !prepared.text && prepared.files?.length === 1) {
+      try {
+        prepared = { ...prepared, text: await prepared.files[0].text() };
+      } catch {
+        // Question Bank can still open even if the browser cannot decode the file.
+      }
+    }
+    const routed = setDashboardDropPacket({ ...prepared, target: actionId, routedAt: Date.now() });
     try {
       if (actionId === 'question-bank' && routed?.text) {
         window.sessionStorage.setItem('bes-dashboard-drop-question-text', routed.text);
