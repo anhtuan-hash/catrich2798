@@ -303,34 +303,35 @@ test.describe('Global Quick Access safe area', () => {
     expect(Math.abs(railAfter.left - railBefore.left)).toBeLessThan(0.5);
   });
 
-  test('V4.2: live status capsules render API-driven status and progress', async ({ page }) => {
-    await page.goto('/#/apps');
+  test('V4.2: live status capsules render API-driven status and progress through Action Dock aliases', async ({ page }) => {
+    await page.goto('/#/dashboard');
     await expect(page.locator('.bqa-root')).toBeVisible();
+    await expect.poll(async () => page.evaluate(() => typeof window.BrianQuickAccessCapsules?.set)).toBe('function');
 
     await page.evaluate(() => {
-      window.BrianQuickAccessCapsules?.set?.({
-        itemId: 'route:apps',
-        label: 'Ứng dụng',
+      window.BrianQuickAccessCapsules.set({
+        itemId: 'route:dashboard',
+        label: 'Hôm nay',
         text: '3 cập nhật mới',
         tone: 'warning',
         progress: 40,
       });
     });
 
-    const appsButton = page.locator('.bqa-rail-button[aria-label="Ứng dụng"]');
-    await appsButton.hover();
+    const todayButton = page.locator('.bqa-rail-button[aria-label="Hôm nay"]');
+    await todayButton.hover();
     await page.waitForTimeout(180);
 
     const capsule = page.locator('.bqa-status-capsule');
     await expect(capsule).toBeVisible();
-    await expect(capsule).toContainText('Ứng dụng');
+    await expect(capsule).toContainText('Hôm nay');
     await expect(capsule).toContainText('3 cập nhật mới');
     await expect(capsule).toHaveClass(/is-warning/);
 
     const progress = await capsule.locator('.bqa-status-capsule-progress > i').evaluate((bar) => getComputedStyle(bar).width);
     expect(Number.parseFloat(progress)).toBeGreaterThan(0);
 
-    await page.evaluate(() => window.BrianQuickAccessCapsules?.clear?.('route:apps'));
+    await page.evaluate(() => window.BrianQuickAccessCapsules?.clear?.('route:dashboard'));
     await page.mouse.move(800, 700);
     await page.waitForTimeout(160);
     await expect(capsule).toBeHidden();
@@ -340,13 +341,13 @@ test.describe('Global Quick Access safe area', () => {
     await page.goto('/#/apps');
     await expect(page.locator('.bqa-root')).toBeVisible();
 
-    const attendanceButton = page.locator('.bqa-rail-button[aria-label="Điểm danh"]');
+    const attendanceButton = page.locator('.bqa-rail-button[aria-label="Điểm danh nhanh"]');
     await attendanceButton.hover();
     await page.waitForTimeout(460);
 
     const peek = page.locator('.bqa-peek-card');
     await expect(peek).toBeVisible();
-    await expect(peek).toContainText('Điểm danh');
+    await expect(peek).toContainText('Điểm danh nhanh');
 
     const actions = peek.locator('.bqa-peek-actions');
     await expect(actions).toBeVisible();
@@ -575,7 +576,7 @@ test.describe('Global Quick Access safe area', () => {
     await expect(root).toHaveAttribute('data-side', 'left');
     await page.locator('.bqa-done').click();
 
-    await page.locator('.bqa-rail-button[aria-label="Dashboard"]').click();
+    await page.locator('.bqa-rail-button[aria-label="Hôm nay"]').click();
     await expect(page).toHaveURL(/#\/dashboard/);
     await page.waitForTimeout(180);
 
@@ -585,7 +586,7 @@ test.describe('Global Quick Access safe area', () => {
     });
     expect(stored?.workspace).toBe('homeroom');
     expect(stored?.side).toBe('left');
-    expect(stored?.lastItemId).toBe('route:dashboard');
+    expect(stored?.lastItemId).toBe('action:today');
     expect(Object.keys(stored?.scroll || {}).length).toBeGreaterThan(0);
 
     await page.reload();
@@ -783,6 +784,69 @@ test.describe('Global Quick Access safe area', () => {
     expect(pinnedGeometry.footerLeft).toBeGreaterThanOrEqual(pinnedGeometry.panelRight + 8);
   });
 
+  test('Action Dock: untouched legacy defaults migrate to task-first teacher actions', async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem('bes-quick-access-v1:quick-access-safe-area-admin', JSON.stringify({
+        version: 10,
+        items: [
+          'route:dashboard',
+          'route:apps',
+          'route:homeroom',
+          'tool:gradebook-studio',
+          'action:reports',
+          'action:ttcm',
+          'action:attendance',
+          'action:schedule',
+          'route:assessment-core',
+          'route:resource-library',
+        ],
+        recent: [],
+        workspace: 'all',
+        mode: 'auto',
+        size: 'm',
+        motion: 'fluid',
+        density: 'comfortable',
+        side: 'left',
+        theme: 'glass',
+        hoverDelay: 220,
+        labels: true,
+        workflows: [],
+        timeAware: true,
+        spatialMemory: true,
+        contextMemory: true,
+        pinned: false,
+        updatedAt: Date.now() + 60_000,
+      }));
+    });
+
+    await page.goto('/#/dashboard');
+    const rail = page.locator('.bqa-rail');
+    await expect(rail).toBeVisible();
+
+    for (const label of [
+      'Hôm nay',
+      'Điểm danh nhanh',
+      'Soạn đề nhanh',
+      'Ngân hàng câu hỏi',
+      'Học sinh cần chú ý',
+      'Sổ điểm nhanh',
+      'TTCM hôm nay',
+      'Kho học liệu',
+      'TextLab / Công cụ',
+    ]) {
+      await expect(rail.locator(`.bqa-rail-button[title="${label}"]`)).toBeVisible();
+    }
+
+    await expect(rail.locator('.bqa-rail-button[title="Ứng dụng"]')).toHaveCount(0);
+    await expect(rail.locator('.bqa-rail-button[title="Chủ nhiệm"]')).toHaveCount(0);
+
+    await rail.hover();
+    await expect(page.locator('.bqa-panel-header')).toContainText('Brian Action Dock');
+
+    await rail.locator('.bqa-rail-button[title="Soạn đề nhanh"]').click();
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'assessment-core');
+  });
+
   test('V6: active app exposes contextual quick actions without changing the fixed-left rail', async ({ page }) => {
     await page.goto('/#/dashboard');
     const active = page.locator('.bqa-rail-button.is-active').first();
@@ -813,7 +877,7 @@ test.describe('Global Quick Access safe area', () => {
 
   test('V6: Smart Overflow keeps active app visible on short desktop viewports', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 640 });
-    await page.goto('/#/apps');
+    await page.goto('/#/dashboard');
     const root = page.locator('.bqa-root');
     await expect(root).toBeVisible();
     const overflowCount = Number(await root.getAttribute('data-overflow-count') || 0);
@@ -872,29 +936,29 @@ test.describe('Global Quick Access safe area', () => {
 
   test('V6: App State Bookmark saves exact app state and restores it from the rail mark', async ({ page }) => {
     await page.goto('/#/dashboard');
-    await expect(page.locator('.bqa-rail-button.is-active')).toBeVisible();
+    const todayButton = page.locator('.bqa-rail-button[title="Hôm nay"]');
+    await expect(todayButton).toBeVisible();
     await page.keyboard.press('Control+Shift+S');
     await expect.poll(async () => Number(await page.locator('.bqa-root').getAttribute('data-bookmark-count') || 0)).toBeGreaterThan(0);
-    const dashboardButton = page.locator('.bqa-rail-button[title="Dashboard"]');
-    await expect(dashboardButton.locator('.bqa-bookmark-mark')).toBeVisible();
+    await expect(todayButton.locator('.bqa-bookmark-mark')).toBeVisible();
 
     await page.goto('/#/apps');
     await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'apps');
-    await dashboardButton.locator('.bqa-bookmark-mark').click();
+    await todayButton.locator('.bqa-bookmark-mark').click();
     await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'dashboard');
   });
 
   test('V6: configurable double-click action keeps single click semantics separate', async ({ page }) => {
     await page.goto('/#/dashboard');
-    const dashboardButton = page.locator('.bqa-rail-button[title="Dashboard"]');
-    await expect(dashboardButton).toBeVisible();
-    await dashboardButton.click({ button: 'right' });
+    const todayButton = page.locator('.bqa-rail-button[title="Hôm nay"]');
+    await expect(todayButton).toBeVisible();
+    await todayButton.click({ button: 'right' });
     const config = page.locator('.bqa-double-click-config select');
     await expect(config).toBeVisible();
-    await config.selectOption('dashboard-apps');
+    await config.selectOption('today-gradebook');
     await page.keyboard.press('Escape');
-    await dashboardButton.dblclick();
-    await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'apps');
+    await todayButton.dblclick();
+    await expect.poll(async () => page.evaluate(() => window.location.hash)).toBe('#/tool/gradebook-studio');
   });
 
   test('V6: Command Drop Zone adds an allowed shortcut while Alt precision mode is held', async ({ page }) => {
@@ -939,14 +1003,14 @@ test.describe('Global Quick Access safe area', () => {
     await expect(page.locator('.bqa-rail-button[title="Sổ điểm"]')).toBeVisible();
   });
 
-  test('V6: Visual Session Trail connects recent app navigation and can jump backward', async ({ page }) => {
+  test('V6: Visual Session Trail connects recent Action Dock navigation and can jump backward', async ({ page }) => {
     await page.goto('/#/apps');
     await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'apps');
 
-    await page.locator('.bqa-rail-button[title="Dashboard"]').click();
+    await page.locator('.bqa-rail-button[title="Hôm nay"]').click();
     await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'dashboard');
-    await page.locator('.bqa-rail-button[title="Chủ nhiệm"]').click();
-    await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'homeroom');
+    await page.locator('.bqa-rail-button[title="Ngân hàng câu hỏi"]').click();
+    await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'assessment-core');
 
     const root = page.locator('.bqa-root');
     await expect.poll(async () => Number(await root.getAttribute('data-session-trail-count') || 0)).toBeGreaterThanOrEqual(2);
@@ -954,7 +1018,7 @@ test.describe('Global Quick Access safe area', () => {
     await expect(trail).toBeVisible();
     const previous = trail.locator('button:not(.is-current)').first();
     await previous.click();
-    await expect(page.locator('.app-shell')).not.toHaveAttribute('data-route', 'homeroom');
+    await expect(page.locator('.app-shell')).not.toHaveAttribute('data-route', 'assessment-core');
   });
 
   test('pinned panel reflows content instead of covering it', async ({ page }) => {
