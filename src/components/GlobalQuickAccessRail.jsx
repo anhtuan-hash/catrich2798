@@ -2139,7 +2139,8 @@ export default function GlobalQuickAccessRail({
       const editable = event.target?.isContentEditable || ['input', 'textarea', 'select'].includes(tag);
       if (editable) return;
       if (!(event.metaKey || event.ctrlKey) || !event.shiftKey || String(event.key || '').toLowerCase() !== 's') return;
-      const item = catalog.find((candidate) => activeItem(candidate, currentRoute, selectedTool));
+      const item = (selectedItemsRef.current || []).find((candidate) => activeItem(candidate, currentRoute, selectedTool))
+        || catalog.find((candidate) => activeItem(candidate, currentRoute, selectedTool));
       if (!item) return;
       event.preventDefault();
       const target = String(window.location.hash || item.target || '');
@@ -2724,7 +2725,9 @@ export default function GlobalQuickAccessRail({
     const normalized = String(target || '').split('?')[0];
     return presentationCatalog.find((candidate) => candidate.target === normalized) || null;
   };
-  const currentTrailItem = presentationCatalog.find((item) => activeItem(item, currentRoute, selectedTool)) || null;
+  const currentTrailItem = workspaceItems.find((item) => activeItem(item, currentRoute, selectedTool))
+    || presentationCatalog.find((item) => activeItem(item, currentRoute, selectedTool))
+    || null;
   const sessionTrailEntries = [
     currentTrailItem ? { item: currentTrailItem, target: String((typeof window !== 'undefined' ? window.location.hash : '') || currentTrailItem.target || ''), current: true } : null,
     ...backStack.map((entry) => ({ item: itemForTrailTarget(entry.target), target: entry.target, entry })),
