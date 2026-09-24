@@ -17,7 +17,8 @@ assert.equal(fs.existsSync(bridgePath), true, 'History must ship a compatibility
 const bridge = read('src/attendanceHistoryPostConfirmBridge.js');
 assert.match(routeBootstrap, /attendanceHistoryPostConfirmBridge/, 'The always-on attendance bootstrap must install the History post-confirm bridge.');
 assert.match(bridge, /\.ahv3__detail/, 'The bridge must discover the selected History detail pane.');
-assert.match(bridge, /classList\.add\(['"]attendance-rollcall['"]\)|className\s*=\s*['"][^'"]*attendance-rollcall/, 'The bridge must expose History through the editor-compatible attendance-rollcall contract.');
+assert.match(bridge, /data-bes-history-post-confirm-bridge|BRIDGE_ATTRIBUTE/, 'The bridge must expose History through the explicit post-confirm compatibility contract.');
+assert.match(editor, /data-bes-history-post-confirm-bridge/, 'The post-confirm editor must prefer the explicit History bridge contract before the live rollcall surface.');
 assert.match(bridge, /data-bes-attendance-source|besAttendanceSource/, 'The bridge must expose whether the selected History item is extra or supplemental.');
 assert.match(bridge, /data-bes-attendance-session-id|besAttendanceSessionId/, 'The bridge must expose the exact selected session id.');
 assert.match(bridge, /attendance-rollcall-head[\s\S]{0,1000}h2/, 'The bridge must provide the class-name metadata expected by the existing editor.');
