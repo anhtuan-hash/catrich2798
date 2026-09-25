@@ -132,6 +132,10 @@
       "destination": "/api/gateway?handler=question-bank"
     },
     {
+      "source": "/api/youtube-search",
+      "destination": "/api/gateway?handler=youtube-search"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },
