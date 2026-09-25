@@ -37,6 +37,10 @@ for (const token of [
   "enablejsapi: '1'",
   'onClick={closeYoutubeQuickPanel}',
   'onClick={stopYoutubeQuickPlayback}',
+  "youtubeQuickOpen || youtubePlayer",
+  "is-background-player",
+  "data-background-player",
+  "onClick={() => setYoutubeQuickOpen(true)}",
 ]) {
   assert.ok(rail.includes(token), `YouTube Quick Access contract missing: ${token}`);
 }
@@ -64,6 +68,8 @@ for (const token of [
   '.bqa-youtube-results',
   '.bqa-youtube-result',
   '.bqa-youtube-search-error',
+  '.bqa-youtube-panel.is-background-player',
+  'bqa-youtube-float-in',
   'min-height: 200px',
   '@media (max-width: 760px), (hover: none)',
   'display: none !important',
@@ -98,9 +104,18 @@ for (const token of [
   assert.ok(searchHandler.includes(token), `YouTube search API contract missing: ${token}`);
 }
 
+const closeHelperStart = rail.indexOf('const closeYoutubeQuickPanel = useCallback(() => {');
+const closeHelperEnd = rail.indexOf('const catalog = useMemo', closeHelperStart);
+const closeHelper = rail.slice(closeHelperStart, closeHelperEnd);
+assert.ok(closeHelperStart >= 0 && closeHelperEnd > closeHelperStart, 'YouTube close helper must exist.');
+assert.ok(closeHelper.includes('setYoutubeQuickOpen(false)'), 'Closing YouTube Quick must hide the full sidebar panel.');
+assert.ok(!closeHelper.includes('stopYoutubeQuickPlayback()'), 'Closing YouTube Quick must not stop the current video.');
+assert.ok(rail.includes('{(youtubeQuickOpen || youtubePlayer) ? ('), 'Player must remain mounted after the YouTube sidebar closes.');
+assert.ok(css.includes('.bqa-youtube-panel.is-background-player > :not(.bqa-youtube-player)'), 'Closed YouTube sidebar must collapse into the floating player only.');
+
 const youtubeCss = css.slice(css.indexOf('Brian YouTube Quick Access · 2026-09-25'));
 assert.ok(!/font-family\s*:/i.test(youtubeCss), 'YouTube Quick Access must inherit Brian custom fonts.');
 assert.ok(!/\.app-shell\s*\{/.test(youtubeCss), 'YouTube Quick Access must not mutate global app-shell layout.');
 assert.ok(!/body\s*\{/.test(youtubeCss), 'YouTube Quick Access CSS must remain component-scoped.');
 
-console.log('PASS: YouTube Quick Access searches and plays inline, and closing the YouTube panel hard-stops iframe playback before unmounting.');
+console.log('PASS: YouTube Quick Access searches and plays inline, then keeps the same player alive as a floating mini-player when the sidebar closes.');
