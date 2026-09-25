@@ -23,6 +23,7 @@ for (const token of [
   'playYoutubeSearchResult',
   'bqa-youtube-results',
   'bqa-youtube-result',
+  'data-bes-keep-search="true"',
   'https://studio.youtube.com/',
   'https://music.youtube.com/',
   'bqa-youtube-rail',
