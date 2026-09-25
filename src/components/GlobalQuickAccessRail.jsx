@@ -28,6 +28,10 @@ import {
   ShieldCheck,
   Star,
   UsersRound,
+  Youtube,
+  Music2,
+  ExternalLink,
+  Trash2,
   Zap,
   X,
 } from 'lucide-react';
@@ -1414,6 +1418,86 @@ function measureQuickAccessContentBaseline(container) {
   return minLeft;
 }
 
+const YOUTUBE_QUICK_MAX_PINS = 6;
+const YOUTUBE_QUICK_URLS = Object.freeze({
+  home: 'https://www.youtube.com/',
+  studio: 'https://studio.youtube.com/',
+  music: 'https://music.youtube.com/',
+});
+
+function youtubeQuickUserKey(user) {
+  return String(user?.authId || user?.id || user?.email || 'guest')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9@._-]+/g, '-')
+    .slice(0, 96) || 'guest';
+}
+
+function youtubeQuickStorageKey(user) {
+  return `bes-youtube-quick-pins:${youtubeQuickUserKey(user)}`;
+}
+
+function normalizeYoutubeQuickUrl(value) {
+  let raw = String(value || '').trim();
+  if (!raw) return '';
+  if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(raw)) raw = `https://${raw}`;
+  try {
+    const url = new URL(raw);
+    const host = url.hostname.toLowerCase().replace(/^www\./, '');
+    const allowed = host === 'youtube.com'
+      || host.endsWith('.youtube.com')
+      || host === 'youtu.be'
+      || host === 'youtube-nocookie.com'
+      || host.endsWith('.youtube-nocookie.com');
+    if (!allowed) return '';
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') return '';
+    url.protocol = 'https:';
+    return url.toString();
+  } catch {
+    return '';
+  }
+}
+
+function loadYoutubeQuickPins(user) {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = JSON.parse(window.localStorage?.getItem(youtubeQuickStorageKey(user)) || '[]');
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .map((entry) => {
+        const url = normalizeYoutubeQuickUrl(entry?.url);
+        if (!url) return null;
+        return {
+          id: String(entry?.id || `yt-${Date.now().toString(36)}`).slice(0, 72),
+          label: String(entry?.label || '').trim().slice(0, 48) || 'YouTube',
+          url,
+        };
+      })
+      .filter(Boolean)
+      .slice(0, YOUTUBE_QUICK_MAX_PINS);
+  } catch {
+    return [];
+  }
+}
+
+function saveYoutubeQuickPins(user, pins) {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage?.setItem(
+      youtubeQuickStorageKey(user),
+      JSON.stringify((Array.isArray(pins) ? pins : []).slice(0, YOUTUBE_QUICK_MAX_PINS)),
+    );
+  } catch {
+    // Local pin storage is best effort.
+  }
+}
+
+function openYoutubeQuickExternal(url) {
+  if (typeof window === 'undefined' || !url) return;
+  const target = window.open(url, '_blank', 'noopener,noreferrer');
+  try { if (target) target.opener = null; } catch { /* cross-browser noopener fallback */ }
+}
+
 export default function GlobalQuickAccessRail({
   currentUser,
   currentRoute = 'home',
@@ -1476,6 +1560,15 @@ export default function GlobalQuickAccessRail({
   const [peekTop, setPeekTop] = useState(92);
   const [actionItemId, setActionItemId] = useState('');
   const [actionTop, setActionTop] = useState(118);
+  const [youtubeQuickOpen, setYoutubeQuickOpen] = useState(false);
+  const [youtubeContextOpen, setYoutubeContextOpen] = useState(false);
+  const [youtubeQuickTop, setYoutubeQuickTop] = useState(108);
+  const [youtubeContextTop, setYoutubeContextTop] = useState(108);
+  const [youtubeQuery, setYoutubeQuery] = useState('');
+  const [youtubePinLabel, setYoutubePinLabel] = useState('');
+  const [youtubePinUrl, setYoutubePinUrl] = useState('');
+  const [youtubePinError, setYoutubePinError] = useState('');
+  const [youtubePins, setYoutubePins] = useState(() => loadYoutubeQuickPins(currentUser));
   const [badges, setBadges] = useState({});
   const [notifications, setNotifications] = useState([]);
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
@@ -1510,6 +1603,8 @@ export default function GlobalQuickAccessRail({
   const handoffPacketRef = useRef(null);
   const railClickTimersRef = useRef(new Map());
   const bookmarkToastTimerRef = useRef(0);
+  const youtubeClickTimerRef = useRef(0);
+  const youtubeSearchInputRef = useRef(null);
 
   const catalog = useMemo(() => {
     const byId = new Map();
@@ -1554,7 +1649,7 @@ export default function GlobalQuickAccessRail({
   const timeAwareEnabled = config.timeAware !== false;
   const pinned = sidebarMode === 'pin';
   const focusMode = sidebarMode === 'focus';
-  const expanded = hovered || pinned || customizing || notificationCenterOpen || workflowCenterOpen;
+  const expanded = hovered || pinned || customizing || notificationCenterOpen || workflowCenterOpen || youtubeQuickOpen || youtubeContextOpen;
 
   const openRail = useCallback(() => {
     window.clearTimeout(closeTimerRef.current);
@@ -1595,11 +1690,11 @@ export default function GlobalQuickAccessRail({
   }, []);
 
   const collapseRail = useCallback((force = false) => {
-    if (!force && (pinned || customizing || notificationCenterOpen || workflowCenterOpen)) return;
+    if (!force && (pinned || customizing || notificationCenterOpen || workflowCenterOpen || youtubeQuickOpen || youtubeContextOpen)) return;
     window.clearTimeout(closeTimerRef.current);
     window.clearTimeout(collapseMotionTimerRef.current);
 
-    if (hovered || pinned || customizing || notificationCenterOpen || workflowCenterOpen) {
+    if (hovered || pinned || customizing || notificationCenterOpen || workflowCenterOpen || youtubeQuickOpen || youtubeContextOpen) {
       setCollapsing(true);
       setHovered(false);
       collapseMotionTimerRef.current = window.setTimeout(() => {
@@ -1610,7 +1705,7 @@ export default function GlobalQuickAccessRail({
 
     setHovered(false);
     setBackStackOpen(false);
-  }, [pinned, customizing, notificationCenterOpen, workflowCenterOpen, hovered]);
+  }, [pinned, customizing, notificationCenterOpen, workflowCenterOpen, youtubeQuickOpen, youtubeContextOpen, hovered]);
 
   useEffect(() => {
     if ((!notificationCenterOpen && !workflowCenterOpen) || typeof window === 'undefined') return;
@@ -1626,7 +1721,7 @@ export default function GlobalQuickAccessRail({
       const height = Math.max(560, Number(window.innerHeight) || 900);
       const reserved = 390;
       const itemPitch = railSize === 'l' ? 52 : railSize === 's' ? 40 : 46;
-      const next = Math.max(4, Math.min(QUICK_ACCESS_MAX_ITEMS, Math.floor((height - reserved) / itemPitch)));
+      const next = Math.max(4, Math.min(QUICK_ACCESS_MAX_ITEMS, Math.floor((height - reserved) / itemPitch) - 1));
       setRailCapacity(next);
     };
     updateCapacity();
@@ -1666,6 +1761,33 @@ export default function GlobalQuickAccessRail({
   }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
 
   useEffect(() => {
+    setYoutubePins(loadYoutubeQuickPins(currentUser));
+    setYoutubeQuickOpen(false);
+    setYoutubeContextOpen(false);
+    setYoutubePinError('');
+  }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
+
+  useEffect(() => {
+    if ((!youtubeQuickOpen && !youtubeContextOpen) || typeof document === 'undefined') return undefined;
+    const closeYoutubeUi = (event) => {
+      if (event.type === 'keydown') {
+        if (event.key !== 'Escape') return;
+      } else if (event.target?.closest?.('.bqa-youtube-panel, .bqa-youtube-context, .bqa-youtube-rail')) {
+        return;
+      }
+      setYoutubeQuickOpen(false);
+      setYoutubeContextOpen(false);
+      setYoutubePinError('');
+    };
+    document.addEventListener('pointerdown', closeYoutubeUi, true);
+    document.addEventListener('keydown', closeYoutubeUi, true);
+    return () => {
+      document.removeEventListener('pointerdown', closeYoutubeUi, true);
+      document.removeEventListener('keydown', closeYoutubeUi, true);
+    };
+  }, [youtubeQuickOpen, youtubeContextOpen]);
+
+  useEffect(() => {
     if (typeof document === 'undefined' || typeof window === 'undefined') return;
     document.documentElement.dataset.brianClassroomMode = classroomMode ? 'true' : 'false';
     saveQuickAccessClassroomMode(currentUser, classroomMode);
@@ -1682,6 +1804,7 @@ export default function GlobalQuickAccessRail({
     railClickTimersRef.current.forEach((timer) => window.clearTimeout(timer));
     railClickTimersRef.current.clear();
     window.clearTimeout(bookmarkToastTimerRef.current);
+    window.clearTimeout(youtubeClickTimerRef.current);
   }, []);
 
   useEffect(() => {
@@ -3391,6 +3514,102 @@ export default function GlobalQuickAccessRail({
     });
   };
 
+  const setYoutubeUiTop = (sourceEl, mode = 'panel') => {
+    if (typeof window === 'undefined') return;
+    const rect = sourceEl?.getBoundingClientRect?.();
+    const viewportHeight = Math.max(560, Number(window.innerHeight) || 900);
+    const estimatedHeight = mode === 'menu' ? 270 : 510;
+    const maxTop = Math.max(86, viewportHeight - estimatedHeight - 20);
+    const nextTop = Math.max(86, Math.min(maxTop, Number(rect?.top) || 108));
+    if (mode === 'menu') setYoutubeContextTop(nextTop);
+    else setYoutubeQuickTop(nextTop);
+  };
+
+  const openYoutubeQuickPanel = (sourceEl) => {
+    setYoutubeUiTop(sourceEl, 'panel');
+    setYoutubeContextOpen(false);
+    setYoutubeQuickOpen(true);
+    setYoutubePinError('');
+    window.setTimeout(() => {
+      try { youtubeSearchInputRef.current?.focus?.({ preventScroll: true }); }
+      catch { youtubeSearchInputRef.current?.focus?.(); }
+    }, 60);
+  };
+
+  const handleYoutubeRailClick = (sourceEl) => {
+    window.clearTimeout(youtubeClickTimerRef.current);
+    youtubeClickTimerRef.current = window.setTimeout(() => openYoutubeQuickPanel(sourceEl), 210);
+  };
+
+  const handleYoutubeRailDoubleClick = () => {
+    window.clearTimeout(youtubeClickTimerRef.current);
+    setYoutubeQuickOpen(false);
+    setYoutubeContextOpen(false);
+    openYoutubeQuickExternal(YOUTUBE_QUICK_URLS.home);
+  };
+
+  const handleYoutubeContextMenu = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    window.clearTimeout(youtubeClickTimerRef.current);
+    setYoutubeUiTop(event.currentTarget, 'menu');
+    setYoutubeQuickOpen(false);
+    setYoutubeContextOpen(true);
+  };
+
+  const handleYoutubeSearch = (event) => {
+    event?.preventDefault?.();
+    const query = youtubeQuery.trim();
+    if (!query) {
+      openYoutubeQuickExternal(YOUTUBE_QUICK_URLS.home);
+      return;
+    }
+    openYoutubeQuickExternal(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`);
+  };
+
+  const addYoutubePin = () => {
+    const url = normalizeYoutubeQuickUrl(youtubePinUrl);
+    if (!url) {
+      setYoutubePinError(language === 'vi' ? 'Link phải là địa chỉ YouTube hợp lệ.' : 'Enter a valid YouTube URL.');
+      return;
+    }
+    if (youtubePins.some((entry) => entry.url === url)) {
+      setYoutubePinError(language === 'vi' ? 'Link này đã được ghim.' : 'This link is already pinned.');
+      return;
+    }
+    if (youtubePins.length >= YOUTUBE_QUICK_MAX_PINS) {
+      setYoutubePinError(language === 'vi' ? 'Bạn đã ghim tối đa 6 mục.' : 'You can pin up to 6 items.');
+      return;
+    }
+    let fallbackLabel = language === 'vi' ? `Kênh / playlist ${youtubePins.length + 1}` : `Channel / playlist ${youtubePins.length + 1}`;
+    try {
+      const parsed = new URL(url);
+      const handle = parsed.pathname.split('/').filter(Boolean).find((part) => part.startsWith('@'));
+      if (handle) fallbackLabel = handle;
+      else if (parsed.searchParams.get('list')) fallbackLabel = language === 'vi' ? 'Playlist YouTube' : 'YouTube playlist';
+    } catch { /* normalized URL is already safe */ }
+    const next = [
+      ...youtubePins,
+      {
+        id: `yt-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+        label: youtubePinLabel.trim().slice(0, 48) || fallbackLabel,
+        url,
+      },
+    ].slice(0, YOUTUBE_QUICK_MAX_PINS);
+    setYoutubePins(next);
+    saveYoutubeQuickPins(currentUser, next);
+    setYoutubePinLabel('');
+    setYoutubePinUrl('');
+    setYoutubePinError('');
+  };
+
+  const removeYoutubePin = (id) => {
+    const next = youtubePins.filter((entry) => entry.id !== id);
+    setYoutubePins(next);
+    saveYoutubeQuickPins(currentUser, next);
+    setYoutubePinError('');
+  };
+
   const handleRailClick = (item, sourceEl) => {
     const descriptorId = doubleClickActions[item?.id];
     if (!descriptorId) {
@@ -4159,6 +4378,26 @@ export default function GlobalQuickAccessRail({
                 </button>
               );
             })}
+            <button
+              type="button"
+              className={`bqa-rail-button bqa-youtube-rail ${youtubeQuickOpen || youtubeContextOpen ? 'is-active' : ''}`}
+              style={{ '--bqa-accent': '#ff0033' }}
+              title={language === 'vi' ? 'YouTube Quick · click để tìm, double-click để mở YouTube' : 'YouTube Quick · click to search, double-click to open YouTube'}
+              aria-label={language === 'vi' ? 'Mở YouTube Quick' : 'Open YouTube Quick'}
+              aria-expanded={youtubeQuickOpen || youtubeContextOpen}
+              onClick={(event) => {
+                event.preventDefault();
+                handleYoutubeRailClick(event.currentTarget);
+              }}
+              onDoubleClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                handleYoutubeRailDoubleClick();
+              }}
+              onContextMenu={handleYoutubeContextMenu}
+            >
+              <Youtube size={20} strokeWidth={2} aria-hidden="true" />
+            </button>
           </div>
 
           {railOverflowItems.length ? (
@@ -5148,6 +5387,161 @@ export default function GlobalQuickAccessRail({
               {language === 'vi' ? 'Mở' : 'Open'} <ChevronRight size={15} aria-hidden="true" />
             </button>
           </aside>
+        ) : null}
+
+        {youtubeQuickOpen ? (
+          <aside
+            className="bqa-youtube-panel"
+            style={{ top: youtubeQuickTop }}
+            role="dialog"
+            aria-modal="false"
+            aria-label={language === 'vi' ? 'Truy cập nhanh YouTube' : 'YouTube Quick Access'}
+          >
+            <header className="bqa-youtube-panel-header">
+              <div>
+                <span className="bqa-youtube-kicker">YOUTUBE QUICK</span>
+                <strong>{language === 'vi' ? 'Tìm và mở YouTube ngay' : 'Search and open YouTube'}</strong>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setYoutubeQuickOpen(false);
+                  setYoutubePinError('');
+                }}
+                aria-label={language === 'vi' ? 'Đóng YouTube Quick' : 'Close YouTube Quick'}
+              >
+                <X size={15} aria-hidden="true" />
+              </button>
+            </header>
+
+            <form className="bqa-youtube-search" onSubmit={handleYoutubeSearch}>
+              <Search size={16} aria-hidden="true" />
+              <input
+                ref={youtubeSearchInputRef}
+                type="search"
+                value={youtubeQuery}
+                onChange={(event) => setYoutubeQuery(event.target.value)}
+                placeholder={language === 'vi' ? 'Tìm video trên YouTube…' : 'Search YouTube…'}
+                aria-label={language === 'vi' ? 'Từ khóa tìm kiếm YouTube' : 'YouTube search query'}
+              />
+              <button type="submit">{language === 'vi' ? 'Tìm' : 'Search'}</button>
+            </form>
+
+            <div className="bqa-youtube-links" role="group" aria-label={language === 'vi' ? 'Liên kết YouTube' : 'YouTube links'}>
+              <button type="button" onClick={() => openYoutubeQuickExternal(YOUTUBE_QUICK_URLS.home)}>
+                <span className="bqa-youtube-link-icon"><Youtube size={17} aria-hidden="true" /></span>
+                <span><strong>YouTube</strong><small>{language === 'vi' ? 'Trang chủ' : 'Home'}</small></span>
+                <ExternalLink size={13} aria-hidden="true" />
+              </button>
+              <button type="button" onClick={() => openYoutubeQuickExternal(YOUTUBE_QUICK_URLS.studio)}>
+                <span className="bqa-youtube-link-icon"><Presentation size={17} aria-hidden="true" /></span>
+                <span><strong>YouTube Studio</strong><small>{language === 'vi' ? 'Quản lý kênh' : 'Manage channel'}</small></span>
+                <ExternalLink size={13} aria-hidden="true" />
+              </button>
+              <button type="button" onClick={() => openYoutubeQuickExternal(YOUTUBE_QUICK_URLS.music)}>
+                <span className="bqa-youtube-link-icon"><Music2 size={17} aria-hidden="true" /></span>
+                <span><strong>YouTube Music</strong><small>{language === 'vi' ? 'Âm nhạc' : 'Music'}</small></span>
+                <ExternalLink size={13} aria-hidden="true" />
+              </button>
+            </div>
+
+            <section className="bqa-youtube-pins">
+              <header>
+                <strong>{language === 'vi' ? 'Kênh / playlist đã ghim' : 'Pinned channels / playlists'}</strong>
+                <span>{youtubePins.length}/{YOUTUBE_QUICK_MAX_PINS}</span>
+              </header>
+
+              {youtubePins.length ? (
+                <div className="bqa-youtube-pin-list">
+                  {youtubePins.map((entry) => (
+                    <div className="bqa-youtube-pin-row" key={entry.id}>
+                      <button type="button" className="bqa-youtube-pin-open" onClick={() => openYoutubeQuickExternal(entry.url)}>
+                        <Youtube size={14} aria-hidden="true" />
+                        <span>{entry.label}</span>
+                        <ExternalLink size={12} aria-hidden="true" />
+                      </button>
+                      <button
+                        type="button"
+                        className="bqa-youtube-pin-remove"
+                        onClick={() => removeYoutubePin(entry.id)}
+                        aria-label={language === 'vi' ? `Bỏ ghim ${entry.label}` : `Unpin ${entry.label}`}
+                      >
+                        <Trash2 size={13} aria-hidden="true" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="bqa-youtube-empty">
+                  {language === 'vi' ? 'Chưa có kênh hoặc playlist nào được ghim.' : 'No pinned channels or playlists yet.'}
+                </p>
+              )}
+
+              <form
+                className="bqa-youtube-pin-form"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  addYoutubePin();
+                }}
+              >
+                <input
+                  type="text"
+                  value={youtubePinLabel}
+                  onChange={(event) => setYoutubePinLabel(event.target.value)}
+                  placeholder={language === 'vi' ? 'Tên hiển thị (không bắt buộc)' : 'Display name (optional)'}
+                  maxLength={48}
+                />
+                <div>
+                  <input
+                    type="url"
+                    inputMode="url"
+                    value={youtubePinUrl}
+                    onChange={(event) => {
+                      setYoutubePinUrl(event.target.value);
+                      if (youtubePinError) setYoutubePinError('');
+                    }}
+                    placeholder="youtube.com/@channel hoặc playlist"
+                    aria-label={language === 'vi' ? 'Link kênh hoặc playlist YouTube' : 'YouTube channel or playlist URL'}
+                  />
+                  <button type="submit" disabled={!youtubePinUrl.trim() || youtubePins.length >= YOUTUBE_QUICK_MAX_PINS}>
+                    <Plus size={14} aria-hidden="true" />
+                    {language === 'vi' ? 'Ghim' : 'Pin'}
+                  </button>
+                </div>
+              </form>
+              {youtubePinError ? <small className="bqa-youtube-error" role="alert">{youtubePinError}</small> : null}
+            </section>
+
+            <footer className="bqa-youtube-hint">
+              {language === 'vi'
+                ? 'Double-click icon: mở YouTube · Chuột phải: menu nhanh'
+                : 'Double-click icon: open YouTube · Right-click: quick menu'}
+            </footer>
+          </aside>
+        ) : null}
+
+        {youtubeContextOpen ? (
+          <div
+            className="bqa-youtube-context"
+            style={{ top: youtubeContextTop }}
+            role="menu"
+            aria-label={language === 'vi' ? 'Menu nhanh YouTube' : 'YouTube quick menu'}
+          >
+            <button type="button" role="menuitem" onClick={() => { setYoutubeContextOpen(false); openYoutubeQuickExternal(YOUTUBE_QUICK_URLS.home); }}>
+              <Youtube size={15} aria-hidden="true" /><span>YouTube</span><ExternalLink size={12} aria-hidden="true" />
+            </button>
+            <button type="button" role="menuitem" onClick={() => { setYoutubeContextOpen(false); openYoutubeQuickExternal(YOUTUBE_QUICK_URLS.studio); }}>
+              <Presentation size={15} aria-hidden="true" /><span>YouTube Studio</span><ExternalLink size={12} aria-hidden="true" />
+            </button>
+            <button type="button" role="menuitem" onClick={() => { setYoutubeContextOpen(false); openYoutubeQuickExternal(YOUTUBE_QUICK_URLS.music); }}>
+              <Music2 size={15} aria-hidden="true" /><span>YouTube Music</span><ExternalLink size={12} aria-hidden="true" />
+            </button>
+            {youtubePins.slice(0, 3).map((entry) => (
+              <button type="button" role="menuitem" key={entry.id} onClick={() => { setYoutubeContextOpen(false); openYoutubeQuickExternal(entry.url); }}>
+                <Youtube size={15} aria-hidden="true" /><span>{entry.label}</span><ExternalLink size={12} aria-hidden="true" />
+              </button>
+            ))}
+          </div>
         ) : null}
 
         {actionItem ? (
