@@ -1105,6 +1105,61 @@ test.describe('Global Quick Access safe area', () => {
     expect(page.context().pages().length).toBe(pagesBefore);
   });
 
+  test('YouTube Quick keyword search renders results and plays the selected video inline', async ({ page }) => {
+    await page.route('**/api/youtube-search?**', async (route) => {
+      const url = new URL(route.request().url());
+      expect(url.searchParams.get('q')).toBe('relative clauses');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          ok: true,
+          query: 'relative clauses',
+          results: [
+            {
+              videoId: 'dQw4w9WgXcQ',
+              title: 'Relative Clauses for English Learners',
+              channelTitle: 'Brian Test Channel',
+              thumbnail: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/mqdefault.jpg',
+              url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            },
+            {
+              videoId: 'M7lc1UVf-VE',
+              title: 'Defining and Non-defining Relative Clauses',
+              channelTitle: 'English Grammar Lab',
+              thumbnail: 'https://i.ytimg.com/vi/M7lc1UVf-VE/mqdefault.jpg',
+              url: 'https://www.youtube.com/watch?v=M7lc1UVf-VE',
+            },
+          ],
+        }),
+      });
+    });
+
+    await page.goto('/#/dashboard');
+    const youtube = page.locator('.bqa-youtube-fixed-control');
+    await expect(youtube).toBeVisible();
+    await youtube.click();
+
+    const panel = page.locator('.bqa-youtube-panel');
+    const input = panel.locator('.bqa-youtube-search input');
+    await expect(input).toHaveAttribute('placeholder', /Tìm video/);
+    await input.fill('relative clauses');
+    await panel.locator('.bqa-youtube-search button[type="submit"]').click();
+
+    const results = panel.locator('.bqa-youtube-result');
+    await expect(results).toHaveCount(2);
+    await expect(results.first()).toContainText('Relative Clauses for English Learners');
+    await expect(results.first()).toContainText('Brian Test Channel');
+
+    const pagesBefore = page.context().pages().length;
+    await results.first().click();
+
+    const frame = panel.locator('.bqa-youtube-player-frame iframe');
+    await expect(frame).toBeVisible();
+    await expect(frame).toHaveAttribute('src', /youtube-nocookie\.com\/embed\/dQw4w9WgXcQ/);
+    expect(page.context().pages().length).toBe(pagesBefore);
+  });
+
   test('pinned panel reflows content instead of covering it', async ({ page }) => {
     await page.goto('/#/apps');
     await expect(page.locator('.bqa-root')).toBeVisible();

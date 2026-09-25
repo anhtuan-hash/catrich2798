@@ -1640,6 +1640,10 @@ export default function GlobalQuickAccessRail({
   const [youtubePins, setYoutubePins] = useState(() => loadYoutubeQuickPins(currentUser));
   const [youtubePlayer, setYoutubePlayer] = useState(null);
   const [youtubePlayerError, setYoutubePlayerError] = useState('');
+  const [youtubeSearchResults, setYoutubeSearchResults] = useState([]);
+  const [youtubeSearchLoading, setYoutubeSearchLoading] = useState(false);
+  const [youtubeSearchError, setYoutubeSearchError] = useState('');
+  const [youtubeSearchTerm, setYoutubeSearchTerm] = useState('');
   const [badges, setBadges] = useState({});
   const [notifications, setNotifications] = useState([]);
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
@@ -1838,6 +1842,10 @@ export default function GlobalQuickAccessRail({
     setYoutubePinError('');
     setYoutubePlayer(null);
     setYoutubePlayerError('');
+    setYoutubeSearchResults([]);
+    setYoutubeSearchLoading(false);
+    setYoutubeSearchError('');
+    setYoutubeSearchTerm('');
   }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
 
   useEffect(() => {
@@ -3653,14 +3661,79 @@ export default function GlobalQuickAccessRail({
     return true;
   };
 
-  const handleYoutubeSearch = (event) => {
+  const handleYoutubeSearch = async (event) => {
     event?.preventDefault?.();
     const query = youtubeQuery.trim();
     if (!query) {
-      setYoutubePlayerError(language === 'vi' ? 'Dán link YouTube hoặc video ID trước khi phát.' : 'Paste a YouTube URL or video ID first.');
+      setYoutubeSearchError(language === 'vi' ? 'Nhập từ khóa tìm kiếm hoặc dán link YouTube.' : 'Enter a search term or paste a YouTube URL.');
       return;
     }
-    playYoutubeQuick(query);
+
+    const directTarget = youtubeQuickPlayableTarget(query);
+    if (directTarget?.embedUrl) {
+      setYoutubeSearchResults([]);
+      setYoutubeSearchTerm('');
+      setYoutubeSearchError('');
+      playYoutubeQuick(query);
+      return;
+    }
+
+    if (/^https?:\/\//i.test(query)) {
+      setYoutubeSearchError(
+        language === 'vi'
+          ? 'Link này không phải video/playlist có thể phát. Hãy nhập từ khóa để tìm video.'
+          : 'This URL is not a playable video/playlist. Enter keywords to search for videos.',
+      );
+      return;
+    }
+
+    setYoutubeSearchLoading(true);
+    setYoutubeSearchError('');
+    setYoutubePlayerError('');
+    try {
+      const response = await fetch(`/api/youtube-search?q=${encodeURIComponent(query)}&limit=6`, {
+        method: 'GET',
+        headers: { accept: 'application/json' },
+        credentials: 'same-origin',
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data?.ok) {
+        const code = String(data?.code || '');
+        if (code === 'youtube_search_not_configured') {
+          throw new Error(
+            language === 'vi'
+              ? 'Tìm kiếm YouTube chưa được cấu hình API key trên hệ thống.'
+              : 'YouTube search API key is not configured on the system.',
+          );
+        }
+        if (code === 'youtube_quota_exceeded') {
+          throw new Error(
+            language === 'vi'
+              ? 'Hạn mức tìm kiếm YouTube hôm nay đã hết. Bạn vẫn có thể dán link video để phát.'
+              : 'YouTube search quota has been reached. You can still paste a video link to play it.',
+          );
+        }
+        throw new Error(String(data?.error || (language === 'vi' ? 'Không tìm kiếm được YouTube lúc này.' : 'YouTube search is unavailable right now.')));
+      }
+
+      const results = Array.isArray(data?.results) ? data.results.slice(0, 6) : [];
+      setYoutubeSearchResults(results);
+      setYoutubeSearchTerm(query);
+      if (!results.length) {
+        setYoutubeSearchError(language === 'vi' ? 'Không tìm thấy video phù hợp.' : 'No matching videos found.');
+      }
+    } catch (error) {
+      setYoutubeSearchResults([]);
+      setYoutubeSearchTerm(query);
+      setYoutubeSearchError(String(error?.message || error));
+    } finally {
+      setYoutubeSearchLoading(false);
+    }
+  };
+
+  const playYoutubeSearchResult = (result) => {
+    if (!result?.videoId) return;
+    playYoutubeQuick(result.videoId, result.title || '');
   };
 
   const openYoutubePinnedEntry = (entry) => {
@@ -5516,22 +5589,59 @@ export default function GlobalQuickAccessRail({
               </button>
             </header>
 
-            <form className="bqa-youtube-search" onSubmit={handleYoutubeSearch}>
-              <Youtube size={16} aria-hidden="true" />
+            <form className="bqa-youtube-search" data-bes-keep-search="true" onSubmit={handleYoutubeSearch}>
+              <Search size={16} aria-hidden="true" />
               <input
                 ref={youtubeSearchInputRef}
-                type="text"
-                inputMode="url"
+                type="search"
+                inputMode="search"
+                data-bes-keep-search="true"
                 value={youtubeQuery}
                 onChange={(event) => {
                   setYoutubeQuery(event.target.value);
                   if (youtubePlayerError) setYoutubePlayerError('');
+                  if (youtubeSearchError) setYoutubeSearchError('');
                 }}
-                placeholder={language === 'vi' ? 'Dán link video / playlist hoặc video ID…' : 'Paste video / playlist URL or video ID…'}
-                aria-label={language === 'vi' ? 'Link YouTube hoặc video ID để phát trong Brian' : 'YouTube URL or video ID to play in Brian'}
+                placeholder={language === 'vi' ? 'Tìm video hoặc dán link YouTube…' : 'Search videos or paste a YouTube link…'}
+                aria-label={language === 'vi' ? 'Tìm kiếm video YouTube hoặc dán link' : 'Search YouTube videos or paste a link'}
               />
-              <button type="submit">{language === 'vi' ? 'Phát' : 'Play'}</button>
+              <button type="submit" disabled={youtubeSearchLoading}>
+                {youtubeSearchLoading
+                  ? (language === 'vi' ? 'Đang tìm…' : 'Searching…')
+                  : (language === 'vi' ? 'Tìm' : 'Search')}
+              </button>
             </form>
+
+            {youtubeSearchResults.length ? (
+              <section className="bqa-youtube-results" aria-label={language === 'vi' ? 'Kết quả tìm kiếm YouTube' : 'YouTube search results'}>
+                <header>
+                  <strong>{language === 'vi' ? 'Kết quả tìm kiếm' : 'Search results'}</strong>
+                  <span>{youtubeSearchTerm}</span>
+                </header>
+                <div className="bqa-youtube-result-list">
+                  {youtubeSearchResults.map((result) => (
+                    <button
+                      type="button"
+                      className="bqa-youtube-result"
+                      key={result.videoId}
+                      onClick={() => playYoutubeSearchResult(result)}
+                    >
+                      <span className="bqa-youtube-result-thumb">
+                        {result.thumbnail ? <img src={result.thumbnail} alt="" loading="lazy" /> : <Youtube size={20} aria-hidden="true" />}
+                        <i aria-hidden="true"><Youtube size={11} /></i>
+                      </span>
+                      <span className="bqa-youtube-result-copy">
+                        <strong>{result.title}</strong>
+                        <small>{result.channelTitle}</small>
+                      </span>
+                      <ChevronRight size={14} aria-hidden="true" />
+                    </button>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            {youtubeSearchError ? <small className="bqa-youtube-search-error" role="alert">{youtubeSearchError}</small> : null}
 
             {youtubePlayer ? (
               <section className="bqa-youtube-player" aria-label={language === 'vi' ? 'Trình phát YouTube trong Brian' : 'YouTube player in Brian'}>
@@ -5578,8 +5688,8 @@ export default function GlobalQuickAccessRail({
               >
                 <span><Youtube size={20} aria-hidden="true" /></span>
                 <span>
-                  <strong>{language === 'vi' ? 'Phát ngay trong Brian' : 'Play inside Brian'}</strong>
-                  <small>{language === 'vi' ? 'Dán link video hoặc playlist phía trên' : 'Paste a video or playlist link above'}</small>
+                  <strong>{language === 'vi' ? 'Tìm rồi xem ngay trong Brian' : 'Search and watch inside Brian'}</strong>
+                  <small>{language === 'vi' ? 'Nhập từ khóa, chọn video hoặc dán link trực tiếp' : 'Enter keywords, choose a video, or paste a direct link'}</small>
                 </span>
               </button>
             )}
@@ -5588,8 +5698,8 @@ export default function GlobalQuickAccessRail({
 
             <div className="bqa-youtube-links" role="group" aria-label={language === 'vi' ? 'Liên kết YouTube' : 'YouTube links'}>
               <button type="button" onClick={() => youtubeSearchInputRef.current?.focus?.()}>
-                <span className="bqa-youtube-link-icon"><Youtube size={17} aria-hidden="true" /></span>
-                <span><strong>{language === 'vi' ? 'Video / Playlist' : 'Video / Playlist'}</strong><small>{language === 'vi' ? 'Phát tại Brian' : 'Play in Brian'}</small></span>
+                <span className="bqa-youtube-link-icon"><Search size={17} aria-hidden="true" /></span>
+                <span><strong>{language === 'vi' ? 'Tìm video' : 'Search videos'}</strong><small>{language === 'vi' ? 'Hiện kết quả tại Brian' : 'Show results in Brian'}</small></span>
                 <ChevronRight size={13} aria-hidden="true" />
               </button>
               <button type="button" onClick={() => openYoutubeQuickExternal(YOUTUBE_QUICK_URLS.studio)}>
@@ -5675,8 +5785,8 @@ export default function GlobalQuickAccessRail({
 
             <footer className="bqa-youtube-hint">
               {language === 'vi'
-                ? 'Video và playlist phát ngay trong Brian · Studio/Music vẫn mở riêng khi cần'
-                : 'Videos and playlists play inside Brian · Studio/Music open separately when needed'}
+                ? 'Tìm bằng từ khóa → chọn video → xem ngay trong Brian · cũng hỗ trợ dán link trực tiếp'
+                : 'Search by keyword → choose a video → watch inside Brian · direct links are also supported'}
             </footer>
           </aside>
         ) : null}
