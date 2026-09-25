@@ -1420,6 +1420,7 @@ function measureQuickAccessContentBaseline(container) {
 }
 
 const YOUTUBE_QUICK_MAX_PINS = 6;
+const YOUTUBE_QUICK_SEARCH_MAX = 12;
 const YOUTUBE_QUICK_URLS = Object.freeze({
   home: 'https://www.youtube.com/',
   studio: 'https://studio.youtube.com/',
@@ -3719,7 +3720,7 @@ export default function GlobalQuickAccessRail({
     setYoutubeSearchError('');
     setYoutubePlayerError('');
     try {
-      const response = await fetch(`/api/youtube-search?q=${encodeURIComponent(query)}&limit=6`, {
+      const response = await fetch(`/api/youtube-search?q=${encodeURIComponent(query)}&limit=${YOUTUBE_QUICK_SEARCH_MAX}`, {
         method: 'GET',
         headers: { accept: 'application/json' },
         credentials: 'same-origin',
@@ -3744,7 +3745,7 @@ export default function GlobalQuickAccessRail({
         throw new Error(String(data?.error || (language === 'vi' ? 'Không tìm kiếm được YouTube lúc này.' : 'YouTube search is unavailable right now.')));
       }
 
-      const results = Array.isArray(data?.results) ? data.results.slice(0, 6) : [];
+      const results = Array.isArray(data?.results) ? data.results.slice(0, YOUTUBE_QUICK_SEARCH_MAX) : [];
       setYoutubeSearchResults(results);
       setYoutubeSearchTerm(query);
       if (!results.length) {
@@ -5641,7 +5642,7 @@ export default function GlobalQuickAccessRail({
             {youtubeSearchResults.length ? (
               <section className="bqa-youtube-results" aria-label={language === 'vi' ? 'Kết quả tìm kiếm YouTube' : 'YouTube search results'}>
                 <header>
-                  <strong>{language === 'vi' ? 'Kết quả tìm kiếm' : 'Search results'}</strong>
+                  <strong>{language === 'vi' ? `Kết quả tìm kiếm (${youtubeSearchResults.length})` : `Search results (${youtubeSearchResults.length})`}</strong>
                   <span>{youtubeSearchTerm}</span>
                 </header>
                 <div className="bqa-youtube-result-list">
