@@ -1051,6 +1051,38 @@ test.describe('Global Quick Access safe area', () => {
     await expect(page.locator('.app-shell')).not.toHaveAttribute('data-route', 'assessment-core');
   });
 
+
+  test('YouTube Quick stays visibly mounted as a fixed rail control on desktop', async ({ page }) => {
+    await page.goto('/#/dashboard');
+    const root = page.locator('.bqa-root');
+    const rail = page.locator('.bqa-rail');
+    const youtube = page.locator('.bqa-youtube-fixed-control');
+
+    await expect(root).toBeVisible();
+    await expect(youtube).toBeVisible();
+    await expect(youtube).toHaveCount(1);
+
+    const placement = await youtube.evaluate((button) => {
+      const rail = button.closest('.bqa-rail');
+      const scrollList = button.closest('.bqa-rail-items');
+      const buttonRect = button.getBoundingClientRect();
+      const railRect = rail?.getBoundingClientRect();
+      return {
+        insideRail: Boolean(rail),
+        insideScrollableItems: Boolean(scrollList),
+        buttonTop: buttonRect.top,
+        buttonBottom: buttonRect.bottom,
+        railTop: railRect?.top ?? 0,
+        railBottom: railRect?.bottom ?? 0,
+      };
+    });
+
+    expect(placement.insideRail).toBe(true);
+    expect(placement.insideScrollableItems).toBe(false);
+    expect(placement.buttonTop).toBeGreaterThanOrEqual(placement.railTop - 1);
+    expect(placement.buttonBottom).toBeLessThanOrEqual(placement.railBottom + 1);
+  });
+
   test('pinned panel reflows content instead of covering it', async ({ page }) => {
     await page.goto('/#/apps');
     await expect(page.locator('.bqa-root')).toBeVisible();
