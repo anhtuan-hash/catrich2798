@@ -1498,7 +1498,7 @@ function youtubeQuickPlayableTarget(value) {
 
   const videoIdPattern = /^[A-Za-z0-9_-]{11}$/;
   if (videoIdPattern.test(raw)) {
-    const params = new URLSearchParams({ autoplay: '1', rel: '0', playsinline: '1' });
+    const params = new URLSearchParams({ autoplay: '1', rel: '0', playsinline: '1', enablejsapi: '1' });
     return {
       kind: 'video',
       id: raw,
@@ -1524,7 +1524,7 @@ function youtubeQuickPlayableTarget(value) {
     const safeVideoId = videoIdPattern.test(videoId) ? videoId : '';
 
     if (safeVideoId) {
-      const params = new URLSearchParams({ autoplay: '1', rel: '0', playsinline: '1' });
+      const params = new URLSearchParams({ autoplay: '1', rel: '0', playsinline: '1', enablejsapi: '1' });
       if (playlistId) params.set('list', playlistId);
       return {
         kind: 'video',
@@ -1542,6 +1542,7 @@ function youtubeQuickPlayableTarget(value) {
         autoplay: '1',
         rel: '0',
         playsinline: '1',
+        enablejsapi: '1',
       });
       return {
         kind: 'playlist',
@@ -1680,6 +1681,36 @@ export default function GlobalQuickAccessRail({
   const bookmarkToastTimerRef = useRef(0);
   const youtubeClickTimerRef = useRef(0);
   const youtubeSearchInputRef = useRef(null);
+  const youtubePlayerFrameRef = useRef(null);
+
+  const stopYoutubeQuickPlayback = useCallback(() => {
+    const frame = youtubePlayerFrameRef.current;
+    if (frame) {
+      try {
+        frame.contentWindow?.postMessage(
+          JSON.stringify({ event: 'command', func: 'stopVideo', args: [] }),
+          '*',
+        );
+      } catch {
+        // The iframe is cross-origin; blanking src below is the hard stop fallback.
+      }
+      try {
+        frame.src = 'about:blank';
+      } catch {
+        // Best effort. React unmount below is the final cleanup.
+      }
+      youtubePlayerFrameRef.current = null;
+    }
+    setYoutubePlayer(null);
+    setYoutubePlayerError('');
+  }, []);
+
+  const closeYoutubeQuickPanel = useCallback(() => {
+    stopYoutubeQuickPlayback();
+    setYoutubeQuickOpen(false);
+    setYoutubeContextOpen(false);
+    setYoutubePinError('');
+  }, [stopYoutubeQuickPlayback]);
 
   const catalog = useMemo(() => {
     const byId = new Map();
@@ -1856,9 +1887,7 @@ export default function GlobalQuickAccessRail({
       } else if (event.target?.closest?.('.bqa-youtube-panel, .bqa-youtube-context, .bqa-youtube-rail')) {
         return;
       }
-      setYoutubeQuickOpen(false);
-      setYoutubeContextOpen(false);
-      setYoutubePinError('');
+      closeYoutubeQuickPanel();
     };
     document.addEventListener('pointerdown', closeYoutubeUi, true);
     document.addEventListener('keydown', closeYoutubeUi, true);
@@ -1866,7 +1895,7 @@ export default function GlobalQuickAccessRail({
       document.removeEventListener('pointerdown', closeYoutubeUi, true);
       document.removeEventListener('keydown', closeYoutubeUi, true);
     };
-  }, [youtubeQuickOpen, youtubeContextOpen]);
+  }, [youtubeQuickOpen, youtubeContextOpen, closeYoutubeQuickPanel]);
 
   useEffect(() => {
     if (typeof document === 'undefined' || typeof window === 'undefined') return;
@@ -3624,8 +3653,7 @@ export default function GlobalQuickAccessRail({
 
   const handleYoutubeRailDoubleClick = () => {
     window.clearTimeout(youtubeClickTimerRef.current);
-    setYoutubeQuickOpen(false);
-    setYoutubeContextOpen(false);
+    closeYoutubeQuickPanel();
     openYoutubeQuickExternal(YOUTUBE_QUICK_URLS.home);
   };
 
@@ -3634,6 +3662,7 @@ export default function GlobalQuickAccessRail({
     event.stopPropagation();
     window.clearTimeout(youtubeClickTimerRef.current);
     setYoutubeUiTop(event.currentTarget, 'menu');
+    stopYoutubeQuickPlayback();
     setYoutubeQuickOpen(false);
     setYoutubeContextOpen(true);
   };
@@ -5579,10 +5608,7 @@ export default function GlobalQuickAccessRail({
               </div>
               <button
                 type="button"
-                onClick={() => {
-                  setYoutubeQuickOpen(false);
-                  setYoutubePinError('');
-                }}
+                onClick={closeYoutubeQuickPanel}
                 aria-label={language === 'vi' ? 'Đóng YouTube Quick' : 'Close YouTube Quick'}
               >
                 <X size={15} aria-hidden="true" />
@@ -5661,7 +5687,7 @@ export default function GlobalQuickAccessRail({
                     </button>
                     <button
                       type="button"
-                      onClick={() => setYoutubePlayer(null)}
+                      onClick={stopYoutubeQuickPlayback}
                       title={language === 'vi' ? 'Dừng phát' : 'Stop playback'}
                       aria-label={language === 'vi' ? 'Dừng phát YouTube trong Brian' : 'Stop YouTube playback in Brian'}
                     >
@@ -5671,6 +5697,7 @@ export default function GlobalQuickAccessRail({
                 </header>
                 <div className="bqa-youtube-player-frame">
                   <iframe
+                    ref={youtubePlayerFrameRef}
                     key={youtubePlayer.embedUrl}
                     src={youtubePlayer.embedUrl}
                     title={youtubePlayer.label}

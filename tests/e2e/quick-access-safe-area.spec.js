@@ -1102,7 +1102,13 @@ test.describe('Global Quick Access safe area', () => {
     const frame = panel.locator('.bqa-youtube-player-frame iframe');
     await expect(frame).toBeVisible();
     await expect(frame).toHaveAttribute('src', /youtube-nocookie\.com\/embed\/dQw4w9WgXcQ/);
+    await expect(frame).toHaveAttribute('src', /enablejsapi=1/);
     expect(page.context().pages().length).toBe(pagesBefore);
+
+    await panel.locator('.bqa-youtube-panel-header > button').click();
+    await expect(panel).toBeHidden();
+    await expect(page.locator('.bqa-youtube-player-frame iframe')).toHaveCount(0);
+    expect(await page.locator('iframe[src*="youtube"]').count()).toBe(0);
   });
 
   test('YouTube Quick keyword search renders results and plays the selected video inline', async ({ page }) => {
