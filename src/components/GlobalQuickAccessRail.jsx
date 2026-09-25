@@ -1492,6 +1492,75 @@ function saveYoutubeQuickPins(user, pins) {
   }
 }
 
+function youtubeQuickPlayableTarget(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return null;
+
+  const videoIdPattern = /^[A-Za-z0-9_-]{11}$/;
+  if (videoIdPattern.test(raw)) {
+    const params = new URLSearchParams({ autoplay: '1', rel: '0', playsinline: '1' });
+    return {
+      kind: 'video',
+      id: raw,
+      embedUrl: `https://www.youtube-nocookie.com/embed/${raw}?${params.toString()}`,
+      canonicalUrl: `https://www.youtube.com/watch?v=${raw}`,
+    };
+  }
+
+  const normalized = normalizeYoutubeQuickUrl(raw);
+  if (!normalized) return null;
+
+  try {
+    const url = new URL(normalized);
+    const host = url.hostname.toLowerCase().replace(/^www\./, '');
+    const segments = url.pathname.split('/').filter(Boolean);
+    let videoId = '';
+
+    if (host === 'youtu.be') videoId = segments[0] || '';
+    else if (url.pathname === '/watch') videoId = url.searchParams.get('v') || '';
+    else if (['shorts', 'embed', 'live'].includes(segments[0])) videoId = segments[1] || '';
+
+    const playlistId = String(url.searchParams.get('list') || '').trim();
+    const safeVideoId = videoIdPattern.test(videoId) ? videoId : '';
+
+    if (safeVideoId) {
+      const params = new URLSearchParams({ autoplay: '1', rel: '0', playsinline: '1' });
+      if (playlistId) params.set('list', playlistId);
+      return {
+        kind: 'video',
+        id: safeVideoId,
+        playlistId,
+        embedUrl: `https://www.youtube-nocookie.com/embed/${safeVideoId}?${params.toString()}`,
+        canonicalUrl: `https://www.youtube.com/watch?v=${safeVideoId}${playlistId ? `&list=${encodeURIComponent(playlistId)}` : ''}`,
+      };
+    }
+
+    if (playlistId) {
+      const params = new URLSearchParams({
+        listType: 'playlist',
+        list: playlistId,
+        autoplay: '1',
+        rel: '0',
+        playsinline: '1',
+      });
+      return {
+        kind: 'playlist',
+        playlistId,
+        embedUrl: `https://www.youtube-nocookie.com/embed/videoseries?${params.toString()}`,
+        canonicalUrl: `https://www.youtube.com/playlist?list=${encodeURIComponent(playlistId)}`,
+      };
+    }
+
+    return {
+      kind: 'page',
+      embedUrl: '',
+      canonicalUrl: normalized,
+    };
+  } catch {
+    return null;
+  }
+}
+
 function openYoutubeQuickExternal(url) {
   if (typeof window === 'undefined' || !url) return;
   const target = window.open(url, '_blank', 'noopener,noreferrer');
@@ -1569,6 +1638,8 @@ export default function GlobalQuickAccessRail({
   const [youtubePinUrl, setYoutubePinUrl] = useState('');
   const [youtubePinError, setYoutubePinError] = useState('');
   const [youtubePins, setYoutubePins] = useState(() => loadYoutubeQuickPins(currentUser));
+  const [youtubePlayer, setYoutubePlayer] = useState(null);
+  const [youtubePlayerError, setYoutubePlayerError] = useState('');
   const [badges, setBadges] = useState({});
   const [notifications, setNotifications] = useState([]);
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
@@ -1765,6 +1836,8 @@ export default function GlobalQuickAccessRail({
     setYoutubeQuickOpen(false);
     setYoutubeContextOpen(false);
     setYoutubePinError('');
+    setYoutubePlayer(null);
+    setYoutubePlayerError('');
   }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
 
   useEffect(() => {
@@ -3557,14 +3630,42 @@ export default function GlobalQuickAccessRail({
     setYoutubeContextOpen(true);
   };
 
+  const playYoutubeQuick = (value, label = '') => {
+    const target = youtubeQuickPlayableTarget(value);
+    if (!target?.embedUrl) {
+      setYoutubePlayerError(
+        language === 'vi'
+          ? 'Hãy dán link video, Shorts, livestream, playlist hoặc video ID để phát trực tiếp trong Brian.'
+          : 'Paste a video, Shorts, livestream, playlist URL, or video ID to play it directly in Brian.',
+      );
+      return false;
+    }
+    setYoutubePlayer({
+      ...target,
+      label: String(label || '').trim().slice(0, 80)
+        || (target.kind === 'playlist'
+          ? (language === 'vi' ? 'Playlist YouTube' : 'YouTube playlist')
+          : (language === 'vi' ? 'Video YouTube' : 'YouTube video')),
+    });
+    setYoutubePlayerError('');
+    setYoutubeQuickOpen(true);
+    setYoutubeContextOpen(false);
+    return true;
+  };
+
   const handleYoutubeSearch = (event) => {
     event?.preventDefault?.();
     const query = youtubeQuery.trim();
     if (!query) {
-      openYoutubeQuickExternal(YOUTUBE_QUICK_URLS.home);
+      setYoutubePlayerError(language === 'vi' ? 'Dán link YouTube hoặc video ID trước khi phát.' : 'Paste a YouTube URL or video ID first.');
       return;
     }
-    openYoutubeQuickExternal(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`);
+    playYoutubeQuick(query);
+  };
+
+  const openYoutubePinnedEntry = (entry) => {
+    if (!entry) return;
+    if (!playYoutubeQuick(entry.url, entry.label)) openYoutubeQuickExternal(entry.url);
   };
 
   const addYoutubePin = () => {
@@ -5416,32 +5517,89 @@ export default function GlobalQuickAccessRail({
             </header>
 
             <form className="bqa-youtube-search" onSubmit={handleYoutubeSearch}>
-              <Search size={16} aria-hidden="true" />
+              <Youtube size={16} aria-hidden="true" />
               <input
                 ref={youtubeSearchInputRef}
-                type="search"
+                type="text"
+                inputMode="url"
                 value={youtubeQuery}
-                onChange={(event) => setYoutubeQuery(event.target.value)}
-                placeholder={language === 'vi' ? 'Tìm video trên YouTube…' : 'Search YouTube…'}
-                aria-label={language === 'vi' ? 'Từ khóa tìm kiếm YouTube' : 'YouTube search query'}
+                onChange={(event) => {
+                  setYoutubeQuery(event.target.value);
+                  if (youtubePlayerError) setYoutubePlayerError('');
+                }}
+                placeholder={language === 'vi' ? 'Dán link video / playlist hoặc video ID…' : 'Paste video / playlist URL or video ID…'}
+                aria-label={language === 'vi' ? 'Link YouTube hoặc video ID để phát trong Brian' : 'YouTube URL or video ID to play in Brian'}
               />
-              <button type="submit">{language === 'vi' ? 'Tìm' : 'Search'}</button>
+              <button type="submit">{language === 'vi' ? 'Phát' : 'Play'}</button>
             </form>
 
+            {youtubePlayer ? (
+              <section className="bqa-youtube-player" aria-label={language === 'vi' ? 'Trình phát YouTube trong Brian' : 'YouTube player in Brian'}>
+                <header>
+                  <span>
+                    <Youtube size={14} aria-hidden="true" />
+                    <strong>{youtubePlayer.label}</strong>
+                  </span>
+                  <div>
+                    <button
+                      type="button"
+                      onClick={() => openYoutubeQuickExternal(youtubePlayer.canonicalUrl)}
+                      title={language === 'vi' ? 'Mở trên YouTube' : 'Open on YouTube'}
+                      aria-label={language === 'vi' ? 'Mở video này trên YouTube' : 'Open this video on YouTube'}
+                    >
+                      <ExternalLink size={13} aria-hidden="true" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setYoutubePlayer(null)}
+                      title={language === 'vi' ? 'Dừng phát' : 'Stop playback'}
+                      aria-label={language === 'vi' ? 'Dừng phát YouTube trong Brian' : 'Stop YouTube playback in Brian'}
+                    >
+                      <X size={13} aria-hidden="true" />
+                    </button>
+                  </div>
+                </header>
+                <div className="bqa-youtube-player-frame">
+                  <iframe
+                    key={youtubePlayer.embedUrl}
+                    src={youtubePlayer.embedUrl}
+                    title={youtubePlayer.label}
+                    allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                  />
+                </div>
+              </section>
+            ) : (
+              <button
+                type="button"
+                className="bqa-youtube-player-empty"
+                onClick={() => youtubeSearchInputRef.current?.focus?.()}
+              >
+                <span><Youtube size={20} aria-hidden="true" /></span>
+                <span>
+                  <strong>{language === 'vi' ? 'Phát ngay trong Brian' : 'Play inside Brian'}</strong>
+                  <small>{language === 'vi' ? 'Dán link video hoặc playlist phía trên' : 'Paste a video or playlist link above'}</small>
+                </span>
+              </button>
+            )}
+
+            {youtubePlayerError ? <small className="bqa-youtube-player-error" role="alert">{youtubePlayerError}</small> : null}
+
             <div className="bqa-youtube-links" role="group" aria-label={language === 'vi' ? 'Liên kết YouTube' : 'YouTube links'}>
-              <button type="button" onClick={() => openYoutubeQuickExternal(YOUTUBE_QUICK_URLS.home)}>
+              <button type="button" onClick={() => youtubeSearchInputRef.current?.focus?.()}>
                 <span className="bqa-youtube-link-icon"><Youtube size={17} aria-hidden="true" /></span>
-                <span><strong>YouTube</strong><small>{language === 'vi' ? 'Trang chủ' : 'Home'}</small></span>
-                <ExternalLink size={13} aria-hidden="true" />
+                <span><strong>{language === 'vi' ? 'Video / Playlist' : 'Video / Playlist'}</strong><small>{language === 'vi' ? 'Phát tại Brian' : 'Play in Brian'}</small></span>
+                <ChevronRight size={13} aria-hidden="true" />
               </button>
               <button type="button" onClick={() => openYoutubeQuickExternal(YOUTUBE_QUICK_URLS.studio)}>
                 <span className="bqa-youtube-link-icon"><Presentation size={17} aria-hidden="true" /></span>
-                <span><strong>YouTube Studio</strong><small>{language === 'vi' ? 'Quản lý kênh' : 'Manage channel'}</small></span>
+                <span><strong>YouTube Studio</strong><small>{language === 'vi' ? 'Mở ngoài Brian' : 'Open externally'}</small></span>
                 <ExternalLink size={13} aria-hidden="true" />
               </button>
               <button type="button" onClick={() => openYoutubeQuickExternal(YOUTUBE_QUICK_URLS.music)}>
                 <span className="bqa-youtube-link-icon"><Music2 size={17} aria-hidden="true" /></span>
-                <span><strong>YouTube Music</strong><small>{language === 'vi' ? 'Âm nhạc' : 'Music'}</small></span>
+                <span><strong>YouTube Music</strong><small>{language === 'vi' ? 'Mở ngoài Brian' : 'Open externally'}</small></span>
                 <ExternalLink size={13} aria-hidden="true" />
               </button>
             </div>
@@ -5456,10 +5614,12 @@ export default function GlobalQuickAccessRail({
                 <div className="bqa-youtube-pin-list">
                   {youtubePins.map((entry) => (
                     <div className="bqa-youtube-pin-row" key={entry.id}>
-                      <button type="button" className="bqa-youtube-pin-open" onClick={() => openYoutubeQuickExternal(entry.url)}>
+                      <button type="button" className="bqa-youtube-pin-open" onClick={() => openYoutubePinnedEntry(entry)}>
                         <Youtube size={14} aria-hidden="true" />
                         <span>{entry.label}</span>
-                        <ExternalLink size={12} aria-hidden="true" />
+                        {youtubeQuickPlayableTarget(entry.url)?.embedUrl
+                          ? <ChevronRight size={12} aria-hidden="true" />
+                          : <ExternalLink size={12} aria-hidden="true" />}
                       </button>
                       <button
                         type="button"
@@ -5515,8 +5675,8 @@ export default function GlobalQuickAccessRail({
 
             <footer className="bqa-youtube-hint">
               {language === 'vi'
-                ? 'Double-click icon: mở YouTube · Chuột phải: menu nhanh'
-                : 'Double-click icon: open YouTube · Right-click: quick menu'}
+                ? 'Video và playlist phát ngay trong Brian · Studio/Music vẫn mở riêng khi cần'
+                : 'Videos and playlists play inside Brian · Studio/Music open separately when needed'}
             </footer>
           </aside>
         ) : null}
