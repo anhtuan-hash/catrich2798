@@ -3591,7 +3591,7 @@ export default function GlobalQuickAccessRail({
     if (typeof window === 'undefined') return;
     const rect = sourceEl?.getBoundingClientRect?.();
     const viewportHeight = Math.max(560, Number(window.innerHeight) || 900);
-    const estimatedHeight = mode === 'menu' ? 270 : 510;
+    const estimatedHeight = mode === 'menu' ? 270 : 650;
     const maxTop = Math.max(86, viewportHeight - estimatedHeight - 20);
     const nextTop = Math.max(86, Math.min(maxTop, Number(rect?.top) || 108));
     if (mode === 'menu') setYoutubeContextTop(nextTop);
