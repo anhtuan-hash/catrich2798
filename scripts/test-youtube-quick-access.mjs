@@ -30,6 +30,13 @@ for (const token of [
   'bqa-youtube-panel',
   'bqa-youtube-context',
   'youtubePins.slice(0, 3)',
+  'youtubePlayerFrameRef',
+  'stopYoutubeQuickPlayback',
+  "frame.src = 'about:blank'",
+  "func: 'stopVideo'",
+  "enablejsapi: '1'",
+  'onClick={closeYoutubeQuickPanel}',
+  'onClick={stopYoutubeQuickPlayback}',
 ]) {
   assert.ok(rail.includes(token), `YouTube Quick Access contract missing: ${token}`);
 }
@@ -96,4 +103,4 @@ assert.ok(!/font-family\s*:/i.test(youtubeCss), 'YouTube Quick Access must inher
 assert.ok(!/\.app-shell\s*\{/.test(youtubeCss), 'YouTube Quick Access must not mutate global app-shell layout.');
 assert.ok(!/body\s*\{/.test(youtubeCss), 'YouTube Quick Access CSS must remain component-scoped.');
 
-console.log('PASS: YouTube Quick Access supports keyword search with inline result cards, direct-link playback, shared-gateway API search, and a no-key YouTube HTML fallback.');
+console.log('PASS: YouTube Quick Access searches and plays inline, and closing the YouTube panel hard-stops iframe playback before unmounting.');
