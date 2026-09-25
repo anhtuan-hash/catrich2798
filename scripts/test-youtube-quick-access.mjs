@@ -3,6 +3,9 @@ import fs from 'node:fs';
 
 const rail = fs.readFileSync('src/components/GlobalQuickAccessRail.jsx', 'utf8');
 const css = fs.readFileSync('src/components/GlobalQuickAccessRail.css', 'utf8');
+const gateway = fs.readFileSync('api/gateway.js', 'utf8');
+const vercel = fs.readFileSync('vercel.json', 'utf8');
+const searchHandler = fs.readFileSync('serverless-handlers/_youtube-search.js', 'utf8');
 
 for (const token of [
   'YOUTUBE_QUICK_MAX_PINS = 6',
@@ -15,6 +18,11 @@ for (const token of [
   'https://www.youtube-nocookie.com/embed/',
   'allowFullScreen',
   'bqa-youtube-player-frame',
+  'youtubeSearchResults',
+  '/api/youtube-search?q=',
+  'playYoutubeSearchResult',
+  'bqa-youtube-results',
+  'bqa-youtube-result',
   'https://studio.youtube.com/',
   'https://music.youtube.com/',
   'bqa-youtube-rail',
@@ -45,6 +53,9 @@ for (const token of [
   '.bqa-youtube-context',
   '.bqa-youtube-player',
   '.bqa-youtube-player-frame',
+  '.bqa-youtube-results',
+  '.bqa-youtube-result',
+  '.bqa-youtube-search-error',
   'min-height: 200px',
   '@media (max-width: 760px), (hover: none)',
   'display: none !important',
@@ -52,16 +63,31 @@ for (const token of [
   assert.ok(css.includes(token), `YouTube Quick Access visual contract missing: ${token}`);
 }
 
-const searchHandlerStart = rail.indexOf('const handleYoutubeSearch = (event) => {');
-const searchHandlerEnd = rail.indexOf('const openYoutubePinnedEntry', searchHandlerStart);
-const searchHandler = rail.slice(searchHandlerStart, searchHandlerEnd);
-assert.ok(searchHandlerStart >= 0 && searchHandlerEnd > searchHandlerStart, 'YouTube inline play handler must exist.');
-assert.ok(searchHandler.includes('playYoutubeQuick(query)'), 'Submitting the YouTube field must play inside Brian.');
-assert.ok(!searchHandler.includes('openYoutubeQuickExternal'), 'Submitting the inline play field must not open a new tab.');
+const searchHandlerStart = rail.indexOf('const handleYoutubeSearch = async (event) => {');
+const searchHandlerEnd = rail.indexOf('const playYoutubeSearchResult', searchHandlerStart);
+const clientSearchHandler = rail.slice(searchHandlerStart, searchHandlerEnd);
+assert.ok(searchHandlerStart >= 0 && searchHandlerEnd > searchHandlerStart, 'YouTube keyword search handler must exist.');
+assert.ok(clientSearchHandler.includes('playYoutubeQuick(query)'), 'Playable links must still play directly inside Brian.');
+assert.ok(clientSearchHandler.includes('/api/youtube-search?q='), 'Keyword searches must call the Brian YouTube search endpoint.');
+assert.ok(!clientSearchHandler.includes('openYoutubeQuickExternal'), 'Submitting the search field must not open a new tab.');
+
+assert.ok(gateway.includes("import youtubeSearch from '../serverless-handlers/_youtube-search.js';"), 'Gateway must import YouTube search handler.');
+assert.ok(gateway.includes("'youtube-search': youtubeSearch"), 'Gateway must register YouTube search handler.');
+assert.ok(vercel.includes('"source": "/api/youtube-search"'), 'Vercel must expose the YouTube search route.');
+assert.ok(vercel.includes('"destination": "/api/gateway?handler=youtube-search"'), 'YouTube search route must reuse the shared gateway.');
+for (const token of [
+  'process.env.YOUTUBE_API_KEY',
+  'process.env.VITE_YOUTUBE_API_KEY',
+  'https://www.googleapis.com/youtube/v3/search',
+  "type: 'video'",
+  "safeSearch: 'moderate'",
+]) {
+  assert.ok(searchHandler.includes(token), `YouTube search API contract missing: ${token}`);
+}
 
 const youtubeCss = css.slice(css.indexOf('Brian YouTube Quick Access · 2026-09-25'));
 assert.ok(!/font-family\s*:/i.test(youtubeCss), 'YouTube Quick Access must inherit Brian custom fonts.');
 assert.ok(!/\.app-shell\s*\{/.test(youtubeCss), 'YouTube Quick Access must not mutate global app-shell layout.');
 assert.ok(!/body\s*\{/.test(youtubeCss), 'YouTube Quick Access CSS must remain component-scoped.');
 
-console.log('PASS: YouTube Quick Access stays web-only and visible, plays videos/playlists inline in Brian, and preserves external fallbacks plus up to 6 pinned links.');
+console.log('PASS: YouTube Quick Access supports keyword search with inline result cards, direct-link playback, shared-gateway API search, and web-only sidebar behavior.');
