@@ -810,6 +810,13 @@ button.bqa-customizer-row:disabled {
   }
 }
 
+@media (max-height: 720px) and (min-width: 761px) and (hover: hover) {
+  .bqa-youtube-panel.is-background-player {
+    bottom: 18px;
+    width: min(320px, calc(100vw - 100px));
+  }
+}
+
 @media (max-width: 760px), (hover: none) {
   .bqa-root {
     --bqa-rail-width: 48px;
@@ -7601,6 +7608,44 @@ body > .bqa-root .bqa-rail {
   scrollbar-gutter: stable;
   scrollbar-width: thin;
   animation: bqa-youtube-in 170ms cubic-bezier(.22,1,.36,1);
+}
+
+.bqa-youtube-panel.is-background-player {
+  left: auto;
+  right: 20px;
+  top: auto !important;
+  bottom: 92px;
+  width: min(360px, calc(100vw - 110px));
+  max-height: none;
+  padding: 8px;
+  overflow: visible;
+  border-radius: 16px;
+  box-shadow: 0 18px 46px rgba(33,52,71,.28);
+  animation: bqa-youtube-float-in 180ms cubic-bezier(.22,1,.36,1);
+}
+
+.bqa-youtube-panel.is-background-player > :not(.bqa-youtube-player) {
+  display: none !important;
+}
+
+.bqa-youtube-panel.is-background-player .bqa-youtube-player {
+  margin-top: 0;
+  padding: 7px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.985);
+}
+
+.bqa-youtube-panel.is-background-player .bqa-youtube-player > header {
+  margin-bottom: 6px;
+}
+
+.bqa-youtube-panel.is-background-player .bqa-youtube-player-frame {
+  min-height: 0;
+}
+
+@keyframes bqa-youtube-float-in {
+  from { opacity: 0; transform: translate3d(0,10px,0) scale(.97); }
+  to { opacity: 1; transform: translate3d(0,0,0) scale(1); }
 }
 
 @keyframes bqa-youtube-in {
