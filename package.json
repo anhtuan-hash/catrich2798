@@ -7,7 +7,7 @@
     "dev": "vite --host 0.0.0.0",
     "build": "npm run version:sync && vite build && vite build --config apps/classroom-screen/vite.config.ts",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "node scripts/smoke-test.mjs",
+    "test": "node scripts/smoke-test.mjs && node scripts/test-youtube-quick-access.mjs",
     "test:homeroom-export": "node scripts/test-homeroom-gradebook-export.mjs",
     "test:homeroom-class-types": "node scripts/test-homeroom-class-types.mjs",
     "test:homeroom-navigation": "node scripts/test-homeroom-navigation-palette.mjs",
