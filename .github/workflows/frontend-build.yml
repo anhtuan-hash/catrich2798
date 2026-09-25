@@ -91,6 +91,9 @@ jobs:
       - name: Verify global Quick Access rail
         run: node scripts/test-global-quick-access-rail.mjs
 
+      - name: Verify YouTube Quick inline player
+        run: node scripts/test-youtube-quick-access.mjs
+
       - name: Verify global 10-bar Wave Loader is retired
         run: node scripts/test-no-global-wave-loader.mjs
 
