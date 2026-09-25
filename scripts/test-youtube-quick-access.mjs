@@ -11,7 +11,10 @@ for (const token of [
   'handleYoutubeRailClick',
   'handleYoutubeRailDoubleClick',
   'handleYoutubeContextMenu',
-  'https://www.youtube.com/results?search_query=',
+  'youtubeQuickPlayableTarget',
+  'https://www.youtube-nocookie.com/embed/',
+  'allowFullScreen',
+  'bqa-youtube-player-frame',
   'https://studio.youtube.com/',
   'https://music.youtube.com/',
   'bqa-youtube-rail',
@@ -40,15 +43,25 @@ for (const token of [
   '.bqa-youtube-rail',
   '.bqa-youtube-panel',
   '.bqa-youtube-context',
+  '.bqa-youtube-player',
+  '.bqa-youtube-player-frame',
+  'min-height: 200px',
   '@media (max-width: 760px), (hover: none)',
   'display: none !important',
 ]) {
   assert.ok(css.includes(token), `YouTube Quick Access visual contract missing: ${token}`);
 }
 
+const searchHandlerStart = rail.indexOf('const handleYoutubeSearch = (event) => {');
+const searchHandlerEnd = rail.indexOf('const openYoutubePinnedEntry', searchHandlerStart);
+const searchHandler = rail.slice(searchHandlerStart, searchHandlerEnd);
+assert.ok(searchHandlerStart >= 0 && searchHandlerEnd > searchHandlerStart, 'YouTube inline play handler must exist.');
+assert.ok(searchHandler.includes('playYoutubeQuick(query)'), 'Submitting the YouTube field must play inside Brian.');
+assert.ok(!searchHandler.includes('openYoutubeQuickExternal'), 'Submitting the inline play field must not open a new tab.');
+
 const youtubeCss = css.slice(css.indexOf('Brian YouTube Quick Access · 2026-09-25'));
 assert.ok(!/font-family\s*:/i.test(youtubeCss), 'YouTube Quick Access must inherit Brian custom fonts.');
 assert.ok(!/\.app-shell\s*\{/.test(youtubeCss), 'YouTube Quick Access must not mutate global app-shell layout.');
 assert.ok(!/body\s*\{/.test(youtubeCss), 'YouTube Quick Access CSS must remain component-scoped.');
 
-console.log('PASS: YouTube Quick Access is web-only, searchable, supports double-click and right-click shortcuts, and stores up to 6 pinned YouTube links without an API key.');
+console.log('PASS: YouTube Quick Access stays web-only and visible, plays videos/playlists inline in Brian, and preserves external fallbacks plus up to 6 pinned links.');
