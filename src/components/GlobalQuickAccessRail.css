@@ -1290,7 +1290,8 @@ body > .bqa-root {
 
 body > .bqa-root.is-open,
 body > .bqa-root.is-pinned,
-body > .bqa-root.is-collapsing {
+body > .bqa-root.is-collapsing,
+body > .bqa-root.is-youtube-playing {
   z-index: 2147483647 !important;
 }
 
