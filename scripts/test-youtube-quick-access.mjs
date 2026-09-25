@@ -28,6 +28,13 @@ assert.match(
   'Rail capacity must reserve one icon slot for the dedicated YouTube launcher.',
 );
 
+const railItemsStart = rail.indexOf('className="bqa-rail-items"');
+const railItemsEnd = rail.indexOf('{railOverflowItems.length ? (', railItemsStart);
+const fixedYoutubeIndex = rail.indexOf('bqa-youtube-fixed-control');
+assert.ok(railItemsStart >= 0 && railItemsEnd > railItemsStart, 'Quick Access rail-items boundaries must exist.');
+assert.ok(fixedYoutubeIndex > railItemsEnd, 'YouTube launcher must live outside the scrollable rail-items area so it stays visible.');
+assert.equal((rail.match(/bqa-youtube-fixed-control/g) || []).length, 1, 'Exactly one fixed YouTube launcher must be rendered.');
+
 for (const token of [
   'Brian YouTube Quick Access · 2026-09-25',
   '.bqa-youtube-rail',

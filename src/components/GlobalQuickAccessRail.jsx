@@ -4378,26 +4378,6 @@ export default function GlobalQuickAccessRail({
                 </button>
               );
             })}
-            <button
-              type="button"
-              className={`bqa-rail-button bqa-youtube-rail ${youtubeQuickOpen || youtubeContextOpen ? 'is-active' : ''}`}
-              style={{ '--bqa-accent': '#ff0033' }}
-              title={language === 'vi' ? 'YouTube Quick · click để tìm, double-click để mở YouTube' : 'YouTube Quick · click to search, double-click to open YouTube'}
-              aria-label={language === 'vi' ? 'Mở YouTube Quick' : 'Open YouTube Quick'}
-              aria-expanded={youtubeQuickOpen || youtubeContextOpen}
-              onClick={(event) => {
-                event.preventDefault();
-                handleYoutubeRailClick(event.currentTarget);
-              }}
-              onDoubleClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                handleYoutubeRailDoubleClick();
-              }}
-              onContextMenu={handleYoutubeContextMenu}
-            >
-              <Youtube size={20} strokeWidth={2} aria-hidden="true" />
-            </button>
           </div>
 
           {railOverflowItems.length ? (
@@ -4418,6 +4398,27 @@ export default function GlobalQuickAccessRail({
               <span>{railOverflowItems.length}</span>
             </button>
           ) : null}
+
+          <button
+            type="button"
+            className={`bqa-rail-button bqa-youtube-rail bqa-youtube-fixed-control ${youtubeQuickOpen || youtubeContextOpen ? 'is-active' : ''}`}
+            style={{ '--bqa-accent': '#ff0033' }}
+            title={language === 'vi' ? 'YouTube Quick · click để tìm, double-click để mở YouTube' : 'YouTube Quick · click to search, double-click to open YouTube'}
+            aria-label={language === 'vi' ? 'Mở YouTube Quick' : 'Open YouTube Quick'}
+            aria-expanded={youtubeQuickOpen || youtubeContextOpen}
+            onClick={(event) => {
+              event.preventDefault();
+              handleYoutubeRailClick(event.currentTarget);
+            }}
+            onDoubleClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              handleYoutubeRailDoubleClick();
+            }}
+            onContextMenu={handleYoutubeContextMenu}
+          >
+            <Youtube size={20} strokeWidth={2} aria-hidden="true" />
+          </button>
 
           {precisionDrag ? (
             <div
