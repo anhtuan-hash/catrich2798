@@ -31,6 +31,7 @@ import {
   Youtube,
   Music2,
   ExternalLink,
+  Maximize2,
   Trash2,
   Zap,
   X,
@@ -1706,11 +1707,10 @@ export default function GlobalQuickAccessRail({
   }, []);
 
   const closeYoutubeQuickPanel = useCallback(() => {
-    stopYoutubeQuickPlayback();
     setYoutubeQuickOpen(false);
     setYoutubeContextOpen(false);
     setYoutubePinError('');
-  }, [stopYoutubeQuickPlayback]);
+  }, []);
 
   const catalog = useMemo(() => {
     const byId = new Map();
@@ -3662,7 +3662,6 @@ export default function GlobalQuickAccessRail({
     event.stopPropagation();
     window.clearTimeout(youtubeClickTimerRef.current);
     setYoutubeUiTop(event.currentTarget, 'menu');
-    stopYoutubeQuickPlayback();
     setYoutubeQuickOpen(false);
     setYoutubeContextOpen(true);
   };
@@ -5593,10 +5592,11 @@ export default function GlobalQuickAccessRail({
           </aside>
         ) : null}
 
-        {youtubeQuickOpen ? (
+        {(youtubeQuickOpen || youtubePlayer) ? (
           <aside
-            className="bqa-youtube-panel"
-            style={{ top: youtubeQuickTop }}
+            className={`bqa-youtube-panel ${!youtubeQuickOpen && youtubePlayer ? 'is-background-player' : ''}`}
+            style={youtubeQuickOpen ? { top: youtubeQuickTop } : undefined}
+            data-background-player={!youtubeQuickOpen && youtubePlayer ? 'true' : 'false'}
             role="dialog"
             aria-modal="false"
             aria-label={language === 'vi' ? 'Truy cập nhanh YouTube' : 'YouTube Quick Access'}
@@ -5677,6 +5677,16 @@ export default function GlobalQuickAccessRail({
                     <strong>{youtubePlayer.label}</strong>
                   </span>
                   <div>
+                    {!youtubeQuickOpen ? (
+                      <button
+                        type="button"
+                        onClick={() => setYoutubeQuickOpen(true)}
+                        title={language === 'vi' ? 'Mở lại YouTube Quick' : 'Reopen YouTube Quick'}
+                        aria-label={language === 'vi' ? 'Mở lại YouTube Quick' : 'Reopen YouTube Quick'}
+                      >
+                        <Maximize2 size={13} aria-hidden="true" />
+                      </button>
+                    ) : null}
                     <button
                       type="button"
                       onClick={() => openYoutubeQuickExternal(youtubePlayer.canonicalUrl)}
