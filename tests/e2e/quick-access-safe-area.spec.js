@@ -1105,10 +1105,22 @@ test.describe('Global Quick Access safe area', () => {
     await expect(frame).toHaveAttribute('src', /enablejsapi=1/);
     expect(page.context().pages().length).toBe(pagesBefore);
 
+    const srcBeforeClose = await frame.getAttribute('src');
     await panel.locator('.bqa-youtube-panel-header > button').click();
-    await expect(panel).toBeHidden();
-    await expect(page.locator('.bqa-youtube-player-frame iframe')).toHaveCount(0);
-    expect(await page.locator('iframe[src*="youtube"]').count()).toBe(0);
+
+    await expect(panel).toBeVisible();
+    await expect(panel).toHaveClass(/is-background-player/);
+    await expect(panel).toHaveAttribute('data-background-player', 'true');
+    await expect(panel.locator('.bqa-youtube-search')).toBeHidden();
+
+    const floatingFrame = panel.locator('.bqa-youtube-player-frame iframe');
+    await expect(floatingFrame).toBeVisible();
+    await expect(floatingFrame).toHaveAttribute('src', srcBeforeClose);
+    await expect(panel.locator('.bqa-youtube-player > header button')).toHaveCount(3);
+
+    await panel.locator('.bqa-youtube-player > header button').first().click();
+    await expect(panel).not.toHaveClass(/is-background-player/);
+    await expect(panel.locator('.bqa-youtube-search')).toBeVisible();
   });
 
   test('YouTube Quick keyword search renders results and plays the selected video inline', async ({ page }) => {
