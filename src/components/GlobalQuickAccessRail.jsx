@@ -4341,7 +4341,7 @@ export default function GlobalQuickAccessRail({
 
       <div
         ref={rootRef}
-        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${focusMode ? 'is-focus' : ''} ${customizing ? 'is-customizing' : ''} ${notificationCenterOpen ? 'is-alerts-open' : ''} ${workflowCenterOpen ? 'is-workflow-open' : ''} ${classroomMode ? 'is-classroom-mode' : ''} ${overflowOpen ? 'is-overflow-open' : ''} ${workspaceSwitcherOpen ? 'is-workspace-switcher-open' : ''}`}
+        className={`bqa-root ${expanded ? 'is-open' : 'is-collapsed'} ${collapsing ? 'is-collapsing' : ''} ${pinned ? 'is-pinned' : ''} ${focusMode ? 'is-focus' : ''} ${customizing ? 'is-customizing' : ''} ${notificationCenterOpen ? 'is-alerts-open' : ''} ${workflowCenterOpen ? 'is-workflow-open' : ''} ${classroomMode ? 'is-classroom-mode' : ''} ${overflowOpen ? 'is-overflow-open' : ''} ${workspaceSwitcherOpen ? 'is-workspace-switcher-open' : ''} ${youtubePlayer ? 'is-youtube-playing' : ''}`}
         data-quick-access="true"
         data-sidebar-mode={sidebarMode}
         data-workspace={effectiveWorkspace}
