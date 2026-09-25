@@ -1640,6 +1640,10 @@ export default function GlobalQuickAccessRail({
   const [youtubePins, setYoutubePins] = useState(() => loadYoutubeQuickPins(currentUser));
   const [youtubePlayer, setYoutubePlayer] = useState(null);
   const [youtubePlayerError, setYoutubePlayerError] = useState('');
+  const [youtubeSearchResults, setYoutubeSearchResults] = useState([]);
+  const [youtubeSearchLoading, setYoutubeSearchLoading] = useState(false);
+  const [youtubeSearchError, setYoutubeSearchError] = useState('');
+  const [youtubeSearchTerm, setYoutubeSearchTerm] = useState('');
   const [badges, setBadges] = useState({});
   const [notifications, setNotifications] = useState([]);
   const [notificationCenterOpen, setNotificationCenterOpen] = useState(false);
@@ -1838,6 +1842,10 @@ export default function GlobalQuickAccessRail({
     setYoutubePinError('');
     setYoutubePlayer(null);
     setYoutubePlayerError('');
+    setYoutubeSearchResults([]);
+    setYoutubeSearchLoading(false);
+    setYoutubeSearchError('');
+    setYoutubeSearchTerm('');
   }, [currentUser?.id, currentUser?.authId, currentUser?.email]);
 
   useEffect(() => {
@@ -3653,14 +3661,79 @@ export default function GlobalQuickAccessRail({
     return true;
   };
 
-  const handleYoutubeSearch = (event) => {
+  const handleYoutubeSearch = async (event) => {
     event?.preventDefault?.();
     const query = youtubeQuery.trim();
     if (!query) {
-      setYoutubePlayerError(language === 'vi' ? 'Dán link YouTube hoặc video ID trước khi phát.' : 'Paste a YouTube URL or video ID first.');
+      setYoutubeSearchError(language === 'vi' ? 'Nhập từ khóa tìm kiếm hoặc dán link YouTube.' : 'Enter a search term or paste a YouTube URL.');
       return;
     }
-    playYoutubeQuick(query);
+
+    const directTarget = youtubeQuickPlayableTarget(query);
+    if (directTarget?.embedUrl) {
+      setYoutubeSearchResults([]);
+      setYoutubeSearchTerm('');
+      setYoutubeSearchError('');
+      playYoutubeQuick(query);
+      return;
+    }
+
+    if (/^https?:\/\//i.test(query)) {
+      setYoutubeSearchError(
+        language === 'vi'
+          ? 'Link này không phải video/playlist có thể phát. Hãy nhập từ khóa để tìm video.'
+          : 'This URL is not a playable video/playlist. Enter keywords to search for videos.',
+      );
+      return;
+    }
+
+    setYoutubeSearchLoading(true);
+    setYoutubeSearchError('');
+    setYoutubePlayerError('');
+    try {
+      const response = await fetch(`/api/youtube-search?q=${encodeURIComponent(query)}&limit=6`, {
+        method: 'GET',
+        headers: { accept: 'application/json' },
+        credentials: 'same-origin',
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data?.ok) {
+        const code = String(data?.code || '');
+        if (code === 'youtube_search_not_configured') {
+          throw new Error(
+            language === 'vi'
+              ? 'Tìm kiếm YouTube chưa được cấu hình API key trên hệ thống.'
+              : 'YouTube search API key is not configured on the system.',
+          );
+        }
+        if (code === 'youtube_quota_exceeded') {
+          throw new Error(
+            language === 'vi'
+              ? 'Hạn mức tìm kiếm YouTube hôm nay đã hết. Bạn vẫn có thể dán link video để phát.'
+              : 'YouTube search quota has been reached. You can still paste a video link to play it.',
+          );
+        }
+        throw new Error(String(data?.error || (language === 'vi' ? 'Không tìm kiếm được YouTube lúc này.' : 'YouTube search is unavailable right now.')));
+      }
+
+      const results = Array.isArray(data?.results) ? data.results.slice(0, 6) : [];
+      setYoutubeSearchResults(results);
+      setYoutubeSearchTerm(query);
+      if (!results.length) {
+        setYoutubeSearchError(language === 'vi' ? 'Không tìm thấy video phù hợp.' : 'No matching videos found.');
+      }
+    } catch (error) {
+      setYoutubeSearchResults([]);
+      setYoutubeSearchTerm(query);
+      setYoutubeSearchError(String(error?.message || error));
+    } finally {
+      setYoutubeSearchLoading(false);
+    }
+  };
+
+  const playYoutubeSearchResult = (result) => {
+    if (!result?.videoId) return;
+    playYoutubeQuick(result.videoId, result.title || '');
   };
 
   const openYoutubePinnedEntry = (entry) => {
