@@ -41,6 +41,7 @@ for (const token of [
   "is-background-player",
   "data-background-player",
   "onClick={() => setYoutubeQuickOpen(true)}",
+  "is-youtube-playing",
 ]) {
   assert.ok(rail.includes(token), `YouTube Quick Access contract missing: ${token}`);
 }
@@ -69,6 +70,7 @@ for (const token of [
   '.bqa-youtube-result',
   '.bqa-youtube-search-error',
   '.bqa-youtube-panel.is-background-player',
+  'body > .bqa-root.is-youtube-playing',
   'bqa-youtube-float-in',
   'min-height: 200px',
   '@media (max-width: 760px), (hover: none)',
