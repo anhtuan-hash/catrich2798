@@ -1083,6 +1083,28 @@ test.describe('Global Quick Access safe area', () => {
     expect(placement.buttonBottom).toBeLessThanOrEqual(placement.railBottom + 1);
   });
 
+
+  test('YouTube Quick plays a pasted video inside Brian instead of opening a new tab', async ({ page }) => {
+    await page.goto('/#/dashboard');
+    const youtube = page.locator('.bqa-youtube-fixed-control');
+    await expect(youtube).toBeVisible();
+
+    const pagesBefore = page.context().pages().length;
+    await youtube.click();
+    const panel = page.locator('.bqa-youtube-panel');
+    await expect(panel).toBeVisible();
+
+    const input = panel.locator('.bqa-youtube-search input');
+    await expect(input).toBeVisible();
+    await input.fill('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+    await panel.locator('.bqa-youtube-search button[type="submit"]').click();
+
+    const frame = panel.locator('.bqa-youtube-player-frame iframe');
+    await expect(frame).toBeVisible();
+    await expect(frame).toHaveAttribute('src', /youtube-nocookie\.com\/embed\/dQw4w9WgXcQ/);
+    expect(page.context().pages().length).toBe(pagesBefore);
+  });
+
   test('pinned panel reflows content instead of covering it', async ({ page }) => {
     await page.goto('/#/apps');
     await expect(page.locator('.bqa-root')).toBeVisible();
