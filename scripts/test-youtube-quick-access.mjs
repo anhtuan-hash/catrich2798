@@ -82,6 +82,11 @@ for (const token of [
   'https://www.googleapis.com/youtube/v3/search',
   "type: 'video'",
   "safeSearch: 'moderate'",
+  'https://www.youtube.com/results?',
+  'ytInitialData',
+  'videoRenderer',
+  "source = 'youtube-html'",
+  "source = 'youtube-html-fallback'",
 ]) {
   assert.ok(searchHandler.includes(token), `YouTube search API contract missing: ${token}`);
 }
@@ -91,4 +96,4 @@ assert.ok(!/font-family\s*:/i.test(youtubeCss), 'YouTube Quick Access must inher
 assert.ok(!/\.app-shell\s*\{/.test(youtubeCss), 'YouTube Quick Access must not mutate global app-shell layout.');
 assert.ok(!/body\s*\{/.test(youtubeCss), 'YouTube Quick Access CSS must remain component-scoped.');
 
-console.log('PASS: YouTube Quick Access supports keyword search with inline result cards, direct-link playback, shared-gateway API search, and web-only sidebar behavior.');
+console.log('PASS: YouTube Quick Access supports keyword search with inline result cards, direct-link playback, shared-gateway API search, and a no-key YouTube HTML fallback.');
