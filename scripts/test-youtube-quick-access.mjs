@@ -9,6 +9,7 @@ const searchHandler = fs.readFileSync('serverless-handlers/_youtube-search.js', 
 
 for (const token of [
   'YOUTUBE_QUICK_MAX_PINS = 6',
+  'YOUTUBE_QUICK_SEARCH_MAX = 12',
   "bes-youtube-quick-pins:",
   'normalizeYoutubeQuickUrl',
   'handleYoutubeRailClick',
@@ -50,6 +51,20 @@ assert.match(
   rail,
   /Math\.floor\(\(height - reserved\) \/ itemPitch\) - 1/,
   'Rail capacity must reserve one icon slot for the dedicated YouTube launcher.',
+);
+
+assert.ok(
+  rail.includes('limit=${YOUTUBE_QUICK_SEARCH_MAX}'),
+  'YouTube keyword search must request the configured expanded result count.',
+);
+assert.ok(
+  rail.includes('data.results.slice(0, YOUTUBE_QUICK_SEARCH_MAX)'),
+  'YouTube keyword search must retain the configured expanded result count.',
+);
+assert.ok(
+  searchHandler.includes('if (!Number.isFinite(parsed)) return 12;')
+    && searchHandler.includes('Math.min(20, parsed)'),
+  'YouTube server search limit must default to 12 and allow up to 20.',
 );
 
 const railItemsStart = rail.indexOf('className="bqa-rail-items"');
@@ -120,4 +135,4 @@ assert.ok(!/font-family\s*:/i.test(youtubeCss), 'YouTube Quick Access must inher
 assert.ok(!/\.app-shell\s*\{/.test(youtubeCss), 'YouTube Quick Access must not mutate global app-shell layout.');
 assert.ok(!/body\s*\{/.test(youtubeCss), 'YouTube Quick Access CSS must remain component-scoped.');
 
-console.log('PASS: YouTube Quick Access searches and plays inline, then keeps the same player alive as a floating mini-player when the sidebar closes.');
+console.log('PASS: YouTube Quick Access shows up to 12 search results, plays inline, and keeps the same player alive as a floating mini-player when the sidebar closes.');

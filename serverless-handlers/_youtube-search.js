@@ -4,8 +4,8 @@ function cleanText(value, max = 180) {
 
 function safeLimit(value) {
   const parsed = Number.parseInt(String(value || ''), 10);
-  if (!Number.isFinite(parsed)) return 6;
-  return Math.max(1, Math.min(8, parsed));
+  if (!Number.isFinite(parsed)) return 12;
+  return Math.max(1, Math.min(20, parsed));
 }
 
 function youtubeApiKey() {
