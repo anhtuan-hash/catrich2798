@@ -5589,12 +5589,13 @@ export default function GlobalQuickAccessRail({
               </button>
             </header>
 
-            <form className="bqa-youtube-search" onSubmit={handleYoutubeSearch}>
+            <form className="bqa-youtube-search" data-bes-keep-search="true" onSubmit={handleYoutubeSearch}>
               <Search size={16} aria-hidden="true" />
               <input
                 ref={youtubeSearchInputRef}
                 type="search"
                 inputMode="search"
+                data-bes-keep-search="true"
                 value={youtubeQuery}
                 onChange={(event) => {
                   setYoutubeQuery(event.target.value);
