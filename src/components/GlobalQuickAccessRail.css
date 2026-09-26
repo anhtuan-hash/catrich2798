@@ -1163,9 +1163,12 @@ button.bqa-customizer-row:disabled {
 .app-shell[data-quick-access-layout="true"][data-quick-access-safe-mode="reserve"] > #bes-main-content > .bqa-content-safe-frame {
   position: relative;
   box-sizing: border-box;
-  width: calc(100% - var(--bqa-content-safe-shift, 0px));
-  min-width: 0;
-  translate: var(--bqa-content-safe-shift, 0px) 0;
+  inline-size: calc(100% - var(--bqa-content-safe-shift, 0px)) !important;
+  width: calc(100% - var(--bqa-content-safe-shift, 0px)) !important;
+  max-inline-size: calc(100% - var(--bqa-content-safe-shift, 0px)) !important;
+  max-width: calc(100% - var(--bqa-content-safe-shift, 0px)) !important;
+  min-width: 0 !important;
+  translate: var(--bqa-content-safe-shift, 0px) 0 !important;
   transition:
     translate 235ms cubic-bezier(.22, 1, .36, 1),
     width 235ms cubic-bezier(.22, 1, .36, 1);
@@ -1226,8 +1229,11 @@ button.bqa-customizer-row:disabled {
 
 .app-shell[data-quick-access-layout="true"][data-quick-access-safe-mode="overlay"] > #bes-main-content > .bqa-content-safe-frame {
   position: relative;
-  translate: 0 0 !important;
+  inline-size: 100% !important;
   width: 100% !important;
+  max-inline-size: 100% !important;
+  max-width: 100% !important;
+  translate: 0 0 !important;
 }
 
 @media (min-width: 768px) {
@@ -1256,7 +1262,11 @@ button.bqa-customizer-row:disabled {
   }
 
   .app-shell[data-quick-access-layout="true"] > #bes-main-content > .bqa-content-safe-frame {
+    inline-size: 100% !important;
     width: 100% !important;
+    max-inline-size: 100% !important;
+    max-width: 100% !important;
+    translate: 0 0 !important;
     padding-inline-start: 0 !important;
   }
 

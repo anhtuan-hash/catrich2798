@@ -59,6 +59,45 @@ html body #root .app-shell[data-route] main#bes-main-content > * {
   --bes-page-inner: var(--bes-layout-inner);
   --bes-page-section-gap: var(--bes-layout-section-gap);
 }
+
+/* Quick Access reserve geometry is a shell invariant, not a route override.
+   This intentionally follows the generic direct-child authority above so the
+   safe frame can shrink before it is translated away from the fixed left rail. */
+html body #root .app-shell[data-route][data-quick-access-layout="true"][data-quick-access-safe-mode="reserve"]
+  main#bes-main-content > .bqa-content-safe-frame {
+  box-sizing: border-box !important;
+  inline-size: calc(100% - var(--bqa-content-safe-shift, 0px)) !important;
+  width: calc(100% - var(--bqa-content-safe-shift, 0px)) !important;
+  max-inline-size: calc(100% - var(--bqa-content-safe-shift, 0px)) !important;
+  max-width: calc(100% - var(--bqa-content-safe-shift, 0px)) !important;
+  min-width: 0 !important;
+  translate: var(--bqa-content-safe-shift, 0px) 0 !important;
+}
+
+html body #root .app-shell[data-route][data-quick-access-layout="true"][data-quick-access-safe-mode="overlay"]
+  main#bes-main-content > .bqa-content-safe-frame {
+  inline-size: 100% !important;
+  width: 100% !important;
+  max-inline-size: 100% !important;
+  max-width: 100% !important;
+  translate: 0 0 !important;
+}
+
+/* Every route must stay inside the measured safe frame. Full-bleed visuals may
+   overflow inside their own clipped section, but route roots cannot create a
+   second viewport-sized canvas. */
+html body #root .app-shell[data-route] main#bes-main-content > .bqa-content-safe-frame {
+  min-width: 0 !important;
+  overflow-x: clip !important;
+}
+
+html body #root .app-shell[data-route] main#bes-main-content > .bqa-content-safe-frame > * {
+  box-sizing: border-box !important;
+  max-inline-size: 100% !important;
+  max-width: 100% !important;
+  min-inline-size: 0 !important;
+  min-width: 0 !important;
+}
 html body #root .app-shell[data-route] > footer.footer,
 html body #root .app-shell[data-route] > .footer {
   box-sizing: border-box !important;

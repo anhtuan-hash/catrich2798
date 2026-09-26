@@ -1199,3 +1199,103 @@ test.describe('Global Quick Access safe area', () => {
     expect(report.overlaps, JSON.stringify(report, null, 2)).toEqual([]);
   });
 });
+
+
+test.describe('Global right-edge containment audit', () => {
+  const auditRoutes = [
+    ['Apps', '#/apps'],
+    ['Dashboard', '#/dashboard'],
+    ['Homeroom', '#/homeroom'],
+    ['Brian Team', '#/tool/brian-team'],
+    ['Gradebook', '#/tool/gradebook-studio'],
+    ['Resource Library', '#/resource-library'],
+    ['Question Bank', '#/assessment-core'],
+    ['Settings', '#/settings'],
+  ];
+
+  async function viewportOverflowReport(page) {
+    return page.evaluate(() => {
+      const root = document.querySelector('#bes-main-content');
+      if (!root) return { missing: true, offenders: [] };
+      const viewportWidth = window.innerWidth;
+      const offenders = [];
+
+      const isInsideIntentionalScroller = (element) => {
+        let node = element.parentElement;
+        while (node && node !== root) {
+          const style = getComputedStyle(node);
+          const overflowX = style.overflowX;
+          if ((overflowX === 'auto' || overflowX === 'scroll') && node.scrollWidth > node.clientWidth + 2) return true;
+          node = node.parentElement;
+        }
+        return false;
+      };
+
+      root.querySelectorAll('*').forEach((element) => {
+        if (element instanceof SVGElement) return;
+        const style = getComputedStyle(element);
+        if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity || 1) <= 0.01) return;
+        if (style.position === 'fixed') return;
+        const rect = element.getBoundingClientRect();
+        if (rect.width < 2 || rect.height < 2) return;
+        if (rect.right <= viewportWidth + 1) return;
+        if (isInsideIntentionalScroller(element)) return;
+
+        offenders.push({
+          tag: element.tagName,
+          className: String(element.className || '').slice(0, 140),
+          right: Math.round(rect.right),
+          left: Math.round(rect.left),
+          width: Math.round(rect.width),
+          viewportWidth,
+          text: String(element.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 90),
+        });
+      });
+
+      const safeFrame = document.querySelector('.bqa-content-safe-frame');
+      const safeRect = safeFrame?.getBoundingClientRect();
+      return {
+        missing: false,
+        route: document.querySelector('.app-shell')?.dataset?.route || '',
+        tool: document.querySelector('.app-shell')?.dataset?.tool || '',
+        viewportWidth,
+        documentScrollWidth: document.documentElement.scrollWidth,
+        mainScrollWidth: root.scrollWidth,
+        safeFrame: safeRect ? {
+          left: Math.round(safeRect.left),
+          right: Math.round(safeRect.right),
+          width: Math.round(safeRect.width),
+        } : null,
+        offenders: offenders.slice(0, 20),
+      };
+    });
+  }
+
+  for (const [label, route] of auditRoutes) {
+    test(`${label}: desktop content never crosses the right viewport edge`, async ({ page }) => {
+      await page.setViewportSize({ width: 1536, height: 960 });
+      await installDemoSession(page);
+      await page.goto('/' + route);
+      await expect(page.locator('#bes-main-content')).toBeVisible();
+      await page.waitForTimeout(1200);
+
+      const report = await viewportOverflowReport(page);
+      expect(report.missing, JSON.stringify(report, null, 2)).toBe(false);
+      expect(report.offenders, JSON.stringify(report, null, 2)).toEqual([]);
+    });
+  }
+
+  test('Gradebook: remains contained with Quick Access pinned', async ({ page }) => {
+    await page.setViewportSize({ width: 1536, height: 960 });
+    await installDemoSession(page);
+    await page.goto('/#/tool/gradebook-studio');
+    await expect(page.locator('.bqa-root')).toBeVisible();
+    await page.locator('.bqa-rail').hover();
+    await page.locator('.bqa-mode-switch button').nth(1).click();
+    await expect(page.locator('.bqa-root')).toHaveClass(/is-pinned/);
+    await page.waitForTimeout(1000);
+
+    const report = await viewportOverflowReport(page);
+    expect(report.offenders, JSON.stringify(report, null, 2)).toEqual([]);
+  });
+});

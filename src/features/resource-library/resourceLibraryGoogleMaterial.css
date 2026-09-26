@@ -1,12 +1,12 @@
 /* Resource Library — Google Material 3 full-width redesign. */
 
 .resource-library-interactive-shell {
-  width: 100vw !important;
-  max-width: none !important;
+  width: 100% !important;
+  max-width: 100% !important;
   min-width: 0;
   position: relative;
-  left: 50%;
-  transform: translateX(-50%) !important;
+  left: auto;
+  transform: none !important;
   margin: 0 !important;
   overflow-x: clip;
 }
@@ -25,14 +25,15 @@
   --rl-muted: #5f6368;
   --rl-line: #dfe3e7;
   --rl-canvas: #f8fafd;
-  width: 100vw !important;
-  max-width: none !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0;
   min-height: 100vh;
   position: relative;
-  left: 50%;
-  transform: translateX(-50%) !important;
+  left: auto;
+  transform: none !important;
   margin: 0 !important;
-  padding: 28px max(28px, calc((100vw - 1540px) / 2)) 120px !important;
+  padding: 28px clamp(18px, 2vw, 28px) 120px !important;
   display: grid;
   gap: 24px;
   overflow-x: clip;
