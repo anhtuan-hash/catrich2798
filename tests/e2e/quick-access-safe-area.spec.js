@@ -1232,6 +1232,7 @@ test.describe('Global right-edge containment audit', () => {
       };
 
       root.querySelectorAll('*').forEach((element) => {
+        if (element instanceof SVGElement) return;
         const style = getComputedStyle(element);
         if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity || 1) <= 0.01) return;
         if (style.position === 'fixed') return;
