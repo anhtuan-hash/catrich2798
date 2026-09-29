@@ -136,6 +136,9 @@ jobs:
       - name: Verify attendance Material 3 UI
         run: node scripts/test-attendance-material3-ui.mjs
 
+      - name: Verify attendance global lesson-period policy
+        run: node scripts/test-attendance-global-period-policy.mjs
+
       - name: Verify iPhone Dashboard and Attendance readability
         run: node scripts/test-iphone-dashboard-attendance-mobile.mjs
 
