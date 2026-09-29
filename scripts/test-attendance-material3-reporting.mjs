@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 
 const attendance = fs.readFileSync(new URL('../src/components/GlobalAttendanceNavigationTab.jsx', import.meta.url), 'utf8');
+const extraClassAttendance = fs.readFileSync(new URL('../src/utils/extraClassAttendance.js', import.meta.url), 'utf8');
 const migrationUrl = new URL('../supabase/migrations/20260908_attendance_material3_periods_cancel_reports.sql', import.meta.url);
 const hardeningUrl = new URL('../supabase/migrations/20260908_attendance_material3_require_periods.sql', import.meta.url);
 const migration = fs.existsSync(migrationUrl) ? fs.readFileSync(migrationUrl, 'utf8') : '';
@@ -20,9 +21,10 @@ assert.match(migration, /to\s+authenticated/i, 'Authenticated execution must be 
 assert.ok(hardening, 'Period-selection hardening migration must exist');
 assert.match(hardening, /drop\s+function\s+if\s+exists\s+public\.bes_confirm_extra_class_attendance\s*\(\s*uuid\s*,\s*date\s*,\s*text\s*,\s*text\[\]\s*,\s*text\s*\)/i, 'Legacy daily RPC without period count must be removed');
 assert.match(hardening, /drop\s+function\s+if\s+exists\s+public\.bes_confirm_extra_class_attendance\s*\(\s*uuid\s*,\s*text\[\]\s*,\s*text\s*\)/i, 'Legacy pre-date RPC must be removed');
-assert.match(attendance, /1 tiết/);
-assert.match(attendance, /1,5 tiết/);
-assert.match(attendance, /2 tiết/);
+assert.match(extraClassAttendance, /label: '1 tiết'/);
+assert.match(extraClassAttendance, /label: '1,5 tiết'/);
+assert.match(extraClassAttendance, /label: '2 tiết'/);
+assert.match(attendance, /EXTRA_CLASS_LESSON_PERIOD_OPTIONS/);
 assert.match(attendance, /p_lesson_periods/);
 assert.match(attendance, /bes_cancel_extra_class_session/);
 assert.match(attendance, /Hủy buổi học/);
