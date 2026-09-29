@@ -22,6 +22,9 @@ import {
   buildAttendanceDraft,
   normalizeAttendanceStatus,
   extraClassTypeLabel,
+  EXTRA_CLASS_LESSON_PERIOD_OPTIONS,
+  defaultLessonPeriodsForExtraClass,
+  lessonPeriodOptionsForExtraClass,
   memberKey,
   parseExtraClassRosterRows,
   sortMembersByName,
@@ -40,6 +43,12 @@ import AttendanceDailySchedule from './attendance/AttendanceDailySchedule.jsx';
 import AttendanceArchivePanel from './attendance/AttendanceArchivePanel.jsx';
 import { ATTENDANCE_PROOF_BUCKET, buildAttendanceProofPath, prepareAttendanceProofImage } from '../utils/attendanceProofImage.js';
 import { filterAndSortAttendanceHistory } from '../utils/attendanceHistoryFilters.js';
+import {
+  DEFAULT_ATTENDANCE_GLOBAL_SETTINGS,
+  loadAttendanceGlobalSettings,
+  saveAttendanceTeacherPeriodSelection,
+  subscribeAttendanceGlobalSettings,
+} from '../utils/attendanceGlobalSettings.js';
 import { canManageSupplementalLearning } from '../supplementalAccess.js';
 import { attachSupplementalProof, beginSupplementalAttendance, cancelSupplementalSession, confirmSupplementalAttendance, loadSupplementalAttendanceActivities, loadSupplementalSessionTeachers } from '../attendance/supplementalLearningApi.js';
 import { archiveAttendanceHistory, listAttendanceArchive, requestAttendanceArchiveDelete, restoreAttendanceArchive, reviewAttendanceArchiveDelete } from '../attendance/attendanceArchiveApi.js';
@@ -246,6 +255,8 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const [showAddTeacher, setShowAddTeacher] = useState(false);
   const [newTeacherName, setNewTeacherName] = useState('');
   const [lessonPeriods, setLessonPeriods] = useState(1);
+  const [attendanceGlobalSettings, setAttendanceGlobalSettings] = useState(DEFAULT_ATTENDANCE_GLOBAL_SETTINGS);
+  const [periodPolicySaving, setPeriodPolicySaving] = useState(false);
   const [teachingRoom, setTeachingRoom] = useState('');
   const [teachingTimeRange, setTeachingTimeRange] = useState('');
   const [showCancelSession, setShowCancelSession] = useState(false);
@@ -278,6 +289,47 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const firstAllowedView = canUseQuickAttendance ? 'quick' : getFirstAllowedAttendanceTab(currentUser);
   const allowed = Boolean(currentUser?.id && (isAttendanceAdmin || hasAnyAttendanceAccess(currentUser)));
   const canSeeSupplementalHistory = canManageSupplementalLearning(runtime);
+  const allowTeacherPeriodSelection = attendanceGlobalSettings.allowTeacherPeriodSelection === true;
+
+  useEffect(() => {
+    if (!client || !runtime.ready || !currentUser?.id) return undefined;
+    let active = true;
+
+    loadAttendanceGlobalSettings(client)
+      .then((settings) => {
+        if (active) setAttendanceGlobalSettings(settings);
+      })
+      .catch(() => {
+        if (active) setAttendanceGlobalSettings(DEFAULT_ATTENDANCE_GLOBAL_SETTINGS);
+      });
+
+    const unsubscribe = subscribeAttendanceGlobalSettings(client, (settings) => {
+      if (active) setAttendanceGlobalSettings(settings);
+    });
+
+    return () => {
+      active = false;
+      unsubscribe?.();
+    };
+  }, [client, runtime.ready, currentUser?.id]);
+
+  async function updateTeacherPeriodSelectionPolicy(enabled) {
+    if (!isAttendanceAdmin || !client || periodPolicySaving) return;
+    setPeriodPolicySaving(true);
+    setError('');
+    try {
+      const actor = runtime?.profile?.id || runtime?.session?.user?.id || currentUser?.id || currentUser?.email || '';
+      const next = await saveAttendanceTeacherPeriodSelection(client, enabled, actor);
+      setAttendanceGlobalSettings(next);
+      setNotice(enabled
+        ? 'Đã bật tùy chọn số tiết cho toàn bộ giáo viên.'
+        : 'Đã khóa số tiết giáo viên theo loại lớp: Phụ đạo 1,5 tiết · Bồi dưỡng 2 tiết.');
+    } catch (settingsError) {
+      setError(settingsError?.message || 'Không thể cập nhật quyền tùy chọn số tiết.');
+    } finally {
+      setPeriodPolicySaving(false);
+    }
+  }
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
@@ -394,6 +446,13 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const activeClasses = useMemo(() => classes.filter((row) => row.active !== false), [classes]);
   const selectedClass = useMemo(() => classes.find((row) => String(row.id) === String(selectedClassId)) || null, [classes, selectedClassId]);
   const attendanceSource = String(selectedClassId || '').startsWith('supplemental:') ? 'supplemental' : 'extra';
+  const lessonPeriodOptions = useMemo(() => {
+    if (attendanceSource === 'supplemental') return EXTRA_CLASS_LESSON_PERIOD_OPTIONS;
+    return lessonPeriodOptionsForExtraClass(selectedClass?.class_type, {
+      isAdmin: isAttendanceAdmin,
+      allowTeacherSelection: allowTeacherPeriodSelection,
+    });
+  }, [attendanceSource, selectedClass?.class_type, isAttendanceAdmin, allowTeacherPeriodSelection]);
   const selectedMembers = useMemo(() => sortMembersByName(members.filter((row) => String(row.class_id) === String(selectedClassId) && row.active !== false)), [members, selectedClassId]);
   const allSelectedMembers = useMemo(() => sortMembersByName(members.filter((row) => String(row.class_id) === String(selectedClassId))), [members, selectedClassId]);
   const memberCounts = useMemo(() => {
@@ -670,7 +729,10 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       setCancellationReason(daySession.cancellation_reason || '');
       return;
     }
-    setLessonPeriods(1);
+    const defaultPeriods = attendanceSource === 'extra' && !isAttendanceAdmin
+      ? defaultLessonPeriodsForExtraClass(selectedClass?.class_type)
+      : 1;
+    setLessonPeriods(defaultPeriods);
     setTeachingRoom(roomForExtraClass(selectedClass));
     setTeachingTimeRange(String(selectedClass?.time_range || '').trim());
     setShowCancelSession(false);
@@ -680,7 +742,12 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     const soleBlocked = Boolean(soleUsage && String(soleUsage.class_id) !== String(selectedClassId));
     if (soleTeacher && !soleBlocked) setSessionTeacher(soleTeacher);
     else setSessionTeacher('');
-  }, [daySession?.id, selectedClassId, selectedClass?.room, selectedClass?.time_range, selectedClass?.weekdays, selectedTeacherOptions.join('|'), teacherUsageForDate]);
+  }, [daySession?.id, selectedClassId, selectedClass?.class_type, selectedClass?.room, selectedClass?.time_range, selectedClass?.weekdays, attendanceSource, isAttendanceAdmin, selectedTeacherOptions.join('|'), teacherUsageForDate]);
+
+  useEffect(() => {
+    if (attendanceSource !== 'extra' || isAttendanceAdmin || allowTeacherPeriodSelection || daySession) return;
+    setLessonPeriods(defaultLessonPeriodsForExtraClass(selectedClass?.class_type));
+  }, [attendanceSource, isAttendanceAdmin, allowTeacherPeriodSelection, selectedClass?.class_type, daySession?.id]);
 
   const summary = useMemo(() => attendanceSummary(draft), [draft]);
   const isFutureDate = attendanceDate > today;
@@ -857,6 +924,14 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       setError(`Giáo viên ${sessionTeacher} đã được điểm danh tại lớp ${blockedTeacherUsage.class_name} ngày ${formatDate(attendanceDate)}.`);
       setSessionTeacher('');
       return;
+    }
+    if (!isAttendanceAdmin && !allowTeacherPeriodSelection) {
+      const requiredPeriods = defaultLessonPeriodsForExtraClass(selectedClass.class_type);
+      if (Number(lessonPeriods) !== requiredPeriods) {
+        setLessonPeriods(requiredPeriods);
+        setError(`Số tiết của lớp ${extraClassTypeLabel(selectedClass.class_type)} được cố định ở ${String(requiredPeriods).replace('.', ',')} tiết.`);
+        return;
+      }
     }
     if (!teachingRoom.trim()) {
       setError('Vui lòng nhập phòng học.');
@@ -1520,7 +1595,24 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
                   <div className="attendance-session-controls">
                     <label><span>Ngày điểm danh</span><input type="date" value={attendanceDate} max={today} onChange={(event) => { setAttendanceDate(event.target.value); setNotice(''); setError(''); }} /></label>
                     <label className="is-teacher"><span>Giáo viên dạy hôm nay</span><select value={sessionTeacher} disabled={isDayLocked || !selectedTeacherOptions.length} onChange={(event) => setSessionTeacher(event.target.value)}><option value="">Chọn giáo viên</option>{selectedTeacherOptions.map((name) => { const usage = teacherUsageForDate.get(fold(name)); const blocked = Boolean(usage && String(usage.class_id) !== String(selectedClassId)); return <option key={name} value={name} disabled={blocked}>{blocked ? `${name} — đã điểm danh: ${usage.class_name}` : name}</option>; })}</select></label>
-                    <div className="att-m3-period-field"><span>Số tiết dạy</span><div className="att-m3-period-segment">{[[1,'1 tiết'],[1.5,'1,5 tiết'],[2,'2 tiết']].map(([value,label]) => <button key={value} type="button" disabled={isDayLocked} className={lessonPeriods === value ? 'is-active' : ''} onClick={() => setLessonPeriods(value)}>{label}</button>)}</div></div>
+                    <div className="att-m3-period-field">
+                      <span>Số tiết dạy</span>
+                      <div className={`att-m3-period-segment ${lessonPeriodOptions.length === 1 ? 'is-single' : ''}`}>
+                        {lessonPeriodOptions.map(({ value, label }) => <button key={value} type="button" disabled={isDayLocked || (!isAttendanceAdmin && !allowTeacherPeriodSelection && attendanceSource === 'extra')} className={lessonPeriods === value ? 'is-active' : ''} onClick={() => setLessonPeriods(value)}>{label}</button>)}
+                      </div>
+                      {attendanceSource === 'extra' && isAttendanceAdmin ? <label className="att-m3-period-policy">
+                        <input
+                          type="checkbox"
+                          checked={allowTeacherPeriodSelection}
+                          disabled={periodPolicySaving}
+                          onChange={(event) => updateTeacherPeriodSelectionPolicy(event.target.checked)}
+                        />
+                        <span><b>Cho phép giáo viên tùy chọn số tiết</b><small>Áp dụng cho toàn bộ lớp phụ đạo &amp; bồi dưỡng.</small></span>
+                      </label> : null}
+                      {attendanceSource === 'extra' && !isAttendanceAdmin && !allowTeacherPeriodSelection ? <small className="att-m3-period-fixed-note">
+                        {selectedClass?.class_type === 'gifted' ? 'Bồi dưỡng: cố định 2 tiết' : 'Phụ đạo: cố định 1,5 tiết'}
+                      </small> : null}
+                    </div>
                     <label><span>Phòng học</span><input value={teachingRoom} disabled={isDayLocked} onChange={(event) => setTeachingRoom(event.target.value)} placeholder="Ví dụ P.203" /></label>
                     <label><span>Thời gian dạy</span><input value={teachingTimeRange} disabled={isDayLocked} onChange={(event) => setTeachingTimeRange(event.target.value)} placeholder="Ví dụ 14:00–15:30" /></label>
                     {isDayLocked ? <div className={`attendance-day-lock ${daySession.session_status === 'cancelled' ? 'is-cancelled' : ''}`}><Icon name="check" size={18} /><div><b>{daySession.session_status === 'cancelled' ? `Đã hủy ${formatDate(daySession.attendance_date)}` : `Đã điểm danh ${formatDate(daySession.attendance_date)}`}</b><span>{daySession.session_status === 'cancelled' ? `${daySession.cancellation_reason} · 0 tiết` : `GV ${daySession.teacher_name} · ${String(daySession.lesson_periods || 1).replace('.', ',')} tiết · ${formatDateTime(daySession.checked_at)}`}</span></div></div> : <div className="attendance-day-open"><b>Chưa chốt ngày này</b><span>{isFutureDate ? 'Không thể chọn ngày tương lai.' : 'Có thể điểm danh hoặc hủy buổi học.'}</span></div>}
