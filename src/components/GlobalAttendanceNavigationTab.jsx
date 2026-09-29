@@ -448,11 +448,16 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   const attendanceSource = String(selectedClassId || '').startsWith('supplemental:') ? 'supplemental' : 'extra';
   const lessonPeriodOptions = useMemo(() => {
     if (attendanceSource === 'supplemental') return EXTRA_CLASS_LESSON_PERIOD_OPTIONS;
+    if (!isAttendanceAdmin && !allowTeacherPeriodSelection && daySession?.lesson_periods != null) {
+      const storedPeriods = Number(daySession.lesson_periods);
+      const storedOption = EXTRA_CLASS_LESSON_PERIOD_OPTIONS.find((option) => option.value === storedPeriods);
+      if (storedOption) return [storedOption];
+    }
     return lessonPeriodOptionsForExtraClass(selectedClass?.class_type, {
       isAdmin: isAttendanceAdmin,
       allowTeacherSelection: allowTeacherPeriodSelection,
     });
-  }, [attendanceSource, selectedClass?.class_type, isAttendanceAdmin, allowTeacherPeriodSelection]);
+  }, [attendanceSource, selectedClass?.class_type, isAttendanceAdmin, allowTeacherPeriodSelection, daySession?.lesson_periods]);
   const selectedMembers = useMemo(() => sortMembersByName(members.filter((row) => String(row.class_id) === String(selectedClassId) && row.active !== false)), [members, selectedClassId]);
   const allSelectedMembers = useMemo(() => sortMembersByName(members.filter((row) => String(row.class_id) === String(selectedClassId))), [members, selectedClassId]);
   const memberCounts = useMemo(() => {
