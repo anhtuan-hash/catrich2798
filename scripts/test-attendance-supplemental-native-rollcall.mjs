@@ -4,6 +4,7 @@ import fs from 'node:fs';
 const read = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 
 const shell = read('src/components/GlobalAttendanceNavigationTab.jsx');
+const extraClassAttendance = read('src/utils/extraClassAttendance.js');
 const schedule = read('src/components/attendance/AttendanceDailySchedule.jsx');
 const supplementalApi = read('src/attendance/supplementalLearningApi.js');
 const quickBootstrap = read('src/supplementalAttendanceQuickBootstrap.js');
@@ -19,7 +20,10 @@ assert.match(shell, /supplementalRollcall|rollcallSource|attendanceSource/, 'The
 assert.match(shell, /beginSupplementalAttendance/, 'The native attendance surface must load/freeze the supplemental roster through the supplemental API.');
 assert.match(shell, /confirmSupplementalAttendance/, 'The native attendance surface must finalize supplemental attendance through the supplemental backend.');
 assert.match(shell, /attachSupplementalProof/, 'The native attendance surface must attach proof to supplemental sessions through the supplemental backend.');
-assert.match(shell, /\[\[1,'1 tiết'\],\[1\.5,'1,5 tiết'\],\[2,'2 tiết'\]\]/, 'The shared native rollcall must retain the 1 / 1.5 / 2 lesson-period selector.');
+assert.match(shell, /attendanceSource === 'supplemental'\) return EXTRA_CLASS_LESSON_PERIOD_OPTIONS/, 'Supplemental rollcall must retain the complete shared lesson-period option set.');
+assert.match(extraClassAttendance, /value: 1, label: '1 tiết'/, 'Shared period options must include 1 period.');
+assert.match(extraClassAttendance, /value: 1\.5, label: '1,5 tiết'/, 'Shared period options must include 1.5 periods.');
+assert.match(extraClassAttendance, /value: 2, label: '2 tiết'/, 'Shared period options must include 2 periods.');
 assert.match(shell, /Giáo viên dạy hôm nay/, 'The shared native rollcall must retain the teacher selector.');
 assert.match(shell, /Phòng học/, 'The shared native rollcall must retain room editing.');
 assert.match(shell, /Thời gian dạy/, 'The shared native rollcall must retain teaching-time editing.');
