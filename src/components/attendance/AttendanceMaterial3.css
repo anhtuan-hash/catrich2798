@@ -34,3 +34,57 @@
 .attendance-late-list small{margin-top:2px;font-size:9px}
 .attendance-late-list em{font-size:10px;font-style:normal;font-weight:850}
 @media(max-width:760px){.att-m3-roster-entry>label{grid-template-columns:34px minmax(0,1fr) 64px!important}.att-m3-attendance-status{grid-column:1/-1;margin-left:34px}.attendance-history-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+
+
+/* Brian attendance global period policy · 2026-09-29 */
+.att-m3-period-segment.is-single{
+  grid-template-columns:1fr!important;
+}
+.att-m3-period-segment.is-single button{
+  width:100%;
+}
+.att-m3-period-policy{
+  display:flex!important;
+  align-items:flex-start!important;
+  gap:8px!important;
+  min-height:0!important;
+  margin-top:8px!important;
+  padding:8px 9px!important;
+  border:1px solid color-mix(in srgb,var(--att-m3-primary) 18%,transparent)!important;
+  border-radius:12px!important;
+  background:color-mix(in srgb,var(--att-m3-primary-container) 55%,var(--att-m3-surface))!important;
+  cursor:pointer;
+}
+.att-m3-period-policy>input{
+  width:17px!important;
+  height:17px!important;
+  min-width:17px!important;
+  margin:1px 0 0!important;
+  padding:0!important;
+  accent-color:var(--att-m3-primary);
+}
+.att-m3-period-policy>span{
+  display:grid!important;
+  gap:2px!important;
+  min-width:0;
+  margin:0!important;
+  text-transform:none!important;
+  letter-spacing:0!important;
+}
+.att-m3-period-policy b{
+  color:var(--att-m3-on-surface);
+  font-size:10px;
+  line-height:1.25;
+  font-weight:900;
+}
+.att-m3-period-policy small,
+.att-m3-period-fixed-note{
+  color:var(--att-m3-on-variant);
+  font-size:8.5px;
+  line-height:1.35;
+  font-weight:700;
+}
+.att-m3-period-fixed-note{
+  display:block;
+  margin-top:6px;
+}
