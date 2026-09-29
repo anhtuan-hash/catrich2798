@@ -1205,12 +1205,23 @@ test.describe('Global right-edge containment audit', () => {
   const auditRoutes = [
     ['Apps', '#/apps'],
     ['Dashboard', '#/dashboard'],
+    ['Student Support', '#/student-support'],
     ['Homeroom', '#/homeroom'],
     ['Brian Team', '#/tool/brian-team'],
     ['Gradebook', '#/tool/gradebook-studio'],
-    ['Resource Library', '#/resource-library'],
     ['Question Bank', '#/assessment-core'],
+    ['THPT Practice Hub', '#/tool/thpt-practice-hub'],
+    ['Knowledge Hub', '#/knowledge-hub'],
+    ['Platform Readiness', '#/platform-readiness'],
+    ['Cloud Operations', '#/cloud-operations'],
+    ['Data Governance', '#/data-governance'],
+    ['Resource Library', '#/resource-library'],
+    ['Newsroom Reader', '#/news'],
+    ['Vietnam Tax', '#/tool/vietnam-tax'],
+    ['TextLab Activities', '#/tool/textlab-activities'],
+    ['TextCare', '#/tool/textcare'],
     ['Settings', '#/settings'],
+    ['Admin', '#/admin'],
   ];
 
   async function viewportOverflowReport(page) {
