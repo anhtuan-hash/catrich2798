@@ -102,6 +102,25 @@ export function extraClassTypeLabel(value) {
   return normalizeExtraClassType(value) === 'gifted' ? 'Bồi dưỡng HSG' : 'Phụ đạo';
 }
 
+export const EXTRA_CLASS_LESSON_PERIOD_OPTIONS = Object.freeze([
+  Object.freeze({ value: 1, label: '1 tiết' }),
+  Object.freeze({ value: 1.5, label: '1,5 tiết' }),
+  Object.freeze({ value: 2, label: '2 tiết' }),
+]);
+
+export function defaultLessonPeriodsForExtraClass(value) {
+  return normalizeExtraClassType(value) === 'gifted' ? 2 : 1.5;
+}
+
+export function lessonPeriodOptionsForExtraClass(value, {
+  isAdmin = false,
+  allowTeacherSelection = false,
+} = {}) {
+  if (isAdmin || allowTeacherSelection) return EXTRA_CLASS_LESSON_PERIOD_OPTIONS;
+  const fixed = defaultLessonPeriodsForExtraClass(value);
+  return EXTRA_CLASS_LESSON_PERIOD_OPTIONS.filter((option) => option.value === fixed);
+}
+
 export function memberKey(student = {}) {
   const code = normalizedStudentCode(student.student_code ?? student.code);
   if (code) return `code:${code.toLowerCase().replace(/[^a-z0-9_-]+/g, '-')}`;
