@@ -25,6 +25,18 @@ async function loadPublishedMobileHero() {
   }
 }
 
+function syncHeroToArtwork(hero, image) {
+  const width = Number(image?.naturalWidth || 0);
+  const height = Number(image?.naturalHeight || 0);
+  if (!hero || width <= 0 || height <= 0) return false;
+
+  // Keep the card locked to the image's real dimensions so object-fit: contain
+  // never creates a white letterbox when the published artwork is not 4:3.
+  hero.style.setProperty('aspect-ratio', `${width} / ${height}`, 'important');
+  hero.style.setProperty('min-height', '0', 'important');
+  return true;
+}
+
 function applyDirectMobileHero(root = document) {
   const hero = root.querySelector?.(HERO_SELECTOR) || document.querySelector(HERO_SELECTOR);
   if (!hero) return false;
@@ -33,15 +45,28 @@ function applyDirectMobileHero(root = document) {
   if (!image) return false;
 
   const source = publishedMobileHeroUrl || mobileHomeHeroImage;
-  if (image.getAttribute('src') !== source) {
+  const sourceChanged = image.getAttribute('src') !== source;
+
+  // Remove the stale inline ratio before changing artwork. The stylesheet is a
+  // short fallback until the image loads and its natural ratio becomes known.
+  if (sourceChanged) hero.style.removeProperty('aspect-ratio');
+
+  const syncLoadedArtwork = () => syncHeroToArtwork(hero, image);
+  image.addEventListener('load', syncLoadedArtwork, { once: true });
+
+  if (sourceChanged) {
     image.setAttribute('src', source);
   }
   image.setAttribute('alt', 'Brian English — Học tiếng Anh thật vui');
   image.setAttribute('data-mobile-home-direct-hero', publishedMobileHeroUrl ? 'cms' : 'fallback');
   image.style.setProperty('object-fit', 'contain', 'important');
 
-  hero.style.setProperty('aspect-ratio', '4 / 3', 'important');
-  hero.style.setProperty('min-height', '0', 'important');
+  // Cached/data images can already be complete before the load callback runs.
+  if (image.complete && image.naturalWidth > 0 && image.naturalHeight > 0) {
+    syncLoadedArtwork();
+  } else {
+    hero.style.setProperty('min-height', '0', 'important');
+  }
 
   hero.querySelectorAll('.bes-mobile-home__hero-hotspot').forEach((button) => button.remove());
   return true;
