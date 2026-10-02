@@ -153,6 +153,17 @@ async function loadLatestWorkspace(panel) {
     panelWorkspaceId: panel?.dataset?.workspaceId,
     currentWorkspaceId: getCurrentHomeroomWorkspaceId(user),
   });
+
+  const live = typeof window !== 'undefined' ? window.__besHomeroomLiveWorkspace : null;
+  if (live?.workspace && text(live.workspaceId || live.workspace?.id) === workspaceId) {
+    return {
+      user,
+      workspaceId,
+      workspace: canonicalizeWorkspace(live.workspace),
+      source: 'react-live',
+    };
+  }
+
   const result = await loadHomeroomWorkspace(user, workspaceId);
   if (!result?.workspace) {
     throw new Error(result?.message || 'Không tải được dữ liệu lớp mới nhất.');
@@ -249,6 +260,7 @@ function install() {
   });
   panelObserver.observe(document.documentElement, { childList: true, subtree: true });
   window.addEventListener('bes-homeroom-store-updated', () => schedulePanelRefresh(20));
+  window.addEventListener('bes-homeroom-live-workspace-updated', () => schedulePanelRefresh(0));
   window.addEventListener('bes-school-class-assignment-synced', () => schedulePanelRefresh(40));
   window.addEventListener('bes-homeroom-command', () => schedulePanelRefresh(120));
   window.addEventListener('hashchange', () => schedulePanelRefresh(120));
@@ -313,5 +325,5 @@ function install() {
 
 install();
 if (typeof window !== 'undefined') {
-  window.__besConductExportSourceVersion = 'v12-interaction-loop-fix';
+  window.__besConductExportSourceVersion = 'v13-react-live-workspace';
 }
