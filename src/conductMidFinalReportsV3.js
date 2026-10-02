@@ -13,6 +13,7 @@ const PANEL_ID = 'bes-conduct-mid-final-reports';
 const CURRENT_PREFIX = 'bes-homeroom-current-workspace-v3:';
 const WORKSPACE_PREFIX = 'bes-homeroom-workspace-v1:';
 const PERIOD_LABELS = Object.freeze({
+  today: 'Đến ngày hiện tại',
   current: 'Đến tuần hiện tại',
   mid1: 'Giữa học kỳ I',
   semester1: 'Cuối học kỳ I',
@@ -133,6 +134,25 @@ function activeStudents(workspace) {
 
 function resolveRange(workspace, period) {
   const ranges = inferConductPeriodRanges(workspace);
+
+  if (period === 'today') {
+    const currentDate = today();
+    const semester2 = ranges.semester2 || {};
+    const isSemester2 = Boolean(semester2.start && currentDate >= semester2.start);
+    const semester = isSemester2 ? semester2 : (ranges.semester1 || {});
+    const semesterLabel = isSemester2 ? 'HKII' : 'HKI';
+    const fallbackWeekStart = resolveConductWeekStart(workspace, currentDate, { nearest: true });
+    const start = semester.start || fallbackWeekStart;
+    const end = semester.end && currentDate > semester.end ? semester.end : currentDate;
+    return {
+      type: 'today',
+      label: `Đến ngày hiện tại (${semesterLabel})`,
+      start,
+      end,
+      asOfDate: end,
+    };
+  }
+
   if (period !== 'current') {
     const key = PERIOD_LABELS[period] ? period : 'mid1';
     const range = ranges[key] || {};
@@ -199,8 +219,11 @@ function reportHeader(workspace, title, subtitle, studentName = '') {
   <section class="report-meta"><span><b>Lớp:</b> ${escapeHtml(profile.className || '—')}</span><span><b>Năm học:</b> ${escapeHtml(profile.schoolYear || '—')}</span><span><b>Giáo viên chủ nhiệm:</b> ${escapeHtml(profile.adviserName || '—')}</span>${studentName ? `<span><b>Học sinh:</b> ${escapeHtml(studentName)}</span>` : ''}<span><b>Ngày xuất:</b> ${formatDate(today())}</span></section>`;
 }
 
-function formulaBlock() {
-  return `<section class="formula-box"><b>Quy tắc tính</b><span>Điểm tuần: <strong>thang 100</strong>. Quy đổi từng tuần: <strong>điểm tuần ÷ 25</strong> → thang 4.</span><span>Tốt ≥ 3,60 · Khá ≥ 3,00 · Đạt ≥ 2,40 · Chưa đạt &lt; 2,40.</span><span><strong>Mọi vi phạm trong khoảng xét đều được liệt kê. Chỉ vi phạm đã xác nhận mới trừ điểm; vi phạm điều cấm đã xác nhận hạ đúng 1 bậc.</strong></span></section>`;
+function formulaBlock(range = null) {
+  const asOfNote = range?.type === 'today'
+    ? `<span><strong>Kết quả tạm tính đến hết ngày ${formatDate(range.end)}; tuần hiện tại chỉ tính các ghi nhận có ngày không vượt quá mốc này.</strong></span>`
+    : '';
+  return `<section class="formula-box"><b>Quy tắc tính</b><span>Điểm tuần: <strong>thang 100</strong>. Quy đổi từng tuần: <strong>điểm tuần ÷ 25</strong> → thang 4.</span><span>Tốt ≥ 3,60 · Khá ≥ 3,00 · Đạt ≥ 2,40 · Chưa đạt &lt; 2,40.</span><span><strong>Mọi vi phạm trong khoảng xét đều được liệt kê. Chỉ vi phạm đã xác nhận mới trừ điểm; vi phạm điều cấm đã xác nhận hạ đúng 1 bậc.</strong></span>${asOfNote}</section>`;
 }
 
 function signatureBlock(workspace) {
@@ -213,8 +236,24 @@ function statusLabel(record) {
   return 'Đã xác nhận';
 }
 
+function workspaceForRange(workspace, range) {
+  if (range?.type !== 'today' || !range.end) return workspace;
+  return {
+    ...workspace,
+    conductRecords: (Array.isArray(workspace?.conductRecords) ? workspace.conductRecords : []).filter((record) => {
+      const recordDate = safeText(record?.date || record?.weekStart).slice(0, 10);
+      return !recordDate || recordDate <= range.end;
+    }),
+    conductWeekSummaries: (Array.isArray(workspace?.conductWeekSummaries) ? workspace.conductWeekSummaries : []).filter((summary) => {
+      const summaryEnd = safeText(summary?.weekEnd).slice(0, 10);
+      return !summaryEnd || summaryEnd <= range.end;
+    }),
+  };
+}
+
 function classReport(workspace, range) {
-  const rows = calculateFixedConductPeriod(workspace, range.start, range.end);
+  const calculationWorkspace = workspaceForRange(workspace, range);
+  const rows = calculateFixedConductPeriod(calculationWorkspace, range.start, range.end);
   const counts = classificationCounts(rows);
   const classAverage = rows.length
     ? rows.reduce((sum, row) => sum + Number(row.average || 0), 0) / rows.length
@@ -246,18 +285,22 @@ function classReport(workspace, range) {
     }).join('')
     : '<tr><td colspan="8">Không có vi phạm nào được ghi nhận trong khoảng xét.</td></tr>';
 
-  return `${reportHeader(workspace, `BÁO CÁO HẠNH KIỂM ${range.label.toUpperCase()}`, `${formatDate(range.start)} – ${formatDate(range.end)}`)}${formulaBlock()}<section class="summary-grid"><article><small>Điểm TB thang 4 của lớp</small><b>${classAverage.toFixed(2)}</b></article><article><small>Tốt / Khá · Đạt / Chưa đạt</small><b>${counts.good} / ${counts.fair} · ${counts.pass} / ${counts.fail}</b></article><article><small>Vi phạm đã ghi nhận</small><b>${confirmed.length} xác nhận · ${pending.length} chờ</b><em>−${totalDeduction} điểm đã áp dụng</em></article><article><small>Vi phạm điều cấm</small><b>${prohibitedTotal} lượt</b></article></section><table><thead><tr><th>STT</th><th>Mã HS</th><th>Họ và tên</th><th>Số tuần</th><th>TB /4</th><th>HK theo điểm</th><th>Vi phạm / điểm trừ</th><th>Điều cấm / xử lý</th><th>HK cuối</th></tr></thead><tbody>${bodyRows}</tbody></table><h2>Chi tiết vi phạm trong khoảng xét</h2><p class="detail-note">Các dòng “Chờ xác nhận” chỉ để đối chiếu dữ liệu, chưa được dùng để trừ điểm hoặc hạ bậc.</p><table><thead><tr><th>STT</th><th>Ngày</th><th>Học sinh</th><th>Loại</th><th>Nội dung</th><th>Điểm trừ</th><th>Trạng thái</th><th>Ghi chú / minh chứng</th></tr></thead><tbody>${detailRows}</tbody></table>${signatureBlock(workspace)}`;
+  return `${reportHeader(workspace, `BÁO CÁO HẠNH KIỂM ${range.label.toUpperCase()}`, `${formatDate(range.start)} – ${formatDate(range.end)}`)}${formulaBlock(range)}<section class="summary-grid"><article><small>Điểm TB thang 4 của lớp</small><b>${classAverage.toFixed(2)}</b></article><article><small>Tốt / Khá · Đạt / Chưa đạt</small><b>${counts.good} / ${counts.fair} · ${counts.pass} / ${counts.fail}</b></article><article><small>Vi phạm đã ghi nhận</small><b>${confirmed.length} xác nhận · ${pending.length} chờ</b><em>−${totalDeduction} điểm đã áp dụng</em></article><article><small>Vi phạm điều cấm</small><b>${prohibitedTotal} lượt</b></article></section><table><thead><tr><th>STT</th><th>Mã HS</th><th>Họ và tên</th><th>Số tuần</th><th>TB /4</th><th>HK theo điểm</th><th>Vi phạm / điểm trừ</th><th>Điều cấm / xử lý</th><th>HK cuối</th></tr></thead><tbody>${bodyRows}</tbody></table><h2>Chi tiết vi phạm trong khoảng xét</h2><p class="detail-note">Các dòng “Chờ xác nhận” chỉ để đối chiếu dữ liệu, chưa được dùng để trừ điểm hoặc hạ bậc.</p><table><thead><tr><th>STT</th><th>Ngày</th><th>Học sinh</th><th>Loại</th><th>Nội dung</th><th>Điểm trừ</th><th>Trạng thái</th><th>Ghi chú / minh chứng</th></tr></thead><tbody>${detailRows}</tbody></table>${signatureBlock(workspace)}`;
 }
 
 function personalReport(workspace, range, student) {
-  const row = calculateFixedConductPeriod(workspace, range.start, range.end).find((item) => item.student.id === student.id);
+  const calculationWorkspace = workspaceForRange(workspace, range);
+  const row = calculateFixedConductPeriod(calculationWorkspace, range.start, range.end).find((item) => item.student.id === student.id);
   if (!row) throw new Error('Không tìm thấy dữ liệu rèn luyện của học sinh trong giai đoạn đã chọn.');
   const records = recordsForRange(workspace, range, student.id, true);
   const violations = records.filter((record) => safeText(record.entryType, 'violation') !== 'reward');
   const confirmed = confirmedViolations(violations);
   const pending = pendingViolations(violations);
   const prohibitedIds = new Set((row.prohibitedRecords || []).map((record) => record.id));
-  const weeklyRows = (row.weekly || []).map((week, index) => `<tr><td>${index + 1}</td><td>${formatDate(week.weekStart)} – ${formatDate(week.weekEnd)}</td><td class="score">${Number(week.score || 0).toFixed(1)}</td><td class="score">${conductWeekPoint(week.score).toFixed(2)}</td><td>−${Number(week.totalDeduction || 0)}</td><td>+${Number(week.totalBonus || 0)}</td></tr>`).join('');
+  const weeklyRows = (row.weekly || []).map((week, index) => {
+    const displayedWeekEnd = range.type === 'today' && range.end && week.weekEnd > range.end ? range.end : week.weekEnd;
+    return `<tr><td>${index + 1}</td><td>${formatDate(week.weekStart)} – ${formatDate(displayedWeekEnd)}</td><td class="score">${Number(week.score || 0).toFixed(1)}</td><td class="score">${conductWeekPoint(week.score).toFixed(2)}</td><td>−${Number(week.totalDeduction || 0)}</td><td>+${Number(week.totalBonus || 0)}</td></tr>`;
+  }).join('');
   const detailRows = records.length
     ? records.map((record) => {
       const reward = safeText(record.entryType, 'violation') === 'reward';
@@ -272,7 +315,7 @@ function personalReport(workspace, range, student) {
       ? `Có ${prohibitedCount} vi phạm điều cấm đã xác nhận. Hạ đúng 1 bậc từ ${row.baseClassification?.label || '—'} xuống ${row.classification?.label || '—'}.`
       : `Có ${prohibitedCount} vi phạm điều cấm đã xác nhận; kết quả theo điểm đã là Chưa đạt.`)
     : 'Không có vi phạm điều cấm đã xác nhận trong khoảng xét.';
-  return `${reportHeader(workspace, `PHIẾU HẠNH KIỂM ${range.label.toUpperCase()}`, `${formatDate(range.start)} – ${formatDate(range.end)}`, student.fullName)}${formulaBlock()}<section class="summary-grid"><article><small>Số tuần tính điểm</small><b>${row.weekCount}</b></article><article><small>Điểm TB thang 4</small><b>${Number(row.average || 0).toFixed(2)}</b></article><article><small>Vi phạm ghi nhận</small><b>${confirmed.length} xác nhận · ${pending.length} chờ</b></article><article><small>Hạnh kiểm cuối</small><b>${escapeHtml(row.classification?.label || '')}</b></article></section><section class="result-banner ${prohibitedCount ? 'downgraded' : ''}"><span>Kết quả</span><b>${escapeHtml(row.classification?.label || '')}</b><small>${escapeHtml(resultNote)}</small></section><h2>Quy đổi điểm theo tuần</h2><table><thead><tr><th>STT</th><th>Tuần</th><th>Điểm tuần /100</th><th>Điểm quy đổi /4</th><th>Điểm trừ</th><th>Điểm cộng</th></tr></thead><tbody>${weeklyRows}</tbody></table><h2>Chi tiết ghi nhận</h2><p class="detail-note">Ghi nhận “Chờ xác nhận” được hiển thị để đối chiếu nhưng chưa tác động đến điểm.</p><table><thead><tr><th>Ngày</th><th>Loại</th><th>Nội dung</th><th>Điểm</th><th>Trạng thái</th><th>Ghi chú / minh chứng</th></tr></thead><tbody>${detailRows}</tbody></table>${signatureBlock(workspace)}`;
+  return `${reportHeader(workspace, `PHIẾU HẠNH KIỂM ${range.label.toUpperCase()}`, `${formatDate(range.start)} – ${formatDate(range.end)}`, student.fullName)}${formulaBlock(range)}<section class="summary-grid"><article><small>Số tuần tính điểm</small><b>${row.weekCount}</b></article><article><small>Điểm TB thang 4</small><b>${Number(row.average || 0).toFixed(2)}</b></article><article><small>Vi phạm ghi nhận</small><b>${confirmed.length} xác nhận · ${pending.length} chờ</b></article><article><small>Hạnh kiểm cuối</small><b>${escapeHtml(row.classification?.label || '')}</b></article></section><section class="result-banner ${prohibitedCount ? 'downgraded' : ''}"><span>Kết quả</span><b>${escapeHtml(row.classification?.label || '')}</b><small>${escapeHtml(resultNote)}</small></section><h2>Quy đổi điểm theo tuần</h2><table><thead><tr><th>STT</th><th>Tuần</th><th>Điểm tuần /100</th><th>Điểm quy đổi /4</th><th>Điểm trừ</th><th>Điểm cộng</th></tr></thead><tbody>${weeklyRows}</tbody></table><h2>Chi tiết ghi nhận</h2><p class="detail-note">Ghi nhận “Chờ xác nhận” được hiển thị để đối chiếu nhưng chưa tác động đến điểm.</p><table><thead><tr><th>Ngày</th><th>Loại</th><th>Nội dung</th><th>Điểm</th><th>Trạng thái</th><th>Ghi chú / minh chứng</th></tr></thead><tbody>${detailRows}</tbody></table>${signatureBlock(workspace)}`;
 }
 
 function printDocument(title, body, landscape = false) {
