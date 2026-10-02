@@ -441,10 +441,10 @@ export default function HomeroomConductTab({ workspace, onCommit, currentUser })
         requiresEscalation: rule.requiresEscalation,
         createdBy: currentUser?.name || currentUser?.email,
       });
-      const [saveResult] = await Promise.all([
-        onCommit(next, `Đã ghi nhận vi phạm và trừ ${rule.personalDeduction} điểm rèn luyện.`),
-        new Promise((resolve) => window.setTimeout(resolve, 720)),
-      ]);
+      const saveResult = await onCommit(
+        next,
+        `Đã ghi nhận vi phạm và trừ ${rule.personalDeduction} điểm rèn luyện.`,
+      );
       setNote('');
       setEvidence('');
       setOtherTitle('');
@@ -489,10 +489,10 @@ export default function HomeroomConductTab({ workspace, onCommit, currentUser })
         status: 'confirmed',
         createdBy: currentUser?.name || currentUser?.email,
       });
-      const [saveResult] = await Promise.all([
-        onCommit(next, `Đã cộng ${bonus} điểm rèn luyện cho ${student?.fullName || 'học sinh'}.`),
-        new Promise((resolve) => window.setTimeout(resolve, 620)),
-      ]);
+      const saveResult = await onCommit(
+        next,
+        `Đã cộng ${bonus} điểm rèn luyện cho ${student?.fullName || 'học sinh'}.`,
+      );
       const rewardWeek = resolveConductWeekStart(workspace, rewardDraft.date);
       setWeekStart(rewardWeek);
       setRewardDraft({ studentId: '', date: rewardWeek, title: '', bonus: 5, note: '', evidence: '' });
@@ -768,10 +768,7 @@ export default function HomeroomConductTab({ workspace, onCommit, currentUser })
         'Hủy ghi nhận theo thao tác của GVCN',
         currentUser?.name || currentUser?.email,
       );
-      const [saveResult] = await Promise.all([
-        onCommit(next, 'Đã hủy ghi nhận; điểm tuần đã được tính lại.'),
-        new Promise((resolve) => window.setTimeout(resolve, 550)),
-      ]);
+      const saveResult = await onCommit(next, 'Đã hủy ghi nhận; điểm tuần đã được tính lại.');
       setCancelDialog({ open: false, record: null, busy: false, error: '', anchor: null });
       if (saveResult?.ok === false) {
         showRecordSaveFeedback(
