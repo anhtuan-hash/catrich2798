@@ -296,7 +296,6 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
     setWorkspace(normalized);
     setClassDraft(normalized.classProfile);
     homeroomSessionCache.set(snapshotKey(currentUser, normalized.id), normalized);
-    saveLocalHomeroomWorkspace(normalized, currentUser);
     setSaving(true);
     let result = await saveHomeroomWorkspace(normalized, currentUser);
 
@@ -313,7 +312,6 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
       const latestCloud = normalizeHomeroomWorkspace(result.workspace, currentUser);
       const merged = mergeStudentRecordDelta(previousWorkspace, normalized, latestCloud);
       normalized = prepareWorkspaceCommit(latestCloud, merged, currentUser, successMessage);
-      saveLocalHomeroomWorkspace(normalized, currentUser);
       homeroomSessionCache.set(snapshotKey(currentUser, normalized.id), normalized);
       result = await saveHomeroomWorkspace(normalized, currentUser);
     }
@@ -330,7 +328,9 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
       setSyncState('local');
       flash(`${successMessage} Dữ liệu đã lưu trên thiết bị; cloud chưa đồng bộ: ${result.message || 'lỗi chưa xác định'}`);
     }
-    await refreshCatalog();
+    void refreshCatalog().catch(() => {
+      // Catalog refresh is secondary to the save itself; never keep the user waiting for it.
+    });
     return result;
   };
 
