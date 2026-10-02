@@ -283,6 +283,24 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
     }
   }, [activeTab, workspace.id, workspace.classProfile?.classType, currentUser?.role]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined' || !workspace?.id) return undefined;
+    const snapshot = {
+      workspaceId: workspace.id,
+      workspace,
+      updatedAt: workspace.updatedAt || '',
+    };
+    window.__besHomeroomLiveWorkspace = snapshot;
+    window.dispatchEvent(new CustomEvent('bes-homeroom-live-workspace-updated', {
+      detail: { workspaceId: workspace.id, updatedAt: workspace.updatedAt || '' },
+    }));
+    return () => {
+      if (window.__besHomeroomLiveWorkspace === snapshot) {
+        delete window.__besHomeroomLiveWorkspace;
+      }
+    };
+  }, [workspace]);
+
   const flash = (text) => {
     setMessage(text);
     window.clearTimeout(window.__besHomeroomMsg);

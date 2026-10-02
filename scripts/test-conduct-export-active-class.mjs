@@ -27,6 +27,18 @@ assert.ok(
   'All conduct export source guards must read the workspace id from the current hr-campus-hero, with the legacy selector only as fallback.',
 );
 
+const homeroomWorkspacePage = await readFile(new URL('../src/pages/HomeroomWorkspace.jsx', import.meta.url), 'utf8');
+assert.ok(
+  homeroomWorkspacePage.includes('window.__besHomeroomLiveWorkspace = snapshot')
+    && homeroomWorkspacePage.includes("bes-homeroom-live-workspace-updated"),
+  'HomeroomWorkspace must publish the exact currently rendered workspace for report/export consumers.',
+);
+assert.ok(
+  v5.includes('window.__besHomeroomLiveWorkspace')
+    && v5.includes("source: 'react-live'"),
+  'Conduct export must prefer the live React workspace before loading a possibly stale persisted snapshot.',
+);
+
 assert.ok(
   v2.includes("today: 'Đến ngày hiện tại'")
     && v2.includes("if (period === 'today')")
