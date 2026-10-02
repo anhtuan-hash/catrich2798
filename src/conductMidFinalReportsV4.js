@@ -22,7 +22,7 @@ function parseWorkspace(raw) {
 }
 
 function renderedWorkspaceId() {
-  return text(document.querySelector('.hr-editorial-hero[data-workspace-id]')?.dataset?.workspaceId);
+  return text(document.querySelector('.hr-campus-hero[data-workspace-id], .hr-editorial-hero[data-workspace-id]')?.dataset?.workspaceId);
 }
 
 function workspaceCandidates() {
