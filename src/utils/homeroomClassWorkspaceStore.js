@@ -356,6 +356,28 @@ export async function loadHomeroomWorkspace(user, workspaceId = 'default') {
     return { ok: true, offline: true, workspace: offlineWorkspace };
   }
 
+  const localCloudRevision = text(local?.syncMeta?.cloudUpdatedAt);
+  if (local && localCloudRevision) {
+    const { data: revisionRow, error: revisionError } = await supabase
+      .from(WORKSPACE_TABLE)
+      .select('updated_at')
+      .eq('owner_id', user.id)
+      .eq('workspace_id', workspaceId)
+      .maybeSingle();
+
+    if (revisionError) {
+      return { ok: false, offline: true, message: revisionError.message, workspace: local };
+    }
+    if (!revisionRow) {
+      rememberPersistenceBaseline(local, user);
+      return { ok: true, empty: true, workspace: local, source: 'local-cloud-missing' };
+    }
+    if (sameRevision(revisionRow.updated_at, localCloudRevision)) {
+      rememberPersistenceBaseline(local, user);
+      return { ok: true, workspace: local, source: 'local-current' };
+    }
+  }
+
   const { data, error } = await supabase
     .from(WORKSPACE_TABLE)
     .select('workspace_id,payload,updated_at')
@@ -483,7 +505,7 @@ export async function saveHomeroomWorkspace(workspace, user) {
   const expectedRevision = text(prepared.syncMeta?.cloudUpdatedAt);
   const { data: existing, error: readError } = await supabase
     .from(WORKSPACE_TABLE)
-    .select('updated_at,payload')
+    .select('updated_at')
     .eq('owner_id', user.id)
     .eq('workspace_id', prepared.id)
     .maybeSingle();
@@ -491,10 +513,19 @@ export async function saveHomeroomWorkspace(workspace, user) {
 
   if (existing) {
     if (!expectedRevision || !sameRevision(existing.updated_at, expectedRevision)) {
-      const currentCloud = existing.payload
+      const { data: latest, error: conflictReadError } = await supabase
+        .from(WORKSPACE_TABLE)
+        .select('updated_at,payload')
+        .eq('owner_id', user.id)
+        .eq('workspace_id', prepared.id)
+        .maybeSingle();
+      if (conflictReadError) {
+        return { ok: false, offline: mode !== 'cloud-only', message: conflictReadError.message, workspace: local };
+      }
+      const currentCloud = latest?.payload
         ? decorateWorkspace({
-            ...existing.payload,
-            syncMeta: { ...(existing.payload.syncMeta || {}), cloudUpdatedAt: existing.updated_at || '' },
+            ...latest.payload,
+            syncMeta: { ...(latest.payload.syncMeta || {}), cloudUpdatedAt: latest.updated_at || '' },
           }, user, true)
         : local;
       return conflictResult(currentCloud);
