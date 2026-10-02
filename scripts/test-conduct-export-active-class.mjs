@@ -41,8 +41,9 @@ assert.ok(
 assert.ok(
   v2.includes('window.__besHomeroomLiveWorkspace')
     && v2.includes("v8-live-react-source")
-    && v2.includes('Ghi: ${formatDateTime(record.createdAt)}'),
-  'The production-loaded V2 exporter must read the live React workspace and expose record creation time.',
+    && !v2.includes('Ghi: ${formatDateTime(record.createdAt)}')
+    && !v2.includes('XÁC NHẬN CỦA NHÀ TRƯỜNG'),
+  'The production-loaded V2 exporter must use the live React workspace, show only the official incident date, and keep only the homeroom-teacher signature.',
 );
 
 const conductTab = await readFile(new URL('../src/components/HomeroomConductTab.jsx', import.meta.url), 'utf8');
