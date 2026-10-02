@@ -786,7 +786,7 @@ export function buildConductAuditTrail(workspace, weekStart = '') {
   current.conductRecords.forEach((record) => {
     const recordWeek = startOfConductWeek(record.weekStart || record.date);
     if (key && recordWeek !== key) return;
-    events.push({ id: `${record.id}:created`, at: record.createdAt, by: record.createdBy, action: record.entryType === 'reward' ? 'reward-created' : 'record-created', title: record.title, studentId: record.studentId, detail: record.entryType === 'reward' ? `+${record.bonus || 0} điểm` : `−${record.deduction || 0} điểm` });
+    events.push({ id: `${record.id}:created`, at: record.createdAt, by: record.createdBy, action: record.entryType === 'reward' ? 'reward-created' : 'record-created', title: record.title, studentId: record.studentId, recordDate: record.date, detail: record.entryType === 'reward' ? `+${record.bonus || 0} điểm` : `−${record.deduction || 0} điểm` });
     (record.history || []).forEach((revision) => events.push({ id: revision.id, at: revision.editedAt, by: revision.editedBy, action: revision.before?.status === 'cancelled' ? 'record-restored' : 'record-edited', title: record.title, studentId: record.studentId, detail: revision.reason || 'Điều chỉnh thông tin' }));
     if (record.status === 'cancelled') events.push({ id: `${record.id}:cancelled`, at: record.cancelledAt || record.updatedAt, by: record.lastEditedBy, action: 'record-cancelled', title: record.title, studentId: record.studentId, detail: record.cancelReason || 'Đã hủy ghi nhận' });
   });
