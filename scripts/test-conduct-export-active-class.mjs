@@ -39,6 +39,19 @@ assert.ok(
   'Conduct export must prefer the live React workspace before loading a possibly stale persisted snapshot.',
 );
 
+const conductTab = await readFile(new URL('../src/components/HomeroomConductTab.jsx', import.meta.url), 'utf8');
+const conductUtils = await readFile(new URL('../src/utils/homeroomConduct.js', import.meta.url), 'utf8');
+assert.ok(
+  conductTab.includes('defaultConductEntryDate(workspace, initialConductWeek)')
+    && conductTab.includes('setRecordDate(defaultConductEntryDate(workspace, nextWeek))'),
+  'Current-week conduct entry must default to today instead of silently using the week start date.',
+);
+assert.ok(
+  conductUtils.includes('recordDate: record.date')
+    && conductTab.includes('Ngày vi phạm:'),
+  'Conduct audit history must distinguish the save timestamp from the actual violation date used by reports.',
+);
+
 assert.ok(
   v2.includes("today: 'Đến ngày hiện tại'")
     && v2.includes("if (period === 'today')")
