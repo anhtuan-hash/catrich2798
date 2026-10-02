@@ -48,6 +48,15 @@ function formatDate(value) {
   return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
 }
 
+function formatDateTime(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return safeText(value, '—');
+  return new Intl.DateTimeFormat('vi-VN', {
+    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  }).format(date);
+}
+
 function parseWorkspace(raw) {
   try {
     const value = JSON.parse(raw || 'null');
@@ -281,7 +290,7 @@ function classReport(workspace, range) {
     ? allViolations.map((record, index) => {
       const student = studentsById.get(record.studentId);
       const prohibited = prohibitedIds.has(record.id);
-      return `<tr class="${prohibited ? 'prohibited' : safeText(record.status, 'confirmed') === 'pending' ? 'pending' : ''}"><td>${index + 1}</td><td>${formatDate(record.date || record.weekStart)}</td><td class="name">${escapeHtml(student?.fullName || 'Học sinh')}</td><td>${prohibited ? 'Điều cấm' : 'Vi phạm'}</td><td class="name">${escapeHtml(record.title || '')}</td><td>−${Number(record.deduction || 0)}</td><td>${escapeHtml(statusLabel(record))}</td><td class="name">${escapeHtml([record.note, record.evidence].filter(Boolean).join(' · '))}</td></tr>`;
+      return `<tr class="${prohibited ? 'prohibited' : safeText(record.status, 'confirmed') === 'pending' ? 'pending' : ''}"><td>${index + 1}</td><td>${formatDate(record.date || record.weekStart)}<br><small>Ghi: ${formatDateTime(record.createdAt)}</small></td><td class="name">${escapeHtml(student?.fullName || 'Học sinh')}</td><td>${prohibited ? 'Điều cấm' : 'Vi phạm'}</td><td class="name">${escapeHtml(record.title || '')}</td><td>−${Number(record.deduction || 0)}</td><td>${escapeHtml(statusLabel(record))}</td><td class="name">${escapeHtml([record.note, record.evidence].filter(Boolean).join(' · '))}</td></tr>`;
     }).join('')
     : '<tr><td colspan="8">Không có vi phạm nào được ghi nhận trong khoảng xét.</td></tr>';
 
@@ -306,7 +315,7 @@ function personalReport(workspace, range, student) {
       const reward = safeText(record.entryType, 'violation') === 'reward';
       const prohibited = prohibitedIds.has(record.id);
       const pendingRow = safeText(record.status, 'confirmed') === 'pending';
-      return `<tr class="${prohibited ? 'prohibited' : pendingRow ? 'pending' : ''}"><td>${formatDate(record.date || record.weekStart)}</td><td>${reward ? 'Khen thưởng' : prohibited ? 'VI PHẠM ĐIỀU CẤM' : 'Vi phạm'}</td><td class="name">${escapeHtml(record.title || '')}</td><td>${reward ? `+${Number(record.bonus || 0)}` : `−${Number(record.deduction || 0)}`}</td><td>${escapeHtml(statusLabel(record))}</td><td class="name">${escapeHtml([record.note, record.evidence].filter(Boolean).join(' · '))}</td></tr>`;
+      return `<tr class="${prohibited ? 'prohibited' : pendingRow ? 'pending' : ''}"><td>${formatDate(record.date || record.weekStart)}<br><small>Ghi: ${formatDateTime(record.createdAt)}</small></td><td>${reward ? 'Khen thưởng' : prohibited ? 'VI PHẠM ĐIỀU CẤM' : 'Vi phạm'}</td><td class="name">${escapeHtml(record.title || '')}</td><td>${reward ? `+${Number(record.bonus || 0)}` : `−${Number(record.deduction || 0)}`}</td><td>${escapeHtml(statusLabel(record))}</td><td class="name">${escapeHtml([record.note, record.evidence].filter(Boolean).join(' · '))}</td></tr>`;
     }).join('')
     : '<tr><td colspan="6">Không có ghi nhận trong giai đoạn.</td></tr>';
   const prohibitedCount = Number(row.prohibitedViolationCount || 0);
