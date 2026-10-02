@@ -374,7 +374,7 @@ export async function loadHomeroomWorkspace(user, workspaceId = 'default') {
     }
     if (sameRevision(revisionRow.updated_at, localCloudRevision)) {
       rememberPersistenceBaseline(local, user);
-      return { ok: true, workspace: local, source: 'local-current' };
+      return { ok: true, workspace: local, source: 'cloud' };
     }
   }
 
