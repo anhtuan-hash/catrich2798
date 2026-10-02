@@ -16,6 +16,21 @@ assert.ok(
 );
 
 assert.ok(
+  v2.includes("today: 'Đến ngày hiện tại'")
+    && v2.includes("if (period === 'today')")
+    && v2.includes('<option value="today"'),
+  'The conduct report panel must expose an exact current-date export option.',
+);
+
+const v3 = await readFile(new URL('../src/conductMidFinalReportsV3.js', import.meta.url), 'utf8');
+assert.ok(
+  v3.includes("today: 'Đến ngày hiện tại'")
+    && v3.includes("if (period === 'today')")
+    && v3.includes('workspaceForRange(workspace, range)'),
+  'The capture exporter must calculate the current-date report from records no later than today.',
+);
+
+assert.ok(
   v5.includes('resolveHomeroomExportWorkspaceId({')
     && v5.includes('renderedWorkspaceId: renderedWorkspaceId()')
     && v5.includes('assignedWorkspaceId: typeof window !== \'undefined\' ? window.__besAssignedHomeroomWorkspaceId : \'\'')
