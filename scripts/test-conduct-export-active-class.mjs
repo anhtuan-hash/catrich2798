@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { resolveHomeroomExportWorkspaceId } from '../src/utils/homeroomExportWorkspace.js';
 
 const v2 = await readFile(new URL('../src/conductMidFinalReportsV2.js', import.meta.url), 'utf8');
+const v4 = await readFile(new URL('../src/conductMidFinalReportsV4.js', import.meta.url), 'utf8');
 const v5 = await readFile(new URL('../src/conductMidFinalReportsV5.js', import.meta.url), 'utf8');
 const hero = await readFile(new URL('../src/components/homeroom/HomeroomGlassHero.jsx', import.meta.url), 'utf8');
 
@@ -13,6 +14,17 @@ assert.ok(
 assert.ok(
   hero.includes('<em id="hr-material-hero-title">{className}</em>'),
   'The current Homeroom hero must expose exactly the active class name through the conduct panel compatibility hook.',
+);
+
+assert.ok(
+  hero.includes('className={`hr-campus-hero ${subjectMode ? \'is-subject\' : \'is-homeroom\'}`}')
+    && hero.includes('data-workspace-id={workspace?.id || \'\'}'),
+  'The current Homeroom hero must expose the active workspace id.',
+);
+assert.ok(
+  v4.includes(".hr-campus-hero[data-workspace-id], .hr-editorial-hero[data-workspace-id]")
+    && v5.includes(".hr-campus-hero[data-workspace-id], .hr-editorial-hero[data-workspace-id]"),
+  'All conduct export source guards must read the workspace id from the current hr-campus-hero, with the legacy selector only as fallback.',
 );
 
 assert.ok(
