@@ -20,6 +20,7 @@ const WORKSPACE_PREFIX = 'bes-homeroom-workspace-v1:';
 const PREFS_KEY = 'bes-conduct-mid-final-reports-prefs-v4';
 const DEFAULT_SCHOOL = 'TRƯỜNG TRUNG - TIỂU HỌC PÉTRUS KÝ';
 const PERIOD_LABELS = Object.freeze({
+  today: 'Đến ngày hiện tại',
   current: 'Đến tuần hiện tại',
   mid1: 'Giữa học kỳ I',
   semester1: 'Cuối học kỳ I',
@@ -197,6 +198,25 @@ function savePrefs(panel) {
 
 function resolveRange(workspace, period) {
   const ranges = inferConductPeriodRanges(workspace);
+
+  if (period === 'today') {
+    const currentDate = today();
+    const semester2 = ranges.semester2 || {};
+    const isSemester2 = Boolean(semester2.start && currentDate >= semester2.start);
+    const semester = isSemester2 ? semester2 : (ranges.semester1 || {});
+    const semesterLabel = isSemester2 ? 'HKII' : 'HKI';
+    const fallbackWeekStart = resolveConductWeekStart(workspace, currentDate, { nearest: true });
+    const start = semester.start || fallbackWeekStart;
+    const end = semester.end && currentDate > semester.end ? semester.end : currentDate;
+    return {
+      type: 'today',
+      label: `Đến ngày hiện tại (${semesterLabel})`,
+      start,
+      end,
+      asOfDate: end,
+    };
+  }
+
   if (period !== 'current') {
     const key = PERIOD_LABELS[period] ? period : 'mid1';
     const range = ranges[key] || {};
@@ -234,7 +254,24 @@ function calculateRows(workspace, range) {
   const weeks = conductPlanRowsForWorkspace(workspace, { includeOrientation: false, includeInAverageOnly: true })
     .filter((row) => (!range.start || row.endDate >= range.start) && (!range.end || row.startDate <= range.end))
     .map((row) => row.startDate);
-  const rowsByWeek = weeks.map((weekStart) => calculateWeeklyConduct(workspace, weekStart, { live: true }));
+
+  const calculationWorkspace = range.type === 'today'
+    ? {
+        ...workspace,
+        conductRecords: (Array.isArray(workspace?.conductRecords) ? workspace.conductRecords : []).filter((record) => {
+          const recordDate = safeText(record?.date || record?.weekStart).slice(0, 10);
+          return !recordDate || !range.end || recordDate <= range.end;
+        }),
+      }
+    : workspace;
+
+  const rowsByWeek = weeks.map((weekStart) => (
+    calculateWeeklyConduct(calculationWorkspace, weekStart, { live: true }).map((row) => (
+      range.type === 'today' && range.end && row.weekEnd > range.end
+        ? { ...row, weekEnd: range.end, partial: true }
+        : row
+    ))
+  ));
   return activeStudents(workspace).map((student) => {
     const weekly = rowsByWeek.map((rows) => rows.find((row) => row.student.id === student.id)).filter(Boolean);
     const weeklyPoints = weekly.map((row) => conductWeekPoint(row.score));
@@ -291,8 +328,11 @@ function reportHeader(workspace, title, subtitle, studentName = '') {
   <section class="report-meta"><span><b>Lớp:</b> ${escapeHtml(profile.className || '—')}</span><span><b>Năm học:</b> ${escapeHtml(profile.schoolYear || '—')}</span><span><b>Giáo viên chủ nhiệm:</b> ${escapeHtml(profile.adviserName || '—')}</span>${studentName ? `<span><b>Học sinh:</b> ${escapeHtml(studentName)}</span>` : ''}<span><b>Ngày xuất:</b> ${formatDate(today())}</span></section>`;
 }
 
-function formulaBlock() {
-  return `<section class="formula-box"><b>Nguồn dữ liệu trực tiếp</b><span>Chỉ các tuần được đánh dấu “tính vào trung bình” mới tham gia điểm TB. Điểm tuần ÷ 25 → thang 4.</span><span>Tốt ≥ 3,60 · Khá ≥ 3,00 · Đạt ≥ 2,40 · Chưa đạt &lt; 2,40.</span><span><strong>Xếp loại bằng điểm trung bình thô; chỉ làm tròn khi hiển thị. Không có tuần hợp lệ: Chưa xếp loại. Vi phạm điều cấm đã xác nhận hạ đúng 1 bậc khi đã có kết quả theo điểm.</strong></span></section>`;
+function formulaBlock(range = null) {
+  const asOfNote = range?.type === 'today'
+    ? `<span><strong>Kết quả tạm tính đến hết ngày ${formatDate(range.end)}; tuần hiện tại chỉ dùng các ghi nhận có ngày không vượt quá mốc này.</strong></span>`
+    : '';
+  return `<section class="formula-box"><b>Nguồn dữ liệu trực tiếp</b><span>Chỉ các tuần được đánh dấu “tính vào trung bình” mới tham gia điểm TB. Điểm tuần ÷ 25 → thang 4.</span><span>Tốt ≥ 3,60 · Khá ≥ 3,00 · Đạt ≥ 2,40 · Chưa đạt &lt; 2,40.</span><span><strong>Xếp loại bằng điểm trung bình thô; chỉ làm tròn khi hiển thị. Không có tuần hợp lệ: Chưa xếp loại. Vi phạm điều cấm đã xác nhận hạ đúng 1 bậc khi đã có kết quả theo điểm.</strong></span>${asOfNote}</section>`;
 }
 
 function signatureBlock(workspace) {
@@ -340,7 +380,7 @@ function classReport(workspace, range) {
     return `<tr class="${prohibited ? 'prohibited' : pendingRow ? 'pending' : ''}"><td>${index + 1}</td><td>${formatDate(record.date || record.weekStart)}</td><td class="name">${escapeHtml(student?.fullName || 'Học sinh')}</td><td>${prohibited ? 'Điều cấm' : 'Vi phạm'}</td><td class="name">${escapeHtml(record.title || '')}</td><td>−${Number(record.deduction || 0)}</td><td>${escapeHtml(statusLabel(record))}</td><td class="name">${escapeHtml([record.note, record.evidence].filter(Boolean).join(' · '))}</td></tr>`;
   }).join('') : '<tr><td colspan="8">Không có vi phạm trong khoảng xét.</td></tr>';
 
-  return `${reportHeader(workspace, `BÁO CÁO HẠNH KIỂM ${range.label.toUpperCase()}`, `${formatDate(range.start)} – ${formatDate(range.end)}`)}${formulaBlock()}<section class="summary-grid"><article><small>Điểm TB thang 4 của lớp</small><b>${formatConductAverage(classAverage)}</b></article><article><small>Tốt / Khá · Đạt / Chưa đạt · Chưa XL</small><b>${counts.good} / ${counts.fair} · ${counts.pass} / ${counts.fail} · ${counts.unclassified}</b></article><article><small>Vi phạm ghi nhận</small><b>${confirmed.length} xác nhận · ${pending.length} chờ</b><em>−${totalDeduction} điểm đã áp dụng</em></article><article><small>Vi phạm điều cấm</small><b>${prohibitedTotal} lượt</b></article></section><table><thead><tr><th>STT</th><th>Mã HS</th><th>Họ và tên</th><th>Số tuần</th><th>TB /4</th><th>HK theo điểm</th><th>Vi phạm / điểm trừ</th><th>Điều cấm / xử lý</th><th>HK cuối</th></tr></thead><tbody>${bodyRows}</tbody></table><h2>Chi tiết vi phạm trong khoảng xét</h2><table><thead><tr><th>STT</th><th>Ngày</th><th>Học sinh</th><th>Loại</th><th>Nội dung</th><th>Điểm trừ</th><th>Trạng thái</th><th>Ghi chú / minh chứng</th></tr></thead><tbody>${detailRows}</tbody></table>${signatureBlock(workspace)}`;
+  return `${reportHeader(workspace, `BÁO CÁO HẠNH KIỂM ${range.label.toUpperCase()}`, `${formatDate(range.start)} – ${formatDate(range.end)}`)}${formulaBlock(range)}<section class="summary-grid"><article><small>Điểm TB thang 4 của lớp</small><b>${formatConductAverage(classAverage)}</b></article><article><small>Tốt / Khá · Đạt / Chưa đạt · Chưa XL</small><b>${counts.good} / ${counts.fair} · ${counts.pass} / ${counts.fail} · ${counts.unclassified}</b></article><article><small>Vi phạm ghi nhận</small><b>${confirmed.length} xác nhận · ${pending.length} chờ</b><em>−${totalDeduction} điểm đã áp dụng</em></article><article><small>Vi phạm điều cấm</small><b>${prohibitedTotal} lượt</b></article></section><table><thead><tr><th>STT</th><th>Mã HS</th><th>Họ và tên</th><th>Số tuần</th><th>TB /4</th><th>HK theo điểm</th><th>Vi phạm / điểm trừ</th><th>Điều cấm / xử lý</th><th>HK cuối</th></tr></thead><tbody>${bodyRows}</tbody></table><h2>Chi tiết vi phạm trong khoảng xét</h2><table><thead><tr><th>STT</th><th>Ngày</th><th>Học sinh</th><th>Loại</th><th>Nội dung</th><th>Điểm trừ</th><th>Trạng thái</th><th>Ghi chú / minh chứng</th></tr></thead><tbody>${detailRows}</tbody></table>${signatureBlock(workspace)}`;
 }
 
 function personalReport(workspace, range, student) {
@@ -377,7 +417,7 @@ function personalReport(workspace, range, student) {
         : `Có ${count} vi phạm điều cấm đã xác nhận; kết quả theo điểm đã là Chưa đạt.`)
       : 'Không có vi phạm điều cấm đã xác nhận trong khoảng xét.';
 
-  return `${reportHeader(workspace, `PHIẾU HẠNH KIỂM ${range.label.toUpperCase()}`, `${formatDate(range.start)} – ${formatDate(range.end)}`, student.fullName)}${formulaBlock()}<section class="summary-grid"><article><small>Số tuần tính điểm</small><b>${row.weekCount}</b></article><article><small>Điểm TB thang 4</small><b>${formatConductAverage(row.average)}</b></article><article><small>Vi phạm ghi nhận</small><b>${confirmed.length} xác nhận · ${pending.length} chờ</b></article><article><small>Điểm trừ / cộng</small><b>−${totalDeduction} / +${totalBonus}</b></article></section><section class="result-banner ${row.prohibitedDowngraded ? 'downgraded' : ''}"><span>Kết quả</span><b>${escapeHtml(row.classification?.label || '')}</b><small>${escapeHtml(note)}</small></section><h2>Quy đổi điểm theo tuần</h2><table><thead><tr><th>STT</th><th>Tuần</th><th>Điểm tuần /100</th><th>Điểm quy đổi /4</th><th>Điểm trừ</th><th>Điểm cộng</th></tr></thead><tbody>${weeklyRows}</tbody></table><h2>Chi tiết toàn bộ ghi nhận</h2><table><thead><tr><th>STT</th><th>Ngày</th><th>Loại</th><th>Nội dung</th><th>Điểm</th><th>Trạng thái</th><th>Ghi chú / minh chứng</th></tr></thead><tbody>${detailRows}</tbody></table>${signatureBlock(workspace)}`;
+  return `${reportHeader(workspace, `PHIẾU HẠNH KIỂM ${range.label.toUpperCase()}`, `${formatDate(range.start)} – ${formatDate(range.end)}`, student.fullName)}${formulaBlock(range)}<section class="summary-grid"><article><small>Số tuần tính điểm</small><b>${row.weekCount}</b></article><article><small>Điểm TB thang 4</small><b>${formatConductAverage(row.average)}</b></article><article><small>Vi phạm ghi nhận</small><b>${confirmed.length} xác nhận · ${pending.length} chờ</b></article><article><small>Điểm trừ / cộng</small><b>−${totalDeduction} / +${totalBonus}</b></article></section><section class="result-banner ${row.prohibitedDowngraded ? 'downgraded' : ''}"><span>Kết quả</span><b>${escapeHtml(row.classification?.label || '')}</b><small>${escapeHtml(note)}</small></section><h2>Quy đổi điểm theo tuần</h2><table><thead><tr><th>STT</th><th>Tuần</th><th>Điểm tuần /100</th><th>Điểm quy đổi /4</th><th>Điểm trừ</th><th>Điểm cộng</th></tr></thead><tbody>${weeklyRows}</tbody></table><h2>Chi tiết toàn bộ ghi nhận</h2><table><thead><tr><th>STT</th><th>Ngày</th><th>Loại</th><th>Nội dung</th><th>Điểm</th><th>Trạng thái</th><th>Ghi chú / minh chứng</th></tr></thead><tbody>${detailRows}</tbody></table>${signatureBlock(workspace)}`;
 }
 
 function printDocument(title, body, landscape = false) {
@@ -438,7 +478,7 @@ function buildPanel(workspace) {
   panel.id = PANEL_ID;
   panel.className = 'bes-mf-panel';
   panel.dataset.workspaceId = safeText(workspace.id, 'default');
-  panel.innerHTML = `<div class="bes-mf-head"><div class="bes-mf-title"><span class="bes-mf-icon">PDF</span><div><small>XUẤT BÁO CÁO HẠNH KIỂM</small><h3>Giữa kỳ · Cuối kỳ · Đến tuần hiện tại</h3><p>Đọc trực tiếp toàn bộ ghi nhận; không phụ thuộc snapshot tuần khóa.</p></div></div><span class="bes-mf-chip">Dữ liệu trực tiếp</span></div><div class="bes-mf-formula"><b>Quy đổi:</b><span>Điểm tuần ÷ 25 → thang 4</span><span>·</span><span>Tốt ≥ 3,60 · Khá ≥ 3,00 · Đạt ≥ 2,40</span><span>·</span><strong>Xếp loại theo điểm thô · Điều cấm: hạ đúng 1 bậc</strong></div><div class="bes-mf-controls"><label><span>Đối tượng</span><select data-mf-scope><option value="class"${prefs.scope === 'personal' ? '' : ' selected'}>Cả lớp</option><option value="personal"${prefs.scope === 'personal' ? ' selected' : ''}>Cá nhân</option></select></label><label data-mf-student-field><span>Học sinh</span><select data-mf-student>${students.map((student) => `<option value="${escapeHtml(student.id)}"${student.id === selectedStudent ? ' selected' : ''}>${escapeHtml(student.code ? `${student.code} · ${student.fullName}` : student.fullName)}</option>`).join('')}</select></label><label><span>Giai đoạn</span><select data-mf-period><option value="current"${selectedPeriod === 'current' ? ' selected' : ''}>Đến tuần hiện tại</option><option value="mid1"${selectedPeriod === 'mid1' ? ' selected' : ''}>Giữa học kỳ I</option><option value="semester1"${selectedPeriod === 'semester1' ? ' selected' : ''}>Cuối học kỳ I</option><option value="mid2"${selectedPeriod === 'mid2' ? ' selected' : ''}>Giữa học kỳ II</option><option value="semester2"${selectedPeriod === 'semester2' ? ' selected' : ''}>Cuối học kỳ II</option></select></label><button type="button" data-mf-export>Xuất báo cáo</button></div><div class="bes-mf-range" data-mf-range></div><div class="bes-mf-error" data-mf-error></div>`;
+  panel.innerHTML = `<div class="bes-mf-head"><div class="bes-mf-title"><span class="bes-mf-icon">PDF</span><div><small>XUẤT BÁO CÁO HẠNH KIỂM</small><h3>Giữa kỳ · Cuối kỳ · Đến ngày/tuần hiện tại</h3><p>Đọc trực tiếp toàn bộ ghi nhận; không phụ thuộc snapshot tuần khóa.</p></div></div><span class="bes-mf-chip">Dữ liệu trực tiếp</span></div><div class="bes-mf-formula"><b>Quy đổi:</b><span>Điểm tuần ÷ 25 → thang 4</span><span>·</span><span>Tốt ≥ 3,60 · Khá ≥ 3,00 · Đạt ≥ 2,40</span><span>·</span><strong>Xếp loại theo điểm thô · Điều cấm: hạ đúng 1 bậc</strong></div><div class="bes-mf-controls"><label><span>Đối tượng</span><select data-mf-scope><option value="class"${prefs.scope === 'personal' ? '' : ' selected'}>Cả lớp</option><option value="personal"${prefs.scope === 'personal' ? ' selected' : ''}>Cá nhân</option></select></label><label data-mf-student-field><span>Học sinh</span><select data-mf-student>${students.map((student) => `<option value="${escapeHtml(student.id)}"${student.id === selectedStudent ? ' selected' : ''}>${escapeHtml(student.code ? `${student.code} · ${student.fullName}` : student.fullName)}</option>`).join('')}</select></label><label><span>Giai đoạn</span><select data-mf-period><option value="today"${selectedPeriod === 'today' ? ' selected' : ''}>Đến ngày hiện tại</option><option value="current"${selectedPeriod === 'current' ? ' selected' : ''}>Đến tuần hiện tại</option><option value="mid1"${selectedPeriod === 'mid1' ? ' selected' : ''}>Giữa học kỳ I</option><option value="semester1"${selectedPeriod === 'semester1' ? ' selected' : ''}>Cuối học kỳ I</option><option value="mid2"${selectedPeriod === 'mid2' ? ' selected' : ''}>Giữa học kỳ II</option><option value="semester2"${selectedPeriod === 'semester2' ? ' selected' : ''}>Cuối học kỳ II</option></select></label><button type="button" data-mf-export>Xuất báo cáo</button></div><div class="bes-mf-range" data-mf-range></div><div class="bes-mf-error" data-mf-error></div>`;
   panel.querySelectorAll('select').forEach((control) => control.addEventListener('change', () => updatePanel(panel, canonicalizeWorkspace(getCurrentWorkspace(panel) || workspace))));
   panel.querySelector('[data-mf-export]').addEventListener('click', () => {
     const errorBox = panel.querySelector('[data-mf-error]');
