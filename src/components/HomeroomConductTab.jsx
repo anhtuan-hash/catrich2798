@@ -63,6 +63,17 @@ function today() {
   return toLocalIsoDate(new Date());
 }
 
+function defaultConductEntryDate(workspace, weekStart) {
+  const currentDate = today();
+  try {
+    const currentWeek = resolveConductWeekStart(workspace, currentDate, { nearest: true });
+    if (currentWeek === weekStart) return currentDate;
+  } catch {
+    // Fall back to the selected week's start when today's date is outside the active calendar.
+  }
+  return weekStart;
+}
+
 function formatDate(value) {
   if (!value) return '—';
   const date = new Date(`${value}T00:00:00`);
@@ -199,7 +210,7 @@ export default function HomeroomConductTab({ workspace, onCommit, currentUser })
   const [weekStart, setWeekStart] = useState(() => initialConductWeek);
   const [studentId, setStudentId] = useState('');
   const [ruleId, setRuleId] = useState(OFFICIAL_CONDUCT_RULES[0]?.id || '');
-  const [recordDate, setRecordDate] = useState(initialConductWeek);
+  const [recordDate, setRecordDate] = useState(() => defaultConductEntryDate(workspace, initialConductWeek));
   const [note, setNote] = useState('');
   const [evidence, setEvidence] = useState('');
   const [status, setStatus] = useState('confirmed');
@@ -266,7 +277,9 @@ export default function HomeroomConductTab({ workspace, onCommit, currentUser })
     const resolved = resolveConductWeekStart(workspace, weekStart || today(), { nearest: true });
     if (resolved !== weekStart) setWeekStart(resolved);
     const recordRow = findConductPlanRow(workspace, recordDate);
-    if (getActiveConductAcademicPlan(workspace) && !recordRow?.conductEligible) setRecordDate(resolved);
+    if (getActiveConductAcademicPlan(workspace) && !recordRow?.conductEligible) {
+      setRecordDate(defaultConductEntryDate(workspace, resolved));
+    }
   }, [workspace.id, workspace.classProfile?.schoolYear]);
 
   useEffect(() => () => window.clearTimeout(recordSaveTimer.current), []);
@@ -1092,7 +1105,7 @@ export default function HomeroomConductTab({ workspace, onCommit, currentUser })
           <p>Mỗi học sinh bắt đầu tuần với 100 điểm. Với lớp 12, bốn tuần hè từ 15/06 đến 11/07/2026 được tính vào trung bình Học kỳ I và cả năm; với các khối khác, các tuần này chỉ dùng để theo dõi riêng. Tuần 0 không tính trung bình.</p>
         </div>
         <div className="hr-conduct-week-picker">
-          <label><span>Tuần đang theo dõi</span><select value={weekStart} onChange={(event) => { setWeekStart(event.target.value); setRecordDate(event.target.value); }}>{availableWeeks.map((week) => <option key={week} value={week}>{weekOptionText(week)}</option>)}</select></label>
+          <label><span>Tuần đang theo dõi</span><select value={weekStart} onChange={(event) => { const nextWeek = event.target.value; setWeekStart(nextWeek); setRecordDate(defaultConductEntryDate(workspace, nextWeek)); }}>{availableWeeks.map((week) => <option key={week} value={week}>{weekOptionText(week)}</option>)}</select></label>
           <b>{selectedPlanRow?.schoolPlanLabel || 'Tuần rèn luyện'} · {formatDate(weekStart)} → {formatDate(selectedWeekEnd)}</b>
           <span className={`hr-conduct-week-state ${selectedWeekLocked ? 'locked' : 'open'}`}>{selectedWeekLocked ? '🔒 Đã tổng kết' : '● Đang mở'}</span>
           <button type="button" className="secondary" onClick={handleSyncAttendance} disabled={selectedWeekLocked}>Đồng bộ từ điểm danh</button>
@@ -1132,7 +1145,7 @@ export default function HomeroomConductTab({ workspace, onCommit, currentUser })
       <section className="hr-panel hr-conduct-entry">
         <div className="hr-panel-head">
           <div><small>GHI NHẬN MỚI</small><h2>Chọn học sinh và nội dung vi phạm</h2><p>Danh mục chính thức bám theo Quyết định 95/QĐ-PEK. Vi phạm khác có thể nhập và lưu thành nội quy mới.</p></div>
-          <div className="hr-head-actions"><button type="button" className="secondary" disabled={selectedWeekLocked} onClick={() => { setRewardDraft((current) => ({ ...current, date: weekStart })); setShowRewardForm(true); }}>＋ Cộng điểm</button><button type="button" className={`primary hr-conduct-save-button ${recordSaveFeedback.status === 'saving' ? 'is-saving' : ''}`} disabled={recordSaveFeedback.status === 'saving' || isConductWeekLocked(workspace, resolveConductWeekStart(workspace, recordDate, { nearest: true }))} onClick={handleRecord}>{recordSaveFeedback.status === 'saving' ? <><i />Đang lưu…</> : <>Ghi nhận & trừ điểm</>}</button></div>
+          <div className="hr-head-actions"><button type="button" className="secondary" disabled={selectedWeekLocked} onClick={() => { setRewardDraft((current) => ({ ...current, date: defaultConductEntryDate(workspace, weekStart) })); setShowRewardForm(true); }}>＋ Cộng điểm</button><button type="button" className={`primary hr-conduct-save-button ${recordSaveFeedback.status === 'saving' ? 'is-saving' : ''}`} disabled={recordSaveFeedback.status === 'saving' || isConductWeekLocked(workspace, resolveConductWeekStart(workspace, recordDate, { nearest: true }))} onClick={handleRecord}>{recordSaveFeedback.status === 'saving' ? <><i />Đang lưu…</> : <>Ghi nhận & trừ điểm</>}</button></div>
         </div>
         <div className="hr-form-grid four">
           <label><span>Học sinh</span><select value={studentId} onChange={(event) => setStudentId(event.target.value)}><option value="">— Chọn học sinh —</option>{students.map((student) => <option key={student.id} value={student.id}>{student.code ? `${student.code} · ` : ''}{student.fullName}</option>)}</select></label>
@@ -1202,7 +1215,7 @@ export default function HomeroomConductTab({ workspace, onCommit, currentUser })
         ) : weekReviewMode === 'timeline' ? (
           <div className="hr-conduct-timeline">{[...allWeekRecords].sort((a, b) => `${a.date}${a.createdAt}`.localeCompare(`${b.date}${b.createdAt}`)).map((record) => { const student = workspace.students.find((item) => item.id === record.studentId); const isReward = record.entryType === 'reward'; return <article key={record.id} className={`${record.status} ${isReward ? 'reward' : ''}`}><time>{formatDate(record.date)}</time><i /><div><small>{student?.fullName || 'Học sinh đã lưu trữ'} · {recordStatusLabel(record.status)}</small><b>{record.title}</b><p>{isReward ? `+${record.bonus || 0}` : `−${record.deduction || 0}`} điểm · {record.createdBy || 'GVCN'}</p></div></article>;})}{!allWeekRecords.length ? <div className="hr-empty"><span>✓</span><h3>Tuần chưa có ghi nhận</h3><p>Tất cả học sinh đang ở mức điểm khởi tạo.</p></div> : null}</div>
         ) : (
-          <div className="hr-conduct-audit"><div className="hr-conduct-audit-search"><input value={auditQuery} onChange={(event) => setAuditQuery(event.target.value)} placeholder="Tìm người sửa, học sinh, nội dung hoặc lý do…" /><span>{filteredAuditTrail.length} sự kiện</span></div>{filteredAuditTrail.length ? filteredAuditTrail.map((event) => { const student = workspace.students.find((item) => item.id === event.studentId); return <article key={event.id}><time>{formatDateTime(event.at)}</time><span className={`action ${event.action}`}>{auditActionLabel(event.action)}</span><div><b>{event.title}</b><p>{student ? `${student.fullName} · ` : ''}{event.detail || 'Không có ghi chú'}{event.automatic ? ' · Tự động' : ''}</p></div><strong>{event.by || 'Hệ thống'}</strong></article>; }) : <div className="hr-empty"><span>⌁</span><h3>Chưa có lịch sử thay đổi</h3><p>Các thao tác ghi nhận, chỉnh sửa, khóa và mở khóa sẽ xuất hiện ở đây.</p></div>}</div>
+          <div className="hr-conduct-audit"><div className="hr-conduct-audit-search"><input value={auditQuery} onChange={(event) => setAuditQuery(event.target.value)} placeholder="Tìm người sửa, học sinh, nội dung hoặc lý do…" /><span>{filteredAuditTrail.length} sự kiện</span></div>{filteredAuditTrail.length ? filteredAuditTrail.map((event) => { const student = workspace.students.find((item) => item.id === event.studentId); return <article key={event.id}><time>{formatDateTime(event.at)}</time><span className={`action ${event.action}`}>{auditActionLabel(event.action)}</span><div><b>{event.title}</b><p>{student ? `${student.fullName} · ` : ''}{event.recordDate ? `Ngày vi phạm: ${formatDate(event.recordDate)} · ` : ''}{event.detail || 'Không có ghi chú'}{event.automatic ? ' · Tự động' : ''}</p></div><strong>{event.by || 'Hệ thống'}</strong></article>; }) : <div className="hr-empty"><span>⌁</span><h3>Chưa có lịch sử thay đổi</h3><p>Các thao tác ghi nhận, chỉnh sửa, khóa và mở khóa sẽ xuất hiện ở đây.</p></div>}</div>
         )}
       </section>
 
