@@ -48,6 +48,11 @@ function workspaceCandidates() {
 function exactRenderedWorkspace(panel) {
   const renderedId = renderedWorkspaceId();
   const panelId = text(panel?.dataset?.workspaceId);
+  const live = typeof window !== 'undefined' ? window.__besHomeroomLiveWorkspace : null;
+  const liveWorkspace = live?.workspace;
+  const liveId = text(live?.workspaceId || liveWorkspace?.id);
+  if (liveWorkspace && liveId && (!renderedId || liveId === renderedId)) return liveWorkspace;
+
   const workspace = resolveRenderedHomeroomWorkspace(workspaceCandidates(), {
     renderedWorkspaceId: renderedId,
     panelWorkspaceId: panelId,

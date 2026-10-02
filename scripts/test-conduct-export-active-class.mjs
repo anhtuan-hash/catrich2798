@@ -38,6 +38,12 @@ assert.ok(
     && v5.includes("source: 'react-live'"),
   'Conduct export must prefer the live React workspace before loading a possibly stale persisted snapshot.',
 );
+assert.ok(
+  v2.includes('window.__besHomeroomLiveWorkspace')
+    && v2.includes("v8-live-react-source")
+    && v2.includes('Ghi: ${formatDateTime(record.createdAt)}'),
+  'The production-loaded V2 exporter must read the live React workspace and expose record creation time.',
+);
 
 const conductTab = await readFile(new URL('../src/components/HomeroomConductTab.jsx', import.meta.url), 'utf8');
 const conductUtils = await readFile(new URL('../src/utils/homeroomConduct.js', import.meta.url), 'utf8');

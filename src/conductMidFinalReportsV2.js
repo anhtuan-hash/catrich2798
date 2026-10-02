@@ -89,6 +89,21 @@ function formatDate(value) {
   return new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(date);
 }
 
+function formatDateTime(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return safeText(value, '—');
+  return new Intl.DateTimeFormat('vi-VN', {
+    day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit',
+  }).format(date);
+}
+
+function renderedWorkspaceId() {
+  return safeText(
+    document.querySelector('.hr-campus-hero[data-workspace-id], .hr-editorial-hero[data-workspace-id]')?.dataset?.workspaceId,
+  );
+}
+
 function parseWorkspace(raw) {
   try {
     const value = JSON.parse(raw || 'null');
@@ -133,6 +148,14 @@ function currentWorkspaceCandidates() {
 }
 
 function getCurrentWorkspace(panel = null) {
+  const live = typeof window !== 'undefined' ? window.__besHomeroomLiveWorkspace : null;
+  const liveWorkspace = live?.workspace;
+  const liveId = safeText(live?.workspaceId || liveWorkspace?.id);
+  const expectedId = renderedWorkspaceId() || safeText(panel?.dataset?.renderedWorkspaceId) || safeText(panel?.dataset?.workspaceId);
+  if (liveWorkspace && liveId && (!expectedId || liveId === expectedId)) {
+    return liveWorkspace;
+  }
+
   const candidates = currentWorkspaceCandidates();
   if (!candidates.length) return null;
   const visibleClass = safeText(
@@ -377,7 +400,7 @@ function classReport(workspace, range) {
     const student = studentsById.get(record.studentId);
     const prohibited = prohibitedIds.has(record.id);
     const pendingRow = safeText(record.status, 'confirmed') === 'pending';
-    return `<tr class="${prohibited ? 'prohibited' : pendingRow ? 'pending' : ''}"><td>${index + 1}</td><td>${formatDate(record.date || record.weekStart)}</td><td class="name">${escapeHtml(student?.fullName || 'Học sinh')}</td><td>${prohibited ? 'Điều cấm' : 'Vi phạm'}</td><td class="name">${escapeHtml(record.title || '')}</td><td>−${Number(record.deduction || 0)}</td><td>${escapeHtml(statusLabel(record))}</td><td class="name">${escapeHtml([record.note, record.evidence].filter(Boolean).join(' · '))}</td></tr>`;
+    return `<tr class="${prohibited ? 'prohibited' : pendingRow ? 'pending' : ''}"><td>${index + 1}</td><td>${formatDate(record.date || record.weekStart)}<br><small>Ghi: ${formatDateTime(record.createdAt)}</small></td><td class="name">${escapeHtml(student?.fullName || 'Học sinh')}</td><td>${prohibited ? 'Điều cấm' : 'Vi phạm'}</td><td class="name">${escapeHtml(record.title || '')}</td><td>−${Number(record.deduction || 0)}</td><td>${escapeHtml(statusLabel(record))}</td><td class="name">${escapeHtml([record.note, record.evidence].filter(Boolean).join(' · '))}</td></tr>`;
   }).join('') : '<tr><td colspan="8">Không có vi phạm trong khoảng xét.</td></tr>';
 
   return `${reportHeader(workspace, `BÁO CÁO HẠNH KIỂM ${range.label.toUpperCase()}`, `${formatDate(range.start)} – ${formatDate(range.end)}`)}${formulaBlock(range)}<section class="summary-grid"><article><small>Điểm TB thang 4 của lớp</small><b>${formatConductAverage(classAverage)}</b></article><article><small>Tốt / Khá · Đạt / Chưa đạt · Chưa XL</small><b>${counts.good} / ${counts.fair} · ${counts.pass} / ${counts.fail} · ${counts.unclassified}</b></article><article><small>Vi phạm ghi nhận</small><b>${confirmed.length} xác nhận · ${pending.length} chờ</b><em>−${totalDeduction} điểm đã áp dụng</em></article><article><small>Vi phạm điều cấm</small><b>${prohibitedTotal} lượt</b></article></section><table><thead><tr><th>STT</th><th>Mã HS</th><th>Họ và tên</th><th>Số tuần</th><th>TB /4</th><th>HK theo điểm</th><th>Vi phạm / điểm trừ</th><th>Điều cấm / xử lý</th><th>HK cuối</th></tr></thead><tbody>${bodyRows}</tbody></table><h2>Chi tiết vi phạm trong khoảng xét</h2><table><thead><tr><th>STT</th><th>Ngày</th><th>Học sinh</th><th>Loại</th><th>Nội dung</th><th>Điểm trừ</th><th>Trạng thái</th><th>Ghi chú / minh chứng</th></tr></thead><tbody>${detailRows}</tbody></table>${signatureBlock(workspace)}`;
@@ -403,7 +426,7 @@ function personalReport(workspace, range, student) {
     const pendingRow = safeText(record.status, 'confirmed') === 'pending';
     const type = reward ? 'Khen thưởng' : prohibited ? 'VI PHẠM ĐIỀU CẤM' : 'Vi phạm';
     const points = reward ? `+${Number(record.bonus || 0)}` : `−${Number(record.deduction || 0)}`;
-    return `<tr class="${prohibited ? 'prohibited' : pendingRow ? 'pending' : ''}"><td>${index + 1}</td><td>${formatDate(record.date || record.weekStart)}</td><td>${type}</td><td class="name">${escapeHtml(record.title || '')}</td><td>${points}</td><td>${escapeHtml(statusLabel(record))}</td><td class="name">${escapeHtml([record.note, record.evidence].filter(Boolean).join(' · '))}</td></tr>`;
+    return `<tr class="${prohibited ? 'prohibited' : pendingRow ? 'pending' : ''}"><td>${index + 1}</td><td>${formatDate(record.date || record.weekStart)}<br><small>Ghi: ${formatDateTime(record.createdAt)}</small></td><td>${type}</td><td class="name">${escapeHtml(record.title || '')}</td><td>${points}</td><td>${escapeHtml(statusLabel(record))}</td><td class="name">${escapeHtml([record.note, record.evidence].filter(Boolean).join(' · '))}</td></tr>`;
   }).join('') : '<tr><td colspan="7">Không có ghi nhận trong khoảng xét.</td></tr>';
 
   const count = row.prohibitedViolationCount;
@@ -417,7 +440,7 @@ function personalReport(workspace, range, student) {
         : `Có ${count} vi phạm điều cấm đã xác nhận; kết quả theo điểm đã là Chưa đạt.`)
       : 'Không có vi phạm điều cấm đã xác nhận trong khoảng xét.';
 
-  return `${reportHeader(workspace, `PHIẾU HẠNH KIỂM ${range.label.toUpperCase()}`, `${formatDate(range.start)} – ${formatDate(range.end)}`, student.fullName)}${formulaBlock(range)}<section class="summary-grid"><article><small>Số tuần tính điểm</small><b>${row.weekCount}</b></article><article><small>Điểm TB thang 4</small><b>${formatConductAverage(row.average)}</b></article><article><small>Vi phạm ghi nhận</small><b>${confirmed.length} xác nhận · ${pending.length} chờ</b></article><article><small>Điểm trừ / cộng</small><b>−${totalDeduction} / +${totalBonus}</b></article></section><section class="result-banner ${row.prohibitedDowngraded ? 'downgraded' : ''}"><span>Kết quả</span><b>${escapeHtml(row.classification?.label || '')}</b><small>${escapeHtml(note)}</small></section><h2>Quy đổi điểm theo tuần</h2><table><thead><tr><th>STT</th><th>Tuần</th><th>Điểm tuần /100</th><th>Điểm quy đổi /4</th><th>Điểm trừ</th><th>Điểm cộng</th></tr></thead><tbody>${weeklyRows}</tbody></table><h2>Chi tiết toàn bộ ghi nhận</h2><table><thead><tr><th>STT</th><th>Ngày</th><th>Loại</th><th>Nội dung</th><th>Điểm</th><th>Trạng thái</th><th>Ghi chú / minh chứng</th></tr></thead><tbody>${detailRows}</tbody></table>${signatureBlock(workspace)}`;
+  return `${reportHeader(workspace, `PHIẾU HẠNH KIỂM ${range.label.toUpperCase()}`, `${formatDate(range.start)} – ${formatDate(range.end)}`, student.fullName)}${formulaBlock(range)}<section class="summary-grid"><article><small>Số tuần tính điểm</small><b>${row.weekCount}</b></article><article><small>Điểm TB thang 4</small><b>${formatConductAverage(row.average)}</b></article><article><small>Vi phạm ghi nhận</small><b>${confirmed.length} xác nhận · ${pending.length} chờ</b></article><article><small>Điểm trừ / cộng</small><b>−${totalDeduction} / +${totalBonus}</b></article></section><section class="result-banner ${row.prohibitedDowngraded ? 'downgraded' : ''}"><span>Kết quả</span><b>${escapeHtml(row.classification?.label || '')}</b><small>${escapeHtml(note)}</small></section><h2>Quy đổi điểm theo tuần</h2><table><thead><tr><th>STT</th><th>Tuần</th><th>Điểm tuần /100</th><th>Điểm quy đổi /4</th><th>Điểm trừ</th><th>Điểm cộng</th></tr></thead><tbody>${weeklyRows}</tbody></table><h2>Chi tiết toàn bộ ghi nhận</h2><p class="detail-note"><b>Ngày</b> là ngày vi phạm/khen thưởng; <b>Ghi</b> là thời điểm dữ liệu được nhập vào hệ thống.</p><table><thead><tr><th>STT</th><th>Ngày</th><th>Loại</th><th>Nội dung</th><th>Điểm</th><th>Trạng thái</th><th>Ghi chú / minh chứng</th></tr></thead><tbody>${detailRows}</tbody></table>${signatureBlock(workspace)}`;
 }
 
 function printDocument(title, body, landscape = false) {
@@ -529,10 +552,11 @@ window.addEventListener('bes-homeroom-store-updated', () => {
   document.getElementById(PANEL_ID)?.remove();
   scheduleEnsure();
 });
+window.addEventListener('bes-homeroom-live-workspace-updated', scheduleEnsure);
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', scheduleEnsure, { once: true });
 else scheduleEnsure();
 
 if (typeof window !== 'undefined') {
-  window.__besConductExportVersion = 'v7-raw-score-boundaries';
-  window.__besConductPersonalExportVersion = 'v7-raw-score-boundaries';
+  window.__besConductExportVersion = 'v8-live-react-source';
+  window.__besConductPersonalExportVersion = 'v8-live-react-source';
 }
