@@ -38,7 +38,6 @@ import './GlobalCommandPaletteFocusFix.css';
 import './GlobalNewsAndroidGoogle.css';
 import './GlobalNewsDrawerScroll.css';
 import './GlobalTextLabGoogleLarge.css';
-import './GlobalWordGraphGoogleM3.css';
 import './GlobalAutosaveGoogle.css';
 import './GlobalWorkScheduleModern.css';
 import './GlobalScrollPerformance.css';
