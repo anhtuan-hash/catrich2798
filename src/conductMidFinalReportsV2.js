@@ -20,6 +20,14 @@ const CURRENT_PREFIX = 'bes-homeroom-current-workspace-v3:';
 const WORKSPACE_PREFIX = 'bes-homeroom-workspace-v1:';
 const PREFS_KEY = 'bes-conduct-mid-final-reports-prefs-v4';
 const DEFAULT_SCHOOL = 'TRƯỜNG TRUNG - TIỂU HỌC PÉTRUS KÝ';
+
+function schoolLogoUrl() {
+  try {
+    return new URL(PETRUS_KY_SCHOOL_LOGO_URL, window.location.origin).href;
+  } catch {
+    return PETRUS_KY_SCHOOL_LOGO_URL;
+  }
+}
 const PERIOD_LABELS = Object.freeze({
   today: 'Đến ngày hiện tại',
   current: 'Đến tuần hiện tại',
@@ -348,7 +356,7 @@ function prohibitedSummary(row) {
 
 function reportHeader(workspace, title, subtitle, studentName = '') {
   const profile = workspace.classProfile || {};
-  return `<header class="report-header"><img class="school-logo" src="${PETRUS_KY_SCHOOL_LOGO_URL}" alt="Pétrus Ký School" /><div><small>${escapeHtml(safeText(profile.schoolName, DEFAULT_SCHOOL).toUpperCase())}</small><h1>${escapeHtml(title)}</h1><p>${escapeHtml(subtitle)}</p></div></header>
+  return `<header class="report-header"><img class="school-logo" src="${escapeHtml(schoolLogoUrl())}" alt="Pétrus Ký School" /><div><small>${escapeHtml(safeText(profile.schoolName, DEFAULT_SCHOOL).toUpperCase())}</small><h1>${escapeHtml(title)}</h1><p>${escapeHtml(subtitle)}</p></div></header>
   <section class="report-meta"><span><b>Lớp:</b> ${escapeHtml(profile.className || '—')}</span><span><b>Năm học:</b> ${escapeHtml(profile.schoolYear || '—')}</span><span><b>Giáo viên chủ nhiệm:</b> ${escapeHtml(profile.adviserName || '—')}</span>${studentName ? `<span><b>Học sinh:</b> ${escapeHtml(studentName)}</span>` : ''}<span><b>Ngày xuất:</b> ${formatDate(today())}</span></section>`;
 }
 
