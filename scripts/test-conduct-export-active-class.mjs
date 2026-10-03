@@ -39,6 +39,14 @@ assert.ok(
   'Conduct export must prefer the live React workspace before loading a possibly stale persisted snapshot.',
 );
 assert.ok(
+  v2.includes('PHIẾU BÁO CÁO KẾT QUẢ RÈN LUYỆN')
+    && !v2.includes('Nguồn dữ liệu trực tiếp')
+    && !v2.includes('Chỉ các tuần được đánh dấu “tính vào trung bình”')
+    && !v2.includes('Kết quả tạm tính đến hết ngày'),
+  'Production conduct report must use the new training-results title and hide the explanatory data-source block.',
+);
+
+assert.ok(
   v2.includes('window.__besHomeroomLiveWorkspace')
     && v2.includes("v8-live-react-source")
     && !v2.includes('Ghi: ${formatDateTime(record.createdAt)}')
