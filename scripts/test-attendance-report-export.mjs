@@ -57,22 +57,24 @@ for (const token of expectedSessionDataOrder) {
   previousDataIndex = index;
 }
 
-assert.match(reportExport, /@page\s*\{[^}]*size\s*:\s*A4\s+portrait/i);
+assert.match(reportExport, /@page\s*\{[^}]*size\s*:\s*A4\s+landscape/i, 'Wide attendance detail tables should print on A4 landscape for readability.');
 assert.match(
   reportExport,
-  /@page\s*\{[^}]*margin\s*:\s*(?:18|19|20|21|22)mm\s+(?:9|10|11|12)mm\s+(?:12|13|14|15|16)mm/i,
-  'PDF page must reserve a safe physical top margin so the school header cannot collide with browser print headers',
+  /@page\s*\{[^}]*margin\s*:\s*12mm\s+10mm\s+13mm/i,
+  'PDF page must use compact, print-safe landscape margins.',
 );
 assert.match(reportExport, /\.report-page\s*\{[^}]*max-width\s*:\s*100%/i, 'PDF content must stay bounded to portrait page width');
 assert.match(reportExport, /table\s*\{[^}]*max-width\s*:\s*100%/i, 'PDF tables must remain within portrait page width');
 
-// The school logo must be completely absent from attendance PDF export.
-assert.doesNotMatch(reportExport, /petrus-ky-school-logo\.png/i, 'Attendance PDF must not import the school logo asset');
-assert.doesNotMatch(reportExport, /school-logo-box/i, 'Attendance PDF must not render a logo box');
-assert.doesNotMatch(reportExport, /data-report-school-logo/i, 'Attendance PDF must not render a report logo image');
-assert.doesNotMatch(reportExport, /buildPrintSafeSchoolLogoDataUrl/i, 'Attendance PDF must not run logo conversion code');
-assert.doesNotMatch(reportExport, /waitForImageReady/i, 'Attendance PDF must not wait for a removed logo image');
+// The official school logo is inlined into the about:blank print document and decoded before printing.
+assert.match(reportExport, /petrus-ky-school-logo\.png\?inline/i, 'Attendance PDF must inline the official school logo asset.');
+assert.match(reportExport, /class="school-logo"/i, 'Attendance PDF must render the school logo in the header.');
+assert.match(reportExport, /PETRUS_KY_SCHOOL_LOGO_DATA_URI/, 'Attendance PDF must use the inlined logo data URI.');
+assert.match(reportExport, /waitForReportImages/i, 'Attendance PDF must wait for the logo to decode before printing.');
 assert.match(reportExport, /export\s+async\s+function\s+printAttendanceReportPdf/i, 'PDF export should keep deterministic print-window readiness handling');
+assert.match(reportExport, /Kỳ báo cáo:/, 'PDF must present the reporting period as formal metadata.');
+assert.match(reportExport, /Phạm vi:/, 'PDF must present class/teacher scope as formal metadata.');
+assert.doesNotMatch(reportExport, /SẢN PHẨM CÔNG NGHỆ SỐ/, 'Official attendance PDF should not include internal product-credit footer copy.');
 assert.doesNotMatch(reportExport, /setTimeout\s*\(\s*\(\)\s*=>\s*window\.print\(\)\s*,\s*300\s*\)/i, 'Legacy 300ms print timer must remain removed');
 assert.match(
   reportExport,
