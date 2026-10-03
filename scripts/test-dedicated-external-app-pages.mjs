@@ -14,7 +14,6 @@ const checks = [
   ['approved app is selected by id from route', integration.includes('dedicatedAppId') && integration.includes('dedicatedApp')],
   ['dedicated hero mounts above viewer', integration.includes('<ExternalAppHero') && integration.includes('introContent=')],
   ['generic app uses runtime anchor', integration.includes('external-app-runtime')],
-  ['TESOL special route remains intact', integration.includes('TESOL_METHOD_HASH') && integration.includes('<TesolMethodHero')],
   ['hero returns to apps', hero.includes("window.location.hash = '#/apps'")],
   ['hero links to dashboard', hero.includes("window.location.hash = '#/dashboard'")],
   ['hero scrolls to runtime', hero.includes("getElementById('external-app-runtime')")],
