@@ -17,7 +17,6 @@ import GlobalFontSettingsBridge from './GlobalFontSettingsBridge.jsx';
 import GlobalSubtitleSettingsBridge from './GlobalSubtitleSettingsBridge.jsx';
 import GlobalHeroGovernance from './GlobalHeroGovernance.jsx';
 import GlobalAiWebsiteLauncher from './GlobalAiWebsiteLauncher.jsx';
-import HomeParticleSignaturePortal from './HomeParticleSignaturePortal.jsx';
 import GlobalDashboardNavigationTab from './GlobalDashboardNavigationTab.jsx';
 import GlobalHomeroomNavigationTab from './GlobalHomeroomNavigationTab.jsx';
 import GlobalGradebookNavigationTab from './GlobalGradebookNavigationTab.jsx';
@@ -156,7 +155,6 @@ export default function GlobalFlatNavigation(props) {
       <GlobalFontSettingsBridge {...props} />
       <GlobalSubtitleSettingsBridge {...props} />
       {!mobile ? <GlobalAiWebsiteLauncher {...props} /> : null}
-      {!mobile ? <HomeParticleSignaturePortal currentUser={props.currentUser} /> : null}
 
       <GlobalDashboardNavigationTab {...props} />
       <GlobalHomeroomNavigationTab {...props} />
