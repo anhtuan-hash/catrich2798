@@ -41,8 +41,8 @@ assert.ok(
 assert.ok(
   v2.includes("PETRUS_KY_SCHOOL_LOGO_DATA_URI")
     && v2.includes('class="school-logo"')
-    && !v2.includes('Có ${count} vi phạm điều cấm đã xác nhận. Hạ đúng 1 bậc')
-    && !v2.includes('<small>${escapeHtml(note)}</small>'),
+    && !v2.includes('<small>${escapeHtml(note)}</small>')
+    && !v2.includes('<small>${escapeHtml(resultNote)}</small>'),
   'Production conduct report must use the school logo and omit the prohibited-violation explanation below the result.',
 );
 
