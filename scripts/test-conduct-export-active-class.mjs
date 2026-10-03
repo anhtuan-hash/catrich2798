@@ -39,12 +39,18 @@ assert.ok(
   'Conduct export must prefer the live React workspace before loading a possibly stale persisted snapshot.',
 );
 assert.ok(
-  v2.includes("import PETRUS_KY_SCHOOL_LOGO_URL from './assets/petrus-ky-school-logo.png'")
+  v2.includes("import PETRUS_KY_SCHOOL_LOGO_DATA_URI from './assets/petrus-ky-school-logo.png?inline'")
     && v2.includes('class="school-logo"')
     && v2.includes('XÁC NHẬN CỦA PHỤ HUYNH HỌC SINH')
     && !v2.includes('<small>${escapeHtml(note)}</small>')
     && !v2.includes('<small>${escapeHtml(resultNote)}</small>'),
-  'Production conduct report must use the real school logo, include parent confirmation, and omit the prohibited-violation explanation below the result.',
+  'Production conduct report must inline the clean school logo, include parent confirmation, and omit the prohibited-violation explanation below the result.',
+);
+
+assert.ok(
+  v2.includes("img.decode?img.decode().catch")
+    && v2.includes('object-fit:contain;object-position:center'),
+  'Conduct print popup must wait for the inline logo to decode and render it without cropping.',
 );
 
 assert.ok(
