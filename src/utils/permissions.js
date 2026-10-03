@@ -1,4 +1,4 @@
-import { APPS, GAME_APPS, SPECIAL_TOOLS } from '../data/apps.js';
+import { APPS, SPECIAL_TOOLS } from '../data/apps.js';
 import { HOMEROOM_PERMISSION_ID, HOMEROOM_PERMISSION_ITEM } from '../data/homeroom.js';
 import { isAdminRole, isDepartmentLeaderRole } from './roles.js';
 
@@ -8,7 +8,6 @@ export const PERMISSION_MODE_CUSTOM = 'custom';
 export const ROUTE_PERMISSION_IDS = {
   apps: 'section:apps',
   news: 'tool:news-reader',
-  games: 'section:games',
   tools: 'section:tools',
   'resource-library': 'route:resource-library',
   'knowledge-hub': 'route:knowledge-hub',
@@ -127,11 +126,10 @@ const RETIRED_ROUTES = new Set(['library', 'practice']);
 
 const SECTION_BY_SLUG = new Map([
   ...APPS.map((item) => [item.slug, 'apps']),
-  ...GAME_APPS.map((item) => [item.slug, 'games']),
   ...SPECIAL_TOOLS.map((item) => [item.slug, 'tools']),
 ]);
 
-const TOOL_BY_SLUG = new Map([...APPS, ...GAME_APPS, ...SPECIAL_TOOLS].map((item) => [item.slug, item]));
+const TOOL_BY_SLUG = new Map([...APPS, ...SPECIAL_TOOLS].map((item) => [item.slug, item]));
 
 export const CORE_PERMISSION_ITEMS = [
   HOMEROOM_PERMISSION_ITEM,
@@ -279,7 +277,6 @@ function makeToolPermissionItem(item, section) {
 
 export const TOOL_PERMISSION_ITEMS = [
   ...APPS.map((item) => makeToolPermissionItem(item, 'apps')),
-  ...GAME_APPS.map((item) => makeToolPermissionItem(item, 'games')),
   ...SPECIAL_TOOLS.map((item) => makeToolPermissionItem(item, 'tools')),
 ];
 
@@ -311,12 +308,6 @@ export const PERMISSION_GROUPS = [
     title: 'App activities',
     titleVi: 'Hoạt động / ứng dụng',
     ids: TOOL_PERMISSION_ITEMS.filter((item) => item.section === 'apps').map((item) => item.id),
-  },
-  {
-    key: 'games',
-    title: 'Games & launchers',
-    titleVi: 'Trò chơi / launcher',
-    ids: TOOL_PERMISSION_ITEMS.filter((item) => item.section === 'games').map((item) => item.id),
   },
   {
     key: 'tools',
@@ -452,7 +443,6 @@ export function getRoutePermissionId(route) {
   if (route === 'homeroom') return HOMEROOM_PERMISSION_ID;
   if (route === 'attendance') return ATTENDANCE_PERMISSION_IDS.quick;
   if (route === 'dashboard' || route === 'student-support' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'attendance' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
-  if (route === 'games') return getToolPermissionId('game-hub');
   return '';
 }
 
@@ -470,7 +460,7 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   if (route === 'student-support') return hasPermissionId(user, ROUTE_PERMISSION_IDS['student-support']);
   if (route === 'homeroom') return hasPermissionId(user, HOMEROOM_PERMISSION_ID);
   if (route === 'attendance') return hasAnyAttendanceAccess(user);
-  if (route === 'apps' || route === 'games' || route === 'tools') return true;
+  if (route === 'apps' || route === 'tools') return true;
   if (route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'qa' || route === 'attendance' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
   return false;
 }
