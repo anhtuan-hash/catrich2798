@@ -4,8 +4,8 @@ import { launchRoute } from '../utils/navigation.js';
 import { ROUTE_APP_SHORTCUTS } from '../data/appVisibilityRegistry.js';
 
 export const APP_ORDER = [
-  'hidden-apps-vault', 'gradebook-studio', 'assessment-core', 'thpt-practice-hub', 'resource-library-hub', 'textlab-activities', 'flying-words', 'exam-studio', 'reading-studio',
-  'news-reader', 'vietnam-tax', 'word2graph', 'textcare', 'student-practice',
+  'hidden-apps-vault', 'gradebook-studio', 'assessment-core', 'thpt-practice-hub', 'resource-library-hub', 'textlab-activities',
+  'news-reader', 'vietnam-tax', 'textcare', 'student-practice',
   'shared-game-games4esl', 'shared-game-wordwall', 'shared-game-educaplay', 'shared-game-learningapps', 'shared-game-h5p', 'shared-game-genially',
   'shared-game-bookwidgets', 'shared-game-classtools', 'shared-game-kahoot', 'shared-game-scattergories', 'shared-game-baamboozle',
   'homeroom-hub', 'admin-hub',
@@ -31,7 +31,7 @@ export const copy = {
     waterLauncher: 'Hộp nước', waterLauncherDesc: 'Ứng dụng nổi và chuyển động nhẹ bên trong một hộp nước mềm mại.',
     chooseStyle: 'Chọn kiểu này', selectedStyle: 'Đang sử dụng', previewTitle: 'Không gian ứng dụng', previewHint: 'Mọi công cụ ở đúng vị trí bạn cần.',
     ready: 'Sẵn sàng', pinnedLabel: 'Đã ghim', navLabel: 'Điều hướng',
-    nav: { home: 'Trang chủ', apps: 'Ứng dụng', games: 'Trò chơi', admin: 'Quản trị' },
+    nav: { home: 'Trang chủ', apps: 'Ứng dụng', admin: 'Quản trị' },
   },
   en: {
     brand: 'Brian English', kicker: 'Creative App Directory', titleA: 'creative', titleB: 'app', titleC: 'windows',
@@ -51,7 +51,7 @@ export const copy = {
     waterLauncher: 'Water box', waterLauncherDesc: 'Apps float gently inside a soft liquid container.',
     chooseStyle: 'Use this style', selectedStyle: 'In use', previewTitle: 'App workspace', previewHint: 'Every tool, exactly where you need it.',
     ready: 'Ready', pinnedLabel: 'Pinned', navLabel: 'Navigation',
-    nav: { home: 'Home', apps: 'Apps', games: 'Games', admin: 'Admin' },
+    nav: { home: 'Home', apps: 'Apps', admin: 'Admin' },
   },
 };
 
@@ -65,21 +65,17 @@ export function statusOf(item, language) {
 export function shortDesc(item, language) {
   const vi = {
     'gradebook-studio': 'Sổ điểm độc lập cho mọi giáo viên, có Excel và PDF.',
-'textlab-activities': '18 hoạt động tương tác từ văn bản.', 'flying-words': 'Sắp xếp câu bằng các thẻ từ chuyển động.', textcare: 'Chuẩn hoá văn bản hành chính.',
-    'reading-studio': 'Bài đọc, câu hỏi và từ vựng.', 'news-reader': 'Tin giáo dục Việt Nam và báo tiếng Anh.',
-    'vietnam-tax': 'Thuế TNCN, bảo hiểm và lương Net 2026.', word2graph: 'Word family và collocation.',
-    'exam-studio': 'Đề kiểm tra, cloze, word form.', 'student-practice': 'Bài luyện có chấm điểm.', 'homeroom-hub': 'Học sinh, điểm danh và rèn luyện.',
-    'resource-library-hub': 'Kho học liệu dùng chung trên Drive TTCM.',
-    'games-hub': 'Game lớp học và launcher.', 'admin-hub': 'Người dùng, quyền, cấu hình.',
+'textlab-activities': '18 hoạt động tương tác từ văn bản.', textcare: 'Chuẩn hoá văn bản hành chính.',
+    'news-reader': 'Tin giáo dục Việt Nam và báo tiếng Anh.',
+    'vietnam-tax': 'Thuế TNCN, bảo hiểm và lương Net 2026.', 'student-practice': 'Bài luyện có chấm điểm.', 'homeroom-hub': 'Học sinh, điểm danh và rèn luyện.',
+    'resource-library-hub': 'Kho học liệu dùng chung trên Drive TTCM.', 'admin-hub': 'Người dùng, quyền, cấu hình.',
   };
   const en = {
     'gradebook-studio': 'Independent teacher gradebook with Excel and PDF reports.',
-'textlab-activities': '18 interactive activities from text.', 'flying-words': 'Build sentences from moving word cards.', textcare: 'Clean official documents.',
-    'reading-studio': 'Readings and vocabulary.', 'news-reader': 'Vietnam education and English news.',
-    'vietnam-tax': 'Vietnam PIT, insurance and 2026 net salary.', word2graph: 'Word families and collocations.',
-    'exam-studio': 'Tests, cloze and word form.', 'student-practice': 'Scored learner practice.', 'homeroom-hub': 'Students, attendance and conduct.',
-    'resource-library-hub': 'Shared department Drive resources.',
-    'games-hub': 'Classroom game launchers.', 'admin-hub': 'Users and permissions.',
+'textlab-activities': '18 interactive activities from text.', textcare: 'Clean official documents.',
+    'news-reader': 'Vietnam education and English news.',
+    'vietnam-tax': 'Vietnam PIT, insurance and 2026 net salary.', 'student-practice': 'Scored learner practice.', 'homeroom-hub': 'Students, attendance and conduct.',
+    'resource-library-hub': 'Shared department Drive resources.', 'admin-hub': 'Users and permissions.',
   };
   return (language === 'vi' ? vi[item.slug] : en[item.slug]) || descOf(item, language);
 }
@@ -101,8 +97,8 @@ export function defaultGroupOf(item) {
   if (item?.shared || item?.externalUrl) return item.groupId || 'create';
   if (['textcare', 'resource-library-hub'].includes(item.slug)) return 'plan';
   if (['gradebook-studio', 'homeroom-hub'].includes(item.slug)) return 'manage';
-  if (['textlab-activities', 'flying-words', 'reading-studio', 'news-reader', 'vietnam-tax', 'word2graph', 'game-hub', 'games-hub'].includes(item.slug)) return 'create';
-  if (['thpt-practice-hub', 'exam-studio', 'student-practice'].includes(item.slug)) return 'assess';
+  if (['textlab-activities', 'news-reader', 'vietnam-tax'].includes(item.slug)) return 'create';
+  if (['thpt-practice-hub', 'student-practice'].includes(item.slug)) return 'assess';
   return 'manage';
 }
 export function permissionFor(item) {
