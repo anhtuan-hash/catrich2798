@@ -553,6 +553,227 @@
   background: #edf3ff !important;
 }
 
+/* Smart recognition + version history */
+.metro-clean-system[data-tool="textcare"] .tcg-version-button {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 12px;
+  border: 1px solid #d7dce3;
+  border-radius: 999px;
+  background: #fff;
+  color: #3c4043;
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.metro-clean-system[data-tool="textcare"] .tcg-version-button:hover {
+  border-color: #a8c7fa;
+  background: #f1f6ff;
+  color: #174ea6;
+}
+.metro-clean-system[data-tool="textcare"] .tcg-version-button b {
+  min-width: 20px;
+  height: 20px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--tc-m3-blue-container);
+  color: #174ea6;
+  font-size: .67rem;
+}
+
+.metro-clean-system[data-tool="textcare"] .tcg-source-intelligence {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid #d7dce3;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #fff 0%, #f8fafd 100%);
+}
+.metro-clean-system[data-tool="textcare"] .tcg-source-intelligence[data-ready="true"] {
+  border-color: #a8c7fa;
+  background: linear-gradient(135deg, #f7faff 0%, #eef5ff 100%);
+}
+.metro-clean-system[data-tool="textcare"] .tcg-source-intelligence-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--tc-m3-blue-container);
+  color: #174ea6;
+}
+.metro-clean-system[data-tool="textcare"] .tcg-source-intelligence-copy {
+  min-width: 0;
+}
+.metro-clean-system[data-tool="textcare"] .tcg-source-intelligence-copy > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+}
+.metro-clean-system[data-tool="textcare"] .tcg-source-intelligence-copy span {
+  color: var(--tc-m3-blue);
+  font-size: .66rem;
+  font-weight: 850;
+  letter-spacing: .09em;
+}
+.metro-clean-system[data-tool="textcare"] .tcg-source-intelligence-copy strong {
+  color: var(--tc-m3-ink);
+  font-size: .9rem;
+}
+.metro-clean-system[data-tool="textcare"] .tcg-source-intelligence-copy p {
+  margin: 5px 0 0;
+  color: var(--tc-m3-muted);
+  font-size: .74rem;
+  line-height: 1.45;
+}
+.metro-clean-system[data-tool="textcare"] .tcg-source-intelligence-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.metro-clean-system[data-tool="textcare"] .tcg-source-intelligence-actions button {
+  min-height: 40px !important;
+  padding-inline: 13px !important;
+  white-space: nowrap;
+}
+
+.tcg-history-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 10080;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(32,33,36,.34);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+}
+.tcg-history-drawer {
+  width: min(500px, 94vw);
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto auto minmax(0,1fr);
+  background: #fff;
+  box-shadow: -18px 0 48px rgba(32,33,36,.22);
+  animation: tcg-history-enter .18s ease-out;
+}
+@keyframes tcg-history-enter {
+  from { transform: translateX(28px); opacity: .6; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.tcg-history-drawer > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 22px 18px;
+  border-bottom: 1px solid #e7eaf0;
+}
+.tcg-history-drawer > header span {
+  color: #0b57d0;
+  font-size: .68rem;
+  font-weight: 850;
+  letter-spacing: .1em;
+}
+.tcg-history-drawer > header h2 {
+  margin: 5px 0 0;
+  color: #202124;
+  font-size: 1.38rem;
+}
+.tcg-history-drawer > header p {
+  margin: 5px 0 0;
+  color: #5f6368;
+  font-size: .78rem;
+}
+.tcg-history-drawer > header .tcg-icon-button {
+  flex: 0 0 auto;
+  font-size: 1.25rem;
+}
+.tcg-history-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 22px;
+  background: #f8fafd;
+  border-bottom: 1px solid #e7eaf0;
+}
+.tcg-history-actions > span {
+  color: #5f6368;
+  font-size: .74rem;
+  font-weight: 650;
+}
+.tcg-history-list {
+  min-height: 0;
+  overflow: auto;
+  padding: 14px;
+}
+.tcg-history-list article {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 16px;
+  border: 1px solid #e0e4ea;
+  border-radius: 18px;
+  background: #fff;
+}
+.tcg-history-list article + article { margin-top: 10px; }
+.tcg-history-list article > div:first-child { min-width: 0; }
+.tcg-history-list article > div:first-child > span {
+  display: inline-flex;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #e8f0fe;
+  color: #174ea6;
+  font-size: .62rem;
+  font-weight: 800;
+}
+.tcg-history-list article h3 {
+  margin: 7px 0 0;
+  overflow: hidden;
+  color: #202124;
+  font-size: .9rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tcg-history-list article p {
+  margin: 5px 0 0;
+  color: #5f6368;
+  font-size: .7rem;
+}
+.tcg-history-list article > div:last-child {
+  display: grid;
+  gap: 6px;
+}
+.tcg-history-list article button {
+  min-height: 36px !important;
+  padding-inline: 11px !important;
+  font-size: .72rem !important;
+}
+.tcg-history-list .danger { color: #b3261e !important; }
+.tcg-history-empty {
+  min-height: 240px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: 28px;
+  text-align: center;
+  color: #5f6368;
+}
+.tcg-history-empty strong { color: #202124; }
+.tcg-history-empty span { max-width: 300px; font-size: .78rem; line-height: 1.5; }
+
 /* Responsive */
 @media (max-width: 1240px) {
   .tcg-workspace-hero { grid-template-columns: minmax(0,1.1fr) minmax(340px,.9fr) !important; }
