@@ -790,7 +790,7 @@ export default function TextCareGoogleStudio({ tool, language }) {
                   <div><strong>{loadingFile ? 'Đang đọc nội dung…' : 'Thả file vào đây'}</strong><span>hoặc chọn file từ máy</span></div>
                   <button className="tcg-outlined-button" onClick={() => fileInputRef.current?.click()} disabled={loadingFile}>Chọn file</button>
                 </div>
-                {sourceName && <div className="tcg-file-chip"><Icon name="description" size={18} /><span>{sourceName}</span><button onClick={() => { setSourceName(''); setRawText(''); setContentText(''); }} aria-label="Xoá file"><Icon name="delete" size={17} /></button></div>}
+                {sourceName && <div className="tcg-file-chip"><Icon name="description" size={18} /><span>{sourceName}</span><button onClick={() => { setSourceName(''); setRawText(''); setContentText(''); setContentCleared(false); }} aria-label="Xoá file"><Icon name="delete" size={17} /></button></div>}
                 <label className="tcg-source-editor"><span><Icon name="description" size={18} /> Nội dung nguồn <small>Văn bản thuần · tự lưu</small></span><textarea value={rawText} onChange={(event) => { setRawText(event.target.value); setContentText(''); setContentCleared(false); setPreviewAccepted(false); }} placeholder="Dán nội dung cần chuẩn hoá tại đây…" /><footer><span>{rawText.split(/\s+/).filter(Boolean).length.toLocaleString('vi-VN')} từ</span><span>{rawText.length.toLocaleString('vi-VN')} ký tự</span></footer></label>
                 <section className="tcg-source-intelligence" data-ready={sourceAnalysis.lines.length > 0 ? 'true' : 'false'}>
                   <div className="tcg-source-intelligence-icon"><Icon name="tune" size={20} /></div>
