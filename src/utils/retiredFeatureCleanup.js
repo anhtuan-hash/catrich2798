@@ -23,11 +23,7 @@ const RETIRED_STORAGE_PREFIXES = [
 const RETIRED_APP_ROUTES = new Set([
   'library',
   'practice',
-  'tool/teaching-methods-hub',
   'tool/activity-graph',
-  'games',
-  'game',
-  'route/games',
 ]);
 
 const RETIRED_RECENTS_STORAGE_KEY = 'bes.recentActivities';
