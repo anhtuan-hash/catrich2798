@@ -69,7 +69,6 @@ const forbiddenTokens = [
   'word-orbit', 'WordOrbit',
   'knowledge-train', 'KnowledgeTrain',
   'lesson-plan-ai', 'lesson-architect',
-  'news-feed', 'newsFeed',
   'teaching-methods-hub',
   'top-five-arena', 'top-5-arena', 'TopFive',
   'tesol-method', 'TesolMethod', 'TESOL_METHOD',
