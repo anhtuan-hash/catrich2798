@@ -18,17 +18,6 @@ const GROUPS = {
   manage: { label: 'Quản lý', accent: '#9334e6' },
 };
 const TONES = ['#1a73e8', '#188038', '#e37400', '#9334e6', '#12b5cb', '#d93025'];
-function normalizeTitle(value = '') {
-  return String(value)
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/đ/g, 'd')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim();
-}
-
 function routeStateFromHash(hash = '') {
   const clean = String(hash || '').replace(/^#\//, '');
   const [route = '', query = ''] = clean.split('?');
