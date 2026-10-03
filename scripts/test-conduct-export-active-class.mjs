@@ -39,11 +39,12 @@ assert.ok(
   'Conduct export must prefer the live React workspace before loading a possibly stale persisted snapshot.',
 );
 assert.ok(
-  v2.includes("PETRUS_KY_SCHOOL_LOGO_DATA_URI")
+  v2.includes("import PETRUS_KY_SCHOOL_LOGO_URL from './assets/petrus-ky-school-logo.png'")
     && v2.includes('class="school-logo"')
+    && v2.includes('XÁC NHẬN CỦA PHỤ HUYNH HỌC SINH')
     && !v2.includes('<small>${escapeHtml(note)}</small>')
     && !v2.includes('<small>${escapeHtml(resultNote)}</small>'),
-  'Production conduct report must use the school logo and omit the prohibited-violation explanation below the result.',
+  'Production conduct report must use the real school logo, include parent confirmation, and omit the prohibited-violation explanation below the result.',
 );
 
 assert.ok(
