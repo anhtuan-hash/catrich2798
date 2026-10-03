@@ -75,11 +75,11 @@ const forbiddenTokens = [
   'word-orbit', 'WordOrbit',
   'knowledge-train', 'KnowledgeTrain',
   'lesson-plan-ai', 'lesson-architect',
-  'teaching-methods-hub',
+  'teaching-methods-hub', 'teaching-methods-inline', 'teaching-methods-google-full',
   'top-five-arena', 'top-5-arena', 'TopFive',
   'tesol-method', 'TesolMethod', 'TESOL_METHOD',
   'teaching-tool-hub', 'teachingToolHub', 'teachingToolSharing',
-  'game-hub', 'games-hub', 'games-route-retired', 'data-route="games"', '#/games', 'route:games',
+  'game-hub', 'games-hub', 'gamehub-top-layout', 'games-route-retired', 'data-route="games"', '#/games', 'route:games',
 ];
 
 const failures = [];
