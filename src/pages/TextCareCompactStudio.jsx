@@ -6,6 +6,8 @@ import { loadMammoth, loadPdfjs } from '../utils/documentParsers.js';
 import '../styles/TextCareGoogle.css';
 
 const STORAGE_KEY = 'bes-textcare-google-draft-v2';
+const HISTORY_KEY = 'bes-textcare-google-history-v1';
+const HISTORY_LIMIT = 12;
 const DOC_TYPES = ['THÔNG BÁO', 'KẾ HOẠCH', 'BÁO CÁO', 'BIÊN BẢN', 'TỜ TRÌNH', 'CÔNG VĂN', 'QUYẾT ĐỊNH', 'GIẤY MỜI', 'PHIẾU', 'ĐƠN'];
 
 const TYPE_ABBREVIATIONS = {
@@ -128,6 +130,7 @@ const ICON_PATHS = {
   refresh: 'M17.65 6.35A7.95 7.95 0 0 0 12 4V1L7 6l5 5V7a5 5 0 1 1-4.9 6H4.02A8 8 0 1 0 17.65 6.35z',
   delete: 'M6 19a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V7H6zm3.5-9h2v8h-2zm3 0h2v8h-2zM15.5 4l-1-1h-5l-1 1H5v2h14V4z',
   save: 'M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7zm-5 16a3 3 0 1 1 3-3 3 3 0 0 1-3 3zm3-10H5V5h10z',
+  history: 'M13 3a9 9 0 1 0 8.49 6H19.4A7 7 0 1 1 13 5v3l4-4-4-4v3zm-1 4h2v6h5v2h-7z',
   minus: 'M5 11h14v2H5z',
   plus: 'M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z',
   arrow: 'M10 17l5-5-5-5v10z',
@@ -219,40 +222,118 @@ function serializeModel(model) {
   return `${model.parentAgency}\n${model.issuingUnit}\nSố: ${model.numberSymbol}\n\nCỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM\nĐộc lập - Tự do - Hạnh phúc\n________________________\n\n${model.placeDate}\n\n${model.docType}\n${model.titleSummary}\n________________________\n\n${recipient}${body}\n\nNơi nhận:\n${model.recipients.join('\n')}\n\n${model.signerTitle}\n(Ký, ghi rõ họ tên)\n\n\n${model.signerName}`;
 }
 
-function parseAdministrativeSource(text, fallbackInfo, fallbackType) {
-  const lines = nonEmptyLines(text);
+function normalizeSourceForAnalysis(text = '') {
+  return normalizeLines(text)
+    .map((line) => String(line || '').replace(/[\t ]+/g, ' ').trim())
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+function detectDocumentTypeFromLines(lines = [], fallbackType = 'KẾ HOẠCH') {
+  let best = { type: fallbackType, confidence: 0, index: -1 };
+  lines.forEach((line, index) => {
+    const upper = String(line || '').toUpperCase().replace(/\s+/g, ' ').trim();
+    DOC_TYPES.forEach((type) => {
+      const exact = upper === type;
+      const contained = !exact && (upper.startsWith(type + ' ') || upper.includes(' ' + type + ' ') || upper.endsWith(' ' + type));
+      const confidence = exact ? 98 : contained ? 82 : 0;
+      if (confidence > best.confidence) best = { type, confidence, index };
+    });
+  });
+  return best;
+}
+
+function analyzeAdministrativeSource(text, fallbackType = 'KẾ HOẠCH') {
+  const cleaned = normalizeSourceForAnalysis(text);
+  const lines = nonEmptyLines(cleaned);
+  const type = detectDocumentTypeFromLines(lines, fallbackType);
   const nationalIndex = lines.findIndex((line) => /CỘNG\s+H[ÒO]A\s+X[ÃA]\s+HỘI\s+CHỦ\s+NGHĨA\s+VIỆT\s+NAM/i.test(line));
-  const typeIndex = lines.findIndex((line, index) => index > Math.max(nationalIndex, -1) && DOC_TYPES.includes(line.toUpperCase()));
-  if (nationalIndex < 1 || typeIndex < 0) {
-    return { docType: fallbackType, docInfo: fallbackInfo, bodyText: String(text || '').trim() };
-  }
-  const left = lines.slice(0, nationalIndex);
-  const numberIndex = left.findIndex((line) => /^Số\s*:/i.test(line));
-  const right = lines.slice(nationalIndex + 1, typeIndex).filter((line) => !/^_+$/.test(line));
-  const dateLine = [...right].reverse().find((line) => /ngày\s+\d{1,2}\s+tháng\s+\d{1,2}\s+năm\s+\d{4}/i.test(line));
-  const titleSummary = lines[typeIndex + 1] || fallbackInfo.titleSummary;
-  const remaining = lines.slice(typeIndex + 2).filter((line) => !/^_+$/.test(line));
-  const recipientsIndex = remaining.findIndex((line) => /^Nơi\s+nhận/i.test(line));
-  const footer = recipientsIndex >= 0 ? remaining.slice(recipientsIndex + 1) : [];
-  const signatureIndex = footer.findIndex((line) => /^(TM\.|KT\.|Q\.|HIỆU TRƯỞNG|PHÓ HIỆU TRƯỞNG|TỔ TRƯỞNG|THỦ TRƯỞNG|NGƯỜI KÝ|NGƯỜI LÀM ĐƠN)/i.test(line));
-  const bodyLines = recipientsIndex >= 0 ? remaining.slice(0, recipientsIndex) : remaining;
-  let recipient = fallbackInfo.recipient;
-  if (/^Kính\s+gửi\s*:/i.test(bodyLines[0] || '')) recipient = bodyLines.shift().replace(/^Kính\s+gửi\s*:\s*/i, '').trim();
+  const numberIndex = lines.findIndex((line) => /^Số\s*:/i.test(line));
+  const dateIndex = lines.findIndex((line) => /ngày\s+\d{1,2}\s+tháng\s+\d{1,2}\s+năm\s+\d{4}/i.test(line));
+  const recipientIndex = lines.findIndex((line) => /^Kính\s+gửi\s*:/i.test(line));
+  const recipientsIndex = lines.findIndex((line) => /^Nơi\s+nhận\s*:?/i.test(line));
+  const signatureIndex = lines.findIndex((line) => /^(TM\.|KT\.|Q\.|HIỆU TRƯỞNG|PHÓ HIỆU TRƯỞNG|TỔ TRƯỞNG|THỦ TRƯỞNG|NGƯỜI KÝ|NGƯỜI LÀM ĐƠN)/i.test(line));
+  const signals = [
+    ['type', type.confidence >= 80],
+    ['national', nationalIndex >= 0],
+    ['number', numberIndex >= 0],
+    ['date', dateIndex >= 0],
+    ['recipient', recipientIndex >= 0],
+    ['recipients', recipientsIndex >= 0],
+    ['signature', signatureIndex >= 0],
+  ];
+  const found = signals.filter(([, ok]) => ok).length;
+  const score = Math.min(100, Math.round((found / signals.length) * 82 + (type.confidence >= 80 ? 18 : 0)));
   return {
-    docType: lines[typeIndex].toUpperCase(),
+    cleaned,
+    lines,
+    type: type.type,
+    typeIndex: type.index,
+    typeConfidence: type.confidence,
+    nationalIndex,
+    numberIndex,
+    dateIndex,
+    recipientIndex,
+    recipientsIndex,
+    signatureIndex,
+    found,
+    score,
+  };
+}
+
+function parseAdministrativeSource(text, fallbackInfo, fallbackType) {
+  const analysis = analyzeAdministrativeSource(text, fallbackType);
+  const lines = analysis.lines;
+  if (!lines.length) return { docType: fallbackType, docInfo: fallbackInfo, bodyText: '' };
+
+  const typeIndex = analysis.typeIndex;
+  const nationalIndex = analysis.nationalIndex;
+  const numberIndex = analysis.numberIndex;
+  const type = analysis.type || fallbackType;
+  const hasFormalHeader = nationalIndex >= 0 || numberIndex >= 0;
+
+  const headerLimit = nationalIndex >= 0 ? nationalIndex : (numberIndex >= 0 ? numberIndex + 1 : 0);
+  const headerLines = hasFormalHeader ? lines.slice(0, headerLimit) : [];
+  const inferredParent = headerLines.find((line) => !/^Số\s*:/i.test(line) && !/CỘNG\s+H[ÒO]A/i.test(line));
+  const inferredUnit = headerLines
+    .filter((line) => line !== inferredParent && !/^Số\s*:/i.test(line) && !/CỘNG\s+H[ÒO]A/i.test(line))
+    .join(' ');
+
+  const dateLine = analysis.dateIndex >= 0 ? lines[analysis.dateIndex] : '';
+  const titleCandidateIndex = typeIndex >= 0 ? typeIndex + 1 : -1;
+  const titleSummary = titleCandidateIndex >= 0
+    ? (lines.slice(titleCandidateIndex, titleCandidateIndex + 2).find((line) => !/^_+$/.test(line) && !/^Kính\s+gửi\s*:/i.test(line)) || fallbackInfo.titleSummary)
+    : fallbackInfo.titleSummary;
+
+  let bodyStart = typeIndex >= 0 ? typeIndex + 1 : 0;
+  if (typeIndex >= 0 && lines[bodyStart] === titleSummary) bodyStart += 1;
+  while (bodyStart < lines.length && (/^_+$/.test(lines[bodyStart]) || /^Kính\s+gửi\s*:/i.test(lines[bodyStart]))) bodyStart += 1;
+
+  const footerStart = analysis.recipientsIndex >= 0 ? analysis.recipientsIndex : lines.length;
+  const bodyLines = lines.slice(bodyStart, footerStart)
+    .filter((line) => line !== dateLine && !/^(Độc lập\s*-\s*Tự do\s*-\s*Hạnh phúc|CỘNG\s+H[ÒO]A\s+X[ÃA]\s+HỘI)/i.test(line));
+
+  const footer = analysis.recipientsIndex >= 0 ? lines.slice(analysis.recipientsIndex + 1) : [];
+  const footerSignatureIndex = footer.findIndex((line) => /^(TM\.|KT\.|Q\.|HIỆU TRƯỞNG|PHÓ HIỆU TRƯỞNG|TỔ TRƯỞNG|THỦ TRƯỞNG|NGƯỜI KÝ|NGƯỜI LÀM ĐƠN)/i.test(line));
+  const recipientLine = analysis.recipientIndex >= 0 ? lines[analysis.recipientIndex] : '';
+
+  return {
+    docType: type,
     docInfo: {
       ...fallbackInfo,
-      parentAgency: left[0] || fallbackInfo.parentAgency,
-      issuingUnit: left.slice(1, numberIndex >= 0 ? numberIndex : undefined).join(' ') || fallbackInfo.issuingUnit,
-      numberSymbol: numberIndex >= 0 ? left[numberIndex].replace(/^Số\s*:\s*/i, '') : fallbackInfo.numberSymbol,
+      parentAgency: inferredParent || fallbackInfo.parentAgency,
+      issuingUnit: inferredUnit || fallbackInfo.issuingUnit,
+      numberSymbol: numberIndex >= 0 ? lines[numberIndex].replace(/^Số\s*:\s*/i, '') : fallbackInfo.numberSymbol,
       placeDate: dateLine || fallbackInfo.placeDate,
       titleSummary,
-      recipient,
-      recipients: (signatureIndex >= 0 ? footer.slice(0, signatureIndex) : footer.slice(0, 4)).join('\n') || fallbackInfo.recipients,
-      signerTitle: signatureIndex >= 0 ? footer[signatureIndex] : fallbackInfo.signerTitle,
-      signerName: footer.length ? footer[footer.length - 1] : fallbackInfo.signerName,
+      recipient: recipientLine ? recipientLine.replace(/^Kính\s+gửi\s*:\s*/i, '').trim() : fallbackInfo.recipient,
+      recipients: (footerSignatureIndex >= 0 ? footer.slice(0, footerSignatureIndex) : footer.slice(0, 6)).join('\n') || fallbackInfo.recipients,
+      signerTitle: footerSignatureIndex >= 0 ? footer[footerSignatureIndex] : fallbackInfo.signerTitle,
+      signerName: footer.length && footerSignatureIndex >= 0 ? footer[footer.length - 1] : fallbackInfo.signerName,
     },
-    bodyText: bodyLines.join('\n'),
+    bodyText: bodyLines.join('\n').trim(),
+    analysis,
   };
 }
 
@@ -386,6 +467,34 @@ function loadDraft() {
   }
 }
 
+function loadHistory() {
+  if (typeof window === 'undefined') return [];
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(HISTORY_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed.filter((item) => item && typeof item === 'object').slice(0, HISTORY_LIMIT) : [];
+  } catch {
+    return [];
+  }
+}
+
+function storeHistory(items) {
+  try {
+    window.localStorage.setItem(HISTORY_KEY, JSON.stringify((items || []).slice(0, HISTORY_LIMIT)));
+  } catch {
+    // Version history is an optional browser-storage enhancement.
+  }
+}
+
+function historyFingerprint(entry) {
+  return JSON.stringify([
+    entry?.docType || '',
+    entry?.docInfo?.titleSummary || '',
+    entry?.rawText || '',
+    entry?.contentText || '',
+    entry?.contentCleared === true,
+  ]);
+}
+
 function printHtmlDocument(html, onError) {
   const frame = document.createElement('iframe');
   frame.setAttribute('aria-hidden', 'true');
@@ -414,6 +523,7 @@ export default function TextCareGoogleStudio({ tool, language }) {
   const [docType, setDocType] = useState(saved?.docType || 'KẾ HOẠCH');
   const [docInfo, setDocInfo] = useState(() => ({ ...SAMPLE_DOC_INFO, ...(saved?.docInfo || {}) }));
   const [contentText, setContentText] = useState(saved?.contentText || '');
+  const [contentCleared, setContentCleared] = useState(saved?.contentCleared === true);
   const [sourceName, setSourceName] = useState(saved?.sourceName || '');
   const [activeStep, setActiveStep] = useState(saved?.activeStep || 'source');
   const [loadingFile, setLoadingFile] = useState(false);
@@ -425,15 +535,18 @@ export default function TextCareGoogleStudio({ tool, language }) {
   const [frameHeight, setFrameHeight] = useState(1123);
   const [pageCount, setPageCount] = useState(1);
   const [lastSavedAt, setLastSavedAt] = useState(saved?.savedAt || '');
+  const [history, setHistory] = useState(() => loadHistory());
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [toast, showToast] = useToast();
   const fileInputRef = useRef(null);
   const previewCardRef = useRef(null);
   const previewFrameRef = useRef(null);
 
   const toolTitle = language === 'en' ? (tool?.title || 'TextCare') : (tool?.titleVi || tool?.title || 'TextCare');
-  const effectiveBody = contentText || rawText || SAMPLE_BODY_BY_TYPE[docType] || SAMPLE_BODY_BY_TYPE['KẾ HOẠCH'];
+  const effectiveBody = contentCleared ? '' : (contentText || rawText || SAMPLE_BODY_BY_TYPE[docType] || SAMPLE_BODY_BY_TYPE['KẾ HOẠCH']);
   const model = useMemo(() => buildModel({ docType, docInfo, bodyText: effectiveBody }), [docType, docInfo, effectiveBody]);
   const detected = useMemo(() => detectAdministrativeDocument(model), [model]);
+  const sourceAnalysis = useMemo(() => analyzeAdministrativeSource(rawText, docType), [rawText, docType]);
   const previewHtml = useMemo(() => modelToAdministrativeHtml(model, toolTitle), [model, toolTitle]);
   const serializedText = useMemo(() => serializeModel(model), [model]);
   const downloadName = librarySlugify(`${docType}-${docInfo.titleSummary || 'van-ban-hanh-chinh'}`);
@@ -442,14 +555,73 @@ export default function TextCareGoogleStudio({ tool, language }) {
     const timer = window.setTimeout(() => {
       const savedAt = new Date().toISOString();
       try {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ rawText, docType, docInfo, contentText, sourceName, activeStep, savedAt }));
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ rawText, docType, docInfo, contentText, contentCleared, sourceName, activeStep, savedAt }));
         setLastSavedAt(savedAt);
       } catch {
         // Browser storage may be unavailable in private mode.
       }
     }, 450);
     return () => window.clearTimeout(timer);
-  }, [rawText, docType, docInfo, contentText, sourceName, activeStep]);
+  }, [rawText, docType, docInfo, contentText, contentCleared, sourceName, activeStep]);
+
+  const snapshotDocument = (label = '') => {
+    const savedAt = new Date().toISOString();
+    const entry = {
+      id: `textcare-version-${Date.now()}`,
+      label: String(label || docInfo.titleSummary || docType || 'Văn bản').trim(),
+      rawText,
+      docType,
+      docInfo: { ...docInfo },
+      contentText,
+      contentCleared,
+      sourceName,
+      activeStep,
+      savedAt,
+    };
+    const fingerprint = historyFingerprint(entry);
+    const next = [entry, ...history.filter((item) => historyFingerprint(item) !== fingerprint)].slice(0, HISTORY_LIMIT);
+    setHistory(next);
+    storeHistory(next);
+    return entry;
+  };
+
+  const restoreVersion = (entry) => {
+    if (!entry) return;
+    setRawText(entry.rawText || '');
+    setDocType(entry.docType || 'KẾ HOẠCH');
+    setDocInfo({ ...SAMPLE_DOC_INFO, ...(entry.docInfo || {}) });
+    setContentText(entry.contentText || '');
+    setContentCleared(entry.contentCleared === true);
+    setSourceName(entry.sourceName || '');
+    setActiveStep(entry.activeStep || 'source');
+    setPreviewAccepted(false);
+    setHistoryOpen(false);
+    showToast('Đã khôi phục phiên bản đã lưu.');
+  };
+
+  const removeVersion = (id) => {
+    const next = history.filter((item) => item.id !== id);
+    setHistory(next);
+    storeHistory(next);
+  };
+
+  const saveManualVersion = () => {
+    snapshotDocument();
+    showToast('Đã lưu một phiên bản thủ công.');
+  };
+
+  const cleanSource = () => {
+    const cleaned = normalizeSourceForAnalysis(rawText);
+    if (!cleaned || cleaned === rawText) {
+      showToast('Nội dung nguồn đã sạch.');
+      return;
+    }
+    setRawText(cleaned);
+    setContentText('');
+    setContentCleared(false);
+    setPreviewAccepted(false);
+    showToast('Đã làm sạch khoảng trắng và dòng thừa.');
+  };
 
   const setInfo = (key, value) => {
     setDocInfo((current) => ({ ...current, [key]: value }));
@@ -463,12 +635,13 @@ export default function TextCareGoogleStudio({ tool, language }) {
       const suffix = String(current.numberSymbol || '').split('-').slice(1).join('-') || 'THPTBE';
       return { ...current, numberSymbol: `${prefix}/${TYPE_ABBREVIATIONS[type] || 'VB'}-${suffix}` };
     });
-    if (!rawText.trim() && !contentText.trim()) setContentText(SAMPLE_BODY_BY_TYPE[type] || '');
+    if (!rawText.trim() && !contentText.trim() && !contentCleared) setContentText(SAMPLE_BODY_BY_TYPE[type] || '');
     setPreviewAccepted(false);
   };
 
   const processFile = async (file) => {
     if (!file) return;
+    if (rawText.trim() || contentText.trim() || contentCleared) snapshotDocument('Trước khi nhập ' + (file.name || 'tài liệu mới'));
     setError('');
     setLoadingFile(true);
     setSourceName(file.name || 'document');
@@ -476,6 +649,7 @@ export default function TextCareGoogleStudio({ tool, language }) {
       const text = await readUploadedFile(file);
       setRawText(text);
       setContentText('');
+      setContentCleared(false);
       setPreviewAccepted(false);
       showToast(`Đã đọc ${file.name}.`);
     } catch (fileError) {
@@ -514,14 +688,17 @@ export default function TextCareGoogleStudio({ tool, language }) {
     setDocType(parsed.docType);
     setDocInfo(parsed.docInfo);
     setContentText(parsed.bodyText || SAMPLE_BODY_BY_TYPE[parsed.docType] || '');
+    setContentCleared(false);
     setActiveStep('format');
     setPreviewAccepted(false);
     showToast('Đã nhận diện và điền các trường khai báo.');
   };
 
   const resetAll = () => {
+    if (rawText.trim() || contentText.trim() || contentCleared) snapshotDocument('Trước khi tạo văn bản mới');
     setRawText('');
     setContentText('');
+    setContentCleared(false);
     setSourceName('');
     setDocType('KẾ HOẠCH');
     setDocInfo({ ...SAMPLE_DOC_INFO });
@@ -593,6 +770,7 @@ export default function TextCareGoogleStudio({ tool, language }) {
         <div className="tcg-title-block"><strong>TextCare</strong><span>Văn bản hành chính · Nghị định 30/2020/NĐ-CP</span></div>
         <div className="tcg-status-summary"><span>{detected.score}% đầy đủ</span><span>{docType}</span><span>{pageCount} trang A4</span></div>
         <div className="tcg-autosave"><Icon name="save" size={17} /> Tự lưu {savedLabel}</div>
+        <button className="tcg-version-button" type="button" onClick={() => setHistoryOpen(true)} title="Lịch sử phiên bản"><Icon name="history" size={18} /><span>Phiên bản</span>{history.length ? <b>{history.length}</b> : null}</button>
         <button className="tcg-text-button" onClick={resetAll}><Icon name="refresh" size={18} /> Bản mới</button>
       </header>
 
@@ -612,9 +790,21 @@ export default function TextCareGoogleStudio({ tool, language }) {
                   <div><strong>{loadingFile ? 'Đang đọc nội dung…' : 'Thả file vào đây'}</strong><span>hoặc chọn file từ máy</span></div>
                   <button className="tcg-outlined-button" onClick={() => fileInputRef.current?.click()} disabled={loadingFile}>Chọn file</button>
                 </div>
-                {sourceName && <div className="tcg-file-chip"><Icon name="description" size={18} /><span>{sourceName}</span><button onClick={() => { setSourceName(''); setRawText(''); setContentText(''); }} aria-label="Xoá file"><Icon name="delete" size={17} /></button></div>}
-                <label className="tcg-source-editor"><span><Icon name="description" size={18} /> Nội dung nguồn <small>Văn bản thuần · tự lưu</small></span><textarea value={rawText} onChange={(event) => { setRawText(event.target.value); setContentText(''); setPreviewAccepted(false); }} placeholder="Dán nội dung cần chuẩn hoá tại đây…" /><footer><span>{rawText.split(/\s+/).filter(Boolean).length.toLocaleString('vi-VN')} từ</span><span>{rawText.length.toLocaleString('vi-VN')} ký tự</span></footer></label>
-                <div className="tcg-action-row tcg-action-row-end"><button className="tcg-filled-button" onClick={recognizeSource}><Icon name="arrow" size={18} /> Nhận diện và tiếp tục</button></div>
+                {sourceName && <div className="tcg-file-chip"><Icon name="description" size={18} /><span>{sourceName}</span><button onClick={() => { setSourceName(''); setRawText(''); setContentText(''); setContentCleared(false); }} aria-label="Xoá file"><Icon name="delete" size={17} /></button></div>}
+                <label className="tcg-source-editor"><span><Icon name="description" size={18} /> Nội dung nguồn <small>Văn bản thuần · tự lưu</small></span><textarea value={rawText} onChange={(event) => { setRawText(event.target.value); setContentText(''); setContentCleared(false); setPreviewAccepted(false); }} placeholder="Dán nội dung cần chuẩn hoá tại đây…" /><footer><span>{rawText.split(/\s+/).filter(Boolean).length.toLocaleString('vi-VN')} từ</span><span>{rawText.length.toLocaleString('vi-VN')} ký tự</span></footer></label>
+                <section className="tcg-source-intelligence" data-ready={sourceAnalysis.lines.length > 0 ? 'true' : 'false'}>
+                  <div className="tcg-source-intelligence-icon"><Icon name="tune" size={20} /></div>
+                  <div className="tcg-source-intelligence-copy">
+                    <div><span>TEXTCARE SENSE</span><strong>{sourceAnalysis.lines.length ? `${sourceAnalysis.type} · ${sourceAnalysis.score}% tin cậy` : 'Chờ nội dung nguồn'}</strong></div>
+                    <p>{sourceAnalysis.lines.length
+                      ? `Đã nhận ra ${sourceAnalysis.found}/7 tín hiệu thể thức. Hệ thống có thể điền loại văn bản, số/ký hiệu, ngày tháng, nơi nhận và chữ ký khi tìm thấy.`
+                      : 'Tải file hoặc dán văn bản để TextCare phân tích cấu trúc trước khi chuẩn hoá.'}</p>
+                  </div>
+                  <div className="tcg-source-intelligence-actions">
+                    <button type="button" className="tcg-outlined-button" disabled={!rawText.trim()} onClick={cleanSource}>Làm sạch nguồn</button>
+                    <button type="button" className="tcg-filled-button" disabled={!rawText.trim()} onClick={recognizeSource}><Icon name="arrow" size={18} /> Nhận diện thông minh</button>
+                  </div>
+                </section>
               </div>
             )}
 
@@ -641,8 +831,8 @@ export default function TextCareGoogleStudio({ tool, language }) {
             {activeStep === 'content' && (
               <div className="tcg-panel tcg-content-panel">
                 <div className="tcg-panel-heading"><div><span>BƯỚC 3</span><h2>Nội dung văn bản</h2><p>Chỉnh phần nội dung; preview bên phải cập nhật tức thời.</p></div><small>13 pt · giãn dòng 1,15</small></div>
-                <label className="tcg-content-editor"><textarea value={contentText || effectiveBody} onChange={(event) => { setContentText(event.target.value); setPreviewAccepted(false); }} /><footer><span>Thụt đầu dòng 1 cm</span><span>Khoảng cách đoạn 6 pt</span></footer></label>
-                <div className="tcg-action-row"><button className="tcg-outlined-button" onClick={() => setContentText(SAMPLE_BODY_BY_TYPE[docType] || '')}><Icon name="refresh" size={17} /> Nạp nội dung mẫu</button><button className="tcg-text-button" onClick={() => setContentText('')}><Icon name="delete" size={17} /> Xoá nội dung</button></div>
+                <label className="tcg-content-editor"><textarea value={contentText || effectiveBody} onChange={(event) => { setContentText(event.target.value); setContentCleared(event.target.value === ''); setPreviewAccepted(false); }} /><footer><span>Thụt đầu dòng 1 cm</span><span>Khoảng cách đoạn 6 pt</span></footer></label>
+                <div className="tcg-action-row"><button className="tcg-outlined-button" onClick={() => { setContentText(SAMPLE_BODY_BY_TYPE[docType] || ''); setContentCleared(false); }}><Icon name="refresh" size={17} /> Nạp nội dung mẫu</button><button className="tcg-text-button" onClick={() => { setContentText(''); setContentCleared(true); setPreviewAccepted(false); }}><Icon name="delete" size={17} /> Xoá nội dung</button></div>
               </div>
             )}
           </div>
@@ -658,6 +848,16 @@ export default function TextCareGoogleStudio({ tool, language }) {
         </aside>
       </main>
 
+      {historyOpen ? <div className="tcg-history-layer" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setHistoryOpen(false); }}>
+        <aside className="tcg-history-drawer" role="dialog" aria-modal="true" aria-label="Lịch sử phiên bản TextCare">
+          <header><div><span>VERSION HISTORY</span><h2>Lịch sử phiên bản</h2><p>Tối đa {HISTORY_LIMIT} bản lưu trên thiết bị này.</p></div><button type="button" className="tcg-icon-button" onClick={() => setHistoryOpen(false)} aria-label="Đóng">×</button></header>
+          <div className="tcg-history-actions"><button type="button" className="tcg-filled-button" onClick={saveManualVersion}><Icon name="save" size={17} /> Lưu bản hiện tại</button><span>{history.length}/{HISTORY_LIMIT} phiên bản</span></div>
+          <div className="tcg-history-list">{history.length ? history.map((entry, index) => <article key={entry.id || index}>
+            <div><span>{entry.docType || 'VĂN BẢN'}</span><h3>{entry.label || entry.docInfo?.titleSummary || 'Phiên bản TextCare'}</h3><p>{entry.savedAt ? new Date(entry.savedAt).toLocaleString('vi-VN') : 'Không rõ thời gian'} · {String(entry.contentText || entry.rawText || '').split(/\s+/).filter(Boolean).length} từ</p></div>
+            <div><button type="button" className="tcg-tonal-button" onClick={() => restoreVersion(entry)}>Khôi phục</button><button type="button" className="tcg-text-button danger" onClick={() => removeVersion(entry.id)}>Xóa</button></div>
+          </article>) : <div className="tcg-history-empty"><Icon name="history" size={28} /><strong>Chưa có phiên bản đã lưu</strong><span>Nhấn “Lưu bản hiện tại” trước một thay đổi lớn để có thể quay lại.</span></div>}</div>
+        </aside>
+      </div> : null}
       {toast && <div className="tcg-toast" role="status"><Icon name="check" size={18} />{toast}</div>}
     </div>
   );

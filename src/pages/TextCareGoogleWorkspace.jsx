@@ -17,8 +17,8 @@ function WorkspaceHero({ language, snapshot, onUpload, onPaste, onSample, onCont
     eyebrow: vi ? 'GOOGLE WORKSPACE CHO VĂN BẢN HÀNH CHÍNH' : 'GOOGLE WORKSPACE FOR ADMINISTRATIVE DOCUMENTS',
     title: vi ? 'Chuẩn hoá văn bản, xem trước A4 và xuất bản trong một nơi' : 'Standardize, preview and publish documents in one workspace',
     description: vi
-      ? 'Đưa DOCX, PDF hoặc văn bản thô vào TextCare; hệ thống hỗ trợ khai báo đúng thể thức Nghị định 30/2020, cập nhật preview tức thời và xuất DOCX sạch.'
-      : 'Bring DOCX, PDF or plain text into TextCare, complete the required fields, review a live A4 preview and export a clean DOCX.',
+      ? 'Đưa DOCX, PDF hoặc văn bản thô vào TextCare; TextCare Sense nhận diện cấu trúc, hỗ trợ khai báo theo Nghị định 30/2020, lưu phiên bản, cập nhật preview tức thời và xuất DOCX sạch.'
+      : 'Bring DOCX, PDF or plain text into TextCare, detect document structure, complete the required fields, keep local versions, review a live A4 preview and export a clean DOCX.',
     upload: vi ? 'Tải tài liệu lên' : 'Upload document',
     paste: vi ? 'Dán văn bản' : 'Paste text',
     sample: vi ? 'Mở bản mẫu' : 'Open sample',
@@ -26,7 +26,8 @@ function WorkspaceHero({ language, snapshot, onUpload, onPaste, onSample, onCont
     standards: vi ? 'Nghị định 30/2020' : 'Decree 30/2020',
     preview: vi ? 'Preview A4 trực tiếp' : 'Live A4 preview',
     formats: 'DOCX · PDF · TXT',
-    autosave: vi ? 'Tự lưu liên tục' : 'Continuous autosave',
+    autosave: vi ? 'Tự lưu + lịch sử phiên bản' : 'Autosave + version history',
+    smart: vi ? 'Nhận diện TextCare Sense' : 'TextCare Sense detection',
     document: vi ? 'Văn bản đang làm việc' : 'Current document',
     completion: vi ? 'Mức hoàn thiện' : 'Completion',
     page: vi ? 'Bản xem trước' : 'Preview',
@@ -39,6 +40,7 @@ function WorkspaceHero({ language, snapshot, onUpload, onPaste, onSample, onCont
         <h1 id="tcg-workspace-hero-title">{content.title}</h1>
         <p>{content.description}</p>
         <div className="tcg-workspace-chips" aria-label={vi ? 'Khả năng của TextCare' : 'TextCare capabilities'}>
+          <span>{content.smart}</span>
           <span>{content.standards}</span>
           <span>{content.preview}</span>
           <span>{content.formats}</span>
