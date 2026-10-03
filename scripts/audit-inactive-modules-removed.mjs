@@ -4,6 +4,7 @@ const removedPaths = [
   'apps/classroom-screen',
   'public/samples/exam-studio',
   'public/gamehub-top-layout.css',
+  'public/apps-directory-v2.js',
   'public/teaching-methods-google-full.css',
   'public/teaching-methods-inline.css',
   'public/teaching-methods-inline.js',
