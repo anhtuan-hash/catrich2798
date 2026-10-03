@@ -97,16 +97,33 @@ export default function TextCareGoogleWorkspace(props) {
     let observer;
     let slot;
     let frame;
+    let snapshotFrame;
     let page;
 
     const updateSnapshot = () => {
-      if (page) setSnapshot(readWorkspaceSnapshot(page));
+      if (!page) return;
+      const next = readWorkspaceSnapshot(page);
+      setSnapshot((current) => (
+        current.score === next.score
+        && current.type === next.type
+        && current.pages === next.pages
+        && current.autosave === next.autosave
+          ? current
+          : next
+      ));
+    };
+
+    const scheduleSnapshot = () => {
+      window.cancelAnimationFrame(snapshotFrame);
+      snapshotFrame = window.requestAnimationFrame(updateSnapshot);
     };
 
     const attach = () => {
       page = document.querySelector('.textcare-google-page');
       const topbar = page?.querySelector('.tcg-topbar');
-      if (!page || !topbar) {
+      const statusSummary = page?.querySelector('.tcg-status-summary');
+      const autosave = page?.querySelector('.tcg-autosave');
+      if (!page || !topbar || !statusSummary || !autosave) {
         frame = window.requestAnimationFrame(attach);
         return;
       }
@@ -115,18 +132,24 @@ export default function TextCareGoogleWorkspace(props) {
       topbar.insertAdjacentElement('afterend', slot);
       setHeroHost(slot);
       updateSnapshot();
-      observer = new MutationObserver(updateSnapshot);
-      observer.observe(page, { childList: true, subtree: true, characterData: true });
-      page.addEventListener('input', updateSnapshot, true);
-      page.addEventListener('change', updateSnapshot, true);
+
+      // Only the compact status sources may update the hero snapshot. Observing
+      // the entire TextCare page also observes this portal-rendered hero, which
+      // can create a render -> mutation -> render feedback loop and visible jitter.
+      observer = new MutationObserver(scheduleSnapshot);
+      observer.observe(statusSummary, { childList: true, subtree: true, characterData: true });
+      observer.observe(autosave, { childList: true, subtree: true, characterData: true });
+      page.addEventListener('input', scheduleSnapshot, true);
+      page.addEventListener('change', scheduleSnapshot, true);
     };
 
     frame = window.requestAnimationFrame(attach);
     return () => {
       window.cancelAnimationFrame(frame);
+      window.cancelAnimationFrame(snapshotFrame);
       observer?.disconnect();
-      page?.removeEventListener('input', updateSnapshot, true);
-      page?.removeEventListener('change', updateSnapshot, true);
+      page?.removeEventListener('input', scheduleSnapshot, true);
+      page?.removeEventListener('change', scheduleSnapshot, true);
       slot?.remove();
     };
   }, []);

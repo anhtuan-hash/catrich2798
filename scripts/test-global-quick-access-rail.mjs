@@ -29,8 +29,20 @@ assert.ok(!rail.includes("'Đang làm'"), 'Compact Quick Access must not render 
 assert.ok(rail.includes('createPortal(quickAccessUi, document.body)'), 'Quick Access must be portaled above route stacking contexts.');
 assert.ok(
   rail.includes("selectedTool?.slug === 'gradebook-studio'")
-    && rail.includes('const reserveMode = !gradebookHorizontalWorkspace'),
-  'Gradebook must keep Quick Access overlay-only so the horizontal score table cannot trigger safe-area resize feedback.',
+    && rail.includes("selectedTool?.slug === 'textcare'")
+    && rail.includes('const reserveMode = !overlayFallback')
+    && rail.includes('!layoutSensitiveWorkspace'),
+  'Gradebook and TextCare must keep Quick Access overlay-only so dynamic workspaces cannot trigger safe-area resize feedback.',
+);
+assert.ok(
+  !rail.includes("mutationObserver?.observe(safeFrame, { childList: true, subtree: true"),
+  'Quick Access must never observe the entire routed DOM for mutations because app updates can restart shell reflow continuously.',
+);
+assert.ok(
+  rail.includes('let overlayFallback = false')
+    && rail.includes('overlayFallback = true')
+    && rail.includes('Math.abs(measuredShift - currentShift) <= 1'),
+  'Quick Access safe-area measurement must use a sticky overlay fallback and ignore one-pixel measurement noise.',
 );
 
 assert.ok(rail.includes("root.style.fontFamily = shellStyle.fontFamily"), 'Portaled Quick Access must inherit the active Brian custom font.');

@@ -91,6 +91,9 @@ jobs:
       - name: Verify global Quick Access rail
         run: node scripts/test-global-quick-access-rail.mjs
 
+      - name: Verify TextCare layout stability
+        run: node scripts/test-textcare-layout-stability.mjs
+
       - name: Verify YouTube Quick inline player
         run: node scripts/test-youtube-quick-access.mjs
 

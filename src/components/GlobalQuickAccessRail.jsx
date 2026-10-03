@@ -2607,6 +2607,7 @@ export default function GlobalQuickAccessRail({
     if (!root || !shell || !main || !safeFrame) return undefined;
 
     shell.dataset.quickAccessState = pinned ? 'pinned' : 'rest';
+    let overlayFallback = false;
 
     const clearSafeArea = () => {
       shell.style.removeProperty('--bqa-content-safe-shift');
@@ -2618,12 +2619,13 @@ export default function GlobalQuickAccessRail({
       window.cancelAnimationFrame(layoutFrameRef.current);
       layoutFrameRef.current = window.requestAnimationFrame(() => {
         const coarsePointer = window.matchMedia?.('(pointer: coarse)')?.matches === true;
-        // Gradebook owns a wide, horizontally scrollable table with sticky columns.
-        // Reflowing the whole page to reserve Quick Access space changes the table viewport,
-        // which changes its horizontal-scroll geometry and can retrigger ResizeObserver in a loop.
-        // Keep Quick Access overlay-only on this route so the gradebook viewport stays fixed.
-        const gradebookHorizontalWorkspace = selectedTool?.slug === 'gradebook-studio';
-        const reserveMode = !gradebookHorizontalWorkspace
+        // Wide or portal-driven workspaces must keep a fixed viewport. Reflowing the
+        // whole page while their own content is changing can form a safe-area feedback
+        // loop (ResizeObserver -> width/translate -> new geometry -> ResizeObserver).
+        const layoutSensitiveWorkspace = selectedTool?.slug === 'gradebook-studio'
+          || selectedTool?.slug === 'textcare';
+        const reserveMode = !overlayFallback
+          && !layoutSensitiveWorkspace
           && window.innerWidth >= QUICK_ACCESS_SAFE_AREA_MIN_WIDTH
           && !coarsePointer;
         shell.dataset.quickAccessSafeMode = reserveMode ? 'reserve' : 'overlay';
@@ -2669,13 +2671,20 @@ export default function GlobalQuickAccessRail({
         const safeBoundary = (pinned ? pinnedBoundary : collapsedBoundary) + QUICK_ACCESS_SAFE_GAP;
         const maxShift = pinned ? QUICK_ACCESS_SAFE_MAX_PINNED : QUICK_ACCESS_SAFE_MAX_COLLAPSED;
         const delta = safeBoundary - actualMinLeft;
-        const nextShift = Math.max(0, Math.min(maxShift, Math.ceil(currentShift + delta)));
+        const measuredShift = Math.max(0, Math.min(maxShift, Math.ceil(currentShift + delta)));
+        // Ignore one-pixel/subpixel measurement noise. It is visually meaningless,
+        // but repeatedly writing it can keep CSS width/translate transitions alive.
+        const nextShift = Math.abs(measuredShift - currentShift) <= 1
+          ? currentShift
+          : measuredShift;
 
-        shell.style.setProperty('--bqa-content-safe-shift', `${nextShift}px`);
-        shell.style.setProperty('--bqa-footer-safe-offset', `${nextShift / 2}px`);
-        shell.dataset.quickAccessSafeShift = String(nextShift);
+        if (nextShift !== currentShift) {
+          shell.style.setProperty('--bqa-content-safe-shift', `${nextShift}px`);
+          shell.style.setProperty('--bqa-footer-safe-offset', `${nextShift / 2}px`);
+          shell.dataset.quickAccessSafeShift = String(nextShift);
+        }
 
-        if (Math.abs(nextShift - currentShift) >= 1) {
+        if (Math.abs(nextShift - currentShift) >= 2) {
           window.clearTimeout(layoutSettleTimerRef.current);
           layoutSettleTimerRef.current = window.setTimeout(measureAndApply, 290);
         }
@@ -2691,9 +2700,12 @@ export default function GlobalQuickAccessRail({
           const stillOccluded = Number.isFinite(verifiedMinLeft) && verifiedMinLeft < safeBoundary - 0.5;
 
           if (stillOccluded && !pinned) {
+            // Once a route proves that reserve-mode cannot settle, keep it overlay-only
+            // for this mounted route instead of flapping reserve <-> overlay every 330ms.
+            overlayFallback = true;
             shell.dataset.quickAccessSafeMode = 'overlay';
             clearSafeArea();
-          } else {
+          } else if (!overlayFallback) {
             shell.dataset.quickAccessSafeMode = 'reserve';
           }
         }, 330);
@@ -2709,13 +2721,11 @@ export default function GlobalQuickAccessRail({
     const resizeObserver = typeof ResizeObserver === 'function'
       ? new ResizeObserver(measureAndApply)
       : null;
-    const mutationObserver = typeof MutationObserver === 'function'
-      ? new MutationObserver(measureAndApply)
-      : null;
-
     resizeObserver?.observe(safeFrame);
     if (footer) resizeObserver?.observe(footer);
-    mutationObserver?.observe(safeFrame, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden', 'style'] });
+    // Do not observe the full routed DOM for child/attribute mutations. React apps
+    // can mutate frequently (autosave, clocks, previews, badges), and each mutation
+    // used to restart the shell safe-area measurement and its width transition.
     window.addEventListener('resize', onResize, { passive: true });
     window.addEventListener('bes-font-settings-updated', measureAndApply);
     window.addEventListener('bes-regional-font-updated', measureAndApply);
@@ -2731,7 +2741,6 @@ export default function GlobalQuickAccessRail({
       window.clearTimeout(layoutVerifyTimerRef.current);
       window.cancelAnimationFrame(layoutFrameRef.current);
       resizeObserver?.disconnect();
-      mutationObserver?.disconnect();
       window.removeEventListener('resize', onResize);
       window.removeEventListener('bes-font-settings-updated', measureAndApply);
       window.removeEventListener('bes-regional-font-updated', measureAndApply);
