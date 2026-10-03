@@ -427,17 +427,6 @@ function personalReport(workspace, range, student) {
     return `<tr class="${prohibited ? 'prohibited' : pendingRow ? 'pending' : ''}"><td>${index + 1}</td><td>${formatDate(record.date || record.weekStart)}</td><td>${type}</td><td class="name">${escapeHtml(record.title || '')}</td><td>${points}</td><td>${escapeHtml(statusLabel(record))}</td><td class="name">${escapeHtml([record.note, record.evidence].filter(Boolean).join(' · '))}</td></tr>`;
   }).join('') : '<tr><td colspan="7">Không có ghi nhận trong khoảng xét.</td></tr>';
 
-  const count = row.prohibitedViolationCount;
-  const note = row.classification?.id === 'unclassified'
-    ? (count
-      ? `Chưa có tuần hợp lệ để xếp loại. Có ${count} vi phạm điều cấm đã xác nhận được ghi nhận nhưng chưa áp dụng hạ bậc khi chưa có kết quả theo điểm.`
-      : 'Chưa có tuần hợp lệ để xếp loại trong khoảng xét.')
-    : count
-      ? (row.prohibitedDowngraded
-        ? `Có ${count} vi phạm điều cấm đã xác nhận. Hạ đúng 1 bậc từ ${row.baseClassification?.label || '—'} xuống ${row.classification?.label || '—'}.`
-        : `Có ${count} vi phạm điều cấm đã xác nhận; kết quả theo điểm đã là Chưa đạt.`)
-      : 'Không có vi phạm điều cấm đã xác nhận trong khoảng xét.';
-
   return `${reportHeader(workspace, 'PHIẾU BÁO CÁO KẾT QUẢ RÈN LUYỆN', `${formatDate(range.start)} – ${formatDate(range.end)}`, student.fullName)}${formulaBlock(range)}<section class="summary-grid"><article><small>Số tuần tính điểm</small><b>${row.weekCount}</b></article><article><small>Điểm TB thang 4</small><b>${formatConductAverage(row.average)}</b></article><article><small>Vi phạm ghi nhận</small><b>${confirmed.length} xác nhận · ${pending.length} chờ</b></article><article><small>Điểm trừ / cộng</small><b>−${totalDeduction} / +${totalBonus}</b></article></section><section class="result-banner ${row.prohibitedDowngraded ? 'downgraded' : ''}"><span>Kết quả</span><b>${escapeHtml(row.classification?.label || '')}</b></section><h2>Quy đổi điểm theo tuần</h2><table><thead><tr><th>STT</th><th>Tuần</th><th>Điểm tuần /100</th><th>Điểm quy đổi /4</th><th>Điểm trừ</th><th>Điểm cộng</th></tr></thead><tbody>${weeklyRows}</tbody></table><h2>Chi tiết toàn bộ ghi nhận</h2><table><thead><tr><th>STT</th><th>Ngày</th><th>Loại</th><th>Nội dung</th><th>Điểm</th><th>Trạng thái</th><th>Ghi chú / minh chứng</th></tr></thead><tbody>${detailRows}</tbody></table>${signatureBlock(workspace)}`;
 }
 
