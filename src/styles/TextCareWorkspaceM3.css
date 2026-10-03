@@ -810,6 +810,20 @@
   .metro-clean-system[data-tool="textcare"] .tcg-status-summary,
   .metro-clean-system[data-tool="textcare"] .tcg-autosave { display: none !important; }
   .metro-clean-system[data-tool="textcare"] .tcg-topbar > .tcg-text-button { width: 42px !important; padding: 0 !important; font-size: 0 !important; }
+  .metro-clean-system[data-tool="textcare"] .tcg-version-button {
+    width: 42px !important;
+    min-width: 42px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+  }
+  .metro-clean-system[data-tool="textcare"] .tcg-version-button > span { display: none !important; }
+  .metro-clean-system[data-tool="textcare"] .tcg-version-button b {
+    position: absolute;
+    margin: -24px 0 0 25px;
+    min-width: 17px;
+    height: 17px;
+    font-size: .58rem;
+  }
   .tcg-workspace-hero {
     min-height: 0 !important;
     padding: 25px 20px !important;
@@ -833,6 +847,19 @@
   }
   .metro-clean-system[data-tool="textcare"] .tcg-stepper button b { width: 27px !important; height: 27px !important; }
   .metro-clean-system[data-tool="textcare"] .tcg-panel { padding: 18px !important; }
+  .metro-clean-system[data-tool="textcare"] .tcg-source-intelligence {
+    grid-template-columns: auto minmax(0,1fr) !important;
+  }
+  .metro-clean-system[data-tool="textcare"] .tcg-source-intelligence-actions {
+    grid-column: 1 / -1;
+    justify-content: stretch;
+  }
+  .metro-clean-system[data-tool="textcare"] .tcg-source-intelligence-actions button {
+    flex: 1 1 150px;
+  }
+  .tcg-history-drawer { width: 100vw; }
+  .tcg-history-list article { grid-template-columns: 1fr; }
+  .tcg-history-list article > div:last-child { grid-template-columns: 1fr 1fr; }
   .metro-clean-system[data-tool="textcare"] .tcg-form-grid { grid-template-columns: 1fr !important; }
   .metro-clean-system[data-tool="textcare"] .tcg-form-grid .wide { grid-column: auto !important; }
   .metro-clean-system[data-tool="textcare"] .tcg-validation-card { grid-template-columns: auto 1fr !important; }
@@ -897,5 +924,31 @@ html[data-theme="dark"] .metro-clean-system[data-tool="textcare"] .tcg-preview-t
 html[data-theme="dark"] .metro-clean-system[data-tool="textcare"] .tcg-source-editor footer,
 html[data-theme="dark"] .metro-clean-system[data-tool="textcare"] .tcg-content-editor footer { background: #292a2d !important; }
 html[data-theme="dark"] .metro-clean-system[data-tool="textcare"] .tcg-a4-viewport { background: #15171a !important; }
+html[data-theme="dark"] .metro-clean-system[data-tool="textcare"] .tcg-version-button,
+html[data-theme="dark"] .metro-clean-system[data-tool="textcare"] .tcg-source-intelligence,
+html[data-theme="dark"] .tcg-history-drawer,
+html[data-theme="dark"] .tcg-history-list article {
+  background: #202124 !important;
+  color: #e8eaed !important;
+  border-color: #4b5057 !important;
+}
+html[data-theme="dark"] .metro-clean-system[data-tool="textcare"] .tcg-source-intelligence[data-ready="true"] {
+  background: linear-gradient(135deg, #202124, #1b2432) !important;
+  border-color: #46566d !important;
+}
+html[data-theme="dark"] .tcg-history-drawer > header,
+html[data-theme="dark"] .tcg-history-actions {
+  background: #202124 !important;
+  border-color: #3c4043 !important;
+}
+html[data-theme="dark"] .tcg-history-actions { background: #292a2d !important; }
+html[data-theme="dark"] .tcg-history-drawer h2,
+html[data-theme="dark"] .tcg-history-list h3,
+html[data-theme="dark"] .tcg-history-empty strong { color: #e8eaed !important; }
+html[data-theme="dark"] .tcg-history-drawer p,
+html[data-theme="dark"] .tcg-history-list p,
+html[data-theme="dark"] .tcg-history-empty,
+html[data-theme="dark"] .tcg-history-actions > span { color: #bdc1c6 !important; }
+
 
 
