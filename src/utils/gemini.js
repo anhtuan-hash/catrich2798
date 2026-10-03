@@ -8,50 +8,6 @@ function removedError() {
   return error;
 }
 
-function cleanWordGraphCandidate(value = '') {
-  return String(value)
-    .replace(/^[-*•\d.)\s]+/, '')
-    .replace(/^(create|make|draw|generate|tạo|vẽ)\s+/i, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
-function buildOfflineWordGraphOutline({ instruction = '', sourceText = '', itemCount = 10 } = {}) {
-  const source = String(sourceText || '').trim();
-  const seed = source || String(instruction || WORDGRAPH_DEFAULT_INSTRUCTION);
-  const rawItems = seed
-    .replace(/\band\b/gi, ',')
-    .replace(/\bvà\b/gi, ',')
-    .split(/[\n,;|]+/)
-    .map(cleanWordGraphCandidate)
-    .filter((item) => item.length >= 2 && item.length <= 48)
-    .filter((item) => !/(wordgraph|word family|collocation|meaning|example|teaching note|danh sách từ vựng)/i.test(item));
-
-  const words = [...new Set(rawItems)].slice(0, Math.max(1, Math.min(Number(itemCount) || 10, 14)));
-  const selected = words.length ? words : ['Vocabulary'];
-
-  return selected.map((word, index) => {
-    const title = word.charAt(0).toUpperCase() + word.slice(1);
-    const lower = word.toLowerCase();
-    return [
-      `## ${index + 1}. ${title}`,
-      '### Word Family',
-      `- Base: ${lower}`,
-      `- Noun: ${lower}`,
-      `- Adjective: ${lower}`,
-      '### Collocations',
-      `- ${lower} in context`,
-      `- common ${lower} expression`,
-      '### Meaning',
-      `- Meaning and usage of ${lower}.`,
-      '### Examples',
-      `- Students use ${lower} in a clear sentence.`,
-      '### Teaching Note',
-      `- Ask learners to create one original sentence with ${lower}.`,
-    ].join('\n');
-  }).join('\n\n');
-}
-
 export async function callAI() { throw removedError(); }
 export async function callGemini() { throw removedError(); }
 export async function generateActivityWithGemini() { throw removedError(); }
