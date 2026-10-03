@@ -349,11 +349,11 @@ export async function printAttendanceReportPdf(report, filters = {}) {
     .reporter .date{font-style:italic;margin-bottom:10px;color:#4f5f58}
     .reporter strong{display:block;font-size:9.2px}
     .reporter b{display:block;margin-top:17mm;font-size:10px;color:#075f34;min-height:12px}
-    .reporter span{display:block;margin-top:2px;min-height:10px}
+    .reporter span{display:block;margin-top:2px;min-height:10px}.footer{margin-top:5mm;padding-top:2.5mm;border-top:1px solid #d5e2db;text-align:center;color:#66776f;font-size:7.2px;line-height:1.45;break-inside:avoid}.footer strong{display:block;color:#3e544a;font-size:7.4px;letter-spacing:.02em}
     @media print{
       html,body,.report-page{width:100%;max-width:100%}
       body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-      .school-head,.report-scope,.metrics,.remarks,.reporter{break-inside:avoid}
+      .school-head,.report-scope,.metrics,.remarks,.reporter,.footer{break-inside:avoid}
       .section{break-inside:auto}
     }
   </style></head><body><main class="report-page">
@@ -378,6 +378,7 @@ export async function printAttendanceReportPdf(report, filters = {}) {
     <section class="section"><h2>3. CHI TIẾT HỌC SINH ĐI TRỄ</h2>${lateHtml ? `<table><thead><tr><th style="width:10%">Ngày</th><th style="width:26%">Học sinh</th><th style="width:22%">Lớp / môn</th><th style="width:18%">Giáo viên</th><th style="width:16%">Giờ dạy / chốt</th><th>Phòng</th></tr></thead><tbody>${lateHtml}</tbody></table>` : '<p class="empty">Không có học sinh đi trễ trong dữ liệu phù hợp bộ lọc.</p>'}</section>
     <div class="remarks"><b>NHẬN XÉT CHUNG</b><p>${htmlEscape(filters.generalRemarks || 'Không có nhận xét chung.')}</p></div>
     <div class="reporter"><div class="date">${htmlEscape(vietnamReportDate())}</div><strong>NGƯỜI BÁO CÁO</strong><b>${filters.reporterName ? htmlEscape(filters.reporterName) : '&nbsp;'}</b><span>${filters.reporterTitle ? htmlEscape(filters.reporterTitle) : '&nbsp;'}</span></div>
+    <div class="footer"><strong>SẢN PHẨM CÔNG NGHỆ SỐ • TỔ TIẾNG ANH THPT • NĂM HỌC 2026–2027</strong>Chủ trì xây dựng và thực hiện: Tổ trưởng chuyên môn Nguyễn Anh Tuấn</div>
   </main></body></html>`);
   popup.document.close();
   await waitForPrintWindowLoad(popup);
