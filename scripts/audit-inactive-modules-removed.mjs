@@ -76,18 +76,37 @@ const forbiddenTokens = [
 ];
 
 const failures = [];
+
+function walk(dir) {
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const path = `${dir}/${entry.name}`;
+    if (entry.isDirectory()) return walk(path);
+    return path;
+  });
+}
+
 for (const path of removedPaths) {
   if (fs.existsSync(path)) failures.push(`removed path still exists: ${path}`);
 }
 
 for (const path of criticalFiles) {
-  if (!fs.existsSync(path)) {
-    failures.push(`critical file missing: ${path}`);
-    continue;
-  }
+  if (!fs.existsSync(path)) failures.push(`critical file missing: ${path}`);
+}
+
+const runtimeFiles = [
+  ...walk('src'),
+  ...walk('public'),
+  'package.json',
+  'vite.config.js',
+  'vercel.json',
+  'index.html',
+].filter((path) => fs.existsSync(path) && /\.(?:js|jsx|ts|tsx|css|json|html)$/.test(path));
+
+for (const path of runtimeFiles) {
   const source = fs.readFileSync(path, 'utf8');
   for (const token of forbiddenTokens) {
-    if (source.includes(token)) failures.push(`${token} remains in ${path}`);
+    if (source.includes(token)) failures.push(`${token} remains in runtime file ${path}`);
   }
 }
 
@@ -97,4 +116,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`Inactive/retired module removal audit PASS (${removedPaths.length} paths + ${criticalFiles.length} critical files)`);
+console.log(`Inactive/retired module removal audit PASS (${removedPaths.length} removed paths; ${runtimeFiles.length} runtime files scanned)`);
