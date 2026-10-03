@@ -548,11 +548,23 @@ export default function TextCareGoogleStudio({ tool, language }) {
   const detected = useMemo(() => detectAdministrativeDocument(model), [model]);
   const sourceAnalysis = useMemo(() => analyzeAdministrativeSource(rawText, docType), [rawText, docType]);
   const previewHtml = useMemo(() => modelToAdministrativeHtml(model, toolTitle), [model, toolTitle]);
+  const [previewFrameHtml, setPreviewFrameHtml] = useState(previewHtml);
   const serializedText = useMemo(() => serializeModel(model), [model]);
+
+  useEffect(() => {
+    // Replacing iframe srcDoc rebuilds the complete A4 document. Coalesce rapid
+    // editor updates so typing never causes a full iframe parse/layout per keypress.
+    const delay = activeStep === 'content' ? 220 : 120;
+    const timer = window.setTimeout(() => {
+      setPreviewFrameHtml((current) => current === previewHtml ? current : previewHtml);
+    }, delay);
+    return () => window.clearTimeout(timer);
+  }, [previewHtml, activeStep]);
   const downloadName = librarySlugify(`${docType}-${docInfo.titleSummary || 'van-ban-hanh-chinh'}`);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
+    let idleId = 0;
+    const saveDraft = () => {
       const savedAt = new Date().toISOString();
       try {
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ rawText, docType, docInfo, contentText, contentCleared, sourceName, activeStep, savedAt }));
@@ -560,8 +572,20 @@ export default function TextCareGoogleStudio({ tool, language }) {
       } catch {
         // Browser storage may be unavailable in private mode.
       }
+    };
+
+    const timer = window.setTimeout(() => {
+      if (typeof window.requestIdleCallback === 'function') {
+        idleId = window.requestIdleCallback(saveDraft, { timeout: 500 });
+      } else {
+        saveDraft();
+      }
     }, 450);
-    return () => window.clearTimeout(timer);
+
+    return () => {
+      window.clearTimeout(timer);
+      if (idleId) window.cancelIdleCallback?.(idleId);
+    };
   }, [rawText, docType, docInfo, contentText, contentCleared, sourceName, activeStep]);
 
   const snapshotDocument = (label = '') => {
@@ -750,11 +774,12 @@ export default function TextCareGoogleStudio({ tool, language }) {
     try {
       const doc = previewFrameRef.current?.contentDocument;
       const height = Math.max(1123, doc?.documentElement?.scrollHeight || doc?.body?.scrollHeight || 1123);
-      setFrameHeight(height);
-      setPageCount(Math.max(1, Math.ceil(height / 1123)));
+      const nextPageCount = Math.max(1, Math.ceil(height / 1123));
+      setFrameHeight((current) => current === height ? current : height);
+      setPageCount((current) => current === nextPageCount ? current : nextPageCount);
     } catch {
-      setFrameHeight(1123);
-      setPageCount(1);
+      setFrameHeight((current) => current === 1123 ? current : 1123);
+      setPageCount((current) => current === 1 ? current : 1);
     }
   };
 
@@ -763,7 +788,7 @@ export default function TextCareGoogleStudio({ tool, language }) {
   const steps = [{ id: 'source', label: 'Nguồn' }, { id: 'format', label: 'Khai báo' }, { id: 'content', label: 'Nội dung' }];
 
   return (
-    <div className="page textcare-google-page">
+    <div className="page textcare-google-page" data-global-motion-isolate="true">
       <header className="tcg-topbar">
         <button className="tcg-icon-button" onClick={() => window.history.back()} aria-label="Quay lại"><Icon name="back" /></button>
         <div className="tcg-brand-mark"><Icon name="description" size={21} /></div>
@@ -843,7 +868,7 @@ export default function TextCareGoogleStudio({ tool, language }) {
         <aside ref={previewCardRef} className="tcg-preview-card">
           <div className="tcg-preview-head"><div><span>PREVIEW A4</span><h2>{docType}</h2></div><div className={`tcg-review-state ${previewAccepted ? 'accepted' : ''}`}><Icon name={previewAccepted ? 'check' : 'preview'} size={17} />{previewAccepted ? 'Đã duyệt' : 'Bản nháp'}</div></div>
           <div className="tcg-preview-toolbar"><div className="tcg-zoom-control"><button onClick={() => zoomBy(-5)} aria-label="Thu nhỏ"><Icon name="minus" size={17} /></button><button onClick={() => setPreviewZoom(78)}>{previewZoom}%</button><button onClick={() => zoomBy(5)} aria-label="Phóng to"><Icon name="plus" size={17} /></button></div><span>Trang 1 / {pageCount}</span><div className="tcg-toolbar-actions"><button onClick={copyPreview} title="Sao chép"><Icon name="copy" size={18} /></button><button onClick={printPreview} title="In văn bản"><Icon name="print" size={18} /></button><button onClick={fullscreenPreview} title="Toàn màn hình"><Icon name="fullscreen" size={18} /></button></div></div>
-          <div className="tcg-a4-viewport"><div className="tcg-a4-stage" style={{ height: `${Math.ceil(frameHeight * previewZoom / 100) + 24}px` }}><iframe ref={previewFrameRef} title="Preview văn bản hành chính" srcDoc={previewHtml} sandbox="allow-same-origin" onLoad={handlePreviewLoad} style={{ height: `${frameHeight}px`, transform: `scale(${previewZoom / 100})` }} /></div></div>
+          <div className="tcg-a4-viewport"><div className="tcg-a4-stage" style={{ height: `${Math.ceil(frameHeight * previewZoom / 100) + 24}px` }}><iframe ref={previewFrameRef} title="Preview văn bản hành chính" srcDoc={previewFrameHtml} sandbox="allow-same-origin" onLoad={handlePreviewLoad} style={{ height: `${frameHeight}px`, transform: `scale(${previewZoom / 100})` }} /></div></div>
           <div className="tcg-export-panel"><button className="tcg-filled-button" onClick={() => { setPreviewAccepted(true); showToast('Đã duyệt preview.'); }}><Icon name="check" size={18} /> Duyệt preview</button><div className="tcg-export-menu"><button onClick={exportDocx} disabled={exportingDocx}><Icon name="download" size={18} /><span><b>{exportingDocx ? 'Đang tạo…' : 'Word'}</b><small>.docx chuẩn</small></span></button><button onClick={printPreview}><Icon name="print" size={18} /><span><b>In</b><small>A4 trực tiếp</small></span></button><button onClick={() => downloadText(`${downloadName}-preview.html`, previewHtml, 'text/html;charset=utf-8')}><Icon name="download" size={18} /><span><b>HTML</b><small>.html</small></span></button><button onClick={() => downloadText(`${downloadName}.txt`, serializedText)}><Icon name="download" size={18} /><span><b>Văn bản</b><small>.txt</small></span></button></div></div>
         </aside>
       </main>

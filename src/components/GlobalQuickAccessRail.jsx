@@ -1978,11 +1978,15 @@ export default function GlobalQuickAccessRail({
       setBadges((current) => ({ ...current, ...detail }));
     };
     syncBadges();
-    const observer = new MutationObserver(syncBadges);
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    // Badge sources live in the primary navigation. Observing the entire body
+    // meant every app text mutation (autosave timestamps, editors, previews)
+    // woke Quick Access and scheduled DOM reads. Keep the observer local.
+    const badgeHost = document.querySelector('.brian-nav__primary');
+    const observer = badgeHost ? new MutationObserver(syncBadges) : null;
+    observer?.observe(badgeHost, { childList: true, subtree: true, characterData: true });
     window.addEventListener('bes-quick-access-badges', onBadgeEvent);
     return () => {
-      observer.disconnect();
+      observer?.disconnect();
       window.cancelAnimationFrame(badgeFrameRef.current);
       window.removeEventListener('bes-quick-access-badges', onBadgeEvent);
     };

@@ -569,20 +569,46 @@ function collectEntrants(root) {
 function installMutationMotionObserver() {
   if (!document.body) return () => {};
   const pending = new Set();
+
+  const runtimeMotionSuppressed = () => {
+    const shell = document.querySelector('.app-shell');
+    return document.visibilityState === 'hidden'
+      || document.documentElement.dataset.motionReduced === 'true'
+      || shell?.dataset.performance === 'low';
+  };
+
   const flush = () => {
     mutationFrame = 0;
+    if (runtimeMotionSuppressed()) {
+      pending.clear();
+      return;
+    }
     [...pending].forEach(collectEntrants);
     pending.clear();
   };
+
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
-      if (mutation.type === 'childList') mutation.addedNodes.forEach((node) => { if (node?.nodeType === 1) pending.add(node); });
-      if (mutation.type === 'attributes' && mutation.target?.matches?.(TAB_PANEL_SELECTOR) && isVisible(mutation.target)) markTabPanel(mutation.target);
+      if (mutation.type !== 'childList') return;
+      mutation.addedNodes.forEach((node) => {
+        if (node?.nodeType === 1) pending.add(node);
+      });
     });
     if (!mutationFrame && pending.size) mutationFrame = window.requestAnimationFrame(flush);
   });
-  observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden', 'aria-hidden', 'aria-selected', 'style'] });
-  return () => { observer.disconnect(); if (mutationFrame) window.cancelAnimationFrame(mutationFrame); mutationFrame = 0; pending.clear(); };
+
+  // Attribute-level observation on the whole document was a major source of
+  // app-wide jank: controlled inputs, inline styles, badges and autosave labels
+  // can update many times per second. New DOM nodes are sufficient for entrance
+  // discovery; tab changes are already handled by the dedicated activation listener.
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  return () => {
+    observer.disconnect();
+    if (mutationFrame) window.cancelAnimationFrame(mutationFrame);
+    mutationFrame = 0;
+    pending.clear();
+  };
 }
 
 function ensureRouteLoader() {

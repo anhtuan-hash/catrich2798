@@ -213,10 +213,11 @@ function styleRunner(runner, glow) {
   set('border-radius', '999px');
   set('background', 'linear-gradient(90deg, rgba(148,163,184,0), rgba(100,116,139,.28) 34%, rgba(255,255,255,.96) 52%, rgba(148,163,184,0))');
   set('box-shadow', `0 0 2px rgba(255,255,255,.86), 0 0 4px rgba(71,85,105,.16), 0 0 7px ${glow}`);
-  set('opacity', '.82');
+  set('opacity', '0');
   set('pointer-events', 'none');
   set('transform-origin', 'center center');
   set('will-change', 'transform');
+  set('transition', 'opacity 120ms ease');
 }
 
 function styleColoredSurface(button, config, hovered = false) {
@@ -289,11 +290,16 @@ export default function GlobalEditorialAuthorityRuntime() {
       const stopRunner = () => {
         animation?.cancel();
         animation = null;
+        runner.style.setProperty('opacity', '0', 'important');
       };
 
       const startRunner = () => {
         if (!button.isConnected || !runner.isConnected) return;
         stopRunner();
+        const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches === true;
+        const lowPerformance = document.querySelector('.app-shell')?.dataset.performance === 'low';
+        if (reducedMotion || lowPerformance || document.visibilityState === 'hidden') return;
+        runner.style.setProperty('opacity', '.82', 'important');
         const width = button.offsetWidth || 108;
         const height = button.offsetHeight || 40;
         animation = runner.animate(buildRunnerFrames(width, height, config.runnerInset || 1.5), {
@@ -316,10 +322,12 @@ export default function GlobalEditorialAuthorityRuntime() {
       const onEnter = () => {
         styleColoredSurface(button, config, true);
         setScale(1.10);
+        startRunner();
       };
       const onLeave = () => {
         styleColoredSurface(button, config, false);
         setScale(1);
+        stopRunner();
       };
       const onDown = () => setScale(.97);
       const onUp = () => setScale(button.matches(':hover') ? 1.10 : 1);
@@ -333,7 +341,9 @@ export default function GlobalEditorialAuthorityRuntime() {
       button.addEventListener('pointercancel', onLeave);
 
       if (typeof ResizeObserver !== 'undefined') {
-        resizeObserver = new ResizeObserver(() => startRunner());
+        resizeObserver = new ResizeObserver(() => {
+          if (animation) startRunner();
+        });
         resizeObserver.observe(button);
       }
 
@@ -370,7 +380,6 @@ export default function GlobalEditorialAuthorityRuntime() {
       };
 
       bindings.set(config.key, { button, runner, release });
-      startRunner();
     };
 
     const bindAllMotionTargets = () => {
@@ -405,9 +414,12 @@ export default function GlobalEditorialAuthorityRuntime() {
       if (hasNewStylesheet) promote();
     });
 
-    const rootObserver = new MutationObserver(() => bindAllMotionTargets());
-    const root = document.getElementById('root');
-    if (root) rootObserver.observe(root, { childList: true, subtree: true });
+    // Navigation is the only DOM region this runtime owns. Watching #root made
+    // every app child insertion re-run navigation styling, even when the nav had
+    // not changed. Keep rebinding local and frame-coalesced.
+    const rootObserver = new MutationObserver(promote);
+    const navRoot = document.querySelector('.brian-nav__primary');
+    if (navRoot) rootObserver.observe(navRoot, { childList: true, subtree: true });
 
     observer.observe(document.head, { childList: true });
     window.addEventListener('hashchange', promote);
