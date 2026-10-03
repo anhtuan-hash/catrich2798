@@ -317,11 +317,6 @@ function personalReport(workspace, range, student) {
     }).join('')
     : '<tr><td colspan="6">Không có ghi nhận trong giai đoạn.</td></tr>';
   const prohibitedCount = Number(row.prohibitedViolationCount || 0);
-  const resultNote = prohibitedCount
-    ? (row.prohibitedDowngraded
-      ? `Có ${prohibitedCount} vi phạm điều cấm đã xác nhận. Hạ đúng 1 bậc từ ${row.baseClassification?.label || '—'} xuống ${row.classification?.label || '—'}.`
-      : `Có ${prohibitedCount} vi phạm điều cấm đã xác nhận; kết quả theo điểm đã là Chưa đạt.`)
-    : 'Không có vi phạm điều cấm đã xác nhận trong khoảng xét.';
   return `${reportHeader(workspace, 'PHIẾU BÁO CÁO KẾT QUẢ RÈN LUYỆN', `${formatDate(range.start)} – ${formatDate(range.end)}`, student.fullName)}${formulaBlock(range)}<section class="summary-grid"><article><small>Số tuần tính điểm</small><b>${row.weekCount}</b></article><article><small>Điểm TB thang 4</small><b>${Number(row.average || 0).toFixed(2)}</b></article><article><small>Vi phạm ghi nhận</small><b>${confirmed.length} xác nhận · ${pending.length} chờ</b></article><article><small>Hạnh kiểm cuối</small><b>${escapeHtml(row.classification?.label || '')}</b></article></section><section class="result-banner ${prohibitedCount ? 'downgraded' : ''}"><span>Kết quả</span><b>${escapeHtml(row.classification?.label || '')}</b></section><h2>Quy đổi điểm theo tuần</h2><table><thead><tr><th>STT</th><th>Tuần</th><th>Điểm tuần /100</th><th>Điểm quy đổi /4</th><th>Điểm trừ</th><th>Điểm cộng</th></tr></thead><tbody>${weeklyRows}</tbody></table><h2>Chi tiết ghi nhận</h2><p class="detail-note">Ghi nhận “Chờ xác nhận” được hiển thị để đối chiếu nhưng chưa tác động đến điểm.</p><table><thead><tr><th>Ngày</th><th>Loại</th><th>Nội dung</th><th>Điểm</th><th>Trạng thái</th><th>Ghi chú / minh chứng</th></tr></thead><tbody>${detailRows}</tbody></table>${signatureBlock(workspace)}`;
 }
 
