@@ -5,7 +5,6 @@ import './tabResumeAuthStability.js';
 import './fourClassLocalPurge.js';
 import './directClassRosterImportBootstrap.js';
 import './removeKnowledgeHubRuntime.js';
-import './tesolMethodRouteRegistry.js';
 import './components/GlobalHomeroomMaterial3Refinement.css';
 import { bootstrapPublicTypographyBeforeApp } from './publicTypographyBootstrap.js';
 import { bootstrapBrianThemeRuntime } from './theme/brianTheme.js';
