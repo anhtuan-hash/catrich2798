@@ -19,7 +19,7 @@ import './styles/v1159.css';
 import './styles/GlobalMotionSystem.css';
 import './styles/GlobalFontSystem.css';
 import './styles/GlobalRegionalFontSystem.css';
-import { APPS, GAME_APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
+import { APPS, SPECIAL_TOOLS, RESOURCE_ITEMS } from './data/apps.js';
 import { getAppDesignProfile } from './data/designProfiles.js';
 import GlobalFlatNavigation from './components/GlobalFlatNavigation.jsx';
 import AppErrorBoundary from './components/AppErrorBoundary.jsx';
@@ -82,7 +82,6 @@ if (typeof window !== 'undefined') {
 
 const Home = lazy(() => import('./pages/Home.jsx'));
 const WebApps = lazy(() => import('./pages/WebApps.jsx'));
-const Games = lazy(() => import('./pages/Games.jsx'));
 const SpecialTools = lazy(() => import('./pages/SpecialTools.jsx'));
 const Resources = lazy(() => import('./pages/Resources.jsx'));
 const Contact = lazy(() => import('./pages/Contact.jsx'));
@@ -121,7 +120,7 @@ const QuestionBank = lazy(() => import('./pages/QuestionBank.jsx'));
 const QuestionBankPractice = lazy(() => import('./pages/QuestionBankPractice.jsx'));
 const ClassroomJoin = lazy(() => import('./pages/ClassroomJoin.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'games', 'tools', 'homeroom', 'homeroom-portal', 'classroom-join', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
+const ROUTES = ['home', 'apps', 'news', 'tools', 'homeroom', 'homeroom-portal', 'classroom-join', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'qb-practice']);
 
 function getInitialRoute() {
@@ -143,7 +142,6 @@ const ROUTE_DESIGN_PROFILES = {
   home: { accent: '#FFC69D', soft: '#FFF1E2', ink: '#171312' },
   apps: { accent: '#F05A7E', soft: '#FFE1EA', ink: '#2F111A' },
   news: { accent: '#167D78', soft: '#DDF5F1', ink: '#083B38' },
-  games: { accent: '#5B2A86', soft: '#E9DAFF', ink: '#20102F' },
   homeroom: { accent: '#1F8F70', soft: '#DDF7ED', ink: '#0B382B' },
   'homeroom-portal': { accent: '#1F8F70', soft: '#DDF7ED', ink: '#0B382B' },
   'classroom-join': { accent: '#315FC4', soft: '#EAF0FF', ink: '#14213D' },
@@ -328,7 +326,7 @@ function App() {
     applyPerformanceAttributes({ performanceMode });
   }, [performanceMode]);
 
-  const allTools = useMemo(() => [...APPS, ...GAME_APPS, ...SPECIAL_TOOLS], []);
+  const allTools = useMemo(() => [...APPS, ...SPECIAL_TOOLS], []);
   const toolSlug = route.startsWith('tool/') ? route.replace('tool/', '') : '';
   const selectedTool = allTools.find((item) => item.slug === toolSlug);
   const currentRoute = ROUTES.includes(route) ? route : selectedTool ? 'tool' : 'home';
@@ -338,7 +336,6 @@ function App() {
   const temporarilyHidden = visibilityReady && isAppHiddenForUser(appVisibility.snapshot, currentUser, visibilityId);
   const visibleForCurrentUser = (item) => !isAppHiddenForUser(appVisibility.snapshot, currentUser, `tool:${item.slug}`);
   const accessibleApps = APPS.filter(visibleForCurrentUser);
-  const accessibleGames = GAME_APPS.filter(visibleForCurrentUser);
   const accessibleTools = SPECIAL_TOOLS.filter(visibleForCurrentUser);
 
   const requiresAuth = currentRoute === 'tool' || !PUBLIC_ROUTES.has(currentRoute);
@@ -405,7 +402,7 @@ function App() {
   useEffect(() => {
     if (!currentUser || !canAccessRoute || ['login', 'register', 'homeroom-portal'].includes(currentRoute)) return;
     const routeTitles = {
-      home: ['Home', 'Trang chủ'], apps: ['Apps', 'Ứng dụng'], news: ['Newsroom', 'Đọc báo'], games: ['Games', 'Trò chơi'],
+      home: ['Home', 'Trang chủ'], apps: ['Apps', 'Ứng dụng'], news: ['Newsroom', 'Đọc báo'],
       homeroom: ['Homeroom', 'Giáo viên chủ nhiệm'], library: ['Library', 'Thư viện'],
       'resource-library': ['Resource Library', 'Kho học liệu'], 'knowledge-hub': ['Smart Knowledge Library', 'Kho học liệu thông minh'],
       dashboard: ['Work Dashboard', 'Bảng điều hành'],
@@ -528,7 +525,6 @@ function App() {
               </AppErrorBoundary>
             )}
             {canAccessRoute && currentRoute === 'news' && currentUser && <NewsReader {...context} />}
-            {canAccessRoute && currentRoute === 'games' && currentUser && <Games games={accessibleGames} {...context} />}
             {canAccessRoute && currentRoute === 'tools' && currentUser && <SpecialTools tools={accessibleTools} {...context} />}
             {canAccessRoute && currentRoute === 'homeroom' && currentUser && <HomeroomWorkspace {...context} />}
             {currentRoute === 'homeroom-portal' && <HomeroomPortal {...context} />}
