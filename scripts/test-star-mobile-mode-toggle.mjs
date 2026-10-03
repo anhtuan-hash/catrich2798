@@ -25,21 +25,14 @@ const phoneEnvironment = {
 assert.equal(resolvePresentationMode(desktopEnvironment, null).presentationMode, 'desktop');
 assert.equal(resolvePresentationMode(phoneEnvironment, null).presentationMode, 'mobile');
 
-const portal = read('src/components/HomeParticleSignaturePortal.jsx');
-const css = read('src/components/BrianPulseLogo.css');
 const navigation = read('src/components/GlobalFlatNavigation.jsx');
 
-assert.match(portal, /brian-pulse-logo-trigger--static/);
-assert.doesNotMatch(portal, /writePresentationOverride/);
-assert.doesNotMatch(portal, /onClick\s*=/);
-assert.doesNotMatch(portal, /<button/);
-assert.doesNotMatch(portal, /Chuyển sang giao diện mobile/);
+// The user-facing Star has been removed from desktop navigation completely.
+assert.doesNotMatch(navigation, /HomeParticleSignaturePortal/);
+assert.doesNotMatch(navigation, /brian-pulse-logo-trigger/);
 
-assert.match(css, /\.brian-pulse-logo-trigger\s*\{[^}]*cursor\s*:\s*default/i);
-assert.match(css, /\.brian-pulse-logo-trigger \.brian-pulse-logo__canvas\s*\{\s*cursor\s*:\s*default/i);
-
-// Keep device-driven mobile presentation intact; only the Star entry point is retired.
+// Keep device-driven mobile presentation intact.
 assert.match(navigation, /MobileAppShell/);
 assert.match(navigation, /presentation\.presentationMode === 'mobile'/);
 
-console.log('✓ Star is decorative and cannot switch desktop to mobile mode');
+console.log('✓ Star is removed from navigation while device-driven mobile mode remains intact');
