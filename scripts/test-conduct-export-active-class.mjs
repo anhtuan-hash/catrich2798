@@ -39,6 +39,14 @@ assert.ok(
   'Conduct export must prefer the live React workspace before loading a possibly stale persisted snapshot.',
 );
 assert.ok(
+  v2.includes("PETRUS_KY_SCHOOL_LOGO_DATA_URI")
+    && v2.includes('class="school-logo"')
+    && !v2.includes('<small>${escapeHtml(note)}</small>')
+    && !v2.includes('<small>${escapeHtml(resultNote)}</small>'),
+  'Production conduct report must use the school logo and omit the prohibited-violation explanation below the result.',
+);
+
+assert.ok(
   v2.includes('PHIẾU BÁO CÁO KẾT QUẢ RÈN LUYỆN')
     && !v2.includes('Nguồn dữ liệu trực tiếp')
     && !v2.includes('Chỉ các tuần được đánh dấu “tính vào trung bình”')
