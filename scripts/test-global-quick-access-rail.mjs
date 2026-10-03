@@ -27,6 +27,12 @@ assert.ok(!rail.includes('bqa-smart-section is-working'), 'Compact Quick Access 
 assert.ok(!rail.includes("'Đang làm'"), 'Compact Quick Access must not render the Đang làm label.');
 
 assert.ok(rail.includes('createPortal(quickAccessUi, document.body)'), 'Quick Access must be portaled above route stacking contexts.');
+assert.ok(
+  rail.includes("selectedTool?.slug === 'gradebook-studio'")
+    && rail.includes('const reserveMode = !gradebookHorizontalWorkspace'),
+  'Gradebook must keep Quick Access overlay-only so the horizontal score table cannot trigger safe-area resize feedback.',
+);
+
 assert.ok(rail.includes("root.style.fontFamily = shellStyle.fontFamily"), 'Portaled Quick Access must inherit the active Brian custom font.');
 
 for (const token of [

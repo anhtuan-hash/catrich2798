@@ -2618,7 +2618,14 @@ export default function GlobalQuickAccessRail({
       window.cancelAnimationFrame(layoutFrameRef.current);
       layoutFrameRef.current = window.requestAnimationFrame(() => {
         const coarsePointer = window.matchMedia?.('(pointer: coarse)')?.matches === true;
-        const reserveMode = window.innerWidth >= QUICK_ACCESS_SAFE_AREA_MIN_WIDTH && !coarsePointer;
+        // Gradebook owns a wide, horizontally scrollable table with sticky columns.
+        // Reflowing the whole page to reserve Quick Access space changes the table viewport,
+        // which changes its horizontal-scroll geometry and can retrigger ResizeObserver in a loop.
+        // Keep Quick Access overlay-only on this route so the gradebook viewport stays fixed.
+        const gradebookHorizontalWorkspace = selectedTool?.slug === 'gradebook-studio';
+        const reserveMode = !gradebookHorizontalWorkspace
+          && window.innerWidth >= QUICK_ACCESS_SAFE_AREA_MIN_WIDTH
+          && !coarsePointer;
         shell.dataset.quickAccessSafeMode = reserveMode ? 'reserve' : 'overlay';
 
         // Quick Access is fixed to the left edge, so the existing shell safe-frame
