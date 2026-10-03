@@ -5,12 +5,16 @@ const removedPaths = [
   'public/samples/exam-studio',
   'public/gamehub-top-layout.css',
   'public/apps-directory-v2.js',
+  'public/games-compact-hero.css',
+  'public/games-google-education.css',
+  'public/games-horizontal-platform-scroller.css',
   'public/teaching-methods-google-full.css',
   'public/teaching-methods-inline.css',
   'public/teaching-methods-inline.js',
   'public/word-orbit-visible-flight.css',
   'public/word-orbit-visible-flight.js',
   'src/components/GlobalWordGraphGoogleM3.css',
+  'src/components/GlobalGamesNavigationTab.css',
   'src/components/TesolMethodHero.css',
   'src/components/TesolMethodHero.jsx',
   'src/data/registerWordOrbit.js',
@@ -34,6 +38,7 @@ const removedPaths = [
   'src/styles/ExamAutoRecognition.css',
   'src/styles/TopFiveArena.css',
   'src/styles/games-route-retired.css',
+  'src/styles/GamesTabletViewportFix.css',
   'src/styles/random-group-generator.css',
   'src/tesolMethodRouteRegistry.js',
   'src/utils/examAutoRecognition.js',
@@ -74,7 +79,7 @@ const forbiddenTokens = [
   'top-five-arena', 'top-5-arena', 'TopFive',
   'tesol-method', 'TesolMethod', 'TESOL_METHOD',
   'teaching-tool-hub', 'teachingToolHub', 'teachingToolSharing',
-  'game-hub', 'games-route-retired', 'data-route="games"',
+  'game-hub', 'games-hub', 'games-route-retired', 'data-route="games"', '#/games', 'route:games',
 ];
 
 const failures = [];
