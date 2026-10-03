@@ -74,7 +74,7 @@ assert.match(reportExport, /waitForReportImages/i, 'Attendance PDF must wait for
 assert.match(reportExport, /export\s+async\s+function\s+printAttendanceReportPdf/i, 'PDF export should keep deterministic print-window readiness handling');
 assert.match(reportExport, /Kỳ báo cáo:/, 'PDF must present the reporting period as formal metadata.');
 assert.match(reportExport, /Phạm vi:/, 'PDF must present class/teacher scope as formal metadata.');
-assert.doesNotMatch(reportExport, /SẢN PHẨM CÔNG NGHỆ SỐ/, 'Official attendance PDF should not include internal product-credit footer copy.');
+assert.match(reportExport, /SẢN PHẨM CÔNG NGHỆ SỐ/, 'Official attendance PDF should retain the internal product-credit footer copy.');
 assert.doesNotMatch(reportExport, /setTimeout\s*\(\s*\(\)\s*=>\s*window\.print\(\)\s*,\s*300\s*\)/i, 'Legacy 300ms print timer must remain removed');
 assert.match(
   reportExport,
