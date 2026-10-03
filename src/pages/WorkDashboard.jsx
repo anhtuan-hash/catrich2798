@@ -28,7 +28,7 @@ const COPY = {
     quickActions: 'Thao tác nhanh',
     emptyCalendar: 'Hôm nay không có công việc hoặc sự kiện.',
     partial: 'Một số nguồn dữ liệu chưa phản hồi. Dashboard vẫn hiển thị phần dữ liệu đã tải được.', retry: 'Thử lại',
-    createWork: 'Mở công việc', uploadResource: 'Tải học liệu', textLab: 'Tạo hoạt động', methodsHub: 'Phương pháp giảng dạy', games: 'Mở trò chơi',
+    createWork: 'Mở công việc', uploadResource: 'Tải học liệu', textLab: 'Tạo hoạt động',
     openHomeroom: 'Mở chủ nhiệm', chooseDate: 'Chọn ngày', nearest: 'Xem sự kiện gần nhất',
     currentTime: 'Giờ hiện tại', weather: 'Thời tiết', dateToday: 'Hôm nay', weatherLoading: 'Đang cập nhật',
   },
@@ -43,7 +43,7 @@ const COPY = {
     quickActions: 'Quick actions',
     emptyCalendar: 'No work or events scheduled for today.',
     partial: 'Some data sources did not respond. Available data is still shown.', retry: 'Retry',
-    createWork: 'Open work', uploadResource: 'Upload resource', textLab: 'Create activity', methodsHub: 'Teaching methods', games: 'Open games',
+    createWork: 'Open work', uploadResource: 'Upload resource', textLab: 'Create activity',
     openHomeroom: 'Open homeroom', chooseDate: 'Choose a date', nearest: 'View nearest event',
     currentTime: 'Current time', weather: 'Weather', dateToday: 'Today', weatherLoading: 'Updating',
   },
@@ -376,7 +376,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   const weatherTemperature = weather.temperature == null ? '—°C' : `${weather.temperature}°C`;
   const quickActions = [
     ['task', t.createWork, 'ttcm:feed'], ['folder', t.uploadResource, '#/resource-library'], ['magic', t.textLab, '#/tool/textlab-activities'],
-    ['school', t.methodsHub, '#/tool/teaching-methods-hub'], ['game', t.games, '#/games'], ...(snapshot.homeroom ? [['people', t.openHomeroom, '#/homeroom']] : []),
+    ...(snapshot.homeroom ? [['people', t.openHomeroom, '#/homeroom']] : []),
   ];
 
   const scrollToCalendar = useCallback(() => {
