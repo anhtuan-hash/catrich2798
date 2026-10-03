@@ -693,14 +693,21 @@ export default function ResourceLibrary({ language = 'vi', currentUser, hasApiKe
   };
 
   const openWithApp = (item) => {
-    const map = {
-      assessment: 'exam-studio', worksheet: 'textlab-activities', reference: 'reading-studio',
-      'lesson-plan': 'lesson-plan-ai', presentation: 'lesson-plan-ai', 'professional-form': 'lesson-plan-ai',
-      audio: 'textlab-activities', media: 'textlab-activities', gifted: 'reading-studio', 'thpt-exam': 'exam-studio',
+    const category = normaliseResourceCategory(item.category);
+    const targetByCategory = {
+      assessment: '#/assessment-core',
+      'thpt-exam': '#/tool/thpt-practice-hub',
+      reference: '#/knowledge-hub',
+      gifted: '#/knowledge-hub',
+      worksheet: '#/tool/textlab-activities',
+      audio: '#/tool/textlab-activities',
+      media: '#/tool/textlab-activities',
+      'lesson-plan': '#/tool/textlab-activities',
+      presentation: '#/tool/textlab-activities',
+      'professional-form': '#/tool/textcare',
     };
-    const slug = map[normaliseResourceCategory(item.category)] || 'textlab-activities';
     try { sessionStorage.setItem('bes-resource-open-item', JSON.stringify(item)); } catch { /* ignore */ }
-    window.location.hash = `#/tool/${slug}`;
+    window.location.hash = targetByCategory[category] || '#/tool/textlab-activities';
   };
 
   const selectedCategory = category === 'all' ? null : categoryMap.get(category);

@@ -1,4 +1,4 @@
-import { APPS, GAME_APPS, SPECIAL_TOOLS } from './apps.js';
+import { APPS, SPECIAL_TOOLS } from './apps.js';
 import { isRetiredApp } from './retiredApps.js';
 
 export const ROUTE_APP_SHORTCUTS = [
@@ -60,7 +60,6 @@ function normalizeCatalogItem(item, source) {
 export function getAppVisibilityCatalog() {
   const merged = [
     ...APPS.map((item) => normalizeCatalogItem(item, 'apps')),
-    ...GAME_APPS.map((item) => normalizeCatalogItem(item, 'games')),
     ...SPECIAL_TOOLS.map((item) => normalizeCatalogItem(item, 'tools')),
     ...ROUTE_APP_SHORTCUTS.map((item) => normalizeCatalogItem({ ...item, routeOnly: true }, 'routes')),
   ].filter(Boolean);
@@ -73,7 +72,7 @@ export function getAppVisibilityCatalog() {
 }
 
 export function findVisibilityItemByRoute(route) {
-  const app = [...APPS, ...GAME_APPS, ...SPECIAL_TOOLS]
+  const app = [...APPS, ...SPECIAL_TOOLS]
     .find((item) => item.route === route && !isRetiredApp(item));
   if (app) return normalizeCatalogItem(app, 'apps');
   const shortcut = ROUTE_APP_SHORTCUTS.find((item) => item.route === route && !isRetiredApp(item));

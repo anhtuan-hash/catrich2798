@@ -3,9 +3,7 @@ import { createPortal } from 'react-dom';
 import { CheckCircle2, ChevronRight, FileCode2, Globe2 } from 'lucide-react';
 import { canManageAiWebsites } from '../utils/aiWebsiteSettings.js';
 import { EXTERNAL_APP_SOURCE_HTML, loadExternalWebApps, subscribeExternalWebApps } from '../utils/externalWebApps.js';
-import { TESOL_METHOD_HASH } from '../tesolMethodRouteRegistry.js';
 import ExternalAppHero from './ExternalAppHero.jsx';
-import TesolMethodHero from './TesolMethodHero.jsx';
 import './ExternalWebApps.css';
 import './ExternalAppApprovalRestore.css';
 import './ApprovedExternalAppsList.css';
@@ -20,24 +18,6 @@ const GROUPS = {
   manage: { label: 'Quản lý', accent: '#9334e6' },
 };
 const TONES = ['#1a73e8', '#188038', '#e37400', '#9334e6', '#12b5cb', '#d93025'];
-const TESOL_METHOD_ROUTE = TESOL_METHOD_HASH.replace(/^#\//, '');
-
-function normalizeTitle(value = '') {
-  return String(value)
-    .trim()
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/đ/g, 'd')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim();
-}
-
-function isTesolMethodApp(app = {}) {
-  const normalized = normalizeTitle(app.title || app.name || '');
-  return normalized === 'phuong phap tesol' || (normalized.includes('tesol') && normalized.includes('phuong phap'));
-}
-
 function routeStateFromHash(hash = '') {
   const clean = String(hash || '').replace(/^#\//, '');
   const [route = '', query = ''] = clean.split('?');
@@ -115,14 +95,12 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
   const [loaded, setLoaded] = useState(false);
   const { route, dedicatedAppId } = useMemo(() => routeStateFromHash(routeHash), [routeHash]);
   const pending = useMemo(() => data.requests.filter((request) => request.status === 'pending').length, [data.requests]);
-  const isTesolRoute = route === TESOL_METHOD_ROUTE;
   const isDedicatedAppRoute = route === 'apps' && Boolean(dedicatedAppId);
-  const tesolApp = useMemo(() => data.approved.find(isTesolMethodApp) || null, [data.approved]);
   const dedicatedApp = useMemo(
     () => data.approved.find((app) => String(app.id || '') === String(dedicatedAppId)) || null,
     [data.approved, dedicatedAppId],
   );
-  const approvedLauncherApps = useMemo(() => data.approved.filter((app) => !isTesolMethodApp(app)), [data.approved]);
+  const approvedLauncherApps = useMemo(() => data.approved, [data.approved]);
 
   useEffect(() => {
     const updateRoute = () => setRouteHash(location.hash || '#/apps');
@@ -185,7 +163,7 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
   }, [route, dedicatedAppId]);
 
   useEffect(() => {
-    if (!currentUser || (route !== 'apps' && !isTesolRoute)) return undefined;
+    if (!currentUser || route !== 'apps') return undefined;
     let activeSubscription = true;
     let unsubscribe = () => {};
     setLoaded(false);
@@ -213,19 +191,13 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
       activeSubscription = false;
       try { unsubscribe?.(); } catch (error) { console.warn('[External apps] subscription cleanup failed', error); }
     };
-  }, [currentUser?.id, currentUser?.email, currentUser?.role, manager, route, dedicatedAppId, isTesolRoute]);
+  }, [currentUser?.id, currentUser?.email, currentUser?.role, manager, route, dedicatedAppId]);
 
-  const openApprovedApp = (app) => {
-    if (isTesolMethodApp(app)) {
-      window.location.hash = TESOL_METHOD_HASH;
-      return;
-    }
-    window.location.hash = externalAppRoute(app);
-  };
+  const openApprovedApp = (app) => { window.location.hash = externalAppRoute(app); };
 
   if (!currentUser) return null;
 
-  const routeHost = (isTesolRoute || isDedicatedAppRoute) && typeof document !== 'undefined'
+  const routeHost = isDedicatedAppRoute && typeof document !== 'undefined'
     ? document.getElementById('bes-main-content')
     : null;
 
@@ -259,7 +231,7 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
         </Suspense>
       ) : null}
 
-      {isDedicatedAppRoute && dedicatedApp && !isTesolMethodApp(dedicatedApp) ? (
+      {isDedicatedAppRoute && dedicatedApp ? (
         <Suspense fallback={null}>
           <ExternalWebAppViewer
             app={dedicatedApp}
@@ -270,16 +242,6 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
         </Suspense>
       ) : null}
 
-      {isTesolRoute && tesolApp ? (
-        <Suspense fallback={null}>
-          <ExternalWebAppViewer
-            app={tesolApp}
-            introContent={<TesolMethodHero language={language} />}
-            explorerId="tesol-method-explorer"
-            onClose={() => { window.location.hash = '#/apps'; }}
-          />
-        </Suspense>
-      ) : null}
 
       {isDedicatedAppRoute && routeHost && !dedicatedApp ? createPortal(
         <div style={{ minHeight: '68vh', display: 'grid', placeItems: 'center', padding: '32px' }}>
@@ -295,17 +257,6 @@ export default function ExternalAppsIntegration({ currentUser, language = 'vi' }
         routeHost,
       ) : null}
 
-      {isTesolRoute && routeHost && !tesolApp ? createPortal(
-        <div style={{ minHeight: '68vh', display: 'grid', placeItems: 'center', padding: '32px' }}>
-          <section style={{ maxWidth: '720px', width: '100%', padding: '32px', borderRadius: '28px', background: '#fff', border: '1px solid #d9e4f2', boxShadow: '0 18px 50px rgba(34, 65, 110, .12)', textAlign: 'center' }}>
-            <div style={{ fontSize: '48px', marginBottom: '12px' }}>🌐</div>
-            <h1 style={{ margin: '0 0 10px' }}>Phương pháp TESOL</h1>
-            <p style={{ margin: '0 0 20px', color: '#5f6368' }}>{loaded ? 'Không tìm thấy bản ứng dụng TESOL đã duyệt trong kho ứng dụng website.' : 'Đang tải ứng dụng TESOL đã duyệt…'}</p>
-            {loaded ? <button type="button" onClick={() => { window.location.hash = '#/apps'; }} style={{ border: 0, borderRadius: '999px', padding: '12px 22px', background: '#1a73e8', color: '#fff', fontWeight: 700, cursor: 'pointer' }}>Quay lại Ứng dụng</button> : null}
-          </section>
-        </div>,
-        routeHost,
-      ) : null}
     </>
   );
 }

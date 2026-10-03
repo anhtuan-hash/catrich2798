@@ -99,12 +99,32 @@ function validNormalizedTool(tool = {}) {
   return Boolean(safeAiWebsiteUrl(tool.url));
 }
 
+function legacyExternalName(value = '') {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+// One-way tombstone for an external app that has been permanently retired.
+// This prevents an old cloud/local snapshot from resurrecting it as a generic app.
+function isPermanentlyRetiredExternalTool(tool = {}) {
+  if (tool.kind !== 'external-app') return false;
+  const name = legacyExternalName(tool.name);
+  return name === 'phuong phap tesol' || name === 'tesol method';
+}
+
 function normalizeSnapshot(value = {}) {
   const sourceTools = Array.isArray(value) ? value : (Array.isArray(value.tools) ? value.tools : []);
   return {
     tools: sourceTools
       .map(normalizeAiWebsiteTool)
-      .filter(validNormalizedTool),
+      .filter(validNormalizedTool)
+      .filter((tool) => !isPermanentlyRetiredExternalTool(tool)),
     updatedAt: String(value.updatedAt || value.updated_at || new Date().toISOString()),
     updatedBy: String(value.updatedBy || value.updated_by_email || value.updated_by || ''),
     source: String(value.source || 'local'),

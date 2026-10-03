@@ -116,30 +116,6 @@ html body .metro-clean-system[data-route="news"] .newsroom-v823-page :is(.newsro
 }
 /* Full article text deliberately keeps its own reading size. */
 
-/* GAMES */
-html body .metro-clean-system[data-route="games"] .game-hub-v44 .games-v44-hero-copy h1 {
-  font-size: var(--bes-final-display) !important;
-  line-height: 1.02 !important;
-}
-html body .metro-clean-system[data-route="games"] .game-hub-v44 .games-v44-hero-copy > p {
-  font-size: var(--bes-final-lead) !important;
-}
-html body .metro-clean-system[data-route="games"] .game-hub-v44 :is(.games-v44-card h2,.games-v46-board-head h2) {
-  font-size: var(--bes-final-section) !important;
-}
-html body .metro-clean-system[data-route="games"] .game-hub-v44 :is(.games-v44-library-list strong,.games-v44-quick-grid strong,.games-v44-recent-list strong,.games-v46-platform-card strong,.games-v46-tool-card strong) {
-  font-size: var(--bes-final-card) !important;
-}
-html body .metro-clean-system[data-route="games"] .game-hub-v44 :is(.games-v44-library-list small,.games-v44-quick-grid small,.games-v44-recent-list small,.games-v44-hero-metrics small,.games-v46-platform-card small,.games-v46-tool-card small) {
-  font-size: var(--bes-final-support) !important;
-}
-html body .metro-clean-system[data-route="games"] .game-hub-v44 :is(.games-v44-hero-actions button,.games-v44-filter-row button,.games-v44-card header button,.games-v44-quick-grid button,.games-v46-board button) {
-  font-size: var(--bes-final-control) !important;
-}
-html body .metro-clean-system[data-route="games"] .game-hub-v44 .games-v44-hero-metrics b {
-  font-size: var(--bes-final-kpi) !important;
-}
-
 /* DASHBOARD — reference values */
 html body .metro-clean-system[data-route="dashboard"] .gd-hero-copy h1 {
   font-size: var(--bes-final-display) !important;

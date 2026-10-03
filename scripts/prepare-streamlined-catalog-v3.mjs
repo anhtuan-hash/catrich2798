@@ -6,17 +6,16 @@ const exists = (file) => fs.existsSync(file);
 const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const appSlugs = [
-  'classroom-screen', 'content-ecosystem',
-  'automation-center', 'collaboration-hub', 'knowledge-train',
-  'crossword-trial', 'flying-words', 'exam-studio', 'word2graph',
-  'reading-studio', 'student-practice', 'random-group-generator',
-  'word-orbit', 'activity-graph',
+  'content-ecosystem',
+  'automation-center',
+  'collaboration-hub',
+  'student-practice',
+  'activity-graph',
 ];
 const routeSlugs = ['content-ecosystem', 'automation-center', 'collaboration-hub', 'practice'];
 const toolComponents = [
-  'WordGraphStudio', 'ReadingStudio', 'ExamStudioUploadPage',
-  'StudentPractice', 'ActivityGraphStudio', 'ClassroomScreenHost',
-  'FlyingWordsGame', 'CrosswordTrialGame', 'KnowledgeTrainGame', 'WordOrbitGame',
+  'StudentPractice',
+  'ActivityGraphStudio',
 ];
 const routeComponents = ['StudentPractice', 'AssessmentCore', 'AutomationCenter', 'CollaborationHub', 'ContentEcosystem'];
 
@@ -105,7 +104,7 @@ if (exists('src/data/apps.js')) {
 
 if (exists('src/pages/ToolPage.jsx')) {
   let text = read('src/pages/ToolPage.jsx');
-  text = text.replace(/^import '\.\.\/data\/register(?:WordOrbit|ActivityGraph)\.js';\n/gm, '');
+  text = text.replace(/^import '\.\.\/data\/registerActivityGraph\.js';\n/gm, '');
   for (const component of toolComponents) {
     text = text.replace(new RegExp(`^const ${component} = lazy\\(\\(\\) => import\\([^\\n]+\\)\\);\\n`, 'gm'), '');
   }
@@ -133,7 +132,7 @@ if (exists('src/main.jsx')) {
 
 if (exists('src/applicationBootstrap.jsx')) {
   let text = read('src/applicationBootstrap.jsx');
-  text = text.replace(/^import ['"][^'"]*register(?:WordOrbit|ActivityGraph)\.js['"];\n/gm, '');
+  text = text.replace(/^import ['"][^'"]*registerActivityGraph\.js['"];\n/gm, '');
   write('src/applicationBootstrap.jsx', text);
 }
 
@@ -143,8 +142,5 @@ if (exists('vite.config.js')) {
   write('vite.config.js', text);
 }
 
-fs.mkdirSync('apps/classroom-screen', { recursive: true });
-write('apps/classroom-screen/empty.js', 'export default null;\n');
-write('apps/classroom-screen/vite.config.ts', `import { defineConfig } from 'vite';\nimport { fileURLToPath } from 'node:url';\nexport default defineConfig({ build: { write: false, lib: { entry: fileURLToPath(new URL('./empty.js', import.meta.url)), formats: ['es'], fileName: 'retired' } } });\n`);
 
-console.log(`Precise production cleanup applied for the ${appSlugs.length} retired Brian applications.`);
+console.log(`Production catalog cleanup applied for ${appSlugs.length} retained legacy removals.`);

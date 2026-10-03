@@ -13,12 +13,8 @@ export const ECOSYSTEM_ASSET_TYPES = [
 ];
 
 export const ECOSYSTEM_TARGETS = [
-
-  { id: 'reading-studio', route: '#/tool/reading-studio', label: 'Reading Studio', icon: 'RD' },  { id: 'word2graph', route: '#/tool/word2graph', label: 'WordGraph', icon: 'WG' },
   { id: 'textlab-activities', route: '#/tool/textlab-activities', label: 'TextLab', icon: 'TL' },
-  { id: 'lesson-plan-ai', route: '#/tool/lesson-plan-ai', label: 'Lesson Architect', icon: 'LA' },
   { id: 'assessment-core', route: '#/assessment-core', label: 'Assessment Core', icon: 'AC' },
-  { id: 'exam-studio', route: '#/tool/exam-studio', label: 'Exam Studio', icon: 'EX' },
   { id: 'student-practice', route: '#/tool/student-practice', label: 'Learner Sprint', icon: 'LS' },
 ];
 
@@ -27,33 +23,33 @@ export const ECOSYSTEM_RECIPES = [
     id: 'reading-lesson',
     title: 'Reading lesson ecosystem',
     titleVi: 'Hệ sinh thái bài đọc',
-    description: 'Passage, vocabulary map, worksheet, speaking follow-up, assessment and homework.',
-    descriptionVi: 'Bài đọc, sơ đồ từ vựng, worksheet, hoạt động nói, đánh giá và bài tập về nhà.',
-    outputs: ['reading-studio', 'word2graph', 'assessment-core', 'student-practice'],
+    description: 'Source text, interactive activities, assessment and homework.',
+    descriptionVi: 'Nguồn bài đọc, hoạt động tương tác, đánh giá và bài tập về nhà.',
+    outputs: ['textlab-activities', 'assessment-core', 'student-practice'],
   },
   {
     id: 'vocabulary-cycle',
     title: 'Vocabulary learning cycle',
     titleVi: 'Chu trình học từ vựng',
-    description: 'Word graph, flashcards, interactive practice, quiz and spaced homework.',
-    descriptionVi: 'Sơ đồ từ, flashcard, hoạt động tương tác, quiz và bài ôn giãn cách.',
-    outputs: ['word2graph', 'textlab-activities', 'assessment-core', 'student-practice'],
+    description: 'Interactive practice, quiz and spaced homework.',
+    descriptionVi: 'Hoạt động tương tác, quiz và bài ôn giãn cách.',
+    outputs: ['textlab-activities', 'assessment-core', 'student-practice'],
   },
   {
     id: 'complete-teaching-sequence',
     title: 'Complete teaching sequence',
     titleVi: 'Tiến trình dạy học hoàn chỉnh',
-    description: 'Lesson plan, interactive activities, assessment and adaptive practice.',
-    descriptionVi: 'Giáo án, hoạt động tương tác, đánh giá và luyện tập thích ứng.',
-    outputs: ['lesson-plan-ai', 'textlab-activities', 'assessment-core', 'student-practice'],
+    description: 'Interactive activities, assessment and adaptive practice.',
+    descriptionVi: 'Hoạt động tương tác, đánh giá và luyện tập thích ứng.',
+    outputs: ['textlab-activities', 'assessment-core', 'student-practice'],
   },
   {
     id: 'news-teaching',
     title: 'News-to-classroom',
     titleVi: 'Từ bản tin đến lớp học',
-    description: 'Adapt a news source into reading, vocabulary, discussion, critical-thinking tasks and a quiz.',
-    descriptionVi: 'Chuyển bản tin thành bài đọc, từ vựng, thảo luận, tư duy phản biện và quiz.',
-    outputs: ['reading-studio', 'word2graph', 'textlab-activities', 'assessment-core'],
+    description: 'Adapt a news source into interactive tasks, critical-thinking prompts and a quiz.',
+    descriptionVi: 'Chuyển bản tin thành hoạt động tương tác, tư duy phản biện và quiz.',
+    outputs: ['textlab-activities', 'assessment-core'],
   },
 ];
 
@@ -106,12 +102,8 @@ export function extractKeywords(text = '', limit = 18) {
 export function buildRecipePayload(asset, target, recipe) {
   const keywords = extractKeywords(asset?.content_text || '');
   const instructionByTarget = {
-    'reading-studio': 'Create a leveled reading passage, comprehension questions, evidence notes and vocabulary support.',
-    word2graph: `Create a word graph using these priority terms: ${keywords.join(', ')}. Include word family, collocations, examples, synonyms and antonyms.`,
     'textlab-activities': 'Create a set of native interactive classroom activities with timer, teams and scoring options.',
-    'lesson-plan-ai': 'Create a lesson timeline aligned with objectives, activities, outputs, assessment and differentiation.',
     'assessment-core': 'Create a balanced question set with CEFR, skill, topic, difficulty, answer and explanation metadata.',
-    'exam-studio': 'Create a test-ready question set with grouped passages/audio references and answer key.',
     'student-practice': 'Create an adaptive practice set with easier scaffolding, standard items and mastery review.',
   };
   return {

@@ -35,7 +35,6 @@ function routeSelectors(route) {
     home: ['.bha-hero.hero-cms'],
     admin: ['.admin-v41-hero'],
     dashboard: ['.work-dashboard-hero', '.ttcm-work-hero'],
-    games: ['.games-hero', '.game-hub-hero'],
     apps: ['.apps-hero', '.web-apps-hero'],
     resources: ['.resources-hero'],
     'resource-library': ['.resource-library-hero'],

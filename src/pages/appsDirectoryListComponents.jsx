@@ -22,8 +22,6 @@ const SPECIAL_BADGES = {
   educaplay: { vi: 'Nổi bật', en: 'Featured', tone: 'featured' },
   h5p: { vi: 'Thiết yếu', en: 'Essential', tone: 'essential' },
   'hidden-apps-folder': { vi: 'Thiết yếu', en: 'Essential', tone: 'essential' },
-  'teaching-tool-hub': { vi: 'TTCM', en: 'Dept.', tone: 'department' },
-  'brian-top-5-arena': { vi: 'Mới', en: 'New', tone: 'new' },
 };
 
 function badgeFor(item) {

@@ -1,33 +1,4 @@
-import { APPS } from './apps.js';
-
-const TOP_FIVE_ARENA_APP = {
-  slug: 'top-five-arena',
-  icon: 'T5',
-  tone: 'blue',
-  group: 'Teaching Activities',
-  groupVi: 'Hoạt động lớp học',
-  title: 'Brian Top 5 Arena',
-  titleVi: 'Brian Top 5 Arena',
-  desc: 'Run a complete Top 5 classroom match with answer entry, smart matching, team turns, scoring, strikes, timers, history and presentation mode.',
-  descVi: 'Tổ chức trận Top 5 hoàn chỉnh với nhập đáp án, dò gần đúng, lượt đội, chấm điểm, lỗi, đồng hồ, lịch sử và chế độ trình chiếu.',
-  status: 'macOS · Smart matching · Projector',
-  statusVi: 'macOS · Dò đáp án · Máy chiếu',
-  api: false,
-  featured: true,
-};
-
-if (!APPS.some((app) => app.slug === TOP_FIVE_ARENA_APP.slug)) {
-  APPS.unshift(TOP_FIVE_ARENA_APP);
-}
-
 export const APP_DESIGN_PROFILES = {
-  'classroom-screen': {
-    accent: '#4285F4',
-    soft: '#EAF4FF',
-    ink: '#17324D',
-    icon: 'classroom-stage',
-    style: 'Google-style teaching board',
-    styleVi: 'Bảng dạy học phong cách Google'},
 
   'work-dashboard': {
     accent: '#315FC4',
@@ -58,55 +29,6 @@ export const APP_DESIGN_PROFILES = {
     icon: 'exam',
     style: 'Question bank workspace',
     styleVi: 'Ngân hàng câu hỏi & đề thi'},
-  'exam-studio': {
-    accent: '#123C69',
-    soft: '#DCEBFA',
-    ink: '#07192C',
-    icon: 'exam',
-    style: 'Assessment dashboard',
-    styleVi: 'Bảng kiểm tra rõ cấu trúc'},
-  'game-hub': {
-    accent: '#5B2A86',
-    soft: '#E9DAFF',
-    ink: '#20102F',
-    icon: 'game',
-    style: 'Flat arcade panel',
-    styleVi: 'Bảng game arcade phẳng'},
-  'flying-words': {
-    accent: '#6944D8',
-    soft: '#EEE9FF',
-    ink: '#2A195C',
-    icon: 'game',
-    style: 'Flying sentence game',
-    styleVi: 'Trò chơi câu chữ chuyển động'},
-  'knowledge-train': {
-    accent: '#6D4CC7',
-    soft: '#EEE9FF',
-    ink: '#24154F',
-    icon: 'game',
-    style: 'Linked knowledge train game',
-    styleVi: 'Trò chơi đoàn tàu kiến thức liên hoàn'},
-  'crossword-trial': {
-    accent: '#0B57D0',
-    soft: '#E8F0FE',
-    ink: '#202124',
-    icon: 'game',
-    style: 'Google-style crossword classroom game',
-    styleVi: 'Trò chơi ô chữ lớp học phong cách Google'},
-  'top-five-arena': {
-    accent: '#2B6FF5',
-    soft: '#EAF2FF',
-    ink: '#0C1C3F',
-    icon: 'game',
-    style: 'macOS-style ranked answer arena',
-    styleVi: 'Đấu trường đáp án xếp hạng phong cách macOS'},
-  word2graph: {
-    accent: '#2E9E5D',
-    soft: '#DDF6E6',
-    ink: '#0F2D1C',
-    icon: 'wordgraph',
-    style: 'Vocabulary network',
-    styleVi: 'Mạng từ vựng'},
 
   'vietnam-tax': {
     accent: '#1769AA',
@@ -122,13 +44,6 @@ export const APP_DESIGN_PROFILES = {
     icon: 'news',
     style: 'Live editorial reader',
     styleVi: 'Trình đọc báo trực tiếp'},
-  'reading-studio': {
-    accent: '#D99A1E',
-    soft: '#FFF0C8',
-    ink: '#392406',
-    icon: 'reading',
-    style: 'Magazine reading page',
-    styleVi: 'Trang đọc kiểu magazine'},
   textcare: {
     accent: '#B8332A',
     soft: '#FFE0DD',
@@ -150,13 +65,6 @@ export const APP_DESIGN_PROFILES = {
     icon: 'practice',
     style: 'Practice sprint card',
     styleVi: 'Thẻ luyện tập tốc độ'},
-  'games-hub': {
-    accent: '#5B2A86',
-    soft: '#E9DAFF',
-    ink: '#20102F',
-    icon: 'game',
-    style: 'Game launcher',
-    styleVi: 'Trình mở trò chơi'},
   'admin-hub': {
     accent: '#D13438',
     soft: '#FFE1E3',

@@ -6,7 +6,6 @@ import './GlobalGuestNavigationHub.css';
 const guestDestinations = [
   { id: 'apps', vi: 'Ứng dụng', en: 'Apps', target: '#/apps', labelVi: 'ƯD', labelEn: 'AP', color: '#f05a7e' },
   { id: 'news', vi: 'Đọc báo', en: 'News', target: '#/news', labelVi: 'ĐB', labelEn: 'NW', color: '#167d78' },
-  { id: 'games', vi: 'Trò chơi', en: 'Games', target: '#/games', labelVi: 'TC', labelEn: 'GA', color: '#5b2a86' },
   { id: 'dashboard', vi: 'Dashboard', en: 'Dashboard', target: '#/dashboard', labelVi: 'DB', labelEn: 'DB', color: '#0b57d0' },
   { id: 'homeroom', vi: 'Chủ nhiệm', en: 'Homeroom', target: '#/homeroom', labelVi: 'CN', labelEn: 'HR', color: '#188038' },
 ];

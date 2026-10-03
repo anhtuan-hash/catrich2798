@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import WebAppsRedesign from './WebAppsRedesign.jsx';
 import { SHARED_GAME_APPS } from '../data/sharedGameApps.js';
-import { isRetiredApp } from '../data/retiredApps.js';
 import { canPublishDepartment } from '../utils/permissions.js';
 import { CUSTOM_GAMES_EVENT, isCustomGameOwner, listCustomGames } from '../utils/customGames.js';
 // Functional route layers retained: permissions, list behavior/performance and
@@ -10,13 +9,10 @@ import '../styles/apps-permission-request-material.css';
 import '../styles/apps-list-view.css';
 import '../styles/apps-performance-recovery.css';
 import '../styles/apps-google-material-list-v2.css';
-import '../styles/games-route-retired.css';
 import '../styles/apps-editorial-five-column-v8.css';
 // Final launcher authority: no search/category rail, five columns × four visible rows,
 // with a native draggable vertical scrollbar for the remaining applications.
 import '../styles/apps-grid-5x4-scroll.css';
-
-const LEGACY_SAVED_GAMES_KEY = 'bes-game-hub-links-v1';
 
 function customGameAsApp(game) {
   const status = String(game.status || '').toLowerCase();
@@ -34,10 +30,10 @@ function customGameAsApp(game) {
     icon: game.icon || '🎮',
     desc: status === 'approved'
       ? 'Shared classroom game approved for the English department.'
-      : 'Game link migrated from the former Games workspace.',
+      : 'Teacher-managed classroom game link.',
     descVi: status === 'approved'
       ? 'Trò chơi lớp học dùng chung đã được TTCM duyệt.'
-      : 'Liên kết trò chơi được chuyển từ không gian Trò chơi cũ.',
+      : 'Liên kết trò chơi lớp học do giáo viên quản lý.',
     status: statusCopy[0],
     statusVi: statusCopy[1],
     group: status === 'approved' ? 'Shared classroom apps' : 'Classroom game apps',
@@ -50,47 +46,9 @@ function customGameAsApp(game) {
   };
 }
 
-function stableLegacyId(value = '') {
-  let hash = 0;
-  for (let index = 0; index < value.length; index += 1) hash = ((hash << 5) - hash + value.charCodeAt(index)) | 0;
-  return Math.abs(hash).toString(36);
-}
-
-function readLegacySavedGames() {
-  if (typeof window === 'undefined') return [];
-  try {
-    const parsed = JSON.parse(window.localStorage.getItem(LEGACY_SAVED_GAMES_KEY) || '{}');
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return [];
-    return Object.entries(parsed).flatMap(([platformKey, links]) => {
-      if (!Array.isArray(links)) return [];
-      const platform = SHARED_GAME_APPS.find((item) => item.slug === `shared-game-${platformKey}`);
-      return links
-        .filter((link) => link && /^https?:\/\//i.test(String(link.url || '')))
-        .map((link) => ({
-          slug: `saved-game-${platformKey}-${stableLegacyId(String(link.url || ''))}`,
-          title: String(link.title || platform?.title || 'Saved game').trim(),
-          titleVi: String(link.title || platform?.titleVi || platform?.title || 'Trò chơi đã lưu').trim(),
-          icon: platform?.icon || '🎮',
-          desc: `Saved game link from ${platform?.title || platformKey}.`,
-          descVi: `Liên kết trò chơi đã lưu từ ${platform?.titleVi || platform?.title || platformKey}.`,
-          status: 'Saved',
-          statusVi: 'Đã lưu',
-          group: 'Saved game apps',
-          groupVi: 'Ứng dụng trò chơi đã lưu',
-          groupId: 'create',
-          externalUrl: String(link.url),
-          legacySavedGame: true,
-        }));
-    });
-  } catch {
-    return [];
-  }
-}
-
 export default function WebAppsAndroidDrawer(props) {
   const { apps, currentUser } = props;
   const [customGameApps, setCustomGameApps] = useState([]);
-  const [legacySavedGames, setLegacySavedGames] = useState(() => readLegacySavedGames());
 
   useEffect(() => {
     let active = true;
@@ -120,18 +78,10 @@ export default function WebAppsAndroidDrawer(props) {
     };
   }, [currentUser?.id, currentUser?.authId, currentUser?.email, currentUser?.role]);
 
-  useEffect(() => {
-    const onStorage = (event) => {
-      if (!event.key || event.key === LEGACY_SAVED_GAMES_KEY) setLegacySavedGames(readLegacySavedGames());
-    };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, []);
 
   const mergedApps = useMemo(() => {
     const base = Array.isArray(apps) ? apps : [];
-    const merged = [...base, ...SHARED_GAME_APPS, ...customGameApps, ...legacySavedGames]
-      .filter((item) => !isRetiredApp(item));
+    const merged = [...base, ...SHARED_GAME_APPS, ...customGameApps];
     const seen = new Set();
     return merged.filter((item) => {
       const key = String(item?.slug || item?.route || '').trim();
@@ -139,7 +89,7 @@ export default function WebAppsAndroidDrawer(props) {
       seen.add(key);
       return true;
     });
-  }, [apps, customGameApps, legacySavedGames]);
+  }, [apps, customGameApps]);
 
   return <WebAppsRedesign {...props} apps={mergedApps} />;
 }

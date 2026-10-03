@@ -13,25 +13,6 @@ export const AI_ACTIONS = Object.freeze({
     titleVi: 'Dùng trong ứng dụng hiện tại',
     desc: 'Insert the answer into the active editor or input.',
     descVi: 'Đưa câu trả lời vào vùng soạn thảo đang mở.',
-  },  'exam-studio': {
-    id: 'exam-studio',
-    target: 'exam-studio',
-    icon: 'EX',
-    title: 'Send to Exam Studio',
-    titleVi: 'Gửi sang Exam Studio',
-    desc: 'Use the answer as a question-set or exam source.',
-    descVi: 'Dùng câu trả lời làm nguồn tạo câu hỏi hoặc đề kiểm tra.',
-    hash: '#/tool/exam-studio',
-  },
-  'word2graph': {
-    id: 'word2graph',
-    target: 'word2graph',
-    icon: 'WG',
-    title: 'Build WordGraph',
-    titleVi: 'Tạo WordGraph',
-    desc: 'Turn vocabulary and relationships into a WordGraph source.',
-    descVi: 'Chuyển từ vựng và quan hệ từ thành nguồn WordGraph.',
-    hash: '#/tool/word2graph',
   },
   library: {
     id: 'library',
@@ -72,8 +53,6 @@ export function buildAiActionSuggestions({ message = '', currentRoute = '', sele
 
   add('current-app', 100);
   add('library', 45);
-  add('exam-studio', hasAny(text, ['answer:', 'đáp án', 'a.', 'b.', 'multiple choice', 'trắc nghiệm', 'test']) ? 90 : 50);
-  add('word2graph', hasAny(text, ['vocabulary', 'word family', 'collocation', 'synonym', 'từ vựng', 'nghĩa', 'phát âm']) ? 88 : 42);
 
   return ranked.sort((a, b) => b.score - a.score).slice(0, 5).map(({ score, ...action }) => action);
 }
