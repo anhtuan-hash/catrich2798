@@ -14,21 +14,15 @@ export const DEFAULT_LAUNCHER_GROUPS = [
 const DEFAULT_PINNED = [
   'resource-library-hub',
   'textlab-activities',
-  'exam-studio',
-  'reading-studio',
 ];
 
 const DEFAULT_ASSIGNMENTS = {};
 
 const RETIRED_LAUNCHER_IDS = new Set([
-  'tool:lesson-plan-ai',
-  'lesson-plan-ai',
   'tool:random-student-picker',
   'random-student-picker',
   'tool:worksheet-factory',
   'worksheet-factory',
-  'tool:smart-id',
-  'smart-id',
   'tool:speaking-studio',
   'speaking-studio',
   'tool:english-lesson-integration',
@@ -39,8 +33,6 @@ const RETIRED_LAUNCHER_IDS = new Set([
   'writing-studio',
   'tool:pronunciation-coach',
   'pronunciation-coach',
-  'tool:teaching-methods-hub',
-  'teaching-methods-hub',
   'route:ai-workspace',
   'route:classroom-delivery',
   'route:learning-intelligence',
@@ -48,9 +40,6 @@ const RETIRED_LAUNCHER_IDS = new Set([
   'library-hub',
   'route:practice',
   'practice-hub',
-  'route:games',
-  'games-hub',
-  'game-hub',
 ]);
 
 const DEFAULT_NAV = [
