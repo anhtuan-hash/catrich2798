@@ -69,10 +69,12 @@ const forbiddenTokens = [
   'word-orbit', 'WordOrbit',
   'knowledge-train', 'KnowledgeTrain',
   'lesson-plan-ai', 'lesson-architect',
+  'news-feed', 'newsFeed',
+  'teaching-methods-hub',
   'top-five-arena', 'top-5-arena', 'TopFive',
   'tesol-method', 'TesolMethod', 'TESOL_METHOD',
   'teaching-tool-hub', 'teachingToolHub', 'teachingToolSharing',
-  'game-hub', 'games-route-retired',
+  'game-hub', 'games-route-retired', 'data-route="games"',
 ];
 
 const failures = [];
