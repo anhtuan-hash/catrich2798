@@ -94,6 +94,9 @@ jobs:
       - name: Verify TextCare layout stability
         run: node scripts/test-textcare-layout-stability.mjs
 
+      - name: Verify site-wide jank guards
+        run: node scripts/test-sitewide-jank-guards.mjs
+
       - name: Verify YouTube Quick inline player
         run: node scripts/test-youtube-quick-access.mjs
 
