@@ -79,8 +79,8 @@ assert.doesNotMatch(reportExport, /SẢN PHẨM CÔNG NGHỆ SỐ · Phục vụ
 
 assert.match(reportExport, /function attendanceFooterSignatureDataUri\(\)/,
   'Approved footer artwork must be generated as a dedicated SVG data URI.');
-assert.match(reportExport, /<svg[^>]*width="920"[^>]*height="86"/,
-  'Footer artwork must keep the approved wide, low-profile composition.');
+assert.match(reportExport, /<svg[^>]*width="590"[^>]*height="55"[^>]*viewBox="0 0 920 86"/,
+  'Footer artwork must keep the approved wide, low-profile composition at print-safe intrinsic size.');
 assert.match(reportExport, /HỆ THỐNG BÁO CÁO ĐIỂM DANH SỐ · PÉTRUS KÝ/,
   'Footer artwork must retain the approved product title.');
 assert.match(reportExport, /Thiết kế &amp; phát triển:[\s\S]*Nguyễn Anh Tuấn[\s\S]*Tổ trưởng chuyên môn Tiếng Anh/,
@@ -89,10 +89,12 @@ assert.match(reportExport, /font-weight="700" fill="#08783f">Nguyễn Anh Tuấn
   'Creator name must be highlighted in the school green, matching the approved mockup.');
 assert.match(reportExport, /font-style="italic"[\s\S]*Phục vụ công tác quản lý và theo dõi chuyên cần nội bộ/,
   'Purpose line must remain lighter and italic like the approved mockup.');
-assert.match(reportExport, /@bottom-left\s*\{[\s\S]*?background-image:url\("\$\{footerSignatureDataUri\}"\)/s,
-  'Printed creator signature must render as rich SVG artwork in the bottom-left page margin.');
-assert.match(reportExport, /@bottom-left\s*\{[\s\S]*?background-size:156mm 14\.6mm/s,
-  'Footer artwork size must match the approved mockup proportions.');
+assert.match(reportExport, /@bottom-left\s*\{[\s\S]*?content:url\("\$\{footerSignatureDataUri\}"\)/s,
+  'Printed creator signature must be foreground SVG content so it does not depend on Background graphics.');
+assert.doesNotMatch(reportExport, /@bottom-left\s*\{[\s\S]*?background-image:/s,
+  'Regression guard: creator signature must never return to a CSS background image.');
+assert.match(reportExport, /@bottom-left\s*\{[\s\S]*?padding-top:2\.4mm/s,
+  'Footer artwork must retain the approved vertical spacing.');
 assert.match(reportExport, /@bottom-left\s*\{[\s\S]*?border-top:\.55pt solid #c9dcd0/s,
   'Approved footer must retain its thin separator rule.');
 assert.match(reportExport, /@bottom-right\s*\{[\s\S]*?counter\(page\)\s*"\/"\s*counter\(pages\)/,
