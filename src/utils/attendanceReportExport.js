@@ -327,14 +327,14 @@ export async function printAttendanceReportPdf(report, filters = {}) {
       size:A4 landscape;
       margin:12mm 10mm 23mm;
       @bottom-left{
-        content:"◆  HỆ THỐNG BÁO CÁO ĐIỂM DANH SỐ · PÉTRUS KÝ\A Thiết kế & phát triển: Nguyễn Anh Tuấn · Tổ trưởng chuyên môn Tiếng Anh\A SẢN PHẨM CÔNG NGHỆ SỐ · Phục vụ công tác quản lý và theo dõi chuyên cần nội bộ";
+        content:"◆  HỆ THỐNG BÁO CÁO ĐIỂM DANH SỐ · PÉTRUS KÝ\\A Thiết kế & phát triển: Nguyễn Anh Tuấn · Tổ trưởng chuyên môn Tiếng Anh\\A SẢN PHẨM CÔNG NGHỆ SỐ · Phục vụ công tác quản lý và theo dõi chuyên cần nội bộ";
         white-space:pre;
         font:8.1px/1.45 Arial,"Helvetica Neue",sans-serif;
         color:#176c48;
         text-align:left;
       }
       @bottom-right{
-        content:"Xuất ngày ${htmlEscape(exportedAt)}\A Trang " counter(page) "/" counter(pages);
+        content:"Xuất ngày ${htmlEscape(exportedAt)}\\A Trang " counter(page) "/" counter(pages);
         white-space:pre;
         font:7.9px/1.55 Arial,"Helvetica Neue",sans-serif;
         color:#62766d;
