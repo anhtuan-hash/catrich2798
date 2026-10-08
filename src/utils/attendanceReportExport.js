@@ -257,7 +257,7 @@ function reportExportTimestamp(date = new Date()) {
 }
 
 function attendanceFooterSignatureDataUri() {
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="920" height="86" viewBox="0 0 920 86">
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="590" height="55" viewBox="0 0 920 86">
     <g transform="translate(2 12)" fill="none" stroke="#08783f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M13.7 1.5h7.1l1.3 3.2 3.4 1.3 3.1-1.6 4.8 4.8-1.6 3.1 1.4 3.4 3.4 1.3v6.5l-3.4 1.3-1.4 3.4 1.6 3.1-4.8 4.8-3.1-1.6-3.4 1.3-1.3 3.2h-7.1l-1.3-3.2-3.4-1.3-3.1 1.6-4.8-4.8 1.6-3.1-1.4-3.4L0 23.5V17l3.4-1.3 1.4-3.4-1.6-3.1L8 4.4 11.1 6l3.4-1.3Z"/>
       <circle cx="17.25" cy="20.25" r="5.1"/>
@@ -342,14 +342,15 @@ export async function printAttendanceReportPdf(report, filters = {}) {
       size:A4 landscape;
       margin:12mm 10mm 23mm;
       @bottom-left{
-        content:" ";
+        /* Foreground replaced content prints even when the browser's
+           "Background graphics" option is disabled. */
+        content:url("${footerSignatureDataUri}");
         width:76%;
-        background-image:url("${footerSignatureDataUri}");
-        background-repeat:no-repeat;
-        background-position:left 2.4mm;
-        background-size:156mm 14.6mm;
         vertical-align:top;
+        padding-top:2.4mm;
         border-top:.55pt solid #c9dcd0;
+        -webkit-print-color-adjust:exact;
+        print-color-adjust:exact;
       }
       @bottom-right{
         content:"${htmlEscape(exportedAt)}\\A Trang " counter(page) "/" counter(pages);
