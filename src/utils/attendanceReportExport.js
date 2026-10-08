@@ -246,6 +246,16 @@ function vietnamReportDate() {
   return `Thành phố Hồ Chí Minh, ngày ${map.day} tháng ${map.month} năm ${map.year}`;
 }
 
+function reportExportTimestamp(date = new Date()) {
+  const parts = new Intl.DateTimeFormat('vi-VN', {
+    timeZone: VIETNAM_TIME_ZONE,
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+  }).formatToParts(date);
+  const value = Object.fromEntries(parts.filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]));
+  return `${value.day}/${value.month}/${value.year} · ${value.hour}:${value.minute}`;
+}
+
 function waitForPrintWindowLoad(popup) {
   if (popup.document?.readyState === 'complete') return Promise.resolve();
   return new Promise((resolve) => popup.addEventListener('load', resolve, { once: true }));
@@ -271,6 +281,7 @@ export async function printAttendanceReportPdf(report, filters = {}) {
   if (!popup) throw new Error('Trình duyệt đang chặn cửa sổ xuất PDF. Hãy cho phép popup rồi thử lại.');
   try { popup.opener = null; } catch { /* Browser may already isolate the popup. */ }
   const title = reportTitle(filters);
+  const exportedAt = reportExportTimestamp();
   const sessionHtml = report.sessionRows.map((row) => `
     <tr class="${row.session_status === 'cancelled' ? 'cancelled' : ''}">
       <td>${htmlEscape(formatDate(row.attendance_date))}</td>
@@ -311,7 +322,25 @@ export async function printAttendanceReportPdf(report, filters = {}) {
   `).join('');
 
   popup.document.write(`<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${htmlEscape(title)} ${htmlEscape(periodText(filters))}</title><style>
-    @page{size:A4 landscape;margin:12mm 10mm 13mm}
+    /* Margin boxes repeat safely on every printed page, even long table spills. */
+    @page{
+      size:A4 landscape;
+      margin:12mm 10mm 23mm;
+      @bottom-left{
+        content:"◆  HỆ THỐNG BÁO CÁO ĐIỂM DANH SỐ · PÉTRUS KÝ\\A Thiết kế & phát triển: Nguyễn Anh Tuấn · Tổ trưởng chuyên môn Tiếng Anh\\A SẢN PHẨM CÔNG NGHỆ SỐ · Phục vụ công tác quản lý và theo dõi chuyên cần nội bộ";
+        white-space:pre;
+        font:8.1px/1.45 Arial,"Helvetica Neue",sans-serif;
+        color:#176c48;
+        text-align:left;
+      }
+      @bottom-right{
+        content:"Xuất ngày ${htmlEscape(exportedAt)}\\A Trang " counter(page) "/" counter(pages);
+        white-space:pre;
+        font:7.9px/1.55 Arial,"Helvetica Neue",sans-serif;
+        color:#62766d;
+        text-align:right;
+      }
+    }
     *{box-sizing:border-box}
     html,body{width:100%;max-width:100%}
     body{margin:0;overflow:visible;font-family:Arial,"Helvetica Neue",sans-serif;color:#183229;font-size:8.4px;line-height:1.35;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -349,12 +378,22 @@ export async function printAttendanceReportPdf(report, filters = {}) {
     .reporter .date{font-style:italic;margin-bottom:10px;color:#4f5f58}
     .reporter strong{display:block;font-size:9.2px}
     .reporter b{display:block;margin-top:17mm;font-size:10px;color:#075f34;min-height:12px}
-    .reporter span{display:block;margin-top:2px;min-height:10px}.footer{margin-top:5mm;padding-top:2.5mm;border-top:1px solid #d5e2db;text-align:center;color:#66776f;font-size:7.2px;line-height:1.45;break-inside:avoid}.footer strong{display:block;color:#3e544a;font-size:7.4px;letter-spacing:.02em}
+    .reporter span{display:block;margin-top:2px;min-height:10px}
+    .footer{margin-top:5mm;padding:2.8mm 2mm 1mm;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12mm;align-items:center;border-top:1px solid #c9dcd0;color:#52665a;break-inside:avoid}
+    .footer__brand{display:flex;align-items:center;gap:3mm;min-width:0}
+    .footer__mark{width:24px;height:24px;flex:none;stroke:#08783f}
+    .footer__title{font-weight:800;font-size:8.6px;letter-spacing:.025em;color:#145d42}
+    .footer__credit{margin-top:1px;font-size:8.1px}
+    .footer__credit strong{font-size:8.6px;color:#08783f}
+    .footer__purpose{margin-top:1px;font-size:7.2px;font-style:italic;color:#71857a}
+    .footer__stamp{text-align:right;white-space:nowrap;font-size:7.8px;color:#697d71}
     @media print{
       html,body,.report-page{width:100%;max-width:100%}
       body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-      .school-head,.report-scope,.metrics,.remarks,.reporter,.footer{break-inside:avoid}
+      .school-head,.report-scope,.metrics,.remarks,.reporter{break-inside:avoid}
       .section{break-inside:auto}
+      /* Rich HTML signature in preview, repeated @page signature in printed PDF. */
+      .footer{display:none!important}
     }
   </style></head><body><main class="report-page">
     <div class="school-head">
@@ -378,7 +417,20 @@ export async function printAttendanceReportPdf(report, filters = {}) {
     <section class="section"><h2>3. CHI TIẾT HỌC SINH ĐI TRỄ</h2>${lateHtml ? `<table><thead><tr><th style="width:10%">Ngày</th><th style="width:26%">Học sinh</th><th style="width:22%">Lớp / môn</th><th style="width:18%">Giáo viên</th><th style="width:16%">Giờ dạy / chốt</th><th>Phòng</th></tr></thead><tbody>${lateHtml}</tbody></table>` : '<p class="empty">Không có học sinh đi trễ trong dữ liệu phù hợp bộ lọc.</p>'}</section>
     <div class="remarks"><b>NHẬN XÉT CHUNG</b><p>${htmlEscape(filters.generalRemarks || 'Không có nhận xét chung.')}</p></div>
     <div class="reporter"><div class="date">${htmlEscape(vietnamReportDate())}</div><strong>NGƯỜI BÁO CÁO</strong><b>${filters.reporterName ? htmlEscape(filters.reporterName) : '&nbsp;'}</b><span>${filters.reporterTitle ? htmlEscape(filters.reporterTitle) : '&nbsp;'}</span></div>
-    <div class="footer"><strong>SẢN PHẨM CÔNG NGHỆ SỐ • TỔ TIẾNG ANH THPT • NĂM HỌC 2026–2027</strong>Chủ trì xây dựng và thực hiện: Tổ trưởng chuyên môn Nguyễn Anh Tuấn</div>
+    <footer class="footer" aria-label="Đơn vị thiết kế hệ thống báo cáo">
+      <div class="footer__brand">
+        <svg class="footer__mark" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9.8 3h4.4l.8 2 2.1.8 1.9-1 3 3-1 1.9.9 2.1L24 12v4l-2.1.8-.9 2.1 1 1.9-3 3-1.9-1-2.1.8-.8 2H9.8l-.8-2-2.1-.8-1.9 1-3-3 1-1.9-.9-2.1L0 16v-4l2.1-.8.9-2.1-1-1.9 3-3 1.9 1L9 5Z" transform="translate(0 -1.5)"/>
+          <circle cx="12" cy="12" r="3.2"/>
+        </svg>
+        <div>
+          <div class="footer__title">HỆ THỐNG BÁO CÁO ĐIỂM DANH SỐ · PÉTRUS KÝ</div>
+          <div class="footer__credit">Thiết kế &amp; phát triển: <strong>Nguyễn Anh Tuấn</strong> · Tổ trưởng chuyên môn Tiếng Anh</div>
+          <div class="footer__purpose">SẢN PHẨM CÔNG NGHỆ SỐ · Phục vụ công tác quản lý và theo dõi chuyên cần nội bộ</div>
+        </div>
+      </div>
+      <div class="footer__stamp">Xuất ngày ${htmlEscape(exportedAt)}</div>
+    </footer>
   </main></body></html>`);
   popup.document.close();
   await waitForPrintWindowLoad(popup);

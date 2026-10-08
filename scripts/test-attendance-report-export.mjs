@@ -60,8 +60,8 @@ for (const token of expectedSessionDataOrder) {
 assert.match(reportExport, /@page\s*\{[^}]*size\s*:\s*A4\s+landscape/i, 'Wide attendance detail tables should print on A4 landscape for readability.');
 assert.match(
   reportExport,
-  /@page\s*\{[^}]*margin\s*:\s*12mm\s+10mm\s+13mm/i,
-  'PDF page must use compact, print-safe landscape margins.',
+  /@page\s*\{[^}]*margin\s*:\s*12mm\s+10mm\s+23mm/i,
+  'PDF page must reserve a safe footer zone in the landscape page margin.',
 );
 assert.match(reportExport, /\.report-page\s*\{[^}]*max-width\s*:\s*100%/i, 'PDF content must stay bounded to portrait page width');
 assert.match(reportExport, /table\s*\{[^}]*max-width\s*:\s*100%/i, 'PDF tables must remain within portrait page width');
@@ -75,6 +75,22 @@ assert.match(reportExport, /export\s+async\s+function\s+printAttendanceReportPdf
 assert.match(reportExport, /Kỳ báo cáo:/, 'PDF must present the reporting period as formal metadata.');
 assert.match(reportExport, /Phạm vi:/, 'PDF must present class/teacher scope as formal metadata.');
 assert.match(reportExport, /SẢN PHẨM CÔNG NGHỆ SỐ/, 'Official attendance PDF should retain the internal product-credit footer copy.');
+
+assert.match(reportExport, /@bottom-left\s*\{[^}]*HỆ THỐNG BÁO CÁO ĐIỂM DANH SỐ/s,
+  'Printed signature must be repeated by the page-margin box on every PDF page.');
+assert.match(reportExport, /@bottom-right\s*\{[\s\S]*?counter\(page\)\s*"\/"\s*counter\(pages\)/,
+  'Printed footer must show its page number and total pages.');
+assert.match(reportExport, /Thiết kế & phát triển: Nguyễn Anh Tuấn · Tổ trưởng chuyên môn Tiếng Anh/,
+  'Every-page author attribution must explicitly identify the creator.');
+assert.match(reportExport, /class="footer__credit"[^>]*>Thiết kế &amp; phát triển: <strong>Nguyễn Anh Tuấn<\/strong>/,
+  'HTML print-preview footer must emphasize the creator subtly.');
+assert.match(reportExport, /reportExportTimestamp\(/,
+  'Report must use a consistent export timestamp.');
+assert.match(reportExport, /\.footer\s*\{\s*display:none!important\s*\}/,
+  'Legacy in-flow footer must not duplicate the repeated printed signature.');
+assert.doesNotMatch(reportExport, /Chủ trì xây dựng và thực hiện: Tổ trưởng chuyên môn Nguyễn Anh Tuấn/,
+  'Ambiguous project leadership wording must be replaced with direct designer/developer credit.');
+
 assert.doesNotMatch(reportExport, /setTimeout\s*\(\s*\(\)\s*=>\s*window\.print\(\)\s*,\s*300\s*\)/i, 'Legacy 300ms print timer must remain removed');
 assert.match(
   reportExport,
