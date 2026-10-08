@@ -253,7 +253,7 @@ function reportExportTimestamp(date = new Date()) {
     hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
   }).formatToParts(date);
   const value = Object.fromEntries(parts.filter((part) => part.type !== 'literal').map((part) => [part.type, part.value]));
-  return `${value.day}/${value.month}/${value.year} · ${value.hour}:${value.minute}`;
+  return `${value.day}/${value.month}/${value.year} ${value.hour}:${value.minute}`;
 }
 
 function waitForPrintWindowLoad(popup) {
@@ -322,23 +322,18 @@ export async function printAttendanceReportPdf(report, filters = {}) {
   `).join('');
 
   popup.document.write(`<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${htmlEscape(title)} ${htmlEscape(periodText(filters))}</title><style>
-    /* Margin boxes repeat safely on every printed page, even long table spills. */
+    /* Approved footer mockup: rich fixed signature + page counter in the page margin. */
     @page{
       size:A4 landscape;
       margin:12mm 10mm 23mm;
-      @bottom-left{
-        content:"◆  HỆ THỐNG BÁO CÁO ĐIỂM DANH SỐ · PÉTRUS KÝ\\A Thiết kế & phát triển: Nguyễn Anh Tuấn · Tổ trưởng chuyên môn Tiếng Anh\\A SẢN PHẨM CÔNG NGHỆ SỐ · Phục vụ công tác quản lý và theo dõi chuyên cần nội bộ";
-        white-space:pre;
-        font:8.1px/1.45 Arial,"Helvetica Neue",sans-serif;
-        color:#176c48;
-        text-align:left;
-      }
       @bottom-right{
-        content:"Xuất ngày ${htmlEscape(exportedAt)}\\A Trang " counter(page) "/" counter(pages);
+        content:"${htmlEscape(exportedAt)}\\A Trang " counter(page) "/" counter(pages);
         white-space:pre;
-        font:7.9px/1.55 Arial,"Helvetica Neue",sans-serif;
-        color:#62766d;
+        font:500 6.8pt/1.42 Arial,"Helvetica Neue",sans-serif;
+        color:#65786f;
         text-align:right;
+        vertical-align:top;
+        padding-top:3.2mm;
       }
     }
     *{box-sizing:border-box}
@@ -387,13 +382,33 @@ export async function printAttendanceReportPdf(report, filters = {}) {
     .footer__credit strong{font-size:8.6px;color:#08783f}
     .footer__purpose{margin-top:1px;font-size:7.2px;font-style:italic;color:#71857a}
     .footer__stamp{text-align:right;white-space:nowrap;font-size:7.8px;color:#697d71}
+    .print-footer{display:none}
     @media print{
       html,body,.report-page{width:100%;max-width:100%}
       body{-webkit-print-color-adjust:exact;print-color-adjust:exact}
       .school-head,.report-scope,.metrics,.remarks,.reporter{break-inside:avoid}
       .section{break-inside:auto}
-      /* Rich HTML signature in preview, repeated @page signature in printed PDF. */
       .footer{display:none!important}
+      .print-footer{
+        display:flex!important;
+        position:fixed;
+        left:0;
+        right:0;
+        bottom:-18.4mm;
+        height:15.3mm;
+        padding-top:3mm;
+        border-top:.55pt solid #c9dcd0;
+        align-items:flex-start;
+        color:#52665a;
+        background:#fff;
+        z-index:20;
+      }
+      .print-footer__brand{display:flex;align-items:center;gap:2.8mm;max-width:74%;min-width:0}
+      .print-footer__mark{width:6.6mm;height:6.6mm;flex:none;stroke:#08783f}
+      .print-footer__title{font-weight:800;font-size:7.45pt;line-height:1.12;letter-spacing:.018em;color:#145d42}
+      .print-footer__credit{margin-top:.75mm;font-size:6.75pt;line-height:1.14;color:#53665d}
+      .print-footer__credit strong{font-size:7pt;color:#08783f;font-weight:800}
+      .print-footer__purpose{margin-top:.65mm;font-size:6.25pt;line-height:1.1;font-style:italic;color:#71857a}
     }
   </style></head><body><main class="report-page">
     <div class="school-head">
@@ -426,12 +441,26 @@ export async function printAttendanceReportPdf(report, filters = {}) {
         <div>
           <div class="footer__title">HỆ THỐNG BÁO CÁO ĐIỂM DANH SỐ · PÉTRUS KÝ</div>
           <div class="footer__credit">Thiết kế &amp; phát triển: <strong>Nguyễn Anh Tuấn</strong> · Tổ trưởng chuyên môn Tiếng Anh</div>
-          <div class="footer__purpose">SẢN PHẨM CÔNG NGHỆ SỐ · Phục vụ công tác quản lý và theo dõi chuyên cần nội bộ</div>
+          <div class="footer__purpose">Phục vụ công tác quản lý và theo dõi chuyên cần nội bộ</div>
         </div>
       </div>
-      <div class="footer__stamp">Xuất ngày ${htmlEscape(exportedAt)}</div>
+      <div class="footer__stamp">${htmlEscape(exportedAt)}</div>
     </footer>
-  </main></body></html>`);
+  </main>
+  <div class="print-footer" aria-hidden="true">
+    <div class="print-footer__brand">
+      <svg class="print-footer__mark" viewBox="0 0 24 24" fill="none" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9.8 3h4.4l.8 2 2.1.8 1.9-1 3 3-1 1.9.9 2.1L24 12v4l-2.1.8-.9 2.1 1 1.9-3 3-1.9-1-2.1.8-.8 2H9.8l-.8-2-2.1-.8-1.9 1-3-3 1-1.9-.9-2.1L0 16v-4l2.1-.8.9-2.1-1-1.9 3-3 1.9 1L9 5Z" transform="translate(0 -1.5)"/>
+        <circle cx="12" cy="12" r="3.2"/>
+      </svg>
+      <div>
+        <div class="print-footer__title">HỆ THỐNG BÁO CÁO ĐIỂM DANH SỐ · PÉTRUS KÝ</div>
+        <div class="print-footer__credit">Thiết kế &amp; phát triển: <strong>Nguyễn Anh Tuấn</strong> · Tổ trưởng chuyên môn Tiếng Anh</div>
+        <div class="print-footer__purpose">Phục vụ công tác quản lý và theo dõi chuyên cần nội bộ</div>
+      </div>
+    </div>
+  </div>
+  </body></html>`);
   popup.document.close();
   await waitForPrintWindowLoad(popup);
   await waitForReportImages(popup);
