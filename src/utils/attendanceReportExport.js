@@ -256,6 +256,19 @@ function reportExportTimestamp(date = new Date()) {
   return `${value.day}/${value.month}/${value.year} ${value.hour}:${value.minute}`;
 }
 
+function attendanceFooterSignatureDataUri() {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="920" height="86" viewBox="0 0 920 86">
+    <g transform="translate(2 12)" fill="none" stroke="#08783f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M13.7 1.5h7.1l1.3 3.2 3.4 1.3 3.1-1.6 4.8 4.8-1.6 3.1 1.4 3.4 3.4 1.3v6.5l-3.4 1.3-1.4 3.4 1.6 3.1-4.8 4.8-3.1-1.6-3.4 1.3-1.3 3.2h-7.1l-1.3-3.2-3.4-1.3-3.1 1.6-4.8-4.8 1.6-3.1-1.4-3.4L0 23.5V17l3.4-1.3 1.4-3.4-1.6-3.1L8 4.4 11.1 6l3.4-1.3Z"/>
+      <circle cx="17.25" cy="20.25" r="5.1"/>
+    </g>
+    <text x="50" y="25" font-family="Arial,Helvetica,sans-serif" font-size="16" font-weight="700" letter-spacing=".45" fill="#145d42">HỆ THỐNG BÁO CÁO ĐIỂM DANH SỐ · PÉTRUS KÝ</text>
+    <text x="50" y="47" font-family="Arial,Helvetica,sans-serif" font-size="13.5" font-weight="400" fill="#52665a">Thiết kế &amp; phát triển: <tspan font-weight="700" fill="#08783f">Nguyễn Anh Tuấn</tspan><tspan fill="#52665a"> · Tổ trưởng chuyên môn Tiếng Anh</tspan></text>
+    <text x="50" y="67" font-family="Arial,Helvetica,sans-serif" font-size="12.2" font-style="italic" font-weight="400" fill="#71857a">Phục vụ công tác quản lý và theo dõi chuyên cần nội bộ</text>
+  </svg>`;
+  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
+}
+
 function waitForPrintWindowLoad(popup) {
   if (popup.document?.readyState === 'complete') return Promise.resolve();
   return new Promise((resolve) => popup.addEventListener('load', resolve, { once: true }));
@@ -282,6 +295,7 @@ export async function printAttendanceReportPdf(report, filters = {}) {
   try { popup.opener = null; } catch { /* Browser may already isolate the popup. */ }
   const title = reportTitle(filters);
   const exportedAt = reportExportTimestamp();
+  const footerSignatureDataUri = attendanceFooterSignatureDataUri();
   const sessionHtml = report.sessionRows.map((row) => `
     <tr class="${row.session_status === 'cancelled' ? 'cancelled' : ''}">
       <td>${htmlEscape(formatDate(row.attendance_date))}</td>
@@ -328,23 +342,24 @@ export async function printAttendanceReportPdf(report, filters = {}) {
       size:A4 landscape;
       margin:12mm 10mm 23mm;
       @bottom-left{
-        content:"⚙  HỆ THỐNG BÁO CÁO ĐIỂM DANH SỐ · PÉTRUS KÝ\\A     Thiết kế & phát triển: Nguyễn Anh Tuấn · Tổ trưởng chuyên môn Tiếng Anh\\A     Phục vụ công tác quản lý và theo dõi chuyên cần nội bộ";
-        white-space:pre;
-        font:600 6.9pt/1.34 Arial,"Helvetica Neue",sans-serif;
-        color:#176c48;
-        text-align:left;
+        content:" ";
+        width:76%;
+        background-image:url("${footerSignatureDataUri}");
+        background-repeat:no-repeat;
+        background-position:left 2.4mm;
+        background-size:156mm 14.6mm;
         vertical-align:top;
-        padding-top:3.2mm;
         border-top:.55pt solid #c9dcd0;
       }
       @bottom-right{
         content:"${htmlEscape(exportedAt)}\\A Trang " counter(page) "/" counter(pages);
+        width:24%;
         white-space:pre;
-        font:500 6.8pt/1.42 Arial,"Helvetica Neue",sans-serif;
+        font:500 6.7pt/1.48 Arial,"Helvetica Neue",sans-serif;
         color:#65786f;
         text-align:right;
         vertical-align:top;
-        padding-top:3.2mm;
+        padding-top:3.7mm;
         border-top:.55pt solid #c9dcd0;
       }
     }
