@@ -78,7 +78,7 @@ assert.match(reportExport, /SẢN PHẨM CÔNG NGHỆ SỐ/, 'Official attendanc
 
 assert.match(reportExport, /@bottom-left\s*\{[^}]*HỆ THỐNG BÁO CÁO ĐIỂM DANH SỐ/s,
   'Printed signature must be repeated by the page-margin box on every PDF page.');
-assert.match(reportExport, /@bottom-right\s*\{[^}]*counter\(page\)\s*"\/"\s*counter\(pages\)/s,
+assert.match(reportExport, /@bottom-right\s*\{[\s\S]*?counter\(page\)\s*"\/"\s*counter\(pages\)/,
   'Printed footer must show its page number and total pages.');
 assert.match(reportExport, /Thiết kế & phát triển: Nguyễn Anh Tuấn · Tổ trưởng chuyên môn Tiếng Anh/,
   'Every-page author attribution must explicitly identify the creator.');
