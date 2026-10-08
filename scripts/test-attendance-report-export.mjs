@@ -77,16 +77,28 @@ assert.match(reportExport, /Phạm vi:/, 'PDF must present class/teacher scope a
 assert.doesNotMatch(reportExport, /SẢN PHẨM CÔNG NGHỆ SỐ · Phục vụ công tác quản lý/,
   'Approved mockup uses a restrained purpose line without the extra product-label prefix.');
 
-assert.match(reportExport, /@bottom-left\s*\{[\s\S]*?HỆ THỐNG BÁO CÁO ĐIỂM DANH SỐ · PÉTRUS KÝ/s,
-  'Printed creator signature must live in the @page bottom-left margin box.');
-assert.match(reportExport, /@bottom-left\s*\{[\s\S]*?Thiết kế & phát triển: Nguyễn Anh Tuấn · Tổ trưởng chuyên môn Tiếng Anh/s,
-  'Every printed page must identify the creator in the approved footer copy.');
-assert.match(reportExport, /@bottom-left\s*\{[\s\S]*?Phục vụ công tác quản lý và theo dõi chuyên cần nội bộ/s,
-  'Approved footer must retain the understated internal-management purpose line.');
+assert.match(reportExport, /function attendanceFooterSignatureDataUri\(\)/,
+  'Approved footer artwork must be generated as a dedicated SVG data URI.');
+assert.match(reportExport, /<svg[^>]*width="920"[^>]*height="86"/,
+  'Footer artwork must keep the approved wide, low-profile composition.');
+assert.match(reportExport, /HỆ THỐNG BÁO CÁO ĐIỂM DANH SỐ · PÉTRUS KÝ/,
+  'Footer artwork must retain the approved product title.');
+assert.match(reportExport, /Thiết kế &amp; phát triển:[\s\S]*Nguyễn Anh Tuấn[\s\S]*Tổ trưởng chuyên môn Tiếng Anh/,
+  'Footer artwork must preserve the creator credit with name emphasis.');
+assert.match(reportExport, /font-weight="700" fill="#08783f">Nguyễn Anh Tuấn<\/tspan>/,
+  'Creator name must be highlighted in the school green, matching the approved mockup.');
+assert.match(reportExport, /font-style="italic"[\s\S]*Phục vụ công tác quản lý và theo dõi chuyên cần nội bộ/,
+  'Purpose line must remain lighter and italic like the approved mockup.');
+assert.match(reportExport, /@bottom-left\s*\{[\s\S]*?background-image:url\("\$\{footerSignatureDataUri\}"\)/s,
+  'Printed creator signature must render as rich SVG artwork in the bottom-left page margin.');
+assert.match(reportExport, /@bottom-left\s*\{[\s\S]*?background-size:156mm 14\.6mm/s,
+  'Footer artwork size must match the approved mockup proportions.');
 assert.match(reportExport, /@bottom-left\s*\{[\s\S]*?border-top:\.55pt solid #c9dcd0/s,
   'Approved footer must retain its thin separator rule.');
 assert.match(reportExport, /@bottom-right\s*\{[\s\S]*?counter\(page\)\s*"\/"\s*counter\(pages\)/,
   'Printed footer must show its page number and total pages.');
+assert.doesNotMatch(reportExport, /content:"⚙  HỆ THỐNG BÁO CÁO ĐIỂM DANH SỐ/,
+  'Plain text gear footer must stay retired; it does not match the approved artwork.');
 assert.doesNotMatch(reportExport, /class="print-footer"/,
   'Printed footer must not use a fixed DOM element because Chromium can fragment it into table content.');
 assert.doesNotMatch(reportExport, /\.print-footer\s*\{[\s\S]*?position:fixed/s,
