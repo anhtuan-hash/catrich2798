@@ -77,22 +77,22 @@ assert.match(reportExport, /Phạm vi:/, 'PDF must present class/teacher scope a
 assert.doesNotMatch(reportExport, /SẢN PHẨM CÔNG NGHỆ SỐ · Phục vụ công tác quản lý/,
   'Approved mockup uses a restrained purpose line without the extra product-label prefix.');
 
-assert.match(reportExport, /class="print-footer"/,
-  'Printed PDF must include the approved rich creator-signature footer.');
-assert.match(reportExport, /\.print-footer\s*\{[\s\S]*?position:fixed[\s\S]*?bottom:-18\.4mm/s,
-  'Creator signature must repeat as a fixed footer inside the reserved print margin.');
-assert.match(reportExport, /\.print-footer__mark\{[^}]*width:6\.6mm[^}]*height:6\.6mm/s,
-  'Approved footer must retain the compact green system icon.');
-assert.match(reportExport, /\.print-footer__title\{[^}]*font-size:7\.45pt/s,
-  'Approved footer title must use print-point sizing rather than tiny screen pixels.');
+assert.match(reportExport, /@bottom-left\s*\{[\s\S]*?HỆ THỐNG BÁO CÁO ĐIỂM DANH SỐ · PÉTRUS KÝ/s,
+  'Printed creator signature must live in the @page bottom-left margin box.');
+assert.match(reportExport, /@bottom-left\s*\{[\s\S]*?Thiết kế & phát triển: Nguyễn Anh Tuấn · Tổ trưởng chuyên môn Tiếng Anh/s,
+  'Every printed page must identify the creator in the approved footer copy.');
+assert.match(reportExport, /@bottom-left\s*\{[\s\S]*?Phục vụ công tác quản lý và theo dõi chuyên cần nội bộ/s,
+  'Approved footer must retain the understated internal-management purpose line.');
+assert.match(reportExport, /@bottom-left\s*\{[\s\S]*?border-top:\.55pt solid #c9dcd0/s,
+  'Approved footer must retain its thin separator rule.');
 assert.match(reportExport, /@bottom-right\s*\{[\s\S]*?counter\(page\)\s*"\/"\s*counter\(pages\)/,
   'Printed footer must show its page number and total pages.');
-assert.match(reportExport, /Thiết kế &amp; phát triển: (?:<strong>)?Nguyễn Anh Tuấn(?:<\/strong>)? · Tổ trưởng chuyên môn Tiếng Anh/,
-  'Every-page author attribution must explicitly identify the creator.');
-assert.match(reportExport, /class="print-footer__credit"[^>]*>Thiết kế &amp; phát triển: <strong>Nguyễn Anh Tuấn<\/strong>/,
-  'Printed footer must emphasize the creator subtly, matching the approved mockup.');
-assert.match(reportExport, /Phục vụ công tác quản lý và theo dõi chuyên cần nội bộ/,
-  'Approved footer must retain the understated internal-management purpose line.');
+assert.doesNotMatch(reportExport, /class="print-footer"/,
+  'Printed footer must not use a fixed DOM element because Chromium can fragment it into table content.');
+assert.doesNotMatch(reportExport, /\.print-footer\s*\{[\s\S]*?position:fixed/s,
+  'Regression guard: fixed print footers must remain retired.');
+assert.match(reportExport, /Thiết kế &amp; phát triển: <strong>Nguyễn Anh Tuấn<\/strong> · Tổ trưởng chuyên môn Tiếng Anh/,
+  'HTML preview footer should still emphasize the creator subtly.');
 assert.match(reportExport, /reportExportTimestamp\(/,
   'Report must use a consistent export timestamp.');
 assert.match(reportExport, /return `\$\{value\.day\}\/\$\{value\.month\}\/\$\{value\.year\} \$\{value\.hour\}:\$\{value\.minute\}`/,
