@@ -87,7 +87,7 @@ assert.match(reportExport, /\.print-footer__title\{[^}]*font-size:7\.45pt/s,
   'Approved footer title must use print-point sizing rather than tiny screen pixels.');
 assert.match(reportExport, /@bottom-right\s*\{[\s\S]*?counter\(page\)\s*"\/"\s*counter\(pages\)/,
   'Printed footer must show its page number and total pages.');
-assert.match(reportExport, /Thiết kế & phát triển: Nguyễn Anh Tuấn · Tổ trưởng chuyên môn Tiếng Anh/,
+assert.match(reportExport, /Thiết kế &amp; phát triển: (?:<strong>)?Nguyễn Anh Tuấn(?:<\/strong>)? · Tổ trưởng chuyên môn Tiếng Anh/,
   'Every-page author attribution must explicitly identify the creator.');
 assert.match(reportExport, /class="print-footer__credit"[^>]*>Thiết kế &amp; phát triển: <strong>Nguyễn Anh Tuấn<\/strong>/,
   'Printed footer must emphasize the creator subtly, matching the approved mockup.');
