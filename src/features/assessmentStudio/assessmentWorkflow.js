@@ -44,17 +44,21 @@ export function scoreAssessmentSubmission(assessment,input={}) {
   if(kind==='writing'&&!studentText)throw new Error('Writing Assessment cần nhập nội dung bài viết học sinh.');
   if(kind==='project'&&!studentText)throw new Error('ProjectMark cần ghi tên/mô tả sản phẩm được đánh giá.');
   if(module.engine==='rubric'){
-    const grade=gradeRubric(kind,input.marks||{});
+    const defaults=Object.fromEntries((RUBRICS[kind]||[]).map(c=>[c,2]));
+    const grade=gradeRubric(kind,{...defaults,...(input.marks||{})});
     return {score:grade.score,max_score:grade.maxScore,
       answers:grade.criteria,breakdown:{criteria:grade.criteria,note,studentText,assessor}};
   }
   if(module.engine==='scale'){
-    const grade=gradeSelfRatings(config.statements||[],input.selfRatings||[]);
+    const marks=(config.statements||[]).map((_,i)=>input.selfRatings?.[i]??2);
+    const grade=gradeSelfRatings(config.statements||[],marks);
     return {score:grade.score,max_score:grade.maxScore,
-      answers:input.selfRatings,breakdown:{criteria:grade.criteria,assessmentType:'self_report',note}};
+      answers:marks,breakdown:{criteria:grade.criteria,assessmentType:'self_report',note}};
   }
   if(module.engine==='manual'){
-    const grade=gradeManual(config.questions||[],input.manualResponses||[],input.manualAccepted||[]);
+    const responses=(config.questions||[]).map((_,i)=>input.manualResponses?.[i]||'');
+    const decisions=(config.questions||[]).map((_,i)=>input.manualAccepted?.[i]===true);
+    const grade=gradeManual(config.questions||[],responses,decisions);
     return {score:grade.score,max_score:grade.maxScore,answers:grade.answers,
       breakdown:{topics:grade.topics,detail:grade.detail,note,assessmentType:'teacher_marked'}};
   }
