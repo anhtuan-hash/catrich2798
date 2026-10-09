@@ -6,6 +6,7 @@ import { MODULES, RUBRICS, moduleFor } from '../features/assessmentStudio/catalo
 import { buildAssessmentConfig, emptyStudentInput, scoreAssessmentSubmission, startingDraft } from '../features/assessmentStudio/assessmentWorkflow.js';
 import { CreateAssessmentFields, AssessmentResultFields } from '../features/assessmentStudio/AssessmentForms.jsx';
 import { buildEvidenceHtml } from '../features/assessmentStudio/evidenceReport.js';
+import { buildBlankStudentHandout } from '../features/assessmentStudio/studentHandout.js';
 import { prepareBulkRows } from '../features/assessmentStudio/bulkImport.js';
 import { ensureNewStudentCodes, assertScoredResult } from '../features/assessmentStudio/recordIntegrity.js';
 import './AssessmentStudio.css';
@@ -200,6 +201,14 @@ export default function AssessmentStudio({ currentUser }) {
     setTimeout(() => URL.revokeObjectURL(url),1000);
   };
 
+  const printBlankHandout = () => {
+    if(!selected)return;
+    const html=buildBlankStudentHandout(selected);
+    const w=window.open('', '_blank');
+    if(!w){setError('Trình duyệt chặn cửa sổ in. Vui lòng cho phép mở cửa sổ mới.');return;}
+    w.document.open();w.document.write(html);w.document.close();
+  };
+
   const printEvidence = () => {
     if (!selected) return;
     const html=buildEvidenceHtml({assessment:selected,results,adjustments,paired,includeNames});
@@ -264,7 +273,7 @@ export default function AssessmentStudio({ currentUser }) {
         <button type="button" className="bas-back" onClick={()=>{setSelectedId('');setView('dashboard')}}><ArrowLeft size={17}/> Danh sách đánh giá</button>
         <div className="bas-hint">Mỗi học sinh chỉ có một kết quả trong một đợt đánh giá. Bài đã ghi nhận không bị ghi đè; nếu nhập sai cần quy trình điều chỉnh có lưu vết.</div>
         <div className="bas-section-heading"><div><span className="bas-kicker">{tag}</span><h2>{selected.title}</h2><p>{selected.class_label || 'Chưa chọn lớp'} · {selected.objective || 'Chưa ghi mục tiêu'}</p></div>
-          <div className="bas-actions"><label className="bas-inline-check"><input type="checkbox" checked={includeNames} onChange={e=>setIncludeNames(e.target.checked)}/> Hiện tên HS trên PDF</label><button type="button" onClick={downloadCSV}><Download size={17}/> Xuất Excel/CSV</button><button type="button" onClick={printEvidence}><Printer size={17}/> Hồ sơ PDF</button></div>
+          <div className="bas-actions"><label className="bas-inline-check"><input type="checkbox" checked={includeNames} onChange={e=>setIncludeNames(e.target.checked)}/> Hiện tên HS trên PDF</label><button type="button" onClick={printBlankHandout}><FileText size={17}/> In phiếu học sinh</button><button type="button" onClick={downloadCSV}><Download size={17}/> Xuất Excel/CSV</button><button type="button" onClick={printEvidence}><Printer size={17}/> Hồ sơ PDF</button></div>
         </div>
         <div className="bas-stats">
           <div><small>Lượt đánh giá đã nhập</small><b>{statistics.count}</b></div>
