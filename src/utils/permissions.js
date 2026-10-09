@@ -16,6 +16,7 @@ export const ROUTE_PERMISSION_IDS = {
   'work-hub': 'route:work-hub',
   'content-ecosystem': 'route:content-ecosystem',
   'assessment-core': 'route:assessment-core',
+  'assessment-studio': 'route:assessment-core', // Reuses the existing Assessment Core grant.
   'platform-readiness': 'route:platform-readiness',
   'automation-center': 'route:automation-center',
   'cloud-operations': 'route:cloud-operations',
@@ -442,7 +443,7 @@ export function getRoutePermissionId(route) {
   if (route === 'news') return getToolPermissionId('news-reader');
   if (route === 'homeroom') return HOMEROOM_PERMISSION_ID;
   if (route === 'attendance') return ATTENDANCE_PERMISSION_IDS.quick;
-  if (route === 'dashboard' || route === 'student-support' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'attendance' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
+  if (route === 'dashboard' || route === 'student-support' || route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'assessment-studio' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'app-vault' || route === 'qa' || route === 'attendance' || route === 'settings') return ROUTE_PERMISSION_IDS[route];
   return '';
 }
 
@@ -461,7 +462,7 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   if (route === 'homeroom') return hasPermissionId(user, HOMEROOM_PERMISSION_ID);
   if (route === 'attendance') return hasAnyAttendanceAccess(user);
   if (route === 'apps' || route === 'tools') return true;
-  if (route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'qa' || route === 'attendance' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
+  if (route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'assessment-studio' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'qa' || route === 'attendance' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
   return false;
 }
 
