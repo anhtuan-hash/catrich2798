@@ -121,7 +121,7 @@ const QuestionBankPractice = lazy(() => import('./pages/QuestionBankPractice.jsx
 const AssessmentPreview = lazy(() => import('./pages/AssessmentPreview.jsx'));
 const ClassroomJoin = lazy(() => import('./pages/ClassroomJoin.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'tools', 'homeroom', 'homeroom-portal', 'classroom-join', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
+const ROUTES = ['home', 'apps', 'news', 'tools', 'homeroom', 'homeroom-portal', 'classroom-join', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'assessment-preview', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'qb-practice']);
 
 function getInitialRoute() {
@@ -539,6 +539,11 @@ function App() {
             {canAccessRoute && currentRoute === 'assessment-core' && currentUser && (
               <AppErrorBoundary scope="question-bank" label={language === 'vi' ? 'Ngân hàng câu hỏi' : 'Question Bank'}>
                 <QuestionBank {...context} />
+              </AppErrorBoundary>
+            )}
+            {canAccessRoute && currentRoute === 'assessment-preview' && currentUser && (
+              <AppErrorBoundary scope="assessment-preview" label="BRIAN Assessment Studio">
+                <AssessmentPreview />
               </AppErrorBoundary>
             )}
             {currentRoute === 'qb-practice' && <QuestionBankPractice />}
