@@ -161,6 +161,9 @@ export default function AssessmentStudio({ currentUser }) {
     if (adjust.status === 'reviewed' && !adjust.followup_assessment_id) {
       throw new Error('Hãy liên kết bài đánh giá lại thực tế.');
     }
+    if (adjust.status === 'reviewed' && paired.pairs < 1) {
+      throw new Error('Chưa đủ kết quả của cùng học sinh ở cả hai lần đánh giá. Hãy nhập mã học sinh trùng khớp và tải kết quả sau kiểm tra.');
+    }
     if (adjust.status === 'reviewed' && !adjust.followup_result.trim()) {
       throw new Error('Trạng thái đã đánh giá lại yêu cầu ghi kết quả kiểm tra sau điều chỉnh.');
     }
