@@ -1,20 +1,7 @@
 // Deterministic grading only: no remote services or generative systems.
-export const MODULES = [
-  { id: 'speaking', name: 'SpeakScale', subtitle: 'Speaking Rubric', status: 'ready' },
-  { id: 'diagnostic', name: 'DiagnosticScan', subtitle: 'Diagnostic Assessment', status: 'ready' },
-  { id: 'exit', name: 'ExitTicket', subtitle: 'End-of-Lesson Assessment', status: 'ready' },
-  { id: 'error', name: 'ErrorClinic', subtitle: 'Error Correction', status: 'planned' },
-  { id: 'vocabulary', name: 'VocabCheck', subtitle: 'Vocabulary Assessment', status: 'planned' },
-  { id: 'reading', name: 'ReadProof', subtitle: 'Reading Assessment', status: 'planned' },
-  { id: 'listening', name: 'ListenCheck', subtitle: 'Listening Assessment', status: 'planned' },
-  { id: 'writing', name: 'WriteRubric', subtitle: 'Writing Assessment', status: 'planned' },
-  { id: 'rewrite', name: 'RewriteLab', subtitle: 'Sentence Transformation', status: 'planned' },
-  { id: 'self', name: 'CanDo Check', subtitle: 'Self-Assessment', status: 'planned' },
-  { id: 'peer', name: 'PeerRubric', subtitle: 'Peer Assessment', status: 'planned' },
-  { id: 'project', name: 'ProjectMark', subtitle: 'Performance Assessment', status: 'planned' },
-];
-export const SPEAKING_CRITERIA = ['Pronunciation', 'Fluency', 'Vocabulary', 'Grammar', 'Content'];
-export const LETTERS = ['A', 'B', 'C', 'D'];
+import { LETTERS, RUBRICS } from './catalogue.js';
+export { LETTERS, MODULES } from './catalogue.js';
+export const SPEAKING_CRITERIA = RUBRICS.speaking;
 
 export function parseQuestions(raw) {
   const lines = String(raw || '').split(/\r?\n/).map(x => x.trim()).filter(Boolean);
@@ -105,4 +92,96 @@ export function comparePairedOutcomes(before, after) {
   return { pairs, beforeAverage: pairs ? beforeTotal / pairs : null,
     afterAverage: pairs ? afterTotal / pairs : null,
     change: pairs ? (afterTotal - beforeTotal) / pairs : null };
+}
+
+export function parseManualPrompts(raw) {
+  const lines = String(raw || '').split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+  if (!lines.length || lines.length > 30) throw new Error('Nhập từ 1 đến 30 câu sửa lỗi hoặc viết lại.');
+  return lines.map((line,index) => {
+    const p=line.split('|').map(v=>v.trim());
+    if (p.length !== 3 || p.some(v=>!v)) throw new Error('Dòng '+(index+1)+' cần: Yêu cầu | Đáp án tham khảo | Chủ điểm.');
+    return { prompt:p[0], sampleAnswer:p[1], topic:p[2] };
+  });
+}
+
+export function parseReadingQuestions(raw) {
+  const lines=String(raw||'').split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+  if (!lines.length || lines.length > 20) throw new Error('ReadProof cần 1–20 câu có dẫn chứng P1, P2, ...');
+  return lines.map((line,index)=>{
+    const p=line.split('|').map(v=>v.trim());
+    if (p.length!==8 || !LETTERS.includes((p[5]||'').toUpperCase()) || p.slice(0,5).some(v=>!v) || !/^P[1-9]\d*$/i.test(p[7])){
+      throw new Error('Dòng '+(index+1)+' cần 8 cột: Câu | A | B | C | D | Đáp án | Kỹ năng | Mã đoạn P1.');
+    }
+    return {stem:p[0],options:p.slice(1,5),correct:p[5].toUpperCase(),topic:p[6]||'Reading',evidence:p[7].toUpperCase()};
+  });
+}
+
+function answerLetters(raw, count) {
+  const result=String(raw||'').toUpperCase().replace(/[\s,;|]+/g,'').split('');
+  if (result.length!==count || result.some(v=>!LETTERS.includes(v))){
+    throw new Error('Cần nhập chính xác '+count+' đáp án A–D.');
+  }
+  return result;
+}
+
+export function gradeReading(questions, rawAnswers, rawEvidence) {
+  if (!Array.isArray(questions)||!questions.length) throw new Error('Cần có câu hỏi ReadProof.');
+  const responses=answerLetters(rawAnswers, questions.length);
+  const cited=String(rawEvidence||'').toUpperCase().split(/[,;\n]/).map(x=>x.trim());
+  if(cited.length!==questions.length || cited.some(v=>!/^P[1-9]\d*$/.test(v))) throw new Error('Nhập một mã dẫn chứng P1, P2,... cho mỗi câu, phân cách bằng dấu phẩy.');
+  const topics={};
+  let score=0;
+  const detail=questions.map((q,i)=>{
+    const answerOk=responses[i]===q.correct;
+    const evidenceOk=cited[i]===q.evidence;
+    const topic=q.topic||'Reading';
+    if(!topics[topic])topics[topic]={achieved:0,total:0};
+    topics[topic].total+=2;
+    topics[topic].achieved+=Number(answerOk)+Number(evidenceOk);
+    score+=Number(answerOk)+Number(evidenceOk);
+    return {number:i+1,selected:responses[i],correctAnswer:q.correct,evidenceSelected:cited[i],correctEvidence:q.evidence,answerOk,evidenceOk,topic};
+  });
+  return {score,maxScore:questions.length*2,topics,detail,answers:responses,evidence:cited};
+}
+
+export function gradeManual(questions, rawResponses, rawDecisions) {
+  if(!Array.isArray(questions)||!questions.length)throw new Error('Chưa có câu hỏi tự luận.');
+  if(!Array.isArray(rawResponses)||rawResponses.length!==questions.length ||
+    !Array.isArray(rawDecisions)||rawDecisions.length!==questions.length ||
+    rawDecisions.some(v=>typeof v!=='boolean'))throw new Error('Cần chấm tất cả câu theo Đạt/Chưa đạt.');
+  const topics={};
+  let score=0;
+  const detail=questions.map((q,i)=>{
+    const passed=rawDecisions[i];
+    const topic=q.topic||'Chưa phân loại';
+    if(!topics[topic])topics[topic]={achieved:0,total:0};
+    topics[topic].total+=1; topics[topic].achieved+=Number(passed);
+    score+=Number(passed);
+    return {number:i+1,studentResponse:String(rawResponses[i]||''),sampleAnswer:q.sampleAnswer,teacherAccepted:passed,topic};
+  });
+  return {score,maxScore:questions.length,answers:rawResponses,topics,detail};
+}
+
+export function gradeRubric(kind, rawMarks) {
+  const criteria=RUBRICS[kind];
+  if(!criteria)throw new Error('Không có rubric cho sản phẩm này.');
+  const values=criteria.map(key=>Number(rawMarks?.[key]));
+  if(values.some(v=>!Number.isInteger(v)||v<0||v>4))throw new Error('Mỗi tiêu chí rubric phải được chấm 0–4 điểm.');
+  return {score:values.reduce((sum,v)=>sum+v,0),maxScore:criteria.length*4,
+    criteria:Object.fromEntries(criteria.map((name,i)=>[name,values[i]]))};
+}
+
+export function gradeSelfRatings(statements, rawMarks) {
+  if(!Array.isArray(statements)||!statements.length||statements.length>12) throw new Error('Cần từ 1 đến 12 phát biểu I can.');
+  const values=statements.map((_,i)=>Number(rawMarks?.[i]));
+  if(values.some(v=>!Number.isInteger(v)||v<1||v>4))throw new Error('Mỗi phát biểu I can cần có mức tự đánh giá từ 1 đến 4.');
+  return {score:values.reduce((sum,v)=>sum+v,0),maxScore:values.length*4,
+    criteria:Object.fromEntries(statements.map((name,i)=>[name,values[i]]))};
+}
+
+export function safeHttpUrl(raw) {
+  const input=String(raw||'').trim();
+  if(!input)return '';
+  try {const url=new URL(input);if(url.protocol==='http:'||url.protocol==='https:')return url.href;}catch{}
+  throw new Error('Đường dẫn audio phải sử dụng https:// hoặc http:// hợp lệ.');
 }
