@@ -9,7 +9,7 @@ const TwoTierStudio = lazy(() => import('../features/assessmentStudio/TwoTierStu
  * Real scores are never loaded here; the standalone HTML uses fixed demo data.
  */
 export default function AssessmentPreview() {
-  const [activeTool,setActiveTool]=useState(()=>typeof window!=='undefined' && window.location.hash.includes('tool=speaking')?'speaking':typeof window!=='undefined'&&window.location.hash.includes('tool=diagnostic')?'diagnostic':typeof window!=='undefined'&&window.location.hash.includes('tool=exit')?'exit':window.location.hash.includes('tool=two-tier')?'two-tier':'catalog');
+  const [activeTool,setActiveTool]=useState(()=>typeof window!=='undefined' && window.location.hash.includes('tool=speaking')?'speaking':typeof window!=='undefined'&&window.location.hash.includes('tool=diagnostic')?'diagnostic':typeof window!=='undefined'&&window.location.hash.includes('tool=exit')?'exit':typeof window!=='undefined'&&window.location.hash.includes('tool=two-tier')?'two-tier':'catalog');
   const [speakingVisited,setSpeakingVisited]=useState(()=>typeof window!=='undefined' && window.location.hash.includes('tool=speaking'));
   const [diagnosticVisited,setDiagnosticVisited]=useState(()=>typeof window!=='undefined'&&window.location.hash.includes('tool=diagnostic'));
   const [exitVisited,setExitVisited]=useState(()=>typeof window!=='undefined'&&window.location.hash.includes('tool=exit'));
