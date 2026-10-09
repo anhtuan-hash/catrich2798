@@ -1,0 +1,25 @@
+name: ExitTicket Assessment Tool
+on:
+  pull_request:
+    paths:
+      - 'src/features/assessmentStudio/**'
+      - 'src/pages/AssessmentPreview.jsx'
+      - 'public/assessment-studio-preview.html'
+      - 'tests/assessment-exitticket.test.mjs'
+      - '.github/workflows/assessment-exitticket.yml'
+  workflow_dispatch:
+jobs:
+  verify-exit-ticket:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Verify non-AI exit ticket grading and evidence exports
+        run: node --test tests/assessment-exitticket.test.mjs
+      - name: Build BRIAN production bundle
+        run: npx vite build
