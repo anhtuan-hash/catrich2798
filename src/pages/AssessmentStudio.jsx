@@ -1,12 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BarChart3, BookOpenCheck, ClipboardCheck, FileText, Mic2, Plus, Printer, Save, TicketCheck, Download, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { supabase } from '../utils/supabase.js';
-import { MODULES, LETTERS, SPEAKING_CRITERIA, parseQuestions, gradeObjective, gradeSpeaking, summarizeResults, comparePairedOutcomes, csvEscape } from '../features/assessmentStudio/assessmentMath.js';
+import { comparePairedOutcomes, summarizeResults, csvEscape } from '../features/assessmentStudio/assessmentMath.js';
+import { MODULES, RUBRICS, moduleFor } from '../features/assessmentStudio/catalogue.js';
+import { buildAssessmentConfig, emptyStudentInput, scoreAssessmentSubmission, startingDraft } from '../features/assessmentStudio/assessmentWorkflow.js';
+import { CreateAssessmentFields, AssessmentResultFields } from '../features/assessmentStudio/AssessmentForms.jsx';
 import './AssessmentStudio.css';
 
-const emptyDraft = () => ({ kind: 'diagnostic', title: '', classLabel: '', objective: '', questions: '' });
+const emptyDraft = startingDraft;
 const emptyAdjustment = () => ({ finding: '', action_taken: '', status: 'planned', implementation_date: '', evidence_note: '', followup_result: '', followup_assessment_id: '' });
-const initialMarks = () => Object.fromEntries(SPEAKING_CRITERIA.map(k => [k, 2]));
 const escapeHtml = v => String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 const fmtDate = value => value ? new Date(value).toLocaleDateString('vi-VN') : '—';
 const percent = (a,b) => b ? Math.round(a/b*100) : 0;
@@ -22,8 +24,7 @@ export default function AssessmentStudio({ currentUser }) {
   const [adjust, setAdjust] = useState(emptyAdjustment);
   const [studentName, setStudentName] = useState('');
   const [studentCode, setStudentCode] = useState('');
-  const [answers, setAnswers] = useState('');
-  const [marks, setMarks] = useState(initialMarks);
+  const [studentInput, setStudentInput] = useState(emptyStudentInput);
   const [view, setView] = useState('dashboard');
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
@@ -100,11 +101,10 @@ export default function AssessmentStudio({ currentUser }) {
     if (!owner || !supabase) throw new Error('Cần đăng nhập và cấu hình Supabase.');
     const title = draft.title.trim();
     if (!title) throw new Error('Vui lòng nhập tên bài đánh giá.');
-    const questions = draft.kind === 'speaking' ? [] : parseQuestions(draft.questions);
-    if (draft.kind === 'exit' && questions.length > 3) throw new Error('Exit Ticket chỉ hỗ trợ tối đa 3 câu hỏi.');
+    const config = buildAssessmentConfig(draft.kind,draft);
     const { data, error: insertError } = await supabase.from('bes_assessments').insert({
       owner_id: owner, kind: draft.kind, title, class_label: draft.classLabel.trim(), objective: draft.objective.trim(),
-      config: draft.kind === 'speaking' ? { criteria: SPEAKING_CRITERIA } : { questions }
+      config
     }).select('id').single();
     if (insertError) throw insertError;
     await loadAssessments();
@@ -114,17 +114,15 @@ export default function AssessmentStudio({ currentUser }) {
   const recordResult = () => act(async () => {
     if (!selected || !owner || !supabase) throw new Error('Hãy chọn bài đánh giá.');
     if (!studentName.trim()) throw new Error('Cần nhập họ và tên học sinh.');
-    const grade = selected.kind === 'speaking'
-      ? gradeSpeaking(marks)
-      : gradeObjective(selected.config?.questions || [], answers);
+    const grade = scoreAssessmentSubmission(selected,studentInput);
     const { error: insertError } = await supabase.from('bes_assessment_results').insert({
       owner_id: owner, assessment_id: selectedId, student_name: studentName.trim(),
       student_code: studentCode.trim(), score: grade.score, max_score: grade.maxScore,
-      answers: selected.kind === 'speaking' ? grade.criteria : grade.answers,
-      breakdown: selected.kind === 'speaking' ? { criteria: grade.criteria } : { topics:grade.topics, detail:grade.detail }
+      answers: grade.answers,
+      breakdown: grade.breakdown
     });
     if (insertError) throw insertError;
-    setStudentName(''); setStudentCode(''); setAnswers(''); setMarks(initialMarks());
+    setStudentName(''); setStudentCode(''); setStudentInput(emptyStudentInput());
     await loadDetail();
   }, 'Đã lưu kết quả học sinh.');
 
@@ -183,7 +181,7 @@ export default function AssessmentStudio({ currentUser }) {
   };
 
   if (!currentUser) return <div className="bas-root"><h2>Vui lòng đăng nhập để sử dụng Assessment Studio.</h2></div>;
-  const tag = selected?.kind === 'speaking' ? 'SpeakScale' : selected?.kind === 'exit' ? 'ExitTicket' : 'DiagnosticScan';
+  const tag = moduleFor(selected?.kind)?.name || 'Assessment';
   const topics = Object.entries(statistics.topics);
 
   return (
@@ -206,7 +204,7 @@ export default function AssessmentStudio({ currentUser }) {
       {!supabase && <div className="bas-alert">Chưa cấu hình Supabase. Hệ thống không lưu dữ liệu vào trình duyệt để tránh nhầm minh chứng thử nghiệm với dữ liệu thật.</div>}
 
       {view === 'dashboard' && <>
-        <div className="bas-section-heading"><div><h2>12 công cụ đánh giá</h2><p>Ba công cụ đầu tiên đã có quy trình ghi kết quả. Các công cụ khác đang trong lộ trình phát triển.</p></div></div>
+        <div className="bas-section-heading"><div><h2>12 công cụ đánh giá</h2><p>12 quy trình nhập kết quả và đánh giá do giáo viên thực hiện. Chưa có cổng học sinh làm bài trực tuyến.</p></div></div>
         <div className="bas-grid">
           {MODULES.map((m,i) => {
             const Icon = [Mic2,ClipboardCheck,TicketCheck,FileText,BarChart3,BookOpenCheck][i%6];
@@ -230,22 +228,7 @@ export default function AssessmentStudio({ currentUser }) {
       {view === 'create' && <section className="bas-panel">
         <button type="button" className="bas-back" onClick={() => setView('dashboard')}><ArrowLeft size={17}/> Trở về tổng quan</button>
         <h2>Tạo bài đánh giá mới</h2>
-        <div className="bas-form-grid">
-          <label>Hình thức<select value={draft.kind} onChange={e=>setDraft(d=>({...d,kind:e.target.value}))}>
-            <option value="diagnostic">DiagnosticScan · Trắc nghiệm chẩn đoán</option>
-            <option value="speaking">SpeakScale · Rubric Speaking</option>
-            <option value="exit">ExitTicket · Phiếu cuối tiết</option>
-          </select></label>
-          <label>Tên bài đánh giá<input maxLength={180} value={draft.title} onChange={e=>setDraft(d=>({...d,title:e.target.value}))} placeholder="Ví dụ: Grammar pre-test – Unit 4"/></label>
-          <label>Lớp học<input value={draft.classLabel} onChange={e=>setDraft(d=>({...d,classLabel:e.target.value}))} placeholder="Ví dụ: 12.6"/></label>
-          <label>Mục tiêu đánh giá<input value={draft.objective} onChange={e=>setDraft(d=>({...d,objective:e.target.value}))} placeholder="Ví dụ: Gerund & Infinitive"/></label>
-        </div>
-        {draft.kind === 'speaking' ? <div className="bas-hint"><b>Speaking:</b> sử dụng 5 tiêu chí mặc định: {SPEAKING_CRITERIA.join(', ')}. Mỗi tiêu chí từ 0–4 điểm, giáo viên trực tiếp chấm.</div> :
-          <label>Câu hỏi trắc nghiệm (mỗi dòng là một câu)
-            <textarea rows={8} spellCheck={false} value={draft.questions} onChange={e=>setDraft(d=>({...d,questions:e.target.value}))}
-              placeholder={'She enjoys ___ books. | read | reading | to read | reads | B | Gerund\nHe decided ___ abroad. | study | studying | to study | studied | C | Infinitive'}/>
-            <small>Định dạng: Câu hỏi | Phương án A | B | C | D | Đáp án đúng | Chủ điểm. Diagnostic tối đa 50 câu; Exit Ticket tối đa 3 câu.</small>
-          </label>}
+        <CreateAssessmentFields draft={draft} setDraft={setDraft}/>
         <button type="button" className="bas-primary" disabled={busy || !supabase} onClick={create}><Save size={17}/>{busy?'Đang lưu...':'Lưu bài đánh giá'}</button>
       </section>}
 
@@ -256,32 +239,25 @@ export default function AssessmentStudio({ currentUser }) {
         </div>
         <div className="bas-stats">
           <div><small>Lượt đánh giá đã nhập</small><b>{statistics.count}</b></div>
-          <div><small>Điểm bình quân</small><b>{statistics.average.toFixed(1)}%</b></div>
+          <div><small>{selected.kind==='self'?'Trung bình tự đánh giá':'Điểm bình quân'}</small><b>{statistics.average.toFixed(1)}%</b></div>
           <div><small>Nhật ký điều chỉnh</small><b>{adjustments.length}</b></div>
         </div>
         <div className="bas-two-columns">
           <section className="bas-panel">
             <h3>Nhập kết quả đánh giá</h3>
-            <p className="bas-help">Phiên bản đầu tiên hỗ trợ giáo viên nhập kết quả học sinh từ hoạt động đã tổ chức; chưa mở cổng làm bài trực tuyến.</p>
+            <p className="bas-help">Giáo viên nhập câu trả lời hoặc điểm đánh giá thực tế; học sinh chưa đăng nhập để làm bài trực tuyến trong bản này.</p>
             <label>Họ và tên học sinh<input value={studentName} maxLength={160} onChange={e=>setStudentName(e.target.value)} placeholder="Họ tên thực tế"/></label>
             <label>Mã học sinh (không bắt buộc)<input value={studentCode} onChange={e=>setStudentCode(e.target.value)}/></label>
-            {selected.kind === 'speaking'
-              ? SPEAKING_CRITERIA.map(k=><label key={k}>{k} · {marks[k]}/4
-                <select value={marks[k]} onChange={e=>setMarks(m=>({...m,[k]:Number(e.target.value)}))}>{[0,1,2,3,4].map(n=><option key={n} value={n}>{n} điểm</option>)}</select>
-              </label>)
-              : <><p className="bas-help">Nhập các phương án A–D liên tiếp, theo đúng thứ tự câu hỏi.</p>
-                  <label>Đáp án của học sinh<input autoComplete="off" value={answers} onChange={e=>setAnswers(e.target.value.toUpperCase())} placeholder={'Ví dụ: '+'A'.repeat(Math.min(2,selected.config?.questions?.length||2))}/></label>
-                  <small>{selected.config?.questions?.length || 0} câu · Điểm được chấm theo đáp án cố định.</small>
-                </>}
+            <AssessmentResultFields key={selectedId} selected={selected} input={studentInput} setInput={setStudentInput}/>
             <button type="button" className="bas-primary" disabled={busy} onClick={recordResult}><Save size={17}/> Lưu kết quả</button>
           </section>
           <section className="bas-panel">
             <h3>Phân tích kết quả</h3>
             {results.length===0 ? <p className="bas-help">Chưa có kết quả. Biểu đồ chỉ xuất hiện khi có dữ liệu đã nhập.</p>:null}
             {topics.map(([topic,v])=><div className="bas-progress" key={topic}><span>{topic} · {percent(v.achieved,v.total)}%</span><div><i style={{width:percent(v.achieved,v.total)+'%'}}/></div></div>)}
-            {selected.kind==='speaking' && SPEAKING_CRITERIA.map(k=>{
+            {['rubric','scale'].includes(moduleFor(selected.kind)?.engine) && (selected.config?.criteria||selected.config?.statements||[]).map(k=>{
               const total=results.reduce((sum,r)=>sum+Number(r.breakdown?.criteria?.[k]||0),0);
-              return <div className="bas-progress" key={k}><span>{k} · {results.length?(total/results.length).toFixed(1):0}/4</span><div><i style={{width:percent(total,results.length*4)+'%'}}/></div></div>;
+              return <div className="bas-progress" key={k}><span>{k} · {results.length?(total/results.length).toFixed(1):'0'}/4</span><div><i style={{width:percent(total,results.length*4)+'%'}}/></div></div>;
             })}
             {results.length ? <div className="bas-results-table"><table><thead><tr><th>Học sinh</th><th>Điểm</th><th>Ngày</th></tr></thead><tbody>
               {results.map(r=><tr key={r.id}><td>{r.student_name}</td><td>{r.score}/{r.max_score}</td><td>{fmtDate(r.assessed_at)}</td></tr>)}
