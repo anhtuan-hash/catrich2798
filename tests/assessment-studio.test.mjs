@@ -140,7 +140,7 @@ test('evidence report escapes stored content and masks student names by default'
   });
   assert.ok(report.includes('&lt;script&gt;alert(1)&lt;/script&gt;'));
   assert.ok(!report.includes('Nguyen Secret Name'));
-  assert.ok(report.includes('Đối chiếu'));
+  assert.ok(report.includes('Đánh giá lại và nhận xét'));
   assert.ok(report.includes('Điều chỉnh hoạt động dạy học'));
 });
 
