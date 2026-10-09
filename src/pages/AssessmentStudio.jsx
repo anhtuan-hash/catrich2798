@@ -7,6 +7,7 @@ import { buildAssessmentConfig, emptyStudentInput, scoreAssessmentSubmission, st
 import { CreateAssessmentFields, AssessmentResultFields } from '../features/assessmentStudio/AssessmentForms.jsx';
 import { buildEvidenceHtml } from '../features/assessmentStudio/evidenceReport.js';
 import { prepareBulkRows } from '../features/assessmentStudio/bulkImport.js';
+import { ensureNewStudentCodes, assertScoredResult } from '../features/assessmentStudio/recordIntegrity.js';
 import './AssessmentStudio.css';
 
 const emptyDraft = startingDraft;
@@ -99,7 +100,7 @@ export default function AssessmentStudio({ currentUser }) {
     if (busy) return;
     setBusy(true); setError(''); setNotice('');
     try { await operation(); setNotice(success); }
-    catch(e) { setError(e.message || 'Thao tác thất bại, vui lòng thử lại.'); }
+    catch(e) { setError(e.code === '23505' ? 'Đã tồn tại điểm của mã học sinh này trong đợt đánh giá. Dữ liệu không bị ghi đè. Hãy đối chiếu kết quả hiện có.' : (e.message || 'Thao tác thất bại, vui lòng thử lại.')); }
     finally { setBusy(false); }
   };
 
@@ -120,10 +121,17 @@ export default function AssessmentStudio({ currentUser }) {
   const recordResult = () => act(async () => {
     if (!selected || !owner || !supabase) throw new Error('Hãy chọn bài đánh giá.');
     if (!studentName.trim()) throw new Error('Cần nhập họ và tên học sinh.');
+    const code=ensureNewStudentCodes([studentCode], results)[0];
     const grade = scoreAssessmentSubmission(selected,studentInput);
+    assertScoredResult(grade);
+    const {data:existing,error:lookupError}=await supabase.from('bes_assessment_results')
+      .select('student_code').eq('owner_id',owner).eq('assessment_id',selectedId)
+      .eq('student_code',code).limit(1);
+    if(lookupError)throw lookupError;
+    ensureNewStudentCodes([code],existing||[]);
     const { error: insertError } = await supabase.from('bes_assessment_results').insert({
       owner_id: owner, assessment_id: selectedId, student_name: studentName.trim(),
-      student_code: studentCode.trim(), score: grade.score, max_score: grade.max_score,
+      student_code: code, score: grade.score, max_score: grade.max_score,
       answers: grade.answers,
       breakdown: grade.breakdown
     });
@@ -136,6 +144,7 @@ export default function AssessmentStudio({ currentUser }) {
     setError('');setNotice('');
     try {
       const rows=prepareBulkRows(selected,bulkText);
+      ensureNewStudentCodes(rows.map(row=>row.student_code),results);
       setBulkPreview(rows);
       setNotice('Đã kiểm tra '+rows.length+' kết quả hợp lệ. Chưa lưu vào hệ thống.');
     } catch(e) {setBulkPreview([]);setError(e.message);}
@@ -144,7 +153,12 @@ export default function AssessmentStudio({ currentUser }) {
   const saveBulk = () => act(async () => {
     if(!selected||!owner||!supabase)throw new Error('Vui lòng đăng nhập và chọn bài đánh giá.');
     const rows=prepareBulkRows(selected,bulkText);
-    if(!rows.length||rows.length!==bulkPreview.length)throw new Error('Hãy kiểm tra lại bản xem trước.');
+    if(!rows.length||JSON.stringify(rows)!==JSON.stringify(bulkPreview))throw new Error('Nội dung nhập đã thay đổi; hãy kiểm tra bản xem trước một lần nữa.');
+    ensureNewStudentCodes(rows.map(row=>row.student_code),results);
+    const {data:existing,error:lookupError}=await supabase.from('bes_assessment_results')
+      .select('student_code').eq('owner_id',owner).eq('assessment_id',selectedId).limit(1000);
+    if(lookupError)throw lookupError;
+    ensureNewStudentCodes(rows.map(row=>row.student_code),existing||[]);
     const {error:insertError}=await supabase.from('bes_assessment_results')
       .insert(rows.map(row=>({...row,owner_id:owner,assessment_id:selected.id})));
     if(insertError)throw insertError;
@@ -248,6 +262,7 @@ export default function AssessmentStudio({ currentUser }) {
 
       {view === 'assessment' && selected && <div className="bas-workspace">
         <button type="button" className="bas-back" onClick={()=>{setSelectedId('');setView('dashboard')}}><ArrowLeft size={17}/> Danh sách đánh giá</button>
+        <div className="bas-hint">Mỗi học sinh chỉ có một kết quả trong một đợt đánh giá. Bài đã ghi nhận không bị ghi đè; nếu nhập sai cần quy trình điều chỉnh có lưu vết.</div>
         <div className="bas-section-heading"><div><span className="bas-kicker">{tag}</span><h2>{selected.title}</h2><p>{selected.class_label || 'Chưa chọn lớp'} · {selected.objective || 'Chưa ghi mục tiêu'}</p></div>
           <div className="bas-actions"><label className="bas-inline-check"><input type="checkbox" checked={includeNames} onChange={e=>setIncludeNames(e.target.checked)}/> Hiện tên HS trên PDF</label><button type="button" onClick={downloadCSV}><Download size={17}/> Xuất Excel/CSV</button><button type="button" onClick={printEvidence}><Printer size={17}/> Hồ sơ PDF</button></div>
         </div>
@@ -261,7 +276,7 @@ export default function AssessmentStudio({ currentUser }) {
             <h3>Nhập kết quả đánh giá</h3>
             <p className="bas-help">Giáo viên nhập câu trả lời hoặc điểm đánh giá thực tế; học sinh chưa đăng nhập để làm bài trực tuyến trong bản này.</p>
             <label>Họ và tên học sinh<input value={studentName} maxLength={160} onChange={e=>setStudentName(e.target.value)} placeholder="Họ tên thực tế"/></label>
-            <label>Mã học sinh (không bắt buộc)<input value={studentCode} onChange={e=>setStudentCode(e.target.value)}/></label>
+            <label>Mã học sinh (bắt buộc, để tránh trùng và đối chiếu trước–sau)<input required maxLength={40} autoComplete="off" value={studentCode} onChange={e=>setStudentCode(e.target.value.toUpperCase())} placeholder="Ví dụ: S001 hoặc 00012345"/></label>
             <AssessmentResultFields key={selectedId} selected={selected} input={studentInput} setInput={setStudentInput}/>
             <button type="button" className="bas-primary" disabled={busy} onClick={recordResult}><Save size={17}/> Lưu kết quả</button>
             {['quiz','reading'].includes(moduleFor(selected.kind)?.engine) && <details className="bas-bulk">
