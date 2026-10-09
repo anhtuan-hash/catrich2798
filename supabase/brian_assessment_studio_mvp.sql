@@ -57,6 +57,7 @@ create table if not exists public.bes_assessment_adjustments (
   action_taken text not null default '',
   status text not null default 'planned' check (status in ('planned','implemented','reviewed')),
   constraint bes_assessment_review_link check (status <> 'reviewed' or followup_assessment_id is not null),
+  constraint bes_assessment_no_self_followup check (followup_assessment_id is distinct from assessment_id),
   implementation_date date,
   evidence_note text not null default '',
   followup_result text not null default '',
