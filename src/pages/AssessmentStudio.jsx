@@ -5,6 +5,7 @@ import { comparePairedOutcomes, summarizeResults, csvEscape } from '../features/
 import { MODULES, RUBRICS, moduleFor } from '../features/assessmentStudio/catalogue.js';
 import { buildAssessmentConfig, emptyStudentInput, scoreAssessmentSubmission, startingDraft } from '../features/assessmentStudio/assessmentWorkflow.js';
 import { CreateAssessmentFields, AssessmentResultFields } from '../features/assessmentStudio/AssessmentForms.jsx';
+import { buildEvidenceHtml } from '../features/assessmentStudio/evidenceReport.js';
 import './AssessmentStudio.css';
 
 const emptyDraft = startingDraft;
@@ -28,9 +29,11 @@ export default function AssessmentStudio({ currentUser }) {
   const [view, setView] = useState('dashboard');
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
+  const [includeNames, setIncludeNames] = useState(false);
   const detailRequestRef = useRef(0);
   const [error, setError] = useState('');
   const selected = items.find(item => item.id === selectedId) || null;
+  useEffect(() => {setStudentInput(emptyStudentInput());setAdjust(emptyAdjustment());setResults([]);setAdjustments([]);setFollowupResults([]);},[selectedId]);
   const statistics = useMemo(() => summarizeResults(results), [results]);
   const followupId = adjust.followup_assessment_id || adjustments.find(a => a.followup_assessment_id)?.followup_assessment_id || '';
   const paired = useMemo(() => comparePairedOutcomes(results, followupResults), [results, followupResults]);
@@ -159,25 +162,10 @@ export default function AssessmentStudio({ currentUser }) {
 
   const printEvidence = () => {
     if (!selected) return;
-    const safe = escapeHtml;
-    const lines = results.map((r,i) => '<tr><td>'+ (i+1) +'</td><td>'+safe(r.student_name)+'</td><td>'+safe(r.score)+' / '+safe(r.max_score)+'</td></tr>').join('');
-    const logs = adjustments.map(log => '<section><b>Vấn đề:</b> '+safe(log.finding)+
-      '<p><b>Điều chỉnh:</b> '+safe(log.action_taken)+'</p><p><b>Trạng thái:</b> '+safe(log.status)+
-      ' · <b>Ngày:</b> '+safe(log.implementation_date || 'Chưa ghi nhận')+'</p><p><b>Minh chứng:</b> '+safe(log.evidence_note)+
-      '</p><p><b>Kết quả sau điều chỉnh:</b> '+safe(log.followup_result)+'</p><p><b>ID bài đánh giá lại:</b> '+safe(log.followup_assessment_id || 'Chưa liên kết')+'</p></section>').join('');
-    const html = '<!doctype html><html lang="vi"><meta charset="utf-8"><title>Minh chứng đánh giá · BRIAN</title>'+
-      '<style>body{font:15px Arial,sans-serif;max-width:850px;margin:40px auto;color:#223}h1{font-size:25px}h2{font-size:19px;margin-top:28px}table{width:100%;border-collapse:collapse}td,th{border:1px solid #bbb;padding:9px;text-align:left}section{padding:12px 0;border-bottom:1px solid #ddd}button{padding:12px 16px}@media print{button{display:none}body{margin:0}}</style>'+
-      '<h1>BRIAN · Hồ sơ minh chứng kiểm tra, đánh giá</h1><p>Chỉ ghi nhận kết quả đã nhập và biện pháp đã được giáo viên xác nhận.</p>'+
-      '<p><b>Công cụ:</b> '+safe(selected.kind)+' · <b>Bài đánh giá:</b> '+safe(selected.title)+'</p>'+
-      '<p><b>Lớp:</b> '+safe(selected.class_label)+' · <b>Mục tiêu:</b> '+safe(selected.objective)+'</p>'+
-      '<p><b>Số kết quả:</b> '+statistics.count+' · <b>Điểm bình quân (%):</b> '+statistics.average.toFixed(1)+'</p>'+
-      '<h2>Kết quả đánh giá</h2><table><thead><tr><th>STT</th><th>Học sinh</th><th>Điểm</th></tr></thead><tbody>'+lines+'</tbody></table>'+
-      '<h2>Đối chiếu trước–sau</h2><p>'+ (paired.pairs ? ('Số học sinh ghép theo mã: '+paired.pairs+'; trước: '+paired.beforeAverage.toFixed(1)+'%; sau: '+paired.afterAverage.toFixed(1)+'%; chênh lệch: '+paired.change.toFixed(1)+' điểm phần trăm.') : 'Chưa có đủ mã học sinh khớp giữa hai bài để tính tiến bộ cá nhân.') + '</p>'+
-      '<h2>Nhật ký điều chỉnh dạy học</h2>'+(logs || '<p>Chưa có biện pháp được ghi nhận.</p>')+
-      '<p>Ngày xuất: '+safe(new Date().toLocaleString('vi-VN'))+'</p><button onclick="window.print()">In / Lưu PDF</button></html>';
-    const w = window.open('', '_blank');
-    if (!w) { setError('Trình duyệt đang chặn cửa sổ báo cáo. Vui lòng cho phép pop-up.'); return; }
-    w.document.open(); w.document.write(html); w.document.close();
+    const html=buildEvidenceHtml({assessment:selected,results,adjustments,paired,includeNames});
+    const w=window.open('', '_blank');
+    if(!w){setError('Trình duyệt chặn cửa sổ in. Vui lòng cho phép pop-up để xem báo cáo.');return;}
+    w.document.open();w.document.write(html);w.document.close();
   };
 
   if (!currentUser) return <div className="bas-root"><h2>Vui lòng đăng nhập để sử dụng Assessment Studio.</h2></div>;
@@ -235,7 +223,7 @@ export default function AssessmentStudio({ currentUser }) {
       {view === 'assessment' && selected && <div className="bas-workspace">
         <button type="button" className="bas-back" onClick={()=>{setSelectedId('');setView('dashboard')}}><ArrowLeft size={17}/> Danh sách đánh giá</button>
         <div className="bas-section-heading"><div><span className="bas-kicker">{tag}</span><h2>{selected.title}</h2><p>{selected.class_label || 'Chưa chọn lớp'} · {selected.objective || 'Chưa ghi mục tiêu'}</p></div>
-          <div className="bas-actions"><button type="button" onClick={downloadCSV}><Download size={17}/> Xuất Excel/CSV</button><button type="button" onClick={printEvidence}><Printer size={17}/> Hồ sơ PDF</button></div>
+          <div className="bas-actions"><label className="bas-inline-check"><input type="checkbox" checked={includeNames} onChange={e=>setIncludeNames(e.target.checked)}/> Hiện tên HS trên PDF</label><button type="button" onClick={downloadCSV}><Download size={17}/> Xuất Excel/CSV</button><button type="button" onClick={printEvidence}><Printer size={17}/> Hồ sơ PDF</button></div>
         </div>
         <div className="bas-stats">
           <div><small>Lượt đánh giá đã nhập</small><b>{statistics.count}</b></div>
