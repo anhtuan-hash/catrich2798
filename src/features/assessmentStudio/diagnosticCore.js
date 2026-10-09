@@ -126,7 +126,8 @@ export function diagnosticCsv(roster,records,demo=false){
 export function diagnosticBackup(state){
  return JSON.stringify({format:'BRIAN_DIAGNOSTICSCAN_BACKUP',version:1,exportedAt:new Date().toISOString(),
   meta:state.meta,roster:state.roster,config:state.config,records:state.records,
-  adjustment:state.adjustment,revisions:state.revisions,demo:Boolean(state.demo)},null,2);
+  adjustment:state.adjustment,revisions:state.revisions,demo:Boolean(state.demo),
+  draft:{preRaw:String(state.draft?.preRaw||''),postRaw:String(state.draft?.postRaw||''),samePost:Boolean(state.draft?.samePost)}},null,2);
 }
 export function verifyDiagnosticBackup(data){
  if(data?.format!=='BRIAN_DIAGNOSTICSCAN_BACKUP'||data.version!==1)throw new Error('Không đúng định dạng sao lưu DiagnosticScan v1.');
@@ -150,5 +151,6 @@ export function verifyDiagnosticBackup(data){
  const revisions=data.revisions.map(r=>({code:normalizeCode(r.code),phase:r.phase==='post'?'post':'pre',
   oldScore:Number(r.oldScore)||0,newScore:Number(r.newScore)||0,reason:String(r.reason||'').slice(0,400),at:String(r.at||'').slice(0,100)}));
  const cleanMeta=clean?.meta||Object.fromEntries(Object.keys(EMPTY_DIAGNOSTIC_META).map(k=>[k,String(data.meta?.[k]||'').slice(0,250)]));
- return {meta:cleanMeta,roster,config:clean&&{preQuestions:clean.preQuestions,postQuestions:clean.postQuestions,useSamePost:clean.useSamePost},records,adjustment,revisions,demo:Boolean(data.demo)};
+ return {meta:cleanMeta,roster,config:clean&&{preQuestions:clean.preQuestions,postQuestions:clean.postQuestions,useSamePost:clean.useSamePost},records,adjustment,revisions,demo:Boolean(data.demo),
+  draft:{preRaw:String(data.draft?.preRaw||'').slice(0,100000),postRaw:String(data.draft?.postRaw||'').slice(0,100000),samePost:Boolean(data.draft?.samePost)}};
 }
