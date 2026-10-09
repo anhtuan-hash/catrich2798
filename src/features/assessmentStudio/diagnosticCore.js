@@ -132,10 +132,11 @@ export function verifyDiagnosticBackup(data){
  if(data?.format!=='BRIAN_DIAGNOSTICSCAN_BACKUP'||data.version!==1)throw new Error('Không đúng định dạng sao lưu DiagnosticScan v1.');
  if(!Array.isArray(data.roster)||data.roster.length>MAX_STUDENTS||!Array.isArray(data.records)||data.records.length>MAX_STUDENTS*2||
  !Array.isArray(data.revisions)||data.revisions.length>1000)throw new Error('Danh sách hoặc lịch sử không hợp lệ.');
- const {meta,preQuestions,postQuestions,useSamePost}=data.config||{};
- // Validate question data by round-tripping it through the teacher-facing parser.
+ const rawConfig=data.config;
+ // The teacher may also back up a partially prepared, not-yet-confirmed session.
+ if(!rawConfig&&data.records.length)throw new Error('File có điểm nhưng thiếu bộ câu hỏi.');
  const asRaw=items=>(items||[]).map(q=>[q.stem,...q.options,q.answer,q.topic].join(' | ')).join('\n');
- const clean=validateDiagnosticConfig({meta:data.meta,preRaw:asRaw(preQuestions),postRaw:asRaw(postQuestions),useSamePost});
+ const clean=rawConfig?validateDiagnosticConfig({meta:data.meta,preRaw:asRaw(rawConfig.preQuestions),postRaw:asRaw(rawConfig.postQuestions),useSamePost:rawConfig.useSamePost}):null;
  const roster=[],known=new Set();
  data.roster.forEach(s=>{const person=normalizeStudent(s);if(known.has(person.code))throw new Error('Trùng mã học sinh trong file.');known.add(person.code);roster.push(person)});
  const keys=new Set(),records=[];
@@ -148,5 +149,6 @@ export function verifyDiagnosticBackup(data){
  const adjustment=Object.fromEntries(Object.keys(EMPTY_DIAGNOSTIC_ADJUST).map(k=>[k,String(data.adjustment?.[k]||'').slice(0,2000)]));
  const revisions=data.revisions.map(r=>({code:normalizeCode(r.code),phase:r.phase==='post'?'post':'pre',
   oldScore:Number(r.oldScore)||0,newScore:Number(r.newScore)||0,reason:String(r.reason||'').slice(0,400),at:String(r.at||'').slice(0,100)}));
- return {meta,roster,config:clean,records,adjustment,revisions,demo:Boolean(data.demo)};
+ const cleanMeta=clean?.meta||Object.fromEntries(Object.keys(EMPTY_DIAGNOSTIC_META).map(k=>[k,String(data.meta?.[k]||'').slice(0,250)]));
+ return {meta:cleanMeta,roster,config:clean&&{preQuestions:clean.preQuestions,postQuestions:clean.postQuestions,useSamePost:clean.useSamePost},records,adjustment,revisions,demo:Boolean(data.demo)};
 }
