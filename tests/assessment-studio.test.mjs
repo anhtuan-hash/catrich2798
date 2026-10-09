@@ -231,3 +231,41 @@ test('release requires a server unique index and read/insert-only owner policies
   assert.match(ui,/max_score: grade\.max_score/);
   assert.match(ui,/ensureNewStudentCodes/);
 });
+
+import { evidenceReadiness } from '../src/features/assessmentStudio/evidenceReadiness.js';
+
+test('evidence readiness does not treat a planned adjustment as completed',()=>{
+  const assessment={class_label:'12.6',objective:'Comparisons'};
+  const rows=[{score:4,max_score:5}];
+  const planned=[{status:'planned',action_taken:'Give remedial practice',implementation_date:null}];
+  const first=evidenceReadiness(assessment,rows,planned,{pairs:0});
+  assert.equal(first.completed,false);
+  assert.equal(first.checks.find(c=>c.id==='results').ok,true);
+  assert.equal(first.checks.find(c=>c.id==='action').ok,false);
+  const completed=evidenceReadiness(assessment,rows,[{
+    status:'reviewed',action_taken:'Practice activity',implementation_date:'2026-10-09',
+    evidence_note:'Worksheets on file',followup_assessment_id:'a000',
+    followup_result:'Observed improvement in the paired assessment'
+  }],{pairs:5});
+  assert.equal(completed.completed,true);
+  assert.equal(completed.count,5);
+});
+
+test('report can include readiness states without implying official points',()=>{
+  const config=buildAssessmentConfig('diagnostic',{questions:quiz});
+  const readiness=evidenceReadiness({class_label:'12.6',objective:'Comparisons'},[],[],{pairs:0});
+  const html=buildEvidenceHtml({
+    assessment:{kind:'diagnostic',title:'Demo',class_label:'12.6',objective:'Comparisons',config},
+    readiness,preparedAt:new Date('2026-10-09T00:00:00Z')
+  });
+  assert.ok(html.includes('Tình trạng hoàn thiện hồ sơ'));
+  assert.ok(html.includes('Không thay thế kết luận của hội đồng thi đua'));
+});
+
+test('result migration guards both duplicate codes and any silent edits',()=>{
+  const sql=readFileSync(new URL('../supabase/brian_assessment_studio_integrity.sql',import.meta.url),'utf8');
+  assert.ok(sql.includes('having count(*) > 1'));
+  for(const table of ['bes_assessments','bes_assessment_results','bes_assessment_adjustments']) {
+    assert.ok(sql.includes('revoke update, delete on public.'+table+' from authenticated;'));
+  }
+});
