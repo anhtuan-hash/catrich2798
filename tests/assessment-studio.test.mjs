@@ -150,3 +150,26 @@ test('rubrics and teacher judgments require explicit human input',()=>{
   assert.throws(()=>scoreAssessmentSubmission({kind:'error',config:{questions:parseManualPrompts('Spot the error. | had | Grammar')}},{}),/Đạt\/Chưa đạt/);
   assert.throws(()=>buildAssessmentConfig('listening',{questions:quiz}),/đường dẫn audio/);
 });
+
+import { prepareBulkRows } from '../src/features/assessmentStudio/bulkImport.js';
+
+test('bulk import scores only validated rows and rejects duplicates or bad answers',()=>{
+  const assessment={kind:'diagnostic',config:{questions:parseQuestions(quiz)}};
+  const rows=prepareBulkRows(assessment,'S001\tNguyễn Văn A\tBC\nS002 | Trần Thị B | BA');
+  assert.equal(rows.length,2);
+  assert.equal(rows[0].score,2);
+  assert.equal(rows[1].score,1);
+  assert.deepEqual(rows.map(x=>x.student_code),['S001','S002']);
+  assert.throws(()=>prepareBulkRows(assessment,'S001 | A | BC\nS001 | B | BB'),/trùng/);
+  assert.throws(()=>prepareBulkRows(assessment,'S003 | C | A'),/Dòng 1/);
+});
+
+test('bulk import reading also validates evidence per student',()=>{
+  const assessment={kind:'reading',config:buildAssessmentConfig('reading',{
+    passage:'First paragraph.\n\nSecond paragraph.',
+    questions:'Where? | A | B | C | D | B | Scanning | P2'
+  })};
+  const rows=prepareBulkRows(assessment,'S001 | Nguyễn Văn A | B | P2');
+  assert.equal(rows[0].score,2);
+  assert.throws(()=>prepareBulkRows(assessment,'S001 | Nguyễn Văn A | B'),/4 cột/);
+});
