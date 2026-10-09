@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { MODULES, parseQuestions, gradeObjective, gradeSpeaking, summarizeResults, csvEscape } from '../src/features/assessmentStudio/assessmentMath.js';
+import { MODULES, parseQuestions, gradeObjective, gradeSpeaking, summarizeResults, comparePairedOutcomes, csvEscape } from '../src/features/assessmentStudio/assessmentMath.js';
 
 const quiz = [
   'She enjoys ___ books. | read | reading | to read | reads | B | Gerund',
@@ -49,4 +49,23 @@ test('analytics uses actual saved responses only', () => {
 test('CSV escaping prevents spreadsheet formula injection', () => {
   assert.equal(csvEscape('=HYPERLINK("test")'),'"\'=HYPERLINK(""test"")"');
   assert.equal(csvEscape('An Tuấn'),'"An Tuấn"');
+});
+
+test('pre/post comparison only pairs matching student codes', () => {
+  const before = [
+    {student_code:'A01',score:6,max_score:10},
+    {student_code:'A02',score:8,max_score:10},
+    {student_code:'',score:2,max_score:10},
+  ];
+  const after = [
+    {student_code:'A01',score:8,max_score:10},
+    {student_code:'A02',score:9,max_score:10},
+    {student_code:'A03',score:10,max_score:10},
+  ];
+  const comparison = comparePairedOutcomes(before,after);
+  assert.equal(comparison.pairs,2);
+  assert.equal(comparison.beforeAverage,70);
+  assert.equal(comparison.afterAverage,85);
+  assert.equal(comparison.change,15);
+  assert.equal(comparePairedOutcomes(before,[]).pairs,0);
 });
