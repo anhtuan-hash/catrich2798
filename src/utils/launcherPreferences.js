@@ -148,6 +148,12 @@ export function normalizeLauncherConfig(raw, itemIds = []) {
   const groups = cleanGroups(source.groups);
   const groupIds = new Set(groups.map((group) => group.id));
   const order = cleanIdList(source.order, safeItemIds.length ? allowed : null);
+  // Place this newly published preview beside Question Bank for existing launcher
+  // configurations, but preserve any deliberate ordering once it is present.
+  if (safeItemIds.includes('assessment-preview') && !order.includes('assessment-preview')) {
+    const questionBankIndex = order.indexOf('assessment-core');
+    order.splice(questionBankIndex >= 0 ? questionBankIndex + 1 : 0, 0, 'assessment-preview');
+  }
   safeItemIds.forEach((id) => { if (!order.includes(id)) order.push(id); });
 
   const assignments = { ...defaults.assignments };
