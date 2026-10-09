@@ -1,0 +1,66 @@
+.tt-root{--tt-ink:#203956;--tt-soft:#f7faff;--tt-border:#dce7f3;--tt-blue:#3367bb;box-sizing:border-box;max-width:1440px;margin:auto;color:var(--tt-ink);font:15px/1.6 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;padding:8px clamp(8px,1.3vw,20px) 40px}
+.tt-root *, .tt-root *::before,.tt-root *::after{box-sizing:border-box}
+.tt-root button,.tt-root input,.tt-root textarea{font:inherit}
+.tt-hero{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap;margin-bottom:17px}
+.tt-kicker{display:flex;gap:7px;align-items:center;color:#3569b9;font-weight:850;font-size:12px;letter-spacing:.08em}
+.tt-hero h2{font-size:clamp(28px,4vw,44px);font-weight:850;line-height:1.1;letter-spacing:-.05em;margin:9px 0}
+.tt-hero h2 span{font-weight:480;color:#50769d}
+.tt-hero p{color:#627b95;max-width:760px;margin:6px 0 0}
+.tt-head-actions,.tt-export{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.tt-btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid transparent;border-radius:13px;padding:10px 14px;font-weight:750;cursor:pointer;min-height:44px;transition:border-color .1s,background .1s}
+.tt-btn:focus-visible,.tt-root textarea:focus-visible,.tt-root input:focus-visible{outline:3px solid #90b8f4;outline-offset:2px}
+.tt-btn:disabled{cursor:not-allowed;opacity:.5}
+.tt-main{background:#3268c1;color:white;border-color:#3268c1}
+.tt-main:hover:not(:disabled){background:#24549e}
+.tt-outline{color:#3261a8;background:#f1f6ff;border-color:#cbdcf3}
+.tt-outline:hover:not(:disabled){background:#e6efff}
+.tt-danger{background:#fff3f3;color:#a12e39;border-color:#f0d0d4}
+.tt-note{display:flex;gap:10px;align-items:flex-start;background:#edf6ff;border:1px solid #d2e5f8;border-radius:16px;padding:14px 16px;margin-bottom:14px;color:#355d84}
+.tt-note svg{flex:none;margin-top:2px}
+.tt-alert{padding:12px 14px;border-radius:12px;margin-bottom:12px;font-weight:650}
+.tt-alert.is-error{color:#982a37;background:#fff1f3;border:1px solid #f1ced6}
+.tt-alert.is-ok{color:#1a6a54;background:#edfcf6;border:1px solid #c5ebda}
+.tt-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.tt-stats>div{padding:16px 18px;display:flex;flex-direction:column;background:#fff;border:1px solid var(--tt-border);border-radius:17px;box-shadow:0 4px 16px #173b6907}
+.tt-stats span{font-size:13px;font-weight:700;color:#5a7694}
+.tt-stats strong{font-size:28px;line-height:1.35;font-weight:850;color:#1e4d87;font-variant-numeric:tabular-nums}
+.tt-stats small{color:#627f9a}
+.tt-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start;gap:16px}
+.tt-panel{min-width:0;background:#fff;border:1px solid var(--tt-border);border-radius:23px;padding:clamp(17px,2.1vw,26px);box-shadow:0 4px 22px #244c7508}
+.tt-panel.tt-full{grid-column:1/-1}
+.tt-panel h3{font-size:20px;font-weight:800;letter-spacing:-.025em;display:flex;align-items:center;gap:9px;margin:0 0 17px}
+.tt-panel h3 svg{color:var(--tt-blue)}
+.tt-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.tt-root label{font-size:13px;font-weight:750;color:#395773;display:block;margin:10px 0}
+.tt-root label>input:not([type="checkbox"]),.tt-root label>textarea{width:100%;display:block;margin-top:5px;border:1px solid #cedceb;border-radius:12px;background:#fafdff;padding:11px 12px;color:#213e5e;font-size:14px;max-width:100%}
+.tt-root textarea{resize:vertical;line-height:1.6;min-height:65px}
+.tt-root input:disabled{background:#f0f5fa;color:#7a8ea1}
+.tt-root .tt-wide{display:block;margin:15px 0}
+.tt-root .tt-check{display:flex;align-items:flex-start;gap:9px;font-weight:650;line-height:1.5}
+.tt-check input{width:17px;height:17px;flex:none;margin:3px 0 0}
+.tt-help{color:#667e97;font-size:13px;line-height:1.65;margin:13px 0}
+.tt-help svg{vertical-align:middle}
+.tt-success{font-size:13px;font-weight:750;color:#19694e}
+.tt-segment{display:inline-flex;padding:4px;background:#eff4fc;border:1px solid #d9e4f4;border-radius:13px;gap:4px}
+.tt-segment button{padding:9px 14px;border:0;border-radius:9px;background:transparent;color:#496884;font-size:13px;font-weight:760;cursor:pointer}
+.tt-segment button.is-active{background:#fff;color:#1d579e;box-shadow:0 2px 8px #23568b1a}
+.tt-key{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:19px 0}
+.tt-key>div{display:flex;gap:8px;align-items:center;background:#f6f9fe;padding:10px;border-radius:12px;color:#4a6178;font-weight:620;font-size:12px}
+.tt-dot{display:inline-block;width:10px;height:10px;border-radius:100%;flex:none;margin-right:7px;background:#9daec3}
+.tt-dot.understood{background:#259c74}.tt-dot.answerOnly{background:#e9a43d}.tt-dot.reasonOnly{background:#4f83d7}.tt-dot.misconception{background:#d96e75}
+.tt-analysis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.tt-analysis-table,.tt-table-scroll{min-width:0;max-width:100%;overflow-x:auto}
+.tt-root table{width:100%;border-collapse:collapse;font-size:13px}
+.tt-root th{color:#4a6680;background:#f1f6fc;font-size:12px;font-weight:800;text-align:left}
+.tt-root th,.tt-root td{padding:11px 13px;border-bottom:1px solid #e4edf6;vertical-align:middle}
+.tt-root tbody tr:last-child td{border-bottom:0}
+.tt-root tbody td{color:#2b4a68}
+.tt-checks{display:grid;gap:8px;margin-bottom:17px}
+.tt-checks>div{display:grid;grid-template-columns:26px 1fr auto;align-items:center;gap:10px;background:#f6f9fd;border:1px solid #e5edf6;border-radius:12px;padding:10px;font-size:13px}
+.tt-checks>div span:first-child{display:grid;place-items:center;background:#e1e9f3;color:#6e849e;width:26px;height:26px;border-radius:50%;font-weight:900}
+.tt-checks>div span.is-ok{color:#19825f;background:#dff7ec}
+.tt-checks>div small{color:#738ca3}
+.tt-footer{padding:24px 0;text-align:center;font-size:11px;letter-spacing:.07em;color:#70859b;font-weight:750}
+@media(max-width:920px){.tt-grid,.tt-analysis{grid-template-columns:1fr}.tt-panel.tt-full{grid-column:auto}.tt-stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:580px){.tt-fields,.tt-stats,.tt-key{grid-template-columns:1fr}.tt-root{padding:4px 2px 28px}.tt-panel{padding:15px}.tt-btn{flex:1}.tt-head-actions{width:100%}.tt-hero h2{font-size:31px}.tt-checks>div{grid-template-columns:26px 1fr}.tt-checks>div small{grid-column:2}}
+@media(prefers-reduced-motion:reduce){.tt-root .tt-btn{transition:none}}

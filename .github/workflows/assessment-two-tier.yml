@@ -1,0 +1,30 @@
+name: Two-Tier Assessment Studio
+on:
+  pull_request:
+    paths:
+      - 'src/features/assessmentStudio/twoTierCore.js'
+      - 'src/features/assessmentStudio/TwoTierStudio.jsx'
+      - 'src/features/assessmentStudio/TwoTierStudio.css'
+      - 'src/pages/AssessmentPreview.jsx'
+      - 'src/features/assessmentStudio/EvidencePortfolio.jsx'
+      - 'src/features/assessmentStudio/EvidencePortfolio.css'
+      - 'src/features/assessmentStudio/portfolioCore.js'
+      - 'tests/assessment-two-tier.test.mjs'
+      - 'tests/assessment-evidence-portfolio.test.mjs'
+      - '.github/workflows/assessment-two-tier.yml'
+  workflow_dispatch:
+jobs:
+  verify-two-tier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Deterministic grading and evidence integrity
+        run: node --test tests/assessment-two-tier.test.mjs tests/assessment-evidence-portfolio.test.mjs tests/assessment-preview-card.test.mjs tests/assessment-diagnosticscan.test.mjs tests/assessment-exitticket.test.mjs tests/assessment-speaksale.test.mjs
+      - name: Build BRIAN production bundle
+        run: npx vite build
