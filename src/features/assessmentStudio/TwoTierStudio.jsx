@@ -1,7 +1,7 @@
 import React,{useMemo,useRef,useState} from 'react';
 import {ArrowLeft,BookOpenCheck,CheckCircle2,ClipboardList,Download,FileJson,FileText,Info,Printer,RefreshCcw,ShieldCheck,Upload,Users} from 'lucide-react';
 import {
- TWO_TIER_SAMPLE,TWO_TIER_EMPTY_META,TWO_TIER_EMPTY_ADJUST,
+ TWO_TIER_SAMPLE,TWO_TIER_POST_SAMPLE,TWO_TIER_EMPTY_META,TWO_TIER_EMPTY_ADJUST,
  validateTwoTierSetup,importTwoTierBatch,summarizeTwoTier,pairedTwoTier,
  twoTierReadiness,twoTierCSV,twoTierBackup,restoreTwoTierBackup,encodeTwoTierQuestions
 } from './twoTierCore.js';
@@ -56,7 +56,7 @@ function makeReport({meta,config,roster,records,adjustment,demo,includeNames}){
 export default function TwoTierStudio({onBack}){
  const [meta,setMeta]=useState(freshMeta);
  const [preRaw,setPreRaw]=useState(TWO_TIER_SAMPLE);
- const [postRaw,setPostRaw]=useState('');
+ const [postRaw,setPostRaw]=useState(TWO_TIER_POST_SAMPLE);
  const [repeat,setRepeat]=useState(false);
  const [config,setConfig]=useState(null);
  const [roster,setRoster]=useState([]);
@@ -95,7 +95,7 @@ export default function TwoTierStudio({onBack}){
  });
  const resetAll=()=>{
   if(window.confirm('Xóa tất cả dữ liệu Two-Tier trong phiên này? Hãy sao lưu JSON trước khi xóa.')){
-   setConfig(null);setMeta(freshMeta());setPreRaw(TWO_TIER_SAMPLE);setPostRaw('');setRepeat(false);
+   setConfig(null);setMeta(freshMeta());setPreRaw(TWO_TIER_SAMPLE);setPostRaw(TWO_TIER_POST_SAMPLE);setRepeat(false);
    setRoster([]);setRecords([]);setBulk('');setAdjustment({...TWO_TIER_EMPTY_ADJUST});setDemo(false);setError('');setNotice('Đã đặt lại phiên.');
   }
  };
@@ -113,7 +113,7 @@ export default function TwoTierStudio({onBack}){
    setMeta(data.meta);setConfig(data.config);setRoster(data.roster);setRecords(data.records);
    setAdjustment(data.adjustment);setDemo(data.demo);
    setPreRaw(data.config?encodeTwoTierQuestions(data.config.pre):TWO_TIER_SAMPLE);
-   setPostRaw(data.config?encodeTwoTierQuestions(data.config.post):'');
+   setPostRaw(data.config?encodeTwoTierQuestions(data.config.post):TWO_TIER_POST_SAMPLE);
    setRepeat(Boolean(data.config?.repeat));
    setBulk('');setNotice('Đã khôi phục JSON và kiểm tra lại điểm dựa vào đáp án.');
   }catch(e){setError('Không nhập được: '+e.message);}finally{if(inputFile.current)inputFile.current.value='';}
