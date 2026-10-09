@@ -47,8 +47,15 @@ export function buildEvidenceHtml({assessment,results=[],adjustments=[],paired=n
       safe(r.score)+' / '+safe(r.max_score),safe(dateString(r.assessed_at)))).join('')+'</tbody></table>';
   const topics=Object.entries(stats.topics).map(([t,v])=>tr(safe(t),safe(v.achieved)+' / '+safe(v.total),
     v.total?(v.achieved/v.total*100).toFixed(1)+'%':'—')).join('');
+  const criteria=assessment.config?.criteria||assessment.config?.statements||RUBRICS[assessment.kind]||[];
+  const criterionRows=criteria.map(name=>{
+    const scores=results.map(r=>Number(r.breakdown?.criteria?.[name])).filter(Number.isFinite);
+    const average=scores.length?(scores.reduce((sum,n)=>sum+n,0)/scores.length).toFixed(2):'—';
+    return tr(safe(name),safe(average)+' / 4',safe(scores.length));
+  }).join('');
   const analysis=topics?'<table><thead><tr><th>Chủ điểm</th><th>Lượt đạt</th><th>Tỷ lệ</th></tr></thead><tbody>'+topics+'</tbody></table>':
-    '<p>Rubric và biểu đồ tiêu chí được tổng hợp theo lượt đánh giá; dữ liệu chi tiết lưu trong BRIAN.</p>';
+    criterionRows?'<table><thead><tr><th>Tiêu chí</th><th>Trung bình</th><th>Số lượt có điểm</th></tr></thead><tbody>'+criterionRows+'</tbody></table>':
+    '<p>Chưa có dữ liệu theo chủ điểm hoặc tiêu chí.</p>';
   const adj=adjustments.length?adjustments.map((a,i)=>
     '<article><b>Ghi nhận '+(i+1)+': '+safe(labelStatus(a.status))+'</b>'+
     '<p><b>Vấn đề phát hiện:</b> '+safe(a.finding)+'</p>'+
@@ -79,7 +86,7 @@ export function buildEvidenceHtml({assessment,results=[],adjustments=[],paired=n
     '<h2>2. Kết quả đánh giá ban đầu</h2><p>Tổng số lượt đánh giá: <b>'+stats.count+
     '</b> · Trung bình theo phần trăm tối đa: <b>'+stats.average.toFixed(1)+'%</b>.</p>'+
     (assessment.kind==='self'?'<p class="warning">Lưu ý: chỉ số CanDo là mức tự đánh giá, không chứng minh chuẩn năng lực.</p>':'')+
-    resultsTable+'<h3>Phân tích theo chủ điểm</h3>'+analysis+
+    resultsTable+'<h3>Phân tích theo chủ điểm / tiêu chí</h3>'+analysis+
     '<h2>3. Điều chỉnh hoạt động dạy học</h2>'+adj+
     '<h2>4. Đánh giá lại và nhận xét</h2>'+comparison+
     '<p>Chênh lệch điểm không tự chứng minh quan hệ nhân quả. Giáo viên cần đối chiếu tính tương đương của hai bài và xác nhận việc thực hiện can thiệp.</p>'+
