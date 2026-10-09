@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BarChart3, BookOpenCheck, ClipboardCheck, FileText, Mic2, Plus, Printer, Save, TicketCheck, Download, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { supabase } from '../utils/supabase.js';
 import { MODULES, LETTERS, SPEAKING_CRITERIA, parseQuestions, gradeObjective, gradeSpeaking, summarizeResults, comparePairedOutcomes, csvEscape } from '../features/assessmentStudio/assessmentMath.js';
@@ -27,6 +27,7 @@ export default function AssessmentStudio({ currentUser }) {
   const [view, setView] = useState('dashboard');
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState('');
+  const detailRequestRef = useRef(0);
   const [error, setError] = useState('');
   const selected = items.find(item => item.id === selectedId) || null;
   const statistics = useMemo(() => summarizeResults(results), [results]);
@@ -43,6 +44,7 @@ export default function AssessmentStudio({ currentUser }) {
   }, [owner]);
 
   const loadDetail = useCallback(async () => {
+    const requestId = ++detailRequestRef.current;
     if (!supabase || !owner || !selectedId) { setResults([]); setAdjustments([]); return; }
     const [r,a] = await Promise.all([
       supabase.from('bes_assessment_results')
@@ -52,6 +54,7 @@ export default function AssessmentStudio({ currentUser }) {
         .select('id,finding,action_taken,status,implementation_date,evidence_note,followup_result,followup_assessment_id,created_at')
         .eq('owner_id',owner).eq('assessment_id',selectedId).order('created_at',{ascending:false}).limit(100),
     ]);
+    if (requestId !== detailRequestRef.current) return;
     if (r.error) throw r.error;
     if (a.error) throw a.error;
     setResults(r.data || []);
@@ -73,6 +76,7 @@ export default function AssessmentStudio({ currentUser }) {
   useEffect(() => {
     let live = true;
     if (!supabase || !owner || !followupId) { setFollowupResults([]); return () => { live = false; }; }
+    setFollowupResults([]);
     supabase.from('bes_assessment_results')
       .select('student_code,score,max_score').eq('owner_id',owner)
       .eq('assessment_id',followupId).order('assessed_at',{ascending:false}).limit(500)
