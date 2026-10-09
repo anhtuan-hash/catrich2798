@@ -384,6 +384,7 @@ export default function GlobalCompactNavigation({
         <div className="brian-nav__primary" aria-label={language === 'vi' ? 'Khu vực chính' : 'Primary areas'}>
           <button type="button" className={route === 'home' ? 'is-active' : ''} onClick={(event) => openRoute('#/home', t.home, event)}>{t.home}</button>
           {canShowApps ? <button type="button" className={route === 'apps' ? 'is-active' : ''} onClick={(event) => openRoute('#/apps', t.apps, event)}>{t.apps}</button> : null}
+          {currentUser && hasRouteAccess(currentUser, 'assessment-studio') ? <button type="button" className={route === 'assessment-studio' ? 'is-active' : ''} onClick={(event) => openRoute('#/assessment-studio', 'Assessment Studio', event)}>Đánh giá</button> : null}
           {isAdmin ? <button type="button" className={route === 'admin' ? 'is-active' : ''} onClick={(event) => openRoute('#/admin', t.admin, event)}>{t.admin}</button> : null}
         </div>
 
