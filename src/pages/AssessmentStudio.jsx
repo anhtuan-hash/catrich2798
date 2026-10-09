@@ -39,7 +39,7 @@ export default function AssessmentStudio({ currentUser }) {
   const detailRequestRef = useRef(0);
   const [error, setError] = useState('');
   const selected = items.find(item => item.id === selectedId) || null;
-  useEffect(() => {setStudentInput(emptyStudentInput());setAdjust(emptyAdjustment());setResults([]);setAdjustments([]);setFollowupResults([]);setBulkText('');setBulkPreview([]);},[selectedId]);
+  useEffect(() => {setStudentInput(emptyStudentInput());setAdjust(emptyAdjustment());setResults([]);setAdjustments([]);setFollowupResults([]);setBulkText('');setBulkPreview([]);setIncludeNames(false);},[selectedId]);
   const statistics = useMemo(() => summarizeResults(results), [results]);
   const followupId = adjust.followup_assessment_id || adjustments.find(a => a.followup_assessment_id)?.followup_assessment_id || '';
   const paired = useMemo(() => comparePairedOutcomes(results, followupResults), [results, followupResults]);
@@ -335,8 +335,8 @@ export default function AssessmentStudio({ currentUser }) {
             </select></label>
             <label>Ngày thực hiện<input type="date" value={adjust.implementation_date} onChange={e=>setAdjust(a=>({...a,implementation_date:e.target.value}))}/></label>
           </div>
-          <label>Liên kết bài đánh giá lại (cùng lớp và hình thức)<select value={adjust.followup_assessment_id} onChange={e=>setAdjust(a=>({...a,followup_assessment_id:e.target.value}))}>
-            <option value="">Chưa liên kết</option>{items.filter(i=>i.id!==selectedId && i.kind===selected.kind && i.class_label===selected.class_label).map(i=><option key={i.id} value={i.id}>{i.title} · {fmtDate(i.created_at)}</option>)}
+          <label>Liên kết bài đánh giá lại (cùng lớp, hình thức và mục tiêu)<select value={adjust.followup_assessment_id} onChange={e=>setAdjust(a=>({...a,followup_assessment_id:e.target.value}))}>
+            <option value="">Chưa liên kết</option>{items.filter(i=>i.id!==selectedId && i.kind===selected.kind && i.class_label===selected.class_label && i.objective===selected.objective).map(i=><option key={i.id} value={i.id}>{i.title} · {fmtDate(i.created_at)}</option>)}
           </select></label>
           {followupId && <div className="bas-hint">Đối chiếu theo mã học sinh: {paired.pairs} học sinh có kết quả ở cả hai bài. {paired.pairs ? ('Trước '+paired.beforeAverage.toFixed(1)+'% → Sau '+paired.afterAverage.toFixed(1)+'% ('+(paired.change>=0?'+':'')+paired.change.toFixed(1)+' điểm phần trăm).') : 'Cần nhập cùng mã học sinh trong hai bài để tính tiến bộ cá nhân.'} Chỉ so sánh bài có mục tiêu và độ khó tương đương.</div>}
           <label>Ghi chú minh chứng<textarea rows={2} value={adjust.evidence_note} onChange={e=>setAdjust(a=>({...a,evidence_note:e.target.value}))} placeholder="Nguồn minh chứng: giáo án, phiếu học tập, biên bản..."/></label>
