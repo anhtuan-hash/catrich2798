@@ -96,8 +96,8 @@ export default function ExitTicket({onBack}){
   try {
    if(records.length)throw new Error('Đã chấm điểm. Hãy sao lưu và tạo phiên mới để thay đề.');
    const data=makeExitConfig({meta,initialRaw,followupRaw,repeatQuestions});
-   setConfig({questions:data.initial,followup:data.followup,repeatQuestions:data.repeatQuestions});
-   setTab('collect');alert('Đã xác nhận '+data.initial.length+' câu hỏi cho cuối tiết.');
+   setConfig({questions:data.questions,followup:data.followup,repeatQuestions:data.repeatQuestions});
+   setTab('collect');alert('Đã xác nhận '+data.questions.length+' câu hỏi cho cuối tiết.');
   }catch(e){alert(e.message,true);}
  };
  const addStudent=()=>{
@@ -147,7 +147,7 @@ export default function ExitTicket({onBack}){
   if(records.length&&!window.confirm('Thay dữ liệu hiện có bằng DEMO? Hãy xuất JSON để lưu bản cũ.'))return;
   const demoMeta={title:'Exit Ticket — DEMO',className:'12.6 (Demo)',lesson:'Gerund and Infinitive',teacher:'Giáo viên minh họa',date:today()};
   const cfg=makeExitConfig({meta:demoMeta,initialRaw:EXIT_SAMPLE,followupRaw:'',repeatQuestions:true});
-  const exitCfg={questions:cfg.initial,followup:[],repeatQuestions:true};
+  const exitCfg={questions:cfg.questions,followup:[],repeatQuestions:true};
   const students=Array.from({length:6},(_,i)=>({code:'DEMO'+String(i+1).padStart(2,'0'),name:'Học sinh minh họa '+(i+1)}));
   const first=['BAD','BCD','BCA','BAD','BCD','AAD'];
   const last=['BCD','BCD','BCD','BCD','BCD','BCD'];
