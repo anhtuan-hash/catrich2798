@@ -53,7 +53,7 @@ const MODULES=[
 ['reading','ReadProof','Reading Evidence Assessment','🔎','reading'],
 ['listening','ListenCheck','Listening Assessment','🎧','quiz'],
 ['writing','WriteRubric','Writing Rubric','📝','rubric'],
-['rewrite','RewriteLab','Sentence Transformation','🔄','manual'],
+['two-tier','Two-Tier','Reasoning Assessment (mở công cụ đầy đủ)','🧩','quiz'],
 ['self','CanDo Check','Self-Assessment','✅','scale'],
 ['peer','PeerRubric','Peer Assessment','👥','rubric'],
 ['project','ProjectMark','Performance Assessment','📊','rubric'],
@@ -82,7 +82,7 @@ function el(tag,attrs={},children=[]){const node=document.createElement(tag);for
 function field(label,type='text',placeholder=''){const node=el('label',{text:label});const control=el(type==='textarea'?'textarea':'input',{placeholder});if(type!=='textarea')control.type=type;else control.rows=4;node.append(control);return [node,control]}
 function setup(){
 const list=$('modules');list.textContent='';
-for(const [id,name,sub,icon] of MODULES){const button=el('button',{class:'module','aria-pressed':String(current===id)});button.append(el('span',{class:'moduleicon',text:icon}),el('strong',{text:name}),el('small',{text:sub}),el('em',{text:'Mở công cụ →'}));button.addEventListener('click',()=>select(id));list.append(button)}
+for(const [id,name,sub,icon] of MODULES){const button=el('button',{class:'module','aria-pressed':String(current===id)});button.append(el('span',{class:'moduleicon',text:icon}),el('strong',{text:name}),el('small',{text:sub}),el('em',{text:id==='two-tier'?'Mở công cụ hoàn chỉnh ↗':'Mở công cụ →'}));button.addEventListener('click',()=>{if(id==='two-tier'){if(window.parent!==window)window.parent.postMessage({type:'BRIAN_OPEN_TWO_TIER'},'*');else window.location.href='/#/assessment-preview?tool=two-tier';}else select(id)});list.append(button)}
 const data=MODULES.find(x=>x[0]===current);$('full-speaking').hidden=current!=='speaking';$('full-diagnostic').hidden=current!=='diagnostic';$('full-exit').hidden=current!=='exit';$('active-type').textContent=data[1].toUpperCase();$('active-name').textContent=data[2];$('active-desc').textContent=LABELS[current];
 const host=$('task');host.textContent='';$('score').textContent='';$('assessment-state').textContent='Chưa chấm';$('issue-state').textContent='Chưa phân tích';
 if(data[4]==='rubric'){if(current==='writing'||current==='project'){const [label]=field(current==='writing'?'Bài viết minh họa (không nhập dữ liệu cá nhân thật)':'Mô tả sản phẩm dự án','textarea','Nhập nội dung mẫu...');host.append(label)}if(current==='peer'){const [label]=field('Người đánh giá (mã giả định)','text','Ví dụ HS01');host.append(label)}
