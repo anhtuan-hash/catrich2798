@@ -1,48 +1,83 @@
-# BRIAN Assessment Studio — MVP 1 (No AI)
+# BRIAN Assessment Studio — Teacher-operated 12-module beta (No AI)
 
-## Phạm vi bàn giao
-- 12 sản phẩm trong danh mục; 3 công cụ có chức năng nhập, chấm và lưu dữ liệu thật: DiagnosticScan, SpeakScale, ExitTicket.
-- Teaching Adjustment Tracker: ghi kế hoạch, trạng thái thực hiện, ngày, minh chứng và kết quả đánh giá lại.
-- Phân tích kết quả theo chủ điểm/tiêu chí, xuất CSV, in hồ sơ minh chứng bằng Print → Save as PDF.
-- Chấm điểm theo đáp án cố định hoặc rubric; không sử dụng AI.
-- Các mục còn lại hiển thị "Dự kiến" và chưa sử dụng được.
-- Chưa có cổng học sinh tự làm bài trực tuyến trong bản MVP.
+## Mục tiêu
+Đánh giá học sinh theo công cụ/rubric rõ ràng, thống kê dựa trên dữ liệu thực,
+ghi nhật ký điều chỉnh và lập hồ sơ minh chứng. **Không sử dụng AI** cho chấm,
+xây dựng nội dung, phân tích, hay viết nhận xét trong Assessment Studio.
 
-## Địa chỉ
-Sau khi merge, triển khai và đăng nhập tài khoản có quyền Assessment Core, truy cập #/assessment-studio.
-Desktop có nút Đánh giá. Desktop và mobile có lối vào từ trang #/assessment-core.
+## Phạm vi hiện thực
+Tất cả 12 công cụ đã có form để giáo viên **tạo bài và nhập/chấm kết quả đã thực hiện**:
+| Mã | Sản phẩm | Cơ chế đánh giá |
+|---|---|---|
+| speaking | SpeakScale | 5 tiêu chí rubric do giáo viên chọn rõ từng điểm 0–4 |
+| diagnostic | DiagnosticScan | Trắc nghiệm A–D, tự chấm đáp án và phân tích từng chủ điểm |
+| exit | ExitTicket | 1–3 MCQ cuối tiết, lưu thêm nhận xét/phản hồi |
+| error | ErrorClinic | Câu sửa lỗi, giáo viên nhập đáp án thực tế và chấm Đạt/Chưa đạt |
+| vocabulary | VocabCheck | MCQ về từ vựng/collocations/word forms |
+| reading | ReadProof | MCQ + mã đoạn chứng minh P1, P2...; 1 điểm đáp án, 1 điểm dẫn chứng |
+| listening | ListenCheck | MCQ kèm liên kết http/https tới tài liệu nghe hợp pháp |
+| writing | WriteRubric | Bài viết + chấm thủ công 4 tiêu chí + nhận xét |
+| rewrite | RewriteLab | Sentence transformation; giáo viên duyệt và chấm từng câu |
+| self | CanDo Check | Học sinh tự đánh giá thang 1–4; **không phải điểm năng lực khách quan** |
+| peer | PeerRubric | Rubric đồng đẳng, yêu cầu ghi người đánh giá và tiêu chí |
+| project | ProjectMark | Rubric 4 tiêu chí, yêu cầu tên/mô tả sản phẩm |
 
-## Cấu hình trước khi sử dụng
-1. Sao lưu cơ sở dữ liệu Supabase.
-2. Quản trị viên rà soát và chạy tệp supabase/brian_assessment_studio_mvp.sql trong Supabase SQL Editor đúng dự án.
-3. Xác nhận ba bảng bes_assessments, bes_assessment_results, bes_assessment_adjustments đã bật Row Level Security.
-4. Đăng nhập giáo viên có quyền route:assessment-core; tạo bài thử và kiểm thử quyền.
-5. Chỉ nhập dữ liệu học sinh thật sau khi xác nhận điều kiện bảo mật, mục đích và quy trình xử lý thông tin theo quy định nhà trường.
+### Điều chưa có trong phiên bản này
+- **Chưa có cổng trực tuyến cho học sinh tự đăng nhập và làm bài**, gửi bản ghi âm
+  hoặc chấm rubric đồng đẳng trực tiếp; giáo viên nhập/chuyển kết quả đã thu thập.
+- Chưa đồng bộ roster từ Homeroom, chưa có tải lên file minh chứng gốc.
+- Chưa có lịch sử thay đổi không thể sửa/xóa; cần bổ sung audit trail và khóa hồ sơ
+  trước khi coi đây là kho minh chứng chính thức phục vụ thẩm định.
+- PDF hiện do trình duyệt in từ HTML báo cáo; không phải dịch vụ phát hành PDF có chữ ký số.
+- Chưa có dữ liệu sử dụng trong lớp hoặc chứng minh mức tiến bộ thực tế.
+- Không tuyên bố bản beta đáp ứng toàn bộ tiêu chí thi đua nếu thiếu hồ sơ triển khai thật.
 
-Nếu chưa áp dụng SQL, giao diện báo lỗi, không chuyển sang dữ liệu giả hoặc localStorage.
+## Luồng sử dụng giáo viên
+1. Đăng nhập người dùng có quyền **Assessment Core**.
+2. Mở URL hash **#/assessment-studio** từ menu Đánh giá hoặc Ngân hàng câu hỏi.
+3. Chọn một trong 12 công cụ, nhập tên đợt, lớp, mục tiêu, câu hỏi / rubric tương ứng.
+4. Tổ chức bài đánh giá với học sinh. Giáo viên nhập bài làm, chấm hoặc chọn rubric
+   theo kết quả quan sát thật. **Không có điểm mặc định**: cần chọn điểm từng tiêu chí.
+5. Nhập mã học sinh ổn định, tên học sinh, kết quả; xem thống kê.
+6. Tạo Teaching Adjustment Record và ghi ngày, biện pháp đã thực hiện, nguồn minh chứng.
+7. Tạo bài đánh giá sau và liên kết vào nhật ký; ghép theo **mã học sinh** để so sánh.
+8. Xuất CSV nội bộ (có tên) hoặc PDF báo cáo **ẩn tên mặc định**. PDF gồm công cụ,
+   đáp án/rubric, kết quả, biện pháp, so sánh trước–sau và giới hạn chứng cứ.
 
-## Quy trình
-1. Tạo bài đánh giá: tên, lớp, mục tiêu, loại công cụ.
-2. Diagnostic và Exit: mỗi dòng theo mẫu: Question | Option A | Option B | Option C | Option D | B | Grammar topic. Đáp án A–D. Diagnostic tối đa 50; Exit tối đa 3.
-3. Speaking: năm tiêu chí, mỗi tiêu chí 0–4 điểm. Để đối chiếu trước–sau, hãy nhập MÃ HỌC SINH ổn định ở cả hai bài.
-4. Tổ chức kiểm tra trong lớp; giáo viên nhập kết quả thực tế vào giao diện. Đây chưa phải cổng làm bài trực tuyến.
-5. Xem phân tích kết quả theo chủ điểm/tiêu chí.
-6. Tạo nhật ký điều chỉnh. Trạng thái Đã thực hiện yêu cầu ngày và nội dung minh chứng; trạng thái Đã đánh giá lại yêu cầu liên kết bài đánh giá lại cùng lớp/cùng hình thức và nhận xét kết quả. Hệ thống tự tính chênh lệch tỷ lệ điểm trên chính các mã học sinh xuất hiện ở cả hai bài. Không ghép chỉ dựa trên tên.
-7. Xuất CSV hoặc chọn in hồ sơ rồi Save as PDF trong trình duyệt.
+## Mẫu nhập
+- MCQ: mỗi dòng gồm Question | A | B | C | D | Correct (A–D) | Topic.
+- ReadProof: mỗi dòng gồm Question | A | B | C | D | Correct | Skill | Evidence P1;
+  đoạn đọc phân cách bằng **một dòng trống**; mã P1, P2 tự tăng.
+- ErrorClinic / RewriteLab: mỗi dòng gồm Task | Sample Answer | Topic.
+- CanDo Check: mỗi dòng là một phát biểu I can.
+- Speaking, Writing, Project, Peer: rubric cố định để tiết kiệm công xây dựng.
 
-## Bảo mật và giới hạn
-- Ba bảng có RLS, chỉ chủ sở hữu dữ liệu được phép truy cập.
-- Không mở quyền ghi anon.
-- Hồ sơ chỉ tổng hợp kết quả đã lưu; kế hoạch không được giả làm hoạt động đã thực hiện.
-- Bản MVP chưa dùng chung danh sách lớp Homeroom, chưa có người học tự làm bài, chưa có đánh giá đồng đẳng hay chấm Writing.
-- Chưa có upload bằng chứng gốc, chức năng khóa/audit chỉnh sửa. Đã hỗ trợ so sánh điểm trước–sau theo mã học sinh khi có hai bài được liên kết; giáo viên phải tự đảm bảo mục tiêu và độ khó tương đương. Không dùng bản MVP làm hệ thống lưu trữ hồ sơ cuối cùng trước khi kiểm toán.
+## Cơ sở dữ liệu — bước triển khai thủ công bắt buộc
+Không chạy bất cứ lệnh migration nào trên production trước khi backup và kiểm duyệt.
+
+**Dự án chưa áp dụng MVP trước đó**:
+1. Sao lưu Supabase, xem xét chính sách xử lý dữ liệu cá nhân.
+2. Chạy **supabase/brian_assessment_studio_mvp.sql**.
+3. Chạy tiếp **supabase/brian_assessment_studio_expand_12.sql**.
+4. Xác minh RLS, ba bảng và chính sách owner-only, kiểm tra role teacher/admin.
+5. Kiểm tra người dùng A không thể đọc, sửa hoặc tạo bản ghi cho giáo viên B.
+
+**Dự án đã chạy migration MVP 3 công cụ**:
+- Chỉ chạy migration mở rộng **supabase/brian_assessment_studio_expand_12.sql**
+  sau khi sao lưu và kiểm tra dữ liệu hiện có. Constraint chứng minh trạng thái
+  yêu cầu ngày thực hiện và ghi chú; dữ liệu legacy thiếu hai thông tin này có thể
+  khiến migration dừng để người quản trị rà soát.
 
 ## Kiểm thử
-- node --test tests/assessment-studio.test.mjs
-- npx vite build
-- Quy trình GitHub Actions Assessment Studio (No AI) chạy khi có pull request liên quan.
+- Node unit tests: node --test tests/assessment-studio.test.mjs
+- UI/build smoke: npx vite build
+- GitHub CI: Assessment Studio (No AI) và Frontend Build.
+- Kiểm thử chưa thay thế thử nghiệm phân quyền với hai tài khoản riêng,
+  kiểm tra dữ liệu thật, sử dụng trên điện thoại và trải nghiệm trong lớp.
 
-## Lộ trình tiếp
-- Thí điểm hai công cụ khác nhau, thu minh chứng thực tế.
-- Tích hợp roster an toàn, khóa phiên bản và audit log, đánh giá trước–sau.
-- Mở thêm những module còn lại theo lộ trình, luôn giữ điều kiện No AI Integration.
+## Định hướng sau beta
+- Cổng học sinh có xác thực, chỉ xem bài được giao, không tiết lộ đáp án.
+- Tích hợp danh sách lớp có phân quyền, lưu bài làm trực tuyến, tiếp nhận file.
+- File minh chứng theo storage bucket riêng, chính sách lưu/xóa minh bạch.
+- Audit log append-only, đóng băng hồ sơ và quyền tạo bản sửa có lý do.
+- Các chức năng trên vẫn không dùng AI, LLM hay dịch vụ chấm tự động bằng AI.
