@@ -1,6 +1,7 @@
 import React from 'react';
 import { MODULES, RUBRICS, moduleFor, SELF_STATEMENTS } from './catalogue.js';
 import { safeHttpUrl } from './assessmentMath.js';
+import { rubricDescription, LEVEL_NAMES } from './rubricDescriptors.js';
 
 const change = (set,field,value) => set(v=>({...v,[field]:value}));
 const SAMPLE_QUIZ = 'She enjoys ___ books. | read | reading | to read | reads | B | Gerund\nHe decided ___ abroad. | study | studying | to study | studied | C | Infinitive';
@@ -65,8 +66,16 @@ export function AssessmentResultFields({selected,input,setInput}){
           <option value="" disabled>Chọn điểm theo bài làm thực tế</option>
           {[0,1,2,3,4].map(v=><option key={v} value={v}>{v} / 4</option>)}
         </select>
+        <small>{input.marks?.[c]===undefined ? 'Chưa chọn điểm theo rubric.' : rubricDescription(selected.kind,c,Number(input.marks[c]))}</small>
       </label>)}
     </>}
+    {engine==='rubric' && <details className="bas-reference">
+      <summary>Xem mô tả chi tiết thang điểm 0–4</summary>
+      {(RUBRICS[selected.kind]||[]).map(c=><div key={c} className="bas-descriptor-group">
+        <b>{c}</b>
+        {LEVEL_NAMES.map((name,index)=><p key={index}><strong>{name}:</strong> {rubricDescription(selected.kind,c,index)}</p>)}
+      </div>)}
+    </details>}
     {engine==='scale' && <>
       <div className="bas-hint"><b>Lưu ý:</b> điểm CanDo Check chỉ biểu thị mức tự đánh giá, không phải điểm kiểm tra năng lực khách quan.</div>
       {(config.statements||[]).map((statement,i)=><label key={i}>{i+1}. {statement}
