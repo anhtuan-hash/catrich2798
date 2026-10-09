@@ -77,3 +77,32 @@ export function csvEscape(value) {
   const safe = /^[\s]*[=+\-@\t\r]/.test(raw) ? "'" + raw : raw;
   return '"' + safe.replace(/"/g, '""') + '"';
 }
+
+/**
+ * Compare only matching student codes. Class averages from different rosters
+ * are not treated as individual improvement evidence.
+ */
+export function comparePairedOutcomes(before, after) {
+  const indexed = new Map();
+  (Array.isArray(before) ? before : []).forEach(row => {
+    const code = String(row.student_code || '').trim().toUpperCase();
+    if (code && !indexed.has(code)) indexed.set(code, row);
+  });
+  let pairs = 0;
+  let beforeTotal = 0;
+  let afterTotal = 0;
+  const unique = new Set();
+  (Array.isArray(after) ? after : []).forEach(row => {
+    const code = String(row.student_code || '').trim().toUpperCase();
+    if (!code || unique.has(code) || !indexed.has(code)) return;
+    unique.add(code);
+    const pre = indexed.get(code);
+    if (!Number(pre.max_score) || !Number(row.max_score)) return;
+    pairs += 1;
+    beforeTotal += Number(pre.score) / Number(pre.max_score) * 100;
+    afterTotal += Number(row.score) / Number(row.max_score) * 100;
+  });
+  return { pairs, beforeAverage: pairs ? beforeTotal / pairs : null,
+    afterAverage: pairs ? afterTotal / pairs : null,
+    change: pairs ? (afterTotal - beforeTotal) / pairs : null };
+}
