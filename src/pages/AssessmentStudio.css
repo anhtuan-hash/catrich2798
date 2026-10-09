@@ -1,0 +1,43 @@
+.bas-root{--bas-ink:#1a2940;--bas-soft:#eef5ff;--bas-blue:#315fc4;max-width:1420px;margin:0 auto;padding:26px clamp(16px,3vw,40px) 84px;color:var(--bas-ink);font:inherit;line-height:1.5}
+.bas-root *{box-sizing:border-box}.bas-hero{display:flex;justify-content:space-between;align-items:center;background:#eaf3ff;border:1px solid #d4e5fb;border-radius:28px;padding:clamp(24px,4vw,48px);margin:0 0 34px;gap:24px}
+.bas-eyebrow,.bas-kicker{font-size:12px;letter-spacing:.09em;font-weight:800;color:#315fc4;display:flex;gap:8px;align-items:center;text-transform:uppercase}
+.bas-hero h1{font-size:clamp(29px,3.3vw,48px);letter-spacing:-.035em;line-height:1.1;margin:14px 0}
+.bas-hero p{font-size:17px;max-width:690px;color:#445a79;margin:8px 0 24px}
+.bas-watermark{color:#315fc4;background:#dbe9ff;width:114px;height:114px;border-radius:32px;display:grid;place-items:center;flex-shrink:0}
+.bas-hero-actions,.bas-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.bas-root button,.bas-root input,.bas-root select,.bas-root textarea{font:inherit}
+.bas-root button,.bas-root a.bas-btn{cursor:pointer}
+.bas-root button:disabled{cursor:not-allowed;opacity:.55}
+.bas-hero-actions button,.bas-hero-actions a,.bas-actions button,.bas-back{display:inline-flex;align-items:center;gap:8px;justify-content:center;text-decoration:none;color:#234a90;background:white;padding:11px 16px;border:1px solid #c7d8f1;border-radius:13px;font-size:14px;font-weight:750}
+.bas-hero-actions button:nth-child(2),.bas-primary{background:#315fc4!important;color:#fff!important;border:1px solid #315fc4!important}
+.bas-section-heading{display:flex;justify-content:space-between;align-items:end;gap:16px;margin:34px 0 18px}
+.bas-section-heading h2{font-size:clamp(23px,2.2vw,30px);margin:0 0 4px;line-height:1.2}
+.bas-section-heading p{color:#61738b;margin:0}
+.bas-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:15px}
+.bas-tile{text-align:left;display:flex;flex-direction:column;align-items:flex-start;min-height:180px;padding:20px;border:1px solid #dbe5f2;border-radius:19px;background:#fff;box-shadow:0 3px 18px #162d4a08;transition:border-color .16s,box-shadow .16s}
+.bas-tile.is-ready:hover{border-color:#7598d2;box-shadow:0 8px 26px #24467613}.bas-tile-icon{display:grid;place-items:center;background:#eaf3ff;color:#315fc4;width:48px;height:48px;border-radius:13px;margin-bottom:16px}
+.bas-tile b{font-size:17px}.bas-tile small{color:#65768a;font-size:13px;margin-top:3px}
+.bas-tile em{font-style:normal;font-size:11px;font-weight:750;text-transform:uppercase;letter-spacing:.05em;margin-top:auto;padding-top:12px;color:#2a63b2}
+.bas-tile.is-planned{background:#f6f8fb}.bas-tile.is-planned .bas-tile-icon{color:#7a8da5;background:#e8edf3}.bas-tile.is-planned em{color:#7c8aa0}
+.bas-list{display:grid;gap:9px}.bas-list-item{background:#fff;border:1px solid #dde5ef;border-radius:15px;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;text-align:left;color:#243a55;gap:12px}
+.bas-list-item>span:first-child{display:flex;flex-direction:column;gap:4px}.bas-list-item small,.bas-help,.bas-root label small{color:#687b91;font-size:13px}
+.bas-empty{border:1px dashed #ccd6e3;background:#fafcff;border-radius:15px;padding:22px;color:#6a7e96}
+.bas-panel{margin-top:20px;border:1px solid #dde5ef;border-radius:22px;background:#fff;padding:clamp(20px,3vw,32px);box-shadow:0 3px 18px #162d4a07;min-width:0}
+.bas-panel h2,.bas-panel h3{margin:15px 0 18px;font-size:24px}.bas-panel h3{font-size:20px}.bas-panel label{display:flex;flex-direction:column;gap:7px;margin:0 0 17px;font-weight:700;font-size:14px}
+.bas-panel input,.bas-panel select,.bas-panel textarea{width:100%;color:#23374f;background:#fbfdff;border:1px solid #c8d4e3;border-radius:12px;padding:12px 14px;font-weight:450;outline-offset:2px;font-size:16px}
+.bas-panel textarea{resize:vertical;line-height:1.6}.bas-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:17px}
+.bas-primary{border-radius:12px;display:inline-flex;gap:9px;align-items:center;justify-content:center;padding:12px 18px;font-weight:800}
+.bas-back{margin-bottom:8px}.bas-hint{background:#f1f6ff;border:1px solid #dfebfb;padding:15px;border-radius:12px;margin-bottom:22px}
+.bas-alert,.bas-success{padding:13px 16px;border-radius:12px;margin:14px 0;font-size:14px;border:1px solid}.bas-alert{background:#fff3f0;border-color:#f3c9c2;color:#923c35}.bas-success{background:#effaf2;border-color:#b2debf;color:#25643b}
+.bas-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.bas-stats>div{background:#f3f8ff;border:1px solid #e0eafa;border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:7px}
+.bas-stats small{color:#63758e}.bas-stats b{font-size:29px;line-height:1.1}
+.bas-two-columns{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.bas-progress{margin:12px 0}.bas-progress span{display:block;font-size:13px;margin-bottom:6px;font-weight:700}
+.bas-progress div{height:10px;background:#e6ebf1;border-radius:10px;overflow:hidden}.bas-progress i{display:block;height:100%;background:#5480d4;border-radius:10px}
+.bas-results-table{overflow-x:auto;max-height:380px;overflow-y:auto;margin-top:24px}
+.bas-results-table table{width:100%;border-collapse:collapse;font-size:13px}.bas-results-table th,.bas-results-table td{text-align:left;padding:10px;border-bottom:1px solid #e3eaf3}.bas-results-table th{position:sticky;top:0;background:#f4f8fe}
+.bas-log-list{margin-top:25px;display:grid;gap:12px}.bas-log-list article{padding:15px;background:#f7faff;border-radius:12px;border:1px solid #e0e8f3}.bas-log-list p{margin:7px 0}.bas-log-list small{color:#6b7e96}
+.bas-footer{padding:36px 0;text-align:center;color:#77869b;font-size:13px}
+@media(max-width:1020px){.bas-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.bas-watermark{display:none}}
+@media(max-width:700px){.bas-root{padding:16px 14px 70px}.bas-hero{border-radius:20px;padding:22px}.bas-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.bas-tile{min-height:154px;padding:15px}.bas-tile b{font-size:15px}.bas-tile-icon{width:42px;height:42px;margin-bottom:10px}.bas-form-grid,.bas-two-columns{grid-template-columns:1fr}.bas-section-heading{align-items:stretch;flex-direction:column}.bas-stats{gap:8px}.bas-stats>div{padding:12px}.bas-stats b{font-size:22px}.bas-hero-actions a,.bas-hero-actions button{padding:10px 12px}}
+@media print{.bas-root{max-width:100%}.bas-hero-actions,.bas-actions,.bas-primary,.bas-back{display:none!important}}
