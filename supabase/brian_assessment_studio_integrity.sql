@@ -89,10 +89,17 @@ create policy "bes_assessment_adjustments_owner_insert"
     )
     and (
       followup_assessment_id is null or exists (
-        select 1 from public.bes_assessments f
-        where f.id=followup_assessment_id
-        and f.owner_id=(select auth.uid())
-        and f.id<>assessment_id
+        select 1
+        from public.bes_assessments base
+        join public.bes_assessments followup
+          on followup.id=followup_assessment_id
+        where base.id=assessment_id
+          and base.owner_id=(select auth.uid())
+          and followup.owner_id=(select auth.uid())
+          and followup.id<>assessment_id
+          and followup.kind=base.kind
+          and followup.class_label=base.class_label
+          and followup.objective=base.objective
       )
     )
   );
