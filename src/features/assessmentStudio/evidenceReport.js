@@ -37,7 +37,7 @@ function assessmentInstrument(assessment){
   return instrument;
 }
 
-export function buildEvidenceHtml({assessment,results=[],adjustments=[],paired=null,includeNames=false,preparedAt=new Date()}){
+export function buildEvidenceHtml({assessment,results=[],adjustments=[],paired=null,includeNames=false,readiness=null,preparedAt=new Date()}){
   if(!assessment)throw new Error('Chưa chọn bài đánh giá.');
   const safe=escapeEvidenceHtml;
   const stats=summarizeResults(results);
@@ -69,6 +69,11 @@ export function buildEvidenceHtml({assessment,results=[],adjustments=[],paired=n
     paired.beforeAverage.toFixed(1)+'%</b>; sau: <b>'+paired.afterAverage.toFixed(1)+'%</b>; thay đổi: <b>'+
     (paired.change>=0?'+':'')+paired.change.toFixed(1)+' điểm phần trăm</b>.</p>':
     '<p>Chưa đủ kết quả trước–sau có cùng mã học sinh để đối chiếu.</p>';
+  const completeness=readiness
+    ? '<h2>Tình trạng hoàn thiện hồ sơ (kiểm tra kỹ thuật)</h2><p><b>'+readiness.count+'/'+readiness.total+
+      ' thành phần được ghi nhận.</b> Không thay thế kết luận của hội đồng thi đua.</p><ul>'+
+      readiness.checks.map(check=>'<li>'+(check.ok?'Đã có':'Chưa đủ')+': '+safe(check.label)+'</li>').join('')+'</ul>'
+    : '';
   const footer='Sản phẩm học liệu số BRIAN · Báo cáo tự động từ dữ liệu giáo viên nhập, không tích hợp AI. Chỉ xem đây là hồ sơ minh chứng sau khi đối chiếu tài liệu gốc.';
   return '<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"/><title>BRIAN · Minh chứng đánh giá</title>'+
     '<style>body{font:14px/1.55 Arial,sans-serif;color:#25344a;max-width:850px;margin:35px auto;padding:0 20px}'+
@@ -82,7 +87,7 @@ export function buildEvidenceHtml({assessment,results=[],adjustments=[],paired=n
     '<p><b>Đợt:</b> '+safe(assessment.title)+'</p><p><b>Lớp:</b> '+safe(assessment.class_label||'Chưa khai báo')+
     ' · <b>Mục tiêu:</b> '+safe(assessment.objective||'Chưa khai báo')+'</p>'+
     '<p><b>Ngày tạo bài:</b> '+safe(dateString(assessment.created_at))+' · <b>Ngày xuất:</b> '+safe(preparedAt.toLocaleDateString('vi-VN'))+'</p></div>'+
-    '<h2>1. Công cụ và phương pháp đánh giá</h2><p>'+safe(module?.description||'')+'</p>'+assessmentInstrument(assessment)+
+    completeness+'<h2>1. Công cụ và phương pháp đánh giá</h2><p>'+safe(module?.description||'')+'</p>'+assessmentInstrument(assessment)+
     '<h2>2. Kết quả đánh giá ban đầu</h2><p>Tổng số lượt đánh giá: <b>'+stats.count+
     '</b> · Trung bình theo phần trăm tối đa: <b>'+stats.average.toFixed(1)+'%</b>.</p>'+
     (assessment.kind==='self'?'<p class="warning">Lưu ý: chỉ số CanDo là mức tự đánh giá, không chứng minh chuẩn năng lực.</p>':'')+
