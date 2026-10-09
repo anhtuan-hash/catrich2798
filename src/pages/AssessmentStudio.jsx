@@ -263,12 +263,12 @@ export default function AssessmentStudio({ currentUser }) {
             <button type="button" className="bas-primary" disabled={busy} onClick={recordResult}><Save size={17}/> Lưu kết quả</button>
             {['quiz','reading'].includes(moduleFor(selected.kind)?.engine) && <details className="bas-bulk">
               <summary>Nhập hàng loạt từ Excel / bảng tính</summary>
-              <p className="bas-help">Dán các cột: Mã HS | Họ tên | Chuỗi đáp án${selected.kind==='reading'?' | Mã dẫn chứng P1,P2,...':''}. Có thể dán trực tiếp từ Excel (ngăn cách bằng Tab). Mỗi lượt tối đa 80 dòng.</p>
+              <p className="bas-help">Dán các cột: Mã HS | Họ tên | Chuỗi đáp án{selected.kind==='reading'?' | Mã dẫn chứng P1,P2,...':''}. Có thể dán trực tiếp từ Excel (ngăn cách bằng Tab). Mỗi lượt tối đa 80 dòng.</p>
               <textarea rows={7} value={bulkText} onChange={e=>{setBulkText(e.target.value);setBulkPreview([]);}} placeholder={selected.kind==='reading'?'S001 | Nguyễn Văn A | BAC | P1,P3,P2':'S001 | Nguyễn Văn A | BACD'} />
               <div className="bas-hero-actions"><button type="button" disabled={!bulkText.trim()||busy} onClick={previewBulk}>Kiểm tra dữ liệu</button>
-                {bulkPreview.length>0 && <button type="button" disabled={busy} onClick={saveBulk}><Save size={17}/> Lưu ${bulkPreview.length} kết quả đã kiểm tra</button>}
+                {bulkPreview.length>0 && <button type="button" disabled={busy} onClick={saveBulk}><Save size={17}/> Lưu {bulkPreview.length} kết quả đã kiểm tra</button>}
               </div>
-              {bulkPreview.length>0 && <p className="bas-success">Hợp lệ: {bulkPreview.length} học sinh. Điểm số được tính từ đáp án/rubric cố định; chưa lưu trước khi nhấn Lưu.</p>}
+              {bulkPreview.length>0 && <p className="bas-success">Hợp lệ: {bulkPreview.length} học sinh. Điểm số được tính bằng đáp án cố định; chưa lưu trước khi nhấn Lưu.</p>}
             </details>}
           </section>
           <section className="bas-panel">
