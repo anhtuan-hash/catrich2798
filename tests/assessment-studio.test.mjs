@@ -269,3 +269,27 @@ test('result migration guards both duplicate codes and any silent edits',()=>{
     assert.ok(sql.includes('revoke update, delete on public.'+table+' from authenticated;'));
   }
 });
+
+import { rubricDescription, LEVEL_NAMES } from '../src/features/assessmentStudio/rubricDescriptors.js';
+
+test('Speaking has five published proficiency anchors per criterion',()=>{
+  assert.equal(LEVEL_NAMES.length,5);
+  for(const criterion of ['Pronunciation','Fluency','Vocabulary','Grammar','Content']){
+    const descriptors=[0,1,2,3,4].map(n=>rubricDescription('speaking',criterion,n));
+    assert.equal(new Set(descriptors).size,5);
+    assert.ok(descriptors.every(x=>x.length>=20));
+  }
+  assert.ok(rubricDescription('writing','Organization',3).length>10);
+  assert.throws(()=>rubricDescription('speaking','Fluency',5),/0 đến 4/);
+});
+
+test('evidence PDF includes explicit rubric anchors for speaking',()=>{
+  const html=buildEvidenceHtml({
+    assessment:{kind:'speaking',title:'Oral Presentation',class_label:'12.6',
+      objective:'Presentation skills',config:{criteria:['Pronunciation','Fluency','Vocabulary','Grammar','Content']}},
+    results:[],adjustments:[],
+  });
+  assert.ok(html.includes('Mô tả mức điểm'));
+  assert.ok(html.includes('Phát âm rõ'));
+  assert.ok(html.includes('Nói trôi chảy'));
+});
