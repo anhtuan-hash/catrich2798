@@ -38,10 +38,10 @@ Tất cả 12 công cụ đã có form để giáo viên **tạo bài và nhập
 3. Chọn một trong 12 công cụ, nhập tên đợt, lớp, mục tiêu, câu hỏi / rubric tương ứng.
 4. Tổ chức bài đánh giá với học sinh. Giáo viên nhập bài làm, chấm hoặc chọn rubric
    theo kết quả quan sát thật. **Không có điểm mặc định**: cần chọn điểm từng tiêu chí.
-5. Nhập mã học sinh ổn định, tên học sinh, kết quả; xem thống kê. Với MCQ và ReadProof có thể dán **hàng loạt tối đa 80 dòng** từ Excel, xem trước dữ liệu, sau đó mới xác nhận lưu.
-6. Tạo Teaching Adjustment Record và ghi ngày, biện pháp đã thực hiện, nguồn minh chứng.
+5. Nhập **mã học sinh bắt buộc, duy nhất trong mỗi bài** (viết hoa, tối đa 40 ký tự), tên học sinh và kết quả; xem thống kê. Với MCQ và ReadProof có thể dán **hàng loạt tối đa 80 dòng** từ Excel, xem trước dữ liệu, sau đó mới xác nhận lưu.
+6. Sử dụng nút **In phiếu học sinh** để in đề không có đáp án, hoặc tạo Teaching Adjustment Record và ghi ngày, biện pháp đã thực hiện, nguồn minh chứng.
 7. Tạo bài đánh giá sau và liên kết vào nhật ký; ghép theo **mã học sinh** để so sánh.
-8. Xuất CSV nội bộ (có tên) hoặc PDF báo cáo **ẩn tên mặc định**. PDF gồm công cụ,
+8. Xuất CSV nội bộ (có tên) hoặc PDF báo cáo **ẩn tên mặc định**. Rà soát mục **Kiểm tra mức độ đầy đủ của minh chứng** trước khi nộp hồ sơ. PDF gồm công cụ,
    đáp án/rubric, kết quả, biện pháp, so sánh trước–sau và giới hạn chứng cứ.
 
 ## Mẫu nhập
@@ -60,14 +60,24 @@ Không chạy bất cứ lệnh migration nào trên production trước khi bac
 1. Sao lưu Supabase, xem xét chính sách xử lý dữ liệu cá nhân.
 2. Chạy **supabase/brian_assessment_studio_mvp.sql**.
 3. Chạy tiếp **supabase/brian_assessment_studio_expand_12.sql**.
-4. Xác minh RLS, ba bảng và chính sách owner-only, kiểm tra role teacher/admin.
-5. Kiểm tra người dùng A không thể đọc, sửa hoặc tạo bản ghi cho giáo viên B.
+4. Chạy **supabase/brian_assessment_studio_integrity.sql** (yêu cầu không còn bản ghi thiếu/trùng mã học sinh).
+5. Xác minh RLS, ba bảng và chính sách owner-only, kiểm tra role teacher/admin.
+6. Kiểm tra người dùng A không thể đọc, sửa hoặc tạo bản ghi cho giáo viên B.
 
 **Dự án đã chạy migration MVP 3 công cụ**:
-- Chỉ chạy migration mở rộng **supabase/brian_assessment_studio_expand_12.sql**
+- Chạy migration mở rộng **supabase/brian_assessment_studio_expand_12.sql**, sau đó chạy **supabase/brian_assessment_studio_integrity.sql**
   sau khi sao lưu và kiểm tra dữ liệu hiện có. Constraint chứng minh trạng thái
   yêu cầu ngày thực hiện và ghi chú; dữ liệu legacy thiếu hai thông tin này có thể
   khiến migration dừng để người quản trị rà soát.
+
+## Kiểm soát toàn vẹn kết quả
+- Mỗi mã học sinh được chuẩn hóa (uppercase) và chỉ có một kết quả trong một bài.
+- Nhập hàng loạt kiểm tra mã trùng cả trong Excel và trong dữ liệu đã lưu; kiểm tra lại trước khi ghi.
+- Migration integrity thiết lập UNIQUE ở cơ sở dữ liệu. Không chỉ dựa trên JavaScript trình duyệt.
+- Các bảng kết quả và nhật ký chỉ được giáo viên **tạo mới và đọc**, không sửa/xóa tùy tiện.
+- Nếu có điểm nhập sai, cần quy trình **chỉnh sửa có phê duyệt và nhật ký bất biến** (chưa tích hợp), không tự tạo điểm sửa hoặc ghi đè. Bản hiện tại chưa nên dùng làm sổ điểm chính thức.
+- Trường mã học sinh không tự sinh và không suy đoán từ tên; giữ nguyên số 0 đứng đầu.
+- Phiếu giấy không chứa khóa đáp án. Báo cáo minh chứng có kiểm tra tính đầy đủ theo quy tắc, không tự xác nhận đủ 3 điểm thi đua.
 
 ## Kiểm thử
 - Node unit tests: node --test tests/assessment-studio.test.mjs
