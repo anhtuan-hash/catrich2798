@@ -60,8 +60,9 @@ export function AssessmentResultFields({selected,input,setInput}){
   const setMark=(key,v)=>setInput(old=>({...old,marks:{...old.marks,[key]:Number(v)}}));
   return <>
     {engine==='rubric' && <>
-      {(RUBRICS[selected.kind]||[]).map(c=><label key={c}>{c} — {input.marks?.[c]??2}/4
-        <select value={input.marks?.[c]??2} onChange={e=>setMark(c,e.target.value)}>
+      {(RUBRICS[selected.kind]||[]).map(c=><label key={c}>{c} — {input.marks?.[c]??'—'}/4
+        <select value={input.marks?.[c]??''} onChange={e=>setMark(c,e.target.value)}>
+          <option value="" disabled>Chọn điểm theo bài làm thực tế</option>
           {[0,1,2,3,4].map(v=><option key={v} value={v}>{v} / 4</option>)}
         </select>
       </label>)}
@@ -69,7 +70,8 @@ export function AssessmentResultFields({selected,input,setInput}){
     {engine==='scale' && <>
       <div className="bas-hint"><b>Lưu ý:</b> điểm CanDo Check chỉ biểu thị mức tự đánh giá, không phải điểm kiểm tra năng lực khách quan.</div>
       {(config.statements||[]).map((statement,i)=><label key={i}>{i+1}. {statement}
-        <select value={input.selfRatings?.[i]??2} onChange={e=>setArray('selfRatings',i,Number(e.target.value))}>
+        <select value={input.selfRatings?.[i]??''} onChange={e=>setArray('selfRatings',i,Number(e.target.value))}>
+          <option value="" disabled>Chọn mức học sinh đã tự đánh giá</option>
           {[1,2,3,4].map(v=><option key={v} value={v}>{v} — {['','Chưa tự tin','Đang phát triển','Khá tự tin','Thực hiện độc lập'][v]}</option>)}
         </select>
       </label>)}
@@ -80,7 +82,8 @@ export function AssessmentResultFields({selected,input,setInput}){
         <small>Đáp án tham khảo: {q.sampleAnswer} · {q.topic}</small>
         <textarea rows={2} value={input.manualResponses?.[i]||''} placeholder="Câu học sinh đã viết (để trống nếu bỏ bài)" onChange={e=>setArray('manualResponses',i,e.target.value)}/>
         <label>Đánh giá của giáo viên
-          <select value={input.manualAccepted?.[i]?'pass':'fail'} onChange={e=>setArray('manualAccepted',i,e.target.value==='pass')}>
+          <select value={input.manualAccepted?.[i]===true?'pass':input.manualAccepted?.[i]===false?'fail':''} onChange={e=>setArray('manualAccepted',i,e.target.value==='pass')}>
+            <option value="" disabled>Chọn sau khi giáo viên kiểm tra</option>
             <option value="fail">Chưa đạt (0 điểm)</option><option value="pass">Đạt (1 điểm)</option>
           </select>
         </label>
