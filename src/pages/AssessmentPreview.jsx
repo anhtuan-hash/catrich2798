@@ -1,23 +1,27 @@
 import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
 const SpeakScaleStudio = lazy(() => import('../features/assessmentStudio/SpeakScaleStudio.jsx'));
 const DiagnosticScan = lazy(() => import('../features/assessmentStudio/DiagnosticScan.jsx'));
+const ExitTicket = lazy(() => import('../features/assessmentStudio/ExitTicket.jsx'));
 
 /**
  * Preview-only experience, hosted inside the existing Brian app shell.
  * Real scores are never loaded here; the standalone HTML uses fixed demo data.
  */
 export default function AssessmentPreview() {
-  const [activeTool,setActiveTool]=useState(()=>typeof window!=='undefined' && window.location.hash.includes('tool=speaking')?'speaking':typeof window!=='undefined'&&window.location.hash.includes('tool=diagnostic')?'diagnostic':'catalog');
+  const [activeTool,setActiveTool]=useState(()=>typeof window!=='undefined' && window.location.hash.includes('tool=speaking')?'speaking':typeof window!=='undefined'&&window.location.hash.includes('tool=diagnostic')?'diagnostic':typeof window!=='undefined'&&window.location.hash.includes('tool=exit')?'exit':'catalog');
   const [speakingVisited,setSpeakingVisited]=useState(()=>typeof window!=='undefined' && window.location.hash.includes('tool=speaking'));
   const [diagnosticVisited,setDiagnosticVisited]=useState(()=>typeof window!=='undefined'&&window.location.hash.includes('tool=diagnostic'));
+  const [exitVisited,setExitVisited]=useState(()=>typeof window!=='undefined'&&window.location.hash.includes('tool=exit'));
   const frameRef=useRef(null);
   const openSpeaking=()=>{setSpeakingVisited(true);setActiveTool('speaking');};
   const openDiagnostic=()=>{setDiagnosticVisited(true);setActiveTool('diagnostic');};
+  const openExit=()=>{setExitVisited(true);setActiveTool('exit');};
   useEffect(()=>{
     const onMessage=(event)=>{
       if(event.source!==frameRef.current?.contentWindow)return;
       if(event.data?.type==='BRIAN_OPEN_SPEAKSCALE')openSpeaking();
       if(event.data?.type==='BRIAN_OPEN_DIAGNOSTIC')openDiagnostic();
+      if(event.data?.type==='BRIAN_OPEN_EXIT')openExit();
     };
     window.addEventListener('message',onMessage);
     return ()=>window.removeEventListener('message',onMessage);
@@ -31,11 +35,11 @@ export default function AssessmentPreview() {
         <div>
           <div style={{fontSize:12,fontWeight:800,letterSpacing:'0.1em',color:'#3965A8'}}>BRIAN · KIỂM TRA, ĐÁNH GIÁ</div>
           <h1 style={{fontSize:'clamp(21px,2vw,30px)',color:'var(--text-primary,#17375B)',margin:'3px 0 0',lineHeight:1.3}}>
-            Assessment Studio <span style={{fontSize:13,fontWeight:650,color:'#526D8A'}}>· {activeTool==='speaking'?'SpeakScale v1.0':activeTool==='diagnostic'?'DiagnosticScan v1.0':'Danh mục 12 công cụ'} · Không AI</span>
+            Assessment Studio <span style={{fontSize:13,fontWeight:650,color:'#526D8A'}}>· {activeTool==='speaking'?'SpeakScale v1.0':activeTool==='diagnostic'?'DiagnosticScan v1.0':activeTool==='exit'?'ExitTicket v1.0':'Danh mục 12 công cụ'} · Không AI</span>
           </h1>
         </div>
         <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
-          {activeTool!=='catalog' ? <button type="button" onClick={()=>setActiveTool('catalog')} style={{padding:'9px 14px',borderRadius:12,border:'1px solid #aac5ed',color:'#2654a6',background:'#eef5ff',fontSize:14,fontWeight:800,cursor:'pointer'}}>← 12 công cụ</button> : <><button type="button" onClick={openSpeaking} style={{padding:'9px 14px',borderRadius:12,border:'1px solid #aac5ed',color:'#2654a6',background:'#eef5ff',fontSize:14,fontWeight:800,cursor:'pointer'}}>🎙️ SpeakScale</button><button type="button" onClick={openDiagnostic} style={{padding:'9px 14px',borderRadius:12,border:'1px solid #aac5ed',color:'#2654a6',background:'#eef5ff',fontSize:14,fontWeight:800,cursor:'pointer'}}>📋 DiagnosticScan</button></>}
+          {activeTool!=='catalog' ? <button type="button" onClick={()=>setActiveTool('catalog')} style={{padding:'9px 14px',borderRadius:12,border:'1px solid #aac5ed',color:'#2654a6',background:'#eef5ff',fontSize:14,fontWeight:800,cursor:'pointer'}}>← 12 công cụ</button> : <><button type="button" onClick={openSpeaking} style={{padding:'9px 14px',borderRadius:12,border:'1px solid #aac5ed',color:'#2654a6',background:'#eef5ff',fontSize:14,fontWeight:800,cursor:'pointer'}}>🎙️ SpeakScale</button><button type="button" onClick={openDiagnostic} style={{padding:'9px 14px',borderRadius:12,border:'1px solid #aac5ed',color:'#2654a6',background:'#eef5ff',fontSize:14,fontWeight:800,cursor:'pointer'}}>📋 DiagnosticScan</button><button type="button" onClick={openExit} style={{padding:'9px 14px',borderRadius:12,border:'1px solid #aac5ed',color:'#2654a6',background:'#eef5ff',fontSize:14,fontWeight:800,cursor:'pointer'}}>🎟️ ExitTicket</button></>}
           <a href="#/apps" style={{padding:'9px 14px',textDecoration:'none',borderRadius:12,color:'#285287',background:'#EAF2FC',fontSize:14,fontWeight:750}}>← Kho ứng dụng</a>
           <a href="/assessment-studio-preview.html" target="_blank" rel="noopener noreferrer" style={{padding:'9px 14px',textDecoration:'none',borderRadius:12,color:'#FFF',border:'1px solid #BCD1EA',fontSize:14,fontWeight:700}}>
             Mở toàn màn hình ↗
@@ -53,8 +57,9 @@ export default function AssessmentPreview() {
       /></div>
       {speakingVisited&&<div style={{display:activeTool==='speaking'?'block':'none'}}><Suspense fallback={<div style={{padding:45,color:'#365e95'}}>Đang mở SpeakScale…</div>}><SpeakScaleStudio onBack={()=>setActiveTool('catalog')}/></Suspense></div>}
       {diagnosticVisited&&<div style={{display:activeTool==='diagnostic'?'block':'none'}}><Suspense fallback={<div style={{padding:45,color:'#365e95'}}>Đang mở DiagnosticScan…</div>}><DiagnosticScan onBack={()=>setActiveTool('catalog')}/></Suspense></div>}
+      {exitVisited&&<div style={{display:activeTool==='exit'?'block':'none'}}><Suspense fallback={<div style={{padding:45,color:'#365e95'}}>Đang mở ExitTicket…</div>}><ExitTicket onBack={()=>setActiveTool('catalog')}/></Suspense></div>}
       <p style={{margin:'11px 0 0',color:'var(--text-muted,#64748B)',fontSize:12,lineHeight:1.55}}>
-        {activeTool==='catalog' ? 'Các công cụ còn lại trong danh mục là bản minh họa. Hai công cụ SpeakScale và DiagnosticScan hoạt động trong bộ nhớ phiên trình duyệt.' : 'Công cụ đang mở xử lý dữ liệu ngay trong phiên trình duyệt, không tự lưu lên máy chủ. Hãy xuất JSON trước khi tải lại hoặc thoát trang.'}
+        {activeTool==='catalog' ? 'Các công cụ còn lại trong danh mục là bản minh họa. SpeakScale, DiagnosticScan và ExitTicket đã có phiên bản giáo viên sử dụng trong bộ nhớ phiên trình duyệt.' : 'Công cụ đang mở xử lý dữ liệu ngay trong phiên trình duyệt, không tự lưu lên máy chủ. Hãy xuất JSON trước khi tải lại hoặc thoát trang.'}
       </p>
     </section>
   );
