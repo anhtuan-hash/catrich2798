@@ -123,7 +123,7 @@ export default function AssessmentStudio({ currentUser }) {
     const grade = scoreAssessmentSubmission(selected,studentInput);
     const { error: insertError } = await supabase.from('bes_assessment_results').insert({
       owner_id: owner, assessment_id: selectedId, student_name: studentName.trim(),
-      student_code: studentCode.trim(), score: grade.score, max_score: grade.maxScore,
+      student_code: studentCode.trim(), score: grade.score, max_score: grade.max_score,
       answers: grade.answers,
       breakdown: grade.breakdown
     });
