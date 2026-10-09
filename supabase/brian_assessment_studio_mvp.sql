@@ -52,9 +52,11 @@ create table if not exists public.bes_assessment_adjustments (
   id uuid primary key default gen_random_uuid(),
   assessment_id uuid not null references public.bes_assessments(id) on delete cascade,
   owner_id uuid not null references auth.users(id) on delete cascade,
+  followup_assessment_id uuid references public.bes_assessments(id) on delete set null,
   finding text not null default '',
   action_taken text not null default '',
   status text not null default 'planned' check (status in ('planned','implemented','reviewed')),
+  constraint bes_assessment_review_link check (status <> 'reviewed' or followup_assessment_id is not null),
   implementation_date date,
   evidence_note text not null default '',
   followup_result text not null default '',
@@ -75,4 +77,7 @@ create policy "bes_assessment_adjustments_owner_access" on public.bes_assessment
   with check (owner_id = (select auth.uid()) and exists (
     select 1 from public.bes_assessments a
     where a.id = assessment_id and a.owner_id = (select auth.uid())
-  ));
+  ) and (followup_assessment_id is null or exists (
+    select 1 from public.bes_assessments f
+    where f.id = followup_assessment_id and f.owner_id = (select auth.uid())
+  )));
