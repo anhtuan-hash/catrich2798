@@ -108,3 +108,12 @@ test('production card links to full DiagnosticScan and no network calls',()=>{
  assert.doesNotMatch(frontend,/\bfetch\s*\(|\.from\(['"]bes_assessment_/);
  assert.doesNotMatch(frontend,/\blocalStorage\b|\bsessionStorage\b/);
 });
+
+test('draft-only JSON backup can be restored without validated questions',()=>{
+ const data={meta:{title:'Draft',className:'',objective:'',teacher:'',date:''},roster:[],config:null,
+  records:[],adjustment:{},revisions:[],demo:false,draft:{preRaw:'Question draft | A | B',postRaw:'',samePost:false}};
+ const restored=verifyDiagnosticBackup(JSON.parse(diagnosticBackup(data)));
+ assert.equal(restored.config,null);
+ assert.equal(restored.draft.preRaw,'Question draft | A | B');
+ assert.deepEqual(restored.records,[]);
+});
