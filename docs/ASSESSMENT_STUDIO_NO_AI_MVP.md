@@ -38,7 +38,7 @@ Tất cả 12 công cụ đã có form để giáo viên **tạo bài và nhập
 3. Chọn một trong 12 công cụ, nhập tên đợt, lớp, mục tiêu, câu hỏi / rubric tương ứng.
 4. Tổ chức bài đánh giá với học sinh. Giáo viên nhập bài làm, chấm hoặc chọn rubric
    theo kết quả quan sát thật. **Không có điểm mặc định**: cần chọn điểm từng tiêu chí.
-5. Nhập mã học sinh ổn định, tên học sinh, kết quả; xem thống kê.
+5. Nhập mã học sinh ổn định, tên học sinh, kết quả; xem thống kê. Với MCQ và ReadProof có thể dán **hàng loạt tối đa 80 dòng** từ Excel, xem trước dữ liệu, sau đó mới xác nhận lưu.
 6. Tạo Teaching Adjustment Record và ghi ngày, biện pháp đã thực hiện, nguồn minh chứng.
 7. Tạo bài đánh giá sau và liên kết vào nhật ký; ghép theo **mã học sinh** để so sánh.
 8. Xuất CSV nội bộ (có tên) hoặc PDF báo cáo **ẩn tên mặc định**. PDF gồm công cụ,
@@ -51,6 +51,7 @@ Tất cả 12 công cụ đã có form để giáo viên **tạo bài và nhập
 - ErrorClinic / RewriteLab: mỗi dòng gồm Task | Sample Answer | Topic.
 - CanDo Check: mỗi dòng là một phát biểu I can.
 - Speaking, Writing, Project, Peer: rubric cố định để tiết kiệm công xây dựng.
+- Nhập hàng loạt (MCQ): Mã HS | Họ tên | Chuỗi đáp án. ReadProof: thêm cột mã dẫn chứng. Dán trực tiếp từ Excel dạng Tab hoặc ngăn cách ký tự |; mọi dòng phải hợp lệ trước khi bấm Lưu.
 
 ## Cơ sở dữ liệu — bước triển khai thủ công bắt buộc
 Không chạy bất cứ lệnh migration nào trên production trước khi backup và kiểm duyệt.
