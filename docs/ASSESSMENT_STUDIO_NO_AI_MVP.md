@@ -24,10 +24,10 @@ Nếu chưa áp dụng SQL, giao diện báo lỗi, không chuyển sang dữ li
 ## Quy trình
 1. Tạo bài đánh giá: tên, lớp, mục tiêu, loại công cụ.
 2. Diagnostic và Exit: mỗi dòng theo mẫu: Question | Option A | Option B | Option C | Option D | B | Grammar topic. Đáp án A–D. Diagnostic tối đa 50; Exit tối đa 3.
-3. Speaking: năm tiêu chí, mỗi tiêu chí 0–4 điểm.
+3. Speaking: năm tiêu chí, mỗi tiêu chí 0–4 điểm. Để đối chiếu trước–sau, hãy nhập MÃ HỌC SINH ổn định ở cả hai bài.
 4. Tổ chức kiểm tra trong lớp; giáo viên nhập kết quả thực tế vào giao diện. Đây chưa phải cổng làm bài trực tuyến.
 5. Xem phân tích kết quả theo chủ điểm/tiêu chí.
-6. Tạo nhật ký điều chỉnh. Trạng thái Đã thực hiện yêu cầu ngày và nội dung minh chứng; trạng thái Đã đánh giá lại yêu cầu kết quả.
+6. Tạo nhật ký điều chỉnh. Trạng thái Đã thực hiện yêu cầu ngày và nội dung minh chứng; trạng thái Đã đánh giá lại yêu cầu liên kết bài đánh giá lại cùng lớp/cùng hình thức và nhận xét kết quả. Hệ thống tự tính chênh lệch tỷ lệ điểm trên chính các mã học sinh xuất hiện ở cả hai bài. Không ghép chỉ dựa trên tên.
 7. Xuất CSV hoặc chọn in hồ sơ rồi Save as PDF trong trình duyệt.
 
 ## Bảo mật và giới hạn
@@ -35,7 +35,7 @@ Nếu chưa áp dụng SQL, giao diện báo lỗi, không chuyển sang dữ li
 - Không mở quyền ghi anon.
 - Hồ sơ chỉ tổng hợp kết quả đã lưu; kế hoạch không được giả làm hoạt động đã thực hiện.
 - Bản MVP chưa dùng chung danh sách lớp Homeroom, chưa có người học tự làm bài, chưa có đánh giá đồng đẳng hay chấm Writing.
-- Chưa có upload bằng chứng gốc, chức năng khóa/audit chỉnh sửa, hoặc so sánh thống kê tự động trước–sau. Không dùng bản MVP làm hệ thống lưu trữ hồ sơ cuối cùng trước khi kiểm toán.
+- Chưa có upload bằng chứng gốc, chức năng khóa/audit chỉnh sửa. Đã hỗ trợ so sánh điểm trước–sau theo mã học sinh khi có hai bài được liên kết; giáo viên phải tự đảm bảo mục tiêu và độ khó tương đương. Không dùng bản MVP làm hệ thống lưu trữ hồ sơ cuối cùng trước khi kiểm toán.
 
 ## Kiểm thử
 - node --test tests/assessment-studio.test.mjs
