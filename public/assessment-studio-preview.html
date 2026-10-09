@@ -27,7 +27,7 @@ h1{font-size:clamp(27px,3.2vw,43px);line-height:1.15;margin:9px 0;letter-spacing
 <section class="hero"><div><div class="eyebrow">12 CÔNG CỤ ĐÁNH GIÁ · TIẾNG ANH THPT</div><h1>Đánh giá rõ ràng.<br>Dạy học có minh chứng.</h1><p class="hint">Chọn một công cụ để thử quy trình chấm điểm và xem báo cáo minh họa. Không cần đăng nhập, không dùng dữ liệu học sinh thật.</p></div><div class="heroaside"><div class="chip"><strong>12</strong><br>Công cụ</div><div class="chip"><strong>0</strong><br>AI API</div><div class="chip"><strong>100%</strong><br>Quy tắc minh bạch</div><div class="chip"><strong>Demo</strong><br>Không lưu dữ liệu</div></div></section>
 <section aria-labelledby="list-heading"><h2 id="list-heading" style="margin-top:28px">Chọn công cụ để trải nghiệm</h2><p class="hint">Đây là giao diện minh họa tương tác trên production. Ứng dụng giáo viên chính thức nằm trong BRIAN và cần cấu hình cơ sở dữ liệu.</p><div class="topics" id="modules"></div></section>
 <section class="workspace" id="workspace" aria-label="Không gian thao tác minh họa">
-<div class="panel"><div class="eyebrow" id="active-type">SPEAKSCALE</div><h2 id="active-name">Speaking Assessment Rubric</h2><p class="hint" id="active-desc"></p><div id="task"></div><div class="actions"><button class="button" id="grade">Xem kết quả đánh giá</button><button class="button alt" id="reset">Làm lại</button><button class="button alt" id="print" type="button">In / Lưu PDF</button><button class="button" id="full-speaking" type="button" hidden>Mở SpeakScale hoàn chỉnh ↗</button></div><div id="score" aria-live="polite"></div></div>
+<div class="panel"><div class="eyebrow" id="active-type">SPEAKSCALE</div><h2 id="active-name">Speaking Assessment Rubric</h2><p class="hint" id="active-desc"></p><div id="task"></div><div class="actions"><button class="button" id="grade">Xem kết quả đánh giá</button><button class="button alt" id="reset">Làm lại</button><button class="button alt" id="print" type="button">In / Lưu PDF</button><button class="button" id="full-speaking" type="button" hidden>Mở SpeakScale hoàn chỉnh ↗</button><button class="button" id="full-diagnostic" type="button" hidden>Mở DiagnosticScan hoàn chỉnh ↗</button></div><div id="score" aria-live="polite"></div></div>
 <div class="panel"><div class="eyebrow">EVIDENCE &amp; IMPROVEMENT CENTER</div><h3>Minh chứng điều chỉnh dạy học</h3><p class="hint">Ví dụ minh họa quy trình, không phải kết quả thật của học sinh.</p>
 <div id="evidence-preview">
 <div class="result-item"><span>1. Công cụ đánh giá</span><b>Đã xác định</b></div>
@@ -83,7 +83,7 @@ function field(label,type='text',placeholder=''){const node=el('label',{text:lab
 function setup(){
 const list=$('modules');list.textContent='';
 for(const [id,name,sub,icon] of MODULES){const button=el('button',{class:'module','aria-pressed':String(current===id)});button.append(el('span',{class:'moduleicon',text:icon}),el('strong',{text:name}),el('small',{text:sub}),el('em',{text:'Mở công cụ →'}));button.addEventListener('click',()=>select(id));list.append(button)}
-const data=MODULES.find(x=>x[0]===current);$('full-speaking').hidden=current!=='speaking';$('active-type').textContent=data[1].toUpperCase();$('active-name').textContent=data[2];$('active-desc').textContent=LABELS[current];
+const data=MODULES.find(x=>x[0]===current);$('full-speaking').hidden=current!=='speaking';$('full-diagnostic').hidden=current!=='diagnostic';$('active-type').textContent=data[1].toUpperCase();$('active-name').textContent=data[2];$('active-desc').textContent=LABELS[current];
 const host=$('task');host.textContent='';$('score').textContent='';$('assessment-state').textContent='Chưa chấm';$('issue-state').textContent='Chưa phân tích';
 if(data[4]==='rubric'){if(current==='writing'||current==='project'){const [label]=field(current==='writing'?'Bài viết minh họa (không nhập dữ liệu cá nhân thật)':'Mô tả sản phẩm dự án','textarea','Nhập nội dung mẫu...');host.append(label)}if(current==='peer'){const [label]=field('Người đánh giá (mã giả định)','text','Ví dụ HS01');host.append(label)}
 for(const criterion of RUBRICS[current]){const label=el('label',{text:criterion+' · Thang 0–4'}),select=el('select',{'data-criterion':criterion});select.append(el('option',{value:'',text:'Chọn điểm đánh giá'}));for(let i=0;i<=4;i++)select.append(el('option',{value:String(i),text:i+' / 4'}));label.append(select);host.append(label)}}
@@ -113,6 +113,7 @@ function evaluate(){
 }
 function showError(msg){const node=$('score');node.textContent='';node.append(el('div',{class:'warning',text:msg}))}
 $('full-speaking').addEventListener('click',()=>{if(window.parent!==window){window.parent.postMessage({type:'BRIAN_OPEN_SPEAKSCALE'},'*')}else{window.location.href='/#/assessment-preview?tool=speaking'}});
+$('full-diagnostic').addEventListener('click',()=>{if(window.parent!==window){window.parent.postMessage({type:'BRIAN_OPEN_DIAGNOSTIC'},'*')}else{window.location.href='/#/assessment-preview?tool=diagnostic'}});
 $('grade').addEventListener('click',evaluate);$('reset').addEventListener('click',setup);$('print').addEventListener('click',()=>window.print());setup();
 })();
 </script>
