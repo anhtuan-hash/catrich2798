@@ -1,4 +1,5 @@
 import { moduleFor, RUBRICS } from './catalogue.js';
+import { rubricDescription, LEVEL_NAMES } from './rubricDescriptors.js';
 import { summarizeResults } from './assessmentMath.js';
 
 export const escapeEvidenceHtml = value => String(value ?? '')
@@ -15,7 +16,13 @@ function assessmentInstrument(assessment){
   if(RUBRICS[kind]) {
     instrument='<p>Bảng rubric: 0–4 điểm cho mỗi tiêu chí (giáo viên/nguồn đánh giá nhập trực tiếp).</p>'+
       '<table><thead><tr><th>Tiêu chí</th><th>Điểm tối đa</th></tr></thead><tbody>'+
-      RUBRICS[kind].map(c=>tr(escapeEvidenceHtml(c),'4')).join('')+'</tbody></table>';
+      RUBRICS[kind].map(c=>tr(escapeEvidenceHtml(c),'4')).join('')+'</tbody></table>'+
+      '<h3>Mô tả mức điểm (công bố trước khi chấm)</h3>'+
+      '<table><thead><tr><th>Tiêu chí</th><th>Mức</th><th>Mô tả</th></tr></thead><tbody>'+
+      (kind==='speaking'
+        ? RUBRICS[kind].flatMap(c=>LEVEL_NAMES.map((level,index)=>tr(escapeEvidenceHtml(c),escapeEvidenceHtml(level),escapeEvidenceHtml(rubricDescription(kind,c,index))))).join('')
+        : LEVEL_NAMES.map((level,index)=>tr('Áp dụng cho tất cả tiêu chí',escapeEvidenceHtml(level),escapeEvidenceHtml(rubricDescription(kind,'',index)))).join(''))+
+      '</tbody></table>';
   } else if(kind==='self'){
     instrument='<p>Tự đánh giá theo thang 1–4. Đây là dữ liệu tự nhận thức, KHÔNG phải điểm kiểm tra năng lực khách quan.</p>'+
       '<ol>'+(config.statements||[]).map(s=>'<li>'+escapeEvidenceHtml(s)+'</li>').join('')+'</ol>';
