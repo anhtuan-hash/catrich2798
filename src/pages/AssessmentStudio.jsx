@@ -6,6 +6,7 @@ import { MODULES, RUBRICS, moduleFor } from '../features/assessmentStudio/catalo
 import { buildAssessmentConfig, emptyStudentInput, scoreAssessmentSubmission, startingDraft } from '../features/assessmentStudio/assessmentWorkflow.js';
 import { CreateAssessmentFields, AssessmentResultFields } from '../features/assessmentStudio/AssessmentForms.jsx';
 import { buildEvidenceHtml } from '../features/assessmentStudio/evidenceReport.js';
+import { prepareBulkRows } from '../features/assessmentStudio/bulkImport.js';
 import './AssessmentStudio.css';
 
 const emptyDraft = startingDraft;
@@ -25,6 +26,8 @@ export default function AssessmentStudio({ currentUser }) {
   const [adjust, setAdjust] = useState(emptyAdjustment);
   const [studentName, setStudentName] = useState('');
   const [studentCode, setStudentCode] = useState('');
+  const [bulkText,setBulkText] = useState('');
+  const [bulkPreview,setBulkPreview] = useState([]);
   const [studentInput, setStudentInput] = useState(emptyStudentInput);
   const [view, setView] = useState('dashboard');
   const [busy, setBusy] = useState(false);
@@ -33,7 +36,7 @@ export default function AssessmentStudio({ currentUser }) {
   const detailRequestRef = useRef(0);
   const [error, setError] = useState('');
   const selected = items.find(item => item.id === selectedId) || null;
-  useEffect(() => {setStudentInput(emptyStudentInput());setAdjust(emptyAdjustment());setResults([]);setAdjustments([]);setFollowupResults([]);},[selectedId]);
+  useEffect(() => {setStudentInput(emptyStudentInput());setAdjust(emptyAdjustment());setResults([]);setAdjustments([]);setFollowupResults([]);setBulkText('');setBulkPreview([]);},[selectedId]);
   const statistics = useMemo(() => summarizeResults(results), [results]);
   const followupId = adjust.followup_assessment_id || adjustments.find(a => a.followup_assessment_id)?.followup_assessment_id || '';
   const paired = useMemo(() => comparePairedOutcomes(results, followupResults), [results, followupResults]);
@@ -128,6 +131,26 @@ export default function AssessmentStudio({ currentUser }) {
     setStudentName(''); setStudentCode(''); setStudentInput(emptyStudentInput());
     await loadDetail();
   }, 'Đã lưu kết quả học sinh.');
+
+  const previewBulk = () => {
+    setError('');setNotice('');
+    try {
+      const rows=prepareBulkRows(selected,bulkText);
+      setBulkPreview(rows);
+      setNotice('Đã kiểm tra '+rows.length+' kết quả hợp lệ. Chưa lưu vào hệ thống.');
+    } catch(e) {setBulkPreview([]);setError(e.message);}
+  };
+
+  const saveBulk = () => act(async () => {
+    if(!selected||!owner||!supabase)throw new Error('Vui lòng đăng nhập và chọn bài đánh giá.');
+    const rows=prepareBulkRows(selected,bulkText);
+    if(!rows.length||rows.length!==bulkPreview.length)throw new Error('Hãy kiểm tra lại bản xem trước.');
+    const {error:insertError}=await supabase.from('bes_assessment_results')
+      .insert(rows.map(row=>({...row,owner_id:owner,assessment_id:selected.id})));
+    if(insertError)throw insertError;
+    setBulkText('');setBulkPreview([]);
+    await loadDetail();
+  }, 'Đã lưu kết quả thực tế của cả lớp.');
 
   const saveAdjustment = () => act(async () => {
     if (!selected || !owner || !supabase) throw new Error('Hãy chọn bài đánh giá.');
@@ -238,6 +261,15 @@ export default function AssessmentStudio({ currentUser }) {
             <label>Mã học sinh (không bắt buộc)<input value={studentCode} onChange={e=>setStudentCode(e.target.value)}/></label>
             <AssessmentResultFields key={selectedId} selected={selected} input={studentInput} setInput={setStudentInput}/>
             <button type="button" className="bas-primary" disabled={busy} onClick={recordResult}><Save size={17}/> Lưu kết quả</button>
+            {['quiz','reading'].includes(moduleFor(selected.kind)?.engine) && <details className="bas-bulk">
+              <summary>Nhập hàng loạt từ Excel / bảng tính</summary>
+              <p className="bas-help">Dán các cột: Mã HS | Họ tên | Chuỗi đáp án${selected.kind==='reading'?' | Mã dẫn chứng P1,P2,...':''}. Có thể dán trực tiếp từ Excel (ngăn cách bằng Tab). Mỗi lượt tối đa 80 dòng.</p>
+              <textarea rows={7} value={bulkText} onChange={e=>{setBulkText(e.target.value);setBulkPreview([]);}} placeholder={selected.kind==='reading'?'S001 | Nguyễn Văn A | BAC | P1,P3,P2':'S001 | Nguyễn Văn A | BACD'} />
+              <div className="bas-hero-actions"><button type="button" disabled={!bulkText.trim()||busy} onClick={previewBulk}>Kiểm tra dữ liệu</button>
+                {bulkPreview.length>0 && <button type="button" disabled={busy} onClick={saveBulk}><Save size={17}/> Lưu ${bulkPreview.length} kết quả đã kiểm tra</button>}
+              </div>
+              {bulkPreview.length>0 && <p className="bas-success">Hợp lệ: {bulkPreview.length} học sinh. Điểm số được tính từ đáp án/rubric cố định; chưa lưu trước khi nhấn Lưu.</p>}
+            </details>}
           </section>
           <section className="bas-panel">
             <h3>Phân tích kết quả</h3>
