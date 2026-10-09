@@ -173,3 +173,61 @@ test('bulk import reading also validates evidence per student',()=>{
   assert.equal(rows[0].score,2);
   assert.throws(()=>prepareBulkRows(assessment,'S001 | Nguyễn Văn A | B'),/4 cột/);
 });
+
+import { normalizeStudentCode, ensureNewStudentCodes, assertScoredResult } from '../src/features/assessmentStudio/recordIntegrity.js';
+import { buildBlankStudentHandout } from '../src/features/assessmentStudio/studentHandout.js';
+import { readFileSync } from 'node:fs';
+
+test('student codes are normalized and duplicates are rejected',()=>{
+  assert.equal(normalizeStudentCode(' 000145 '),'000145');
+  assert.equal(normalizeStudentCode(' s-001 '),'S-001');
+  assert.deepEqual(ensureNewStudentCodes(['a001','a002'],[{student_code:'A003'}]),['A001','A002']);
+  assert.throws(()=>normalizeStudentCode('  '),/bắt buộc/);
+  assert.throws(()=>normalizeStudentCode('A 01'),/bắt buộc/);
+  assert.throws(()=>ensureNewStudentCodes(['s001','S001']),/Trùng/);
+  assert.throws(()=>ensureNewStudentCodes(['s001'],[{student_code:'S001'}]),/đã có kết quả/);
+  assertScoredResult({score:6,max_score:10});
+  assert.throws(()=>assertScoredResult({score:6,maxScore:10}),/không hợp lệ/);
+});
+
+test('import normalizes lower-case codes and preserves leading zeros',()=>{
+  const assessment={kind:'diagnostic',config:{questions:parseQuestions(quiz)}};
+  assert.equal(prepareBulkRows(assessment,' 000123 | Student | BC')[0].student_code,'000123');
+  assert.equal(prepareBulkRows(assessment,' s001 | Student | BC')[0].student_code,'S001');
+});
+
+test('printable handouts never reveal scoring keys or sample answers',()=>{
+  const quizConfig=buildAssessmentConfig('diagnostic',{questions:'Choose. | Alpha | Beta | Gamma | Delta | C | Grammar'});
+  const quizHtml=buildBlankStudentHandout({kind:'diagnostic',title:'Test',config:quizConfig});
+  assert.ok(quizHtml.includes('Alpha'));
+  assert.ok(!quizHtml.includes('correctAnswer'));
+  assert.ok(!quizHtml.includes('Gamma | C'));
+  assert.ok(!quizHtml.includes('Đáp án đúng'));
+  const manualConfig=buildAssessmentConfig('rewrite',{prompts:'Rewrite sentence. | TOPSECRETANSWER | Word order'});
+  const manualHtml=buildBlankStudentHandout({kind:'rewrite',title:'Rewrite',config:manualConfig});
+  assert.ok(manualHtml.includes('Rewrite sentence.'));
+  assert.ok(!manualHtml.includes('TOPSECRETANSWER'));
+  const readingConfig=buildAssessmentConfig('reading',{
+    passage:'First paragraph.\n\nSecond paragraph.',
+    questions:'Question? | X | Y | Z | Q | C | Evidence | P2'
+  });
+  const readingHtml=buildBlankStudentHandout({kind:'reading',title:'Reading',config:readingConfig});
+  assert.ok(readingHtml.includes('First paragraph.'));
+  assert.ok(readingHtml.includes('Vị trí dẫn chứng em chọn'));
+  assert.ok(!readingHtml.includes('correctEvidence'));
+  const rubric=buildBlankStudentHandout({kind:'speaking',title:'Speaking',config:{}});
+  assert.ok(rubric.includes('Pronunciation'));
+  const script=buildBlankStudentHandout({kind:'exit',title:'<script>alert(7)</script>',config:quizConfig});
+  assert.ok(script.includes('&lt;script&gt;'));
+});
+
+test('release requires a server unique index and read/insert-only owner policies',()=>{
+  const migration=readFileSync(new URL('../supabase/brian_assessment_studio_integrity.sql',import.meta.url),'utf8');
+  assert.match(migration,/create unique index if not exists bes_assessment_results_unique_student_per_test/i);
+  assert.match(migration,/revoke update, delete on public\.bes_assessment_results from authenticated/i);
+  assert.match(migration,/for insert to authenticated/i);
+  assert.match(migration,/for select to authenticated/i);
+  const ui=readFileSync(new URL('../src/pages/AssessmentStudio.jsx',import.meta.url),'utf8');
+  assert.match(ui,/max_score: grade\.max_score/);
+  assert.match(ui,/ensureNewStudentCodes/);
+});
