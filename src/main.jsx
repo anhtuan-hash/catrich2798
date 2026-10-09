@@ -118,6 +118,7 @@ const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAcces
 const HiddenAppsVault = lazy(() => import('./pages/HiddenAppsVault.jsx'));
 const QuestionBank = lazy(() => import('./pages/QuestionBank.jsx'));
 const QuestionBankPractice = lazy(() => import('./pages/QuestionBankPractice.jsx'));
+const AssessmentPreview = lazy(() => import('./pages/AssessmentPreview.jsx'));
 const ClassroomJoin = lazy(() => import('./pages/ClassroomJoin.jsx'));
 
 const ROUTES = ['home', 'apps', 'news', 'tools', 'homeroom', 'homeroom-portal', 'classroom-join', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
