@@ -293,3 +293,25 @@ test('evidence PDF includes explicit rubric anchors for speaking',()=>{
   assert.ok(html.includes('Phát âm rõ'));
   assert.ok(html.includes('Nói trôi chảy'));
 });
+
+test('Assessment Studio has no AI SDK imports or direct AI endpoints',()=>{
+  const files=[
+    '../src/pages/AssessmentStudio.jsx',
+    '../src/features/assessmentStudio/catalogue.js',
+    '../src/features/assessmentStudio/assessmentWorkflow.js',
+    '../src/features/assessmentStudio/assessmentMath.js',
+    '../src/features/assessmentStudio/AssessmentForms.jsx',
+    '../src/features/assessmentStudio/evidenceReport.js',
+    '../src/features/assessmentStudio/studentHandout.js',
+    '../src/features/assessmentStudio/bulkImport.js',
+    '../src/features/assessmentStudio/recordIntegrity.js',
+    '../src/features/assessmentStudio/evidenceReadiness.js',
+    '../src/features/assessmentStudio/rubricDescriptors.js',
+  ];
+  for(const path of files) {
+    const source=readFileSync(new URL(path,import.meta.url),'utf8');
+    assert.doesNotMatch(source,/from\s*['"][^'"]*(openai|anthropic|gemini|aiProviders|llmClient)[^'"]*['"]/i,path);
+    assert.doesNotMatch(source,/https:\/\/api\.(openai|anthropic)\.com/i,path);
+    assert.doesNotMatch(source,/\bfetch\s*\(/,path);
+  }
+});
