@@ -1881,6 +1881,7 @@ OpenAPI: ${openApiUrl}`;
 
   return (
     <section className="qb-shell qb-shell-v2 qb-shell-v3 qb-shell-v4 qb-shell-v5 qb-shell-v6 qb-shell-v7" data-qb-tab={activeTab}>
+      <div style={{display:"flex",justifyContent:"flex-end",padding:"12px 18px 4px"}}><a href="#/assessment-studio" style={{display:"inline-flex",alignItems:"center",gap:8,padding:"10px 16px",borderRadius:12,background:"#eaf3ff",color:"#2452a6",fontWeight:750,textDecoration:"none"}}>↗ BRIAN Assessment Studio</a></div>
       <nav className="qb-tabs qb-tabs-horizontal" aria-label="Ngân hàng câu hỏi">
         {visibleTabs.map(([id, label]) => {
           const Icon = TAB_ICONS[id] || Database;
