@@ -8,6 +8,11 @@ export const TWO_TIER_SAMPLE = [
  'We decided ___ early. | leave | leaving | to leave | left | C | Which rule applies? | Decide takes a gerund | Decide takes bare infinitive | Decide is followed by to-infinitive | Decide requires a past verb | C | Infinitive',
  'My teacher made us ___ the task. | to repeat | repeating | repeat | repeated | C | Which pattern is correct? | Make + object + to-infinitive | Make + object + gerund | Make + object + bare infinitive | Make + object + past participle | C | Bare infinitive',
 ].join('\n');
+export const TWO_TIER_POST_SAMPLE = [
+ 'Mina avoids ___ late. | arrive | arriving | to arrive | arrived | B | Why is this form correct? | Avoid takes to-infinitive | Avoid is followed by a gerund | Avoid is followed by bare infinitive | Avoid requires past tense | B | Gerund',
+ 'We hope ___ you next week. | meet | meeting | to meet | met | C | Which rule applies? | Hope takes a gerund | Hope takes bare infinitive | Hope is followed by to-infinitive | Hope requires past tense | C | Infinitive',
+ 'The coach let them ___ early. | to leave | leaving | leave | left | C | Which structure is correct? | Let + object + to-infinitive | Let + object + gerund | Let + object + bare infinitive | Let + object + past participle | C | Bare infinitive',
+].join('\n');
 export const TWO_TIER_EMPTY_META = {title:'Two-Tier Grammar Assessment',teacher:'',className:'',objective:'',date:''};
 export const TWO_TIER_EMPTY_ADJUST = {finding:'',action:'',implementedDate:'',evidence:'',comparability:'',reflection:''};
 const LETTERS=['A','B','C','D'];
