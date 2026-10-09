@@ -3,7 +3,7 @@
 create table if not exists public.bes_assessments (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references auth.users(id) on delete cascade,
-  kind text not null check (kind in ('diagnostic','speaking','exit')),
+  kind text not null check (kind in ('diagnostic','speaking','exit','error','vocabulary','reading','listening','writing','rewrite','self','peer','project')),
   title text not null check (char_length(title) between 1 and 180),
   class_label text not null default '',
   objective text not null default '',
