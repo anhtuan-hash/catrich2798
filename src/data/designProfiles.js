@@ -22,6 +22,13 @@ export const APP_DESIGN_PROFILES = {
     icon: 'activity',
     style: 'Interactive activity lab',
     styleVi: 'Phòng tạo hoạt động tương tác'},
+  'assessment-preview': {
+    accent: '#3968D1',
+    soft: '#E9F1FF',
+    ink: '#183A76',
+    icon: 'exam',
+    style: 'Assessment Studio · Interactive Preview',
+    styleVi: '12 công cụ · Không AI · Bản xem thử'},
   'assessment-core': {
     accent: '#315FC4',
     soft: '#EAF0FF',
