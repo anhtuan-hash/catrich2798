@@ -117,10 +117,11 @@ const ProductionHardening = lazy(() => import('./pages/ProductionHardening.jsx')
 const GlobalAccessibilityAnnouncer = lazy(() => import('./components/GlobalAccessibilityAnnouncer.jsx'));
 const HiddenAppsVault = lazy(() => import('./pages/HiddenAppsVault.jsx'));
 const QuestionBank = lazy(() => import('./pages/QuestionBank.jsx'));
+const AssessmentStudio = lazy(() => import('./pages/AssessmentStudio.jsx'));
 const QuestionBankPractice = lazy(() => import('./pages/QuestionBankPractice.jsx'));
 const ClassroomJoin = lazy(() => import('./pages/ClassroomJoin.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'tools', 'homeroom', 'homeroom-portal', 'classroom-join', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
+const ROUTES = ['home', 'apps', 'news', 'tools', 'homeroom', 'homeroom-portal', 'classroom-join', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'assessment-studio', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'qb-practice']);
 
 function getInitialRoute() {
@@ -151,6 +152,7 @@ const ROUTE_DESIGN_PROFILES = {
   dashboard: { accent: '#315FC4', soft: '#EAF3FF', ink: '#10264A' },
   'student-support': { accent: '#2F8F76', soft: '#E5F7F0', ink: '#173B31' },
   'assessment-core': { accent: '#315FC4', soft: '#EAF0FF', ink: '#14213D' },
+  'assessment-studio': { accent: '#315FC4', soft: '#EAF0FF', ink: '#14213D' },
   'platform-readiness': { accent: '#0F766E', soft: '#DFF7F4', ink: '#0C3B38' },
   'cloud-operations': { accent: '#167B68', soft: '#E4F6EF', ink: '#183F3C' },
   'data-governance': { accent: '#A24B35', soft: '#FFF0E8', ink: '#4A1E14' },
@@ -540,7 +542,12 @@ function App() {
                 <QuestionBank {...context} />
               </AppErrorBoundary>
             )}
-            {currentRoute === 'qb-practice' && <QuestionBankPractice />}
+            {canAccessRoute && currentRoute === 'assessment-studio' && currentUser && (
+              <AppErrorBoundary scope="assessment-studio" label="Assessment Studio">
+                <AssessmentStudio currentUser={currentUser} />
+              </AppErrorBoundary>
+            )}
+            {currentRoute === 'qb-practice' && <QuestionBankPractice /> }
             {canAccessRoute && currentRoute === 'platform-readiness' && currentUser && <PlatformReadiness {...context} />}
             {canAccessRoute && currentRoute === 'cloud-operations' && currentUser && <CloudOperations {...context} />}
             {canAccessRoute && currentRoute === 'data-governance' && currentUser && <DataGovernance {...context} />}
