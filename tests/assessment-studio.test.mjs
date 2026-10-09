@@ -100,10 +100,11 @@ test('human rubric and self-report are distinct and validated',()=>{
   assert.equal(writing.score,12);
   assert.equal(writing.breakdown.studentText.length>0,true);
   assert.throws(()=>scoreAssessmentSubmission({kind:'writing',config:{}},{marks:{}}),/nội dung bài viết/);
-  const peer=scoreAssessmentSubmission({kind:'peer',config:{}},{assessor:'Học sinh 01'});
+  const peer=scoreAssessmentSubmission({kind:'peer',config:{}},{assessor:'Học sinh 01',marks:{Preparation:2,Participation:2,Communication:2,Responsibility:2}});
   assert.equal(peer.score,8);
   assert.equal(peer.breakdown.assessor,'Học sinh 01');
   assert.throws(()=>scoreAssessmentSubmission({kind:'peer',config:{}},{}),/người đánh giá/);
+  assert.throws(()=>scoreAssessmentSubmission({kind:'peer',config:{}},{assessor:'HS 01'}),/0–4/);
   const self=scoreAssessmentSubmission({kind:'self',config:{statements:['I can summarise texts.','I can speak.']}},{selfRatings:[3,4]});
   assert.equal(self.score,7);
   assert.equal(self.breakdown.assessmentType,'self_report');
@@ -126,4 +127,26 @@ test('12 kinds have valid deterministic configuration and appropriate constraint
   assert.equal(safeHttpUrl('https://example.org/a.mp3'),'https://example.org/a.mp3');
   assert.throws(()=>safeHttpUrl('javascript:alert(1)'),/http/);
   assert.throws(()=>buildAssessmentConfig('exit',{questions:quiz+'\n'+quiz}),/tối đa 3/);
+});
+
+import { buildEvidenceHtml } from '../src/features/assessmentStudio/evidenceReport.js';
+
+test('evidence report escapes stored content and masks student names by default',()=>{
+  const config=buildAssessmentConfig('diagnostic',{questions:quiz});
+  const report=buildEvidenceHtml({
+    assessment:{kind:'diagnostic',title:'Test <script>alert(1)</script>',class_label:'12.6',objective:'Grammar',config},
+    results:[{student_name:'Nguyen Secret Name',score:1,max_score:2,breakdown:{topics:{Gerund:{achieved:1,total:1}}}}],
+    adjustments:[],preparedAt:new Date('2026-10-09T00:00:00Z')
+  });
+  assert.ok(report.includes('&lt;script&gt;alert(1)&lt;/script&gt;'));
+  assert.ok(!report.includes('Nguyen Secret Name'));
+  assert.ok(report.includes('Đối chiếu'));
+  assert.ok(report.includes('Điều chỉnh hoạt động dạy học'));
+});
+
+test('rubrics and teacher judgments require explicit human input',()=>{
+  assert.throws(()=>scoreAssessmentSubmission({kind:'speaking',config:{}},{}),/0–4/);
+  assert.throws(()=>scoreAssessmentSubmission({kind:'self',config:{statements:['I can read.']}},{}),/1 đến 4/);
+  assert.throws(()=>scoreAssessmentSubmission({kind:'error',config:{questions:parseManualPrompts('Spot the error. | had | Grammar')}},{}),/Đạt\/Chưa đạt/);
+  assert.throws(()=>buildAssessmentConfig('listening',{questions:quiz}),/đường dẫn audio/);
 });
