@@ -22,6 +22,7 @@ export function buildAssessmentConfig(kind, draft={}) {
   if(module.engine==='quiz'){
     const questions=parseQuestions(draft.questions);
     if(kind==='exit' && questions.length>3)throw new Error('ExitTicket tối đa 3 câu.');
+    if(kind==='listening' && !String(draft.audioUrl||'').trim()) throw new Error('ListenCheck cần đường dẫn audio hợp lệ.');
     return kind==='listening' ? {questions,audioUrl:safeHttpUrl(draft.audioUrl)} : {questions};
   }
   throw new Error('Công cụ đánh giá chưa hỗ trợ.');
@@ -44,20 +45,19 @@ export function scoreAssessmentSubmission(assessment,input={}) {
   if(kind==='writing'&&!studentText)throw new Error('Writing Assessment cần nhập nội dung bài viết học sinh.');
   if(kind==='project'&&!studentText)throw new Error('ProjectMark cần ghi tên/mô tả sản phẩm được đánh giá.');
   if(module.engine==='rubric'){
-    const defaults=Object.fromEntries((RUBRICS[kind]||[]).map(c=>[c,2]));
-    const grade=gradeRubric(kind,{...defaults,...(input.marks||{})});
+    const grade=gradeRubric(kind,input.marks||{});
     return {score:grade.score,max_score:grade.maxScore,
       answers:grade.criteria,breakdown:{criteria:grade.criteria,note,studentText,assessor}};
   }
   if(module.engine==='scale'){
-    const marks=(config.statements||[]).map((_,i)=>input.selfRatings?.[i]??2);
+    const marks=(config.statements||[]).map((_,i)=>input.selfRatings?.[i]);
     const grade=gradeSelfRatings(config.statements||[],marks);
     return {score:grade.score,max_score:grade.maxScore,
       answers:marks,breakdown:{criteria:grade.criteria,assessmentType:'self_report',note}};
   }
   if(module.engine==='manual'){
     const responses=(config.questions||[]).map((_,i)=>input.manualResponses?.[i]||'');
-    const decisions=(config.questions||[]).map((_,i)=>input.manualAccepted?.[i]===true);
+    const decisions=(config.questions||[]).map((_,i)=>input.manualAccepted?.[i]);
     const grade=gradeManual(config.questions||[],responses,decisions);
     return {score:grade.score,max_score:grade.maxScore,answers:grade.answers,
       breakdown:{topics:grade.topics,detail:grade.detail,note,assessmentType:'teacher_marked'}};
