@@ -7,6 +7,7 @@ import { buildAssessmentConfig, emptyStudentInput, scoreAssessmentSubmission, st
 import { CreateAssessmentFields, AssessmentResultFields } from '../features/assessmentStudio/AssessmentForms.jsx';
 import { buildEvidenceHtml } from '../features/assessmentStudio/evidenceReport.js';
 import { buildBlankStudentHandout } from '../features/assessmentStudio/studentHandout.js';
+import { evidenceReadiness } from '../features/assessmentStudio/evidenceReadiness.js';
 import { prepareBulkRows } from '../features/assessmentStudio/bulkImport.js';
 import { ensureNewStudentCodes, assertScoredResult } from '../features/assessmentStudio/recordIntegrity.js';
 import './AssessmentStudio.css';
@@ -42,6 +43,7 @@ export default function AssessmentStudio({ currentUser }) {
   const statistics = useMemo(() => summarizeResults(results), [results]);
   const followupId = adjust.followup_assessment_id || adjustments.find(a => a.followup_assessment_id)?.followup_assessment_id || '';
   const paired = useMemo(() => comparePairedOutcomes(results, followupResults), [results, followupResults]);
+  const readiness=useMemo(()=>evidenceReadiness(selected,results,adjustments,paired),[selected,results,adjustments,paired]);
 
   const loadAssessments = useCallback(async () => {
     if (!supabase || !owner) return;
@@ -211,7 +213,7 @@ export default function AssessmentStudio({ currentUser }) {
 
   const printEvidence = () => {
     if (!selected) return;
-    const html=buildEvidenceHtml({assessment:selected,results,adjustments,paired,includeNames});
+    const html=buildEvidenceHtml({assessment:selected,results,adjustments,paired,includeNames,readiness});
     const w=window.open('', '_blank');
     if(!w){setError('Trình duyệt chặn cửa sổ in. Vui lòng cho phép pop-up để xem báo cáo.');return;}
     w.document.open();w.document.write(html);w.document.close();
@@ -311,6 +313,17 @@ export default function AssessmentStudio({ currentUser }) {
             </tbody></table></div>:null}
           </section>
         </div>
+        <section className="bas-panel">
+          <h3>Kiểm tra mức độ đầy đủ của minh chứng</h3>
+          <p className="bas-help">{readiness.count}/{readiness.total} thành phần đã có dữ liệu. Đây là bước rà soát kỹ thuật, không phải quyết định chấm điểm thi đua.</p>
+          <div className="bas-checklist">
+            {readiness.checks.map(c=><div key={c.id} className="bas-check-item">
+              <span aria-hidden="true">{c.ok?'✓':'○'}</span>
+              <span>{c.label}</span>
+              <small>{c.ok?'Đã có dữ liệu':'Chưa đủ'}</small>
+            </div>)}
+          </div>
+        </section>
         <section className="bas-panel">
           <h3>Teaching Adjustment Tracker</h3>
           <p className="bas-help">Dùng kết quả đánh giá thực tế để ghi vấn đề, biện pháp điều chỉnh và minh chứng đã thực hiện.</p>
