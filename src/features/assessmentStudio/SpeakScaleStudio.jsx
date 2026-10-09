@@ -139,7 +139,7 @@ export default function SpeakScaleStudio({onBack}){
   setMeta({title:'Speaking Presentation — DEMO',className:'12.6 (Demo)',objective:'Express and support opinions orally',task:'Individual presentation — 2 minutes',teacher:'Giáo viên minh họa',date:today()});
   setIntervention({finding:'Fluency và Vocabulary là hai tiêu chí cần tăng cường.',action:'Luyện nói theo cặp với từ khóa và phản hồi rubric.',date:today(),evidence:'Phiếu luyện tập MINH HỌA (không có hồ sơ gốc).',reflection:'Điểm trong ví dụ tăng, không phải quan sát thực tế.'});
   setRoster(students);setRecords(entries);setRevisions([]);setDemo(true);setTab('analytics');
-  openRecord(students[0].code,'pre');status('Đã nạp dữ liệu minh họa. Báo cáo được đánh dấu DEMO.');
+  setSelected(students[0].code);setPhase('pre');setMarks({...entries[0].marks});setComment(entries[0].comment);setReason('');status('Đã nạp dữ liệu minh họa. Báo cáo được đánh dấu DEMO.');
  };
  const clearAll=()=>{
   if(!window.confirm('Xóa toàn bộ dữ liệu trong phiên hiện tại? BRIAN không thể khôi phục nếu bạn chưa xuất JSON.'))return;
@@ -159,8 +159,9 @@ export default function SpeakScaleStudio({onBack}){
   }catch(error){status('Không thể nhập file: '+error.message,'error');}
  };
  const printReport=()=>{
-  const popup=window.open('','_blank','noopener,noreferrer');
+  const popup=window.open('','_blank');
   if(!popup){status('Safari đang chặn cửa sổ in. Hãy cho phép pop-up rồi thử lại.','error');return;}
+  popup.opener=null;
   popup.document.open();popup.document.write(reportHTML({meta,roster,records,intervention,revisions,demo,includeNames:showNames}));popup.document.close();
  };
  const exportCSV=()=>{download('BRIAN-SpeakScale-results.csv',makeCsv(roster,records,demo),'text/csv;charset=utf-8');status('Đã xuất CSV nội bộ. File bao gồm mã và họ tên học sinh.');};
