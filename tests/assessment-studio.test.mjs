@@ -1,15 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { MODULES, parseQuestions, gradeObjective, gradeSpeaking, summarizeResults, comparePairedOutcomes, csvEscape } from '../src/features/assessmentStudio/assessmentMath.js';
+import { MODULES, parseQuestions, gradeObjective, gradeSpeaking, gradeManual, gradeReading, gradeRubric, gradeSelfRatings, parseManualPrompts, parseReadingQuestions, safeHttpUrl, summarizeResults, comparePairedOutcomes, csvEscape } from '../src/features/assessmentStudio/assessmentMath.js';
 
 const quiz = [
   'She enjoys ___ books. | read | reading | to read | reads | B | Gerund',
   'He decided ___ abroad. | study | studying | to study | studied | C | Infinitive',
 ].join('\n');
 
-test('catalog exposes 12 items but marks only the delivered 3 as ready', () => {
+test('catalog exposes 12 teacher-operated workflows', () => {
   assert.equal(MODULES.length, 12);
-  assert.deepEqual(MODULES.filter(x => x.status === 'ready').map(x=>x.id), ['speaking','diagnostic','exit']);
+  assert.equal(MODULES.filter(x => x.status === 'ready').length,12);
 });
 
 test('question import validates correct column count and answer key', () => {
@@ -68,4 +68,62 @@ test('pre/post comparison only pairs matching student codes', () => {
   assert.equal(comparison.afterAverage,85);
   assert.equal(comparison.change,15);
   assert.equal(comparePairedOutcomes(before,[]).pairs,0);
+});
+
+import { buildAssessmentConfig, scoreAssessmentSubmission, startingDraft } from '../src/features/assessmentStudio/assessmentWorkflow.js';
+
+test('manual correction requires teacher judgments and preserves responses',()=>{
+  const questions=parseManualPrompts('Rewrite in the past. | She went home. | Past Simple');
+  const result=gradeManual(questions,['She go home.'],[false]);
+  assert.equal(result.score,0);
+  assert.equal(result.detail[0].studentResponse,'She go home.');
+  const scoring=scoreAssessmentSubmission({kind:'rewrite',config:{questions}}, {manualResponses:['She went home.'],manualAccepted:[true]});
+  assert.equal(scoring.score,1);
+  assert.equal(scoring.breakdown.assessmentType,'teacher_marked');
+  assert.throws(()=>parseManualPrompts('Only prompt'),/Dòng 1/);
+});
+
+test('reading evidence requires both correct option and correct paragraph',()=>{
+  const draft={passage:'First paragraph.\n\nSecond paragraph.', questions:'Where? | A | B | C | D | B | Scanning | P2'};
+  const config=buildAssessmentConfig('reading',draft);
+  assert.equal(config.paragraphs.length,2);
+  const grade=gradeReading(config.questions,'B','P1');
+  assert.equal(grade.score,1);
+  assert.equal(grade.maxScore,2);
+  assert.equal(grade.detail[0].evidenceOk,false);
+  assert.throws(()=>buildAssessmentConfig('reading',{...draft,questions:draft.questions.replace('P2','P4')}),/P1–P2/);
+});
+
+test('human rubric and self-report are distinct and validated',()=>{
+  const writing=scoreAssessmentSubmission({kind:'writing',config:{}},{
+    studentText:'I think that public transport is important.',marks:{'Task Achievement':3,Organization:3,Vocabulary:2,Grammar:4}});
+  assert.equal(writing.score,12);
+  assert.equal(writing.breakdown.studentText.length>0,true);
+  assert.throws(()=>scoreAssessmentSubmission({kind:'writing',config:{}},{marks:{}}),/nội dung bài viết/);
+  const peer=scoreAssessmentSubmission({kind:'peer',config:{}},{assessor:'Học sinh 01'});
+  assert.equal(peer.score,8);
+  assert.equal(peer.breakdown.assessor,'Học sinh 01');
+  assert.throws(()=>scoreAssessmentSubmission({kind:'peer',config:{}},{}),/người đánh giá/);
+  const self=scoreAssessmentSubmission({kind:'self',config:{statements:['I can summarise texts.','I can speak.']}},{selfRatings:[3,4]});
+  assert.equal(self.score,7);
+  assert.equal(self.breakdown.assessmentType,'self_report');
+  assert.throws(()=>gradeSelfRatings(['I can read.'],[0]),/1 đến 4/);
+  assert.throws(()=>gradeRubric('project',{Content:9,'Language Use':2,Delivery:2,Collaboration:2}),/0–4/);
+});
+
+test('12 kinds have valid deterministic configuration and appropriate constraints',()=>{
+  const initial=startingDraft();
+  assert.equal(initial.kind,'diagnostic');
+  const kinds=MODULES.map(m=>m.id);
+  assert.equal(new Set(kinds).size,12);
+  for(const kind of kinds){
+    const draft={...initial,kind,questions:quiz,prompts:'Rewrite. | Answer. | Grammar',passage:'Paragraph 1.\n\nParagraph 2.',
+      audioUrl:'https://example.org/audio.mp3'};
+    if(kind==='reading')draft.questions='What? | A | B | C | D | B | Scanning | P1';
+    const config=buildAssessmentConfig(kind,draft);
+    assert.ok(config && typeof config==='object',kind);
+  }
+  assert.equal(safeHttpUrl('https://example.org/a.mp3'),'https://example.org/a.mp3');
+  assert.throws(()=>safeHttpUrl('javascript:alert(1)'),/http/);
+  assert.throws(()=>buildAssessmentConfig('exit',{questions:quiz+'\n'+quiz}),/tối đa 3/);
 });
