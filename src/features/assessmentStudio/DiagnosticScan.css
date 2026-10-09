@@ -1,0 +1,15 @@
+.ds-root{--ds-green:#268a75}
+.ds-root .ss-heading h2{letter-spacing:-.045em}
+.ds-root .ds-key-list{max-height:340px;overflow-y:auto;margin-top:13px}
+.ds-key-list>p{padding:9px;border-bottom:1px solid #e2eaf4;line-height:1.5;margin:0;color:#284769}
+.ds-key-list>p span{font-size:12px;color:#3071be}
+.ds-root .ds-check{display:flex;align-items:flex-start;gap:10px;margin:10px 0 16px;background:#f5f9ff;border-radius:11px;padding:12px;color:#3d5779;font-size:13px;font-weight:710;line-height:1.5}
+.ds-check input{width:17px;height:17px;accent-color:#3168ce;flex-shrink:0;margin:3px 0 0}
+.ds-root .ss-label small{display:block;font-weight:460;color:#7186a1;margin-top:7px;line-height:1.5;font-size:12px}
+.ds-root .ds-bulk{margin-top:17px}
+.ds-root .ds-bulk .ss-actions{margin-top:10px}
+.ds-root .ss-score-layout>.ss-panel:first-child{min-width:0}
+.ds-root .ss-roster-list{margin-top:12px}
+.ds-root .ss-label input:disabled,.ds-root .ss-label textarea:disabled{opacity:.68;background:#f1f5f9}
+.ds-root .ss-chartrow{grid-template-columns:minmax(125px,.65fr) minmax(0,1fr)}
+@media(max-width:660px){.ds-root .ss-chartrow{grid-template-columns:1fr}}
