@@ -132,6 +132,7 @@ export default function DiagnosticScan({onBack}){
  const saveOne=()=>{
   try{
    if(!config)throw new Error('Hãy thiết lập và xác nhận bộ câu hỏi trước.');
+   if(!meta.title.trim()||!meta.className.trim()||!meta.objective.trim())throw new Error('Chưa khai báo đủ tên bài, lớp và mục tiêu.');
    const person=roster.find(s=>s.code===studentCode.trim().toUpperCase());
    if(!person)throw new Error('Hãy chọn hoặc thêm học sinh có mã hợp lệ.');
    if(phase==='post'){
@@ -192,7 +193,7 @@ export default function DiagnosticScan({onBack}){
   setStudentCode('');setStudentName('');setAnswers('');setComment('');setReason('');setBulk('');setBulkPreview(null);
   setIncludeNames(false);setTab('setup');message('Đã mở phiên mới.');
  };
- const exportJSON=()=>{getFile('BRIAN-DiagnosticScan-backup.json',diagnosticBackup({meta,roster,config,records,adjustment,revisions,demo}),'application/json;charset=utf-8');message('Đã xuất JSON; hãy lưu tệp tại nơi riêng tư và an toàn.');};
+ const exportJSON=()=>{getFile('BRIAN-DiagnosticScan-backup.json',diagnosticBackup({meta,roster,config,records,adjustment,revisions,demo,draft:{preRaw,postRaw,samePost}}),'application/json;charset=utf-8');message('Đã xuất JSON; hãy lưu tệp tại nơi riêng tư và an toàn.');};
  const importJSON=async e=>{
   const file=e.target.files?.[0];e.target.value='';if(!file)return;
   try{
@@ -200,9 +201,9 @@ export default function DiagnosticScan({onBack}){
    const loaded=verifyDiagnosticBackup(JSON.parse(await file.text()));
    if(records.length&&!window.confirm('Thay dữ liệu hiện tại bằng bản JSON đã chọn?'))return;
    setMeta(loaded.meta);setConfig(loaded.config);setRoster(loaded.roster);setRecords(loaded.records);setAdjustment(loaded.adjustment);
-   setRevisions(loaded.revisions);setDemo(loaded.demo);setPreRaw(loaded.config.preQuestions.map(q=>[q.stem,...q.options,q.answer,q.topic].join(' | ')).join('\n'));
-   setPostRaw(loaded.config.postQuestions.map(q=>[q.stem,...q.options,q.answer,q.topic].join(' | ')).join('\n'));
-   setSamePost(loaded.config.useSamePost);setStudentCode('');setStudentName('');setAnswers('');setPhase('pre');setTab('setup');
+   setRevisions(loaded.revisions);setDemo(loaded.demo);setPreRaw(loaded.draft.preRaw||(loaded.config?.preQuestions||[]).map(q=>[q.stem,...q.options,q.answer,q.topic].join(' | ')).join('\n'));
+   setPostRaw(loaded.draft.postRaw||(loaded.config?.postQuestions||[]).map(q=>[q.stem,...q.options,q.answer,q.topic].join(' | ')).join('\n'));
+   setSamePost(loaded.config?.useSamePost??loaded.draft.samePost);setStudentCode('');setStudentName('');setAnswers('');setPhase('pre');setTab('setup');
    message('Đã nhập '+loaded.records.length+' kết quả từ bản sao hợp lệ.');
   }catch(error){message('Không thể nhập JSON: '+error.message,'error');}
  };
