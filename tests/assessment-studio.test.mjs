@@ -315,3 +315,19 @@ test('Assessment Studio has no AI SDK imports or direct AI endpoints',()=>{
     assert.doesNotMatch(source,/\bfetch\s*\(/,path);
   }
 });
+
+import vm from 'node:vm';
+
+test('production preview HTML is standalone, parseable and demo-only',()=>{
+  const html=readFileSync(new URL('../public/assessment-studio-preview.html',import.meta.url),'utf8');
+  assert.match(html,/PRODUCTION PREVIEW · NO AI/);
+  assert.match(html,/không dùng dữ liệu học sinh thật/i);
+  assert.match(html,/12 CÔNG CỤ ĐÁNH GIÁ/);
+  assert.doesNotMatch(html,/\bfetch\s*\(|supabase\.from\s*\(|localStorage\.setItem\s*\(/);
+  assert.doesNotMatch(html,/<script[^>]+src=/i);
+  const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].map(x=>x[1]);
+  assert.equal(scripts.length,1);
+  assert.doesNotThrow(()=>new vm.Script(scripts[0]));
+  const ids=['speaking','diagnostic','exit','error','vocabulary','reading','listening','writing','rewrite','self','peer','project'];
+  for(const id of ids) assert.ok(scripts[0].includes("['"+id+"'"),id);
+});
