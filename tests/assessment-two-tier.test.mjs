@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {
- TWO_TIER_SAMPLE,TWO_TIER_EMPTY_ADJUST,parseTwoTierQuestions,gradeTwoTier,
+ TWO_TIER_SAMPLE,TWO_TIER_POST_SAMPLE,TWO_TIER_EMPTY_ADJUST,parseTwoTierQuestions,gradeTwoTier,
  validateTwoTierSetup,makeTwoTierRecord,importTwoTierBatch,summarizeTwoTier,
  pairedTwoTier,twoTierReadiness,twoTierCSV,twoTierBackup,restoreTwoTierBackup
 } from '../src/features/assessmentStudio/twoTierCore.js';
@@ -15,6 +15,7 @@ test('two-tier parser enforces answer keys, rationale keys and uniqueness',()=>{
  assert.equal(qs.length,3);
  assert.deepEqual(qs.map(x=>x.answer),['B','C','C']);
  assert.deepEqual(qs.map(x=>x.reasonAnswer),['B','C','C']);
+ assert.equal(parseTwoTierQuestions(TWO_TIER_POST_SAMPLE).length,3);
  assert.throws(()=>parseTwoTierQuestions('Invalid | A | B'),/13 trường/);
  assert.throws(()=>parseTwoTierQuestions(TWO_TIER_SAMPLE+'\n'+TWO_TIER_SAMPLE.split('\n')[0]),/Trùng/);
  assert.throws(()=>parseTwoTierQuestions(TWO_TIER_SAMPLE.replace('reading | to read','reading | reading')),/khác nhau/);
@@ -78,11 +79,14 @@ test('csv exports sanitized values and demo flag',()=>{
 });
 test('native BRIAN route exposes lazy two-tier tool without AI or persistent storage',()=>{
  const page=readFileSync(new URL('../src/pages/AssessmentPreview.jsx',import.meta.url),'utf8');
+ const catalogue=readFileSync(new URL('../public/assessment-studio-preview.html',import.meta.url),'utf8');
  const ui=readFileSync(new URL('../src/features/assessmentStudio/TwoTierStudio.jsx',import.meta.url),'utf8');
  const core=readFileSync(new URL('../src/features/assessmentStudio/twoTierCore.js',import.meta.url),'utf8');
  assert.match(page,/TwoTierStudio = lazy/);
  assert.match(page,/openTwoTier/);
  assert.match(page,/twoTierVisited/);
+ assert.match(catalogue,/BRIAN_OPEN_TWO_TIER/);
+ assert.match(catalogue,/\['two-tier','Two-Tier'/);
  assert.match(ui,/Hồ sơ PDF/);
  assert.match(ui,/Sao lưu JSON/);
  assert.doesNotMatch(core+ui,/\bfetch\s*\(|\blocalStorage\b|\bsessionStorage\b|supabase|gemini|openrouter/i);
