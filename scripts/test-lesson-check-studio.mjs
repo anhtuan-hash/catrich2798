@@ -98,6 +98,21 @@ assert.match(studio, /Đang chờ duyệt/);
 assert.match(studio, /Không tải được hình xem trước/);
 assert.match(studio, /getLessonCheckActivityContent\(item\.id\)/);
 
+// Large libraries are paginated and can be filtered without endless scrolling.
+assert.match(studio, /const \[unitFilter, setUnitFilter\] = useState\('all'\)/);
+assert.match(studio, /const \[lessonFilter, setLessonFilter\] = useState\('all'\)/);
+assert.match(studio, /const \[sortMode, setSortMode\] = useState\('newest'\)/);
+assert.match(studio, /const \[pageSize, setPageSize\] = useState\(20\)/);
+assert.match(studio, /const \[page, setPage\] = useState\(1\)/);
+assert.match(studio, /const totalPages = Math\.max\(1, Math\.ceil\(filteredActivities\.length \/ pageSize\)\)/);
+assert.match(studio, /const pagedActivities = useMemo/);
+assert.match(studio, /pagedActivities\.map\(\(item\) =>/);
+assert.match(studio, /Hiển thị \$\{pageStart\}–\$\{pageEnd\} \/ \$\{filteredActivities\.length\}/);
+assert.match(studio, /Tất cả Unit/);
+assert.match(studio, /Tất cả Lesson/);
+assert.match(studio, /20 \/ \{isVi \? 'trang' : 'page'\}/);
+assert.match(studio, /lcs-pagination-controls/);
+
 assert.match(styles, /\.lcs-quick-grid\{[\s\S]*?grid-template-columns:/);
 assert.match(styles, /\.lcs-card\.is-locked/);
 assert.match(styles, /\.lcs-card-media\{/);
@@ -106,6 +121,11 @@ assert.match(styles, /pointer-events:none/);
 assert.match(styles, /aspect-ratio:16\/9/);
 assert.match(styles, /\.lcs-card-media-action/);
 assert.match(styles, /\.lcs-card-unitline/);
+assert.match(styles, /\.lcs-library-toolbar\{/);
+assert.match(styles, /repeat\(6,minmax\(0,1fr\)\)/);
+assert.match(styles, /repeat\(5,minmax\(0,1fr\)\)/);
+assert.match(styles, /\.lcs-pagination\{/);
+assert.match(styles, /grid-template-columns:minmax\(0,1fr\) repeat\(4,34px\)/);
 assert.match(styles, /\.lcs-access-dialog/);
 assert.match(styles, /\.lcs-teach-overlay\{[\s\S]*?position:fixed/);
 assert.match(styles, /@media\(max-width:720px\)/);
