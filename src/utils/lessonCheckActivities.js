@@ -242,7 +242,7 @@ export async function saveLessonCheckActivity(draft, parsedEmbed) {
     .from('lesson_check_activities')
     .update({ focus_area: focusArea })
     .eq('id', id);
-  if (focusError) return resultError(focusError, 'Đã lưu hoạt động nhưng chưa lưu được tag chuyên đề.');
+  if (focusError) return { ...resultError(focusError, 'Đã lưu hoạt động nhưng chưa lưu được tag chuyên đề.'), id };
 
   emitUpdate({ type: 'activity-saved', activityId: id });
   return { ok: true, id };
