@@ -1,6 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const THUMBNAIL_PROFILE = "fill-v3";
+const THUMBNAIL_PROFILE = "og-v1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -65,6 +65,25 @@ function isPublicWebUrl(value: string) {
   }
 }
 
+function extractMetaImage(html: string, pageUrl: string) {
+  const candidates = [
+    html.match(/<meta[^>]+property=["']og:image(?::secure_url)?["'][^>]+content=["']([^"']+)["'][^>]*>/i)?.[1],
+    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image(?::secure_url)?["'][^>]*>/i)?.[1],
+    html.match(/<meta[^>]+name=["']twitter:image(?::src)?["'][^>]+content=["']([^"']+)["'][^>]*>/i)?.[1],
+    html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image(?::src)?["'][^>]*>/i)?.[1],
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    try {
+      const resolved = new URL(String(candidate).replace(/&amp;/gi, "&"), pageUrl).toString();
+      if (isPublicWebUrl(resolved)) return resolved;
+    } catch {
+      // Try next metadata candidate.
+    }
+  }
+  return "";
+}
+
 function sourceVersion(value: unknown) {
   const parsed = Date.parse(String(value || ""));
   return Number.isFinite(parsed) ? String(parsed) : String(Date.now());
@@ -74,7 +93,8 @@ function contentExtension(contentType: string) {
   const normalized = contentType.toLowerCase();
   if (normalized.includes("jpeg") || normalized.includes("jpg")) return "jpg";
   if (normalized.includes("webp")) return "webp";
-  return "png";
+  if (normalized.includes("png")) return "png";
+  return "jpg";
 }
 
 Deno.serve(async (req: Request) => {
@@ -169,37 +189,55 @@ Deno.serve(async (req: Request) => {
 
   const sourceUrl = extractHttpUrl(content.embed_code || "");
   if (!sourceUrl || !isPublicWebUrl(sourceUrl)) {
-    return json({
-      ok: false,
-      fallback: "live",
-      message: "This activity cannot be converted to a persistent screenshot.",
-    }, 422);
+    return json({ ok: false, fallback: "poster", message: "No public activity URL." }, 422);
   }
 
-  const screenshotUrl =
-    `https://image.thum.io/get/noanimate/allowJPG/width/390/crop/264/?url=${encodeURIComponent(sourceUrl)}`;
-
-  let screenshotResponse: Response;
+  let pageResponse: Response;
   try {
-    screenshotResponse = await fetch(screenshotUrl, {
+    pageResponse = await fetch(sourceUrl, {
       redirect: "follow",
       headers: {
-        "Accept": "image/avif,image/webp,image/apng,image/jpeg,image/png,image/*,*/*;q=0.8",
-        "User-Agent": "BRIAN-Activity-Thumbnail/3.0",
+        "Accept": "text/html,application/xhtml+xml",
+        "User-Agent": "Mozilla/5.0 (compatible; BRIAN-Thumbnail/1.0)",
       },
     });
   } catch {
-    return json({ ok: false, fallback: "live", message: "Thumbnail provider is unavailable." }, 502);
+    return json({ ok: false, fallback: "poster", message: "Activity page could not be read." }, 502);
   }
 
-  const contentType = screenshotResponse.headers.get("content-type") || "";
-  if (!screenshotResponse.ok || !contentType.toLowerCase().startsWith("image/")) {
-    return json({ ok: false, fallback: "live", message: "Thumbnail generation failed." }, 502);
+  const pageType = pageResponse.headers.get("content-type") || "";
+  if (!pageResponse.ok || !pageType.toLowerCase().includes("text/html")) {
+    return json({ ok: false, fallback: "poster", message: "Activity page did not return HTML." }, 502);
   }
 
-  const bytes = await screenshotResponse.arrayBuffer();
+  const html = await pageResponse.text();
+  const metaImageUrl = extractMetaImage(html.slice(0, 400000), sourceUrl);
+  if (!metaImageUrl) {
+    return json({ ok: false, fallback: "poster", message: "No clean social preview image was published for this game." }, 422);
+  }
+
+  let imageResponse: Response;
+  try {
+    imageResponse = await fetch(metaImageUrl, {
+      redirect: "follow",
+      headers: {
+        "Accept": "image/avif,image/webp,image/apng,image/jpeg,image/png,image/*,*/*;q=0.8",
+        "User-Agent": "BRIAN-Thumbnail/1.0",
+        "Referer": sourceUrl,
+      },
+    });
+  } catch {
+    return json({ ok: false, fallback: "poster", message: "Preview image could not be downloaded." }, 502);
+  }
+
+  const contentType = imageResponse.headers.get("content-type") || "";
+  if (!imageResponse.ok || !contentType.toLowerCase().startsWith("image/")) {
+    return json({ ok: false, fallback: "poster", message: "Published preview was not an image." }, 502);
+  }
+
+  const bytes = await imageResponse.arrayBuffer();
   if (bytes.byteLength < 2048 || bytes.byteLength > 5 * 1024 * 1024) {
-    return json({ ok: false, fallback: "live", message: "Generated thumbnail was invalid." }, 502);
+    return json({ ok: false, fallback: "poster", message: "Published preview image was invalid." }, 502);
   }
 
   const ext = contentExtension(contentType);
@@ -216,7 +254,7 @@ Deno.serve(async (req: Request) => {
     });
 
   if (uploadError) {
-    return json({ ok: false, fallback: "live", message: "Could not persist the thumbnail." }, 500);
+    return json({ ok: false, fallback: "poster", message: "Could not persist the thumbnail." }, 500);
   }
 
   const { data: publicData } = admin.storage
@@ -224,7 +262,7 @@ Deno.serve(async (req: Request) => {
     .getPublicUrl(filePath);
   const thumbnailUrl = publicData?.publicUrl || "";
   if (!thumbnailUrl) {
-    return json({ ok: false, fallback: "live", message: "Could not resolve the thumbnail URL." }, 500);
+    return json({ ok: false, fallback: "poster", message: "Could not resolve the thumbnail URL." }, 500);
   }
 
   const generatedAt = new Date().toISOString();
@@ -239,7 +277,7 @@ Deno.serve(async (req: Request) => {
     .eq("id", activityId);
 
   if (updateError) {
-    return json({ ok: false, fallback: "live", message: "Thumbnail was saved but metadata update failed." }, 500);
+    return json({ ok: false, fallback: "poster", message: "Thumbnail was saved but metadata update failed." }, 500);
   }
 
   const { data: existingObjects } = await admin.storage
