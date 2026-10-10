@@ -1,6 +1,8 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { changeCurrentPassword } from '../utils/auth.js';
 import GlobalMotionAdminPanel from '../components/admin/GlobalMotionAdminPanel.jsx';
+import GlobalChromeSettingsPanel from '../components/admin/GlobalChromeSettingsPanel.jsx';
+import { isDepartmentLeaderRole } from '../utils/roles.js';
 import '../styles/SettingsGoogleM3.css';
 
 const ICON_PATHS = {
@@ -256,6 +258,7 @@ export default function Settings({
     ['settings-sync', 'sync', vi ? 'Đồng bộ' : 'Sync', vi ? 'Dữ liệu & thiết bị' : 'Data & devices'],
     ['settings-privacy', 'shield', vi ? 'Bảo mật' : 'Security', vi ? 'Quyền riêng tư' : 'Privacy'],
     ['settings-system', 'settings', vi ? 'Hệ thống' : 'System', vi ? 'Hiệu năng & nâng cao' : 'Performance & advanced'],
+    ...(isDepartmentLeaderRole(currentUser?.role) ? [['settings-global-chrome', 'settings', vi ? 'Hiển thị chung' : 'Global display', vi ? 'Sidebar & tin vắn' : 'Sidebar & news']] : []),
   ];
 
   return (
@@ -362,6 +365,10 @@ export default function Settings({
                 <SettingRow title={vi ? 'Mã hóa dữ liệu' : 'Data encryption'}><span className="settings-m3-status-chip">{vi ? 'Đang bật' : 'Enabled'}</span></SettingRow>
                 <SettingRow title={vi ? 'Xem và tải dữ liệu của bạn' : 'View and download your data'}><button type="button" className="settings-m3-outlined-button" onClick={exportSettings}>{vi ? 'Xuất dữ liệu' : 'Export data'}</button></SettingRow>
               </article>
+            ) : null}
+
+            {isDepartmentLeaderRole(currentUser?.role) && matches('hệ thống', 'system', 'toàn hệ thống', 'hiển thị', 'display', 'sidebar', 'action dock', 'tin vắn', 'newswire') ? (
+              <GlobalChromeSettingsPanel currentUser={currentUser} language={language} />
             ) : null}
 
             {['admin', 'administrator'].includes(String(currentUser?.role || '').toLowerCase()) && matches('chuyển động', 'motion', 'hiệu ứng', 'indicator', 'điều hướng', 'hệ thống', 'system') ? (
