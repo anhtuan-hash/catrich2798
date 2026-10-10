@@ -260,7 +260,7 @@ export default function GlobalCompactNavigation({
     };
     const closeOnSelection = (event) => {
       if (utilityPanelRef.current?.contains(event.target) && event.target.closest('button')) {
-        // Wait until the original report navigation / TTCM / attendance handler runs.
+        // Wait until the original Reports / TTCM / Admin handler runs.
         window.setTimeout(() => setUtilityOpen(false), 0);
       }
     };
@@ -667,7 +667,6 @@ export default function GlobalCompactNavigation({
           <div className="brian-nav__utilities-items">
             <div className="brian-nav__utility-slot brian-nav__utility-reports" />
             <div className="brian-nav__utility-slot brian-nav__utility-ttcm" />
-            <div className="brian-nav__utility-slot brian-nav__utility-attendance" />
             {isAdmin ? (
               <button type="button" className={`brian-nav__utility-admin ${route === 'admin' ? 'is-active' : ''}`}
                 onClick={(event) => openRoute('#/admin', t.admin, event)}>

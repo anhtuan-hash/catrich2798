@@ -333,7 +333,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
-    const findHost = () => setHost(document.querySelector('.brian-nav__utility-attendance'));
+    const findHost = () => setHost(document.querySelector('.bes-top-chrome .brian-nav__primary'));
     findHost();
     const observer = new MutationObserver(findHost);
     observer.observe(document.body, { childList: true, subtree: true });
@@ -1543,7 +1543,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   if (!host || !allowed) return null;
 
   const tab = createPortal(
-    <button type="button" className={`brian-nav__attendance-tab ${open ? 'is-active' : ''}`} aria-expanded={open} aria-haspopup="dialog" onClick={() => { setOpen((value) => !value); setError(''); if (!open) setView(firstAllowedView || 'quick'); }}>
+    <button type="button" className={`brian-nav__attendance-tab ${open ? 'is-active' : ''}`} data-nav-key="attendance" aria-expanded={open} aria-haspopup="dialog" onClick={() => { setOpen((value) => !value); setError(''); if (!open) setView(firstAllowedView || 'quick'); }}>
       <Icon name="attendance" size={18} /><span>Điểm danh</span>
     </button>, host,
   );

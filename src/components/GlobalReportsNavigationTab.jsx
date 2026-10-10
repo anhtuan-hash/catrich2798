@@ -143,14 +143,30 @@ export default function GlobalReportsNavigationTab({
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
+    let frame = 0;
+    let observer = null;
+    let disposed = false;
+    // Reports can mount before Utilities; watch only until its slot appears.
     const findHost = () => {
+      if (disposed) return;
       const nextHost = document.querySelector('.brian-nav__utility-reports');
       setHost((current) => (current === nextHost ? current : nextHost));
+      if (nextHost) observer?.disconnect();
     };
     findHost();
-    const frame = window.requestAnimationFrame(findHost);
-    return () => window.cancelAnimationFrame(frame);
-  }, []);
+    if (!document.querySelector('.brian-nav__utility-reports')) {
+      observer = new MutationObserver(() => {
+        if (frame) return;
+        frame = window.requestAnimationFrame(() => { frame = 0; findHost(); });
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    }
+    return () => {
+      disposed = true;
+      observer?.disconnect();
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, [currentUser?.id]);
 
   useEffect(() => {
     if (!allowed || !currentUser?.id) {

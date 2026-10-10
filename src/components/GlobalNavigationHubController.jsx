@@ -19,6 +19,7 @@ const NAV_ORDER = {
   homeroom: 40,
   gradebook: 45,
   'lesson-check': 47,
+  attendance: 48,
   reports: 50,
   ttcm: 60,
   games: 70,
@@ -45,6 +46,7 @@ function keyForButton(button) {
   if (button.classList.contains('brian-nav__homeroom-tab')) return 'homeroom';
   if (button.classList.contains('brian-nav__gradebook-tab')) return 'gradebook';
   if (button.classList.contains('brian-nav__lesson-check-tab')) return 'lesson-check';
+  if (button.classList.contains('brian-nav__attendance-tab')) return 'attendance';
   if (button.classList.contains('brian-nav__utilities-trigger')) return 'utilities';
   if (button.classList.contains('brian-nav__reports-tab')) return 'reports';
   if (button.classList.contains('brian-nav__ttcm-tab')) return 'ttcm';
