@@ -503,15 +503,13 @@ const ActivityCardPreview = React.memo(function ActivityCardPreview({ activity, 
         </div>
       ) : (
         <div className="lcs-card-preview-placeholder" aria-hidden="true">
-          {canLoad && state === 'loading' ? <LoaderCircle className="lcs-spin" /> : canLoad ? <Gamepad2 /> : <LockKeyhole />}
+          {canLoad && state === 'loading' ? <LoaderCircle className="lcs-spin" /> : canLoad ? <ImageIcon /> : <LockKeyhole />}
           <strong>{!canLoad
             ? (isVi ? 'Xem trước bị khóa' : 'Preview locked')
-            : activity.title}</strong>
-          <span>{!canLoad
-            ? (activity.sourceHost || activity.embedKind?.toUpperCase() || 'Activity')
             : state === 'loading'
-              ? (isVi ? 'Đang lấy thumbnail sạch…' : 'Loading a clean thumbnail…')
-              : 'Padlet Arcade'}</span>
+              ? (isVi ? 'Đang tải thumbnail…' : 'Loading thumbnail…')
+              : (isVi ? 'Thumbnail chưa sẵn sàng' : 'Thumbnail unavailable')}</strong>
+          <span>{activity.sourceHost || activity.embedKind?.toUpperCase() || 'Activity'}</span>
         </div>
       )}
 
