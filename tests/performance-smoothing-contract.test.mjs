@@ -25,7 +25,7 @@ test('full font restoration remains available on settings changes', () => {
   assert.match(fonts, /function syncRuntimeRegionalFontSizes\(settings\)/);
   assert.match(fonts, /performRuntimeFontSizeSync\(\)/);
   assert.match(fonts, /fontSizeRuntimeOriginal\.delete\(node\)/);
-  assert.match(fonts, /setProperty\('font-size', value, 'important'\)/);
+  assert.ok(fonts.includes("node.style.setProperty('font-size', `\${size}px`, 'important')"));
   assert.match(fonts, /const fontSizeRuntimePendingRoots = new Set\(\)/);
   assert.match(fonts, /fontSizeRuntimeObserver\.observe\(host, \{ childList: true, subtree: true \}\)/);
 });
