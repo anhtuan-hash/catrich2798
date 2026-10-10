@@ -191,26 +191,30 @@ function ActivityCardPreview({ activity, canLoad, isLeader, language, onOpen, on
   const isVi = language === 'vi';
   const hostRef = useRef(null);
   const loadingRef = useRef(false);
-  const [nearViewport, setNearViewport] = useState(false);
-  const [embed, setEmbed] = useState(() => cardPreviewCache.get(activity.id) || null);
-  const [state, setState] = useState(embed ? 'ready' : 'idle');
+  const cachedEmbed = cardPreviewCache.get(activity.id) || null;
+  const [activated, setActivated] = useState(Boolean(cachedEmbed));
+  const [embed, setEmbed] = useState(cachedEmbed);
+  const [state, setState] = useState(cachedEmbed ? 'ready' : 'idle');
 
   useEffect(() => {
     const node = hostRef.current;
-    if (!node || !canLoad) return undefined;
+    if (!node || !canLoad || activated) return undefined;
     if (typeof IntersectionObserver === 'undefined') {
-      setNearViewport(true);
+      setActivated(true);
       return undefined;
     }
     const observer = new IntersectionObserver(([entry]) => {
-      setNearViewport(entry.isIntersecting);
-    }, { rootMargin: '180px 0px', threshold: 0.02 });
+      if (entry.isIntersecting) {
+        setActivated(true);
+        observer.disconnect();
+      }
+    }, { rootMargin: '220px 0px', threshold: 0.02 });
     observer.observe(node);
     return () => observer.disconnect();
-  }, [canLoad]);
+  }, [activated, canLoad]);
 
   useEffect(() => {
-    if (!canLoad || !nearViewport || embed || loadingRef.current) return undefined;
+    if (!canLoad || !activated || embed || loadingRef.current) return undefined;
     let active = true;
     const cached = cardPreviewCache.get(activity.id);
     if (cached) {
@@ -245,9 +249,9 @@ function ActivityCardPreview({ activity, canLoad, isLeader, language, onOpen, on
       });
 
     return () => { active = false; };
-  }, [activity.id, canLoad, embed, nearViewport]);
+  }, [activated, activity.id, canLoad, embed]);
 
-  const showLivePreview = canLoad && nearViewport && embed;
+  const showLivePreview = canLoad && activated && embed;
 
   const activate = () => {
     if (canLoad) onOpen?.();
@@ -874,7 +878,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
       <section className="lcs-library lcs-library--approved">
         <div className="lcs-library-toolbar lcs-library-toolbar--primary">
-          <label className="lcs-search lcs-search-wide">
+          <label className="lcs-library-search">
             <Search size={19} />
             <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={isVi ? 'Tìm kiếm hoạt động, ví dụ: Tower of Hanoi, ASEAN, từ khóa...' : 'Search activities, e.g. Tower of Hanoi, ASEAN, keywords...'} />
           </label>
