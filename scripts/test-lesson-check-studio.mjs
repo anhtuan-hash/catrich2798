@@ -117,6 +117,10 @@ assert.match(studio, /Vocabulary/);
 assert.match(studio, /Grammar/);
 assert.match(studio, /Chuyên đề \/ kỹ năng/);
 assert.match(studio, /Hãy chọn chuyên đề/);
+assert.match(studio, /lcs-arcade-head/);
+assert.match(studio, /BRIAN ACTIVITY ARCADE/);
+assert.match(studio, /lcs-hero-statline/);
+assert.match(studio, /lcs-hero-deck/);
 assert.match(studio, /lcs-arcade-tabs/);
 assert.match(studio, /lcs-arcade-search/);
 assert.match(studio, /lcs-arcade-filterbar/);
@@ -134,6 +138,12 @@ assert.match(focusMigration, /vocabulary','grammar','reading','listening','speak
 assert.match(focusMigration, /a\.activity_type, a\.focus_area, a\.notes/);
 
 assert.match(styles, /V8 · Padlet Arcade-inspired gallery \+ learning-focus indicators/);
+assert.match(styles, /V9 · Premium Activity Arcade hero/);
+assert.match(styles, /\.lcs-arcade-head\{[\s\S]*?min-height:150px/);
+assert.match(styles, /\.lcs-arcade-title-row h1\{[\s\S]*?font-size:43px/);
+assert.match(styles, /\.lcs-hero-statline\{/);
+assert.match(styles, /\.lcs-hero-deck\{/);
+assert.match(styles, /\.lcs-arcade-create\{[\s\S]*?background:#171714/);
 assert.match(styles, /\.lcs-arcade-library\{/);
 assert.match(styles, /\.lcs-arcade-tabs\{/);
 assert.match(styles, /\.lcs-arcade-grid\{[\s\S]*?repeat\(4,minmax\(0,1fr\)\)/);
