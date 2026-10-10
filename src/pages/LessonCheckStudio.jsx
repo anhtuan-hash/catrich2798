@@ -4,6 +4,8 @@ import {
   BookOpen,
   Check,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   ClipboardCheck,
   Clock3,
   Copy,
@@ -303,7 +305,12 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [gradeFilter, setGradeFilter] = useState('all');
+  const [unitFilter, setUnitFilter] = useState('all');
+  const [lessonFilter, setLessonFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [sortMode, setSortMode] = useState('newest');
+  const [pageSize, setPageSize] = useState(20);
+  const [page, setPage] = useState(1);
   const [showEditor, setShowEditor] = useState(true);
   const [teachingActivity, setTeachingActivity] = useState(null);
   const [teachingEmbed, setTeachingEmbed] = useState(null);
@@ -369,8 +376,10 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
   const filteredActivities = useMemo(() => {
     const q = query.trim().toLocaleLowerCase('vi');
-    return activities.filter((item) => {
+    const result = activities.filter((item) => {
       if (gradeFilter !== 'all' && String(item.grade || '') !== gradeFilter) return false;
+      if (unitFilter !== 'all' && String(item.unitNo || '') !== unitFilter) return false;
+      if (lessonFilter !== 'all' && String(item.lessonKey || '') !== lessonFilter) return false;
       if (typeFilter !== 'all' && item.type !== typeFilter) return false;
       if (!q) return true;
       return [
@@ -382,7 +391,35 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         item.sourceHost,
       ].some((value) => String(value || '').toLocaleLowerCase('vi').includes(q));
     });
-  }, [activities, gradeFilter, query, typeFilter]);
+
+    return [...result].sort((a, b) => {
+      if (sortMode === 'title') return String(a.title || '').localeCompare(String(b.title || ''), 'vi');
+      if (sortMode === 'unit') {
+        return (Number(a.grade || 0) - Number(b.grade || 0))
+          || (Number(a.unitNo || 0) - Number(b.unitNo || 0))
+          || String(a.lessonTitle || '').localeCompare(String(b.lessonTitle || ''), 'vi')
+          || String(a.title || '').localeCompare(String(b.title || ''), 'vi');
+      }
+      return String(b.updatedAt || '').localeCompare(String(a.updatedAt || ''));
+    });
+  }, [activities, gradeFilter, lessonFilter, query, sortMode, typeFilter, unitFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredActivities.length / pageSize));
+  const pagedActivities = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredActivities.slice(start, start + pageSize);
+  }, [filteredActivities, page, pageSize]);
+
+  const pageStart = filteredActivities.length ? ((page - 1) * pageSize) + 1 : 0;
+  const pageEnd = Math.min(page * pageSize, filteredActivities.length);
+
+  useEffect(() => {
+    setPage(1);
+  }, [gradeFilter, lessonFilter, pageSize, query, sortMode, typeFilter, unitFilter]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
 
   const filteredTeachers = useMemo(() => {
     const q = teacherQuery.trim().toLocaleLowerCase('vi');
