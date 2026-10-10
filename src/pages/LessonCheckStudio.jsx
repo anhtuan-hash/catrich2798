@@ -244,12 +244,17 @@ function ActivityCardPreview({ activity, canLoad, isLeader, language, onOpen, on
         <StatusPill activity={activity} isLeader={isLeader} language={language} />
       </div>
       <button
-        className={`lcs-card-media-action ${canLoad ? '' : 'is-request'}`}
+        className={`lcs-card-media-action ${canLoad ? '' : activity.requestStatus === 'pending' ? 'is-pending' : 'is-request'}`}
         type="button"
+        disabled={!canLoad && activity.requestStatus === 'pending'}
         onClick={canLoad ? onOpen : onRequest}
       >
-        {canLoad ? <MonitorPlay size={17} /> : <KeyRound size={17} />}
-        {canLoad ? (isVi ? 'Mở nhanh' : 'Quick open') : (isVi ? 'Xin quyền' : 'Request access')}
+        {canLoad ? <MonitorPlay size={17} /> : activity.requestStatus === 'pending' ? <Clock3 size={17} /> : <KeyRound size={17} />}
+        {canLoad
+          ? (isVi ? 'Mở nhanh' : 'Quick open')
+          : activity.requestStatus === 'pending'
+            ? (isVi ? 'Đang chờ duyệt' : 'Pending approval')
+            : (isVi ? 'Xin quyền' : 'Request access')}
       </button>
     </div>
   );
