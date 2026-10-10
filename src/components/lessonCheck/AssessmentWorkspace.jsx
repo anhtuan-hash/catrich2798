@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   ArrowLeft,
   BarChart3,
@@ -571,7 +572,7 @@ export default function AssessmentWorkspace({
     }));
   };
 
-  return <div className="f4a-overlay">
+  const workspace = <div className="f4a-overlay">
     <section className="f4a-workspace" role="dialog" aria-modal="true" aria-label="Fun for Assessment">
       <header className="f4a-head">
         <div className="f4a-head-brand">
@@ -585,6 +586,7 @@ export default function AssessmentWorkspace({
         </div>
       </header>
 
+      <div className="f4a-scroll-region">
       {notice ? <div className="f4a-notice">{notice}</div> : null}
 
       {view === 'session' ? <>
@@ -774,6 +776,11 @@ export default function AssessmentWorkspace({
           </div>
         </>}
       </div>}
+      </div>
     </section>
   </div>;
+
+  return typeof document !== 'undefined'
+    ? createPortal(workspace, document.body)
+    : workspace;
 }
