@@ -222,6 +222,16 @@ assert.match(assessmentStyles, /\.f4a-activity-grid\{/);
 assert.match(assessmentStyles, /\.f4a-score-table\{/);
 assert.match(assessmentStyles, /\.f4a-report-stats\{/);
 
+// Centered modal shell: portal to document.body, compact viewport sizing, and internal scrolling.
+assert.match(assessmentWorkspace, /import \{ createPortal \} from 'react-dom'/);
+assert.match(assessmentWorkspace, /const workspace = <div className="f4a-overlay">/);
+assert.match(assessmentWorkspace, /<div className="f4a-scroll-region">/);
+assert.match(assessmentWorkspace, /createPortal\(workspace, document\.body\)/);
+assert.match(assessmentStyles, /V12 · Compact centered viewport modal with reliable internal scrolling/);
+assert.match(assessmentStyles, /\.f4a-workspace\{[\s\S]*?width:min\(1160px,calc\(100vw - 48px\)\)[\s\S]*?height:min\(78dvh,760px\)/);
+assert.match(assessmentStyles, /\.f4a-scroll-region\{[\s\S]*?overflow-y:auto/);
+assert.match(assessmentStyles, /\.f4a-score-actions\{[\s\S]*?position:sticky[\s\S]*?bottom:0/);
+
 // Performance guards for opening the assessment workspace over live iframe previews.
 assert.match(studio, /const ActivityCardPreview = React\.memo/);
 assert.match(studio, /is-assessment-open/);
