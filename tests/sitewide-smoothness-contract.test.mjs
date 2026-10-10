@@ -41,10 +41,10 @@ test('transition loader is shorter and avoids redundant node-scanning', () => {
 test('Metro Sweep navigates sooner while preserving its native animation and cleanup', () => {
   assert.match(pageLaunch, /LAUNCH_DURATION = 280/);
   assert.match(pageLaunch, /REVEAL_DURATION = 110/);
-  assert.match(pageLaunch, /launchAnimation\\.finished\\.then\\(\\(\\) =>/);
-  assert.match(pageLaunch, /window\\.location\\.hash = normalizedTarget/);
-  assert.match(pageLaunch, /reveal\\.finished\\.then\\(cleanup\\)/);
-  assert.match(pageLaunch, /reducedMotion\\(\\)/);
+  assert.ok(pageLaunch.includes('launchAnimation.finished.then(() => {'));
+  assert.ok(pageLaunch.includes('window.location.hash = normalizedTarget'));
+  assert.ok(pageLaunch.includes('reveal.finished.then(cleanup)'));
+  assert.ok(pageLaunch.includes('reducedMotion()'));
 });
 test('existing global motion, mobile and Quick Access mechanisms remain', () => {
   assert.match(motion, /installMutationMotionObserver\(\)/);
