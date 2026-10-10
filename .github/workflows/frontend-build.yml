@@ -34,14 +34,8 @@ jobs:
       - name: Verify global Brian Newswire contract
         run: node scripts/test-global-brian-newswire.mjs
 
-      - name: Verify Hero Theme Studio contract
-        run: node scripts/test-hero-theme-studio.mjs
-
-      - name: Verify Hero Theme Studio settings route
-        run: node scripts/test-hero-theme-studio-settings-route.mjs
-
-      - name: Verify Hero Theme registry/runtime matrix
-        run: node scripts/test-hero-theme-registry-matrix.mjs
+      - name: Verify Hero Theme Studio is retired and homepage Hero is preserved
+        run: node scripts/test-hero-theme-studio-retired.mjs
 
       - name: Verify first-visit welcome is retired
         run: node scripts/test-no-first-visit-welcome.mjs
