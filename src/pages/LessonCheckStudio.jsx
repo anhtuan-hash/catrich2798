@@ -864,7 +864,14 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                     <span>{isVi ? 'Loại hoạt động' : 'Activity type'}</span>
                     <select value={draft.type} onChange={(e) => setDraft((d) => ({ ...d, type: e.target.value }))}>{TYPE_OPTIONS.map((item) => <option key={item.value} value={item.value}>{isVi ? item.vi : item.en}</option>)}</select>
                   </label>
-                  <label className="lcs-field lcs-field-wide">
+                  <label className="lcs-field">
+                    <span>{isVi ? 'Chuyên đề / kỹ năng' : 'Learning focus'}</span>
+                    <select value={draft.focusArea} onChange={(e) => setDraft((d) => ({ ...d, focusArea: e.target.value }))}>
+                      <option value="unclassified">{isVi ? '— Chọn chuyên đề —' : '— Choose focus —'}</option>
+                      {FOCUS_OPTIONS.filter((item) => item.value !== 'unclassified').map((item) => <option key={item.value} value={item.value}>{isVi ? item.vi : item.en}</option>)}
+                    </select>
+                  </label>
+                  <label className="lcs-field">
                     <span>{isVi ? 'Ghi chú tổ chức' : 'Teaching notes'}</span>
                     <input value={draft.notes} onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))} placeholder={isVi ? 'Ví dụ: 7 phút · Teacher-led · dùng cuối tiết' : 'e.g. 7 minutes · Teacher-led · end-of-lesson'} />
                   </label>
