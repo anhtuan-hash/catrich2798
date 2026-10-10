@@ -13,6 +13,7 @@ const migration = read('supabase/migrations/20261010081500_lesson_check_activity
 const directory = read('src/pages/appsDirectoryData.js');
 const design = read('src/data/designProfiles.js');
 const vercel = read('vercel.json');
+const permissions = read('src/utils/permissions.js');
 
 assert.match(apps, /slug: 'lesson-check-studio'/);
 assert.match(apps, /titleVi: 'Kiểm tra bài'/);
@@ -50,6 +51,7 @@ assert.match(service, /supabase\.rpc\('lesson_check_save_activity'/);
 assert.match(service, /supabase\.rpc\('lesson_check_request_access'/);
 assert.match(service, /supabase\.rpc\('lesson_check_list_teacher_access'/);
 assert.match(service, /supabase\.rpc\('lesson_check_set_teacher_access'/);
+assert.match(permissions, /slug === 'lesson-check-studio'\) return user\.approved !== false/, 'Lesson Check app shell must stay visible to approved teachers; activities carry the actual lock.');
 assert.doesNotMatch(studio, /localStorage\./);
 assert.doesNotMatch(service, /localStorage\./);
 
