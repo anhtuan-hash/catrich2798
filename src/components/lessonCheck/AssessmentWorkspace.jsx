@@ -7,7 +7,6 @@ import {
   ChevronRight,
   ClipboardCheck,
   Download,
-  FileText,
   Gamepad2,
   LoaderCircle,
   MonitorPlay,
@@ -85,6 +84,15 @@ function csvCell(value) {
   return `"${content.replace(/"/g, '""')}"`;
 }
 
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 function downloadCsv(filename, rows) {
   const csv = '\uFEFF' + rows.map((row) => row.map(csvCell).join(',')).join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
@@ -160,6 +168,7 @@ export default function AssessmentWorkspace({
   const [reportSessions, setReportSessions] = useState([]);
   const [reportResults, setReportResults] = useState([]);
   const [reportError, setReportError] = useState('');
+  const [reportRefreshKey, setReportRefreshKey] = useState(0);
 
   const allowedActivities = useMemo(
     () => activities.filter((item) => isLeader || item.hasAccess),
@@ -262,7 +271,7 @@ export default function AssessmentWorkspace({
       setReportResults(resultsResult.items || []);
     });
     return () => { active = false; };
-  }, [view, reportClass, notice]);
+  }, [view, reportClass, reportRefreshKey]);
 
   const reportSummary = useMemo(() => {
     const completedSessions = reportSessions.filter((item) => item.status === 'completed');
@@ -335,7 +344,7 @@ export default function AssessmentWorkspace({
   };
 
   const randomGroups = () => {
-    const pool = selectedStudents.length >= 2 ? selectedStudents : roster;
+    const pool = selectedStudents.length ? selectedStudents : roster;
     if (pool.length < 2) {
       setNotice('Cần ít nhất 2 học sinh để chia nhóm.');
       return;
@@ -493,12 +502,12 @@ export default function AssessmentWorkspace({
     if (!popup) return;
     const rows = studentReportRows.map((item) => `
       <tr>
-        <td>${item.studentName}</td>
-        <td>${item.studentCode || '—'}</td>
+        <td>${escapeHtml(item.studentName)}</td>
+        <td>${escapeHtml(item.studentCode || '—')}</td>
         <td>${item.sessionCount}</td>
         <td>${item.average == null ? '—' : item.average.toFixed(2)}</td>
-        <td>${item.focusText || '—'}</td>
-        <td>${formatDate(item.latest)}</td>
+        <td>${escapeHtml(item.focusText || '—')}</td>
+        <td>${escapeHtml(formatDate(item.latest))}</td>
       </tr>`).join('');
     popup.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Fun for Assessment Report</title>
       <style>
@@ -508,7 +517,7 @@ export default function AssessmentWorkspace({
       th,td{border:1px solid #dfe7e2;padding:8px;text-align:left}th{background:#f3f7f5}
       small{color:#7b887f}@media print{body{margin:16mm}}
       </style></head><body>
-      <h1>Fun for Assessment</h1><p>Đổi mới kiểm tra đánh giá · ${reportClass || 'Tất cả lớp'} · ${new Date().toLocaleDateString('vi-VN')}</p>
+      <h1>Fun for Assessment</h1><p>Đổi mới kiểm tra đánh giá · ${escapeHtml(reportClass || 'Tất cả lớp')} · ${new Date().toLocaleDateString('vi-VN')}</p>
       <div class="stats">
         <div><strong>${reportSummary.sessions}</strong><small>Phiên đánh giá</small></div>
         <div><strong>${reportSummary.students}</strong><small>Học sinh</small></div>
@@ -700,7 +709,7 @@ export default function AssessmentWorkspace({
           <div><small>ASSESSMENT ANALYTICS</small><h2>Theo dõi kiểm tra đánh giá</h2><p>Tổng hợp các phiên đã thực hiện và quá trình của từng học sinh.</p></div>
           <div>
             <select value={reportClass} onChange={(event) => setReportClass(event.target.value)}><option value="">Tất cả lớp</option>{classes.map((item) => <option key={item.className} value={item.className}>{item.className}</option>)}</select>
-            <button onClick={() => setNotice(`refresh-${Date.now()}`)}><RefreshCw size={16} />Làm mới</button>
+            <button onClick={() => setReportRefreshKey((value) => value + 1)}><RefreshCw size={16} />Làm mới</button>
             <button onClick={exportReport} disabled={!studentReportRows.length}><Download size={16} />Excel/CSV</button>
             <button onClick={printReport} disabled={!studentReportRows.length}><Printer size={16} />In / PDF</button>
           </div>
