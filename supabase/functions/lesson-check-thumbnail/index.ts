@@ -1,6 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const THUMBNAIL_PROFILE = "padlet-og-v2";
+const THUMBNAIL_PROFILE = "padlet-og-v3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -213,9 +213,29 @@ Deno.serve(async (req: Request) => {
     return json({ ok: false, fallback: "missing", message: "No Padlet Arcade game id was found." }, 422);
   }
 
-  const versionStamp = Number.isFinite(currentSource) ? Math.round(currentSource) : Date.now();
-  const previewUrl =
-    `https://arcade.padlet.com/open-graph/social-preview-image.png?hashid=${encodeURIComponent(gameId)}&timestamp=${versionStamp}`;
+  let pageResponse: Response;
+  try {
+    pageResponse = await fetch(sourceUrl, {
+      redirect: "follow",
+      headers: {
+        "Accept": "text/html,application/xhtml+xml",
+        "User-Agent": "Mozilla/5.0 (compatible; BRIAN-Thumbnail/3.0)",
+      },
+    });
+  } catch {
+    return json({ ok: false, fallback: "missing", message: "Padlet game page could not be read." }, 502);
+  }
+
+  const pageType = pageResponse.headers.get("content-type") || "";
+  if (!pageResponse.ok || !pageType.toLowerCase().includes("text/html")) {
+    return json({ ok: false, fallback: "missing", message: "Padlet game page did not return HTML." }, 502);
+  }
+
+  const html = await pageResponse.text();
+  const previewUrl = extractMetaImage(html.slice(0, 500000), sourceUrl);
+  if (!previewUrl) {
+    return json({ ok: false, fallback: "missing", message: "Padlet did not publish a preview image for this game." }, 422);
+  }
 
   let imageResponse: Response;
   try {
@@ -223,23 +243,25 @@ Deno.serve(async (req: Request) => {
       redirect: "follow",
       headers: {
         "Accept": "image/avif,image/webp,image/apng,image/jpeg,image/png,image/*,*/*;q=0.8",
-        "User-Agent": "Mozilla/5.0 (compatible; BRIAN-Thumbnail/2.0)",
+        "User-Agent": "Mozilla/5.0 (compatible; BRIAN-Thumbnail/3.0)",
         "Referer": sourceUrl,
       },
     });
   } catch {
-    return json({ ok: false, fallback: "missing", message: "Padlet thumbnail could not be downloaded." }, 502);
+    return json({ ok: false, fallback: "missing", message: "Padlet preview image could not be downloaded." }, 502);
   }
 
   const contentType = imageResponse.headers.get("content-type") || "";
   if (!imageResponse.ok || !contentType.toLowerCase().startsWith("image/")) {
-    return json({ ok: false, fallback: "missing", message: "Padlet did not return a thumbnail image." }, 502);
+    return json({ ok: false, fallback: "missing", message: "Padlet preview was not an image." }, 502);
   }
 
   const bytes = await imageResponse.arrayBuffer();
   if (bytes.byteLength < 2048 || bytes.byteLength > 5 * 1024 * 1024) {
-    return json({ ok: false, fallback: "missing", message: "Padlet thumbnail image was invalid." }, 502);
+    return json({ ok: false, fallback: "missing", message: "Padlet preview image was invalid." }, 502);
   }
+
+  const versionStamp = Number.isFinite(currentSource) ? Math.round(currentSource) : Date.now();
 
   const ext = contentExtension(contentType);
   const fileName = `${versionStamp}-${THUMBNAIL_PROFILE}.${ext}`;
