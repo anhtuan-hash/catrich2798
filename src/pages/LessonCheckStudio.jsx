@@ -891,7 +891,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
               <span>GLOBAL SUCCESS</span>
             </div>
             <div className="lcs-arcade-title-row">
-              <h1>Fun for Assessment</h1>
+              <h1><span className="is-fun">Fun</span> <span className="is-for">for</span> <span className="is-assessment">Assessment</span></h1>
             </div>
             <p>{isVi ? 'Đổi mới kiểm tra đánh giá' : 'Innovating assessment and evaluation'}</p>
 
@@ -903,6 +903,15 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
             </div>
           </div>
         </div>
+
+        <img
+          className="lcs-hero-art"
+          src="/lesson-check-hero-art.svg"
+          alt=""
+          aria-hidden="true"
+          decoding="async"
+          draggable="false"
+        />
 
         <div className="lcs-hero-side">
           <div className="lcs-hero-deck" aria-hidden="true">
