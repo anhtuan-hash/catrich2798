@@ -879,21 +879,23 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
             <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={isVi ? 'Tìm kiếm hoạt động, ví dụ: Tower of Hanoi, ASEAN, từ khóa...' : 'Search activities, e.g. Tower of Hanoi, ASEAN, keywords...'} />
           </label>
 
-          <div className="lcs-view-toggle" aria-label={isVi ? 'Kiểu hiển thị' : 'View mode'}>
-            <button type="button" className={viewMode === 'grid' ? 'is-active' : ''} onClick={() => setViewMode('grid')}><Grid2X2 size={17} />{isVi ? 'Lưới' : 'Grid'}</button>
-            <button type="button" className={viewMode === 'list' ? 'is-active' : ''} onClick={() => setViewMode('list')}><List size={17} />{isVi ? 'Danh sách' : 'List'}</button>
+          <div className="lcs-primary-actions">
+            <div className="lcs-view-toggle" aria-label={isVi ? 'Kiểu hiển thị' : 'View mode'}>
+              <button type="button" className={viewMode === 'grid' ? 'is-active' : ''} onClick={() => setViewMode('grid')}><Grid2X2 size={17} />{isVi ? 'Lưới' : 'Grid'}</button>
+              <button type="button" className={viewMode === 'list' ? 'is-active' : ''} onClick={() => setViewMode('list')}><List size={17} />{isVi ? 'Danh sách' : 'List'}</button>
+            </div>
+
+            <label className="lcs-sort-select">
+              <BarChart3 size={17} />
+              <select value={sortMode} onChange={(e) => setSortMode(e.target.value)}>
+                <option value="newest">{isVi ? 'Mới cập nhật' : 'Recently updated'}</option>
+                <option value="title">A → Z</option>
+                <option value="unit">{isVi ? 'Theo Unit' : 'By Unit'}</option>
+              </select>
+            </label>
+
+            {isLeader ? <button className="lcs-create-activity" type="button" onClick={openNewActivity}><Plus size={19} />{isVi ? 'Tạo hoạt động' : 'Create activity'}</button> : null}
           </div>
-
-          <label className="lcs-sort-select">
-            <BarChart3 size={17} />
-            <select value={sortMode} onChange={(e) => setSortMode(e.target.value)}>
-              <option value="newest">{isVi ? 'Mới cập nhật' : 'Recently updated'}</option>
-              <option value="title">A → Z</option>
-              <option value="unit">{isVi ? 'Theo Unit' : 'By Unit'}</option>
-            </select>
-          </label>
-
-          {isLeader ? <button className="lcs-create-activity" type="button" onClick={openNewActivity}><Plus size={19} />{isVi ? 'Tạo hoạt động' : 'Create activity'}</button> : null}
         </div>
 
         <div className="lcs-library-toolbar lcs-library-toolbar--filters">
