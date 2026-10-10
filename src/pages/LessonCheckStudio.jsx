@@ -117,6 +117,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [storageReady, setStorageReady] = useState(false);
   const importRef = useRef(null);
   const teachRef = useRef(null);
+  const skipNextStorageWriteRef = useRef(true);
   const [draft, setDraft] = useState({
     id: '',
     title: '',
@@ -140,6 +141,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   }, [activities, query, typeFilter]);
 
   useEffect(() => {
+    skipNextStorageWriteRef.current = true;
     setStorageReady(false);
     try {
       const raw = localStorage.getItem(key);
@@ -158,6 +160,10 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
   useEffect(() => {
     if (!storageReady) return;
+    if (skipNextStorageWriteRef.current) {
+      skipNextStorageWriteRef.current = false;
+      return;
+    }
     try {
       const serializable = activities.map(({ embed, ...item }) => item);
       localStorage.setItem(key, JSON.stringify(serializable));
