@@ -29,17 +29,6 @@ export const APPS = [
     api: false, featured: true, hideable: false,
   },
   {
-    slug: 'assessment-preview', route: 'assessment-preview', icon: 'AS', tone: 'blue',
-    group: 'Assessment', groupVi: 'Kiểm tra đánh giá',
-    title: 'BRIAN Assessment Studio', titleVi: 'BRIAN Assessment Studio',
-    desc: 'Interactive preview of twelve teacher-operated assessment tools with deterministic marking and evidence tracking.',
-    descVi: 'Trải nghiệm 12 công cụ kiểm tra, đánh giá: rubric, trắc nghiệm, phân tích kết quả và minh chứng điều chỉnh dạy học. Bản xem thử, không lưu dữ liệu học sinh.',
-    status: '12 assessment tools · Interactive preview · No AI',
-    statusVi: '12 công cụ · Bản xem thử · Không AI',
-    api: false, featured: true, hideable: false,
-    badge: { vi: 'Xem thử', en: 'Preview', tone: 'shared' },
-  },
-  {
     slug: 'assessment-core', route: 'assessment-core', icon: 'QB', tone: 'blue', group: 'Assessment', groupVi: 'Kiểm tra đánh giá',
     title: 'Question Bank', titleVi: 'Ngân hàng câu hỏi',
     desc: 'Store reusable questions, preserve context bundles, manage exams and receive completed drafts directly from ChatGPT.',

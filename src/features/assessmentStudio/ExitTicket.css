@@ -1,8 +1,0 @@
-.et-root .ss-heading h2{letter-spacing:-.045em}
-.et-root .et-check{display:flex;align-items:flex-start;gap:9px;border:1px solid #d6e4f4;background:#f5f9ff;padding:12px 14px;border-radius:12px;font-size:13px;color:#365b88;margin:8px 0 15px;font-weight:680}
-.et-root .et-check input{accent-color:#3265ce;width:18px;height:18px;margin:2px 0 0;flex-shrink:0}
-.et-root .ss-label small{display:block;font-size:12px;color:#6b7d96;font-weight:450;line-height:1.6;margin-top:6px}
-.et-root .et-bulk{margin-top:20px}
-.et-root .et-bulk .ss-actions{margin-top:9px}
-.et-root .ss-panel .ss-btn{max-width:100%}
-@media(max-width:660px){.et-root .ss-heading h2 span{display:block;font-size:20px}.et-root .ss-summary .ss-metric b{font-size:22px}}

@@ -464,7 +464,7 @@ export function hasRouteAccess(user, route, selectedTool = null) {
   if (route === 'student-support') return hasPermissionId(user, ROUTE_PERMISSION_IDS['student-support']);
   if (route === 'homeroom') return hasPermissionId(user, HOMEROOM_PERMISSION_ID);
   if (route === 'attendance') return hasAnyAttendanceAccess(user);
-  if (route === 'apps' || route === 'tools' || route === 'assessment-preview') return true;
+  if (route === 'apps' || route === 'tools') return true;
   if (route === 'resource-library' || route === 'knowledge-hub' || route === 'work-hub' || route === 'assessment-core' || route === 'platform-readiness' || route === 'automation-center' || route === 'cloud-operations' || route === 'collaboration-hub' || route === 'data-governance' || route === 'qa' || route === 'attendance' || route === 'settings') return hasPermissionId(user, ROUTE_PERMISSION_IDS[route]);
   return false;
 }

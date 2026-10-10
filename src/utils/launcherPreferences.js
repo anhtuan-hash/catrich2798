@@ -19,6 +19,26 @@ const DEFAULT_PINNED = [
 const DEFAULT_ASSIGNMENTS = {};
 
 const RETIRED_LAUNCHER_IDS = new Set([
+  'assessment-preview',
+  'shared-game-games4esl',
+  'shared-game-wordwall',
+  'shared-game-educaplay',
+  'shared-game-learningapps',
+  'shared-game-h5p',
+  'shared-game-genially',
+  'shared-game-bookwidgets',
+  'shared-game-classtools',
+  'shared-game-kahoot',
+  'shared-game-scattergories',
+  'shared-game-baamboozle',
+  'shared-game-c36c61c3-2b71-475d-bf3a-65e27756e483',
+  'shared-game-f8bcfe95-67ef-49e9-b3e9-5f5ac2a12381',
+  'shared-game-17ec8366-0af1-4503-8176-656749a610b7',
+  'shared-game-4f5cb56c-9c4e-4476-a810-2bb60cb1fa7c',
+  'shared-game-e2bf22d2-b958-451b-8c12-e628cc6424af',
+  'shared-game-e1baa91e-4c2a-4006-9c40-0cd531b6302d',
+  'route:assessment-preview',
+  'tool:assessment-preview',
   'tool:random-student-picker',
   'random-student-picker',
   'tool:worksheet-factory',
@@ -148,12 +168,6 @@ export function normalizeLauncherConfig(raw, itemIds = []) {
   const groups = cleanGroups(source.groups);
   const groupIds = new Set(groups.map((group) => group.id));
   const order = cleanIdList(source.order, safeItemIds.length ? allowed : null);
-  // Place this newly published preview beside Question Bank for existing launcher
-  // configurations, but preserve any deliberate ordering once it is present.
-  if (safeItemIds.includes('assessment-preview') && !order.includes('assessment-preview')) {
-    const questionBankIndex = order.indexOf('assessment-core');
-    order.splice(questionBankIndex >= 0 ? questionBankIndex + 1 : 0, 0, 'assessment-preview');
-  }
   safeItemIds.forEach((id) => { if (!order.includes(id)) order.push(id); });
 
   const assignments = { ...defaults.assignments };

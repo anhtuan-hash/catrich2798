@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import WebAppsRedesign from './WebAppsRedesign.jsx';
-import { SHARED_GAME_APPS } from '../data/sharedGameApps.js';
 import { canPublishDepartment } from '../utils/permissions.js';
 import { CUSTOM_GAMES_EVENT, isCustomGameOwner, listCustomGames } from '../utils/customGames.js';
 // Functional route layers retained: permissions, list behavior/performance and
@@ -81,7 +80,7 @@ export default function WebAppsAndroidDrawer(props) {
 
   const mergedApps = useMemo(() => {
     const base = Array.isArray(apps) ? apps : [];
-    const merged = [...base, ...SHARED_GAME_APPS, ...customGameApps];
+    const merged = [...base, ...customGameApps];
     const seen = new Set();
     return merged.filter((item) => {
       const key = String(item?.slug || item?.route || '').trim();

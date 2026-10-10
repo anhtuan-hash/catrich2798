@@ -6,6 +6,18 @@ const CUSTOM_GAMES_TABLE = 'custom_game_platforms';
 const CUSTOM_GAME_COLUMNS = 'id,label,icon,home,color,embed_mode,status,owner_id,owner_email,owner_name,review_note,reviewed_by,reviewed_at,created_at,updated_at';
 const LOCAL_KEY = 'bes-custom-game-platforms-v2';
 
+// Exact IDs retired from the legacy shared-app directory. Filter browser caches
+// as well so a disconnected device cannot resurrect deleted cloud links.
+const RETIRED_CUSTOM_GAME_IDS = new Set([
+  'c36c61c3-2b71-475d-bf3a-65e27756e483',
+  'f8bcfe95-67ef-49e9-b3e9-5f5ac2a12381',
+  '17ec8366-0af1-4503-8176-656749a610b7',
+  '4f5cb56c-9c4e-4476-a810-2bb60cb1fa7c',
+  'e2bf22d2-b958-451b-8c12-e628cc6424af',
+  'e1baa91e-4c2a-4006-9c40-0cd531b6302d',
+]);
+const isRetiredCustomGame = (item) => RETIRED_CUSTOM_GAME_IDS.has(String(item?.id || ''));
+
 function emitUpdate() {
   if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(CUSTOM_GAMES_EVENT));
 }
@@ -50,7 +62,7 @@ function normalizeGame(item = {}) {
 function readLocalAll() {
   if (typeof localStorage === 'undefined') return [];
   const value = safeJson(localStorage.getItem(LOCAL_KEY) || localStorage.getItem('bes-custom-game-platforms-v1') || '[]', []);
-  return Array.isArray(value) ? value.map(normalizeGame).filter((item) => item.label && item.home) : [];
+  return Array.isArray(value) ? value.map(normalizeGame).filter((item) => item.label && item.home && !isRetiredCustomGame(item)) : [];
 }
 
 function writeLocalAll(items) {
@@ -102,7 +114,7 @@ export async function listCustomGames(user) {
       .select(CUSTOM_GAME_COLUMNS)
       .order('created_at', { ascending: false })
       .limit(200);
-    if (!error && Array.isArray(data)) return data.filter((item) => !isLauncherAppRecord(item)).map(normalizeGame).filter((item) => item.label && item.home);
+    if (!error && Array.isArray(data)) return data.filter((item) => !isLauncherAppRecord(item) && !isRetiredCustomGame(item)).map(normalizeGame).filter((item) => item.label && item.home);
     console.warn('Custom games cloud read failed; using local fallback:', error?.message || error);
   }
   return readLocalAll().filter((item) => visibleToUser(item, user));
