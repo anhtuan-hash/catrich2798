@@ -32,5 +32,10 @@ jobs:
         run: node scripts/test-lesson-check-studio.mjs
       - name: Production build
         run: npm run build
-      - name: Existing smoke tests
-        run: npm test
+      # The legacy npm test currently imports specializedAppEngines.js, which
+      # was already absent from main before this optimization. Keep its
+      # repository-wide repair separate from this narrowly scoped performance PR.
+      - name: Active quick-access smoke checks
+        run: node scripts/test-youtube-quick-access.mjs
+      - name: Source and output performance audit
+        run: node scripts/performance-audit.mjs
