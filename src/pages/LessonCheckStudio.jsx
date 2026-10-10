@@ -1,7 +1,55 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ArrowLeft,
+  BookOpen,
+  Check,
+  ChevronDown,
+  ClipboardCheck,
+  Clock3,
+  Copy,
+  Edit3,
+  ExternalLink,
+  Filter,
+  Fullscreen,
+  Globe2,
+  KeyRound,
+  Layers3,
+  LoaderCircle,
+  LockKeyhole,
+  MonitorPlay,
+  Plus,
+  RefreshCw,
+  Save,
+  Search,
+  ShieldCheck,
+  Trash2,
+  UserCheck,
+  UserRound,
+  Users,
+  X,
+} from 'lucide-react';
+import { canPublishDepartment } from '../utils/permissions.js';
+import {
+  deleteLessonCheckActivity,
+  getLessonCheckActivityContent,
+  LESSON_CHECK_EVENT,
+  listLessonCheckAccessRequests,
+  listLessonCheckActivities,
+  listLessonCheckTeacherAccess,
+  requestLessonCheckAccess,
+  reviewLessonCheckAccessRequest,
+  saveLessonCheckActivity,
+  setLessonCheckTeacherAccess,
+  subscribeLessonCheckUpdates,
+} from '../utils/lessonCheckActivities.js';
+import {
+  GLOBAL_SUCCESS_LESSONS,
+  globalSuccessLessonTitle,
+  globalSuccessUnitTitle,
+  unitOptionsForGrade,
+} from '../data/globalSuccessCatalog.js';
 import './LessonCheckStudio.css';
 
-const STORAGE_VERSION = 1;
 const TYPE_OPTIONS = [
   { value: 'quiz', vi: 'Trắc nghiệm', en: 'Quiz' },
   { value: 'game', vi: 'Trò chơi', en: 'Game' },
@@ -10,14 +58,22 @@ const TYPE_OPTIONS = [
   { value: 'other', vi: 'Khác', en: 'Other' },
 ];
 
-function uid() {
-  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
-  return `activity-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-}
-
-function storageKey(currentUser) {
-  const identity = String(currentUser?.id || currentUser?.email || 'local').trim().toLowerCase();
-  return `brian.lesson-check.activities.v${STORAGE_VERSION}:${identity}`;
+function blankDraft() {
+  return {
+    id: '',
+    title: '',
+    bookKey: 'global-success',
+    grade: '11',
+    unitNo: '1',
+    unitTitle: globalSuccessUnitTitle(11, 1),
+    lessonKey: 'getting-started',
+    lessonTitle: globalSuccessLessonTitle('getting-started'),
+    className: '',
+    type: 'quiz',
+    notes: '',
+    sourceHost: '',
+    embedCode: '',
+  };
 }
 
 function safeUrl(value) {
@@ -57,6 +113,7 @@ function parseEmbed(raw) {
   if (/<[a-z][\s\S]*>/i.test(input)) {
     return { kind: 'html', source: wrapHtmlSnippet(input), raw: input };
   }
+
   return { kind: 'invalid', source: '', raw: input };
 }
 
@@ -65,17 +122,33 @@ function sourceHost(source) {
 }
 
 function labelForType(type, language) {
-  return TYPE_OPTIONS.find((item) => item.value === type)?.[language === 'vi' ? 'vi' : 'en'] || type;
+  const option = TYPE_OPTIONS.find((item) => item.value === type);
+  return option ? (language === 'vi' ? option.vi : option.en) : type;
 }
 
-function iframeProps(embed) {
+function compactDate(value, language) {
+  if (!value) return '';
+  try {
+    return new Intl.DateTimeFormat(language === 'vi' ? 'vi-VN' : 'en-US', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(new Date(value));
+  } catch {
+    return '';
+  }
+}
+
+function iframeProps(embed, title) {
   const common = {
-    title: 'Embedded teaching activity',
+    title: title || 'Embedded teaching activity',
     allowFullScreen: true,
     allow: 'fullscreen; autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share',
     referrerPolicy: 'strict-origin-when-cross-origin',
   };
-  if (embed.kind === 'url') {
+  if (embed?.kind === 'url') {
     return {
       ...common,
       src: embed.source,
@@ -84,411 +157,631 @@ function iframeProps(embed) {
   }
   return {
     ...common,
-    srcDoc: embed.source,
+    srcDoc: embed?.source || '',
     sandbox: 'allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-pointer-lock allow-downloads allow-presentation',
   };
 }
 
-function EmptyPreview({ language }) {
+function ActivityFrame({ embed, title, className = '' }) {
+  if (!embed || !['url', 'html'].includes(embed.kind)) return null;
+  return <iframe className={className} {...iframeProps(embed, title)} />;
+}
+
+function StatusPill({ activity, isLeader, language }) {
+  const isVi = language === 'vi';
+  if (isLeader || activity.hasAccess) {
+    return <span className="lcs-access-pill is-open"><Check size={14} />{isVi ? 'Đã mở' : 'Unlocked'}</span>;
+  }
+  if (activity.requestStatus === 'pending') {
+    return <span className="lcs-access-pill is-pending"><Clock3 size={14} />{isVi ? 'Đang chờ duyệt' : 'Pending'}</span>;
+  }
+  return <span className="lcs-access-pill is-locked"><LockKeyhole size={14} />{isVi ? 'Cần xin quyền' : 'Access required'}</span>;
+}
+
+function LoadingBlock({ language }) {
   return (
-    <div className="lcs-preview-empty">
-      <span className="material-symbols-rounded" aria-hidden="true">web_asset</span>
-      <strong>{language === 'vi' ? 'Dán mã để xem trước' : 'Paste code to preview'}</strong>
-      <p>{language === 'vi' ? 'Hỗ trợ URL HTTPS, mã <iframe> và đoạn HTML tương tác.' : 'Supports HTTPS URLs, <iframe> code and interactive HTML snippets.'}</p>
+    <div className="lcs-loading">
+      <LoaderCircle className="lcs-spin" />
+      <strong>{language === 'vi' ? 'Đang đồng bộ Supabase…' : 'Syncing with Supabase…'}</strong>
     </div>
   );
 }
 
-function ActivityFrame({ embed, className = '' }) {
-  if (!embed || !['url', 'html'].includes(embed.kind)) return null;
-  return <iframe className={className} {...iframeProps(embed)} />;
-}
-
 export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const isVi = language === 'vi';
-  const key = useMemo(() => storageKey(currentUser), [currentUser?.id, currentUser?.email]);
+  const isLeader = canPublishDepartment(currentUser);
   const [activities, setActivities] = useState([]);
-  const [selectedId, setSelectedId] = useState('');
+  const [requests, setRequests] = useState([]);
+  const [draft, setDraft] = useState(blankDraft);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [notice, setNotice] = useState('');
+  const [error, setError] = useState('');
   const [query, setQuery] = useState('');
+  const [gradeFilter, setGradeFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [showEditor, setShowEditor] = useState(true);
   const [teachingActivity, setTeachingActivity] = useState(null);
-  const [notice, setNotice] = useState('');
-  const [storageReady, setStorageReady] = useState(false);
-  const importRef = useRef(null);
+  const [teachingEmbed, setTeachingEmbed] = useState(null);
+  const [teachingLoading, setTeachingLoading] = useState(false);
+  const [requestTarget, setRequestTarget] = useState(null);
+  const [requestNote, setRequestNote] = useState('');
+  const [requestSending, setRequestSending] = useState(false);
+  const [accessTarget, setAccessTarget] = useState(null);
+  const [teacherAccess, setTeacherAccess] = useState([]);
+  const [teacherQuery, setTeacherQuery] = useState('');
+  const [accessLoading, setAccessLoading] = useState(false);
+  const [accessBusyId, setAccessBusyId] = useState('');
   const teachRef = useRef(null);
-  const skipNextStorageWriteRef = useRef(true);
-  const [draft, setDraft] = useState({
-    id: '',
-    title: '',
-    unit: '',
-    className: '',
-    type: 'quiz',
-    notes: '',
-    embedCode: '',
-  });
 
   const parsedDraft = useMemo(() => parseEmbed(draft.embedCode), [draft.embedCode]);
-  const selectedActivity = useMemo(() => activities.find((item) => item.id === selectedId) || null, [activities, selectedId]);
-  const filteredActivities = useMemo(() => {
-    const q = query.trim().toLocaleLowerCase('vi');
-    return activities.filter((item) => {
-      if (typeFilter !== 'all' && item.type !== typeFilter) return false;
-      if (!q) return true;
-      return [item.title, item.unit, item.className, item.notes, sourceHost(item.embed?.source)]
-        .some((value) => String(value || '').toLocaleLowerCase('vi').includes(q));
+  const previewReady = ['url', 'html'].includes(parsedDraft.kind);
+  const unitOptions = useMemo(() => unitOptionsForGrade(draft.grade), [draft.grade]);
+  const pendingCount = useMemo(() => requests.filter((item) => item.status === 'pending').length, [requests]);
+
+  const loadActivities = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
+    const result = await listLessonCheckActivities();
+    if (result.ok) {
+      setActivities(result.activities);
+      setError('');
+    } else {
+      setError(result.message || (isVi ? 'Không thể tải thư viện hoạt động.' : 'Could not load activity library.'));
+    }
+    if (!silent) setLoading(false);
+  }, [isVi]);
+
+  const loadRequests = useCallback(async () => {
+    if (!isLeader) return;
+    const result = await listLessonCheckAccessRequests();
+    if (result.ok) setRequests(result.requests);
+  }, [isLeader]);
+
+  useEffect(() => {
+    loadActivities();
+    loadRequests();
+    const unsubscribe = subscribeLessonCheckUpdates(() => {
+      loadActivities({ silent: true });
+      loadRequests();
     });
-  }, [activities, query, typeFilter]);
-
-  useEffect(() => {
-    skipNextStorageWriteRef.current = true;
-    setStorageReady(false);
-    try {
-      const raw = localStorage.getItem(key);
-      const parsed = raw ? JSON.parse(raw) : [];
-      const normalized = Array.isArray(parsed) ? parsed.map((item) => {
-        const embedCode = String(item.embedCode || item.embed?.raw || item.embed?.source || '');
-        return { ...item, embedCode, embed: parseEmbed(embedCode) };
-      }).filter((item) => ['url', 'html'].includes(item.embed.kind)) : [];
-      setActivities(normalized);
-    } catch {
-      setActivities([]);
-    } finally {
-      setStorageReady(true);
-    }
-  }, [key]);
-
-  useEffect(() => {
-    if (!storageReady) return;
-    if (skipNextStorageWriteRef.current) {
-      skipNextStorageWriteRef.current = false;
-      return;
-    }
-    try {
-      const serializable = activities.map(({ embed, ...item }) => item);
-      localStorage.setItem(key, JSON.stringify(serializable));
-    } catch {
-      // Browser storage may be unavailable in private mode or when quota is full.
-    }
-  }, [activities, key, storageReady]);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        loadActivities({ silent: true });
+        loadRequests();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      unsubscribe?.();
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [loadActivities, loadRequests]);
 
   useEffect(() => {
     if (!notice) return undefined;
-    const timer = window.setTimeout(() => setNotice(''), 2600);
+    const timer = window.setTimeout(() => setNotice(''), 2800);
     return () => window.clearTimeout(timer);
   }, [notice]);
 
+  const filteredActivities = useMemo(() => {
+    const q = query.trim().toLocaleLowerCase('vi');
+    return activities.filter((item) => {
+      if (gradeFilter !== 'all' && String(item.grade || '') !== gradeFilter) return false;
+      if (typeFilter !== 'all' && item.type !== typeFilter) return false;
+      if (!q) return true;
+      return [
+        item.title,
+        item.unitTitle,
+        item.lessonTitle,
+        item.classLabel,
+        item.notes,
+        item.sourceHost,
+      ].some((value) => String(value || '').toLocaleLowerCase('vi').includes(q));
+    });
+  }, [activities, gradeFilter, query, typeFilter]);
+
+  const filteredTeachers = useMemo(() => {
+    const q = teacherQuery.trim().toLocaleLowerCase('vi');
+    return teacherAccess.filter((teacher) => !q || `${teacher.name} ${teacher.email}`.toLocaleLowerCase('vi').includes(q));
+  }, [teacherAccess, teacherQuery]);
+
+  const targetRequests = useMemo(
+    () => requests.filter((item) => item.activityId === accessTarget?.id),
+    [requests, accessTarget?.id],
+  );
+
   function resetDraft() {
-    setDraft({ id: '', title: '', unit: '', className: '', type: 'quiz', notes: '', embedCode: '' });
-    setSelectedId('');
+    setDraft(blankDraft());
     setShowEditor(true);
   }
 
-  function editActivity(item) {
-    setSelectedId(item.id);
+  function applyGrade(grade) {
+    const nextGrade = String(grade);
+    const firstUnitTitle = globalSuccessUnitTitle(nextGrade, 1);
+    setDraft((current) => ({
+      ...current,
+      grade: nextGrade,
+      unitNo: '1',
+      unitTitle: firstUnitTitle,
+      className: current.className && /^\d{2}\./.test(current.className) ? '' : current.className,
+    }));
+  }
+
+  function applyUnit(unitNo) {
+    const unitTitle = globalSuccessUnitTitle(draft.grade, unitNo);
+    setDraft((current) => ({ ...current, unitNo: String(unitNo), unitTitle }));
+  }
+
+  function applyLesson(lessonKey) {
+    setDraft((current) => ({
+      ...current,
+      lessonKey,
+      lessonTitle: globalSuccessLessonTitle(lessonKey),
+    }));
+  }
+
+  async function editActivity(item) {
+    if (!isLeader) return;
+    setSaving(true);
+    const result = await getLessonCheckActivityContent(item.id);
+    setSaving(false);
+    if (!result.ok) {
+      setNotice(result.message || (isVi ? 'Không mở được nội dung để chỉnh sửa.' : 'Could not open this activity for editing.'));
+      return;
+    }
     setDraft({
       id: item.id,
-      title: item.title || '',
-      unit: item.unit || '',
-      className: item.className || '',
+      title: item.title,
+      bookKey: item.bookKey || 'global-success',
+      grade: String(item.grade || 11),
+      unitNo: String(item.unitNo || 1),
+      unitTitle: item.unitTitle || globalSuccessUnitTitle(item.grade || 11, item.unitNo || 1),
+      lessonKey: item.lessonKey || 'getting-started',
+      lessonTitle: item.lessonTitle || globalSuccessLessonTitle(item.lessonKey || 'getting-started'),
+      className: item.classLabel || '',
       type: item.type || 'quiz',
       notes: item.notes || '',
-      embedCode: item.embedCode || item.embed?.raw || item.embed?.source || '',
+      sourceHost: item.sourceHost || '',
+      embedCode: result.content.embedCode,
     });
     setShowEditor(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function saveActivity() {
-    const title = draft.title.trim();
-    if (!title) {
+  async function saveActivity() {
+    if (!isLeader) return;
+    if (!draft.title.trim()) {
       setNotice(isVi ? 'Hãy nhập tên hoạt động.' : 'Enter an activity title.');
       return;
     }
-    if (!['url', 'html'].includes(parsedDraft.kind)) {
+    if (!previewReady) {
       setNotice(isVi ? 'Mã nhúng chưa hợp lệ. Hãy dán URL HTTPS, iframe hoặc HTML.' : 'Embed code is not valid yet.');
       return;
     }
-    const now = new Date().toISOString();
-    const next = {
-      id: draft.id || uid(),
-      title,
-      unit: draft.unit.trim(),
-      className: draft.className.trim(),
-      type: draft.type,
-      notes: draft.notes.trim(),
-      embedCode: draft.embedCode,
-      embed: parsedDraft,
-      updatedAt: now,
-      createdAt: activities.find((item) => item.id === draft.id)?.createdAt || now,
-    };
-    setActivities((current) => draft.id
-      ? current.map((item) => item.id === draft.id ? next : item)
-      : [next, ...current]);
-    setSelectedId(next.id);
-    setDraft((current) => ({ ...current, id: next.id }));
-    setNotice(isVi ? 'Đã lưu hoạt động.' : 'Activity saved.');
+    setSaving(true);
+    const result = await saveLessonCheckActivity({
+      ...draft,
+      unitTitle: globalSuccessUnitTitle(draft.grade, draft.unitNo) || draft.unitTitle,
+      lessonTitle: globalSuccessLessonTitle(draft.lessonKey) || draft.lessonTitle,
+      sourceHost: parsedDraft.kind === 'url' ? sourceHost(parsedDraft.source) : 'HTML / srcDoc',
+    }, parsedDraft);
+    setSaving(false);
+    if (!result.ok) {
+      setNotice(result.message || (isVi ? 'Không thể lưu hoạt động.' : 'Could not save activity.'));
+      return;
+    }
+    setNotice(isVi ? 'Đã lưu lên Supabase.' : 'Saved to Supabase.');
+    resetDraft();
+    await loadActivities({ silent: true });
   }
 
-  function duplicateActivity(item) {
-    const copy = {
-      ...item,
-      id: uid(),
+  async function duplicateActivity(item) {
+    if (!isLeader) return;
+    setSaving(true);
+    const contentResult = await getLessonCheckActivityContent(item.id);
+    if (!contentResult.ok) {
+      setSaving(false);
+      setNotice(contentResult.message);
+      return;
+    }
+    const embed = parseEmbed(contentResult.content.embedCode);
+    const result = await saveLessonCheckActivity({
+      id: '',
       title: `${item.title} ${isVi ? '— Bản sao' : '— Copy'}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    setActivities((current) => [copy, ...current]);
+      bookKey: item.bookKey,
+      grade: item.grade,
+      unitNo: item.unitNo,
+      unitTitle: item.unitTitle,
+      lessonKey: item.lessonKey,
+      lessonTitle: item.lessonTitle,
+      className: item.classLabel,
+      type: item.type,
+      notes: item.notes,
+      sourceHost: item.sourceHost,
+      embedCode: contentResult.content.embedCode,
+    }, embed);
+    setSaving(false);
+    if (!result.ok) {
+      setNotice(result.message);
+      return;
+    }
     setNotice(isVi ? 'Đã nhân bản hoạt động.' : 'Activity duplicated.');
+    await loadActivities({ silent: true });
   }
 
-  function deleteActivity(item) {
-    const ok = window.confirm(isVi ? `Xóa hoạt động “${item.title}”?` : `Delete “${item.title}”?`);
+  async function removeActivity(item) {
+    if (!isLeader) return;
+    const ok = window.confirm(isVi ? `Xóa hoạt động “${item.title}”? Quyền đã cấp và yêu cầu liên quan cũng sẽ bị xóa.` : `Delete “${item.title}”? Related grants and requests will also be deleted.`);
     if (!ok) return;
-    setActivities((current) => current.filter((entry) => entry.id !== item.id));
-    if (selectedId === item.id) resetDraft();
+    const result = await deleteLessonCheckActivity(item.id);
+    if (!result.ok) {
+      setNotice(result.message);
+      return;
+    }
+    setNotice(isVi ? 'Đã xóa hoạt động.' : 'Activity deleted.');
+    await loadActivities({ silent: true });
+    await loadRequests();
   }
 
   async function openTeachingMode(item) {
-    setTeachingActivity(item);
-    window.setTimeout(async () => {
-      try { await teachRef.current?.requestFullscreen?.(); } catch { /* Fullscreen still works as an overlay. */ }
-    }, 80);
-  }
-
-  function openExternal(item) {
-    if (item.embed?.kind !== 'url') return;
-    window.open(item.embed.source, '_blank', 'noopener,noreferrer');
-  }
-
-  function exportLibrary() {
-    const serializable = activities.map(({ embed, ...item }) => item);
-    const blob = new Blob([JSON.stringify({ version: STORAGE_VERSION, exportedAt: new Date().toISOString(), activities: serializable }, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'brian-lesson-check-activities.json';
-    link.click();
-    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }
-
-  async function importLibrary(event) {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) return;
-    try {
-      const json = JSON.parse(await file.text());
-      const incoming = Array.isArray(json) ? json : json.activities;
-      if (!Array.isArray(incoming)) throw new Error('Invalid library');
-      const normalized = incoming.map((item) => {
-        const embedCode = String(item.embedCode || item.embed?.raw || item.embed?.source || '');
-        const embed = parseEmbed(embedCode);
-        return {
-          id: String(item.id || uid()),
-          title: String(item.title || (isVi ? 'Hoạt động nhập' : 'Imported activity')),
-          unit: String(item.unit || ''),
-          className: String(item.className || ''),
-          type: TYPE_OPTIONS.some((option) => option.value === item.type) ? item.type : 'other',
-          notes: String(item.notes || ''),
-          embedCode,
-          embed,
-          createdAt: item.createdAt || new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-      }).filter((item) => ['url', 'html'].includes(item.embed.kind));
-      setActivities((current) => {
-        const byId = new Map(current.map((item) => [item.id, item]));
-        normalized.forEach((item) => byId.set(item.id, item));
-        return [...byId.values()].sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)));
-      });
-      setNotice(isVi ? `Đã nhập ${normalized.length} hoạt động.` : `Imported ${normalized.length} activities.`);
-    } catch {
-      setNotice(isVi ? 'Không đọc được tệp sao lưu.' : 'Could not read backup file.');
+    if (!item.hasAccess && !isLeader) {
+      setRequestTarget(item);
+      return;
     }
+    setTeachingActivity(item);
+    setTeachingLoading(true);
+    setTeachingEmbed(null);
+    const result = await getLessonCheckActivityContent(item.id);
+    setTeachingLoading(false);
+    if (!result.ok) {
+      setTeachingActivity(null);
+      setNotice(result.message || (isVi ? 'Không thể tải hoạt động.' : 'Could not load activity.'));
+      return;
+    }
+    const embed = parseEmbed(result.content.embedCode);
+    if (!['url', 'html'].includes(embed.kind)) {
+      setTeachingActivity(null);
+      setNotice(isVi ? 'Nội dung nhúng không còn hợp lệ.' : 'The stored embed is no longer valid.');
+      return;
+    }
+    setTeachingEmbed(embed);
   }
 
-  const previewReady = ['url', 'html'].includes(parsedDraft.kind);
+  async function sendAccessRequest() {
+    if (!requestTarget || requestSending) return;
+    setRequestSending(true);
+    const result = await requestLessonCheckAccess(requestTarget.id, requestNote);
+    setRequestSending(false);
+    if (!result.ok) {
+      setNotice(result.message || (isVi ? 'Không gửi được yêu cầu.' : 'Could not send request.'));
+      return;
+    }
+    setRequestTarget(null);
+    setRequestNote('');
+    setNotice(isVi ? 'Đã gửi yêu cầu đến TTCM.' : 'Request sent to the department head.');
+    await loadActivities({ silent: true });
+  }
+
+  async function openAccessManager(item) {
+    if (!isLeader) return;
+    setAccessTarget(item);
+    setTeacherQuery('');
+    setAccessLoading(true);
+    const result = await listLessonCheckTeacherAccess(item.id);
+    setAccessLoading(false);
+    if (!result.ok) {
+      setNotice(result.message || (isVi ? 'Không tải được danh sách giáo viên.' : 'Could not load teacher access.'));
+      setAccessTarget(null);
+      return;
+    }
+    setTeacherAccess(result.teachers);
+  }
+
+  async function changeTeacherAccess(teacher, allowed) {
+    if (!accessTarget || accessBusyId) return;
+    setAccessBusyId(teacher.userId);
+    const result = await setLessonCheckTeacherAccess(accessTarget.id, teacher.userId, allowed);
+    setAccessBusyId('');
+    if (!result.ok) {
+      setNotice(result.message);
+      return;
+    }
+    setTeacherAccess((current) => current.map((item) => (
+      item.userId === teacher.userId
+        ? { ...item, hasAccess: allowed, pendingRequest: false }
+        : item
+    )));
+    setNotice(allowed
+      ? (isVi ? `Đã cấp quyền cho ${teacher.name}.` : `Access granted to ${teacher.name}.`)
+      : (isVi ? `Đã thu hồi quyền của ${teacher.name}.` : `Access revoked for ${teacher.name}.`));
+    await loadActivities({ silent: true });
+    await loadRequests();
+  }
+
+  async function reviewRequest(request, decision) {
+    if (!isLeader || accessBusyId) return;
+    setAccessBusyId(request.requesterId);
+    const result = await reviewLessonCheckAccessRequest(request.id, decision);
+    setAccessBusyId('');
+    if (!result.ok) {
+      setNotice(result.message);
+      return;
+    }
+    setNotice(decision === 'approved'
+      ? (isVi ? 'Đã duyệt và cấp quyền.' : 'Approved and granted.')
+      : (isVi ? 'Đã từ chối yêu cầu.' : 'Request rejected.'));
+    if (accessTarget) {
+      const teachers = await listLessonCheckTeacherAccess(accessTarget.id);
+      if (teachers.ok) setTeacherAccess(teachers.teachers);
+    }
+    await loadRequests();
+    await loadActivities({ silent: true });
+  }
+
+  function openExternalFromEmbed(embed) {
+    if (embed?.kind !== 'url') return;
+    window.open(embed.source, '_blank', 'noopener,noreferrer');
+  }
+
+  const headerText = isLeader
+    ? (isVi ? 'Tạo hoạt động, đồng bộ lên Supabase và cấp quyền theo từng hoạt động.' : 'Create activities, sync them to Supabase and grant per-activity access.')
+    : (isVi ? 'Xem toàn bộ hoạt động của tổ. Hoạt động chưa được cấp quyền vẫn hiện nhưng bị khóa.' : 'Browse every department activity. Items without access remain visible but locked.');
 
   return (
     <div className="lcs-page">
       <header className="lcs-hero">
         <button className="lcs-back" onClick={() => { window.location.hash = '#/apps'; }} aria-label={isVi ? 'Quay lại Ứng dụng' : 'Back to Apps'}>
-          <span className="material-symbols-rounded">arrow_back</span>
+          <ArrowLeft />
         </button>
         <div className="lcs-hero-copy">
-          <span className="lcs-kicker">{isVi ? 'BRIAN · HOẠT ĐỘNG NHÚNG' : 'BRIAN · EMBEDDED ACTIVITIES'}</span>
+          <span className="lcs-kicker">{isVi ? 'BRIAN · GLOBAL SUCCESS ACTIVITY LIBRARY' : 'BRIAN · GLOBAL SUCCESS ACTIVITY LIBRARY'}</span>
           <h1>{isVi ? 'Kiểm tra bài' : 'Lesson Check Studio'}</h1>
-          <p>{isVi ? 'Dán iframe, URL hoặc mã HTML và lưu mỗi nội dung thành một hoạt động dạy học riêng.' : 'Paste iframe, URL or HTML and keep each item as a separate teaching activity.'}</p>
+          <p>{headerText}</p>
         </div>
         <div className="lcs-hero-actions">
-          <button className="lcs-btn lcs-btn-secondary" onClick={() => importRef.current?.click()}>
-            <span className="material-symbols-rounded">upload_file</span>{isVi ? 'Nhập thư viện' : 'Import'}
-          </button>
-          <button className="lcs-btn lcs-btn-secondary" onClick={exportLibrary} disabled={!activities.length}>
-            <span className="material-symbols-rounded">download</span>{isVi ? 'Sao lưu' : 'Backup'}
-          </button>
-          <button className="lcs-btn lcs-btn-primary" onClick={resetDraft}>
-            <span className="material-symbols-rounded">add</span>{isVi ? 'Hoạt động mới' : 'New activity'}
-          </button>
-          <input ref={importRef} type="file" accept="application/json,.json" hidden onChange={importLibrary} />
+          <span className="lcs-cloud-chip"><ShieldCheck size={17} />Supabase</span>
+          {isLeader ? (
+            <>
+              {pendingCount ? <button className="lcs-btn lcs-btn-warn" onClick={() => document.querySelector('.lcs-library')?.scrollIntoView({ behavior: 'smooth' })}><KeyRound size={18} />{pendingCount} {isVi ? 'yêu cầu' : 'requests'}</button> : null}
+              <button className="lcs-btn lcs-btn-primary" onClick={resetDraft}><Plus size={19} />{isVi ? 'Hoạt động mới' : 'New activity'}</button>
+            </>
+          ) : null}
+          <button className="lcs-btn lcs-btn-secondary" onClick={() => { loadActivities(); loadRequests(); }}><RefreshCw size={17} />{isVi ? 'Làm mới' : 'Refresh'}</button>
         </div>
       </header>
 
       {notice ? <div className="lcs-toast" role="status">{notice}</div> : null}
-
-      <section className="lcs-info-strip">
-        <span className="material-symbols-rounded" aria-hidden="true">info</span>
-        <div>
-          <strong>{isVi ? 'Có thể nhúng trực tiếp.' : 'Direct embedding is supported.'}</strong>
-          <span>{isVi ? 'Một số website tự chặn iframe bằng CSP/X-Frame-Options; khi đó hãy dùng nút “Mở ngoài”. Hoạt động hiện được lưu theo tài khoản trên trình duyệt này.' : 'Some websites block iframe embedding with CSP/X-Frame-Options; use “Open externally” when that happens. Activities are stored per account in this browser.'}</span>
-        </div>
-      </section>
-
-      <section className="lcs-builder">
-        <div className="lcs-panel lcs-editor">
-          <div className="lcs-panel-head">
-            <div><span className="lcs-step">01</span><h2>{draft.id ? (isVi ? 'Chỉnh sửa hoạt động' : 'Edit activity') : (isVi ? 'Tạo hoạt động' : 'Create activity')}</h2></div>
-            <button className="lcs-icon-btn" onClick={() => setShowEditor((value) => !value)} title={isVi ? 'Thu gọn' : 'Collapse'}>
-              <span className="material-symbols-rounded">{showEditor ? 'expand_less' : 'expand_more'}</span>
-            </button>
+      {error ? (
+        <section className="lcs-system-alert">
+          <LockKeyhole size={22} />
+          <div>
+            <strong>{isVi ? 'Chưa kết nối được dữ liệu Lesson Check' : 'Lesson Check database is not ready'}</strong>
+            <span>{error}</span>
+            <small>{isVi ? 'Nếu đây là lần triển khai đầu tiên, cần chạy migration Supabase của Lesson Check Studio.' : 'On first deployment, apply the Lesson Check Studio Supabase migration.'}</small>
           </div>
-          {showEditor ? (
-            <div className="lcs-form">
-              <label className="lcs-field lcs-field-wide">
-                <span>{isVi ? 'Tên hoạt động' : 'Activity title'}</span>
-                <input value={draft.title} onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))} placeholder={isVi ? 'Ví dụ: Unit 5 – Global Warming Quiz' : 'e.g. Unit 5 – Global Warming Quiz'} />
-              </label>
-              <label className="lcs-field">
-                <span>{isVi ? 'Bài / chủ đề' : 'Unit / topic'}</span>
-                <input value={draft.unit} onChange={(e) => setDraft((d) => ({ ...d, unit: e.target.value }))} placeholder="Unit 5 · Global Warming" />
-              </label>
-              <label className="lcs-field">
-                <span>{isVi ? 'Lớp' : 'Class'}</span>
-                <input value={draft.className} onChange={(e) => setDraft((d) => ({ ...d, className: e.target.value }))} placeholder={isVi ? '11.1 / Khối 11' : '11.1 / Grade 11'} />
-              </label>
-              <label className="lcs-field">
-                <span>{isVi ? 'Loại hoạt động' : 'Activity type'}</span>
-                <select value={draft.type} onChange={(e) => setDraft((d) => ({ ...d, type: e.target.value }))}>
-                  {TYPE_OPTIONS.map((item) => <option key={item.value} value={item.value}>{isVi ? item.vi : item.en}</option>)}
-                </select>
-              </label>
-              <label className="lcs-field">
-                <span>{isVi ? 'Ghi chú' : 'Notes'}</span>
-                <input value={draft.notes} onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))} placeholder={isVi ? 'Mục tiêu, thời lượng, cách tổ chức…' : 'Objective, timing, classroom use…'} />
-              </label>
-              <label className="lcs-field lcs-field-wide">
-                <span>{isVi ? 'Mã nhúng / URL / HTML' : 'Embed code / URL / HTML'}</span>
-                <textarea rows={9} value={draft.embedCode} onChange={(e) => setDraft((d) => ({ ...d, embedCode: e.target.value }))} placeholder={'<iframe src="https://..."></iframe>\n\nhttps://...\n\n<div>...</div><script>...</script>'} spellCheck={false} />
-              </label>
-              <div className="lcs-detection">
-                <span className={`lcs-dot ${previewReady ? 'is-ready' : ''}`} />
-                {parsedDraft.kind === 'url' ? (isVi ? `Đã nhận diện liên kết nhúng · ${sourceHost(parsedDraft.source)}` : `Embed URL detected · ${sourceHost(parsedDraft.source)}`)
-                  : parsedDraft.kind === 'html' ? (isVi ? 'Đã nhận diện mã HTML tương tác' : 'Interactive HTML detected')
-                  : parsedDraft.kind === 'invalid' ? (isVi ? 'Chưa nhận diện được mã hợp lệ' : 'No valid embed detected')
-                  : (isVi ? 'Chưa có mã nhúng' : 'No embed code yet')}
-              </div>
-              <div className="lcs-form-actions">
-                {draft.id ? <button className="lcs-btn lcs-btn-secondary" onClick={resetDraft}>{isVi ? 'Hủy chỉnh sửa' : 'Cancel edit'}</button> : null}
-                <button className="lcs-btn lcs-btn-primary" onClick={saveActivity}>
-                  <span className="material-symbols-rounded">save</span>{draft.id ? (isVi ? 'Lưu thay đổi' : 'Save changes') : (isVi ? 'Lưu hoạt động' : 'Save activity')}
-                </button>
-              </div>
+        </section>
+      ) : null}
+
+      {isLeader ? (
+        <section className="lcs-builder">
+          <div className="lcs-panel lcs-editor">
+            <div className="lcs-panel-head">
+              <div><span className="lcs-step">01</span><h2>{draft.id ? (isVi ? 'Chỉnh sửa hoạt động' : 'Edit activity') : (isVi ? 'Tạo hoạt động' : 'Create activity')}</h2></div>
+              <button className="lcs-icon-btn" onClick={() => setShowEditor((value) => !value)} title={isVi ? 'Thu gọn' : 'Collapse'}>
+                <ChevronDown className={showEditor ? 'is-up' : ''} />
+              </button>
             </div>
-          ) : null}
-        </div>
 
-        <div className="lcs-panel lcs-live-preview">
-          <div className="lcs-panel-head">
-            <div><span className="lcs-step">02</span><h2>{isVi ? 'Xem trước trực tiếp' : 'Live preview'}</h2></div>
-            {parsedDraft.kind === 'url' ? <span className="lcs-host-chip">{sourceHost(parsedDraft.source)}</span> : null}
+            {showEditor ? (
+              <div className="lcs-form">
+                <div className="lcs-quick-select lcs-field-wide">
+                  <div className="lcs-quick-title"><BookOpen size={18} /><div><strong>{isVi ? 'Chọn nhanh theo SGK Global Success' : 'Quick select · Global Success'}</strong><span>{isVi ? 'Chọn khối → Unit → Lesson, hệ thống tự điền metadata.' : 'Choose grade → Unit → Lesson to fill metadata automatically.'}</span></div></div>
+                  <div className="lcs-quick-grid">
+                    <label><span>{isVi ? 'Sách' : 'Book'}</span><select value="global-success" disabled><option>Global Success</option></select></label>
+                    <label><span>{isVi ? 'Khối' : 'Grade'}</span><select value={draft.grade} onChange={(e) => applyGrade(e.target.value)}><option value="10">Lớp 10</option><option value="11">Lớp 11</option><option value="12">Lớp 12</option></select></label>
+                    <label><span>Unit</span><select value={draft.unitNo} onChange={(e) => applyUnit(e.target.value)}>{unitOptions.map((unit) => <option key={unit.no} value={unit.no}>Unit {unit.no} · {unit.title}</option>)}</select></label>
+                    <label><span>Lesson</span><select value={draft.lessonKey} onChange={(e) => applyLesson(e.target.value)}>{GLOBAL_SUCCESS_LESSONS.map((lesson) => <option key={lesson.key} value={lesson.key}>{lesson.title}</option>)}</select></label>
+                  </div>
+                  <div className="lcs-book-path"><span>Global Success {draft.grade}</span><b>Unit {draft.unitNo}</b><strong>{globalSuccessUnitTitle(draft.grade, draft.unitNo)}</strong><em>{globalSuccessLessonTitle(draft.lessonKey)}</em></div>
+                </div>
+
+                <label className="lcs-field lcs-field-wide">
+                  <span>{isVi ? 'Tên hoạt động' : 'Activity title'}</span>
+                  <input value={draft.title} onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))} placeholder={isVi ? `Ví dụ: Unit ${draft.unitNo} – ${globalSuccessUnitTitle(draft.grade, draft.unitNo)} Quiz` : 'Activity title'} />
+                </label>
+                <label className="lcs-field">
+                  <span>{isVi ? 'Lớp / nhóm dùng' : 'Class / group'}</span>
+                  <input value={draft.className} onChange={(e) => setDraft((d) => ({ ...d, className: e.target.value }))} placeholder={isVi ? '11.1 / Khối 11 / Tất cả' : '11.1 / Grade 11 / All'} />
+                </label>
+                <label className="lcs-field">
+                  <span>{isVi ? 'Loại hoạt động' : 'Activity type'}</span>
+                  <select value={draft.type} onChange={(e) => setDraft((d) => ({ ...d, type: e.target.value }))}>{TYPE_OPTIONS.map((item) => <option key={item.value} value={item.value}>{isVi ? item.vi : item.en}</option>)}</select>
+                </label>
+                <label className="lcs-field lcs-field-wide">
+                  <span>{isVi ? 'Ghi chú tổ chức' : 'Teaching notes'}</span>
+                  <input value={draft.notes} onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))} placeholder={isVi ? 'Ví dụ: 7 phút · Teacher-led · dùng cuối tiết' : 'e.g. 7 minutes · Teacher-led · end-of-lesson'} />
+                </label>
+                <label className="lcs-field lcs-field-wide">
+                  <span>{isVi ? 'Mã nhúng / URL / HTML' : 'Embed code / URL / HTML'}</span>
+                  <textarea rows={9} value={draft.embedCode} onChange={(e) => setDraft((d) => ({ ...d, embedCode: e.target.value }))} placeholder={'<iframe src="https://..."></iframe>\n\nhttps://...\n\n<div>...</div><script>...</script>'} spellCheck={false} />
+                </label>
+                <div className="lcs-detection">
+                  <span className={`lcs-dot ${previewReady ? 'is-ready' : ''}`} />
+                  {parsedDraft.kind === 'url' ? (isVi ? `Đã nhận diện iframe/URL · ${sourceHost(parsedDraft.source)}` : `Embed URL detected · ${sourceHost(parsedDraft.source)}`)
+                    : parsedDraft.kind === 'html' ? (isVi ? 'Đã nhận diện mã HTML tương tác' : 'Interactive HTML detected')
+                    : parsedDraft.kind === 'invalid' ? (isVi ? 'Chưa nhận diện được mã hợp lệ' : 'No valid embed detected')
+                    : (isVi ? 'Chưa có mã nhúng' : 'No embed code yet')}
+                </div>
+                <div className="lcs-form-actions">
+                  {draft.id ? <button className="lcs-btn lcs-btn-secondary" onClick={resetDraft}>{isVi ? 'Hủy chỉnh sửa' : 'Cancel edit'}</button> : null}
+                  <button className="lcs-btn lcs-btn-primary" onClick={saveActivity} disabled={saving}>
+                    {saving ? <LoaderCircle className="lcs-spin" size={18} /> : <Save size={18} />}
+                    {draft.id ? (isVi ? 'Lưu thay đổi' : 'Save changes') : (isVi ? 'Lưu lên Supabase' : 'Save to Supabase')}
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </div>
-          <div className="lcs-frame-shell">
-            {previewReady ? <ActivityFrame embed={parsedDraft} className="lcs-frame" /> : <EmptyPreview language={language} />}
-          </div>
-          {previewReady ? (
-            <div className="lcs-preview-foot">
-              <span>{isVi ? 'Nếu khung trắng hoặc báo từ chối kết nối, nguồn đó không cho phép iframe.' : 'A blank/refused frame usually means the source blocks iframe embedding.'}</span>
-              {parsedDraft.kind === 'url' ? <button onClick={() => window.open(parsedDraft.source, '_blank', 'noopener,noreferrer')}>{isVi ? 'Mở nguồn' : 'Open source'}</button> : null}
+
+          <div className="lcs-panel lcs-live-preview">
+            <div className="lcs-panel-head">
+              <div><span className="lcs-step">02</span><h2>{isVi ? 'Xem trước trực tiếp' : 'Live preview'}</h2></div>
+              {parsedDraft.kind === 'url' ? <span className="lcs-host-chip">{sourceHost(parsedDraft.source)}</span> : null}
             </div>
-          ) : null}
-        </div>
-      </section>
+            <div className="lcs-frame-shell">
+              {previewReady ? <ActivityFrame embed={parsedDraft} title={draft.title} className="lcs-frame" /> : (
+                <div className="lcs-preview-empty"><Globe2 /><strong>{isVi ? 'Dán mã để xem trước' : 'Paste code to preview'}</strong><p>{isVi ? 'Hỗ trợ URL HTTPS, mã iframe và đoạn HTML tương tác.' : 'Supports HTTPS URLs, iframe code and interactive HTML snippets.'}</p></div>
+              )}
+            </div>
+            {previewReady ? <div className="lcs-preview-foot"><span>{isVi ? 'Nguồn tự chặn iframe sẽ không thể hiển thị bên trong BRIAN.' : 'Sources that block iframe embedding cannot render inside BRIAN.'}</span>{parsedDraft.kind === 'url' ? <button onClick={() => openExternalFromEmbed(parsedDraft)}><ExternalLink size={15} />{isVi ? 'Mở nguồn' : 'Open source'}</button> : null}</div> : null}
+          </div>
+        </section>
+      ) : (
+        <section className="lcs-teacher-banner">
+          <div className="lcs-teacher-icon"><UserRound /></div>
+          <div><span>{isVi ? 'THƯ VIỆN DÙNG CHUNG' : 'SHARED LIBRARY'}</span><h2>{isVi ? 'Hoạt động do TTCM quản lý quyền' : 'Department-managed activity access'}</h2><p>{isVi ? 'Bạn luôn thấy danh mục hoạt động. Hoạt động đã được cấp quyền có thể mở ngay; hoạt động khóa có nút Xin quyền.' : 'You always see the activity catalog. Granted items open immediately; locked items show a Request access action.'}</p></div>
+        </section>
+      )}
 
       <section className="lcs-library">
         <div className="lcs-library-head">
           <div>
-            <span className="lcs-kicker">{isVi ? 'THƯ VIỆN CÁ NHÂN' : 'PERSONAL LIBRARY'}</span>
+            <span className="lcs-kicker">{isVi ? 'GLOBAL SUCCESS · SUPABASE' : 'GLOBAL SUCCESS · SUPABASE'}</span>
             <h2>{isVi ? 'Hoạt động dạy học' : 'Teaching activities'} <b>{activities.length}</b></h2>
           </div>
           <div className="lcs-library-tools">
-            <label className="lcs-search">
-              <span className="material-symbols-rounded">search</span>
-              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={isVi ? 'Tìm tên, bài, lớp…' : 'Search title, unit, class…'} />
-            </label>
-            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
-              <option value="all">{isVi ? 'Tất cả loại' : 'All types'}</option>
-              {TYPE_OPTIONS.map((item) => <option key={item.value} value={item.value}>{isVi ? item.vi : item.en}</option>)}
-            </select>
+            <label className="lcs-search"><Search size={18} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={isVi ? 'Tìm tên, Unit, Lesson, lớp…' : 'Search title, Unit, Lesson, class…'} /></label>
+            <label className="lcs-filter-select"><Filter size={16} /><select value={gradeFilter} onChange={(e) => setGradeFilter(e.target.value)}><option value="all">{isVi ? 'Tất cả khối' : 'All grades'}</option><option value="10">Lớp 10</option><option value="11">Lớp 11</option><option value="12">Lớp 12</option></select></label>
+            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}><option value="all">{isVi ? 'Tất cả loại' : 'All types'}</option>{TYPE_OPTIONS.map((item) => <option key={item.value} value={item.value}>{isVi ? item.vi : item.en}</option>)}</select>
           </div>
         </div>
 
-        {!filteredActivities.length ? (
-          <div className="lcs-empty-library">
-            <span className="material-symbols-rounded">widgets</span>
-            <h3>{activities.length ? (isVi ? 'Không có hoạt động phù hợp bộ lọc.' : 'No activities match this filter.') : (isVi ? 'Chưa có hoạt động nào.' : 'No activities yet.')}</h3>
-            <p>{isVi ? 'Dán mã ở phía trên và lưu để xây dựng kho hoạt động dùng trên lớp.' : 'Paste code above and save it to build your classroom activity library.'}</p>
-          </div>
+        {loading ? <LoadingBlock language={language} /> : !filteredActivities.length ? (
+          <div className="lcs-empty-library"><Layers3 /><h3>{activities.length ? (isVi ? 'Không có hoạt động phù hợp bộ lọc.' : 'No activities match these filters.') : (isVi ? 'Chưa có hoạt động nào trên Supabase.' : 'No activities in Supabase yet.')}</h3><p>{isLeader ? (isVi ? 'Tạo hoạt động đầu tiên ở phía trên.' : 'Create the first activity above.') : (isVi ? 'TTCM chưa đăng hoạt động.' : 'The department head has not published an activity yet.')}</p></div>
         ) : (
           <div className="lcs-card-grid">
-            {filteredActivities.map((item) => (
-              <article key={item.id} className={`lcs-card ${selectedId === item.id ? 'is-selected' : ''}`}>
-                <div className="lcs-card-preview">
-                  <div className="lcs-card-visual" aria-hidden="true">
-                    <span className="material-symbols-rounded">{item.embed?.kind === 'url' ? 'language' : 'code_blocks'}</span>
-                    <strong>{item.embed?.kind === 'url' ? sourceHost(item.embed.source) : 'HTML / srcDoc'}</strong>
-                    <small>{isVi ? 'Nhấn Trình chiếu để tải hoạt động' : 'Select Teach to load the activity'}</small>
+            {filteredActivities.map((item) => {
+              const locked = !isLeader && !item.hasAccess;
+              return (
+                <article key={item.id} className={`lcs-card ${locked ? 'is-locked' : 'is-open'}`}>
+                  <div className="lcs-card-cover">
+                    <div className="lcs-book-badge"><BookOpen size={15} />Global Success {item.grade || '—'}</div>
+                    <div className="lcs-cover-icon">{locked ? <LockKeyhole /> : <MonitorPlay />}</div>
+                    <strong>Unit {item.unitNo || '—'}</strong>
+                    <span>{item.unitTitle || (isVi ? 'Chưa gắn Unit' : 'No Unit')}</span>
+                    <em>{item.lessonTitle || (isVi ? 'Hoạt động bổ sung' : 'Extra activity')}</em>
+                    <StatusPill activity={item} isLeader={isLeader} language={language} />
                   </div>
-                  <button className="lcs-card-play" onClick={() => openTeachingMode(item)}>
-                    <span className="material-symbols-rounded">present_to_all</span>
-                    {isVi ? 'Trình chiếu' : 'Teach'}
-                  </button>
-                </div>
-                <div className="lcs-card-body">
-                  <div className="lcs-card-meta">
-                    <span>{labelForType(item.type, language)}</span>
-                    {item.className ? <span>{item.className}</span> : null}
+                  <div className="lcs-card-body">
+                    <div className="lcs-card-meta"><span>{labelForType(item.type, language)}</span>{item.classLabel ? <span>{item.classLabel}</span> : null}{isLeader ? <span><Users size={12} />{item.grantCount}</span> : null}</div>
+                    <h3>{item.title}</h3>
+                    <p>{item.notes || (isVi ? 'Hoạt động kiểm tra / củng cố trên lớp.' : 'Classroom check / reinforcement activity.')}</p>
+                    <small>{item.sourceHost || item.embedKind?.toUpperCase()} · {compactDate(item.updatedAt, language)}</small>
+
+                    <div className="lcs-card-actions">
+                      {locked ? (
+                        item.requestStatus === 'pending' ? (
+                          <button className="lcs-card-primary is-pending" disabled><Clock3 size={17} />{isVi ? 'Đang chờ TTCM duyệt' : 'Waiting for approval'}</button>
+                        ) : (
+                          <button className="lcs-card-primary is-request" onClick={() => { setRequestTarget(item); setRequestNote(''); }}><KeyRound size={17} />{isVi ? 'Xin quyền' : 'Request access'}</button>
+                        )
+                      ) : (
+                        <button className="lcs-card-primary" onClick={() => openTeachingMode(item)}><MonitorPlay size={17} />{isVi ? 'Trình chiếu' : 'Teach'}</button>
+                      )}
+
+                      {isLeader ? (
+                        <>
+                          <button onClick={() => openAccessManager(item)}><UserCheck size={16} />{isVi ? 'Quyền' : 'Access'}</button>
+                          <button onClick={() => editActivity(item)}><Edit3 size={16} />{isVi ? 'Sửa' : 'Edit'}</button>
+                          <button onClick={() => duplicateActivity(item)}><Copy size={16} />{isVi ? 'Nhân bản' : 'Duplicate'}</button>
+                          <button className="is-danger" onClick={() => removeActivity(item)}><Trash2 size={16} />{isVi ? 'Xóa' : 'Delete'}</button>
+                        </>
+                      ) : null}
+                    </div>
                   </div>
-                  <h3>{item.title}</h3>
-                  <p>{[item.unit, item.notes].filter(Boolean).join(' · ') || (isVi ? 'Hoạt động nhúng' : 'Embedded activity')}</p>
-                  {item.embed?.kind === 'url' ? <small>{sourceHost(item.embed.source)}</small> : <small>HTML / srcDoc</small>}
-                  <div className="lcs-card-actions">
-                    <button onClick={() => editActivity(item)}><span className="material-symbols-rounded">edit</span>{isVi ? 'Sửa' : 'Edit'}</button>
-                    <button onClick={() => duplicateActivity(item)}><span className="material-symbols-rounded">content_copy</span>{isVi ? 'Nhân bản' : 'Duplicate'}</button>
-                    {item.embed?.kind === 'url' ? <button onClick={() => openExternal(item)}><span className="material-symbols-rounded">open_in_new</span>{isVi ? 'Mở ngoài' : 'Open'}</button> : null}
-                    <button className="is-danger" onClick={() => deleteActivity(item)}><span className="material-symbols-rounded">delete</span>{isVi ? 'Xóa' : 'Delete'}</button>
-                  </div>
-                </div>
-              </article>
-            ))}
+                </article>
+              );
+            })}
           </div>
         )}
       </section>
 
+      {requestTarget ? (
+        <div className="lcs-modal-layer" onMouseDown={(event) => event.target === event.currentTarget && setRequestTarget(null)}>
+          <section className="lcs-request-dialog" role="dialog" aria-modal="true">
+            <button className="lcs-dialog-close" onClick={() => setRequestTarget(null)}><X /></button>
+            <div className="lcs-dialog-icon"><LockKeyhole /></div>
+            <span className="lcs-kicker">{isVi ? 'YÊU CẦU QUYỀN HOẠT ĐỘNG' : 'ACTIVITY ACCESS REQUEST'}</span>
+            <h2>{requestTarget.title}</h2>
+            <p>{isVi ? 'Hoạt động vẫn hiển thị trong thư viện nhưng nội dung nhúng được bảo vệ trên Supabase. TTCM phải cấp quyền trước khi bạn mở.' : 'The activity remains visible in the library, but embedded content is protected in Supabase until the department head grants access.'}</p>
+            <div className="lcs-request-meta"><span>Global Success {requestTarget.grade}</span><span>Unit {requestTarget.unitNo} · {requestTarget.unitTitle}</span><span>{requestTarget.lessonTitle}</span></div>
+            <label className="lcs-request-note"><span>{isVi ? 'Lời nhắn cho TTCM (không bắt buộc)' : 'Message to department head (optional)'}</span><textarea rows={3} maxLength={400} value={requestNote} onChange={(e) => setRequestNote(e.target.value)} placeholder={isVi ? 'Ví dụ: Em cần hoạt động này cho tiết Unit 5 lớp 11.2…' : 'For example: I need this activity for Unit 5 with class 11.2…'} /></label>
+            <div className="lcs-dialog-actions"><button className="lcs-btn lcs-btn-secondary" onClick={() => setRequestTarget(null)}>{isVi ? 'Để sau' : 'Not now'}</button><button className="lcs-btn lcs-btn-primary" onClick={sendAccessRequest} disabled={requestSending}>{requestSending ? <LoaderCircle className="lcs-spin" size={18} /> : <KeyRound size={18} />}{isVi ? 'Gửi yêu cầu' : 'Send request'}</button></div>
+          </section>
+        </div>
+      ) : null}
+
+      {accessTarget ? (
+        <div className="lcs-modal-layer" onMouseDown={(event) => event.target === event.currentTarget && setAccessTarget(null)}>
+          <section className="lcs-access-dialog" role="dialog" aria-modal="true">
+            <header className="lcs-access-dialog-head">
+              <div><span className="lcs-kicker">{isVi ? 'TTCM · PHÂN QUYỀN TỪNG HOẠT ĐỘNG' : 'DEPARTMENT HEAD · PER-ACTIVITY ACCESS'}</span><h2>{accessTarget.title}</h2><p>Global Success {accessTarget.grade} · Unit {accessTarget.unitNo} · {accessTarget.unitTitle}</p></div>
+              <button className="lcs-dialog-close" onClick={() => setAccessTarget(null)}><X /></button>
+            </header>
+
+            <div className="lcs-access-summary">
+              <div><strong>{teacherAccess.filter((item) => item.hasAccess).length}</strong><span>{isVi ? 'đã được cấp' : 'granted'}</span></div>
+              <div><strong>{teacherAccess.filter((item) => item.pendingRequest).length}</strong><span>{isVi ? 'đang xin quyền' : 'pending'}</span></div>
+              <div><strong>{teacherAccess.length}</strong><span>{isVi ? 'giáo viên' : 'teachers'}</span></div>
+            </div>
+
+            {targetRequests.some((item) => item.status === 'pending') ? (
+              <section className="lcs-pending-requests">
+                <h3><ClipboardCheck size={18} />{isVi ? 'Yêu cầu đang chờ' : 'Pending requests'}</h3>
+                {targetRequests.filter((item) => item.status === 'pending').map((request) => (
+                  <article key={request.id}>
+                    <div><strong>{request.requesterName}</strong><span>{request.requesterEmail}</span>{request.message ? <p>“{request.message}”</p> : null}</div>
+                    <div><button className="is-reject" onClick={() => reviewRequest(request, 'rejected')} disabled={Boolean(accessBusyId)}><X size={15} />{isVi ? 'Từ chối' : 'Reject'}</button><button className="is-approve" onClick={() => reviewRequest(request, 'approved')} disabled={Boolean(accessBusyId)}><Check size={15} />{isVi ? 'Cấp quyền' : 'Grant'}</button></div>
+                  </article>
+                ))}
+              </section>
+            ) : null}
+
+            <div className="lcs-teacher-toolbar"><label><Search size={18} /><input value={teacherQuery} onChange={(e) => setTeacherQuery(e.target.value)} placeholder={isVi ? 'Tìm giáo viên theo tên hoặc email…' : 'Search teacher by name or email…'} /></label></div>
+
+            <div className="lcs-teacher-list">
+              {accessLoading ? <LoadingBlock language={language} /> : filteredTeachers.map((teacher) => (
+                <article key={teacher.userId} className={teacher.hasAccess ? 'has-access' : ''}>
+                  <span className="lcs-teacher-avatar">{String(teacher.name || 'GV').trim().slice(0, 1).toUpperCase()}</span>
+                  <div className="lcs-teacher-copy"><strong>{teacher.name}</strong><span>{teacher.email}</span>{teacher.pendingRequest ? <small><Clock3 size={12} />{isVi ? 'Đang xin quyền' : 'Pending request'}</small> : null}</div>
+                  <button
+                    className={teacher.hasAccess ? 'lcs-access-toggle is-on' : 'lcs-access-toggle'}
+                    disabled={accessBusyId === teacher.userId}
+                    onClick={() => changeTeacherAccess(teacher, !teacher.hasAccess)}
+                  >
+                    {accessBusyId === teacher.userId ? <LoaderCircle className="lcs-spin" size={16} /> : teacher.hasAccess ? <Check size={16} /> : <Plus size={16} />}
+                    {teacher.hasAccess ? (isVi ? 'Đã cấp' : 'Granted') : (isVi ? 'Cấp quyền' : 'Grant')}
+                  </button>
+                </article>
+              ))}
+              {!accessLoading && !filteredTeachers.length ? <div className="lcs-teacher-empty">{isVi ? 'Không tìm thấy giáo viên phù hợp.' : 'No matching teachers.'}</div> : null}
+            </div>
+          </section>
+        </div>
+      ) : null}
+
       {teachingActivity ? (
         <div className="lcs-teach-overlay" ref={teachRef}>
           <header>
+            <div><span>{isVi ? 'CHẾ ĐỘ DẠY' : 'TEACHING MODE'}</span><strong>{teachingActivity.title}</strong><small>Global Success {teachingActivity.grade} · Unit {teachingActivity.unitNo} · {teachingActivity.lessonTitle}</small></div>
             <div>
-              <span>{isVi ? 'CHẾ ĐỘ DẠY' : 'TEACHING MODE'}</span>
-              <strong>{teachingActivity.title}</strong>
-            </div>
-            <div>
-              {teachingActivity.embed?.kind === 'url' ? <button onClick={() => openExternal(teachingActivity)}><span className="material-symbols-rounded">open_in_new</span>{isVi ? 'Mở ngoài' : 'Open externally'}</button> : null}
-              <button onClick={() => document.fullscreenElement ? document.exitFullscreen?.() : teachRef.current?.requestFullscreen?.()}><span className="material-symbols-rounded">fullscreen</span>{isVi ? 'Toàn màn hình' : 'Fullscreen'}</button>
-              <button className="lcs-close" onClick={() => { if (document.fullscreenElement) document.exitFullscreen?.(); setTeachingActivity(null); }}><span className="material-symbols-rounded">close</span>{isVi ? 'Đóng' : 'Close'}</button>
+              {teachingEmbed?.kind === 'url' ? <button onClick={() => openExternalFromEmbed(teachingEmbed)}><ExternalLink size={18} />{isVi ? 'Mở ngoài' : 'Open externally'}</button> : null}
+              <button onClick={() => document.fullscreenElement ? document.exitFullscreen?.() : teachRef.current?.requestFullscreen?.()}><Fullscreen size={18} />{isVi ? 'Toàn màn hình' : 'Fullscreen'}</button>
+              <button className="lcs-close" onClick={() => { if (document.fullscreenElement) document.exitFullscreen?.(); setTeachingActivity(null); setTeachingEmbed(null); }}><X size={18} />{isVi ? 'Đóng' : 'Close'}</button>
             </div>
           </header>
           <div className="lcs-teach-frame-wrap">
-            <ActivityFrame embed={teachingActivity.embed} className="lcs-teach-frame" />
+            {teachingLoading ? <LoadingBlock language={language} /> : teachingEmbed ? <ActivityFrame embed={teachingEmbed} title={teachingActivity.title} className="lcs-teach-frame" /> : null}
           </div>
         </div>
       ) : null}
