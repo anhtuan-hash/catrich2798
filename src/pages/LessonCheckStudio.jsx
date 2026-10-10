@@ -503,7 +503,7 @@ const ActivityCardPreview = React.memo(function ActivityCardPreview({ activity, 
         </div>
       ) : (
         <div className="lcs-card-preview-placeholder" aria-hidden="true">
-          {canLoad && state === 'loading' ? <LoaderCircle className="lcs-spin" /> : canLoad ? <ImageIcon /> : <LockKeyhole />}
+          {canLoad && state === 'loading' ? <LoaderCircle className="lcs-spin" /> : canLoad ? <MonitorPlay /> : <LockKeyhole />}
           <strong>{!canLoad
             ? (isVi ? 'Xem trước bị khóa' : 'Preview locked')
             : state === 'loading'
