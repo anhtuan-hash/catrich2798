@@ -2804,3 +2804,288 @@
   .lcs-arcade-grid{grid-template-columns:1fr;gap:24px}
   .lcs-arcade-titlecopy h3{font-size:19px}
 }
+
+
+/* V9 · Premium Activity Arcade hero */
+.lcs-arcade-head{
+  position:relative;
+  isolation:isolate;
+  min-height:150px;
+  padding:22px 24px;
+  overflow:hidden;
+  border:1px solid #e8dcc2;
+  border-radius:26px;
+  background:
+    radial-gradient(circle at 76% 20%,rgba(126,100,225,.13),transparent 24%),
+    radial-gradient(circle at 91% 78%,rgba(47,177,117,.13),transparent 25%),
+    linear-gradient(115deg,#fff6df 0%,#fffaf0 48%,#f4faf6 100%);
+  box-shadow:0 14px 34px rgba(78,59,25,.07);
+}
+.lcs-arcade-head::before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  width:310px;
+  height:310px;
+  right:-105px;
+  top:-165px;
+  border:1px solid rgba(92,70,34,.08);
+  border-radius:50%;
+  box-shadow:
+    0 0 0 32px rgba(255,255,255,.22),
+    0 0 0 68px rgba(255,255,255,.14);
+}
+.lcs-arcade-head::after{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  inset:auto 255px 0 auto;
+  width:165px;
+  height:74px;
+  opacity:.3;
+  background-image:radial-gradient(circle,rgba(70,55,30,.25) 1.3px,transparent 1.4px);
+  background-size:13px 13px;
+  mask-image:linear-gradient(to right,transparent,#000 28%,#000 72%,transparent);
+}
+.lcs-hero-main{
+  min-width:0;
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+}
+.lcs-arcade-head .lcs-library-back{
+  width:40px;
+  height:40px;
+  margin-top:3px;
+  border:1px solid rgba(93,72,39,.14);
+  border-radius:13px;
+  background:rgba(255,255,255,.72);
+  color:#5f513d;
+  box-shadow:0 5px 13px rgba(75,57,28,.05);
+  backdrop-filter:blur(6px);
+}
+.lcs-arcade-head .lcs-library-back:hover{
+  background:#fff;
+  transform:translateX(-1px);
+}
+.lcs-hero-copy{
+  min-width:0;
+  max-width:790px;
+}
+.lcs-hero-kicker{
+  min-height:28px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#5e5546;
+  font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  font-size:9.5px;
+  font-weight:800;
+  letter-spacing:.09em;
+}
+.lcs-hero-kicker-icon{
+  width:27px;
+  height:27px;
+  border-radius:9px;
+  display:grid;
+  place-items:center;
+  background:#1f1f1c;
+  color:#fff7de;
+}
+.lcs-hero-kicker strong{
+  font-weight:900;
+  color:#24231f;
+}
+.lcs-hero-kicker>span:last-child{
+  padding-left:8px;
+  border-left:1px solid rgba(76,61,36,.18);
+  color:#8c7e66;
+}
+.lcs-arcade-title-row{
+  margin-top:7px;
+}
+.lcs-arcade-title-row h1{
+  margin:0;
+  color:#171714;
+  font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  font-size:43px;
+  line-height:.98;
+  letter-spacing:-.055em;
+  font-weight:900;
+}
+.lcs-hero-copy>p{
+  max-width:690px;
+  margin:9px 0 0;
+  color:#716653;
+  font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  font-size:12.5px;
+  line-height:1.45;
+}
+.lcs-hero-statline{
+  margin-top:15px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  flex-wrap:wrap;
+}
+.lcs-hero-statline>span{
+  min-height:30px;
+  padding:0 10px;
+  border:1px solid rgba(103,82,48,.12);
+  border-radius:999px;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  background:rgba(255,255,255,.64);
+  color:#675b47;
+  font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  font-size:9.5px;
+  font-weight:720;
+  backdrop-filter:blur(8px);
+}
+.lcs-hero-statline>span b{
+  color:#25231f;
+  font-size:10.5px;
+  font-weight:900;
+}
+.lcs-hero-statline>span.is-vocabulary{
+  border-color:rgba(31,155,95,.16);
+  background:rgba(232,249,239,.72);
+  color:#287250;
+}
+.lcs-hero-statline>span.is-grammar{
+  border-color:rgba(112,78,205,.16);
+  background:rgba(241,236,255,.76);
+  color:#6547b4;
+}
+.lcs-hero-statline>span.is-skills{
+  border-color:rgba(45,108,205,.16);
+  background:rgba(234,243,255,.78);
+  color:#3868aa;
+}
+.lcs-hero-side{
+  position:relative;
+  z-index:1;
+  flex:none;
+  width:310px;
+  min-height:105px;
+  display:flex;
+  flex-direction:column;
+  align-items:flex-end;
+  justify-content:center;
+  gap:12px;
+}
+.lcs-hero-deck{
+  position:relative;
+  width:236px;
+  height:58px;
+}
+.lcs-hero-deck>span{
+  position:absolute;
+  width:142px;
+  height:44px;
+  padding:0 12px;
+  border:1px solid rgba(58,49,34,.12);
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  background:rgba(255,255,255,.91);
+  color:#2a2925;
+  font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  font-size:10px;
+  font-weight:850;
+  box-shadow:0 9px 18px rgba(63,49,24,.09);
+}
+.lcs-hero-deck>span.is-one{
+  left:0;
+  top:9px;
+  transform:rotate(-5deg);
+  color:#20704d;
+}
+.lcs-hero-deck>span.is-two{
+  left:49px;
+  top:0;
+  z-index:2;
+  transform:rotate(1deg);
+  color:#6546bb;
+}
+.lcs-hero-deck>span.is-three{
+  right:0;
+  top:10px;
+  z-index:3;
+  transform:rotate(5deg);
+  color:#356cad;
+}
+.lcs-arcade-create{
+  min-width:176px;
+  min-height:43px;
+  padding:0 18px;
+  border-radius:13px;
+  background:#171714;
+  color:#fff;
+  font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.01em;
+  box-shadow:0 8px 18px rgba(25,25,22,.16);
+}
+.lcs-arcade-create:hover{
+  background:#2a2925;
+  transform:translateY(-1px);
+}
+
+@media(max-width:980px){
+  .lcs-arcade-head{
+    min-height:0;
+    align-items:flex-start;
+    padding:20px;
+  }
+  .lcs-hero-side{
+    width:190px;
+  }
+  .lcs-hero-deck{
+    display:none;
+  }
+  .lcs-arcade-title-row h1{
+    font-size:37px;
+  }
+}
+@media(max-width:720px){
+  .lcs-arcade-head{
+    padding:16px;
+    border-radius:20px;
+    flex-direction:column;
+  }
+  .lcs-hero-main{
+    width:100%;
+  }
+  .lcs-arcade-head .lcs-library-back{
+    width:36px;
+    height:36px;
+  }
+  .lcs-hero-kicker{
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  .lcs-hero-kicker>span:last-child{
+    display:none;
+  }
+  .lcs-arcade-title-row h1{
+    font-size:32px;
+  }
+  .lcs-hero-copy>p{
+    font-size:11.5px;
+  }
+  .lcs-hero-statline{
+    margin-top:12px;
+  }
+  .lcs-hero-side{
+    width:100%;
+    min-height:0;
+    align-items:stretch;
+  }
+  .lcs-arcade-create{
+    width:100%;
+  }
+}
