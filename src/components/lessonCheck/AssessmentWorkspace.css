@@ -926,3 +926,240 @@
 .f4a-activity-grid{
   contain:layout style;
 }
+
+
+/* V12 · Compact centered viewport modal with reliable internal scrolling */
+.f4a-overlay{
+  position:fixed!important;
+  inset:0!important;
+  width:100vw;
+  height:100dvh;
+  padding:18px;
+  display:flex;
+  align-items:center!important;
+  justify-content:center!important;
+  overflow:hidden;
+  background:rgba(18,27,23,.58);
+}
+.f4a-workspace{
+  width:min(1160px,calc(100vw - 48px));
+  height:min(78dvh,760px);
+  max-height:calc(100dvh - 42px);
+  min-height:min(560px,calc(100dvh - 42px));
+  margin:0!important;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden!important;
+  border-radius:22px;
+  background:#f8fbf9;
+  box-shadow:0 28px 72px rgba(12,31,23,.24);
+}
+.f4a-head{
+  position:relative!important;
+  top:auto!important;
+  flex:0 0 auto;
+  min-height:64px;
+  padding:10px 12px 10px 15px;
+  border-radius:22px 22px 0 0;
+}
+.f4a-head-icon{
+  width:38px;
+  height:38px;
+  border-radius:12px;
+}
+.f4a-head-brand h1{
+  font-size:18px;
+}
+.f4a-head-actions>button{
+  min-height:35px;
+  padding:0 10px;
+  font-size:10px;
+}
+.f4a-head-actions>button.f4a-close{
+  width:35px;
+}
+.f4a-scroll-region{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-gutter:stable;
+  padding:0 12px 14px;
+}
+.f4a-scroll-region::-webkit-scrollbar{
+  width:9px;
+}
+.f4a-scroll-region::-webkit-scrollbar-thumb{
+  border:2px solid transparent;
+  border-radius:999px;
+  background:#c8d6cf;
+  background-clip:padding-box;
+}
+.f4a-notice{
+  margin:9px 2px 0;
+}
+.f4a-steps{
+  padding:11px 6px 8px;
+  position:sticky;
+  top:0;
+  z-index:8;
+  background:linear-gradient(to bottom,#f8fbf9 78%,rgba(248,251,249,.92));
+}
+.f4a-step-badge{
+  min-height:32px;
+  padding:0 9px;
+}
+.f4a-step-badge strong{
+  font-size:9.2px;
+}
+.f4a-stage{
+  min-height:0!important;
+  grid-template-columns:270px minmax(0,1fr);
+  gap:11px;
+  padding:7px 2px 4px;
+}
+.f4a-stage-aside{
+  padding:14px;
+  border-radius:16px;
+}
+.f4a-stage-aside h2,
+.f4a-score-stage h2,
+.f4a-report-toolbar h2{
+  font-size:18px;
+}
+.f4a-stage-aside>p,
+.f4a-score-stage header p,
+.f4a-report-toolbar p{
+  margin-bottom:11px;
+}
+.f4a-roster,
+.f4a-activity-picker,
+.f4a-run-participants{
+  padding:11px;
+  border-radius:16px;
+}
+.f4a-student-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:7px;
+}
+.f4a-student{
+  min-height:60px;
+  padding:7px;
+}
+.f4a-student-avatar{
+  width:32px;
+  height:32px;
+  border-radius:10px;
+}
+.f4a-activity-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+.f4a-activity-grid>button{
+  min-height:112px;
+  padding:10px;
+}
+.f4a-run-stage{
+  grid-template-columns:290px minmax(0,1fr);
+}
+.f4a-run-visual{
+  min-height:285px;
+}
+.f4a-score-stage{
+  padding:7px 2px 0;
+}
+.f4a-score-stage>header{
+  padding:11px 13px;
+  border-radius:15px 15px 0 0;
+}
+.f4a-score-table{
+  max-height:300px;
+  overflow:auto!important;
+}
+.f4a-score-row{
+  min-width:930px;
+}
+.f4a-reflection{
+  padding:10px 11px;
+  gap:8px;
+}
+.f4a-reflection textarea{
+  min-height:62px;
+  max-height:95px;
+}
+.f4a-score-actions{
+  position:sticky;
+  bottom:0;
+  z-index:7;
+  padding:10px 11px;
+  border-radius:0 0 15px 15px;
+  box-shadow:0 -10px 18px rgba(37,59,49,.05);
+}
+.f4a-report{
+  padding:9px 2px 2px;
+}
+.f4a-report-toolbar{
+  padding:12px 13px;
+  border-radius:15px;
+}
+.f4a-report-stats{
+  gap:7px;
+}
+.f4a-report-stats>div{
+  min-height:76px;
+  padding:10px;
+}
+.f4a-report-grid{
+  gap:8px;
+}
+.f4a-session-history{
+  max-height:360px;
+}
+
+@media(max-height:760px){
+  .f4a-workspace{
+    height:calc(100dvh - 28px);
+    min-height:0;
+    max-height:calc(100dvh - 28px);
+  }
+  .f4a-overlay{padding:14px}
+  .f4a-head{min-height:58px}
+  .f4a-steps{padding-top:8px}
+}
+@media(max-width:900px){
+  .f4a-workspace{
+    width:min(96vw,1160px);
+    height:min(86dvh,760px);
+  }
+  .f4a-stage,
+  .f4a-run-stage{
+    grid-template-columns:1fr;
+  }
+  .f4a-student-grid,
+  .f4a-activity-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+@media(max-width:620px){
+  .f4a-overlay{padding:8px}
+  .f4a-workspace{
+    width:calc(100vw - 16px);
+    height:calc(100dvh - 16px);
+    max-height:calc(100dvh - 16px);
+    min-height:0;
+    border-radius:18px;
+  }
+  .f4a-head{
+    border-radius:18px 18px 0 0;
+  }
+  .f4a-head-actions{
+    overflow-x:auto;
+    flex-wrap:nowrap;
+  }
+  .f4a-student-grid,
+  .f4a-activity-grid{
+    grid-template-columns:1fr;
+  }
+}
