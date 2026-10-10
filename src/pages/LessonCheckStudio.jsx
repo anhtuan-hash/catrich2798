@@ -407,6 +407,17 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     return counts;
   }, [activities]);
 
+  const focusCounts = useMemo(() => {
+    const counts = { vocabulary: 0, grammar: 0, skills: 0, other: 0 };
+    activities.forEach((item) => {
+      if (item.focusArea === 'vocabulary') counts.vocabulary += 1;
+      else if (item.focusArea === 'grammar') counts.grammar += 1;
+      else if (['reading','listening','speaking'].includes(item.focusArea)) counts.skills += 1;
+      else counts.other += 1;
+    });
+    return counts;
+  }, [activities]);
+
   const loadActivities = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true);
     const result = await listLessonCheckActivities();
