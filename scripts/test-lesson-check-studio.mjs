@@ -30,11 +30,9 @@ assert.match(studio, /srcDoc: embed\.source/);
 assert.match(studio, /src: embed\.source/);
 assert.match(studio, /allow-scripts allow-same-origin allow-forms/);
 assert.match(studio, /allow-scripts allow-forms allow-popups/);
-assert.doesNotMatch(
-  studio.match(/return \{[\s\S]*?srcDoc: embed\.source,[\s\S]*?\};/)?.[0] || '',
-  /allow-same-origin/,
-  'Raw HTML srcDoc must not receive allow-same-origin.',
-);
+const srcDocSandbox = studio.match(/srcDoc: embed\.source,[\s\S]*?sandbox: '([^']+)'/)?.[1] || '';
+assert.ok(srcDocSandbox, 'Raw HTML srcDoc sandbox must be declared.');
+assert.doesNotMatch(srcDocSandbox, /allow-same-origin/, 'Raw HTML srcDoc must not receive allow-same-origin.');
 assert.match(studio, /requestFullscreen/);
 assert.match(studio, /Sao lưu/);
 assert.match(studio, /Nhập thư viện/);
@@ -43,6 +41,8 @@ assert.match(studio, /CSP/);
 assert.match(studio, /localStorage\.setItem/);
 assert.match(studio, /skipNextStorageWriteRef/);
 assert.match(studio, /activities\.map\(\(\{ embed, \.\.\.item \}\) => item\)/);
+assert.match(studio, /Nhấn Trình chiếu để tải hoạt động/);
+assert.doesNotMatch(studio, /<ActivityFrame embed=\{item\.embed\} className="lcs-card-frame"/, 'Library cards must not eagerly run every embedded iframe.');
 
 assert.match(styles, /\.lcs-builder\{[\s\S]*?grid-template-columns:/);
 assert.match(styles, /\.lcs-card-grid\{[\s\S]*?repeat\(3/);
