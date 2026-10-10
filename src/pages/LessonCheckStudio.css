@@ -3561,3 +3561,85 @@ html:has(.lcs-page--library) .bes-vn-atmosphere{
   pointer-events:none!important;
   background:#111!important;
 }
+
+
+/* V16 · Clean Arcade poster fallback — never show the player-name dialog in cards. */
+.lcs-page--library .lcs-arcade-card .lcs-card-preview-placeholder{
+  padding:46px 28px 34px!important;
+  gap:8px!important;
+  justify-content:flex-end!important;
+  align-items:flex-start!important;
+  text-align:left!important;
+  background:
+    radial-gradient(circle at 84% 18%,rgba(255,255,255,.30),transparent 27%),
+    radial-gradient(circle at 12% 82%,rgba(255,255,255,.18),transparent 31%),
+    linear-gradient(135deg,#214f8f 0%,#356fb6 48%,#1d8b75 100%)!important;
+  color:#fff!important;
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-preview-placeholder::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    linear-gradient(rgba(255,255,255,.055) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.055) 1px,transparent 1px);
+  background-size:24px 24px;
+  mask-image:linear-gradient(to bottom,rgba(0,0,0,.45),transparent 78%);
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-preview-placeholder>svg{
+  position:absolute;
+  right:22px;
+  bottom:24px;
+  width:52px!important;
+  height:52px!important;
+  padding:12px;
+  border-radius:18px;
+  color:#fff!important;
+  background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.20);
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-preview-placeholder strong{
+  position:relative;
+  z-index:1;
+  max-width:74%;
+  color:#fff!important;
+  font-size:20px!important;
+  line-height:1.04!important;
+  letter-spacing:-.03em;
+  text-shadow:0 2px 10px rgba(0,0,0,.16);
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-preview-placeholder span{
+  position:relative;
+  z-index:1;
+  color:rgba(255,255,255,.82)!important;
+  font-size:10px!important;
+  font-weight:750;
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-media:not(.has-static-thumbnail) .lcs-card-media-shade{
+  background:linear-gradient(to bottom,rgba(0,0,0,.08),transparent 35%,rgba(0,0,0,.16))!important;
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-media.is-locked .lcs-card-preview-placeholder{
+  justify-content:center!important;
+  align-items:center!important;
+  text-align:center!important;
+  background:linear-gradient(135deg,#eef2f0,#dde5e1)!important;
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-media.is-locked .lcs-card-preview-placeholder>svg{
+  position:static;
+  width:38px!important;
+  height:38px!important;
+  padding:8px;
+  color:#6d7c75!important;
+  background:rgba(255,255,255,.72);
+  border-color:rgba(115,132,123,.12);
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-media.is-locked .lcs-card-preview-placeholder strong{
+  max-width:100%;
+  color:#687970!important;
+  font-size:13px!important;
+  text-shadow:none;
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-media.is-locked .lcs-card-preview-placeholder span{
+  color:#829189!important;
+}
