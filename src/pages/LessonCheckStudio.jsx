@@ -12,10 +12,15 @@ import {
   Edit3,
   ExternalLink,
   Filter,
+  FolderOpen,
   Fullscreen,
+  Gamepad2,
   Globe2,
+  Grid2X2,
   KeyRound,
   Layers3,
+  List,
+  MoreHorizontal,
   LoaderCircle,
   LockKeyhole,
   MonitorPlay,
@@ -24,6 +29,7 @@ import {
   Save,
   Search,
   ShieldCheck,
+  BarChart3,
   Trash2,
   UserCheck,
   UserRound,
@@ -233,8 +239,28 @@ function ActivityCardPreview({ activity, canLoad, isLeader, language, onOpen, on
 
   const showLivePreview = canLoad && nearViewport && embed;
 
+  const activate = () => {
+    if (canLoad) onOpen?.();
+    else if (activity.requestStatus !== 'pending') onRequest?.();
+  };
+
   return (
-    <div ref={hostRef} className={`lcs-card-media ${canLoad ? 'can-preview' : 'is-locked'}`}>
+    <div
+      ref={hostRef}
+      className={`lcs-card-media ${canLoad ? 'can-preview' : 'is-locked'}`}
+      role="button"
+      tabIndex={0}
+      onClick={activate}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          activate();
+        }
+      }}
+      aria-label={canLoad
+        ? (isVi ? `Mở ${activity.title}` : `Open ${activity.title}`)
+        : (isVi ? `Xin quyền ${activity.title}` : `Request access to ${activity.title}`)}
+    >
       {showLivePreview ? (
         <div className="lcs-card-live-preview" aria-hidden="true">
           <ActivityFrame embed={embed} title={activity.title} className="lcs-card-preview-frame" />
@@ -256,19 +282,7 @@ function ActivityCardPreview({ activity, canLoad, isLeader, language, onOpen, on
         <span className="lcs-book-badge"><BookOpen size={15} />Global Success {activity.grade || '—'}</span>
         <StatusPill activity={activity} isLeader={isLeader} language={language} />
       </div>
-      <button
-        className={`lcs-card-media-action ${canLoad ? '' : activity.requestStatus === 'pending' ? 'is-pending' : 'is-request'}`}
-        type="button"
-        disabled={!canLoad && activity.requestStatus === 'pending'}
-        onClick={canLoad ? onOpen : onRequest}
-      >
-        {canLoad ? <MonitorPlay size={17} /> : activity.requestStatus === 'pending' ? <Clock3 size={17} /> : <KeyRound size={17} />}
-        {canLoad
-          ? (isVi ? 'Mở nhanh' : 'Quick open')
-          : activity.requestStatus === 'pending'
-            ? (isVi ? 'Đang chờ duyệt' : 'Pending approval')
-            : (isVi ? 'Xin quyền' : 'Request access')}
-      </button>
+      {!canLoad ? <div className="lcs-card-lock-mark" aria-hidden="true"><LockKeyhole /></div> : null}
     </div>
   );
 }
@@ -308,10 +322,14 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [unitFilter, setUnitFilter] = useState('all');
   const [lessonFilter, setLessonFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [accessFilter, setAccessFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [sortMode, setSortMode] = useState('newest');
-  const [pageSize, setPageSize] = useState(20);
+  const [viewMode, setViewMode] = useState('grid');
   const [page, setPage] = useState(1);
+  const [showBuilder, setShowBuilder] = useState(false);
   const [showEditor, setShowEditor] = useState(true);
+  const [menuActivityId, setMenuActivityId] = useState('');
   const [teachingActivity, setTeachingActivity] = useState(null);
   const [teachingEmbed, setTeachingEmbed] = useState(null);
   const [teachingLoading, setTeachingLoading] = useState(false);
