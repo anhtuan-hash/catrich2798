@@ -3339,3 +3339,18 @@
   }
   .lcs-assessment-launchers .lcs-arcade-create{grid-column:1/-1}
 }
+
+
+/* Performance guard while Fun for Assessment workspace is open.
+   Keep preview iframes mounted so they do not reload afterward, but stop painting
+   them behind the modal (especially expensive in Safari). */
+.lcs-page--library.is-assessment-open .lcs-card-live-preview{
+  display:none!important;
+}
+.lcs-page--library.is-assessment-open .lcs-card-preview-frame{
+  visibility:hidden!important;
+}
+.lcs-page--library.is-assessment-open .lcs-arcade-library,
+.lcs-page--library.is-assessment-open .lcs-arcade-head{
+  pointer-events:none;
+}

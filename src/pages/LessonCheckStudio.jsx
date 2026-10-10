@@ -208,7 +208,7 @@ function ActivityFrame({ embed, title, className = '' }) {
 
 const cardPreviewCache = new Map();
 
-function ActivityCardPreview({ activity, canLoad, isLeader, language, onOpen, onRequest }) {
+const ActivityCardPreview = React.memo(function ActivityCardPreview({ activity, canLoad, isLeader, language, onOpen, onRequest }) {
   const isVi = language === 'vi';
   const hostRef = useRef(null);
   const loadingRef = useRef(false);
@@ -321,7 +321,12 @@ function ActivityCardPreview({ activity, canLoad, isLeader, language, onOpen, on
       {!canLoad ? <div className="lcs-card-lock-mark" aria-hidden="true"><LockKeyhole /></div> : null}
     </div>
   );
-}
+}, (previous, next) => (
+  previous.activity === next.activity
+  && previous.canLoad === next.canLoad
+  && previous.isLeader === next.isLeader
+  && previous.language === next.language
+));
 
 function StatusPill({ activity, isLeader, language }) {
   const isVi = language === 'vi';
@@ -799,7 +804,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   }
 
   return (
-    <div className="lcs-page lcs-page--library">
+    <div className={`lcs-page lcs-page--library ${assessmentWorkspaceView ? 'is-assessment-open' : ''}`}>
       <header className="lcs-arcade-head">
         <div className="lcs-hero-main">
           <button className="lcs-library-back" onClick={() => { window.location.hash = '#/apps'; }} aria-label={isVi ? 'Quay lại Ứng dụng' : 'Back to Apps'}>
