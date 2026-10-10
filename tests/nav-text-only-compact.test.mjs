@@ -43,7 +43,8 @@ test('all nine route entries and their original actions remain mounted',()=>{
   assert.match(homeroom,/launchRoute\(\{/);
   assert.match(gradebook,/launchRoute\(\{/);
   assert.match(lessonCheck,/launchRoute\(\{/);
-  assert.match(lessonCheck,/#\/tool\/lesson-check-studio/);
+  assert.ok(lessonCheck.includes("const LESSON_CHECK_SLUG = 'lesson-check-studio'"));
+  assert.ok(lessonCheck.includes('const target = `#/tool/${LESSON_CHECK_SLUG}`'));
   assert.match(lessonCheck,/hasToolAccess\(currentUser, LESSON_CHECK_SLUG\)/);
   assert.match(reports,/launchRoute\(\{/);
   assert.match(ttcm,/brian-nav__ttcm-badge/);
