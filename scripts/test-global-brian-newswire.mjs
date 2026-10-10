@@ -49,7 +49,7 @@ assert.match(regionalRuntime, /closest\?\.\('\.brian-editorial-brief,\.brian-new
 
 assert.match(slot, /<BrianNewswireBar language=\{language\} \/>/);
 assert.match(slot, /if \(!currentUser \|\| HIDDEN_ROUTES\.has\(route\)\) return null/);
-assert.match(nav, /!mobile \? <GlobalEditorialBriefBar route=\{props\.route\} language=\{props\.language\} currentUser=\{props\.currentUser\} \/> : null/);
+assert.match(nav, /!mobile && props\.chromeSettings\?\.showNewswire !== false \? <GlobalEditorialBriefBar route=\{props\.route\} language=\{props\.language\} currentUser=\{props\.currentUser\} \/> : null/);
 
 assert.match(reader, /NEWSWIRE_OPEN_ITEM_KEY = 'bes-newswire-open-item-v1'/);
 assert.match(reader, /window\.addEventListener\('bes-newswire-open-item'/);
