@@ -36,6 +36,13 @@ export const APP_DESIGN_PROFILES = {
     icon: 'exam',
     style: 'Question bank workspace',
     styleVi: 'Ngân hàng câu hỏi & đề thi'},
+  'lesson-check-studio': {
+    accent: '#0B7A46',
+    soft: '#E8F5ED',
+    ink: '#173229',
+    icon: 'web_asset',
+    style: 'Embedded lesson activity library',
+    styleVi: 'Kho hoạt động nhúng dùng trên lớp'},
 
   'vietnam-tax': {
     accent: '#1769AA',
