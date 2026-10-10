@@ -591,7 +591,8 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       lessonKey: item.lessonKey || 'getting-started',
       lessonTitle: item.lessonTitle || globalSuccessLessonTitle(item.lessonKey || 'getting-started'),
       className: item.classLabel || '',
-      type: item.type || 'quiz',
+      type: item.type || 'game',
+      focusArea: item.focusArea || 'unclassified',
       notes: item.notes || '',
       sourceHost: item.sourceHost || '',
       embedCode: result.content.embedCode,
@@ -605,6 +606,10 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     if (!isLeader) return;
     if (!draft.title.trim()) {
       setNotice(isVi ? 'Hãy nhập tên hoạt động.' : 'Enter an activity title.');
+      return;
+    }
+    if (draft.focusArea === 'unclassified') {
+      setNotice(isVi ? 'Hãy chọn chuyên đề: Vocabulary, Grammar hoặc kỹ năng phù hợp.' : 'Choose a learning focus before saving.');
       return;
     }
     if (!previewReady) {
@@ -650,6 +655,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       lessonTitle: item.lessonTitle,
       className: item.classLabel,
       type: item.type,
+      focusArea: item.focusArea || 'unclassified',
       notes: item.notes,
       sourceHost: item.sourceHost,
       embedCode: contentResult.content.embedCode,
