@@ -63,6 +63,16 @@ const TYPE_OPTIONS = [
   { value: 'other', vi: 'Khác', en: 'Other' },
 ];
 
+const FOCUS_OPTIONS = [
+  { value: 'vocabulary', vi: 'Từ vựng', en: 'Vocabulary', short: 'VOCABULARY' },
+  { value: 'grammar', vi: 'Ngữ pháp', en: 'Grammar', short: 'GRAMMAR' },
+  { value: 'reading', vi: 'Đọc hiểu', en: 'Reading', short: 'READING' },
+  { value: 'listening', vi: 'Nghe', en: 'Listening', short: 'LISTENING' },
+  { value: 'speaking', vi: 'Nói', en: 'Speaking', short: 'SPEAKING' },
+  { value: 'mixed', vi: 'Tổng hợp', en: 'Mixed', short: 'MIXED' },
+  { value: 'unclassified', vi: 'Chưa gắn', en: 'Unclassified', short: 'CHƯA GẮN' },
+];
+
 function blankDraft() {
   return {
     id: '',
@@ -74,7 +84,8 @@ function blankDraft() {
     lessonKey: 'getting-started',
     lessonTitle: globalSuccessLessonTitle('getting-started'),
     className: '',
-    type: 'quiz',
+    type: 'game',
+    focusArea: 'unclassified',
     notes: '',
     sourceHost: '',
     embedCode: '',
@@ -129,6 +140,15 @@ function sourceHost(source) {
 function labelForType(type, language) {
   const option = TYPE_OPTIONS.find((item) => item.value === type);
   return option ? (language === 'vi' ? option.vi : option.en) : type;
+}
+
+function labelForFocusArea(value, language) {
+  const option = FOCUS_OPTIONS.find((item) => item.value === value) || FOCUS_OPTIONS[FOCUS_OPTIONS.length - 1];
+  return language === 'vi' ? option.vi : option.en;
+}
+
+function focusShortLabel(value) {
+  return (FOCUS_OPTIONS.find((item) => item.value === value) || FOCUS_OPTIONS[FOCUS_OPTIONS.length - 1]).short;
 }
 
 function compactDate(value, language) {
@@ -293,9 +313,10 @@ function ActivityCardPreview({ activity, canLoad, isLeader, language, onOpen, on
 
       <div className="lcs-card-media-shade" aria-hidden="true" />
       <div className="lcs-card-media-top">
-        <span className="lcs-book-badge"><BookOpen size={15} />Global Success {activity.grade || '—'}</span>
-        <StatusPill activity={activity} isLeader={isLeader} language={language} />
+        <span className={`lcs-focus-indicator is-${activity.focusArea || 'unclassified'}`}>{focusShortLabel(activity.focusArea)}</span>
+        {!isLeader ? <StatusPill activity={activity} isLeader={isLeader} language={language} /> : null}
       </div>
+      {canLoad ? <span className="lcs-preview-open-hint" aria-hidden="true"><MonitorPlay size={18} /></span> : null}
       {!canLoad ? <div className="lcs-card-lock-mark" aria-hidden="true"><LockKeyhole /></div> : null}
     </div>
   );
@@ -336,6 +357,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [unitFilter, setUnitFilter] = useState('all');
   const [lessonFilter, setLessonFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [focusFilter, setFocusFilter] = useState('all');
   const [accessFilter, setAccessFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortMode, setSortMode] = useState('newest');
@@ -381,6 +403,17 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     TYPE_OPTIONS.forEach((option) => { counts[option.value] = 0; });
     activities.forEach((item) => {
       counts[item.type] = (counts[item.type] || 0) + 1;
+    });
+    return counts;
+  }, [activities]);
+
+  const focusCounts = useMemo(() => {
+    const counts = { vocabulary: 0, grammar: 0, skills: 0, other: 0 };
+    activities.forEach((item) => {
+      if (item.focusArea === 'vocabulary') counts.vocabulary += 1;
+      else if (item.focusArea === 'grammar') counts.grammar += 1;
+      else if (['reading','listening','speaking'].includes(item.focusArea)) counts.skills += 1;
+      else counts.other += 1;
     });
     return counts;
   }, [activities]);
@@ -449,6 +482,8 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       if (unitFilter !== 'all' && String(item.unitNo || '') !== unitFilter) return false;
       if (lessonFilter !== 'all' && String(item.lessonKey || '') !== lessonFilter) return false;
       if (typeFilter !== 'all' && item.type !== typeFilter) return false;
+      if (focusFilter === 'skills' && !['reading','listening','speaking'].includes(item.focusArea)) return false;
+      if (!['all','skills'].includes(focusFilter) && item.focusArea !== focusFilter) return false;
       if (accessFilter === 'open' && !open) return false;
       if (accessFilter === 'locked' && !locked) return false;
       if (statusFilter === 'pending' && !pending) return false;
@@ -462,6 +497,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         item.classLabel,
         item.notes,
         item.sourceHost,
+        labelForFocusArea(item.focusArea, language),
       ].some((value) => String(value || '').toLocaleLowerCase('vi').includes(q));
     });
 
@@ -475,7 +511,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       }
       return String(b.updatedAt || '').localeCompare(String(a.updatedAt || ''));
     });
-  }, [accessFilter, activities, gradeFilter, isLeader, lessonFilter, pendingActivityIds, query, sortMode, statusFilter, typeFilter, unitFilter]);
+  }, [accessFilter, activities, focusFilter, gradeFilter, isLeader, language, lessonFilter, pendingActivityIds, query, sortMode, statusFilter, typeFilter, unitFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredActivities.length / pageSize));
   const pagedActivities = useMemo(() => {
@@ -495,7 +531,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
   useEffect(() => {
     setPage(1);
-  }, [accessFilter, gradeFilter, lessonFilter, query, sortMode, statusFilter, typeFilter, unitFilter]);
+  }, [accessFilter, focusFilter, gradeFilter, lessonFilter, query, sortMode, statusFilter, typeFilter, unitFilter]);
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
@@ -567,7 +603,8 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       lessonKey: item.lessonKey || 'getting-started',
       lessonTitle: item.lessonTitle || globalSuccessLessonTitle(item.lessonKey || 'getting-started'),
       className: item.classLabel || '',
-      type: item.type || 'quiz',
+      type: item.type || 'game',
+      focusArea: item.focusArea || 'unclassified',
       notes: item.notes || '',
       sourceHost: item.sourceHost || '',
       embedCode: result.content.embedCode,
@@ -581,6 +618,10 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     if (!isLeader) return;
     if (!draft.title.trim()) {
       setNotice(isVi ? 'Hãy nhập tên hoạt động.' : 'Enter an activity title.');
+      return;
+    }
+    if (draft.focusArea === 'unclassified') {
+      setNotice(isVi ? 'Hãy chọn chuyên đề: Vocabulary, Grammar hoặc kỹ năng phù hợp.' : 'Choose a learning focus before saving.');
       return;
     }
     if (!previewReady) {
@@ -626,6 +667,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       lessonTitle: item.lessonTitle,
       className: item.classLabel,
       type: item.type,
+      focusArea: item.focusArea || 'unclassified',
       notes: item.notes,
       sourceHost: item.sourceHost,
       embedCode: contentResult.content.embedCode,
@@ -755,27 +797,21 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
   return (
     <div className="lcs-page lcs-page--library">
-      <header className="lcs-library-hero">
-        <div className="lcs-library-hero-title">
+      <header className="lcs-arcade-head">
+        <div className="lcs-arcade-brand">
           <button className="lcs-library-back" onClick={() => { window.location.hash = '#/apps'; }} aria-label={isVi ? 'Quay lại Ứng dụng' : 'Back to Apps'}>
             <ArrowLeft size={18} />
           </button>
-          <div className="lcs-folder-mark"><FolderOpen size={30} /></div>
+          <div className="lcs-arcade-brand-mark"><Gamepad2 size={26} /></div>
           <div>
-            <div className="lcs-library-heading-row">
+            <div className="lcs-arcade-title-row">
               <h1>{isVi ? 'Kho hoạt động' : 'Activity library'}</h1>
-              <span className="lcs-library-total">{activities.length}</span>
+              <span>{activities.length}</span>
             </div>
-            <p>{isVi ? 'Thư viện trò chơi và hoạt động tương tác giúp bài học sinh động và hiệu quả hơn.' : 'A library of games and interactive activities for more engaging lessons.'}</p>
+            <p>{isVi ? 'Chọn nhanh một hoạt động, mở và trình chiếu ngay trên lớp.' : 'Pick an activity quickly and launch it in class.'}</p>
           </div>
         </div>
-
-        <div className="lcs-library-stats" aria-label={isVi ? 'Thống kê kho hoạt động' : 'Activity library statistics'}>
-          <div><span className="is-green"><Gamepad2 /></span><strong>{activities.length}</strong><small>{isVi ? 'hoạt động' : 'activities'}</small></div>
-          <div><span className="is-cyan"><BookOpen /></span><strong>{libraryStats.grades}</strong><small>{isVi ? 'khối lớp' : 'grades'}</small></div>
-          <div><span className="is-purple"><Layers3 /></span><strong>{libraryStats.units}</strong><small>unit</small></div>
-          <div><span className="is-blue"><BarChart3 /></span><strong>{libraryStats.types}</strong><small>{isVi ? 'loại hoạt động' : 'types'}</small></div>
-        </div>
+        {isLeader ? <button className="lcs-arcade-create" type="button" onClick={openNewActivity}><Plus size={20} />{isVi ? 'TẠO' : 'CREATE'}</button> : null}
       </header>
 
       {notice ? <div className="lcs-toast" role="status">{notice}</div> : null}
@@ -834,7 +870,14 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                     <span>{isVi ? 'Loại hoạt động' : 'Activity type'}</span>
                     <select value={draft.type} onChange={(e) => setDraft((d) => ({ ...d, type: e.target.value }))}>{TYPE_OPTIONS.map((item) => <option key={item.value} value={item.value}>{isVi ? item.vi : item.en}</option>)}</select>
                   </label>
-                  <label className="lcs-field lcs-field-wide">
+                  <label className="lcs-field">
+                    <span>{isVi ? 'Chuyên đề / kỹ năng' : 'Learning focus'}</span>
+                    <select value={draft.focusArea} onChange={(e) => setDraft((d) => ({ ...d, focusArea: e.target.value }))}>
+                      <option value="unclassified">{isVi ? '— Chọn chuyên đề —' : '— Choose focus —'}</option>
+                      {FOCUS_OPTIONS.filter((item) => item.value !== 'unclassified').map((item) => <option key={item.value} value={item.value}>{isVi ? item.vi : item.en}</option>)}
+                    </select>
+                  </label>
+                  <label className="lcs-field">
                     <span>{isVi ? 'Ghi chú tổ chức' : 'Teaching notes'}</span>
                     <input value={draft.notes} onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))} placeholder={isVi ? 'Ví dụ: 7 phút · Teacher-led · dùng cuối tiết' : 'e.g. 7 minutes · Teacher-led · end-of-lesson'} />
                   </label>
@@ -876,163 +919,158 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         </section>
       ) : null}
 
-      <section className="lcs-library lcs-library--approved">
-        <div className="lcs-library-toolbar lcs-library-toolbar--primary">
-          <label className="lcs-library-search">
-            <Search size={19} />
-            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={isVi ? 'Tìm kiếm hoạt động, ví dụ: Tower of Hanoi, ASEAN, từ khóa...' : 'Search activities, e.g. Tower of Hanoi, ASEAN, keywords...'} />
-          </label>
+      <section className="lcs-arcade-library">
+        <div className="lcs-arcade-nav">
+          <nav className="lcs-arcade-tabs" aria-label={isVi ? 'Chuyên đề' : 'Learning focus'}>
+            <button type="button" className={focusFilter === 'all' ? 'is-active' : ''} onClick={() => setFocusFilter('all')}>
+              <Grid2X2 size={18} /><strong>{isVi ? 'Tất cả' : 'All'}</strong><span>{activities.length}</span>
+            </button>
+            <button type="button" className={focusFilter === 'vocabulary' ? 'is-active is-vocabulary' : 'is-vocabulary'} onClick={() => setFocusFilter('vocabulary')}>
+              <BookOpen size={18} /><strong>Vocabulary</strong><span>{focusCounts.vocabulary}</span>
+            </button>
+            <button type="button" className={focusFilter === 'grammar' ? 'is-active is-grammar' : 'is-grammar'} onClick={() => setFocusFilter('grammar')}>
+              <Layers3 size={18} /><strong>Grammar</strong><span>{focusCounts.grammar}</span>
+            </button>
+            <button type="button" className={focusFilter === 'skills' ? 'is-active is-skills' : 'is-skills'} onClick={() => setFocusFilter('skills')}>
+              <MonitorPlay size={18} /><strong>{isVi ? 'Kỹ năng' : 'Skills'}</strong><span>{focusCounts.skills}</span>
+            </button>
+          </nav>
 
-          <div className="lcs-primary-actions">
-            <div className="lcs-view-toggle" aria-label={isVi ? 'Kiểu hiển thị' : 'View mode'}>
-              <button type="button" className={viewMode === 'grid' ? 'is-active' : ''} onClick={() => setViewMode('grid')}><Grid2X2 size={17} />{isVi ? 'Lưới' : 'Grid'}</button>
-              <button type="button" className={viewMode === 'list' ? 'is-active' : ''} onClick={() => setViewMode('list')}><List size={17} />{isVi ? 'Danh sách' : 'List'}</button>
-            </div>
-
-            <label className="lcs-sort-select">
-              <BarChart3 size={17} />
+          <div className="lcs-arcade-nav-tools">
+            <label className="lcs-arcade-search">
+              <Search size={20} />
+              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={isVi ? 'Tìm kiếm' : 'Search'} />
+            </label>
+            <label className="lcs-arcade-sort" title={isVi ? 'Sắp xếp' : 'Sort'}>
               <select value={sortMode} onChange={(e) => setSortMode(e.target.value)}>
                 <option value="newest">{isVi ? 'Mới cập nhật' : 'Recently updated'}</option>
                 <option value="title">A → Z</option>
                 <option value="unit">{isVi ? 'Theo Unit' : 'By Unit'}</option>
               </select>
             </label>
-
-            {isLeader ? <button className="lcs-create-activity" type="button" onClick={openNewActivity}><Plus size={19} />{isVi ? 'Tạo hoạt động' : 'Create activity'}</button> : null}
           </div>
         </div>
 
-        <div className="lcs-library-toolbar lcs-library-toolbar--filters">
-          <span className="lcs-filter-mark"><Filter size={18} /></span>
-          <label><b>{isVi ? 'Khối' : 'Grade'}</b><select value={gradeFilter} onChange={(e) => setGradeFilter(e.target.value)}><option value="all">{isVi ? 'Tất cả khối' : 'All grades'}</option><option value="10">Lớp 10</option><option value="11">Lớp 11</option><option value="12">Lớp 12</option></select></label>
-          <label><b>Unit</b><select value={unitFilter} onChange={(e) => setUnitFilter(e.target.value)}><option value="all">{isVi ? 'Tất cả Unit' : 'All Units'}</option>{Array.from({ length: 10 }, (_, index) => <option key={index + 1} value={String(index + 1)}>Unit {index + 1}</option>)}</select></label>
-          <label className="is-wide"><b>Lesson</b><select value={lessonFilter} onChange={(e) => setLessonFilter(e.target.value)}><option value="all">{isVi ? 'Tất cả Lesson' : 'All lessons'}</option>{GLOBAL_SUCCESS_LESSONS.map((lesson) => <option key={lesson.key} value={lesson.key}>{lesson.title}</option>)}</select></label>
-          <label><b>{isVi ? 'Loại hoạt động' : 'Activity type'}</b><select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}><option value="all">{isVi ? 'Tất cả loại' : 'All types'}</option>{TYPE_OPTIONS.map((item) => <option key={item.value} value={item.value}>{isVi ? item.vi : item.en}</option>)}</select></label>
-          <label><b>{isVi ? 'Quyền truy cập' : 'Access'}</b><select value={accessFilter} onChange={(e) => setAccessFilter(e.target.value)}><option value="all">{isVi ? 'Tất cả' : 'All'}</option><option value="open">{isVi ? 'Đã mở' : 'Unlocked'}</option><option value="locked">{isVi ? 'Bị khóa' : 'Locked'}</option></select></label>
-          <label><b>{isVi ? 'Trạng thái' : 'Status'}</b><select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}><option value="all">{isVi ? 'Tất cả' : 'All'}</option><option value="ready">{isVi ? 'Sẵn sàng' : 'Ready'}</option><option value="pending">{isVi ? 'Chờ phê duyệt' : 'Pending'}</option><option value="locked">{isVi ? 'Bị khóa' : 'Locked'}</option></select></label>
-          {(query || gradeFilter !== 'all' || unitFilter !== 'all' || lessonFilter !== 'all' || typeFilter !== 'all' || accessFilter !== 'all' || statusFilter !== 'all' || sortMode !== 'newest') ? (
-            <button className="lcs-clear-filters" type="button" onClick={() => {
+        <div className="lcs-arcade-filterbar">
+          <span className="lcs-filter-mark"><Filter size={17} /></span>
+          <select value={gradeFilter} onChange={(e) => setGradeFilter(e.target.value)} aria-label={isVi ? 'Khối' : 'Grade'}>
+            <option value="all">{isVi ? 'Tất cả khối' : 'All grades'}</option><option value="10">Lớp 10</option><option value="11">Lớp 11</option><option value="12">Lớp 12</option>
+          </select>
+          <select value={unitFilter} onChange={(e) => setUnitFilter(e.target.value)} aria-label="Unit">
+            <option value="all">{isVi ? 'Tất cả Unit' : 'All Units'}</option>{Array.from({ length: 10 }, (_, index) => <option key={index + 1} value={String(index + 1)}>Unit {index + 1}</option>)}
+          </select>
+          <select value={lessonFilter} onChange={(e) => setLessonFilter(e.target.value)} aria-label="Lesson">
+            <option value="all">{isVi ? 'Tất cả Lesson' : 'All lessons'}</option>{GLOBAL_SUCCESS_LESSONS.map((lesson) => <option key={lesson.key} value={lesson.key}>{lesson.title}</option>)}
+          </select>
+          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} aria-label={isVi ? 'Loại hoạt động' : 'Activity type'}>
+            <option value="all">{isVi ? 'Tất cả loại' : 'All types'}</option>{TYPE_OPTIONS.map((item) => <option key={item.value} value={item.value}>{isVi ? item.vi : item.en}</option>)}
+          </select>
+          <select value={focusFilter} onChange={(e) => setFocusFilter(e.target.value)} aria-label={isVi ? 'Chuyên đề' : 'Learning focus'}>
+            <option value="all">{isVi ? 'Tất cả chuyên đề' : 'All focus areas'}</option>
+            <option value="vocabulary">Vocabulary</option>
+            <option value="grammar">Grammar</option>
+            <option value="skills">{isVi ? 'Kỹ năng' : 'Skills'}</option>
+            <option value="reading">Reading</option>
+            <option value="listening">Listening</option>
+            <option value="speaking">Speaking</option>
+            <option value="mixed">{isVi ? 'Tổng hợp' : 'Mixed'}</option>
+            <option value="unclassified">{isVi ? 'Chưa gắn' : 'Unclassified'}</option>
+          </select>
+          {!isLeader ? (
+            <select value={accessFilter} onChange={(e) => setAccessFilter(e.target.value)} aria-label={isVi ? 'Quyền truy cập' : 'Access'}>
+              <option value="all">{isVi ? 'Mọi quyền truy cập' : 'All access'}</option>
+              <option value="open">{isVi ? 'Đã mở' : 'Unlocked'}</option>
+              <option value="locked">{isVi ? 'Bị khóa' : 'Locked'}</option>
+            </select>
+          ) : null}
+          {(query || gradeFilter !== 'all' || unitFilter !== 'all' || lessonFilter !== 'all' || typeFilter !== 'all' || focusFilter !== 'all' || accessFilter !== 'all' || statusFilter !== 'all' || sortMode !== 'newest') ? (
+            <button className="lcs-arcade-clear" type="button" onClick={() => {
               setQuery('');
               setGradeFilter('all');
               setUnitFilter('all');
               setLessonFilter('all');
               setTypeFilter('all');
+              setFocusFilter('all');
               setAccessFilter('all');
               setStatusFilter('all');
               setSortMode('newest');
-            }}><X size={15} />{isVi ? 'Xóa lọc' : 'Clear'}</button>
+            }}><X size={14} />{isVi ? 'Xóa lọc' : 'Clear'}</button>
           ) : null}
         </div>
 
-        <div className="lcs-library-body">
-          <aside className="lcs-library-sidebar">
-            <nav className="lcs-sidebar-group">
-              <button className={accessFilter === 'all' && statusFilter === 'all' ? 'is-active' : ''} type="button" onClick={() => { setAccessFilter('all'); setStatusFilter('all'); }}>
-                <span className="lcs-sidebar-icon"><Grid2X2 size={17} /></span><strong>{isVi ? 'Tất cả hoạt động' : 'All activities'}</strong><em>{activities.length}</em>
-              </button>
-              <button className={accessFilter === 'open' ? 'is-active' : ''} type="button" onClick={() => { setAccessFilter('open'); setStatusFilter('all'); }}>
-                <span className="lcs-status-dot is-open" /><strong>{isVi ? 'Đã mở' : 'Unlocked'}</strong><em>{libraryStats.open}</em>
-              </button>
-              <button className={statusFilter === 'pending' ? 'is-active' : ''} type="button" onClick={() => { setAccessFilter('all'); setStatusFilter('pending'); }}>
-                <span className="lcs-status-dot is-pending" /><strong>{isVi ? 'Chờ phê duyệt' : 'Pending'}</strong><em>{isLeader ? pendingCount : libraryStats.pending}</em>
-              </button>
-              <button className={accessFilter === 'locked' ? 'is-active' : ''} type="button" onClick={() => { setAccessFilter('locked'); setStatusFilter('all'); }}>
-                <span className="lcs-sidebar-icon is-locked"><LockKeyhole size={16} /></span><strong>{isVi ? 'Bị khóa' : 'Locked'}</strong><em>{libraryStats.locked}</em>
-              </button>
-            </nav>
-
-            <div className="lcs-sidebar-divider" />
-            <span className="lcs-sidebar-label">{isVi ? 'Theo loại hoạt động' : 'By activity type'}</span>
-            <nav className="lcs-sidebar-group lcs-sidebar-types">
-              {TYPE_OPTIONS.map((option) => (
-                <button key={option.value} className={typeFilter === option.value ? 'is-active' : ''} type="button" onClick={() => setTypeFilter(typeFilter === option.value ? 'all' : option.value)}>
-                  <span className="lcs-sidebar-icon">{option.value === 'game' ? <Gamepad2 size={16} /> : option.value === 'quiz' ? <ClipboardCheck size={16} /> : option.value === 'video' ? <MonitorPlay size={16} /> : <Layers3 size={16} />}</span>
-                  <strong>{isVi ? option.vi : option.en}</strong><em>{typeCounts[option.value] || 0}</em>
-                </button>
-              ))}
-            </nav>
-          </aside>
-
-          <main className="lcs-library-main">
-            <div className="lcs-content-head">
-              <span>{filteredActivities.length ? (isVi ? `Hiển thị ${pageStart} – ${pageEnd} / ${filteredActivities.length} hoạt động` : `Showing ${pageStart}–${pageEnd} of ${filteredActivities.length} activities`) : (isVi ? 'Không có kết quả phù hợp' : 'No matching activities')}</span>
-              {!loading && filteredActivities.length > 0 ? (
-                <div className="lcs-pagination-compact">
-                  <button type="button" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page <= 1} aria-label={isVi ? 'Trang trước' : 'Previous page'}><ChevronLeft size={16} /></button>
-                  {paginationPages.map((pageNumber) => <button key={pageNumber} type="button" className={pageNumber === page ? 'is-active' : ''} onClick={() => setPage(pageNumber)}>{pageNumber}</button>)}
-                  <button type="button" onClick={() => setPage((current) => Math.min(totalPages, current + 1))} disabled={page >= totalPages} aria-label={isVi ? 'Trang sau' : 'Next page'}><ChevronRight size={16} /></button>
-                </div>
-              ) : null}
+        <div className="lcs-arcade-results-head">
+          <span>{filteredActivities.length ? (isVi ? `Hiển thị ${pageStart}–${pageEnd} / ${filteredActivities.length}` : `Showing ${pageStart}–${pageEnd} of ${filteredActivities.length}`) : (isVi ? 'Không có kết quả' : 'No results')}</span>
+          {!loading && filteredActivities.length > 0 ? (
+            <div className="lcs-pagination-compact">
+              <button type="button" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page <= 1} aria-label={isVi ? 'Trang trước' : 'Previous page'}><ChevronLeft size={16} /></button>
+              {paginationPages.map((pageNumber) => <button key={pageNumber} type="button" className={pageNumber === page ? 'is-active' : ''} onClick={() => setPage(pageNumber)}>{pageNumber}</button>)}
+              <button type="button" onClick={() => setPage((current) => Math.min(totalPages, current + 1))} disabled={page >= totalPages} aria-label={isVi ? 'Trang sau' : 'Next page'}><ChevronRight size={16} /></button>
             </div>
-
-            {loading ? <LoadingBlock language={language} /> : !filteredActivities.length ? (
-              <div className="lcs-empty-library"><Layers3 /><h3>{activities.length ? (isVi ? 'Không có hoạt động phù hợp bộ lọc.' : 'No activities match these filters.') : (isVi ? 'Chưa có hoạt động nào trên Supabase.' : 'No activities in Supabase yet.')}</h3><p>{isLeader ? (isVi ? 'Bấm “Tạo hoạt động” để thêm nội dung đầu tiên.' : 'Select “Create activity” to add the first item.') : (isVi ? 'TTCM chưa đăng hoạt động.' : 'The department head has not published an activity yet.')}</p></div>
-            ) : (
-              <div className={`lcs-card-grid ${viewMode === 'list' ? 'is-list-view' : 'is-grid-view'}`}>
-                {pagedActivities.map((item) => {
-                  const locked = !isLeader && !item.hasAccess;
-                  const menuOpen = menuActivityId === item.id;
-                  return (
-                    <article key={item.id} className={`lcs-card ${locked ? 'is-locked' : 'is-open'}`}>
-                      <ActivityCardPreview
-                        activity={item}
-                        canLoad={!locked}
-                        isLeader={isLeader}
-                        language={language}
-                        onOpen={() => openTeachingMode(item)}
-                        onRequest={() => {
-                          if (item.requestStatus !== 'pending') {
-                            setRequestTarget(item);
-                            setRequestNote('');
-                          }
-                        }}
-                      />
-
-                      <div className="lcs-card-body">
-                        <div className="lcs-card-unitline">
-                          <strong>Unit {item.unitNo || '—'}</strong>
-                          <span>{item.lessonTitle || (isVi ? 'Hoạt động bổ sung' : 'Extra activity')}</span>
-                        </div>
-                        <h3>{item.title}</h3>
-                        <p>{item.notes || (isVi ? 'Hoạt động kiểm tra / củng cố trên lớp.' : 'Classroom check / reinforcement activity.')}</p>
-                        <div className="lcs-card-meta-line">
-                          <span><Gamepad2 size={14} />{labelForType(item.type, language)}</span>
-                          <span><BarChart3 size={14} />{compactDateOnly(item.updatedAt, language)}</span>
-                        </div>
-
-                        <div className="lcs-card-actions">
-                          {locked ? (
-                            item.requestStatus === 'pending' ? (
-                              <button className="lcs-card-primary is-pending" disabled><Clock3 size={16} />{isVi ? 'Chờ phê duyệt' : 'Pending approval'}</button>
-                            ) : (
-                              <button className="lcs-card-primary is-request" onClick={() => { setRequestTarget(item); setRequestNote(''); }}><LockKeyhole size={16} />{isVi ? 'Xin quyền' : 'Request access'}</button>
-                            )
-                          ) : (
-                            <button className="lcs-card-primary" onClick={() => openTeachingMode(item)}><MonitorPlay size={16} />{isVi ? 'Trình chiếu' : 'Teach'}</button>
-                          )}
-
-                          {isLeader ? (
-                            <div className="lcs-card-more">
-                              <button type="button" className="lcs-card-more-trigger" aria-label={isVi ? 'Tác vụ khác' : 'More actions'} aria-expanded={menuOpen} onClick={() => setMenuActivityId(menuOpen ? '' : item.id)}><MoreHorizontal size={18} /></button>
-                              {menuOpen ? (
-                                <div className="lcs-card-more-menu">
-                                  <button type="button" onClick={() => { setMenuActivityId(''); openAccessManager(item); }}><UserCheck size={15} />{isVi ? 'Phân quyền' : 'Manage access'}</button>
-                                  <button type="button" onClick={() => { setMenuActivityId(''); editActivity(item); }}><Edit3 size={15} />{isVi ? 'Chỉnh sửa' : 'Edit'}</button>
-                                  <button type="button" onClick={() => { setMenuActivityId(''); duplicateActivity(item); }}><Copy size={15} />{isVi ? 'Nhân bản' : 'Duplicate'}</button>
-                                  <button type="button" className="is-danger" onClick={() => { setMenuActivityId(''); removeActivity(item); }}><Trash2 size={15} />{isVi ? 'Xóa' : 'Delete'}</button>
-                                </div>
-                              ) : null}
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
-          </main>
+          ) : null}
         </div>
+
+        {loading ? <LoadingBlock language={language} /> : !filteredActivities.length ? (
+          <div className="lcs-empty-library"><Layers3 /><h3>{activities.length ? (isVi ? 'Không có hoạt động phù hợp bộ lọc.' : 'No activities match these filters.') : (isVi ? 'Chưa có hoạt động nào trên Supabase.' : 'No activities in Supabase yet.')}</h3></div>
+        ) : (
+          <div className="lcs-arcade-grid">
+            {pagedActivities.map((item) => {
+              const locked = !isLeader && !item.hasAccess;
+              return (
+                <article key={item.id} className={`lcs-arcade-card ${locked ? 'is-locked' : ''}`}>
+                  <ActivityCardPreview
+                    activity={item}
+                    canLoad={!locked}
+                    isLeader={isLeader}
+                    language={language}
+                    onOpen={() => openTeachingMode(item)}
+                    onRequest={() => {
+                      if (item.requestStatus !== 'pending') {
+                        setRequestTarget(item);
+                        setRequestNote('');
+                      }
+                    }}
+                  />
+
+                  <div className="lcs-arcade-card-copy">
+                    <div className="lcs-arcade-meta">
+                      <strong>{labelForType(item.type, language)}</strong>
+                      <span>·</span>
+                      <span>{compactDateOnly(item.updatedAt, language)}</span>
+                    </div>
+
+                    <div className="lcs-arcade-titleline">
+                      <div className="lcs-arcade-titlecopy">
+                        <h3>{item.title}</h3>
+                        <p>Global Success {item.grade || '—'} · Unit {item.unitNo || '—'} · {item.lessonTitle || (isVi ? 'Hoạt động bổ sung' : 'Extra activity')}</p>
+                      </div>
+
+                      <div className="lcs-arcade-card-actions">
+                        {!locked ? <button type="button" title={isVi ? 'Trình chiếu' : 'Teach'} onClick={() => openTeachingMode(item)}><MonitorPlay size={17} /></button> : null}
+                        {isLeader ? (
+                          <>
+                            <button type="button" title={isVi ? 'Phân quyền' : 'Access'} onClick={() => openAccessManager(item)}><UserCheck size={17} /></button>
+                            <button type="button" title={isVi ? 'Nhân bản' : 'Duplicate'} onClick={() => duplicateActivity(item)}><Copy size={17} /></button>
+                            <button type="button" title={isVi ? 'Chỉnh sửa' : 'Edit'} onClick={() => editActivity(item)}><Edit3 size={17} /></button>
+                            <button type="button" className="is-danger" title={isVi ? 'Xóa' : 'Delete'} onClick={() => removeActivity(item)}><Trash2 size={17} /></button>
+                          </>
+                        ) : locked ? (
+                          item.requestStatus === 'pending'
+                            ? <button type="button" className="is-pending" disabled title={isVi ? 'Đang chờ duyệt' : 'Pending'}><Clock3 size={17} /></button>
+                            : <button type="button" className="is-request" title={isVi ? 'Xin quyền' : 'Request access'} onClick={() => { setRequestTarget(item); setRequestNote(''); }}><KeyRound size={17} /></button>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div className="lcs-arcade-card-tags">
+                      <span className={`lcs-focus-chip is-${item.focusArea || 'unclassified'}`}>{labelForFocusArea(item.focusArea, language)}</span>
+                      {item.classLabel ? <span className="lcs-class-chip">{item.classLabel}</span> : null}
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {requestTarget ? (
