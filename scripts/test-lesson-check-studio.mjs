@@ -73,7 +73,7 @@ assert.match(migration, /security definer/g);
 // UX: locked cards remain visible, request access, TTCM grants per activity.
 assert.match(studio, /activity\.requestStatus === 'pending'/);
 assert.match(studio, /Xin quyền/);
-assert.match(studio, /Chờ phê duyệt/);
+assert.match(studio, /Đang chờ duyệt/);
 assert.match(studio, /TTCM · PHÂN QUYỀN TỪNG HOẠT ĐỘNG/);
 assert.match(studio, /reviewLessonCheckAccessRequest/);
 assert.match(studio, /setLessonCheckTeacherAccess/);
