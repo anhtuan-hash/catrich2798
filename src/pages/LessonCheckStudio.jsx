@@ -366,6 +366,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [showBuilder, setShowBuilder] = useState(false);
   const [showEditor, setShowEditor] = useState(true);
   const [menuActivityId, setMenuActivityId] = useState('');
+  const [showAccessQueue, setShowAccessQueue] = useState(false);
   const [teachingActivity, setTeachingActivity] = useState(null);
   const [teachingEmbed, setTeachingEmbed] = useState(null);
   const [teachingLoading, setTeachingLoading] = useState(false);
@@ -810,9 +811,9 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
               <span>GLOBAL SUCCESS</span>
             </div>
             <div className="lcs-arcade-title-row">
-              <h1>{isVi ? 'Kho hoạt động' : 'Activity library'}</h1>
+              <h1>Fun for Assessment</h1>
             </div>
-            <p>{isVi ? 'Thư viện hoạt động tương tác dành cho tiết học — tìm nhanh, mở nhanh và trình chiếu ngay.' : 'An interactive classroom library — find, launch and present activities instantly.'}</p>
+            <p>{isVi ? 'Đổi mới kiểm tra đánh giá' : 'Innovating assessment and evaluation'}</p>
 
             <div className="lcs-hero-statline" aria-label={isVi ? 'Thống kê kho hoạt động' : 'Activity library statistics'}>
               <span><Gamepad2 size={14} /><b>{activities.length}</b>{isVi ? 'hoạt động' : 'activities'}</span>
@@ -941,18 +942,27 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       <section className="lcs-arcade-library">
         <div className="lcs-arcade-nav">
           <nav className="lcs-arcade-tabs" aria-label={isVi ? 'Chuyên đề' : 'Learning focus'}>
-            <button type="button" className={focusFilter === 'all' ? 'is-active' : ''} onClick={() => setFocusFilter('all')}>
+            <button type="button" className={focusFilter === 'all' ? 'is-active' : ''} onClick={() => { setFocusFilter('all'); setShowAccessQueue(false); }}>
               <Grid2X2 size={18} /><strong>{isVi ? 'Tất cả' : 'All'}</strong><span>{activities.length}</span>
             </button>
-            <button type="button" className={focusFilter === 'vocabulary' ? 'is-active is-vocabulary' : 'is-vocabulary'} onClick={() => setFocusFilter('vocabulary')}>
+            <button type="button" className={focusFilter === 'vocabulary' ? 'is-active is-vocabulary' : 'is-vocabulary'} onClick={() => { setFocusFilter('vocabulary'); setShowAccessQueue(false); }}>
               <BookOpen size={18} /><strong>Vocabulary</strong><span>{focusCounts.vocabulary}</span>
             </button>
-            <button type="button" className={focusFilter === 'grammar' ? 'is-active is-grammar' : 'is-grammar'} onClick={() => setFocusFilter('grammar')}>
+            <button type="button" className={focusFilter === 'grammar' ? 'is-active is-grammar' : 'is-grammar'} onClick={() => { setFocusFilter('grammar'); setShowAccessQueue(false); }}>
               <Layers3 size={18} /><strong>Grammar</strong><span>{focusCounts.grammar}</span>
             </button>
-            <button type="button" className={focusFilter === 'skills' ? 'is-active is-skills' : 'is-skills'} onClick={() => setFocusFilter('skills')}>
+            <button type="button" className={focusFilter === 'skills' ? 'is-active is-skills' : 'is-skills'} onClick={() => { setFocusFilter('skills'); setShowAccessQueue(false); }}>
               <MonitorPlay size={18} /><strong>{isVi ? 'Kỹ năng' : 'Skills'}</strong><span>{focusCounts.skills}</span>
             </button>
+            {isLeader ? (
+              <button
+                type="button"
+                className={showAccessQueue ? 'is-active is-access-request' : 'is-access-request'}
+                onClick={() => setShowAccessQueue((value) => !value)}
+              >
+                <KeyRound size={18} /><strong>{isVi ? 'Xin quyền truy cập' : 'Access requests'}</strong><span>{pendingCount}</span>
+              </button>
+            ) : null}
           </nav>
 
           <div className="lcs-arcade-nav-tools">
@@ -969,6 +979,43 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
             </label>
           </div>
         </div>
+
+        {isLeader && showAccessQueue ? (
+          <section className="lcs-access-queue" aria-label={isVi ? 'Yêu cầu xin quyền truy cập' : 'Access requests'}>
+            <div className="lcs-access-queue-head">
+              <div>
+                <span>{isVi ? 'TTCM · DUYỆT QUYỀN' : 'DEPARTMENT HEAD · ACCESS REVIEW'}</span>
+                <h2>{isVi ? 'Xin quyền truy cập' : 'Access requests'}</h2>
+                <p>{pendingCount
+                  ? (isVi ? `Có ${pendingCount} yêu cầu đang chờ xử lý.` : `${pendingCount} requests are waiting for review.`)
+                  : (isVi ? 'Hiện không có yêu cầu nào đang chờ.' : 'There are no pending requests right now.')}</p>
+              </div>
+              <button type="button" onClick={() => setShowAccessQueue(false)} aria-label={isVi ? 'Đóng danh sách yêu cầu' : 'Close request list'}><X size={17} /></button>
+            </div>
+
+            <div className="lcs-access-queue-list">
+              {requests.filter((item) => item.status === 'pending').map((request) => (
+                <article key={request.id}>
+                  <div className="lcs-access-queue-avatar">{String(request.requesterName || 'GV').trim().slice(0,1).toUpperCase()}</div>
+                  <div className="lcs-access-queue-copy">
+                    <div className="lcs-access-queue-title">
+                      <strong>{request.requesterName}</strong>
+                      <span>{request.requesterEmail}</span>
+                    </div>
+                    <h3>{request.activityTitle}</h3>
+                    {request.message ? <p>“{request.message}”</p> : <p className="is-muted">{isVi ? 'Không có lời nhắn.' : 'No message.'}</p>}
+                    <small>{compactDate(request.createdAt, language)}</small>
+                  </div>
+                  <div className="lcs-access-queue-actions">
+                    <button type="button" className="is-reject" onClick={() => reviewRequest(request, 'rejected')} disabled={Boolean(accessBusyId)}><X size={15} />{isVi ? 'Từ chối' : 'Reject'}</button>
+                    <button type="button" className="is-approve" onClick={() => reviewRequest(request, 'approved')} disabled={Boolean(accessBusyId)}><Check size={15} />{isVi ? 'Cấp quyền' : 'Grant'}</button>
+                  </div>
+                </article>
+              ))}
+              {!pendingCount ? <div className="lcs-access-queue-empty"><Check size={18} />{isVi ? 'Đã xử lý hết yêu cầu.' : 'All requests have been reviewed.'}</div> : null}
+            </div>
+          </section>
+        ) : null}
 
         <div className="lcs-arcade-filterbar">
           <span className="lcs-filter-mark"><Filter size={17} /></span>
