@@ -54,27 +54,53 @@ export async function ensureLessonCheckActivityThumbnail(activityId) {
     return { ok: false, thumbnailUrl: '', fallback: 'live', message: 'Activity is missing.' };
   }
 
-  const { data, error } = await supabase.functions.invoke('lesson-check-thumbnail', {
-    body: { activityId: String(activityId) },
-  });
+  let accessToken = '';
+  try {
+    const { data } = await supabase.auth.getSession();
+    accessToken = String(data?.session?.access_token || '');
+  } catch {
+    accessToken = '';
+  }
 
-  if (error) {
+  if (!accessToken) {
+    return { ok: false, thumbnailUrl: '', fallback: 'live', message: 'Authentication required.' };
+  }
+
+  try {
+    const response = await fetch('/api/lesson-check-thumbnail', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ activityId: String(activityId) }),
+      credentials: 'same-origin',
+      cache: 'no-store',
+    });
+
+    let payload = {};
+    try {
+      payload = await response.json();
+    } catch {
+      payload = {};
+    }
+
+    return {
+      ok: response.ok && payload?.ok === true && Boolean(payload?.thumbnailUrl),
+      thumbnailUrl: String(payload?.thumbnailUrl || ''),
+      cached: payload?.cached === true,
+      generatedAt: payload?.generatedAt || '',
+      fallback: String(payload?.fallback || ''),
+      message: String(payload?.message || (!response.ok ? `HTTP ${response.status}` : '')),
+    };
+  } catch (error) {
     return {
       ok: false,
       thumbnailUrl: '',
       fallback: 'live',
-      message: error.message || 'Không thể tạo hình xem trước.',
+      message: error?.message || 'Không thể tạo hình xem trước.',
     };
   }
-
-  return {
-    ok: data?.ok === true && Boolean(data?.thumbnailUrl),
-    thumbnailUrl: String(data?.thumbnailUrl || ''),
-    cached: data?.cached === true,
-    generatedAt: data?.generatedAt || '',
-    fallback: String(data?.fallback || ''),
-    message: String(data?.message || ''),
-  };
 }
 
 export async function getLessonCheckActivityContent(activityId) {
