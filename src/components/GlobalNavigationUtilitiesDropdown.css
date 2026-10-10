@@ -1,0 +1,190 @@
+/* BRIAN • Approved Mockup A: six prominent routes + one Utilities dropdown.
+   Safe for fixed and paint-contained top chrome: floating menu is in body.
+   Never style or recreate TTCM/Attendance dialogs themselves. */
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utilities-trigger {
+  --nav-rgb: 112, 137, 170;
+  --nav-accent: #526782;
+  --nav-pastel-surface: #f5f8fc;
+  --nav-pastel-border: #d9e3f0;
+  color: #526782 !important;
+  background: linear-gradient(180deg, #fff, #f5f8fc) !important;
+  border: 1px solid #d9e3f0 !important;
+  order: 90 !important;
+  margin-left: 12px !important;
+  padding: 0 13px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  max-height: 40px !important;
+  border-radius: 14px !important;
+  font-size: 14px !important;
+  font-weight: 650 !important;
+  gap: 6px !important;
+  flex: 0 0 auto !important;
+  overflow: visible !important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utilities-trigger.is-active,
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utilities-trigger[aria-expanded='true'] {
+  background: #e9f0f9 !important;
+  border-color: #adc4e1 !important;
+  color: #28496b !important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utilities-trigger .brian-nav__utilities-caret {
+  display: inline-block !important;
+  width: 12px !important;
+  min-width: 12px !important;
+  color: inherit !important;
+  margin-top: -4px !important;
+  font-size: 19px !important;
+  line-height: 1 !important;
+  font-family: system-ui, sans-serif !important;
+  transform: rotate(0deg);
+  transition: transform 150ms ease;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utilities-trigger[aria-expanded='true'] .brian-nav__utilities-caret {
+  transform: rotate(180deg);
+}
+html body .brian-nav__utilities-popover {
+  position: fixed !important;
+  z-index: 2600 !important;
+  display: block;
+  box-sizing: border-box;
+  width: 254px;
+  max-width: calc(100vw - 24px);
+  padding: 10px;
+  overflow: visible;
+  border: 1px solid #d9e4f0;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .98);
+  color: #203852;
+  box-shadow: 0 17px 42px rgba(25, 49, 79, .14), 0 3px 8px rgba(25, 49, 79, .045);
+  font-family: var(--bes-global-font-family, system-ui, -apple-system, sans-serif);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+html body .brian-nav__utilities-popover[hidden] {
+  display: none !important;
+}
+html body .brian-nav__utilities-heading {
+  margin: 0 2px 8px;
+  padding: 4px 9px 10px;
+  border-bottom: 1px solid #e9edf4;
+  color: #8390a3;
+  font: 750 10.5px/1.3 system-ui, sans-serif;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+html body .brian-nav__utilities-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+html body .brian-nav__utility-slot {
+  display: block;
+  min-width: 0;
+}
+html body .brian-nav__utility-slot:empty {
+  display: none;
+}
+/* Original buttons are portaled here; all handlers and data remain unchanged. */
+html body .brian-nav__utilities-popover .brian-nav__utilities-items > :is(.brian-nav__utility-slot, .brian-nav__utility-admin) > button,
+html body .brian-nav__utilities-popover .brian-nav__utilities-items > button {
+  box-sizing: border-box !important;
+  position: relative !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 9px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 43px !important;
+  height: auto !important;
+  max-height: none !important;
+  margin: 0 !important;
+  padding: 9px 11px !important;
+  border: 1px solid transparent !important;
+  border-radius: 11px !important;
+  background: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+  color: #344c67 !important;
+  text-align: left !important;
+  font-family: inherit !important;
+  font-size: 14px !important;
+  font-weight: 650 !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  cursor: pointer;
+}
+html body .brian-nav__utilities-popover .brian-nav__utilities-items > :is(.brian-nav__utility-slot, .brian-nav__utility-admin) > button:hover,
+html body .brian-nav__utilities-popover .brian-nav__utilities-items > button:hover {
+  background: #f1f6fd !important;
+  border-color: #dfe8f5 !important;
+  color: #1f456b !important;
+}
+html body .brian-nav__utilities-popover .brian-nav__utilities-items button:focus-visible {
+  outline: 2px solid #6397ce !important;
+  outline-offset: 1px !important;
+}
+html body .brian-nav__utilities-popover .brian-nav__utilities-items button.is-active {
+  background: #e7f1fc !important;
+  border-color: #d3e4fa !important;
+  color: #245c91 !important;
+}
+/* Override the legacy reports two-column layout only inside this dropdown. */
+html body .brian-nav__utilities-popover .brian-nav__reports-tab .brian-nav__reports-copy {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: auto !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+html body .brian-nav__utilities-popover .brian-nav__reports-tab .brian-nav__reports-copy > span {
+  font-size: 14px !important;
+  line-height: 1.2 !important;
+  position: static !important;
+  color: inherit !important;
+}
+html body .brian-nav__utilities-popover .brian-nav__reports-svg-wrapper-1,
+html body .brian-nav__utilities-popover .brian-nav__reports-svg-wrapper {
+  display: none !important;
+}
+html body .brian-nav__utilities-popover .brian-nav__reports-tab .brian-nav__reports-countdown {
+  display: inline-flex !important;
+  flex: 0 0 auto;
+  font-size: 10px !important;
+  padding: 3px 5px !important;
+  border-radius: 6px !important;
+  background: #fff8e3 !important;
+  color: #9b7115 !important;
+}
+html body .brian-nav__utilities-popover .brian-nav__utility-slot .brian-nav__ttcm-tab > svg,
+html body .brian-nav__utilities-popover .brian-nav__utility-slot .brian-nav__attendance-tab > svg {
+  display: none !important;
+}
+html body .brian-nav__utilities-popover .brian-nav__ttcm-badge {
+  position: static !important;
+  display: inline-flex !important;
+  margin-left: auto !important;
+  min-width: 19px !important;
+  height: 19px !important;
+  padding: 0 5px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: #c83c44 !important;
+  color: #fff !important;
+  font-size: 10px !important;
+  line-height: 1 !important;
+  font-weight: 800 !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+@media (max-width: 1050px) and (min-width: 821px) {
+  html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utilities-trigger {
+    margin-left: 6px !important;
+  }
+}

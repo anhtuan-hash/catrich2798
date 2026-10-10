@@ -144,7 +144,7 @@ export default function GlobalReportsNavigationTab({
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
     const findHost = () => {
-      const nextHost = document.querySelector('.brian-nav__primary');
+      const nextHost = document.querySelector('.brian-nav__utility-reports');
       setHost((current) => (current === nextHost ? current : nextHost));
     };
     findHost();
