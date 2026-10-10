@@ -3514,3 +3514,26 @@ html:has(.lcs-page--library) .bes-vn-atmosphere{
   inset:0;
   border-radius:inherit;
 }
+
+
+/* V14 · True full-bleed thumbnails: crop gutters first, then cover. */
+.lcs-page--library .lcs-arcade-card .lcs-card-thumbnail-image{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  margin:0!important;
+  padding:0!important;
+  display:block!important;
+  object-fit:cover!important;
+  object-position:center center!important;
+  transform:none!important;
+  transform-origin:center!important;
+  border:0!important;
+  background:#111!important;
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-media.has-static-thumbnail{
+  background:#111!important;
+}
