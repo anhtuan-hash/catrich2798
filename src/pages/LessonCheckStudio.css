@@ -3537,3 +3537,27 @@ html:has(.lcs-page--library) .bes-vn-atmosphere{
 .lcs-page--library .lcs-arcade-card .lcs-card-media.has-static-thumbnail{
   background:#111!important;
 }
+
+
+/* V15 · Full-card live fallback while permanent thumbnail is being generated. */
+.lcs-page--library .lcs-arcade-card .lcs-card-live-preview{
+  inset:0!important;
+  overflow:hidden!important;
+  background:#111!important;
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-preview-frame{
+  position:absolute!important;
+  top:50%!important;
+  left:50%!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  transform:translate(-50%,-50%) scale(1.08)!important;
+  transform-origin:center center!important;
+  border:0!important;
+  pointer-events:none!important;
+  background:#111!important;
+}
