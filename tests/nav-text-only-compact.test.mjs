@@ -12,6 +12,8 @@ const gradebook=read('src/components/GlobalGradebookNavigationTab.jsx');
 const reports=read('src/components/GlobalReportsNavigationTab.jsx');
 const ttcm=read('src/components/GlobalTtcmNavigationTab.jsx');
 const attendance=read('src/components/GlobalAttendanceNavigationTab.jsx');
+const hub=read('src/components/GlobalNavigationHubController.jsx');
+const region=read('src/components/GlobalNavigationRegionalTypographyRuntime.jsx');
 
 test('compact text-only stylesheet is mounted after existing nav visuals',()=>{
   assert.ok(nav.indexOf("import './GlobalNavigationTextOnlyCompact.css'")>nav.indexOf("import './DashboardTopChromeMockup.css'"));
@@ -42,4 +44,11 @@ test('all eight route entries and their original actions remain mounted',()=>{
   assert.match(nav,/<GlobalReportsNavigationTab \{\.\.\.props\} \/>/);
   assert.match(nav,/<GlobalAttendanceNavigationTab \{\.\.\.props\} \/>/);
   assert.match(nav,/<GlobalTtcmNavigationTab \{\.\.\.props\} \/>/);
+});
+
+test('runtime inline default matches compact 14px CSS, without disabling Admin regional typography',()=>{
+  assert.match(hub,/navItem: \{ fontSize: '14px', lineHeight: '1' \}/);
+  assert.match(hub,/setImportant\(item, 'font-size', HUB_TYPOGRAPHY.navItem.fontSize\)/);
+  assert.match(region,/if \(hasSize && size\) node.style.setProperty\('font-size', size, 'important'\)/);
+  assert.match(region,/--bes-font-size-navigation/);
 });

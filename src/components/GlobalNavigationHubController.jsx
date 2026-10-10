@@ -25,7 +25,7 @@ const NAV_ORDER = {
 const HUB_TYPOGRAPHY = {
   uiFamily: 'var(--bes-global-font-family, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif)',
   brand: { fontSize: '19px', lineHeight: '1.1' },
-  navItem: { fontSize: '15px', lineHeight: '1' },
+  navItem: { fontSize: '14px', lineHeight: '1' },
   account: { fontSize: '15px', lineHeight: '1.2' },
   aiLabel: { fontSize: '13px', lineHeight: '1' },
 };
