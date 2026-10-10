@@ -149,6 +149,19 @@ function compactDate(value, language) {
   }
 }
 
+function compactDateOnly(value, language) {
+  if (!value) return '';
+  try {
+    return new Intl.DateTimeFormat(language === 'vi' ? 'vi-VN' : 'en-US', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(new Date(value));
+  } catch {
+    return '';
+  }
+}
+
 function iframeProps(embed, title) {
   const common = {
     title: title || 'Embedded teaching activity',
@@ -459,6 +472,13 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
   const pageStart = filteredActivities.length ? ((page - 1) * pageSize) + 1 : 0;
   const pageEnd = Math.min(page * pageSize, filteredActivities.length);
+  const paginationPages = useMemo(() => {
+    if (totalPages <= 5) return Array.from({ length: totalPages }, (_, index) => index + 1);
+    let start = Math.max(1, page - 2);
+    let end = Math.min(totalPages, start + 4);
+    start = Math.max(1, end - 4);
+    return Array.from({ length: end - start + 1 }, (_, index) => start + index);
+  }, [page, totalPages]);
 
   useEffect(() => {
     setPage(1);
