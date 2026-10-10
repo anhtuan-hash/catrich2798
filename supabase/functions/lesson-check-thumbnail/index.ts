@@ -1,6 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const THUMBNAIL_PROFILE = "fill-v2";
+const THUMBNAIL_PROFILE = "fill-v3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -177,7 +177,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const screenshotUrl =
-    `https://image.thum.io/get/noanimate/allowJPG/width/440/crop/300/?url=${encodeURIComponent(sourceUrl)}`;
+    `https://image.thum.io/get/noanimate/allowJPG/width/390/crop/264/?url=${encodeURIComponent(sourceUrl)}`;
 
   let screenshotResponse: Response;
   try {
@@ -185,7 +185,7 @@ Deno.serve(async (req: Request) => {
       redirect: "follow",
       headers: {
         "Accept": "image/avif,image/webp,image/apng,image/jpeg,image/png,image/*,*/*;q=0.8",
-        "User-Agent": "BRIAN-Activity-Thumbnail/2.0",
+        "User-Agent": "BRIAN-Activity-Thumbnail/3.0",
       },
     });
   } catch {
