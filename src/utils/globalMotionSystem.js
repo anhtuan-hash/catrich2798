@@ -208,7 +208,9 @@ let realtimeUnsubscribe = null;
 let runtimeRetryTimers = [];
 let mutationFrame = 0;
 let loaderHideTimer = 0;
+let loaderExitTimer = 0;
 let currentAppliedConfig = null;
+let lastPaintedMotionSignature = null;
 const tabMotionTimestamps = new WeakMap();
 
 function deepClone(value) {
@@ -334,13 +336,20 @@ export function applyGlobalMotionConfig(config, options = {}) {
 
   if (typeof document !== 'undefined') {
     const root = document.documentElement;
-    root.dataset.motionMode = normalized.preset;
-    root.dataset.motionEnabled = motionIsEnabled(normalized) ? 'true' : 'false';
-    root.dataset.motionSource = source;
-    root.dataset.motionSpeed = normalized.speed;
-    root.dataset.motionEasing = normalized.easing;
-    Object.entries(SLOT_DATASETS).forEach(([slot, dataset]) => { root.dataset[dataset] = normalized.slots[slot]; });
-    applyTimingVariables(root, normalized);
+    // Realtime, reconnect and boot retries often return the exact same config.
+    // Setting root-level CSS variables again invalidates styles across the app.
+    const signature = JSON.stringify([normalized.preset, normalized.speed, normalized.easing, normalized.slots]);
+    if (signature !== lastPaintedMotionSignature) {
+      root.dataset.motionMode = normalized.preset;
+      root.dataset.motionEnabled = motionIsEnabled(normalized) ? 'true' : 'false';
+      root.dataset.motionSpeed = normalized.speed;
+      root.dataset.motionEasing = normalized.easing;
+      Object.entries(SLOT_DATASETS).forEach(([slot, dataset]) => { root.dataset[dataset] = normalized.slots[slot]; });
+      applyTimingVariables(root, normalized);
+      lastPaintedMotionSignature = signature;
+    }
+    // Retain source diagnostics even when the visual configuration is unchanged.
+    if (root.dataset.motionSource !== source) root.dataset.motionSource = source;
   }
 
   if (persist) writeJson(STORAGE_KEY, normalized);
@@ -544,26 +553,33 @@ function markEntrant(node, kind) {
 
 function collectEntrants(root) {
   if (!root || root.nodeType !== 1 || isMotionIsolated(root)) return;
+  const slots = currentAppliedConfig?.slots;
   const groups = [
     [MODAL_SELECTOR, 'modal'],
     [DRAWER_SELECTOR, 'drawer'],
     [POPOVER_SELECTOR, 'popover'],
   ];
   groups.forEach(([selector, kind]) => {
+    // A disabled slot must not trigger selector scans, style reads or timers.
+    if (slots?.[kind] === 'none') return;
     const nodes = root.matches?.(selector) ? [root] : [...(root.querySelectorAll?.(selector) || [])];
     nodes.slice(0, 24).forEach((node) => markEntrant(node, kind));
   });
 
-  const panels = root.matches?.(TAB_PANEL_SELECTOR) ? [root] : [...(root.querySelectorAll?.(TAB_PANEL_SELECTOR) || [])];
-  panels.slice(0, 16).forEach(markTabPanel);
+  if (slots?.tab !== 'none' && slots?.tab !== 'instant') {
+    const panels = root.matches?.(TAB_PANEL_SELECTOR) ? [root] : [...(root.querySelectorAll?.(TAB_PANEL_SELECTOR) || [])];
+    panels.slice(0, 16).forEach(markTabPanel);
+  }
 
-  const listNodes = root.matches?.(LIST_SELECTOR) ? [root] : [...(root.querySelectorAll?.(LIST_SELECTOR) || [])];
-  listNodes.slice(0, 8).forEach((node, index) => {
-    if (isMotionIsolated(node)) return;
-    node.dataset.globalListEnter = 'true';
-    node.style.setProperty('--gm-list-index', String(index));
-    window.setTimeout(() => { if (node?.isConnected) delete node.dataset.globalListEnter; }, 900);
-  });
+  if (slots?.list !== 'none') {
+    const listNodes = root.matches?.(LIST_SELECTOR) ? [root] : [...(root.querySelectorAll?.(LIST_SELECTOR) || [])];
+    listNodes.slice(0, 8).forEach((node, index) => {
+      if (isMotionIsolated(node)) return;
+      node.dataset.globalListEnter = 'true';
+      node.style.setProperty('--gm-list-index', String(index));
+      window.setTimeout(() => { if (node?.isConnected) delete node.dataset.globalListEnter; }, 900);
+    });
+  }
 }
 
 function installMutationMotionObserver() {
@@ -591,7 +607,10 @@ function installMutationMotionObserver() {
       if (mutation.type === 'childList') mutation.addedNodes.forEach((node) => { if (node?.nodeType === 1) pending.add(node); });
       // Preserve programmatic tab activation, but never repeatedly read computed
       // styles synchronously within a burst of React class/style updates.
-      if (mutation.type === 'attributes' && mutation.target?.matches?.(TAB_PANEL_SELECTOR)) {
+      if (mutation.type === 'attributes'
+        && currentAppliedConfig?.slots?.tab !== 'none'
+        && currentAppliedConfig?.slots?.tab !== 'instant'
+        && mutation.target?.matches?.(TAB_PANEL_SELECTOR)) {
         pendingPanels.add(mutation.target);
       }
     });
@@ -617,21 +636,31 @@ function ensureRouteLoader() {
 
 function hideRouteLoader(immediate = false) {
   window.clearTimeout(loaderHideTimer);
+  window.clearTimeout(loaderExitTimer);
+  loaderHideTimer = 0;
+  loaderExitTimer = 0;
   const loader = document.getElementById('bes-global-route-loader');
   if (!loader) return;
-  if (immediate) { loader.classList.remove('is-visible'); return; }
+  if (immediate) { loader.classList.remove('is-visible', 'is-leaving'); return; }
   loader.classList.add('is-leaving');
-  window.setTimeout(() => loader.classList.remove('is-visible', 'is-leaving'), 150);
+  loaderExitTimer = window.setTimeout(() => {
+    loader.classList.remove('is-visible', 'is-leaving');
+    loaderExitTimer = 0;
+  }, 150);
 }
 
 function showRouteLoader() {
-  const config = getGlobalMotionConfig();
+  const config = currentAppliedConfig || getGlobalMotionConfig();
   if (config.slots.loading === 'none') return;
   const loader = ensureRouteLoader();
-  loader.classList.remove('is-leaving');
-  loader.classList.add('is-visible');
-  void loader.offsetWidth;
-  loaderHideTimer = window.setTimeout(() => hideRouteLoader(), Math.max(260, (SPEED_PROFILES[config.speed]?.slow || 285) + 180));
+  window.clearTimeout(loaderHideTimer);
+  window.clearTimeout(loaderExitTimer);
+  loaderExitTimer = 0;
+  // Navigation-start and hashchange can fire for the same route. Preserve
+  // the existing loader rather than forcing synchronous layout for a restart.
+  if (loader.classList.contains('is-leaving')) loader.classList.remove('is-leaving');
+  if (!loader.classList.contains('is-visible')) loader.classList.add('is-visible');
+  loaderHideTimer = window.setTimeout(() => hideRouteLoader(), Math.max(220, (SPEED_PROFILES[config.speed]?.slow || 285) + 90));
 }
 
 function installRouteLoadingExperience() {
