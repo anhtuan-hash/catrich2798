@@ -3453,3 +3453,64 @@
 html:has(.lcs-page--library) .bes-vn-atmosphere{
   visibility:hidden!important;
 }
+
+
+/* V13 · Full-bleed persisted Activity Arcade thumbnails */
+.lcs-page--library .lcs-arcade-card .lcs-card-media{
+  padding:0!important;
+  background:#171717!important;
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-thumbnail-image{
+  position:absolute;
+  z-index:1;
+  inset:-1px;
+  width:calc(100% + 2px);
+  height:calc(100% + 2px);
+  max-width:none;
+  max-height:none;
+  display:block;
+  object-fit:cover;
+  object-position:center center;
+  transform:scale(1.08);
+  transform-origin:center center;
+  border:0;
+  margin:0;
+  padding:0;
+  background:#171717;
+  user-select:none;
+  -webkit-user-drag:none;
+  pointer-events:none;
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-live-preview{
+  inset:-1px;
+  border-radius:inherit;
+  background:#171717;
+}
+/* Keep the first-load live fallback full-bleed too. It retains a wide virtual
+   desktop viewport so embedded games do not switch to their mobile layouts. */
+.lcs-page--library .lcs-arcade-card .lcs-card-preview-frame{
+  top:-4%;
+  left:-4%;
+  right:auto;
+  bottom:auto;
+  width:300%;
+  height:300%;
+  max-width:none;
+  max-height:none;
+  transform:scale(.36);
+  transform-origin:top left;
+  pointer-events:none;
+  background:#171717;
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-media-shade{
+  z-index:2;
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-media-top,
+.lcs-page--library .lcs-arcade-card .lcs-preview-open-hint,
+.lcs-page--library .lcs-arcade-card .lcs-card-lock-mark{
+  z-index:4;
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-preview-placeholder{
+  inset:0;
+  border-radius:inherit;
+}
