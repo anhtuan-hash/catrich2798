@@ -282,14 +282,14 @@ const ActivityCardPreview = React.memo(function ActivityCardPreview({ activity, 
         ? (isVi ? `Mở ${activity.title}` : `Open ${activity.title}`)
         : (isVi ? `Xin quyền ${activity.title}` : `Request access to ${activity.title}`)}
     >
-      {canLoad && thumbnailUrl ? (
+      {thumbnailUrl ? (
         <img className="lcs-card-thumbnail-image" src={thumbnailUrl} alt="" loading="lazy" decoding="async" draggable="false" />
       ) : (
         <div className="lcs-card-preview-placeholder" aria-hidden="true">
           {canLoad ? <MonitorPlay /> : <LockKeyhole />}
           <strong>{canLoad
             ? (isVi ? 'Chưa có thumbnail' : 'No thumbnail yet')
-            : (isVi ? 'Xem trước bị khóa' : 'Preview locked')}</strong>
+            : (isVi ? 'Hoạt động chưa có thumbnail' : 'No thumbnail available')}</strong>
           <span>{canLoad
             ? (isVi ? 'Admin có thể dán ảnh trong Chỉnh sửa' : 'Paste an image in Edit')
             : (activity.sourceHost || activity.embedKind?.toUpperCase() || 'Activity')}</span>
@@ -302,7 +302,7 @@ const ActivityCardPreview = React.memo(function ActivityCardPreview({ activity, 
         {!isLeader ? <StatusPill activity={activity} isLeader={isLeader} language={language} /> : null}
       </div>
       {canLoad ? <span className="lcs-preview-open-hint" aria-hidden="true"><MonitorPlay size={18} /></span> : null}
-      {!canLoad ? <div className="lcs-card-lock-mark" aria-hidden="true"><LockKeyhole /></div> : null}
+      {!canLoad && !thumbnailUrl ? <div className="lcs-card-lock-mark" aria-hidden="true"><LockKeyhole /></div> : null}
     </div>
   );
 }, (previous, next) => (
