@@ -30,6 +30,7 @@ import {
   saveAssessmentSession,
 } from '../../utils/lessonCheckAssessment.js';
 import { drawUncalledStudent, makeBalancedGroups } from '../../utils/lessonCheckRandomizer.js';
+import { buildLessonCheckA4Html } from '../../utils/lessonCheckPrintA4.js';
 import './AssessmentWorkspace.css';
 
 const PURPOSES = [
@@ -630,391 +631,49 @@ export default function AssessmentWorkspace({
   };
 
   const printReport = () => {
-  const popup = window.open('', '_blank');
-  if (!popup) {
-    setNotice('Trình duyệt đang chặn cửa sổ in báo cáo. Hãy cho phép pop-up rồi thử lại.');
-    return;
-  }
-  try { popup.opener = null; } catch { /* best effort */ }
-
-  const safe = escapeHtml;
-  const completedSessions = reportSessions.filter((item) => item.status === 'completed');
-  const scopeLabel = reportClass || 'Tất cả lớp';
-  const now = new Date();
-  const reportDate = new Intl.DateTimeFormat('vi-VN', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  }).format(now);
-  const reportTime = new Intl.DateTimeFormat('vi-VN', {
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(now);
-
-  const teacherName = text(
-    currentUser?.fullName
-      || currentUser?.full_name
-      || currentUser?.name
-      || currentUser?.displayName
-      || currentUser?.user_metadata?.full_name
-      || currentUser?.user_metadata?.name,
-    'Giáo viên phụ trách',
-  );
-
-  const numericGrades = reportResults
-    .map((item) => item.grade10)
-    .filter((value) => Number.isFinite(value));
-
-  const scoreBands = [
-    { label: '0-<2', min: 0, max: 2 },
-    { label: '2-<4', min: 2, max: 4 },
-    { label: '4-<6', min: 4, max: 6 },
-    { label: '6-<8', min: 6, max: 8 },
-    { label: '8-10', min: 8, max: 10.0001 },
-  ].map((band) => ({
-    ...band,
-    count: numericGrades.filter((grade) => grade >= band.min && grade < band.max).length,
-  }));
-  const maxBandCount = Math.max(1, ...scoreBands.map((band) => band.count));
-
-  const focusCounts = new Map();
-  completedSessions.forEach((item) => {
-    const key = item.focusArea || 'unclassified';
-    focusCounts.set(key, (focusCounts.get(key) || 0) + 1);
-  });
-  const focusRows = [...focusCounts.entries()]
-    .map(([key, count]) => ({
-      key,
-      label: focusLabel(key),
-      count,
-      percent: completedSessions.length ? (count / completedSessions.length) * 100 : 0,
-    }))
-    .sort((a, b) => b.count - a.count);
-  const topFocus = focusRows[0]?.label || 'Chưa có dữ liệu';
-
-  const latestResultByStudent = new Map();
-  reportResults.forEach((item) => {
-    const key = item.studentRef || item.studentName;
-    const currentItem = latestResultByStudent.get(key);
-    if (!currentItem || Date.parse(item.completedAt || 0) > Date.parse(currentItem.completedAt || 0)) {
-      latestResultByStudent.set(key, item);
+    const popup = window.open('', '_blank');
+    if (!popup) {
+      setNotice('Trình duyệt đang chặn cửa sổ in báo cáo. Hãy cho phép pop-up rồi thử lại.');
+      return;
     }
-  });
+    try { popup.opener = null; } catch { /* best effort */ }
 
-  const interventionFor = (item) => {
-    const latest = latestResultByStudent.get(item.studentRef) || {};
-    const achievement = text(latest.achievement);
-    const note = text(latest.note);
-    const average = item.average;
-
-    if (average == null) {
-      return {
-        priority: 'Cần bổ sung dữ liệu',
-        tone: 'amber',
-        issue: 'Chưa có điểm /10 để xác định mức độ đạt.',
-        action: note || 'Tổ chức một lượt đánh giá ngắn, ghi nhận điểm và phản hồi trước khi kết luận mức độ đạt.',
-      };
-    }
-    if (achievement.toLocaleLowerCase('vi').includes('cần hỗ trợ') || average < 5) {
-      return {
-        priority: 'Ưu tiên',
-        tone: 'red',
-        issue: achievement || `Điểm trung bình ${average.toFixed(2)}/10, dưới ngưỡng cần củng cố.`,
-        action: note || 'Ôn lại kiến thức nền, giao bài tập phân tầng ngắn và đánh giá lại sau can thiệp.',
-      };
-    }
-    if (average < 6.5) {
-      return {
-        priority: 'Theo dõi',
-        tone: 'amber',
-        issue: achievement || `Điểm trung bình ${average.toFixed(2)}/10, cần củng cố để đạt mức ổn định.`,
-        action: note || 'Bổ sung luyện tập có hướng dẫn, kiểm tra lỗi điển hình và theo dõi tiến bộ ở lượt tiếp theo.',
-      };
-    }
-    return null;
-  };
-
-  const interventionRows = studentReportRows
-    .map((item) => ({ item, intervention: interventionFor(item) }))
-    .filter((entry) => entry.intervention);
-
-  const teacherAdjustments = [...new Set(
-    completedSessions
-      .map((item) => text(item.teachingAdjustment))
-      .filter(Boolean),
-  )];
-
-  const ruleActions = [];
-  if (reportSummary.coverage != null && reportSummary.coverage < 70) {
-    ruleActions.push(`Tăng độ phủ đánh giá: hiện mới đạt ${reportSummary.coverage.toFixed(0)}%; ưu tiên học sinh chưa có minh chứng ở lượt tiếp theo.`);
-  }
-  if (studentReportRows.some((item) => item.average == null)) {
-    ruleActions.push(`Bổ sung dữ liệu cho ${studentReportRows.filter((item) => item.average == null).length} học sinh chưa có điểm /10 để tránh kết luận thiếu căn cứ.`);
-  }
-  if (reportSummary.average != null && reportSummary.average < 6.5) {
-    ruleActions.push('Tổ chức một hoạt động củng cố ngắn theo nhóm năng lực, sau đó đánh giá lại bằng cùng tiêu chí để kiểm tra mức tiến bộ.');
-  }
-  if (focusRows.length === 1 && completedSessions.length >= 2) {
-    ruleActions.push(`Mở rộng đánh giá sang các chuyên đề khác ngoài ${topFocus} để minh chứng năng lực cân bằng hơn.`);
-  }
-  if (!ruleActions.length && completedSessions.length) {
-    ruleActions.push('Duy trì nhịp đánh giá hiện tại, tiếp tục theo dõi học sinh chưa ổn định và luân phiên chuyên đề để tăng tính đại diện của dữ liệu.');
-  }
-
-  const quickNotes = [
-    `${reportSummary.sessions} phiên đánh giá đã hoàn thành trong phạm vi báo cáo.`,
-    `${reportSummary.students} học sinh có dữ liệu đánh giá${reportSummary.coverage == null ? '' : `, độ phủ ${reportSummary.coverage.toFixed(0)}%`}.`,
-    reportSummary.average == null
-      ? 'Chưa đủ dữ liệu điểm /10 để tính điểm trung bình.'
-      : `Điểm trung bình hiện tại: ${reportSummary.average.toFixed(2)}/10.`,
-    `Chuyên đề được triển khai nhiều nhất: ${topFocus}.`,
-  ];
-
-  const studentRowsHtml = studentReportRows.map((item, index) => {
-    const latest = latestResultByStudent.get(item.studentRef) || {};
-    const intervention = interventionFor(item);
-    const best = item.grades?.length ? Math.max(...item.grades) : null;
-    const classText = latest.className || scopeLabel;
-    const status = item.average == null
-      ? '<span class="badge amber">Chưa có điểm</span>'
-      : item.average < 5
-        ? '<span class="badge red">Cần hỗ trợ</span>'
-        : item.average < 6.5
-          ? '<span class="badge amber">Theo dõi</span>'
-          : '<span class="badge green">Đã có dữ liệu</span>';
-    return `
-      <tr>
-        <td class="num">${index + 1}</td>
-        <td><strong>${safe(item.studentName)}</strong><small>${safe(item.studentCode || '—')}</small></td>
-        <td>${safe(classText || '—')}</td>
-        <td class="center">${item.sessionCount}</td>
-        <td class="score">${item.average == null ? '—' : item.average.toFixed(2)}</td>
-        <td class="score">${best == null ? '—' : best.toFixed(2)}</td>
-        <td>${safe(item.focusText || '—')}</td>
-        <td>${safe(formatDate(item.latest))}</td>
-        <td>${status}${intervention ? `<small class="intervention-hint">${safe(intervention.priority)}: ${safe(intervention.action)}</small>` : ''}</td>
-      </tr>`;
-  }).join('');
-
-  const interventionHtml = interventionRows.length
-    ? interventionRows.map(({ item, intervention }, index) => `
-      <tr>
-        <td class="num">${index + 1}</td>
-        <td><strong>${safe(item.studentName)}</strong><small>${safe(item.studentCode || '—')}</small></td>
-        <td><span class="badge ${intervention.tone}">${safe(intervention.priority)}</span></td>
-        <td>${safe(intervention.issue)}</td>
-        <td>${safe(intervention.action)}</td>
-      </tr>`).join('')
-    : `<tr><td colspan="5"><div class="empty-state">Không có học sinh thuộc nhóm cần can thiệp theo dữ liệu hiện tại.</div></td></tr>`;
-
-  const sessionRowsHtml = completedSessions.slice(0, 20).map((item, index) => `
-    <tr>
-      <td class="num">${index + 1}</td>
-      <td>${safe(formatDate(item.completedAt || item.startedAt))}</td>
-      <td><strong>${safe(item.activityTitle || '—')}</strong><small>${safe(purposeLabel(item.purpose))}</small></td>
-      <td>${safe(item.className || '—')}</td>
-      <td>${safe(focusLabel(item.focusArea))}</td>
-      <td class="center">${item.studentCount || 0}</td>
-      <td class="score">${item.averageGrade10 == null ? '—' : item.averageGrade10.toFixed(2)}</td>
-      <td>${safe(item.teachingAdjustment || '—')}</td>
-    </tr>`).join('');
-
-  const scoreBarsHtml = scoreBands.map((band) => {
-    const height = Math.max(6, Math.round((band.count / maxBandCount) * 92));
-    return `<div class="bar-item">
-      <div class="bar-value">${band.count}</div>
-      <div class="bar-track"><div class="bar-fill" style="height:${height}px"></div></div>
-      <div class="bar-label">${band.label}</div>
-    </div>`;
-  }).join('');
-
-  const focusHtml = focusRows.length
-    ? focusRows.slice(0, 6).map((item) => `
-      <div class="focus-row">
-        <div class="focus-top"><span>${safe(item.label)}</span><strong>${item.count} phiên · ${item.percent.toFixed(0)}%</strong></div>
-        <div class="focus-track"><span style="width:${Math.max(4, item.percent)}%"></span></div>
-      </div>`).join('')
-    : '<div class="empty-state compact">Chưa có dữ liệu chuyên đề.</div>';
-
-  const teacherAdjustmentHtml = teacherAdjustments.length
-    ? teacherAdjustments.slice(0, 5).map((item) => `<li>${safe(item)}</li>`).join('')
-    : '<li>Chưa có nội dung điều chỉnh do giáo viên nhập trong các phiên đã chọn.</li>';
-
-  const ruleActionHtml = ruleActions.map((item) => `<li>${safe(item)}</li>`).join('');
-  const quickNotesHtml = quickNotes.map((item) => `<li>${safe(item)}</li>`).join('');
-
-  const schoolLogo = `${window.location.origin}/footer-pek-logo.png`;
-
-  popup.document.write(`<!doctype html>
-<html lang="vi">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Fun for Assessment - Báo cáo kiểm tra đánh giá</title>
-<style>
-  :root{
-    --ink:#173c66;--text:#243d52;--muted:#6f8193;--line:#dbe6ee;--soft:#f6f9fc;
-    --blue:#2878e8;--blue-soft:#eef6ff;--green:#169b67;--green-soft:#edf9f3;
-    --purple:#7b55d9;--purple-soft:#f4f0ff;--orange:#e98226;--orange-soft:#fff5e9;
-    --red:#d94b52;--red-soft:#fff0f1;--amber:#b87a12;--amber-soft:#fff7df;
-  }
-  *{box-sizing:border-box;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
-  @page{size:A4 landscape;margin:8mm}
-  html,body{margin:0;padding:0;background:#fff;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
-  body{font-size:10px;line-height:1.42}
-  .report{width:100%;margin:0 auto}
-  .header{display:grid;grid-template-columns:1.25fr .95fr;gap:16px;align-items:center;padding:0 0 12px;border-bottom:2px solid #e1ecf3}
-  .brand{display:flex;align-items:center;gap:13px}.brand-mark{width:56px;height:56px;border-radius:16px;background:linear-gradient(145deg,#eef9f4,#dff4eb);display:grid;place-items:center;border:1px solid #d7ebe1}
-  .brand-mark svg{width:32px;height:32px}.eyebrow{font-size:8px;letter-spacing:.15em;font-weight:900;color:#3478d5}
-  h1{margin:2px 0 1px;color:#12375f;font-size:26px;line-height:1.05;letter-spacing:-.035em}
-  .subtitle{font-size:11px;color:#63798d}.school{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;justify-self:end}
-  .school img{width:42px;height:42px;object-fit:contain}.school strong{display:block;color:#154579;font-size:12px}.school span{display:block;color:#5d7790;font-size:9px}
-  .meta{padding:8px 10px;border:1px solid #dbe7f0;border-radius:11px;background:#f8fbfe}.meta div{display:flex;gap:7px;margin:2px 0;white-space:nowrap}.meta b{color:#1d466c}
-  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
-  .kpi{min-height:74px;border:1px solid var(--line);border-radius:13px;padding:10px 12px;display:grid;grid-template-columns:38px 1fr;grid-template-rows:auto auto;column-gap:10px;align-items:center;background:#fff}
-  .kpi .icon{grid-row:1/3;width:38px;height:38px;border-radius:11px;display:grid;place-items:center;font-size:17px;font-weight:900}.kpi strong{font-size:22px;line-height:1;color:#12375f}.kpi small{color:var(--muted);font-size:8.5px}
-  .kpi.blue{background:linear-gradient(135deg,#fff,#f4f9ff)}.kpi.blue .icon{background:#e5f1ff;color:var(--blue)}
-  .kpi.green{background:linear-gradient(135deg,#fff,#f2fbf6)}.kpi.green .icon{background:#e1f6ea;color:var(--green)}
-  .kpi.purple{background:linear-gradient(135deg,#fff,#f8f5ff)}.kpi.purple .icon{background:#ede7ff;color:var(--purple)}
-  .kpi.orange{background:linear-gradient(135deg,#fff,#fff8ef)}.kpi.orange .icon{background:#ffedd9;color:var(--orange)}
-  .grid-3{display:grid;grid-template-columns:1.45fr .8fr .85fr;gap:8px;margin-top:8px}
-  .grid-2{display:grid;grid-template-columns:1.15fr .85fr;gap:8px;margin-top:8px}
-  .card{border:1px solid var(--line);border-radius:13px;background:#fff;overflow:hidden;break-inside:avoid}
-  .card-head{min-height:37px;padding:0 11px;display:flex;align-items:center;gap:7px;border-bottom:1px solid #e8eff4;background:linear-gradient(180deg,#fff,#f8fbfd)}
-  .card-head h2{margin:0;color:#174677;font-size:11.5px}.card-body{padding:10px 11px}
-  .quick{background:linear-gradient(135deg,#f2fbf6,#edf8f3)}.quick .card-head{background:transparent;border-color:#dceee4}.quick ul,.actions ul{margin:0;padding-left:17px}.quick li,.actions li{margin:4px 0}
-  .bars{height:128px;display:flex;align-items:flex-end;justify-content:space-around;gap:8px;padding:7px 4px 0}
-  .bar-item{width:17%;text-align:center;color:#607588}.bar-value{height:16px;font-weight:850;color:#244866}.bar-track{height:94px;border-left:1px solid #dfe8ee;border-bottom:1px solid #b9c9d6;display:flex;align-items:flex-end;justify-content:center;background:linear-gradient(to top,rgba(226,234,240,.45) 1px,transparent 1px);background-size:100% 23px}
-  .bar-fill{width:32px;max-width:70%;min-height:4px;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#55b88a,#169b67)}.bar-label{margin-top:4px;font-size:8px}
-  .focus-row{margin:6px 0}.focus-top{display:flex;justify-content:space-between;gap:8px;font-size:8.5px}.focus-top strong{color:#234e75}.focus-track{height:7px;margin-top:3px;border-radius:999px;background:#edf2f6;overflow:hidden}.focus-track span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#347fe6,#37a987)}
-  table{width:100%;border-collapse:separate;border-spacing:0;font-size:8.2px}
-  th{padding:6px 6px;background:#f3f8fb;color:#35546e;text-align:left;border-bottom:1px solid #dfe8ee;font-size:7.8px}
-  td{padding:6px;border-bottom:1px solid #edf2f5;vertical-align:top}tr:last-child td{border-bottom:0}td strong{display:block;color:#223f58}td small{display:block;color:#8292a0;margin-top:2px}.num,.center{text-align:center}.score{text-align:center;font-weight:850;color:#184a70}
-  .badge{display:inline-flex;align-items:center;min-height:20px;padding:0 7px;border-radius:999px;font-size:7.4px;font-weight:850;white-space:nowrap}.badge.green{background:#e4f7ec;color:#08784a}.badge.amber{background:var(--amber-soft);color:#95610c}.badge.red{background:var(--red-soft);color:#c0353e}
-  .intervention-hint{max-width:220px;margin-top:4px;line-height:1.3;color:#6c7e8d}
-  .intervention-card{border-color:#f1cfd2}.intervention-card .card-head{background:linear-gradient(180deg,#fff6f6,#fff0f1);border-color:#f1d8da}.intervention-card .card-head h2{color:#bd303a}
-  .actions{background:linear-gradient(135deg,#f4f8ff,#edf5ff);border-color:#d6e5f7}.actions .card-head{background:transparent;border-color:#dae7f5}.actions .card-head h2{color:#1f61bd}
-  .actions .source{margin:8px 0 4px;font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;color:#6e82a0}
-  .session-table{margin-top:8px}.empty-state{padding:20px;text-align:center;color:#8695a2;background:#fbfcfd}.empty-state.compact{padding:12px}
-  .signatures{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:10px;break-inside:avoid}.signature{min-height:74px;padding:8px;text-align:center;border:1px solid #dbe6ee;border-radius:12px;background:#fff}.signature strong{display:block;color:#23465f;font-size:9.5px}.signature span{display:block;color:#8795a0;font-size:7.8px;margin-top:2px}.signature .line{width:70%;height:26px;margin:0 auto 3px;border-bottom:1px dotted #aebbc6}.signature b{color:#1c4568;font-size:8.5px}
-  .footer{margin-top:8px;padding-top:6px;border-top:1px solid #e2eaf0;display:flex;justify-content:space-between;color:#748697;font-size:7.8px}
-  .page-break{break-before:page}
-  @media print{
-    body{background:#fff}.report{width:auto}.card,.kpi,.signature{box-shadow:none!important}
-    thead{display:table-header-group}tr{break-inside:avoid}.no-print{display:none!important}
-  }
-</style>
-</head>
-<body>
-<div class="report">
-  <header class="header">
-    <div class="brand">
-      <div class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#14845a" stroke-width="1.8"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.2V3h6v1.2M8 9l2 2 5-5M8 15h8M8 18h5"/></svg>
-      </div>
-      <div><div class="eyebrow">FUN FOR ASSESSMENT</div><h1>Báo cáo kiểm tra đánh giá</h1><div class="subtitle">Đổi mới kiểm tra đánh giá · Theo dõi năng lực · Điều chỉnh dạy học</div></div>
-    </div>
-    <div class="school">
-      <img src="${schoolLogo}" alt="" onerror="this.style.display='none'">
-      <div><strong>Petrus Ky School System</strong><span>English Department · Binh Duong</span></div>
-      <div class="meta">
-        <div><b>Ngày báo cáo:</b> ${safe(reportDate)} · ${safe(reportTime)}</div>
-        <div><b>Phạm vi:</b> ${safe(scopeLabel)}</div>
-        <div><b>Người thực hiện:</b> ${safe(teacherName)}</div>
-      </div>
-    </div>
-  </header>
-
-  <section class="kpis">
-    <div class="kpi blue"><span class="icon">▣</span><strong>${reportSummary.sessions}</strong><small>Phiên đánh giá đã hoàn thành</small></div>
-    <div class="kpi green"><span class="icon">●</span><strong>${reportSummary.students}</strong><small>Học sinh có dữ liệu đánh giá</small></div>
-    <div class="kpi purple"><span class="icon">▥</span><strong>${reportSummary.average == null ? '—' : reportSummary.average.toFixed(2)}</strong><small>Điểm trung bình /10</small></div>
-    <div class="kpi orange"><span class="icon">◔</span><strong>${reportSummary.coverage == null ? '—' : `${reportSummary.coverage.toFixed(0)}%`}</strong><small>Độ phủ học sinh</small></div>
-  </section>
-
-  <section class="grid-3">
-    <div class="card">
-      <div class="card-head"><h2>Phân bố điểm số</h2></div>
-      <div class="card-body"><div class="bars">${scoreBarsHtml}</div></div>
-    </div>
-    <div class="card">
-      <div class="card-head"><h2>Kết quả theo chuyên đề</h2></div>
-      <div class="card-body">${focusHtml}</div>
-    </div>
-    <div class="card quick">
-      <div class="card-head"><h2>Nhận xét nhanh</h2></div>
-      <div class="card-body"><ul>${quickNotesHtml}</ul></div>
-    </div>
-  </section>
-
-  <section class="card" style="margin-top:8px">
-    <div class="card-head"><h2>Danh sách học sinh và kết quả</h2></div>
-    <table>
-      <thead><tr><th>STT</th><th>Học sinh</th><th>Lớp</th><th>Số lần</th><th>TB /10</th><th>Cao nhất</th><th>Chuyên đề</th><th>Gần nhất</th><th>Nhận xét & can thiệp</th></tr></thead>
-      <tbody>${studentRowsHtml || '<tr><td colspan="9"><div class="empty-state">Chưa có dữ liệu học sinh trong phạm vi báo cáo.</div></td></tr>'}</tbody>
-    </table>
-  </section>
-
-  <section class="grid-2">
-    <div class="card intervention-card">
-      <div class="card-head"><h2>Danh sách cần can thiệp sư phạm (${interventionRows.length})</h2></div>
-      <table>
-        <thead><tr><th>STT</th><th>Học sinh</th><th>Mức ưu tiên</th><th>Vấn đề ghi nhận</th><th>Hướng can thiệp</th></tr></thead>
-        <tbody>${interventionHtml}</tbody>
-      </table>
-    </div>
-    <div class="card actions">
-      <div class="card-head"><h2>Đề xuất và điều chỉnh dạy học</h2></div>
-      <div class="card-body">
-        <div class="source">Điều chỉnh giáo viên đã ghi nhận</div>
-        <ul>${teacherAdjustmentHtml}</ul>
-        <div class="source">Can thiệp theo dữ liệu - quy tắc minh bạch</div>
-        <ul>${ruleActionHtml}</ul>
-      </div>
-    </div>
-  </section>
-
-  <section class="card session-table">
-    <div class="card-head"><h2>Lịch sử phiên đánh giá</h2></div>
-    <table>
-      <thead><tr><th>STT</th><th>Thời gian</th><th>Hoạt động</th><th>Lớp</th><th>Chuyên đề</th><th>Số HS</th><th>TB /10</th><th>Điều chỉnh sau đánh giá</th></tr></thead>
-      <tbody>${sessionRowsHtml || '<tr><td colspan="8"><div class="empty-state">Chưa có phiên đánh giá đã hoàn thành.</div></td></tr>'}</tbody>
-    </table>
-  </section>
-
-  <section class="signatures">
-    <div class="signature"><strong>GIÁO VIÊN THỰC HIỆN</strong><span>(Ký, ghi rõ họ tên)</span><div class="line"></div><b>${safe(teacherName)}</b></div>
-    <div class="signature"><strong>TỔ TRƯỞNG CHUYÊN MÔN</strong><span>(Ký, ghi rõ họ tên)</span><div class="line"></div><b>&nbsp;</b></div>
-    <div class="signature"><strong>BAN GIÁM HIỆU</strong><span>(Ký, ghi rõ họ tên và đóng dấu)</span><div class="line"></div><b>&nbsp;</b></div>
-  </section>
-
-  <footer class="footer"><span>Fun for Assessment · Petrus Ky School System - English Department</span><span>Binh Duong · ${safe(reportDate)}</span></footer>
-</div>
-</body>
-</html>`);
-
-  popup.document.close();
-
-  const doPrint = () => {
+    const teacherName = text(
+      currentUser?.fullName
+        || currentUser?.full_name
+        || currentUser?.name
+        || currentUser?.displayName
+        || currentUser?.user_metadata?.full_name
+        || currentUser?.user_metadata?.name,
+      'Giáo viên phụ trách',
+    );
     try {
-      popup.focus();
-      popup.print();
+      popup.document.open();
+      popup.document.write(buildLessonCheckA4Html({
+        teacherName,
+        reportClass,
+        completedSessions: reportSessions.filter((item) => item.status === 'completed'),
+        reportResults,
+        studentReportRows,
+        reportSummary,
+      }));
+      popup.document.close();
+      const doPrint = () => {
+        if (popup.closed) return;
+        try {
+          popup.focus();
+          popup.print();
+        } catch {
+          setNotice('Không thể mở hộp thoại in. Hãy thử lại từ nút In / PDF.');
+        }
+      };
+      Promise.resolve(popup.document.fonts?.ready)
+        .then(() => window.setTimeout(doPrint, 200))
+        .catch(doPrint);
     } catch {
-      setNotice('Không thể mở hộp thoại in. Hãy thử lại từ nút In / PDF.');
+      try { popup.close(); } catch { /* best effort */ }
+      setNotice('Không tạo được phiếu A4 dọc. Hãy tải lại báo cáo rồi thử lại.');
     }
-  };
-
-  const images = [...popup.document.images];
-  const waitForImages = Promise.all(images.map((image) => (
-    image.complete
-      ? Promise.resolve()
-      : new Promise((resolve) => {
-        image.addEventListener('load', resolve, { once: true });
-        image.addEventListener('error', resolve, { once: true });
-      })
-  )));
-  const fontsReady = popup.document.fonts?.ready || Promise.resolve();
-  Promise.all([waitForImages, fontsReady]).then(() => window.setTimeout(doPrint, 250));
   };
 
   const resultFor = (ref) => results[ref] || { rawResult: '', grade10: '', achievement: '', note: '' };
