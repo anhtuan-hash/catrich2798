@@ -357,11 +357,6 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [sortMode, setSortMode] = useState('newest');
   const [viewMode, setViewMode] = useState('grid');
   const [page, setPage] = useState(1);
-  // Auto-turn the activity gallery every 15 seconds; users can pause it at any time.
-  const [autoPageResetToken, setAutoPageResetToken] = useState(0);
-  const [tabVisible, setTabVisible] = useState(() => (
-    typeof document === 'undefined' || document.visibilityState === 'visible'
-  ));
   const [showBuilder, setShowBuilder] = useState(false);
   const [showEditor, setShowEditor] = useState(true);
   const [menuActivityId, setMenuActivityId] = useState('');
@@ -551,51 +546,6 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
-
-  // Stop the countdown in background tabs; restart a full 15 seconds when visible again.
-  useEffect(() => {
-    const updateVisibility = () => setTabVisible(document.visibilityState === 'visible');
-    document.addEventListener('visibilitychange', updateVisibility);
-    return () => document.removeEventListener('visibilitychange', updateVisibility);
-  }, []);
-
-  const autoPageBlocked = loading || totalPages <= 1 || !tabVisible
-    || showBuilder || showAccessQueue || Boolean(menuActivityId)
-    || Boolean(teachingActivity) || Boolean(requestTarget) || Boolean(accessTarget)
-    || assessmentWorkspaceVisible;
-
-  // Load the following page's static thumbnails ahead of each automatic turn.
-  // Rendering and image decode no longer compete at the 15-second boundary.
-  useEffect(() => {
-    if (!tabVisible || loading || totalPages <= 1 || autoPageBlocked) return undefined;
-    const nextStart = (page % totalPages) * pageSize;
-    const images = filteredActivities.slice(nextStart, nextStart + pageSize)
-      .map((activity) => String(activity.thumbnailUrl || '').trim())
-      .filter((src) => /^https?:\/\//i.test(src))
-      .map((src) => {
-        const preload = new Image();
-        preload.decoding = 'async';
-        preload.src = src;
-        return preload;
-      });
-    return () => { images.forEach((image) => { image.onload = null; image.onerror = null; }); };
-  }, [autoPageBlocked, filteredActivities, loading, page, tabVisible, totalPages]);
-
-  useEffect(() => {
-    if (autoPageBlocked) return undefined;
-    const timeoutId = window.setTimeout(() => {
-      setPage((current) => current >= totalPages ? 1 : current + 1);
-    }, 15_000);
-    return () => window.clearTimeout(timeoutId);
-  }, [
-    autoPageBlocked, autoPageResetToken, page, totalPages,
-    gradeFilter, unitFilter, focusFilter, statusFilter, sortMode, query,
-  ]);
-
-  const turnPageManually = (targetPage) => {
-    setPage(targetPage);
-    setAutoPageResetToken((current) => current + 1);
-  };
 
   const filteredTeachers = useMemo(() => {
     const q = teacherQuery.trim().toLocaleLowerCase('vi');
@@ -1434,9 +1384,9 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
           {!loading && filteredActivities.length > 0 ? (
             <div className="lcs-arcade-pagination-controls">
               <div className="lcs-pagination-compact">
-                <button type="button" onClick={() => turnPageManually(Math.max(1, page - 1))} disabled={page <= 1} aria-label={isVi ? 'Trang trước' : 'Previous page'}><ChevronLeft size={16} /></button>
-                {paginationPages.map((pageNumber) => <button key={pageNumber} type="button" className={pageNumber === page ? 'is-active' : ''} onClick={() => turnPageManually(pageNumber)}>{pageNumber}</button>)}
-                <button type="button" onClick={() => turnPageManually(Math.min(totalPages, page + 1))} disabled={page >= totalPages} aria-label={isVi ? 'Trang sau' : 'Next page'}><ChevronRight size={16} /></button>
+                <button type="button" onClick={() => setPage(Math.max(1, page - 1))} disabled={page <= 1} aria-label={isVi ? 'Trang trước' : 'Previous page'}><ChevronLeft size={16} /></button>
+                {paginationPages.map((pageNumber) => <button key={pageNumber} type="button" className={pageNumber === page ? 'is-active' : ''} onClick={() => setPage(pageNumber)}>{pageNumber}</button>)}
+                <button type="button" onClick={() => setPage(Math.min(totalPages, page + 1))} disabled={page >= totalPages} aria-label={isVi ? 'Trang sau' : 'Next page'}><ChevronRight size={16} /></button>
               </div>
             </div>
           ) : null}
