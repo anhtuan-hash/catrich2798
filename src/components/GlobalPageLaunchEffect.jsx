@@ -2,8 +2,9 @@ import React, { useEffect } from 'react';
 import { GLOBAL_MOTION_EVENT } from '../utils/globalMotionSystem.js';
 import './GlobalPageLaunchEffect.css';
 
-const LAUNCH_DURATION = 480;
-const REVEAL_DURATION = 180;
+// Preserve Metro Sweep's choreography but avoid blocking navigation for half a second.
+const LAUNCH_DURATION = 280;
+const REVEAL_DURATION = 110;
 const LAUNCH_EASING = 'cubic-bezier(.2,.82,.2,1)';
 const FALLBACK_COLOR = '#6543b5';
 
@@ -153,8 +154,8 @@ export default function GlobalPageLaunchEffect() {
         { opacity: 1, transform: 'translate3d(0,0,0)' },
         { opacity: 0.16, transform: 'translate3d(-10px,0,0)' },
       ], {
-        duration: 360,
-        delay: 80,
+        duration: 200,
+        delay: 40,
         easing: 'cubic-bezier(.2,.8,.2,1)',
         fill: 'forwards',
       }) : null;
