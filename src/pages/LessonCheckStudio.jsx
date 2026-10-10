@@ -441,19 +441,10 @@ const ActivityCardPreview = React.memo(function ActivityCardPreview({ activity, 
     }
 
     const loadLiveFallback = async () => {
-      const result = await getLessonCheckActivityContent(activity.id);
-      if (!active || !result.ok) {
-        if (active) setState('error');
-        return;
-      }
-      const parsed = parseEmbed(result.content.embedCode);
-      if (!['url', 'html'].includes(parsed.kind)) {
-        setState('error');
-        return;
-      }
-      cardPreviewCache.set(activity.id, { thumbnailUrl: '', embed: parsed });
-      setEmbed(parsed);
-      setState('ready');
+      if (!active) return;
+      cardPreviewCache.set(activity.id, { thumbnailUrl: '', embed: null, posterOnly: true });
+      setEmbed(null);
+      setState('poster');
     };
 
     loadingRef.current = true;
@@ -480,7 +471,7 @@ const ActivityCardPreview = React.memo(function ActivityCardPreview({ activity, 
   }, [activated, activity.id, canLoad, embed, thumbnailUrl]);
 
   const showStaticThumbnail = canLoad && Boolean(thumbnailUrl);
-  const showLivePreview = canLoad && !showStaticThumbnail && activated && embed;
+  const showLivePreview = false;
 
   const activate = () => {
     if (canLoad) onOpen?.();
@@ -512,13 +503,15 @@ const ActivityCardPreview = React.memo(function ActivityCardPreview({ activity, 
         </div>
       ) : (
         <div className="lcs-card-preview-placeholder" aria-hidden="true">
-          {canLoad && state === 'loading' ? <LoaderCircle className="lcs-spin" /> : canLoad ? <MonitorPlay /> : <LockKeyhole />}
+          {canLoad && state === 'loading' ? <LoaderCircle className="lcs-spin" /> : canLoad ? <Gamepad2 /> : <LockKeyhole />}
           <strong>{!canLoad
             ? (isVi ? 'Xem trước bị khóa' : 'Preview locked')
-            : state === 'error'
-              ? (isVi ? 'Không tải được hình xem trước' : 'Preview unavailable')
-              : (isVi ? 'Đang tạo hình xem trước một lần…' : 'Creating the one-time preview…')}</strong>
-          <span>{activity.sourceHost || activity.embedKind?.toUpperCase() || 'Activity'}</span>
+            : activity.title}</strong>
+          <span>{!canLoad
+            ? (activity.sourceHost || activity.embedKind?.toUpperCase() || 'Activity')
+            : state === 'loading'
+              ? (isVi ? 'Đang lấy thumbnail sạch…' : 'Loading a clean thumbnail…')
+              : 'Padlet Arcade'}</span>
         </div>
       )}
 
