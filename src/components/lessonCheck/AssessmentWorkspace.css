@@ -1200,16 +1200,20 @@
 .f4a-session-history-top>span.is-listening{background:#e8f8fa;color:#167985}
 .f4a-session-history-top>span.is-speaking{background:#fff0e4;color:#ad5c16}
 .f4a-delete-session{
-  width:28px;
+  min-width:54px;
   height:28px;
+  padding:0 8px;
   border:1px solid #f0d8d4;
   border-radius:8px;
-  display:grid;
-  place-items:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
   background:#fff7f5;
   color:#c84f42;
   cursor:pointer;
 }
+.f4a-delete-session>span{font-size:8px;font-weight:850}
 .f4a-delete-session:hover{
   border-color:#e9bdb6;
   background:#fff0ed;
