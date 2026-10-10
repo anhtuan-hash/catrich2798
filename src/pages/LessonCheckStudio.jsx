@@ -114,6 +114,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [showEditor, setShowEditor] = useState(true);
   const [teachingActivity, setTeachingActivity] = useState(null);
   const [notice, setNotice] = useState('');
+  const [storageReady, setStorageReady] = useState(false);
   const importRef = useRef(null);
   const teachRef = useRef(null);
   const [draft, setDraft] = useState({
@@ -139,18 +140,31 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   }, [activities, query, typeFilter]);
 
   useEffect(() => {
+    setStorageReady(false);
     try {
       const raw = localStorage.getItem(key);
       const parsed = raw ? JSON.parse(raw) : [];
-      if (Array.isArray(parsed)) setActivities(parsed);
+      const normalized = Array.isArray(parsed) ? parsed.map((item) => {
+        const embedCode = String(item.embedCode || item.embed?.raw || item.embed?.source || '');
+        return { ...item, embedCode, embed: parseEmbed(embedCode) };
+      }).filter((item) => ['url', 'html'].includes(item.embed.kind)) : [];
+      setActivities(normalized);
     } catch {
       setActivities([]);
+    } finally {
+      setStorageReady(true);
     }
   }, [key]);
 
   useEffect(() => {
-    try { localStorage.setItem(key, JSON.stringify(activities)); } catch { /* private mode / quota */ }
-  }, [activities, key]);
+    if (!storageReady) return;
+    try {
+      const serializable = activities.map(({ embed, ...item }) => item);
+      localStorage.setItem(key, JSON.stringify(serializable));
+    } catch {
+      // Browser storage may be unavailable in private mode or when quota is full.
+    }
+  }, [activities, key, storageReady]);
 
   useEffect(() => {
     if (!notice) return undefined;
@@ -242,7 +256,8 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   }
 
   function exportLibrary() {
-    const blob = new Blob([JSON.stringify({ version: STORAGE_VERSION, exportedAt: new Date().toISOString(), activities }, null, 2)], { type: 'application/json' });
+    const serializable = activities.map(({ embed, ...item }) => item);
+    const blob = new Blob([JSON.stringify({ version: STORAGE_VERSION, exportedAt: new Date().toISOString(), activities: serializable }, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
