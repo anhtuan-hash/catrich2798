@@ -80,6 +80,9 @@ let retryTimers = [];
 let fontSizeRuntimeObserver = null;
 let fontSizeRuntimeFrame = 0;
 let fontSizeRuntimeSettings = {};
+// Only newly mounted subtrees are rescanned between configuration changes.
+const fontSizeRuntimePendingRoots = new Set();
+let fontSizeRuntimeSweepCounter = 0;
 const previewObjectUrls = new Map();
 const fontSizeRuntimeOriginal = new Map();
 
@@ -106,10 +109,10 @@ function runtimeNodeExcluded(node, regionId) {
   return false;
 }
 
-function applyRuntimeFontSize(regionId, size) {
+function applyRuntimeFontSize(regionId, size, root = document) {
   const selector = FONT_SIZE_RUNTIME_SELECTORS[regionId];
-  if (!selector || !size || typeof document === 'undefined') return;
-  document.querySelectorAll(selector).forEach((node) => {
+  if (!selector || !size || typeof document === 'undefined' || !root) return;
+  const apply = (node) => {
     if (runtimeNodeExcluded(node, regionId)) return;
     if (!fontSizeRuntimeOriginal.has(node)) {
       fontSizeRuntimeOriginal.set(node, {
@@ -117,9 +120,17 @@ function applyRuntimeFontSize(regionId, size) {
         priority: node.style.getPropertyPriority('font-size'),
       });
     }
-    node.style.setProperty('font-size', `${size}px`, 'important');
-    node.setAttribute('data-bes-regional-font-size-runtime', regionId);
-  });
+    const value = `${size}px`;
+    // Avoid unnecessary style writes (which trigger layout/style invalidation).
+    if (node.style.getPropertyValue('font-size') !== value || node.style.getPropertyPriority('font-size') !== 'important') {
+      node.style.setProperty('font-size', `${size}px`, 'important');
+    }
+    if (node.getAttribute('data-bes-regional-font-size-runtime') !== regionId) {
+      node.setAttribute('data-bes-regional-font-size-runtime', regionId);
+    }
+  };
+  if (root.matches?.(selector)) apply(root);
+  root.querySelectorAll?.(selector).forEach(apply);
 }
 
 function performRuntimeFontSizeSync() {
@@ -131,17 +142,45 @@ function performRuntimeFontSizeSync() {
   });
 }
 
-function scheduleRuntimeFontSizeSync() {
-  if (typeof window === 'undefined' || fontSizeRuntimeFrame) return;
+function scheduleRuntimeFontSizeSync(root) {
+  if (typeof window === 'undefined' || !root || root.nodeType !== 1 || !root.isConnected) return;
+  fontSizeRuntimePendingRoots.add(root);
+  if (fontSizeRuntimeFrame) return;
   fontSizeRuntimeFrame = window.requestAnimationFrame(() => {
     fontSizeRuntimeFrame = 0;
-    performRuntimeFontSizeSync();
+    const roots = [...fontSizeRuntimePendingRoots].filter((node) => node.isConnected);
+    fontSizeRuntimePendingRoots.clear();
+    // A newly mounted parent already covers every nested added element.
+    const snapshotRoots = new Set(roots);
+    const uniqueRoots = roots.filter((node) => {
+      for (let parent = node.parentElement; parent; parent = parent.parentElement) {
+        if (snapshotRoots.has(parent)) return false;
+      }
+      return true;
+    });
+    const activeSizes = FONT_SIZE_RUNTIME_ORDER
+      .map((regionId) => [regionId, getRegionalFontSize(fontSizeRuntimeSettings, regionId)])
+      .filter(([, size]) => Boolean(size));
+    uniqueRoots.forEach((node) => {
+      activeSizes.forEach(([regionId, size]) => applyRuntimeFontSize(regionId, size, node));
+    });
+    // Keep the existing revert-to-original contract without retaining DOM nodes
+    // that have been detached during long-lived sessions.
+    if (++fontSizeRuntimeSweepCounter % 30 === 0) {
+      for (const node of fontSizeRuntimeOriginal.keys()) {
+        if (!node.isConnected) fontSizeRuntimeOriginal.delete(node);
+      }
+    }
   });
 }
 
 function syncRuntimeRegionalFontSizes(settings) {
   if (typeof document === 'undefined') return;
   fontSizeRuntimeSettings = settings;
+  // A server/Admin update is the only time an intentional full rescan is needed.
+  if (fontSizeRuntimeFrame) window.cancelAnimationFrame(fontSizeRuntimeFrame);
+  fontSizeRuntimeFrame = 0;
+  fontSizeRuntimePendingRoots.clear();
   const active = GLOBAL_FONT_REGIONS.some((region) => Boolean(getRegionalFontSize(settings, region.id)));
   performRuntimeFontSizeSync();
   if (!active) {
@@ -151,7 +190,9 @@ function syncRuntimeRegionalFontSizes(settings) {
   }
   if (!fontSizeRuntimeObserver && typeof MutationObserver === 'function') {
     fontSizeRuntimeObserver = new MutationObserver((records) => {
-      if (records.some((record) => record.addedNodes?.length)) scheduleRuntimeFontSizeSync();
+      records.forEach((record) => {
+        record.addedNodes?.forEach((node) => scheduleRuntimeFontSizeSync(node));
+      });
     });
     const host = document.body || document.documentElement;
     if (host) fontSizeRuntimeObserver.observe(host, { childList: true, subtree: true });

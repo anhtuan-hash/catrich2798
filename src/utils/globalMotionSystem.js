@@ -569,20 +569,36 @@ function collectEntrants(root) {
 function installMutationMotionObserver() {
   if (!document.body) return () => {};
   const pending = new Set();
+  const pendingPanels = new Set();
   const flush = () => {
     mutationFrame = 0;
-    [...pending].forEach(collectEntrants);
+    const roots = [...pending].filter((node) => node.isConnected);
     pending.clear();
+    // React can report both a parent and each of its children in one batch.
+    // Only walk the outermost added subtree once per animation frame.
+    const snapshotRoots = new Set(roots);
+    roots.forEach((node) => {
+      for (let ancestor = node.parentElement; ancestor; ancestor = ancestor.parentElement) {
+        if (snapshotRoots.has(ancestor)) return;
+      }
+      collectEntrants(node);
+    });
+    pendingPanels.forEach((panel) => { if (panel.isConnected) markTabPanel(panel); });
+    pendingPanels.clear();
   };
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       if (mutation.type === 'childList') mutation.addedNodes.forEach((node) => { if (node?.nodeType === 1) pending.add(node); });
-      if (mutation.type === 'attributes' && mutation.target?.matches?.(TAB_PANEL_SELECTOR) && isVisible(mutation.target)) markTabPanel(mutation.target);
+      // Preserve programmatic tab activation, but never repeatedly read computed
+      // styles synchronously within a burst of React class/style updates.
+      if (mutation.type === 'attributes' && mutation.target?.matches?.(TAB_PANEL_SELECTOR)) {
+        pendingPanels.add(mutation.target);
+      }
     });
-    if (!mutationFrame && pending.size) mutationFrame = window.requestAnimationFrame(flush);
+    if (!mutationFrame && (pending.size || pendingPanels.size)) mutationFrame = window.requestAnimationFrame(flush);
   });
   observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden', 'aria-hidden', 'aria-selected', 'style'] });
-  return () => { observer.disconnect(); if (mutationFrame) window.cancelAnimationFrame(mutationFrame); mutationFrame = 0; pending.clear(); };
+  return () => { observer.disconnect(); if (mutationFrame) window.cancelAnimationFrame(mutationFrame); mutationFrame = 0; pending.clear(); pendingPanels.clear(); };
 }
 
 function ensureRouteLoader() {

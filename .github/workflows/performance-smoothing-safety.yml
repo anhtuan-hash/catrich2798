@@ -1,0 +1,41 @@
+name: Brian Performance Smoothing Safety
+on:
+  push:
+    branches:
+      - perf/smooth-global-runtime-20261010
+      - main
+    paths:
+      - 'src/utils/globalRegionalFontSystem.js'
+      - 'src/utils/globalMotionSystem.js'
+      - 'tests/performance-smoothing-contract.test.mjs'
+      - '.github/workflows/performance-smoothing-safety.yml'
+  pull_request:
+    paths:
+      - 'src/utils/globalRegionalFontSystem.js'
+      - 'src/utils/globalMotionSystem.js'
+      - 'tests/performance-smoothing-contract.test.mjs'
+      - '.github/workflows/performance-smoothing-safety.yml'
+jobs:
+  performance-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Targeted performance regression contracts
+        run: node --test tests/performance-smoothing-contract.test.mjs
+      - name: Existing lesson check tests
+        run: node scripts/test-lesson-check-studio.mjs
+      - name: Production build
+        run: npm run build
+      # The legacy npm test currently imports specializedAppEngines.js, which
+      # was already absent from main before this optimization. Keep its
+      # repository-wide repair separate from this narrowly scoped performance PR.
+      - name: Active quick-access smoke checks
+        run: node scripts/test-youtube-quick-access.mjs
+      - name: Source and output performance audit
+        run: node scripts/performance-audit.mjs
