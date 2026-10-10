@@ -347,6 +347,26 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const previewReady = ['url', 'html'].includes(parsedDraft.kind);
   const unitOptions = useMemo(() => unitOptionsForGrade(draft.grade), [draft.grade]);
   const pendingCount = useMemo(() => requests.filter((item) => item.status === 'pending').length, [requests]);
+  const pageSize = 12;
+
+  const libraryStats = useMemo(() => {
+    const grades = new Set(activities.map((item) => item.grade).filter(Boolean));
+    const units = new Set(activities.map((item) => item.grade && item.unitNo ? `${item.grade}-${item.unitNo}` : '').filter(Boolean));
+    const types = new Set(activities.map((item) => item.type).filter(Boolean));
+    const open = activities.filter((item) => isLeader || item.hasAccess).length;
+    const pending = activities.filter((item) => !isLeader && item.requestStatus === 'pending').length;
+    const locked = activities.filter((item) => !isLeader && !item.hasAccess && item.requestStatus !== 'pending').length;
+    return { grades: grades.size, units: units.size, types: types.size, open, pending, locked };
+  }, [activities, isLeader]);
+
+  const typeCounts = useMemo(() => {
+    const counts = {};
+    TYPE_OPTIONS.forEach((option) => { counts[option.value] = 0; });
+    activities.forEach((item) => {
+      counts[item.type] = (counts[item.type] || 0) + 1;
+    });
+    return counts;
+  }, [activities]);
 
   const loadActivities = useCallback(async ({ silent = false } = {}) => {
     if (!silent) setLoading(true);
@@ -395,10 +415,19 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const filteredActivities = useMemo(() => {
     const q = query.trim().toLocaleLowerCase('vi');
     const result = activities.filter((item) => {
+      const open = isLeader || item.hasAccess;
+      const pending = !isLeader && item.requestStatus === 'pending';
+      const locked = !isLeader && !item.hasAccess && item.requestStatus !== 'pending';
+
       if (gradeFilter !== 'all' && String(item.grade || '') !== gradeFilter) return false;
       if (unitFilter !== 'all' && String(item.unitNo || '') !== unitFilter) return false;
       if (lessonFilter !== 'all' && String(item.lessonKey || '') !== lessonFilter) return false;
       if (typeFilter !== 'all' && item.type !== typeFilter) return false;
+      if (accessFilter === 'open' && !open) return false;
+      if (accessFilter === 'locked' && !locked) return false;
+      if (statusFilter === 'pending' && !pending) return false;
+      if (statusFilter === 'ready' && !open) return false;
+      if (statusFilter === 'locked' && !locked) return false;
       if (!q) return true;
       return [
         item.title,
@@ -420,20 +449,20 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       }
       return String(b.updatedAt || '').localeCompare(String(a.updatedAt || ''));
     });
-  }, [activities, gradeFilter, lessonFilter, query, sortMode, typeFilter, unitFilter]);
+  }, [accessFilter, activities, gradeFilter, isLeader, lessonFilter, query, sortMode, statusFilter, typeFilter, unitFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredActivities.length / pageSize));
   const pagedActivities = useMemo(() => {
     const start = (page - 1) * pageSize;
     return filteredActivities.slice(start, start + pageSize);
-  }, [filteredActivities, page, pageSize]);
+  }, [filteredActivities, page]);
 
   const pageStart = filteredActivities.length ? ((page - 1) * pageSize) + 1 : 0;
   const pageEnd = Math.min(page * pageSize, filteredActivities.length);
 
   useEffect(() => {
     setPage(1);
-  }, [gradeFilter, lessonFilter, pageSize, query, sortMode, typeFilter, unitFilter]);
+  }, [accessFilter, gradeFilter, lessonFilter, query, sortMode, statusFilter, typeFilter, unitFilter]);
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
@@ -449,8 +478,15 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     [requests, accessTarget?.id],
   );
 
-  function resetDraft() {
+  function openNewActivity() {
     setDraft(blankDraft());
+    setShowEditor(true);
+    setShowBuilder(true);
+  }
+
+  function closeBuilder() {
+    setDraft(blankDraft());
+    setShowBuilder(false);
     setShowEditor(true);
   }
 
@@ -504,6 +540,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       embedCode: result.content.embedCode,
     });
     setShowEditor(true);
+    setShowBuilder(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -530,7 +567,8 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       return;
     }
     setNotice(isVi ? 'Đã lưu lên Supabase.' : 'Saved to Supabase.');
-    resetDraft();
+    setDraft(blankDraft());
+    setShowBuilder(false);
     await loadActivities({ silent: true });
   }
 
