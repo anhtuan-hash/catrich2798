@@ -887,10 +887,10 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
                       {isLeader ? (
                         <>
-                          <button onClick={() => openAccessManager(item)}><UserCheck size={16} />{isVi ? 'Quyền' : 'Access'}</button>
-                          <button onClick={() => editActivity(item)}><Edit3 size={16} />{isVi ? 'Sửa' : 'Edit'}</button>
-                          <button onClick={() => duplicateActivity(item)}><Copy size={16} />{isVi ? 'Nhân bản' : 'Duplicate'}</button>
-                          <button className="is-danger" onClick={() => removeActivity(item)}><Trash2 size={16} />{isVi ? 'Xóa' : 'Delete'}</button>
+                          <button className="lcs-card-icon-action" title={isVi ? 'Phân quyền' : 'Manage access'} aria-label={isVi ? 'Phân quyền' : 'Manage access'} onClick={() => openAccessManager(item)}><UserCheck size={16} /></button>
+                          <button className="lcs-card-icon-action" title={isVi ? 'Chỉnh sửa' : 'Edit'} aria-label={isVi ? 'Chỉnh sửa' : 'Edit'} onClick={() => editActivity(item)}><Edit3 size={16} /></button>
+                          <button className="lcs-card-icon-action" title={isVi ? 'Nhân bản' : 'Duplicate'} aria-label={isVi ? 'Nhân bản' : 'Duplicate'} onClick={() => duplicateActivity(item)}><Copy size={16} /></button>
+                          <button className="lcs-card-icon-action is-danger" title={isVi ? 'Xóa hoạt động' : 'Delete activity'} aria-label={isVi ? 'Xóa hoạt động' : 'Delete activity'} onClick={() => removeActivity(item)}><Trash2 size={16} /></button>
                         </>
                       ) : null}
                     </div>
