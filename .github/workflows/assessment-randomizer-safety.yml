@@ -1,0 +1,32 @@
+name: Assessment Randomizer Safety
+on:
+  pull_request:
+    paths:
+      - 'src/components/lessonCheck/AssessmentWorkspace.jsx'
+      - 'src/components/lessonCheck/AssessmentWorkspace.css'
+      - 'src/utils/lessonCheckRandomizer.js'
+      - 'tests/lesson-check-randomizer.test.mjs'
+      - '.github/workflows/assessment-randomizer-safety.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/components/lessonCheck/AssessmentWorkspace.jsx'
+      - 'src/components/lessonCheck/AssessmentWorkspace.css'
+      - 'src/utils/lessonCheckRandomizer.js'
+      - 'tests/lesson-check-randomizer.test.mjs'
+      - '.github/workflows/assessment-randomizer-safety.yml'
+jobs:
+  assessment-randomizer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Non-repeating draws, balanced teams, and UI safeguards
+        run: node --test tests/lesson-check-randomizer.test.mjs
+      - name: Production build
+        run: npm run build
