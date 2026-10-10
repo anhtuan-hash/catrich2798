@@ -374,6 +374,8 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [menuActivityId, setMenuActivityId] = useState('');
   const [showAccessQueue, setShowAccessQueue] = useState(false);
   const [assessmentWorkspaceView, setAssessmentWorkspaceView] = useState('');
+  const [assessmentWorkspaceVisible, setAssessmentWorkspaceVisible] = useState(false);
+  const [assessmentResumeToScoreToken, setAssessmentResumeToScoreToken] = useState(0);
   const [teachingActivity, setTeachingActivity] = useState(null);
   const [teachingEmbed, setTeachingEmbed] = useState(null);
   const [teachingLoading, setTeachingLoading] = useState(false);
@@ -706,7 +708,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   async function openTeachingMode(item) {
     if (!item.hasAccess && !isLeader) {
       setRequestTarget(item);
-      return;
+      return false;
     }
     setTeachingActivity(item);
     setTeachingLoading(true);
@@ -716,15 +718,40 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     if (!result.ok) {
       setTeachingActivity(null);
       setNotice(result.message || (isVi ? 'Không thể tải hoạt động.' : 'Could not load activity.'));
-      return;
+      return false;
     }
     const embed = parseEmbed(result.content.embedCode);
     if (!['url', 'html'].includes(embed.kind)) {
       setTeachingActivity(null);
       setNotice(isVi ? 'Nội dung nhúng không còn hợp lệ.' : 'The stored embed is no longer valid.');
-      return;
+      return false;
     }
     setTeachingEmbed(embed);
+    return true;
+  }
+
+  async function launchAssessmentActivity(item) {
+    setAssessmentWorkspaceVisible(false);
+    const opened = await openTeachingMode(item);
+    if (!opened) setAssessmentWorkspaceVisible(true);
+  }
+
+  function resumeAssessmentForScoring() {
+    if (!assessmentWorkspaceView) return;
+    setAssessmentWorkspaceView('session');
+    setAssessmentResumeToScoreToken((value) => value + 1);
+    setAssessmentWorkspaceVisible(true);
+  }
+
+  function closeTeachingMode({ resumeAssessment = false, toScore = false } = {}) {
+    if (document.fullscreenElement) document.exitFullscreen?.();
+    setTeachingActivity(null);
+    setTeachingEmbed(null);
+    if (resumeAssessment && assessmentWorkspaceView) {
+      setAssessmentWorkspaceView('session');
+      if (toScore) setAssessmentResumeToScoreToken((value) => value + 1);
+      setAssessmentWorkspaceVisible(true);
+    }
   }
 
   async function sendAccessRequest() {
@@ -838,8 +865,8 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
             <span className="is-three"><MonitorPlay size={18} />Skills</span>
           </div>
           <div className="lcs-assessment-launchers">
-            <button className="lcs-start-assessment" type="button" onClick={() => setAssessmentWorkspaceView('session')}><ClipboardCheck size={18} />{isVi ? 'Bắt đầu đánh giá' : 'Start assessment'}</button>
-            <button className="lcs-open-reports" type="button" onClick={() => setAssessmentWorkspaceView('reports')}><BarChart3 size={17} />{isVi ? 'Báo cáo' : 'Reports'}</button>
+            <button className="lcs-start-assessment" type="button" onClick={() => { setAssessmentWorkspaceView('session'); setAssessmentWorkspaceVisible(true); }}><ClipboardCheck size={18} />{isVi ? 'Bắt đầu đánh giá' : 'Start assessment'}</button>
+            <button className="lcs-open-reports" type="button" onClick={() => { setAssessmentWorkspaceView('reports'); setAssessmentWorkspaceVisible(true); }}><BarChart3 size={17} />{isVi ? 'Báo cáo' : 'Reports'}</button>
             {isLeader ? <button className="lcs-arcade-create" type="button" onClick={openNewActivity}><Plus size={18} />{isVi ? 'Tạo hoạt động' : 'Create activity'}</button> : null}
           </div>
         </div>
@@ -1156,9 +1183,19 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
           activities={activities}
           isLeader={isLeader}
           initialView={assessmentWorkspaceView}
-          onClose={() => setAssessmentWorkspaceView('')}
-          onLaunchActivity={openTeachingMode}
+          visible={assessmentWorkspaceVisible}
+          resumeToScoreToken={assessmentResumeToScoreToken}
+          onClose={() => { setAssessmentWorkspaceVisible(false); setAssessmentWorkspaceView(''); }}
+          onLaunchActivity={launchAssessmentActivity}
         />
+      ) : null}
+
+      {assessmentWorkspaceView === 'session' && !assessmentWorkspaceVisible && !teachingActivity ? (
+        <button className="lcs-assessment-resume" type="button" onClick={resumeAssessmentForScoring}>
+          <span><ClipboardCheck size={18} /></span>
+          <div><strong>{isVi ? 'Tiếp tục phiên đánh giá' : 'Resume assessment'}</strong><small>{isVi ? 'Quay lại để ghi nhận kết quả' : 'Return to record results'}</small></div>
+          <ChevronRight size={18} />
+        </button>
       ) : null}
 
       {requestTarget ? (
@@ -1230,9 +1267,10 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
           <header>
             <div><span>{isVi ? 'CHẾ ĐỘ DẠY' : 'TEACHING MODE'}</span><strong>{teachingActivity.title}</strong><small>Global Success {teachingActivity.grade} · Unit {teachingActivity.unitNo} · {teachingActivity.lessonTitle}</small></div>
             <div>
+              {assessmentWorkspaceView === 'session' ? <button className="lcs-score-return" onClick={() => closeTeachingMode({ resumeAssessment: true, toScore: true })}><ClipboardCheck size={18} />{isVi ? 'Kết thúc & ghi điểm' : 'Finish & score'}</button> : null}
               {teachingEmbed?.kind === 'url' ? <button onClick={() => openExternalFromEmbed(teachingEmbed)}><ExternalLink size={18} />{isVi ? 'Mở ngoài' : 'Open externally'}</button> : null}
               <button onClick={() => document.fullscreenElement ? document.exitFullscreen?.() : teachRef.current?.requestFullscreen?.()}><Fullscreen size={18} />{isVi ? 'Toàn màn hình' : 'Fullscreen'}</button>
-              <button className="lcs-close" onClick={() => { if (document.fullscreenElement) document.exitFullscreen?.(); setTeachingActivity(null); setTeachingEmbed(null); }}><X size={18} />{isVi ? 'Đóng' : 'Close'}</button>
+              <button className="lcs-close" onClick={() => closeTeachingMode()}><X size={18} />{isVi ? 'Đóng' : 'Close'}</button>
             </div>
           </header>
           <div className="lcs-teach-frame-wrap">

@@ -16,10 +16,12 @@ import {
   Search,
   Shuffle,
   Sparkles,
+  Trash2,
   Users,
   X,
 } from 'lucide-react';
 import {
+  deleteAssessmentSession,
   listAssessmentAssignedClasses,
   listAssessmentResults,
   listAssessmentSessions,
@@ -107,6 +109,16 @@ function downloadCsv(filename, rows) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+function normalizedGrade10FromRaw(rawValue) {
+  const raw = String(rawValue || '').trim().replace(/,/g, '.');
+  const match = raw.match(/^(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)$/);
+  if (!match) return null;
+  const earned = Number(match[1]);
+  const maximum = Number(match[2]);
+  if (!Number.isFinite(earned) || !Number.isFinite(maximum) || maximum <= 0 || earned < 0 || earned > maximum) return null;
+  return Math.round(((earned / maximum) * 10) * 100) / 100;
+}
+
 function purposeLabel(value) {
   return PURPOSES.find(([key]) => key === value)?.[1] || value;
 }
@@ -136,6 +148,8 @@ export default function AssessmentWorkspace({
   activities = [],
   isLeader = false,
   initialView = 'session',
+  visible = true,
+  resumeToScoreToken = 0,
   onClose,
   onLaunchActivity,
 }) {
@@ -171,9 +185,14 @@ export default function AssessmentWorkspace({
   const [reportResults, setReportResults] = useState([]);
   const [reportError, setReportError] = useState('');
   const [reportRefreshKey, setReportRefreshKey] = useState(0);
+  const [deletingSessionId, setDeletingSessionId] = useState('');
 
   useEffect(() => {
-    if (typeof document === 'undefined') return undefined;
+    if (visible) setView(initialView);
+  }, [initialView, visible]);
+
+  useEffect(() => {
+    if (!visible || typeof document === 'undefined') return undefined;
     const body = document.body;
     const root = document.documentElement;
     const previousBodyOverflow = body.style.overflow;
@@ -184,7 +203,7 @@ export default function AssessmentWorkspace({
       body.style.overflow = previousBodyOverflow;
       root.style.overflow = previousRootOverflow;
     };
-  }, []);
+  }, [visible]);
 
   const allowedActivities = useMemo(
     () => activities.filter((item) => isLeader || item.hasAccess),
@@ -301,6 +320,13 @@ export default function AssessmentWorkspace({
     });
     return () => { active = false; };
   }, [view, reportClass, reportRefreshKey]);
+
+  useEffect(() => {
+    if (!resumeToScoreToken || !sessionId) return;
+    setView('session');
+    setStep(4);
+    setNotice('Hoạt động đã kết thúc. Tiếp tục ghi nhận kết quả.');
+  }, [resumeToScoreToken, sessionId]);
 
   const reportSummary = useMemo(() => {
     const completedSessions = reportSessions.filter((item) => item.status === 'completed');
@@ -511,7 +537,23 @@ export default function AssessmentWorkspace({
     setRandomPickedRef('');
   };
 
-  const exportReport = () => {
+  const deleteSession = async (item) => {
+    if (!item?.id || deletingSessionId) return;
+    const ok = window.confirm(`Xóa phiên đánh giá “${item.activityTitle || 'không tên'}” của lớp ${item.className || '—'}? Kết quả học sinh thuộc phiên này cũng sẽ bị xóa khỏi báo cáo.`);
+    if (!ok) return;
+    setDeletingSessionId(item.id);
+    const deleted = await deleteAssessmentSession(item.id);
+    setDeletingSessionId('');
+    if (!deleted.ok) {
+      setNotice(deleted.message || 'Không thể xóa phiên đánh giá.');
+      return;
+    }
+    if (item.id === sessionId) resetSession();
+    setNotice('Đã xóa phiên đánh giá.');
+    setReportRefreshKey((value) => value + 1);
+  };
+
+    const exportReport = () => {
     const rows = [
       ['Học sinh', 'Mã HS', 'Số lần đánh giá', 'Điểm TB /10', 'Chuyên đề', 'Lần gần nhất'],
       ...studentReportRows.map((item) => [
@@ -568,9 +610,35 @@ export default function AssessmentWorkspace({
   const updateResult = (ref, patch) => {
     setResults((current) => ({
       ...current,
-      [ref]: { ...resultFor(ref), ...patch },
+      [ref]: { ...(current[ref] || resultFor(ref)), ...patch },
     }));
   };
+  const updateRawResult = (ref, rawResult) => {
+    const converted = normalizedGrade10FromRaw(rawResult);
+    setResults((current) => {
+      const previous = current[ref] || resultFor(ref);
+      const previousAuto = normalizedGrade10FromRaw(previous.rawResult);
+      const previousGrade = previous.grade10 === '' || previous.grade10 == null ? null : Number(previous.grade10);
+      const shouldClearPreviousAuto = converted == null
+        && previousAuto != null
+        && Number.isFinite(previousGrade)
+        && Math.abs(previousGrade - previousAuto) < 0.0001;
+      return {
+        ...current,
+        [ref]: {
+          ...previous,
+          rawResult,
+          ...(converted != null
+            ? { grade10: String(converted) }
+            : shouldClearPreviousAuto
+              ? { grade10: '' }
+              : {}),
+        },
+      };
+    });
+  };
+
+  if (!visible) return null;
 
   const workspace = <div className="f4a-overlay">
     <section className="f4a-workspace" role="dialog" aria-modal="true" aria-label="Fun for Assessment">
@@ -719,8 +787,8 @@ export default function AssessmentWorkspace({
               return <div className="f4a-score-row" key={ref}>
                 <span className="f4a-score-student"><strong>{student.fullName}</strong><small>{student.code || '—'}</small></span>
                 <span>{groupMap[ref] || '—'}</span>
-                <span><input value={item.rawResult} onChange={(event) => updateResult(ref, { rawResult: event.target.value })} placeholder="vd. 17/20, 850 điểm…" /></span>
-                <span><input type="number" min="0" max="10" step="0.1" value={item.grade10} onChange={(event) => updateResult(ref, { grade10: event.target.value })} placeholder="—" /></span>
+                <span className="f4a-raw-score"><input value={item.rawResult} onChange={(event) => updateRawResult(ref, event.target.value)} placeholder="vd. 70/80" /><small>{normalizedGrade10FromRaw(item.rawResult) == null ? 'Nhập dạng x/y để tự quy đổi' : `→ ${normalizedGrade10FromRaw(item.rawResult).toFixed(2)}/10`}</small></span>
+                <span><input type="number" min="0" max="10" step="0.01" value={item.grade10} onChange={(event) => updateResult(ref, { grade10: event.target.value })} placeholder="—" /></span>
                 <span><select value={item.achievement} onChange={(event) => updateResult(ref, { achievement: event.target.value })}><option value="">—</option><option value="Tốt">Tốt</option><option value="Đạt">Đạt</option><option value="Cần hỗ trợ">Cần hỗ trợ</option></select></span>
                 <span><input value={item.note} onChange={(event) => updateResult(ref, { note: event.target.value })} placeholder="Ghi chú…" /></span>
               </div>;
@@ -770,7 +838,18 @@ export default function AssessmentWorkspace({
             <aside>
               <header><h3>Lịch sử phiên đánh giá</h3><span>{reportSessions.length}</span></header>
               <div className="f4a-session-history">
-                {reportSessions.slice(0,20).map((item) => <article key={item.id}><span className={`is-${item.focusArea}`}>{focusLabel(item.focusArea)}</span><strong>{item.activityTitle}</strong><small>{item.className} · {item.studentCount} HS · {formatDate(item.completedAt || item.startedAt)}</small><em>{item.averageGrade10 == null ? 'Chưa có điểm /10' : `TB ${item.averageGrade10.toFixed(2)}/10`}</em>{item.teachingAdjustment ? <p>Điều chỉnh: {item.teachingAdjustment}</p> : null}</article>)}
+                {reportSessions.slice(0,20).map((item) => <article key={item.id}>
+                  <div className="f4a-session-history-top">
+                    <span className={`is-${item.focusArea}`}>{focusLabel(item.focusArea)}</span>
+                    <button type="button" className="f4a-delete-session" onClick={() => deleteSession(item)} disabled={deletingSessionId === item.id} title="Xóa phiên đánh giá">
+                      {deletingSessionId === item.id ? <LoaderCircle className="lcs-spin" size={14} /> : <Trash2 size={14} />}<span>Xóa</span>
+                    </button>
+                  </div>
+                  <strong>{item.activityTitle}</strong>
+                  <small>{item.className} · {item.studentCount} HS · {formatDate(item.completedAt || item.startedAt)}</small>
+                  <em>{item.averageGrade10 == null ? 'Chưa có điểm /10' : `TB ${item.averageGrade10.toFixed(2)}/10`}</em>
+                  {item.teachingAdjustment ? <p>Điều chỉnh: {item.teachingAdjustment}</p> : null}
+                </article>)}
               </div>
             </aside>
           </div>

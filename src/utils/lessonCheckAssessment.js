@@ -94,6 +94,19 @@ export async function saveAssessmentSession(payload) {
   return { ok: true, id: String(data || payload?.id || '') };
 }
 
+export async function deleteAssessmentSession(sessionId) {
+  if (!isSupabaseConfigured || !supabase) {
+    return { ok: false, message: 'Supabase chưa được cấu hình.' };
+  }
+  const id = text(sessionId);
+  if (!id) return { ok: false, message: 'Thiếu mã phiên đánh giá.' };
+  const { data, error } = await supabase.rpc('lesson_check_delete_assessment_session', {
+    p_session_id: id,
+  });
+  if (error) return errorResult(error, 'Không thể xóa phiên đánh giá.');
+  return { ok: data !== false };
+}
+
 export async function listAssessmentSessions(className = '', limit = 100) {
   if (!isSupabaseConfigured || !supabase) {
     return { ok: true, items: [] };
