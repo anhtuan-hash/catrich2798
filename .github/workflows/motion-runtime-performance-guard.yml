@@ -1,0 +1,30 @@
+name: Motion Runtime Performance Guard
+on:
+  push:
+    branches: [main, perf/motion-runtime-tuning-20261010]
+    paths:
+      - 'src/utils/globalMotionSystem.js'
+      - 'tests/motion-runtime-performance.test.mjs'
+      - '.github/workflows/motion-runtime-performance-guard.yml'
+  pull_request:
+    paths:
+      - 'src/utils/globalMotionSystem.js'
+      - 'tests/motion-runtime-performance.test.mjs'
+      - '.github/workflows/motion-runtime-performance-guard.yml'
+jobs:
+  motion-runtime-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: New and existing performance contracts
+        run: node --test tests/motion-runtime-performance.test.mjs tests/performance-smoothing-contract.test.mjs tests/sitewide-smoothness-contract.test.mjs
+      - name: Admin font and motion compatibility
+        run: node scripts/test-font-upload-live-preview.mjs
+      - name: Frontend build
+        run: npm run build
