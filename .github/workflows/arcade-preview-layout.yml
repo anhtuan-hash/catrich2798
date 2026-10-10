@@ -1,0 +1,31 @@
+name: Arcade Preview Layout Safety
+on:
+  pull_request:
+    paths:
+      - 'src/pages/LessonCheckStudio.css'
+      - 'tests/lesson-check-preview-integrity.test.mjs'
+      - 'tests/e2e/lesson-check-preview-integrity.spec.js'
+      - '.github/workflows/arcade-preview-layout.yml'
+  push:
+    branches: [main, fix/arcade-preview-distortion-20261010]
+    paths:
+      - 'src/pages/LessonCheckStudio.css'
+      - 'tests/lesson-check-preview-integrity.test.mjs'
+      - 'tests/e2e/lesson-check-preview-integrity.spec.js'
+      - '.github/workflows/arcade-preview-layout.yml'
+jobs:
+  gallery-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 23
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --test tests/lesson-check-preview-integrity.test.mjs
+      - run: node scripts/test-lesson-check-studio.mjs
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npx playwright test tests/e2e/lesson-check-preview-integrity.spec.js --project=chromium-desktop --project=webkit-desktop
