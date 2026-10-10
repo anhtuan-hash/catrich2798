@@ -222,6 +222,17 @@ assert.match(assessmentStyles, /\.f4a-activity-grid\{/);
 assert.match(assessmentStyles, /\.f4a-score-table\{/);
 assert.match(assessmentStyles, /\.f4a-report-stats\{/);
 
+// Performance guards for opening the assessment workspace over live iframe previews.
+assert.match(studio, /const ActivityCardPreview = React\.memo/);
+assert.match(studio, /is-assessment-open/);
+assert.match(assessmentWorkspace, /body\.style\.overflow = 'hidden'/);
+assert.match(assessmentWorkspace, /requestAnimationFrame\(\(\) => window\.setTimeout\(load, 0\)\)/);
+assert.match(assessmentStyles, /Performance pass · Safari\/modal opening/);
+assert.match(assessmentStyles, /backdrop-filter:none!important/);
+assert.match(assessmentStyles, /contain:layout paint style/);
+assert.match(styles, /Performance guard while Fun for Assessment workspace is open/);
+assert.match(styles, /\.lcs-page--library\.is-assessment-open \.lcs-card-live-preview\{[\s\S]*?display:none!important/);
+
 assert.match(vercel, /frame-src 'self' https:/, 'CSP must permit HTTPS iframe sources.');
 
 console.log('Lesson Check Studio Global Success + Supabase access contract PASS');
