@@ -79,12 +79,28 @@ assert.match(studio, /setLessonCheckTeacherAccess/);
 assert.match(studio, /canPublishDepartment\(currentUser\)/);
 assert.match(studio, /requestFullscreen/);
 
-// Cards never eagerly run all iframes; content only loads in editor/teaching mode.
-assert.doesNotMatch(studio, /filteredActivities\.map[\s\S]{0,1500}<ActivityFrame/, 'Catalog cards must not eagerly execute iframe content.');
+// Card previews load only near the viewport and only for users who already have access.
+assert.match(studio, /function ActivityCardPreview\(/);
+assert.match(studio, /new IntersectionObserver/);
+assert.match(studio, /rootMargin: '180px 0px'/);
+assert.match(studio, /if \(!canLoad \|\| !nearViewport \|\| embed \|\| state === 'loading'\)/);
+assert.match(studio, /getLessonCheckActivityContent\(activity\.id\)/);
+assert.match(studio, /cardPreviewCache\.set\(activity\.id, parsed\)/);
+assert.match(studio, /<ActivityCardPreview[\s\S]*?canLoad=\{!locked\}/);
+assert.match(studio, /lcs-card-preview-frame/);
+assert.match(studio, /Mở nhanh/);
+assert.match(studio, /Xem trước bị khóa/);
+assert.match(studio, /Đang chờ duyệt/);
 assert.match(studio, /getLessonCheckActivityContent\(item\.id\)/);
 
 assert.match(styles, /\.lcs-quick-grid\{[\s\S]*?grid-template-columns:/);
 assert.match(styles, /\.lcs-card\.is-locked/);
+assert.match(styles, /\.lcs-card-media\{/);
+assert.match(styles, /\.lcs-card-preview-frame\{/);
+assert.match(styles, /pointer-events:none/);
+assert.match(styles, /aspect-ratio:16\/9/);
+assert.match(styles, /\.lcs-card-media-action/);
+assert.match(styles, /\.lcs-card-unitline/);
 assert.match(styles, /\.lcs-access-dialog/);
 assert.match(styles, /\.lcs-teach-overlay\{[\s\S]*?position:fixed/);
 assert.match(styles, /@media\(max-width:720px\)/);
