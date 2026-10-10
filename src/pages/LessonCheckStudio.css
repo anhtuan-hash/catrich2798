@@ -4364,24 +4364,23 @@ html:has(.lcs-page--library) .bes-vn-atmosphere{
   .lcs-page--library .lcs-bulk-slot-head{flex-wrap:wrap}
 }
 
-/* Activity Arcade: unobtrusive 15-second auto-page control */
+/* Activity Arcade · seamless 15-second paging without a visible autoplay button */
 .lcs-page--library .lcs-arcade-pagination-controls{
-  display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap;
+  display:flex;align-items:center;justify-content:flex-end;gap:9px;
 }
-.lcs-page--library .lcs-auto-page-toggle{
-  display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  min-height:34px;padding:0 11px;border:1px solid #c8dccc;border-radius:10px;
-  background:#eff8f2;color:#176a4d;cursor:pointer;
-  font-size:11px;font-weight:750;white-space:nowrap;
+.lcs-page--library .lcs-arcade-grid--soft-enter{
+  animation:lcs-gallery-page-reveal .22s ease-out both;
 }
-.lcs-page--library .lcs-auto-page-toggle:hover{background:#e5f2ea;}
-.lcs-page--library .lcs-auto-page-toggle.is-paused{
-  border-color:#dfd6c5;background:#fffaf1;color:#72644a;
+@keyframes lcs-gallery-page-reveal{
+  from{opacity:.87}
+  to{opacity:1}
 }
-.lcs-page--library .lcs-auto-page-toggle:focus-visible{
-  outline:2px solid #256bc8;outline-offset:2px;
+@media(prefers-reduced-motion:reduce){
+  .lcs-page--library .lcs-arcade-grid--soft-enter{animation:none}
 }
 @media(max-width:680px){
-  .lcs-page--library .lcs-arcade-results-head{flex-wrap:wrap;}
-  .lcs-page--library .lcs-arcade-pagination-controls{width:100%;justify-content:flex-end;}
+  .lcs-page--library .lcs-arcade-results-head{flex-wrap:wrap}
+  .lcs-page--library .lcs-arcade-pagination-controls{
+    width:100%;justify-content:flex-end;
+  }
 }

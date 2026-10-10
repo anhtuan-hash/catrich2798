@@ -21,8 +21,6 @@ import {
   Layers3,
   List,
   MoreHorizontal,
-  Pause,
-  Play,
   LoaderCircle,
   LockKeyhole,
   MonitorPlay,
@@ -360,7 +358,6 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [viewMode, setViewMode] = useState('grid');
   const [page, setPage] = useState(1);
   // Auto-turn the activity gallery every 15 seconds; users can pause it at any time.
-  const [autoPageEnabled, setAutoPageEnabled] = useState(true);
   const [autoPageResetToken, setAutoPageResetToken] = useState(0);
   const [tabVisible, setTabVisible] = useState(() => (
     typeof document === 'undefined' || document.visibilityState === 'visible'
@@ -567,14 +564,31 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     || Boolean(teachingActivity) || Boolean(requestTarget) || Boolean(accessTarget)
     || assessmentWorkspaceVisible;
 
+  // Load the following page's static thumbnails ahead of each automatic turn.
+  // Rendering and image decode no longer compete at the 15-second boundary.
   useEffect(() => {
-    if (!autoPageEnabled || autoPageBlocked) return undefined;
+    if (!tabVisible || loading || totalPages <= 1 || autoPageBlocked) return undefined;
+    const nextStart = (page % totalPages) * pageSize;
+    const images = filteredActivities.slice(nextStart, nextStart + pageSize)
+      .map((activity) => String(activity.thumbnailUrl || '').trim())
+      .filter((src) => /^https?:\/\//i.test(src))
+      .map((src) => {
+        const preload = new Image();
+        preload.decoding = 'async';
+        preload.src = src;
+        return preload;
+      });
+    return () => { images.forEach((image) => { image.onload = null; image.onerror = null; }); };
+  }, [autoPageBlocked, filteredActivities, loading, page, tabVisible, totalPages]);
+
+  useEffect(() => {
+    if (autoPageBlocked) return undefined;
     const timeoutId = window.setTimeout(() => {
       setPage((current) => current >= totalPages ? 1 : current + 1);
     }, 15_000);
     return () => window.clearTimeout(timeoutId);
   }, [
-    autoPageEnabled, autoPageBlocked, autoPageResetToken, page, totalPages,
+    autoPageBlocked, autoPageResetToken, page, totalPages,
     gradeFilter, unitFilter, focusFilter, statusFilter, sortMode, query,
   ]);
 
@@ -1419,23 +1433,6 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
           <span>{filteredActivities.length ? (isVi ? `Hiển thị ${pageStart}–${pageEnd} / ${filteredActivities.length}` : `Showing ${pageStart}–${pageEnd} of ${filteredActivities.length}`) : (isVi ? 'Không có kết quả' : 'No results')}</span>
           {!loading && filteredActivities.length > 0 ? (
             <div className="lcs-arcade-pagination-controls">
-              {totalPages > 1 ? (
-                <button
-                  type="button"
-                  className={`lcs-auto-page-toggle ${autoPageEnabled ? 'is-running' : 'is-paused'}`}
-                  aria-pressed={autoPageEnabled}
-                  aria-label={isVi
-                    ? (autoPageEnabled ? 'Tạm dừng tự chuyển trang' : 'Bật tự chuyển trang mỗi 15 giây')
-                    : (autoPageEnabled ? 'Pause automatic page turning' : 'Automatically turn pages every 15 seconds')}
-                  title={isVi ? 'Mỗi trang hiển thị 15 giây' : '15 seconds per page'}
-                  onClick={() => setAutoPageEnabled((current) => !current)}
-                >
-                  {autoPageEnabled ? <Pause size={14} /> : <Play size={14} />}
-                  <span>{isVi
-                    ? (autoPageEnabled ? 'Tự chuyển · 15s' : 'Đã tạm dừng')
-                    : (autoPageEnabled ? 'Auto · 15s' : 'Paused')}</span>
-                </button>
-              ) : null}
               <div className="lcs-pagination-compact">
                 <button type="button" onClick={() => turnPageManually(Math.max(1, page - 1))} disabled={page <= 1} aria-label={isVi ? 'Trang trước' : 'Previous page'}><ChevronLeft size={16} /></button>
                 {paginationPages.map((pageNumber) => <button key={pageNumber} type="button" className={pageNumber === page ? 'is-active' : ''} onClick={() => turnPageManually(pageNumber)}>{pageNumber}</button>)}
@@ -1448,7 +1445,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         {loading ? <LoadingBlock language={language} /> : !filteredActivities.length ? (
           <div className="lcs-empty-library"><Layers3 /><h3>{activities.length ? (isVi ? 'Không có hoạt động phù hợp bộ lọc.' : 'No activities match these filters.') : (isVi ? 'Chưa có hoạt động nào trên Supabase.' : 'No activities in Supabase yet.')}</h3></div>
         ) : (
-          <div className="lcs-arcade-grid">
+          <div className="lcs-arcade-grid lcs-arcade-grid--soft-enter" key={page}>
             {pagedActivities.map((item) => {
               const locked = !isLeader && !item.hasAccess;
               return (
