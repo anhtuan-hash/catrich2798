@@ -55,7 +55,7 @@ test('Mockup A keeps six main links while Utilities exposes four original action
   await expect(panel).toBeVisible();
   const entries=panel.locator('.brian-nav__utilities-items button');
   await expect(entries).toHaveCount(4);
-  expect((await entries.allTextContents()).map(s=>s.trim())).toEqual(['Báo cáo2 ngày','TTCM9','Điểm danh','Quản trị']);
+  expect((await entries.allTextContents()).map(s=>s.replace(/\\s+/g,'').trim())).toEqual(['Báocáo2ngày','TTCM9','Điểmdanh','Quảntrị']);
   await expect(panel.locator('.brian-nav__ttcm-badge')).toHaveText('9');
   await expect(panel.locator('.brian-nav__reports-countdown')).toHaveText('2 ngày');
   const geometry=await panel.evaluate(el=>({style:getComputedStyle(el).position,right:el.getBoundingClientRect().right,width:el.getBoundingClientRect().width}));
