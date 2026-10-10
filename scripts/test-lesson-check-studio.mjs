@@ -13,6 +13,7 @@ const migration = read('supabase/migrations/20261010081500_lesson_check_activity
 const focusMigration = read('supabase/migrations/20261010093500_lesson_check_focus_tags.sql');
 const assessmentMigration = read('supabase/migrations/20261010103000_fun_for_assessment_sessions.sql');
 const assignedRosterMigration = read('supabase/migrations/20261010104500_fun_for_assessment_assigned_rosters.sql');
+const assessmentDeleteMigration = read('supabase/migrations/20261010111500_fun_for_assessment_delete_sessions.sql');
 const assessmentService = read('src/utils/lessonCheckAssessment.js');
 const assessmentWorkspace = read('src/components/lessonCheck/AssessmentWorkspace.jsx');
 const assessmentStyles = read('src/components/lessonCheck/AssessmentWorkspace.css');
@@ -178,7 +179,13 @@ assert.match(styles, /\.lcs-teach-overlay\{[\s\S]*?position:fixed/);
 assert.match(studio, /import AssessmentWorkspace from '\.\.\/components\/lessonCheck\/AssessmentWorkspace\.jsx'/);
 assert.match(studio, /Bắt đầu đánh giá/);
 assert.match(studio, /setAssessmentWorkspaceView\('reports'\)/);
-assert.match(studio, /<AssessmentWorkspace[\s\S]*?onLaunchActivity=\{openTeachingMode\}/);
+assert.match(studio, /<AssessmentWorkspace[\s\S]*?onLaunchActivity=\{launchAssessmentActivity\}/);
+assert.match(studio, /visible=\{assessmentWorkspaceVisible\}/);
+assert.match(studio, /resumeToScoreToken=\{assessmentResumeToScoreToken\}/);
+assert.match(studio, /setAssessmentWorkspaceVisible\(false\)/);
+assert.match(studio, /resumeAssessmentForScoring/);
+assert.match(studio, /Tiếp tục phiên đánh giá/);
+assert.match(studio, /Kết thúc & ghi điểm/);
 
 assert.match(assessmentService, /lesson_check_list_assigned_class_rosters/);
 assert.match(assessmentService, /lesson_check_save_assessment_session/);
@@ -201,6 +208,17 @@ assert.match(assessmentWorkspace, /In \/ PDF/);
 assert.match(assessmentWorkspace, /Độ phủ/);
 assert.match(assessmentWorkspace, /Hồ sơ đánh giá học sinh/);
 assert.match(assessmentWorkspace, /saveAssessmentSession\(sessionPayload\(\{ status: 'completed' \}\)\)/);
+assert.match(assessmentWorkspace, /function normalizedGrade10FromRaw\(rawValue\)/);
+assert.match(assessmentWorkspace, /const match = raw\.match/);
+assert.match(assessmentWorkspace, /grade10: String\(converted\)/);
+assert.match(assessmentWorkspace, /placeholder="vd\. 70\/80"/);
+assert.match(assessmentWorkspace, /step="0\.01"/);
+assert.match(assessmentWorkspace, /visible = true/);
+assert.match(assessmentWorkspace, /resumeToScoreToken = 0/);
+assert.match(assessmentWorkspace, /if \(!visible\) return null/);
+assert.match(assessmentWorkspace, /setStep\(4\)/);
+assert.match(assessmentWorkspace, /deleteAssessmentSession\(item\.id\)/);
+assert.match(assessmentWorkspace, /Xóa phiên đánh giá/);
 
 assert.match(assessmentMigration, /create table if not exists public\.lesson_check_assessment_sessions/);
 assert.match(assessmentMigration, /create table if not exists public\.lesson_check_assessment_results/);
@@ -214,6 +232,9 @@ assert.match(assignedRosterMigration, /lesson_check_list_assigned_class_rosters/
 assert.match(assignedRosterMigration, /get_my_assigned_school_classes\(\)/);
 assert.match(assignedRosterMigration, /bes_class_rosters/);
 assert.match(assignedRosterMigration, /jsonb_set\([\s\S]*?'\{students\}'/);
+assert.match(assessmentDeleteMigration, /lesson_check_delete_assessment_session/);
+assert.match(assessmentDeleteMigration, /delete from public\.lesson_check_assessment_sessions/);
+assert.match(assessmentDeleteMigration, /teacher_id = auth\.uid\(\) or public\.lesson_check_is_leader\(\)/);
 assert.match(assessmentMigration, /teacher_id = auth\.uid\(\) or public\.lesson_check_is_leader\(\)/);
 
 assert.match(assessmentStyles, /\.f4a-overlay\{/);
@@ -242,6 +263,10 @@ assert.match(assessmentStyles, /backdrop-filter:none!important/);
 assert.match(assessmentStyles, /contain:layout paint style/);
 assert.match(styles, /Performance guard while Fun for Assessment workspace is open/);
 assert.match(styles, /\.lcs-page--library\.is-assessment-open \.lcs-card-live-preview\{[\s\S]*?display:none!important/);
+assert.match(styles, /\.lcs-assessment-resume\{/);
+assert.match(styles, /\.lcs-teach-overlay header button\.lcs-score-return/);
+assert.match(assessmentStyles, /\.f4a-raw-score\{/);
+assert.match(assessmentStyles, /\.f4a-delete-session\{/);
 
 assert.match(vercel, /frame-src 'self' https:/, 'CSP must permit HTTPS iframe sources.');
 
