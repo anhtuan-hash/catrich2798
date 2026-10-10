@@ -40,6 +40,7 @@ import { collectWebVitals } from './utils/webVitals.js';
 import { installPwaEventCapture, registerBrianPwa } from './utils/pwa.js';
 import { APP_VERSION } from './config/version.js';
 import { isAdminRole } from './utils/roles.js';
+import { useGlobalChromeSettings } from './utils/globalChromeSettings.js';
 import { isAppHiddenForUser, useAppVisibility } from './utils/appVisibility.js';
 import { visibilityIdForRoute } from './data/appVisibilityRegistry.js';
 import { installBursReadability } from './utils/bursReadability.js';
@@ -193,6 +194,7 @@ function App() {
   const [aiProvider, setAiProviderState] = useState(() => getAiProvider());
   const [providerConfigs, setProviderConfigs] = useState(() => getAiConfigs());
   const [currentUser, setCurrentUser] = useState(null);
+  const chromeSettings = useGlobalChromeSettings(currentUser);
   const [authReady, setAuthReady] = useState(false);
   const [loadingState, setLoadingState] = useState({ active: false, label: '' });
   const [aiOperationState, setAiOperationState] = useState({ active: false, label: '', provider: '' });
@@ -362,6 +364,7 @@ function App() {
   const quickAccessWebAllowed = presentation.presentationMode === 'desktop';
   const quickAccessEnabled = Boolean(
     quickAccessWebAllowed
+    && chromeSettings.showActionDock
     && currentUser
     && canAccessRoute
     && currentRoute !== 'home'
@@ -462,7 +465,7 @@ function App() {
             <StatusMenuBar route={currentRoute} {...context} />
           </Suspense>
           <AppErrorBoundary compact scope="global-navigation" label={language === 'vi' ? 'thanh điều hướng' : 'navigation'}>
-            <GlobalFlatNavigation route={currentRoute} selectedTool={selectedTool} onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }} {...context} />
+            <GlobalFlatNavigation route={currentRoute} selectedTool={selectedTool} chromeSettings={chromeSettings} onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }} {...context} />
           </AppErrorBoundary>
         </div> : null}
 
