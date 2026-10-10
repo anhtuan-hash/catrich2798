@@ -313,9 +313,10 @@ function ActivityCardPreview({ activity, canLoad, isLeader, language, onOpen, on
 
       <div className="lcs-card-media-shade" aria-hidden="true" />
       <div className="lcs-card-media-top">
-        <span className="lcs-book-badge"><BookOpen size={15} />Global Success {activity.grade || '—'}</span>
-        <StatusPill activity={activity} isLeader={isLeader} language={language} />
+        <span className={`lcs-focus-indicator is-${activity.focusArea || 'unclassified'}`}>{focusShortLabel(activity.focusArea)}</span>
+        {!isLeader ? <StatusPill activity={activity} isLeader={isLeader} language={language} /> : null}
       </div>
+      {canLoad ? <span className="lcs-preview-open-hint" aria-hidden="true"><MonitorPlay size={18} /></span> : null}
       {!canLoad ? <div className="lcs-card-lock-mark" aria-hidden="true"><LockKeyhole /></div> : null}
     </div>
   );
