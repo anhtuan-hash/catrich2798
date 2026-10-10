@@ -1,6 +1,6 @@
 import { isSupabaseConfigured, supabase } from './supabase.js';
 
-const ASSIGNED_CLASSES_RPC = 'get_my_assigned_school_classes';
+const ASSIGNED_CLASSES_RPC = 'lesson_check_list_assigned_class_rosters';
 
 function text(value, fallback = '') {
   const normalized = String(value ?? '').trim();
