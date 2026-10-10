@@ -443,7 +443,11 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
             {filteredActivities.map((item) => (
               <article key={item.id} className={`lcs-card ${selectedId === item.id ? 'is-selected' : ''}`}>
                 <div className="lcs-card-preview">
-                  <ActivityFrame embed={item.embed} className="lcs-card-frame" />
+                  <div className="lcs-card-visual" aria-hidden="true">
+                    <span className="material-symbols-rounded">{item.embed?.kind === 'url' ? 'language' : 'code_blocks'}</span>
+                    <strong>{item.embed?.kind === 'url' ? sourceHost(item.embed.source) : 'HTML / srcDoc'}</strong>
+                    <small>{isVi ? 'Nhấn Trình chiếu để tải hoạt động' : 'Select Teach to load the activity'}</small>
+                  </div>
                   <button className="lcs-card-play" onClick={() => openTeachingMode(item)}>
                     <span className="material-symbols-rounded">present_to_all</span>
                     {isVi ? 'Trình chiếu' : 'Teach'}
