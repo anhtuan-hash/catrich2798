@@ -103,6 +103,97 @@ export async function ensureLessonCheckActivityThumbnail(activityId) {
   }
 }
 
+export async function uploadLessonCheckActivityThumbnail(activityId, dataUrl) {
+  if (!isSupabaseConfigured || !supabase || !activityId || !dataUrl) {
+    return { ok: false, thumbnailUrl: '', message: 'Thumbnail image is missing.' };
+  }
+
+  let accessToken = '';
+  try {
+    const { data } = await supabase.auth.getSession();
+    accessToken = String(data?.session?.access_token || '');
+  } catch {
+    accessToken = '';
+  }
+  if (!accessToken) return { ok: false, thumbnailUrl: '', message: 'Authentication required.' };
+
+  try {
+    const response = await fetch('/api/lesson-check-thumbnail-upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        activityId: String(activityId),
+        action: 'upload',
+        dataUrl: String(dataUrl),
+      }),
+      credentials: 'same-origin',
+      cache: 'no-store',
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || payload?.ok !== true) {
+      return {
+        ok: false,
+        thumbnailUrl: '',
+        message: String(payload?.message || `HTTP ${response.status}`),
+      };
+    }
+    emitUpdate({ type: 'thumbnail-updated', activityId });
+    return {
+      ok: true,
+      thumbnailUrl: String(payload.thumbnailUrl || ''),
+      generatedAt: payload.generatedAt || '',
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      thumbnailUrl: '',
+      message: error?.message || 'Không thể tải thumbnail lên.',
+    };
+  }
+}
+
+export async function removeLessonCheckActivityThumbnail(activityId) {
+  if (!isSupabaseConfigured || !supabase || !activityId) {
+    return { ok: false, message: 'Activity is missing.' };
+  }
+
+  let accessToken = '';
+  try {
+    const { data } = await supabase.auth.getSession();
+    accessToken = String(data?.session?.access_token || '');
+  } catch {
+    accessToken = '';
+  }
+  if (!accessToken) return { ok: false, message: 'Authentication required.' };
+
+  try {
+    const response = await fetch('/api/lesson-check-thumbnail-upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        activityId: String(activityId),
+        action: 'remove',
+      }),
+      credentials: 'same-origin',
+      cache: 'no-store',
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || payload?.ok !== true) {
+      return { ok: false, message: String(payload?.message || `HTTP ${response.status}`) };
+    }
+    emitUpdate({ type: 'thumbnail-removed', activityId });
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, message: error?.message || 'Không thể xóa thumbnail.' };
+  }
+}
+
 export async function getLessonCheckActivityContent(activityId) {
   if (!isSupabaseConfigured || !supabase || !activityId) {
     return { ok: false, content: null, message: 'Activity is missing.' };
