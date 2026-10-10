@@ -85,7 +85,7 @@ test('Assessment Core V7 keeps premium horizontal navigation across all modules'
   ];
 
   for (const [label, tab] of modules) {
-    await page.getByRole('button', { name: label, exact: true }).first().click();
+    await page.locator('.qb-tabs-horizontal').getByRole('button', { name: label, exact: true }).click();
     await expect(page.locator('.qb-shell.qb-shell-v7')).toHaveAttribute('data-qb-tab', tab);
     await expect(page.locator('.qb-v6-hero')).toBeVisible();
     await expect(page.locator('.qb-v7-hero-graphic svg')).toBeVisible();

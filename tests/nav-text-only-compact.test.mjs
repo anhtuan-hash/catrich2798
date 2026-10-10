@@ -14,6 +14,7 @@ const ttcm=read('src/components/GlobalTtcmNavigationTab.jsx');
 const attendance=read('src/components/GlobalAttendanceNavigationTab.jsx');
 const hub=read('src/components/GlobalNavigationHubController.jsx');
 const region=read('src/components/GlobalNavigationRegionalTypographyRuntime.jsx');
+const qbSpec=read('tests/e2e/question-bank-route.spec.js');
 
 test('compact text-only stylesheet is mounted after existing nav visuals',()=>{
   assert.ok(nav.indexOf("import './GlobalNavigationTextOnlyCompact.css'")>nav.indexOf("import './DashboardTopChromeMockup.css'"));
@@ -51,4 +52,9 @@ test('runtime inline default matches compact 14px CSS, without disabling Admin r
   assert.match(hub,/setImportant\(item, 'font-size', HUB_TYPOGRAPHY.navItem.fontSize\)/);
   assert.match(region,/if \(hasSize && size\) node.style.setProperty\('font-size', size, 'important'\)/);
   assert.match(region,/--bes-font-size-navigation/);
+});
+
+test('Question Bank module E2E selectors stay scoped to its own tab strip',()=>{
+  assert.match(qbSpec,/page\.locator\('\.qb-tabs-horizontal'\)\.getByRole\('button', \{ name: label, exact: true \}\)\.click\(\)/);
+  assert.doesNotMatch(qbSpec,/page\.getByRole\('button', \{ name: label, exact: true \}\)\.first\(\)\.click\(\)/);
 });
