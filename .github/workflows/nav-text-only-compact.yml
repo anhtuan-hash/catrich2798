@@ -29,4 +29,6 @@ jobs:
       - run: node --test tests/nav-text-only-compact.test.mjs
       - run: npm run build
       - run: npx playwright install --with-deps chromium webkit
-      # Both desktop nav and the Question Bank have a 'Quản trị' label.\n      # Scope QB tab checks to its own tab strip, never to global navigation.\n      - run: npx playwright test tests/e2e/nav-text-only-compact.spec.js tests/e2e/question-bank-route.spec.js --project=chromium-desktop --project=webkit-desktop
+      # Both desktop nav and the Question Bank have a 'Quản trị' label.
+      # Scope QB tab checks to its own tab strip, never to global navigation.
+      - run: npx playwright test tests/e2e/nav-text-only-compact.spec.js tests/e2e/question-bank-route.spec.js --project=chromium-desktop --project=webkit-desktop
