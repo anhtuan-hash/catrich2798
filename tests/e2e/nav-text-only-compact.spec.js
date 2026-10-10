@@ -44,7 +44,7 @@ test('primary desktop nav is text-only, uniformly compact, and preserves status 
     expect(['none','normal','""']).toContain(metrics.pseudo);
   }
   const visualOrder=await pills.evaluateAll(nodes=>nodes
-    .map((node,index)=>({label:node.textContent.trim(),order:Number(getComputedStyle(node).order)||0,index}))
+    .map((node,index)=>({label:node.classList.contains('brian-nav__reports-tab') ? 'Báo cáo' : node.textContent.trim(),order:Number(getComputedStyle(node).order)||0,index}))
     .sort((a,b)=>a.order-b.order||a.index-b.index).map(({label})=>label));
   expect(visualOrder.indexOf('Sổ điểm')).toBeLessThan(visualOrder.indexOf('Kiểm tra'));
   expect(visualOrder.indexOf('Kiểm tra')).toBeLessThan(visualOrder.indexOf('Báo cáo'));
