@@ -548,6 +548,7 @@ export default function AssessmentWorkspace({
       setNotice(deleted.message || 'Không thể xóa phiên đánh giá.');
       return;
     }
+    if (item.id === sessionId) resetSession();
     setNotice('Đã xóa phiên đánh giá.');
     setReportRefreshKey((value) => value + 1);
   };
