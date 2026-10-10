@@ -1,0 +1,32 @@
+name: Compact Text Navigation Safety
+on:
+  pull_request:
+    paths:
+      - 'src/components/GlobalFlatNavigation.jsx'
+      - 'src/components/GlobalNavigationTextOnlyCompact.css'
+      - 'tests/nav-text-only-compact.test.mjs'
+      - 'tests/e2e/nav-text-only-compact.spec.js'
+      - '.github/workflows/nav-text-only-compact.yml'
+  push:
+    branches: [main, ui/compact-text-only-navbar-20261010]
+    paths:
+      - 'src/components/GlobalFlatNavigation.jsx'
+      - 'src/components/GlobalNavigationTextOnlyCompact.css'
+      - 'tests/nav-text-only-compact.test.mjs'
+      - 'tests/e2e/nav-text-only-compact.spec.js'
+      - '.github/workflows/nav-text-only-compact.yml'
+jobs:
+  compact-nav:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --test tests/nav-text-only-compact.test.mjs
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npx playwright test tests/e2e/nav-text-only-compact.spec.js --project=chromium-desktop --project=webkit-desktop

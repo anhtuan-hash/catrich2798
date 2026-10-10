@@ -50,6 +50,8 @@ import './homeroom/HomeroomCompactDensity.css';
 import '../styles/GlobalLayout16x9Authority.css';
 import './GlobalNavigationPastelPalette.css';
 import './DashboardTopChromeMockup.css';
+// Desktop primary destinations only: uniform text-only pastel pills.
+import './GlobalNavigationTextOnlyCompact.css';
 
 export default function GlobalFlatNavigation(props) {
   const presentation = usePresentationMode();
