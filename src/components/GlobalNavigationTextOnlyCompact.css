@@ -149,4 +149,4 @@ html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__pr
 html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__lesson-check-tab { order: 47 !important; }
 html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__reports-tab { order: 50 !important; }
 html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__ttcm-tab { order: 60 !important; }
-html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__attendance-tab { order: 70 !important; }
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__attendance-tab { order: 48 !important; }

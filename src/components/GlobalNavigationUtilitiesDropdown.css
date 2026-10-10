@@ -188,3 +188,133 @@ html body .brian-nav__utilities-popover .brian-nav__ttcm-badge {
     margin-left: 6px !important;
   }
 }
+
+
+/* Utilities v2: compact, tactile action cards; original feature handlers remain unchanged. */
+html body .brian-nav__utilities-popover {
+  width: 282px;
+  padding: 12px;
+  border: 1px solid #dce5f0;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 16px 36px rgba(34,58,86,.13), 0 3px 10px rgba(34,58,86,.035);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+html body .brian-nav__utilities-heading {
+  margin: 0 1px 10px;
+  padding: 4px 7px 10px;
+  color: #8293aa;
+  font-size: 10px;
+  letter-spacing: .14em;
+}
+html body .brian-nav__utilities-items { gap: 7px; }
+html body .brian-nav__utilities-popover .brian-nav__utilities-items > .brian-nav__utility-slot > button,
+html body .brian-nav__utilities-popover .brian-nav__utilities-items > .brian-nav__utility-admin {
+  --utility-ink: #37516d;
+  --utility-tint: #edf2fa;
+  --utility-tile-border: #e1e8f0;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 11px !important;
+  width: 100% !important;
+  min-height: 54px !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 9px 11px !important;
+  border: 1px solid var(--utility-tile-border) !important;
+  border-radius: 13px !important;
+  background: #f9fbfe !important;
+  color: var(--utility-ink) !important;
+  font-size: 14px !important;
+  font-weight: 680 !important;
+  line-height: 1.2 !important;
+  text-align: left !important;
+  text-shadow: none !important;
+  transform: none !important;
+  filter: none !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  transition: background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease !important;
+}
+html body .brian-nav__utilities-popover .brian-nav__utility-reports > button {
+  --utility-ink: #836321;
+  --utility-tint: #fff1ce;
+  --utility-tile-border: #f1e5ca;
+  background: #fffdf8 !important;
+}
+html body .brian-nav__utilities-popover .brian-nav__utility-ttcm > button {
+  --utility-ink: #66529f;
+  --utility-tint: #f0eafd;
+  --utility-tile-border: #e8e1f4;
+  background: #fcfaff !important;
+}
+html body .brian-nav__utilities-popover .brian-nav__utilities-items > .brian-nav__utility-admin {
+  --utility-ink: #55718a;
+  --utility-tint: #eaf1f7;
+}
+html body .brian-nav__utilities-popover .brian-nav__utilities-items > .brian-nav__utility-slot > button:hover,
+html body .brian-nav__utilities-popover .brian-nav__utilities-items > .brian-nav__utility-admin:hover,
+html body .brian-nav__utilities-popover .brian-nav__utilities-items > .brian-nav__utility-slot > button.is-active,
+html body .brian-nav__utilities-popover .brian-nav__utilities-items > .brian-nav__utility-admin.is-active {
+  background: var(--utility-tint) !important;
+  border-color: color-mix(in srgb, var(--utility-ink) 25%, var(--utility-tile-border)) !important;
+  color: var(--utility-ink) !important;
+  box-shadow: 0 3px 10px rgba(34,58,86,.045) !important;
+}
+html body .brian-nav__utilities-popover .brian-nav__utility-reports > button::before,
+html body .brian-nav__utilities-popover .brian-nav__utility-ttcm > button::before,
+html body .brian-nav__utilities-popover .brian-nav__utility-admin::before {
+  display: inline-flex !important;
+  position: static !important;
+  flex: 0 0 34px !important;
+  width: 34px !important;
+  min-width: 34px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  background: var(--utility-tint) !important;
+  color: var(--utility-ink) !important;
+  box-shadow: none !important;
+  font-family: system-ui, sans-serif !important;
+  font-size: 18px !important;
+  font-weight: 650 !important;
+  line-height: 1 !important;
+  transform: none !important;
+}
+html body .brian-nav__utilities-popover .brian-nav__utility-reports > button::before { content: '↗' !important; }
+html body .brian-nav__utilities-popover .brian-nav__utility-ttcm > button::before { content: '✉' !important; }
+html body .brian-nav__utilities-popover .brian-nav__utility-admin::before { content: '⚙' !important; }
+html body .brian-nav__utilities-popover .brian-nav__reports-tab .brian-nav__reports-copy {
+  flex: 1 1 auto !important;
+  justify-content: space-between !important;
+  transform: none !important;
+  opacity: 1 !important;
+  will-change: auto !important;
+}
+html body .brian-nav__utilities-popover .brian-nav__reports-tab .brian-nav__reports-label,
+html body .brian-nav__utilities-popover .brian-nav__ttcm-tab > span {
+  color: inherit !important;
+  font-size: 14px !important;
+  font-weight: 680 !important;
+}
+html body .brian-nav__utilities-popover .brian-nav__reports-tab .brian-nav__reports-countdown {
+  height: 22px !important;
+  min-width: 0 !important;
+  margin-left: auto !important;
+  font-size: 10px !important;
+  box-shadow: none !important;
+}
+html body .brian-nav__utilities-popover .brian-nav__ttcm-badge {
+  margin-left: auto !important;
+  flex: 0 0 auto !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html body .brian-nav__utilities-popover .brian-nav__utilities-items button { transition: none !important; }
+}

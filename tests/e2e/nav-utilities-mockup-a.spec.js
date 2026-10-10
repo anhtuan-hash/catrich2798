@@ -1,6 +1,6 @@
 import {test,expect} from '@playwright/test';
 
-test('Mockup A keeps six main links while Utilities exposes four original actions',async({page})=>{
+test('Mockup A places Attendance after Assessment, with Reports and TTCM in Utilities',async({page})=>{
   await page.setViewportSize({width:1440,height:900});
   await page.setContent(`<div id="root"><div class="app-shell" data-route="home">
     <div class="bes-top-chrome"><nav class="brian-nav" style="display:flex;width:1300px">
@@ -12,6 +12,7 @@ test('Mockup A keeps six main links while Utilities exposes four original action
         <button class="brian-nav__homeroom-tab">Chủ nhiệm</button>
         <button class="brian-nav__gradebook-tab">Sổ điểm</button>
         <button class="brian-nav__lesson-check-tab">Kiểm tra</button>
+        <button class="brian-nav__attendance-tab" data-nav-key="attendance">Điểm danh</button>
         <button data-nav-key="utilities" class="brian-nav__utilities-trigger" aria-expanded="false"
           aria-controls="brian-nav-utilities-menu">Tiện ích<span class="brian-nav__utilities-caret">⌄</span></button>
       </div>
@@ -28,9 +29,6 @@ test('Mockup A keeps six main links while Utilities exposes four original action
         <div class="brian-nav__utility-slot brian-nav__utility-ttcm">
           <button class="brian-nav__ttcm-tab">TTCM<b class="brian-nav__ttcm-badge">9</b></button>
         </div>
-        <div class="brian-nav__utility-slot brian-nav__utility-attendance">
-          <button class="brian-nav__attendance-tab">Điểm danh</button>
-        </div>
         <button class="brian-nav__utility-admin">Quản trị</button>
       </div>
     </section>`);
@@ -38,9 +36,9 @@ test('Mockup A keeps six main links while Utilities exposes four original action
   await page.addStyleTag({path:'src/components/GlobalNavigationTextOnlyCompact.css'});
   await page.addStyleTag({path:'src/components/GlobalNavigationUtilitiesDropdown.css'});
   const primary=page.locator('.brian-nav__primary > button');
-  await expect(primary).toHaveCount(7);
+  await expect(primary).toHaveCount(8);
   const labels=await primary.allTextContents();
-  expect(labels.map(s=>s.trim())).toEqual(['Trang chủ','Ứng dụng','Dashboard','Chủ nhiệm','Sổ điểm','Kiểm tra','Tiện ích⌄']);
+  expect(labels.map(s=>s.trim())).toEqual(['Trang chủ','Ứng dụng','Dashboard','Chủ nhiệm','Sổ điểm','Kiểm tra','Điểm danh','Tiện ích⌄']);
   const trigger=page.getByRole('button',{name:/Tiện ích/});
   await expect(trigger).toHaveCSS('height','40px');
   const panel=page.locator('#brian-nav-utilities-menu');
@@ -54,8 +52,8 @@ test('Mockup A keeps six main links while Utilities exposes four original action
   });
   await expect(panel).toBeVisible();
   const entries=panel.locator('.brian-nav__utilities-items button');
-  await expect(entries).toHaveCount(4);
-  expect((await entries.allTextContents()).map(s=>s.replace(/\s+/g,'').trim())).toEqual(['Báocáo2ngày','TTCM9','Điểmdanh','Quảntrị']);
+  await expect(entries).toHaveCount(3);
+  expect((await entries.allTextContents()).map(s=>s.replace(/\s+/g,'').trim())).toEqual(['Báocáo2ngày','TTCM9','Quảntrị']);
   await expect(panel.locator('.brian-nav__ttcm-badge')).toHaveText('9');
   await expect(panel.locator('.brian-nav__reports-countdown')).toHaveText('2 ngày');
   const geometry=await panel.evaluate(el=>({style:getComputedStyle(el).position,right:el.getBoundingClientRect().right,width:el.getBoundingClientRect().width}));

@@ -27,13 +27,16 @@ test('six original primary routes stay intact; admin is now permission-gated in 
   assert.ok(frame.includes('<GlobalReportsNavigationTab {...props} />'));
   assert.ok(existingNav.includes("const lessonCheck=read('src/components/GlobalLessonCheckNavigationTab.jsx')"));
 });
-test('portals preserve original TTCM and Attendance state and Reports navigation',()=>{
+test('Reports and TTCM remain in Utilities while Attendance moves into primary navigation',()=>{
   assert.ok(reports.includes("document.querySelector('.brian-nav__utility-reports')"));
   assert.ok(ttcm.includes("document.querySelector('.brian-nav__utility-ttcm')"));
-  assert.ok(attendance.includes("document.querySelector('.brian-nav__utility-attendance')"));
+  assert.ok(attendance.includes("document.querySelector('.bes-top-chrome .brian-nav__primary')"));
   assert.ok(nav.includes('brian-nav__utility-reports'));
   assert.ok(nav.includes('brian-nav__utility-ttcm'));
-  assert.ok(nav.includes('brian-nav__utility-attendance'));
+  assert.ok(!nav.includes('brian-nav__utility-attendance'));
+  assert.ok(attendance.includes('data-nav-key="attendance"'));
+  assert.ok(reports.includes('new MutationObserver('));
+  assert.ok(css.includes('.brian-nav__utility-reports > button::before'));
   assert.ok(reports.includes("target: '#/tool/brian-team'"));
   assert.ok(ttcm.includes("const tab = createPortal("));
   assert.ok(ttcm.includes("const panel = open && typeof document !== 'undefined' ? createPortal("));
