@@ -36,7 +36,6 @@ import {
 import { canPublishDepartment } from '../utils/permissions.js';
 import {
   deleteLessonCheckActivity,
-  ensureLessonCheckActivityThumbnail,
   getLessonCheckActivityContent,
   LESSON_CHECK_EVENT,
   listLessonCheckAccessRequests,
@@ -389,23 +388,11 @@ const ActivityCardPreview = React.memo(function ActivityCardPreview({ activity, 
   const hostRef = useRef(null);
   const loadingRef = useRef(false);
   const cachedPreview = cardPreviewCache.get(activity.id) || null;
-  const persistedThumbnail = isPersistedThumbnailFresh(activity) ? activity.thumbnailUrl : '';
-  const initialThumbnail = cachedPreview?.thumbnailUrl || persistedThumbnail || '';
   const initialEmbed = cachedPreview?.embed || null;
 
-  const [activated, setActivated] = useState(Boolean(initialThumbnail || initialEmbed));
-  const [thumbnailUrl, setThumbnailUrl] = useState(initialThumbnail);
+  const [activated, setActivated] = useState(Boolean(initialEmbed));
   const [embed, setEmbed] = useState(initialEmbed);
-  const [state, setState] = useState(initialThumbnail || initialEmbed ? 'ready' : 'idle');
-
-  useEffect(() => {
-    const nextPersisted = isPersistedThumbnailFresh(activity) ? activity.thumbnailUrl : '';
-    if (!nextPersisted) return;
-    cardPreviewCache.set(activity.id, { thumbnailUrl: nextPersisted, embed: null });
-    setThumbnailUrl(nextPersisted);
-    setEmbed(null);
-    setState('ready');
-  }, [activity.id, activity.thumbnailSourceUpdatedAt, activity.thumbnailUrl, activity.updatedAt]);
+  const [state, setState] = useState(initialEmbed ? 'ready' : 'idle');
 
   useEffect(() => {
     const node = hostRef.current;
@@ -425,62 +412,45 @@ const ActivityCardPreview = React.memo(function ActivityCardPreview({ activity, 
   }, [activated, canLoad]);
 
   useEffect(() => {
-    if (!canLoad || !activated || thumbnailUrl || embed || loadingRef.current) return undefined;
+    if (!canLoad || !activated || embed || loadingRef.current) return undefined;
     let active = true;
 
     const cached = cardPreviewCache.get(activity.id);
-    if (cached?.thumbnailUrl) {
-      setThumbnailUrl(cached.thumbnailUrl);
-      setState('ready');
-      return () => { active = false; };
-    }
     if (cached?.embed) {
       setEmbed(cached.embed);
       setState('ready');
       return () => { active = false; };
     }
 
-    const loadLiveFallback = async () => {
-      const result = await getLessonCheckActivityContent(activity.id);
-      if (!active || !result.ok) {
-        if (active) setState('error');
-        return;
-      }
-      const parsed = parseEmbed(result.content.embedCode);
-      if (!['url', 'html'].includes(parsed.kind)) {
-        setState('error');
-        return;
-      }
-      cardPreviewCache.set(activity.id, { thumbnailUrl: '', embed: parsed });
-      setEmbed(parsed);
-      setState('ready');
-    };
-
     loadingRef.current = true;
     setState('loading');
 
-    ensureLessonCheckActivityThumbnail(activity.id)
-      .then(async (result) => {
-        if (!active) return;
-        if (result.ok && result.thumbnailUrl) {
-          cardPreviewCache.set(activity.id, { thumbnailUrl: result.thumbnailUrl, embed: null });
-          setThumbnailUrl(result.thumbnailUrl);
-          setEmbed(null);
-          setState('ready');
+    getLessonCheckActivityContent(activity.id)
+      .then((result) => {
+        if (!active || !result.ok) {
+          if (active) setState('error');
           return;
         }
-        await loadLiveFallback();
+        const parsed = parseEmbed(result.content.embedCode);
+        if (!['url', 'html'].includes(parsed.kind)) {
+          setState('error');
+          return;
+        }
+        cardPreviewCache.set(activity.id, { embed: parsed });
+        setEmbed(parsed);
+        setState('ready');
       })
-      .catch(loadLiveFallback)
+      .catch(() => {
+        if (active) setState('error');
+      })
       .finally(() => {
         loadingRef.current = false;
       });
 
     return () => { active = false; };
-  }, [activated, activity.id, canLoad, embed, thumbnailUrl]);
+  }, [activated, activity.id, canLoad, embed]);
 
-  const showStaticThumbnail = canLoad && Boolean(thumbnailUrl);
-  const showLivePreview = canLoad && !showStaticThumbnail && activated && embed;
+  const showLivePreview = canLoad && activated && embed;
 
   const activate = () => {
     if (canLoad) onOpen?.();
@@ -490,7 +460,7 @@ const ActivityCardPreview = React.memo(function ActivityCardPreview({ activity, 
   return (
     <div
       ref={hostRef}
-      className={`lcs-card-media ${canLoad ? 'can-preview' : 'is-locked'} ${showStaticThumbnail ? 'has-static-thumbnail' : ''}`}
+      className={`lcs-card-media ${canLoad ? 'can-preview' : 'is-locked'}`}
       role="button"
       tabIndex={0}
       onClick={activate}
@@ -504,9 +474,7 @@ const ActivityCardPreview = React.memo(function ActivityCardPreview({ activity, 
         ? (isVi ? `Mở ${activity.title}` : `Open ${activity.title}`)
         : (isVi ? `Xin quyền ${activity.title}` : `Request access to ${activity.title}`)}
     >
-      {showStaticThumbnail ? (
-        <FullBleedThumbnail src={thumbnailUrl} />
-      ) : showLivePreview ? (
+      {showLivePreview ? (
         <div className="lcs-card-live-preview" aria-hidden="true">
           <ActivityFrame embed={embed} title={activity.title} className="lcs-card-preview-frame" />
         </div>
@@ -517,7 +485,7 @@ const ActivityCardPreview = React.memo(function ActivityCardPreview({ activity, 
             ? (isVi ? 'Xem trước bị khóa' : 'Preview locked')
             : state === 'error'
               ? (isVi ? 'Không tải được hình xem trước' : 'Preview unavailable')
-              : (isVi ? 'Đang tạo hình xem trước một lần…' : 'Creating the one-time preview…')}</strong>
+              : (isVi ? 'Đang tải xem trước…' : 'Loading preview…')}</strong>
           <span>{activity.sourceHost || activity.embedKind?.toUpperCase() || 'Activity'}</span>
         </div>
       )}
