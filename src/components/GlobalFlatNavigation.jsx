@@ -144,7 +144,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalPageLaunchEffect route={props.route} />
       <GlobalWindows8Experience route={props.route} />
       <GlobalWindowsPhone8Loading />
-      {!mobile ? <GlobalEditorialBriefBar route={props.route} language={props.language} currentUser={props.currentUser} /> : null}
+      {!mobile && props.chromeSettings?.showNewswire !== false ? <GlobalEditorialBriefBar route={props.route} language={props.language} currentUser={props.currentUser} /> : null}
       {!mobile ? <GlobalGuestNavigationHub route={props.route} language={props.language} currentUser={props.currentUser} /> : null}
       <GlobalWeeklyPracticeBridge route={props.route} language={props.language} currentUser={props.currentUser} />
       <GlobalHeroGovernance route={props.route} />
