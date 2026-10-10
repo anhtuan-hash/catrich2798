@@ -24,6 +24,7 @@ function normalizeActivity(row = {}) {
     lessonTitle: String(row.lesson_title || ''),
     classLabel: String(row.class_label || ''),
     type: String(row.activity_type || 'quiz'),
+    focusArea: String(row.focus_area || 'unclassified'),
     notes: String(row.notes || ''),
     sourceHost: String(row.source_host || ''),
     embedKind: String(row.embed_kind || 'url'),
@@ -85,9 +86,18 @@ export async function saveLessonCheckActivity(draft, parsedEmbed) {
   };
   const { data, error } = await supabase.rpc('lesson_check_save_activity', payload);
   if (error) return resultError(error, 'Không thể lưu hoạt động.');
-  const id = Array.isArray(data) ? data[0] : data;
+  const id = String(Array.isArray(data) ? data[0] : data || draft.id || '');
+  if (!id) return { ok: false, message: 'Activity was saved but no activity id was returned.' };
+
+  const focusArea = String(draft.focusArea || 'unclassified');
+  const { error: focusError } = await supabase
+    .from('lesson_check_activities')
+    .update({ focus_area: focusArea })
+    .eq('id', id);
+  if (focusError) return resultError(focusError, 'Đã lưu hoạt động nhưng chưa lưu được tag chuyên đề.');
+
   emitUpdate({ type: 'activity-saved', activityId: id });
-  return { ok: true, id: String(id || draft.id || '') };
+  return { ok: true, id };
 }
 
 export async function deleteLessonCheckActivity(activityId) {
