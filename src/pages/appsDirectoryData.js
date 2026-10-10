@@ -4,7 +4,7 @@ import { launchRoute } from '../utils/navigation.js';
 import { ROUTE_APP_SHORTCUTS } from '../data/appVisibilityRegistry.js';
 
 export const APP_ORDER = [
-  'hidden-apps-vault', 'gradebook-studio', 'assessment-core', 'assessment-preview', 'thpt-practice-hub', 'resource-library-hub', 'textlab-activities',
+  'hidden-apps-vault', 'gradebook-studio', 'assessment-core', 'assessment-preview', 'lesson-check-studio', 'thpt-practice-hub', 'resource-library-hub', 'textlab-activities',
   'news-reader', 'vietnam-tax', 'textcare', 'student-practice',
   'shared-game-games4esl', 'shared-game-wordwall', 'shared-game-educaplay', 'shared-game-learningapps', 'shared-game-h5p', 'shared-game-genially',
   'shared-game-bookwidgets', 'shared-game-classtools', 'shared-game-kahoot', 'shared-game-scattergories', 'shared-game-baamboozle',
@@ -65,6 +65,7 @@ export function statusOf(item, language) {
 export function shortDesc(item, language) {
   const vi = {
     'gradebook-studio': 'Sổ điểm độc lập cho mọi giáo viên, có Excel và PDF.',
+    'lesson-check-studio': 'Dán iframe/HTML và lưu thành từng hoạt động dạy học.',
 'textlab-activities': '18 hoạt động tương tác từ văn bản.', textcare: 'Chuẩn hoá văn bản hành chính.',
     'news-reader': 'Tin giáo dục Việt Nam và báo tiếng Anh.',
     'vietnam-tax': 'Thuế TNCN, bảo hiểm và lương Net 2026.', 'student-practice': 'Bài luyện có chấm điểm.', 'homeroom-hub': 'Học sinh, điểm danh và rèn luyện.',
@@ -72,6 +73,7 @@ export function shortDesc(item, language) {
   };
   const en = {
     'gradebook-studio': 'Independent teacher gradebook with Excel and PDF reports.',
+    'lesson-check-studio': 'Paste iframe/HTML and save each item as a teaching activity.',
 'textlab-activities': '18 interactive activities from text.', textcare: 'Clean official documents.',
     'news-reader': 'Vietnam education and English news.',
     'vietnam-tax': 'Vietnam PIT, insurance and 2026 net salary.', 'student-practice': 'Scored learner practice.', 'homeroom-hub': 'Students, attendance and conduct.',
@@ -98,7 +100,7 @@ export function defaultGroupOf(item) {
   if (['textcare', 'resource-library-hub'].includes(item.slug)) return 'plan';
   if (['gradebook-studio', 'homeroom-hub'].includes(item.slug)) return 'manage';
   if (['textlab-activities', 'news-reader', 'vietnam-tax'].includes(item.slug)) return 'create';
-  if (['thpt-practice-hub', 'student-practice'].includes(item.slug)) return 'assess';
+  if (['thpt-practice-hub', 'student-practice', 'lesson-check-studio'].includes(item.slug)) return 'assess';
   return 'manage';
 }
 export function permissionFor(item) {
