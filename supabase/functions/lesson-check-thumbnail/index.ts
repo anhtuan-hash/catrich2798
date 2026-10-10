@@ -1,6 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const THUMBNAIL_PROFILE = "og-v1";
+const THUMBNAIL_PROFILE = "padlet-og-v2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -82,6 +82,16 @@ function extractMetaImage(html: string, pageUrl: string) {
     }
   }
   return "";
+}
+
+function padletGameId(sourceUrl: string) {
+  try {
+    const url = new URL(sourceUrl);
+    if (url.hostname !== "arcade.padlet.com") return "";
+    return url.pathname.match(/^\/game\/([^/?#]+)/i)?.[1] || "";
+  } catch {
+    return "";
+  }
 }
 
 function sourceVersion(value: unknown) {
@@ -188,61 +198,42 @@ Deno.serve(async (req: Request) => {
   }
 
   const sourceUrl = extractHttpUrl(content.embed_code || "");
-  if (!sourceUrl || !isPublicWebUrl(sourceUrl)) {
-    return json({ ok: false, fallback: "poster", message: "No public activity URL." }, 422);
+  const gameId = padletGameId(sourceUrl);
+  if (!gameId) {
+    return json({ ok: false, fallback: "missing", message: "No Padlet Arcade game id was found." }, 422);
   }
 
-  let pageResponse: Response;
-  try {
-    pageResponse = await fetch(sourceUrl, {
-      redirect: "follow",
-      headers: {
-        "Accept": "text/html,application/xhtml+xml",
-        "User-Agent": "Mozilla/5.0 (compatible; BRIAN-Thumbnail/1.0)",
-      },
-    });
-  } catch {
-    return json({ ok: false, fallback: "poster", message: "Activity page could not be read." }, 502);
-  }
-
-  const pageType = pageResponse.headers.get("content-type") || "";
-  if (!pageResponse.ok || !pageType.toLowerCase().includes("text/html")) {
-    return json({ ok: false, fallback: "poster", message: "Activity page did not return HTML." }, 502);
-  }
-
-  const html = await pageResponse.text();
-  const metaImageUrl = extractMetaImage(html.slice(0, 400000), sourceUrl);
-  if (!metaImageUrl) {
-    return json({ ok: false, fallback: "poster", message: "No clean social preview image was published for this game." }, 422);
-  }
+  const currentSource = Date.parse(contentUpdatedAt || "");
+  const versionStamp = Number.isFinite(currentSource) ? Math.round(currentSource) : Date.now();
+  const previewUrl =
+    `https://arcade.padlet.com/open-graph/social-preview-image.png?hashid=${encodeURIComponent(gameId)}&timestamp=${versionStamp}`;
 
   let imageResponse: Response;
   try {
-    imageResponse = await fetch(metaImageUrl, {
+    imageResponse = await fetch(previewUrl, {
       redirect: "follow",
       headers: {
         "Accept": "image/avif,image/webp,image/apng,image/jpeg,image/png,image/*,*/*;q=0.8",
-        "User-Agent": "BRIAN-Thumbnail/1.0",
+        "User-Agent": "Mozilla/5.0 (compatible; BRIAN-Thumbnail/2.0)",
         "Referer": sourceUrl,
       },
     });
   } catch {
-    return json({ ok: false, fallback: "poster", message: "Preview image could not be downloaded." }, 502);
+    return json({ ok: false, fallback: "missing", message: "Padlet thumbnail could not be downloaded." }, 502);
   }
 
   const contentType = imageResponse.headers.get("content-type") || "";
   if (!imageResponse.ok || !contentType.toLowerCase().startsWith("image/")) {
-    return json({ ok: false, fallback: "poster", message: "Published preview was not an image." }, 502);
+    return json({ ok: false, fallback: "missing", message: "Padlet did not return a thumbnail image." }, 502);
   }
 
   const bytes = await imageResponse.arrayBuffer();
   if (bytes.byteLength < 2048 || bytes.byteLength > 5 * 1024 * 1024) {
-    return json({ ok: false, fallback: "poster", message: "Published preview image was invalid." }, 502);
+    return json({ ok: false, fallback: "missing", message: "Padlet thumbnail image was invalid." }, 502);
   }
 
   const ext = contentExtension(contentType);
-  const version = sourceVersion(contentUpdatedAt);
-  const fileName = `${version}-${THUMBNAIL_PROFILE}.${ext}`;
+  const fileName = `${versionStamp}-${THUMBNAIL_PROFILE}.${ext}`;
   const filePath = `${activityId}/${fileName}`;
 
   const { error: uploadError } = await admin.storage
@@ -254,7 +245,7 @@ Deno.serve(async (req: Request) => {
     });
 
   if (uploadError) {
-    return json({ ok: false, fallback: "poster", message: "Could not persist the thumbnail." }, 500);
+    return json({ ok: false, fallback: "missing", message: "Could not persist the thumbnail." }, 500);
   }
 
   const { data: publicData } = admin.storage
@@ -262,7 +253,7 @@ Deno.serve(async (req: Request) => {
     .getPublicUrl(filePath);
   const thumbnailUrl = publicData?.publicUrl || "";
   if (!thumbnailUrl) {
-    return json({ ok: false, fallback: "poster", message: "Could not resolve the thumbnail URL." }, 500);
+    return json({ ok: false, fallback: "missing", message: "Could not resolve the thumbnail URL." }, 500);
   }
 
   const generatedAt = new Date().toISOString();
@@ -277,7 +268,7 @@ Deno.serve(async (req: Request) => {
     .eq("id", activityId);
 
   if (updateError) {
-    return json({ ok: false, fallback: "poster", message: "Thumbnail was saved but metadata update failed." }, 500);
+    return json({ ok: false, fallback: "missing", message: "Thumbnail was saved but metadata update failed." }, 500);
   }
 
   const { data: existingObjects } = await admin.storage
