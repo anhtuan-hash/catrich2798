@@ -420,6 +420,10 @@ export function hasToolAccess(user, slug) {
   if (!slug) return false;
   if (!user) return false;
   if (isAdminRole(user.role)) return true;
+  // Lesson Check deliberately gates the individual activities, not the app shell.
+  // Approved teachers must be able to enter the catalog so locked activities and
+  // their “Xin quyền” actions remain discoverable.
+  if (slug === 'lesson-check-studio') return user.approved !== false;
   const tool = TOOL_BY_SLUG.get(slug);
   if (!tool) return false;
   return hasPermissionId(user, getToolPermissionId(slug));
