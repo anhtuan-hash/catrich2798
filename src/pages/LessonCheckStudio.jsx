@@ -167,6 +167,99 @@ function ActivityFrame({ embed, title, className = '' }) {
   return <iframe className={className} {...iframeProps(embed, title)} />;
 }
 
+const cardPreviewCache = new Map();
+
+function ActivityCardPreview({ activity, canLoad, isLeader, language, onOpen, onRequest }) {
+  const isVi = language === 'vi';
+  const hostRef = useRef(null);
+  const [nearViewport, setNearViewport] = useState(false);
+  const [embed, setEmbed] = useState(() => cardPreviewCache.get(activity.id) || null);
+  const [state, setState] = useState(embed ? 'ready' : 'idle');
+
+  useEffect(() => {
+    const node = hostRef.current;
+    if (!node || !canLoad) return undefined;
+    if (typeof IntersectionObserver === 'undefined') {
+      setNearViewport(true);
+      return undefined;
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      setNearViewport(entry.isIntersecting);
+    }, { rootMargin: '180px 0px', threshold: 0.02 });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [canLoad]);
+
+  useEffect(() => {
+    if (!canLoad || !nearViewport || embed || state === 'loading') return undefined;
+    let active = true;
+    const cached = cardPreviewCache.get(activity.id);
+    if (cached) {
+      setEmbed(cached);
+      setState('ready');
+      return () => { active = false; };
+    }
+
+    setState('loading');
+    getLessonCheckActivityContent(activity.id).then((result) => {
+      if (!active) return;
+      if (!result.ok) {
+        setState('error');
+        return;
+      }
+      const parsed = parseEmbed(result.content.embedCode);
+      if (!['url', 'html'].includes(parsed.kind)) {
+        setState('error');
+        return;
+      }
+      cardPreviewCache.set(activity.id, parsed);
+      setEmbed(parsed);
+      setState('ready');
+    });
+
+    return () => { active = false; };
+  }, [activity.id, canLoad, embed, nearViewport, state]);
+
+  const showLivePreview = canLoad && nearViewport && embed;
+
+  return (
+    <div ref={hostRef} className={`lcs-card-media ${canLoad ? 'can-preview' : 'is-locked'}`}>
+      {showLivePreview ? (
+        <div className="lcs-card-live-preview" aria-hidden="true">
+          <ActivityFrame embed={embed} title={activity.title} className="lcs-card-preview-frame" />
+        </div>
+      ) : (
+        <div className="lcs-card-preview-placeholder" aria-hidden="true">
+          {canLoad && state === 'loading' ? <LoaderCircle className="lcs-spin" /> : canLoad ? <MonitorPlay /> : <LockKeyhole />}
+          <strong>{canLoad
+            ? (isVi ? 'Đang chuẩn bị hình xem trước' : 'Preparing preview')
+            : (isVi ? 'Xem trước bị khóa' : 'Preview locked')}</strong>
+          <span>{activity.sourceHost || activity.embedKind?.toUpperCase() || 'Activity'}</span>
+        </div>
+      )}
+
+      <div className="lcs-card-media-shade" aria-hidden="true" />
+      <div className="lcs-card-media-top">
+        <span className="lcs-book-badge"><BookOpen size={15} />Global Success {activity.grade || '—'}</span>
+        <StatusPill activity={activity} isLeader={isLeader} language={language} />
+      </div>
+      <button
+        className={`lcs-card-media-action ${canLoad ? '' : activity.requestStatus === 'pending' ? 'is-pending' : 'is-request'}`}
+        type="button"
+        disabled={!canLoad && activity.requestStatus === 'pending'}
+        onClick={canLoad ? onOpen : onRequest}
+      >
+        {canLoad ? <MonitorPlay size={17} /> : activity.requestStatus === 'pending' ? <Clock3 size={17} /> : <KeyRound size={17} />}
+        {canLoad
+          ? (isVi ? 'Mở nhanh' : 'Quick open')
+          : activity.requestStatus === 'pending'
+            ? (isVi ? 'Đang chờ duyệt' : 'Pending approval')
+            : (isVi ? 'Xin quyền' : 'Request access')}
+      </button>
+    </div>
+  );
+}
+
 function StatusPill({ activity, isLeader, language }) {
   const isVi = language === 'vi';
   if (isLeader || activity.hasAccess) {
@@ -664,15 +757,25 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
               const locked = !isLeader && !item.hasAccess;
               return (
                 <article key={item.id} className={`lcs-card ${locked ? 'is-locked' : 'is-open'}`}>
-                  <div className="lcs-card-cover">
-                    <div className="lcs-book-badge"><BookOpen size={15} />Global Success {item.grade || '—'}</div>
-                    <div className="lcs-cover-icon">{locked ? <LockKeyhole /> : <MonitorPlay />}</div>
-                    <strong>Unit {item.unitNo || '—'}</strong>
-                    <span>{item.unitTitle || (isVi ? 'Chưa gắn Unit' : 'No Unit')}</span>
-                    <em>{item.lessonTitle || (isVi ? 'Hoạt động bổ sung' : 'Extra activity')}</em>
-                    <StatusPill activity={item} isLeader={isLeader} language={language} />
-                  </div>
+                  <ActivityCardPreview
+                    activity={item}
+                    canLoad={!locked}
+                    isLeader={isLeader}
+                    language={language}
+                    onOpen={() => openTeachingMode(item)}
+                    onRequest={() => {
+                      if (item.requestStatus !== 'pending') {
+                        setRequestTarget(item);
+                        setRequestNote('');
+                      }
+                    }}
+                  />
                   <div className="lcs-card-body">
+                    <div className="lcs-card-unitline">
+                      <strong>Unit {item.unitNo || '—'}</strong>
+                      <span>{item.unitTitle || (isVi ? 'Chưa gắn Unit' : 'No Unit')}</span>
+                      <em>{item.lessonTitle || (isVi ? 'Hoạt động bổ sung' : 'Extra activity')}</em>
+                    </div>
                     <div className="lcs-card-meta"><span>{labelForType(item.type, language)}</span>{item.classLabel ? <span>{item.classLabel}</span> : null}{isLeader ? <span><Users size={12} />{item.grantCount}</span> : null}</div>
                     <h3>{item.title}</h3>
                     <p>{item.notes || (isVi ? 'Hoạt động kiểm tra / củng cố trên lớp.' : 'Classroom check / reinforcement activity.')}</p>
