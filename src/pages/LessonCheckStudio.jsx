@@ -172,6 +172,7 @@ const cardPreviewCache = new Map();
 function ActivityCardPreview({ activity, canLoad, isLeader, language, onOpen, onRequest }) {
   const isVi = language === 'vi';
   const hostRef = useRef(null);
+  const loadingRef = useRef(false);
   const [nearViewport, setNearViewport] = useState(false);
   const [embed, setEmbed] = useState(() => cardPreviewCache.get(activity.id) || null);
   const [state, setState] = useState(embed ? 'ready' : 'idle');
@@ -191,7 +192,7 @@ function ActivityCardPreview({ activity, canLoad, isLeader, language, onOpen, on
   }, [canLoad]);
 
   useEffect(() => {
-    if (!canLoad || !nearViewport || embed || state === 'loading') return undefined;
+    if (!canLoad || !nearViewport || embed || loadingRef.current) return undefined;
     let active = true;
     const cached = cardPreviewCache.get(activity.id);
     if (cached) {
@@ -200,25 +201,33 @@ function ActivityCardPreview({ activity, canLoad, isLeader, language, onOpen, on
       return () => { active = false; };
     }
 
+    loadingRef.current = true;
     setState('loading');
-    getLessonCheckActivityContent(activity.id).then((result) => {
-      if (!active) return;
-      if (!result.ok) {
-        setState('error');
-        return;
-      }
-      const parsed = parseEmbed(result.content.embedCode);
-      if (!['url', 'html'].includes(parsed.kind)) {
-        setState('error');
-        return;
-      }
-      cardPreviewCache.set(activity.id, parsed);
-      setEmbed(parsed);
-      setState('ready');
-    });
+    getLessonCheckActivityContent(activity.id)
+      .then((result) => {
+        if (!active) return;
+        if (!result.ok) {
+          setState('error');
+          return;
+        }
+        const parsed = parseEmbed(result.content.embedCode);
+        if (!['url', 'html'].includes(parsed.kind)) {
+          setState('error');
+          return;
+        }
+        cardPreviewCache.set(activity.id, parsed);
+        setEmbed(parsed);
+        setState('ready');
+      })
+      .catch(() => {
+        if (active) setState('error');
+      })
+      .finally(() => {
+        loadingRef.current = false;
+      });
 
     return () => { active = false; };
-  }, [activity.id, canLoad, embed, nearViewport, state]);
+  }, [activity.id, canLoad, embed, nearViewport]);
 
   const showLivePreview = canLoad && nearViewport && embed;
 
@@ -231,9 +240,11 @@ function ActivityCardPreview({ activity, canLoad, isLeader, language, onOpen, on
       ) : (
         <div className="lcs-card-preview-placeholder" aria-hidden="true">
           {canLoad && state === 'loading' ? <LoaderCircle className="lcs-spin" /> : canLoad ? <MonitorPlay /> : <LockKeyhole />}
-          <strong>{canLoad
-            ? (isVi ? 'Đang chuẩn bị hình xem trước' : 'Preparing preview')
-            : (isVi ? 'Xem trước bị khóa' : 'Preview locked')}</strong>
+          <strong>{!canLoad
+            ? (isVi ? 'Xem trước bị khóa' : 'Preview locked')
+            : state === 'error'
+              ? (isVi ? 'Không tải được hình xem trước' : 'Preview unavailable')
+              : (isVi ? 'Đang chuẩn bị hình xem trước' : 'Preparing preview')}</strong>
           <span>{activity.sourceHost || activity.embedKind?.toUpperCase() || 'Activity'}</span>
         </div>
       )}
