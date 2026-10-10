@@ -207,6 +207,172 @@ function ActivityFrame({ embed, title, className = '' }) {
   return <iframe className={className} {...iframeProps(embed, title)} />;
 }
 
+const processedThumbnailCache = new Map();
+
+function columnLooksLikeGutter(data, width, height, x) {
+  let count = 0;
+  let sum = 0;
+  let sumSq = 0;
+  let colorful = 0;
+
+  for (let y = 0; y < height; y += 2) {
+    const offset = (y * width + x) * 4;
+    const r = data[offset];
+    const g = data[offset + 1];
+    const b = data[offset + 2];
+    const a = data[offset + 3];
+    if (a < 16) continue;
+    const lum = (r * 0.2126) + (g * 0.7152) + (b * 0.0722);
+    sum += lum;
+    sumSq += lum * lum;
+    count += 1;
+    if (Math.max(r, g, b) - Math.min(r, g, b) > 24) colorful += 1;
+  }
+
+  if (!count) return true;
+  const mean = sum / count;
+  const variance = Math.max(0, (sumSq / count) - (mean * mean));
+  const deviation = Math.sqrt(variance);
+  const colorfulRatio = colorful / count;
+
+  return (mean < 62 && deviation < 16 && colorfulRatio < 0.06)
+    || (mean > 238 && deviation < 10 && colorfulRatio < 0.04);
+}
+
+async function cropThumbnailSideGutters(sourceUrl) {
+  if (!sourceUrl || typeof document === 'undefined') return sourceUrl;
+  if (processedThumbnailCache.has(sourceUrl)) return processedThumbnailCache.get(sourceUrl);
+
+  const image = await new Promise((resolve, reject) => {
+    const node = new Image();
+    node.crossOrigin = 'anonymous';
+    node.decoding = 'async';
+    node.onload = () => resolve(node);
+    node.onerror = reject;
+    node.src = sourceUrl;
+  });
+
+  const naturalWidth = image.naturalWidth || image.width;
+  const naturalHeight = image.naturalHeight || image.height;
+  if (!naturalWidth || !naturalHeight) return sourceUrl;
+
+  const sampleWidth = Math.min(440, naturalWidth);
+  const sampleHeight = Math.max(1, Math.round((naturalHeight / naturalWidth) * sampleWidth));
+  const sample = document.createElement('canvas');
+  sample.width = sampleWidth;
+  sample.height = sampleHeight;
+  const context = sample.getContext('2d', { willReadFrequently: true });
+  if (!context) return sourceUrl;
+
+  context.drawImage(image, 0, 0, sampleWidth, sampleHeight);
+  const pixels = context.getImageData(0, 0, sampleWidth, sampleHeight).data;
+
+  const stableContentEdge = (fromLeft) => {
+    const step = fromLeft ? 1 : -1;
+    let x = fromLeft ? 0 : sampleWidth - 1;
+    const boundary = fromLeft ? sampleWidth : -1;
+    let consecutiveContent = 0;
+
+    while (x !== boundary) {
+      if (columnLooksLikeGutter(pixels, sampleWidth, sampleHeight, x)) {
+        consecutiveContent = 0;
+      } else {
+        consecutiveContent += 1;
+        if (consecutiveContent >= 4) {
+          return fromLeft ? Math.max(0, x - 3) : Math.min(sampleWidth - 1, x + 3);
+        }
+      }
+      x += step;
+    }
+    return fromLeft ? 0 : sampleWidth - 1;
+  };
+
+  let left = stableContentEdge(true);
+  let right = stableContentEdge(false);
+
+  if (right <= left) {
+    processedThumbnailCache.set(sourceUrl, sourceUrl);
+    return sourceUrl;
+  }
+
+  const detectedWidth = right - left + 1;
+  const gutterRatio = 1 - (detectedWidth / sampleWidth);
+  if (gutterRatio < 0.06) {
+    processedThumbnailCache.set(sourceUrl, sourceUrl);
+    return sourceUrl;
+  }
+
+  const safety = Math.max(2, Math.round(detectedWidth * 0.018));
+  left = Math.max(0, left - safety);
+  right = Math.min(sampleWidth - 1, right + safety);
+
+  const scaleX = naturalWidth / sampleWidth;
+  const sourceX = Math.max(0, Math.floor(left * scaleX));
+  const sourceRight = Math.min(naturalWidth, Math.ceil((right + 1) * scaleX));
+  const sourceWidth = Math.max(1, sourceRight - sourceX);
+
+  const output = document.createElement('canvas');
+  output.width = sourceWidth;
+  output.height = naturalHeight;
+  const outputContext = output.getContext('2d');
+  if (!outputContext) return sourceUrl;
+
+  outputContext.drawImage(
+    image,
+    sourceX,
+    0,
+    sourceWidth,
+    naturalHeight,
+    0,
+    0,
+    sourceWidth,
+    naturalHeight,
+  );
+
+  const blob = await new Promise((resolve) => output.toBlob(resolve, 'image/jpeg', 0.9));
+  if (!blob) {
+    processedThumbnailCache.set(sourceUrl, sourceUrl);
+    return sourceUrl;
+  }
+
+  const objectUrl = URL.createObjectURL(blob);
+  processedThumbnailCache.set(sourceUrl, objectUrl);
+  return objectUrl;
+}
+
+function FullBleedThumbnail({ src }) {
+  const [displaySrc, setDisplaySrc] = useState(() => processedThumbnailCache.get(src) || src);
+
+  useEffect(() => {
+    let alive = true;
+    setDisplaySrc(processedThumbnailCache.get(src) || src);
+
+    cropThumbnailSideGutters(src)
+      .then((cropped) => {
+        if (alive && cropped) setDisplaySrc(cropped);
+      })
+      .catch(() => {
+        if (alive) setDisplaySrc(src);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [src]);
+
+  return (
+    <img
+      className="lcs-card-thumbnail-image"
+      src={displaySrc}
+      alt=""
+      loading="lazy"
+      decoding="async"
+      draggable="false"
+      crossOrigin={displaySrc === src ? 'anonymous' : undefined}
+    />
+  );
+}
+
 const cardPreviewCache = new Map();
 
 function isPersistedThumbnailFresh(activity) {
@@ -339,14 +505,7 @@ const ActivityCardPreview = React.memo(function ActivityCardPreview({ activity, 
         : (isVi ? `Xin quyền ${activity.title}` : `Request access to ${activity.title}`)}
     >
       {showStaticThumbnail ? (
-        <img
-          className="lcs-card-thumbnail-image"
-          src={thumbnailUrl}
-          alt=""
-          loading="lazy"
-          decoding="async"
-          draggable="false"
-        />
+        <FullBleedThumbnail src={thumbnailUrl} />
       ) : showLivePreview ? (
         <div className="lcs-card-live-preview" aria-hidden="true">
           <ActivityFrame embed={embed} title={activity.title} className="lcs-card-preview-frame" />
