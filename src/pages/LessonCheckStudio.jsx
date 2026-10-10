@@ -47,6 +47,7 @@ import {
   setLessonCheckTeacherAccess,
   subscribeLessonCheckUpdates,
 } from '../utils/lessonCheckActivities.js';
+import AssessmentWorkspace from '../components/lessonCheck/AssessmentWorkspace.jsx';
 import {
   GLOBAL_SUCCESS_LESSONS,
   globalSuccessLessonTitle,
@@ -367,6 +368,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [showEditor, setShowEditor] = useState(true);
   const [menuActivityId, setMenuActivityId] = useState('');
   const [showAccessQueue, setShowAccessQueue] = useState(false);
+  const [assessmentWorkspaceView, setAssessmentWorkspaceView] = useState('');
   const [teachingActivity, setTeachingActivity] = useState(null);
   const [teachingEmbed, setTeachingEmbed] = useState(null);
   const [teachingLoading, setTeachingLoading] = useState(false);
@@ -830,7 +832,11 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
             <span className="is-two"><Layers3 size={18} />Grammar</span>
             <span className="is-three"><MonitorPlay size={18} />Skills</span>
           </div>
-          {isLeader ? <button className="lcs-arcade-create" type="button" onClick={openNewActivity}><Plus size={20} />{isVi ? 'Tạo hoạt động' : 'Create activity'}</button> : null}
+          <div className="lcs-assessment-launchers">
+            <button className="lcs-start-assessment" type="button" onClick={() => setAssessmentWorkspaceView('session')}><ClipboardCheck size={18} />{isVi ? 'Bắt đầu đánh giá' : 'Start assessment'}</button>
+            <button className="lcs-open-reports" type="button" onClick={() => setAssessmentWorkspaceView('reports')}><BarChart3 size={17} />{isVi ? 'Báo cáo' : 'Reports'}</button>
+            {isLeader ? <button className="lcs-arcade-create" type="button" onClick={openNewActivity}><Plus size={18} />{isVi ? 'Tạo hoạt động' : 'Create activity'}</button> : null}
+          </div>
         </div>
       </header>
 
@@ -1138,6 +1144,17 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
           </div>
         )}
       </section>
+
+      {assessmentWorkspaceView ? (
+        <AssessmentWorkspace
+          currentUser={currentUser}
+          activities={activities}
+          isLeader={isLeader}
+          initialView={assessmentWorkspaceView}
+          onClose={() => setAssessmentWorkspaceView('')}
+          onLaunchActivity={openTeachingMode}
+        />
+      ) : null}
 
       {requestTarget ? (
         <div className="lcs-modal-layer" onMouseDown={(event) => event.target === event.currentTarget && setRequestTarget(null)}>
