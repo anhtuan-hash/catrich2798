@@ -1,5 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 
+const THUMBNAIL_PROFILE = "fill-v2";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -130,7 +132,7 @@ Deno.serve(async (req: Request) => {
   const [{ data: activity, error: activityError }, { data: content, error: contentError }] = await Promise.all([
     admin
       .from("lesson_check_activities")
-      .select("id,title,updated_at,thumbnail_url,thumbnail_generated_at,thumbnail_source_updated_at")
+      .select("id,title,updated_at,thumbnail_url,thumbnail_generated_at,thumbnail_source_updated_at,thumbnail_profile")
       .eq("id", activityId)
       .maybeSingle(),
     admin
@@ -148,7 +150,8 @@ Deno.serve(async (req: Request) => {
   const cachedSource = Date.parse(activity.thumbnail_source_updated_at || "");
   const currentSource = Date.parse(contentUpdatedAt || "");
   const cachedIsFresh = Boolean(
-    activity.thumbnail_url
+    activity.thumbnail_profile === THUMBNAIL_PROFILE
+      && activity.thumbnail_url
       && Number.isFinite(cachedSource)
       && Number.isFinite(currentSource)
       && cachedSource >= currentSource,
@@ -160,6 +163,7 @@ Deno.serve(async (req: Request) => {
       cached: true,
       thumbnailUrl: activity.thumbnail_url,
       generatedAt: activity.thumbnail_generated_at,
+      profile: THUMBNAIL_PROFILE,
     });
   }
 
@@ -172,14 +176,16 @@ Deno.serve(async (req: Request) => {
     }, 422);
   }
 
-  const screenshotUrl = `https://image.thum.io/get/noanimate/allowJPG/width/1280/crop/810/?url=${encodeURIComponent(sourceUrl)}`;
+  const screenshotUrl =
+    `https://image.thum.io/get/noanimate/allowJPG/width/440/crop/300/?url=${encodeURIComponent(sourceUrl)}`;
+
   let screenshotResponse: Response;
   try {
     screenshotResponse = await fetch(screenshotUrl, {
       redirect: "follow",
       headers: {
         "Accept": "image/avif,image/webp,image/apng,image/jpeg,image/png,image/*,*/*;q=0.8",
-        "User-Agent": "BRIAN-Activity-Thumbnail/1.0",
+        "User-Agent": "BRIAN-Activity-Thumbnail/2.0",
       },
     });
   } catch {
@@ -198,7 +204,8 @@ Deno.serve(async (req: Request) => {
 
   const ext = contentExtension(contentType);
   const version = sourceVersion(contentUpdatedAt);
-  const filePath = `${activityId}/${version}.${ext}`;
+  const fileName = `${version}-${THUMBNAIL_PROFILE}.${ext}`;
+  const filePath = `${activityId}/${fileName}`;
 
   const { error: uploadError } = await admin.storage
     .from("lesson-check-thumbnails")
@@ -227,6 +234,7 @@ Deno.serve(async (req: Request) => {
       thumbnail_url: thumbnailUrl,
       thumbnail_generated_at: generatedAt,
       thumbnail_source_updated_at: contentUpdatedAt,
+      thumbnail_profile: THUMBNAIL_PROFILE,
     })
     .eq("id", activityId);
 
@@ -238,7 +246,7 @@ Deno.serve(async (req: Request) => {
     .from("lesson-check-thumbnails")
     .list(activityId, { limit: 100 });
   const stalePaths = (existingObjects || [])
-    .filter((item) => item.name && item.name !== `${version}.${ext}`)
+    .filter((item) => item.name && item.name !== fileName)
     .map((item) => `${activityId}/${item.name}`);
   if (stalePaths.length) {
     await admin.storage.from("lesson-check-thumbnails").remove(stalePaths);
@@ -249,5 +257,6 @@ Deno.serve(async (req: Request) => {
     cached: false,
     thumbnailUrl,
     generatedAt,
+    profile: THUMBNAIL_PROFILE,
   });
 });
