@@ -188,6 +188,10 @@ export default function AssessmentWorkspace({
   const [deletingSessionId, setDeletingSessionId] = useState('');
 
   useEffect(() => {
+    if (visible) setView(initialView);
+  }, [initialView, visible]);
+
+  useEffect(() => {
     if (!visible || typeof document === 'undefined') return undefined;
     const body = document.body;
     const root = document.documentElement;
@@ -605,7 +609,7 @@ export default function AssessmentWorkspace({
   const updateResult = (ref, patch) => {
     setResults((current) => ({
       ...current,
-      [ref]: { ...resultFor(ref), ...patch },
+      [ref]: { ...(current[ref] || resultFor(ref)), ...patch },
     }));
   };
   const updateRawResult = (ref, rawResult) => {
@@ -613,7 +617,7 @@ export default function AssessmentWorkspace({
     setResults((current) => ({
       ...current,
       [ref]: {
-        ...resultFor(ref),
+        ...(current[ref] || resultFor(ref)),
         rawResult,
         ...(converted == null ? {} : { grade10: String(converted) }),
       },
@@ -770,7 +774,7 @@ export default function AssessmentWorkspace({
                 <span className="f4a-score-student"><strong>{student.fullName}</strong><small>{student.code || '—'}</small></span>
                 <span>{groupMap[ref] || '—'}</span>
                 <span className="f4a-raw-score"><input value={item.rawResult} onChange={(event) => updateRawResult(ref, event.target.value)} placeholder="vd. 70/80" /><small>{normalizedGrade10FromRaw(item.rawResult) == null ? 'Nhập dạng x/y để tự quy đổi' : `→ ${normalizedGrade10FromRaw(item.rawResult).toFixed(2)}/10`}</small></span>
-                <span><input type="number" min="0" max="10" step="0.1" value={item.grade10} onChange={(event) => updateResult(ref, { grade10: event.target.value })} placeholder="—" /></span>
+                <span><input type="number" min="0" max="10" step="0.01" value={item.grade10} onChange={(event) => updateResult(ref, { grade10: event.target.value })} placeholder="—" /></span>
                 <span><select value={item.achievement} onChange={(event) => updateResult(ref, { achievement: event.target.value })}><option value="">—</option><option value="Tốt">Tốt</option><option value="Đạt">Đạt</option><option value="Cần hỗ trợ">Cần hỗ trợ</option></select></span>
                 <span><input value={item.note} onChange={(event) => updateResult(ref, { note: event.target.value })} placeholder="Ghi chú…" /></span>
               </div>;
