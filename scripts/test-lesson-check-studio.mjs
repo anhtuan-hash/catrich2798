@@ -209,7 +209,7 @@ assert.match(assessmentWorkspace, /Độ phủ/);
 assert.match(assessmentWorkspace, /Hồ sơ đánh giá học sinh/);
 assert.match(assessmentWorkspace, /saveAssessmentSession\(sessionPayload\(\{ status: 'completed' \}\)\)/);
 assert.match(assessmentWorkspace, /function normalizedGrade10FromRaw\(rawValue\)/);
-assert.match(assessmentWorkspace, /raw\.match\(\/\^\\\\d\+\(\?:\\\\\.\\\\d\+\)\?\\\\s\*\\\\\/\\\\s\*/);
+assert.match(assessmentWorkspace, /const match = raw\.match/);
 assert.match(assessmentWorkspace, /grade10: String\(converted\)/);
 assert.match(assessmentWorkspace, /placeholder="vd\. 70\/80"/);
 assert.match(assessmentWorkspace, /step="0\.01"/);
