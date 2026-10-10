@@ -4291,3 +4291,75 @@ html:has(.lcs-page--library) .bes-vn-atmosphere{
     background:rgba(255,250,239,.85)!important;
   }
 }
+
+/* Lesson Check: ten-activity batch composer. Keep the legacy single editor intact. */
+.lcs-page--library .lcs-bulk-manager{
+  display:grid;
+  gap:11px;
+  padding:14px 16px;
+  border:1px solid #cbdaf7;
+  border-radius:17px;
+  background:linear-gradient(125deg,#f3f7ff 0%,#f6fbf8 100%);
+}
+.lcs-page--library .lcs-bulk-manager-top,
+.lcs-page--library .lcs-bulk-slot-head,
+.lcs-page--library .lcs-bulk-slot-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.lcs-page--library .lcs-bulk-manager-top>div:first-child{
+  display:flex;flex-direction:column;gap:3px;min-width:0
+}
+.lcs-page--library .lcs-bulk-manager-top strong,
+.lcs-page--library .lcs-bulk-slot-head strong{font-size:13px;color:#213c65;font-weight:800}
+.lcs-page--library .lcs-bulk-manager-top span,
+.lcs-page--library .lcs-bulk-slot-head span,
+.lcs-page--library .lcs-bulk-slot-footer span{
+  color:#637991;font-size:11px;line-height:1.5
+}
+.lcs-page--library .lcs-bulk-mode-buttons{
+  display:flex;align-items:center;gap:4px;padding:4px;
+  border-radius:12px;background:#e7edf9;flex-shrink:0
+}
+.lcs-page--library .lcs-bulk-mode-buttons button{
+  border:0;background:transparent;color:#48617e;cursor:pointer;
+  padding:9px 11px;min-height:34px;border-radius:9px;font:inherit;
+  font-size:11px;font-weight:800;white-space:nowrap;transition:background .15s
+}
+.lcs-page--library .lcs-bulk-mode-buttons button.is-active{
+  color:#1453b6;background:#fff;box-shadow:0 2px 8px #2b48851a
+}
+.lcs-page--library .lcs-bulk-mode-buttons button:disabled,
+.lcs-page--library .lcs-bulk-slot:disabled{cursor:wait;opacity:.65}
+.lcs-page--library .lcs-bulk-slot-head{
+  padding-top:10px;border-top:1px solid #dae5f4;align-items:baseline
+}
+.lcs-page--library .lcs-bulk-slots{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px}
+.lcs-page--library .lcs-bulk-slot{
+  position:relative;min-width:0;min-height:41px;padding:5px 2px;
+  display:flex;align-items:center;justify-content:center;gap:2px;
+  border:1px solid #d4e1f2;border-radius:10px;background:#fff;
+  color:#607491;cursor:pointer;font-size:12px;font-weight:800;
+  transition:border-color .15s,background .15s,color .15s
+}
+.lcs-page--library .lcs-bulk-slot.has-content{border-color:#99cdb6;color:#187c58;background:#f2fbf6}
+.lcs-page--library .lcs-bulk-slot.is-active{
+  border-color:#367bd9;background:#276dcf;color:#fff;box-shadow:0 3px 10px #2464b63b
+}
+.lcs-page--library .lcs-bulk-slot svg{flex:none;width:12px;height:12px}
+.lcs-page--library .lcs-bulk-slot-footer{align-items:flex-start}
+.lcs-page--library .lcs-bulk-slot-footer>button{
+  display:inline-flex;align-items:center;justify-content:center;gap:5px;
+  padding:5px 7px;border:0;background:transparent;color:#9a4754;
+  font-size:11px;font-weight:750;cursor:pointer;white-space:nowrap
+}
+.lcs-page--library .lcs-bulk-slot-footer>button:hover{color:#c62b48}
+@media(max-width:780px){
+  .lcs-page--library .lcs-bulk-manager-top{align-items:stretch;flex-direction:column}
+  .lcs-page--library .lcs-bulk-mode-buttons{align-self:flex-start}
+  .lcs-page--library .lcs-bulk-slots{grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
+  .lcs-page--library .lcs-bulk-slot-footer{flex-wrap:wrap}
+  .lcs-page--library .lcs-bulk-slot-head{flex-wrap:wrap}
+}
