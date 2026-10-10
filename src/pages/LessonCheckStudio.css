@@ -3268,3 +3268,74 @@
     padding-left:51px;
   }
 }
+
+
+/* V11 · Assessment workflow launchers */
+.lcs-assessment-launchers{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:7px;
+  width:100%;
+  max-width:310px;
+}
+.lcs-start-assessment{
+  min-height:44px;
+  padding:0 15px;
+  border:0;
+  border-radius:13px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  background:linear-gradient(135deg,#176f4d,#0d5b3f);
+  color:#fff;
+  font-family:Inter,ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  font-size:10.8px;
+  font-weight:900;
+  box-shadow:0 8px 18px rgba(14,91,63,.16);
+  cursor:pointer;
+}
+.lcs-start-assessment:hover{
+  transform:translateY(-1px);
+  background:linear-gradient(135deg,#126544,#0a5038);
+}
+.lcs-open-reports{
+  min-height:44px;
+  padding:0 12px;
+  border:1px solid rgba(73,66,52,.14);
+  border-radius:13px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  background:rgba(255,255,255,.78);
+  color:#4c5f57;
+  font-size:10px;
+  font-weight:850;
+  cursor:pointer;
+  backdrop-filter:blur(7px);
+}
+.lcs-open-reports:hover{background:#fff}
+.lcs-assessment-launchers .lcs-arcade-create{
+  grid-column:1/-1;
+  min-width:0;
+  width:100%;
+  min-height:38px;
+  background:rgba(27,27,24,.88);
+  box-shadow:none;
+}
+@media(max-width:980px){
+  .lcs-assessment-launchers{
+    max-width:190px;
+    grid-template-columns:1fr;
+  }
+  .lcs-assessment-launchers .lcs-arcade-create{grid-column:auto}
+}
+@media(max-width:720px){
+  .lcs-assessment-launchers{
+    max-width:none;
+    width:100%;
+    grid-template-columns:1fr 1fr;
+  }
+  .lcs-assessment-launchers .lcs-arcade-create{grid-column:1/-1}
+}
