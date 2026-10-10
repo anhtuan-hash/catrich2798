@@ -4258,3 +4258,36 @@ html:has(.lcs-page--library) .bes-vn-atmosphere{
     background:rgba(255,250,239,.86)!important;
   }
 }
+
+
+/* V22 · Display the original high-resolution approved artwork; do not upscale 420px thumbnail */
+.lcs-page--library .lcs-hero-art{
+  image-rendering:auto!important;
+  object-fit:cover!important;
+  object-position:50% 50%!important;
+  filter:none!important;
+  opacity:1!important;
+}
+.lcs-page--library .lcs-arcade-head::before{
+  background:linear-gradient(90deg,
+    rgba(255,250,239,.98) 0%,
+    rgba(255,250,239,.96) 25%,
+    rgba(255,250,239,.83) 33%,
+    rgba(255,250,239,.32) 45%,
+    rgba(255,250,239,.04) 57%,
+    rgba(255,250,239,0) 67%)!important;
+}
+@media(max-width:980px){
+  .lcs-page--library .lcs-arcade-head::before{
+    background:linear-gradient(90deg,
+      rgba(255,250,239,.98) 0%,
+      rgba(255,250,239,.92) 37%,
+      rgba(255,250,239,.45) 58%,
+      rgba(255,250,239,.05) 82%)!important;
+  }
+}
+@media(max-width:720px){
+  .lcs-page--library .lcs-arcade-head::before{
+    background:rgba(255,250,239,.85)!important;
+  }
+}

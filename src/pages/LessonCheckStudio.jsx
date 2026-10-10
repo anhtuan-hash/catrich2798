@@ -906,7 +906,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
         <img
           className="lcs-hero-art"
-          src="/lesson-check-hero-art.svg"
+          src="/lesson-check-hero-fullwidth-v22.webp"
           alt=""
           aria-hidden="true"
           decoding="async"
