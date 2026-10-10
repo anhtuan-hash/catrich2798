@@ -63,6 +63,16 @@ const TYPE_OPTIONS = [
   { value: 'other', vi: 'Khác', en: 'Other' },
 ];
 
+const FOCUS_OPTIONS = [
+  { value: 'vocabulary', vi: 'Từ vựng', en: 'Vocabulary', short: 'VOCABULARY' },
+  { value: 'grammar', vi: 'Ngữ pháp', en: 'Grammar', short: 'GRAMMAR' },
+  { value: 'reading', vi: 'Đọc hiểu', en: 'Reading', short: 'READING' },
+  { value: 'listening', vi: 'Nghe', en: 'Listening', short: 'LISTENING' },
+  { value: 'speaking', vi: 'Nói', en: 'Speaking', short: 'SPEAKING' },
+  { value: 'mixed', vi: 'Tổng hợp', en: 'Mixed', short: 'MIXED' },
+  { value: 'unclassified', vi: 'Chưa gắn', en: 'Unclassified', short: 'CHƯA GẮN' },
+];
+
 function blankDraft() {
   return {
     id: '',
@@ -74,7 +84,8 @@ function blankDraft() {
     lessonKey: 'getting-started',
     lessonTitle: globalSuccessLessonTitle('getting-started'),
     className: '',
-    type: 'quiz',
+    type: 'game',
+    focusArea: 'unclassified',
     notes: '',
     sourceHost: '',
     embedCode: '',
@@ -129,6 +140,15 @@ function sourceHost(source) {
 function labelForType(type, language) {
   const option = TYPE_OPTIONS.find((item) => item.value === type);
   return option ? (language === 'vi' ? option.vi : option.en) : type;
+}
+
+function labelForFocusArea(value, language) {
+  const option = FOCUS_OPTIONS.find((item) => item.value === value) || FOCUS_OPTIONS[FOCUS_OPTIONS.length - 1];
+  return language === 'vi' ? option.vi : option.en;
+}
+
+function focusShortLabel(value) {
+  return (FOCUS_OPTIONS.find((item) => item.value === value) || FOCUS_OPTIONS[FOCUS_OPTIONS.length - 1]).short;
 }
 
 function compactDate(value, language) {
@@ -336,6 +356,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [unitFilter, setUnitFilter] = useState('all');
   const [lessonFilter, setLessonFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [focusFilter, setFocusFilter] = useState('all');
   const [accessFilter, setAccessFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortMode, setSortMode] = useState('newest');
@@ -449,6 +470,8 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       if (unitFilter !== 'all' && String(item.unitNo || '') !== unitFilter) return false;
       if (lessonFilter !== 'all' && String(item.lessonKey || '') !== lessonFilter) return false;
       if (typeFilter !== 'all' && item.type !== typeFilter) return false;
+      if (focusFilter === 'skills' && !['reading','listening','speaking'].includes(item.focusArea)) return false;
+      if (!['all','skills'].includes(focusFilter) && item.focusArea !== focusFilter) return false;
       if (accessFilter === 'open' && !open) return false;
       if (accessFilter === 'locked' && !locked) return false;
       if (statusFilter === 'pending' && !pending) return false;
@@ -462,6 +485,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         item.classLabel,
         item.notes,
         item.sourceHost,
+        labelForFocusArea(item.focusArea, language),
       ].some((value) => String(value || '').toLocaleLowerCase('vi').includes(q));
     });
 
@@ -475,7 +499,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       }
       return String(b.updatedAt || '').localeCompare(String(a.updatedAt || ''));
     });
-  }, [accessFilter, activities, gradeFilter, isLeader, lessonFilter, pendingActivityIds, query, sortMode, statusFilter, typeFilter, unitFilter]);
+  }, [accessFilter, activities, focusFilter, gradeFilter, isLeader, language, lessonFilter, pendingActivityIds, query, sortMode, statusFilter, typeFilter, unitFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredActivities.length / pageSize));
   const pagedActivities = useMemo(() => {
@@ -495,7 +519,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
   useEffect(() => {
     setPage(1);
-  }, [accessFilter, gradeFilter, lessonFilter, query, sortMode, statusFilter, typeFilter, unitFilter]);
+  }, [accessFilter, focusFilter, gradeFilter, lessonFilter, query, sortMode, statusFilter, typeFilter, unitFilter]);
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
