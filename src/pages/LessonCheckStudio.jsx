@@ -21,6 +21,8 @@ import {
   Layers3,
   List,
   MoreHorizontal,
+  Pause,
+  Play,
   LoaderCircle,
   LockKeyhole,
   MonitorPlay,
@@ -357,6 +359,12 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [sortMode, setSortMode] = useState('newest');
   const [viewMode, setViewMode] = useState('grid');
   const [page, setPage] = useState(1);
+  // Auto-turn the activity gallery every 15 seconds; users can pause it at any time.
+  const [autoPageEnabled, setAutoPageEnabled] = useState(true);
+  const [autoPageResetToken, setAutoPageResetToken] = useState(0);
+  const [tabVisible, setTabVisible] = useState(() => (
+    typeof document === 'undefined' || document.visibilityState === 'visible'
+  ));
   const [showBuilder, setShowBuilder] = useState(false);
   const [showEditor, setShowEditor] = useState(true);
   const [menuActivityId, setMenuActivityId] = useState('');
@@ -546,6 +554,34 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
+
+  // Stop the countdown in background tabs; restart a full 15 seconds when visible again.
+  useEffect(() => {
+    const updateVisibility = () => setTabVisible(document.visibilityState === 'visible');
+    document.addEventListener('visibilitychange', updateVisibility);
+    return () => document.removeEventListener('visibilitychange', updateVisibility);
+  }, []);
+
+  const autoPageBlocked = loading || totalPages <= 1 || !tabVisible
+    || showBuilder || showAccessQueue || Boolean(menuActivityId)
+    || Boolean(teachingActivity) || Boolean(requestTarget) || Boolean(accessTarget)
+    || assessmentWorkspaceVisible;
+
+  useEffect(() => {
+    if (!autoPageEnabled || autoPageBlocked) return undefined;
+    const timeoutId = window.setTimeout(() => {
+      setPage((current) => current >= totalPages ? 1 : current + 1);
+    }, 15_000);
+    return () => window.clearTimeout(timeoutId);
+  }, [
+    autoPageEnabled, autoPageBlocked, autoPageResetToken, page, totalPages,
+    gradeFilter, unitFilter, focusFilter, statusFilter, sortMode, query,
+  ]);
+
+  const turnPageManually = (targetPage) => {
+    setPage(targetPage);
+    setAutoPageResetToken((current) => current + 1);
+  };
 
   const filteredTeachers = useMemo(() => {
     const q = teacherQuery.trim().toLocaleLowerCase('vi');
@@ -1382,10 +1418,29 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         <div className="lcs-arcade-results-head">
           <span>{filteredActivities.length ? (isVi ? `Hiển thị ${pageStart}–${pageEnd} / ${filteredActivities.length}` : `Showing ${pageStart}–${pageEnd} of ${filteredActivities.length}`) : (isVi ? 'Không có kết quả' : 'No results')}</span>
           {!loading && filteredActivities.length > 0 ? (
-            <div className="lcs-pagination-compact">
-              <button type="button" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page <= 1} aria-label={isVi ? 'Trang trước' : 'Previous page'}><ChevronLeft size={16} /></button>
-              {paginationPages.map((pageNumber) => <button key={pageNumber} type="button" className={pageNumber === page ? 'is-active' : ''} onClick={() => setPage(pageNumber)}>{pageNumber}</button>)}
-              <button type="button" onClick={() => setPage((current) => Math.min(totalPages, current + 1))} disabled={page >= totalPages} aria-label={isVi ? 'Trang sau' : 'Next page'}><ChevronRight size={16} /></button>
+            <div className="lcs-arcade-pagination-controls">
+              {totalPages > 1 ? (
+                <button
+                  type="button"
+                  className={`lcs-auto-page-toggle ${autoPageEnabled ? 'is-running' : 'is-paused'}`}
+                  aria-pressed={autoPageEnabled}
+                  aria-label={isVi
+                    ? (autoPageEnabled ? 'Tạm dừng tự chuyển trang' : 'Bật tự chuyển trang mỗi 15 giây')
+                    : (autoPageEnabled ? 'Pause automatic page turning' : 'Automatically turn pages every 15 seconds')}
+                  title={isVi ? 'Mỗi trang hiển thị 15 giây' : '15 seconds per page'}
+                  onClick={() => setAutoPageEnabled((current) => !current)}
+                >
+                  {autoPageEnabled ? <Pause size={14} /> : <Play size={14} />}
+                  <span>{isVi
+                    ? (autoPageEnabled ? 'Tự chuyển · 15s' : 'Đã tạm dừng')
+                    : (autoPageEnabled ? 'Auto · 15s' : 'Paused')}</span>
+                </button>
+              ) : null}
+              <div className="lcs-pagination-compact">
+                <button type="button" onClick={() => turnPageManually(Math.max(1, page - 1))} disabled={page <= 1} aria-label={isVi ? 'Trang trước' : 'Previous page'}><ChevronLeft size={16} /></button>
+                {paginationPages.map((pageNumber) => <button key={pageNumber} type="button" className={pageNumber === page ? 'is-active' : ''} onClick={() => turnPageManually(pageNumber)}>{pageNumber}</button>)}
+                <button type="button" onClick={() => turnPageManually(Math.min(totalPages, page + 1))} disabled={page >= totalPages} aria-label={isVi ? 'Trang sau' : 'Next page'}><ChevronRight size={16} /></button>
+              </div>
             </div>
           ) : null}
         </div>
