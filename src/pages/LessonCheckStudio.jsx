@@ -604,7 +604,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     if (otherFilled && !window.confirm(isVi
       ? 'Các hoạt động ở ô khác chưa được lưu. Chỉ giữ lại ô đang chọn?'
       : 'Other activity slots are not saved. Keep only the selected slot?')) return;
-    setSingleDraft({ ...batchDrafts[activeBatchIndex], id: '' });
+    setSingleDraft({ ...batchDrafts[activeBatchIndex] });
     setBatchMode(false);
     setActiveBatchIndex(0);
   }
