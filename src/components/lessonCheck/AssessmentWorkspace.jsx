@@ -171,6 +171,20 @@ export default function AssessmentWorkspace({
   const [reportError, setReportError] = useState('');
   const [reportRefreshKey, setReportRefreshKey] = useState(0);
 
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+    const body = document.body;
+    const root = document.documentElement;
+    const previousBodyOverflow = body.style.overflow;
+    const previousRootOverflow = root.style.overflow;
+    body.style.overflow = 'hidden';
+    root.style.overflow = 'hidden';
+    return () => {
+      body.style.overflow = previousBodyOverflow;
+      root.style.overflow = previousRootOverflow;
+    };
+  }, []);
+
   const allowedActivities = useMemo(
     () => activities.filter((item) => isLeader || item.hasAccess),
     [activities, isLeader],
@@ -228,19 +242,31 @@ export default function AssessmentWorkspace({
 
   useEffect(() => {
     let active = true;
+    let frame = 0;
     setClassLoading(true);
-    listAssessmentAssignedClasses(currentUser).then((result) => {
-      if (!active) return;
-      setClassLoading(false);
-      if (!result.ok) {
-        setClassError(result.message || 'Không tải được lớp đã phân công.');
-        return;
-      }
-      setClasses(result.items || []);
-      setClassError('');
-      setClassName((current) => current || result.items?.[0]?.className || '');
-    });
-    return () => { active = false; };
+
+    const load = () => {
+      listAssessmentAssignedClasses(currentUser).then((result) => {
+        if (!active) return;
+        setClassLoading(false);
+        if (!result.ok) {
+          setClassError(result.message || 'Không tải được lớp đã phân công.');
+          return;
+        }
+        setClasses(result.items || []);
+        setClassError('');
+        setClassName((current) => current || result.items?.[0]?.className || '');
+      });
+    };
+
+    // Let the modal paint first; Safari otherwise competes with the background
+    // iframe layers and the roster RPC during the opening frame.
+    frame = window.requestAnimationFrame(() => window.setTimeout(load, 0));
+
+    return () => {
+      active = false;
+      if (frame) window.cancelAnimationFrame(frame);
+    };
   }, [currentUser?.id]);
 
   useEffect(() => {
