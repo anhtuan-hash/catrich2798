@@ -141,23 +141,33 @@ Deno.serve(async (req: Request) => {
     return json({ ok: false, message: "Invalid activity id." }, 400);
   }
 
-  const userClient = createClient(supabaseUrl, anonKey, {
-    global: { headers: { Authorization: authorization } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-  const { data: userData, error: userError } = await userClient.auth.getUser();
-  if (userError || !userData?.user) return json({ ok: false, message: "Authentication required." }, 401);
-
-  const { data: hasAccess, error: accessError } = await userClient.rpc("lesson_check_has_activity_access", {
-    target_activity: activityId,
-  });
-  if (accessError || hasAccess !== true) {
-    return json({ ok: false, message: "You do not have access to this activity." }, 403);
-  }
-
   const admin = createClient(supabaseUrl, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+
+  const accessToken = authorization.replace(/^Bearer\\s+/i, "").trim();
+  const { data: userData, error: userError } = await admin.auth.getUser(accessToken);
+  const userId = userData?.user?.id || "";
+  if (userError || !userId) {
+    return json({ ok: false, fallback: "missing", message: "Authentication required." }, 401);
+  }
+
+  const [{ data: profile }, { data: grant }] = await Promise.all([
+    admin.from("profiles").select("approved,role").eq("id", userId).maybeSingle(),
+    admin.from("lesson_check_activity_grants").select("activity_id").eq("activity_id", activityId).eq("user_id", userId).maybeSingle(),
+  ]);
+
+  const role = String(profile?.role || "").toLocaleLowerCase("vi").trim();
+  const leaderRoles = new Set([
+    "admin","ttcm","to_truong","tổ trưởng",
+    "department_head","department-head","department head",
+    "department_leader","department leader",
+    "subject_leader","subject leader","leader",
+  ]);
+  const hasAccess = Boolean((profile?.approved === true && leaderRoles.has(role)) || grant?.activity_id);
+  if (!hasAccess) {
+    return json({ ok: false, fallback: "missing", message: "You do not have access to this activity." }, 403);
+  }
 
   const [{ data: activity, error: activityError }, { data: content, error: contentError }] = await Promise.all([
     admin
