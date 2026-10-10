@@ -3643,3 +3643,58 @@ html:has(.lcs-page--library) .bes-vn-atmosphere{
 .lcs-page--library .lcs-arcade-card .lcs-card-media.is-locked .lcs-card-preview-placeholder span{
   color:#829189!important;
 }
+
+
+/* V17 · Real-thumbnail-only fallback */
+.lcs-page--library .lcs-arcade-card .lcs-card-preview-placeholder{
+  padding:0!important;
+  gap:7px!important;
+  justify-content:center!important;
+  align-items:center!important;
+  text-align:center!important;
+  background:
+    linear-gradient(110deg,rgba(255,255,255,.72),rgba(244,247,246,.92),rgba(255,255,255,.72))!important;
+  color:#6d7c75!important;
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-preview-placeholder::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    linear-gradient(100deg,transparent 25%,rgba(255,255,255,.65) 45%,transparent 65%);
+  transform:translateX(-100%);
+  animation:lcs-thumbnail-sheen 1.3s ease-in-out infinite;
+  pointer-events:none;
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-preview-placeholder>svg{
+  position:relative!important;
+  right:auto!important;
+  bottom:auto!important;
+  width:34px!important;
+  height:34px!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  color:#698078!important;
+  background:transparent!important;
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-preview-placeholder strong{
+  position:relative;
+  z-index:1;
+  max-width:88%!important;
+  color:#53665e!important;
+  font-size:12px!important;
+  line-height:1.2!important;
+  letter-spacing:0!important;
+  text-shadow:none!important;
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-preview-placeholder span{
+  position:relative;
+  z-index:1;
+  color:#8a9892!important;
+  font-size:9px!important;
+  font-weight:650!important;
+}
+@keyframes lcs-thumbnail-sheen{
+  to{transform:translateX(100%)}
+}
