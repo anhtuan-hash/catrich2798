@@ -614,14 +614,27 @@ export default function AssessmentWorkspace({
   };
   const updateRawResult = (ref, rawResult) => {
     const converted = normalizedGrade10FromRaw(rawResult);
-    setResults((current) => ({
-      ...current,
-      [ref]: {
-        ...(current[ref] || resultFor(ref)),
-        rawResult,
-        ...(converted == null ? {} : { grade10: String(converted) }),
-      },
-    }));
+    setResults((current) => {
+      const previous = current[ref] || resultFor(ref);
+      const previousAuto = normalizedGrade10FromRaw(previous.rawResult);
+      const previousGrade = previous.grade10 === '' || previous.grade10 == null ? null : Number(previous.grade10);
+      const shouldClearPreviousAuto = converted == null
+        && previousAuto != null
+        && Number.isFinite(previousGrade)
+        && Math.abs(previousGrade - previousAuto) < 0.0001;
+      return {
+        ...current,
+        [ref]: {
+          ...previous,
+          rawResult,
+          ...(converted != null
+            ? { grade10: String(converted) }
+            : shouldClearPreviousAuto
+              ? { grade10: '' }
+              : {}),
+        },
+      };
+    });
   };
 
   if (!visible) return null;
@@ -828,7 +841,7 @@ export default function AssessmentWorkspace({
                   <div className="f4a-session-history-top">
                     <span className={`is-${item.focusArea}`}>{focusLabel(item.focusArea)}</span>
                     <button type="button" className="f4a-delete-session" onClick={() => deleteSession(item)} disabled={deletingSessionId === item.id} title="Xóa phiên đánh giá">
-                      {deletingSessionId === item.id ? <LoaderCircle className="lcs-spin" size={14} /> : <Trash2 size={14} />}
+                      {deletingSessionId === item.id ? <LoaderCircle className="lcs-spin" size={14} /> : <Trash2 size={14} />}<span>Xóa</span>
                     </button>
                   </div>
                   <strong>{item.activityTitle}</strong>
