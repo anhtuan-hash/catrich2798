@@ -80,6 +80,8 @@ let retryTimers = [];
 let fontSizeRuntimeObserver = null;
 let fontSizeRuntimeFrame = 0;
 let fontSizeRuntimeSettings = {};
+// Re-fetching identical global font settings must not trigger a full DOM restyle.
+let fontSizeRuntimeSignature = null;
 // Only newly mounted subtrees are rescanned between configuration changes.
 const fontSizeRuntimePendingRoots = new Set();
 let fontSizeRuntimeSweepCounter = 0;
@@ -177,11 +179,16 @@ function scheduleRuntimeFontSizeSync(root) {
 function syncRuntimeRegionalFontSizes(settings) {
   if (typeof document === 'undefined') return;
   fontSizeRuntimeSettings = settings;
-  // A server/Admin update is the only time an intentional full rescan is needed.
+  const signature = JSON.stringify(FONT_SIZE_RUNTIME_ORDER.map((regionId) => getRegionalFontSize(settings, regionId) || 0));
+  const active = GLOBAL_FONT_REGIONS.some((region) => Boolean(getRegionalFontSize(settings, region.id)));
+  // Keep author-selected families and size variables applied by
+  // applyRegionalFontSettings(), but avoid restoring every text node again on
+  // duplicate Supabase fetches, focus events and same-value realtime updates.
+  if (fontSizeRuntimeSignature === signature && (!active || fontSizeRuntimeObserver)) return;
+  fontSizeRuntimeSignature = signature;
   if (fontSizeRuntimeFrame) window.cancelAnimationFrame(fontSizeRuntimeFrame);
   fontSizeRuntimeFrame = 0;
   fontSizeRuntimePendingRoots.clear();
-  const active = GLOBAL_FONT_REGIONS.some((region) => Boolean(getRegionalFontSize(settings, region.id)));
   performRuntimeFontSizeSync();
   if (!active) {
     fontSizeRuntimeObserver?.disconnect();

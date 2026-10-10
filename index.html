@@ -67,19 +67,53 @@
               });
           } catch { /* stale local configuration is non-critical */ }
         };
-        const enforceRetirement = () => {
+        // This retired route is handled synchronously; expensive DOM cleanup
+        // happens in idle time while CSS hides the retired tile immediately.
+        const redirectRetiredRoute = () => {
           if (retiredHash.test(window.location.hash)) window.location.hash = '#/apps';
-          cleanStoredLauncherState();
-          cleanNode();
         };
-        window.addEventListener('hashchange', enforceRetirement);
+        const pendingNodes = new Set();
+        let cleanupScheduled = false;
+        const processPendingNodes = () => {
+          cleanupScheduled = false;
+          const roots = [...pendingNodes].filter((node) => node.isConnected);
+          pendingNodes.clear();
+          const allRoots = new Set(roots);
+          roots.forEach((node) => {
+            for (let parent = node.parentElement; parent; parent = parent.parentElement) {
+              if (allRoots.has(parent)) return;
+            }
+            cleanNode(node);
+          });
+        };
+        const scheduleCleanup = () => {
+          if (cleanupScheduled) return;
+          cleanupScheduled = true;
+          if (typeof window.requestIdleCallback === 'function') {
+            window.requestIdleCallback(processPendingNodes, { timeout: 450 });
+          } else {
+            window.setTimeout(processPendingNodes, 120);
+          }
+        };
+        window.addEventListener('hashchange', redirectRetiredRoute);
+        window.addEventListener('storage', (event) => {
+          if (/launcher|navigation|app-visibility/i.test(event.key || '') && String(event.newValue || '').includes(retiredToken)) {
+            cleanStoredLauncherState();
+          }
+        });
         window.addEventListener('DOMContentLoaded', () => {
-          enforceRetirement();
-          new MutationObserver((records) => records.forEach((record) => record.addedNodes.forEach((node) => {
-            if (node?.nodeType === 1) cleanNode(node);
-          }))).observe(document.documentElement, { childList: true, subtree: true });
+          cleanNode();
+          const observer = new MutationObserver((records) => {
+            records.forEach((record) => record.addedNodes.forEach((node) => {
+              if (node?.nodeType === 1) pendingNodes.add(node);
+            }));
+            if (pendingNodes.size) scheduleCleanup();
+          });
+          observer.observe(document.body, { childList: true, subtree: true });
         }, { once: true });
-        enforceRetirement();
+        // Local settings need sanitising once per page load, not on every route.
+        cleanStoredLauncherState();
+        redirectRetiredRoute();
       })();
     </script>
     <meta name="bes-app-version" content="11.9.5">

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-const MIN_ROUTE_VISIBLE_MS = 460;
-const MAX_ROUTE_VISIBLE_MS = 1800;
+// Loading feedback remains visible, without delaying an already-rendered route.
+const MIN_ROUTE_VISIBLE_MS = 220;
+const MAX_ROUTE_VISIBLE_MS = 1400;
 
 const STATE_SELECTOR = [
   '.loading-screen',
@@ -137,8 +138,17 @@ export default function GlobalWindowsPhone8Loading() {
     const pending = new Set();
     const flush = () => {
       scanFrameRef.current = 0;
-      pending.forEach(scanLoadingNodes);
+      const roots = [...pending].filter((node) => node.isConnected);
       pending.clear();
+      // A parent subtree contains all of its newly mounted descendants.
+      // Scan it once instead of rewalking the same card hierarchy many times.
+      const rootSet = new Set(roots);
+      roots.forEach((node) => {
+        for (let parent = node.parentElement; parent; parent = parent.parentElement) {
+          if (rootSet.has(parent)) return;
+        }
+        scanLoadingNodes(node);
+      });
     };
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {

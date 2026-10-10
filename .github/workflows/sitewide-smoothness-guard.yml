@@ -1,0 +1,38 @@
+name: Sitewide Smoothness Guard
+on:
+  push:
+    branches: [main, perf/sitewide-smooth-20261010]
+    paths:
+      - 'index.html'
+      - 'src/utils/globalRegionalFontSystem.js'
+      - 'src/components/GlobalWindowsPhone8Loading.jsx'
+      - 'tests/sitewide-smoothness-contract.test.mjs'
+      - '.github/workflows/sitewide-smoothness-guard.yml'
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'src/utils/globalRegionalFontSystem.js'
+      - 'src/components/GlobalWindowsPhone8Loading.jsx'
+      - 'tests/sitewide-smoothness-contract.test.mjs'
+      - '.github/workflows/sitewide-smoothness-guard.yml'
+jobs:
+  sitewide-smoothness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Check site-wide smoothness and retained behavior
+        run: node --test tests/sitewide-smoothness-contract.test.mjs tests/performance-smoothing-contract.test.mjs
+      - name: Check Admin regional font behavior
+        run: node scripts/test-font-upload-live-preview.mjs
+      - name: Check lesson activity behavior
+        run: node scripts/test-lesson-check-studio.mjs
+      - name: Build full production bundle
+        run: npm run build
+      - name: Check active access shortcuts
+        run: node scripts/test-youtube-quick-access.mjs
