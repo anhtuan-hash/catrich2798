@@ -9,6 +9,9 @@ const basic=read('src/components/GlobalCompactNavigation.jsx');
 const dashboard=read('src/components/GlobalDashboardNavigationTab.jsx');
 const homeroom=read('src/components/GlobalHomeroomNavigationTab.jsx');
 const gradebook=read('src/components/GlobalGradebookNavigationTab.jsx');
+const lessonCheck=read('src/components/GlobalLessonCheckNavigationTab.jsx');
+const hubOrder=read('src/components/GlobalNavigationHubController.jsx');
+const palette=read('src/components/GlobalNavigationPastelPalette.css');
 const reports=read('src/components/GlobalReportsNavigationTab.jsx');
 const ttcm=read('src/components/GlobalTtcmNavigationTab.jsx');
 const attendance=read('src/components/GlobalAttendanceNavigationTab.jsx');
@@ -32,16 +35,23 @@ test('compact text-only stylesheet is mounted after existing nav visuals',()=>{
   assert.match(css,/\.brian-nav__reports-countdown/);
   assert.doesNotMatch(css,/\.brian-nav__account\s*\{|\.brian-nav__brand\s*\{/);
 });
-test('all eight route entries and their original actions remain mounted',()=>{
+test('all nine route entries and their original actions remain mounted',()=>{
   assert.match(basic,/className="brian-nav__primary"/);
   assert.match(basic,/openRoute\('#\/home'/);
   assert.match(basic,/openRoute\('#\/apps'/);
   assert.match(dashboard,/launchRoute\(\{/);
   assert.match(homeroom,/launchRoute\(\{/);
   assert.match(gradebook,/launchRoute\(\{/);
+  assert.match(lessonCheck,/launchRoute\(\{/);
+  assert.ok(lessonCheck.includes("const LESSON_CHECK_SLUG = 'lesson-check-studio'"));
+  assert.ok(lessonCheck.includes('const target = `#/tool/${LESSON_CHECK_SLUG}`'));
+  assert.match(lessonCheck,/hasToolAccess\(currentUser, LESSON_CHECK_SLUG\)/);
   assert.match(reports,/launchRoute\(\{/);
   assert.match(ttcm,/brian-nav__ttcm-badge/);
   assert.match(attendance,/brian-nav__attendance-tab/);
+  assert.match(nav,/<GlobalLessonCheckNavigationTab \{\.\.\.props\} \/>/);
+  assert.ok(nav.indexOf('<GlobalGradebookNavigationTab {...props} />') < nav.indexOf('<GlobalLessonCheckNavigationTab {...props} />'));
+  assert.ok(nav.indexOf('<GlobalLessonCheckNavigationTab {...props} />') < nav.indexOf('<GlobalReportsNavigationTab {...props} />'));
   assert.match(nav,/<GlobalReportsNavigationTab \{\.\.\.props\} \/>/);
   assert.match(nav,/<GlobalAttendanceNavigationTab \{\.\.\.props\} \/>/);
   assert.match(nav,/<GlobalTtcmNavigationTab \{\.\.\.props\} \/>/);
@@ -57,4 +67,13 @@ test('runtime inline default matches compact 14px CSS, without disabling Admin r
 test('Question Bank module E2E selectors stay scoped to its own tab strip',()=>{
   assert.match(qbSpec,/page\.locator\('\.qb-tabs-horizontal'\)\.getByRole\('button', \{ name: label, exact: true \}\)\.click\(\)/);
   assert.doesNotMatch(qbSpec,/page\.getByRole\('button', \{ name: label, exact: true \}\)\.first\(\)\.click\(\)/);
+});
+
+test('Assessment shortcut is strictly ordered between Gradebook and Reports',()=>{
+  assert.match(hubOrder,/gradebook: 45/);
+  assert.match(hubOrder,/'lesson-check': 47/);
+  assert.match(hubOrder,/reports: 50/);
+  assert.match(hubOrder,/classList.contains\('brian-nav__lesson-check-tab'\)/);
+  assert.match(css,/\.brian-nav__lesson-check-tab\s*\{ order: 47 !important/);
+  assert.match(palette,/\.brian-nav__lesson-check-tab\s*\{[\s\S]*?--nav-pastel-surface: #e3f8f3/);
 });

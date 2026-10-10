@@ -3,14 +3,20 @@ on:
   pull_request:
     paths:
       - 'src/components/GlobalFlatNavigation.jsx'
+      - 'src/components/GlobalLessonCheckNavigationTab.jsx'
+      - 'src/components/GlobalNavigationHubController.jsx'
+      - 'src/components/GlobalNavigationPastelPalette.css'
       - 'src/components/GlobalNavigationTextOnlyCompact.css'
       - 'tests/nav-text-only-compact.test.mjs'
       - 'tests/e2e/nav-text-only-compact.spec.js'
       - '.github/workflows/nav-text-only-compact.yml'
   push:
-    branches: [main, ui/compact-text-only-navbar-20261010]
+    branches: [main, feat/pin-lesson-check-nav-20261010]
     paths:
       - 'src/components/GlobalFlatNavigation.jsx'
+      - 'src/components/GlobalLessonCheckNavigationTab.jsx'
+      - 'src/components/GlobalNavigationHubController.jsx'
+      - 'src/components/GlobalNavigationPastelPalette.css'
       - 'src/components/GlobalNavigationTextOnlyCompact.css'
       - 'tests/nav-text-only-compact.test.mjs'
       - 'tests/e2e/nav-text-only-compact.spec.js'
