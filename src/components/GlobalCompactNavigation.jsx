@@ -272,6 +272,11 @@ export default function GlobalCompactNavigation({
     };
     const onRoute = () => setUtilityOpen(false);
     place();
+    // The menu is portaled to body and therefore comes after page content in
+    // DOM tab order. Move keyboard focus to the first actual permitted action.
+    const focusFrame = window.requestAnimationFrame(() => {
+      utilityPanelRef.current?.querySelector('.brian-nav__utilities-items button')?.focus();
+    });
     document.addEventListener('pointerdown', closeOutside);
     document.addEventListener('click', closeOnSelection);
     window.addEventListener('keydown', onEscape);
@@ -280,6 +285,7 @@ export default function GlobalCompactNavigation({
     window.addEventListener('scroll', place, true);
     return () => {
       if (frame) window.cancelAnimationFrame(frame);
+      window.cancelAnimationFrame(focusFrame);
       document.removeEventListener('pointerdown', closeOutside);
       document.removeEventListener('click', closeOnSelection);
       window.removeEventListener('keydown', onEscape);
