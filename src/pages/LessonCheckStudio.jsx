@@ -4,6 +4,8 @@ import {
   BookOpen,
   Check,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   ClipboardCheck,
   Clock3,
   Copy,
@@ -303,7 +305,12 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [gradeFilter, setGradeFilter] = useState('all');
+  const [unitFilter, setUnitFilter] = useState('all');
+  const [lessonFilter, setLessonFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [sortMode, setSortMode] = useState('newest');
+  const [pageSize, setPageSize] = useState(20);
+  const [page, setPage] = useState(1);
   const [showEditor, setShowEditor] = useState(true);
   const [teachingActivity, setTeachingActivity] = useState(null);
   const [teachingEmbed, setTeachingEmbed] = useState(null);
@@ -369,8 +376,10 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
   const filteredActivities = useMemo(() => {
     const q = query.trim().toLocaleLowerCase('vi');
-    return activities.filter((item) => {
+    const result = activities.filter((item) => {
       if (gradeFilter !== 'all' && String(item.grade || '') !== gradeFilter) return false;
+      if (unitFilter !== 'all' && String(item.unitNo || '') !== unitFilter) return false;
+      if (lessonFilter !== 'all' && String(item.lessonKey || '') !== lessonFilter) return false;
       if (typeFilter !== 'all' && item.type !== typeFilter) return false;
       if (!q) return true;
       return [
@@ -382,7 +391,35 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         item.sourceHost,
       ].some((value) => String(value || '').toLocaleLowerCase('vi').includes(q));
     });
-  }, [activities, gradeFilter, query, typeFilter]);
+
+    return [...result].sort((a, b) => {
+      if (sortMode === 'title') return String(a.title || '').localeCompare(String(b.title || ''), 'vi');
+      if (sortMode === 'unit') {
+        return (Number(a.grade || 0) - Number(b.grade || 0))
+          || (Number(a.unitNo || 0) - Number(b.unitNo || 0))
+          || String(a.lessonTitle || '').localeCompare(String(b.lessonTitle || ''), 'vi')
+          || String(a.title || '').localeCompare(String(b.title || ''), 'vi');
+      }
+      return String(b.updatedAt || '').localeCompare(String(a.updatedAt || ''));
+    });
+  }, [activities, gradeFilter, lessonFilter, query, sortMode, typeFilter, unitFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredActivities.length / pageSize));
+  const pagedActivities = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filteredActivities.slice(start, start + pageSize);
+  }, [filteredActivities, page, pageSize]);
+
+  const pageStart = filteredActivities.length ? ((page - 1) * pageSize) + 1 : 0;
+  const pageEnd = Math.min(page * pageSize, filteredActivities.length);
+
+  useEffect(() => {
+    setPage(1);
+  }, [gradeFilter, lessonFilter, pageSize, query, sortMode, typeFilter, unitFilter]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
 
   const filteredTeachers = useMemo(() => {
     const q = teacherQuery.trim().toLocaleLowerCase('vi');
@@ -749,14 +786,59 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
       <section className="lcs-library">
         <div className="lcs-library-head">
-          <div>
+          <div className="lcs-library-title">
             <span className="lcs-kicker">{isVi ? 'GLOBAL SUCCESS · SUPABASE' : 'GLOBAL SUCCESS · SUPABASE'}</span>
-            <h2>{isVi ? 'Hoạt động dạy học' : 'Teaching activities'} <b>{activities.length}</b></h2>
+            <div className="lcs-library-title-row">
+              <h2>{isVi ? 'Kho hoạt động' : 'Activity library'} <b>{activities.length}</b></h2>
+              <span className="lcs-result-count">
+                {filteredActivities.length
+                  ? (isVi ? `Hiển thị ${pageStart}–${pageEnd} / ${filteredActivities.length}` : `Showing ${pageStart}–${pageEnd} of ${filteredActivities.length}`)
+                  : (isVi ? 'Không có kết quả' : 'No results')}
+              </span>
+            </div>
           </div>
-          <div className="lcs-library-tools">
-            <label className="lcs-search"><Search size={18} /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={isVi ? 'Tìm tên, Unit, Lesson, lớp…' : 'Search title, Unit, Lesson, class…'} /></label>
+        </div>
+
+        <div className="lcs-library-toolbar">
+          <label className="lcs-search lcs-search-wide">
+            <Search size={18} />
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={isVi ? 'Tìm tên game, Unit, Lesson, lớp…' : 'Search game, Unit, Lesson, class…'} />
+          </label>
+
+          <div className="lcs-toolbar-filters">
             <label className="lcs-filter-select"><Filter size={16} /><select value={gradeFilter} onChange={(e) => setGradeFilter(e.target.value)}><option value="all">{isVi ? 'Tất cả khối' : 'All grades'}</option><option value="10">Lớp 10</option><option value="11">Lớp 11</option><option value="12">Lớp 12</option></select></label>
-            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}><option value="all">{isVi ? 'Tất cả loại' : 'All types'}</option>{TYPE_OPTIONS.map((item) => <option key={item.value} value={item.value}>{isVi ? item.vi : item.en}</option>)}</select>
+            <select value={unitFilter} onChange={(e) => setUnitFilter(e.target.value)}>
+              <option value="all">{isVi ? 'Tất cả Unit' : 'All Units'}</option>
+              {Array.from({ length: 10 }, (_, index) => <option key={index + 1} value={String(index + 1)}>Unit {index + 1}</option>)}
+            </select>
+            <select value={lessonFilter} onChange={(e) => setLessonFilter(e.target.value)}>
+              <option value="all">{isVi ? 'Tất cả Lesson' : 'All lessons'}</option>
+              {GLOBAL_SUCCESS_LESSONS.map((lesson) => <option key={lesson.key} value={lesson.key}>{lesson.title}</option>)}
+            </select>
+            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+              <option value="all">{isVi ? 'Tất cả loại' : 'All types'}</option>
+              {TYPE_OPTIONS.map((item) => <option key={item.value} value={item.value}>{isVi ? item.vi : item.en}</option>)}
+            </select>
+            <select value={sortMode} onChange={(e) => setSortMode(e.target.value)}>
+              <option value="newest">{isVi ? 'Mới cập nhật' : 'Recently updated'}</option>
+              <option value="title">A → Z</option>
+              <option value="unit">{isVi ? 'Theo Unit' : 'By Unit'}</option>
+            </select>
+            <select value={String(pageSize)} onChange={(e) => setPageSize(Number(e.target.value))}>
+              <option value="12">12 / {isVi ? 'trang' : 'page'}</option>
+              <option value="20">20 / {isVi ? 'trang' : 'page'}</option>
+              <option value="40">40 / {isVi ? 'trang' : 'page'}</option>
+            </select>
+            {(query || gradeFilter !== 'all' || unitFilter !== 'all' || lessonFilter !== 'all' || typeFilter !== 'all' || sortMode !== 'newest') ? (
+              <button className="lcs-clear-filters" type="button" onClick={() => {
+                setQuery('');
+                setGradeFilter('all');
+                setUnitFilter('all');
+                setLessonFilter('all');
+                setTypeFilter('all');
+                setSortMode('newest');
+              }}><X size={15} />{isVi ? 'Xóa lọc' : 'Clear'}</button>
+            ) : null}
           </div>
         </div>
 
@@ -764,7 +846,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
           <div className="lcs-empty-library"><Layers3 /><h3>{activities.length ? (isVi ? 'Không có hoạt động phù hợp bộ lọc.' : 'No activities match these filters.') : (isVi ? 'Chưa có hoạt động nào trên Supabase.' : 'No activities in Supabase yet.')}</h3><p>{isLeader ? (isVi ? 'Tạo hoạt động đầu tiên ở phía trên.' : 'Create the first activity above.') : (isVi ? 'TTCM chưa đăng hoạt động.' : 'The department head has not published an activity yet.')}</p></div>
         ) : (
           <div className="lcs-card-grid">
-            {filteredActivities.map((item) => {
+            {pagedActivities.map((item) => {
               const locked = !isLeader && !item.hasAccess;
               return (
                 <article key={item.id} className={`lcs-card ${locked ? 'is-locked' : 'is-open'}`}>
@@ -805,10 +887,10 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
                       {isLeader ? (
                         <>
-                          <button onClick={() => openAccessManager(item)}><UserCheck size={16} />{isVi ? 'Quyền' : 'Access'}</button>
-                          <button onClick={() => editActivity(item)}><Edit3 size={16} />{isVi ? 'Sửa' : 'Edit'}</button>
-                          <button onClick={() => duplicateActivity(item)}><Copy size={16} />{isVi ? 'Nhân bản' : 'Duplicate'}</button>
-                          <button className="is-danger" onClick={() => removeActivity(item)}><Trash2 size={16} />{isVi ? 'Xóa' : 'Delete'}</button>
+                          <button className="lcs-card-icon-action" title={isVi ? 'Phân quyền' : 'Manage access'} aria-label={isVi ? 'Phân quyền' : 'Manage access'} onClick={() => openAccessManager(item)}><UserCheck size={16} /></button>
+                          <button className="lcs-card-icon-action" title={isVi ? 'Chỉnh sửa' : 'Edit'} aria-label={isVi ? 'Chỉnh sửa' : 'Edit'} onClick={() => editActivity(item)}><Edit3 size={16} /></button>
+                          <button className="lcs-card-icon-action" title={isVi ? 'Nhân bản' : 'Duplicate'} aria-label={isVi ? 'Nhân bản' : 'Duplicate'} onClick={() => duplicateActivity(item)}><Copy size={16} /></button>
+                          <button className="lcs-card-icon-action is-danger" title={isVi ? 'Xóa hoạt động' : 'Delete activity'} aria-label={isVi ? 'Xóa hoạt động' : 'Delete activity'} onClick={() => removeActivity(item)}><Trash2 size={16} /></button>
                         </>
                       ) : null}
                     </div>
@@ -818,6 +900,25 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
             })}
           </div>
         )}
+
+        {!loading && filteredActivities.length > 0 ? (
+          <div className="lcs-pagination">
+            <div className="lcs-pagination-summary">
+              <strong>{isVi ? `Trang ${page} / ${totalPages}` : `Page ${page} of ${totalPages}`}</strong>
+              <span>{isVi ? `${filteredActivities.length} hoạt động phù hợp` : `${filteredActivities.length} matching activities`}</span>
+            </div>
+            <div className="lcs-pagination-controls">
+              <button type="button" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page <= 1}><ChevronLeft size={17} />{isVi ? 'Trước' : 'Previous'}</button>
+              <label>
+                <span>{isVi ? 'Đến trang' : 'Go to'}</span>
+                <select value={String(page)} onChange={(e) => setPage(Number(e.target.value))}>
+                  {Array.from({ length: totalPages }, (_, index) => <option key={index + 1} value={String(index + 1)}>{index + 1}</option>)}
+                </select>
+              </label>
+              <button type="button" onClick={() => setPage((current) => Math.min(totalPages, current + 1))} disabled={page >= totalPages}>{isVi ? 'Sau' : 'Next'}<ChevronRight size={17} /></button>
+            </div>
+          </div>
+        ) : null}
       </section>
 
       {requestTarget ? (
