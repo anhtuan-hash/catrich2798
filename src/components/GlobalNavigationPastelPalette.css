@@ -51,6 +51,17 @@ html body .app-shell[data-route] .brian-nav__primary > .brian-nav__gradebook-tab
   --nav-accent: #7d4d3b !important;
 }
 
+/* New assessment shortcut uses the same pastel language as the other destinations. */
+html body .app-shell[data-route] .brian-nav__primary > .brian-nav__lesson-check-tab {
+  --nav-pastel-surface: #e3f8f3;
+  --nav-pastel-hover: #d4f4ea;
+  --nav-pastel-active: #c4eadf;
+  --nav-pastel-border: #aee0d1;
+  --nav-pastel-ink: #226e60;
+  --nav-rgb: 52, 158, 135 !important;
+  --nav-accent: #226e60 !important;
+}
+
 html body .app-shell[data-route] .brian-nav__primary > .brian-nav__reports-tab {
   --nav-pastel-surface: #fff5d8;
   --nav-pastel-hover: #ffefc5;
@@ -87,6 +98,7 @@ html body .app-shell[data-route] .brian-nav__primary > :is(
   .brian-nav__dashboard-tab,
   .brian-nav__homeroom-tab,
   .brian-nav__gradebook-tab,
+  .brian-nav__lesson-check-tab,
   .brian-nav__reports-tab,
   .brian-nav__ttcm-tab,
   .brian-nav__attendance-tab
@@ -103,6 +115,7 @@ html body .app-shell[data-route] .brian-nav__primary > :is(
   .brian-nav__dashboard-tab,
   .brian-nav__homeroom-tab,
   .brian-nav__gradebook-tab,
+  .brian-nav__lesson-check-tab,
   .brian-nav__reports-tab,
   .brian-nav__ttcm-tab,
   .brian-nav__attendance-tab
@@ -119,6 +132,7 @@ html body .app-shell[data-route] .brian-nav__primary > :is(
   .brian-nav__dashboard-tab,
   .brian-nav__homeroom-tab,
   .brian-nav__gradebook-tab,
+  .brian-nav__lesson-check-tab,
   .brian-nav__reports-tab,
   .brian-nav__ttcm-tab,
   .brian-nav__attendance-tab
@@ -135,6 +149,7 @@ html body .app-shell[data-route] .brian-nav__primary > :is(
   .brian-nav__dashboard-tab,
   .brian-nav__homeroom-tab,
   .brian-nav__gradebook-tab,
+  .brian-nav__lesson-check-tab,
   .brian-nav__reports-tab,
   .brian-nav__ttcm-tab,
   .brian-nav__attendance-tab
