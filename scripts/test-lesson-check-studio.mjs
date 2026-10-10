@@ -11,6 +11,10 @@ const service = read('src/utils/lessonCheckActivities.js');
 const catalog = read('src/data/globalSuccessCatalog.js');
 const migration = read('supabase/migrations/20261010081500_lesson_check_activity_access.sql');
 const focusMigration = read('supabase/migrations/20261010093500_lesson_check_focus_tags.sql');
+const assessmentMigration = read('supabase/migrations/20261010103000_fun_for_assessment_sessions.sql');
+const assessmentService = read('src/utils/lessonCheckAssessment.js');
+const assessmentWorkspace = read('src/components/lessonCheck/AssessmentWorkspace.jsx');
+const assessmentStyles = read('src/components/lessonCheck/AssessmentWorkspace.css');
 const directory = read('src/pages/appsDirectoryData.js');
 const design = read('src/data/designProfiles.js');
 const vercel = read('vercel.json');
@@ -168,6 +172,50 @@ assert.match(styles, /@media\(max-width:900px\)/);
 assert.match(styles, /@media\(max-width:620px\)/);
 assert.match(styles, /\.lcs-access-dialog/);
 assert.match(styles, /\.lcs-teach-overlay\{[\s\S]*?position:fixed/);
+
+// Fun for Assessment end-to-end workflow.
+assert.match(studio, /import AssessmentWorkspace from '\.\.\/components\/lessonCheck\/AssessmentWorkspace\.jsx'/);
+assert.match(studio, /Bắt đầu đánh giá/);
+assert.match(studio, /setAssessmentWorkspaceView\('reports'\)/);
+assert.match(studio, /<AssessmentWorkspace[\s\S]*?onLaunchActivity=\{openTeachingMode\}/);
+
+assert.match(assessmentService, /get_my_assigned_school_classes/);
+assert.match(assessmentService, /lesson_check_save_assessment_session/);
+assert.match(assessmentService, /lesson_check_list_assessment_sessions/);
+assert.match(assessmentService, /lesson_check_list_assessment_results/);
+assert.doesNotMatch(assessmentService, /localStorage\./);
+
+assert.match(assessmentWorkspace, /Gọi tên ngẫu nhiên/);
+assert.match(assessmentWorkspace, /Chia nhóm ngẫu nhiên/);
+assert.match(assessmentWorkspace, /const randomPick = \(\) =>/);
+assert.match(assessmentWorkspace, /const randomGroups = \(\) =>/);
+assert.match(assessmentWorkspace, /Lớp được phân công/);
+assert.match(assessmentWorkspace, /Mục đích đánh giá/);
+assert.match(assessmentWorkspace, /Kết quả gốc/);
+assert.match(assessmentWorkspace, /Điểm \/10/);
+assert.match(assessmentWorkspace, /Điều chỉnh sau đánh giá/);
+assert.match(assessmentWorkspace, /Báo cáo kiểm tra đánh giá/);
+assert.match(assessmentWorkspace, /Excel\/CSV/);
+assert.match(assessmentWorkspace, /In \/ PDF/);
+assert.match(assessmentWorkspace, /Độ phủ/);
+assert.match(assessmentWorkspace, /Hồ sơ đánh giá học sinh/);
+assert.match(assessmentWorkspace, /saveAssessmentSession\(sessionPayload\(\{ status: 'completed' \}\)\)/);
+
+assert.match(assessmentMigration, /create table if not exists public\.lesson_check_assessment_sessions/);
+assert.match(assessmentMigration, /create table if not exists public\.lesson_check_assessment_results/);
+assert.match(assessmentMigration, /teaching_adjustment text not null default ''/);
+assert.match(assessmentMigration, /participation_mode in \('individual','group'\)/);
+assert.match(assessmentMigration, /scoring_mode in \('manual','points','correct_answers','rubric','completion','ranking','other'\)/);
+assert.match(assessmentMigration, /lesson_check_save_assessment_session/);
+assert.match(assessmentMigration, /lesson_check_list_assessment_sessions/);
+assert.match(assessmentMigration, /lesson_check_list_assessment_results/);
+assert.match(assessmentMigration, /teacher_id = auth\.uid\(\) or public\.lesson_check_is_leader\(\)/);
+
+assert.match(assessmentStyles, /\.f4a-overlay\{/);
+assert.match(assessmentStyles, /\.f4a-student-grid\{/);
+assert.match(assessmentStyles, /\.f4a-activity-grid\{/);
+assert.match(assessmentStyles, /\.f4a-score-table\{/);
+assert.match(assessmentStyles, /\.f4a-report-stats\{/);
 
 assert.match(vercel, /frame-src 'self' https:/, 'CSP must permit HTTPS iframe sources.');
 
