@@ -18,6 +18,8 @@ import {
   Sparkles,
   Trash2,
   Users,
+  RotateCcw,
+  UserPlus,
   X,
 } from 'lucide-react';
 import {
@@ -27,6 +29,7 @@ import {
   listAssessmentSessions,
   saveAssessmentSession,
 } from '../../utils/lessonCheckAssessment.js';
+import { drawUncalledStudent, makeBalancedGroups } from '../../utils/lessonCheckRandomizer.js';
 import './AssessmentWorkspace.css';
 
 const PURPOSES = [
@@ -56,15 +59,6 @@ function text(value, fallback = '') {
 
 function studentRef(student) {
   return text(student?.ref || student?.id || student?.code || student?.fullName);
-}
-
-function shuffled(items) {
-  const copy = [...items];
-  for (let index = copy.length - 1; index > 0; index -= 1) {
-    const target = Math.floor(Math.random() * (index + 1));
-    [copy[index], copy[target]] = [copy[target], copy[index]];
-  }
-  return copy;
 }
 
 function formatDate(value) {
@@ -165,6 +159,9 @@ export default function AssessmentWorkspace({
   const [groupCount, setGroupCount] = useState(4);
   const [groupMap, setGroupMap] = useState({});
   const [randomPickedRef, setRandomPickedRef] = useState('');
+  const [randomScope, setRandomScope] = useState('all');
+  const [calledRefs, setCalledRefs] = useState([]);
+  const [spotlightOpen, setSpotlightOpen] = useState(false);
 
   const [activityQuery, setActivityQuery] = useState('');
   const [activityId, setActivityId] = useState('');
@@ -230,6 +227,14 @@ export default function AssessmentWorkspace({
     return roster.filter((student) => refs.has(studentRef(student)));
   }, [roster, selectedRefs]);
 
+  // Calling a learner must not alter the participants chosen for assessment.
+  const randomPool = randomScope === 'selected' ? selectedStudents : roster;
+  const randomPoolRefs = new Set(randomPool.map(studentRef));
+  const calledInPool = calledRefs.filter((ref) => randomPoolRefs.has(ref));
+  const remainingCallCount = randomPool.length - calledInPool.length;
+  const lastCalledStudent = roster.find((student) => studentRef(student) === randomPickedRef) || null;
+  const groupingPool = randomScope === 'selected' ? selectedStudents : roster;
+
   const selectedActivity = useMemo(
     () => allowedActivities.find((item) => item.id === activityId) || null,
     [activityId, allowedActivities],
@@ -257,7 +262,11 @@ export default function AssessmentWorkspace({
       bucket.push(student);
       grouped.set(label, bucket);
     });
-    return [...grouped.entries()];
+    return [...grouped.entries()].sort((a, b) => {
+      const numberA = Number(a[0].match(/\d+/)?.[0] || Number.MAX_SAFE_INTEGER);
+      const numberB = Number(b[0].match(/\d+/)?.[0] || Number.MAX_SAFE_INTEGER);
+      return numberA - numberB;
+    });
   }, [groupMap, participationMode, selectedStudents]);
 
   useEffect(() => {
@@ -293,12 +302,23 @@ export default function AssessmentWorkspace({
     setSelectedRefs([]);
     setGroupMap({});
     setRandomPickedRef('');
+    setCalledRefs([]);
+    setSpotlightOpen(false);
     setStudentQuery('');
     setSessionId('');
     setSessionCompleted(false);
     setResults({});
     setStep(1);
   }, [className]);
+
+  useEffect(() => {
+    if (!spotlightOpen) return undefined;
+    const handleEscape = (event) => {
+      if (event.key === 'Escape') { event.preventDefault(); setSpotlightOpen(false); }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [spotlightOpen]);
 
   useEffect(() => {
     if (view !== 'reports') return;
@@ -381,42 +401,76 @@ export default function AssessmentWorkspace({
     setSelectedRefs((current) => current.includes(ref)
       ? current.filter((item) => item !== ref)
       : [...current, ref]);
-    setRandomPickedRef('');
+    // Changing a team roster requires regrouping to avoid assigning an unselected student.
+    if (participationMode === 'group') setGroupMap({});
   };
 
   const selectAll = () => {
     setSelectedRefs(roster.map(studentRef));
+    if (participationMode === 'group') setGroupMap({});
+  };
+
+  const resetCalls = () => {
+    setCalledRefs([]);
     setRandomPickedRef('');
+    setSpotlightOpen(false);
+    setNotice('');
+  };
+
+  const setDrawingScope = (scope) => {
+    setRandomScope(scope);
+    setCalledRefs([]);
+    setRandomPickedRef('');
+    setSpotlightOpen(false);
   };
 
   const randomPick = () => {
-    if (!roster.length) return;
-    const pool = selectedStudents.length ? selectedStudents : roster;
-    const picked = pool[Math.floor(Math.random() * pool.length)];
+    if (!randomPool.length) {
+      setNotice('Hãy chọn học sinh hoặc chuyển phạm vi sang Toàn lớp.');
+      return;
+    }
+    const picked = drawUncalledStudent(randomPool, calledRefs, studentRef);
+    if (!picked) {
+      setNotice('Đã gọi hết học sinh trong lượt này. Chọn “Lượt mới” để tiếp tục.');
+      return;
+    }
     const ref = studentRef(picked);
-    setParticipationMode('individual');
-    setSelectedRefs([ref]);
-    setGroupMap({});
+    setCalledRefs((current) => [...current, ref]);
     setRandomPickedRef(ref);
-    setNotice(`Đã gọi ngẫu nhiên: ${picked.fullName}`);
+    setSpotlightOpen(true);
+    setNotice('');
+  };
+
+  const addCalledStudent = () => {
+    if (!randomPickedRef) return;
+    setSelectedRefs((current) => current.includes(randomPickedRef) ? current : [...current, randomPickedRef]);
+    if (participationMode === 'group') setGroupMap({});
   };
 
   const randomGroups = () => {
-    const pool = selectedStudents.length ? selectedStudents : roster;
-    if (pool.length < 2) {
-      setNotice('Cần ít nhất 2 học sinh để chia nhóm.');
+    if (groupingPool.length < 2) {
+      setNotice('Cần ít nhất 2 học sinh trong phạm vi đã chọn để chia nhóm.');
       return;
     }
-    const count = Math.max(2, Math.min(Number(groupCount) || 2, pool.length));
-    const nextMap = {};
-    shuffled(pool).forEach((student, index) => {
-      nextMap[studentRef(student)] = `Nhóm ${(index % count) + 1}`;
-    });
+    const count = Math.max(2, Math.min(Number(groupCount) || 2, groupingPool.length));
+    const nextMap = makeBalancedGroups(groupingPool, count, studentRef);
     setParticipationMode('group');
-    setSelectedRefs(pool.map(studentRef));
+    setSelectedRefs(groupingPool.map(studentRef));
     setGroupMap(nextMap);
-    setRandomPickedRef('');
-    setNotice(`Đã chia ngẫu nhiên ${pool.length} học sinh thành ${count} nhóm.`);
+    setGroupCount(count);
+    setNotice(`Đã chia đều ${groupingPool.length} học sinh thành ${count} nhóm. Có thể điều chỉnh thành viên trực tiếp bên phải.`);
+  };
+
+  const reassignGroup = (ref, group) => {
+    const previous = groupMap[ref];
+    if (previous === group) return;
+    const sourceCount = selectedStudents.filter((student) => groupMap[studentRef(student)] === previous).length;
+    if (sourceCount <= 1) {
+      setNotice('Mỗi nhóm cần ít nhất một học sinh. Hãy đổi thành viên khác thay vì để trống nhóm.');
+      return;
+    }
+    setGroupMap((current) => ({ ...current, [ref]: group }));
+    setNotice('');
   };
 
   const prepareResults = (students = selectedStudents) => {
@@ -538,6 +592,7 @@ export default function AssessmentWorkspace({
     setTeachingAdjustment('');
     setSessionNotes('');
     setRandomPickedRef('');
+    setCalledRefs([]);
   };
 
   const deleteSession = async (item) => {
@@ -1042,40 +1097,83 @@ export default function AssessmentWorkspace({
               <button className={participationMode === 'group' ? 'is-active' : ''} onClick={() => setParticipationMode('group')}><Users size={16} />Nhóm</button>
             </div>
 
-            <div className="f4a-random-tools">
-              <button onClick={randomPick} disabled={!roster.length}><Shuffle size={16} />Gọi tên ngẫu nhiên</button>
-              <div><select value={groupCount} onChange={(event) => setGroupCount(Number(event.target.value))}>{[2,3,4,5,6,7,8].map((n) => <option key={n} value={n}>{n} nhóm</option>)}</select><button onClick={randomGroups} disabled={roster.length < 2}><Users size={16} />Chia nhóm ngẫu nhiên</button></div>
-            </div>
+            <section className="f4a-random-tools" aria-label="Công cụ chọn ngẫu nhiên và chia nhóm">
+              <div className="f4a-toolbox-heading"><Shuffle size={16} /><strong>CHỌN NGẪU NHIÊN</strong></div>
+              <div className="f4a-scope-switch" role="group" aria-label="Phạm vi áp dụng">
+                <button type="button" className={randomScope === 'all' ? 'is-active' : ''} aria-pressed={randomScope === 'all'} onClick={() => setDrawingScope('all')}>Toàn lớp</button>
+                <button type="button" className={randomScope === 'selected' ? 'is-active' : ''} aria-pressed={randomScope === 'selected'} onClick={() => setDrawingScope('selected')}>Đã chọn ({selectedStudents.length})</button>
+              </div>
+              <p className="f4a-scope-note">Phạm vi: <strong>{randomPool.length} học sinh</strong> · Không gọi lặp trong một lượt.</p>
+              <button type="button" className="f4a-draw-button" onClick={randomPick} disabled={!remainingCallCount}>
+                <Shuffle size={17} />{calledInPool.length ? 'Gọi tên tiếp theo' : 'Gọi tên ngẫu nhiên'}
+              </button>
+              <div className="f4a-tool-status">
+                <span>Đã gọi <b>{calledInPool.length}/{randomPool.length}</b></span>
+                <button type="button" onClick={resetCalls} disabled={!calledRefs.length}><RotateCcw size={13} />Lượt mới</button>
+              </div>
+              <div className="f4a-tool-divider" />
+              <label className="f4a-group-count-label" htmlFor="f4a-group-count"><Users size={16} />CHIA NHÓM CÂN BẰNG</label>
+              <div className="f4a-group-tool-row">
+                <select id="f4a-group-count" value={groupCount} onChange={(event) => { setGroupCount(Number(event.target.value)); if (Object.keys(groupMap).length) { setGroupMap({}); setNotice('Đã đổi số nhóm. Hãy nhấn Chia nhóm ngẫu nhiên để cập nhật.'); } }} aria-label="Số nhóm">
+                  {Array.from({ length: 11 }, (_, index) => index + 2).map((n) => <option key={n} value={n}>{n} nhóm</option>)}
+                </select>
+                <button type="button" onClick={randomGroups} disabled={groupingPool.length < 2}><Users size={15} />{groupedStudents.length ? 'Chia lại' : 'Chia nhóm ngẫu nhiên'}</button>
+              </div>
+              <p className="f4a-scope-note">Chênh lệch tối đa 1 học sinh/nhóm khi chia tự động.</p>
+            </section>
 
             <div className="f4a-selection-summary"><strong>{selectedStudents.length}</strong><span>học sinh đã chọn</span></div>
-            <button className="f4a-primary" disabled={!selectedStudents.length} onClick={() => setStep(2)}>Tiếp tục chọn hoạt động <ChevronRight size={16} /></button>
+            <button className="f4a-primary" disabled={!selectedStudents.length || (participationMode === 'group' && selectedStudents.some((student) => !groupMap[studentRef(student)]))} onClick={() => setStep(2)}>Tiếp tục chọn hoạt động <ChevronRight size={16} /></button>
           </aside>
 
           <main className="f4a-roster">
             <div className="f4a-roster-toolbar">
               <label><Search size={17} /><input value={studentQuery} onChange={(event) => setStudentQuery(event.target.value)} placeholder="Tìm học sinh..." /></label>
               <button onClick={selectAll}>Chọn tất cả</button>
-              <button onClick={() => { setSelectedRefs([]); setGroupMap({}); setRandomPickedRef(''); }}>Bỏ chọn</button>
+              <button onClick={() => { setSelectedRefs([]); setGroupMap({}); }}>Bỏ chọn</button>
             </div>
 
-            {classLoading ? <div className="f4a-loading"><LoaderCircle className="lcs-spin" />Đang tải danh sách lớp…</div> : (
+            {lastCalledStudent ? <section className="f4a-picked-card" aria-live="polite">
+              <div className="f4a-picked-top"><span><Sparkles size={14} />HỌC SINH ĐƯỢC GỌI</span><small>Lượt {calledInPool.length} / {randomPool.length}</small></div>
+              <div className="f4a-picked-main"><span className="f4a-picked-avatar">{lastCalledStudent.fullName.trim().slice(0,1).toUpperCase()}</span><div><strong>{lastCalledStudent.fullName}</strong><small>{lastCalledStudent.code || 'Chưa có mã học sinh'}</small></div></div>
+              <div className="f4a-picked-bottom">
+                <span>{remainingCallCount === 0 ? 'Đã gọi hết lượt — hãy bắt đầu lượt mới' : `Còn ${remainingCallCount} học sinh chưa được gọi`}</span>
+                <button type="button" className="f4a-spotlight-open" onClick={() => setSpotlightOpen(true)}><MonitorPlay size={15} />Trình chiếu</button>
+                <button type="button" onClick={addCalledStudent} disabled={selectedRefs.includes(randomPickedRef)}><UserPlus size={15} />{selectedRefs.includes(randomPickedRef) ? 'Đã tham gia' : 'Thêm vào đánh giá'}</button>
+              </div>
+            </section> : null}
+            {calledInPool.length > 0 ? <div className="f4a-call-history"><span>Đã gọi:</span>{calledInPool.slice(-5).map((ref) => <span className="f4a-call-chip" key={ref}>{roster.find((item) => studentRef(item) === ref)?.fullName || 'Học sinh'}</span>)}{calledInPool.length > 5 ? <small>+{calledInPool.length - 5} trước đó</small> : null}</div> : null}
+
+            {participationMode === 'group' && groupedStudents.length > 0 ? <section className="f4a-groups-panel">
+              <div className="f4a-groups-heading"><div><strong>Kết quả chia nhóm</strong><span>{selectedStudents.length} học sinh · {groupedStudents.length} nhóm · chọn danh sách để chuyển nhóm</span></div><button type="button" onClick={randomGroups}><Shuffle size={14} />Chia lại</button></div>
+              <div className="f4a-groups-preview">
+                {groupedStudents.map(([label, students], index) => <article className="f4a-group-card" key={label}>
+                  <header><span className="f4a-group-icon">{index + 1}</span><strong>{label}</strong><small>{students.length} học sinh</small></header>
+                  <div className="f4a-group-members">{students.map((student) => <div key={studentRef(student)} className="f4a-group-member">
+                    <span title={student.fullName}>{student.fullName}</span>
+                    <select aria-label={`Chuyển nhóm cho ${student.fullName}`} value={groupMap[studentRef(student)]} onChange={(event) => reassignGroup(studentRef(student), event.target.value)}>
+                      {Array.from({ length: Math.max(2, Number(groupCount) || 2) }, (_, position) => <option key={position} value={`Nhóm ${position + 1}`}>Nhóm {position + 1}</option>)}
+                    </select>
+                  </div>)}</div>
+                </article>)}
+              </div>
+            </section> : null}
+
+            {classLoading ? <div className="f4a-loading"><LoaderCircle className="lcs-spin" />Đang tải danh sách lớp…</div> : <>
+              <div className="f4a-list-caption"><strong>Danh sách học sinh</strong><span>{filteredStudents.length} / {roster.length} học sinh · Nhấn thẻ để chọn tham gia đánh giá</span></div>
               <div className="f4a-student-grid">
                 {filteredStudents.map((student) => {
                   const ref = studentRef(student);
                   const selected = selectedRefs.includes(ref);
                   const group = groupMap[ref] || '';
-                  return <button key={ref} className={`f4a-student ${selected ? 'is-selected' : ''} ${randomPickedRef === ref ? 'is-random' : ''}`} onClick={() => toggleStudent(ref)}>
+                  return <button type="button" key={ref} aria-pressed={selected} className={`f4a-student ${selected ? 'is-selected' : ''} ${randomPickedRef === ref ? 'is-random' : ''}`} onClick={() => toggleStudent(ref)}>
                     <span className="f4a-student-avatar">{student.fullName.trim().slice(0,1).toUpperCase()}</span>
                     <span className="f4a-student-copy"><strong>{student.fullName}</strong><small>{student.code || 'Chưa có mã HS'}{group ? ` · ${group}` : ''}</small></span>
                     <span className="f4a-check">{selected ? <Check size={14} /> : null}</span>
                   </button>;
                 })}
               </div>
-            )}
-
-            {participationMode === 'group' && groupedStudents.length ? <div className="f4a-groups-preview">
-              {groupedStudents.map(([label, students]) => <div key={label}><strong>{label}</strong><span>{students.map((student) => student.fullName).join(' · ')}</span></div>)}
-            </div> : null}
+            </>}
           </main>
         </div> : null}
 
@@ -1213,6 +1311,20 @@ export default function AssessmentWorkspace({
       </div>}
       </div>
     </section>
+    {spotlightOpen && lastCalledStudent && step === 1 ? <div className="f4a-spotlight" role="dialog" aria-modal="true" aria-label="Kết quả gọi học sinh ngẫu nhiên">
+      <button type="button" className="f4a-spotlight-close" onClick={() => setSpotlightOpen(false)} aria-label="Đóng chế độ trình chiếu"><X size={23} /></button>
+      <div className="f4a-spotlight-content">
+        <span className="f4a-spotlight-kicker"><Sparkles size={18} />GỌI TÊN NGẪU NHIÊN</span>
+        <div className="f4a-spotlight-avatar">{lastCalledStudent.fullName.trim().slice(0,1).toUpperCase()}</div>
+        <strong className="f4a-spotlight-name">{lastCalledStudent.fullName}</strong>
+        <span className="f4a-spotlight-code">{lastCalledStudent.code || 'Học sinh được chọn'}</span>
+        <div className="f4a-spotlight-counter">Đã gọi {calledInPool.length} / {randomPool.length} · Còn {remainingCallCount} học sinh</div>
+        <div className="f4a-spotlight-buttons">
+          <button type="button" className="is-primary" onClick={randomPick} disabled={!remainingCallCount}><Shuffle size={19} />Gọi tiếp</button>
+          <button type="button" onClick={() => setSpotlightOpen(false)}>Quay lại danh sách</button>
+        </div>
+      </div>
+    </div> : null}
   </div>;
 
   return typeof document !== 'undefined'
