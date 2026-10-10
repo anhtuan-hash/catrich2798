@@ -94,6 +94,9 @@ jobs:
       - name: Verify TextCare layout stability
         run: node scripts/test-textcare-layout-stability.mjs
 
+      - name: Verify Lesson Check Studio embeds
+        run: node scripts/test-lesson-check-studio.mjs
+
       - name: Verify YouTube Quick inline player
         run: node scripts/test-youtube-quick-access.mjs
 
