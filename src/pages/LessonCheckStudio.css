@@ -3354,3 +3354,34 @@
 .lcs-page--library.is-assessment-open .lcs-arcade-head{
   pointer-events:none;
 }
+
+
+/* V12 · Stable Arcade game thumbnails.
+   The gallery is a thumbnail, never a live gameplay viewport. Older 118% /
+   scale(.847...) frames were only ~390 px wide on four-column desktop cards,
+   triggering compact/mobile layouts INSIDE the embedded games. Safari then
+   composited text and controls on top of each other. Render each game using
+   a 3x virtual viewport, and scale the entire result down as one image. */
+.lcs-page--library .lcs-arcade-card .lcs-card-preview-frame{
+  top:0;
+  left:0;
+  right:auto;
+  bottom:auto;
+  width:300%;
+  height:300%;
+  max-width:none;
+  max-height:none;
+  transform:scale(.3333333333);
+  transform-origin:top left;
+  pointer-events:none;
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-live-preview{
+  overflow:hidden;
+  isolation:isolate;
+}
+/* The global floating Vietnam-themed motifs are fixed above content
+   (z-index:45). Keep the user's atmosphere settings and other routes intact,
+   but don't paint flowers, leaves or flags over game thumbnails or text. */
+html:has(.lcs-page--library) .bes-vn-atmosphere{
+  visibility:hidden!important;
+}
