@@ -156,6 +156,7 @@ export default function AssessmentWorkspace({
   const [purpose, setPurpose] = useState('formative');
   const [scoringMode, setScoringMode] = useState('manual');
   const [sessionId, setSessionId] = useState('');
+  const [sessionCompleted, setSessionCompleted] = useState(false);
   const [startedAt, setStartedAt] = useState('');
   const [results, setResults] = useState({});
   const [teachingAdjustment, setTeachingAdjustment] = useState('');
@@ -248,6 +249,7 @@ export default function AssessmentWorkspace({
     setRandomPickedRef('');
     setStudentQuery('');
     setSessionId('');
+    setSessionCompleted(false);
     setResults({});
     setStep(1);
   }, [className]);
@@ -445,6 +447,7 @@ export default function AssessmentWorkspace({
       return;
     }
     setSessionId(saved.id);
+    setSessionCompleted(false);
     setStep(3);
     setNotice('Phiên đánh giá đã được ghi nhận. Bạn có thể mở hoạt động.');
     onLaunchActivity?.(selectedActivity);
@@ -460,6 +463,7 @@ export default function AssessmentWorkspace({
       return;
     }
     setSessionId(saved.id);
+    setSessionCompleted(true);
     setNotice('Đã lưu kết quả đánh giá vào hồ sơ học sinh.');
     setStep(4);
   };
@@ -472,6 +476,7 @@ export default function AssessmentWorkspace({
     setPurpose('formative');
     setScoringMode('manual');
     setSessionId('');
+    setSessionCompleted(false);
     setStartedAt('');
     setResults({});
     setTeachingAdjustment('');
@@ -700,8 +705,9 @@ export default function AssessmentWorkspace({
 
           <div className="f4a-score-actions">
             {sessionId && step === 4 ? <button className="f4a-secondary" onClick={() => setStep(3)}><ArrowLeft size={15} />Quay lại hoạt động</button> : null}
-            <button className="f4a-primary" onClick={completeSession} disabled={saving}>{saving ? <LoaderCircle className="lcs-spin" size={16} /> : <Check size={16} />}Lưu kết quả đánh giá</button>
-            {sessionId ? <button className="f4a-secondary" onClick={() => { resetSession(); setView('reports'); }}><BarChart3 size={16} />Xem báo cáo</button> : null}
+            <button className="f4a-primary" onClick={completeSession} disabled={saving}>{saving ? <LoaderCircle className="lcs-spin" size={16} /> : <Check size={16} />}{sessionCompleted ? 'Lưu lại thay đổi' : 'Lưu kết quả đánh giá'}</button>
+            {sessionCompleted ? <button className="f4a-secondary" onClick={() => { resetSession(); setView('reports'); }}><BarChart3 size={16} />Xem báo cáo</button> : null}
+            {sessionCompleted ? <button className="f4a-secondary" onClick={resetSession}><Sparkles size={16} />Phiên đánh giá mới</button> : null}
           </div>
         </div> : null}
       </> : <div className="f4a-report">
