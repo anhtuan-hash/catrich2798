@@ -68,24 +68,12 @@
       "destination": "/api/google-drive-gateway?handler=preview-session"
     },
     {
-      "source": "/api/hero-theme-admin",
-      "destination": "/api/hero-theme-gateway?handler=admin"
-    },
-    {
-      "source": "/api/hero-theme-manifest",
-      "destination": "/api/hero-theme-gateway?handler=manifest"
-    },
-    {
-      "source": "/api/hero-theme-media",
-      "destination": "/api/hero-theme-gateway?handler=media"
-    },
-    {
       "source": "/api/homepage-hero-publish",
-      "destination": "/api/hero-theme-gateway?handler=homepage-publish"
+      "destination": "/api/homepage-hero-gateway?handler=publish"
     },
     {
       "source": "/api/homepage-mobile-hero-publish",
-      "destination": "/api/hero-theme-gateway?handler=homepage-mobile-publish"
+      "destination": "/api/homepage-hero-gateway?handler=mobile-publish"
     },
     {
       "source": "/api/work-hub-file-access-v2",
