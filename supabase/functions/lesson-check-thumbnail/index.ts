@@ -203,7 +203,6 @@ Deno.serve(async (req: Request) => {
     return json({ ok: false, fallback: "missing", message: "No Padlet Arcade game id was found." }, 422);
   }
 
-  const currentSource = Date.parse(contentUpdatedAt || "");
   const versionStamp = Number.isFinite(currentSource) ? Math.round(currentSource) : Date.now();
   const previewUrl =
     `https://arcade.padlet.com/open-graph/social-preview-image.png?hashid=${encodeURIComponent(gameId)}&timestamp=${versionStamp}`;
