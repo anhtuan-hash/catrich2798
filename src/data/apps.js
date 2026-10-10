@@ -47,6 +47,14 @@ export const APPS = [
     status: 'Questions · Bundles · Exams · ChatGPT', statusVi: 'Câu hỏi · Chùm bài · Đề thi · ChatGPT', api: true, featured: true,
   },
   {
+    slug: 'lesson-check-studio', icon: 'KC', tone: 'mint', group: 'Assessment', groupVi: 'Kiểm tra đánh giá',
+    title: 'Lesson Check Studio', titleVi: 'Kiểm tra bài',
+    desc: 'Paste iframe, URL or HTML code and keep each embedded item as a separate classroom teaching activity.',
+    descVi: 'Dán iframe, URL hoặc mã HTML và lưu mỗi nội dung nhúng thành một hoạt động dạy học riêng để xem trước và trình chiếu trực tiếp.',
+    status: 'Iframe · HTML · URL · Teaching mode', statusVi: 'Iframe · HTML · URL · Chế độ dạy',
+    api: false, featured: true, hideable: false,
+  },
+  {
     slug: 'thpt-practice-hub', icon: 'TH', tone: 'orange', group: 'Exam Preparation', groupVi: 'Luyện thi THPT',
     title: 'THPT Interactive Practice Hub', titleVi: 'Luyện thi THPT',
     desc: 'Upload, review, organize and run interactive HTML exam-preparation lessons directly inside Brian.',
