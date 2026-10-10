@@ -25,14 +25,11 @@ import {
   LockKeyhole,
   MonitorPlay,
   Plus,
-  RefreshCw,
   Save,
   Search,
-  ShieldCheck,
   BarChart3,
   Trash2,
   UserCheck,
-  UserRound,
   Users,
   X,
 } from 'lucide-react';
@@ -360,6 +357,9 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const previewReady = ['url', 'html'].includes(parsedDraft.kind);
   const unitOptions = useMemo(() => unitOptionsForGrade(draft.grade), [draft.grade]);
   const pendingCount = useMemo(() => requests.filter((item) => item.status === 'pending').length, [requests]);
+  const pendingActivityIds = useMemo(() => new Set(
+    requests.filter((item) => item.status === 'pending').map((item) => item.activityId),
+  ), [requests]);
   const pageSize = 12;
 
   const libraryStats = useMemo(() => {
@@ -425,11 +425,20 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     return () => window.clearTimeout(timer);
   }, [notice]);
 
+  useEffect(() => {
+    if (!menuActivityId) return undefined;
+    const closeMenu = (event) => {
+      if (!event.target?.closest?.('.lcs-card-more')) setMenuActivityId('');
+    };
+    document.addEventListener('pointerdown', closeMenu);
+    return () => document.removeEventListener('pointerdown', closeMenu);
+  }, [menuActivityId]);
+
   const filteredActivities = useMemo(() => {
     const q = query.trim().toLocaleLowerCase('vi');
     const result = activities.filter((item) => {
       const open = isLeader || item.hasAccess;
-      const pending = !isLeader && item.requestStatus === 'pending';
+      const pending = isLeader ? pendingActivityIds.has(item.id) : item.requestStatus === 'pending';
       const locked = !isLeader && !item.hasAccess && item.requestStatus !== 'pending';
 
       if (gradeFilter !== 'all' && String(item.grade || '') !== gradeFilter) return false;
@@ -462,7 +471,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       }
       return String(b.updatedAt || '').localeCompare(String(a.updatedAt || ''));
     });
-  }, [accessFilter, activities, gradeFilter, isLeader, lessonFilter, query, sortMode, statusFilter, typeFilter, unitFilter]);
+  }, [accessFilter, activities, gradeFilter, isLeader, lessonFilter, pendingActivityIds, query, sortMode, statusFilter, typeFilter, unitFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredActivities.length / pageSize));
   const pagedActivities = useMemo(() => {
