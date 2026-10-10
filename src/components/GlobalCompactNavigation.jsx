@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { FONT_SCALE_OPTIONS } from '../utils/fontScale.js';
 import { hasRouteAccess } from '../utils/permissions.js';
 import { launchRoute } from '../utils/navigation.js';
@@ -11,7 +12,7 @@ import './GlobalCompactNavigation.css';
 
 const copy = {
   vi: {
-    home: 'Trang chủ', apps: 'Ứng dụng', admin: 'Quản trị', search: 'Tìm ứng dụng, tài liệu…',
+    home: 'Trang chủ', apps: 'Ứng dụng', admin: 'Quản trị', utilities: 'Tiện ích', search: 'Tìm ứng dụng, tài liệu…',
     notifications: 'Thông báo', noNotifications: 'Chưa có thông báo mới.',
     noMatches: 'Không tìm thấy thông báo phù hợp.', markAll: 'Đánh dấu tất cả đã đọc', account: 'Tài khoản', guest: 'Khách',
     profile: 'Hồ sơ & cài đặt', manageApps: 'Quản lý ứng dụng', hiddenApps: 'Ứng dụng đã ẩn', display: 'Cỡ chữ',
@@ -25,7 +26,7 @@ const copy = {
     urgentChip: 'Khẩn', replyChip: 'Cần phản hồi', reminderChip: 'Nhắc lịch', approvedChip: 'Đã duyệt',
   },
   en: {
-    home: 'Home', apps: 'Apps', admin: 'Admin', search: 'Find apps and resources…',
+    home: 'Home', apps: 'Apps', admin: 'Admin', utilities: 'Utilities', search: 'Find apps and resources…',
     notifications: 'Notifications', noNotifications: 'No new notifications.',
     noMatches: 'No matching notifications.', markAll: 'Mark all as read', account: 'Account', guest: 'Guest',
     profile: 'Profile & settings', manageApps: 'Manage apps', hiddenApps: 'Hidden apps', display: 'Text size',
@@ -211,13 +212,17 @@ function FilterIcon() {
 }
 
 export default function GlobalCompactNavigation({
-  route = 'home', language = 'vi', setLanguage,
+  route = 'home', language = 'vi', selectedTool = null, setLanguage,
   currentUser, onLogout, fontScale = 100, setFontScale,
 }) {
   const t = copy[language] || copy.vi;
   const isAdmin = String(currentUser?.role || '').toLowerCase() === 'admin';
   const rootRef = useRef(null);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [utilityOpen, setUtilityOpen] = useState(false);
+  const [utilityPosition, setUtilityPosition] = useState({ top: 78, right: 20 });
+  const utilityAnchorRef = useRef(null);
+  const utilityPanelRef = useRef(null);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notificationTab, setNotificationTab] = useState('all');
   const [notificationQuery, setNotificationQuery] = useState('');
@@ -229,6 +234,66 @@ export default function GlobalCompactNavigation({
   const prefsKey = useMemo(() => preferencesKey(currentUser), [currentUser?.id, currentUser?.email]);
   const [notifications, setNotifications] = useState(() => readNotifications(key));
   const [notificationPreferences, setNotificationPreferences] = useState(() => readPreferences(prefsKey));
+
+  // The popover lives in document.body: the pinned navigation uses CSS paint
+  // containment and a horizontally scrollable primary strip that would clip it.
+  // The panel itself remains mounted while hidden so TTCM/Attendance state and
+  // their original React portals are not recreated on every menu opening.
+  useEffect(() => {
+    if (!utilityOpen) return undefined;
+    let frame = 0;
+    const place = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        const bounds = utilityAnchorRef.current?.getBoundingClientRect();
+        if (!bounds) return;
+        const top = Math.min(window.innerHeight - 12, Math.round(bounds.bottom + 10));
+        const right = Math.max(12, Math.round(window.innerWidth - bounds.right));
+        setUtilityPosition((position) =>
+          position.top === top && position.right === right ? position : { top, right });
+      });
+    };
+    const closeOutside = (event) => {
+      if (!utilityAnchorRef.current?.contains(event.target)
+          && !utilityPanelRef.current?.contains(event.target)) setUtilityOpen(false);
+    };
+    const closeOnSelection = (event) => {
+      if (utilityPanelRef.current?.contains(event.target) && event.target.closest('button')) {
+        // Wait until the original report navigation / TTCM / attendance handler runs.
+        window.setTimeout(() => setUtilityOpen(false), 0);
+      }
+    };
+    const onEscape = (event) => {
+      if (event.key === 'Escape') {
+        setUtilityOpen(false);
+        utilityAnchorRef.current?.focus();
+      }
+    };
+    const onRoute = () => setUtilityOpen(false);
+    place();
+    // The menu is portaled to body and therefore comes after page content in
+    // DOM tab order. Move keyboard focus to the first actual permitted action.
+    const focusFrame = window.requestAnimationFrame(() => {
+      utilityPanelRef.current?.querySelector('.brian-nav__utilities-items button')?.focus();
+    });
+    document.addEventListener('pointerdown', closeOutside);
+    document.addEventListener('click', closeOnSelection);
+    window.addEventListener('keydown', onEscape);
+    window.addEventListener('hashchange', onRoute);
+    window.addEventListener('resize', place);
+    window.addEventListener('scroll', place, true);
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.cancelAnimationFrame(focusFrame);
+      document.removeEventListener('pointerdown', closeOutside);
+      document.removeEventListener('click', closeOnSelection);
+      window.removeEventListener('keydown', onEscape);
+      window.removeEventListener('hashchange', onRoute);
+      window.removeEventListener('resize', place);
+      window.removeEventListener('scroll', place, true);
+    };
+  }, [utilityOpen]);
 
   useEffect(() => {
     setNotifications(readNotifications(key));
@@ -384,7 +449,24 @@ export default function GlobalCompactNavigation({
         <div className="brian-nav__primary" aria-label={language === 'vi' ? 'Khu vực chính' : 'Primary areas'}>
           <button type="button" className={route === 'home' ? 'is-active' : ''} onClick={(event) => openRoute('#/home', t.home, event)}>{t.home}</button>
           {canShowApps ? <button type="button" className={route === 'apps' ? 'is-active' : ''} onClick={(event) => openRoute('#/apps', t.apps, event)}>{t.apps}</button> : null}
-          {isAdmin ? <button type="button" className={route === 'admin' ? 'is-active' : ''} onClick={(event) => openRoute('#/admin', t.admin, event)}>{t.admin}</button> : null}
+          {currentUser ? (
+            <button
+              ref={utilityAnchorRef}
+              type="button"
+              className={`brian-nav__utilities-trigger ${utilityOpen || route === 'admin' || (route === 'tool' && selectedTool?.slug === 'brian-team') ? 'is-active' : ''}`}
+              data-nav-key="utilities"
+              aria-haspopup="true"
+              aria-expanded={utilityOpen}
+              aria-controls="brian-nav-utilities-menu"
+              onClick={() => {
+                setUtilityOpen((value) => !value);
+                setAccountOpen(false);
+                setNotificationOpen(false);
+              }}
+            >
+              {t.utilities}<span className="brian-nav__utilities-caret" aria-hidden="true">⌄</span>
+            </button>
+          ) : null}
         </div>
 
         <button
@@ -568,6 +650,33 @@ export default function GlobalCompactNavigation({
           )}
         </div>
       </nav>
+      {currentUser && typeof document !== 'undefined' ? createPortal(
+        <section
+          id="brian-nav-utilities-menu"
+          ref={utilityPanelRef}
+          className="brian-nav__utilities-popover"
+          role="group"
+          aria-label={t.utilities}
+          aria-hidden={!utilityOpen}
+          inert={!utilityOpen}
+          hidden={!utilityOpen}
+          data-global-motion-isolate="true"
+          style={{ top: utilityPosition.top, right: utilityPosition.right }}
+        >
+          <div className="brian-nav__utilities-heading">{t.utilities}</div>
+          <div className="brian-nav__utilities-items">
+            <div className="brian-nav__utility-slot brian-nav__utility-reports" />
+            <div className="brian-nav__utility-slot brian-nav__utility-ttcm" />
+            <div className="brian-nav__utility-slot brian-nav__utility-attendance" />
+            {isAdmin ? (
+              <button type="button" className={`brian-nav__utility-admin ${route === 'admin' ? 'is-active' : ''}`}
+                onClick={(event) => openRoute('#/admin', t.admin, event)}>
+                {t.admin}
+              </button>
+            ) : null}
+          </div>
+        </section>, document.body, 'brian-nav-utilities-popover',
+      ) : null}
 
       {currentUser ? (
         <button

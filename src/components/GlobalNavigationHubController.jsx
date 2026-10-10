@@ -9,6 +9,7 @@ const LABEL_KEYS = [
   [/^ttcm$/i, 'ttcm'],
   [/^(trò chơi|games)$/i, 'games'],
   [/^(quản trị|admin)$/i, 'admin'],
+  [/^(tiện ích|utilities)$/i, 'utilities'],
 ];
 
 const NAV_ORDER = {
@@ -22,6 +23,7 @@ const NAV_ORDER = {
   ttcm: 60,
   games: 70,
   admin: 80,
+  utilities: 90,
 };
 
 const HUB_TYPOGRAPHY = {
@@ -43,6 +45,7 @@ function keyForButton(button) {
   if (button.classList.contains('brian-nav__homeroom-tab')) return 'homeroom';
   if (button.classList.contains('brian-nav__gradebook-tab')) return 'gradebook';
   if (button.classList.contains('brian-nav__lesson-check-tab')) return 'lesson-check';
+  if (button.classList.contains('brian-nav__utilities-trigger')) return 'utilities';
   if (button.classList.contains('brian-nav__reports-tab')) return 'reports';
   if (button.classList.contains('brian-nav__ttcm-tab')) return 'ttcm';
   if (button.classList.contains('brian-nav__games-tab')) return 'games';

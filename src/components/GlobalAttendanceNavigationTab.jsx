@@ -333,7 +333,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
 
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
-    const findHost = () => setHost(document.querySelector('.brian-nav__primary'));
+    const findHost = () => setHost(document.querySelector('.brian-nav__utility-attendance'));
     findHost();
     const observer = new MutationObserver(findHost);
     observer.observe(document.body, { childList: true, subtree: true });

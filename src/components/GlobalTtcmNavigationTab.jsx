@@ -222,7 +222,7 @@ export default function GlobalTtcmNavigationTab({ currentUser, language = 'vi' }
   useEffect(() => {
     if (typeof document === 'undefined') return undefined;
     const findHost = () => {
-      const nextHost = document.querySelector('.brian-nav__primary');
+      const nextHost = document.querySelector('.brian-nav__utility-ttcm');
       setHost((current) => current === nextHost ? current : nextHost);
     };
     findHost(); const frame = window.requestAnimationFrame(findHost);
