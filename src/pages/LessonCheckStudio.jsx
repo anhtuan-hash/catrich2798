@@ -41,11 +41,13 @@ import {
   listLessonCheckAccessRequests,
   listLessonCheckActivities,
   listLessonCheckTeacherAccess,
+  removeLessonCheckActivityThumbnail,
   requestLessonCheckAccess,
   reviewLessonCheckAccessRequest,
   saveLessonCheckActivity,
   setLessonCheckTeacherAccess,
   subscribeLessonCheckUpdates,
+  uploadLessonCheckActivityThumbnail,
 } from '../utils/lessonCheckActivities.js';
 import AssessmentWorkspace from '../components/lessonCheck/AssessmentWorkspace.jsx';
 import {
@@ -90,6 +92,7 @@ function blankDraft() {
     notes: '',
     sourceHost: '',
     embedCode: '',
+    thumbnailUrl: '',
   };
 }
 
@@ -180,6 +183,54 @@ function compactDateOnly(value, language) {
   }
 }
 
+async function prepareManualThumbnail(file) {
+  if (!file || !String(file.type || '').startsWith('image/')) {
+    throw new Error('Vui lòng dán hoặc chọn một file ảnh.');
+  }
+
+  const sourceUrl = URL.createObjectURL(file);
+  try {
+    const image = await new Promise((resolve, reject) => {
+      const node = new Image();
+      node.onload = () => resolve(node);
+      node.onerror = () => reject(new Error('Không đọc được ảnh thumbnail.'));
+      node.src = sourceUrl;
+    });
+
+    const sourceWidth = image.naturalWidth || image.width;
+    const sourceHeight = image.naturalHeight || image.height;
+    if (!sourceWidth || !sourceHeight) throw new Error('Ảnh thumbnail không hợp lệ.');
+
+    const targetRatio = 3 / 2;
+    const sourceRatio = sourceWidth / sourceHeight;
+    let sx = 0;
+    let sy = 0;
+    let sw = sourceWidth;
+    let sh = sourceHeight;
+
+    if (sourceRatio > targetRatio) {
+      sw = Math.round(sourceHeight * targetRatio);
+      sx = Math.max(0, Math.round((sourceWidth - sw) / 2));
+    } else if (sourceRatio < targetRatio) {
+      sh = Math.round(sourceWidth / targetRatio);
+      sy = Math.max(0, Math.round((sourceHeight - sh) / 2));
+    }
+
+    const outputWidth = 1200;
+    const outputHeight = 800;
+    const canvas = document.createElement('canvas');
+    canvas.width = outputWidth;
+    canvas.height = outputHeight;
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Trình duyệt không hỗ trợ xử lý thumbnail.');
+
+    context.drawImage(image, sx, sy, sw, sh, 0, 0, outputWidth, outputHeight);
+    return canvas.toDataURL('image/jpeg', 0.9);
+  } finally {
+    URL.revokeObjectURL(sourceUrl);
+  }
+}
+
 function iframeProps(embed, title) {
   const common = {
     title: title || 'Embedded teaching activity',
@@ -206,251 +257,9 @@ function ActivityFrame({ embed, title, className = '' }) {
   return <iframe className={className} {...iframeProps(embed, title)} />;
 }
 
-const processedThumbnailCache = new Map();
-
-function columnLooksLikeGutter(data, width, height, x) {
-  let count = 0;
-  let sum = 0;
-  let sumSq = 0;
-  let colorful = 0;
-
-  for (let y = 0; y < height; y += 2) {
-    const offset = (y * width + x) * 4;
-    const r = data[offset];
-    const g = data[offset + 1];
-    const b = data[offset + 2];
-    const a = data[offset + 3];
-    if (a < 16) continue;
-    const lum = (r * 0.2126) + (g * 0.7152) + (b * 0.0722);
-    sum += lum;
-    sumSq += lum * lum;
-    count += 1;
-    if (Math.max(r, g, b) - Math.min(r, g, b) > 24) colorful += 1;
-  }
-
-  if (!count) return true;
-  const mean = sum / count;
-  const variance = Math.max(0, (sumSq / count) - (mean * mean));
-  const deviation = Math.sqrt(variance);
-  const colorfulRatio = colorful / count;
-
-  return (mean < 62 && deviation < 16 && colorfulRatio < 0.06)
-    || (mean > 238 && deviation < 10 && colorfulRatio < 0.04);
-}
-
-async function cropThumbnailSideGutters(sourceUrl) {
-  if (!sourceUrl || typeof document === 'undefined') return sourceUrl;
-  if (processedThumbnailCache.has(sourceUrl)) return processedThumbnailCache.get(sourceUrl);
-
-  const image = await new Promise((resolve, reject) => {
-    const node = new Image();
-    node.crossOrigin = 'anonymous';
-    node.decoding = 'async';
-    node.onload = () => resolve(node);
-    node.onerror = reject;
-    node.src = sourceUrl;
-  });
-
-  const naturalWidth = image.naturalWidth || image.width;
-  const naturalHeight = image.naturalHeight || image.height;
-  if (!naturalWidth || !naturalHeight) return sourceUrl;
-
-  const sampleWidth = Math.min(440, naturalWidth);
-  const sampleHeight = Math.max(1, Math.round((naturalHeight / naturalWidth) * sampleWidth));
-  const sample = document.createElement('canvas');
-  sample.width = sampleWidth;
-  sample.height = sampleHeight;
-  const context = sample.getContext('2d', { willReadFrequently: true });
-  if (!context) return sourceUrl;
-
-  context.drawImage(image, 0, 0, sampleWidth, sampleHeight);
-  const pixels = context.getImageData(0, 0, sampleWidth, sampleHeight).data;
-
-  const stableContentEdge = (fromLeft) => {
-    const step = fromLeft ? 1 : -1;
-    let x = fromLeft ? 0 : sampleWidth - 1;
-    const boundary = fromLeft ? sampleWidth : -1;
-    let consecutiveContent = 0;
-
-    while (x !== boundary) {
-      if (columnLooksLikeGutter(pixels, sampleWidth, sampleHeight, x)) {
-        consecutiveContent = 0;
-      } else {
-        consecutiveContent += 1;
-        if (consecutiveContent >= 4) {
-          return fromLeft ? Math.max(0, x - 3) : Math.min(sampleWidth - 1, x + 3);
-        }
-      }
-      x += step;
-    }
-    return fromLeft ? 0 : sampleWidth - 1;
-  };
-
-  let left = stableContentEdge(true);
-  let right = stableContentEdge(false);
-
-  if (right <= left) {
-    processedThumbnailCache.set(sourceUrl, sourceUrl);
-    return sourceUrl;
-  }
-
-  const detectedWidth = right - left + 1;
-  const gutterRatio = 1 - (detectedWidth / sampleWidth);
-  if (gutterRatio < 0.06) {
-    processedThumbnailCache.set(sourceUrl, sourceUrl);
-    return sourceUrl;
-  }
-
-  const safety = Math.max(2, Math.round(detectedWidth * 0.018));
-  left = Math.max(0, left - safety);
-  right = Math.min(sampleWidth - 1, right + safety);
-
-  const scaleX = naturalWidth / sampleWidth;
-  const sourceX = Math.max(0, Math.floor(left * scaleX));
-  const sourceRight = Math.min(naturalWidth, Math.ceil((right + 1) * scaleX));
-  const sourceWidth = Math.max(1, sourceRight - sourceX);
-
-  const output = document.createElement('canvas');
-  output.width = sourceWidth;
-  output.height = naturalHeight;
-  const outputContext = output.getContext('2d');
-  if (!outputContext) return sourceUrl;
-
-  outputContext.drawImage(
-    image,
-    sourceX,
-    0,
-    sourceWidth,
-    naturalHeight,
-    0,
-    0,
-    sourceWidth,
-    naturalHeight,
-  );
-
-  const blob = await new Promise((resolve) => output.toBlob(resolve, 'image/jpeg', 0.9));
-  if (!blob) {
-    processedThumbnailCache.set(sourceUrl, sourceUrl);
-    return sourceUrl;
-  }
-
-  const objectUrl = URL.createObjectURL(blob);
-  processedThumbnailCache.set(sourceUrl, objectUrl);
-  return objectUrl;
-}
-
-function FullBleedThumbnail({ src }) {
-  const [displaySrc, setDisplaySrc] = useState(() => processedThumbnailCache.get(src) || src);
-
-  useEffect(() => {
-    let alive = true;
-    setDisplaySrc(processedThumbnailCache.get(src) || src);
-
-    cropThumbnailSideGutters(src)
-      .then((cropped) => {
-        if (alive && cropped) setDisplaySrc(cropped);
-      })
-      .catch(() => {
-        if (alive) setDisplaySrc(src);
-      });
-
-    return () => {
-      alive = false;
-    };
-  }, [src]);
-
-  return (
-    <img
-      className="lcs-card-thumbnail-image"
-      src={displaySrc}
-      alt=""
-      loading="lazy"
-      decoding="async"
-      draggable="false"
-      crossOrigin={displaySrc === src ? 'anonymous' : undefined}
-    />
-  );
-}
-
-const cardPreviewCache = new Map();
-
-function isPersistedThumbnailFresh(activity) {
-  const url = String(activity?.thumbnailUrl || '').trim();
-  if (!url) return false;
-  const sourceAt = Date.parse(activity?.thumbnailSourceUpdatedAt || '');
-  const activityAt = Date.parse(activity?.updatedAt || '');
-  if (!Number.isFinite(activityAt)) return true;
-  return Number.isFinite(sourceAt) && sourceAt >= activityAt;
-}
-
 const ActivityCardPreview = React.memo(function ActivityCardPreview({ activity, canLoad, isLeader, language, onOpen, onRequest }) {
   const isVi = language === 'vi';
-  const hostRef = useRef(null);
-  const loadingRef = useRef(false);
-  const cachedPreview = cardPreviewCache.get(activity.id) || null;
-  const initialEmbed = cachedPreview?.embed || null;
-
-  const [activated, setActivated] = useState(Boolean(initialEmbed));
-  const [embed, setEmbed] = useState(initialEmbed);
-  const [state, setState] = useState(initialEmbed ? 'ready' : 'idle');
-
-  useEffect(() => {
-    const node = hostRef.current;
-    if (!node || !canLoad || activated) return undefined;
-    if (typeof IntersectionObserver === 'undefined') {
-      setActivated(true);
-      return undefined;
-    }
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting) {
-        setActivated(true);
-        observer.disconnect();
-      }
-    }, { rootMargin: '220px 0px', threshold: 0.02 });
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [activated, canLoad]);
-
-  useEffect(() => {
-    if (!canLoad || !activated || embed || loadingRef.current) return undefined;
-    let active = true;
-
-    const cached = cardPreviewCache.get(activity.id);
-    if (cached?.embed) {
-      setEmbed(cached.embed);
-      setState('ready');
-      return () => { active = false; };
-    }
-
-    loadingRef.current = true;
-    setState('loading');
-
-    getLessonCheckActivityContent(activity.id)
-      .then((result) => {
-        if (!active || !result.ok) {
-          if (active) setState('error');
-          return;
-        }
-        const parsed = parseEmbed(result.content.embedCode);
-        if (!['url', 'html'].includes(parsed.kind)) {
-          setState('error');
-          return;
-        }
-        cardPreviewCache.set(activity.id, { embed: parsed });
-        setEmbed(parsed);
-        setState('ready');
-      })
-      .catch(() => {
-        if (active) setState('error');
-      })
-      .finally(() => {
-        loadingRef.current = false;
-      });
-
-    return () => { active = false; };
-  }, [activated, activity.id, canLoad, embed]);
-
-  const showLivePreview = canLoad && activated && embed;
+  const thumbnailUrl = String(activity?.thumbnailUrl || '').trim();
 
   const activate = () => {
     if (canLoad) onOpen?.();
@@ -459,8 +268,7 @@ const ActivityCardPreview = React.memo(function ActivityCardPreview({ activity, 
 
   return (
     <div
-      ref={hostRef}
-      className={`lcs-card-media ${canLoad ? 'can-preview' : 'is-locked'}`}
+      className={`lcs-card-media ${canLoad ? 'can-preview' : 'is-locked'} ${thumbnailUrl ? 'has-static-thumbnail' : 'has-no-thumbnail'}`}
       role="button"
       tabIndex={0}
       onClick={activate}
@@ -474,19 +282,17 @@ const ActivityCardPreview = React.memo(function ActivityCardPreview({ activity, 
         ? (isVi ? `Mở ${activity.title}` : `Open ${activity.title}`)
         : (isVi ? `Xin quyền ${activity.title}` : `Request access to ${activity.title}`)}
     >
-      {showLivePreview ? (
-        <div className="lcs-card-live-preview" aria-hidden="true">
-          <ActivityFrame embed={embed} title={activity.title} className="lcs-card-preview-frame" />
-        </div>
+      {canLoad && thumbnailUrl ? (
+        <img className="lcs-card-thumbnail-image" src={thumbnailUrl} alt="" loading="lazy" decoding="async" draggable="false" />
       ) : (
         <div className="lcs-card-preview-placeholder" aria-hidden="true">
-          {canLoad && state === 'loading' ? <LoaderCircle className="lcs-spin" /> : canLoad ? <MonitorPlay /> : <LockKeyhole />}
-          <strong>{!canLoad
-            ? (isVi ? 'Xem trước bị khóa' : 'Preview locked')
-            : state === 'error'
-              ? (isVi ? 'Không tải được hình xem trước' : 'Preview unavailable')
-              : (isVi ? 'Đang tải xem trước…' : 'Loading preview…')}</strong>
-          <span>{activity.sourceHost || activity.embedKind?.toUpperCase() || 'Activity'}</span>
+          {canLoad ? <MonitorPlay /> : <LockKeyhole />}
+          <strong>{canLoad
+            ? (isVi ? 'Chưa có thumbnail' : 'No thumbnail yet')
+            : (isVi ? 'Xem trước bị khóa' : 'Preview locked')}</strong>
+          <span>{canLoad
+            ? (isVi ? 'Admin có thể dán ảnh trong Chỉnh sửa' : 'Paste an image in Edit')
+            : (activity.sourceHost || activity.embedKind?.toUpperCase() || 'Activity')}</span>
         </div>
       )}
 
@@ -534,6 +340,9 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [draft, setDraft] = useState(blankDraft);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [thumbnailDataUrl, setThumbnailDataUrl] = useState('');
+  const [thumbnailRemoveRequested, setThumbnailRemoveRequested] = useState(false);
+  const [thumbnailBusy, setThumbnailBusy] = useState(false);
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
@@ -737,12 +546,16 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
   function openNewActivity() {
     setDraft(blankDraft());
+    setThumbnailDataUrl('');
+    setThumbnailRemoveRequested(false);
     setShowEditor(true);
     setShowBuilder(true);
   }
 
   function closeBuilder() {
     setDraft(blankDraft());
+    setThumbnailDataUrl('');
+    setThumbnailRemoveRequested(false);
     setShowBuilder(false);
     setShowEditor(true);
   }
@@ -772,6 +585,34 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     }));
   }
 
+  async function acceptThumbnailFile(file) {
+    if (!file) return;
+    setThumbnailBusy(true);
+    try {
+      const prepared = await prepareManualThumbnail(file);
+      setThumbnailDataUrl(prepared);
+      setThumbnailRemoveRequested(false);
+      setNotice(isVi ? 'Đã nhận ảnh thumbnail. Nhấn “Lưu thay đổi” để lưu.' : 'Thumbnail ready. Save changes to apply it.');
+    } catch (error) {
+      setNotice(error?.message || (isVi ? 'Không đọc được ảnh thumbnail.' : 'Could not read thumbnail image.'));
+    } finally {
+      setThumbnailBusy(false);
+    }
+  }
+
+  async function handleThumbnailPaste(event) {
+    if (!draft.id || thumbnailBusy) return;
+    const items = [...(event.clipboardData?.items || [])];
+    const imageItem = items.find((item) => String(item.type || '').startsWith('image/'));
+    const file = imageItem?.getAsFile?.() || [...(event.clipboardData?.files || [])].find((item) => String(item.type || '').startsWith('image/'));
+    if (!file) {
+      setNotice(isVi ? 'Clipboard chưa có ảnh. Hãy copy ảnh rồi Cmd+V vào khung thumbnail.' : 'No image found in the clipboard.');
+      return;
+    }
+    event.preventDefault();
+    await acceptThumbnailFile(file);
+  }
+
   async function editActivity(item) {
     if (!isLeader) return;
     setSaving(true);
@@ -796,7 +637,10 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       notes: item.notes || '',
       sourceHost: item.sourceHost || '',
       embedCode: result.content.embedCode,
+      thumbnailUrl: item.thumbnailUrl || '',
     });
+    setThumbnailDataUrl('');
+    setThumbnailRemoveRequested(false);
     setShowEditor(true);
     setShowBuilder(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -816,6 +660,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       setNotice(isVi ? 'Mã nhúng chưa hợp lệ. Hãy dán URL HTTPS, iframe hoặc HTML.' : 'Embed code is not valid yet.');
       return;
     }
+
     setSaving(true);
     const result = await saveLessonCheckActivity({
       ...draft,
@@ -823,13 +668,36 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       lessonTitle: globalSuccessLessonTitle(draft.lessonKey) || draft.lessonTitle,
       sourceHost: parsedDraft.kind === 'url' ? sourceHost(parsedDraft.source) : 'HTML / srcDoc',
     }, parsedDraft);
-    setSaving(false);
+
     if (!result.ok) {
+      setSaving(false);
       setNotice(result.message || (isVi ? 'Không thể lưu hoạt động.' : 'Could not save activity.'));
       return;
     }
-    setNotice(isVi ? 'Đã lưu lên Supabase.' : 'Saved to Supabase.');
+
+    if (draft.id && thumbnailDataUrl) {
+      const thumbnailResult = await uploadLessonCheckActivityThumbnail(result.id, thumbnailDataUrl);
+      if (!thumbnailResult.ok) {
+        setSaving(false);
+        setNotice((isVi ? 'Hoạt động đã lưu nhưng thumbnail chưa lưu được: ' : 'Activity saved, but thumbnail upload failed: ') + thumbnailResult.message);
+        await loadActivities({ silent: true });
+        return;
+      }
+    } else if (draft.id && thumbnailRemoveRequested) {
+      const thumbnailResult = await removeLessonCheckActivityThumbnail(result.id);
+      if (!thumbnailResult.ok) {
+        setSaving(false);
+        setNotice((isVi ? 'Hoạt động đã lưu nhưng chưa xóa được thumbnail: ' : 'Activity saved, but thumbnail could not be removed: ') + thumbnailResult.message);
+        await loadActivities({ silent: true });
+        return;
+      }
+    }
+
+    setSaving(false);
+    setNotice(isVi ? 'Đã lưu hoạt động và thumbnail.' : 'Activity and thumbnail saved.');
     setDraft(blankDraft());
+    setThumbnailDataUrl('');
+    setThumbnailRemoveRequested(false);
     setShowBuilder(false);
     await loadActivities({ silent: true });
   }
@@ -1117,6 +985,58 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                     <span>{isVi ? 'Ghi chú tổ chức' : 'Teaching notes'}</span>
                     <input value={draft.notes} onChange={(e) => setDraft((d) => ({ ...d, notes: e.target.value }))} placeholder={isVi ? 'Ví dụ: 7 phút · Teacher-led · dùng cuối tiết' : 'e.g. 7 minutes · Teacher-led · end-of-lesson'} />
                   </label>
+                  {draft.id ? (
+                    <div className="lcs-thumbnail-editor lcs-field-wide">
+                      <div className="lcs-thumbnail-editor-head">
+                        <div>
+                          <strong>{isVi ? 'Thumbnail thẻ hoạt động' : 'Activity card thumbnail'}</strong>
+                          <span>{isVi ? 'Copy một ảnh rồi bấm vào khung dưới và nhấn Cmd+V. Ảnh sẽ tự cắt về tỉ lệ 3:2.' : 'Copy an image, focus the box below, then press Cmd+V. It will be center-cropped to 3:2.'}</span>
+                        </div>
+                        {(thumbnailDataUrl || (!thumbnailRemoveRequested && draft.thumbnailUrl)) ? (
+                          <button
+                            type="button"
+                            className="lcs-thumbnail-remove"
+                            onClick={() => {
+                              setThumbnailDataUrl('');
+                              setThumbnailRemoveRequested(true);
+                            }}
+                          >
+                            <Trash2 size={15} />{isVi ? 'Xóa thumbnail' : 'Remove'}
+                          </button>
+                        ) : null}
+                      </div>
+
+                      <div
+                        className={`lcs-thumbnail-paste-zone ${thumbnailBusy ? 'is-busy' : ''}`}
+                        tabIndex={0}
+                        onPaste={handleThumbnailPaste}
+                      >
+                        {(thumbnailDataUrl || (!thumbnailRemoveRequested && draft.thumbnailUrl)) ? (
+                          <img src={thumbnailDataUrl || draft.thumbnailUrl} alt="" />
+                        ) : (
+                          <div className="lcs-thumbnail-empty">
+                            {thumbnailBusy ? <LoaderCircle className="lcs-spin" /> : <Copy size={28} />}
+                            <strong>{thumbnailBusy ? (isVi ? 'Đang xử lý ảnh…' : 'Processing image…') : (isVi ? 'Bấm vào đây rồi Cmd+V để dán ảnh' : 'Click here, then press Cmd+V')}</strong>
+                            <span>{isVi ? 'PNG · JPG · WebP · ảnh sẽ lưu vĩnh viễn trên Supabase' : 'PNG · JPG · WebP · stored permanently in Supabase'}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <label className="lcs-thumbnail-file">
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp"
+                          onChange={(event) => {
+                            const file = event.target.files?.[0];
+                            if (file) acceptThumbnailFile(file);
+                            event.target.value = '';
+                          }}
+                        />
+                        <span>{isVi ? 'Hoặc chọn ảnh từ máy' : 'Or choose an image file'}</span>
+                      </label>
+                    </div>
+                  ) : null}
+
                   <label className="lcs-field lcs-field-wide">
                     <span>{isVi ? 'Mã nhúng / URL / HTML' : 'Embed code / URL / HTML'}</span>
                     <textarea rows={9} value={draft.embedCode} onChange={(e) => setDraft((d) => ({ ...d, embedCode: e.target.value }))} placeholder={'<iframe src="https://..."></iframe>\n\nhttps://...\n\n<div>...</div><script>...</script>'} spellCheck={false} />
