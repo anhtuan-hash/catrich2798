@@ -31,6 +31,9 @@ function normalizeActivity(row = {}) {
     createdBy: String(row.created_by || ''),
     createdAt: row.created_at || '',
     updatedAt: row.updated_at || '',
+    thumbnailUrl: String(row.thumbnail_url || ''),
+    thumbnailGeneratedAt: row.thumbnail_generated_at || '',
+    thumbnailSourceUpdatedAt: row.thumbnail_source_updated_at || '',
     hasAccess: row.has_access === true,
     requestStatus: String(row.request_status || ''),
     grantCount: Number(row.grant_count || 0),
@@ -44,6 +47,34 @@ export async function listLessonCheckActivities() {
   const { data, error } = await supabase.rpc('lesson_check_list_activities');
   if (error) return { ...resultError(error, 'Không thể tải hoạt động.'), activities: [] };
   return { ok: true, activities: (data || []).map(normalizeActivity) };
+}
+
+export async function ensureLessonCheckActivityThumbnail(activityId) {
+  if (!isSupabaseConfigured || !supabase || !activityId) {
+    return { ok: false, thumbnailUrl: '', fallback: 'live', message: 'Activity is missing.' };
+  }
+
+  const { data, error } = await supabase.functions.invoke('lesson-check-thumbnail', {
+    body: { activityId: String(activityId) },
+  });
+
+  if (error) {
+    return {
+      ok: false,
+      thumbnailUrl: '',
+      fallback: 'live',
+      message: error.message || 'Không thể tạo hình xem trước.',
+    };
+  }
+
+  return {
+    ok: data?.ok === true && Boolean(data?.thumbnailUrl),
+    thumbnailUrl: String(data?.thumbnailUrl || ''),
+    cached: data?.cached === true,
+    generatedAt: data?.generatedAt || '',
+    fallback: String(data?.fallback || ''),
+    message: String(data?.message || ''),
+  };
 }
 
 export async function getLessonCheckActivityContent(activityId) {
