@@ -123,7 +123,7 @@ function applyRuntimeFontSize(regionId, size, root = document) {
     const value = `${size}px`;
     // Avoid unnecessary style writes (which trigger layout/style invalidation).
     if (node.style.getPropertyValue('font-size') !== value || node.style.getPropertyPriority('font-size') !== 'important') {
-      node.style.setProperty('font-size', value, 'important');
+      node.style.setProperty('font-size', `${size}px`, 'important');
     }
     if (node.getAttribute('data-bes-regional-font-size-runtime') !== regionId) {
       node.setAttribute('data-bes-regional-font-size-runtime', regionId);
