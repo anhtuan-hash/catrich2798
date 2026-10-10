@@ -798,20 +798,39 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   return (
     <div className="lcs-page lcs-page--library">
       <header className="lcs-arcade-head">
-        <div className="lcs-arcade-brand">
+        <div className="lcs-hero-main">
           <button className="lcs-library-back" onClick={() => { window.location.hash = '#/apps'; }} aria-label={isVi ? 'Quay lại Ứng dụng' : 'Back to Apps'}>
             <ArrowLeft size={18} />
           </button>
-          <div className="lcs-arcade-brand-mark"><Gamepad2 size={26} /></div>
-          <div>
+
+          <div className="lcs-hero-copy">
+            <div className="lcs-hero-kicker">
+              <span className="lcs-hero-kicker-icon"><Gamepad2 size={16} /></span>
+              <strong>BRIAN ACTIVITY ARCADE</strong>
+              <span>GLOBAL SUCCESS</span>
+            </div>
             <div className="lcs-arcade-title-row">
               <h1>{isVi ? 'Kho hoạt động' : 'Activity library'}</h1>
-              <span>{activities.length}</span>
             </div>
-            <p>{isVi ? 'Chọn nhanh một hoạt động, mở và trình chiếu ngay trên lớp.' : 'Pick an activity quickly and launch it in class.'}</p>
+            <p>{isVi ? 'Thư viện hoạt động tương tác dành cho tiết học — tìm nhanh, mở nhanh và trình chiếu ngay.' : 'An interactive classroom library — find, launch and present activities instantly.'}</p>
+
+            <div className="lcs-hero-statline" aria-label={isVi ? 'Thống kê kho hoạt động' : 'Activity library statistics'}>
+              <span><Gamepad2 size={14} /><b>{activities.length}</b>{isVi ? 'hoạt động' : 'activities'}</span>
+              <span className="is-vocabulary"><BookOpen size={14} /><b>{focusCounts.vocabulary}</b>Vocabulary</span>
+              <span className="is-grammar"><Layers3 size={14} /><b>{focusCounts.grammar}</b>Grammar</span>
+              <span className="is-skills"><MonitorPlay size={14} /><b>{focusCounts.skills}</b>{isVi ? 'Kỹ năng' : 'Skills'}</span>
+            </div>
           </div>
         </div>
-        {isLeader ? <button className="lcs-arcade-create" type="button" onClick={openNewActivity}><Plus size={20} />{isVi ? 'TẠO' : 'CREATE'}</button> : null}
+
+        <div className="lcs-hero-side">
+          <div className="lcs-hero-deck" aria-hidden="true">
+            <span className="is-one"><BookOpen size={18} />Vocabulary</span>
+            <span className="is-two"><Layers3 size={18} />Grammar</span>
+            <span className="is-three"><MonitorPlay size={18} />Skills</span>
+          </div>
+          {isLeader ? <button className="lcs-arcade-create" type="button" onClick={openNewActivity}><Plus size={20} />{isVi ? 'Tạo hoạt động' : 'Create activity'}</button> : null}
+        </div>
       </header>
 
       {notice ? <div className="lcs-toast" role="status">{notice}</div> : null}
