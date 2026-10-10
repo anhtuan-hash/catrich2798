@@ -12,6 +12,7 @@ const catalog = read('src/data/globalSuccessCatalog.js');
 const migration = read('supabase/migrations/20261010081500_lesson_check_activity_access.sql');
 const focusMigration = read('supabase/migrations/20261010093500_lesson_check_focus_tags.sql');
 const assessmentMigration = read('supabase/migrations/20261010103000_fun_for_assessment_sessions.sql');
+const assignedRosterMigration = read('supabase/migrations/20261010104500_fun_for_assessment_assigned_rosters.sql');
 const assessmentService = read('src/utils/lessonCheckAssessment.js');
 const assessmentWorkspace = read('src/components/lessonCheck/AssessmentWorkspace.jsx');
 const assessmentStyles = read('src/components/lessonCheck/AssessmentWorkspace.css');
@@ -179,7 +180,7 @@ assert.match(studio, /Bắt đầu đánh giá/);
 assert.match(studio, /setAssessmentWorkspaceView\('reports'\)/);
 assert.match(studio, /<AssessmentWorkspace[\s\S]*?onLaunchActivity=\{openTeachingMode\}/);
 
-assert.match(assessmentService, /get_my_assigned_school_classes/);
+assert.match(assessmentService, /lesson_check_list_assigned_class_rosters/);
 assert.match(assessmentService, /lesson_check_save_assessment_session/);
 assert.match(assessmentService, /lesson_check_list_assessment_sessions/);
 assert.match(assessmentService, /lesson_check_list_assessment_results/);
@@ -209,6 +210,10 @@ assert.match(assessmentMigration, /scoring_mode in \('manual','points','correct_
 assert.match(assessmentMigration, /lesson_check_save_assessment_session/);
 assert.match(assessmentMigration, /lesson_check_list_assessment_sessions/);
 assert.match(assessmentMigration, /lesson_check_list_assessment_results/);
+assert.match(assignedRosterMigration, /lesson_check_list_assigned_class_rosters/);
+assert.match(assignedRosterMigration, /get_my_assigned_school_classes\(\)/);
+assert.match(assignedRosterMigration, /bes_class_rosters/);
+assert.match(assignedRosterMigration, /jsonb_set\([\s\S]*?'\{students\}'/);
 assert.match(assessmentMigration, /teacher_id = auth\.uid\(\) or public\.lesson_check_is_leader\(\)/);
 
 assert.match(assessmentStyles, /\.f4a-overlay\{/);
