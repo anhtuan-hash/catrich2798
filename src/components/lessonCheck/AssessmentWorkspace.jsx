@@ -503,8 +503,9 @@ export default function AssessmentWorkspace({
   };
 
   const printReport = () => {
-    const popup = window.open('', '_blank', 'noopener,noreferrer');
+    const popup = window.open('', '_blank');
     if (!popup) return;
+    try { popup.opener = null; } catch { /* best effort */ }
     const rows = studentReportRows.map((item) => `
       <tr>
         <td>${escapeHtml(item.studentName)}</td>
