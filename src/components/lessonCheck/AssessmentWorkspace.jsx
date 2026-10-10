@@ -16,10 +16,12 @@ import {
   Search,
   Shuffle,
   Sparkles,
+  Trash2,
   Users,
   X,
 } from 'lucide-react';
 import {
+  deleteAssessmentSession,
   listAssessmentAssignedClasses,
   listAssessmentResults,
   listAssessmentSessions,
@@ -107,6 +109,16 @@ function downloadCsv(filename, rows) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+function normalizedGrade10FromRaw(rawValue) {
+  const raw = String(rawValue || '').trim().replace(/,/g, '.');
+  const match = raw.match(/^(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)$/);
+  if (!match) return null;
+  const earned = Number(match[1]);
+  const maximum = Number(match[2]);
+  if (!Number.isFinite(earned) || !Number.isFinite(maximum) || maximum <= 0 || earned < 0 || earned > maximum) return null;
+  return Math.round(((earned / maximum) * 10) * 100) / 100;
+}
+
 function purposeLabel(value) {
   return PURPOSES.find(([key]) => key === value)?.[1] || value;
 }
@@ -136,6 +148,8 @@ export default function AssessmentWorkspace({
   activities = [],
   isLeader = false,
   initialView = 'session',
+  visible = true,
+  resumeToScoreToken = 0,
   onClose,
   onLaunchActivity,
 }) {
@@ -171,9 +185,10 @@ export default function AssessmentWorkspace({
   const [reportResults, setReportResults] = useState([]);
   const [reportError, setReportError] = useState('');
   const [reportRefreshKey, setReportRefreshKey] = useState(0);
+  const [deletingSessionId, setDeletingSessionId] = useState('');
 
   useEffect(() => {
-    if (typeof document === 'undefined') return undefined;
+    if (!visible || typeof document === 'undefined') return undefined;
     const body = document.body;
     const root = document.documentElement;
     const previousBodyOverflow = body.style.overflow;
@@ -184,7 +199,7 @@ export default function AssessmentWorkspace({
       body.style.overflow = previousBodyOverflow;
       root.style.overflow = previousRootOverflow;
     };
-  }, []);
+  }, [visible]);
 
   const allowedActivities = useMemo(
     () => activities.filter((item) => isLeader || item.hasAccess),
