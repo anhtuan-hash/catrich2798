@@ -3901,3 +3901,18 @@ html:has(.lcs-page--library) .bes-vn-atmosphere{
   .lcs-thumbnail-editor-head{flex-direction:column}
   .lcs-thumbnail-paste-zone{width:100%}
 }
+
+
+/* V19 · Teachers can see manual thumbnails even when activity access is locked. */
+.lcs-page--library .lcs-arcade-card.is-locked .lcs-card-media.has-static-thumbnail{
+  filter:none!important;
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-media.is-locked.has-static-thumbnail .lcs-card-media-shade{
+  background:
+    linear-gradient(to bottom,rgba(8,20,16,.10),transparent 30%),
+    linear-gradient(to top,rgba(8,20,16,.14),transparent 32%)!important;
+}
+.lcs-page--library .lcs-arcade-card .lcs-card-media.is-locked.has-static-thumbnail .lcs-card-thumbnail-image{
+  opacity:1!important;
+  filter:none!important;
+}
