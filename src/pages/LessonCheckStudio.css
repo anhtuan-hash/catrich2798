@@ -3916,3 +3916,220 @@ html:has(.lcs-page--library) .bes-vn-atmosphere{
   opacity:1!important;
   filter:none!important;
 }
+
+
+/* V20 · Approved gamified Fun for Assessment hero */
+.lcs-page--library .lcs-arcade-head{
+  min-height:208px!important;
+  padding:20px 22px 18px!important;
+  align-items:stretch!important;
+  border-color:#d9e6cf!important;
+  border-radius:28px!important;
+  background:
+    radial-gradient(circle at 63% 10%,rgba(255,255,255,.94),transparent 22%),
+    radial-gradient(circle at 85% 14%,rgba(141,214,255,.34),transparent 28%),
+    radial-gradient(circle at 74% 82%,rgba(113,212,143,.28),transparent 30%),
+    linear-gradient(105deg,#fff8e7 0%,#fffaf2 34%,#ebfbf4 66%,#e7f8ff 100%)!important;
+  box-shadow:0 16px 34px rgba(62,82,61,.08)!important;
+}
+.lcs-page--library .lcs-arcade-head::before{
+  width:420px!important;
+  height:420px!important;
+  right:-155px!important;
+  top:-220px!important;
+  border-color:rgba(255,255,255,.56)!important;
+  box-shadow:
+    0 0 0 40px rgba(255,255,255,.16),
+    0 0 0 88px rgba(255,255,255,.09)!important;
+}
+.lcs-page--library .lcs-arcade-head::after{
+  inset:auto 285px 8px auto!important;
+  width:205px!important;
+  height:62px!important;
+  opacity:.20!important;
+  background-image:radial-gradient(circle,rgba(48,126,92,.30) 1.3px,transparent 1.4px)!important;
+  background-size:14px 14px!important;
+}
+.lcs-page--library .lcs-hero-main{
+  position:relative;
+  z-index:4;
+  width:min(47%,610px);
+  min-width:500px;
+  align-self:center;
+}
+.lcs-page--library .lcs-hero-copy{
+  max-width:560px!important;
+}
+.lcs-page--library .lcs-hero-kicker{
+  color:#536151!important;
+  font-size:9px!important;
+}
+.lcs-page--library .lcs-hero-kicker-icon{
+  background:#183b34!important;
+  color:#fff!important;
+  box-shadow:0 5px 14px rgba(23,73,61,.15);
+}
+.lcs-page--library .lcs-arcade-title-row{
+  margin-top:5px!important;
+}
+.lcs-page--library .lcs-arcade-title-row h1{
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+  flex-wrap:wrap;
+  font-size:46px!important;
+  line-height:.96!important;
+  letter-spacing:-.055em!important;
+  font-weight:900!important;
+  color:#14382d!important;
+  text-shadow:0 2px 0 rgba(255,255,255,.55);
+}
+.lcs-page--library .lcs-arcade-title-row h1 .is-fun{
+  color:#176dca;
+}
+.lcs-page--library .lcs-arcade-title-row h1 .is-for{
+  color:#1b2f2b;
+  font-weight:800;
+}
+.lcs-page--library .lcs-arcade-title-row h1 .is-assessment{
+  color:#159c70;
+}
+.lcs-page--library .lcs-hero-copy>p{
+  margin-top:8px!important;
+  color:#455d50!important;
+  font-size:12.5px!important;
+  font-weight:850!important;
+}
+.lcs-page--library .lcs-hero-statline{
+  margin-top:14px!important;
+  gap:7px!important;
+}
+.lcs-page--library .lcs-hero-statline>span{
+  min-height:32px!important;
+  padding:0 11px!important;
+  border-color:rgba(49,78,57,.11)!important;
+  background:rgba(255,255,255,.78)!important;
+  box-shadow:0 5px 15px rgba(60,80,63,.06);
+}
+.lcs-page--library .lcs-hero-statline>span.is-vocabulary{
+  background:rgba(232,250,240,.90)!important;
+}
+.lcs-page--library .lcs-hero-statline>span.is-grammar{
+  background:rgba(243,238,255,.92)!important;
+}
+.lcs-page--library .lcs-hero-statline>span.is-skills{
+  background:rgba(235,245,255,.92)!important;
+}
+.lcs-page--library .lcs-hero-art{
+  position:absolute;
+  z-index:2;
+  left:40%;
+  bottom:0;
+  width:min(41vw,610px);
+  height:auto;
+  max-height:204px;
+  object-fit:contain;
+  object-position:center bottom;
+  pointer-events:none;
+  user-select:none;
+  filter:drop-shadow(0 10px 18px rgba(54,101,75,.10));
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 8%,#000 94%,transparent 100%);
+  mask-image:linear-gradient(90deg,transparent 0%,#000 8%,#000 94%,transparent 100%);
+}
+.lcs-page--library .lcs-hero-side{
+  position:relative!important;
+  z-index:5!important;
+  width:300px!important;
+  min-height:100%!important;
+  align-self:stretch!important;
+  justify-content:center!important;
+  gap:10px!important;
+}
+.lcs-page--library .lcs-hero-deck{
+  display:none!important;
+}
+.lcs-page--library .lcs-assessment-launchers{
+  max-width:300px!important;
+  gap:8px!important;
+}
+.lcs-page--library .lcs-start-assessment{
+  min-height:46px!important;
+  border-radius:14px!important;
+  background:linear-gradient(135deg,#178058,#0c6848)!important;
+  box-shadow:0 10px 22px rgba(14,105,72,.20)!important;
+}
+.lcs-page--library .lcs-start-assessment:hover{
+  background:linear-gradient(135deg,#13754f,#095d40)!important;
+}
+.lcs-page--library .lcs-open-reports{
+  min-height:46px!important;
+  border-radius:14px!important;
+  border-color:rgba(67,95,78,.14)!important;
+  background:rgba(255,255,255,.88)!important;
+  color:#435d52!important;
+  box-shadow:0 8px 18px rgba(56,77,62,.06)!important;
+}
+.lcs-page--library .lcs-assessment-launchers .lcs-arcade-create{
+  min-height:39px!important;
+  border-radius:12px!important;
+  background:rgba(29,39,34,.90)!important;
+}
+
+@media(max-width:1180px){
+  .lcs-page--library .lcs-hero-main{
+    width:52%;
+    min-width:460px;
+  }
+  .lcs-page--library .lcs-hero-art{
+    left:44%;
+    width:min(38vw,500px);
+    opacity:.92;
+  }
+  .lcs-page--library .lcs-hero-side{
+    width:250px!important;
+  }
+}
+@media(max-width:980px){
+  .lcs-page--library .lcs-arcade-head{
+    min-height:180px!important;
+  }
+  .lcs-page--library .lcs-hero-main{
+    width:62%;
+    min-width:0;
+  }
+  .lcs-page--library .lcs-hero-art{
+    left:47%;
+    right:190px;
+    width:390px;
+    max-height:178px;
+    opacity:.72;
+  }
+  .lcs-page--library .lcs-hero-side{
+    width:190px!important;
+  }
+  .lcs-page--library .lcs-arcade-title-row h1{
+    font-size:38px!important;
+  }
+}
+@media(max-width:720px){
+  .lcs-page--library .lcs-arcade-head{
+    min-height:0!important;
+    padding:16px!important;
+    flex-direction:column!important;
+    gap:14px!important;
+  }
+  .lcs-page--library .lcs-hero-main{
+    width:100%;
+  }
+  .lcs-page--library .lcs-hero-art{
+    display:none;
+  }
+  .lcs-page--library .lcs-hero-side{
+    width:100%!important;
+    min-height:0!important;
+  }
+  .lcs-page--library .lcs-arcade-title-row h1{
+    font-size:34px!important;
+    gap:6px;
+  }
+}
