@@ -82,12 +82,16 @@ assert.match(studio, /requestFullscreen/);
 // Card previews load only near the viewport and only for users who already have access.
 assert.match(studio, /function ActivityCardPreview\(/);
 assert.match(studio, /new IntersectionObserver/);
-assert.match(studio, /rootMargin: '180px 0px'/);
+assert.match(studio, /rootMargin: '220px 0px'/);
 assert.match(studio, /const loadingRef = useRef\(false\)/);
-assert.match(studio, /if \(!canLoad \|\| !nearViewport \|\| embed \|\| loadingRef\.current\)/);
+assert.match(studio, /const \[activated, setActivated\] = useState\(Boolean\(cachedEmbed\)\)/);
+assert.match(studio, /if \(entry\.isIntersecting\) \{\s*setActivated\(true\);\s*observer\.disconnect\(\);/);
+assert.match(studio, /if \(!canLoad \|\| !activated \|\| embed \|\| loadingRef\.current\)/);
 assert.match(studio, /loadingRef\.current = true/);
 assert.match(studio, /\.finally\(\(\) => \{\s*loadingRef\.current = false;/);
-assert.doesNotMatch(studio, /\[activity\.id, canLoad, embed, nearViewport, state\]/, 'Preview loading state must not be an effect dependency; it cancels the in-flight fetch.');
+assert.match(studio, /const showLivePreview = canLoad && activated && embed/);
+assert.doesNotMatch(studio, /setNearViewport\(/, 'Preview must not unmount when scrolled out of view.');
+assert.doesNotMatch(studio, /showLivePreview = canLoad && nearViewport/, 'Scrolling away must not tear down a loaded iframe.');
 assert.match(studio, /getLessonCheckActivityContent\(activity\.id\)/);
 assert.match(studio, /cardPreviewCache\.set\(activity\.id, parsed\)/);
 assert.match(studio, /<ActivityCardPreview[\s\S]*?canLoad=\{!locked\}/);
@@ -120,6 +124,7 @@ assert.match(studio, /Tất cả Unit/);
 assert.match(studio, /Tất cả Lesson/);
 assert.match(studio, /lcs-view-toggle/);
 assert.match(studio, /lcs-primary-actions/);
+assert.match(studio, /lcs-library-search/);
 assert.match(studio, /lcs-pagination-compact/);
 assert.match(studio, /lcs-card-more-menu/);
 assert.match(studio, /Tạo hoạt động/);
@@ -144,6 +149,10 @@ assert.match(styles, /\.lcs-card-preview-frame\{[\s\S]*?width:135%[\s\S]*?transl
 assert.match(styles, /\.lcs-access-dialog/);
 assert.match(styles, /\.lcs-teach-overlay\{[\s\S]*?position:fixed/);
 assert.match(styles, /@media\(max-width:740px\)/);
+assert.match(styles, /V7 · Final visual polish \+ persistent preview presentation/);
+assert.match(styles, /\.lcs-library-search\{/);
+assert.match(styles, /\.lcs-card-media\{[\s\S]*?aspect-ratio:16\/10/);
+assert.match(styles, /\.lcs-card-preview-frame\{[\s\S]*?width:128%[\s\S]*?scale\(\.78125\)/);
 
 assert.match(vercel, /frame-src 'self' https:/, 'CSP must permit HTTPS iframe sources.');
 
