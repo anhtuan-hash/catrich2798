@@ -6,6 +6,7 @@ const read = (path) => fs.readFileSync(new URL('../' + path, import.meta.url), '
 const boot = read('index.html');
 const fonts = read('src/utils/globalRegionalFontSystem.js');
 const loader = read('src/components/GlobalWindowsPhone8Loading.jsx');
+const pageLaunch = read('src/components/GlobalPageLaunchEffect.jsx');
 const motion = read('src/utils/globalMotionSystem.js');
 const nav = read('src/components/GlobalFlatNavigation.jsx');
 
@@ -36,6 +37,14 @@ test('transition loader is shorter and avoids redundant node-scanning', () => {
   assert.match(loader, /window\.addEventListener\('bes-navigation-start', onShow\)/);
   assert.match(loader, /window\.addEventListener\('hashchange', onHide\)/);
   assert.match(nav, /<GlobalWindowsPhone8Loading\s*\/>/);
+});
+test('Metro Sweep navigates sooner while preserving its native animation and cleanup', () => {
+  assert.match(pageLaunch, /LAUNCH_DURATION = 280/);
+  assert.match(pageLaunch, /REVEAL_DURATION = 110/);
+  assert.match(pageLaunch, /launchAnimation\\.finished\\.then\\(\\(\\) =>/);
+  assert.match(pageLaunch, /window\\.location\\.hash = normalizedTarget/);
+  assert.match(pageLaunch, /reveal\\.finished\\.then\\(cleanup\\)/);
+  assert.match(pageLaunch, /reducedMotion\\(\\)/);
 });
 test('existing global motion, mobile and Quick Access mechanisms remain', () => {
   assert.match(motion, /installMutationMotionObserver\(\)/);
