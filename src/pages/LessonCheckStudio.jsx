@@ -337,7 +337,11 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const isLeader = canPublishDepartment(currentUser);
   const [activities, setActivities] = useState([]);
   const [requests, setRequests] = useState([]);
-  const [draft, setDraft] = useState(blankDraft);
+  const [singleDraft, setSingleDraft] = useState(blankDraft);
+  const [batchMode, setBatchMode] = useState(false);
+  const [batchDrafts, setBatchDrafts] = useState(() => Array.from({ length: 10 }, () => blankDraft()));
+  const [activeBatchIndex, setActiveBatchIndex] = useState(0);
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [thumbnailDataUrl, setThumbnailDataUrl] = useState('');
@@ -375,6 +379,21 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [accessLoading, setAccessLoading] = useState(false);
   const [accessBusyId, setAccessBusyId] = useState('');
   const teachRef = useRef(null);
+  const batchSavingRef = useRef(false);
+  const draft = batchMode ? batchDrafts[activeBatchIndex] : singleDraft;
+  const populatedBatchCount = batchDrafts.filter((item) => item.title.trim() || item.embedCode.trim()).length;
+
+  function setDraft(updater) {
+    if (!batchMode) {
+      setSingleDraft(updater);
+      return;
+    }
+    setBatchDrafts((items) => items.map((item, index) => (
+      index === activeBatchIndex
+        ? (typeof updater === 'function' ? updater(item) : updater)
+        : item
+    )));
+  }
 
   const parsedDraft = useMemo(() => parseEmbed(draft.embedCode), [draft.embedCode]);
   const previewReady = ['url', 'html'].includes(parsedDraft.kind);
@@ -437,6 +456,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     loadActivities();
     loadRequests();
     const unsubscribe = subscribeLessonCheckUpdates(() => {
+      if (batchSavingRef.current) return;
       loadActivities({ silent: true });
       loadRequests();
     });
@@ -544,20 +564,65 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     [requests, accessTarget?.id],
   );
 
-  function openNewActivity() {
-    setDraft(blankDraft());
+  function resetActivityBuilder() {
+    setSingleDraft(blankDraft());
+    setBatchMode(false);
+    setBatchDrafts(Array.from({ length: 10 }, () => blankDraft()));
+    setActiveBatchIndex(0);
+    setBatchProgress({ current: 0, total: 0 });
     setThumbnailDataUrl('');
     setThumbnailRemoveRequested(false);
+  }
+
+  function openNewActivity() {
+    resetActivityBuilder();
     setShowEditor(true);
     setShowBuilder(true);
   }
 
   function closeBuilder() {
-    setDraft(blankDraft());
-    setThumbnailDataUrl('');
-    setThumbnailRemoveRequested(false);
+    if (saving) return;
+    resetActivityBuilder();
     setShowBuilder(false);
     setShowEditor(true);
+  }
+
+  function enableBatchMode() {
+    const startingDraft = { ...draft, id: '', thumbnailUrl: '' };
+    setBatchDrafts(Array.from({ length: 10 }, (_, index) => (
+      index === 0 ? startingDraft : { ...startingDraft, title: '', embedCode: '' }
+    )));
+    setActiveBatchIndex(0);
+    setBatchMode(true);
+    setShowEditor(true);
+  }
+
+  function disableBatchMode() {
+    const otherFilled = batchDrafts.some((item, index) => (
+      index !== activeBatchIndex && (item.title.trim() || item.embedCode.trim())
+    ));
+    if (otherFilled && !window.confirm(isVi
+      ? 'Các hoạt động ở ô khác chưa được lưu. Chỉ giữ lại ô đang chọn?'
+      : 'Other activity slots are not saved. Keep only the selected slot?')) return;
+    setSingleDraft({ ...batchDrafts[activeBatchIndex] });
+    setBatchMode(false);
+    setActiveBatchIndex(0);
+  }
+
+  function clearBatchSlot() {
+    if (saving) return;
+    setDraft((current) => ({
+      ...blankDraft(),
+      grade: current.grade,
+      unitNo: current.unitNo,
+      unitTitle: current.unitTitle,
+      lessonKey: current.lessonKey,
+      lessonTitle: current.lessonTitle,
+      className: current.className,
+      type: current.type,
+      focusArea: current.focusArea,
+      notes: current.notes,
+    }));
   }
 
   function applyGrade(grade) {
@@ -622,7 +687,9 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       setNotice(result.message || (isVi ? 'Không mở được nội dung để chỉnh sửa.' : 'Could not open this activity for editing.'));
       return;
     }
-    setDraft({
+    setBatchMode(false);
+    setActiveBatchIndex(0);
+    setSingleDraft({
       id: item.id,
       title: item.title,
       bookKey: item.bookKey || 'global-success',
@@ -646,8 +713,90 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  async function saveBatchActivities() {
+    if (!isLeader || saving) return;
+    const candidates = batchDrafts.map((item, index) => ({ item, index }))
+      .filter(({ item }) => item.title.trim() || item.embedCode.trim());
+    if (!candidates.length) {
+      setNotice(isVi ? 'Hãy nhập ít nhất một hoạt động.' : 'Enter at least one activity.');
+      return;
+    }
+
+    for (const { item, index } of candidates) {
+      const embed = parseEmbed(item.embedCode);
+      let message = '';
+      if (!item.title.trim()) message = isVi ? 'Chưa có tên hoạt động.' : 'Activity title is missing.';
+      else if (item.focusArea === 'unclassified') message = isVi ? 'Chưa chọn chuyên đề / kỹ năng.' : 'Choose a learning focus.';
+      else if (!['url', 'html'].includes(embed.kind)) message = isVi ? 'Mã nhúng / URL / HTML không hợp lệ.' : 'Invalid embed code / URL / HTML.';
+      if (message) {
+        setActiveBatchIndex(index);
+        setShowEditor(true);
+        setNotice((isVi ? `Hoạt động ${index + 1}: ` : `Activity ${index + 1}: `) + message);
+        return;
+      }
+    }
+
+    setSaving(true);
+    batchSavingRef.current = true;
+    setBatchProgress({ current: 0, total: candidates.length });
+    const remaining = [...batchDrafts];
+    let savedCount = 0;
+    let failedAt = -1;
+    let failureMessage = '';
+
+    try {
+      for (const { item, index } of candidates) {
+        setBatchProgress({ current: savedCount + 1, total: candidates.length });
+        const embed = parseEmbed(item.embedCode);
+        let result;
+        try {
+          result = await saveLessonCheckActivity({
+            ...item,
+            unitTitle: globalSuccessUnitTitle(item.grade, item.unitNo) || item.unitTitle,
+            lessonTitle: globalSuccessLessonTitle(item.lessonKey) || item.lessonTitle,
+            sourceHost: embed.kind === 'url' ? sourceHost(embed.source) : 'HTML / srcDoc',
+          }, embed);
+        } catch (exception) {
+          result = { ok: false, message: exception?.message || 'Network error' };
+        }
+        if (!result.ok) {
+          failedAt = index;
+          failureMessage = result.message || (isVi ? 'Không thể lưu lên Supabase.' : 'Supabase save failed.');
+          // Reuse the id when the row exists but its focus tag failed to update.
+          if (result.id) remaining[index] = { ...item, id: result.id };
+          break;
+        }
+        savedCount += 1;
+        remaining[index] = { ...item, id: '', title: '', embedCode: '' };
+      }
+    } finally {
+      batchSavingRef.current = false;
+      setSaving(false);
+      setBatchProgress({ current: 0, total: 0 });
+      await loadActivities({ silent: true });
+    }
+
+    if (failedAt >= 0) {
+      setBatchDrafts(remaining);
+      setActiveBatchIndex(failedAt);
+      setShowEditor(true);
+      setNotice(isVi
+        ? `Đã lưu ${savedCount}/${candidates.length} hoạt động. Ô ${failedAt + 1} bị lỗi: ${failureMessage}. Có thể bấm lưu lại, không tạo trùng ô đã thành công.`
+        : `Saved ${savedCount}/${candidates.length}. Slot ${failedAt + 1} failed: ${failureMessage}. Retry without duplicating saved items.`);
+      return;
+    }
+
+    resetActivityBuilder();
+    setShowBuilder(false);
+    setNotice(isVi ? `Đã tạo thành công ${savedCount} hoạt động.` : `Successfully created ${savedCount} activities.`);
+  }
+
   async function saveActivity() {
-    if (!isLeader) return;
+    if (!isLeader || saving) return;
+    if (batchMode) {
+      await saveBatchActivities();
+      return;
+    }
     if (!draft.title.trim()) {
       setNotice(isVi ? 'Hãy nhập tên hoạt động.' : 'Enter an activity title.');
       return;
@@ -695,9 +844,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
     setSaving(false);
     setNotice(isVi ? 'Đã lưu hoạt động và thumbnail.' : 'Activity and thumbnail saved.');
-    setDraft(blankDraft());
-    setThumbnailDataUrl('');
-    setThumbnailRemoveRequested(false);
+    resetActivityBuilder();
     setShowBuilder(false);
     await loadActivities({ silent: true });
   }
@@ -960,6 +1107,48 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
               {showEditor ? (
                 <div className="lcs-form">
+                  {!draft.id || batchMode ? (
+                    <div className="lcs-bulk-manager lcs-field-wide">
+                      <div className="lcs-bulk-manager-top">
+                        <div>
+                          <strong>{isVi ? 'Số lượng hoạt động' : 'Activity creation mode'}</strong>
+                          <span>{isVi ? 'Lưu một hoạt động hoặc tạo tối đa 10 hoạt động cùng lúc.' : 'Save a single activity or up to 10 at once.'}</span>
+                        </div>
+                        <div className="lcs-bulk-mode-buttons" role="group" aria-label={isVi ? 'Chế độ tạo hoạt động' : 'Creation mode'}>
+                          <button type="button" disabled={saving} className={!batchMode ? 'is-active' : ''} onClick={() => { if (batchMode) disableBatchMode(); }}>{isVi ? '1 hoạt động' : 'Single'}</button>
+                          <button type="button" disabled={saving} className={batchMode ? 'is-active' : ''} onClick={() => { if (!batchMode) enableBatchMode(); }}>{isVi ? '10 hoạt động' : 'Up to 10'}</button>
+                        </div>
+                      </div>
+                      {batchMode ? (
+                        <>
+                          <div className="lcs-bulk-slot-head">
+                            <strong>{isVi ? `Đang chỉnh hoạt động ${activeBatchIndex + 1}/10` : `Editing activity ${activeBatchIndex + 1}/10`}</strong>
+                            <span>{isVi ? `${populatedBatchCount} ô có nội dung · Ô trống sẽ được bỏ qua` : `${populatedBatchCount} filled · Blank slots will be skipped`}</span>
+                          </div>
+                          <div className="lcs-bulk-slots" role="group" aria-label={isVi ? 'Chọn ô hoạt động' : 'Choose activity slot'}>
+                            {batchDrafts.map((item, index) => (
+                              <button
+                                key={index}
+                                type="button"
+                                disabled={saving}
+                                className={`lcs-bulk-slot ${activeBatchIndex === index ? 'is-active' : ''} ${item.title.trim() || item.embedCode.trim() ? 'has-content' : ''}`}
+                                onClick={() => setActiveBatchIndex(index)}
+                                aria-pressed={activeBatchIndex === index}
+                                title={item.title || (isVi ? `Hoạt động ${index + 1}` : `Activity ${index + 1}`)}
+                              >
+                                <span>{String(index + 1).padStart(2, '0')}</span>
+                                {item.title.trim() && item.embedCode.trim() ? <Check size={13} /> : null}
+                              </button>
+                            ))}
+                          </div>
+                          <div className="lcs-bulk-slot-footer">
+                            <span>{isVi ? 'Mỗi ô có thể chọn Unit, Lesson, chuyên đề và mã nhúng riêng.' : 'Each slot can have its own Unit, Lesson, learning focus and embed code.'}</span>
+                            <button type="button" disabled={saving} onClick={clearBatchSlot}><Trash2 size={14} />{isVi ? 'Xóa nội dung ô này' : 'Clear this slot'}</button>
+                          </div>
+                        </>
+                      ) : null}
+                    </div>
+                  ) : null}
                   <div className="lcs-quick-select lcs-field-wide">
                     <div className="lcs-quick-title"><BookOpen size={18} /><div><strong>{isVi ? 'Chọn nhanh theo SGK Global Success' : 'Quick select · Global Success'}</strong><span>{isVi ? 'Chọn khối → Unit → Lesson, hệ thống tự điền metadata.' : 'Choose grade → Unit → Lesson to fill metadata automatically.'}</span></div></div>
                     <div className="lcs-quick-grid">
@@ -1059,9 +1248,13 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                   </div>
                   <div className="lcs-form-actions">
                     {draft.id ? <button className="lcs-btn lcs-btn-secondary" onClick={closeBuilder}>{isVi ? 'Hủy chỉnh sửa' : 'Cancel edit'}</button> : null}
-                    <button className="lcs-btn lcs-btn-primary" onClick={saveActivity} disabled={saving}>
+                    <button className="lcs-btn lcs-btn-primary" onClick={saveActivity} disabled={saving || thumbnailBusy}>
                       {saving ? <LoaderCircle className="lcs-spin" size={18} /> : <Save size={18} />}
-                      {draft.id ? (isVi ? 'Lưu thay đổi' : 'Save changes') : (isVi ? 'Lưu lên Supabase' : 'Save to Supabase')}
+                      {batchMode
+                        ? (saving
+                          ? (isVi ? `Đang lưu ${batchProgress.current}/${batchProgress.total}…` : `Saving ${batchProgress.current}/${batchProgress.total}…`)
+                          : (isVi ? `Lưu ${populatedBatchCount} hoạt động` : `Save ${populatedBatchCount} activities`))
+                        : (draft.id ? (isVi ? 'Lưu thay đổi' : 'Save changes') : (isVi ? 'Lưu lên Supabase' : 'Save to Supabase'))}
                     </button>
                   </div>
                 </div>
@@ -1070,7 +1263,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
             <div className="lcs-panel lcs-live-preview">
               <div className="lcs-panel-head">
-                <div><span className="lcs-step">02</span><h2>{isVi ? 'Xem trước trực tiếp' : 'Live preview'}</h2></div>
+                <div><span className="lcs-step">02</span><h2>{isVi ? 'Xem trước trực tiếp' : 'Live preview'}{batchMode ? ` · ${activeBatchIndex + 1}/10` : ''}</h2></div>
                 {parsedDraft.kind === 'url' ? <span className="lcs-host-chip">{sourceHost(parsedDraft.source)}</span> : null}
               </div>
               <div className="lcs-frame-shell">
