@@ -352,10 +352,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [query, setQuery] = useState('');
   const [gradeFilter, setGradeFilter] = useState('all');
   const [unitFilter, setUnitFilter] = useState('all');
-  const [lessonFilter, setLessonFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
   const [focusFilter, setFocusFilter] = useState('all');
-  const [accessFilter, setAccessFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortMode, setSortMode] = useState('newest');
   const [viewMode, setViewMode] = useState('grid');
@@ -497,12 +494,8 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
       if (gradeFilter !== 'all' && String(item.grade || '') !== gradeFilter) return false;
       if (unitFilter !== 'all' && String(item.unitNo || '') !== unitFilter) return false;
-      if (lessonFilter !== 'all' && String(item.lessonKey || '') !== lessonFilter) return false;
-      if (typeFilter !== 'all' && item.type !== typeFilter) return false;
       if (focusFilter === 'skills' && !['reading','listening','speaking'].includes(item.focusArea)) return false;
       if (!['all','skills'].includes(focusFilter) && item.focusArea !== focusFilter) return false;
-      if (accessFilter === 'open' && !open) return false;
-      if (accessFilter === 'locked' && !locked) return false;
       if (statusFilter === 'pending' && !pending) return false;
       if (statusFilter === 'ready' && !open) return false;
       if (statusFilter === 'locked' && !locked) return false;
@@ -528,7 +521,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       }
       return String(b.updatedAt || '').localeCompare(String(a.updatedAt || ''));
     });
-  }, [accessFilter, activities, focusFilter, gradeFilter, isLeader, language, lessonFilter, pendingActivityIds, query, sortMode, statusFilter, typeFilter, unitFilter]);
+  }, [activities, focusFilter, gradeFilter, isLeader, language, pendingActivityIds, query, sortMode, statusFilter, unitFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredActivities.length / pageSize));
   const pagedActivities = useMemo(() => {
@@ -548,7 +541,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
   useEffect(() => {
     setPage(1);
-  }, [accessFilter, focusFilter, gradeFilter, lessonFilter, query, sortMode, statusFilter, typeFilter, unitFilter]);
+  }, [focusFilter, gradeFilter, query, sortMode, statusFilter, unitFilter]);
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
@@ -1363,12 +1356,6 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
           <select value={unitFilter} onChange={(e) => setUnitFilter(e.target.value)} aria-label="Unit">
             <option value="all">{isVi ? 'Tất cả Unit' : 'All Units'}</option>{Array.from({ length: 10 }, (_, index) => <option key={index + 1} value={String(index + 1)}>Unit {index + 1}</option>)}
           </select>
-          <select value={lessonFilter} onChange={(e) => setLessonFilter(e.target.value)} aria-label="Lesson">
-            <option value="all">{isVi ? 'Tất cả Lesson' : 'All lessons'}</option>{GLOBAL_SUCCESS_LESSONS.map((lesson) => <option key={lesson.key} value={lesson.key}>{lesson.title}</option>)}
-          </select>
-          <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} aria-label={isVi ? 'Loại hoạt động' : 'Activity type'}>
-            <option value="all">{isVi ? 'Tất cả loại' : 'All types'}</option>{TYPE_OPTIONS.map((item) => <option key={item.value} value={item.value}>{isVi ? item.vi : item.en}</option>)}
-          </select>
           <select value={focusFilter} onChange={(e) => setFocusFilter(e.target.value)} aria-label={isVi ? 'Chuyên đề' : 'Learning focus'}>
             <option value="all">{isVi ? 'Tất cả chuyên đề' : 'All focus areas'}</option>
             <option value="vocabulary">Vocabulary</option>
@@ -1380,22 +1367,12 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
             <option value="mixed">{isVi ? 'Tổng hợp' : 'Mixed'}</option>
             <option value="unclassified">{isVi ? 'Chưa gắn' : 'Unclassified'}</option>
           </select>
-          {!isLeader ? (
-            <select value={accessFilter} onChange={(e) => setAccessFilter(e.target.value)} aria-label={isVi ? 'Quyền truy cập' : 'Access'}>
-              <option value="all">{isVi ? 'Mọi quyền truy cập' : 'All access'}</option>
-              <option value="open">{isVi ? 'Đã mở' : 'Unlocked'}</option>
-              <option value="locked">{isVi ? 'Bị khóa' : 'Locked'}</option>
-            </select>
-          ) : null}
-          {(query || gradeFilter !== 'all' || unitFilter !== 'all' || lessonFilter !== 'all' || typeFilter !== 'all' || focusFilter !== 'all' || accessFilter !== 'all' || statusFilter !== 'all' || sortMode !== 'newest') ? (
+          {(query || gradeFilter !== 'all' || unitFilter !== 'all' || focusFilter !== 'all' || statusFilter !== 'all' || sortMode !== 'newest') ? (
             <button className="lcs-arcade-clear" type="button" onClick={() => {
               setQuery('');
               setGradeFilter('all');
               setUnitFilter('all');
-              setLessonFilter('all');
-              setTypeFilter('all');
               setFocusFilter('all');
-              setAccessFilter('all');
               setStatusFilter('all');
               setSortMode('newest');
             }}><X size={14} />{isVi ? 'Xóa lọc' : 'Clear'}</button>
