@@ -499,3 +499,71 @@
   .lcs-page--library .lcs-arcade-card,
   .lcs-page--library .lcs-assessment-launchers>button{transition:none!important}
 }
+
+/* 2026-10-12 · Uniform-size Activity Arcade cards.
+   Preserve real game thumbnails and all existing button handlers.
+   Reserve the same two-line title area for short and long names. */
+.lcs-page--library .lcs-arcade-grid{
+  align-items:stretch!important;
+}
+.lcs-page--library .lcs-arcade-grid > .lcs-arcade-card{
+  display:flex!important;
+  flex-direction:column!important;
+  align-self:stretch!important;
+  box-sizing:border-box!important;
+  height:100%!important;
+}
+.lcs-page--library .lcs-arcade-grid > .lcs-arcade-card > .lcs-card-media{
+  flex:0 0 auto!important;
+  width:100%!important;
+  min-height:0!important;
+}
+.lcs-page--library .lcs-arcade-grid > .lcs-arcade-card > .lcs-arcade-card-copy{
+  display:flex!important;
+  flex-direction:column!important;
+  flex:0 0 124px!important;
+  box-sizing:border-box!important;
+  height:124px!important;
+  min-height:124px!important;
+  width:100%!important;
+  min-width:0!important;
+}
+.lcs-page--library .lcs-arcade-card-copy .lcs-arcade-meta{
+  flex:0 0 20px!important;
+  min-width:0!important;
+  white-space:nowrap;
+  overflow:hidden;
+}
+.lcs-page--library .lcs-arcade-card-copy .lcs-arcade-titleline{
+  flex:1 1 auto!important;
+  min-width:0!important;
+  min-height:0!important;
+}
+.lcs-page--library .lcs-arcade-titlecopy h3{
+  min-height:calc(2 * 1.22em)!important;
+  max-height:calc(2 * 1.22em)!important;
+  -webkit-line-clamp:2!important;
+  line-clamp:2;
+  overflow:hidden!important;
+}
+.lcs-page--library .lcs-arcade-card-copy .lcs-arcade-titlecopy p{
+  white-space:nowrap!important;
+  text-overflow:ellipsis!important;
+  overflow:hidden!important;
+}
+.lcs-page--library .lcs-arcade-card-copy .lcs-arcade-card-tags{
+  flex:0 0 22px!important;
+  min-height:22px!important;
+  max-height:22px!important;
+  margin-top:auto!important;
+  flex-wrap:nowrap!important;
+  overflow:hidden!important;
+}
+.lcs-page--library .lcs-arcade-card-copy .lcs-arcade-card-tags > span{
+  max-width:100%;
+  min-width:0;
+  flex-shrink:1;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}

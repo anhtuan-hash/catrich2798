@@ -43,3 +43,16 @@ test('Gallery keeps actual cards, filters, permissions and data-backed actions',
   assert.match(skin,/\.lcs-page--library \.lcs-arcade-grid\s*\{/);
   assert.match(skin,/@media \(max-width:500px\)/);
 });
+
+test('Arcade cards have uniform heights regardless of one-line or two-line titles',()=>{
+  const region=skin.slice(skin.indexOf('/* 2026-10-12 · Uniform-size Activity Arcade cards.'));
+  assert.ok(region.length>500,'uniform card section exists');
+  assert.match(region,/\.lcs-page--library \.lcs-arcade-grid\s*\{\s*align-items:stretch!important/);
+  assert.match(region,/\.lcs-arcade-grid > \.lcs-arcade-card\s*\{[\s\S]*?display:flex!important[\s\S]*?height:100%!important/);
+  assert.match(region,/\.lcs-arcade-grid > \.lcs-arcade-card > \.lcs-arcade-card-copy\s*\{[\s\S]*?height:124px!important[\s\S]*?min-height:124px!important/);
+  assert.match(region,/\.lcs-arcade-titlecopy h3\s*\{[\s\S]*?min-height:calc\(2 \* 1\.22em\)!important[\s\S]*?-webkit-line-clamp:2!important/);
+  assert.match(region,/\.lcs-arcade-card-copy \.lcs-arcade-card-tags\s*\{[\s\S]*?margin-top:auto!important[\s\S]*?flex-wrap:nowrap!important/);
+  assert.doesNotMatch(region,/(?:\.brian-nav|\.bes-top-chrome|\.app-footer|\.bes-footer|\bbody\s*\{|#root\s*\{)/i);
+  assert.match(page,/className="lcs-arcade-card-copy"/);
+  assert.match(page,/className="lcs-arcade-card-tags"/);
+});
