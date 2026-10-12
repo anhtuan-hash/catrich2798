@@ -6,7 +6,7 @@ import './AdminMfaSecurity.css';
 
 // Deliberately opt-in: existing Admin accounts without enrolled factors are not locked out.
 // Once a factor is verified, it must be presented again on future Admin logins.
-export default function AdminMfaSecurity({ user, route, profileHost, language = 'vi' }) {
+export default function AdminMfaSecurity({ user, route, language = 'vi' }) {
   const vi = language === 'vi';
   const isAdmin = user?.role === 'admin' && user?.provider === 'supabase' && Boolean(supabase);
   const [state, setState] = useState({ loading: true, currentLevel: '', nextLevel: '', factors: [], error: '' });
@@ -14,6 +14,29 @@ export default function AdminMfaSecurity({ user, route, profileHost, language = 
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [setup, setSetup] = useState(null);
+  const [settingsHost, setSettingsHost] = useState(null);
+
+  useEffect(() => {
+    if (!isAdmin || route !== 'settings') {
+      setSettingsHost(null);
+      return undefined;
+    }
+    // Settings is lazy-loaded. Find its actual security slot after it mounts.
+    const sync = () => {
+      const found = document.getElementById('bes-admin-mfa-settings-target');
+      setSettingsHost((previous) => previous === found ? previous : found);
+    };
+    sync();
+    const observer = new MutationObserver(sync);
+    observer.observe(document.getElementById('bes-main-content') || document.body, {
+      childList: true, subtree: true,
+    });
+    return () => {
+      observer.disconnect();
+      setSettingsHost(null);
+    };
+  }, [route, isAdmin]);
+
 
   const refresh = useCallback(async () => {
     if (!isAdmin) return;
@@ -128,7 +151,9 @@ export default function AdminMfaSecurity({ user, route, profileHost, language = 
     await refresh();
   };
 
-  const dialog = (state.loading || state.error || needsVerification) ? (
+  // A temporary Supabase MFA lookup error must not lock out an existing Admin
+  // who has not yet enrolled a factor. Server-side sensitive actions remain protected.
+  const dialog = needsVerification ? (
     <div className="bes-mfa-shield" role="presentation">
       <section className="bes-mfa-shield-card" role="dialog" aria-modal="true" aria-label={vi ? 'Xác thực bảo mật quản trị viên' : 'Administrator two-factor authentication'}>
         <div className="bes-mfa-shield-mark" aria-hidden="true">B</div>
@@ -148,7 +173,7 @@ export default function AdminMfaSecurity({ user, route, profileHost, language = 
     </div>
   ) : null;
 
-  const settings = route === 'settings' && profileHost && !needsVerification && !state.error ? (
+  const settings = route === 'settings' && settingsHost && !needsVerification ? (
     <section className="bes-mfa-settings" aria-label={vi ? 'Xác thực hai lớp' : 'Two-factor authentication'}>
       <div className="bes-mfa-settings-head">
         <div><span>{vi ? 'BẢO MẬT TÀI KHOẢN' : 'ACCOUNT SECURITY'}</span><h3>{vi ? 'Xác thực hai lớp (MFA)' : 'Two-factor authentication (MFA)'}</h3></div>
@@ -157,7 +182,8 @@ export default function AdminMfaSecurity({ user, route, profileHost, language = 
       <p>{vi ? 'Sử dụng Google Authenticator, Microsoft Authenticator hoặc ứng dụng tương thích để bảo vệ tài khoản quản trị.' : 'Use Google Authenticator, Microsoft Authenticator or a compatible app to protect your administrator account.'}</p>
       <p className="bes-mfa-warning">{vi ? 'Supabase không cấp mã khôi phục. Hãy chuẩn bị thêm một thiết bị xác thực dự phòng sau khi kích hoạt; nếu mất toàn bộ thiết bị, cần trợ giúp từ người quản trị Supabase.' : 'Supabase does not issue recovery codes. Add a backup device after setup; if all factors are lost, Supabase project administration is required.'}</p>
       {state.factors.length ? <small>{vi ? 'Số thiết bị đã xác minh: ' : 'Verified devices: '}{state.factors.length}</small> : null}
-      {!setup ? <button type="button" onClick={begin} disabled={busy || state.loading}>{busy ? '…' : state.factors.length ? (vi ? 'Thêm thiết bị dự phòng' : 'Add backup device') : (vi ? 'Bật xác thực hai lớp' : 'Enable two-factor authentication')}</button> : (
+      {state.error ? <p className="bes-mfa-warning" role="alert">{state.error} <button type="button" className="secondary" onClick={refresh}>{vi ? 'Thử lại' : 'Retry'}</button></p> : null}
+      {!setup ? <button type="button" onClick={begin} disabled={busy || state.loading || Boolean(state.error)}>{busy ? '…' : state.factors.length ? (vi ? 'Thêm thiết bị dự phòng' : 'Add backup device') : (vi ? 'Bật xác thực hai lớp' : 'Enable two-factor authentication')}</button> : (
         <form onSubmit={confirmSetup} className="bes-mfa-enroll">
           <p>{vi ? 'Quét mã QR bằng ứng dụng xác thực rồi nhập mã 6 chữ số để kích hoạt.' : 'Scan the QR code with an authenticator app, then enter the six-digit code.'}</p>
           {setup.qr ? <img alt={vi ? 'Mã QR xác thực hai lớp' : 'Two-factor setup QR code'} src={setup.qr} /> : null}
@@ -174,7 +200,7 @@ export default function AdminMfaSecurity({ user, route, profileHost, language = 
   return (
     <>
       {dialog ? createPortal(dialog, document.body) : null}
-      {settings ? createPortal(settings, profileHost) : null}
+      {settings ? createPortal(settings, settingsHost) : null}
     </>
   );
 }
