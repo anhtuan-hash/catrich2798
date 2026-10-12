@@ -124,7 +124,7 @@ export function gradebookAuditChanges(previous={}, current={}) {
     for (const id of new Set([...previous.keys(), ...current.keys()])) {
       const oldExam = previous.get(id) || {};
       const newExam = current.get(id) || {};
-      for (const field of ['label', 'date']) {
+      for (const field of ['label', 'date', 'locked']) {
         if ((oldExam[field] || '') !== (newExam[field] || '')) diffs.push({ subject:key, kind:'mock-exam', examId:id, field, from:oldExam[field] || '', to:newExam[field] || '' });
       }
       for (const studentId of new Set([...Object.keys(oldExam.scores || {}), ...Object.keys(newExam.scores || {})])) {
