@@ -9,8 +9,8 @@ import {
   gradeScoreNumber as scoreNumber,
 } from '../../utils/homeroomGradebookExport.js';
 import './HomeroomLearningGradebook.css';
-import { filterGradebookStudentView } from '../../utils/gradebookStudentView.js';
-import { Search, ScanEye, Minimize2, Keyboard, X } from 'lucide-react';
+import { filterGradebookStudentView, gradebookColumnProgress } from '../../utils/gradebookStudentView.js';
+import { Search, ScanEye, Minimize2, Keyboard, X, ArrowDownToLine, ListFilter, Rows3, Rows4, ChartColumnIncreasing } from 'lucide-react';
 import GradebookProductivityPanel from './GradebookProductivityPanel.jsx';
 import { gradebookAuditChanges, gradebookQualityReport } from '../../utils/gradebookProductivity.js';
 import { isGradebookFinalized, setFinalizationState, gradebookFinalizationReadiness } from '../../utils/gradebookFinalization.js';
@@ -358,6 +358,10 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const [studentQuery, setStudentQuery] = useState('');
   const [missingOnly, setMissingOnly] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  const [sortBy, setSortBy] = useState('original');
+  const [density, setDensity] = useState('comfortable');
+  const [workbenchNotice, setWorkbenchNotice] = useState('');
+  const scoreTableRef = useRef(null);
   const [newSubject, setNewSubject] = useState('');
   const [dirty, setDirty] = useState(false);
   const [exportDialogMode, setExportDialogMode] = useState('');
@@ -378,6 +382,9 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     setStudentQuery('');
     setMissingOnly(false);
     setFocusMode(false);
+    setSortBy('original');
+    setDensity('comfortable');
+    setWorkbenchNotice('');
   }, [workspace.id, students.length]);
 
   const subjectEntries = useMemo(
@@ -390,8 +397,8 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const roundIndex = view.startsWith('regular-') ? Number(view.split('-')[1]) : -1;
   const activeRound = roundIndex >= 0 ? activeSemester.regular[roundIndex] : null;
   const visibleStudents = useMemo(
-    () => filterGradebookStudentView({ students, search: studentQuery, missingOnly, view, activeRound, semester: activeSemester }),
-    [students, studentQuery, missingOnly, view, activeRound, activeSemester],
+     () => filterGradebookStudentView({ students, search: studentQuery, missingOnly, view, activeRound, semester: activeSemester, sortBy }),
+    [students, studentQuery, missingOnly, view, activeRound, activeSemester, sortBy],
   );
   const originalStudentPosition = useMemo(
     () => new Map(students.map((student, index) => [student.id, index + 1])),
@@ -675,6 +682,27 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const totalRegularColumns = activeSemester.regular.reduce((sum, round) => sum + round.columns.length, 0);
   const completedFourRounds = students.filter((student) => activeSemester.regular.every((round) => roundScore(round, student.id, studentIds) != null)).length;
   const activeRoundCoverage = activeRound ? students.filter((student) => roundScore(activeRound, student.id, studentIds) != null).length : 0;
+  const columnProgress = useMemo(() => gradebookColumnProgress(students, activeRound), [students, activeRound]);
+  const columnsWithMissing = columnProgress.filter((column) => column.missing > 0).length;
+
+  const focusNextEmptyScore = () => {
+    const cells = Array.from(scoreTableRef.current?.querySelectorAll('tbody td.gb-m3-score-cell input.hr-grade-input:not(:disabled)') || []);
+    if (!cells.length) {
+      setWorkbenchNotice('Không có ô điểm có thể nhập trong bảng đang mở.');
+      return;
+    }
+    const currentIndex = cells.indexOf(document.activeElement);
+    const following = cells.slice(currentIndex + 1).concat(cells.slice(0, currentIndex + 1));
+    const next = following.find((input) => input.value.trim() === '');
+    if (!next) {
+      setWorkbenchNotice('Các ô điểm đang hiển thị đã được nhập đầy đủ.');
+      return;
+    }
+    next.focus();
+    next.select();
+    next.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
+    setWorkbenchNotice('Đã chuyển đến ô điểm trống tiếp theo.');
+  };
 
   const renderTableControls = () => (
     <div className="gbv2-table-controls" aria-label="Tùy chọn bảng điểm">
@@ -697,6 +725,15 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
           <input type="checkbox" checked={missingOnly} onChange={(event) => setMissingOnly(event.target.checked)} />
           <span>Chỉ học sinh còn thiếu điểm</span>
         </label>
+        <label className="gb-roster-sort">
+          <ListFilter size={16} aria-hidden="true" />
+          <span>Sắp xếp</span>
+          <select value={sortBy} onChange={(event) => setSortBy(event.target.value)} aria-label="Sắp xếp học sinh">
+            <option value="original">Thứ tự lớp</option>
+            <option value="name">Họ tên A–Z</option>
+            <option value="missing-first">Thiếu điểm trước</option>
+          </select>
+        </label>
         <span className="gb-roster-count" role="status" aria-live="polite">{visibleStudents.length}/{students.length} học sinh</span>
         {activeRound ? <span className="gb-roster-progress" title={`${activeRoundCoverage}/${students.length} học sinh đã có điểm trong đợt đang mở`}>
           <span className="gb-roster-progress-track"><span style={{ width: `${students.length ? Math.round(activeRoundCoverage / students.length * 100) : 0}%` }} /></span>
@@ -706,11 +743,35 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       </div>
       <div className="gb-roster-workbench-side">
         <span className="gb-roster-keyboard-hint" title="Enter hoặc mũi tên lên/xuống để chuyển hàng; Alt + trái/phải để chuyển ô."><Keyboard size={16} aria-hidden="true" /> Enter: chuyển hàng · ⌥←→: chuyển ô</span>
+        {activeRound ? <button type="button" className="gb-roster-next-empty" onClick={focusNextEmptyScore} disabled={finalized || !visibleStudents.length}><ArrowDownToLine size={16} aria-hidden="true" /> Ô trống tiếp theo</button> : null}
+        <button type="button" className="gb-roster-density" aria-pressed={density === 'compact'} onClick={() => setDensity((value) => value === 'compact' ? 'comfortable' : 'compact')}>
+          {density === 'compact' ? <Rows4 size={16} aria-hidden="true" /> : <Rows3 size={16} aria-hidden="true" />}
+          {density === 'compact' ? 'Bảng thoáng' : 'Bảng gọn'}
+        </button>
         <button type="button" className="gb-roster-focus" aria-pressed={focusMode} onClick={() => setFocusMode((value) => !value)}>{focusMode ? <Minimize2 size={16} aria-hidden="true" /> : <ScanEye size={16} aria-hidden="true" />}{focusMode ? 'Thoát tập trung' : 'Chế độ tập trung'}</button>
       </div>
       {students.length > 0 && visibleStudents.length === 0 ? <p className="gb-roster-no-results">Không tìm thấy học sinh phù hợp. Hãy xóa bộ lọc để xem lại danh sách lớp.</p> : null}
+      {workbenchNotice ? <span className="gb-roster-feedback" role="status" aria-live="polite">{workbenchNotice}</span> : null}
     </section>
   );
+
+  const renderColumnInsights = () => activeRound ? (
+    <details className="gb-roster-column-insights">
+      <summary><ChartColumnIncreasing size={18} strokeWidth={2.1} aria-hidden="true" />
+        <strong>Tiến độ từng cột điểm</strong>
+        <span>{columnProgress.length - columnsWithMissing}/{columnProgress.length} cột hoàn tất · {columnsWithMissing} cột còn thiếu</span>
+      </summary>
+      <div className="gb-roster-column-grid">
+        {columnProgress.map((column) => (
+          <article key={column.id} className={column.missing ? 'has-missing' : 'is-complete'}>
+            <div><strong title={column.label}>{column.label}</strong><span>{column.entered}/{column.total}</span></div>
+            <div className="gb-roster-column-track"><span style={{ width: `${column.percent}%` }} /></div>
+            <small>{column.missing ? `${column.missing} học sinh chưa nhập` : 'Đã nhập đủ'}</small>
+          </article>
+        ))}
+      </div>
+    </details>
+  ) : null;
 
   const renderRegularTable = () => (
     <section className="hr-panel hr-grade-panel">
@@ -727,7 +788,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
           {renderTableControls()}
         </div>
       </div>
-      {students.length ? <div className={`hr-grade-table-wrap${showFullRoster ? ' gbv3-table-expanded' : ''}`}>
+      {students.length ? <div ref={scoreTableRef} className={`hr-grade-table-wrap${showFullRoster ? ' gbv3-table-expanded' : ''}`}>
         <table className="hr-grade-table" style={{ minWidth: `${Math.max(820, 290 + activeRound.columns.length * 104 + 3 * 118)}px` }}>
           <thead>
             <tr>
@@ -798,7 +859,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     </section>
   );
 
-  return <div className={`hr-tab-stack hr-gradebook${focusMode ? ' gb-is-focused' : ''}`} data-grade-view={view} data-grade-tone={activeView.tone}>
+  return <div className={`hr-tab-stack hr-gradebook${focusMode ? ' gb-is-focused' : ''}${density === 'compact' ? ' gb-density-compact' : ''}`} data-grade-view={view} data-grade-tone={activeView.tone}>
     <section className="hr-grade-overview" aria-label="Tổng quan sổ điểm">
       <article className="tone-blue"><span className="hr-grade-overview-icon"><GradebookUiIcon type="bars" /></span><small>Cột TX hiện có</small><strong>{totalRegularColumns}</strong><span>Trong học kỳ đang chọn</span></article>
       <article className="tone-green"><span className="hr-grade-overview-icon"><GradebookUiIcon type="students" /></span><small>Học sinh</small><strong>{students.length}</strong><span>Danh sách lớp hiện tại</span></article>
@@ -849,6 +910,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     {exportMessage ? <div className={`hr-grade-export-message ${exportMessage.type}`} role="status" aria-live="polite"><span>{exportMessage.type === 'error' ? '!' : '✓'}</span>{exportMessage.text}</div> : null}
 
     {renderRosterToolbar()}
+    {renderColumnInsights()}
 
     {view.startsWith('regular-') ? renderRegularTable() : null}
     {view === 'midterm' ? renderExamTable('midterm', 'Điểm giữa kỳ') : null}

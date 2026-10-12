@@ -2991,3 +2991,225 @@
 @media(prefers-reduced-motion:reduce){
   #root .gradebook-studio .gb-roster-progress-track > span{transition:none}
 }
+
+
+/* Gradebook Workbench 2 · focused UX improvements, entirely route scoped.
+   Every visual cue maps to a real control or live gradebook state. */
+#root .gradebook-studio .gb-roster-workbench{
+  position:relative;
+  border-color:#cbdaf5;
+  background:
+    radial-gradient(circle at 92% -80%,rgba(133,100,225,.16),transparent 42%),
+    linear-gradient(110deg,#eff6ff,#fff 62%,#f9f6ff);
+  box-shadow:0 7px 21px rgba(23,69,146,.06);
+}
+#root .gradebook-studio .gb-roster-sort{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  min-height:43px;
+  margin:0;
+  padding:3px 8px 3px 12px;
+  border:1px solid #d7e2f6;
+  border-radius:12px;
+  background:white;
+  color:#366095;
+  font-size:12px;
+  font-weight:770;
+  white-space:nowrap;
+}
+#root .gradebook-studio .gb-roster-sort select{
+  min-width:126px;
+  max-width:175px;
+  min-height:34px;
+  padding:5px 10px;
+  color:#1e4f91;
+  font-size:12px;
+  font-weight:780;
+  border:0;
+  border-radius:8px;
+  background:#eef4ff;
+  cursor:pointer;
+}
+#root .gradebook-studio .gb-roster-next-empty{
+  background:#e9f7f3;
+  border:1px solid #bce9dc;
+  color:#087e68;
+}
+#root .gradebook-studio .gb-roster-next-empty:hover:not(:disabled){
+  background:#d6f4e9;
+  border-color:#83d7c1;
+}
+#root .gradebook-studio .gb-roster-next-empty:disabled{opacity:.5;cursor:default}
+#root .gradebook-studio .gb-roster-density{
+  border:1px solid #d2dffd;
+  background:#edf3ff;
+  color:#345ba5;
+}
+#root .gradebook-studio .gb-roster-density[aria-pressed="true"]{
+  border-color:#3569d4;
+  background:#255cd7;
+  color:#fff;
+}
+#root .gradebook-studio .gb-roster-feedback{
+  flex:1 1 100%;
+  display:block;
+  padding:9px 12px;
+  border:1px solid #c4eada;
+  background:#edfbf4;
+  color:#096f56;
+  border-radius:10px;
+  font-size:12px;
+  font-weight:680;
+}
+#root .gradebook-studio .gb-roster-column-insights{
+  overflow:hidden;
+  border:1px solid #d7e3f6;
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 4px 14px rgba(30,78,141,.045);
+}
+#root .gradebook-studio .gb-roster-column-insights > summary{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:13px 17px;
+  min-height:50px;
+  color:#33548b;
+  cursor:pointer;
+  user-select:none;
+  list-style:none;
+  background:linear-gradient(105deg,#f3f7ff,#fff);
+}
+#root .gradebook-studio .gb-roster-column-insights > summary::-webkit-details-marker{display:none}
+#root .gradebook-studio .gb-roster-column-insights > summary svg{color:#5d57cb;flex:none}
+#root .gradebook-studio .gb-roster-column-insights > summary strong{font-size:13px;font-weight:810}
+#root .gradebook-studio .gb-roster-column-insights > summary span{
+  margin-left:auto;
+  color:#6d7fa1;
+  font-weight:670;
+  font-size:11px;
+  text-align:right;
+}
+#root .gradebook-studio .gb-roster-column-insights[open] > summary{
+  border-bottom:1px solid #e6edf8;
+}
+#root .gradebook-studio .gb-roster-column-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(170px,1fr));
+  gap:10px;
+  max-height:290px;
+  overflow:auto;
+  padding:14px;
+}
+#root .gradebook-studio .gb-roster-column-grid article{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  min-width:0;
+  padding:12px;
+  border:1px solid #d6e4fb;
+  border-radius:13px;
+  background:#f7faff;
+}
+#root .gradebook-studio .gb-roster-column-grid article.is-complete{
+  background:#effbf5;
+  border-color:#c3e9d7;
+}
+#root .gradebook-studio .gb-roster-column-grid article > div:first-child{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  min-width:0;
+  gap:7px;
+  color:#204775;
+}
+#root .gradebook-studio .gb-roster-column-grid article strong{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:12px;
+  font-weight:810;
+}
+#root .gradebook-studio .gb-roster-column-grid article > div:first-child span{
+  flex:none;font-size:11px;font-weight:830;color:#416ca3;
+}
+#root .gradebook-studio .gb-roster-column-track{
+  height:8px;
+  border-radius:100px;
+  background:#e0eafd;
+  overflow:hidden;
+}
+#root .gradebook-studio .gb-roster-column-track > span{
+  display:block;
+  height:100%;
+  border-radius:100px;
+  background:linear-gradient(90deg,#4c95ef,#6058db);
+  transition:width .18s ease;
+}
+#root .gradebook-studio .gb-roster-column-grid article.is-complete .gb-roster-column-track > span{
+  background:#15aa79;
+}
+#root .gradebook-studio .gb-roster-column-grid article small{font-size:11px;color:#617da0}
+#root .gradebook-studio .gb-roster-column-grid article.is-complete small{color:#177458}
+#root .gradebook-studio .hr-gradebook.gb-density-compact .hr-grade-table tbody td{
+  height:39px!important;
+  padding-top:4px!important;
+  padding-bottom:4px!important;
+}
+#root .gradebook-studio .hr-gradebook.gb-density-compact .hr-grade-table tbody td .hr-grade-input{
+  min-height:31px!important;
+  height:31px;
+  padding:4px 6px;
+  font-size:12px;
+}
+#root .gradebook-studio .hr-gradebook.gb-density-compact .hr-grade-table tbody td.hr-grade-student b{
+  font-size:11.5px;
+  line-height:1.28;
+}
+#root .gradebook-studio .hr-gradebook.gb-density-compact .hr-grade-table tbody td.hr-grade-student small{
+  font-size:9px;
+}
+#root .gradebook-studio .hr-gradebook.gb-is-focused > .gb-roster-column-insights{display:none}
+@media(max-width:1100px){
+  #root .gradebook-studio .gb-roster-workbench-main{flex:1 1 100%}
+  #root .gradebook-studio .gb-roster-workbench-side{
+    flex:1 1 100%;
+    justify-content:flex-start;
+  }
+}
+@media(max-width:650px){
+  #root .gradebook-studio .gb-roster-sort{
+    flex:1 1 100%;
+    justify-content:space-between;
+  }
+  #root .gradebook-studio .gb-roster-sort select{
+    flex:1 1 auto;
+    max-width:none;
+  }
+  #root .gradebook-studio .gb-roster-column-insights > summary{
+    flex-wrap:wrap;
+    gap:7px;
+    padding:11px 13px;
+  }
+  #root .gradebook-studio .gb-roster-column-insights > summary span{
+    flex:1 1 100%;
+    margin:0;
+    text-align:left;
+    padding-left:28px;
+  }
+  #root .gradebook-studio .gb-roster-column-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    padding:10px;
+  }
+}
+@media(max-width:400px){
+  #root .gradebook-studio .gb-roster-column-grid{grid-template-columns:1fr}
+  #root .gradebook-studio .gb-roster-workbench button{
+    flex:1 1 auto;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #root .gradebook-studio .gb-roster-column-track > span{transition:none}
+}
