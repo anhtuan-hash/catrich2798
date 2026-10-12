@@ -1,5 +1,13 @@
-import { dashboardLocalDayKey } from './dashboardClassification.js';
-import { getDashboardDueState } from './dashboardAggregator.js';
+import { dashboardLocalDayKey, dashboardDayOffset } from './dashboardClassification.js';
+function getDashboardDueState(value, done = false, now = new Date()) {
+  if (!value || done) return 'normal';
+  const days = dashboardDayOffset(value, now);
+  if (days === null) return 'normal';
+  if (days < 0) return 'overdue';
+  if (days === 0) return 'today';
+  if (days <= 3) return 'soon';
+  return 'normal';
+}
 
 const lower = (value) => String(value || '').toLocaleLowerCase('vi').normalize('NFC');
 const safeTime = (value) => {
