@@ -1,0 +1,33 @@
+name: Gradebook Spectrum V4 Safety
+on:
+  push:
+    branches: [main, 'feat/gradebook-spectrum-v4-20261012']
+    paths:
+      - 'src/styles/GradebookSpectrumV4.css'
+      - 'src/pages/GradebookStudio.jsx'
+      - 'src/components/gradebook/GradebookEngine.jsx'
+      - 'tests/gradebook-spectrum-v4.test.mjs'
+      - '.github/workflows/gradebook-spectrum-v4.yml'
+  pull_request:
+    paths:
+      - 'src/styles/GradebookSpectrumV4.css'
+      - 'src/pages/GradebookStudio.jsx'
+      - 'src/components/gradebook/GradebookEngine.jsx'
+      - 'tests/gradebook-spectrum-v4.test.mjs'
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: node --test tests/gradebook-spectrum-v4.test.mjs
+      - run: node scripts/test-gradebook-command-deck-v3.mjs
+      - run: node scripts/test-gradebook-mock-exams.mjs
+      - run: node scripts/test-gradebook-mock-exams-v2.mjs
+      - run: node --test tests/gradebook-permanent-palette.test.mjs tests/gradebook-approved-v2.test.mjs tests/gradebook-workbench-two.test.mjs tests/gradebook-material3-colorful.test.mjs
+      - run: npm run build
