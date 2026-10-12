@@ -70,7 +70,26 @@ function getInitialWorkspace(user, workspaceId) {
   const cached = homeroomSessionCache.get(snapshotKey(user, workspaceId));
   if (cached) return cached;
   const local = loadLocalHomeroomWorkspace(user, workspaceId);
-  return local ? normalizeHomeroomWorkspace(local, user) : makeDefaultHomeroomWorkspace(user);
+  if (local) return normalizeHomeroomWorkspace(local, user);
+  const base = makeDefaultHomeroomWorkspace(user);
+  const preferred = fastPreferredHomeroom(user);
+  const indexed = listFastHomeroomCatalog(user).find((item) => item.id === workspaceId);
+  const metadata = indexed || (preferred?.id === workspaceId ? preferred : null);
+  if (!metadata || workspaceId === 'default') return base;
+  // Cloud-only privacy mode: show the correct class label immediately but never
+  // expose editable zero-student placeholder data before real hydration arrives.
+  return {
+    ...base,
+    id: workspaceId,
+    __besAwaitingCloudClass: true,
+    classProfile: {
+      ...base.classProfile,
+      className: metadata.className,
+      grade: metadata.grade || String(metadata.className).split('.')[0],
+      schoolYear: metadata.schoolYear || base.classProfile.schoolYear,
+      classType: metadata.classType || HOMEROOM_CLASS_TYPE,
+    },
+  };
 }
 
 function stableJson(value) {
@@ -465,6 +484,18 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   const subjectMode = isSubjectClass(workspace);
   const visibleTab = isClassTabAllowed(activeTab, workspace, currentUser?.role === 'admin') ? activeTab : getDefaultClassTab(workspace);
   const classTypeLabel = getClassTypeLabel(getWorkspaceClassType(workspace), language);
+
+  // Only the class label is cached in cloud-only mode. Never enable editing a
+  // synthetic empty roster while the actual school records are still loading.
+  if (workspace.__besAwaitingCloudClass === true) {
+    return <div className="page hr-page is-homeroom-class">
+      <section className="hr-panel" role="status" aria-live="polite" style={{ padding: '28px', marginTop: '16px' }}>
+        <small>BRIAN • CHỦ NHIỆM</small>
+        <h1>Lớp {workspace.classProfile.className}</h1>
+        <p>Đang tải dữ liệu lớp đã phân công…</p>
+      </section>
+    </div>;
+  }
 
   return <div className={`page hr-page ${subjectMode ? 'is-subject-class' : 'is-homeroom-class'}`} data-homeroom-hydrated="true">
     <HomeroomGlassHero
