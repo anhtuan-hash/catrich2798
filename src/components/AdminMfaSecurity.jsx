@@ -47,7 +47,7 @@ export default function AdminMfaSecurity({ user, route, profileHost, language = 
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED' || event === 'MFA_CHALLENGE_VERIFIED') {
         // Avoid calling another Supabase auth method synchronously inside auth callback.
-        queueMicrotask(() => { void refresh(); });
+        window.setTimeout(() => { void refresh(); }, 0);
       }
     });
     return () => data?.subscription?.unsubscribe();
