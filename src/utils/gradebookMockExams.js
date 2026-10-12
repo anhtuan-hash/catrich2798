@@ -231,3 +231,18 @@ export function buildMockExamComparisonCsv({ students = [], exams = [], classNam
   ];
   return '\uFEFF' + lines.map((row) => row.map(csvCell).join(',')).join('\r\n');
 }
+
+
+// Simple two-column clipboard import template, not part of semester scores.
+export function buildMockExamImportTemplateCsv(students = []) {
+  const lines = [
+    ['Mã học sinh', 'Điểm'],
+    ...students.filter((student) => student?.active !== false).map((student) => [student.code || '', '']),
+  ];
+  return '\uFEFF' + lines.map((row) => row.map(csvCell).join(',')).join('\r\n');
+}
+
+// Limit rendered columns without changing persisted exam order or data.
+export function selectVisibleMockExams(exams = [], focusExamId = '') {
+  return focusExamId ? exams.filter((exam) => exam?.id === focusExamId) : exams;
+}
