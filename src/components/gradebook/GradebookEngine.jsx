@@ -14,6 +14,7 @@ import { Search, ScanEye, Minimize2, Keyboard, X, ArrowDownToLine, ListFilter, R
 import GradebookProductivityPanel from './GradebookProductivityPanel.jsx';
 import GradebookSemesterMission from './GradebookSemesterMission.jsx';
 import GradebookMockExams from './GradebookMockExams.jsx';
+import GradebookProgressDeck from './GradebookProgressDeck.jsx';
 import { isGrade12Class, normalizeMockExams, createMockExam, mockExamScoreNumber } from '../../utils/gradebookMockExams.js';
 import { semesterProgressSections, semesterProgressSummary, semesterPendingStudents } from '../../utils/gradebookSemesterMission.js';
 import { gradebookAuditChanges, gradebookQualityReport } from '../../utils/gradebookProductivity.js';
@@ -372,6 +373,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const [density, setDensity] = useState('comfortable');
   const [workbenchNotice, setWorkbenchNotice] = useState('');
   const scoreTableRef = useRef(null);
+  const studentSearchRef = useRef(null);
   const [newSubject, setNewSubject] = useState('');
   const [dirty, setDirty] = useState(false);
   const [savePending, setSavePending] = useState(false);
@@ -695,6 +697,28 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     setSaveFailure('');
   };
 
+  // Keyboard workflow: '/' focuses search, Esc clears search, Ctrl/Command+S saves.
+  // Ignore plain shortcuts inside editable controls; never interfere with browser typing.
+  useEffect(() => {
+    const shortcut = (event) => {
+      const target = event.target;
+      const isEditing = target?.closest?.('input, textarea, select, [contenteditable="true"]');
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
+        if (!dirty || savePending) return;
+        event.preventDefault();
+        save();
+        return;
+      }
+      if (event.metaKey || event.ctrlKey || event.altKey || isEditing) return;
+      if (event.key === '/') {
+        event.preventDefault();
+        studentSearchRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', shortcut);
+    return () => window.removeEventListener('keydown', shortcut);
+  }, [dirty, savePending, save]);
+
   const showExportMessage = (text, type = 'success') => {
     setExportMessage({ text, type });
     window.clearTimeout(window.__besGradeExportMessage);
@@ -841,8 +865,9 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
         <label className="gb-roster-search">
           <Search className="gb-roster-search-icon" size={18} strokeWidth={2.15} aria-hidden="true" />
           <span className="sr-only">Tìm học sinh theo tên hoặc mã</span>
-          <input type="search" value={studentQuery} onChange={(event) => setStudentQuery(event.target.value)}
-            placeholder="Tìm theo tên hoặc mã học sinh…" aria-label="Tìm học sinh theo tên hoặc mã" />
+          <input ref={studentSearchRef} type="search" value={studentQuery} onChange={(event) => setStudentQuery(event.target.value)}
+            onKeyDown={(event) => { if (event.key === 'Escape') { setStudentQuery(''); event.currentTarget.blur(); } }}
+            placeholder="Tìm tên hoặc mã HS… (nhấn /)" aria-label="Tìm học sinh theo tên hoặc mã" />
         </label>
         <label className="gb-roster-missing">
           <input type="checkbox" checked={missingOnly} onChange={(event) => setMissingOnly(event.target.checked)} />
@@ -1032,6 +1057,16 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       showMockExams={showMockExams}
       currentUser={currentUser}
     />
+
+    {!focusMode && view !== 'mock' ? <GradebookProgressDeck
+      students={students} semester={activeSemester} semesterLabel={semesterLabel}
+      subjectName={activeSubject?.name || 'Môn học'} selectedView={view}
+      showMockExams={showMockExams} missingOnly={missingOnly}
+      onOpenSection={(sectionId) => { setView(sectionId); setMissingOnly(false); setStudentQuery(''); }}
+      onShowMissing={(sectionId) => { setView(sectionId); setMissingOnly(true); setStudentQuery(''); }}
+      onShowAll={() => { setMissingOnly(false); setStudentQuery(''); }}
+      onOpenMock={() => { setView('mock'); setMissingOnly(false); setStudentQuery(''); }}
+    /> : null}
 
     {finalized && view !== 'mock' ? <div className="gb-finalized-banner" role="status"><strong>Học kỳ đã chốt</strong><span>Các ô điểm và thao tác chỉnh sửa đang khóa trong giao diện. Mở Bộ công cụ Sổ điểm → Chốt điểm để xem trạng thái hoặc mở khóa có lý do.</span></div> : null}
     {exportMessage ? <div className={`hr-grade-export-message ${exportMessage.type}`} role="status" aria-live="polite"><span>{exportMessage.type === 'error' ? '!' : '✓'}</span>{exportMessage.text}</div> : null}
