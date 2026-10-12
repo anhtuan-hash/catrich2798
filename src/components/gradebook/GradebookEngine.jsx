@@ -332,7 +332,7 @@ function GradebookNavigationPalette({
         >{semester.label}</button>)}
       </div>
       <div className="hr-grade-views" role="group" aria-label="Chọn thành phần điểm">
-        {VIEWS.filter((item) => item.id !== 'mock' || showMockExams).map((item) => <button
+        {VIEWS.map((item) => item.id === 'mock' && !showMockExams ? null : <button
           key={item.id}
           type="button"
           data-grade-tone={item.tone}
@@ -414,7 +414,9 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const roundIndex = view.startsWith('regular-') ? Number(view.split('-')[1]) : -1;
   const activeRound = roundIndex >= 0 ? activeSemester.regular[roundIndex] : null;
   const visibleStudents = useMemo(
-     () => filterGradebookStudentView({ students, search: studentQuery, missingOnly, view, activeRound, semester: activeSemester, mockExams, sortBy }),
+     () => view === 'mock'
+       ? filterGradebookStudentView({ students, search: studentQuery, missingOnly, view, activeRound, semester: activeSemester, mockExams, sortBy })
+       : filterGradebookStudentView({ students, search: studentQuery, missingOnly, view, activeRound, semester: activeSemester, sortBy }),
     [students, studentQuery, missingOnly, view, activeRound, activeSemester, mockExams, sortBy],
   );
   const missionSections = useMemo(() => semesterProgressSections(students, activeSemester), [students, activeSemester]);
