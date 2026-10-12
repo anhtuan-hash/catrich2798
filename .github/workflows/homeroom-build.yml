@@ -11,6 +11,8 @@ on:
       - 'src/utils/homeroom4Dashboard.js'
       - 'src/components/homeroom/HomeroomCommandCenter.css'
       - 'scripts/test-homeroom-4-phase-3.mjs'
+      - 'src/utils/homeroom4StudentHub.js'
+      - 'scripts/test-homeroom-4-phase-4.mjs'
       - 'docs/homeroom-4/**'
       - 'src/utils/homeroomFastEntry.js'
       - 'scripts/test-homeroom-instant-entry.mjs'
@@ -51,6 +53,8 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Verify Homeroom 4.0 Phase 4 Student Hub and lifecycle safety
+        run: node scripts/test-homeroom-4-phase-4.mjs
       - name: Verify Homeroom 4.0 Phase 3 real-data Command Center
         run: node scripts/test-homeroom-4-phase-3.mjs
       - name: Verify Homeroom 4.0 Phase 2 expressive UI regression
