@@ -89,8 +89,23 @@ html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__pr
 html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-admin-icon .brian-nav__utility-badge{
   top:-6px!important;right:-6px!important;
 }
-html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-admin-icon > svg{
-  display:block!important;width:21px!important;height:21px!important;min-width:21px!important;flex:0 0 auto!important;
+/* Text-only navigation intentionally hides descendant SVGs. A visible text glyph
+   avoids the old rule altogether (and remains functional in reduced-motion mode). */
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-admin-icon > .brian-nav__admin-glyph{
+  display:inline-flex!important;position:relative!important;align-items:center!important;justify-content:center!important;
+  width:23px!important;min-width:23px!important;height:23px!important;min-height:23px!important;
+  margin:0!important;padding:0!important;
+  color:inherit!important;font-family:Arial,system-ui,sans-serif!important;
+  font-size:24px!important;font-weight:400!important;line-height:1!important;
+  visibility:visible!important;opacity:1!important;clip-path:none!important;
+}
+/* Deadline is a true status, never fabricated: missing (—), overdue (Hết),
+   or a live remaining time when a real deadline is configured. */
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-reports > button.is-deadline-unset .brian-nav__reports-countdown{
+  background:#f2f5f8!important;border-color:#e4e8ee!important;color:#768396!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-reports > button.is-deadline-expired .brian-nav__reports-countdown{
+  background:#fff1f0!important;border-color:#f0d1cf!important;color:#b9433f!important;
 }
 @media(max-width:1180px){
   html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-slot{

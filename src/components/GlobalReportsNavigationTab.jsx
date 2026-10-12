@@ -241,20 +241,22 @@ export default function GlobalReportsNavigationTab({
 
   const label = language === 'vi' ? 'Báo cáo' : 'Reports';
   const countdown = deadlineState(deadline, now);
-  const reportWindowOpen = Boolean(countdown.active && !countdown.expired);
-  const showCountdownUnderLabel = reportWindowOpen;
-  const countdownLabel = reportWindowOpen ? compactCountdown(countdown, language) : '';
-  const countdownAccessibleLabel = reportWindowOpen ? accessibleCountdown(countdown, language) : '';
-  const deadlineTitle = reportWindowOpen
+  // Always show an honest deadline state; only count down when a valid future date exists.
+  const deadlineStatus = !countdown.active ? 'unset' : countdown.expired ? 'expired' : 'active';
+  const showCountdownUnderLabel = true;
+  const countdownLabel = compactCountdown(countdown, language);
+  const countdownAccessibleLabel = accessibleCountdown(countdown, language);
+  const deadlineTitle = countdown.active
     ? new Intl.DateTimeFormat(language === 'vi' ? 'vi-VN' : 'en', { dateStyle: 'short', timeStyle: 'medium' }).format(new Date(deadline))
     : '';
-  const accessibleLabel = reportWindowOpen ? `${label} · ${countdownAccessibleLabel}` : label;
-  const buttonTitle = reportWindowOpen ? `${deadlineTitle} · ${countdownAccessibleLabel}` : label;
+  const accessibleLabel = `${label} · ${countdownAccessibleLabel}`;
+  const buttonTitle = countdown.active ? `${deadlineTitle} · ${countdownAccessibleLabel}` : accessibleLabel;
 
   return createPortal(
     <button
       type="button"
-      className={`brian-nav__reports-tab brian-nav__reports-send ${active ? 'is-active' : ''} ${showCountdownUnderLabel ? 'shows-countdown' : ''}`.trim()}
+      className={`brian-nav__reports-tab brian-nav__reports-send ${active ? 'is-active' : ''} ${showCountdownUnderLabel ? 'shows-countdown' : ''} is-deadline-${deadlineStatus}`.trim()}
+      data-deadline-status={deadlineStatus}
       aria-current={active ? 'page' : undefined}
       aria-label={accessibleLabel}
       title={buttonTitle}
