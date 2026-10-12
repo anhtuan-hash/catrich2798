@@ -124,4 +124,16 @@ assert.match(adminMfaDb, /u\.email_confirmed_at is not null/);
 assert.match(adminMfaDb, /where a\.email=current_email/);
 assert.equal((adminMfaDb.match(/\$function\$;/g) || []).length, 3);
 
+
+const lessonRosterGuard = read('supabase/migrations/20261012104500_lesson_check_roster_owner_guard.sql');
+// SECURITY DEFINER classroom roster join must reapply base-table owner-aware
+// RLS before accepting students from the shared classroom register.
+assert.match(lessonRosterGuard, /CREATE OR REPLACE FUNCTION public\.lesson_check_list_assigned_class_rosters\(\)/);
+assert.match(lessonRosterGuard, /public\.bes_can_access_class_roster_v3\(/);
+assert.match(lessonRosterGuard, /br\.roster_key, br\.created_by, br\.class_name, br\.school_year/);
+assert.match(lessonRosterGuard, /where lower\(trim\(br\.class_name\)\) = lower\(trim\(a\.class_name\)\)\s+--/);
+assert.match(lessonRosterGuard, /coalesce\(r\.students, a\.class_payload->'students', '\[\]'::jsonb\)/);
+assert.match(lessonRosterGuard, /from public\.get_my_assigned_school_classes\(\)/);
+assert.equal((lessonRosterGuard.match(/\$function\$;/g) || []).length, 1);
+
 console.log('PASS: BRIAN account authorization, password rotation, audit, and staged Admin MFA contracts are hardened.');
