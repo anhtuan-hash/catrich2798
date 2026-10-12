@@ -273,7 +273,7 @@ test('3.0 respects mobile viewport with new widgets', async ({ page }) => {
 
 test('3.1 command palette finds apps, navigates and closes with Escape', async ({ page }) => {
   await openDashboard(page);
-  await page.keyboard.press('Control+Shift+K');
+  await page.keyboard.press('Alt+Shift+K');
   const palette=page.getByRole('dialog',{name:'Tìm nhanh BRIAN'});
   await expect(palette).toBeVisible();
   const search=palette.getByRole('combobox',{name:'Tìm kiếm nhanh'});

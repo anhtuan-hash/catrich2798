@@ -337,7 +337,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   const isMidnight = personalLayout.theme === 'midnight';
   useEffect(() => {
     const onShortcut = event => {
-      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === 'k') {
+      if (event.altKey && event.shiftKey && !event.metaKey && !event.ctrlKey && event.key.toLowerCase() === 'k') {
         event.preventDefault();
         setPaletteOpen(open => !open);
       }
@@ -569,7 +569,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
         </div>
         <div className="gd-v31-toolbar-actions">
           <button type="button" className="gd-v31-search-trigger" onClick={()=>setPaletteOpen(true)}>
-            <SearchIcon size={17}/><span>{language==='vi'?'Tìm nhanh':'Quick search'}</span><kbd>⌘ ⇧ K</kbd>
+            <SearchIcon size={17}/><span>{language==='vi'?'Tìm nhanh':'Quick search'}</span><kbd>⌥ ⇧ K</kbd>
           </button>
           <button type="button" className={'gd-v31-mode-button'+(isFocusMode?' is-active':'')} aria-pressed={isFocusMode}
             onClick={()=>handleLayoutChange(current=>setDashboardFocusMode(current,!current.focusMode))}>

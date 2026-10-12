@@ -31,7 +31,7 @@ const css=read('src/styles/dashboard-v31.css');
 const workflows=read('.github/workflows/dashboard-command-center-v2.yml');
 assert.match(page,/DashboardCommandPalette/);
 assert.match(page,/gd-v31-toolbar/);
-assert.match(page,/event\.metaKey \|\| event\.ctrlKey/);
+assert.match(page,/event\.altKey && event\.shiftKey/);
 assert.match(page,/setDashboardTheme/);
 assert.match(page,/setDashboardFocusMode/);
 assert.match(page,/focusTaskQueue/);
