@@ -748,7 +748,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       <article className="tone-yellow"><span className="hr-grade-overview-icon"><GradebookUiIcon type="check" /></span><small>Hoàn thành 4 đợt TX</small><strong>{completedFourRounds}/{students.length}</strong><span>{activeRound ? `${activeRoundCoverage} học sinh có điểm ở đợt đang mở` : 'Theo học kỳ đang chọn'}</span></article>
     </section>
 
-    <details className="gb-academic-administration">
+    <details className="gb-academic-administration" defaultOpen>
       <summary><span>Quản lý lớp và phân công giảng dạy</span><small>Mở công cụ quản trị lớp khi cần</small></summary>
       <div className="gb-academic-admin-content">
         {teachingOverview}

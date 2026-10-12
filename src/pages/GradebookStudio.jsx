@@ -464,10 +464,11 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     <section className="gradebook-studio-hero gb-academic-hero" aria-label="Không gian Sổ điểm">
       <div className="gb-academic-heading">
         <div className="gb-academic-heading-copy">
-          <span className="gb-academic-eyebrow">BRIAN / ACADEMIC WORKSPACE</span>
+          <span className="gb-academic-eyebrow">GRADEBOOK / SỔ ĐIỂM</span>
           <h1>{vi ? 'Sổ điểm' : 'Gradebook'}</h1>
-          <p>{vi ? 'Quản lý điểm số và theo dõi kết quả học tập' : 'Manage scores and track learning progress'}</p>
+          <p>{vi ? 'Quản lý điểm số, theo dõi tiến độ và đánh giá học tập trực quan' : 'Manage scores and track learning progress'}</p>
         </div>
+        <img className="gb-m3-hero-illustration" src="/gradebook-material3-hero.svg" alt="" aria-hidden="true" decoding="async" />
         <span className="gb-academic-class-meta">{activeMeta?.schoolYear || '2026–2027'} · {activeMeta?.semester || 'Học kỳ I'}</span>
       </div>
       <div className="gb-academic-class-row">
