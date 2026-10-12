@@ -94,12 +94,16 @@ test('V5 navigation stays compact and a one-attempt score table fills the editor
       const r = container.getBoundingClientRect();
       return {
         columns: getComputedStyle(tabs).gridTemplateColumns.split(/\\s+/).filter(Boolean).length,
+        display: getComputedStyle(tabs).display,
+        computedColumns: getComputedStyle(tabs).gridTemplateColumns,
+        containerWidth: r.width,
+        containerName: getComputedStyle(container).containerName,
         lastRight: buttons.at(-1).right,
         containerRight: r.right,
         widths: buttons.map(x => x.width),
       };
     }, availableWidth);
-    expect(dimensions.columns, 'container query columns at '+availableWidth).toBe(expectedColumns);
+    expect(dimensions.columns, 'container query columns at '+availableWidth+' '+JSON.stringify(dimensions)).toBe(expectedColumns);
     expect(dimensions.lastRight).toBeLessThanOrEqual(dimensions.containerRight + 3);
     expect(Math.max(...dimensions.widths)).toBeLessThan(220);
   }
