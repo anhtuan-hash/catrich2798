@@ -10,10 +10,8 @@ import { buildStudentSupportHash, normalizeStudentRef } from '../../studentSuppo
 // into a late-loaded chunk that may resolve to an empty module on production.
 void exportStudentGradeReportPdf;
 
-// GradebookWorkspace has one hero visual authority only. GradebookEditorialV2
-// continues to style the records workspace below, while the route-local hero
-// stylesheet owns the interactive top spread. The former polish override layer
-// is intentionally not loaded so future hero edits happen in one source file.
+// The parent route renders the header natively and supplies its single scoped
+// stylesheet. This component owns the scoring UI and optional student support only.
 export default function GradebookWorkspace(props) {
   const students = useMemo(
     () => (props.workspace?.students || []).filter((student) => student.active !== false),
