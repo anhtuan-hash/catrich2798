@@ -40,6 +40,7 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test tests/e2e/gradebook-v5-geometry-repair.spec.js tests/e2e/gradebook-roster-toolbar-layout.spec.js --project=chromium-desktop
       - uses: actions/upload-artifact@v4
