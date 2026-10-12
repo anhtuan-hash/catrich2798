@@ -20,7 +20,7 @@ function compactCountdown(state, language) {
   const pad = (value) => String(value).padStart(2, '0');
   const clock = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
 
-  if (days > 0) return language === 'vi' ? `${days} ngày ${clock}` : `${days}d ${clock}`;
+  if (days > 0) return language === 'vi' ? `${days}ng ${pad(hours)}:${pad(minutes)}` : `${days}d ${pad(hours)}:${pad(minutes)}`;
   return clock;
 }
 
@@ -258,10 +258,6 @@ export default function GlobalReportsNavigationTab({
       aria-current={active ? 'page' : undefined}
       aria-label={accessibleLabel}
       title={buttonTitle}
-      onMouseEnter={(event) => startReportMotion(event.currentTarget)}
-      onMouseLeave={(event) => cancelReportMotion(event.currentTarget)}
-      onFocus={(event) => startReportMotion(event.currentTarget)}
-      onBlur={(event) => cancelReportMotion(event.currentTarget)}
       onClick={(event) => launchRoute({
         target: '#/tool/brian-team',
         label: language === 'vi' ? 'BC' : 'RP',
