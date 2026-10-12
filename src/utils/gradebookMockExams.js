@@ -55,6 +55,7 @@ export function createMockExam(index, id) {
 }
 
 function csvCell(value) {
+  if (typeof value === 'number' && Number.isFinite(value)) return `"${value}"`;
   const text = String(value ?? '').replace(/[\r\n]+/g, ' ');
   // Prevent spreadsheet formula injection from user-entered student names/IDs.
   const safe = /^[\s]*[=+@\-\t]/.test(text) ? `'${text}` : text;
@@ -160,7 +161,7 @@ export function previewMockExamPaste({ text = '', students = [], scores = {}, al
     codeIndex = length >= 4 ? 1 : 0;
     scoreIndex = length - 1;
   }
-  if (codeIndex === scoreIndex || scoreIndex < 1) {
+  if (codeIndex === scoreIndex || scoreIndex < 0) {
     issues.push({ row: 1, reason: 'Dán ít nhất 2 cột: Mã học sinh và Điểm.' });
     return { entries, issues, conflicts, skipped, totalRows: matrix.length };
   }
@@ -225,7 +226,7 @@ export function buildMockExamComparisonCsv({ students = [], exams = [], classNam
       const newScore = mockExamScoreNumber(comparison.after.scores?.[student.id]);
       const delta = comparison.differences[student.id];
       return [index + 1, student.code || '', student.fullName || student.name || '',
-        oldScore ?? '', newScore ?? '', delta === undefined ? '' : delta > 0 ? `+${delta}` : delta];
+        oldScore ?? '', newScore ?? '', delta === undefined ? '' : delta];
     }),
   ];
   return '\uFEFF' + lines.map((row) => row.map(csvCell).join(',')).join('\r\n');
