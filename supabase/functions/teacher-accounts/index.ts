@@ -133,16 +133,18 @@ Deno.serve(async (req) => {
   }
 
   if (action === 'password_changed') {
+    const { data: freshProfile, error: freshError } = await adminClient
+      .from('profiles').select('must_change_password').eq('id', caller.id).single();
+    if (freshError || freshProfile?.must_change_password !== false) {
+      return json({ ok: false, message: 'Vui lòng đổi mật khẩu tạm trước khi tiếp tục.' }, 409);
+    }
     const metadata = { ...(caller.user_metadata || {}), must_change_password: false };
     const { error: authError } = await adminClient.auth.admin.updateUserById(caller.id, { user_metadata: metadata });
     if (authError) return json({ ok: false, message: authError.message }, 400);
-    await adminClient
-      .from('profiles')
-      .update({ must_change_password: false, updated_at: new Date().toISOString() })
-      .eq('id', caller.id);
     return json({ ok: true });
   }
 
+  if (callerProfile.must_change_password === true) return json({ ok: false, message: 'Vui lòng đổi mật khẩu tạm trước khi quản lý tài khoản.' }, 403);
   if (!isAdmin) return json({ ok: false, message: 'Chỉ Admin được quản lý tài khoản giáo viên.' }, 403);
 
   if (action === 'reset_password') {
