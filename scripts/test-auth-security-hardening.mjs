@@ -61,6 +61,12 @@ assert.match(settings, /'mfa', '2fa'/, 'Settings search must find MFA.');
 assert.match(mfa, /document\.getElementById\('bes-admin-mfa-settings-target'\)/, 'MFA must target the active Settings page, not legacy account center.');
 assert.doesNotMatch(mfa, /route === 'settings' && profileHost/, 'Legacy portal host silently hides MFA.');
 assert.ok(mfaCss.includes('.bes-mfa-shield'));
+assert.match(mfa, /state\.factors\.find\(\(item\) => item\.id === selectedFactorId\)/, 'Login must use the selected factor, not the first one.');
+assert.match(mfa, /state\.factors\.map\(\(factor, index\) =>/, 'Backup authenticators must be selectable.');
+assert.match(mfa, /Mac - Apple Passwords/, 'User must be able to enroll a named macOS Passwords factor.');
+assert.match(mfa, /'apple'\)/, 'Mac enrollment action must be present.');
+assert.match(mfa, /'bes-mfa-login-factor'/, 'An accessible authenticator selector must exist.');
+
 
 // Once an Admin has enrolled a verified factor, both account mutation servers
 // must require a token already upgraded to aal2.
