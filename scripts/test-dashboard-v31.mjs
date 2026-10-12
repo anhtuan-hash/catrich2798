@@ -1,0 +1,57 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import {
+  defaultDashboardLayout, normalizeDashboardLayout, dashboardLayoutStorageKey,
+  readDashboardLayout, writeDashboardLayout, setDashboardTheme, setDashboardFocusMode,
+} from '../src/utils/dashboardLayoutPreferences.js';
+
+const a={id:'alpha'},b={id:'beta'};
+const state=new Map();
+const storage={getItem:key=>state.get(key)||null,setItem:(key,val)=>state.set(key,val)};
+let layout=defaultDashboardLayout();
+assert.equal(layout.theme,'daylight');
+assert.equal(layout.focusMode,false);
+layout=setDashboardTheme(layout,'midnight');
+assert.equal(layout.theme,'midnight');
+layout=setDashboardFocusMode(layout,true);
+assert.equal(layout.focusMode,true);
+const updated=writeDashboardLayout(a,layout,storage);
+assert.deepEqual(readDashboardLayout(a,storage),updated);
+assert.equal(readDashboardLayout(b,storage).theme,'daylight');
+assert.equal(readDashboardLayout(b,storage).focusMode,false);
+assert.notEqual(dashboardLayoutStorageKey(a),dashboardLayoutStorageKey(b));
+assert.deepEqual(normalizeDashboardLayout({version:1,theme:'WRONG',focusMode:'truthy'}).theme,'daylight');
+assert.equal(normalizeDashboardLayout({version:1,focusMode:'truthy'}).focusMode,false);
+assert.equal(setDashboardTheme(layout,'WRONG').theme,'daylight');
+assert.equal(setDashboardFocusMode(layout,false).focusMode,false);
+const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
+const page=read('src/pages/WorkDashboard.jsx');
+const palette=read('src/components/DashboardCommandPalette.jsx');
+const css=read('src/styles/dashboard-v31.css');
+const workflows=read('.github/workflows/dashboard-command-center-v2.yml');
+assert.match(page,/DashboardCommandPalette/);
+assert.match(page,/gd-v31-toolbar/);
+assert.match(page,/event\.altKey && event\.shiftKey/);
+assert.match(page,/setDashboardTheme/);
+assert.match(page,/setDashboardFocusMode/);
+assert.match(page,/focusTaskQueue/);
+assert.match(palette,/onCalendar\?\.\(\)/);
+assert.match(palette,/onTasks\?\.\(\)/);
+assert.match(palette,/dashboardPaletteItems/);
+assert.match(palette,/findDashboardPaletteItems/);
+assert.match(palette,/aria-modal="true"/);
+assert.match(palette,/data-bes-keep-search="true"/);
+assert.match(read('src/components/DashboardCommandCenter.jsx'),/dcc-task-search" data-bes-keep-search="true"/);
+assert.match(palette,/role="combobox"/);
+assert.match(palette,/event\.key==='Escape'/);
+assert.match(palette,/event\.key==='ArrowDown'/);
+assert.match(palette,/event\.key==='ArrowUp'/);
+assert.match(palette,/event\.key==='Enter'/);
+assert.match(palette,/onMouseDown/);
+assert.ok(palette.includes("route:'#/apps'"),'App launcher must use supported route');
+assert.doesNotMatch(palette,/route:'#\/gradebook'/,'Do not route to nonexistent Gradebook path');
+assert.match(css,/\.gd-v31-focus/);
+assert.match(css,/\.gd-v31-midnight/);
+assert.match(css,/prefers-reduced-motion/);
+assert.ok(workflows.includes('test-dashboard-v31.mjs'),'CI must include v3.1 test');
+console.log('PASS Dashboard 3.1: local theme, focus mode, command palette keyboard, supported routes, accessible UI.');

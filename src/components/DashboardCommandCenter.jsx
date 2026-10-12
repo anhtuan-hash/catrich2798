@@ -207,7 +207,7 @@ export default function DashboardCommandCenter({ snapshot, todayEventCount, lang
             ))}
           </div>
           <div className="gd-v3-task-toolbar">
-            <label className="dcc-task-search"><Search size={16} aria-hidden="true" /><input role="searchbox" type="text" tabIndex={0} value={search} onChange={(event) => { setSearch(event.target.value); setVisibleLimit(8); }} placeholder={t.search} aria-label={t.search} /></label>
+            <label className="dcc-task-search" data-bes-keep-search="true"><Search size={16} aria-hidden="true" /><input role="searchbox" type="text" tabIndex={0} value={search} onChange={(event) => { setSearch(event.target.value); setVisibleLimit(8); }} placeholder={t.search} aria-label={t.search} /></label>
             <div className="gd-v3-task-controls" role="group" aria-label={t.advanced}>
               <select aria-label={language === 'vi' ? 'Lọc theo ưu tiên' : 'Filter by priority'} value={priorityFilter} onChange={(event)=>{setPriorityFilter(event.target.value);setVisibleLimit(8);}}>
                 <option value="all">{t.allPriorities}</option>

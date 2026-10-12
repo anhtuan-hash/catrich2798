@@ -19,11 +19,14 @@ import '../styles/dashboard-command-center-v21.css';
 import '../styles/dashboard-command-center-v22.css';
 import '../styles/dashboard-command-center-v23.css';
 import '../styles/dashboard-v3.css';
+import '../styles/dashboard-v31.css';
+import DashboardCommandPalette from '../components/DashboardCommandPalette.jsx';
+import { Search as SearchIcon, Moon, Sun, Focus, X as CloseIcon, Keyboard } from 'lucide-react';
 import DashboardDailyBrief from '../components/DashboardDailyBrief.jsx';
 import DashboardInsights from '../components/DashboardInsights.jsx';
 import DashboardMonthCalendar from '../components/DashboardMonthCalendar.jsx';
 import DashboardWidgetBoard from '../components/DashboardWidgetBoard.jsx';
-import { dashboardLayoutStorageKey, readDashboardLayout, setDashboardSectionVisible, writeDashboardLayout } from '../utils/dashboardLayoutPreferences.js';
+import { dashboardLayoutStorageKey, readDashboardLayout, setDashboardSectionVisible, setDashboardTheme, setDashboardFocusMode, writeDashboardLayout } from '../utils/dashboardLayoutPreferences.js';
 import BrianDashboardDropZone from '../components/BrianDashboardDropZone.jsx';
 import '../styles/dashboard-command-center-v2.css';
 
@@ -320,6 +323,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   const [showNews, setShowNews] = useState(false);
   const [newsExpanded, setNewsExpanded] = useState(false);
   const [calendarRange, setCalendarRange] = useState('today');
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [personalLayout, setPersonalLayout] = useState(() => readDashboardLayout(currentUser));
   const layoutOwnerKey = dashboardLayoutStorageKey(currentUser);
   useEffect(() => { setPersonalLayout(readDashboardLayout(currentUser)); }, [layoutOwnerKey]);
@@ -329,6 +333,19 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   }, [layoutOwnerKey]);
   const isDashboardSectionVisible = (id) => !personalLayout.hiddenSections.includes(id);
   const newsSectionVisible = isDashboardSectionVisible('news');
+  const isFocusMode = personalLayout.focusMode === true;
+  const isMidnight = personalLayout.theme === 'midnight';
+  useEffect(() => {
+    const onShortcut = event => {
+      if (event.altKey && event.shiftKey && !event.metaKey && !event.ctrlKey && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setPaletteOpen(open => !open);
+      }
+      if (event.key === 'Escape') setPaletteOpen(false);
+    };
+    window.addEventListener('keydown', onShortcut);
+    return () => window.removeEventListener('keydown', onShortcut);
+  }, []);
   const newsRef = useRef(null);
   const dashboardRequestRef = useRef(0);
   const weatherRequestRef = useRef(0);
@@ -481,6 +498,13 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
     scrollToCalendar();
   };
   const focusToday = () => scrollToCalendar();
+  const focusTaskQueue = () => {
+    if (!isDashboardSectionVisible('priority')) handleLayoutChange(current => setDashboardSectionVisible(current,'priority',true));
+    window.requestAnimationFrame(() => window.setTimeout(() => {
+      document.querySelector('.dcc-priority')?.scrollIntoView({ behavior:'smooth', block:'center' });
+      document.querySelector('.dcc-task-search input')?.focus();
+    }, 65));
+  };
 
   const dashboardWidgetNodes = {
     calendar: (isDashboardSectionVisible('calendar') ? <article className="gd-calendar gd-calendar-today gd-calendar-timeline-v2" id="dashboard-calendar">
@@ -535,8 +559,30 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
       </section> : null),
   };
 
-  return <section className={`gd-page${initialLoading ? ' is-loading' : ''}`} aria-label={t.pageTitle} aria-busy={loading}>
+  return <section className={`gd-page gd-v31-page${initialLoading ? ' is-loading' : ''}${isFocusMode ? ' gd-v31-focus' : ''}${isMidnight ? ' gd-v31-midnight' : ''}`} aria-label={t.pageTitle} aria-busy={loading} data-dashboard-theme={isMidnight ? 'midnight' : 'daylight'}>
     <div className="gd-shell gd-shell-v3">
+      <div className="gd-v31-toolbar" role="toolbar" aria-label={language==='vi'?'Công cụ Dashboard':'Dashboard tools'}>
+        <div className="gd-v31-toolbar-name">
+          <span className="gd-v31-toolbar-indicator"/>
+          <strong>BRIAN <span>COMMAND CENTER</span></strong>
+          <small>3.1</small>
+        </div>
+        <div className="gd-v31-toolbar-actions">
+          <button type="button" className="gd-v31-search-trigger" onClick={()=>setPaletteOpen(true)}>
+            <SearchIcon size={17}/><span>{language==='vi'?'Tìm nhanh':'Quick search'}</span><kbd>⌥ ⇧ K</kbd>
+          </button>
+          <button type="button" className={'gd-v31-mode-button'+(isFocusMode?' is-active':'')} aria-pressed={isFocusMode}
+            onClick={()=>handleLayoutChange(current=>setDashboardFocusMode(current,!current.focusMode))}>
+            {isFocusMode?<CloseIcon size={17}/>:<Focus size={17}/>}
+            <span>{isFocusMode?(language==='vi'?'Thoát tập trung':'Exit focus'):(language==='vi'?'Tập trung':'Focus')}</span>
+          </button>
+          <button type="button" className="gd-v31-theme-button" aria-pressed={isMidnight} aria-label={isMidnight?(language==='vi'?'Chuyển sang giao diện sáng':'Switch to light theme'):(language==='vi'?'Chuyển sang giao diện tối':'Switch to dark theme')}
+            title={isMidnight?(language==='vi'?'Giao diện sáng':'Light theme'):(language==='vi'?'Giao diện tối':'Dark theme')}
+            onClick={()=>handleLayoutChange(current=>setDashboardTheme(current,current.theme==='midnight'?'daylight':'midnight'))}>
+            {isMidnight?<Sun size={18}/>:<Moon size={18}/>}
+          </button>
+        </div>
+      </div>
       <section className="gd-top-grid">
         <header className="editorial-hero">
           <DashboardHeroCloudscape />
@@ -604,5 +650,6 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
       {error ? <div className="gd-alert"><Icon name="warning" size={22} /><div><strong>{t.partial}</strong><small>{error}</small></div><button type="button" className="gd-text-button" onClick={() => refresh()}>{t.retry}</button></div> : null}
       <DashboardWidgetBoard layout={personalLayout} widgets={dashboardWidgetNodes} />
     </div>
+    <DashboardCommandPalette open={paletteOpen} onClose={()=>setPaletteOpen(false)} snapshot={snapshot} language={language} onCalendar={scrollToCalendar} onTasks={focusTaskQueue}/>
   </section>;
 }
