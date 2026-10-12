@@ -277,6 +277,19 @@ test('3.1 command palette finds apps, navigates and closes with Escape', async (
   const palette=page.getByRole('dialog',{name:'Tìm nhanh BRIAN'});
   await expect(palette).toBeVisible();
   const search=palette.locator('.gd-v31-palette-search input');
+  console.log('PALETTE_VISIBILITY_DEBUG', JSON.stringify(await page.evaluate(() => {
+    const input = document.querySelector('.gd-v31-palette-search input');
+    const chain = [];
+    for (let node = input; node && chain.length < 13; node = node.parentElement) {
+      const css = getComputedStyle(node);
+      const rect = node.getBoundingClientRect();
+      chain.push({tag:node.tagName, className:String(node.className).slice(0,100), display:css.display,
+        visibility:css.visibility, opacity:css.opacity, width:rect.width, height:rect.height,
+        inert:node.inert, tabIndex:node.tabIndex, ariaHidden:node.getAttribute('aria-hidden'),
+        pointerEvents:css.pointerEvents});
+    }
+    return {active:document.activeElement?.outerHTML?.slice(0,220), chain};
+  })));
   await expect(search).toBeVisible();
   await expect(search).toHaveAttribute('role','combobox');
   await expect(search).toHaveAttribute('aria-label','Tìm kiếm nhanh');
