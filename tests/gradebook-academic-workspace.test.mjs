@@ -52,12 +52,14 @@ test('table and grade navigation are scoped; no sticky palette under global top 
   assert.match(styles,/@media\(max-width:500px\)/);
   assert.equal((styles.match(/\{/g)||[]).length,(styles.match(/\}/g)||[]).length);
 });
-test('statistics and advanced tools precede live score table',()=>{
+test('Focus V5 prioritizes live score table before optional statistics and advanced tools',()=>{
   const stats=engine.indexOf('<section className="hr-grade-overview"');
   const advanced=engine.indexOf('<details className="gb-academic-administration"');
   const table=engine.indexOf("view.startsWith('regular-') ? renderRegularTable()");
   const reports=engine.indexOf('hr-grade-export-bar',table);
-  assert.ok(stats>=0&&stats<advanced&&advanced<table&&table<reports);
+  assert.ok(table>=0&&table<stats&&stats<advanced&&advanced<reports);
+  assert.match(engine,/className="gb5-insights-drawer"/);
+  assert.match(engine,/insightsOpen \? <div className="gb5-insights-content">/);
   assert.match(engine,/roundScore\(activeRound, student\.id, studentIds\)/);
   assert.match(engine,/gradeRoundBonus\(activeRound/);
 });
