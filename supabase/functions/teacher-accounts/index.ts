@@ -93,6 +93,22 @@ Deno.serve(async (req) => {
     return json({ ok: false, message: 'Tài khoản chưa được phê duyệt hoặc đã bị vô hiệu hóa.' }, 403);
   }
   const isAdmin = callerProfile.role === 'admin';
+  const audit = async (eventAction: string, status: string, details: Record<string, unknown> = {}) => {
+    // Minimal, privacy-preserving privileged action audit. Never store credentials.
+    try {
+      const { error } = await adminClient.from('api_security_events').insert({
+        actor_id: caller.id,
+        actor_role: callerProfile.role,
+        endpoint: '/functions/v1/teacher-accounts',
+        action: eventAction,
+        status,
+        details,
+      });
+      if (error) console.warn('[teacher-accounts] audit unavailable:', error.message);
+    } catch (error) {
+      console.warn('[teacher-accounts] audit failed:', (error as Error)?.message || 'unknown');
+    }
+  };
 
   if (action === 'get_self') {
     return json({
@@ -145,7 +161,10 @@ Deno.serve(async (req) => {
   }
 
   if (callerProfile.must_change_password === true) return json({ ok: false, message: 'Vui lòng đổi mật khẩu tạm trước khi quản lý tài khoản.' }, 403);
-  if (!isAdmin) return json({ ok: false, message: 'Chỉ Admin được quản lý tài khoản giáo viên.' }, 403);
+  if (!isAdmin) {
+    await audit('admin_action_denied', 'denied', { requested_action: action });
+    return json({ ok: false, message: 'Chỉ Admin được quản lý tài khoản giáo viên.' }, 403);
+  }
 
   if (action === 'reset_password') {
     const username = normalizeUsername(payload.username);
@@ -171,6 +190,7 @@ Deno.serve(async (req) => {
       .from('profiles')
       .update({ must_change_password: true, updated_at: new Date().toISOString() })
       .eq('id', target.id);
+    await audit('reset_password', 'ok');
     return json({ ok: true, username });
   }
 
@@ -253,6 +273,10 @@ Deno.serve(async (req) => {
   }
 
   const createdCount = results.filter((item) => item.ok === true).length;
+  await audit('bulk_create', createdCount > 0 ? 'ok' : 'error', {
+    created_count: createdCount,
+    failed_count: results.length - createdCount,
+  });
   return json({
     ok: createdCount > 0,
     createdCount,

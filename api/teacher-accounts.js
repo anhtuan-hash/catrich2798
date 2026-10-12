@@ -91,6 +91,23 @@ function hasAdminPermission(profile = {}) {
   return profile.approved === true && String(profile.role || '').toLowerCase() === 'admin';
 }
 
+async function recordAccountAudit(session, action, status, details = {}) {
+  // Persist only actor, action and outcome; never log passwords or session tokens.
+  try {
+    const { error } = await withTimeout(session.db.from('api_security_events').insert({
+      actor_id: session.user.id,
+      actor_role: session.profile.role || 'teacher',
+      endpoint: '/api/teacher-accounts',
+      action,
+      status,
+      details,
+    }), 5000);
+    if (error) console.warn('[teacher-accounts] audit write unavailable:', error.message);
+  } catch (error) {
+    console.warn('[teacher-accounts] audit write failed:', error?.message || 'unknown');
+  }
+}
+
 async function authenticate(req) {
   const supabaseUrl = env('SUPABASE_URL', env('VITE_SUPABASE_URL'));
   const anonKey = env('SUPABASE_ANON_KEY', env('VITE_SUPABASE_ANON_KEY'));
@@ -333,10 +350,12 @@ export default async function handler(req, res) {
 
     if (action === 'update_contact_email') {
       const result = await updateContactEmail(session, payload);
+      await recordAccountAudit(session, action, result.status === 200 ? 'ok' : 'error', { http_status: result.status });
       return json(res, result.status, result.body);
     }
     if (action === 'password_changed') {
       const result = await passwordChanged(session);
+      await recordAccountAudit(session, action, result.status === 200 ? 'ok' : 'error', { http_status: result.status });
       return json(res, result.status, result.body);
     }
 
@@ -344,15 +363,22 @@ export default async function handler(req, res) {
       return json(res, 403, { ok: false, message: 'Vui lòng đổi mật khẩu tạm trước khi quản lý tài khoản.' });
     }
     if (!hasAdminPermission(session.profile)) {
+      await recordAccountAudit(session, 'admin_action_denied', 'denied', { requested_action: action });
       return json(res, 403, { ok: false, message: 'Chỉ Admin được quản lý tài khoản giáo viên.' });
     }
 
     if (action === 'reset_password') {
       const result = await resetPassword(session, payload);
+      await recordAccountAudit(session, action, result.status === 200 ? 'ok' : 'error', { http_status: result.status });
       return json(res, result.status, result.body);
     }
     if (action === 'bulk_create') {
       const result = await bulkCreate(session, payload);
+      await recordAccountAudit(session, action, result.status === 200 ? 'ok' : 'error', {
+        http_status: result.status,
+        created_count: Number(result.body?.createdCount) || 0,
+        failed_count: Number(result.body?.failedCount) || 0,
+      });
       return json(res, result.status, result.body);
     }
     return json(res, 400, { ok: false, message: 'Unknown action.' });

@@ -34,4 +34,11 @@ assert.doesNotMatch(api, /update\(\{ must_change_password: false/);
 assert.doesNotMatch(edge, /update\(\{ must_change_password: false/);
 assert.match(shared, /profile\.must_change_password === true/);
 
-console.log('PASS: BRIAN account authorization and first-password rotation contracts are hardened.');
+// Sensitive account operations must be auditable without exposing credentials.
+assert.match(api, /async function recordAccountAudit\(session, action, status/);
+assert.match(api, /recordAccountAudit\(session, 'admin_action_denied'/);
+assert.match(api, /recordAccountAudit\(session, action, result\.status/);
+assert.match(edge, /const audit = async \(eventAction: string, status: string/);
+assert.match(edge, /await audit\('reset_password', 'ok'\)/);
+assert.match(edge, /await audit\('bulk_create'/);
+console.log('PASS: BRIAN account authorization, password rotation, and account audit contracts are hardened.');
