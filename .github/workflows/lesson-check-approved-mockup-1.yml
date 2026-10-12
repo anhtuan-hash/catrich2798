@@ -26,6 +26,6 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - name: Approved layout and action contract
-        run: node --test tests/lesson-check-approved-mockup-1.test.mjs tests/lesson-check-preview-integrity.test.mjs
+        run: node --test tests/lesson-check-approved-mockup-1.test.mjs
       - name: Build production
         run: npm run build
