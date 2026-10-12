@@ -43,6 +43,40 @@ test('three utility icons follow attendance with working notification and deadli
   });
   await expect(page.locator('.brian-nav__reports-countdown')).toHaveText('—');
   await expect(page.locator('.brian-nav__reports-tab')).toHaveAttribute('data-deadline-status','unset');
+  // Regression: the status must never hang under the Report icon.
+  const measure = () => page.locator('.brian-nav__reports-tab').evaluate(button => {
+    const chip = button.querySelector('.brian-nav__reports-countdown');
+    const b = button.getBoundingClientRect();
+    const c = chip.getBoundingClientRect();
+    return { button: { top:b.top, bottom:b.bottom, width:b.width }, chip: { top:c.top, bottom:c.bottom, left:c.left, right:c.right } };
+  });
+  const unset = await measure();
+  expect(unset.chip.top).toBeGreaterThanOrEqual(unset.button.top);
+  expect(unset.chip.bottom).toBeLessThanOrEqual(unset.button.bottom);
+  expect(unset.chip.right).toBeLessThanOrEqual((await page.locator('.brian-nav__reports-tab').boundingBox()).x + unset.button.width + 1);
+  // A configured future deadline gets its own extra rail width instead of
+  // obscuring TTCM; expired remains a compact badge inside its icon.
+  await page.locator('.brian-nav__reports-tab').evaluate(button=>{
+    button.classList.remove('is-deadline-unset');
+    button.classList.add('is-deadline-active');
+    button.setAttribute('data-deadline-status','active');
+    button.querySelector('.brian-nav__reports-countdown').textContent='2ng 03:24';
+  });
+  const active = await measure();
+  expect(active.button.width).toBeGreaterThanOrEqual(100);
+  expect(active.chip.top).toBeGreaterThanOrEqual(active.button.top);
+  expect(active.chip.bottom).toBeLessThanOrEqual(active.button.bottom);
+  expect(active.chip.left).toBeGreaterThan(unset.chip.left-5);
+  await page.locator('.brian-nav__reports-tab').evaluate(button=>{
+    button.classList.remove('is-deadline-active');
+    button.classList.add('is-deadline-expired');
+    button.setAttribute('data-deadline-status','expired');
+    button.querySelector('.brian-nav__reports-countdown').textContent='Hết';
+  });
+  const expired=await measure();
+  expect(expired.button.width).toBeLessThan(50);
+  expect(expired.chip.top).toBeGreaterThanOrEqual(expired.button.top);
+  expect(expired.chip.bottom).toBeLessThanOrEqual(expired.button.bottom);
   const result=await page.evaluate(()=>[...document.querySelectorAll('.brian-nav__primary > [data-nav-key]')].map(el=>({key:el.dataset.navKey,left:el.getBoundingClientRect().left})));
   for(const [p,n] of [['attendance','reports'],['reports','ttcm'],['ttcm','admin']])
    expect(result.find(x=>x.key===n).left).toBeGreaterThan(result.find(x=>x.key===p).left);
