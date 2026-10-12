@@ -298,3 +298,108 @@
   #root .gradebook-studio .gb-prod-excel-trigger{flex-wrap:wrap}
   #root .gradebook-studio .gb-prod-excel-trigger small{margin-left:0;flex:1 1 100%;order:3}
 }
+
+/* Material 3 advanced tools: all ten functions remain available without tiny tabs. */
+#root .gradebook-studio .gb-prod-tabs{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:8px;
+  padding:14px 0;
+}
+#root .gradebook-studio .gb-prod-tabs button{
+  width:100%;
+  min-width:0;
+  min-height:43px;
+  border-radius:11px;
+  padding:9px 10px;
+  font-size:12px;
+  line-height:1.25;
+  font-weight:760;
+  white-space:normal;
+}
+#root .gradebook-studio .gb-prod-pane{
+  gap:14px;
+  padding:17px 0 4px;
+}
+#root .gradebook-studio .gb-prod-alerts-layout{
+  display:grid;
+  grid-template-columns:minmax(0,.87fr) minmax(0,1.13fr);
+  gap:14px;
+  align-items:stretch;
+}
+#root .gradebook-studio .gb-prod-alerts-card{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  gap:13px;
+  padding:17px;
+  border:1px solid #dee9f7;
+  border-radius:15px;
+  background:#fff;
+}
+#root .gradebook-studio .gb-prod-alerts-card:first-child{
+  background:linear-gradient(150deg,#f5f9ff,#fff 54%);
+  border-color:#d5e6fa;
+}
+#root .gradebook-studio .gb-prod-alerts-card:nth-child(2){
+  background:linear-gradient(150deg,#fff9f6,#fff 52%);
+  border-color:#f2e2dc;
+}
+#root .gradebook-studio .gb-prod-alerts-card-heading{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+#root .gradebook-studio .gb-prod-alerts-card-heading strong{
+  font-size:14px;
+  color:#254974;
+}
+#root .gradebook-studio .gb-prod-alerts-card-heading span{
+  font-size:11px;
+  color:#6c849f;
+}
+#root .gradebook-studio .gb-prod-alerts-card .gb-prod-fields{
+  align-items:stretch;
+  gap:11px;
+}
+#root .gradebook-studio .gb-prod-alerts-card .gb-prod-fields label{
+  max-width:none;
+  flex:1 1 140px;
+}
+#root .gradebook-studio .gb-prod-alerts-card .gb-prod-alert-list{
+  min-height:0;
+  max-height:275px;
+  overflow-y:auto;
+}
+#root .gradebook-studio .gb-prod-alerts-card .gb-prod-alert-list > div{
+  gap:6px;
+  padding:12px 13px;
+  border-color:#f7e0d8;
+  background:#fff9f6;
+}
+#root .gradebook-studio .gb-prod-alerts-card h4{margin:0;font-size:14px}
+#root .gradebook-studio .gb-prod-alerts-card textarea{min-height:110px}
+#root .gradebook-studio .gb-prod-alerts-card .gb-prod-actions{margin-top:auto}
+@media(max-width:970px){
+  #root .gradebook-studio .gb-prod-alerts-layout{grid-template-columns:1fr}
+  #root .gradebook-studio .gb-prod-tabs{
+    display:flex;
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    overflow-y:hidden;
+    scrollbar-width:thin;
+    scroll-snap-type:x proximity;
+    padding-bottom:15px;
+  }
+  #root .gradebook-studio .gb-prod-tabs button{
+    flex:0 0 auto;
+    width:auto;
+    min-width:121px;
+    max-width:190px;
+    scroll-snap-align:start;
+    white-space:nowrap;
+  }
+}
+@media(max-width:560px){
+  #root .gradebook-studio .gb-prod-alerts-card{padding:12px}
+}

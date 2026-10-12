@@ -9,7 +9,8 @@ const productivity=load('src/components/gradebook/GradebookProductivityPanel.jsx
 
 test('scores display is a large independent scroll area, with a full-class expansion button',()=>{
   assert.match(css,/max-height:clamp\(610px,84vh,830px\)/);
-  assert.match(editor,/const \[showFullRoster, setShowFullRoster\] = useState\(false\)/);
+  assert.match(editor,/const \[showFullRoster, setShowFullRoster\] = useState\(\(\) => students\.length <= 45\)/);
+  assert.match(editor,/\[workspace\.id, students\.length\]/);
   assert.match(editor,/className="gbv3-expand-table" aria-pressed=\{showFullRoster\}/);
   assert.match(editor,/setShowFullRoster\(\(value\) => !value\)/);
   assert.match(editor,/hr-grade-table-wrap\$\{showFullRoster \? ' gbv3-table-expanded' : ''\}/);
