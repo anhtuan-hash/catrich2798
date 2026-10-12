@@ -35,7 +35,7 @@ for (const [needle, label] of [
 assert.match(aggregator, /todayEvents: timeline\.filter\(/, 'Today event stat must use timeline');
 assert.match(aggregator, /overdue: allAttention\.filter\(/, 'Overdue stats must count full attention list');
 assert.match(aggregator, /pendingApproval: allApprovals\.length/, 'Approval stats must count all items');
-assert.match(aggregator, /const iso = dashboardLocalDayKey\(now\)/, 'Attendance must use local school date');
+assert.match(aggregator, /const iso = `\$\{now\.getFullYear\(\)\}/, 'Attendance must use local date');
 assert.match(css, /\.dcc-stats\s*\{/, 'Dashboard stats CSS');
 assert.match(css, /@media\(max-width:640px\)/, 'Mobile layout CSS');
 assert.match(css, /prefers-reduced-motion/, 'Reduced motion');

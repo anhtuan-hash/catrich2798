@@ -123,3 +123,12 @@
   .app-shell[data-route="dashboard"] .gd-week-day *,
   .app-shell[data-route="dashboard"] .dcc-news-toggle { scroll-behavior:auto !important;transition:none !important; }
 }
+
+/* Prevent old navbar-search visibility rules from hiding the in-page task filter. */
+.app-shell[data-route="dashboard"] .dcc-task-search {
+  display:flex !important;visibility:visible !important;
+}
+.app-shell[data-route="dashboard"] .dcc-task-search input[role="searchbox"] {
+  display:block !important;visibility:visible !important;opacity:1 !important;
+  pointer-events:auto !important;flex:1;min-width:0;
+}

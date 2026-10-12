@@ -72,7 +72,18 @@ test('2.1 switches from Today to seven grouped days and back', async ({ page }) 
 
 test('2.1 searches task labels and keeps news collapsed by default', async ({ page }) => {
   await openDashboard(page);
-  const search = page.locator('.dcc-task-search input[type="search"]');
+  const search = page.locator('.dcc-task-search input[role="searchbox"]');
+  const visibility = await page.evaluate(() => {
+    const field = document.querySelector('.dcc-task-search input');
+    const parents = [];
+    for (let item = field; item && parents.length < 5; item = item.parentElement) {
+      const style = getComputedStyle(item);
+      const box = item.getBoundingClientRect();
+      parents.push({ tag: item.tagName, class: String(item.className || '').slice(0, 70), display: style.display, visibility: style.visibility, width: box.width, height: box.height, tabindex: item.getAttribute('tabindex') });
+    }
+    return parents;
+  });
+  console.log('SEARCH_VISIBILITY_DIAGNOSTIC', JSON.stringify(visibility));
   await expect(search).toBeVisible();
   await expect(search).toHaveAttribute('aria-label', 'Tìm công việc...');
   await search.fill('a unique phrase that cannot match any task');
