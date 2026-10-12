@@ -4,9 +4,11 @@ import { readFileSync } from 'node:fs';
 const read=(p)=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const engine=read('src/components/gradebook/GradebookEngine.jsx');
 const css=read('src/styles/GradebookAcademicWorkspace.css');
-const admin=engine.slice(engine.indexOf('<details className="hr-panel gb-grade-tools">'),engine.indexOf('<GradebookNavigationPalette'));
+const admin=engine.slice(engine.indexOf('<details className="hr-panel gb-grade-tools">'),engine.indexOf('<GradebookProductivityPanel'));
 test('tools are short collapsed details, rather than the oversized obsolete grade toolbar',()=>{
   assert.match(admin,/<details className="hr-panel gb-grade-tools">/);
+  assert.ok(engine.indexOf('className="gb5-editor-anchor"')<engine.indexOf('<details className="hr-panel gb-grade-tools">'));
+  assert.match(engine,/insightsOpen \? <div className="gb5-insights-content">/);
   assert.match(admin,/<summary className="gb-grade-tools-trigger">/);
   assert.match(admin,/className="gbv2-manage-subject"/);
   assert.match(admin,/className="gbv2-formula-details"/);

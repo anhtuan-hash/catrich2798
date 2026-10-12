@@ -34,6 +34,7 @@ import '../styles/GradebookLifecycle.css';
 import '../styles/GradebookAcademicWorkspace.css';
 import '../styles/GradebookSpectrumV4.css';
 import '../styles/GradebookRosterLayoutHotfix.css';
+import '../styles/GradebookFocusV5.css';
 
 const EMPTY_CLASS = {
   className: '',
@@ -470,7 +471,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
       <div className="gradebook-studio-class-picker">
         <label>
           <span>{vi ? 'Lớp đang mở' : 'Current class'}</span>
-          <select value={workspaceId} onChange={(event) => setWorkspaceId(event.target.value)}>
+          <select value={workspaceId} onChange={(event) => switchGradebookClass(event.target.value)}>
             {!activeClasses.length ? <option value="">Chưa có lớp</option> : null}
             {activeClasses.map((item) => <option key={item.id} value={item.id}>{classLabel(item)}</option>)}
           </select>
@@ -491,7 +492,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     </section>
   );
 
-  return <div className={`page hr-page gradebook-studio gb4-spectrum gb4-palette-${visualPalette}`}>
+  return <div className={`page hr-page gradebook-studio gb4-spectrum gb5-focus gb4-palette-${visualPalette}`}>
     <section className="gradebook-studio-hero gb-academic-hero" aria-label="Không gian Sổ điểm">
       <div className="gb-academic-heading">
         <div className="gb-academic-heading-copy">

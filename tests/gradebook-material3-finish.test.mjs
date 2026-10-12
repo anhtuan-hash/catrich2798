@@ -16,7 +16,9 @@ test('outlined icons render in their intended colors, never as blank blocks',()=
 test('class picker remains responsive and has direct jump for large class lists',()=>{
   assert.match(page,/activeClasses\.length > 12/);
   assert.match(page,/id="gb-m3-quick-class"/);
-  assert.match(page,/onChange=\{\(event\) => setWorkspaceId\(event.target.value\)\}/);
+  assert.match(page,/onChange=\{\(event\) => switchGradebookClass\(event.target.value\)\}/);
+  assert.match(page,/const switchGradebookClass = \(nextId\) =>/);
+  assert.match(page,/if \(!canLeaveGradebook\(\)\) return/);
   assert.match(page,/className="gb-academic-class-list"/);
   assert.match(css,/\.gb-m3-class-jump/);
 });
