@@ -291,18 +291,20 @@ async function updateContactEmail(session, payload) {
 }
 
 async function passwordChanged(session) {
+  // The database trigger, not this client-callable endpoint, attests to a real
+  // password-hash change. Do not let callers clear the first-login gate directly.
+  const { data: profile, error: profileError } = await withTimeout(
+    session.db.from('profiles').select('must_change_password').eq('id', session.user.id).single(),
+  );
+  if (profileError || profile?.must_change_password !== false) {
+    return { status: 409, body: { ok: false, message: 'Vui lòng đổi mật khẩu tạm trước khi tiếp tục.' } };
+  }
   const metadata = { ...(session.user.user_metadata || {}), must_change_password: false };
   const { error: authError } = await withTimeout(
     session.db.auth.admin.updateUserById(session.user.id, { user_metadata: metadata }),
   );
   if (authError) return { status: 400, body: { ok: false, message: authError.message } };
 
-  const profileUpdate = await withTimeout(
-    session.db.from('profiles').update({ must_change_password: false, updated_at: new Date().toISOString() }).eq('id', session.user.id),
-  );
-  if (profileUpdate.error && !isMissingColumn(profileUpdate.error)) {
-    return { status: 400, body: { ok: false, message: profileUpdate.error.message } };
-  }
   return { status: 200, body: { ok: true } };
 }
 
@@ -338,6 +340,9 @@ export default async function handler(req, res) {
       return json(res, result.status, result.body);
     }
 
+    if (session.profile.must_change_password === true) {
+      return json(res, 403, { ok: false, message: 'Vui lòng đổi mật khẩu tạm trước khi quản lý tài khoản.' });
+    }
     if (!hasAdminPermission(session.profile)) {
       return json(res, 403, { ok: false, message: 'Chỉ Admin được quản lý tài khoản giáo viên.' });
     }
