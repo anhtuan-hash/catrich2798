@@ -14,7 +14,8 @@ assert.deepEqual(
 );
 assert.equal(selectServerAssignedHomeroom([]), null, 'No GVCN assignment must not manufacture one');
 assert.equal(selectServerAssignedHomeroom([{ workspace_id: ' ', class_name: '10.5' }]), null, 'Empty workspace IDs are invalid');
-assert.match(preferred, /supabase\.rpc\('bes_get_my_assigned_homeroom'\)/);
+assert.match(preferred, /const ASSIGNED_HOMEROOM_RPC = 'bes_get_my_assigned_homeroom'/);
+assert.match(preferred, /supabase\.rpc\(ASSIGNED_HOMEROOM_RPC\)/);
 assert.match(preferred, /selectServerAssignedHomeroom/);
 assert.match(preferred, /await loadServerPreferredWorkspace\(user\)/);
 const start = bootstrap.split('async function startApplication() {')[1] || '';
