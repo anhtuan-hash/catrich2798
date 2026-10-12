@@ -390,6 +390,10 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   }, [workspace.learningGradebook, workspace.learningRecords, workspace.id, dirty]);
 
   useEffect(() => {
+    if (!showMockExams && view === 'mock') setView('regular-0');
+  }, [showMockExams, view]);
+
+  useEffect(() => {
     setShowFullRoster(students.length <= 45);
     setStudentQuery('');
     setMissingOnly(false);
@@ -482,7 +486,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   };
   const addMockExam = () => mutateMock((exams) => {
     if (exams.length >= 40) return;
-    const number = exams.reduce((max, exam) => Math.max(max, Number((exam.label || '').match(/lần\\s+(\\d+)/i)?.[1]) || 0), exams.length) + 1;
+    const number = exams.reduce((max, exam) => Math.max(max, Number((exam.label || '').match(/lần\s+(\d+)/i)?.[1]) || 0), exams.length) + 1;
     exams.push(createMockExam(number, uid('mock-exam')));
   });
   const renameMockExam = (id, label) => mutateMock((exams) => {
