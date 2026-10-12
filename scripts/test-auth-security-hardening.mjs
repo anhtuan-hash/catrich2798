@@ -136,4 +136,15 @@ assert.match(lessonRosterGuard, /coalesce\(r\.students, a\.class_payload->'stude
 assert.match(lessonRosterGuard, /from public\.get_my_assigned_school_classes\(\)/);
 assert.equal((lessonRosterGuard.match(/\$function\$;/g) || []).length, 1);
 
+
+const automationGuard = read('supabase/migrations/20261012111000_automation_worker_diagnostic_redaction.sql');
+// Normal teachers need only a boolean cloud-availability probe, never raw worker
+// stack/error diagnostics. Admin/TTCM may still inspect troubleshooting data.
+assert.match(automationGuard, /CREATE OR REPLACE FUNCTION public\.bes_v1097_cloud_status\(\)/);
+assert.match(automationGuard, /public\.bes_v1097_is_leader\(auth\.uid\(\)\)/);
+assert.match(automationGuard, /IF NOT leader AND heartbeat IS NOT NULL THEN/);
+assert.match(automationGuard, /heartbeat := heartbeat - 'last_error' - 'metadata'/);
+assert.match(automationGuard, /'warning',CASE WHEN leader THEN sqlerrm ELSE 'Cloud worker status unavailable' END/);
+assert.match(automationGuard, /'available',true/);
+
 console.log('PASS: BRIAN account authorization, password rotation, audit, and staged Admin MFA contracts are hardened.');
