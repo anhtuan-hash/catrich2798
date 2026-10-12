@@ -20,6 +20,8 @@ import '../styles/dashboard-command-center-v22.css';
 import '../styles/dashboard-command-center-v23.css';
 import '../styles/dashboard-v3.css';
 import '../styles/dashboard-v31.css';
+import '../styles/dashboard-v32.css';
+import DashboardWeeklyPlanner from '../components/DashboardWeeklyPlanner.jsx';
 import DashboardCommandPalette from '../components/DashboardCommandPalette.jsx';
 import { Search as SearchIcon, Moon, Sun, Focus, X as CloseIcon, Keyboard } from 'lucide-react';
 import DashboardDailyBrief from '../components/DashboardDailyBrief.jsx';
@@ -559,13 +561,13 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
       </section> : null),
   };
 
-  return <section className={`gd-page gd-v31-page${initialLoading ? ' is-loading' : ''}${isFocusMode ? ' gd-v31-focus' : ''}${isMidnight ? ' gd-v31-midnight' : ''}`} aria-label={t.pageTitle} aria-busy={loading} data-dashboard-theme={isMidnight ? 'midnight' : 'daylight'}>
+  return <section className={`gd-page gd-v31-page gd-v32-page${initialLoading ? ' is-loading' : ''}${isFocusMode ? ' gd-v31-focus' : ''}${isMidnight ? ' gd-v31-midnight' : ''}`} aria-label={t.pageTitle} aria-busy={loading} data-dashboard-theme={isMidnight ? 'midnight' : 'daylight'}>
     <div className="gd-shell gd-shell-v3">
       <div className="gd-v31-toolbar" role="toolbar" aria-label={language==='vi'?'Công cụ Dashboard':'Dashboard tools'}>
         <div className="gd-v31-toolbar-name">
           <span className="gd-v31-toolbar-indicator"/>
           <strong>BRIAN <span>COMMAND CENTER</span></strong>
-          <small>3.1</small>
+          <small>3.2</small>
         </div>
         <div className="gd-v31-toolbar-actions">
           <button type="button" className="gd-v31-search-trigger" onClick={()=>setPaletteOpen(true)}>
@@ -646,6 +648,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
       <DashboardDailyBrief snapshot={snapshot} now={now} language={language}/>
       <DashboardCommandCenter snapshot={snapshot} todayEventCount={todayEvents.length} language={language} now={now} loading={loading} onRefresh={() => refresh()} layout={personalLayout} onChangeLayout={handleLayoutChange} onFocusCalendar={scrollToCalendar} />
 
+      <DashboardWeeklyPlanner timeline={timeline} attention={snapshot.attention || []} snapshot={snapshot} now={now} language={language} loading={loading} onRefresh={() => refresh()}/>
       <DashboardInsights snapshot={snapshot} now={now} language={language}/>
       {error ? <div className="gd-alert"><Icon name="warning" size={22} /><div><strong>{t.partial}</strong><small>{error}</small></div><button type="button" className="gd-text-button" onClick={() => refresh()}>{t.retry}</button></div> : null}
       <DashboardWidgetBoard layout={personalLayout} widgets={dashboardWidgetNodes} />

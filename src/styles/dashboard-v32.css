@@ -1,0 +1,264 @@
+/* BRIAN Dashboard 3.2 — Seven-day planning cockpit.
+   Scope strictly to Dashboard; no global selectors or continuously running animations. */
+.app-shell[data-route="dashboard"] .gd-v32-planner {
+  --v32-blue:#205cda;--v32-violet:#8552d6;--v32-teal:#0b9c83;
+  color:#1c3f66;background:#fff;border:1px solid #d4e1f7;
+  border-radius:22px;box-shadow:0 13px 34px #173d8012;
+  margin:0 0 19px;overflow:hidden;min-width:0;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-head {
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:21px 24px 19px;
+  background:linear-gradient(111deg,#f1f5ff,#e9f5ff 58%,#e3fbf2);
+  border-bottom:1px solid #d9e9f8;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-brand {
+  display:flex;align-items:center;gap:14px;min-width:0;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-symbol {
+  width:47px;height:47px;flex:0 0 47px;display:grid;place-items:center;
+  border-radius:14px;color:#fff;
+  background:linear-gradient(145deg,#286de6,#7353cd);
+  box-shadow:0 8px 17px #345eca35;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-eyebrow {
+  display:block;color:#396bb1;font-size:9px;font-weight:900;letter-spacing:.13em;
+  margin:0 0 5px;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-brand h2 {
+  font-size:clamp(18px,1.7vw,23px);line-height:1.15;font-weight:900;
+  letter-spacing:-.035em;color:#194477;margin:0;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-brand p {
+  font-size:11px;color:#68829f;margin:6px 0 0;line-height:1.4;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-actions {
+  display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-actions button {
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:38px;padding:9px 12px;border-radius:11px;white-space:nowrap;
+  font-family:inherit;font-size:11px;font-weight:850;cursor:pointer;
+}
+.app-shell[data-route="dashboard"] .gd-v32-copy {
+  color:#2b5ca0;background:#fff;border:1px solid #ccdcf4;
+}
+.app-shell[data-route="dashboard"] .gd-v32-export {
+  color:#fff;background:linear-gradient(105deg,#2c6be4,#6257d2);
+  border:1px solid #4264d1;
+  box-shadow:0 5px 12px #365fc02c;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-actions button:disabled {
+  cursor:default;opacity:.48;box-shadow:none;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-meta {
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:11px 23px 9px;background:#fff;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-metrics {
+  display:flex;flex-wrap:wrap;gap:8px;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-metrics > span {
+  display:inline-flex;align-items:center;gap:7px;
+  background:#eaf3ff;color:#3563b1;padding:7px 10px;
+  border-radius:9px;font-size:10.5px;font-weight:740;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-metrics > span:nth-child(2) {
+  background:#e2f8f0;color:#0b8f76;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-metrics strong {
+  font-size:13px;font-weight:900;font-variant-numeric:tabular-nums;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-fresh {
+  display:flex;align-items:center;gap:7px;color:#7990aa;
+  font-size:10.5px;font-weight:650;white-space:nowrap;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-fresh > span {
+  width:8px;height:8px;border-radius:50%;background:#1ab58e;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-fresh > span.is-partial {background:#d89337;}
+.app-shell[data-route="dashboard"] .gd-v32-planner-fresh button {
+  display:grid;place-items:center;padding:5px;width:27px;height:27px;
+  background:#f0f5fc;color:#527ab3;border:1px solid #dce8f6;
+  border-radius:8px;cursor:pointer;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-fresh button:disabled {opacity:.4;cursor:default;}
+.app-shell[data-route="dashboard"] .gd-v32-planner-warning {
+  display:flex;align-items:center;gap:8px;margin:0 23px 9px;padding:8px 11px;
+  background:#fff5df;color:#975e13;border:1px solid #f5dfad;
+  border-radius:9px;font-size:11px;font-weight:700;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-days {
+  display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;
+  padding:9px 23px 14px;background:#fff;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-day {
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-width:0;min-height:93px;gap:4px;
+  padding:9px 5px;border:1px solid #dfe8f5;border-radius:13px;
+  background:#f7faff;color:#466a92;cursor:pointer;
+  font-family:inherit;transition:border-color .13s ease,box-shadow .13s ease,background .13s ease;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-day.is-today {border-color:#91b9eb;}
+.app-shell[data-route="dashboard"] .gd-v32-planner-day.is-selected {
+  background:linear-gradient(150deg,#306de5,#4c60cd 68%,#7556cf);
+  border-color:#4465ce;color:#fff;box-shadow:0 8px 19px #375ed041;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-day:hover:not(.is-selected) {
+  border-color:#94b7e8;background:#eff6ff;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-day .gd-v32-weekday {
+  font-size:10px;font-weight:800;text-transform:uppercase;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-day strong {
+  font-size:22px;line-height:1;font-weight:920;font-variant-numeric:tabular-nums;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-day small {
+  display:grid;place-items:center;min-width:18px;height:18px;border-radius:5px;
+  padding:0 4px;color:#5477a0;background:#e7f0fc;font-size:9px;font-weight:800;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-day.is-selected small {color:#2a5cbe;background:#fff;}
+.app-shell[data-route="dashboard"] .gd-v32-day-dots {display:flex;gap:4px;justify-content:center;height:5px;}
+.app-shell[data-route="dashboard"] .gd-v32-day-dots i {
+  display:block;width:5px;height:5px;border-radius:100px;background:#ccdbef;
+}
+.app-shell[data-route="dashboard"] .gd-v32-day-dots i.has-events {background:#a58bec;}
+.app-shell[data-route="dashboard"] .gd-v32-day-dots i.has-tasks {background:#39c5a3;}
+.app-shell[data-route="dashboard"] .gd-v32-planner-day.is-selected .gd-v32-day-dots i {background:#ffffff88;}
+.app-shell[data-route="dashboard"] .gd-v32-planner-body {
+  display:grid;grid-template-columns:minmax(190px,.68fr) minmax(0,1.7fr);
+  gap:15px;padding:17px 23px 22px;border-top:1px solid #e5edf8;
+  background:linear-gradient(104deg,#f7faff,#fff 55%);
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-day-info {
+  padding:17px;background:#e9f2ff;border:1px solid #d8e7fb;border-radius:14px;
+  min-width:0;align-self:start;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-day-info > span {
+  color:#517abd;letter-spacing:.09em;font-size:9px;font-weight:900;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-day-info h3 {
+  text-transform:capitalize;line-height:1.2;font-size:20px;font-weight:900;
+  color:#244f8e;margin:13px 0 8px;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-day-info p {
+  font-size:11px;font-weight:750;color:#5d7da7;margin:0;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-agenda {display:grid;gap:7px;align-content:start;min-width:0;}
+.app-shell[data-route="dashboard"] .gd-v32-plan-row {
+  width:100%;display:flex;align-items:center;gap:10px;min-width:0;
+  min-height:53px;padding:9px 11px;background:#fff;
+  border:1px solid #e0eaf8;border-radius:11px;color:#2f547d;
+  font-family:inherit;text-align:left;cursor:pointer;
+}
+.app-shell[data-route="dashboard"] .gd-v32-plan-row:hover {
+  background:#f1f7ff;border-color:#b5d0f5;
+}
+.app-shell[data-route="dashboard"] .gd-v32-plan-row-icon {
+  flex:0 0 31px;width:31px;height:31px;display:grid;place-items:center;
+  border-radius:9px;background:#ece8ff;color:#7b5cce;
+}
+.app-shell[data-route="dashboard"] .gd-v32-plan-row--task .gd-v32-plan-row-icon {background:#e0f8ef;color:#099d7b;}
+.app-shell[data-route="dashboard"] .gd-v32-plan-row-body {
+  min-width:0;flex:1;display:flex;flex-direction:column;gap:4px;
+}
+.app-shell[data-route="dashboard"] .gd-v32-plan-row-body strong {
+  font-size:11.5px;font-weight:840;line-height:1.25;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap;
+}
+.app-shell[data-route="dashboard"] .gd-v32-plan-row-body small {
+  font-size:10px;color:#8193a9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.app-shell[data-route="dashboard"] .gd-v32-plan-time {color:#6b86a4;font-size:10px;font-weight:800;white-space:nowrap;}
+.app-shell[data-route="dashboard"] .gd-v32-plan-row-arrow {color:#86a0be;flex:0 0 auto;}
+.app-shell[data-route="dashboard"] .gd-v32-planner-empty {
+  display:flex;align-items:center;gap:10px;min-height:70px;
+  padding:15px;background:#f1f8ff;border:1px dashed #c9ddf5;
+  border-radius:12px;font-size:12px;color:#728ba9;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-more {
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:9px 15px;min-height:36px;border:1px solid #cbdcf6;
+  border-radius:9px;background:#eaf3ff;color:#3766a7;cursor:pointer;
+  font-family:inherit;font-size:11px;font-weight:820;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner-feedback {
+  border-top:1px solid #dfeafb;background:#effaf5;color:#087b64;
+  padding:11px 22px;font-size:11px;font-weight:780;
+}
+.app-shell[data-route="dashboard"] .gd-v32-planner button:focus-visible {
+  outline:3px solid #51a1ed;outline-offset:2px;
+}
+/* Higher information contrast in the day view, without CSS animations. */
+.app-shell[data-route="dashboard"] .gd-v32-page .dcc-stat {
+  border-radius:17px!important;box-shadow:0 9px 22px #274e9714!important;
+}
+.app-shell[data-route="dashboard"] .gd-v32-page .gd-v3-insight-cell strong {
+  letter-spacing:-.03em;
+}
+/* Midnight: dashboard-only selectors, no changes to global body or navbar. */
+.app-shell[data-route="dashboard"] .gd-v32-page.gd-v31-midnight .gd-v32-planner {
+  background:#172c48;border-color:#395879;color:#e6f2ff;box-shadow:0 15px 30px #040c1f65;
+}
+.app-shell[data-route="dashboard"] .gd-v32-page.gd-v31-midnight .gd-v32-planner-head {
+  background:linear-gradient(112deg,#23375f,#263d66 57%,#1b514e);
+  border-color:#406184;
+}
+.app-shell[data-route="dashboard"] .gd-v32-page.gd-v31-midnight .gd-v32-planner-brand h2,
+.app-shell[data-route="dashboard"] .gd-v32-page.gd-v31-midnight .gd-v32-planner-day-info h3 {color:#eff7ff;}
+.app-shell[data-route="dashboard"] .gd-v32-page.gd-v31-midnight .gd-v32-planner-eyebrow,
+.app-shell[data-route="dashboard"] .gd-v32-page.gd-v31-midnight .gd-v32-planner-day-info > span {color:#a4c9ff;}
+.app-shell[data-route="dashboard"] .gd-v32-page.gd-v31-midnight .gd-v32-planner-brand p,
+.app-shell[data-route="dashboard"] .gd-v32-page.gd-v31-midnight .gd-v32-planner-day-info p,
+.app-shell[data-route="dashboard"] .gd-v32-page.gd-v31-midnight .gd-v32-planner-fresh {color:#bad0ea;}
+.app-shell[data-route="dashboard"] .gd-v32-page.gd-v31-midnight .gd-v32-planner-meta,
+.app-shell[data-route="dashboard"] .gd-v32-page.gd-v31-midnight .gd-v32-planner-days,
+.app-shell[data-route="dashboard"] .gd-v32-page.gd-v31-midnight .gd-v32-planner-body {
+  background:#172c48;border-color:#385a7e;
+}
+.app-shell[data-route="dashboard"] .gd-v32-page.gd-v31-midnight .gd-v32-planner-day,
+.app-shell[data-route="dashboard"] .gd-v32-page.gd-v31-midnight .gd-v32-plan-row,
+.app-shell[data-route="dashboard"] .gd-v32-page.gd-v31-midnight .gd-v32-planner-day-info {
+  background:#233d60;border-color:#3d6389;color:#e4efff;
+}
+.app-shell[data-route="dashboard"] .gd-v32-page.gd-v31-midnight .gd-v32-planner-day.is-selected {
+  background:linear-gradient(140deg,#306ce0,#6452cb);color:#fff;border-color:#648bdd;
+}
+.app-shell[data-route="dashboard"] .gd-v32-page.gd-v31-midnight .gd-v32-plan-row-body small {color:#adc7e4;}
+.app-shell[data-route="dashboard"] .gd-v32-page.gd-v31-midnight .gd-v32-planner-empty {
+  background:#1f3b5e;border-color:#41648e;color:#bcd2ef;
+}
+.app-shell[data-route="dashboard"] .gd-v32-page.gd-v31-midnight .gd-v32-copy {background:#2b466b;border-color:#4d6f98;color:#e6f3ff;}
+@media (max-width:950px) {
+  .app-shell[data-route="dashboard"] .gd-v32-planner-head {align-items:flex-start;flex-direction:column;}
+  .app-shell[data-route="dashboard"] .gd-v32-planner-actions {width:100%;justify-content:flex-start;}
+}
+@media (max-width:700px) {
+  .app-shell[data-route="dashboard"] .gd-v32-planner-head {padding:17px 16px;}
+  .app-shell[data-route="dashboard"] .gd-v32-planner-brand {gap:10px;}
+  .app-shell[data-route="dashboard"] .gd-v32-planner-symbol {width:40px;height:40px;flex-basis:40px;}
+  .app-shell[data-route="dashboard"] .gd-v32-planner-brand h2 {font-size:18px;}
+  .app-shell[data-route="dashboard"] .gd-v32-planner-brand p {font-size:10.5px;}
+  .app-shell[data-route="dashboard"] .gd-v32-planner-meta {padding:11px 15px;align-items:flex-start;flex-direction:column;}
+  .app-shell[data-route="dashboard"] .gd-v32-planner-days {padding:5px 10px 13px;gap:4px;}
+  .app-shell[data-route="dashboard"] .gd-v32-planner-day {min-height:80px;border-radius:10px;padding:7px 2px;}
+  .app-shell[data-route="dashboard"] .gd-v32-planner-day strong {font-size:20px;}
+  .app-shell[data-route="dashboard"] .gd-v32-planner-day .gd-v32-weekday {font-size:9px;}
+  .app-shell[data-route="dashboard"] .gd-v32-planner-body {grid-template-columns:1fr;padding:14px 13px;gap:11px;}
+  .app-shell[data-route="dashboard"] .gd-v32-planner-day-info {padding:13px;}
+  .app-shell[data-route="dashboard"] .gd-v32-planner-day-info h3 {margin:6px 0;font-size:17px;}
+  .app-shell[data-route="dashboard"] .gd-v32-plan-row {padding:8px;min-width:0;}
+  .app-shell[data-route="dashboard"] .gd-v32-planner-fresh {white-space:normal;}
+}
+@media(max-width:350px) {
+  .app-shell[data-route="dashboard"] .gd-v32-planner-days {gap:2px;padding-inline:6px;}
+  .app-shell[data-route="dashboard"] .gd-v32-planner-day small {font-size:8px;min-width:15px;}
+  .app-shell[data-route="dashboard"] .gd-v32-plan-time {display:none;}
+  .app-shell[data-route="dashboard"] .gd-v32-planner-actions button {font-size:10px;padding:7px 8px;}
+}
+@media(prefers-reduced-motion:reduce) {
+  .app-shell[data-route="dashboard"] .gd-v32-planner-day {transition:none!important;}
+}
+
+/* Stay true to the established Focus Mode: hide secondary planning when active. */
+.app-shell[data-route="dashboard"] .gd-v32-page.gd-v31-focus .gd-v32-planner { display:none!important; }
