@@ -11,6 +11,7 @@ import {
 } from './utils/schoolClassRegistry.js';
 import { isSupabaseConfigured, supabase } from './utils/supabase.js';
 import { selectServerAssignedHomeroom } from './utils/homeroomAssignmentSelection.js';
+import { fastPreferredHomeroom, rememberAssignedHomeroom } from './utils/homeroomFastEntry.js';
 
 const ASSIGNED_HOMEROOM_RPC = 'bes_get_my_assigned_homeroom';
 const ASSIGNED_HOMEROOM_TIMEOUT_MS = 5500;
@@ -73,6 +74,8 @@ function authoritativePreferredWorkspace() {
 }
 
 function preferredLocalWorkspace(user) {
+  const fast = fastPreferredHomeroom(user);
+  if (fast?.id) return fast;
   const authoritative = authoritativePreferredWorkspace();
   if (authoritative?.id) return authoritative;
 
@@ -192,13 +195,23 @@ export async function preparePreferredHomeroomEntry() {
       return { ok: true, changed: false, skipped: 'no-approved-user' };
     }
 
-    // The assignment in the database takes precedence over a stale current-id
-    // (such as subject class 10.5). Local metadata is fallback only.
-    const preferred = await loadServerPreferredWorkspace(user) || preferredLocalWorkspace(user);
-    if (!preferred?.id) {
-      return { ok: true, changed: false, skipped: 'no-explicit-homeroom-assignment' };
+    // Open the last server-verified GVCN (or a uniquely typed indexed GVCN)
+    // immediately. Refresh the authoritative assignment in the background;
+    // a 5.5-second RPC must never decide first paint.
+    const cached = preferredLocalWorkspace(user);
+    if (cached?.id) {
+      if (cached.source === 'cached-server-assignment') {
+        rememberServerAssignment({ homeroomWorkspaceId: cached.id, homeroomClassName: cached.className });
+      }
+      await applyPreferredWorkspace(cached, { user });
     }
-    return applyPreferredWorkspace(preferred, { user, forceNavigate: preferred.source === 'server-assignment' });
+    const fresh = await loadServerPreferredWorkspace(user);
+    if (fresh?.id) {
+      rememberAssignedHomeroom(user, fresh);
+      return applyPreferredWorkspace(fresh, { user, forceNavigate: fresh.id !== cached?.id });
+    }
+    if (cached?.id) return { ok: true, changed: false, workspaceId: cached.id, source: cached.source };
+    return { ok: true, changed: false, skipped: 'no-explicit-homeroom-assignment' };
   })().finally(() => { runningPromise = null; });
 
   return runningPromise;
@@ -220,7 +233,11 @@ function rememberServerAssignment(detail = {}) {
 function enforceServerAssignment(event) {
   const preferred = rememberServerAssignment(event?.detail || {});
   if (!preferred?.id || !isHomeroomRoute()) return;
-  applyPreferredWorkspace(preferred, { forceNavigate: true }).catch((error) => {
+  getCurrentUser().then((user) => {
+    if (!user?.id || user.approved === false) return;
+    rememberAssignedHomeroom(user, preferred);
+    return applyPreferredWorkspace(preferred, { user, forceNavigate: true });
+  }).catch((error) => {
     console.warn('[PreferredHomeroomEntry] Không thể áp dụng lớp chủ nhiệm từ phân công server.', error);
   });
 }

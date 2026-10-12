@@ -175,7 +175,15 @@ function loadRouteModules() {
       .then((module) => module.preparePreferredHomeroomEntry?.())
       .catch((error) => console.warn('[PreferredHomeroomEntry] Không chọn được GVCN khi chuyển trang.', error));
   }
-  if (isAssignedClassRoute()) startAssignedClassSync().catch(() => {});
+  // Roster sync is maintenance work, not a prerequisite for opening a class.
+  // Give the Homeroom hero its first paint before processing dozens of rosters.
+  if (isHomeroomRoute()) {
+    runWhenIdle(() => {
+      if (isHomeroomRoute()) startAssignedClassSync().catch(() => {});
+    }, 2400);
+  } else if (isAssignedClassRoute()) {
+    startAssignedClassSync().catch(() => {});
+  }
   if (isBrianTeamRoute() && !schoolRegistryLoaded) {
     schoolRegistryLoaded = true;
     Promise.all([
@@ -337,7 +345,9 @@ async function startApplication() {
   // before the first Homeroom paint. Do not block first render on 28+ roster
   // loads/saves: route modules reconcile them in the background after mount.
   if (isHomeroomRoute()) {
-    await preparePreferredHomeroomBeforeMain();
+    // Never hold the app shell for a remote homeroom RPC (up to 5.5s).
+    // HomeroomWorkspace reads verified/indexed class metadata synchronously.
+    void preparePreferredHomeroomBeforeMain();
   }
 
   await import('./main.jsx');

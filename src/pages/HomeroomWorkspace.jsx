@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import HomeroomConductTab from '../components/HomeroomConductTab.jsx';
+import { fastPreferredHomeroom, listFastHomeroomCatalog } from '../utils/homeroomFastEntry.js';
 import HomeroomOverviewCompactTab from '../components/homeroom/HomeroomOverviewCompactTab.jsx';
 import {
   AttendanceTab,
@@ -69,7 +70,26 @@ function getInitialWorkspace(user, workspaceId) {
   const cached = homeroomSessionCache.get(snapshotKey(user, workspaceId));
   if (cached) return cached;
   const local = loadLocalHomeroomWorkspace(user, workspaceId);
-  return local ? normalizeHomeroomWorkspace(local, user) : makeDefaultHomeroomWorkspace(user);
+  if (local) return normalizeHomeroomWorkspace(local, user);
+  const base = makeDefaultHomeroomWorkspace(user);
+  const preferred = fastPreferredHomeroom(user);
+  const indexed = listFastHomeroomCatalog(user).find((item) => item.id === workspaceId);
+  const metadata = indexed || (preferred?.id === workspaceId ? preferred : null);
+  if (!metadata || workspaceId === 'default') return base;
+  // Cloud-only privacy mode: show the correct class label immediately but never
+  // expose editable zero-student placeholder data before real hydration arrives.
+  return {
+    ...base,
+    id: workspaceId,
+    __besAwaitingCloudClass: true,
+    classProfile: {
+      ...base.classProfile,
+      className: metadata.className,
+      grade: metadata.grade || String(metadata.className).split('.')[0],
+      schoolYear: metadata.schoolYear || base.classProfile.schoolYear,
+      classType: metadata.classType || HOMEROOM_CLASS_TYPE,
+    },
+  };
 }
 
 function stableJson(value) {
@@ -111,25 +131,18 @@ function mergeStudentRecordDelta(before, after, latest) {
 }
 
 export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
-  // Server assignment, when available, is stronger than any stale local current-id.
-  // applicationBootstrap resolves it before first mount on a direct Homeroom entry.
-  // Run this local catalog scan only once on mount, not on each render.
-  // A single explicitly marked GVCN outranks the previously opened subject class.
-  const [initialWorkspaceId] = useState(() => {
-    const authoritativeId = assignedHomeroomWorkspaceId();
-    if (authoritativeId) return authoritativeId;
-    const cachedHomerooms = listLocalHomeroomWorkspaces(currentUser)
-      .filter((item) => item.status !== 'archived' && item.classType === HOMEROOM_CLASS_TYPE);
-    return cachedHomerooms.length === 1
-      ? cachedHomerooms[0].id
-      : getCurrentHomeroomWorkspaceId(currentUser);
-  });
-  const initialWorkspace = getInitialWorkspace(currentUser, initialWorkspaceId);
+  // Only inspect small metadata keys on first paint. Never deserialize all
+  // 28 workspaces simply to choose the teacher's one homeroom class.
+  const [initialWorkspaceId] = useState(() => (
+    fastPreferredHomeroom(currentUser)?.id
+    || assignedHomeroomWorkspaceId()
+    || getCurrentHomeroomWorkspaceId(currentUser)
+  ));
   const [workspaceId, setWorkspaceId] = useState(initialWorkspaceId);
-  const [workspace, setWorkspace] = useState(initialWorkspace);
-  const [catalog, setCatalog] = useState(() => listLocalHomeroomWorkspaces(currentUser));
-  const [classDraft, setClassDraft] = useState(initialWorkspace.classProfile);
-  const [activeTab, setActiveTab] = useState(() => getDefaultClassTab(initialWorkspace));
+  const [workspace, setWorkspace] = useState(() => getInitialWorkspace(currentUser, initialWorkspaceId));
+  const [catalog, setCatalog] = useState(() => listFastHomeroomCatalog(currentUser));
+  const [classDraft, setClassDraft] = useState(() => workspace.classProfile);
+  const [activeTab, setActiveTab] = useState(() => getDefaultClassTab(workspace));
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -154,7 +167,7 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   useEffect(() => {
     let alive = true;
     const sequence = ++hydrationSequenceRef.current;
-    const localItems = listLocalHomeroomWorkspaces(currentUser);
+    const localItems = listFastHomeroomCatalog(currentUser);
     const localWorkspace = loadLocalHomeroomWorkspace(currentUser, workspaceId);
     const cachedWorkspace = homeroomSessionCache.get(snapshotKey(currentUser, workspaceId));
     const immediateWorkspace = cachedWorkspace || localWorkspace;
@@ -171,7 +184,8 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
 
     (async () => {
       try {
-        const items = await refreshCatalog();
+        // Hydrate the selected class first. Downloading/normalizing every class
+        // in the catalog must not delay visible 12.6 student data.
         const result = await loadHomeroomWorkspace(currentUser, workspaceId);
         if (!alive || sequence !== hydrationSequenceRef.current) return;
 
@@ -187,7 +201,7 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
         }
 
         const normalized = normalizeHomeroomWorkspace(result.workspace, currentUser);
-        const loaded = applyCatalogClassType(normalized, items);
+        const loaded = applyCatalogClassType(normalized, localItems);
         if (authoritativeId && loaded.id !== authoritativeId) return;
         setSyncState(result.source === 'cloud' ? 'cloud' : 'local');
         setWorkspace(loaded);
@@ -195,6 +209,15 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
         setActiveTab((current) => isClassTabAllowed(current, loaded, currentUser?.role === 'admin') ? current : getDefaultClassTab(loaded));
         homeroomSessionCache.set(snapshotKey(currentUser, loaded.id), loaded);
         setCurrentHomeroomWorkspaceId(currentUser, loaded.id);
+        // Catalog reconciliation is maintenance; schedule it after the class
+        // has rendered, and do not reopen/switch tabs on its completion.
+        window.setTimeout(() => {
+          if (alive && sequence === hydrationSequenceRef.current) {
+            refreshCatalog().catch((error) => {
+              console.warn('[HomeroomWorkspace] Không đồng bộ được danh mục lớp.', error);
+            });
+          }
+        }, 0);
       } finally {
         if (alive && sequence === hydrationSequenceRef.current) setLoading(false);
       }
@@ -461,6 +484,18 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   const subjectMode = isSubjectClass(workspace);
   const visibleTab = isClassTabAllowed(activeTab, workspace, currentUser?.role === 'admin') ? activeTab : getDefaultClassTab(workspace);
   const classTypeLabel = getClassTypeLabel(getWorkspaceClassType(workspace), language);
+
+  // Only the class label is cached in cloud-only mode. Never enable editing a
+  // synthetic empty roster while the actual school records are still loading.
+  if (workspace.__besAwaitingCloudClass === true) {
+    return <div className="page hr-page is-homeroom-class">
+      <section className="hr-panel" role="status" aria-live="polite" style={{ padding: '28px', marginTop: '16px' }}>
+        <small>BRIAN • CHỦ NHIỆM</small>
+        <h1>Lớp {workspace.classProfile.className}</h1>
+        <p>Đang tải dữ liệu lớp đã phân công…</p>
+      </section>
+    </div>;
+  }
 
   return <div className={`page hr-page ${subjectMode ? 'is-subject-class' : 'is-homeroom-class'}`} data-homeroom-hydrated="true">
     <HomeroomGlassHero
