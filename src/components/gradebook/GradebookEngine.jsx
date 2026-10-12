@@ -382,6 +382,12 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const [workbenchNotice, setWorkbenchNotice] = useState('');
   const scoreTableRef = useRef(null);
   const studentSearchRef = useRef(null);
+  // New class/semester/score section must start at the first student.
+  // Score edits themselves do not reset the editor's scroll position.
+  useEffect(() => {
+    const wrap = document.querySelector('.gradebook-studio .gb5-editor-anchor .hr-grade-table-wrap');
+    if (wrap) { wrap.scrollTop = 0; wrap.scrollLeft = 0; }
+  }, [workspace.id, activeSubjectKey, semesterId, view]);
   const [newSubject, setNewSubject] = useState('');
   const [dirty, setDirty] = useState(false);
   const [savePending, setSavePending] = useState(false);
@@ -946,7 +952,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
         </div>
       </div>
       {students.length ? <div ref={scoreTableRef} className={`hr-grade-table-wrap${showFullRoster ? ' gbv3-table-expanded' : ''}`}>
-        <table className="hr-grade-table" style={{ minWidth: `${Math.max(820, 290 + activeRound.columns.length * 104 + 3 * 118)}px` }}>
+        <table className={`hr-grade-table${activeRound.columns.length === 1 ? ' gb5-table-fill' : ''}`} style={{ minWidth: `${Math.max(820, 290 + activeRound.columns.length * 104 + 3 * 118)}px` }}>
           <thead>
             <tr>
               <th className="hr-grade-index">STT</th>
