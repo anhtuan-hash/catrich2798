@@ -13,6 +13,7 @@ import {
   rememberWorkHubItem,
 } from './workHubDelivery.js';
 import { isAdminRole, isDepartmentLeaderRole } from './roles.js';
+import { dashboardLocalDayKey, isDashboardActionableTask, isDashboardSchedule, isDashboardTeachingPeriod } from './dashboardClassification.js';
 
 const DAY = 86400000;
 const DONE = new Set(['completed', 'approved', 'archived', 'cancelled']);
@@ -203,6 +204,7 @@ function normalizeWork(item, user) {
     entityId,
     mine,
     sharedSchedule,
+    schedule,
     raw: item,
   };
 }
@@ -261,7 +263,7 @@ function attendanceRows(workspace, isoDate) {
 function buildHomeroom(workspace, now = new Date()) {
   if (!workspace) return null;
   // Attendance is keyed by the local school day, not UTC (which can lag in Viet Nam).
-  const iso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const iso = dashboardLocalDayKey(now);
   const students = array(workspace.students).filter((item) => item?.active !== false);
   const absentToday = attendanceRows(workspace, iso).filter((row) => {
     const status = text(row?.status || row?.attendance).toLowerCase();
@@ -366,7 +368,7 @@ export function createEmptyDashboardSnapshot(currentUser) {
     role: leader ? 'leader' : 'teacher',
     leader,
     admin: isAdminRole(currentUser?.role),
-    stats: { today: 0, todayEvents: 0, overdue: 0, dueSoon: 0, pendingApproval: 0, upcoming: 0, notifications: 0 },
+    stats: { today: 0, todayEvents: 0, overdue: 0, dueSoon: 0, openTasks: 0, pendingApproval: 0, upcoming: 0, notifications: 0 },
     timeline: [],
     attention: [],
     professional: [],
@@ -413,18 +415,22 @@ export async function loadDashboardSnapshot(currentUser, now = new Date()) {
     done: item?.status === 'completed', route: 'homeroom', entityId: item?.id || '',
   }));
   const timeline = [...relevantWork.filter((item) => !item.done), ...homeroomTimeline]
+    .filter((item) => !isDashboardTeachingPeriod(item))
     .filter((item) => { const days = dayDistance(item.date, now); return days !== null && days >= 0 && days < 14; })
     .sort((a, b) => (parseDate(a.date)?.getTime() || 0) - (parseDate(b.date)?.getTime() || 0));
-  const allAttention = [...relevantWork.filter((item) => !item.done), ...(leader ? resources.filter((item) => item.status === 'pending') : [])];
-  const attention = allAttention.sort((a, b) => {
+  // Only unfinished work items belong to the task/overdue cards. A calendar
+  // event does not become a missed task when its start time passes. Resources
+  // pending review appear in the separate approval bucket, not in overdue.
+  const allAttention = relevantWork.filter(isDashboardActionableTask);
+  const attention = [...allAttention].sort((a, b) => {
     const rank = { overdue: 0, today: 1, soon: 2, normal: 3 };
     return rank[getDashboardDueState(a.date, a.done, now)] - rank[getDashboardDueState(b.date, b.done, now)]
       || (parseDate(a.date)?.getTime() || Number.MAX_SAFE_INTEGER) - (parseDate(b.date)?.getTime() || Number.MAX_SAFE_INTEGER);
   }).slice(0, 80);
   const allApprovals = leader
-    ? [...resources.filter((item) => item.status === 'pending'), ...workItems.filter((item) => item.status === 'submitted')]
+    ? [...resources.filter((item) => item.status === 'pending'), ...relevantWork.filter((item) => !isDashboardSchedule(item) && item.status === 'submitted')]
     : [];
-  const approvals = allApprovals.slice(0, 8);
+  const approvals = allApprovals.slice(0, 80);
   const drafts = collectDrafts(currentUser);
   const recentApps = getRecentAppUsage(currentUser, 8);
   const continueMap = new Map();
@@ -444,6 +450,7 @@ export async function loadDashboardSnapshot(currentUser, now = new Date()) {
     todayEvents: timeline.filter((item) => dayDistance(item.date, now) === 0).length,
     overdue: allAttention.filter((item) => getDashboardDueState(item.date, item.done, now) === 'overdue').length,
     dueSoon: allAttention.filter((item) => getDashboardDueState(item.date, item.done, now) === 'soon').length,
+    openTasks: allAttention.length,
     pendingApproval: allApprovals.length,
     upcoming: timeline.length,
     notifications: array(notifications).length,
@@ -457,7 +464,7 @@ export async function loadDashboardSnapshot(currentUser, now = new Date()) {
     continueItems: [...continueMap.values()].sort((a, b) => Number(b.updatedAt || 0) - Number(a.updatedAt || 0)).slice(0, 6),
     recentResources: [...resources].sort((a, b) => (parseDate(b.date)?.getTime() || 0) - (parseDate(a.date)?.getTime() || 0)).slice(0, 6),
     homeroom,
-    workflowHealth: workflowHealth(relevantWork, now),
+    workflowHealth: workflowHealth(relevantWork.filter((item) => !isDashboardSchedule(item)), now),
     notifications: array(notifications), sourceErrors,
     sources: { workHub: workResult.source, resources: resourceResult.source, homeroom: homeroomResult.source },
   };

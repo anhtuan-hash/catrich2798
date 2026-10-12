@@ -14,6 +14,8 @@ import '../styles/teacher-dashboard-google-colorful.css';
 import '../styles/teacher-dashboard-editorial-hero.css';
 import '../styles/teacher-dashboard-timeline-v2.css';
 import DashboardCommandCenter from '../components/DashboardCommandCenter.jsx';
+import { dashboardLocalDayKey, isDashboardTeachingPeriod } from '../utils/dashboardClassification.js';
+import '../styles/dashboard-command-center-v21.css';
 import BrianDashboardDropZone from '../components/BrianDashboardDropZone.jsx';
 import '../styles/dashboard-command-center-v2.css';
 
@@ -87,15 +89,7 @@ const ICON_PATHS = {
 function Icon({ name, size = 20 }) {
   return <svg className="gd-icon" width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d={ICON_PATHS[name] || ICON_PATHS.apps} /></svg>;
 }
-function dateKey(value) {
-  const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-}
-function isTeachingPeriod(item) {
-  const haystack = `${item?.title || ''} ${item?.description || ''} ${item?.sourceLabel || ''}`;
-  return /tiết\s*dạy|teaching\s*period|lesson\s*period|thời\s*khóa\s*biểu|timetable/i.test(haystack);
-}
+const dateKey = dashboardLocalDayKey;
 function eventTimeLabel(value, t, locale) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime()) || (date.getHours() === 0 && date.getMinutes() === 0)) return t.allDay;
@@ -316,6 +310,8 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   const [weather, setWeather] = useState({ temperature: null, code: null, loading: true });
   const [weatherLocation, setWeatherLocation] = useState(initialWeatherLocation);
   const [showNews, setShowNews] = useState(false);
+  const [newsExpanded, setNewsExpanded] = useState(false);
+  const [calendarRange, setCalendarRange] = useState('today');
   const newsRef = useRef(null);
   const dashboardRequestRef = useRef(0);
   const weatherRequestRef = useRef(0);
@@ -365,14 +361,14 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   useEffect(() => { refreshWeather(); return () => { weatherRequestRef.current += 1; }; }, [refreshWeather]);
   useEffect(() => {
     const element = newsRef.current;
-    if (!element || showNews) return undefined;
+    if (!element || showNews || !newsExpanded) return undefined;
     if (typeof IntersectionObserver === 'undefined') { setShowNews(true); return undefined; }
     const observer = new IntersectionObserver((entries) => {
       if (entries.some((entry) => entry.isIntersecting)) { setShowNews(true); observer.disconnect(); }
     }, { rootMargin: '350px 0px' });
     observer.observe(element);
     return () => observer.disconnect();
-  }, [showNews]);
+  }, [showNews, newsExpanded]);
   useEffect(() => {
     let refreshTimer = 0;
     const queueUpdate = () => { window.clearTimeout(refreshTimer); refreshTimer = window.setTimeout(() => refresh({ quiet: true }), 450); };
@@ -394,7 +390,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
     };
   }, [refresh]);
 
-  const timeline = useMemo(() => (snapshot.timeline || []).filter((item) => !isTeachingPeriod(item)).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()), [snapshot.timeline]);
+  const timeline = useMemo(() => (snapshot.timeline || []).filter((item) => !isDashboardTeachingPeriod(item)).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()), [snapshot.timeline]);
   const name = currentUser?.name || currentUser?.full_name || currentUser?.email?.split('@')[0] || t.teacher;
   const locale = language === 'vi' ? 'vi-VN' : 'en-US';
   const todayKey = dateKey(now);
@@ -404,6 +400,11 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
     return value;
   }, [todayKey]);
   const todayEvents = useMemo(() => timeline.filter((item) => dateKey(item.date) === todayKey), [timeline, todayKey]);
+  const weekDays = useMemo(() => Array.from({ length: 7 }, (_, index) => {
+    const day = new Date(todayDate);
+    day.setDate(day.getDate() + index);
+    return { key: dateKey(day), date: day, events: timeline.filter((item) => dateKey(item.date) === dateKey(day)) };
+  }), [timeline, todayDate]);
   const todayWeekday = new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(todayDate);
   const todayDateLabel = new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'long', year: 'numeric' }).format(todayDate);
   const initialLoading = loading && !snapshot.generatedAt;
@@ -505,18 +506,28 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
         </header>
       </section>
 
-      <DashboardCommandCenter snapshot={snapshot} language={language} now={now} loading={loading} onRefresh={() => refresh()} />
+      <DashboardCommandCenter snapshot={snapshot} todayEventCount={todayEvents.length} language={language} now={now} loading={loading} onRefresh={() => refresh()} />
 
       {error ? <div className="gd-alert"><Icon name="warning" size={22} /><div><strong>{t.partial}</strong><small>{error}</small></div><button type="button" className="gd-text-button" onClick={() => refresh()}>{t.retry}</button></div> : null}
       <article className="gd-calendar gd-calendar-today gd-calendar-timeline-v2" id="dashboard-calendar">
         <header className="gd-calendar-header">
-          <div className="gd-calendar-kicker">02 / TODAY</div>
+          <div className="gd-calendar-kicker">{calendarRange === 'week' ? '02 / WEEK' : '02 / TODAY'}</div>
           <div className="gd-calendar-title"><span><Icon name="calendar" size={24} /></span><div><h2>{t.calendar}</h2><p>{t.calendarSummary}</p></div></div>
           <DashboardCalendarDoodle language={language} />
           <span className="gd-calendar-edition">DAILY SCHEDULE / BRIAN</span>
           <button type="button" className="gd-text-button" onClick={() => openTtcm('schedule')}><Icon name="calendar" size={16} />{t.openCalendar}<Icon name="arrow" size={18} /></button>
         </header>
-        <div className="gd-today-layout gd-today-layout-v2">
+        <div className="gd-calendar-range-toggle" role="group" aria-label={language === 'vi' ? 'Phạm vi lịch' : 'Schedule range'}>
+          <button type="button" aria-pressed={calendarRange === 'today'} className={calendarRange === 'today' ? 'is-active' : ''} onClick={() => setCalendarRange('today')}>{language === 'vi' ? 'Hôm nay' : 'Today'}</button>
+          <button type="button" aria-pressed={calendarRange === 'week'} className={calendarRange === 'week' ? 'is-active' : ''} onClick={() => setCalendarRange('week')}>{language === 'vi' ? '7 ngày tới' : 'Next 7 days'}</button>
+        </div>
+        <div className={'gd-today-layout gd-today-layout-v2' + (calendarRange === 'week' ? ' gd-week-mode' : '')}>
+          {calendarRange === 'week' ? <section className="gd-week-agenda" aria-live="polite">
+            {weekDays.map((day) => <div className="gd-week-day" key={day.key}>
+              <div className="gd-week-day-heading"><span>{new Intl.DateTimeFormat(locale, { weekday: 'long', day: '2-digit', month: '2-digit' }).format(day.date)}</span><b>{day.events.length} {t.events}</b></div>
+              {day.events.length ? day.events.map((item, index) => <CalendarEvent key={item.id} item={item} language={language} locale={locale} t={t} index={index} />) : <p className="gd-week-empty">{t.noEvents}</p>}
+            </div>)}
+          </section> : <>
           <aside className="gd-date-poster">
             <div className="gd-date-poster-main">
               <strong>{String(todayDate.getDate()).padStart(2, '0')}</strong>
@@ -533,14 +544,20 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
             </div>
             <div className="gd-agenda-list gd-agenda-list-today gd-agenda-timeline">{initialLoading ? <Empty>{t.refreshing}</Empty> : todayEvents.length ? todayEvents.map((item, index) => <CalendarEvent key={item.id} item={item} language={language} locale={locale} t={t} index={index} />) : <Empty>{t.emptyCalendar}</Empty>}</div>
           </section>
+          </>}
         </div>
       </article>
-      <BrianDashboardDropZone language={language} />
-      <div ref={newsRef} className="dcc-news-slot">
-        {showNews ? <Suspense fallback={<div className="dcc-news-placeholder">{t.refreshing}</div>}><DashboardNewsHub language={language} /></Suspense>
-          : <div className="dcc-news-placeholder" aria-label={language === 'vi' ? 'Tin tức tải khi cuộn đến' : 'News loads when in view'}>{language === 'vi' ? 'Tin tức sẽ tải khi bạn cuộn đến khu vực này.' : 'News will load when you scroll here.'}</div>}
-      </div>
       <Surface title={t.quickActions} icon="bolt" className="gd-quick-surface" note={language === 'vi' ? 'Tiết kiệm thời gian · Tập trung cho điều quan trọng ♡' : 'Save time · Focus on what matters ♡'}><div className="gd-quick-actions">{quickActions.map(([icon, label, target]) => <button type="button" key={label} className="gd-quick-action" onClick={() => { if (String(target).startsWith('ttcm:')) openTtcm(String(target).split(':')[1] || 'feed'); else window.location.hash = target; }}><span><Icon name={icon} size={20} /></span>{label}</button>)}</div></Surface>
+      <BrianDashboardDropZone language={language} />
+      <section ref={newsRef} className="dcc-news-slot">
+        <button type="button" className="dcc-news-toggle" aria-expanded={newsExpanded} onClick={() => setNewsExpanded((v) => !v)}>
+          <span aria-hidden="true">📰</span><strong>{language === 'vi' ? 'Tin tức giáo dục' : 'Education news'}</strong>
+          <span>{language === 'vi' ? (newsExpanded ? 'Thu gọn' : 'Hiển thị tin tức') : (newsExpanded ? 'Collapse' : 'Show news')} {newsExpanded ? '−' : '+'}</span>
+        </button>
+        {newsExpanded ? (showNews
+          ? <Suspense fallback={<div className="dcc-news-placeholder">{t.refreshing}</div>}><DashboardNewsHub language={language} /></Suspense>
+          : <div className="dcc-news-placeholder">{t.refreshing}</div>) : null}
+      </section>
     </div>
   </section>;
 }

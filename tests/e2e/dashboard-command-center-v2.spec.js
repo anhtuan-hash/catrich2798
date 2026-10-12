@@ -50,3 +50,45 @@ test('mobile Bento UI does not introduce horizontal overflow and retains Drop Zo
   }));
   expect(dimensions.scroll).toBeLessThanOrEqual(dimensions.viewport + 2);
 });
+
+test('2.1 shows the same number of events on the overview card and day agenda', async ({ page }) => {
+  await openDashboard(page);
+  await expect.poll(async () => {
+    const card = await page.locator('.dcc-stat--blue .dcc-stat-number').innerText();
+    const agenda = await page.locator('.gd-count-chip').innerText();
+    return Number(card.replace(/[^0-9]/g, '')) === Number(agenda.match(/\d+/)?.[0] || -1);
+  }).toBe(true);
+});
+
+test('2.1 switches from Today to seven grouped days and back', async ({ page }) => {
+  await openDashboard(page);
+  const toggle = page.locator('.gd-calendar-range-toggle');
+  await toggle.getByRole('button', { name: '7 ngày tới' }).click();
+  await expect(page.locator('.gd-week-day')).toHaveCount(7);
+  await expect(toggle.getByRole('button', { name: '7 ngày tới' })).toHaveAttribute('aria-pressed', 'true');
+  await toggle.getByRole('button', { name: 'Hôm nay' }).click();
+  await expect(page.locator('.gd-date-poster')).toBeVisible();
+});
+
+test('2.1 searches task labels and keeps news collapsed by default', async ({ page }) => {
+  await openDashboard(page);
+  const search = page.getByRole('searchbox', { name: 'Tìm công việc...' });
+  await expect(search).toBeVisible();
+  await search.fill('a unique phrase that cannot match any task');
+  await expect(page.locator('.dcc-empty')).toBeVisible();
+  const toggle = page.locator('.dcc-news-toggle');
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+});
+
+test('2.1 week layout avoids horizontal overflow on phones', async ({ page }) => {
+  await page.setViewportSize({ width: 440, height: 956 });
+  await openDashboard(page);
+  await page.locator('.gd-calendar-range-toggle').getByRole('button', { name: '7 ngày tới' }).click();
+  await expect(page.locator('.gd-week-day')).toHaveCount(7);
+  const width = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
+  expect(width[0]).toBeLessThanOrEqual(width[1] + 2);
+});
