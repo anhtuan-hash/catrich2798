@@ -552,7 +552,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
         <div>
           <small>Điểm thường xuyên · Đợt {roundIndex + 1}</small>
           <h2>Nhập điểm cho toàn bộ lớp</h2>
-          <p>Điểm cộng = số dấu + của học sinh / số dấu + cao nhất lớp; tối đa 1 điểm. Điểm đợt = trung bình các lần nhập + điểm cộng, tối đa 10.</p>
+          <p>Nhập điểm theo thang 10. Điểm cộng và điểm đợt được tính tự động.</p>
         </div>
         <div className="gbv2-head-actions"><button type="button" className="secondary" onClick={addRegularColumn}>＋ Thêm lần nhập</button>{renderTableControls()}</div>
       </div>
@@ -643,20 +643,24 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       </div>
     </details>
 
-    <section className="hr-panel hr-grade-toolbar">
-      <div className="hr-grade-title">
+    <details className="hr-panel gb-grade-tools">
+      <summary className="gb-grade-tools-trigger">
         <span className="hr-grade-title-icon" aria-hidden="true"><GradebookUiIcon type="book" /></span>
-        <div className="hr-grade-title-copy"><span>GRADEBOOK / TOOLS</span><h2>Công cụ Sổ điểm</h2><p>Quản lý môn học và công thức tính điểm</p></div>
+        <span className="gb-grade-tools-heading"><strong>Công cụ Sổ điểm</strong><small>Quản lý môn học và công thức tính điểm</small></span>
+        <span className="gb-grade-tools-chevron" aria-hidden="true">⌄</span>
+      </summary>
+      <div className="gb-grade-tools-content">
+        <div className="hr-grade-controls">
+          <details className="gbv2-manage-subject"><summary>＋ Quản lý môn học</summary>
+            <div className="gbv2-manage-content">
+              <label><span>Môn học hiện tại</span><select value={activeSubjectKey} onChange={(event) => setActiveSubjectKey(event.target.value)}>{subjectEntries.map(([key, subject]) => <option key={key} value={key}>{subject.name}</option>)}</select></label>
+              <div className="hr-grade-new-subject"><label><span>Thêm môn / mở môn mới</span><input value={newSubject} onChange={(event) => setNewSubject(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') openSubject(); }} placeholder="Ví dụ: Toán" /></label><button type="button" className="secondary" onClick={openSubject}>Mở môn</button></div>
+            </div>
+          </details>
+        </div>
+        <details className="gbv2-formula-details"><summary>fx · Xem công thức tính điểm</summary><div className="hr-grade-formula"><span>fx</span><p><b>Công thức điểm thường xuyên từng đợt</b><small>Điểm cộng = Dấu + / Dấu + cao nhất lớp (≤ 1); Điểm đợt = min(10, trung bình các cột điểm + điểm cộng)</small></p></div></details>
       </div>
-      <div className="hr-grade-controls">
-        <details className="gbv2-manage-subject"><summary>＋ Quản lý môn học</summary>
-          <div className="gbv2-manage-content"><label><span>Môn học hiện tại</span><select value={activeSubjectKey} onChange={(event) => setActiveSubjectKey(event.target.value)}>{subjectEntries.map(([key, subject]) => <option key={key} value={key}>{subject.name}</option>)}</select></label>
-            <div className="hr-grade-new-subject"><label><span>Thêm môn / mở môn mới</span><input value={newSubject} onChange={(event) => setNewSubject(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') openSubject(); }} placeholder="Ví dụ: Toán" /></label><button type="button" className="secondary" onClick={openSubject}>Mở môn</button></div>
-          </div>
-        </details>
-      </div>
-      <details className="gbv2-formula-details"><summary>fx · Xem công thức tính điểm</summary><div className="hr-grade-formula"><span>fx</span><p><b>Công thức điểm thường xuyên từng đợt</b><small>Điểm cộng = Dấu + / Dấu + cao nhất lớp (≤ 1); Điểm đợt = min(10, trung bình các cột điểm + điểm cộng)</small></p></div></details>
-    </section>
+    </details>
 
     <GradebookNavigationPalette
       semesterId={semesterId}
