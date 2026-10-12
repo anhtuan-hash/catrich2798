@@ -1,0 +1,306 @@
+/*
+ * BRIAN Homeroom 4.0 — Phase 2, Material 3 Expressive × Colorful Bento.
+ * ONE migration layer, gated to .page.hr-page.hr-v4. Existing overlays stay
+ * untouched until they can be removed safely. !important below is limited to
+ * declarations previously locked by legacy !important styles.
+ * No global :root or changes to other Brian applications.
+ */
+.page.hr-page.hr-v4 {
+  width: min(1480px, calc(100vw - 32px)) !important;
+  padding-block: 16px 84px !important;
+  background: var(--hr4-surface-soft) !important;
+  color: var(--hr4-ink) !important;
+}
+/* Compact but fully interactive campus hero — vector art remains intact. */
+.page.hr-page.hr-v4 .hr-campus-hero {
+  height: 308px !important;
+  min-height: 308px !important;
+  margin-bottom: 15px !important;
+  border: 1px solid var(--hr4-outline) !important;
+  border-radius: var(--hr4-radius-card) !important;
+  background: linear-gradient(119deg, #fff 0%, #eff6ff 52%, #d6eeff 100%) !important;
+  box-shadow: var(--hr4-elevation-card) !important;
+}
+.page.hr-page.hr-v4 .hr-campus-hero::before {
+  top: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  width: 60% !important;
+  border-radius: 0 26% 26% 0 / 0 55% 55% 0 !important;
+  background: linear-gradient(108deg, #fff 0%, #f7fbff 78%, rgba(239,247,255,.93) 100%) !important;
+  box-shadow: 15px 0 22px rgba(49,104,163,.025) !important;
+}
+.page.hr-page.hr-v4 .hr-campus-hero::after { display: none !important; }
+.page.hr-page.hr-v4 .hr-campus-scene { inset: 0 0 0 48% !important; }
+.page.hr-page.hr-v4 .hr-campus-scene__svg {
+  transform: scale(1.08) translateX(1%) !important;
+}
+.page.hr-page.hr-v4 .hr-campus-hero__copy {
+  width: 61% !important;
+  padding: 22px 24px 16px 30px !important;
+}
+.page.hr-page.hr-v4 .hr-campus-hero__eyebrow {
+  margin-bottom: 8px !important;
+  color: #4a6b96 !important;
+  font-size: 12px !important;
+  letter-spacing: .005em !important;
+}
+.page.hr-page.hr-v4 .hr-campus-hero h1 {
+  margin: 0 !important;
+  font-size: clamp(38px, 4vw, 56px) !important;
+  line-height: 1.01 !important;
+  letter-spacing: -.048em !important;
+}
+.page.hr-page.hr-v4 .hr-campus-hero__quote,
+.page.hr-page.hr-v4 .hr-campus-hero__tagline,
+.page.hr-page.hr-v4 .hr-campus-hero__accent { display: none !important; }
+.page.hr-page.hr-v4 .hr-campus-hero__ledger {
+  width: min(100%, 610px) !important;
+  margin-top: 15px !important;
+  padding: 9px 5px !important;
+  border-color: #d7e6f5 !important;
+  background: rgba(255,255,255,.88) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 3px 14px rgba(31,66,115,.06) !important;
+}
+.page.hr-page.hr-v4 .hr-campus-detail {
+  grid-template-columns: 24px minmax(0,1fr) !important;
+  gap: 4px !important;
+  padding-inline: 8px !important;
+}
+.page.hr-page.hr-v4 .hr-campus-detail__icon {
+  width: 24px !important;
+  height: 24px !important;
+}
+.page.hr-page.hr-v4 .hr-campus-detail small { font-size: 9px !important; }
+.page.hr-page.hr-v4 .hr-campus-detail strong { font-size: 12px !important; }
+.page.hr-page.hr-v4 .hr-campus-hero__actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 7px !important;
+  width: 100% !important;
+  max-width: 640px !important;
+  margin-top: 14px !important;
+}
+.page.hr-page.hr-v4 .hr-campus-hero__actions button,
+.page.hr-page.hr-v4 .hr-campus-hero__actions button:nth-child(2),
+.page.hr-page.hr-v4 .hr-campus-hero__actions button:nth-child(3),
+.page.hr-page.hr-v4 .hr-campus-hero__actions button.is-dark,
+.page.hr-page.hr-v4 .hr-campus-hero__actions button.is-primary {
+  grid-column: auto !important;
+  min-width: 0 !important;
+  min-height: 36px !important;
+  padding: 0 13px !important;
+  font-size: 11px !important;
+  border-radius: var(--hr4-radius-control) !important;
+}
+.page.hr-page.hr-v4 .hr-campus-hero__actions button.is-primary {
+  background: linear-gradient(125deg, var(--hr4-primary), var(--hr4-violet)) !important;
+}
+.page.hr-page.hr-v4 .hr-campus-hero__actions button.is-dark {
+  background: #153c78 !important;
+}
+.page.hr-page.hr-v4 .hr-campus-hero__actions button:focus-visible {
+  outline: 3px solid var(--hr4-focus-ring) !important;
+  outline-offset: 3px !important;
+}
+.page.hr-page.hr-v4 .hr-campus-hero__art-copy {
+  top: 16px !important;
+  right: 22px !important;
+  gap: 7px !important;
+}
+.page.hr-page.hr-v4 .hr-campus-hero__class-mark { font-size: 10px !important; }
+.page.hr-page.hr-v4 .hr-campus-profile {
+  right: 18px !important;
+  bottom: 15px !important;
+  width: 250px !important;
+  min-height: 116px !important;
+  padding: 11px 13px !important;
+  border-radius: 18px !important;
+  box-shadow: 0 16px 36px rgba(20,57,108,.18) !important;
+}
+.page.hr-page.hr-v4 .hr-campus-profile__top {
+  grid-template-columns: 37px minmax(0,1fr) !important;
+  gap: 9px !important;
+}
+.page.hr-page.hr-v4 .hr-campus-profile__avatar {
+  width: 37px !important;
+  height: 37px !important;
+  font-size: 12px !important;
+}
+.page.hr-page.hr-v4 .hr-campus-profile__rule { margin-block: 8px !important; }
+.page.hr-page.hr-v4 .hr-campus-profile__stats strong { font-size: 17px !important; }
+.page.hr-page.hr-v4 .hr-campus-profile__status { margin-top: 6px !important; }
+
+/* Bright semantic navigation; keep existing sticky-top JS calculations. */
+.page.hr-page.hr-v4 .hr-tabs-dock {
+  --hr-tabs-dock-height: 64px;
+  margin-bottom: 16px !important;
+}
+.page.hr-page.hr-v4 .hr-tabs-dock > .hr-tabs {
+  gap: 5px !important;
+  padding: 7px !important;
+  border: 1px solid var(--hr4-outline) !important;
+  border-radius: 19px !important;
+  background: var(--hr4-surface) !important;
+  box-shadow: var(--hr4-elevation-card) !important;
+}
+.page.hr-page.hr-v4 .hr-tabs-scroll { gap: 5px !important; }
+.page.hr-page.hr-v4 .hr-tabs-scroll > button[data-tone] {
+  --hr4-tab-color: var(--hr4-primary);
+  --hr4-tab-soft: var(--hr4-primary-soft);
+  display: inline-flex !important;
+  align-items: center !important;
+  flex-shrink: 0 !important;
+  gap: 7px !important;
+  min-height: 47px !important;
+  padding: 0 12px !important;
+  border-radius: 13px !important;
+  background: transparent !important;
+  color: var(--hr4-ink) !important;
+  font-size: 13px !important;
+  transition: background-color var(--hr4-duration-fast), transform var(--hr4-duration-fast) !important;
+}
+.page.hr-page.hr-v4 .hr-tabs-scroll > button[data-tone="classes"] { --hr4-tab-color: var(--hr4-violet); --hr4-tab-soft: var(--hr4-violet-soft); }
+.page.hr-page.hr-v4 .hr-tabs-scroll > button[data-tone="students"] { --hr4-tab-color: var(--hr4-teal); --hr4-tab-soft: var(--hr4-teal-soft); }
+.page.hr-page.hr-v4 .hr-tabs-scroll > button[data-tone="studentRecords"] { --hr4-tab-color: var(--hr4-violet); --hr4-tab-soft: var(--hr4-violet-soft); }
+.page.hr-page.hr-v4 .hr-tabs-scroll > button[data-tone="attendance"] { --hr4-tab-color: var(--hr4-teal); --hr4-tab-soft: var(--hr4-teal-soft); }
+.page.hr-page.hr-v4 .hr-tabs-scroll > button[data-tone="conduct"] { --hr4-tab-color: var(--hr4-coral); --hr4-tab-soft: var(--hr4-coral-soft); }
+.page.hr-page.hr-v4 .hr-tabs-scroll > button[data-tone="safety"] { --hr4-tab-color: var(--hr4-primary); --hr4-tab-soft: var(--hr4-primary-soft); }
+.page.hr-page.hr-v4 .hr-tabs-scroll > button .hr-v4-tab-symbol {
+  display: grid !important;
+  place-items: center !important;
+  width: 32px !important;
+  min-width: 32px !important;
+  height: 32px !important;
+  border-radius: 10px !important;
+  color: var(--hr4-tab-color) !important;
+  background: var(--hr4-tab-soft) !important;
+}
+.page.hr-page.hr-v4 .hr-tabs-scroll > button[data-tone]:hover,
+.page.hr-page.hr-v4 .hr-tabs-scroll > button[data-tone].active {
+  color: var(--hr4-tab-color) !important;
+  background: var(--hr4-tab-soft) !important;
+}
+.page.hr-page.hr-v4 .hr-tabs-scroll > button[data-tone].active {
+  box-shadow: inset 0 0 0 1px var(--hr4-outline) !important;
+}
+.page.hr-page.hr-v4 .hr-tabs-scroll > button[data-tone] b {
+  font-weight: 730 !important;
+  font-size: 12.5px !important;
+}
+.page.hr-page.hr-v4 .hr-tabs-scroll > button[data-tone]:focus-visible,
+.page.hr-page.hr-v4 button:focus-visible,
+.page.hr-page.hr-v4 input:focus-visible,
+.page.hr-page.hr-v4 select:focus-visible,
+.page.hr-page.hr-v4 textarea:focus-visible {
+  outline: 3px solid var(--hr4-focus-ring) !important;
+  outline-offset: 2px !important;
+}
+
+/* Card, table and form surfaces share tokens without touching business logic. */
+.page.hr-page.hr-v4 .hr-workspace-body,
+.page.hr-page.hr-v4 .hr-tab-stack { gap: 14px !important; }
+.page.hr-page.hr-v4 .hr-panel {
+  border: 1px solid var(--hr4-outline) !important;
+  border-radius: var(--hr4-radius-card) !important;
+  background: var(--hr4-surface) !important;
+  box-shadow: 0 2px 10px rgba(25,67,121,.035) !important;
+}
+.page.hr-page.hr-v4 .hr-panel-head h2 {
+  color: var(--hr4-ink) !important;
+  font-size: clamp(21px, 1.9vw, 29px) !important;
+  font-weight: 730 !important;
+}
+.page.hr-page.hr-v4 .hr-panel-head small { color: var(--hr4-primary) !important; }
+.page.hr-page.hr-v4 .hr-panel input,
+.page.hr-page.hr-v4 .hr-panel select,
+.page.hr-page.hr-v4 .hr-panel textarea {
+  border: 1px solid var(--hr4-outline) !important;
+  border-radius: var(--hr4-radius-control) !important;
+  background: var(--hr4-surface-soft) !important;
+  color: var(--hr4-ink) !important;
+}
+.page.hr-page.hr-v4 .hr-panel button.primary {
+  border-radius: var(--hr4-radius-control) !important;
+  background: var(--hr4-primary) !important;
+  font-weight: 750 !important;
+}
+.page.hr-page.hr-v4 .hr-table-wrap,
+.page.hr-page.hr-v4 .hr-preview-table {
+  border: 1px solid var(--hr4-outline) !important;
+  border-radius: 17px !important;
+}
+.page.hr-page.hr-v4 .hr-toast {
+  border-radius: var(--hr4-radius-control) !important;
+}
+
+/* Tablet: shorten hero while keeping all four actions and class details visible. */
+@media (max-width: 1100px) {
+  .page.hr-page.hr-v4 .hr-campus-hero { height: 350px !important; min-height: 350px !important; }
+  .page.hr-page.hr-v4 .hr-campus-hero__copy { width: 69% !important; padding: 21px 22px !important; }
+  .page.hr-page.hr-v4 .hr-campus-hero::before { width: 72% !important; }
+  .page.hr-page.hr-v4 .hr-campus-scene { inset: 0 0 0 43% !important; }
+  .page.hr-page.hr-v4 .hr-campus-hero__art-copy { top: 18px !important; }
+  .page.hr-page.hr-v4 .hr-campus-profile { right: 14px !important; bottom: 13px !important; width: 218px !important; max-width: 36% !important; }
+  .page.hr-page.hr-v4 .hr-tabs-scroll > button[data-tone] { padding-inline: 9px !important; }
+}
+@media (max-width: 760px) {
+  .page.hr-page.hr-v4 { width: calc(100vw - 22px) !important; padding-top: 10px !important; }
+  .page.hr-page.hr-v4 .hr-campus-hero { height: 480px !important; min-height: 480px !important; border-radius: 19px !important; }
+  .page.hr-page.hr-v4 .hr-campus-hero::before { width: 100% !important; height: 78% !important; border-radius: 0 0 20% 0 / 0 0 7% 0 !important; }
+  .page.hr-page.hr-v4 .hr-campus-scene { inset: 34% 0 0 !important; opacity: .68 !important; }
+  .page.hr-page.hr-v4 .hr-campus-hero__copy { width: 100% !important; padding: 22px 17px !important; }
+  .page.hr-page.hr-v4 .hr-campus-hero h1 { font-size: clamp(43px, 10vw, 60px) !important; }
+  .page.hr-page.hr-v4 .hr-campus-hero__ledger { grid-template-columns: repeat(2, minmax(0,1fr)) !important; max-width: 100% !important; }
+  .page.hr-page.hr-v4 .hr-campus-hero__actions { display: grid !important; grid-template-columns: repeat(2, minmax(0,1fr)) !important; gap: 7px !important; }
+  .page.hr-page.hr-v4 .hr-campus-hero__actions button { width: 100% !important; justify-content: center !important; }
+  .page.hr-page.hr-v4 .hr-campus-hero__art-copy { display: none !important; }
+  .page.hr-page.hr-v4 .hr-campus-profile { right: 12px !important; left: 12px !important; bottom: 12px !important; width: auto !important; max-width: none !important; min-height: 86px !important; padding: 10px 13px !important; }
+  .page.hr-page.hr-v4 .hr-campus-profile__rule,
+  .page.hr-page.hr-v4 .hr-campus-profile__stats { display: none !important; }
+  .page.hr-page.hr-v4 .hr-tabs-dock { --hr-tabs-dock-height: 62px; margin-bottom: 12px !important; }
+  .page.hr-page.hr-v4 .hr-tabs-scroll > button[data-tone] b { font-size: 12px !important; }
+  .page.hr-page.hr-v4 .hr-panel { padding: 16px !important; border-radius: 17px !important; }
+}
+@media (max-width: 520px) {
+  .page.hr-page.hr-v4 .hr-campus-hero { height: 500px !important; min-height: 500px !important; }
+  .page.hr-page.hr-v4 .hr-campus-hero__copy { padding: 19px 12px !important; }
+  .page.hr-page.hr-v4 .hr-campus-hero h1 { font-size: 47px !important; }
+  .page.hr-page.hr-v4 .hr-campus-detail { padding-inline: 6px !important; }
+  .page.hr-page.hr-v4 .hr-campus-hero__actions button { padding-inline: 8px !important; }
+  .page.hr-page.hr-v4 .hr-tabs-scroll > button[data-tone] { padding: 0 8px !important; }
+  .page.hr-page.hr-v4 .hr-tabs-scroll > button[data-tone] b { font-size: 11px !important; }
+}
+/* Contrast in dark mode: opaque surfaces over the bright campus illustration. */
+html[data-theme="dark"] .page.hr-page.hr-v4 .hr-campus-hero {
+  background: linear-gradient(123deg,#192c47,#17385c 70%,#214b7d) !important;
+  border-color: var(--hr4-outline) !important;
+}
+html[data-theme="dark"] .page.hr-page.hr-v4 .hr-campus-hero::before {
+  background: linear-gradient(110deg,#182b43 0%,rgba(24,43,67,.96) 76%,rgba(24,43,67,.78)) !important;
+}
+html[data-theme="dark"] .page.hr-page.hr-v4 .hr-campus-hero__eyebrow,
+html[data-theme="dark"] .page.hr-page.hr-v4 .hr-campus-hero h1,
+html[data-theme="dark"] .page.hr-page.hr-v4 .hr-campus-hero h1 em {
+  color: #e9f3ff !important;
+  -webkit-text-fill-color: #e9f3ff !important;
+}
+html[data-theme="dark"] .page.hr-page.hr-v4 .hr-campus-hero__ledger,
+html[data-theme="dark"] .page.hr-page.hr-v4 .hr-campus-profile {
+  background: #233a57 !important;
+  border-color: #426286 !important;
+}
+html[data-theme="dark"] .page.hr-page.hr-v4 .hr-campus-detail strong,
+html[data-theme="dark"] .page.hr-page.hr-v4 .hr-campus-profile__top strong,
+html[data-theme="dark"] .page.hr-page.hr-v4 .hr-campus-profile__stats strong { color: #f2f7ff !important; -webkit-text-fill-color: #f2f7ff !important; }
+html[data-theme="dark"] .page.hr-page.hr-v4 .hr-campus-detail small,
+html[data-theme="dark"] .page.hr-page.hr-v4 .hr-campus-profile__top small { color: #c6d8f0 !important; -webkit-text-fill-color: #c6d8f0 !important; }
+@media (prefers-reduced-motion: reduce) {
+  .page.hr-page.hr-v4 .hr-campus-hero__actions button,
+  .page.hr-page.hr-v4 .hr-tabs-scroll > button[data-tone] {
+    transition: none !important;
+    transform: none !important;
+  }
+}

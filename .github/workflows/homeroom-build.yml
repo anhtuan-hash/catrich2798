@@ -6,6 +6,8 @@ on:
       - 'src/pages/HomeroomWorkspace.jsx'
       - 'src/styles/homeroom-4-tokens.css'
       - 'scripts/test-homeroom-4-phase-1.mjs'
+      - 'src/styles/homeroom-4-expressive.css'
+      - 'scripts/test-homeroom-4-phase-2.mjs'
       - 'docs/homeroom-4/**'
       - 'src/utils/homeroomFastEntry.js'
       - 'scripts/test-homeroom-instant-entry.mjs'
@@ -46,6 +48,8 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Verify Homeroom 4.0 Phase 2 expressive UI regression
+        run: node scripts/test-homeroom-4-phase-2.mjs
       - name: Verify Homeroom 4.0 Phase 1 design and safety contract
         run: node scripts/test-homeroom-4-phase-1.mjs
       - name: Verify instant cached GVCN entry and account isolation

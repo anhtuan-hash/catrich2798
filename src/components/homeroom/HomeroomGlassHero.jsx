@@ -253,6 +253,7 @@ export default function HomeroomGlassHero({
 
   return <section
     className={`hr-campus-hero ${subjectMode ? 'is-subject' : 'is-homeroom'}`}
+    data-homeroom-design="v4"
     aria-labelledby="hr-campus-hero-title"
     data-class-type={classTypeLabel}
     data-workspace-id={workspace?.id || ''}
@@ -277,7 +278,7 @@ export default function HomeroomGlassHero({
       </div>
 
       <div className="hr-campus-hero__actions" aria-label={vi ? 'Thao tác lớp' : 'Class actions'}>
-        <button type="button" className="is-dark" onClick={() => navigate(subjectMode ? 'classes' : 'overview')}><Icon type="class" />{vi ? 'Quản lý lớp' : 'Manage class'}</button>
+        <button type="button" className="is-dark" onClick={() => navigate('classes')}><Icon type="class" />{vi ? 'Quản lý lớp' : 'Manage class'}</button>
         <button type="button" onClick={() => navigate('students')}><Icon type="people" />{vi ? 'Học sinh' : 'Students'}</button>
         <button type="button" onClick={exportRoster}><Icon type="download" />{vi ? 'Xuất danh sách' : 'Export roster'}</button>
         <button type="button" className="is-primary" onClick={addStudent}><Icon type="plus" />{vi ? 'Thêm học sinh' : 'Add student'}</button>
