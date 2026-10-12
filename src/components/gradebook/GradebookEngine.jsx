@@ -15,6 +15,7 @@ import GradebookProductivityPanel from './GradebookProductivityPanel.jsx';
 import GradebookSemesterMission from './GradebookSemesterMission.jsx';
 import GradebookMockExams from './GradebookMockExams.jsx';
 import GradebookProgressDeck from './GradebookProgressDeck.jsx';
+import GradebookFocusBar from './GradebookFocusBar.jsx';
 import { isGrade12Class, normalizeMockExams, createMockExam, mockExamScoreNumber } from '../../utils/gradebookMockExams.js';
 import { semesterProgressSections, semesterProgressSummary, semesterPendingStudents } from '../../utils/gradebookSemesterMission.js';
 import { gradebookAuditChanges, gradebookQualityReport } from '../../utils/gradebookProductivity.js';
@@ -375,6 +376,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const [studentQuery, setStudentQuery] = useState('');
   const [missingOnly, setMissingOnly] = useState(false);
   const [focusMode, setFocusMode] = useState(false);
+  const [insightsOpen, setInsightsOpen] = useState(false);
   const [sortBy, setSortBy] = useState('original');
   const [density, setDensity] = useState('comfortable');
   const [workbenchNotice, setWorkbenchNotice] = useState('');
@@ -1015,6 +1017,71 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   );
 
   return <div className={`hr-tab-stack hr-gradebook${focusMode ? ' gb-is-focused' : ''}${density === 'compact' ? ' gb-density-compact' : ''}`} data-grade-view={view} data-grade-tone={activeView.tone}>
+    <GradebookNavigationPalette
+      semesterId={semesterId}
+      onSemesterChange={setSemesterId}
+      view={view}
+      onViewChange={setView}
+      dirty={dirty}
+      saving={savePending}
+      blocked={Boolean(exportDialogMode || exporting)}
+      onDiscard={discard}
+      onSave={save}
+      showMockExams={showMockExams}
+      currentUser={currentUser}
+    />
+
+    <GradebookFocusBar
+      students={students} semester={activeSemester} subjectName={activeSubject?.name || 'Môn học'}
+      semesterLabel={semesterLabel} view={view} showMockExams={showMockExams}
+      dirty={dirty} savePending={savePending} missingOnly={missingOnly}
+      onToggleMissing={() => setMissingOnly((current) => !current)}
+      onNextMissing={(nextView) => {
+        if (!VIEWS.some((item) => item.id === nextView)) return;
+        setView(nextView);
+        setMissingOnly(true);
+        setStudentQuery('');
+        window.requestAnimationFrame(() => document.querySelector('.gradebook-studio .gb5-editor-anchor')?.scrollIntoView({ behavior:'smooth',block:'start' }));
+      }}
+      onOpenInsights={() => {
+        setInsightsOpen(true);
+        window.requestAnimationFrame(() => document.querySelector('.gradebook-studio .gb5-insights-drawer')?.scrollIntoView({ behavior:'smooth',block:'start' }));
+      }}
+      onScrollToTable={() => document.querySelector('.gradebook-studio .gb5-editor-anchor')?.scrollIntoView({ behavior:'smooth',block:'start' })}
+    />
+
+    {finalized && view !== 'mock' ? <div className="gb-finalized-banner" role="status"><strong>Học kỳ đã chốt</strong><span>Các ô điểm và thao tác chỉnh sửa đang khóa trong giao diện. Mở Bộ công cụ Sổ điểm → Chốt điểm để xem trạng thái hoặc mở khóa có lý do.</span></div> : null}
+    {exportMessage ? <div className={`hr-grade-export-message ${exportMessage.type}`} role="status" aria-live="polite"><span>{exportMessage.type === 'error' ? '!' : '✓'}</span>{exportMessage.text}</div> : null}
+
+    {saveFailure ? <div className="gb-save-error" role="alert"><strong>Không thể lưu điểm</strong><span>{saveFailure}</span><button type="button" disabled={savePending} onClick={save}>Thử lưu lại</button></div> : null}
+    <div className="gb5-editor-anchor" id="gb5-grade-entry" aria-label="Bảng nhập điểm và bộ lọc học sinh">
+    {renderRosterToolbar()}
+    {renderColumnInsights()}
+
+    {view.startsWith('regular-') ? renderRegularTable() : null}
+    {view === 'midterm' ? renderExamTable('midterm', 'Điểm giữa kỳ') : null}
+    {view === 'final' ? renderExamTable('final', 'Điểm cuối kỳ') : null}
+    {view === 'summary' ? renderSummary() : null}
+    {view === 'mock' && showMockExams ? <GradebookMockExams
+      students={students} visibleStudents={visibleStudents} exams={mockExams}
+      className={workspace.classProfile?.className || ''} subjectName={activeSubject?.name || ''}
+      workspaceId={workspace.id} subjectKey={activeSubjectKey}
+      originalStudentPosition={originalStudentPosition} disabled={savePending}
+      onAdd={addMockExam} onRename={renameMockExam} onDate={dateMockExam}
+      onRemove={removeMockExam} onScoreChange={scoreMockExam}
+      onBulkPaste={bulkPasteMockExam} onSetLock={setMockExamLock}
+    /> : null}
+
+
+    </div>
+    <details className="gb5-insights-drawer" open={insightsOpen}
+      onToggle={(event) => setInsightsOpen(event.currentTarget.open)}>
+      <summary aria-label="Mở bảng phân tích và các công cụ Sổ điểm">
+        <span className="gb5-insights-symbol"><ChartColumnIncreasing size={20} aria-hidden="true" /></span>
+        <span><strong>Phân tích & công cụ Sổ điểm</strong><small>Thống kê học kỳ, tiến độ nhập, quản lý môn, phân công và công cụ nâng cao — mở khi cần</small></span>
+        <span className="gb5-insights-chevron" aria-hidden="true">⌄</span>
+      </summary>
+      {insightsOpen ? <div className="gb5-insights-content">
     {view !== 'mock' ? <section className="hr-grade-overview" aria-label="Tổng quan sổ điểm">
       <article className="tone-blue"><span className="hr-grade-overview-icon"><GradebookUiIcon type="bars" /></span><small>Cột TX hiện có</small><strong>{totalRegularColumns}</strong><span>Trong học kỳ đang chọn</span></article>
       <article className="tone-green"><span className="hr-grade-overview-icon"><GradebookUiIcon type="students" /></span><small>Học sinh</small><strong>{students.length}</strong><span>Danh sách lớp hiện tại</span></article>
@@ -1024,6 +1091,23 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
 
 
 
+
+    {!focusMode && view !== 'mock' ? <GradebookProgressDeck
+      students={students} semester={activeSemester} semesterLabel={semesterLabel}
+      subjectName={activeSubject?.name || 'Môn học'} selectedView={view}
+      showMockExams={showMockExams} missingOnly={missingOnly}
+      onOpenSection={(sectionId) => { setView(sectionId); setMissingOnly(false); setStudentQuery(''); }}
+      onShowMissing={(sectionId) => { setView(sectionId); setMissingOnly(true); setStudentQuery(''); }}
+      onShowAll={() => { setMissingOnly(false); setStudentQuery(''); }}
+      onOpenMock={() => { setView('mock'); setMissingOnly(false); setStudentQuery(''); }}
+    /> : null}
+
+    {!focusMode && view !== 'mock' ? <details className="gb3-mission-details">
+      <summary><span><strong>Danh sách ưu tiên hoàn thiện</strong><small>Học sinh còn thiếu điểm, thống kê chi tiết và điều hướng đến đúng thành phần</small></span><span className="gb3-mission-open-label">Xem chi tiết <span aria-hidden="true">⌄</span></span></summary>
+      <GradebookSemesterMission sections={missionSections} summary={missionSummary} queue={missionQueue} onSelectSection={openMissionSection} onSelectStudent={openMissionStudent} finalized={finalized} />
+    </details> : null}
+
+
     <details className="gb-academic-administration">
       <summary><span>Quản lý lớp và phân công giảng dạy</span><small>Mở công cụ quản trị lớp khi cần</small></summary>
       <div className="gb-academic-admin-content">
@@ -1031,6 +1115,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
         {classManagement}
       </div>
     </details>
+
 
     <details className="hr-panel gb-grade-tools">
       <summary className="gb-grade-tools-trigger">
@@ -1051,55 +1136,6 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       </div>
     </details>
 
-    <GradebookNavigationPalette
-      semesterId={semesterId}
-      onSemesterChange={setSemesterId}
-      view={view}
-      onViewChange={setView}
-      dirty={dirty}
-      saving={savePending}
-      blocked={Boolean(exportDialogMode || exporting)}
-      onDiscard={discard}
-      onSave={save}
-      showMockExams={showMockExams}
-      currentUser={currentUser}
-    />
-
-    {!focusMode && view !== 'mock' ? <GradebookProgressDeck
-      students={students} semester={activeSemester} semesterLabel={semesterLabel}
-      subjectName={activeSubject?.name || 'Môn học'} selectedView={view}
-      showMockExams={showMockExams} missingOnly={missingOnly}
-      onOpenSection={(sectionId) => { setView(sectionId); setMissingOnly(false); setStudentQuery(''); }}
-      onShowMissing={(sectionId) => { setView(sectionId); setMissingOnly(true); setStudentQuery(''); }}
-      onShowAll={() => { setMissingOnly(false); setStudentQuery(''); }}
-      onOpenMock={() => { setView('mock'); setMissingOnly(false); setStudentQuery(''); }}
-    /> : null}
-
-    {!focusMode && view !== 'mock' ? <details className="gb3-mission-details">
-      <summary><span><strong>Danh sách ưu tiên hoàn thiện</strong><small>Học sinh còn thiếu điểm, thống kê chi tiết và điều hướng đến đúng thành phần</small></span><span className="gb3-mission-open-label">Xem chi tiết <span aria-hidden="true">⌄</span></span></summary>
-      <GradebookSemesterMission sections={missionSections} summary={missionSummary} queue={missionQueue} onSelectSection={openMissionSection} onSelectStudent={openMissionStudent} finalized={finalized} />
-    </details> : null}
-
-    {finalized && view !== 'mock' ? <div className="gb-finalized-banner" role="status"><strong>Học kỳ đã chốt</strong><span>Các ô điểm và thao tác chỉnh sửa đang khóa trong giao diện. Mở Bộ công cụ Sổ điểm → Chốt điểm để xem trạng thái hoặc mở khóa có lý do.</span></div> : null}
-    {exportMessage ? <div className={`hr-grade-export-message ${exportMessage.type}`} role="status" aria-live="polite"><span>{exportMessage.type === 'error' ? '!' : '✓'}</span>{exportMessage.text}</div> : null}
-
-    {saveFailure ? <div className="gb-save-error" role="alert"><strong>Không thể lưu điểm</strong><span>{saveFailure}</span><button type="button" disabled={savePending} onClick={save}>Thử lưu lại</button></div> : null}
-    {renderRosterToolbar()}
-    {renderColumnInsights()}
-
-    {view.startsWith('regular-') ? renderRegularTable() : null}
-    {view === 'midterm' ? renderExamTable('midterm', 'Điểm giữa kỳ') : null}
-    {view === 'final' ? renderExamTable('final', 'Điểm cuối kỳ') : null}
-    {view === 'summary' ? renderSummary() : null}
-    {view === 'mock' && showMockExams ? <GradebookMockExams
-      students={students} visibleStudents={visibleStudents} exams={mockExams}
-      className={workspace.classProfile?.className || ''} subjectName={activeSubject?.name || ''}
-      workspaceId={workspace.id} subjectKey={activeSubjectKey}
-      originalStudentPosition={originalStudentPosition} disabled={savePending}
-      onAdd={addMockExam} onRename={renameMockExam} onDate={dateMockExam}
-      onRemove={removeMockExam} onScoreChange={scoreMockExam}
-      onBulkPaste={bulkPasteMockExam} onSetLock={setMockExamLock}
-    /> : null}
 
     {view !== 'mock' ? <GradebookProductivityPanel
       students={students}
@@ -1122,6 +1158,10 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       computeRoundScore={(round,studentId)=>roundScore(round,studentId,studentIds)}
       dirty={dirty}
     /> : null}
+
+
+      </div> : null}
+    </details>
 
     {dirty ? <div className="gbv2-save-strip" role="status" aria-live="polite">
       <span>{savePending ? 'Đang lưu điểm' : 'Bạn có thay đổi chưa lưu'} · {activeSubject?.name || 'Môn học'} · {view === 'mock' ? 'Thi thử lớp 12' : semesterLabel}</span>
