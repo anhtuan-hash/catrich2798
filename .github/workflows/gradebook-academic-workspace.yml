@@ -38,3 +38,7 @@ jobs:
           node scripts/test-gradebook-migration-state.mjs
       - name: Production build
         run: npm run build
+      - name: Install browser for table layout checks
+        run: npx playwright install --with-deps chromium
+      - name: Browser geometry check (390px, 620px, 980px, 1440px)
+        run: npx playwright test tests/e2e/gradebook-academic-geometry.spec.js --project=chromium-desktop
