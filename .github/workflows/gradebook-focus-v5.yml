@@ -10,6 +10,9 @@ on:
       - 'tests/gradebook-focus-v5.test.mjs'
       - 'tests/e2e/gradebook-focus-v5-layout.spec.js'
       - 'tests/gradebook-spectrum-v4.test.mjs'
+      - 'tests/gradebook-academic-workspace.test.mjs'
+      - 'tests/gradebook-material3-finish.test.mjs'
+      - 'tests/gradebook-visual-defects.test.mjs'
       - '.github/workflows/gradebook-focus-v5.yml'
   pull_request:
     paths:
@@ -20,6 +23,9 @@ on:
       - 'tests/gradebook-focus-v5.test.mjs'
       - 'tests/e2e/gradebook-focus-v5-layout.spec.js'
       - 'tests/gradebook-spectrum-v4.test.mjs'
+      - 'tests/gradebook-academic-workspace.test.mjs'
+      - 'tests/gradebook-material3-finish.test.mjs'
+      - 'tests/gradebook-visual-defects.test.mjs'
 jobs:
   gradebook-regression:
     runs-on: ubuntu-latest
