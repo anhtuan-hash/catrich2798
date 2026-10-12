@@ -5,6 +5,7 @@ on:
       - feat/dashboard-command-center-20261012
       - feat/dashboard-2-1-accuracy-20261012
       - feat/dashboard-2-2-insights-20261012
+      - feat/dashboard-2-3-personal-layout-20261012
   workflow_dispatch:
 permissions:
   contents: read
@@ -27,6 +28,7 @@ jobs:
           TZ=Asia/Ho_Chi_Minh node scripts/test-dashboard-command-center-v21.mjs
           TZ=Asia/Ho_Chi_Minh node scripts/test-dashboard-command-center-v22.mjs
           TZ=America/New_York node scripts/test-dashboard-command-center-v22.mjs
+          node scripts/test-dashboard-command-center-v23.mjs
       - name: Production build
         run: npm run build
       - name: Install Playwright Chromium

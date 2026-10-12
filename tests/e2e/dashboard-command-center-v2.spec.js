@@ -153,3 +153,52 @@ test('2.2 stays within mobile viewport with context strip visible', async ({ pag
   }));
   expect(widths.content).toBeLessThanOrEqual(widths.viewport + 2);
 });
+
+test('2.3 saves card order, visibility and density across reload', async ({ page }) => {
+  await openDashboard(page);
+  await page.locator('.dcc-customize-trigger').click();
+  await expect(page.locator('.dcc-customizer')).toBeVisible();
+  await page.getByRole('button', { name: 'Chuyển sang trái: Quá hạn' }).click();
+  await expect(page.locator('.dcc-stat-label').first()).toHaveText('Quá hạn');
+  const dueSoon = page.locator('.dcc-card-option').filter({ hasText: 'Sắp đến hạn' });
+  await dueSoon.locator('.dcc-visibility-button').click();
+  await expect(page.locator('.dcc-stat')).toHaveCount(3);
+  await page.locator('.dcc-density-selector').getByRole('button', { name: 'Gọn' }).click();
+  await expect(page.locator('.dcc-root')).toHaveClass(/dcc-density--compact/);
+  await page.reload();
+  await expect(page.locator('.dcc-root')).toBeVisible();
+  await expect(page.locator('.dcc-stat')).toHaveCount(3);
+  await expect(page.locator('.dcc-stat-label').first()).toHaveText('Quá hạn');
+  await expect(page.locator('.dcc-root')).toHaveClass(/dcc-density--compact/);
+  await page.locator('.dcc-customize-trigger').click();
+  await page.locator('.dcc-reset-layout').click();
+  await expect(page.locator('.dcc-stat')).toHaveCount(4);
+  await expect(page.locator('.dcc-stat-label').first()).toHaveText('Lịch hôm nay');
+  await expect(page.locator('.dcc-root')).toHaveClass(/dcc-density--comfortable/);
+});
+
+test('2.3 hides sections but calendar button reveals the hidden calendar', async ({ page }) => {
+  await openDashboard(page);
+  await page.locator('.dcc-customize-trigger').click();
+  const calendarToggle = page.locator('.dcc-section-option').filter({ hasText: 'Lịch làm việc' });
+  await calendarToggle.click();
+  await expect(calendarToggle).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.locator('#dashboard-calendar')).toHaveCount(0);
+  await page.locator('.dcc-customize-trigger').click();
+  await page.locator('.dcc-stat--blue').click();
+  await expect(page.locator('#dashboard-calendar')).toBeVisible();
+  await page.reload();
+  await expect(page.locator('#dashboard-calendar')).toBeVisible();
+});
+
+test('2.3 customizer remains usable at mobile width', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openDashboard(page);
+  await page.locator('.dcc-customize-trigger').click();
+  await expect(page.locator('.dcc-card-option')).toHaveCount(4);
+  await expect(page.locator('.dcc-section-option')).toHaveCount(8);
+  const dimensions = await page.evaluate(() => ({
+    doc: document.documentElement.scrollWidth, viewport: document.documentElement.clientWidth,
+  }));
+  expect(dimensions.doc).toBeLessThanOrEqual(dimensions.viewport + 2);
+});
