@@ -4,12 +4,15 @@
  */
 export const DASHBOARD_LAYOUT_PREFIX = 'bes-dashboard-personal-layout-v23';
 export const DASHBOARD_CARD_IDS = Object.freeze(['today', 'overdue', 'dueSoon', 'approvals', 'notices']);
+export const DASHBOARD_BOARD_IDS = Object.freeze(['calendar', 'quickActions', 'dropZone', 'news']);
+export const DASHBOARD_WIDGET_SIZES = Object.freeze(['small','wide','tall']);
 export const DASHBOARD_SECTION_IDS = Object.freeze([
   'nextEvent', 'priority', 'continue', 'homeroom', 'calendar', 'quickActions', 'dropZone', 'news',
 ]);
 
 export function defaultDashboardLayout() {
-  return { version: 1, cardOrder: [...DASHBOARD_CARD_IDS], hiddenCards: [], hiddenSections: [], density: 'comfortable' };
+  return { version: 1, cardOrder: [...DASHBOARD_CARD_IDS], hiddenCards: [], hiddenSections: [], density: 'comfortable',
+    boardOrder: [...DASHBOARD_BOARD_IDS], widgetSizes: { calendar: 'wide', quickActions: 'small', dropZone: 'small', news: 'wide' }, preset: 'default' };
 }
 
 const uniqueAllowed = (values, allowed) => [...new Set(Array.isArray(values) ? values.filter((value) => allowed.includes(value)) : [])];
@@ -21,13 +24,16 @@ export function normalizeDashboardLayout(value) {
   const order = [...selectedOrder, ...DASHBOARD_CARD_IDS.filter((id) => !selectedOrder.includes(id))];
   const hiddenCards = uniqueAllowed(value.hiddenCards, DASHBOARD_CARD_IDS);
   // Never allow an empty overview: at least one visible card for each role.
-  if (DASHBOARD_CARD_IDS.filter((id) => !hiddenCards.includes(id)).length < 2) return { ...fallback, cardOrder: order, hiddenSections: uniqueAllowed(value.hiddenSections, DASHBOARD_SECTION_IDS), density: value.density === 'compact' ? 'compact' : 'comfortable' };
+  if (DASHBOARD_CARD_IDS.filter((id) => !hiddenCards.includes(id)).length < 2) return normalizeDashboardLayout({ ...value, hiddenCards: [] });
   return {
     version: 1,
     cardOrder: order,
     hiddenCards,
     hiddenSections: uniqueAllowed(value.hiddenSections, DASHBOARD_SECTION_IDS),
     density: value.density === 'compact' ? 'compact' : 'comfortable',
+    boardOrder: [...uniqueAllowed(value.boardOrder, DASHBOARD_BOARD_IDS), ...DASHBOARD_BOARD_IDS.filter((id) => !uniqueAllowed(value.boardOrder, DASHBOARD_BOARD_IDS).includes(id))],
+    widgetSizes: Object.fromEntries(DASHBOARD_BOARD_IDS.map((id) => [id, DASHBOARD_WIDGET_SIZES.includes(value.widgetSizes?.[id]) ? value.widgetSizes[id] : fallback.widgetSizes[id]])),
+    preset: ['default','teacher','homeroom','leader'].includes(value.preset) ? value.preset : 'default',
   };
 }
 
@@ -84,4 +90,26 @@ export function moveDashboardCard(layout, id, direction, availableCards = DASHBO
   [order[index], order[target]] = [order[target], order[index]];
   // Keep hidden role-specific cards in a stable trailing position, rather than deleting them.
   return { ...previous, cardOrder: [...order, ...previous.cardOrder.filter((cardId) => !order.includes(cardId))] };
+}
+
+export function moveDashboardWidget(layout, id, direction) {
+  const current = normalizeDashboardLayout(layout);
+  if (!DASHBOARD_BOARD_IDS.includes(id) || ![-1, 1].includes(direction)) return current;
+  const boardOrder = [...current.boardOrder];
+  const from = boardOrder.indexOf(id), to = from + direction;
+  if (from < 0 || to < 0 || to >= boardOrder.length) return current;
+  [boardOrder[from], boardOrder[to]] = [boardOrder[to], boardOrder[from]];
+  return { ...current, boardOrder, preset: 'default' };
+}
+export function resizeDashboardWidget(layout, id, size) {
+  const current = normalizeDashboardLayout(layout);
+  if (!DASHBOARD_BOARD_IDS.includes(id) || !DASHBOARD_WIDGET_SIZES.includes(size)) return current;
+  return { ...current, widgetSizes: { ...current.widgetSizes, [id]: size }, preset: 'default' };
+}
+export function applyDashboardLayoutPreset(preset) {
+  const base = defaultDashboardLayout();
+  if (preset === 'teacher') return normalizeDashboardLayout({ ...base, preset, boardOrder: ['quickActions', 'calendar', 'dropZone', 'news'], density: 'compact' });
+  if (preset === 'homeroom') return normalizeDashboardLayout({ ...base, preset, boardOrder: ['calendar', 'quickActions', 'dropZone', 'news'], widgetSizes: { ...base.widgetSizes, calendar: 'wide', dropZone: 'wide' } });
+  if (preset === 'leader') return normalizeDashboardLayout({ ...base, preset, boardOrder: ['calendar', 'quickActions', 'news', 'dropZone'], density: 'compact' });
+  return base;
 }

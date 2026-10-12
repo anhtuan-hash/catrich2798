@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { dashboardDueLabel, getDashboardDueState, openDashboardTarget } from '../utils/dashboardAggregator.js';
 import DashboardLayoutEditor from './DashboardLayoutEditor.jsx';
+import { filterDashboardTasks } from '../utils/dashboardV3Selectors.js';
 import { normalizeDashboardLayout, setDashboardSectionVisible } from '../utils/dashboardLayoutPreferences.js';
 
 /**
@@ -32,6 +33,8 @@ const TEXT = {
     limited: 'Nguồn công việc có giới hạn số bản ghi. Số liệu có thể chưa đầy đủ.',
     counterTip: 'Chỉ tính nhiệm vụ chưa hoàn thành; không tính sự kiện lịch đã diễn ra.',
     displayed: 'hiển thị', customize: 'Tùy chỉnh', doneCustomize: 'Xong',
+    advanced: 'Lọc nâng cao', allPriorities: 'Tất cả ưu tiên', priorityUrgent: 'Khẩn cấp', priorityHigh: 'Ưu tiên cao', priorityNormal: 'Thông thường', priorityLow: 'Ưu tiên thấp',
+    sortUrgency: 'Khẩn cấp trước', sortDate: 'Hạn gần nhất', sortRecent: 'Cập nhật gần đây',
   },
   en: {
     heading: 'Your command center', subtitle: 'Your schedule, priorities and work in one place.',
@@ -52,6 +55,8 @@ const TEXT = {
     limited: 'The work source is capped. Some totals may be incomplete.',
     counterTip: 'Counts unfinished tasks only, not past calendar events.',
     displayed: 'shown', customize: 'Customize', doneCustomize: 'Done',
+    advanced: 'Advanced filters', allPriorities: 'All priorities', priorityUrgent: 'Urgent', priorityHigh: 'High', priorityNormal: 'Normal', priorityLow: 'Low',
+    sortUrgency: 'Urgency first', sortDate: 'Nearest due date', sortRecent: 'Recently updated',
   },
 };
 
@@ -81,6 +86,8 @@ export default function DashboardCommandCenter({ snapshot, todayEventCount, lang
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [scope, setScope] = useState('all');
+  const [priorityFilter, setPriorityFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('urgency');
   const [visibleLimit, setVisibleLimit] = useState(8);
   const [showNotifications, setShowNotifications] = useState(false);
   const [editingLayout, setEditingLayout] = useState(false);
@@ -110,12 +117,9 @@ export default function DashboardCommandCenter({ snapshot, todayEventCount, lang
   const visibleCards = orderedCards.filter((card) => !layout.hiddenCards.includes(card.id));
   const cardsToRender = visibleCards.length ? visibleCards : orderedCards.slice(0, 1);
   const approvalItems = snapshot?.approvals || [];
-  const filtered = useMemo(() => (filter === 'approvals' ? approvalItems : scopedAttention).filter((item) => {
-    const belongs = filter === 'all' || filter === 'approvals' || getDashboardDueState(item.date, item.done, now) === filter;
-    const found = !search.trim() || [item.title, item.description, item.owner, item.sourceLabel]
-      .some((value) => String(value || '').toLocaleLowerCase('vi').includes(search.trim().toLocaleLowerCase('vi')));
-    return belongs && found;
-  }), [scopedAttention, approvalItems, filter, now, search]);
+  const filtered = useMemo(() => filterDashboardTasks(filter === 'approvals' ? approvalItems : scopedAttention, {
+    group: filter, query: search, priority: priorityFilter, sort: sortBy,
+  }, now), [scopedAttention, approvalItems, filter, search, priorityFilter, sortBy, now]);
   const visible = filtered.slice(0, visibleLimit);
   const continueItems = (snapshot?.continueItems || []).filter((item) =>
     item.target && !['#/dashboard', '#/home'].includes(item.target)
@@ -202,7 +206,19 @@ export default function DashboardCommandCenter({ snapshot, todayEventCount, lang
               </button>
             ))}
           </div>
-          <label className="dcc-task-search"><Search size={16} aria-hidden="true" /><input role="searchbox" type="text" tabIndex={0} value={search} onChange={(event) => { setSearch(event.target.value); setVisibleLimit(8); }} placeholder={t.search} aria-label={t.search} /></label>
+          <div className="gd-v3-task-toolbar">
+            <label className="dcc-task-search"><Search size={16} aria-hidden="true" /><input role="searchbox" type="text" tabIndex={0} value={search} onChange={(event) => { setSearch(event.target.value); setVisibleLimit(8); }} placeholder={t.search} aria-label={t.search} /></label>
+            <div className="gd-v3-task-controls" role="group" aria-label={t.advanced}>
+              <select aria-label={language === 'vi' ? 'Lọc theo ưu tiên' : 'Filter by priority'} value={priorityFilter} onChange={(event)=>{setPriorityFilter(event.target.value);setVisibleLimit(8);}}>
+                <option value="all">{t.allPriorities}</option>
+                <option value="urgent">{t.priorityUrgent}</option><option value="high">{t.priorityHigh}</option>
+                <option value="normal">{t.priorityNormal}</option><option value="low">{t.priorityLow}</option>
+              </select>
+              <select aria-label={language === 'vi' ? 'Sắp xếp công việc' : 'Sort tasks'} value={sortBy} onChange={(event)=>setSortBy(event.target.value)}>
+                <option value="urgency">{t.sortUrgency}</option><option value="date">{t.sortDate}</option><option value="recent">{t.sortRecent}</option>
+              </select>
+            </div>
+          </div>
           <div className="dcc-priority-list">
             {visible.length ? visible.map((item) => <PriorityRow item={item} key={item.id} language={language} now={now} approval={filter === 'approvals'} />) : (
               <div className="dcc-empty"><CheckCircle2 size={25}/><span>{(filter === 'approvals' ? approvalItems : scopedAttention).length ? t.empty : t.noWork}</span></div>

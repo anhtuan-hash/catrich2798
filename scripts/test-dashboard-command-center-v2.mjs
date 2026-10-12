@@ -41,8 +41,9 @@ assert.match(css, /@media\(max-width:640px\)/, 'Mobile layout CSS');
 assert.match(css, /prefers-reduced-motion/, 'Reduced motion');
 assert.match(dropZone, /consumeDashboardDropPacket|setDashboardDropPacket/, 'Drop-zone handoff must remain intact');
 
-const heroPosition = dashboard.indexOf('<DashboardCommandCenter');
-const calendarPosition = dashboard.indexOf('id="dashboard-calendar"');
-const dropPosition = dashboard.indexOf('<BrianDashboardDropZone');
-assert.ok(heroPosition >= 0 && calendarPosition > heroPosition && dropPosition > calendarPosition, 'Dashboard priority order');
+// Dashboard 3.0 declares reordered widgets before the main JSX return.
+assertIncludes(dashboard, '<DashboardCommandCenter', 'Command Center mount');
+assertIncludes(dashboard, '<DashboardWidgetBoard', 'Accessible widget DOM order');
+assertIncludes(dashboard, 'calendar: (isDashboardSectionVisible', 'Calendar widget');
+assertIncludes(dashboard, 'dropZone: (isDashboardSectionVisible', 'Drop Zone widget');
 console.log('PASS dashboard-command-center-v2: data, interactions, location, loading, regressions and layout.');

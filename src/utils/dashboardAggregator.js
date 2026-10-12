@@ -23,6 +23,12 @@ const DRAFT_PREFIX = 'bes-global-draft-v1084';
 const WORKSPACE_EVENT = 'bes-workspace-updated';
 const AI_CONFIG_SOURCE_MODULE = 'english-hub-ai-websites';
 const WORK_DASHBOARD_MAX_ITEMS = 500;
+// Cover current and following month, without implying earlier history is complete.
+const DASHBOARD_MONTHS_AHEAD = 2;
+function calendarWindow(now = new Date()) {
+  return { start: new Date(now.getFullYear(), now.getMonth(), 1),
+    end: new Date(now.getFullYear(), now.getMonth() + DASHBOARD_MONTHS_AHEAD, 1) };
+}
 const WORK_DASHBOARD_RPC = 'bes_dashboard_work_hub_v2';
 const WORK_DASHBOARD_COLUMNS = [
   'id',
@@ -201,6 +207,8 @@ function normalizeWork(item, user) {
     route: 'work-hub',
     target: schedule && entityId ? `#/work-hub?view=schedule&event=${encodeURIComponent(entityId)}` : '',
     entityId,
+    updatedAt: item?.updated_at || '',
+    completedAt: item?.completed_at || item?.metadata?.completed_at || '',
     mine,
     sharedSchedule,
     schedule,
@@ -290,8 +298,7 @@ async function loadWork(user, now = new Date()) {
   const client = getRuntimeClient();
   if (client && user?.id) {
     try {
-      const rangeStart = startOfDay(now);
-      const rangeEnd = addDays(rangeStart, 14);
+      const { start: rangeStart, end: rangeEnd } = calendarWindow(now);
       const compactResult = await client.rpc(WORK_DASHBOARD_RPC, {
         p_range_start: rangeStart.toISOString(),
         p_range_end: rangeEnd.toISOString(),
@@ -385,6 +392,7 @@ export function createEmptyDashboardSnapshot(currentUser) {
     workflowHealth: { progress: 0, open: 0, overdue: 0, pending: 0, completed: 0, total: 0 },
     notifications: [],
     sourceErrors: [],
+    calendarCoverage: null,
     sources: { workHub: 'loading', resources: 'loading', homeroom: 'loading' },
   };
 }
@@ -420,14 +428,19 @@ export async function loadDashboardSnapshot(currentUser, now = new Date()) {
     date: item?.date || item?.startAt || '', owner: '', status: text(item?.status),
     done: item?.status === 'completed', route: 'homeroom', entityId: item?.id || '',
   }));
-  const timeline = [...relevantWork.filter((item) => !item.done), ...homeroomTimeline]
+  const { start: scheduleStart, end: scheduleEnd } = calendarWindow(now);
+  const timeline = [...relevantWork.filter((item) => item.schedule || !item.done), ...homeroomTimeline]
     .filter((item) => !isDashboardTeachingPeriod(item))
-    .filter((item) => { const days = dayDistance(item.date, now); return days !== null && days >= 0 && days < 14; })
+    .filter((item) => {
+      const date = parseDate(item.date);
+      return date && date.getTime() >= scheduleStart.getTime() && date.getTime() < scheduleEnd.getTime();
+    })
     .sort((a, b) => (parseDate(a.date)?.getTime() || 0) - (parseDate(b.date)?.getTime() || 0));
   // Only unfinished work items belong to the task/overdue cards. A calendar
   // event does not become a missed task when its start time passes. Resources
   // pending review appear in the separate approval bucket, not in overdue.
   const allAttention = relevantWork.filter(isDashboardActionableTask);
+  const completedWork = relevantWork.filter((item) => !isDashboardSchedule(item) && item.done);
   const attention = [...allAttention].sort((a, b) => {
     const rank = { overdue: 0, today: 1, soon: 2, normal: 3 };
     return rank[getDashboardDueState(a.date, a.done, now)] - rank[getDashboardDueState(b.date, b.done, now)]
@@ -455,10 +468,13 @@ export async function loadDashboardSnapshot(currentUser, now = new Date()) {
     today: allAttention.filter((item) => getDashboardDueState(item.date, item.done, now) === 'today').length,
     todayEvents: timeline.filter((item) => dayDistance(item.date, now) === 0).length,
     overdue: allAttention.filter((item) => getDashboardDueState(item.date, item.done, now) === 'overdue').length,
+    urgentOpen: allAttention.filter((item) => ['urgent', 'high'].includes(item.priority)).length,
     mineOverdue: allAttention.filter((item) => item.mine && getDashboardDueState(item.date, item.done, now) === 'overdue').length,
     dueSoon: allAttention.filter((item) => getDashboardDueState(item.date, item.done, now) === 'soon').length,
     mineDueSoon: allAttention.filter((item) => item.mine && getDashboardDueState(item.date, item.done, now) === 'soon').length,
     openTasks: allAttention.length,
+    completedTasks: completedWork.length,
+    totalTasksInView: allAttention.length + completedWork.length,
     mineOpenTasks: allAttention.filter((item) => item.mine).length,
     pendingApproval: allApprovals.length,
     upcoming: timeline.length,
@@ -469,6 +485,7 @@ export async function loadDashboardSnapshot(currentUser, now = new Date()) {
     role: leader ? 'leader' : 'teacher', leader, admin: isAdminRole(currentUser?.role),
     stats, timeline, attention,
     coverageLimited: Boolean(workResult.limited),
+    calendarCoverage: { start: scheduleStart.toISOString(), end: scheduleEnd.toISOString(), limited: Boolean(workResult.limited) },
     professional: [...relevantWork].sort((a, b) => (parseDate(b.raw?.updated_at || b.date)?.getTime() || 0) - (parseDate(a.raw?.updated_at || a.date)?.getTime() || 0)).slice(0, 10),
     approvals,
     continueItems: [...continueMap.values()].sort((a, b) => Number(b.updatedAt || 0) - Number(a.updatedAt || 0)).slice(0, 6),
