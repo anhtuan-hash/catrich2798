@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   UsersRound, Search, UserRoundCheck, UserRoundPlus, UserRoundX, AlertTriangle,
   FileUp, Download, UserRound, X, Pencil, ArrowLeftRight, Archive,
@@ -41,7 +41,7 @@ function SummaryChip({ icon: Icon, label, value, tone }) {
     <div><strong>{value}</strong><small>{label}</small></div>
   </div>;
 }
-function StudentDetail({ workspace, student, summary, close, edit, requestAction, openSupport }) {
+function StudentDetail({ workspace, student, summary, close, edit, requestAction, openSupport, decisionForm }) {
   return <aside className="hr4-student-detail" aria-label={`Hồ sơ học sinh ${student.fullName}`}>
     <header className="hr4-student-detail-header">
       <div><small>STUDENT 360°</small><h3>Hồ sơ học sinh</h3></div>
@@ -85,6 +85,7 @@ function StudentDetail({ workspace, student, summary, close, edit, requestAction
           <button type="button" className="secondary" onClick={() => requestAction(student,'archive')}><Archive size={16}/> Lưu trữ</button>
         </>}
     </div>
+    {decisionForm}
   </aside>;
 }
 export default function HomeroomStudentHub({ workspace, onCommit }) {
@@ -99,8 +100,10 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [decision, setDecision] = useState(null);
+  const decisionInputRef = useRef(null);
   const [reason, setReason] = useState('');
   const [selectedRows, setSelectedRows] = useState([]);
+  useEffect(() => { if (decision) decisionInputRef.current?.focus(); }, [decision]);
 
   const counts = useMemo(() => getStudentHubCounts(workspace), [workspace.students]);
   const visible = useMemo(() => filterStudentHub(workspace, { query, status, order }), [workspace.students, query, status, order]);
@@ -131,7 +134,11 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
         ? { ...workspace, students: (workspace.students || []).map((item) => item.id === editingId
           ? { ...item, ...draft, id:item.id, updatedAt: new Date().toISOString() } : item) }
         : addStudent(workspace, draft);
-      await onCommit(next, editingId ? 'Đã cập nhật hồ sơ học sinh.' : 'Đã thêm học sinh.');
+      const result = await onCommit(next, editingId ? 'Đã cập nhật hồ sơ học sinh.' : 'Đã thêm học sinh.');
+      if (result?.ok === false) {
+        setError(result.message || 'Dữ liệu chưa đồng bộ lên cloud. Hãy kiểm tra kết nối trước khi đóng hồ sơ.');
+        return;
+      }
       setEditorOpen(false); setDraft(EMPTY_STUDENT); setEditingId('');
     } catch(err) { setError(err?.message || 'Không thể lưu học sinh.'); }
     finally { setBusy(false); }
@@ -148,8 +155,12 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
       const next = decision.type === 'restore' ? restoreStudent(workspace, student.id)
         : decision.type === 'transfer' ? transferStudent(workspace, student.id, reason.trim())
         : archiveStudent(workspace, student.id, reason.trim());
-      await onCommit(next, decision.type === 'restore' ? 'Đã khôi phục hồ sơ.'
+      const result = await onCommit(next, decision.type === 'restore' ? 'Đã khôi phục hồ sơ.'
         : decision.type === 'transfer' ? 'Đã lưu lịch sử chuyển lớp.' : 'Đã lưu trữ hồ sơ, giữ nguyên lịch sử.');
+      if (result?.ok === false) {
+        setError(result.message || 'Thao tác chưa đồng bộ thành công. Vui lòng kiểm tra trước khi tiếp tục.');
+        return;
+      }
       setDecision(null); setReason('');
     } catch(err) { setError(err?.message || 'Không thể cập nhật trạng thái học sinh.'); }
     finally { setBusy(false); }
@@ -163,7 +174,8 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
   };
   const exportRoster = (items, label='danh-sach') => downloadCsv(`${label}-${workspace.classProfile?.className || 'lop'}.csv`, exportRows(items));
   const importRows = async (rows) => {
-    await onCommit(upsertStudents(workspace, rows), `Đã nhập/cập nhật ${rows.length} học sinh từ file mẫu.`);
+    const result = await onCommit(upsertStudents(workspace, rows), `Đã nhập/cập nhật ${rows.length} học sinh từ file mẫu.`);
+    if (result?.ok === false) throw new Error(result.message || 'Đã lưu trên thiết bị nhưng chưa đồng bộ lên cloud.');
   };
   const toggleSelected = (id, checked) => setSelectedRows((previous) => checked ? [...new Set([...previous, String(id)])] : previous.filter((x) => x !== String(id)));
   const togglePage = (checked) => setSelectedRows((previous) => checked
@@ -249,6 +261,16 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
         workspace={workspace} student={selectedStudent} summary={summary}
         close={() => {setSelectedId('');setDecision(null);setError('');}}
         edit={edit} requestAction={requestAction} openSupport={openSupport}
+        decisionForm={decision && String(decision.studentId) === String(selectedStudent.id) ? <section className="hr4-student-decision" aria-label="Xác nhận thay đổi trạng thái" role="group">
+          <div><small>XÁC NHẬN THAO TÁC</small>
+            <h3>{decision.type === 'archive' ? 'Lưu trữ học sinh' : decision.type === 'transfer' ? 'Ghi nhận chuyển lớp' : 'Khôi phục học sinh'}</h3>
+            <p>{decision.type === 'archive' ? 'Hồ sơ và lịch sử sẽ được giữ lại, không xóa vĩnh viễn.' : decision.type === 'transfer' ? 'Lớp chuyển đến được lưu vào lịch sử, không tự sao chép hồ sơ sang lớp khác.' : 'Học sinh sẽ trở lại danh sách đang học.'}</p>
+          </div>
+          {decision.type !== 'restore' ? <label><span>{decision.type === 'transfer' ? 'Tên lớp chuyển đến' : 'Lý do lưu trữ'}</span>
+            <input ref={decisionInputRef} value={reason} onChange={(event)=>setReason(event.target.value)} placeholder={decision.type === 'transfer' ? 'Ví dụ: 12.7' : 'Nhập lý do lưu trữ'}/></label> : null}
+          {error ? <p role="alert" className="hr4-student-error">{error}</p> : null}
+          <div><button type="button" className="secondary" disabled={busy} onClick={cancelAction}>Hủy</button><button type="button" className="primary" disabled={busy} onClick={confirmAction}><CheckCircle2 size={16}/> {busy ? 'Đang xử lý…' : 'Xác nhận'}</button></div>
+        </section> : null}
       /> : <aside className="hr4-student-empty-detail" aria-label="Hướng dẫn xem hồ sơ">
         <ContactRound size={39}/>
         <h3>Chọn một học sinh</h3>
@@ -256,15 +278,6 @@ export default function HomeroomStudentHub({ workspace, onCommit }) {
       </aside>}
     </div>
 
-    {decision ? <section className="hr4-student-decision" aria-label="Xác nhận thay đổi trạng thái" role="group">
-      <div><small>XÁC NHẬN THAO TÁC</small>
-        <h3>{decision.type === 'archive' ? 'Lưu trữ học sinh' : decision.type === 'transfer' ? 'Ghi nhận chuyển lớp' : 'Khôi phục học sinh'}</h3>
-        <p>{decision.type === 'archive' ? 'Hồ sơ và lịch sử sẽ được giữ lại, không xóa vĩnh viễn.' : decision.type === 'transfer' ? 'Lớp chuyển đến được lưu vào lịch sử, không tự sao chép hồ sơ sang lớp khác.' : 'Học sinh sẽ trở lại danh sách đang học.'}</p>
-      </div>
-      {decision.type !== 'restore' ? <label><span>{decision.type === 'transfer' ? 'Tên lớp chuyển đến' : 'Lý do lưu trữ'}</span>
-        <input value={reason} onChange={(event)=>setReason(event.target.value)} placeholder={decision.type === 'transfer' ? 'Ví dụ: 12.7' : 'Nhập lý do lưu trữ'}/></label> : null}
-      {error ? <p role="alert" className="hr4-student-error">{error}</p> : null}
-      <div><button type="button" className="secondary" disabled={busy} onClick={cancelAction}>Hủy</button><button type="button" className="primary" disabled={busy} onClick={confirmAction}><CheckCircle2 size={16}/> {busy ? 'Đang xử lý…' : 'Xác nhận'}</button></div>
-    </section> : null}
+
   </div>;
 }
