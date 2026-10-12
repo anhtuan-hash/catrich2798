@@ -67,6 +67,8 @@ assert.match(mfa, /state\.factors\.map\(\(factor, index\) =>/, 'Backup authentic
 assert.match(mfa, /Mac - Apple Passwords/, 'User must be able to enroll a named macOS Passwords factor.');
 assert.match(mfa, /'apple'\)/, 'Mac enrollment action must be present.');
 assert.match(mfa, /id="bes-mfa-login-factor"/, 'An accessible authenticator selector must exist.');
+assert.match(mfa, /VITE_WEB_AUTHN_MFA_ENABLED === 'true'/, 'Experimental biometric MFA must remain disabled until Supabase enables backend support.');
+assert.match(mfa, /disabled=\{!webauthnMfaEnabled \|\| busy/, 'Biometric enrollment must not appear functional while Supabase rejects it.');
 assert.match(mfa, /webauthnApi\.register/, 'Touch ID must use a real WebAuthn enrollment ceremony.');
 assert.match(mfa, /webauthnApi\.authenticate/, 'Touch ID must verify a real MFA WebAuthn factor.');
 assert.match(mfa, /factor\.factor_type === 'webauthn'/, 'Verified biometric factors must be read from Supabase Auth.');
