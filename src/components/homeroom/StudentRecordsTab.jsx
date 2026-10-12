@@ -44,7 +44,19 @@ function studentCanonical(student={}){return{fullName:text(student.fullName),gen
 function makeRecord(student){return{canonical:studentCanonical(student),sources:{paper:{...EMPTY_SOURCE,fields:{},captures:[]},vnedu:{...EMPTY_SOURCE,fields:{},captures:[]},moet:{...EMPTY_SOURCE,fields:{},captures:[]}},checklist:Object.fromEntries(PAPER_DOCS.map((item)=>[item.key,'missing'])),notes:'',verifiedAt:'',audit:[]};}
 function ensureRecord(raw,student){const base=makeRecord(student);return{...base,...(raw||{}),canonical:{...base.canonical,...((raw||{}).canonical||{})},sources:{paper:{...base.sources.paper,...((raw||{}).sources?.paper||{}),fields:{...((raw||{}).sources?.paper?.fields||{})},captures:[...((raw||{}).sources?.paper?.captures||[])]},vnedu:{...base.sources.vnedu,...((raw||{}).sources?.vnedu||{}),fields:{...((raw||{}).sources?.vnedu?.fields||{})},captures:[...((raw||{}).sources?.vnedu?.captures||[])]},moet:{...base.sources.moet,...((raw||{}).sources?.moet||{}),fields:{...((raw||{}).sources?.moet?.fields||{})},captures:[...((raw||{}).sources?.moet?.captures||[])]}},checklist:{...base.checklist,...((raw||{}).checklist||{})},audit:Array.isArray(raw?.audit)?raw.audit:[]};}
 function recordProgress(record,grade){return inspectStudentRecord(record,grade).paperPercent;}
-function issueList(record){const issues=[];REQUIRED_COMPARE_FIELDS.forEach((key)=>{const label=STUDENT_RECORD_FIELD_LABELS[key]||key;const values=[['Hồ sơ gốc',record.canonical?.[key]],['vnEdu',record.sources?.vnedu?.fields?.[key]],['MOET',record.sources?.moet?.fields?.[key]]].filter(([,value])=>text(value));if(key==='citizenId'&&!text(record.sources?.moet?.fields?.[key]))issues.push({key:'moet-missing-'+key,tone:'danger',label:'MOET thiếu '+label,detail:'Chưa nhận diện được thông tin bắt buộc này trên ảnh MOET.'});if(values.length>=2){const first=normalized(values[0][1]);const mismatch=values.find(([,value])=>normalized(value)!==first);if(mismatch)issues.push({key:'mismatch-'+key,tone:'danger',label:'Sai lệch '+label,detail:values.map(([source,value])=>source+': '+value).join(' · ')});}});return issues;}
+function issueList(record){
+  const review=inspectStudentRecord(record,'12');
+  const issues=[];
+  if(review.missingMoetCitizenId){
+    const label=STUDENT_RECORD_FIELD_LABELS.citizenId||'Căn cước công dân';
+    issues.push({key:'moet-missing-citizenId',tone:'danger',label:'MOET thiếu '+label,detail:'Nguồn MOET đã có dữ liệu nhưng còn thiếu mã căn cước để đối chiếu.'});
+  }
+  review.mismatches.forEach(({key,values})=>{
+    const label=STUDENT_RECORD_FIELD_LABELS[key]||key;
+    issues.push({key:'mismatch-'+key,tone:'danger',label:'Sai lệch '+label,detail:values.map(({source,value})=>source+': '+value).join(' · ')});
+  });
+  return issues;
+}
 function csvEscape(value){const v=String(value??'');return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
 function downloadCsv(name,rows){const content='\ufeff'+rows.map((row)=>row.map(csvEscape).join(',')).join('\r\n');const blob=new Blob([content],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 
