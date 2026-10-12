@@ -14,11 +14,13 @@ export function localDateIso(now = new Date()) {
   if (!(now instanceof Date) || !Number.isFinite(now.getTime())) return '';
   return [now.getFullYear(), String(now.getMonth()+1).padStart(2,'0'), String(now.getDate()).padStart(2,'0')].join('-');
 }
+function realIsoDay(value){
+  if(!ISO_DATE.test(str(value)))return false;
+  const timestamp=Date.parse(str(value)+'T00:00:00Z');
+  return Number.isFinite(timestamp)&&new Date(timestamp).toISOString().slice(0,10)===str(value);
+}
 export function validReportRange(start,end){
-  return ISO_DATE.test(str(start)) && ISO_DATE.test(str(end))
-    && !Number.isNaN(Date.parse(start+'T00:00:00Z'))
-    && !Number.isNaN(Date.parse(end+'T00:00:00Z'))
-    && str(start)<=str(end);
+  return realIsoDay(start)&&realIsoDay(end)&&str(start)<=str(end);
 }
 export function summarizeHomeroomTasks(workspace={},today=localDateIso()){
   const tasks=list(workspace.schedule).filter(x=>x&&str(x.title));
