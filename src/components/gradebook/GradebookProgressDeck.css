@@ -65,3 +65,18 @@ html[data-theme="dark"] .hr-page .hr-gradebook .gb3-deck-tile>strong{color:#1c34
 .hr-page .hr-gradebook .gb-roster-workbench{border-radius:16px!important;box-shadow:0 4px 18px rgba(35,69,123,.04)!important}
 .hr-page .hr-gradebook .gb-roster-search:focus-within{outline:2px solid #4b77e7;outline-offset:2px}
 .hr-page .hr-gradebook .gb3-deck + .gb-finalized-banner{margin-top:10px}
+
+/* Detail-on-demand mission panel: avoid doubling the visible Gradebook dashboard. */
+.hr-page .hr-gradebook .gb3-mission-details{border:1px solid #d8e5fa;border-radius:15px;margin:8px 0 15px;background:linear-gradient(105deg,#f3f8ff,#f8f5ff);overflow:hidden}
+.hr-page .hr-gradebook .gb3-mission-details>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 18px;color:#234877}
+.hr-page .hr-gradebook .gb3-mission-details>summary::-webkit-details-marker{display:none}
+.hr-page .hr-gradebook .gb3-mission-details>summary>span:first-child strong{display:block;font-size:13px;font-weight:850;color:#264c8b}
+.hr-page .hr-gradebook .gb3-mission-details>summary>span:first-child small{display:block;color:#657f9d;font-size:11px;margin-top:3px}
+.hr-page .hr-gradebook .gb3-mission-open-label{white-space:nowrap;display:flex;gap:9px;align-items:center;color:#315fc4;font-size:12px;font-weight:800}
+.hr-page .hr-gradebook .gb3-mission-details[open] .gb3-mission-open-label>span{transform:rotate(180deg)}
+.hr-page .hr-gradebook .gb3-mission-details .gb-mission{margin:0!important;border-top:1px solid #dce5f3!important;border-radius:0!important;box-shadow:none!important}
+.hr-page .hr-gradebook .gb-academic-administration:not([open]){margin-block:8px!important}
+html[data-theme="dark"] .hr-page .hr-gradebook .gb3-mission-details{background:#26354b;border-color:#516581}
+html[data-theme="dark"] .hr-page .hr-gradebook .gb3-mission-details>summary>span:first-child strong{color:#eff5ff}
+html[data-theme="dark"] .hr-page .hr-gradebook .gb3-mission-details>summary>span:first-child small{color:#acc0d9}
+@media(max-width:550px){.hr-page .hr-gradebook .gb3-mission-details>summary{padding:12px;flex-wrap:wrap}}
