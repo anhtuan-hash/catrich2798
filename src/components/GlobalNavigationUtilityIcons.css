@@ -99,10 +99,10 @@ html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__pr
   font-size:24px!important;font-weight:400!important;line-height:1!important;
   visibility:visible!important;opacity:1!important;clip-path:none!important;
 }
-/* Deadline is a true status, never fabricated: missing (—), overdue (Hết),
-   or a live remaining time when a real deadline is configured. */
+/* The unset deadline must NEVER produce a floating dash or badge.
+   Keep "Chưa đặt hạn" in the native title and accessible name instead. */
 html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-reports > button.is-deadline-unset .brian-nav__reports-countdown{
-  background:#f2f5f8!important;border-color:#e4e8ee!important;color:#768396!important;
+  display:none!important;
 }
 html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-reports > button.is-deadline-expired .brian-nav__reports-countdown{
   background:#fff1f0!important;border-color:#f0d1cf!important;color:#b9433f!important;
