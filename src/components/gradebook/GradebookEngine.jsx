@@ -353,7 +353,7 @@ function GradebookNavigationPalette({
   </div>;
 }
 
-export default function HomeroomLearningGradebook({ workspace, onCommit, currentUser, teachingOverview, classManagement, gradebookAction }) {
+export default function HomeroomLearningGradebook({ workspace, onCommit, currentUser, teachingOverview, classManagement, gradebookAction, onDirtyChange }) {
   const students = useMemo(
     () => (workspace.students || []).filter((student) => student.active !== false),
     [workspace.students],
@@ -383,6 +383,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const [selectedExportColumns, setSelectedExportColumns] = useState([]);
   const [exporting, setExporting] = useState('');
   const [exportMessage, setExportMessage] = useState(null);
+  useEffect(() => { onDirtyChange?.(dirty); }, [dirty, onDirtyChange]);
 
   useEffect(() => {
     if (dirty) return;
