@@ -520,3 +520,110 @@
     flex-basis:30px;width:30px;height:30px;
   }
 }
+
+
+/* Material 3 Studio Edition – academic productivity workspace */
+#root .gradebook-studio .gb-prod{
+  background:#fff;
+  border:1px solid #dbe5fb;
+  border-radius:18px;
+  box-shadow:0 8px 24px rgba(35,68,132,.055);
+}
+#root .gradebook-studio .gb-prod-heading{
+  padding:17px 20px;
+  background:linear-gradient(105deg,#f3f7ff,#fff 57%,#f8f2ff);
+  border-bottom:1px solid #e6ecfa;
+}
+#root .gradebook-studio .gb-prod-heading strong{
+  color:#173c75;
+  font-weight:820;
+  font-size:16px;
+}
+#root .gradebook-studio .gb-prod-tabs{
+  gap:9px;
+  padding:17px 0;
+  border-bottom:1px solid #ebeff8;
+}
+#root .gradebook-studio .gb-prod-tabs button{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  min-height:56px;
+  border-radius:13px;
+  border:1px solid #d9e3f6;
+  background:#f9fbff;
+  color:#284f86;
+  font-size:12px;
+  font-weight:770;
+  transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease;
+}
+#root .gradebook-studio .gb-prod-tabs button[data-tab="paste"]{--gb-tool:#245ff0;--gb-tool-surface:#eaf1ff}
+#root .gradebook-studio .gb-prod-tabs button[data-tab="progress"]{--gb-tool:#7560d5;--gb-tool-surface:#eeeaff}
+#root .gradebook-studio .gb-prod-tabs button[data-tab="heatmap"]{--gb-tool:#0e9b8a;--gb-tool-surface:#e6f9f3}
+#root .gradebook-studio .gb-prod-tabs button[data-tab="alerts"]{--gb-tool:#c98221;--gb-tool-surface:#fff2dd}
+#root .gradebook-studio .gb-prod-tabs button[data-tab="quality"]{--gb-tool:#d95477;--gb-tool-surface:#ffeff4}
+#root .gradebook-studio .gb-prod-tabs button[data-tab="history"]{--gb-tool:#2c7aaf;--gb-tool-surface:#e9f6fc}
+#root .gradebook-studio .gb-prod-tabs button[data-tab="finalize"]{--gb-tool:#5065c4;--gb-tool-surface:#ecefff}
+#root .gradebook-studio .gb-prod-tabs button[data-tab="rubric"]{--gb-tool:#8250bd;--gb-tool-surface:#f4eeff}
+#root .gradebook-studio .gb-prod-tabs button[data-tab="report"]{--gb-tool:#1b8e9b;--gb-tool-surface:#e6f7fa}
+#root .gradebook-studio .gb-prod-tabs button[data-tab="recovery"]{--gb-tool:#bb7a35;--gb-tool-surface:#fff2e4}
+#root .gradebook-studio .gb-prod-tabs button:not(.active){
+  background:var(--gb-tool-surface,#f6f8fd);
+  border-color:#e2e7f4;
+}
+#root .gradebook-studio .gb-prod-tabs button.active{
+  background:var(--gb-tool,#245ff0);
+  border-color:var(--gb-tool,#245ff0);
+  color:white;
+  box-shadow:0 5px 13px rgba(58,73,123,.12);
+}
+#root .gradebook-studio .gb-prod-tabs button .gb-prod-tab-art{
+  color:var(--gb-tool,#245ff0);
+  background:rgba(255,255,255,.87);
+  box-shadow:0 1px 4px rgba(29,56,110,.065);
+  border-radius:10px;
+}
+#root .gradebook-studio .gb-prod-tabs button:hover:not(.active){
+  border-color:var(--gb-tool,#7899d6);
+  transform:translateY(-1px);
+  box-shadow:0 4px 10px rgba(37,76,123,.08);
+}
+#root .gradebook-studio .gb-prod-pane{gap:14px}
+#root .gradebook-studio .gb-prod-pane h3{
+  font-weight:830;
+  font-size:18px;
+  color:#1b4178;
+}
+#root .gradebook-studio .gb-prod-alerts-card{
+  box-shadow:0 3px 12px rgba(36,65,106,.04);
+}
+#root .gradebook-studio .gb-prod-alerts-card:first-child{
+  background:linear-gradient(135deg,#edf5ff,#fff 61%);
+}
+#root .gradebook-studio .gb-prod-alerts-card:nth-child(2){
+  background:linear-gradient(135deg,#fff3f2,#fff 61%);
+}
+#root .gradebook-studio .gb-prod-stats>div{
+  border-radius:12px;
+  border:1px solid #dae7fa;
+  background:linear-gradient(145deg,#f6f9ff,#fff);
+}
+#root .gradebook-studio .gb-prod-progress{
+  border-radius:99px;
+  background:#e7eefb;
+}
+#root .gradebook-studio .gb-prod-progress>div{
+  border-radius:99px;
+  background:linear-gradient(90deg,#24b99f,#287cf1);
+}
+@media(max-width:970px){
+  #root .gradebook-studio .gb-prod-tabs button{
+    min-width:157px;
+    max-width:200px;
+    white-space:normal;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #root .gradebook-studio .gb-prod-tabs button{transition:none}
+}
