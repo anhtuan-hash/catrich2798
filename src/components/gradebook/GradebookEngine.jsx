@@ -10,7 +10,7 @@ import {
 } from '../../utils/homeroomGradebookExport.js';
 import './HomeroomLearningGradebook.css';
 import GradebookProductivityPanel from './GradebookProductivityPanel.jsx';
-import { gradebookAuditChanges } from '../../utils/gradebookProductivity.js';
+import { gradebookAuditChanges, gradebookQualityReport } from '../../utils/gradebookProductivity.js';
 import { isGradebookFinalized, setFinalizationState, gradebookFinalizationReadiness } from '../../utils/gradebookFinalization.js';
 
 const SEMESTERS = [
@@ -444,7 +444,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
         students,semester:activeSemester,
         computeRoundScore:(round,id)=>round?roundScore(round,id,studentIds):null,
       });
-      if(!ready.ready) return;
+      if(!ready.ready || gradebookQualityReport({students,semester:activeSemester}).length>0) return;
     }
     let next;
     try{
@@ -759,6 +759,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       currentUser={currentUser}
     />
 
+    {finalized ? <div className="gb-finalized-banner" role="status"><strong>Học kỳ đã chốt</strong><span>Các ô điểm và thao tác chỉnh sửa đang khóa trong giao diện. Mở Bộ công cụ Sổ điểm → Chốt điểm để xem trạng thái hoặc mở khóa có lý do.</span></div> : null}
     {exportMessage ? <div className={`hr-grade-export-message ${exportMessage.type}`} role="status" aria-live="polite"><span>{exportMessage.type === 'error' ? '!' : '✓'}</span>{exportMessage.text}</div> : null}
 
     {view.startsWith('regular-') ? renderRegularTable() : null}

@@ -104,6 +104,9 @@ test('locked status actively disables edit controls (not just styling)',()=>{
   assert.match(engine,/<PlusCountInput value=\{plusCount\} disabled=\{finalized\}/);
   assert.match(engine,/<ScoreInput value=\{value\} disabled=\{finalized\}/);
   assert.match(engine,/onSetFinalization=\{updateFinalization\}/);
+  assert.match(engine,/gradebookQualityReport\(\{students,semester:activeSemester\}\)\.length>0/);
+  assert.match(panel,/qualityIssues\.length>0/);
+  assert.match(engine,/gb-finalized-banner/);
   assert.match(panel,/readGradebookXlsx/);
   assert.match(panel,/previewGradebookExcelImport/);
   assert.match(panel,/Đối chiếu & xem trước/);

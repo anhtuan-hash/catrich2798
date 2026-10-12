@@ -212,3 +212,13 @@
     grid-template-columns:1fr;
   }
 }
+
+#root .gradebook-studio .gb-finalized-banner{
+  display:flex;gap:9px;align-items:center;flex-wrap:wrap;
+  padding:11px 15px;border:1px solid #ead8b1;border-radius:11px;
+  background:#fffaf0;color:#825d20;font-size:11px;
+}
+#root .gradebook-studio .gb-finalized-banner strong{
+  font-size:12px;white-space:nowrap;
+}
+#root .gradebook-studio .gb-finalized-banner span{flex:1 1 220px;line-height:1.45}

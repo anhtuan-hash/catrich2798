@@ -270,13 +270,14 @@ export default function GradebookProductivityPanel({
         </div>
         {readiness.missing.length>0?<div className="gb-prod-alert-list">{readiness.missing.slice(0,12).map((row,i)=><div key={i}><strong>{row.name}</strong><span>Thiếu {row.part}</span></div>)}</div>:null}
         {dirty?<p className="gb-prod-alert">Hãy lưu hoặc hoàn tác những thay đổi hiện tại trước khi chốt/mở khóa.</p>:null}
+        {!finalized&&qualityIssues.length>0?<p className="gb-prod-alert">Có {qualityIssues.length} lỗi dữ liệu. Hãy xử lý trong tab Kiểm tra lỗi trước khi chốt.</p>:null}
         {finalized?<div className="gb-prod-fields"><label>Lý do mở khóa (ít nhất 8 ký tự)
           <textarea rows={2} maxLength={300} value={unlockReason} onChange={e=>setUnlockReason(e.target.value)} placeholder="Ví dụ: Điều chỉnh điểm sau khi đối chiếu bài kiểm tra"/>
         </label></div>:null}
         <div className="gb-prod-actions">
           {finalized?<button type="button" disabled={dirty||unlockReason.trim().length<8}
             onClick={()=>{if(window.confirm('Mở khóa học kỳ này để tiếp tục chỉnh sửa điểm?')){onSetFinalization(false,unlockReason);setUnlockReason('');}}}>Xác nhận mở khóa</button>
-          :<button className="primary" type="button" disabled={dirty||!readiness.ready}
+          :<button className="primary" type="button" disabled={dirty||!readiness.ready||qualityIssues.length>0}
             onClick={()=>{if(window.confirm('Bạn xác nhận đã kiểm tra đầy đủ điểm và muốn chốt học kỳ?'))onSetFinalization(true,'');}}>Chốt điểm học kỳ</button>}
         </div>
         <small>Sau khi chốt hoặc mở khóa, bấm Lưu bảng điểm để đồng bộ trạng thái. Mọi lần chuyển trạng thái được ghi trong lịch sử.</small>
