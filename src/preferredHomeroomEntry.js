@@ -81,15 +81,20 @@ function preferredLocalWorkspace(user) {
   // to the current teacher. Never choose the first workspace merely because its
   // cached classType happens to be "homeroom".
   const assignedClassName = assignedHomeroomClassName(user);
-  if (!assignedClassName) return null;
-
   const catalog = listLocalHomeroomWorkspaces(user)
     .filter((item) => item.status !== 'archived');
-  const exact = catalog.find((item) => (
+  const exact = assignedClassName && catalog.find((item) => (
     normalizeSchoolClassName(item.className) === assignedClassName
   ));
   if (exact?.id) return { id: exact.id, className: assignedClassName, source: 'registry-assignment' };
-  return null;
+
+  // On an offline/slow entry a teacher may not have the admin-owned registry
+  // cached locally. One explicitly typed homeroom is a safer fallback than the
+  // last opened subject class. Ambiguous catalogs are never guessed.
+  const typedHomerooms = catalog.filter((item) => item.classType === 'homeroom');
+  return typedHomerooms.length === 1
+    ? { id: typedHomerooms[0].id, className: typedHomerooms[0].className, source: 'local-homeroom-type' }
+    : null;
 }
 
 // Read a tiny, account-scoped, server-authoritative GVCN mapping before the
