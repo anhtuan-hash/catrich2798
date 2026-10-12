@@ -9,6 +9,11 @@ import {
   normalizeSchoolClassRegistry,
   schoolClassRegistryStorageKey,
 } from './utils/schoolClassRegistry.js';
+import { isSupabaseConfigured, supabase } from './utils/supabase.js';
+import { selectServerAssignedHomeroom } from './utils/homeroomAssignmentSelection.js';
+
+const ASSIGNED_HOMEROOM_RPC = 'bes_get_my_assigned_homeroom';
+const ASSIGNED_HOMEROOM_TIMEOUT_MS = 5500;
 
 let installed = false;
 let previousHomeroomRoute = false;
@@ -83,9 +88,40 @@ function preferredLocalWorkspace(user) {
   const exact = catalog.find((item) => (
     normalizeSchoolClassName(item.className) === assignedClassName
   ));
-  return exact?.id
-    ? { id: exact.id, className: assignedClassName, source: 'registry-assignment' }
-    : null;
+  if (exact?.id) return { id: exact.id, className: assignedClassName, source: 'registry-assignment' };
+  return null;
+}
+
+// Read a tiny, account-scoped, server-authoritative GVCN mapping before the
+// Homeroom UI mounts. The existing full roster sync is intentionally not awaited:
+// an admin with many assigned/managed classes should never open a random subject
+// class while the expensive roster hydration is still running.
+async function loadServerPreferredWorkspace(user) {
+  if (!user?.id || !isSupabaseConfigured || !supabase) return null;
+  let timer;
+  try {
+    const response = await Promise.race([
+      Promise.resolve(supabase.rpc(ASSIGNED_HOMEROOM_RPC)),
+      new Promise((resolve) => {
+        timer = window.setTimeout(() => resolve({ error: { message: 'Assigned homeroom lookup timed out.' } }), ASSIGNED_HOMEROOM_TIMEOUT_MS);
+      }),
+    ]);
+    if (response?.error) {
+      console.warn('[PreferredHomeroomEntry] Không tải được phân công GVCN nhanh.', response.error.message);
+      return null;
+    }
+    const selected = selectServerAssignedHomeroom(response?.data);
+    if (!selected) return null;
+    return rememberServerAssignment({
+      homeroomWorkspaceId: selected.id,
+      homeroomClassName: selected.className,
+    });
+  } catch (error) {
+    console.warn('[PreferredHomeroomEntry] Lỗi truy vấn lớp GVCN.', error);
+    return null;
+  } finally {
+    window.clearTimeout(timer);
+  }
 }
 
 function switchHomeroomWorkspaceInPlace(preferred, options = {}) {
@@ -151,7 +187,9 @@ export async function preparePreferredHomeroomEntry() {
       return { ok: true, changed: false, skipped: 'no-approved-user' };
     }
 
-    const preferred = preferredLocalWorkspace(user);
+    // The assignment in the database takes precedence over a stale current-id
+    // (such as subject class 10.5). Local metadata is fallback only.
+    const preferred = await loadServerPreferredWorkspace(user) || preferredLocalWorkspace(user);
     if (!preferred?.id) {
       return { ok: true, changed: false, skipped: 'no-explicit-homeroom-assignment' };
     }
