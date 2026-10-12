@@ -35,6 +35,7 @@ import '../styles/GradebookAcademicWorkspace.css';
 import '../styles/GradebookSpectrumV4.css';
 import '../styles/GradebookRosterLayoutHotfix.css';
 import '../styles/GradebookFocusV5.css';
+import '../styles/GradebookRebirthV7.css';
 
 const EMPTY_CLASS = {
   className: '',
@@ -492,9 +493,11 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     </section>
   );
 
-  return <div className={`page hr-page gradebook-studio gb4-spectrum gb5-focus gb4-palette-${visualPalette}`}>
+  return <div className={`page hr-page gradebook-studio gb4-spectrum gb5-focus gb7-rebirth gb4-palette-${visualPalette}`}>
     <section className="gradebook-studio-hero gb-academic-hero" aria-label="Không gian Sổ điểm">
       <div className="gb-academic-heading">
+        <div className="gb7-heading-lockup">
+          <span className="gb7-heading-icon" aria-hidden="true"><ClipboardPenLine size={29} strokeWidth={2.1} /></span>
         <div className="gb-academic-heading-copy">
           <span className="gb-academic-eyebrow"><Sparkles size={13} strokeWidth={2.4} aria-hidden="true" /> GRADEBOOK / SỔ ĐIỂM</span>
           <h1>{vi ? 'Sổ điểm' : 'Gradebook'}</h1>
@@ -504,6 +507,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
             <span><UsersRound size={14} aria-hidden="true" />{studentCount} học sinh</span>
             <span><ShieldCheck size={14} aria-hidden="true" />{gradebookDirty ? 'Có thay đổi chưa lưu' : 'Đồng bộ an toàn'}</span>
           </div>
+        </div>
         </div>
         <img className="gb-m3-hero-illustration" src="/gradebook-material3-hero.svg" alt="" aria-hidden="true" decoding="async" />
         <span className="gb-academic-class-meta">{activeMeta?.schoolYear || '2026–2027'} · {activeMeta?.semester || 'Học kỳ I'}</span>

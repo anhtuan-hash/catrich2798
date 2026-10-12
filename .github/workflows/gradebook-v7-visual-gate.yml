@@ -1,0 +1,51 @@
+name: Gradebook V7 Visual Rebirth Gate
+on:
+  pull_request:
+    paths:
+      - 'src/pages/GradebookStudio.jsx'
+      - 'src/styles/GradebookRebirthV7.css'
+      - 'tests/gradebook-v7-visual-contract.test.mjs'
+      - '.github/workflows/gradebook-v7-visual-gate.yml'
+  push:
+    branches: [main, 'feat/gradebook-v7-visual-rebirth-20261012']
+    paths:
+      - 'src/pages/GradebookStudio.jsx'
+      - 'src/styles/GradebookRebirthV7.css'
+      - 'tests/gradebook-v7-visual-contract.test.mjs'
+      - '.github/workflows/gradebook-v7-visual-gate.yml'
+jobs:
+  visual-safety-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: node tests/gradebook-v7-visual-contract.test.mjs
+      - run: node tests/gradebook-v6-layout-contract.test.mjs
+      - run: node tests/gradebook-v5-geometry-repair.test.mjs
+      - run: node scripts/test-gradebook-mock-exams-v2.mjs
+      - run: npm run build
+  responsive-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test tests/e2e/gradebook-v5-geometry-repair.spec.js tests/e2e/gradebook-focus-v5-layout.spec.js tests/e2e/gradebook-roster-toolbar-layout.spec.js --project=chromium-desktop
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: gradebook-v7-visual-failures
+          path: |
+            test-results/
+            reports/playwright/
