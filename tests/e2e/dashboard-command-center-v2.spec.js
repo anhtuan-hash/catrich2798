@@ -363,3 +363,46 @@ test('3.2 weekly planner respects Focus Mode and Midnight on mobile without over
   dimensions=await page.evaluate(()=>[document.documentElement.scrollWidth,document.documentElement.clientWidth]);
   expect(dimensions[0]).toBeLessThanOrEqual(dimensions[1]+2);
 });
+
+test('3.3 approved visual system aligns all major card geometry and page hierarchy', async ({ page }) => {
+  await openDashboard(page);
+  const root = page.locator('.gd-page.gd-u33');
+  await expect(root).toBeVisible();
+  await expect(page.locator('.gd-v3-brief')).toBeVisible();
+  const metrics = await page.evaluate(() => {
+    const select = cls => document.querySelector(cls);
+    const bounds = cls => select(cls)?.getBoundingClientRect();
+    return {
+      radius: ['.dcc-panel','.gd-v32-planner','.gd-v3-insights','.gd-calendar'].map(cls =>
+        select(cls) ? getComputedStyle(select(cls)).borderTopLeftRadius : null),
+      briefBackground: getComputedStyle(select('.gd-v3-brief')).backgroundColor,
+      commandBottom: bounds('.dcc-root')?.bottom ?? 0,
+      briefTop: bounds('.gd-v3-brief')?.top ?? 0,
+      weeklyTop: bounds('.gd-v32-planner')?.top ?? 0,
+    };
+  });
+  expect(metrics.radius).toEqual(['18px','18px','18px','18px']);
+  expect(metrics.briefBackground).toBe('rgb(255, 255, 255)');
+  expect(metrics.briefTop).toBeGreaterThanOrEqual(metrics.commandBottom - 1);
+  expect(metrics.weeklyTop).toBeGreaterThan(metrics.briefTop);
+});
+
+test('3.3 unified design remains responsive in daylight and midnight modes', async ({ page }) => {
+  await page.setViewportSize({ width:390, height:844 });
+  await openDashboard(page);
+  await expect(page.locator('.gd-page.gd-u33')).toBeVisible();
+  const inspect = () => page.evaluate(() => ({
+    content: document.documentElement.scrollWidth,
+    viewport: document.documentElement.clientWidth,
+    radius: getComputedStyle(document.querySelector('.dcc-panel')).borderTopLeftRadius,
+  }));
+  let first = await inspect();
+  expect(first.content).toBeLessThanOrEqual(first.viewport+2);
+  expect(first.radius).toBe('18px');
+  await page.locator('.gd-v31-theme-button').click();
+  await expect(page.locator('.gd-page')).toHaveClass(/gd-v31-midnight/);
+  first = await inspect();
+  expect(first.content).toBeLessThanOrEqual(first.viewport+2);
+  expect(first.radius).toBe('18px');
+  await expect(page.locator('.gd-v32-planner')).toBeVisible();
+});

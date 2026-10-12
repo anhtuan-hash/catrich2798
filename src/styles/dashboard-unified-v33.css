@@ -1,0 +1,677 @@
+@import "./teacher-dashboard-google-authentic.css";
+@import "./teacher-dashboard-calendar-split.css";
+@import "./teacher-dashboard-compact-layout.css";
+@import "./teacher-dashboard-google-colorful.css";
+@import "./teacher-dashboard-editorial-hero.css";
+@import "./teacher-dashboard-timeline-v2.css";
+@import "./dashboard-command-center-v21.css";
+@import "./dashboard-command-center-v22.css";
+@import "./dashboard-command-center-v23.css";
+@import "./dashboard-v3.css";
+@import "./dashboard-v31.css";
+@import "./dashboard-v32.css";
+@import "./dashboard-command-center-v2.css";
+
+/* BRIAN Dashboard 3.3 — the single current design authority.
+   Legacy component styles are imported above for compatibility, not modified or
+   loaded individually by WorkDashboard. Only dashboard descendants are affected.
+   Approved visual direction: consistent azure / mint / lavender edu Bento. */
+
+.app-shell[data-route="dashboard"] .gd-page.gd-u33 {
+  --u-bg:#f2f7ff;
+  --u-panel:#ffffff;
+  --u-ink:#143762;
+  --u-muted:#65809f;
+  --u-line:#dbe8f8;
+  --u-soft:#f5f9ff;
+  --u-blue:#286be8;
+  --u-teal:#0b9d84;
+  --u-coral:#e76a5b;
+  --u-purple:#8057da;
+  --u-shadow:0 9px 28px rgba(29,75,135,.08);
+  --u-radius:18px;
+  --u-radius-sm:12px;
+  background:var(--u-bg) !important;
+  color:var(--u-ink);
+  font-family:inherit;
+  color-scheme:light;
+}
+
+.app-shell[data-route="dashboard"] .gd-u33 .gd-shell-v3 {
+  max-width:1440px;
+  margin-inline:auto;
+  padding-inline:clamp(10px,1.5vw,24px) !important;
+}
+
+.app-shell[data-route="dashboard"] .gd-u33 :is(
+  .gd-v31-toolbar,.dcc-next-event,.dcc-panel,.dcc-homeroom,
+  .gd-v32-planner,.gd-v3-insights,.gd-calendar,.gd-surface,
+  .brian-dashboard-drop-zone,.dnh,.dcc-customizer,.gd-v3-brief
+) {
+  border-radius:var(--u-radius) !important;
+  border:1px solid var(--u-line) !important;
+  box-shadow:var(--u-shadow) !important;
+}
+
+/* The masthead, command center, weekly plan, daily schedule and resources
+   share an 8px-derived rhythm; no stacked unrelated page skins. */
+.app-shell[data-route="dashboard"] .gd-u33 :is(
+  .gd-top-grid,.dcc-next-event,.dcc-root,.gd-v3-brief,
+  .gd-v32-planner,.gd-v3-insights,.gd-v3-widget-board
+) {
+  margin-block-start:0 !important;
+  margin-block-end:16px !important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-top-grid {
+  margin-bottom:12px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v31-toolbar {
+  min-height:55px;
+  padding:8px 14px;
+  margin-bottom:13px;
+  border-radius:14px!important;
+  background:#fff !important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v31-toolbar-name > strong {
+  font-size:12px;letter-spacing:.03em;color:#194779;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v31-toolbar button {
+  border-radius:10px;
+  background:#f4f8ff;
+  border-color:#dae7fa;
+  color:#285ca8;
+}
+
+/* Hero — the only large illustration, avoiding unrelated artwork elsewhere. */
+.app-shell[data-route="dashboard"] .gd-u33 .editorial-hero {
+  min-height:290px !important;
+  border:1px solid #c9dff8 !important;
+  border-radius:22px !important;
+  background:linear-gradient(111deg,#eaf5ff 0%,#f6faff 47%,#e8fcf4 100%) !important;
+  box-shadow:var(--u-shadow)!important;
+  padding:22px clamp(18px,3vw,37px)!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .editorial-hero h1 {
+  color:#124683!important;
+  font-size:clamp(32px,3.3vw,49px)!important;
+  letter-spacing:-.036em;
+}
+.app-shell[data-route="dashboard"] .gd-u33 :is(.editorial-hero-hello,.editorial-hero-lead) {
+  color:#365e8d!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .editorial-hero-meta {
+  gap:12px;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .editorial-primary-action {
+  background:#286ee6!important;
+  color:#fff!important;
+  border:1px solid #286ee6!important;
+  border-radius:10px!important;
+  box-shadow:0 5px 13px #2869de22!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .editorial-secondary-action {
+  background:#fff!important;
+  color:#2356a0!important;
+  border:1px solid #d1e2f8!important;
+  border-radius:10px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .editorial-hero-stage {
+  min-height:234px !important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .editorial-hero-doodles {
+  opacity:.65;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .editorial-hero-status {
+  z-index:4;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .editorial-status-card {
+  border-radius:12px!important;
+  border-color:#d6e6f9!important;
+  box-shadow:0 5px 15px #174f8615!important;
+}
+
+/* Next event: one narrow neutral highlight, consistent with header controls. */
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-next-event {
+  min-height:72px;
+  padding:14px 18px;
+  background:#fff!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-next-event-icon {
+  border-radius:12px;
+  background:#e5efff;
+  color:#286de2;
+  box-shadow:none;
+  width:43px;height:43px;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-next-event-details strong {
+  font-size:14px;
+  font-weight:800;
+  color:#1c447a;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-next-event-details small {
+  font-size:11px;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-next-event-action {
+  min-height:36px;
+  border-radius:10px;
+  color:#2868d4;
+  background:#f4f8ff;
+}
+
+/* Command Center — KPI palette comes from the approved concept. */
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-section-heading {
+  padding:3px 1px 5px;
+  gap:10px;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-section-heading h2 {
+  color:#214b82!important;
+  font-size:18px!important;
+  font-weight:850;
+}
+.app-shell[data-route="dashboard"] .gd-u33 :is(
+  .dcc-section-heading p,.dcc-panel-header p,.gd-v32-planner-brand p,
+  .gd-calendar-title p,.gd-surface-heading p,.dnh-title p
+) {
+  color:var(--u-muted) !important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-heading-mark {
+  background:#e4efff;
+  border-radius:11px;
+  color:#286de5;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-sync-strip {
+  margin:0 0 8px;
+  color:#7a92ae;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-stats {
+  gap:12px!important;
+  margin-bottom:13px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-stat {
+  border-radius:15px!important;
+  border:1px solid #d9e7fa!important;
+  background:#edf5ff!important;
+  color:#2059b5!important;
+  box-shadow:0 6px 15px #2d63ad0b!important;
+  padding:15px 17px !important;
+  min-height:130px;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-stat--coral {
+  background:#fff2ee!important;
+  border-color:#f4ded6!important;
+  color:#d65a4d!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-stat--violet {
+  background:#f5f0ff!important;
+  border-color:#e7dcfa!important;
+  color:#754dcc!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-stat--green {
+  background:#eafaf4!important;
+  border-color:#d2efe4!important;
+  color:#0a9175!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-stat-icon {
+  width:38px;height:38px;
+  border-radius:11px!important;
+  background:#ffffffb8!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-stat-number {
+  color:currentColor!important;
+  font-size:31px;
+  line-height:1.05;
+  font-weight:900;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-stat-label {
+  color:currentColor!important;
+  font-size:12px;
+  font-weight:750;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-workspace {
+  gap:13px!important;
+  align-items:stretch;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-sidebar { gap:13px!important; }
+.app-shell[data-route="dashboard"] .gd-u33 :is(.dcc-priority,.dcc-continue,.dcc-resources,.dcc-homeroom) {
+  background:#fff!important;
+  border-radius:16px!important;
+  box-shadow:none!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-priority {
+  min-height:420px;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-panel-header {
+  gap:10px;
+  padding:17px 17px 13px;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-panel-header h3 {
+  font-size:15px;
+  font-weight:850;
+  color:#1c477b;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-panel-icon {
+  width:38px;height:38px;
+  border-radius:11px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-filters,
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-scope-switch {
+  gap:6px;
+  flex-wrap:wrap;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-filters button,
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-scope-switch button {
+  min-height:30px;
+  border-radius:9px!important;
+  font-size:11px;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-filters button.is-active {
+  background:#286ce3!important;
+  color:#fff!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-task-search {
+  border-radius:10px!important;
+  background:#f6f9fe!important;
+  border:1px solid #e1eaf6!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v3-task-controls select {
+  border-radius:9px!important;
+  background:#f6f9fe;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-priority-list {
+  padding-inline:13px;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-priority-row {
+  min-height:52px;
+  padding:10px 12px;
+  border:1px solid #e4edf8!important;
+  background:#fff!important;
+  border-radius:11px!important;
+  margin:5px 0;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-priority-row:hover {
+  background:#f5f9ff!important;
+  border-color:#bbd4fa!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-row-detail strong {
+  color:#254a75;
+  font-size:12px;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-recent-list button {
+  border-radius:10px!important;
+  min-height:40px;
+  border-color:#e7eef9!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-homeroom {
+  background:#eaf9f5!important;
+  border-color:#d0eee3!important;
+  color:#126c60;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dcc-homeroom button {
+  background:#0c9f83!important;
+  border-radius:10px!important;
+  color:#fff!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 :is(.dcc-customize-trigger,.dcc-refresh,.dcc-panel-link) {
+  border-radius:10px!important;
+}
+
+/* Daily Brief used to duplicate the Hero in a huge purple block.
+   Keep all task actions, but render as a restrained horizontal focus ribbon. */
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v3-brief {
+  display:grid!important;
+  grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr)!important;
+  background:#fff!important;
+  color:#254771!important;
+  min-height:125px!important;
+  overflow:hidden;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v3-brief-lead {
+  padding:18px 20px!important;
+  background:#f5f8ff!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v3-brief-eyebrow {
+  color:#587cc0!important;
+  font-size:10px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v3-brief-lead h2 {
+  color:#234c85!important;
+  font-size:17px!important;
+  margin:7px 0 4px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v3-brief-lead p {
+  color:#7188a5!important;
+  font-size:11px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v3-brief-metrics {
+  margin-top:9px!important;
+  gap:6px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v3-brief-metrics span {
+  color:#3867a7!important;
+  background:#eaf2ff!important;
+  border:1px solid #d9e7fb!important;
+  padding:5px 8px!important;
+  border-radius:8px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v3-brief-focus {
+  background:#fff!important;
+  border-left:1px solid #e4ecf8!important;
+  padding:13px 16px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v3-brief-list-title {
+  color:#28528a!important;
+  font-size:12px!important;
+  margin:0 0 5px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v3-brief-focus-item {
+  background:#f7faff!important;
+  color:#2b4c7d!important;
+  border-color:#e4edf8!important;
+  margin:3px 0!important;
+  padding:6px 9px!important;
+  min-height:36px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v3-brief-focus-item strong {
+  font-size:11px;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v3-brief-next {
+  background:#eef6ff!important;
+  color:#2f5c96!important;
+  border-color:#d7e6fb!important;
+  margin-top:6px!important;
+  padding:7px 10px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v3-brief-next b {
+  color:#2a65bd;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v3-brief-none { color:#218b73!important; }
+
+/* Weekly Planning: same header chrome and information density as other cards. */
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v32-planner-head {
+  background:#fff!important;
+  border-bottom:1px solid #e3ecf8!important;
+  padding:18px 21px;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v32-planner-symbol {
+  border-radius:11px;
+  width:40px;height:40px;flex-basis:40px;
+  background:#e4efff;
+  color:#2b66d5;
+  box-shadow:none;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v32-planner-brand h2 {
+  color:#1f497e;
+  font-size:17px;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v32-planner-day {
+  border-radius:11px!important;
+  background:#f6f9ff;
+  border:1px solid #deebfa;
+  min-height:80px;
+  box-shadow:none!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v32-planner-day.is-selected {
+  background:#376fe3!important;
+  color:#fff;
+  border-color:#376fe3!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v32-planner-body {
+  background:#fff!important;
+  gap:14px;
+  border-top:1px solid #e6edf7;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v32-planner-day-info {
+  background:#eaf3ff!important;
+  border-color:#d9e9fb!important;
+  border-radius:12px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v32-plan-row {
+  background:#fff!important;
+  border:1px solid #e5edf7!important;
+  border-radius:11px!important;
+  min-height:48px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v32-copy {
+  background:#fff!important;
+  border-color:#d5e6fb!important;
+  border-radius:10px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v32-export {
+  background:#286ce6!important;
+  border-color:#286ce6!important;
+  border-radius:10px!important;
+}
+
+/* Insight cards use the same KPI hues and geometry. */
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v3-insights-heading {
+  background:#fff!important;
+  padding:16px 19px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v3-insight-cell {
+  border-radius:12px!important;
+  padding:12px 15px;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v3-insights-metrics {
+  gap:11px;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v3-insights-progress {
+  border-radius:100px;
+}
+
+/* Calendar / quick actions / Drop Zone: remove competing illustrations, corners,
+   and heavy gradients. They remain the original functional components. */
+.app-shell[data-route="dashboard"] .gd-u33 .gd-v3-widget-board {
+  gap:14px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-calendar-header {
+  background:linear-gradient(110deg,#f8fbff,#eff6ff)!important;
+  border-bottom:1px solid #e1eafa!important;
+  border-radius:var(--u-radius) var(--u-radius) 0 0!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-calendar-header:before,
+.app-shell[data-route="dashboard"] .gd-u33 .gd-calendar-header:after {
+  opacity:.22!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-calendar-doodle {
+  opacity:.65;
+  transform:scale(.8);
+  transform-origin:right center;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-calendar-title h2,
+.app-shell[data-route="dashboard"] .gd-u33 .gd-surface-heading h2 {
+  color:#204a7b!important;
+  font-size:17px!important;
+  font-weight:850!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-calendar-title > span,
+.app-shell[data-route="dashboard"] .gd-u33 .gd-heading-icon {
+  border-radius:11px!important;
+  background:#e3efff!important;
+  color:#2d69d5!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-calendar-range-toggle button {
+  border-radius:9px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-calendar-range-toggle button.is-active {
+  background:#2e70e6!important;
+  color:#fff!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-calendar :is(.gd-event,.gd-timeline-event) {
+  border-radius:10px!important;
+  border-color:#e4edf8!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-surface-header {
+  background:#fff!important;
+  border-bottom:1px solid #e6edf7!important;
+  padding:16px 18px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-surface-body {
+  background:#fff!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .gd-quick-surface :is(button,a) {
+  border-radius:9px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .brian-dashboard-drop-zone {
+  background:#f8fbff!important;
+  border:1px solid #d7e6f9!important;
+  border-radius:var(--u-radius)!important;
+  box-shadow:var(--u-shadow)!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .brian-drop-entry-actions .is-primary {
+  background:#2869e3!important;
+  border-radius:10px!important;
+}
+
+/* Newsroom: identical card treatment instead of an unrelated news portal. */
+.app-shell[data-route="dashboard"] .gd-u33 .dnh {
+  background:#fff!important;
+  overflow:hidden;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dnh-head {
+  background:#fff!important;
+  border-bottom:1px solid #e6edf7!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dnh-title h2 {
+  color:#204a7b!important;
+  font-size:17px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dnh :is(.dnh-featured,.dnh-story,.dnh-full-card) {
+  border-radius:12px!important;
+  border:1px solid #e5edf8!important;
+  background:#fff!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dnh :is(.dnh-tabs button,.dnh-view-all) {
+  border-radius:9px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 .dnh-tabs button.is-active {
+  background:#286be3!important;
+  color:#fff!important;
+}
+
+/* Accessible, predictable interaction: match every widget. */
+.app-shell[data-route="dashboard"] .gd-u33 :is(
+  .dcc-stat,.dcc-priority-row,.dcc-recent-list button,
+  .gd-v32-planner button,.gd-event,.gd-quick-surface button,
+  .gd-v31-toolbar button,.dnh button,.dcc-next-event-action
+):focus-visible {
+  outline:3px solid #2679ec !important;
+  outline-offset:2px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33 :is(
+  .dcc-stat,.dcc-priority-row,.gd-v32-planner-day,.gd-event
+) {
+  transition:background-color .13s ease,border-color .13s ease,box-shadow .13s ease;
+}
+
+/* Protect the existing midnight theme from daylight background overrides.
+   Same surfaces, radius and rhythm apply; colors use a single dark scale. */
+.app-shell[data-route="dashboard"] .gd-page.gd-u33.gd-v31-midnight {
+  --u-bg:#101d35;--u-panel:#1a2c47;--u-ink:#edf5ff;
+  --u-muted:#abc1de;--u-line:#395578;
+  --u-soft:#223b5c;--u-shadow:0 8px 22px #06152c50;
+  background:var(--u-bg)!important;
+  color-scheme:dark;
+}
+.app-shell[data-route="dashboard"] .gd-u33.gd-v31-midnight :is(
+  .gd-v31-toolbar,.dcc-next-event,.dcc-panel,.gd-v32-planner,
+  .gd-v3-insights,.gd-calendar,.gd-surface,.dnh,.gd-v3-brief
+) {
+  background:#1a2c47!important;
+  border-color:var(--u-line)!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33.gd-v31-midnight :is(
+  .gd-v3-brief-lead,.gd-v3-brief-focus,.gd-v32-planner-head,
+  .gd-v32-planner-body,.gd-v3-insights-heading,.gd-calendar-header,
+  .gd-surface-header,.gd-surface-body,.dnh-head
+) {
+  background:#203756!important;
+  border-color:#3a587e!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33.gd-v31-midnight :is(
+  .gd-v3-brief-lead h2,.gd-v3-brief-list-title,
+  .gd-v32-planner-brand h2,.dcc-panel-header h3,
+  .gd-calendar-title h2,.gd-surface-heading h2,.dnh-title h2,
+  .dcc-section-heading h2
+) { color:#edf5ff!important; }
+.app-shell[data-route="dashboard"] .gd-u33.gd-v31-midnight .dcc-stat {
+  background:#213e64!important;
+  border-color:#456891!important;
+  color:#d9e9ff!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33.gd-v31-midnight :is(
+  .dcc-stat--coral,.dcc-stat--violet,.dcc-stat--green
+) { color:#e5ecff!important; }
+.app-shell[data-route="dashboard"] .gd-u33.gd-v31-midnight :is(
+  .gd-v32-plan-row,.dcc-priority-row,.dcc-recent-list button,
+  .gd-v3-brief-focus-item,.dnh-story,.dnh-featured,.dnh-full-card
+) {
+  background:#253e5d!important;
+  border-color:#446385!important;
+  color:#edf4ff!important;
+}
+.app-shell[data-route="dashboard"] .gd-u33.gd-v31-midnight :is(
+  .dcc-priority-row strong,.gd-v3-brief-focus-item strong,
+  .gd-v32-plan-row-body strong,.dnh-story strong
+) { color:#f2f7ff!important; }
+
+/* Mobile: one rhythm, no 7-column overflows, no unreachable controls. */
+@media(max-width:980px) {
+  .app-shell[data-route="dashboard"] .gd-u33 .gd-v3-brief {
+    grid-template-columns:1fr!important;
+  }
+  .app-shell[data-route="dashboard"] .gd-u33 .gd-v3-brief-focus {
+    border-left:0!important;
+    border-top:1px solid #e2ebf8!important;
+  }
+}
+@media(max-width:640px) {
+  .app-shell[data-route="dashboard"] .gd-u33 .gd-shell-v3 {
+    padding-inline:9px!important;
+  }
+  .app-shell[data-route="dashboard"] .gd-u33 .editorial-hero {
+    border-radius:18px!important;
+    padding:15px!important;
+  }
+  .app-shell[data-route="dashboard"] .gd-u33 .editorial-hero h1 {
+    font-size:clamp(26px,7vw,37px)!important;
+  }
+  .app-shell[data-route="dashboard"] .gd-u33 .dcc-stats {
+    gap:9px!important;
+  }
+  .app-shell[data-route="dashboard"] .gd-u33 .dcc-stat {
+    min-height:108px!important;
+    padding:12px!important;
+  }
+  .app-shell[data-route="dashboard"] .gd-u33 .dcc-stat-number {font-size:27px;}
+  .app-shell[data-route="dashboard"] .gd-u33 .gd-v32-planner-days {
+    padding-inline:9px!important;
+    gap:3px!important;
+  }
+  .app-shell[data-route="dashboard"] .gd-u33 .gd-v32-planner-day {
+    min-width:0;
+    min-height:78px!important;
+    padding-inline:2px!important;
+  }
+  .app-shell[data-route="dashboard"] .gd-u33 .gd-v32-planner-day strong {
+    font-size:18px;
+  }
+  .app-shell[data-route="dashboard"] .gd-u33 .gd-v32-planner-head {
+    padding:15px;
+  }
+  .app-shell[data-route="dashboard"] .gd-u33 .gd-v3-brief-lead,
+  .app-shell[data-route="dashboard"] .gd-u33 .gd-v3-brief-focus {
+    padding:13px!important;
+  }
+  .app-shell[data-route="dashboard"] .gd-u33 .gd-v3-widget-board {gap:10px!important;}
+  .app-shell[data-route="dashboard"] .gd-u33 .gd-calendar-doodle {
+    opacity:.25!important;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  .app-shell[data-route="dashboard"] .gd-u33 * {
+    scroll-behavior:auto!important;
+    transition-duration:0.01ms!important;
+    animation-duration:0.01ms!important;
+    animation-iteration-count:1!important;
+  }
+}
