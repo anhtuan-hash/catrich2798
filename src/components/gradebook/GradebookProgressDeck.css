@@ -53,3 +53,15 @@ html[data-theme="dark"] .hr-page .hr-gradebook .gb3-deck-right{background:#212c3
 html[data-theme="dark"] .hr-page .hr-gradebook .gb3-deck-right-title strong{color:#e4eeff}
 html[data-theme="dark"] .hr-page .hr-gradebook .gb3-deck-tile>strong{color:#1c3454}
 @media(prefers-reduced-motion:reduce){.hr-page .hr-gradebook .gb3-deck-tile,.hr-page .hr-gradebook .gb3-deck-actions button{transition:none}}
+
+/* Focused Material 3 polishing of the existing overview and search controls. */
+.hr-page .hr-gradebook .hr-grade-overview{gap:10px!important;margin-bottom:12px!important}
+.hr-page .hr-gradebook .hr-grade-overview article{border-radius:17px!important;border:1px solid #d9e5f4!important;box-shadow:0 3px 13px rgba(39,75,140,.06)!important;min-width:0!important}
+.hr-page .hr-gradebook .hr-grade-overview article.tone-blue{background:linear-gradient(145deg,#e7f0ff,#f8fbff)!important;border-color:#bbd5ff!important}
+.hr-page .hr-gradebook .hr-grade-overview article.tone-green{background:linear-gradient(145deg,#e2f9ec,#f8fffb)!important;border-color:#b7eacb!important}
+.hr-page .hr-gradebook .hr-grade-overview article.tone-purple{background:linear-gradient(145deg,#efe8ff,#faf8ff)!important;border-color:#d6c5ff!important}
+.hr-page .hr-gradebook .hr-grade-overview article.tone-yellow{background:linear-gradient(145deg,#fff1d6,#fffaf0)!important;border-color:#f3daa1!important}
+.hr-page .hr-gradebook .hr-grade-navigation-dock.is-always-visible>.hr-grade-navigation{border-radius:17px!important;border:1px solid #dce6f5!important;box-shadow:0 4px 17px rgba(36,70,122,.055)!important}
+.hr-page .hr-gradebook .gb-roster-workbench{border-radius:16px!important;box-shadow:0 4px 18px rgba(35,69,123,.04)!important}
+.hr-page .hr-gradebook .gb-roster-search:focus-within{outline:2px solid #4b77e7;outline-offset:2px}
+.hr-page .hr-gradebook .gb3-deck + .gb-finalized-banner{margin-top:10px}
