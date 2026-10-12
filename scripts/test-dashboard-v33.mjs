@@ -22,7 +22,7 @@ const existing = [
 
 assert.match(page, /import '..\/styles\/dashboard-unified-v33\.css';/);
 const directCssImports = page.match(/import '..\/styles\/[^']+\.css';/g) || [];
-assert.equal(directCssImports.length, 1, 'Dashboard should have ONE styling entrypoint');
+assert.deepEqual(directCssImports, ["import '../styles/dashboard-unified-v33.css';", "import '../styles/dashboard-v34-wide-news.css';"], 'Dashboard 3.4 must preserve the original design authority followed by a scoped 3.4 refinement');
 for (const name of existing) {
   assert.ok(style.includes('@import "./' + name + '";'), 'Missing compatible layer: ' + name);
   assert.ok(!page.includes("import '../styles/" + name + "'"), 'Legacy CSS must not load separately: ' + name);

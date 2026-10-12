@@ -1,43 +1,30 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowUpRight, CalendarClock, CalendarDays, Check, ChevronRight, ClipboardCopy, Clock3, Download, Layers3, ListTodo, RefreshCw, ShieldAlert } from 'lucide-react';
+import { ArrowUpRight, CalendarDays, ClipboardCopy, Download, Layers3, ListTodo, RefreshCw, ShieldAlert } from 'lucide-react';
 import { buildDashboardWeek, buildDashboardWeekICS, buildDashboardWeekText } from '../utils/dashboardV32Planning.js';
-import { openDashboardTarget } from '../utils/dashboardAggregator.js';
 
 const WORDS = {
   vi: {
-    eyebrow:'WEEKLY PLANNING DOCK', title:'Lịch và công việc 7 ngày tới',
-    sub:'Chọn một ngày để xem lịch và việc đến hạn — không cần chuyển trang.',
+    eyebrow:'WEEKLY PLANNING DOCK', title:'Kế hoạch tuần này',
+    sub:'Chọn ngày để xem lịch chi tiết ở khu vực duy nhất bên dưới.',
     events:'Sự kiện', tasks:'Việc đến hạn', view:'Xem trong ứng dụng', none:'Không có nội dung trong dữ liệu đã tải.',
     export:'Xuất lịch', copy:'Sao chép kế hoạch', copied:'Đã sao chép', failed:'Không thể sao chép — kiểm tra quyền clipboard.',
     downloaded:'Đã tạo tệp lịch từ các sự kiện đang hiển thị.', noExport:'Chưa có sự kiện để xuất.',
     limited:'Một số nguồn dữ liệu chưa đầy đủ. Các con số chỉ phản ánh bản ghi đã tải.',
-    loading:'Đang cập nhật...', refreshed:'Dữ liệu lúc', more:'Xem tất cả', fewer:'Thu gọn',
+    loading:'Đang cập nhật...', refreshed:'Dữ liệu lúc', more:'Xem tất cả', fewer:'Thu gọn', openSchedule:'Xem lịch chi tiết',
   },
   en: {
-    eyebrow:'WEEKLY PLANNING DOCK', title:'Your next seven days', sub:'Pick a day to see events and due tasks without switching pages.',
+    eyebrow:'WEEKLY PLANNING DOCK', title:'This week at a glance', sub:'Select a day to see its details in the single schedule below.',
     events:'Events', tasks:'Tasks due', view:'Open in app', none:'No entries in loaded data.',
     export:'Export calendar', copy:'Copy plan', copied:'Copied', failed:'Unable to copy — check clipboard permissions.',
     downloaded:'Calendar generated from the currently loaded events.', noExport:'No events available to export.',
     limited:'Some sources may be incomplete. Counts describe loaded records only.',
-    loading:'Updating...', refreshed:'Data from', more:'Show all', fewer:'Show less',
+    loading:'Updating...', refreshed:'Data from', more:'Show all', fewer:'Show less', openSchedule:'View detailed schedule',
   },
 };
 const dateLabel=(date,language,opts)=>new Intl.DateTimeFormat(language==='vi'?'vi-VN':'en-US',opts).format(date);
-function PlanRow({ item, kind, language }) {
-  const stamp = new Date(item.date);
-  const showTime = Number.isFinite(stamp.getTime()) && stamp.getHours() + stamp.getMinutes() !== 0;
-  const time = showTime ? dateLabel(stamp,language,{hour:'2-digit',minute:'2-digit'}):null;
-  return <button type="button" className={'gd-v32-plan-row gd-v32-plan-row--'+kind} onClick={()=>openDashboardTarget(item)} title={item.title}>
-    <span className="gd-v32-plan-row-icon">{kind==='event'?<CalendarClock size={18}/>:<ListTodo size={18}/>}</span>
-    <span className="gd-v32-plan-row-body"><strong>{item.title}</strong><small>{item.sourceLabel || (kind==='event'?(language==='vi'?'Sự kiện':'Event'):(language==='vi'?'Công việc':'Task'))}{item.owner?' · '+item.owner:''}</small></span>
-    {time ? <span className="gd-v32-plan-time">{time}</span> : null}
-    <ChevronRight size={16} className="gd-v32-plan-row-arrow"/>
-  </button>;
-}
-export default function DashboardWeeklyPlanner({ timeline = [], attention = [], snapshot, now = new Date(), language = 'vi', loading = false, onRefresh }) {
+export default function DashboardWeeklyPlanner({ timeline = [], attention = [], snapshot, now = new Date(), language = 'vi', loading = false, onRefresh, onSelectDay }) {
   const t = WORDS[language] || WORDS.vi;
   const [selectedKey, setSelectedKey] = useState('');
-  const [expanded, setExpanded] = useState(false);
   const [feedback, setFeedback] = useState('');
   const days = useMemo(()=>buildDashboardWeek(timeline,attention,now),[timeline,attention,now]);
   const activeKey = days.some(day=>day.key===selectedKey) ? selectedKey : days[0]?.key;
@@ -47,8 +34,6 @@ export default function DashboardWeeklyPlanner({ timeline = [], attention = [], 
   const hasLimitedData = Boolean(snapshot?.coverageLimited || snapshot?.sourceErrors?.length);
   const stamp = snapshot?.generatedAt && !Number.isNaN(new Date(snapshot.generatedAt).getTime())
     ? dateLabel(new Date(snapshot.generatedAt),language,{hour:'2-digit',minute:'2-digit'}) : '—';
-  const entries = selected ? [...selected.events.map(item=>({item,kind:'event'})),...selected.tasks.map(item=>({item,kind:'task'}))] : [];
-  const visibleEntries = expanded ? entries : entries.slice(0,6);
   async function copyPlan() {
     try {
       if (!navigator.clipboard?.writeText) throw new Error('clipboard unavailable');
@@ -96,23 +81,22 @@ export default function DashboardWeeklyPlanner({ timeline = [], attention = [], 
         const weekday=dateLabel(day.date,language,{weekday:'short'});
         return <button type="button" key={day.key} className={'gd-v32-planner-day'+(selectedDay?' is-selected':'')+(day.offset===0?' is-today':'')}
           aria-pressed={selectedDay} aria-label={dateLabel(day.date,language,{weekday:'long',day:'2-digit',month:'long'})}
-          onClick={()=>{setSelectedKey(day.key);setExpanded(false);setFeedback('');}}>
+          onClick={()=>{setSelectedKey(day.key);setFeedback('');onSelectDay?.(day.key);}}>
           <span className="gd-v32-weekday">{weekday}</span><strong>{day.date.getDate()}</strong>
           <span className="gd-v32-day-dots"><i className={day.events.length?'has-events':''}/><i className={day.tasks.length?'has-tasks':''}/></span>
           <small>{day.events.length+day.tasks.length}</small>
         </button>;
       })}
     </div>
-    <div className="gd-v32-planner-body">
+    <div className="gd-v32-planner-body gd-u34-week-summary">
       <div className="gd-v32-planner-day-info">
-        <span>{language==='vi'?'NỘI DUNG TRONG NGÀY':'DAY AGENDA'}</span>
-        <h3>{selected?dateLabel(selected.date,language,{weekday:'long',day:'2-digit',month:'long'}):'—'}</h3>
+        <span>{language==='vi'?'NGÀY ĐÃ CHỌN':'SELECTED DAY'}</span>
+        <h3>{selected ? dateLabel(selected.date,language,{weekday:'long',day:'2-digit',month:'long'}) : '—'}</h3>
         <p>{selected?.events.length||0} {t.events.toLowerCase()} · {selected?.tasks.length||0} {t.tasks.toLowerCase()}</p>
       </div>
-      <div className="gd-v32-planner-agenda" aria-live="polite">
-        {visibleEntries.length?visibleEntries.map(({item,kind},i)=><PlanRow key={kind+':'+item.id+':'+i} item={item} kind={kind} language={language}/>):<div className="gd-v32-planner-empty"><Check size={19}/>{t.none}</div>}
-        {entries.length>6?<button type="button" className="gd-v32-planner-more" onClick={()=>setExpanded(value=>!value)}>{expanded?t.fewer:t.more} ({entries.length}) <ArrowUpRight size={15}/></button>:null}
-      </div>
+      <button type="button" className="gd-u34-open-schedule" onClick={()=>onSelectDay?.(activeKey)}>
+        {t.openSchedule} <ArrowUpRight size={17}/>
+      </button>
     </div>
     {feedback ? <div className="gd-v32-planner-feedback" role="status">{feedback}</div> : null}
   </section>;

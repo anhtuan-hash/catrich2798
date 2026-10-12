@@ -1,0 +1,331 @@
+/* BRIAN Dashboard 3.4 — approved wide-content / readable-news / single schedule.
+   Route scoped: header, homeroom, gradebook and other pages are not restyled. */
+.app-shell[data-route="dashboard"] {
+  --dashboard-shell-width:min(1520px, calc(100% - 32px));
+}
+/* Share EXACT container sizing with the Dashboard footer, rather than nesting a
+   1440px inner canvas inside a wider footer. Do not change vertical sticky offsets. */
+html body #root .app-shell[data-route="dashboard"] .gd-page.gd-u34 {
+  width:100%!important;
+  max-width:none!important;
+  margin-inline:0!important;
+  padding-inline:0!important;
+  box-sizing:border-box!important;
+}
+html body #root .app-shell[data-route="dashboard"] .gd-u34 .gd-shell.gd-shell-v3 {
+  box-sizing:border-box!important;
+  width:var(--dashboard-shell-width)!important;
+  max-width:1520px!important;
+  min-width:0!important;
+  padding-inline:0!important;
+  margin-inline:auto!important;
+  gap:16px!important;
+}
+html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-footer-route="dashboard"] {
+  box-sizing:border-box!important;
+  width:var(--dashboard-shell-width)!important;
+  max-width:1520px!important;
+  margin-inline:auto!important;
+}
+.app-shell[data-route="dashboard"] .gd-u34 :is(.dcc-root,.dcc-workspace,.dcc-priority,.dcc-sidebar,.gd-v3-widget-board,.gd-v3-widget,.dcc-news-slot) {
+  min-width:0!important;
+  max-width:100%;
+}
+.app-shell[data-route="dashboard"] .gd-u34 .gd-v31-toolbar,
+.app-shell[data-route="dashboard"] .gd-u34 .editorial-hero,
+.app-shell[data-route="dashboard"] .gd-u34 .gd-v32-planner,
+.app-shell[data-route="dashboard"] .gd-u34 .gd-v3-insights,
+.app-shell[data-route="dashboard"] .gd-u34 .gd-v3-widget-board {
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+}
+/* Weekly dock = a seven-day navigator only. The original event rows live in
+   the ONE calendar widget and respond to a selected date. */
+.app-shell[data-route="dashboard"] .gd-u34 .gd-v32-planner-head {
+  padding-block:16px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u34 .gd-v32-planner-days {
+  padding-block:7px 12px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u34 .gd-v32-planner-day {
+  min-height:74px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u34 .gd-v32-planner-body.gd-u34-week-summary {
+  display:flex!important;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  border-top:1px solid #e5edf8!important;
+  background:#f8fbff!important;
+  padding:10px 20px!important;
+  min-height:58px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u34 .gd-v32-planner-day-info {
+  flex:1;min-width:0;
+  display:flex!important;align-items:center;gap:10px;
+  margin:0!important;padding:0!important;
+  border:0!important;background:transparent!important;
+}
+.app-shell[data-route="dashboard"] .gd-u34 .gd-v32-planner-day-info > span {
+  display:none!important;
+}
+.app-shell[data-route="dashboard"] .gd-u34 .gd-v32-planner-day-info h3 {
+  margin:0!important;font-size:12px!important;
+  color:#26528e!important;font-weight:850!important;
+  white-space:normal!important;
+}
+.app-shell[data-route="dashboard"] .gd-u34 .gd-v32-planner-day-info p {
+  margin:0!important;font-size:11px!important;
+  color:#6a88ae!important;white-space:nowrap;
+}
+.app-shell[data-route="dashboard"] .gd-u34 .gd-u34-open-schedule {
+  flex:0 0 auto;min-height:35px;
+  display:inline-flex;align-items:center;gap:7px;
+  padding:7px 12px;border:1px solid #cbdff8;
+  border-radius:10px;background:#fff;
+  font-family:inherit;font-size:11px;font-weight:820;
+  color:#285fb2;cursor:pointer;
+}
+.app-shell[data-route="dashboard"] .gd-u34 .gd-u34-open-schedule:focus-visible {
+  outline:2px solid #2f77dd;outline-offset:2px;
+}
+/* The single calendar can show Today, a chosen day, a full week, or month
+   without rendering the same agenda a second time inside the weekly dock. */
+.app-shell[data-route="dashboard"] .gd-u34 .gd-calendar {
+  scroll-margin-top:80px;
+}
+.app-shell[data-route="dashboard"] .gd-u34 .gd-calendar-header {
+  min-height:104px!important;
+  padding:20px 24px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u34 .gd-calendar-header::before,
+.app-shell[data-route="dashboard"] .gd-u34 .gd-calendar-header::after {
+  display:none!important;
+}
+.app-shell[data-route="dashboard"] .gd-u34 .gd-calendar-doodle,
+.app-shell[data-route="dashboard"] .gd-u34 .gd-calendar-edition {
+  opacity:.35;
+}
+.app-shell[data-route="dashboard"] .gd-u34 .gd-date-poster {
+  min-width:155px;
+}
+/* News is a real content section on first visit, loaded as the user scrolls
+   close to it. Render all summary text provided by the source, not fake text. */
+.app-shell[data-route="dashboard"] .gd-u34 .dcc-news-slot {
+  width:100%;min-width:0;
+}
+.app-shell[data-route="dashboard"] .gd-u34 .dcc-news-toggle {
+  min-height:50px!important;
+  border:1px solid #d9e7fa!important;
+  border-radius:13px!important;
+  background:#f5f9ff!important;
+  color:#1c4d86!important;
+  font-size:13px!important;
+  box-shadow:none!important;
+  padding:10px 16px!important;
+}
+.app-shell[data-route="dashboard"] .gd-u34 .dcc-news-toggle[aria-expanded="true"] {
+  margin-bottom:11px!important;
+}
+html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh {
+  width:100%!important;
+  max-width:100%!important;
+  margin:0!important;
+  overflow:visible!important;
+  border-radius:18px!important;
+}
+html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-head {
+  padding:17px 20px!important;
+  gap:12px!important;
+  flex-wrap:wrap;
+  border-radius:18px 18px 0 0!important;
+}
+html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-grid {
+  display:grid!important;
+  grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr)!important;
+  min-width:0!important;
+  width:100%!important;
+  gap:0!important;
+  align-items:start!important;
+  min-height:0!important;
+}
+html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-featured {
+  display:grid!important;
+  grid-template-columns:minmax(175px,.85fr) minmax(0,1.15fr)!important;
+  width:100%!important;min-width:0!important;
+  align-items:stretch!important;
+  overflow:visible!important;
+}
+html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-featured-media {
+  min-height:245px!important;
+  height:auto!important;
+}
+html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-featured-copy,
+html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-story-copy,
+html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-full-copy {
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  justify-content:center!important;
+  min-width:0!important;
+  max-width:100%!important;
+  overflow:visible!important;
+}
+html body #root .app-shell[data-route="dashboard"] .gd-u34 :is(
+  .dnh-featured-copy strong,.dnh-featured-copy p,
+  .dnh-story-copy strong,.dnh-story-copy p,
+  .dnh-full-copy strong,.dnh-full-copy p
+) {
+  display:block!important;
+  -webkit-line-clamp:unset!important;
+  line-clamp:unset!important;
+  -webkit-box-orient:initial!important;
+  max-height:none!important;
+  min-height:0!important;
+  height:auto!important;
+  overflow:visible!important;
+  white-space:normal!important;
+  text-overflow:clip!important;
+  overflow-wrap:anywhere!important;
+  word-break:normal!important;
+}
+html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-featured-copy strong {
+  font-size:clamp(16px,1.35vw,20px)!important;
+  line-height:1.35!important;
+}
+html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-featured-copy p {
+  margin:10px 0 14px!important;
+  font-size:12.5px!important;
+  line-height:1.62!important;
+  color:#506d8e!important;
+}
+html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-list {
+  display:grid!important;
+  grid-template-rows:none!important;
+  grid-auto-rows:auto!important;
+  min-width:0!important;
+  height:auto!important;
+  overflow:visible!important;
+}
+html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-story {
+  display:grid!important;
+  grid-template-columns:110px minmax(0,1fr)!important;
+  align-items:start!important;
+  gap:12px!important;
+  min-width:0!important;
+  height:auto!important;
+  min-height:0!important;
+  padding:12px!important;
+  overflow:visible!important;
+}
+html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-story-media {
+  height:88px!important;
+  min-height:88px!important;
+  width:110px!important;
+  max-width:110px!important;
+  overflow:hidden!important;
+}
+html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-story-copy {
+  justify-content:flex-start!important;
+}
+html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-story-copy strong {
+  font-size:12.5px!important;
+  line-height:1.4!important;
+  margin:4px 0 5px!important;
+  color:#244c80!important;
+}
+html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-story-summary {
+  margin:0 0 6px!important;
+  color:#587394!important;
+  font-size:11.5px!important;
+  line-height:1.52!important;
+}
+html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-full {
+  max-width:100%!important;
+  overflow:visible!important;
+}
+html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-full-card {
+  height:auto!important;
+  min-height:0!important;
+  overflow:visible!important;
+}
+html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-full-copy {
+  padding:16px!important;
+}
+/* Reset legacy 560px breakpoints that hard-clamp every news title. */
+@media (max-width:1120px) {
+  html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-grid {
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-featured {
+    border-right:0!important;
+    border-bottom:1px solid #e5edf8!important;
+  }
+  html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-list {
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}
+@media (max-width:720px) {
+  .app-shell[data-route="dashboard"] {
+    --dashboard-shell-width:calc(100% - 16px);
+  }
+  html body #root .app-shell[data-route="dashboard"] .gd-u34 .gd-shell.gd-shell-v3 {
+    padding-inline:0!important;
+  }
+  .app-shell[data-route="dashboard"] .gd-u34 .gd-v32-planner-body.gd-u34-week-summary {
+    flex-wrap:wrap;
+    padding:10px 12px!important;
+  }
+  .app-shell[data-route="dashboard"] .gd-u34 .gd-v32-planner-day-info {
+    flex-wrap:wrap;
+    gap:5px;
+  }
+  html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-grid {
+    grid-template-columns:1fr!important;
+  }
+  html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-featured {
+    grid-template-columns:1fr!important;
+  }
+  html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-featured-media {
+    height:185px!important;min-height:185px!important;
+  }
+  html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-list {
+    grid-template-columns:1fr!important;
+  }
+  html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-story-media {
+    width:92px!important;max-width:92px!important;
+    min-width:92px!important;height:82px!important;min-height:82px!important;
+  }
+  html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-story {
+    grid-template-columns:92px minmax(0,1fr)!important;
+  }
+  html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-featured-copy,
+  html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-story-copy {
+    width:100%!important;max-width:100%!important;
+    overflow:visible!important;
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  .app-shell[data-route="dashboard"] .gd-u34 .gd-u34-open-schedule {
+    scroll-behavior:auto!important;
+    transition:none!important;
+  }
+}
+/* Midnight inherits the unified theme, without returning to white panels. */
+.app-shell[data-route="dashboard"] .gd-u34.gd-v31-midnight .gd-v32-planner-body.gd-u34-week-summary {
+  background:#203756!important;
+  border-color:#3a587e!important;
+}
+.app-shell[data-route="dashboard"] .gd-u34.gd-v31-midnight .gd-v32-planner-day-info h3 {
+  color:#eef6ff!important;
+}
+.app-shell[data-route="dashboard"] .gd-u34.gd-v31-midnight .gd-u34-open-schedule {
+  background:#25456d!important;color:#f0f6ff!important;border-color:#4d6d94!important;
+}
+.app-shell[data-route="dashboard"] .gd-u34.gd-v31-midnight .dnh-story-copy strong {
+  color:#f0f6ff!important;
+}
+.app-shell[data-route="dashboard"] .gd-u34.gd-v31-midnight .dnh-story-summary {
+  color:#b5cdeb!important;
+}

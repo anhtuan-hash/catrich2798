@@ -1,4 +1,4 @@
-name: BRIAN Dashboard 3.3 Unified UI Release Gate
+name: BRIAN Dashboard 3.4 Wide Layout & News Release Gate
 on:
   push:
     branches:
@@ -10,6 +10,7 @@ on:
       - feat/dashboard-3-1-focus-search-theme-20261012
       - feat/dashboard-3-2-weekly-planning-20261012
       - feat/dashboard-3-3-unified-ui-20261012
+      - feat/dashboard-3-4-wide-news-single-schedule-20261012
   workflow_dispatch:
 permissions:
   contents: read
@@ -38,6 +39,8 @@ jobs:
           TZ=Asia/Ho_Chi_Minh node scripts/test-dashboard-v32.mjs
           TZ=America/New_York node scripts/test-dashboard-v32.mjs
           TZ=Asia/Ho_Chi_Minh node scripts/test-dashboard-v33.mjs
+          TZ=Asia/Ho_Chi_Minh node scripts/test-dashboard-v34.mjs
+          TZ=America/New_York node scripts/test-dashboard-v34.mjs
       - name: Gradebook non-interference tests
         run: |
           node scripts/test-gradebook-mock-exams.mjs
