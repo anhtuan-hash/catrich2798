@@ -445,7 +445,8 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   }, [exportDialogMode, exporting]);
 
   const mutate = (callback) => {
-    if(finalized || savePending)return;
+    if(finalized)return;
+    if(savePending)return;
     setGradebook((current) => {
       const next = clone(current);
       const key = next.subjects[activeSubjectKey] ? activeSubjectKey : ensureSubject(next, activeSubject?.name || 'Tiếng Anh');
