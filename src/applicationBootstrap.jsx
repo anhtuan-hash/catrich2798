@@ -167,6 +167,14 @@ function navigateAssignedHomeroomAfterMount(result) {
 function loadRouteModules() {
   if (isAppsRoute()) loadExternalAppsAfterMainShell();
 
+  if (isHomeroomRoute()) {
+    // The Home -> Homeroom transition happens after main has mounted. Explicitly
+    // select GVCN here as this module may be loaded for the first time and its
+    // hashchange listener would otherwise miss the event that brought us here.
+    import('./preferredHomeroomEntry.js')
+      .then((module) => module.preparePreferredHomeroomEntry?.())
+      .catch((error) => console.warn('[PreferredHomeroomEntry] Không chọn được GVCN khi chuyển trang.', error));
+  }
   if (isAssignedClassRoute()) startAssignedClassSync().catch(() => {});
   if (isBrianTeamRoute() && !schoolRegistryLoaded) {
     schoolRegistryLoaded = true;
@@ -325,16 +333,10 @@ async function startApplication() {
   await bootstrapPublicTypographyBeforeApp();
   await prepareAuthenticatedLandingBeforeMain();
 
-  // Server assignment wins absolutely. Only when the RPC returns no explicit
-  // homeroom assignment may the exact local registry assignment act as fallback.
-  let assignmentResult = null;
+  // Select the server-assigned GVCN with a lightweight, account-scoped RPC
+  // before the first Homeroom paint. Do not block first render on 28+ roster
+  // loads/saves: route modules reconcile them in the background after mount.
   if (isHomeroomRoute()) {
-    assignmentResult = await startAssignedClassSync();
-  }
-  const serverHomeroomWorkspaceId = assignedHomeroomId(assignmentResult);
-  if (serverHomeroomWorkspaceId) {
-    window.__besAssignedHomeroomWorkspaceId = serverHomeroomWorkspaceId;
-  } else {
     await preparePreferredHomeroomBeforeMain();
   }
 
