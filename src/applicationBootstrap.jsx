@@ -167,6 +167,14 @@ function navigateAssignedHomeroomAfterMount(result) {
 function loadRouteModules() {
   if (isAppsRoute()) loadExternalAppsAfterMainShell();
 
+  if (isHomeroomRoute()) {
+    // The Home -> Homeroom transition happens after main has mounted. Explicitly
+    // select GVCN here as this module may be loaded for the first time and its
+    // hashchange listener would otherwise miss the event that brought us here.
+    import('./preferredHomeroomEntry.js')
+      .then((module) => module.preparePreferredHomeroomEntry?.())
+      .catch((error) => console.warn('[PreferredHomeroomEntry] Không chọn được GVCN khi chuyển trang.', error));
+  }
   if (isAssignedClassRoute()) startAssignedClassSync().catch(() => {});
   if (isBrianTeamRoute() && !schoolRegistryLoaded) {
     schoolRegistryLoaded = true;
