@@ -79,7 +79,7 @@ html[data-theme="dark"] .gb-mock-trends-heading p,html[data-theme="dark"] .gb-mo
 .gb-mock-view-title span{font-size:11px;color:#697d9b;margin-top:4px}
 .gb-mock-view-controls>label{display:flex;align-items:center;gap:8px;color:#526d92;font-size:12px;font-weight:800}
 .gb-mock-view-controls select{max-width:255px;min-width:174px;border-radius:10px;border:1px solid #bacdf1;background:#eef4ff;padding:9px 10px;color:#204886;font-weight:750;font-size:12px}
-.gb-mock-focus-attempt{display:contents;color:inherit;background:transparent;border:0;cursor:pointer;text-align:left}
+.gb-mock-focus-attempt{grid-column:1/-1;display:grid;grid-template-columns:27px minmax(0,1fr);gap:9px;align-items:center;color:inherit;background:transparent;border:0;cursor:pointer;text-align:left;width:100%;padding:0}
 .gb-mock-progress-item:has(.gb-mock-focus-attempt.is-current){outline:2px solid #487bf2;outline-offset:-2px;background:#eaf1ff}
 .gb-mock-progress-item:has(.gb-mock-focus-attempt:focus-visible){outline:3px solid #246bea;outline-offset:0}
 .gb-mock-progress-item .gb-mock-focus-attempt .gb-mock-round-index{pointer-events:none}
