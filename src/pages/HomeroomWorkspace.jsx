@@ -113,7 +113,10 @@ function mergeStudentRecordDelta(before, after, latest) {
 export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   // Server assignment, when available, is stronger than any stale local current-id.
   // applicationBootstrap resolves it before first mount on a direct Homeroom entry.
-  const initialWorkspaceId = assignedHomeroomWorkspaceId() || getCurrentHomeroomWorkspaceId(currentUser);
+  const cachedHomerooms = listLocalHomeroomWorkspaces(currentUser)
+    .filter((item) => item.status !== 'archived' && item.classType === HOMEROOM_CLASS_TYPE);
+  const cachedHomeroomId = cachedHomerooms.length === 1 ? cachedHomerooms[0].id : '';
+  const initialWorkspaceId = assignedHomeroomWorkspaceId() || cachedHomeroomId || getCurrentHomeroomWorkspaceId(currentUser);
   const initialWorkspace = getInitialWorkspace(currentUser, initialWorkspaceId);
   const [workspaceId, setWorkspaceId] = useState(initialWorkspaceId);
   const [workspace, setWorkspace] = useState(initialWorkspace);
