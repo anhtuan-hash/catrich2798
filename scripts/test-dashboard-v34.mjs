@@ -9,10 +9,10 @@ const css = read('src/styles/dashboard-v34-wide-news.css');
 const previous = read('src/styles/dashboard-unified-v33.css');
 const workflow = read('.github/workflows/dashboard-command-center-v2.yml');
 
-// The dashboard and the site footer share one width token.
+// Keep dashboard sizing within the existing footer-owned layout.
 assert.match(css,/width:calc\(100% - 24px\)!important/);
 assert.match(css,/\.gd-shell\.gd-shell-v3/);
-assert.match(css,/width:var\(--dashboard-shell-width\)!important/);
+assert.match(css,/max-width:1520px!important/);
 assert.match(read('src/components/FooterDashboardMockup.css'),/--dashboard-shell-width/);
 assert.match(page,/gd-page gd-v31-page gd-v32-page gd-u33 gd-u34/);
 assert.match(page,/dashboard-v34-wide-news\.css/);
