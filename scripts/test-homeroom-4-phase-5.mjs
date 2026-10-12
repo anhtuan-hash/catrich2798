@@ -63,6 +63,8 @@ const css=read('src/components/homeroom/HomeroomRecordsReview.css');
 assert.match(component,/buildRecordsReview\(workspace\)/);
 assert.match(component,/recordsReviewFilter\(entry,filter\)/);
 assert.match(component,/inspectStudentRecord\(record,grade\)\.paperPercent/);
+assert.match(component,/const review=inspectStudentRecord\(record,'12'\)/, 'Comparison screen must share normalized issue classification');
+assert.match(component,/review\.missingMoetCitizenId/);
 assert.match(component,/className="sr4-review-center"/);
 assert.match(component,/Có cả dữ liệu vnEdu và MOET/);
 assert.match(component,/'verified','Đã xác nhận'/);
