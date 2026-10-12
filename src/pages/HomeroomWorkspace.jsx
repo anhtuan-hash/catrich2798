@@ -50,6 +50,8 @@ import '../components/homeroom/HomeroomNavigationPalette.css';
 import '../components/homeroom/HomeroomGlassHero.css';
 // Homeroom 4.0 Phase 1: scoped tokens only; no visual changes yet.
 import '../styles/homeroom-4-tokens.css';
+// Gated Homeroom-only presentation layer; no styles escape .hr-v4.
+import '../styles/homeroom-4-expressive.css';
 
 // Homeroom owns homeroom duties only. Gradebook is a separate teacher app.
 // Keep the last usable class snapshot so remounts never blank this data-heavy route.
@@ -490,7 +492,7 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   // Only the class label is cached in cloud-only mode. Never enable editing a
   // synthetic empty roster while the actual school records are still loading.
   if (workspace.__besAwaitingCloudClass === true) {
-    return <div className="page hr-page is-homeroom-class">
+    return <div className="page hr-page hr-v4 is-homeroom-class">
       <section className="hr-panel" role="status" aria-live="polite" style={{ padding: '28px', marginTop: '16px' }}>
         <small>BRIAN • CHỦ NHIỆM</small>
         <h1>Lớp {workspace.classProfile.className}</h1>
@@ -499,7 +501,7 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
     </div>;
   }
 
-  return <div className={`page hr-page ${subjectMode ? 'is-subject-class' : 'is-homeroom-class'}`} data-homeroom-hydrated="true">
+  return <div className={`page hr-page hr-v4 ${subjectMode ? 'is-subject-class' : 'is-homeroom-class'}`} data-homeroom-hydrated="true">
     <HomeroomGlassHero
       workspace={workspace}
       currentUser={currentUser}
@@ -514,9 +516,9 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
     {message ? <div className="hr-toast"><span>✓</span>{message}</div> : null}
     {saving ? <div className="hr-saving-strip"><i />Đang đồng bộ dữ liệu lớp…</div> : null}
 
-    {(!workspace.classProfile?.className || visibleTab === (subjectMode ? 'classes' : 'overview')) ? <HomeroomClassProfileEditor value={classDraft} onChange={setClassDraft} onSave={saveClassProfile} saving={saving} language={language} /> : null}
+    {(!workspace.classProfile?.className || visibleTab === 'classes') ? <HomeroomClassProfileEditor value={classDraft} onChange={setClassDraft} onSave={saveClassProfile} saving={saving} language={language} /> : null}
 
-    <main className="hr-workspace-body">
+    <main id="hr-workspace-body" className="hr-workspace-body">
       {visibleTab === 'overview' ? <HomeroomOverviewCompactTab workspace={workspace} goTab={setActiveTab} /> : null}
       {visibleTab === 'classes' ? <ClassLifecycleTab workspace={workspace} catalog={catalog} currentId={workspaceId} onSwitch={switchWorkspace} onCreate={createWorkspace} onDuplicate={duplicateWorkspace} onStatusChange={changeWorkspaceStatus} currentUser={currentUser} /> : null}
       {visibleTab === 'students' ? (subjectMode ? <SubjectStudentsTab workspace={workspace} onCommit={commit} /> : <StudentsTab workspace={workspace} onCommit={commit} />) : null}
