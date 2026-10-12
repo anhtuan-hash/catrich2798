@@ -4,18 +4,19 @@ import { readGradebookXlsx, previewGradebookExcelImport } from '../../utils/grad
 import { gradebookFinalizationReadiness, exportGradebookAuditCsv } from '../../utils/gradebookFinalization.js';
 import './GradebookProductivityPanel.css';
 import GradebookPhase3Panel from './GradebookPhase3Panel.jsx';
+import { ClipboardPenLine, ChartNoAxesCombined, Grid2X2, ShieldAlert, ShieldCheck, History, LockKeyhole, ClipboardList, FileChartColumn, RotateCcw } from 'lucide-react';
 
 const TABS=[
-  {id:'paste',label:'Nhập nhanh'},
-  {id:'progress',label:'Tiến độ'},
-  {id:'heatmap',label:'Bản đồ điểm'},
-  {id:'alerts',label:'Cảnh báo & hỗ trợ'},
-  {id:'quality',label:'Kiểm tra lỗi'},
-  {id:'history',label:'Nhật ký'},
-  {id:'finalize',label:'Chốt điểm'},
-  {id:'rubric',label:'Rubric'},
-  {id:'report',label:'Phiếu tiến bộ'},
-  {id:'recovery',label:'Khôi phục'},
+  {id:'paste',icon:<ClipboardPenLine size={18} strokeWidth={2.2}/>,label:'Nhập nhanh'},
+  {id:'progress',icon:<ChartNoAxesCombined size={18} strokeWidth={2.2}/>,label:'Tiến độ'},
+  {id:'heatmap',icon:<Grid2X2 size={18} strokeWidth={2.2}/>,label:'Bản đồ điểm'},
+  {id:'alerts',icon:<ShieldAlert size={18} strokeWidth={2.2}/>,label:'Cảnh báo & hỗ trợ'},
+  {id:'quality',icon:<ShieldCheck size={18} strokeWidth={2.2}/>,label:'Kiểm tra lỗi'},
+  {id:'history',icon:<History size={18} strokeWidth={2.2}/>,label:'Nhật ký'},
+  {id:'finalize',icon:<LockKeyhole size={18} strokeWidth={2.2}/>,label:'Chốt điểm'},
+  {id:'rubric',icon:<ClipboardList size={18} strokeWidth={2.2}/>,label:'Rubric'},
+  {id:'report',icon:<FileChartColumn size={18} strokeWidth={2.2}/>,label:'Phiếu tiến bộ'},
+  {id:'recovery',icon:<RotateCcw size={18} strokeWidth={2.2}/>,label:'Khôi phục'},
 ];
 const DISPLAY=['TX 1','TX 2','TX 3','TX 4','Giữa kỳ','Cuối kỳ'];
 function chipColor(score){
@@ -135,7 +136,7 @@ export default function GradebookProductivityPanel({
     <div className="gb-prod-body">
       <div className="gb-prod-tabs" role="tablist" aria-label="Công cụ mở rộng">
         {TABS.map(item=><button key={item.id} type="button" role="tab" aria-selected={tab===item.id}
-          className={tab===item.id?'active':''} onClick={()=>{setTab(item.id);setNotice('');}}>{item.label}</button>)}
+          className={tab===item.id?'active':''} data-tab={item.id} onClick={()=>{setTab(item.id);setNotice('');}}><span className="gb-prod-tab-art" aria-hidden="true">{item.icon}</span><span className="gb-prod-tab-label">{item.label}</span></button>)}
       </div>
       {tab==='paste'?<div className="gb-prod-pane" role="tabpanel">
         <h3>Nhập điểm nhanh từ Excel hoặc CSV</h3>

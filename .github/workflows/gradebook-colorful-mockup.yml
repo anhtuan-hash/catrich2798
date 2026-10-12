@@ -1,0 +1,39 @@
+name: Gradebook Colorful Material 3 Approved Mockup
+on:
+  pull_request:
+    paths:
+      - 'src/components/gradebook/GradebookEngine.jsx'
+      - 'src/components/gradebook/GradebookProductivityPanel.jsx'
+      - 'src/styles/GradebookAcademicWorkspace.css'
+      - 'src/components/gradebook/GradebookProductivityPanel.css'
+      - 'public/gradebook-material3-hero.svg'
+      - 'tests/gradebook-colorful-mockup.test.mjs'
+      - '.github/workflows/gradebook-colorful-mockup.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/components/gradebook/GradebookEngine.jsx'
+      - 'src/components/gradebook/GradebookProductivityPanel.jsx'
+      - 'src/styles/GradebookAcademicWorkspace.css'
+      - 'src/components/gradebook/GradebookProductivityPanel.css'
+      - 'public/gradebook-material3-hero.svg'
+jobs:
+  approved-colorful-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Gradebook visual and data contract tests
+        run: |
+          node --test tests/gradebook-colorful-mockup.test.mjs tests/gradebook-material3-finish.test.mjs tests/gradebook-usability-material3.test.mjs tests/gradebook-material3-colorful.test.mjs tests/gradebook-academic-workspace.test.mjs tests/gradebook-permanent-palette.test.mjs tests/gradebook-visual-defects.test.mjs tests/gradebook-productivity.test.mjs tests/gradebook-phase2.test.mjs tests/gradebook-phase3.test.mjs
+      - name: Production build
+        run: npm run build
+      - name: Install browser
+        run: npx playwright install --with-deps chromium
+      - name: Verify 42 score columns on desktop and mobile browsers
+        run: npx playwright test tests/e2e/gradebook-academic-geometry.spec.js tests/e2e/gradebook-permanent-palette.spec.js tests/e2e/gradebook-visual-defects.spec.js tests/e2e/gradebook-usability-material3.spec.js --project=chromium-desktop
