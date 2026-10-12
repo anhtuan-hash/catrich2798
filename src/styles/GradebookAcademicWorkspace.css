@@ -1894,3 +1894,463 @@
   #root .gradebook-studio .gb-m3-class-jump select{max-width:120px;min-width:100px}
   #root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock.is-always-visible .hr-grade-views button{min-height:40px}
 }
+
+
+/* =============================================================
+   BRIAN COLORFUL MATERIAL 3 · Approved visual revision 2026-10-12
+   Built on the existing single active route-scoped stylesheet.
+   Only visual styling. Keep student table geometry, all data and
+   functionality, navigation and footer intact.
+   ============================================================= */
+#root .gradebook-studio{
+  --gbf-blue:#176bee;
+  --gbf-blue-dark:#144aa3;
+  --gbf-green:#13a671;
+  --gbf-violet:#8445e8;
+  --gbf-orange:#f59022;
+  --gbf-red:#ed405b;
+  --gbf-cyan:#07adb8;
+  --gbf-border:#cfe2ff;
+  --gbf-shadow:0 9px 24px rgba(21,78,159,.09);
+  position:relative;
+  isolation:isolate;
+  padding:14px 0 28px;
+}
+#root .gradebook-studio::before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  pointer-events:none;
+  inset:-12px -15px 0;
+  background:
+    radial-gradient(circle at 1% 7%,rgba(75,204,248,.18),transparent 22%),
+    radial-gradient(circle at 98% 8%,rgba(251,130,190,.17),transparent 23%),
+    radial-gradient(circle at 0% 82%,rgba(106,84,242,.1),transparent 21%),
+    radial-gradient(circle at 100% 83%,rgba(45,213,166,.13),transparent 18%);
+}
+#root .gradebook-studio .gb-academic-hero{
+  overflow:hidden;
+  border-radius:25px;
+  border:1px solid #ccdefd;
+  box-shadow:0 12px 31px rgba(39,90,173,.12);
+  background:
+    radial-gradient(ellipse 360px 210px at 93% 6%,rgba(255,178,213,.55),transparent 80%),
+    radial-gradient(ellipse 430px 180px at 58% 40%,rgba(149,228,250,.48),transparent 80%),
+    radial-gradient(ellipse 400px 260px at 86% 95%,rgba(180,167,255,.26),transparent 75%),
+    linear-gradient(115deg,#f9fcff 2%,#edfcff 48%,#fff1f9 100%);
+}
+#root .gradebook-studio .gb-academic-hero .gb-academic-heading{
+  min-height:190px;
+  padding:24px 31px 16px;
+}
+#root .gradebook-studio .gb-academic-hero .gb-academic-heading-copy{
+  max-width:52%;
+}
+#root .gradebook-studio .gb-academic-eyebrow{
+  color:#2355a7;
+  font-size:11px;
+  font-weight:850;
+  letter-spacing:.14em;
+}
+#root .gradebook-studio .gb-academic-heading h1{
+  font-size:clamp(42px,4.6vw,68px);
+  font-weight:850;
+  line-height:1;
+  color:#092c6c;
+  letter-spacing:-.055em;
+  text-shadow:0 1px 0 #fff;
+}
+#root .gradebook-studio .gb-academic-heading p{
+  font-size:14px;
+  color:#315d90;
+  max-width:430px;
+  line-height:1.55;
+  font-weight:600;
+}
+#root .gradebook-studio .gb-m3-hero-illustration{
+  top:-21px;
+  right:8%;
+  width:min(48%,550px);
+  height:231px;
+  object-fit:contain;
+  opacity:1;
+  filter:drop-shadow(0 10px 7px rgba(40,97,165,.13));
+}
+#root .gradebook-studio .gb-academic-class-meta{
+  color:#154a9a;
+  font-weight:800;
+  background:rgba(255,255,255,.9);
+  border:1px solid #ccdcfa;
+  border-radius:999px;
+}
+#root .gradebook-studio .gb-academic-class-row{
+  background:rgba(255,255,255,.91);
+  border-top:1px solid #e3edfc;
+  padding:14px 23px 8px;
+}
+#root .gradebook-studio .gb-academic-section-label{
+  color:#265b9d;
+  font-weight:850;
+}
+#root .gradebook-studio .gb-academic-class-list button{
+  min-height:40px;
+  padding:7px 14px;
+  border:1px solid #d4e3f8;
+  border-radius:12px;
+  background:#fff;
+  color:#22519a;
+  font-size:12px;
+  font-weight:800;
+}
+#root .gradebook-studio .gb-academic-class-list button.is-active{
+  background:linear-gradient(118deg,#287cff,#1055d8);
+  border-color:#1e68e8;
+  color:#fff;
+  box-shadow:0 5px 12px rgba(20,104,225,.2);
+}
+#root .gradebook-studio .gb-academic-actions{
+  background:rgba(255,255,255,.96);
+  border-top:1px solid #e4edfb;
+  padding:12px 23px 16px;
+}
+#root .gradebook-studio .gb-academic-actions button{
+  min-height:42px;
+  padding:9px 15px;
+  border-radius:12px;
+  border:1px solid #d4e5fb;
+  background:#f2f7ff;
+  font-size:12px;
+  font-weight:800;
+  color:#245598;
+}
+#root .gradebook-studio .gb-academic-actions .gb-academic-primary{
+  background:linear-gradient(118deg,#2487ff,#1161e7);
+  border-color:#176ce7;
+  color:white;
+  box-shadow:0 6px 15px rgba(25,93,224,.19);
+}
+/* Material color tones with large icon chips and genuinely data-backed values */
+#root .gradebook-studio .hr-gradebook .hr-grade-overview{
+  gap:13px;
+}
+#root .gradebook-studio .hr-grade-overview article{
+  position:relative;
+  min-height:139px;
+  padding:20px 17px;
+  gap:5px 13px;
+  grid-template-columns:65px minmax(0,1fr);
+  border-radius:21px;
+  box-shadow:var(--gbf-shadow);
+}
+#root .gradebook-studio .hr-grade-overview article.tone-blue{
+  background:linear-gradient(112deg,#e5f4ff,#d3eaff)!important;
+  border-color:#9ccbff;
+}
+#root .gradebook-studio .hr-grade-overview article.tone-green{
+  background:linear-gradient(112deg,#e4fff1,#d3f6e7)!important;
+  border-color:#a4e9cb;
+}
+#root .gradebook-studio .hr-grade-overview article.tone-purple{
+  background:linear-gradient(112deg,#f3eaff,#e6dbff)!important;
+  border-color:#d3b4fd;
+}
+#root .gradebook-studio .hr-grade-overview article.tone-yellow{
+  background:linear-gradient(112deg,#fff5df,#ffe9c4)!important;
+  border-color:#ffd18d;
+}
+#root .gradebook-studio .hr-grade-overview .hr-grade-overview-icon{
+  width:59px;
+  height:59px;
+  padding:14px;
+  border-radius:19px;
+  grid-column:1;
+  grid-row:1/4;
+  color:#fff;
+  background:linear-gradient(135deg,#46aeff,#0760d4);
+  box-shadow:0 8px 14px rgba(24,102,207,.16);
+}
+#root .gradebook-studio .tone-green .hr-grade-overview-icon{
+  color:#fff;
+  background:linear-gradient(135deg,#42d5ac,#079966);
+  box-shadow:0 8px 14px rgba(8,158,103,.14);
+}
+#root .gradebook-studio .tone-purple .hr-grade-overview-icon{
+  color:#fff;
+  background:linear-gradient(135deg,#ba7bff,#7d3ee2);
+  box-shadow:0 8px 14px rgba(137,74,215,.14);
+}
+#root .gradebook-studio .tone-yellow .hr-grade-overview-icon{
+  color:#fff;
+  background:linear-gradient(135deg,#ffbd58,#fb8418);
+  box-shadow:0 8px 14px rgba(216,127,24,.16);
+}
+#root .gradebook-studio .hr-grade-overview article small{
+  color:#224269;
+  font-size:13px;
+  font-weight:850;
+  letter-spacing:-.01em;
+}
+#root .gradebook-studio .hr-grade-overview article strong{
+  color:#0746a1;
+  font-size:35px;
+  letter-spacing:-.035em;
+}
+#root .gradebook-studio .hr-grade-overview article.tone-green strong{color:#08734f}
+#root .gradebook-studio .hr-grade-overview article.tone-purple strong{color:#6834ba}
+#root .gradebook-studio .hr-grade-overview article.tone-yellow strong{color:#a75c05}
+#root .gradebook-studio .hr-grade-overview article span:last-child{
+  font-size:11px;
+  font-weight:570;
+  color:#556d89;
+}
+#root .gradebook-studio .hr-grade-overview article.tone-yellow::after{
+  content:"";
+  position:absolute;
+  display:block!important;
+  height:6px;
+  width:calc(100% - 34px);
+  inset:auto 17px 10px;
+  transform:none;
+  border-radius:99px;
+  background:linear-gradient(to right,#fa9129 0%,#fa9129 var(--gb-completion,0%),rgba(240,171,60,.2) var(--gb-completion,0%),rgba(240,171,60,.2) 100%);
+  opacity:1;
+}
+/* Section headers: not a series of washed-out empty rails */
+#root .gradebook-studio .gb-academic-administration,
+#root .gradebook-studio .hr-gradebook .gb-grade-tools{
+  border:1px solid #d8e5fa;
+  border-radius:17px;
+  background:linear-gradient(105deg,#fff,#f7fbff);
+  box-shadow:0 4px 14px rgba(38,74,143,.045);
+}
+#root .gradebook-studio .gb-academic-administration>summary,
+#root .gradebook-studio .gb-grade-tools-trigger{
+  min-height:59px;
+  padding:14px 17px;
+  color:#174785;
+  font-size:14px;
+  font-weight:830;
+}
+#root .gradebook-studio .gb-academic-administration>summary::before{
+  background:#d7edff;
+  color:#1765db;
+  border-radius:12px;
+}
+#root .gradebook-studio .gb-grade-tools-trigger .hr-grade-title-icon{
+  background:linear-gradient(130deg,#e6d9ff,#f3e9ff)!important;
+  color:#7139d0!important;
+}
+#root .gradebook-studio .gb-grade-tools-trigger .hr-grade-title-icon svg{stroke:#783ee1}
+/* The score navigation and the seven tone-coded semantic assessment types. */
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock.is-always-visible > .hr-grade-navigation{
+  border:1px solid #d4e6fd;
+  border-radius:19px;
+  background:linear-gradient(125deg,#f6faff,#fff 55%,#f6f4ff);
+  padding:12px 14px;
+  box-shadow:0 5px 18px rgba(46,81,145,.06);
+}
+#root .gradebook-studio .hr-grade-navigation-dock .hr-grade-semesters{
+  border:1px solid #d6e4f8;
+  border-radius:12px;
+  background:#edf5ff;
+  padding:4px;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock .hr-grade-semesters button{
+  min-height:41px;
+  padding:9px 16px;
+  font-size:12px;
+  border-radius:10px;
+  color:#285894;
+  font-weight:780;
+}
+#root .gradebook-studio .hr-grade-navigation-dock .hr-grade-semesters button.active{
+  background:linear-gradient(120deg,#287aff,#135bd2);
+  border-color:#216bdf;
+  color:#fff;
+  box-shadow:0 4px 10px rgba(29,100,206,.2);
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock .hr-grade-views button{
+  position:relative;
+  color:#26578c;
+  border:1px solid #d6e4f8;
+  background:#fff;
+  font-size:12px;
+  font-weight:780;
+  border-radius:12px;
+  min-height:45px;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock .hr-grade-views button[data-grade-tone="blue"]{--gb-tab-color:#176ef4;--gb-tab-bg:#e8f3ff}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock .hr-grade-views button[data-grade-tone="red"]{--gb-tab-color:#ee3f65;--gb-tab-bg:#fff0f5}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock .hr-grade-views button[data-grade-tone="yellow"]{--gb-tab-color:#ec9b17;--gb-tab-bg:#fff7e8}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock .hr-grade-views button[data-grade-tone="green"]{--gb-tab-color:#0ba671;--gb-tab-bg:#e8fbf2}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock .hr-grade-views button[data-grade-tone="purple"]{--gb-tab-color:#8a46e6;--gb-tab-bg:#f3ebff}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock .hr-grade-views button[data-grade-tone="orange"]{--gb-tab-color:#ed8117;--gb-tab-bg:#fff0e5}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock .hr-grade-views button[data-grade-tone="cyan"]{--gb-tab-color:#04a2b2;--gb-tab-bg:#e4fcff}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock .hr-grade-views button:not(.active){
+  background:var(--gb-tab-bg,#fff);
+  border-color:color-mix(in srgb,var(--gb-tab-color,#b7c8df) 17%,#fff);
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock .hr-grade-views button::before{
+  content:"";
+  display:inline-block;
+  width:8px;
+  height:8px;
+  flex:none;
+  margin-right:5px;
+  border-radius:50%;
+  background:var(--gb-tab-color,#1977e8);
+  border:0;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock .hr-grade-views button.active{
+  background:var(--gb-tab-color,#176ef4)!important;
+  border-color:var(--gb-tab-color,#176ef4)!important;
+  color:#fff!important;
+  box-shadow:0 5px 13px rgba(41,94,161,.13);
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock .hr-grade-views button.active::before{background:#fff;border:0}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock .hr-grade-save-actions button.primary{
+  background:linear-gradient(120deg,#237af7,#0f5bd9);
+  color:#fff;
+  border-color:#1768df;
+  border-radius:11px;
+  min-height:41px;
+  box-shadow:0 4px 12px rgba(33,96,196,.13);
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock .hr-grade-save-actions .is-saved{
+  background:#e8faef;
+  color:#14784f;
+  border-color:#afe5c5;
+  border-radius:11px;
+  font-weight:790;
+}
+/* Colored, readable class score table. Everything remains a live input. */
+#root .gradebook-studio .hr-gradebook .hr-grade-panel{
+  overflow:hidden;
+  background:#fff;
+  border:1px solid #d4e5fb!important;
+  border-radius:21px!important;
+  box-shadow:var(--gbf-shadow)!important;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-panel-head{
+  background:linear-gradient(105deg,#e7f3ff,#fff 53%,#f4eaff)!important;
+  min-height:99px;
+}
+#root .gradebook-studio .hr-grade-panel-head .hr-grade-panel-icon{
+  display:grid;
+  place-items:center;
+  width:46px;
+  height:46px;
+  border-radius:14px;
+  background:linear-gradient(135deg,#64abff,#1767e8);
+  color:#fff;
+}
+#root .gradebook-studio .hr-grade-panel-head .hr-grade-panel-icon svg{stroke:#fff}
+#root .gradebook-studio .hr-grade-panel-head h2{
+  font-size:20px;
+  color:#113e83;
+  font-weight:830;
+}
+#root .gradebook-studio .hr-grade-panel-head p{font-size:12px;color:#647fa2}
+#root .gradebook-studio .hr-gradebook .hr-grade-table thead th{
+  border-bottom:1px solid #cedef6;
+  font-size:12px;
+  font-weight:830;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-table thead th.gb-m3-attempt--0{background:#dcecff!important;color:#1655b3}
+#root .gradebook-studio .hr-gradebook .hr-grade-table thead th.gb-m3-attempt--1{background:#e6f8ff!important;color:#086eaf}
+#root .gradebook-studio .hr-gradebook .hr-grade-table thead th.gb-m3-attempt--2{background:#e9fcf6!important;color:#13785f}
+#root .gradebook-studio .hr-gradebook .hr-grade-table thead th.gb-m3-attempt--3{background:#eee5ff!important;color:#7140b3}
+#root .gradebook-studio .hr-gradebook .hr-grade-table tbody td.gb-m3-score-cell--0{background:#f5faff!important}
+#root .gradebook-studio .hr-gradebook .hr-grade-table tbody td.gb-m3-score-cell--1{background:#f3fcff!important}
+#root .gradebook-studio .hr-gradebook .hr-grade-table tbody td.gb-m3-score-cell--2{background:#f3fdf9!important}
+#root .gradebook-studio .hr-gradebook .hr-grade-table tbody td.gb-m3-score-cell--3{background:#f8f4ff!important}
+#root .gradebook-studio .hr-gradebook .hr-grade-table thead .hr-grade-plus-head{background:#e9f5ff;color:#1553ae}
+#root .gradebook-studio .hr-gradebook .hr-grade-table thead .hr-grade-bonus-head{background:#fff1db;color:#a46408}
+#root .gradebook-studio .hr-gradebook .hr-grade-table thead .hr-grade-result-head{background:#d9f8f8;color:#047583}
+#root .gradebook-studio .hr-gradebook .hr-grade-table tbody td.hr-grade-result{background:#ecfafa}
+#root .gradebook-studio .hr-gradebook .hr-grade-table tbody td.hr-grade-bonus-cell{background:#fff8ed}
+#root .gradebook-studio .hr-gradebook .hr-grade-table .hr-grade-student b{font-size:13px;color:#153866}
+#root .gradebook-studio .hr-gradebook .hr-grade-input{
+  border-color:#d2e0f1;
+  border-radius:9px;
+  box-shadow:0 1px 2px rgba(40,87,142,.045);
+  font-size:13px;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-input:focus{
+  background:#fff;
+  border-color:#398cff;
+  outline:3px solid rgba(58,142,255,.2);
+}
+/* Proper contrast and decor in reports, progress, and supporting content. */
+#root .gradebook-studio .hr-gradebook .hr-grade-export-bar{
+  border:1px solid #c8eadc!important;
+  background:linear-gradient(105deg,#eafff4,#f5fff9 40%,#fff)!important;
+  border-radius:19px!important;
+  box-shadow:0 5px 16px rgba(19,151,99,.055)!important;
+}
+#root .gradebook-studio .hr-grade-export-icon{
+  width:49px;
+  height:49px;
+  border-radius:14px;
+  color:#fff;
+  background:linear-gradient(135deg,#44d7a6,#07965e);
+}
+#root .gradebook-studio .hr-grade-export-icon svg{stroke:#fff}
+#root .gradebook-studio .hr-grade-export-actions button{
+  min-height:41px;
+  border-radius:11px;
+  font-size:12px;
+  font-weight:800;
+}
+#root .gradebook-studio .gbv2-support-extra{
+  background:linear-gradient(108deg,#f0f7ff,#fff 63%,#f2edff);
+  border-color:#d7e5ff;
+  border-radius:16px;
+}
+@media(max-width:1120px){
+  #root .gradebook-studio .gb-academic-heading .gb-m3-hero-illustration{
+    right:1%;width:48%;
+  }
+  #root .gradebook-studio .hr-grade-overview article{
+    grid-template-columns:51px minmax(0,1fr);
+    padding:14px 12px;
+    min-height:122px;
+    gap:4px 9px;
+  }
+  #root .gradebook-studio .hr-grade-overview .hr-grade-overview-icon{
+    width:47px;height:47px;padding:11px;
+  }
+  #root .gradebook-studio .hr-grade-overview article strong{font-size:29px}
+}
+@media(max-width:740px){
+  #root .gradebook-studio .gb-academic-hero .gb-academic-heading{
+    min-height:152px;
+    padding:17px 15px 12px;
+  }
+  #root .gradebook-studio .gb-academic-hero .gb-academic-heading-copy{max-width:68%}
+  #root .gradebook-studio .gb-academic-heading h1{font-size:clamp(37px,7vw,46px)}
+  #root .gradebook-studio .gb-academic-heading p{font-size:12px;max-width:245px}
+  #root .gradebook-studio .gb-m3-hero-illustration{
+    right:-10%;width:60%;height:169px;top:5px;opacity:.78;
+  }
+  #root .gradebook-studio .hr-grade-overview article{
+    grid-template-columns:45px minmax(0,1fr);
+    min-height:112px;padding:12px 10px;
+  }
+  #root .gradebook-studio .hr-grade-overview .hr-grade-overview-icon{
+    width:42px;height:42px;border-radius:13px;padding:10px;
+  }
+  #root .gradebook-studio .hr-grade-overview article small{font-size:11px}
+  #root .gradebook-studio .hr-grade-overview article strong{font-size:24px}
+  #root .gradebook-studio .hr-grade-overview article span:last-child{font-size:10px}
+}
+@media(max-width:440px){
+  #root .gradebook-studio .gb-academic-heading .gb-m3-hero-illustration{opacity:.48;right:-14%}
+  #root .gradebook-studio .gb-academic-hero .gb-academic-heading-copy{max-width:72%}
+  #root .gradebook-studio .hr-grade-overview article{grid-template-columns:34px minmax(0,1fr);padding:10px 7px;gap:4px 7px}
+  #root .gradebook-studio .hr-grade-overview .hr-grade-overview-icon{width:33px;height:33px;padding:8px}
+}
+@media(prefers-reduced-motion:reduce){
+  #root .gradebook-studio .hr-grade-overview article,
+  #root .gradebook-studio .gb-academic-hero{animation:none;transition:none}
+}

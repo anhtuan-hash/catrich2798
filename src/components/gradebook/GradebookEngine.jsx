@@ -685,7 +685,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
             <tr>
               <th className="hr-grade-index">STT</th>
               <th className="hr-grade-student">Học sinh</th>
-              {activeRound.columns.map((column) => <th key={column.id} className="hr-grade-attempt-head">
+              {activeRound.columns.map((column, columnIndex) => <th key={column.id} className={`hr-grade-attempt-head gb-m3-attempt gb-m3-attempt--${columnIndex % 4}`}>
                 <input value={column.label} disabled={finalized} onChange={(event) => renameRegularColumn(column.id, event.target.value)} aria-label="Tên cột điểm" />
                 <button type="button" disabled={finalized || activeRound.columns.length <= 1} onClick={() => removeRegularColumn(column.id)} title="Xóa cột">×</button>
               </th>)}
@@ -703,7 +703,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
               return <tr key={student.id}>
                 <td className="hr-grade-index">{index + 1}</td>
                 <td className="hr-grade-student"><b>{student.fullName}</b><small>{student.code || 'Chưa có mã học sinh'}</small></td>
-                {activeRound.columns.map((column) => <td key={column.id}>
+                {activeRound.columns.map((column, columnIndex) => <td key={column.id} className={`gb-m3-score-cell gb-m3-score-cell--${columnIndex % 4}`}>
                   <ScoreInput value={row[column.id]} disabled={finalized} onChange={(value) => updateRegularScore(student.id, column.id, value)} label={`${student.fullName} · ${column.label}`} />
                 </td>)}
                 <td className="hr-grade-plus-cell"><PlusCountInput value={plusCount} disabled={finalized} onChange={(value) => updatePlusCount(student.id, value)} label={`${student.fullName} · Số dấu cộng`} /></td>
@@ -755,7 +755,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       <article className="tone-blue"><span className="hr-grade-overview-icon"><GradebookUiIcon type="bars" /></span><small>Cột TX hiện có</small><strong>{totalRegularColumns}</strong><span>Trong học kỳ đang chọn</span></article>
       <article className="tone-green"><span className="hr-grade-overview-icon"><GradebookUiIcon type="students" /></span><small>Học sinh</small><strong>{students.length}</strong><span>Danh sách lớp hiện tại</span></article>
       <article className="tone-purple"><span className="hr-grade-overview-icon"><GradebookUiIcon type="document" /></span><small>Môn học</small><strong>{subjectEntries.length}</strong><span>Đang quản lý</span></article>
-      <article className="tone-yellow"><span className="hr-grade-overview-icon"><GradebookUiIcon type="check" /></span><small>Hoàn thành 4 đợt TX</small><strong>{completedFourRounds}/{students.length}</strong><span>{activeRound ? `${activeRoundCoverage} học sinh có điểm ở đợt đang mở` : 'Theo học kỳ đang chọn'}</span></article>
+      <article className="tone-yellow" style={{ '--gb-completion': `${students.length ? Math.round(completedFourRounds / students.length * 100) : 0}%` }}><span className="hr-grade-overview-icon"><GradebookUiIcon type="check" /></span><small>Hoàn thành 4 đợt TX</small><strong>{completedFourRounds}/{students.length}</strong><span>{activeRound ? `${activeRoundCoverage} học sinh có điểm ở đợt đang mở` : 'Theo học kỳ đang chọn'}</span></article>
     </section>
 
     <details className="gb-academic-administration" defaultOpen>

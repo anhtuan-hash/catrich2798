@@ -6,6 +6,24 @@
   <linearGradient id="leaf" x1="133" y1="55" x2="173" y2="205" gradientUnits="userSpaceOnUse"><stop stop-color="#6ad5bd"/><stop offset="1" stop-color="#159787"/></linearGradient>
   <filter id="shadow" x="0" y="0" width="620" height="265"><feGaussianBlur stdDeviation="8"/></filter>
 </defs>
+<g opacity=".98">
+<rect x="318" y="17" width="74" height="114" rx="12" fill="#1C4FAA" transform="rotate(-13 318 17)" stroke="#142F77" stroke-width="2"/>
+<rect x="329" y="29" width="61" height="90" rx="8" fill="#2E6BEE" transform="rotate(-13 329 29)"/>
+<path d="M338 62l37-8M342 73l30-7M345 84l32-8" stroke="#91D4FF" stroke-width="4" stroke-linecap="round"/>
+<rect x="346" y="15" width="62" height="92" rx="11" fill="#E3EAFF" transform="rotate(-7 346 15)" stroke="#648CD9" stroke-width="3"/>
+<rect x="361" y="28" width="31" height="6" rx="3" fill="#96B6F7" transform="rotate(-7 361 28)"/>
+<path d="M365 52l23-3M366 63l25-3M367 74l19-3" stroke="#8BAAE3" stroke-width="3" stroke-linecap="round"/>
+<path d="m354 42 58-35 59 35-58 30-59-30Z" fill="#104DAE" stroke="#083675" stroke-width="3" stroke-linejoin="round"/>
+<path d="M383 62v24q30 21 61 0V62" fill="#226BD5" stroke="#1455AE" stroke-width="3" stroke-linejoin="round"/>
+<path d="M471 42v40" stroke="#174C9E" stroke-width="4" stroke-linecap="round"/>
+<circle cx="471" cy="84" r="8" fill="#FDBB30"/>
+<rect x="519" y="184" width="55" height="17" rx="5" fill="#FFB846" transform="rotate(-12 519 184)"/>
+<rect x="513" y="202" width="64" height="17" rx="5" fill="#22BA91" transform="rotate(-12 513 202)"/>
+<rect x="509" y="220" width="63" height="16" rx="5" fill="#5E61E9" transform="rotate(-12 509 220)"/>
+</g>
+<g fill="#FFC83D"><path d="m254 30 5 14 15 5-15 5-5 14-5-14-15-5 15-5Z"/><path d="m572 135 4 10 10 4-10 4-4 10-4-10-10-4 10-4Z"/></g>
+<circle cx="197" cy="191" r="5" fill="#FFB4DC"/><circle cx="575" cy="49" r="6" fill="#A787FF"/>
+
 <ellipse cx="323" cy="247" rx="187" ry="10" fill="#446aa1" opacity=".14" filter="url(#shadow)"/>
 <circle cx="415" cy="100" r="98" fill="#ebe0ff" opacity=".52"/>
 <circle cx="282" cy="139" r="106" fill="#e1f5fa" opacity=".85"/>

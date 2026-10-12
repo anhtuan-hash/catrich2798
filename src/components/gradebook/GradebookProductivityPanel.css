@@ -403,3 +403,120 @@
 @media(max-width:560px){
   #root .gradebook-studio .gb-prod-alerts-card{padding:12px}
 }
+
+
+/* Material 3 tool palette: 10 real tools, 10 distinctive vector icons and
+   matching tonal surfaces. No ghost buttons; original handlers stay wired. */
+#root .gradebook-studio .gb-prod{
+  border:1px solid #cfdffc;
+  border-radius:20px;
+  box-shadow:0 8px 23px rgba(39,86,154,.065);
+  background:linear-gradient(115deg,#fff,#f8faff);
+}
+#root .gradebook-studio .gb-prod-heading{
+  min-height:67px;
+  padding:16px 19px;
+  background:linear-gradient(112deg,#eff7ff,#fff 52%,#fff5f9);
+}
+#root .gradebook-studio .gb-prod-heading strong{
+  font-size:16px;
+  color:#173e7c;
+  font-weight:840;
+}
+#root .gradebook-studio .gb-prod-heading small{font-size:12px;color:#6984a4}
+#root .gradebook-studio .gb-prod-tabs{
+  gap:9px;
+  padding:15px 0;
+  border-bottom:1px solid #e4eefa;
+}
+#root .gradebook-studio .gb-prod-tabs button{
+  --gb-tool:#236fec;--gb-tool-surface:#eaf4ff;
+  display:flex;
+  flex-direction:row;
+  gap:9px;
+  align-items:center;
+  justify-content:flex-start;
+  min-height:55px;
+  padding:10px;
+  text-align:left;
+  border:1px solid #dbe7fa;
+  border-radius:13px;
+  background:var(--gb-tool-surface);
+  color:#234c7b;
+  font-size:12px;
+  font-weight:790;
+  line-height:1.3;
+  box-shadow:0 2px 7px rgba(50,93,154,.045);
+}
+#root .gradebook-studio .gb-prod-tabs button[data-tab="paste"]{--gb-tool:#126be8;--gb-tool-surface:#eaf4ff}
+#root .gradebook-studio .gb-prod-tabs button[data-tab="progress"]{--gb-tool:#8c48e4;--gb-tool-surface:#f2eafd}
+#root .gradebook-studio .gb-prod-tabs button[data-tab="heatmap"]{--gb-tool:#099e74;--gb-tool-surface:#e7fbf2}
+#root .gradebook-studio .gb-prod-tabs button[data-tab="alerts"]{--gb-tool:#ed8b1a;--gb-tool-surface:#fff4e5}
+#root .gradebook-studio .gb-prod-tabs button[data-tab="quality"]{--gb-tool:#dd4659;--gb-tool-surface:#fff0f2}
+#root .gradebook-studio .gb-prod-tabs button[data-tab="history"]{--gb-tool:#177bc5;--gb-tool-surface:#e9f6ff}
+#root .gradebook-studio .gb-prod-tabs button[data-tab="finalize"]{--gb-tool:#4f72e3;--gb-tool-surface:#ecf1ff}
+#root .gradebook-studio .gb-prod-tabs button[data-tab="rubric"]{--gb-tool:#9162d6;--gb-tool-surface:#f3edff}
+#root .gradebook-studio .gb-prod-tabs button[data-tab="report"]{--gb-tool:#08a2aa;--gb-tool-surface:#e6fbfc}
+#root .gradebook-studio .gb-prod-tabs button[data-tab="recovery"]{--gb-tool:#db7825;--gb-tool-surface:#fff1e7}
+#root .gradebook-studio .gb-prod-tabs button .gb-prod-tab-art{
+  flex:0 0 36px;
+  width:36px;
+  height:36px;
+  border-radius:11px;
+  display:grid;
+  place-items:center;
+  color:var(--gb-tool);
+  background:#fff;
+  box-shadow:0 1px 4px rgba(34,82,143,.055);
+}
+#root .gradebook-studio .gb-prod-tabs button.active{
+  background:var(--gb-tool);
+  color:#fff;
+  border-color:var(--gb-tool);
+  box-shadow:0 5px 13px rgba(41,84,160,.14);
+}
+#root .gradebook-studio .gb-prod-tabs button.active .gb-prod-tab-art{
+  color:var(--gb-tool);
+  background:#fff;
+}
+#root .gradebook-studio .gb-prod-pane{
+  padding:17px 0 7px;
+  gap:13px;
+}
+#root .gradebook-studio .gb-prod-pane h3{
+  font-size:19px;
+  font-weight:820;
+  color:#1b417a;
+}
+#root .gradebook-studio .gb-prod-progress{
+  border-radius:99px;
+  background:#deebfa;
+  height:11px;
+}
+#root .gradebook-studio .gb-prod-progress>div{
+  background:linear-gradient(90deg,#22b8a2,#3d9bfa);
+  border-radius:99px;
+}
+#root .gradebook-studio .gb-prod-scroll thead th{
+  background:linear-gradient(#eaf3ff,#f3f8ff);
+  color:#28588f;
+}
+#root .gradebook-studio .gb-prod-scroll tbody tr:nth-child(even){background:#f8fbff}
+@media(max-width:970px){
+  #root .gradebook-studio .gb-prod-tabs button{
+    min-width:162px;
+    max-width:205px;
+    scroll-snap-align:start;
+    white-space:normal;
+  }
+}
+@media(max-width:560px){
+  #root .gradebook-studio .gb-prod-tabs button{
+    min-width:145px;
+    max-width:185px;
+    min-height:53px;
+  }
+  #root .gradebook-studio .gb-prod-tabs button .gb-prod-tab-art{
+    flex-basis:30px;width:30px;height:30px;
+  }
+}
