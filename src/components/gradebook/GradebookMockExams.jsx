@@ -3,6 +3,7 @@ import { BookOpenCheck, CalendarDays, Download, Plus, ShieldCheck, Trash2, Clipb
 import {
   MAX_MOCK_EXAMS, buildMockExamCsv, buildMockExamComparisonCsv, compareMockExamAttempts,
   mockExamProgress, mockExamScoreNumber, previewMockExamPaste,
+  buildMockExamImportTemplateCsv, selectVisibleMockExams,
 } from '../../utils/gradebookMockExams.js';
 import './GradebookMockExams.css';
 
@@ -23,6 +24,20 @@ function MockScoreInput({ value, disabled, label, onChange }) {
       onChange(score == null ? '' : String(score));
     }}
     onWheel={(event) => event.currentTarget.blur()}
+    onKeyDown={(event) => {
+      if (!['Enter', 'ArrowDown', 'ArrowUp'].includes(event.key)) return;
+      const cell = event.currentTarget.closest('td');
+      const row = cell?.parentElement;
+      const index = row && cell ? Array.from(row.cells).indexOf(cell) : -1;
+      if (index < 0) return;
+      const goingUp = event.key === 'ArrowUp' || (event.key === 'Enter' && event.shiftKey);
+      const nextRow = goingUp ? row.previousElementSibling : row.nextElementSibling;
+      const destination = nextRow?.cells?.[index]?.querySelector('input.gb-mock-score:not(:disabled)');
+      if (!destination) return;
+      event.preventDefault();
+      destination.focus();
+      destination.select();
+    }}
   />;
 }
 
@@ -34,6 +49,7 @@ export default function GradebookMockExams({
   const totalCells = exams.length * students.length;
   const canExport = exams.length > 0 && students.length > 0;
   const [pasteOpen, setPasteOpen] = useState(false);
+  const [focusedExamId, setFocusedExamId] = useState('');
   const [pasteText, setPasteText] = useState('');
   const [selectedExamId, setSelectedExamId] = useState('');
   const [allowOverwrite, setAllowOverwrite] = useState(false);
@@ -41,6 +57,7 @@ export default function GradebookMockExams({
   useEffect(() => {
     // Clipboard drafts must never cross class / subject boundaries.
     setPasteText('');
+    setFocusedExamId('');
     setPasteOpen(false);
     setPasteNotice('');
     setSelectedExamId('');
@@ -52,6 +69,8 @@ export default function GradebookMockExams({
     text: pasteText, students, scores: targetExam?.scores || {}, allowOverwrite,
   }), [pasteText, students, targetExam?.scores, allowOverwrite]);
   const comparison = useMemo(() => compareMockExamAttempts(students, exams), [students, exams]);
+  const activeFocusId = exams.some((exam) => exam.id === focusedExamId) ? focusedExamId : '';
+  const displayedExams = useMemo(() => selectVisibleMockExams(exams, activeFocusId), [exams, activeFocusId]);
   const canApplyPaste = Boolean(targetExam && !disabled && preview.entries.length && !preview.issues.length);
   const applyPaste = () => {
     if (!canApplyPaste) return;
@@ -79,6 +98,7 @@ export default function GradebookMockExams({
     if (!canExport) return;
     downloadText(buildMockExamCsv({ students, exams, className, subjectName }));
   };
+  const downloadTemplate = () => downloadText(buildMockExamImportTemplateCsv(students), '-mau-nhap-diem');
   const downloadComparison = () => {
     if (!comparison.ready) return;
     downloadText(buildMockExamComparisonCsv({ students, exams, className, subjectName }), '-doi-chieu');
@@ -106,6 +126,7 @@ export default function GradebookMockExams({
       <div><b>Các lần thi thử</b><small>Nhập điểm trực tiếp hoặc dán bảng Excel theo mã học sinh. Có thể khóa từng lần thi.</small></div>
       <div className="gb-mock-buttons">
         <button type="button" className="gb-mock-export" disabled={!canExport} onClick={downloadCsv}><Download size={16} /> Xuất bảng điểm</button>
+        <button type="button" className="gb-mock-export" disabled={!students.length} onClick={downloadTemplate}><FileSpreadsheet size={16} /> Mẫu nhập điểm</button>
         <button type="button" className="gb-mock-export" disabled={!comparison.ready} onClick={downloadComparison}><FileSpreadsheet size={16} /> Xuất đối chiếu</button>
         <button type="button" className="gb-mock-export gb-mock-paste-trigger" disabled={disabled || !exams.some((exam) => !exam.locked)} aria-expanded={pasteOpen}
           onClick={() => { setPasteNotice(''); setPasteOpen((open) => !open); }}><ClipboardPaste size={16} /> Dán điểm Excel</button>
@@ -168,11 +189,21 @@ export default function GradebookMockExams({
       <p>Nhấn “Thêm lần thi thử” để bắt đầu. Điểm của mỗi lần thi sẽ được lưu thành một cột độc lập.</p>
       <button type="button" disabled={disabled} onClick={onAdd}><Plus size={17} /> Tạo lần thi thử đầu tiên</button>
     </div> : <>
+      <div className="gb-mock-view-controls">
+        <div className="gb-mock-view-title"><strong>Không gian nhập điểm</strong><span>Chọn một lần thi để bảng gọn hơn, hoặc xem toàn bộ lịch sử.</span></div>
+        <label><span>Hiển thị cột</span><select value={activeFocusId} aria-label="Chọn lần thi thử hiển thị" onChange={(event) => setFocusedExamId(event.target.value)}>
+          <option value="">Toàn bộ {exams.length} lần thi thử</option>
+          {exams.map((exam, index) => <option value={exam.id} key={exam.id}>{exam.label || `Thi thử lần ${index + 1}`}{exam.locked ? ' · Đã khóa' : ''}</option>)}
+        </select></label>
+      </div>
       <div className="gb-mock-progress" aria-label="Số học sinh đã nhập theo từng lần thi">
         {exams.map((exam, index) => {
           const progress = mockExamProgress(students, exam);
           return <div className="gb-mock-progress-item" key={exam.id}>
-            <span className="gb-mock-round-index">{index + 1}</span><span><b>{exam.label || `Thi thử lần ${index + 1}`}</b><small>{progress.entered}/{progress.total} học sinh</small></span>
+            <button type="button" className={`gb-mock-focus-attempt${activeFocusId === exam.id ? ' is-current' : ''}`} onClick={() => setFocusedExamId((current) => current === exam.id ? '' : exam.id)}
+              title={`Chọn ${exam.label || `thi thử ${index + 1}`} để nhập điểm`} aria-pressed={activeFocusId === exam.id}>
+              <span className="gb-mock-round-index">{index + 1}</span><span><b>{exam.label || `Thi thử lần ${index + 1}`}</b><small>{progress.entered}/{progress.total} học sinh {exam.locked ? ' · Đã khóa' : ''}</small></span>
+            </button>
             <i style={{ '--gb-mock-progress': `${progress.total ? progress.entered * 100 / progress.total : 0}%` }} />
           </div>;
         })}
@@ -180,7 +211,7 @@ export default function GradebookMockExams({
       <div className="gb-mock-table-wrap" role="region" aria-label="Bảng điểm thi thử" tabIndex={0}>
         <table className="hr-grade-table gb-mock-table">
           <thead><tr><th className="gb-mock-stt">STT</th><th className="gb-mock-student">Học sinh</th>
-            {exams.map((exam, index) => <th key={exam.id} className="gb-mock-exam-head">
+            {displayedExams.map((exam) => { const index = exams.findIndex((item) => item.id === exam.id); return <th key={exam.id} className="gb-mock-exam-head">
               <span className="gb-mock-sequence">LẦN {index + 1}</span>
               <input className="gb-mock-exam-name" disabled={disabled || exam.locked} aria-label={`Tên lần thi thử ${index + 1}`}
                 value={exam.label} maxLength={100} onChange={(event) => onRename(exam.id, event.target.value)} />
@@ -198,13 +229,13 @@ export default function GradebookMockExams({
                   if (window.confirm(`Xóa ${exam.label || `thi thử lần ${index + 1}`} và toàn bộ điểm đã nhập trong lần này?`)) onRemove(exam.id);
                 }}><Trash2 size={15} /> Xóa</button>
               </div>
-            </th>)}
-            {comparison.ready ? <th className="gb-mock-delta-head">Δ Điểm<br />2 lần gần nhất</th> : null}
+            </th>; })}
+            {comparison.ready && !activeFocusId ? <th className="gb-mock-delta-head">Δ Điểm<br />2 lần gần nhất</th> : null}
           </tr></thead>
           <tbody>{visibleStudents.map((student) => <tr key={student.id}>
             <td className="gb-mock-stt">{originalStudentPosition?.get(student.id) || students.indexOf(student) + 1}</td>
             <td className="gb-mock-student"><b>{student.fullName || student.name || 'Học sinh'}</b><small>{student.code || 'Chưa có mã học sinh'}</small></td>
-            {exams.map((exam) => {
+            {displayedExams.map((exam) => {
               const value = exam.scores?.[student.id] ?? '';
               const filled = mockExamScoreNumber(value) !== null;
               return <td key={exam.id} className={filled ? 'gb-mock-filled' : 'gb-mock-missing'}>
@@ -212,7 +243,7 @@ export default function GradebookMockExams({
                   onChange={(score) => onScoreChange(exam.id, student.id, score)} />
               </td>;
             })}
-            {comparison.ready ? <td className="gb-mock-delta-cell">
+            {comparison.ready && !activeFocusId ? <td className="gb-mock-delta-cell">
               {comparison.differences[student.id] === undefined ? <span className="is-none">—</span>
                 : comparison.differences[student.id] > 0 ? <span className="is-up">+{comparison.differences[student.id]}</span>
                 : comparison.differences[student.id] < 0 ? <span className="is-down">{comparison.differences[student.id]}</span>

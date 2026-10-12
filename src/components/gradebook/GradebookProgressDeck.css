@@ -1,0 +1,82 @@
+/* BRiAN Gradebook V3 – colorful, compact progress command deck. */
+.hr-page .hr-gradebook .gb3-deck{
+ display:grid;grid-template-columns:minmax(290px,.94fr) minmax(390px,1.2fr);gap:0;
+ margin:10px 0 18px;min-width:0;border-radius:23px;overflow:hidden;
+ border:1px solid #d8e4f3;background:#fff;box-shadow:0 8px 25px rgba(30,57,108,.065);
+}
+.hr-page .hr-gradebook .gb3-deck-lead{padding:25px 25px 19px;min-width:0; background:radial-gradient(circle at 105% 0,#496ef2 0,transparent 55%),linear-gradient(133deg,#0f3471,#225bb7 72%,#376fca);color:#f8fbff;}
+.hr-page .hr-gradebook .gb3-deck-kicker{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:900;letter-spacing:.11em;color:#cee5ff;}
+.hr-page .hr-gradebook .gb3-deck-headline{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:14px;}
+.hr-page .hr-gradebook .gb3-deck-headline h2{color:#fff!important;font-weight:850;font-size:clamp(21px,2vw,27px)!important;line-height:1.16;margin:0!important;}
+.hr-page .hr-gradebook .gb3-deck-headline p{color:#d5e6ff!important;font-size:12px!important;margin:8px 0 0!important;line-height:1.6;}
+.hr-page .hr-gradebook .gb3-deck-headline p span{opacity:.5}
+.hr-page .hr-gradebook .gb3-deck-ring{width:98px;height:98px;flex:0 0 98px;display:grid;place-items:center;border-radius:50%;background:conic-gradient(#84f5bc var(--gb3-progress),#ffffff2e var(--gb3-progress));box-shadow:0 0 0 1px #ffffff34;}
+.hr-page .hr-gradebook .gb3-deck-ring>span{display:flex;flex-direction:column;justify-content:center;align-items:center;background:#1e4b95;width:78px;height:78px;border-radius:50%;}
+.hr-page .hr-gradebook .gb3-deck-ring strong{font-size:24px;letter-spacing:-1px;line-height:1.2;color:#fff!important;}
+.hr-page .hr-gradebook .gb3-deck-ring small{font-size:9px;font-weight:800;letter-spacing:.07em;color:#d6e9ff}
+.hr-page .hr-gradebook .gb3-deck-figures{display:flex;flex-wrap:wrap;gap:7px;margin-top:18px}
+.hr-page .hr-gradebook .gb3-deck-figures>span{color:#e2eeff;background:#ffffff1b;border:1px solid #ffffff2b;border-radius:9px;padding:7px 9px;font-size:11px}
+.hr-page .hr-gradebook .gb3-deck-figures b{color:#fff;font-size:14px;font-weight:900;font-variant-numeric:tabular-nums}
+.hr-page .hr-gradebook .gb3-deck-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:19px}
+.hr-page .hr-gradebook .gb3-deck-actions button{display:flex;gap:6px;align-items:center;justify-content:center;border-radius:11px;padding:10px 12px;font-size:12px;line-height:1.2;font-weight:800;min-height:41px;transition:transform .14s ease,background .14s ease;cursor:pointer}
+.hr-page .hr-gradebook .gb3-deck-actions button:not(:disabled):active{transform:scale(.97)}
+.hr-page .hr-gradebook .gb3-deck-actions .gb3-primary-action{background:#b5ffc7;color:#164b54;border:1px solid #b5ffc7}
+.hr-page .hr-gradebook .gb3-deck-actions .gb3-primary-action:disabled{opacity:.67;cursor:default}
+.hr-page .hr-gradebook .gb3-deck-actions .gb3-outline-action{background:#ffffff1e;color:#f7fbff;border:1px solid #ffffff57}
+.hr-page .hr-gradebook .gb3-deck-footnote{display:flex;align-items:center;gap:6px;margin-top:14px;font-size:10px;color:#d5e5ff;line-height:1.5}
+.hr-page .hr-gradebook .gb3-deck-right{padding:19px 21px 20px;min-width:0;background:linear-gradient(120deg,#fafdff,#f5f8ff)}
+.hr-page .hr-gradebook .gb3-deck-right-title{display:flex;gap:9px;align-items:center;color:#3656b8;margin-bottom:12px}
+.hr-page .hr-gradebook .gb3-deck-right-title strong{display:block;color:#1f3559;font-size:15px}
+.hr-page .hr-gradebook .gb3-deck-right-title span{display:block;color:#6c809e;font-size:11px;margin-top:2px}
+.hr-page .hr-gradebook .gb3-deck-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.hr-page .hr-gradebook .gb3-deck-tile{text-align:left;border:1px solid var(--deck-border,#d8e4f3);background:var(--deck-bg,#fff);border-radius:13px;padding:11px 12px;min-width:0;min-height:111px;cursor:pointer;transition:box-shadow .14s ease,transform .14s ease}
+.hr-page .hr-gradebook .gb3-deck-tile:hover{transform:translateY(-2px);box-shadow:0 8px 19px #385da41e}
+.hr-page .hr-gradebook .gb3-deck-tile:focus-visible,.hr-page .hr-gradebook .gb3-deck-actions button:focus-visible{outline:3px solid #4175ff;outline-offset:2px}
+.hr-page .hr-gradebook .gb3-deck-tile.is-selected{outline:2px solid var(--deck-accent,#4478e7);outline-offset:-2px}
+.hr-page .hr-gradebook .gb3-deck-tile.is-blue{--deck-bg:#eaf2ff;--deck-border:#cbdcfb;--deck-accent:#366be6}
+.hr-page .hr-gradebook .gb3-deck-tile.is-coral{--deck-bg:#fff0eb;--deck-border:#fcd3ca;--deck-accent:#e77559}
+.hr-page .hr-gradebook .gb3-deck-tile.is-amber{--deck-bg:#fff6dd;--deck-border:#f4dfad;--deck-accent:#c79519}
+.hr-page .hr-gradebook .gb3-deck-tile.is-green{--deck-bg:#eaf9ed;--deck-border:#bbe7c8;--deck-accent:#248e5c}
+.hr-page .hr-gradebook .gb3-deck-tile.is-purple{--deck-bg:#f1edff;--deck-border:#d5c9fa;--deck-accent:#8063d9}
+.hr-page .hr-gradebook .gb3-deck-tile.is-teal{--deck-bg:#e5f7f6;--deck-border:#bde1df;--deck-accent:#1d968f}
+.hr-page .hr-gradebook .gb3-tile-heading{display:flex;align-items:center;justify-content:space-between;color:var(--deck-accent);font-size:11px;font-weight:900}
+.hr-page .hr-gradebook .gb3-deck-tile>strong{display:block;font-size:22px;line-height:1.3;color:#263f66;margin:3px 0 5px;font-weight:900;font-variant-numeric:tabular-nums}
+.hr-page .hr-gradebook .gb3-deck-tile>strong i{font-size:13px;color:#7181a0;font-style:normal}
+.hr-page .hr-gradebook .gb3-tile-progress{display:block;height:5px;background:#dbe5f4;border-radius:9px;overflow:hidden}
+.hr-page .hr-gradebook .gb3-tile-progress>span{display:block;height:100%;background:var(--deck-accent);border-radius:9px}
+.hr-page .hr-gradebook .gb3-deck-tile>small{font-size:10px;color:#536b89;display:block;margin-top:7px}
+@media(max-width:1050px){.hr-page .hr-gradebook .gb3-deck{grid-template-columns:1fr}.hr-page .hr-gradebook .gb3-deck-lead{padding:19px 21px}.hr-page .hr-gradebook .gb3-deck-grid{grid-template-columns:repeat(6,minmax(0,1fr))}.hr-page .hr-gradebook .gb3-deck-tile{padding:9px 8px}.hr-page .hr-gradebook .gb3-deck-ring{width:82px;height:82px;flex-basis:82px}.hr-page .hr-gradebook .gb3-deck-ring>span{height:65px;width:65px}.hr-page .hr-gradebook .gb3-deck-ring strong{font-size:20px}}
+@media(max-width:750px){.hr-page .hr-gradebook .gb3-deck-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:430px){.hr-page .hr-gradebook .gb3-deck-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.hr-page .hr-gradebook .gb3-deck-right{padding:16px 12px}.hr-page .hr-gradebook .gb3-deck-actions button{flex:1 1 auto}}
+html[data-theme="dark"] .hr-page .hr-gradebook .gb3-deck{border-color:#435574}
+html[data-theme="dark"] .hr-page .hr-gradebook .gb3-deck-right{background:#212c3d}
+html[data-theme="dark"] .hr-page .hr-gradebook .gb3-deck-right-title strong{color:#e4eeff}
+html[data-theme="dark"] .hr-page .hr-gradebook .gb3-deck-tile>strong{color:#1c3454}
+@media(prefers-reduced-motion:reduce){.hr-page .hr-gradebook .gb3-deck-tile,.hr-page .hr-gradebook .gb3-deck-actions button{transition:none}}
+
+/* Focused Material 3 polishing of the existing overview and search controls. */
+.hr-page .hr-gradebook .hr-grade-overview{gap:10px!important;margin-bottom:12px!important}
+.hr-page .hr-gradebook .hr-grade-overview article{border-radius:17px!important;border:1px solid #d9e5f4!important;box-shadow:0 3px 13px rgba(39,75,140,.06)!important;min-width:0!important}
+.hr-page .hr-gradebook .hr-grade-overview article.tone-blue{background:linear-gradient(145deg,#e7f0ff,#f8fbff)!important;border-color:#bbd5ff!important}
+.hr-page .hr-gradebook .hr-grade-overview article.tone-green{background:linear-gradient(145deg,#e2f9ec,#f8fffb)!important;border-color:#b7eacb!important}
+.hr-page .hr-gradebook .hr-grade-overview article.tone-purple{background:linear-gradient(145deg,#efe8ff,#faf8ff)!important;border-color:#d6c5ff!important}
+.hr-page .hr-gradebook .hr-grade-overview article.tone-yellow{background:linear-gradient(145deg,#fff1d6,#fffaf0)!important;border-color:#f3daa1!important}
+.hr-page .hr-gradebook .hr-grade-navigation-dock.is-always-visible>.hr-grade-navigation{border-radius:17px!important;border:1px solid #dce6f5!important;box-shadow:0 4px 17px rgba(36,70,122,.055)!important}
+.hr-page .hr-gradebook .gb-roster-workbench{border-radius:16px!important;box-shadow:0 4px 18px rgba(35,69,123,.04)!important}
+.hr-page .hr-gradebook .gb-roster-search:focus-within{outline:2px solid #4b77e7;outline-offset:2px}
+.hr-page .hr-gradebook .gb3-deck + .gb-finalized-banner{margin-top:10px}
+
+/* Detail-on-demand mission panel: avoid doubling the visible Gradebook dashboard. */
+.hr-page .hr-gradebook .gb3-mission-details{border:1px solid #d8e5fa;border-radius:15px;margin:8px 0 15px;background:linear-gradient(105deg,#f3f8ff,#f8f5ff);overflow:hidden}
+.hr-page .hr-gradebook .gb3-mission-details>summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:13px 18px;color:#234877}
+.hr-page .hr-gradebook .gb3-mission-details>summary::-webkit-details-marker{display:none}
+.hr-page .hr-gradebook .gb3-mission-details>summary>span:first-child strong{display:block;font-size:13px;font-weight:850;color:#264c8b}
+.hr-page .hr-gradebook .gb3-mission-details>summary>span:first-child small{display:block;color:#657f9d;font-size:11px;margin-top:3px}
+.hr-page .hr-gradebook .gb3-mission-open-label{white-space:nowrap;display:flex;gap:9px;align-items:center;color:#315fc4;font-size:12px;font-weight:800}
+.hr-page .hr-gradebook .gb3-mission-details[open] .gb3-mission-open-label>span{transform:rotate(180deg)}
+.hr-page .hr-gradebook .gb3-mission-details .gb-mission{margin:0!important;border-top:1px solid #dce5f3!important;border-radius:0!important;box-shadow:none!important}
+.hr-page .hr-gradebook .gb-academic-administration:not([open]){margin-block:8px!important}
+html[data-theme="dark"] .hr-page .hr-gradebook .gb3-mission-details{background:#26354b;border-color:#516581}
+html[data-theme="dark"] .hr-page .hr-gradebook .gb3-mission-details>summary>span:first-child strong{color:#eff5ff}
+html[data-theme="dark"] .hr-page .hr-gradebook .gb3-mission-details>summary>span:first-child small{color:#acc0d9}
+@media(max-width:550px){.hr-page .hr-gradebook .gb3-mission-details>summary{padding:12px;flex-wrap:wrap}}

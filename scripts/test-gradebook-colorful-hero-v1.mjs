@@ -6,11 +6,12 @@ const engine=await readFile(new URL('../src/components/gradebook/GradebookEngine
 const css=await readFile(new URL('../src/styles/GradebookAcademicWorkspace.css',import.meta.url),'utf8');
 for (const token of [
   'gb-academic-hero','gb-academic-class-list','gb-academic-actions',
-  'gb-academic-primary','setWorkspaceId(item.id)',
+  'gb-academic-primary','switchGradebookClass(item.id)',
   'requestGradebookAction(\'entry\')',
   'requestGradebookAction(\'summary\')',
   'requestGradebookAction(\'pdf\')',
 ]) assert.ok(page.includes(token), 'Missing native Gradebook feature: '+token);
+assert.ok(page.includes("window.confirm('Sổ điểm đang có thay đổi chưa lưu"), 'Guard class changes when scores are unsaved');
 assert.ok(!workspace.includes('installGradebookMaterialHero'),'DOM-observed legacy hero must not be mounted');
 assert.ok(!workspace.includes('GradebookApprovedMockupFour'),'Legacy CSS must be inactive');
 assert.ok(engine.includes('className="gb-academic-administration"'),'Class tools remain available');

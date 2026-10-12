@@ -14,6 +14,7 @@ import { Search, ScanEye, Minimize2, Keyboard, X, ArrowDownToLine, ListFilter, R
 import GradebookProductivityPanel from './GradebookProductivityPanel.jsx';
 import GradebookSemesterMission from './GradebookSemesterMission.jsx';
 import GradebookMockExams from './GradebookMockExams.jsx';
+import GradebookProgressDeck from './GradebookProgressDeck.jsx';
 import { isGrade12Class, normalizeMockExams, createMockExam, mockExamScoreNumber } from '../../utils/gradebookMockExams.js';
 import { semesterProgressSections, semesterProgressSummary, semesterPendingStudents } from '../../utils/gradebookSemesterMission.js';
 import { gradebookAuditChanges, gradebookQualityReport } from '../../utils/gradebookProductivity.js';
@@ -352,7 +353,7 @@ function GradebookNavigationPalette({
   </div>;
 }
 
-export default function HomeroomLearningGradebook({ workspace, onCommit, currentUser, teachingOverview, classManagement, gradebookAction }) {
+export default function HomeroomLearningGradebook({ workspace, onCommit, currentUser, teachingOverview, classManagement, gradebookAction, onDirtyChange }) {
   const students = useMemo(
     () => (workspace.students || []).filter((student) => student.active !== false),
     [workspace.students],
@@ -372,6 +373,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const [density, setDensity] = useState('comfortable');
   const [workbenchNotice, setWorkbenchNotice] = useState('');
   const scoreTableRef = useRef(null);
+  const studentSearchRef = useRef(null);
   const [newSubject, setNewSubject] = useState('');
   const [dirty, setDirty] = useState(false);
   const [savePending, setSavePending] = useState(false);
@@ -381,6 +383,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const [selectedExportColumns, setSelectedExportColumns] = useState([]);
   const [exporting, setExporting] = useState('');
   const [exportMessage, setExportMessage] = useState(null);
+  useEffect(() => { onDirtyChange?.(dirty); }, [dirty, onDirtyChange]);
 
   useEffect(() => {
     if (dirty) return;
@@ -695,6 +698,28 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     setSaveFailure('');
   };
 
+  // Keyboard workflow: '/' focuses search, Esc clears search, Ctrl/Command+S saves.
+  // Ignore plain shortcuts inside editable controls; never interfere with browser typing.
+  useEffect(() => {
+    const shortcut = (event) => {
+      const target = event.target;
+      const isEditing = target?.closest?.('input, textarea, select, [contenteditable="true"]');
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 's') {
+        if (!dirty || savePending) return;
+        event.preventDefault();
+        save();
+        return;
+      }
+      if (event.metaKey || event.ctrlKey || event.altKey || isEditing) return;
+      if (event.key === '/') {
+        event.preventDefault();
+        studentSearchRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', shortcut);
+    return () => window.removeEventListener('keydown', shortcut);
+  }, [dirty, savePending, save]);
+
   const showExportMessage = (text, type = 'success') => {
     setExportMessage({ text, type });
     window.clearTimeout(window.__besGradeExportMessage);
@@ -841,8 +866,9 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
         <label className="gb-roster-search">
           <Search className="gb-roster-search-icon" size={18} strokeWidth={2.15} aria-hidden="true" />
           <span className="sr-only">Tìm học sinh theo tên hoặc mã</span>
-          <input type="search" value={studentQuery} onChange={(event) => setStudentQuery(event.target.value)}
-            placeholder="Tìm theo tên hoặc mã học sinh…" aria-label="Tìm học sinh theo tên hoặc mã" />
+          <input ref={studentSearchRef} type="search" value={studentQuery} onChange={(event) => setStudentQuery(event.target.value)}
+            onKeyDown={(event) => { if (event.key === 'Escape') { setStudentQuery(''); event.currentTarget.blur(); } }}
+            placeholder="Tìm tên hoặc mã HS… (nhấn /)" aria-label="Tìm học sinh theo tên hoặc mã" />
         </label>
         <label className="gb-roster-missing">
           <input type="checkbox" checked={missingOnly} onChange={(event) => setMissingOnly(event.target.checked)} />
@@ -990,9 +1016,9 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       <article className="tone-yellow" style={{ '--gb-completion': `${students.length ? Math.round(completedFourRounds / students.length * 100) : 0}%` }}><span className="hr-grade-overview-icon"><GradebookUiIcon type="check" /></span><small>Hoàn thành 4 đợt TX</small><strong>{completedFourRounds}/{students.length}</strong><span>{activeRound ? `${activeRoundCoverage} học sinh có điểm ở đợt đang mở` : 'Theo học kỳ đang chọn'}</span></article>
     </section> : null}
 
-    {!focusMode && view !== 'mock' ? <GradebookSemesterMission sections={missionSections} summary={missionSummary} queue={missionQueue} onSelectSection={openMissionSection} onSelectStudent={openMissionStudent} finalized={finalized} /> : null}
 
-    <details className="gb-academic-administration" defaultOpen>
+
+    <details className="gb-academic-administration">
       <summary><span>Quản lý lớp và phân công giảng dạy</span><small>Mở công cụ quản trị lớp khi cần</small></summary>
       <div className="gb-academic-admin-content">
         {teachingOverview}
@@ -1032,6 +1058,21 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       showMockExams={showMockExams}
       currentUser={currentUser}
     />
+
+    {!focusMode && view !== 'mock' ? <GradebookProgressDeck
+      students={students} semester={activeSemester} semesterLabel={semesterLabel}
+      subjectName={activeSubject?.name || 'Môn học'} selectedView={view}
+      showMockExams={showMockExams} missingOnly={missingOnly}
+      onOpenSection={(sectionId) => { setView(sectionId); setMissingOnly(false); setStudentQuery(''); }}
+      onShowMissing={(sectionId) => { setView(sectionId); setMissingOnly(true); setStudentQuery(''); }}
+      onShowAll={() => { setMissingOnly(false); setStudentQuery(''); }}
+      onOpenMock={() => { setView('mock'); setMissingOnly(false); setStudentQuery(''); }}
+    /> : null}
+
+    {!focusMode && view !== 'mock' ? <details className="gb3-mission-details">
+      <summary><span><strong>Danh sách ưu tiên hoàn thiện</strong><small>Học sinh còn thiếu điểm, thống kê chi tiết và điều hướng đến đúng thành phần</small></span><span className="gb3-mission-open-label">Xem chi tiết <span aria-hidden="true">⌄</span></span></summary>
+      <GradebookSemesterMission sections={missionSections} summary={missionSummary} queue={missionQueue} onSelectSection={openMissionSection} onSelectStudent={openMissionStudent} finalized={finalized} />
+    </details> : null}
 
     {finalized && view !== 'mock' ? <div className="gb-finalized-banner" role="status"><strong>Học kỳ đã chốt</strong><span>Các ô điểm và thao tác chỉnh sửa đang khóa trong giao diện. Mở Bộ công cụ Sổ điểm → Chốt điểm để xem trạng thái hoặc mở khóa có lý do.</span></div> : null}
     {exportMessage ? <div className={`hr-grade-export-message ${exportMessage.type}`} role="status" aria-live="polite"><span>{exportMessage.type === 'error' ? '!' : '✓'}</span>{exportMessage.text}</div> : null}

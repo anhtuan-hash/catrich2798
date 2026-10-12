@@ -19,7 +19,9 @@ test('exactly one active design stylesheet and native hero, no injected legacy U
 
 test('all record pathways are still connected to data and permissions',()=>{
   assert.match(page,/onClick=\{\(\) => openAssignment\(assignment\)\}/);
-  assert.match(page,/setWorkspaceId\(item.id\)/);
+  assert.match(page,/switchGradebookClass\(item.id\)/);
+  assert.match(page,/const switchGradebookClass = \(nextId\) =>/);
+  assert.match(page,/if \(!canLeaveGradebook\(\)\) return/);
   assert.match(page,/setView\('students'\)/);
   assert.match(page,/setCreateOpen\(\(value\) => !value\)/);
   assert.match(page,/SubjectStudentsTab/);

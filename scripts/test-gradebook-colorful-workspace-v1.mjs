@@ -9,8 +9,9 @@ for(const token of [
   'gradebook-student-support',
   'Hỗ trợ &amp; tra cứu học sinh',
   'gradebook-student-support-icon',
-  '<GradebookEngine {...props} />'
+  '<GradebookEngine key={props.workspace?.id} {...props} />'
 ]) assert.ok(workspace.includes(token),'Student support or gradebook engine missing: '+token);
+assert.ok(page.includes('switchGradebookClass(item.id)'), 'Navigation must use safe class switch');
 assert.ok(!workspace.includes('GradebookColorfulWorkspace.css?inline'),'Legacy mockup must no longer be mounted');
 
 for(const token of [
