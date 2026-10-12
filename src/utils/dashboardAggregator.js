@@ -260,7 +260,8 @@ function attendanceRows(workspace, isoDate) {
 
 function buildHomeroom(workspace, now = new Date()) {
   if (!workspace) return null;
-  const iso = now.toISOString().slice(0, 10);
+  // Attendance is keyed by the local school day, not UTC (which can lag in Viet Nam).
+  const iso = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const students = array(workspace.students).filter((item) => item?.active !== false);
   const absentToday = attendanceRows(workspace, iso).filter((row) => {
     const status = text(row?.status || row?.attendance).toLowerCase();
@@ -365,7 +366,7 @@ export function createEmptyDashboardSnapshot(currentUser) {
     role: leader ? 'leader' : 'teacher',
     leader,
     admin: isAdminRole(currentUser?.role),
-    stats: { today: 0, overdue: 0, dueSoon: 0, pendingApproval: 0, upcoming: 0, notifications: 0 },
+    stats: { today: 0, todayEvents: 0, overdue: 0, dueSoon: 0, pendingApproval: 0, upcoming: 0, notifications: 0 },
     timeline: [],
     attention: [],
     professional: [],
@@ -414,14 +415,16 @@ export async function loadDashboardSnapshot(currentUser, now = new Date()) {
   const timeline = [...relevantWork.filter((item) => !item.done), ...homeroomTimeline]
     .filter((item) => { const days = dayDistance(item.date, now); return days !== null && days >= 0 && days < 14; })
     .sort((a, b) => (parseDate(a.date)?.getTime() || 0) - (parseDate(b.date)?.getTime() || 0));
-  const attention = [...relevantWork.filter((item) => !item.done), ...(leader ? resources.filter((item) => item.status === 'pending') : [])]
-    .sort((a, b) => {
-      const rank = { overdue: 0, today: 1, soon: 2, normal: 3 };
-      return rank[getDashboardDueState(a.date, a.done, now)] - rank[getDashboardDueState(b.date, b.done, now)];
-    }).slice(0, 18);
-  const approvals = leader
-    ? [...resources.filter((item) => item.status === 'pending'), ...workItems.filter((item) => item.status === 'submitted')].slice(0, 8)
+  const allAttention = [...relevantWork.filter((item) => !item.done), ...(leader ? resources.filter((item) => item.status === 'pending') : [])];
+  const attention = allAttention.sort((a, b) => {
+    const rank = { overdue: 0, today: 1, soon: 2, normal: 3 };
+    return rank[getDashboardDueState(a.date, a.done, now)] - rank[getDashboardDueState(b.date, b.done, now)]
+      || (parseDate(a.date)?.getTime() || Number.MAX_SAFE_INTEGER) - (parseDate(b.date)?.getTime() || Number.MAX_SAFE_INTEGER);
+  }).slice(0, 80);
+  const allApprovals = leader
+    ? [...resources.filter((item) => item.status === 'pending'), ...workItems.filter((item) => item.status === 'submitted')]
     : [];
+  const approvals = allApprovals.slice(0, 8);
   const drafts = collectDrafts(currentUser);
   const recentApps = getRecentAppUsage(currentUser, 8);
   const continueMap = new Map();
@@ -435,11 +438,13 @@ export async function loadDashboardSnapshot(currentUser, now = new Date()) {
       kind: item.kind || 'workspace',
     });
   });
+  // Count across the full permitted dataset, before truncating items for display.
   const stats = {
-    today: attention.filter((item) => getDashboardDueState(item.date, item.done, now) === 'today').length,
-    overdue: attention.filter((item) => getDashboardDueState(item.date, item.done, now) === 'overdue').length,
-    dueSoon: attention.filter((item) => getDashboardDueState(item.date, item.done, now) === 'soon').length,
-    pendingApproval: approvals.length,
+    today: allAttention.filter((item) => getDashboardDueState(item.date, item.done, now) === 'today').length,
+    todayEvents: timeline.filter((item) => dayDistance(item.date, now) === 0).length,
+    overdue: allAttention.filter((item) => getDashboardDueState(item.date, item.done, now) === 'overdue').length,
+    dueSoon: allAttention.filter((item) => getDashboardDueState(item.date, item.done, now) === 'soon').length,
+    pendingApproval: allApprovals.length,
     upcoming: timeline.length,
     notifications: array(notifications).length,
   };

@@ -1,0 +1,26 @@
+name: Dashboard Command Center v2 CI
+on:
+  push:
+    branches:
+      - feat/dashboard-command-center-20261012
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-dashboard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Dashboard regression tests
+        run: |
+          node scripts/test-dashboard-command-center-v2.mjs
+          node scripts/test-dashboard-drop-zone.mjs
+      - name: Production build
+        run: npm run build

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   DASHBOARD_SOURCE_EVENTS,
   createEmptyDashboardSnapshot,
@@ -13,8 +13,26 @@ import '../styles/teacher-dashboard-compact-layout.css';
 import '../styles/teacher-dashboard-google-colorful.css';
 import '../styles/teacher-dashboard-editorial-hero.css';
 import '../styles/teacher-dashboard-timeline-v2.css';
-import DashboardNewsHub from '../components/DashboardNewsHub.jsx';
+import DashboardCommandCenter from '../components/DashboardCommandCenter.jsx';
 import BrianDashboardDropZone from '../components/BrianDashboardDropZone.jsx';
+import '../styles/dashboard-command-center-v2.css';
+
+const DashboardNewsHub = lazy(() => import('../components/DashboardNewsHub.jsx'));
+const WEATHER_LOCATIONS = [
+  { id: 'binh-duong', label: 'Bình Dương', latitude: 11.001, longitude: 106.653 },
+  { id: 'ho-chi-minh', label: 'TP.HCM', latitude: 10.7769, longitude: 106.7009 },
+];
+function initialWeatherLocation() {
+  try { return WEATHER_LOCATIONS.some((place) => place.id === localStorage.getItem('bes-dashboard-weather-location-v2')) ? localStorage.getItem('bes-dashboard-weather-location-v2') : 'binh-duong'; }
+  catch { return 'binh-duong'; }
+}
+function weatherSymbol(code) {
+  if (code === 0 || code === 1) return '☀️';
+  if (code === 2 || code === 3) return '⛅';
+  if (code === 45 || code === 48) return '🌫️';
+  if (Number.isFinite(code) && code >= 51) return '🌧️';
+  return '☁️';
+}
 
 const COPY = {
   vi: {
@@ -296,45 +314,65 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   const [error, setError] = useState('');
   const [now, setNow] = useState(() => new Date());
   const [weather, setWeather] = useState({ temperature: null, code: null, loading: true });
+  const [weatherLocation, setWeatherLocation] = useState(initialWeatherLocation);
+  const [showNews, setShowNews] = useState(false);
+  const newsRef = useRef(null);
+  const dashboardRequestRef = useRef(0);
+  const weatherRequestRef = useRef(0);
   const lastRefreshRef = useRef(0);
 
   const refresh = useCallback(async ({ quiet = false } = {}) => {
+    const requestId = ++dashboardRequestRef.current;
     if (!quiet) setLoading(true);
-    setError('');
     try {
       const next = await loadDashboardSnapshot(currentUser);
+      if (requestId !== dashboardRequestRef.current) return;
       setSnapshot(next);
       lastRefreshRef.current = Date.now();
-      if (next.sourceErrors?.length) setError(next.sourceErrors.map((item) => `${item.source}: ${item.message}`).join(' · '));
+      setError(next.sourceErrors?.length ? next.sourceErrors.map((item) => `${item.source}: ${item.message}`).join(' · ') : '');
     } catch (reason) {
-      setError(reason?.message || String(reason));
+      if (requestId === dashboardRequestRef.current) setError(reason?.message || String(reason));
     } finally {
-      if (!quiet) setLoading(false);
+      if (requestId === dashboardRequestRef.current) setLoading(false);
     }
   }, [currentUser?.id, currentUser?.email, currentUser?.role]);
 
   const refreshWeather = useCallback(async () => {
-    setWeather((current) => ({ ...current, loading: true }));
+    const requestId = ++weatherRequestRef.current;
+    const place = WEATHER_LOCATIONS.find((item) => item.id === weatherLocation) || WEATHER_LOCATIONS[0];
+    setWeather((current) => ({ ...current, loading: true, temperature: null, code: null }));
     try {
-      const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=10.7769&longitude=106.7009&current=temperature_2m,weather_code&timezone=Asia%2FHo_Chi_Minh');
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${place.latitude}&longitude=${place.longitude}&current=temperature_2m,weather_code&timezone=Asia%2FHo_Chi_Minh`;
+      const response = await fetch(url);
       if (!response.ok) throw new Error('weather unavailable');
       const payload = await response.json();
+      if (requestId !== weatherRequestRef.current) return;
       setWeather({
         temperature: Number.isFinite(payload?.current?.temperature_2m) ? Math.round(payload.current.temperature_2m) : null,
         code: Number.isFinite(payload?.current?.weather_code) ? payload.current.weather_code : null,
         loading: false,
       });
     } catch {
-      setWeather((current) => ({ ...current, loading: false }));
+      if (requestId === weatherRequestRef.current) setWeather((current) => ({ ...current, loading: false }));
     }
-  }, []);
+  }, [weatherLocation]);
 
-  useEffect(() => { refresh(); }, [refresh]);
+  useEffect(() => { refresh(); return () => { dashboardRequestRef.current += 1; }; }, [refresh]);
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 60 * 1000);
     return () => window.clearInterval(timer);
   }, []);
-  useEffect(() => { refreshWeather(); }, [refreshWeather]);
+  useEffect(() => { refreshWeather(); return () => { weatherRequestRef.current += 1; }; }, [refreshWeather]);
+  useEffect(() => {
+    const element = newsRef.current;
+    if (!element || showNews) return undefined;
+    if (typeof IntersectionObserver === 'undefined') { setShowNews(true); return undefined; }
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) { setShowNews(true); observer.disconnect(); }
+    }, { rootMargin: '350px 0px' });
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [showNews]);
   useEffect(() => {
     let refreshTimer = 0;
     const queueUpdate = () => { window.clearTimeout(refreshTimer); refreshTimer = window.setTimeout(() => refresh({ quiet: true }), 450); };
@@ -374,6 +412,11 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   const heroDate = new Intl.DateTimeFormat(locale, { weekday: 'long', day: '2-digit', month: 'short' }).format(now);
   const weatherDescription = weather.code == null ? t.weatherLoading : weatherText(weather.code, language);
   const weatherTemperature = weather.temperature == null ? '—°C' : `${weather.temperature}°C`;
+  const changeWeatherLocation = (event) => {
+    const id = event.target.value;
+    setWeatherLocation(id);
+    try { localStorage.setItem('bes-dashboard-weather-location-v2', id); } catch { /* optional */ }
+  };
   const quickActions = [
     ['task', t.createWork, 'ttcm:feed'], ['folder', t.uploadResource, '#/resource-library'], ['magic', t.textLab, '#/tool/textlab-activities'],
     ...(snapshot.homeroom ? [['people', t.openHomeroom, '#/homeroom']] : []),
@@ -448,10 +491,13 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
                 <span className="editorial-status-icon"><Icon name="clock" size={18} /></span>
                 <span><small>{t.currentTime}</small><strong>{heroTime}</strong></span>
               </button>
-              <button type="button" className="editorial-status-card editorial-status-weather" onClick={refreshWeather} title={t.weather}>
-                <span className="editorial-weather-symbol" aria-hidden="true">☀</span>
-                <span><small>{weather.loading ? t.weatherLoading : weatherDescription}</small><strong>TP.HCM · {weatherTemperature}</strong></span>
-              </button>
+              <div className="editorial-status-card editorial-status-weather" title={t.weather}>
+                <span className="editorial-weather-symbol" aria-hidden="true">{weatherSymbol(weather.code)}</span>
+                <span><small>{weather.loading ? t.weatherLoading : weatherDescription}</small><strong>
+                  <select className="editorial-weather-location" aria-label={language === 'vi' ? 'Chọn khu vực thời tiết' : 'Weather location'} value={weatherLocation} onChange={changeWeatherLocation}>
+                    {WEATHER_LOCATIONS.map((place) => <option key={place.id} value={place.id}>{place.label}</option>)}
+                  </select> · {weatherTemperature}</strong></span>
+              </div>
             </div>
             <div className="editorial-hero-visual"><DashboardHeroIllustration /></div>
             <button type="button" className="editorial-today-chip" onClick={focusToday} title={t.dateToday}><Icon name="calendar" size={17} /><span>{t.dateToday}</span><strong>{new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit' }).format(now)}</strong></button>
@@ -459,7 +505,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
         </header>
       </section>
 
-      <BrianDashboardDropZone language={language} />
+      <DashboardCommandCenter snapshot={snapshot} language={language} now={now} loading={loading} onRefresh={() => refresh()} />
 
       {error ? <div className="gd-alert"><Icon name="warning" size={22} /><div><strong>{t.partial}</strong><small>{error}</small></div><button type="button" className="gd-text-button" onClick={() => refresh()}>{t.retry}</button></div> : null}
       <article className="gd-calendar gd-calendar-today gd-calendar-timeline-v2" id="dashboard-calendar">
@@ -489,7 +535,11 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
           </section>
         </div>
       </article>
-      <DashboardNewsHub language={language} />
+      <BrianDashboardDropZone language={language} />
+      <div ref={newsRef} className="dcc-news-slot">
+        {showNews ? <Suspense fallback={<div className="dcc-news-placeholder">{t.refreshing}</div>}><DashboardNewsHub language={language} /></Suspense>
+          : <div className="dcc-news-placeholder" aria-label={language === 'vi' ? 'Tin tức tải khi cuộn đến' : 'News loads when in view'}>{language === 'vi' ? 'Tin tức sẽ tải khi bạn cuộn đến khu vực này.' : 'News will load when you scroll here.'}</div>}
+      </div>
       <Surface title={t.quickActions} icon="bolt" className="gd-quick-surface" note={language === 'vi' ? 'Tiết kiệm thời gian · Tập trung cho điều quan trọng ♡' : 'Save time · Focus on what matters ♡'}><div className="gd-quick-actions">{quickActions.map(([icon, label, target]) => <button type="button" key={label} className="gd-quick-action" onClick={() => { if (String(target).startsWith('ttcm:')) openTtcm(String(target).split(':')[1] || 'feed'); else window.location.hash = target; }}><span><Icon name={icon} size={20} /></span>{label}</button>)}</div></Surface>
     </div>
   </section>;
