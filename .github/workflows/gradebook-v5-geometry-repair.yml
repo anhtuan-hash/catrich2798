@@ -1,0 +1,52 @@
+name: Gradebook V5 Navigation and Table Geometry
+on:
+  push:
+    branches: [main, 'fix/gradebook-v5-navigation-table-geometry-20261012']
+    paths:
+      - 'src/styles/GradebookFocusV5.css'
+      - 'src/components/gradebook/GradebookEngine.jsx'
+      - 'tests/e2e/gradebook-v5-geometry-repair.spec.js'
+      - 'tests/gradebook-v5-geometry-repair.test.mjs'
+      - '.github/workflows/gradebook-v5-geometry-repair.yml'
+  pull_request:
+    paths:
+      - 'src/styles/GradebookFocusV5.css'
+      - 'src/components/gradebook/GradebookEngine.jsx'
+      - 'tests/e2e/gradebook-v5-geometry-repair.spec.js'
+      - 'tests/gradebook-v5-geometry-repair.test.mjs'
+jobs:
+  safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: node tests/gradebook-v5-geometry-repair.test.mjs
+      - run: node tests/gradebook-focus-v5.test.mjs
+      - run: node tests/gradebook-roster-layout-hotfix.test.mjs
+      - run: node scripts/test-gradebook-mock-exams-v2.mjs
+      - run: npm run build
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test tests/e2e/gradebook-v5-geometry-repair.spec.js tests/e2e/gradebook-roster-toolbar-layout.spec.js --project=chromium-desktop
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: gradebook-v5-geometry-diagnostics
+          path: |
+            test-results/
+            reports/playwright/
