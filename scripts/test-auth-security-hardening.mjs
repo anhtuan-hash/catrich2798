@@ -86,4 +86,21 @@ assert.match(api, /jwtAssuranceLevel\(session\.token\) !== 'aal2'/);
 assert.match(edge, /adminClient\.auth\.admin\.mfa\.listFactors/);
 assert.match(edge, /hasVerifiedFactor && assuranceLevel !== 'aal2'/);
 
+
+const practiceGuard = read('supabase/migrations/20261012095000_public_practice_rpc_abuse_guard.sql');
+// Anonymous shared-link RPCs retain their established signature/response paths,
+// but now use the existing DB-backed limiter rather than in-memory server quotas.
+assert.match(practiceGuard, /CREATE OR REPLACE FUNCTION public\.qb_public_practice_get\(p_token text\)/);
+assert.match(practiceGuard, /CREATE OR REPLACE FUNCTION public\.qb_public_practice_submit\(p_token text, p_session_id uuid, p_learner_label text, p_responses jsonb\)/);
+assert.equal((practiceGuard.match(/app_public_rate_limit_allow\(/g) || []).length, 2);
+assert.match(practiceGuard, /'qb_public_practice_get'/);
+assert.match(practiceGuard, /'qb_public_practice_submit'/);
+assert.equal((practiceGuard.match(/'error','rate_limited'/g) || []).length, 2);
+assert.match(practiceGuard, /pg_column_size\(p_responses\) > 524288/);
+assert.match(practiceGuard, /jsonb_array_length\(p_responses\) > 500/);
+assert.match(practiceGuard, /jsonb_typeof\(p_responses\) <> 'array'/);
+assert.match(practiceGuard, /assessment_practice_attempts/);
+assert.match(practiceGuard, /correctAnswer/);
+assert.equal((practiceGuard.match(/\$function\$;/g) || []).length, 2);
+
 console.log('PASS: BRIAN account authorization, password rotation, audit, and staged Admin MFA contracts are hardened.');
