@@ -1,22 +1,16 @@
-import React, { useEffect, useRef, useState } from 'react';
-import HomeroomConductTab from '../components/HomeroomConductTab.jsx';
+import React, { lazy, Suspense, useEffect, useRef, useState } from 'react';
+
 import { fastPreferredHomeroom, listFastHomeroomCatalog } from '../utils/homeroomFastEntry.js';
 import HomeroomOverviewCompactTab from '../components/homeroom/HomeroomOverviewCompactTab.jsx';
-import {
-  AttendanceTab,
-  StudentsTab,
-} from '../components/homeroom/HomeroomCoreTabs.jsx';
-import HomeroomClassProfileEditor from '../components/homeroom/HomeroomClassProfileEditor.jsx';
-import SubjectStudentsTab from '../components/homeroom/SubjectStudentsTab.jsx';
-import HomeroomStudentHub from '../components/homeroom/HomeroomStudentHub.jsx';
-import HomeroomEngagement from '../components/homeroom/HomeroomEngagement.jsx';
+
+
+
+
+
 import HomeroomNavigationPalette from '../components/homeroom/HomeroomNavigationPalette.jsx';
 import HomeroomGlassHero from '../components/homeroom/HomeroomGlassHero.jsx';
-import StudentRecordsTab from '../components/homeroom/StudentRecordsTab.jsx';
-import {
-  ClassLifecycleTab,
-  DataSafetyTab,
-} from '../components/HomeroomPhase3Tabs.jsx';
+
+
 import {
   createHomeroomWorkspace,
   duplicateHomeroomWorkspace,
@@ -54,6 +48,21 @@ import '../components/homeroom/HomeroomGlassHero.css';
 import '../styles/homeroom-4-tokens.css';
 // Gated Homeroom-only presentation layer; no styles escape .hr-v4.
 import '../styles/homeroom-4-expressive.css';
+import '../styles/homeroom-4-loading.css';
+
+// Homeroom 4.0 final pass: keep the initial assigned-class shell light.
+// Large feature modules are downloaded only after their tab is requested.
+// React.lazy caching retains component state while its tab is active; no RPC
+// or class selection occurs during these module imports.
+const HomeroomConductTab = lazy(() => import('../components/HomeroomConductTab.jsx'));
+const AttendanceTab = lazy(() => import('../components/homeroom/HomeroomCoreTabs.jsx').then((mod) => ({ default: mod.AttendanceTab })));
+const HomeroomClassProfileEditor = lazy(() => import('../components/homeroom/HomeroomClassProfileEditor.jsx'));
+const SubjectStudentsTab = lazy(() => import('../components/homeroom/SubjectStudentsTab.jsx'));
+const HomeroomStudentHub = lazy(() => import('../components/homeroom/HomeroomStudentHub.jsx'));
+const HomeroomEngagement = lazy(() => import('../components/homeroom/HomeroomEngagement.jsx'));
+const StudentRecordsTab = lazy(() => import('../components/homeroom/StudentRecordsTab.jsx'));
+const ClassLifecycleTab = lazy(() => import('../components/HomeroomPhase3Tabs.jsx').then((mod) => ({ default: mod.ClassLifecycleTab })));
+const DataSafetyTab = lazy(() => import('../components/HomeroomPhase3Tabs.jsx').then((mod) => ({ default: mod.DataSafetyTab })));
 
 // Homeroom owns homeroom duties only. Gradebook is a separate teacher app.
 // Keep the last usable class snapshot so remounts never blank this data-heavy route.
@@ -518,9 +527,10 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
     {message ? <div className="hr-toast"><span>✓</span>{message}</div> : null}
     {saving ? <div className="hr-saving-strip"><i />Đang đồng bộ dữ liệu lớp…</div> : null}
 
-    {(!workspace.classProfile?.className || visibleTab === 'classes') ? <HomeroomClassProfileEditor value={classDraft} onChange={setClassDraft} onSave={saveClassProfile} saving={saving} language={language} /> : null}
+    <Suspense fallback={<section className="hr-v4-tab-loading" role="status" aria-live="polite"><span className="hr-v4-loading-mark" aria-hidden="true" /><div><strong>Đang mở phân hệ…</strong><small>Dữ liệu lớp hiện tại được giữ nguyên.</small></div></section>}>
+      {(!workspace.classProfile?.className || visibleTab === 'classes') ? <HomeroomClassProfileEditor value={classDraft} onChange={setClassDraft} onSave={saveClassProfile} saving={saving} language={language} /> : null}
 
-    <main id="hr-workspace-body" className="hr-workspace-body">
+      <main id="hr-workspace-body" className="hr-workspace-body">
       {visibleTab === 'overview' ? <HomeroomOverviewCompactTab workspace={workspace} goTab={setActiveTab} onCommit={commit} syncState={syncState} subjectMode={subjectMode} /> : null}
       {visibleTab === 'classes' ? <ClassLifecycleTab workspace={workspace} catalog={catalog} currentId={workspaceId} onSwitch={switchWorkspace} onCreate={createWorkspace} onDuplicate={duplicateWorkspace} onStatusChange={changeWorkspaceStatus} currentUser={currentUser} /> : null}
       {visibleTab === 'students' ? (subjectMode ? <SubjectStudentsTab workspace={workspace} onCommit={commit} /> : <HomeroomStudentHub key={`${currentUser?.id || currentUser?.email || 'guest'}:${workspace.id}`} workspace={workspace} onCommit={commit} />) : null}
@@ -528,6 +538,7 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
       {visibleTab === 'attendance' ? <><HomeroomEngagement workspace={workspace} mode="attendance" /><AttendanceTab workspace={workspace} onCommit={commit} currentUser={currentUser} /></> : null}
       {visibleTab === 'conduct' ? <><HomeroomEngagement workspace={workspace} mode="conduct" /><HomeroomConductTab workspace={workspace} onCommit={commit} currentUser={currentUser} /></> : null}
       {visibleTab === 'safety' ? <DataSafetyTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
-    </main>
+      </main>
+    </Suspense>
   </div>;
 }
