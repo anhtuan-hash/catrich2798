@@ -1921,7 +1921,8 @@
   position:absolute;
   z-index:-1;
   pointer-events:none;
-  inset:-12px -15px 0;
+  inset:-12px 0 0;
+  border-radius:0 0 26px 26px;
   background:
     radial-gradient(circle at 1% 7%,rgba(75,204,248,.18),transparent 22%),
     radial-gradient(circle at 98% 8%,rgba(251,130,190,.17),transparent 23%),
