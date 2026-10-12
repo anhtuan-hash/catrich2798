@@ -186,7 +186,7 @@ export default function AdminMfaSecurity({ user, route, language = 'vi' }) {
           </form>
         ) : null}
         <details className="bes-mfa-mac-help">
-          <summary>{vi ? 'Không muốn dùng điện thoại mỗi lần?' : 'Don't want to use your phone every time?'}</summary>
+          <summary>{vi ? 'Không muốn dùng điện thoại mỗi lần?' : "Don\u0027t want to use your phone every time?"}</summary>
           <p>{vi ? 'Sau lần xác minh này, vào Cài đặt → Xác thực hai lớp → Thêm Mac (Mật khẩu Apple). Mã sẽ được tạo trên Mac; bạn có thể mở Mật khẩu bằng Touch ID để tự điền hoặc sao chép mã.' : 'After this verification, open Settings → MFA → Add Mac (Apple Passwords). Codes can then be generated on your Mac, unlocked via Touch ID and filled or copied.'}</p>
         </details>
         {feedback ? <p role="alert" className="bes-mfa-error">{feedback}</p> : null}
