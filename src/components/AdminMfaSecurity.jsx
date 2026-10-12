@@ -251,7 +251,7 @@ export default function AdminMfaSecurity({ user, route, language = 'vi' }) {
       <section className="bes-mfa-shield-card" role="dialog" aria-modal="true" aria-label={vi ? 'Xác thực bảo mật quản trị viên' : 'Administrator two-factor authentication'}>
         <div className="bes-mfa-shield-mark" aria-hidden="true">B</div>
         <h2>{vi ? 'Xác thực tài khoản quản trị viên' : 'Verify your administrator account'}</h2>
-        <p>{state.loading ? (vi ? 'Đang kiểm tra phiên bảo mật…' : 'Checking security session…') : state.error || (vi ? 'Nhập mã từ ứng dụng xác thực để tiếp tục sử dụng BRIAN.' : 'Enter the code from your authenticator app to continue.')}</p>
+        <p>{state.loading ? (vi ? 'Đang kiểm tra phiên bảo mật…' : 'Checking security session…') : state.error || (state.webauthnFactors.length ? (vi ? 'Dùng Touch ID để xác thực mà không nhập mã, hoặc dùng mã 6 số dự phòng.' : 'Use Touch ID without typing a code, or fall back to a six-digit code.') : (vi ? 'Nhập mã từ ứng dụng xác thực để tiếp tục sử dụng BRIAN.' : 'Enter the code from your authenticator app to continue.'))}</p>
         {needsVerification && !state.error ? (
           <>
           {state.webauthnFactors.length > 0 && touchIdAvailable && typeof webauthnApi?.authenticate === 'function' ? (
@@ -285,8 +285,8 @@ export default function AdminMfaSecurity({ user, route, language = 'vi' }) {
           </>
         ) : null}
         <details className="bes-mfa-mac-help">
-          <summary>{vi ? 'Không muốn dùng điện thoại mỗi lần?' : "Don\u0027t want to use your phone every time?"}</summary>
-          <p>{vi ? 'Sau lần xác minh này, vào Cài đặt → Xác thực hai lớp → Thêm Mac (Mật khẩu Apple). Mã sẽ được tạo trên Mac; bạn có thể mở Mật khẩu bằng Touch ID để tự điền hoặc sao chép mã.' : 'After this verification, open Settings → MFA → Add Mac (Apple Passwords). Codes can then be generated on your Mac, unlocked via Touch ID and filled or copied.'}</p>
+          <summary>{vi ? 'Cách xác thực không cần nhập mã 6 số' : 'Sign in without six-digit codes'}</summary>
+          <p>{vi ? 'Vào Cài đặt → Xác thực hai lớp → Thiết lập Touch ID để đăng ký vân tay trực tiếp. Nếu tính năng WebAuthn chưa bật ở Supabase, tiếp tục dùng mã 6 số dự phòng.' : 'Open Settings → MFA → Set up Touch ID to register a biometric factor. If WebAuthn is not enabled on Supabase, use the backup six-digit code.'}</p>
         </details>
         {feedback ? <p role="alert" className="bes-mfa-error">{feedback}</p> : null}
         {state.error ? <button type="button" onClick={refresh}>{vi ? 'Thử lại' : 'Retry'}</button> : null}
