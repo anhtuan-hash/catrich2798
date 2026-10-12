@@ -33,6 +33,7 @@ import '../styles/GradebookStudio.css';
 import '../styles/GradebookLifecycle.css';
 import '../styles/GradebookAcademicWorkspace.css';
 import '../styles/GradebookSpectrumV4.css';
+import '../styles/GradebookRosterLayoutHotfix.css';
 
 const EMPTY_CLASS = {
   className: '',
