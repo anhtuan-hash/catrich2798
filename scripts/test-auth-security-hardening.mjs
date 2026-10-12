@@ -55,6 +55,7 @@ const main = read('src/main.jsx');
 const settings = read('src/pages/Settings.jsx');
 assert.match(main, /const AdminMfaSecurity = lazy\(/, 'MFA must be imported in the actual BRIAN app entrypoint.');
 assert.match(main, /<AdminMfaSecurity user=\{currentUser\}/, 'Global MFA challenge must mount for an authenticated Admin.');
+assert.doesNotMatch(center, /<AdminMfaSecurity/, 'Legacy account center must not mount a duplicate MFA panel.');
 assert.match(settings, /id="bes-admin-mfa-settings-target"/, 'Settings must expose an MFA portal target.');
 assert.match(settings, /id="settings-mfa"/, 'Admin MFA section must have a navigable anchor.');
 assert.match(settings, /'mfa', '2fa'/, 'Settings search must find MFA.');
