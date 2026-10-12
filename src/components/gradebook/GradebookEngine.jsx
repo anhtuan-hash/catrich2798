@@ -429,7 +429,7 @@ function GradebookNavigationPalette({
   </div>;
 }
 
-export default function HomeroomLearningGradebook({ workspace, onCommit, currentUser }) {
+export default function HomeroomLearningGradebook({ workspace, onCommit, currentUser, teachingOverview, classManagement }) {
   const students = useMemo(
     () => (workspace.students || []).filter((student) => student.active !== false),
     [workspace.students],
@@ -763,6 +763,9 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       <article className="tone-purple"><span className="hr-grade-overview-icon"><GradebookUiIcon type="document" /></span><small>Môn học</small><strong>{subjectEntries.length}</strong><span>Đang quản lý</span></article>
       <article className="tone-yellow"><span className="hr-grade-overview-icon"><GradebookUiIcon type="check" /></span><small>Hoàn thành 4 đợt TX</small><strong>{completedFourRounds}/{students.length}</strong><span>{activeRound ? `${activeRoundCoverage} học sinh có điểm ở đợt đang mở` : 'Theo học kỳ đang chọn'}</span></article>
     </section>
+
+    {teachingOverview}
+    {classManagement}
 
     <GradebookNavigationPalette
       semesterId={semesterId}
