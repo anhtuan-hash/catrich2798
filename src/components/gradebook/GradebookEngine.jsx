@@ -12,6 +12,8 @@ import './HomeroomLearningGradebook.css';
 import { filterGradebookStudentView, gradebookColumnProgress } from '../../utils/gradebookStudentView.js';
 import { Search, ScanEye, Minimize2, Keyboard, X, ArrowDownToLine, ListFilter, Rows3, Rows4, ChartColumnIncreasing } from 'lucide-react';
 import GradebookProductivityPanel from './GradebookProductivityPanel.jsx';
+import GradebookSemesterMission from './GradebookSemesterMission.jsx';
+import { semesterProgressSections, semesterProgressSummary, semesterPendingStudents } from '../../utils/gradebookSemesterMission.js';
 import { gradebookAuditChanges, gradebookQualityReport } from '../../utils/gradebookProductivity.js';
 import { isGradebookFinalized, setFinalizationState, gradebookFinalizationReadiness } from '../../utils/gradebookFinalization.js';
 import { saveGradebookRubric, previewGradebookHistoryRestore, restoreGradebookHistory } from '../../utils/gradebookPhase3.js';
@@ -304,6 +306,7 @@ function GradebookNavigationPalette({
   view,
   onViewChange,
   dirty,
+  saving,
   onDiscard,
   onSave,
 }) {
@@ -334,10 +337,10 @@ function GradebookNavigationPalette({
       </div>
       <div className="hr-grade-save-actions">
         <span role="status" aria-live="polite" className={dirty ? 'is-dirty' : 'is-saved'}>
-          {dirty ? 'Có thay đổi chưa lưu' : 'Dữ liệu đã lưu'}
+          {saving ? 'Đang lưu điểm…' : dirty ? 'Có thay đổi chưa lưu' : 'Dữ liệu đã lưu'}
         </span>
-        {dirty ? <button type="button" className="secondary" onClick={onDiscard}>Hoàn tác</button> : null}
-        <button type="button" className="primary" disabled={!dirty} onClick={onSave}>Lưu bảng điểm</button>
+        {dirty ? <button type="button" className="secondary" disabled={saving} onClick={onDiscard}>Hoàn tác</button> : null}
+        <button type="button" className="primary" disabled={!dirty || saving} onClick={onSave}>{saving ? 'Đang lưu…' : 'Lưu bảng điểm'}</button>
       </div>
     </section>
   </div>;
@@ -364,6 +367,8 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const scoreTableRef = useRef(null);
   const [newSubject, setNewSubject] = useState('');
   const [dirty, setDirty] = useState(false);
+  const [savePending, setSavePending] = useState(false);
+  const [saveFailure, setSaveFailure] = useState('');
   const [exportDialogMode, setExportDialogMode] = useState('');
   const [selectedStudentId, setSelectedStudentId] = useState('');
   const [selectedExportColumns, setSelectedExportColumns] = useState([]);
@@ -400,6 +405,9 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
      () => filterGradebookStudentView({ students, search: studentQuery, missingOnly, view, activeRound, semester: activeSemester, sortBy }),
     [students, studentQuery, missingOnly, view, activeRound, activeSemester, sortBy],
   );
+  const missionSections = useMemo(() => semesterProgressSections(students, activeSemester), [students, activeSemester]);
+  const missionSummary = useMemo(() => semesterProgressSummary(missionSections), [missionSections]);
+  const missionQueue = useMemo(() => semesterPendingStudents(students, activeSemester, 6), [students, activeSemester]);
   const originalStudentPosition = useMemo(
     () => new Map(students.map((student, index) => [student.id, index + 1])),
     [students],
@@ -416,6 +424,16 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     });
     return Array.from(groups, ([label, columns]) => ({ label, columns }));
   }, [exportColumns]);
+
+  useEffect(() => {
+    if (!dirty) return undefined;
+    const protectDraft = (event) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', protectDraft);
+    return () => window.removeEventListener('beforeunload', protectDraft);
+  }, [dirty]);
 
   useEffect(() => {
     if (!exportDialogMode) return undefined;
@@ -557,31 +575,40 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   };
 
   const save = async () => {
-    const payload = clone(gradebook);
-    payload.activeSubject = activeSubjectKey;
-    payload.updatedAt = new Date().toISOString();
-    payload.updatedBy = currentUser?.email || currentUser?.name || '';
-    const restoreMeta=payload.pendingGradebookRestore||null;
-    delete payload.pendingGradebookRestore;
-    const changes=gradebookAuditChanges(workspace.learningGradebook || {},payload);
-    if(changes.length){
-      payload.auditHistory=[{
-        id:'grade-save-'+Date.now(),
-        at:new Date().toISOString(),
-        author:payload.updatedBy||'Giáo viên',
-        count:changes.length,
-        changes:changes.slice(0,1200),
-        action:restoreMeta?'restore':'update',
-        restoredFrom:restoreMeta?.sourceId||'',
-        reason:restoreMeta?.reason||'',
-      },...(payload.auditHistory||[])].slice(0,30);
+    if (!dirty || savePending) return;
+    setSavePending(true);
+    setSaveFailure('');
+    try {
+      const payload = clone(gradebook);
+      payload.activeSubject = activeSubjectKey;
+      payload.updatedAt = new Date().toISOString();
+      payload.updatedBy = currentUser?.email || currentUser?.name || '';
+      const restoreMeta=payload.pendingGradebookRestore||null;
+      delete payload.pendingGradebookRestore;
+      const changes=gradebookAuditChanges(workspace.learningGradebook || {},payload);
+      if(changes.length){
+        payload.auditHistory=[{
+          id:'grade-save-'+Date.now(),
+          at:new Date().toISOString(),
+          author:payload.updatedBy||'Giáo viên',
+          count:changes.length,
+          changes:changes.slice(0,1200),
+          action:restoreMeta?'restore':'update',
+          restoredFrom:restoreMeta?.sourceId||'',
+          reason:restoreMeta?.reason||'',
+        },...(payload.auditHistory||[])].slice(0,30);
+      }
+      await onCommit(
+        { ...workspace, learningGradebook: payload },
+        `Đã lưu sổ điểm ${activeSubject?.name || 'môn học'} · ${SEMESTERS.find((item) => item.id === semesterId)?.label}.`,
+      );
+      setGradebook(payload);
+      setDirty(false);
+    } catch (error) {
+      setSaveFailure(error?.message || 'Chưa thể lưu điểm. Dữ liệu vẫn còn trong phiên này, vui lòng thử lại.');
+    } finally {
+      setSavePending(false);
     }
-    await onCommit(
-      { ...workspace, learningGradebook: payload },
-      `Đã lưu sổ điểm ${activeSubject?.name || 'môn học'} · ${SEMESTERS.find((item) => item.id === semesterId)?.label}.`,
-    );
-    setGradebook(payload);
-    setDirty(false);
   };
 
   const discard = () => {
@@ -589,6 +616,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     setGradebook(normalized);
     setActiveSubjectKey(normalized.activeSubject);
     setDirty(false);
+    setSaveFailure('');
   };
 
   const showExportMessage = (text, type = 'success') => {
@@ -711,6 +739,25 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       <label><span>Thành phần điểm</span><select aria-label="Chọn đợt hoặc thành phần điểm" value={view} onChange={(event) => setView(event.target.value)}>{VIEWS.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
     </div>
   );
+
+  const openMissionSection = (sectionId) => {
+    if (!VIEWS.some((item) => item.id === sectionId)) return;
+    setView(sectionId);
+    setStudentQuery('');
+    setMissingOnly(true);
+    setFocusMode(false);
+    setWorkbenchNotice('Đang hiển thị học sinh còn thiếu điểm ở thành phần vừa chọn.');
+    window.requestAnimationFrame(() => document.querySelector('.gradebook-studio .gb-roster-workbench')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  };
+  const openMissionStudent = (entry) => {
+    if (!entry?.nextView || !VIEWS.some((item) => item.id === entry.nextView)) return;
+    setView(entry.nextView);
+    setStudentQuery(entry.code || entry.name);
+    setMissingOnly(true);
+    setFocusMode(false);
+    setWorkbenchNotice(`Đang xem ô điểm còn thiếu của ${entry.name}.`);
+    window.requestAnimationFrame(() => document.querySelector('.gradebook-studio .gb-roster-workbench')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  };
 
   const renderRosterToolbar = () => (
     <section className="gb-roster-workbench" aria-label="Không gian nhập điểm">
@@ -867,6 +914,8 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       <article className="tone-yellow" style={{ '--gb-completion': `${students.length ? Math.round(completedFourRounds / students.length * 100) : 0}%` }}><span className="hr-grade-overview-icon"><GradebookUiIcon type="check" /></span><small>Hoàn thành 4 đợt TX</small><strong>{completedFourRounds}/{students.length}</strong><span>{activeRound ? `${activeRoundCoverage} học sinh có điểm ở đợt đang mở` : 'Theo học kỳ đang chọn'}</span></article>
     </section>
 
+    {!focusMode ? <GradebookSemesterMission sections={missionSections} summary={missionSummary} queue={missionQueue} onSelectSection={openMissionSection} onSelectStudent={openMissionStudent} finalized={finalized} /> : null}
+
     <details className="gb-academic-administration" defaultOpen>
       <summary><span>Quản lý lớp và phân công giảng dạy</span><small>Mở công cụ quản trị lớp khi cần</small></summary>
       <div className="gb-academic-admin-content">
@@ -900,6 +949,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       view={view}
       onViewChange={setView}
       dirty={dirty}
+      saving={savePending}
       blocked={Boolean(exportDialogMode || exporting)}
       onDiscard={discard}
       onSave={save}
@@ -909,6 +959,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     {finalized ? <div className="gb-finalized-banner" role="status"><strong>Học kỳ đã chốt</strong><span>Các ô điểm và thao tác chỉnh sửa đang khóa trong giao diện. Mở Bộ công cụ Sổ điểm → Chốt điểm để xem trạng thái hoặc mở khóa có lý do.</span></div> : null}
     {exportMessage ? <div className={`hr-grade-export-message ${exportMessage.type}`} role="status" aria-live="polite"><span>{exportMessage.type === 'error' ? '!' : '✓'}</span>{exportMessage.text}</div> : null}
 
+    {saveFailure ? <div className="gb-save-error" role="alert"><strong>Không thể lưu điểm</strong><span>{saveFailure}</span><button type="button" disabled={savePending} onClick={save}>Thử lưu lại</button></div> : null}
     {renderRosterToolbar()}
     {renderColumnInsights()}
 
@@ -940,8 +991,8 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     />
 
     {dirty ? <div className="gbv2-save-strip" role="status" aria-live="polite">
-      <span>{dirty ? 'Bạn có thay đổi chưa lưu' : 'Dữ liệu điểm đã được lưu'} · {activeSubject?.name || 'Môn học'} · {semesterLabel}</span>
-      <div><button type="button" className="secondary" disabled={!dirty} onClick={discard}>Hoàn tác</button><button type="button" className="primary" disabled={!dirty} onClick={save}>Lưu điểm</button></div>
+      <span>{savePending ? 'Đang lưu điểm' : 'Bạn có thay đổi chưa lưu'} · {activeSubject?.name || 'Môn học'} · {semesterLabel}</span>
+      <div><button type="button" className="secondary" disabled={!dirty || savePending} onClick={discard}>Hoàn tác</button><button type="button" className="primary" disabled={!dirty || savePending} onClick={save}>Lưu điểm</button></div>
     </div> : null}
 
     <section className="hr-panel hr-grade-export-bar" aria-labelledby="hr-grade-export-title">

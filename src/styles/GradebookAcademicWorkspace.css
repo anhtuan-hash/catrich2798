@@ -3213,3 +3213,400 @@
 @media(prefers-reduced-motion:reduce){
   #root .gradebook-studio .gb-roster-column-track > span{transition:none}
 }
+
+
+/* Semester Mission Control — a single visual overview for the complete
+   grade-entry semester. Distinct coherent academic colorways, all route-scoped. */
+#root .gradebook-studio .gb-mission{
+  overflow:hidden;
+  position:relative;
+  border:1px solid #cbdcfb;
+  border-radius:23px;
+  background:#fff;
+  box-shadow:0 10px 29px rgba(34,69,136,.08);
+}
+#root .gradebook-studio .gb-mission-heading{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:22px 24px;
+  background:
+    radial-gradient(circle at 82% -30%,rgba(215,174,255,.5),transparent 32%),
+    radial-gradient(circle at 65% 120%,rgba(129,218,255,.35),transparent 42%),
+    linear-gradient(115deg,#f8fbff,#eef3ff 60%,#f8f0ff);
+  border-bottom:1px solid #e0e8fb;
+}
+#root .gradebook-studio .gb-mission-heading-copy{min-width:0}
+#root .gradebook-studio .gb-mission-eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  color:#5672b3;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.09em;
+}
+#root .gradebook-studio .gb-mission-eyebrow svg{color:#7355db}
+#root .gradebook-studio .gb-mission-heading h2{
+  margin:8px 0 7px;
+  font-size:clamp(20px,2.3vw,26px);
+  font-weight:850;
+  letter-spacing:-.038em;
+  line-height:1.2;
+  color:#153766;
+}
+#root .gradebook-studio .gb-mission-heading p{
+  color:#667e9e;
+  max-width:550px;
+  margin:0;
+  font-size:12px;
+  line-height:1.5;
+}
+#root .gradebook-studio .gb-mission-overall{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  flex:none;
+}
+#root .gradebook-studio .gb-mission-ring{
+  --gb-mission-pct:0%;
+  display:grid;
+  place-items:center;
+  position:relative;
+  width:82px;
+  height:82px;
+  border-radius:50%;
+  background:conic-gradient(#6557d9 var(--gb-mission-pct),#dce7f8 var(--gb-mission-pct));
+  box-shadow:0 4px 12px rgba(70,71,165,.1);
+}
+#root .gradebook-studio .gb-mission-ring::before{
+  content:"";
+  position:absolute;
+  inset:9px;
+  border-radius:50%;
+  background:#fff;
+}
+#root .gradebook-studio .gb-mission-ring > span{
+  position:relative;
+  z-index:1;
+  font-size:24px;
+  font-weight:860;
+  color:#5445c3;
+  letter-spacing:-.06em;
+}
+#root .gradebook-studio .gb-mission-ring small{
+  margin-left:1px;
+  font-size:11px;
+}
+#root .gradebook-studio .gb-mission-overall > div:last-child{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+#root .gradebook-studio .gb-mission-overall strong{font-size:20px;color:#224677;font-weight:850}
+#root .gradebook-studio .gb-mission-overall small{font-size:11px;color:#667c9c}
+#root .gradebook-studio .gb-mission-overall em{
+  font-size:10px;
+  color:#bd6b1a;
+  font-style:normal;
+  font-weight:790;
+}
+#root .gradebook-studio .gb-mission-layout{
+  display:grid;
+  grid-template-columns:minmax(0,1.55fr) minmax(235px,.8fr);
+  gap:0;
+}
+#root .gradebook-studio .gb-mission-sections{
+  min-width:0;
+  padding:18px;
+}
+#root .gradebook-studio .gb-mission-subhead{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:9px;
+  padding:0 4px 13px;
+}
+#root .gradebook-studio .gb-mission-subhead > span{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  color:#284b7f;
+  font-size:13px;
+  font-weight:830;
+}
+#root .gradebook-studio .gb-mission-subhead svg{color:#476fe1}
+#root .gradebook-studio .gb-mission-subhead small{
+  color:#526fa5;
+  padding:6px 9px;
+  background:#eef4ff;
+  border-radius:999px;
+  font-size:10px;
+  font-weight:790;
+}
+#root .gradebook-studio .gb-mission-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+#root .gradebook-studio .gb-mission-card{
+  --gb-mission-accent:#296ae4;
+  --gb-mission-surface:#e5f0ff;
+  display:flex;
+  position:relative;
+  flex-direction:column;
+  align-items:stretch;
+  min-width:0;
+  min-height:162px;
+  text-align:left;
+  padding:13px;
+  border:1px solid color-mix(in srgb,var(--gb-mission-accent) 28%,white);
+  border-radius:15px;
+  background:linear-gradient(130deg,var(--gb-mission-surface),#fff 105%);
+  cursor:pointer;
+  transition:box-shadow .15s ease, transform .15s ease;
+}
+#root .gradebook-studio .gb-mission-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 17px rgba(32,71,140,.11);
+}
+#root .gradebook-studio .gb-mission-card--0{--gb-mission-accent:#236beb;--gb-mission-surface:#e5f1ff}
+#root .gradebook-studio .gb-mission-card--1{--gb-mission-accent:#08a793;--gb-mission-surface:#e5fbf3}
+#root .gradebook-studio .gb-mission-card--2{--gb-mission-accent:#8652d9;--gb-mission-surface:#f1e9ff}
+#root .gradebook-studio .gb-mission-card--3{--gb-mission-accent:#dd8a1b;--gb-mission-surface:#fff4e3}
+#root .gradebook-studio .gb-mission-card--4{--gb-mission-accent:#df517b;--gb-mission-surface:#fff0f5}
+#root .gradebook-studio .gb-mission-card--5{--gb-mission-accent:#0b8bb8;--gb-mission-surface:#e8f8ff}
+#root .gradebook-studio .gb-mission-card-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  color:var(--gb-mission-accent);
+}
+#root .gradebook-studio .gb-mission-icon{
+  display:grid;
+  place-items:center;
+  width:33px;height:33px;
+  border-radius:10px;
+  background:#fff;
+  box-shadow:0 2px 5px rgba(54,79,144,.04);
+}
+#root .gradebook-studio .gb-mission-card > strong{
+  margin:8px 0 0;
+  font-size:12px;
+  color:#284c78;
+  font-weight:830;
+}
+#root .gradebook-studio .gb-mission-card-value{
+  margin:5px 0 7px;
+  color:var(--gb-mission-accent);
+  font-size:25px;
+  font-weight:870;
+  line-height:1;
+  letter-spacing:-.05em;
+}
+#root .gradebook-studio .gb-mission-card-value small{font-size:11px;margin-left:2px}
+#root .gradebook-studio .gb-mission-bar{
+  height:7px;
+  border-radius:99px;
+  background:rgba(64,100,146,.12);
+  overflow:hidden;
+}
+#root .gradebook-studio .gb-mission-bar > span{
+  display:block;
+  width:var(--gb-mission-progress,0%);
+  height:100%;
+  background:var(--gb-mission-accent);
+  border-radius:99px;
+}
+#root .gradebook-studio .gb-mission-card-caption{
+  margin-top:7px;
+  font-size:10px;
+  line-height:1.35;
+  font-weight:680;
+  color:#627c9d;
+}
+#root .gradebook-studio .gb-mission-queue{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  border-left:1px solid #e3eafa;
+  background:linear-gradient(155deg,#fafbff,#fff 60%);
+}
+#root .gradebook-studio .gb-mission-queue-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:19px 17px 14px;
+}
+#root .gradebook-studio .gb-mission-queue-icon{
+  flex:none;
+  display:grid;
+  place-items:center;
+  width:39px;height:39px;
+  border-radius:12px;
+  background:#fff0e4;
+  color:#c87720;
+}
+#root .gradebook-studio .gb-mission-queue-title strong{
+  display:block;
+  font-size:13px;
+  color:#234473;
+  font-weight:850;
+}
+#root .gradebook-studio .gb-mission-queue-title small{
+  display:block;
+  margin-top:3px;
+  font-size:10px;
+  color:#7387a6;
+}
+#root .gradebook-studio .gb-mission-queue-list{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  padding:0 11px;
+  min-width:0;
+}
+#root .gradebook-studio .gb-mission-queue-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  min-width:0;
+  padding:9px 8px;
+  text-align:left;
+  color:#315681;
+  border:1px solid #e6edfa;
+  border-radius:12px;
+  background:#fff;
+  cursor:pointer;
+}
+#root .gradebook-studio .gb-mission-queue-row:hover{
+  border-color:#c9d8fa;
+  background:#f1f6ff;
+}
+#root .gradebook-studio .gb-mission-avatar{
+  flex:none;
+  display:grid;
+  place-items:center;
+  width:29px;height:29px;
+  border-radius:9px;
+  background:#eeedff;
+  color:#6855c9;
+  font-size:10px;
+  font-weight:860;
+}
+#root .gradebook-studio .gb-mission-student{flex:1;min-width:0}
+#root .gradebook-studio .gb-mission-student strong{
+  display:block;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:11px;
+  font-weight:790;
+  color:#304c78;
+}
+#root .gradebook-studio .gb-mission-student small{
+  display:block;
+  font-size:9px;
+  color:#8191ad;
+  margin-top:2px;
+}
+#root .gradebook-studio .gb-mission-missing{
+  flex:none;
+  font-size:10px;
+  font-weight:820;
+  color:#b46a16;
+  padding:6px 7px;
+  border-radius:8px;
+  background:#fff4e7;
+}
+#root .gradebook-studio .gb-mission-queue-foot{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  color:#8998ad;
+  font-size:10px;
+  line-height:1.45;
+  padding:12px 16px 15px;
+  margin-top:auto;
+}
+#root .gradebook-studio .gb-mission-queue-foot svg{flex:none;color:#9d7cda}
+#root .gradebook-studio .gb-mission-empty{
+  display:flex;
+  align-items:center;
+  flex-direction:column;
+  gap:8px;
+  padding:25px 15px 35px;
+  text-align:center;
+  color:#0c9b77;
+}
+#root .gradebook-studio .gb-mission-empty strong{font-size:13px}
+#root .gradebook-studio .gb-mission-empty p{
+  font-size:11px;
+  line-height:1.5;
+  color:#7191a1;
+  margin:0;
+}
+#root .gradebook-studio .gb-save-error{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px 13px;
+  padding:12px 16px;
+  border:1px solid #f3b8b6;
+  border-radius:14px;
+  color:#a23436;
+  background:#fff1f0;
+}
+#root .gradebook-studio .gb-save-error strong{font-size:12px}
+#root .gradebook-studio .gb-save-error > span{flex:1 1 200px;font-size:11px}
+#root .gradebook-studio .gb-save-error button{
+  min-height:34px;
+  padding:7px 12px;
+  font-size:11px;
+  font-weight:780;
+  color:#fff;
+  border:0;
+  background:#cb4350;
+  border-radius:9px;
+  cursor:pointer;
+}
+#root .gradebook-studio .hr-grade-save-actions .primary:disabled,
+#root .gradebook-studio .gbv2-save-strip .primary:disabled{cursor:not-allowed}
+@media(max-width:1120px){
+  #root .gradebook-studio .gb-mission-layout{grid-template-columns:minmax(0,1fr)}
+  #root .gradebook-studio .gb-mission-queue{
+    border-left:0;
+    border-top:1px solid #e4eaf9;
+  }
+  #root .gradebook-studio .gb-mission-queue-list{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+    padding:0 16px;
+  }
+}
+@media(max-width:760px){
+  #root .gradebook-studio .gb-mission-heading{padding:16px}
+  #root .gradebook-studio .gb-mission-overall{gap:9px}
+  #root .gradebook-studio .gb-mission-ring{width:64px;height:64px}
+  #root .gradebook-studio .gb-mission-ring > span{font-size:20px}
+  #root .gradebook-studio .gb-mission-ring::before{inset:7px}
+  #root .gradebook-studio .gb-mission-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #root .gradebook-studio .gb-mission-sections{padding:13px}
+}
+@media(max-width:500px){
+  #root .gradebook-studio .gb-mission-heading{flex-direction:column;align-items:stretch}
+  #root .gradebook-studio .gb-mission-overall{
+    align-self:stretch;
+    padding-top:8px;
+    border-top:1px solid #dce6fa;
+  }
+  #root .gradebook-studio .gb-mission-overall > div:last-child{flex:1}
+  #root .gradebook-studio .gb-mission-card{padding:11px;min-height:156px}
+  #root .gradebook-studio .gb-mission-queue-list{grid-template-columns:1fr}
+  #root .gradebook-studio .gb-mission-subhead{flex-wrap:wrap}
+}
+@media(prefers-reduced-motion:reduce){
+  #root .gradebook-studio .gb-mission-card{transition:none}
+}
