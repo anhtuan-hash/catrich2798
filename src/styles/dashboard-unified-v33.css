@@ -234,7 +234,7 @@
 .app-shell[data-route="dashboard"] .gd-u33 .dcc-sidebar { gap:13px!important; }
 .app-shell[data-route="dashboard"] .gd-u33 :is(.dcc-priority,.dcc-continue,.dcc-resources,.dcc-homeroom) {
   background:#fff!important;
-  border-radius:16px!important;
+  border-radius:var(--u-radius)!important;
   box-shadow:none!important;
 }
 .app-shell[data-route="dashboard"] .gd-u33 .dcc-priority {
