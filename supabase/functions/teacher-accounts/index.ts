@@ -187,7 +187,7 @@ Deno.serve(async (req) => {
     const hasVerifiedFactor = factorData.factors.some((factor) => factor.status === 'verified');
     let assuranceLevel = 'aal1';
     try {
-      const encoded = authorization.replace(/^Bearer\\s+/i, '').split('.')[1] || '';
+      const encoded = authorization.trim().split(/\s+/).at(-1)?.split('.')[1] || '';
       const normalized = encoded.replace(/-/g, '+').replace(/_/g, '/');
       assuranceLevel = JSON.parse(atob(normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '='))).aal || 'aal1';
     } catch { /* A verified JWT without a valid AAL claim is aal1. */ }
