@@ -321,10 +321,16 @@ html[data-theme="dark"] #root .gradebook-studio.gb5-focus .gb5-insights-drawer>s
   }
 }
 @media(max-width:480px){
+  #root .gradebook-studio.gb5-focus .hr-gradebook .hr-grade-navigation-dock.is-always-visible > .hr-grade-navigation{
+    padding:8px!important;gap:6px!important;
+  }
+  #root .gradebook-studio.gb5-focus .hr-gradebook .hr-grade-navigation-dock.is-always-visible .hr-grade-views{
+    gap:5px!important;
+  }
   #root .gradebook-studio.gb5-focus .hr-gradebook .hr-grade-navigation-dock.is-always-visible .hr-grade-views{
     grid-template-columns:repeat(2,minmax(0,1fr))!important;
   }
   #root .gradebook-studio.gb5-focus .hr-gradebook .hr-grade-navigation-dock.is-always-visible .hr-grade-views button{
-    font-size:11px!important;min-height:40px!important;
+    font-size:11px!important;min-height:34px!important;padding:5px 7px!important;
   }
 }
