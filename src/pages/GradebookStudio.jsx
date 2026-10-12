@@ -121,6 +121,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   const [gradebookAction, setGradebookAction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [gradebookDirty, setGradebookDirty] = useState(false);
   const [message, setMessage] = useState('');
   const [createOpen, setCreateOpen] = useState(() => !initialId);
   const [classDraft, setClassDraft] = useState(EMPTY_CLASS);
@@ -359,6 +360,8 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   };
 
   const createClass = async () => {
+    if (!canLeaveGradebook()) return;
+    setGradebookDirty(false);
     const created = await createClassFromData(classDraft);
     if (!created) return;
     const className = created.classProfile?.className || classDraft.className;
@@ -368,6 +371,8 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   };
 
   const openAssignment = async (assignment) => {
+    if (!canLeaveGradebook()) return;
+    setGradebookDirty(false);
     const existing = findAssignmentClass(activeClasses, assignment);
     if (existing) {
       setWorkspaceId(existing.id);
@@ -402,6 +407,19 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     'roster-conflict-resolved',
   ].includes(rosterSource);
   const lifecycleText = lifecycleExplanation(lifecycle);
+  const canLeaveGradebook = () => !gradebookDirty
+    || window.confirm('Sổ điểm đang có thay đổi chưa lưu. Rời bảng nhập sẽ bỏ những thay đổi này. Bạn có chắc muốn tiếp tục?');
+  const switchGradebookClass = (nextId) => {
+    if (nextId === workspaceId) return;
+    if (!canLeaveGradebook()) return;
+    setGradebookDirty(false);
+    setWorkspaceId(nextId);
+  };
+  const openStudentRoster = () => {
+    if (!canLeaveGradebook()) return;
+    setGradebookDirty(false);
+    setView('students');
+  };
   const requestGradebookAction = (action) => {
     setView('gradebook');
     setGradebookAction((current) => ({ action, workspaceId, seq: (current?.seq || 0) + 1 }));
@@ -454,7 +472,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
       </div>
       <div className="gradebook-studio-actions">
         <button type="button" className={view === 'gradebook' ? 'primary' : 'secondary'} disabled={!workspace} onClick={() => setView('gradebook')}>∑ {vi ? 'Sổ điểm' : 'Gradebook'}</button>
-        <button type="button" className={view === 'students' ? 'primary' : 'secondary'} disabled={!workspace} onClick={() => setView('students')}>♙ {vi ? 'Danh sách học sinh' : 'Students'}</button>
+        <button type="button" className={view === 'students' ? 'primary' : 'secondary'} disabled={!workspace} onClick={openStudentRoster}>♙ {vi ? 'Danh sách học sinh' : 'Students'}</button>
         <button type="button" className="secondary" onClick={() => setCreateOpen((value) => !value)}>＋ {vi ? 'Thêm lớp bộ môn' : 'Add class'}</button>
       </div>
 
@@ -476,13 +494,13 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
         <span className="gb-academic-section-label">{vi ? 'LỚP ĐANG MỞ' : 'ACTIVE CLASS'}</span>
         {activeClasses.length > 12 ? <div className="gb-m3-class-jump">
           <label htmlFor="gb-m3-quick-class">Chuyển nhanh đến lớp</label>
-          <select id="gb-m3-quick-class" value={workspaceId} onChange={(event) => setWorkspaceId(event.target.value)} disabled={saving} aria-label="Chuyển nhanh đến lớp">
+          <select id="gb-m3-quick-class" value={workspaceId} onChange={(event) => switchGradebookClass(event.target.value)} disabled={saving} aria-label="Chuyển nhanh đến lớp">
             {activeClasses.map((item) => <option key={item.id} value={item.id}>{classLabel(item)}</option>)}
           </select>
         </div> : null}
         <div className="gb-academic-class-list" role="group" aria-label="Chọn lớp Sổ điểm">
           {activeClasses.length ? activeClasses.map((item) => (
-            <button key={item.id} type="button" className={item.id === workspaceId ? 'is-active' : ''} aria-pressed={item.id === workspaceId} disabled={saving} onClick={() => setWorkspaceId(item.id)} title={classLabel(item)}>{item.className || classLabel(item)}</button>
+            <button key={item.id} type="button" className={item.id === workspaceId ? 'is-active' : ''} aria-pressed={item.id === workspaceId} disabled={saving} onClick={() => switchGradebookClass(item.id)} title={classLabel(item)}>{item.className || classLabel(item)}</button>
           )) : <span className="gb-academic-no-classes">Chưa có lớp</span>}
         </div>
       </div>
@@ -493,7 +511,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
           <button type="button" disabled={!workspace} onClick={() => requestGradebookAction('pdf')}><FileDown size={17} strokeWidth={2.2} aria-hidden="true" /> {vi ? 'Xuất báo cáo' : 'Export reports'}</button>
         </div>
         <div className="gb-academic-secondary-actions">
-          <button type="button" disabled={!workspace} onClick={() => setView('students')}><UsersRound size={17} strokeWidth={2.2} aria-hidden="true" /> {vi ? 'Danh sách HS' : 'Students'}</button>
+          <button type="button" disabled={!workspace} onClick={openStudentRoster}><UsersRound size={17} strokeWidth={2.2} aria-hidden="true" /> {vi ? 'Danh sách HS' : 'Students'}</button>
           <button type="button" onClick={() => setCreateOpen((value) => !value)}><Plus size={17} strokeWidth={2.2} aria-hidden="true" /> {vi ? 'Thêm lớp' : 'Add class'}</button>
         </div>
       </div>
@@ -540,6 +558,6 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
       />
     </> : null}
 
-    {workspace && view === 'gradebook' ? <GradebookWorkspace workspace={workspace} onCommit={commit} currentUser={currentUser} teachingOverview={teachingOverview} classManagement={classManagement} gradebookAction={gradebookAction} /> : null}
+    {workspace && view === 'gradebook' ? <GradebookWorkspace workspace={workspace} onCommit={commit} currentUser={currentUser} teachingOverview={teachingOverview} classManagement={classManagement} gradebookAction={gradebookAction} onDirtyChange={setGradebookDirty} /> : null}
   </div>;
 }
