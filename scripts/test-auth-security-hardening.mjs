@@ -66,6 +66,14 @@ assert.match(mfa, /state\.factors\.map\(\(factor, index\) =>/, 'Backup authentic
 assert.match(mfa, /Mac - Apple Passwords/, 'User must be able to enroll a named macOS Passwords factor.');
 assert.match(mfa, /'apple'\)/, 'Mac enrollment action must be present.');
 assert.match(mfa, /id="bes-mfa-login-factor"/, 'An accessible authenticator selector must exist.');
+assert.match(mfa, /webauthnApi\.register/, 'Touch ID must use a real WebAuthn enrollment ceremony.');
+assert.match(mfa, /webauthnApi\.authenticate/, 'Touch ID must verify a real MFA WebAuthn factor.');
+assert.match(mfa, /factor\.factor_type === 'webauthn'/, 'Verified biometric factors must be read from Supabase Auth.');
+assert.match(mfa, /result\.data\?\.currentLevel !== 'aal2'/, 'Biometric verification must promote a valid Supabase JWT to AAL2.');
+assert.match(mfa, /mfa_web_authn_\(enroll\|verify\)_not_enabled/, 'Show the service-configuration error instead of pretending Touch ID succeeded.');
+assert.match(mfa, /state\.factors\.length \?/, 'TOTP must remain available as an MFA backup.');
+assert.match(mfa, /esl-brian\.vercel\.app/, 'Biometric credentials must be bound to the production relying-party origin.');
+
 
 
 // Once an Admin has enrolled a verified factor, both account mutation servers
