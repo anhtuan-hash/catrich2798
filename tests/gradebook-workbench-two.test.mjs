@@ -67,9 +67,11 @@ test('full roster remains source of truth, sort and density only affect renderin
   assert.match(source,/originalStudentPosition\.get\(student\.id\)/);
   assert.match(source,/filterGradebookStudentView\(\{ students, search: studentQuery, missingOnly, view, activeRound, semester: activeSemester, sortBy \}\)/);
   assert.match(source,/const \[sortBy, setSortBy\] = useState\('original'\)/);
-  assert.match(source,/const \[density, setDensity\] = useState\('comfortable'\)/);
+  assert.match(source,/const \\[density, setDensity\\] = useState\\(\\(\\) =>/);
+  assert.match(source,/localStorage\\.getItem\\('brian-gradebook-density-v6'\\)/);
+  assert.match(source,/localStorage\\.setItem\\('brian-gradebook-density-v6', density\\)/);
   assert.match(source,/setSortBy\('original'\)/);
-  assert.match(source,/setDensity\('comfortable'\)/);
+  assert.doesNotMatch(source,/setDensity\\('comfortable'\\)/);
   assert.match(source,/await onCommit\(/);
   assert.match(source,/\{students\.map\(\(student\) => <option key=\{student\.id\}/);
   assert.match(source,/onClick=\{openClassGradebook\}/);
