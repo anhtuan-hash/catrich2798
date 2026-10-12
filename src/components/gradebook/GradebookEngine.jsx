@@ -1047,6 +1047,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     {view === 'mock' && showMockExams ? <GradebookMockExams
       students={students} visibleStudents={visibleStudents} exams={mockExams}
       className={workspace.classProfile?.className || ''} subjectName={activeSubject?.name || ''}
+      workspaceId={workspace.id} subjectKey={activeSubjectKey}
       originalStudentPosition={originalStudentPosition} disabled={savePending}
       onAdd={addMockExam} onRename={renameMockExam} onDate={dateMockExam}
       onRemove={removeMockExam} onScoreChange={scoreMockExam}
