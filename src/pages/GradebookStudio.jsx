@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import GradebookWorkspace from '../components/gradebook/GradebookWorkspace.jsx';
-import { ClipboardPenLine, ChartNoAxesCombined, FileDown, UsersRound, Plus, Sparkles } from 'lucide-react';
+import { ClipboardPenLine, ChartNoAxesCombined, FileDown, UsersRound, Plus, Sparkles, Palette, Check, ShieldCheck, BookOpenCheck } from 'lucide-react';
 import GradebookRosterHistoryPanel from '../components/gradebook/GradebookRosterHistoryPanel.jsx';
 import SubjectStudentsTab from '../components/homeroom/SubjectStudentsTab.jsx';
 import {
@@ -32,6 +32,7 @@ import '../styles/homeroom-complete.css';
 import '../styles/GradebookStudio.css';
 import '../styles/GradebookLifecycle.css';
 import '../styles/GradebookAcademicWorkspace.css';
+import '../styles/GradebookSpectrumV4.css';
 
 const EMPTY_CLASS = {
   className: '',
@@ -122,6 +123,16 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [gradebookDirty, setGradebookDirty] = useState(false);
+  const [visualPalette, setVisualPalette] = useState(() => {
+    try {
+      const saved = localStorage.getItem(`bes-gradebook-spectrum-v4:${userIdentity(currentUser)}`);
+      return ['electric','coral','orbit'].includes(saved) ? saved : 'electric';
+    } catch { return 'electric'; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem(`bes-gradebook-spectrum-v4:${userIdentity(currentUser)}`, visualPalette); }
+    catch { /* Cosmetic preference is optional. */ }
+  }, [visualPalette, currentUser?.id, currentUser?.authId, currentUser?.email]);
   const [message, setMessage] = useState('');
   const [createOpen, setCreateOpen] = useState(() => !initialId);
   const [classDraft, setClassDraft] = useState(EMPTY_CLASS);
@@ -479,13 +490,18 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     </section>
   );
 
-  return <div className="page hr-page gradebook-studio">
+  return <div className={`page hr-page gradebook-studio gb4-spectrum gb4-palette-${visualPalette}`}>
     <section className="gradebook-studio-hero gb-academic-hero" aria-label="Không gian Sổ điểm">
       <div className="gb-academic-heading">
         <div className="gb-academic-heading-copy">
           <span className="gb-academic-eyebrow"><Sparkles size={13} strokeWidth={2.4} aria-hidden="true" /> GRADEBOOK / SỔ ĐIỂM</span>
           <h1>{vi ? 'Sổ điểm' : 'Gradebook'}</h1>
           <p>{vi ? 'Quản lý điểm số, theo dõi tiến độ và đánh giá học tập trực quan' : 'Manage scores and track learning progress'}</p>
+          <div className="gb4-hero-signals" aria-label="Thông tin sổ điểm">
+            <span><BookOpenCheck size={14} aria-hidden="true" />{activeMeta?.className ? `Lớp ${activeMeta.className}` : 'Academic workspace'}</span>
+            <span><UsersRound size={14} aria-hidden="true" />{studentCount} học sinh</span>
+            <span><ShieldCheck size={14} aria-hidden="true" />{gradebookDirty ? 'Có thay đổi chưa lưu' : 'Đồng bộ an toàn'}</span>
+          </div>
         </div>
         <img className="gb-m3-hero-illustration" src="/gradebook-material3-hero.svg" alt="" aria-hidden="true" decoding="async" />
         <span className="gb-academic-class-meta">{activeMeta?.schoolYear || '2026–2027'} · {activeMeta?.semester || 'Học kỳ I'}</span>
@@ -513,6 +529,17 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
         <div className="gb-academic-secondary-actions">
           <button type="button" disabled={!workspace} onClick={openStudentRoster}><UsersRound size={17} strokeWidth={2.2} aria-hidden="true" /> {vi ? 'Danh sách HS' : 'Students'}</button>
           <button type="button" onClick={() => setCreateOpen((value) => !value)}><Plus size={17} strokeWidth={2.2} aria-hidden="true" /> {vi ? 'Thêm lớp' : 'Add class'}</button>
+        </div>
+        <div className="gb4-palette-selector" role="group" aria-label="Chọn bảng màu Sổ điểm">
+          <span><Palette size={15} aria-hidden="true" /> Giao diện</span>
+          {[
+            { id:'electric', name:'Xanh điện', shade:'#3a66fc' },
+            { id:'coral', name:'San hô', shade:'#e45769' },
+            { id:'orbit', name:'Tím cực quang', shade:'#7548d9' },
+          ].map((palette) => <button key={palette.id} type="button" className="gb4-palette-choice"
+            style={{ '--swatch':palette.shade }} title={`Chọn màu ${palette.name}`}
+            aria-label={`Bảng màu ${palette.name}`} aria-pressed={visualPalette === palette.id}
+            onClick={() => setVisualPalette(palette.id)}>{visualPalette === palette.id ? <Check size={16} strokeWidth={3} aria-hidden="true" /> : null}</button>)}
         </div>
       </div>
     </section>
