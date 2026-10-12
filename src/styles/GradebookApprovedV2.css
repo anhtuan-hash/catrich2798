@@ -1,0 +1,457 @@
+/* Gradebook Approved Redesign V2
+ * Only .gradebook-studio, its gradebook content and scoped hero runtime.
+ * Global navigation, footer, record data and score calculations are untouched.
+ */
+.gradebook-studio {
+  --gbv2-ink:#15365f;
+  --gbv2-line:#dce8f6;
+  --gbv2-blue:#2675e6;
+  --gbv2-soft:#f7fbff;
+  width:min(1480px,calc(100% - 36px));
+  padding-top:16px;
+  color:var(--gbv2-ink);
+}
+html body #root .gradebook-studio > .gradebook-studio-hero.gbe-material-mounted {
+  min-height:0;
+  margin-bottom:14px;
+  background:linear-gradient(122deg,#f0f8ff 0%,#f9fbff 48%,#fff3f7 100%)!important;
+  border:1px solid #d8e7f9!important;
+  border-radius:25px!important;
+  box-shadow:0 12px 32px rgba(62,104,155,.07)!important;
+}
+html body #root .gradebook-studio > .gradebook-studio-hero.gbe-material-mounted::before {display:none}
+html body #root .gradebook-studio > .gradebook-studio-hero.gbe-material-mounted::after {
+  background:
+    radial-gradient(circle at 82% -24%,rgba(177,211,255,.25) 0 210px,transparent 212px),
+    radial-gradient(circle at 98% 0%,rgba(255,206,229,.26) 0 130px,transparent 132px),
+    radial-gradient(circle at 5% 100%,rgba(194,228,255,.17) 0 135px,transparent 137px);
+}
+html body #root .gradebook-studio .gbe-material-hero-runtime {
+  display:block!important;
+  min-height:0!important;
+  width:100%!important;
+  padding:28px 29px 24px!important;
+}
+html body #root .gradebook-studio .gbv2-hero{position:relative;z-index:1}
+html body #root .gradebook-studio .gbv2-heading {
+  position:relative;
+  min-height:146px;
+  padding:5px 4px 12px;
+}
+html body #root .gradebook-studio .gbv2-kicker{
+  display:block;
+  color:#5977a6;
+  font:850 11px/1.4 var(--bes-global-font-family,Inter,system-ui,sans-serif);
+  letter-spacing:.17em;
+}
+html body #root .gradebook-studio .gbv2-heading h1 {
+  position:relative;
+  z-index:2;
+  margin:7px 0 0;
+  font-size:clamp(44px,5vw,71px);
+  letter-spacing:-.052em;
+  line-height:1;
+  font-weight:850;
+  color:#103263;
+}
+html body #root .gradebook-studio .gbv2-heading>p{
+  position:relative;
+  z-index:2;
+  margin:11px 0 0;
+  color:#365875;
+  font-size:clamp(12px,1.14vw,15px);
+  font-weight:650;
+}
+html body #root .gradebook-studio .gbv2-hero-art{
+  position:absolute;
+  right:5.5%;
+  top:-16px;
+  width:min(30%,255px);
+  height:171px;
+  pointer-events:none;
+  opacity:.82;
+}
+html body #root .gradebook-studio .gbv2-hero-art svg{width:100%;height:100%;display:block}
+html body #root .gradebook-studio .gbv2-class-panel{
+  position:relative;
+  z-index:2;
+  padding:17px 18px;
+  border:1px solid #dce7f7;
+  border-radius:18px;
+  background:rgba(255,255,255,.92);
+  box-shadow:0 5px 16px rgba(58,102,147,.045);
+}
+html body #root .gradebook-studio .gbv2-class-heading{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  align-items:center;
+  gap:9px;
+  color:#193f75;
+  font-size:12px;
+}
+html body #root .gradebook-studio .gbv2-class-heading strong{font-size:13px;font-weight:850}
+html body #root .gradebook-studio .gbv2-class-heading>span{color:#7d91ab;font-size:11px;font-weight:650}
+html body #root .gradebook-studio .gbv2-class-tabs{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  overscroll-behavior-x:contain;
+  scrollbar-width:thin;
+  padding:11px 1px;
+  align-items:center;
+}
+html body #root .gradebook-studio .gbv2-class-tabs .gbe-m3-class-tab {
+  flex:0 0 auto!important;
+  display:inline-flex!important;
+  width:auto!important;
+  min-width:74px!important;
+  min-height:39px!important;
+  margin:0!important;
+  padding:0 15px!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border:1px solid #dce8f7!important;
+  border-radius:11px!important;
+  background:#fff!important;
+  box-shadow:none!important;
+  color:#345985!important;
+  font-size:13px!important;
+  font-weight:790!important;
+  cursor:pointer;
+}
+html body #root .gradebook-studio .gbv2-class-tabs .gbe-m3-class-tab.is-active{
+  border-color:#286ed0!important;
+  background:linear-gradient(135deg,#3985f0,#1e62c6)!important;
+  color:#fff!important;
+  box-shadow:0 4px 10px rgba(46,111,208,.12)!important;
+}
+html body #root .gradebook-studio .gbv2-class-tabs .gbe-m3-class-tab span{
+  color:inherit!important;
+  font-size:inherit!important;
+  font-weight:inherit!important;
+}
+html body #root .gradebook-studio .gbv2-hero-footer{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:8px 10px;
+  border-top:1px solid #edf2f9;
+  padding-top:13px;
+}
+html body #root .gradebook-studio .gbv2-quick-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-right:auto;
+}
+html body #root .gradebook-studio .gbv2-quick-actions button,
+html body #root .gradebook-studio .gbv2-semesters button,
+html body #root .gradebook-studio .gbv2-more {
+  min-height:39px;
+  padding:0 15px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  border:1px solid #dce7f6;
+  border-radius:11px;
+  background:#fff;
+  color:#325784;
+  font-size:12px;
+  font-weight:760;
+  cursor:pointer;
+  box-shadow:0 2px 7px rgba(38,88,149,.025);
+}
+html body #root .gradebook-studio .gbv2-quick-actions button.is-primary{
+  border-color:#246fe4;
+  color:#fff;
+  background:#2678eb;
+}
+html body #root .gradebook-studio .gbv2-quick-actions button:hover,
+html body #root .gradebook-studio .gbv2-more:hover{border-color:#a8c9ee}
+html body #root .gradebook-studio .gbv2-quick-actions button.is-primary:hover{background:#1f67d2}
+html body #root .gradebook-studio .gbv2-semesters{display:flex;gap:5px}
+html body #root .gradebook-studio .gbv2-semesters button{padding:0 11px;font-size:11px}
+html body #root .gradebook-studio .gbv2-semesters button.is-active{
+  color:#1d61b3;
+  border-color:#b8d8f7;
+  background:#eaf4ff;
+}
+html body #root .gradebook-studio .gbv2-more{
+  font-size:11px;
+  padding:0 11px;
+  min-height:36px;
+  background:#f8fbff;
+}
+/* Secondary classroom/assignment tools remain accessible but do not crowd the page. */
+.gradebook-studio .gbv2-extra,
+.gradebook-studio .gbv2-support-extra{
+  margin:0 0 11px!important;
+  padding:0!important;
+  border:1px solid #e0eaf7;
+  border-radius:13px;
+  background:rgba(255,255,255,.9);
+  box-shadow:none;
+}
+.gradebook-studio .gbv2-extra>summary,
+.gradebook-studio .gbv2-support-extra>summary{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  padding:10px 15px;
+  color:#35608a;
+  font-size:12px;
+  font-weight:780;
+  cursor:pointer;
+  list-style:none;
+}
+.gradebook-studio .gbv2-extra>summary::-webkit-details-marker,
+.gradebook-studio .gbv2-support-extra>summary::-webkit-details-marker{display:none}
+.gradebook-studio .gbv2-extra>summary:before,
+.gradebook-studio .gbv2-support-extra>summary:before{content:"▸";color:#5b92d1}
+.gradebook-studio .gbv2-extra[open]>summary:before,
+.gradebook-studio .gbv2-support-extra[open]>summary:before{content:"▾"}
+.gradebook-studio .gbv2-extra>summary small{font-size:10px;font-weight:500;color:#8195aa}
+.gradebook-studio .gbv2-extra>.hr-panel,
+.gradebook-studio .gbv2-support-extra>.hr-panel{margin:0 12px 12px!important}
+.gradebook-studio .gbv2-assignments .gradebook-assignment-grid{max-height:330px;overflow:auto}
+.gradebook-studio .gbv2-support-extra{margin-top:15px!important}
+.gradebook-studio .gbv2-support-extra>summary span{margin-left:auto}
+/* Compact subject toolbar; advanced setup and calculation remain expandable. */
+.gradebook-studio .hr-gradebook .hr-grade-toolbar{
+  min-height:0!important;
+  margin:0 0 12px!important;
+  padding:13px 17px!important;
+  border:1px solid #dbe8f9!important;
+  border-radius:16px!important;
+  background:#fff!important;
+  box-shadow:0 6px 20px rgba(59,97,148,.035)!important;
+}
+.gradebook-studio .hr-grade-toolbar .hr-grade-title{
+  gap:10px!important;
+}
+.gradebook-studio .hr-grade-toolbar .hr-grade-title-icon{
+  width:38px!important;height:38px!important;
+}
+.gradebook-studio .hr-grade-toolbar .hr-grade-title-copy h2{
+  font-size:18px!important;line-height:1.25!important;margin:2px 0!important;
+}
+.gradebook-studio .hr-grade-toolbar .hr-grade-title-copy>p{font-size:10px!important;margin:2px 0!important}
+.gradebook-studio .hr-grade-toolbar .hr-grade-title-copy>span{font-size:9px!important}
+.gradebook-studio .hr-grade-toolbar .hr-grade-controls{
+  display:block!important;
+  flex:0 0 auto;
+}
+.gradebook-studio .gbv2-manage-subject{
+  position:relative;
+}
+.gradebook-studio .gbv2-manage-subject>summary{
+  padding:9px 12px;
+  border:1px solid #cbdff6;
+  border-radius:10px;
+  color:#356aa6;
+  background:#f7fbff;
+  font-size:11px;
+  font-weight:750;
+  cursor:pointer;
+}
+.gradebook-studio .gbv2-manage-content{
+  position:absolute;right:0;top:calc(100% + 8px);
+  z-index:12;min-width:320px;
+  padding:12px;
+  border:1px solid #d9e6f4;border-radius:14px;
+  background:#fff;box-shadow:0 15px 32px rgba(48,83,116,.13);
+}
+.gradebook-studio .gbv2-manage-subject:not([open]) .gbv2-manage-content{display:none}
+.gradebook-studio .gbv2-formula-details{
+  display:block;
+  grid-column:1/-1;
+  width:100%;
+  margin:5px 0 0;
+}
+.gradebook-studio .gbv2-formula-details>summary{font-size:10.5px;color:#6f7f9d;cursor:pointer}
+.gradebook-studio .gbv2-formula-details .hr-grade-formula{
+  margin-top:8px!important;
+}
+/* Real statistics — no repeated fake hero preview. */
+.gradebook-studio .hr-gradebook .hr-grade-overview{
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:12px!important;
+  margin:0 0 14px!important;
+}
+.gradebook-studio .hr-grade-overview article {
+  min-height:108px!important;
+  grid-template-columns:43px minmax(0,1fr)!important;
+  column-gap:10px!important;
+  padding:13px 14px!important;
+  border-radius:15px!important;
+  box-shadow:0 6px 16px rgba(43,81,128,.035)!important;
+}
+.gradebook-studio .hr-grade-overview article::after{display:none!important}
+.gradebook-studio .hr-grade-overview .hr-grade-overview-icon{
+  width:40px;height:40px;border-radius:12px;
+}
+.gradebook-studio .hr-grade-overview .hr-grade-overview-icon svg{width:23px;height:23px}
+.gradebook-studio .hr-grade-overview strong{font-size:26px!important}
+.gradebook-studio .hr-grade-overview small{font-size:11px!important}
+.gradebook-studio .hr-grade-overview article>span:last-child{font-size:10px!important}
+/* Main score entry is now the primary content. */
+.gradebook-studio .hr-gradebook .hr-grade-panel{
+  border-color:#d6e6f8!important;
+  border-radius:19px!important;
+  box-shadow:0 9px 24px rgba(44,87,137,.045)!important;
+}
+.gradebook-studio .hr-grade-panel-head{
+  flex-wrap:wrap!important;
+  min-height:80px!important;
+  padding:15px 18px!important;
+  border-bottom:1px solid #e5edf8!important;
+  background:#f8fbff!important;
+}
+.gradebook-studio .hr-grade-panel-head h2{font-size:19px!important}
+.gradebook-studio .hr-grade-panel-head p{font-size:11px!important}
+.gradebook-studio .gbv2-head-actions{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:9px;
+}
+.gradebook-studio .gbv2-table-controls{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.gradebook-studio .gbv2-table-controls label{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  color:#7585a0;
+  font-size:9px;
+  font-weight:750;
+}
+.gradebook-studio .gbv2-table-controls select{
+  min-height:35px;
+  padding:0 27px 0 10px;
+  border:1px solid #cfdfef;
+  border-radius:10px;
+  color:#234b7c;
+  font-size:11px;
+  background:#fff;
+  max-width:205px;
+  cursor:pointer;
+}
+.gradebook-studio .hr-grade-panel .hr-grade-table-wrap{max-width:100%;overflow-x:auto}
+.gradebook-studio .hr-grade-panel .hr-grade-table{
+  width:100%;
+  min-width:690px;
+}
+.gradebook-studio .hr-grade-table th{
+  height:43px;
+  padding:9px 10px!important;
+  color:#315781!important;
+  background:#f3f7fd!important;
+  font-size:10px!important;
+  font-weight:800!important;
+  white-space:nowrap;
+}
+.gradebook-studio .hr-grade-table td{
+  padding:8px 10px!important;
+  height:53px;
+  font-size:11px!important;
+  border-bottom-color:#edf2f8!important;
+}
+.gradebook-studio .hr-grade-table tbody tr:nth-child(even) td:not(.hr-grade-plus-cell):not(.hr-grade-bonus-cell):not(.hr-grade-result){background:#fbfdff!important}
+.gradebook-studio .hr-grade-table .hr-grade-student b{
+  font-weight:730!important;
+  font-size:11px!important;
+  white-space:normal;
+}
+.gradebook-studio .hr-grade-table .hr-grade-student small{font-size:9px!important}
+.gradebook-studio .hr-grade-table .hr-grade-index{width:48px!important}
+.gradebook-studio .gbv2-save-strip{
+  margin:10px 0 15px;
+  padding:10px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:10px;
+  border:1px solid #dfeaf8;
+  border-radius:13px;
+  background:#fff;
+  color:#6783a1;
+  font-size:11px;
+}
+.gradebook-studio .gbv2-save-strip>div{display:flex;gap:8px}
+.gradebook-studio .gbv2-save-strip button{
+  border:1px solid #cddff4;
+  border-radius:9px;
+  padding:9px 18px;
+  background:#fff;
+  color:#315d91;
+  font-size:12px;
+  font-weight:780;
+  cursor:pointer;
+}
+.gradebook-studio .gbv2-save-strip button.primary{color:#fff;background:#2775e6;border-color:#2775e6}
+.gradebook-studio .gbv2-save-strip button:disabled{opacity:.45;cursor:default}
+/* Export is beneath the primary table, preserving both original export dialogs. */
+.gradebook-studio .hr-gradebook .hr-grade-export-bar{
+  min-height:92px!important;
+  margin:0!important;
+  border-radius:17px!important;
+  border:1px solid #cde3d9!important;
+  background:linear-gradient(100deg,#f5fcf8,#fff)!important;
+  box-shadow:0 7px 19px rgba(39,104,79,.04)!important;
+}
+.gradebook-studio .hr-grade-export-copy h3{font-size:17px!important}
+.gradebook-studio .hr-grade-export-copy p{font-size:10px!important}
+.gradebook-studio .hr-grade-export-actions button{
+  border-radius:11px!important;
+  font-size:11px!important;
+  min-height:41px!important;
+}
+/* Keep keyboard focus visible. */
+.gradebook-studio .gbv2-hero button:focus-visible,
+.gradebook-studio .gbv2-table-controls select:focus-visible,
+.gradebook-studio .gbv2-save-strip button:focus-visible,
+.gradebook-studio summary:focus-visible{outline:3px solid #8fbfff;outline-offset:3px}
+@media(max-width:1100px){
+  html body #root .gradebook-studio .gbv2-hero-footer{align-items:flex-start}
+  .gradebook-studio .hr-gradebook .hr-grade-overview{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .gradebook-studio .hr-grade-panel-head{align-items:flex-start!important}
+}
+@media(max-width:680px){
+  .gradebook-studio{width:calc(100% - 16px);padding-top:10px}
+  html body #root .gradebook-studio .gbe-material-hero-runtime{padding:19px 14px!important}
+  html body #root .gradebook-studio .gbv2-heading{min-height:137px}
+  html body #root .gradebook-studio .gbv2-hero-art{width:42%;right:-15px;top:15px;opacity:.34}
+  html body #root .gradebook-studio .gbv2-heading h1{font-size:51px}
+  html body #root .gradebook-studio .gbv2-class-panel{padding:12px}
+  html body #root .gradebook-studio .gbv2-class-tabs .gbe-m3-class-tab{min-width:63px!important;padding:0 10px!important}
+  html body #root .gradebook-studio .gbv2-hero-footer{display:block}
+  html body #root .gradebook-studio .gbv2-quick-actions{margin:0 0 10px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+  html body #root .gradebook-studio .gbv2-quick-actions button{min-width:0;padding:0 5px;font-size:10px}
+  html body #root .gradebook-studio .gbv2-semesters{display:inline-flex;margin-right:8px;margin-bottom:7px}
+  .gradebook-studio .gbv2-extra>summary{flex-wrap:wrap}
+  .gradebook-studio .hr-gradebook .hr-grade-overview{gap:8px!important}
+  .gradebook-studio .hr-grade-overview article{min-height:94px!important;padding:9px!important;grid-template-columns:33px minmax(0,1fr)!important}
+  .gradebook-studio .hr-grade-overview .hr-grade-overview-icon{width:33px;height:33px}
+  .gradebook-studio .hr-grade-overview strong{font-size:21px!important}
+  .gradebook-studio .hr-grade-overview article>span:last-child{font-size:9px!important}
+  .gradebook-studio .hr-grade-panel-head{flex-direction:column!important;gap:9px!important}
+  .gradebook-studio .gbv2-table-controls{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gradebook-studio .gbv2-table-controls label:last-child{grid-column:1/-1}
+  .gradebook-studio .gbv2-table-controls select{width:100%;max-width:none}
+  .gradebook-studio .gbv2-head-actions{width:100%}
+  .gradebook-studio .gbv2-save-strip{align-items:stretch}
+  .gradebook-studio .gbv2-save-strip>div{width:100%}
+  .gradebook-studio .gbv2-save-strip button{flex:1}
+  .gradebook-studio .gbv2-manage-content{position:static;min-width:0;margin-top:8px}
+}
+@media(prefers-reduced-motion:reduce){
+  .gradebook-studio .gbv2-hero button{transition:none!important}
+}

@@ -4,6 +4,7 @@ import './GradebookPlusCount.css';
 import editorialCss from '../../styles/GradebookEditorialV2.css?inline';
 import heroCss from '../../styles/GradebookMaterialHeroRuntime.css?inline';
 import workspaceColorCss from '../../styles/GradebookColorfulWorkspace.css?inline';
+import approvedGradebookCss from '../../styles/GradebookApprovedV2.css?inline';
 import { exportStudentGradeReportPdf } from '../../utils/homeroomGradeReportPdf.js';
 import { installGradebookMaterialHero } from '../../utils/gradebookMaterialHeroRuntime.js';
 import { buildStudentSupportHash, normalizeStudentRef } from '../../studentSupport/studentSupportIdentity.js';
@@ -47,7 +48,9 @@ export default function GradebookWorkspace(props) {
     <style>{editorialCss}</style>
     <style>{heroCss}</style>
     <style>{workspaceColorCss}</style>
-    {students.length ? <section className="hr-panel gradebook-student-support" aria-label="Mở hồ sơ hỗ trợ từ sổ điểm">
+    <style>{approvedGradebookCss}</style>
+    <GradebookEngine {...props} />
+    {students.length ? <details className="gbv2-support-extra"><summary>Hỗ trợ &amp; tra cứu học sinh <span>↗</span></summary><section className="hr-panel gradebook-student-support" aria-label="Mở hồ sơ hỗ trợ từ sổ điểm">
       <div className="hr-panel-head">
         <div className="gradebook-student-support-copy">
           <span className="gradebook-student-support-icon" aria-hidden="true">
@@ -67,7 +70,6 @@ export default function GradebookWorkspace(props) {
           <button type="button" className="secondary" disabled={!supportStudentRef} onClick={openStudentSupport}>Xem hồ sơ hỗ trợ <span aria-hidden="true">↗</span></button>
         </div>
       </div>
-    </section> : null}
-    <GradebookEngine {...props} />
+    </section></details> : null}
   </>;
 }

@@ -1,0 +1,40 @@
+name: Gradebook Approved Redesign V2
+on:
+  pull_request:
+    paths:
+      - 'src/pages/GradebookStudio.jsx'
+      - 'src/components/gradebook/GradebookWorkspace.jsx'
+      - 'src/components/gradebook/GradebookEngine.jsx'
+      - 'src/utils/gradebookMaterialHeroRuntime.js'
+      - 'src/styles/GradebookApprovedV2.css'
+      - 'tests/gradebook-approved-v2.test.mjs'
+      - 'scripts/test-gradebook-colorful-hero-v1.mjs'
+      - '.github/workflows/gradebook-approved-v2.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/pages/GradebookStudio.jsx'
+      - 'src/components/gradebook/GradebookWorkspace.jsx'
+      - 'src/components/gradebook/GradebookEngine.jsx'
+      - 'src/utils/gradebookMaterialHeroRuntime.js'
+      - 'src/styles/GradebookApprovedV2.css'
+      - 'tests/gradebook-approved-v2.test.mjs'
+jobs:
+  gradebook-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Visual scope and functional contracts
+        run: node --test tests/gradebook-approved-v2.test.mjs
+      - name: Existing gradebook structure checks
+        run: |
+          node scripts/test-gradebook-colorful-hero-v1.mjs
+          node scripts/test-gradebook-colorful-workspace-v1.mjs
+      - name: Production build
+        run: npm run build

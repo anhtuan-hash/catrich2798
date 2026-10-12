@@ -111,7 +111,10 @@ function selectClass(value) {
   if (select) {
     const option = Array.from(select.options || []).find((item) => item.value === value || classLabelFromText(item.textContent || item.value) === value);
     if (option && select.value !== option.value) {
-      select.value = option.value;
+      // Trigger the onChange handler of React-controlled selects.
+      const setter = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value')?.set;
+      if (setter) setter.call(select, option.value);
+      else select.value = option.value;
       select.dispatchEvent(new Event('input', { bubbles: true }));
       select.dispatchEvent(new Event('change', { bubbles: true }));
       return;
@@ -192,137 +195,47 @@ function viewState() {
 
 function renderHero(container) {
   if (!container?.isConnected) return;
-  const stats = readHeroStats();
   const classes = readClasses();
-  const rows = readPreviewRows();
   const state = viewState();
-  const currentClass = classes.find((item) => item.active)?.label || classLabelFromText(document.querySelector('.gradebook-studio')?.textContent) || 'Chưa chọn lớp';
-  const progress = Math.max(0, Math.min(100, stats.completion.percent));
-
+  const currentClass = classes.find((item) => item.active)?.label || 'Chưa chọn lớp';
   const classTabs = classes.length
-    ? classes.map((item) => `<button type="button" class="gbe-m3-class-tab${item.active ? ' is-active' : ''}" data-gbe-action="class" data-value="${escapeHtml(item.value)}"><span>${escapeHtml(item.label)}</span>${item.active ? '<small>Đang dùng</small>' : ''}</button>`).join('')
+    ? classes.map((item) => `<button type="button" class="gbe-m3-class-tab${item.active ? ' is-active' : ''}" data-gbe-action="class" data-value="${escapeHtml(item.value)}" aria-pressed="${Boolean(item.active)}"><span>${escapeHtml(item.label)}</span></button>`).join('')
     : '<span class="gbe-m3-empty-chip">Chưa có lớp</span>';
-
-  const previewRows = rows.length
-    ? rows.map((row, index) => `<div class="gbe-m3-preview-row"><span>${index + 1}</span><b>${escapeHtml(row.name)}</b><em>${escapeHtml(row.score)}</em></div>`).join('')
-    : '<div class="gbe-m3-preview-empty">Mở một thành phần điểm để xem dữ liệu trực tiếp.</div>';
-
+  const firstSemester = !state.semester.includes('II');
+  const heroBook = '<svg aria-hidden="true" viewBox="0 0 230 160" fill="none" focusable="false">' +
+    '<ellipse cx="118" cy="141" rx="99" ry="12" fill="#B7D3F3" opacity=".32"/>' +
+    '<path d="M116 40C90 22 56 25 24 37v86c36-12 66-7 92 11V40Z" fill="#fff" stroke="#9BBDEA" stroke-width="4"/>' +
+    '<path d="M116 40c26-18 60-15 92-3v86c-36-12-66-7-92 11V40Z" fill="#E7F2FF" stroke="#9BBDEA" stroke-width="4"/>' +
+    '<path d="M116 40v94M40 56c25-7 45-4 61 5M40 77c25-7 45-4 61 5M130 61c20-9 40-12 62-5M130 82c20-9 40-12 62-5" stroke="#B7CEEC" stroke-width="3" stroke-linecap="round"/>' +
+    '<path d="m159 11 44 23-44 23-44-23 44-23Z" fill="#739DD6"/>' +
+    '<path d="M139 45v22c10 11 31 11 41 0V45" fill="#92B4E5" stroke="#739DD6" stroke-width="3"/>' +
+    '<path d="M203 34v32" stroke="#739DD6" stroke-width="3"/><circle cx="203" cy="69" r="5" fill="#E8AB68"/>' +
+    '</svg>';
   container.innerHTML = `
-    <div class="gbe-m3-pastel-orb is-blue" aria-hidden="true"></div>
-    <div class="gbe-m3-pastel-orb is-lilac" aria-hidden="true"></div>
-    <div class="gbe-m3-pastel-orb is-pink" aria-hidden="true"></div>
-    <div class="gbe-m3-pastel-orb is-peach" aria-hidden="true"></div>
-    <div class="gbe-m3-pastel-orb is-coral" aria-hidden="true"></div>
-    <div class="gbe-m3-dot-field" aria-hidden="true"></div>
-
-    <div class="gbe-m3-art gbe-m3-art-left" aria-hidden="true">
-      <svg viewBox="0 0 220 270" focusable="false">
-        <g class="gbe-m3-leaf-cluster">
-          <path d="M55 194C44 150 50 111 72 77" />
-          <path d="M61 158C32 146 18 124 20 98" />
-          <path d="M67 130C96 112 112 87 111 61" />
-          <path d="M49 176C26 171 12 158 8 138" />
-          <path d="M74 112C96 105 112 89 119 69" />
-          <ellipse cx="29" cy="107" rx="22" ry="10" transform="rotate(34 29 107)" />
-          <ellipse cx="99" cy="83" rx="23" ry="10" transform="rotate(-42 99 83)" />
-          <ellipse cx="23" cy="146" rx="20" ry="9" transform="rotate(28 23 146)" />
-        </g>
-        <g class="gbe-m3-book-stack">
-          <rect x="20" y="198" width="124" height="27" rx="7" />
-          <rect x="11" y="223" width="142" height="25" rx="7" />
-          <rect x="27" y="246" width="128" height="23" rx="7" />
-          <text x="34" y="216">Knowledge</text>
-          <text x="27" y="240">Better You</text>
-          <text x="39" y="263">Brighter Tomorrow</text>
-        </g>
-      </svg>
-    </div>
-
-    <div class="gbe-m3-art gbe-m3-art-right" aria-hidden="true">
-      <svg viewBox="0 0 250 390" focusable="false">
-        <g class="gbe-m3-right-leaves">
-          <path d="M156 230C164 174 181 129 211 89" />
-          <ellipse cx="187" cy="141" rx="34" ry="15" transform="rotate(-52 187 141)" />
-          <ellipse cx="214" cy="103" rx="31" ry="14" transform="rotate(-61 214 103)" />
-          <ellipse cx="171" cy="183" rx="30" ry="14" transform="rotate(-39 171 183)" />
-        </g>
-        <g class="gbe-m3-sticky-note">
-          <rect x="125" y="175" width="100" height="108" rx="8" />
-          <path d="M134 187c28 8 52 7 82-2" />
-          <text x="142" y="214">Học</text>
-          <text x="139" y="235">tốt hơn</text>
-          <text x="137" y="256">mỗi ngày</text>
-          <circle cx="194" cy="265" r="11" />
-          <path d="M189 264c3 4 7 4 10 0" />
-        </g>
-        <g class="gbe-m3-pencil">
-          <path d="M88 378 113 242 136 247 111 382Z" />
-          <path d="m113 242 9-25 14 30" />
-          <path d="M102 299 126 304" />
-        </g>
-        <g class="gbe-m3-notebook">
-          <path d="M134 384 158 272 233 289 210 390Z" />
-          <path d="M163 296 218 308M160 312l55 12M157 328l55 12M154 344l45 10" />
-        </g>
-      </svg>
-    </div>
-
-    <div class="gbe-m3-corner-note" aria-hidden="true">Good Students<br/>Brighter<br/>Tomorrow...</div>
-
-    <div class="gbe-m3-hero-copy">
-      <span class="gbe-m3-eyebrow">GRADEBOOK</span>
-      <h1>Sổ điểm <i aria-hidden="true">✦</i></h1>
-      <p>Quản lý điểm số khoa học · Minh bạch · Hiệu quả</p>
-      <div class="gbe-m3-hand-note" aria-hidden="true"><span>Mỗi nỗ lực<br/>đều tạo nên<br/>kết quả tốt đẹp</span><b>♥</b></div>
-
-      <div class="gbe-m3-class-switcher" aria-label="Chọn lớp đang mở">
-        ${classTabs}
-        <button type="button" class="gbe-m3-class-add" data-gbe-action="add-class">＋ <span>Thêm lớp</span></button>
+    <div class="gbv2-hero">
+      <div class="gbv2-heading">
+        <span class="gbv2-kicker">GRADEBOOK / SỔ ĐIỂM</span>
+        <h1>Sổ điểm</h1>
+        <p>Quản lý điểm số lớp học · Minh bạch · Hiệu quả</p>
+        <div class="gbv2-hero-art">${heroBook}</div>
       </div>
-
-      <div class="gbe-m3-actions" aria-label="Thao tác nhanh">
-        <button type="button" class="gbe-m3-primary" data-gbe-action="view" data-value="TX · Đợt 1"><span>＋</span>Nhập điểm</button>
-        <button type="button" data-gbe-action="view" data-value="Tổng hợp"><span>▥</span>Xem tổng hợp</button>
-        <button type="button" data-gbe-action="pdf"><span>⇩</span>Xuất PDF</button>
-        <button type="button" data-gbe-action="students"><span>♙</span>Học sinh</button>
-      </div>
-
-      <div class="gbe-m3-filters" aria-label="Điều hướng điểm">
-        <button type="button" class="${state.semester.includes('I') && !state.semester.includes('II') ? 'is-active' : ''}" data-gbe-action="semester" data-value="Học kỳ I">HK I</button>
-        <button type="button" class="${state.semester.includes('II') ? 'is-active' : ''}" data-gbe-action="semester" data-value="Học kỳ II">HK II</button>
-        <span></span>
-        <button type="button" class="${state.view.includes('TX') ? 'is-active' : ''}" data-gbe-action="view" data-value="TX · Đợt 1">TX</button>
-        <button type="button" class="${state.view.includes('Giữa kỳ') ? 'is-active' : ''}" data-gbe-action="view" data-value="Giữa kỳ">Giữa kỳ</button>
-        <button type="button" class="${state.view.includes('Cuối kỳ') ? 'is-active' : ''}" data-gbe-action="view" data-value="Cuối kỳ">Cuối kỳ</button>
-        <button type="button" class="${state.view.includes('Tổng hợp') ? 'is-active' : ''}" data-gbe-action="view" data-value="Tổng hợp">Tổng hợp</button>
-      </div>
-    </div>
-
-    <div class="gbe-m3-live-panel">
-      <div class="gbe-m3-live-top">
-        <div class="gbe-m3-progress-ring" style="--gbe-progress:${progress * 3.6}deg"><strong>${progress}%</strong></div>
-        <div class="gbe-m3-progress-copy">
-          <small>TIẾN ĐỘ NHẬP ĐIỂM</small>
-          <b>${stats.completion.done}/${stats.completion.total || stats.students} học sinh đủ 4 đợt TX</b>
-          <div><i style="width:${progress}%"></i></div>
-          <span>✓ ${escapeHtml(currentClass)} · ${escapeHtml(state.semester)}</span>
+      <div class="gbv2-class-panel">
+        <div class="gbv2-class-heading"><strong>Chọn lớp</strong><span>${escapeHtml(currentClass)} · ${escapeHtml(state.semester)}</span></div>
+        <div class="gbv2-class-tabs" aria-label="Danh sách lớp">${classTabs}</div>
+        <div class="gbv2-hero-footer">
+          <div class="gbv2-quick-actions" aria-label="Thao tác sổ điểm">
+            <button type="button" class="is-primary" data-gbe-action="view" data-value="TX · Đợt 1"><span aria-hidden="true">＋</span>Nhập điểm</button>
+            <button type="button" data-gbe-action="view" data-value="Tổng hợp"><span aria-hidden="true">◫</span>Tổng hợp</button>
+            <button type="button" data-gbe-action="pdf"><span aria-hidden="true">▤</span>Xuất PDF</button>
+          </div>
+          <div class="gbv2-semesters" role="group" aria-label="Chọn học kỳ">
+            <button type="button" data-gbe-action="semester" data-value="Học kỳ I" class="${firstSemester ? 'is-active' : ''}" aria-pressed="${firstSemester}">Học kỳ I</button>
+            <button type="button" data-gbe-action="semester" data-value="Học kỳ II" class="${!firstSemester ? 'is-active' : ''}" aria-pressed="${!firstSemester}">Học kỳ II</button>
+          </div>
+          <button type="button" class="gbv2-more" data-gbe-action="students">Danh sách HS ↗</button>
+          <button type="button" class="gbv2-more" data-gbe-action="add-class">＋ Thêm lớp</button>
         </div>
-        <button type="button" class="gbe-m3-live-icon" data-gbe-action="view" data-value="Tổng hợp" aria-label="Mở tổng hợp">▥</button>
       </div>
-
-      <div class="gbe-m3-mini-stats">
-        <article class="is-blue"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 9 9-5 9 5-9 5-9-5Z"/><path d="M7 12v5c3 2 7 2 10 0v-5"/></svg></span><b>${escapeHtml(stats.totalColumns)}</b><small>Cột TX</small></article>
-        <article class="is-mint"><span aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="16" cy="9" r="2.5"/><path d="M3.5 19c.5-4 2.7-6 5.5-6s5 2 5.5 6"/><path d="M13 19c.3-3 1.8-4.6 4-4.6 2 0 3.5 1.6 3.9 4.6"/></svg></span><b>${escapeHtml(stats.students)}</b><small>Học sinh</small></article>
-        <article class="is-peach"><span aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="6" y="4" width="12" height="16" rx="2"/><path d="M9 4.5h6M9 9h6M9 12h6M9 15h4"/></svg></span><b>${escapeHtml(stats.activeBooks)}</b><small>Sổ điểm</small></article>
-      </div>
-
-      <div class="gbe-m3-preview-card">
-        <header><div><small>DỮ LIỆU ĐANG XEM</small><b>${escapeHtml(state.subject)} · ${escapeHtml(state.view)}</b></div><span>LIVE</span></header>
-        <div class="gbe-m3-preview-head"><span>STT</span><b>Học sinh</b><em>Điểm</em></div>
-        ${previewRows}
-      </div>
-
-      <div class="gbe-m3-tip"><span aria-hidden="true">💡</span><p><b>Mẹo:</b> Chọn lớp, học kỳ hoặc thành phần điểm ngay trên hero.</p><button type="button" data-gbe-action="view" data-value="TX · Đợt 1">Bắt đầu nhập <i aria-hidden="true">›</i></button></div>
     </div>`;
 }
 

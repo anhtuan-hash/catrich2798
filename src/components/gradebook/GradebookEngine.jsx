@@ -651,6 +651,14 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const completedFourRounds = students.filter((student) => activeSemester.regular.every((round) => roundScore(round, student.id, studentIds) != null)).length;
   const activeRoundCoverage = activeRound ? students.filter((student) => roundScore(activeRound, student.id, studentIds) != null).length : 0;
 
+  const renderTableControls = () => (
+    <div className="gbv2-table-controls" aria-label="Tùy chọn bảng điểm">
+      <label><span>Môn học</span><select aria-label="Chọn môn học" value={activeSubjectKey} onChange={(event) => setActiveSubjectKey(event.target.value)}>{subjectEntries.map(([key, subject]) => <option key={key} value={key}>{subject.name}</option>)}</select></label>
+      <label><span>Học kỳ</span><select aria-label="Chọn học kỳ" value={semesterId} onChange={(event) => setSemesterId(event.target.value)}>{SEMESTERS.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
+      <label><span>Thành phần điểm</span><select aria-label="Chọn đợt hoặc thành phần điểm" value={view} onChange={(event) => setView(event.target.value)}>{VIEWS.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label>
+    </div>
+  );
+
   const renderRegularTable = () => (
     <section className="hr-panel hr-grade-panel">
       <div className="hr-panel-head hr-grade-panel-head">
@@ -660,7 +668,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
           <h2>Nhập điểm cho toàn bộ lớp</h2>
           <p>Điểm cộng = số dấu + của học sinh / số dấu + cao nhất lớp; tối đa 1 điểm. Điểm đợt = trung bình các lần nhập + điểm cộng, tối đa 10.</p>
         </div>
-        <button type="button" className="secondary" onClick={addRegularColumn}>＋ Thêm lần nhập</button>
+        <div className="gbv2-head-actions"><button type="button" className="secondary" onClick={addRegularColumn}>＋ Thêm lần nhập</button>{renderTableControls()}</div>
       </div>
       {students.length ? <div className="hr-grade-table-wrap">
         <table className="hr-grade-table">
@@ -702,7 +710,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
 
   const renderExamTable = (type, title) => (
     <section className="hr-panel hr-grade-panel">
-      <div className="hr-panel-head hr-grade-panel-head"><span className="hr-grade-panel-icon" aria-hidden="true"><GradebookUiIcon type="pencil" /></span><div><small>{title}</small><h2>Nhập điểm cho toàn bộ lớp</h2><p>Mỗi học sinh có một cột điểm {title.toLowerCase()}, thang điểm 10.</p></div></div>
+      <div className="hr-panel-head hr-grade-panel-head"><span className="hr-grade-panel-icon" aria-hidden="true"><GradebookUiIcon type="pencil" /></span><div><small>{title}</small><h2>Nhập điểm cho toàn bộ lớp</h2><p>Thang điểm 10</p></div>{renderTableControls()}</div>
       {students.length ? <div className="hr-grade-table-wrap compact">
         <table className="hr-grade-table hr-grade-exam-table">
           <thead><tr><th className="hr-grade-index">STT</th><th className="hr-grade-student">Học sinh</th><th>{title}</th><th>Trạng thái</th></tr></thead>
@@ -717,7 +725,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
 
   const renderSummary = () => (
     <section className="hr-panel hr-grade-panel">
-      <div className="hr-panel-head hr-grade-panel-head"><span className="hr-grade-panel-icon" aria-hidden="true"><GradebookUiIcon type="document" /></span><div><small>Tổng hợp thành phần</small><h2>Bảng điểm {SEMESTERS.find((item) => item.id === semesterId)?.label}</h2><p>Bảng này hiển thị kết quả của 4 đợt thường xuyên, giữa kỳ và cuối kỳ; không tự đặt thêm công thức trung bình học kỳ.</p></div></div>
+      <div className="hr-panel-head hr-grade-panel-head"><span className="hr-grade-panel-icon" aria-hidden="true"><GradebookUiIcon type="document" /></span><div><small>Tổng hợp thành phần</small><h2>Bảng điểm {SEMESTERS.find((item) => item.id === semesterId)?.label}</h2><p>4 đợt thường xuyên · giữa kỳ · cuối kỳ</p></div>{renderTableControls()}</div>
       {students.length ? <div className="hr-grade-table-wrap">
         <table className="hr-grade-table hr-grade-summary-table">
           <thead><tr><th className="hr-grade-index">STT</th><th className="hr-grade-student">Học sinh</th>{activeSemester.regular.map((_, index) => <th key={index}>TX Đợt {index + 1}</th>)}<th>Giữa kỳ</th><th>Cuối kỳ</th><th>Đã nhập</th></tr></thead>
@@ -737,20 +745,23 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     <section className="hr-panel hr-grade-toolbar">
       <div className="hr-grade-title">
         <span className="hr-grade-title-icon" aria-hidden="true"><GradebookUiIcon type="book" /></span>
-        <div className="hr-grade-title-copy"><span>GRADEBOOK · 2 SEMESTERS</span><h2>Sổ điểm học tập</h2><p>Quản lý điểm số dễ dàng, chính xác và khoa học.</p></div>
+        <div className="hr-grade-title-copy"><span>GRADEBOOK · 2 SEMESTERS</span><h2>Sổ điểm học tập</h2><p>Chọn môn và đợt ngay trên bảng nhập điểm bên dưới.</p></div>
       </div>
       <div className="hr-grade-controls">
-        <label><span>Môn học</span><select value={activeSubjectKey} onChange={(event) => setActiveSubjectKey(event.target.value)}>{subjectEntries.map(([key, subject]) => <option key={key} value={key}>{subject.name}</option>)}</select></label>
-        <div className="hr-grade-new-subject"><label><span>Thêm môn / mở môn mới</span><input value={newSubject} onChange={(event) => setNewSubject(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') openSubject(); }} placeholder="Ví dụ: Toán" /></label><button type="button" className="secondary" onClick={openSubject}>Mở môn</button></div>
+        <details className="gbv2-manage-subject"><summary>＋ Quản lý môn học</summary>
+          <div className="gbv2-manage-content"><label><span>Môn học hiện tại</span><select value={activeSubjectKey} onChange={(event) => setActiveSubjectKey(event.target.value)}>{subjectEntries.map(([key, subject]) => <option key={key} value={key}>{subject.name}</option>)}</select></label>
+            <div className="hr-grade-new-subject"><label><span>Thêm môn / mở môn mới</span><input value={newSubject} onChange={(event) => setNewSubject(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') openSubject(); }} placeholder="Ví dụ: Toán" /></label><button type="button" className="secondary" onClick={openSubject}>Mở môn</button></div>
+          </div>
+        </details>
       </div>
-      <div className="hr-grade-formula"><span>fx</span><p><b>Công thức điểm thường xuyên từng đợt</b><small>Điểm cộng = Dấu + / Dấu + cao nhất lớp (≤ 1); Điểm đợt = min(10, trung bình các cột điểm + điểm cộng)</small></p></div>
+      <details className="gbv2-formula-details"><summary>fx · Xem công thức tính điểm</summary><div className="hr-grade-formula"><span>fx</span><p><b>Công thức điểm thường xuyên từng đợt</b><small>Điểm cộng = Dấu + / Dấu + cao nhất lớp (≤ 1); Điểm đợt = min(10, trung bình các cột điểm + điểm cộng)</small></p></div></details>
     </section>
 
-    <section className="hr-grade-overview">
-      <article className="tone-blue"><span className="hr-grade-overview-icon"><GradebookUiIcon type="students" /></span><small>Học sinh đang học</small><strong>{students.length}</strong><span>Nhập đồng loạt theo danh sách lớp</span></article>
-      <article className="tone-purple"><span className="hr-grade-overview-icon"><GradebookUiIcon type="document" /></span><small>Cấu trúc học kỳ</small><strong>4 + 1 + 1</strong><span>4 đợt TX · giữa kỳ · cuối kỳ</span></article>
-      <article className="tone-green"><span className="hr-grade-overview-icon"><GradebookUiIcon type="bars" /></span><small>Cột TX hiện có</small><strong>{totalRegularColumns}</strong><span>Có thể thêm nhiều lần nhập ở mỗi đợt</span></article>
-      <article className="tone-yellow"><span className="hr-grade-overview-icon"><GradebookUiIcon type="check" /></span><small>Đã 4 đợt TX</small><strong>{completedFourRounds}/{students.length}</strong><span>{activeRound ? `${activeRoundCoverage} học sinh có điểm ở đợt đang mở` : 'Theo học kỳ đang chọn'}</span></article>
+    <section className="hr-grade-overview" aria-label="Tổng quan sổ điểm">
+      <article className="tone-blue"><span className="hr-grade-overview-icon"><GradebookUiIcon type="bars" /></span><small>Cột TX hiện có</small><strong>{totalRegularColumns}</strong><span>Trong học kỳ đang chọn</span></article>
+      <article className="tone-green"><span className="hr-grade-overview-icon"><GradebookUiIcon type="students" /></span><small>Học sinh</small><strong>{students.length}</strong><span>Danh sách lớp hiện tại</span></article>
+      <article className="tone-purple"><span className="hr-grade-overview-icon"><GradebookUiIcon type="document" /></span><small>Môn học</small><strong>{subjectEntries.length}</strong><span>Đang quản lý</span></article>
+      <article className="tone-yellow"><span className="hr-grade-overview-icon"><GradebookUiIcon type="check" /></span><small>Hoàn thành 4 đợt TX</small><strong>{completedFourRounds}/{students.length}</strong><span>{activeRound ? `${activeRoundCoverage} học sinh có điểm ở đợt đang mở` : 'Theo học kỳ đang chọn'}</span></article>
     </section>
 
     <GradebookNavigationPalette
@@ -764,6 +775,18 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       onSave={save}
       currentUser={currentUser}
     />
+
+    {exportMessage ? <div className={`hr-grade-export-message ${exportMessage.type}`} role="status" aria-live="polite"><span>{exportMessage.type === 'error' ? '!' : '✓'}</span>{exportMessage.text}</div> : null}
+
+    {view.startsWith('regular-') ? renderRegularTable() : null}
+    {view === 'midterm' ? renderExamTable('midterm', 'Điểm giữa kỳ') : null}
+    {view === 'final' ? renderExamTable('final', 'Điểm cuối kỳ') : null}
+    {view === 'summary' ? renderSummary() : null}
+
+    <div className="gbv2-save-strip" role="status" aria-live="polite">
+      <span>{dirty ? 'Bạn có thay đổi chưa lưu' : 'Dữ liệu điểm đã được lưu'} · {activeSubject?.name || 'Môn học'} · {semesterLabel}</span>
+      <div><button type="button" className="secondary" disabled={!dirty} onClick={discard}>Hoàn tác</button><button type="button" className="primary" disabled={!dirty} onClick={save}>Lưu điểm</button></div>
+    </div>
 
     <section className="hr-panel hr-grade-export-bar" aria-labelledby="hr-grade-export-title">
       <div className="hr-grade-export-copy">
@@ -779,13 +802,6 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
         </button>
       </div>
     </section>
-
-    {exportMessage ? <div className={`hr-grade-export-message ${exportMessage.type}`} role="status" aria-live="polite"><span>{exportMessage.type === 'error' ? '!' : '✓'}</span>{exportMessage.text}</div> : null}
-
-    {view.startsWith('regular-') ? renderRegularTable() : null}
-    {view === 'midterm' ? renderExamTable('midterm', 'Điểm giữa kỳ') : null}
-    {view === 'final' ? renderExamTable('final', 'Điểm cuối kỳ') : null}
-    {view === 'summary' ? renderSummary() : null}
 
     {exportDialogMode ? <div className="hr-grade-export-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !exporting) setExportDialogMode(''); }}>
       <section className="hr-grade-export-dialog" role="dialog" aria-modal="true" aria-labelledby="hr-grade-export-dialog-title">
