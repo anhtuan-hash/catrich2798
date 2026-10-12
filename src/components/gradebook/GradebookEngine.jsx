@@ -14,7 +14,7 @@ import { Search, ScanEye, Minimize2, Keyboard, X, ArrowDownToLine, ListFilter, R
 import GradebookProductivityPanel from './GradebookProductivityPanel.jsx';
 import GradebookSemesterMission from './GradebookSemesterMission.jsx';
 import GradebookMockExams from './GradebookMockExams.jsx';
-import { isGrade12Class, normalizeMockExams, createMockExam } from '../../utils/gradebookMockExams.js';
+import { isGrade12Class, normalizeMockExams, createMockExam, mockExamScoreNumber } from '../../utils/gradebookMockExams.js';
 import { semesterProgressSections, semesterProgressSummary, semesterPendingStudents } from '../../utils/gradebookSemesterMission.js';
 import { gradebookAuditChanges, gradebookQualityReport } from '../../utils/gradebookProductivity.js';
 import { isGradebookFinalized, setFinalizationState, gradebookFinalizationReadiness } from '../../utils/gradebookFinalization.js';
@@ -493,20 +493,41 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   });
   const renameMockExam = (id, label) => mutateMock((exams) => {
     const exam = exams.find((item) => item.id === id);
-    if (exam) exam.label = label;
+    if (exam && !exam.locked) exam.label = label;
   });
   const dateMockExam = (id, date) => mutateMock((exams) => {
     const exam = exams.find((item) => item.id === id);
-    if (exam) exam.date = date;
+    if (exam && !exam.locked) exam.date = date;
   });
   const removeMockExam = (id) => mutateMock((exams) => {
     const index = exams.findIndex((item) => item.id === id);
-    if (index !== -1) exams.splice(index, 1);
+    if (index !== -1 && !exams[index].locked) exams.splice(index, 1);
   });
   const scoreMockExam = (id, studentId, value) => mutateMock((exams) => {
     const exam = exams.find((item) => item.id === id);
-    if (exam) exam.scores[studentId] = value;
+    if (exam && !exam.locked && studentIds.includes(studentId)) exam.scores[studentId] = value;
   });
+  const setMockExamLock = (id, locked) => mutateMock((exams) => {
+    const exam = exams.find((item) => item.id === id);
+    if (exam) exam.locked = locked === true;
+  });
+  const bulkPasteMockExam = (id, entries = []) => {
+    if (!Array.isArray(entries) || !entries.length) return;
+    const validStudents = new Set(studentIds);
+    const safe = entries.filter((item) => validStudents.has(item.studentId)
+      && mockExamScoreNumber(item.value) !== null);
+    if (!safe.length) return;
+    mutateMock((exams) => {
+      const exam = exams.find((item) => item.id === id);
+      if (!exam || exam.locked) return;
+      for (const entry of safe) {
+        const prior = mockExamScoreNumber(exam.scores?.[entry.studentId]);
+        // Reconfirm that entry was previewed as an overwrite before replacing stored data.
+        if (prior !== null && prior !== Number(entry.value) && !entry.overwrite) continue;
+        exam.scores[entry.studentId] = String(mockExamScoreNumber(entry.value));
+      }
+    });
+  };
 
   const openSubject = () => {
     const name = newSubject.trim();
@@ -1026,9 +1047,11 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     {view === 'mock' && showMockExams ? <GradebookMockExams
       students={students} visibleStudents={visibleStudents} exams={mockExams}
       className={workspace.classProfile?.className || ''} subjectName={activeSubject?.name || ''}
+      workspaceId={workspace.id} subjectKey={activeSubjectKey}
       originalStudentPosition={originalStudentPosition} disabled={savePending}
       onAdd={addMockExam} onRename={renameMockExam} onDate={dateMockExam}
       onRemove={removeMockExam} onScoreChange={scoreMockExam}
+      onBulkPaste={bulkPasteMockExam} onSetLock={setMockExamLock}
     /> : null}
 
     {view !== 'mock' ? <GradebookProductivityPanel
