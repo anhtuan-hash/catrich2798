@@ -93,7 +93,7 @@ test('V5 navigation stays compact and a one-attempt score table fills the editor
       const buttons = [...tabs.querySelectorAll('button')].map(b => b.getBoundingClientRect());
       const r = container.getBoundingClientRect();
       return {
-        columns: getComputedStyle(tabs).gridTemplateColumns.split(/\\s+/).filter(Boolean).length,
+        columns: getComputedStyle(tabs).gridTemplateColumns.split(/\s+/).filter(Boolean).length,
         display: getComputedStyle(tabs).display,
         computedColumns: getComputedStyle(tabs).gridTemplateColumns,
         containerWidth: r.width,
