@@ -5,11 +5,11 @@ const runtime = await readFile(new URL('../src/utils/gradebookMaterialHeroRuntim
 const css = await readFile(new URL('../src/styles/GradebookMaterialHeroRuntime.css', import.meta.url), 'utf8');
 
 for (const token of [
-  'class="gbv2-hero"',
-  'class="gbv2-class-panel"',
-  'class="gbv2-class-tabs"',
-  'class="gbv2-quick-actions"',
-  'class="gbv2-semesters"',
+  'class="gb4-hero-shell"',
+  'class="gb4-hero-main"',
+  'class="gb4-class-picker"',
+  'class="gb4-quick-primary"',
+  'class="gb4-semesters"',
   'data-gbe-action="class"',
   'data-gbe-action="semester"',
   'data-gbe-action="view"',
@@ -18,7 +18,7 @@ for (const token of [
   'data-gbe-action="add-class"',
   'HTMLSelectElement.prototype',
 ]) {
-  assert.ok(runtime.includes(token), `Gradebook approved V2 hero markup/action missing: ${token}`);
+  assert.ok(runtime.includes(token), `Gradebook approved mockup 4 hero markup/action missing: ${token}`);
 }
 assert.ok(!runtime.includes('gbe-m3-live-panel'), 'Redundant hero score preview must be removed.');
 

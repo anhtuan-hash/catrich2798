@@ -1,0 +1,42 @@
+name: Gradebook Mockup 4 Production Safety
+on:
+  pull_request:
+    paths:
+      - 'src/pages/GradebookStudio.jsx'
+      - 'src/components/gradebook/GradebookWorkspace.jsx'
+      - 'src/components/gradebook/GradebookEngine.jsx'
+      - 'src/utils/gradebookMaterialHeroRuntime.js'
+      - 'src/styles/GradebookApprovedMockupFour.css'
+      - 'tests/gradebook-approved-mockup-4.test.mjs'
+      - 'tests/gradebook-approved-v2.test.mjs'
+      - 'scripts/test-gradebook-colorful-hero-v1.mjs'
+      - '.github/workflows/gradebook-approved-mockup-4.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/pages/GradebookStudio.jsx'
+      - 'src/components/gradebook/GradebookWorkspace.jsx'
+      - 'src/components/gradebook/GradebookEngine.jsx'
+      - 'src/utils/gradebookMaterialHeroRuntime.js'
+      - 'src/styles/GradebookApprovedMockupFour.css'
+      - 'tests/gradebook-approved-mockup-4.test.mjs'
+jobs:
+  mockup-4:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Mockup-4 navigation footer and feature regression checks
+        run: node --test tests/gradebook-approved-mockup-4.test.mjs tests/gradebook-approved-v2.test.mjs
+      - name: Existing gradebook integration checks
+        run: |
+          node scripts/test-gradebook-colorful-hero-v1.mjs
+          node scripts/test-gradebook-colorful-workspace-v1.mjs
+          node scripts/test-gradebook-migration-state.mjs
+      - name: Frontend production build
+        run: npm run build

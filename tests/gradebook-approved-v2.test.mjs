@@ -8,6 +8,7 @@ const workspace=read('src/components/gradebook/GradebookWorkspace.jsx');
 const runtime=read('src/utils/gradebookMaterialHeroRuntime.js');
 const engine=read('src/components/gradebook/GradebookEngine.jsx');
 const css=read('src/styles/GradebookApprovedV2.css');
+const four=read('src/styles/GradebookApprovedMockupFour.css');
 
 test('approved design stays scoped to gradebook, leaving navigation and footer untouched',()=>{
   assert.match(css,/\/\* Gradebook Approved Redesign V2/);
@@ -15,13 +16,15 @@ test('approved design stays scoped to gradebook, leaving navigation and footer u
   assert.doesNotMatch(css,/(?:\.brian-nav|\.bes-top-chrome|\.signature-footer|html body footer|#root\s*>\s*footer)/);
   assert.match(workspace,/approvedGradebookCss from '\.\.\/\.\.\/styles\/GradebookApprovedV2\.css\?inline'/);
   assert.match(workspace,/<style>\{approvedGradebookCss\}<\/style>/);
+  assert.match(workspace,/<style>\{gradebookMockupFourCss\}<\/style>/);
 });
 
 test('hero has live class selection, semester selection and real feature shortcuts',()=>{
   for (const action of ['class','semester','view','pdf','students','add-class']) {
     assert.ok(runtime.includes('data-gbe-action="'+action+'"'),action);
   }
-  assert.match(runtime,/class="gbv2-class-panel"/);
+  assert.match(runtime,/class="gb4-hero-shell"/);
+  assert.match(runtime,/class="gb4-class-picker"/);
   assert.match(runtime,/HTMLSelectElement\.prototype/);
   assert.match(runtime,/function openPdfDialog\(/);
   assert.match(runtime,/function clickInnerControl\(/);
@@ -31,8 +34,11 @@ test('hero has live class selection, semester selection and real feature shortcu
 });
 
 test('optional class administration and student assistance remain accessible but collapsed',()=>{
-  assert.match(page,/<details className="gbv2-extra gbv2-assignments">/);
-  assert.match(page,/<details className="gbv2-extra gbv2-classes">/);
+  assert.match(page,/const teachingOverview = teachingAssignments.length/);
+  assert.match(page,/className="gradebook-assignment-panel hr-panel gb4-assignment-panel"/);
+  assert.match(page,/const classManagement =/);
+  assert.match(page,/className="gradebook-studio-switcher hr-panel gb4-class-manager"/);
+  assert.match(engine,/\{teachingOverview\}[\s\S]*?\{classManagement\}/);
   assert.match(page,/onClick=\{\(\) => openAssignment\(assignment\)\}/);
   assert.match(page,/setCreateOpen\(\(value\) => !value\)/);
   assert.match(workspace,/<GradebookEngine \{\.\.\.props\} \/>/);
@@ -61,8 +67,9 @@ test('score entry remains data-backed with semantic filters, real save/discard a
 test('design works at desktop and mobile sizes without forcing global styles',()=>{
   assert.match(css,/@media\(max-width:1100px\)/);
   assert.match(css,/@media\(max-width:680px\)/);
-  assert.match(css,/\.gbv2-class-tabs/);
+  assert.match(four,/\.gb4-class-picker/);
   assert.match(css,/\.gbv2-table-controls/);
   assert.match(css,/\.gbv2-save-strip/);
-  assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length);
+  assert.equal((four.match(/\{/g)||[]).length,(four.match(/\}/g)||[]).length);
+  assert.doesNotMatch(four,/(?:\.brian-nav|\.bes-top-chrome|\.signature-footer|html body footer)/);
 });

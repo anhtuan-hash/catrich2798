@@ -400,23 +400,10 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   ].includes(rosterSource);
   const lifecycleText = lifecycleExplanation(lifecycle);
 
-  return <div className="page hr-page gradebook-studio">
-    <section className="gradebook-studio-hero">
-      <div className="gradebook-studio-hero-copy">
-        <span className="gradebook-studio-kicker">GRADEBOOK · TEACHER WORKSPACE</span>
-        <h1>{vi ? 'Sổ điểm' : 'Gradebook'}</h1>
-        <p>{vi
-          ? 'Không gian nhập điểm độc lập dành cho mọi giáo viên. Brian nhận lớp từ phân công TTCM và dùng một roster chuẩn toàn trường cho các Sổ điểm cùng lớp.'
-          : 'An independent gradebook for every teacher, with TTCM assignments and one canonical school-wide class roster.'}</p>
-      </div>
-      <div className="gradebook-studio-hero-stats">
-        <article><strong>{activeClasses.length}</strong><span>{vi ? 'sổ điểm đang dùng' : 'active gradebooks'}</span></article>
-        <article><strong>{teachingAssignments.length}</strong><span>{vi ? 'lớp được phân công' : 'assigned classes'}</span></article>
-        <article><strong>{studentCount}</strong><span>{vi ? 'học sinh lớp hiện tại' : 'students in current class'}</span></article>
-      </div>
-    </section>
 
-    {teachingAssignments.length ? <details className="gbv2-extra gbv2-assignments"><summary><span>Phân công giảng dạy</span><small>{assignedReadyCount}/{teachingAssignments.length} lớp đã có sổ · Mở để quản lý</small></summary><section className="gradebook-assignment-panel hr-panel">
+  // Move existing live actions into the redesigned workspace rather than duplicating them.
+  const teachingOverview = teachingAssignments.length ? (
+    <section className="gradebook-assignment-panel hr-panel gb4-assignment-panel">
       <div className="gradebook-assignment-head">
         <div><small>BRIAN TEAM · PHÂN CÔNG GIẢNG DẠY</small><h2>{vi ? 'Lớp được phân công' : 'Teaching assignments'}</h2><p>{assignedReadyCount}/{teachingAssignments.length} lớp đã có Sổ điểm riêng. Dữ liệu được đồng bộ từ hồ sơ phân công của TTCM.</p></div>
         <span className="gradebook-assignment-sync">✓ Đã đồng bộ</span>
@@ -436,14 +423,12 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
           </article>;
         })}
       </div>
-    </section></details> : null}
 
-    {!teachingAssignments.length && assignmentSource === 'assignment-sync-not-installed' ? <section className="gradebook-assignment-note hr-panel">
-      <b>Phân công Brian Team chưa được đồng bộ vào tài khoản này.</b>
-      <span>Sổ điểm vẫn hoạt động bình thường bằng các lớp bộ môn tự tạo.</span>
-    </section> : null}
-
-    <details className="gbv2-extra gbv2-classes"><summary><span>Quản lý lớp &amp; học sinh</span><small>Đổi lớp, quản lý danh sách hoặc thêm lớp bộ môn</small></summary><section className="gradebook-studio-switcher hr-panel">
+    </section>
+  ) : null;
+  const classManagement = (
+    <section className="gradebook-studio-switcher hr-panel gb4-class-manager">
+      <div className="gb4-manager-heading"><strong>Quản lý lớp &amp; học sinh</strong><small>Đổi lớp và quản lý danh sách</small></div>
       <div className="gradebook-studio-class-picker">
         <label>
           <span>{vi ? 'Lớp đang mở' : 'Current class'}</span>
@@ -464,7 +449,30 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
         <button type="button" className={view === 'students' ? 'primary' : 'secondary'} disabled={!workspace} onClick={() => setView('students')}>♙ {vi ? 'Danh sách học sinh' : 'Students'}</button>
         <button type="button" className="secondary" onClick={() => setCreateOpen((value) => !value)}>＋ {vi ? 'Thêm lớp bộ môn' : 'Add class'}</button>
       </div>
-    </section></details>
+
+    </section>
+  );
+
+  return <div className="page hr-page gradebook-studio">
+    <section className="gradebook-studio-hero">
+      <div className="gradebook-studio-hero-copy">
+        <span className="gradebook-studio-kicker">GRADEBOOK · TEACHER WORKSPACE</span>
+        <h1>{vi ? 'Sổ điểm' : 'Gradebook'}</h1>
+        <p>{vi
+          ? 'Không gian nhập điểm độc lập dành cho mọi giáo viên. Brian nhận lớp từ phân công TTCM và dùng một roster chuẩn toàn trường cho các Sổ điểm cùng lớp.'
+          : 'An independent gradebook for every teacher, with TTCM assignments and one canonical school-wide class roster.'}</p>
+      </div>
+      <div className="gradebook-studio-hero-stats">
+        <article><strong>{activeClasses.length}</strong><span>{vi ? 'sổ điểm đang dùng' : 'active gradebooks'}</span></article>
+        <article><strong>{teachingAssignments.length}</strong><span>{vi ? 'lớp được phân công' : 'assigned classes'}</span></article>
+        <article><strong>{studentCount}</strong><span>{vi ? 'học sinh lớp hiện tại' : 'students in current class'}</span></article>
+      </div>
+    </section>
+
+    {!teachingAssignments.length && assignmentSource === 'assignment-sync-not-installed' ? <section className="gradebook-assignment-note hr-panel">
+      <b>Phân công Brian Team chưa được đồng bộ vào tài khoản này.</b>
+      <span>Sổ điểm vẫn hoạt động bình thường bằng các lớp bộ môn tự tạo.</span>
+    </section> : null}
 
     {lifecycleText ? <section className={`gradebook-lifecycle-banner is-${lifecycle.status}`}>
       <div><b>{lifecycle.label}</b><span>{lifecycleText}</span></div>
@@ -488,6 +496,8 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     {loading && !workspace ? <section className="hr-panel gradebook-studio-empty"><h2>Đang mở lớp…</h2><p>Brian đang tải dữ liệu lớp, roster dùng chung và sổ điểm.</p></section> : null}
     {!loading && !workspace ? <section className="hr-panel gradebook-studio-empty"><h2>{vi ? 'Chưa có lớp để mở sổ điểm' : 'No class yet'}</h2><p>{vi ? 'Chọn một lớp được TTCM phân công ở phía trên hoặc tự tạo lớp bộ môn.' : 'Choose an assigned class above or create a subject class.'}</p><button type="button" className="primary" onClick={() => setCreateOpen(true)}>＋ {vi ? 'Tạo lớp đầu tiên' : 'Create first class'}</button></section> : null}
 
+    {view !== 'gradebook' || !workspace ? <>{teachingOverview}{classManagement}</> : null}
+
     {workspace && view === 'students' ? <>
       {lifecycle.rosterEditable
         ? <SubjectStudentsTab workspace={workspace} onCommit={commit} />
@@ -500,6 +510,6 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
       />
     </> : null}
 
-    {workspace && view === 'gradebook' ? <GradebookWorkspace workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
+    {workspace && view === 'gradebook' ? <GradebookWorkspace workspace={workspace} onCommit={commit} currentUser={currentUser} teachingOverview={teachingOverview} classManagement={classManagement} /> : null}
   </div>;
 }

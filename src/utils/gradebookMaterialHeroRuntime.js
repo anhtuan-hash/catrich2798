@@ -189,7 +189,7 @@ function activeButtonText(selectors, fallback) {
 function viewState() {
   const semester = activeButtonText(['.hr-grade-semesters', '.hr-grade-navigation', '.hr-grade-nav-palette'], 'Học kỳ I');
   const view = activeButtonText(['.hr-grade-views', '.hr-grade-navigation', '.hr-grade-nav-palette'], 'TX · Đợt 1');
-  const subject = compactText(document.querySelector('.hr-grade-controls select')?.selectedOptions?.[0]?.textContent) || 'Tiếng Anh';
+  const subject = compactText(document.querySelector('.gbv2-table-controls select[aria-label="Chọn môn học"]')?.selectedOptions?.[0]?.textContent) || 'Tiếng Anh';
   return { semester, view, subject };
 }
 
@@ -198,42 +198,38 @@ function renderHero(container) {
   const classes = readClasses();
   const state = viewState();
   const currentClass = classes.find((item) => item.active)?.label || 'Chưa chọn lớp';
-  const classTabs = classes.length
-    ? classes.map((item) => `<button type="button" class="gbe-m3-class-tab${item.active ? ' is-active' : ''}" data-gbe-action="class" data-value="${escapeHtml(item.value)}" aria-pressed="${Boolean(item.active)}"><span>${escapeHtml(item.label)}</span></button>`).join('')
-    : '<span class="gbe-m3-empty-chip">Chưa có lớp</span>';
+  const classTabs = classes.length ? classes.map((item) =>
+    `<button type="button" class="gbe-m3-class-tab${item.active ? ' is-active' : ''}" data-gbe-action="class" data-value="${escapeHtml(item.value)}" aria-pressed="${Boolean(item.active)}"><span>${escapeHtml(item.label)}</span></button>`
+  ).join('') : '<span class="gbe-m3-empty-chip">Chưa có lớp</span>';
   const firstSemester = !state.semester.includes('II');
-  const heroBook = '<svg aria-hidden="true" viewBox="0 0 230 160" fill="none" focusable="false">' +
-    '<ellipse cx="118" cy="141" rx="99" ry="12" fill="#B7D3F3" opacity=".32"/>' +
-    '<path d="M116 40C90 22 56 25 24 37v86c36-12 66-7 92 11V40Z" fill="#fff" stroke="#9BBDEA" stroke-width="4"/>' +
-    '<path d="M116 40c26-18 60-15 92-3v86c-36-12-66-7-92 11V40Z" fill="#E7F2FF" stroke="#9BBDEA" stroke-width="4"/>' +
-    '<path d="M116 40v94M40 56c25-7 45-4 61 5M40 77c25-7 45-4 61 5M130 61c20-9 40-12 62-5M130 82c20-9 40-12 62-5" stroke="#B7CEEC" stroke-width="3" stroke-linecap="round"/>' +
-    '<path d="m159 11 44 23-44 23-44-23 44-23Z" fill="#739DD6"/>' +
-    '<path d="M139 45v22c10 11 31 11 41 0V45" fill="#92B4E5" stroke="#739DD6" stroke-width="3"/>' +
-    '<path d="M203 34v32" stroke="#739DD6" stroke-width="3"/><circle cx="203" cy="69" r="5" fill="#E8AB68"/>' +
-    '</svg>';
+  const classDetails = compactText(document.querySelector('.gradebook-studio-class-meta span')?.textContent);
+  const year = compactText(classDetails.match(/20\d{2}\s*[-–]\s*20\d{2}/)?.[0]) || 'Năm học hiện tại';
   container.innerHTML = `
-    <div class="gbv2-hero">
-      <div class="gbv2-heading">
-        <span class="gbv2-kicker">GRADEBOOK / SỔ ĐIỂM</span>
-        <h1>Sổ điểm</h1>
-        <p>Quản lý điểm số lớp học · Minh bạch · Hiệu quả</p>
-        <div class="gbv2-hero-art">${heroBook}</div>
+    <div class="gb4-hero-shell">
+      <div class="gb4-hero-main">
+        <div class="gb4-title">
+          <span class="gb4-kicker">GRADEBOOK / SỔ ĐIỂM</span>
+          <h1>Sổ điểm</h1>
+          <p>Quản lý điểm số, đánh giá và theo dõi tiến độ học tập</p>
+        </div>
+        <div class="gb4-hero-classes">
+          <div class="gb4-class-heading"><span>CHỌN LỚP</span><small>${escapeHtml(year)} · ${escapeHtml(state.semester)}</small></div>
+          <div class="gb4-class-picker" role="group" aria-label="Chọn lớp đang mở">${classTabs}</div>
+        </div>
       </div>
-      <div class="gbv2-class-panel">
-        <div class="gbv2-class-heading"><strong>Chọn lớp</strong><span>${escapeHtml(currentClass)} · ${escapeHtml(state.semester)}</span></div>
-        <div class="gbv2-class-tabs" aria-label="Danh sách lớp">${classTabs}</div>
-        <div class="gbv2-hero-footer">
-          <div class="gbv2-quick-actions" aria-label="Thao tác sổ điểm">
-            <button type="button" class="is-primary" data-gbe-action="view" data-value="TX · Đợt 1"><span aria-hidden="true">＋</span>Nhập điểm</button>
-            <button type="button" data-gbe-action="view" data-value="Tổng hợp"><span aria-hidden="true">◫</span>Tổng hợp</button>
-            <button type="button" data-gbe-action="pdf"><span aria-hidden="true">▤</span>Xuất PDF</button>
-          </div>
-          <div class="gbv2-semesters" role="group" aria-label="Chọn học kỳ">
+      <div class="gb4-quick-toolbar" aria-label="Công cụ Sổ điểm">
+        <div class="gb4-quick-primary">
+          <button type="button" class="is-primary" data-gbe-action="view" data-value="TX · Đợt 1"><span aria-hidden="true">＋</span>Nhập điểm</button>
+          <button type="button" data-gbe-action="view" data-value="Tổng hợp"><span aria-hidden="true">▣</span>Tổng hợp</button>
+          <button type="button" data-gbe-action="pdf"><span aria-hidden="true">▤</span>Xuất PDF</button>
+        </div>
+        <div class="gb4-quick-secondary">
+          <div class="gb4-semesters" role="group" aria-label="Chọn học kỳ">
             <button type="button" data-gbe-action="semester" data-value="Học kỳ I" class="${firstSemester ? 'is-active' : ''}" aria-pressed="${firstSemester}">Học kỳ I</button>
             <button type="button" data-gbe-action="semester" data-value="Học kỳ II" class="${!firstSemester ? 'is-active' : ''}" aria-pressed="${!firstSemester}">Học kỳ II</button>
           </div>
-          <button type="button" class="gbv2-more" data-gbe-action="students">Danh sách HS ↗</button>
-          <button type="button" class="gbv2-more" data-gbe-action="add-class">＋ Thêm lớp</button>
+          <button type="button" data-gbe-action="students">♙ Danh sách HS</button>
+          <button type="button" data-gbe-action="add-class">＋ Thêm lớp</button>
         </div>
       </div>
     </div>`;
@@ -270,7 +266,8 @@ export function installGradebookMaterialHero() {
       return;
     }
     if (action === 'students') {
-      buttonByText(document.querySelector('.gradebook-studio-actions, .gradebook-studio-switcher, .gradebook-studio'), 'Danh sách học sinh')?.click();
+      const target = buttonByText(document.querySelector('.gradebook-studio-actions, .gradebook-studio-switcher, .gradebook-studio'), 'Danh sách học sinh');
+      target?.click();
       window.setTimeout(() => document.querySelector('.gradebook-studio-switcher, .gradebook-class-context')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
       return;
     }
