@@ -61,7 +61,7 @@ begin
     ),'[]'::jsonb)
   );
 end;
-$function$
+$function$;
 
 
 CREATE OR REPLACE FUNCTION public.qb_public_practice_submit(p_token text, p_session_id uuid, p_learner_label text, p_responses jsonb)
@@ -159,5 +159,5 @@ begin
     ),'[]'::jsonb)
   );
 end;
-$function$
+$function$;
 
