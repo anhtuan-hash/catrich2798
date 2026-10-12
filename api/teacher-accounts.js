@@ -108,6 +108,27 @@ async function recordAccountAudit(session, action, status, details = {}) {
   }
 }
 
+function jwtAssuranceLevel(token) {
+  // Only use this after Supabase Auth successfully verifies the bearer token.
+  try { return JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf8')).aal || 'aal1'; }
+  catch { return 'aal1'; }
+}
+
+async function requireEnrolledAdminMfa(session) {
+  // Existing Admin accounts with no MFA factor remain usable.
+  // After self-enrollment, an aal1 session cannot administer credentials.
+  const { data, error } = await withTimeout(
+    session.db.auth.admin.mfa.listFactors({ userId: session.user.id }),
+  );
+  if (error || !Array.isArray(data?.factors)) {
+    throw Object.assign(new Error('Không thể kiểm tra MFA. Vui lòng thử lại.'), { status: 503 });
+  }
+  const enrolled = data.factors.some((factor) => factor.status === 'verified');
+  if (enrolled && jwtAssuranceLevel(session.token) !== 'aal2') {
+    throw Object.assign(new Error('Cần nhập mã xác thực hai lớp trước khi quản lý tài khoản.'), { status: 403 });
+  }
+}
+
 async function authenticate(req) {
   const supabaseUrl = env('SUPABASE_URL', env('VITE_SUPABASE_URL'));
   const anonKey = env('SUPABASE_ANON_KEY', env('VITE_SUPABASE_ANON_KEY'));
@@ -128,7 +149,7 @@ async function authenticate(req) {
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
   });
   const profile = await readProfile(adminClient, authData.user);
-  return { user: authData.user, profile, db: adminClient };
+  return { user: authData.user, profile, db: adminClient, token };
 }
 
 async function updateProfileCompat(db, userId, fullPayload, minimalPayload) {
@@ -365,6 +386,15 @@ export default async function handler(req, res) {
     if (!hasAdminPermission(session.profile)) {
       await recordAccountAudit(session, 'admin_action_denied', 'denied', { requested_action: action });
       return json(res, 403, { ok: false, message: 'Chỉ Admin được quản lý tài khoản giáo viên.' });
+    }
+
+    if (action === 'reset_password' || action === 'bulk_create') {
+      try {
+        await requireEnrolledAdminMfa(session);
+      } catch (error) {
+        await recordAccountAudit(session, 'admin_mfa_denied', 'denied', { requested_action: action });
+        throw error;
+      }
     }
 
     if (action === 'reset_password') {
