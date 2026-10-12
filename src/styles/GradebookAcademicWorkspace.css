@@ -2771,3 +2771,223 @@
   #root .gradebook-studio .gb-academic-actions button,
   #root .gradebook-studio .hr-grade-input{transition:none}
 }
+
+
+/* Gradebook Workbench — functional Material 3 workspace, not another hero skin.
+   Local search, missing-score filters and focus mode use only rendered rows.
+   Data model, calculations, student count and exports retain the full roster. */
+#root .gradebook-studio .gb-roster-workbench{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px 20px;
+  flex-wrap:wrap;
+  min-width:0;
+  padding:14px 17px;
+  margin:0;
+  border:1px solid #d9e4fa;
+  border-radius:17px;
+  background:linear-gradient(115deg,#f5f9ff 0%,#fff 62%,#f7f3ff 100%);
+  box-shadow:0 5px 15px rgba(28,75,131,.04);
+}
+#root .gradebook-studio .gb-roster-workbench-main,
+#root .gradebook-studio .gb-roster-workbench-side{
+  display:flex;
+  align-items:center;
+  gap:9px 12px;
+  flex-wrap:wrap;
+  min-width:0;
+}
+#root .gradebook-studio .gb-roster-workbench-main{flex:1 1 580px}
+#root .gradebook-studio .gb-roster-workbench-side{
+  justify-content:flex-end;
+  flex:0 1 auto;
+}
+#root .gradebook-studio .gb-roster-search{
+  position:relative;
+  display:flex;
+  align-items:center;
+  flex:1 1 240px;
+  max-width:355px;
+  min-width:160px;
+  margin:0;
+}
+#root .gradebook-studio .gb-roster-search-icon{
+  position:absolute;
+  left:12px;
+  color:#537bb1;
+  pointer-events:none;
+}
+#root .gradebook-studio .gb-roster-search input{
+  display:block;
+  width:100%;
+  min-height:43px;
+  padding:10px 15px 10px 39px;
+  font-size:13px;
+  line-height:1.4;
+  color:#173c72;
+  background:#fff;
+  border:1px solid #cbdaf1;
+  border-radius:12px;
+  box-shadow:0 2px 4px rgba(40,74,123,.025);
+}
+#root .gradebook-studio .gb-roster-search input::placeholder{color:#8092b1}
+#root .gradebook-studio .gb-roster-search .sr-only{
+  position:absolute;
+  width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;
+}
+#root .gradebook-studio .gb-roster-missing{
+  display:inline-flex;
+  align-items:center;
+  gap:9px;
+  min-height:41px;
+  padding:9px 11px;
+  margin:0;
+  color:#36577d;
+  border:1px solid #dde5f4;
+  background:#fff;
+  border-radius:11px;
+  font-size:12px;
+  font-weight:740;
+  cursor:pointer;
+  user-select:none;
+}
+#root .gradebook-studio .gb-roster-missing:has(input:checked){
+  border-color:#9adccb;
+  background:#eafaf6;
+  color:#087964;
+}
+#root .gradebook-studio .gb-roster-missing input{
+  accent-color:#119d85;
+  width:16px;
+  height:16px;
+  flex:none;
+  cursor:pointer;
+}
+#root .gradebook-studio .gb-roster-count{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  white-space:nowrap;
+  padding:9px 10px;
+  min-height:36px;
+  color:#2d5793;
+  font-size:11px;
+  font-weight:820;
+  background:#e8f1ff;
+  border:1px solid #d4e5ff;
+  border-radius:999px;
+}
+#root .gradebook-studio .gb-roster-progress{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  white-space:nowrap;
+}
+#root .gradebook-studio .gb-roster-progress-track{
+  width:70px;
+  height:7px;
+  background:#dcebf3;
+  border-radius:99px;
+  overflow:hidden;
+}
+#root .gradebook-studio .gb-roster-progress-track > span{
+  display:block;
+  height:100%;
+  border-radius:99px;
+  background:linear-gradient(90deg,#31c6a7,#1b84d9);
+  transition:width .2s ease;
+}
+#root .gradebook-studio .gb-roster-progress small{
+  color:#50779c;
+  font-size:11px;
+  font-weight:730;
+}
+#root .gradebook-studio .gb-roster-workbench button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  min-height:41px;
+  padding:9px 12px;
+  border-radius:11px;
+  font-size:12px;
+  font-weight:770;
+  cursor:pointer;
+}
+#root .gradebook-studio .gb-roster-clear{
+  background:#fff;
+  border:1px solid #d8e3f3;
+  color:#49668c;
+}
+#root .gradebook-studio .gb-roster-clear:hover{
+  color:#154f9c;
+  border-color:#b1cdee;
+}
+#root .gradebook-studio .gb-roster-keyboard-hint{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  font-size:11px;
+  font-weight:640;
+  color:#7b8ba6;
+  white-space:nowrap;
+}
+#root .gradebook-studio .gb-roster-focus{
+  border:1px solid #d3c6f6;
+  background:#f0ebff;
+  color:#6643ad;
+}
+#root .gradebook-studio .gb-roster-focus[aria-pressed="true"]{
+  border-color:#6849d3;
+  background:#694dd8;
+  color:#fff;
+  box-shadow:0 4px 12px rgba(95,73,190,.18);
+}
+#root .gradebook-studio .gb-roster-no-results{
+  flex:1 1 100%;
+  margin:0;
+  border-radius:10px;
+  padding:10px 12px;
+  color:#765226;
+  background:#fff6e6;
+  border:1px solid #f5dfb8;
+  font-size:12px;
+  font-weight:660;
+}
+#root .gradebook-studio .hr-gradebook.gb-is-focused > .hr-grade-overview,
+#root .gradebook-studio .hr-gradebook.gb-is-focused > .gb-academic-administration,
+#root .gradebook-studio .hr-gradebook.gb-is-focused > .gb-grade-tools,
+#root .gradebook-studio .hr-gradebook.gb-is-focused > .gb-prod,
+#root .gradebook-studio .hr-gradebook.gb-is-focused > .hr-grade-export-bar{
+  display:none!important;
+}
+#root .gradebook-studio .hr-gradebook.gb-is-focused .hr-grade-table-wrap.gbv3-table-expanded{
+  max-height:min(78vh,940px)!important;
+  overflow-x:auto;
+  overflow-y:auto;
+}
+#root .gradebook-studio .hr-gradebook.gb-is-focused > .gb-roster-workbench{
+  border-color:#c8b6f4;
+  background:linear-gradient(110deg,#f5f0ff,#fff 60%);
+}
+@media(max-width:980px){
+  #root .gradebook-studio .gb-roster-workbench-side{
+    flex:1 1 auto;
+    justify-content:space-between;
+  }
+  #root .gradebook-studio .gb-roster-progress-track{width:52px}
+}
+@media(max-width:620px){
+  #root .gradebook-studio .gb-roster-workbench{padding:11px;gap:10px}
+  #root .gradebook-studio .gb-roster-workbench-main{gap:8px}
+  #root .gradebook-studio .gb-roster-search{flex-basis:100%;max-width:none}
+  #root .gradebook-studio .gb-roster-missing{flex:1 1 auto;justify-content:center}
+  #root .gradebook-studio .gb-roster-keyboard-hint{
+    flex-basis:100%;font-size:10px;white-space:normal;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #root .gradebook-studio .gb-roster-progress-track > span{transition:none}
+}
