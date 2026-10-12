@@ -103,6 +103,7 @@ const GlobalQuickAccessRail = lazy(() => import('./components/GlobalQuickAccessR
 const SharedChatbotDrawer = lazy(() => import('./components/SharedChatbotDrawer.jsx'));
 const GlobalAutosave = lazy(() => import('./components/GlobalAutosave.jsx'));
 const GlobalRuntimeGuard = lazy(() => import('./components/GlobalRuntimeGuard.jsx'));
+const AdminMfaSecurity = lazy(() => import('./components/AdminMfaSecurity.jsx'));
 const TrashCenter = lazy(() => import('./pages/TrashCenter.jsx'));
 const SystemHealthCenter = lazy(() => import('./pages/SystemHealthCenter.jsx'));
 const ContentTransferHub = lazy(() => import('./components/ContentTransferHub.jsx'));
@@ -498,6 +499,14 @@ function App() {
         <Suspense fallback={null}>
           <GlobalRuntimeGuard language={language} />
         </Suspense>
+        {/* The login challenge must be mounted by the active app entrypoint, not a legacy account-center component. */}
+        {currentUser?.provider === 'supabase' && String(currentUser?.role || '').toLowerCase() === 'admin' && (
+          <Suspense fallback={null}>
+            <AppErrorBoundary compact scope="admin-mfa" label={language === 'vi' ? 'xác thực hai lớp' : 'two-factor authentication'}>
+              <AdminMfaSecurity user={currentUser} route={currentRoute} language={language} />
+            </AppErrorBoundary>
+          </Suspense>
+        )}
         {currentUser ? (
           <Suspense fallback={null}>
           </Suspense>
