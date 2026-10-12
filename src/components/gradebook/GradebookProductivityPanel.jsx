@@ -172,8 +172,9 @@ export default function GradebookProductivityPanel({
             </div>
           </div>:null}
         </>}
-        {activeRound?<div className="gb-prod-excel">
-          <h4>Nhập tệp Excel .xlsx có đối chiếu học sinh</h4>
+        {activeRound?<details className="gb-prod-excel">
+          <summary className="gb-prod-excel-trigger"><span aria-hidden="true">▤</span><strong>Nhập tệp Excel (.xlsx) có đối chiếu học sinh</strong><small>Mở khi cần nhập từ tệp thay vì sao chép và dán</small><span className="gb-prod-excel-chevron" aria-hidden="true">⌄</span></summary>
+          <div className="gb-prod-excel-content">
           <p>Chọn file tối đa 2 MB. File phải có một cột chứa mã học sinh hoặc họ tên và các cột điểm. Việc ghép mã/tên được kiểm tra trước, không dựa vào thứ tự danh sách.</p>
           <div className="gb-prod-fields">
             <label>Tệp Excel
@@ -207,7 +208,8 @@ export default function GradebookProductivityPanel({
             {excelSummary.errors.length>0?<small>Cần sửa tệp hoặc thông số đối chiếu để áp dụng. Không tự bỏ qua dòng lỗi.</small>:null}
           </div>:null}
           </>:null}
-        </div>:null}
+          </div>
+        </details>:null}
         {notice?<p className="gb-prod-notice" role="status">{notice}</p>:null}
         {dirty?<small>Đang có thay đổi chưa lưu trong Sổ điểm.</small>:null}
       </div>:null}
