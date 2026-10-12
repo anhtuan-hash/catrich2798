@@ -47,5 +47,9 @@ test('icon CSS leaves overlay dialogs alone and preserves the live status indica
   assert.ok(css.includes('.brian-nav__admin-glyph'));
   assert.ok(css.includes('is-deadline-unset'));
   assert.ok(css.includes('is-deadline-expired'));
+  assert.ok(css.includes('.brian-nav__utility-reports:has(>button.is-deadline-active)'));
+  assert.ok(css.includes('button:is(.is-deadline-unset,.is-deadline-expired)'));
+  assert.ok(css.includes('transform:translateY(-50%)!important'));
+  assert.ok(!css.includes('button .brian-nav__reports-countdown{top:28px!important}'));
   assert.doesNotMatch(css,/\.ttcm-m3-layer\s*\{|\.attendance-layer\s*\{/);
 });
