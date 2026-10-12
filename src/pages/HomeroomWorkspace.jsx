@@ -521,7 +521,7 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
     {(!workspace.classProfile?.className || visibleTab === 'classes') ? <HomeroomClassProfileEditor value={classDraft} onChange={setClassDraft} onSave={saveClassProfile} saving={saving} language={language} /> : null}
 
     <main id="hr-workspace-body" className="hr-workspace-body">
-      {visibleTab === 'overview' ? <HomeroomOverviewCompactTab workspace={workspace} goTab={setActiveTab} /> : null}
+      {visibleTab === 'overview' ? <HomeroomOverviewCompactTab workspace={workspace} goTab={setActiveTab} onCommit={commit} syncState={syncState} subjectMode={subjectMode} /> : null}
       {visibleTab === 'classes' ? <ClassLifecycleTab workspace={workspace} catalog={catalog} currentId={workspaceId} onSwitch={switchWorkspace} onCreate={createWorkspace} onDuplicate={duplicateWorkspace} onStatusChange={changeWorkspaceStatus} currentUser={currentUser} /> : null}
       {visibleTab === 'students' ? (subjectMode ? <SubjectStudentsTab workspace={workspace} onCommit={commit} /> : <HomeroomStudentHub key={`${currentUser?.id || currentUser?.email || 'guest'}:${workspace.id}`} workspace={workspace} onCommit={commit} />) : null}
       {visibleTab === 'studentRecords' ? <StudentRecordsTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}

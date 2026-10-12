@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { todayIso } from '../../utils/homeroomOfflineTools.js';
 import { buildHomeroomDashboard } from '../../utils/homeroom4Dashboard.js';
+import HomeroomOperationsCenter from './HomeroomOperationsCenter.jsx';
 import './HomeroomCommandCenter.css';
 
 const SHORT_DATE = (iso) => {
@@ -30,7 +31,7 @@ const SHORTCUTS = [
   { key: 'classes', icon: Layers3, label: 'Lớp & năm học', detail: 'Thông tin lớp', tone: 'blue' },
   { key: 'safety', icon: ShieldCheck, label: 'An toàn', detail: 'Sao lưu và bảo vệ', tone: 'violet' },
 ];
-export default function HomeroomOverviewCompactTab({ workspace, goTab }) {
+export default function HomeroomOverviewCompactTab({ workspace, goTab, onCommit, syncState, subjectMode = false }) {
   const date = todayIso();
   const data = useMemo(() => buildHomeroomDashboard(workspace, date), [workspace, date]);
   const className = workspace?.classProfile?.className || 'Lớp chưa đặt tên';
@@ -114,5 +115,6 @@ export default function HomeroomOverviewCompactTab({ workspace, goTab }) {
         </button>)}
       </div>
     </section>
+    {!subjectMode ? <HomeroomOperationsCenter workspace={workspace} onCommit={onCommit} goTab={goTab} syncState={syncState} /> : null}
   </div>;
 }
