@@ -1,4 +1,4 @@
-name: Navigation Mockup A Safety
+name: Navigation Three Utility Icons Safety
 on:
   pull_request:
     paths:
@@ -8,7 +8,7 @@ on:
       - 'src/components/GlobalTtcmNavigationTab.jsx'
       - 'src/components/GlobalAttendanceNavigationTab.jsx'
       - 'src/components/GlobalNavigationHubController.jsx'
-      - 'src/components/GlobalNavigationUtilitiesDropdown.css'
+      - 'src/components/GlobalNavigationUtilityIcons.css'
       - 'tests/nav-utilities-mockup-a.test.mjs'
       - 'tests/e2e/nav-utilities-mockup-a.spec.js'
       - '.github/workflows/navigation-utilities-mockup-a.yml'
@@ -21,7 +21,7 @@ on:
       - 'src/components/GlobalTtcmNavigationTab.jsx'
       - 'src/components/GlobalAttendanceNavigationTab.jsx'
       - 'src/components/GlobalNavigationHubController.jsx'
-      - 'src/components/GlobalNavigationUtilitiesDropdown.css'
+      - 'src/components/GlobalNavigationUtilityIcons.css'
       - 'tests/nav-utilities-mockup-a.test.mjs'
       - 'tests/e2e/nav-utilities-mockup-a.spec.js'
       - '.github/workflows/navigation-utilities-mockup-a.yml'

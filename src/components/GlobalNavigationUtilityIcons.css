@@ -1,0 +1,112 @@
+/* Approved BRIAN design: compact accessible Report / TTCM / Admin icon links.
+   Portalled Reports and TTCM components retain their original state and handlers. */
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-slot{
+  position:relative!important;display:inline-flex!important;flex:0 0 44px!important;
+  align-items:center!important;justify-content:center!important;
+  width:44px!important;min-width:44px!important;height:48px!important;min-height:48px!important;
+  margin:0!important;padding:0!important;overflow:visible!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-slot:not(:has(>button)){display:none!important}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-reports{order:50!important;margin-left:7px!important}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-ttcm{order:60!important}
+
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-slot > button,
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-admin-icon{
+  box-sizing:border-box!important;position:relative!important;display:inline-flex!important;
+  flex:0 0 42px!important;align-items:center!important;justify-content:center!important;
+  width:42px!important;min-width:42px!important;max-width:42px!important;
+  height:42px!important;min-height:42px!important;max-height:42px!important;
+  margin:0!important;padding:0!important;overflow:visible!important;
+  border:1px solid var(--utility-icon-border)!important;border-radius:13px!important;
+  background:linear-gradient(180deg,#fff,var(--utility-icon-bg))!important;
+  color:var(--utility-icon-ink)!important;
+  box-shadow:0 2px 6px rgba(31,55,82,.055),inset 0 1px rgba(255,255,255,.95)!important;
+  transform:none!important;filter:none!important;text-indent:0!important;
+  text-shadow:none!important;cursor:pointer!important;
+  transition:background-color 140ms ease,border-color 140ms ease,box-shadow 140ms ease!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-reports > button{
+  --utility-icon-ink:#246ac4;--utility-icon-border:#d3e4ff;--utility-icon-bg:#e9f3ff;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-ttcm > button{
+  --utility-icon-ink:#bd4766;--utility-icon-border:#f3d8e3;--utility-icon-bg:#fff0f6;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-admin-icon{
+  --utility-icon-ink:#16856f;--utility-icon-border:#cdeadd;--utility-icon-bg:#e6f8ef;
+  order:70!important;margin:0 0 0 4px!important;font-size:0!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-slot > button:is(:hover,:focus-visible,.is-active),
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-admin-icon:is(:hover,:focus-visible,.is-active){
+  border-color:var(--utility-icon-ink)!important;background:var(--utility-icon-bg)!important;
+  box-shadow:0 3px 9px rgba(31,55,82,.09)!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-slot > button:focus-visible,
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-admin-icon:focus-visible{
+  outline:2px solid var(--utility-icon-ink)!important;outline-offset:2px!important;
+}
+/* Hide text visually while preserving accessibility, including the original report aria-label. */
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary .brian-nav__utility-slot .brian-nav__reports-svg-wrapper-1,
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary .brian-nav__utility-slot .brian-nav__ttcm-tab > svg{display:none!important}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary .brian-nav__utility-slot .brian-nav__reports-label,
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary .brian-nav__utility-slot .brian-nav__ttcm-tab > span{
+  position:absolute!important;width:1px!important;height:1px!important;min-height:0!important;
+  margin:-1px!important;padding:0!important;overflow:hidden!important;
+  white-space:nowrap!important;clip-path:inset(50%)!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-slot > button::before{
+  content:''!important;display:block!important;position:absolute!important;top:10px!important;left:11px!important;
+  width:20px!important;height:20px!important;min-width:20px!important;min-height:20px!important;
+  border:0!important;background:currentColor!important;color:inherit!important;
+  box-shadow:none!important;transform:none!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-reports > button::before{
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm7 10v2h9v-2Zm0 4v2h9v-2Zm6-12v4h4z'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M6 2h8l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Zm7 10v2h9v-2Zm0 4v2h9v-2Zm6-12v4h4z'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-ttcm > button::before{
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm0 2c-3 0-6 1.5-6 4v2h12v-2c0-2.5-3-4-6-4Zm8 0h-.7c1 1 1.7 2.4 1.7 4v2h5v-2c0-2.5-3-4-6-4Z'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm0 2c-3 0-6 1.5-6 4v2h12v-2c0-2.5-3-4-6-4Zm8 0h-.7c1 1 1.7 2.4 1.7 4v2h5v-2c0-2.5-3-4-6-4Z'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+/* Deadline badge remains live, inside the icon's rail height. */
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-reports > button .brian-nav__reports-copy{
+  display:contents!important;opacity:1!important;transform:none!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-reports > button .brian-nav__reports-countdown{
+  position:absolute!important;z-index:2!important;top:31px!important;left:50%!important;display:inline-flex!important;
+  width:max-content!important;min-width:0!important;height:15px!important;min-height:15px!important;max-height:15px!important;
+  margin:0!important;padding:0 3px!important;border:1px solid #ead9ac!important;border-radius:5px!important;
+  background:#fff8df!important;color:#805c16!important;font:800 9px/1 system-ui,sans-serif!important;
+  white-space:nowrap!important;transform:translateX(-50%)!important;box-shadow:none!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary .brian-nav__utility-slot .brian-nav__ttcm-badge,
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary .brian-nav__utility-badge{
+  box-sizing:border-box!important;position:absolute!important;z-index:3!important;top:-4px!important;right:-5px!important;
+  display:inline-flex!important;flex:0 0 auto!important;align-items:center!important;justify-content:center!important;
+  min-width:18px!important;height:18px!important;min-height:18px!important;padding:0 4px!important;margin:0!important;
+  border:2px solid #fff!important;border-radius:99px!important;background:#ce3e4c!important;color:#fff!important;
+  font:800 9px/1 system-ui,sans-serif!important;letter-spacing:0!important;text-shadow:none!important;box-shadow:none!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-admin-icon .brian-nav__utility-badge{
+  top:-6px!important;right:-6px!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-admin-icon > svg{
+  display:block!important;width:21px!important;height:21px!important;min-width:21px!important;flex:0 0 auto!important;
+}
+@media(max-width:1180px){
+  html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-slot{
+    flex-basis:40px!important;width:40px!important;min-width:40px!important;
+  }
+  html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-slot > button,
+  html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-admin-icon{
+    width:38px!important;min-width:38px!important;max-width:38px!important;
+    height:38px!important;min-height:38px!important;max-height:38px!important;
+  }
+  html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-slot > button::before{
+    top:8px!important;left:9px!important;
+  }
+  html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-reports > button .brian-nav__reports-countdown{top:28px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-slot > button,
+  html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-admin-icon{transition:none!important}
+}

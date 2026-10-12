@@ -1,70 +1,42 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-
 const read=(p)=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const nav=read('src/components/GlobalCompactNavigation.jsx');
 const frame=read('src/components/GlobalFlatNavigation.jsx');
 const reports=read('src/components/GlobalReportsNavigationTab.jsx');
 const ttcm=read('src/components/GlobalTtcmNavigationTab.jsx');
 const attendance=read('src/components/GlobalAttendanceNavigationTab.jsx');
-const hub=read('src/components/GlobalNavigationHubController.jsx');
-const css=read('src/components/GlobalNavigationUtilitiesDropdown.css');
-const existingNav=read('tests/nav-text-only-compact.test.mjs');
-
-test('six original primary routes stay intact; admin is now permission-gated in Utilities',()=>{
-  assert.ok(nav.includes('data-nav-key="utilities"'));
-  assert.ok(nav.includes("utilities: 'Tiện ích'"));
-  assert.ok(nav.includes("utilities: 'Utilities'"));
-  assert.ok(nav.includes("isAdmin ? ("));
-  assert.ok(nav.includes("onClick={(event) => openRoute('#/admin', t.admin, event)}"));
-  const primary=nav.slice(nav.indexOf('className="brian-nav__primary"'),nav.indexOf('className="brian-nav__search"'));
-  assert.ok(primary.includes("openRoute('#/home'"));
-  assert.ok(primary.includes("openRoute('#/apps'"));
-  assert.ok(!primary.includes("openRoute('#/admin'"));
-  assert.ok(frame.includes('<GlobalGradebookNavigationTab {...props} />'));
+const css=read('src/components/GlobalNavigationUtilityIcons.css');
+test('three accessible icons replace Utilities dropdown without changing destinations',()=>{
+  assert.ok(nav.includes('brian-nav__utility-reports')&&nav.includes('brian-nav__utility-ttcm'));
+  assert.ok(nav.includes('brian-nav__utility-admin-icon')&&nav.includes('isAdmin ?'));
+  assert.ok(nav.includes("openRoute('#/admin', t.admin, event)"));
+  assert.ok(!nav.includes('brian-nav__utilities-trigger'));
+  assert.ok(!nav.includes('brian-nav-utilities-popover'));
+  assert.ok(frame.includes("import './GlobalNavigationUtilityIcons.css'"));
+  assert.ok(!frame.includes("import './GlobalNavigationUtilitiesDropdown.css'"));
   assert.ok(frame.includes('<GlobalLessonCheckNavigationTab {...props} />'));
-  assert.ok(frame.includes('<GlobalReportsNavigationTab {...props} />'));
-  assert.ok(existingNav.includes("const lessonCheck=read('src/components/GlobalLessonCheckNavigationTab.jsx')"));
+  assert.ok(frame.includes('<GlobalGradebookNavigationTab {...props} />'));
 });
-test('Reports and TTCM remain in Utilities while Attendance moves into primary navigation',()=>{
+test('existing countdown, notifications, TTCM modals, permission gates and attendance persist',()=>{
   assert.ok(reports.includes("document.querySelector('.brian-nav__utility-reports')"));
-  assert.ok(ttcm.includes("document.querySelector('.brian-nav__utility-ttcm')"));
-  assert.ok(attendance.includes("document.querySelector('.bes-top-chrome .brian-nav__primary')"));
-  assert.ok(nav.includes('brian-nav__utility-reports'));
-  assert.ok(nav.includes('brian-nav__utility-ttcm'));
-  assert.ok(!nav.includes('brian-nav__utility-attendance'));
-  assert.ok(attendance.includes('data-nav-key="attendance"'));
-  assert.ok(reports.includes('new MutationObserver('));
-  assert.ok(css.includes('.brian-nav__utility-reports > button::before'));
+  assert.ok(reports.includes("hasToolAccess(currentUser, 'brian-team')"));
   assert.ok(reports.includes("target: '#/tool/brian-team'"));
-  assert.ok(ttcm.includes("const tab = createPortal("));
-  assert.ok(ttcm.includes("const panel = open && typeof document !== 'undefined' ? createPortal("));
-  assert.ok(attendance.includes("const tab = createPortal("));
-  assert.ok(attendance.includes("const overlay = open ? createPortal("));
+  assert.ok(reports.includes('loadMonthlyReportDeadline'));
+  assert.ok(reports.includes('window.setInterval(() => setNow(Date.now()), 1000)'));
+  assert.ok(ttcm.includes("document.querySelector('.brian-nav__utility-ttcm')"));
   assert.ok(ttcm.includes('brian-nav__ttcm-badge'));
+  assert.ok(ttcm.includes('const tab = createPortal('));
+  assert.ok(ttcm.includes('const panel = open && typeof document !== \'undefined\' ? createPortal('));
+  assert.ok(attendance.includes('data-nav-key="attendance"'));
+  assert.ok(nav.includes('reportUnreadCount')&&nav.includes('adminUnreadCount'));
 });
-test('accessible portal dropdown is clipped by neither pinned chrome nor the scrollable primary strip',()=>{
-  assert.ok(nav.includes("createPortal("));
-  assert.ok(nav.includes("document.body, 'brian-nav-utilities-popover'"));
-  assert.ok(nav.includes('aria-expanded={utilityOpen}'));
-  assert.ok(nav.includes('aria-controls="brian-nav-utilities-menu"'));
-  assert.ok(nav.includes('hidden={!utilityOpen}'));
-  assert.ok(nav.includes('inert={!utilityOpen}'));
-  assert.ok(nav.includes("event.key === 'Escape'"));
-  assert.ok(nav.includes("document.addEventListener('pointerdown', closeOutside)"));
-  assert.ok(nav.includes("window.addEventListener('hashchange', onRoute)"));
-  assert.ok(css.includes(".brian-nav__utilities-popover[hidden]"));
-  assert.ok(css.includes("position: fixed !important"));
-  assert.ok(css.includes("z-index: 2600 !important"));
-});
-test('main-pill geometry and pastel identity survive; only a single dropdown pill is added',()=>{
-  assert.ok(frame.includes("import './GlobalNavigationUtilitiesDropdown.css'"));
-  assert.ok(hub.includes('utilities: 90'));
-  assert.ok(css.includes('height: 40px !important'));
-  assert.ok(css.includes('min-height: 40px !important'));
-  assert.ok(css.includes('font-size: 14px !important'));
-  assert.ok(css.includes('.brian-nav__ttcm-badge'));
-  assert.ok(css.includes('.brian-nav__reports-countdown'));
+test('icon CSS leaves overlay dialogs alone and preserves the live status indicators',()=>{
+  assert.ok(css.includes('.brian-nav__utility-reports > button::before'));
+  assert.ok(css.includes('.brian-nav__utility-ttcm > button::before'));
+  assert.ok(css.includes('brian-nav__reports-countdown'));
+  assert.ok(css.includes('brian-nav__ttcm-badge'));
+  assert.ok(css.includes('brian-nav__utility-badge'));
   assert.doesNotMatch(css,/\.ttcm-m3-layer\s*\{|\.attendance-layer\s*\{/);
 });
