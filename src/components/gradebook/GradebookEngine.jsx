@@ -340,7 +340,7 @@ function GradebookNavigationPalette({
           className={`${view === item.id ? 'active' : ''}${item.id === 'mock' ? ' gb-mock-tab' : ''}`}
           aria-pressed={view === item.id}
           onClick={() => onViewChange(item.id)}
-        ><span className="gb4-view-icon" aria-hidden="true">{
+        ><span className="gb4-view-icon" role="presentation">{
           item.id === 'mock' ? <GraduationCap size={16} /> :
           item.id === 'midterm' ? <NotebookPen size={16} /> :
           item.id === 'final' ? <BookOpenCheck size={16} /> :
