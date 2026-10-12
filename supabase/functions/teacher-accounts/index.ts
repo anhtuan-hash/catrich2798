@@ -144,7 +144,11 @@ Deno.serve(async (req) => {
 
     const metadata = { ...(caller.user_metadata || {}), contact_email: contactEmail };
     const { error: metadataError } = await adminClient.auth.admin.updateUserById(caller.id, { user_metadata: metadata });
-    if (metadataError) return json({ ok: false, message: metadataError.message }, 400);
+    if (metadataError) {
+      await audit('update_contact_email', 'error', { http_status: 400 });
+      return json({ ok: false, message: metadataError.message }, 400);
+    }
+    await audit('update_contact_email', 'ok');
     return json({ ok: true, contactEmail });
   }
 
@@ -156,7 +160,11 @@ Deno.serve(async (req) => {
     }
     const metadata = { ...(caller.user_metadata || {}), must_change_password: false };
     const { error: authError } = await adminClient.auth.admin.updateUserById(caller.id, { user_metadata: metadata });
-    if (authError) return json({ ok: false, message: authError.message }, 400);
+    if (authError) {
+      await audit('password_changed', 'error', { http_status: 400 });
+      return json({ ok: false, message: authError.message }, 400);
+    }
+    await audit('password_changed', 'ok');
     return json({ ok: true });
   }
 
