@@ -149,3 +149,76 @@
   #root .gradebook-studio .gb-prod-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   #root .gradebook-studio .gb-prod-tabs button{flex:1 1 auto}
 }
+
+
+/* Phase 2 — XLSX matching and finalization remain inside the existing tools panel. */
+#root .gradebook-studio .gb-prod-excel{
+  display:grid;
+  gap:11px;
+  margin-top:6px;
+  padding:15px;
+  min-width:0;
+  border:1px solid #dae5f4;
+  border-radius:12px;
+  background:#f9fbff;
+}
+#root .gradebook-studio .gb-prod-excel h4{
+  margin:0;
+  color:#244e79;
+  font-size:13px;
+  font-weight:790;
+}
+#root .gradebook-studio .gb-prod-excel .gb-prod-fields{
+  align-items:end;
+}
+#root .gradebook-studio .gb-prod-excel .gb-prod-fields label{
+  flex:1 1 165px;
+  max-width:320px;
+}
+#root .gradebook-studio .gb-prod-excel .gb-prod-fields input[type=number]{
+  width:100%;
+  min-height:38px;
+}
+#root .gradebook-studio .gb-prod-excel .gb-prod-preview-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+#root .gradebook-studio .gb-prod-pane .gb-prod-stats b{
+  overflow-wrap:anywhere;
+}
+#root .gradebook-studio .gb-prod-pane .gb-prod-existing{
+  border:1px solid #e0e9f3;
+  border-radius:9px;
+  padding:10px 12px;
+  font-size:11px;
+  color:#3d6283;
+  background:#f9fbff;
+}
+#root .gradebook-studio .gb-prod-pane textarea:focus-visible,
+#root .gradebook-studio .gb-prod-excel select:focus-visible,
+#root .gradebook-studio .gb-prod-excel input:focus-visible{
+  outline:2px solid #428be8;
+  outline-offset:2px;
+}
+#root .gradebook-studio .hr-grade-table .hr-grade-input:disabled{
+  background:#eff3f8!important;
+  border-color:#e5eaf0!important;
+  color:#8291a5!important;
+  opacity:1;
+  cursor:not-allowed;
+}
+@media(max-width:700px){
+  #root .gradebook-studio .gb-prod-excel{padding:12px}
+  #root .gradebook-studio .gb-prod-excel .gb-prod-preview-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+#root .gradebook-studio .gb-finalized-banner{
+  display:flex;gap:9px;align-items:center;flex-wrap:wrap;
+  padding:11px 15px;border:1px solid #ead8b1;border-radius:11px;
+  background:#fffaf0;color:#825d20;font-size:11px;
+}
+#root .gradebook-studio .gb-finalized-banner strong{
+  font-size:12px;white-space:nowrap;
+}
+#root .gradebook-studio .gb-finalized-banner span{flex:1 1 220px;line-height:1.45}

@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import { analyzeGradebook, previewGradePaste, gradebookQualityReport } from '../../utils/gradebookProductivity.js';
+import { readGradebookXlsx, previewGradebookExcelImport } from '../../utils/gradebookExcelImport.js';
+import { gradebookFinalizationReadiness, exportGradebookAuditCsv } from '../../utils/gradebookFinalization.js';
 import './GradebookProductivityPanel.css';
 
 const TABS=[
@@ -9,6 +11,7 @@ const TABS=[
   {id:'alerts',label:'Cảnh báo & hỗ trợ'},
   {id:'quality',label:'Kiểm tra lỗi'},
   {id:'history',label:'Nhật ký'},
+  {id:'finalize',label:'Chốt điểm'},
 ];
 const DISPLAY=['TX 1','TX 2','TX 3','TX 4','Giữa kỳ','Cuối kỳ'];
 function chipColor(score){
@@ -20,7 +23,7 @@ function chipColor(score){
 }
 export default function GradebookProductivityPanel({
   students,semester,activeRound,roundIndex,gradebook,subjectKey,semesterId,
-  onPaste,onSetAlertSettings,onSetIntervention,computeRoundScore,dirty
+  onPaste,onSetAlertSettings,onSetIntervention,onSetFinalization,computeRoundScore,dirty,finalized=false
 }){
   const [tab,setTab]=useState('paste');
   const [paste,setPaste]=useState('');
@@ -28,6 +31,17 @@ export default function GradebookProductivityPanel({
   const [startingColumn,setStartingColumn]=useState('0');
   const [preview,setPreview]=useState(false);
   const [notice,setNotice]=useState('');
+  const [excelFile,setExcelFile]=useState(null);
+  const [excelData,setExcelData]=useState(null);
+  const [excelSheet,setExcelSheet]=useState('');
+  const [excelBusy,setExcelBusy]=useState(false);
+  const [excelError,setExcelError]=useState('');
+  const [excelReview,setExcelReview]=useState(false);
+  const [excelMatch,setExcelMatch]=useState('code');
+  const [excelFirstRow,setExcelFirstRow]=useState('1');
+  const [excelStudentCol,setExcelStudentCol]=useState('0');
+  const [excelScoreCol,setExcelScoreCol]=useState('1');
+  const [unlockReason,setUnlockReason]=useState('');
   const [filter,setFilter]=useState('all');
   const [interventionStudent,setInterventionStudent]=useState('');
   const [interventionNote,setInterventionNote]=useState('');
@@ -48,12 +62,19 @@ export default function GradebookProductivityPanel({
   const qualityIssues=useMemo(()=>gradebookQualityReport({students:activeStudents,semester}),[activeStudents,semester]);
   const notes=gradebook.interventions||{};
   const history=gradebook.auditHistory||[];
+  const excelSummary=useMemo(()=>activeRound&&excelData?previewGradebookExcelImport({
+    rows:excelData.rows,students:activeStudents,columns:activeRound.columns,
+    scores:activeRound.scores,firstDataRow:Number(excelFirstRow),
+    studentColumn:Number(excelStudentCol),scoreColumn:Number(excelScoreCol),
+    matchBy:excelMatch,
+  }):null,[activeRound,excelData,activeStudents,excelFirstRow,excelStudentCol,excelScoreCol,excelMatch]);
+  const readiness=useMemo(()=>gradebookFinalizationReadiness({students:activeStudents,semester,computeRoundScore}),[activeStudents,semester,computeRoundScore]);
   const selected=activeStudents.find(s=>s.id===interventionStudent)||activeStudents[0];
   const selectedKey=selected?subjectKey+':'+semesterId+':'+selected.id:'';
   const saved=notes[selectedKey]||{};
 
   const apply=()=>{
-    if(!changes?.entries.length || changes.issues.length)return;
+    if(finalized||!changes?.entries.length || changes.issues.length)return;
     if(changes.overwrites>0&&!window.confirm('Sẽ thay '+changes.overwrites+' ô điểm đã có. Bạn có muốn tiếp tục?'))return;
     onPaste(changes.entries);
     setNotice('Đã đưa '+changes.entries.length+' điểm vào bảng. Nhấn Lưu bảng điểm để lưu chính thức.');
@@ -73,6 +94,32 @@ export default function GradebookProductivityPanel({
     });
     setInterventionNote('');
   };
+  const loadExcel=async(file,sheet)=>{
+    if(!file)return;
+    setExcelBusy(true);setExcelError('');setExcelReview(false);
+    try{
+      const result=await readGradebookXlsx(file,{sheet});
+      setExcelFile(file);setExcelData(result);setExcelSheet(result.selectedSheet);
+    }catch(error){
+      setExcelError(error?.message||'Không đọc được tệp Excel.');
+      setExcelData(null);
+    }finally{setExcelBusy(false);}
+  };
+  const applyExcel=()=>{
+    if(!excelReview||finalized||!excelSummary?.entries.length||excelSummary.errors.length)return;
+    if(excelSummary.overwrites>0 && !window.confirm('Bạn sắp ghi đè '+excelSummary.overwrites+' ô điểm đã nhập. Tiếp tục?'))return;
+    onPaste(excelSummary.entries);
+    setNotice('Đã thêm '+excelSummary.entries.length+' điểm từ Excel. Hãy bấm Lưu bảng điểm để ghi dữ liệu.');
+    setExcelReview(false);setExcelData(null);setExcelFile(null);
+  };
+  const downloadAudit=()=>{
+    const csv=exportGradebookAuditCsv(history);
+    const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+    const link=document.createElement('a');
+    link.href=url;link.download='brian-gradebook-history.csv';
+    document.body.appendChild(link);link.click();link.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  };
   const warnings=info.atRisk;
   const visibleRows=info.rows.filter(row=>filter==='all'||(filter==='missing'&&row.missing>0)||(filter==='risk'&&(row.low||row.dropping)));
   return <details className="gb-prod">
@@ -87,6 +134,7 @@ export default function GradebookProductivityPanel({
       </div>
       {tab==='paste'?<div className="gb-prod-pane" role="tabpanel">
         <h3>Nhập điểm nhanh từ Excel hoặc CSV</h3>
+        {finalized?<p className="gb-prod-alert">Học kỳ này đã chốt; cần mở khóa trước khi nhập điểm.</p>:null}
         <p>Sao chép một vùng điểm từ Excel/Google Sheets rồi dán vào đây. Các ô trống sẽ được bỏ qua; không tự xóa điểm cũ. Chỉ cập nhật khi đã kiểm tra và xác nhận.</p>
         {!activeRound?<p className="gb-prod-alert">Hãy chọn một đợt điểm TX (1–4) để sử dụng nhập hàng loạt.</p>:<>
           <div className="gb-prod-fields">
@@ -108,8 +156,8 @@ export default function GradebookProductivityPanel({
           <textarea className="gb-prod-paste" value={paste} onChange={e=>{setPaste(e.target.value);setPreview(false)}} rows={5}
             placeholder={'8.5\t9\t7\n6\t7\t8\n9\t9.5\t10'} aria-label="Dán dữ liệu điểm từ Excel"/>
           <div className="gb-prod-actions">
-            <button type="button" onClick={()=>setPreview(true)} disabled={!paste.trim()}>Kiểm tra dữ liệu</button>
-            {preview&&changes?.issues.length===0&&changes?.entries.length>0?<button className="primary" type="button" onClick={apply}>Áp dụng {changes.entries.length} ô vào bảng</button>:null}
+            <button type="button" onClick={()=>setPreview(true)} disabled={!paste.trim()||finalized}>Kiểm tra dữ liệu</button>
+            {preview&&changes?.issues.length===0&&changes?.entries.length>0?<button className="primary" type="button" onClick={apply} disabled={finalized}>Áp dụng {changes.entries.length} ô vào bảng</button>:null}
           </div>
           {preview&&changes?<div className="gb-prod-preview" role="status">
             <strong>{changes.entries.length} ô hợp lệ · {changes.issues.length} lỗi · {changes.overwrites} ô sẽ thay thế điểm cũ</strong>
@@ -119,6 +167,42 @@ export default function GradebookProductivityPanel({
             </div>
           </div>:null}
         </>}
+        {activeRound?<div className="gb-prod-excel">
+          <h4>Nhập tệp Excel .xlsx có đối chiếu học sinh</h4>
+          <p>Chọn file tối đa 2 MB. File phải có một cột chứa mã học sinh hoặc họ tên và các cột điểm. Việc ghép mã/tên được kiểm tra trước, không dựa vào thứ tự danh sách.</p>
+          <div className="gb-prod-fields">
+            <label>Tệp Excel
+              <input type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                disabled={excelBusy||finalized} onChange={event=>{const file=event.target.files?.[0];event.target.value='';if(file)loadExcel(file);}}/>
+            </label>
+            {excelData?<label>Worksheet
+              <select value={excelSheet} onChange={e=>loadExcel(excelFile,e.target.value)} disabled={excelBusy||finalized}>
+                {excelData.sheetNames.map(name=><option key={name} value={name}>{name}</option>)}
+              </select></label>:null}
+          </div>
+          {excelBusy?<p role="status">Đang đọc và kiểm tra file Excel…</p>:null}
+          {excelError?<p className="gb-prod-error" role="alert">{excelError}</p>:null}
+          {excelData?<><div className="gb-prod-fields">
+            <label>Đối chiếu theo<select value={excelMatch} onChange={e=>{setExcelMatch(e.target.value);setExcelReview(false)}}>
+              <option value="code">Mã học sinh</option><option value="name">Họ và tên</option></select></label>
+            <label>Dòng bắt đầu có điểm (Excel)<input type="number" min="1" max={excelData.rows.length} value={Number(excelFirstRow)+1} onChange={e=>{setExcelFirstRow(String(Math.max(0,Number(e.target.value||1)-1)));setExcelReview(false)}}/></label>
+            <label>Cột mã/tên (Excel)<input type="number" min="1" max="60" value={Number(excelStudentCol)+1} onChange={e=>{setExcelStudentCol(String(Math.max(0,Number(e.target.value||1)-1)));setExcelReview(false)}}/></label>
+            <label>Cột điểm đầu tiên (Excel)<input type="number" min="1" max="60" value={Number(excelScoreCol)+1} onChange={e=>{setExcelScoreCol(String(Math.max(0,Number(e.target.value||1)-1)));setExcelReview(false)}}/></label>
+          </div>
+          <div className="gb-prod-actions">
+            <button type="button" disabled={excelBusy||finalized} onClick={()=>setExcelReview(true)}>Đối chiếu & xem trước</button>
+            {excelReview&&excelSummary?.entries.length>0&&excelSummary.errors.length===0?<button className="primary" type="button" disabled={finalized} onClick={applyExcel}>Áp dụng {excelSummary.entries.length} điểm</button>:null}
+          </div>
+          {excelReview&&excelSummary?<div className="gb-prod-preview" role="status">
+            <strong>{excelSummary.matched} học sinh đối chiếu được · {excelSummary.entries.length} ô hợp lệ · {excelSummary.errors.length} lỗi · {excelSummary.overwrites} ô sẽ bị thay</strong>
+            {excelSummary.errors.slice(0,12).map((item,i)=><p key={i} className="gb-prod-error">Dòng {item.row}: {item.reason}</p>)}
+            <div className="gb-prod-preview-grid">
+              {excelSummary.entries.slice(0,18).map((item,i)=><span key={i}>{item.studentName} · {item.columnLabel}: {item.previous!==''?String(item.previous)+' → ':''}<b>{item.value}</b></span>)}
+            </div>
+            {excelSummary.errors.length>0?<small>Cần sửa tệp hoặc thông số đối chiếu để áp dụng. Không tự bỏ qua dòng lỗi.</small>:null}
+          </div>:null}
+          </>:null}
+        </div>:null}
         {notice?<p className="gb-prod-notice" role="status">{notice}</p>:null}
         {dirty?<small>Đang có thay đổi chưa lưu trong Sổ điểm.</small>:null}
       </div>:null}
@@ -174,7 +258,32 @@ export default function GradebookProductivityPanel({
       </div>:null}
       {tab==='history'?<div className="gb-prod-pane" role="tabpanel">
         <h3>Nhật ký lưu và chỉnh sửa điểm</h3><p>Hiển thị lịch sử các lần lưu từ sau khi bật tính năng. Chỉ ghi các điểm thực sự đổi; dữ liệu lịch sử cũ không thể tự khôi phục.</p>
+        <div className="gb-prod-actions"><button type="button" disabled={!history.length} onClick={downloadAudit}>Xuất nhật ký CSV</button></div>
         {history.length?<div className="gb-prod-history">{history.map((entry,i)=><details key={entry.id||i}><summary><strong>{new Date(entry.at).toLocaleString('vi-VN')}</strong> · {entry.author||'Giáo viên'} · {entry.count} thay đổi</summary><ul>{(entry.changes||[]).slice(0,60).map((change,j)=><li key={j}>{change.term} · {change.kind} · {activeStudents.find(s=>s.id===change.studentId)?.fullName||change.studentId}: {String(change.from||'—')} → {String(change.to||'—')}</li>)}</ul>{entry.count>60?<small>Đang hiển thị 60 thay đổi đầu tiên.</small>:null}</details>)}</div>:<p>Chưa có lần lưu thay đổi mới nào được ghi nhật ký.</p>}
+      </div>:null}
+      {tab==='finalize'?<div className="gb-prod-pane" role="tabpanel">
+        <h3>Chốt học kỳ (khóa thao tác nhập điểm)</h3>
+        <p>Chốt học kỳ sẽ khóa chỉnh sửa điểm trong giao diện BRIAN cho môn và học kỳ đang mở. Đây là cơ chế quản lý quy trình, không phải khóa bảo mật cấp cơ sở dữ liệu.</p>
+        <div className="gb-prod-stats"><div><b>{readiness.studentCount}</b><span>Học sinh</span></div>
+          <div><b>{readiness.missing.length}</b><span>Thành phần chưa có điểm</span></div>
+          <div><b>{finalized?'Đã chốt':'Chưa chốt'}</b><span>Trạng thái học kỳ</span></div>
+        </div>
+        {readiness.missing.length>0?<div className="gb-prod-alert-list">{readiness.missing.slice(0,12).map((row,i)=><div key={i}><strong>{row.name}</strong><span>Thiếu {row.part}</span></div>)}</div>:null}
+        {dirty?<p className="gb-prod-alert">Hãy lưu hoặc hoàn tác những thay đổi hiện tại trước khi chốt/mở khóa.</p>:null}
+        {!finalized&&qualityIssues.length>0?<p className="gb-prod-alert">Có {qualityIssues.length} lỗi dữ liệu. Hãy xử lý trong tab Kiểm tra lỗi trước khi chốt.</p>:null}
+        {finalized?<div className="gb-prod-fields"><label>Lý do mở khóa (ít nhất 8 ký tự)
+          <textarea rows={2} maxLength={300} value={unlockReason} onChange={e=>setUnlockReason(e.target.value)} placeholder="Ví dụ: Điều chỉnh điểm sau khi đối chiếu bài kiểm tra"/>
+        </label></div>:null}
+        <div className="gb-prod-actions">
+          {finalized?<button type="button" disabled={dirty||unlockReason.trim().length<8}
+            onClick={()=>{if(window.confirm('Mở khóa học kỳ này để tiếp tục chỉnh sửa điểm?')){onSetFinalization(false,unlockReason);setUnlockReason('');}}}>Xác nhận mở khóa</button>
+          :<button className="primary" type="button" disabled={dirty||!readiness.ready||qualityIssues.length>0}
+            onClick={()=>{if(window.confirm('Bạn xác nhận đã kiểm tra đầy đủ điểm và muốn chốt học kỳ?'))onSetFinalization(true,'');}}>Chốt điểm học kỳ</button>}
+        </div>
+        <small>Sau khi chốt hoặc mở khóa, bấm Lưu bảng điểm để đồng bộ trạng thái. Mọi lần chuyển trạng thái được ghi trong lịch sử.</small>
+        {(gradebook.finalizationHistory||[]).length?<div className="gb-prod-history">
+          {(gradebook.finalizationHistory||[]).slice(0,12).map((x,i)=><div className="gb-prod-existing" key={x.id||i}>{x.locked?'Chốt':'Mở khóa'} · {x.key} · {new Date(x.at).toLocaleString('vi-VN')} · {x.actor} {x.reason?'— '+x.reason:''}</div>)}
+        </div>:null}
       </div>:null}
     </div>
   </details>;
