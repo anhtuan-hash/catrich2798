@@ -113,10 +113,17 @@ function mergeStudentRecordDelta(before, after, latest) {
 export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   // Server assignment, when available, is stronger than any stale local current-id.
   // applicationBootstrap resolves it before first mount on a direct Homeroom entry.
-  const cachedHomerooms = listLocalHomeroomWorkspaces(currentUser)
-    .filter((item) => item.status !== 'archived' && item.classType === HOMEROOM_CLASS_TYPE);
-  const cachedHomeroomId = cachedHomerooms.length === 1 ? cachedHomerooms[0].id : '';
-  const initialWorkspaceId = assignedHomeroomWorkspaceId() || cachedHomeroomId || getCurrentHomeroomWorkspaceId(currentUser);
+  // Run this local catalog scan only once on mount, not on each render.
+  // A single explicitly marked GVCN outranks the previously opened subject class.
+  const [initialWorkspaceId] = useState(() => {
+    const authoritativeId = assignedHomeroomWorkspaceId();
+    if (authoritativeId) return authoritativeId;
+    const cachedHomerooms = listLocalHomeroomWorkspaces(currentUser)
+      .filter((item) => item.status !== 'archived' && item.classType === HOMEROOM_CLASS_TYPE);
+    return cachedHomerooms.length === 1
+      ? cachedHomerooms[0].id
+      : getCurrentHomeroomWorkspaceId(currentUser);
+  });
   const initialWorkspace = getInitialWorkspace(currentUser, initialWorkspaceId);
   const [workspaceId, setWorkspaceId] = useState(initialWorkspaceId);
   const [workspace, setWorkspace] = useState(initialWorkspace);
