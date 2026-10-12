@@ -48,6 +48,8 @@ import '../components/GlobalHomeroomGoogleColorPolish.css';
 import '../components/GlobalHomeroomGoogleReadabilityPolish.css';
 import '../components/homeroom/HomeroomNavigationPalette.css';
 import '../components/homeroom/HomeroomGlassHero.css';
+// Homeroom 4.0 Phase 1: scoped tokens only; no visual changes yet.
+import '../styles/homeroom-4-tokens.css';
 
 // Homeroom owns homeroom duties only. Gradebook is a separate teacher app.
 // Keep the last usable class snapshot so remounts never blank this data-heavy route.
