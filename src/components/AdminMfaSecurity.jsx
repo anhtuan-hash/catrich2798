@@ -11,6 +11,7 @@ export default function AdminMfaSecurity({ user, route, language = 'vi' }) {
   const isAdmin = user?.role === 'admin' && user?.provider === 'supabase' && Boolean(supabase);
   const [state, setState] = useState({ loading: true, currentLevel: '', nextLevel: '', factors: [], error: '' });
   const [code, setCode] = useState('');
+  const [selectedFactorId, setSelectedFactorId] = useState('');
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [setup, setSetup] = useState(null);
@@ -85,7 +86,9 @@ export default function AdminMfaSecurity({ user, route, language = 'vi' }) {
       setFeedback(vi ? 'Nhập mã gồm 6 chữ số.' : 'Enter the 6-digit code.');
       return;
     }
-    const factor = state.factors[0];
+    // The user may enroll different secrets on their phone and Mac.
+    // Verify against the explicitly selected credential, not always the first factor.
+    const factor = state.factors.find((item) => item.id === selectedFactorId) || state.factors[0];
     if (!factor) return;
     setBusy(true);
     setFeedback('');
@@ -101,14 +104,14 @@ export default function AdminMfaSecurity({ user, route, language = 'vi' }) {
     }
   };
 
-  const begin = async () => {
+  const begin = async (target = 'app') => {
     if (busy || setup) return;
     setBusy(true);
     setFeedback('');
     try {
-      const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'BRIAN Admin' });
+      const { data, error } = await supabase.auth.mfa.enroll({ factorType: 'totp', friendlyName: target === 'apple' ? 'Mac - Apple Passwords' : 'BRIAN Admin backup' });
       if (error) throw error;
-      setSetup({ id: data.id, qr: data.totp?.qr_code || '', secret: data.totp?.secret || '' });
+      setSetup({ id: data.id, qr: data.totp?.qr_code || '', secret: data.totp?.secret || '', target });
       setCode('');
     } catch (error) {
       setFeedback(error?.message || 'Could not start MFA enrollment.');
@@ -161,11 +164,31 @@ export default function AdminMfaSecurity({ user, route, language = 'vi' }) {
         <p>{state.loading ? (vi ? 'Đang kiểm tra phiên bảo mật…' : 'Checking security session…') : state.error || (vi ? 'Nhập mã từ ứng dụng xác thực để tiếp tục sử dụng BRIAN.' : 'Enter the code from your authenticator app to continue.')}</p>
         {needsVerification && !state.error ? (
           <form onSubmit={verify}>
+            {state.factors.length > 1 ? (
+              <label htmlFor="bes-mfa-login-factor">
+                {vi ? 'Chọn thiết bị xác thực' : 'Choose authenticator'}
+                <select
+                  id="bes-mfa-login-factor"
+                  value={state.factors.some((factor) => factor.id === selectedFactorId) ? selectedFactorId : state.factors[0].id}
+                  onChange={(event) => { setSelectedFactorId(event.target.value); setCode(''); setFeedback(''); }}
+                >
+                  {state.factors.map((factor, index) => (
+                    <option key={factor.id} value={factor.id}>
+                      {factor.friendly_name || (vi ? `Thiết bị ${index + 1}` : `Device ${index + 1}`)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
             <label htmlFor="bes-mfa-login-code">{vi ? 'Mã xác thực (6 chữ số)' : 'Six-digit verification code'}</label>
             <input id="bes-mfa-login-code" inputMode="numeric" pattern="[0-9]{6}" autoComplete="one-time-code" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} required />
             <button type="submit" disabled={busy}>{busy ? (vi ? 'Đang xác minh…' : 'Verifying…') : (vi ? 'Xác minh' : 'Verify')}</button>
           </form>
         ) : null}
+        <details className="bes-mfa-mac-help">
+          <summary>{vi ? 'Không muốn dùng điện thoại mỗi lần?' : 'Don't want to use your phone every time?'}</summary>
+          <p>{vi ? 'Sau lần xác minh này, vào Cài đặt → Xác thực hai lớp → Thêm Mac (Mật khẩu Apple). Mã sẽ được tạo trên Mac; bạn có thể mở Mật khẩu bằng Touch ID để tự điền hoặc sao chép mã.' : 'After this verification, open Settings → MFA → Add Mac (Apple Passwords). Codes can then be generated on your Mac, unlocked via Touch ID and filled or copied.'}</p>
+        </details>
         {feedback ? <p role="alert" className="bes-mfa-error">{feedback}</p> : null}
         {state.error ? <button type="button" onClick={refresh}>{vi ? 'Thử lại' : 'Retry'}</button> : null}
         <button type="button" className="bes-mfa-text-action" onClick={() => { void logoutUser(); }}>{vi ? 'Đăng xuất' : 'Sign out'}</button>
@@ -183,11 +206,23 @@ export default function AdminMfaSecurity({ user, route, language = 'vi' }) {
       <p className="bes-mfa-warning">{vi ? 'Supabase không cấp mã khôi phục. Hãy chuẩn bị thêm một thiết bị xác thực dự phòng sau khi kích hoạt; nếu mất toàn bộ thiết bị, cần trợ giúp từ người quản trị Supabase.' : 'Supabase does not issue recovery codes. Add a backup device after setup; if all factors are lost, Supabase project administration is required.'}</p>
       {state.factors.length ? <small>{vi ? 'Số thiết bị đã xác minh: ' : 'Verified devices: '}{state.factors.length}</small> : null}
       {state.error ? <p className="bes-mfa-warning" role="alert">{state.error} <button type="button" className="secondary" onClick={refresh}>{vi ? 'Thử lại' : 'Retry'}</button></p> : null}
-      {!setup ? <button type="button" onClick={begin} disabled={busy || state.loading || Boolean(state.error)}>{busy ? '…' : state.factors.length ? (vi ? 'Thêm thiết bị dự phòng' : 'Add backup device') : (vi ? 'Bật xác thực hai lớp' : 'Enable two-factor authentication')}</button> : (
+      {!setup ? (
+        <div className="bes-mfa-actions">
+          <button type="button" onClick={() => { void begin('apple'); }} disabled={busy || state.loading || Boolean(state.error)}>
+            {busy ? '…' : (vi ? 'Thiết lập trên Mac (Mật khẩu Apple)' : 'Set up on Mac (Apple Passwords)')}
+          </button>
+          <button type="button" className="secondary" onClick={() => { void begin('app'); }} disabled={busy || state.loading || Boolean(state.error)}>
+            {vi ? 'Thêm ứng dụng xác thực khác' : 'Add another authenticator'}
+          </button>
+        </div>
+      ) : (
         <form onSubmit={confirmSetup} className="bes-mfa-enroll">
-          <p>{vi ? 'Quét mã QR bằng ứng dụng xác thực rồi nhập mã 6 chữ số để kích hoạt.' : 'Scan the QR code with an authenticator app, then enter the six-digit code.'}</p>
+          <p>{setup.target === 'apple'
+            ? (vi ? 'Mở ứng dụng Mật khẩu (Passwords) trên Mac → chọn tài khoản esl-brian.vercel.app (hoặc tạo mới) → Sửa → Thiết lập mã (Set Up Code). Dán khóa thiết lập bên dưới, sau đó nhập mã 6 số do Mac tạo để xác minh.' : 'Open the Passwords app on Mac → select or create the esl-brian.vercel.app account → Edit → Set Up Code. Paste the setup key below, then enter the code generated on your Mac.')
+            : (vi ? 'Quét mã QR bằng ứng dụng xác thực rồi nhập mã 6 chữ số để kích hoạt.' : 'Scan the QR code with an authenticator app, then enter the six-digit code.')}</p>
           {setup.qr ? <img alt={vi ? 'Mã QR xác thực hai lớp' : 'Two-factor setup QR code'} src={setup.qr} /> : null}
-          {setup.secret ? <details><summary>{vi ? 'Không quét được QR? Xem khóa thiết lập' : 'Cannot scan QR? View setup key'}</summary><code>{setup.secret}</code></details> : null}
+          {setup.secret ? <details open={setup.target === 'apple'}><summary>{vi ? 'Khóa thiết lập (giữ bí mật)' : 'Setup key (keep private)'}</summary><code>{setup.secret}</code></details> : null}
+          {setup.target === 'apple' ? <p className="bes-mfa-warning">{vi ? 'Touch ID mở khóa ứng dụng Mật khẩu; việc xác minh với BRIAN vẫn dùng mã được tạo trên Mac. Không lưu hoặc gửi khóa thiết lập này cho người khác.' : 'Touch ID unlocks Passwords; BRIAN still verifies the code generated on Mac. Never share this setup key.'}</p> : null}
           <label htmlFor="bes-mfa-setup-code">{vi ? 'Mã xác nhận' : 'Verification code'}</label>
           <input id="bes-mfa-setup-code" inputMode="numeric" pattern="[0-9]{6}" autoComplete="one-time-code" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} required />
           <div className="bes-mfa-actions"><button type="submit" disabled={busy}>{vi ? 'Xác minh và kích hoạt' : 'Verify and enable'}</button><button type="button" className="secondary" disabled={busy} onClick={() => { void cancelSetup(); }}>{vi ? 'Hủy' : 'Cancel'}</button></div>
