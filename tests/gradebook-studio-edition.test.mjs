@@ -29,7 +29,9 @@ test('Native hero actions use accessible vector icons but unchanged real action 
   assert.match(page,/requestGradebookAction\('entry'\)/);
   assert.match(page,/requestGradebookAction\('summary'\)/);
   assert.match(page,/requestGradebookAction\('pdf'\)/);
-  assert.match(page,/onClick=\{\(\) => setView\('students'\)\}/);
+  assert.match(page,/onClick=\{openStudentRoster\}/);
+  assert.match(page,/const openStudentRoster = \(\) =>/);
+  assert.match(page,/if \(!canLeaveGradebook\(\)\) return/);
   assert.match(page,/onClick=\{\(\) => setCreateOpen\(\(value\) => !value\)\}/);
   assert.match(page,/className="gb-academic-class-list"/);
 });
