@@ -276,7 +276,10 @@ test('3.1 command palette finds apps, navigates and closes with Escape', async (
   await page.keyboard.press('Control+Shift+K');
   const palette=page.getByRole('dialog',{name:'Tìm nhanh BRIAN'});
   await expect(palette).toBeVisible();
-  const search=palette.getByRole('combobox',{name:'Tìm kiếm nhanh'});
+  const search=palette.locator('.gd-v31-palette-search input');
+  await expect(search).toBeVisible();
+  await expect(search).toHaveAttribute('role','combobox');
+  await expect(search).toHaveAttribute('aria-label','Tìm kiếm nhanh');
   await expect(search).toBeFocused();
   await search.fill('Sổ điểm');
   await expect(palette.getByRole('option')).toHaveCount(1);
@@ -284,7 +287,7 @@ test('3.1 command palette finds apps, navigates and closes with Escape', async (
   await expect(palette).toHaveCount(0);
   await page.locator('.gd-v31-search-trigger').click();
   await expect(palette).toBeVisible();
-  await palette.getByRole('combobox',{name:'Tìm kiếm nhanh'}).fill('Sổ điểm');
+  await palette.locator('.gd-v31-palette-search input').fill('Sổ điểm');
   await page.keyboard.press('Enter');
   await expect(page).toHaveURL(/#\/apps/);
 });

@@ -57,7 +57,8 @@
   display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #e4edf7;color:#3166b0;
 }
 .app-shell[data-route="dashboard"] .gd-v31-palette-search input {
-  flex:1;min-width:0;height:35px;border:0;outline:0;background:transparent;
+  display:block!important;visibility:visible!important;opacity:1!important;
+  pointer-events:auto!important;flex:1;min-width:0;height:35px;border:0;outline:0;background:transparent;
   color:#183c67;font-family:inherit;font-size:15px;font-weight:670;
 }
 .app-shell[data-route="dashboard"] .gd-v31-palette-search input::placeholder { color:#8396af; }
