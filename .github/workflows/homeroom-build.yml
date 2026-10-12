@@ -21,6 +21,7 @@ on:
       - 'scripts/test-homeroom-4-phase-7.mjs'
       - 'src/styles/homeroom-4-loading.css'
       - 'scripts/test-homeroom-4-phase-8.mjs'
+      - 'scripts/test-homeroom-4-phase-8-bundles.mjs'
       - 'docs/homeroom-4/**'
       - 'src/utils/homeroomFastEntry.js'
       - 'scripts/test-homeroom-instant-entry.mjs'
@@ -94,6 +95,9 @@ jobs:
         run: |
           set -o pipefail
           npm run build > build.log 2>&1
+      - name: Verify Vite deferred Homeroom feature chunks
+        if: steps.app_build.outcome == 'success'
+        run: node scripts/test-homeroom-4-phase-8-bundles.mjs
       - name: Upload build log
         if: always()
         uses: actions/upload-artifact@v4
