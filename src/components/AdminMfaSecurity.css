@@ -38,3 +38,12 @@
 .bes-mfa-settings .bes-mfa-actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
 .bes-mfa-enroll details[open] code{user-select:text}
 .bes-mfa-settings .bes-mfa-warning{line-height:1.55}
+
+/* Verified WebAuthn MFA: the browser performs the biometric ceremony, not BRIAN. */
+.bes-mfa-shield-card button.bes-mfa-touchid-action{min-height:48px;background:#176e54;color:white;font-weight:800}
+.bes-mfa-touchid-settings{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center;padding:16px;border:1px solid #c7d9e9;background:#f2f7ff;border-radius:14px}
+.bes-mfa-touchid-settings > strong{color:#132b46;font-size:15px}
+.bes-mfa-touchid-settings > span{color:#496078;font-size:12px;justify-self:end}
+.bes-mfa-touchid-settings > button{grid-column:1 / -1;background:#176e54}
+.bes-mfa-touchid-settings > small{grid-column:1 / -1;color:#475569;line-height:1.5}
+.bes-mfa-touchid-settings > button:disabled{opacity:.5}
