@@ -1016,9 +1016,9 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       <article className="tone-yellow" style={{ '--gb-completion': `${students.length ? Math.round(completedFourRounds / students.length * 100) : 0}%` }}><span className="hr-grade-overview-icon"><GradebookUiIcon type="check" /></span><small>Hoàn thành 4 đợt TX</small><strong>{completedFourRounds}/{students.length}</strong><span>{activeRound ? `${activeRoundCoverage} học sinh có điểm ở đợt đang mở` : 'Theo học kỳ đang chọn'}</span></article>
     </section> : null}
 
-    {!focusMode && view !== 'mock' ? <GradebookSemesterMission sections={missionSections} summary={missionSummary} queue={missionQueue} onSelectSection={openMissionSection} onSelectStudent={openMissionStudent} finalized={finalized} /> : null}
 
-    <details className="gb-academic-administration" defaultOpen>
+
+    <details className="gb-academic-administration">
       <summary><span>Quản lý lớp và phân công giảng dạy</span><small>Mở công cụ quản trị lớp khi cần</small></summary>
       <div className="gb-academic-admin-content">
         {teachingOverview}
@@ -1068,6 +1068,11 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       onShowAll={() => { setMissingOnly(false); setStudentQuery(''); }}
       onOpenMock={() => { setView('mock'); setMissingOnly(false); setStudentQuery(''); }}
     /> : null}
+
+    {!focusMode && view !== 'mock' ? <details className="gb3-mission-details">
+      <summary><span><strong>Danh sách ưu tiên hoàn thiện</strong><small>Học sinh còn thiếu điểm, thống kê chi tiết và điều hướng đến đúng thành phần</small></span><span className="gb3-mission-open-label">Xem chi tiết <span aria-hidden="true">⌄</span></span></summary>
+      <GradebookSemesterMission sections={missionSections} summary={missionSummary} queue={missionQueue} onSelectSection={openMissionSection} onSelectStudent={openMissionStudent} finalized={finalized} />
+    </details> : null}
 
     {finalized && view !== 'mock' ? <div className="gb-finalized-banner" role="status"><strong>Học kỳ đã chốt</strong><span>Các ô điểm và thao tác chỉnh sửa đang khóa trong giao diện. Mở Bộ công cụ Sổ điểm → Chốt điểm để xem trạng thái hoặc mở khóa có lý do.</span></div> : null}
     {exportMessage ? <div className={`hr-grade-export-message ${exportMessage.type}`} role="status" aria-live="polite"><span>{exportMessage.type === 'error' ? '!' : '✓'}</span>{exportMessage.text}</div> : null}
