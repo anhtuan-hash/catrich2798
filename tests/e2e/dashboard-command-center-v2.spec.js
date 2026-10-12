@@ -330,3 +330,36 @@ test('3.1 search, midnight theme and focus toolbar fit mobile', async ({page})=>
   const focusSizes=await page.evaluate(()=>[document.documentElement.scrollWidth,document.documentElement.clientWidth]);
   expect(focusSizes[0]).toBeLessThanOrEqual(focusSizes[1]+2);
 });
+
+test('3.2 weekly planning dock shows exactly seven interactive days and a day agenda', async ({ page }) => {
+  await openDashboard(page);
+  const dock = page.locator('[data-dashboard-weekly-planner="true"]');
+  await expect(dock).toBeVisible();
+  const days = dock.locator('.gd-v32-planner-day');
+  await expect(days).toHaveCount(7);
+  await expect(days.first()).toHaveAttribute('aria-pressed','true');
+  await days.nth(2).click();
+  await expect(days.nth(2)).toHaveAttribute('aria-pressed','true');
+  await expect(days.first()).toHaveAttribute('aria-pressed','false');
+  await expect(dock.locator('.gd-v32-planner-day-info')).toBeVisible();
+  await dock.getByRole('button',{name:'Sao chép kế hoạch'}).click();
+  await expect(dock.getByRole('status').last()).toContainText(/Đã sao chép|Không thể sao chép/);
+});
+
+test('3.2 weekly planner respects Focus Mode and Midnight on mobile without overflow', async ({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await openDashboard(page);
+  const dock=page.locator('[data-dashboard-weekly-planner="true"]');
+  await expect(dock).toBeVisible();
+  await expect(dock.locator('.gd-v32-planner-day')).toHaveCount(7);
+  await page.locator('.gd-v31-theme-button').click();
+  await expect(page.locator('.gd-v32-page')).toHaveClass(/gd-v31-midnight/);
+  let dimensions=await page.evaluate(()=>[document.documentElement.scrollWidth,document.documentElement.clientWidth]);
+  expect(dimensions[0]).toBeLessThanOrEqual(dimensions[1]+2);
+  await page.locator('.gd-v31-mode-button').click();
+  await expect(dock).toBeHidden();
+  await page.locator('.gd-v31-mode-button').click();
+  await expect(dock).toBeVisible();
+  dimensions=await page.evaluate(()=>[document.documentElement.scrollWidth,document.documentElement.clientWidth]);
+  expect(dimensions[0]).toBeLessThanOrEqual(dimensions[1]+2);
+});

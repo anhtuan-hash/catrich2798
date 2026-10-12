@@ -1,4 +1,4 @@
-name: BRIAN Dashboard 3.1 Release Gate
+name: BRIAN Dashboard 3.2 Release Gate
 on:
   push:
     branches:
@@ -8,6 +8,7 @@ on:
       - feat/dashboard-2-3-personal-layout-20261012
       - feat/dashboard-3-command-center-20261012
       - feat/dashboard-3-1-focus-search-theme-20261012
+      - feat/dashboard-3-2-weekly-planning-20261012
   workflow_dispatch:
 permissions:
   contents: read
@@ -33,10 +34,13 @@ jobs:
           node scripts/test-dashboard-command-center-v23.mjs
           TZ=Asia/Ho_Chi_Minh node scripts/test-dashboard-v3.mjs
           TZ=Asia/Ho_Chi_Minh node scripts/test-dashboard-v31.mjs
+          TZ=Asia/Ho_Chi_Minh node scripts/test-dashboard-v32.mjs
+          TZ=America/New_York node scripts/test-dashboard-v32.mjs
       - name: Gradebook non-interference tests
         run: |
           node scripts/test-gradebook-mock-exams.mjs
           node scripts/test-gradebook-mock-exams-v2.mjs
+          node scripts/test-homeroom-assignment-entry.mjs
       - name: Production build
         run: npm run build
       - name: Install Playwright Chromium
