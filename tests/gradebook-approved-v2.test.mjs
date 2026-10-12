@@ -10,7 +10,9 @@ const css=load('src/styles/GradebookAcademicWorkspace.css');
 test('Academic Workspace owns Gradebook hero, not a DOM observer',()=>{
   assert.match(page,/className="gradebook-studio-hero gb-academic-hero"/);
   assert.match(page,/gradebook-studio-hero gb-academic-hero/);
-  assert.match(page,/setWorkspaceId\(item.id\)/);
+  assert.match(page,/switchGradebookClass\(item.id\)/);
+  assert.match(page,/const switchGradebookClass = \(nextId\) =>/);
+  assert.match(page,/if \(!canLeaveGradebook\(\)\) return/);
   assert.doesNotMatch(workspace,/installGradebookMaterialHero|GradebookEditorialV2|GradebookMaterialHeroRuntime|GradebookColorfulWorkspace|GradebookApprovedV2|GradebookApprovedMockupFour/);
   assert.match(page,/import '\.\.\/styles\/GradebookAcademicWorkspace.css'/);
 });
