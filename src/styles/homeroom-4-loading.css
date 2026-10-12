@@ -1,0 +1,20 @@
+/* Homeroom 4.0: minimal, accessible deferred-tab status. */
+.page.hr-page.hr-v4 .hr-v4-tab-loading {
+ display:flex;align-items:center;gap:14px;min-height:156px;padding:28px;
+ border:1px solid var(--hr4-outline);border-radius:var(--hr4-radius-card);
+ background:var(--hr4-surface);box-shadow:var(--hr4-elevation-card);
+}
+.page.hr-page.hr-v4 .hr-v4-loading-mark{
+ display:block;width:37px;height:37px;border-radius:13px;
+ flex:0 0 auto;background:linear-gradient(130deg,var(--hr4-primary-soft),var(--hr4-violet-soft));
+ position:relative;
+}
+.page.hr-page.hr-v4 .hr-v4-loading-mark::after{
+ content:'';position:absolute;inset:9px;border:3px solid var(--hr4-primary);
+ border-right-color:transparent;border-radius:50%;animation:hr4-loading 850ms linear infinite;
+}
+.page.hr-page.hr-v4 .hr-v4-tab-loading>div{display:grid;gap:6px}
+.page.hr-page.hr-v4 .hr-v4-tab-loading strong{font-size:15px;font-weight:770;color:var(--hr4-ink)}
+.page.hr-page.hr-v4 .hr-v4-tab-loading small{font-size:12px;color:var(--hr4-muted)}
+@keyframes hr4-loading{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.page.hr-page.hr-v4 .hr-v4-loading-mark::after{animation:none!important;transform:none!important}}
