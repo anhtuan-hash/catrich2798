@@ -65,7 +65,7 @@ assert.match(mfa, /state\.factors\.find\(\(item\) => item\.id === selectedFactor
 assert.match(mfa, /state\.factors\.map\(\(factor, index\) =>/, 'Backup authenticators must be selectable.');
 assert.match(mfa, /Mac - Apple Passwords/, 'User must be able to enroll a named macOS Passwords factor.');
 assert.match(mfa, /'apple'\)/, 'Mac enrollment action must be present.');
-assert.match(mfa, /'bes-mfa-login-factor'/, 'An accessible authenticator selector must exist.');
+assert.match(mfa, /id="bes-mfa-login-factor"/, 'An accessible authenticator selector must exist.');
 
 
 // Once an Admin has enrolled a verified factor, both account mutation servers
