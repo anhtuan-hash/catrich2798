@@ -35,10 +35,13 @@ test('Dynamic KPI colors use four distinct tonal surfaces, not replacement data'
 
 test('Teachers can still manage classes, subjects, students and assigned work',()=>{
   assert.match(page,/onClick=\{\(\) => openAssignment\(assignment\)\}/);
-  assert.match(page,/setWorkspaceId\(item\.id\)/);
+  assert.match(page,/switchGradebookClass\(item.id\)/);
+  assert.match(page,/const switchGradebookClass = \(nextId\) =>/);
+  assert.match(page,/if \(!canLeaveGradebook\(\)\) return/);
   assert.match(page,/setView\('students'\)/);
   assert.match(page,/setCreateOpen\(\(value\) => !value\)/);
-  assert.match(engine,/className="gb-academic-administration" defaultOpen/);
+  assert.match(engine,/className="gb-academic-administration"/);
+  assert.doesNotMatch(engine,/className="gb-academic-administration" defaultOpen/);
   assert.match(engine,/\{teachingOverview\}/);
   assert.match(engine,/\{classManagement\}/);
   assert.match(engine,/openSubject/);
