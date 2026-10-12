@@ -16,6 +16,7 @@ import GradebookSemesterMission from './GradebookSemesterMission.jsx';
 import GradebookMockExams from './GradebookMockExams.jsx';
 import GradebookProgressDeck from './GradebookProgressDeck.jsx';
 import GradebookFocusBar from './GradebookFocusBar.jsx';
+import { summarizeGradebookProgress } from '../../utils/gradebookProgressDeck.js';
 import { isGrade12Class, normalizeMockExams, createMockExam, mockExamScoreNumber } from '../../utils/gradebookMockExams.js';
 import { semesterProgressSections, semesterProgressSummary, semesterPendingStudents } from '../../utils/gradebookSemesterMission.js';
 import { gradebookAuditChanges, gradebookQualityReport } from '../../utils/gradebookProductivity.js';
@@ -317,10 +318,12 @@ function GradebookNavigationPalette({
   onDiscard,
   onSave,
   showMockExams = false,
+  progressSections = [],
 }) {
   // Permanent navigation: no persisted collapse preference, idle timer,
   // scroll listener, launcher or manual hide button. Every choice stays mounted.
   const viewMeta = VIEWS.find((item) => item.id === view) || VIEWS[0];
+  const progressById = Object.fromEntries(progressSections.map((section) => [section.id, section]));
 
   return <div data-grade-tone={viewMeta.tone} className="hr-grade-navigation-dock is-always-visible">
     <section className="hr-panel hr-grade-navigation" aria-label="Điều hướng sổ điểm">
@@ -340,6 +343,8 @@ function GradebookNavigationPalette({
           data-grade-tone={item.tone}
           className={`${view === item.id ? 'active' : ''}${item.id === 'mock' ? ' gb-mock-tab' : ''}`}
           aria-pressed={view === item.id}
+          title={progressById[item.id] ? `${item.label}: ${progressById[item.id].filled}/${progressById[item.id].total} ô đã nhập` : item.label}
+          style={progressById[item.id]?.total ? { '--gb6-progress': `${progressById[item.id].percent}%` } : undefined}
           onClick={() => onViewChange(item.id)}
         ><span className="gb4-view-icon" role="presentation">{
           item.id === 'mock' ? <GraduationCap size={16} /> :
@@ -347,7 +352,7 @@ function GradebookNavigationPalette({
           item.id === 'final' ? <BookOpenCheck size={16} /> :
           item.id === 'summary' ? <Sigma size={16} /> :
           <FileBarChart2 size={16} />
-        }</span>{item.label}</button>)}
+        }</span>{item.label}{progressById[item.id]?.total ? <span className="gb6-tab-fill" aria-hidden="true" /> : null}</button>)}
       </div>
       <div className="hr-grade-save-actions">
         <span role="status" aria-live="polite" className={dirty ? 'is-dirty' : 'is-saved'}>
@@ -378,7 +383,14 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const [focusMode, setFocusMode] = useState(false);
   const [insightsOpen, setInsightsOpen] = useState(false);
   const [sortBy, setSortBy] = useState('original');
-  const [density, setDensity] = useState('comfortable');
+  const [density, setDensity] = useState(() => {
+    try { return localStorage.getItem('brian-gradebook-density-v6') === 'compact' ? 'compact' : 'comfortable'; }
+    catch { return 'comfortable'; }
+  });
+  useEffect(() => {
+    try { localStorage.setItem('brian-gradebook-density-v6', density); }
+    catch { /* Cosmetic-only preference; storage access is optional. */ }
+  }, [density]);
   const [workbenchNotice, setWorkbenchNotice] = useState('');
   const scoreTableRef = useRef(null);
   const studentSearchRef = useRef(null);
@@ -416,7 +428,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     setMissingOnly(false);
     setFocusMode(false);
     setSortBy('original');
-    setDensity('comfortable');
+    // Retain the teacher's table density across classes (visual preference only).
     setWorkbenchNotice('');
   }, [workspace.id, students.length]);
 
@@ -426,6 +438,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   );
   const activeSubject = gradebook.subjects[activeSubjectKey] || subjectEntries[0]?.[1];
   const activeSemester = activeSubject?.semesters?.[semesterId] || makeSemester();
+  const semesterEntryProgress = useMemo(() => summarizeGradebookProgress(students, activeSemester), [students, activeSemester]);
   const mockExams = activeSubject?.mockExams || [];
   const activeView = VIEWS.find((item) => item.id === view) || VIEWS[0];
   const roundIndex = view.startsWith('regular-') ? Number(view.split('-')[1]) : -1;
@@ -1034,6 +1047,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       onDiscard={discard}
       onSave={save}
       showMockExams={showMockExams}
+      progressSections={semesterEntryProgress.sections}
       currentUser={currentUser}
     />
 
