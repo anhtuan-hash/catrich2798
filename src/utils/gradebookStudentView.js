@@ -19,9 +19,42 @@ export function hasMissingRegularScore(studentId, round) {
     && round.columns.some((column) => isGradebookScoreBlank(round?.scores?.[studentId]?.[column.id]));
 }
 
-export function filterGradebookStudentView({ students, search = '', missingOnly = false, view = '', activeRound, semester }) {
+
+export function missingScoreCount(studentId, { view = '', activeRound, semester } = {}) {
+  const countRound = (round) => (round?.columns || []).reduce((total, column) =>
+    total + Number(isGradebookScoreBlank(round?.scores?.[studentId]?.[column.id])), 0);
+  if (view.startsWith('regular-')) return countRound(activeRound);
+  if (view === 'midterm' || view === 'final') {
+    return Number(isGradebookScoreBlank(semester?.[view]?.scores?.[studentId]));
+  }
+  if (view === 'summary') {
+    return (semester?.regular || []).reduce((sum, round) => sum + countRound(round), 0)
+      + Number(isGradebookScoreBlank(semester?.midterm?.scores?.[studentId]))
+      + Number(isGradebookScoreBlank(semester?.final?.scores?.[studentId]));
+  }
+  return 0;
+}
+
+export function gradebookColumnProgress(students, round) {
+  return (round?.columns || []).map((column, index) => {
+    const entered = (students || []).filter((student) =>
+      !isGradebookScoreBlank(round?.scores?.[student.id]?.[column.id])).length;
+    const total = (students || []).length;
+    return {
+      id: column.id,
+      label: column.label || `Lần ${index + 1}`,
+      index,
+      entered,
+      total,
+      missing: Math.max(0, total - entered),
+      percent: total ? Math.round(entered * 100 / total) : 0,
+    };
+  });
+}
+
+export function filterGradebookStudentView({ students, search = '', missingOnly = false, view = '', activeRound, semester, sortBy = 'original' }) {
   const query = normalizeStudentSearch(search);
-  return (Array.isArray(students) ? students : []).filter((student) => {
+  const matching = (Array.isArray(students) ? students : []).filter((student) => {
     if (query && !normalizeStudentSearch(`${student?.fullName || ''} ${student?.code || ''}`).includes(query)) return false;
     if (!missingOnly) return true;
     if (view.startsWith('regular-')) return hasMissingRegularScore(student.id, activeRound);
@@ -33,4 +66,10 @@ export function filterGradebookStudentView({ students, search = '', missingOnly 
     }
     return false;
   });
+  if (sortBy === 'name') return matching.sort((a, b) =>
+    String(a.fullName || '').localeCompare(String(b.fullName || ''), 'vi', { sensitivity: 'base' }));
+  if (sortBy === 'missing-first') return matching.sort((a, b) =>
+    missingScoreCount(b.id, { view, activeRound, semester }) -
+    missingScoreCount(a.id, { view, activeRound, semester }));
+  return matching;
 }
