@@ -421,6 +421,22 @@ test('3.4 dashboard canvas and footer use the same desktop width and left edge',
       viewport: document.documentElement.clientWidth,
     };
   });
+  console.log('DASHBOARD_ALIGNMENT_DEBUG', JSON.stringify(await page.evaluate(() => {
+    const root = document.querySelector('.app-shell[data-route="dashboard"]');
+    const main = root?.querySelector('.gd-page.gd-u34');
+    const shell = root?.querySelector('.gd-u34 .gd-shell-v3');
+    const footer = root?.querySelector(':scope > footer.footer');
+    return [root, main, shell, footer].filter(Boolean).map(node => {
+      const r = node.getBoundingClientRect();
+      const cs = getComputedStyle(node);
+      return {node:node.tagName, classes:String(node.className).slice(0,240),
+        left:r.left, right:r.right, width:r.width, offsetLeft:node.offsetLeft, offsetWidth:node.offsetWidth,
+        computedWidth:cs.width, maxWidth:cs.maxWidth, paddingLeft:cs.paddingLeft,
+        marginLeft:cs.marginLeft, marginRight:cs.marginRight,
+        variable:cs.getPropertyValue('--dashboard-shell-width').trim(),
+        transform:cs.transform, boxSizing:cs.boxSizing};
+    });
+  })));
   expect(result.body).toBeTruthy();
   expect(result.footer).toBeTruthy();
   expect(Math.abs(result.body.left - result.footer.left)).toBeLessThanOrEqual(2);
