@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { BookOpenCheck, CalendarDays, Download, Plus, ShieldCheck, Trash2, ClipboardPaste, LockKeyhole, UnlockKeyhole, TrendingUp, ArrowUpRight, ArrowDownRight, Minus, FileSpreadsheet } from 'lucide-react';
 import {
   MAX_MOCK_EXAMS, buildMockExamCsv, buildMockExamComparisonCsv, compareMockExamAttempts,
@@ -27,7 +27,7 @@ function MockScoreInput({ value, disabled, label, onChange }) {
 }
 
 export default function GradebookMockExams({
-  students = [], visibleStudents = [], exams = [], className = '', subjectName = '',
+  students = [], visibleStudents = [], exams = [], className = '', subjectName = '', workspaceId = '', subjectKey = '',
   disabled = false, onAdd, onRename, onDate, onRemove, onScoreChange, onBulkPaste, onSetLock, originalStudentPosition,
 }) {
   const totalFilled = exams.reduce((sum, exam) => sum + mockExamProgress(students, exam).entered, 0);
@@ -38,6 +38,14 @@ export default function GradebookMockExams({
   const [selectedExamId, setSelectedExamId] = useState('');
   const [allowOverwrite, setAllowOverwrite] = useState(false);
   const [pasteNotice, setPasteNotice] = useState('');
+  useEffect(() => {
+    // Clipboard drafts must never cross class / subject boundaries.
+    setPasteText('');
+    setPasteOpen(false);
+    setPasteNotice('');
+    setSelectedExamId('');
+    setAllowOverwrite(false);
+  }, [workspaceId, subjectKey]);
   const targetExam = exams.find((exam) => exam.id === selectedExamId && !exam.locked)
     || exams.find((exam) => !exam.locked) || null;
   const preview = useMemo(() => previewMockExamPaste({
