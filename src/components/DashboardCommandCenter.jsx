@@ -158,7 +158,7 @@ export default function DashboardCommandCenter({ snapshot, todayEventCount, lang
               </button>
             ))}
           </div>
-          <label className="dcc-task-search"><Search size={16} aria-hidden="true" /><input type="search" value={search} onChange={(event) => { setSearch(event.target.value); setVisibleLimit(8); }} placeholder={t.search} aria-label={t.search} /></label>
+          <label className="dcc-task-search"><Search size={16} aria-hidden="true" /><input role="searchbox" type="search" value={search} onChange={(event) => { setSearch(event.target.value); setVisibleLimit(8); }} placeholder={t.search} aria-label={t.search} /></label>
           <div className="dcc-priority-list">
             {visible.length ? visible.map((item) => <PriorityRow item={item} key={item.id} language={language} now={now} approval={filter === 'approvals'} />) : (
               <div className="dcc-empty"><CheckCircle2 size={25}/><span>{(filter === 'approvals' ? approvalItems : attention).length ? t.empty : t.noWork}</span></div>

@@ -72,8 +72,9 @@ test('2.1 switches from Today to seven grouped days and back', async ({ page }) 
 
 test('2.1 searches task labels and keeps news collapsed by default', async ({ page }) => {
   await openDashboard(page);
-  const search = page.getByRole('searchbox', { name: 'Tìm công việc...' });
+  const search = page.locator('.dcc-task-search input[type="search"]');
   await expect(search).toBeVisible();
+  await expect(search).toHaveAttribute('aria-label', 'Tìm công việc...');
   await search.fill('a unique phrase that cannot match any task');
   await expect(page.locator('.dcc-empty')).toBeVisible();
   const toggle = page.locator('.dcc-news-toggle');
