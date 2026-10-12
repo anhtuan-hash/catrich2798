@@ -340,7 +340,7 @@ function GradebookNavigationPalette({
           {saving ? 'Đang lưu điểm…' : dirty ? 'Có thay đổi chưa lưu' : 'Dữ liệu đã lưu'}
         </span>
         {dirty ? <button type="button" className="secondary" disabled={saving} onClick={onDiscard}>Hoàn tác</button> : null}
-        <button type="button" className="primary" disabled={!dirty || saving} onClick={onSave}>{saving ? 'Đang lưu…' : 'Lưu bảng điểm'}</button>
+        <button type="button" className="primary" disabled={!dirty || saving} onClick={onSave}>Lưu bảng điểm</button>
       </div>
     </section>
   </div>;
