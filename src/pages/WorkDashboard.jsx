@@ -17,6 +17,8 @@ import DashboardCommandCenter from '../components/DashboardCommandCenter.jsx';
 import { dashboardLocalDayKey, isDashboardTeachingPeriod } from '../utils/dashboardClassification.js';
 import '../styles/dashboard-command-center-v21.css';
 import '../styles/dashboard-command-center-v22.css';
+import '../styles/dashboard-command-center-v23.css';
+import { dashboardLayoutStorageKey, readDashboardLayout, setDashboardSectionVisible, writeDashboardLayout } from '../utils/dashboardLayoutPreferences.js';
 import BrianDashboardDropZone from '../components/BrianDashboardDropZone.jsx';
 import '../styles/dashboard-command-center-v2.css';
 
@@ -313,6 +315,15 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   const [showNews, setShowNews] = useState(false);
   const [newsExpanded, setNewsExpanded] = useState(false);
   const [calendarRange, setCalendarRange] = useState('today');
+  const [personalLayout, setPersonalLayout] = useState(() => readDashboardLayout(currentUser));
+  const layoutOwnerKey = dashboardLayoutStorageKey(currentUser);
+  useEffect(() => { setPersonalLayout(readDashboardLayout(currentUser)); }, [layoutOwnerKey]);
+  const handleLayoutChange = useCallback((updater) => {
+    setPersonalLayout((previous) => writeDashboardLayout(currentUser,
+      typeof updater === 'function' ? updater(previous) : updater));
+  }, [layoutOwnerKey]);
+  const isDashboardSectionVisible = (id) => !personalLayout.hiddenSections.includes(id);
+  const newsSectionVisible = isDashboardSectionVisible('news');
   const newsRef = useRef(null);
   const dashboardRequestRef = useRef(0);
   const weatherRequestRef = useRef(0);
@@ -362,14 +373,14 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   useEffect(() => { refreshWeather(); return () => { weatherRequestRef.current += 1; }; }, [refreshWeather]);
   useEffect(() => {
     const element = newsRef.current;
-    if (!element || showNews || !newsExpanded) return undefined;
+    if (!element || showNews || !newsExpanded || !newsSectionVisible) return undefined;
     if (typeof IntersectionObserver === 'undefined') { setShowNews(true); return undefined; }
     const observer = new IntersectionObserver((entries) => {
       if (entries.some((entry) => entry.isIntersecting)) { setShowNews(true); observer.disconnect(); }
     }, { rootMargin: '350px 0px' });
     observer.observe(element);
     return () => observer.disconnect();
-  }, [showNews, newsExpanded]);
+  }, [showNews, newsExpanded, newsSectionVisible]);
   useEffect(() => {
     let refreshTimer = 0;
     const queueUpdate = () => { window.clearTimeout(refreshTimer); refreshTimer = window.setTimeout(() => refresh({ quiet: true }), 450); };
@@ -429,8 +440,13 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   ];
 
   const scrollToCalendar = useCallback(() => {
-    document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'auto', block: 'start' });
-  }, []);
+    if (personalLayout.hiddenSections.includes('calendar')) {
+      handleLayoutChange((current) => setDashboardSectionVisible(current, 'calendar', true));
+    }
+    window.requestAnimationFrame(() => {
+      window.setTimeout(() => document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'auto', block: 'start' }), 40);
+    });
+  }, [handleLayoutChange, personalLayout.hiddenSections]);
 
   useEffect(() => {
     const focusTodaySection = () => {
@@ -511,7 +527,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
         </header>
       </section>
 
-      <div className="dcc-next-event" aria-label={language === 'vi' ? 'Sự kiện tiếp theo' : 'Next event'}>
+      {isDashboardSectionVisible('nextEvent') ? <div className="dcc-next-event" aria-label={language === 'vi' ? 'Sự kiện tiếp theo' : 'Next event'}>
         <span className="dcc-next-event-icon"><Icon name="event" size={21} /></span>
         <div className="dcc-next-event-details">
           <span className="dcc-next-event-eyebrow">{language === 'vi' ? 'SỰ KIỆN TIẾP THEO' : 'UP NEXT'}</span>
@@ -522,11 +538,11 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
           if (nextEvent) openDashboardTarget(nextEvent);
           else openTtcm('schedule');
         }}><span>{nextEvent ? (language === 'vi' ? 'Xem chi tiết' : 'View details') : (language === 'vi' ? 'Mở lịch' : 'Open calendar')}</span><Icon name="arrow" size={17} /></button>
-      </div>
-      <DashboardCommandCenter snapshot={snapshot} todayEventCount={todayEvents.length} language={language} now={now} loading={loading} onRefresh={() => refresh()} />
+      </div> : null}
+      <DashboardCommandCenter snapshot={snapshot} todayEventCount={todayEvents.length} language={language} now={now} loading={loading} onRefresh={() => refresh()} layout={personalLayout} onChangeLayout={handleLayoutChange} onFocusCalendar={scrollToCalendar} />
 
       {error ? <div className="gd-alert"><Icon name="warning" size={22} /><div><strong>{t.partial}</strong><small>{error}</small></div><button type="button" className="gd-text-button" onClick={() => refresh()}>{t.retry}</button></div> : null}
-      <article className="gd-calendar gd-calendar-today gd-calendar-timeline-v2" id="dashboard-calendar">
+      {isDashboardSectionVisible('calendar') ? <article className="gd-calendar gd-calendar-today gd-calendar-timeline-v2" id="dashboard-calendar">
         <header className="gd-calendar-header">
           <div className="gd-calendar-kicker">{calendarRange === 'week' ? '02 / WEEK' : '02 / TODAY'}</div>
           <div className="gd-calendar-title"><span><Icon name="calendar" size={24} /></span><div><h2>{t.calendar}</h2><p>{t.calendarSummary}</p></div></div>
@@ -563,10 +579,10 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
           </section>
           </>}
         </div>
-      </article>
-      <Surface title={t.quickActions} icon="bolt" className="gd-quick-surface" note={language === 'vi' ? 'Tiết kiệm thời gian · Tập trung cho điều quan trọng ♡' : 'Save time · Focus on what matters ♡'}><div className="gd-quick-actions">{quickActions.map(([icon, label, target]) => <button type="button" key={label} className="gd-quick-action" onClick={() => { if (String(target).startsWith('ttcm:')) openTtcm(String(target).split(':')[1] || 'feed'); else window.location.hash = target; }}><span><Icon name={icon} size={20} /></span>{label}</button>)}</div></Surface>
-      <BrianDashboardDropZone language={language} />
-      <section ref={newsRef} className="dcc-news-slot">
+      </article> : null}
+      {isDashboardSectionVisible('quickActions') ? <Surface title={t.quickActions} icon="bolt" className="gd-quick-surface" note={language === 'vi' ? 'Tiết kiệm thời gian · Tập trung cho điều quan trọng ♡' : 'Save time · Focus on what matters ♡'}><div className="gd-quick-actions">{quickActions.map(([icon, label, target]) => <button type="button" key={label} className="gd-quick-action" onClick={() => { if (String(target).startsWith('ttcm:')) openTtcm(String(target).split(':')[1] || 'feed'); else window.location.hash = target; }}><span><Icon name={icon} size={20} /></span>{label}</button>)}</div></Surface> : null}
+      {isDashboardSectionVisible('dropZone') ? <BrianDashboardDropZone language={language} /> : null}
+      {newsSectionVisible ? <section ref={newsRef} className="dcc-news-slot">
         <button type="button" className="dcc-news-toggle" aria-expanded={newsExpanded} onClick={() => setNewsExpanded((v) => !v)}>
           <span aria-hidden="true">📰</span><strong>{language === 'vi' ? 'Tin tức giáo dục' : 'Education news'}</strong>
           <span>{language === 'vi' ? (newsExpanded ? 'Thu gọn' : 'Hiển thị tin tức') : (newsExpanded ? 'Collapse' : 'Show news')} {newsExpanded ? '−' : '+'}</span>
@@ -574,7 +590,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
         {newsExpanded ? (showNews
           ? <Suspense fallback={<div className="dcc-news-placeholder">{t.refreshing}</div>}><DashboardNewsHub language={language} /></Suspense>
           : <div className="dcc-news-placeholder">{t.refreshing}</div>) : null}
-      </section>
+      </section> : null}
     </div>
   </section>;
 }

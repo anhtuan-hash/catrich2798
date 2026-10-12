@@ -2,9 +2,11 @@ import React, { useMemo, useRef, useState } from 'react';
 import {
   AlertCircle, ArrowRight, Bell, CalendarDays, CheckCircle2,
   ClipboardList, Clock3, FileText, FolderOpen, LayoutDashboard,
-  Search, ShieldCheck, Users, Zap, Database, Info,
+  Search, ShieldCheck, Users, Zap, Database, Info, SlidersHorizontal,
 } from 'lucide-react';
 import { dashboardDueLabel, getDashboardDueState, openDashboardTarget } from '../utils/dashboardAggregator.js';
+import DashboardLayoutEditor from './DashboardLayoutEditor.jsx';
+import { normalizeDashboardLayout, setDashboardSectionVisible } from '../utils/dashboardLayoutPreferences.js';
 
 /**
  * Dashboard 2.0: a read-only, permission-aware surface over the existing
@@ -29,7 +31,7 @@ const TEXT = {
     latest: 'Dữ liệu lúc', loadingNote: 'Đang làm mới', local: 'Nguồn đang hiển thị',
     limited: 'Nguồn công việc có giới hạn số bản ghi. Số liệu có thể chưa đầy đủ.',
     counterTip: 'Chỉ tính nhiệm vụ chưa hoàn thành; không tính sự kiện lịch đã diễn ra.',
-    displayed: 'hiển thị',
+    displayed: 'hiển thị', customize: 'Tùy chỉnh', doneCustomize: 'Xong',
   },
   en: {
     heading: 'Your command center', subtitle: 'Your schedule, priorities and work in one place.',
@@ -49,7 +51,7 @@ const TEXT = {
     latest: 'Data from', loadingNote: 'Refreshing', local: 'Current source',
     limited: 'The work source is capped. Some totals may be incomplete.',
     counterTip: 'Counts unfinished tasks only, not past calendar events.',
-    displayed: 'shown',
+    displayed: 'shown', customize: 'Customize', doneCustomize: 'Done',
   },
 };
 
@@ -74,13 +76,17 @@ function PriorityRow({ item, language, now, approval = false }) {
   );
 }
 
-export default function DashboardCommandCenter({ snapshot, todayEventCount, language = 'vi', now = new Date(), loading = false, onRefresh }) {
+export default function DashboardCommandCenter({ snapshot, todayEventCount, language = 'vi', now = new Date(), loading = false, onRefresh, layout: layoutInput, onChangeLayout, onFocusCalendar }) {
   const t = TEXT[language] || TEXT.vi;
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
   const [scope, setScope] = useState('all');
   const [visibleLimit, setVisibleLimit] = useState(8);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [editingLayout, setEditingLayout] = useState(false);
+  const layout = useMemo(() => normalizeDashboardLayout(layoutInput), [layoutInput]);
+  const sectionVisible = (id) => !layout.hiddenSections.includes(id);
+  const updateLayout = (transform) => onChangeLayout?.(transform);
   const queueRef = useRef(null);
   const stats = snapshot?.stats || {};
   const attention = snapshot?.attention || [];
@@ -99,6 +105,10 @@ export default function DashboardCommandCenter({ snapshot, todayEventCount, lang
       ? { id: 'approvals', label: t.approvals, value: count(stats.pendingApproval), tone: 'green', Icon: ShieldCheck, action: 'approvals' }
       : { id: 'notices', label: t.notices, value: count(stats.notifications), tone: 'green', Icon: Bell, action: 'notices' },
   ];
+  const availableIds = cards.map((card) => card.id);
+  const orderedCards = layout.cardOrder.map((id) => cards.find((card) => card.id === id)).filter(Boolean);
+  const visibleCards = orderedCards.filter((card) => !layout.hiddenCards.includes(card.id));
+  const cardsToRender = visibleCards.length ? visibleCards : orderedCards.slice(0, 1);
   const approvalItems = snapshot?.approvals || [];
   const filtered = useMemo(() => (filter === 'approvals' ? approvalItems : scopedAttention).filter((item) => {
     const belongs = filter === 'all' || filter === 'approvals' || getDashboardDueState(item.date, item.done, now) === filter;
@@ -113,13 +123,15 @@ export default function DashboardCommandCenter({ snapshot, todayEventCount, lang
   const resources = (snapshot?.recentResources || []).slice(0, 3);
   const homeroom = snapshot?.homeroom;
   const jumpToQueue = (next) => {
+    if (!sectionVisible('priority')) updateLayout((current) => setDashboardSectionVisible(current, 'priority', true));
     setFilter(next);
     setVisibleLimit(8);
     window.requestAnimationFrame(() => queueRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
   };
   const activate = (action) => {
     if (action === 'calendar') {
-      document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (onFocusCalendar) onFocusCalendar();
+      else document.querySelector('#dashboard-calendar')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else if (action === 'approvals') {
       jumpToQueue('approvals');
     } else if (action === 'notices') {
@@ -129,22 +141,28 @@ export default function DashboardCommandCenter({ snapshot, todayEventCount, lang
     }
   };
   return (
-    <section className="dcc-root" aria-label={t.heading}>
+    <section className={'dcc-root dcc-density--' + layout.density} aria-label={t.heading}>
       <div className="dcc-section-heading">
         <div className="dcc-heading-label"><span className="dcc-heading-mark"><LayoutDashboard size={18}/></span>
           <div><h2>{t.heading}</h2><p>{t.subtitle}</p></div>
         </div>
-        <button type="button" className="dcc-refresh" onClick={() => onRefresh?.()} disabled={loading}>
-          <Zap size={15} aria-hidden="true"/>{loading ? t.loading : t.retry}
-        </button>
+        <div className="dcc-header-actions">
+          <button type="button" className={'dcc-customize-trigger' + (editingLayout ? ' is-active' : '')} aria-expanded={editingLayout} onClick={() => setEditingLayout((value) => !value)}>
+            <SlidersHorizontal size={15} aria-hidden="true"/>{editingLayout ? t.doneCustomize : t.customize}
+          </button>
+          <button type="button" className="dcc-refresh" onClick={() => onRefresh?.()} disabled={loading}>
+            <Zap size={15} aria-hidden="true"/>{loading ? t.loading : t.retry}
+          </button>
+        </div>
       </div>
+      {editingLayout ? <DashboardLayoutEditor cards={cards} layout={layout} language={language} onChange={updateLayout}/> : null}
       <div className="dcc-sync-strip">
         <span><Database size={14} aria-hidden="true" />{loading ? t.loadingNote : t.latest} {lastUpdatedLabel}</span>
         <span className="dcc-source-chip" title={sourceName}>{t.local}: {sourceName.replaceAll('-', ' ')}</span>
       </div>
       {snapshot?.coverageLimited ? <div className="dcc-data-limited" role="status"><Info size={17} aria-hidden="true" />{t.limited}</div> : null}
-      <div className="dcc-stats">
-        {cards.map(({ id, label, value, tone, Icon, action }) => (
+      <div className="dcc-stats" data-visible-count={cardsToRender.length}>
+        {cardsToRender.map(({ id, label, value, tone, Icon, action }) => (
           <button className={'dcc-stat dcc-stat--' + tone} type="button" key={id} onClick={() => activate(action)} title={id === 'overdue' ? t.counterTip : undefined}>
             <span className="dcc-stat-top">
               <span className="dcc-stat-icon"><Icon size={22} strokeWidth={2.2}/></span>
@@ -166,8 +184,8 @@ export default function DashboardCommandCenter({ snapshot, todayEventCount, lang
           </button>
         ) : <div className="dcc-sidebar-empty">{language === 'vi' ? 'Chưa có thông báo chưa đọc.' : 'No unread notifications.'}</div>}
       </div> : null}
-      <div className="dcc-workspace">
-        <article className="dcc-panel dcc-priority" ref={queueRef}>
+      <div className={'dcc-workspace' + (!sectionVisible('priority') ? ' dcc-workspace--sidebar-only' : '') + (!sectionVisible('continue') && !sectionVisible('homeroom') ? ' dcc-workspace--single' : '')}>
+        {sectionVisible('priority') ? <article className="dcc-panel dcc-priority" ref={queueRef}>
           <header className="dcc-panel-header">
             <span className="dcc-panel-icon dcc-panel-icon--orange"><ClipboardList size={21}/></span>
             <div><h3>{t.priority}</h3><p>{t.queueSub}</p></div>
@@ -197,9 +215,9 @@ export default function DashboardCommandCenter({ snapshot, todayEventCount, lang
           <button className="dcc-panel-link" type="button" onClick={() => window.dispatchEvent(new CustomEvent('bes-ttcm-open', { detail: { view: 'feed' } }))}>
             {t.viewAll} <ArrowRight size={16}/>
           </button>
-        </article>
-        <div className="dcc-sidebar">
-          <article className="dcc-panel dcc-continue">
+        </article> : null}
+        {sectionVisible('continue') || sectionVisible('homeroom') ? <div className="dcc-sidebar">
+          {sectionVisible('continue') ? <article className="dcc-panel dcc-continue">
             <header className="dcc-panel-header">
               <span className="dcc-panel-icon dcc-panel-icon--blue"><Zap size={21}/></span>
               <div><h3>{t.continue}</h3><p>{t.continueSub}</p></div>
@@ -210,8 +228,8 @@ export default function DashboardCommandCenter({ snapshot, todayEventCount, lang
                 <span>{item.title}</span><ArrowRight size={15}/>
               </button>)}
             </div> : <div className="dcc-sidebar-empty"><FolderOpen size={19}/>{language === 'vi' ? 'Các ứng dụng đã sử dụng sẽ xuất hiện tại đây.' : 'Recently used apps will appear here.'}</div>}
-          </article>
-          {homeroom ? <article className="dcc-homeroom">
+          </article> : null}
+          {sectionVisible('homeroom') && homeroom ? <article className="dcc-homeroom">
             <div className="dcc-class-title"><span><Users size={22}/></span><div><small>{t.classroom}</small><strong>{homeroom.className}</strong></div></div>
             <div className="dcc-class-stats">
               <span><b>{count(homeroom.studentCount)}</b><small>{t.students}</small></span>
@@ -219,7 +237,7 @@ export default function DashboardCommandCenter({ snapshot, todayEventCount, lang
               <span><b>{count(homeroom.alerts)}</b><small>{t.alerts}</small></span>
             </div>
             <button type="button" onClick={() => goTo('#/homeroom')}>{t.viewClass}<ArrowRight size={16}/></button>
-          </article> : resources.length ? <article className="dcc-panel dcc-resources">
+          </article> : sectionVisible('homeroom') && resources.length ? <article className="dcc-panel dcc-resources">
             <header className="dcc-panel-header">
               <span className="dcc-panel-icon dcc-panel-icon--violet"><FolderOpen size={20}/></span>
               <div><h3>{t.resources}</h3></div>
@@ -228,7 +246,7 @@ export default function DashboardCommandCenter({ snapshot, todayEventCount, lang
               <FileText size={17}/><span>{item.title}</span><ArrowRight size={15}/>
             </button>)}
           </article> : null}
-        </div>
+        </div> : null}
       </div>
     </section>
   );

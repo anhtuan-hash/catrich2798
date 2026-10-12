@@ -1,0 +1,191 @@
+/* BRIAN Dashboard 2.3 — Accessible Colorful Bento personalization.
+   Fully scoped to Dashboard; no cross-application styling. */
+.app-shell[data-route="dashboard"] .dcc-header-actions {
+  display:flex;align-items:center;gap:9px;min-width:0;flex:0 0 auto;
+}
+.app-shell[data-route="dashboard"] .dcc-customize-trigger {
+  display:flex;align-items:center;gap:7px;justify-content:center;min-height:37px;
+  padding:8px 12px;border:1px solid #c8dafa;border-radius:11px;
+  background:linear-gradient(110deg,#eaf3ff,#f7f0ff);color:#2659a5;
+  font-family:inherit;font-size:12px;font-weight:820;cursor:pointer;
+  transition:background .15s ease,box-shadow .15s ease;
+}
+.app-shell[data-route="dashboard"] .dcc-customize-trigger:hover,
+.app-shell[data-route="dashboard"] .dcc-customize-trigger.is-active {
+  border-color:#749cf1;background:#e0edff;box-shadow:0 4px 14px #2564be1e;
+}
+.app-shell[data-route="dashboard"] .dcc-customizer {
+  margin:0 0 16px;border:1px solid #bfdaff;border-radius:19px;
+  background:linear-gradient(144deg,#f4f9ff 0%,#fff 46%,#fbf8ff 100%);
+  color:#204264;box-shadow:0 13px 30px #1d5eb813;overflow:hidden;
+}
+.app-shell[data-route="dashboard"] .dcc-customizer-header {
+  display:flex;align-items:center;justify-content:space-between;gap:13px;
+  padding:19px 20px 16px;border-bottom:1px solid #dfebfa;
+  background:linear-gradient(90deg,#e7f1ff 0%,#effaf5 100%);
+}
+.app-shell[data-route="dashboard"] .dcc-customizer-header h3 {
+  margin:0 0 5px;font-size:17px;font-weight:900;letter-spacing:-.023em;
+  color:#163e73;
+}
+.app-shell[data-route="dashboard"] .dcc-customizer-header p {
+  margin:0;color:#567697;font-size:12px;line-height:1.45;
+}
+.app-shell[data-route="dashboard"] .dcc-reset-layout {
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:9px 11px;border-radius:10px;border:1px solid #c6ddf9;
+  background:#fff;color:#2a60aa;flex:0 0 auto;cursor:pointer;
+  font-size:11.5px;font-weight:800;min-height:35px;
+}
+.app-shell[data-route="dashboard"] .dcc-reset-layout:hover { background:#eaf3ff; }
+.app-shell[data-route="dashboard"] .dcc-customizer-grid {
+  display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.04fr);gap:21px;
+  padding:19px 21px 16px;
+}
+.app-shell[data-route="dashboard"] .dcc-customizer-col { min-width:0; }
+.app-shell[data-route="dashboard"] .dcc-customizer-col h4 {
+  margin:0 0 12px;color:#25466f;font-size:12.5px;font-weight:850;
+  letter-spacing:.015em;
+}
+.app-shell[data-route="dashboard"] .dcc-card-options { display:grid;gap:8px; }
+.app-shell[data-route="dashboard"] .dcc-card-option {
+  display:flex;align-items:center;gap:7px;min-width:0;min-height:46px;
+  padding:6px 8px;background:#fff;border:1px solid #dce7f7;border-radius:12px;
+  box-shadow:0 3px 12px #3567aa08;
+}
+.app-shell[data-route="dashboard"] .dcc-card-option-icon {
+  flex:0 0 30px;display:grid;place-items:center;width:30px;height:30px;
+  background:#e6f0ff;color:#3974d9;border-radius:9px;
+}
+.app-shell[data-route="dashboard"] .dcc-card-option-icon--coral { background:#ffede5;color:#df704b; }
+.app-shell[data-route="dashboard"] .dcc-card-option-icon--violet { background:#f1e9ff;color:#8055ce; }
+.app-shell[data-route="dashboard"] .dcc-card-option-icon--green { background:#e3f8ec;color:#079977; }
+.app-shell[data-route="dashboard"] .dcc-card-option-label {
+  flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:11.7px;font-weight:780;color:#365574;
+}
+.app-shell[data-route="dashboard"] .dcc-order-button {
+  display:grid;place-items:center;flex:0 0 28px;width:28px;height:28px;
+  background:#f1f6ff;border:1px solid #dfebfc;border-radius:8px;
+  color:#4b75b6;cursor:pointer;
+}
+.app-shell[data-route="dashboard"] .dcc-order-button:hover:not(:disabled) {
+  background:#e0edff;border-color:#8eb9f5;color:#175bb8;
+}
+.app-shell[data-route="dashboard"] .dcc-order-button:disabled { opacity:.3;cursor:default; }
+.app-shell[data-route="dashboard"] .dcc-visibility-button {
+  display:flex;align-items:center;justify-content:center;gap:5px;flex:0 0 auto;
+  min-width:65px;min-height:29px;padding:5px 7px;background:#f1f4f9;
+  color:#788da4;border:1px solid #dfe6ef;border-radius:8px;
+  font-size:11px;font-weight:760;cursor:pointer;
+}
+.app-shell[data-route="dashboard"] .dcc-visibility-button.is-visible {
+  background:#e2f7ef;border-color:#b6e7d5;color:#087e65;
+}
+.app-shell[data-route="dashboard"] .dcc-visibility-button:disabled { opacity:.62;cursor:default; }
+.app-shell[data-route="dashboard"] .dcc-section-options {
+  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
+}
+.app-shell[data-route="dashboard"] .dcc-section-option {
+  display:flex;align-items:center;gap:7px;min-width:0;min-height:38px;
+  padding:8px 10px;border:1px solid #e0e8f3;border-radius:10px;
+  background:#f3f6fa;color:#8092a8;text-align:left;
+  font-family:inherit;font-size:11.5px;font-weight:750;cursor:pointer;
+}
+.app-shell[data-route="dashboard"] .dcc-section-option.is-visible {
+  background:#edf7ff;border-color:#c8def7;color:#2b5c9f;
+}
+.app-shell[data-route="dashboard"] .dcc-section-icon {
+  display:grid;place-items:center;flex:0 0 20px;width:20px;height:20px;
+  color:#8696aa;background:#e2e8f0;border-radius:6px;
+}
+.app-shell[data-route="dashboard"] .dcc-section-option.is-visible .dcc-section-icon {
+  background:#d1efe5;color:#0c9b77;
+}
+.app-shell[data-route="dashboard"] .dcc-density-label { margin-top:18px!important; }
+.app-shell[data-route="dashboard"] .dcc-density-selector {
+  display:flex;gap:5px;padding:4px;border:1px solid #d7e5f6;
+  background:#edf3fb;border-radius:10px;width:max-content;
+}
+.app-shell[data-route="dashboard"] .dcc-density-selector button {
+  padding:7px 17px;min-height:30px;border:0;border-radius:8px;
+  background:transparent;color:#567594;cursor:pointer;
+  font-size:11.5px;font-weight:820;
+}
+.app-shell[data-route="dashboard"] .dcc-density-selector button.is-active {
+  background:#fff;color:#2562c5;box-shadow:0 3px 10px #2b63b61c;
+}
+.app-shell[data-route="dashboard"] .dcc-customizer-footnote {
+  display:flex;gap:8px;align-items:center;padding:10px 21px;
+  background:#f3f7fc;border-top:1px solid #e1eaf8;
+  color:#758aa4;font-size:10.5px;font-weight:640;
+}
+.app-shell[data-route="dashboard"] .dcc-root .dcc-customizer button:focus-visible {
+  outline:2px solid #3179e9;outline-offset:2px;
+}
+.app-shell[data-route="dashboard"] .dcc-stats[data-visible-count="1"] {
+  grid-template-columns:minmax(0,1fr);
+}
+.app-shell[data-route="dashboard"] .dcc-stats[data-visible-count="2"] {
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
+.app-shell[data-route="dashboard"] .dcc-stats[data-visible-count="3"] {
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+.app-shell[data-route="dashboard"] .dcc-workspace.dcc-workspace--single {
+  grid-template-columns:minmax(0,1fr);
+}
+.app-shell[data-route="dashboard"] .dcc-workspace.dcc-workspace--sidebar-only {
+  grid-template-columns:minmax(0,1fr);
+}
+.app-shell[data-route="dashboard"] .dcc-workspace--sidebar-only .dcc-sidebar {
+  grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;
+}
+.app-shell[data-route="dashboard"] .dcc-workspace--sidebar-only .dcc-sidebar:has(> :only-child) {
+  grid-template-columns:minmax(0,1fr);
+}
+.app-shell[data-route="dashboard"] .dcc-density--compact .dcc-stat {
+  min-height:112px;padding:11px 14px;border-radius:16px;
+}
+.app-shell[data-route="dashboard"] .dcc-density--compact .dcc-stat-number {
+  font-size:29px;margin-top:4px;
+}
+.app-shell[data-route="dashboard"] .dcc-density--compact .dcc-panel-header {
+  padding:12px 15px 7px;
+}
+.app-shell[data-route="dashboard"] .dcc-density--compact .dcc-priority-row {
+  padding:7px 7px;
+}
+.app-shell[data-route="dashboard"] .dcc-density--compact .dcc-workspace { gap:11px; }
+.app-shell[data-route="dashboard"] .dcc-density--compact .dcc-stats { gap:10px;margin-bottom:12px; }
+.app-shell[data-route="dashboard"] .dcc-density--compact .dcc-recent-list button { padding:6px 8px; }
+@media (max-width:1000px) {
+  .app-shell[data-route="dashboard"] .dcc-customizer-grid { gap:13px;padding:15px; }
+  .app-shell[data-route="dashboard"] .dcc-card-option { gap:5px;padding:5px; }
+  .app-shell[data-route="dashboard"] .dcc-section-options { gap:6px; }
+}
+@media (max-width:800px) {
+  .app-shell[data-route="dashboard"] .dcc-customizer-grid { grid-template-columns:minmax(0,1fr); }
+}
+@media (max-width:640px) {
+  .app-shell[data-route="dashboard"] .dcc-section-heading { gap:6px; }
+  .app-shell[data-route="dashboard"] .dcc-header-actions { gap:5px; }
+  .app-shell[data-route="dashboard"] .dcc-customize-trigger { padding:8px;font-size:10px; }
+  .app-shell[data-route="dashboard"] .dcc-refresh { padding:8px; }
+  .app-shell[data-route="dashboard"] .dcc-customizer-header {
+    align-items:flex-start;flex-direction:column;padding:14px;gap:10px;
+  }
+  .app-shell[data-route="dashboard"] .dcc-customizer-header p { font-size:11px; }
+  .app-shell[data-route="dashboard"] .dcc-customizer-grid { padding:12px;gap:18px; }
+  .app-shell[data-route="dashboard"] .dcc-customizer-footnote { padding:10px 12px; }
+  .app-shell[data-route="dashboard"] .dcc-stats[data-visible-count="3"] { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .app-shell[data-route="dashboard"] .dcc-workspace--sidebar-only .dcc-sidebar { grid-template-columns:1fr; }
+}
+@media (max-width:360px) {
+  .app-shell[data-route="dashboard"] .dcc-card-option { flex-wrap:wrap; }
+  .app-shell[data-route="dashboard"] .dcc-card-option-label { min-width:calc(100% - 42px); }
+  .app-shell[data-route="dashboard"] .dcc-section-options { grid-template-columns:1fr; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .app-shell[data-route="dashboard"] .dcc-customize-trigger { transition:none!important; }
+}
