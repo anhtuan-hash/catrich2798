@@ -17,9 +17,10 @@ test('three utility icons follow attendance with working notification and deadli
         <span class="brian-nav__reports-countdown">2ng 03:24</span></span></button></div>
      <div class="brian-nav__utility-slot brian-nav__utility-ttcm" data-nav-key="ttcm">
       <button aria-label="TTCM" class="brian-nav__ttcm-tab"><svg viewBox="0 0 24 24"></svg><span>TTCM</span><b class="brian-nav__ttcm-badge">3</b></button></div>
-     <button aria-label="Quản trị" class="brian-nav__utility-admin-icon" data-nav-key="admin"><svg viewBox="0 0 24 24"></svg></button>
+     <button aria-label="Quản trị" class="brian-nav__utility-admin-icon" data-nav-key="admin"><span class="brian-nav__admin-glyph" aria-hidden="true">⚙</span></button>
     </div><button class="brian-nav__account">Tài khoản</button>
    </nav></div></div></div>`);
+  await page.addStyleTag({path:'src/components/GlobalNavigationTextOnlyCompact.css'});
   await page.addStyleTag({path:'src/components/GlobalNavigationUtilityIcons.css'});
   await expect(page.locator('.brian-nav__utilities-trigger')).toHaveCount(0);
   const icons=page.locator('.brian-nav__primary > :is(.brian-nav__utility-slot,.brian-nav__utility-admin-icon)');
@@ -27,8 +28,21 @@ test('three utility icons follow attendance with working notification and deadli
   await expect(page.getByRole('button',{name:/Báo cáo/})).toBeVisible();
   await expect(page.getByRole('button',{name:'TTCM'})).toBeVisible();
   await expect(page.getByRole('button',{name:'Quản trị'})).toBeVisible();
+  const adminGlyph=page.locator('.brian-nav__admin-glyph');
+  await expect(adminGlyph).toBeVisible();
+  await expect(adminGlyph).toHaveCSS('font-size','24px');
+  await expect(adminGlyph).toHaveText('⚙');
   await expect(page.locator('.brian-nav__ttcm-badge')).toHaveText('3');
   await expect(page.locator('.brian-nav__reports-countdown')).toHaveText('2ng 03:24');
+  // A missing deadline is a visible neutral status, not an invented countdown.
+  await page.locator('.brian-nav__reports-tab').evaluate(button=>{
+    button.classList.add('is-deadline-unset');
+    button.setAttribute('aria-label','Báo cáo · Chưa đặt hạn');
+    button.setAttribute('data-deadline-status','unset');
+    button.querySelector('.brian-nav__reports-countdown').textContent='—';
+  });
+  await expect(page.locator('.brian-nav__reports-countdown')).toHaveText('—');
+  await expect(page.locator('.brian-nav__reports-tab')).toHaveAttribute('data-deadline-status','unset');
   const result=await page.evaluate(()=>[...document.querySelectorAll('.brian-nav__primary > [data-nav-key]')].map(el=>({key:el.dataset.navKey,left:el.getBoundingClientRect().left})));
   for(const [p,n] of [['attendance','reports'],['reports','ttcm'],['ttcm','admin']])
    expect(result.find(x=>x.key===n).left).toBeGreaterThan(result.find(x=>x.key===p).left);

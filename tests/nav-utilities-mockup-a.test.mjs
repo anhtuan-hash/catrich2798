@@ -12,6 +12,8 @@ test('three accessible icons replace Utilities dropdown without changing destina
   assert.ok(nav.includes('brian-nav__utility-reports')&&nav.includes('brian-nav__utility-ttcm'));
   assert.ok(nav.includes('brian-nav__utility-admin-icon')&&nav.includes('isAdmin ?'));
   assert.ok(nav.includes("openRoute('#/admin', t.admin, event)"));
+  assert.ok(nav.includes('brian-nav__admin-glyph'));
+  assert.ok(!nav.includes('<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor"'));
   assert.ok(!nav.includes('brian-nav__utilities-trigger'));
   assert.ok(!nav.includes('brian-nav-utilities-popover'));
   assert.ok(frame.includes("import './GlobalNavigationUtilityIcons.css'"));
@@ -25,6 +27,10 @@ test('existing countdown, notifications, TTCM modals, permission gates and atten
   assert.ok(reports.includes("target: '#/tool/brian-team'"));
   assert.ok(reports.includes('loadMonthlyReportDeadline'));
   assert.ok(reports.includes('window.setInterval(() => setNow(Date.now()), 1000)'));
+  assert.ok(reports.includes("deadlineStatus = !countdown.active ? 'unset'"));
+  assert.ok(reports.includes("const showCountdownUnderLabel = true;"));
+  assert.ok(reports.includes('data-deadline-status={deadlineStatus}'));
+  assert.ok(reports.includes('compactCountdown(countdown, language)'));
   assert.ok(ttcm.includes("document.querySelector('.brian-nav__utility-ttcm')"));
   assert.ok(ttcm.includes('brian-nav__ttcm-badge'));
   assert.ok(ttcm.includes('const tab = createPortal('));
@@ -38,5 +44,8 @@ test('icon CSS leaves overlay dialogs alone and preserves the live status indica
   assert.ok(css.includes('brian-nav__reports-countdown'));
   assert.ok(css.includes('brian-nav__ttcm-badge'));
   assert.ok(css.includes('brian-nav__utility-badge'));
+  assert.ok(css.includes('.brian-nav__admin-glyph'));
+  assert.ok(css.includes('is-deadline-unset'));
+  assert.ok(css.includes('is-deadline-expired'));
   assert.doesNotMatch(css,/\.ttcm-m3-layer\s*\{|\.attendance-layer\s*\{/);
 });
