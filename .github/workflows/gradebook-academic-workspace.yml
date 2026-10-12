@@ -8,6 +8,8 @@ on:
       - 'src/styles/GradebookAcademicWorkspace.css'
       - 'tests/gradebook-academic-workspace.test.mjs'
       - 'tests/gradebook-permanent-palette.test.mjs'
+      - 'tests/gradebook-visual-defects.test.mjs'
+      - 'tests/e2e/gradebook-visual-defects.spec.js'
       - 'tests/e2e/gradebook-permanent-palette.spec.js'
       - 'tests/gradebook-approved-v2.test.mjs'
       - 'tests/gradebook-approved-mockup-4.test.mjs'
@@ -22,6 +24,8 @@ on:
       - 'src/styles/GradebookAcademicWorkspace.css'
       - 'tests/gradebook-academic-workspace.test.mjs'
       - 'tests/gradebook-permanent-palette.test.mjs'
+      - 'tests/gradebook-visual-defects.test.mjs'
+      - 'tests/e2e/gradebook-visual-defects.spec.js'
       - 'tests/e2e/gradebook-permanent-palette.spec.js'
 jobs:
   gradebook:
@@ -36,7 +40,7 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Gradebook behavior, table, navigation isolation and legacy regression checks
         run: |
-          node --test tests/gradebook-academic-workspace.test.mjs tests/gradebook-permanent-palette.test.mjs tests/gradebook-approved-v2.test.mjs tests/gradebook-approved-mockup-4.test.mjs
+          node --test tests/gradebook-academic-workspace.test.mjs tests/gradebook-permanent-palette.test.mjs tests/gradebook-approved-v2.test.mjs tests/gradebook-approved-mockup-4.test.mjs tests/gradebook-visual-defects.test.mjs
           node scripts/test-gradebook-colorful-hero-v1.mjs
           node scripts/test-gradebook-colorful-workspace-v1.mjs
           node scripts/test-gradebook-migration-state.mjs
@@ -45,4 +49,4 @@ jobs:
       - name: Install browser for table layout checks
         run: npx playwright install --with-deps chromium
       - name: Browser geometry check (390px, 620px, 980px, 1440px)
-        run: npx playwright test tests/e2e/gradebook-academic-geometry.spec.js tests/e2e/gradebook-permanent-palette.spec.js --project=chromium-desktop
+        run: npx playwright test tests/e2e/gradebook-academic-geometry.spec.js tests/e2e/gradebook-permanent-palette.spec.js tests/e2e/gradebook-visual-defects.spec.js --project=chromium-desktop

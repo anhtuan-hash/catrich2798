@@ -857,3 +857,335 @@
     justify-content:flex-end;
   }
 }
+
+/* === Gradebook visual defect fixes · 2026-10-12 ===
+   Fix legacy important gradients/sizing without touching shared navigation/footer.
+   Tools are a compact disclosure; exports and score inputs keep their actual actions. */
+#root .gradebook-studio .hr-gradebook .gb-grade-tools{
+  display:block!important;
+  position:relative!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:visible!important;
+  border:1px solid #e0e8f3!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  box-shadow:none!important;
+}
+#root .gradebook-studio .gb-grade-tools::before,
+#root .gradebook-studio .gb-grade-tools::after{display:none!important;content:none!important}
+#root .gradebook-studio .gb-grade-tools-trigger{
+  display:flex;
+  align-items:center;
+  width:100%;
+  min-height:47px;
+  padding:9px 14px;
+  gap:10px;
+  list-style:none;
+  cursor:pointer;
+}
+#root .gradebook-studio .gb-grade-tools-trigger::-webkit-details-marker{display:none}
+#root .gradebook-studio .gb-grade-tools-trigger .hr-grade-title-icon{
+  flex:0 0 31px!important;
+  display:grid!important;
+  place-items:center!important;
+  width:31px!important;
+  height:31px!important;
+  min-height:31px!important;
+  border-radius:9px!important;
+  background:#edf4ff!important;
+  color:#2966bd!important;
+}
+#root .gradebook-studio .gb-grade-tools-trigger .hr-grade-title-icon svg{
+  width:18px!important;height:18px!important;min-width:0!important;
+  fill:none!important;stroke:#2966bd!important;stroke-width:1.7!important;
+}
+#root .gradebook-studio .gb-grade-tools-heading{
+  display:flex;
+  flex:1 1 auto;
+  flex-direction:column;
+  gap:2px;
+  min-width:0;
+}
+#root .gradebook-studio .gb-grade-tools-heading strong{
+  color:#254a78;
+  font-size:12px;
+  font-weight:790;
+  line-height:1.25;
+}
+#root .gradebook-studio .gb-grade-tools-heading small{
+  color:#8597aa;
+  font-size:10px;
+  line-height:1.25;
+}
+#root .gradebook-studio .gb-grade-tools-chevron{
+  display:grid;
+  place-items:center;
+  flex:0 0 28px;
+  height:28px;
+  border-radius:8px;
+  color:#6182a7;
+  background:#f4f7fb;
+  font-size:19px;
+  transition:transform .16s ease;
+}
+#root .gradebook-studio .gb-grade-tools[open] .gb-grade-tools-chevron{transform:rotate(180deg)}
+#root .gradebook-studio .gb-grade-tools-content{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:10px!important;
+  padding:11px 14px 14px!important;
+  border-top:1px solid #edf1f7;
+}
+#root .gradebook-studio .gb-grade-tools-content .hr-grade-controls{
+  display:block!important;
+  width:100%!important;
+}
+#root .gradebook-studio .gb-grade-tools-content .gbv2-manage-subject{
+  position:relative!important;
+  width:100%!important;
+}
+#root .gradebook-studio .gb-grade-tools-content .gbv2-manage-subject>summary{
+  display:inline-flex!important;
+  padding:8px 11px!important;
+  border-radius:8px!important;
+  font-size:11px!important;
+}
+#root .gradebook-studio .gb-grade-tools-content .gbv2-manage-content{
+  position:static!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  margin-top:9px!important;
+  box-shadow:none!important;
+  border-color:#e2eaf4!important;
+}
+#root .gradebook-studio .gb-grade-tools-content .gbv2-formula-details{
+  order:0!important;
+  display:block!important;
+  margin:0!important;
+  width:100%!important;
+}
+#root .gradebook-studio .gb-grade-tools-content .hr-grade-formula{
+  min-height:0!important;
+  grid-template-columns:33px minmax(0,1fr)!important;
+}
+#root .gradebook-studio .gb-grade-tools-content .hr-grade-formula>span{
+  width:33px!important;height:33px!important;
+}
+/* Permanent tabs: intentional rows, not one orphaned 'Tổng hợp' item. */
+@media(max-width:1150px){
+  #root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock.is-always-visible>.hr-grade-navigation{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    align-items:start!important;
+    gap:10px!important;
+    min-height:0!important;
+    padding:12px!important;
+  }
+  #root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock.is-always-visible .hr-grade-semesters{
+    display:flex!important;
+    width:100%!important;
+    justify-content:flex-start!important;
+    overflow:visible!important;
+  }
+  #root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock.is-always-visible .hr-grade-views{
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    gap:6px!important;
+    flex:none!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    overflow:visible!important;
+  }
+  #root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock.is-always-visible .hr-grade-views button{
+    display:flex!important;
+    justify-content:center!important;
+    width:100%!important;
+    min-width:0!important;
+    min-height:34px!important;
+    padding:5px 7px!important;
+    font-size:11px!important;
+    white-space:nowrap!important;
+  }
+  #root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock.is-always-visible .hr-grade-save-actions{
+    display:flex!important;
+    width:100%!important;
+    justify-content:flex-end!important;
+    flex-wrap:wrap!important;
+    margin:0!important;
+    gap:8px!important;
+    overflow:visible!important;
+  }
+}
+@media(max-width:430px){
+  #root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock.is-always-visible .hr-grade-views{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}
+/* Score panel: compact heading, readable columns and no decorative gradient. */
+#root .gradebook-studio .hr-gradebook .hr-grade-panel{
+  border:1px solid #dbe5f2!important;
+  border-radius:14px!important;
+  background:#fff!important;
+  box-shadow:0 5px 14px rgba(32,75,116,.045)!important;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-panel-head{
+  min-height:0!important;
+  height:auto!important;
+  padding:14px 16px!important;
+  border-bottom:1px solid #e3eaf4!important;
+  background:#f9fbff!important;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-panel-head h2{
+  font-size:17px!important;
+  line-height:1.25!important;
+  margin:3px 0!important;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-panel-head p{
+  font-size:11px!important;
+  line-height:1.42!important;
+  color:#6c7e98!important;
+  max-width:400px;
+}
+/* Export defect: cap vector dimensions and remove the massive old gradient panel. */
+#root .gradebook-studio .hr-gradebook .hr-grade-export-bar{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  flex-wrap:wrap!important;
+  position:relative!important;
+  overflow:visible!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:76px!important;
+  max-height:none!important;
+  padding:13px 16px!important;
+  margin:0!important;
+  gap:12px 18px!important;
+  border:1px solid #dce6f0!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  box-shadow:0 3px 12px rgba(24,61,97,.035)!important;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-export-bar::before,
+#root .gradebook-studio .hr-gradebook .hr-grade-export-bar::after{
+  content:none!important;
+  display:none!important;
+  height:0!important;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-export-copy{
+  display:flex!important;
+  align-items:center!important;
+  flex:1 1 285px!important;
+  width:auto!important;
+  min-width:0!important;
+  gap:12px!important;
+  padding:0!important;
+  margin:0!important;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-export-copy>.hr-grade-export-icon{
+  display:grid!important;
+  place-items:center!important;
+  position:relative!important;
+  flex:0 0 39px!important;
+  width:39px!important;
+  height:39px!important;
+  min-width:39px!important;
+  min-height:39px!important;
+  max-width:39px!important;
+  max-height:39px!important;
+  padding:0!important;
+  margin:0!important;
+  overflow:hidden!important;
+  border:0!important;
+  border-radius:10px!important;
+  background:#e6f6ee!important;
+  color:#1e885a!important;
+  font-size:0!important;
+  letter-spacing:normal!important;
+  line-height:1!important;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-export-icon>svg{
+  display:block!important;
+  box-sizing:border-box!important;
+  position:static!important;
+  flex:none!important;
+  width:20px!important;
+  height:20px!important;
+  min-width:20px!important;
+  min-height:20px!important;
+  max-width:20px!important;
+  max-height:20px!important;
+  fill:none!important;
+  stroke:#1e885a!important;
+  stroke-width:1.8!important;
+  stroke-linecap:round!important;
+  stroke-linejoin:round!important;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-export-icon>svg path{
+  fill:none!important;
+  stroke:#1e885a!important;
+  stroke-width:1.8!important;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-export-copy>div{
+  display:block!important;
+  flex:1 1 auto!important;
+  min-width:0!important;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-export-copy>div>span{
+  font-size:9px!important;
+  font-weight:800!important;
+  color:#4f9273!important;
+  letter-spacing:.085em!important;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-export-copy h3{
+  margin:3px 0!important;
+  font-size:15px!important;
+  line-height:1.25!important;
+  color:#284b68!important;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-export-copy p{
+  margin:0!important;
+  font-size:10px!important;
+  line-height:1.4!important;
+  color:#7c91a3!important;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-export-actions{
+  display:flex!important;
+  flex:0 1 auto!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  flex-wrap:wrap!important;
+  width:auto!important;
+  min-width:0!important;
+  gap:8px!important;
+  margin:0!important;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-export-actions button{
+  width:auto!important;
+  min-width:0!important;
+  min-height:36px!important;
+  padding:8px 12px!important;
+  border-radius:9px!important;
+  font-size:11px!important;
+  white-space:normal!important;
+}
+@media(max-width:790px){
+  #root .gradebook-studio .hr-gradebook .hr-grade-export-bar{align-items:stretch!important}
+  #root .gradebook-studio .hr-gradebook .hr-grade-export-actions{
+    flex:1 1 100%!important;
+    width:100%!important;
+    justify-content:flex-start!important;
+  }
+}
+/* Report dialogs retain their original portal flow; never clip their controls. */
+#root .gradebook-studio .hr-grade-export-dialog svg{
+  max-width:24px;
+  max-height:24px;
+}
