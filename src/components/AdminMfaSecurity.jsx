@@ -12,6 +12,10 @@ export default function AdminMfaSecurity({ user, route, language = 'vi' }) {
   const [state, setState] = useState({ loading: true, currentLevel: '', nextLevel: '', factors: [], webauthnFactors: [], error: '' });
   const [touchIdAvailable, setTouchIdAvailable] = useState(false);
   const webauthnApi = supabase?.auth?.mfa?.webauthn;
+  // Hosted Supabase currently rejects MFA WebAuthn enrollment with HTTP 422:
+  // 'Enabling of MFA with Webauthn not currently supported'. Keep it unavailable
+  // by default until the Auth backend supports enrollment AND verification.
+  const webauthnMfaEnabled = import.meta.env.VITE_WEB_AUTHN_MFA_ENABLED === 'true';
 
   useEffect(() => {
     let active = true;
@@ -119,7 +123,7 @@ export default function AdminMfaSecurity({ user, route, language = 'vi' }) {
   };
 
   const verifyTouchId = async () => {
-    if (busy || !touchIdAvailable || !webauthnApi || typeof webauthnApi.authenticate !== 'function') return;
+    if (busy || !webauthnMfaEnabled || !touchIdAvailable || !webauthnApi || typeof webauthnApi.authenticate !== 'function') return;
     const factor = state.webauthnFactors[0];
     if (!factor) return;
     setBusy(true);
@@ -144,7 +148,7 @@ export default function AdminMfaSecurity({ user, route, language = 'vi' }) {
   };
 
   const registerTouchId = async () => {
-    if (busy) return;
+    if (busy || !webauthnMfaEnabled) return;
     setFeedback('');
     if (!canonicalOrigin) {
       setFeedback(vi ? 'Đăng ký Touch ID tại tên miền chính esl-brian.vercel.app, không dùng địa chỉ preview.' : 'Enroll Touch ID only on esl-brian.vercel.app, not a preview deployment.');
@@ -254,7 +258,7 @@ export default function AdminMfaSecurity({ user, route, language = 'vi' }) {
         <p>{state.loading ? (vi ? 'Đang kiểm tra phiên bảo mật…' : 'Checking security session…') : state.error || (state.webauthnFactors.length ? (vi ? 'Dùng Touch ID để xác thực mà không nhập mã, hoặc dùng mã 6 số dự phòng.' : 'Use Touch ID without typing a code, or fall back to a six-digit code.') : (vi ? 'Nhập mã từ ứng dụng xác thực để tiếp tục sử dụng BRIAN.' : 'Enter the code from your authenticator app to continue.'))}</p>
         {needsVerification && !state.error ? (
           <>
-          {state.webauthnFactors.length > 0 && touchIdAvailable && typeof webauthnApi?.authenticate === 'function' ? (
+          {webauthnMfaEnabled && state.webauthnFactors.length > 0 && touchIdAvailable && typeof webauthnApi?.authenticate === 'function' ? (
             <button type="button" className="bes-mfa-touchid-action" onClick={() => { void verifyTouchId(); }} disabled={busy}>
               {busy ? (vi ? 'Đang xác thực…' : 'Verifying…') : (vi ? 'Xác thực bằng Touch ID' : 'Verify with Touch ID')}
             </button>
@@ -301,18 +305,18 @@ export default function AdminMfaSecurity({ user, route, language = 'vi' }) {
         <div><span>{vi ? 'BẢO MẬT TÀI KHOẢN' : 'ACCOUNT SECURITY'}</span><h3>{vi ? 'Xác thực hai lớp (MFA)' : 'Two-factor authentication (MFA)'}</h3></div>
         <strong className={state.factors.length ? 'enabled' : 'disabled'}>{state.factors.length ? (vi ? 'Đã bật' : 'Enabled') : (vi ? 'Chưa bật' : 'Not enabled')}</strong>
       </div>
-      <p>{vi ? 'Đăng ký Touch ID để xác minh trực tiếp bằng vân tay trên Mac, không phải nhập mã 6 số. Mã từ ứng dụng xác thực vẫn là phương án dự phòng.' : 'Register Touch ID to verify directly with your Mac fingerprint, without typing a six-digit code. Your authenticator remains a backup.'}</p>
+      <p>{vi ? 'Mã xác thực 6 chữ số đang bảo vệ tài khoản quản trị. Xác thực vân tay trực tiếp hiện chưa được Supabase hỗ trợ làm yếu tố MFA thứ hai.' : 'Six-digit codes currently protect administrator accounts. Direct fingerprint verification as a second MFA factor is not yet supported by Supabase.'}</p>
       <div className="bes-mfa-touchid-settings">
         <strong>{vi ? 'Touch ID / WebAuthn' : 'Touch ID / WebAuthn'}</strong>
         <span>{state.webauthnFactors.length
           ? (vi ? 'Đã đăng ký thiết bị sinh trắc học' : 'Biometric authenticator enrolled')
-          : (vi ? 'Chưa đăng ký' : 'Not enrolled')}</span>
-        <button type="button" disabled={busy || state.loading || Boolean(state.error) || !touchIdAvailable || !canonicalOrigin} onClick={() => { void registerTouchId(); }}>
-          {busy ? (vi ? 'Đang thiết lập…' : 'Working…') : (vi ? 'Thiết lập Touch ID' : 'Set up Touch ID')}
+          : (vi ? 'Chưa khả dụng' : 'Not available')}</span>
+        <button type="button" disabled={!webauthnMfaEnabled || busy || state.loading || Boolean(state.error) || !touchIdAvailable || !canonicalOrigin} onClick={() => { void registerTouchId(); }}>
+          {busy ? (vi ? 'Đang thiết lập…' : 'Working…') : (webauthnMfaEnabled ? (vi ? 'Thiết lập Touch ID' : 'Set up Touch ID') : (vi ? 'Touch ID chưa được hỗ trợ' : 'Touch ID not yet supported'))}
         </button>
         {!canonicalOrigin ? <small>{vi ? 'Hãy dùng https://esl-brian.vercel.app để đăng ký thiết bị.' : 'Use https://esl-brian.vercel.app to enroll.'}</small> : null}
         {!touchIdAvailable ? <small>{vi ? 'Trình duyệt hoặc thiết bị này không báo hỗ trợ Touch ID. Hãy thử Safari trên Mac có Touch ID.' : 'Touch ID is not available here. Try Safari on a compatible Mac.'}</small> : null}
-        <small>{vi ? 'WebAuthn MFA đang ở giai đoạn thử nghiệm. Nếu Supabase chưa bật chức năng này, hệ thống sẽ giữ nguyên xác thực mã 6 số.' : 'WebAuthn MFA is experimental. If Supabase has not enabled it, six-digit verification remains available.'}</small>
+        <small>{vi ? 'Supabase đã trả lỗi: "Enabling of MFA with Webauthn not currently supported". Không có thao tác Terminal nào khắc phục được giới hạn này. Passkeys đăng nhập là cơ chế khác và không thay thế phiên MFA mức aal2. TOTP vẫn hoạt động bình thường.' : 'Supabase reports: "Enabling of MFA with Webauthn not currently supported". This cannot be fixed with another Terminal command. Login passkeys do not replace an AAL2 MFA session. TOTP remains available.'}</small>
       </div>
       <p className="bes-mfa-warning">{vi ? 'Supabase không cấp mã khôi phục. Hãy chuẩn bị thêm một thiết bị xác thực dự phòng sau khi kích hoạt; nếu mất toàn bộ thiết bị, cần trợ giúp từ người quản trị Supabase.' : 'Supabase does not issue recovery codes. Add a backup device after setup; if all factors are lost, Supabase project administration is required.'}</p>
       {state.factors.length || state.webauthnFactors.length ? <small>{vi ? 'Thiết bị đã xác minh: ' : 'Verified authenticators: '}{state.factors.length + state.webauthnFactors.length}</small> : null}
