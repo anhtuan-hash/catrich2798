@@ -58,7 +58,7 @@ for (const name of ['DashboardDailyBrief','DashboardInsights','DashboardMonthCal
  assert.ok(page.includes('<'+name) || name==='DashboardMonthCalendar' && page.includes('<'+name),'Missing '+name);
 }
 assert.ok(page.includes("calendarRange === 'month'"),'Month mode');
-assert.ok(page.includes('calendarCoverage={snapshot.calendarCoverage}'),'Calendar coverage disclaimer');
+assert.ok(page.includes('coverage={snapshot.calendarCoverage}'),'Calendar coverage disclaimer');
 assert.ok(aggregator.includes('calendarWindow(now)'),'Monthly backend window');
 assert.ok(aggregator.includes("item.schedule || !item.done"),'Completed calendar events remain visible');
 assert.match(aggregator,/coverageLimited: Boolean\(workResult\.limited\)/);
