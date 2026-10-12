@@ -30,7 +30,7 @@ const VIEWS = [
 ];
 
 function GradebookUiIcon({ type }) {
-  const common = { viewBox: '0 0 24 24', focusable: 'false', 'aria-hidden': 'true' };
+  const common = { viewBox: '0 0 24 24', focusable: 'false', 'aria-hidden': 'true', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' };
   if (type === 'book') return <svg {...common}><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v16H6.5A2.5 2.5 0 0 0 4 21V5.5Z" /><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v16h4.5A2.5 2.5 0 0 1 20 21V5.5Z" /></svg>;
   if (type === 'students') return <svg {...common}><circle cx="9" cy="8" r="3" /><circle cx="16.5" cy="9" r="2.5" /><path d="M3.5 19c.5-4 2.7-6 5.5-6s5 2 5.5 6" /><path d="M13 19c.3-3 1.8-4.6 4-4.6 2 0 3.5 1.6 3.9 4.6" /></svg>;
   if (type === 'document') return <svg {...common}><path d="M6 3h8l4 4v14H6Z" /><path d="M14 3v5h5M9 12h6M9 16h6" /></svg>;
@@ -347,7 +347,8 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const [activeSubjectKey, setActiveSubjectKey] = useState(() => normalizeGradebook(workspace.learningGradebook, workspace.learningRecords).activeSubject);
   const [semesterId, setSemesterId] = useState('semester1');
   const [view, setView] = useState('regular-0');
-  const [showFullRoster, setShowFullRoster] = useState(false);
+  // Regular class sizes show every student immediately; very large rosters start compact.
+  const [showFullRoster, setShowFullRoster] = useState(() => students.length <= 45);
   const [newSubject, setNewSubject] = useState('');
   const [dirty, setDirty] = useState(false);
   const [exportDialogMode, setExportDialogMode] = useState('');
@@ -362,6 +363,10 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     setGradebook(normalized);
     setActiveSubjectKey((current) => normalized.subjects[current] ? current : normalized.activeSubject);
   }, [workspace.learningGradebook, workspace.learningRecords, workspace.id, dirty]);
+
+  useEffect(() => {
+    setShowFullRoster(students.length <= 45);
+  }, [workspace.id, students.length]);
 
   const subjectEntries = useMemo(
     () => Object.entries(gradebook.subjects || {}).sort(([, a], [, b]) => a.name.localeCompare(b.name, 'vi')),
@@ -822,10 +827,10 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       dirty={dirty}
     />
 
-    <div className="gbv2-save-strip" role="status" aria-live="polite">
+    {dirty ? <div className="gbv2-save-strip" role="status" aria-live="polite">
       <span>{dirty ? 'Bạn có thay đổi chưa lưu' : 'Dữ liệu điểm đã được lưu'} · {activeSubject?.name || 'Môn học'} · {semesterLabel}</span>
       <div><button type="button" className="secondary" disabled={!dirty} onClick={discard}>Hoàn tác</button><button type="button" className="primary" disabled={!dirty} onClick={save}>Lưu điểm</button></div>
-    </div>
+    </div> : null}
 
     <section className="hr-panel hr-grade-export-bar" aria-labelledby="hr-grade-export-title">
       <div className="hr-grade-export-copy">

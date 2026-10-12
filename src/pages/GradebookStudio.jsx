@@ -473,6 +473,12 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
       </div>
       <div className="gb-academic-class-row">
         <span className="gb-academic-section-label">{vi ? 'LỚP ĐANG MỞ' : 'ACTIVE CLASS'}</span>
+        {activeClasses.length > 12 ? <div className="gb-m3-class-jump">
+          <label htmlFor="gb-m3-quick-class">Chuyển nhanh đến lớp</label>
+          <select id="gb-m3-quick-class" value={workspaceId} onChange={(event) => setWorkspaceId(event.target.value)} disabled={saving} aria-label="Chuyển nhanh đến lớp">
+            {activeClasses.map((item) => <option key={item.id} value={item.id}>{classLabel(item)}</option>)}
+          </select>
+        </div> : null}
         <div className="gb-academic-class-list" role="group" aria-label="Chọn lớp Sổ điểm">
           {activeClasses.length ? activeClasses.map((item) => (
             <button key={item.id} type="button" className={item.id === workspaceId ? 'is-active' : ''} aria-pressed={item.id === workspaceId} disabled={saving} onClick={() => setWorkspaceId(item.id)} title={classLabel(item)}>{item.className || classLabel(item)}</button>

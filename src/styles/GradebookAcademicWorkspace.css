@@ -1763,3 +1763,134 @@
   #root .gradebook-studio .gb-academic-class-list button{min-width:62px;padding:8px 10px}
   #root .gradebook-studio .hr-grade-overview article strong{font-size:23px}
 }
+
+/* Material 3 final density and focus pass:
+   Layout changes are scoped to the active Gradebook stylesheet, not another
+   competing visual override or a change to global site chrome. */
+#root .gradebook-studio .gb-academic-heading p{
+  display:block;
+  font-size:14px;
+  font-weight:570;
+  color:#49648b;
+  max-width:430px;
+  line-height:1.48;
+}
+#root .gradebook-studio .gb-academic-class-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:6px 12px;
+}
+#root .gradebook-studio .gb-academic-section-label{
+  grid-column:1;
+  margin-bottom:0;
+}
+#root .gradebook-studio .gb-academic-class-list{
+  grid-column:1/-1;
+  padding:4px 1px 7px;
+}
+#root .gradebook-studio .gb-m3-class-jump{
+  grid-column:2;grid-row:1;
+  display:flex;
+  align-items:center;
+  gap:9px;
+  min-width:0;
+}
+#root .gradebook-studio .gb-m3-class-jump label{
+  color:#607da3;
+  font-size:11px;
+  font-weight:740;
+}
+#root .gradebook-studio .gb-m3-class-jump select{
+  min-height:39px;
+  min-width:125px;
+  max-width:190px;
+  padding:7px 30px 7px 11px;
+  background:#fff;
+  color:#2b568c;
+  border:1px solid #cdddf4;
+  border-radius:11px;
+  font-size:12px;
+  font-weight:710;
+}
+#root .gradebook-studio .hr-grade-overview .hr-grade-overview-icon svg,
+#root .gradebook-studio .gb-grade-tools .hr-grade-title-icon svg,
+#root .gradebook-studio .hr-grade-panel .hr-grade-panel-icon svg,
+#root .gradebook-studio .hr-grade-export-icon svg{
+  fill:none;
+  stroke:currentColor;
+  stroke-width:1.8px;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  width:25px;
+  height:25px;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock.is-always-visible .hr-grade-views button{
+  min-height:43px;
+  padding:10px 9px;
+  font-size:12px;
+  font-weight:790;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock.is-always-visible .hr-grade-views button.active{
+  background:linear-gradient(110deg,#246ff0,#185cce);
+  border-color:#246fe5;
+  color:#fff;
+  box-shadow:0 4px 10px rgba(37,98,202,.14);
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock.is-always-visible .hr-grade-views button.active::before{
+  background:#fff;
+  border-color:#fff;
+}
+#root .gradebook-studio .hr-grade-panel .hr-grade-table-wrap.gbv3-table-expanded{
+  max-height:none;
+  overflow-x:auto;
+  overflow-y:visible;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-table tbody td{
+  height:50px;
+  max-height:none;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-table tbody tr:nth-child(even) td:not(.hr-grade-plus-cell):not(.hr-grade-bonus-cell):not(.hr-grade-result){
+  background:#fbfdff;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-table tbody tr:nth-child(even) td.hr-grade-index,
+#root .gradebook-studio .hr-gradebook .hr-grade-table tbody tr:nth-child(even) td.hr-grade-student{
+  background:#fbfdff;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-table .hr-grade-attempt-head input{
+  min-height:36px;
+  font-size:12px;
+  font-weight:700;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-input{
+  min-height:37px;
+  border-radius:9px;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-panel-head{
+  padding:16px 18px!important;
+}
+#root .gradebook-studio .hr-grade-panel-head .gbv2-head-actions{
+  gap:10px;
+  align-items:end;
+}
+#root .gradebook-studio .gbv2-table-controls{
+  gap:9px;
+}
+#root .gradebook-studio .gbv2-table-controls label{
+  gap:6px;
+}
+#root .gradebook-studio .gbv2-table-controls select{
+  min-height:41px;
+}
+#root .gradebook-studio .hr-gradebook .gbv2-head-actions .gbv3-expand-table{
+  min-height:41px;
+  background:#f4eeff;
+  border-color:#dfd1fc;
+}
+@media(max-width:740px){
+  #root .gradebook-studio .gb-academic-heading p{font-size:12px}
+  #root .gradebook-studio .gb-m3-class-jump{gap:5px}
+  #root .gradebook-studio .gb-m3-class-jump label{display:none}
+  #root .gradebook-studio .gb-m3-class-jump select{max-width:120px;min-width:100px}
+  #root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock.is-always-visible .hr-grade-views button{min-height:40px}
+}

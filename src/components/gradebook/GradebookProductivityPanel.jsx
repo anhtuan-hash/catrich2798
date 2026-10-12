@@ -232,11 +232,16 @@ export default function GradebookProductivityPanel({
       {tab==='alerts'?<div className="gb-prod-pane" role="tabpanel">
         <h3>Cảnh báo theo quy tắc & theo dõi hỗ trợ</h3>
         <p>Chỉ phát hiện điểm thấp và mức giảm theo ngưỡng giáo viên đặt ra. Đây không phải đánh giá năng lực hay hoàn cảnh học sinh.</p>
-        <div className="gb-prod-fields">
+        <div className="gb-prod-alerts-layout">
+          <section className="gb-prod-alerts-card" aria-label="Thiết lập cảnh báo điểm">
+            <div className="gb-prod-alerts-card-heading"><strong>Thiết lập cảnh báo</strong><span>{warnings.length} trường hợp cần theo dõi</span></div>
+            <div className="gb-prod-fields">
           <label>Ngưỡng điểm thấp<select value={lowLimit} onChange={e=>updateSetting('minimum',Number(e.target.value))}>{[4,5,6,7].map(n=><option key={n} value={n}>{n} điểm</option>)}</select></label>
           <label>Mức giảm TX cần cảnh báo<select value={declineLimit} onChange={e=>updateSetting('decline',Number(e.target.value))}>{[1,1.5,2,2.5,3].map(n=><option key={n} value={n}>{n} điểm</option>)}</select></label>
         </div>
         <div className="gb-prod-alert-list">{warnings.length?warnings.map(r=><div key={r.id}><strong>{r.name}</strong><span>{r.reasons.join(' · ')}</span></div>):<p>Chưa phát hiện trường hợp vượt ngưỡng đã thiết lập.</p>}</div>
+          </section>
+          <section className="gb-prod-alerts-card" aria-label="Ghi nhận hỗ trợ học sinh">
         <h4>Ghi nhận kế hoạch hỗ trợ</h4>
         <div className="gb-prod-fields">
           <label>Học sinh<select value={selected?.id||''} onChange={e=>{setInterventionStudent(e.target.value);setInterventionNote('')}}>
@@ -251,6 +256,8 @@ export default function GradebookProductivityPanel({
         <textarea rows={3} value={interventionNote} onChange={e=>setInterventionNote(e.target.value)} maxLength={1200} placeholder="Hoạt động hỗ trợ cụ thể, thời gian, kết quả cần đạt" aria-label="Nội dung kế hoạch hỗ trợ học sinh"/>
         <div className="gb-prod-actions"><button type="button" disabled={!interventionNote.trim()||!selected} onClick={commitIntervention}>Lưu kế hoạch vào Sổ điểm</button></div>
         <small>Cần bấm Lưu bảng điểm để đồng bộ các ghi nhận mới.</small>
+          </section>
+        </div>
       </div>:null}
       {tab==='quality'?<div className="gb-prod-pane" role="tabpanel">
         <h3>Kiểm tra chất lượng dữ liệu</h3>
