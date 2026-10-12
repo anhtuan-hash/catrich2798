@@ -21,6 +21,13 @@ html body #root .app-shell[data-route="dashboard"] .gd-u34 .gd-shell.gd-shell-v3
   margin-inline:auto!important;
   gap:16px!important;
 }
+/* Footer's V13 skin defines its own --dashboard-shell-width.
+   Override it locally or the footer can be ~5px out of alignment at desktop widths. */
+html body #root .app-shell.metro-clean-system[data-route="dashboard"] > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] {
+  --dashboard-shell-width:min(1520px, calc(100% - 32px))!important;
+  width:var(--dashboard-shell-width)!important;
+  max-width:1520px!important;
+}
 html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-footer-route="dashboard"] {
   box-sizing:border-box!important;
   width:var(--dashboard-shell-width)!important;
