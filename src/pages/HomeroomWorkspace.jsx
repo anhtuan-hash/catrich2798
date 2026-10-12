@@ -122,8 +122,8 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   const [workspaceId, setWorkspaceId] = useState(initialWorkspaceId);
   const [workspace, setWorkspace] = useState(() => getInitialWorkspace(currentUser, initialWorkspaceId));
   const [catalog, setCatalog] = useState(() => listFastHomeroomCatalog(currentUser));
-  const [classDraft, setClassDraft] = useState(initialWorkspace.classProfile);
-  const [activeTab, setActiveTab] = useState(() => getDefaultClassTab(initialWorkspace));
+  const [classDraft, setClassDraft] = useState(() => workspace.classProfile);
+  const [activeTab, setActiveTab] = useState(() => getDefaultClassTab(workspace));
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
