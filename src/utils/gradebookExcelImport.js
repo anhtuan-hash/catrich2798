@@ -79,11 +79,13 @@ export async function readGradebookXlsx(file,{sheet}={}){
   assertExcelFile(file);
   const readExcelFile=(await import('read-excel-file/browser')).default;
   const buffer=await file.arrayBuffer();
-  const names=await readExcelFile(buffer,{getSheets:true});
-  const sheetNames=(names||[]).map(item=>item.name).filter(Boolean);
+  // read-excel-file v9 returns all sheets with {sheet,data}.
+  // The legacy getSheets option was removed in v8.
+  const sheets=await readExcelFile(buffer);
+  const sheetNames=(sheets||[]).map(item=>item.sheet).filter(Boolean);
   if(!sheetNames.length||sheetNames.length>MAX_SHEETS)throw new Error('File Excel không có worksheet hợp lệ hoặc vượt giới hạn 12 sheet.');
   const chosen=sheetNames.includes(sheet)?sheet:sheetNames[0];
-  const rows=await readExcelFile(buffer,{sheet:chosen});
+  const rows=sheets.find(item=>item.sheet===chosen)?.data||[];
   if(rows.length>MAX_ROWS || rows.some(row=>row.length>MAX_COLUMNS))
     throw new Error('Bảng Excel vượt giới hạn 350 dòng hoặc 60 cột. Hãy chia file thành nhiều đợt.');
   return {sheetNames,selectedSheet:chosen,rows:rows.map(row=>row.map(cell=>cell==null?'':cell)),fileName:file.name};
