@@ -1,0 +1,199 @@
+/*
+ * Gradebook roster toolbar layout hotfix.
+ * The previous nested flex rows allowed .gb-roster-missing to collapse to a
+ * character-width column at desktop zoom / narrow parent widths. That pushed
+ * the input table hundreds of pixels down the page.
+ * This sheet is intentionally route scoped and imported last.
+ */
+#root .gradebook-studio .hr-gradebook .gb-roster-workbench {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  align-items: start !important;
+  justify-content: stretch !important;
+  gap: 10px !important;
+  width: 100%;
+  min-height: 0 !important;
+  height: auto !important;
+  box-sizing: border-box;
+  overflow: visible;
+}
+#root .gradebook-studio .hr-gradebook .gb-roster-workbench-main {
+  display: grid !important;
+  grid-template-columns: minmax(220px, 1.35fr) minmax(190px, max-content) minmax(210px, max-content) auto minmax(128px, .65fr) !important;
+  gap: 10px !important;
+  align-items: center !important;
+  justify-items: stretch;
+  flex: none !important;
+  width: 100% !important;
+  max-width: 100%;
+  min-width: 0 !important;
+  min-height: 0 !important;
+}
+#root .gradebook-studio .hr-gradebook .gb-roster-workbench-side {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+  flex: none !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100%;
+}
+#root .gradebook-studio .hr-gradebook .gb-roster-search {
+  grid-column: auto;
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  flex: none !important;
+  min-height: 43px;
+}
+#root .gradebook-studio .hr-gradebook .gb-roster-search input {
+  display: block;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: none;
+  box-sizing: border-box;
+}
+#root .gradebook-studio .hr-gradebook .gb-roster-missing {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start;
+  gap: 9px;
+  width: max-content !important;
+  min-width: 190px !important;
+  max-width: 100%;
+  min-height: 43px;
+  height: auto !important;
+  flex: none !important;
+  margin: 0 !important;
+  padding: 9px 12px !important;
+  box-sizing: border-box;
+}
+#root .gradebook-studio .hr-gradebook .gb-roster-missing > span {
+  display: inline-block;
+  width: auto !important;
+  min-width: max-content !important;
+  max-width: none;
+  flex: 0 0 auto !important;
+  white-space: nowrap !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  writing-mode: horizontal-tb !important;
+  line-height: 1.4 !important;
+}
+#root .gradebook-studio .hr-gradebook .gb-roster-missing > input {
+  width: 16px !important;
+  height: 16px !important;
+  flex: 0 0 16px !important;
+}
+#root .gradebook-studio .hr-gradebook .gb-roster-sort {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  width: max-content !important;
+  min-width: 210px !important;
+  max-width: 100%;
+  flex: none !important;
+  margin: 0 !important;
+  box-sizing: border-box;
+}
+#root .gradebook-studio .hr-gradebook .gb-roster-sort select {
+  min-width: 125px !important;
+  max-width: 190px;
+  flex: 1 1 auto;
+}
+#root .gradebook-studio .hr-gradebook .gb-roster-count {
+  white-space: nowrap !important;
+  width: max-content;
+  max-width: 100%;
+  min-width: 0;
+  flex: none !important;
+}
+#root .gradebook-studio .hr-gradebook .gb-roster-progress {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  min-width: 0 !important;
+  max-width: 100%;
+}
+#root .gradebook-studio .hr-gradebook .gb-roster-keyboard-hint {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 100%;
+  white-space: normal !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+#root .gradebook-studio .hr-gradebook .gb-roster-workbench-side > button {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 0;
+  white-space: nowrap;
+}
+#root .gradebook-studio .hr-gradebook .gb-roster-feedback,
+#root .gradebook-studio .hr-gradebook .gb-roster-no-results {
+  grid-column: 1 / -1;
+  width: 100%;
+  min-width: 0;
+}
+@media (max-width: 1230px) {
+  #root .gradebook-studio .hr-gradebook .gb-roster-workbench-main {
+    grid-template-columns: minmax(215px, 1.5fr) minmax(190px, 1fr) minmax(205px, 1fr) !important;
+  }
+  #root .gradebook-studio .hr-gradebook .gb-roster-progress {
+    grid-column: span 2;
+  }
+}
+@media (max-width: 850px) {
+  #root .gradebook-studio .hr-gradebook .gb-roster-workbench-main {
+    grid-template-columns: minmax(0, 1fr) minmax(190px, auto) !important;
+    gap: 9px !important;
+  }
+  #root .gradebook-studio .hr-gradebook .gb-roster-search {
+    grid-column: 1 / -1;
+  }
+  #root .gradebook-studio .hr-gradebook .gb-roster-missing {
+    justify-self: start;
+  }
+  #root .gradebook-studio .hr-gradebook .gb-roster-sort {
+    justify-self: end;
+  }
+  #root .gradebook-studio .hr-gradebook .gb-roster-progress {
+    grid-column: auto;
+  }
+}
+@media (max-width: 620px) {
+  #root .gradebook-studio .hr-gradebook .gb-roster-workbench-main {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  #root .gradebook-studio .hr-gradebook .gb-roster-search,
+  #root .gradebook-studio .hr-gradebook .gb-roster-progress {
+    grid-column: 1 !important;
+  }
+  #root .gradebook-studio .hr-gradebook .gb-roster-missing,
+  #root .gradebook-studio .hr-gradebook .gb-roster-sort {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100%;
+    justify-self: stretch !important;
+    justify-content: flex-start;
+  }
+  #root .gradebook-studio .hr-gradebook .gb-roster-sort select {
+    max-width: none;
+    min-width: 0 !important;
+  }
+  #root .gradebook-studio .hr-gradebook .gb-roster-workbench-side > button {
+    flex: 1 1 auto !important;
+  }
+  #root .gradebook-studio .hr-gradebook .gb-roster-keyboard-hint {
+    flex-basis: 100% !important;
+  }
+}
+@media (max-width: 375px) {
+  #root .gradebook-studio .hr-gradebook .gb-roster-missing > span {
+    min-width: 0 !important;
+    white-space: normal !important;
+  }
+}
