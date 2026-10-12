@@ -84,12 +84,15 @@ Deno.serve(async (req) => {
   }
 
   const action = cleanText(payload.action, 40) || 'get_self';
-  const { data: callerProfile } = await adminClient
+  const { data: callerProfile, error: profileError } = await adminClient
     .from('profiles')
     .select('id,email,username,contact_email,full_name,school,role,approved,auth_mode,must_change_password')
     .eq('id', caller.id)
     .maybeSingle();
-  const isAdmin = callerProfile?.role === 'admin' && callerProfile?.approved === true;
+  if (profileError || !callerProfile || callerProfile.approved !== true) {
+    return json({ ok: false, message: 'Tài khoản chưa được phê duyệt hoặc đã bị vô hiệu hóa.' }, 403);
+  }
+  const isAdmin = callerProfile.role === 'admin';
 
   if (action === 'get_self') {
     return json({
