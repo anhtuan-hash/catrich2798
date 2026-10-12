@@ -8,6 +8,8 @@ on:
       - 'src/components/gradebook/GradebookFocusBar.jsx'
       - 'src/styles/GradebookFocusV5.css'
       - 'tests/gradebook-focus-v5.test.mjs'
+      - 'tests/e2e/gradebook-focus-v5-layout.spec.js'
+      - 'tests/gradebook-spectrum-v4.test.mjs'
       - '.github/workflows/gradebook-focus-v5.yml'
   pull_request:
     paths:
@@ -16,6 +18,8 @@ on:
       - 'src/components/gradebook/GradebookFocusBar.jsx'
       - 'src/styles/GradebookFocusV5.css'
       - 'tests/gradebook-focus-v5.test.mjs'
+      - 'tests/e2e/gradebook-focus-v5-layout.spec.js'
+      - 'tests/gradebook-spectrum-v4.test.mjs'
 jobs:
   gradebook-regression:
     runs-on: ubuntu-latest
@@ -34,3 +38,23 @@ jobs:
       - run: node scripts/test-gradebook-mock-exams-v2.mjs
       - run: node --test tests/gradebook-spectrum-v4.test.mjs tests/gradebook-permanent-palette.test.mjs tests/gradebook-workbench-two.test.mjs tests/gradebook-material3-colorful.test.mjs
       - run: npm run build
+  responsive-geometry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test tests/e2e/gradebook-focus-v5-layout.spec.js tests/e2e/gradebook-roster-toolbar-layout.spec.js --project=chromium-desktop
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: gradebook-v5-layout-diagnostics
+          path: |
+            test-results/
+            reports/playwright/
