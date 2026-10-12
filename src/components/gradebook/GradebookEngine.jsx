@@ -352,7 +352,7 @@ function GradebookNavigationPalette({
           item.id === 'final' ? <BookOpenCheck size={16} /> :
           item.id === 'summary' ? <Sigma size={16} /> :
           <FileBarChart2 size={16} />
-        }</span>{item.label}{progressById[item.id]?.total ? <span className="gb6-tab-fill" aria-hidden="true" /> : null}</button>)}
+        }</span>{item.label}{progressById[item.id]?.total ? <span className="gb6-tab-fill" role="presentation" /> : null}</button>)}
       </div>
       <div className="hr-grade-save-actions">
         <span role="status" aria-live="polite" className={dirty ? 'is-dirty' : 'is-saved'}>
