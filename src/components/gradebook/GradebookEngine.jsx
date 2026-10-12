@@ -12,6 +12,7 @@ import './HomeroomLearningGradebook.css';
 import GradebookProductivityPanel from './GradebookProductivityPanel.jsx';
 import { gradebookAuditChanges, gradebookQualityReport } from '../../utils/gradebookProductivity.js';
 import { isGradebookFinalized, setFinalizationState, gradebookFinalizationReadiness } from '../../utils/gradebookFinalization.js';
+import { saveGradebookRubric, previewGradebookHistoryRestore, restoreGradebookHistory } from '../../utils/gradebookPhase3.js';
 
 const SEMESTERS = [
   { id: 'semester1', label: 'Học kỳ I' },
@@ -200,6 +201,8 @@ function normalizeGradebook(raw, legacyRecords = []) {
     auditHistory:Array.isArray(source.auditHistory)?source.auditHistory.slice(0,30):[],
     finalizations:source.finalizations && typeof source.finalizations==='object'?source.finalizations:{},
     finalizationHistory:Array.isArray(source.finalizationHistory)?source.finalizationHistory.slice(0,35):[],
+    rubricRecords:source.rubricRecords && typeof source.rubricRecords==='object' && !Array.isArray(source.rubricRecords)
+      ?source.rubricRecords:{},
   },legacyRecords);
 }
 
@@ -457,6 +460,25 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     setDirty(true);
   };
 
+  const recordRubric = (input) => {
+    if (!studentIds.includes(input?.studentId)||input?.subject!==activeSubjectKey||input?.semester!==semesterId||finalized)
+      throw new Error('Không thể sửa rubric của học sinh hoặc học kỳ này.');
+    const next=saveGradebookRubric(gradebook,input);
+    setGradebook(next);
+    setDirty(true);
+  };
+
+  const restoreHistory = (entry, reason) => {
+    if(dirty)throw new Error('Hãy lưu hoặc Hoàn tác điểm đang chỉnh sửa trước khi khôi phục.');
+    const preview=previewGradebookHistoryRestore(gradebook,entry);
+    if(!preview.ok)throw new Error(preview.issues[0]||'Lịch sử không thể khôi phục.');
+    const next=restoreGradebookHistory(gradebook,entry,{
+      reason,actor:currentUser?.email||currentUser?.name||'Giáo viên',
+    });
+    setGradebook(next);
+    setDirty(true);
+  };
+
   const updateIntervention = (key,entry) => {
     if (!key || !entry?.note) return;
     setGradebook(current=>({...current,interventions:{...(current.interventions||{}),[key]:entry}}));
@@ -506,6 +528,8 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     payload.activeSubject = activeSubjectKey;
     payload.updatedAt = new Date().toISOString();
     payload.updatedBy = currentUser?.email || currentUser?.name || '';
+    const restoreMeta=payload.pendingGradebookRestore||null;
+    delete payload.pendingGradebookRestore;
     const changes=gradebookAuditChanges(workspace.learningGradebook || {},payload);
     if(changes.length){
       payload.auditHistory=[{
@@ -514,12 +538,16 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
         author:payload.updatedBy||'Giáo viên',
         count:changes.length,
         changes:changes.slice(0,1200),
+        action:restoreMeta?'restore':'update',
+        restoredFrom:restoreMeta?.sourceId||'',
+        reason:restoreMeta?.reason||'',
       },...(payload.auditHistory||[])].slice(0,30);
     }
     await onCommit(
       { ...workspace, learningGradebook: payload },
       `Đã lưu sổ điểm ${activeSubject?.name || 'môn học'} · ${SEMESTERS.find((item) => item.id === semesterId)?.label}.`,
     );
+    setGradebook(payload);
     setDirty(false);
   };
 
@@ -777,6 +805,11 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       semesterId={semesterId}
       onPaste={applyPaste}
       onSetFinalization={updateFinalization}
+      onSaveRubric={recordRubric}
+      onRestoreHistory={restoreHistory}
+      subjectName={activeSubject?.name||'Môn học'}
+      workspace={workspace}
+      currentUser={currentUser}
       finalized={finalized}
       onSetAlertSettings={updateAlertSettings}
       onSetIntervention={updateIntervention}

@@ -3,6 +3,7 @@ import { analyzeGradebook, previewGradePaste, gradebookQualityReport } from '../
 import { readGradebookXlsx, previewGradebookExcelImport } from '../../utils/gradebookExcelImport.js';
 import { gradebookFinalizationReadiness, exportGradebookAuditCsv } from '../../utils/gradebookFinalization.js';
 import './GradebookProductivityPanel.css';
+import GradebookPhase3Panel from './GradebookPhase3Panel.jsx';
 
 const TABS=[
   {id:'paste',label:'Nhập nhanh'},
@@ -12,6 +13,9 @@ const TABS=[
   {id:'quality',label:'Kiểm tra lỗi'},
   {id:'history',label:'Nhật ký'},
   {id:'finalize',label:'Chốt điểm'},
+  {id:'rubric',label:'Rubric'},
+  {id:'report',label:'Phiếu tiến bộ'},
+  {id:'recovery',label:'Khôi phục'},
 ];
 const DISPLAY=['TX 1','TX 2','TX 3','TX 4','Giữa kỳ','Cuối kỳ'];
 function chipColor(score){
@@ -23,7 +27,8 @@ function chipColor(score){
 }
 export default function GradebookProductivityPanel({
   students,semester,activeRound,roundIndex,gradebook,subjectKey,semesterId,
-  onPaste,onSetAlertSettings,onSetIntervention,onSetFinalization,computeRoundScore,dirty,finalized=false
+  onPaste,onSetAlertSettings,onSetIntervention,onSetFinalization,onSaveRubric,onRestoreHistory,
+  subjectName,workspace,currentUser,computeRoundScore,dirty,finalized=false
 }){
   const [tab,setTab]=useState('paste');
   const [paste,setPaste]=useState('');
@@ -285,6 +290,21 @@ export default function GradebookProductivityPanel({
           {(gradebook.finalizationHistory||[]).slice(0,12).map((x,i)=><div className="gb-prod-existing" key={x.id||i}>{x.locked?'Chốt':'Mở khóa'} · {x.key} · {new Date(x.at).toLocaleString('vi-VN')} · {x.actor} {x.reason?'— '+x.reason:''}</div>)}
         </div>:null}
       </div>:null}
+      <GradebookPhase3Panel
+        mode={tab}
+        gradebook={gradebook}
+        students={students}
+        semester={semester}
+        semesterId={semesterId}
+        subjectKey={subjectKey}
+        subjectName={subjectName}
+        workspace={workspace}
+        currentUser={currentUser}
+        dirty={dirty}
+        finalized={finalized}
+        onSaveRubric={onSaveRubric}
+        onRestoreHistory={onRestoreHistory}
+      />
     </div>
   </details>;
 }
