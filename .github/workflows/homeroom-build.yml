@@ -19,6 +19,8 @@ on:
       - 'scripts/test-homeroom-4-phase-6.mjs'
       - 'src/utils/homeroom4Operations.js'
       - 'scripts/test-homeroom-4-phase-7.mjs'
+      - 'src/styles/homeroom-4-loading.css'
+      - 'scripts/test-homeroom-4-phase-8.mjs'
       - 'docs/homeroom-4/**'
       - 'src/utils/homeroomFastEntry.js'
       - 'scripts/test-homeroom-instant-entry.mjs'
@@ -59,6 +61,8 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Verify Homeroom 4.0 Phase 8 lazy tab loading and isolation
+        run: node scripts/test-homeroom-4-phase-8.mjs
       - name: Verify Homeroom 4.0 Phase 7 task, report and privacy contracts
         run: node scripts/test-homeroom-4-phase-7.mjs
       - name: Verify Homeroom 4.0 Phase 6 attendance and conduct analytics
