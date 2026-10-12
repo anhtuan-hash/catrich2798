@@ -81,6 +81,10 @@ function missingColumn(error) {
 async function readProfile(client, userId) {
   for (const column of ['id', 'user_id', 'profile_id']) {
     const projections = [
+      `${column},email,full_name,role,approved,must_change_password,is_approved,status`,
+      `${column},email,full_name,role,approved,must_change_password,status`,
+      `${column},email,role,approved,must_change_password,status`,
+      `${column},email,role,approved,must_change_password`,
       `${column},email,full_name,role,approved,is_approved,status`,
       `${column},email,full_name,role,approved,status`,
       `${column},email,role,approved,status`,
@@ -155,6 +159,11 @@ export async function requireApprovedUser(req, { roles = [] } = {}) {
     const approvalError = new Error('This account is awaiting approval or has been disabled.');
     approvalError.status = 403;
     throw approvalError;
+  }
+  if (profile.must_change_password === true) {
+    const passwordError = new Error('A password change is required before accessing this service.');
+    passwordError.status = 403;
+    throw passwordError;
   }
   const allowed = roles.map((item) => normalizeRole(item));
   if (allowed.length && !allowed.includes(role)) {
