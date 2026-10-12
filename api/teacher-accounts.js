@@ -69,15 +69,11 @@ async function readProfile(db, user) {
       .maybeSingle(),
   );
   if (baseQuery.error) throw Object.assign(new Error(baseQuery.error.message), { status: 403 });
-  const base = baseQuery.data || {
-    id: user.id,
-    email: user.email || '',
-    full_name: user.user_metadata?.full_name || '',
-    school: user.user_metadata?.school || '',
-    role: user.user_metadata?.role || 'teacher',
-    approved: true,
-    permissions: { mode: 'all', allowed: [] },
-  };
+  // A verified JWT without an approved database profile is NOT authorization.
+  if (!baseQuery.data || baseQuery.data.approved !== true) {
+    throw Object.assign(new Error('Tài khoản chưa được phê duyệt hoặc đã bị vô hiệu hóa.'), { status: 403 });
+  }
+  const base = baseQuery.data;
 
   const extendedQuery = await withTimeout(
     db.from('profiles')
@@ -89,15 +85,10 @@ async function readProfile(db, user) {
   return { ...base, ...(extendedQuery.error ? {} : extendedQuery.data || {}) };
 }
 
+// Account creation and password resets require the canonical database Admin role.
+// Route visibility or tool permissions alone must not confer account-admin privileges.
 function hasAdminPermission(profile = {}) {
-  const allowed = Array.isArray(profile.permissions)
-    ? profile.permissions
-    : Array.isArray(profile.permissions?.allowed) ? profile.permissions.allowed : [];
-  return profile.approved !== false && (
-    String(profile.role || '').toLowerCase() === 'admin'
-    || allowed.includes('route:admin')
-    || allowed.includes('admin:users')
-  );
+  return profile.approved === true && String(profile.role || '').toLowerCase() === 'admin';
 }
 
 async function authenticate(req) {
