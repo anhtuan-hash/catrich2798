@@ -4,7 +4,8 @@ import crypto from 'node:crypto';
 const localWindows = new Map();
 const authorizationCache = new Map();
 const authorizationPromises = new Map();
-const AUTHORIZATION_CACHE_TTL = 5 * 60 * 1000;
+// Keep role/approval revocation reasonably fresh across warm serverless functions.
+const AUTHORIZATION_CACHE_TTL = 60 * 1000;
 const ROLE_ALIASES = new Map([
   ['admin', 'admin'], ['administrator', 'admin'],
   ['ttcm', 'department_head'], ['leader', 'department_head'], ['head', 'department_head'],
@@ -120,7 +121,10 @@ async function readAuthorization(client, userId) {
   return task;
 }
 
-function profileApproved(profile = {}) {
+function profileApproved(profile) {
+  // Missing profiles and ambiguous approval states must NEVER authorize API access.
+  if (!profile || typeof profile !== 'object') return false;
+  if (profile.approved !== true && profile.is_approved !== true) return false;
   if (profile.approved === false || profile.is_approved === false) return false;
   const status = String(profile.status || '').trim().toLowerCase();
   return !status || ['approved', 'active', 'enabled'].includes(status);
@@ -144,9 +148,10 @@ export async function requireApprovedUser(req, { roles = [] } = {}) {
   }
   const user = data.user;
   const { assignedRole, profile } = await readAuthorization(admin, user.id);
-  const metadataRole = user.app_metadata?.role || user.user_metadata?.role || '';
-  const role = assignedRole || normalizeRole(profile?.role || metadataRole || 'teacher');
-  if (!profileApproved(profile || {})) {
+  // Only database-managed assignments and approved profiles may grant roles.
+  // user_metadata is editable by the account holder and cannot grant privileges.
+  const role = assignedRole || normalizeRole(profile?.role || 'teacher');
+  if (!profileApproved(profile)) {
     const approvalError = new Error('This account is awaiting approval or has been disabled.');
     approvalError.status = 403;
     throw approvalError;
