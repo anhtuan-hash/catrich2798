@@ -9,6 +9,8 @@ import {
   gradeScoreNumber as scoreNumber,
 } from '../../utils/homeroomGradebookExport.js';
 import './HomeroomLearningGradebook.css';
+import { filterGradebookStudentView } from '../../utils/gradebookStudentView.js';
+import { Search, ScanEye, Minimize2, Keyboard, X } from 'lucide-react';
 import GradebookProductivityPanel from './GradebookProductivityPanel.jsx';
 import { gradebookAuditChanges, gradebookQualityReport } from '../../utils/gradebookProductivity.js';
 import { isGradebookFinalized, setFinalizationState, gradebookFinalizationReadiness } from '../../utils/gradebookFinalization.js';
@@ -256,15 +258,19 @@ function ScoreInput({ value, onChange, label, disabled=false }) {
     onBlur={(event) => onChange(clampedInput(event.target.value))}
     onWheel={(event) => event.currentTarget.blur()}
     onKeyDown={(event) => {
-      // Excel-style vertical navigation; native Tab and horizontal caret editing are preserved.
-      if (!['Enter', 'ArrowDown', 'ArrowUp'].includes(event.key)) return;
+      // Enter/Up/Down for rows, Alt+Left/Right for editable columns.
+      // Tab and ordinary horizontal caret movement remain native.
+      const horizontal=event.altKey && ['ArrowLeft', 'ArrowRight'].includes(event.key);
+      if (!horizontal && !['Enter', 'ArrowDown', 'ArrowUp'].includes(event.key)) return;
       const cell=event.currentTarget.closest('td');
       const row=cell?.parentElement;
       if (!row || !cell) return;
       const index=Array.from(row.cells).indexOf(cell);
       const goingUp=event.key==='ArrowUp' || (event.key==='Enter'&&event.shiftKey);
-      const sibling=goingUp ? row.previousElementSibling : row.nextElementSibling;
-      const target=sibling?.cells?.[index]?.querySelector('input.hr-grade-input');
+      const destination=horizontal
+        ? row.cells[index+(event.key==='ArrowRight'?1:-1)]
+        : (goingUp ? row.previousElementSibling : row.nextElementSibling)?.cells?.[index];
+      const target=destination?.querySelector('input.hr-grade-input:not(:disabled)');
       if (!target) return;
       event.preventDefault();
       target.focus();
@@ -349,6 +355,9 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const [view, setView] = useState('regular-0');
   // Regular class sizes show every student immediately; very large rosters start compact.
   const [showFullRoster, setShowFullRoster] = useState(() => students.length <= 45);
+  const [studentQuery, setStudentQuery] = useState('');
+  const [missingOnly, setMissingOnly] = useState(false);
+  const [focusMode, setFocusMode] = useState(false);
   const [newSubject, setNewSubject] = useState('');
   const [dirty, setDirty] = useState(false);
   const [exportDialogMode, setExportDialogMode] = useState('');
@@ -366,6 +375,9 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
 
   useEffect(() => {
     setShowFullRoster(students.length <= 45);
+    setStudentQuery('');
+    setMissingOnly(false);
+    setFocusMode(false);
   }, [workspace.id, students.length]);
 
   const subjectEntries = useMemo(
@@ -377,6 +389,14 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const activeView = VIEWS.find((item) => item.id === view) || VIEWS[0];
   const roundIndex = view.startsWith('regular-') ? Number(view.split('-')[1]) : -1;
   const activeRound = roundIndex >= 0 ? activeSemester.regular[roundIndex] : null;
+  const visibleStudents = useMemo(
+    () => filterGradebookStudentView({ students, search: studentQuery, missingOnly, view, activeRound, semester: activeSemester }),
+    [students, studentQuery, missingOnly, view, activeRound, activeSemester],
+  );
+  const originalStudentPosition = useMemo(
+    () => new Map(students.map((student, index) => [student.id, index + 1])),
+    [students],
+  );
   const finalized = isGradebookFinalized(gradebook,activeSubjectKey,semesterId);
   const activeRoundMaxPlusCount = activeRound ? gradeRoundMaxPlusCount(activeRound, studentIds) : 0;
   const semesterLabel = SEMESTERS.find((item) => item.id === semesterId)?.label || semesterId;
@@ -664,6 +684,34 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     </div>
   );
 
+  const renderRosterToolbar = () => (
+    <section className="gb-roster-workbench" aria-label="Không gian nhập điểm">
+      <div className="gb-roster-workbench-main">
+        <label className="gb-roster-search">
+          <Search className="gb-roster-search-icon" size={18} strokeWidth={2.15} aria-hidden="true" />
+          <span className="sr-only">Tìm học sinh theo tên hoặc mã</span>
+          <input type="search" value={studentQuery} onChange={(event) => setStudentQuery(event.target.value)}
+            placeholder="Tìm theo tên hoặc mã học sinh…" aria-label="Tìm học sinh theo tên hoặc mã" />
+        </label>
+        <label className="gb-roster-missing">
+          <input type="checkbox" checked={missingOnly} onChange={(event) => setMissingOnly(event.target.checked)} />
+          <span>Chỉ học sinh còn thiếu điểm</span>
+        </label>
+        <span className="gb-roster-count" role="status" aria-live="polite">{visibleStudents.length}/{students.length} học sinh</span>
+        {activeRound ? <span className="gb-roster-progress" title={`${activeRoundCoverage}/${students.length} học sinh đã có điểm trong đợt đang mở`}>
+          <span className="gb-roster-progress-track"><span style={{ width: `${students.length ? Math.round(activeRoundCoverage / students.length * 100) : 0}%` }} /></span>
+          <small>{activeRoundCoverage}/{students.length} đã có điểm</small>
+        </span> : null}
+        {(studentQuery || missingOnly) ? <button type="button" className="gb-roster-clear" onClick={() => { setStudentQuery(''); setMissingOnly(false); }}><X size={15} aria-hidden="true" /> Xóa bộ lọc</button> : null}
+      </div>
+      <div className="gb-roster-workbench-side">
+        <span className="gb-roster-keyboard-hint" title="Enter hoặc mũi tên lên/xuống để chuyển hàng; Alt + trái/phải để chuyển ô."><Keyboard size={16} aria-hidden="true" /> Enter: chuyển hàng · ⌥←→: chuyển ô</span>
+        <button type="button" className="gb-roster-focus" aria-pressed={focusMode} onClick={() => setFocusMode((value) => !value)}>{focusMode ? <Minimize2 size={16} aria-hidden="true" /> : <ScanEye size={16} aria-hidden="true" />}{focusMode ? 'Thoát tập trung' : 'Chế độ tập trung'}</button>
+      </div>
+      {students.length > 0 && visibleStudents.length === 0 ? <p className="gb-roster-no-results">Không tìm thấy học sinh phù hợp. Hãy xóa bộ lọc để xem lại danh sách lớp.</p> : null}
+    </section>
+  );
+
   const renderRegularTable = () => (
     <section className="hr-panel hr-grade-panel">
       <div className="hr-panel-head hr-grade-panel-head">
@@ -695,13 +743,13 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
             </tr>
           </thead>
           <tbody>
-            {students.map((student, index) => {
+            {visibleStudents.map((student) => {
               const row = activeRound.scores?.[student.id] || {};
               const plusCount = activeRound.plusCounts?.[student.id] ?? '';
               const bonus = gradeRoundBonus(activeRound, student.id, studentIds);
               const result = roundScore(activeRound, student.id, studentIds);
               return <tr key={student.id}>
-                <td className="hr-grade-index">{index + 1}</td>
+                <td className="hr-grade-index">{originalStudentPosition.get(student.id)}</td>
                 <td className="hr-grade-student"><b>{student.fullName}</b><small>{student.code || 'Chưa có mã học sinh'}</small></td>
                 {activeRound.columns.map((column, columnIndex) => <td key={column.id} className={`gb-m3-score-cell gb-m3-score-cell--${columnIndex % 4}`}>
                   <ScoreInput value={row[column.id]} disabled={finalized} onChange={(value) => updateRegularScore(student.id, column.id, value)} label={`${student.fullName} · ${column.label}`} />
@@ -723,9 +771,9 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       {students.length ? <div className="hr-grade-table-wrap compact">
         <table className="hr-grade-table hr-grade-exam-table">
           <thead><tr><th className="hr-grade-index">STT</th><th className="hr-grade-student">Học sinh</th><th>{title}</th><th>Trạng thái</th></tr></thead>
-          <tbody>{students.map((student, index) => {
+          <tbody>{visibleStudents.map((student) => {
             const value = activeSemester[type].scores?.[student.id] ?? '';
-            return <tr key={student.id}><td className="hr-grade-index">{index + 1}</td><td className="hr-grade-student"><b>{student.fullName}</b><small>{student.code || 'Chưa có mã học sinh'}</small></td><td><ScoreInput value={value} disabled={finalized} onChange={(score) => updateExamScore(type, student.id, score)} label={`${student.fullName} · ${title}`} /></td><td className="hr-grade-status">{scoreNumber(value) == null ? <span>Chưa nhập</span> : <b>Đã nhập</b>}</td></tr>;
+            return <tr key={student.id}><td className="hr-grade-index">{originalStudentPosition.get(student.id)}</td><td className="hr-grade-student"><b>{student.fullName}</b><small>{student.code || 'Chưa có mã học sinh'}</small></td><td><ScoreInput value={value} disabled={finalized} onChange={(score) => updateExamScore(type, student.id, score)} label={`${student.fullName} · ${title}`} /></td><td className="hr-grade-status">{scoreNumber(value) == null ? <span>Chưa nhập</span> : <b>Đã nhập</b>}</td></tr>;
           })}</tbody>
         </table>
       </div> : <div className="hr-grade-empty"><b>Chưa có danh sách lớp</b><span>Hãy nhập học sinh trước khi mở sổ điểm.</span></div>}
@@ -738,19 +786,19 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       {students.length ? <div className="hr-grade-table-wrap">
         <table className="hr-grade-table hr-grade-summary-table">
           <thead><tr><th className="hr-grade-index">STT</th><th className="hr-grade-student">Học sinh</th>{activeSemester.regular.map((_, index) => <th key={index}>TX Đợt {index + 1}</th>)}<th>Giữa kỳ</th><th>Cuối kỳ</th><th>Đã nhập</th></tr></thead>
-          <tbody>{students.map((student, index) => {
+          <tbody>{visibleStudents.map((student) => {
             const regular = activeSemester.regular.map((round) => roundScore(round, student.id, studentIds));
             const midterm = scoreNumber(activeSemester.midterm.scores?.[student.id]);
             const final = scoreNumber(activeSemester.final.scores?.[student.id]);
             const count = [...regular, midterm, final].filter((value) => value != null).length;
-            return <tr key={student.id}><td className="hr-grade-index">{index + 1}</td><td className="hr-grade-student"><b>{student.fullName}</b><small>{student.code || 'Chưa có mã học sinh'}</small></td>{regular.map((value, scoreIndex) => <td key={scoreIndex} className="hr-grade-summary-score">{formatScore(value)}</td>)}<td className="hr-grade-summary-score">{formatScore(midterm)}</td><td className="hr-grade-summary-score">{formatScore(final)}</td><td className="hr-grade-completion"><b>{count}/6</b></td></tr>;
+            return <tr key={student.id}><td className="hr-grade-index">{originalStudentPosition.get(student.id)}</td><td className="hr-grade-student"><b>{student.fullName}</b><small>{student.code || 'Chưa có mã học sinh'}</small></td>{regular.map((value, scoreIndex) => <td key={scoreIndex} className="hr-grade-summary-score">{formatScore(value)}</td>)}<td className="hr-grade-summary-score">{formatScore(midterm)}</td><td className="hr-grade-summary-score">{formatScore(final)}</td><td className="hr-grade-completion"><b>{count}/6</b></td></tr>;
           })}</tbody>
         </table>
       </div> : <div className="hr-grade-empty"><b>Chưa có danh sách lớp</b><span>Hãy nhập học sinh trước khi mở sổ điểm.</span></div>}
     </section>
   );
 
-  return <div className="hr-tab-stack hr-gradebook" data-grade-view={view} data-grade-tone={activeView.tone}>
+  return <div className={`hr-tab-stack hr-gradebook${focusMode ? ' gb-is-focused' : ''}`} data-grade-view={view} data-grade-tone={activeView.tone}>
     <section className="hr-grade-overview" aria-label="Tổng quan sổ điểm">
       <article className="tone-blue"><span className="hr-grade-overview-icon"><GradebookUiIcon type="bars" /></span><small>Cột TX hiện có</small><strong>{totalRegularColumns}</strong><span>Trong học kỳ đang chọn</span></article>
       <article className="tone-green"><span className="hr-grade-overview-icon"><GradebookUiIcon type="students" /></span><small>Học sinh</small><strong>{students.length}</strong><span>Danh sách lớp hiện tại</span></article>
@@ -799,6 +847,8 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
 
     {finalized ? <div className="gb-finalized-banner" role="status"><strong>Học kỳ đã chốt</strong><span>Các ô điểm và thao tác chỉnh sửa đang khóa trong giao diện. Mở Bộ công cụ Sổ điểm → Chốt điểm để xem trạng thái hoặc mở khóa có lý do.</span></div> : null}
     {exportMessage ? <div className={`hr-grade-export-message ${exportMessage.type}`} role="status" aria-live="polite"><span>{exportMessage.type === 'error' ? '!' : '✓'}</span>{exportMessage.text}</div> : null}
+
+    {renderRosterToolbar()}
 
     {view.startsWith('regular-') ? renderRegularTable() : null}
     {view === 'midterm' ? renderExamTable('midterm', 'Điểm giữa kỳ') : null}
