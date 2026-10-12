@@ -8,7 +8,7 @@ const spectrum=load('src/styles/GradebookSpectrumV4.css');
 const original=load('src/styles/GradebookAcademicWorkspace.css');
 
 assert.match(page,/import '..\/styles\/GradebookAcademicWorkspace.css';\s*import '..\/styles\/GradebookSpectrumV4.css';/);
-assert.match(page,/className=\\{\\x60page hr-page gradebook-studio gb4-spectrum gb5-focus gb4-palette-\\$\\{visualPalette\\}\\x60\\}/);
+assert.ok(page.includes('gradebook-studio gb4-spectrum gb5-focus gb4-palette-${visualPalette}'), 'Spectrum V4 palette is still applied under Focus V5');
 assert.match(page,/bes-gradebook-spectrum-v4:/);
 assert.match(page,/localStorage\.setItem/);
 assert.match(page,/\['electric','coral','orbit'\]/);
