@@ -1,0 +1,33 @@
+name: Gradebook Productivity Phase One
+on:
+  pull_request:
+    paths:
+      - 'src/utils/gradebookProductivity.js'
+      - 'src/components/gradebook/GradebookProductivityPanel.jsx'
+      - 'src/components/gradebook/GradebookProductivityPanel.css'
+      - 'src/components/gradebook/GradebookEngine.jsx'
+      - 'tests/gradebook-productivity.test.mjs'
+      - '.github/workflows/gradebook-productivity.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/utils/gradebookProductivity.js'
+      - 'src/components/gradebook/GradebookProductivityPanel.jsx'
+      - 'src/components/gradebook/GradebookProductivityPanel.css'
+      - 'src/components/gradebook/GradebookEngine.jsx'
+      - 'tests/gradebook-productivity.test.mjs'
+jobs:
+  gradebook-productivity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Validate paste, score ranges, audit, progress and warnings
+        run: node --test tests/gradebook-productivity.test.mjs
+      - name: Production build
+        run: npm run build

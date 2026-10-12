@@ -1,0 +1,151 @@
+/* Optional Gradebook productivity suite. Single expansion panel, no changes to global chrome. */
+#root .gradebook-studio .gb-prod{
+  width:100%;margin:0;border:1px solid #dbe6f3;border-radius:14px;
+  background:#fff;overflow:hidden;box-shadow:0 2px 10px #17365c08;
+}
+#root .gradebook-studio .gb-prod-heading{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  padding:13px 17px;min-height:60px;cursor:pointer;list-style:none;
+}
+#root .gradebook-studio .gb-prod-heading::-webkit-details-marker{display:none}
+#root .gradebook-studio .gb-prod-heading>span:first-child{display:grid;gap:4px}
+#root .gradebook-studio .gb-prod-heading strong{font-size:14px;font-weight:780;color:#17365c}
+#root .gradebook-studio .gb-prod-heading small{font-size:11px;color:#7a8da7}
+#root .gradebook-studio .gb-prod-count{color:#42658b;font-size:11px;white-space:normal;text-align:right}
+#root .gradebook-studio .gb-prod-count span{margin-left:8px}
+#root .gradebook-studio .gb-prod-body{padding:0 17px 17px;border-top:1px solid #e8eef6}
+#root .gradebook-studio .gb-prod-tabs{
+  display:flex;flex-wrap:wrap;gap:6px;padding:12px 0;
+  border-bottom:1px solid #ecf1f8;
+}
+#root .gradebook-studio .gb-prod-tabs button{
+  min-height:35px;padding:7px 12px;border-radius:9px;
+  border:1px solid #dfe8f4;background:#fff;color:#486789;font-weight:700;font-size:11px;
+}
+#root .gradebook-studio .gb-prod-tabs button.active{
+  color:#fff;background:#266ddd;border-color:#266ddd;
+}
+#root .gradebook-studio .gb-prod-pane{display:grid;gap:11px;padding:16px 0 2px;min-width:0}
+#root .gradebook-studio .gb-prod-pane h3{margin:0;font-size:17px;line-height:1.3;color:#213f65}
+#root .gradebook-studio .gb-prod-pane h4{font-size:14px;margin:9px 0 0;color:#2a4c75}
+#root .gradebook-studio .gb-prod-pane p{margin:0;color:#6a809a;line-height:1.55;font-size:12px}
+#root .gradebook-studio .gb-prod-pane small{font-size:10px;color:#778ca7}
+#root .gradebook-studio .gb-prod-fields{
+  display:flex;flex-wrap:wrap;align-items:end;gap:9px;
+}
+#root .gradebook-studio .gb-prod-fields label{
+  display:grid;gap:5px;flex:1 1 150px;max-width:340px;
+  color:#45658c;font-size:11px;font-weight:700;
+}
+#root .gradebook-studio .gb-prod-fields select,
+#root .gradebook-studio .gb-prod-fields input{
+  box-sizing:border-box;width:100%;max-width:100%;height:38px;padding:6px 10px;
+  border:1px solid #d3e1f1;border-radius:9px;background:#fff;color:#25486f;
+  font-size:12px;
+}
+#root .gradebook-studio .gb-prod-fields input[type=file]{height:auto;min-height:38px;padding:7px;font-size:10px}
+#root .gradebook-studio .gb-prod-pane textarea{
+  display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;
+  padding:12px;border:1px solid #d5e2f2;border-radius:10px;background:#fff;
+  color:#1f456a;font-family:inherit;font-size:12px;line-height:1.55;
+  resize:vertical;
+}
+#root .gradebook-studio .gb-prod-pane textarea.gb-prod-paste{
+  font-family:ui-monospace,SFMono-Regular,Consolas,monospace;min-height:105px;
+}
+#root .gradebook-studio .gb-prod-actions{display:flex;flex-wrap:wrap;gap:8px}
+#root .gradebook-studio .gb-prod-actions button{
+  border:1px solid #adcaf0;background:#eff6ff;color:#245fad;
+  border-radius:9px;padding:9px 15px;font-weight:750;font-size:12px;min-height:36px;
+}
+#root .gradebook-studio .gb-prod-actions button.primary{background:#246bd9;border-color:#246bd9;color:#fff}
+#root .gradebook-studio .gb-prod-actions button:disabled{opacity:.45;cursor:default}
+#root .gradebook-studio .gb-prod-preview{
+  display:grid;gap:9px;padding:13px;border:1px solid #d7e5f8;
+  background:#f7fbff;border-radius:10px;font-size:12px;color:#2d527e;
+}
+#root .gradebook-studio .gb-prod-preview-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;
+}
+#root .gradebook-studio .gb-prod-preview-grid>span{
+  padding:7px;border-radius:7px;background:#fff;color:#3e6187;
+  border:1px solid #e5edf6;font-size:11px;
+}
+#root .gradebook-studio .gb-prod-pane p.gb-prod-error{color:#aa3030}
+#root .gradebook-studio .gb-prod-pane p.gb-prod-notice{color:#176940;font-weight:700}
+#root .gradebook-studio .gb-prod-pane p.gb-prod-alert{
+  padding:11px;border-radius:9px;background:#fff7e7;color:#905a20;
+}
+#root .gradebook-studio .gb-prod-stats{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;
+}
+#root .gradebook-studio .gb-prod-stats>div{
+  display:grid;gap:5px;border:1px solid #e0e9f4;border-radius:11px;padding:13px;
+}
+#root .gradebook-studio .gb-prod-stats b{font-size:22px;color:#235ea7}
+#root .gradebook-studio .gb-prod-stats span{font-size:11px;color:#778ca5}
+#root .gradebook-studio .gb-prod-progress{
+  width:100%;height:10px;border-radius:999px;background:#e8edf5;overflow:hidden;
+}
+#root .gradebook-studio .gb-prod-progress>div{
+  height:100%;background:#2678d8;border-radius:999px;min-width:0;
+}
+#root .gradebook-studio .gb-prod-scroll{
+  width:100%;max-width:100%;overflow:auto;max-height:410px;
+  border:1px solid #e2eaf4;border-radius:10px;
+}
+#root .gradebook-studio .gb-prod-scroll table{
+  border-collapse:separate;border-spacing:0;min-width:660px;width:100%;
+  font-size:11px;
+}
+#root .gradebook-studio .gb-prod-scroll th,
+#root .gradebook-studio .gb-prod-scroll td{
+  padding:10px 11px;min-width:67px;text-align:center;
+  border-right:1px solid #edf2f8;border-bottom:1px solid #edf2f8;white-space:nowrap;
+}
+#root .gradebook-studio .gb-prod-scroll thead th{
+  position:sticky;top:0;z-index:3;background:#f3f7fc;color:#496585;
+}
+#root .gradebook-studio .gb-prod-scroll tr th:first-child{
+  position:sticky;left:0;z-index:2;min-width:170px;text-align:left;
+  background:#fff;color:#335274;
+}
+#root .gradebook-studio .gb-prod-scroll thead th:first-child{z-index:4;background:#f3f7fc}
+#root .gradebook-studio .gb-prod-heat td{font-weight:750;color:#27405c}
+#root .gradebook-studio .gb-prod-heat td.tone-low{background:#ffe2e2}
+#root .gradebook-studio .gb-prod-heat td.tone-middle{background:#fff0d7}
+#root .gradebook-studio .gb-prod-heat td.tone-good{background:#e2edfe}
+#root .gradebook-studio .gb-prod-heat td.tone-high{background:#def5e7}
+#root .gradebook-studio .gb-prod-heat td.tone-missing{background:#f2f5f8;color:#a0aec0}
+#root .gradebook-studio .gb-prod-alert-list{
+  display:grid;gap:6px;max-height:240px;overflow:auto;
+}
+#root .gradebook-studio .gb-prod-alert-list>div{
+  display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;
+  padding:10px 12px;border-radius:9px;border:1px solid #f6e1d9;background:#fffaf7;
+}
+#root .gradebook-studio .gb-prod-alert-list strong{font-size:11px;color:#3b4e6a}
+#root .gradebook-studio .gb-prod-alert-list span{font-size:11px;color:#a14f35}
+#root .gradebook-studio .gb-prod-pane p.gb-prod-existing{
+  padding:11px;border:1px solid #d4e4f3;border-radius:9px;background:#f5faff;
+}
+#root .gradebook-studio .gb-prod-history{max-height:330px;overflow:auto;display:grid;gap:7px}
+#root .gradebook-studio .gb-prod-history details{
+  border:1px solid #e4edf6;border-radius:9px;background:#fff;
+}
+#root .gradebook-studio .gb-prod-history summary{
+  padding:12px;font-size:11px;cursor:pointer;color:#476385;
+}
+#root .gradebook-studio .gb-prod-history ul{
+  max-height:240px;overflow:auto;margin:0;padding:10px 20px;border-top:1px solid #e8eef6;
+  font-size:11px;color:#45617f;
+}
+#root .gradebook-studio .gb-prod-history li{margin:5px 0}
+@media(max-width:700px){
+  #root .gradebook-studio .gb-prod-body{padding:0 12px 12px}
+  #root .gradebook-studio .gb-prod-heading{align-items:start;flex-direction:column}
+  #root .gradebook-studio .gb-prod-count{text-align:left}
+  #root .gradebook-studio .gb-prod-preview-grid{grid-template-columns:1fr}
+  #root .gradebook-studio .gb-prod-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #root .gradebook-studio .gb-prod-tabs button{flex:1 1 auto}
+}

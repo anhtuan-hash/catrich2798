@@ -9,6 +9,8 @@ import {
   gradeScoreNumber as scoreNumber,
 } from '../../utils/homeroomGradebookExport.js';
 import './HomeroomLearningGradebook.css';
+import GradebookProductivityPanel from './GradebookProductivityPanel.jsx';
+import { gradebookAuditChanges } from '../../utils/gradebookProductivity.js';
 
 const SEMESTERS = [
   { id: 'semester1', label: 'Học kỳ I' },
@@ -190,7 +192,12 @@ function normalizeGradebook(raw, legacyRecords = []) {
   });
   if (!Object.keys(subjects).length) subjects['tieng-anh'] = normalizeSubject(null, 'Tiếng Anh');
   const activeSubject = subjects[source.activeSubject] ? source.activeSubject : Object.keys(subjects)[0];
-  return migrateLegacyRecords({ version: 3, activeSubject, subjects, updatedAt: source.updatedAt || '' }, legacyRecords);
+  return migrateLegacyRecords({
+    version:3, activeSubject, subjects, updatedAt:source.updatedAt||'',
+    alertSettings:source.alertSettings && typeof source.alertSettings==='object' ? source.alertSettings : {minimum:5,decline:2},
+    interventions:source.interventions && typeof source.interventions==='object' ? source.interventions : {},
+    auditHistory:Array.isArray(source.auditHistory)?source.auditHistory.slice(0,30):[],
+  },legacyRecords);
 }
 
 function cleanInput(value) {
@@ -241,6 +248,21 @@ function ScoreInput({ value, onChange, label }) {
     }}
     onBlur={(event) => onChange(clampedInput(event.target.value))}
     onWheel={(event) => event.currentTarget.blur()}
+    onKeyDown={(event) => {
+      // Excel-style vertical navigation; native Tab and horizontal caret editing are preserved.
+      if (!['Enter', 'ArrowDown', 'ArrowUp'].includes(event.key)) return;
+      const cell=event.currentTarget.closest('td');
+      const row=cell?.parentElement;
+      if (!row || !cell) return;
+      const index=Array.from(row.cells).indexOf(cell);
+      const goingUp=event.key==='ArrowUp' || (event.key==='Enter'&&event.shiftKey);
+      const sibling=goingUp ? row.previousElementSibling : row.nextElementSibling;
+      const target=sibling?.cells?.[index]?.querySelector('input.hr-grade-input');
+      if (!target) return;
+      event.preventDefault();
+      target.focus();
+      target.select();
+    }}
     placeholder="—"
   />;
 }
@@ -388,6 +410,32 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     setDirty(true);
   };
 
+  const applyPaste = (entries) => {
+    if (!activeRound || !Array.isArray(entries) || !entries.length) return;
+    const validStudents=new Set(studentIds);
+    const allowedColumns=new Set(activeRound.columns.map(column=>column.id));
+    const safe=entries.filter(item=>validStudents.has(item.studentId)&&allowedColumns.has(item.columnId)&&
+      item.value!==''&&scoreNumber(item.value)!=null&&Number(item.value)>=0&&Number(item.value)<=10);
+    if (!safe.length) return;
+    mutate((semester)=>{
+      const round=semester.regular[roundIndex];
+      for(const item of safe){
+        round.scores[item.studentId]={...(round.scores[item.studentId]||{}),[item.columnId]:item.value};
+      }
+    });
+  };
+
+  const updateAlertSettings = (next) => {
+    setGradebook(current=>({...current,alertSettings:{minimum:Number(next.minimum),decline:Number(next.decline)}}));
+    setDirty(true);
+  };
+
+  const updateIntervention = (key,entry) => {
+    if (!key || !entry?.note) return;
+    setGradebook(current=>({...current,interventions:{...(current.interventions||{}),[key]:entry}}));
+    setDirty(true);
+  };
+
   const updateRegularScore = (studentId, columnId, value) => mutate((semester) => {
     const round = semester.regular[roundIndex];
     round.scores[studentId] = { ...(round.scores[studentId] || {}), [columnId]: value };
@@ -431,6 +479,16 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     payload.activeSubject = activeSubjectKey;
     payload.updatedAt = new Date().toISOString();
     payload.updatedBy = currentUser?.email || currentUser?.name || '';
+    const changes=gradebookAuditChanges(workspace.learningGradebook || {},payload);
+    if(changes.length){
+      payload.auditHistory=[{
+        id:'grade-save-'+Date.now(),
+        at:new Date().toISOString(),
+        author:payload.updatedBy||'Giáo viên',
+        count:changes.length,
+        changes:changes.slice(0,1200),
+      },...(payload.auditHistory||[])].slice(0,30);
+    }
     await onCommit(
       { ...workspace, learningGradebook: payload },
       `Đã lưu sổ điểm ${activeSubject?.name || 'môn học'} · ${SEMESTERS.find((item) => item.id === semesterId)?.label}.`,
@@ -680,6 +738,21 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     {view === 'midterm' ? renderExamTable('midterm', 'Điểm giữa kỳ') : null}
     {view === 'final' ? renderExamTable('final', 'Điểm cuối kỳ') : null}
     {view === 'summary' ? renderSummary() : null}
+
+    <GradebookProductivityPanel
+      students={students}
+      semester={activeSemester}
+      activeRound={activeRound}
+      roundIndex={roundIndex}
+      gradebook={gradebook}
+      subjectKey={activeSubjectKey}
+      semesterId={semesterId}
+      onPaste={applyPaste}
+      onSetAlertSettings={updateAlertSettings}
+      onSetIntervention={updateIntervention}
+      computeRoundScore={(round,studentId)=>roundScore(round,studentId,studentIds)}
+      dirty={dirty}
+    />
 
     <div className="gbv2-save-strip" role="status" aria-live="polite">
       <span>{dirty ? 'Bạn có thay đổi chưa lưu' : 'Dữ liệu điểm đã được lưu'} · {activeSubject?.name || 'Môn học'} · {semesterLabel}</span>
