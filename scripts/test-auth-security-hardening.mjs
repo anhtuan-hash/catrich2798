@@ -103,4 +103,25 @@ assert.match(practiceGuard, /assessment_practice_attempts/);
 assert.match(practiceGuard, /correctAnswer/);
 assert.equal((practiceGuard.match(/\$function\$;/g) || []).length, 2);
 
+
+const adminMfaDb = read('supabase/migrations/20261012102000_admin_profile_mfa_verified_email.sql');
+// A verified Supabase aal2 claim is required for ADMIN profile updates only if
+// the actor has deliberately enrolled a verified second factor.
+assert.match(adminMfaDb, /CREATE OR REPLACE FUNCTION private\.bes_admin_mfa_session_allowed\(\)/);
+assert.match(adminMfaDb, /coalesce\(auth\.jwt\(\)->>'aal', 'aal1'\) = 'aal2'/);
+assert.match(adminMfaDb, /FROM auth\.mfa_factors AS f/);
+assert.match(adminMfaDb, /f\.status = 'verified'/);
+assert.match(adminMfaDb, /REVOKE ALL ON FUNCTION private\.bes_admin_mfa_session_allowed\(\) FROM PUBLIC, anon/);
+assert.match(adminMfaDb, /ALTER POLICY "Admins can update all profiles"/);
+assert.match(adminMfaDb, /USING \(public\.is_admin\(\) AND private\.bes_admin_mfa_session_allowed\(\)\)/);
+assert.match(adminMfaDb, /WITH CHECK \(public\.is_admin\(\) AND private\.bes_admin_mfa_session_allowed\(\)\)/);
+assert.match(adminMfaDb, /CREATE OR REPLACE FUNCTION public\.bes_admin_update_profile\(target_id uuid, patch jsonb\)/);
+assert.match(adminMfaDb, /if not private\.bes_admin_mfa_session_allowed\(\) then/);
+assert.match(adminMfaDb, /'admin_profile_update'/);
+assert.match(adminMfaDb, /CREATE OR REPLACE FUNCTION public\.bes_admin_claim_configured_admin\(allowed_emails text\[\]\)/);
+assert.match(adminMfaDb, /from auth\.users u/);
+assert.match(adminMfaDb, /u\.email_confirmed_at is not null/);
+assert.match(adminMfaDb, /where a\.email=current_email/);
+assert.equal((adminMfaDb.match(/\$function\$;/g) || []).length, 3);
+
 console.log('PASS: BRIAN account authorization, password rotation, audit, and staged Admin MFA contracts are hardened.');
