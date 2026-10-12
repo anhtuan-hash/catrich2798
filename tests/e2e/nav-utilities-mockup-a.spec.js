@@ -17,7 +17,7 @@ test('three utility icons follow attendance with working notification and deadli
         <span class="brian-nav__reports-countdown">2ng 03:24</span></span></button></div>
      <div class="brian-nav__utility-slot brian-nav__utility-ttcm" data-nav-key="ttcm">
       <button aria-label="TTCM" class="brian-nav__ttcm-tab"><svg viewBox="0 0 24 24"></svg><span>TTCM</span><b class="brian-nav__ttcm-badge">3</b></button></div>
-     <button aria-label="Quản trị" class="brian-nav__utility-admin-icon" data-nav-key="admin"><span class="brian-nav__admin-glyph" aria-hidden="true">⚙</span></button>
+     <button aria-label="Quản trị" class="brian-nav__utility-admin-icon" data-nav-key="admin"><svg class="brian-nav__admin-settings-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M9.5 3.5 10 2h4l.5 1.5 1.6.7 1.4-.7 2.8 2.8-.7 1.4.7 1.6L22 10v4l-1.5.5-.7 1.6.7 1.4-2.8 2.8-1.4-.7-1.6.7L14 22h-4l-.5-1.5-1.6-.7-1.4.7-2.8-2.8.7-1.4-.7-1.6L2 14v-4l1.5-.5.7-1.6-.7-1.4 2.8-2.8 1.4.7z" /><circle cx="12" cy="12" r="3.5" /></svg></button>
     </div><button class="brian-nav__account">Tài khoản</button>
    </nav></div></div></div>`);
   await page.addStyleTag({path:'src/components/GlobalNavigationTextOnlyCompact.css'});
@@ -28,10 +28,24 @@ test('three utility icons follow attendance with working notification and deadli
   await expect(page.getByRole('button',{name:/Báo cáo/})).toBeVisible();
   await expect(page.getByRole('button',{name:'TTCM'})).toBeVisible();
   await expect(page.getByRole('button',{name:'Quản trị'})).toBeVisible();
-  const adminGlyph=page.locator('.brian-nav__admin-glyph');
-  await expect(adminGlyph).toBeVisible();
-  await expect(adminGlyph).toHaveCSS('font-size','24px');
-  await expect(adminGlyph).toHaveText('⚙');
+  const adminIcon=page.locator('.brian-nav__admin-settings-icon');
+  const adminButton=page.locator('.brian-nav__utility-admin-icon');
+  await expect(adminIcon).toBeVisible();
+  await expect(adminIcon).toHaveCSS('display','block');
+  await expect(adminIcon).toHaveCSS('width','20px');
+  await expect(adminIcon).toHaveCSS('height','20px');
+  await expect(adminIcon).toHaveCSS('fill','none');
+  await expect(adminButton).toHaveCSS('margin-left','0px');
+  const checkCenter=async()=>{
+    const b=await adminButton.boundingBox();
+    const i=await adminIcon.boundingBox();
+    expect(b).toBeTruthy();expect(i).toBeTruthy();
+    expect(Math.abs(b.x+b.width/2-i.x-i.width/2)).toBeLessThan(1);
+    expect(Math.abs(b.y+b.height/2-i.y-i.height/2)).toBeLessThan(1);
+  };
+  await checkCenter();
+  await page.setViewportSize({width:1100,height:900});
+  await checkCenter();
   await expect(page.locator('.brian-nav__ttcm-badge')).toHaveText('3');
   await expect(page.locator('.brian-nav__reports-countdown')).toHaveText('2ng 03:24');
   // Unset: production renders an icon without any visual dash. Native

@@ -12,8 +12,9 @@ test('three accessible icons replace Utilities dropdown without changing destina
   assert.ok(nav.includes('brian-nav__utility-reports')&&nav.includes('brian-nav__utility-ttcm'));
   assert.ok(nav.includes('brian-nav__utility-admin-icon')&&nav.includes('isAdmin ?'));
   assert.ok(nav.includes("openRoute('#/admin', t.admin, event)"));
-  assert.ok(nav.includes('brian-nav__admin-glyph'));
-  assert.ok(!nav.includes('<svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor"'));
+  assert.ok(nav.includes('brian-nav__admin-settings-icon'));
+  assert.ok(!nav.includes('<span className="brian-nav__admin-glyph"'));
+  assert.ok(nav.includes('strokeWidth="1.7"'));
   assert.ok(!nav.includes('brian-nav__utilities-trigger'));
   assert.ok(!nav.includes('brian-nav-utilities-popover'));
   assert.ok(frame.includes("import './GlobalNavigationUtilityIcons.css'"));
@@ -46,7 +47,10 @@ test('icon CSS leaves overlay dialogs alone and preserves the live status indica
   assert.ok(css.includes('brian-nav__reports-countdown'));
   assert.ok(css.includes('brian-nav__ttcm-badge'));
   assert.ok(css.includes('brian-nav__utility-badge'));
-  assert.ok(css.includes('.brian-nav__admin-glyph'));
+  assert.ok(css.includes('svg.brian-nav__admin-settings-icon'));
+  assert.ok(css.includes('display:block!important;position:static!important'));
+  assert.ok(css.includes('flex:0 0 20px!important'));
+  assert.ok(!css.includes('.brian-nav__admin-glyph'));
   assert.ok(css.includes('is-deadline-unset'));
   assert.match(css,/button\.is-deadline-unset \.brian-nav__reports-countdown\{\s*display:none!important/);
   assert.ok(css.includes('is-deadline-expired'));

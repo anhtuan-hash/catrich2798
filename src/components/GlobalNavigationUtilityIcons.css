@@ -33,7 +33,7 @@ html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__pr
 }
 html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-admin-icon{
   --utility-icon-ink:#16856f;--utility-icon-border:#cdeadd;--utility-icon-bg:#e6f8ef;
-  order:70!important;margin:0 0 0 4px!important;font-size:0!important;
+  order:70!important;margin:0!important;font-size:0!important;
 }
 html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-slot > button:is(:hover,:focus-visible,.is-active),
 html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-admin-icon:is(:hover,:focus-visible,.is-active){
@@ -89,15 +89,19 @@ html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__pr
 html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-admin-icon .brian-nav__utility-badge{
   top:-6px!important;right:-6px!important;
 }
-/* Text-only navigation intentionally hides descendant SVGs. A visible text glyph
-   avoids the old rule altogether (and remains functional in reduced-motion mode). */
-html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > .brian-nav__utility-admin-icon > .brian-nav__admin-glyph{
-  display:inline-flex!important;position:relative!important;align-items:center!important;justify-content:center!important;
-  width:23px!important;min-width:23px!important;height:23px!important;min-height:23px!important;
+/* A scoped exception for Admin. Legacy desktop text-only CSS hides SVGs;
+   this selector restores only this icon, without altering neighboring tabs. */
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > button.brian-nav__utility-admin-icon{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  gap:0!important;margin:0!important;padding:0!important;
+}
+html body #root .app-shell[data-route] .bes-top-chrome .brian-nav .brian-nav__primary > button.brian-nav__utility-admin-icon > svg.brian-nav__admin-settings-icon{
+  display:block!important;position:static!important;
+  flex:0 0 20px!important;width:20px!important;min-width:20px!important;max-width:20px!important;
+  height:20px!important;min-height:20px!important;max-height:20px!important;
   margin:0!important;padding:0!important;
-  color:inherit!important;font-family:Arial,system-ui,sans-serif!important;
-  font-size:24px!important;font-weight:400!important;line-height:1!important;
-  visibility:visible!important;opacity:1!important;clip-path:none!important;
+  overflow:visible!important;fill:none!important;stroke:currentColor!important;
+  transform:none!important;visibility:visible!important;opacity:1!important;
 }
 /* The unset deadline must NEVER produce a floating dash or badge.
    Keep "Chưa đặt hạn" in the native title and accessible name instead. */

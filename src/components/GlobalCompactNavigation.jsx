@@ -402,7 +402,12 @@ export default function GlobalCompactNavigation({
                 data-nav-key="admin" title={t.admin}
                 aria-label={`${t.admin}${adminUnreadCount ? ` · ${adminUnreadCount} ${t.unread}` : ''}`}
                 onClick={(event) => openRoute('#/admin', t.admin, event)}>
-                <span className="brian-nav__admin-glyph" aria-hidden="true">⚙</span>
+                <svg className="brian-nav__admin-settings-icon" viewBox="0 0 24 24"
+                  width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.7"
+                  strokeLinecap="round" strokeLinejoin="round" focusable="false" aria-hidden="true">
+                  <path d="M9.5 3.5 10 2h4l.5 1.5 1.6.7 1.4-.7 2.8 2.8-.7 1.4.7 1.6L22 10v4l-1.5.5-.7 1.6.7 1.4-2.8 2.8-1.4-.7-1.6.7L14 22h-4l-.5-1.5-1.6-.7-1.4.7-2.8-2.8.7-1.4-.7-1.6L2 14v-4l1.5-.5.7-1.6-.7-1.4 2.8-2.8 1.4.7z" />
+                  <circle cx="12" cy="12" r="3.5" />
+                </svg>
                 {adminUnreadCount > 0 ? <span className="brian-nav__utility-badge" aria-hidden="true">
                   {adminUnreadCount > 99 ? '99+' : adminUnreadCount}
                 </span> : null}
