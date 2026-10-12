@@ -9,7 +9,27 @@ import './AdminMfaSecurity.css';
 export default function AdminMfaSecurity({ user, route, language = 'vi' }) {
   const vi = language === 'vi';
   const isAdmin = user?.role === 'admin' && user?.provider === 'supabase' && Boolean(supabase);
-  const [state, setState] = useState({ loading: true, currentLevel: '', nextLevel: '', factors: [], error: '' });
+  const [state, setState] = useState({ loading: true, currentLevel: '', nextLevel: '', factors: [], webauthnFactors: [], error: '' });
+  const [touchIdAvailable, setTouchIdAvailable] = useState(false);
+  const webauthnApi = supabase?.auth?.mfa?.webauthn;
+
+  useEffect(() => {
+    let active = true;
+    const available = typeof window !== 'undefined'
+      && typeof window.PublicKeyCredential !== 'undefined'
+      && typeof navigator?.credentials?.get === 'function'
+      && typeof navigator?.credentials?.create === 'function';
+    if (!available) return undefined;
+    const test = window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable;
+    if (typeof test === 'function') {
+      Promise.resolve(test.call(window.PublicKeyCredential))
+        .then((supported) => { if (active) setTouchIdAvailable(Boolean(supported)); })
+        .catch(() => { if (active) setTouchIdAvailable(false); });
+    } else {
+      setTouchIdAvailable(true);
+    }
+    return () => { active = false; };
+  }, []);
   const [code, setCode] = useState('');
   const [selectedFactorId, setSelectedFactorId] = useState('');
   const [busy, setBusy] = useState(false);
@@ -48,12 +68,18 @@ export default function AdminMfaSecurity({ user, route, language = 'vi' }) {
       ]);
       if (assurance.error) throw assurance.error;
       if (listed.error) throw listed.error;
-      const factors = (listed.data?.totp || []).filter((factor) => factor.status === 'verified');
+      const allFactors = Array.isArray(listed.data?.all)
+        ? listed.data.all
+        : [...(listed.data?.totp || []), ...(listed.data?.webauthn || [])];
+      const verifiedFactors = allFactors.filter((factor) => factor.status === 'verified');
+      const factors = verifiedFactors.filter((factor) => factor.factor_type === 'totp');
+      const webauthnFactors = verifiedFactors.filter((factor) => factor.factor_type === 'webauthn');
       setState({
         loading: false,
         currentLevel: assurance.data?.currentLevel || 'aal1',
         nextLevel: assurance.data?.nextLevel || 'aal1',
         factors,
+        webauthnFactors,
         error: '',
       });
     } catch (error) {
@@ -63,7 +89,7 @@ export default function AdminMfaSecurity({ user, route, language = 'vi' }) {
 
   useEffect(() => {
     if (!isAdmin) {
-      setState({ loading: false, currentLevel: '', nextLevel: '', factors: [], error: '' });
+      setState({ loading: false, currentLevel: '', nextLevel: '', factors: [], webauthnFactors: [], error: '' });
       setSetup(null);
       return undefined;
     }
@@ -79,7 +105,71 @@ export default function AdminMfaSecurity({ user, route, language = 'vi' }) {
 
   if (!isAdmin) return null;
 
-  const needsVerification = state.factors.length > 0 && state.currentLevel !== 'aal2';
+  const needsVerification = (state.factors.length > 0 || state.webauthnFactors.length > 0) && state.currentLevel !== 'aal2';
+  const canonicalOrigin = typeof window !== 'undefined' && window.location.hostname === 'esl-brian.vercel.app';
+
+  const explainWebauthnError = (error) => {
+    const code = String(error?.code || error?.error_code || '').toLowerCase();
+    if (/mfa_web_authn_(enroll|verify)_not_enabled/.test(code)) {
+      return vi
+        ? 'Supabase chưa bật WebAuthn MFA cho dự án. Cần bật WebAuthn enrollment và verification trong cấu hình Auth trước khi dùng Touch ID.'
+        : 'WebAuthn MFA enrollment/verification must be enabled for this Supabase project.';
+    }
+    return error?.message || (vi ? 'Không thể xác thực Touch ID. Bạn vẫn có thể dùng mã 6 số.' : 'Touch ID failed. You can still use your six-digit code.');
+  };
+
+  const verifyTouchId = async () => {
+    if (busy || !touchIdAvailable || !webauthnApi || typeof webauthnApi.authenticate !== 'function') return;
+    const factor = state.webauthnFactors[0];
+    if (!factor) return;
+    setBusy(true);
+    setFeedback('');
+    try {
+      const { error } = await webauthnApi.authenticate({
+        factorId: factor.id,
+        webauthn: { rpId: window.location.hostname, rpOrigins: [window.location.origin] },
+      });
+      if (error) throw error;
+      const result = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (result.error) throw result.error;
+      if (result.data?.currentLevel !== 'aal2') {
+        throw new Error(vi ? 'Phiên chưa đạt mức xác thực MFA an toàn. Hãy dùng mã 6 số.' : 'Session did not reach AAL2; use your six-digit code.');
+      }
+      await refresh();
+    } catch (error) {
+      setFeedback(explainWebauthnError(error));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const registerTouchId = async () => {
+    if (busy) return;
+    setFeedback('');
+    if (!canonicalOrigin) {
+      setFeedback(vi ? 'Đăng ký Touch ID tại tên miền chính esl-brian.vercel.app, không dùng địa chỉ preview.' : 'Enroll Touch ID only on esl-brian.vercel.app, not a preview deployment.');
+      return;
+    }
+    if (!touchIdAvailable || !webauthnApi || typeof webauthnApi.register !== 'function') {
+      setFeedback(vi ? 'Trình duyệt hoặc phiên bản Supabase hiện tại chưa hỗ trợ Touch ID cho MFA.' : 'Touch ID MFA is not available in this browser or Supabase client.');
+      return;
+    }
+    setBusy(true);
+    try {
+      const { error } = await webauthnApi.register({
+        friendlyName: 'BRIAN - Mac Touch ID',
+        webauthn: { rpId: window.location.hostname, rpOrigins: [window.location.origin] },
+      });
+      if (error) throw error;
+      await refresh();
+      setFeedback(vi ? 'Đã đăng ký Touch ID. Ở lần đăng nhập tiếp theo, hãy chọn xác thực bằng vân tay.' : 'Touch ID factor enrolled. Choose biometric verification at your next sign-in.');
+    } catch (error) {
+      setFeedback(explainWebauthnError(error));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const verify = async (event) => {
     event?.preventDefault();
     if (busy || !/^\d{6}$/.test(code)) {
@@ -163,6 +253,13 @@ export default function AdminMfaSecurity({ user, route, language = 'vi' }) {
         <h2>{vi ? 'Xác thực tài khoản quản trị viên' : 'Verify your administrator account'}</h2>
         <p>{state.loading ? (vi ? 'Đang kiểm tra phiên bảo mật…' : 'Checking security session…') : state.error || (vi ? 'Nhập mã từ ứng dụng xác thực để tiếp tục sử dụng BRIAN.' : 'Enter the code from your authenticator app to continue.')}</p>
         {needsVerification && !state.error ? (
+          <>
+          {state.webauthnFactors.length > 0 && touchIdAvailable && typeof webauthnApi?.authenticate === 'function' ? (
+            <button type="button" className="bes-mfa-touchid-action" onClick={() => { void verifyTouchId(); }} disabled={busy}>
+              {busy ? (vi ? 'Đang xác thực…' : 'Verifying…') : (vi ? 'Xác thực bằng Touch ID' : 'Verify with Touch ID')}
+            </button>
+          ) : null}
+          {state.factors.length ? (
           <form onSubmit={verify}>
             {state.factors.length > 1 ? (
               <label htmlFor="bes-mfa-login-factor">
@@ -184,6 +281,8 @@ export default function AdminMfaSecurity({ user, route, language = 'vi' }) {
             <input id="bes-mfa-login-code" inputMode="numeric" pattern="[0-9]{6}" autoComplete="one-time-code" maxLength={6} value={code} onChange={(event) => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} required />
             <button type="submit" disabled={busy}>{busy ? (vi ? 'Đang xác minh…' : 'Verifying…') : (vi ? 'Xác minh' : 'Verify')}</button>
           </form>
+          ) : null}
+          </>
         ) : null}
         <details className="bes-mfa-mac-help">
           <summary>{vi ? 'Không muốn dùng điện thoại mỗi lần?' : "Don\u0027t want to use your phone every time?"}</summary>
@@ -202,9 +301,21 @@ export default function AdminMfaSecurity({ user, route, language = 'vi' }) {
         <div><span>{vi ? 'BẢO MẬT TÀI KHOẢN' : 'ACCOUNT SECURITY'}</span><h3>{vi ? 'Xác thực hai lớp (MFA)' : 'Two-factor authentication (MFA)'}</h3></div>
         <strong className={state.factors.length ? 'enabled' : 'disabled'}>{state.factors.length ? (vi ? 'Đã bật' : 'Enabled') : (vi ? 'Chưa bật' : 'Not enabled')}</strong>
       </div>
-      <p>{vi ? 'Sử dụng Google Authenticator, Microsoft Authenticator hoặc ứng dụng tương thích để bảo vệ tài khoản quản trị.' : 'Use Google Authenticator, Microsoft Authenticator or a compatible app to protect your administrator account.'}</p>
+      <p>{vi ? 'Đăng ký Touch ID để xác minh trực tiếp bằng vân tay trên Mac, không phải nhập mã 6 số. Mã từ ứng dụng xác thực vẫn là phương án dự phòng.' : 'Register Touch ID to verify directly with your Mac fingerprint, without typing a six-digit code. Your authenticator remains a backup.'}</p>
+      <div className="bes-mfa-touchid-settings">
+        <strong>{vi ? 'Touch ID / WebAuthn' : 'Touch ID / WebAuthn'}</strong>
+        <span>{state.webauthnFactors.length
+          ? (vi ? 'Đã đăng ký thiết bị sinh trắc học' : 'Biometric authenticator enrolled')
+          : (vi ? 'Chưa đăng ký' : 'Not enrolled')}</span>
+        <button type="button" disabled={busy || state.loading || Boolean(state.error) || !touchIdAvailable || !canonicalOrigin} onClick={() => { void registerTouchId(); }}>
+          {busy ? (vi ? 'Đang thiết lập…' : 'Working…') : (vi ? 'Thiết lập Touch ID' : 'Set up Touch ID')}
+        </button>
+        {!canonicalOrigin ? <small>{vi ? 'Hãy dùng https://esl-brian.vercel.app để đăng ký thiết bị.' : 'Use https://esl-brian.vercel.app to enroll.'}</small> : null}
+        {!touchIdAvailable ? <small>{vi ? 'Trình duyệt hoặc thiết bị này không báo hỗ trợ Touch ID. Hãy thử Safari trên Mac có Touch ID.' : 'Touch ID is not available here. Try Safari on a compatible Mac.'}</small> : null}
+        <small>{vi ? 'WebAuthn MFA đang ở giai đoạn thử nghiệm. Nếu Supabase chưa bật chức năng này, hệ thống sẽ giữ nguyên xác thực mã 6 số.' : 'WebAuthn MFA is experimental. If Supabase has not enabled it, six-digit verification remains available.'}</small>
+      </div>
       <p className="bes-mfa-warning">{vi ? 'Supabase không cấp mã khôi phục. Hãy chuẩn bị thêm một thiết bị xác thực dự phòng sau khi kích hoạt; nếu mất toàn bộ thiết bị, cần trợ giúp từ người quản trị Supabase.' : 'Supabase does not issue recovery codes. Add a backup device after setup; if all factors are lost, Supabase project administration is required.'}</p>
-      {state.factors.length ? <small>{vi ? 'Số thiết bị đã xác minh: ' : 'Verified devices: '}{state.factors.length}</small> : null}
+      {state.factors.length || state.webauthnFactors.length ? <small>{vi ? 'Thiết bị đã xác minh: ' : 'Verified authenticators: '}{state.factors.length + state.webauthnFactors.length}</small> : null}
       {state.error ? <p className="bes-mfa-warning" role="alert">{state.error} <button type="button" className="secondary" onClick={refresh}>{vi ? 'Thử lại' : 'Retry'}</button></p> : null}
       {!setup ? (
         <div className="bes-mfa-actions">
