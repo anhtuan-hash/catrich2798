@@ -11,3 +11,8 @@
 .hr-page .hr-gradebook .hr-grade-views button.gb-mock-tab{background:#eeeaff!important;color:#6040ba!important;border:1px solid #d4c8ff!important;font-weight:800}.hr-page .hr-gradebook .hr-grade-views button.gb-mock-tab.active{background:#654ce1!important;color:#fff!important;border-color:#654ce1!important}
 @media(max-width:640px){.gb-mock-hero{padding:20px}.gb-mock-policy{margin:15px}.gb-mock-actions{padding:0 15px 15px}.gb-mock-progress{padding:0 15px 15px}.gb-mock-table-wrap{margin:0 10px 13px}.gb-mock-metrics>div{flex:1}.gb-mock-buttons{width:100%}.gb-mock-buttons button{flex:1}.gb-mock-table .gb-mock-student{min-width:165px;width:165px}}
 html[data-theme="dark"] .gb-mock-book{background:#182335!important;border-color:#425880!important}html[data-theme="dark"] .gb-mock-actions b,html[data-theme="dark"] .gb-mock-empty strong{color:#e7eeff}html[data-theme="dark"] .gb-mock-progress-item{background:#253450;border-color:#3f5172}html[data-theme="dark"] .gb-mock-progress-item b{color:#e5edff}html[data-theme="dark"] .gb-mock-table tbody td,html[data-theme="dark"] .gb-mock-table .gb-mock-student{background:#1d2b43!important}html[data-theme="dark"] .gb-mock-table .gb-mock-student b{color:#e7eeff!important}
+
+/* Eight tabs on Grade 12: two balanced rows of four, unchanged seven-tab grid on other grades. */
+.hr-page .hr-gradebook .hr-grade-views:has(.gb-mock-tab){grid-template-columns:repeat(4,minmax(0,1fr))!important}
+.gb-mock-year-note{color:#5b46ac;font-size:12px;font-weight:800;padding:8px 13px;background:#f0ecff;border:1px solid #dcd4ff;border-radius:10px}
+@media(max-width:740px){.hr-page .hr-gradebook .hr-grade-views:has(.gb-mock-tab){grid-template-columns:repeat(2,minmax(0,1fr))!important}}
