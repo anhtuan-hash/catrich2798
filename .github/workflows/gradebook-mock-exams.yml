@@ -1,0 +1,31 @@
+name: Grade 12 Mock Exam Gradebook
+on:
+  push:
+    branches: [main, 'feat/grade12-mock-exams-20261012']
+    paths:
+      - 'src/components/gradebook/**'
+      - 'src/utils/gradebookMockExams.js'
+      - 'src/utils/gradebookStudentView.js'
+      - 'src/utils/gradebookProductivity.js'
+      - 'scripts/test-gradebook-mock-exams.mjs'
+      - '.github/workflows/gradebook-mock-exams.yml'
+  pull_request:
+    paths:
+      - 'src/components/gradebook/**'
+      - 'src/utils/gradebookMockExams.js'
+      - 'src/utils/gradebookStudentView.js'
+      - 'src/utils/gradebookProductivity.js'
+      - 'scripts/test-gradebook-mock-exams.mjs'
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: node scripts/test-gradebook-mock-exams.mjs
+      - run: npm run build

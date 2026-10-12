@@ -20,9 +20,10 @@ export function hasMissingRegularScore(studentId, round) {
 }
 
 
-export function missingScoreCount(studentId, { view = '', activeRound, semester } = {}) {
+export function missingScoreCount(studentId, { view = '', activeRound, semester, mockExams = [] } = {}) {
   const countRound = (round) => (round?.columns || []).reduce((total, column) =>
     total + Number(isGradebookScoreBlank(round?.scores?.[studentId]?.[column.id])), 0);
+  if (view === 'mock') return mockExams.reduce((sum, exam) => sum + Number(isGradebookScoreBlank(exam?.scores?.[studentId])), 0);
   if (view.startsWith('regular-')) return countRound(activeRound);
   if (view === 'midterm' || view === 'final') {
     return Number(isGradebookScoreBlank(semester?.[view]?.scores?.[studentId]));
@@ -52,11 +53,12 @@ export function gradebookColumnProgress(students, round) {
   });
 }
 
-export function filterGradebookStudentView({ students, search = '', missingOnly = false, view = '', activeRound, semester, sortBy = 'original' }) {
+export function filterGradebookStudentView({ students, search = '', missingOnly = false, view = '', activeRound, semester, mockExams = [], sortBy = 'original' }) {
   const query = normalizeStudentSearch(search);
   const matching = (Array.isArray(students) ? students : []).filter((student) => {
     if (query && !normalizeStudentSearch(`${student?.fullName || ''} ${student?.code || ''}`).includes(query)) return false;
     if (!missingOnly) return true;
+    if (view === 'mock') return mockExams.length > 0 && mockExams.some((exam) => isGradebookScoreBlank(exam?.scores?.[student.id]));
     if (view.startsWith('regular-')) return hasMissingRegularScore(student.id, activeRound);
     if (view === 'midterm' || view === 'final') return isGradebookScoreBlank(semester?.[view]?.scores?.[student.id]);
     if (view === 'summary') {
@@ -69,7 +71,7 @@ export function filterGradebookStudentView({ students, search = '', missingOnly 
   if (sortBy === 'name') return matching.sort((a, b) =>
     String(a.fullName || '').localeCompare(String(b.fullName || ''), 'vi', { sensitivity: 'base' }));
   if (sortBy === 'missing-first') return matching.sort((a, b) =>
-    missingScoreCount(b.id, { view, activeRound, semester }) -
-    missingScoreCount(a.id, { view, activeRound, semester }));
+    missingScoreCount(b.id, { view, activeRound, semester, mockExams }) -
+    missingScoreCount(a.id, { view, activeRound, semester, mockExams }));
   return matching;
 }

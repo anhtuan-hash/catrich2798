@@ -116,6 +116,23 @@ export function gradebookAuditChanges(previous={}, current={}) {
         }
       }
     }
+    // Audit changes to a mock-exam ledger separately from semester grading.
+    const oldMocks = before[key]?.mockExams || [];
+    const newMocks = after[key]?.mockExams || [];
+    const previous = new Map(oldMocks.map((exam) => [exam.id, exam]));
+    const current = new Map(newMocks.map((exam) => [exam.id, exam]));
+    for (const id of new Set([...previous.keys(), ...current.keys()])) {
+      const oldExam = previous.get(id) || {};
+      const newExam = current.get(id) || {};
+      for (const field of ['label', 'date']) {
+        if ((oldExam[field] || '') !== (newExam[field] || '')) diffs.push({ subject:key, kind:'mock-exam', examId:id, field, from:oldExam[field] || '', to:newExam[field] || '' });
+      }
+      for (const studentId of new Set([...Object.keys(oldExam.scores || {}), ...Object.keys(newExam.scores || {})])) {
+        const from = oldExam.scores?.[studentId] ?? '';
+        const to = newExam.scores?.[studentId] ?? '';
+        if (String(from) !== String(to)) diffs.push({ subject:key, kind:'mock-exam', examId:id, studentId, from, to });
+      }
+    }
   }
   return diffs;
 }
