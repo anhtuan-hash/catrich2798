@@ -23,7 +23,8 @@ const ruleSelectors=[];
 root.walkRules(rule=>{
   const selector=rule.selector.trim();
   // The design layer must not change app-wide navigation, user/footer chrome or score formulas.
-  assert.ok(selector.split(',').every(part=>part.trim().startsWith('#root .gradebook-studio.gb7-rebirth') ||
+  const groups=selector.replace(/:is\([^)]*\)/g,':is(scoped)').split(',');
+  assert.ok(groups.every(part=>part.trim().startsWith('#root .gradebook-studio.gb7-rebirth') ||
     part.trim().startsWith('html[data-theme="dark"] #root .gradebook-studio.gb7-rebirth') ||
     part.trim().startsWith('.gb-academic-hero') || part.trim().startsWith('.gb-academic-heading') ||
     part.trim().startsWith('.gb-academic-class-row') || part.trim().startsWith('.gb-academic-actions') ||
