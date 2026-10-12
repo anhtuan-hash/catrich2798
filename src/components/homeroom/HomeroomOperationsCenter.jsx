@@ -93,13 +93,14 @@ export default function HomeroomOperationsCenter({ workspace, onCommit, goTab, s
     if(duplicate){setError('Lịch đã có công việc cùng tên và ngày. Hãy sửa công việc hiện có thay vì tạo trùng.');return;}
     setBusy(true);setError('');
     try {
+      const newId=editingId||(globalThis.crypto?.randomUUID?.()||`schedule-${Date.now()}`);
       const next=editingId
         ? {...workspace,schedule:(workspace.schedule||[]).map(item=>item.id===editingId?
             {...item,...draft,title,updatedAt:new Date().toISOString()}:item)}
-        : addScheduleItem(workspace,{...draft,title,id:globalThis.crypto?.randomUUID?.()||`schedule-${Date.now()}`});
+        : addScheduleItem(workspace,{...draft,title,id:newId});
       const saved=await onCommit(next,editingId?'Đã cập nhật công việc GVCN.':'Đã thêm công việc GVCN.');
       if(saved?.ok===false){
-        setEditingId(editingId||next.schedule.at(-1)?.id||'');
+        setEditingId(newId);
         setError('Đã lưu trên thiết bị nhưng cloud chưa đồng bộ. Kiểm tra kết nối trước khi đóng biểu mẫu.');
         return;
       }
