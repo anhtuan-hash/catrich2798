@@ -257,6 +257,7 @@ export default function Settings({
     ['settings-notifications', 'bell', vi ? 'Thông báo' : 'Notifications', vi ? 'Email & ứng dụng' : 'Email & app'],
     ['settings-sync', 'sync', vi ? 'Đồng bộ' : 'Sync', vi ? 'Dữ liệu & thiết bị' : 'Data & devices'],
     ['settings-privacy', 'shield', vi ? 'Bảo mật' : 'Security', vi ? 'Quyền riêng tư' : 'Privacy'],
+    ...(['admin', 'administrator'].includes(String(currentUser?.role || '').toLowerCase()) ? [['settings-mfa', 'shield', vi ? 'Xác thực hai lớp' : 'Two-factor authentication', 'MFA / 2FA']] : []),
     ['settings-system', 'settings', vi ? 'Hệ thống' : 'System', vi ? 'Hiệu năng & nâng cao' : 'Performance & advanced'],
     ...(isDepartmentLeaderRole(currentUser?.role) ? [['settings-global-chrome', 'settings', vi ? 'Hiển thị chung' : 'Global display', vi ? 'Sidebar & tin vắn' : 'Sidebar & news']] : []),
   ];
@@ -364,6 +365,21 @@ export default function Settings({
                 <SettingRow title={vi ? 'Cho phép tìm kiếm qua email' : 'Allow email discovery'}><Toggle checked={emailDiscovery} onChange={toggleBoolean(setEmailDiscovery, 'bes-email-discovery')} label="Email discovery" /></SettingRow>
                 <SettingRow title={vi ? 'Mã hóa dữ liệu' : 'Data encryption'}><span className="settings-m3-status-chip">{vi ? 'Đang bật' : 'Enabled'}</span></SettingRow>
                 <SettingRow title={vi ? 'Xem và tải dữ liệu của bạn' : 'View and download your data'}><button type="button" className="settings-m3-outlined-button" onClick={exportSettings}>{vi ? 'Xuất dữ liệu' : 'Export data'}</button></SettingRow>
+              </article>
+            ) : null}
+
+            {/* Mounted permanently while Admin Settings is open, so search filtering cannot unmount the MFA portal target. */}
+            {['admin', 'administrator'].includes(String(currentUser?.role || '').toLowerCase()) ? (
+              <article
+                id="settings-mfa"
+                className="settings-google-card tone-indigo settings-mfa-card"
+                style={{
+                  gridColumn: '1 / -1',
+                  display: matches('bảo mật', 'security', 'xác thực', 'xác thực hai lớp', 'mfa', '2fa', 'tài khoản', 'account', 'two-factor') ? undefined : 'none',
+                }}
+              >
+                <CardHeader icon="shield" tone="indigo" title={vi ? 'Xác thực hai lớp (MFA)' : 'Two-factor authentication (MFA)'} subtitle={vi ? 'Bảo vệ tài khoản Admin bằng mã xác thực từ điện thoại.' : 'Protect administrator access with an authenticator app.'} />
+                <div id="bes-admin-mfa-settings-target" className="bes-admin-mfa-settings-target" />
               </article>
             ) : null}
 
