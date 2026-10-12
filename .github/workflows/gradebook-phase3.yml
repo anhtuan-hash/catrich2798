@@ -1,0 +1,38 @@
+name: Gradebook Phase 3 Safety
+on:
+  pull_request:
+    paths:
+      - 'src/utils/gradebookPhase3.js'
+      - 'src/utils/gradebookProgressPdf.js'
+      - 'src/components/gradebook/GradebookPhase3Panel.jsx'
+      - 'src/components/gradebook/GradebookPhase3Panel.css'
+      - 'src/components/gradebook/GradebookEngine.jsx'
+      - 'src/components/gradebook/GradebookProductivityPanel.jsx'
+      - 'tests/gradebook-phase3.test.mjs'
+      - '.github/workflows/gradebook-phase3.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/utils/gradebookPhase3.js'
+      - 'src/utils/gradebookProgressPdf.js'
+      - 'src/components/gradebook/GradebookPhase3Panel.jsx'
+      - 'src/components/gradebook/GradebookPhase3Panel.css'
+      - 'src/components/gradebook/GradebookEngine.jsx'
+      - 'src/components/gradebook/GradebookProductivityPanel.jsx'
+jobs:
+  phase3:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Weighted rubric, real PDF, audit restore safety
+        run: node --test tests/gradebook-phase3.test.mjs tests/gradebook-phase2.test.mjs tests/gradebook-productivity.test.mjs
+      - name: Gradebook regression
+        run: node --test tests/gradebook-academic-workspace.test.mjs tests/gradebook-permanent-palette.test.mjs
+      - name: Production bundle
+        run: npm run build
