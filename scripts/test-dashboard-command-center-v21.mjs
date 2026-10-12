@@ -41,7 +41,7 @@ assert.match(page, /todayEventCount=\{todayEvents\.length\}/, 'Card must share d
 assert.match(page, /weekDays\.map\(/, 'Week calendar must render groups');
 assert.match(page, /setCalendarRange\('week'\)/);
 assert.match(page, /setNewsExpanded\(\(v\) => !v\)/);
-assert.match(center, /type="search"/);
+assert.match(center, /role="searchbox" type="text"/, 'Accessible task search field');
 assert.match(center, /visibleLimit/);
 assert.match(center, /approval=\{filter === 'approvals'\}/);
 assert.match(css, /\.gd-week-mode/);
