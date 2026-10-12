@@ -47,7 +47,7 @@ const workspace = read('src/pages/HomeroomWorkspace.jsx');
 const start = bootstrap.split('async function startApplication() {')[1];
 assert.doesNotMatch(start, /await preparePreferredHomeroomBeforeMain\(\)/, 'No remote RPC blocking entry');
 assert.match(start, /void preparePreferredHomeroomBeforeMain\(\)/);
-assert.match(selected, /readCachedAssignedHomeroom/);
+assert.match(selected, /fastPreferredHomeroom/);
 assert.match(selected, /rememberAssignedHomeroom/);
 assert.match(workspace, /fastPreferredHomeroom\(currentUser\)/);
 assert.match(workspace, /listFastHomeroomCatalog\(currentUser\)/);
