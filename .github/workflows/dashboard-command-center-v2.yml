@@ -1,8 +1,9 @@
-name: Dashboard Command Center v2 CI
+name: Dashboard Command Center v2/v2.1 CI
 on:
   push:
     branches:
       - feat/dashboard-command-center-20261012
+      - feat/dashboard-2-1-accuracy-20261012
   workflow_dispatch:
 permissions:
   contents: read
@@ -22,6 +23,7 @@ jobs:
         run: |
           node scripts/test-dashboard-command-center-v2.mjs
           node scripts/test-dashboard-drop-zone.mjs
+          TZ=Asia/Ho_Chi_Minh node scripts/test-dashboard-command-center-v21.mjs
       - name: Production build
         run: npm run build
       - name: Install Playwright Chromium
