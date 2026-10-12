@@ -7,20 +7,10 @@ import {
   loadDashboardSnapshot,
   openDashboardTarget,
 } from '../utils/dashboardAggregator.js';
-import '../styles/teacher-dashboard-google-authentic.css';
-import '../styles/teacher-dashboard-calendar-split.css';
-import '../styles/teacher-dashboard-compact-layout.css';
-import '../styles/teacher-dashboard-google-colorful.css';
-import '../styles/teacher-dashboard-editorial-hero.css';
-import '../styles/teacher-dashboard-timeline-v2.css';
 import DashboardCommandCenter from '../components/DashboardCommandCenter.jsx';
+// Unified CSS entrypoint: archived layer imports remain inside one design authority.
+import '../styles/dashboard-unified-v33.css';
 import { dashboardLocalDayKey, isDashboardTeachingPeriod } from '../utils/dashboardClassification.js';
-import '../styles/dashboard-command-center-v21.css';
-import '../styles/dashboard-command-center-v22.css';
-import '../styles/dashboard-command-center-v23.css';
-import '../styles/dashboard-v3.css';
-import '../styles/dashboard-v31.css';
-import '../styles/dashboard-v32.css';
 import DashboardWeeklyPlanner from '../components/DashboardWeeklyPlanner.jsx';
 import DashboardCommandPalette from '../components/DashboardCommandPalette.jsx';
 import { Search as SearchIcon, Moon, Sun, Focus, X as CloseIcon, Keyboard } from 'lucide-react';
@@ -30,7 +20,6 @@ import DashboardMonthCalendar from '../components/DashboardMonthCalendar.jsx';
 import DashboardWidgetBoard from '../components/DashboardWidgetBoard.jsx';
 import { dashboardLayoutStorageKey, readDashboardLayout, setDashboardSectionVisible, setDashboardTheme, setDashboardFocusMode, writeDashboardLayout } from '../utils/dashboardLayoutPreferences.js';
 import BrianDashboardDropZone from '../components/BrianDashboardDropZone.jsx';
-import '../styles/dashboard-command-center-v2.css';
 
 const DashboardNewsHub = lazy(() => import('../components/DashboardNewsHub.jsx'));
 const WEATHER_LOCATIONS = [
@@ -561,13 +550,13 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
       </section> : null),
   };
 
-  return <section className={`gd-page gd-v31-page gd-v32-page${initialLoading ? ' is-loading' : ''}${isFocusMode ? ' gd-v31-focus' : ''}${isMidnight ? ' gd-v31-midnight' : ''}`} aria-label={t.pageTitle} aria-busy={loading} data-dashboard-theme={isMidnight ? 'midnight' : 'daylight'}>
+  return <section className={`gd-page gd-v31-page gd-v32-page gd-u33${initialLoading ? ' is-loading' : ''}${isFocusMode ? ' gd-v31-focus' : ''}${isMidnight ? ' gd-v31-midnight' : ''}`} aria-label={t.pageTitle} aria-busy={loading} data-dashboard-theme={isMidnight ? 'midnight' : 'daylight'}>
     <div className="gd-shell gd-shell-v3">
       <div className="gd-v31-toolbar" role="toolbar" aria-label={language==='vi'?'Công cụ Dashboard':'Dashboard tools'}>
         <div className="gd-v31-toolbar-name">
           <span className="gd-v31-toolbar-indicator"/>
           <strong>BRIAN <span>COMMAND CENTER</span></strong>
-          <small>3.2</small>
+          <small>3.3</small>
         </div>
         <div className="gd-v31-toolbar-actions">
           <button type="button" className="gd-v31-search-trigger" onClick={()=>setPaletteOpen(true)}>
@@ -645,8 +634,8 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
           else openTtcm('schedule');
         }}><span>{nextEvent ? (language === 'vi' ? 'Xem chi tiết' : 'View details') : (language === 'vi' ? 'Mở lịch' : 'Open calendar')}</span><Icon name="arrow" size={17} /></button>
       </div> : null}
-      <DashboardDailyBrief snapshot={snapshot} now={now} language={language}/>
       <DashboardCommandCenter snapshot={snapshot} todayEventCount={todayEvents.length} language={language} now={now} loading={loading} onRefresh={() => refresh()} layout={personalLayout} onChangeLayout={handleLayoutChange} onFocusCalendar={scrollToCalendar} />
+      <DashboardDailyBrief snapshot={snapshot} now={now} language={language}/>
 
       <DashboardWeeklyPlanner timeline={timeline} attention={snapshot.attention || []} snapshot={snapshot} now={now} language={language} loading={loading} onRefresh={() => refresh()}/>
       <DashboardInsights snapshot={snapshot} now={now} language={language}/>
