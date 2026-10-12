@@ -416,7 +416,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
       </div>
     </section>
 
-    {teachingAssignments.length ? <section className="gradebook-assignment-panel hr-panel">
+    {teachingAssignments.length ? <details className="gbv2-extra gbv2-assignments"><summary><span>Phân công giảng dạy</span><small>{assignedReadyCount}/{teachingAssignments.length} lớp đã có sổ · Mở để quản lý</small></summary><section className="gradebook-assignment-panel hr-panel">
       <div className="gradebook-assignment-head">
         <div><small>BRIAN TEAM · PHÂN CÔNG GIẢNG DẠY</small><h2>{vi ? 'Lớp được phân công' : 'Teaching assignments'}</h2><p>{assignedReadyCount}/{teachingAssignments.length} lớp đã có Sổ điểm riêng. Dữ liệu được đồng bộ từ hồ sơ phân công của TTCM.</p></div>
         <span className="gradebook-assignment-sync">✓ Đã đồng bộ</span>
@@ -436,14 +436,14 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
           </article>;
         })}
       </div>
-    </section> : null}
+    </section></details> : null}
 
     {!teachingAssignments.length && assignmentSource === 'assignment-sync-not-installed' ? <section className="gradebook-assignment-note hr-panel">
       <b>Phân công Brian Team chưa được đồng bộ vào tài khoản này.</b>
       <span>Sổ điểm vẫn hoạt động bình thường bằng các lớp bộ môn tự tạo.</span>
     </section> : null}
 
-    <section className="gradebook-studio-switcher hr-panel">
+    <details className="gbv2-extra gbv2-classes"><summary><span>Quản lý lớp &amp; học sinh</span><small>Đổi lớp, quản lý danh sách hoặc thêm lớp bộ môn</small></summary><section className="gradebook-studio-switcher hr-panel">
       <div className="gradebook-studio-class-picker">
         <label>
           <span>{vi ? 'Lớp đang mở' : 'Current class'}</span>
@@ -464,7 +464,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
         <button type="button" className={view === 'students' ? 'primary' : 'secondary'} disabled={!workspace} onClick={() => setView('students')}>♙ {vi ? 'Danh sách học sinh' : 'Students'}</button>
         <button type="button" className="secondary" onClick={() => setCreateOpen((value) => !value)}>＋ {vi ? 'Thêm lớp bộ môn' : 'Add class'}</button>
       </div>
-    </section>
+    </section></details>
 
     {lifecycleText ? <section className={`gradebook-lifecycle-banner is-${lifecycle.status}`}>
       <div><b>{lifecycle.label}</b><span>{lifecycleText}</span></div>

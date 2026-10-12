@@ -5,20 +5,22 @@ const runtime = await readFile(new URL('../src/utils/gradebookMaterialHeroRuntim
 const css = await readFile(new URL('../src/styles/GradebookMaterialHeroRuntime.css', import.meta.url), 'utf8');
 
 for (const token of [
-  'gbe-m3-pastel-orb is-blue',
-  'gbe-m3-art-left',
-  'gbe-m3-art-right',
-  'gbe-m3-hand-note',
-  'Mỗi nỗ lực',
-  'Good Students',
-  'gbe-m3-mini-stats',
-  'article class="is-blue"',
-  'article class="is-mint"',
-  'article class="is-peach"',
-  'Bắt đầu nhập <i aria-hidden="true">›</i>',
+  'class="gbv2-hero"',
+  'class="gbv2-class-panel"',
+  'class="gbv2-class-tabs"',
+  'class="gbv2-quick-actions"',
+  'class="gbv2-semesters"',
+  'data-gbe-action="class"',
+  'data-gbe-action="semester"',
+  'data-gbe-action="view"',
+  'data-gbe-action="pdf"',
+  'data-gbe-action="students"',
+  'data-gbe-action="add-class"',
+  'HTMLSelectElement.prototype',
 ]) {
-  assert.ok(runtime.includes(token), `Colorful gradebook hero markup missing: ${token}`);
+  assert.ok(runtime.includes(token), `Gradebook approved V2 hero markup/action missing: ${token}`);
 }
+assert.ok(!runtime.includes('gbe-m3-live-panel'), 'Redundant hero score preview must be removed.');
 
 for (const token of [
   'Gradebook Colorful Hero V1',
@@ -46,4 +48,4 @@ const opens=(css.match(/{/g)||[]).length;
 const closes=(css.match(/}/g)||[]).length;
 assert.equal(opens, closes, 'Colorful gradebook hero CSS braces must be balanced.');
 
-console.log('PASS: Gradebook hero matches the approved colorful pastel mockup architecture and preserves global font authority.');
+console.log('PASS: Gradebook compact hero retains functional entry points and its existing font authority.');
