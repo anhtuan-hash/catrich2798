@@ -10,6 +10,7 @@ import {
 import DashboardCommandCenter from '../components/DashboardCommandCenter.jsx';
 // Unified CSS entrypoint: archived layer imports remain inside one design authority.
 import '../styles/dashboard-unified-v33.css';
+import '../styles/dashboard-v34-wide-news.css';
 import { dashboardLocalDayKey, isDashboardTeachingPeriod } from '../utils/dashboardClassification.js';
 import DashboardWeeklyPlanner from '../components/DashboardWeeklyPlanner.jsx';
 import DashboardCommandPalette from '../components/DashboardCommandPalette.jsx';
@@ -312,8 +313,9 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   const [weather, setWeather] = useState({ temperature: null, code: null, loading: true });
   const [weatherLocation, setWeatherLocation] = useState(initialWeatherLocation);
   const [showNews, setShowNews] = useState(false);
-  const [newsExpanded, setNewsExpanded] = useState(false);
+  const [newsExpanded, setNewsExpanded] = useState(true);
   const [calendarRange, setCalendarRange] = useState('today');
+  const [selectedScheduleDay, setSelectedScheduleDay] = useState('');
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [personalLayout, setPersonalLayout] = useState(() => readDashboardLayout(currentUser));
   const layoutOwnerKey = dashboardLayoutStorageKey(currentUser);
@@ -425,13 +427,20 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
     return value;
   }, [todayKey]);
   const todayEvents = useMemo(() => timeline.filter((item) => dateKey(item.date) === todayKey), [timeline, todayKey]);
+  const displayScheduleDate = useMemo(() => {
+    if (calendarRange !== 'selected' || !/^\d{4}-\d{2}-\d{2}$/.test(selectedScheduleDay)) return todayDate;
+    const [year, month, day] = selectedScheduleDay.split('-').map(Number);
+    const parsed = new Date(year, month - 1, day);
+    return dateKey(parsed) === selectedScheduleDay ? parsed : todayDate;
+  }, [calendarRange, selectedScheduleDay, todayDate]);
+  const displayedEvents = useMemo(() => timeline.filter(item => dateKey(item.date) === dateKey(displayScheduleDate)), [timeline, displayScheduleDate]);
+  const displayScheduleWeekday = new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(displayScheduleDate);
+  const displayScheduleLabel = new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'long', year: 'numeric' }).format(displayScheduleDate);
   const weekDays = useMemo(() => Array.from({ length: 7 }, (_, index) => {
     const day = new Date(todayDate);
     day.setDate(day.getDate() + index);
     return { key: dateKey(day), date: day, events: timeline.filter((item) => dateKey(item.date) === dateKey(day)) };
   }), [timeline, todayDate]);
-  const todayWeekday = new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(todayDate);
-  const todayDateLabel = new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'long', year: 'numeric' }).format(todayDate);
   const initialLoading = loading && !snapshot.generatedAt;
   // Never label a finished appointment as the next upcoming event.
   const nextEvent = timeline.find((item) => new Date(item.date).getTime() >= now.getTime()) || null;
@@ -488,7 +497,17 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
     }
     scrollToCalendar();
   };
-  const focusToday = () => scrollToCalendar();
+  const focusToday = () => {
+    setSelectedScheduleDay('');
+    setCalendarRange('today');
+    scrollToCalendar();
+  };
+  const openSelectedScheduleDay = useCallback((key) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(key || ''))) return;
+    setSelectedScheduleDay(key);
+    setCalendarRange('selected');
+    scrollToCalendar();
+  }, [scrollToCalendar]);
   const focusTaskQueue = () => {
     if (!isDashboardSectionVisible('priority')) handleLayoutChange(current => setDashboardSectionVisible(current,'priority',true));
     window.requestAnimationFrame(() => window.setTimeout(() => {
@@ -500,15 +519,16 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   const dashboardWidgetNodes = {
     calendar: (isDashboardSectionVisible('calendar') ? <article className="gd-calendar gd-calendar-today gd-calendar-timeline-v2" id="dashboard-calendar">
         <header className="gd-calendar-header">
-          <div className="gd-calendar-kicker">{calendarRange === 'month' ? '02 / MONTH' : calendarRange === 'week' ? '02 / WEEK' : '02 / TODAY'}</div>
-          <div className="gd-calendar-title"><span><Icon name="calendar" size={24} /></span><div><h2>{t.calendar}</h2><p>{t.calendarSummary}</p></div></div>
+          <div className="gd-calendar-kicker">{calendarRange === 'month' ? '02 / MONTH' : calendarRange === 'week' ? '02 / WEEK' : calendarRange === 'selected' ? '02 / DAY' : '02 / TODAY'}</div>
+          <div className="gd-calendar-title"><span><Icon name="calendar" size={24} /></span><div><h2>{calendarRange === 'selected' ? (language === 'vi' ? 'Lịch làm việc' : 'Daily schedule') : t.calendar}</h2><p>{t.calendarSummary}</p></div></div>
           <DashboardCalendarDoodle language={language} />
           <span className="gd-calendar-edition">DAILY SCHEDULE / BRIAN</span>
           <button type="button" className="gd-text-button" onClick={() => openTtcm('schedule')}><Icon name="calendar" size={16} />{t.openCalendar}<Icon name="arrow" size={18} /></button>
         </header>
         <div className="gd-calendar-range-toggle" role="group" aria-label={language === 'vi' ? 'Phạm vi lịch' : 'Schedule range'}>
-          <button type="button" aria-pressed={calendarRange === 'today'} className={calendarRange === 'today' ? 'is-active' : ''} onClick={() => setCalendarRange('today')}>{language === 'vi' ? 'Hôm nay' : 'Today'}</button>
+          <button type="button" aria-pressed={calendarRange === 'today'} className={calendarRange === 'today' ? 'is-active' : ''} onClick={() => { setSelectedScheduleDay(''); setCalendarRange('today'); }}>{language === 'vi' ? 'Hôm nay' : 'Today'}</button>
           <button type="button" aria-pressed={calendarRange === 'week'} className={calendarRange === 'week' ? 'is-active' : ''} onClick={() => setCalendarRange('week')}>{language === 'vi' ? '7 ngày tới' : 'Next 7 days'}</button>
+          {calendarRange === 'selected' ? <button type="button" className="is-active" aria-pressed="true">{language === 'vi' ? 'Ngày đã chọn' : 'Selected day'}</button> : null}
           <button type="button" aria-pressed={calendarRange === 'month'} className={calendarRange === 'month' ? 'is-active' : ''} onClick={() => setCalendarRange('month')}>{language === 'vi' ? 'Tháng' : 'Month'}</button>
         </div>
         <div className={'gd-today-layout gd-today-layout-v2' + (calendarRange === 'week' ? ' gd-week-mode' : calendarRange === 'month' ? ' gd-month-mode' : '')}>
@@ -520,19 +540,19 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
           </section> : <>
           <aside className="gd-date-poster">
             <div className="gd-date-poster-main">
-              <strong>{String(todayDate.getDate()).padStart(2, '0')}</strong>
-              <span>{new Intl.DateTimeFormat(locale, { month: 'long' }).format(todayDate)}</span>
-              <b>{todayWeekday}</b>
+              <strong>{String(displayScheduleDate.getDate()).padStart(2, '0')}</strong>
+              <span>{new Intl.DateTimeFormat(locale, { month: 'long' }).format(displayScheduleDate)}</span>
+              <b>{displayScheduleWeekday}</b>
             </div>
             <div className="gd-date-poster-landscape" aria-hidden="true"><i /><i /><i /></div>
             <p>{language === 'vi' ? <>Hôm nay<br />cũng là một<br />bước tiến! ✨</> : <>Today is<br />another step<br />forward! ✨</>}</p>
           </aside>
           <section className="gd-timeline-panel">
             <div className="gd-timeline-head">
-              <div><span>{t.selectedDay}</span><strong>{todayDateLabel}</strong></div>
-              <span className="gd-count-chip">{todayEvents.length} {t.events}</span>
+              <div><span>{calendarRange === 'selected' ? (language === 'vi' ? 'Lịch ngày đã chọn' : 'Selected day') : t.selectedDay}</span><strong>{displayScheduleLabel}</strong></div>
+              <span className="gd-count-chip">{displayedEvents.length} {t.events}</span>
             </div>
-            <div className="gd-agenda-list gd-agenda-list-today gd-agenda-timeline">{initialLoading ? <Empty>{t.refreshing}</Empty> : todayEvents.length ? todayEvents.map((item, index) => <CalendarEvent key={item.id} item={item} language={language} locale={locale} t={t} index={index} />) : <Empty>{t.emptyCalendar}</Empty>}</div>
+            <div className="gd-agenda-list gd-agenda-list-today gd-agenda-timeline">{initialLoading ? <Empty>{t.refreshing}</Empty> : displayedEvents.length ? displayedEvents.map((item, index) => <CalendarEvent key={item.id} item={item} language={language} locale={locale} t={t} index={index} />) : <Empty>{t.emptyCalendar}</Empty>}</div>
           </section>
           </>}
         </div>
@@ -550,13 +570,13 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
       </section> : null),
   };
 
-  return <section className={`gd-page gd-v31-page gd-v32-page gd-u33${initialLoading ? ' is-loading' : ''}${isFocusMode ? ' gd-v31-focus' : ''}${isMidnight ? ' gd-v31-midnight' : ''}`} aria-label={t.pageTitle} aria-busy={loading} data-dashboard-theme={isMidnight ? 'midnight' : 'daylight'}>
+  return <section className={`gd-page gd-v31-page gd-v32-page gd-u33 gd-u34${initialLoading ? ' is-loading' : ''}${isFocusMode ? ' gd-v31-focus' : ''}${isMidnight ? ' gd-v31-midnight' : ''}`} aria-label={t.pageTitle} aria-busy={loading} data-dashboard-theme={isMidnight ? 'midnight' : 'daylight'}>
     <div className="gd-shell gd-shell-v3">
       <div className="gd-v31-toolbar" role="toolbar" aria-label={language==='vi'?'Công cụ Dashboard':'Dashboard tools'}>
         <div className="gd-v31-toolbar-name">
           <span className="gd-v31-toolbar-indicator"/>
           <strong>BRIAN <span>COMMAND CENTER</span></strong>
-          <small>3.3</small>
+          <small>3.4</small>
         </div>
         <div className="gd-v31-toolbar-actions">
           <button type="button" className="gd-v31-search-trigger" onClick={()=>setPaletteOpen(true)}>
@@ -637,7 +657,7 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
       <DashboardCommandCenter snapshot={snapshot} todayEventCount={todayEvents.length} language={language} now={now} loading={loading} onRefresh={() => refresh()} layout={personalLayout} onChangeLayout={handleLayoutChange} onFocusCalendar={scrollToCalendar} />
       <DashboardDailyBrief snapshot={snapshot} now={now} language={language}/>
 
-      <DashboardWeeklyPlanner timeline={timeline} attention={snapshot.attention || []} snapshot={snapshot} now={now} language={language} loading={loading} onRefresh={() => refresh()}/>
+      <DashboardWeeklyPlanner timeline={timeline} attention={snapshot.attention || []} snapshot={snapshot} now={now} language={language} loading={loading} onRefresh={() => refresh()} onSelectDay={openSelectedScheduleDay}/>
       <DashboardInsights snapshot={snapshot} now={now} language={language}/>
       {error ? <div className="gd-alert"><Icon name="warning" size={22} /><div><strong>{t.partial}</strong><small>{error}</small></div><button type="button" className="gd-text-button" onClick={() => refresh()}>{t.retry}</button></div> : null}
       <DashboardWidgetBoard layout={personalLayout} widgets={dashboardWidgetNodes} />

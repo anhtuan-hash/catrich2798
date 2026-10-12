@@ -70,7 +70,7 @@ test('2.1 switches from Today to seven grouped days and back', async ({ page }) 
   await expect(page.locator('.gd-date-poster')).toBeVisible();
 });
 
-test('2.1 searches task labels and keeps news collapsed by default', async ({ page }) => {
+test('2.1 searches task labels and Dashboard 3.4 makes news available by default', async ({ page }) => {
   await openDashboard(page);
   const search = page.locator('.dcc-task-search input[role="searchbox"]');
   const visibility = await page.evaluate(() => {
@@ -89,11 +89,11 @@ test('2.1 searches task labels and keeps news collapsed by default', async ({ pa
   await search.fill('a unique phrase that cannot match any task');
   await expect(page.locator('.dcc-empty')).toBeVisible();
   const toggle = page.locator('.dcc-news-toggle');
-  await expect(toggle).toHaveAttribute('aria-expanded', 'false');
-  await toggle.click();
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
   await toggle.click();
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-expanded', 'true');
 });
 
 test('2.1 week layout avoids horizontal overflow on phones', async ({ page }) => {
@@ -405,4 +405,98 @@ test('3.3 unified design remains responsive in daylight and midnight modes', asy
   expect(first.content).toBeLessThanOrEqual(first.viewport+2);
   expect(first.radius).toBe('18px');
   await expect(page.locator('.gd-v32-planner')).toBeVisible();
+});
+
+test('3.4 dashboard canvas and footer use the same desktop width and left edge', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await openDashboard(page);
+  const result = await page.evaluate(() => {
+    const dashboard = document.querySelector('.gd-u34 .gd-shell-v3');
+    const footer = document.querySelector('.app-shell[data-route="dashboard"] > footer.footer');
+    const body = dashboard?.getBoundingClientRect();
+    const bottom = footer?.getBoundingClientRect();
+    return { body: body && { left: body.left, right: body.right, width: body.width },
+      footer: bottom && { left: bottom.left, right: bottom.right, width: bottom.width },
+      rootWidth: document.documentElement.scrollWidth,
+      viewport: document.documentElement.clientWidth,
+    };
+  });
+  console.log('DASHBOARD_ALIGNMENT_DEBUG', JSON.stringify(await page.evaluate(() => {
+    const root = document.querySelector('.app-shell[data-route="dashboard"]');
+    const main = root?.querySelector('.gd-page.gd-u34');
+    const shell = root?.querySelector('.gd-u34 .gd-shell-v3');
+    const footer = root?.querySelector(':scope > footer.footer');
+    return [root, main, shell, footer].filter(Boolean).map(node => {
+      const r = node.getBoundingClientRect();
+      const cs = getComputedStyle(node);
+      return {node:node.tagName, classes:String(node.className).slice(0,240),
+        left:r.left, right:r.right, width:r.width, offsetLeft:node.offsetLeft, offsetWidth:node.offsetWidth,
+        computedWidth:cs.width, maxWidth:cs.maxWidth, paddingLeft:cs.paddingLeft,
+        marginLeft:cs.marginLeft, marginRight:cs.marginRight,
+        variable:cs.getPropertyValue('--dashboard-shell-width').trim(),
+        transform:cs.transform, boxSizing:cs.boxSizing};
+    });
+  })));
+  expect(result.body).toBeTruthy();
+  expect(result.footer).toBeTruthy();
+  expect(Math.abs(result.body.left - result.footer.left)).toBeLessThanOrEqual(2);
+  expect(Math.abs(result.body.right - result.footer.right)).toBeLessThanOrEqual(2);
+  expect(result.rootWidth).toBeLessThanOrEqual(result.viewport + 2);
+});
+
+test('3.4 selecting week day updates only detailed calendar without redundant event list', async ({ page }) => {
+  await openDashboard(page);
+  const dock = page.locator('[data-dashboard-weekly-planner="true"]');
+  await expect(dock.locator('.gd-v32-planner-day')).toHaveCount(7);
+  await expect(dock.locator('.gd-v32-planner-agenda')).toHaveCount(0);
+  await dock.locator('.gd-v32-planner-day').nth(2).click();
+  await expect(dock.locator('.gd-v32-planner-day').nth(2)).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.gd-calendar-range-toggle').getByRole('button', {name:'Ngày đã chọn'})).toBeVisible();
+  const expected = await dock.locator('.gd-v32-planner-day-info h3').innerText();
+  const agenda = await page.locator('.gd-timeline-head strong').innerText();
+  expect(agenda.toLocaleLowerCase('vi')).toContain(expected.replace(/^[^,]+,\s*/,'').toLocaleLowerCase('vi'));
+  await page.locator('.gd-calendar-range-toggle').getByRole('button', { name:'Hôm nay' }).click();
+  await expect(page.locator('.gd-calendar-range-toggle').getByRole('button', {name:'Ngày đã chọn'})).toHaveCount(0);
+  await expect(page.locator('.gd-date-poster')).toBeVisible();
+});
+
+test('3.4 news is expanded by default and summary text is not clamped', async ({page})=>{
+  await openDashboard(page);
+  await expect(page.locator('.dcc-news-toggle')).toHaveAttribute('aria-expanded', 'true');
+  // The real newsroom loads lazily; verify display rules against a representative
+  // article snippet without depending on external news API responses.
+  const result = await page.evaluate(() => {
+    const host = document.querySelector('.dcc-news-slot');
+    if (!host) return null;
+    const sample = document.createElement('div');
+    sample.className = 'dnh';
+    sample.innerHTML = '<div class="dnh-grid"><div class="dnh-list"><button class="dnh-story"><span class="dnh-story-copy"><strong>Long education article title about classroom planning and teaching methods with supporting details</strong><p class="dnh-story-summary">A sufficiently long paragraph about education research in the classroom and professional learning, repeated with additional context to test whether the article body is unnecessarily limited to three lines. Additional explanation follows so that the text can wrap without being cut.</p></span></button></div></div>';
+    host.appendChild(sample);
+    const paragraph = sample.querySelector('p');
+    const style = getComputedStyle(paragraph);
+    const box = paragraph.getBoundingClientRect();
+    const lineHeight = parseFloat(style.lineHeight) || 18;
+    const result = { clamp:style.webkitLineClamp, visible:box.height > lineHeight*3, overflow:style.overflow, whiteSpace:style.whiteSpace };
+    sample.remove();
+    return result;
+  });
+  expect(result).toBeTruthy();
+  expect(result.clamp).toBe('none');
+  expect(result.overflow).toBe('visible');
+  expect(result.whiteSpace).toBe('normal');
+});
+
+test('3.4 wide calendar and readable news do not overflow on 390px screen', async ({ page }) => {
+  await page.setViewportSize({width:390,height:844});
+  await openDashboard(page);
+  const dock=page.locator('[data-dashboard-weekly-planner="true"]');
+  await dock.locator('.gd-v32-planner-day').nth(3).click();
+  await expect(page.locator('.gd-calendar-range-toggle').getByRole('button', {name:'Ngày đã chọn'})).toBeVisible();
+  const result=await page.evaluate(()=>({
+    scroll:document.documentElement.scrollWidth,
+    width:document.documentElement.clientWidth,
+    dashboard:document.querySelector('.gd-u34 .gd-shell-v3')?.getBoundingClientRect().width
+  }));
+  expect(result.scroll).toBeLessThanOrEqual(result.width+2);
+  expect(result.dashboard).toBeLessThanOrEqual(result.width);
 });
