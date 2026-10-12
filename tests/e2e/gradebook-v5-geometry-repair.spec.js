@@ -78,4 +78,42 @@ test('V5 navigation stays compact and a one-attempt score table fills the editor
     }
     expect(g.outerScroll,'outer horizontal overflow at '+width).toBeLessThanOrEqual(5);
   }
+  // A wide desktop can still have a narrow gradebook panel because of sidebars.
+  // The component's own container width (not just viewport) determines tab columns.
+  for (const [availableWidth, expectedColumns] of [[900, 4], [665, 3], [410, 2]]) {
+    await page.setViewportSize({ width: 1536, height: 960 });
+    await page.setContent(sample);
+    await page.addStyleTag({ content: sourceCSS });
+    const dimensions = await page.evaluate((w) => {
+      const root = document.querySelector('.gradebook-studio');
+      root.style.width = w + 'px';
+      root.style.maxWidth = '100%';
+      const container = document.querySelector('.hr-grade-navigation-dock');
+      const tabs = document.querySelector('.hr-grade-views');
+      const buttons = [...tabs.querySelectorAll('button')].map(b => b.getBoundingClientRect());
+      const r = container.getBoundingClientRect();
+      return {
+        columns: getComputedStyle(tabs).gridTemplateColumns.split(/\\s+/).filter(Boolean).length,
+        lastRight: buttons.at(-1).right,
+        containerRight: r.right,
+        widths: buttons.map(x => x.width),
+      };
+    }, availableWidth);
+    expect(dimensions.columns, 'container query columns at '+availableWidth).toBe(expectedColumns);
+    expect(dimensions.lastRight).toBeLessThanOrEqual(dimensions.containerRight + 3);
+    expect(Math.max(...dimensions.widths)).toBeLessThan(220);
+  }
+  // Zoom should keep labels horizontal and score inputs focusable.
+  await page.setViewportSize({width:1280,height:900});
+  await page.setContent(sample);
+  await page.addStyleTag({content:sourceCSS});
+  await page.evaluate(()=>{ document.querySelector('#root').style.zoom = '1.25'; });
+  const zoom = await page.evaluate(()=>({
+    tab: document.querySelector('.hr-grade-views button').getBoundingClientRect().height,
+    nav: document.querySelector('.hr-grade-navigation').getBoundingClientRect().height,
+    score: document.querySelector('.hr-grade-input').getBoundingClientRect().width,
+  }));
+  expect(zoom.tab).toBeLessThan(90);
+  expect(zoom.nav).toBeLessThan(380);
+  expect(zoom.score).toBeGreaterThan(45);
 });
