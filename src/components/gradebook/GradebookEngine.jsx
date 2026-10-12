@@ -8,18 +8,7 @@ import {
   gradeRoundScore as roundScore,
   gradeScoreNumber as scoreNumber,
 } from '../../utils/homeroomGradebookExport.js';
-import {
-  HOMEROOM_NAV_PALETTE_IDLE_MS,
-  createHomeroomNavigationScrollTracker,
-  readHomeroomGradeNavigationPreference,
-  updateHomeroomNavigationScrollTracker,
-  writeHomeroomGradeNavigationPreference,
-} from '../../utils/homeroomNavigationPalette.js';
 import './HomeroomLearningGradebook.css';
-
-const GRADE_NAV_RETRY_MS = 1000;
-const GRADE_NAV_EDITABLE_SELECTOR = 'input, textarea, select, [contenteditable="true"], [role="textbox"]';
-const GRADE_NAV_DIALOG_SELECTOR = 'dialog[open], [role="dialog"][aria-modal="true"]:not([aria-hidden="true"])';
 
 const SEMESTERS = [
   { id: 'semester1', label: 'Học kỳ I' },
@@ -273,159 +262,48 @@ function PlusCountInput({ value, onChange, label }) {
   />;
 }
 
-function hasGradeNavigationTextSelection() {
-  const selection = window.getSelection?.();
-  return Boolean(selection && selection.rangeCount > 0 && !selection.isCollapsed);
-}
-
 function GradebookNavigationPalette({
   semesterId,
   onSemesterChange,
   view,
   onViewChange,
   dirty,
-  blocked,
   onDiscard,
   onSave,
-  currentUser,
 }) {
-  const [preference, setPreference] = useState(() => readHomeroomGradeNavigationPreference(currentUser));
-  const preferenceRef = useRef(preference);
-  const navigationRef = useRef(null);
-  const launcherRef = useRef(null);
-  const idleTimerRef = useRef(0);
-  const interactionRef = useRef(false);
-  preferenceRef.current = preference;
-
-  const semesterLabel = SEMESTERS.find((item) => item.id === semesterId)?.label || 'Học kỳ';
+  // Permanent navigation: no persisted collapse preference, idle timer,
+  // scroll listener, launcher or manual hide button. Every choice stays mounted.
   const viewMeta = VIEWS.find((item) => item.id === view) || VIEWS[0];
-  const viewLabel = viewMeta.label;
-  const compactSemesterLabel = semesterId === 'semester2' ? 'HK II' : 'HK I';
 
-  const clearIdleTimer = useCallback(() => {
-    window.clearTimeout(idleTimerRef.current);
-    idleTimerRef.current = 0;
-  }, []);
-
-  const canAutoCollapse = useCallback(() => {
-    if (preferenceRef.current.pinned || interactionRef.current || dirty || blocked) return false;
-    if (document.querySelector(GRADE_NAV_DIALOG_SELECTOR)) return false;
-    const focused = document.activeElement;
-    if (focused && focused !== document.body) {
-      if (navigationRef.current?.contains(focused)) return false;
-      if (focused.matches?.(GRADE_NAV_EDITABLE_SELECTOR)) return false;
-    }
-    return !hasGradeNavigationTextSelection();
-  }, [blocked, dirty]);
-
-  const armIdleTimer = useCallback(() => {
-    clearIdleTimer();
-    if (preferenceRef.current.pinned || preferenceRef.current.collapsed || dirty || blocked) return;
-
-    const tryCollapse = () => {
-      idleTimerRef.current = 0;
-      if (canAutoCollapse()) {
-        setPreference((current) => (current.pinned ? current : { ...current, collapsed: true }));
-        return;
-      }
-      idleTimerRef.current = window.setTimeout(tryCollapse, GRADE_NAV_RETRY_MS);
-    };
-
-    idleTimerRef.current = window.setTimeout(tryCollapse, HOMEROOM_NAV_PALETTE_IDLE_MS);
-  }, [blocked, canAutoCollapse, clearIdleTimer, dirty]);
-
-  const reveal = useCallback(() => {
-    setPreference((current) => (current.collapsed ? { ...current, collapsed: false } : current));
-  }, []);
-
-  const collapse = useCallback((force = false) => {
-    if (preferenceRef.current.pinned || dirty || blocked || (!force && !canAutoCollapse())) {
-      armIdleTimer();
-      return;
-    }
-    clearIdleTimer();
-    setPreference((current) => (current.pinned || current.collapsed ? current : { ...current, collapsed: true }));
-  }, [armIdleTimer, blocked, canAutoCollapse, clearIdleTimer, dirty]);
-
-  useEffect(() => {
-    writeHomeroomGradeNavigationPreference(currentUser, preference);
-  }, [currentUser?.id, currentUser?.authId, currentUser?.email, preference.collapsed, preference.pinned]);
-
-  useEffect(() => {
-    clearIdleTimer();
-    if (dirty || blocked) {
-      reveal();
-      return clearIdleTimer;
-    }
-    if (!preference.pinned && !preference.collapsed) armIdleTimer();
-    return clearIdleTimer;
-  }, [armIdleTimer, blocked, clearIdleTimer, dirty, preference.collapsed, preference.pinned, reveal, semesterId, view]);
-
-  useEffect(() => {
-    let tracker = createHomeroomNavigationScrollTracker(window.scrollY);
-    const handleScroll = () => {
-      const update = updateHomeroomNavigationScrollTracker(tracker, window.scrollY);
-      tracker = update.tracker;
-      if (update.intent === 'collapse') collapse(false);
-      if (update.intent === 'expand') reveal();
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [collapse, reveal]);
-
-  useEffect(() => {
-    if (!preference.collapsed || !navigationRef.current?.contains(document.activeElement)) return undefined;
-    const frame = window.requestAnimationFrame(() => launcherRef.current?.focus({ preventScroll: true }));
-    return () => window.cancelAnimationFrame(frame);
-  }, [preference.collapsed]);
-
-  const togglePinned = () => {
-    clearIdleTimer();
-    setPreference((current) => ({ ...current, pinned: !current.pinned, collapsed: false }));
-  };
-
-  return <div data-grade-tone={viewMeta.tone} className={`hr-grade-navigation-dock ${preference.collapsed ? 'is-collapsed' : 'is-expanded'} ${preference.pinned ? 'is-pinned' : 'is-auto'}`}>
-    <section
-      ref={navigationRef}
-      className="hr-panel hr-grade-navigation"
-      aria-label="Điều hướng sổ điểm"
-      aria-hidden={preference.collapsed ? 'true' : undefined}
-      inert={preference.collapsed ? true : undefined}
-      onPointerEnter={() => { interactionRef.current = true; clearIdleTimer(); reveal(); }}
-      onPointerLeave={() => { interactionRef.current = false; armIdleTimer(); }}
-      onFocusCapture={() => { interactionRef.current = true; clearIdleTimer(); reveal(); }}
-      onBlurCapture={() => { interactionRef.current = false; armIdleTimer(); }}
-    >
-      <div className="hr-grade-semesters" role="tablist" aria-label="Chọn học kỳ">{SEMESTERS.map((semester) => <button key={semester.id} type="button" className={semesterId === semester.id ? 'active' : ''} onClick={() => onSemesterChange(semester.id)}>{semester.label}</button>)}</div>
-      <div className="hr-grade-views" role="tablist" aria-label="Chọn thành phần điểm">{VIEWS.map((item) => <button key={item.id} type="button" data-grade-tone={item.tone} className={view === item.id ? 'active' : ''} onClick={() => onViewChange(item.id)}>{item.label}</button>)}</div>
+  return <div data-grade-tone={viewMeta.tone} className="hr-grade-navigation-dock is-always-visible">
+    <section className="hr-panel hr-grade-navigation" aria-label="Điều hướng sổ điểm">
+      <div className="hr-grade-semesters" role="group" aria-label="Chọn học kỳ">
+        {SEMESTERS.map((semester) => <button
+          key={semester.id}
+          type="button"
+          className={semesterId === semester.id ? 'active' : ''}
+          aria-pressed={semesterId === semester.id}
+          onClick={() => onSemesterChange(semester.id)}
+        >{semester.label}</button>)}
+      </div>
+      <div className="hr-grade-views" role="group" aria-label="Chọn thành phần điểm">
+        {VIEWS.map((item) => <button
+          key={item.id}
+          type="button"
+          data-grade-tone={item.tone}
+          className={view === item.id ? 'active' : ''}
+          aria-pressed={view === item.id}
+          onClick={() => onViewChange(item.id)}
+        >{item.label}</button>)}
+      </div>
       <div className="hr-grade-save-actions">
-        <span className={dirty ? 'is-dirty' : 'is-saved'}>{dirty ? 'Có thay đổi chưa lưu' : 'Dữ liệu đã lưu'}</span>
+        <span role="status" aria-live="polite" className={dirty ? 'is-dirty' : 'is-saved'}>
+          {dirty ? 'Có thay đổi chưa lưu' : 'Dữ liệu đã lưu'}
+        </span>
         {dirty ? <button type="button" className="secondary" onClick={onDiscard}>Hoàn tác</button> : null}
         <button type="button" className="primary" disabled={!dirty} onClick={onSave}>Lưu bảng điểm</button>
-        <div className="hr-grade-navigation-options" aria-label="Tuỳ chọn thanh điểm">
-          <button type="button" className={preference.pinned ? 'is-pinned' : ''} aria-pressed={preference.pinned} title={preference.pinned ? 'Bỏ ghim thanh điểm' : 'Ghim thanh điểm luôn mở'} onClick={togglePinned}><span aria-hidden="true">⌖</span></button>
-          <button type="button" aria-label="Thu gọn thanh học kỳ và đợt điểm" title={dirty ? 'Hãy lưu hoặc hoàn tác trước khi thu gọn' : 'Thu gọn thanh điểm'} disabled={preference.pinned || dirty || blocked} onClick={() => collapse(true)}><span aria-hidden="true">↘</span></button>
-        </div>
       </div>
     </section>
-
-    <button
-      ref={launcherRef}
-      type="button"
-      className="hr-grade-navigation-launcher"
-      aria-label={`Mở điều hướng sổ điểm: ${semesterLabel}, ${viewLabel}`}
-      aria-hidden={preference.collapsed ? undefined : 'true'}
-      tabIndex={preference.collapsed ? 0 : -1}
-      onPointerEnter={() => { interactionRef.current = true; clearIdleTimer(); reveal(); }}
-      onPointerLeave={() => { interactionRef.current = false; armIdleTimer(); }}
-      onFocus={() => { interactionRef.current = true; clearIdleTimer(); }}
-      onBlur={() => { interactionRef.current = false; armIdleTimer(); }}
-      onClick={reveal}
-    >
-      <span className="hr-grade-navigation-launcher-icon" aria-hidden="true">∑</span>
-      <span className="hr-grade-navigation-launcher-copy"><b>{compactSemesterLabel} · {viewLabel}</b><small>Chạm để mở thanh điểm</small></span>
-      <span className="hr-grade-navigation-launcher-arrow" aria-hidden="true">⌃</span>
-    </button>
   </div>;
 }
 

@@ -782,3 +782,78 @@
   #root .gradebook-studio *::before,
   #root .gradebook-studio *::after{scroll-behavior:auto;transition:none}
 }
+
+/* Permanent grade navigation: no auto-collapse and no hidden options on narrow screens.
+   Keep all nine selectors and the status/save group in normal document flow. */
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock.is-always-visible{
+  position:relative;
+  top:auto;
+  display:block;
+  min-height:0;
+  height:auto;
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock.is-always-visible > .hr-grade-navigation{
+  position:relative;
+  inset:auto;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:9px 14px;
+  opacity:1;
+  visibility:visible;
+  pointer-events:auto;
+  transform:none;
+  overflow:visible;
+  min-height:51px;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock.is-always-visible .hr-grade-semesters{
+  flex:0 0 auto;
+  flex-wrap:wrap;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock.is-always-visible .hr-grade-views{
+  flex:1 1 470px;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-start;
+  align-items:center;
+  gap:5px;
+  width:auto;
+  max-width:none;
+  min-width:0;
+  overflow:visible;
+  scrollbar-width:auto;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock.is-always-visible .hr-grade-views button{
+  display:inline-flex;
+  white-space:nowrap;
+  flex:0 0 auto;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock.is-always-visible .hr-grade-save-actions{
+  display:flex;
+  align-items:center;
+  flex:0 0 auto;
+  gap:7px;
+  flex-wrap:wrap;
+  margin-left:auto;
+  white-space:normal;
+}
+#root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock.is-always-visible .hr-grade-save-actions > span{
+  display:inline-flex;
+  align-items:center;
+  min-height:32px;
+  white-space:nowrap;
+}
+@media(max-width:740px){
+  #root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock.is-always-visible .hr-grade-views{
+    flex:1 1 100%;
+    min-width:0;
+    width:100%;
+  }
+  #root .gradebook-studio .hr-gradebook .hr-grade-navigation-dock.is-always-visible .hr-grade-save-actions{
+    flex:1 1 100%;
+    justify-content:flex-end;
+  }
+}
