@@ -1,5 +1,20 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { HOMEROOM_TABS } from '../../data/homeroom.js';
+import { LayoutDashboard, Layers3, UsersRound, FolderOpen, CalendarCheck2, Award, ShieldCheck } from 'lucide-react';
+
+const HOMEROOM4_ICONS = Object.freeze({
+  overview: LayoutDashboard,
+  classes: Layers3,
+  students: UsersRound,
+  studentRecords: FolderOpen,
+  attendance: CalendarCheck2,
+  conduct: Award,
+  safety: ShieldCheck,
+});
+function NavigationIcon({ tabKey }) {
+  const Icon = HOMEROOM4_ICONS[tabKey] || Layers3;
+  return <Icon size={19} strokeWidth={2.35} aria-hidden="true" />;
+}
 import { isClassTabAllowed, isSubjectClass } from '../../utils/homeroomClassTypes.js';
 
 export default function HomeroomNavigationPalette({
@@ -87,10 +102,13 @@ export default function HomeroomNavigationPalette({
           key={tab.key}
           type="button"
           data-tab-key={tab.key}
+          data-tone={tab.key}
           className={active === tab.key ? 'active' : ''}
+          aria-current={active === tab.key ? 'page' : undefined}
+          aria-controls="hr-workspace-body"
           onClick={() => setActive(tab.key)}
         >
-          <span>{tab.icon}</span>
+          <span className="hr-v4-tab-symbol"><NavigationIcon tabKey={tab.key} /></span>
           <b>{subjectMode && tab.key === 'classes'
             ? (language === 'vi' ? 'Quản lý lớp' : 'Class management')
             : (language === 'vi' ? tab.titleVi : tab.title)}</b>
