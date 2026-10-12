@@ -1,0 +1,374 @@
+/*
+ * BRIAN GRADEBOOK — SPECTRUM V4 (route-scoped design layer).
+ * No layout dimensions are applied outside #root .gradebook-studio.gb4-spectrum.
+ * Import this AFTER GradebookAcademicWorkspace.css. Do not change grade math.
+ */
+#root .gradebook-studio.gb4-spectrum{
+  --gb4-ink:#152744;
+  --gb4-muted:#536b89;
+  --gb4-line:#d5e1f4;
+  --gb4-paper:#fff;
+  --gb4-electric:#3966fa;
+  --gb4-deep:#152f85;
+  --gb4-pop:#85ebff;
+  --gb4-action:#16b9ae;
+  --gb4-violet:#894bf4;
+  --gb4-glow:#a2c4ff;
+  --gb4-hero-from:#0c2b78;
+  --gb4-hero-mid:#3659df;
+  --gb4-hero-to:#6943ce;
+  --gb4-shadow:0 14px 35px rgba(28,54,107,.13);
+  isolation:isolate;
+}
+#root .gradebook-studio.gb4-spectrum.gb4-palette-coral{
+  --gb4-electric:#e45664;--gb4-deep:#983457;--gb4-pop:#ffeb97;
+  --gb4-action:#eb8c43;--gb4-violet:#ab4a8c;--gb4-glow:#ffbcb6;
+  --gb4-hero-from:#63204d;--gb4-hero-mid:#b93a63;--gb4-hero-to:#fb8751;
+}
+#root .gradebook-studio.gb4-spectrum.gb4-palette-orbit{
+  --gb4-electric:#7847e9;--gb4-deep:#3d208c;--gb4-pop:#c4ffb1;
+  --gb4-action:#43c08b;--gb4-violet:#ad53f0;--gb4-glow:#c4afff;
+  --gb4-hero-from:#242163;--gb4-hero-mid:#6739b9;--gb4-hero-to:#ae57db;
+}
+#root .gradebook-studio.gb4-spectrum .gb-academic-hero{
+  border:1px solid rgba(72,102,219,.28)!important;
+  border-radius:27px!important;
+  box-shadow:var(--gb4-shadow)!important;
+  overflow:hidden!important;
+  background:#fff!important;
+  margin-bottom:18px;
+}
+#root .gradebook-studio.gb4-spectrum .gb-academic-heading{
+  position:relative;
+  min-height:268px;
+  padding:30px 33px 25px;
+  isolation:isolate;
+  background:
+    radial-gradient(circle at 69% -35%, rgba(255,255,255,.16) 0 18%,transparent 19% 100%),
+    radial-gradient(circle at 83% 110%, rgba(123,242,255,.23),transparent 38%),
+    linear-gradient(119deg,var(--gb4-hero-from) 1%,var(--gb4-hero-mid) 57%,var(--gb4-hero-to) 100%)!important;
+}
+#root .gradebook-studio.gb4-spectrum .gb-academic-heading::before{
+  content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(126deg,transparent 0 45px,rgba(255,255,255,.037) 46px 47px,transparent 48px 90px);
+  border-radius:0;pointer-events:none;z-index:0;width:auto;height:auto;
+}
+#root .gradebook-studio.gb4-spectrum .gb-academic-heading::after{
+  content:"";position:absolute;right:-95px;top:-125px;width:560px;height:470px;
+  border:1px solid rgba(255,255,255,.24);border-radius:50%;box-shadow:0 0 0 42px rgba(255,255,255,.025),0 0 0 98px rgba(255,255,255,.028);
+  pointer-events:none;z-index:0;
+}
+#root .gradebook-studio.gb4-spectrum .gb-academic-hero .gb-academic-heading-copy{
+  position:relative;z-index:5;max-width:min(57%,580px);flex:1 1 57%;padding-top:6px;
+}
+#root .gradebook-studio.gb4-spectrum .gb-academic-eyebrow{
+  display:inline-flex;align-items:center;gap:9px;
+  border:1px solid rgba(255,255,255,.27)!important;background:rgba(255,255,255,.12)!important;
+  color:#e8efff!important;box-shadow:inset 0 1px rgba(255,255,255,.12);
+  border-radius:100px!important;font-size:10px;font-weight:850;letter-spacing:.15em;
+  padding:8px 13px;
+}
+#root .gradebook-studio.gb4-spectrum .gb-academic-eyebrow svg{color:var(--gb4-pop)!important}
+#root .gradebook-studio.gb4-spectrum .gb-academic-heading h1{
+  color:#fff!important;
+  font-size:clamp(43px,5vw,70px)!important;
+  letter-spacing:-.055em!important;line-height:1.02!important;
+  margin:18px 0 11px!important;text-shadow:0 4px 17px rgba(20,26,73,.22);
+}
+#root .gradebook-studio.gb4-spectrum .gb-academic-heading p{
+  color:#e6eeff!important;font-size:clamp(12px,1.1vw,15px)!important;
+  max-width:500px!important;line-height:1.65!important;font-weight:550!important;
+}
+#root .gradebook-studio.gb4-spectrum .gb-m3-hero-illustration{
+  width:min(43%,475px)!important;height:240px!important;top:21px!important;right:8%!important;
+  z-index:2;opacity:1!important;
+  filter:drop-shadow(0 19px 16px rgba(18,23,69,.22)) saturate(1.25) brightness(1.07);
+  object-fit:contain;
+}
+#root .gradebook-studio.gb4-spectrum .gb-academic-class-meta{
+  top:15px!important;right:17px!important;
+  border:1px solid rgba(255,255,255,.31)!important;
+  background:rgba(13,24,80,.26)!important;color:#fff!important;
+  box-shadow:none!important;border-radius:100px!important;
+  backdrop-filter:blur(8px);
+  font-variant-numeric:tabular-nums;
+}
+#root .gradebook-studio.gb4-spectrum .gb4-hero-signals{
+  display:flex;gap:8px;flex-wrap:wrap;margin-top:19px;max-width:440px;
+}
+#root .gradebook-studio.gb4-spectrum .gb4-hero-signals>span{
+  display:inline-flex;gap:7px;align-items:center;padding:7px 10px;
+  background:rgba(10,24,81,.28);border:1px solid rgba(255,255,255,.19);
+  border-radius:10px;color:#f3f7ff;font-size:11px;font-weight:750;
+}
+#root .gradebook-studio.gb4-spectrum .gb4-hero-signals svg{color:var(--gb4-pop);flex-shrink:0}
+#root .gradebook-studio.gb4-spectrum .gb-academic-class-row{
+  background:linear-gradient(90deg,#eff5ff,#fff 54%,#f7f0ff)!important;
+  padding:14px 23px 13px!important;border-color:#d9e3f9!important;
+}
+#root .gradebook-studio.gb4-spectrum .gb-academic-section-label{
+  color:var(--gb4-deep)!important;font-weight:900!important;font-size:10px!important;letter-spacing:.13em!important;
+}
+#root .gradebook-studio.gb4-spectrum .gb-academic-class-list{
+  gap:9px!important;padding:4px 0!important;scrollbar-width:thin;
+}
+#root .gradebook-studio.gb4-spectrum .gb-academic-class-list button{
+  border:1px solid #ceddf6!important;min-width:64px;min-height:42px!important;
+  color:#28518b!important;background:#fff!important;
+  border-radius:12px!important;font-weight:840!important;
+  box-shadow:0 2px 6px rgba(24,56,111,.04);
+  transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease;
+}
+#root .gradebook-studio.gb4-spectrum .gb-academic-class-list button:hover:not(:disabled){
+  border-color:var(--gb4-electric)!important;transform:translateY(-2px);
+}
+#root .gradebook-studio.gb4-spectrum .gb-academic-class-list button.is-active{
+  color:#fff!important;background:var(--gb4-electric)!important;
+  border-color:var(--gb4-electric)!important;
+  box-shadow:0 6px 15px color-mix(in srgb,var(--gb4-electric),transparent 72%)!important;
+}
+#root .gradebook-studio.gb4-spectrum .gb-academic-actions{
+  background:#fff!important;padding:15px 23px!important;align-items:center;
+  gap:15px!important;border-top:1px solid #e8effa!important;
+}
+#root .gradebook-studio.gb4-spectrum .gb-academic-actions button{
+  background:#f0f5ff!important;color:#244986!important;border:1px solid #dae4f8!important;
+  font-weight:820!important;border-radius:12px!important;min-height:43px!important;
+  transition:transform .15s ease,box-shadow .15s ease,background .15s ease!important;
+}
+#root .gradebook-studio.gb4-spectrum .gb-academic-actions .gb-academic-primary{
+  color:#fff!important;background:var(--gb4-electric)!important;border-color:var(--gb4-electric)!important;
+  box-shadow:0 7px 17px color-mix(in srgb,var(--gb4-electric),transparent 76%)!important;
+}
+#root .gradebook-studio.gb4-spectrum .gb-academic-secondary-actions button:last-child{
+  color:#6541b3!important;background:#f3ecff!important;border-color:#e5d6ff!important;
+}
+#root .gradebook-studio.gb4-spectrum .gb4-palette-selector{
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-left:auto;
+  border:1px solid #e1e9f7;background:#f8faff;border-radius:14px;padding:6px 9px;
+}
+#root .gradebook-studio.gb4-spectrum .gb4-palette-selector>span{
+  display:inline-flex;align-items:center;gap:5px;color:#607594;font-size:11px;font-weight:850;
+  white-space:nowrap;padding:0 3px;
+}
+#root .gradebook-studio.gb4-spectrum .gb4-palette-selector .gb4-palette-choice{
+  width:32px!important;height:32px!important;min-width:32px!important;min-height:32px!important;
+  padding:0!important;border-radius:10px!important;box-shadow:none!important;
+  background:var(--swatch)!important;border:2px solid #fff!important;cursor:pointer;
+  color:#fff!important;display:grid!important;place-items:center!important;
+}
+#root .gradebook-studio.gb4-spectrum .gb4-palette-selector .gb4-palette-choice[aria-pressed="true"]{
+  outline:2px solid #152950;outline-offset:1px;transform:translateY(-1px);
+}
+#root .gradebook-studio.gb4-spectrum .gb4-palette-selector .gb4-palette-choice svg{color:#fff!important}
+#root .gradebook-studio.gb4-spectrum .hr-grade-overview{
+  margin:14px 0!important;gap:12px!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-grade-overview article{
+  position:relative;overflow:hidden;background:#fff!important;
+  border:1px solid var(--gb4-line)!important;border-radius:17px!important;
+  box-shadow:0 5px 16px rgba(39,72,124,.05)!important;min-height:112px;
+}
+#root .gradebook-studio.gb4-spectrum .hr-grade-overview article::before{
+  content:"";position:absolute;top:0;left:0;width:100%;height:5px;
+  background:var(--gb4-card-color,var(--gb4-electric));
+}
+#root .gradebook-studio.gb4-spectrum .hr-grade-overview article.tone-blue{--gb4-card-color:#4277ff}
+#root .gradebook-studio.gb4-spectrum .hr-grade-overview article.tone-green{--gb4-card-color:#13bc8e}
+#root .gradebook-studio.gb4-spectrum .hr-grade-overview article.tone-purple{--gb4-card-color:#9654ef}
+#root .gradebook-studio.gb4-spectrum .hr-grade-overview article.tone-yellow{--gb4-card-color:#e4a52d}
+#root .gradebook-studio.gb4-spectrum .hr-grade-overview article strong{color:#1b3359!important;font-size:clamp(24px,2.6vw,32px)!important}
+#root .gradebook-studio.gb4-spectrum .hr-grade-overview article .hr-grade-overview-icon{
+  color:var(--gb4-card-color)!important;background:color-mix(in srgb,var(--gb4-card-color),white 89%)!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .gb3-deck{
+  border-radius:24px!important;border:1px solid #c8d7f2!important;
+  box-shadow:0 13px 29px rgba(29,60,122,.10)!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .gb3-deck-lead{
+  background:
+    radial-gradient(ellipse at 95% -40%,rgba(255,255,255,.20),transparent 57%),
+    linear-gradient(123deg,var(--gb4-deep),var(--gb4-electric) 90%)!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .gb3-deck-ring{
+  background:conic-gradient(var(--gb4-pop) var(--gb3-progress),#ffffff33 var(--gb3-progress))!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .gb3-deck-ring>span{background:var(--gb4-deep)!important}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .gb3-primary-action{
+  background:var(--gb4-pop)!important;color:var(--gb4-deep)!important;border-color:var(--gb4-pop)!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .gb3-deck-right{
+  background:linear-gradient(137deg,#fff,#f4f7ff 85%)!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .gb3-deck-tile{
+  border-radius:15px!important;min-height:120px;
+  box-shadow:0 3px 11px rgba(40,70,125,.055)!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .gb3-deck-tile.is-selected{
+  outline:2px solid var(--deck-accent)!important;
+  box-shadow:0 7px 18px color-mix(in srgb,var(--deck-accent),transparent 81%)!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-navigation-dock.is-always-visible>.hr-grade-navigation{
+  border:1px solid #d7e2f4!important;border-radius:19px!important;
+  box-shadow:0 7px 25px rgba(35,71,135,.08)!important;
+  padding:16px 17px!important;background:#fff!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-views button{
+  position:relative;border-radius:12px!important;min-height:52px!important;min-width:0;
+  background:#f6f9ff!important;color:#37547f!important;border:1px solid #dce7f7!important;
+  box-shadow:none!important;display:flex;align-items:center;justify-content:center;gap:8px;
+  font-weight:850!important;font-size:12px!important;
+  transition:background-color .15s ease,transform .15s ease,box-shadow .15s ease;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-views button::before{
+  content:"";position:absolute;inset:0 auto 0 0;width:4px;background:var(--gb4-tab-accent,#5b83dd);
+  border-radius:12px 0 0 12px;opacity:.92;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-views button[data-grade-tone="blue"]{--gb4-tab-accent:#426cff}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-views button[data-grade-tone="red"]{--gb4-tab-accent:#f26c72}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-views button[data-grade-tone="yellow"]{--gb4-tab-accent:#e5af32}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-views button[data-grade-tone="green"]{--gb4-tab-accent:#17ba83}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-views button[data-grade-tone="purple"]{--gb4-tab-accent:#9459e8}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-views button[data-grade-tone="orange"]{--gb4-tab-accent:#f18b3f}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-views button[data-grade-tone="cyan"]{--gb4-tab-accent:#17b6d7}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-views button.active{
+  background:var(--gb4-tab-accent,var(--gb4-electric))!important;
+  color:#fff!important;border-color:var(--gb4-tab-accent,var(--gb4-electric))!important;
+  box-shadow:0 6px 14px color-mix(in srgb,var(--gb4-tab-accent),transparent 75%)!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-views button.active::before{background:#ffffffbb}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-views button .gb4-view-icon{
+  flex-shrink:0;opacity:.9;display:inline-flex;align-items:center;justify-content:center;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-views button .gb4-view-icon svg{width:16px;height:16px}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-save-actions .primary{
+  background:var(--gb4-electric)!important;border:1px solid var(--gb4-electric)!important;
+  border-radius:12px!important;box-shadow:0 6px 14px color-mix(in srgb,var(--gb4-electric),transparent 76%)!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-save-actions .primary:disabled{box-shadow:none!important;opacity:.5}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-save-actions .is-dirty{
+  background:#fff4dd!important;color:#a56818!important;border:1px solid #f0d6a5;border-radius:10px;padding:7px 10px;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-save-actions .is-saved{
+  color:#187f61!important;background:#e6faef!important;border:1px solid #b7ead0;border-radius:10px;padding:7px 10px;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .gb-roster-workbench{
+  border:1px solid #d5e2f5!important;border-radius:19px!important;
+  box-shadow:0 5px 18px rgba(40,73,129,.06)!important;
+  background:linear-gradient(115deg,#fff,#f9fbff)!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .gb-roster-search input{
+  background:#fff!important;border-color:#cbdafa!important;color:var(--gb4-ink)!important;
+  border-radius:11px!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .gb-roster-focus[aria-pressed="true"]{
+  background:var(--gb4-violet)!important;border-color:var(--gb4-violet)!important;color:#fff!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-panel{
+  border-radius:20px!important;border:1px solid #d3e0f3!important;
+  box-shadow:0 8px 27px rgba(36,67,121,.085)!important;
+  overflow:hidden;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-panel-head{
+  background:linear-gradient(115deg,#e8f0ff,#fff 51%,#f2eaff)!important;
+  border-bottom:1px solid #dbe5f6;min-height:95px;
+}
+#root .gradebook-studio.gb4-spectrum .hr-grade-panel-head h2{font-size:20px!important;color:#1b3763!important}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-table-wrap{
+  border:1px solid #dce6f7!important;border-radius:13px;overflow:auto;
+  overscroll-behavior:contain;scrollbar-color:#b3c9ee #f6f9ff;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-table{
+  border-collapse:separate!important;border-spacing:0!important;font-variant-numeric:tabular-nums;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-table thead th{
+  background:#eaf1ff!important;color:#2c4979!important;
+  font-weight:860!important;border-bottom:2px solid #b6c9ed!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-table thead th.hr-grade-index,
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-table thead th.hr-grade-student{
+  background:#dae8ff!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-table tbody tr:nth-child(even)>td{
+  background:#f7faff!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-table tbody tr:hover>td{
+  background:#eaf4ff!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-table tbody tr:focus-within>td{
+  background:#e6edff!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-table tbody td.hr-grade-student{
+  background:#fff!important;
+  border-right:2px solid #cfdef5!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-table tbody tr:nth-child(even)>td.hr-grade-student{background:#f1f6ff!important}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-table tbody tr:focus-within>td.hr-grade-student{background:#dfeeff!important}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-input{
+  border:1px solid #c3d2eb!important;border-radius:9px!important;
+  background:#fff!important;color:#153865!important;
+  font-size:15px!important;font-weight:780!important;text-align:center;min-width:48px;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-input:focus{
+  outline:3px solid color-mix(in srgb,var(--gb4-electric),transparent 60%)!important;
+  outline-offset:1px;box-shadow:0 3px 10px #4369bf1f!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-input:disabled{background:#f0f3f8!important;color:#506a8b!important}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .gbv2-save-strip{
+  border-top:2px solid #d5e4f9!important;
+  background:linear-gradient(90deg,#eff4ff,#f9f6ff)!important;
+}
+#root .gradebook-studio.gb4-spectrum .hr-gradebook .gbv2-save-strip .primary{
+  background:var(--gb4-electric)!important;border-color:var(--gb4-electric)!important;
+}
+#root .gradebook-studio.gb4-spectrum .gb-mock-hero{
+  background:linear-gradient(119deg,var(--gb4-hero-from),var(--gb4-hero-mid) 61%,var(--gb4-hero-to))!important;
+}
+#root .gradebook-studio.gb4-spectrum .gb-mock-add,
+#root .gradebook-studio.gb4-spectrum .gb-mock-paste-apply{
+  background:var(--gb4-electric)!important;border-color:var(--gb4-electric)!important;
+}
+#root .gradebook-studio.gb4-spectrum .gb-mock-table-wrap{
+  border:1px solid #cbdbf3!important;box-shadow:0 6px 17px rgba(25,56,115,.05);
+}
+#root .gradebook-studio.gb4-spectrum .gb-mock-score:focus{
+  outline:3px solid color-mix(in srgb,var(--gb4-electric),transparent 62%)!important;
+}
+#root .gradebook-studio.gb4-spectrum :is(button,select,input,summary):focus-visible{
+  outline:3px solid var(--gb4-electric)!important;outline-offset:2px;
+}
+@media(max-width:1200px){
+  #root .gradebook-studio.gb4-spectrum .gb-academic-heading{min-height:233px}
+  #root .gradebook-studio.gb4-spectrum .gb-m3-hero-illustration{width:46%!important;right:3%!important}
+  #root .gradebook-studio.gb4-spectrum .gb4-palette-selector{margin-left:0}
+}
+@media(max-width:850px){
+  #root .gradebook-studio.gb4-spectrum .gb-academic-heading{min-height:224px;padding:23px 21px}
+  #root .gradebook-studio.gb4-spectrum .gb-academic-hero .gb-academic-heading-copy{max-width:64%;flex-basis:64%}
+  #root .gradebook-studio.gb4-spectrum .gb-academic-heading h1{font-size:46px!important}
+  #root .gradebook-studio.gb4-spectrum .gb-m3-hero-illustration{width:43%!important;height:190px!important;right:-2%!important}
+  #root .gradebook-studio.gb4-spectrum .gb4-hero-signals{margin-top:10px}
+  #root .gradebook-studio.gb4-spectrum .gb-academic-class-row,
+  #root .gradebook-studio.gb4-spectrum .gb-academic-actions{padding-inline:14px!important}
+  #root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-views button{min-height:45px!important;font-size:11px!important}
+}
+@media(max-width:540px){
+  #root .gradebook-studio.gb4-spectrum .gb-academic-hero{border-radius:18px!important}
+  #root .gradebook-studio.gb4-spectrum .gb-academic-heading{padding:20px 15px 16px;min-height:218px}
+  #root .gradebook-studio.gb4-spectrum .gb-academic-hero .gb-academic-heading-copy{max-width:78%;flex-basis:78%}
+  #root .gradebook-studio.gb4-spectrum .gb-academic-heading h1{font-size:38px!important;margin:14px 0 6px!important}
+  #root .gradebook-studio.gb4-spectrum .gb-academic-heading p{font-size:12px!important}
+  #root .gradebook-studio.gb4-spectrum .gb-m3-hero-illustration{width:57%!important;right:-18%!important;top:60px!important;height:165px!important;opacity:.7!important}
+  #root .gradebook-studio.gb4-spectrum .gb-academic-class-meta{top:8px!important;right:9px!important;font-size:9px;padding:6px 8px}
+  #root .gradebook-studio.gb4-spectrum .gb4-hero-signals>span{padding:6px 8px;font-size:10px}
+  #root .gradebook-studio.gb4-spectrum .gb-academic-actions{gap:10px!important}
+  #root .gradebook-studio.gb4-spectrum .gb-academic-actions button{min-height:39px!important;padding:8px 10px!important}
+  #root .gradebook-studio.gb4-spectrum .gb4-palette-selector{width:100%;justify-content:center}
+  #root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-views button .gb4-view-icon{display:none}
+  #root .gradebook-studio.gb4-spectrum .hr-gradebook .hr-grade-navigation-dock.is-always-visible>.hr-grade-navigation{padding:12px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  #root .gradebook-studio.gb4-spectrum *,
+  #root .gradebook-studio.gb4-spectrum *::before,
+  #root .gradebook-studio.gb4-spectrum *::after{scroll-behavior:auto!important;transition-duration:0s!important;animation-duration:0s!important}
+}

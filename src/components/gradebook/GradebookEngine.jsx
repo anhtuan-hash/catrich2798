@@ -10,7 +10,7 @@ import {
 } from '../../utils/homeroomGradebookExport.js';
 import './HomeroomLearningGradebook.css';
 import { filterGradebookStudentView, gradebookColumnProgress } from '../../utils/gradebookStudentView.js';
-import { Search, ScanEye, Minimize2, Keyboard, X, ArrowDownToLine, ListFilter, Rows3, Rows4, ChartColumnIncreasing } from 'lucide-react';
+import { Search, ScanEye, Minimize2, Keyboard, X, ArrowDownToLine, ListFilter, Rows3, Rows4, ChartColumnIncreasing, BookOpenCheck, GraduationCap, NotebookPen, FileBarChart2, Sigma } from 'lucide-react';
 import GradebookProductivityPanel from './GradebookProductivityPanel.jsx';
 import GradebookSemesterMission from './GradebookSemesterMission.jsx';
 import GradebookMockExams from './GradebookMockExams.jsx';
@@ -340,7 +340,13 @@ function GradebookNavigationPalette({
           className={`${view === item.id ? 'active' : ''}${item.id === 'mock' ? ' gb-mock-tab' : ''}`}
           aria-pressed={view === item.id}
           onClick={() => onViewChange(item.id)}
-        >{item.label}</button>)}
+        ><span className="gb4-view-icon" role="presentation">{
+          item.id === 'mock' ? <GraduationCap size={16} /> :
+          item.id === 'midterm' ? <NotebookPen size={16} /> :
+          item.id === 'final' ? <BookOpenCheck size={16} /> :
+          item.id === 'summary' ? <Sigma size={16} /> :
+          <FileBarChart2 size={16} />
+        }</span>{item.label}</button>)}
       </div>
       <div className="hr-grade-save-actions">
         <span role="status" aria-live="polite" className={dirty ? 'is-dirty' : 'is-saved'}>
