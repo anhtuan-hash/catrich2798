@@ -202,3 +202,71 @@ test('2.3 customizer remains usable at mobile width', async ({ page }) => {
   }));
   expect(dimensions.doc).toBeLessThanOrEqual(dimensions.viewport + 2);
 });
+
+test('3.0 Daily Brief and Insights show grounded summaries without blocking old features', async ({ page }) => {
+  await openDashboard(page);
+  await expect(page.locator('.gd-v3-brief')).toBeVisible();
+  await expect(page.locator('.gd-v3-insights')).toBeVisible();
+  await expect(page.locator('.gd-v3-insight-cell')).toHaveCount(4);
+  await expect(page.locator('.gd-v3-insights-progress')).toHaveAttribute('aria-valuenow', /\d+/);
+  await expect(page.locator('.brian-dashboard-drop-zone')).toBeVisible();
+  await expect(page.locator('.dcc-stat')).toHaveCount(4);
+});
+
+test('3.0 Calendar Month can show current and next month, then return to Today', async ({ page }) => {
+  await openDashboard(page);
+  const calendar = page.locator('#dashboard-calendar');
+  await calendar.getByRole('button', { name: 'Tháng', exact: true }).click();
+  await expect(calendar.locator('.gd-v3-month-grid')).toBeVisible();
+  await expect(calendar.locator('.gd-v3-month-weekday')).toHaveCount(7);
+  await calendar.getByRole('button', { name: 'Tháng tiếp theo' }).click();
+  await expect(calendar.locator('.gd-v3-month-cell.is-current-month')).toHaveCount(30);
+  await calendar.getByRole('button', { name: 'Hôm nay', exact: true }).click();
+  await expect(calendar.locator('.gd-date-poster')).toBeVisible();
+});
+
+test('3.0 supports priority and date filters without changing source records', async ({ page }) => {
+  await openDashboard(page);
+  const filters = page.locator('.gd-v3-task-controls');
+  await expect(filters.locator('select')).toHaveCount(2);
+  await filters.getByLabel('Lọc theo ưu tiên').selectOption('urgent');
+  await expect(filters.getByLabel('Lọc theo ưu tiên')).toHaveValue('urgent');
+  await filters.getByLabel('Sắp xếp công việc').selectOption('date');
+  await expect(filters.getByLabel('Sắp xếp công việc')).toHaveValue('date');
+  await filters.getByLabel('Lọc theo ưu tiên').selectOption('all');
+  await expect(page.locator('.dcc-root')).toBeVisible();
+});
+
+test('3.0 Widget Studio presets, order and size are persistent', async ({ page }) => {
+  await openDashboard(page);
+  await page.locator('.dcc-customize-trigger').click();
+  const presets = page.locator('.gd-v3-preset-bar');
+  await presets.getByRole('button', { name: 'Giáo viên', exact: true }).click();
+  await expect(presets.getByRole('button', { name: 'Giáo viên', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.gd-v3-widget').first()).toHaveAttribute('data-widget', 'quickActions');
+  const calendarControl = page.locator('.gd-v3-editor-widget').filter({ hasText: 'Lịch làm việc' });
+  await calendarControl.locator('select').selectOption('tall');
+  await expect(page.locator('.gd-v3-widget--calendar')).toHaveClass(/gd-v3-widget--tall/);
+  await page.reload();
+  await expect(page.locator('.gd-v3-widget').first()).toHaveAttribute('data-widget', 'quickActions');
+  await expect(page.locator('.gd-v3-widget--calendar')).toHaveClass(/gd-v3-widget--tall/);
+  await page.locator('.dcc-customize-trigger').click();
+  await page.locator('.dcc-reset-layout').click();
+  await expect(page.locator('.gd-v3-widget').first()).toHaveAttribute('data-widget', 'calendar');
+});
+
+test('3.0 respects mobile viewport with new widgets', async ({ page }) => {
+  await page.setViewportSize({width:390,height:844});
+  await openDashboard(page);
+  await expect(page.locator('.gd-v3-brief')).toBeVisible();
+  await expect(page.locator('.gd-v3-insights')).toBeVisible();
+  const widths=await page.evaluate(()=>({
+    scroll:document.documentElement.scrollWidth,
+    client:document.documentElement.clientWidth,
+  }));
+  expect(widths.scroll).toBeLessThanOrEqual(widths.client+2);
+  await page.locator('.dcc-customize-trigger').click();
+  await expect(page.locator('.gd-v3-editor-widget')).toHaveCount(4);
+  const widthsEditor=await page.evaluate(()=>[document.documentElement.scrollWidth,document.documentElement.clientWidth]);
+  expect(widthsEditor[0]).toBeLessThanOrEqual(widthsEditor[1]+2);
+});
