@@ -1,0 +1,114 @@
+/* Dashboard 2.2 — high-information command bar, contrast and data transparency.
+   Scoped to Dashboard only; no global navigation or gradebook rules. */
+.app-shell[data-route="dashboard"] .dcc-next-event {
+  display:flex;align-items:center;gap:14px;
+  margin:-4px 0 21px;padding:15px 18px;
+  border:1px solid #bfd9fd;border-radius:17px;
+  background:linear-gradient(110deg,#eaf4ff 0%,#f6faff 54%,#eafaf4 100%);
+  box-shadow:0 10px 27px rgba(48,102,175,.08);color:#1e497c;min-width:0;
+}
+.app-shell[data-route="dashboard"] .dcc-next-event-icon {
+  width:43px;height:43px;flex:0 0 43px;display:grid;place-items:center;
+  background:linear-gradient(135deg,#3478f3,#1e54c4);color:#fff;border-radius:13px;
+  box-shadow:0 5px 12px #2365d72a;
+}
+.app-shell[data-route="dashboard"] .dcc-next-event-details {
+  display:flex;flex:1;min-width:0;flex-direction:column;gap:4px;
+}
+.app-shell[data-route="dashboard"] .dcc-next-event-eyebrow {
+  font-size:9.5px;font-weight:850;letter-spacing:.12em;color:#2a70cd;
+}
+.app-shell[data-route="dashboard"] .dcc-next-event-details strong {
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:13.5px;font-weight:850;color:#17395f;
+}
+.app-shell[data-route="dashboard"] .dcc-next-event-details small {
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:11px;color:#6683a4;font-weight:650;
+}
+.app-shell[data-route="dashboard"] .dcc-next-event-action {
+  flex:0 0 auto;display:flex;align-items:center;justify-content:center;gap:8px;
+  min-height:37px;padding:8px 12px;border-radius:11px;border:1px solid #bdd6f9;
+  background:#fff;color:#2164c9;cursor:pointer;font-family:inherit;font-size:11.5px;font-weight:800;line-height:1.2;
+}
+.app-shell[data-route="dashboard"] .dcc-next-event-action:hover {
+  background:#2869d4;color:#fff;border-color:#2869d4;
+}
+.app-shell[data-route="dashboard"] .dcc-next-event-action:focus-visible {
+  outline:3px solid #3585ff;outline-offset:2px;
+}
+.app-shell[data-route="dashboard"] .dcc-sync-strip {
+  display:flex;justify-content:flex-start;align-items:center;flex-wrap:wrap;
+  gap:8px 14px;margin:-1px 0 12px;padding:0 2px;color:#597493;
+  font-size:11px;font-weight:690;
+}
+.app-shell[data-route="dashboard"] .dcc-sync-strip > span:first-child {
+  display:inline-flex;gap:6px;align-items:center;
+}
+.app-shell[data-route="dashboard"] .dcc-source-chip {
+  max-width:100%;display:inline-block;white-space:nowrap;text-overflow:ellipsis;overflow:hidden;
+  padding:4px 8px;border:1px solid #d7e5f4;border-radius:7px;
+  background:#f7fbff;font-size:10px;color:#657d98;
+}
+.app-shell[data-route="dashboard"] .dcc-data-limited {
+  display:flex;gap:9px;align-items:flex-start;margin:0 0 13px;padding:10px 13px;
+  color:#8a5a17;background:#fffaeb;border:1px solid #f4dda0;border-radius:12px;
+  font-size:11.5px;line-height:1.45;
+}
+.app-shell[data-route="dashboard"] .dcc-data-limited svg { flex:0 0 auto;margin-top:1px; }
+.app-shell[data-route="dashboard"] .dcc-scope-switch {
+  display:flex;gap:5px;margin:1px 18px 12px;padding:4px;width:max-content;
+  max-width:calc(100% - 36px);background:#ecf2fc;border-radius:11px;
+  border:1px solid #dce8f8;
+}
+.app-shell[data-route="dashboard"] .dcc-scope-switch button {
+  padding:7px 13px;min-height:32px;border:0;background:transparent;border-radius:8px;
+  color:#577391;font-size:11.5px;font-weight:800;
+}
+.app-shell[data-route="dashboard"] .dcc-scope-switch button.is-active {
+  background:#fff;color:#255cbd;box-shadow:0 3px 9px rgba(33,85,162,.12);
+}
+.app-shell[data-route="dashboard"] .dcc-root .dcc-scope-switch button:focus-visible {
+  outline:2px solid #2e74e9;outline-offset:1px;
+}
+/* Stronger panel hierarchy and more legible compact task typography. */
+.app-shell[data-route="dashboard"] .dcc-stat {
+  box-shadow:0 6px 23px rgba(22,65,120,.065);
+}
+.app-shell[data-route="dashboard"] .dcc-panel {
+  box-shadow:0 9px 26px rgba(39,83,129,.055);
+}
+.app-shell[data-route="dashboard"] .dcc-priority-row .dcc-row-detail strong {
+  font-size:12.8px;letter-spacing:-.01em;
+}
+.app-shell[data-route="dashboard"] .dcc-row-due {
+  max-width:125px;white-space:normal;text-align:right;
+}
+@media(max-width:850px) {
+  .app-shell[data-route="dashboard"] .dcc-next-event { margin-bottom:17px; }
+}
+@media(max-width:640px) {
+  .app-shell[data-route="dashboard"] .dcc-next-event {
+    padding:11px;gap:9px;border-radius:14px;
+  }
+  .app-shell[data-route="dashboard"] .dcc-next-event-icon {
+    width:35px;height:35px;flex-basis:35px;border-radius:10px;
+  }
+  .app-shell[data-route="dashboard"] .dcc-next-event-details strong {
+    font-size:12px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+    overflow:hidden;line-height:1.35;
+  }
+  .app-shell[data-route="dashboard"] .dcc-next-event-details small {
+    font-size:10px;white-space:normal;
+  }
+  .app-shell[data-route="dashboard"] .dcc-next-event-action {
+    min-height:34px;padding:7px;gap:2px;align-self:center;
+  }
+  .app-shell[data-route="dashboard"] .dcc-next-event-action > span { display:none; }
+  .app-shell[data-route="dashboard"] .dcc-sync-strip { gap:4px 9px;font-size:10px; }
+  .app-shell[data-route="dashboard"] .dcc-scope-switch { margin-inline:12px;max-width:calc(100% - 24px); }
+  .app-shell[data-route="dashboard"] .dcc-scope-switch button { min-height:30px;padding:6px 11px; }
+}
+@media(prefers-reduced-motion: reduce) {
+  .app-shell[data-route="dashboard"] .dcc-next-event-action { transition:none!important; }
+}

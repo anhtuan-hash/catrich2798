@@ -13,7 +13,7 @@ import {
   rememberWorkHubItem,
 } from './workHubDelivery.js';
 import { isAdminRole, isDepartmentLeaderRole } from './roles.js';
-import { dashboardLocalDayKey, isDashboardActionableTask, isDashboardSchedule, isDashboardTeachingPeriod } from './dashboardClassification.js';
+import { dashboardDayOffset, dashboardLocalDayKey, isDashboardActionableTask, isDashboardSchedule, isDashboardTeachingPeriod } from './dashboardClassification.js';
 
 const DAY = 86400000;
 const DONE = new Set(['completed', 'approved', 'archived', 'cancelled']);
@@ -92,9 +92,8 @@ function addDays(value, amount) {
 }
 
 function dayDistance(value, now = new Date()) {
-  const target = parseDate(value);
-  if (!target) return null;
-  return Math.round((startOfDay(target).getTime() - startOfDay(now).getTime()) / DAY);
+  // Local-calendar arithmetic must not drift at daylight-saving boundaries.
+  return dashboardDayOffset(value, now);
 }
 
 export function getDashboardDueState(value, done = false, now = new Date()) {
@@ -300,9 +299,12 @@ async function loadWork(user, now = new Date()) {
         p_upcoming_limit: WORK_DASHBOARD_MAX_ITEMS,
       });
       if (!compactResult.error) {
+        const rows = dashboardRpcRows(compactResult.data);
         return {
-          items: mergeWorkItems(localItems, dashboardRpcRows(compactResult.data)),
+          items: mergeWorkItems(localItems, rows),
           source: 'cloud-compact',
+          // The compact RPC is intentionally bounded. Flag possible truncation.
+          limited: rows.length >= WORK_DASHBOARD_MAX_ITEMS,
         };
       }
 
@@ -326,6 +328,9 @@ async function loadWork(user, now = new Date()) {
         return {
           items: mergeWorkItems(localItems, cloudItems),
           source: summaryResult.error || upcomingResult.error ? 'cloud-partial-fallback' : 'cloud-fallback',
+          limited: (summaryResult.data || []).length >= WORK_DASHBOARD_MAX_ITEMS
+            || (upcomingResult.data || []).length >= WORK_DASHBOARD_MAX_ITEMS
+            || Boolean(summaryResult.error || upcomingResult.error),
         };
       }
     } catch { /* local fallback */ }
@@ -368,7 +373,8 @@ export function createEmptyDashboardSnapshot(currentUser) {
     role: leader ? 'leader' : 'teacher',
     leader,
     admin: isAdminRole(currentUser?.role),
-    stats: { today: 0, todayEvents: 0, overdue: 0, dueSoon: 0, openTasks: 0, pendingApproval: 0, upcoming: 0, notifications: 0 },
+    stats: { today: 0, todayEvents: 0, overdue: 0, mineOverdue: 0, dueSoon: 0, mineDueSoon: 0, openTasks: 0, mineOpenTasks: 0, pendingApproval: 0, upcoming: 0, notifications: 0 },
+    coverageLimited: false,
     timeline: [],
     attention: [],
     professional: [],
@@ -426,11 +432,11 @@ export async function loadDashboardSnapshot(currentUser, now = new Date()) {
     const rank = { overdue: 0, today: 1, soon: 2, normal: 3 };
     return rank[getDashboardDueState(a.date, a.done, now)] - rank[getDashboardDueState(b.date, b.done, now)]
       || (parseDate(a.date)?.getTime() || Number.MAX_SAFE_INTEGER) - (parseDate(b.date)?.getTime() || Number.MAX_SAFE_INTEGER);
-  }).slice(0, 80);
+  });
   const allApprovals = leader
     ? [...resources.filter((item) => item.status === 'pending'), ...relevantWork.filter((item) => !isDashboardSchedule(item) && item.status === 'submitted')]
     : [];
-  const approvals = allApprovals.slice(0, 80);
+  const approvals = allApprovals;
   const drafts = collectDrafts(currentUser);
   const recentApps = getRecentAppUsage(currentUser, 8);
   const continueMap = new Map();
@@ -449,8 +455,11 @@ export async function loadDashboardSnapshot(currentUser, now = new Date()) {
     today: allAttention.filter((item) => getDashboardDueState(item.date, item.done, now) === 'today').length,
     todayEvents: timeline.filter((item) => dayDistance(item.date, now) === 0).length,
     overdue: allAttention.filter((item) => getDashboardDueState(item.date, item.done, now) === 'overdue').length,
+    mineOverdue: allAttention.filter((item) => item.mine && getDashboardDueState(item.date, item.done, now) === 'overdue').length,
     dueSoon: allAttention.filter((item) => getDashboardDueState(item.date, item.done, now) === 'soon').length,
+    mineDueSoon: allAttention.filter((item) => item.mine && getDashboardDueState(item.date, item.done, now) === 'soon').length,
     openTasks: allAttention.length,
+    mineOpenTasks: allAttention.filter((item) => item.mine).length,
     pendingApproval: allApprovals.length,
     upcoming: timeline.length,
     notifications: array(notifications).length,
@@ -459,6 +468,7 @@ export async function loadDashboardSnapshot(currentUser, now = new Date()) {
     generatedAt: new Date().toISOString(),
     role: leader ? 'leader' : 'teacher', leader, admin: isAdminRole(currentUser?.role),
     stats, timeline, attention,
+    coverageLimited: Boolean(workResult.limited),
     professional: [...relevantWork].sort((a, b) => (parseDate(b.raw?.updated_at || b.date)?.getTime() || 0) - (parseDate(a.raw?.updated_at || a.date)?.getTime() || 0)).slice(0, 10),
     approvals,
     continueItems: [...continueMap.values()].sort((a, b) => Number(b.updatedAt || 0) - Number(a.updatedAt || 0)).slice(0, 6),

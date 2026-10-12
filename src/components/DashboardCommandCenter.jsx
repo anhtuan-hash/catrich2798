@@ -2,7 +2,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import {
   AlertCircle, ArrowRight, Bell, CalendarDays, CheckCircle2,
   ClipboardList, Clock3, FileText, FolderOpen, LayoutDashboard,
-  Search, ShieldCheck, Users, Zap,
+  Search, ShieldCheck, Users, Zap, Database, Info,
 } from 'lucide-react';
 import { dashboardDueLabel, getDashboardDueState, openDashboardTarget } from '../utils/dashboardAggregator.js';
 
@@ -25,6 +25,11 @@ const TEXT = {
     overview: 'Tổng quan', loading: 'Đang đồng bộ', updated: 'Cập nhật',
     source: 'Nguồn', retry: 'Tải lại', tasks: 'công việc',
     search: 'Tìm công việc...', more: 'Xem thêm', less: 'Thu gọn',
+    scopeAll: 'Toàn tổ', scopeMine: 'Việc của tôi',
+    latest: 'Dữ liệu lúc', loadingNote: 'Đang làm mới', local: 'Nguồn đang hiển thị',
+    limited: 'Nguồn công việc có giới hạn số bản ghi. Số liệu có thể chưa đầy đủ.',
+    counterTip: 'Chỉ tính nhiệm vụ chưa hoàn thành; không tính sự kiện lịch đã diễn ra.',
+    displayed: 'hiển thị',
   },
   en: {
     heading: 'Your command center', subtitle: 'Your schedule, priorities and work in one place.',
@@ -40,6 +45,11 @@ const TEXT = {
     overview: 'Overview', loading: 'Syncing', updated: 'Updated',
     source: 'Source', retry: 'Refresh', tasks: 'tasks',
     search: 'Search tasks...', more: 'Show more', less: 'Show fewer',
+    scopeAll: 'Department', scopeMine: 'My tasks',
+    latest: 'Data from', loadingNote: 'Refreshing', local: 'Current source',
+    limited: 'The work source is capped. Some totals may be incomplete.',
+    counterTip: 'Counts unfinished tasks only, not past calendar events.',
+    displayed: 'shown',
   },
 };
 
@@ -68,27 +78,34 @@ export default function DashboardCommandCenter({ snapshot, todayEventCount, lang
   const t = TEXT[language] || TEXT.vi;
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
+  const [scope, setScope] = useState('all');
   const [visibleLimit, setVisibleLimit] = useState(8);
   const [showNotifications, setShowNotifications] = useState(false);
   const queueRef = useRef(null);
   const stats = snapshot?.stats || {};
   const attention = snapshot?.attention || [];
   const isLeader = Boolean(snapshot?.leader);
+  const scopedAttention = useMemo(() => isLeader && scope === 'mine'
+    ? attention.filter((item) => item.mine) : attention, [attention, isLeader, scope]);
+  const sourceName = snapshot?.sources?.workHub || 'loading';
+  const lastUpdated = snapshot?.generatedAt ? new Date(snapshot.generatedAt) : null;
+  const lastUpdatedLabel = lastUpdated && Number.isFinite(lastUpdated.getTime())
+    ? new Intl.DateTimeFormat(language === 'vi' ? 'vi-VN' : 'en-US', { hour: '2-digit', minute: '2-digit' }).format(lastUpdated) : '—';
   const cards = [
     { id: 'today', label: t.today, value: count(todayEventCount ?? stats.todayEvents), tone: 'blue', Icon: CalendarDays, action: 'calendar' },
-    { id: 'overdue', label: t.overdue, value: count(stats.overdue), tone: 'coral', Icon: AlertCircle, action: 'overdue' },
-    { id: 'dueSoon', label: t.dueSoon, value: count(stats.dueSoon), tone: 'violet', Icon: Clock3, action: 'soon' },
+    { id: 'overdue', label: t.overdue, value: count(scope === 'mine' && isLeader ? stats.mineOverdue : stats.overdue), tone: 'coral', Icon: AlertCircle, action: 'overdue' },
+    { id: 'dueSoon', label: t.dueSoon, value: count(scope === 'mine' && isLeader ? stats.mineDueSoon : stats.dueSoon), tone: 'violet', Icon: Clock3, action: 'soon' },
     isLeader
       ? { id: 'approvals', label: t.approvals, value: count(stats.pendingApproval), tone: 'green', Icon: ShieldCheck, action: 'approvals' }
       : { id: 'notices', label: t.notices, value: count(stats.notifications), tone: 'green', Icon: Bell, action: 'notices' },
   ];
   const approvalItems = snapshot?.approvals || [];
-  const filtered = useMemo(() => (filter === 'approvals' ? approvalItems : attention).filter((item) => {
+  const filtered = useMemo(() => (filter === 'approvals' ? approvalItems : scopedAttention).filter((item) => {
     const belongs = filter === 'all' || filter === 'approvals' || getDashboardDueState(item.date, item.done, now) === filter;
     const found = !search.trim() || [item.title, item.description, item.owner, item.sourceLabel]
       .some((value) => String(value || '').toLocaleLowerCase('vi').includes(search.trim().toLocaleLowerCase('vi')));
     return belongs && found;
-  }), [attention, approvalItems, filter, now, search]);
+  }), [scopedAttention, approvalItems, filter, now, search]);
   const visible = filtered.slice(0, visibleLimit);
   const continueItems = (snapshot?.continueItems || []).filter((item) =>
     item.target && !['#/dashboard', '#/home'].includes(item.target)
@@ -121,9 +138,14 @@ export default function DashboardCommandCenter({ snapshot, todayEventCount, lang
           <Zap size={15} aria-hidden="true"/>{loading ? t.loading : t.retry}
         </button>
       </div>
+      <div className="dcc-sync-strip">
+        <span><Database size={14} aria-hidden="true" />{loading ? t.loadingNote : t.latest} {lastUpdatedLabel}</span>
+        <span className="dcc-source-chip" title={sourceName}>{t.local}: {sourceName.replaceAll('-', ' ')}</span>
+      </div>
+      {snapshot?.coverageLimited ? <div className="dcc-data-limited" role="status"><Info size={17} aria-hidden="true" />{t.limited}</div> : null}
       <div className="dcc-stats">
         {cards.map(({ id, label, value, tone, Icon, action }) => (
-          <button className={'dcc-stat dcc-stat--' + tone} type="button" key={id} onClick={() => activate(action)}>
+          <button className={'dcc-stat dcc-stat--' + tone} type="button" key={id} onClick={() => activate(action)} title={id === 'overdue' ? t.counterTip : undefined}>
             <span className="dcc-stat-top">
               <span className="dcc-stat-icon"><Icon size={22} strokeWidth={2.2}/></span>
               <ArrowRight className="dcc-stat-arrow" size={18} aria-hidden="true" />
@@ -149,8 +171,12 @@ export default function DashboardCommandCenter({ snapshot, todayEventCount, lang
           <header className="dcc-panel-header">
             <span className="dcc-panel-icon dcc-panel-icon--orange"><ClipboardList size={21}/></span>
             <div><h3>{t.priority}</h3><p>{t.queueSub}</p></div>
-            <span className="dcc-count">{count(stats.openTasks ?? attention.length)} {t.tasks}</span>
+            <span className="dcc-count">{count(isLeader && scope === 'mine' ? stats.mineOpenTasks : stats.openTasks ?? scopedAttention.length)} {t.tasks}</span>
           </header>
+          {isLeader ? <div className="dcc-scope-switch" role="group" aria-label={language === 'vi' ? 'Phạm vi công việc' : 'Task scope'}>
+            <button type="button" aria-pressed={scope === 'all'} className={scope === 'all' ? 'is-active' : ''} onClick={() => { setScope('all'); setVisibleLimit(8); }}>{t.scopeAll}</button>
+            <button type="button" aria-pressed={scope === 'mine'} className={scope === 'mine' ? 'is-active' : ''} onClick={() => { setScope('mine'); setFilter('all'); setVisibleLimit(8); }}>{t.scopeMine}</button>
+          </div> : null}
           <div className="dcc-filters" role="group" aria-label={t.priority}>
             {(isLeader ? [...FILTERS, 'approvals'] : FILTERS).map((key) => (
               <button key={key} type="button" className={filter === key ? 'is-active' : ''} aria-pressed={filter === key} onClick={() => { setFilter(key); setVisibleLimit(8); }}>
@@ -161,11 +187,11 @@ export default function DashboardCommandCenter({ snapshot, todayEventCount, lang
           <label className="dcc-task-search"><Search size={16} aria-hidden="true" /><input role="searchbox" type="text" tabIndex={0} value={search} onChange={(event) => { setSearch(event.target.value); setVisibleLimit(8); }} placeholder={t.search} aria-label={t.search} /></label>
           <div className="dcc-priority-list">
             {visible.length ? visible.map((item) => <PriorityRow item={item} key={item.id} language={language} now={now} approval={filter === 'approvals'} />) : (
-              <div className="dcc-empty"><CheckCircle2 size={25}/><span>{(filter === 'approvals' ? approvalItems : attention).length ? t.empty : t.noWork}</span></div>
+              <div className="dcc-empty"><CheckCircle2 size={25}/><span>{(filter === 'approvals' ? approvalItems : scopedAttention).length ? t.empty : t.noWork}</span></div>
             )}
           </div>
           {filtered.length > 8 ? <div className="dcc-show-more">
-            <span>{Math.min(visibleLimit, filtered.length)} / {filtered.length}</span>
+            <span>{Math.min(visibleLimit, filtered.length)} / {filtered.length} {t.displayed}</span>
             <button type="button" onClick={() => setVisibleLimit((limit) => limit >= filtered.length ? 8 : Math.min(filtered.length, limit + 8))}>{visibleLimit >= filtered.length ? t.less : t.more}</button>
           </div> : null}
           <button className="dcc-panel-link" type="button" onClick={() => window.dispatchEvent(new CustomEvent('bes-ttcm-open', { detail: { view: 'feed' } }))}>

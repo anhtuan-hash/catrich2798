@@ -16,6 +16,7 @@ import '../styles/teacher-dashboard-timeline-v2.css';
 import DashboardCommandCenter from '../components/DashboardCommandCenter.jsx';
 import { dashboardLocalDayKey, isDashboardTeachingPeriod } from '../utils/dashboardClassification.js';
 import '../styles/dashboard-command-center-v21.css';
+import '../styles/dashboard-command-center-v22.css';
 import BrianDashboardDropZone from '../components/BrianDashboardDropZone.jsx';
 import '../styles/dashboard-command-center-v2.css';
 
@@ -408,7 +409,11 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
   const todayWeekday = new Intl.DateTimeFormat(locale, { weekday: 'long' }).format(todayDate);
   const todayDateLabel = new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'long', year: 'numeric' }).format(todayDate);
   const initialLoading = loading && !snapshot.generatedAt;
-  const nextEvent = timeline.find((item) => new Date(item.date).getTime() >= Date.now()) || timeline[0] || null;
+  // Never label a finished appointment as the next upcoming event.
+  const nextEvent = timeline.find((item) => new Date(item.date).getTime() >= now.getTime()) || null;
+  const nextEventLabel = nextEvent?.date ? new Intl.DateTimeFormat(locale, {
+    weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+  }).format(new Date(nextEvent.date)) : '';
   const heroTime = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(now);
   const heroDate = new Intl.DateTimeFormat(locale, { weekday: 'long', day: '2-digit', month: 'short' }).format(now);
   const weatherDescription = weather.code == null ? t.weatherLoading : weatherText(weather.code, language);
@@ -506,6 +511,18 @@ export default function WorkDashboard({ currentUser, language = 'vi' }) {
         </header>
       </section>
 
+      <div className="dcc-next-event" aria-label={language === 'vi' ? 'Sự kiện tiếp theo' : 'Next event'}>
+        <span className="dcc-next-event-icon"><Icon name="event" size={21} /></span>
+        <div className="dcc-next-event-details">
+          <span className="dcc-next-event-eyebrow">{language === 'vi' ? 'SỰ KIỆN TIẾP THEO' : 'UP NEXT'}</span>
+          <strong>{nextEvent?.title || (language === 'vi' ? 'Chưa có sự kiện sắp tới trong 14 ngày' : 'No upcoming events in the next 14 days')}</strong>
+          {nextEventLabel ? <small>{nextEventLabel} · {nextEvent?.sourceLabel || ''}</small> : null}
+        </div>
+        <button type="button" className="dcc-next-event-action" onClick={() => {
+          if (nextEvent) openDashboardTarget(nextEvent);
+          else openTtcm('schedule');
+        }}><span>{nextEvent ? (language === 'vi' ? 'Xem chi tiết' : 'View details') : (language === 'vi' ? 'Mở lịch' : 'Open calendar')}</span><Icon name="arrow" size={17} /></button>
+      </div>
       <DashboardCommandCenter snapshot={snapshot} todayEventCount={todayEvents.length} language={language} now={now} loading={loading} onRefresh={() => refresh()} />
 
       {error ? <div className="gd-alert"><Icon name="warning" size={22} /><div><strong>{t.partial}</strong><small>{error}</small></div><button type="button" className="gd-text-button" onClick={() => refresh()}>{t.retry}</button></div> : null}

@@ -104,3 +104,52 @@ test('2.1 week layout avoids horizontal overflow on phones', async ({ page }) =>
   const width = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
   expect(width[0]).toBeLessThanOrEqual(width[1] + 2);
 });
+
+test('2.2 shows next event strip, source freshness and task scopes', async ({ page }) => {
+  await openDashboard(page);
+  await expect(page.locator('.dcc-next-event')).toBeVisible();
+  await expect(page.locator('.dcc-sync-strip')).toBeVisible();
+  const scope = page.locator('.dcc-scope-switch');
+  await expect(scope.getByRole('button', { name: 'Toàn tổ' })).toHaveAttribute('aria-pressed', 'true');
+  await scope.getByRole('button', { name: 'Việc của tôi' }).click();
+  await expect(scope.getByRole('button', { name: 'Việc của tôi' })).toHaveAttribute('aria-pressed', 'true');
+  await scope.getByRole('button', { name: 'Toàn tổ' }).click();
+  await expect(scope.getByRole('button', { name: 'Toàn tổ' })).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('2.2 can search task 119 beyond the legacy 80-task display cap', async ({ page }) => {
+  await openDashboard(page);
+  await page.evaluate((user) => {
+    const tasks = Array.from({ length: 120 }, (_, index) => ({
+      id: 'v22-e2e-task-' + index,
+      title: 'Task ' + String(index).padStart(3, '0'),
+      description: 'Individual task for search regression',
+      item_type: 'task',
+      status: 'assigned',
+      owner_id: user.id,
+      assignee_ids: [user.id],
+      due_at: '2026-10-01T09:00:00+07:00',
+      priority: 'normal',
+    }));
+    localStorage.setItem('bes-work-hub-v1093-local:' + user.id, JSON.stringify(tasks));
+  }, demoUser);
+  await page.reload();
+  await expect(page.locator('.dcc-root')).toBeVisible();
+  await expect(page.locator('.dcc-count')).toContainText('120', { timeout: 15000 });
+  const field = page.locator('.dcc-task-search input[role="searchbox"]');
+  await field.fill('Task 119');
+  await expect(page.locator('.dcc-row-detail strong')).toContainText('Task 119');
+  await expect(page.locator('.dcc-priority-row')).toHaveCount(1);
+});
+
+test('2.2 stays within mobile viewport with context strip visible', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openDashboard(page);
+  await expect(page.locator('.dcc-next-event')).toBeVisible();
+  await expect(page.locator('.dcc-sync-strip')).toBeVisible();
+  const widths = await page.evaluate(() => ({
+    content: document.documentElement.scrollWidth,
+    viewport: document.documentElement.clientWidth,
+  }));
+  expect(widths.content).toBeLessThanOrEqual(widths.viewport + 2);
+});
