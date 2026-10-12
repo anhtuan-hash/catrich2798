@@ -10,10 +10,10 @@ const previous = read('src/styles/dashboard-unified-v33.css');
 const workflow = read('.github/workflows/dashboard-command-center-v2.yml');
 
 // The dashboard and the site footer share one width token.
-assert.match(css,/--dashboard-shell-width:min\(1520px/);
+assert.match(css,/width:calc\(100% - 24px\)!important/);
 assert.match(css,/\.gd-shell\.gd-shell-v3/);
 assert.match(css,/width:var\(--dashboard-shell-width\)!important/);
-assert.match(css,/footer\.footer\.signature-footer-collapsible/);
+assert.match(read('src/components/FooterDashboardMockup.css'),/--dashboard-shell-width/);
 assert.match(page,/gd-page gd-v31-page gd-v32-page gd-u33 gd-u34/);
 assert.match(page,/dashboard-v34-wide-news\.css/);
 assert.match(previous,/--u-radius:18px/);

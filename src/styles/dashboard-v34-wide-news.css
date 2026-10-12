@@ -1,10 +1,7 @@
 /* BRIAN Dashboard 3.4 — approved wide-content / readable-news / single schedule.
    Route scoped: header, homeroom, gradebook and other pages are not restyled. */
-.app-shell[data-route="dashboard"] {
-  --dashboard-shell-width:min(1520px, calc(100vw - clamp(32px, 4vw, 72px)));
-}
-/* Share EXACT container sizing with the Dashboard footer, rather than nesting a
-   1440px inner canvas inside a wider footer. Do not change vertical sticky offsets. */
+/* Use the existing centered app shell. Avoid overflow by sizing relative to
+   the Dashboard page, not to viewport width. V13 footer owns its layout. */
 html body #root .app-shell[data-route="dashboard"] .gd-page.gd-u34 {
   width:100%!important;
   max-width:none!important;
@@ -14,25 +11,12 @@ html body #root .app-shell[data-route="dashboard"] .gd-page.gd-u34 {
 }
 html body #root .app-shell[data-route="dashboard"] .gd-u34 .gd-shell.gd-shell-v3 {
   box-sizing:border-box!important;
-  width:var(--dashboard-shell-width)!important;
-  max-width:none!important;
+  width:calc(100% - 24px)!important;
+  max-width:1520px!important;
   min-width:0!important;
   padding-inline:0!important;
   margin-inline:auto!important;
   gap:16px!important;
-}
-/* Footer's V13 skin defines its own --dashboard-shell-width.
-   Override it locally or the footer can be ~5px out of alignment at desktop widths. */
-html body #root .app-shell.metro-clean-system[data-route="dashboard"] > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] {
-  --dashboard-shell-width:min(1520px, calc(100vw - clamp(32px, 4vw, 72px)))!important;
-  width:var(--dashboard-shell-width)!important;
-  max-width:none!important;
-}
-html body #root .app-shell[data-route="dashboard"] > footer.footer.signature-footer-collapsible[data-footer-route="dashboard"] {
-  box-sizing:border-box!important;
-  width:var(--dashboard-shell-width)!important;
-  max-width:none!important;
-  margin-inline:auto!important;
 }
 .app-shell[data-route="dashboard"] .gd-u34 :is(.dcc-root,.dcc-workspace,.dcc-priority,.dcc-sidebar,.gd-v3-widget-board,.gd-v3-widget,.dcc-news-slot) {
   min-width:0!important;
@@ -274,13 +258,8 @@ html body #root .app-shell[data-route="dashboard"] .gd-u34 .dnh-full-copy {
   }
 }
 @media (max-width:720px) {
-  .app-shell[data-route="dashboard"] {
-    --dashboard-shell-width:min(1520px, calc(100vw - 24px));
-  }
-  html body #root .app-shell.metro-clean-system[data-route="dashboard"] > footer.footer.signature-footer-collapsible.signature-footer-dashboard-global[data-app-shell-footer="true"][data-footer-mode="full"] {
-    --dashboard-shell-width:min(1520px, calc(100vw - 24px))!important;
-  }
   html body #root .app-shell[data-route="dashboard"] .gd-u34 .gd-shell.gd-shell-v3 {
+    width:calc(100% - 16px)!important;
     padding-inline:0!important;
   }
   .app-shell[data-route="dashboard"] .gd-u34 .gd-v32-planner-body.gd-u34-week-summary {
