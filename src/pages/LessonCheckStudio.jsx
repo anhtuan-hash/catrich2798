@@ -57,6 +57,7 @@ import {
   unitOptionsForGrade,
 } from '../data/globalSuccessCatalog.js';
 import './LessonCheckStudio.css';
+import './LessonCheckApprovedMockupOne.css';
 
 const TYPE_OPTIONS = [
   { value: 'quiz', vi: 'Trắc nghiệm', en: 'Quiz' },
@@ -1046,7 +1047,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
         <img
           className="lcs-hero-art"
-          src="/lesson-check-hero-fullwidth-v22.webp"
+          src="/lesson-check-approved-mascot.svg"
           alt=""
           aria-hidden="true"
           decoding="async"
@@ -1060,9 +1061,9 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
             <span className="is-three"><MonitorPlay size={18} />Skills</span>
           </div>
           <div className="lcs-assessment-launchers">
-            <button className="lcs-start-assessment" type="button" onClick={() => { setAssessmentWorkspaceView('session'); setAssessmentWorkspaceVisible(true); }}><ClipboardCheck size={18} />{isVi ? 'Bắt đầu đánh giá' : 'Start assessment'}</button>
-            <button className="lcs-open-reports" type="button" onClick={() => { setAssessmentWorkspaceView('reports'); setAssessmentWorkspaceVisible(true); }}><BarChart3 size={17} />{isVi ? 'Báo cáo' : 'Reports'}</button>
-            {isLeader ? <button className="lcs-arcade-create" type="button" onClick={openNewActivity}><Plus size={18} />{isVi ? 'Tạo hoạt động' : 'Create activity'}</button> : null}
+            <button className="lcs-start-assessment" type="button" onClick={() => { setAssessmentWorkspaceView('session'); setAssessmentWorkspaceVisible(true); }}><span className="lcs-cta-icon"><ClipboardCheck size={20} /></span><span className="lcs-cta-copy"><strong>{isVi ? 'Bắt đầu đánh giá' : 'Start assessment'}</strong><small>{isVi ? 'Tổ chức phiên cho lớp học' : 'Start a class session'}</small></span><ChevronRight className="lcs-cta-chevron" size={17} /></button>
+            <button className="lcs-open-reports" type="button" onClick={() => { setAssessmentWorkspaceView('reports'); setAssessmentWorkspaceVisible(true); }}><span className="lcs-cta-icon"><BarChart3 size={20} /></span><span className="lcs-cta-copy"><strong>{isVi ? 'Báo cáo' : 'Reports'}</strong><small>{isVi ? 'Kết quả và phân tích chi tiết' : 'Results and insights'}</small></span><ChevronRight className="lcs-cta-chevron" size={17} /></button>
+            {isLeader ? <button className="lcs-arcade-create" type="button" onClick={openNewActivity}><span className="lcs-cta-icon"><Plus size={20} /></span><span className="lcs-cta-copy"><strong>{isVi ? 'Tạo hoạt động' : 'Create activity'}</strong><small>{isVi ? 'Thiết kế bài kiểm tra riêng' : 'Design your own activity'}</small></span><ChevronRight className="lcs-cta-chevron" size={17} /></button> : null}
           </div>
         </div>
       </header>
