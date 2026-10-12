@@ -429,7 +429,7 @@ function GradebookNavigationPalette({
   </div>;
 }
 
-export default function HomeroomLearningGradebook({ workspace, onCommit, currentUser, teachingOverview, classManagement }) {
+export default function HomeroomLearningGradebook({ workspace, onCommit, currentUser, teachingOverview, classManagement, gradebookAction }) {
   const students = useMemo(
     () => (workspace.students || []).filter((student) => student.active !== false),
     [workspace.students],
@@ -647,6 +647,14 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     }
   };
 
+  // Native React hero dispatches requests directly to the existing, data-backed actions.
+  useEffect(() => {
+    if (!gradebookAction?.seq || gradebookAction.workspaceId !== workspace.id) return;
+    if (gradebookAction.action === 'entry') setView('regular-0');
+    if (gradebookAction.action === 'summary') setView('summary');
+    if (gradebookAction.action === 'pdf') openStudentReport();
+  }, [gradebookAction?.seq]);
+
   const totalRegularColumns = activeSemester.regular.reduce((sum, round) => sum + round.columns.length, 0);
   const completedFourRounds = students.filter((student) => activeSemester.regular.every((round) => roundScore(round, student.id, studentIds) != null)).length;
   const activeRoundCoverage = activeRound ? students.filter((student) => roundScore(activeRound, student.id, studentIds) != null).length : 0;
@@ -671,7 +679,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
         <div className="gbv2-head-actions"><button type="button" className="secondary" onClick={addRegularColumn}>＋ Thêm lần nhập</button>{renderTableControls()}</div>
       </div>
       {students.length ? <div className="hr-grade-table-wrap">
-        <table className="hr-grade-table">
+        <table className="hr-grade-table" style={{ minWidth: `${Math.max(820, 290 + activeRound.columns.length * 104 + 3 * 118)}px` }}>
           <thead>
             <tr>
               <th className="hr-grade-index">STT</th>
@@ -742,10 +750,25 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   );
 
   return <div className="hr-tab-stack hr-gradebook" data-grade-view={view} data-grade-tone={activeView.tone}>
+    <section className="hr-grade-overview" aria-label="Tổng quan sổ điểm">
+      <article className="tone-blue"><span className="hr-grade-overview-icon"><GradebookUiIcon type="bars" /></span><small>Cột TX hiện có</small><strong>{totalRegularColumns}</strong><span>Trong học kỳ đang chọn</span></article>
+      <article className="tone-green"><span className="hr-grade-overview-icon"><GradebookUiIcon type="students" /></span><small>Học sinh</small><strong>{students.length}</strong><span>Danh sách lớp hiện tại</span></article>
+      <article className="tone-purple"><span className="hr-grade-overview-icon"><GradebookUiIcon type="document" /></span><small>Môn học</small><strong>{subjectEntries.length}</strong><span>Đang quản lý</span></article>
+      <article className="tone-yellow"><span className="hr-grade-overview-icon"><GradebookUiIcon type="check" /></span><small>Hoàn thành 4 đợt TX</small><strong>{completedFourRounds}/{students.length}</strong><span>{activeRound ? `${activeRoundCoverage} học sinh có điểm ở đợt đang mở` : 'Theo học kỳ đang chọn'}</span></article>
+    </section>
+
+    <details className="gb-academic-administration">
+      <summary><span>Quản lý lớp và phân công giảng dạy</span><small>Mở công cụ quản trị lớp khi cần</small></summary>
+      <div className="gb-academic-admin-content">
+        {teachingOverview}
+        {classManagement}
+      </div>
+    </details>
+
     <section className="hr-panel hr-grade-toolbar">
       <div className="hr-grade-title">
         <span className="hr-grade-title-icon" aria-hidden="true"><GradebookUiIcon type="book" /></span>
-        <div className="hr-grade-title-copy"><span>GRADEBOOK · 2 SEMESTERS</span><h2>Sổ điểm học tập</h2><p>Chọn môn và đợt ngay trên bảng nhập điểm bên dưới.</p></div>
+        <div className="hr-grade-title-copy"><span>GRADEBOOK / TOOLS</span><h2>Công cụ Sổ điểm</h2><p>Quản lý môn học và công thức tính điểm</p></div>
       </div>
       <div className="hr-grade-controls">
         <details className="gbv2-manage-subject"><summary>＋ Quản lý môn học</summary>
@@ -756,16 +779,6 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       </div>
       <details className="gbv2-formula-details"><summary>fx · Xem công thức tính điểm</summary><div className="hr-grade-formula"><span>fx</span><p><b>Công thức điểm thường xuyên từng đợt</b><small>Điểm cộng = Dấu + / Dấu + cao nhất lớp (≤ 1); Điểm đợt = min(10, trung bình các cột điểm + điểm cộng)</small></p></div></details>
     </section>
-
-    <section className="hr-grade-overview" aria-label="Tổng quan sổ điểm">
-      <article className="tone-blue"><span className="hr-grade-overview-icon"><GradebookUiIcon type="bars" /></span><small>Cột TX hiện có</small><strong>{totalRegularColumns}</strong><span>Trong học kỳ đang chọn</span></article>
-      <article className="tone-green"><span className="hr-grade-overview-icon"><GradebookUiIcon type="students" /></span><small>Học sinh</small><strong>{students.length}</strong><span>Danh sách lớp hiện tại</span></article>
-      <article className="tone-purple"><span className="hr-grade-overview-icon"><GradebookUiIcon type="document" /></span><small>Môn học</small><strong>{subjectEntries.length}</strong><span>Đang quản lý</span></article>
-      <article className="tone-yellow"><span className="hr-grade-overview-icon"><GradebookUiIcon type="check" /></span><small>Hoàn thành 4 đợt TX</small><strong>{completedFourRounds}/{students.length}</strong><span>{activeRound ? `${activeRoundCoverage} học sinh có điểm ở đợt đang mở` : 'Theo học kỳ đang chọn'}</span></article>
-    </section>
-
-    {teachingOverview}
-    {classManagement}
 
     <GradebookNavigationPalette
       semesterId={semesterId}

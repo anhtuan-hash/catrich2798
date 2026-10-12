@@ -1,13 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import GradebookEngine from './GradebookEngine.jsx';
 import './GradebookPlusCount.css';
-import editorialCss from '../../styles/GradebookEditorialV2.css?inline';
-import heroCss from '../../styles/GradebookMaterialHeroRuntime.css?inline';
-import workspaceColorCss from '../../styles/GradebookColorfulWorkspace.css?inline';
-import approvedGradebookCss from '../../styles/GradebookApprovedV2.css?inline';
-import gradebookMockupFourCss from '../../styles/GradebookApprovedMockupFour.css?inline';
 import { exportStudentGradeReportPdf } from '../../utils/homeroomGradeReportPdf.js';
-import { installGradebookMaterialHero } from '../../utils/gradebookMaterialHeroRuntime.js';
 import { buildStudentSupportHash, normalizeStudentRef } from '../../studentSupport/studentSupportIdentity.js';
 
 // Keep the PDF exporter in the same production bundle as the Gradebook route.
@@ -21,7 +15,6 @@ void exportStudentGradeReportPdf;
 // stylesheet owns the interactive top spread. The former polish override layer
 // is intentionally not loaded so future hero edits happen in one source file.
 export default function GradebookWorkspace(props) {
-  useEffect(() => installGradebookMaterialHero(), [props.workspace?.id]);
   const students = useMemo(
     () => (props.workspace?.students || []).filter((student) => student.active !== false),
     [props.workspace?.students],
@@ -46,11 +39,6 @@ export default function GradebookWorkspace(props) {
   };
 
   return <>
-    <style>{editorialCss}</style>
-    <style>{heroCss}</style>
-    <style>{workspaceColorCss}</style>
-    <style>{approvedGradebookCss}</style>
-    <style>{gradebookMockupFourCss}</style>
     <GradebookEngine {...props} />
     {students.length ? <details className="gbv2-support-extra"><summary>Hỗ trợ &amp; tra cứu học sinh <span>↗</span></summary><section className="hr-panel gradebook-student-support" aria-label="Mở hồ sơ hỗ trợ từ sổ điểm">
       <div className="hr-panel-head">

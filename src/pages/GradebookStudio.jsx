@@ -30,6 +30,7 @@ import { getClassTypeLabel } from '../utils/homeroomClassTypes.js';
 import '../styles/homeroom-complete.css';
 import '../styles/GradebookStudio.css';
 import '../styles/GradebookLifecycle.css';
+import '../styles/GradebookAcademicWorkspace.css';
 
 const EMPTY_CLASS = {
   className: '',
@@ -116,6 +117,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   const workspaceRef = useRef(workspace);
   workspaceRef.current = workspace;
   const [view, setView] = useState('gradebook');
+  const [gradebookAction, setGradebookAction] = useState(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -399,6 +401,11 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     'roster-conflict-resolved',
   ].includes(rosterSource);
   const lifecycleText = lifecycleExplanation(lifecycle);
+  const requestGradebookAction = (action) => {
+    setView('gradebook');
+    setGradebookAction((current) => ({ action, workspaceId, seq: (current?.seq || 0) + 1 }));
+  };
+
 
 
   // Move existing live actions into the redesigned workspace rather than duplicating them.
@@ -454,18 +461,33 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   );
 
   return <div className="page hr-page gradebook-studio">
-    <section className="gradebook-studio-hero">
-      <div className="gradebook-studio-hero-copy">
-        <span className="gradebook-studio-kicker">GRADEBOOK · TEACHER WORKSPACE</span>
-        <h1>{vi ? 'Sổ điểm' : 'Gradebook'}</h1>
-        <p>{vi
-          ? 'Không gian nhập điểm độc lập dành cho mọi giáo viên. Brian nhận lớp từ phân công TTCM và dùng một roster chuẩn toàn trường cho các Sổ điểm cùng lớp.'
-          : 'An independent gradebook for every teacher, with TTCM assignments and one canonical school-wide class roster.'}</p>
+    <section className="gradebook-studio-hero gb-academic-hero" aria-label="Không gian Sổ điểm">
+      <div className="gb-academic-heading">
+        <div className="gb-academic-heading-copy">
+          <span className="gb-academic-eyebrow">BRIAN / ACADEMIC WORKSPACE</span>
+          <h1>{vi ? 'Sổ điểm' : 'Gradebook'}</h1>
+          <p>{vi ? 'Quản lý điểm số và theo dõi kết quả học tập' : 'Manage scores and track learning progress'}</p>
+        </div>
+        <span className="gb-academic-class-meta">{activeMeta?.schoolYear || '2026–2027'} · {activeMeta?.semester || 'Học kỳ I'}</span>
       </div>
-      <div className="gradebook-studio-hero-stats">
-        <article><strong>{activeClasses.length}</strong><span>{vi ? 'sổ điểm đang dùng' : 'active gradebooks'}</span></article>
-        <article><strong>{teachingAssignments.length}</strong><span>{vi ? 'lớp được phân công' : 'assigned classes'}</span></article>
-        <article><strong>{studentCount}</strong><span>{vi ? 'học sinh lớp hiện tại' : 'students in current class'}</span></article>
+      <div className="gb-academic-class-row">
+        <span className="gb-academic-section-label">{vi ? 'LỚP ĐANG MỞ' : 'ACTIVE CLASS'}</span>
+        <div className="gb-academic-class-list" role="group" aria-label="Chọn lớp Sổ điểm">
+          {activeClasses.length ? activeClasses.map((item) => (
+            <button key={item.id} type="button" className={item.id === workspaceId ? 'is-active' : ''} aria-pressed={item.id === workspaceId} disabled={saving} onClick={() => setWorkspaceId(item.id)} title={classLabel(item)}>{item.className || classLabel(item)}</button>
+          )) : <span className="gb-academic-no-classes">Chưa có lớp</span>}
+        </div>
+      </div>
+      <div className="gb-academic-actions">
+        <div className="gb-academic-primary-actions">
+          <button type="button" className="gb-academic-primary" disabled={!workspace} onClick={() => requestGradebookAction('entry')}>＋ {vi ? 'Nhập điểm' : 'Enter scores'}</button>
+          <button type="button" disabled={!workspace} onClick={() => requestGradebookAction('summary')}>▣ {vi ? 'Tổng hợp' : 'Summary'}</button>
+          <button type="button" disabled={!workspace} onClick={() => requestGradebookAction('pdf')}>⇩ {vi ? 'Xuất báo cáo' : 'Export reports'}</button>
+        </div>
+        <div className="gb-academic-secondary-actions">
+          <button type="button" disabled={!workspace} onClick={() => setView('students')}>♙ {vi ? 'Danh sách HS' : 'Students'}</button>
+          <button type="button" onClick={() => setCreateOpen((value) => !value)}>＋ {vi ? 'Thêm lớp' : 'Add class'}</button>
+        </div>
       </div>
     </section>
 
@@ -510,6 +532,6 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
       />
     </> : null}
 
-    {workspace && view === 'gradebook' ? <GradebookWorkspace workspace={workspace} onCommit={commit} currentUser={currentUser} teachingOverview={teachingOverview} classManagement={classManagement} /> : null}
+    {workspace && view === 'gradebook' ? <GradebookWorkspace workspace={workspace} onCommit={commit} currentUser={currentUser} teachingOverview={teachingOverview} classManagement={classManagement} gradebookAction={gradebookAction} /> : null}
   </div>;
 }
