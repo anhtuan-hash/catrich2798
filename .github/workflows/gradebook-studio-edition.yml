@@ -1,0 +1,37 @@
+name: Gradebook Material 3 Studio Safety
+on:
+  pull_request:
+    paths:
+      - 'src/pages/GradebookStudio.jsx'
+      - 'src/styles/GradebookAcademicWorkspace.css'
+      - 'src/components/gradebook/GradebookProductivityPanel.css'
+      - 'public/gradebook-material3-hero.svg'
+      - 'tests/gradebook-studio-edition.test.mjs'
+      - '.github/workflows/gradebook-studio-edition.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/pages/GradebookStudio.jsx'
+      - 'src/styles/GradebookAcademicWorkspace.css'
+      - 'src/components/gradebook/GradebookProductivityPanel.css'
+      - 'public/gradebook-material3-hero.svg'
+jobs:
+  gradebook-studio:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Visual system and feature integrity checks
+        run: |
+          node --test tests/gradebook-studio-edition.test.mjs tests/gradebook-colorful-mockup.test.mjs tests/gradebook-material3-finish.test.mjs tests/gradebook-usability-material3.test.mjs tests/gradebook-material3-colorful.test.mjs tests/gradebook-academic-workspace.test.mjs tests/gradebook-permanent-palette.test.mjs tests/gradebook-visual-defects.test.mjs tests/gradebook-productivity.test.mjs tests/gradebook-phase2.test.mjs tests/gradebook-phase3.test.mjs
+      - name: Frontend production build
+        run: npm run build
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: 42 score columns and responsive table geometry regression
+        run: npx playwright test tests/e2e/gradebook-academic-geometry.spec.js tests/e2e/gradebook-permanent-palette.spec.js tests/e2e/gradebook-visual-defects.spec.js tests/e2e/gradebook-usability-material3.spec.js --project=chromium-desktop

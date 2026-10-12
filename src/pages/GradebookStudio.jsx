@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import GradebookWorkspace from '../components/gradebook/GradebookWorkspace.jsx';
+import { ClipboardPenLine, ChartNoAxesCombined, FileDown, UsersRound, Plus, Sparkles } from 'lucide-react';
 import GradebookRosterHistoryPanel from '../components/gradebook/GradebookRosterHistoryPanel.jsx';
 import SubjectStudentsTab from '../components/homeroom/SubjectStudentsTab.jsx';
 import {
@@ -464,7 +465,7 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     <section className="gradebook-studio-hero gb-academic-hero" aria-label="Không gian Sổ điểm">
       <div className="gb-academic-heading">
         <div className="gb-academic-heading-copy">
-          <span className="gb-academic-eyebrow">GRADEBOOK / SỔ ĐIỂM</span>
+          <span className="gb-academic-eyebrow"><Sparkles size={13} strokeWidth={2.4} aria-hidden="true" /> GRADEBOOK / SỔ ĐIỂM</span>
           <h1>{vi ? 'Sổ điểm' : 'Gradebook'}</h1>
           <p>{vi ? 'Quản lý điểm số, theo dõi tiến độ và đánh giá học tập trực quan' : 'Manage scores and track learning progress'}</p>
         </div>
@@ -487,13 +488,13 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
       </div>
       <div className="gb-academic-actions">
         <div className="gb-academic-primary-actions">
-          <button type="button" className="gb-academic-primary" disabled={!workspace} onClick={() => requestGradebookAction('entry')}>＋ {vi ? 'Nhập điểm' : 'Enter scores'}</button>
-          <button type="button" disabled={!workspace} onClick={() => requestGradebookAction('summary')}>▣ {vi ? 'Tổng hợp' : 'Summary'}</button>
-          <button type="button" disabled={!workspace} onClick={() => requestGradebookAction('pdf')}>⇩ {vi ? 'Xuất báo cáo' : 'Export reports'}</button>
+          <button type="button" className="gb-academic-primary" disabled={!workspace} onClick={() => requestGradebookAction('entry')}><ClipboardPenLine size={17} strokeWidth={2.2} aria-hidden="true" /> {vi ? 'Nhập điểm' : 'Enter scores'}</button>
+          <button type="button" disabled={!workspace} onClick={() => requestGradebookAction('summary')}><ChartNoAxesCombined size={17} strokeWidth={2.2} aria-hidden="true" /> {vi ? 'Tổng hợp' : 'Summary'}</button>
+          <button type="button" disabled={!workspace} onClick={() => requestGradebookAction('pdf')}><FileDown size={17} strokeWidth={2.2} aria-hidden="true" /> {vi ? 'Xuất báo cáo' : 'Export reports'}</button>
         </div>
         <div className="gb-academic-secondary-actions">
-          <button type="button" disabled={!workspace} onClick={() => setView('students')}>♙ {vi ? 'Danh sách HS' : 'Students'}</button>
-          <button type="button" onClick={() => setCreateOpen((value) => !value)}>＋ {vi ? 'Thêm lớp' : 'Add class'}</button>
+          <button type="button" disabled={!workspace} onClick={() => setView('students')}><UsersRound size={17} strokeWidth={2.2} aria-hidden="true" /> {vi ? 'Danh sách HS' : 'Students'}</button>
+          <button type="button" onClick={() => setCreateOpen((value) => !value)}><Plus size={17} strokeWidth={2.2} aria-hidden="true" /> {vi ? 'Thêm lớp' : 'Add class'}</button>
         </div>
       </div>
     </section>
