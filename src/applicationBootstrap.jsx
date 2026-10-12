@@ -325,16 +325,10 @@ async function startApplication() {
   await bootstrapPublicTypographyBeforeApp();
   await prepareAuthenticatedLandingBeforeMain();
 
-  // Server assignment wins absolutely. Only when the RPC returns no explicit
-  // homeroom assignment may the exact local registry assignment act as fallback.
-  let assignmentResult = null;
+  // Select the server-assigned GVCN with a lightweight, account-scoped RPC
+  // before the first Homeroom paint. Do not block first render on 28+ roster
+  // loads/saves: route modules reconcile them in the background after mount.
   if (isHomeroomRoute()) {
-    assignmentResult = await startAssignedClassSync();
-  }
-  const serverHomeroomWorkspaceId = assignedHomeroomId(assignmentResult);
-  if (serverHomeroomWorkspaceId) {
-    window.__besAssignedHomeroomWorkspaceId = serverHomeroomWorkspaceId;
-  } else {
     await preparePreferredHomeroomBeforeMain();
   }
 
