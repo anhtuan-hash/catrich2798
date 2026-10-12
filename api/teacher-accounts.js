@@ -69,15 +69,11 @@ async function readProfile(db, user) {
       .maybeSingle(),
   );
   if (baseQuery.error) throw Object.assign(new Error(baseQuery.error.message), { status: 403 });
-  const base = baseQuery.data || {
-    id: user.id,
-    email: user.email || '',
-    full_name: user.user_metadata?.full_name || '',
-    school: user.user_metadata?.school || '',
-    role: user.user_metadata?.role || 'teacher',
-    approved: true,
-    permissions: { mode: 'all', allowed: [] },
-  };
+  // A verified JWT without an approved database profile is NOT authorization.
+  if (!baseQuery.data || baseQuery.data.approved !== true) {
+    throw Object.assign(new Error('Tài khoản chưa được phê duyệt hoặc đã bị vô hiệu hóa.'), { status: 403 });
+  }
+  const base = baseQuery.data;
 
   const extendedQuery = await withTimeout(
     db.from('profiles')
@@ -89,15 +85,10 @@ async function readProfile(db, user) {
   return { ...base, ...(extendedQuery.error ? {} : extendedQuery.data || {}) };
 }
 
+// Account creation and password resets require the canonical database Admin role.
+// Route visibility or tool permissions alone must not confer account-admin privileges.
 function hasAdminPermission(profile = {}) {
-  const allowed = Array.isArray(profile.permissions)
-    ? profile.permissions
-    : Array.isArray(profile.permissions?.allowed) ? profile.permissions.allowed : [];
-  return profile.approved !== false && (
-    String(profile.role || '').toLowerCase() === 'admin'
-    || allowed.includes('route:admin')
-    || allowed.includes('admin:users')
-  );
+  return profile.approved === true && String(profile.role || '').toLowerCase() === 'admin';
 }
 
 async function authenticate(req) {
@@ -300,18 +291,20 @@ async function updateContactEmail(session, payload) {
 }
 
 async function passwordChanged(session) {
+  // The database trigger, not this client-callable endpoint, attests to a real
+  // password-hash change. Do not let callers clear the first-login gate directly.
+  const { data: profile, error: profileError } = await withTimeout(
+    session.db.from('profiles').select('must_change_password').eq('id', session.user.id).single(),
+  );
+  if (profileError || profile?.must_change_password !== false) {
+    return { status: 409, body: { ok: false, message: 'Vui lòng đổi mật khẩu tạm trước khi tiếp tục.' } };
+  }
   const metadata = { ...(session.user.user_metadata || {}), must_change_password: false };
   const { error: authError } = await withTimeout(
     session.db.auth.admin.updateUserById(session.user.id, { user_metadata: metadata }),
   );
   if (authError) return { status: 400, body: { ok: false, message: authError.message } };
 
-  const profileUpdate = await withTimeout(
-    session.db.from('profiles').update({ must_change_password: false, updated_at: new Date().toISOString() }).eq('id', session.user.id),
-  );
-  if (profileUpdate.error && !isMissingColumn(profileUpdate.error)) {
-    return { status: 400, body: { ok: false, message: profileUpdate.error.message } };
-  }
   return { status: 200, body: { ok: true } };
 }
 
@@ -347,6 +340,9 @@ export default async function handler(req, res) {
       return json(res, result.status, result.body);
     }
 
+    if (session.profile.must_change_password === true) {
+      return json(res, 403, { ok: false, message: 'Vui lòng đổi mật khẩu tạm trước khi quản lý tài khoản.' });
+    }
     if (!hasAdminPermission(session.profile)) {
       return json(res, 403, { ok: false, message: 'Chỉ Admin được quản lý tài khoản giáo viên.' });
     }

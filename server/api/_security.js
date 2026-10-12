@@ -4,7 +4,8 @@ import crypto from 'node:crypto';
 const localWindows = new Map();
 const authorizationCache = new Map();
 const authorizationPromises = new Map();
-const AUTHORIZATION_CACHE_TTL = 5 * 60 * 1000;
+// Keep role/approval revocation reasonably fresh across warm serverless functions.
+const AUTHORIZATION_CACHE_TTL = 60 * 1000;
 const ROLE_ALIASES = new Map([
   ['admin', 'admin'], ['administrator', 'admin'],
   ['ttcm', 'department_head'], ['leader', 'department_head'], ['head', 'department_head'],
@@ -80,6 +81,10 @@ function missingColumn(error) {
 async function readProfile(client, userId) {
   for (const column of ['id', 'user_id', 'profile_id']) {
     const projections = [
+      `${column},email,full_name,role,approved,must_change_password,is_approved,status`,
+      `${column},email,full_name,role,approved,must_change_password,status`,
+      `${column},email,role,approved,must_change_password,status`,
+      `${column},email,role,approved,must_change_password`,
       `${column},email,full_name,role,approved,is_approved,status`,
       `${column},email,full_name,role,approved,status`,
       `${column},email,role,approved,status`,
@@ -120,7 +125,10 @@ async function readAuthorization(client, userId) {
   return task;
 }
 
-function profileApproved(profile = {}) {
+function profileApproved(profile) {
+  // Missing profiles and ambiguous approval states must NEVER authorize API access.
+  if (!profile || typeof profile !== 'object') return false;
+  if (profile.approved !== true && profile.is_approved !== true) return false;
   if (profile.approved === false || profile.is_approved === false) return false;
   const status = String(profile.status || '').trim().toLowerCase();
   return !status || ['approved', 'active', 'enabled'].includes(status);
@@ -144,12 +152,18 @@ export async function requireApprovedUser(req, { roles = [] } = {}) {
   }
   const user = data.user;
   const { assignedRole, profile } = await readAuthorization(admin, user.id);
-  const metadataRole = user.app_metadata?.role || user.user_metadata?.role || '';
-  const role = assignedRole || normalizeRole(profile?.role || metadataRole || 'teacher');
-  if (!profileApproved(profile || {})) {
+  // Only database-managed assignments and approved profiles may grant roles.
+  // user_metadata is editable by the account holder and cannot grant privileges.
+  const role = assignedRole || normalizeRole(profile?.role || 'teacher');
+  if (!profileApproved(profile)) {
     const approvalError = new Error('This account is awaiting approval or has been disabled.');
     approvalError.status = 403;
     throw approvalError;
+  }
+  if (profile.must_change_password === true) {
+    const passwordError = new Error('A password change is required before accessing this service.');
+    passwordError.status = 403;
+    throw passwordError;
   }
   const allowed = roles.map((item) => normalizeRole(item));
   if (allowed.length && !allowed.includes(role)) {

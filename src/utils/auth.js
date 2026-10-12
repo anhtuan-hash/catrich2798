@@ -191,8 +191,10 @@ function mapProfile(user, profile = null) {
   if (!user) return null;
   const meta = user.user_metadata || {};
   const email = normalizeEmail(user.email || profile?.email);
-  const role = normalizeSystemRole(isConfiguredAdmin(email) ? 'admin' : (profile?.role || meta.role || 'teacher'));
-  const approved = role === 'admin' ? true : profile?.approved === true;
+  // UI identity must reflect server-managed profile authorization; never promote
+  // from public VITE_* configuration or self-editable user_metadata.
+  const role = normalizeSystemRole(profile?.role || 'teacher');
+  const approved = profile?.approved === true;
   return {
     id: user.id,
     authId: user.id,
@@ -212,14 +214,15 @@ function mapProfile(user, profile = null) {
 
 function cleanProfilePayload(user, defaults = {}) {
   const email = normalizeEmail(user?.email || defaults.email);
-  const role = normalizeSystemRole(isConfiguredAdmin(email) ? 'admin' : (defaults.role || 'teacher'));
+  // Self-registration always starts unprivileged; database allowlist RPC handles Admin.
+  const role = 'teacher';
   return {
     id: user.id,
     email,
     full_name: String(defaults.name || defaults.full_name || user.user_metadata?.full_name || email.split('@')[0] || 'Teacher').trim(),
     school: String(defaults.school || user.user_metadata?.school || '').trim(),
     role,
-    approved: role === 'admin' ? true : defaults.approved === true,
+    approved: false,
     permissions: defaults.permissions || createAllAccessPermissions(),
     updated_at: new Date().toISOString(),
   };
