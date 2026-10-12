@@ -31,7 +31,7 @@ assert.deepEqual(fastPreferredHomeroom(user), {
 assert.equal(readCachedAssignedHomeroom(user), null);
 assert.equal(rememberAssignedHomeroom(user, { id: 'school-12-6-2026-2027', className: '12.6' }), true);
 assert.equal(fastPreferredHomeroom(user)?.source, 'cached-server-assignment');
-assert.equal(fastPreferredHomeroom(differentUser), null, 'Never leak last user's class across accounts');
+assert.equal(fastPreferredHomeroom(differentUser), null, 'Never leak a previous account class across users');
 assert.equal(fastPreferredHomeroom({}), null, 'Never use a guest cache');
 assert.equal(listFastHomeroomCatalog(user).length, 2, 'Fast catalog uses index, no workspace payload needed');
 map.set('bes-homeroom-class-types-v1:teacher-a', JSON.stringify({
