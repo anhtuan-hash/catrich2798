@@ -9,6 +9,7 @@ import {
 import HomeroomClassProfileEditor from '../components/homeroom/HomeroomClassProfileEditor.jsx';
 import SubjectStudentsTab from '../components/homeroom/SubjectStudentsTab.jsx';
 import HomeroomStudentHub from '../components/homeroom/HomeroomStudentHub.jsx';
+import HomeroomEngagement from '../components/homeroom/HomeroomEngagement.jsx';
 import HomeroomNavigationPalette from '../components/homeroom/HomeroomNavigationPalette.jsx';
 import HomeroomGlassHero from '../components/homeroom/HomeroomGlassHero.jsx';
 import StudentRecordsTab from '../components/homeroom/StudentRecordsTab.jsx';
@@ -524,8 +525,8 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
       {visibleTab === 'classes' ? <ClassLifecycleTab workspace={workspace} catalog={catalog} currentId={workspaceId} onSwitch={switchWorkspace} onCreate={createWorkspace} onDuplicate={duplicateWorkspace} onStatusChange={changeWorkspaceStatus} currentUser={currentUser} /> : null}
       {visibleTab === 'students' ? (subjectMode ? <SubjectStudentsTab workspace={workspace} onCommit={commit} /> : <HomeroomStudentHub key={`${currentUser?.id || currentUser?.email || 'guest'}:${workspace.id}`} workspace={workspace} onCommit={commit} />) : null}
       {visibleTab === 'studentRecords' ? <StudentRecordsTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
-      {visibleTab === 'attendance' ? <AttendanceTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
-      {visibleTab === 'conduct' ? <HomeroomConductTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
+      {visibleTab === 'attendance' ? <><HomeroomEngagement workspace={workspace} mode="attendance" /><AttendanceTab workspace={workspace} onCommit={commit} currentUser={currentUser} /></> : null}
+      {visibleTab === 'conduct' ? <><HomeroomEngagement workspace={workspace} mode="conduct" /><HomeroomConductTab workspace={workspace} onCommit={commit} currentUser={currentUser} /></> : null}
       {visibleTab === 'safety' ? <DataSafetyTab workspace={workspace} onCommit={commit} currentUser={currentUser} /> : null}
     </main>
   </div>;
