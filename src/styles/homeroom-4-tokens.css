@@ -1,0 +1,63 @@
+/*
+ * BRIAN Homeroom 4.0 — visual contract, Phase 1.
+ * Tokens only. Stage 2 consumes these scoped properties in a single modern
+ * presentation layer. Older CSS files stay intact during the migration.
+ * Never touch global :root, .app-shell, gradebook or attendance application.
+ */
+.page.hr-page {
+  --hr4-primary: #1769f4;
+  --hr4-primary-hover: #104ec3;
+  --hr4-primary-soft: #e0ecff;
+  --hr4-teal: #0b927f;
+  --hr4-teal-soft: #d7f4eb;
+  --hr4-violet: #754ce8;
+  --hr4-violet-soft: #eee7ff;
+  --hr4-coral: #e76b43;
+  --hr4-coral-soft: #ffe6d9;
+  --hr4-amber: #d4931f;
+  --hr4-amber-soft: #fff0cc;
+  --hr4-danger: #b52539;
+  --hr4-danger-soft: #fce4e8;
+  --hr4-ink: #153251;
+  --hr4-muted: #5d728a;
+  --hr4-surface: #fff;
+  --hr4-surface-soft: #f5f8fe;
+  --hr4-outline: #dbe5f2;
+  --hr4-focus-ring: #1769f4;
+  --hr4-radius-card: 22px;
+  --hr4-radius-control: 13px;
+  --hr4-radius-chip: 999px;
+  --hr4-elevation-card: 0 9px 26px rgba(28,64,116,.085);
+  --hr4-elevation-hover: 0 14px 34px rgba(24,61,118,.12);
+  --hr4-duration-fast: 150ms;
+  --hr4-duration-normal: 220ms;
+}
+html[data-theme="dark"] .page.hr-page {
+  --hr4-primary: #8bb8ff;
+  --hr4-primary-hover: #b2ceff;
+  --hr4-primary-soft: #17365e;
+  --hr4-teal: #6cdec6;
+  --hr4-teal-soft: #163a35;
+  --hr4-violet: #c7acff;
+  --hr4-violet-soft: #34265a;
+  --hr4-coral: #ffb29b;
+  --hr4-coral-soft: #4b3029;
+  --hr4-amber: #f5cd7c;
+  --hr4-amber-soft: #443821;
+  --hr4-danger: #ff9da9;
+  --hr4-danger-soft: #4e272f;
+  --hr4-ink: #e8f1ff;
+  --hr4-muted: #b2c2d7;
+  --hr4-surface: #172538;
+  --hr4-surface-soft: #111c2b;
+  --hr4-outline: #384c65;
+  --hr4-focus-ring: #8bb8ff;
+  --hr4-elevation-card: 0 9px 26px rgba(0,0,0,.22);
+  --hr4-elevation-hover: 0 14px 34px rgba(0,0,0,.28);
+}
+@media (prefers-reduced-motion: reduce) {
+  .page.hr-page {
+    --hr4-duration-fast: 0ms;
+    --hr4-duration-normal: 0ms;
+  }
+}
