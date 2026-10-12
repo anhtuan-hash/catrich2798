@@ -174,6 +174,29 @@ Deno.serve(async (req) => {
     return json({ ok: false, message: 'Chỉ Admin được quản lý tài khoản giáo viên.' }, 403);
   }
 
+  if (action === 'reset_password' || action === 'bulk_create') {
+    // Supabase has already verified the caller JWT above. Verify enrolled factors
+    // server-side before granting account administration privileges.
+    const { data: factorData, error: factorError } = await adminClient.auth.admin.mfa.listFactors({
+      userId: caller.id,
+    });
+    if (factorError || !Array.isArray(factorData?.factors)) {
+      await audit('admin_mfa_check_failed', 'error', { requested_action: action });
+      return json({ ok: false, message: 'Không thể kiểm tra MFA. Vui lòng thử lại.' }, 503);
+    }
+    const hasVerifiedFactor = factorData.factors.some((factor) => factor.status === 'verified');
+    let assuranceLevel = 'aal1';
+    try {
+      const encoded = authorization.trim().split(/\s+/).at(-1)?.split('.')[1] || '';
+      const normalized = encoded.replace(/-/g, '+').replace(/_/g, '/');
+      assuranceLevel = JSON.parse(atob(normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '='))).aal || 'aal1';
+    } catch { /* A verified JWT without a valid AAL claim is aal1. */ }
+    if (hasVerifiedFactor && assuranceLevel !== 'aal2') {
+      await audit('admin_mfa_denied', 'denied', { requested_action: action });
+      return json({ ok: false, message: 'Cần xác thực hai lớp trước khi quản lý tài khoản.' }, 403);
+    }
+  }
+
   if (action === 'reset_password') {
     const username = normalizeUsername(payload.username);
     const password = String(payload.password ?? '');

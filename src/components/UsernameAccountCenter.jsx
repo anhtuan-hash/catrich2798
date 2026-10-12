@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { changeCurrentPassword, initializeAuthSession, subscribeToAuthChanges } from '../utils/auth.js';
 import { invokeTeacherAccounts } from '../utils/usernameAccounts.js';
+import AdminMfaSecurity from './AdminMfaSecurity.jsx';
 import {
   loadProfileSettings,
   removeProfileAvatar,
@@ -320,6 +321,7 @@ export default function UsernameAccountCenter({ language = 'vi' }) {
         </div>
       ) : null}
       {route === 'settings' && profileHost && profileEditor ? createPortal(profileEditor, profileHost) : null}
+      <AdminMfaSecurity user={currentUser} language={language} route={route} profileHost={profileHost} />
     </>
   );
 }

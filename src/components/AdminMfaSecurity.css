@@ -1,0 +1,30 @@
+.bes-mfa-shield{position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;min-height:100dvh;background:rgba(15,23,42,.7);backdrop-filter:blur(7px);padding:20px;overflow:auto}
+.bes-mfa-shield-card{background:#fff;color:#182437;border-radius:20px;padding:30px;width:min(100%,410px);box-shadow:0 30px 90px #11182750;display:grid;gap:12px}
+.bes-mfa-shield-mark{display:grid;place-items:center;background:#164f7b;color:#fff;font-weight:900;font-size:24px;width:50px;height:50px;border-radius:15px}
+.bes-mfa-shield-card h2{font-size:22px;line-height:1.26;margin:4px 0}
+.bes-mfa-shield-card p{font-size:14px;line-height:1.65;color:#475569;margin:0}
+.bes-mfa-shield-card form,.bes-mfa-enroll{display:grid;gap:12px}
+.bes-mfa-shield-card label,.bes-mfa-enroll label{font-size:13px;font-weight:700}
+.bes-mfa-shield-card input,.bes-mfa-enroll input{width:100%;padding:12px 14px;font-size:19px;letter-spacing:.22em;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#0f172a}
+.bes-mfa-shield-card button,.bes-mfa-settings button{background:#164f7b;color:white;border:0;border-radius:10px;padding:12px 16px;font-weight:700;cursor:pointer}
+.bes-mfa-shield-card button:disabled,.bes-mfa-settings button:disabled{opacity:.55;cursor:not-allowed}
+.bes-mfa-shield-card .bes-mfa-text-action{background:transparent;color:#475569;text-decoration:underline;font-size:13px}
+.bes-mfa-shield-card .bes-mfa-error{color:#b91c1c}
+.bes-mfa-settings{padding:22px 24px;margin:16px 0 8px;border:1px solid #dde6ef;border-radius:18px;background:#fff;color:#182437;display:grid;gap:14px}
+.bes-mfa-settings-head{display:flex;gap:16px;align-items:center;justify-content:space-between}
+.bes-mfa-settings-head span{color:#64748b;font-size:11px;font-weight:750;letter-spacing:.06em}
+.bes-mfa-settings-head h3{margin:4px 0 0;font-size:18px}
+.bes-mfa-settings-head strong{font-size:12px;padding:6px 11px;border-radius:999px;white-space:nowrap}
+.bes-mfa-settings-head .enabled{background:#d1fae5;color:#065f46}
+.bes-mfa-settings-head .disabled{background:#f1f5f9;color:#475569}
+.bes-mfa-settings p{margin:0;font-size:14px;line-height:1.65}
+.bes-mfa-settings .bes-mfa-warning{padding:12px 14px;border-radius:12px;background:#fff7ed;color:#9a3412;font-size:13px}
+.bes-mfa-enroll{justify-items:start}
+.bes-mfa-enroll img{width:182px;height:182px;max-width:100%;object-fit:contain;background:white}
+.bes-mfa-enroll code{display:block;overflow-wrap:anywhere;margin-top:8px;padding:10px;border-radius:8px;background:#f1f5f9;font-size:12px;letter-spacing:.04em}
+.bes-mfa-enroll details{max-width:100%;font-size:13px}
+.bes-mfa-enroll input{max-width:260px}
+.bes-mfa-actions{display:flex;gap:10px;flex-wrap:wrap}
+.bes-mfa-settings button.secondary{background:#e2e8f0;color:#334155}
+.bes-mfa-settings .bes-mfa-feedback{color:#0369a1;font-weight:600}
+@media(max-width:600px){.bes-mfa-settings{padding:16px}.bes-mfa-shield-card{padding:22px}}

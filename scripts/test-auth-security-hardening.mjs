@@ -41,4 +41,24 @@ assert.match(api, /recordAccountAudit\(session, action, result\.status/);
 assert.match(edge, /const audit = async \(eventAction: string, status: string/);
 assert.match(edge, /await audit\('reset_password', 'ok'\)/);
 assert.match(edge, /await audit\('bulk_create'/);
-console.log('PASS: BRIAN account authorization, password rotation, and account audit contracts are hardened.');
+const mfa = read('src/components/AdminMfaSecurity.jsx');
+const mfaCss = read('src/components/AdminMfaSecurity.css');
+const center = read('src/components/UsernameAccountCenter.jsx');
+
+// Enrollment is voluntary: no MFA factor is provisioned for existing users.
+assert.match(mfa, /supabase\.auth\.mfa\.enroll/);
+assert.match(mfa, /supabase\.auth\.mfa\.challengeAndVerify/);
+assert.match(mfa, /supabase\.auth\.mfa\.getAuthenticatorAssuranceLevel/);
+assert.match(mfa, /status === 'verified'/);
+assert.match(mfa, /supabase\.auth\.mfa\.unenroll/);
+assert.match(center, /<AdminMfaSecurity/);
+assert.ok(mfaCss.includes('.bes-mfa-shield'));
+
+// Once an Admin has enrolled a verified factor, both account mutation servers
+// must require a token already upgraded to aal2.
+assert.match(api, /session\.db\.auth\.admin\.mfa\.listFactors/);
+assert.match(api, /jwtAssuranceLevel\(session\.token\) !== 'aal2'/);
+assert.match(edge, /adminClient\.auth\.admin\.mfa\.listFactors/);
+assert.match(edge, /hasVerifiedFactor && assuranceLevel !== 'aal2'/);
+
+console.log('PASS: BRIAN account authorization, password rotation, audit, and staged Admin MFA contracts are hardened.');
