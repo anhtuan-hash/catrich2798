@@ -40,6 +40,8 @@ assert.match(palette,/onTasks\?\.\(\)/);
 assert.match(palette,/dashboardPaletteItems/);
 assert.match(palette,/findDashboardPaletteItems/);
 assert.match(palette,/aria-modal="true"/);
+assert.match(palette,/data-bes-keep-search="true"/);
+assert.match(read('src/components/DashboardCommandCenter.jsx'),/dcc-task-search" data-bes-keep-search="true"/);
 assert.match(palette,/role="combobox"/);
 assert.match(palette,/event\.key==='Escape'/);
 assert.match(palette,/event\.key==='ArrowDown'/);

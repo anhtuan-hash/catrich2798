@@ -64,7 +64,7 @@ export default function DashboardCommandPalette({ snapshot, language = 'vi', ope
           else if(!event.shiftKey && document.activeElement===close){event.preventDefault();inputRef.current?.focus();}
         }
       }}>
-      <div className="gd-v31-palette-search"><Search size={20}/><input ref={inputRef} type="text" role="combobox" aria-autocomplete="list" aria-expanded="true" aria-controls="gd-v31-search-results" aria-activedescendant={results[active]?'gd-v31-palette-'+active:undefined}
+      <div className="gd-v31-palette-search" data-bes-keep-search="true"><Search size={20}/><input ref={inputRef} type="text" role="combobox" aria-autocomplete="list" aria-expanded="true" aria-controls="gd-v31-search-results" aria-activedescendant={results[active]?'gd-v31-palette-'+active:undefined}
         value={query} autoFocus onChange={event=>setQuery(event.target.value)} placeholder={vi?'Tìm công việc, lịch, học liệu, ứng dụng…':'Find tasks, calendar, apps…'} aria-label={vi?'Tìm kiếm nhanh':'Quick search'}/>
         <button type="button" className="gd-v31-palette-close" aria-label={vi?'Đóng tìm kiếm':'Close search'} onClick={onClose}><X size={18}/></button></div>
       <div className="gd-v31-palette-results" id="gd-v31-search-results" role="listbox" aria-label={vi?'Kết quả tìm kiếm':'Search results'}>
