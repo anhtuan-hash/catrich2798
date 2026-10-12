@@ -222,3 +222,79 @@
   font-size:12px;white-space:nowrap;
 }
 #root .gradebook-studio .gb-finalized-banner span{flex:1 1 220px;line-height:1.45}
+
+
+/* Importing XLSX is optional; keep its full workflow behind a calm disclosure
+   rather than stacking two large forms in the primary quick-paste view. */
+#root .gradebook-studio .gb-prod-excel{
+  display:block;
+  padding:0;
+  margin:4px 0 0;
+  overflow:hidden;
+  background:#fff;
+  border:1px solid #d9e4f8;
+  border-radius:14px;
+}
+#root .gradebook-studio .gb-prod-excel-trigger{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 14px;
+  list-style:none;
+  cursor:pointer;
+  color:#2b5487;
+  background:linear-gradient(115deg,#f4f7ff,#fff);
+}
+#root .gradebook-studio .gb-prod-excel-trigger::-webkit-details-marker{display:none}
+#root .gradebook-studio .gb-prod-excel-trigger > span:first-child{
+  display:grid;place-items:center;
+  flex:0 0 34px;width:34px;height:34px;
+  background:#e8e3ff;color:#6c56bd;
+  border-radius:10px;font-size:18px;
+}
+#root .gradebook-studio .gb-prod-excel-trigger strong{
+  font-size:13px;font-weight:780;
+}
+#root .gradebook-studio .gb-prod-excel-trigger small{
+  margin-left:auto;
+  font-size:11px;
+  color:#7789a6;
+}
+#root .gradebook-studio .gb-prod-excel-trigger .gb-prod-excel-chevron{
+  color:#6881a2;
+  font-size:19px;
+  transition:transform .16s ease;
+}
+#root .gradebook-studio .gb-prod-excel[open] .gb-prod-excel-chevron{transform:rotate(180deg)}
+#root .gradebook-studio .gb-prod-excel-content{
+  display:grid;
+  gap:11px;
+  padding:15px;
+  border-top:1px solid #e5edfa;
+}
+#root .gradebook-studio .gb-prod-heading{
+  min-height:65px;
+  padding:13px 17px;
+}
+#root .gradebook-studio .gb-prod-heading strong{font-size:15px}
+#root .gradebook-studio .gb-prod-count{font-size:12px}
+#root .gradebook-studio .gb-prod-tabs button{
+  font-size:12px;min-height:39px;
+  padding:9px 13px;
+}
+#root .gradebook-studio .gb-prod-pane{gap:12px}
+#root .gradebook-studio .gb-prod-pane h3{font-size:18px}
+#root .gradebook-studio .gb-prod-fields label{font-size:12px}
+#root .gradebook-studio .gb-prod-fields select,
+#root .gradebook-studio .gb-prod-fields input{font-size:12px;min-height:40px}
+#root .gradebook-studio .gb-prod-pane textarea.gb-prod-paste{min-height:103px;font-size:13px}
+#root .gradebook-studio .gb-prod-actions button{min-height:40px;font-size:12px}
+#root .gradebook-studio .gb-prod-tabs button:focus-visible,
+#root .gradebook-studio .gb-prod-excel-trigger:focus-visible{
+  outline:3px solid #91b9ff;
+  outline-offset:2px;
+}
+@media(max-width:740px){
+  #root .gradebook-studio .gb-prod-excel-trigger{flex-wrap:wrap}
+  #root .gradebook-studio .gb-prod-excel-trigger small{margin-left:0;flex:1 1 100%;order:3}
+}

@@ -347,6 +347,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const [activeSubjectKey, setActiveSubjectKey] = useState(() => normalizeGradebook(workspace.learningGradebook, workspace.learningRecords).activeSubject);
   const [semesterId, setSemesterId] = useState('semester1');
   const [view, setView] = useState('regular-0');
+  const [showFullRoster, setShowFullRoster] = useState(false);
   const [newSubject, setNewSubject] = useState('');
   const [dirty, setDirty] = useState(false);
   const [exportDialogMode, setExportDialogMode] = useState('');
@@ -667,9 +668,13 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
           <h2>Nhập điểm cho toàn bộ lớp</h2>
           <p>Nhập điểm theo thang 10. Điểm cộng và điểm đợt được tính tự động.</p>
         </div>
-        <div className="gbv2-head-actions"><button type="button" className="secondary" onClick={addRegularColumn} disabled={finalized}>＋ Thêm lần nhập</button>{renderTableControls()}</div>
+        <div className="gbv2-head-actions">
+          <button type="button" className="secondary" onClick={addRegularColumn} disabled={finalized}>＋ Thêm lần nhập</button>
+          <button type="button" className="gbv3-expand-table" aria-pressed={showFullRoster} onClick={() => setShowFullRoster((value) => !value)}>{showFullRoster ? 'Thu gọn bảng' : 'Xem toàn bộ ' + students.length + ' học sinh'}</button>
+          {renderTableControls()}
+        </div>
       </div>
-      {students.length ? <div className="hr-grade-table-wrap">
+      {students.length ? <div className={`hr-grade-table-wrap${showFullRoster ? ' gbv3-table-expanded' : ''}`}>
         <table className="hr-grade-table" style={{ minWidth: `${Math.max(820, 290 + activeRound.columns.length * 104 + 3 * 118)}px` }}>
           <thead>
             <tr>
