@@ -12,7 +12,7 @@ export const DASHBOARD_SECTION_IDS = Object.freeze([
 
 export function defaultDashboardLayout() {
   return { version: 1, cardOrder: [...DASHBOARD_CARD_IDS], hiddenCards: [], hiddenSections: [], density: 'comfortable',
-    boardOrder: [...DASHBOARD_BOARD_IDS], widgetSizes: { calendar: 'wide', quickActions: 'small', dropZone: 'small', news: 'wide' }, preset: 'default' };
+    boardOrder: [...DASHBOARD_BOARD_IDS], widgetSizes: { calendar: 'wide', quickActions: 'small', dropZone: 'small', news: 'wide' }, preset: 'default', theme: 'daylight', focusMode: false };
 }
 
 const uniqueAllowed = (values, allowed) => [...new Set(Array.isArray(values) ? values.filter((value) => allowed.includes(value)) : [])];
@@ -34,6 +34,8 @@ export function normalizeDashboardLayout(value) {
     boardOrder: [...uniqueAllowed(value.boardOrder, DASHBOARD_BOARD_IDS), ...DASHBOARD_BOARD_IDS.filter((id) => !uniqueAllowed(value.boardOrder, DASHBOARD_BOARD_IDS).includes(id))],
     widgetSizes: Object.fromEntries(DASHBOARD_BOARD_IDS.map((id) => [id, DASHBOARD_WIDGET_SIZES.includes(value.widgetSizes?.[id]) ? value.widgetSizes[id] : fallback.widgetSizes[id]])),
     preset: ['default','teacher','homeroom','leader'].includes(value.preset) ? value.preset : 'default',
+    theme: value.theme === 'midnight' ? 'midnight' : 'daylight',
+    focusMode: value.focusMode === true,
   };
 }
 
@@ -112,4 +114,14 @@ export function applyDashboardLayoutPreset(preset) {
   if (preset === 'homeroom') return normalizeDashboardLayout({ ...base, preset, boardOrder: ['calendar', 'quickActions', 'dropZone', 'news'], widgetSizes: { ...base.widgetSizes, calendar: 'wide', dropZone: 'wide' } });
   if (preset === 'leader') return normalizeDashboardLayout({ ...base, preset, boardOrder: ['calendar', 'quickActions', 'news', 'dropZone'], density: 'compact' });
   return base;
+}
+
+/** Dashboard presentation preferences are local and never affect other apps. */
+export function setDashboardTheme(layout, theme) {
+  const current = normalizeDashboardLayout(layout);
+  return { ...current, theme: theme === 'midnight' ? 'midnight' : 'daylight' };
+}
+export function setDashboardFocusMode(layout, enabled) {
+  const current = normalizeDashboardLayout(layout);
+  return { ...current, focusMode: Boolean(enabled) };
 }

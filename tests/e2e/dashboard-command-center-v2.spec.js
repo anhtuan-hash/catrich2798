@@ -270,3 +270,61 @@ test('3.0 respects mobile viewport with new widgets', async ({ page }) => {
   const widthsEditor=await page.evaluate(()=>[document.documentElement.scrollWidth,document.documentElement.clientWidth]);
   expect(widthsEditor[0]).toBeLessThanOrEqual(widthsEditor[1]+2);
 });
+
+test('3.1 command palette finds apps, navigates and closes with Escape', async ({ page }) => {
+  await openDashboard(page);
+  await page.keyboard.press('Control+Shift+K');
+  const palette=page.getByRole('dialog',{name:'Tìm nhanh BRIAN'});
+  await expect(palette).toBeVisible();
+  const search=palette.getByRole('combobox',{name:'Tìm kiếm nhanh'});
+  await expect(search).toBeFocused();
+  await search.fill('Sổ điểm');
+  await expect(palette.getByRole('option')).toHaveCount(1);
+  await page.keyboard.press('Escape');
+  await expect(palette).toHaveCount(0);
+  await page.locator('.gd-v31-search-trigger').click();
+  await expect(palette).toBeVisible();
+  await palette.getByRole('combobox',{name:'Tìm kiếm nhanh'}).fill('Sổ điểm');
+  await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(/#\/apps/);
+});
+
+test('3.1 focus mode persists and keeps priority work available', async ({ page }) => {
+  await openDashboard(page);
+  const focus=page.locator('.gd-v31-mode-button');
+  await focus.click();
+  await expect(page.locator('.gd-v31-page')).toHaveClass(/gd-v31-focus/);
+  await expect(page.locator('.dcc-priority')).toBeVisible();
+  await expect(page.locator('.gd-top-grid')).toBeHidden();
+  await page.reload();
+  await expect(page.locator('.gd-v31-page')).toHaveClass(/gd-v31-focus/);
+  await page.locator('.gd-v31-mode-button').click();
+  await expect(page.locator('.gd-top-grid')).toBeVisible();
+});
+
+test('3.1 midnight theme is per-account, persists and returns to daylight', async ({page})=>{
+  await openDashboard(page);
+  const theme=page.locator('.gd-v31-theme-button');
+  await theme.click();
+  await expect(page.locator('.gd-v31-page')).toHaveAttribute('data-dashboard-theme','midnight');
+  await page.reload();
+  await expect(page.locator('.gd-v31-page')).toHaveAttribute('data-dashboard-theme','midnight');
+  await page.locator('.gd-v31-theme-button').click();
+  await expect(page.locator('.gd-v31-page')).toHaveAttribute('data-dashboard-theme','daylight');
+});
+
+test('3.1 search, midnight theme and focus toolbar fit mobile', async ({page})=>{
+  await page.setViewportSize({width:390,height:844});
+  await openDashboard(page);
+  await page.locator('.gd-v31-theme-button').click();
+  await expect(page.locator('.gd-v31-page')).toHaveAttribute('data-dashboard-theme','midnight');
+  await page.locator('.gd-v31-search-trigger').click();
+  await expect(page.getByRole('dialog',{name:'Tìm nhanh BRIAN'})).toBeVisible();
+  const sizes=await page.evaluate(()=>[document.documentElement.scrollWidth,document.documentElement.clientWidth]);
+  expect(sizes[0]).toBeLessThanOrEqual(sizes[1]+2);
+  await page.keyboard.press('Escape');
+  await page.locator('.gd-v31-mode-button').click();
+  await expect(page.locator('.dcc-priority')).toBeVisible();
+  const focusSizes=await page.evaluate(()=>[document.documentElement.scrollWidth,document.documentElement.clientWidth]);
+  expect(focusSizes[0]).toBeLessThanOrEqual(focusSizes[1]+2);
+});
