@@ -1,51 +1,22 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-
-const runtime = await readFile(new URL('../src/utils/gradebookMaterialHeroRuntime.js', import.meta.url), 'utf8');
-const css = await readFile(new URL('../src/styles/GradebookMaterialHeroRuntime.css', import.meta.url), 'utf8');
-
+const page=await readFile(new URL('../src/pages/GradebookStudio.jsx',import.meta.url),'utf8');
+const workspace=await readFile(new URL('../src/components/gradebook/GradebookWorkspace.jsx',import.meta.url),'utf8');
+const engine=await readFile(new URL('../src/components/gradebook/GradebookEngine.jsx',import.meta.url),'utf8');
+const css=await readFile(new URL('../src/styles/GradebookAcademicWorkspace.css',import.meta.url),'utf8');
 for (const token of [
-  'class="gb4-hero-shell"',
-  'class="gb4-hero-main"',
-  'class="gb4-class-picker"',
-  'class="gb4-quick-primary"',
-  'class="gb4-semesters"',
-  'data-gbe-action="class"',
-  'data-gbe-action="semester"',
-  'data-gbe-action="view"',
-  'data-gbe-action="pdf"',
-  'data-gbe-action="students"',
-  'data-gbe-action="add-class"',
-  'HTMLSelectElement.prototype',
-]) {
-  assert.ok(runtime.includes(token), `Gradebook approved mockup 4 hero markup/action missing: ${token}`);
-}
-assert.ok(!runtime.includes('gbe-m3-live-panel'), 'Redundant hero score preview must be removed.');
-
-for (const token of [
-  'Gradebook Colorful Hero V1',
-  '--gbe-blue: #1f78e9',
-  '--gbe-lilac: #9b84f7',
-  '--gbe-mint: #58c98b',
-  '--gbe-peach: #ffb476',
-  '--gbe-yellow: #ffd45f',
-  'font-family: var(--gbe-font) !important',
-  '.gbe-m3-hand-note',
-  '.gbe-m3-art-left',
-  '.gbe-m3-art-right',
-  '.gbe-m3-mini-stats article.is-mint',
-  '.gbe-m3-mini-stats article.is-peach',
-  'background: linear-gradient(90deg, #ffd34f',
-  'background: linear-gradient(135deg, #1f78e9, #1762c7)',
-]) {
-  assert.ok(css.includes(token), `Colorful gradebook hero CSS missing: ${token}`);
-}
-
-assert.ok(css.includes('--gbe-font: var(--bes-global-font-family'), 'Gradebook hero must respect the global/custom font system.');
-assert.ok(!css.includes('Georgia, \'Times New Roman\''), 'Old beige editorial serif authority must be removed.');
-
-const opens=(css.match(/{/g)||[]).length;
-const closes=(css.match(/}/g)||[]).length;
-assert.equal(opens, closes, 'Colorful gradebook hero CSS braces must be balanced.');
-
-console.log('PASS: Gradebook compact hero retains functional entry points and its existing font authority.');
+  'gb-academic-hero','gb-academic-class-list','gb-academic-actions',
+  'gb-academic-primary','setWorkspaceId(item.id)',
+  'requestGradebookAction(\'entry\')',
+  'requestGradebookAction(\'summary\')',
+  'requestGradebookAction(\'pdf\')',
+]) assert.ok(page.includes(token), 'Missing native Gradebook feature: '+token);
+assert.ok(!workspace.includes('installGradebookMaterialHero'),'DOM-observed legacy hero must not be mounted');
+assert.ok(!workspace.includes('GradebookApprovedMockupFour'),'Legacy CSS must be inactive');
+assert.ok(engine.includes('className="gb-academic-administration"'),'Class tools remain available');
+assert.ok(engine.includes('onClick={openStudentReport}'),'PDF export preserved');
+assert.ok(css.includes('font-family:var(--bes-global-font-family'),'Global font must be inherited');
+assert.ok(css.includes('overflow:auto')&&css.includes('position:sticky'),'Table must scroll with frozen identification columns');
+const opens=(css.match(/\{/g)||[]).length, closes=(css.match(/\}/g)||[]).length;
+assert.equal(opens,closes,'Gradebook stylesheet braces must be balanced');
+console.log('PASS: Native Academic Workspace hero, preserved shortcuts and scoped styling.');

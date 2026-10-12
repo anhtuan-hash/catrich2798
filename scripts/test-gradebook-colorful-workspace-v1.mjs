@@ -1,21 +1,19 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import {readFile} from 'node:fs/promises';
+const workspace=await readFile(new URL('../src/components/gradebook/GradebookWorkspace.jsx',import.meta.url),'utf8');
+const engine=await readFile(new URL('../src/components/gradebook/GradebookEngine.jsx',import.meta.url),'utf8');
+const page=await readFile(new URL('../src/pages/GradebookStudio.jsx',import.meta.url),'utf8');
+const css=await readFile(new URL('../src/styles/GradebookAcademicWorkspace.css',import.meta.url),'utf8');
 
-const workspace = await readFile(new URL('../src/components/gradebook/GradebookWorkspace.jsx', import.meta.url), 'utf8');
-const engine = await readFile(new URL('../src/components/gradebook/GradebookEngine.jsx', import.meta.url), 'utf8');
-const css = await readFile(new URL('../src/styles/GradebookColorfulWorkspace.css', import.meta.url), 'utf8');
-
-for (const token of [
-  "import workspaceColorCss from '../../styles/GradebookColorfulWorkspace.css?inline';",
-  '<style>{workspaceColorCss}</style>',
+for(const token of [
   'gradebook-student-support',
   'Hỗ trợ &amp; tra cứu học sinh',
   'gradebook-student-support-icon',
-]) {
-  assert.ok(workspace.includes(token), `Gradebook workspace mockup token missing: ${token}`);
-}
+  '<GradebookEngine {...props} />'
+]) assert.ok(workspace.includes(token),'Student support or gradebook engine missing: '+token);
+assert.ok(!workspace.includes('GradebookColorfulWorkspace.css?inline'),'Legacy mockup must no longer be mounted');
 
-for (const token of [
+for(const token of [
   'function GradebookUiIcon({ type })',
   'hr-grade-title-icon',
   'hr-grade-overview-icon',
@@ -26,33 +24,24 @@ for (const token of [
   'hr-grade-export-icon',
   'GradebookUiIcon type="excel"',
   'hr-grade-panel-icon',
-]) {
-  assert.ok(engine.includes(token), `Gradebook colorful structure token missing: ${token}`);
-}
+  'hr-grade-table-wrap',
+  'gbv2-save-strip',
+]) assert.ok(engine.includes(token),'Gradebook functional structure missing: '+token);
 
-for (const token of [
-  'Gradebook Colorful Workspace V1',
-  '.gradebook-student-support',
-  '.hr-grade-toolbar',
-  '.hr-grade-overview article.tone-blue',
-  '.hr-grade-overview article.tone-purple',
-  '.hr-grade-overview article.tone-green',
-  '.hr-grade-overview article.tone-yellow',
+for(const token of [
+  '.gb-academic-hero',
+  '.hr-grade-overview article',
+  '.hr-grade-table-wrap',
+  '.hr-grade-table .hr-grade-index',
+  '.hr-grade-table .hr-grade-student',
   '.hr-grade-export-bar',
-  '.hr-grade-table .hr-grade-plus-head',
-  '.hr-grade-table .hr-grade-bonus-head',
-  '.hr-grade-table .hr-grade-result-head',
-  'linear-gradient(90deg, #2d7de8 0 26%, #ef4e78 26% 48%, #8e66e8 48% 68%, #f7b942 68% 84%, #23b97a 84%)',
-]) {
-  assert.ok(css.includes(token), `Gradebook colorful workspace CSS missing: ${token}`);
-}
-
-assert.ok(css.includes('--gbw-font: var(--bes-global-font-family'), 'Workspace must use the global/custom font authority.');
-assert.ok(!css.includes('.gradebook-studio-hero'), 'Workspace CSS must not modify the approved Gradebook hero.');
-assert.ok(!css.includes('signature-footer'), 'Workspace CSS must not modify the global footer.');
-
-const opens=(css.match(/{/g)||[]).length;
-const closes=(css.match(/}/g)||[]).length;
-assert.equal(opens, closes, 'Gradebook colorful workspace CSS braces must be balanced.');
-
-console.log('PASS: Gradebook body matches the approved colorful mockup while leaving hero/footer untouched.');
+  '.gbv2-support-extra',
+  'overflow:auto',
+  'position:sticky',
+  'table-layout:auto'
+]) assert.ok(css.includes(token),'Academic Workspace CSS rule missing: '+token);
+assert.ok(page.includes("import '../styles/GradebookAcademicWorkspace.css';"),'Route must own design');
+assert.ok(css.includes('var(--bes-global-font-family'),'Must honor global typeface');
+assert.ok(!css.includes('signature-footer'),'Footer must not be restyled');
+assert.equal((css.match(/\{/g)||[]).length,(css.match(/\}/g)||[]).length,'Academic Workspace stylesheet braces');
+console.log('PASS: Gradebook support, scoring grid and responsive Academic Workspace preserved.');

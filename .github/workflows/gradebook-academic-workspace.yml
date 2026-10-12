@@ -1,0 +1,44 @@
+name: Academic Gradebook Production Safety
+on:
+  pull_request:
+    paths:
+      - 'src/pages/GradebookStudio.jsx'
+      - 'src/components/gradebook/GradebookWorkspace.jsx'
+      - 'src/components/gradebook/GradebookEngine.jsx'
+      - 'src/styles/GradebookAcademicWorkspace.css'
+      - 'tests/gradebook-academic-workspace.test.mjs'
+      - 'tests/gradebook-approved-v2.test.mjs'
+      - 'tests/gradebook-approved-mockup-4.test.mjs'
+      - 'scripts/test-gradebook-colorful-hero-v1.mjs'
+      - '.github/workflows/gradebook-academic-workspace.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/pages/GradebookStudio.jsx'
+      - 'src/components/gradebook/GradebookWorkspace.jsx'
+      - 'src/components/gradebook/GradebookEngine.jsx'
+      - 'src/styles/GradebookAcademicWorkspace.css'
+      - 'tests/gradebook-academic-workspace.test.mjs'
+jobs:
+  gradebook:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Gradebook behavior, table, navigation isolation and legacy regression checks
+        run: |
+          node --test tests/gradebook-academic-workspace.test.mjs tests/gradebook-approved-v2.test.mjs tests/gradebook-approved-mockup-4.test.mjs
+          node scripts/test-gradebook-colorful-hero-v1.mjs
+          node scripts/test-gradebook-colorful-workspace-v1.mjs
+          node scripts/test-gradebook-migration-state.mjs
+      - name: Production build
+        run: npm run build
+      - name: Install browser for table layout checks
+        run: npx playwright install --with-deps chromium
+      - name: Browser geometry check (390px, 620px, 980px, 1440px)
+        run: npx playwright test tests/e2e/gradebook-academic-geometry.spec.js --project=chromium-desktop
