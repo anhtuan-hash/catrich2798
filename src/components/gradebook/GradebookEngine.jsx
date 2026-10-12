@@ -11,6 +11,7 @@ import {
 import './HomeroomLearningGradebook.css';
 import GradebookProductivityPanel from './GradebookProductivityPanel.jsx';
 import { gradebookAuditChanges } from '../../utils/gradebookProductivity.js';
+import { isGradebookFinalized, setFinalizationState, gradebookFinalizationReadiness } from '../../utils/gradebookFinalization.js';
 
 const SEMESTERS = [
   { id: 'semester1', label: 'Học kỳ I' },
@@ -197,6 +198,8 @@ function normalizeGradebook(raw, legacyRecords = []) {
     alertSettings:source.alertSettings && typeof source.alertSettings==='object' ? source.alertSettings : {minimum:5,decline:2},
     interventions:source.interventions && typeof source.interventions==='object' ? source.interventions : {},
     auditHistory:Array.isArray(source.auditHistory)?source.auditHistory.slice(0,30):[],
+    finalizations:source.finalizations && typeof source.finalizations==='object'?source.finalizations:{},
+    finalizationHistory:Array.isArray(source.finalizationHistory)?source.finalizationHistory.slice(0,35):[],
   },legacyRecords);
 }
 
@@ -236,11 +239,12 @@ function ensureSubject(book, name) {
   return key;
 }
 
-function ScoreInput({ value, onChange, label }) {
+function ScoreInput({ value, onChange, label, disabled=false }) {
   return <input
     className="hr-grade-input"
     inputMode="decimal"
     aria-label={label}
+    disabled={disabled}
     value={value ?? ''}
     onChange={(event) => {
       const next = cleanInput(event.target.value);
@@ -267,11 +271,12 @@ function ScoreInput({ value, onChange, label }) {
   />;
 }
 
-function PlusCountInput({ value, onChange, label }) {
+function PlusCountInput({ value, onChange, label, disabled=false }) {
   return <input
     className="hr-grade-input hr-grade-plus-input"
     inputMode="numeric"
     pattern="[0-9]*"
+    disabled={disabled}
     aria-label={label}
     value={value ?? ''}
     onChange={(event) => {
@@ -363,6 +368,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const activeView = VIEWS.find((item) => item.id === view) || VIEWS[0];
   const roundIndex = view.startsWith('regular-') ? Number(view.split('-')[1]) : -1;
   const activeRound = roundIndex >= 0 ? activeSemester.regular[roundIndex] : null;
+  const finalized = isGradebookFinalized(gradebook,activeSubjectKey,semesterId);
   const activeRoundMaxPlusCount = activeRound ? gradeRoundMaxPlusCount(activeRound, studentIds) : 0;
   const semesterLabel = SEMESTERS.find((item) => item.id === semesterId)?.label || semesterId;
   const exportColumns = useMemo(() => buildGradeExportColumns(activeSemester), [activeSemester]);
@@ -385,6 +391,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   }, [exportDialogMode, exporting]);
 
   const mutate = (callback) => {
+    if(finalized)return;
     setGradebook((current) => {
       const next = clone(current);
       const key = next.subjects[activeSubjectKey] ? activeSubjectKey : ensureSubject(next, activeSubject?.name || 'Tiếng Anh');
@@ -411,7 +418,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   };
 
   const applyPaste = (entries) => {
-    if (!activeRound || !Array.isArray(entries) || !entries.length) return;
+    if (finalized || !activeRound || !Array.isArray(entries) || !entries.length) return;
     const validStudents=new Set(studentIds);
     const allowedColumns=new Set(activeRound.columns.map(column=>column.id));
     const safe=entries.filter(item=>validStudents.has(item.studentId)&&allowedColumns.has(item.columnId)&&
@@ -427,6 +434,26 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
 
   const updateAlertSettings = (next) => {
     setGradebook(current=>({...current,alertSettings:{minimum:Number(next.minimum),decline:Number(next.decline)}}));
+    setDirty(true);
+  };
+
+  const updateFinalization = (lock,reason) => {
+    if (dirty || Boolean(lock)===finalized) return;
+    if(lock){
+      const ready=gradebookFinalizationReadiness({
+        students,semester:activeSemester,
+        computeRoundScore:(round,id)=>round?roundScore(round,id,studentIds):null,
+      });
+      if(!ready.ready) return;
+    }
+    let next;
+    try{
+      next=setFinalizationState(gradebook,{
+        subject:activeSubjectKey,semester:semesterId,lock:Boolean(lock),
+        reason,actor:currentUser?.email||currentUser?.name||'Giáo viên',
+      });
+    }catch(error){window.alert(error.message);return;}
+    setGradebook(next);
     setDirty(true);
   };
 
@@ -460,7 +487,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   });
 
   const removeRegularColumn = (columnId) => {
-    if (!activeRound || activeRound.columns.length <= 1) return;
+    if (finalized || !activeRound || activeRound.columns.length <= 1) return;
     const hasScores = Object.values(activeRound.scores || {}).some((row) => row?.[columnId] !== '' && row?.[columnId] != null);
     if (hasScores && !window.confirm('Cột này đã có điểm. Xóa cột sẽ xóa toàn bộ điểm trong cột. Tiếp tục?')) return;
     mutate((semester) => {
@@ -612,7 +639,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
           <h2>Nhập điểm cho toàn bộ lớp</h2>
           <p>Nhập điểm theo thang 10. Điểm cộng và điểm đợt được tính tự động.</p>
         </div>
-        <div className="gbv2-head-actions"><button type="button" className="secondary" onClick={addRegularColumn}>＋ Thêm lần nhập</button>{renderTableControls()}</div>
+        <div className="gbv2-head-actions"><button type="button" className="secondary" onClick={addRegularColumn} disabled={finalized}>＋ Thêm lần nhập</button>{renderTableControls()}</div>
       </div>
       {students.length ? <div className="hr-grade-table-wrap">
         <table className="hr-grade-table" style={{ minWidth: `${Math.max(820, 290 + activeRound.columns.length * 104 + 3 * 118)}px` }}>
@@ -621,8 +648,8 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
               <th className="hr-grade-index">STT</th>
               <th className="hr-grade-student">Học sinh</th>
               {activeRound.columns.map((column) => <th key={column.id} className="hr-grade-attempt-head">
-                <input value={column.label} onChange={(event) => renameRegularColumn(column.id, event.target.value)} aria-label="Tên cột điểm" />
-                <button type="button" disabled={activeRound.columns.length <= 1} onClick={() => removeRegularColumn(column.id)} title="Xóa cột">×</button>
+                <input value={column.label} disabled={finalized} onChange={(event) => renameRegularColumn(column.id, event.target.value)} aria-label="Tên cột điểm" />
+                <button type="button" disabled={finalized || activeRound.columns.length <= 1} onClick={() => removeRegularColumn(column.id)} title="Xóa cột">×</button>
               </th>)}
               <th className="hr-grade-plus-head">Dấu +</th>
               <th className="hr-grade-bonus-head">Điểm cộng</th>
@@ -639,9 +666,9 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
                 <td className="hr-grade-index">{index + 1}</td>
                 <td className="hr-grade-student"><b>{student.fullName}</b><small>{student.code || 'Chưa có mã học sinh'}</small></td>
                 {activeRound.columns.map((column) => <td key={column.id}>
-                  <ScoreInput value={row[column.id]} onChange={(value) => updateRegularScore(student.id, column.id, value)} label={`${student.fullName} · ${column.label}`} />
+                  <ScoreInput value={row[column.id]} disabled={finalized} onChange={(value) => updateRegularScore(student.id, column.id, value)} label={`${student.fullName} · ${column.label}`} />
                 </td>)}
-                <td className="hr-grade-plus-cell"><PlusCountInput value={plusCount} onChange={(value) => updatePlusCount(student.id, value)} label={`${student.fullName} · Số dấu cộng`} /></td>
+                <td className="hr-grade-plus-cell"><PlusCountInput value={plusCount} disabled={finalized} onChange={(value) => updatePlusCount(student.id, value)} label={`${student.fullName} · Số dấu cộng`} /></td>
                 <td className="hr-grade-bonus-cell"><div className="hr-grade-derived-bonus" aria-label={`${student.fullName} · Điểm cộng tự động ${formatScore(bonus)}`}><strong>{formatScore(bonus)}</strong><small>{activeRoundMaxPlusCount > 0 ? `${gradePlusCountNumber(plusCount) || 0}/${activeRoundMaxPlusCount}` : 'Tối đa lớp: 0'}</small></div></td>
                 <td className={`hr-grade-result ${result != null ? 'has-score' : ''}`}><strong>{formatScore(result)}</strong><small>{result != null && result >= 10 ? 'Đã giới hạn 10' : 'Tự động tính'}</small></td>
               </tr>;
@@ -660,7 +687,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
           <thead><tr><th className="hr-grade-index">STT</th><th className="hr-grade-student">Học sinh</th><th>{title}</th><th>Trạng thái</th></tr></thead>
           <tbody>{students.map((student, index) => {
             const value = activeSemester[type].scores?.[student.id] ?? '';
-            return <tr key={student.id}><td className="hr-grade-index">{index + 1}</td><td className="hr-grade-student"><b>{student.fullName}</b><small>{student.code || 'Chưa có mã học sinh'}</small></td><td><ScoreInput value={value} onChange={(score) => updateExamScore(type, student.id, score)} label={`${student.fullName} · ${title}`} /></td><td className="hr-grade-status">{scoreNumber(value) == null ? <span>Chưa nhập</span> : <b>Đã nhập</b>}</td></tr>;
+            return <tr key={student.id}><td className="hr-grade-index">{index + 1}</td><td className="hr-grade-student"><b>{student.fullName}</b><small>{student.code || 'Chưa có mã học sinh'}</small></td><td><ScoreInput value={value} disabled={finalized} onChange={(score) => updateExamScore(type, student.id, score)} label={`${student.fullName} · ${title}`} /></td><td className="hr-grade-status">{scoreNumber(value) == null ? <span>Chưa nhập</span> : <b>Đã nhập</b>}</td></tr>;
           })}</tbody>
         </table>
       </div> : <div className="hr-grade-empty"><b>Chưa có danh sách lớp</b><span>Hãy nhập học sinh trước khi mở sổ điểm.</span></div>}
@@ -748,6 +775,8 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       subjectKey={activeSubjectKey}
       semesterId={semesterId}
       onPaste={applyPaste}
+      onSetFinalization={updateFinalization}
+      finalized={finalized}
       onSetAlertSettings={updateAlertSettings}
       onSetIntervention={updateIntervention}
       computeRoundScore={(round,studentId)=>roundScore(round,studentId,studentIds)}

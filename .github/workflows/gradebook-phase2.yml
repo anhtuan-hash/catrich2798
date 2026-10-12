@@ -1,0 +1,39 @@
+name: Gradebook Phase 2 Safety
+on:
+  pull_request:
+    paths:
+      - 'src/utils/gradebookExcelImport.js'
+      - 'src/utils/gradebookFinalization.js'
+      - 'src/components/gradebook/GradebookProductivityPanel.jsx'
+      - 'src/components/gradebook/GradebookProductivityPanel.css'
+      - 'src/components/gradebook/GradebookEngine.jsx'
+      - 'tests/gradebook-phase2.test.mjs'
+      - '.github/workflows/gradebook-phase2.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/utils/gradebookExcelImport.js'
+      - 'src/utils/gradebookFinalization.js'
+      - 'src/components/gradebook/GradebookProductivityPanel.jsx'
+      - 'src/components/gradebook/GradebookEngine.jsx'
+jobs:
+  gradebook-phase2:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Real .xlsx read, ID matching, finalization, audit safety checks
+        run: |
+          node --test tests/gradebook-productivity.test.mjs tests/gradebook-phase2.test.mjs tests/gradebook-academic-workspace.test.mjs
+      - name: Existing Gradebook safety tests
+        run: |
+          node --test tests/gradebook-permanent-palette.test.mjs tests/gradebook-visual-defects.test.mjs
+          node scripts/test-gradebook-colorful-hero-v1.mjs
+          node scripts/test-gradebook-migration-state.mjs
+      - name: Production bundle
+        run: npm run build
