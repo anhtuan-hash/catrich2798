@@ -28,7 +28,9 @@ test('existing countdown, notifications, TTCM modals, permission gates and atten
   assert.ok(reports.includes('loadMonthlyReportDeadline'));
   assert.ok(reports.includes('window.setInterval(() => setNow(Date.now()), 1000)'));
   assert.ok(reports.includes("deadlineStatus = !countdown.active ? 'unset'"));
-  assert.ok(reports.includes("const showCountdownUnderLabel = true;"));
+  assert.ok(reports.includes("const showCountdownUnderLabel = countdown.active;"));
+  assert.ok(reports.includes('{showCountdownUnderLabel ? ('));
+  assert.ok(reports.includes("const accessibleLabel = `${label} · ${countdownAccessibleLabel}`"));
   assert.ok(reports.includes('data-deadline-status={deadlineStatus}'));
   assert.ok(reports.includes('compactCountdown(countdown, language)'));
   assert.ok(ttcm.includes("document.querySelector('.brian-nav__utility-ttcm')"));
@@ -46,6 +48,7 @@ test('icon CSS leaves overlay dialogs alone and preserves the live status indica
   assert.ok(css.includes('brian-nav__utility-badge'));
   assert.ok(css.includes('.brian-nav__admin-glyph'));
   assert.ok(css.includes('is-deadline-unset'));
+  assert.match(css,/button\.is-deadline-unset \.brian-nav__reports-countdown\{\s*display:none!important/);
   assert.ok(css.includes('is-deadline-expired'));
   assert.ok(css.includes('.brian-nav__utility-reports:has(>button.is-deadline-active)'));
   assert.ok(css.includes('button:is(.is-deadline-unset,.is-deadline-expired)'));

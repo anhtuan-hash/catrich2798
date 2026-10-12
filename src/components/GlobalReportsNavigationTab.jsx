@@ -241,9 +241,10 @@ export default function GlobalReportsNavigationTab({
 
   const label = language === 'vi' ? 'Báo cáo' : 'Reports';
   const countdown = deadlineState(deadline, now);
-  // Always show an honest deadline state; only count down when a valid future date exists.
+  // Do not render an empty deadline badge: leave the unavailable status in
+  // the accessible name/title, and only show a visual chip for real deadlines.
   const deadlineStatus = !countdown.active ? 'unset' : countdown.expired ? 'expired' : 'active';
-  const showCountdownUnderLabel = true;
+  const showCountdownUnderLabel = countdown.active;
   const countdownLabel = compactCountdown(countdown, language);
   const countdownAccessibleLabel = accessibleCountdown(countdown, language);
   const deadlineTitle = countdown.active
