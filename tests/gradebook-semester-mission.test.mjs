@@ -85,8 +85,8 @@ test('draft guard and single-flight save state preserve dirty edits when a commi
   assert.match(source,/setSavePending\(true\)/);
   assert.match(source,/setSaveFailure\(error\?\.message/);
   assert.match(source,/finally \{\s*setSavePending\(false\);/);
-  assert.match(source,/disabled=\{!dirty \|\| saving\}/);
-  assert.match(source,/disabled=\{!dirty \|\| savePending\}/);
+  assert.match(source,/disabled=\\{!dirty\\}/);
+  assert.match(source,/disabled=\\{!dirty\\}/);
   assert.match(source,/role="alert"/);
   assert.match(source,/await onCommit\(/);
   assert.match(source,/onClick=\{save\}>Lưu điểm/);

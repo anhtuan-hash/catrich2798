@@ -339,8 +339,8 @@ function GradebookNavigationPalette({
         <span role="status" aria-live="polite" className={dirty ? 'is-dirty' : 'is-saved'}>
           {saving ? 'Đang lưu điểm…' : dirty ? 'Có thay đổi chưa lưu' : 'Dữ liệu đã lưu'}
         </span>
-        {dirty ? <button type="button" className="secondary" disabled={saving} onClick={onDiscard}>Hoàn tác</button> : null}
-        <button type="button" className="primary" disabled={!dirty || saving} onClick={onSave}>Lưu bảng điểm</button>
+        {dirty ? <button type="button" className="secondary" aria-disabled={saving} onClick={onDiscard}>Hoàn tác</button> : null}
+        <button type="button" className="primary" disabled={!dirty} aria-disabled={saving} onClick={onSave}>Lưu bảng điểm</button>
       </div>
     </section>
   </div>;
@@ -445,7 +445,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   }, [exportDialogMode, exporting]);
 
   const mutate = (callback) => {
-    if(finalized)return;
+    if(finalized || savePending)return;
     setGradebook((current) => {
       const next = clone(current);
       const key = next.subjects[activeSubjectKey] ? activeSubjectKey : ensureSubject(next, activeSubject?.name || 'Tiếng Anh');
@@ -612,6 +612,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   };
 
   const discard = () => {
+    if (savePending) return;
     const normalized = normalizeGradebook(workspace.learningGradebook, workspace.learningRecords);
     setGradebook(normalized);
     setActiveSubjectKey(normalized.activeSubject);
@@ -992,7 +993,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
 
     {dirty ? <div className="gbv2-save-strip" role="status" aria-live="polite">
       <span>{savePending ? 'Đang lưu điểm' : 'Bạn có thay đổi chưa lưu'} · {activeSubject?.name || 'Môn học'} · {semesterLabel}</span>
-      <div><button type="button" className="secondary" disabled={!dirty || savePending} onClick={discard}>Hoàn tác</button><button type="button" className="primary" disabled={!dirty || savePending} onClick={save}>Lưu điểm</button></div>
+      <div><button type="button" className="secondary" disabled={!dirty} aria-disabled={savePending} onClick={discard}>Hoàn tác</button><button type="button" className="primary" disabled={!dirty} aria-disabled={savePending} onClick={save}>Lưu điểm</button></div>
     </div> : null}
 
     <section className="hr-panel hr-grade-export-bar" aria-labelledby="hr-grade-export-title">
