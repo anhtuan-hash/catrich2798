@@ -153,7 +153,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
    && (unit==='all'||String(a.unitNo)===unit)
    && (focus==='all'||(focus==='skills'?['reading','listening','speaking'].includes(a.focusArea):a.focusArea===focus)));
   if(tab==='mine')items=items.filter(a=>isLeader||a.hasAccess);
-  if(sort==='recent')items.sort((a,b)=>data.recentIds.indexOf(a.id)-data.recentIds.indexOf(b.id));
+  if(sort==='recent')items.sort((a,b)=>{const x=data.recentIds.indexOf(a.id),y=data.recentIds.indexOf(b.id);return (x<0?Infinity:x)-(y<0?Infinity:y);});
   else if(sort==='title')items.sort((a,b)=>a.title.localeCompare(b.title,'vi'));
   else items.sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')));
   return items;
@@ -222,7 +222,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
     <select aria-label="Chuyên đề" value={focus} onChange={e=>setFocus(e.target.value)}><option value="all">Mọi chuyên đề</option>{['vocabulary','grammar','skills','mixed','unclassified','reading','listening','speaking'].map(x=><option key={x} value={x}>{x}</option>)}</select>
     <select aria-label="Sắp xếp" value={sort} onChange={e=>setSort(e.target.value)}><option value="recent">Ưu tiên gần đây</option><option value="title">A–Z</option><option value="newest">Mới cập nhật</option></select>
    </div>
-   <div className="a4-card-grid">{filtered.slice(0,60).map(item=><ActivityMini key={item.id} item={item} onOpen={launch} onStar={star} favorite={data.favorites.includes(item.id)}/>)}</div>
+   <div className="a4-card-grid">{filtered.slice(0,60).map(item=><ActivityMini key={item.id} item={table.get(item.id)} onOpen={launch} onStar={star} favorite={data.favorites.includes(item.id)}/>)}</div>
    {!filtered.length?<p className="a4-empty">Chưa có hoạt động phù hợp bộ lọc hoặc quyền truy cập.</p>:null}
   </>:null}
   {ready && tab==='collections'?<>
