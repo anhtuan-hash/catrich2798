@@ -20,3 +20,20 @@ create policy "Only leaders can manage activity facets" on public.lesson_check_a
  with check(public.lesson_check_is_leader());
 grant select,insert,update,delete on public.lesson_check_activity_attributes to authenticated;
 create index if not exists lesson_check_activity_attrs_search on public.lesson_check_activity_attributes (difficulty,delivery_mode,duration_minutes);
+
+-- Metadata edits also preserve the previous complete revision for leaders.
+create or replace function public.lesson_check_preserve_metadata_revision()
+returns trigger language plpgsql security definer set search_path=public as $$
+begin
+ if old is distinct from new and public.lesson_check_is_leader() then
+  insert into public.lesson_check_activity_versions(activity_id,metadata,embed_code,edited_by)
+  select old.id,to_jsonb(old),c.embed_code,auth.uid()
+  from public.lesson_check_activity_content c where c.activity_id=old.id;
+ end if;
+ return new;
+end; $$;
+drop trigger if exists lesson_check_preserve_metadata_revision_trigger on public.lesson_check_activities;
+create trigger lesson_check_preserve_metadata_revision_trigger
+ before update of title,grade,unit_no,unit_title,lesson_key,lesson_title,class_label,activity_type,focus_area,notes,source_host,embed_kind
+ on public.lesson_check_activities
+ for each row execute function public.lesson_check_preserve_metadata_revision();
