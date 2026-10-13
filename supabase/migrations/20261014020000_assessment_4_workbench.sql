@@ -131,3 +131,47 @@ begin
 end; $$;
 revoke all on function public.lesson_check_bulk_teacher_access(uuid[],uuid[],boolean,timestamptz) from public;
 grant execute on function public.lesson_check_bulk_teacher_access(uuid[],uuid[],boolean,timestamptz) to authenticated;
+
+-- Automatic private recovery draft, scoped to the signed-in teacher.
+create table if not exists public.lesson_check_session_recovery (
+ teacher_id uuid primary key references public.profiles(id) on delete cascade,
+ snapshot jsonb not null default '{}'::jsonb,
+ updated_at timestamptz not null default now(),
+ constraint lesson_check_recovery_is_object check(jsonb_typeof(snapshot)='object')
+);
+alter table public.lesson_check_session_recovery enable row level security;
+drop policy if exists "Only owner can manage recovery" on public.lesson_check_session_recovery;
+create policy "Only owner can manage recovery" on public.lesson_check_session_recovery
+ for all to authenticated using(teacher_id=auth.uid() and public.lesson_check_is_approved_user())
+ with check(teacher_id=auth.uid() and public.lesson_check_is_approved_user());
+grant select,insert,update,delete on public.lesson_check_session_recovery to authenticated;
+
+-- Old revisions are captured before embedded content is replaced.
+create table if not exists public.lesson_check_activity_versions (
+ id bigint generated always as identity primary key,
+ activity_id uuid not null references public.lesson_check_activities(id) on delete cascade,
+ metadata jsonb not null default '{}'::jsonb,
+ embed_code text not null,
+ edited_by uuid references public.profiles(id) on delete set null,
+ created_at timestamptz not null default now()
+);
+create index if not exists lesson_check_versions_activity_idx on public.lesson_check_activity_versions(activity_id,id desc);
+alter table public.lesson_check_activity_versions enable row level security;
+drop policy if exists "Leaders can read version history" on public.lesson_check_activity_versions;
+create policy "Leaders can read version history" on public.lesson_check_activity_versions
+ for select to authenticated using(public.lesson_check_is_leader());
+grant select on public.lesson_check_activity_versions to authenticated;
+create or replace function public.lesson_check_preserve_activity_version()
+returns trigger language plpgsql security definer set search_path=public as $$
+begin
+ if old.embed_code is distinct from new.embed_code and public.lesson_check_is_leader() then
+  insert into public.lesson_check_activity_versions(activity_id,metadata,embed_code,edited_by)
+  select old.activity_id,to_jsonb(a),old.embed_code,auth.uid()
+  from public.lesson_check_activities a where a.id=old.activity_id;
+ end if;
+ return new;
+end; $$;
+drop trigger if exists lesson_check_preserve_activity_version_trigger on public.lesson_check_activity_content;
+create trigger lesson_check_preserve_activity_version_trigger
+ before update of embed_code on public.lesson_check_activity_content
+ for each row execute function public.lesson_check_preserve_activity_version();
