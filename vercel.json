@@ -124,6 +124,10 @@
       "destination": "/api/gateway?handler=youtube-search"
     },
     {
+      "source": "/api/lesson-check-thumbnail-upload",
+      "destination": "/api/lesson-check-thumbnail?mode=upload"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },

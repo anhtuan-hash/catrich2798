@@ -56,3 +56,56 @@ test('Arcade cards have uniform heights regardless of one-line or two-line title
   assert.match(page,/className="lcs-arcade-card-copy"/);
   assert.match(page,/className="lcs-arcade-card-tags"/);
 });
+
+test('Teacher granted-access tab filters by the current account and never exposes leader-only requests',()=>{
+  assert.match(page,/const grantedCount = useMemo\(\(\) => activities\.filter\(\(item\) => item\.hasAccess === true\)\.length, \[activities\]\)/);
+  assert.match(page,/if \(statusFilter === 'ready' && !open\) return false/);
+  assert.match(page,/\{!isLeader \? \(\s*<button[\s\S]*?className=\{statusFilter === 'ready' \? 'is-active is-granted' : 'is-granted'\}/);
+  assert.match(page,/aria-label=\{isVi \? 'Hoạt động đã được cấp quyền' : 'Activities with granted access'\}/);
+  assert.match(page,/setStatusFilter\('ready'\); setShowAccessQueue\(false\)/);
+  assert.match(page,/setStatusFilter\('all'\); setShowAccessQueue\(false\)/);
+  assert.match(page,/Bạn chưa có hoạt động nào được cấp quyền/);
+  assert.match(skin,/\.lcs-page--library \.lcs-arcade-tabs button\.is-granted\.is-active/);
+});
+
+test('Lesson Check thumbnail APIs share a Vercel function without breaking legacy endpoints', async()=>{
+  const vercel=JSON.parse(load('vercel.json'));
+  const alias=vercel.rewrites.findIndex(rule=>rule.source==='/api/lesson-check-thumbnail-upload');
+  const catchall=vercel.rewrites.findIndex(rule=>rule.source==='/api/(.*)');
+  assert.ok(alias >= 0 && alias < catchall, 'upload rewrite must precede wildcard');
+  assert.equal(vercel.rewrites[alias].destination,'/api/lesson-check-thumbnail?mode=upload');
+
+  const {default: handler}=await import('../api/lesson-check-thumbnail.js');
+  const validId='12345678-1234-4123-8123-123456789abc';
+  const originalFetch=globalThis.fetch;
+  const forwarded=[];
+  globalThis.fetch=async (url, options)=>{
+    forwarded.push({url,options});
+    return {status:201,headers:{get:()=> 'application/json'},text:async()=> '{"ok":true}'};
+  };
+  function invoke({mode,body,authorization='Bearer sample',method='POST'}={}) {
+    const response={code:200,headers:{},body:'',status(code){this.code=code;return this;},
+      setHeader(key,value){this.headers[key]=value;return this;},
+      end(body){this.body=body;return this;}};
+    return handler({method,headers:{authorization},body:body||{activityId:validId},query:{mode}},response)
+      .then(()=>response);
+  }
+  try{
+    const thumbnail=await invoke();
+    assert.equal(thumbnail.code,201);
+    assert.match(forwarded[0].url,/\/lesson-check-thumbnail$/);
+    assert.deepEqual(JSON.parse(forwarded[0].options.body),{activityId:validId});
+
+    const upload=await invoke({mode:'upload',body:{activityId:validId,action:'remove',dataUrl:''}});
+    assert.equal(upload.code,201);
+    assert.match(forwarded[1].url,/\/lesson-check-thumbnail-upload$/);
+    assert.deepEqual(JSON.parse(forwarded[1].options.body),{activityId:validId,action:'remove',dataUrl:''});
+
+    assert.equal((await invoke({mode:'upload',body:{activityId:validId,action:'invalid'}})).code,400);
+    assert.equal((await invoke({authorization:''})).code,401);
+    assert.equal((await invoke({method:'GET'})).code,405);
+    assert.equal(forwarded.length,2,'rejected requests must not reach Supabase');
+  } finally {
+    globalThis.fetch=originalFetch;
+  }
+});

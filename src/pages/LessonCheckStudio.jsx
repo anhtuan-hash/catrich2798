@@ -397,6 +397,8 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const previewReady = ['url', 'html'].includes(parsedDraft.kind);
   const unitOptions = useMemo(() => unitOptionsForGrade(draft.grade), [draft.grade]);
   const pendingCount = useMemo(() => requests.filter((item) => item.status === 'pending').length, [requests]);
+  // The RPC supplies hasAccess for the signed-in teacher; never infer grants from other users' requests.
+  const grantedCount = useMemo(() => activities.filter((item) => item.hasAccess === true).length, [activities]);
   const pendingActivityIds = useMemo(() => new Set(
     requests.filter((item) => item.status === 'pending').map((item) => item.activityId),
   ), [requests]);
@@ -1273,19 +1275,30 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
       <section className="lcs-arcade-library">
         <div className="lcs-arcade-nav">
-          <nav className="lcs-arcade-tabs" aria-label={isVi ? 'Chuyên đề' : 'Learning focus'}>
-            <button type="button" className={focusFilter === 'all' ? 'is-active' : ''} onClick={() => { setFocusFilter('all'); setShowAccessQueue(false); }}>
+          <nav className="lcs-arcade-tabs" aria-label={isVi ? 'Bộ lọc hoạt động' : 'Activity filters'}>
+            <button type="button" className={focusFilter === 'all' && statusFilter !== 'ready' ? 'is-active' : ''} onClick={() => { setFocusFilter('all'); setStatusFilter('all'); setShowAccessQueue(false); }}>
               <Grid2X2 size={18} /><strong>{isVi ? 'Tất cả' : 'All'}</strong><span>{activities.length}</span>
             </button>
-            <button type="button" className={focusFilter === 'vocabulary' ? 'is-active is-vocabulary' : 'is-vocabulary'} onClick={() => { setFocusFilter('vocabulary'); setShowAccessQueue(false); }}>
+            <button type="button" className={focusFilter === 'vocabulary' && statusFilter !== 'ready' ? 'is-active is-vocabulary' : 'is-vocabulary'} onClick={() => { setFocusFilter('vocabulary'); setStatusFilter('all'); setShowAccessQueue(false); }}>
               <BookOpen size={18} /><strong>Vocabulary</strong><span>{focusCounts.vocabulary}</span>
             </button>
-            <button type="button" className={focusFilter === 'grammar' ? 'is-active is-grammar' : 'is-grammar'} onClick={() => { setFocusFilter('grammar'); setShowAccessQueue(false); }}>
+            <button type="button" className={focusFilter === 'grammar' && statusFilter !== 'ready' ? 'is-active is-grammar' : 'is-grammar'} onClick={() => { setFocusFilter('grammar'); setStatusFilter('all'); setShowAccessQueue(false); }}>
               <Layers3 size={18} /><strong>Grammar</strong><span>{focusCounts.grammar}</span>
             </button>
-            <button type="button" className={focusFilter === 'skills' ? 'is-active is-skills' : 'is-skills'} onClick={() => { setFocusFilter('skills'); setShowAccessQueue(false); }}>
+            <button type="button" className={focusFilter === 'skills' && statusFilter !== 'ready' ? 'is-active is-skills' : 'is-skills'} onClick={() => { setFocusFilter('skills'); setStatusFilter('all'); setShowAccessQueue(false); }}>
               <MonitorPlay size={18} /><strong>{isVi ? 'Kỹ năng' : 'Skills'}</strong><span>{focusCounts.skills}</span>
             </button>
+            {!isLeader ? (
+              <button
+                type="button"
+                className={statusFilter === 'ready' ? 'is-active is-granted' : 'is-granted'}
+                aria-pressed={statusFilter === 'ready'}
+                aria-label={isVi ? 'Hoạt động đã được cấp quyền' : 'Activities with granted access'}
+                onClick={() => { setFocusFilter('all'); setStatusFilter('ready'); setShowAccessQueue(false); }}
+              >
+                <UserCheck size={18} /><strong>{isVi ? 'Đã được cấp quyền' : 'Granted access'}</strong><span>{grantedCount}</span>
+              </button>
+            ) : null}
             {isLeader ? (
               <button
                 type="button"
@@ -1394,7 +1407,24 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         </div>
 
         {loading ? <LoadingBlock language={language} /> : !filteredActivities.length ? (
-          <div className="lcs-empty-library"><Layers3 /><h3>{activities.length ? (isVi ? 'Không có hoạt động phù hợp bộ lọc.' : 'No activities match these filters.') : (isVi ? 'Chưa có hoạt động nào trên Supabase.' : 'No activities in Supabase yet.')}</h3></div>
+          <div className="lcs-empty-library">
+            {statusFilter === 'ready' ? <UserCheck /> : <Layers3 />}
+            <h3>{statusFilter === 'ready' && !grantedCount
+              ? (isVi ? 'Bạn chưa có hoạt động nào được cấp quyền.' : 'No activities have been granted to you yet.')
+              : activities.length
+                ? (isVi ? 'Không có hoạt động phù hợp bộ lọc.' : 'No activities match these filters.')
+                : (isVi ? 'Chưa có hoạt động nào trên Supabase.' : 'No activities in Supabase yet.')}
+            </h3>
+            {statusFilter === 'ready' ? (
+              <button type="button" className="lcs-granted-empty-browse" onClick={() => {
+                setStatusFilter('all');
+                setFocusFilter('all');
+                setGradeFilter('all');
+                setUnitFilter('all');
+                setQuery('');
+              }}>{isVi ? 'Xem tất cả hoạt động' : 'Browse all activities'}</button>
+            ) : null}
+          </div>
         ) : (
           <div className="lcs-arcade-grid lcs-arcade-grid--soft-enter" key={page}>
             {pagedActivities.map((item) => {

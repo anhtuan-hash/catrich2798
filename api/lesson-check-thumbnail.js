@@ -1,11 +1,13 @@
-const SUPABASE_FUNCTION_URL =
-  'https://xpkbgqdlfonsinriggmj.supabase.co/functions/v1/lesson-check-thumbnail';
+// One Vercel Function serves both thumbnail operations to stay within
+// the Hobby 12-function budget. Keep the original public API routes via vercel.json.
+const SUPABASE_ORIGIN = 'https://xpkbgqdlfonsinriggmj.supabase.co/functions/v1/';
+const ACTIVITY_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 function sendJson(res, status, payload) {
   res.status(status);
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store');
-  res.end(JSON.stringify(payload));
+  return res.end(JSON.stringify(payload));
 }
 
 export default async function handler(req, res) {
@@ -20,20 +22,33 @@ export default async function handler(req, res) {
   }
 
   const activityId = String(req.body?.activityId || '').trim();
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(activityId)) {
+  if (!ACTIVITY_UUID.test(activityId)) {
     return sendJson(res, 400, { ok: false, message: 'Invalid activity id.' });
   }
 
+  // /api/lesson-check-thumbnail-upload is rewritten to this endpoint with mode=upload.
+  // The underlying Supabase Functions still validate the user's actual activity grants.
+  const isUpload = req.query?.mode === 'upload';
+  let payload = { activityId };
+  if (isUpload) {
+    const action = String(req.body?.action || 'upload').trim().toLowerCase();
+    const dataUrl = String(req.body?.dataUrl || '');
+    if (!['upload', 'remove'].includes(action)) {
+      return sendJson(res, 400, { ok: false, message: 'Invalid action.' });
+    }
+    payload = { activityId, action, dataUrl };
+  }
+
   try {
-    const upstream = await fetch(SUPABASE_FUNCTION_URL, {
+    const upstream = await fetch(SUPABASE_ORIGIN + (isUpload ? 'lesson-check-thumbnail-upload' : 'lesson-check-thumbnail'), {
       method: 'POST',
       headers: {
         Authorization: authorization,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ activityId }),
+      body: JSON.stringify(payload),
       redirect: 'follow',
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(isUpload ? 20000 : 15000),
     });
 
     const bodyText = await upstream.text();
@@ -44,8 +59,8 @@ export default async function handler(req, res) {
   } catch (error) {
     return sendJson(res, 502, {
       ok: false,
-      fallback: 'live',
-      message: error?.message || 'Thumbnail service is unavailable.',
+      ...(!isUpload ? { fallback: 'live' } : {}),
+      message: error?.message || (isUpload ? 'Thumbnail upload service is unavailable.' : 'Thumbnail service is unavailable.'),
     });
   }
 }

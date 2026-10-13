@@ -86,34 +86,30 @@ assert.match(studio, /setLessonCheckTeacherAccess/);
 assert.match(studio, /canPublishDepartment\(currentUser\)/);
 assert.match(studio, /requestFullscreen/);
 
-// Card previews load only near the viewport and only for users who already have access.
-assert.match(studio, /function ActivityCardPreview\(/);
-assert.match(studio, /new IntersectionObserver/);
-assert.match(studio, /rootMargin: '220px 0px'/);
-assert.match(studio, /const loadingRef = useRef\(false\)/);
-assert.match(studio, /const \[activated, setActivated\] = useState\(Boolean\(cachedEmbed\)\)/);
-assert.match(studio, /if \(entry\.isIntersecting\) \{\s*setActivated\(true\);\s*observer\.disconnect\(\);/);
-assert.match(studio, /if \(!canLoad \|\| !activated \|\| embed \|\| loadingRef\.current\)/);
-assert.match(studio, /loadingRef\.current = true/);
-assert.match(studio, /\.finally\(\(\) => \{\s*loadingRef\.current = false;/);
-assert.match(studio, /const showLivePreview = canLoad && activated && embed/);
-assert.doesNotMatch(studio, /setNearViewport\(/, 'Preview must not unmount when scrolled out of view.');
-assert.doesNotMatch(studio, /showLivePreview = canLoad && nearViewport/, 'Scrolling away must not tear down a loaded iframe.');
-assert.match(studio, /getLessonCheckActivityContent\(activity\.id\)/);
-assert.match(studio, /cardPreviewCache\.set\(activity\.id, parsed\)/);
-assert.match(studio, /<ActivityCardPreview[\s\S]*?canLoad=\{!locked\}/);
-assert.match(studio, /lcs-card-preview-frame/);
-assert.match(studio, /role="button"/);
-assert.match(studio, /Xem trước bị khóa/);
-assert.match(studio, /Đang chờ duyệt/);
-assert.match(studio, /Không tải được hình xem trước/);
+// Gallery cards use lazy-loaded static thumbnails; protected activity content is
+// requested only after a permitted user opens the teaching viewer.
+// This replaces the removed IntersectionObserver/embedded-iframe previews.
+assert.match(studio, /const ActivityCardPreview = React\.memo/);
+assert.match(studio, /const thumbnailUrl = String\(activity\?\.thumbnailUrl \|\| ''\)\.trim\(\)/);
+assert.match(studio, /<img className="lcs-card-thumbnail-image" src=\{thumbnailUrl\} alt="" loading="lazy" decoding="async"/);
+assert.match(studio, /onClick=\{activate\}/);
+assert.match(studio, /if \(canLoad\) onOpen\?\.\(\)/);
+assert.match(studio, /else if \(activity\.requestStatus !== 'pending'\) onRequest\?\.\(\)/);
+assert.match(studio, /if \(!item\.hasAccess && !isLeader\) \{\s*setRequestTarget\(item\);/);
+assert.match(studio, /async function openTeachingMode\(item\)/);
 assert.match(studio, /getLessonCheckActivityContent\(item\.id\)/);
+assert.doesNotMatch(studio, /getLessonCheckActivityContent\(activity\.id\)/, 'Gallery previews must not fetch protected content.');
+assert.doesNotMatch(studio, /new IntersectionObserver/, 'Gallery previews should remain thumbnail-only.');
+assert.match(studio, /<ActivityCardPreview[\s\S]*?canLoad=\{!locked\}/);
+assert.match(studio, /role="button"/);
+assert.match(studio, /Hoạt động chưa có thumbnail/);
+assert.match(studio, /Đang chờ duyệt/);
 
 // Padlet Arcade-inspired gallery: 12/page, focus tabs, compact filters and visual category indicators.
 assert.match(studio, /const \[unitFilter, setUnitFilter\] = useState\('all'\)/);
-assert.match(studio, /const \[lessonFilter, setLessonFilter\] = useState\('all'\)/);
+assert.match(studio, /const \[gradeFilter, setGradeFilter\] = useState\('all'\)/);
 assert.match(studio, /const \[focusFilter, setFocusFilter\] = useState\('all'\)/);
-assert.match(studio, /const \[accessFilter, setAccessFilter\] = useState\('all'\)/);
+assert.match(studio, /const \[statusFilter, setStatusFilter\] = useState\('all'\)/);
 assert.match(studio, /const \[sortMode, setSortMode\] = useState\('newest'\)/);
 assert.match(studio, /const pageSize = 12/);
 assert.match(studio, /const paginationPages = useMemo/);
@@ -125,7 +121,8 @@ assert.match(studio, /Chuyên đề \/ kỹ năng/);
 assert.match(studio, /Hãy chọn chuyên đề/);
 assert.match(studio, /lcs-arcade-head/);
 assert.match(studio, /BRIAN ACTIVITY ARCADE/);
-assert.match(studio, /Fun for Assessment/);
+assert.match(studio, /<span className="is-fun">Fun<\/span>/);
+assert.match(studio, /<span className="is-assessment">Assessment<\/span>/);
 assert.match(studio, /Đổi mới kiểm tra đánh giá/);
 assert.match(studio, /lcs-hero-statline/);
 assert.match(studio, /lcs-hero-deck/);
@@ -205,7 +202,7 @@ assert.match(assessmentWorkspace, /Điều chỉnh sau đánh giá/);
 assert.match(assessmentWorkspace, /Báo cáo kiểm tra đánh giá/);
 assert.match(assessmentWorkspace, /Excel\/CSV/);
 assert.match(assessmentWorkspace, /In \/ PDF/);
-assert.match(assessmentWorkspace, /Độ phủ/);
+assert.match(assessmentWorkspace, /độ phủ học sinh/);
 assert.match(assessmentWorkspace, /Hồ sơ đánh giá học sinh/);
 assert.match(assessmentWorkspace, /saveAssessmentSession\(sessionPayload\(\{ status: 'completed' \}\)\)/);
 assert.match(assessmentWorkspace, /function normalizedGrade10FromRaw\(rawValue\)/);
