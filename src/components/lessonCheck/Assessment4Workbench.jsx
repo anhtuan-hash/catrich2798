@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Check, ChevronLeft, ChevronRight, ClipboardList, Clock3, Download, FolderPlus, Heart, History, Layers3, LoaderCircle, Play, Plus, RefreshCw, RotateCcw, Search, ShieldCheck, SlidersHorizontal, Sparkles, Trash2, Users, X } from 'lucide-react';
+import { listAssessmentResults, listAssessmentSessions } from '../../utils/lessonCheckAssessment.js';
 import { listLessonCheckTeacherAccess, saveLessonCheckActivity } from '../../utils/lessonCheckActivities.js';
 import {
  assessActivityQuality, bulkGrantActivities, listActivityJournal, listActivityVersions,
@@ -55,6 +56,8 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
  const [selectedCollection,setSelectedCollection]=useState('');
  const [pickActivity,setPickActivity]=useState('');
  const [journal,setJournal]=useState([]);
+ const [reportSessions,setReportSessions]=useState([]);
+ const [reportResults,setReportResults]=useState([]);
  const [interventions,setInterventions]=useState([]);
  const [audit,setAudit]=useState([]);
  const [teacherChoices,setTeacherChoices]=useState([]);
@@ -176,6 +179,16 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
   if(r.ok)setTeacherChoices(r.teachers);else setNotice(r.message);
  }
  useEffect(()=>{if(tab==='permissions'&&isLeader&&!teacherChoices.length)fetchTeachers();},[tab,isLeader,activities.length]);
+ useEffect(()=>{
+  if(!['analytics','evidence'].includes(tab))return;
+  let live=true;
+  Promise.all([listAssessmentSessions('',300),listAssessmentResults('')]).then(([a,b])=>{
+   if(!live)return;
+   if(a.ok)setReportSessions(a.items);if(b.ok)setReportResults(b.items);
+   if(!a.ok||!b.ok)setNotice(a.message||b.message);
+  });
+  return()=>{live=false;};
+ },[tab]);
  async function grantBulk(){
   if(!selectedActivities.length||!selectedTeachers.length){setNotice('Chọn ít nhất một hoạt động và một giáo viên.');return;}
   setWorking(true);
@@ -217,6 +230,19 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
   ...(isLeader?[['permissions','Phân quyền'],['versions','Lịch sử phiên bản'],['quality','Chất lượng'],['evidence','Minh chứng']]:[])
  ];
  const completed=journal.filter(j=>j.event_type==='completed');
+ const unitResults=useMemo(()=>{
+  const groups=new Map();
+  reportResults.forEach(r=>{if(!Number.isFinite(r.grade10))return;const key=String(r.unitNo||'—');const group=groups.get(key)||{sum:0,n:0};group.sum+=r.grade10;group.n+=1;groups.set(key,group);});
+  return [...groups].sort((a,b)=>Number(a[0])-Number(b[0])).map(([unit,value])=>({unit,count:value.n,average:value.sum/value.n}));
+ },[reportResults]);
+ const studentProgress=useMemo(()=>{
+  const byStudent=new Map();
+  for(const r of reportResults){if(!Number.isFinite(r.grade10))continue;const key=[r.className,r.studentRef].join(':');const item=byStudent.get(key)||{name:r.studentName,className:r.className,results:[]};item.results.push(r);byStudent.set(key,item);}
+  return [...byStudent.values()].filter(i=>i.results.length>=2).map(i=>{
+   i.results.sort((a,b)=>String(a.completedAt).localeCompare(String(b.completedAt)));
+   return {...i,before:i.results[0].grade10,after:i.results[i.results.length-1].grade10};
+  }).sort((a,b)=>(a.after-a.before)-(b.after-b.before));
+ },[reportResults]);
  const today=Date.now();
  const due=interventions.filter(i=>i.status!=='completed'&&i.due_on&&new Date(i.due_on).getTime()<today);
  return <section className="a4-workbench" aria-label="BRIAN Assessment 4.0">
@@ -278,6 +304,10 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
     const max=Math.max(1,journal.length);
     return <div className="a4-bar" key={area}><span>{area}</span><div><i style={{width:String(count/max*100)+'%'}}/></div><strong>{count}</strong></div>;
    })}
+   <div className="a4-section-head"><strong>Điểm trung bình theo Unit (dữ liệu thực từ các phiên đánh giá)</strong></div>
+   {unitResults.length?unitResults.map(row=><div key={row.unit} className="a4-bar"><span>Unit {row.unit}</span><div><i style={{width:String(row.average*10)+'%'}}/></div><strong>{row.average.toFixed(1)} /10</strong></div>):<p className="a4-empty">Chưa có dữ liệu điểm theo Unit.</p>}
+   <div className="a4-section-head"><strong>Học sinh có ít nhất hai lần được đánh giá</strong></div>
+   <div className="a4-table"><div className="a4-table-head"><span>Lớp</span><span>Học sinh</span><span>Lần đầu</span><span>Lần gần nhất</span></div>{studentProgress.slice(0,40).map((row,i)=><div key={i}><span>{row.className}</span><span>{row.name}</span><span>{row.before.toFixed(1)}</span><span>{row.after.toFixed(1)} ({row.after-row.before>=0?'+':''}{(row.after-row.before).toFixed(1)})</span></div>)}</div>
    <div className="a4-section-head"><strong>Biện pháp điều chỉnh</strong><button onClick={()=>setTab('interventions')}>Xem chi tiết →</button></div>
    <p className="a4-muted">{interventions.filter(i=>i.status==='completed').length} hoàn thành / {interventions.length} biện pháp; kết quả cải thiện được xác định từ điểm trước và sau thực tế.</p>
   </>:null}
@@ -321,7 +351,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
   {ready && isLeader && tab==='evidence'?<>
    <Title detail="Tổng hợp từ nhật ký và hồ sơ điều chỉnh thực tế; không tạo hoặc suy diễn dữ liệu minh chứng.">Department Evidence Center</Title>
    <div className="a4-stats"><div><strong>{completed.length}</strong><span>Hoạt động ghi nhận hoàn thành</span></div><div><strong>{new Set(completed.map(j=>j.teacher_id)).size}</strong><span>Giáo viên</span></div><div><strong>{new Set(completed.map(j=>j.class_name).filter(Boolean)).size}</strong><span>Lớp</span></div><div><strong>{interventions.filter(i=>i.status==='completed').length}</strong><span>Can thiệp hoàn tất</span></div></div>
-   <div className="a4-evidence-actions"><button onClick={()=>csvDownload('assessment-journal-evidence.csv',['Ngày','Giáo viên ID','Lớp','Hoạt động','Kết quả','Phút','Ghi chú'],journal.map(j=>[j.created_at,j.teacher_id,j.class_name,j.activity_title,j.event_type,j.duration_minutes,j.notes]))}><Download size={15}/> Xuất nhật ký hoạt động CSV</button><button onClick={()=>csvDownload('assessment-interventions-evidence.csv',['Lớp','Học sinh','Chuyên đề','Điểm đầu','Điểm sau','Biện pháp','Trạng thái'],interventions.map(i=>[i.class_name,i.student_name,i.focus_area,i.baseline_grade,i.followup_grade,i.action_plan,i.status]))}><Download size={15}/> Xuất minh chứng can thiệp CSV</button></div>
+   <div className="a4-evidence-actions"><button onClick={()=>csvDownload('assessment-session-evidence.csv',['Lớp','Hoạt động','Unit','Giáo viên','Trạng thái','Điểm trung bình','Điều chỉnh'],reportSessions.map(x=>[x.className,x.activityTitle,x.unitNo,x.teacherName,x.status,x.averageGrade10,x.teachingAdjustment]))}><Download size={15}/> Xuất kết quả phiên đánh giá CSV</button><button onClick={()=>csvDownload('assessment-journal-evidence.csv',['Ngày','Giáo viên ID','Lớp','Hoạt động','Kết quả','Phút','Ghi chú'],journal.map(j=>[j.created_at,j.teacher_id,j.class_name,j.activity_title,j.event_type,j.duration_minutes,j.notes]))}><Download size={15}/> Xuất nhật ký hoạt động CSV</button><button onClick={()=>csvDownload('assessment-interventions-evidence.csv',['Lớp','Học sinh','Chuyên đề','Điểm đầu','Điểm sau','Biện pháp','Trạng thái'],interventions.map(i=>[i.class_name,i.student_name,i.focus_area,i.baseline_grade,i.followup_grade,i.action_plan,i.status]))}><Download size={15}/> Xuất minh chứng can thiệp CSV</button></div>
    <p className="a4-muted">Minh chứng chỉ dựa trên hoạt động đã ghi nhận trong cơ sở dữ liệu, cần giáo viên đối chiếu khi sử dụng trong báo cáo chính thức.</p>
   </>:null}
  </section>;
