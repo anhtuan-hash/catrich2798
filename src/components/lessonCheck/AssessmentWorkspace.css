@@ -1903,3 +1903,10 @@
   .f4a-spotlight-buttons {flex-direction:column;width:100%}
   .f4a-spotlight-buttons button {width:100%}
 }
+
+/* Assessment 4.0 private recovery indicator within the assessment modal. */
+.f4a-recovery-banner{display:flex;gap:9px;align-items:center;flex-wrap:wrap;padding:10px 13px;
+ border:1px solid #a5d9c6;border-radius:12px;background:#edfaf4;color:#235d4d;margin:10px 0;}
+.f4a-recovery-banner>span{flex:1;min-width:150px;font-size:12px;}
+.f4a-recovery-banner button{border:1px solid #9bcab9;background:#fff;color:#1a674d;
+ border-radius:8px;font-size:11px;min-height:30px;padding:4px 10px;cursor:pointer;}

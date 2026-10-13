@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { clearSessionRecovery, loadSessionRecovery, saveSessionRecovery } from '../../utils/lessonCheckWorkbench.js';
 import { createPortal } from 'react-dom';
 import {
   ArrowLeft,
@@ -184,6 +185,9 @@ export default function AssessmentWorkspace({
   const [reportError, setReportError] = useState('');
   const [reportRefreshKey, setReportRefreshKey] = useState(0);
   const [deletingSessionId, setDeletingSessionId] = useState('');
+  const [recoverable, setRecoverable] = useState(null);
+  const [recoveryReady, setRecoveryReady] = useState(false);
+  const [restorePending, setRestorePending] = useState(null);
 
   useEffect(() => {
     if (visible) setView(initialView);
@@ -320,6 +324,66 @@ export default function AssessmentWorkspace({
     window.addEventListener('keydown', handleEscape);
     return () => window.removeEventListener('keydown', handleEscape);
   }, [spotlightOpen]);
+
+  // Assessment 4.0: private recovery snapshots persist server-side only.
+  useEffect(() => {
+    const userId = currentUser?.id || currentUser?.authId;
+    if (!userId) return undefined;
+    let live = true;
+    setRecoveryReady(false);
+    loadSessionRecovery(userId).then(result => {
+      if (!live) return;
+      if (result.ok && result.snapshot?.sessionId) setRecoverable(result.snapshot);
+      setRecoveryReady(result.ok);
+    });
+    return () => { live = false; };
+  }, [currentUser?.id, currentUser?.authId]);
+
+  // The existing class-change reset runs first, then the user-triggered restore repopulates data.
+  useEffect(() => {
+    if (!restorePending || className !== restorePending.className) return;
+    setParticipationMode(restorePending.participationMode || 'individual');
+    setSelectedRefs(restorePending.selectedRefs || []);
+    setGroupMap(restorePending.groupMap || {});
+    setActivityId(restorePending.activityId || '');
+    setPurpose(restorePending.purpose || 'formative');
+    setScoringMode(restorePending.scoringMode || 'manual');
+    setSessionId(restorePending.sessionId || '');
+    setSessionCompleted(false);
+    setStartedAt(restorePending.startedAt || '');
+    setResults(restorePending.results || {});
+    setTeachingAdjustment(restorePending.teachingAdjustment || '');
+    setSessionNotes(restorePending.sessionNotes || '');
+    setView('session');
+    setStep(Math.max(2,Math.min(4,Number(restorePending.step)||3)));
+    setRestorePending(null);
+    setNotice('Đã khôi phục phiên đánh giá chưa hoàn tất từ Supabase.');
+  }, [className, restorePending]);
+
+  useEffect(() => {
+    const userId = currentUser?.id || currentUser?.authId;
+    if (!userId || !recoveryReady) return undefined;
+    if (sessionCompleted) {
+      clearSessionRecovery(userId).then(result => {
+        if (result.ok) setRecoverable(null);
+      });
+      return undefined;
+    }
+    if (!sessionId || !activityId) return undefined;
+    const snapshot = {
+      sessionId, className, participationMode, selectedRefs, groupMap, activityId,
+      purpose, scoringMode, startedAt, results, teachingAdjustment, sessionNotes, step,
+      savedAt: new Date().toISOString(),
+    };
+    const timer = window.setTimeout(() => {
+      saveSessionRecovery(userId, snapshot).then(result => {
+        if (result.ok) setRecoverable(snapshot);
+      });
+    }, 700);
+    return () => window.clearTimeout(timer);
+  }, [currentUser?.id,currentUser?.authId,recoveryReady,sessionId,sessionCompleted,className,
+      participationMode,selectedRefs,groupMap,activityId,purpose,scoringMode,startedAt,
+      results,teachingAdjustment,sessionNotes,step]);
 
   useEffect(() => {
     if (view !== 'reports') return;
@@ -726,6 +790,19 @@ export default function AssessmentWorkspace({
 
       <div className="f4a-scroll-region">
       {notice ? <div className="f4a-notice">{notice}</div> : null}
+      {view === 'session' && recoverable?.sessionId && recoverable.sessionId !== sessionId
+        ? <div className="f4a-recovery-banner" role="status">
+            <span><strong>Phiên chưa hoàn tất</strong> · Lớp {recoverable.className} · Đã tự lưu {formatDate(recoverable.savedAt)}</span>
+            <button type="button" onClick={() => { setRestorePending(recoverable); setClassName(recoverable.className); }}>Khôi phục phiên</button>
+            <button type="button" onClick={() => {
+              const userId = currentUser?.id || currentUser?.authId;
+              if (userId && window.confirm('Bỏ bản khôi phục chưa hoàn tất?')) {
+                clearSessionRecovery(userId).then(result => {
+                  if (result.ok) setRecoverable(null);
+                });
+              }
+            }}>Bỏ bản lưu</button>
+          </div> : null}
 
       {view === 'session' ? <>
         <div className="f4a-steps">

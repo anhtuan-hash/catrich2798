@@ -1,0 +1,38 @@
+name: Assessment 4.0 Safety
+on:
+  pull_request:
+    paths:
+      - 'src/components/lessonCheck/**'
+      - 'src/pages/LessonCheckStudio.jsx'
+      - 'src/pages/LessonCheckApprovedMockupOne.css'
+      - 'src/utils/lessonCheckWorkbench.js'
+      - 'src/utils/lessonCheckAttributes.js'
+      - 'supabase/migrations/20261014030000_assessment_4_activity_facets.sql'
+      - 'supabase/migrations/20261014020000_assessment_4_workbench.sql'
+      - 'tests/assessment-4-workbench.test.mjs'
+      - '.github/workflows/assessment-4-workbench.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/components/lessonCheck/**'
+      - 'src/pages/LessonCheckStudio.jsx'
+      - 'src/pages/LessonCheckApprovedMockupOne.css'
+      - 'src/utils/lessonCheckWorkbench.js'
+      - 'src/utils/lessonCheckAttributes.js'
+      - 'supabase/migrations/20261014030000_assessment_4_activity_facets.sql'
+      - 'supabase/migrations/20261014020000_assessment_4_workbench.sql'
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --test tests/assessment-4-workbench.test.mjs
+      - run: node --test tests/lesson-check-approved-mockup-1.test.mjs
+      - run: node scripts/test-lesson-check-studio.mjs
+      - run: npm run build
