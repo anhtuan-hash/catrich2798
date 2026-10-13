@@ -50,7 +50,7 @@ import {
   uploadLessonCheckActivityThumbnail,
 } from '../utils/lessonCheckActivities.js';
 import AssessmentWorkspace from '../components/lessonCheck/AssessmentWorkspace.jsx';
-import Assessment4Workbench from '../components/lessonCheck/Assessment4Workbench.jsx';
+const Assessment4Workbench = React.lazy(() => import('../components/lessonCheck/Assessment4Workbench.jsx'));
 import {
   GLOBAL_SUCCESS_LESSONS,
   globalSuccessLessonTitle,
@@ -1285,10 +1285,10 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         </button>
         <small>{isVi ? 'Bộ sưu tập · Lesson Runner · Nhật ký · Can thiệp · Phân quyền' : 'Collections · Runner · Journal · Interventions · Permissions'}</small>
       </div>
-      {workbenchOpen ? <div id="assessment4-workbench"><Assessment4Workbench
+      {workbenchOpen ? <div id="assessment4-workbench"><React.Suspense fallback={<div className="lcs-loading">Đang tải Assessment 4.0…</div>}><Assessment4Workbench
         activities={activities} currentUser={currentUser} isLeader={isLeader}
         onLaunch={openTeachingMode} onRefresh={() => loadActivities({ silent: true })}
-      /></div> : null}
+      /></React.Suspense></div> : null}
 
       <section className="lcs-arcade-library">
         <div className="lcs-arcade-nav">
