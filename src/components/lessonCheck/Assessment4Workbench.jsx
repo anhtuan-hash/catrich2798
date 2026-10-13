@@ -6,6 +6,7 @@ import {
  listGrantAudit, listInterventions, loadAssessmentWorkspace, logActivityUse, readActivityVersion,
  saveIntervention, storeAssessmentWorkspace,
 } from '../../utils/lessonCheckWorkbench.js';
+import { listActivityAttributes, saveActivityAttributes } from '../../utils/lessonCheckAttributes.js';
 import './Assessment4Workbench.css';
 
 const initial = { favorites: [], recentIds: [], collections: [], runner: {} };
@@ -44,6 +45,12 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
  const [unit,setUnit]=useState('all');
  const [focus,setFocus]=useState('all');
  const [sort,setSort]=useState('recent');
+ const [difficulty,setDifficulty]=useState('all');
+ const [delivery,setDelivery]=useState('all');
+ const [duration,setDuration]=useState('all');
+ const [attributes,setAttributes]=useState([]);
+ const [attributeId,setAttributeId]=useState('');
+ const [attributeDraft,setAttributeDraft]=useState({difficulty:'unclassified',durationMinutes:15,deliveryMode:'whole_class',keywords:'',learningGoal:''});
  const [collectionName,setCollectionName]=useState('');
  const [selectedCollection,setSelectedCollection]=useState('');
  const [pickActivity,setPickActivity]=useState('');
@@ -63,6 +70,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
  const [journalNote,setJournalNote]=useState('');
  const [intervention,setIntervention]=useState({studentRef:'',studentName:'',className:'',focusArea:'',actionPlan:'',baselineGrade:'',followupGrade:'',dueOn:'',status:'planned'});
  const savedRef=useRef('');
+ const attributeById=useMemo(()=>new Map(attributes.map(a=>[a.activity_id,a])),[attributes]);
  const table=useMemo(()=>new Map(activities.map(item=>[item.id,{...item,isLeader}])),[activities,isLeader]);
  const allowed=useMemo(()=>activities.filter(item=>isLeader || item.hasAccess),[activities,isLeader]);
  const selected=useMemo(()=>data.collections.find(c=>c.id===selectedCollection),[data.collections,selectedCollection]);
@@ -85,6 +93,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
    setReady(result.ok);
   });
   refreshRecords();
+  listActivityAttributes().then(result=>{if(live && result.ok)setAttributes(result.items);});
   return ()=>{live=false;};
  },[userId,refreshRecords]);
  useEffect(()=>{
@@ -148,16 +157,19 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
   else setNotice(result.message);
  };
  const filtered=useMemo(()=>{
-  let items=activities.filter(a=>(isLeader || a.hasAccess || tab==='mine') && (!search || [a.title,a.unitTitle,a.lessonTitle,a.notes,a.classLabel].some(v=>String(v||'').toLocaleLowerCase('vi').includes(search.toLocaleLowerCase('vi'))))
+  let items=activities.filter(a=>(isLeader || a.hasAccess || tab==='mine') && (!search || [a.title,a.unitTitle,a.lessonTitle,a.notes,a.classLabel,attributeById.get(a.id)?.learning_goal,...(attributeById.get(a.id)?.keywords||[])].some(v=>String(v||'').toLocaleLowerCase('vi').includes(search.toLocaleLowerCase('vi'))))
    && (grade==='all'||String(a.grade)===grade)
    && (unit==='all'||String(a.unitNo)===unit)
-   && (focus==='all'||(focus==='skills'?['reading','listening','speaking'].includes(a.focusArea):a.focusArea===focus)));
+   && (focus==='all'||(focus==='skills'?['reading','listening','speaking'].includes(a.focusArea):a.focusArea===focus))
+   && (difficulty==='all'||attributeById.get(a.id)?.difficulty===difficulty)
+   && (delivery==='all'||attributeById.get(a.id)?.delivery_mode===delivery)
+   && (duration==='all'||(duration==='short'?Number(attributeById.get(a.id)?.duration_minutes)<=10:duration==='medium'?Number(attributeById.get(a.id)?.duration_minutes)>10&&Number(attributeById.get(a.id)?.duration_minutes)<=25:Number(attributeById.get(a.id)?.duration_minutes)>25)));
   if(tab==='mine')items=items.filter(a=>isLeader||a.hasAccess);
   if(sort==='recent')items.sort((a,b)=>{const x=data.recentIds.indexOf(a.id),y=data.recentIds.indexOf(b.id);return (x<0?Infinity:x)-(y<0?Infinity:y);});
   else if(sort==='title')items.sort((a,b)=>a.title.localeCompare(b.title,'vi'));
   else items.sort((a,b)=>String(b.updatedAt||'').localeCompare(String(a.updatedAt||'')));
   return items;
- },[activities,isLeader,tab,search,grade,unit,focus,sort,data.recentIds]);
+ },[activities,isLeader,tab,search,grade,unit,focus,difficulty,delivery,duration,sort,data.recentIds,attributeById]);
  async function fetchTeachers(){
   if(!activities.length)return;
   const r=await listLessonCheckTeacherAccess(activities[0].id);
@@ -220,6 +232,9 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
     <select aria-label="Khối" value={grade} onChange={e=>setGrade(e.target.value)}><option value="all">Mọi khối</option>{['10','11','12'].map(v=><option key={v}>{v}</option>)}</select>
     <select aria-label="Unit" value={unit} onChange={e=>setUnit(e.target.value)}><option value="all">Mọi Unit</option>{Array.from({length:10},(_,i)=><option value={String(i+1)} key={i}>Unit {i+1}</option>)}</select>
     <select aria-label="Chuyên đề" value={focus} onChange={e=>setFocus(e.target.value)}><option value="all">Mọi chuyên đề</option>{['vocabulary','grammar','skills','mixed','unclassified','reading','listening','speaking'].map(x=><option key={x} value={x}>{x}</option>)}</select>
+    <select aria-label="Trình độ CEFR" value={difficulty} onChange={e=>setDifficulty(e.target.value)}><option value="all">Mọi trình độ</option>{['A1','A2','B1','B2','C1','C2','mixed','unclassified'].map(v=><option key={v}>{v}</option>)}</select>
+    <select aria-label="Hình thức" value={delivery} onChange={e=>setDelivery(e.target.value)}><option value="all">Mọi hình thức</option><option value="individual">Cá nhân</option><option value="group">Nhóm</option><option value="whole_class">Cả lớp</option><option value="hybrid">Kết hợp</option></select>
+    <select aria-label="Thời lượng" value={duration} onChange={e=>setDuration(e.target.value)}><option value="all">Mọi thời lượng</option><option value="short">≤10 phút</option><option value="medium">11–25 phút</option><option value="long">Trên 25 phút</option></select>
     <select aria-label="Sắp xếp" value={sort} onChange={e=>setSort(e.target.value)}><option value="recent">Ưu tiên gần đây</option><option value="title">A–Z</option><option value="newest">Mới cập nhật</option></select>
    </div>
    <div className="a4-card-grid">{filtered.slice(0,60).map(item=><ActivityMini key={item.id} item={table.get(item.id)} onOpen={launch} onStar={star} favorite={data.favorites.includes(item.id)}/>)}</div>
@@ -297,6 +312,9 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
   {ready && isLeader && tab==='quality'?<>
    <Title detail="Kiểm tra thiếu ảnh, thiếu nhãn, nguồn chưa xác định và tiêu đề trùng; không tự động sửa học liệu.">Resource Quality Control</Title>
    <div className="a4-stats"><div><strong>{activities.length}</strong><span>Tổng hoạt động</span></div><div><strong>{quality.length}</strong><span>Cần rà soát</span></div><div><strong>{activities.filter(a=>a.focusArea==='unclassified').length}</strong><span>Chưa phân loại</span></div><div><strong>{activities.filter(a=>!a.thumbnailUrl).length}</strong><span>Thiếu thumbnail</span></div></div>
+   <div className="a4-section-head"><strong>Thông tin sử dụng & phân loại hoạt động</strong></div>
+   <div className="a4-form"><select value={attributeId} onChange={e=>{const a=attributeById.get(e.target.value);setAttributeId(e.target.value);setAttributeDraft({difficulty:a?.difficulty||'unclassified',durationMinutes:a?.duration_minutes||15,deliveryMode:a?.delivery_mode||'whole_class',keywords:(a?.keywords||[]).join(', '),learningGoal:a?.learning_goal||''});}}><option value="">Chọn hoạt động để bổ sung metadata</option>{activities.map(a=><option key={a.id} value={a.id}>{a.title}</option>)}</select></div>
+   {attributeId?<div className="a4-form a4-form-grid"><select value={attributeDraft.difficulty} onChange={e=>setAttributeDraft(v=>({...v,difficulty:e.target.value}))}>{['unclassified','A1','A2','B1','B2','C1','C2','mixed'].map(v=><option key={v}>{v}</option>)}</select><label>Thời lượng (phút)<input type="number" min={1} max={120} value={attributeDraft.durationMinutes} onChange={e=>setAttributeDraft(v=>({...v,durationMinutes:e.target.value}))}/></label><select value={attributeDraft.deliveryMode} onChange={e=>setAttributeDraft(v=>({...v,deliveryMode:e.target.value}))}><option value="whole_class">Cả lớp</option><option value="individual">Cá nhân</option><option value="group">Nhóm</option><option value="hybrid">Kết hợp</option></select><input placeholder="Từ khóa, phân tách bằng dấu phẩy" value={attributeDraft.keywords} onChange={e=>setAttributeDraft(v=>({...v,keywords:e.target.value}))}/><textarea rows={2} placeholder="Mục tiêu học tập" value={attributeDraft.learningGoal} onChange={e=>setAttributeDraft(v=>({...v,learningGoal:e.target.value}))}/><button disabled={working} onClick={async()=>{setWorking(true);const r=await saveActivityAttributes(attributeId,attributeDraft,userId);setWorking(false);setNotice(r.ok?'Đã lưu và áp dụng bộ lọc nâng cao.':r.message);if(r.ok)setAttributes(a=>[...a.filter(x=>x.activity_id!==attributeId),r.item]);}}>Lưu phân loại</button></div>:null}
    <div className="a4-items">{quality.slice(0,150).map(a=><div key={a.id}><span><strong>{a.title}</strong><small>{a.flags.join(' · ')}</small></span><button onClick={()=>onLaunch?.(a)}>Xem</button></div>)}</div>
    <button onClick={()=>csvDownload('assessment-quality.csv',['Hoạt động','Khối','Unit','Cần rà soát'],quality.map(a=>[a.title,a.grade,a.unitNo,a.flags.join('; ')]))}><Download size={15}/> Xuất báo cáo chất lượng</button>
   </>:null}
