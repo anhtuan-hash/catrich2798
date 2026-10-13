@@ -567,3 +567,32 @@
   overflow:hidden;
   text-overflow:ellipsis;
 }
+
+/* Lesson Check · teacher-only granted-access filter; scoped to the library. */
+.lcs-page--library .lcs-arcade-tabs button.is-granted {
+  color:#187455!important;
+}
+.lcs-page--library .lcs-arcade-tabs button.is-granted > span {
+  background:#e2f4eb!important;
+  color:#187455!important;
+}
+.lcs-page--library .lcs-arcade-tabs button.is-granted.is-active {
+  background:#e5f5ed!important;
+  border-color:#b9e2cf!important;
+  color:#126b4d!important;
+  box-shadow:0 2px 9px rgba(25,116,83,.10)!important;
+}
+.lcs-page--library .lcs-granted-empty-browse {
+  margin-top:12px;
+  min-height:38px;
+  padding:0 16px;
+  border:1px solid #b9e2cf;
+  border-radius:10px;
+  background:#e5f5ed;
+  color:#126b4d;
+  font-weight:750;
+  cursor:pointer;
+}
+.lcs-page--library .lcs-granted-empty-browse:hover {
+  background:#d7efe2;
+}
