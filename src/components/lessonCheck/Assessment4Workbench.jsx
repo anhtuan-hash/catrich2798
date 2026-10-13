@@ -39,6 +39,8 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
  const [tab,setTab]=useState('mine');
  const [data,setData]=useState(initial);
  const [ready,setReady]=useState(false);
+ const [workspaceError,setWorkspaceError]=useState('');
+ const [retryKey,setRetryKey]=useState(0);
  const [working,setWorking]=useState(false);
  const [notice,setNotice]=useState('');
  const [search,setSearch]=useState('');
@@ -88,17 +90,17 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
   if(!j.ok || !i.ok)setNotice(j.message||i.message);
  },[isLeader,userId]);
  useEffect(()=>{
-  let live=true;setReady(false);
+  let live=true;setReady(false);setWorkspaceError('');
   loadAssessmentWorkspace(userId).then(result=>{
    if(!live)return;
    if(result.ok){setData(result.state);savedRef.current=JSON.stringify(result.state);}
-   else setNotice(result.message || 'Chưa thể tải không gian làm việc.');
+   else setWorkspaceError(result.message || 'Chưa thể tải không gian làm việc.');
    setReady(result.ok);
-  });
+  }).catch(error=>{if(live)setWorkspaceError(error?.message||'Không kết nối được Supabase.');});
   refreshRecords();
   listActivityAttributes().then(result=>{if(live && result.ok)setAttributes(result.items);});
   return ()=>{live=false;};
- },[userId,refreshRecords]);
+ },[userId,refreshRecords,retryKey]);
  useEffect(()=>{
   if(!ready)return undefined;
   const serialized=JSON.stringify(data);
@@ -250,7 +252,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
    <button type="button" onClick={()=>{refreshRecords();onRefresh?.();}}><RefreshCw size={16}/> Đồng bộ</button></header>
   <nav className="a4-tabs" aria-label="Chức năng Assessment 4.0">{allTabs.map(([id,name])=><button key={id} type="button" className={tab===id?'active':''} onClick={()=>setTab(id)}>{name}</button>)}</nav>
   {notice?<div className="a4-notice" role="status">{notice}<button type="button" aria-label="Đóng" onClick={()=>setNotice('')}><X size={15}/></button></div>:null}
-  {!ready?<div className="a4-loading"><LoaderCircle/> Đang kết nối không gian làm việc cá nhân…</div>:null}
+  {!ready?<div className="a4-loading">{workspaceError?<><strong>{workspaceError}</strong> <button type="button" onClick={()=>setRetryKey(v=>v+1)}>Thử lại</button></>:<><LoaderCircle/> Đang kết nối không gian làm việc cá nhân…</>}</div>:null}
   {ready && tab==='mine'? <>
    <div className="a4-stats"><div><strong>{data.favorites.length}</strong><span>Yêu thích</span></div><div><strong>{data.recentIds.length}</strong><span>Đã mở gần đây</span></div><div><strong>{data.collections.length}</strong><span>Bộ sưu tập</span></div><div><strong>{allowed.length}</strong><span>Có quyền truy cập</span></div></div>
    <Title detail="Đánh dấu trái tim để ghim hoạt động; mọi mục được đồng bộ riêng theo tài khoản.">My Activity Workspace</Title>
