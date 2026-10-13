@@ -325,7 +325,7 @@ export default function AssessmentWorkspace({
     return () => window.removeEventListener('keydown', handleEscape);
   }, [spotlightOpen]);
 
-  // Assessment 4.0: server-side private snapshot, never persist student data to localStorage.
+  // Assessment 4.0: private recovery snapshots persist server-side only.
   useEffect(() => {
     const userId = currentUser?.id || currentUser?.authId;
     if (!userId) return undefined;
