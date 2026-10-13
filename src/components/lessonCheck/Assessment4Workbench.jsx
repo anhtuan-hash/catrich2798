@@ -13,7 +13,7 @@ import './Assessment4Workbench.css';
 const initial = { favorites: [], recentIds: [], collections: [], runner: {} };
 const uid = user => user?.id || user?.authId || '';
 const fmt = value => value ? new Date(value).toLocaleDateString('vi-VN') : '—';
-const csvCell = v => '"' + String(v ?? '').replace(/"/g,'""') + '"';
+const csvCell = v => { const raw=String(v ?? ''); const safe=/^\\s*[=+\\-@]/.test(raw) ? "'"+raw : raw; return '"'+safe.replace(/"/g,'""')+'"'; };
 function csvDownload(filename, columns, rows) {
  const csv = '\uFEFF' + [columns,...rows].map(row=>row.map(csvCell).join(',')).join('\r\n');
  const href = URL.createObjectURL(new Blob([csv], { type:'text/csv;charset=utf-8' }));
