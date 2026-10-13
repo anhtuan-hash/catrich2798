@@ -596,3 +596,19 @@
 .lcs-page--library .lcs-granted-empty-browse:hover {
   background:#d7efe2;
 }
+
+/* Dedicated 4.0 launcher; keeps the existing gallery and top navigation untouched. */
+.lcs-page--library .lcs-a4-launcher {
+  margin:14px 0 8px; display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+  border:1px solid #d7e6ef; border-radius:16px; padding:9px 12px;
+  background:linear-gradient(100deg,#eaf6fc,#edf9ef 72%,#fff9ed);
+}
+.lcs-page--library .lcs-a4-launcher>button {
+  display:inline-flex; align-items:center; gap:9px; background:#145271; color:#fff;
+  border:1px solid #145271; border-radius:11px; padding:10px 15px;
+  font-weight:800; font-size:13px; cursor:pointer;
+}
+.lcs-page--library .lcs-a4-launcher>button.is-active {background:#147668;border-color:#147668;}
+.lcs-page--library .lcs-a4-launcher>button svg:last-child {transition:transform .18s ease;}
+.lcs-page--library .lcs-a4-launcher>button.is-active svg:last-child {transform:rotate(180deg);}
+.lcs-page--library .lcs-a4-launcher>small {color:#627e89;font-size:11px;line-height:1.5;}
