@@ -56,3 +56,14 @@ test('Arcade cards have uniform heights regardless of one-line or two-line title
   assert.match(page,/className="lcs-arcade-card-copy"/);
   assert.match(page,/className="lcs-arcade-card-tags"/);
 });
+
+test('Teacher granted-access tab filters by the current account and never exposes leader-only requests',()=>{
+  assert.match(page,/const grantedCount = useMemo\(\(\) => activities\.filter\(\(item\) => item\.hasAccess === true\)\.length, \[activities\]\)/);
+  assert.match(page,/if \(statusFilter === 'ready' && !open\) return false/);
+  assert.match(page,/\{!isLeader \? \(\s*<button[\s\S]*?className=\{statusFilter === 'ready' \? 'is-active is-granted' : 'is-granted'\}/);
+  assert.match(page,/aria-label=\{isVi \? 'Hoạt động đã được cấp quyền' : 'Activities with granted access'\}/);
+  assert.match(page,/setStatusFilter\('ready'\); setShowAccessQueue\(false\)/);
+  assert.match(page,/setStatusFilter\('all'\); setShowAccessQueue\(false\)/);
+  assert.match(page,/Bạn chưa có hoạt động nào được cấp quyền/);
+  assert.match(skin,/\.lcs-page--library \.lcs-arcade-tabs button\.is-granted\.is-active/);
+});
