@@ -10,7 +10,7 @@ const sql = read('supabase/migrations/20261014020000_assessment_4_workbench.sql'
 const css = read('src/components/lessonCheck/Assessment4Workbench.css');
 
 test('Assessment 4.0 stays inside Lesson Check without replacing existing library', () => {
- assert.match(page,/import Assessment4Workbench from/);
+ assert.match(page,/React\.lazy\(\(\) => import\('\.\.\/components\/lessonCheck\/Assessment4Workbench\.jsx'\)\)/);
  assert.match(page,/workbenchOpen \? <div id="assessment4-workbench"/);
  assert.match(page,/<section className="lcs-arcade-library">/);
  assert.match(page,/<AssessmentWorkspace/);
@@ -55,4 +55,18 @@ test('Protected activity source remains gated through the existing service', () 
  assert.match(service,/supabase.rpc\('lesson_check_bulk_teacher_access'/);
  assert.match(service,/readActivityVersion/);
  assert.match(workbench,/window.confirm\('Khôi phục nội dung phiên bản cũ/);
+});
+
+test('Extended catalog facets and authentic score analytics are available without AI', () => {
+ const attrs=read('src/utils/lessonCheckAttributes.js');
+ const migration=read('supabase/migrations/20261014030000_assessment_4_activity_facets.sql');
+ assert.match(attrs,/listActivityAttributes/);
+ assert.match(attrs,/saveActivityAttributes/);
+ assert.match(migration,/lesson_check_activity_attributes/);
+ assert.match(migration,/enable row level security/);
+ assert.match(workbench,/attributeById/);
+ assert.match(workbench,/studentProgress/);
+ assert.match(workbench,/unitResults/);
+ assert.match(workbench,/listAssessmentResults\(''\)/);
+ assert.doesNotMatch(workbench,/openai|gpt-|gemini|anthropic/i);
 });
