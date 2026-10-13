@@ -6,6 +6,8 @@ on:
       - 'src/pages/LessonCheckStudio.jsx'
       - 'src/pages/LessonCheckApprovedMockupOne.css'
       - 'src/utils/lessonCheckWorkbench.js'
+      - 'src/utils/lessonCheckAttributes.js'
+      - 'supabase/migrations/20261014030000_assessment_4_activity_facets.sql'
       - 'supabase/migrations/20261014020000_assessment_4_workbench.sql'
       - 'tests/assessment-4-workbench.test.mjs'
       - '.github/workflows/assessment-4-workbench.yml'
@@ -16,6 +18,8 @@ on:
       - 'src/pages/LessonCheckStudio.jsx'
       - 'src/pages/LessonCheckApprovedMockupOne.css'
       - 'src/utils/lessonCheckWorkbench.js'
+      - 'src/utils/lessonCheckAttributes.js'
+      - 'supabase/migrations/20261014030000_assessment_4_activity_facets.sql'
       - 'supabase/migrations/20261014020000_assessment_4_workbench.sql'
 jobs:
   regression:
