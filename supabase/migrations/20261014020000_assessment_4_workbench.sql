@@ -175,3 +175,39 @@ drop trigger if exists lesson_check_preserve_activity_version_trigger on public.
 create trigger lesson_check_preserve_activity_version_trigger
  before update of embed_code on public.lesson_check_activity_content
  for each row execute function public.lesson_check_preserve_activity_version();
+
+-- Existing one-teacher grant button remains compatible with optional expiry and audit.
+create or replace function public.lesson_check_set_teacher_access(target_activity uuid, target_user uuid, allowed boolean)
+returns boolean language plpgsql security definer set search_path=public as $$
+begin
+ if not public.lesson_check_is_leader() then raise exception 'Only TTCM/Admin can manage access.'; end if;
+ if not exists(select 1 from public.lesson_check_activities where id=target_activity) then raise exception 'Activity not found.'; end if;
+ if not exists(select 1 from public.profiles where id=target_user and approved=true) then raise exception 'Teacher not found.'; end if;
+ if allowed then
+   insert into public.lesson_check_activity_grants(activity_id,user_id,granted_by,created_at,expires_at)
+   values(target_activity,target_user,auth.uid(),now(),null)
+   on conflict(activity_id,user_id) do update set granted_by=excluded.granted_by, created_at=now(),expires_at=null;
+   update public.lesson_check_activity_requests set status='approved',reviewed_by=auth.uid(),reviewed_at=now(),updated_at=now()
+   where activity_id=target_activity and requester_id=target_user and status='pending';
+ else
+   delete from public.lesson_check_activity_grants where activity_id=target_activity and user_id=target_user;
+   update public.lesson_check_activity_requests set status='rejected',reviewed_by=auth.uid(),reviewed_at=now(),updated_at=now()
+   where activity_id=target_activity and requester_id=target_user and status='pending';
+ end if;
+ insert into public.lesson_check_grant_audit(actor_id,activity_id,teacher_id,action)
+ values(auth.uid(),target_activity,target_user,case when allowed then 'grant' else 'revoke' end);
+ return true;
+end; $$;
+-- Access manager has_access flag must match expiry policy (without changing its return signature).
+create or replace function public.lesson_check_list_teacher_access(target_activity uuid)
+returns table (user_id uuid,full_name text,email text,role text,approved boolean,has_access boolean,pending_request boolean)
+language sql stable security definer set search_path=public as $$
+ select p.id,coalesce(nullif(p.full_name,''),p.email,'Teacher'),p.email,p.role,p.approved,
+  exists(select 1 from public.lesson_check_activity_grants g where g.activity_id=target_activity and g.user_id=p.id
+   and (g.expires_at is null or g.expires_at>now())) as has_access,
+  exists(select 1 from public.lesson_check_activity_requests r where r.activity_id=target_activity and r.requester_id=p.id and r.status='pending') as pending_request
+ from public.profiles p
+ where public.lesson_check_is_leader() and p.approved=true
+ and lower(coalesce(p.role,'teacher')) not in ('admin','ttcm','to_truong','tổ trưởng','department_head','department-head','department head','department_leader','department leader','subject_leader','subject leader','leader')
+ order by lower(coalesce(p.full_name,p.email,''));
+$$;
