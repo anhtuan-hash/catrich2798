@@ -50,6 +50,7 @@ import {
   uploadLessonCheckActivityThumbnail,
 } from '../utils/lessonCheckActivities.js';
 import AssessmentWorkspace from '../components/lessonCheck/AssessmentWorkspace.jsx';
+import Assessment4Workbench from '../components/lessonCheck/Assessment4Workbench.jsx';
 import {
   GLOBAL_SUCCESS_LESSONS,
   globalSuccessLessonTitle,
@@ -362,6 +363,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [showEditor, setShowEditor] = useState(true);
   const [menuActivityId, setMenuActivityId] = useState('');
   const [showAccessQueue, setShowAccessQueue] = useState(false);
+  const [workbenchOpen, setWorkbenchOpen] = useState(false);
   const [assessmentWorkspaceView, setAssessmentWorkspaceView] = useState('');
   const [assessmentWorkspaceVisible, setAssessmentWorkspaceVisible] = useState(false);
   const [assessmentResumeToScoreToken, setAssessmentResumeToScoreToken] = useState(0);
@@ -1272,6 +1274,21 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
           </div>
         </section>
       ) : null}
+
+      <div className="lcs-a4-launcher">
+        <button type="button" className={workbenchOpen ? 'is-active' : ''}
+          onClick={() => setWorkbenchOpen(value => !value)}
+          aria-expanded={workbenchOpen} aria-controls="assessment4-workbench">
+          <Layers3 size={18} />
+          <span>{isVi ? 'Trung tâm hoạt động & đánh giá 4.0' : 'Assessment 4.0 Workspace'}</span>
+          <ChevronDown size={16} />
+        </button>
+        <small>{isVi ? 'Bộ sưu tập · Lesson Runner · Nhật ký · Can thiệp · Phân quyền' : 'Collections · Runner · Journal · Interventions · Permissions'}</small>
+      </div>
+      {workbenchOpen ? <div id="assessment4-workbench"><Assessment4Workbench
+        activities={activities} currentUser={currentUser} isLeader={isLeader}
+        onLaunch={openTeachingMode} onRefresh={() => loadActivities({ silent: true })}
+      /></div> : null}
 
       <section className="lcs-arcade-library">
         <div className="lcs-arcade-nav">
