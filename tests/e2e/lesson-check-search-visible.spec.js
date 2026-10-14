@@ -42,7 +42,9 @@ test.describe('Lesson Check quick activity title search visibility',()=>{
       expect(geometry.visibility).toBe('visible');
       await textbox.fill('Invention');
       await expect(textbox).toHaveValue('Invention');
-      await search.getByRole('button',{name:'Xóa từ khóa tìm kiếm'}).click();
+      const clear=search.locator('button.lcs-filter-quick-clear');
+      await expect(clear).toHaveAttribute('aria-label','Xóa từ khóa tìm kiếm');
+      await clear.click();
       await expect(textbox).toHaveValue('');
       await textbox.fill('Grammar');
       await textbox.press('Escape');
