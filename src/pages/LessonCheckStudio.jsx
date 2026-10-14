@@ -388,6 +388,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [favoriteSavingIds, setFavoriteSavingIds] = useState([]);
   const favoriteInFlightRef = useRef(new Set());
   const favoriteLoadVersionRef = useRef(0);
+  const uiPreferenceLoadedRef = useRef(false);
   const favoriteUserId = currentUser?.id || currentUser?.authId || '';
   const [sortMode, setSortMode] = useState('newest');
   const [viewMode, setViewMode] = useState('grid');
@@ -469,6 +470,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const pageSize = 12;
   const attrMap = useMemo(() => new Map(attributes.map(row => [row.activity_id,row])), [attributes]);
   const queueSet = useMemo(() => new Set(queueIds),[queueIds]);
+  // Only display usage data supplied by the owner/leader-scoped journal query.
   const availableQueueItems = useMemo(() => queueIds.map(id => activities.find(item => item.id === id))
     .filter(item => item && (isLeader || item.hasAccess)), [queueIds, activities, isLeader]);
   const journalById = useMemo(() => {
@@ -629,6 +631,33 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     const ids=[...queueIds];const [item]=ids.splice(from,1);ids.splice(to,0,item);
     await updateQueue(ids);
   };
+
+  // Persist only presentation preferences. Never cache student scores or protected embeds.
+  useEffect(()=>{
+    if(!favoriteUserId)return;
+    uiPreferenceLoadedRef.current=false;
+    try{
+      const prefs=JSON.parse(sessionStorage.getItem('lcs5-prefs-'+favoriteUserId)||'{}');
+      if(['grid','list'].includes(prefs.view))setViewMode(prefs.view);
+      if(['all','10','11','12'].includes(prefs.grade))setGradeFilter(prefs.grade);
+      if(typeof prefs.query==='string')setQuery(prefs.query.slice(0,100));
+      if(typeof prefs.unit==='string')setUnitFilter(prefs.unit);
+      if(typeof prefs.focus==='string')setFocusFilter(prefs.focus);
+      if(['newest','title','unit','favorites','recent'].includes(prefs.sort))setSortMode(prefs.sort);
+      if(['all','favorites','ready','recent','pending','locked'].includes(prefs.status))setStatusFilter(prefs.status);
+    }catch{/* Storage unavailable: use the existing defaults. */}
+    uiPreferenceLoadedRef.current=true;
+  },[favoriteUserId]);
+
+  useEffect(()=>{
+    if(!favoriteUserId||!uiPreferenceLoadedRef.current)return;
+    try{
+      sessionStorage.setItem('lcs5-prefs-'+favoriteUserId,JSON.stringify({
+        view:viewMode,query:query.slice(0,100),grade:gradeFilter,unit:unitFilter,
+        focus:focusFilter,sort:sortMode,status:statusFilter
+      }));
+    }catch{/* Private browsing may disallow session storage. */}
+  },[favoriteUserId,viewMode,query,gradeFilter,unitFilter,focusFilter,sortMode,statusFilter]);
 
   const openActivityJournal = useCallback(async () => {
     if(journalReady)return;
@@ -1825,6 +1854,9 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                       </div>
                     </div>
 
+                    {journalReady && journalById.has(item.id) ? <small className="lcs5-usage-tag">
+                      <Clock3 size={12}/> {journalById.get(item.id).opened+1*journalById.get(item.id).completed} {isVi?'lượt sử dụng':'uses'}
+                    </small>:null}
                     <div className="lcs5-card-toolbar">
                       <button type="button" onClick={()=>{setPreviewActivity(item);openActivityJournal();}} aria-label={'Xem nhanh '+item.title}><Info size={14}/>{isVi?'Xem nhanh':'Preview'}</button>
                       <button type="button" className={queueSet.has(item.id)?'is-queued':''}
