@@ -990,11 +990,11 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   }
 
   async function saveBatchActivities() {
-    if (!isLeader || saving) return;
+    if (!isLeader || saving || saveInFlightRef.current) return;
     const candidates = batchDrafts.map((item, index) => ({ item, index }))
       .filter(({ item }) => item.title.trim() || item.embedCode.trim());
     if (!candidates.length) {
-      setNotice(isVi ? 'Hãy nhập ít nhất một hoạt động.' : 'Enter at least one activity.');
+      showSaveError(isVi ? 'Hãy nhập ít nhất một hoạt động.' : 'Enter at least one activity.');
       return;
     }
 
@@ -1007,12 +1007,21 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       if (message) {
         setActiveBatchIndex(index);
         setShowEditor(true);
-        setNotice((isVi ? `Hoạt động ${index + 1}: ` : `Activity ${index + 1}: `) + message);
+        setBuilderFeedback({kind:'error',field:!item.title.trim()?'title':item.focusArea==='unclassified'?'focus':'embed',
+          message:(isVi ? `Hoạt động ${index + 1}: ` : `Activity ${index + 1}: `) + message});
+        window.requestAnimationFrame(() => {
+          const target = !item.title.trim() ? saveTitleRef.current
+            : item.focusArea==='unclassified' ? saveFocusRef.current : saveEmbedRef.current;
+          target?.focus({preventScroll:true});
+          target?.scrollIntoView({block:'center',behavior:'smooth'});
+        });
         return;
       }
     }
 
+    saveInFlightRef.current = true;
     setSaving(true);
+    setBuilderFeedback({kind:'saving',message:isVi?'Đang lưu hoạt động lên Supabase…':'Saving activities to Supabase…'});
     batchSavingRef.current = true;
     setBatchProgress({ current: 0, total: candidates.length });
     const remaining = [...batchDrafts];
@@ -1047,16 +1056,17 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       }
     } finally {
       batchSavingRef.current = false;
+      saveInFlightRef.current = false;
       setSaving(false);
       setBatchProgress({ current: 0, total: 0 });
-      await loadActivities({ silent: true });
+      try { await loadActivities({ silent: true }); } catch { /* Save result must not depend on a refresh. */ }
     }
 
     if (failedAt >= 0) {
       setBatchDrafts(remaining);
       setActiveBatchIndex(failedAt);
       setShowEditor(true);
-      setNotice(isVi
+      showSaveError(isVi
         ? `Đã lưu ${savedCount}/${candidates.length} hoạt động. Ô ${failedAt + 1} bị lỗi: ${failureMessage}. Có thể bấm lưu lại, không tạo trùng ô đã thành công.`
         : `Saved ${savedCount}/${candidates.length}. Slot ${failedAt + 1} failed: ${failureMessage}. Retry without duplicating saved items.`);
       return;
