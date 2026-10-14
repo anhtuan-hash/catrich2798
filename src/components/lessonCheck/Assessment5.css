@@ -1,0 +1,23 @@
+/* BRIAN Assessment 5.0 · Colorful Bento × Material 3, isolated to Lesson Check */
+.lcs-page--library .lcs5-command{margin:14px 0 16px;border:1px solid #dbe6f5;border-radius:22px;background:linear-gradient(115deg,#f7faff,#f7fbf7 60%,#fff7f2);padding:16px 18px;box-shadow:0 7px 24px rgba(20,58,95,.055);color:#193d59}
+.lcs5-command-head{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:0 0 12px}
+.lcs5-command-mark{display:inline-flex;align-items:center;gap:6px;border-radius:30px;padding:7px 10px;color:#395bac;background:#e9edff;font-size:10px;font-weight:850;letter-spacing:.07em}
+.lcs5-command-head>strong{font-weight:850;font-size:14px;letter-spacing:-.015em}
+.lcs5-command-head>span{font-size:11px;color:#76869a}
+.lcs5-bento-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.lcs-page--library .lcs5-bento-tile{position:relative;display:flex;align-items:center;gap:11px;text-align:left;border:1px solid transparent!important;border-radius:16px!important;min-height:88px;padding:14px 12px;cursor:pointer;transition:transform .15s ease,box-shadow .15s ease;box-shadow:0 3px 9px #12345106}
+.lcs5-bento-tile.is-favorites{background:#ffedf4!important;color:#9c3865!important;border-color:#fad3e2!important}
+.lcs5-bento-tile.is-recent{background:#e7f4ff!important;color:#2d6f9d!important;border-color:#cfe6fa!important}
+.lcs5-bento-tile.is-queue{background:#e8f9ed!important;color:#23754e!important;border-color:#d0efda!important}
+.lcs5-bento-tile.is-workspace{background:#f1eaff!important;color:#7352a6!important;border-color:#e0d2f9!important}
+.lcs5-bento-icon{flex:none;display:grid;place-items:center;width:39px;height:39px;border-radius:12px;background:#ffffffbf}
+.lcs5-bento-copy{display:flex;flex-direction:column;gap:3px;min-width:0}
+.lcs5-bento-copy b{font-size:13px;font-weight:850}
+.lcs5-bento-copy small{font-size:10px;opacity:.82}
+.lcs5-bento-count{margin-left:auto;font-size:17px;font-weight:850;font-variant-numeric:tabular-nums}
+.lcs5-bento-arrow{position:absolute;right:6px;top:5px;opacity:.55}
+.lcs-page--library .lcs5-bento-tile:hover{transform:translateY(-2px);box-shadow:0 7px 16px #2047601c}
+.lcs-page--library .lcs5-bento-tile:focus-visible{outline:3px solid #4d9bbd;outline-offset:2px}
+@media(max-width:940px){.lcs5-bento-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.lcs5-command-head>span{display:none}.lcs-page--library .lcs5-bento-tile{min-height:85px}.lcs5-bento-copy small{display:none}}
+@media(prefers-reduced-motion:reduce){.lcs5-bento-tile{transition:none!important}.lcs5-bento-tile:hover{transform:none!important}}
