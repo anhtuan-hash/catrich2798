@@ -233,9 +233,11 @@ export async function saveLessonCheckActivity(draft, parsedEmbed) {
     p_embed_code: String(draft.embedCode || ''),
     p_focus_area: String(draft.focusArea || 'unclassified'),
   };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 40000);
   try {
     // One SQL transaction for metadata, content and focus; no half-created activity.
-    const { data, error } = await supabase.rpc('lesson_check_save_activity_v2', payload);
+    const { data, error } = await supabase.rpc('lesson_check_save_activity_v2', payload).abortSignal(controller.signal);
     if (error) return resultError(error, 'Không thể lưu hoạt động.');
     const id = String((Array.isArray(data) ? data[0] : data) || draft.id || '');
     if (!id) return { ok: false, message: 'Máy chủ chưa trả mã hoạt động. Hãy kiểm tra thư viện trước khi thử lại để tránh tạo trùng.' };
@@ -245,9 +247,13 @@ export async function saveLessonCheckActivity(draft, parsedEmbed) {
     return {
       ok: false,
       uncertain: true,
-      message: (error?.message || 'Kết nối đến Supabase bị gián đoạn.')
+      message: (controller.signal.aborted
+        ? 'Quá thời gian chờ 40 giây; kết quả lưu chưa thể xác nhận.'
+        : (error?.message || 'Kết nối đến Supabase bị gián đoạn.'))
         + ' Hãy kiểm tra thư viện trước khi thử lại để tránh tạo trùng.',
     };
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
