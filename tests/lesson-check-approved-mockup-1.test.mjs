@@ -115,7 +115,7 @@ test('Quick activity-name search sits next to Unit/topic filters and is keyboard
   assert.ok(filters.length>200);
   assert.ok(filters.indexOf('aria-label="Unit"') < filters.indexOf('lcs-filter-quick-search'));
   assert.ok(filters.indexOf('Tất cả chuyên đề') < filters.indexOf('lcs-filter-quick-search'));
-  assert.match(filters,/className="lcs-filter-quick-search lcs-search-always-visible" role="search"/);
+  assert.match(filters,/className="lcs-filter-quick-search lcs-search-always-visible"\s+role="search"/);
   assert.match(filters,/aria-label=\{isVi \? 'Tìm nhanh theo tên hoạt động' : 'Quick search by activity name'\}/);
   assert.match(filters,/value=\{query\}/);
   assert.match(filters,/onChange=\{\(event\) => setQuery\(event\.target\.value\)\}/);
