@@ -1042,39 +1042,48 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
             sourceHost: embed.kind === 'url' ? sourceHost(embed.source) : 'HTML / srcDoc',
           }, embed);
         } catch (exception) {
-          result = { ok: false, message: exception?.message || 'Network error' };
+          result = { ok: false, message: (isVi
+            ? 'Mất kết nối: chưa rõ hoạt động đã được lưu hay chưa. Kiểm tra danh sách trước khi thử lại để tránh trùng. '
+            : 'Connection lost; save outcome is unknown. Check the library before retrying. ')
+            + (exception?.message || '') };
         }
         if (!result.ok) {
           failedAt = index;
           failureMessage = result.message || (isVi ? 'Không thể lưu lên Supabase.' : 'Supabase save failed.');
-          // Reuse the id when the row exists but its focus tag failed to update.
+          // If the activity row was written but its focus tag failed, retry as UPDATE.
           if (result.id) remaining[index] = { ...item, id: result.id };
           break;
         }
         savedCount += 1;
         remaining[index] = { ...item, id: '', title: '', embedCode: '' };
       }
+      if (failedAt >= 0) {
+        setBatchDrafts(remaining);
+        setActiveBatchIndex(failedAt);
+        setShowEditor(true);
+        showSaveError(isVi
+          ? `Đã lưu ${savedCount}/${candidates.length} hoạt động. Ô ${failedAt + 1} bị lỗi: ${failureMessage}. Các ô thành công sẽ không lưu trùng khi thử lại.`
+          : `Saved ${savedCount}/${candidates.length}. Slot ${failedAt + 1} failed: ${failureMessage}. Previously saved slots will not duplicate on retry.`);
+        return;
+      }
+
+      resetActivityBuilder();
+      setShowBuilder(false);
+      setNotice(isVi ? `Đã tạo thành công ${savedCount} hoạt động.` : `Successfully created ${savedCount} activities.`);
+    } catch (exception) {
+      setBatchDrafts(remaining);
+      showSaveError((isVi
+        ? 'Chưa hoàn tất lưu. Kiểm tra danh sách trước khi thử lại: '
+        : 'Save interrupted. Check the activity list before retrying: ')
+        + (exception?.message || ''));
     } finally {
+      // Do not unlock until draft slots have been cleared or marked for retry.
       batchSavingRef.current = false;
+      setBatchProgress({ current: 0, total: 0 });
+      try { await loadActivities({ silent: true }); } catch { /* Do not obscure the save result. */ }
       saveInFlightRef.current = false;
       setSaving(false);
-      setBatchProgress({ current: 0, total: 0 });
-      try { await loadActivities({ silent: true }); } catch { /* Save result must not depend on a refresh. */ }
     }
-
-    if (failedAt >= 0) {
-      setBatchDrafts(remaining);
-      setActiveBatchIndex(failedAt);
-      setShowEditor(true);
-      showSaveError(isVi
-        ? `Đã lưu ${savedCount}/${candidates.length} hoạt động. Ô ${failedAt + 1} bị lỗi: ${failureMessage}. Có thể bấm lưu lại, không tạo trùng ô đã thành công.`
-        : `Saved ${savedCount}/${candidates.length}. Slot ${failedAt + 1} failed: ${failureMessage}. Retry without duplicating saved items.`);
-      return;
-    }
-
-    resetActivityBuilder();
-    setShowBuilder(false);
-    setNotice(isVi ? `Đã tạo thành công ${savedCount} hoạt động.` : `Successfully created ${savedCount} activities.`);
   }
 
   function showSaveError(message, field = '') {
