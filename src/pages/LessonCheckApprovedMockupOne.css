@@ -842,3 +842,22 @@
   border-color:#367bba!important;
   box-shadow:0 0 0 3px rgba(54,123,186,.18)!important;
 }
+
+/* Lesson Check save reliability: show actionable feedback next to the actual save button. */
+.lcs-page--library .lcs-save-feedback {
+  display:flex;align-items:flex-start;gap:9px;
+  padding:11px 13px;margin-top:10px;border:1px solid #c8dfee;
+  border-radius:12px;background:#edf6fe;color:#245979;
+  font-size:12px;font-weight:650;line-height:1.55;
+  overflow-wrap:anywhere;
+}
+.lcs-page--library .lcs-save-feedback>svg{flex:none;margin-top:1px}
+.lcs-page--library .lcs-save-feedback.is-error {
+  border-color:#f1c4c4;background:#fff0ee;color:#a33737;
+}
+.lcs-page--library .lcs-save-feedback.is-success {
+  border-color:#bee1d0;background:#eaf9f0;color:#26724a;
+}
+.lcs-page--library .lcs-save-feedback.is-progress {
+  border-color:#bcd5f2;background:#eef6ff;color:#285987;
+}
