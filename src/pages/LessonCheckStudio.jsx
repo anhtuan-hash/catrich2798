@@ -363,6 +363,11 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const saveInFlightRef = useRef(false);
+  const saveTitleRef = useRef(null);
+  const saveFocusRef = useRef(null);
+  const saveEmbedRef = useRef(null);
+  const [builderFeedback, setBuilderFeedback] = useState(null);
   const [thumbnailDataUrl, setThumbnailDataUrl] = useState('');
   const [thumbnailRemoveRequested, setThumbnailRemoveRequested] = useState(false);
   const [thumbnailBusy, setThumbnailBusy] = useState(false);
@@ -440,6 +445,8 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const populatedBatchCount = batchDrafts.filter((item) => item.title.trim() || item.embedCode.trim()).length;
 
   function setDraft(updater) {
+    // The next edit resolves the previous validation message without clearing the draft.
+    setBuilderFeedback(null);
     if (!batchMode) {
       setSingleDraft(updater);
       return;
@@ -833,6 +840,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   );
 
   function resetActivityBuilder() {
+    setBuilderFeedback(null);
     setSingleDraft(blankDraft());
     setBatchMode(false);
     setBatchDrafts(Array.from({ length: 10 }, () => blankDraft()));
@@ -982,11 +990,11 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   }
 
   async function saveBatchActivities() {
-    if (!isLeader || saving) return;
+    if (!isLeader || saving || saveInFlightRef.current) return;
     const candidates = batchDrafts.map((item, index) => ({ item, index }))
       .filter(({ item }) => item.title.trim() || item.embedCode.trim());
     if (!candidates.length) {
-      setNotice(isVi ? 'Hãy nhập ít nhất một hoạt động.' : 'Enter at least one activity.');
+      showSaveError(isVi ? 'Hãy nhập ít nhất một hoạt động.' : 'Enter at least one activity.');
       return;
     }
 
@@ -999,12 +1007,21 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       if (message) {
         setActiveBatchIndex(index);
         setShowEditor(true);
-        setNotice((isVi ? `Hoạt động ${index + 1}: ` : `Activity ${index + 1}: `) + message);
+        setBuilderFeedback({kind:'error',field:!item.title.trim()?'title':item.focusArea==='unclassified'?'focus':'embed',
+          message:(isVi ? `Hoạt động ${index + 1}: ` : `Activity ${index + 1}: `) + message});
+        window.requestAnimationFrame(() => {
+          const target = !item.title.trim() ? saveTitleRef.current
+            : item.focusArea==='unclassified' ? saveFocusRef.current : saveEmbedRef.current;
+          target?.focus({preventScroll:true});
+          target?.scrollIntoView({block:'center',behavior:'smooth'});
+        });
         return;
       }
     }
 
+    saveInFlightRef.current = true;
     setSaving(true);
+    setBuilderFeedback({kind:'saving',message:isVi?'Đang lưu hoạt động lên Supabase…':'Saving activities to Supabase…'});
     batchSavingRef.current = true;
     setBatchProgress({ current: 0, total: candidates.length });
     const remaining = [...batchDrafts];
@@ -1025,96 +1042,133 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
             sourceHost: embed.kind === 'url' ? sourceHost(embed.source) : 'HTML / srcDoc',
           }, embed);
         } catch (exception) {
-          result = { ok: false, message: exception?.message || 'Network error' };
+          result = { ok: false, message: (isVi
+            ? 'Mất kết nối: chưa rõ hoạt động đã được lưu hay chưa. Kiểm tra danh sách trước khi thử lại để tránh trùng. '
+            : 'Connection lost; save outcome is unknown. Check the library before retrying. ')
+            + (exception?.message || '') };
         }
         if (!result.ok) {
           failedAt = index;
           failureMessage = result.message || (isVi ? 'Không thể lưu lên Supabase.' : 'Supabase save failed.');
-          // Reuse the id when the row exists but its focus tag failed to update.
+          // If the activity row was written but its focus tag failed, retry as UPDATE.
           if (result.id) remaining[index] = { ...item, id: result.id };
           break;
         }
         savedCount += 1;
         remaining[index] = { ...item, id: '', title: '', embedCode: '' };
       }
-    } finally {
-      batchSavingRef.current = false;
-      setSaving(false);
-      setBatchProgress({ current: 0, total: 0 });
-      await loadActivities({ silent: true });
-    }
+      if (failedAt >= 0) {
+        setBatchDrafts(remaining);
+        setActiveBatchIndex(failedAt);
+        setShowEditor(true);
+        showSaveError(isVi
+          ? `Đã lưu ${savedCount}/${candidates.length} hoạt động. Ô ${failedAt + 1} bị lỗi: ${failureMessage}. Các ô thành công sẽ không lưu trùng khi thử lại.`
+          : `Saved ${savedCount}/${candidates.length}. Slot ${failedAt + 1} failed: ${failureMessage}. Previously saved slots will not duplicate on retry.`);
+        return;
+      }
 
-    if (failedAt >= 0) {
+      resetActivityBuilder();
+      setShowBuilder(false);
+      setNotice(isVi ? `Đã tạo thành công ${savedCount} hoạt động.` : `Successfully created ${savedCount} activities.`);
+    } catch (exception) {
       setBatchDrafts(remaining);
-      setActiveBatchIndex(failedAt);
-      setShowEditor(true);
-      setNotice(isVi
-        ? `Đã lưu ${savedCount}/${candidates.length} hoạt động. Ô ${failedAt + 1} bị lỗi: ${failureMessage}. Có thể bấm lưu lại, không tạo trùng ô đã thành công.`
-        : `Saved ${savedCount}/${candidates.length}. Slot ${failedAt + 1} failed: ${failureMessage}. Retry without duplicating saved items.`);
-      return;
+      showSaveError((isVi
+        ? 'Chưa hoàn tất lưu. Kiểm tra danh sách trước khi thử lại: '
+        : 'Save interrupted. Check the activity list before retrying: ')
+        + (exception?.message || ''));
+    } finally {
+      // Do not unlock until draft slots have been cleared or marked for retry.
+      batchSavingRef.current = false;
+      setBatchProgress({ current: 0, total: 0 });
+      void loadActivities({ silent: true }).catch(() => {}); // Refresh must not hold the save button locked.
+      saveInFlightRef.current = false;
+      setSaving(false);
     }
+  }
 
-    resetActivityBuilder();
-    setShowBuilder(false);
-    setNotice(isVi ? `Đã tạo thành công ${savedCount} hoạt động.` : `Successfully created ${savedCount} activities.`);
+  function showSaveError(message, field = '') {
+    setBuilderFeedback({ kind: 'error', field, message });
+    // Keep a persistent, nearby explanation and bring the actual missing input into view.
+    const target = field === 'title' ? saveTitleRef.current
+      : field === 'focus' ? saveFocusRef.current
+      : field === 'embed' ? saveEmbedRef.current : null;
+    if (target) {
+      target.focus({ preventScroll: true });
+      target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
   }
 
   async function saveActivity() {
-    if (!isLeader || saving) return;
+    if (!isLeader || saveInFlightRef.current || saving || thumbnailBusy) return;
     if (batchMode) {
       await saveBatchActivities();
       return;
     }
     if (!draft.title.trim()) {
-      setNotice(isVi ? 'Hãy nhập tên hoạt động.' : 'Enter an activity title.');
+      showSaveError(isVi ? 'Vui lòng nhập tên hoạt động trước khi lưu.' : 'Enter an activity title before saving.', 'title');
       return;
     }
     if (draft.focusArea === 'unclassified') {
-      setNotice(isVi ? 'Hãy chọn chuyên đề: Vocabulary, Grammar hoặc kỹ năng phù hợp.' : 'Choose a learning focus before saving.');
+      showSaveError(isVi ? 'Hãy chọn chuyên đề / kỹ năng trước khi lưu: Vocabulary, Grammar hoặc kỹ năng phù hợp.' : 'Choose a learning focus (Vocabulary, Grammar or a skill) before saving.', 'focus');
       return;
     }
     if (!previewReady) {
-      setNotice(isVi ? 'Mã nhúng chưa hợp lệ. Hãy dán URL HTTPS, iframe hoặc HTML.' : 'Embed code is not valid yet.');
+      showSaveError(isVi ? 'Mã nhúng chưa hợp lệ. Hãy dán URL HTTPS, iframe hoặc HTML.' : 'Paste a valid HTTPS URL, iframe or HTML.', 'embed');
       return;
     }
 
+    saveInFlightRef.current = true;
     setSaving(true);
-    const result = await saveLessonCheckActivity({
-      ...draft,
-      unitTitle: globalSuccessUnitTitle(draft.grade, draft.unitNo) || draft.unitTitle,
-      lessonTitle: globalSuccessLessonTitle(draft.lessonKey) || draft.lessonTitle,
-      sourceHost: parsedDraft.kind === 'url' ? sourceHost(parsedDraft.source) : 'HTML / srcDoc',
-    }, parsedDraft);
+    setBuilderFeedback({kind:'saving',message:isVi?'Đang lưu lên Supabase, vui lòng đợi…':'Saving to Supabase. Please wait…'});
+    try {
+      const result = await saveLessonCheckActivity({
+        ...draft,
+        unitTitle: globalSuccessUnitTitle(draft.grade, draft.unitNo) || draft.unitTitle,
+        lessonTitle: globalSuccessLessonTitle(draft.lessonKey) || draft.lessonTitle,
+        sourceHost: parsedDraft.kind === 'url' ? sourceHost(parsedDraft.source) : 'HTML / srcDoc',
+      }, parsedDraft);
 
-    if (!result.ok) {
+      if (!result.ok) {
+        // The primary row can be committed before its focus metadata fails.
+        // Retain the returned ID so a retry updates it instead of creating a duplicate.
+        if (result.id && !draft.id) setSingleDraft(current=>({...current,id:result.id}));
+        showSaveError(result.message || (isVi?'Không thể lưu hoạt động. Hãy thử lại.':'Could not save this activity. Please retry.'));
+        return;
+      }
+
+      // Remember the committed ID before non-atomic thumbnail operations.
+      if (!draft.id) setSingleDraft(current=>({...current,id:result.id}));
+      if (draft.id && thumbnailDataUrl) {
+        const thumbnailResult = await uploadLessonCheckActivityThumbnail(result.id, thumbnailDataUrl);
+        if (!thumbnailResult.ok) {
+          showSaveError((isVi ? 'Hoạt động đã lưu, nhưng thumbnail chưa lưu được: ' : 'Activity saved, but thumbnail upload failed: ') + thumbnailResult.message);
+          void loadActivities({ silent: true }).catch(() => {});
+          return;
+        }
+      } else if (draft.id && thumbnailRemoveRequested) {
+        const thumbnailResult = await removeLessonCheckActivityThumbnail(result.id);
+        if (!thumbnailResult.ok) {
+          showSaveError((isVi ? 'Hoạt động đã lưu, nhưng không xóa được thumbnail: ' : 'Activity saved, but thumbnail removal failed: ') + thumbnailResult.message);
+          void loadActivities({ silent: true }).catch(() => {});
+          return;
+        }
+      }
+      // Save succeeded even if the follow-up library refresh is unavailable.
+      resetActivityBuilder();
+      setShowBuilder(false);
+      setNotice(isVi ? 'Đã lưu hoạt động thành công.' : 'Activity saved successfully.');
+      void loadActivities({ silent: true }).catch(() => {}); // The database commit is already confirmed.
+    } catch (exception) {
+      // An interrupted response is ambiguous: never automatically retry an INSERT.
+      showSaveError(isVi
+        ? 'Kết nối bị gián đoạn, chưa xác nhận được kết quả lưu. Hãy kiểm tra danh sách hoạt động trước khi thử lại để tránh tạo trùng. '
+          + (exception?.message || '')
+        : 'Connection interrupted. Check the activity list before retrying to avoid duplicates. '
+          + (exception?.message || ''));
+    } finally {
+      saveInFlightRef.current = false;
       setSaving(false);
-      setNotice(result.message || (isVi ? 'Không thể lưu hoạt động.' : 'Could not save activity.'));
-      return;
     }
-
-    if (draft.id && thumbnailDataUrl) {
-      const thumbnailResult = await uploadLessonCheckActivityThumbnail(result.id, thumbnailDataUrl);
-      if (!thumbnailResult.ok) {
-        setSaving(false);
-        setNotice((isVi ? 'Hoạt động đã lưu nhưng thumbnail chưa lưu được: ' : 'Activity saved, but thumbnail upload failed: ') + thumbnailResult.message);
-        await loadActivities({ silent: true });
-        return;
-      }
-    } else if (draft.id && thumbnailRemoveRequested) {
-      const thumbnailResult = await removeLessonCheckActivityThumbnail(result.id);
-      if (!thumbnailResult.ok) {
-        setSaving(false);
-        setNotice((isVi ? 'Hoạt động đã lưu nhưng chưa xóa được thumbnail: ' : 'Activity saved, but thumbnail could not be removed: ') + thumbnailResult.message);
-        await loadActivities({ silent: true });
-        return;
-      }
-    }
-
-    setSaving(false);
-    setNotice(isVi ? 'Đã lưu hoạt động và thumbnail.' : 'Activity and thumbnail saved.');
-    resetActivityBuilder();
-    setShowBuilder(false);
-    await loadActivities({ silent: true });
   }
 
   async function duplicateActivity(item) {
@@ -1501,7 +1555,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
                   <label className="lcs-field lcs-field-wide">
                     <span>{isVi ? 'Tên hoạt động' : 'Activity title'}</span>
-                    <input value={draft.title} onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))} placeholder={isVi ? `Ví dụ: Unit ${draft.unitNo} – ${globalSuccessUnitTitle(draft.grade, draft.unitNo)} Quiz` : 'Activity title'} />
+                    <input ref={saveTitleRef} aria-invalid={builderFeedback?.field==='title'} value={draft.title} onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))} placeholder={isVi ? `Ví dụ: Unit ${draft.unitNo} – ${globalSuccessUnitTitle(draft.grade, draft.unitNo)} Quiz` : 'Activity title'} />
                   </label>
                   <label className="lcs-field">
                     <span>{isVi ? 'Lớp / nhóm dùng' : 'Class / group'}</span>
@@ -1513,7 +1567,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                   </label>
                   <label className="lcs-field">
                     <span>{isVi ? 'Chuyên đề / kỹ năng' : 'Learning focus'}</span>
-                    <select value={draft.focusArea} onChange={(e) => setDraft((d) => ({ ...d, focusArea: e.target.value }))}>
+                    <select ref={saveFocusRef} aria-invalid={builderFeedback?.field==='focus'} value={draft.focusArea} onChange={(e) => setDraft((d) => ({ ...d, focusArea: e.target.value }))}>
                       <option value="unclassified">{isVi ? '— Chọn chuyên đề —' : '— Choose focus —'}</option>
                       {FOCUS_OPTIONS.filter((item) => item.value !== 'unclassified').map((item) => <option key={item.value} value={item.value}>{isVi ? item.vi : item.en}</option>)}
                     </select>
@@ -1576,7 +1630,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
                   <label className="lcs-field lcs-field-wide">
                     <span>{isVi ? 'Mã nhúng / URL / HTML' : 'Embed code / URL / HTML'}</span>
-                    <textarea rows={9} value={draft.embedCode} onChange={(e) => setDraft((d) => ({ ...d, embedCode: e.target.value }))} placeholder={'<iframe src="https://..."></iframe>\n\nhttps://...\n\n<div>...</div><script>...</script>'} spellCheck={false} />
+                    <textarea ref={saveEmbedRef} aria-invalid={builderFeedback?.field==='embed'} rows={9} value={draft.embedCode} onChange={(e) => setDraft((d) => ({ ...d, embedCode: e.target.value }))} placeholder={'<iframe src="https://..."></iframe>\n\nhttps://...\n\n<div>...</div><script>...</script>'} spellCheck={false} />
                   </label>
                   <div className="lcs-detection">
                     <span className={`lcs-dot ${previewReady ? 'is-ready' : ''}`} />
@@ -1585,9 +1639,16 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                       : parsedDraft.kind === 'invalid' ? (isVi ? 'Chưa nhận diện được mã hợp lệ' : 'No valid embed detected')
                       : (isVi ? 'Chưa có mã nhúng' : 'No embed code yet')}
                   </div>
+                  {builderFeedback ? (
+                    <div className={`lcs-save-feedback is-${builderFeedback.kind}`}
+                      role={builderFeedback.kind==='error'?'alert':'status'} aria-live={builderFeedback.kind==='error'?'assertive':'polite'}>
+                      {builderFeedback.kind==='saving' ? <LoaderCircle className="lcs-spin" size={19} /> : <Info size={19} />}
+                      <span>{builderFeedback.message}</span>
+                    </div>
+                  ) : null}
                   <div className="lcs-form-actions">
                     {draft.id ? <button className="lcs-btn lcs-btn-secondary" onClick={closeBuilder}>{isVi ? 'Hủy chỉnh sửa' : 'Cancel edit'}</button> : null}
-                    <button className="lcs-btn lcs-btn-primary" onClick={saveActivity} disabled={saving || thumbnailBusy}>
+                    <button type="button" className="lcs-btn lcs-btn-primary" onClick={saveActivity} disabled={saving || thumbnailBusy} aria-busy={saving}>
                       {saving ? <LoaderCircle className="lcs-spin" size={18} /> : <Save size={18} />}
                       {batchMode
                         ? (saving
