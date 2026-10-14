@@ -47,7 +47,7 @@ test('Quick Preview and queue drawers are usable from keyboard and restore origi
  assert.match(panels,/function useModalKeyboard\(onClose\)/);
  assert.match(panels,/event\.key === 'Escape'/);
  assert.match(panels,/event\.key === 'Tab'/);
- assert.match(panels,/before\.isConnected/);
+ assert.match(panels,/before\?\.isConnected/);
  assert.match(panels,/role="dialog" aria-modal="true"/);
  assert.match(panels,/disabled=\{!canOpen\|\|inQueue\|\|!queueReady\}/);
 });
