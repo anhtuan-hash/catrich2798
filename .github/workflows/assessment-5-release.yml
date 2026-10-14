@@ -8,6 +8,8 @@ on:
       - 'src/utils/lessonCheckTeaching.js'
       - 'supabase/migrations/20261014060000_assessment_5_teaching_queue.sql'
       - 'tests/assessment-5-contract.test.mjs'
+      - 'tests/assessment-5-1-reliability.test.mjs'
+      - 'src/utils/lessonCheckWorkbench.js'
       - 'tests/e2e/assessment-5-ui.spec.js'
       - '.github/workflows/assessment-5-release.yml'
   push:
@@ -30,6 +32,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: node --test tests/assessment-5-contract.test.mjs
+      - run: node --test tests/assessment-5-1-reliability.test.mjs
       - run: node --test tests/assessment-4-workbench.test.mjs
       - run: node --test tests/lesson-check-approved-mockup-1.test.mjs
       - run: node --test tests/lesson-check-inline-favorites.test.mjs

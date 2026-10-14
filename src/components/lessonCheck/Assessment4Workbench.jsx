@@ -129,15 +129,11 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
  },[running,activeRunner]);
  useEffect(()=>{if(runnerSeconds===0 && running)setRunning(false);},[runnerSeconds,running]);
  const amend=update=>setData(d=>({...d,...(typeof update==='function'?update(d):update)}));
- const markRecent=id=>amend(d=>({recentIds:[id,...d.recentIds.filter(x=>x!==id)].slice(0,30)}));
+ // The parent launch pathway validates access, logs one genuine open and
+ // updates the atomic recent list. Do not duplicate those writes here.
  const launch=async activity=>{
-  if(!activity)return;
-  if(isLeader || activity.hasAccess) {
-   markRecent(activity.id);
-   const result=await logActivityUse(userId,activity,{className:runner.className||'',eventType:'opened'});
-   if(!result.ok)setNotice('Hoạt động vẫn mở được, nhưng chưa ghi nhật ký: '+result.message);
-  }
-  onLaunch?.(activity);
+  if(!activity || (!isLeader && !activity.hasAccess))return;
+  await onLaunch?.(activity);
  };
  // Same favorite state as the main game gallery. No second, conflicting save path.
  const star=id=>onToggleFavorite?.(id);
