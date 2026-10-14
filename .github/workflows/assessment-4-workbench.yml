@@ -6,6 +6,8 @@ on:
       - 'src/pages/LessonCheckStudio.jsx'
       - 'src/pages/LessonCheckApprovedMockupOne.css'
       - 'src/utils/lessonCheckWorkbench.js'
+      - 'supabase/migrations/20261014050000_lesson_check_atomic_favorites.sql'
+      - 'tests/lesson-check-inline-favorites.test.mjs'
       - 'src/utils/lessonCheckTeacherGroups.js'
       - 'src/utils/lessonCheckLinkAudit.js'
       - 'src/components/GlobalQuickAccessRail.css'
@@ -23,6 +25,8 @@ on:
       - 'src/pages/LessonCheckStudio.jsx'
       - 'src/pages/LessonCheckApprovedMockupOne.css'
       - 'src/utils/lessonCheckWorkbench.js'
+      - 'supabase/migrations/20261014050000_lesson_check_atomic_favorites.sql'
+      - 'tests/lesson-check-inline-favorites.test.mjs'
       - 'src/utils/lessonCheckTeacherGroups.js'
       - 'src/utils/lessonCheckLinkAudit.js'
       - 'src/components/GlobalQuickAccessRail.css'
@@ -42,6 +46,7 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci --ignore-scripts
+      - run: node --test tests/lesson-check-inline-favorites.test.mjs
       - run: node --test tests/assessment-4-workbench.test.mjs
       - run: node --test tests/assessment-4-1-security.test.mjs
       - run: node --test tests/lesson-check-approved-mockup-1.test.mjs
