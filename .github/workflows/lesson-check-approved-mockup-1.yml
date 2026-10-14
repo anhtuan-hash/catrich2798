@@ -37,5 +37,10 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Verify search visibility at desktop, tablet and mobile
         run: npx playwright test tests/e2e/lesson-check-search-visible.spec.js --project=chromium-desktop
+      - name: Build test-only Supabase fixture client
+        env:
+          VITE_SUPABASE_URL: https://search-fixture.invalid
+          VITE_SUPABASE_ANON_KEY: public-test-only-anon-not-a-secret
+        run: npm run build
       - name: Verify search actually filters the game library
         run: npx playwright test tests/e2e/lesson-check-search-results.spec.js --project=chromium-desktop
