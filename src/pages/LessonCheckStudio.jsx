@@ -1080,7 +1080,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       // Do not unlock until draft slots have been cleared or marked for retry.
       batchSavingRef.current = false;
       setBatchProgress({ current: 0, total: 0 });
-      try { await loadActivities({ silent: true }); } catch { /* Do not obscure the save result. */ }
+      void loadActivities({ silent: true }).catch(() => {}); // Refresh must not hold the save button locked.
       saveInFlightRef.current = false;
       setSaving(false);
     }
@@ -1157,7 +1157,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       resetActivityBuilder();
       setShowBuilder(false);
       setNotice(isVi ? 'Đã lưu hoạt động thành công.' : 'Activity saved successfully.');
-      try { await loadActivities({ silent: true }); } catch { /* Data was committed; refresh later. */ }
+      void loadActivities({ silent: true }).catch(() => {}); // The database commit is already confirmed.
     } catch (exception) {
       // An interrupted response is ambiguous: never automatically retry an INSERT.
       showSaveError(isVi
