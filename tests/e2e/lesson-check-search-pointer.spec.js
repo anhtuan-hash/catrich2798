@@ -43,7 +43,9 @@ test.describe('Lesson Check search actually accepts a mouse click',()=>{
    await expect(page.locator('.lcs-arcade-results-head')).toContainText('Neural');
    await input.press('Escape');
    await expect(input).toHaveValue('');
-   await search.locator('.lcs-search-visible-label').click();
+   const labelBox=await search.locator('.lcs-search-visible-label').boundingBox();
+   expect(labelBox).not.toBeNull();
+   await page.mouse.click(labelBox.x+labelBox.width/2,labelBox.y+labelBox.height/2);
    await expect(input).toBeFocused();
   });
  }
