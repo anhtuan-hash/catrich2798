@@ -800,3 +800,45 @@
     margin-left:0!important;
   }
 }
+
+/* 2026-10-14 / mouse input regression.
+   A visibly rendered search field must also be the actual pointer hit target.
+   Keep the whole library row above decorative descendants while preserving
+   modal stacking and the approved responsive layout. */
+.lcs-page--library .lcs-arcade-filterbar {
+  position:relative!important;
+  z-index:8!important;
+  isolation:isolate!important;
+}
+.lcs-page--library .lcs-arcade-filterbar > .lcs-filter-quick-search.lcs-search-always-visible {
+  z-index:2!important;
+  pointer-events:auto!important;
+  cursor:text!important;
+}
+.lcs-page--library .lcs-arcade-filterbar > .lcs-filter-quick-search.lcs-search-always-visible > input[type="search"] {
+  position:relative!important;
+  z-index:3!important;
+  display:block!important;
+  visibility:visible!important;
+  pointer-events:auto!important;
+  user-select:text!important;
+  -webkit-user-select:text!important;
+  cursor:text!important;
+  touch-action:manipulation;
+  -webkit-appearance:none;
+  appearance:none;
+}
+.lcs-page--library .lcs-filter-quick-search > svg,
+.lcs-page--library .lcs-filter-quick-search > .lcs-search-visible-label {
+  pointer-events:none!important;
+  user-select:none!important;
+}
+.lcs-page--library .lcs-filter-quick-search .lcs-filter-quick-clear {
+  position:relative;
+  z-index:4;
+  pointer-events:auto!important;
+}
+.lcs-page--library .lcs-filter-quick-search:focus-within {
+  border-color:#367bba!important;
+  box-shadow:0 0 0 3px rgba(54,123,186,.18)!important;
+}
