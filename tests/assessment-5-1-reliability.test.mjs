@@ -27,7 +27,7 @@ test('Teaching queue writes are synchronous-locked, owner-scoped and confirmed b
  assert.match(page,/setQueueReady\(false\)/);
  assert.match(page,/setQueueIds\(\[\]\)/);
  assert.match(page,/setQueueReady\(true\)/);
- assert.match(page,/if\(saved\)setQueueOpen\(false\)/);
+ assert.match(page,/if\s*\(saved\)\s*setQueueOpen\(false\)/);
  assert.match(page,/ready=\{queueReady\}/);
  assert.match(panels,/Đang tải buổi dạy/);
  assert.match(panels,/Đang đồng bộ hàng đợi/);
