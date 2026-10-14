@@ -36,7 +36,7 @@ function ActivityMini({ item, onOpen, onStar, favorite, more }) {
  </article>;
 }
 
-export default function Assessment4Workbench({ activities=[], currentUser, isLeader=false, onLaunch, onRefresh }) {
+export default function Assessment4Workbench({ activities=[], currentUser, isLeader=false, onLaunch, onRefresh, favoriteIds=[], onToggleFavorite }) {
  const userId=uid(currentUser);
  const [tab,setTab]=useState('mine');
  const [data,setData]=useState(initial);
@@ -138,7 +138,8 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
   }
   onLaunch?.(activity);
  };
- const star=id=>amend(d=>({favorites:d.favorites.includes(id)?d.favorites.filter(x=>x!==id):[...d.favorites,id]}));
+ // Same favorite state as the main game gallery. No second, conflicting save path.
+ const star=id=>onToggleFavorite?.(id);
  const collectionUpdate=(id,update)=>amend(d=>({collections:d.collections.map(c=>c.id===id?{...c,...update(c)}:c)}));
  const createCollection=()=>{
   const title=collectionName.trim().slice(0,100);
@@ -323,7 +324,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
   {notice?<div className="a4-notice" role="status">{notice}<button type="button" aria-label="Đóng" onClick={()=>setNotice('')}><X size={15}/></button></div>:null}
   {!ready?<div className="a4-loading">{workspaceError?<><strong>{workspaceError}</strong> <button type="button" onClick={()=>setRetryKey(v=>v+1)}>Thử lại</button></>:<><LoaderCircle/> Đang kết nối không gian làm việc cá nhân…</>}</div>:null}
   {ready && tab==='mine'? <>
-   <div className="a4-stats"><div><strong>{data.favorites.length}</strong><span>Yêu thích</span></div><div><strong>{data.recentIds.length}</strong><span>Đã mở gần đây</span></div><div><strong>{data.collections.length}</strong><span>Bộ sưu tập</span></div><div><strong>{allowed.length}</strong><span>Có quyền truy cập</span></div></div>
+   <div className="a4-stats"><div><strong>{favoriteIds.length}</strong><span>Yêu thích</span></div><div><strong>{data.recentIds.length}</strong><span>Đã mở gần đây</span></div><div><strong>{data.collections.length}</strong><span>Bộ sưu tập</span></div><div><strong>{allowed.length}</strong><span>Có quyền truy cập</span></div></div>
    <Title detail="Đánh dấu trái tim để ghim hoạt động; mọi mục được đồng bộ riêng theo tài khoản.">My Activity Workspace</Title>
    <div className="a4-filter"><label><Search size={16}/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Tên trò chơi, chuyên đề, Unit…"/></label>
     <select aria-label="Khối" value={grade} onChange={e=>setGrade(e.target.value)}><option value="all">Mọi khối</option>{['10','11','12'].map(v=><option key={v}>{v}</option>)}</select>
@@ -334,7 +335,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
     <select aria-label="Thời lượng" value={duration} onChange={e=>setDuration(e.target.value)}><option value="all">Mọi thời lượng</option><option value="short">≤10 phút</option><option value="medium">11–25 phút</option><option value="long">Trên 25 phút</option></select>
     <select aria-label="Sắp xếp" value={sort} onChange={e=>setSort(e.target.value)}><option value="recent">Ưu tiên gần đây</option><option value="title">A–Z</option><option value="newest">Mới cập nhật</option></select>
    </div>
-   <div className="a4-card-grid">{filtered.slice(0,60).map(item=><ActivityMini key={item.id} item={table.get(item.id)} onOpen={launch} onStar={star} favorite={data.favorites.includes(item.id)}/>)}</div>
+   <div className="a4-card-grid">{filtered.slice(0,60).map(item=><ActivityMini key={item.id} item={table.get(item.id)} onOpen={launch} onStar={star} favorite={favoriteIds.includes(item.id)}/>)}</div>
    {!filtered.length?<p className="a4-empty">Chưa có hoạt động phù hợp bộ lọc hoặc quyền truy cập.</p>:null}
   </>:null}
   {ready && tab==='collections'?<>

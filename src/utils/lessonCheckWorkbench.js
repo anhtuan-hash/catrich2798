@@ -28,10 +28,22 @@ export async function storeAssessmentWorkspace(userId, state) {
     collections: state.collections, runner: state.runner,
   });
   const { error } = await supabase.from('lesson_check_workspace_state').upsert({
-    user_id: userId, favorites: normalized.favorites, recent_ids: normalized.recentIds,
+    // Favorites are written atomically by setAssessmentFavorite. Never overwrite them
+    // when a collection, runner or recently opened activity is saved.
+    user_id: userId, recent_ids: normalized.recentIds,
     collections: normalized.collections, runner: normalized.runner, updated_at: new Date().toISOString(),
   }, { onConflict: 'user_id' });
   return error ? fail(error) : { ok: true };
+}
+
+export async function setAssessmentFavorite(activityId, favorite) {
+  if (!ready()) return fail(null, 'Cần đăng nhập để lưu trò chơi yêu thích.');
+  const { data, error } = await supabase.rpc('lesson_check_set_favorite', {
+    p_activity: activityId,
+    p_favorite: Boolean(favorite),
+  });
+  return error ? fail(error, 'Không thể lưu thay đổi yêu thích.') :
+    { ok: true, favorites: Array.isArray(data) ? data : [] };
 }
 
 export async function listActivityJournal({ leader = false, userId, limit = 250 } = {}) {
