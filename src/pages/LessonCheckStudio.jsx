@@ -63,6 +63,7 @@ import AssessmentWorkspace from '../components/lessonCheck/AssessmentWorkspace.j
 import Assessment5Header from '../components/lessonCheck/Assessment5Header.jsx';
 import { Assessment5Preview, Assessment5Queue } from '../components/lessonCheck/Assessment5Panels.jsx';
 import { readTeachingQueue, writeTeachingQueue, markRecentActivity } from '../utils/lessonCheckTeaching.js';
+import { normalizeActivityTitle, matchesActivityTitle } from '../utils/lessonCheckSearch.js';
 import { listActivityAttributes, saveActivityAttributes } from '../utils/lessonCheckAttributes.js';
 import { listActivityJournal, logActivityUse } from '../utils/lessonCheckWorkbench.js';
 import { loadAssessmentWorkspace, setAssessmentFavorite } from '../utils/lessonCheckWorkbench.js';
@@ -93,17 +94,6 @@ const FOCUS_OPTIONS = [
   { value: 'mixed', vi: 'Tổng hợp', en: 'Mixed', short: 'MIXED' },
   { value: 'unclassified', vi: 'Chưa gắn', en: 'Unclassified', short: 'CHƯA GẮN' },
 ];
-
-// Fast title-only search; Vietnamese diacritics and case do not affect matching.
-function normalizeActivityTitle(value) {
-  return String(value || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/đ/g, 'd')
-    .replace(/Đ/g, 'D')
-    .trim()
-    .toLocaleLowerCase('vi');
-}
 
 function blankDraft() {
   return {
@@ -379,6 +369,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [notice, setNotice] = useState('');
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
+  const searchInputRef = useRef(null);
   const [gradeFilter, setGradeFilter] = useState('all');
   const [unitFilter, setUnitFilter] = useState('all');
   const [focusFilter, setFocusFilter] = useState('all');
@@ -788,7 +779,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       )) return false;
       if (statusFilter === 'locked' && !locked) return false;
       if (!q) return true;
-      return normalizeActivityTitle(item.title).includes(q);
+      return matchesActivityTitle(item.title, q);
     });
 
     return [...result].sort((a, b) => {
@@ -1773,11 +1764,15 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
             <option value="mixed">{isVi ? 'Tổng hợp' : 'Mixed'}</option>
             <option value="unclassified">{isVi ? 'Chưa gắn' : 'Unclassified'}</option>
           </select>
-          <div className="lcs-filter-quick-search lcs-search-always-visible" role="search" aria-label={isVi ? 'Tìm hoạt động theo tên' : 'Find an activity by name'}>
+          <div className="lcs-filter-quick-search lcs-search-always-visible" role="search"
+            aria-label={isVi ? 'Tìm hoạt động theo tên' : 'Find an activity by name'}
+            onClick={event => { if (!event.target.closest('button')) searchInputRef.current?.focus(); }}>
             <Search size={18} aria-hidden="true" />
             <span className="lcs-search-visible-label">{isVi ? 'Tìm tên' : 'Find name'}</span>
             <input
-              type="text"
+              ref={searchInputRef}
+              type="search"
+              enterKeyHint="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               onKeyDown={(event) => {
@@ -1787,6 +1782,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
               placeholder={isVi ? 'Tìm nhanh tên hoạt động…' : 'Search activity names…'}
               autoComplete="off"
               spellCheck={false}
+              maxLength={120}
             />
             {query ? (
               <button
@@ -1796,7 +1792,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                 title={isVi ? 'Xóa từ khóa' : 'Clear search'}
                 onClick={() => setQuery('')}
               ><X size={16} /></button>
-            ) : <span className="lcs-filter-search-shortcut" aria-hidden="true">Tên</span>}
+            ) : null}
           </div>
           {(query || gradeFilter !== 'all' || unitFilter !== 'all' || focusFilter !== 'all' || statusFilter !== 'all' || sortMode !== 'newest') ? (
             <button className="lcs-arcade-clear" type="button" onClick={() => {
@@ -1827,7 +1823,11 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
           <button type="button" disabled={!bulkIds.length} onClick={()=>openWorkspaceTab('permissions')}>{isVi?'Cấp quyền nhóm':'Bulk grants'}</button>
         </div> : null}
         <div className="lcs-arcade-results-head">
-          <span>{filteredActivities.length ? (isVi ? `Hiển thị ${pageStart}–${pageEnd} / ${filteredActivities.length}` : `Showing ${pageStart}–${pageEnd} of ${filteredActivities.length}`) : (isVi ? 'Không có kết quả' : 'No results')}</span>
+          <span aria-live="polite" aria-atomic="true">{query.trim()
+            ? (isVi ? `Tìm “${query.trim()}”: ${filteredActivities.length} kết quả` : `Search “${query.trim()}”: ${filteredActivities.length} matches`)
+            : filteredActivities.length
+              ? (isVi ? `Hiển thị ${pageStart}–${pageEnd} / ${filteredActivities.length}` : `Showing ${pageStart}–${pageEnd} of ${filteredActivities.length}`)
+              : (isVi ? 'Không có kết quả' : 'No results')}</span>
           {!loading && filteredActivities.length > 0 ? (
             <div className="lcs-arcade-pagination-controls">
               <div className="lcs-pagination-compact">
@@ -1842,7 +1842,9 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         {loading ? <LoadingBlock language={language} /> : !filteredActivities.length ? (
           <div className="lcs-empty-library">
             {statusFilter === 'favorites' ? <Heart /> : statusFilter === 'ready' ? <UserCheck /> : <Layers3 />}
-            <h3>{statusFilter === 'favorites' && !favoriteCount
+            <h3>{query.trim() && activities.length
+              ? (isVi ? `Không tìm thấy hoạt động có tên chứa “${query.trim()}”.` : `No activity name matches “${query.trim()}”.`)
+              : statusFilter === 'favorites' && !favoriteCount
               ? (isVi ? 'Bạn chưa lưu trò chơi yêu thích nào.' : 'You have no favorite games yet.')
               : statusFilter === 'ready' && !grantedCount
               ? (isVi ? 'Bạn chưa có hoạt động nào được cấp quyền.' : 'No activities have been granted to you yet.')
@@ -1850,7 +1852,11 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                 ? (isVi ? 'Không có hoạt động phù hợp bộ lọc.' : 'No activities match these filters.')
                 : (isVi ? 'Chưa có hoạt động nào trên Supabase.' : 'No activities in Supabase yet.')}
             </h3>
-            {['ready', 'favorites'].includes(statusFilter) ? (
+            {query.trim() ? (
+              <button type="button" className="lcs-granted-empty-browse" onClick={() => {setQuery('');searchInputRef.current?.focus();}}>
+                {isVi ? 'Xóa từ khóa tìm kiếm' : 'Clear search'}
+              </button>
+            ) : ['ready', 'favorites'].includes(statusFilter) ? (
               <button type="button" className="lcs-granted-empty-browse" onClick={() => {
                 setStatusFilter('all');
                 setFocusFilter('all');

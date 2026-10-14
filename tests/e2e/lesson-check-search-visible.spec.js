@@ -27,7 +27,7 @@ test.describe('Lesson Check quick activity title search visibility',()=>{
       const search=filterbar.locator('.lcs-search-always-visible');
       await expect(search).toBeVisible();
       await expect(search.locator('.lcs-search-visible-label')).toHaveText('Tìm tên');
-      const textbox=search.locator('input[type="text"]');
+      const textbox=search.locator('input[type="search"]');
       await expect(textbox).toHaveAttribute('aria-label','Tìm nhanh theo tên hoạt động');
       await expect(textbox).toBeVisible();
       const geometry=await search.evaluate(el=>{

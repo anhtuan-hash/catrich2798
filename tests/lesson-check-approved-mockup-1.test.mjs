@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import {normalizeActivityTitle, matchesActivityTitle} from '../src/utils/lessonCheckSearch.js';
 
 const load=(path)=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const page=load('src/pages/LessonCheckStudio.jsx');
@@ -115,7 +116,7 @@ test('Quick activity-name search sits next to Unit/topic filters and is keyboard
   assert.ok(filters.length>200);
   assert.ok(filters.indexOf('aria-label="Unit"') < filters.indexOf('lcs-filter-quick-search'));
   assert.ok(filters.indexOf('Tất cả chuyên đề') < filters.indexOf('lcs-filter-quick-search'));
-  assert.match(filters,/className="lcs-filter-quick-search lcs-search-always-visible" role="search"/);
+  assert.match(filters,/className="lcs-filter-quick-search lcs-search-always-visible"\s+role="search"/);
   assert.match(filters,/aria-label=\{isVi \? 'Tìm nhanh theo tên hoạt động' : 'Quick search by activity name'\}/);
   assert.match(filters,/value=\{query\}/);
   assert.match(filters,/onChange=\{\(event\) => setQuery\(event\.target\.value\)\}/);
@@ -126,11 +127,9 @@ test('Quick activity-name search sits next to Unit/topic filters and is keyboard
 });
 test('Quick search matches activity titles alone and is accent insensitive',()=>{
   assert.match(page,/const q = normalizeActivityTitle\(query\)/);
-  assert.match(page,/return normalizeActivityTitle\(item\.title\)\.includes\(q\)/);
-  const start=page.indexOf('function normalizeActivityTitle(');
-  const end=page.indexOf('function blankDraft()',start);
-  assert.ok(start>0&&end>start);
-  const normalize=Function('return ('+page.slice(start,end).trim()+')')();
+  assert.match(page,/return matchesActivityTitle\(item\.title, q\)/);
+  const normalize=normalizeActivityTitle;
+  assert.equal(matchesActivityTitle('Artificial Intelligence: Neural Nexus Tower','neural tower'),true);
   assert.equal(normalize('ĐỔI MỚI SÁNG TẠO'),normalize('doi moi sang tao'));
   assert.equal(normalize('  Grammar Breach   '),'grammar breach');
   assert.equal(normalize('Phát minh').includes(normalize('phat')) ,true);
