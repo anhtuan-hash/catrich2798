@@ -22,6 +22,8 @@ test.describe('Lesson Check search actually accepts a mouse click',()=>{
    const search=page.locator('#lcs5-activity-library .lcs-search-always-visible');
    const input=search.locator('input[type="search"]');
    await expect(input).toBeVisible({timeout:20000});
+   await input.scrollIntoViewIfNeeded();
+   await expect(input).toBeInViewport();
    const hit=await input.evaluate(element=>{
     const r=element.getBoundingClientRect();
     const target=document.elementFromPoint(r.left+r.width/2,r.top+r.height/2);
