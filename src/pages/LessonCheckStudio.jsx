@@ -390,6 +390,8 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const favoriteLoadVersionRef = useRef(0);
   const uiPreferenceLoadedRef = useRef(false);
   const favoriteUserId = currentUser?.id || currentUser?.authId || '';
+  const queueAccountRef = useRef(favoriteUserId);
+  queueAccountRef.current = favoriteUserId;
   const [sortMode, setSortMode] = useState('newest');
   const [viewMode, setViewMode] = useState('grid');
   const [recentIds, setRecentIds] = useState([]);
@@ -397,6 +399,8 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [queueClass, setQueueClass] = useState('');
   const [queueMinutes, setQueueMinutes] = useState(5);
   const [queueBusy, setQueueBusy] = useState(false);
+  const [queueReady, setQueueReady] = useState(false);
+  const queueMutationRef = useRef(false);
   const [queueOpen, setQueueOpen] = useState(false);
   const [previewActivity, setPreviewActivity] = useState(null);
   const [attributes, setAttributes] = useState([]);
@@ -588,33 +592,57 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     }
   }, [favoriteUserId, favoritesReady, favoriteSet, isVi]);
 
-  // Assessment 5.0 loads queue and metadata on demand, without eager iframes.
+  // Load the current account's queue before enabling edits; hide a previous account's data.
   useEffect(() => {
-    let live=true;
-    if (!favoriteUserId) return () => {live=false;};
+    let live = true;
+    setQueueReady(false);
+    setQueueIds([]);
+    setQueueClass('');
+    setQueueMinutes(5);
+    if (!favoriteUserId) return () => { live = false; };
     readTeachingQueue(favoriteUserId).then(result => {
-      if(!live)return;
-      if(result.ok){
-        setQueueIds(result.queue.activity_ids||[]);
-        setQueueClass(result.queue.class_name||'');
-        setQueueMinutes(result.queue.default_minutes||5);
-      }else setNotice(result.message);
+      if (!live) return;
+      if (result.ok) {
+        setQueueIds(result.queue.activity_ids || []);
+        setQueueClass(result.queue.class_name || '');
+        setQueueMinutes(result.queue.default_minutes || 5);
+        setQueueReady(true);
+      } else setNotice(result.message);
+    }).catch(() => {
+      if (live) setNotice(isVi ? 'Không thể kết nối hàng đợi, vui lòng thử lại.' : 'Could not connect to the teaching queue.');
     });
-    listActivityAttributes().then(result => {if(live && result.ok)setAttributes(result.items||[]);});
-    return () => {live=false;};
-  },[favoriteUserId]);
+    listActivityAttributes().then(result => {
+      if (live && result.ok) setAttributes(result.items || []);
+    }).catch(() => {});
+    return () => { live = false; };
+  }, [favoriteUserId, isVi]);
 
+  // Lock synchronously, not after React's queued state update. Failed writes never
+  // replace the last confirmed queue; account switching cannot rehydrate another user's data.
   const updateQueue = useCallback(async (nextIds,nextClass=queueClass,nextMinutes=queueMinutes) => {
-    if(queueBusy || !favoriteUserId)return false;
+    if (queueMutationRef.current || !queueReady || !favoriteUserId) return false;
+    queueMutationRef.current = true;
     setQueueBusy(true);
-    const result=await writeTeachingQueue(favoriteUserId,{ids:nextIds,className:nextClass,minutes:nextMinutes});
-    setQueueBusy(false);
-    if(!result.ok){setNotice(result.message);return false;}
-    setQueueIds(result.queue.activity_ids||[]);
-    setQueueClass(result.queue.class_name||'');
-    setQueueMinutes(result.queue.default_minutes||5);
-    return true;
-  },[favoriteUserId,queueBusy,queueClass,queueMinutes]);
+    const owner = favoriteUserId;
+    try {
+      const result = await writeTeachingQueue(owner,{ids:nextIds,className:nextClass,minutes:nextMinutes});
+      if (owner !== queueAccountRef.current) return false;
+      if (!result.ok) {
+        setNotice(result.message || (isVi ? 'Không lưu được hàng đợi.' : 'Could not save the teaching queue.'));
+        return false;
+      }
+      setQueueIds(result.queue.activity_ids || []);
+      setQueueClass(result.queue.class_name || '');
+      setQueueMinutes(result.queue.default_minutes || 5);
+      return true;
+    } catch {
+      if (owner === queueAccountRef.current) setNotice(isVi ? 'Mất kết nối, hàng đợi chưa được lưu.' : 'Connection lost; the queue was not saved.');
+      return false;
+    } finally {
+      queueMutationRef.current = false;
+      if (owner === queueAccountRef.current) setQueueBusy(false);
+    }
+  },[favoriteUserId,queueReady,queueClass,queueMinutes,isVi]);
 
   const addToQueue = useCallback(async id => {
     const item=activities.find(a=>a.id===id);
