@@ -72,6 +72,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
  const [groupBusy,setGroupBusy]=useState(false);
  const [linkAudit,setLinkAudit]=useState({});
  const [linkAuditBusy,setLinkAuditBusy]=useState(false);
+ const [linkAuditPage,setLinkAuditPage]=useState(0);
  const [selectedActivities,setSelectedActivities]=useState([]);
  const [expiresOn,setExpiresOn]=useState('');
  const [grantAction,setGrantAction]=useState('grant');
@@ -242,16 +243,22 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
  async function auditVisibleLinks(){
    if(linkAuditBusy)return;
    setLinkAuditBusy(true);
-   const targets=(quality.length ? quality : activities).slice(0,20);
-   let local={};
-   for(let start=0;start<targets.length;start+=3){
-     const batch=targets.slice(start,start+3);
-     const results=await Promise.all(batch.map(async activity=>({id:activity.id,result:await checkActivityLink(activity)})));
-     for(const item of results)local[item.id]=item.result;
-     setLinkAudit({...local});
-   }
-   setLinkAuditBusy(false);
-   setNotice('Đã kiểm tra '+targets.length+' nguồn; các liên kết bị CORS chặn được đánh dấu là chưa xác minh, không kết luận hỏng.');
+   const queue=[...quality,...activities.filter(a=>!quality.some(q=>q.id===a.id))];
+   const pageCount=Math.max(1,Math.ceil(queue.length/20));
+   const page=linkAuditPage%pageCount;
+   const targets=queue.slice(page*20,(page+1)*20);
+   try{
+     for(let start=0;start<targets.length;start+=3){
+       const batch=targets.slice(start,start+3);
+       const results=await Promise.all(batch.map(async activity=>{
+         try{return {id:activity.id,result:await checkActivityLink(activity)};}
+         catch{return {id:activity.id,result:{status:'unknown',reason:'Không kết nối được dịch vụ kiểm tra; chưa thể kết luận hỏng.'}};}
+       }));
+       setLinkAudit(old=>Object.fromEntries([...Object.entries(old),...results.map(r=>[r.id,r.result])]));
+     }
+     setLinkAuditPage((page+1)%pageCount);
+     setNotice('Đã kiểm tra '+targets.length+' nguồn ('+(page+1)+'/'+pageCount+' đợt). Các nguồn bị CORS chặn không được kết luận là hỏng.');
+   }finally{setLinkAuditBusy(false);}
  }
  async function grantBulk(){
   if(!selectedActivities.length||!selectedTeachers.length){setNotice('Chọn ít nhất một hoạt động và một giáo viên.');return;}
@@ -424,7 +431,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
    <div className="a4-items">{quality.slice(0,150).map(a=><div key={a.id}><span><strong>{a.title}</strong><small>{a.flags.join(' · ')}</small></span><button onClick={()=>onLaunch?.(a)}>Xem</button></div>)}</div>
    <div className="a4-link-audit">
      <div><strong>Kiểm tra liên kết học liệu</strong><small>Chỉ kiểm tra tối đa 20 nguồn cần rà soát mỗi lượt. HTTP 404/410 mới xác định hỏng; CORS, hết giờ và nguồn cần đăng nhập không được tính là hỏng.</small></div>
-     <button type="button" disabled={linkAuditBusy || !quality.length} onClick={auditVisibleLinks}>{linkAuditBusy?'Đang kiểm tra…':'Kiểm tra liên kết (20 nguồn)'}</button>
+     <button type="button" disabled={linkAuditBusy || !activities.length} onClick={auditVisibleLinks}>{linkAuditBusy?'Đang kiểm tra…':('Kiểm tra 20 nguồn · đợt '+(linkAuditPage+1)+'/'+Math.max(1,Math.ceil(activities.length/20)))}</button>
    </div>
    {Object.keys(linkAudit).length>0?<div className="a4-items" aria-live="polite">{Object.entries(linkAudit).map(([id,result])=><div key={id}><span><strong>{table.get(id)?.title||id}</strong><small>{result.reason}</small></span><span className={'a4-link-status is-'+result.status}>{({healthy:'Hợp lệ',broken:'Liên kết hỏng',unknown:'Chưa xác minh',restricted:'Giới hạn truy cập',invalid:'URL không hợp lệ',manual:'Cần xem thủ công'})[result.status]||result.status}</span></div>)}</div>:null}
    <button onClick={()=>csvDownload('assessment-quality.csv',['Hoạt động','Khối','Unit','Cần rà soát','Kiểm tra URL','Lý do'],quality.map(a=>[a.title,a.grade,a.unitNo,a.flags.join('; '),linkAudit[a.id]?.status||'',linkAudit[a.id]?.reason||'']))}><Download size={15}/> Xuất báo cáo chất lượng</button>
