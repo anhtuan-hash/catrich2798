@@ -133,7 +133,8 @@ assert.match(studio, /requests\.filter\(\(item\) => item\.status === 'pending'\)
 assert.match(studio, /reviewRequest\(request, 'approved'\)/);
 assert.match(studio, /reviewRequest\(request, 'rejected'\)/);
 assert.match(studio, /lcs-access-queue/);
-assert.match(studio, /lcs-arcade-search/);
+assert.match(studio, /className="lcs-filter-quick-search" role="search"/);
+assert.match(studio, /return normalizeActivityTitle\(item\.title\)\.includes\(q\)/);
 assert.match(studio, /lcs-arcade-filterbar/);
 assert.match(studio, /lcs-arcade-grid/);
 assert.match(studio, /lcs-focus-indicator/);
