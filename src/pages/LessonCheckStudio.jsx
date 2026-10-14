@@ -420,6 +420,9 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [classroomQueueIndex, setClassroomQueueIndex] = useState(null);
   const [classroomTimer, setClassroomTimer] = useState(300);
   const [classroomClockRunning, setClassroomClockRunning] = useState(false);
+  const [completedQueueIds, setCompletedQueueIds] = useState([]);
+  const [completionBusy, setCompletionBusy] = useState(false);
+  const completingRef = useRef(false);
   const [page, setPage] = useState(1);
   const [showBuilder, setShowBuilder] = useState(false);
   const [showEditor, setShowEditor] = useState(true);
@@ -535,6 +538,9 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   useEffect(() => {
     let live = true;
     setFavoriteIds([]);
+    setRecentIds([]);
+    setJournalRows([]);
+    setJournalReady(false);
     setFavoritesReady(false);
     favoriteInFlightRef.current.clear();
     setFavoriteSavingIds([]);
@@ -694,11 +700,18 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     else setNotice(r.message);
   },[isLeader,favoriteUserId,journalReady]);
 
+  // Absolute deadline avoids losing classroom time when a browser tab is throttled.
+  // Pausing retains remaining seconds; resuming creates a fresh deadline.
   useEffect(() => {
-    if(!classroomClockRunning || classroomQueueIndex===null)return undefined;
-    const handle=window.setInterval(()=>setClassroomTimer(seconds=>Math.max(0,seconds-1)),1000);
-    return ()=>window.clearInterval(handle);
-  },[classroomClockRunning,classroomQueueIndex]);
+    if (!classroomClockRunning || classroomQueueIndex === null) return undefined;
+    const deadline = Date.now() + classroomTimer * 1000;
+    const handle = window.setInterval(() => {
+      setClassroomTimer(Math.max(0, Math.ceil((deadline - Date.now()) / 1000)));
+    }, 250);
+    return () => window.clearInterval(handle);
+    // Re-arm only on play/pause or a new activity, not on each timer tick.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [classroomClockRunning, classroomQueueIndex]);
   useEffect(() => {if(classroomTimer===0)setClassroomClockRunning(false);},[classroomTimer]);
 
   const openWorkspaceTab = tab => {
@@ -1198,18 +1211,33 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     const opened=await openTeachingMode(availableQueueItems[0]);
     if(!opened)return;
     setClassroomQueueIndex(0);
+    setCompletedQueueIds([]);
     setClassroomTimer(queueMinutes*60);
     setClassroomClockRunning(false);
     setQueueOpen(false);
   }
 
   async function completeQueueStep(){
-    if(!teachingActivity || classroomQueueIndex===null)return;
-    const logged=await logActivityUse(favoriteUserId,teachingActivity,{
-      eventType:'completed',className:queueClass,duration:queueMinutes
-    });
-    if(logged.ok){setJournalReady(false);setNotice(isVi?'Đã ghi nhận hoạt động hoàn thành.':'Activity completion recorded.');}
-    else setNotice(logged.message||'Không ghi được nhật ký; hoạt động vẫn đang mở.');
+    if (!teachingActivity || classroomQueueIndex === null || completingRef.current
+        || completedQueueIds.includes(teachingActivity.id)) return;
+    completingRef.current = true;
+    setCompletionBusy(true);
+    const completedId = teachingActivity.id;
+    try {
+      const logged=await logActivityUse(favoriteUserId,teachingActivity,{
+        eventType:'completed',className:queueClass,duration:queueMinutes
+      });
+      if (logged.ok) {
+        setCompletedQueueIds(ids => ids.includes(completedId) ? ids : [...ids,completedId]);
+        setJournalReady(false);
+        setNotice(isVi?'Đã ghi nhận hoạt động hoàn thành.':'Activity completion recorded.');
+      } else setNotice(logged.message||'Không ghi được nhật ký; hoạt động vẫn đang mở.');
+    } catch {
+      setNotice(isVi?'Lỗi kết nối, vui lòng ghi nhận lại.':'Connection lost. Please retry.');
+    } finally {
+      completingRef.current = false;
+      setCompletionBusy(false);
+    }
   }
 
   async function jumpQueueTo(next){
@@ -1900,7 +1928,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                     <div className="lcs5-card-toolbar">
                       <button type="button" onClick={()=>{setPreviewActivity(item);openActivityJournal();}} aria-label={'Xem nhanh '+item.title}><Info size={14}/>{isVi?'Xem nhanh':'Preview'}</button>
                       <button type="button" className={queueSet.has(item.id)?'is-queued':''}
-                        disabled={queueBusy||queueSet.has(item.id)||(!isLeader&&!item.hasAccess)}
+                        disabled={queueBusy||!queueReady||queueSet.has(item.id)||(!isLeader&&!item.hasAccess)}
                         onClick={()=>addToQueue(item.id)}
                         aria-label={'Thêm '+item.title+' vào buổi dạy'}><Plus size={14}/>{queueSet.has(item.id)?'Đã thêm':(isVi?'Buổi dạy':'Queue')}</button>
                     </div>
@@ -2009,14 +2037,18 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         onClose={()=>setPreviewActivity(null)}
         onFavorite={id=>toggleFavorite(id)}
         onAddQueue={addToQueue}
+        queueReady={queueReady && !queueBusy}
         onTeach={async item=>{setPreviewActivity(null);await openTeachingMode(item);}}/> : null}
-      {queueOpen?<Assessment5Queue items={availableQueueItems} busy={queueBusy} className={queueClass}
+      {queueOpen?<Assessment5Queue items={availableQueueItems} busy={queueBusy} ready={queueReady} className={queueClass}
         minutes={queueMinutes} onClassChange={setQueueClass}
         onMinutesChange={value=>setQueueMinutes(Math.max(1,Math.min(60,Number(value)||1)))}
         onMove={moveQueue}
         onRemove={id=>updateQueue(queueIds.filter(x=>x!==id))}
         onClear={()=>{if(window.confirm('Xóa toàn bộ hàng đợi buổi dạy?'))updateQueue([]);}}
-        onClose={()=>{updateQueue(queueIds,queueClass,queueMinutes);setQueueOpen(false);}}
+        onClose={async()=>{if(!queueReady||queueBusy)return;
+          const saved=await updateQueue(queueIds,queueClass,queueMinutes);
+          if(saved)setQueueOpen(false);
+        }}
         onStart={async()=>{const saved=await updateQueue(queueIds,queueClass,queueMinutes);if(saved)await startTeachingQueue();}}
       />:null}
       {teachingActivity ? (
@@ -2030,7 +2062,11 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                 <span className="lcs5-classroom-navigation">
                   <button type="button" onClick={()=>setClassroomClockRunning(v=>!v)} aria-label={classroomClockRunning?'Tạm dừng đồng hồ':'Bắt đầu đồng hồ'}>{classroomClockRunning?<Pause size={16}/>:<Play size={16}/>}</button>
                   <button type="button" onClick={()=>{setClassroomClockRunning(false);setClassroomTimer(queueMinutes*60);}} aria-label="Đặt lại đồng hồ"><RotateCcw size={15}/></button>
-                  <button type="button" onClick={completeQueueStep}><Check size={16}/>{isVi?'Đã xong':'Complete'}</button>
+                  <button type="button" onClick={completeQueueStep}
+                    disabled={completionBusy || completedQueueIds.includes(teachingActivity.id)}
+                    aria-label={completedQueueIds.includes(teachingActivity.id)?'Đã ghi nhận hoàn thành':'Ghi nhận hoàn thành'}>
+                    <Check size={16}/>{completedQueueIds.includes(teachingActivity.id)?'Đã ghi nhận':(completionBusy?'Đang lưu…':(isVi?'Đã xong':'Complete'))}
+                  </button>
                   <button type="button" disabled={classroomQueueIndex===0||teachingLoading} onClick={()=>jumpQueueTo(classroomQueueIndex-1)}><ChevronLeft size={16}/>Trước</button>
                   <button type="button" disabled={classroomQueueIndex>=availableQueueItems.length-1||teachingLoading} onClick={()=>jumpQueueTo(classroomQueueIndex+1)}>Tiếp <ChevronRight size={16}/></button>
                 </span>
