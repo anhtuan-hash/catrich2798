@@ -612,3 +612,48 @@
 .lcs-page--library .lcs-a4-launcher>button svg:last-child {transition:transform .18s ease;}
 .lcs-page--library .lcs-a4-launcher>button.is-active svg:last-child {transform:rotate(180deg);}
 .lcs-page--library .lcs-a4-launcher>small {color:#627e89;font-size:11px;line-height:1.5;}
+
+/* Assessment 4.2 · Game-card favorite action and quick-access tab. */
+.lcs-page--library .lcs-arcade-tabs button.is-favorites {
+  color:#a34167!important;
+}
+.lcs-page--library .lcs-arcade-tabs button.is-favorites > span {
+  background:#fae5ec!important;
+  color:#9b3c61!important;
+}
+.lcs-page--library .lcs-arcade-tabs button.is-favorites.is-active {
+  background:#fff0f5!important;
+  color:#a32b58!important;
+  border-color:#f4c5d6!important;
+  box-shadow:0 2px 9px rgba(175,65,102,.09)!important;
+}
+.lcs-page--library .lcs-arcade-card-actions button.lcs-favorite-heart {
+  color:#a64e71!important;
+  background:#fff8fa!important;
+  border:1px solid #f3d7e2!important;
+  border-radius:10px!important;
+  min-width:32px!important;
+  min-height:32px!important;
+  transition:background .16s ease, transform .16s ease, box-shadow .16s ease;
+}
+.lcs-page--library .lcs-arcade-card-actions button.lcs-favorite-heart:hover:not(:disabled) {
+  background:#ffedf4!important;
+  transform:translateY(-1px);
+}
+.lcs-page--library .lcs-arcade-card-actions button.lcs-favorite-heart.is-saved {
+  color:#e54d7a!important;
+  border-color:#f3b6cb!important;
+  background:#ffe7f0!important;
+  box-shadow:0 1px 7px rgba(222,77,126,.14)!important;
+}
+.lcs-page--library .lcs-arcade-card-actions button.lcs-favorite-heart:disabled {
+  cursor:wait;
+  opacity:.55;
+}
+.lcs-page--library .lcs-arcade-card-actions button.lcs-favorite-heart:focus-visible {
+  outline:2px solid #bf4169;
+  outline-offset:2px;
+}
+@media(prefers-reduced-motion:reduce){
+  .lcs-page--library .lcs-arcade-card-actions button.lcs-favorite-heart{transition:none!important}
+}
