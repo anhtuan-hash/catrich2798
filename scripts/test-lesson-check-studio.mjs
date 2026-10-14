@@ -134,7 +134,7 @@ assert.match(studio, /reviewRequest\(request, 'approved'\)/);
 assert.match(studio, /reviewRequest\(request, 'rejected'\)/);
 assert.match(studio, /lcs-access-queue/);
 assert.match(studio, /className="lcs-filter-quick-search lcs-search-always-visible"\s+role="search"/);
-assert.match(studio, /title\.includes\(q\) \|\| q\.split\(/);
+assert.match(studio, /matchesActivityTitle\(item\.title, q\)/);
 assert.match(studio, /lcs-arcade-filterbar/);
 assert.match(studio, /lcs-arcade-grid/);
 assert.match(studio, /lcs-focus-indicator/);
