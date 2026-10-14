@@ -1,0 +1,32 @@
+name: Lesson Check Save Reliability
+on:
+  pull_request:
+    paths:
+      - 'src/pages/LessonCheckStudio.jsx'
+      - 'src/pages/LessonCheckApprovedMockupOne.css'
+      - 'src/utils/lessonCheckActivities.js'
+      - 'supabase/migrations/20261014070000_lesson_check_atomic_save.sql'
+      - 'tests/lesson-check-save-reliability.test.mjs'
+      - '.github/workflows/lesson-check-save-reliability.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/pages/LessonCheckStudio.jsx'
+      - 'src/utils/lessonCheckActivities.js'
+      - 'supabase/migrations/20261014070000_lesson_check_atomic_save.sql'
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --test tests/lesson-check-save-reliability.test.mjs
+      - run: node --test tests/lesson-check-approved-mockup-1.test.mjs
+      - run: node --test tests/assessment-5-contract.test.mjs
+      - run: node scripts/test-lesson-check-studio.mjs
+      - run: npm run build
