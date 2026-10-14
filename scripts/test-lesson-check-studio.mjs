@@ -54,7 +54,7 @@ assert.match(studio, /GLOBAL_SUCCESS_LESSONS\.map/);
 // Supabase is authoritative; localStorage persistence is retired.
 assert.match(service, /supabase\.rpc\('lesson_check_list_activities'/);
 assert.match(service, /supabase\.rpc\('lesson_check_get_activity_content'/);
-assert.match(service, /supabase\.rpc\('lesson_check_save_activity'/);
+assert.match(service, /supabase\.rpc\('lesson_check_save_activity_v2'/);
 assert.match(service, /supabase\.rpc\('lesson_check_request_access'/);
 assert.match(service, /supabase\.rpc\('lesson_check_list_teacher_access'/);
 assert.match(service, /supabase\.rpc\('lesson_check_set_teacher_access'/);
