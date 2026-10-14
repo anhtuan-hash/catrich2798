@@ -19,7 +19,7 @@ test.describe('Lesson Check activity-save feedback',()=>{
    if(mode==='batch')await editor.locator('.lcs-bulk-mode-buttons button').nth(1).click();
    await editor.getByPlaceholder(/Ví dụ: Unit/).fill('Cosmic Destiny Save QA');
    await editor.locator('textarea').fill('https://example.org/lesson-check-test');
-   const focus=editor.locator('select').filter({has:editor.locator('option[value="unclassified"]')}).first();
+   const focus=editor.locator('select[aria-invalid]');
    await expect(focus).toHaveValue('unclassified');
    await editor.locator('.lcs-form-actions .lcs-btn-primary').click();
    const error=editor.locator('.lcs-save-feedback.is-error');
