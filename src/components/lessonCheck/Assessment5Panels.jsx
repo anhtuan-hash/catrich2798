@@ -35,7 +35,7 @@ function useModalKeyboard(onClose) {
  return panelRef;
 }
 
-export function Assessment5Preview({activity,onClose,onTeach,onAddQueue,inQueue,isFavorite,onFavorite,canOpen,attributes,insight}) {
+export function Assessment5Preview({activity,onClose,onTeach,onAddQueue,inQueue,isFavorite,onFavorite,canOpen,attributes,insight,queueReady=true}) {
  const panelRef=useModalKeyboard(onClose);
  if(!activity)return null;
  const status=canOpen ? 'Đã có quyền truy cập' : 'Chưa được cấp quyền';
@@ -56,7 +56,7 @@ export function Assessment5Preview({activity,onClose,onTeach,onAddQueue,inQueue,
      {insight?<div className="lcs5-preview-insights"><strong>Dữ liệu sử dụng thực tế</strong><div><span>Đã mở: {insight.opened}</span><span>Đã hoàn tất: {insight.completed}</span><span>Lần gần nhất: {insight.latest||'—'}</span></div></div>:null}
      <div className="lcs5-preview-actions">
        <button onClick={()=>onFavorite(activity.id)}><Heart size={17} fill={isFavorite?'currentColor':'none'}/>{isFavorite?'Bỏ yêu thích':'Thả tim'}</button>
-       <button type="button" disabled={!canOpen||inQueue} onClick={()=>onAddQueue(activity.id)}><Plus size={17}/>{inQueue?'Đã trong buổi dạy':'Thêm vào buổi dạy'}</button>
+       <button type="button" disabled={!canOpen||inQueue||!queueReady} onClick={()=>onAddQueue(activity.id)}><Plus size={17}/>{inQueue?'Đã trong buổi dạy':'Thêm vào buổi dạy'}</button>
        <button type="button" className="is-primary" disabled={!canOpen} onClick={()=>onTeach(activity)}><MonitorPlay size={17}/>Trình chiếu</button>
      </div>
    </aside>
