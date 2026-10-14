@@ -18,6 +18,12 @@ test.describe('Real-time activity title filtering',()=>{
     localStorage.setItem(key,JSON.stringify(user));
     localStorage.setItem('bet-language','vi');
   },{key:SESSION_KEY,user});
+  // Intercept every request to the test-only invalid domain. No live Supabase
+  // endpoint is contacted and no real account/library data enters this test.
+  await page.route('https://search-fixture.invalid/**',async route=>{
+    await route.fulfill({status:200,contentType:'application/json',
+      headers:{'access-control-allow-origin':'*'},body:'[]'});
+  });
   await page.route('**/rest/v1/rpc/lesson_check_list_activities*',async route=>{
     await route.fulfill({status:200,contentType:'application/json',
       headers:{'access-control-allow-origin':'*'},body:JSON.stringify(fixtures)});
