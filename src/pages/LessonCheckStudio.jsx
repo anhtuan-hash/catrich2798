@@ -13,6 +13,7 @@ import {
   ExternalLink,
   Filter,
   FolderOpen,
+  Heart,
   Fullscreen,
   Gamepad2,
   Globe2,
@@ -50,6 +51,7 @@ import {
   uploadLessonCheckActivityThumbnail,
 } from '../utils/lessonCheckActivities.js';
 import AssessmentWorkspace from '../components/lessonCheck/AssessmentWorkspace.jsx';
+import { loadAssessmentWorkspace, setAssessmentFavorite } from '../utils/lessonCheckWorkbench.js';
 const Assessment4Workbench = React.lazy(() => import('../components/lessonCheck/Assessment4Workbench.jsx'));
 import {
   GLOBAL_SUCCESS_LESSONS,
@@ -356,6 +358,12 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [unitFilter, setUnitFilter] = useState('all');
   const [focusFilter, setFocusFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [favoriteIds, setFavoriteIds] = useState([]);
+  const [favoritesReady, setFavoritesReady] = useState(false);
+  const [favoriteSavingIds, setFavoriteSavingIds] = useState([]);
+  const favoriteInFlightRef = useRef(new Set());
+  const favoriteLoadVersionRef = useRef(0);
+  const favoriteUserId = currentUser?.id || currentUser?.authId || '';
   const [sortMode, setSortMode] = useState('newest');
   const [viewMode, setViewMode] = useState('grid');
   const [page, setPage] = useState(1);
@@ -401,6 +409,11 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const pendingCount = useMemo(() => requests.filter((item) => item.status === 'pending').length, [requests]);
   // The RPC supplies hasAccess for the signed-in teacher; never infer grants from other users' requests.
   const grantedCount = useMemo(() => activities.filter((item) => item.hasAccess === true).length, [activities]);
+  const favoriteSet = useMemo(() => new Set(favoriteIds), [favoriteIds]);
+  const favoriteCount = useMemo(
+    () => activities.filter(item => favoriteSet.has(item.id)).length,
+    [activities, favoriteSet],
+  );
   const pendingActivityIds = useMemo(() => new Set(
     requests.filter((item) => item.status === 'pending').map((item) => item.activityId),
   ), [requests]);
@@ -447,6 +460,67 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     }
     if (!silent) setLoading(false);
   }, [isVi]);
+
+  // One personal favorites list for the library and the Assessment 4.0 workbench.
+  // Refresh on return to the tab so grants and favorites made on other devices appear.
+  useEffect(() => {
+    let live = true;
+    setFavoriteIds([]);
+    setFavoritesReady(false);
+    favoriteInFlightRef.current.clear();
+    setFavoriteSavingIds([]);
+    if (!favoriteUserId) return () => { live = false; };
+    const load = async () => {
+      if (favoriteInFlightRef.current.size) return;
+      const version = ++favoriteLoadVersionRef.current;
+      const result = await loadAssessmentWorkspace(favoriteUserId);
+      if (!live || version !== favoriteLoadVersionRef.current) return;
+      if (result.ok) {
+        setFavoriteIds(result.state.favorites);
+        setFavoritesReady(true);
+      } else {
+        setFavoritesReady(false);
+        setNotice(result.message || (isVi ? 'Chưa thể tải mục yêu thích.' : 'Could not load favorites.'));
+      }
+    };
+    load();
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') load();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      live = false;
+      favoriteLoadVersionRef.current += 1;
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [favoriteUserId, isVi]);
+
+  const toggleFavorite = useCallback(async (activityId) => {
+    if (!favoriteUserId || !favoritesReady) {
+      setNotice(isVi ? 'Đăng nhập và đợi đồng bộ để lưu mục yêu thích.' : 'Sign in and wait for favorites to sync.');
+      return;
+    }
+    if (favoriteInFlightRef.current.has(activityId)) return;
+    const wasSaved = favoriteSet.has(activityId);
+    const shouldSave = !wasSaved;
+    favoriteInFlightRef.current.add(activityId);
+    favoriteLoadVersionRef.current += 1;
+    setFavoriteSavingIds(ids => [...ids, activityId]);
+    setFavoriteIds(ids => shouldSave ? [...ids.filter(id => id !== activityId), activityId] : ids.filter(id => id !== activityId));
+    try {
+      const result = await setAssessmentFavorite(activityId, shouldSave);
+      if (!result.ok) {
+        setFavoriteIds(ids => wasSaved ? [...ids.filter(id => id !== activityId), activityId] : ids.filter(id => id !== activityId));
+        setNotice(result.message || (isVi ? 'Không thể lưu mục yêu thích.' : 'Could not save favorite.'));
+      }
+    } catch {
+      setFavoriteIds(ids => wasSaved ? [...ids.filter(id => id !== activityId), activityId] : ids.filter(id => id !== activityId));
+      setNotice(isVi ? 'Lỗi kết nối khi lưu mục yêu thích.' : 'Network error while saving favorite.');
+    } finally {
+      favoriteInFlightRef.current.delete(activityId);
+      setFavoriteSavingIds(ids => ids.filter(id => id !== activityId));
+    }
+  }, [favoriteUserId, favoritesReady, favoriteSet, isVi]);
 
   const loadRequests = useCallback(async () => {
     if (!isLeader) return;
@@ -503,6 +577,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       if (!['all','skills'].includes(focusFilter) && item.focusArea !== focusFilter) return false;
       if (statusFilter === 'pending' && !pending) return false;
       if (statusFilter === 'ready' && !open) return false;
+      if (statusFilter === 'favorites' && !favoriteSet.has(item.id)) return false;
       if (statusFilter === 'locked' && !locked) return false;
       if (!q) return true;
       return [
@@ -526,7 +601,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       }
       return String(b.updatedAt || '').localeCompare(String(a.updatedAt || ''));
     });
-  }, [activities, focusFilter, gradeFilter, isLeader, language, pendingActivityIds, query, sortMode, statusFilter, unitFilter]);
+  }, [activities, favoriteSet, focusFilter, gradeFilter, isLeader, language, pendingActivityIds, query, sortMode, statusFilter, unitFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredActivities.length / pageSize));
   const pagedActivities = useMemo(() => {
@@ -1288,22 +1363,32 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       {workbenchOpen ? <div id="assessment4-workbench"><React.Suspense fallback={<div className="lcs-loading">Đang tải Assessment 4.0…</div>}><Assessment4Workbench
         activities={activities} currentUser={currentUser} isLeader={isLeader}
         onLaunch={openTeachingMode} onRefresh={() => loadActivities({ silent: true })}
+        favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite}
       /></React.Suspense></div> : null}
 
       <section className="lcs-arcade-library">
         <div className="lcs-arcade-nav">
           <nav className="lcs-arcade-tabs" aria-label={isVi ? 'Bộ lọc hoạt động' : 'Activity filters'}>
-            <button type="button" className={focusFilter === 'all' && statusFilter !== 'ready' ? 'is-active' : ''} onClick={() => { setFocusFilter('all'); setStatusFilter('all'); setShowAccessQueue(false); }}>
+            <button type="button" className={focusFilter === 'all' && statusFilter === 'all' ? 'is-active' : ''} onClick={() => { setFocusFilter('all'); setStatusFilter('all'); setShowAccessQueue(false); }}>
               <Grid2X2 size={18} /><strong>{isVi ? 'Tất cả' : 'All'}</strong><span>{activities.length}</span>
             </button>
-            <button type="button" className={focusFilter === 'vocabulary' && statusFilter !== 'ready' ? 'is-active is-vocabulary' : 'is-vocabulary'} onClick={() => { setFocusFilter('vocabulary'); setStatusFilter('all'); setShowAccessQueue(false); }}>
+            <button type="button" className={focusFilter === 'vocabulary' && statusFilter === 'all' ? 'is-active is-vocabulary' : 'is-vocabulary'} onClick={() => { setFocusFilter('vocabulary'); setStatusFilter('all'); setShowAccessQueue(false); }}>
               <BookOpen size={18} /><strong>Vocabulary</strong><span>{focusCounts.vocabulary}</span>
             </button>
-            <button type="button" className={focusFilter === 'grammar' && statusFilter !== 'ready' ? 'is-active is-grammar' : 'is-grammar'} onClick={() => { setFocusFilter('grammar'); setStatusFilter('all'); setShowAccessQueue(false); }}>
+            <button type="button" className={focusFilter === 'grammar' && statusFilter === 'all' ? 'is-active is-grammar' : 'is-grammar'} onClick={() => { setFocusFilter('grammar'); setStatusFilter('all'); setShowAccessQueue(false); }}>
               <Layers3 size={18} /><strong>Grammar</strong><span>{focusCounts.grammar}</span>
             </button>
-            <button type="button" className={focusFilter === 'skills' && statusFilter !== 'ready' ? 'is-active is-skills' : 'is-skills'} onClick={() => { setFocusFilter('skills'); setStatusFilter('all'); setShowAccessQueue(false); }}>
+            <button type="button" className={focusFilter === 'skills' && statusFilter === 'all' ? 'is-active is-skills' : 'is-skills'} onClick={() => { setFocusFilter('skills'); setStatusFilter('all'); setShowAccessQueue(false); }}>
               <MonitorPlay size={18} /><strong>{isVi ? 'Kỹ năng' : 'Skills'}</strong><span>{focusCounts.skills}</span>
+            </button>
+            <button
+              type="button"
+              className={statusFilter === 'favorites' ? 'is-active is-favorites' : 'is-favorites'}
+              aria-pressed={statusFilter === 'favorites'}
+              onClick={() => { setFocusFilter('all'); setStatusFilter('favorites'); setShowAccessQueue(false); }}
+            >
+              <Heart size={18} fill={statusFilter === 'favorites' ? 'currentColor' : 'none'} />
+              <strong>{isVi ? 'Yêu thích' : 'Favorites'}</strong><span>{favoriteCount}</span>
             </button>
             {!isLeader ? (
               <button
@@ -1425,14 +1510,16 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
         {loading ? <LoadingBlock language={language} /> : !filteredActivities.length ? (
           <div className="lcs-empty-library">
-            {statusFilter === 'ready' ? <UserCheck /> : <Layers3 />}
-            <h3>{statusFilter === 'ready' && !grantedCount
+            {statusFilter === 'favorites' ? <Heart /> : statusFilter === 'ready' ? <UserCheck /> : <Layers3 />}
+            <h3>{statusFilter === 'favorites' && !favoriteCount
+              ? (isVi ? 'Bạn chưa lưu trò chơi yêu thích nào.' : 'You have no favorite games yet.')
+              : statusFilter === 'ready' && !grantedCount
               ? (isVi ? 'Bạn chưa có hoạt động nào được cấp quyền.' : 'No activities have been granted to you yet.')
               : activities.length
                 ? (isVi ? 'Không có hoạt động phù hợp bộ lọc.' : 'No activities match these filters.')
                 : (isVi ? 'Chưa có hoạt động nào trên Supabase.' : 'No activities in Supabase yet.')}
             </h3>
-            {statusFilter === 'ready' ? (
+            {['ready', 'favorites'].includes(statusFilter) ? (
               <button type="button" className="lcs-granted-empty-browse" onClick={() => {
                 setStatusFilter('all');
                 setFocusFilter('all');
@@ -1476,6 +1563,17 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                       </div>
 
                       <div className="lcs-arcade-card-actions">
+                        <button type="button"
+                          className={favoriteSet.has(item.id) ? 'lcs-favorite-heart is-saved' : 'lcs-favorite-heart'}
+                          aria-label={favoriteSet.has(item.id)
+                            ? (isVi ? 'Bỏ khỏi mục yêu thích' : 'Remove from favorites')
+                            : (isVi ? 'Thêm vào mục yêu thích' : 'Add to favorites')}
+                          aria-pressed={favoriteSet.has(item.id)}
+                          title={favoriteSet.has(item.id) ? (isVi ? 'Bỏ yêu thích' : 'Unfavorite') : (isVi ? 'Thả tim · Yêu thích' : 'Save to favorites')}
+                          disabled={!favoritesReady || favoriteSavingIds.includes(item.id)}
+                          onClick={() => toggleFavorite(item.id)}>
+                          <Heart size={18} fill={favoriteSet.has(item.id) ? 'currentColor' : 'none'} />
+                        </button>
                         {!locked ? <button type="button" title={isVi ? 'Trình chiếu' : 'Teach'} onClick={() => openTeachingMode(item)}><MonitorPlay size={17} /></button> : null}
                         {isLeader ? (
                           <>
