@@ -1,0 +1,48 @@
+name: Lesson Check Save Reliability
+on:
+  pull_request:
+    paths:
+      - 'src/pages/LessonCheckStudio.jsx'
+      - 'src/pages/LessonCheckStudio.css'
+      - 'src/utils/lessonCheckActivities.js'
+      - 'supabase/migrations/20261014103000_lesson_check_atomic_activity_save.sql'
+      - 'tests/lesson-check-save-reliability.test.mjs'
+      - 'tests/e2e/lesson-check-save-validation.spec.js'
+      - '.github/workflows/lesson-check-save-reliability.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/pages/LessonCheckStudio.jsx'
+      - 'src/pages/LessonCheckStudio.css'
+      - 'src/utils/lessonCheckActivities.js'
+      - 'supabase/migrations/20261014103000_lesson_check_atomic_activity_save.sql'
+      - 'tests/lesson-check-save-reliability.test.mjs'
+      - 'tests/e2e/lesson-check-save-validation.spec.js'
+jobs:
+  save-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node --test tests/lesson-check-save-reliability.test.mjs
+      - run: node --test tests/lesson-check-approved-mockup-1.test.mjs
+      - run: node --test tests/assessment-5-contract.test.mjs
+      - run: npm run build
+  browser-save-validation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: npx playwright test tests/e2e/lesson-check-save-validation.spec.js --project=chromium-desktop
