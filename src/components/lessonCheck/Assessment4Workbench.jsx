@@ -8,6 +8,8 @@ import {
  saveIntervention, storeAssessmentWorkspace,
 } from '../../utils/lessonCheckWorkbench.js';
 import { listActivityAttributes, saveActivityAttributes } from '../../utils/lessonCheckAttributes.js';
+import { listLessonCheckTeacherGroups, saveLessonCheckTeacherGroup, deleteLessonCheckTeacherGroup } from '../../utils/lessonCheckTeacherGroups.js';
+import { checkActivityLink } from '../../utils/lessonCheckLinkAudit.js';
 import './Assessment4Workbench.css';
 
 const initial = { favorites: [], recentIds: [], collections: [], runner: {} };
@@ -64,6 +66,12 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
  const [audit,setAudit]=useState([]);
  const [teacherChoices,setTeacherChoices]=useState([]);
  const [selectedTeachers,setSelectedTeachers]=useState([]);
+ const [teacherGroups,setTeacherGroups]=useState([]);
+ const [teacherGroupId,setTeacherGroupId]=useState('');
+ const [teacherGroupName,setTeacherGroupName]=useState('');
+ const [groupBusy,setGroupBusy]=useState(false);
+ const [linkAudit,setLinkAudit]=useState({});
+ const [linkAuditBusy,setLinkAuditBusy]=useState(false);
  const [selectedActivities,setSelectedActivities]=useState([]);
  const [expiresOn,setExpiresOn]=useState('');
  const [grantAction,setGrantAction]=useState('grant');
@@ -182,6 +190,16 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
  }
  useEffect(()=>{if(tab==='permissions'&&isLeader&&!teacherChoices.length)fetchTeachers();},[tab,isLeader,activities.length]);
  useEffect(()=>{
+  if(!isLeader || tab!=='permissions')return;
+  let live=true;
+  listLessonCheckTeacherGroups(userId).then(r=>{
+   if(!live)return;
+   if(r.ok)setTeacherGroups(r.groups);
+   else setNotice(r.message);
+  });
+  return()=>{live=false;};
+ },[tab,isLeader,userId]);
+ useEffect(()=>{
   if(!['analytics','evidence'].includes(tab))return;
   let live=true;
   Promise.all([listAssessmentSessions('',300),listAssessmentResults('')]).then(([a,b])=>{
@@ -191,6 +209,49 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
   });
   return()=>{live=false;};
  },[tab]);
+
+ const chooseTeacherGroup=id=>{
+   const group=teacherGroups.find(g=>g.id===id);
+   setTeacherGroupId(id);
+   setTeacherGroupName(group?.name||'');
+   if(group)setSelectedTeachers(group.member_ids||[]);
+ };
+ async function saveTeacherGroup(){
+   const name=teacherGroupName.trim();
+   if(!name || !selectedTeachers.length){setNotice('Nhập tên nhóm và chọn giáo viên.');return;}
+   setGroupBusy(true);
+   const r=await saveLessonCheckTeacherGroup(userId,{
+     id:teacherGroupId||undefined,name,memberIds:selectedTeachers
+   });
+   setGroupBusy(false);
+   if(!r.ok){setNotice(r.message);return;}
+   setTeacherGroups(current=>[...current.filter(item=>item.id!==r.group.id),r.group].sort((a,b)=>a.name.localeCompare(b.name,'vi')));
+   setTeacherGroupId(r.group.id);
+   setNotice('Đã lưu nhóm giáo viên. Có thể sử dụng lại ở các lần cấp quyền sau.');
+ }
+ async function removeTeacherGroup(){
+   if(!teacherGroupId || !window.confirm('Xóa nhóm giáo viên này? Quyền đã cấp trước đó không bị thay đổi.'))return;
+   setGroupBusy(true);
+   const r=await deleteLessonCheckTeacherGroup(userId,teacherGroupId);
+   setGroupBusy(false);
+   if(!r.ok){setNotice(r.message);return;}
+   setTeacherGroups(current=>current.filter(g=>g.id!==teacherGroupId));
+   setTeacherGroupId('');setTeacherGroupName('');
+   setNotice('Đã xóa nhóm lưu sẵn; các quyền được cấp trước đây vẫn giữ nguyên.');
+ }
+ async function auditVisibleLinks(){
+   if(linkAuditBusy)return;
+   setLinkAuditBusy(true);
+   const targets=quality.slice(0,20);
+   let local={};
+   for(const activity of targets){
+     const status=await checkActivityLink(activity);
+     local={...local,[activity.id]:status};
+     setLinkAudit(local);
+   }
+   setLinkAuditBusy(false);
+   setNotice('Đã kiểm tra '+targets.length+' nguồn; các liên kết bị CORS chặn được đánh dấu là chưa xác minh, không kết luận hỏng.');
+ }
  async function grantBulk(){
   if(!selectedActivities.length||!selectedTeachers.length){setNotice('Chọn ít nhất một hoạt động và một giáo viên.');return;}
   setWorking(true);
@@ -331,6 +392,18 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
   </>:null}
   {ready && isLeader && tab==='permissions'?<>
    <Title detail="Cấp / thu hồi nhiều quyền trong một lần. Bắt buộc xác nhận; Supabase kiểm tra vai trò TTCM trên máy chủ.">Permission Center 2.0</Title>
+   <div className="a4-group-manager" aria-label="Nhóm giáo viên dùng lại">
+     <div><strong>Nhóm giáo viên dùng lại</strong><small>Lưu danh sách để cấp quyền nhiều lần; thay đổi nhóm không tự động sửa quyền đã cấp.</small></div>
+     <div className="a4-form">
+       <select aria-label="Chọn nhóm giáo viên" value={teacherGroupId} onChange={e=>chooseTeacherGroup(e.target.value)}>
+         <option value="">+ Nhóm mới</option>
+         {teacherGroups.map(g=><option key={g.id} value={g.id}>{g.name} ({g.member_ids.length} GV)</option>)}
+       </select>
+       <input aria-label="Tên nhóm giáo viên" value={teacherGroupName} maxLength={100} onChange={e=>setTeacherGroupName(e.target.value)} placeholder="Ví dụ: Giáo viên khối 11"/>
+       <button disabled={groupBusy || !teacherGroupName.trim() || !selectedTeachers.length} onClick={saveTeacherGroup}>Lưu nhóm từ giáo viên đã chọn</button>
+       {teacherGroupId?<button disabled={groupBusy} onClick={removeTeacherGroup}><Trash2 size={14}/> Xóa nhóm</button>:null}
+     </div>
+   </div>
    <div className="a4-permission-grids"><div><strong>Chọn hoạt động ({selectedActivities.length})</strong><div className="a4-scroll">{activities.map(a=><label key={a.id}><input type="checkbox" checked={selectedActivities.includes(a.id)} onChange={e=>setSelectedActivities(v=>e.target.checked?[...v,a.id]:v.filter(id=>id!==a.id))}/>{a.title}</label>)}</div></div><div><strong>Chọn giáo viên ({selectedTeachers.length})</strong><div className="a4-scroll">{teacherChoices.map(t=><label key={t.userId}><input type="checkbox" checked={selectedTeachers.includes(t.userId)} onChange={e=>setSelectedTeachers(v=>e.target.checked?[...v,t.userId]:v.filter(id=>id!==t.userId))}/>{t.name} <small>{t.email}</small></label>)}</div></div></div>
    <div className="a4-form"><select value={grantAction} onChange={e=>setGrantAction(e.target.value)}><option value="grant">Cấp quyền</option><option value="revoke">Thu hồi quyền</option></select><label>Hết hạn (tùy chọn) <input type="date" disabled={grantAction==='revoke'} value={expiresOn} onChange={e=>setExpiresOn(e.target.value)}/></label><button className="a4-primary" disabled={working||!selectedActivities.length||!selectedTeachers.length} onClick={()=>{if(window.confirm('Xác nhận '+(grantAction==='grant'?'cấp':'thu hồi')+' '+(selectedActivities.length*selectedTeachers.length)+' quyền?'))grantBulk();}}>Áp dụng phân quyền</button></div>
    <div className="a4-section-head"><strong>Nhật ký cấp quyền gần đây</strong></div><div className="a4-table"><div className="a4-table-head"><span>Thời điểm</span><span>Hoạt động</span><span>Giáo viên</span><span>Thao tác</span></div>{audit.slice(0,80).map(a=><div key={a.id}><span>{fmt(a.recorded_at)}</span><span>{table.get(a.activity_id)?.title||a.activity_id}</span><span>{teacherChoices.find(t=>t.userId===a.teacher_id)?.name||a.teacher_id}</span><span>{a.action==='grant'?'Cấp':'Thu hồi'}</span></div>)}</div>
@@ -348,7 +421,12 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
    <div className="a4-form"><select value={attributeId} onChange={e=>{const a=attributeById.get(e.target.value);setAttributeId(e.target.value);setAttributeDraft({difficulty:a?.difficulty||'unclassified',durationMinutes:a?.duration_minutes||15,deliveryMode:a?.delivery_mode||'whole_class',keywords:(a?.keywords||[]).join(', '),learningGoal:a?.learning_goal||''});}}><option value="">Chọn hoạt động để bổ sung metadata</option>{activities.map(a=><option key={a.id} value={a.id}>{a.title}</option>)}</select></div>
    {attributeId?<div className="a4-form a4-form-grid"><select value={attributeDraft.difficulty} onChange={e=>setAttributeDraft(v=>({...v,difficulty:e.target.value}))}>{['unclassified','A1','A2','B1','B2','C1','C2','mixed'].map(v=><option key={v}>{v}</option>)}</select><label>Thời lượng (phút)<input type="number" min={1} max={120} value={attributeDraft.durationMinutes} onChange={e=>setAttributeDraft(v=>({...v,durationMinutes:e.target.value}))}/></label><select value={attributeDraft.deliveryMode} onChange={e=>setAttributeDraft(v=>({...v,deliveryMode:e.target.value}))}><option value="whole_class">Cả lớp</option><option value="individual">Cá nhân</option><option value="group">Nhóm</option><option value="hybrid">Kết hợp</option></select><input placeholder="Từ khóa, phân tách bằng dấu phẩy" value={attributeDraft.keywords} onChange={e=>setAttributeDraft(v=>({...v,keywords:e.target.value}))}/><textarea rows={2} placeholder="Mục tiêu học tập" value={attributeDraft.learningGoal} onChange={e=>setAttributeDraft(v=>({...v,learningGoal:e.target.value}))}/><button disabled={working} onClick={async()=>{setWorking(true);const r=await saveActivityAttributes(attributeId,attributeDraft,userId);setWorking(false);setNotice(r.ok?'Đã lưu và áp dụng bộ lọc nâng cao.':r.message);if(r.ok)setAttributes(a=>[...a.filter(x=>x.activity_id!==attributeId),r.item]);}}>Lưu phân loại</button></div>:null}
    <div className="a4-items">{quality.slice(0,150).map(a=><div key={a.id}><span><strong>{a.title}</strong><small>{a.flags.join(' · ')}</small></span><button onClick={()=>onLaunch?.(a)}>Xem</button></div>)}</div>
-   <button onClick={()=>csvDownload('assessment-quality.csv',['Hoạt động','Khối','Unit','Cần rà soát'],quality.map(a=>[a.title,a.grade,a.unitNo,a.flags.join('; ')]))}><Download size={15}/> Xuất báo cáo chất lượng</button>
+   <div className="a4-link-audit">
+     <div><strong>Kiểm tra liên kết học liệu</strong><small>Chỉ kiểm tra tối đa 20 nguồn cần rà soát mỗi lượt. HTTP 404/410 mới xác định hỏng; CORS, hết giờ và nguồn cần đăng nhập không được tính là hỏng.</small></div>
+     <button type="button" disabled={linkAuditBusy || !quality.length} onClick={auditVisibleLinks}>{linkAuditBusy?'Đang kiểm tra…':'Kiểm tra liên kết (20 nguồn)'}</button>
+   </div>
+   {Object.keys(linkAudit).length>0?<div className="a4-items" aria-live="polite">{Object.entries(linkAudit).map(([id,result])=><div key={id}><span><strong>{table.get(id)?.title||id}</strong><small>{result.reason}</small></span><span className={'a4-link-status is-'+result.status}>{({healthy:'Hợp lệ',broken:'Liên kết hỏng',unknown:'Chưa xác minh',restricted:'Giới hạn truy cập',invalid:'URL không hợp lệ',manual:'Cần xem thủ công'})[result.status]||result.status}</span></div>)}</div>:null}
+   <button onClick={()=>csvDownload('assessment-quality.csv',['Hoạt động','Khối','Unit','Cần rà soát','Kiểm tra URL','Lý do'],quality.map(a=>[a.title,a.grade,a.unitNo,a.flags.join('; '),linkAudit[a.id]?.status||'',linkAudit[a.id]?.reason||'']))}><Download size={15}/> Xuất báo cáo chất lượng</button>
   </>:null}
   {ready && isLeader && tab==='evidence'?<>
    <Title detail="Tổng hợp từ nhật ký và hồ sơ điều chỉnh thực tế; không tạo hoặc suy diễn dữ liệu minh chứng.">Department Evidence Center</Title>
