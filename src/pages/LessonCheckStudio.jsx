@@ -1159,6 +1159,9 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     markRecentActivity(item.id).then(result => {
       if (result.ok) setRecentIds(result.recentIds||[]);
     }).catch(() => {});
+    // The journal is permission-scoped and records genuine opens, not inferred scores.
+    logActivityUse(favoriteUserId,item,{eventType:'opened',className:queueClass||''})
+      .then(result => {if(result.ok)setJournalReady(false);}).catch(() => {});
     return true;
   }
 
