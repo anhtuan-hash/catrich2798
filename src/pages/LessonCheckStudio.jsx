@@ -1528,12 +1528,18 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         </section>
       ) : null}
 
+      <Assessment5Header activities={activities} favorites={favoriteIds} recentIds={recentIds}
+        queueCount={availableQueueItems.length} language={language}
+        onFavorites={() => {setFocusFilter('all');setStatusFilter('favorites');document.getElementById('lcs5-activity-library')?.scrollIntoView({behavior:'smooth',block:'start'});}}
+        onRecent={() => {setFocusFilter('all');setStatusFilter('recent');document.getElementById('lcs5-activity-library')?.scrollIntoView({behavior:'smooth',block:'start'});}}
+        onQueue={() => setQueueOpen(true)}
+        onWorkspace={() => openWorkspaceTab('collections')} />
       <div className="lcs-a4-launcher">
         <button type="button" className={workbenchOpen ? 'is-active' : ''}
           onClick={() => setWorkbenchOpen(value => !value)}
           aria-expanded={workbenchOpen} aria-controls="assessment4-workbench">
           <Layers3 size={18} />
-          <span>{isVi ? 'Trung tâm hoạt động & đánh giá 4.0' : 'Assessment 4.0 Workspace'}</span>
+          <span>{isVi ? 'Trung tâm hoạt động & đánh giá 5.0' : 'Assessment 5.0 Workspace'}</span>
           <ChevronDown size={16} />
         </button>
         <small>{isVi ? 'Bộ sưu tập · Lesson Runner · Nhật ký · Can thiệp · Phân quyền' : 'Collections · Runner · Journal · Interventions · Permissions'}</small>
@@ -1541,10 +1547,11 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       {workbenchOpen ? <div id="assessment4-workbench"><React.Suspense fallback={<div className="lcs-loading">Đang tải Assessment 4.0…</div>}><Assessment4Workbench
         activities={activities} currentUser={currentUser} isLeader={isLeader}
         onLaunch={openTeachingMode} onRefresh={() => loadActivities({ silent: true })}
+        initialTab={workbenchInitialTab} initialSelectedActivities={bulkIds}
         favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite}
       /></React.Suspense></div> : null}
 
-      <section className="lcs-arcade-library">
+      <section className="lcs-arcade-library" id="lcs5-activity-library">
         <div className="lcs-arcade-nav">
           <nav className="lcs-arcade-tabs" aria-label={isVi ? 'Bộ lọc hoạt động' : 'Activity filters'}>
             <button type="button" className={focusFilter === 'all' && statusFilter === 'all' ? 'is-active' : ''} onClick={() => { setFocusFilter('all'); setStatusFilter('all'); setShowAccessQueue(false); }}>
@@ -1596,6 +1603,8 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                 <option value="newest">{isVi ? 'Mới cập nhật' : 'Recently updated'}</option>
                 <option value="title">A → Z</option>
                 <option value="unit">{isVi ? 'Theo Unit' : 'By Unit'}</option>
+                <option value="favorites">{isVi ? 'Yêu thích lên trước' : 'Favorites first'}</option>
+                <option value="recent">{isVi ? 'Vừa sử dụng' : 'Recently used'}</option>
               </select>
             </label>
           </div>
@@ -1638,6 +1647,16 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
           </section>
         ) : null}
 
+        <div className="lcs5-command-tools" aria-label="Công cụ thư viện Assessment 5.0">
+          <strong>{isVi ? 'Trình quản lý học liệu' : 'Activity library manager'}</strong>
+          <div className="lcs5-tool-buttons">
+            <button type="button" className={viewMode==='grid'?'is-active':''} onClick={()=>setViewMode('grid')} aria-pressed={viewMode==='grid'}><Grid2X2 size={15}/> Grid</button>
+            <button type="button" className={viewMode==='list'?'is-active':''} onClick={()=>setViewMode('list')} aria-pressed={viewMode==='list'}><List size={15}/> List</button>
+            <button type="button" className={advancedFilters?'is-active':''} onClick={()=>setAdvancedFilters(v=>!v)} aria-expanded={advancedFilters}><SlidersHorizontal size={15}/>{isVi?'Lọc nâng cao':'More filters'}</button>
+            {isLeader?<button type="button" className={bulkMode?'is-active':''} onClick={()=>{setBulkMode(v=>!v);setBulkIds([]);}} aria-pressed={bulkMode}><CheckSquare size={15}/>{isVi?'Chọn nhiều':'Bulk select'}</button>:null}
+            <button type="button" className="is-queue" onClick={()=>setQueueOpen(true)}><ListChecks size={16}/>{isVi?'Buổi dạy':'Teaching queue'} · {availableQueueItems.length}</button>
+          </div>
+        </div>
         <div className="lcs-arcade-filterbar">
           <span className="lcs-filter-mark"><Filter size={17} /></span>
           <select value={gradeFilter} onChange={(e) => setGradeFilter(e.target.value)} aria-label={isVi ? 'Khối' : 'Grade'}>
@@ -1694,6 +1713,22 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
           ) : null}
         </div>
 
+        {advancedFilters?<div className="lcs5-advanced-filters" aria-label="Bộ lọc nâng cao">
+          <label>CEFR<select value={cefrFilter} onChange={e=>setCefrFilter(e.target.value)}><option value="all">Tất cả</option>{['A1','A2','B1','B2','C1','C2','mixed','unclassified'].map(v=><option key={v}>{v}</option>)}</select></label>
+          <label>{isVi?'Thời lượng':'Duration'}<select value={durationFilter} onChange={e=>setDurationFilter(e.target.value)}><option value="all">Tất cả</option><option value="short">≤10 phút</option><option value="medium">11–25 phút</option><option value="long">&gt;25 phút</option></select></label>
+          <label>{isVi?'Hình thức':'Mode'}<select value={deliveryFilter} onChange={e=>setDeliveryFilter(e.target.value)}><option value="all">Tất cả</option><option value="individual">Cá nhân</option><option value="group">Nhóm</option><option value="whole_class">Cả lớp</option><option value="hybrid">Kết hợp</option></select></label>
+          <button type="button" onClick={()=>{setCefrFilter('all');setDurationFilter('all');setDeliveryFilter('all');}}>{isVi?'Xóa lọc nâng cao':'Reset advanced'}</button>
+        </div>:null}
+        {isLeader && bulkMode ? <div className="lcs5-bulk-panel">
+          <strong>{bulkIds.length} {isVi?'hoạt động đã chọn':'selected'}</strong>
+          <button type="button" onClick={()=>setBulkIds(old=>[...new Set([...old,...pagedActivities.map(a=>a.id)])].slice(0,20))}>{isVi?'Chọn trang này':'Select page'}</button>
+          <button type="button" onClick={()=>setBulkIds([])}>{isVi?'Bỏ chọn':'Deselect'}</button>
+          <label>CEFR <select value={bulkCefr} onChange={e=>setBulkCefr(e.target.value)}>{['A1','A2','B1','B2','C1','C2','mixed','unclassified'].map(v=><option key={v}>{v}</option>)}</select></label>
+          <label>{isVi?'Phút':'Minutes'} <select value={bulkMinutes} onChange={e=>setBulkMinutes(Number(e.target.value))}>{[5,10,15,20,25,30,40,45,60].map(n=><option key={n} value={n}>{n}</option>)}</select></label>
+          <label>{isVi?'Tổ chức':'Delivery'}<select value={bulkDelivery} onChange={e=>setBulkDelivery(e.target.value)}><option value="whole_class">Cả lớp</option><option value="group">Nhóm</option><option value="individual">Cá nhân</option><option value="hybrid">Kết hợp</option></select></label>
+          <button type="button" disabled={!bulkIds.length||bulkBusy} onClick={batchSetMetadata}>{bulkBusy?'Đang lưu…':'Áp dụng nhãn'}</button>
+          <button type="button" disabled={!bulkIds.length} onClick={()=>openWorkspaceTab('permissions')}>{isVi?'Cấp quyền nhóm':'Bulk grants'}</button>
+        </div> : null}
         <div className="lcs-arcade-results-head">
           <span>{filteredActivities.length ? (isVi ? `Hiển thị ${pageStart}–${pageEnd} / ${filteredActivities.length}` : `Showing ${pageStart}–${pageEnd} of ${filteredActivities.length}`) : (isVi ? 'Không có kết quả' : 'No results')}</span>
           {!loading && filteredActivities.length > 0 ? (
@@ -1729,7 +1764,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
             ) : null}
           </div>
         ) : (
-          <div className="lcs-arcade-grid lcs-arcade-grid--soft-enter" key={page}>
+          <div className={`lcs-arcade-grid lcs-arcade-grid--soft-enter ${viewMode==='list'?'lcs5-list-view':''}`} key={page}>
             {pagedActivities.map((item) => {
               const locked = !isLeader && !item.hasAccess;
               return (
@@ -1749,6 +1784,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                   />
 
                   <div className="lcs-arcade-card-copy">
+                    {bulkMode&&isLeader?<label className="lcs5-card-bulk-check"><input type="checkbox" checked={bulkIds.includes(item.id)} onChange={e=>setBulkIds(ids=>e.target.checked?[...new Set([...ids,item.id])].slice(0,20):ids.filter(id=>id!==item.id))}/> {isVi?'Chọn hoạt động':'Select activity'}</label>:null}
                     <div className="lcs-arcade-meta">
                       <strong>{labelForType(item.type, language)}</strong>
                       <span>·</span>
@@ -1789,6 +1825,13 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                       </div>
                     </div>
 
+                    <div className="lcs5-card-toolbar">
+                      <button type="button" onClick={()=>{setPreviewActivity(item);openActivityJournal();}} aria-label={'Xem nhanh '+item.title}><Info size={14}/>{isVi?'Xem nhanh':'Preview'}</button>
+                      <button type="button" className={queueSet.has(item.id)?'is-queued':''}
+                        disabled={queueBusy||queueSet.has(item.id)||(!isLeader&&!item.hasAccess)}
+                        onClick={()=>addToQueue(item.id)}
+                        aria-label={'Thêm '+item.title+' vào buổi dạy'}><Plus size={14}/>{queueSet.has(item.id)?'Đã thêm':(isVi?'Buổi dạy':'Queue')}</button>
+                    </div>
                     <div className="lcs-arcade-card-tags">
                       <span className={`lcs-focus-chip is-${item.focusArea || 'unclassified'}`}>{labelForFocusArea(item.focusArea, language)}</span>
                       {item.classLabel ? <span className="lcs-class-chip">{item.classLabel}</span> : null}
