@@ -64,7 +64,7 @@ import Assessment5Header from '../components/lessonCheck/Assessment5Header.jsx';
 import { Assessment5Preview, Assessment5Queue } from '../components/lessonCheck/Assessment5Panels.jsx';
 import { readTeachingQueue, writeTeachingQueue, markRecentActivity } from '../utils/lessonCheckTeaching.js';
 import { listActivityAttributes, saveActivityAttributes } from '../utils/lessonCheckAttributes.js';
-import { listActivityJournal } from '../utils/lessonCheckWorkbench.js';
+import { listActivityJournal, logActivityUse } from '../utils/lessonCheckWorkbench.js';
 import { loadAssessmentWorkspace, setAssessmentFavorite } from '../utils/lessonCheckWorkbench.js';
 const Assessment4Workbench = React.lazy(() => import('../components/lessonCheck/Assessment4Workbench.jsx'));
 import {
@@ -1172,6 +1172,15 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     setQueueOpen(false);
   }
 
+  async function completeQueueStep(){
+    if(!teachingActivity || classroomQueueIndex===null)return;
+    const logged=await logActivityUse(favoriteUserId,teachingActivity,{
+      eventType:'completed',className:queueClass,duration:queueMinutes
+    });
+    if(logged.ok){setJournalReady(false);setNotice(isVi?'Đã ghi nhận hoạt động hoàn thành.':'Activity completion recorded.');}
+    else setNotice(logged.message||'Không ghi được nhật ký; hoạt động vẫn đang mở.');
+  }
+
   async function jumpQueueTo(next){
     if(next<0||next>=availableQueueItems.length)return;
     const opened=await openTeachingMode(availableQueueItems[next]);
@@ -1990,6 +1999,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                 <span className="lcs5-classroom-navigation">
                   <button type="button" onClick={()=>setClassroomClockRunning(v=>!v)} aria-label={classroomClockRunning?'Tạm dừng đồng hồ':'Bắt đầu đồng hồ'}>{classroomClockRunning?<Pause size={16}/>:<Play size={16}/>}</button>
                   <button type="button" onClick={()=>{setClassroomClockRunning(false);setClassroomTimer(queueMinutes*60);}} aria-label="Đặt lại đồng hồ"><RotateCcw size={15}/></button>
+                  <button type="button" onClick={completeQueueStep}><Check size={16}/>{isVi?'Đã xong':'Complete'}</button>
                   <button type="button" disabled={classroomQueueIndex===0||teachingLoading} onClick={()=>jumpQueueTo(classroomQueueIndex-1)}><ChevronLeft size={16}/>Trước</button>
                   <button type="button" disabled={classroomQueueIndex>=availableQueueItems.length-1||teachingLoading} onClick={()=>jumpQueueTo(classroomQueueIndex+1)}>Tiếp <ChevronRight size={16}/></button>
                 </span>
