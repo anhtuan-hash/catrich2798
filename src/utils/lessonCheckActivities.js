@@ -238,7 +238,13 @@ export async function saveLessonCheckActivity(draft, parsedEmbed) {
   try {
     // One SQL transaction for metadata, content and focus; no half-created activity.
     const { data, error } = await supabase.rpc('lesson_check_save_activity_v2', payload).abortSignal(controller.signal);
-    if (error) return resultError(error, 'Không thể lưu hoạt động.');
+    if (error) {
+      if (controller.signal.aborted) return {
+        ok: false, uncertain: true,
+        message: 'Hết thời gian chờ 40 giây; chưa xác định máy chủ đã lưu hay chưa. Hãy kiểm tra thư viện trước khi thử lại để tránh tạo trùng.',
+      };
+      return resultError(error, 'Không thể lưu hoạt động.');
+    }
     const id = String((Array.isArray(data) ? data[0] : data) || draft.id || '');
     if (!id) return { ok: false, message: 'Máy chủ chưa trả mã hoạt động. Hãy kiểm tra thư viện trước khi thử lại để tránh tạo trùng.' };
     emitUpdate({ type: 'activity-saved', activityId: id });
