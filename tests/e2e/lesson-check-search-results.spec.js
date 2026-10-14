@@ -25,6 +25,7 @@ test.describe('Real-time activity title filtering',()=>{
       headers:{'access-control-allow-origin':'*'},body:'[]'});
   });
   await page.route('**/rest/v1/rpc/lesson_check_list_activities*',async route=>{
+    console.log('[search fixture] RPC intercepted:',route.request().url());
     await route.fulfill({status:200,contentType:'application/json',
       headers:{'access-control-allow-origin':'*'},body:JSON.stringify(fixtures)});
   });
@@ -34,7 +35,11 @@ test.describe('Real-time activity title filtering',()=>{
     await page.setViewportSize({width,height:900});
     await page.goto('/#/tool/lesson-check-studio');
     const cards=page.locator('#lcs5-activity-library article.lcs-arcade-card');
-    await expect(cards).toHaveCount(3,{timeout:20000});
+    await expect(cards).toHaveCount(3,{timeout:15000}).catch(async error=>{
+      const content=await page.locator('#lcs5-activity-library').innerText().catch(()=>'<library missing>');
+      console.error('[search fixture] Library before searching:',content.slice(0,1500));
+      throw error;
+    });
     const bar=page.locator('.lcs-search-always-visible');
     const textbox=bar.locator('input[type="search"]');
     await expect(textbox).toBeVisible();
