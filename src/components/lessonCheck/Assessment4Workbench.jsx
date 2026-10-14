@@ -242,12 +242,13 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
  async function auditVisibleLinks(){
    if(linkAuditBusy)return;
    setLinkAuditBusy(true);
-   const targets=quality.slice(0,20);
+   const targets=(quality.length ? quality : activities).slice(0,20);
    let local={};
-   for(const activity of targets){
-     const status=await checkActivityLink(activity);
-     local={...local,[activity.id]:status};
-     setLinkAudit(local);
+   for(let start=0;start<targets.length;start+=3){
+     const batch=targets.slice(start,start+3);
+     const results=await Promise.all(batch.map(async activity=>({id:activity.id,result:await checkActivityLink(activity)})));
+     for(const item of results)local[item.id]=item.result;
+     setLinkAudit({...local});
    }
    setLinkAuditBusy(false);
    setNotice('Đã kiểm tra '+targets.length+' nguồn; các liên kết bị CORS chặn được đánh dấu là chưa xác minh, không kết luận hỏng.');
