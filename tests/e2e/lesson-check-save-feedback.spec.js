@@ -24,7 +24,7 @@ test.describe('Lesson Check activity-save feedback',()=>{
    await editor.locator('.lcs-form-actions .lcs-btn-primary').click();
    const error=editor.locator('.lcs-save-feedback.is-error');
    await expect(error).toBeVisible();
-   await expect(error).toContainText('Chuyên đề');
+   await expect(error).toContainText(/chuyên đề/i);
    await expect(focus).toHaveAttribute('aria-invalid','true');
    await expect(focus).toBeFocused();
    await page.waitForTimeout(3200);
