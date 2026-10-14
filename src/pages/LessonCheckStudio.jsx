@@ -363,6 +363,11 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saveFeedback, setSaveFeedback] = useState(null);
+  const saveInFlightRef = useRef(false);
+  const saveTitleRef = useRef(null);
+  const saveFocusRef = useRef(null);
+  const saveEmbedRef = useRef(null);
   const [thumbnailDataUrl, setThumbnailDataUrl] = useState('');
   const [thumbnailRemoveRequested, setThumbnailRemoveRequested] = useState(false);
   const [thumbnailBusy, setThumbnailBusy] = useState(false);
@@ -833,6 +838,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   );
 
   function resetActivityBuilder() {
+    setSaveFeedback(null);
     setSingleDraft(blankDraft());
     setBatchMode(false);
     setBatchDrafts(Array.from({ length: 10 }, () => blankDraft()));
@@ -981,12 +987,23 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  function reportSaveProblem(message, field = '') {
+    setSaveFeedback({ type:'error', message });
+    setNotice(message);
+    setShowEditor(true);
+    const target = { title:saveTitleRef, focus:saveFocusRef, embed:saveEmbedRef }[field];
+    if (target) window.requestAnimationFrame(() => {
+      target.current?.scrollIntoView({ block:'center', behavior:'smooth' });
+      target.current?.focus({ preventScroll:true });
+    });
+  }
+
   async function saveBatchActivities() {
-    if (!isLeader || saving) return;
+    if (!isLeader || saving || saveInFlightRef.current) return;
     const candidates = batchDrafts.map((item, index) => ({ item, index }))
       .filter(({ item }) => item.title.trim() || item.embedCode.trim());
     if (!candidates.length) {
-      setNotice(isVi ? 'Hãy nhập ít nhất một hoạt động.' : 'Enter at least one activity.');
+      reportSaveProblem(isVi ? 'Hãy nhập ít nhất một hoạt động.' : 'Enter at least one activity.');
       return;
     }
 
@@ -999,12 +1016,15 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       if (message) {
         setActiveBatchIndex(index);
         setShowEditor(true);
-        setNotice((isVi ? `Hoạt động ${index + 1}: ` : `Activity ${index + 1}: `) + message);
+        reportSaveProblem((isVi ? `Hoạt động ${index + 1}: ` : `Activity ${index + 1}: `) + message,
+          !item.title.trim()?'title':item.focusArea==='unclassified'?'focus':'embed');
         return;
       }
     }
 
+    saveInFlightRef.current = true;
     setSaving(true);
+    setSaveFeedback(null);
     batchSavingRef.current = true;
     setBatchProgress({ current: 0, total: candidates.length });
     const remaining = [...batchDrafts];
@@ -1039,6 +1059,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       }
     } finally {
       batchSavingRef.current = false;
+      saveInFlightRef.current = false;
       setSaving(false);
       setBatchProgress({ current: 0, total: 0 });
       await loadActivities({ silent: true });
@@ -1048,9 +1069,9 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       setBatchDrafts(remaining);
       setActiveBatchIndex(failedAt);
       setShowEditor(true);
-      setNotice(isVi
-        ? `Đã lưu ${savedCount}/${candidates.length} hoạt động. Ô ${failedAt + 1} bị lỗi: ${failureMessage}. Có thể bấm lưu lại, không tạo trùng ô đã thành công.`
-        : `Saved ${savedCount}/${candidates.length}. Slot ${failedAt + 1} failed: ${failureMessage}. Retry without duplicating saved items.`);
+      reportSaveProblem(isVi
+        ? `Đã lưu ${savedCount}/${candidates.length} hoạt động. Ô ${failedAt + 1} bị lỗi: ${failureMessage}. Các ô đã lưu sẽ không bị gửi lại.`
+        : `Saved ${savedCount}/${candidates.length}. Slot ${failedAt + 1} failed: ${failureMessage}. Successful slots will not be resubmitted.`);
       return;
     }
 
@@ -1060,61 +1081,76 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   }
 
   async function saveActivity() {
-    if (!isLeader || saving) return;
+    if (!isLeader || saveInFlightRef.current || saving) return;
     if (batchMode) {
       await saveBatchActivities();
       return;
     }
     if (!draft.title.trim()) {
-      setNotice(isVi ? 'Hãy nhập tên hoạt động.' : 'Enter an activity title.');
+      reportSaveProblem(isVi ? 'Chưa nhập tên hoạt động. Hãy điền tên trước khi lưu.' : 'Enter the activity name before saving.', 'title');
       return;
     }
     if (draft.focusArea === 'unclassified') {
-      setNotice(isVi ? 'Hãy chọn chuyên đề: Vocabulary, Grammar hoặc kỹ năng phù hợp.' : 'Choose a learning focus before saving.');
+      reportSaveProblem(isVi
+        ? 'Chưa chọn Chuyên đề / kỹ năng. Hãy chọn chuyên đề Vocabulary, Grammar, Reading, Listening, Speaking hoặc Tổng hợp rồi lưu lại.'
+        : 'Choose a learning focus (Vocabulary, Grammar, Reading, Listening, Speaking or Mixed) before saving.', 'focus');
       return;
     }
     if (!previewReady) {
-      setNotice(isVi ? 'Mã nhúng chưa hợp lệ. Hãy dán URL HTTPS, iframe hoặc HTML.' : 'Embed code is not valid yet.');
+      reportSaveProblem(isVi
+        ? 'Mã nhúng chưa hợp lệ. Hãy dán URL HTTPS, iframe hoặc HTML.'
+        : 'Enter a valid HTTPS URL, iframe, or HTML snippet.', 'embed');
       return;
     }
 
+    // Ref guard is synchronous: rapid clicks cannot insert duplicate activities.
+    saveInFlightRef.current = true;
     setSaving(true);
-    const result = await saveLessonCheckActivity({
-      ...draft,
-      unitTitle: globalSuccessUnitTitle(draft.grade, draft.unitNo) || draft.unitTitle,
-      lessonTitle: globalSuccessLessonTitle(draft.lessonKey) || draft.lessonTitle,
-      sourceHost: parsedDraft.kind === 'url' ? sourceHost(parsedDraft.source) : 'HTML / srcDoc',
-    }, parsedDraft);
+    setSaveFeedback({type:'pending',message:isVi?'Đang lưu hoạt động lên Supabase…':'Saving activity to Supabase…'});
+    let savedId = '';
+    try {
+      const result = await saveLessonCheckActivity({
+        ...draft,
+        unitTitle: globalSuccessUnitTitle(draft.grade, draft.unitNo) || draft.unitTitle,
+        lessonTitle: globalSuccessLessonTitle(draft.lessonKey) || draft.lessonTitle,
+        sourceHost: parsedDraft.kind === 'url' ? sourceHost(parsedDraft.source) : 'HTML / srcDoc',
+      }, parsedDraft);
 
-    if (!result.ok) {
+      if (!result.ok) {
+        if (result.id) setSingleDraft(current => ({...current, id:result.id}));
+        reportSaveProblem(result.message || (isVi ? 'Không thể lưu hoạt động. Vui lòng thử lại.' : 'Could not save the activity.'));
+        return;
+      }
+      savedId = result.id;
+      // If the thumbnail step fails, keep the saved ID for a safe retry of that same record.
+      if (thumbnailDataUrl) {
+        const thumbnailResult = await uploadLessonCheckActivityThumbnail(savedId, thumbnailDataUrl);
+        if (!thumbnailResult.ok) {
+          setSingleDraft(current => ({ ...current, id:savedId }));
+          reportSaveProblem((isVi ? 'Đã lưu hoạt động, nhưng ảnh thumbnail chưa lưu được: ' : 'Activity saved, but thumbnail failed: ') + thumbnailResult.message);
+          return;
+        }
+      } else if (draft.id && thumbnailRemoveRequested) {
+        const thumbnailResult = await removeLessonCheckActivityThumbnail(savedId);
+        if (!thumbnailResult.ok) {
+          setSingleDraft(current => ({ ...current, id:savedId }));
+          reportSaveProblem((isVi ? 'Đã lưu hoạt động, nhưng chưa xóa được ảnh: ' : 'Activity saved, but thumbnail removal failed: ') + thumbnailResult.message);
+          return;
+        }
+      }
+      resetActivityBuilder();
+      setShowBuilder(false);
+      setNotice(isVi ? 'Đã lưu hoạt động thành công lên Supabase.' : 'Activity saved successfully to Supabase.');
+    } catch (error) {
+      if (savedId) setSingleDraft(current=>({...current,id:savedId}));
+      reportSaveProblem((error?.message || (isVi?'Kết nối lưu bị gián đoạn.':'Saving connection was interrupted.'))
+        + (savedId?'':(isVi?' Vui lòng kiểm tra thư viện trước khi thử lại để tránh tạo trùng.':' Check the library before retrying to avoid duplicates.')));
+    } finally {
+      saveInFlightRef.current = false;
       setSaving(false);
-      setNotice(result.message || (isVi ? 'Không thể lưu hoạt động.' : 'Could not save activity.'));
-      return;
+      // Refresh is not allowed to trap the button in a permanent loading state.
+      try { await loadActivities({ silent:true }); } catch { /* Retain save status when refresh fails. */ }
     }
-
-    if (draft.id && thumbnailDataUrl) {
-      const thumbnailResult = await uploadLessonCheckActivityThumbnail(result.id, thumbnailDataUrl);
-      if (!thumbnailResult.ok) {
-        setSaving(false);
-        setNotice((isVi ? 'Hoạt động đã lưu nhưng thumbnail chưa lưu được: ' : 'Activity saved, but thumbnail upload failed: ') + thumbnailResult.message);
-        await loadActivities({ silent: true });
-        return;
-      }
-    } else if (draft.id && thumbnailRemoveRequested) {
-      const thumbnailResult = await removeLessonCheckActivityThumbnail(result.id);
-      if (!thumbnailResult.ok) {
-        setSaving(false);
-        setNotice((isVi ? 'Hoạt động đã lưu nhưng chưa xóa được thumbnail: ' : 'Activity saved, but thumbnail could not be removed: ') + thumbnailResult.message);
-        await loadActivities({ silent: true });
-        return;
-      }
-    }
-
-    setSaving(false);
-    setNotice(isVi ? 'Đã lưu hoạt động và thumbnail.' : 'Activity and thumbnail saved.');
-    resetActivityBuilder();
-    setShowBuilder(false);
-    await loadActivities({ silent: true });
   }
 
   async function duplicateActivity(item) {
@@ -1501,7 +1537,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
                   <label className="lcs-field lcs-field-wide">
                     <span>{isVi ? 'Tên hoạt động' : 'Activity title'}</span>
-                    <input value={draft.title} onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))} placeholder={isVi ? `Ví dụ: Unit ${draft.unitNo} – ${globalSuccessUnitTitle(draft.grade, draft.unitNo)} Quiz` : 'Activity title'} />
+                    <input ref={saveTitleRef} value={draft.title} onChange={(e) => {setSaveFeedback(null);setDraft((d) => ({ ...d, title: e.target.value }));}} placeholder={isVi ? `Ví dụ: Unit ${draft.unitNo} – ${globalSuccessUnitTitle(draft.grade, draft.unitNo)} Quiz` : 'Activity title'} />
                   </label>
                   <label className="lcs-field">
                     <span>{isVi ? 'Lớp / nhóm dùng' : 'Class / group'}</span>
@@ -1513,7 +1549,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                   </label>
                   <label className="lcs-field">
                     <span>{isVi ? 'Chuyên đề / kỹ năng' : 'Learning focus'}</span>
-                    <select value={draft.focusArea} onChange={(e) => setDraft((d) => ({ ...d, focusArea: e.target.value }))}>
+                    <select ref={saveFocusRef} aria-invalid={saveFeedback?.type==='error' && draft.focusArea==='unclassified'} value={draft.focusArea} onChange={(e) => {setSaveFeedback(null);setDraft((d) => ({ ...d, focusArea: e.target.value }));}}>
                       <option value="unclassified">{isVi ? '— Chọn chuyên đề —' : '— Choose focus —'}</option>
                       {FOCUS_OPTIONS.filter((item) => item.value !== 'unclassified').map((item) => <option key={item.value} value={item.value}>{isVi ? item.vi : item.en}</option>)}
                     </select>
@@ -1576,7 +1612,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
                   <label className="lcs-field lcs-field-wide">
                     <span>{isVi ? 'Mã nhúng / URL / HTML' : 'Embed code / URL / HTML'}</span>
-                    <textarea rows={9} value={draft.embedCode} onChange={(e) => setDraft((d) => ({ ...d, embedCode: e.target.value }))} placeholder={'<iframe src="https://..."></iframe>\n\nhttps://...\n\n<div>...</div><script>...</script>'} spellCheck={false} />
+                    <textarea ref={saveEmbedRef} rows={9} value={draft.embedCode} onChange={(e) => {setSaveFeedback(null);setDraft((d) => ({ ...d, embedCode: e.target.value }));}} placeholder={'<iframe src="https://..."></iframe>\n\nhttps://...\n\n<div>...</div><script>...</script>'} spellCheck={false} />
                   </label>
                   <div className="lcs-detection">
                     <span className={`lcs-dot ${previewReady ? 'is-ready' : ''}`} />
@@ -1585,6 +1621,11 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                       : parsedDraft.kind === 'invalid' ? (isVi ? 'Chưa nhận diện được mã hợp lệ' : 'No valid embed detected')
                       : (isVi ? 'Chưa có mã nhúng' : 'No embed code yet')}
                   </div>
+                  {saveFeedback ? <div className={`lcs-save-feedback is-${saveFeedback.type}`}
+                    role={saveFeedback.type==='error'?'alert':'status'} aria-live={saveFeedback.type==='error'?'assertive':'polite'}>
+                    {saveFeedback.type==='pending' ? <LoaderCircle className="lcs-spin" size={17}/> : <Info size={17}/>}
+                    <span>{saveFeedback.message}</span>
+                  </div> : null}
                   <div className="lcs-form-actions">
                     {draft.id ? <button className="lcs-btn lcs-btn-secondary" onClick={closeBuilder}>{isVi ? 'Hủy chỉnh sửa' : 'Cancel edit'}</button> : null}
                     <button className="lcs-btn lcs-btn-primary" onClick={saveActivity} disabled={saving || thumbnailBusy}>

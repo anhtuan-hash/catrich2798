@@ -23,13 +23,13 @@ test('global decorations do not cover the Arcade but remain enabled on other rou
   assert.match(atmosphere,/\.bes-vn-atmosphere\s*\{[\s\S]*?position:\s*fixed/);
   assert.doesNotMatch(section,/display:none!important.*\.lcs-page/);
 });
-test('game content, fullscreen rendering, permission checks and gallery are unmodified',()=>{
+test('game fullscreen content remains gated while gallery uses static thumbnails',()=>{
   assert.match(studio,/function ActivityFrame\(\{ embed, title, className = '' \}\)/);
-  assert.match(studio,/<ActivityFrame embed=\{embed\} title=\{activity\.title\} className="lcs-card-preview-frame"\s*\/>/);
+  assert.match(studio,/<img className="lcs-card-thumbnail-image" src=\{thumbnailUrl\}/);
   assert.match(studio,/<ActivityFrame embed=\{parsedDraft\} title=\{draft\.title\} className="lcs-frame"/);
-  assert.match(studio,/canLoad && activated && embed/);
+  assert.match(studio,/className=\{`lcs-card-media \$\{canLoad \? 'can-preview' : 'is-locked'\}/);
   assert.match(studio,/role="button"/);
   assert.match(studio,/openTeachingMode\(item\)/);
-  assert.match(studio,/getLessonCheckActivityContent\(activity\.id\)/);
+  assert.match(studio,/getLessonCheckActivityContent\(item\.id\)/);
   assert.match(css,/\.lcs-frame\{width:100%;height:100%;border:0;background:#fff\}/);
 });

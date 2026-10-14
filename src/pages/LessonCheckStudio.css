@@ -4388,3 +4388,42 @@ html:has(.lcs-page--library) .bes-vn-atmosphere{
     width:100%;justify-content:flex-end;
   }
 }
+
+/* Lesson Check · reliable save feedback exactly where the teacher clicks. */
+.lcs-page--library .lcs-save-feedback {
+  grid-column:1/-1;
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  border-radius:12px;
+  border:1px solid #cedef0;
+  background:#eef7ff;
+  color:#245475;
+  padding:12px 14px;
+  font-size:12px;
+  font-weight:650;
+  line-height:1.55;
+  white-space:normal;
+  overflow-wrap:anywhere;
+}
+.lcs-page--library .lcs-save-feedback.is-error {
+  color:#8e3431;
+  border-color:#f0b7ac;
+  background:#fff0ed;
+}
+.lcs-page--library .lcs-save-feedback.is-pending {
+  color:#1c648a;
+  border-color:#b9dcec;
+  background:#edf9ff;
+}
+.lcs-page--library .lcs-save-feedback>svg{flex:none;margin-top:1px}
+.lcs-page--library .lcs-field [aria-invalid="true"] {
+  border-color:#dd6356!important;
+  box-shadow:0 0 0 3px rgba(220,88,75,.14)!important;
+}
+.lcs-page--library .lcs-save-feedback + .lcs-form-actions {
+  margin-top:1px;
+}
+@media(prefers-reduced-motion:reduce){
+  .lcs-page--library .lcs-save-feedback .lcs-spin{animation:none!important}
+}

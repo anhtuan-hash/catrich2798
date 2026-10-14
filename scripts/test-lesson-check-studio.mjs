@@ -54,7 +54,7 @@ assert.match(studio, /GLOBAL_SUCCESS_LESSONS\.map/);
 // Supabase is authoritative; localStorage persistence is retired.
 assert.match(service, /supabase\.rpc\('lesson_check_list_activities'/);
 assert.match(service, /supabase\.rpc\('lesson_check_get_activity_content'/);
-assert.match(service, /supabase\.rpc\('lesson_check_save_activity'/);
+assert.match(service, /supabase\.rpc\('lesson_check_save_activity_v2'/);
 assert.match(service, /supabase\.rpc\('lesson_check_request_access'/);
 assert.match(service, /supabase\.rpc\('lesson_check_list_teacher_access'/);
 assert.match(service, /supabase\.rpc\('lesson_check_set_teacher_access'/);
@@ -144,7 +144,7 @@ assert.match(studio, /setShowBuilder\(true\)/);
 assert.doesNotMatch(studio, /<aside className="lcs-library-sidebar">/, 'Padlet-style gallery should not squeeze cards beside a permanent sidebar.');
 
 assert.match(service, /focusArea: String\(row\.focus_area \|\| 'unclassified'\)/);
-assert.match(service, /\.update\(\{ focus_area: focusArea \}\)/);
+assert.match(service, /p_focus_area: String\(draft\.focusArea \|\| 'unclassified'\)/);
 assert.match(focusMigration, /add column if not exists focus_area text not null default 'unclassified'/);
 assert.match(focusMigration, /vocabulary','grammar','reading','listening','speaking','mixed','unclassified/);
 assert.match(focusMigration, /a\.activity_type, a\.focus_area, a\.notes/);
