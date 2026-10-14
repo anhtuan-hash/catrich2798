@@ -215,7 +215,7 @@ export async function getLessonCheckActivityContent(activityId) {
 }
 
 export async function saveLessonCheckActivity(draft, parsedEmbed) {
-  if (!isSupabaseConfigured || !supabase) return { ok: false, message: 'Supabase is not configured.' };
+  if (!isSupabaseConfigured || !supabase) return { ok: false, message: 'Không có kết nối Supabase. Vui lòng kiểm tra mạng.' };
   const payload = {
     target_activity: draft.id || null,
     p_title: String(draft.title || '').trim(),
@@ -231,21 +231,24 @@ export async function saveLessonCheckActivity(draft, parsedEmbed) {
     p_source_host: String(draft.sourceHost || ''),
     p_embed_kind: String(parsedEmbed?.kind || ''),
     p_embed_code: String(draft.embedCode || ''),
+    p_focus_area: String(draft.focusArea || 'unclassified'),
   };
-  const { data, error } = await supabase.rpc('lesson_check_save_activity', payload);
-  if (error) return resultError(error, 'Không thể lưu hoạt động.');
-  const id = String(Array.isArray(data) ? data[0] : data || draft.id || '');
-  if (!id) return { ok: false, message: 'Activity was saved but no activity id was returned.' };
-
-  const focusArea = String(draft.focusArea || 'unclassified');
-  const { error: focusError } = await supabase
-    .from('lesson_check_activities')
-    .update({ focus_area: focusArea })
-    .eq('id', id);
-  if (focusError) return { ...resultError(focusError, 'Đã lưu hoạt động nhưng chưa lưu được tag chuyên đề.'), id };
-
-  emitUpdate({ type: 'activity-saved', activityId: id });
-  return { ok: true, id };
+  try {
+    // One SQL transaction for metadata, content and focus; no half-created activity.
+    const { data, error } = await supabase.rpc('lesson_check_save_activity_v2', payload);
+    if (error) return resultError(error, 'Không thể lưu hoạt động.');
+    const id = String((Array.isArray(data) ? data[0] : data) || draft.id || '');
+    if (!id) return { ok: false, message: 'Máy chủ chưa trả mã hoạt động. Hãy kiểm tra thư viện trước khi thử lại để tránh tạo trùng.' };
+    emitUpdate({ type: 'activity-saved', activityId: id });
+    return { ok: true, id };
+  } catch (error) {
+    return {
+      ok: false,
+      uncertain: true,
+      message: (error?.message || 'Kết nối đến Supabase bị gián đoạn.')
+        + ' Hãy kiểm tra thư viện trước khi thử lại để tránh tạo trùng.',
+    };
+  }
 }
 
 export async function deleteLessonCheckActivity(activityId) {
