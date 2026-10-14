@@ -6,6 +6,7 @@ on:
       - 'src/pages/LessonCheckApprovedMockupOne.css'
       - 'public/lesson-check-approved-mascot.svg'
       - 'tests/lesson-check-approved-mockup-1.test.mjs'
+      - 'tests/e2e/lesson-check-search-visible.spec.js'
       - '.github/workflows/lesson-check-approved-mockup-1.yml'
   push:
     branches: [main]
@@ -14,10 +15,11 @@ on:
       - 'src/pages/LessonCheckApprovedMockupOne.css'
       - 'public/lesson-check-approved-mascot.svg'
       - 'tests/lesson-check-approved-mockup-1.test.mjs'
+      - 'tests/e2e/lesson-check-search-visible.spec.js'
 jobs:
   ui-guard:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 18
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,3 +31,7 @@ jobs:
         run: node --test tests/lesson-check-approved-mockup-1.test.mjs
       - name: Build production
         run: npm run build
+      - name: Install Chromium for visible-UI regression
+        run: npx playwright install --with-deps chromium
+      - name: Verify search visibility at desktop, tablet and mobile
+        run: npx playwright test tests/e2e/lesson-check-search-visible.spec.js --project=chromium-desktop

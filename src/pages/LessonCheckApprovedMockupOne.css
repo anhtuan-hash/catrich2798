@@ -737,3 +737,66 @@
 @media(prefers-reduced-motion:reduce) {
   .lcs-page--library .lcs-filter-quick-search {transition:none;}
 }
+
+/* Search visibility repair: never rely on placeholder text or inherited nav styles.
+   This is an always-visible fourth control on the library filter row. */
+.lcs-page--library .lcs-arcade-filterbar > .lcs-filter-quick-search.lcs-search-always-visible {
+  display:flex!important;
+  visibility:visible!important;
+  opacity:1!important;
+  position:relative!important;
+  flex:1 1 320px!important;
+  width:auto!important;
+  min-width:250px!important;
+  max-width:460px!important;
+  min-height:42px!important;
+  height:42px!important;
+  margin-left:auto!important;
+  padding:0 12px!important;
+  border:1px solid #8eb9d9!important;
+  border-radius:11px!important;
+  background:#eef7ff!important;
+  color:#24597d!important;
+  box-shadow:0 1px 8px rgba(48,118,171,.10)!important;
+  align-items:center!important;
+  gap:9px!important;
+  order:0!important;
+  overflow:visible!important;
+}
+.lcs-page--library .lcs-search-always-visible .lcs-search-visible-label {
+  display:inline-flex!important;
+  flex:none!important;
+  color:#24638e!important;
+  font-size:11px!important;
+  font-weight:850!important;
+  white-space:nowrap!important;
+  padding-right:9px!important;
+  border-right:1px solid #bad4e6!important;
+}
+.lcs-page--library .lcs-search-always-visible > input {
+  display:block!important;
+  visibility:visible!important;
+  flex:1 1 auto!important;
+  opacity:1!important;
+  width:100%!important;
+  min-width:80px!important;
+  font-size:12px!important;
+  background:transparent!important;
+  color:#193954!important;
+}
+.lcs-page--library .lcs-search-always-visible > input::placeholder {
+  color:#607f98!important;
+  opacity:1!important;
+}
+.lcs-page--library .lcs-arcade-filterbar > .lcs-arcade-clear {
+  order:1!important;
+}
+@media(max-width:940px){
+  .lcs-page--library .lcs-arcade-filterbar > .lcs-filter-quick-search.lcs-search-always-visible {
+    flex:1 1 100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    width:100%!important;
+    margin-left:0!important;
+  }
+}
