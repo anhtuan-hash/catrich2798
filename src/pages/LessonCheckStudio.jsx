@@ -1092,7 +1092,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     }
     if (draft.focusArea === 'unclassified') {
       reportSaveProblem(isVi
-        ? 'Chưa chọn Chuyên đề / kỹ năng. Hãy chọn Vocabulary, Grammar, Reading, Listening, Speaking hoặc Tổng hợp rồi lưu lại.'
+        ? 'Chưa chọn Chuyên đề / kỹ năng. Hãy chọn chuyên đề Vocabulary, Grammar, Reading, Listening, Speaking hoặc Tổng hợp rồi lưu lại.'
         : 'Choose a learning focus (Vocabulary, Grammar, Reading, Listening, Speaking or Mixed) before saving.', 'focus');
       return;
     }
