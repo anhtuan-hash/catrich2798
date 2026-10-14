@@ -21,7 +21,7 @@ test('Phase 1: Colorful Bento launcher is an isolated accessible live-data dashb
 });
 test('Phase 2: title search, advanced filters, grid/list and permission-safe preview',()=>{
  assert.match(page,/lcs-search-always-visible/);
- assert.match(page,/return normalizeActivityTitle\(item\.title\)\.includes\(q\)/);
+ assert.match(page,/title\.includes\(q\) \|\| q\.split\(/);
  assert.match(page,/cefrFilter !== 'all'/);
  assert.match(page,/deliveryFilter !== 'all'/);
  assert.match(page,/durationFilter !== 'all'/);
