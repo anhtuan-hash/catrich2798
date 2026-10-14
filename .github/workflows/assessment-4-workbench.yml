@@ -6,6 +6,11 @@ on:
       - 'src/pages/LessonCheckStudio.jsx'
       - 'src/pages/LessonCheckApprovedMockupOne.css'
       - 'src/utils/lessonCheckWorkbench.js'
+      - 'src/utils/lessonCheckTeacherGroups.js'
+      - 'src/utils/lessonCheckLinkAudit.js'
+      - 'src/components/GlobalQuickAccessRail.css'
+      - 'supabase/migrations/20261014040000_assessment_teacher_groups.sql'
+      - 'tests/assessment-4-1-security.test.mjs'
       - 'src/utils/lessonCheckAttributes.js'
       - 'supabase/migrations/20261014030000_assessment_4_activity_facets.sql'
       - 'supabase/migrations/20261014020000_assessment_4_workbench.sql'
@@ -18,6 +23,11 @@ on:
       - 'src/pages/LessonCheckStudio.jsx'
       - 'src/pages/LessonCheckApprovedMockupOne.css'
       - 'src/utils/lessonCheckWorkbench.js'
+      - 'src/utils/lessonCheckTeacherGroups.js'
+      - 'src/utils/lessonCheckLinkAudit.js'
+      - 'src/components/GlobalQuickAccessRail.css'
+      - 'supabase/migrations/20261014040000_assessment_teacher_groups.sql'
+      - 'tests/assessment-4-1-security.test.mjs'
       - 'src/utils/lessonCheckAttributes.js'
       - 'supabase/migrations/20261014030000_assessment_4_activity_facets.sql'
       - 'supabase/migrations/20261014020000_assessment_4_workbench.sql'
@@ -33,6 +43,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: node --test tests/assessment-4-workbench.test.mjs
+      - run: node --test tests/assessment-4-1-security.test.mjs
       - run: node --test tests/lesson-check-approved-mockup-1.test.mjs
       - run: node scripts/test-lesson-check-studio.mjs
       - run: npm run build

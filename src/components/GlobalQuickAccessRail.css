@@ -8372,3 +8372,14 @@ body > .bqa-root .bqa-rail {
     animation: none !important;
   }
 }
+
+/* Fix V4.10 privacy regression (#1161): modern navigation can render these
+   utilities outside .brian-nav__primary/.brian-nav__actions. Keep selectors
+   rooted at the actual presentation attribute, not the historic DOM shape. */
+html[data-brian-classroom-mode='true'] .app-shell .brian-nav__reports-tab,
+html[data-brian-classroom-mode='true'] .app-shell .brian-nav__ttcm-tab,
+html[data-brian-classroom-mode='true'] .app-shell .brian-nav__bell {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
