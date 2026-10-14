@@ -109,3 +109,32 @@ test('Lesson Check thumbnail APIs share a Vercel function without breaking legac
     globalThis.fetch=originalFetch;
   }
 });
+
+test('Quick activity-name search sits next to Unit/topic filters and is keyboard accessible',()=>{
+  const filters=page.slice(page.indexOf('<div className="lcs-arcade-filterbar">'),page.indexOf('<div className="lcs-arcade-results-head">'));
+  assert.ok(filters.length>200);
+  assert.ok(filters.indexOf('aria-label="Unit"') < filters.indexOf('lcs-filter-quick-search'));
+  assert.ok(filters.indexOf('Tất cả chuyên đề') < filters.indexOf('lcs-filter-quick-search'));
+  assert.match(filters,/className="lcs-filter-quick-search" role="search"/);
+  assert.match(filters,/aria-label=\{isVi \? 'Tìm nhanh theo tên hoạt động' : 'Quick search by activity name'\}/);
+  assert.match(filters,/value=\{query\}/);
+  assert.match(filters,/onChange=\{\(event\) => setQuery\(event\.target\.value\)\}/);
+  assert.match(filters,/event\.key === 'Escape'\) setQuery\(''\)/);
+  assert.match(filters,/aria-label=\{isVi \? 'Xóa từ khóa tìm kiếm' : 'Clear search'\}/);
+  const nav=page.slice(page.indexOf('<div className="lcs-arcade-nav">'),page.indexOf('<div className="lcs-arcade-filterbar">'));
+  assert.doesNotMatch(nav,/<input value=\{query\}/,'The previous search input should not be duplicated');
+});
+test('Quick search matches activity titles alone and is accent insensitive',()=>{
+  assert.match(page,/const q = normalizeActivityTitle\(query\)/);
+  assert.match(page,/return normalizeActivityTitle\(item\.title\)\.includes\(q\)/);
+  const start=page.indexOf('function normalizeActivityTitle(');
+  const end=page.indexOf('function blankDraft()',start);
+  assert.ok(start>0&&end>start);
+  const normalize=Function('return ('+page.slice(start,end).trim()+')')();
+  assert.equal(normalize('ĐỔI MỚI SÁNG TẠO'),normalize('doi moi sang tao'));
+  assert.equal(normalize('  Grammar Breach   '),'grammar breach');
+  assert.equal(normalize('Phát minh').includes(normalize('phat')) ,true);
+  assert.match(page,/setPage\(1\);\s*\}, \[focusFilter, gradeFilter, query, sortMode, statusFilter, unitFilter\]\)/);
+  assert.match(skin,/\.lcs-page--library \.lcs-arcade-filterbar \.lcs-filter-quick-search/);
+  assert.match(skin,/@media\(max-width:850px\)/);
+});
