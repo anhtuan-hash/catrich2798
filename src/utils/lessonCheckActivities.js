@@ -214,9 +214,8 @@ export async function getLessonCheckActivityContent(activityId) {
   };
 }
 
-export async function saveLessonCheckActivity(draft, parsedEmbed) {
-  if (!isSupabaseConfigured || !supabase) return { ok: false, message: 'Supabase is not configured.' };
-  const payload = {
+function buildLessonCheckSavePayload(draft, parsedEmbed) {
+  return {
     target_activity: draft.id || null,
     p_title: String(draft.title || '').trim(),
     p_book_key: String(draft.bookKey || 'global-success'),
@@ -232,6 +231,11 @@ export async function saveLessonCheckActivity(draft, parsedEmbed) {
     p_embed_kind: String(parsedEmbed?.kind || ''),
     p_embed_code: String(draft.embedCode || ''),
   };
+}
+
+export async function saveLessonCheckActivity(draft, parsedEmbed) {
+  if (!isSupabaseConfigured || !supabase) return { ok: false, message: 'Supabase is not configured.' };
+  const payload = buildLessonCheckSavePayload(draft, parsedEmbed);
   const { data, error } = await supabase.rpc('lesson_check_save_activity', payload);
   if (error) return resultError(error, 'Không thể lưu hoạt động.');
   const id = String(Array.isArray(data) ? data[0] : data || draft.id || '');
@@ -246,6 +250,52 @@ export async function saveLessonCheckActivity(draft, parsedEmbed) {
 
   emitUpdate({ type: 'activity-saved', activityId: id });
   return { ok: true, id };
+}
+
+/** One transaction for metadata, protected embed, and focus.
+ * Stable requestId prevents duplicate inserts when a response is lost after commit.
+ * Aborting the browser request does NOT prove that the server rolled back.
+ */
+export async function saveLessonCheckActivityReliable(draft, parsedEmbed, {
+  requestId,
+  timeoutMs = 22000,
+} = {}) {
+  if (!isSupabaseConfigured || !supabase) {
+    return { ok: false, message: 'Chưa kết nối Supabase. Hãy kiểm tra kết nối.' };
+  }
+  if (!requestId) return { ok: false, message: 'Thiếu mã yêu cầu lưu; vui lòng thử lại.' };
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const payload = {
+      ...buildLessonCheckSavePayload(draft, parsedEmbed),
+      p_focus_area: String(draft.focusArea || 'unclassified'),
+      p_request_id: requestId,
+    };
+    const { data, error } = await supabase
+      .rpc('lesson_check_save_activity_reliable', payload)
+      .abortSignal(controller.signal);
+    if (error) {
+      if (controller.signal.aborted) {
+        return { ok: false, retryable: true, message: 'Quá thời gian chờ máy chủ. Hoạt động có thể đã được ghi; nhấn Lưu lại để kiểm tra mà không tạo trùng.' };
+      }
+      return { ok: false, retryable: true, message: error.message || 'Máy chủ không thể lưu hoạt động.' };
+    }
+    const id = String(Array.isArray(data) ? data[0] : (data || ''));
+    if (!id) return { ok: false, retryable: true, message: 'Máy chủ chưa xác nhận mã hoạt động. Hãy thử lưu lại.' };
+    emitUpdate({ type: 'activity-saved', activityId: id });
+    return { ok: true, id };
+  } catch (error) {
+    return {
+      ok: false,
+      retryable: true,
+      message: controller.signal.aborted
+        ? 'Lưu quá thời gian. Có thể máy chủ đã nhận hoạt động; nhấn Lưu lại sẽ không tạo trùng.'
+        : 'Mất kết nối khi lưu: ' + String(error?.message || 'Network error') + '. Hãy thử lại.',
+    };
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export async function deleteLessonCheckActivity(activityId) {
