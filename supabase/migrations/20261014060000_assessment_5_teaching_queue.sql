@@ -50,7 +50,7 @@ begin
  values (who,array[p_activity],now())
  on conflict (user_id) do update
    set recent_ids = array_prepend(p_activity,
-     coalesce((select array_agg(x) from unnest(
+     coalesce((select array_agg(x order by ord) from unnest(
        array_remove(coalesce(lesson_check_workspace_state.recent_ids,'{}'::uuid[]),p_activity)
      ) with ordinality t(x,ord) where ord<=29),'{}'::uuid[])),
      updated_at=now()
