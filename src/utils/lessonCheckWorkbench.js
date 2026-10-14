@@ -24,13 +24,12 @@ export async function loadAssessmentWorkspace(userId) {
 export async function storeAssessmentWorkspace(userId, state) {
   if (!ready() || !userId) return fail(null, 'Bạn cần đăng nhập.');
   const normalized = normalizeWorkspaceState({
-    favorites: state.favorites, recent_ids: state.recentIds,
     collections: state.collections, runner: state.runner,
   });
   const { error } = await supabase.from('lesson_check_workspace_state').upsert({
-    // Favorites are written atomically by setAssessmentFavorite. Never overwrite them
-    // when a collection, runner or recently opened activity is saved.
-    user_id: userId, recent_ids: normalized.recentIds,
+    // Never overwrite favorites (atomic favorite RPC) or recent_ids
+    // (atomic recent activity RPC) with a stale Workspace autosave.
+    user_id: userId,
     collections: normalized.collections, runner: normalized.runner, updated_at: new Date().toISOString(),
   }, { onConflict: 'user_id' });
   return error ? fail(error) : { ok: true };
