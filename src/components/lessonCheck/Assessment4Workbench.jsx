@@ -36,9 +36,9 @@ function ActivityMini({ item, onOpen, onStar, favorite, more }) {
  </article>;
 }
 
-export default function Assessment4Workbench({ activities=[], currentUser, isLeader=false, onLaunch, onRefresh, favoriteIds=[], onToggleFavorite }) {
+export default function Assessment4Workbench({ activities=[], currentUser, isLeader=false, onLaunch, onRefresh, favoriteIds=[], onToggleFavorite, initialTab='mine', initialSelectedActivities=[] }) {
  const userId=uid(currentUser);
- const [tab,setTab]=useState('mine');
+ const [tab,setTab]=useState(initialTab);
  const [data,setData]=useState(initial);
  const [ready,setReady]=useState(false);
  const [workspaceError,setWorkspaceError]=useState('');
@@ -73,7 +73,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
  const [linkAudit,setLinkAudit]=useState({});
  const [linkAuditBusy,setLinkAuditBusy]=useState(false);
  const [linkAuditPage,setLinkAuditPage]=useState(0);
- const [selectedActivities,setSelectedActivities]=useState([]);
+ const [selectedActivities,setSelectedActivities]=useState(initialSelectedActivities);
  const [expiresOn,setExpiresOn]=useState('');
  const [grantAction,setGrantAction]=useState('grant');
  const [versionActivity,setVersionActivity]=useState('');
@@ -84,6 +84,7 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
  const [journalNote,setJournalNote]=useState('');
  const [intervention,setIntervention]=useState({studentRef:'',studentName:'',className:'',focusArea:'',actionPlan:'',baselineGrade:'',followupGrade:'',dueOn:'',status:'planned'});
  const savedRef=useRef('');
+ useEffect(()=>{setTab(initialTab);if(initialSelectedActivities.length)setSelectedActivities(initialSelectedActivities);},[initialTab,initialSelectedActivities]);
  const attributeById=useMemo(()=>new Map(attributes.map(a=>[a.activity_id,a])),[attributes]);
  const table=useMemo(()=>new Map(activities.map(item=>[item.id,{...item,isLeader}])),[activities,isLeader]);
  const allowed=useMemo(()=>activities.filter(item=>isLeader || item.hasAccess),[activities,isLeader]);
@@ -317,10 +318,10 @@ export default function Assessment4Workbench({ activities=[], currentUser, isLea
  },[reportResults]);
  const today=Date.now();
  const due=interventions.filter(i=>i.status!=='completed'&&i.due_on&&new Date(i.due_on).getTime()<today);
- return <section className="a4-workbench" aria-label="BRIAN Assessment 4.0">
-  <header className="a4-hero"><div><small>BRIAN ASSESSMENT 4.0 · WORKSPACE</small><h2>Trung tâm hoạt động & đánh giá</h2><p>Học liệu của tôi · Tổ chức lớp · Theo dõi kết quả · Minh chứng chuyên môn</p></div>
+ return <section className="a4-workbench" aria-label="BRIAN Assessment 5.0">
+  <header className="a4-hero"><div><small>BRIAN ASSESSMENT 5.0 · WORKSPACE</small><h2>Trung tâm hoạt động & đánh giá</h2><p>Học liệu của tôi · Tổ chức lớp · Theo dõi kết quả · Minh chứng chuyên môn</p></div>
    <button type="button" onClick={()=>{refreshRecords();onRefresh?.();}}><RefreshCw size={16}/> Đồng bộ</button></header>
-  <nav className="a4-tabs" aria-label="Chức năng Assessment 4.0">{allTabs.map(([id,name])=><button key={id} type="button" className={tab===id?'active':''} onClick={()=>setTab(id)}>{name}</button>)}</nav>
+  <nav className="a4-tabs" aria-label="Chức năng Assessment 5.0">{allTabs.map(([id,name])=><button key={id} type="button" className={tab===id?'active':''} onClick={()=>setTab(id)}>{name}</button>)}</nav>
   {notice?<div className="a4-notice" role="status">{notice}<button type="button" aria-label="Đóng" onClick={()=>setNotice('')}><X size={15}/></button></div>:null}
   {!ready?<div className="a4-loading">{workspaceError?<><strong>{workspaceError}</strong> <button type="button" onClick={()=>setRetryKey(v=>v+1)}>Thử lại</button></>:<><LoaderCircle/> Đang kết nối không gian làm việc cá nhân…</>}</div>:null}
   {ready && tab==='mine'? <>

@@ -134,7 +134,7 @@ test('Quick search matches activity titles alone and is accent insensitive',()=>
   assert.equal(normalize('ĐỔI MỚI SÁNG TẠO'),normalize('doi moi sang tao'));
   assert.equal(normalize('  Grammar Breach   '),'grammar breach');
   assert.equal(normalize('Phát minh').includes(normalize('phat')) ,true);
-  assert.match(page,/setPage\(1\);\s*\}, \[focusFilter, gradeFilter, query, sortMode, statusFilter, unitFilter\]\)/);
+  assert.match(page,/setPage\(1\);\s*\}, \[cefrFilter, durationFilter, deliveryFilter, focusFilter, gradeFilter, query, sortMode, statusFilter, unitFilter\]\)/);
   assert.match(skin,/\.lcs-page--library \.lcs-arcade-filterbar \.lcs-filter-quick-search/);
   assert.match(skin,/@media\(max-width:850px\)/);
 });

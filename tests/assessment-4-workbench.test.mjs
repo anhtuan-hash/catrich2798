@@ -12,7 +12,7 @@ const css = read('src/components/lessonCheck/Assessment4Workbench.css');
 test('Assessment 4.0 stays inside Lesson Check without replacing existing library', () => {
  assert.match(page,/React\.lazy\(\(\) => import\('\.\.\/components\/lessonCheck\/Assessment4Workbench\.jsx'\)\)/);
  assert.match(page,/workbenchOpen \? <div id="assessment4-workbench"/);
- assert.match(page,/<section className="lcs-arcade-library">/);
+ assert.match(page,/<section className="lcs-arcade-library" id="lcs5-activity-library">/);
  assert.match(page,/<AssessmentWorkspace/);
  assert.doesNotMatch(css,/(?:\.brian-nav|\.app-shell|#root|body\s*\{)/);
 });

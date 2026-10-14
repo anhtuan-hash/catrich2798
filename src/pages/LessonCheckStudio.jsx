@@ -14,6 +14,15 @@ import {
   Filter,
   FolderOpen,
   Heart,
+  Info,
+  ListChecks,
+  SlidersHorizontal,
+  CheckSquare,
+  Square,
+  ArrowUp,
+  ArrowDown,
+  Pause,
+  RotateCcw,
   Fullscreen,
   Gamepad2,
   Globe2,
@@ -51,6 +60,11 @@ import {
   uploadLessonCheckActivityThumbnail,
 } from '../utils/lessonCheckActivities.js';
 import AssessmentWorkspace from '../components/lessonCheck/AssessmentWorkspace.jsx';
+import Assessment5Header from '../components/lessonCheck/Assessment5Header.jsx';
+import { Assessment5Preview, Assessment5Queue } from '../components/lessonCheck/Assessment5Panels.jsx';
+import { readTeachingQueue, writeTeachingQueue, markRecentActivity } from '../utils/lessonCheckTeaching.js';
+import { listActivityAttributes, saveActivityAttributes } from '../utils/lessonCheckAttributes.js';
+import { listActivityJournal, logActivityUse } from '../utils/lessonCheckWorkbench.js';
 import { loadAssessmentWorkspace, setAssessmentFavorite } from '../utils/lessonCheckWorkbench.js';
 const Assessment4Workbench = React.lazy(() => import('../components/lessonCheck/Assessment4Workbench.jsx'));
 import {
@@ -374,9 +388,34 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [favoriteSavingIds, setFavoriteSavingIds] = useState([]);
   const favoriteInFlightRef = useRef(new Set());
   const favoriteLoadVersionRef = useRef(0);
+  const uiPreferenceLoadedRef = useRef(false);
   const favoriteUserId = currentUser?.id || currentUser?.authId || '';
   const [sortMode, setSortMode] = useState('newest');
   const [viewMode, setViewMode] = useState('grid');
+  const [recentIds, setRecentIds] = useState([]);
+  const [queueIds, setQueueIds] = useState([]);
+  const [queueClass, setQueueClass] = useState('');
+  const [queueMinutes, setQueueMinutes] = useState(5);
+  const [queueBusy, setQueueBusy] = useState(false);
+  const [queueOpen, setQueueOpen] = useState(false);
+  const [previewActivity, setPreviewActivity] = useState(null);
+  const [attributes, setAttributes] = useState([]);
+  const [advancedFilters, setAdvancedFilters] = useState(false);
+  const [cefrFilter, setCefrFilter] = useState('all');
+  const [durationFilter, setDurationFilter] = useState('all');
+  const [deliveryFilter, setDeliveryFilter] = useState('all');
+  const [bulkMode, setBulkMode] = useState(false);
+  const [bulkIds, setBulkIds] = useState([]);
+  const [bulkCefr, setBulkCefr] = useState('B1');
+  const [bulkMinutes, setBulkMinutes] = useState(15);
+  const [bulkDelivery, setBulkDelivery] = useState('whole_class');
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [workbenchInitialTab, setWorkbenchInitialTab] = useState('mine');
+  const [journalRows, setJournalRows] = useState([]);
+  const [journalReady, setJournalReady] = useState(false);
+  const [classroomQueueIndex, setClassroomQueueIndex] = useState(null);
+  const [classroomTimer, setClassroomTimer] = useState(300);
+  const [classroomClockRunning, setClassroomClockRunning] = useState(false);
   const [page, setPage] = useState(1);
   const [showBuilder, setShowBuilder] = useState(false);
   const [showEditor, setShowEditor] = useState(true);
@@ -429,6 +468,21 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     requests.filter((item) => item.status === 'pending').map((item) => item.activityId),
   ), [requests]);
   const pageSize = 12;
+  const attrMap = useMemo(() => new Map(attributes.map(row => [row.activity_id,row])), [attributes]);
+  const queueSet = useMemo(() => new Set(queueIds),[queueIds]);
+  // Only display usage data supplied by the owner/leader-scoped journal query.
+  const availableQueueItems = useMemo(() => queueIds.map(id => activities.find(item => item.id === id))
+    .filter(item => item && (isLeader || item.hasAccess)), [queueIds, activities, isLeader]);
+  const journalById = useMemo(() => {
+    const map = new Map();
+    journalRows.forEach(row => {
+      const item = map.get(row.activity_id) || {opened:0,completed:0,latest:''};
+      if(row.event_type === 'completed') item.completed += 1; else item.opened += 1;
+      if(!item.latest) item.latest = new Date(row.created_at).toLocaleDateString('vi-VN');
+      map.set(row.activity_id,item);
+    });
+    return map;
+  },[journalRows]);
 
   const libraryStats = useMemo(() => {
     const grades = new Set(activities.map((item) => item.grade).filter(Boolean));
@@ -488,6 +542,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       if (!live || version !== favoriteLoadVersionRef.current) return;
       if (result.ok) {
         setFavoriteIds(result.state.favorites);
+        setRecentIds(result.state.recentIds || []);
         setFavoritesReady(true);
       } else {
         setFavoritesReady(false);
@@ -532,6 +587,97 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       setFavoriteSavingIds(ids => ids.filter(id => id !== activityId));
     }
   }, [favoriteUserId, favoritesReady, favoriteSet, isVi]);
+
+  // Assessment 5.0 loads queue and metadata on demand, without eager iframes.
+  useEffect(() => {
+    let live=true;
+    if (!favoriteUserId) return () => {live=false;};
+    readTeachingQueue(favoriteUserId).then(result => {
+      if(!live)return;
+      if(result.ok){
+        setQueueIds(result.queue.activity_ids||[]);
+        setQueueClass(result.queue.class_name||'');
+        setQueueMinutes(result.queue.default_minutes||5);
+      }else setNotice(result.message);
+    });
+    listActivityAttributes().then(result => {if(live && result.ok)setAttributes(result.items||[]);});
+    return () => {live=false;};
+  },[favoriteUserId]);
+
+  const updateQueue = useCallback(async (nextIds,nextClass=queueClass,nextMinutes=queueMinutes) => {
+    if(queueBusy || !favoriteUserId)return false;
+    setQueueBusy(true);
+    const result=await writeTeachingQueue(favoriteUserId,{ids:nextIds,className:nextClass,minutes:nextMinutes});
+    setQueueBusy(false);
+    if(!result.ok){setNotice(result.message);return false;}
+    setQueueIds(result.queue.activity_ids||[]);
+    setQueueClass(result.queue.class_name||'');
+    setQueueMinutes(result.queue.default_minutes||5);
+    return true;
+  },[favoriteUserId,queueBusy,queueClass,queueMinutes]);
+
+  const addToQueue = useCallback(async id => {
+    const item=activities.find(a=>a.id===id);
+    if(!item || (!isLeader && !item.hasAccess)){
+      setNotice(isVi?'Hoạt động cần được cấp quyền trước khi thêm vào buổi dạy.':'Activity permission required.');return;
+    }
+    if(queueIds.includes(id))return;
+    if(queueIds.length>=20){setNotice('Hàng đợi tối đa 20 hoạt động.');return;}
+    await updateQueue([...queueIds,id]);
+  },[activities,isLeader,isVi,queueIds,updateQueue]);
+
+  const moveQueue = async(from,to) => {
+    if(to<0||to>=queueIds.length||from===to)return;
+    const ids=[...queueIds];const [item]=ids.splice(from,1);ids.splice(to,0,item);
+    await updateQueue(ids);
+  };
+
+  // Persist only presentation preferences. Never cache student scores or protected embeds.
+  useEffect(()=>{
+    if(!favoriteUserId)return;
+    uiPreferenceLoadedRef.current=false;
+    try{
+      const prefs=JSON.parse(sessionStorage.getItem('lcs5-prefs-'+favoriteUserId)||'{}');
+      if(['grid','list'].includes(prefs.view))setViewMode(prefs.view);
+      if(['all','10','11','12'].includes(prefs.grade))setGradeFilter(prefs.grade);
+      if(typeof prefs.query==='string')setQuery(prefs.query.slice(0,100));
+      if(typeof prefs.unit==='string')setUnitFilter(prefs.unit);
+      if(typeof prefs.focus==='string')setFocusFilter(prefs.focus);
+      if(['newest','title','unit','favorites','recent'].includes(prefs.sort))setSortMode(prefs.sort);
+      if(['all','favorites','ready','recent','pending','locked'].includes(prefs.status))setStatusFilter(prefs.status);
+    }catch{/* Storage unavailable: use the existing defaults. */}
+    uiPreferenceLoadedRef.current=true;
+  },[favoriteUserId]);
+
+  useEffect(()=>{
+    if(!favoriteUserId||!uiPreferenceLoadedRef.current)return;
+    try{
+      sessionStorage.setItem('lcs5-prefs-'+favoriteUserId,JSON.stringify({
+        view:viewMode,query:query.slice(0,100),grade:gradeFilter,unit:unitFilter,
+        focus:focusFilter,sort:sortMode,status:statusFilter
+      }));
+    }catch{/* Private browsing may disallow session storage. */}
+  },[favoriteUserId,viewMode,query,gradeFilter,unitFilter,focusFilter,sortMode,statusFilter]);
+
+  const openActivityJournal = useCallback(async () => {
+    if(journalReady)return;
+    const r=await listActivityJournal({leader:isLeader,userId:favoriteUserId,limit:500});
+    if(r.ok){setJournalRows(r.items);setJournalReady(true);}
+    else setNotice(r.message);
+  },[isLeader,favoriteUserId,journalReady]);
+
+  useEffect(() => {
+    if(!classroomClockRunning || classroomQueueIndex===null)return undefined;
+    const handle=window.setInterval(()=>setClassroomTimer(seconds=>Math.max(0,seconds-1)),1000);
+    return ()=>window.clearInterval(handle);
+  },[classroomClockRunning,classroomQueueIndex]);
+  useEffect(() => {if(classroomTimer===0)setClassroomClockRunning(false);},[classroomTimer]);
+
+  const openWorkspaceTab = tab => {
+    setWorkbenchInitialTab(tab);
+    setWorkbenchOpen(true);
+    window.setTimeout(()=>document.getElementById('assessment4-workbench')?.scrollIntoView({block:'start',behavior:'smooth'}),100);
+  };
 
   const loadRequests = useCallback(async () => {
     if (!isLeader) return;
@@ -589,12 +735,26 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       if (statusFilter === 'pending' && !pending) return false;
       if (statusFilter === 'ready' && !open) return false;
       if (statusFilter === 'favorites' && !favoriteSet.has(item.id)) return false;
+      if (statusFilter === 'recent' && !recentIds.includes(item.id)) return false;
+      const attr = attrMap.get(item.id);
+      if (cefrFilter !== 'all' && attr?.difficulty !== cefrFilter) return false;
+      if (deliveryFilter !== 'all' && attr?.delivery_mode !== deliveryFilter) return false;
+      if (durationFilter !== 'all' && (
+        !attr?.duration_minutes
+        || (durationFilter === 'short' && attr.duration_minutes > 10)
+        || (durationFilter === 'medium' && (attr.duration_minutes <= 10 || attr.duration_minutes > 25))
+        || (durationFilter === 'long' && attr.duration_minutes <= 25)
+      )) return false;
       if (statusFilter === 'locked' && !locked) return false;
       if (!q) return true;
       return normalizeActivityTitle(item.title).includes(q);
     });
 
     return [...result].sort((a, b) => {
+      if (sortMode === 'favorites') return Number(favoriteSet.has(b.id))-Number(favoriteSet.has(a.id))
+        || String(a.title||'').localeCompare(String(b.title||''),'vi');
+      if (sortMode === 'recent') return (recentIds.indexOf(a.id)<0?Infinity:recentIds.indexOf(a.id))
+        -(recentIds.indexOf(b.id)<0?Infinity:recentIds.indexOf(b.id));
       if (sortMode === 'title') return String(a.title || '').localeCompare(String(b.title || ''), 'vi');
       if (sortMode === 'unit') {
         return (Number(a.grade || 0) - Number(b.grade || 0))
@@ -604,7 +764,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       }
       return String(b.updatedAt || '').localeCompare(String(a.updatedAt || ''));
     });
-  }, [activities, favoriteSet, focusFilter, gradeFilter, isLeader, language, pendingActivityIds, query, sortMode, statusFilter, unitFilter]);
+  }, [activities, favoriteSet, recentIds, attrMap, cefrFilter, durationFilter, deliveryFilter, focusFilter, gradeFilter, isLeader, language, pendingActivityIds, query, sortMode, statusFilter, unitFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredActivities.length / pageSize));
   const pagedActivities = useMemo(() => {
@@ -624,7 +784,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
   useEffect(() => {
     setPage(1);
-  }, [focusFilter, gradeFilter, query, sortMode, statusFilter, unitFilter]);
+  }, [cefrFilter, durationFilter, deliveryFilter, focusFilter, gradeFilter, query, sortMode, statusFilter, unitFilter]);
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
@@ -996,7 +1156,61 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       return false;
     }
     setTeachingEmbed(embed);
+    markRecentActivity(item.id).then(result => {
+      if (result.ok) setRecentIds(result.recentIds||[]);
+    }).catch(() => {});
+    // The journal is permission-scoped and records genuine opens, not inferred scores.
+    logActivityUse(favoriteUserId,item,{eventType:'opened',className:queueClass||''})
+      .then(result => {if(result.ok)setJournalReady(false);}).catch(() => {});
     return true;
+  }
+
+  async function startTeachingQueue(){
+    if(!availableQueueItems.length){setNotice('Chưa có hoạt động được cấp quyền trong hàng đợi.');return;}
+    const opened=await openTeachingMode(availableQueueItems[0]);
+    if(!opened)return;
+    setClassroomQueueIndex(0);
+    setClassroomTimer(queueMinutes*60);
+    setClassroomClockRunning(false);
+    setQueueOpen(false);
+  }
+
+  async function completeQueueStep(){
+    if(!teachingActivity || classroomQueueIndex===null)return;
+    const logged=await logActivityUse(favoriteUserId,teachingActivity,{
+      eventType:'completed',className:queueClass,duration:queueMinutes
+    });
+    if(logged.ok){setJournalReady(false);setNotice(isVi?'Đã ghi nhận hoạt động hoàn thành.':'Activity completion recorded.');}
+    else setNotice(logged.message||'Không ghi được nhật ký; hoạt động vẫn đang mở.');
+  }
+
+  async function jumpQueueTo(next){
+    if(next<0||next>=availableQueueItems.length)return;
+    const opened=await openTeachingMode(availableQueueItems[next]);
+    if(!opened)return;
+    setClassroomQueueIndex(next);
+    setClassroomTimer(queueMinutes*60);
+    setClassroomClockRunning(false);
+  }
+
+  async function batchSetMetadata(){
+    if(!isLeader||!bulkIds.length||bulkBusy)return;
+    if(!window.confirm('Cập nhật phân loại cho '+bulkIds.length+' hoạt động đã chọn?'))return;
+    setBulkBusy(true);
+    const updates=[];let errors=0;
+    for(const id of bulkIds){
+      const previous=attrMap.get(id)||{};
+      const r=await saveActivityAttributes(id,{
+        difficulty:bulkCefr, durationMinutes:bulkMinutes,
+        deliveryMode:bulkDelivery,keywords:(previous.keywords||[]).join(', '),
+        learningGoal:previous.learning_goal||''
+      },favoriteUserId);
+      if(r.ok) updates.push(r.item);else errors++;
+    }
+    setBulkBusy(false);
+    if(updates.length)setAttributes(old=>[...old.filter(row=>!updates.some(u=>u.activity_id===row.activity_id)),...updates]);
+    setNotice('Đã cập nhật '+updates.length+' hoạt động'+(errors?' · '+errors+' lỗi, vui lòng kiểm tra quyền.':''));
+    if(!errors){setBulkMode(false);setBulkIds([]);}
   }
 
   async function launchAssessmentActivity(item) {
@@ -1016,6 +1230,8 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     if (document.fullscreenElement) document.exitFullscreen?.();
     setTeachingActivity(null);
     setTeachingEmbed(null);
+    setClassroomQueueIndex(null);
+    setClassroomClockRunning(false);
     if (resumeAssessment && assessmentWorkspaceView) {
       setAssessmentWorkspaceView('session');
       if (toScore) setAssessmentResumeToScoreToken((value) => value + 1);
@@ -1353,12 +1569,18 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         </section>
       ) : null}
 
+      <Assessment5Header activities={activities} favorites={favoriteIds} recentIds={recentIds}
+        queueCount={availableQueueItems.length} language={language}
+        onFavorites={() => {setFocusFilter('all');setStatusFilter('favorites');document.getElementById('lcs5-activity-library')?.scrollIntoView({behavior:'smooth',block:'start'});}}
+        onRecent={() => {setFocusFilter('all');setStatusFilter('recent');document.getElementById('lcs5-activity-library')?.scrollIntoView({behavior:'smooth',block:'start'});}}
+        onQueue={() => setQueueOpen(true)}
+        onWorkspace={() => openWorkspaceTab('collections')} />
       <div className="lcs-a4-launcher">
         <button type="button" className={workbenchOpen ? 'is-active' : ''}
           onClick={() => setWorkbenchOpen(value => !value)}
           aria-expanded={workbenchOpen} aria-controls="assessment4-workbench">
           <Layers3 size={18} />
-          <span>{isVi ? 'Trung tâm hoạt động & đánh giá 4.0' : 'Assessment 4.0 Workspace'}</span>
+          <span>{isVi ? 'Trung tâm hoạt động & đánh giá 5.0' : 'Assessment 5.0 Workspace'}</span>
           <ChevronDown size={16} />
         </button>
         <small>{isVi ? 'Bộ sưu tập · Lesson Runner · Nhật ký · Can thiệp · Phân quyền' : 'Collections · Runner · Journal · Interventions · Permissions'}</small>
@@ -1366,10 +1588,11 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       {workbenchOpen ? <div id="assessment4-workbench"><React.Suspense fallback={<div className="lcs-loading">Đang tải Assessment 4.0…</div>}><Assessment4Workbench
         activities={activities} currentUser={currentUser} isLeader={isLeader}
         onLaunch={openTeachingMode} onRefresh={() => loadActivities({ silent: true })}
+        initialTab={workbenchInitialTab} initialSelectedActivities={bulkIds}
         favoriteIds={favoriteIds} onToggleFavorite={toggleFavorite}
       /></React.Suspense></div> : null}
 
-      <section className="lcs-arcade-library">
+      <section className="lcs-arcade-library" id="lcs5-activity-library">
         <div className="lcs-arcade-nav">
           <nav className="lcs-arcade-tabs" aria-label={isVi ? 'Bộ lọc hoạt động' : 'Activity filters'}>
             <button type="button" className={focusFilter === 'all' && statusFilter === 'all' ? 'is-active' : ''} onClick={() => { setFocusFilter('all'); setStatusFilter('all'); setShowAccessQueue(false); }}>
@@ -1421,6 +1644,8 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                 <option value="newest">{isVi ? 'Mới cập nhật' : 'Recently updated'}</option>
                 <option value="title">A → Z</option>
                 <option value="unit">{isVi ? 'Theo Unit' : 'By Unit'}</option>
+                <option value="favorites">{isVi ? 'Yêu thích lên trước' : 'Favorites first'}</option>
+                <option value="recent">{isVi ? 'Vừa sử dụng' : 'Recently used'}</option>
               </select>
             </label>
           </div>
@@ -1463,6 +1688,16 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
           </section>
         ) : null}
 
+        <div className="lcs5-command-tools" aria-label="Công cụ thư viện Assessment 5.0">
+          <strong>{isVi ? 'Trình quản lý học liệu' : 'Activity library manager'}</strong>
+          <div className="lcs5-tool-buttons">
+            <button type="button" className={viewMode==='grid'?'is-active':''} onClick={()=>setViewMode('grid')} aria-pressed={viewMode==='grid'}><Grid2X2 size={15}/> Grid</button>
+            <button type="button" className={viewMode==='list'?'is-active':''} onClick={()=>setViewMode('list')} aria-pressed={viewMode==='list'}><List size={15}/> List</button>
+            <button type="button" className={advancedFilters?'is-active':''} onClick={()=>setAdvancedFilters(v=>!v)} aria-expanded={advancedFilters}><SlidersHorizontal size={15}/>{isVi?'Lọc nâng cao':'More filters'}</button>
+            {isLeader?<button type="button" className={bulkMode?'is-active':''} onClick={()=>{setBulkMode(v=>!v);setBulkIds([]);}} aria-pressed={bulkMode}><CheckSquare size={15}/>{isVi?'Chọn nhiều':'Bulk select'}</button>:null}
+            <button type="button" className="is-queue" onClick={()=>setQueueOpen(true)}><ListChecks size={16}/>{isVi?'Buổi dạy':'Teaching queue'} · {availableQueueItems.length}</button>
+          </div>
+        </div>
         <div className="lcs-arcade-filterbar">
           <span className="lcs-filter-mark"><Filter size={17} /></span>
           <select value={gradeFilter} onChange={(e) => setGradeFilter(e.target.value)} aria-label={isVi ? 'Khối' : 'Grade'}>
@@ -1519,6 +1754,22 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
           ) : null}
         </div>
 
+        {advancedFilters?<div className="lcs5-advanced-filters" aria-label="Bộ lọc nâng cao">
+          <label>CEFR<select value={cefrFilter} onChange={e=>setCefrFilter(e.target.value)}><option value="all">Tất cả</option>{['A1','A2','B1','B2','C1','C2','mixed','unclassified'].map(v=><option key={v}>{v}</option>)}</select></label>
+          <label>{isVi?'Thời lượng':'Duration'}<select value={durationFilter} onChange={e=>setDurationFilter(e.target.value)}><option value="all">Tất cả</option><option value="short">≤10 phút</option><option value="medium">11–25 phút</option><option value="long">&gt;25 phút</option></select></label>
+          <label>{isVi?'Hình thức':'Mode'}<select value={deliveryFilter} onChange={e=>setDeliveryFilter(e.target.value)}><option value="all">Tất cả</option><option value="individual">Cá nhân</option><option value="group">Nhóm</option><option value="whole_class">Cả lớp</option><option value="hybrid">Kết hợp</option></select></label>
+          <button type="button" onClick={()=>{setCefrFilter('all');setDurationFilter('all');setDeliveryFilter('all');}}>{isVi?'Xóa lọc nâng cao':'Reset advanced'}</button>
+        </div>:null}
+        {isLeader && bulkMode ? <div className="lcs5-bulk-panel">
+          <strong>{bulkIds.length} {isVi?'hoạt động đã chọn':'selected'}</strong>
+          <button type="button" onClick={()=>setBulkIds(old=>[...new Set([...old,...pagedActivities.map(a=>a.id)])].slice(0,20))}>{isVi?'Chọn trang này':'Select page'}</button>
+          <button type="button" onClick={()=>setBulkIds([])}>{isVi?'Bỏ chọn':'Deselect'}</button>
+          <label>CEFR <select value={bulkCefr} onChange={e=>setBulkCefr(e.target.value)}>{['A1','A2','B1','B2','C1','C2','mixed','unclassified'].map(v=><option key={v}>{v}</option>)}</select></label>
+          <label>{isVi?'Phút':'Minutes'} <select value={bulkMinutes} onChange={e=>setBulkMinutes(Number(e.target.value))}>{[5,10,15,20,25,30,40,45,60].map(n=><option key={n} value={n}>{n}</option>)}</select></label>
+          <label>{isVi?'Tổ chức':'Delivery'}<select value={bulkDelivery} onChange={e=>setBulkDelivery(e.target.value)}><option value="whole_class">Cả lớp</option><option value="group">Nhóm</option><option value="individual">Cá nhân</option><option value="hybrid">Kết hợp</option></select></label>
+          <button type="button" disabled={!bulkIds.length||bulkBusy} onClick={batchSetMetadata}>{bulkBusy?'Đang lưu…':'Áp dụng nhãn'}</button>
+          <button type="button" disabled={!bulkIds.length} onClick={()=>openWorkspaceTab('permissions')}>{isVi?'Cấp quyền nhóm':'Bulk grants'}</button>
+        </div> : null}
         <div className="lcs-arcade-results-head">
           <span>{filteredActivities.length ? (isVi ? `Hiển thị ${pageStart}–${pageEnd} / ${filteredActivities.length}` : `Showing ${pageStart}–${pageEnd} of ${filteredActivities.length}`) : (isVi ? 'Không có kết quả' : 'No results')}</span>
           {!loading && filteredActivities.length > 0 ? (
@@ -1554,7 +1805,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
             ) : null}
           </div>
         ) : (
-          <div className="lcs-arcade-grid lcs-arcade-grid--soft-enter" key={page}>
+          <div className={`lcs-arcade-grid lcs-arcade-grid--soft-enter ${viewMode==='list'?'lcs5-list-view':''}`} key={page}>
             {pagedActivities.map((item) => {
               const locked = !isLeader && !item.hasAccess;
               return (
@@ -1574,6 +1825,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                   />
 
                   <div className="lcs-arcade-card-copy">
+                    {bulkMode&&isLeader?<label className="lcs5-card-bulk-check"><input type="checkbox" checked={bulkIds.includes(item.id)} onChange={e=>setBulkIds(ids=>e.target.checked?[...new Set([...ids,item.id])].slice(0,20):ids.filter(id=>id!==item.id))}/> {isVi?'Chọn hoạt động':'Select activity'}</label>:null}
                     <div className="lcs-arcade-meta">
                       <strong>{labelForType(item.type, language)}</strong>
                       <span>·</span>
@@ -1614,6 +1866,16 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                       </div>
                     </div>
 
+                    {journalReady && journalById.has(item.id) ? <small className="lcs5-usage-tag">
+                      <Clock3 size={12}/> {journalById.get(item.id).opened+1*journalById.get(item.id).completed} {isVi?'lượt sử dụng':'uses'}
+                    </small>:null}
+                    <div className="lcs5-card-toolbar">
+                      <button type="button" onClick={()=>{setPreviewActivity(item);openActivityJournal();}} aria-label={'Xem nhanh '+item.title}><Info size={14}/>{isVi?'Xem nhanh':'Preview'}</button>
+                      <button type="button" className={queueSet.has(item.id)?'is-queued':''}
+                        disabled={queueBusy||queueSet.has(item.id)||(!isLeader&&!item.hasAccess)}
+                        onClick={()=>addToQueue(item.id)}
+                        aria-label={'Thêm '+item.title+' vào buổi dạy'}><Plus size={14}/>{queueSet.has(item.id)?'Đã thêm':(isVi?'Buổi dạy':'Queue')}</button>
+                    </div>
                     <div className="lcs-arcade-card-tags">
                       <span className={`lcs-focus-chip is-${item.focusArea || 'unclassified'}`}>{labelForFocusArea(item.focusArea, language)}</span>
                       {item.classLabel ? <span className="lcs-class-chip">{item.classLabel}</span> : null}
@@ -1711,11 +1973,40 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         </div>
       ) : null}
 
+      {previewActivity ? <Assessment5Preview activity={previewActivity} attributes={attrMap.get(previewActivity.id)}
+        insight={journalById.get(previewActivity.id)}
+        canOpen={isLeader||previewActivity.hasAccess}
+        isFavorite={favoriteSet.has(previewActivity.id)}
+        inQueue={queueSet.has(previewActivity.id)}
+        onClose={()=>setPreviewActivity(null)}
+        onFavorite={id=>toggleFavorite(id)}
+        onAddQueue={addToQueue}
+        onTeach={async item=>{setPreviewActivity(null);await openTeachingMode(item);}}/> : null}
+      {queueOpen?<Assessment5Queue items={availableQueueItems} busy={queueBusy} className={queueClass}
+        minutes={queueMinutes} onClassChange={setQueueClass}
+        onMinutesChange={value=>setQueueMinutes(Math.max(1,Math.min(60,Number(value)||1)))}
+        onMove={moveQueue}
+        onRemove={id=>updateQueue(queueIds.filter(x=>x!==id))}
+        onClear={()=>{if(window.confirm('Xóa toàn bộ hàng đợi buổi dạy?'))updateQueue([]);}}
+        onClose={()=>{updateQueue(queueIds,queueClass,queueMinutes);setQueueOpen(false);}}
+        onStart={async()=>{const saved=await updateQueue(queueIds,queueClass,queueMinutes);if(saved)await startTeachingQueue();}}
+      />:null}
       {teachingActivity ? (
         <div className="lcs-teach-overlay" ref={teachRef}>
           <header>
             <div><span>{isVi ? 'CHẾ ĐỘ DẠY' : 'TEACHING MODE'}</span><strong>{teachingActivity.title}</strong><small>Global Success {teachingActivity.grade} · Unit {teachingActivity.unitNo} · {teachingActivity.lessonTitle}</small></div>
             <div>
+              {classroomQueueIndex!==null?<>
+                <span className="lcs5-classroom-step">Buổi dạy {classroomQueueIndex+1}/{availableQueueItems.length}</span>
+                <span className="lcs5-classroom-timer" aria-label="Thời gian còn lại">{String(Math.floor(classroomTimer/60)).padStart(2,'0')}:{String(classroomTimer%60).padStart(2,'0')}</span>
+                <span className="lcs5-classroom-navigation">
+                  <button type="button" onClick={()=>setClassroomClockRunning(v=>!v)} aria-label={classroomClockRunning?'Tạm dừng đồng hồ':'Bắt đầu đồng hồ'}>{classroomClockRunning?<Pause size={16}/>:<Play size={16}/>}</button>
+                  <button type="button" onClick={()=>{setClassroomClockRunning(false);setClassroomTimer(queueMinutes*60);}} aria-label="Đặt lại đồng hồ"><RotateCcw size={15}/></button>
+                  <button type="button" onClick={completeQueueStep}><Check size={16}/>{isVi?'Đã xong':'Complete'}</button>
+                  <button type="button" disabled={classroomQueueIndex===0||teachingLoading} onClick={()=>jumpQueueTo(classroomQueueIndex-1)}><ChevronLeft size={16}/>Trước</button>
+                  <button type="button" disabled={classroomQueueIndex>=availableQueueItems.length-1||teachingLoading} onClick={()=>jumpQueueTo(classroomQueueIndex+1)}>Tiếp <ChevronRight size={16}/></button>
+                </span>
+              </>:null}
               {assessmentWorkspaceView === 'session' ? <button className="lcs-score-return" onClick={() => closeTeachingMode({ resumeAssessment: true, toScore: true })}><ClipboardCheck size={18} />{isVi ? 'Kết thúc & ghi điểm' : 'Finish & score'}</button> : null}
               {teachingEmbed?.kind === 'url' ? <button onClick={() => openExternalFromEmbed(teachingEmbed)}><ExternalLink size={18} />{isVi ? 'Mở ngoài' : 'Open externally'}</button> : null}
               <button onClick={() => document.fullscreenElement ? document.exitFullscreen?.() : teachRef.current?.requestFullscreen?.()}><Fullscreen size={18} />{isVi ? 'Toàn màn hình' : 'Fullscreen'}</button>
