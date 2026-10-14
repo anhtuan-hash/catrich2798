@@ -2045,9 +2045,12 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         onMove={moveQueue}
         onRemove={id=>updateQueue(queueIds.filter(x=>x!==id))}
         onClear={()=>{if(window.confirm('Xóa toàn bộ hàng đợi buổi dạy?'))updateQueue([]);}}
-        onClose={async()=>{if(!queueReady||queueBusy)return;
+        onClose={async()=>{
+          if (queueBusy) return;
+          // A failed initial load must never trap the teacher in a dialog.
+          if (!queueReady) { setQueueOpen(false); return; }
           const saved=await updateQueue(queueIds,queueClass,queueMinutes);
-          if(saved)setQueueOpen(false);
+          if (saved) setQueueOpen(false);
         }}
         onStart={async()=>{const saved=await updateQueue(queueIds,queueClass,queueMinutes);if(saved)await startTeachingQueue();}}
       />:null}
