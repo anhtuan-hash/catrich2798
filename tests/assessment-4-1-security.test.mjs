@@ -65,6 +65,6 @@ test('Presentation mode masks sensitive utilities regardless of navigation nesti
 });
 test('Browser link scan is bounded and never labels CORS rejection as broken',()=>{
  assert.match(workspace,/targets\.slice\(start,start\+3\)/);
- assert.match(workspace,/quality\.length \? quality : activities/);
+ assert.match(workspace,/queue\.slice\(page\*20,\(page\+1\)\*20\)/);
  assert.match(workspace,/Chưa xác minh/);
 });
