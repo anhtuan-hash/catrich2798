@@ -80,6 +80,17 @@ const FOCUS_OPTIONS = [
   { value: 'unclassified', vi: 'Chưa gắn', en: 'Unclassified', short: 'CHƯA GẮN' },
 ];
 
+// Fast title-only search; Vietnamese diacritics and case do not affect matching.
+function normalizeActivityTitle(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D')
+    .trim()
+    .toLocaleLowerCase('vi');
+}
+
 function blankDraft() {
   return {
     id: '',
@@ -565,7 +576,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   }, [menuActivityId]);
 
   const filteredActivities = useMemo(() => {
-    const q = query.trim().toLocaleLowerCase('vi');
+    const q = normalizeActivityTitle(query);
     const result = activities.filter((item) => {
       const open = isLeader || item.hasAccess;
       const pending = isLeader ? pendingActivityIds.has(item.id) : item.requestStatus === 'pending';
@@ -580,15 +591,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       if (statusFilter === 'favorites' && !favoriteSet.has(item.id)) return false;
       if (statusFilter === 'locked' && !locked) return false;
       if (!q) return true;
-      return [
-        item.title,
-        item.unitTitle,
-        item.lessonTitle,
-        item.classLabel,
-        item.notes,
-        item.sourceHost,
-        labelForFocusArea(item.focusArea, language),
-      ].some((value) => String(value || '').toLocaleLowerCase('vi').includes(q));
+      return normalizeActivityTitle(item.title).includes(q);
     });
 
     return [...result].sort((a, b) => {
@@ -1413,10 +1416,6 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
           </nav>
 
           <div className="lcs-arcade-nav-tools">
-            <label className="lcs-arcade-search">
-              <Search size={20} />
-              <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={isVi ? 'Tìm kiếm' : 'Search'} />
-            </label>
             <label className="lcs-arcade-sort" title={isVi ? 'Sắp xếp' : 'Sort'}>
               <select value={sortMode} onChange={(e) => setSortMode(e.target.value)}>
                 <option value="newest">{isVi ? 'Mới cập nhật' : 'Recently updated'}</option>
@@ -1483,6 +1482,30 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
             <option value="mixed">{isVi ? 'Tổng hợp' : 'Mixed'}</option>
             <option value="unclassified">{isVi ? 'Chưa gắn' : 'Unclassified'}</option>
           </select>
+          <div className="lcs-filter-quick-search" role="search">
+            <Search size={18} aria-hidden="true" />
+            <input
+              type="text"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') setQuery('');
+              }}
+              aria-label={isVi ? 'Tìm nhanh theo tên hoạt động' : 'Quick search by activity name'}
+              placeholder={isVi ? 'Tìm nhanh tên hoạt động…' : 'Search activity names…'}
+              autoComplete="off"
+              spellCheck={false}
+            />
+            {query ? (
+              <button
+                type="button"
+                className="lcs-filter-quick-clear"
+                aria-label={isVi ? 'Xóa từ khóa tìm kiếm' : 'Clear search'}
+                title={isVi ? 'Xóa từ khóa' : 'Clear search'}
+                onClick={() => setQuery('')}
+              ><X size={16} /></button>
+            ) : <span className="lcs-filter-search-shortcut" aria-hidden="true">Tên</span>}
+          </div>
           {(query || gradeFilter !== 'all' || unitFilter !== 'all' || focusFilter !== 'all' || statusFilter !== 'all' || sortMode !== 'newest') ? (
             <button className="lcs-arcade-clear" type="button" onClick={() => {
               setQuery('');
