@@ -63,6 +63,7 @@ import AssessmentWorkspace from '../components/lessonCheck/AssessmentWorkspace.j
 import Assessment5Header from '../components/lessonCheck/Assessment5Header.jsx';
 import { Assessment5Preview, Assessment5Queue } from '../components/lessonCheck/Assessment5Panels.jsx';
 import { readTeachingQueue, writeTeachingQueue, markRecentActivity } from '../utils/lessonCheckTeaching.js';
+import { normalizeActivityTitle, matchesActivityTitle } from '../utils/lessonCheckSearch.js';
 import { listActivityAttributes, saveActivityAttributes } from '../utils/lessonCheckAttributes.js';
 import { listActivityJournal, logActivityUse } from '../utils/lessonCheckWorkbench.js';
 import { loadAssessmentWorkspace, setAssessmentFavorite } from '../utils/lessonCheckWorkbench.js';
@@ -93,17 +94,6 @@ const FOCUS_OPTIONS = [
   { value: 'mixed', vi: 'Tổng hợp', en: 'Mixed', short: 'MIXED' },
   { value: 'unclassified', vi: 'Chưa gắn', en: 'Unclassified', short: 'CHƯA GẮN' },
 ];
-
-// Fast title-only search; Vietnamese diacritics and case do not affect matching.
-function normalizeActivityTitle(value) {
-  return String(value || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/đ/g, 'd')
-    .replace(/Đ/g, 'D')
-    .trim()
-    .toLocaleLowerCase('vi');
-}
 
 function blankDraft() {
   return {
@@ -789,9 +779,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       )) return false;
       if (statusFilter === 'locked' && !locked) return false;
       if (!q) return true;
-      const title = normalizeActivityTitle(item.title);
-      // Match either the literal phrase or individual words in any order.
-      return title.includes(q) || q.split(/\s+/).every(token => title.includes(token));
+      return matchesActivityTitle(item.title, q);
     });
 
     return [...result].sort((a, b) => {
