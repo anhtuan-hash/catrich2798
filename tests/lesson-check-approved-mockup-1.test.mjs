@@ -126,7 +126,7 @@ test('Quick activity-name search sits next to Unit/topic filters and is keyboard
 });
 test('Quick search matches activity titles alone and is accent insensitive',()=>{
   assert.match(page,/const q = normalizeActivityTitle\(query\)/);
-  assert.match(page,/return normalizeActivityTitle\(item\.title\)\.includes\(q\)/);
+  assert.match(page,/title\.includes\(q\) \|\| q\.split\(/);
   const start=page.indexOf('function normalizeActivityTitle(');
   const end=page.indexOf('function blankDraft()',start);
   assert.ok(start>0&&end>start);
