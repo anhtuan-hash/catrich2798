@@ -1109,7 +1109,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       return;
     }
     if (draft.focusArea === 'unclassified') {
-      showSaveError(isVi ? 'Bạn chưa chọn Chuyên đề / kỹ năng. Hãy chọn Vocabulary, Grammar hoặc kỹ năng phù hợp rồi nhấn Lưu.' : 'Choose a learning focus (Vocabulary, Grammar or a skill) before saving.', 'focus');
+      showSaveError(isVi ? 'Hãy chọn chuyên đề / kỹ năng trước khi lưu: Vocabulary, Grammar hoặc kỹ năng phù hợp.' : 'Choose a learning focus (Vocabulary, Grammar or a skill) before saving.', 'focus');
       return;
     }
     if (!previewReady) {
@@ -1142,14 +1142,14 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         const thumbnailResult = await uploadLessonCheckActivityThumbnail(result.id, thumbnailDataUrl);
         if (!thumbnailResult.ok) {
           showSaveError((isVi ? 'Hoạt động đã lưu, nhưng thumbnail chưa lưu được: ' : 'Activity saved, but thumbnail upload failed: ') + thumbnailResult.message);
-          await loadActivities({ silent: true });
+          void loadActivities({ silent: true }).catch(() => {});
           return;
         }
       } else if (draft.id && thumbnailRemoveRequested) {
         const thumbnailResult = await removeLessonCheckActivityThumbnail(result.id);
         if (!thumbnailResult.ok) {
           showSaveError((isVi ? 'Hoạt động đã lưu, nhưng không xóa được thumbnail: ' : 'Activity saved, but thumbnail removal failed: ') + thumbnailResult.message);
-          await loadActivities({ silent: true });
+          void loadActivities({ silent: true }).catch(() => {});
           return;
         }
       }
