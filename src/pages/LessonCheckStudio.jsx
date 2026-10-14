@@ -14,6 +14,15 @@ import {
   Filter,
   FolderOpen,
   Heart,
+  Info,
+  ListChecks,
+  SlidersHorizontal,
+  CheckSquare,
+  Square,
+  ArrowUp,
+  ArrowDown,
+  Pause,
+  RotateCcw,
   Fullscreen,
   Gamepad2,
   Globe2,
@@ -51,6 +60,11 @@ import {
   uploadLessonCheckActivityThumbnail,
 } from '../utils/lessonCheckActivities.js';
 import AssessmentWorkspace from '../components/lessonCheck/AssessmentWorkspace.jsx';
+import Assessment5Header from '../components/lessonCheck/Assessment5Header.jsx';
+import { Assessment5Preview, Assessment5Queue } from '../components/lessonCheck/Assessment5Panels.jsx';
+import { readTeachingQueue, writeTeachingQueue, markRecentActivity } from '../utils/lessonCheckTeaching.js';
+import { listActivityAttributes, saveActivityAttributes } from '../utils/lessonCheckAttributes.js';
+import { listActivityJournal } from '../utils/lessonCheckWorkbench.js';
 import { loadAssessmentWorkspace, setAssessmentFavorite } from '../utils/lessonCheckWorkbench.js';
 const Assessment4Workbench = React.lazy(() => import('../components/lessonCheck/Assessment4Workbench.jsx'));
 import {
@@ -377,6 +391,30 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const favoriteUserId = currentUser?.id || currentUser?.authId || '';
   const [sortMode, setSortMode] = useState('newest');
   const [viewMode, setViewMode] = useState('grid');
+  const [recentIds, setRecentIds] = useState([]);
+  const [queueIds, setQueueIds] = useState([]);
+  const [queueClass, setQueueClass] = useState('');
+  const [queueMinutes, setQueueMinutes] = useState(5);
+  const [queueBusy, setQueueBusy] = useState(false);
+  const [queueOpen, setQueueOpen] = useState(false);
+  const [previewActivity, setPreviewActivity] = useState(null);
+  const [attributes, setAttributes] = useState([]);
+  const [advancedFilters, setAdvancedFilters] = useState(false);
+  const [cefrFilter, setCefrFilter] = useState('all');
+  const [durationFilter, setDurationFilter] = useState('all');
+  const [deliveryFilter, setDeliveryFilter] = useState('all');
+  const [bulkMode, setBulkMode] = useState(false);
+  const [bulkIds, setBulkIds] = useState([]);
+  const [bulkCefr, setBulkCefr] = useState('B1');
+  const [bulkMinutes, setBulkMinutes] = useState(15);
+  const [bulkDelivery, setBulkDelivery] = useState('whole_class');
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [workbenchInitialTab, setWorkbenchInitialTab] = useState('mine');
+  const [journalRows, setJournalRows] = useState([]);
+  const [journalReady, setJournalReady] = useState(false);
+  const [classroomQueueIndex, setClassroomQueueIndex] = useState(null);
+  const [classroomTimer, setClassroomTimer] = useState(300);
+  const [classroomClockRunning, setClassroomClockRunning] = useState(false);
   const [page, setPage] = useState(1);
   const [showBuilder, setShowBuilder] = useState(false);
   const [showEditor, setShowEditor] = useState(true);
@@ -429,6 +467,20 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     requests.filter((item) => item.status === 'pending').map((item) => item.activityId),
   ), [requests]);
   const pageSize = 12;
+  const attrMap = useMemo(() => new Map(attributes.map(row => [row.activity_id,row])), [attributes]);
+  const queueSet = useMemo(() => new Set(queueIds),[queueIds]);
+  const availableQueueItems = useMemo(() => queueIds.map(id => activities.find(item => item.id === id))
+    .filter(item => item && (isLeader || item.hasAccess)), [queueIds, activities, isLeader]);
+  const journalById = useMemo(() => {
+    const map = new Map();
+    journalRows.forEach(row => {
+      const item = map.get(row.activity_id) || {opened:0,completed:0,latest:''};
+      if(row.event_type === 'completed') item.completed += 1; else item.opened += 1;
+      if(!item.latest) item.latest = new Date(row.created_at).toLocaleDateString('vi-VN');
+      map.set(row.activity_id,item);
+    });
+    return map;
+  },[journalRows]);
 
   const libraryStats = useMemo(() => {
     const grades = new Set(activities.map((item) => item.grade).filter(Boolean));
@@ -488,6 +540,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       if (!live || version !== favoriteLoadVersionRef.current) return;
       if (result.ok) {
         setFavoriteIds(result.state.favorites);
+        setRecentIds(result.state.recentIds || []);
         setFavoritesReady(true);
       } else {
         setFavoritesReady(false);
@@ -532,6 +585,70 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       setFavoriteSavingIds(ids => ids.filter(id => id !== activityId));
     }
   }, [favoriteUserId, favoritesReady, favoriteSet, isVi]);
+
+  // Assessment 5.0 loads queue and metadata on demand, without eager iframes.
+  useEffect(() => {
+    let live=true;
+    if (!favoriteUserId) return () => {live=false;};
+    readTeachingQueue(favoriteUserId).then(result => {
+      if(!live)return;
+      if(result.ok){
+        setQueueIds(result.queue.activity_ids||[]);
+        setQueueClass(result.queue.class_name||'');
+        setQueueMinutes(result.queue.default_minutes||5);
+      }else setNotice(result.message);
+    });
+    listActivityAttributes().then(result => {if(live && result.ok)setAttributes(result.items||[]);});
+    return () => {live=false;};
+  },[favoriteUserId]);
+
+  const updateQueue = useCallback(async (nextIds,nextClass=queueClass,nextMinutes=queueMinutes) => {
+    if(queueBusy || !favoriteUserId)return false;
+    setQueueBusy(true);
+    const result=await writeTeachingQueue(favoriteUserId,{ids:nextIds,className:nextClass,minutes:nextMinutes});
+    setQueueBusy(false);
+    if(!result.ok){setNotice(result.message);return false;}
+    setQueueIds(result.queue.activity_ids||[]);
+    setQueueClass(result.queue.class_name||'');
+    setQueueMinutes(result.queue.default_minutes||5);
+    return true;
+  },[favoriteUserId,queueBusy,queueClass,queueMinutes]);
+
+  const addToQueue = useCallback(async id => {
+    const item=activities.find(a=>a.id===id);
+    if(!item || (!isLeader && !item.hasAccess)){
+      setNotice(isVi?'Hoạt động cần được cấp quyền trước khi thêm vào buổi dạy.':'Activity permission required.');return;
+    }
+    if(queueIds.includes(id))return;
+    if(queueIds.length>=20){setNotice('Hàng đợi tối đa 20 hoạt động.');return;}
+    await updateQueue([...queueIds,id]);
+  },[activities,isLeader,isVi,queueIds,updateQueue]);
+
+  const moveQueue = async(from,to) => {
+    if(to<0||to>=queueIds.length||from===to)return;
+    const ids=[...queueIds];const [item]=ids.splice(from,1);ids.splice(to,0,item);
+    await updateQueue(ids);
+  };
+
+  const openActivityJournal = useCallback(async () => {
+    if(journalReady)return;
+    const r=await listActivityJournal({leader:isLeader,userId:favoriteUserId,limit:500});
+    if(r.ok){setJournalRows(r.items);setJournalReady(true);}
+    else setNotice(r.message);
+  },[isLeader,favoriteUserId,journalReady]);
+
+  useEffect(() => {
+    if(!classroomClockRunning || classroomQueueIndex===null)return undefined;
+    const handle=window.setInterval(()=>setClassroomTimer(seconds=>Math.max(0,seconds-1)),1000);
+    return ()=>window.clearInterval(handle);
+  },[classroomClockRunning,classroomQueueIndex]);
+  useEffect(() => {if(classroomTimer===0)setClassroomClockRunning(false);},[classroomTimer]);
+
+  const openWorkspaceTab = tab => {
+    setWorkbenchInitialTab(tab);
+    setWorkbenchOpen(true);
+    window.setTimeout(()=>document.getElementById('assessment4-workbench')?.scrollIntoView({block:'start',behavior:'smooth'}),100);
+  };
 
   const loadRequests = useCallback(async () => {
     if (!isLeader) return;
