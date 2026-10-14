@@ -55,6 +55,7 @@ import {
   requestLessonCheckAccess,
   reviewLessonCheckAccessRequest,
   saveLessonCheckActivity,
+  saveLessonCheckActivityReliable,
   setLessonCheckTeacherAccess,
   subscribeLessonCheckUpdates,
   uploadLessonCheckActivityThumbnail,
@@ -363,6 +364,9 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saveFeedback, setSaveFeedback] = useState(null);
+  const savingSingleRef = useRef(false);
+  const pendingSingleSaveRef = useRef(null);
   const [thumbnailDataUrl, setThumbnailDataUrl] = useState('');
   const [thumbnailRemoveRequested, setThumbnailRemoveRequested] = useState(false);
   const [thumbnailBusy, setThumbnailBusy] = useState(false);
@@ -833,6 +837,8 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   );
 
   function resetActivityBuilder() {
+    pendingSingleSaveRef.current = null;
+    setSaveFeedback(null);
     setSingleDraft(blankDraft());
     setBatchMode(false);
     setBatchDrafts(Array.from({ length: 10 }, () => blankDraft()));
@@ -948,6 +954,8 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
   async function editActivity(item) {
     if (!isLeader) return;
+    pendingSingleSaveRef.current = null;
+    setSaveFeedback(null);
     setSaving(true);
     const result = await getLessonCheckActivityContent(item.id);
     setSaving(false);
@@ -1060,61 +1068,96 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
   }
 
   async function saveActivity() {
-    if (!isLeader || saving) return;
+    if (!isLeader) return;
+    // A synchronous lock prevents two clicks from creating simultaneous records.
+    if (savingSingleRef.current || saving) return;
     if (batchMode) {
       await saveBatchActivities();
       return;
     }
+    const failValidation = (vi, en) => {
+      const message = isVi ? vi : en;
+      setSaveFeedback({ type: 'error', text: message });
+      setNotice(message);
+    };
     if (!draft.title.trim()) {
-      setNotice(isVi ? 'Hãy nhập tên hoạt động.' : 'Enter an activity title.');
+      failValidation('Hãy nhập tên hoạt động.', 'Enter an activity title.');
       return;
     }
     if (draft.focusArea === 'unclassified') {
-      setNotice(isVi ? 'Hãy chọn chuyên đề: Vocabulary, Grammar hoặc kỹ năng phù hợp.' : 'Choose a learning focus before saving.');
+      failValidation('Hãy chọn chuyên đề / kỹ năng trước khi lưu.', 'Choose a learning focus before saving.');
       return;
     }
     if (!previewReady) {
-      setNotice(isVi ? 'Mã nhúng chưa hợp lệ. Hãy dán URL HTTPS, iframe hoặc HTML.' : 'Embed code is not valid yet.');
+      failValidation('Mã nhúng chưa hợp lệ. Hãy dán URL HTTPS, iframe hoặc HTML.', 'Please provide a valid HTTPS URL, iframe, or HTML.');
       return;
     }
 
-    setSaving(true);
-    const result = await saveLessonCheckActivity({
+    const normalized = {
       ...draft,
       unitTitle: globalSuccessUnitTitle(draft.grade, draft.unitNo) || draft.unitTitle,
       lessonTitle: globalSuccessLessonTitle(draft.lessonKey) || draft.lessonTitle,
       sourceHost: parsedDraft.kind === 'url' ? sourceHost(parsedDraft.source) : 'HTML / srcDoc',
-    }, parsedDraft);
+    };
+    // Retain the same request ID for repeated saves of unchanged content.
+    // If a response is lost after the database committed, the retry is a read
+    // of the original receipt, not a second INSERT.
+    const fingerprint = JSON.stringify({ draft: normalized, kind: parsedDraft.kind });
+    if (pendingSingleSaveRef.current?.fingerprint !== fingerprint) {
+      pendingSingleSaveRef.current = {
+        fingerprint,
+        requestId: crypto.randomUUID(),
+      };
+    }
 
-    if (!result.ok) {
+    savingSingleRef.current = true;
+    setSaving(true);
+    setSaveFeedback({ type: 'progress', text: isVi ? 'Đang lưu an toàn lên Supabase…' : 'Saving safely to Supabase…' });
+    try {
+      const result = await saveLessonCheckActivityReliable(normalized, parsedDraft, {
+        requestId: pendingSingleSaveRef.current.requestId,
+      });
+      if (!result.ok) {
+        const message = result.message || (isVi ? 'Không thể lưu hoạt động. Hãy thử lại.' : 'Could not save activity. Please retry.');
+        setSaveFeedback({ type: 'error', text: message });
+        setNotice(message);
+        return;
+      }
+
+      // The activity and learning-focus tag now commit as one transaction.
+      // If a later thumbnail operation fails, preserve the saved activity ID
+      // so retrying cannot create another activity.
+      if (draft.id && (thumbnailDataUrl || thumbnailRemoveRequested)) {
+        const thumbnailResult = thumbnailDataUrl
+          ? await uploadLessonCheckActivityThumbnail(result.id, thumbnailDataUrl)
+          : await removeLessonCheckActivityThumbnail(result.id);
+        if (!thumbnailResult.ok) {
+          setSingleDraft(previous => ({ ...previous, id: result.id }));
+          pendingSingleSaveRef.current = null;
+          const message = (isVi ? 'Hoạt động đã lưu, nhưng thumbnail chưa cập nhật: ' : 'Activity saved, but thumbnail failed: ')
+            + (thumbnailResult.message || 'Unknown error');
+          setSaveFeedback({ type: 'error', text: message });
+          setNotice(message);
+          void loadActivities({ silent: true }).catch(() => {});
+          return;
+        }
+      }
+
+      pendingSingleSaveRef.current = null;
+      setSaveFeedback({ type: 'success', text: isVi ? 'Đã lưu hoạt động thành công.' : 'Activity saved successfully.' });
+      setNotice(isVi ? 'Đã lưu hoạt động thành công.' : 'Activity saved successfully.');
+      resetActivityBuilder();
+      setShowBuilder(false);
+      void loadActivities({ silent: true }).catch(() => {});
+    } catch (exception) {
+      const message = (isVi ? 'Gặp lỗi ngoài dự kiến: ' : 'Unexpected save error: ')
+        + String(exception?.message || 'Network error');
+      setSaveFeedback({ type: 'error', text: message });
+      setNotice(message);
+    } finally {
+      savingSingleRef.current = false;
       setSaving(false);
-      setNotice(result.message || (isVi ? 'Không thể lưu hoạt động.' : 'Could not save activity.'));
-      return;
     }
-
-    if (draft.id && thumbnailDataUrl) {
-      const thumbnailResult = await uploadLessonCheckActivityThumbnail(result.id, thumbnailDataUrl);
-      if (!thumbnailResult.ok) {
-        setSaving(false);
-        setNotice((isVi ? 'Hoạt động đã lưu nhưng thumbnail chưa lưu được: ' : 'Activity saved, but thumbnail upload failed: ') + thumbnailResult.message);
-        await loadActivities({ silent: true });
-        return;
-      }
-    } else if (draft.id && thumbnailRemoveRequested) {
-      const thumbnailResult = await removeLessonCheckActivityThumbnail(result.id);
-      if (!thumbnailResult.ok) {
-        setSaving(false);
-        setNotice((isVi ? 'Hoạt động đã lưu nhưng chưa xóa được thumbnail: ' : 'Activity saved, but thumbnail could not be removed: ') + thumbnailResult.message);
-        await loadActivities({ silent: true });
-        return;
-      }
-    }
-
-    setSaving(false);
-    setNotice(isVi ? 'Đã lưu hoạt động và thumbnail.' : 'Activity and thumbnail saved.');
-    resetActivityBuilder();
-    setShowBuilder(false);
-    await loadActivities({ silent: true });
   }
 
   async function duplicateActivity(item) {
@@ -1587,7 +1630,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                   </div>
                   <div className="lcs-form-actions">
                     {draft.id ? <button className="lcs-btn lcs-btn-secondary" onClick={closeBuilder}>{isVi ? 'Hủy chỉnh sửa' : 'Cancel edit'}</button> : null}
-                    <button className="lcs-btn lcs-btn-primary" onClick={saveActivity} disabled={saving || thumbnailBusy}>
+                    <button type="button" className="lcs-btn lcs-btn-primary" onClick={saveActivity} disabled={saving || thumbnailBusy} aria-busy={saving}>
                       {saving ? <LoaderCircle className="lcs-spin" size={18} /> : <Save size={18} />}
                       {batchMode
                         ? (saving
@@ -1596,6 +1639,14 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
                         : (draft.id ? (isVi ? 'Lưu thay đổi' : 'Save changes') : (isVi ? 'Lưu lên Supabase' : 'Save to Supabase'))}
                     </button>
                   </div>
+                  {!batchMode && saveFeedback ? (
+                    <div className={`lcs-save-feedback is-${saveFeedback.type}`}
+                      role={saveFeedback.type === 'error' ? 'alert' : 'status'} aria-live="polite">
+                      {saveFeedback.type === 'progress' ? <LoaderCircle size={17} className="lcs-spin" /> :
+                        saveFeedback.type === 'success' ? <Check size={17} /> : <Info size={17} />}
+                      <span>{saveFeedback.text}</span>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
             </div>
