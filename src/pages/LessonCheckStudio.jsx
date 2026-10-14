@@ -1482,8 +1482,9 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
             <option value="mixed">{isVi ? 'Tổng hợp' : 'Mixed'}</option>
             <option value="unclassified">{isVi ? 'Chưa gắn' : 'Unclassified'}</option>
           </select>
-          <div className="lcs-filter-quick-search" role="search">
+          <div className="lcs-filter-quick-search lcs-search-always-visible" role="search" aria-label={isVi ? 'Tìm hoạt động theo tên' : 'Find an activity by name'}>
             <Search size={18} aria-hidden="true" />
+            <span className="lcs-search-visible-label">{isVi ? 'Tìm tên' : 'Find name'}</span>
             <input
               type="text"
               value={query}
