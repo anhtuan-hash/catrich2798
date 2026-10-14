@@ -78,3 +78,22 @@
 .a4-evidence-actions{display:flex;gap:10px;flex-wrap:wrap;margin:15px 0;}
 @media(max-width:1000px){.a4-card-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.a4-form-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
 @media(max-width:640px){.a4-workbench{padding:10px;border-radius:16px;}.a4-card-grid,.a4-stats,.a4-permission-grids{grid-template-columns:1fr;}.a4-stats{grid-template-columns:repeat(2,minmax(0,1fr));}.a4-form-grid{grid-template-columns:1fr;}.a4-hero{align-items:flex-start;flex-direction:column;}.a4-filter>label{flex-basis:100%;}.a4-table>div,.a4-table>button{min-width:580px;}}
+
+/* Assessment 4.1: compact reusable groups and conservative link audit */
+.a4-group-manager,.a4-link-audit {
+ margin:12px 0;padding:13px 15px;border:1px solid #cfe8e4;border-radius:14px;
+ background:linear-gradient(115deg,#f0faf7,#f7fbff);display:flex;gap:12px;
+ align-items:center;justify-content:space-between;flex-wrap:wrap;
+}
+.a4-group-manager>div:first-child,.a4-link-audit>div:first-child {
+ display:flex;flex-direction:column;gap:5px;
+}
+.a4-group-manager strong,.a4-link-audit strong {font-size:13px;color:#175b59;}
+.a4-group-manager small,.a4-link-audit small {font-size:11px;color:#627b80;max-width:620px;line-height:1.55;}
+.a4-group-manager .a4-form {width:100%;margin:3px 0 0;align-items:stretch;}
+.a4-group-manager .a4-form :is(input,select) {flex:1;min-width:160px;}
+.a4-link-status {display:inline-block;flex:0 0 auto;padding:5px 9px;border-radius:20px;font-size:10px;font-weight:800;background:#e6edf3;color:#43627b;}
+.a4-link-status.is-healthy {background:#e0f4e6;color:#24744c;}
+.a4-link-status.is-broken,.a4-link-status.is-invalid {background:#ffebe9;color:#a53e36;}
+.a4-link-status.is-unknown,.a4-link-status.is-manual {background:#fff2d9;color:#896318;}
+@media(max-width:640px){.a4-group-manager .a4-form :is(input,select){flex-basis:100%;}.a4-link-audit>button{width:100%;}}
