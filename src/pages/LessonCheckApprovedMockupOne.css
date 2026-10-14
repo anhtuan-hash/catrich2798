@@ -657,3 +657,83 @@
 @media(prefers-reduced-motion:reduce){
   .lcs-page--library .lcs-arcade-card-actions button.lcs-favorite-heart{transition:none!important}
 }
+
+/* Lesson Check · quick title search aligned with grade, unit and focus filters. */
+.lcs-page--library .lcs-arcade-filterbar .lcs-filter-quick-search {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-left:auto;
+  padding:0 10px 0 12px;
+  min-width:220px;
+  max-width:440px;
+  flex:1 1 260px;
+  height:39px;
+  border:1px solid #d9dfea;
+  border-radius:11px;
+  background:#fff!important;
+  color:#6b8196;
+  box-shadow:0 1px 4px rgba(41,71,100,.035);
+  transition:border-color .16s ease, box-shadow .16s ease;
+}
+.lcs-page--library .lcs-arcade-filterbar .lcs-filter-quick-search:focus-within {
+  border-color:#609cca;
+  box-shadow:0 0 0 3px rgba(58,136,196,.10);
+}
+.lcs-page--library .lcs-filter-quick-search > svg { flex:none; }
+.lcs-page--library .lcs-filter-quick-search input {
+  width:100%;
+  min-width:0;
+  flex:1;
+  height:100%;
+  border:0!important;
+  outline:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  color:#233d56!important;
+  font:inherit;
+  font-size:12px!important;
+}
+.lcs-page--library .lcs-filter-quick-search input::placeholder {color:#8999a7;}
+.lcs-page--library .lcs-filter-quick-search .lcs-filter-search-shortcut {
+  flex:none;
+  border-radius:6px;
+  padding:3px 6px;
+  background:#eff4f8;
+  color:#8293a2;
+  font-size:10px;
+  font-weight:650;
+}
+.lcs-page--library .lcs-filter-quick-search .lcs-filter-quick-clear {
+  flex:none;
+  display:inline-flex;
+  justify-content:center;
+  align-items:center;
+  padding:0;
+  width:26px;
+  height:26px;
+  min-height:26px;
+  border:0!important;
+  border-radius:8px;
+  background:#f0f4f8;
+  color:#5b6d7d;
+  cursor:pointer;
+}
+.lcs-page--library .lcs-filter-quick-search .lcs-filter-quick-clear:hover {
+  background:#e5edf6;
+  color:#213f5b;
+}
+.lcs-page--library .lcs-filter-quick-search .lcs-filter-quick-clear:focus-visible {
+  outline:2px solid #609cca;
+  outline-offset:2px;
+}
+@media(max-width:850px){
+  .lcs-page--library .lcs-arcade-filterbar .lcs-filter-quick-search {
+    max-width:none;
+    flex:1 1 100%;
+    margin-left:0;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  .lcs-page--library .lcs-filter-quick-search {transition:none;}
+}
