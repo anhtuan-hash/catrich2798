@@ -842,3 +842,32 @@
   border-color:#367bba!important;
   box-shadow:0 0 0 3px rgba(54,123,186,.18)!important;
 }
+
+/* Persistent activity-save validation: errors stay beside the action, not in an auto-dismissing page toast. */
+.lcs-page--library .lcs-builder-shell [aria-invalid="true"] {
+  border-color:#d95454!important;
+  box-shadow:0 0 0 3px rgba(217,84,84,.13)!important;
+  background:#fffafa!important;
+}
+.lcs-page--library .lcs-save-feedback {
+  grid-column:1/-1;
+  display:flex;
+  align-items:flex-start;
+  gap:11px;
+  width:100%;
+  padding:13px 15px;
+  border:1px solid #efbcaa;
+  border-radius:12px;
+  background:#fff3ef;
+  color:#9a3f2e;
+  font-size:13px;
+  line-height:1.55;
+  font-weight:650;
+}
+.lcs-page--library .lcs-save-feedback svg {flex:none;margin-top:1px}
+.lcs-page--library .lcs-save-feedback.is-saving {
+  background:#eaf5ff;
+  border-color:#b1d5f3;
+  color:#1c5f88;
+}
+.lcs-page--library .lcs-save-feedback span {min-width:0;white-space:normal;overflow-wrap:anywhere}
