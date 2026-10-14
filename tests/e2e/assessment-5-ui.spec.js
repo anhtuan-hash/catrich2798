@@ -29,6 +29,14 @@ test.describe('Assessment 5.0 accessible layout and navigation',()=>{
    await expect(grid).toHaveAttribute('aria-pressed','true');
    await library.getByRole('button',{name:/Lọc nâng cao|More filters/}).click();
    await expect(library.locator('.lcs5-advanced-filters')).toBeVisible();
+   const queueTrigger=page.locator('.lcs5-bento-tile.is-queue');
+   await queueTrigger.click();
+   const queueDialog=page.getByRole('dialog',{name:'Hàng đợi giảng dạy'});
+   await expect(queueDialog).toBeVisible();
+   await expect(queueDialog.locator('header button')).toBeFocused();
+   await page.keyboard.press('Escape');
+   await expect(queueDialog).toBeHidden();
+   await expect(queueTrigger).toBeFocused();
    const rect=await page.locator('.lcs5-bento-grid').boundingBox();
    expect(rect?.width).toBeGreaterThan(150);
   });
