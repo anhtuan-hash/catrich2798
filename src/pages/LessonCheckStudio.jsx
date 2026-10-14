@@ -1929,11 +1929,39 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
         </div>
       ) : null}
 
+      {previewActivity ? <Assessment5Preview activity={previewActivity} attributes={attrMap.get(previewActivity.id)}
+        insight={journalById.get(previewActivity.id)}
+        canOpen={isLeader||previewActivity.hasAccess}
+        isFavorite={favoriteSet.has(previewActivity.id)}
+        inQueue={queueSet.has(previewActivity.id)}
+        onClose={()=>setPreviewActivity(null)}
+        onFavorite={id=>toggleFavorite(id)}
+        onAddQueue={addToQueue}
+        onTeach={async item=>{setPreviewActivity(null);await openTeachingMode(item);}}/> : null}
+      {queueOpen?<Assessment5Queue items={availableQueueItems} busy={queueBusy} className={queueClass}
+        minutes={queueMinutes} onClassChange={setQueueClass}
+        onMinutesChange={value=>setQueueMinutes(Math.max(1,Math.min(60,Number(value)||1)))}
+        onMove={moveQueue}
+        onRemove={id=>updateQueue(queueIds.filter(x=>x!==id))}
+        onClear={()=>{if(window.confirm('Xóa toàn bộ hàng đợi buổi dạy?'))updateQueue([]);}}
+        onClose={()=>{updateQueue(queueIds,queueClass,queueMinutes);setQueueOpen(false);}}
+        onStart={async()=>{const saved=await updateQueue(queueIds,queueClass,queueMinutes);if(saved)await startTeachingQueue();}}
+      />:null}
       {teachingActivity ? (
         <div className="lcs-teach-overlay" ref={teachRef}>
           <header>
             <div><span>{isVi ? 'CHẾ ĐỘ DẠY' : 'TEACHING MODE'}</span><strong>{teachingActivity.title}</strong><small>Global Success {teachingActivity.grade} · Unit {teachingActivity.unitNo} · {teachingActivity.lessonTitle}</small></div>
             <div>
+              {classroomQueueIndex!==null?<>
+                <span className="lcs5-classroom-step">Buổi dạy {classroomQueueIndex+1}/{availableQueueItems.length}</span>
+                <span className="lcs5-classroom-timer" aria-label="Thời gian còn lại">{String(Math.floor(classroomTimer/60)).padStart(2,'0')}:{String(classroomTimer%60).padStart(2,'0')}</span>
+                <span className="lcs5-classroom-navigation">
+                  <button type="button" onClick={()=>setClassroomClockRunning(v=>!v)} aria-label={classroomClockRunning?'Tạm dừng đồng hồ':'Bắt đầu đồng hồ'}>{classroomClockRunning?<Pause size={16}/>:<Play size={16}/>}</button>
+                  <button type="button" onClick={()=>{setClassroomClockRunning(false);setClassroomTimer(queueMinutes*60);}} aria-label="Đặt lại đồng hồ"><RotateCcw size={15}/></button>
+                  <button type="button" disabled={classroomQueueIndex===0||teachingLoading} onClick={()=>jumpQueueTo(classroomQueueIndex-1)}><ChevronLeft size={16}/>Trước</button>
+                  <button type="button" disabled={classroomQueueIndex>=availableQueueItems.length-1||teachingLoading} onClick={()=>jumpQueueTo(classroomQueueIndex+1)}>Tiếp <ChevronRight size={16}/></button>
+                </span>
+              </>:null}
               {assessmentWorkspaceView === 'session' ? <button className="lcs-score-return" onClick={() => closeTeachingMode({ resumeAssessment: true, toScore: true })}><ClipboardCheck size={18} />{isVi ? 'Kết thúc & ghi điểm' : 'Finish & score'}</button> : null}
               {teachingEmbed?.kind === 'url' ? <button onClick={() => openExternalFromEmbed(teachingEmbed)}><ExternalLink size={18} />{isVi ? 'Mở ngoài' : 'Open externally'}</button> : null}
               <button onClick={() => document.fullscreenElement ? document.exitFullscreen?.() : teachRef.current?.requestFullscreen?.()}><Fullscreen size={18} />{isVi ? 'Toàn màn hình' : 'Fullscreen'}</button>
