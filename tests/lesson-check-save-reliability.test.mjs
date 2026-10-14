@@ -10,7 +10,7 @@ const css=file('src/pages/LessonCheckStudio.css');
 
 test('Single-save validation shows an on-screen alert and focuses missing learning focus',()=>{
  assert.match(page,/reportSaveProblem\(isVi\s*\? 'Chưa chọn Chuyên đề \/ kỹ năng/);
- assert.match(page,/\}, 'focus'\);/);
+ assert.match(page,/before saving\.', 'focus'\);/);
  assert.match(page,/ref=\{saveFocusRef\}/);
  assert.match(page,/aria-invalid=\{saveFeedback\?\.type==='error' && draft\.focusArea==='unclassified'\}/);
  assert.match(page,/lcs-save-feedback is-\$\{saveFeedback\.type\}/);
