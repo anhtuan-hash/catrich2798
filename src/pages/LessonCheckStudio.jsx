@@ -706,12 +706,26 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       if (statusFilter === 'pending' && !pending) return false;
       if (statusFilter === 'ready' && !open) return false;
       if (statusFilter === 'favorites' && !favoriteSet.has(item.id)) return false;
+      if (statusFilter === 'recent' && !recentIds.includes(item.id)) return false;
+      const attr = attrMap.get(item.id);
+      if (cefrFilter !== 'all' && attr?.difficulty !== cefrFilter) return false;
+      if (deliveryFilter !== 'all' && attr?.delivery_mode !== deliveryFilter) return false;
+      if (durationFilter !== 'all' && (
+        !attr?.duration_minutes
+        || (durationFilter === 'short' && attr.duration_minutes > 10)
+        || (durationFilter === 'medium' && (attr.duration_minutes <= 10 || attr.duration_minutes > 25))
+        || (durationFilter === 'long' && attr.duration_minutes <= 25)
+      )) return false;
       if (statusFilter === 'locked' && !locked) return false;
       if (!q) return true;
       return normalizeActivityTitle(item.title).includes(q);
     });
 
     return [...result].sort((a, b) => {
+      if (sortMode === 'favorites') return Number(favoriteSet.has(b.id))-Number(favoriteSet.has(a.id))
+        || String(a.title||'').localeCompare(String(b.title||''),'vi');
+      if (sortMode === 'recent') return (recentIds.indexOf(a.id)<0?Infinity:recentIds.indexOf(a.id))
+        -(recentIds.indexOf(b.id)<0?Infinity:recentIds.indexOf(b.id));
       if (sortMode === 'title') return String(a.title || '').localeCompare(String(b.title || ''), 'vi');
       if (sortMode === 'unit') {
         return (Number(a.grade || 0) - Number(b.grade || 0))
@@ -721,7 +735,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       }
       return String(b.updatedAt || '').localeCompare(String(a.updatedAt || ''));
     });
-  }, [activities, favoriteSet, focusFilter, gradeFilter, isLeader, language, pendingActivityIds, query, sortMode, statusFilter, unitFilter]);
+  }, [activities, favoriteSet, recentIds, attrMap, cefrFilter, durationFilter, deliveryFilter, focusFilter, gradeFilter, isLeader, language, pendingActivityIds, query, sortMode, statusFilter, unitFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredActivities.length / pageSize));
   const pagedActivities = useMemo(() => {
@@ -741,7 +755,7 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
 
   useEffect(() => {
     setPage(1);
-  }, [focusFilter, gradeFilter, query, sortMode, statusFilter, unitFilter]);
+  }, [cefrFilter, durationFilter, deliveryFilter, focusFilter, gradeFilter, query, sortMode, statusFilter, unitFilter]);
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
@@ -1113,7 +1127,49 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
       return false;
     }
     setTeachingEmbed(embed);
+    markRecentActivity(item.id).then(result => {
+      if (result.ok) setRecentIds(result.recentIds||[]);
+    }).catch(() => {});
     return true;
+  }
+
+  async function startTeachingQueue(){
+    if(!availableQueueItems.length){setNotice('Chưa có hoạt động được cấp quyền trong hàng đợi.');return;}
+    const opened=await openTeachingMode(availableQueueItems[0]);
+    if(!opened)return;
+    setClassroomQueueIndex(0);
+    setClassroomTimer(queueMinutes*60);
+    setClassroomClockRunning(false);
+    setQueueOpen(false);
+  }
+
+  async function jumpQueueTo(next){
+    if(next<0||next>=availableQueueItems.length)return;
+    const opened=await openTeachingMode(availableQueueItems[next]);
+    if(!opened)return;
+    setClassroomQueueIndex(next);
+    setClassroomTimer(queueMinutes*60);
+    setClassroomClockRunning(false);
+  }
+
+  async function batchSetMetadata(){
+    if(!isLeader||!bulkIds.length||bulkBusy)return;
+    if(!window.confirm('Cập nhật phân loại cho '+bulkIds.length+' hoạt động đã chọn?'))return;
+    setBulkBusy(true);
+    const updates=[];let errors=0;
+    for(const id of bulkIds){
+      const previous=attrMap.get(id)||{};
+      const r=await saveActivityAttributes(id,{
+        difficulty:bulkCefr, durationMinutes:bulkMinutes,
+        deliveryMode:bulkDelivery,keywords:(previous.keywords||[]).join(', '),
+        learningGoal:previous.learning_goal||''
+      },favoriteUserId);
+      if(r.ok) updates.push(r.item);else errors++;
+    }
+    setBulkBusy(false);
+    if(updates.length)setAttributes(old=>[...old.filter(row=>!updates.some(u=>u.activity_id===row.activity_id)),...updates]);
+    setNotice('Đã cập nhật '+updates.length+' hoạt động'+(errors?' · '+errors+' lỗi, vui lòng kiểm tra quyền.':''));
+    if(!errors){setBulkMode(false);setBulkIds([]);}
   }
 
   async function launchAssessmentActivity(item) {
@@ -1133,6 +1189,8 @@ export default function LessonCheckStudio({ language = 'vi', currentUser }) {
     if (document.fullscreenElement) document.exitFullscreen?.();
     setTeachingActivity(null);
     setTeachingEmbed(null);
+    setClassroomQueueIndex(null);
+    setClassroomClockRunning(false);
     if (resumeAssessment && assessmentWorkspaceView) {
       setAssessmentWorkspaceView('session');
       if (toScore) setAssessmentResumeToScoreToken((value) => value + 1);
