@@ -49,6 +49,10 @@ export default function ClassroomRehearsal({quests=[],puzzles=[]}){
       setNotice('Đội '+no+' đã gửi đáp án '+(correct?'đúng':'sai')+' (mô phỏng).');
     }catch(e){setError(e.message);}
   }
+  function resetTeam(number,name){
+    if(!window.confirm('Đặt lại '+name+'? Điểm mô phỏng của đội sẽ về 0.'))return;
+    action(state=>resetRehearsalTeam(state,number));
+  }
   function exportCsv(){
     if(!session||session.status!=='finished')return;
     let url=null;
@@ -127,13 +131,13 @@ export default function ClassroomRehearsal({quests=[],puzzles=[]}){
             <b>{score?.score||0} điểm</b>
             <div className="qa-rehearsal-team-actions">
               {!team.joined&&session.status!=='finished'&&
-                <button type="button" disabled={session.status==='active'} onClick={()=>
-                  action(s=>joinRehearsal(s,team.no,team.name))}>+ Tham gia</button>}
+                <button type="button" onClick={()=>
+                  action(s=>joinRehearsal(s,team.no,team.name))}>+ Tham gia lại</button>}
               {team.joined&&session.status==='active'&&!answered&&
                 <><button type="button" onClick={()=>answer(team.no,true)}>✓ Đúng</button>
                   <button type="button" onClick={()=>answer(team.no,false)}>× Sai</button></>}
               {team.joined&&session.status!=='finished'&&
-                <button type="button" onClick={()=>action(s=>resetRehearsalTeam(s,team.no))}>Đặt lại</button>}
+                <button type="button" onClick={()=>resetTeam(team.no,team.name)}>Đặt lại</button>}
             </div>
           </div>;
         })}
