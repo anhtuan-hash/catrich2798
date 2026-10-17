@@ -65,7 +65,15 @@ try{
   world.reset();
   listeners.get('pointerdown')({clientX:10,clientY:20,pointerId:1});
   listeners.get('pointermove')({clientX:40,clientY:10});
-  listeners.get('pointerup')({});
+  listeners.get('pointerup')({pointerId:1});
+  const cameraBeforePinch=world.getCamera();
+  listeners.get('pointerdown')({clientX:20,clientY:20,pointerId:2});
+  listeners.get('pointerdown')({clientX:120,clientY:20,pointerId:3});
+  listeners.get('pointermove')({clientX:220,clientY:20,pointerId:3});
+  const cameraAfterPinch=world.getCamera();
+  assert.ok(cameraAfterPinch[2]<cameraBeforePinch[2],'two-finger pinch must zoom inward');
+  listeners.get('pointerup')({pointerId:2});
+  listeners.get('pointerup')({pointerId:3});
   let prevented=false;
   listeners.get('wheel')({deltaY:1,preventDefault:()=>{prevented=true;}});
   assert.equal(prevented,true);
