@@ -105,7 +105,7 @@ export function rehearsalReport(state) {
 const csvCell=(value)=>{
   const plain=String(value??'');
   // Mitigate spreadsheet formula injection when a teacher edits team labels.
-  const safe=/^[\\s]*[=+@-]/.test(plain)?"'"+plain:plain;
+  const safe=/^\s*[=+@-]/.test(plain)?"'"+plain:plain;
   return '"'+safe.replace(/"/g,'""')+'"';
 };
 export function rehearsalCsv(state) {
