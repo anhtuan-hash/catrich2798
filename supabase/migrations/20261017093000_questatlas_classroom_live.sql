@@ -126,7 +126,7 @@ grant execute on function public.qatl_live_create(uuid,integer) to authenticated
 
 create function public.qatl_live_control(p_session_id uuid,p_action text)
 returns jsonb language plpgsql security invoker set search_path='' as $$
-declare s public.qatl_live_sessions%rowtype; v_count integer;
+declare s public.qatl_live_sessions%rowtype; v_count integer; v_joined integer;
 begin
   if (select auth.uid()) is null then raise exception 'Authentication required'; end if;
   select * into s from public.qatl_live_sessions
@@ -135,9 +135,9 @@ begin
   if s.expires_at<=now() then raise exception 'Session expired'; end if;
   v_count=jsonb_array_length(s.puzzle_snapshot);
   if p_action='start' and s.status='waiting' then
-    select count(*) into v_count from public.qatl_live_teams
+    select count(*) into v_joined from public.qatl_live_teams
       where session_id=s.id;
-    if v_count<2 then raise exception 'At least two teams must join before starting'; end if;
+    if v_joined<2 then raise exception 'At least two teams must join before starting'; end if;
     s.status='active';s.current_position=1;
   elsif p_action='pause' and s.status='active' then s.status='paused';
   elsif p_action='resume' and s.status='paused' then s.status='active';
