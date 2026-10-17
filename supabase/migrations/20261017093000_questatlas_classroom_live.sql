@@ -134,13 +134,17 @@ begin
   if not found then raise exception 'Session not found'; end if;
   if s.expires_at<=now() then raise exception 'Session expired'; end if;
   v_count=jsonb_array_length(s.puzzle_snapshot);
-  if p_action='start' and s.status='waiting' then s.status='active';s.current_position=1;
+  if p_action='start' and s.status='waiting' then
+    select count(*) into v_count from public.qatl_live_teams
+      where session_id=s.id;
+    if v_count<2 then raise exception 'At least two teams must join before starting'; end if;
+    s.status='active';s.current_position=1;
   elsif p_action='pause' and s.status='active' then s.status='paused';
   elsif p_action='resume' and s.status='paused' then s.status='active';
   elsif p_action='next' and s.status='active' then
     if s.current_position>=v_count then s.status='finished';
     else s.current_position=s.current_position+1; end if;
-  elsif p_action='finish' and s.status<>'finished' then s.status='finished';
+  elsif p_action='finish' and s.status in ('active','paused') then s.status='finished';
   else raise exception 'Invalid transition'; end if;
   update public.qatl_live_sessions set status=s.status,current_position=s.current_position,updated_at=now()
     where id=s.id;
