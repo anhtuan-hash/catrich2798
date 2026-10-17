@@ -2,7 +2,7 @@
 
 ## What is verified
 - Feature code lives on `feature/questatlas-foundation-20261017` / PR #1176, not on `main`.
-- GitHub CI tests deterministic Atlas, server scoring, 8 concurrent PostgreSQL clients, TTCM RLS/audit, guest quotas, the new Vercel API gateway and retention.
+- GitHub CI tests deterministic Atlas, server scoring, 8 concurrent PostgreSQL clients, TTCM RLS/audit, guest quotas, the new Vercel API gateway and retention. The database trigger also enforces the two-team start rule and expiry for direct authenticated table UPDATE, not merely the host RPC.
 - Vercel Preview can build without configuring the gateway, but Classroom Live **fails closed** (HTTP 503). A READY frontend build does NOT mean student live play works.
 - On the existing BRIAN Vercel Hobby deployment, `/api/questatlas-live` is a rewrite to the **existing** `api/gateway.js` shared Function, dispatched to `serverless-handlers/_questatlas-live.js`. This avoids exceeding the 12-Function build cap; do not restore a standalone `api/questatlas-live.js`.
 

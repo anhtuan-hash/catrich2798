@@ -67,7 +67,10 @@ create policy qatl_live_attempt_host_read on public.qatl_live_attempts
 CREATE FUNCTION public.qatl_live_guard_session()
 RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER SET search_path='' AS $qatl_guard$
 DECLARE v_total integer := jsonb_array_length(OLD.puzzle_snapshot);
+        v_joined integer;
 BEGIN
+  -- Direct authenticated UPDATE must not bypass the same expiry gate as the host RPC.
+  IF OLD.expires_at<=now() THEN RAISE EXCEPTION 'Session expired'; END IF;
   IF (NEW.id,NEW.quest_id,NEW.host_id,NEW.join_code,NEW.team_limit,
       NEW.puzzle_snapshot,NEW.expires_at,NEW.created_at)
       IS DISTINCT FROM
@@ -83,6 +86,14 @@ BEGIN
      OR (OLD.status IN ('active','paused') AND NEW.status='finished'
        AND NEW.current_position=OLD.current_position)
   ) THEN RAISE EXCEPTION 'Invalid state transition'; END IF;
+  -- Hosts have column-scoped UPDATE for normal room controls. Enforce the
+  -- two-team start rule here as well, even for direct PostgREST table writes.
+  -- Every join/reset takes a lock on this room, so the count remains stable.
+  IF OLD.status='waiting' AND NEW.status='active' THEN
+    SELECT count(*) INTO v_joined FROM public.qatl_live_teams
+      WHERE session_id=OLD.id;
+    IF v_joined<2 THEN RAISE EXCEPTION 'At least two teams must join before starting'; END IF;
+  END IF;
   NEW.updated_at=now();
   RETURN NEW;
 END $qatl_guard$;

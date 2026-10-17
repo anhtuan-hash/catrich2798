@@ -70,7 +70,7 @@ reset role;
 set role authenticated;
 select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
 DO $qa_min_teams$
-DECLARE v_room uuid; v_blocked boolean := false;
+DECLARE v_room uuid; v_blocked boolean := false; v_direct_blocked boolean := false;
 BEGIN
   SELECT id INTO v_room FROM public.qatl_live_sessions
     WHERE host_id=auth.uid() AND status='waiting' LIMIT 1;
@@ -80,11 +80,19 @@ BEGIN
     v_blocked := SQLERRM LIKE '%At least two teams must join%';
   END;
   IF NOT v_blocked THEN RAISE EXCEPTION 'Host started without two teams'; END IF;
+  -- Do not rely on the host RPC: a logged-in client may use table UPDATE.
+  BEGIN
+    UPDATE public.qatl_live_sessions SET status='active',current_position=1
+      WHERE id=v_room;
+  EXCEPTION WHEN OTHERS THEN
+    v_direct_blocked := SQLERRM LIKE '%At least two teams must join%';
+  END;
+  IF NOT v_direct_blocked THEN RAISE EXCEPTION 'Direct host UPDATE bypassed two-team start gate'; END IF;
 END $qa_min_teams$;
 SELECT (count(*)=1) AS still_waiting FROM public.qatl_live_sessions
  WHERE id=:'room_id'::uuid AND status='waiting' \gset
 \if :still_waiting
-  \echo '[QuestAtlas] A single team cannot start a live room'
+  \echo '[QuestAtlas] Host RPC and direct authenticated UPDATE both reject a one-team start'
 \else
   select 1/0;
 \endif
