@@ -62,6 +62,23 @@ assert.equal(rehearsalBoard(full).reduce((total,t)=>total+t.score,0),80);
 assert.equal(new Set(full.teams.map(t=>t.no)).size,8);
 assert.equal(rehearsalBoard(full).every(t=>t.submitted),true);
 
+// Regression: score normalization must preserve hundredths (70/80 -> 8.75).
+const eightStages=Array.from({length:8},(_,i)=>({...puzzles[0],position:i+1}));
+let scores=createRehearsal(quest,eightStages,2);
+scores=joinRehearsal(scores,1,'Scoring Test');
+scores=joinRehearsal(scores,2,'Control Team');
+scores=controlRehearsal(scores,'start');
+for(let i=0;i<8;i++){
+  scores=submitRehearsal(scores,1,i===7?'wrong':puzzles[0].correct_answer);
+  if(i!==7)scores=controlRehearsal(scores,'next');
+}
+scores=controlRehearsal(scores,'next');
+const normalized=rehearsalReport(scores);
+assert.equal(normalized.maxScore,80);
+assert.equal(normalized.entries[0].score,70);
+assert.equal(normalized.entries[0].scale10,8.75);
+assert.ok(rehearsalCsv(scores).includes('"8.75"'));
+
 // Export is explicit, post-rehearsal, private and has no puzzle keys.
 const report=rehearsalReport(r);
 assert.equal(report.completed,true);
