@@ -1,7 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { isSupabaseConfigured, supabase } from '../../utils/supabase.js';
 import { WORLDS, answerMatches, cleanText, demoRecords, graphLayout, parseOptions, validatePuzzle, validateQuest } from './questModel.mjs';
 import { assessmentToPuzzleDraft } from './questionAdapter.mjs';
+import { mountQuestWorld } from './webglRoom.mjs';
 import { hasRouteAccess } from '../../utils/permissions.js';
 import './questatlas.css';
 
@@ -39,6 +40,13 @@ function MapCanvas({ nodes, edges, selectedId, onSelect }) {
 }
 
 function PreviewWorld({ quest, puzzles, onClose }) {
+  const canvasRef = useRef(null);
+  const [webglActive, setWebglActive] = useState(false);
+  useEffect(() => {
+    const dispose = mountQuestWorld(canvasRef.current, quest.world, () => setWebglActive(false));
+    if (dispose) setWebglActive(true);
+    return () => { dispose?.(); };
+  }, [quest.world]);
   const [index, setIndex] = useState(0);
   const [answer, setAnswer] = useState('');
   const [feedback, setFeedback] = useState('');
@@ -60,13 +68,15 @@ function PreviewWorld({ quest, puzzles, onClose }) {
   };
   return <div className={'qa-preview qa-world-' + world}>
     <header className="qa-preview-header"><div><span>TEACHER PREVIEW · Không phải phiên học sinh</span><h2>{quest.title}</h2></div><button type="button" onClick={onClose}>Đóng bản xem thử ×</button></header>
-    <div className="qa-scene" aria-label={'Thế giới ' + WORLD_NAMES[world]}>
+    <div className={"qa-scene" + (webglActive ? " qa-render-webgl" : "")} aria-label={'Thế giới ' + WORLD_NAMES[world]}>
+      <canvas ref={canvasRef} className="qa-webgl-canvas" aria-label="Phòng 3D có thể kéo để xoay góc nhìn" />
       <div className="qa-scene-ceiling" />
       <div className="qa-scene-wall qa-scene-wall-left" />
       <div className="qa-scene-wall qa-scene-wall-right" />
       <div className="qa-scene-floor" />
       <div className="qa-scene-door"><span>{complete ? '✓' : '◇'}</span><small>{complete ? 'OPEN' : 'LOCKED'}</small></div>
       <div className="qa-scene-orb orb-a" /><div className="qa-scene-orb orb-b" />
+      {webglActive && <span className="qa-webgl-hint">Kéo để xoay góc nhìn 3D · 360° orbit</span>}
     </div>
     <div className="qa-puzzle-overlay">
       {complete ? <div className="qa-puzzle-card qa-victory"><span className="qa-puzzle-kicker">QUEST COMPLETE</span><h3>Kho báu đã mở!</h3><p>Điểm thử nghiệm: {score}. Chưa lưu kết quả vào hệ thống.</p><button onClick={() => { setIndex(0); setScore(0); }}>Chơi lại</button></div>
