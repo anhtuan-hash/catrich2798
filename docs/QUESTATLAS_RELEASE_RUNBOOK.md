@@ -4,6 +4,7 @@
 - Feature code lives on `feature/questatlas-foundation-20261017` / PR #1176, not on `main`.
 - GitHub CI tests deterministic Atlas, server scoring, 8 concurrent PostgreSQL clients, TTCM RLS/audit, guest quotas, the new Vercel API gateway and retention.
 - Vercel Preview can build without configuring the gateway, but Classroom Live **fails closed** (HTTP 503). A READY frontend build does NOT mean student live play works.
+- On the existing BRIAN Vercel Hobby deployment, `/api/questatlas-live` is a rewrite to the **existing** `api/gateway.js` shared Function, dispatched to `serverless-handlers/_questatlas-live.js`. This avoids exceeding the 12-Function build cap; do not restore a standalone `api/questatlas-live.js`.
 
 ## Absolute release blockers
 - Supabase isolated staging branch/project with real BRIAN schema/auth; creation can incur hourly costs, so obtain the owner's explicit cost acceptance first.
