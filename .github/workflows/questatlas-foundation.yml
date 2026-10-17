@@ -8,6 +8,9 @@ on:
       - 'src/data/apps.js'
       - 'scripts/test-questatlas-foundation.mjs'
       - 'scripts/test-questatlas-live.mjs'
+      - 'scripts/test-questatlas-gateway.mjs'
+      - 'scripts/questatlas-gateway-postgres-smoke.sql'
+      - 'api/questatlas-live.js'
       - 'scripts/questatlas-live-postgres-smoke.sql'
       - 'scripts/questatlas-live-concurrent.mjs'
       - 'scripts/questatlas-department-postgres-smoke.sql'
@@ -34,6 +37,8 @@ jobs:
         run: node scripts/test-questatlas-foundation.mjs
       - name: Validate Classroom Live security contracts
         run: node scripts/test-questatlas-live.mjs
+      - name: Verify Vercel guest security gateway
+        run: node scripts/test-questatlas-gateway.mjs
       - name: Audit isolation and registry
         run: node scripts/audit-questatlas-isolation.mjs
       - name: Production build
@@ -78,3 +83,7 @@ jobs:
           PGUSER: postgres
           PGDATABASE: questatlas_test
         run: node scripts/questatlas-live-concurrent.mjs
+      - name: Verify service-role-only guest RPC and persistent IP budget
+        env:
+          PGPASSWORD: postgres
+        run: psql -h 127.0.0.1 -p 5432 -U postgres -d questatlas_test -v ON_ERROR_STOP=1 -f scripts/questatlas-gateway-postgres-smoke.sql
