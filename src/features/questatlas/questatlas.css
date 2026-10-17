@@ -306,3 +306,6 @@
 .qa-rehearsal-results p{font-size:12px;margin:4px 0;color:#51797d}
 .qa-rehearsal-results button{min-height:44px;white-space:normal;text-align:center}
 @media(max-width:630px){.qa-rehearsal-results{flex-direction:column;align-items:stretch}}
+
+.qa-min-team-note{font-size:11px;color:#91622d;font-weight:700}
+.qa-live-export{margin:12px 0;min-height:44px}
