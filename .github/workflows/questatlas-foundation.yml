@@ -7,6 +7,7 @@ on:
       - 'src/main.jsx'
       - 'src/data/apps.js'
       - 'scripts/test-questatlas-foundation.mjs'
+      - 'scripts/test-questatlas-webgl.mjs'
       - 'scripts/test-questatlas-live.mjs'
       - 'scripts/test-questatlas-gateway.mjs'
       - 'scripts/questatlas-gateway-postgres-smoke.sql'
@@ -38,6 +39,8 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Validate deterministic QuestAtlas engine
         run: node scripts/test-questatlas-foundation.mjs
+      - name: Verify themed WebGL rendering, camera controls and GPU budget
+        run: node scripts/test-questatlas-webgl.mjs
       - name: Validate Classroom Live security contracts
         run: node scripts/test-questatlas-live.mjs
       - name: Verify Vercel guest security gateway
