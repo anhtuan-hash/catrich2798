@@ -56,3 +56,19 @@
 
 ## No AI
 QuestAtlas is fully deterministic; only same-origin guest API calls are allowed. The inherited chatbot is suppressed on QuestAtlas and public join routes. Do not add any model, AI analytics, content generation or AI grading.
+
+## 3D/iPad acceptance added on feature branch
+
+- Three dependency-free WebGL rooms now contain differentiated architectural geometry (Temple pillars/steps, Cyber terminals, Library bookshelves).
+- Teacher-only preview supports on-demand pointer orbit, two-finger pinch zoom, wheel zoom, focusable keyboard controls, a reset-camera button and Escape-to-close. Rendering is on-demand rather than a continuous animation loop; device pixel ratio is capped at 1.5.
+- Camera positions are constrained to the room interior to prevent opaque outer walls from hiding the scene during a full 360-degree orbit.
+- Each solved puzzle advances the 3D door frame state and progress bar. The modal restores focus/scroll when dismissed and keyboard Tab focus stays inside while open.
+- `scripts/test-questatlas-webgl.mjs` validates distinct geometry, safe world bounds, mock WebGL rendering/teardown and multi-touch gestures. This is not a substitute for physical iPad testing or realistic production art assets.
+
+## Shared school Wi-Fi NAT allowance
+
+Eight iPads on one campus Wi-Fi can share one public NAT IP. Each team polls roughly every 3 seconds, yielding approximately `8 × 20 = 160` room-view requests/minute per shared IP. The earlier 75/min IP ceiling would throttle normal classrooms even while team-token limits were respected.
+
+- Staged IP budget now allows **480 views/minute per shared IP**, **40 joins/minute** and **96 submissions/minute**, with independent stricter 50-views/minute/token, 12-submissions/minute/token and 16-joins/minute/room quotas.
+- Disposable PostgreSQL regression verifies 200 same-IP view calls work and an excessive burst beyond 480 is blocked. Actual school-network use and distributed traffic security testing remain mandatory before production.
+- These limits are operational defaults, not guarantees of safety against distributed attacks or multiple simultaneous classes behind one address. Reassess with provider WAF and measured traffic before launch.
