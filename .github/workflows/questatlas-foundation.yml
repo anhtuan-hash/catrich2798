@@ -9,6 +9,7 @@ on:
       - 'scripts/test-questatlas-foundation.mjs'
       - 'scripts/test-questatlas-live.mjs'
       - 'scripts/questatlas-live-postgres-smoke.sql'
+      - 'scripts/questatlas-live-concurrent.mjs'
       - 'scripts/questatlas-department-postgres-smoke.sql'
       - 'scripts/audit-questatlas-isolation.mjs'
       - 'supabase/migrations/*questatlas*.sql'
@@ -69,3 +70,11 @@ jobs:
         env:
           PGPASSWORD: postgres
         run: psql -h 127.0.0.1 -p 5432 -U postgres -d questatlas_test -v ON_ERROR_STOP=1 -f scripts/questatlas-department-postgres-smoke.sql
+      - name: Eight concurrent team clients and idempotent scoring
+        env:
+          PGPASSWORD: postgres
+          PGHOST: 127.0.0.1
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGDATABASE: questatlas_test
+        run: node scripts/questatlas-live-concurrent.mjs
