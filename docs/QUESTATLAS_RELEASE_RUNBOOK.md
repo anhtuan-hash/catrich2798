@@ -26,7 +26,8 @@
    - `QUESTATLAS_SUPABASE_URL`: staging Supabase HTTPS URL (not production)
    - `QUESTATLAS_SUPABASE_SERVICE_KEY`: staging server-only service role key; Sensitive/Encrypted
    - `QUESTATLAS_IP_SALT`: random 32+ character high-entropy server secret, not logged
-4. If such a separate free environment exists, scope all three values ONLY to the QuestAtlas preview branch. Never reuse BRIAN production service-role credentials in staging.
+   - `QUESTATLAS_ALLOW_PREVIEW_LIVE`: set to the literal `isolated` **only** after confirming the Preview database is independent of BRIAN production. Without this opt-in, the gateway rejects all Preview Live requests.
+4. If such a separate free environment exists, scope all **four** values ONLY to the QuestAtlas preview branch. The gateway rejects a Preview target equal to `VITE_SUPABASE_URL` or `SUPABASE_URL`, and never falls back to either shared variable. Never reuse BRIAN production service-role credentials in staging.
 5. Without a safely isolated remote environment, keep secrets absent; the guest gateway intentionally returns HTTP 503. Validate its behavior with `node scripts/test-questatlas-gateway.mjs` and the PostgreSQL fixture instead. Do not claim real multi-device testing.
 6. For zero-cost functional review, open QuestAtlas → Classroom Live → **Phòng thi mô phỏng miễn phí**. Create 2–8 teams, simulate answering/pausing/advancing/resetting and observe scoring; everything stays in browser memory. For server behavior, run the eight-client CI test. Both are simulations, not physical multi-iPad acceptance.
 7. CI verifies that direct `qatl_live_join/view/submit` privileges are revoked after gateway migration in a disposable PostgreSQL database. This must be reverified in a genuine isolated auth/PostgREST environment **before real classroom launch**.

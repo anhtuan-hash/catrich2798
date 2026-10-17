@@ -56,7 +56,8 @@ function validate(action, body) {
   return {p_code:code,p_token:token,p_answer:answer};
 }
 function serverConfig() {
-  const url = String(process.env.QUESTATLAS_SUPABASE_URL || process.env.SUPABASE_URL || '').replace(/\/$/,'');
+  // A shared BRIAN Supabase URL must never be used as an implicit Guest backend.
+  const url = String(process.env.QUESTATLAS_SUPABASE_URL || '').replace(/\/$/,'');
   const key = String(process.env.QUESTATLAS_SUPABASE_SERVICE_KEY || '');
   const salt = String(process.env.QUESTATLAS_IP_SALT || '');
   if (!url || key.length < 24 || salt.length < 32) return null;
@@ -65,6 +66,13 @@ function serverConfig() {
     if (parsed.protocol !== 'https:' || !/^[a-z0-9-]+\.supabase\.co$/i.test(parsed.hostname) ||
         parsed.pathname !== '/' || parsed.search || parsed.hash) return null;
   } catch { return null; }
+  // Preview Live must be an intentional opt-in to a separate Supabase instance.
+  if (process.env.VERCEL_ENV === 'preview') {
+    if (process.env.QUESTATLAS_ALLOW_PREVIEW_LIVE !== 'isolated') return null;
+    const sharedUrls=[process.env.VITE_SUPABASE_URL,process.env.SUPABASE_URL]
+      .filter(Boolean).map(value=>String(value).replace(/\/+$/,'').toLowerCase());
+    if (sharedUrls.includes(url.toLowerCase())) return null;
+  }
   return {url,key,salt};
 }
 async function callRpc(config,name,payload) {

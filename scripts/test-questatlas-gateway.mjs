@@ -54,6 +54,41 @@ try {
   assert.equal(JSON.stringify(calls).includes('203.0.113.7'),false,'never send raw IP to DB');
   assert.equal(calls[0].headers.authorization,'Bearer '+process.env.QUESTATLAS_SUPABASE_SERVICE_KEY);
 
+  // Guardrail: a Preview must NEVER borrow the normal BRIAN database,
+  // even when a QuestAtlas service key and rate-limit salt are present.
+  calls.length=0;
+  process.env.VERCEL_ENV='preview';
+  process.env.VITE_SUPABASE_URL='https://example.supabase.co';
+  mock=mockResponse({body:{action:'view',code,token}});
+  await handler(mock.req,mock.res);
+  assert.equal(mock.output.statusCode,503,'Preview Live must require explicit isolated opt-in');
+  assert.equal(calls.length,0);
+
+  process.env.QUESTATLAS_ALLOW_PREVIEW_LIVE='isolated';
+  mock=mockResponse({body:{action:'view',code,token}});
+  await handler(mock.req,mock.res);
+  assert.equal(mock.output.statusCode,503,'Preview must reject the BRIAN shared Supabase URL');
+  assert.equal(calls.length,0);
+
+  process.env.QUESTATLAS_SUPABASE_URL='https://questatlas-isolated.supabase.co';
+  mock=mockResponse({body:{action:'view',code,token}});
+  await handler(mock.req,mock.res);
+  assert.equal(mock.output.statusCode,200,'Opted-in isolated Preview should work');
+  assert.deepEqual(calls.map(x=>x.endpoint),['qatl_live_gateway_budget','qatl_live_view']);
+
+  calls.length=0;
+  delete process.env.VERCEL_ENV;
+  delete process.env.QUESTATLAS_ALLOW_PREVIEW_LIVE;
+  delete process.env.VITE_SUPABASE_URL;
+  process.env.SUPABASE_URL='https://brian-production.supabase.co';
+  delete process.env.QUESTATLAS_SUPABASE_URL;
+  mock=mockResponse({body:{action:'view',code,token}});
+  await handler(mock.req,mock.res);
+  assert.equal(mock.output.statusCode,503,'Never implicitly fall back to BRIAN production Supabase');
+  assert.equal(calls.length,0);
+  process.env.QUESTATLAS_SUPABASE_URL='https://example.supabase.co';
+  delete process.env.SUPABASE_URL;
+
   calls.length=0;quota=false;
   mock=mockResponse({body:{action:'join',code,teamNo:1,name:'Galaxy'}});
   await handler(mock.req,mock.res);
@@ -86,7 +121,7 @@ try {
   console.log('QuestAtlas gateway PASS: strict validation, no guest key leakage, IP budget, origin and fail-closed config.');
 } finally {
   globalThis.fetch=fetchOriginal;
-  for(const name of ['VERCEL','QUESTATLAS_SUPABASE_URL','QUESTATLAS_SUPABASE_SERVICE_KEY','QUESTATLAS_IP_SALT']){
+  for(const name of ['VERCEL','VERCEL_ENV','QUESTATLAS_ALLOW_PREVIEW_LIVE','VITE_SUPABASE_URL','SUPABASE_URL','QUESTATLAS_SUPABASE_URL','QUESTATLAS_SUPABASE_SERVICE_KEY','QUESTATLAS_IP_SALT']){
     if(Object.hasOwn(original,name))process.env[name]=original[name];else delete process.env[name];
   }
 }
