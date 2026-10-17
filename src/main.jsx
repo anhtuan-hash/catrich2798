@@ -516,7 +516,7 @@ function App() {
             <TransferInboxBanner currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} language={language} />
           </Suspense>
         ) : null}
-        {currentUser && !['homeroom-portal', 'classroom-join'].includes(currentRoute) ? (
+        {currentUser && selectedTool?.slug !== 'questatlas' && !['homeroom-portal', 'classroom-join'].includes(currentRoute) ? (
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="shared-chatbot-drawer" label={language === 'vi' ? 'chatbot dùng chung' : 'shared chatbot'}>
               <SharedChatbotDrawer currentUser={currentUser} language={language} />
