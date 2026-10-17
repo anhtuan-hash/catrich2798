@@ -240,3 +240,60 @@
 @media (prefers-reduced-motion:reduce){
   .qa-puzzle-progress-track span{transition:none}
 }
+
+/* Free teacher-only local Classroom Live rehearsal. Never affects live sessions. */
+.qa-free-rehearsal-banner{display:flex;align-items:center;justify-content:space-between;gap:14px;
+  border:1px solid #b1d7f2;background:linear-gradient(120deg,#e8f5ff,#f1efff);
+  border-radius:16px;padding:16px 20px;margin-bottom:16px;color:#27436c}
+.qa-free-rehearsal-banner strong{font-size:15px}
+.qa-free-rehearsal-banner p{font-size:12px;color:#5d7599;margin:4px 0 0;max-width:670px}
+.qa-free-rehearsal-banner button{border:0;background:#385ecc;color:white;padding:12px 15px;
+  font-size:12px;font-weight:850;border-radius:11px;min-height:44px;white-space:nowrap}
+.qa-rehearsal{margin-bottom:18px;border-color:#bbdbee!important}
+.qa-rehearsal-badge{color:#3f6899;background:#e4f1ff;border:1px solid #bfd8f6;
+  padding:8px 11px;border-radius:30px;font-size:10px;font-weight:900;white-space:nowrap}
+.qa-rehearsal-setup{display:flex;align-items:end;flex-wrap:wrap;gap:12px;margin:16px 0 20px}
+.qa-rehearsal-setup label{display:grid;gap:6px;min-width:170px;flex:1;
+  font-size:12px;font-weight:800;color:#4b6287}
+.qa-rehearsal-setup select{background:white;border:1px solid #cdd9ed;color:#294264;
+  width:100%;padding:11px 13px;border-radius:10px;min-height:44px}
+.qa-rehearsal-setup>button{min-height:44px}
+.qa-rehearsal-toolbar{padding:15px 17px;border:1px solid #dde7f8;background:#f5f8ff;
+  border-radius:15px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.qa-rehearsal-toolbar>div:first-child{display:grid;gap:5px}
+.qa-rehearsal-toolbar strong{font-size:15px}
+.qa-rehearsal-toolbar small{font-size:11px;color:#657b9f}
+.qa-rehearsal-toolbar .qa-quest-actions{margin:0}
+.qa-rehearsal-question{margin:15px 0;border-radius:16px;padding:19px;
+  background:linear-gradient(110deg,#24346e,#51448d);color:white}
+.qa-rehearsal-question>small{font-size:10px;letter-spacing:2px;color:#aedbff;font-weight:850}
+.qa-rehearsal-question h3{font-size:clamp(17px,2.2vw,24px);margin:10px 0}
+.qa-rehearsal-question p{font-size:11px;color:#cedbfa;margin:14px 0 0}
+.qa-rehearsal-options{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.qa-rehearsal-options span{border:1px solid #ffffff47;background:#ffffff14;
+  color:white;border-radius:10px;padding:11px;font-size:12px}
+.qa-rehearsal-options strong{color:#a6e1f7}
+.qa-rehearsal-board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:15px}
+.qa-rehearsal-team{display:grid;gap:10px;border:1px solid #dce5f5;border-radius:15px;
+  padding:14px 12px;background:#fbfcff;min-width:0}
+.qa-rehearsal-team>div:first-child{display:grid;gap:4px}
+.qa-rehearsal-team strong{font-size:13px;color:#293f6e}
+.qa-rehearsal-team small{font-size:10px;color:#6980a2}
+.qa-rehearsal-team>b{font-size:19px;color:#3d5eac}
+.qa-rehearsal-team-actions{display:flex;flex-wrap:wrap;gap:5px}
+.qa-rehearsal-team-actions button{min-height:36px;font-size:11px;font-weight:750;
+  border:1px solid #cddaf3;border-radius:9px;background:white;color:#405a8b;padding:7px 9px}
+.qa-rehearsal-team-actions button:first-child:not(:only-child){color:#197a52;border-color:#b1e6cb}
+.qa-rehearsal-team-actions button:disabled{opacity:.4}
+.qa-rehearsal-done{background:#e7faee;color:#1a7652;font-size:13px;padding:15px;
+  border-radius:12px;margin-top:15px;font-weight:750}
+@media(max-width:1080px){.qa-rehearsal-board{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:580px){
+ .qa-free-rehearsal-banner{flex-direction:column;align-items:stretch;padding:14px}
+ .qa-free-rehearsal-banner button{white-space:normal}
+ .qa-rehearsal-setup{display:grid;grid-template-columns:1fr 1fr}
+ .qa-rehearsal-setup label:first-child{grid-column:1/-1}
+ .qa-rehearsal-setup>button{grid-column:1/-1}
+ .qa-rehearsal-board{grid-template-columns:1fr}
+ .qa-rehearsal-options{grid-template-columns:1fr}
+}
