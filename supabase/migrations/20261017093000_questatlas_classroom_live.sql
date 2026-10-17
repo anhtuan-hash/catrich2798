@@ -42,7 +42,8 @@ alter table public.qatl_live_sessions enable row level security;
 alter table public.qatl_live_teams enable row level security;
 alter table public.qatl_live_attempts enable row level security;
 revoke all on public.qatl_live_sessions,public.qatl_live_teams,public.qatl_live_attempts from public,anon,authenticated;
-grant select,insert,update on public.qatl_live_sessions to authenticated;
+grant select on public.qatl_live_sessions to authenticated;
+grant update(status,current_position,updated_at) on public.qatl_live_sessions to authenticated;
 grant select on public.qatl_live_teams,public.qatl_live_attempts to authenticated;
 create policy qatl_live_session_host_read on public.qatl_live_sessions
   for select to authenticated using (host_id=(select auth.uid()));
@@ -61,12 +62,43 @@ create policy qatl_live_attempt_host_read on public.qatl_live_attempts
   for select to authenticated using (exists(
     select 1 from public.qatl_live_sessions s where s.id=session_id and s.host_id=(select auth.uid())));
 
+
+-- Guard all immutable room fields; only valid host state transitions are allowed.
+CREATE FUNCTION public.qatl_live_guard_session()
+RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER SET search_path='' AS $qatl_guard$
+DECLARE v_total integer := jsonb_array_length(OLD.puzzle_snapshot);
+BEGIN
+  IF (NEW.id,NEW.quest_id,NEW.host_id,NEW.join_code,NEW.team_limit,
+      NEW.puzzle_snapshot,NEW.expires_at,NEW.created_at)
+      IS DISTINCT FROM
+     (OLD.id,OLD.quest_id,OLD.host_id,OLD.join_code,OLD.team_limit,
+      OLD.puzzle_snapshot,OLD.expires_at,OLD.created_at)
+  THEN RAISE EXCEPTION 'Session identity and puzzle snapshot are immutable'; END IF;
+  IF NOT (
+     (OLD.status='waiting' AND NEW.status='active' AND OLD.current_position=0 AND NEW.current_position=1)
+     OR (OLD.status='active' AND NEW.status='paused' AND NEW.current_position=OLD.current_position)
+     OR (OLD.status='paused' AND NEW.status='active' AND NEW.current_position=OLD.current_position)
+     OR (OLD.status='active' AND NEW.status='active'
+       AND NEW.current_position=OLD.current_position+1 AND NEW.current_position<=v_total)
+     OR (OLD.status IN ('active','paused') AND NEW.status='finished'
+       AND NEW.current_position=OLD.current_position)
+  ) THEN RAISE EXCEPTION 'Invalid state transition'; END IF;
+  NEW.updated_at=now();
+  RETURN NEW;
+END $qatl_guard$;
+REVOKE ALL ON FUNCTION public.qatl_live_guard_session() FROM PUBLIC,anon,authenticated;
+CREATE TRIGGER qatl_live_session_guard BEFORE UPDATE ON public.qatl_live_sessions
+FOR EACH ROW EXECUTE FUNCTION public.qatl_live_guard_session();
+
 -- Host creates an immutable question snapshot. No public client can query this table.
 create function public.qatl_live_create(p_quest_id uuid,p_team_limit integer default 4)
-returns jsonb language plpgsql security invoker set search_path='' as $$
+returns jsonb language plpgsql security definer set search_path='' as $
 declare v_quest public.qatl_quests%rowtype; v_snapshot jsonb; v_session public.qatl_live_sessions%rowtype;
 begin
   if (select auth.uid()) is null then raise exception 'Authentication required'; end if;
+  if not exists(select 1 from public.profiles p where p.id=(select auth.uid()) and p.approved=true) then
+    raise exception 'Approved teacher required';
+  end if;
   if p_team_limit not between 2 and 8 then raise exception 'Teams must be between 2 and 8'; end if;
   -- Avoid unlimited room creation by the same authenticated teacher.
   if (select count(*) from public.qatl_live_sessions where host_id=(select auth.uid())
