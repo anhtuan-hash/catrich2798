@@ -461,13 +461,15 @@ function App() {
           '--active-app-ink': activeDesignProfile.ink,
         }}
       >
-        {!['homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute) ? <div className="bes-top-chrome">
-          <Suspense fallback={null}>
-            <StatusMenuBar route={currentRoute} {...context} />
-          </Suspense>
-          <AppErrorBoundary compact scope="global-navigation" label={language === 'vi' ? 'thanh điều hướng' : 'navigation'}>
-            <GlobalFlatNavigation route={currentRoute} selectedTool={selectedTool} chromeSettings={chromeSettings} onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }} {...context} />
-          </AppErrorBoundary>
+        {!['homeroom-portal', 'classroom-join'].includes(currentRoute) ? <div className="bes-top-chrome">
+          {currentRoute !== 'quest-join' && <>
+            <Suspense fallback={null}>
+              <StatusMenuBar route={currentRoute} {...context} />
+            </Suspense>
+            <AppErrorBoundary compact scope="global-navigation" label={language === 'vi' ? 'thanh điều hướng' : 'navigation'}>
+              <GlobalFlatNavigation route={currentRoute} selectedTool={selectedTool} chromeSettings={chromeSettings} onLogout={async () => { await logoutUser(); setCurrentUser(null); window.location.hash = '#/login'; }} {...context} />
+            </AppErrorBoundary>
+          </>}
         </div> : null}
 
         {quickAccessEnabled && (
