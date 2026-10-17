@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { isSupabaseConfigured, supabase } from '../../utils/supabase.js';
 import './questatlas.css';
 
@@ -19,6 +19,7 @@ export default function QuestJoin() {
     catch { return ''; }
   });
   const [state, setState] = useState(null);
+  const lastPosition = useRef(null);
   const [answer, setAnswer] = useState('');
   const [feedback, setFeedback] = useState('');
   const [busy, setBusy] = useState(false);
@@ -29,12 +30,11 @@ export default function QuestJoin() {
     if (!validCode || !token || !isSupabaseConfigured) return;
     const { data, error: err } = await supabase.rpc('qatl_live_view', { p_code: code, p_token: token });
     if (err) { setError(err.message || 'Không thể đồng bộ phòng chơi.'); return; }
-    setState((old) => {
-      if (old && old.position !== data.position) {
-        setAnswer(''); setFeedback('');
-      }
-      return data;
-    });
+    if (lastPosition.current !== null && lastPosition.current !== data.position) {
+      setAnswer(''); setFeedback('');
+    }
+    lastPosition.current = data.position;
+    setState(data);
     setError('');
   }, [code, token, validCode]);
 
@@ -56,6 +56,7 @@ export default function QuestJoin() {
       if (err) throw err;
       window.sessionStorage.setItem(storageKey(code),data.token);
       setToken(data.token);
+      lastPosition.current = null;
       setState(null);
       setFeedback('');
     } catch (e) { setError(e.message || 'Không thể tham gia phòng.'); }
@@ -93,6 +94,10 @@ export default function QuestJoin() {
       {!state ? <p className="qa-info">Đang đồng bộ trạng thái phòng…</p> : <>
         <div className="qa-join-progress"><div><strong>{state.display_name}</strong><span>Đội {state.team_no} · {score} điểm</span></div><div><strong>{state.position}/{state.total}</strong><span>Trạm</span></div></div>
         <h2>{state.title}</h2>
+        <button type="button" className="qa-join-exit" onClick={() => {
+          try { window.sessionStorage.removeItem(storageKey(code)); } catch { /* ignore */ }
+          setToken(''); setState(null); setFeedback(''); setAnswer(''); lastPosition.current=null;
+        }}>Thoát phòng trên thiết bị này</button>
         {state.status !== 'active' ? <div className="qa-join-wait"><span>◇</span><h3>{WAIT_LABEL[state.status] || 'Chờ giáo viên'}</h3><p>Bảng điểm sẽ được làm mới tự động.</p></div>
         : state.submitted ? <div className="qa-join-wait"><span>✓</span><h3>Đội đã hoàn thành trạm {state.position}</h3><p>Chờ giáo viên chuyển sang trạm tiếp theo.</p></div>
         : <div className="qa-join-puzzle"><div className="qa-join-stage">TRẠM {state.position}</div><h3>{state.puzzle?.stem}</h3>
