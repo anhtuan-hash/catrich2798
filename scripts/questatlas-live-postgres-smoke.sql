@@ -128,9 +128,100 @@ select (:'replacement_token' <> :'team_token') as secret_rotated \gset
 \else
   select 1/0;
 \endif
+-- Fill all eight seats, answer from each team and validate scoreboard.
+reset role;
+set role anon;
+select r->>'token' as token_2 from (select public.qatl_live_join(:'join_code',2,'Galaxy 2') as r) j \gset
+select r->>'token' as token_3 from (select public.qatl_live_join(:'join_code',3,'Galaxy 3') as r) j \gset
+select r->>'token' as token_4 from (select public.qatl_live_join(:'join_code',4,'Galaxy 4') as r) j \gset
+select r->>'token' as token_5 from (select public.qatl_live_join(:'join_code',5,'Galaxy 5') as r) j \gset
+select r->>'token' as token_6 from (select public.qatl_live_join(:'join_code',6,'Galaxy 6') as r) j \gset
+select r->>'token' as token_7 from (select public.qatl_live_join(:'join_code',7,'Galaxy 7') as r) j \gset
+select r->>'token' as token_8 from (select public.qatl_live_join(:'join_code',8,'Galaxy 8') as r) j \gset
+select (public.qatl_live_submit(:'join_code',:'token_2','who')->>'awarded')::integer=10 as team_2_scored \gset
+\if :team_2_scored
+  \echo '[QuestAtlas] Team 2 submitted correct answer'
+\else
+  select 1/0;
+\endif
+select (public.qatl_live_submit(:'join_code',:'token_3','who')->>'awarded')::integer=10 as team_3_scored \gset
+\if :team_3_scored
+  \echo '[QuestAtlas] Team 3 submitted correct answer'
+\else
+  select 1/0;
+\endif
+select (public.qatl_live_submit(:'join_code',:'token_4','who')->>'awarded')::integer=10 as team_4_scored \gset
+\if :team_4_scored
+  \echo '[QuestAtlas] Team 4 submitted correct answer'
+\else
+  select 1/0;
+\endif
+select (public.qatl_live_submit(:'join_code',:'token_5','who')->>'awarded')::integer=10 as team_5_scored \gset
+\if :team_5_scored
+  \echo '[QuestAtlas] Team 5 submitted correct answer'
+\else
+  select 1/0;
+\endif
+select (public.qatl_live_submit(:'join_code',:'token_6','who')->>'awarded')::integer=10 as team_6_scored \gset
+\if :team_6_scored
+  \echo '[QuestAtlas] Team 6 submitted correct answer'
+\else
+  select 1/0;
+\endif
+select (public.qatl_live_submit(:'join_code',:'token_7','who')->>'awarded')::integer=10 as team_7_scored \gset
+\if :team_7_scored
+  \echo '[QuestAtlas] Team 7 submitted correct answer'
+\else
+  select 1/0;
+\endif
+select (public.qatl_live_submit(:'join_code',:'token_8','who')->>'awarded')::integer=10 as team_8_scored \gset
+\if :team_8_scored
+  \echo '[QuestAtlas] Team 8 submitted correct answer'
+\else
+  select 1/0;
+\endif
+-- Quotas: 50 team views/min, 12 submissions/minute. Quota errors persist
+-- because RPC returns an error envelope rather than rolling back its counter.
+select count(*) FILTER (WHERE v->>'error'='rate_limited')>0 as view_throttled
+ from (select public.qatl_live_view(:'join_code',:'replacement_token') v
+       from generate_series(1,56)) q \gset
+\if :view_throttled
+  \echo '[QuestAtlas] Repeated viewer polling was rate limited'
+\else
+  \echo 'FAIL viewer throttle'
+  select 1/0;
+\endif
+select count(*) FILTER (WHERE v->>'reason'='rate_limited')>0 as submit_throttled
+ from (select public.qatl_live_submit(:'join_code',:'token_2','who') v
+       from generate_series(1,17)) q \gset
+\if :submit_throttled
+  \echo '[QuestAtlas] Duplicate submission flood was rate limited'
+\else
+  \echo 'FAIL submission throttle'
+  select 1/0;
+\endif
 reset role;
 set role authenticated;
 select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
+select (count(*)=8) as full_room from public.qatl_live_teams WHERE session_id=:'room_id'::uuid \gset
+\if :full_room
+  \echo '[QuestAtlas] Eight teams participate in one room'
+\else
+  select 1/0;
+\endif
+select (sum(points)=70) as stable_score from public.qatl_live_attempts
+  WHERE session_id=:'room_id'::uuid \gset
+\if :stable_score
+  \echo '[QuestAtlas] Eight team scoring does not duplicate awards'
+\else
+  select 1/0;
+\endif
+select NOT has_table_privilege('anon','public.qatl_live_guest_budget','SELECT') as protected_quota \gset
+\if :protected_quota
+  \echo '[QuestAtlas] Guest quota counters cannot be read directly'
+\else
+  select 1/0;
+\endif
 select (public.qatl_live_control(:'room_id'::uuid,'next')->>'status')='finished' as session_finished \gset
 \if :session_finished
   \echo '[QuestAtlas] Teacher advanced final stage and ended session'
