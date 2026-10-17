@@ -207,3 +207,36 @@
 .qa-live-board .qa-reset-team{border:1px solid #e8b6be;color:#9a3b4d;background:#fff5f5;font-size:10px;font-weight:800;padding:7px 9px;border-radius:8px}
 .qa-live-board .qa-reset-team:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:580px){.qa-audit-item time{white-space:normal;max-width:85px;text-align:right}.qa-live-board .qa-reset-team{padding:6px}}
+
+/* Accessible touch-friendly 3D preview controls. Limited to the QuestAtlas modal. */
+.qa-camera-controls{
+  position:absolute;z-index:3;top:153px;right:18px;
+  display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px;
+  max-width:min(440px,calc(100% - 36px));pointer-events:auto;
+}
+.qa-camera-controls button{
+  background:#101c42dc;border:1px solid #b8ddff80;color:#ecf7ff;
+  font-size:13px;font-weight:800;border-radius:11px;min-width:41px;min-height:41px;
+  padding:9px 11px;box-shadow:0 5px 18px #07122a40;backdrop-filter:blur(6px);
+}
+.qa-camera-controls button:hover,.qa-camera-controls button:focus-visible{
+  background:#4666b6;outline:2px solid #c7eaff;outline-offset:2px;
+}
+.qa-webgl-canvas:focus-visible{outline:3px solid #baf0ff;outline-offset:-4px}
+.qa-puzzle-progress-track{
+  margin-top:11px;height:7px;background:#ffffff26;border-radius:12px;
+  overflow:hidden;border:1px solid #d4e5ff28;
+}
+.qa-puzzle-progress-track span{
+  display:block;height:100%;border-radius:12px;
+  background:linear-gradient(90deg,#81dcff,#c3b2ff);
+  transition:width 250ms ease;
+}
+@media (max-width:720px){
+  .qa-camera-controls{top:104px;left:12px;right:12px;max-width:none;justify-content:center;gap:5px}
+  .qa-camera-controls button{min-width:38px;min-height:38px;font-size:12px;padding:7px}
+  .qa-webgl-hint{top:155px;left:14px;right:14px;text-align:center;padding:6px;font-size:9px}
+}
+@media (prefers-reduced-motion:reduce){
+  .qa-puzzle-progress-track span{transition:none}
+}
