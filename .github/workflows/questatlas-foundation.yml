@@ -9,6 +9,7 @@ on:
       - 'scripts/test-questatlas-foundation.mjs'
       - 'scripts/test-questatlas-live.mjs'
       - 'scripts/questatlas-live-postgres-smoke.sql'
+      - 'scripts/questatlas-department-postgres-smoke.sql'
       - 'scripts/audit-questatlas-isolation.mjs'
       - 'supabase/migrations/*questatlas*.sql'
       - '.github/workflows/questatlas-foundation.yml'
@@ -64,3 +65,7 @@ jobs:
         env:
           PGPASSWORD: postgres
         run: psql -h 127.0.0.1 -p 5432 -U postgres -d questatlas_test -v ON_ERROR_STOP=1 -f scripts/questatlas-live-postgres-smoke.sql
+      - name: Check Department Hub approval, isolation and forking
+        env:
+          PGPASSWORD: postgres
+        run: psql -h 127.0.0.1 -p 5432 -U postgres -d questatlas_test -v ON_ERROR_STOP=1 -f scripts/questatlas-department-postgres-smoke.sql
