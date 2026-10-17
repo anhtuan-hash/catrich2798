@@ -4,8 +4,10 @@ on:
     paths:
       - 'src/features/questatlas/**'
       - 'src/pages/ToolPage.jsx'
+      - 'src/main.jsx'
       - 'src/data/apps.js'
       - 'scripts/test-questatlas-foundation.mjs'
+      - 'scripts/test-questatlas-live.mjs'
       - 'scripts/audit-questatlas-isolation.mjs'
       - 'supabase/migrations/*questatlas*.sql'
       - '.github/workflows/questatlas-foundation.yml'
@@ -27,6 +29,8 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Validate deterministic QuestAtlas engine
         run: node scripts/test-questatlas-foundation.mjs
+      - name: Validate Classroom Live security contracts
+        run: node scripts/test-questatlas-live.mjs
       - name: Audit isolation and registry
         run: node scripts/audit-questatlas-isolation.mjs
       - name: Production build
