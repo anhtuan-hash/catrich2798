@@ -37,15 +37,33 @@ CREATE POLICY qatl_share_submit ON public.qatl_department_shares FOR INSERT TO a
   AND reviewed_by IS NULL AND reviewed_at IS NULL
   AND EXISTS (SELECT 1 FROM public.department_members m
     WHERE m.department_id=public.qatl_department_shares.department_id AND m.user_id=(SELECT auth.uid()) AND m.active=true)
-  AND (
-    (node_id IS NOT NULL AND EXISTS (
-      SELECT 1 FROM public.qatl_nodes n WHERE n.id=public.qatl_department_shares.node_id AND n.owner_id=(SELECT auth.uid())
-    )) OR
-    (quest_id IS NOT NULL AND EXISTS (
-      SELECT 1 FROM public.qatl_quests q WHERE q.id=public.qatl_department_shares.quest_id AND q.owner_id=(SELECT auth.uid()) AND q.status='published'
-    ))
-  )
 );
+-- Validate asset ownership in a BEFORE INSERT trigger instead of a policy
+-- subquery: adding shared SELECT policies to nodes/quests would otherwise
+-- create RLS recursion through qatl_department_shares.
+CREATE FUNCTION public.qatl_verify_share_submission()
+RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER SET search_path='' AS $
+BEGIN
+  IF NEW.owner_id IS DISTINCT FROM auth.uid() THEN
+    RAISE EXCEPTION 'Share owner mismatch';
+  END IF;
+  IF NEW.node_id IS NOT NULL THEN
+    IF NOT EXISTS (SELECT 1 FROM public.qatl_nodes n WHERE
+      n.id=NEW.node_id AND n.owner_id=NEW.owner_id) THEN
+      RAISE EXCEPTION 'Knowledge node not owned by submitter';
+    END IF;
+  ELSIF NEW.quest_id IS NOT NULL THEN
+    IF NOT EXISTS (SELECT 1 FROM public.qatl_quests q WHERE
+      q.id=NEW.quest_id AND q.owner_id=NEW.owner_id AND q.status='published') THEN
+      RAISE EXCEPTION 'Quest must be published and owned by submitter';
+    END IF;
+  END IF;
+  RETURN NEW;
+END $;
+CREATE TRIGGER qatl_verify_share_before_insert
+BEFORE INSERT ON public.qatl_department_shares
+FOR EACH ROW EXECUTE FUNCTION public.qatl_verify_share_submission();
+REVOKE ALL ON FUNCTION public.qatl_verify_share_submission() FROM public,anon,authenticated;
 CREATE POLICY qatl_share_review ON public.qatl_department_shares FOR UPDATE TO authenticated
 USING (
   status='pending'
