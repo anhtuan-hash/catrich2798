@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../../utils/supabase.js';
 import ClassroomRehearsal from './ClassroomRehearsal.jsx';
+import { liveResultsCsv } from './liveReport.mjs';
 
 const statusLabel = {
   waiting: 'Chờ các đội tham gia', active: 'Đang thi đấu',
@@ -93,6 +94,21 @@ export default function LiveTeacher({ quests = [], puzzles = [], enabled = false
     try { await navigator.clipboard.writeText(makeJoinUrl(current.join_code)); setNotice('Đã sao chép đường dẫn tham gia.'); }
     catch { setError('Trình duyệt không cho phép sao chép; hãy dùng đường dẫn ở phía dưới.'); }
   };
+  const downloadReport = () => {
+    if (!current || current.status !== 'finished') return;
+    let url;
+    try {
+      const csv=liveResultsCsv(current,teams,attempts);
+      const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+      url=URL.createObjectURL(blob);
+      const el=document.createElement('a');
+      el.href=url;el.download='questatlas-live-results.csv';el.style.display='none';
+      document.body.append(el);el.click();el.remove();
+      setNotice('Đã tạo bảng điểm phiên Live trên thiết bị, không lưu thêm vào hệ thống.');
+      setError('');
+    } catch (e) { setError(e?.message || 'Không thể xuất kết quả phiên Live.'); }
+    finally { if (url) URL.revokeObjectURL(url); }
+  };
   const published = quests.filter((q) => q.status === 'published');
   const board = teams.map((team) => ({
     ...team,
@@ -130,7 +146,12 @@ export default function LiveTeacher({ quests = [], puzzles = [], enabled = false
         <div className="qa-live-code"><small>MÃ PHÒNG</small><strong>{current.join_code}</strong><span>{statusLabel[current.status]} · Trạm {current.current_position}/{total}</span></div>
         <div className="qa-quest-actions">
           <button type="button" onClick={copyJoin}>Sao chép link cho đội</button>
-          {current.status === 'waiting' && <button className="qa-primary" disabled={busy} onClick={() => control('start')}>▶ Bắt đầu</button>}
+          {current.status === 'waiting' && <>
+            <button className="qa-primary" disabled={busy || board.length < 2}
+              title={board.length < 2 ? 'Cần ít nhất 2 đội tham gia' : ''}
+              onClick={() => control('start')}>▶ Bắt đầu</button>
+            {board.length < 2 && <small role="status" className="qa-min-team-note">Chờ tối thiểu 2 đội tham gia.</small>}
+          </>}
           {current.status === 'active' && <><button disabled={busy} onClick={() => control('pause')}>Ⅱ Tạm dừng</button><button className="qa-primary" disabled={busy} onClick={() => control('next')}>{current.current_position >= total ? '✓ Kết thúc' : 'Trạm tiếp theo →'}</button></>}
           {current.status === 'paused' && <button className="qa-primary" disabled={busy} onClick={() => control('resume')}>▶ Tiếp tục</button>}
           {!['finished','waiting'].includes(current.status) && <button disabled={busy} onClick={() => control('finish')}>Kết thúc sớm</button>}
@@ -138,6 +159,9 @@ export default function LiveTeacher({ quests = [], puzzles = [], enabled = false
         <p className="qa-live-link"><a href={'#/quest-join?code=' + current.join_code} target="_blank" rel="noreferrer">{makeJoinUrl(current.join_code)}</a></p>
         <h3 className="qa-live-board-title">Bảng xếp hạng đội</h3>
         {!board.length ? <div className="qa-empty">Chưa có đội tham gia phòng.</div> : <div className="qa-live-board">{board.map((t,index) => <div key={t.id}><span>{index+1}</span><strong>{t.display_name}</strong><small>{t.answered ? 'Đã gửi' : 'Chưa gửi'}</small><b>{t.score} điểm</b>{current.status !== 'finished' && <button className="qa-reset-team" disabled={busy} type="button" onClick={() => resetTeam(t)} title="Đặt lại thiết bị đội và xóa điểm">Đặt lại</button>}</div>)}</div>}
+        {current.status === 'finished' &&
+          <button type="button" className="qa-primary qa-live-export" onClick={downloadReport}
+            disabled={busy || !board.length}>↓ Xuất CSV điểm thi đấu</button>}
         <p className="qa-info">Đáp án được kiểm tra bằng RPC phía database, không gửi đáp án đúng xuống trình duyệt đội chơi.</p>
       </>}
     </section>
