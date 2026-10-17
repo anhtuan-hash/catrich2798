@@ -43,12 +43,30 @@ function MapCanvas({ nodes, edges, selectedId, onSelect }) {
 
 function PreviewWorld({ quest, puzzles, onClose }) {
   const canvasRef = useRef(null);
+  const roomRef = useRef(null);
+  const closeRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current=onClose;
   const [webglActive, setWebglActive] = useState(false);
   useEffect(() => {
-    const dispose = mountQuestWorld(canvasRef.current, quest.world, () => setWebglActive(false));
-    if (dispose) setWebglActive(true);
-    return () => { dispose?.(); };
+    const room=mountQuestWorld(canvasRef.current,quest.world,()=>setWebglActive(false));
+    roomRef.current=room;
+    setWebglActive(Boolean(room));
+    return () => { roomRef.current=null; room?.dispose(); };
   }, [quest.world]);
+  useEffect(() => {
+    const previous=document.activeElement;
+    const scroll=document.body.style.overflow;
+    document.body.style.overflow='hidden';
+    closeRef.current?.focus();
+    const onEscape=(event)=>{ if(event.key==='Escape'){ event.preventDefault(); onCloseRef.current(); } };
+    document.addEventListener('keydown',onEscape);
+    return ()=>{
+      document.removeEventListener('keydown',onEscape);
+      document.body.style.overflow=scroll;
+      if(previous?.isConnected)previous.focus();
+    };
+  }, []);
   const [index, setIndex] = useState(0);
   const [answer, setAnswer] = useState('');
   const [feedback, setFeedback] = useState('');
@@ -56,6 +74,7 @@ function PreviewWorld({ quest, puzzles, onClose }) {
   const ordered = useMemo(() => [...puzzles].sort((a, b) => a.position - b.position), [puzzles]);
   const current = ordered[index];
   const complete = index >= ordered.length;
+  useEffect(()=>{roomRef.current?.setProgress(ordered.length?index/ordered.length:0);},[index,ordered.length]);
   const world = quest.world;
   const submit = () => {
     if (!current) return;
@@ -69,21 +88,31 @@ function PreviewWorld({ quest, puzzles, onClose }) {
     setIndex((value) => value + 1);
   };
   return <div className={'qa-preview qa-world-' + world}>
-    <header className="qa-preview-header"><div><span>TEACHER PREVIEW · Không phải phiên học sinh</span><h2>{quest.title}</h2></div><button type="button" onClick={onClose}>Đóng bản xem thử ×</button></header>
+    <header className="qa-preview-header"><div><span>TEACHER PREVIEW · Không phải phiên học sinh</span><h2>{quest.title}</h2></div><button ref={closeRef} type="button" onClick={onClose} aria-label="Đóng bản xem thử (Esc)">Đóng bản xem thử ×</button></header>
     <div className={"qa-scene" + (webglActive ? " qa-render-webgl" : "")} aria-label={'Thế giới ' + WORLD_NAMES[world]}>
-      <canvas ref={canvasRef} className="qa-webgl-canvas" aria-label="Phòng 3D có thể kéo để xoay góc nhìn" />
+      <canvas ref={canvasRef} tabIndex={0} className="qa-webgl-canvas" aria-label="Phòng 3D: kéo để xoay; phím mũi tên thay đổi góc; cộng trừ phóng to; Home đặt lại" />
       <div className="qa-scene-ceiling" />
       <div className="qa-scene-wall qa-scene-wall-left" />
       <div className="qa-scene-wall qa-scene-wall-right" />
       <div className="qa-scene-floor" />
       <div className="qa-scene-door"><span>{complete ? '✓' : '◇'}</span><small>{complete ? 'OPEN' : 'LOCKED'}</small></div>
       <div className="qa-scene-orb orb-a" /><div className="qa-scene-orb orb-b" />
-      {webglActive && <span className="qa-webgl-hint">Kéo để xoay góc nhìn 3D · 360° orbit</span>}
+      {webglActive && <>
+        <span className="qa-webgl-hint">Phòng 3D tương tác · Kéo để xoay 360° · Cuộn để zoom</span>
+        <div className="qa-camera-controls" role="group" aria-label="Điều khiển góc nhìn phòng 3D">
+          <button type="button" aria-label="Xoay sang trái" onClick={()=>roomRef.current?.orbit(-.36)}>↶</button>
+          <button type="button" aria-label="Xoay sang phải" onClick={()=>roomRef.current?.orbit(.36)}>↷</button>
+          <button type="button" aria-label="Phóng to" onClick={()=>roomRef.current?.zoom(-.65)}>+</button>
+          <button type="button" aria-label="Thu nhỏ" onClick={()=>roomRef.current?.zoom(.65)}>−</button>
+          <button type="button" onClick={()=>roomRef.current?.reset()}>Đặt lại góc nhìn</button>
+        </div>
+      </>}
     </div>
     <div className="qa-puzzle-overlay">
       {complete ? <div className="qa-puzzle-card qa-victory"><span className="qa-puzzle-kicker">QUEST COMPLETE</span><h3>Kho báu đã mở!</h3><p>Điểm thử nghiệm: {score}. Chưa lưu kết quả vào hệ thống.</p><button onClick={() => { setIndex(0); setScore(0); }}>Chơi lại</button></div>
         : <div className="qa-puzzle-card">
           <div className="qa-puzzle-progress"><span>Trạm {index + 1}/{ordered.length}</span><span>{score} điểm</span></div>
+          <div className="qa-puzzle-progress-track" role="progressbar" aria-label="Tiến độ mở phòng" aria-valuemin={0} aria-valuemax={ordered.length} aria-valuenow={index}><span style={{width:(ordered.length?index/ordered.length*100:0)+'%'}} /></div>
           <h3>{current.stem}</h3>
           {current.kind === 'choice' ? <div className="qa-answer-options">{parseOptions(current.options).map((option) => <button type="button" aria-pressed={answer === option} className={answer === option ? 'chosen' : ''} key={option} onClick={() => { setAnswer(option); setFeedback(''); }}>{option}</button>)}</div> : <label className="qa-field">Nhập mật mã<input value={answer} onChange={(e) => setAnswer(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') submit(); }} maxLength="180" /></label>}
           {feedback && <Info variant="qa-warning">{feedback}</Info>}
