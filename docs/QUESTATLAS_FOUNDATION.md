@@ -96,3 +96,11 @@ A Department Hub module has been added to the existing `#/tool/questatlas` works
 - Anonymous clients cannot execute the host's create/control/reset RPCs. The teacher-only reset revokes the previous team token and all attempts (score is reset).
 - Disposable PostgreSQL integration exercises permissions, frozen-room fields, valid host transitions, team reset and the per-hour creation quota.
 - Still required before release: independent security review of intentionally exposed guest SECURITY DEFINER functions, WAF/API abuse throttling, 8-team load test, and actual Supabase staging environment validation.
+
+## Guest RPC rate limiting and eight-client concurrency (feature branch)
+
+- Rate budgets are enforced in PostgreSQL using a private `qatl_live_guest_budget` table with RLS and **no grants to public, anon or authenticated**. A SECURITY DEFINER quota helper is also fully revoked from direct API execution. Returns an error envelope so the database increments remain committed when a quota is exceeded.
+- Limits: join attempts **16/minute per valid room**, room views **50/minute per team bearer token**, answer submissions **12/minute per team token**. Minute windows are anchored to database clock time; temporary false positives near boundaries are possible.
+- Guest UI recognizes `rate_limited` responses; polling only runs while the page is visible/online, suppresses overlapping requests, and refreshes after reconnecting. A team reset exposes a self-service rejoin action.
+- CI creates eight independent PostgreSQL client processes to simultaneously join one eight-slot waiting room, view sanitized questions, submit answers, retry duplicates and verify **exactly eight submissions and 80 points**, then finish the session.
+- Still **not** protection against brute-force invalid-code/invalid-token traffic, distributed abuse, account takeover, or real internet-scale school load. Add edge/IP rate limiting (e.g. provider firewall), formal threat modeling, load/soak testing, retention/cleanup of expired rooms, and production Supabase branch validation before public release.
