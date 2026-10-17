@@ -164,3 +164,6 @@
 .qa-join-footer{text-align:center;font-size:11px;color:#9ab2da;margin-top:26px}
 @media(max-width:830px){.qa-live-grid{grid-template-columns:1fr}}
 @media(max-width:580px){.qa-live-code strong{font-size:26px;letter-spacing:2px}.qa-join-banner h1{font-size:26px}.qa-join-card{padding:17px}.qa-join-progress strong{font-size:14px}}
+
+.qa-join-exit{background:transparent;border:1px solid #ffffff44;color:#b7cfff;border-radius:8px;padding:7px 10px;font-size:11px;margin:-3px 0 20px}
+.qa-join-exit:hover{background:#ffffff19}
