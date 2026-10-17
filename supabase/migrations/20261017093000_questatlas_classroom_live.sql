@@ -149,6 +149,36 @@ end $$;
 revoke all on function public.qatl_live_control(uuid,text) from public,anon;
 grant execute on function public.qatl_live_control(uuid,text) to authenticated;
 
+-- Server-side per-room quota counters: protects valid room codes/team tokens from
+-- accidental floods. Invalid-code/token floods still need an edge/IP rate limiter.
+-- The quota returns false, not an exception: exception rollback would undo the counter.
+CREATE TABLE public.qatl_live_guest_budget (
+  session_id uuid NOT NULL REFERENCES public.qatl_live_sessions(id) ON DELETE CASCADE,
+  action text NOT NULL CHECK (action IN ('join','view','submit')),
+  client_key text NOT NULL CHECK (length(client_key) BETWEEN 12 AND 64),
+  minute_bucket timestamptz NOT NULL,
+  hits integer NOT NULL DEFAULT 1 CHECK (hits BETWEEN 1 AND 100000),
+  PRIMARY KEY(session_id,action,client_key,minute_bucket)
+);
+ALTER TABLE public.qatl_live_guest_budget ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.qatl_live_guest_budget FROM PUBLIC,anon,authenticated;
+CREATE FUNCTION public.qatl_live_consume_quota(p_session_id uuid,p_action text,p_client_key text,p_limit integer)
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $qa_quota$
+DECLARE v_hits integer;
+BEGIN
+  IF p_action NOT IN ('join','view','submit') OR p_limit NOT BETWEEN 1 AND 100
+    OR length(p_client_key) NOT BETWEEN 12 AND 64 THEN
+    RAISE EXCEPTION 'Invalid quota configuration';
+  END IF;
+  INSERT INTO public.qatl_live_guest_budget(session_id,action,client_key,minute_bucket,hits)
+    VALUES(p_session_id,p_action,p_client_key,date_trunc('minute',clock_timestamp()),1)
+    ON CONFLICT(session_id,action,client_key,minute_bucket)
+    DO UPDATE SET hits=LEAST(public.qatl_live_guest_budget.hits+1,p_limit+1)
+    RETURNING hits INTO v_hits;
+  RETURN v_hits<=p_limit;
+END $qa_quota$;
+REVOKE ALL ON FUNCTION public.qatl_live_consume_quota(uuid,text,text,integer) FROM PUBLIC,anon,authenticated;
+
 -- Deliberately limited public operations; no SQL objects exposed directly to anon.
 create function public.qatl_live_join(p_code text,p_team_no integer,p_name text)
 returns jsonb language plpgsql security definer set search_path='' as $$
@@ -159,6 +189,8 @@ begin
   select * into s from public.qatl_live_sessions where join_code=p_code for update;
   if not found or s.expires_at<now() or s.status not in ('waiting','active','paused')
      or p_team_no>s.team_limit then raise exception 'Room unavailable'; end if;
+  if not public.qatl_live_consume_quota(s.id,'join',p_code,16)
+    then return jsonb_build_object('error','rate_limited'); end if;
   if exists(select 1 from public.qatl_live_teams where session_id=s.id and team_no=p_team_no)
     then raise exception 'Team already joined. Reconnect from the original device.'; end if;
   v_token=encode(extensions.gen_random_bytes(32),'hex');
@@ -181,6 +213,8 @@ begin
   select * into t from public.qatl_live_teams where session_id=s.id
     and token_hash=encode(extensions.digest(p_token,'sha256'),'hex');
   if not found then raise exception 'Team session not found'; end if;
+  if not public.qatl_live_consume_quota(s.id,'view',t.token_hash,50)
+    then return jsonb_build_object('error','rate_limited'); end if;
   v_puzzle=case when s.status='active'
     then s.puzzle_snapshot->(s.current_position-1) else null end;
   select exists (select 1 from public.qatl_live_attempts a
@@ -218,6 +252,8 @@ begin
   select * into t from public.qatl_live_teams where session_id=s.id
     and token_hash=encode(extensions.digest(p_token,'sha256'),'hex');
   if not found then raise exception 'Team session not found'; end if;
+  if not public.qatl_live_consume_quota(s.id,'submit',t.token_hash,12)
+    then return jsonb_build_object('accepted',false,'reason','rate_limited'); end if;
   if exists(select 1 from public.qatl_live_attempts a
       where a.session_id=s.id and a.team_id=t.id and a.puzzle_position=s.current_position)
     then return jsonb_build_object('accepted',false,'reason','already_submitted'); end if;
