@@ -109,4 +109,10 @@ for(const source of [engine,ui]){
 assert.match(teacher,/<ClassroomRehearsal quests=\{quests\} puzzles=\{puzzles\}/);
 assert.match(fs.readFileSync('src/features/questatlas/QuestAtlas.jsx','utf8'),
   /<LiveTeacher quests=\{records\.quests\} puzzles=\{records\.puzzles\}/);
+assert.match(fs.readFileSync('src/features/questatlas/QuestAtlas.jsx','utf8'),
+  /Chạy phòng mô phỏng miễn phí/,'offline preview launch must be visible when database is unconfigured');
+assert.match(ui,/onClick=\{\(\)=>resetTeam\(team\.no,team\.name\)\}/,
+  'reset in rehearsal must require user confirmation');
+assert.doesNotMatch(ui,/disabled=\{session\.status==='active'\}/,
+  'team must be able to rejoin after host reset during active rehearsal');
 console.log('QuestAtlas 0-cost Classroom Live rehearsal PASS: eight-team flow, idempotency, reset, offline-only isolation.');
