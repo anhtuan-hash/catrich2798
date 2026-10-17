@@ -11,6 +11,7 @@ on:
       - 'scripts/test-questatlas-live-report.mjs'
       - 'scripts/questatlas-postgrest-setup.sql'
       - 'scripts/questatlas-postgrest-http.mjs'
+      - 'scripts/questatlas-postgrest-eight-clients.mjs'
       - 'tests/e2e/questatlas-acceptance.spec.js'
       - 'scripts/test-questatlas-webgl.mjs'
       - 'scripts/test-questatlas-live.mjs'
@@ -124,6 +125,10 @@ jobs:
         env:
           PGPASSWORD: postgres
         run: node scripts/questatlas-postgrest-http.mjs
+      - name: Exercise eight real HTTP/JWT clients behind one school NAT
+        env:
+          PGPASSWORD: postgres
+        run: node scripts/questatlas-postgrest-eight-clients.mjs
       - name: Remove disposable REST container
         if: always()
         run: docker rm -f qatl-postgrest-ci 2>/dev/null || true
