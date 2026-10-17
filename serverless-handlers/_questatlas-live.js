@@ -6,7 +6,6 @@ const RPC = Object.freeze({
   view: 'qatl_live_view',
   submit: 'qatl_live_submit',
 });
-const ACTION_LIMIT = Object.freeze({ join: 16, view: 75, submit: 30 });
 const MAX_BODY_BYTES = 2048;
 
 function fail(res, status, code, message) {
