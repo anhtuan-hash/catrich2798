@@ -23,7 +23,10 @@ declare v_hits integer; v_limit integer;
 begin
   if p_ip_hash !~ '^[a-f0-9]{64}$' or p_action not in ('join','view','submit')
     then raise exception 'Invalid gateway budget arguments'; end if;
-  v_limit=case p_action when 'join' then 16 when 'view' then 75 else 30 end;
+  -- A school often shares one public NAT IP across eight teams. Each team
+  -- polls every 3 seconds: 8*20=160 view requests/minute per school IP.
+  -- Token and room-specific quotas still enforce tighter limits downstream.
+  v_limit=case p_action when 'join' then 40 when 'view' then 480 else 96 end;
   insert into public.qatl_gateway_ip_budget(ip_hash,action,minute_bucket,hits)
     values (p_ip_hash,p_action,date_trunc('minute',clock_timestamp()),1)
     on conflict (ip_hash,action,minute_bucket)
