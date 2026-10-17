@@ -10,7 +10,13 @@ grant usage on schema extensions to authenticated,anon;
 create table auth.users(id uuid primary key);
 create or replace function auth.uid() returns uuid
   language sql stable set search_path='' as $func$
-    select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid
+    select coalesce(
+      nullif(current_setting('request.jwt.claim.sub',true),'')::uuid,
+      nullif(
+        nullif(current_setting('request.jwt.claims',true),'')::jsonb ->> 'sub',
+        ''
+      )::uuid
+    )
   $func$;
 grant usage on schema auth to authenticated,anon;
 grant execute on function auth.uid() to authenticated,anon;
