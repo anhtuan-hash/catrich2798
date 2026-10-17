@@ -1,5 +1,6 @@
+process.env.TZ = 'Asia/Saigon'; // kiểm tra theo giờ Việt Nam, đặt trước khi dùng Date
 import assert from 'node:assert/strict';
-import { buildZaloUrl, normalizeVnPhone, selectDueMessages } from '../src/utils/zaloLink.js';
+import { buildZaloUrl, fillMessageTemplate, localDateIso, localDateTimeInput, normalizeVnPhone, selectDueMessages } from '../src/utils/zaloLink.js';
 
 // Chuẩn hóa số điện thoại
 assert.equal(normalizeVnPhone('0912345678'), '84912345678');
@@ -32,5 +33,21 @@ const list = [
 ];
 assert.deepEqual(selectDueMessages(list, '2026-10-17').map((item) => item.id), ['b', 'a', 'e']);
 assert.deepEqual(selectDueMessages(undefined, '2026-10-17'), []);
+
+// Ngày theo giờ địa phương: 06:00 sáng 17/10 ở Việt Nam = 23:00 UTC ngày 16/10
+const earlyMorning = new Date('2026-10-16T23:00:00Z');
+assert.equal(earlyMorning.toISOString().slice(0, 10), '2026-10-16'); // đây là cái bẫy của todayIso()
+assert.equal(localDateIso(earlyMorning), '2026-10-17');
+assert.equal(localDateTimeInput(earlyMorning), '2026-10-17T06:00');
+// Tin hẹn 07:30 hôm nay phải hiện trong "Cần gửi hôm nay" lúc 06:00 sáng
+assert.deepEqual(selectDueMessages([{ id: 'x', status: 'scheduled', sendAt: '2026-10-17T07:30' }], localDateIso(earlyMorning)).map((item) => item.id), ['x']);
+
+// Điền tin mẫu
+const student = { fullName: 'Nguyễn Văn An', parentName: 'Chị Lan' };
+assert.equal(fillMessageTemplate('Chào {phụ huynh}, em {tên học sinh} nghỉ hôm nay.', student), 'Chào Chị Lan, em Nguyễn Văn An nghỉ hôm nay.');
+assert.equal(fillMessageTemplate('{Phụ Huynh} - {TÊN HỌC SINH}', student), 'Chị Lan - Nguyễn Văn An');
+assert.equal(fillMessageTemplate('Chào {phụ huynh}', { fullName: 'B' }), 'Chào Quý phụ huynh');
+assert.equal(fillMessageTemplate('Không có biến', student), 'Không có biến');
+assert.equal(fillMessageTemplate(undefined, student), '');
 
 console.log('zaloLink: all checks passed');

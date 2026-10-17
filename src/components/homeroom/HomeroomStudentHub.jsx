@@ -8,6 +8,7 @@ import {
 import StudentRosterImportPanel from '../StudentRosterImportPanel.jsx';
 import { addStudent, archiveStudent, restoreStudent, transferStudent, upsertStudents } from '../../utils/homeroomStore.js';
 import { downloadCsv, formatViDate, normalizePhone } from '../../utils/homeroomOfflineTools.js';
+import { buildZaloUrl, fillMessageTemplate, openZaloChat } from '../../utils/zaloLink.js';
 import { buildStudentSupportHash, normalizeStudentRef } from '../../studentSupport/studentSupportIdentity.js';
 import {
   getStudentHubCounts, filterStudentHub, findStudentHubDuplicate, studentHubSummary,
@@ -41,6 +42,31 @@ function SummaryChip({ icon: Icon, label, value, tone }) {
     <div><strong>{value}</strong><small>{label}</small></div>
   </div>;
 }
+function ParentZaloBox({ student, className }) {
+  const buildDraft = () => fillMessageTemplate(
+    `Kính gửi {phụ huynh}, tôi là giáo viên chủ nhiệm${className ? ` lớp ${className}` : ''}. Tôi xin trao đổi với anh/chị về em {tên học sinh}: `,
+    student,
+  );
+  const [message, setMessage] = useState(buildDraft);
+  const [notice, setNotice] = useState('');
+  useEffect(() => { setMessage(buildDraft()); setNotice(''); }, [student.id, student.parentName, student.fullName, className]);
+  const zaloUrl = buildZaloUrl(student.parentPhone);
+  const send = async () => {
+    const who = student.parentName || `phụ huynh em ${student.fullName}`;
+    const result = await openZaloChat({ phone: student.parentPhone, message });
+    if (!result.ok) setNotice('Chưa mở được Zalo: số điện thoại phụ huynh trống hoặc không hợp lệ.');
+    else if (result.copied) setNotice(`Đã sao chép tin nhắn và mở Zalo của ${who}. Hãy dán (Ctrl+V) rồi bấm gửi.`);
+    else setNotice(`Đã mở Zalo của ${who} nhưng chưa sao chép được tin nhắn. Hãy tự sao chép nội dung rồi dán vào Zalo.`);
+  };
+  return <section className="hr4-student-note" aria-label="Nhắn Zalo cho phụ huynh">
+    <small>NHẮN ZALO PHỤ HUYNH</small>
+    <textarea value={message} onChange={(event) => setMessage(event.target.value)} rows={4} style={{ width: '100%', boxSizing: 'border-box', margin: '8px 0' }} aria-label="Nội dung tin nhắn Zalo" />
+    <button type="button" className="primary" disabled={!zaloUrl} title={zaloUrl ? 'Sao chép tin nhắn và mở Zalo của phụ huynh' : 'Cần số điện thoại phụ huynh hợp lệ'} onClick={send}>Mở Zalo phụ huynh</button>
+    {!zaloUrl ? <p>Chưa có số điện thoại phụ huynh hợp lệ. Hãy bấm "Sửa hồ sơ" để bổ sung.</p> : null}
+    {notice ? <p role="status">{notice}</p> : null}
+  </section>;
+}
+
 function StudentDetail({ workspace, student, summary, close, edit, requestAction, openSupport, decisionForm }) {
   return <aside className="hr4-student-detail" aria-label={`Hồ sơ học sinh ${student.fullName}`}>
     <header className="hr4-student-detail-header">
@@ -74,6 +100,7 @@ function StudentDetail({ workspace, student, summary, close, edit, requestAction
       <p>{summary.paperVerified ? 'Hồ sơ đối chiếu đã xác nhận' : summary.paperRecordExists ? 'Đã có hồ sơ đối chiếu, chưa xác nhận hoàn tất' : 'Chưa có hồ sơ đối chiếu'}</p>
       {summary.pendingConduct > 0 ? <p className="hr4-student-pending">{summary.pendingConduct} ghi nhận rèn luyện đang chờ xác nhận.</p> : null}
     </section>
+    {student.active === false ? null : <ParentZaloBox student={student} className={workspace.classProfile?.className || ''} />}
     {student.notes ? <section className="hr4-student-note"><small>GHI CHÚ</small><p>{student.notes}</p></section> : null}
     <div className="hr4-student-detail-actions">
       <button type="button" className="primary" onClick={() => edit(student)}><Pencil size={16}/> Sửa hồ sơ</button>
