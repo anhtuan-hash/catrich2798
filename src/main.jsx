@@ -121,9 +121,10 @@ const HiddenAppsVault = lazy(() => import('./pages/HiddenAppsVault.jsx'));
 const QuestionBank = lazy(() => import('./pages/QuestionBank.jsx'));
 const QuestionBankPractice = lazy(() => import('./pages/QuestionBankPractice.jsx'));
 const ClassroomJoin = lazy(() => import('./pages/ClassroomJoin.jsx'));
+const QuestJoin = lazy(() => import('./features/questatlas/QuestJoin.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'tools', 'homeroom', 'homeroom-portal', 'classroom-join', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
-const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'qb-practice']);
+const ROUTES = ['home', 'apps', 'news', 'tools', 'homeroom', 'homeroom-portal', 'classroom-join', 'quest-join', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
+const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'quest-join', 'qb-practice']);
 
 function getInitialRoute() {
   const href = window.location.href || '';
@@ -368,7 +369,7 @@ function App() {
     && currentUser
     && canAccessRoute
     && currentRoute !== 'home'
-    && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute)
+    && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute)
   );
 
   const context = {
@@ -460,7 +461,7 @@ function App() {
           '--active-app-ink': activeDesignProfile.ink,
         }}
       >
-        {!['homeroom-portal', 'classroom-join'].includes(currentRoute) ? <div className="bes-top-chrome">
+        {!['homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute) ? <div className="bes-top-chrome">
           <Suspense fallback={null}>
             <StatusMenuBar route={currentRoute} {...context} />
           </Suspense>
@@ -483,7 +484,7 @@ function App() {
           </Suspense>
         )}
 
-        {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal', 'classroom-join'].includes(currentRoute) && (
+        {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute) && (
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="command-palette" label={language === 'vi' ? 'tìm kiếm nhanh' : 'command palette'}>
               <GlobalCommandPalette
@@ -511,12 +512,12 @@ function App() {
           <Suspense fallback={null}>
           </Suspense>
         ) : null}
-        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join'].includes(currentRoute) ? (
+        {currentUser && canAccessRoute && !['login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute) ? (
           <Suspense fallback={null}>
             <TransferInboxBanner currentUser={currentUser} route={currentRoute} selectedTool={selectedTool} language={language} />
           </Suspense>
         ) : null}
-        {currentUser && selectedTool?.slug !== 'questatlas' && !['homeroom-portal', 'classroom-join'].includes(currentRoute) ? (
+        {currentUser && selectedTool?.slug !== 'questatlas' && !['homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute) ? (
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="shared-chatbot-drawer" label={language === 'vi' ? 'chatbot dùng chung' : 'shared chatbot'}>
               <SharedChatbotDrawer currentUser={currentUser} language={language} />
@@ -541,6 +542,7 @@ function App() {
             {canAccessRoute && currentRoute === 'homeroom' && currentUser && <HomeroomWorkspace {...context} />}
             {currentRoute === 'homeroom-portal' && <HomeroomPortal {...context} />}
             {currentRoute === 'classroom-join' && <ClassroomJoin />}
+            {currentRoute === 'quest-join' && <QuestJoin />}
             {currentRoute === 'resources' && <Resources items={RESOURCE_ITEMS} {...context} />}
             {canAccessRoute && currentRoute === 'library' && currentUser && <Library {...context} />}
             {canAccessRoute && currentRoute === 'resource-library' && currentUser && <ResourceLibrary {...context} />}
@@ -571,7 +573,7 @@ function App() {
           </div>
         </main>
 
-        {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal', 'classroom-join'].includes(currentRoute) && (
+        {currentUser && canAccessRoute && !['login', 'register', 'homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute) && (
           <Suspense fallback={null}>
             <AppErrorBoundary compact scope="global-autosave" label={language === 'vi' ? 'tự lưu' : 'autosave'}>
               <GlobalAutosave route={currentRoute} selectedTool={selectedTool} currentUser={currentUser} language={language} />
@@ -588,7 +590,7 @@ function App() {
             <SyncQueueIndicator currentUser={currentUser} language={language} externalLauncher />
           </Suspense>
         </> : null}
-        {!['homeroom-portal', 'classroom-join'].includes(currentRoute) ? <Footer language={language} currentUser={currentUser} /> : null}
+        {!['homeroom-portal', 'classroom-join', 'quest-join'].includes(currentRoute) ? <Footer language={language} currentUser={currentUser} /> : null}
       </div>
     </>
   );
