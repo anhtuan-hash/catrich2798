@@ -79,6 +79,7 @@ export default function QuestJoin() {
       });
       if (err) throw err;
       if (data?.error === 'rate_limited') throw new Error('Có quá nhiều lượt vào phòng. Hãy thử lại sau khoảng một phút.');
+      if (data?.error === 'team_taken') throw new Error('Đội này đã được sử dụng. Hãy chọn đội khác hoặc nhờ giáo viên đặt lại vị trí.');
       if (!data?.token) throw new Error('Server không cung cấp mã phiên hợp lệ.');
       window.sessionStorage.setItem(storageKey(code),data.token);
       setToken(data.token);
