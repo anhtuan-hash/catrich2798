@@ -77,3 +77,48 @@ export function rehearsalBoard(state) {
     correct:team.answers.filter(a=>a.correct).length,
   })).sort((a,b)=>b.score-a.score||a.no-b.no);
 }
+
+
+// An explicit, ephemeral teacher report. Contains team labels and summary
+// results only — never puzzle content, answer keys or student identities.
+export function rehearsalReport(state) {
+  if (!state || state.mode !== 'offline-rehearsal') throw new Error('Phòng mô phỏng không hợp lệ.');
+  const board=rehearsalBoard(state);
+  const maxScore=state.stages.reduce((n,p)=>n+p.points,0);
+  return {
+    title:state.title,
+    status:state.status,
+    totalStages:state.stages.length,
+    maxScore,
+    completed:state.status==='finished',
+    entries:board.map((team,index)=>{
+      const source=state.teams.find(t=>t.no===team.no);
+      const answered=source.answers.length;
+      return {
+        rank:index+1,number:team.no,name:team.name,score:team.score,
+        scale10:maxScore>0?Math.round((team.score/maxScore)*100)/10:0,
+        answered,correct:team.correct,
+      };
+    }),
+  };
+}
+const csvCell=(value)=>{
+  const plain=String(value??'');
+  // Mitigate spreadsheet formula injection when a teacher edits team labels.
+  const safe=/^[\\s]*[=+@-]/.test(plain)?"'"+plain:plain;
+  return '"'+safe.replace(/"/g,'""')+'"';
+};
+export function rehearsalCsv(state) {
+  const report=rehearsalReport(state);
+  const rows=[
+    ['QuestAtlas Offline Rehearsal — Teacher Simulation'],
+    ['Quest',report.title],
+    ['Status',report.status],
+    ['Stages',report.totalStages],
+    ['Max score',report.maxScore],
+    [],
+    ['Rank','Team #','Team name','Points','Scale (10)','Answered','Correct'],
+    ...report.entries.map(x=>[x.rank,x.number,x.name,x.score,x.scale10,x.answered,x.correct]),
+  ];
+  return '\uFEFF'+rows.map(cells=>cells.map(csvCell).join(',')).join('\r\n')+'\r\n';
+}
