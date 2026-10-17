@@ -53,3 +53,29 @@ The feature branch now includes a teacher-led live interface, public join page (
 5. Department sharing/approval, advanced 3D art, ability to reset a taken team slot and robust abuse rate limiting remain pending.
 
 This is not an AI-assisted app and does not call generative models. Other unrelated BRIAN AI components are outside this feature, except the route-local suppression already added.
+
+## Department Hub: staged integration
+
+A Department Hub module has been added to the existing `#/tool/questatlas` workspace with:
+- Department membership inferred **only** from BRIAN `department_members` / `departments` (active membership).
+- Teacher submission of self-owned knowledge nodes or published Quests for TTCM approval.
+- Department-head review with approve/reject and optional note. Status transitions and asset identity are guarded by PostgreSQL RLS + triggers, not by UI alone.
+- Approved resources visible to **active members of the same department**. Members can fork an approved node or published Quest into private drafts. Cloning keeps question options and teacher answer keys within authenticated RLS, never in public/student endpoints.
+- Teacher can revoke their own submission or shared entry; review records are retained only until the owner revokes a share. This is not a full immutable audit log yet.
+
+### Verified only on disposable PostgreSQL 17 in GitHub Actions
+
+`scripts/questatlas-department-postgres-smoke.sql` is executed after the Classroom Live fixture and verifies:
+- Migration can be applied to disposable schema.
+- Teacher submission, blocked self-approval, authorized head review.
+- Cross-department visibility blocked for pending and approved submissions.
+- Approved node and Quest can be forked, including cloned puzzle data.
+- Changes do not touch the live BRIAN Supabase database.
+
+### Department Hub release blockers
+
+- A Supabase isolated branch or disposable project must run full auth/RLS tests under actual BRIAN policies and verify no performance regression before **any** production migration.
+- Validate with real department membership and TTCM roles **without** using student personal data.
+- Strengthen governance with full audit log, approval notifications, archived versions and anti-abuse limits before school-wide rollout.
+- Existing Query/Atlas cache is capped at 500 rows per type; paginate large libraries before general launch.
+- Do not merge this draft PR to production until full BRIAN Critical E2E is green.
