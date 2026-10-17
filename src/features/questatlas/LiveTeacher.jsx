@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../../utils/supabase.js';
+import ClassroomRehearsal from './ClassroomRehearsal.jsx';
 
 const statusLabel = {
   waiting: 'Chờ các đội tham gia', active: 'Đang thi đấu',
@@ -7,7 +8,7 @@ const statusLabel = {
 };
 const makeJoinUrl = (code) => window.location.origin + window.location.pathname + '#/quest-join?code=' + code;
 
-export default function LiveTeacher({ quests = [], enabled = false }) {
+export default function LiveTeacher({ quests = [], puzzles = [], enabled = false }) {
   const [questId, setQuestId] = useState('');
   const [teamLimit, setTeamLimit] = useState(4);
   const [sessions, setSessions] = useState([]);
@@ -17,6 +18,7 @@ export default function LiveTeacher({ quests = [], enabled = false }) {
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
+  const [showRehearsal,setShowRehearsal]=useState(false);
   const current = sessions.find((s) => s.id === activeSession);
   const total = current?.puzzle_snapshot?.length ?? 0;
 
@@ -98,7 +100,17 @@ export default function LiveTeacher({ quests = [], enabled = false }) {
     answered: attempts.filter((a) => a.team_id === team.id && a.puzzle_position === current?.current_position).length > 0
   })).sort((a,b) => b.score - a.score || a.team_no - b.team_no);
 
-  return <div className="qa-live-grid">
+  return <>
+    <div className="qa-free-rehearsal-banner">
+      <div><strong>Muốn chạy thử không tốn phí?</strong>
+        <p>Diễn tập Classroom Live với tối đa 8 đội trên một trình duyệt. Không cần Supabase Staging, không lưu điểm.</p>
+      </div>
+      <button type="button" onClick={()=>setShowRehearsal(v=>!v)} aria-expanded={showRehearsal}>
+        {showRehearsal?'Ẩn phòng mô phỏng':'▶ Mở phòng mô phỏng miễn phí'}
+      </button>
+    </div>
+    {showRehearsal&&<ClassroomRehearsal quests={quests} puzzles={puzzles}/>}
+    <div className="qa-live-grid">
     <section className="qa-panel">
       <header className="qa-panel-head"><div><h2>Teacher Control Room</h2><p>Giáo viên tạo phòng và điều khiển các chặng thi đấu</p></div><strong className="qa-stat">2–8 đội</strong></header>
       {!enabled ? <p className="qa-info qa-warning">Classroom Live yêu cầu migration Supabase đã được kiểm thử và phê duyệt. Bản Preview hiện chưa mở phiên thực.</p> : <>
@@ -129,5 +141,6 @@ export default function LiveTeacher({ quests = [], enabled = false }) {
         <p className="qa-info">Đáp án được kiểm tra bằng RPC phía database, không gửi đáp án đúng xuống trình duyệt đội chơi.</p>
       </>}
     </section>
-  </div>;
+    </div>
+  </>;
 }
