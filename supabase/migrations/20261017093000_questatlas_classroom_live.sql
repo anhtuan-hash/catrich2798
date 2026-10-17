@@ -68,6 +68,11 @@ declare v_quest public.qatl_quests%rowtype; v_snapshot jsonb; v_session public.q
 begin
   if (select auth.uid()) is null then raise exception 'Authentication required'; end if;
   if p_team_limit not between 2 and 8 then raise exception 'Teams must be between 2 and 8'; end if;
+  -- Avoid unlimited room creation by the same authenticated teacher.
+  if (select count(*) from public.qatl_live_sessions where host_id=(select auth.uid())
+      and created_at>now()-interval '1 hour')>=5 then
+    raise exception 'Maximum five new rooms per hour';
+  end if;
   select * into v_quest from public.qatl_quests
     where id=p_quest_id and owner_id=(select auth.uid()) and status='published';
   if not found then raise exception 'Published Quest not available'; end if;
@@ -196,3 +201,27 @@ grant execute on function public.qatl_live_submit(text,text,text) to anon,authen
 
 -- Security review required: execute privileges on exposed SECURITY DEFINER functions are
 -- intentional only for qatl_live_join/view/submit. Never return puzzle_snapshot to guests.
+
+
+-- Only the authenticated host may release a taken team slot. All old tokens and
+-- that team's attempts are invalidated. No anonymous EXECUTE grant.
+CREATE FUNCTION public.qatl_live_reset_team(p_session_id uuid,p_team_no integer)
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $qatl_reset$
+DECLARE s public.qatl_live_sessions%ROWTYPE; v_team_id uuid;
+BEGIN
+  IF auth.uid() IS NULL OR p_team_no NOT BETWEEN 1 AND 8
+    THEN RAISE EXCEPTION 'Invalid host or team'; END IF;
+  SELECT * INTO s FROM public.qatl_live_sessions
+    WHERE id=p_session_id AND host_id=auth.uid() FOR UPDATE;
+  IF NOT FOUND OR s.expires_at<=now() OR s.status='finished'
+    THEN RAISE EXCEPTION 'Room unavailable to reset'; END IF;
+  IF p_team_no>s.team_limit THEN RAISE EXCEPTION 'Team outside this room'; END IF;
+  DELETE FROM public.qatl_live_teams
+    WHERE session_id=s.id AND team_no=p_team_no
+    RETURNING id INTO v_team_id;
+  IF v_team_id IS NULL THEN RAISE EXCEPTION 'No team occupies this slot'; END IF;
+  -- qatl_live_attempts cascades automatically, removing the old team's score.
+  RETURN jsonb_build_object('reset',true,'team_no',p_team_no);
+END $qatl_reset$;
+REVOKE ALL ON FUNCTION public.qatl_live_reset_team(uuid,integer) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.qatl_live_reset_team(uuid,integer) TO authenticated;
