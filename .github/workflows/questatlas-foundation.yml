@@ -9,6 +9,8 @@ on:
       - 'scripts/test-questatlas-foundation.mjs'
       - 'scripts/test-questatlas-rehearsal.mjs'
       - 'scripts/test-questatlas-live-report.mjs'
+      - 'scripts/questatlas-postgrest-setup.sql'
+      - 'scripts/questatlas-postgrest-http.mjs'
       - 'tests/e2e/questatlas-acceptance.spec.js'
       - 'scripts/test-questatlas-webgl.mjs'
       - 'scripts/test-questatlas-live.mjs'
@@ -104,6 +106,28 @@ jobs:
         env:
           PGPASSWORD: postgres
         run: psql -h 127.0.0.1 -p 5432 -U postgres -d questatlas_test -v ON_ERROR_STOP=1 -f scripts/questatlas-retention-postgres-smoke.sql
+
+      - name: Prepare disposable PostgREST authentication roles
+        env:
+          PGPASSWORD: postgres
+        run: psql -h 127.0.0.1 -p 5432 -U postgres -d questatlas_test -v ON_ERROR_STOP=1 -f scripts/questatlas-postgrest-setup.sql
+      - name: Boot disposable PostgREST REST API with test-only JWT signing
+        run: |
+          docker run -d --rm --network=host --name qatl-postgrest-ci \
+            -e PGRST_DB_URI=postgres://qatl_http_authenticator:questatlas-ci-only-password@127.0.0.1:5432/questatlas_test \
+            -e PGRST_DB_SCHEMAS=public \
+            -e PGRST_DB_ANON_ROLE=anon \
+            -e PGRST_JWT_SECRET=questatlas-ci-postgrest-test-secret-not-for-production \
+            -e PGRST_SERVER_PORT=3000 \
+            postgrest/postgrest:v12.2.3
+      - name: Verify real PostgREST HTTP access controls and live scoring
+        env:
+          PGPASSWORD: postgres
+        run: node scripts/questatlas-postgrest-http.mjs
+      - name: Remove disposable REST container
+        if: always()
+        run: docker rm -f qatl-postgrest-ci 2>/dev/null || true
+
 
   browser-acceptance:
     runs-on: ubuntu-latest
