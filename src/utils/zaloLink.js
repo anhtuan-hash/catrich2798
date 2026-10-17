@@ -44,7 +44,31 @@ export async function openZaloChat({ phone, message }) {
   return { ok: true, copied, reason: '' };
 }
 
-/** Lịch nhắc đến hạn: chưa gửi và thời điểm gửi nhỏ hơn hoặc bằng cuối ngày `today` (YYYY-MM-DD). */
+const pad2 = (value) => String(value).padStart(2, '0');
+
+/** Ngày theo GIỜ ĐỊA PHƯƠNG (YYYY-MM-DD). Không dùng toISOString vì đó là giờ UTC, lệch 7 tiếng ở Việt Nam. */
+export function localDateIso(date = new Date()) {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
+/** Giá trị cho ô datetime-local (YYYY-MM-DDTHH:mm) theo giờ địa phương. */
+export function localDateTimeInput(date = new Date()) {
+  return `${localDateIso(date)}T${pad2(date.getHours())}:${pad2(date.getMinutes())}`;
+}
+
+/**
+ * Điền tin mẫu cho từng học sinh. Hỗ trợ {tên học sinh} và {phụ huynh}
+ * (không phân biệt hoa thường). Thiếu tên phụ huynh thì dùng "Quý phụ huynh".
+ */
+export function fillMessageTemplate(template, student) {
+  const studentName = String(student?.fullName ?? '').trim();
+  const parentName = String(student?.parentName ?? '').trim() || 'Quý phụ huynh';
+  return String(template ?? '')
+    .replace(/\{\s*(?:tên học sinh|ten hoc sinh|học sinh|hoc sinh)\s*\}/gi, studentName)
+    .replace(/\{\s*(?:phụ huynh|phu huynh)\s*\}/gi, parentName);
+}
+
+/** Lịch nhắc đến hạn: chưa gửi và thời điểm gửi nhỏ hơn hoặc bằng cuối ngày `today` (YYYY-MM-DD, giờ địa phương). */
 export function selectDueMessages(scheduledMessages, today) {
   const endOfDay = `${today}T23:59`;
   return (Array.isArray(scheduledMessages) ? scheduledMessages : [])
