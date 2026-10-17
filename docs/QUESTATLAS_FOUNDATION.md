@@ -30,3 +30,26 @@
 - Three.js 3D runtime behind lazy-loaded route and device fallback
 - Per-department sharing with explicit approval/expiry
 - Teacher-led realtime sessions with short-lived join tokens, idempotent server grading, reconnect and audit
+
+## Classroom Live: staged implementation
+
+The feature branch now includes a teacher-led live interface, public join page (one device per team), 2–8 teams, reconnect using a per-room sessionStorage bearer token, scoreboard, and a new **staged** SQL migration (`20261017093000_questatlas_classroom_live.sql`).
+
+### Security design (not yet verified against a deployed database)
+- The host must be authenticated and own an approved, published Quest.
+- The room contains an immutable question snapshot; public clients cannot select any `qatl_*` table.
+- Join codes are 12 random uppercase hex characters (48-bit); team credentials are 256-bit bearer tokens stored only as SHA-256 hashes server-side.
+- Exposed guest RPCs check room status, expiry and secret token; public `view` returns only selected fields and **never** the correct answer.
+- Guest `submit` locks the session and is unique per team/puzzle position; scoring is executed in PostgreSQL and repeat submits are rejected.
+- Each room allows 2–8 teams, one device per team, and expires after four hours. A lost team token currently requires creating a new room (team management comes next).
+- Teacher/host uses owner-scoped RLS to read full session info and score attempts.
+- Guest RPCs use narrowly scoped SECURITY DEFINER with explicit execution grants; they require independent security review, rate-limit/abuse tests and a disposable development database before production.
+
+### Important release blockers
+1. Neither the foundation nor Classroom Live migrations have been applied. The live flow is **not usable on production** yet.
+2. The SQL must pass real PostgreSQL execution, RLS role tests (anon vs authenticated, wrong team token, expired session, concurrency/idempotency), load tests and audit.
+3. The public join route must be tested on iPad/Chrome/WebKit and under weak/reconnecting networks.
+4. Realtime currently uses 3-second polling rather than high-frequency subscriptions; rate and cost budgets need evaluation.
+5. Department sharing/approval, advanced 3D art, ability to reset a taken team slot and robust abuse rate limiting remain pending.
+
+This is not an AI-assisted app and does not call generative models. Other unrelated BRIAN AI components are outside this feature, except the route-local suppression already added.
