@@ -69,6 +69,23 @@ export default function LiveTeacher({ quests = [], enabled = false }) {
     } catch (e) { setError(e.message || 'Không thể điều khiển phiên thi'); } finally { setBusy(false); }
   };
 
+  const resetTeam = async (team) => {
+    if (!current || current.status === 'finished') return;
+    const confirmed = window.confirm('Đặt lại ' + team.display_name + '? Thiết bị cũ sẽ bị ngắt, mọi điểm của đội sẽ bị xóa. Đội cần tham gia lại bằng mã phòng.');
+    if (!confirmed) return;
+    setBusy(true); setError(''); setNotice('');
+    try {
+      const { data, error: err } = await supabase.rpc('qatl_live_reset_team', {
+        p_session_id: current.id, p_team_no: team.team_no
+      });
+      if (err) throw err;
+      if (!data?.reset) throw new Error('Server không xác nhận đặt lại.');
+      setNotice('Đã giải phóng vị trí đội ' + team.team_no + '. Mã token trước đó không còn hợp lệ.');
+      await refreshScore();
+    } catch (e) { setError(e.message || 'Không thể đặt lại đội.'); }
+    finally { setBusy(false); }
+  };
+
   const copyJoin = async () => {
     if (!current) return;
     try { await navigator.clipboard.writeText(makeJoinUrl(current.join_code)); setNotice('Đã sao chép đường dẫn tham gia.'); }
@@ -108,7 +125,7 @@ export default function LiveTeacher({ quests = [], enabled = false }) {
         </div>
         <p className="qa-live-link"><a href={'#/quest-join?code=' + current.join_code} target="_blank" rel="noreferrer">{makeJoinUrl(current.join_code)}</a></p>
         <h3 className="qa-live-board-title">Bảng xếp hạng đội</h3>
-        {!board.length ? <div className="qa-empty">Chưa có đội tham gia phòng.</div> : <div className="qa-live-board">{board.map((t,index) => <div key={t.id}><span>{index+1}</span><strong>{t.display_name}</strong><small>{t.answered ? 'Đã gửi' : 'Chưa gửi'}</small><b>{t.score} điểm</b></div>)}</div>}
+        {!board.length ? <div className="qa-empty">Chưa có đội tham gia phòng.</div> : <div className="qa-live-board">{board.map((t,index) => <div key={t.id}><span>{index+1}</span><strong>{t.display_name}</strong><small>{t.answered ? 'Đã gửi' : 'Chưa gửi'}</small><b>{t.score} điểm</b>{current.status !== 'finished' && <button className="qa-reset-team" disabled={busy} type="button" onClick={() => resetTeam(t)} title="Đặt lại thiết bị đội và xóa điểm">Đặt lại</button>}</div>)}</div>}
         <p className="qa-info">Đáp án được kiểm tra bằng RPC phía database, không gửi đáp án đúng xuống trình duyệt đội chơi.</p>
       </>}
     </section>
