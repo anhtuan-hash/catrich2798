@@ -5,6 +5,8 @@ create role authenticated nologin;
 create schema auth;
 create schema extensions;
 create extension pgcrypto with schema extensions;
+-- Supabase grants USAGE on the extensions schema to API roles by default.
+grant usage on schema extensions to authenticated,anon;
 create table auth.users(id uuid primary key);
 create or replace function auth.uid() returns uuid
   language sql stable set search_path='' as $func$
