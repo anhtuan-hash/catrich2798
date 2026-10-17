@@ -66,7 +66,7 @@ export function demoRecords() {
     edges: [{ id: 'demo-edge-1', from_node_id: 'demo-node-1', to_node_id: 'demo-node-2', relation: 'related' }],
     quests: [{ id: 'demo-quest-1', title: 'The Grammar Vault', world: 'temple', description: 'Unlock three chambers', status: 'draft' }],
     puzzles: [
-      { id: 'demo-puzzle-1', quest_id: 'demo-quest-1', source_node_id: 'demo-node-1', position: 1, kind: 'choice', stem: 'The teacher _____ helped us won the award.', options: ['who', 'whom', 'whose', 'where'], correct_answer: 'who', clue: 'A person acting as subject', points: 10 },
+      { id: 'demo-puzzle-1', quest_id: 'demo-quest-1', source_node_id: 'demo-node-1', position: 1, kind: 'choice', stem: 'The teacher _____ helped us win the award.', options: ['who', 'whom', 'whose', 'where'], correct_answer: 'who', clue: 'A person acting as subject', points: 10 },
       { id: 'demo-puzzle-2', quest_id: 'demo-quest-1', source_node_id: 'demo-node-2', position: 2, kind: 'code', stem: 'Complete: _____ by the rain, they stayed indoors.', options: [], correct_answer: 'Surprised', clue: 'Use a past participle', points: 10 },
     ],
   };
