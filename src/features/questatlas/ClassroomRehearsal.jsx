@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { demoRecords } from './questModel.mjs';
 import { createRehearsal, joinRehearsal, controlRehearsal,
-  submitRehearsal, resetRehearsalTeam, rehearsalBoard } from './localLiveSimulator.mjs';
+  submitRehearsal, resetRehearsalTeam, rehearsalBoard, rehearsalCsv, rehearsalReport } from './localLiveSimulator.mjs';
 
 const fallback=demoRecords();
 export default function ClassroomRehearsal({quests=[],puzzles=[]}){
@@ -18,6 +18,7 @@ export default function ClassroomRehearsal({quests=[],puzzles=[]}){
   const [error,setError]=useState('');
   const chosen=options.find(x=>x.id===selected)||options[0];
   const board=useMemo(()=>rehearsalBoard(session),[session]);
+  const report=useMemo(()=>session?.status==='finished'?rehearsalReport(session):null,[session]);
   const stage=session?.status==='active'||session?.status==='paused'
     ?session.stages[session.position-1]:null;
   function action(operation) {
@@ -47,6 +48,25 @@ export default function ClassroomRehearsal({quests=[],puzzles=[]}){
       setSession(next);setError('');
       setNotice('Đội '+no+' đã gửi đáp án '+(correct?'đúng':'sai')+' (mô phỏng).');
     }catch(e){setError(e.message);}
+  }
+  function exportCsv(){
+    if(!session||session.status!=='finished')return;
+    let url=null;
+    try{
+      const content=rehearsalCsv(session);
+      const blob=new Blob([content],{type:'text/csv;charset=utf-8'});
+      url=URL.createObjectURL(blob);
+      const anchor=document.createElement('a');
+      anchor.href=url;
+      anchor.download='questatlas-rehearsal-results.csv';
+      anchor.style.display='none';
+      document.body.append(anchor);
+      anchor.click();
+      anchor.remove();
+      setNotice('Đã tạo bảng điểm CSV trên thiết bị. Không gửi dữ liệu lên máy chủ.');
+      setError('');
+    }catch(e){setError(e?.message||'Không thể tạo báo cáo.');}
+    finally{if(url)URL.revokeObjectURL(url);}
   }
   const joined=session?.teams.filter(t=>t.joined).length||0;
   return <section className="qa-panel qa-rehearsal" aria-label="Phòng thi mô phỏng miễn phí">
@@ -118,6 +138,13 @@ export default function ClassroomRehearsal({quests=[],puzzles=[]}){
           </div>;
         })}
       </div>
+      {report&&<div className="qa-rehearsal-results" role="region" aria-label="Báo cáo tổng kết mô phỏng">
+        <div><strong>Báo cáo hoàn thành</strong>
+          <p>{report.entries.length} đội · {report.totalStages} trạm · {report.maxScore} điểm tối đa</p>
+          <p>Đây là dữ liệu giả lập của giáo viên, không phải điểm kiểm tra thật.</p>
+        </div>
+        <button type="button" className="qa-primary" onClick={exportCsv}>↓ Xuất CSV bảng điểm mô phỏng</button>
+      </div>}
       {session.status==='finished'&&<div className="qa-rehearsal-done" role="status">
         Hoàn thành bài diễn tập · {board.length} đội ·
         {board.length?' Đội dẫn đầu: '+board[0].name+' ('+board[0].score+' điểm)':' Chưa có đội'}
