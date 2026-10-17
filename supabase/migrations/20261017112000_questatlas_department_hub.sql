@@ -6,6 +6,7 @@ CREATE TABLE public.qatl_department_shares (
   department_id uuid NOT NULL REFERENCES public.departments(id),
   node_id uuid REFERENCES public.qatl_nodes(id) ON DELETE CASCADE,
   quest_id uuid REFERENCES public.qatl_quests(id) ON DELETE CASCADE,
+  snapshot jsonb NOT NULL DEFAULT '{}'::jsonb CHECK (jsonb_typeof(snapshot)='object'),
   status text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected')),
   review_note text NOT NULL DEFAULT '' CHECK (length(review_note)<=500),
   reviewed_by uuid REFERENCES auth.users(id),
@@ -47,16 +48,25 @@ BEGIN
   IF NEW.owner_id IS DISTINCT FROM auth.uid() THEN
     RAISE EXCEPTION 'Share owner mismatch';
   END IF;
+  -- Server generates the immutable review snapshot: never trust a client JSON payload.
   IF NEW.node_id IS NOT NULL THEN
-    IF NOT EXISTS (SELECT 1 FROM public.qatl_nodes n WHERE
-      n.id=NEW.node_id AND n.owner_id=NEW.owner_id) THEN
-      RAISE EXCEPTION 'Knowledge node not owned by submitter';
-    END IF;
+    SELECT jsonb_build_object('kind','node','title',n.title,'summary',n.summary,
+       'grade',n.grade,'unit_name',n.unit_name)
+      INTO NEW.snapshot FROM public.qatl_nodes n
+      WHERE n.id=NEW.node_id AND n.owner_id=NEW.owner_id;
+    IF NEW.snapshot IS NULL THEN RAISE EXCEPTION 'Knowledge node not owned by submitter'; END IF;
   ELSIF NEW.quest_id IS NOT NULL THEN
-    IF NOT EXISTS (SELECT 1 FROM public.qatl_quests q WHERE
-      q.id=NEW.quest_id AND q.owner_id=NEW.owner_id AND q.status='published') THEN
-      RAISE EXCEPTION 'Quest must be published and owned by submitter';
-    END IF;
+    SELECT jsonb_build_object('kind','quest','title',q.title,'description',q.description,
+       'world',q.world,'puzzles',coalesce((
+         SELECT jsonb_agg(jsonb_build_object('position',p.position,'kind',p.kind,
+           'stem',p.stem,'options',p.options,'correct_answer',p.correct_answer,
+           'clue',p.clue,'points',p.points) ORDER BY p.position,p.id)
+         FROM public.qatl_puzzles p WHERE p.quest_id=q.id
+       ),'[]'::jsonb))
+       INTO NEW.snapshot FROM public.qatl_quests q
+       WHERE q.id=NEW.quest_id AND q.owner_id=NEW.owner_id AND q.status='published';
+    IF NEW.snapshot IS NULL THEN RAISE EXCEPTION 'Quest must be published and owned by submitter'; END IF;
+    IF jsonb_array_length(NEW.snapshot->'puzzles')<1 THEN RAISE EXCEPTION 'Quest has no puzzles'; END IF;
   END IF;
   RETURN NEW;
 END $qatl_submit$;
@@ -84,9 +94,9 @@ USING (owner_id=(SELECT auth.uid()));
 CREATE FUNCTION public.qatl_guard_share_review()
 RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER SET search_path='' AS $$
 BEGIN
-  IF (NEW.id,NEW.owner_id,NEW.department_id,NEW.node_id,NEW.quest_id,NEW.created_at)
+  IF (NEW.id,NEW.owner_id,NEW.department_id,NEW.node_id,NEW.quest_id,NEW.snapshot,NEW.created_at)
      IS DISTINCT FROM
-     (OLD.id,OLD.owner_id,OLD.department_id,OLD.node_id,OLD.quest_id,OLD.created_at)
+     (OLD.id,OLD.owner_id,OLD.department_id,OLD.node_id,OLD.quest_id,OLD.snapshot,OLD.created_at)
   THEN RAISE EXCEPTION 'Share identity cannot be changed'; END IF;
   IF OLD.status <> 'pending' OR NEW.status NOT IN ('approved','rejected')
      OR NEW.reviewed_by IS DISTINCT FROM auth.uid()
@@ -124,8 +134,57 @@ CREATE POLICY qatl_puzzles_approved_department_read ON public.qatl_puzzles FOR S
 
 -- Authenticated members can copy an approved resource into their own private
 -- drafts. SECURITY INVOKER: input read/write checked through the RLS above.
+-- Immutable department event ledger. No direct INSERT/UPDATE/DELETE grants.
+CREATE TABLE public.qatl_department_audit (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  share_id uuid NOT NULL,
+  department_id uuid NOT NULL REFERENCES public.departments(id),
+  owner_id uuid NOT NULL REFERENCES auth.users(id),
+  actor_id uuid NOT NULL REFERENCES auth.users(id),
+  action text NOT NULL CHECK (action IN ('submitted','approved','rejected','revoked')),
+  asset_kind text NOT NULL CHECK (asset_kind IN ('node','quest')),
+  resource_title text NOT NULL,
+  review_note text NOT NULL DEFAULT '',
+  occurred_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX qatl_audit_department_time_idx ON public.qatl_department_audit(department_id,occurred_at DESC);
+CREATE INDEX qatl_audit_owner_time_idx ON public.qatl_department_audit(owner_id,occurred_at DESC);
+ALTER TABLE public.qatl_department_audit ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.qatl_department_audit FROM public,anon,authenticated;
+GRANT SELECT ON public.qatl_department_audit TO authenticated;
+CREATE POLICY qatl_audit_read ON public.qatl_department_audit FOR SELECT TO authenticated USING (
+ owner_id=(SELECT auth.uid())
+ OR EXISTS (SELECT 1 FROM public.department_members m WHERE
+    m.department_id=public.qatl_department_audit.department_id
+    AND m.user_id=(SELECT auth.uid()) AND m.active=true AND m.role='department_head')
+);
+CREATE FUNCTION public.qatl_record_department_event()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $qatl_event$
+DECLARE v_share public.qatl_department_shares%ROWTYPE;
+        v_action text;
+BEGIN
+  IF TG_OP='DELETE' THEN v_share=OLD; v_action='revoked';
+  ELSIF TG_OP='INSERT' THEN v_share=NEW; v_action='submitted';
+  ELSIF TG_OP='UPDATE' THEN
+    IF OLD.status=NEW.status THEN RETURN NEW; END IF;
+    v_share=NEW; v_action=NEW.status;
+  END IF;
+  IF auth.uid() IS NULL THEN RAISE EXCEPTION 'Audit actor required'; END IF;
+  INSERT INTO public.qatl_department_audit
+    (share_id,department_id,owner_id,actor_id,action,asset_kind,resource_title,review_note)
+  VALUES (v_share.id,v_share.department_id,v_share.owner_id,auth.uid(),
+    v_action,v_share.snapshot->>'kind',v_share.snapshot->>'title',v_share.review_note);
+  IF TG_OP='DELETE' THEN RETURN OLD; END IF;
+  RETURN NEW;
+END $qatl_event$;
+REVOKE ALL ON FUNCTION public.qatl_record_department_event() FROM PUBLIC,anon,authenticated;
+CREATE TRIGGER qatl_share_audit AFTER INSERT OR UPDATE OR DELETE
+ON public.qatl_department_shares
+FOR EACH ROW EXECUTE FUNCTION public.qatl_record_department_event();
+
+-- Copies frozen, teacher-reviewed content rather than mutable source rows.
 CREATE FUNCTION public.qatl_department_fork(p_share_id uuid)
-RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER SET search_path='' AS $$
+RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER SET search_path='' AS $qatl_fork$
 DECLARE s public.qatl_department_shares%ROWTYPE; v_new uuid; v_uid uuid := auth.uid();
 BEGIN
   IF v_uid IS NULL OR NOT EXISTS (
@@ -138,21 +197,20 @@ BEGIN
   ) THEN RAISE EXCEPTION 'Approved resource is unavailable'; END IF;
   IF s.node_id IS NOT NULL THEN
     INSERT INTO public.qatl_nodes(owner_id,title,summary,grade,unit_name,status)
-      SELECT v_uid,title,summary,grade,unit_name,'draft'
-        FROM public.qatl_nodes WHERE id=s.node_id
+      VALUES(v_uid,s.snapshot->>'title',s.snapshot->>'summary',
+        (s.snapshot->>'grade')::integer,s.snapshot->>'unit_name','draft')
       RETURNING id INTO v_new;
-    IF v_new IS NULL THEN RAISE EXCEPTION 'Node unavailable'; END IF;
     RETURN jsonb_build_object('kind','node','id',v_new);
   END IF;
   INSERT INTO public.qatl_quests(owner_id,title,description,world,status)
-    SELECT v_uid,LEFT(title || ' (Copy)',150),description,world,'draft'
-      FROM public.qatl_quests WHERE id=s.quest_id AND status='published'
+    VALUES(v_uid,LEFT(s.snapshot->>'title' || ' (Copy)',150),
+      s.snapshot->>'description',s.snapshot->>'world','draft')
     RETURNING id INTO v_new;
-  IF v_new IS NULL THEN RAISE EXCEPTION 'Quest unavailable'; END IF;
   INSERT INTO public.qatl_puzzles(owner_id,quest_id,source_node_id,position,kind,stem,options,correct_answer,clue,points)
-    SELECT v_uid,v_new,NULL,position,kind,stem,options,correct_answer,clue,points
-      FROM public.qatl_puzzles WHERE quest_id=s.quest_id ORDER BY position,id;
+    SELECT v_uid,v_new,NULL,(p->>'position')::integer,p->>'kind',
+      p->>'stem',p->'options',p->>'correct_answer',p->>'clue',(p->>'points')::integer
+      FROM jsonb_array_elements(s.snapshot->'puzzles') p;
   RETURN jsonb_build_object('kind','quest','id',v_new);
-END $$;
+END $qatl_fork$;
 REVOKE ALL ON FUNCTION public.qatl_department_fork(uuid) FROM public,anon;
 GRANT EXECUTE ON FUNCTION public.qatl_department_fork(uuid) TO authenticated;
