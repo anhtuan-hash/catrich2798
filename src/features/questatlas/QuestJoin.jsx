@@ -20,6 +20,7 @@ export default function QuestJoin() {
   });
   const [state, setState] = useState(null);
   const lastPosition = useRef(null);
+  const refreshInFlight = useRef(false);
   const [answer, setAnswer] = useState('');
   const [feedback, setFeedback] = useState('');
   const [busy, setBusy] = useState(false);
@@ -27,27 +28,47 @@ export default function QuestJoin() {
   const validCode = /^[A-F0-9]{12}$/.test(code);
 
   const refresh = useCallback(async () => {
-    if (!validCode || !token || !isSupabaseConfigured) return;
-    const { data, error: err } = await supabase.rpc('qatl_live_view', { p_code: code, p_token: token });
-    if (err || data?.error) {
-      setError(data?.error === 'rate_limited' ? 'Bạn đang làm mới quá nhanh. Hệ thống sẽ thử lại sau.' : err?.message || 'Không thể đồng bộ phòng chơi.');
-      return;
-    }
-    if (lastPosition.current !== null && lastPosition.current !== data.position) {
-      setAnswer(''); setFeedback('');
-    }
-    lastPosition.current = data.position;
-    setState(data);
-    setError('');
+    if (!validCode || !token || !isSupabaseConfigured || refreshInFlight.current) return;
+    refreshInFlight.current = true;
+    try {
+      const { data, error: err } = await supabase.rpc('qatl_live_view', { p_code: code, p_token: token });
+      if (err || data?.error) {
+        setError(data?.error === 'rate_limited' ? 'Bạn đang làm mới quá nhanh. Hệ thống sẽ thử lại sau.' : err?.message || 'Không thể đồng bộ phòng chơi.');
+        return;
+      }
+      if (lastPosition.current !== null && lastPosition.current !== data.position) {
+        setAnswer(''); setFeedback('');
+      }
+      lastPosition.current = data.position;
+      setState(data);
+      setError('');
+    } catch {
+      setError('Kết nối tạm thời gián đoạn. Ứng dụng sẽ tự đồng bộ lại.');
+    } finally { refreshInFlight.current = false; }
   }, [code, token, validCode]);
 
   useEffect(() => {
     if (!token) return undefined;
     void refresh();
-    const poll = window.setInterval(() => void refresh(),3000);
-    return () => window.clearInterval(poll);
+    const poll = window.setInterval(() => {
+      if (document.visibilityState === 'visible' && navigator.onLine !== false) void refresh();
+    },3000);
+    const onReturn = () => { if (document.visibilityState === 'visible') void refresh(); };
+    const onOnline = () => void refresh();
+    document.addEventListener('visibilitychange',onReturn);
+    window.addEventListener('online',onOnline);
+    return () => {
+      window.clearInterval(poll);
+      document.removeEventListener('visibilitychange',onReturn);
+      window.removeEventListener('online',onOnline);
+    };
   }, [refresh,token]);
 
+  const resetConnection = () => {
+    try { window.sessionStorage.removeItem(storageKey(code)); } catch { /* ignore */ }
+    setToken(''); setState(null); setFeedback(''); setAnswer(''); setError('');
+    lastPosition.current = null;
+  };
   const join = async (e) => {
     e.preventDefault();
     if (!validCode || teamName.trim().length < 2) { setError('Nhập đúng mã phòng và tên đội.'); return; }
@@ -97,13 +118,14 @@ export default function QuestJoin() {
     </form>}
     {guestReady && token && <main className="qa-join-card">
       {error && <p className="qa-info qa-error" role="alert">{error}</p>}
-      {!state ? <p className="qa-info">Đang đồng bộ trạng thái phòng…</p> : <>
+      {!state ? <div className="qa-reconnect-help"><p className="qa-info">Đang đồng bộ trạng thái phòng…</p>
+        <button type="button" className="qa-join-exit" onClick={resetConnection}>
+          Thiết bị được giáo viên đặt lại? Nhấn để tham gia lại
+        </button>
+      </div> : <>
         <div className="qa-join-progress"><div><strong>{state.display_name}</strong><span>Đội {state.team_no} · {score} điểm</span></div><div><strong>{state.position}/{state.total}</strong><span>Trạm</span></div></div>
         <h2>{state.title}</h2>
-        <button type="button" className="qa-join-exit" onClick={() => {
-          try { window.sessionStorage.removeItem(storageKey(code)); } catch { /* ignore */ }
-          setToken(''); setState(null); setFeedback(''); setAnswer(''); lastPosition.current=null;
-        }}>Thoát phòng trên thiết bị này</button>
+        <button type="button" className="qa-join-exit" onClick={resetConnection}>Thoát phòng trên thiết bị này</button>
         {state.status !== 'active' ? <div className="qa-join-wait"><span>◇</span><h3>{WAIT_LABEL[state.status] || 'Chờ giáo viên'}</h3><p>Bảng điểm sẽ được làm mới tự động.</p></div>
         : state.submitted ? <div className="qa-join-wait"><span>✓</span><h3>Đội đã hoàn thành trạm {state.position}</h3><p>Chờ giáo viên chuyển sang trạm tiếp theo.</p></div>
         : <div className="qa-join-puzzle"><div className="qa-join-stage">TRẠM {state.position}</div><h3>{state.puzzle?.stem}</h3>
