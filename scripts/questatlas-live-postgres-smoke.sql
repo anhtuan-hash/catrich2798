@@ -75,6 +75,38 @@ select (public.qatl_live_view(:'join_code',:'team_token')->'scoreboard'->0->>'sc
   \echo 'FAIL score is incorrect'
   select 1/0;
 \endif
+-- Host-only team recovery invalidates previous bearer token and score.
+select not has_function_privilege('anon','public.qatl_live_reset_team(uuid,integer)','EXECUTE') as guest_cannot_reset \gset
+\if :guest_cannot_reset
+  \echo '[QuestAtlas] Anonymous guests cannot call team reset'
+\else
+  \echo 'FAIL anonymous team reset capability'
+  select 1/0;
+\endif
+reset role;
+set role authenticated;
+select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
+select (public.qatl_live_reset_team(:'room_id'::uuid,1)->>'reset')::boolean as reset_success \gset
+\if :reset_success
+  \echo '[QuestAtlas] Host reset the occupied team slot'
+\else
+  select 1/0;
+\endif
+select (count(*)=0) as score_removed from public.qatl_live_attempts where session_id=:'room_id'::uuid \gset
+\if :score_removed
+  \echo '[QuestAtlas] Team reset removed the prior score and attempts'
+\else
+  select 1/0;
+\endif
+reset role;
+set role anon;
+select (public.qatl_live_join(:'join_code',1,'Restored Galaxy') ->> 'token') as replacement_token \gset
+select (:'replacement_token' <> :'team_token') as secret_rotated \gset
+\if :secret_rotated
+  \echo '[QuestAtlas] Replacement device received a rotated token'
+\else
+  select 1/0;
+\endif
 reset role;
 set role authenticated;
 select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
