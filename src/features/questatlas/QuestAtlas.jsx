@@ -59,7 +59,21 @@ function PreviewWorld({ quest, puzzles, onClose }) {
     const scroll=document.body.style.overflow;
     document.body.style.overflow='hidden';
     closeRef.current?.focus();
-    const onEscape=(event)=>{ if(event.key==='Escape'){ event.preventDefault(); onCloseRef.current(); } };
+    const onEscape=(event)=>{
+      if(event.key==='Escape'){event.preventDefault();onCloseRef.current();return;}
+      if(event.key!=='Tab')return;
+      const dialog=closeRef.current?.closest('[role="dialog"]');
+      if(!dialog)return;
+      const controls=Array.from(dialog.querySelectorAll('button:not([disabled]),input:not([disabled]),canvas[tabindex="0"]'))
+        .filter(el=>el.getClientRects().length>0);
+      if(!controls.length)return;
+      const first=controls[0],last=controls[controls.length-1];
+      if(event.shiftKey && (document.activeElement===first || !dialog.contains(document.activeElement))){
+        event.preventDefault();last.focus();
+      }else if(!event.shiftKey && (document.activeElement===last || !dialog.contains(document.activeElement))){
+        event.preventDefault();first.focus();
+      }
+    };
     document.addEventListener('keydown',onEscape);
     return ()=>{
       document.removeEventListener('keydown',onEscape);
@@ -90,7 +104,7 @@ function PreviewWorld({ quest, puzzles, onClose }) {
   return <div className={'qa-preview qa-world-' + world}>
     <header className="qa-preview-header"><div><span>TEACHER PREVIEW · Không phải phiên học sinh</span><h2>{quest.title}</h2></div><button ref={closeRef} type="button" onClick={onClose} aria-label="Đóng bản xem thử (Esc)">Đóng bản xem thử ×</button></header>
     <div className={"qa-scene" + (webglActive ? " qa-render-webgl" : "")} aria-label={'Thế giới ' + WORLD_NAMES[world]}>
-      <canvas ref={canvasRef} tabIndex={0} className="qa-webgl-canvas" aria-label="Phòng 3D: kéo để xoay; phím mũi tên thay đổi góc; cộng trừ phóng to; Home đặt lại" />
+      <canvas ref={canvasRef} tabIndex={webglActive ? 0 : -1} className="qa-webgl-canvas" aria-label="Phòng 3D: kéo để xoay; phím mũi tên thay đổi góc; cộng trừ phóng to; Home đặt lại" />
       <div className="qa-scene-ceiling" />
       <div className="qa-scene-wall qa-scene-wall-left" />
       <div className="qa-scene-wall qa-scene-wall-right" />
