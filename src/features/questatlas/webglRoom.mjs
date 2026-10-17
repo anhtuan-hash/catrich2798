@@ -142,7 +142,8 @@ export function mountQuestWorld(canvas,world,onFallback=()=>{}){
   if(!canvas)return null;
   const gl=canvas.getContext('webgl',{alpha:false,antialias:true,depth:true,powerPreference:'low-power'});
   if(!gl){onFallback();return null;}
-  let disposed=false,yaw=0,pitch=0,zoom=3.2,progress=0,drag=null,frame=0;
+  let disposed=false,yaw=0,pitch=0,zoom=3.2,progress=0,drag=null,pinch=null,frame=0;
+  const pointers=new Map();
   const palette=COLORS[world]||COLORS.temple;
   let p,buffer;
   try{
@@ -166,9 +167,38 @@ export function mountQuestWorld(canvas,world,onFallback=()=>{}){
       gl.drawArrays(gl.TRIANGLES,0,count);
     };
     const schedule=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(render);};
-    const down=(e)=>{drag={x:e.clientX,y:e.clientY,yaw,pitch};canvas.setPointerCapture?.(e.pointerId);};
-    const move=(e)=>{if(!drag)return;yaw=drag.yaw+(drag.x-e.clientX)/180;pitch=Math.max(-1.1,Math.min(1.1,drag.pitch+(drag.y-e.clientY)/130));schedule();};
-    const up=()=>{drag=null;};
+    const down=(e)=>{
+      pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+      if(pointers.size===1){
+        drag={x:e.clientX,y:e.clientY,yaw,pitch};pinch=null;
+      }else if(pointers.size===2){
+        const [a,b]=[...pointers.values()];
+        pinch={distance:Math.max(20,Math.hypot(a.x-b.x,a.y-b.y)),zoom};
+        drag=null;
+      }
+      canvas.setPointerCapture?.(e.pointerId);
+    };
+    const move=(e)=>{
+      if(!pointers.has(e.pointerId))return;
+      pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+      if(pointers.size===2&&pinch){
+        const [a,b]=[...pointers.values()];
+        const distance=Math.max(20,Math.hypot(a.x-b.x,a.y-b.y));
+        zoom=Math.min(3.55,Math.max(1.9,pinch.zoom*pinch.distance/distance));
+        schedule();return;
+      }
+      if(!drag||pointers.size!==1)return;
+      yaw=drag.yaw+(drag.x-e.clientX)/180;
+      pitch=Math.max(-1.1,Math.min(1.1,drag.pitch+(drag.y-e.clientY)/130));
+      schedule();
+    };
+    const up=(e)=>{
+      pointers.delete(e.pointerId);pinch=null;
+      if(pointers.size===1){
+        const point=[...pointers.values()][0];
+        drag={x:point.x,y:point.y,yaw,pitch};
+      }else drag=null;
+    };
     const wheel=(e)=>{e.preventDefault();zoom=Math.min(3.55,Math.max(1.9,zoom+Math.sign(e.deltaY)*.22));schedule();};
     const keydown=(e)=>{
       if(e.key==='ArrowLeft')yaw-=.14;
@@ -191,6 +221,7 @@ export function mountQuestWorld(canvas,world,onFallback=()=>{}){
         count=geometry.length/6;schedule();
       },
       reset:()=>{yaw=0;pitch=0;zoom=3.2;schedule();},
+      getCamera:()=>roomCameraPosition(yaw,pitch,zoom),
       zoom:(direction)=>{zoom=Math.min(3.55,Math.max(1.9,zoom+direction));schedule();},
       orbit:(direction)=>{yaw+=direction;schedule();},
     };
@@ -203,7 +234,7 @@ export function mountQuestWorld(canvas,world,onFallback=()=>{}){
     const observer=typeof ResizeObserver==='function'?new ResizeObserver(schedule):null;observer?.observe(canvas);
     schedule();
     controller.dispose=()=>{
-      disposed=true;cancelAnimationFrame(frame);observer?.disconnect();
+      disposed=true;pointers.clear();pinch=null;drag=null;cancelAnimationFrame(frame);observer?.disconnect();
       canvas.removeEventListener('pointerdown',down);canvas.removeEventListener('pointermove',move);
       canvas.removeEventListener('pointerup',up);canvas.removeEventListener('pointercancel',up);
       canvas.removeEventListener('webglcontextlost',lost);
