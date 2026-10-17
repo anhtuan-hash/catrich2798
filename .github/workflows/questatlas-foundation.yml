@@ -8,6 +8,7 @@ on:
       - 'src/data/apps.js'
       - 'scripts/test-questatlas-foundation.mjs'
       - 'scripts/test-questatlas-live.mjs'
+      - 'scripts/questatlas-live-postgres-smoke.sql'
       - 'scripts/audit-questatlas-isolation.mjs'
       - 'supabase/migrations/*questatlas*.sql'
       - '.github/workflows/questatlas-foundation.yml'
@@ -35,3 +36,31 @@ jobs:
         run: node scripts/audit-questatlas-isolation.mjs
       - name: Production build
         run: npm run build
+
+  postgres-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: questatlas_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d questatlas_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install PostgreSQL client
+        run: sudo apt-get update -qq && sudo apt-get install -y postgresql-client
+      - name: Execute migrations and session security smoke
+        env:
+          PGPASSWORD: postgres
+        run: psql -h 127.0.0.1 -p 5432 -U postgres -d questatlas_test -v ON_ERROR_STOP=1 -f scripts/questatlas-live-postgres-smoke.sql
