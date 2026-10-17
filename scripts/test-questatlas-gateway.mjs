@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import handler from '../api/questatlas-live.js';
+import handler from '../serverless-handlers/_questatlas-live.js';
 
 const original={...process.env};
 const fetchOriginal=globalThis.fetch;
