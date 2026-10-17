@@ -1,0 +1,116 @@
+import React, { useCallback, useEffect, useState } from 'react';
+import { supabase } from '../../utils/supabase.js';
+
+const statusLabel = {
+  waiting: 'Chờ các đội tham gia', active: 'Đang thi đấu',
+  paused: 'Tạm dừng', finished: 'Đã kết thúc'
+};
+const makeJoinUrl = (code) => window.location.origin + window.location.pathname + '#/quest-join?code=' + code;
+
+export default function LiveTeacher({ quests = [], enabled = false }) {
+  const [questId, setQuestId] = useState('');
+  const [teamLimit, setTeamLimit] = useState(4);
+  const [sessions, setSessions] = useState([]);
+  const [activeSession, setActiveSession] = useState('');
+  const [teams, setTeams] = useState([]);
+  const [attempts, setAttempts] = useState([]);
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
+  const [busy, setBusy] = useState(false);
+  const current = sessions.find((s) => s.id === activeSession);
+  const total = current?.puzzle_snapshot?.length ?? 0;
+
+  const refresh = useCallback(async () => {
+    if (!enabled || !supabase) return;
+    const { data, error: err } = await supabase.from('qatl_live_sessions')
+      .select('id,quest_id,join_code,status,team_limit,current_position,puzzle_snapshot,expires_at,created_at')
+      .order('created_at', { ascending: false }).limit(25);
+    if (err) { setError(err.message); return; }
+    setSessions(data || []);
+  }, [enabled]);
+
+  const refreshScore = useCallback(async () => {
+    if (!activeSession || !enabled) return;
+    const [t,a] = await Promise.all([
+      supabase.from('qatl_live_teams').select('id,team_no,display_name').eq('session_id',activeSession),
+      supabase.from('qatl_live_attempts').select('team_id,puzzle_position,is_correct,points').eq('session_id',activeSession)
+    ]);
+    if (t.error || a.error) { setError(t.error?.message || a.error?.message); return; }
+    setTeams(t.data || []); setAttempts(a.data || []);
+  }, [enabled, activeSession]);
+
+  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    if (!enabled) return undefined;
+    void refreshScore();
+    const id = window.setInterval(() => { void refresh(); void refreshScore(); }, 3000);
+    return () => window.clearInterval(id);
+  }, [enabled, refresh, refreshScore]);
+
+  const createSession = async () => {
+    if (!questId) { setError('Chọn Quest đã xuất bản trước.'); return; }
+    setBusy(true); setError(''); setNotice('');
+    try {
+      const { data, error: err } = await supabase.rpc('qatl_live_create', { p_quest_id: questId, p_team_limit: teamLimit });
+      if (err) throw err;
+      setActiveSession(data.id);
+      setNotice('Đã tạo phòng thi đấu. Chia sẻ mã phòng cho các đội.');
+      await refresh();
+    } catch (e) { setError(e.message || 'Không thể tạo phòng'); } finally { setBusy(false); }
+  };
+
+  const control = async (action) => {
+    if (!current) return;
+    setBusy(true); setError(''); setNotice('');
+    try {
+      const { error: err } = await supabase.rpc('qatl_live_control', { p_session_id: current.id, p_action: action });
+      if (err) throw err;
+      await refresh(); await refreshScore();
+    } catch (e) { setError(e.message || 'Không thể điều khiển phiên thi'); } finally { setBusy(false); }
+  };
+
+  const copyJoin = async () => {
+    if (!current) return;
+    try { await navigator.clipboard.writeText(makeJoinUrl(current.join_code)); setNotice('Đã sao chép đường dẫn tham gia.'); }
+    catch { setError('Trình duyệt không cho phép sao chép; hãy dùng đường dẫn ở phía dưới.'); }
+  };
+  const published = quests.filter((q) => q.status === 'published');
+  const board = teams.map((team) => ({
+    ...team,
+    score: attempts.filter((a) => a.team_id === team.id).reduce((sum,a) => sum + (a.points || 0),0),
+    answered: attempts.filter((a) => a.team_id === team.id && a.puzzle_position === current?.current_position).length > 0
+  })).sort((a,b) => b.score - a.score || a.team_no - b.team_no);
+
+  return <div className="qa-live-grid">
+    <section className="qa-panel">
+      <header className="qa-panel-head"><div><h2>Teacher Control Room</h2><p>Giáo viên tạo phòng và điều khiển các chặng thi đấu</p></div><strong className="qa-stat">2–8 đội</strong></header>
+      {!enabled ? <p className="qa-info qa-warning">Classroom Live yêu cầu migration Supabase đã được kiểm thử và phê duyệt. Bản Preview hiện chưa mở phiên thực.</p> : <>
+        <div className="qa-form">
+          <label>Quest đã xuất bản<select value={questId} onChange={(e) => setQuestId(e.target.value)} disabled={busy}><option value="">Chọn Quest…</option>{published.map((q) => <option value={q.id} key={q.id}>{q.title}</option>)}</select></label>
+          <label>Số đội<select value={teamLimit} onChange={(e) => setTeamLimit(Number(e.target.value))} disabled={busy}>{[2,3,4,5,6,7,8].map((n) => <option key={n} value={n}>{n} đội</option>)}</select></label>
+          <button className="qa-primary" onClick={createSession} disabled={busy || !questId}>+ Tạo phòng thi đấu mới</button>
+        </div>
+        <div className="qa-mini-list"><strong>Các phiên gần đây</strong>{sessions.map((s) => <button type="button" key={s.id} className={activeSession === s.id ? 'selected' : ''} onClick={() => setActiveSession(s.id)}><span>◉ {s.join_code}</span><small>{statusLabel[s.status] || s.status}</small></button>)}</div>
+      </>}
+    </section>
+    <section className="qa-panel">
+      <header className="qa-panel-head"><div><h2>Classroom Dashboard</h2><p>Trạng thái phòng, kết quả và bảng xếp hạng</p></div></header>
+      {error && <p className="qa-info qa-error" role="alert">{error}</p>}
+      {notice && <p className="qa-info qa-success">{notice}</p>}
+      {!current ? <div className="qa-empty">Tạo hoặc chọn một phiên để bắt đầu.</div> : <>
+        <div className="qa-live-code"><small>MÃ PHÒNG</small><strong>{current.join_code}</strong><span>{statusLabel[current.status]} · Trạm {current.current_position}/{total}</span></div>
+        <div className="qa-quest-actions">
+          <button type="button" onClick={copyJoin}>Sao chép link cho đội</button>
+          {current.status === 'waiting' && <button className="qa-primary" disabled={busy} onClick={() => control('start')}>▶ Bắt đầu</button>}
+          {current.status === 'active' && <><button disabled={busy} onClick={() => control('pause')}>Ⅱ Tạm dừng</button><button className="qa-primary" disabled={busy} onClick={() => control('next')}>{current.current_position >= total ? '✓ Kết thúc' : 'Trạm tiếp theo →'}</button></>}
+          {current.status === 'paused' && <button className="qa-primary" disabled={busy} onClick={() => control('resume')}>▶ Tiếp tục</button>}
+          {!['finished','waiting'].includes(current.status) && <button disabled={busy} onClick={() => control('finish')}>Kết thúc sớm</button>}
+        </div>
+        <p className="qa-live-link"><a href={'#/quest-join?code=' + current.join_code} target="_blank" rel="noreferrer">{makeJoinUrl(current.join_code)}</a></p>
+        <h3 className="qa-live-board-title">Bảng xếp hạng đội</h3>
+        {!board.length ? <div className="qa-empty">Chưa có đội tham gia phòng.</div> : <div className="qa-live-board">{board.map((t,index) => <div key={t.id}><span>{index+1}</span><strong>{t.display_name}</strong><small>{t.answered ? 'Đã gửi' : 'Chưa gửi'}</small><b>{t.score} điểm</b></div>)}</div>}
+        <p className="qa-info">Đáp án được kiểm tra bằng RPC phía database, không gửi đáp án đúng xuống trình duyệt đội chơi.</p>
+      </>}
+    </section>
+  </div>;
+}
