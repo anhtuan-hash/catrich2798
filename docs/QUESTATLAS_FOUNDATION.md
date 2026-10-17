@@ -41,7 +41,7 @@ The feature branch now includes a teacher-led live interface, public join page (
 - Join codes are 12 random uppercase hex characters (48-bit); team credentials are 256-bit bearer tokens stored only as SHA-256 hashes server-side.
 - Exposed guest RPCs check room status, expiry and secret token; public `view` returns only selected fields and **never** the correct answer.
 - Guest `submit` locks the session and is unique per team/puzzle position; scoring is executed in PostgreSQL and repeat submits are rejected.
-- Each room allows 2–8 teams, one device per team, and expires after four hours. A lost team token currently requires creating a new room (team management comes next).
+- Each room allows 2–8 teams, one device per team, and expires after four hours. Teachers can reset a team slot and invalidate its prior bearer token/score, with a confirmation prompt.
 - Teacher/host uses owner-scoped RLS to read full session info and score attempts.
 - Guest RPCs use narrowly scoped SECURITY DEFINER with explicit execution grants; they require independent security review, rate-limit/abuse tests and a disposable development database before production.
 
@@ -61,7 +61,8 @@ A Department Hub module has been added to the existing `#/tool/questatlas` works
 - Teacher submission of self-owned knowledge nodes or published Quests for TTCM approval.
 - Department-head review with approve/reject and optional note. Status transitions and asset identity are guarded by PostgreSQL RLS + triggers, not by UI alone.
 - Approved resources visible to **active members of the same department**. Members can fork an approved node or published Quest into private drafts. Cloning keeps question options and teacher answer keys within authenticated RLS, never in public/student endpoints.
-- Teacher can revoke their own submission or shared entry; review records are retained only until the owner revokes a share. This is not a full immutable audit log yet.
+- Teacher can revoke their own share. An append-only event ledger records submission, TTCM approval/rejection and revocation without allowing clients to alter or erase the logged events.
+- Source content is snapshotted at submission by a database trigger. Approved forks use the reviewed snapshot, not a potentially modified original.
 
 ### Verified only on disposable PostgreSQL 17 in GitHub Actions
 
@@ -76,6 +77,14 @@ A Department Hub module has been added to the existing `#/tool/questatlas` works
 
 - A Supabase isolated branch or disposable project must run full auth/RLS tests under actual BRIAN policies and verify no performance regression before **any** production migration.
 - Validate with real department membership and TTCM roles **without** using student personal data.
-- Strengthen governance with full audit log, approval notifications, archived versions and anti-abuse limits before school-wide rollout.
+- Strengthen governance with approval notifications, paginated historical views, dedicated access audit, and anti-abuse limits before school-wide rollout.
 - Existing Query/Atlas cache is capped at 500 rows per type; paginate large libraries before general launch.
 - Do not merge this draft PR to production until full BRIAN Critical E2E is green.
+
+## October 17 hardening increment (staged)
+
+- Submission snapshots now retain immutable node or Quest + puzzle data, so modifications to the owner's original content cannot silently change an approved resource. Snapshot is populated server-side; clients cannot replace it.
+- Approval audit events are append-only and survive the withdrawal/deletion of a share. TTCM sees its department timeline; owners see events on their own submissions, and unrelated departments have no access.
+- A teacher may release an occupied Classroom Live team slot in the teacher panel after explicit warning. Reset revokes the old bearer token and deletes that team's scores; teams rejoin with a new token.
+- Hosts are limited to five newly created rooms per hour. This is **not** sufficient as a full request rate limiter for public guest endpoints, so production remains gated on perimeter throttling and attack simulation.
+- RLS, audit, immutable-copy and token rotation behavior are exercised on disposable PostgreSQL via GitHub Actions. These tests do not mean Supabase production has been modified.
