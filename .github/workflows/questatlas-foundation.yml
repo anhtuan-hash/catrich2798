@@ -10,6 +10,7 @@ on:
       - 'scripts/test-questatlas-live.mjs'
       - 'scripts/test-questatlas-gateway.mjs'
       - 'scripts/questatlas-gateway-postgres-smoke.sql'
+      - 'scripts/questatlas-retention-postgres-smoke.sql'
       - 'api/questatlas-live.js'
       - 'scripts/questatlas-live-postgres-smoke.sql'
       - 'scripts/questatlas-live-concurrent.mjs'
@@ -87,3 +88,7 @@ jobs:
         env:
           PGPASSWORD: postgres
         run: psql -h 127.0.0.1 -p 5432 -U postgres -d questatlas_test -v ON_ERROR_STOP=1 -f scripts/questatlas-gateway-postgres-smoke.sql
+      - name: Test service-only dry-run retention and immutable TTCM audit
+        env:
+          PGPASSWORD: postgres
+        run: psql -h 127.0.0.1 -p 5432 -U postgres -d questatlas_test -v ON_ERROR_STOP=1 -f scripts/questatlas-retention-postgres-smoke.sql
