@@ -8,6 +8,7 @@ on:
       - 'src/data/apps.js'
       - 'scripts/test-questatlas-foundation.mjs'
       - 'scripts/test-questatlas-rehearsal.mjs'
+      - 'scripts/test-questatlas-live-report.mjs'
       - 'tests/e2e/questatlas-acceptance.spec.js'
       - 'scripts/test-questatlas-webgl.mjs'
       - 'scripts/test-questatlas-live.mjs'
@@ -41,6 +42,8 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Validate deterministic QuestAtlas engine
         run: node scripts/test-questatlas-foundation.mjs
+      - name: Verify live host start and finished-score privacy
+        run: node scripts/test-questatlas-live-report.mjs
       - name: Verify 0-cost offline teacher Classroom Live rehearsal
         run: node scripts/test-questatlas-rehearsal.mjs
       - name: Verify themed WebGL rendering, camera controls and GPU budget
