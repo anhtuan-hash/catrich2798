@@ -180,6 +180,16 @@ select (public.qatl_live_submit(:'join_code',:'token_8','who')->>'awarded')::int
 \else
   select 1/0;
 \endif
+-- Occupied seats consume quota: use JSON envelopes, not exceptions that roll back counters.
+select count(*) FILTER (WHERE v->>'error'='rate_limited')>0 AS join_throttled
+  from (select public.qatl_live_join(:'join_code',1,'Seat Replay Attempt') v
+    from generate_series(1,20)) q \gset
+\if :join_throttled
+  \echo '[QuestAtlas] Repeated attempts to occupy an existing team were rate limited'
+\else
+  \echo 'FAIL join quota after occupied seat attempts'
+  select 1/0;
+\endif
 -- Quotas: 50 team views/min, 12 submissions/minute. Quota errors persist
 -- because RPC returns an error envelope rather than rolling back its counter.
 select count(*) FILTER (WHERE v->>'error'='rate_limited')>0 as view_throttled
