@@ -20,7 +20,7 @@
 7. Re-audit unrelated legacy AI components separately; this module has no AI SDK or API use.
 
 ## Current limitations
-- 3D visual in the foundation is CSS-perspective preview, not the final WebGL runtime.
+- 3D preview now renders a native dependency-free WebGL room with pointer orbit and CSS fallback; final production-quality environments/assets are still a future milestone.
 - Puzzle answer checking is solely for authenticated **teacher preview**. No student/public route.
 - Department sharing and realtime classroom sessions are intentionally not enabled pending scoped RLS and authoritative server-side scoring.
 - If the database migration is not yet applied, the interface offers an explicitly labelled, unsaved demo. It never silently pretends to persist data.
