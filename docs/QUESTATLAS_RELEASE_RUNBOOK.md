@@ -22,6 +22,11 @@
 - Agree on retention policy (the staged cleanup defaults to 180 days, with a minimum 90-day safeguard), school reporting requirements and student privacy.
 - Build/validate all workflows; add branch protection and perform rollback rehearsal. No AI functionality in QuestAtlas.
 
+## Additional isolated network acceptance gate
+- `scripts/questatlas-postgrest-eight-clients.mjs` exercises 8 independently JWT-authenticated teams over disposable PostgREST HTTP; checks simultaneous joins, an unauthorized teacher, public-RPC revocation, 160 shared-NAT IP checks, eight simultaneous scored submissions, duplicate submission rejection and cross-room token isolation.
+- This is an automated **network simulation**, not managed Supabase Auth, physical iPad Wi-Fi or production validation. It uses a local CI database and test-only signing key; no real student data or remote endpoints.
+- Never treat a passing CI gate as authorization to deploy migrations to BRIAN production.
+
 ## Staging configuration (never point at production while validating)
 1. Run the existing **free-within-current-quota** GitHub Quality Gate: deterministic tests, production Vite build and disposable PostgreSQL 17 RLS/RPC/8-team tests. Optionally repeat migrations with local PostgreSQL/Supabase CLI + Docker without creating any hosted database. **Do not create a paid Supabase branch**.
 2. On an **isolated local test database only**, apply migrations in order (never to BRIAN production as a staging substitute):
