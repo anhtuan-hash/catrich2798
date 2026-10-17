@@ -1,4 +1,12 @@
-# QuestAtlas Production Release Runbook (draft; DO NOT DEPLOY)
+# QuestAtlas Production Release Runbook (staged; LIVE RELEASE BLOCKED)
+
+## Safe production UI-only rollout (no database cutover)
+
+- Explicitly authorized UI-only deployment can be shipped to the existing Vercel production project after 17/17 repository CI passes, with `QUESTATLAS_PRODUCTION_LIVE_ENABLED` absent. The guest gateway returns HTTP 503, even when other environment variables are accidentally present.
+- **Do not apply QuestAtlas SQL migrations during this UI-only release.** Teachers see the labelled, browser-memory-only demonstration. Persistent Atlas creation, Department Hub, real student joins and scoring are unavailable until a separately approved data rollout.
+- Record the last known good production deployment ID and commit before Vercel deploy; verify branch SHA, DNS alias, route load and fail-closed status. If critical regressions appear, rollback Vercel immediately and leave the production database untouched.
+- The `QUESTATLAS_PRODUCTION_LIVE_ENABLED=enabled` toggle and production-only `QUESTATLAS_SUPABASE_*` server keys are **not permitted** until isolated managed Auth/PostgREST validation, physical eight-iPad tests, security and retention signoff, plus migration backup/restore have passed.
+- No new paid services, AI or automatic cleanup. This is a production *demonstration-only* release, never a certification of Classroom Live.
 
 ## What is verified
 - Feature code lives on `feature/questatlas-foundation-20261017` / PR #1176, not on `main`.

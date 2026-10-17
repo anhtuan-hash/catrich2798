@@ -54,6 +54,23 @@ try {
   assert.equal(JSON.stringify(calls).includes('203.0.113.7'),false,'never send raw IP to DB');
   assert.equal(calls[0].headers.authorization,'Bearer '+process.env.QUESTATLAS_SUPABASE_SERVICE_KEY);
 
+  // Production is intentionally fail-closed even with plausible server secrets.
+  calls.length=0;
+  process.env.VERCEL_ENV='production';
+  delete process.env.QUESTATLAS_PRODUCTION_LIVE_ENABLED;
+  mock=mockResponse({body:{action:'view',code,token}});
+  await handler(mock.req,mock.res);
+  assert.equal(mock.output.statusCode,503,'Production Live must be explicitly enabled');
+  assert.equal(calls.length,0);
+
+  process.env.QUESTATLAS_PRODUCTION_LIVE_ENABLED='enabled';
+  mock=mockResponse({body:{action:'view',code,token}});
+  await handler(mock.req,mock.res);
+  assert.equal(mock.output.statusCode,200,'Explicitly activated, valid gateway should work');
+  assert.deepEqual(calls.map(x=>x.endpoint),['qatl_live_gateway_budget','qatl_live_view']);
+  delete process.env.QUESTATLAS_PRODUCTION_LIVE_ENABLED;
+  delete process.env.VERCEL_ENV;
+
   // Guardrail: a Preview must NEVER borrow the normal BRIAN database,
   // even when a QuestAtlas service key and rate-limit salt are present.
   calls.length=0;
@@ -121,7 +138,7 @@ try {
   console.log('QuestAtlas gateway PASS: strict validation, no guest key leakage, IP budget, origin and fail-closed config.');
 } finally {
   globalThis.fetch=fetchOriginal;
-  for(const name of ['VERCEL','VERCEL_ENV','QUESTATLAS_ALLOW_PREVIEW_LIVE','VITE_SUPABASE_URL','SUPABASE_URL','QUESTATLAS_SUPABASE_URL','QUESTATLAS_SUPABASE_SERVICE_KEY','QUESTATLAS_IP_SALT']){
+  for(const name of ['VERCEL','VERCEL_ENV','QUESTATLAS_PRODUCTION_LIVE_ENABLED','QUESTATLAS_ALLOW_PREVIEW_LIVE','VITE_SUPABASE_URL','SUPABASE_URL','QUESTATLAS_SUPABASE_URL','QUESTATLAS_SUPABASE_SERVICE_KEY','QUESTATLAS_IP_SALT']){
     if(Object.hasOwn(original,name))process.env[name]=original[name];else delete process.env[name];
   }
 }

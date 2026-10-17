@@ -56,6 +56,8 @@ function validate(action, body) {
   return {p_code:code,p_token:token,p_answer:answer};
 }
 function serverConfig() {
+  // Production stays in demonstration-only mode until safety signoff and explicit release toggle.
+  if (process.env.VERCEL_ENV === 'production' && process.env.QUESTATLAS_PRODUCTION_LIVE_ENABLED !== 'enabled') return null;
   // A shared BRIAN Supabase URL must never be used as an implicit Guest backend.
   const url = String(process.env.QUESTATLAS_SUPABASE_URL || '').replace(/\/$/,'');
   const key = String(process.env.QUESTATLAS_SUPABASE_SERVICE_KEY || '');

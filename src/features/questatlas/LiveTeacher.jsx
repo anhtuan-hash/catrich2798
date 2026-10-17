@@ -129,7 +129,7 @@ export default function LiveTeacher({ quests = [], puzzles = [], enabled = false
     <div className="qa-live-grid">
     <section className="qa-panel">
       <header className="qa-panel-head"><div><h2>Teacher Control Room</h2><p>Giáo viên tạo phòng và điều khiển các chặng thi đấu</p></div><strong className="qa-stat">2–8 đội</strong></header>
-      {!enabled ? <p className="qa-info qa-warning">Classroom Live yêu cầu migration Supabase đã được kiểm thử và phê duyệt. Bản Preview hiện chưa mở phiên thực.</p> : <>
+      {!enabled ? <p className="qa-info qa-warning">Classroom Live thật chưa được bật. Vui lòng sử dụng phòng mô phỏng đến khi hoàn tất nghiệm thu Supabase, bảo mật và thiết bị.</p> : <>
         <div className="qa-form">
           <label>Quest đã xuất bản<select value={questId} onChange={(e) => setQuestId(e.target.value)} disabled={busy}><option value="">Chọn Quest…</option>{published.map((q) => <option value={q.id} key={q.id}>{q.title}</option>)}</select></label>
           <label>Số đội<select value={teamLimit} onChange={(e) => setTeamLimit(Number(e.target.value))} disabled={busy}>{[2,3,4,5,6,7,8].map((n) => <option key={n} value={n}>{n} đội</option>)}</select></label>
