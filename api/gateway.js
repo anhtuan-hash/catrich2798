@@ -9,6 +9,7 @@ import workHubFileAction from '../serverless-handlers/_work-hub-file-action.js';
 import workHubFile from '../serverless-handlers/_work-hub-file.js';
 import questionBank from '../serverless-handlers/_question-bank.js';
 import youtubeSearch from '../serverless-handlers/_youtube-search.js';
+import questatlasLive from '../serverless-handlers/_questatlas-live.js';
 
 const handlers = Object.freeze({
   'briefing-weather': briefingWeather,
@@ -22,6 +23,7 @@ const handlers = Object.freeze({
   'work-hub-file': workHubFile,
   'question-bank': questionBank,
   'youtube-search': youtubeSearch,
+  'questatlas-live': questatlasLive,
 });
 
 export default async function gateway(req, res) {
