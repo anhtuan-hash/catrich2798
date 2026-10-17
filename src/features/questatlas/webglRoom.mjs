@@ -52,7 +52,7 @@ function mul(a,b){
   }
   return out;
 }
-function buildGeometry(world){
+export function buildRoomGeometry(world, progress=0){
   const theme=COLORS[world]||COLORS.temple, data=[];
   function quad(a,b,c,d,color){
     for(const vertex of [a,b,c,a,c,d])data.push(...vertex,...color);
@@ -88,6 +88,45 @@ function buildGeometry(world){
     cube(x,2.85,-2,.28,.28,.28,scale(accent,1.04));
   }
   for(const x of [-4,4])cube(x,.05,1,.4,.6,.4,accent);
+  // Each world has distinct depth cues and puzzle props, not a palette swap.
+  if(world==='temple'){
+    for(const x of [-3.7,3.7])for(let z of [-4,-2,0,2])
+      cube(x,.025,z,.88,.13,1.35,scale(wall,1.15));
+    for(let step=0;step<3;step++)
+      cube(0,.01,-3.2+step*.5,2.9+step*.65,.11+step*.07,.5,scale(accent,.30+step*.07));
+    for(const x of [-2.1,2.1]) {
+      cube(x,0,2.2,.35,1.4,.35,scale(wall,1.35));
+      cube(x,1.43,2.2,.72,.13,.72,scale(accent,.86));
+    }
+  } else if(world==='cyber'){
+    for(const x of [-3.75,3.75]) for(const z of [-2.8,-.2,2.4]){
+      cube(x,.10,z,.48,1.3,1.15,scale(wall,1.6));
+      cube(x+(x>0?-.3:.3),1.05,z,.07,.75,.8,accent);
+      cube(x,1.48,z,.55,.09,1.2,accent);
+    }
+    for(const z of [-3.8,-1.8,.2,2.2])
+      cube(0,.025,z,1,.02,.035,scale(accent,.82));
+    for(const x of [-2.9,2.9])
+      cube(x,2.8,-4.68,.28,.28,.08,accent);
+  } else if(world==='library'){
+    for(const x of [-4.1,4.1]){
+      for(const z of [-3.2,-1.6,0,1.6,3.2]){
+        cube(x,0,z,.65,3.9,1.2,scale(wall,1.25));
+        for(let shelf=1;shelf<=4;shelf++){
+          cube(x,shelf*.85,z,.8,.09,1.29,scale(accent,.48));
+          for(let book=0;book<4;book++)
+            cube(x+(x>0?-.38:.38),.14+(shelf-1)*.84,z-.43+book*.26,.14,.68,.16,
+              book%2?scale(accent,.72):scale(wall,1.85));
+        }
+      }
+    }
+    cube(0,0,2.7,1.9,.68,.82,scale(wall,1.54));
+    cube(0,.67,2.7,1.75,.07,.74,scale(accent,.60));
+  }
+  // A brighter frame and opening door mark learning progress (0..1).
+  const completed=Math.min(1,Math.max(0,Number(progress)||0));
+  cube(0,3.42,-4.37,.2,.12+.24*completed,.22,scale(accent,1.0));
+  if(completed>=1) cube(0,0,-4.38,.22,2.55,.13,scale(accent,.32));
   return new Float32Array(data);
 }
 
@@ -95,25 +134,25 @@ export function mountQuestWorld(canvas,world,onFallback=()=>{}){
   if(!canvas)return null;
   const gl=canvas.getContext('webgl',{alpha:false,antialias:true,depth:true,powerPreference:'low-power'});
   if(!gl){onFallback();return null;}
-  let disposed=false,yaw=0,pitch=0,drag=null,frame=0;
+  let disposed=false,yaw=0,pitch=0,zoom=9,progress=0,drag=null,frame=0;
   const palette=COLORS[world]||COLORS.temple;
   let p,buffer;
   try{
     p=program(gl);buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
-    const geometry=buildGeometry(world);gl.bufferData(gl.ARRAY_BUFFER,geometry,gl.STATIC_DRAW);
+    let geometry=buildRoomGeometry(world,progress);gl.bufferData(gl.ARRAY_BUFFER,geometry,gl.DYNAMIC_DRAW);
     gl.useProgram(p);const pos=gl.getAttribLocation(p,'aPos'),color=gl.getAttribLocation(p,'aColor');
     gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,3,gl.FLOAT,false,24,0);
     gl.enableVertexAttribArray(color);gl.vertexAttribPointer(color,3,gl.FLOAT,false,24,12);
     gl.uniform3fv(gl.getUniformLocation(p,'uFog'),palette.fog);
     gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);
-    const count=geometry.length/6,mvp=gl.getUniformLocation(p,'uMVP');
+    let count=geometry.length/6;const mvp=gl.getUniformLocation(p,'uMVP');
     const render=()=>{
       if(disposed)return;
-      const dpr=Math.min(window.devicePixelRatio||1,1.8);
+      const dpr=Math.min(window.devicePixelRatio||1,1.5);
       const w=Math.min(Math.round(canvas.clientWidth*dpr),1800),h=Math.min(Math.round(canvas.clientHeight*dpr),1100);
       if(w<1||h<1)return;
       if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h);}
-      const eye=[Math.sin(yaw)*9,3.1+pitch,Math.cos(yaw)*9], view=lookAt(eye,[0,1.6,-1.2]);
+      const eye=[Math.sin(yaw)*zoom,3.1+pitch,Math.cos(yaw)*zoom], view=lookAt(eye,[0,1.6,-1.2]);
       gl.clearColor(...palette.fog,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
       gl.uniformMatrix4fv(mvp,false,mul(perspective(w/h),view));
       gl.drawArrays(gl.TRIANGLES,0,count);
@@ -122,12 +161,47 @@ export function mountQuestWorld(canvas,world,onFallback=()=>{}){
     const down=(e)=>{drag={x:e.clientX,y:e.clientY,yaw,pitch};canvas.setPointerCapture?.(e.pointerId);};
     const move=(e)=>{if(!drag)return;yaw=drag.yaw+(drag.x-e.clientX)/180;pitch=Math.max(-1.5,Math.min(1.5,drag.pitch+(drag.y-e.clientY)/130));schedule();};
     const up=()=>{drag=null;};
+    const wheel=(e)=>{e.preventDefault();zoom=Math.min(13,Math.max(5.8,zoom+Math.sign(e.deltaY)*.65));schedule();};
+    const keydown=(e)=>{
+      if(e.key==='ArrowLeft')yaw-=.14;
+      else if(e.key==='ArrowRight')yaw+=.14;
+      else if(e.key==='ArrowUp')pitch=Math.min(1.5,pitch+.14);
+      else if(e.key==='ArrowDown')pitch=Math.max(-1.5,pitch-.14);
+      else if(e.key==='+'||e.key==='=')zoom=Math.max(5.8,zoom-.6);
+      else if(e.key==='-')zoom=Math.min(13,zoom+.6);
+      else if(e.key==='Home'){yaw=0;pitch=0;zoom=9;}
+      else return;
+      e.preventDefault();schedule();
+    };
+    const controller={
+      dispose:()=>{},
+      setProgress:(next)=>{
+        progress=Math.min(1,Math.max(0,Number(next)||0));
+        geometry=buildRoomGeometry(world,progress);
+        gl.bindBuffer(gl.ARRAY_BUFFER,buffer);
+        gl.bufferData(gl.ARRAY_BUFFER,geometry,gl.DYNAMIC_DRAW);
+        count=geometry.length/6;schedule();
+      },
+      reset:()=>{yaw=0;pitch=0;zoom=9;schedule();},
+      zoom:(direction)=>{zoom=Math.min(13,Math.max(5.8,zoom+direction));schedule();},
+      orbit:(direction)=>{yaw+=direction;schedule();},
+    };
     const lost=(e)=>{e.preventDefault();onFallback();};
     canvas.addEventListener('pointerdown',down);canvas.addEventListener('pointermove',move);
     canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);
     canvas.addEventListener('webglcontextlost',lost);
+    canvas.addEventListener('wheel',wheel,{passive:false});
+    canvas.addEventListener('keydown',keydown);
     const observer=typeof ResizeObserver==='function'?new ResizeObserver(schedule):null;observer?.observe(canvas);
     schedule();
-    return ()=>{disposed=true;cancelAnimationFrame(frame);observer?.disconnect();canvas.removeEventListener('pointerdown',down);canvas.removeEventListener('pointermove',move);canvas.removeEventListener('pointerup',up);canvas.removeEventListener('pointercancel',up);canvas.removeEventListener('webglcontextlost',lost);gl.deleteBuffer(buffer);gl.deleteProgram(p);};
+    controller.dispose=()=>{
+      disposed=true;cancelAnimationFrame(frame);observer?.disconnect();
+      canvas.removeEventListener('pointerdown',down);canvas.removeEventListener('pointermove',move);
+      canvas.removeEventListener('pointerup',up);canvas.removeEventListener('pointercancel',up);
+      canvas.removeEventListener('webglcontextlost',lost);
+      canvas.removeEventListener('wheel',wheel);canvas.removeEventListener('keydown',keydown);
+      gl.deleteBuffer(buffer);gl.deleteProgram(p);
+    };
+    return controller;
   }catch(e){if(buffer)gl.deleteBuffer(buffer);if(p)gl.deleteProgram(p);onFallback();return null;}
 }
