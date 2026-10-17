@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { isSupabaseConfigured, supabase } from '../../utils/supabase.js';
+import { questGuestRequest } from './guestGateway.mjs';
 import './questatlas.css';
 
 const readCode = () => {
@@ -28,14 +28,10 @@ export default function QuestJoin() {
   const validCode = /^[A-F0-9]{12}$/.test(code);
 
   const refresh = useCallback(async () => {
-    if (!validCode || !token || !isSupabaseConfigured || refreshInFlight.current) return;
+    if (!validCode || !token || refreshInFlight.current) return;
     refreshInFlight.current = true;
     try {
-      const { data, error: err } = await supabase.rpc('qatl_live_view', { p_code: code, p_token: token });
-      if (err || data?.error) {
-        setError(data?.error === 'rate_limited' ? 'Bạn đang làm mới quá nhanh. Hệ thống sẽ thử lại sau.' : err?.message || 'Không thể đồng bộ phòng chơi.');
-        return;
-      }
+      const data=await questGuestRequest('view',{code,token});
       if (lastPosition.current !== null && lastPosition.current !== data.position) {
         setAnswer(''); setFeedback('');
       }
@@ -74,12 +70,7 @@ export default function QuestJoin() {
     if (!validCode || teamName.trim().length < 2) { setError('Nhập đúng mã phòng và tên đội.'); return; }
     setBusy(true); setError('');
     try {
-      const { data, error: err } = await supabase.rpc('qatl_live_join', {
-        p_code:code, p_team_no:Number(teamNo), p_name:teamName.trim().slice(0,50)
-      });
-      if (err) throw err;
-      if (data?.error === 'rate_limited') throw new Error('Có quá nhiều lượt vào phòng. Hãy thử lại sau khoảng một phút.');
-      if (data?.error === 'team_taken') throw new Error('Đội này đã được sử dụng. Hãy chọn đội khác hoặc nhờ giáo viên đặt lại vị trí.');
+      const data=await questGuestRequest('join',{code,teamNo:Number(teamNo),name:teamName.trim().slice(0,50)});
       if (!data?.token) throw new Error('Server không cung cấp mã phiên hợp lệ.');
       window.sessionStorage.setItem(storageKey(code),data.token);
       setToken(data.token);
@@ -93,18 +84,14 @@ export default function QuestJoin() {
     if (!answer.trim() || busy || !state?.puzzle || state.submitted) return;
     setBusy(true);setError('');
     try {
-      const { data,error:err } = await supabase.rpc('qatl_live_submit', {
-        p_code:code,p_token:token,p_answer:answer.trim().slice(0,180)
-      });
-      if (err) throw err;
-      if (data?.reason === 'rate_limited') throw new Error('Bạn thao tác quá nhanh. Hãy thử lại sau khoảng một phút.');
+      const data=await questGuestRequest('submit',{code,token,answer:answer.trim().slice(0,180)});
       setFeedback(data.accepted ? (data.correct ? '✓ Chính xác! +' + data.awarded + ' điểm' : 'Đã gửi đáp án. Chờ giáo viên mở trạm tiếp theo.') : 'Đội đã gửi câu trả lời cho trạm này.');
       await refresh();
     } catch (e) { setError(e.message || 'Không gửi được đáp án.'); }
     finally { setBusy(false); }
   };
   const score = useMemo(() => (state?.scoreboard || []).find((t) => t.team_no === state?.team_no)?.score || 0,[state]);
-  const guestReady = isSupabaseConfigured && supabase;
+  const guestReady = true; // The server gateway fails closed when credentials are not configured.
 
   return <div className="qa-join-shell">
     <header className="qa-join-banner"><span>BRIAN QuestAtlas</span><h1>Classroom Escape Challenge</h1><p>Tham gia theo đội • Một thiết bị cho mỗi đội • Không cần tài khoản học sinh</p></header>
