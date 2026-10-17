@@ -22,7 +22,7 @@ export default function ClassroomRehearsal({quests=[],puzzles=[]}){
     ?session.stages[session.position-1]:null;
   function action(operation) {
     try{
-      setSession(old=>operation(old));
+      setSession(operation(session));
       setError('');
     }catch(e){setError(e?.message||'Thao tác không thực hiện được.');}
   }
@@ -56,7 +56,7 @@ export default function ClassroomRehearsal({quests=[],puzzles=[]}){
       </div>
       <span className="qa-rehearsal-badge">OFFLINE · DEMO</span>
     </header>
-    <p className="qa-info qa-warning">Đây là **mô phỏng một thiết bị dành cho giáo viên**, không phải phòng chơi đa thiết bị. Không tạo mã tham gia thật, không kết nối iPad và không lưu điểm lên BRIAN.</p>
+    <p className="qa-info qa-warning">Đây là mô phỏng một thiết bị dành cho giáo viên, không phải phòng chơi đa thiết bị. Không tạo mã tham gia thật, không kết nối iPad và không lưu điểm lên BRIAN.</p>
     <div className="qa-rehearsal-setup">
       <label>Quest kiểm thử
         <select value={selected} disabled={!!session&&session.status!=='finished'} onChange={e=>setSelected(e.target.value)}>
