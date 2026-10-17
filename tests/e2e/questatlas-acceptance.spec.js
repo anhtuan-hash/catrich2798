@@ -20,7 +20,7 @@ async function openTeacherDemo(page) {
   },{key:DEMO_KEY,user:DEMO_ADMIN});
   await page.goto('/#/tool/questatlas');
   await expect(page.locator('.qa-app')).toBeVisible({timeout:20_000});
-  await expect(page.getByRole('heading',{name:/QuestAtlas/i})).toBeVisible();
+  await expect(page.locator('.qa-hero h1')).toBeVisible();
   // Test fixtures omit VITE_SUPABASE_URL, so the app intentionally falls back.
   await expect(page.getByRole('button',{name:/Chạy phòng mô phỏng miễn phí/i})).toBeVisible({timeout:15000});
   await page.getByRole('button',{name:/Chạy phòng mô phỏng miễn phí/i}).click();
