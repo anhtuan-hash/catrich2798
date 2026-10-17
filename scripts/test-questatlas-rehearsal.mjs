@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { demoRecords } from '../src/features/questatlas/questModel.mjs';
 import { createRehearsal,joinRehearsal,controlRehearsal,submitRehearsal,
-  resetRehearsalTeam,rehearsalBoard } from '../src/features/questatlas/localLiveSimulator.mjs';
+  resetRehearsalTeam,rehearsalBoard,rehearsalReport,rehearsalCsv } from '../src/features/questatlas/localLiveSimulator.mjs';
 
 const fixture=demoRecords();
 const quest=fixture.quests[0];
@@ -62,6 +62,25 @@ assert.equal(rehearsalBoard(full).reduce((total,t)=>total+t.score,0),80);
 assert.equal(new Set(full.teams.map(t=>t.no)).size,8);
 assert.equal(rehearsalBoard(full).every(t=>t.submitted),true);
 
+// Export is explicit, post-rehearsal, private and has no puzzle keys.
+const report=rehearsalReport(r);
+assert.equal(report.completed,true);
+assert.equal(report.totalStages,2);
+assert.equal(report.maxScore,20);
+assert.equal(report.entries[0].scale10,5);
+assert.equal(report.entries[0].answered,2);
+const csv=rehearsalCsv(r);
+assert.equal(csv.charCodeAt(0),0xFEFF,'CSV must carry Excel-compatible UTF-8 BOM');
+assert.match(csv,/"Rank","Team #","Team name","Points","Scale \(10\)","Answered","Correct"/);
+assert.ok(!csv.includes(puzzles[0].stem),'CSV must exclude all questions');
+assert.ok(!csv.includes(puzzles[1].correct_answer),'CSV must exclude answer keys');
+const attack=joinRehearsal(createRehearsal(quest,puzzles,2),1,'  =2+2');
+const attackCsv=rehearsalCsv(attack);
+assert.ok(attackCsv.includes('"'+"'"+'=2+2"'),'CSV should neutralize formula injection');
+assert.ok(!attackCsv.includes('"=2+2"'));
+assert.throws(()=>rehearsalReport(null),/không hợp lệ/);
+assert.match(fs.readFileSync('src/features/questatlas/ClassroomRehearsal.jsx','utf8'),
+  /onClick=\{exportCsv\}/,'teacher must explicitly trigger the CSV export');
 // This is a teacher-only in-memory rehearsal, not a network session.
 const engine=fs.readFileSync('src/features/questatlas/localLiveSimulator.mjs','utf8');
 const ui=fs.readFileSync('src/features/questatlas/ClassroomRehearsal.jsx','utf8');
