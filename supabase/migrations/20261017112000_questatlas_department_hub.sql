@@ -29,20 +29,20 @@ GRANT SELECT,INSERT,UPDATE,DELETE ON public.qatl_department_shares TO authentica
 CREATE POLICY qatl_share_read ON public.qatl_department_shares FOR SELECT TO authenticated USING (
   owner_id=(SELECT auth.uid())
   OR EXISTS (SELECT 1 FROM public.department_members m
-    WHERE m.department_id=department_id AND m.user_id=(SELECT auth.uid()) AND m.active=true
+    WHERE m.department_id=public.qatl_department_shares.department_id AND m.user_id=(SELECT auth.uid()) AND m.active=true
       AND (status='approved' OR m.role='department_head'))
 );
 CREATE POLICY qatl_share_submit ON public.qatl_department_shares FOR INSERT TO authenticated WITH CHECK (
   owner_id=(SELECT auth.uid()) AND status='pending'
   AND reviewed_by IS NULL AND reviewed_at IS NULL
   AND EXISTS (SELECT 1 FROM public.department_members m
-    WHERE m.department_id=department_id AND m.user_id=(SELECT auth.uid()) AND m.active=true)
+    WHERE m.department_id=public.qatl_department_shares.department_id AND m.user_id=(SELECT auth.uid()) AND m.active=true)
   AND (
     (node_id IS NOT NULL AND EXISTS (
-      SELECT 1 FROM public.qatl_nodes n WHERE n.id=node_id AND n.owner_id=(SELECT auth.uid())
+      SELECT 1 FROM public.qatl_nodes n WHERE n.id=public.qatl_department_shares.node_id AND n.owner_id=(SELECT auth.uid())
     )) OR
     (quest_id IS NOT NULL AND EXISTS (
-      SELECT 1 FROM public.qatl_quests q WHERE q.id=quest_id AND q.owner_id=(SELECT auth.uid()) AND q.status='published'
+      SELECT 1 FROM public.qatl_quests q WHERE q.id=public.qatl_department_shares.quest_id AND q.owner_id=(SELECT auth.uid()) AND q.status='published'
     ))
   )
 );
@@ -50,14 +50,14 @@ CREATE POLICY qatl_share_review ON public.qatl_department_shares FOR UPDATE TO a
 USING (
   status='pending'
   AND EXISTS (SELECT 1 FROM public.department_members m WHERE
-    m.department_id=department_id AND m.user_id=(SELECT auth.uid())
+    m.department_id=public.qatl_department_shares.department_id AND m.user_id=(SELECT auth.uid())
     AND m.active=true AND m.role='department_head')
 )
 WITH CHECK (
   status IN ('approved','rejected')
   AND reviewed_by=(SELECT auth.uid()) AND reviewed_at IS NOT NULL
   AND EXISTS (SELECT 1 FROM public.department_members m WHERE
-    m.department_id=department_id AND m.user_id=(SELECT auth.uid())
+    m.department_id=public.qatl_department_shares.department_id AND m.user_id=(SELECT auth.uid())
     AND m.active=true AND m.role='department_head')
 );
 CREATE POLICY qatl_share_revoke_owner ON public.qatl_department_shares FOR DELETE TO authenticated
@@ -87,20 +87,20 @@ REVOKE ALL ON FUNCTION public.qatl_guard_share_review() FROM PUBLIC,anon,authent
 CREATE POLICY qatl_nodes_approved_department_read ON public.qatl_nodes FOR SELECT TO authenticated USING (
   EXISTS (SELECT 1 FROM public.qatl_department_shares s
      JOIN public.department_members m ON m.department_id=s.department_id
-    WHERE s.node_id=id AND s.status='approved'
+    WHERE s.node_id=public.qatl_nodes.id AND s.status='approved'
     AND m.user_id=(SELECT auth.uid()) AND m.active=true)
 );
 CREATE POLICY qatl_quests_approved_department_read ON public.qatl_quests FOR SELECT TO authenticated USING (
   status='published' AND EXISTS (SELECT 1 FROM public.qatl_department_shares s
     JOIN public.department_members m ON m.department_id=s.department_id
-    WHERE s.quest_id=id AND s.status='approved'
+    WHERE s.quest_id=public.qatl_quests.id AND s.status='approved'
       AND m.user_id=(SELECT auth.uid()) AND m.active=true)
 );
 CREATE POLICY qatl_puzzles_approved_department_read ON public.qatl_puzzles FOR SELECT TO authenticated USING (
   EXISTS (SELECT 1 FROM public.qatl_quests q
    JOIN public.qatl_department_shares s ON s.quest_id=q.id
    JOIN public.department_members m ON m.department_id=s.department_id
-   WHERE q.id=quest_id AND q.status='published' AND s.status='approved'
+   WHERE q.id=public.qatl_puzzles.quest_id AND q.status='published' AND s.status='approved'
      AND m.user_id=(SELECT auth.uid()) AND m.active=true)
 );
 
