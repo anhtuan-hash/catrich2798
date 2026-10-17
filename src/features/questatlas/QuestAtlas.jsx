@@ -4,6 +4,7 @@ import { WORLDS, answerMatches, cleanText, demoRecords, graphLayout, parseOption
 import { assessmentToPuzzleDraft } from './questionAdapter.mjs';
 import { mountQuestWorld } from './webglRoom.mjs';
 import LiveTeacher from './LiveTeacher.jsx';
+import DepartmentHub from './DepartmentHub.jsx';
 import { hasRouteAccess } from '../../utils/permissions.js';
 import './questatlas.css';
 
@@ -293,7 +294,8 @@ export default function QuestAtlas({ currentUser }) {
         </Panel>
       </div>}
       {tab === 'live' && <LiveTeacher quests={records.quests} enabled={mode === 'cloud'} />}
-      {tab === 'department' && <Panel title="Department Hub" subtitle="Sẵn sàng kết nối tổ chuyên môn">
+      {tab === 'department' && <DepartmentHub currentUser={currentUser} records={records} onReload={load} isDemo={isDemo} />}
+      {false && tab === 'department' && <Panel title="Department Hub" subtitle="Sẵn sàng kết nối tổ chuyên môn">
         <div className="qa-department"><div className="qa-department-icon">♧</div><h3>Chia sẻ học liệu có kiểm duyệt</h3><p>Đây là kiến trúc bước tiếp theo: tổ trưởng duyệt node và Quest, cấp quyền sử dụng, lưu phiên bản dùng chung. Đang khóa để tránh chia sẻ ngoài phạm vi tổ khi chưa có RLS chuyên biệt.</p><div className="qa-feature-tags"><span>Teacher contributions</span><span>TTCM approval</span><span>Shared quests</span><span>Version history</span></div></div>
       </Panel>}
       {showPreview && quest && <div className="qa-modal-layer" role="dialog" aria-modal="true" aria-label="Xem trước Quest"><PreviewWorld key={quest.id} quest={quest} puzzles={questPuzzles} onClose={() => setShowPreview(false)} /></div>}
