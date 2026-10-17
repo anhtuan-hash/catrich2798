@@ -42,7 +42,7 @@ CREATE POLICY qatl_share_submit ON public.qatl_department_shares FOR INSERT TO a
 -- subquery: adding shared SELECT policies to nodes/quests would otherwise
 -- create RLS recursion through qatl_department_shares.
 CREATE FUNCTION public.qatl_verify_share_submission()
-RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER SET search_path='' AS $
+RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER SET search_path='' AS $qatl_submit$
 BEGIN
   IF NEW.owner_id IS DISTINCT FROM auth.uid() THEN
     RAISE EXCEPTION 'Share owner mismatch';
@@ -59,7 +59,7 @@ BEGIN
     END IF;
   END IF;
   RETURN NEW;
-END $;
+END $qatl_submit$;
 CREATE TRIGGER qatl_verify_share_before_insert
 BEFORE INSERT ON public.qatl_department_shares
 FOR EACH ROW EXECUTE FUNCTION public.qatl_verify_share_submission();
