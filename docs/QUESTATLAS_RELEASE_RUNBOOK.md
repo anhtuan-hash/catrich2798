@@ -7,7 +7,7 @@
 - On the existing BRIAN Vercel Hobby deployment, `/api/questatlas-live` is a rewrite to the **existing** `api/gateway.js` shared Function, dispatched to `serverless-handlers/_questatlas-live.js`. This avoids exceeding the 12-Function build cap; do not restore a standalone `api/questatlas-live.js`.
 
 ## Absolute release blockers
-- Supabase isolated staging branch/project with real BRIAN schema/auth; creation can incur hourly costs, so obtain the owner's explicit cost acceptance first.
+- **No paid Supabase preview branches or new paid resources are permitted.** Use existing GitHub Actions/PostgreSQL disposable fixtures first, plus a local Docker/Supabase-CLI environment if available. These tests are not equivalent to a real Supabase Auth + PostgREST staging verification.
 - Independently verify use of `service_role`: the credential bypasses RLS, must be **server-only**, and must never be added to any `VITE_*` variable or to source control.
 - Web security audit of guest gateway, direct RPC revocation and limits for invalid-code/token probing, including attacks distributed across IPs.
 - Run real browser/iPad tests on unstable Wi-Fi and TV 16:9 layouts; inspect 3D FPS and fallback; accessibility and load soak.
@@ -15,22 +15,22 @@
 - Build/validate all workflows; add branch protection and perform rollback rehearsal. No AI functionality in QuestAtlas.
 
 ## Staging configuration (never point at production while validating)
-1. Create a dedicated Supabase staging branch **only after paid compute cost approval**.
-2. Apply migrations in order in staging:
+1. Run the existing **free-within-current-quota** GitHub Quality Gate: deterministic tests, production Vite build and disposable PostgreSQL 17 RLS/RPC/8-team tests. Optionally repeat migrations with local PostgreSQL/Supabase CLI + Docker without creating any hosted database. **Do not create a paid Supabase branch**.
+2. On an **isolated local test database only**, apply migrations in order (never to BRIAN production as a staging substitute):
    - `20261017091000_questatlas_foundation.sql`
    - `20261017093000_questatlas_classroom_live.sql`
    - `20261017112000_questatlas_department_hub.sql`
    - `20261017125000_questatlas_guest_gateway.sql`
    - `20261017133000_questatlas_retention.sql`
-3. Configure the Vercel branch-specific **Preview** env:
+3. To test the guest gateway with real remote multi-device networking, an isolated publicly reachable Supabase-compatible environment would still be needed. **Do not substitute production credentials or create a paid environment.** If an existing no-cost isolated instance with remaining quota is independently available, configure the Vercel branch-specific **Preview** env:
    - `QUESTATLAS_SUPABASE_URL`: staging Supabase HTTPS URL (not production)
    - `QUESTATLAS_SUPABASE_SERVICE_KEY`: staging server-only service role key; Sensitive/Encrypted
    - `QUESTATLAS_IP_SALT`: random 32+ character high-entropy server secret, not logged
-4. Ensure all 3 are scoped ONLY to the QuestAtlas preview branch. Do not reuse the existing production BRIAN service role key in staging.
-5. Redeploy Preview, then verify gateway returns 503 with secrets absent and works **only** with staging secrets set.
-6. With an approved fake teacher and simulated class data: create/publish a Quest; create a room; join 2–8 iPads; submit correctly and incorrectly; verify scores and reconnect; reset one team and confirm token invalidation.
-7. Try direct `/rest/v1/rpc/qatl_live_join`, `qatl_live_view`, `qatl_live_submit` using browser publishable key and signed-in token: they must all return permission denied. The gateway is the only permitted guest route.
-8. Test invalid codes/invalid tokens from many IPs. A single IP budget and valid-room budget do not defeat distributed attacks; configure provider WAF / upstream IP protections before production.
+4. If such a separate free environment exists, scope all three values ONLY to the QuestAtlas preview branch. Never reuse BRIAN production service-role credentials in staging.
+5. Without a safely isolated remote environment, keep secrets absent; the guest gateway intentionally returns HTTP 503. Validate its behavior with `node scripts/test-questatlas-gateway.mjs` and the PostgreSQL fixture instead. Do not claim real multi-device testing.
+6. For zero-cost functional review, open QuestAtlas → Classroom Live → **Phòng thi mô phỏng miễn phí**. Create 2–8 teams, simulate answering/pausing/advancing/resetting and observe scoring; everything stays in browser memory. For server behavior, run the eight-client CI test. Both are simulations, not physical multi-iPad acceptance.
+7. CI verifies that direct `qatl_live_join/view/submit` privileges are revoked after gateway migration in a disposable PostgreSQL database. This must be reverified in a genuine isolated auth/PostgREST environment **before real classroom launch**.
+8. Use mocked gateway tests for invalid codes/tokens and per-IP budgets. Real many-IP adversarial load and upstream protection verification remain blocked until an appropriate test environment is available at no additional cost.
 9. Review logs for secret leakage, raw IP storage, request size limits, cross-department data and answer-key exposure. Ensure only opaque hashes are stored for quota keys.
 
 ## Production release prerequisites and order
@@ -53,6 +53,15 @@
 - `qatl_maintenance_cleanup(180,false)` deletes only expired QuestAtlas live sessions older than 180 days and quota buckets older than 3 days. Requires a server-only role; no automatic schedule is deployed.
 - Department approval audit events are not modified by this operation.
 - Cleanup should be invoked only after data-retention policy approval and backup, then reviewed via returned counts.
+
+## Free rehearsal & cost guardrails
+
+- There is a **teacher-only in-browser rehearsal** available in the Classroom Live tab. It uses `localLiveSimulator.mjs`; it never calls Supabase, stores no browser-persistent data and shows its simulated status visibly.
+- The local rehearsal is deliberately independent of live multi-device rooms and the backend SQL. Passing it does not certify school Wi-Fi latency, real Auth integration or release readiness.
+- Automated regression: `node scripts/test-questatlas-rehearsal.mjs` checks eight-team behavior, correct/wrong attempts, pause/resume/next, reset, idempotent scoring and offline isolation.
+- Use existing GitHub Actions and Vercel Preview only within current included quotas. No additional paid app plan, branch, database or premium graphics dependency is required for development.
+- If CI or hosting quotas run out, **stop and report the limit** rather than purchasing more usage automatically.
+- Production rollout remains gated on verified security and functional acceptance; a no-cost plan does not justify testing directly on production BRIAN or student data.
 
 ## No AI
 QuestAtlas is fully deterministic; only same-origin guest API calls are allowed. The inherited chatbot is suppressed on QuestAtlas and public join routes. Do not add any model, AI analytics, content generation or AI grading.
