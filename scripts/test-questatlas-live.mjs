@@ -34,7 +34,15 @@ assert.match(section,/'puzzle',case when v_puzzle is null then null else jsonb_b
 assert.match(section,/token_hash=encode\(extensions\.digest\(p_token,'sha256'\),'hex'\)/i);
 assert.doesNotMatch(guest,/correct_answer|puzzle_snapshot|token_hash/i);
 assert.match(guest,/sessionStorage\.setItem\(storageKey\(code\),data\.token\)/);
-assert.match(guest,/qatl_live_submit/);
+assert.match(guest,/questGuestRequest\('submit'/);
+assert.match(guest,/questGuestRequest\('join'/);
+assert.match(guest,/questGuestRequest\('view'/);
+assert.doesNotMatch(guest,/supabase\.rpc\(/,'Guest clients must not bypass Vercel gateway.');
+const gatewaySql=fs.readFileSync('supabase/migrations/20261017125000_questatlas_guest_gateway.sql','utf8');
+assert.match(gatewaySql,/grant execute on function public\.qatl_live_join\(text,integer,text\) to service_role/i);
+assert.match(gatewaySql,/revoke execute on function public\.qatl_live_view\(text,text\) from public,anon,authenticated/i);
+assert.match(gatewaySql,/create function public\.qatl_live_gateway_budget/i);
+assert.match(fs.readFileSync('src/features/questatlas/guestGateway.mjs','utf8'),/fetch\('\/api\/questatlas-live'/);
 assert.match(teacher,/qatl_live_create/);
 assert.match(teacher,/qatl_live_control/);
 assert.match(teacher,/qatl_live_reset_team/);
