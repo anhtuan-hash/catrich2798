@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { buildRoomGeometry, mountQuestWorld } from '../src/features/questatlas/webglRoom.mjs';
+import { buildRoomGeometry, mountQuestWorld, roomCameraPosition } from '../src/features/questatlas/webglRoom.mjs';
 
 // All three room themes must produce different, bounded, finite geometry.
 // Vertex format is xyz + RGB and each triangle must contain three vertices.
@@ -15,6 +15,12 @@ assert.equal(new Set(shapes.map(x=>x.length)).size,3,'each world needs distinct 
 for(const w of worlds){
   const end=buildRoomGeometry(w,1);
   assert.ok(end.length>buildRoomGeometry(w,0).length,'unlock geometry should respond to solving puzzles');
+}
+// Opaque walls are at ±5. Every camera orbit, pitch and zoom must remain inside.
+for(let step=0;step<=36;step++)for(const pitch of [-1.1,0,1.1])for(const zoom of [1.9,3.2,3.55]){
+  const [x,y,z]=roomCameraPosition(step*Math.PI/18,pitch,zoom);
+  assert.ok(Math.abs(x)<4.95 && y>0.15 && y<4.95 && z>-4.95 && z<4.95,
+    'camera must stay inside interior or scene walls will occlude the view');
 }
 let fallback=0;
 assert.equal(mountQuestWorld({getContext:()=>null},'temple',()=>fallback++),null);
