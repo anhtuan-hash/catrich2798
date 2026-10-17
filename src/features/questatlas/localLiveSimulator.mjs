@@ -96,7 +96,7 @@ export function rehearsalReport(state) {
       const answered=source.answers.length;
       return {
         rank:index+1,number:team.no,name:team.name,score:team.score,
-        scale10:maxScore>0?Math.round((team.score/maxScore)*100)/10:0,
+        scale10:maxScore>0?Math.round((team.score/maxScore)*1000)/100:0,
         answered,correct:team.correct,
       };
     }),
