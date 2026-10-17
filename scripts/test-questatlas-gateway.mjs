@@ -1,5 +1,15 @@
 import assert from 'node:assert/strict';
 import handler from '../serverless-handlers/_questatlas-live.js';
+import fs from 'node:fs';
+const vercelConfig=JSON.parse(fs.readFileSync('vercel.json','utf8'));
+const route=vercelConfig.rewrites.findIndex(x=>x.source==='/api/questatlas-live');
+const wildcard=vercelConfig.rewrites.findIndex(x=>x.source==='/api/(.*)');
+assert.ok(route>=0 && route<wildcard,'Guest route must take precedence over wildcard');
+assert.equal(vercelConfig.rewrites[route].destination,'/api/gateway?handler=questatlas-live');
+assert.match(fs.readFileSync('api/gateway.js','utf8'),/'questatlas-live': questatlasLive/);
+const serverlessCount=fs.readdirSync('api').filter(x=>x.endsWith('.js')).length;
+assert.ok(serverlessCount<=12,'Vercel Hobby API Function cap exceeded: '+serverlessCount);
+
 
 const original={...process.env};
 const fetchOriginal=globalThis.fetch;
