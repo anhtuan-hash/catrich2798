@@ -167,3 +167,6 @@
 
 .qa-join-exit{background:transparent;border:1px solid #ffffff44;color:#b7cfff;border-radius:8px;padding:7px 10px;font-size:11px;margin:-3px 0 20px}
 .qa-join-exit:hover{background:#ffffff19}
+
+/* Preserve shared BRIAN top-chrome DOM contract while keeping guest screen distraction-free. */
+.app-shell[data-route="quest-join"] > .bes-top-chrome{display:none!important}
