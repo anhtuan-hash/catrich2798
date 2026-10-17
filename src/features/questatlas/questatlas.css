@@ -297,3 +297,12 @@
  .qa-rehearsal-board{grid-template-columns:1fr}
  .qa-rehearsal-options{grid-template-columns:1fr}
 }
+
+/* Exported test results are local-only and never mixed with real gradebooks. */
+.qa-rehearsal-results{display:flex;justify-content:space-between;align-items:center;
+  gap:18px;margin-top:16px;padding:18px;border-radius:15px;
+  background:linear-gradient(115deg,#edfdf5,#eaf4ff);border:1px solid #b9dfd5}
+.qa-rehearsal-results strong{color:#245b53;font-size:15px}
+.qa-rehearsal-results p{font-size:12px;margin:4px 0;color:#51797d}
+.qa-rehearsal-results button{min-height:44px;white-space:normal;text-align:center}
+@media(max-width:630px){.qa-rehearsal-results{flex-direction:column;align-items:stretch}}
