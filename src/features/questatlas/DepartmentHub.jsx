@@ -3,6 +3,7 @@ import { supabase } from '../../utils/supabase.js';
 import { cleanText } from './questModel.mjs';
 
 const STATUSES={pending:'Chờ TTCM duyệt',approved:'Đã duyệt',rejected:'Bị từ chối'};
+const EVENTS={submitted:'Gửi xét duyệt',approved:'TTCM phê duyệt',rejected:'TTCM từ chối',revoked:'Thu hồi tài nguyên'};
 const safeError=(e)=>String(e?.message||'Không thể thực hiện tác vụ.').slice(0,300);
 
 export default function DepartmentHub({currentUser,records,onReload,isDemo=false}){
@@ -10,6 +11,7 @@ export default function DepartmentHub({currentUser,records,onReload,isDemo=false
   const [memberships,setMemberships]=useState([]);
   const [department,setDepartment]=useState('');
   const [shares,setShares]=useState([]);
+  const [audit,setAudit]=useState([]);
   const [kind,setKind]=useState('node');
   const [assetId,setAssetId]=useState('');
   const [notes,setNotes]=useState({});
@@ -33,13 +35,16 @@ export default function DepartmentHub({currentUser,records,onReload,isDemo=false
       if(m.error)throw m.error;
       const people=m.data||[], ids=people.map(x=>x.department_id);
       setMemberships(people);
-      if(!ids.length){setDepartments([]);setShares([]);setDepartment('');return;}
-      const [d,s]=await Promise.all([
+      if(!ids.length){setDepartments([]);setShares([]);setAudit([]);setDepartment('');return;}
+      const [d,s,a]=await Promise.all([
         supabase.from('departments').select('id,name,code').in('id',ids),
-        supabase.from('qatl_department_shares').select('*').in('department_id',ids).order('created_at',{ascending:false}).limit(250)
+        supabase.from('qatl_department_shares').select('*').in('department_id',ids).order('created_at',{ascending:false}).limit(250),
+        supabase.from('qatl_department_audit')
+          .select('id,department_id,owner_id,actor_id,action,asset_kind,resource_title,review_note,occurred_at')
+          .in('department_id',ids).order('occurred_at',{ascending:false}).limit(80)
       ]);
-      if(d.error||s.error)throw(d.error||s.error);
-      setDepartments(d.data||[]);setShares(s.data||[]);
+      if(d.error||s.error||a.error)throw(d.error||s.error||a.error);
+      setDepartments(d.data||[]);setShares(s.data||[]);setAudit(a.data||[]);
       setDepartment(previous=>ids.includes(previous)?previous:ids[0]);
     }catch(e){setError(safeError(e));}
   },[currentUser?.id,enabled]);
@@ -80,7 +85,8 @@ export default function DepartmentHub({currentUser,records,onReload,isDemo=false
     await onReload?.();
     return (r.data?.kind==='quest'?'Quest':'Node')+' đã được sao chép thành bản nháp của bạn.';
   });
-  const titleOf=s=>names.get((s.node_id?'node:':'quest:')+(s.node_id||s.quest_id))||'Học liệu được chia sẻ';
+  const titleOf=s=>cleanText(s.snapshot?.title||names.get((s.node_id?'node:':'quest:')+(s.node_id||s.quest_id))||'Học liệu được chia sẻ',150);
+  const visibleAudit=audit.filter(e=>e.department_id===department);
   if(isDemo)return <section className="qa-panel"><header className="qa-panel-head"><div><h2>Department Hub</h2><p>Quy trình chia sẻ và TTCM kiểm duyệt</p></div></header><p className="qa-info qa-warning">Bản demo không gửi yêu cầu phê duyệt hoặc thay đổi học liệu thật. Kết nối migration Department Hub để dùng tính năng này.</p></section>;
   return <div className="qa-dept-layout">
     <section className="qa-panel">
@@ -130,6 +136,18 @@ export default function DepartmentHub({currentUser,records,onReload,isDemo=false
           {s.owner_id===currentUser?.id&&<button disabled={busy} onClick={()=>void withdraw(s)}>Thu hồi chia sẻ</button>}
         </div>
       </article>)}</div>}
+      <div className="qa-audit-list" aria-label="Lịch sử hoạt động tổ chuyên môn">
+        <h3>Lịch sử xét duyệt</h3>
+        <p className="qa-dept-caption">Các sự kiện được ghi tại database; thu hồi chia sẻ không làm xóa lịch sử.</p>
+        {!visibleAudit.length ? <p className="qa-info">Chưa có hoạt động nào được ghi nhận.</p>
+        : visibleAudit.slice(0,30).map(event=><div className="qa-audit-item" key={event.id}>
+            <span className={'qa-audit-icon qa-audit-'+event.action}>{event.action==='approved'?'✓':event.action==='rejected'?'×':event.action==='revoked'?'↩':'+'}</span>
+            <div><strong>{EVENTS[event.action]||event.action}</strong>
+              <p>{event.resource_title} · {event.asset_kind==='quest'?'Quest':'Kiến thức'}</p>
+              {event.review_note&&<small>{event.review_note}</small>}</div>
+            <time dateTime={event.occurred_at}>{new Date(event.occurred_at).toLocaleString('vi-VN')}</time>
+          </div>)}
+      </div>
     </section>
   </div>;
 }
