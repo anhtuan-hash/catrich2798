@@ -192,7 +192,7 @@ begin
   if not public.qatl_live_consume_quota(s.id,'join',p_code,16)
     then return jsonb_build_object('error','rate_limited'); end if;
   if exists(select 1 from public.qatl_live_teams where session_id=s.id and team_no=p_team_no)
-    then raise exception 'Team already joined. Reconnect from the original device.'; end if;
+    then return jsonb_build_object('error','team_taken'); end if;
   v_token=encode(extensions.gen_random_bytes(32),'hex');
   insert into public.qatl_live_teams(session_id,team_no,display_name,token_hash)
     values(s.id,p_team_no,btrim(p_name),encode(extensions.digest(v_token,'sha256'),'hex'))
