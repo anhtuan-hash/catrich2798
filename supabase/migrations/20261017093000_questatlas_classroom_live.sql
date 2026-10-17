@@ -92,7 +92,7 @@ FOR EACH ROW EXECUTE FUNCTION public.qatl_live_guard_session();
 
 -- Host creates an immutable question snapshot. No public client can query this table.
 create function public.qatl_live_create(p_quest_id uuid,p_team_limit integer default 4)
-returns jsonb language plpgsql security definer set search_path='' as $
+returns jsonb language plpgsql security definer set search_path='' as $qatl_create$
 declare v_quest public.qatl_quests%rowtype; v_snapshot jsonb; v_session public.qatl_live_sessions%rowtype;
 begin
   if (select auth.uid()) is null then raise exception 'Authentication required'; end if;
@@ -120,7 +120,7 @@ begin
     values (p_quest_id,(select auth.uid()),upper(encode(extensions.gen_random_bytes(6),'hex')),p_team_limit,v_snapshot)
     returning * into v_session;
   return jsonb_build_object('id',v_session.id,'join_code',v_session.join_code,'status',v_session.status,'team_limit',v_session.team_limit);
-end $$;
+end $qatl_create$;
 revoke all on function public.qatl_live_create(uuid,integer) from public,anon;
 grant execute on function public.qatl_live_create(uuid,integer) to authenticated;
 
