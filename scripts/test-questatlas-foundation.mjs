@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import { answerMatches, cleanText, demoRecords, graphLayout, normalizedAnswer, parseOptions, validatePuzzle, validateQuest, WORLDS } from '../src/features/questatlas/questModel.mjs';
+
+const sample = demoRecords();
+assert.equal(WORLDS.length, 3);
+assert.equal(cleanText('  Relative   Clauses '), 'Relative Clauses');
+assert.equal(normalizedAnswer('  WHO  '), 'who');
+assert.equal(answerMatches(sample.puzzles[0], 'WHO'), true);
+assert.equal(answerMatches(sample.puzzles[0], 'whose'), false);
+assert.equal(answerMatches(sample.puzzles[1], 'surprised'), true);
+assert.deepEqual(parseOptions('A\nB\nC\nD\nE'), ['A','B','C','D']);
+assert.equal(validatePuzzle(sample.puzzles[0]), '');
+assert.equal(validatePuzzle(sample.puzzles[1]), '');
+assert.match(validatePuzzle({ ...sample.puzzles[0], options: ['a','a','b','c'] }), /4 lựa chọn/);
+assert.match(validatePuzzle({ ...sample.puzzles[0], correct_answer: 'fake' }), /trùng/);
+assert.equal(validateQuest(sample.quests[0], sample.puzzles), '');
+assert.match(validateQuest(sample.quests[0], []), /ít nhất/);
+const points = graphLayout(sample.nodes);
+assert.equal(points.length, 3);
+assert.ok(points.every(x => Number.isFinite(x.x) && Number.isFinite(x.y)));
+console.log('QuestAtlas foundation: 15 deterministic assertions passed. No AI calls.');
