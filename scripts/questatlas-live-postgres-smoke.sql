@@ -29,6 +29,27 @@ insert into public.qatl_puzzles (quest_id,position,kind,stem,options,correct_ans
 select r->>'id' as room_id, r->>'join_code' as join_code
  from (select public.qatl_live_create('22222222-2222-4222-8222-222222222222',4) as r) s \gset
 \echo '[QuestAtlas] Host room created'
+SELECT (NOT has_table_privilege('authenticated','public.qatl_live_sessions','INSERT'))
+  AS cannot_directly_create \gset
+SELECT (NOT has_column_privilege('authenticated','public.qatl_live_sessions','puzzle_snapshot','UPDATE'))
+  AS cannot_tamper_snapshot \gset
+\if :cannot_directly_create
+  \echo '[QuestAtlas] Host cannot bypass room-creation quota via direct table insert'
+\else
+  select 1/0;
+\endif
+\if :cannot_tamper_snapshot
+  \echo '[QuestAtlas] Host cannot update published room answer snapshot via Data API'
+\else
+  select 1/0;
+\endif
+SELECT (NOT has_function_privilege('anon','public.qatl_live_create(uuid,integer)','EXECUTE')) AS no_guest_create \gset
+\if :no_guest_create
+  \echo '[QuestAtlas] Anonymous users cannot call teacher room-creation RPC'
+\else
+  select 1/0;
+\endif
+
 reset role;
 set role anon;
 select has_table_privilege('anon','public.qatl_live_sessions','SELECT') as may_read \gset
@@ -117,4 +138,19 @@ select (public.qatl_live_control(:'room_id'::uuid,'next')->>'status')='finished'
   \echo 'FAIL expected finished state'
   select 1/0;
 \endif
+
+-- The hourly room cap must be enforced by the server, not just the UI.
+SELECT (public.qatl_live_create('22222222-2222-4222-8222-222222222222',4))->>'id'
+FROM generate_series(1,4);
+DO $limit$
+DECLARE cap_denied boolean:=false;
+BEGIN
+  BEGIN
+    PERFORM public.qatl_live_create('22222222-2222-4222-8222-222222222222',4);
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM LIKE '%Maximum five new rooms per hour%' THEN cap_denied:=true; END IF;
+  END;
+  IF NOT cap_denied THEN RAISE EXCEPTION 'Room creation cap did not block the sixth room'; END IF;
+END $limit$;
+\echo '[QuestAtlas] Five-rooms-per-hour server quota enforced'
 \echo '[QuestAtlas] Disposable PostgreSQL integration smoke tests passed'
