@@ -1,5 +1,12 @@
 export const APPS = [
   {
+    slug: 'questatlas', icon: 'QA', tone: 'blue', group: 'Teaching Design', groupVi: 'Thiết kế dạy học',
+    title: 'BRIAN QuestAtlas', titleVi: 'QuestAtlas · Bản đồ tri thức & Escape Room',
+    desc: 'Connect reusable knowledge nodes to teacher-authored classroom escape quests. Deterministic and no AI.',
+    descVi: 'Kết nối bản đồ kiến thức với trò chơi giải mã do giáo viên thiết kế. Không sử dụng AI.',
+    status: 'Atlas · Quest Builder · Teacher Preview', statusVi: 'Atlas · Tạo Quest · Xem thử', api: false, featured: true,
+  },
+  {
     slug: 'work-dashboard', route: 'dashboard', icon: 'DB', tone: 'blue', group: 'Management', groupVi: 'Quản lý',
     title: 'Work Dashboard', titleVi: 'Bảng điều hành',
     desc: 'Combine schedules, action items, professional activities, approvals and department health in one role-aware dashboard.',

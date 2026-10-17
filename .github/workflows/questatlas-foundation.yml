@@ -1,0 +1,159 @@
+name: QuestAtlas Foundation Quality Gate
+on:
+  pull_request:
+    paths:
+      - 'src/features/questatlas/**'
+      - 'src/pages/ToolPage.jsx'
+      - 'src/main.jsx'
+      - 'src/data/apps.js'
+      - 'scripts/test-questatlas-foundation.mjs'
+      - 'scripts/test-questatlas-rehearsal.mjs'
+      - 'scripts/test-questatlas-live-report.mjs'
+      - 'scripts/questatlas-postgrest-setup.sql'
+      - 'scripts/questatlas-postgrest-http.mjs'
+      - 'tests/e2e/questatlas-acceptance.spec.js'
+      - 'scripts/test-questatlas-webgl.mjs'
+      - 'scripts/test-questatlas-live.mjs'
+      - 'scripts/test-questatlas-gateway.mjs'
+      - 'scripts/questatlas-gateway-postgres-smoke.sql'
+      - 'scripts/questatlas-retention-postgres-smoke.sql'
+      - 'serverless-handlers/_questatlas-live.js'
+      - 'api/gateway.js'
+      - 'vercel.json'
+      - 'scripts/questatlas-live-postgres-smoke.sql'
+      - 'scripts/questatlas-live-concurrent.mjs'
+      - 'scripts/questatlas-department-postgres-smoke.sql'
+      - 'scripts/audit-questatlas-isolation.mjs'
+      - 'supabase/migrations/*questatlas*.sql'
+      - '.github/workflows/questatlas-foundation.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Validate deterministic QuestAtlas engine
+        run: node scripts/test-questatlas-foundation.mjs
+      - name: Verify live host start and finished-score privacy
+        run: node scripts/test-questatlas-live-report.mjs
+      - name: Verify 0-cost offline teacher Classroom Live rehearsal
+        run: node scripts/test-questatlas-rehearsal.mjs
+      - name: Verify themed WebGL rendering, camera controls and GPU budget
+        run: node scripts/test-questatlas-webgl.mjs
+      - name: Validate Classroom Live security contracts
+        run: node scripts/test-questatlas-live.mjs
+      - name: Verify Vercel guest security gateway
+        run: node scripts/test-questatlas-gateway.mjs
+      - name: Audit isolation and registry
+        run: node scripts/audit-questatlas-isolation.mjs
+      - name: Production build
+        run: npm run build
+
+  postgres-integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: questatlas_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d questatlas_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install PostgreSQL client
+        run: sudo apt-get update -qq && sudo apt-get install -y postgresql-client
+      - name: Execute migrations and session security smoke
+        env:
+          PGPASSWORD: postgres
+        run: psql -h 127.0.0.1 -p 5432 -U postgres -d questatlas_test -v ON_ERROR_STOP=1 -f scripts/questatlas-live-postgres-smoke.sql
+      - name: Check Department Hub approval, isolation and forking
+        env:
+          PGPASSWORD: postgres
+        run: psql -h 127.0.0.1 -p 5432 -U postgres -d questatlas_test -v ON_ERROR_STOP=1 -f scripts/questatlas-department-postgres-smoke.sql
+      - name: Eight concurrent team clients and idempotent scoring
+        env:
+          PGPASSWORD: postgres
+          PGHOST: 127.0.0.1
+          PGPORT: '5432'
+          PGUSER: postgres
+          PGDATABASE: questatlas_test
+        run: node scripts/questatlas-live-concurrent.mjs
+      - name: Verify service-role-only guest RPC and persistent IP budget
+        env:
+          PGPASSWORD: postgres
+        run: psql -h 127.0.0.1 -p 5432 -U postgres -d questatlas_test -v ON_ERROR_STOP=1 -f scripts/questatlas-gateway-postgres-smoke.sql
+      - name: Test service-only dry-run retention and immutable TTCM audit
+        env:
+          PGPASSWORD: postgres
+        run: psql -h 127.0.0.1 -p 5432 -U postgres -d questatlas_test -v ON_ERROR_STOP=1 -f scripts/questatlas-retention-postgres-smoke.sql
+
+      - name: Prepare disposable PostgREST authentication roles
+        env:
+          PGPASSWORD: postgres
+        run: psql -h 127.0.0.1 -p 5432 -U postgres -d questatlas_test -v ON_ERROR_STOP=1 -f scripts/questatlas-postgrest-setup.sql
+      - name: Boot disposable PostgREST REST API with test-only JWT signing
+        run: |
+          docker run -d --rm --network=host --name qatl-postgrest-ci \
+            -e PGRST_DB_URI=postgres://qatl_http_authenticator:questatlas-ci-only-password@127.0.0.1:5432/questatlas_test \
+            -e PGRST_DB_SCHEMAS=public \
+            -e PGRST_DB_ANON_ROLE=anon \
+            -e PGRST_JWT_SECRET=questatlas-ci-postgrest-test-secret-not-for-production \
+            -e PGRST_SERVER_PORT=3000 \
+            postgrest/postgrest:v12.2.3
+      - name: Verify real PostgREST HTTP access controls and live scoring
+        env:
+          PGPASSWORD: postgres
+        run: node scripts/questatlas-postgrest-http.mjs
+      - name: Remove disposable REST container
+        if: always()
+        run: docker rm -f qatl-postgrest-ci 2>/dev/null || true
+
+
+  browser-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Install headless Chromium and WebKit
+        run: npx playwright install --with-deps chromium webkit
+      - name: Build safe preview
+        run: npm run build
+      - name: Run teacher and iPad browser acceptance
+        run: npx playwright test tests/e2e/questatlas-acceptance.spec.js --project=chromium-desktop --project=ipad-landscape
+      - name: Save browser diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: questatlas-acceptance-diagnostics
+          path: |
+            test-results/**/test-failed-1.png
+            test-results/**/error-context.md
+          retention-days: 2
+          if-no-files-found: ignore
