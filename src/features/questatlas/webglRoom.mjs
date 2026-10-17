@@ -130,11 +130,19 @@ export function buildRoomGeometry(world, progress=0){
   return new Float32Array(data);
 }
 
+// The 3D room has opaque walls. Keep the orbit camera INSIDE the room so the
+// front/back walls cannot conceal the scene at any angle.
+export function roomCameraPosition(yaw=0,pitch=0,distance=3.2){
+  const r=Math.max(1.9,Math.min(3.55,Number(distance)||3.2));
+  const y=2.8+Math.max(-1.1,Math.min(1.1,Number(pitch)||0));
+  return [Math.sin(Number(yaw)||0)*r,y,-1.2+Math.cos(Number(yaw)||0)*r];
+}
+
 export function mountQuestWorld(canvas,world,onFallback=()=>{}){
   if(!canvas)return null;
   const gl=canvas.getContext('webgl',{alpha:false,antialias:true,depth:true,powerPreference:'low-power'});
   if(!gl){onFallback();return null;}
-  let disposed=false,yaw=0,pitch=0,zoom=9,progress=0,drag=null,frame=0;
+  let disposed=false,yaw=0,pitch=0,zoom=3.2,progress=0,drag=null,frame=0;
   const palette=COLORS[world]||COLORS.temple;
   let p,buffer;
   try{
@@ -152,24 +160,24 @@ export function mountQuestWorld(canvas,world,onFallback=()=>{}){
       const w=Math.min(Math.round(canvas.clientWidth*dpr),1800),h=Math.min(Math.round(canvas.clientHeight*dpr),1100);
       if(w<1||h<1)return;
       if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h);}
-      const eye=[Math.sin(yaw)*zoom,3.1+pitch,Math.cos(yaw)*zoom], view=lookAt(eye,[0,1.6,-1.2]);
+      const eye=roomCameraPosition(yaw,pitch,zoom),view=lookAt(eye,[0,1.6,-1.2]);
       gl.clearColor(...palette.fog,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
       gl.uniformMatrix4fv(mvp,false,mul(perspective(w/h),view));
       gl.drawArrays(gl.TRIANGLES,0,count);
     };
     const schedule=()=>{cancelAnimationFrame(frame);frame=requestAnimationFrame(render);};
     const down=(e)=>{drag={x:e.clientX,y:e.clientY,yaw,pitch};canvas.setPointerCapture?.(e.pointerId);};
-    const move=(e)=>{if(!drag)return;yaw=drag.yaw+(drag.x-e.clientX)/180;pitch=Math.max(-1.5,Math.min(1.5,drag.pitch+(drag.y-e.clientY)/130));schedule();};
+    const move=(e)=>{if(!drag)return;yaw=drag.yaw+(drag.x-e.clientX)/180;pitch=Math.max(-1.1,Math.min(1.1,drag.pitch+(drag.y-e.clientY)/130));schedule();};
     const up=()=>{drag=null;};
-    const wheel=(e)=>{e.preventDefault();zoom=Math.min(13,Math.max(5.8,zoom+Math.sign(e.deltaY)*.65));schedule();};
+    const wheel=(e)=>{e.preventDefault();zoom=Math.min(3.55,Math.max(1.9,zoom+Math.sign(e.deltaY)*.22));schedule();};
     const keydown=(e)=>{
       if(e.key==='ArrowLeft')yaw-=.14;
       else if(e.key==='ArrowRight')yaw+=.14;
-      else if(e.key==='ArrowUp')pitch=Math.min(1.5,pitch+.14);
-      else if(e.key==='ArrowDown')pitch=Math.max(-1.5,pitch-.14);
-      else if(e.key==='+'||e.key==='=')zoom=Math.max(5.8,zoom-.6);
-      else if(e.key==='-')zoom=Math.min(13,zoom+.6);
-      else if(e.key==='Home'){yaw=0;pitch=0;zoom=9;}
+      else if(e.key==='ArrowUp')pitch=Math.min(1.1,pitch+.14);
+      else if(e.key==='ArrowDown')pitch=Math.max(-1.1,pitch-.14);
+      else if(e.key==='+'||e.key==='=')zoom=Math.max(1.9,zoom-.25);
+      else if(e.key==='-')zoom=Math.min(3.55,zoom+.25);
+      else if(e.key==='Home'){yaw=0;pitch=0;zoom=3.2;}
       else return;
       e.preventDefault();schedule();
     };
@@ -182,8 +190,8 @@ export function mountQuestWorld(canvas,world,onFallback=()=>{}){
         gl.bufferData(gl.ARRAY_BUFFER,geometry,gl.DYNAMIC_DRAW);
         count=geometry.length/6;schedule();
       },
-      reset:()=>{yaw=0;pitch=0;zoom=9;schedule();},
-      zoom:(direction)=>{zoom=Math.min(13,Math.max(5.8,zoom+direction));schedule();},
+      reset:()=>{yaw=0;pitch=0;zoom=3.2;schedule();},
+      zoom:(direction)=>{zoom=Math.min(3.55,Math.max(1.9,zoom+direction));schedule();},
       orbit:(direction)=>{yaw+=direction;schedule();},
     };
     const lost=(e)=>{e.preventDefault();onFallback();};
