@@ -42,11 +42,30 @@ INSERT INTO public.qatl_department_shares(id,department_id,node_id) VALUES
  ('99999999-9999-4999-8999-999999999991','55555555-5555-4555-8555-555555555555','77777777-7777-4777-8777-777777777777');
 INSERT INTO public.qatl_department_shares(id,department_id,quest_id) VALUES
  ('99999999-9999-4999-8999-999999999992','55555555-5555-4555-8555-555555555555','88888888-8888-4888-8888-888888888888');
+
+-- The audit event and review snapshot must be created automatically by triggers.
+SELECT (count(*)=2) AS both_submitted_events FROM public.qatl_department_audit WHERE action='submitted' \gset
+\if :both_submitted_events
+  \echo '[QuestAtlas Dept] Submission audit contains two immutable events'
+\else
+  select 1/0;
+\endif
 SELECT (count(*)=2) AS both_pending FROM public.qatl_department_shares WHERE status='pending' \gset
 \if :both_pending
   \echo '[QuestAtlas Dept] Teacher submitted two assets'
 \else
   \echo 'FAIL expected pending teacher submissions'
+  select 1/0;
+\endif
+
+-- Change underlying owner data after submission to verify the review snapshot cannot drift.
+UPDATE public.qatl_nodes SET summary='Modified AFTER review request' WHERE id='77777777-7777-4777-8777-777777777777';
+UPDATE public.qatl_quests SET title='Modified AFTER review request' WHERE id='88888888-8888-4888-8888-888888888888';
+SELECT (snapshot->>'summary')='Teaching participial clauses' AS snapshot_frozen
+ FROM public.qatl_department_shares WHERE id='99999999-9999-4999-8999-999999999991' \gset
+\if :snapshot_frozen
+  \echo '[QuestAtlas Dept] Content snapshot is frozen at submission'
+\else
   select 1/0;
 \endif
 -- Owner cannot update the review state (even with forged reviewed_by).
@@ -81,6 +100,13 @@ SELECT (count(*)=2) AS head_can_review FROM public.qatl_department_shares WHERE 
 \endif
 UPDATE public.qatl_department_shares SET status='approved',reviewed_by=auth.uid(),reviewed_at=now(),review_note='Validated content'
 WHERE department_id='55555555-5555-4555-8555-555555555555' AND status='pending';
+
+SELECT (count(*)=2) AS head_approval_events FROM public.qatl_department_audit WHERE action='approved' \gset
+\if :head_approval_events
+  \echo '[QuestAtlas Dept] All TTCM approvals were recorded in append-only audit'
+\else
+  select 1/0;
+\endif
 SELECT (count(*)=2) AS approved_shares FROM public.qatl_department_shares WHERE status='approved' \gset
 \if :approved_shares
   \echo '[QuestAtlas Dept] TTCM approved assets'
@@ -109,9 +135,41 @@ SELECT (count(*)=1) AS cloned_puzzles
   \echo 'FAIL quiz clone incomplete'
   select 1/0;
 \endif
+
+SELECT (count(*)=1) AS frozen_node_copy FROM public.qatl_nodes WHERE
+   owner_id=auth.uid() AND summary='Teaching participial clauses' AND id <> '77777777-7777-4777-8777-777777777777' \gset
+\if :frozen_node_copy
+  \echo '[QuestAtlas Dept] Fork used reviewed node snapshot, not mutable source'
+\else
+  select 1/0;
+\endif
+SELECT (count(*)=1) AS frozen_quest_copy FROM public.qatl_quests WHERE
+   owner_id=auth.uid() AND title='Mystic Grammar Escape (Copy)' \gset
+\if :frozen_quest_copy
+  \echo '[QuestAtlas Dept] Fork used reviewed Quest snapshot, not mutable source'
+\else
+  select 1/0;
+\endif
+-- Revocation must not erase the immutable history.
+RESET ROLE;
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','33333333-3333-4333-8333-333333333333',false);
+DELETE FROM public.qatl_department_shares WHERE id='99999999-9999-4999-8999-999999999991';
+SELECT (count(*)=1) AS revoked_events FROM public.qatl_department_audit WHERE action='revoked' \gset
+\if :revoked_events
+  \echo '[QuestAtlas Dept] Revoking an approved resource preserves audit'
+\else
+  select 1/0;
+\endif
 RESET ROLE;
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub','44444444-4444-4444-8444-444444444444',false);
+SELECT (count(*)=0) AS foreign_audit_blocked FROM public.qatl_department_audit \gset
+\if :foreign_audit_blocked
+  \echo '[QuestAtlas Dept] Audit entries isolated from unrelated department'
+\else
+  select 1/0;
+\endif
 SELECT (count(*)=0) AS no_approved_visibility
  FROM public.qatl_department_shares WHERE department_id='55555555-5555-4555-8555-555555555555' \gset
 \if :no_approved_visibility
