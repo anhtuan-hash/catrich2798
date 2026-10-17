@@ -81,3 +81,20 @@ Eight iPads on one campus Wi-Fi can share one public NAT IP. Each team polls rou
 - Staged IP budget now allows **480 views/minute per shared IP**, **40 joins/minute** and **96 submissions/minute**, with independent stricter 50-views/minute/token, 12-submissions/minute/token and 16-joins/minute/room quotas.
 - Disposable PostgreSQL regression verifies 200 same-IP view calls work and an excessive burst beyond 480 is blocked. Actual school-network use and distributed traffic security testing remain mandatory before production.
 - These limits are operational defaults, not guarantees of safety against distributed attacks or multiple simultaneous classes behind one address. Reassess with provider WAF and measured traffic before launch.
+
+## Free Classroom Live acceptance — teacher pilot
+
+The QuestAtlas backend remains unconfigured on Preview. To test without a paid Supabase branch:
+
+1. Open the Vercel Preview, sign in using an authorized test account (not a student).
+2. Navigate to QuestAtlas. If you see "chưa được cấu hình", click **Chạy phòng mô phỏng miễn phí** directly.
+3. In Classroom Live select **Mở phòng mô phỏng miễn phí**; choose the built-in Grammar Vault demo (or a teacher-authored local Quest).
+4. Set teams to eight and create the local room. Try **Bắt đầu** before two teams join: the action must be denied.
+5. Add all eight teams; start. On stage 1 submit a mix of right/wrong answers. Verify duplicate submissions are unavailable and each team's score is correct.
+6. Pause, resume and advance. Reset a team; the UI must request confirmation and the previous points must disappear. Rejoin the same slot while still active.
+7. Complete all stages and press **Xuất CSV bảng điểm mô phỏng**. Confirm the file starts with a teacher-simulation marker; columns include team, points, scale (10), answered and correct; it must contain **no** puzzle prompts, answer keys or student identities.
+8. Spot-check `70/80 → 8.75` for the deterministic grade conversion. Spreadsheet formula-like team labels must be neutralized.
+9. Reload the page: all simulated teams and points must disappear (ephemeral behavior). Live BRIAN gradebook and database must remain untouched.
+10. Repeat the same rehearsal UI on iPad portrait and landscape and a classroom TV. This verifies layout only, **not** networked real-time play.
+
+These steps require no new paid resources but consume existing hosting/CI quotas. If a browser or device is inaccessible, mark physical acceptance **NOT VERIFIED** instead of claiming it passed.
