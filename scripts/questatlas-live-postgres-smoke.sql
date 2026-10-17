@@ -32,7 +32,7 @@ set role anon;
 select has_table_privilege('anon','public.qatl_live_sessions','SELECT') as may_read \gset
 \if :may_read
   \echo 'FAIL guest has direct access to live_sessions'
-  \quit 3
+  select 1/0;
 \endif
 select r->>'token' as team_token from
  (select public.qatl_live_join(:'join_code',1,'Galaxy Team') as r) s \gset
@@ -49,7 +49,7 @@ select not ((public.qatl_live_view(:'join_code',:'team_token')->'puzzle') ? 'cor
   \echo '[QuestAtlas] Guest puzzle excludes correct_answer'
 \else
   \echo 'FAIL guest response leaked answer'
-  \quit 3
+  select 1/0;
 \endif
 select (public.qatl_live_submit(:'join_code',:'team_token','WHO')->>'accepted')::boolean
   as accepted \gset
@@ -57,13 +57,13 @@ select (public.qatl_live_submit(:'join_code',:'team_token','WHO')->>'accepted'):
   \echo '[QuestAtlas] Server accepted one correct answer'
 \else
   \echo 'FAIL legitimate answer was not accepted'
-  \quit 3
+  select 1/0;
 \endif
 select (public.qatl_live_submit(:'join_code',:'team_token','who')->>'accepted')::boolean
   as duplicate \gset
 \if :duplicate
   \echo 'FAIL duplicate submission was accepted'
-  \quit 3
+  select 1/0;
 \endif
 select (public.qatl_live_view(:'join_code',:'team_token')->'scoreboard'->0->>'score')::integer=10
  as score_correct \gset
@@ -71,7 +71,7 @@ select (public.qatl_live_view(:'join_code',:'team_token')->'scoreboard'->0->>'sc
   \echo '[QuestAtlas] Score is exactly 10 and duplicate did not add points'
 \else
   \echo 'FAIL score is incorrect'
-  \quit 3
+  select 1/0;
 \endif
 reset role;
 set role authenticated;
@@ -81,6 +81,6 @@ select (public.qatl_live_control(:'room_id'::uuid,'next')->>'status')='finished'
   \echo '[QuestAtlas] Teacher advanced final stage and ended session'
 \else
   \echo 'FAIL expected finished state'
-  \quit 3
+  select 1/0;
 \endif
 \echo '[QuestAtlas] Disposable PostgreSQL integration smoke tests passed'
