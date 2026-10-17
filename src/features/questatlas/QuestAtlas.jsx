@@ -1,6 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { isSupabaseConfigured, supabase } from '../../utils/supabase.js';
 import { WORLDS, answerMatches, cleanText, demoRecords, graphLayout, parseOptions, validatePuzzle, validateQuest } from './questModel.mjs';
+import { assessmentToPuzzleDraft } from './questionAdapter.mjs';
+import { hasRouteAccess } from '../../utils/permissions.js';
 import './questatlas.css';
 
 const TABLES = [
@@ -103,6 +105,10 @@ export default function QuestAtlas({ currentUser }) {
   const [puzzleAnswer, setPuzzleAnswer] = useState('');
   const [puzzleHint, setPuzzleHint] = useState('');
   const [sourceNodeId, setSourceNodeId] = useState('');
+  const [bankItems, setBankItems] = useState([]);
+  const [bankQuery, setBankQuery] = useState('');
+  const [bankLoaded, setBankLoaded] = useState(false);
+  const [bankBusy, setBankBusy] = useState(false);
 
   const load = useCallback(async () => {
     if (!isSupabaseConfigured || !supabase || !currentUser?.id) { setMode('unavailable'); return; }
@@ -126,6 +132,31 @@ export default function QuestAtlas({ currentUser }) {
   const quest = records.quests.find((item) => item.id === selectedQuest);
   const questPuzzles = records.puzzles.filter((puzzle) => puzzle.quest_id === selectedQuest).sort((a, b) => a.position - b.position);
   const isDemo = mode === 'demo';
+  const canUseBank = hasRouteAccess(currentUser, 'assessment-core');
+  const bankMatches = bankItems.filter((item) => cleanText(item.stem).toLowerCase().includes(bankQuery.toLowerCase())).slice(0, 12);
+  const loadBank = async () => {
+    if (!canUseBank || !supabase || mode !== 'cloud') return;
+    setBankBusy(true); setError('');
+    try {
+      const { data, error: bankError } = await supabase.from('assessment_items')
+        .select('id,stem,options,correct_answer,explanation,question_type')
+        .order('updated_at', { ascending: false }).limit(100);
+      if (bankError) throw bankError;
+      setBankItems((data || []).filter((item) => assessmentToPuzzleDraft(item)));
+      setBankLoaded(true);
+    } catch (e) { setError(e.message || 'Không đọc được Question Bank.'); }
+    finally { setBankBusy(false); }
+  };
+  const chooseBankItem = (item) => {
+    const draft = assessmentToPuzzleDraft(item);
+    if (!draft) { setError('Chỉ hỗ trợ câu hỏi có bốn lựa chọn.'); return; }
+    setPuzzleKind('choice');
+    setPuzzleStem(draft.stem);
+    setPuzzleOptions(draft.options.join('\n'));
+    setPuzzleAnswer(draft.correct_answer);
+    setPuzzleHint(draft.clue);
+    setNotice('Đã đưa câu hỏi vào trình soạn. Hãy kiểm tra lại đáp án trước khi lưu.');
+  };
 
   const create = async (table, key, payload) => {
     setBusy(true); setError('');
@@ -232,7 +263,15 @@ export default function QuestAtlas({ currentUser }) {
             <div className="qa-quest-actions"><button type="button" onClick={() => setShowPreview(true)} disabled={!questPuzzles.length}>▶ Xem thử Escape Room</button><button type="button" className="qa-primary" onClick={publishQuest} disabled={busy || isDemo || quest.status === 'published' || !questPuzzles.length}>{quest.status === 'published' ? '✓ Đã xuất bản' : 'Xuất bản nội dung'}</button></div>
             <div className="qa-puzzle-list">{questPuzzles.map((puzzle, i) => <div key={puzzle.id}><span>{String(i + 1).padStart(2, '0')}</span><div><strong>{puzzle.stem}</strong><small>{puzzle.kind === 'choice' ? 'Multiple choice' : 'Unlock code'} · {puzzle.points} points</small></div>{quest.status === 'draft' && <button type="button" disabled={busy} onClick={() => void remove('qatl_puzzles', 'puzzles', puzzle.id)} aria-label={'Xóa ' + puzzle.stem}>×</button>}</div>)}</div>
             {quest.status !== 'published' && <form className="qa-form qa-puzzle-form" onSubmit={addPuzzle}>
-              <h3>Thêm puzzle</h3><div className="qa-form-two"><label>Dạng puzzle<select value={puzzleKind} onChange={(e) => { setPuzzleKind(e.target.value); setPuzzleAnswer(''); }}><option value="choice">Trắc nghiệm</option><option value="code">Giải mã</option></select></label><label>Liên kết Atlas<select value={sourceNodeId} onChange={(e) => setSourceNodeId(e.target.value)}><option value="">Không liên kết</option>{records.nodes.map((node) => <option key={node.id} value={node.id}>{node.title}</option>)}</select></label></div>
+              <h3>Thêm puzzle</h3>
+              {canUseBank && !isDemo && <section className="qa-bank-import">
+                <header><strong>Nhập từ Question Bank</strong><button type="button" disabled={bankBusy} onClick={loadBank}>{bankBusy ? 'Đang đọc…' : bankLoaded ? 'Tải lại' : 'Chọn câu hỏi có sẵn'}</button></header>
+                {bankLoaded && <><input aria-label="Tìm câu hỏi ngân hàng" value={bankQuery} onChange={(e) => setBankQuery(e.target.value)} placeholder="Tìm theo nội dung…" />
+                <div className="qa-bank-results">{bankMatches.map((item) => <button type="button" key={item.id} onClick={() => chooseBankItem(item)}>{cleanText(item.stem, 145)}</button>)}
+                  {!bankMatches.length && <span>Chưa tìm thấy câu hỏi trắc nghiệm phù hợp.</span>}</div></>}
+                <small>Nội dung được sao chép để giáo viên kiểm tra, không chỉnh sửa câu hỏi gốc.</small>
+              </section>}
+              <div className="qa-form-two"><label>Dạng puzzle<select value={puzzleKind} onChange={(e) => { setPuzzleKind(e.target.value); setPuzzleAnswer(''); }}><option value="choice">Trắc nghiệm</option><option value="code">Giải mã</option></select></label><label>Liên kết Atlas<select value={sourceNodeId} onChange={(e) => setSourceNodeId(e.target.value)}><option value="">Không liên kết</option>{records.nodes.map((node) => <option key={node.id} value={node.id}>{node.title}</option>)}</select></label></div>
               <label>Câu hỏi<textarea required minLength="8" maxLength="500" rows="2" value={puzzleStem} onChange={(e) => setPuzzleStem(e.target.value)} /></label>
               {puzzleKind === 'choice' && <label>4 đáp án (mỗi dòng một lựa chọn)<textarea required rows="4" value={puzzleOptions} onChange={(e) => setPuzzleOptions(e.target.value)} placeholder={'Option A\nOption B\nOption C\nOption D'} /></label>}
               <label>Đáp án đúng {puzzleKind === 'choice' ? '(đúng chính tả như một lựa chọn)' : '(mật mã)'}<input required maxLength="180" value={puzzleAnswer} onChange={(e) => setPuzzleAnswer(e.target.value)} /></label>
