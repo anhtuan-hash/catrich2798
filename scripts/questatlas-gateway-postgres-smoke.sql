@@ -45,10 +45,30 @@ select (public.qatl_live_gateway_budget(repeat('a',64),'join')) as first_join_al
 \endif
 select count(*) FILTER (WHERE NOT allowed)>0 as throttled from (
   select public.qatl_live_gateway_budget(repeat('a',64),'join') as allowed
-    from generate_series(1,25)
+    from generate_series(1,48)
 ) attempts \gset
 \if :throttled
-  \echo '[QuestAtlas Gateway] Sixteenth-plus requests per IP are limited'
+  \echo '[QuestAtlas Gateway] More than 40 joins per IP are limited'
+\else
+  select 1/0;
+\endif
+
+-- Simulate eight iPads using one school public IP at 3-second polling:
+-- 8*20=160 views/min; give a margin and still enforce a hard ceiling.
+select bool_and(allowed) as school_eight_team_ok from
+  (select public.qatl_live_gateway_budget(repeat('b',64),'view') as allowed
+     from generate_series(1,200)) attempts \gset
+\if :school_eight_team_ok
+  \echo '[QuestAtlas Gateway] Eight teams behind shared school IP remain connected'
+\else
+  \echo 'FAIL shared school NAT quota blocks eight teams'
+  select 1/0;
+\endif
+select count(*) FILTER(WHERE NOT allowed)>0 as view_budget_still_enforced from
+  (select public.qatl_live_gateway_budget(repeat('b',64),'view') as allowed
+     from generate_series(1,300)) attempts \gset
+\if :view_budget_still_enforced
+  \echo '[QuestAtlas Gateway] School NAT view burst still has a hard IP ceiling'
 \else
   select 1/0;
 \endif
