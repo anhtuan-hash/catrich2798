@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { assessmentToPuzzleDraft } from '../src/features/questatlas/questionAdapter.mjs';
 import { answerMatches, cleanText, demoRecords, graphLayout, normalizedAnswer, parseOptions, validatePuzzle, validateQuest, WORLDS } from '../src/features/questatlas/questModel.mjs';
 
 const sample = demoRecords();
@@ -18,4 +19,7 @@ assert.match(validateQuest(sample.quests[0], []), /ít nhất/);
 const points = graphLayout(sample.nodes);
 assert.equal(points.length, 3);
 assert.ok(points.every(x => Number.isFinite(x.x) && Number.isFinite(x.y)));
-console.log('QuestAtlas foundation: 15 deterministic assertions passed. No AI calls.');
+assert.deepEqual(assessmentToPuzzleDraft({id:'x',stem:'Choose a correct form',options:['who','whom','whose','where'],correct_answer:'A'}).options,['who','whom','whose','where']);
+assert.equal(assessmentToPuzzleDraft({id:'x',stem:'Choose a correct form',options:['who','whom','whose','where'],correct_answer:'A'}).correct_answer,'who');
+assert.equal(assessmentToPuzzleDraft({stem:'Bad',options:['only one'],correct_answer:'A'}),null);
+console.log('QuestAtlas deterministic model + Question Bank adapter tests passed. No AI calls.');
