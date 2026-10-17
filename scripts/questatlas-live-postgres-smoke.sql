@@ -27,7 +27,7 @@ insert into public.qatl_quests (id,title,world,status)
 insert into public.qatl_puzzles (quest_id,position,kind,stem,options,correct_answer,points)
  values('22222222-2222-4222-8222-222222222222',1,'choice','The teacher _____ helped us win an award.','["who","where","when","whose"]'::jsonb,'who',10);
 select r->>'id' as room_id, r->>'join_code' as join_code
- from (select public.qatl_live_create('22222222-2222-4222-8222-222222222222',4) as r) s \gset
+ from (select public.qatl_live_create('22222222-2222-4222-8222-222222222222',8) as r) s \gset
 \echo '[QuestAtlas] Host room created'
 SELECT (NOT has_table_privilege('authenticated','public.qatl_live_sessions','INSERT'))
   AS cannot_directly_create \gset
