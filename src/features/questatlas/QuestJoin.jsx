@@ -29,7 +29,10 @@ export default function QuestJoin() {
   const refresh = useCallback(async () => {
     if (!validCode || !token || !isSupabaseConfigured) return;
     const { data, error: err } = await supabase.rpc('qatl_live_view', { p_code: code, p_token: token });
-    if (err) { setError(err.message || 'Không thể đồng bộ phòng chơi.'); return; }
+    if (err || data?.error) {
+      setError(data?.error === 'rate_limited' ? 'Bạn đang làm mới quá nhanh. Hệ thống sẽ thử lại sau.' : err?.message || 'Không thể đồng bộ phòng chơi.');
+      return;
+    }
     if (lastPosition.current !== null && lastPosition.current !== data.position) {
       setAnswer(''); setFeedback('');
     }
@@ -54,6 +57,8 @@ export default function QuestJoin() {
         p_code:code, p_team_no:Number(teamNo), p_name:teamName.trim().slice(0,50)
       });
       if (err) throw err;
+      if (data?.error === 'rate_limited') throw new Error('Có quá nhiều lượt vào phòng. Hãy thử lại sau khoảng một phút.');
+      if (!data?.token) throw new Error('Server không cung cấp mã phiên hợp lệ.');
       window.sessionStorage.setItem(storageKey(code),data.token);
       setToken(data.token);
       lastPosition.current = null;
@@ -70,6 +75,7 @@ export default function QuestJoin() {
         p_code:code,p_token:token,p_answer:answer.trim().slice(0,180)
       });
       if (err) throw err;
+      if (data?.reason === 'rate_limited') throw new Error('Bạn thao tác quá nhanh. Hãy thử lại sau khoảng một phút.');
       setFeedback(data.accepted ? (data.correct ? '✓ Chính xác! +' + data.awarded + ' điểm' : 'Đã gửi đáp án. Chờ giáo viên mở trạm tiếp theo.') : 'Đội đã gửi câu trả lời cho trạm này.');
       await refresh();
     } catch (e) { setError(e.message || 'Không gửi được đáp án.'); }
