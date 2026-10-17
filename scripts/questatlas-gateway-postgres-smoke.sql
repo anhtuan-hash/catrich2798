@@ -52,6 +52,8 @@ select count(*) FILTER (WHERE NOT allowed)>0 as throttled from (
 \else
   select 1/0;
 \endif
+reset role;
+-- Maintenance/admin role may inspect counters; API role cannot SELECT them.
 select count(*)=1 as quota_private from public.qatl_gateway_ip_budget
  where ip_hash=repeat('a',64) and action='join' \gset
 \if :quota_private
