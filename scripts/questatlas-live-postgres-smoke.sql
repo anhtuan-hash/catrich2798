@@ -231,7 +231,7 @@ select (public.qatl_live_control(:'room_id'::uuid,'next')->>'status')='finished'
 \endif
 
 -- The hourly room cap must be enforced by the server, not just the UI.
-SELECT (public.qatl_live_create('22222222-2222-4222-8222-222222222222',4))->>'id'
+SELECT (public.qatl_live_create('22222222-2222-4222-8222-222222222222',8))->>'id'
 FROM generate_series(1,4);
 DO $limit$
 DECLARE cap_denied boolean:=false;
