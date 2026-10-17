@@ -88,3 +88,11 @@ A Department Hub module has been added to the existing `#/tool/questatlas` works
 - A teacher may release an occupied Classroom Live team slot in the teacher panel after explicit warning. Reset revokes the old bearer token and deletes that team's scores; teams rejoin with a new token.
 - Hosts are limited to five newly created rooms per hour. This is **not** sufficient as a full request rate limiter for public guest endpoints, so production remains gated on perimeter throttling and attack simulation.
 - RLS, audit, immutable-copy and token rotation behavior are exercised on disposable PostgreSQL via GitHub Actions. These tests do not mean Supabase production has been modified.
+
+## Classroom Live privilege hardening
+
+- Host session creation is now an authenticated-only `SECURITY DEFINER` RPC that verifies the approved profile, ownership of the published Quest and a five-new-rooms-per-hour cap. Direct client `INSERT` on `qatl_live_sessions` is removed so the quota cannot be bypassed through the REST table endpoint.
+- Authenticated clients only have column-scoped `UPDATE` rights for status, current position and timestamp; direct overwrites of the room join code or puzzle/answer snapshot are denied. A `SECURITY INVOKER` BEFORE UPDATE trigger validates allowed session state transitions.
+- Anonymous clients cannot execute the host's create/control/reset RPCs. The teacher-only reset revokes the previous team token and all attempts (score is reset).
+- Disposable PostgreSQL integration exercises permissions, frozen-room fields, valid host transitions, team reset and the per-hour creation quota.
+- Still required before release: independent security review of intentionally exposed guest SECURITY DEFINER functions, WAF/API abuse throttling, 8-team load test, and actual Supabase staging environment validation.
