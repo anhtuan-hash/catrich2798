@@ -63,7 +63,39 @@ select r->>'token' as team_token from
 reset role;
 set role authenticated;
 select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
-select public.qatl_live_control(:'room_id'::uuid,'start');
+DO $qa_min_teams$
+DECLARE v_room uuid; v_blocked boolean := false;
+BEGIN
+  SELECT id INTO v_room FROM public.qatl_live_sessions
+    WHERE host_id=auth.uid() AND status='waiting' LIMIT 1;
+  BEGIN
+    PERFORM public.qatl_live_control(v_room,'start');
+  EXCEPTION WHEN OTHERS THEN
+    v_blocked := SQLERRM LIKE '%At least two teams must join%';
+  END;
+  IF NOT v_blocked THEN RAISE EXCEPTION 'Host started without two teams'; END IF;
+END $qa_min_teams$;
+SELECT (count(*)=1) AS still_waiting FROM public.qatl_live_sessions
+ WHERE id=:'room_id'::uuid AND status='waiting' \gset
+\if :still_waiting
+  \echo '[QuestAtlas] A single team cannot start a live room'
+\else
+  select 1/0;
+\endif
+reset role;
+set role anon;
+select r->>'token' as token_2 from
+  (select public.qatl_live_join(:'join_code',2,'Galaxy 2') as r) j \gset
+reset role;
+set role authenticated;
+select set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',false);
+select (public.qatl_live_control(:'room_id'::uuid,'start')->>'total')::integer=1
+  AS puzzle_total_preserved \gset
+\if :puzzle_total_preserved
+  \echo '[QuestAtlas] Two-team minimum and original puzzle count enforced'
+\else
+  select 1/0;
+\endif
 reset role;
 set role anon;
 select not ((public.qatl_live_view(:'join_code',:'team_token')->'puzzle') ? 'correct_answer')
@@ -131,7 +163,7 @@ select (:'replacement_token' <> :'team_token') as secret_rotated \gset
 -- Fill all eight seats, answer from each team and validate scoreboard.
 reset role;
 set role anon;
-select r->>'token' as token_2 from (select public.qatl_live_join(:'join_code',2,'Galaxy 2') as r) j \gset
+-- Team 2 joined prior to host starting; reuse its initial bearer token.
 select r->>'token' as token_3 from (select public.qatl_live_join(:'join_code',3,'Galaxy 3') as r) j \gset
 select r->>'token' as token_4 from (select public.qatl_live_join(:'join_code',4,'Galaxy 4') as r) j \gset
 select r->>'token' as token_5 from (select public.qatl_live_join(:'join_code',5,'Galaxy 5') as r) j \gset
