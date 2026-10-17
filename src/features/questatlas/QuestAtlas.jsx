@@ -336,7 +336,7 @@ export default function QuestAtlas({ currentUser }) {
           </>}
         </Panel>
       </div>}
-      {tab === 'live' && <LiveTeacher quests={records.quests} enabled={mode === 'cloud'} />}
+      {tab === 'live' && <LiveTeacher quests={records.quests} puzzles={records.puzzles} enabled={mode === 'cloud'} />}
       {tab === 'department' && <DepartmentHub currentUser={currentUser} records={records} onReload={load} isDemo={isDemo} />}
       {showPreview && quest && <div className="qa-modal-layer" role="dialog" aria-modal="true" aria-label="Xem trước Quest"><PreviewWorld key={quest.id} quest={quest} puzzles={questPuzzles} onClose={() => setShowPreview(false)} /></div>}
     </>}
