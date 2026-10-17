@@ -8,6 +8,7 @@ on:
       - 'src/data/apps.js'
       - 'scripts/test-questatlas-foundation.mjs'
       - 'scripts/test-questatlas-rehearsal.mjs'
+      - 'tests/e2e/questatlas-acceptance.spec.js'
       - 'scripts/test-questatlas-webgl.mjs'
       - 'scripts/test-questatlas-live.mjs'
       - 'scripts/test-questatlas-gateway.mjs'
@@ -100,3 +101,32 @@ jobs:
         env:
           PGPASSWORD: postgres
         run: psql -h 127.0.0.1 -p 5432 -U postgres -d questatlas_test -v ON_ERROR_STOP=1 -f scripts/questatlas-retention-postgres-smoke.sql
+
+  browser-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Install headless Chromium and WebKit
+        run: npx playwright install --with-deps chromium webkit
+      - name: Build safe preview
+        run: npm run build
+      - name: Run teacher and iPad browser acceptance
+        run: npx playwright test tests/e2e/questatlas-acceptance.spec.js --project=chromium-desktop --project=ipad-landscape
+      - name: Save browser diagnostics on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: questatlas-acceptance-diagnostics
+          path: |
+            reports/playwright
+            test-results
+          retention-days: 5
+          if-no-files-found: ignore
