@@ -48,7 +48,8 @@ test('iPhone: history detail stays inside viewport after scrolling the standalon
     const heading = node.querySelector('.ahv3__hero h2').getBoundingClientRect();
     return {position:getComputedStyle(node).position,top:rect.top,bottom:rect.bottom,width:rect.width,
       headingTop:heading.top,headingBottom:heading.bottom,viewportHeight:innerHeight,viewportWidth:innerWidth,
-      maxHeight:getComputedStyle(node).maxHeight,scrollWidth:document.documentElement.scrollWidth};
+      maxHeight:getComputedStyle(node).maxHeight,scrollWidth:document.documentElement.scrollWidth,
+      overflowElements:[...document.querySelectorAll('body *')].map(el=>({tag:el.tagName,cls:String(el.className||'').slice(0,90),right:Math.round(el.getBoundingClientRect().right),left:Math.round(el.getBoundingClientRect().left)})).filter(el=>el.right>innerWidth+1||el.left< -1).slice(0,12)};
   });
   expect(metrics.position).toBe('fixed');
   expect(metrics.top).toBeGreaterThanOrEqual(-1);
@@ -56,7 +57,7 @@ test('iPhone: history detail stays inside viewport after scrolling the standalon
   expect(metrics.headingTop).toBeGreaterThanOrEqual(metrics.top);
   expect(metrics.headingBottom).toBeLessThanOrEqual(metrics.bottom);
   expect(metrics.width).toBeLessThanOrEqual(metrics.viewportWidth + 2);
-  expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.viewportWidth + 2);
+  expect(metrics.scrollWidth, JSON.stringify(metrics.overflowElements)).toBeLessThanOrEqual(metrics.viewportWidth + 2);
   const close = page.locator('.ahv3__mobile-sheet-close');
   await expect(close).toBeInViewport();
   await page.locator('.ahv3__detail').evaluate(node => {node.scrollTop=node.scrollHeight;});
