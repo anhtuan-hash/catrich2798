@@ -3,9 +3,12 @@ on:
   pull_request:
     paths:
       - 'src/pages/AttendanceMobileAudit.css'
+      - 'src/pages/AttendanceHistoryIphoneViewportFix.css'
+      - 'public/attendance-history-v5.js'
       - 'src/pages/AttendanceWorkspace.jsx'
       - 'scripts/test-attendance-mobile-audit.mjs'
       - 'tests/e2e/attendance-mobile-comprehensive.spec.js'
+      - 'tests/e2e/attendance-history-iphone-viewport.spec.js'
       - '.github/workflows/attendance-mobile-audit.yml'
   workflow_dispatch:
 permissions:
@@ -29,4 +32,4 @@ jobs:
       - run: node scripts/test-student-attendance-report.mjs
       - run: npm run build
       - run: npx playwright install --with-deps chromium webkit
-      - run: npx playwright test tests/e2e/attendance-mobile-comprehensive.spec.js tests/e2e/attendance-quick-layout-fix.spec.js --project=chromium-desktop --project=webkit-desktop
+      - run: npx playwright test tests/e2e/attendance-mobile-comprehensive.spec.js tests/e2e/attendance-quick-layout-fix.spec.js tests/e2e/attendance-history-iphone-viewport.spec.js --project=chromium-desktop --project=webkit-desktop
