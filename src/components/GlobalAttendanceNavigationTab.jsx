@@ -1612,7 +1612,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
               setView(item.tab);
               if (standalone) window.history.replaceState(null, '', '#/attendance?tab=' + encodeURIComponent(item.tab));
             }}>
-              <Icon name={ATTENDANCE_TAB_ICONS[item.tab] || 'attendance'} size={18} />{item.titleVi}{item.tab === 'archive' && archiveCount > 0 ? <span className="attendance-tab-badge">{archiveCount > 99 ? '99+' : archiveCount}</span> : null}
+              <Icon name={ATTENDANCE_TAB_ICONS[item.tab] || 'attendance'} size={18} />{standalone && item.tab === 'quick' ? 'Điểm danh' : item.titleVi}{item.tab === 'archive' && archiveCount > 0 ? <span className="attendance-tab-badge">{archiveCount > 99 ? '99+' : archiveCount}</span> : null}
             </button>
           ))}
         </nav>
