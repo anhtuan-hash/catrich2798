@@ -287,12 +287,20 @@
     }
 
     const selectedKey = normalizedText(selectedCard).slice(0, 240);
-    if (root.dataset.ahMobileSelectedKey && root.dataset.ahMobileSelectedKey !== selectedKey) {
+    const changedSession = root.dataset.ahMobileSelectedKey !== selectedKey;
+    const wasOpen = root.classList.contains(MOBILE_OPEN_CLASS);
+    if (root.dataset.ahMobileSelectedKey && changedSession) {
       root.classList.remove(MOBILE_DISMISSED_CLASS, MOBILE_SECONDARY_CLASS);
     }
     root.dataset.ahMobileSelectedKey = selectedKey;
 
-    if (!root.classList.contains(MOBILE_DISMISSED_CLASS)) root.classList.add(MOBILE_OPEN_CLASS);
+    if (!root.classList.contains(MOBILE_DISMISSED_CLASS)) {
+      root.classList.add(MOBILE_OPEN_CLASS);
+      // The selected detail is React-owned and may retain a prior session's
+      // scroll offset. New/reopened iPhone sheets must begin with the hero,
+      // not halfway down the content or above the visible screen.
+      if (changedSession || !wasOpen) detail.scrollTop = 0;
+    }
 
     let backdrop = root.querySelector(`.${MOBILE_BACKDROP_CLASS}`);
     if (!backdrop) {
