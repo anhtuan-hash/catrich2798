@@ -29,75 +29,10 @@
   color:var(--awu-ink);
   font:inherit;
 }
-.attendance-workspace-page .attendance-shell.is-standalone{
-  background:#eef2f9!important;
-  border-color:#cbd8e8!important;
-  border-radius:21px!important;
-  box-shadow:0 14px 44px rgba(15,37,71,.13)!important;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-topbar{
-  background:#fff!important;
-  border-bottom:1px solid #dbe4f2!important;
-  box-shadow:0 2px 10px rgba(15,50,85,.04)!important;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-title>span{
-  background:var(--awu-blue-soft)!important;
-  color:var(--awu-blue)!important;
-  border-radius:14px!important;
-  box-shadow:none!important;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-title strong{
-  color:var(--awu-navy)!important;
-  font-weight:850!important;
-  letter-spacing:-.025em!important;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-title small{
-  color:var(--awu-blue)!important;
-  letter-spacing:.085em;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs{
-  background:linear-gradient(180deg,#102d52,#0b2545)!important;
-  border-color:#143357!important;
-  box-shadow:none!important;
-  padding-top:86px!important;
-  gap:5px!important;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs::before{
-  content:"KHÔNG GIAN LÀM VIỆC";
-  color:#86a9d4;
-  top:35px;
-  left:21px;
-  font-size:10px;
-  font-weight:850;
-  letter-spacing:.1em;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs>button{
-  border:1px solid transparent!important;
-  border-radius:11px!important;
-  min-height:45px!important;
-  color:#d0dff0!important;
-  background:transparent!important;
-  box-shadow:none!important;
-  font-size:13px!important;
-  font-weight:750!important;
-  letter-spacing:0;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs>button:hover:not(.is-active){
-  background:rgba(207,226,251,.11)!important;
-  color:#fff!important;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs>button.is-active{
-  background:#2568db!important;
-  border-color:#5088f0!important;
-  box-shadow:0 4px 13px rgba(4,22,51,.19)!important;
-  color:#fff!important;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-content{
-  background:var(--awu-canvas)!important;
-  padding:22px!important;
-  min-width:0;
-  scrollbar-gutter:stable;
-}
+/* Workspace geometry and navigation now live exclusively in
+ * AttendanceWorkspace.css (approved horizontal-nav design).
+ * Shared component/card styling begins below.
+ */
 .attendance-workspace-page .attendance-shell.is-standalone .attendance-content > :not(.awu-page-head){
   min-width:0;
 }
@@ -438,12 +373,6 @@
  .awu-page-head__indicators{justify-content:flex-start}
 }
 @media(max-width:790px){
- .attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs{
-   background:#f8fafc!important;padding:7px 10px!important
- }
- .attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs>button{
-   color:#3c5c85!important;min-height:39px!important
- }
  .attendance-workspace-page .attendance-shell.is-standalone .attendance-content{
    padding:12px!important
  }
@@ -467,4 +396,251 @@
 }
 @media(prefers-reduced-motion:reduce){
  .attendance-workspace-page .attendance-shell.is-standalone button{transition:none!important}
+}
+
+
+/* Approved mockup: common sans-serif typography, natural-flow content.
+ * Eliminates legacy overflow:hidden/height:100% inherited from modal views. */
+.attendance-workspace-page .attendance-shell.is-standalone{
+  font-family:Inter,"Be Vietnam Pro",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone :is(
+  h1,h2,h3,h4,h5,p,label,input,select,textarea,button,table,small,strong
+){
+  font-family:inherit!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head{
+  min-height:106px;
+  margin-bottom:17px;
+  padding:19px 23px;
+  background:#fff!important;
+  border-color:#d6e3f5!important;
+  box-shadow:0 3px 12px rgba(19,57,112,.05)!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head h1{
+  font-size:clamp(20px,1.6vw,25px)!important;
+  letter-spacing:-.028em;
+  font-weight:850!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__breadcrumb{
+  font-size:11px;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__indicator{
+  border:1px solid #d6e4f8;
+  border-radius:12px;
+  background:#f4f8ff;
+  padding:10px 13px;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-calendar-layout,
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-daily-overview-host,
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-daily-overview,
+.attendance-workspace-page .attendance-shell.is-standalone .ahv3__shell,
+.attendance-workspace-page .attendance-shell.is-standalone .att-report-m3,
+.attendance-workspace-page .attendance-shell.is-standalone .stud-att,
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-overview,
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-archive{
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-calendar-layout{
+  display:block!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-daily-overview-host{
+  grid-template-rows:auto auto!important;
+  gap:12px!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-content:has(.attendance-daily-overview-host){
+  padding:clamp(14px,2vw,26px)!important;
+  background:#f4f7fc!important;
+  overflow:visible!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-daily-floor-card{
+  margin:0 0 10px;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .ahv3__shell{
+  display:grid!important;
+  grid-template-columns:minmax(280px,34%) minmax(0,1fr)!important;
+  align-items:start;
+  gap:15px;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .ahv3__list,
+.attendance-workspace-page .attendance-shell.is-standalone .ahv3__detail{
+  height:auto!important;
+  min-height:300px!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .ahv3__items{
+  max-height:690px!important;
+  min-height:0!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .att-report-m3{
+  width:100%;
+  min-width:0;
+  scrollbar-gutter:auto;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .att-report-m3__toolbar{
+  min-width:0;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .att-report-m3__table-wrap,
+.attendance-workspace-page .attendance-shell.is-standalone .stud-att__table-wrap,
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-member-table{
+  max-width:100%;
+  min-width:0;
+  overflow-x:auto!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-overview{
+  align-content:start;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-class-tile{
+  min-width:0;
+}
+.attendance-workspace-page .attendance-shell.is-standalone :is(.attendance-manage-overview-toolbar,.attendance-archive__toolbar){
+  max-width:100%;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-class-list{
+  height:auto!important;
+  max-height:900px;
+  min-width:0;
+  overflow:auto!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-rollcall{
+  min-width:0;
+  height:auto!important;
+  overflow:visible!important;
+}
+/* A uniform control scale (mockup): status badges stay semantic. */
+.attendance-workspace-page .attendance-shell.is-standalone :is(
+  .att-report-m3__mode button,.stud-att__actions button,
+  .attendance-manage-overview-toolbar button,
+  .attendance-archive__toolbar button,.ahv3__list-actions button
+){
+  min-height:37px;
+  border-radius:10px!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone :is(
+  .attendance-daily-compact-toolbar,.attendance-daily-overview__summary,
+  .attendance-manage-overview-toolbar,.att-report-m3__toolbar,
+  .stud-att__filter-panel,.attendance-archive__toolbar
+){
+  background-color:#fff!important;
+}
+/* Safe responsive stacking; no text compression into vertical columns. */
+@media(max-width:1170px){
+  .attendance-workspace-page .attendance-shell.is-standalone .att-report-m3__toolbar{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .att-report-m3__filters{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+}
+@media(max-width:850px){
+  .attendance-workspace-page .attendance-shell.is-standalone .ahv3__shell{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .ahv3__items{
+    max-height:440px!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-quick-layout{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-class-list{
+    max-height:390px;
+  }
+}
+@media(max-width:600px){
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-page-head{
+    padding:14px!important;
+    gap:10px;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .att-report-m3__filters{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .att-report-m3__toolbar{
+    gap:9px!important;
+    padding:12px!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone :is(
+    .att-report-m3__metrics,.stud-att__metrics
+  ){
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}
+
+
+/* Supplemental filter is a first-class horizontal toolbar within the
+ * active history/report page (not a child of the global navigation strip). */
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-content > .bes-supplemental-report-filter{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  flex-wrap:wrap!important;
+  width:100%!important;
+  min-width:0;
+  height:auto!important;
+  max-height:none!important;
+  margin:0 0 16px!important;
+  padding:12px 16px!important;
+  border:1px solid #d7e4f7!important;
+  border-radius:14px!important;
+  background:#fff!important;
+  box-shadow:0 3px 12px rgba(16,56,108,.055)!important;
+  position:relative!important;
+  inset:auto!important;
+  overflow:visible!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .bes-supplemental-report-filter > div{
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:wrap!important;
+  align-items:center!important;
+  gap:7px!important;
+  flex:1 1 520px;
+  min-width:0;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .bes-supplemental-report-filter > div > span{
+  display:inline!important;
+  white-space:nowrap!important;
+  margin-right:9px!important;
+  color:#375479!important;
+  font-size:12px!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .bes-supplemental-report-filter button{
+  display:inline-flex!important;
+  width:auto!important;
+  min-width:0!important;
+  height:34px!important;
+  padding:7px 12px!important;
+  white-space:nowrap!important;
+  font-size:12px!important;
+  border-radius:999px!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .bes-supplemental-report-filter button.is-active{
+  background:#1c65d7!important;color:#fff!important;border-color:#1c65d7!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .bes-supplemental-report-filter > small{
+  flex:0 1 290px;
+  min-width:0!important;
+  max-width:100%;
+  text-align:right!important;
+  font-size:11px!important;
+  line-height:1.45;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .bes-supplemental-workspace-host{
+  width:100%!important;
+  height:auto!important;
+  min-height:520px;
+  min-width:0;
+  overflow:visible!important;
+}
+@media(max-width:900px){
+  .attendance-workspace-page .attendance-shell.is-standalone .bes-supplemental-report-filter > small{
+    flex-basis:100%;text-align:left!important;
+  }
 }

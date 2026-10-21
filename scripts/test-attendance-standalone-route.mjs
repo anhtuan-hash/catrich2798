@@ -27,10 +27,13 @@ assert.match(nav,/supplementalRouteHandledRef\.current/,'Supplemental handoff mu
 assert.match(nav,/window\.dispatchEvent\(new CustomEvent\('bes-supplemental-open-rollcall'/,'Supplemental session is reconstructed on the new route');
 assert.match(nav,/window\.history\.replaceState\(null, '', '#\/attendance\?tab='/,'Deep links should support all tabs');
 assert.match(globalNav,/props\.route !== 'attendance'/,'Never mount duplicate attendance modal on standalone route');
-assert.match(style,/grid-template-columns:240px minmax\(0,1fr\)/,'Sidebar replaces horizontal tab layout on desktop');
-assert.match(style,/grid-template-rows:76px 59px minmax\(0,1fr\)/,'Mobile layout gets horizontal tabs');
+assert.match(style,/display:flex!important;/,'Workspace is a natural full-page flex column');
+assert.match(style,/flex-direction:row!important;/,'Desktop top navigation runs horizontally');
+assert.match(style,/overflow-x:auto!important;/,'Top navigation scrolls on narrow viewports');
+assert.match(style,/height:auto!important;/,'Workspace must not crop page content');
+assert.ok(!style.includes('grid-template-columns:240px minmax(0,1fr)'),'Approved mockup does not have a sidebar');
 assert.ok(!style.includes('html.bes-attendance-open'),'Standalone page must not lock document scrolling');
-assert.match(style,/\.attendance-workspace-page \.attendance-shell\.is-standalone \{/,'Standalone shell must be a normal in-flow region');
+assert.match(style,/\.attendance-workspace-page \.attendance-shell\.is-standalone\s*\{/,'Standalone shell must be a normal in-flow region');
 assert.match(style,/\.bes-attendance-time-settings\.is-compact-popover/,'Transient teacher-time popup may be fixed on mobile');
 const teacher={id:'teacher-123',role:'teacher',permissions:{mode:'custom',allowed:[]}};
 assert.equal(hasRouteAccess(teacher,'attendance'),false,'Route must not grant more permissions by default');
