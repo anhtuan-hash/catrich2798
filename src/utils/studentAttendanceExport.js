@@ -122,7 +122,7 @@ function printStyles(isIndividual, exportedAt, footerImage) {
     '*{box-sizing:border-box}html,body{width:100%;max-width:100%}' +
     'body{margin:0;overflow:visible;font-family:Arial,"Helvetica Neue",sans-serif;color:#183229;font-size:8.4px;line-height:1.35;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
     '.report-page{width:100%;max-width:100%;margin:0 auto;overflow:visible}' +
-    '.report-sheet{break-after:page;page-break-after:always}.report-sheet:last-child{break-after:auto;page-break-after:auto}' +
+    '.report-sheet{break-after:page;page-break-after:always}.report-sheet:last-of-type{break-after:auto;page-break-after:auto}' +
     '.school-head{display:grid;grid-template-columns:72px 1fr 72px;align-items:center;gap:12px;padding:0 0 4mm;border-bottom:2.4px solid #08783f;break-inside:avoid}' +
     '.school-logo{width:68px;height:68px;display:block;object-fit:contain;object-position:center}' +
     '.school-head__text{text-align:center;min-width:0}' +
