@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { buildAttendanceReport, normalizeSupplementalReportData, uniqueReportTeachers } from '../../utils/attendanceReport.js';
 import { downloadAttendanceReportXlsx, printAttendanceReportPdf } from '../../utils/attendanceReportExport.js';
 import './AttendanceMonthlyReport.css';
+import StudentAttendanceReport from './StudentAttendanceReport.jsx';
 
 const REPORT_SESSION_COLUMNS = 'id,class_id,class_type,class_name,subject,teacher_name,attendance_date,checked_at,checked_by,checked_by_name,total_students,present_count,absent_count,note,session_status,lesson_periods,cancellation_reason,teaching_room,teaching_time_range';
 const REPORT_RECORD_COLUMNS = 'id,session_id,class_id,member_id,member_key,student_code,student_full_name,school_class_name,status,recorded_at,absence_reason_code,absence_note';
@@ -112,6 +113,7 @@ export default function AttendanceMonthlyReport({ client, classes = [], month, o
   const remarksDirty = useRef(false);
   const teacherTrackRef = useRef(null);
   const [loading, setLoading] = useState(false);
+  const [reportDimension, setReportDimension] = useState('teacher');
 
   useEffect(() => {
     function handleActivityFilter(event) {
@@ -244,6 +246,11 @@ export default function AttendanceMonthlyReport({ client, classes = [], month, o
   }
 
   return <section className="att-report-m3">
+    <div className="att-report-m3__mode" role="group" aria-label="Đối tượng báo cáo" style={{ alignSelf: "start", padding: 4, borderRadius: 12, display: "flex", gap: 4 }}>
+      <button type="button" className={reportDimension === "teacher" ? "is-active" : ""} aria-pressed={reportDimension === "teacher"} onClick={() => setReportDimension("teacher")}>Theo giáo viên</button>
+      <button type="button" className={reportDimension === "student" ? "is-active" : ""} aria-pressed={reportDimension === "student"} onClick={() => setReportDimension("student")}>Theo học sinh</button>
+    </div>
+    {reportDimension === "student" ? <StudentAttendanceReport client={client} month={month} includeSupplemental={includeSupplemental} activityType={activityType} onError={onError} /> : <>
     <header className="att-report-m3__toolbar">
       <div className="att-report-m3__hero-copy">
         <span className="att-report-m3__hero-icon"><ReportIcon name="chart" size={25} /></span>
@@ -311,6 +318,7 @@ export default function AttendanceMonthlyReport({ client, classes = [], month, o
         <div className="att-report-m3__section-head"><div className="att-report-m3__section-title"><span><ReportIcon name="absent" size={20} /></span><div><h3>Chi tiết học sinh vắng</h3><p>Lý do vắng và ghi chú được lấy từ bản ghi đã chốt của từng buổi.</p></div></div></div>
         <div className="att-report-m3__table-wrap"><table><thead><tr><th>Ngày</th><th>Học sinh</th><th>Lớp chính khóa</th><th>Lý do vắng</th><th>Ghi chú</th><th>Lớp phụ đạo/bồi dưỡng</th><th>Môn</th><th>Giáo viên</th><th>Giờ dạy</th><th>Giờ chốt</th><th>Phòng học</th></tr></thead><tbody>{report.absenceRows.map((row, index) => <tr key={`${row.session_id}-${row.student_code || row.student_full_name}-${index}`}><td>{formatDate(row.attendance_date)}</td><td><b>{row.student_full_name}</b><small>{row.student_code || 'Không có mã HS'}</small></td><td>{row.school_class_name || '—'}</td><td>{row.reason_label}</td><td>{row.absence_note || '—'}</td><td>{row.class_name}</td><td>{row.subject || '—'}</td><td>{row.teacher_name || '—'}</td><td>{row.teaching_time_range || 'Chưa ghi'}</td><td>{formatCheckedTime(row.checked_at)}</td><td>{row.teaching_room || 'Chưa ghi'}</td></tr>)}{!report.absenceRows.length ? <tr><td colSpan="11" className="att-report-m3__empty">Không có học sinh vắng trong dữ liệu phù hợp bộ lọc.</td></tr> : null}</tbody></table></div>
       </section>
+    </>}
     </>}
   </section>;
 }
