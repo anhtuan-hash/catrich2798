@@ -874,9 +874,11 @@ test.describe('Global Quick Access safe area', () => {
     await page.goto('/#/apps');
     await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'apps');
     await page.locator('.bqa-rail-button[title="Điểm danh nhanh"]').click();
-    await expect(page).toHaveURL(/#\/attendance\?tab=quick/);
+    // The route canonicalizes the default quick tab to #/attendance.
+    await expect(page).toHaveURL(/#\/attendance(?:\?tab=quick)?$/);
     await expect(page.locator('.app-shell')).toHaveAttribute('data-route', 'attendance');
     await expect(page.locator('.attendance-shell.is-standalone')).toBeVisible();
+    await expect(page.locator('.attendance-tabs button.is-active')).toContainText('Điểm danh');
     await expect(page.locator('html')).not.toHaveClass(/bes-attendance-open/);
   });
 
