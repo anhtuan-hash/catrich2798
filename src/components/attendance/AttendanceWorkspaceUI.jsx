@@ -66,10 +66,10 @@ export function AttendanceViewHeader({view,items=[],action=null,subheading=null}
 }
 
 /** Shared semantic card header for report/class/archive panels. */
-export function AttendancePanelHeading({icon='filter',eyebrow,title,description,aside,children,className=''}) {
+export function AttendancePanelHeading({icon='filter',eyebrow,title,description,aside,children,className='',iconClassName=''}) {
   return <header className={'awu-panel-head ' + className}>
     <div className="awu-panel-head__copy">
-      <span className="awu-panel-head__icon"><AttendanceUiIcon name={icon} size={19}/></span>
+      <span className={"awu-panel-head__icon " + iconClassName}><AttendanceUiIcon name={icon} size={19}/></span>
       <div>{eyebrow&&<span className="awu-panel-head__eyebrow">{eyebrow}</span>}
         <h2>{title}</h2>{description&&<p>{description}</p>}</div>
     </div>
