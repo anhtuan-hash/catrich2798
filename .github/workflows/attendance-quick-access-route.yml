@@ -1,0 +1,28 @@
+name: Attendance Quick Access Route
+on:
+  pull_request:
+    paths:
+      - 'src/components/GlobalQuickAccessRail.jsx'
+      - 'tests/e2e/quick-access-safe-area.spec.js'
+      - 'scripts/test-global-quick-access-rail.mjs'
+      - 'scripts/test-attendance-quick-access-route.mjs'
+      - '.github/workflows/attendance-quick-access-route.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  quick-attendance-route:
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node scripts/test-global-quick-access-rail.mjs
+      - run: node scripts/test-attendance-quick-access-route.mjs
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: 'npx playwright test tests/e2e/quick-access-safe-area.spec.js --project=chromium-desktop -g "Action Dock: native teacher intents land on the exact working surfaces"'

@@ -1,0 +1,12 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const rail=readFileSync('src/components/GlobalQuickAccessRail.jsx','utf8');
+const test=readFileSync('tests/e2e/quick-access-safe-area.spec.js','utf8');
+const first=rail.indexOf("if (item.action === 'attendance-quick')");
+const last=rail.indexOf("if (item.action === 'gradebook-quick')",first);
+assert.ok(first!==-1&&last>first);
+const action=rail.slice(first,last);
+assert.match(action, /#\/attendance\?tab=quick/, 'Quick access must navigate directly into the full page');
+assert.doesNotMatch(action, /setTimeout|bes-attendance-quick-open|bes-attendance-open/, 'Legacy modal fallback must not run');
+assert.match(test, /toHaveURL\(\/#\\\/attendance/, 'E2E must check current route');
+console.log('PASS quick attendance Action Dock routes to standalone page');
