@@ -17,9 +17,8 @@ assert.match(shell,/\.attendance-content\s*\{[^}]*overflow:visible!important/s,'
 assert.match(shell,/height:auto!important/,'App height must grow with reports');
 assert.doesNotMatch(shell,/grid-template-columns:240px minmax\(0,1fr\)/,'No left navigation sidebar');
 assert.doesNotMatch(theme,/KHÔNG GIAN LÀM VIỆC/,'Sidebar pseudo label must be removed');
-assert.match(theme,/\.ahv3__shell\s*\{[^}]*height:auto!important/s,'History panes do not crop');
-assert.match(theme,/\.att-report-m3\s*\{[^}]*height:auto!important/s,'Reporting grows naturally');
-assert.match(theme,/\.attendance-daily-overview-host\s*\{[^}]*height:auto!important/s,'Daily schedule grows naturally');
+assert.match(theme,/\.attendance-calendar-layout,[\s\S]*?\.ahv3__shell,[\s\S]*?\.att-report-m3,[\s\S]*?\.attendance-archive\s*\{[^}]*height:auto!important;/,'All primary views share a natural unbounded height');
+assert.match(theme,/\.attendance-daily-overview-host/,'Calendar host is included in natural page flow');
 assert.match(theme,/\.bes-supplemental-report-filter/,'Supplemental filter styled horizontally');
 assert.match(bootstrap,/button\.classList\.contains\('is-active'\)/,'Active React navigation class recognized');
 assert.match(bootstrap,/host\.classList\.contains\('is-standalone'\)/,'Standalone filter placement is distinct from modal');
