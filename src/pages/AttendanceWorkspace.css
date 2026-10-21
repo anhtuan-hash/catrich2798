@@ -61,6 +61,26 @@
   background:linear-gradient(105deg,#fff,#f7faff 55%,#eaf2ff)!important;
   box-shadow:none!important;
 }
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-workspace-back {
+  display:flex!important;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  width:auto!important;
+  min-width:145px;
+  height:41px;
+  padding:0 13px!important;
+  border:1px solid #cadefb!important;
+  border-radius:11px!important;
+  background:#fff!important;
+  color:#1a519d!important;
+  box-shadow:0 3px 9px rgba(24,69,124,.07);
+  font-size:12px!important;
+  font-weight:800!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-workspace-back:hover {
+  background:#e9f3ff!important;
+}
 .attendance-workspace-page .attendance-shell.is-standalone .attendance-title {
   display:flex;
   align-items:center;
@@ -211,6 +231,12 @@
   }
   .attendance-workspace-page .attendance-shell.is-standalone .attendance-topbar {
     grid-column:1;grid-row:1;padding:10px 13px!important;gap:8px;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-workspace-back {
+    min-width:42px;width:42px!important;padding:0!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-workspace-back span {
+    display:none;
   }
   .attendance-workspace-page .attendance-shell.is-standalone .attendance-title>span {
     flex-basis:40px;width:40px;height:40px;border-radius:11px!important;
