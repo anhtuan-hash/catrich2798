@@ -2,6 +2,7 @@ import React from 'react';
 import GlobalAttendanceReadOnlyNavigationTab from '../components/GlobalAttendanceReadOnlyNavigationTab.jsx';
 import './AttendanceWorkspace.css';
 import './AttendanceWorkspaceRebuilt.css';
+import './AttendanceQuickLayoutFix.css';
 
 /**
  * A first-class attendance workspace at #/attendance.
