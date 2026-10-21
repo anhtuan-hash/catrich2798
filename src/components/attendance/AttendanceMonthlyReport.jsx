@@ -250,7 +250,7 @@ export default function AttendanceMonthlyReport({ client, classes = [], month, o
       <button type="button" className={reportDimension === "teacher" ? "is-active" : ""} aria-pressed={reportDimension === "teacher"} onClick={() => setReportDimension("teacher")}>Theo giáo viên</button>
       <button type="button" className={reportDimension === "student" ? "is-active" : ""} aria-pressed={reportDimension === "student"} onClick={() => setReportDimension("student")}>Theo học sinh</button>
     </div>
-    {reportDimension === "student" ? <StudentAttendanceReport client={client} month={month} includeSupplemental={includeSupplemental} activityType={activityType} onError={onError} /> : <>
+    {reportDimension === "student" ? <StudentAttendanceReport client={client} month={month} includeSupplemental={includeSupplemental} activityType={activityType} reporterName={reporterName} reporterTitle={reporterTitle} onReporterNameChange={updateReporterName} onReporterTitleChange={updateReporterTitle} onError={onError} /> : <>
     <header className="att-report-m3__toolbar">
       <div className="att-report-m3__hero-copy">
         <span className="att-report-m3__hero-icon"><ReportIcon name="chart" size={25} /></span>

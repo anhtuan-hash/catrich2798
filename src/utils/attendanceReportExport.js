@@ -237,7 +237,7 @@ function htmlEscape(value) {
     .replace(/'/g, '&#039;');
 }
 
-function vietnamReportDate() {
+export function vietnamReportDate() {
   const parts = new Intl.DateTimeFormat('vi-VN', {
     timeZone: VIETNAM_TIME_ZONE,
     day: 'numeric', month: 'numeric', year: 'numeric',
@@ -246,7 +246,7 @@ function vietnamReportDate() {
   return `Thành phố Hồ Chí Minh, ngày ${map.day} tháng ${map.month} năm ${map.year}`;
 }
 
-function reportExportTimestamp(date = new Date()) {
+export function reportExportTimestamp(date = new Date()) {
   const parts = new Intl.DateTimeFormat('vi-VN', {
     timeZone: VIETNAM_TIME_ZONE,
     day: '2-digit', month: '2-digit', year: 'numeric',
@@ -256,7 +256,7 @@ function reportExportTimestamp(date = new Date()) {
   return `${value.day}/${value.month}/${value.year} ${value.hour}:${value.minute}`;
 }
 
-function attendanceFooterSignatureDataUri() {
+export function attendanceFooterSignatureDataUri() {
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="590" height="55" viewBox="0 0 920 86">
     <g transform="translate(2 12)" fill="none" stroke="#08783f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M13.7 1.5h7.1l1.3 3.2 3.4 1.3 3.1-1.6 4.8 4.8-1.6 3.1 1.4 3.4 3.4 1.3v6.5l-3.4 1.3-1.4 3.4 1.6 3.1-4.8 4.8-3.1-1.6-3.4 1.3-1.3 3.2h-7.1l-1.3-3.2-3.4-1.3-3.1 1.6-4.8-4.8 1.6-3.1-1.4-3.4L0 23.5V17l3.4-1.3 1.4-3.4-1.6-3.1L8 4.4 11.1 6l3.4-1.3Z"/>
@@ -269,12 +269,12 @@ function attendanceFooterSignatureDataUri() {
   return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
 }
 
-function waitForPrintWindowLoad(popup) {
+export function waitForPrintWindowLoad(popup) {
   if (popup.document?.readyState === 'complete') return Promise.resolve();
   return new Promise((resolve) => popup.addEventListener('load', resolve, { once: true }));
 }
 
-async function waitForReportImages(popup) {
+export async function waitForReportImages(popup) {
   const images = [...(popup.document?.images || [])];
   await Promise.all(images.map(async (image) => {
     try {
