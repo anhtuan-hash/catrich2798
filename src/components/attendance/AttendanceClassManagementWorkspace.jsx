@@ -182,9 +182,8 @@ export default function AttendanceClassManagementWorkspace({
   if (!detailVisible) {
     return (
       <section className="attendance-manage-overview">
-        <AttendancePanelHeading icon="manage" eyebrow="DANH SÁCH LỚP" title="Tìm và quản lý lớp học"
-          description="Lọc theo môn học, loại lớp hoặc khối; chọn một lớp để quản lý thành viên."
-          aside={<span className="awu-pill"><b>{activeClasses.length}</b> lớp đang hoạt động</span>} />
+        <AttendancePanelHeading icon="manage" eyebrow="DANH SÁCH LỚP" title="Danh sách lớp học"
+          description="Tìm lớp theo môn, loại lớp hoặc khối; chọn một lớp để xem thông tin và danh sách học sinh." />
         <div className="attendance-manage-overview-toolbar attendance-import-card">
           <label className="attendance-manage-search" data-bes-keep-search="true">
             <WorkspaceIcon name="search" size={17} />
