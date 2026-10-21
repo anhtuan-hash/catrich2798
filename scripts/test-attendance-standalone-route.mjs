@@ -33,7 +33,7 @@ assert.match(style,/overflow-x:auto!important;/,'Top navigation scrolls on narro
 assert.match(style,/height:auto!important;/,'Workspace must not crop page content');
 assert.ok(!style.includes('grid-template-columns:240px minmax(0,1fr)'),'Approved mockup does not have a sidebar');
 assert.ok(!style.includes('html.bes-attendance-open'),'Standalone page must not lock document scrolling');
-assert.match(style,/\.attendance-workspace-page \.attendance-shell\.is-standalone \{/,'Standalone shell must be a normal in-flow region');
+assert.match(style,/\.attendance-workspace-page \.attendance-shell\.is-standalone\s*\{/,'Standalone shell must be a normal in-flow region');
 assert.match(style,/\.bes-attendance-time-settings\.is-compact-popover/,'Transient teacher-time popup may be fixed on mobile');
 const teacher={id:'teacher-123',role:'teacher',permissions:{mode:'custom',allowed:[]}};
 assert.equal(hasRouteAccess(teacher,'attendance'),false,'Route must not grant more permissions by default');
