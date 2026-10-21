@@ -1,4 +1,5 @@
 import GlobalAttendanceNavigationTab from './GlobalAttendanceNavigationTab.jsx';
+import AttendanceHistoryPostConfirmAdjustBridge from './AttendanceHistoryPostConfirmAdjustBridge.jsx';
 import { withAttendanceReadOnlyAccess } from '../utils/attendanceReadonlyAccess.js';
 
 /**
@@ -11,5 +12,8 @@ import { withAttendanceReadOnlyAccess } from '../utils/attendanceReadonlyAccess.
  */
 export default function GlobalAttendanceReadOnlyNavigationTab({ currentUser, ...props }) {
   const attendanceUser = withAttendanceReadOnlyAccess(currentUser);
-  return <GlobalAttendanceNavigationTab {...props} currentUser={attendanceUser} />;
+  return <>
+    <GlobalAttendanceNavigationTab {...props} currentUser={attendanceUser} />
+    <AttendanceHistoryPostConfirmAdjustBridge currentUser={attendanceUser} />
+  </>;
 }
