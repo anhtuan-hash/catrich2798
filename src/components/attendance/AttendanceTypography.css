@@ -77,7 +77,7 @@
 
 /* Status chips, eyebrows, numeric indexes: uniformly concise, but never 8px. */
 .attendance-shell :is(
-  .attendance-title small,.attendance-index,.attendance-roster-head,
+  .attendance-title small,.attendance-index,
   .att-m3-status-chip,.att-m3-period-chip,.attendance-room-chip,
   .attendance-manage-tile__type,.attendance-manage-detail-grade,
   .attendance-member-table-head,.attendance-member-status-pill,
@@ -96,6 +96,12 @@
   .attendance-summary b,.attendance-daily-overview__metric-value,
   .ahv3__stat-grid article>b,.ahv3__rate-card>b
 ) {font-size:var(--att-type-metric)!important;line-height:1.15}
+
+/* The close symbol in the standalone supplemental editor is an icon,
+ * not a button caption, and must remain clearly visible. */
+.bes-supplemental-dialog .bes-supplemental-dialog-head>button {
+  font-size:22px!important;
+}
 
 /* Safari/iPhone native fields need at least 16px to prevent auto-zoom.
  * Keep mobile tab labels and action text accessible. */
