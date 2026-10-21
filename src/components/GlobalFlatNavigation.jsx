@@ -166,7 +166,7 @@ export default function GlobalFlatNavigation(props) {
       <GlobalReportsNavigationTab {...props} />
       <GlobalTtcmNavigationTab {...props} />
       <GlobalTtcmMobileAdapter />
-      <GlobalAttendanceNavigationTab {...props} />
+      {props.route !== 'attendance' ? <GlobalAttendanceNavigationTab {...props} /> : null}
       <GlobalAttendanceAdminPersistenceBridge {...props} />
       {!mobile ? <GlobalDashboardFooterBridge route={props.route} language={props.language} /> : null}
       {!mobile ? <GlobalEnglishHubBrand /> : null}
