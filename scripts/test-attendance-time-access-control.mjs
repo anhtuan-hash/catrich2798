@@ -119,7 +119,8 @@ assert.match(compactSource, /readWindowLabel\(panel\)/, 'Compact trigger must di
 assert.match(compactSource, /attendance-icon bes-attendance-time-trigger-icon/, 'Giờ GV must use the same SVG icon language as the React attendance tabs');
 assert.match(compactSource, /classList\.toggle\('is-active',\s*adminSettingsPopoverOpen\)/, 'Opening Giờ GV must reuse the attendance tab active state');
 assert.match(compactSource, /tabs\.appendChild\(trigger\)/, 'Compact trigger must be appended after the existing attendance tabs (after Báo cáo)');
-assert.match(compactSource, /tabs\.appendChild\(panel\)/, 'Existing settings panel must stay out of document flow inside the tab bar popover layer');
+assert.match(compactSource, /panelHost\.appendChild\(panel\)/, 'Settings panel must remain a floating overlay and mount outside scrolling tabs on standalone route');
+assert.match(compactSource, /tabs\.closest\('\.attendance-shell\.is-standalone'\) \|\| tabs/, 'Legacy modal keeps old tab host while full-page workspace uses unclipped root');
 assert.match(compactSource, /let\s+adminSettingsPopoverOpen\s*=\s*false/, 'Popover open/closed state must remain explicit and stable across renders');
 assert.match(compactSource, /panel\.hidden\s*=\s*!adminSettingsPopoverOpen/, 'Settings panel must stay out of view until the Admin opens it');
 assert.match(compactSource, /event\.key\s*===\s*'Escape'/, 'Escape must close the compact settings popover');
