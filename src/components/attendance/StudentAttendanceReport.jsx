@@ -3,6 +3,7 @@ import { normalizeSupplementalReportData, absenceReasonLabel } from '../../utils
 import { buildStudentAttendanceReport } from '../../utils/studentAttendanceReport.js';
 import { downloadStudentAttendanceExcel, printStudentAttendancePdf } from '../../utils/studentAttendanceExport.js';
 import './StudentAttendanceReport.css';
+import './StudentAttendanceReportTheme.css';
 
 const STUDENT_REPORT_ICONS = {
   report: <><path d="M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9"/><path d="M13 3h8v8h-8z"/><path d="m7 15 3-3 3 2 3-3"/><path d="M7 18h10"/></>,
