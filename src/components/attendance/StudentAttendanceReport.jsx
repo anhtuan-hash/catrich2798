@@ -184,7 +184,7 @@ export default function StudentAttendanceReport({client, month, onError, include
         </tr>)}
         {!students.length?<tr><td colSpan={12} className="stud-att__empty">Chưa có học sinh có dữ liệu điểm danh đã chốt phù hợp bộ lọc.</td></tr>:null}
       </tbody></table></div>
-      <p className="stud-att__footnote">Chỉ tổng hợp học sinh có bản ghi điểm danh hợp lệ. Buổi bị hủy hoặc chưa chốt không tính là vắng. Đi trễ vẫn tính là có mặt. Số liệu chỉ phản ánh mức độ tham gia, không đánh giá kết quả học tập. {checked.length?'Đang chọn '+checked.length+' học sinh để xuất.':'Không chọn riêng: xuất toàn bộ danh sách đang lọc.'}</p>
+      <p className="stud-att__footnote">Chỉ tổng hợp học sinh có bản ghi điểm danh hợp lệ. Buổi bị hủy hoặc chưa chốt không tính là vắng. Đi trễ vẫn tính là có mặt. Số liệu chỉ phản ánh mức độ tham gia, không đánh giá kết quả học tập. Học sinh thiếu mã được đối chiếu bằng họ tên và lớp hành chính; nên bổ sung mã HS để tránh nhầm lẫn. {checked.length?'Đang chọn '+checked.length+' học sinh để xuất.':'Không chọn riêng: xuất toàn bộ danh sách đang lọc.'}</p>
     </React.Fragment>:null}
     {selected?<div className="stud-att__overlay" role="presentation" onClick={()=>setSelectedStudent('')}>
       <section role="dialog" aria-modal="true" aria-label={'Báo cáo '+selected.name} className="stud-att__dialog" onClick={e=>e.stopPropagation()}>
