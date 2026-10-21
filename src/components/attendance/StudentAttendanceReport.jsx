@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { normalizeSupplementalReportData } from '../../utils/attendanceReport.js';
+import { normalizeSupplementalReportData, absenceReasonLabel } from '../../utils/attendanceReport.js';
 import { buildStudentAttendanceReport } from '../../utils/studentAttendanceReport.js';
 import { downloadStudentAttendanceExcel, printStudentAttendancePdf } from '../../utils/studentAttendanceExport.js';
 import './StudentAttendanceReport.css';
@@ -79,7 +79,7 @@ function SubjectChart({rows}) {
   </div>;
 }
 
-export default function StudentAttendanceReport({client, month, onError, includeSupplemental=true, activityType='all'}) {
+export default function StudentAttendanceReport({client, month, onError, includeSupplemental=true, activityType='all', reporterName='', reporterTitle='', onReporterNameChange, onReporterTitleChange}) {
   const [from,setFrom] = useState(()=>monthStart(month));
   const [to,setTo] = useState(()=>monthEnd(month));
   const [category,setCategory] = useState(activityType);
@@ -130,10 +130,10 @@ export default function StudentAttendanceReport({client, month, onError, include
   useEffect(()=>{setChecked([]);},[category,classId,schoolClass,grade,subject,teacher,search,warning,from,to,refreshKey]);
   const selected = students.find(s=>s.key===selectedStudent)||null;
   const exportStudents = checked.length ? students.filter(s=>checked.includes(s.key)) : students;
-  const params = {from,to,activityType:category};
+  const params = {from,to,activityType:category,reporterName,reporterTitle};
   const chooseAll = (checkedValue)=>setChecked(checkedValue?students.map(s=>s.key):[]);
   const doExcel = ()=>{try{downloadStudentAttendanceExcel(exportStudents,params);}catch(e){onError?.(e.message);}};
-  const doPdf = ()=>{try{printStudentAttendancePdf(exportStudents,params);}catch(e){onError?.(e.message);}};
+  const doPdf = async ()=>{try{await printStudentAttendancePdf(exportStudents,params);}catch(e){onError?.(e.message);}};
   const options = (data,selector)=>data.map(s=><option key={selector(s)} value={selector(s)}>{selector(s)}</option>);
 
   return <section className="stud-att">
@@ -141,6 +141,7 @@ export default function StudentAttendanceReport({client, month, onError, include
       <div><span className="stud-att__eyebrow">THEO DÕI HỌC SINH</span><h3>Báo cáo tình hình tham gia học tập</h3><p>Tính theo số tiết của các buổi đã chốt; tách rõ có mặt, đi trễ và vắng học.</p></div>
       <div className="stud-att__actions"><button disabled={loading||!exportStudents.length} onClick={doExcel}>↓ Xuất Excel</button><button className="stud-att__primary" disabled={loading||!exportStudents.length} onClick={doPdf}>▣ In / Lưu PDF</button></div>
     </header>
+    <div className="stud-att__reporter"><label>Người báo cáo<input value={reporterName} onChange={event=>onReporterNameChange?.(event.target.value)} placeholder="Nhập họ tên người lập báo cáo" /></label><label>Chức vụ<input value={reporterTitle} onChange={event=>onReporterTitleChange?.(event.target.value)} placeholder="Ví dụ: Phó hiệu trưởng" /></label></div>
     <div className="stud-att__filters">
       <label>Từ ngày<input type="date" value={from} onChange={e=>setFrom(e.target.value)}/></label>
       <label>Đến ngày<input type="date" value={to} min={from} onChange={e=>setTo(e.target.value)}/></label>
@@ -193,8 +194,8 @@ export default function StudentAttendanceReport({client, month, onError, include
         <p><span className={'stud-att__level is-'+selected.alert}>{categoryText[selected.alert]}</span> · Vắng có phép: {selected.excusedCount} · Không phép: {selected.unexcusedCount} · Đi trễ: {selected.lateCount}</p>
         <div className="stud-att__charts"><div><h3>Xu hướng chuyên cần theo tháng</h3><TrendChart points={selected.monthRows}/></div><div><h3>Tham gia theo môn học</h3><SubjectChart rows={selected.subjectRows}/></div></div>
         <h3>Chi tiết buổi học</h3>
-        <div className="stud-att__table-wrap"><table><thead><tr><th>Ngày</th><th>Lớp / môn</th><th>Giáo viên</th><th>Tiết</th><th>Trạng thái</th><th>Lý do / ghi chú</th></tr></thead><tbody>{selected.details.map(d=><tr key={d.sessionId}><td>{d.date}</td><td><b>{d.className}</b><small>{d.subject} · {activityText[d.activityType]}</small></td><td>{d.teacher||'—'}</td><td>{d.periods}</td><td>{statusText[d.status]}</td><td>{d.absenceReason||'—'} {d.absenceNote}</td></tr>)}</tbody></table></div>
-        <footer><button onClick={()=>downloadStudentAttendanceExcel([selected],params)}>Xuất Excel cá nhân</button><button className="stud-att__primary" onClick={()=>{try{printStudentAttendancePdf([selected],params);}catch(e){onError?.(e.message);}}}>In / Lưu PDF cá nhân</button></footer>
+        <div className="stud-att__table-wrap"><table><thead><tr><th>Ngày</th><th>Lớp / môn</th><th>Giáo viên</th><th>Tiết</th><th>Trạng thái</th><th>Lý do / ghi chú</th></tr></thead><tbody>{selected.details.map(d=><tr key={d.sessionId}><td>{d.date}</td><td><b>{d.className}</b><small>{d.subject} · {activityText[d.activityType]}</small></td><td>{d.teacher||'—'}</td><td>{d.periods}</td><td>{statusText[d.status]}</td><td>{d.status === 'absent' ? absenceReasonLabel(d.absenceReason) : '—'} {d.absenceNote}</td></tr>)}</tbody></table></div>
+        <footer><button onClick={()=>downloadStudentAttendanceExcel([selected],params)}>Xuất Excel cá nhân</button><button className="stud-att__primary" onClick={async ()=>{try{await printStudentAttendancePdf([selected],params);}catch(e){onError?.(e.message);}}}>In / Lưu PDF cá nhân</button></footer>
       </section></div>:null}
   </section>;
 }
