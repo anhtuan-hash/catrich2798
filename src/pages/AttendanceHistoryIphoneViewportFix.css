@@ -6,6 +6,22 @@
  * Scope every rule to #/attendance so the old admin modal is unchanged.
  */
 @media (max-width: 900px) {
+  /* The standalone page previously used width:100% plus mobile padding
+     under content-box sizing, producing a 10px horizontal viewport spill. */
+  html body .attendance-workspace-page {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+  html body .attendance-workspace-page .attendance-standalone-root,
+  html body .attendance-workspace-page .attendance-shell.is-standalone {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
   html body .attendance-workspace-page .attendance-shell.is-standalone.ah-history-v5:has(.ahv3__shell.is-mobile-detail-open) {
     position: relative !important;
     z-index: 2147481000 !important;
