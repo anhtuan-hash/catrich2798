@@ -44,5 +44,17 @@ assert.equal(attendanceAlert({totalPeriods:10,presentPeriods:10,unexcusedCount:2
 assert.equal(attendanceAlert({totalPeriods:10,presentPeriods:10,unexcusedCount:0,lateCount:3}),'watch');
 assert.equal(attendanceAlert({totalPeriods:0,presentPeriods:0,unexcusedCount:0,lateCount:0}),'unknown');
 assert.notEqual(studentIdentity({student_full_name:'Nguyễn A',school_class_name:'10.1'}),studentIdentity({student_full_name:'Nguyễn A',school_class_name:'10.2'}));
+const partialCodes = buildStudentAttendanceReport({sessions,records:[
+  {id:'coded',session_id:'one',...person,status:'present'},
+  {id:'uncoded',session_id:'two',...person,student_code:'',status:'absent'},
+]});
+assert.equal(partialCodes.students.length,1,'join coded and uncoded snapshots uniquely on name plus class');
+assert.equal(partialCodes.students[0].totalPeriods,3.5);
+const conflictingCodes = buildStudentAttendanceReport({sessions,records:[
+  {id:'code1',session_id:'one',...person,status:'present'},
+  {id:'code2',session_id:'two',...person,student_code:'HS009',status:'absent'},
+  {id:'uncoded',session_id:'three',...person,student_code:'',status:'present'},
+]});
+assert.equal(conflictingCodes.students.length,3,'do not auto-merge ambiguous identity when codes conflict');
 assert.equal(buildStudentAttendanceReport({sessions,records:[{session_id:'scheduled',...person,status:'absent'}]}).totals.students,0);
 console.log('Student attendance reporting checks passed.');
