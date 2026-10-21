@@ -156,7 +156,7 @@ export default function StudentAttendanceReport({client, month, onError, include
   const options = (data,selector)=>data.map(s=><option key={selector(s)} value={selector(s)}>{selector(s)}</option>);
 
   return <section className="stud-att">
-    <AttendancePanelHeading className="stud-att__intro" icon="users" eyebrow="BÁO CÁO HỌC SINH" title="Chuyên cần theo học sinh"
+    <AttendancePanelHeading className="stud-att__intro" icon="users" iconClassName="stud-att__hero-icon" eyebrow="BÁO CÁO HỌC SINH" title="Chuyên cần theo học sinh"
       description="Theo dõi tiết có mặt, đi trễ và vắng trên những buổi đã chốt."
       aside={<div className="stud-att__actions"><button type="button" disabled={loading||!exportStudents.length} onClick={doExcel}><StudentReportIcon name="excel" size={16}/> Xuất Excel</button><button type="button" className="stud-att__primary" disabled={loading||!exportStudents.length} onClick={doPdf}><StudentReportIcon name="pdf" size={16}/> In / Lưu PDF</button></div>} />
     <section className="stud-att__filter-panel" aria-label="Bộ lọc báo cáo học sinh">
