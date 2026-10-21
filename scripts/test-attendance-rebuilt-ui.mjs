@@ -20,7 +20,7 @@ assert.match(nav,/<AttendanceViewHeader view=\{view\}/,'Root tab heading must us
 assert.match(nav,/view === 'history' \? \[/,'History should report dynamic data');
 assert.match(nav,/view === 'manage' \? \[/,'Manage should report dynamic data');
 assert.match(nav,/view === 'quick' \? \[/,'Quick should report dynamic data');
-assert.match(manage,/<AttendancePanelHeading icon="manage"/);
+assert.match(manage,/attendance-manage-list-heading/,'Class list uses a compact inline heading instead of duplicating the main hero');
 assert.match(archive,/<AttendancePanelHeading className="attendance-archive__hero"/);
 assert.match(archive,/<AttendanceStatCard icon="archive"/);
 assert.match(manage,/<AttendanceEmpty title="Không có lớp phù hợp"/);

@@ -81,10 +81,23 @@ function WorkspaceIcon({ name, size = 18 }) {
     book: <><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v16H6.5A2.5 2.5 0 0 0 4 21.5Z" /><path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v16h4.5a2.5 2.5 0 0 1 2.5 2.5Z" /></>,
     layers: <><path d="m12 3 9 5-9 5-9-5 9-5Z" /><path d="m3 12 9 5 9-5M3 16l9 5 9-5" /></>,
     globe: <><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0 18" /></>,
+    grid: <><rect x="3" y="3" width="7" height="7" rx="1.4"/><rect x="14" y="3" width="7" height="7" rx="1.4"/><rect x="3" y="14" width="7" height="7" rx="1.4"/><rect x="14" y="14" width="7" height="7" rx="1.4"/></>,
+    flask: <><path d="M9 3h6M10 3v7l-5.4 8.5A2.5 2.5 0 0 0 6.7 22h10.6a2.5 2.5 0 0 0 2.1-3.5L14 10V3M8 15h8"/></>,
+    atom: <><circle cx="12" cy="12" r="2"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(50 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(-50 12 12)"/></>,
+    calculator: <><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M8 6h8v4H8zM8 14h1m4 0h1m-6 4h1m4 0h1"/></>,
+    leaf: <><path d="M20 4C8 4 4 10 5 18c8 2 15-5 15-14zM5 20c4-6 7-9 12-12"/></>,
+    pencil: <><path d="m4 20 4.5-1 11-11a2.1 2.1 0 0 0-3-3l-11 11L4 20zM14 7l3 3"/></>,
     check: <><circle cx="12" cy="12" r="9" /><path d="m8 12 2.5 2.5L16 9" /></>,
   };
   return <svg {...common}>{paths[name] || paths.list}</svg>;
 }
+
+const SUBJECT_ICONS = {
+  math:'calculator', casio:'calculator', chemistry:'flask', physics:'atom',
+  literature:'book', geography:'globe', biology:'leaf', english:'globe',
+  history:'book',
+};
+function classSubjectIcon(subjectKey) { return SUBJECT_ICONS[subjectKey] || 'book'; }
 
 function downloadMemberCsv(selectedClass, members) {
   if (!selectedClass) return;
@@ -149,6 +162,7 @@ export default function AttendanceClassManagementWorkspace({
   const [manageClassQuery, setManageClassQuery] = useState('');
   const [manageTypeFilter, setManageTypeFilter] = useState('all');
   const [manageGradeFilter, setManageGradeFilter] = useState('all');
+  const [manageDisplay, setManageDisplay] = useState('grid');
   const [editingClass, setEditingClass] = useState(false);
 
   const filteredManageClasses = useMemo(() => activeClasses.filter((classRow) => {
@@ -182,8 +196,6 @@ export default function AttendanceClassManagementWorkspace({
   if (!detailVisible) {
     return (
       <section className="attendance-manage-overview">
-        <AttendancePanelHeading icon="manage" eyebrow="DANH SÁCH LỚP" title="Danh sách lớp học"
-          description="Tìm lớp theo môn, loại lớp hoặc khối; chọn một lớp để xem thông tin và danh sách học sinh." />
         <div className="attendance-manage-overview-toolbar attendance-import-card">
           <label className="attendance-manage-search" data-bes-keep-search="true">
             <WorkspaceIcon name="search" size={17} />
@@ -229,6 +241,10 @@ export default function AttendanceClassManagementWorkspace({
             ))}
           </div>
           <span className="attendance-manage-result-count">{filteredManageClasses.length}/{activeClasses.length} lớp</span>
+          <div className="attendance-manage-display-toggle" role="group" aria-label="Kiểu hiển thị lớp">
+            <button type="button" className={manageDisplay === 'grid' ? 'is-active' : ''} aria-label="Hiển thị dạng lưới" aria-pressed={manageDisplay === 'grid'} onClick={() => setManageDisplay('grid')}><WorkspaceIcon name="grid" size={17}/></button>
+            <button type="button" className={manageDisplay === 'list' ? 'is-active' : ''} aria-label="Hiển thị dạng danh sách" aria-pressed={manageDisplay === 'list'} onClick={() => setManageDisplay('list')}><WorkspaceIcon name="list" size={17}/></button>
+          </div>
         </div>
 
         {importReport ? (
@@ -245,7 +261,8 @@ export default function AttendanceClassManagementWorkspace({
           </section>
         ) : null}
 
-        <div className="attendance-manage-tile-grid">
+        <div className="attendance-manage-list-heading"><h2>Danh sách lớp học</h2><span>{filteredManageClasses.length} lớp phù hợp</span></div>
+        <div className={`attendance-manage-tile-grid ${manageDisplay === 'list' ? 'is-list' : ''}`}>
           {filteredManageClasses.map((classRow) => {
             const subjectKey = attendanceSubjectKey(classRow.subject);
             const room = roomForExtraClass(classRow) || 'Chưa ghi phòng';
@@ -261,17 +278,21 @@ export default function AttendanceClassManagementWorkspace({
                 onClick={() => openClass(classRow)}
               >
                 <span className="attendance-manage-tile__topline">
-                  <span className="attendance-manage-tile__icon"><WorkspaceIcon name="list" size={22} /></span>
-                  <span className={`attendance-manage-tile__type is-${classRow.class_type}`}>{shortTypeLabel(classRow.class_type)}</span>
+                  <span className="attendance-manage-tile__icon"><WorkspaceIcon name={classSubjectIcon(subjectKey)} size={23} /></span>
+                  <span className="attendance-manage-tile__eyebrow">LỚP HỌC</span>
+                  <WorkspaceIcon name="layers" size={17} />
                 </span>
                 <span className="attendance-manage-tile__title">{classRow.class_name}</span>
-                <span className="attendance-manage-tile__subtitle">{classRow.subject || 'Chưa ghi môn'} · {classRow.grade_level ? `Khối ${classRow.grade_level}` : 'Chưa ghi khối'}</span>
+                <span className="attendance-manage-tile__badges">
+                  <span className={`attendance-manage-tile__type is-${classRow.class_type}`}>{shortTypeLabel(classRow.class_type)}</span>
+                  <span className="attendance-manage-tile__grade">{classRow.grade_level ? `Khối ${classRow.grade_level}` : 'Chưa ghi khối'}</span>
+                </span>
                 <span className="attendance-manage-tile__meta">
-                  <span className="attendance-manage-tile__room"><WorkspaceIcon name="room" size={15} />Phòng {room}</span>
-                  <span className="attendance-manage-tile__weekday"><WorkspaceIcon name="calendar" size={15} />{weekday}</span>
-                  <span className="attendance-manage-tile__time"><WorkspaceIcon name="clock" size={15} />{time}</span>
-                  <span className="attendance-manage-tile__students"><WorkspaceIcon name="users" size={15} />{studentCount} học sinh</span>
-                  <span className="attendance-manage-tile__teacher" title={teacher}><WorkspaceIcon name="teacher" size={15} />{teacher}</span>
+                  <span className="attendance-manage-tile__subject"><WorkspaceIcon name="book" size={16}/><span>Môn học</span><strong>{classRow.subject || 'Chưa ghi môn'}</strong></span>
+                  <span className="attendance-manage-tile__teacher" title={teacher}><WorkspaceIcon name="teacher" size={16}/><span>Giáo viên</span><strong>{teacher}</strong></span>
+                  <span className="attendance-manage-tile__room"><WorkspaceIcon name="room" size={16}/><span>Phòng học</span><strong>{room === 'Chưa ghi phòng' ? room : `Phòng ${room}`}</strong></span>
+                  <span className="attendance-manage-tile__weekday attendance-manage-tile__time"><WorkspaceIcon name="calendar" size={16}/><span>Thời gian</span><strong>{weekday} · {time}</strong></span>
+                  <span className="attendance-manage-tile__students"><WorkspaceIcon name="users" size={16}/><span>Sĩ số</span><strong>{studentCount} học sinh</strong></span>
                 </span>
               </button>
             );
