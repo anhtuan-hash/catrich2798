@@ -1,0 +1,485 @@
+/*
+ * ESL BRIAN · Attendance UI System / 2026
+ *
+ * Unified visual language for the seven existing attendance tabs:
+ * calendar + roll call, class management, history, supplemental learning,
+ * teacher/student reports, archive, and teacher-time management.
+ *
+ * Visual-only: no DOM ordering, business logic, permissions or DB schema.
+ * Keep established per-subject colors and present/late/absent semantics.
+ * Print/export markup is not a descendant of these UI roots.
+ */
+.attendance-shell,
+.bes-supplemental-dialog,
+.bes-supplemental-reporting-panel {
+  --att-ui-primary:#155ed6;
+  --att-ui-primary-deep:#0d459f;
+  --att-ui-primary-soft:#e8f1ff;
+  --att-ui-accent:#078a7b;
+  --att-ui-accent-soft:#e5f8f1;
+  --att-ui-violet:#754cc8;
+  --att-ui-warning:#b96b12;
+  --att-ui-danger:#c84853;
+  --att-ui-ink:#1a3153;
+  --att-ui-muted:#627792;
+  --att-ui-border:#d7e4f4;
+  --att-ui-soft-border:#e7eef8;
+  --att-ui-bg:#f3f7fe;
+  --att-ui-white:#fff;
+  --att-ui-radius:16px;
+  --att-ui-radius-lg:20px;
+  --att-ui-shadow:0 5px 17px rgba(29,65,126,.075);
+  --att-ui-shadow-hover:0 10px 25px rgba(29,65,126,.13);
+  --att-m3-primary:#155ed6;
+  --att-m3-on-primary:#fff;
+  --att-m3-primary-container:#e8f1ff;
+  --att-m3-on-primary-container:#123e82;
+  --att-m3-secondary-container:#e8f1ff;
+  --att-m3-surface:#fff;
+  --att-m3-surface-container:#f1f6fe;
+  --att-m3-surface-container-high:#e7f0fd;
+  --att-m3-on-surface:#1a3153;
+  --att-m3-on-variant:#627792;
+  --att-m3-outline-variant:#d7e4f4;
+  color:var(--att-ui-ink);
+}
+.attendance-shell {
+  background:linear-gradient(135deg,#fbfdff,#f5f8ff 65%,#edf3ff);
+  border:1px solid #d7e3f6;
+  box-shadow:0 24px 80px rgba(13,40,88,.23);
+}
+
+/* Persistent application chrome: same header + tab treatment in every view. */
+.attendance-shell .attendance-topbar {
+  background:linear-gradient(112deg,#fff 0%,#f7faff 50%,#eaf2ff 100%)!important;
+  border-bottom:1px solid #e3ecfa!important;
+}
+.attendance-shell .attendance-title>span {
+  color:var(--att-ui-primary)!important;
+  background:linear-gradient(145deg,#e5f0ff,#cbdfff)!important;
+  box-shadow:inset 0 1px 0 #fff,0 3px 10px rgba(43,101,198,.12);
+}
+.attendance-shell .attendance-title strong {color:#10294e!important;letter-spacing:-.018em}
+.attendance-shell .attendance-title small {color:#225aa9!important}
+.attendance-shell .attendance-icon-button {
+  border:1px solid #e0e8f7!important;
+  background:#f1f5fc!important;
+  color:#3d5476!important;
+}
+.attendance-shell .attendance-icon-button:hover:not(:disabled) {
+  background:#e2edff!important;color:var(--att-ui-primary)!important;
+}
+.attendance-shell .attendance-tabs {
+  background:linear-gradient(180deg,#fff,#f8faff)!important;
+  border-bottom:1px solid #dae6f6!important;
+  gap:8px;
+}
+.attendance-shell .attendance-tabs>button {
+  border:1px solid transparent!important;
+  border-radius:13px!important;
+  background:transparent!important;
+  color:#4c5d76!important;
+  transition:background-color .16s ease,color .16s ease,border-color .16s ease;
+}
+.attendance-shell .attendance-tabs>button:hover:not(.is-active) {
+  background:#edf4ff!important;
+  color:#1656b6!important;
+  border-color:#dce9ff!important;
+}
+.attendance-shell .attendance-tabs>button.is-active {
+  color:#0e4eb1!important;
+  background:linear-gradient(125deg,#e0edff,#d1e2ff)!important;
+  border-color:#cbdfff!important;
+  box-shadow:0 4px 10px rgba(27,86,187,.1);
+}
+.attendance-shell .attendance-tabs>button.is-active::after {
+  background:var(--att-ui-primary)!important;
+}
+.attendance-shell .attendance-content {
+  background:linear-gradient(180deg,#f3f7ff 0%,#f8faff 95%)!important;
+}
+.attendance-shell .attendance-banner {
+  border-radius:13px!important;
+  box-shadow:0 3px 12px rgba(24,69,117,.07);
+}
+.attendance-shell .attendance-empty {
+  color:var(--att-ui-muted);
+}
+
+/* Every main feature uses the same surface, outline, corner radius, shadow. */
+.attendance-shell :is(
+  .attendance-class-list,.attendance-rollcall,.attendance-import-card,
+  .attendance-manage-classes,.attendance-member-manager,.attendance-class-info-card,
+  .attendance-calendar-toolbar,.attendance-calendar-layout>aside,
+  .attendance-daily-overview__summary,.attendance-manage-overview-toolbar,
+  .attendance-manage-detail-hero,.attendance-manage-detail-roster-card,
+  .attendance-manage-detail-info-strip,.ahv3__list,.ahv3__detail,
+  .att-report-m3__surface,.att-report-m3__toolbar,.att-report-m3__export-meta,
+  .stud-att__intro,.stud-att__filter-panel,.stud-att__table-wrap,
+  .attendance-archive__hero,.attendance-archive__card
+) {
+  border:1px solid var(--att-ui-border)!important;
+  border-radius:var(--att-ui-radius-lg)!important;
+  box-shadow:var(--att-ui-shadow)!important;
+}
+.attendance-shell :is(
+  .attendance-class-list,.attendance-rollcall,.attendance-import-card,
+  .attendance-manage-classes,.attendance-member-manager,
+  .attendance-class-info-card,.ahv3__list,.ahv3__detail,
+  .att-report-m3__surface,.att-report-m3__export-meta,
+  .stud-att__filter-panel,.stud-att__table-wrap
+) {background-color:#fff!important}
+
+/* One interactive form language: accessible contrast + unified focus rings. */
+.attendance-shell :is(input:not([type=checkbox]):not([type=radio]),select,textarea),
+.bes-supplemental-dialog :is(input:not([type=checkbox]):not([type=radio]),select,textarea),
+.bes-supplemental-reporting-panel :is(input:not([type=checkbox]):not([type=radio]),select,textarea) {
+  border-radius:11px!important;
+  border-color:#cedef3!important;
+  color:#203c64!important;
+}
+.attendance-shell :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus-visible,
+.bes-supplemental-dialog :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus-visible,
+.bes-supplemental-reporting-panel :is(input:not([type=checkbox]):not([type=radio]),select,textarea):focus-visible {
+  outline:2px solid #6fa6ff!important;
+  outline-offset:1px;
+  box-shadow:0 0 0 4px rgba(44,115,235,.12)!important;
+}
+.attendance-shell :is(button,a):focus-visible,
+.bes-supplemental-dialog :is(button,a):focus-visible {
+  outline:3px solid #78a9fa!important;outline-offset:2px;
+}
+.attendance-shell :is(button,[role=button]):not(.attendance-icon-button) {transition:box-shadow .16s ease,background-color .16s ease,border-color .16s ease}
+.attendance-shell :is(
+  .attendance-manage-import-button,.attendance-create-class-button,
+  .attendance-manage-detail-actions__primary,.att-report-m3__export button,
+  .att-report-m3__section-head button.is-primary,.stud-att__primary
+) {
+  border-radius:11px!important;
+  box-shadow:0 5px 13px rgba(22,90,199,.16);
+}
+
+/* Quick attendance: class rail, roll call, session controls and roster. */
+.attendance-shell .attendance-quick-layout {gap:13px}
+.attendance-shell .attendance-class-list>header,
+.attendance-shell .attendance-manage-classes>header,
+.attendance-shell .attendance-rollcall-head {
+  border-bottom:1px solid var(--att-ui-soft-border)!important;
+  background:linear-gradient(100deg,#fff,#f6faff)!important;
+}
+.attendance-shell .att-m3-class-search input {
+  border:1px solid #cbdcf6!important;
+  background:#fff!important;
+}
+.attendance-shell .att-m3-subject-hub button {
+  border:1px solid transparent!important;
+}
+.attendance-shell .attendance-class-list button.is-selected,
+.attendance-shell .attendance-manage-classes button.is-selected {
+  background:linear-gradient(105deg,#eaf3ff,#dceaff)!important;
+  box-shadow:inset 3px 0 0 var(--att-ui-primary)!important;
+  color:#174b95!important;
+}
+.attendance-shell .attendance-rollcall-head>div:first-child>span {
+  color:#1658c2!important;
+  background:#e5f0ff!important;
+  border-radius:999px;
+  padding:4px 9px;
+}
+.attendance-shell .attendance-session-controls>label,
+.attendance-shell .att-m3-period-field,
+.attendance-shell .attendance-day-lock,
+.attendance-shell .attendance-day-open {
+  border:1px solid #e2ebf8!important;
+  background:#f3f7ff!important;
+  border-radius:14px!important;
+}
+.attendance-shell .attendance-day-lock:not(.is-cancelled) {
+  background:#e1f7ed!important;color:#086e48!important;
+  border-color:#bee8d5!important;
+}
+.attendance-shell .attendance-roster {
+  border:1px solid #dce7f8!important;
+  border-radius:14px!important;
+}
+.attendance-shell .attendance-roster-head {
+  background:linear-gradient(180deg,#e8f1ff,#dfecff)!important;
+  color:#335581!important;
+  border-bottom:1px solid #d3e2fa;
+}
+.attendance-shell .att-m3-roster-entry:nth-child(even) {background:#f8fbff}
+.attendance-shell .att-m3-roster-entry.is-absent {
+  background:#fff0f0!important;
+}
+.attendance-shell .att-m3-attendance-status button.is-active.is-present {background:#bdebd4!important;color:#076743!important}
+.attendance-shell .att-m3-attendance-status button.is-active.is-late {background:#ffe7b8!important;color:#8a5107!important}
+.attendance-shell .att-m3-attendance-status button.is-active.is-absent {background:#ffd1d7!important;color:#a32339!important}
+.attendance-shell .attendance-confirm-bar {
+  border:1px solid #dce8f9!important;
+  background:linear-gradient(105deg,#f2f7ff,#eaf3ff)!important;
+  border-radius:16px!important;
+}
+
+/* Calendar: use the same blue toolbar, colored KPI cards, clean rows. */
+.attendance-shell .attendance-calendar-room-filter,
+.attendance-shell .attendance-daily-date-card {
+  border:1px solid #d0e0f7!important;
+  border-radius:13px!important;
+  background:#fff!important;
+  box-shadow:0 3px 12px rgba(27,70,134,.07)!important;
+}
+.attendance-shell .attendance-calendar-room-chip.is-active {
+  background:#e1eeff!important;
+  color:#0d56bf!important;
+  border-color:#b7d4ff!important;
+}
+.attendance-shell .attendance-daily-overview__summary {
+  background:linear-gradient(115deg,#fff,#f5f9ff)!important;
+  border-color:#d7e6fa!important;
+}
+.attendance-shell .attendance-daily-overview__metric {
+  border:1px solid #dce8fa!important;
+  border-radius:12px!important;
+  background:linear-gradient(140deg,#eef6ff,#e4efff)!important;
+  color:#145ec6!important;
+  box-shadow:none!important;
+}
+.attendance-shell .attendance-daily-overview__metric.is-completed {
+  color:#067a57!important;
+  background:linear-gradient(140deg,#effcf4,#d9f5e6)!important;
+  border-color:#c3e9d4!important;
+}
+.attendance-shell .attendance-daily-overview__metric.is-missing {
+  color:#986008!important;
+  background:linear-gradient(140deg,#fffaee,#ffedd1)!important;
+  border-color:#f7dfad!important;
+}
+.attendance-shell .attendance-daily-overview__metric.is-cancelled {
+  color:#b03b4b!important;
+  background:linear-gradient(140deg,#fff6f6,#ffe6ea)!important;
+  border-color:#f4d3dc!important;
+}
+.attendance-shell .attendance-daily-table-header {
+  border-radius:11px 11px 0 0;
+  background:linear-gradient(180deg,#eaf3ff,#dfeeff)!important;
+  color:#385c8d!important;
+}
+.attendance-shell .attendance-daily-floor-card {
+  border-radius:15px!important;
+  box-shadow:var(--att-ui-shadow)!important;
+  background:linear-gradient(145deg,#fff,var(--floor-soft,#f1f8ff))!important;
+}
+.attendance-shell .attendance-daily-class-row {
+  border:1px solid #dae5f5!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  box-shadow:0 2px 8px rgba(39,79,144,.045)!important;
+}
+.attendance-shell .attendance-daily-class-row:hover {
+  border-color:#a6c9fc!important;
+  background:#f3f8ff!important;
+}
+
+/* Class management: make the discovery grid and detail match report surfaces. */
+.attendance-shell .attendance-manage-overview-toolbar {
+  background:linear-gradient(110deg,#fff,#eff6ff)!important;
+  border-color:#d1e1f9!important;
+}
+.attendance-shell .attendance-manage-class-tile {
+  border-radius:17px!important;
+  box-shadow:0 4px 13px rgba(32,75,140,.07)!important;
+}
+.attendance-shell .attendance-manage-class-tile:hover {
+  box-shadow:var(--att-ui-shadow-hover)!important;
+  transform:translateY(-1px);
+}
+.attendance-shell .attendance-manage-detail-hero {
+  background:linear-gradient(114deg,#fff 0%,#f5f9ff 46%,var(--detail-soft,#eaf3ff) 100%)!important;
+  border-color:#d1e3f9!important;
+}
+.attendance-shell .attendance-manage-detail-quick-stats,
+.attendance-shell .attendance-manage-detail-info-strip,
+.attendance-shell .attendance-manage-detail-roster-card {
+  border:1px solid #dae5f5!important;
+  border-radius:15px!important;
+  background:#fff!important;
+  box-shadow:0 3px 12px rgba(33,70,125,.055)!important;
+}
+.attendance-shell .attendance-manage-detail-info-item>span {
+  background:#e9f3ff!important;
+  color:var(--att-ui-primary)!important;
+  border-radius:11px;
+}
+.attendance-shell .attendance-member-table-head,
+.attendance-shell .attendance-member-table.is-mockup .attendance-member-table-head {
+  background:linear-gradient(#e9f2ff,#dfeeff)!important;
+  color:#365a87!important;
+}
+.attendance-shell .attendance-member-table-row:nth-child(even) {background:#f9fbff!important}
+
+/* History: sidebar filters, selected session, details and card stats. */
+.attendance-shell .ahv3__list,
+.attendance-shell .ahv3__detail {
+  --ahv2-blue:var(--att-ui-primary);
+  --ahv2-blue-soft:var(--att-ui-primary-soft);
+  --ahv2-border:var(--att-ui-border);
+  --ahv2-shadow:var(--att-ui-shadow);
+  border-radius:var(--att-ui-radius-lg)!important;
+}
+.attendance-shell .ahv3__list-head {
+  background:linear-gradient(115deg,#fff,#f0f6ff)!important;
+  border-bottom:1px solid #dbe7f7!important;
+}
+.attendance-shell .ahv3__items>button.is-selected {
+  background:linear-gradient(110deg,#edf5ff,#e0efff)!important;
+  box-shadow:inset 3px 0 0 var(--att-ui-primary)!important;
+}
+.attendance-shell .ahv3__shell .ahv3__detail .ahv3__hero {
+  background:linear-gradient(117deg,#fafdff,#e5f0ff)!important;
+  border-color:#d3e4fa!important;
+}
+.attendance-shell .ahv3__shell :is(.ahv3__info-grid article,.ahv3__stat-grid article) {
+  border:1px solid #e0e9f7!important;
+  border-radius:13px!important;
+  box-shadow:none!important;
+}
+.attendance-shell .ahv3__section-title {
+  border-radius:10px!important;
+  background:#eaf3ff!important;
+  color:#124f9e!important;
+}
+.attendance-shell .ahv3__shell :is(.ahv3__late-section,.ahv3__absent-section,.ahv3__proof,.ahv3__audit-actor-panel) {
+  border-radius:14px!important;
+}
+
+/* Both report modes share one header system, table rhythm, color palette. */
+.attendance-shell .att-report-m3__toolbar,
+.attendance-shell .stud-att__intro {
+  background:linear-gradient(115deg,#fff 0%,#f4f8ff 46%,#deedff 100%)!important;
+  border-color:#c9dffe!important;
+}
+.attendance-shell .att-report-m3__mode,
+.attendance-shell .att-report-m3__mode button {
+  border-radius:11px!important;
+}
+.attendance-shell .att-report-m3__mode button.is-active {
+  background:#165ed6!important;color:#fff!important;
+}
+.attendance-shell .att-report-m3__export-meta,
+.attendance-shell .stud-att__filter-panel {
+  border:1px solid #d5e3f7!important;
+  border-radius:16px!important;
+}
+.attendance-shell :is(.att-report-m3__filters,.stud-att__filters) :is(input,select) {
+  border-color:#cedff8!important;
+  background:#fff!important;
+}
+.attendance-shell :is(.att-report-m3__table-wrap,.stud-att__table-wrap) {
+  border-radius:13px!important;
+  border-color:#d1e1f6!important;
+}
+.attendance-shell :is(.att-report-m3,.stud-att) :is(th) {
+  background:linear-gradient(180deg,#eaf3ff,#dcecff)!important;
+  color:#27558f!important;
+}
+.attendance-shell :is(.att-report-m3,.stud-att) tbody tr:nth-child(even) td {background:#fafcff}
+.attendance-shell .stud-att__metric--students,
+.attendance-shell .att-report-m3__metrics article.is-blue {border-color:#c2ddff!important}
+.attendance-shell .stud-att__metric--periods,
+.attendance-shell .att-report-m3__metrics article.is-green {border-color:#bfead4!important}
+.attendance-shell .stud-att__metric--rate,
+.attendance-shell .att-report-m3__metrics article.is-purple {border-color:#e4d0ff!important}
+.attendance-shell .stud-att__metric--watch,
+.attendance-shell .att-report-m3__metrics article.is-amber {border-color:#f6dbac!important}
+.attendance-shell .stud-att__dialog {
+  border:1px solid #c9def9!important;
+  background:#fafdff!important;
+}
+.attendance-shell .stud-att__dialog>header {
+  background:linear-gradient(105deg,#fff,#e8f2ff)!important;
+}
+
+/* Archive: same page banner, filters and list-card treatment. */
+.attendance-shell .attendance-archive__hero {
+  background:linear-gradient(112deg,#fff,#f2f8ff 55%,#e7f1ff)!important;
+}
+.attendance-shell .attendance-archive__eyebrow {
+  color:#145abb!important;
+}
+.attendance-shell .attendance-archive__toolbar :is(input,select) {
+  background:#fff!important;
+  border:1px solid #d1dff4!important;
+}
+.attendance-shell .attendance-archive__card {background:#fff!important}
+.attendance-shell .attendance-archive__card:hover {box-shadow:var(--att-ui-shadow-hover)!important}
+.attendance-shell .attendance-archive__card.is-pending {border-color:#f1d39d!important;background:#fffdfa!important}
+.attendance-shell .attendance-archive__card.is-rejected {border-color:#f0c8cd!important;background:#fffbfb!important}
+
+/* Teacher-time settings: cohesive compact popover and permission controls. */
+.attendance-shell .bes-attendance-time-settings,
+.attendance-shell .bes-attendance-time-settings.is-compact-popover {
+  border:1px solid #cfe0f7!important;
+  border-radius:15px!important;
+  background:linear-gradient(140deg,#fff,#f4f8ff)!important;
+  box-shadow:0 10px 28px rgba(19,58,122,.12)!important;
+}
+.attendance-shell .bes-attendance-time-toggle {
+  border-color:#d5e4f6!important;
+  border-radius:12px!important;
+  background:#fff!important;
+}
+.attendance-shell .bes-attendance-time-heading>span {
+  background:#e2efff!important;
+  color:var(--att-ui-primary)!important;
+}
+.attendance-shell .bes-attendance-switch input:checked+i {
+  background:var(--att-ui-accent)!important;
+}
+
+/* Supplemental panels sometimes portal outside attendance-shell. */
+.bes-supplemental-dialog {
+  border:1px solid #d2e1f4!important;
+  border-radius:20px!important;
+  background:linear-gradient(180deg,#f8fbff,#f2f7ff)!important;
+  box-shadow:0 24px 65px rgba(15,42,91,.22)!important;
+}
+.bes-supplemental-dialog-head,
+.bes-supplemental-reporting-head {
+  background:linear-gradient(110deg,#fff,#eaf3ff)!important;
+  border-bottom:1px solid #d5e5f8!important;
+}
+.bes-supplemental-dialog :is(.bes-supplemental-section,.bes-supplemental-card,.bes-supplemental-daily-card,.bes-supplemental-history-card),
+.bes-supplemental-reporting-panel :is(.bes-supplemental-section,.bes-supplemental-card,.bes-supplemental-history-card) {
+  border:1px solid #d7e4f6!important;
+  border-radius:16px!important;
+  background:#fff!important;
+  box-shadow:var(--att-ui-shadow)!important;
+}
+.bes-supplemental-dialog :is(.bes-supplemental-local-tabs button.is-active,.bes-supplemental-status-buttons button.is-active),
+.bes-supplemental-reporting-panel :is(.bes-supplemental-local-tabs button.is-active) {
+  background:#e1efff!important;color:#1156ba!important;border-color:#bcd7fa!important;
+}
+.bes-supplemental-dialog :is(.bes-supplemental-report-summary,.bes-supplemental-history-stats),
+.bes-supplemental-reporting-panel :is(.bes-supplemental-report-summary,.bes-supplemental-history-stats) {
+  border:1px solid #d8e5f6;
+  border-radius:14px;
+  background:linear-gradient(110deg,#f7fbff,#eaf4ff)!important;
+}
+.bes-supplemental-dialog :is(.bes-supplemental-report-table-wrap th),
+.bes-supplemental-reporting-panel :is(.bes-supplemental-report-table-wrap th) {
+  background:#e2efff!important;color:#28558c!important;
+}
+@media(max-width:760px){
+  /* Keep existing responsive grid, scrolling and tap targets. */
+  .attendance-shell .attendance-tabs {gap:4px}
+  .attendance-shell .attendance-tabs>button {border-radius:11px!important}
+  .attendance-shell .attendance-class-list,
+  .attendance-shell .attendance-rollcall,
+  .attendance-shell .ahv3__list,
+  .attendance-shell .ahv3__detail {border-radius:15px!important}
+  .attendance-shell .attendance-daily-overview__metric {border-radius:10px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .attendance-shell :is(button,[role=button]),
+  .bes-supplemental-dialog button {transition:none!important}
+}
