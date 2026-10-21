@@ -1630,8 +1630,8 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
               {label:'Lớp đang mở',value:activeClasses.length,tone:'blue',icon:'manage'},
               {label:'Buổi đã ghi nhận',value:calendarSessions.length,tone:'teal',icon:'calendar'},
             ] : view === 'manage' ? [
-              {label:'Lớp hoạt động',value:activeClasses.length,tone:'blue',icon:'manage'},
-              {label:'Thành viên lớp',value:members.length,tone:'teal',icon:'users'},
+              {label:'Lớp hoạt động',value:activeClasses.length,tone:'green',icon:'manage'},
+              {label:'Thành viên lớp',value:members.length,tone:'violet',icon:'users'},
             ] : view === 'history' ? [
               {label:'Buổi phù hợp',value:filteredHistory.length,tone:'blue',icon:'history'},
               {label:'Buổi đã ghi nhận',value:sessions.length + supplementalHistorySessions.length,tone:'teal',icon:'calendar'},
