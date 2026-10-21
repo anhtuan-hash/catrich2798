@@ -1,0 +1,30 @@
+name: Attendance unified typography
+on:
+  pull_request:
+    paths:
+      - 'src/components/GlobalAttendanceNavigationTab.jsx'
+      - 'src/components/attendance/AttendanceTypography.css'
+      - 'src/components/attendance/AttendanceTypographyViews.css'
+      - 'tests/e2e/attendance-typography-unified.spec.js'
+      - 'scripts/test-attendance-unified-typography.mjs'
+      - '.github/workflows/attendance-unified-typography.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  type-scale:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node scripts/test-attendance-unified-typography.mjs
+      - run: node scripts/test-student-attendance-report.mjs
+      - run: node scripts/test-attendance-report-aggregation.mjs
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npx playwright test tests/e2e/attendance-typography-unified.spec.js --project=chromium-desktop --project=webkit-desktop
