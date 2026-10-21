@@ -4,6 +4,23 @@ import { buildStudentAttendanceReport } from '../../utils/studentAttendanceRepor
 import { downloadStudentAttendanceExcel, printStudentAttendancePdf } from '../../utils/studentAttendanceExport.js';
 import './StudentAttendanceReport.css';
 
+const STUDENT_REPORT_ICONS = {
+  report: <><path d="M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9"/><path d="M13 3h8v8h-8z"/><path d="m7 15 3-3 3 2 3-3"/><path d="M7 18h10"/></>,
+  excel: <><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 16v4h16v-4"/></>,
+  pdf: <><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8"/></>,
+  students: <><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2"/><path d="M17 11a3 3 0 0 0 0-6"/><path d="M18 15a5 5 0 0 1 3 5"/></>,
+  periods: <><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></>,
+  chart: <><path d="M4 20h16"/><path d="M6 15a6 6 0 1 1 12 0"/><path d="m12 15 4-5"/><circle cx="12" cy="15" r="1"/></>,
+  watch: <><path d="M12 3 2 21h20L12 3z"/><path d="M12 9v5m0 4h.01"/></>,
+  filter: <><path d="M4 7h16M7 12h10M10 17h4"/><circle cx="8" cy="7" r="2" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="2" fill="currentColor" stroke="none"/></>,
+  refresh: <><path d="M20 7v5h-5"/><path d="M4 17v-5h5"/><path d="M6 9a7 7 0 0 1 12-2l2 5M4 12l2 5a7 7 0 0 0 12-2"/></>,
+  person: <><circle cx="12" cy="8" r="3"/><path d="M5 21v-2a7 7 0 0 1 14 0v2"/></>,
+  case: <><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V4h8v3M3 12h18"/></>,
+};
+function StudentReportIcon({name, size=19}) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{STUDENT_REPORT_ICONS[name] || STUDENT_REPORT_ICONS.report}</svg>;
+}
+
 const SESSION_FIELDS = 'id,class_id,class_type,class_name,subject,teacher_name,attendance_date,session_status,lesson_periods,teaching_room,teaching_time_range';
 const RECORD_FIELDS = 'id,session_id,class_id,member_id,member_key,student_code,student_full_name,school_class_name,status,recorded_at,absence_reason_code,absence_note';
 const statusText = { present: 'Có mặt', late: 'Đi trễ', absent: 'Vắng' };
@@ -138,11 +155,16 @@ export default function StudentAttendanceReport({client, month, onError, include
 
   return <section className="stud-att">
     <header className="stud-att__intro">
-      <div><span className="stud-att__eyebrow">THEO DÕI HỌC SINH</span><h3>Báo cáo tình hình tham gia học tập</h3><p>Tính theo số tiết của các buổi đã chốt; tách rõ có mặt, đi trễ và vắng học.</p></div>
-      <div className="stud-att__actions"><button disabled={loading||!exportStudents.length} onClick={doExcel}>↓ Xuất Excel</button><button className="stud-att__primary" disabled={loading||!exportStudents.length} onClick={doPdf}>▣ In / Lưu PDF</button></div>
+      <div className="stud-att__intro-copy">
+        <span className="stud-att__hero-icon"><StudentReportIcon name="report" size={28} /></span>
+        <div><span className="stud-att__eyebrow">THEO DÕI HỌC SINH</span><h3>Báo cáo tình hình tham gia học tập</h3><p>Tính theo số tiết của các buổi đã chốt; tách rõ có mặt, đi trễ và vắng học.</p></div>
+      </div>
+      <div className="stud-att__actions"><button type="button" disabled={loading||!exportStudents.length} onClick={doExcel}><StudentReportIcon name="excel" size={16}/> Xuất Excel</button><button type="button" className="stud-att__primary" disabled={loading||!exportStudents.length} onClick={doPdf}><StudentReportIcon name="pdf" size={16}/> In / Lưu PDF</button></div>
     </header>
-    <div className="stud-att__reporter"><label>Người báo cáo<input value={reporterName} onChange={event=>onReporterNameChange?.(event.target.value)} placeholder="Nhập họ tên người lập báo cáo" /></label><label>Chức vụ<input value={reporterTitle} onChange={event=>onReporterTitleChange?.(event.target.value)} placeholder="Ví dụ: Phó hiệu trưởng" /></label></div>
-    <div className="stud-att__filters">
+    <section className="stud-att__filter-panel" aria-label="Bộ lọc báo cáo học sinh">
+      <div className="stud-att__filter-heading"><span className="stud-att__filter-heading-icon"><StudentReportIcon name="filter" size={17}/></span><strong>BỘ LỌC BÁO CÁO</strong><span className="stud-att__filter-hint">Chọn điều kiện để xem và xuất báo cáo</span></div>
+      <div className="stud-att__reporter"><label><span className="stud-att__label"><StudentReportIcon name="person" size={14}/> Người báo cáo</span><input value={reporterName} onChange={event=>onReporterNameChange?.(event.target.value)} placeholder="Nhập họ tên người lập báo cáo" /></label><label><span className="stud-att__label"><StudentReportIcon name="case" size={14}/> Chức vụ</span><input value={reporterTitle} onChange={event=>onReporterTitleChange?.(event.target.value)} placeholder="Ví dụ: Phó hiệu trưởng" /></label></div>
+      <div className="stud-att__filters">
       <label>Từ ngày<input type="date" value={from} onChange={e=>setFrom(e.target.value)}/></label>
       <label>Đến ngày<input type="date" value={to} min={from} onChange={e=>setTo(e.target.value)}/></label>
       <label>Loại học<select value={category} onChange={e=>{setCategory(e.target.value);setClassId('all');}}><option value="all">Tất cả</option><option value="remedial">Phụ đạo</option><option value="enrichment">Bồi dưỡng</option>{includeSupplemental?<option value="supplemental">Học bổ sung</option>:null}</select></label>
@@ -154,8 +176,9 @@ export default function StudentAttendanceReport({client, month, onError, include
       <label>Tìm học sinh<input type="search" placeholder="Tên hoặc mã học sinh" value={search} onChange={e=>setSearch(e.target.value)}/></label>
       <label>Cảnh báo<select value={warning} onChange={e=>setWarning(e.target.value)}><option value="all">Tất cả mức</option><option value="danger">Cần quan tâm</option><option value="watch">Cần theo dõi</option><option value="good">Tốt</option></select></label>
       <label>Sắp xếp<select value={sorting} onChange={e=>setSorting(e.target.value)}><option value="rate-asc">Chuyên cần thấp trước</option><option value="rate-desc">Chuyên cần cao trước</option><option value="absent-desc">Vắng nhiều trước</option><option value="name">Tên A–Z</option></select></label>
-      <button className="stud-att__refresh" disabled={loading||from>to} onClick={()=>setRefreshKey(v=>v+1)}>↻ Cập nhật</button>
-    </div>
+      <button type="button" className="stud-att__refresh" disabled={loading||from>to} onClick={()=>setRefreshKey(v=>v+1)}><StudentReportIcon name="refresh" size={15}/> Cập nhật</button>
+      </div>
+    </section>
     <details className="stud-att__configuration"><summary>Thiết lập ngưỡng cảnh báo</summary><div>
       <label>Tốt từ (%)<input type="number" min="1" max="100" value={thresholds.goodAt} onChange={e=>setThresholds(t=>({...t,goodAt:Number(e.target.value)}))}/></label>
       <label>Quan tâm dưới (%)<input type="number" min="0" max="99" value={thresholds.warningAt} onChange={e=>setThresholds(t=>({...t,warningAt:Number(e.target.value)}))}/></label>
@@ -167,10 +190,10 @@ export default function StudentAttendanceReport({client, month, onError, include
     {loading?<div className="stud-att__loading">Đang đọc dữ liệu và đối chiếu lịch sử điểm danh…</div>:null}
     {!loading&&!error&&from<=to?<React.Fragment>
       <div className="stud-att__metrics">
-        <article><strong>{result.totals.students}</strong><span>Học sinh</span></article>
-        <article><strong>{result.totals.totalPeriods}</strong><span>Lượt tiết theo danh sách</span></article>
-        <article><strong>{rate(result.totals.rate)}</strong><span>Chuyên cần</span></article>
-        <article><strong>{result.totals.atRisk}</strong><span>Cần theo dõi</span></article>
+        <article className="stud-att__metric--students"><span className="stud-att__metric-icon"><StudentReportIcon name="students" size={25}/></span><div className="stud-att__metric-value"><strong>{result.totals.students}</strong><span>Học sinh</span></div><span className="stud-att__metric-watermark"><StudentReportIcon name="students" size={75}/></span></article>
+        <article className="stud-att__metric--periods"><span className="stud-att__metric-icon"><StudentReportIcon name="periods" size={25}/></span><div className="stud-att__metric-value"><strong>{result.totals.totalPeriods}</strong><span>Lượt tiết theo danh sách</span></div><span className="stud-att__metric-watermark"><StudentReportIcon name="periods" size={74}/></span></article>
+        <article className="stud-att__metric--rate"><span className="stud-att__metric-icon"><StudentReportIcon name="chart" size={25}/></span><div className="stud-att__metric-value"><strong>{rate(result.totals.rate)}</strong><span>Chuyên cần</span></div><span className="stud-att__metric-watermark"><StudentReportIcon name="chart" size={75}/></span></article>
+        <article className="stud-att__metric--watch"><span className="stud-att__metric-icon"><StudentReportIcon name="watch" size={25}/></span><div className="stud-att__metric-value"><strong>{result.totals.atRisk}</strong><span>Cần theo dõi</span></div><span className="stud-att__metric-watermark"><StudentReportIcon name="watch" size={73}/></span></article>
       </div>
       <div className="stud-att__table-wrap"><table><thead><tr>
         <th><input type="checkbox" checked={Boolean(students.length)&&students.every(s=>checked.includes(s.key))} onChange={e=>chooseAll(e.target.checked)} aria-label="Chọn tất cả học sinh"/></th>
