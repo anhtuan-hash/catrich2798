@@ -29,75 +29,10 @@
   color:var(--awu-ink);
   font:inherit;
 }
-.attendance-workspace-page .attendance-shell.is-standalone{
-  background:#eef2f9!important;
-  border-color:#cbd8e8!important;
-  border-radius:21px!important;
-  box-shadow:0 14px 44px rgba(15,37,71,.13)!important;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-topbar{
-  background:#fff!important;
-  border-bottom:1px solid #dbe4f2!important;
-  box-shadow:0 2px 10px rgba(15,50,85,.04)!important;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-title>span{
-  background:var(--awu-blue-soft)!important;
-  color:var(--awu-blue)!important;
-  border-radius:14px!important;
-  box-shadow:none!important;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-title strong{
-  color:var(--awu-navy)!important;
-  font-weight:850!important;
-  letter-spacing:-.025em!important;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-title small{
-  color:var(--awu-blue)!important;
-  letter-spacing:.085em;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs{
-  background:linear-gradient(180deg,#102d52,#0b2545)!important;
-  border-color:#143357!important;
-  box-shadow:none!important;
-  padding-top:86px!important;
-  gap:5px!important;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs::before{
-  content:"KHÔNG GIAN LÀM VIỆC";
-  color:#86a9d4;
-  top:35px;
-  left:21px;
-  font-size:10px;
-  font-weight:850;
-  letter-spacing:.1em;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs>button{
-  border:1px solid transparent!important;
-  border-radius:11px!important;
-  min-height:45px!important;
-  color:#d0dff0!important;
-  background:transparent!important;
-  box-shadow:none!important;
-  font-size:13px!important;
-  font-weight:750!important;
-  letter-spacing:0;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs>button:hover:not(.is-active){
-  background:rgba(207,226,251,.11)!important;
-  color:#fff!important;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs>button.is-active{
-  background:#2568db!important;
-  border-color:#5088f0!important;
-  box-shadow:0 4px 13px rgba(4,22,51,.19)!important;
-  color:#fff!important;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-content{
-  background:var(--awu-canvas)!important;
-  padding:22px!important;
-  min-width:0;
-  scrollbar-gutter:stable;
-}
+/* Workspace geometry and navigation now live exclusively in
+ * AttendanceWorkspace.css (approved horizontal-nav design).
+ * Shared component/card styling begins below.
+ */
 .attendance-workspace-page .attendance-shell.is-standalone .attendance-content > :not(.awu-page-head){
   min-width:0;
 }
@@ -438,12 +373,6 @@
  .awu-page-head__indicators{justify-content:flex-start}
 }
 @media(max-width:790px){
- .attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs{
-   background:#f8fafc!important;padding:7px 10px!important
- }
- .attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs>button{
-   color:#3c5c85!important;min-height:39px!important
- }
  .attendance-workspace-page .attendance-shell.is-standalone .attendance-content{
    padding:12px!important
  }
