@@ -144,7 +144,7 @@ for (const token of [
   'persistAttendanceSelection',
   "window.addEventListener('bes-attendance-quick-open'",
   "setView('quick')",
-  'setOpen(true)',
+  "window.location.hash = '#/attendance?tab=quick'",
 ]) {
   assert.ok(attendance.includes(token), `Quick Attendance recent-class contract missing: ${token}`);
 }
