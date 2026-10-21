@@ -75,7 +75,11 @@ function renderCompactTimeSettings() {
     tabs.appendChild(trigger);
   }
 
-  if (panel.parentElement !== tabs) tabs.appendChild(panel);
+  // Keep the trigger in the horizontal tab row, but move the floating
+  // settings panel outside its overflow-x:auto viewport on the full page.
+  // In the legacy modal it still lives under the tab bar as before.
+  const panelHost = tabs.closest('.attendance-shell.is-standalone') || tabs;
+  if (panel.parentElement !== panelHost) panelHost.appendChild(panel);
   panel.classList.add('is-compact-popover');
   panel.setAttribute('role', 'dialog');
   panel.setAttribute('aria-label', 'Cài đặt giờ điểm danh của giáo viên');
