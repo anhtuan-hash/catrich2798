@@ -4,10 +4,11 @@ const jsx=readFileSync('src/components/attendance/StudentAttendanceReport.jsx','
 const css=readFileSync('src/components/attendance/StudentAttendanceReportTheme.css','utf8');
 const original=readFileSync('src/components/attendance/StudentAttendanceReport.css','utf8');
 assert.match(jsx,/import '.\/StudentAttendanceReportTheme.css'/);
+assert.match(jsx,/<AttendancePanelHeading className="stud-att__intro"/,'Student report now shares the canonical header component');
 for(const name of ['report','excel','pdf','students','periods','chart','watch','filter','refresh','person','case']) {
   assert.ok(jsx.includes('  '+name+':'), 'Missing student report icon: '+name);
 }
-for(const key of ['stud-att__intro-copy','stud-att__hero-icon','stud-att__filter-panel','stud-att__filter-heading','stud-att__reporter','stud-att__filters','stud-att__metric--students','stud-att__metric--periods','stud-att__metric--rate','stud-att__metric--watch']) {
+for(const key of ['stud-att__intro','stud-att__hero-icon','stud-att__filter-panel','stud-att__filter-heading','stud-att__reporter','stud-att__filters','stud-att__metric--students','stud-att__metric--periods','stud-att__metric--rate','stud-att__metric--watch']) {
   assert.ok(jsx.includes(key), 'Missing UI section: '+key);
   assert.ok(css.includes('.'+key), 'Missing scoped theme: '+key);
 }
