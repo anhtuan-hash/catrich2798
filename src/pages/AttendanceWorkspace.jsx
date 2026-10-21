@@ -3,6 +3,7 @@ import GlobalAttendanceReadOnlyNavigationTab from '../components/GlobalAttendanc
 import './AttendanceWorkspace.css';
 import './AttendanceWorkspaceRebuilt.css';
 import './AttendanceQuickLayoutFix.css';
+import './AttendanceMobileAudit.css';
 
 /**
  * A first-class attendance workspace at #/attendance.
