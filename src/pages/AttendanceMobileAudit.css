@@ -260,7 +260,8 @@
     .attendance-manage-search input,.attendance-archive__toolbar input,
     .attendance-archive__toolbar select,.ahv3__date-filters input,
     .attendance-calendar-mode-bar__date input,
-    .bes-supplemental-report-filter select
+    .bes-supplemental-report-filter select,
+    .bes-attendance-time-field input
   ){
     font-size:16px!important;
     max-width:100%!important;
@@ -271,6 +272,29 @@
     .att-report-m3__filters input,.att-report-m3__filters select,
     .attendance-manage-search input,.attendance-archive__toolbar select
   ){
+    min-height:44px!important;
+    box-sizing:border-box!important;
+  }
+}
+
+@media (max-width: 560px) {
+  /* The teacher-time popover is attached to the standalone shell, never
+     inside the horizontally scrolling navigation tabs. */
+  .attendance-workspace-page .attendance-shell.is-standalone .bes-attendance-time-settings.is-compact-popover:not([hidden]){
+    position:fixed!important;
+    z-index:10000!important;
+    inset:clamp(72px,12dvh,112px) 8px auto 8px!important;
+    width:auto!important;
+    max-width:calc(100vw - 16px)!important;
+    max-height:min(75dvh,calc(100dvh - 88px))!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    box-sizing:border-box!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .bes-attendance-time-settings.is-compact-popover :is(
+    .bes-attendance-time-toggle,.bes-attendance-time-save,.bes-attendance-time-field
+  ){
+    min-width:0!important;
     min-height:44px!important;
     box-sizing:border-box!important;
   }
