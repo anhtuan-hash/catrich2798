@@ -25,6 +25,8 @@ assert.match(report,/min-width:960px/,'Student report retains all columns in a n
 assert.match(teacherReport,/min-width:1280px/,'Teacher report retains all columns in a nested scroller');
 assert.match(mobile,/overflow-x:auto!important/,'Nested table scroll enabled');
 assert.match(mobile,/font-size:16px!important/,'iOS input zoom prevention');
+assert.match(mobile,/bes-attendance-time-settings\.is-compact-popover:not\(\[hidden\]\)/,'Giờ GV popover remains inside phone viewport');
+assert.match(mobile,/bes-attendance-time-field input/,'iOS time inputs are readable');
 assert.match(mobile,/min-height:44px!important/,'Touch targets enhanced');
 assert.match(archive,/attendance-archive__actions/,'Archive actions retained');
 assert.match(quick,/att-m3-attendance-status/,'Previous roster status repair remains present');
