@@ -58,6 +58,8 @@ import './attendance/AttendanceHistoryV2.css';
 // Shared typography is loaded after feature styles so every tab follows one scale.
 import './attendance/AttendanceTypography.css';
 import './attendance/AttendanceTypographyViews.css';
+// Shared visual foundation for all seven attendance views. No functional changes.
+import './attendance/AttendanceUnifiedDesign.css';
 
 const CLASS_COLUMNS = 'id,class_type,class_name,subject,teacher_id,teacher_name,teacher_email,active,source_key,school_year,grade_level,expected_student_count,periods_per_week,room,weekdays,time_range,created_by,updated_by,created_at,updated_at';
 const MEMBER_COLUMNS = 'id,class_id,member_key,student_code,student_full_name,school_class_name,active,joined_at,left_at,created_by,updated_by,removed_by,removal_reason,created_at,updated_at';

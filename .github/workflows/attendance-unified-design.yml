@@ -1,0 +1,30 @@
+name: Attendance Unified Design
+on:
+  pull_request:
+    paths:
+      - 'src/components/attendance/AttendanceUnifiedDesign.css'
+      - 'src/components/GlobalAttendanceNavigationTab.jsx'
+      - 'tests/e2e/attendance-unified-design.spec.js'
+      - 'scripts/test-attendance-unified-design.mjs'
+      - '.github/workflows/attendance-unified-design.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  unified-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node scripts/test-attendance-unified-design.mjs
+      - run: node scripts/test-attendance-unified-typography.mjs
+      - run: node scripts/test-student-attendance-report.mjs
+      - run: node scripts/test-attendance-report-export.mjs
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npx playwright test tests/e2e/attendance-unified-design.spec.js --project=chromium-desktop --project=webkit-desktop
