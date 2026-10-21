@@ -154,7 +154,7 @@
 @media(max-width:760px) {
   .attendance-shell .stud-att .stud-att__filters :is(input,select),
   .attendance-shell .att-report-m3 .att-report-m3__filters :is(input,select),
-  .attendance-shell .ahv3__shell .ahv3__date-filters input {
+  .attendance-shell .ahv3__shell .ahv3__date-filters input:not([type="hidden"]) {
     font-size:16px!important;
   }
   .attendance-shell .att-m3-roster-entry>label {
