@@ -115,13 +115,28 @@
   gap:6px!important;
   padding:68px 11px 18px!important;
   position:relative;
-  overflow-x:hidden!important;
-  overflow-y:auto!important;
+  overflow-x:visible!important;
+  overflow-y:visible!important;
+  z-index:25;
   border:0!important;
   border-right:1px solid #1e477e!important;
   border-radius:0!important;
   background:linear-gradient(175deg,#16365c 0%,#0d2a50 51%,#082040 100%)!important;
   box-shadow:inset -1px 0 0 rgba(255,255,255,.04);
+}
+/* Teacher-time access opens beside the sidebar instead of below a modal
+ * tab row. Keep it above the workspace, not clipped by sidebar scrolling. */
+.attendance-workspace-page .attendance-shell.is-standalone .bes-attendance-time-settings.is-compact-popover {
+  position:absolute!important;
+  left:calc(100% + 12px)!important;
+  right:auto!important;
+  top:auto!important;
+  bottom:18px!important;
+  z-index:50!important;
+  width:min(430px,calc(100vw - 310px))!important;
+  max-height:min(68dvh,620px);
+  overflow:auto;
+  box-shadow:0 18px 45px rgba(15,39,80,.22)!important;
 }
 .attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs::before {
   content:"CHỨC NĂNG";
@@ -256,6 +271,16 @@
     border-right:0!important;
     border-bottom:1px solid #bcd4fa!important;
     background:linear-gradient(100deg,#eaf3ff,#f9fbff)!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .bes-attendance-time-settings.is-compact-popover {
+    position:fixed!important;
+    left:8px!important;
+    right:8px!important;
+    top:clamp(90px,18dvh,180px)!important;
+    bottom:auto!important;
+    z-index:500!important;
+    width:auto!important;
+    max-height:70dvh;
   }
   .attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs::before {content:none}
   .attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs>button {
