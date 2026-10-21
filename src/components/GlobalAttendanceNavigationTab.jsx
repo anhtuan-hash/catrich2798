@@ -71,6 +71,7 @@ const VIETNAM_TIME_ZONE = 'Asia/Ho_Chi_Minh';
 const PATHS = {
   attendance: 'M19 3h-1V1h-2v2H8V1H6v2H5a2 2 0 0 0-2 2v16h18V5a2 2 0 0 0-2-2Zm0 16H5V8h14v11Zm-8.3-2.2-3.1-3.1 1.4-1.4 1.7 1.7 4.3-4.3 1.4 1.4-5.7 5.7Z',
   close: 'm6.4 5 5.6 5.6L17.6 5 19 6.4 13.4 12l5.6 5.6-1.4 1.4-5.6-5.6L6.4 19 5 17.6l5.6-5.6L5 6.4 6.4 5Z',
+  back: 'M20 11H7.8l5.6-5.6L12 4 4 12l8 8 1.4-1.4L7.8 13H20v-2Z',
   upload: 'M11 16h2V8l3.5 3.5 1.4-1.4L12 4.2l-5.9 5.9 1.4 1.4L11 8v8Zm-6 4h14v-2H5v2Z',
   add: 'M11 5h2v6h6v2h6v2h-6v6h-2v-6H5v-2h6V5Z',
   people: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7-1a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM9 13c-4.4 0-8 2.2-8 5v3h16v-3c0-2.8-3.6-5-8-5Zm7 0c-.7 0-1.4.1-2 .2 2.4 1.2 4 2.9 4 4.8v3h5v-2.6c0-3-3.1-5.4-7-5.4Z',
@@ -1564,13 +1565,21 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
         aria-modal={standalone ? undefined : 'true'}
         aria-label="Điểm danh lớp phụ đạo và bồi dưỡng học sinh giỏi">
         <header className="attendance-topbar">
-          <div className="attendance-title"><span><Icon name="attendance" size={28} /></span><div><small>QUẢN LÝ CHUYÊN CẦN</small><strong>Điểm danh lớp phụ đạo & bồi dưỡng</strong></div></div>
-          <div className="attendance-top-actions"><button type="button" className="attendance-icon-button" onClick={() => { loadAll(); loadDaySession(); loadTeacherDaySessions(); if (view === 'calendar') loadCalendarSessions(calendarDate); if (view === 'archive') loadArchive(); }} title="Làm mới"><Icon name="refresh" /></button><button type="button" className="attendance-icon-button" onClick={() => standalone ? (window.location.hash = '#/settings?section=admin') : setOpen(false)} aria-label={standalone ? 'Trở về ESL Brian' : 'Đóng'}><Icon name={standalone ? 'back' : 'close'} /></button></div>
+          <div className="attendance-title"><span><Icon name="attendance" size={28} /></span><div><small>{standalone ? "ESL BRIAN · ỨNG DỤNG ĐIỂM DANH" : "QUẢN LÝ CHUYÊN CẦN"}</small><strong>Điểm danh lớp phụ đạo & bồi dưỡng</strong></div></div>
+          <div className="attendance-top-actions"><button type="button" className="attendance-icon-button" onClick={() => { loadAll(); loadDaySession(); loadTeacherDaySessions(); if (view === 'calendar') loadCalendarSessions(calendarDate); if (view === 'archive') loadArchive(); }} title="Làm mới"><Icon name="refresh" /></button><button type="button" className={standalone ? 'attendance-icon-button attendance-workspace-back' : 'attendance-icon-button'}
+            onClick={() => standalone ? (window.location.hash = '#/settings?section=admin') : setOpen(false)}
+            aria-label={standalone ? 'Trở về ESL Brian' : 'Đóng'}>
+            <Icon name={standalone ? 'back' : 'close'} />
+            {standalone ? <span>Về ESL Brian</span> : null}
+          </button></div>
         </header>
 
         <nav className="attendance-tabs" aria-label="Phân hệ điểm danh">
           {availableAttendanceTabs.map((item) => (
-            <button key={item.id} type="button" className={view === item.tab ? 'is-active' : ''} onClick={() => setView(item.tab)}>
+            <button key={item.id} type="button" className={view === item.tab ? 'is-active' : ''} onClick={() => {
+              setView(item.tab);
+              if (standalone) window.history.replaceState(null, '', '#/attendance?tab=' + encodeURIComponent(item.tab));
+            }}>
               <Icon name={ATTENDANCE_TAB_ICONS[item.tab] || 'attendance'} size={18} />{item.titleVi}{item.tab === 'archive' && archiveCount > 0 ? <span className="attendance-tab-badge">{archiveCount > 99 ? '99+' : archiveCount}</span> : null}
             </button>
           ))}
