@@ -7,6 +7,7 @@ const bootstrap=read('src/supplementalAttendanceReportingBootstrap.js');
 const page=read('src/pages/AttendanceWorkspace.jsx');
 const nav=read('src/components/GlobalAttendanceNavigationTab.jsx');
 const old=read('src/components/GlobalAttendanceNavigationTab.css');
+const teacherTime=read('src/attendanceCompactTimeSettings.js');
 
 assert.match(page,/AttendanceWorkspaceRebuilt.css/,'Shared cards still loaded');
 assert.match(nav,/attendance-tabs/,'Native real tabs are retained');
@@ -25,5 +26,7 @@ assert.match(bootstrap,/host\.classList\.contains\('is-standalone'\)/,'Standalon
 assert.match(bootstrap,/heading\.insertAdjacentElement\('afterend', bar\)/,'Filter is inside report/history under heading');
 assert.match(bootstrap,/bar\.parentElement !== content/,'Filter moved if the destination changes');
 assert.match(old,/\.attendance-tabs/,'Legacy modal tab style retained for fallback');
+assert.match(teacherTime,/tabs\.closest\('\.attendance-shell\.is-standalone'\) \|\| tabs/,'Giờ GV popover must escape top-nav scroll clipping');
+assert.match(teacherTime,/panelHost\.appendChild\(panel\)/,'Settings panel must mount in the correct host');
 assert.ok(!theme.includes('@page'),'PDF reporting styles unaffected');
 console.log('PASS approved top-navigation mockup + visible filters + natural scroll constraints');
