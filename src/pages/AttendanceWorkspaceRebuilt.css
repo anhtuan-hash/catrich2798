@@ -646,250 +646,595 @@
 }
 
 
-/* Visual refinement 2026-10-21: approved horizontal mockup, improved density
- * and readable class cards. Scoped to the full-page attendance app only.
- * Does not modify print templates, legacy modal, permission logic or data.
+/* Visual refinement 2026-10-21: Google-inspired Material color system.
+ * Canonical standalone page refinements replace the older card treatment.
+ * Never touches modal, printed reports or Supabase data.
  */
-.attendance-workspace-page .attendance-shell.is-standalone{
-  --awu-canvas:#f4f7fd;
-  --awu-elev:0 4px 16px rgba(25,63,114,.06);
+.attendance-workspace-page .attendance-shell.is-standalone {
+  --awu-navy:#15264a;
+  --awu-ink:#1c3153;
+  --awu-blue:#1967d2;
+  --awu-teal:#008f83;
+  --awu-green:#0a9060;
+  --awu-violet:#6d42bf;
+  --awu-amber:#e88c0b;
+  --awu-red:#db3854;
+  --awu-canvas:#f5f8fd;
+  --awu-border:#dce6f3;
+  --awu-elev:0 5px 20px rgba(24,62,113,.065);
   --att-type-label:12px;
   --att-type-body:14px;
   --att-type-control:13px;
   --att-type-section:17px;
+  font-family:Inter,"Google Sans","Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif!important;
 }
 .attendance-workspace-page .attendance-shell.is-standalone :is(
-  .awu-page-head h1,.awu-panel-head h2,
-  .attendance-manage-tile__title,.attendance-rollcall-head h2,
-  .ahv3__list-title strong,.att-report-m3__toolbar h2,
-  .stud-att__intro h2,.attendance-archive__hero h2
-){
-  font-family:Inter,"Be Vietnam Pro",system-ui,-apple-system,"Segoe UI",sans-serif!important;
-  font-style:normal!important;
-  letter-spacing:-.025em!important;
+  h1,h2,h3,h4,button,label,input,select,textarea,p,small,table,strong
+) {font-family:inherit!important;letter-spacing:normal;}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-content {
+  background:#f5f8fd!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-topbar {
+  background:#fff!important;
+  border-bottom-color:#e3eaf4!important;
+  box-shadow:none!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs{
+  min-height:62px!important;
+  background:#fff!important;
+  border-bottom:1px solid #e6edf7!important;
+  gap:8px!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs>button{
+  min-height:43px!important;
+  border:0!important;
+  border-radius:10px 10px 0 0!important;
+  padding:10px 14px 12px!important;
+  color:#53698a!important;
+  font-size:13px!important;
+  font-weight:700!important;
+  background:transparent!important;
+  box-shadow:inset 0 -3px 0 transparent!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs>button:hover:not(.is-active){
+  background:#f0f5ff!important;
+  color:#1c5fc5!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs>button.is-active{
+  background:#fff!important;
+  color:#155bc7!important;
+  box-shadow:inset 0 -3px 0 #1a73e8!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs>button.is-active .attendance-icon{
+  color:#155bc7!important;
 }
 .attendance-workspace-page .attendance-shell.is-standalone .awu-page-head{
-  min-height:94px!important;
-  padding:17px 21px!important;
-  margin-bottom:15px!important;
-  border:1px solid #d9e6f6!important;
-  border-radius:17px!important;
+  margin:0 0 16px!important;
+  min-height:154px!important;
+  padding:21px 25px!important;
+  display:flex;
+  align-items:center;
+  gap:22px;
+  border:1px solid #e0e9f5!important;
+  border-radius:19px!important;
   background:#fff!important;
-  box-shadow:0 4px 16px rgba(25,64,117,.045)!important;
+  box-shadow:0 6px 20px rgba(26,65,118,.06)!important;
 }
-.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head h1{
-  font-size:23px!important;
-  font-weight:850!important;
-  line-height:1.22!important;
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__icon{
+  flex:0 0 76px;
+  width:76px;height:76px;
+  border-radius:17px;
+  color:#1766df;
+  background:linear-gradient(135deg,#e9f2ff,#f3f7ff);
 }
-.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head p{
-  font-size:13px!important;
-  line-height:1.5!important;
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__icon svg{
+  width:32px;height:32px;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__breadcrumb{
+  color:#758aaa;
+  font-size:11px;
+  margin-bottom:8px;
 }
 .attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__eyebrow{
-  font-size:10px!important;
-  letter-spacing:.08em;
+  color:#5374a4!important;font-size:11px!important;font-weight:850!important;letter-spacing:.07em!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head h1{
+  font-family:inherit!important;
+  font-style:normal!important;
+  font-size:27px!important;
+  font-weight:860!important;
+  letter-spacing:-.03em!important;
+  line-height:1.25!important;
+  color:#15264c!important;
+  margin:5px 0 7px!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head p{
+  font-size:13px!important;line-height:1.6!important;color:#627994!important;max-width:620px;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__right{
+  display:flex;
+  flex:0 0 auto;
+  justify-content:flex-end;
+  align-items:center;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__indicators{
+  display:flex;gap:13px;flex-wrap:wrap;justify-content:flex-end;
 }
 .attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__indicator{
-  min-width:132px;
-  padding:11px 14px!important;
+  min-width:195px!important;
+  min-height:107px;
+  grid-template-columns:48px auto;
+  grid-template-rows:auto auto;
+  column-gap:12px;
+  padding:17px!important;
+  border:1px solid transparent!important;
+  border-radius:15px!important;
+  box-shadow:none!important;
+  color:#1766d7;
+  background:#ecf4ff!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__indicator svg{
+  width:42px;height:42px;
+  padding:11px;
+  box-sizing:border-box;
+  grid-row:1/3;
+  border-radius:12px;
+  background:rgba(255,255,255,.67);
 }
 .attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__indicator span{
-  font-size:11px!important;
+  font-size:12px!important;
+  color:inherit!important;
+  opacity:.8;
+  font-weight:700!important;
+  white-space:nowrap;
 }
 .attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__indicator b{
-  font-size:21px!important;
+  font-size:27px!important;
+  font-weight:850!important;
+  line-height:1.2;
 }
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-content{
-  background:#f4f7fd!important;
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__indicator.is-green{
+  color:#00865a!important;
+  background:#eaf9f2!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__indicator.is-violet{
+  color:#6c3fc4!important;
+  background:#f3edff!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__indicator.is-teal{
+  color:#007f86!important;
+  background:#e6f8f8!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__indicator.is-amber{
+  color:#b86b03!important;
+  background:#fff4e3!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-panel-head h2 {
+  font:800 17px/1.3 inherit!important;
+  color:#20385e!important;
 }
 .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-overview{
-  padding:0!important;
   gap:13px!important;
-  width:100%;
-  max-width:100%;
+  padding:0!important;
+  min-width:0;
   overflow:visible!important;
+  height:auto!important;
 }
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-overview>.awu-panel-head{
-  min-height:78px;
-  padding:14px 19px!important;
-  margin:0!important;
-  border-radius:16px!important;
-  background:linear-gradient(110deg,#fff,#f9fbff)!important;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-overview>.awu-panel-head .awu-panel-head__icon{
-  flex-basis:43px;
-  width:43px;height:43px;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .awu-panel-head__eyebrow{
-  font-size:10px!important;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .awu-panel-head h2{
-  font-size:17px!important;
-  font-weight:850!important;
-  line-height:1.35!important;
-}
-.attendance-workspace-page .attendance-shell.is-standalone .awu-panel-head p{
-  font-size:12px!important;
-  color:#60748d!important;
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-overview>.awu-panel-head {
+  display:none!important;
 }
 .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-overview-toolbar.attendance-import-card{
-  min-height:68px!important;
+  min-height:74px!important;
   padding:12px 14px!important;
-  border-radius:15px!important;
   background:#fff!important;
-  box-shadow:0 4px 16px rgba(20,61,120,.045)!important;
+  border:1px solid #e0e9f5!important;
+  border-radius:16px!important;
+  box-shadow:0 4px 16px rgba(28,64,112,.05)!important;
+  gap:12px!important;
 }
 .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-search{
-  min-height:44px!important;
+  min-height:46px!important;
+  flex:1 1 460px;
+  min-width:0!important;
+  border:1px solid #d2e1f7!important;
   border-radius:11px!important;
-  background:#f9fbff!important;
+  color:#637d9e;
+  background:#f7faff!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-search:focus-within{
+  border-color:#75a9f6!important;
+  box-shadow:0 0 0 3px rgba(26,115,232,.1)!important;
 }
 .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-search input{
-  border:0!important;
-  outline:0!important;
+  border:none!important;
+  outline:none!important;
+  min-width:0;
   background:transparent!important;
   font-size:13px!important;
   box-shadow:none!important;
 }
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-import-button,
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-create-class-button{
-  min-height:43px!important;
-  padding:0 16px!important;
-  border-radius:11px!important;
-  font-size:12px!important;
-  font-weight:780!important;
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-import-button{
+  min-height:44px!important;
+  padding:0 17px!important;
+  border:1px solid #b9d3fb!important;
+  border-radius:10px!important;
+  background:#fff!important;
+  color:#155ece!important;
+  font-size:13px!important;
+  font-weight:750!important;
+  box-shadow:none!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-import-button:hover{
+  background:#edf5ff!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone :is(
+  .attendance-create-class-button,.attendance-manage-detail-actions__primary
+){
+  background:#1769e4!important;
+  border-color:#1769e4!important;
+  color:#fff!important;
+  border-radius:10px!important;
+  box-shadow:0 4px 12px rgba(26,103,212,.16)!important;
 }
 .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-filter-chips{
-  min-height:38px;
-  padding:2px 3px!important;
+  width:100%;
+  display:flex!important;
+  min-height:48px;
   flex-wrap:wrap;
+  gap:12px!important;
+  padding:1px 3px!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-filter-chips > div[role="group"]{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:7px;
 }
 .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-filter-chips button{
-  min-height:33px!important;
-  padding:0 12px!important;
-  border-radius:999px!important;
   font-size:12px!important;
-  font-weight:740!important;
+  min-height:34px!important;
+  font-weight:700!important;
+  border:1px solid #dce6f3!important;
+  background:#fff!important;
+  color:#55718f!important;
+  border-radius:999px!important;
+  padding:7px 13px!important;
+  box-shadow:none!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-filter-chips button.is-active{
+  color:#fff!important;
+  border-color:#1a67db!important;
+  background:#1a67db!important;
+  box-shadow:0 2px 6px rgba(26,103,219,.13)!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-filter-divider{
+  height:25px;background:#d8e3f1;
 }
 .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-result-count{
-  color:#47668a!important;
+  margin-left:auto;
   font-size:12px!important;
   font-weight:800!important;
+  color:#42668d!important;
+  white-space:nowrap;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-display-toggle{
+  display:flex!important;
+  gap:3px!important;
+  flex:0 0 auto;
+  padding:3px!important;
+  border:1px solid #e2eafa;
+  background:#f5f8fe;
+  border-radius:12px;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-display-toggle button{
+  display:grid!important;
+  place-items:center!important;
+  flex:0 0 35px;
+  width:35px!important;
+  min-width:35px!important;
+  min-height:35px!important;
+  height:35px!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:9px!important;
+  color:#70839e!important;
+  background:transparent!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-display-toggle button.is-active{
+  background:#fff!important;
+  color:#1769db!important;
+  box-shadow:0 2px 8px rgba(24,69,134,.09)!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-list-heading{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  min-height:32px;
+  padding:2px 2px 0;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-list-heading h2{
+  margin:0!important;
+  font-size:16px!important;
+  color:#1b3860!important;
+  font-weight:850!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-list-heading span{
+  font-size:12px!important;
+  color:#687f9a!important;
 }
 .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile-grid{
   display:grid!important;
   grid-template-columns:repeat(3,minmax(0,1fr))!important;
-  gap:16px!important;
-  align-content:start!important;
-  padding:2px 2px 20px!important;
+  gap:17px!important;
+  align-items:stretch;
   min-height:0!important;
   max-height:none!important;
   overflow:visible!important;
-  scrollbar-gutter:auto!important;
+  padding:2px 2px 20px!important;
 }
 .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-class-tile{
-  position:relative;
-  min-height:235px!important;
-  padding:17px 18px 16px!important;
-  border:1px solid #dbe5f2!important;
-  border-radius:17px!important;
-  background:linear-gradient(150deg,#fff 55%,var(--manage-soft,#f3f7ff) 100%)!important;
-  box-shadow:0 3px 12px rgba(25,57,100,.052)!important;
-  transform:none;
+  display:flex;
+  flex-direction:column;
   isolation:isolate;
-  transition:border-color .15s ease,transform .15s ease,box-shadow .15s ease;
+  min-width:0;
+  min-height:303px!important;
+  height:100%;
+  padding:16px 18px 19px!important;
+  border:1px solid #dde6f3!important;
+  border-left:1px solid #dde6f3!important;
+  border-radius:17px!important;
+  background:#fff!important;
+  color:#1a3154;
+  box-shadow:0 4px 17px rgba(27,57,102,.065)!important;
+  outline-offset:3px!important;
+  transition:box-shadow .18s ease,transform .18s ease,border-color .18s ease!important;
 }
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-class-tile::before{
-  content:"";
-  position:absolute;
-  top:0;left:17px;right:17px;
-  height:3px;
-  border-radius:0 0 6px 6px;
-  background:var(--manage-accent,#2563eb);
-  opacity:.66;
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-class-tile::before {
+  content:none!important;
 }
 .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-class-tile:is(:hover,:focus-visible){
-  border-color:color-mix(in srgb,var(--manage-accent,#2563eb) 45%,#dbe5f2)!important;
-  box-shadow:0 10px 24px rgba(25,57,100,.12)!important;
+  border-color:var(--manage-accent,#1769e4)!important;
+  box-shadow:0 12px 28px rgba(25,64,122,.12)!important;
   transform:translateY(-2px)!important;
 }
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile__topline{
+  justify-content:space-between;
+  gap:10px;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile__topline>svg:last-child{
+  flex:0 0 auto;
+  width:15px;height:15px;
+  margin-left:auto;
+  color:#8ca0ba;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile__eyebrow{
+  margin:0 auto 0 0;
+  color:#7991ad;
+  font-weight:850;
+  font-size:10px!important;
+  letter-spacing:.1em;
+}
 .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile__icon{
-  width:43px!important;height:43px!important;
-  border-radius:12px!important;
+  display:grid;
+  place-items:center;
+  flex:0 0 51px;
+  width:51px!important;height:51px!important;
+  background:var(--manage-soft,#eaf2ff)!important;
+  border:0!important;
+  border-radius:13px!important;
+  color:var(--manage-accent,#1a68df)!important;
+  box-shadow:none!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-class-tile.is-subject-geography{
+  --manage-accent:#0b9b8b;--manage-soft:#e5faf3;--manage-line:#b6eadd;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-class-tile.is-subject-chemistry{
+  --manage-accent:#e04468;--manage-soft:#ffebf0;--manage-line:#f4c7d0;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-class-tile.is-subject-math,
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-class-tile.is-subject-casio{
+  --manage-accent:#eb9606;--manage-soft:#fff3df;--manage-line:#f6dfaf;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-class-tile.is-subject-english{
+  --manage-accent:#099eae;--manage-soft:#e4f9fa;--manage-line:#b7ecee;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-class-tile.is-subject-literature{
+  --manage-accent:#8252cf;--manage-soft:#f2eaff;--manage-line:#dec8fa;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-class-tile.is-subject-physics{
+  --manage-accent:#4163e9;--manage-soft:#eaf0ff;--manage-line:#c2d2ff;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-class-tile.is-subject-history{
+  --manage-accent:#b97622;--manage-soft:#fff3e5;--manage-line:#f5dfbd;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-class-tile.is-subject-biology{
+  --manage-accent:#248d4d;--manage-soft:#eafaec;--manage-line:#c6ead0;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile__title{
+  display:block!important;
+  margin:14px 0 8px!important;
+  padding:0!important;
+  min-height:0!important;
+  color:#172849!important;
+  font-size:17px!important;
+  font-weight:850!important;
+  line-height:1.35!important;
+  letter-spacing:-.015em!important;
+  overflow:visible!important;
+  white-space:normal!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile__badges{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:7px;
 }
 .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile__type{
   min-height:26px!important;
-  padding:4px 10px!important;
+  padding:5px 11px!important;
   font-size:11px!important;
+  font-weight:800!important;
+  border-radius:999px!important;
+  border:0!important;
 }
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile__title{
-  min-height:0!important;
-  margin-top:13px!important;
-  font-size:17px!important;
-  font-weight:850!important;
-  line-height:1.36!important;
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile__type.is-remedial{
+  background:#fff1da!important;color:#b97404!important;
 }
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile__subtitle{
-  margin-top:5px!important;
-  font-size:12px!important;
-  font-weight:640!important;
-  color:#586f8e!important;
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile__type.is-gifted{
+  background:#e8f0fe!important;color:#1c65d1!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile__grade{
+  display:inline-flex;
+  align-items:center;
+  min-height:26px;
+  padding:5px 11px;
+  border-radius:999px;
+  background:var(--manage-soft,#f0f4fa);
+  color:var(--manage-accent,#5b7497);
+  font-size:11px;
+  font-weight:750;
 }
 .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile__meta{
-  gap:7px!important;
-  margin-top:13px!important;
-  padding-top:12px!important;
-  border-top:1px solid #e6ecf4;
+  display:grid!important;
+  gap:9px!important;
+  padding-top:15px!important;
+  margin-top:auto!important;
+  border-top:1px solid #eef2f8;
 }
 .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile__meta>span{
+  display:grid!important;
+  grid-template-columns:17px minmax(74px,.53fr) minmax(0,1fr);
+  align-items:start!important;
+  gap:8px!important;
+  min-width:0;
+  overflow:visible!important;
+  white-space:normal!important;
+  color:#5c7597!important;
   font-size:12px!important;
-  font-weight:680!important;
-  color:#47607f!important;
-  line-height:1.35!important;
+  font-weight:580!important;
+  line-height:1.45!important;
 }
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile__meta svg{
-  width:15px;
-  height:15px;
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile__meta>span svg{
+  flex:0 0 auto;
+  width:16px;height:16px;
+  color:var(--manage-accent,#1967d2)!important;
 }
-/* Make the same improved heading and control hierarchy available elsewhere. */
-.attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs>button{
-  font-size:13px!important;
-  font-weight:750!important;
-  letter-spacing:0!important;
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile__meta>span strong{
+  min-width:0;
+  color:#213b63!important;
+  font-size:12px!important;
+  font-weight:740!important;
+  text-align:left;
+  overflow-wrap:anywhere;
 }
-.attendance-workspace-page .attendance-shell.is-standalone :is(
-  .ahv3__list-head,.attendance-roster-head,
-  .attendance-daily-table-header,.att-report-m3__toolbar
-){
-  color:#193e6a!important;
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile__meta>.attendance-manage-tile__teacher{
+  font-weight:580!important;
 }
-@media(max-width:1100px){
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile-grid.is-list{
+  grid-template-columns:minmax(0,1fr)!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile-grid.is-list .attendance-manage-class-tile{
+  min-height:160px!important;
+  display:grid!important;
+  grid-template-columns:65px minmax(190px,.8fr) minmax(0,2fr);
+  grid-template-rows:auto auto;
+  gap:8px 16px;
+  align-items:center;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile-grid.is-list .attendance-manage-tile__topline{
+  grid-column:1;grid-row:1/3;align-self:center;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile-grid.is-list .attendance-manage-tile__eyebrow,
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile-grid.is-list .attendance-manage-tile__topline>svg:last-child{
+  display:none;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile-grid.is-list .attendance-manage-tile__title{
+  grid-column:2;grid-row:1;align-self:end;margin:0!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile-grid.is-list .attendance-manage-tile__badges{
+  grid-column:2;grid-row:2;align-self:start;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile-grid.is-list .attendance-manage-tile__meta{
+  grid-column:3;grid-row:1/3;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  margin:0!important;padding:0!important;
+  border:0!important;
+}
+@media(max-width:1220px){
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-page-head{
+    flex-wrap:wrap;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__right{
+    flex:1 1 100%;
+    justify-content:flex-start;
+  }
   .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile-grid{
     grid-template-columns:repeat(2,minmax(0,1fr))!important;
   }
 }
-@media(max-width:700px){
+@media(max-width:800px){
   .attendance-workspace-page .attendance-shell.is-standalone .awu-page-head{
-    padding:14px!important;
+    min-height:0!important;
+    padding:16px!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__icon{
+    flex-basis:50px;width:50px;height:50px;
   }
   .attendance-workspace-page .attendance-shell.is-standalone .awu-page-head h1{
-    font-size:20px!important;
+    font-size:21px!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__right{
+    flex:1 1 auto;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__indicator{
+    min-width:135px!important;min-height:76px;padding:11px!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__indicator b{
+    font-size:22px!important;
   }
   .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-overview-toolbar.attendance-import-card{
     flex-wrap:wrap;
-    padding:11px!important;
   }
   .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-search{
-    flex:1 1 100%;min-width:0;
+    flex:1 1 100%;
   }
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile-grid.is-list .attendance-manage-class-tile{
+    grid-template-columns:56px minmax(0,1fr);
+    grid-template-rows:auto auto auto;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile-grid.is-list .attendance-manage-tile__meta{
+    grid-column:1/-1;grid-row:3;
+  }
+}
+@media(max-width:700px){
   .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile-grid{
     grid-template-columns:minmax(0,1fr)!important;
   }
   .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-class-tile{
-    min-height:220px!important;
+    min-height:280px!important;
   }
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__indicators{
+    justify-content:flex-start;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-filter-chips{
+    gap:8px!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-result-count{
+    margin-left:0;
+  }
+}
+@media(max-width:490px){
   .attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__indicator{
-    min-width:0;
+    min-width:0!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__indicator span{
+    white-space:normal;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile__meta>span{
+    grid-template-columns:16px 73px minmax(0,1fr);
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile-grid.is-list .attendance-manage-tile__meta{
+    grid-template-columns:minmax(0,1fr);
   }
 }
