@@ -24,7 +24,8 @@ assert.match(globalNav,/props\.route !== 'attendance'/,'Never mount duplicate at
 assert.match(style,/grid-template-columns:240px minmax\(0,1fr\)/,'Sidebar replaces horizontal tab layout on desktop');
 assert.match(style,/grid-template-rows:76px 59px minmax\(0,1fr\)/,'Mobile layout gets horizontal tabs');
 assert.ok(!style.includes('html.bes-attendance-open'),'Standalone page must not lock document scrolling');
-assert.ok(!style.includes('position:fixed!important'),'Standalone page must not impersonate an overlay');
+assert.match(style,/\.attendance-workspace-page \.attendance-shell\.is-standalone \{/,'Standalone shell must be a normal in-flow region');
+assert.match(style,/\.bes-attendance-time-settings\.is-compact-popover/,'Transient teacher-time popup may be fixed on mobile');
 const teacher={id:'teacher-123',role:'teacher',permissions:{mode:'custom',allowed:[]}};
 assert.equal(hasRouteAccess(teacher,'attendance'),false,'Route must not grant more permissions by default');
 assert.equal(hasRouteAccess(withAttendanceReadOnlyAccess(teacher),'attendance'),true,'Read-only legacy access also works on standalone route');
