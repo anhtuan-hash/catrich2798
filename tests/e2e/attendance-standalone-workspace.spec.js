@@ -30,22 +30,36 @@ async function boot(page,width) {
   await page.setContent(html);
   await page.addStyleTag({content:css});
 }
-test('desktop has true full-width attendance page with a left sidebar',async({page})=>{
+test('desktop uses a full-width horizontal tab bar ABOVE the content, never a sidebar',async({page})=>{
   await boot(page,1440);
   const shell=page.locator('.attendance-shell');
   await expect(shell).toHaveAttribute('role','region');
   await expect(page.locator('.attendance-layer')).toHaveCount(0);
-  const box=await shell.boundingBox();
-  expect(box.width).toBeGreaterThan(1100);
-  const sidebar=await page.getByTestId('tabs').boundingBox();
+  const shellBox=await shell.boundingBox();
+  const header=await page.getByTestId('header').boundingBox();
+  const nav=await page.getByTestId('tabs').boundingBox();
   const content=await page.getByTestId('content').boundingBox();
-  expect(sidebar.width).toBeGreaterThan(220);
-  expect(sidebar.x).toBeLessThan(content.x);
-  expect(sidebar.y).toBe(content.y);
-  expect((await page.locator('.attendance-tabs button').count())).toBe(7);
+  expect(shellBox.width).toBeGreaterThan(1100);
+  expect(header.y).toBeLessThan(nav.y);
+  expect(nav.y).toBeLessThan(content.y);
+  expect(Math.abs(nav.x-content.x)).toBeLessThan(3);
+  expect(Math.abs(nav.width-content.width)).toBeLessThan(3);
+  expect(await page.getByTestId('tabs').evaluate(el=>getComputedStyle(el).flexDirection)).toBe('row');
+  expect(await shell.evaluate(el=>getComputedStyle(el).flexDirection)).toBe('column');
   await expect(page.getByTestId('tab1')).toHaveCSS('color','rgb(255, 255, 255)');
 });
-test('mobile switches from left sidebar to horizontally scrolling tabs',async({page})=>{
+test('long reports expand page height instead of clipping or overlaying the footer',async({page})=>{
+  await boot(page,1440);
+  await page.getByTestId('content').evaluate(node=>{
+    const section=document.createElement('section');
+    section.id='report-overflow-fixture';section.style.height='1350px';section.textContent='Nội dung báo cáo dài';
+    node.appendChild(section);
+  });
+  const shellHeight=(await page.locator('.attendance-shell').boundingBox()).height;
+  expect(shellHeight).toBeGreaterThan(1450);
+  expect(await page.getByTestId('content').evaluate(el=>getComputedStyle(el).overflowY)).toBe('visible');
+});
+test('mobile retains a horizontal scrollable top navigation',async({page})=>{
   await boot(page,390);
   const tabs=await page.getByTestId('tabs').boundingBox();
   const content=await page.getByTestId('content').boundingBox();
@@ -53,5 +67,6 @@ test('mobile switches from left sidebar to horizontally scrolling tabs',async({p
   expect(tabs.width).toBeGreaterThan(330);
   expect(content.width).toBeGreaterThan(330);
   expect(await page.getByTestId('tabs').evaluate(el=>getComputedStyle(el).flexDirection)).toBe('row');
+  expect(await page.getByTestId('tabs').evaluate(el=>getComputedStyle(el).overflowX)).toBe('auto');
   await expect(page.locator('.attendance-layer')).toHaveCount(0);
 });
