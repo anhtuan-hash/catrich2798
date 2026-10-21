@@ -455,8 +455,8 @@
   background:#fff!important;
   box-shadow:var(--att-ui-shadow)!important;
 }
-.bes-supplemental-dialog :is(.bes-supplemental-local-tabs button.is-active,.bes-supplemental-status-buttons button.is-active),
-.bes-supplemental-reporting-panel :is(.bes-supplemental-local-tabs button.is-active) {
+.bes-supplemental-dialog .bes-supplemental-local-tabs button.is-active,
+.bes-supplemental-reporting-panel .bes-supplemental-local-tabs button.is-active {
   background:#e1efff!important;color:#1156ba!important;border-color:#bcd7fa!important;
 }
 .bes-supplemental-dialog :is(.bes-supplemental-report-summary,.bes-supplemental-history-stats),
