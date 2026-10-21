@@ -1,0 +1,119 @@
+/*
+ * ESL Brian | Attendance type scale (desktop)
+ * One shared type authority for every attendance tab. Deliberately limited
+ * to the attendance modal and supplemental panels, never the main website.
+ *
+ * 11px meta / eyebrow / badge; 12px labels / subtext;
+ * 13px content / controls / table cells; 16px section headings;
+ * 21px primary headings; 26px key statistics.
+ *
+ * Do not set font sizes on printed HTML reports here.
+ */
+.attendance-shell,
+.bes-supplemental-dialog,
+.bes-supplemental-reporting-panel {
+  --att-type-meta:11px;
+  --att-type-label:12px;
+  --att-type-body:13px;
+  --att-type-control:13px;
+  --att-type-section:16px;
+  --att-type-title:21px;
+  --att-type-metric:26px;
+  font-size:var(--att-type-body);
+  line-height:1.45;
+}
+
+/* Headings and names receive intentional hierarchy, not a separate scale
+ * for each feature. The current global font family still controls typography. */
+.attendance-shell .attendance-title > div > strong {font-size:var(--att-type-title)!important;line-height:1.2}
+.attendance-shell .attendance-title small {font-size:var(--att-type-meta)!important}
+.attendance-shell :is(h2,.attendance-rollcall-head h2) {font-size:var(--att-type-title)!important;line-height:1.25}
+.attendance-shell :is(h3,h4) {font-size:var(--att-type-section)!important;line-height:1.3}
+.attendance-shell :is(.attendance-section-title,.ahv3__section-title,.att-report-m3__section-head h3,.attendance-daily-floor-card__title) {font-size:var(--att-type-section)!important;line-height:1.3}
+
+/* Primary interactions: search, filters, selections, navigation, buttons. */
+.attendance-shell :is(button,input:not([type="checkbox"]):not([type="radio"]),select,textarea),
+.bes-supplemental-dialog :is(button,input:not([type="checkbox"]):not([type="radio"]),select,textarea),
+.bes-supplemental-reporting-panel :is(button,input:not([type="checkbox"]):not([type="radio"]),select,textarea),
+.bes-supplemental-report-filter button {
+  font-size:var(--att-type-control)!important;
+  line-height:1.35;
+}
+.attendance-shell .attendance-tabs button {font-size:var(--att-type-control)!important;line-height:1.3}
+.attendance-shell :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea) {
+  min-width:0;
+}
+.attendance-shell :is(label,.att-report-m3__filters label,.stud-att__filters label) {
+  font-size:var(--att-type-label)!important;
+  line-height:1.4;
+}
+
+/* All view tables use the same readable data size. Existing horizontal
+ * scroll containers and their sticky headers remain untouched. */
+.attendance-shell :is(th,td),
+.bes-supplemental-dialog :is(th,td),
+.bes-supplemental-reporting-panel :is(th,td) {
+  font-size:var(--att-type-body)!important;
+  line-height:1.45!important;
+}
+.attendance-shell :is(.attendance-member-table-head,.attendance-daily-table-header,.ahv3__table-head),
+.attendance-shell :is(.attendance-roster-head) {
+  font-size:var(--att-type-label)!important;
+  line-height:1.4;
+}
+
+/* Secondary copy has one minimum size across panels and detail popups.
+ * Buttons and KPI numbers have separate rules above and below. */
+.attendance-shell :is(p,small,em,time),
+.bes-supplemental-dialog :is(p,small,em,time),
+.bes-supplemental-reporting-panel :is(p,small,em,time) {
+  font-size:var(--att-type-label)!important;
+  line-height:1.45;
+}
+.attendance-shell :is(.attendance-empty,.attendance-loading,.attendance-import-report>div span,.attendance-class-list time),
+.bes-supplemental-dialog :is(.bes-supplemental-message,.bes-supplemental-empty) {
+  font-size:var(--att-type-label)!important;
+}
+
+/* Status chips, eyebrows, numeric indexes: uniformly concise, but never 8px. */
+.attendance-shell :is(
+  .attendance-title small,.attendance-index,.attendance-roster-head,
+  .att-m3-status-chip,.att-m3-period-chip,.attendance-room-chip,
+  .attendance-manage-tile__type,.attendance-manage-detail-grade,
+  .attendance-member-table-head,.attendance-member-status-pill,
+  .ahv3__type,.ahv3__number,.ahv3__card-copy>time,
+  .att-report-m3__eyebrow,.att-report-m3__status,
+  .stud-att__eyebrow,.stud-att__level,
+  .attendance-archive__eyebrow,.attendance-archive__source
+) {font-size:var(--att-type-meta)!important;line-height:1.35}
+
+/* Keep data visualization deliberately large and consistent. */
+.attendance-shell :is(
+  .attendance-archive__stats strong,.att-report-m3__metrics article b,
+  .stud-att__metric-value strong,.stud-att__dialog .stud-att__metrics article>strong
+) {font-size:var(--att-type-metric)!important;line-height:1.15}
+.attendance-shell :is(
+  .attendance-summary b,.attendance-daily-overview__metric-value,
+  .ahv3__stat-grid article>b,.ahv3__rate-card>b
+) {font-size:var(--att-type-metric)!important;line-height:1.15}
+
+/* Safari/iPhone native fields need at least 16px to prevent auto-zoom.
+ * Keep mobile tab labels and action text accessible. */
+@media(max-width:760px){
+  .attendance-shell,
+  .bes-supplemental-dialog,
+  .bes-supplemental-reporting-panel {
+    --att-type-meta:12px;
+    --att-type-label:13px;
+    --att-type-body:14px;
+    --att-type-control:14px;
+    --att-type-section:17px;
+    --att-type-title:22px;
+    --att-type-metric:25px;
+  }
+  .attendance-shell :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea),
+  .bes-supplemental-dialog :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea),
+  .bes-supplemental-reporting-panel :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea) {
+    font-size:16px!important;
+  }
+}
