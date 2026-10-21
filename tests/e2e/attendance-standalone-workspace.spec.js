@@ -43,7 +43,7 @@ test('desktop uses a full-width horizontal tab bar ABOVE the content, never a si
   expect(header.y).toBeLessThan(nav.y);
   expect(nav.y).toBeLessThan(content.y);
   expect(Math.abs(nav.x-content.x)).toBeLessThan(3);
-  expect(Math.abs(nav.width-content.width)).toBeLessThan(3);
+  expect(Math.abs(nav.width-content.width)).toBeLessThan(8); // Some browsers reserve 4px for a scrollbar.
   expect(await page.getByTestId('tabs').evaluate(el=>getComputedStyle(el).flexDirection)).toBe('row');
   expect(await shell.evaluate(el=>getComputedStyle(el).flexDirection)).toBe('column');
   await expect(page.getByTestId('tab1')).toHaveCSS('color','rgb(255, 255, 255)');
