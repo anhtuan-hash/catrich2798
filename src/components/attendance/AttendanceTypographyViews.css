@@ -1,0 +1,164 @@
+/* ESL Brian attendance typography: feature-specific alignment to base tokens.
+ * This file changes text rhythm only and preserves existing business controls.
+ */
+
+/* Attendance schedule + roll call */
+.attendance-shell :is(.attendance-class-list button b,.attendance-manage-classes button b,.attendance-daily-class-row__class b) {
+  font-size:14px!important;line-height:1.35;
+}
+.attendance-shell :is(.attendance-class-list button small,.attendance-class-list button em,.attendance-school-class,.attendance-roster label small) {
+  font-size:var(--att-type-label)!important;line-height:1.4;
+}
+.attendance-shell :is(
+  .attendance-rollcall-head>div:first-child>span,
+  .attendance-session-controls label>span,
+  .att-m3-period-field>span,.att-m3-absence-detail>span,
+  .attendance-confirm-bar label span,.attendance-confirm-bar>div>span
+) {font-size:var(--att-type-label)!important;line-height:1.35}
+.attendance-shell :is(.att-m3-period-policy b,.att-m3-period-fixed-note,.att-m3-period-policy small) {font-size:var(--att-type-label)!important}
+.attendance-shell :is(.att-m3-attendance-status button,.att-m3-reason-chips button,.att-m3-period-segment button) {
+  font-size:var(--att-type-label)!important;
+  line-height:1.2;
+}
+@media(min-width:761px) {
+  .attendance-shell .att-m3-roster-entry>label {
+    grid-template-columns:42px minmax(0,1fr) minmax(166px,178px) 54px!important;
+  }
+}
+.attendance-shell :is(
+  .attendance-daily-date-card__label,.attendance-daily-overview__metric-label,
+  .attendance-daily-overview__route-meta,.attendance-calendar-room-chip,
+  .attendance-daily-floor-card__badge,.attendance-daily-class-row__time-copy small,
+  .attendance-daily-class-row__status,.attendance-daily-class-row__action,
+  .attendance-calendar-mode-bar__date input
+) {font-size:var(--att-type-label)!important;line-height:1.4}
+.attendance-shell :is(.attendance-daily-class-row__teacher b,.attendance-daily-floor-card__title) {font-size:var(--att-type-body)!important}
+.attendance-shell .attendance-daily-overview__metric-label {font-weight:800}
+
+/* Class administration and roster editor */
+.attendance-shell :is(
+  .attendance-manage-result-count,.attendance-manage-tile__subtitle,
+  .attendance-manage-tile__meta>span,.attendance-manage-detail-back,
+  .attendance-manage-detail-hero p,.attendance-manage-detail-quick-stat small,
+  .attendance-manage-detail-info-item small,.attendance-manage-detail-roster-title small,
+  .attendance-manage-detail-roster-toolbar span,
+  .attendance-manage-detail-roster-footer>span,.attendance-manage-detail-hero__meta,
+  .attendance-add-student label span,.attendance-add-teacher label span,
+  .attendance-teacher-field label,.attendance-member-table__index,
+  .attendance-member-status-pill,.attendance-manage-detail-grade
+) {font-size:var(--att-type-label)!important;line-height:1.4}
+.attendance-shell :is(
+  .attendance-manage-tile__title,.attendance-manage-detail-roster-title strong,
+  .attendance-manage-detail-actions strong,.attendance-manage-detail-info-item b,
+  .attendance-member-name-cell b
+) {font-size:14px!important;line-height:1.35}
+.attendance-shell :is(
+  .attendance-manage-filter-chips button,.attendance-manage-import-button,
+  .attendance-manage-detail-actions button,
+  .attendance-manage-detail-roster-toolbar button,
+  .attendance-manage-detail-roster-footer nav button,
+  .attendance-member-row-actions button
+) {font-size:var(--att-type-control)!important}
+.attendance-shell :is(
+  .attendance-member-table.is-mockup .attendance-member-table-head,
+  .attendance-member-table.is-mockup>.attendance-member-table-row,
+  .attendance-member-row-menu>button,.attendance-manage-detail-add.attendance-add-teacher input
+) {font-size:var(--att-type-body)!important}
+
+/* Session history: cards, audit trails, absent/late lists */
+.attendance-shell .ahv3__shell :is(
+  .ahv3__date-filters label>span,.ahv3__filter-meta>span,
+  .ahv3__hero-chips>span,.ahv3__info-grid article>div>span,
+  .ahv3__stat-grid article>span:not(.ahv3__summary-icon):not(.ahv3__rate-ring),
+  .ahv3__stat-grid article>small,.ahv3__count em,.ahv3__count i,
+  .ahv3__card-copy>time,.ahv3__type,.ahv3__list-actions>span,
+  .ahv3__list-title p,.ahv3__lock span,.ahv3__audit-event small
+) {font-size:var(--att-type-label)!important;line-height:1.4}
+.attendance-shell .ahv3__shell :is(
+  .ahv3__card-title b,.ahv3__count b,
+  .ahv3__info-grid article>div>b,.ahv3__audit-actor-panel strong
+) {font-size:var(--att-type-body)!important;line-height:1.4}
+.attendance-shell .ahv3__shell :is(
+  .ahv3__list-actions button,.ahv3__bulk-toolbar button,
+  .ahv3__date-filters input,.ahv3__filter-meta button,
+  .ahv3__list-head .ahv3__search input,.ahv3__actions button
+) {font-size:var(--att-type-control)!important}
+
+/* All teacher reporting modes have the same legible labels and rows. */
+.attendance-shell .att-report-m3 :is(
+  .att-report-m3__eyebrow,.att-report-m3__filters label>span,
+  .att-report-m3__export-meta label>span:not(.att-report-m3__meta-icon),
+  .att-report-m3__metrics article>div>span,.att-report-m3__metrics article small,
+  .att-report-m3__section-head p,.att-report-m3__teacher-tools label span,
+  .att-report-m3__teacher-card>span,.att-report-m3__teacher-card>small,
+  .att-report-m3__teacher-rate>b,.att-report-m3 td small
+) {font-size:var(--att-type-label)!important;line-height:1.4}
+.attendance-shell .att-report-m3 :is(
+  .att-report-m3__teacher-card strong,.att-report-m3__filters input,
+  .att-report-m3__filters select,.att-report-m3__export-meta input,
+  .att-report-m3__export-meta textarea,.att-report-m3__mode button,
+  .att-report-m3__teacher-tools select,.att-report-m3__export button
+) {font-size:var(--att-type-control)!important}
+.attendance-shell .att-report-m3 .att-report-m3__teacher-card>b {font-size:23px!important;line-height:1.1}
+.attendance-shell .att-report-m3 .att-report-m3__section-head h3 {font-size:var(--att-type-section)!important}
+.attendance-shell .att-report-m3 :is(th,td) {font-size:var(--att-type-body)!important}
+
+/* Student report: harmonize with the teacher report without removing the
+ * richer colored KPI styling or reducing graph readability. */
+.attendance-shell .stud-att :is(
+  .stud-att__intro p,.stud-att__filter-hint,.stud-att__reporter label,
+  .stud-att__filters label,.stud-att__configuration label,
+  .stud-att__metric-value span,.stud-att__dialog .stud-att__metrics article>span,
+  .stud-att__footnote,.stud-att__chart-column>small,
+  .stud-att__subject small,.stud-att td small
+) {font-size:var(--att-type-label)!important;line-height:1.45}
+.attendance-shell .stud-att :is(
+  .stud-att__actions button,.stud-att__refresh,
+  .stud-att__filter-heading strong,.stud-att__configuration summary,
+  .stud-att__level,.stud-att__detail-btn
+) {font-size:var(--att-type-control)!important}
+.attendance-shell .stud-att :is(.stud-att__eyebrow,.stud-att__filter-heading strong) {
+  font-size:var(--att-type-meta)!important;letter-spacing:.035em
+}
+.attendance-shell .stud-att :is(.stud-att__intro h3,.stud-att__dialog h2) {font-size:var(--att-type-title)!important}
+.attendance-shell .stud-att :is(.stud-att__dialog h3) {font-size:var(--att-type-section)!important}
+
+/* Archive and teacher-time administration. */
+.attendance-shell .attendance-archive :is(
+  .attendance-archive__eyebrow,.attendance-archive__source,
+  .attendance-archive__meta,.attendance-archive__stats span,
+  .attendance-archive__request-state,.attendance-archive__counts
+) {font-size:var(--att-type-label)!important;line-height:1.4}
+.attendance-shell .attendance-archive :is(
+  .attendance-archive__card-title,.attendance-archive__card-title strong
+) {font-size:14px!important}
+.attendance-shell .attendance-archive :is(button,input,select) {font-size:var(--att-type-control)!important}
+
+/* Supplemental activities can open in a portal, outside .attendance-shell. */
+.bes-supplemental-dialog :is(
+  .bes-supplemental-kicker,.bes-supplemental-chip,.bes-supplemental-kind,
+  .bes-supplemental-source-badge,.bes-supplemental-daily-section>header span,
+  .bes-supplemental-rollcall>footer label,.bes-supplemental-report-tools label,
+  .bes-supplemental-history-stats span,.bes-supplemental-report-summary span,
+  .bes-supplemental-unified-list article>span
+),
+.bes-supplemental-reporting-panel :is(
+  .bes-supplemental-report-tools label,.bes-supplemental-history-stats span,
+  .bes-supplemental-report-summary span
+) {font-size:var(--att-type-label)!important;line-height:1.4}
+.bes-supplemental-dialog .bes-supplemental-dialog-head h2 {font-size:var(--att-type-title)!important}
+.bes-supplemental-dialog :is(.bes-supplemental-section h3,.bes-supplemental-card h3) {font-size:var(--att-type-section)!important}
+.bes-supplemental-report-filter>div>span {font-size:12px!important}
+
+/* Native mobile input readability, without iOS zoom. */
+@media(max-width:760px) {
+  .attendance-shell .stud-att .stud-att__filters :is(input,select),
+  .attendance-shell .att-report-m3 .att-report-m3__filters :is(input,select),
+  .attendance-shell .ahv3__shell .ahv3__date-filters input {
+    font-size:16px!important;
+  }
+  .attendance-shell .att-m3-roster-entry>label {
+    /* Preserve the existing stacked mobile attendance status buttons. */
+    grid-template-columns:34px minmax(0,1fr) 64px!important;
+  }
+}
