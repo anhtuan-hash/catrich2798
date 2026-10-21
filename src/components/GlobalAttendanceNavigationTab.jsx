@@ -451,7 +451,8 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
   }, [workspaceVisible, allowed, runtime.ready, runtime.session?.user?.id]);
 
   useEffect(() => {
-    if (workspaceVisible && canOpenArchive) loadArchive();
+    if (open && canOpenArchive) loadArchive();
+    else if (standalone && canOpenArchive) loadArchive();
   }, [workspaceVisible, canOpenArchive, runtime.ready, runtime.session?.user?.id]);
 
   const activeClasses = useMemo(() => classes.filter((row) => row.active !== false), [classes]);
