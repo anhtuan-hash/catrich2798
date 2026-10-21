@@ -1,0 +1,268 @@
+/*
+ * Attendance quick roll call — responsive layout repair (21 Oct 2026).
+ *
+ * The old AttendanceTypographyViews.css forces the FINAL roster grid
+ * column to 54px, while AttendanceMaterial3.css places three status
+ * buttons inside that column. They overlap. These rules are intentionally
+ * loaded LAST and are scoped to the standalone full-page workspace only.
+ *
+ * On small screens the status group becomes a separate full-width row.
+ * Do not change saved attendance statuses, periods or export documents.
+ */
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-quick-layout{
+  display:grid!important;
+  grid-template-columns:minmax(250px,300px) minmax(0,1fr)!important;
+  gap:16px!important;
+  align-items:start!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-width:0!important;
+  height:auto!important;
+  min-height:0!important;
+  overflow:visible!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-quick-layout > .attendance-class-list,
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-quick-layout > .attendance-rollcall{
+  min-width:0!important;
+  max-width:100%!important;
+  width:100%!important;
+  box-sizing:border-box;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-class-list{
+  display:flex!important;
+  flex-direction:column!important;
+  min-width:0!important;
+  min-height:0!important;
+  max-height:820px!important;
+  overflow:hidden!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-class-list > header,
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-class-list > .att-m3-class-discovery{
+  flex:0 0 auto;
+  min-width:0;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-class-list > div:last-child{
+  flex:1 1 auto;
+  min-height:0!important;
+  max-height:590px;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  overscroll-behavior:contain;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-rollcall{
+  display:block!important;
+  min-width:0!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:visible!important;
+  padding:clamp(12px,1.25vw,19px)!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-rollcall-head,
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-session-controls,
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-roster,
+.attendance-workspace-page .attendance-shell.is-standalone .att-m3-proof-card,
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-confirm-bar{
+  min-width:0!important;
+  width:100%;
+  max-width:100%;
+  box-sizing:border-box;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-roster{
+  display:block!important;
+  overflow:visible!important;
+  min-height:0!important;
+  height:auto!important;
+  max-height:none!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-roster-head{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 94px 300px!important;
+  gap:10px!important;
+  align-items:center;
+  min-width:0!important;
+  margin:0!important;
+  padding:11px 14px 11px 70px!important;
+  box-sizing:border-box;
+  background:#f0f5fc!important;
+  border-radius:11px 11px 0 0!important;
+  font-size:11px!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-roster-head > span:last-child{
+  text-align:center;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .att-m3-roster-entry{
+  min-width:0!important;
+  max-width:100%!important;
+  box-sizing:border-box;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .att-m3-roster-entry > label{
+  display:grid!important;
+  grid-template-columns:34px minmax(0,1fr) 94px 300px!important;
+  grid-auto-flow:row!important;
+  gap:10px!important;
+  align-items:center!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:63px!important;
+  padding:9px 14px!important;
+  box-sizing:border-box!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .att-m3-roster-entry > label > :is(span,div){
+  min-width:0;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .att-m3-roster-entry > label > div:nth-child(2){
+  overflow-wrap:anywhere;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .att-m3-roster-entry > label b{
+  font-size:13px!important;
+  line-height:1.35!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-school-class{
+  min-width:0!important;
+  font-size:12px!important;
+  text-align:center;
+  white-space:nowrap;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .att-m3-attendance-status{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:5px!important;
+  align-items:stretch!important;
+  grid-column:auto!important;
+  min-width:0!important;
+  width:100%!important;
+  max-width:100%!important;
+  margin:0!important;
+  padding:4px!important;
+  box-sizing:border-box!important;
+  border-radius:12px!important;
+  background:#eef3fb!important;
+  overflow:visible!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .att-m3-attendance-status button{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  min-width:0!important;
+  width:100%!important;
+  min-height:35px!important;
+  height:auto!important;
+  padding:6px 5px!important;
+  border-radius:9px!important;
+  font-family:inherit!important;
+  font-size:12px!important;
+  font-weight:760!important;
+  line-height:1.25!important;
+  white-space:nowrap!important;
+  letter-spacing:0!important;
+  overflow:hidden;
+  text-overflow:clip;
+  box-sizing:border-box!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .att-m3-absence-detail{
+  min-width:0!important;
+  max-width:100%;
+  grid-template-columns:minmax(0,1fr);
+}
+.attendance-workspace-page .attendance-shell.is-standalone .att-m3-reason-chips{
+  flex-wrap:wrap!important;
+}
+/* When the detail pane cannot fit all four data columns, give the
+ * attendance buttons a full row instead of squeezing into 54px. */
+@media(max-width:1390px){
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-roster-head{
+    display:none!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .att-m3-roster-entry > label{
+    grid-template-columns:30px minmax(0,1fr) 82px!important;
+    grid-template-rows:auto auto!important;
+    row-gap:8px!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .att-m3-attendance-status{
+    grid-column:2 / -1!important;
+    grid-row:2!important;
+    margin:0!important;
+  }
+}
+@media(max-width:1040px){
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-quick-layout{
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:13px!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-class-list{
+    display:flex!important;
+    max-height:370px!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-class-list > div:last-child{
+    max-height:230px;
+  }
+}
+@media(max-width:760px){
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-quick-layout{
+    grid-template-columns:minmax(0,1fr)!important;
+    min-width:0!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-class-list{
+    display:flex!important; /* counter legacy rule hiding the class list */
+    width:100%!important;
+    max-height:345px!important;
+    overflow:hidden!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-class-list > div:last-child{
+    max-height:195px!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-rollcall{
+    padding:10px!important;
+    width:100%!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-rollcall-head{
+    min-height:0!important;
+    display:flex!important;
+    flex-wrap:wrap!important;
+    gap:10px!important;
+    padding:7px 3px 13px!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-session-controls{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    height:auto!important;
+    min-height:0!important;
+    gap:10px!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .att-m3-roster-entry > label{
+    grid-template-columns:28px minmax(0,1fr) 48px!important;
+    gap:7px!important;
+    padding:10px 7px!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-school-class{
+    font-size:11px!important;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .att-m3-attendance-status{
+    grid-column:1 / -1!important;
+    grid-row:2!important;
+    margin:0!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .att-m3-attendance-status button{
+    font-size:12px!important;
+    min-height:38px!important;
+    padding:6px 2px!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-confirm-bar{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:stretch!important;
+    gap:12px!important;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .attendance-confirm-bar > label{
+    flex:0 1 auto!important;
+    min-width:0!important;
+    width:100%;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .att-m3-session-actions{
+    display:flex!important;
+    flex-wrap:wrap!important;
+  }
+}
