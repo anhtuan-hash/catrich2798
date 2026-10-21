@@ -68,7 +68,14 @@ export function printStudentAttendancePdf(students, filters = {}) {
   const popup = window.open('', '_blank');
   if (!popup) throw new Error('Trình duyệt đã chặn cửa sổ in. Hãy cho phép popup để lưu PDF.');
   const isIndividual = students.length === 1;
-  const pages = students.map((s) => {
+  const totals = students.reduce((n,s) => ({students:n.students+1,total:n.total+s.totalPeriods,present:n.present+s.presentPeriods,absent:n.absent+s.absentPeriods}), {students:0,total:0,present:0,absent:0});
+  const summaryPage = isIndividual ? '' : '<section class="page"><div class="school">'+esc(SCHOOL)+'</div><h1>'+esc(title)+'</h1><div class="period">Từ '+esc(prettyDate(filters.from))+' đến '+esc(prettyDate(filters.to))+'</div>'+
+    '<h3>Tổng hợp tình hình tham gia của '+totals.students+' học sinh</h3>'+
+    '<p>Tổng lượt tiết: '+Math.round(totals.total*100)/100+' · Có mặt: '+Math.round(totals.present*100)/100+' · Vắng: '+Math.round(totals.absent*100)/100+' · Chuyên cần: '+esc(rateText(totals.total?totals.present/totals.total:null))+'</p>'+
+    '<table><thead><tr><th>Mã HS</th><th>Họ và tên</th><th>Lớp</th><th>Tổng tiết</th><th>Có mặt</th><th>Vắng</th><th>Đi trễ</th><th>Chuyên cần</th><th>Đánh giá</th></tr></thead><tbody>'+
+    students.map(s=>'<tr><td>'+esc(s.studentCode)+'</td><td>'+esc(s.name)+'</td><td>'+esc(s.schoolClass)+'</td><td>'+s.totalPeriods+'</td><td>'+s.presentPeriods+'</td><td>'+s.absentPeriods+'</td><td>'+s.lateCount+'</td><td>'+esc(rateText(s.rate))+'</td><td>'+esc(levelName(s.alert))+'</td></tr>').join('')+
+    '</tbody></table><p>Phần sau là báo cáo chi tiết từng học sinh.</p></section>';
+  const pages = summaryPage + students.map((s) => {
     const subRows = s.subjectRows.map(r=>'<tr><td>'+esc(r.subject)+'</td><td>'+r.total+'</td><td>'+r.present+'</td><td>'+r.absent+'</td></tr>').join('');
     const details = s.details.map(d=>'<tr><td>'+esc(prettyDate(d.date))+'</td><td>'+esc(d.className)+'</td><td>'+esc(d.subject)+'</td><td>'+esc(d.teacher)+'</td><td>'+d.periods+'</td><td>'+statusName(d.status)+'</td><td>'+esc(d.absenceReason||'—')+'</td></tr>').join('');
     return '<section class="page"><div class="school">'+esc(SCHOOL)+'</div><h1>'+esc(title)+'</h1><div class="period">Từ '+esc(prettyDate(filters.from))+' đến '+esc(prettyDate(filters.to))+'</div>'+
