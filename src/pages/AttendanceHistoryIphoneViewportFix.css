@@ -44,6 +44,30 @@
     overscroll-behavior-y: contain;
   }
 
+  /* A single search field: do not draw a second iOS input box inside it. */
+  html body .attendance-workspace-page .attendance-shell.is-standalone.ah-history-v5 .ahv3__list-head > .ahv3__search {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+  html body .attendance-workspace-page .attendance-shell.is-standalone.ah-history-v5 .ahv3__list-head > .ahv3__search input {
+    flex: 1 1 0 !important;
+    display: block !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 8px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    outline-offset: -2px !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    font-size: 16px !important;
+  }
+
   /* A long Vietnamese class name must wrap instead of colliding with the badge. */
   html body .attendance-workspace-page .attendance-shell.is-standalone.ah-history-v5 .ahv3__card-title {
     display: flex !important;
