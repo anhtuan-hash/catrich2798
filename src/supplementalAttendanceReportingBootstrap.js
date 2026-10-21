@@ -46,7 +46,7 @@ function tabKind(button) {
 
 function activeButton() {
   return [...document.querySelectorAll(TAB_SELECTOR)].find((button) =>
-    button.getAttribute('aria-selected') === 'true' || button.classList.contains('active') || button.dataset.active === 'true');
+    button.getAttribute('aria-selected') === 'true' || button.classList.contains('active') || button.classList.contains('is-active') || button.dataset.active === 'true');
 }
 
 function detectActiveTab() {
@@ -115,9 +115,20 @@ function ensureFilter() {
     bar = document.createElement('section');
     bar.id = FILTER_ID;
     bar.className = 'bes-supplemental-report-filter';
-    const tabs = document.querySelector('.attendance-tabs');
+    const tabs = host.querySelector('.attendance-tabs');
     if (tabs?.parentElement) tabs.insertAdjacentElement('afterend', bar);
     else host.prepend(bar);
+  }
+  // The full-page mockup keeps activity filters *inside* the active report
+  // or history pane, immediately under its page heading. A sibling of the
+  // old modal nav is what caused the clipped, vertical strip in screenshots.
+  if (host.classList.contains('is-standalone')) {
+    const content = host.querySelector('.attendance-content');
+    const heading = content?.querySelector('.awu-page-head');
+    if (content && bar.parentElement !== content) {
+      if (heading) heading.insertAdjacentElement('afterend', bar);
+      else content.prepend(bar);
+    }
   }
 
   bar.innerHTML = `<div><span>Loại hoạt động</span>${filterOptions().map(([value, label]) =>
