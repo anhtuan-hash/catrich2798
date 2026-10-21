@@ -1,0 +1,30 @@
+name: Student attendance PDF localization and branding
+on:
+  pull_request:
+    paths:
+      - 'src/utils/studentAttendanceExport.js'
+      - 'src/utils/attendanceReportExport.js'
+      - 'src/components/attendance/StudentAttendanceReport.jsx'
+      - 'src/components/attendance/AttendanceMonthlyReport.jsx'
+      - 'src/components/attendance/StudentAttendanceReport.css'
+      - 'scripts/test-student-attendance-pdf-chrome.mjs'
+      - '.github/workflows/student-attendance-pdf-chrome.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  report-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node scripts/test-student-attendance-pdf-chrome.mjs
+      - run: node scripts/test-student-attendance-report.mjs
+      - run: node scripts/test-attendance-report-export.mjs
+      - run: node scripts/test-attendance-report-supplemental-integration.mjs
+      - run: npm run build
