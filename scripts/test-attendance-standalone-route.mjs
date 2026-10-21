@@ -19,6 +19,12 @@ assert.match(nav,/standalone\s*\?\s*<div className="attendance-standalone-root"/
 assert.match(nav,/role=\{standalone \? 'region' : 'dialog'\}/);
 assert.match(nav,/if \(\(!standalone && !host\) \|\| !allowed\)/);
 assert.match(nav,/open \? createPortal/,'Modal fallback retained for existing integrations');
+assert.match(nav,/window\.location\.hash = '#\/attendance';/,'The global attendance navigation button must open the page, not a modal');
+assert.match(nav,/window\.location\.hash = '#\/attendance\?tab=quick';/,'Quick attendance shortcut opens the page');
+assert.match(nav,/supplementalSession:sessionId/,'External supplemental attendance requests use a routed handoff');
+assert.match(nav,/initialLoadSettled/,'Supplemental handoff waits for initial attendance data');
+assert.match(nav,/supplementalRouteHandledRef\.current/,'Supplemental handoff must not replay repeatedly');
+assert.match(nav,/window\.dispatchEvent\(new CustomEvent\('bes-supplemental-open-rollcall'/,'Supplemental session is reconstructed on the new route');
 assert.match(nav,/window\.history\.replaceState\(null, '', '#\/attendance\?tab='/,'Deep links should support all tabs');
 assert.match(globalNav,/props\.route !== 'attendance'/,'Never mount duplicate attendance modal on standalone route');
 assert.match(style,/grid-template-columns:240px minmax\(0,1fr\)/,'Sidebar replaces horizontal tab layout on desktop');
