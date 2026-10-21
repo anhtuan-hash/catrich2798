@@ -1,0 +1,32 @@
+name: Attendance Mobile Cross-Module Audit
+on:
+  pull_request:
+    paths:
+      - 'src/pages/AttendanceMobileAudit.css'
+      - 'src/pages/AttendanceWorkspace.jsx'
+      - 'scripts/test-attendance-mobile-audit.mjs'
+      - 'tests/e2e/attendance-mobile-comprehensive.spec.js'
+      - '.github/workflows/attendance-mobile-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  mobile-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node scripts/test-attendance-mobile-audit.mjs
+      - run: node scripts/test-attendance-quick-layout-fix.mjs
+      - run: node scripts/test-attendance-standalone-route.mjs
+      - run: node scripts/test-attendance-rebuilt-ui.mjs
+      - run: node scripts/test-attendance-google-material.mjs
+      - run: node scripts/test-student-attendance-report.mjs
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npx playwright test tests/e2e/attendance-mobile-comprehensive.spec.js tests/e2e/attendance-quick-layout-fix.spec.js --project=chromium-desktop --project=webkit-desktop
