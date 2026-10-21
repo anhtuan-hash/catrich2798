@@ -29,7 +29,7 @@ export function AttendanceUiIcon({name='report',size=20}) {
 }
 
 const VIEW_INFO={
-  quick:{eyebrow:'ĐIỂM DANH HÔM NAY',title:'Điểm danh nhanh',description:'Chọn lớp học, ghi nhận chuyên cần và chốt buổi học.',icon:'quick'},
+  quick:{eyebrow:'CHUYÊN CẦN HÔM NAY',title:'Điểm danh lớp học',description:'Chọn lớp, ghi nhận chuyên cần và xác nhận buổi học.',icon:'quick'},
   calendar:{eyebrow:'LỊCH HỌC',title:'Lịch điểm danh',description:'Theo dõi lịch dạy, phòng học và tình trạng điểm danh theo ngày.',icon:'calendar'},
   manage:{eyebrow:'QUẢN LÝ ĐÀO TẠO',title:'Quản lý lớp học',description:'Quản lý lớp phụ đạo, bồi dưỡng, giáo viên và danh sách học sinh.',icon:'manage'},
   history:{eyebrow:'TRA CỨU',title:'Lịch sử điểm danh',description:'Xem buổi học đã chốt, học sinh vắng và nhật ký thay đổi.',icon:'history'},
