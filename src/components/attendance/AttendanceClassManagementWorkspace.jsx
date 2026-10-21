@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { AttendancePanelHeading, AttendanceEmpty } from './AttendanceWorkspaceUI.jsx';
 import { attendanceSubjectKey, extraClassTypeLabel } from '../../utils/extraClassAttendance.js';
 import { roomForExtraClass, weekdaysForExtraClass } from '../../utils/extraClassSchedule2026.js';
 import AttendanceClassEditor from './AttendanceClassEditor.jsx';
@@ -181,6 +182,9 @@ export default function AttendanceClassManagementWorkspace({
   if (!detailVisible) {
     return (
       <section className="attendance-manage-overview">
+        <AttendancePanelHeading icon="manage" eyebrow="DANH SÁCH LỚP" title="Tìm và quản lý lớp học"
+          description="Lọc theo môn học, loại lớp hoặc khối; chọn một lớp để quản lý thành viên."
+          aside={<span className="awu-pill"><b>{activeClasses.length}</b> lớp đang hoạt động</span>} />
         <div className="attendance-manage-overview-toolbar attendance-import-card">
           <label className="attendance-manage-search" data-bes-keep-search="true">
             <WorkspaceIcon name="search" size={17} />
@@ -273,7 +277,7 @@ export default function AttendanceClassManagementWorkspace({
               </button>
             );
           })}
-          {!filteredManageClasses.length ? <div className="attendance-manage-overview-empty">Không có lớp phù hợp bộ lọc.</div> : null}
+          {!filteredManageClasses.length ? <AttendanceEmpty title="Không có lớp phù hợp" description="Thay đổi từ khóa, loại lớp hoặc khối để tiếp tục tìm kiếm." /> : null}
         </div>
       </section>
     );
