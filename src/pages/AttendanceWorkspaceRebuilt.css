@@ -571,3 +571,76 @@
     grid-template-columns:repeat(2,minmax(0,1fr))!important;
   }
 }
+
+
+/* Supplemental filter is a first-class horizontal toolbar within the
+ * active history/report page (not a child of the global navigation strip). */
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-content > .bes-supplemental-report-filter{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  flex-wrap:wrap!important;
+  width:100%!important;
+  min-width:0;
+  height:auto!important;
+  max-height:none!important;
+  margin:0 0 16px!important;
+  padding:12px 16px!important;
+  border:1px solid #d7e4f7!important;
+  border-radius:14px!important;
+  background:#fff!important;
+  box-shadow:0 3px 12px rgba(16,56,108,.055)!important;
+  position:relative!important;
+  inset:auto!important;
+  overflow:visible!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .bes-supplemental-report-filter > div{
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:wrap!important;
+  align-items:center!important;
+  gap:7px!important;
+  flex:1 1 520px;
+  min-width:0;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .bes-supplemental-report-filter > div > span{
+  display:inline!important;
+  white-space:nowrap!important;
+  margin-right:9px!important;
+  color:#375479!important;
+  font-size:12px!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .bes-supplemental-report-filter button{
+  display:inline-flex!important;
+  width:auto!important;
+  min-width:0!important;
+  height:34px!important;
+  padding:7px 12px!important;
+  white-space:nowrap!important;
+  font-size:12px!important;
+  border-radius:999px!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .bes-supplemental-report-filter button.is-active{
+  background:#1c65d7!important;color:#fff!important;border-color:#1c65d7!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .bes-supplemental-report-filter > small{
+  flex:0 1 290px;
+  min-width:0!important;
+  max-width:100%;
+  text-align:right!important;
+  font-size:11px!important;
+  line-height:1.45;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .bes-supplemental-workspace-host{
+  width:100%!important;
+  height:auto!important;
+  min-height:520px;
+  min-width:0;
+  overflow:visible!important;
+}
+@media(max-width:900px){
+  .attendance-workspace-page .attendance-shell.is-standalone .bes-supplemental-report-filter > small{
+    flex-basis:100%;text-align:left!important;
+  }
+}
