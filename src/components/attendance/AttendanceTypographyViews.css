@@ -150,6 +150,40 @@
 .bes-supplemental-dialog :is(.bes-supplemental-section h3,.bes-supplemental-card h3) {font-size:var(--att-type-section)!important}
 .bes-supplemental-report-filter>div>span {font-size:12px!important}
 
+/* Teacher-time controls, weekday calendar and post-confirm edits. */
+.attendance-shell :is(
+  .bes-attendance-time-heading small,.bes-attendance-time-toggle small,
+  .bes-attendance-time-field>span,.bes-attendance-time-admin-status,
+  .bes-attendance-access-status small,.bes-attendance-time-trigger-window,
+  .attendance-calendar-toolbar label span,.attendance-calendar-weekdays span,
+  .attendance-calendar-day small,.attendance-calendar-day em,
+  .attendance-day-lock span,.attendance-day-open span,
+  .attendance-class-info-head span,.attendance-class-edit-form label>span,
+  .attendance-class-teacher-editor>span,.attendance-weekday-editor>span,
+  .attendance-class-info-grid article span,.attendance-class-teacher-chips>em,
+  .bes-post-confirm-card-summary span,.bes-post-confirm-card-summary em,
+  .bes-post-confirm-notice,.bes-post-confirm-live-summary span,
+  .bes-post-confirm-live-summary em,.bes-post-confirm-editor-note,
+  .bes-post-confirm-index,.bes-post-confirm-present-note,
+  .bes-post-confirm-absence-fields label span,
+  .bes-post-confirm-editor-footer label span
+) {font-size:var(--att-type-label)!important;line-height:1.4}
+.attendance-shell :is(
+  .bes-attendance-time-heading strong,.bes-attendance-time-toggle b,
+  .bes-post-confirm-card-copy strong,.bes-post-confirm-student-name b,
+  .attendance-class-teacher-chip b
+) {font-size:var(--att-type-body)!important;line-height:1.4}
+.attendance-shell :is(
+  .bes-post-confirm-status-toggle button,
+  .bes-post-confirm-absence-fields select,
+  .bes-post-confirm-absence-fields input,
+  .bes-post-confirm-editor-footer input,
+  .bes-post-confirm-editor-footer button,
+  .attendance-weekday-editor button,
+  .attendance-calendar-day button,
+  .attendance-class-teacher-add button
+) {font-size:var(--att-type-control)!important}
+
 /* Legacy micro labels identified by the audit (8–10px). */
 .attendance-shell :is(
   .attendance-history-list>header span,.attendance-history-detail>header>span,
