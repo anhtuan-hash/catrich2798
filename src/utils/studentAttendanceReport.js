@@ -65,13 +65,35 @@ export function buildStudentAttendanceReport({
     if (!existing || updatedAt >= safe(existing.recorded_at)) definitive.set(key, record);
   });
 
+  // Some older roll calls omit student codes while newer roll calls contain them.
+  // Reconcile an uncoded full-name + school-class pair to a coded identity only
+  // when exactly one distinct code occurs for that pair in the selected data.
+  const knownCodes = new Map();
+  definitive.forEach((record) => {
+    const code = fold(record.student_code);
+    const name = fold(record.student_full_name);
+    const school = fold(record.school_class_name);
+    if (!code || !name || !school) return;
+    const key = name + '|' + school;
+    if (!knownCodes.has(key)) knownCodes.set(key, new Set());
+    knownCodes.get(key).add(code);
+  });
+  function resolvedIdentity(record) {
+    const code = fold(record.student_code);
+    if (code) return 'code:' + code;
+    const name = fold(record.student_full_name);
+    const school = fold(record.school_class_name);
+    const codes = knownCodes.get(name + '|' + school);
+    return codes?.size === 1 ? 'code:' + [...codes][0] : studentIdentity(record);
+  }
+
   const grouped = new Map();
   definitive.forEach((record) => {
     const school = safe(record.school_class_name);
     if (schoolClass !== 'all' && fold(school) !== fold(schoolClass)) return;
     if (grade !== 'all' && !new RegExp('^' + grade + '(?:\\D|$)').test(school)) return;
     const session = sessionMap.get(safe(record.session_id));
-    const key = studentIdentity(record);
+    const key = resolvedIdentity(record);
     let row = grouped.get(key);
     if (!row) {
       row = emptyStudent(record, key);
