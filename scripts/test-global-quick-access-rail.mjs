@@ -115,11 +115,12 @@ for (const token of [
   'bes-dashboard-focus',
   'bes-assessment-quick-create-on-load',
   'bes-assessment-quick-create',
-  'bes-attendance-quick-open',
+  "#/attendance?tab=quick",
   "#/student-support?tab=alerts",
 ]) {
   assert.ok(rail.includes(token), `Action Dock native intent missing in rail: ${token}`);
 }
+assert.ok(rail.includes("launchQuickAccessTarget('#/attendance?tab=quick'"),'Quick Attendance Action Dock goes to standalone app, not modal');
 
 for (const token of [
   'bes-dashboard-focus-on-load',
