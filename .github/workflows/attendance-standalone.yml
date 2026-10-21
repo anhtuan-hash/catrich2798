@@ -1,0 +1,33 @@
+name: Attendance standalone workspace
+on:
+  pull_request:
+    paths:
+      - 'src/main.jsx'
+      - 'src/components/GlobalFlatNavigation.jsx'
+      - 'src/components/GlobalAttendanceNavigationTab.jsx'
+      - 'src/pages/AttendanceWorkspace.jsx'
+      - 'src/pages/AttendanceWorkspace.css'
+      - 'scripts/test-attendance-standalone-route.mjs'
+      - 'tests/e2e/attendance-standalone-workspace.spec.js'
+      - '.github/workflows/attendance-standalone.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  standalone:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node scripts/test-attendance-standalone-route.mjs
+      - run: node scripts/test-attendance-unified-typography.mjs
+      - run: node scripts/test-student-attendance-report.mjs
+      - run: node scripts/test-attendance-report-export.mjs
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npx playwright test tests/e2e/attendance-standalone-workspace.spec.js --project=chromium-desktop --project=webkit-desktop
