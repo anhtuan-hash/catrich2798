@@ -150,6 +150,42 @@
 .bes-supplemental-dialog :is(.bes-supplemental-section h3,.bes-supplemental-card h3) {font-size:var(--att-type-section)!important}
 .bes-supplemental-report-filter>div>span {font-size:12px!important}
 
+/* Legacy micro labels identified by the audit (8–10px). */
+.attendance-shell :is(
+  .attendance-history-list>header span,.attendance-history-detail>header>span,
+  .attendance-history-stat span,.attendance-history-note b,
+  .attendance-absent-list>div>span,.attendance-manage-classes button span,
+  .attendance-manage-detail-stats article>span,
+  .attendance-manage-detail-add.attendance-add-teacher span,
+  .attendance-manage-detail-add.attendance-add-teacher button,
+  .att-m3-class-search span,.att-m3-subject-hub button b,
+  .attendance-subject-chip,.att-m3-proof-preview span,
+  .att-m3-proof-locked-note,.attendance-history-proof>header>a,
+  .attendance-history-proof-loading,.attendance-history-proof small,
+  .att-report-m3__empty,.att-report-m3__teacher-avatar
+) {font-size:var(--att-type-label)!important;line-height:1.4}
+.attendance-shell :is(.attendance-manage-detail-stats article b,.attendance-history-stat b) {
+  font-size:var(--att-type-body)!important;
+}
+.attendance-shell .ahv3__shell :is(
+  .ahv3__audit-actor-panel.is-loading span,
+  .ahv3__audit-actor-panel__head span,.ahv3__audit-actor-panel__grid span,
+  .ahv3__audit-history summary,.ahv3__audit-event li,
+  .ahv3__audit-empty,.ahv3__proof-loading,
+  .ahv3__late-section header span,.ahv3__absent-section header span,
+  .attendance-late-list>div>span,.attendance-absent-list>div>span,
+  .ahv3__all-present span,.ahv3__note p,.ahv3__lock div,
+  .ahv3__lock b
+) {font-size:var(--att-type-label)!important;line-height:1.4}
+.attendance-shell .ahv3__shell :is(
+  .ahv3__audit-actor-panel__head strong,.ahv3__audit-actor-panel__grid b,
+  .ahv3__audit-actor-panel.is-loading strong,.attendance-audit-actor-grid b,
+  .ahv3__audit-event header b,.ahv3__late-section header strong,
+  .ahv3__absent-section header strong,.attendance-late-list b,
+  .attendance-absent-list b,.ahv3__all-present b,.ahv3__note strong,
+  .ahv3__lock strong,.ahv3__empty-attendance b
+) {font-size:var(--att-type-body)!important;line-height:1.4}
+
 /* Native mobile input readability, without iOS zoom. */
 @media(max-width:760px) {
   .attendance-shell .stud-att .stud-att__filters :is(input,select),
