@@ -50,6 +50,7 @@ import { installGlobalMotionSystem } from './utils/globalMotionSystem.js';
 import { installGlobalFontSystem } from './utils/globalFontSystem.js';
 import { installRegionalFontSystem } from './utils/globalRegionalFontSystem.js';
 import usePresentationMode from './hooks/usePresentationMode.js';
+import { withAttendanceReadOnlyAccess } from './utils/attendanceReadonlyAccess.js';
 
 runConfigurationMigrations();
 installGlobalMotionSystem();
@@ -96,6 +97,7 @@ const AuthPage = lazy(() => import('./pages/AuthPage.jsx'));
 const AdminPage = lazy(() => import('./pages/AdminPage.jsx'));
 const SupabaseSetup = lazy(() => import('./pages/SupabaseSetup.jsx'));
 const HomeroomWorkspace = lazy(() => import('./pages/HomeroomWorkspace.jsx'));
+const AttendanceWorkspace = lazy(() => import('./pages/AttendanceWorkspace.jsx'));
 const HomeroomPortal = lazy(() => import('./pages/HomeroomPortal.jsx'));
 const StatusMenuBar = lazy(() => import('./components/StatusMenuBar.jsx'));
 const GlobalCommandPalette = lazy(() => import('./components/GlobalCommandPalette.jsx'));
@@ -123,7 +125,7 @@ const QuestionBankPractice = lazy(() => import('./pages/QuestionBankPractice.jsx
 const ClassroomJoin = lazy(() => import('./pages/ClassroomJoin.jsx'));
 const QuestJoin = lazy(() => import('./features/questatlas/QuestJoin.jsx'));
 
-const ROUTES = ['home', 'apps', 'news', 'tools', 'homeroom', 'homeroom-portal', 'classroom-join', 'quest-join', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
+const ROUTES = ['home', 'apps', 'news', 'tools', 'homeroom', 'attendance', 'homeroom-portal', 'classroom-join', 'quest-join', 'resources', 'library', 'resource-library', 'knowledge-hub', 'dashboard', 'student-support', 'content-ecosystem', 'assessment-core', 'platform-readiness', 'automation-center', 'cloud-operations', 'collaboration-hub', 'data-governance', 'production-hardening', 'practice', 'qb-practice', 'qa', 'trash', 'contact', 'settings', 'login', 'register', 'admin', 'app-vault', 'setup'];
 const PUBLIC_ROUTES = new Set(['home', 'resources', 'contact', 'login', 'register', 'setup', 'homeroom-portal', 'classroom-join', 'quest-join', 'qb-practice']);
 
 function getInitialRoute() {
@@ -146,6 +148,7 @@ const ROUTE_DESIGN_PROFILES = {
   apps: { accent: '#F05A7E', soft: '#FFE1EA', ink: '#2F111A' },
   news: { accent: '#167D78', soft: '#DDF5F1', ink: '#083B38' },
   homeroom: { accent: '#1F8F70', soft: '#DDF7ED', ink: '#0B382B' },
+  attendance: { accent: '#155ED6', soft: '#E8F1FF', ink: '#10294E' },
   'homeroom-portal': { accent: '#1F8F70', soft: '#DDF7ED', ink: '#0B382B' },
   'classroom-join': { accent: '#315FC4', soft: '#EAF0FF', ink: '#14213D' },
   library: { accent: '#6FBA7B', soft: '#E4F6E6', ink: '#17351D' },
@@ -343,7 +346,11 @@ function App() {
   const accessibleTools = SPECIAL_TOOLS.filter(visibleForCurrentUser);
 
   const requiresAuth = currentRoute === 'tool' || !PUBLIC_ROUTES.has(currentRoute);
-  const canAccessRoute = visibilityReady && !temporarilyHidden && (!requiresAuth || hasRouteAccess(currentUser, currentRoute, selectedTool));
+  const canAccessRoute = visibilityReady && !temporarilyHidden && (!requiresAuth || hasRouteAccess(
+    currentRoute === 'attendance' ? withAttendanceReadOnlyAccess(currentUser) : currentUser,
+    currentRoute,
+    selectedTool,
+  ));
 
   useEffect(() => {
     if (authReady && requiresAuth && !currentUser) {
@@ -542,6 +549,7 @@ function App() {
             {canAccessRoute && currentRoute === 'news' && currentUser && <NewsReader {...context} />}
             {canAccessRoute && currentRoute === 'tools' && currentUser && <SpecialTools tools={accessibleTools} {...context} />}
             {canAccessRoute && currentRoute === 'homeroom' && currentUser && <HomeroomWorkspace {...context} />}
+            {canAccessRoute && currentRoute === 'attendance' && currentUser && <AttendanceWorkspace {...context} />}
             {currentRoute === 'homeroom-portal' && <HomeroomPortal {...context} />}
             {currentRoute === 'classroom-join' && <ClassroomJoin />}
             {currentRoute === 'quest-join' && <QuestJoin />}

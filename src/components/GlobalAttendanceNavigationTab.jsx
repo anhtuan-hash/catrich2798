@@ -71,6 +71,7 @@ const VIETNAM_TIME_ZONE = 'Asia/Ho_Chi_Minh';
 const PATHS = {
   attendance: 'M19 3h-1V1h-2v2H8V1H6v2H5a2 2 0 0 0-2 2v16h18V5a2 2 0 0 0-2-2Zm0 16H5V8h14v11Zm-8.3-2.2-3.1-3.1 1.4-1.4 1.7 1.7 4.3-4.3 1.4 1.4-5.7 5.7Z',
   close: 'm6.4 5 5.6 5.6L17.6 5 19 6.4 13.4 12l5.6 5.6-1.4 1.4-5.6-5.6L6.4 19 5 17.6l5.6-5.6L5 6.4 6.4 5Z',
+  back: 'M20 11H7.8l5.6-5.6L12 4 4 12l8 8 1.4-1.4L7.8 13H20v-2Z',
   upload: 'M11 16h2V8l3.5 3.5 1.4-1.4L12 4.2l-5.9 5.9 1.4 1.4L11 8v8Zm-6 4h14v-2H5v2Z',
   add: 'M11 5h2v6h6v2h6v2h-6v6h-2v-6H5v-2h6V5Z',
   people: 'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm7-1a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM9 13c-4.4 0-8 2.2-8 5v3h16v-3c0-2.8-3.6-5-8-5Zm7 0c-.7 0-1.4.1-2 .2 2.4 1.2 4 2.9 4 4.8v3h5v-2.6c0-3-3.1-5.4-7-5.4Z',
@@ -211,13 +212,20 @@ function normalizeSupplementalHistorySessions(rows = []) {
   });
 }
 
-export default function GlobalAttendanceNavigationTab({ currentUser }) {
+export default function GlobalAttendanceNavigationTab({ currentUser, standalone = false }) {
   const runtime = useRuntimeCore();
   const client = getRuntimeClient();
   const today = vietnamDateString();
   const [host, setHost] = useState(null);
   const [open, setOpen] = useState(false);
-  const [view, setView] = useState('quick');
+  const [initialLoadSettled, setInitialLoadSettled] = useState(false);
+  const supplementalRouteHandledRef = useRef('');
+  const [view, setView] = useState(() => {
+    if (!standalone || typeof window === 'undefined') return 'quick';
+    const candidate = new URLSearchParams(window.location.hash.split('?')[1] || '').get('tab');
+    return ['quick','calendar','manage','history','report','archive'].includes(candidate) ? candidate : 'quick';
+  });
+  const workspaceVisible = open || standalone;
   const [classes, setClasses] = useState([]);
   const [members, setMembers] = useState([]);
   const [classTeachers, setClassTeachers] = useState([]);
@@ -337,19 +345,19 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   }
 
   useEffect(() => {
-    if (typeof document === 'undefined') return undefined;
+    if (standalone || typeof document === 'undefined') return undefined;
     const findHost = () => setHost(document.querySelector('.bes-top-chrome .brian-nav__primary'));
     findHost();
     const observer = new MutationObserver(findHost);
     observer.observe(document.body, { childList: true, subtree: true });
     return () => observer.disconnect();
-  }, []);
+  }, [standalone]);
 
   useEffect(() => {
-    if (!open) return undefined;
+    if (!open || standalone) return undefined;
     document.documentElement.classList.add('bes-attendance-open');
     return () => document.documentElement.classList.remove('bes-attendance-open');
-  }, [open]);
+  }, [open, standalone]);
 
   useEffect(() => {
     if (!selectedClassId) return;
@@ -359,19 +367,23 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   useEffect(() => {
     const openQuickAttendance = () => {
       if (!allowed || !canUseQuickAttendance) return;
+      if (!standalone) {
+        window.location.hash = '#/attendance?tab=quick';
+        return;
+      }
       setError('');
       setView('quick');
-      setOpen(true);
+      window.history.replaceState(null, '', '#/attendance?tab=quick');
     };
     window.addEventListener('bes-attendance-quick-open', openQuickAttendance);
     return () => window.removeEventListener('bes-attendance-quick-open', openQuickAttendance);
   }, [allowed, canUseQuickAttendance]);
 
   useEffect(() => {
-    if (!open || !allowed || !firstAllowedView) return;
+    if (!workspaceVisible || !allowed || !firstAllowedView) return;
     const canOpenCurrentView = view === 'quick' ? canUseQuickAttendance : view === 'archive' ? canOpenArchive : canAccessAttendanceView(view);
     if (!canOpenCurrentView) setView(firstAllowedView);
-  }, [open, allowed, firstAllowedView, view, currentUser?.permissions, systemRole, canUseQuickAttendance]);
+  }, [workspaceVisible, allowed, firstAllowedView, view, currentUser?.permissions, systemRole, canUseQuickAttendance]);
 
   async function loadAll({ keepSelection = true } = {}) {
     if (!client || !runtime.ready || !runtime.session || !allowed) return;
@@ -405,6 +417,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
         : (loadError?.message || 'Không thể tải dữ liệu điểm danh.'));
     } finally {
       setLoading(false);
+      setInitialLoadSettled(true);
     }
   }
 
@@ -441,12 +454,13 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   }
 
   useEffect(() => {
-    if (open && allowed && !String(selectedClassId || '').startsWith('supplemental:')) loadAll();
-  }, [open, allowed, runtime.ready, runtime.session?.user?.id]);
+    if (workspaceVisible && allowed && !String(selectedClassId || '').startsWith('supplemental:')) loadAll();
+  }, [workspaceVisible, allowed, runtime.ready, runtime.session?.user?.id]);
 
   useEffect(() => {
     if (open && canOpenArchive) loadArchive();
-  }, [open, canOpenArchive, runtime.ready, runtime.session?.user?.id]);
+    else if (standalone && canOpenArchive) loadArchive();
+  }, [workspaceVisible, canOpenArchive, runtime.ready, runtime.session?.user?.id]);
 
   const activeClasses = useMemo(() => classes.filter((row) => row.active !== false), [classes]);
   const selectedClass = useMemo(() => classes.find((row) => String(row.id) === String(selectedClassId)) || null, [classes, selectedClassId]);
@@ -556,6 +570,13 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     const openSupplementalRollcall = async (event) => {
       const sessionId = String(event?.detail?.sessionId || '').trim();
       if (!sessionId) return;
+      if (!standalone) {
+        const params = new URLSearchParams({tab:'quick',supplementalSession:sessionId});
+        const classId = String(event?.detail?.classId || '').trim();
+        if (classId) params.set('classId',classId);
+        window.location.hash = '#/attendance?' + params.toString();
+        return;
+      }
       try {
         setBusy(true);
         setError('');
@@ -611,7 +632,6 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
           absence_reason_code: participant.absenceReasonCode || '',
           absence_note: participant.absenceNote || '',
         })));
-        setOpen(true);
         setView('quick');
       } catch (openError) {
         setError(openError?.message || 'Không thể mở điểm danh Học bổ sung.');
@@ -626,7 +646,20 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
       window.removeEventListener('bes-supplemental-open-rollcall', openSupplementalRollcall);
       window.removeEventListener('bes-open-supplemental-attendance', openSupplementalRollcall);
     };
-  }, [client, allowed, runtime]);
+  }, [client, allowed, runtime, standalone]);
+
+  // In-app navigation unmounts the old navigation component, so an incoming
+  // supplemental session is reopened after initial class loading completes.
+  useEffect(() => {
+    if (!standalone || !allowed || !runtime.ready || !initialLoadSettled || !canManageSupplementalLearning(runtime)) return;
+    const params = new URLSearchParams(window.location.hash.split('?')[1] || '');
+    const sessionId = String(params.get('supplementalSession') || '').trim();
+    if (!sessionId || supplementalRouteHandledRef.current === sessionId) return;
+    supplementalRouteHandledRef.current = sessionId;
+    window.dispatchEvent(new CustomEvent('bes-supplemental-open-rollcall', {
+      detail: {sessionId,classId:params.get('classId') || ''},
+    }));
+  }, [standalone, allowed, runtime.ready, runtime.session?.user?.id, initialLoadSettled]);
 
   async function loadDaySession(classId = selectedClassId, dateValue = attendanceDate) {
     if (!client || !classId || !dateValue || !allowed) {
@@ -697,15 +730,15 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   }
 
   useEffect(() => {
-    if (!open || !allowed || !selectedClassId || !attendanceDate) return;
+    if (!workspaceVisible || !allowed || !selectedClassId || !attendanceDate) return;
     if (String(selectedClassId || '').startsWith('supplemental:')) return;
     loadDaySession(selectedClassId, attendanceDate);
-  }, [open, allowed, selectedClassId, attendanceDate]);
+  }, [workspaceVisible, allowed, selectedClassId, attendanceDate]);
 
   useEffect(() => {
-    if (!open || !allowed || !attendanceDate) return;
+    if (!workspaceVisible || !allowed || !attendanceDate) return;
     loadTeacherDaySessions(attendanceDate);
-  }, [open, allowed, attendanceDate]);
+  }, [workspaceVisible, allowed, attendanceDate]);
 
   useEffect(() => {
     const next = buildAttendanceDraft(selectedMembers);
@@ -1077,8 +1110,8 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
   }
 
   useEffect(() => {
-    if (open && view === 'calendar') loadCalendarSessions(calendarDate);
-  }, [open, view, calendarDate]);
+    if (workspaceVisible && view === 'calendar') loadCalendarSessions(calendarDate);
+  }, [workspaceVisible, view, calendarDate]);
 
   async function openSessionFromCalendar(session) {
     if (!session) return;
@@ -1545,25 +1578,39 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
     ? Math.round((Number(selectedSession.present_count || 0) / Number(selectedSession.total_students)) * 100)
     : 0;
 
-  if (!host || !allowed) return null;
+  if ((!standalone && !host) || !allowed) return null;
 
-  const tab = createPortal(
-    <button type="button" className={`brian-nav__attendance-tab ${open ? 'is-active' : ''}`} data-nav-key="attendance" aria-expanded={open} aria-haspopup="dialog" onClick={() => { setOpen((value) => !value); setError(''); if (!open) setView(firstAllowedView || 'quick'); }}>
+  const tab = standalone ? null : createPortal(
+    <button type="button"
+      className="brian-nav__attendance-tab"
+      data-nav-key="attendance"
+      aria-label="Mở ứng dụng Điểm danh toàn trang"
+      onClick={() => { window.location.hash = '#/attendance'; }}>
       <Icon name="attendance" size={18} /><span>Điểm danh</span>
     </button>, host,
   );
 
-  const overlay = open ? createPortal(
-    <div className="attendance-layer" data-global-motion-isolate="true" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
-      <section className="attendance-shell" role="dialog" aria-modal="true" aria-label="Điểm danh lớp phụ đạo và bồi dưỡng học sinh giỏi">
+  const workspace = (
+      <section className={standalone ? 'attendance-shell is-standalone' : 'attendance-shell'}
+        role={standalone ? 'region' : 'dialog'}
+        aria-modal={standalone ? undefined : 'true'}
+        aria-label="Điểm danh lớp phụ đạo và bồi dưỡng học sinh giỏi">
         <header className="attendance-topbar">
-          <div className="attendance-title"><span><Icon name="attendance" size={28} /></span><div><small>QUẢN LÝ CHUYÊN CẦN</small><strong>Điểm danh lớp phụ đạo & bồi dưỡng</strong></div></div>
-          <div className="attendance-top-actions"><button type="button" className="attendance-icon-button" onClick={() => { loadAll(); loadDaySession(); loadTeacherDaySessions(); if (view === 'calendar') loadCalendarSessions(calendarDate); if (view === 'archive') loadArchive(); }} title="Làm mới"><Icon name="refresh" /></button><button type="button" className="attendance-icon-button" onClick={() => setOpen(false)} aria-label="Đóng"><Icon name="close" /></button></div>
+          <div className="attendance-title"><span><Icon name="attendance" size={28} /></span><div><small>{standalone ? "ESL BRIAN · ỨNG DỤNG ĐIỂM DANH" : "QUẢN LÝ CHUYÊN CẦN"}</small><strong>Điểm danh lớp phụ đạo & bồi dưỡng</strong></div></div>
+          <div className="attendance-top-actions"><button type="button" className="attendance-icon-button" onClick={() => { loadAll(); loadDaySession(); loadTeacherDaySessions(); if (view === 'calendar') loadCalendarSessions(calendarDate); if (view === 'archive') loadArchive(); }} title="Làm mới"><Icon name="refresh" /></button><button type="button" className={standalone ? 'attendance-icon-button attendance-workspace-back' : 'attendance-icon-button'}
+            onClick={() => standalone ? (window.location.hash = '#/settings?section=admin') : setOpen(false)}
+            aria-label={standalone ? 'Trở về ESL Brian' : 'Đóng'}>
+            <Icon name={standalone ? 'back' : 'close'} />
+            {standalone ? <span>Về ESL Brian</span> : null}
+          </button></div>
         </header>
 
         <nav className="attendance-tabs" aria-label="Phân hệ điểm danh">
           {availableAttendanceTabs.map((item) => (
-            <button key={item.id} type="button" className={view === item.tab ? 'is-active' : ''} onClick={() => setView(item.tab)}>
+            <button key={item.id} type="button" className={view === item.tab ? 'is-active' : ''} onClick={() => {
+              setView(item.tab);
+              if (standalone) window.history.replaceState(null, '', '#/attendance?tab=' + encodeURIComponent(item.tab));
+            }}>
               <Icon name={ATTENDANCE_TAB_ICONS[item.tab] || 'attendance'} size={18} />{item.titleVi}{item.tab === 'archive' && archiveCount > 0 ? <span className="attendance-tab-badge">{archiveCount > 99 ? '99+' : archiveCount}</span> : null}
             </button>
           ))}
@@ -1845,8 +1892,15 @@ export default function GlobalAttendanceNavigationTab({ currentUser }) {
           ) : null}
         </main>
       </section>
-    </div>, document.body,
-  ) : null;
+  );
+  const overlay = standalone
+    ? <div className="attendance-standalone-root" data-attendance-workspace="standalone">{workspace}</div>
+    : open ? createPortal(
+      <div className="attendance-layer" data-global-motion-isolate="true" role="presentation"
+        onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
+        {workspace}
+      </div>, document.body,
+    ) : null;
 
   return <>{tab}{overlay}</>;
 }
