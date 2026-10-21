@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Bell, X } from 'lucide-react';
 import { hasAnyAttendanceAccess, hasRouteAccess } from '../../utils/permissions.js';
+import { withAttendanceReadOnlyAccess } from '../../utils/attendanceReadonlyAccess.js';
 import { isAdminRole } from '../../utils/roles.js';
 import { isAppHiddenForUser } from '../../utils/appVisibility.js';
 import { visibilityIdForRoute } from '../../data/appVisibilityRegistry.js';
@@ -133,6 +134,7 @@ export default function MobileAppShell({
   const [originalBridgeItems, setOriginalBridgeItems] = useState([]);
   const snapshot = appVisibility?.snapshot || {};
   const isAdminNavigation = isAdminRole(currentUser?.role);
+  const attendanceUser = useMemo(() => withAttendanceReadOnlyAccess(currentUser), [currentUser]);
 
   const canAccessRoute = useCallback((targetRoute) => {
     if (!hasRouteAccess(currentUser, targetRoute)) return false;
@@ -140,7 +142,7 @@ export default function MobileAppShell({
     return !isAppHiddenForUser(snapshot, currentUser, id);
   }, [currentUser, snapshot]);
 
-  const canAccessAttendance = Boolean(currentUser?.id && (isAdminNavigation || hasAnyAttendanceAccess(currentUser)));
+  const canAccessAttendance = Boolean(attendanceUser?.id && (isAdminNavigation || hasAnyAttendanceAccess(attendanceUser)));
   const canShowOriginalApps = Boolean(currentUser && (isAdminNavigation || hasRouteAccess(currentUser, 'apps')));
   const navigation = useMemo(() => buildMobileNavigationModel({
     authenticated: Boolean(currentUser),
