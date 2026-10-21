@@ -127,6 +127,7 @@ export default function StudentAttendanceReport({client, month, onError, include
     if(sorting==='absent-desc')return values.sort((a,b)=>b.absentPeriods-a.absentPeriods);
     return values;
   },[result.students,sorting]);
+  useEffect(()=>{setChecked([]);},[category,classId,schoolClass,grade,subject,teacher,search,warning,from,to,refreshKey]);
   const selected = students.find(s=>s.key===selectedStudent)||null;
   const exportStudents = checked.length ? students.filter(s=>checked.includes(s.key)) : students;
   const params = {from,to,activityType:category};
