@@ -99,11 +99,18 @@ const archive='<div class="attendance-archive"><div class="attendance-archive__h
 '<div class="attendance-archive__card"><div class="attendance-archive__meta"><span>Học sinh</span><span>10/2026</span></div>'+
 '<div class="attendance-archive__actions"><button>Khôi phục</button><button>Xem lịch sử</button></div></div></div>';
 
+const teacherTime='<section class="bes-attendance-time-settings is-compact-popover" role="dialog">'+
+'<div class="bes-attendance-time-toggle"><span>Giờ điểm danh giáo viên</span></div>'+
+'<label class="bes-attendance-time-field">Từ giờ<input type="time" value="16:45"></label>'+
+'<label class="bes-attendance-time-field">Đến giờ<input type="time" value="17:30"></label>'+
+'<button class="bes-attendance-time-save">Lưu thời gian</button></section>';
+
 const panes={
  quick:['Điểm danh',roster],calendar:['Lịch điểm danh',calendar],
  manage:['Quản lý lớp',manage],history:['Lịch sử',history],
  supplemental:['Học bổ sung',supplemental],teacherReport:['Báo cáo giáo viên',teacherReport],
  studentReport:['Báo cáo học sinh',studentReport],archive:['Kho lưu trữ',archive],
+ teacherTime:['Giờ GV',teacherTime],
 };
 const pageHTML=(name,content)=>'<main id="bes-main-content" data-route="attendance">'+
 '<div class="attendance-workspace-page"><div class="attendance-standalone-root">'+
@@ -143,7 +150,7 @@ async function validate(page,width,view) {
  }
 }
 for(const [width,height] of [[320,720],[375,812],[390,844],[430,932],[768,1024]]){
- test('mobile audit '+width+'px: all eight views remain within viewport',async({page})=>{
+ test('mobile audit '+width+'px: all nine view modes remain within viewport',async({page})=>{
   for(const [key,[name,body]] of Object.entries(panes)){
    await setup(page,width,height,name,body);
    await validate(page,width,key);
@@ -169,6 +176,17 @@ test('phone attendance status buttons remain readable and do not overlap',async(
  for(const b of buttons) expect(b.w).toBeGreaterThan(56);
  expect(buttons[0].x+buttons[0].w).toBeLessThanOrEqual(buttons[1].x+2);
  expect(buttons[1].x+buttons[1].w).toBeLessThanOrEqual(buttons[2].x+2);
+});
+test('Giờ GV floating time settings fit the phone without clipped controls',async({page})=>{
+ await setup(page,320,720,...panes.teacherTime);
+ const pop=await page.locator('.bes-attendance-time-settings.is-compact-popover').boundingBox();
+ expect(pop.x).toBeGreaterThanOrEqual(0);
+ expect(pop.x+pop.width).toBeLessThanOrEqual(321);
+ expect(pop.height).toBeLessThan(590);
+ for(const field of await page.locator('.bes-attendance-time-field input').all()) {
+  expect(parseFloat(await field.evaluate(el=>getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(16);
+ }
+ await validate(page,320,'Giờ GV');
 });
 test('iOS-sized report controls prevent focus zoom',async({page})=>{
  await setup(page,390,844,...panes.studentReport);
