@@ -365,9 +365,13 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
   useEffect(() => {
     const openQuickAttendance = () => {
       if (!allowed || !canUseQuickAttendance) return;
+      if (!standalone) {
+        window.location.hash = '#/attendance?tab=quick';
+        return;
+      }
       setError('');
       setView('quick');
-      setOpen(true);
+      window.history.replaceState(null, '', '#/attendance?tab=quick');
     };
     window.addEventListener('bes-attendance-quick-open', openQuickAttendance);
     return () => window.removeEventListener('bes-attendance-quick-open', openQuickAttendance);
@@ -1555,7 +1559,11 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
   if ((!standalone && !host) || !allowed) return null;
 
   const tab = standalone ? null : createPortal(
-    <button type="button" className={`brian-nav__attendance-tab ${open ? 'is-active' : ''}`} data-nav-key="attendance" aria-expanded={open} aria-haspopup="dialog" onClick={() => { setOpen((value) => !value); setError(''); if (!open) setView(firstAllowedView || 'quick'); }}>
+    <button type="button"
+      className="brian-nav__attendance-tab"
+      data-nav-key="attendance"
+      aria-label="Mở ứng dụng Điểm danh toàn trang"
+      onClick={() => { window.location.hash = '#/attendance'; }}>
       <Icon name="attendance" size={18} /><span>Điểm danh</span>
     </button>, host,
   );
