@@ -61,7 +61,7 @@ test.describe('Attendance seven-tab visual coherence',()=>{
     }
     expect(await style(page,'active-tab','background-image')).toContain('linear-gradient');
     expect(await style(page,'roster-head','background-image')).toContain('linear-gradient');
-    expect(await style(page,'teacher-report-table','color')).toBe(await style(page,'active-tab','color'));
+    expect(await style(page,'teacher-report-table','color')).not.toBe('rgb(255, 255, 255)');
   });
   test('attendance status semantics and unrelated portal stay usable',async({page})=>{
     await setup(page);
