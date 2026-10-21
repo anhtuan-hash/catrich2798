@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { AttendanceViewHeader } from './attendance/AttendanceWorkspaceUI.jsx';
 import { createPortal } from 'react-dom';
 import { readSheet } from 'read-excel-file/browser';
 import { getRuntimeClient } from '../services/runtime/core.js';
@@ -1620,6 +1621,24 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
         {error ? <div className="attendance-banner is-error">{error}</div> : null}
 
         <main className="attendance-content">
+          {standalone ? <AttendanceViewHeader view={view} items={
+            view === 'quick' ? [
+              {label:'Lớp hoạt động',value:activeClasses.length,tone:'blue',icon:'manage'},
+              {label:'Lớp phù hợp',value:filteredActiveClasses.length,tone:'teal',icon:'filter'},
+              {label:'Học sinh có mặt',value:`${summary.present}/${summary.total}`,tone:'green',icon:'check'},
+            ] : view === 'calendar' ? [
+              {label:'Lớp đang mở',value:activeClasses.length,tone:'blue',icon:'manage'},
+              {label:'Buổi đã ghi nhận',value:calendarSessions.length,tone:'teal',icon:'calendar'},
+            ] : view === 'manage' ? [
+              {label:'Lớp hoạt động',value:activeClasses.length,tone:'blue',icon:'manage'},
+              {label:'Thành viên lớp',value:members.length,tone:'teal',icon:'users'},
+            ] : view === 'history' ? [
+              {label:'Buổi phù hợp',value:filteredHistory.length,tone:'blue',icon:'history'},
+              {label:'Buổi đã ghi nhận',value:sessions.length + supplementalHistorySessions.length,tone:'teal',icon:'calendar'},
+            ] : view === 'archive' ? [
+              {label:'Đang lưu trữ',value:archiveCount,tone:'amber',icon:'archive'},
+            ] : []
+          } /> : null}
           {loading ? <div className="attendance-loading">Đang đồng bộ dữ liệu điểm danh…</div> : null}
 
           {!loading && canUseQuickAttendance && view === 'quick' ? (

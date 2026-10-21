@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { AttendancePanelHeading, AttendanceStatCard, AttendanceEmpty } from './AttendanceWorkspaceUI.jsx';
 import './AttendanceArchive.css';
 
 function formatDate(value) {
@@ -66,18 +67,10 @@ export default function AttendanceArchivePanel({
 
   return (
     <section className="attendance-archive" aria-label="Kho lưu trữ điểm danh">
-      <header className="attendance-archive__hero">
-        <div>
-          <span className="attendance-archive__eyebrow">AN TOÀN DỮ LIỆU</span>
-          <h2>Kho lưu trữ điểm danh</h2>
-          <p>Buổi điểm danh và lớp học được xóa lần đầu sẽ nằm ở đây, vẫn có thể khôi phục trước khi Admin duyệt xóa vĩnh viễn.</p>
-        </div>
-        <div className="attendance-archive__stats" aria-label="Thống kê kho lưu trữ">
-          <strong>{combined.length}</strong><span>đang lưu trữ</span>
-          {isAdmin && pendingCount > 0 ? <em>{pendingCount} chờ duyệt xóa</em> : null}
-          {isAdmin && approvedCount > 0 ? <em>{approvedCount} chờ hoàn tất xóa</em> : null}
-        </div>
-      </header>
+      <AttendancePanelHeading className="attendance-archive__hero" icon="shield" eyebrow="AN TOÀN DỮ LIỆU" title="Kho lưu trữ điểm danh"
+        description="Lưu trữ an toàn các buổi học và lớp học; dữ liệu chỉ bị xóa vĩnh viễn sau khi được phê duyệt."
+        aside={<div className="awu-mini-stats"><AttendanceStatCard icon="archive" tone="blue" label="Đang lưu trữ" value={combined.length} />{isAdmin && pendingCount>0 ? <span className="awu-pill is-amber">{pendingCount} chờ duyệt</span> : null}{isAdmin && approvedCount>0 ? <span className="awu-pill is-red">{approvedCount} chờ hoàn tất</span> : null}</div>}
+      />
 
       <div className="attendance-archive__toolbar" data-bes-keep-search="true">
         <label className="attendance-archive__search"><span>Tìm trong kho</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tên lớp, môn, giáo viên…" /></label>
@@ -87,7 +80,7 @@ export default function AttendanceArchivePanel({
       </div>
 
       {loading ? <div className="attendance-archive__empty">Đang tải Kho lưu trữ…</div> : null}
-      {!loading && !filtered.length ? <div className="attendance-archive__empty"><strong>{combined.length ? 'Không có mục phù hợp bộ lọc.' : 'Kho lưu trữ đang trống.'}</strong><span>{combined.length ? 'Hãy thay đổi từ khóa hoặc bộ lọc.' : 'Các lớp/buổi điểm danh được lưu trữ sẽ xuất hiện tại đây.'}</span></div> : null}
+      {!loading && !filtered.length ? <AttendanceEmpty icon="archive" title={combined.length ? 'Không có mục phù hợp' : 'Kho lưu trữ đang trống'} description={combined.length ? 'Thay đổi từ khóa hoặc bộ lọc để xem kết quả.' : 'Các lớp và buổi học được lưu trữ sẽ hiển thị tại đây.'} /> : null}
 
       {!loading && filtered.length ? <div className="attendance-archive__list">{filtered.map((item) => {
         const pending = item.delete_request_status === 'pending';

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { AttendancePanelHeading } from './AttendanceWorkspaceUI.jsx';
 import { buildAttendanceReport, normalizeSupplementalReportData, uniqueReportTeachers } from '../../utils/attendanceReport.js';
 import { downloadAttendanceReportXlsx, printAttendanceReportPdf } from '../../utils/attendanceReportExport.js';
 import './AttendanceMonthlyReport.css';
@@ -252,10 +253,8 @@ export default function AttendanceMonthlyReport({ client, classes = [], month, o
     </div>
     {reportDimension === "student" ? <StudentAttendanceReport client={client} month={month} includeSupplemental={includeSupplemental} activityType={activityType} reporterName={reporterName} reporterTitle={reporterTitle} onReporterNameChange={updateReporterName} onReporterTitleChange={updateReporterTitle} onError={onError} /> : <>
     <header className="att-report-m3__toolbar">
-      <div className="att-report-m3__hero-copy">
-        <span className="att-report-m3__hero-icon"><ReportIcon name="chart" size={25} /></span>
-        <div><span className="att-report-m3__eyebrow">BÁO CÁO ĐIỂM DANH</span><h2>Báo cáo điểm danh</h2><p>Thống kê đầy đủ theo ngày hoặc theo tháng, bao gồm giáo viên, phòng học, giờ dạy, người điểm danh và người điều chỉnh.</p></div>
-      </div>
+      <AttendancePanelHeading className="att-report-m3__hero-copy" icon="report" iconClassName="att-report-m3__hero-icon" eyebrow="BÁO CÁO GIÁO VIÊN"
+        title="Báo cáo điểm danh" description="Thống kê ngày và tháng, bao gồm giờ dạy, phòng học và lịch sử điều chỉnh." />
       <div className="att-report-m3__controls">
         <div className="att-report-m3__mode" role="group" aria-label="Chế độ báo cáo">
           <button type="button" className={mode === 'month' ? 'is-active' : ''} onClick={() => changeMode('month')}>Theo tháng</button>

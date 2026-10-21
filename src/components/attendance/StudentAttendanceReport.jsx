@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { AttendancePanelHeading } from './AttendanceWorkspaceUI.jsx';
 import { normalizeSupplementalReportData, absenceReasonLabel } from '../../utils/attendanceReport.js';
 import { buildStudentAttendanceReport } from '../../utils/studentAttendanceReport.js';
 import { downloadStudentAttendanceExcel, printStudentAttendancePdf } from '../../utils/studentAttendanceExport.js';
@@ -155,13 +156,9 @@ export default function StudentAttendanceReport({client, month, onError, include
   const options = (data,selector)=>data.map(s=><option key={selector(s)} value={selector(s)}>{selector(s)}</option>);
 
   return <section className="stud-att">
-    <header className="stud-att__intro">
-      <div className="stud-att__intro-copy">
-        <span className="stud-att__hero-icon"><StudentReportIcon name="report" size={28} /></span>
-        <div><span className="stud-att__eyebrow">THEO DÕI HỌC SINH</span><h3>Báo cáo tình hình tham gia học tập</h3><p>Tính theo số tiết của các buổi đã chốt; tách rõ có mặt, đi trễ và vắng học.</p></div>
-      </div>
-      <div className="stud-att__actions"><button type="button" disabled={loading||!exportStudents.length} onClick={doExcel}><StudentReportIcon name="excel" size={16}/> Xuất Excel</button><button type="button" className="stud-att__primary" disabled={loading||!exportStudents.length} onClick={doPdf}><StudentReportIcon name="pdf" size={16}/> In / Lưu PDF</button></div>
-    </header>
+    <AttendancePanelHeading className="stud-att__intro" icon="users" iconClassName="stud-att__hero-icon" eyebrow="BÁO CÁO HỌC SINH" title="Chuyên cần theo học sinh"
+      description="Theo dõi tiết có mặt, đi trễ và vắng trên những buổi đã chốt."
+      aside={<div className="stud-att__actions"><button type="button" disabled={loading||!exportStudents.length} onClick={doExcel}><StudentReportIcon name="excel" size={16}/> Xuất Excel</button><button type="button" className="stud-att__primary" disabled={loading||!exportStudents.length} onClick={doPdf}><StudentReportIcon name="pdf" size={16}/> In / Lưu PDF</button></div>} />
     <section className="stud-att__filter-panel" aria-label="Bộ lọc báo cáo học sinh">
       <div className="stud-att__filter-heading"><span className="stud-att__filter-heading-icon"><StudentReportIcon name="filter" size={17}/></span><strong>BỘ LỌC BÁO CÁO</strong><span className="stud-att__filter-hint">Chọn điều kiện để xem và xuất báo cáo</span></div>
       <div className="stud-att__reporter"><label><span className="stud-att__label"><StudentReportIcon name="person" size={14}/> Người báo cáo</span><input value={reporterName} onChange={event=>onReporterNameChange?.(event.target.value)} placeholder="Nhập họ tên người lập báo cáo" /></label><label><span className="stud-att__label"><StudentReportIcon name="case" size={14}/> Chức vụ</span><input value={reporterTitle} onChange={event=>onReporterTitleChange?.(event.target.value)} placeholder="Ví dụ: Phó hiệu trưởng" /></label></div>

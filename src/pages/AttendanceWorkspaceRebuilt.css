@@ -1,0 +1,470 @@
+/*
+ * Attendance Workspace / Design System 2.0
+ *
+ * SINGLE CANONICAL STYLESHEET for the full-page attendance experience.
+ * All rules are scoped to the standalone workspace. The existing attendance
+ * overlays and print/export documents are deliberately left alone.
+ * The structure is composed from AttendanceWorkspaceUI.jsx instead of
+ * per-screen headers and ad-hoc KPI markup.
+ */
+.attendance-workspace-page {
+  --awu-navy:#102b4f;
+  --awu-ink:#183455;
+  --awu-subtle:#506a8a;
+  --awu-muted:#7186a0;
+  --awu-blue:#185ed9;
+  --awu-blue-soft:#e8f1ff;
+  --awu-teal:#0a8d80;
+  --awu-green:#138460;
+  --awu-amber:#b77419;
+  --awu-red:#bd4852;
+  --awu-violet:#6e57b9;
+  --awu-border:#dbe4f0;
+  --awu-surface:#fff;
+  --awu-canvas:#f3f6fb;
+  --awu-elev:0 3px 15px rgba(22,52,94,.055);
+  --awu-corner:16px;
+  --awu-corner-sm:11px;
+  background:#eef2f9!important;
+  color:var(--awu-ink);
+  font:inherit;
+}
+.attendance-workspace-page .attendance-shell.is-standalone{
+  background:#eef2f9!important;
+  border-color:#cbd8e8!important;
+  border-radius:21px!important;
+  box-shadow:0 14px 44px rgba(15,37,71,.13)!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-topbar{
+  background:#fff!important;
+  border-bottom:1px solid #dbe4f2!important;
+  box-shadow:0 2px 10px rgba(15,50,85,.04)!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-title>span{
+  background:var(--awu-blue-soft)!important;
+  color:var(--awu-blue)!important;
+  border-radius:14px!important;
+  box-shadow:none!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-title strong{
+  color:var(--awu-navy)!important;
+  font-weight:850!important;
+  letter-spacing:-.025em!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-title small{
+  color:var(--awu-blue)!important;
+  letter-spacing:.085em;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs{
+  background:linear-gradient(180deg,#102d52,#0b2545)!important;
+  border-color:#143357!important;
+  box-shadow:none!important;
+  padding-top:86px!important;
+  gap:5px!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs::before{
+  content:"KHÔNG GIAN LÀM VIỆC";
+  color:#86a9d4;
+  top:35px;
+  left:21px;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.1em;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs>button{
+  border:1px solid transparent!important;
+  border-radius:11px!important;
+  min-height:45px!important;
+  color:#d0dff0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  font-size:13px!important;
+  font-weight:750!important;
+  letter-spacing:0;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs>button:hover:not(.is-active){
+  background:rgba(207,226,251,.11)!important;
+  color:#fff!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs>button.is-active{
+  background:#2568db!important;
+  border-color:#5088f0!important;
+  box-shadow:0 4px 13px rgba(4,22,51,.19)!important;
+  color:#fff!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-content{
+  background:var(--awu-canvas)!important;
+  padding:22px!important;
+  min-width:0;
+  scrollbar-gutter:stable;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-content > :not(.awu-page-head){
+  min-width:0;
+}
+
+/* Shared title and compact contextual data ribbon — same architecture on
+   Quick, Calendar, Manage, History, Reports and Archive. */
+.awu-page-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:15px;
+  min-height:118px;
+  margin:0 0 18px;
+  padding:20px 23px;
+  border:1px solid var(--awu-border);
+  border-radius:18px;
+  background:#fff;
+  box-shadow:var(--awu-elev);
+}
+.awu-page-head__identity{display:flex;align-items:center;gap:16px;min-width:0}
+.awu-page-head__icon{
+  display:grid;
+  place-items:center;
+  flex:0 0 52px;width:52px;height:52px;
+  border-radius:14px;
+  color:var(--awu-blue);
+  background:var(--awu-blue-soft);
+}
+.awu-page-head__copy{min-width:0}
+.awu-page-head__breadcrumb{
+  display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  margin-bottom:5px;
+  font-size:10px;
+  font-weight:650;
+  color:#8293ad;
+}
+.awu-page-head__breadcrumb strong{color:#2361be;font-weight:800}
+.awu-page-head__eyebrow{
+  font-size:10px;
+  color:#3470d1;
+  font-weight:900;
+  letter-spacing:.065em;
+}
+.awu-page-head h1{
+  margin:5px 0 5px!important;
+  color:var(--awu-navy)!important;
+  font-size:23px!important;
+  font-weight:900!important;
+  line-height:1.15!important;
+  letter-spacing:-.035em;
+}
+.awu-page-head p{
+  margin:0!important;
+  color:var(--awu-subtle)!important;
+  font-size:12px!important;
+  line-height:1.45;
+}
+.awu-page-head__right{margin-left:auto;display:flex;align-items:center;justify-content:flex-end;gap:12px}
+.awu-page-head__indicators{display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+.awu-page-head__indicator{
+  display:grid;
+  align-items:center;
+  grid-template-columns:18px auto;
+  column-gap:6px;
+  padding:10px 12px;
+  min-width:106px;
+  border:1px solid #d8e5f8;
+  background:#f4f8ff;
+  border-radius:12px;
+  color:var(--awu-blue);
+}
+.awu-page-head__indicator svg{grid-row:1/3}
+.awu-page-head__indicator span{color:#607b9c;font-size:10px;font-weight:650;white-space:nowrap}
+.awu-page-head__indicator b{font-size:18px;font-weight:900;line-height:1.2}
+.awu-page-head__indicator.is-teal{background:#effaf7;border-color:#cceee2;color:#098b7c}
+.awu-page-head__indicator.is-green{background:#eefaf4;border-color:#c9ebda;color:#087c52}
+.awu-page-head__indicator.is-amber{background:#fff8eb;border-color:#f4e1b9;color:#a36b13}
+.awu-page-head__indicator.is-violet{background:#f7f4ff;border-color:#e6daf8;color:#6f4fb6}
+
+/* Shared PanelHeading used by the real React render tree of class
+   management, teacher report, student report and archive. */
+.awu-panel-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:14px;
+  min-width:0;
+  padding:17px 20px;
+  color:var(--awu-ink);
+  background:#fff;
+  border:1px solid var(--awu-border);
+  border-radius:var(--awu-corner);
+  box-shadow:var(--awu-elev);
+}
+.awu-panel-head__copy{display:flex;align-items:center;gap:12px;min-width:0}
+.awu-panel-head__icon{
+  display:grid;place-items:center;flex:0 0 42px;
+  width:42px;height:42px;border-radius:12px;
+  background:#eaf2ff;color:#1b61cc;
+}
+.awu-panel-head__eyebrow{display:block;margin-bottom:3px;color:#326ac1;font-size:10px;font-weight:900;letter-spacing:.07em}
+.awu-panel-head h2{
+  margin:0!important;
+  color:#183456!important;
+  font-size:17px!important;
+  line-height:1.3!important;
+  font-weight:875!important;
+  letter-spacing:-.02em;
+}
+.awu-panel-head p{margin:3px 0 0!important;color:var(--awu-subtle)!important;font-size:12px!important;line-height:1.45}
+.awu-panel-head__aside{margin-left:auto;display:flex;align-items:center;gap:10px}
+.awu-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:8px 11px;border:1px solid #d7e5fb;
+  border-radius:999px;background:#edf4ff;color:#1a5cb4;
+  font-size:11px;font-weight:750;white-space:nowrap;
+}
+.awu-pill.is-amber{color:#996313;background:#fff3d6;border-color:#f2dda7}
+.awu-pill.is-red{color:#ac3f4c;background:#fff0f1;border-color:#f2c8cf}
+.awu-mini-stats{display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+.awu-stat-card{display:flex;align-items:center;gap:11px;min-width:124px;padding:10px 12px;border-radius:12px;border:1px solid #dae8fb;background:#eef5ff;color:#195aca}
+.awu-stat-card__icon{display:grid;place-items:center;flex:0 0 32px;width:32px;height:32px;border-radius:9px;background:#fff9}
+.awu-stat-card__body{display:grid;gap:2px}
+.awu-stat-card__body small{font-size:10px!important;line-height:1.3;color:#5f7897}
+.awu-stat-card__body strong{font-size:19px;font-weight:900;line-height:1.1}
+.awu-stat-card__body em{font-size:10px;color:#5e7996;font-style:normal}
+.awu-stat-card.is-amber{background:#fff7eb;border-color:#f2e2c2;color:#af7011}
+.awu-stat-card.is-green{background:#eefbf4;border-color:#cdeedb;color:#088558}
+.awu-stat-card.is-red{background:#fff1f2;border-color:#f1cbd0;color:#b94250}
+.awu-empty{
+  width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:164px;gap:8px;padding:28px;
+  background:#fff;border:1px dashed #c7d9f0;
+  border-radius:var(--awu-corner);
+  color:#748ca8;text-align:center;
+}
+.awu-empty>span{display:grid;place-items:center;width:50px;height:50px;border-radius:13px;background:#edf4fd;color:#3a72c9}
+.awu-empty strong{color:#183b63;font-size:14px;font-weight:850}
+.awu-empty p{margin:0;color:#7186a0;font-size:12px}
+
+/* Canonical shared surfaces — one density and one hierarchy everywhere.
+   All legacy per-screen CSS continues to handle geometry and functionality. */
+.attendance-workspace-page .attendance-shell.is-standalone :is(
+  .attendance-class-list,.attendance-rollcall,.attendance-calendar-toolbar,
+  .attendance-daily-floor-card,.attendance-daily-class-row,
+  .attendance-manage-overview-toolbar,.attendance-manage-class-tile,
+  .attendance-manage-detail-hero,.attendance-manage-detail-roster-card,
+  .attendance-manage-detail-info-strip,.ahv3__list,.ahv3__detail,
+  .att-report-m3__toolbar,.att-report-m3__export-meta,
+  .att-report-m3__surface,.stud-att__filter-panel,.stud-att__table-wrap,
+  .attendance-archive__hero,.attendance-archive__toolbar,.attendance-archive__card,
+  .bes-attendance-time-settings
+){
+  border:1px solid var(--awu-border)!important;
+  border-radius:var(--awu-corner)!important;
+  background-color:#fff!important;
+  box-shadow:var(--awu-elev)!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone :is(
+  .attendance-class-list>header,.attendance-rollcall-head,
+  .ahv3__list-head,.attendance-daily-table-header,
+  .attendance-member-table-head,.attendance-roster-head
+){
+  border-bottom:1px solid #e0e9f4!important;
+  background:#f7f9fc!important;
+  color:#355779!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone :is(
+  .attendance-rollcall-head h2,.ahv3__hero h2,
+  .attendance-manage-detail-hero h2,.attendance-archive__hero h2
+){color:#17385f!important;font-weight:875!important}
+.attendance-workspace-page .attendance-shell.is-standalone :is(
+  .attendance-manage-overview,.attendance-archive,.att-report-m3,.stud-att
+){display:grid;gap:15px}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-overview>.awu-panel-head{
+  margin:0;
+}
+/* Common filter bar, tables and action rhythm. */
+.attendance-workspace-page .attendance-shell.is-standalone :is(
+  .attendance-session-controls,.attendance-manage-filter-chips,
+  .attendance-daily-compact-toolbar,.ahv3__filters,.ahv3__date-filters,
+  .att-report-m3__filters,.stud-att__filters,
+  .attendance-archive__toolbar,.attendance-manage-overview-toolbar
+){
+  column-gap:10px!important;
+  row-gap:10px!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone :is(
+  input:not([type=checkbox]):not([type=radio]),select,textarea
+){
+  min-width:0;
+  border:1px solid #cddbeb!important;
+  background:#fff!important;
+  color:#17375c!important;
+  border-radius:10px!important;
+  box-shadow:0 1px 2px rgba(28,62,111,.02)!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone :is(
+  input:not([type=checkbox]):not([type=radio]),select,textarea
+):focus-visible{
+  outline:2px solid #79aaf6!important;outline-offset:1px!important;
+  box-shadow:0 0 0 4px rgba(43,113,217,.12)!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone :is(
+  .attendance-manage-class-tile,.attendance-daily-class-row,
+  .attendance-archive__card,.ahv3__items>button
+):hover{
+  border-color:#b2cffa!important;
+  background:#f8fbff!important;
+  box-shadow:0 5px 16px rgba(24,70,133,.085)!important;
+}
+/* Tables intentionally share one header and row treatment. */
+.attendance-workspace-page .attendance-shell.is-standalone :is(
+  .att-report-m3,.stud-att,.attendance-manage-detail,.ahv3__detail
+) :is(table th,.attendance-member-table-head) {
+  background:#eaf1fa!important;
+  color:#244b76!important;
+  font-weight:850!important;
+  border-bottom:1px solid #c9daef!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone :is(
+  .att-report-m3,.stud-att,.attendance-manage-detail
+) table tbody tr:nth-child(even) td {background:#f8fafc!important}
+.attendance-workspace-page .attendance-shell.is-standalone :is(
+  .att-report-m3,.stud-att,.attendance-manage-detail
+) table tbody tr:hover td {background:#edf4fc!important}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-roster-head{background:#eaf1fa!important}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-roster .att-m3-roster-entry:nth-child(even){background:#fafbfd!important}
+
+/* Context-specific geometry, still fed by same shared tokens. */
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-quick-layout{gap:14px!important}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-class-list>header{border-radius:15px 15px 0 0}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-class-list button.is-selected{
+  background:#e7f0ff!important;box-shadow:inset 3px 0 0 #286bdf!important
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-daily-overview__metric{
+  border:1px solid #dbe6f5!important;
+  border-radius:13px!important;
+  background:#fff!important;
+  color:#17466f!important;
+  box-shadow:none!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-daily-overview__metric.is-completed{
+  border-color:#c7e8d6!important;background:#f0faf4!important;color:#117b57!important
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-daily-overview__metric.is-missing{
+  border-color:#f0dcac!important;background:#fff9eb!important;color:#9c6815!important
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-daily-overview__metric.is-cancelled{
+  border-color:#f0c9d2!important;background:#fff5f5!important;color:#a43e53!important
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-tile-grid{gap:13px!important}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-manage-class-tile{
+  transition:background-color .15s ease,box-shadow .15s ease,border-color .15s ease
+}
+.attendance-workspace-page .attendance-shell.is-standalone .ahv3__shell{gap:14px!important}
+.attendance-workspace-page .attendance-shell.is-standalone .ahv3__list-head{background:#fff!important}
+.attendance-workspace-page .attendance-shell.is-standalone .ahv3__hero{background:#edf3fb!important;border-color:#d7e4f2!important}
+.attendance-workspace-page .attendance-shell.is-standalone .ahv3__section-title{
+  border-radius:10px;background:#eaf2fc!important;color:#20538b!important
+}
+.attendance-workspace-page .attendance-shell.is-standalone .att-report-m3__toolbar{
+  background:#fff!important;box-shadow:var(--awu-elev)!important
+}
+.attendance-workspace-page .attendance-shell.is-standalone .stud-att__intro{
+  border:none!important;padding:0!important;
+  background:#fff!important;
+  box-shadow:none!important
+}
+.attendance-workspace-page .attendance-shell.is-standalone .stud-att__intro::before,
+.attendance-workspace-page .attendance-shell.is-standalone .stud-att__intro::after{content:none!important}
+.attendance-workspace-page .attendance-shell.is-standalone .stud-att__intro.awu-panel-head{
+  border:1px solid var(--awu-border)!important;
+  padding:17px 20px!important;box-shadow:var(--awu-elev)!important
+}
+.attendance-workspace-page .attendance-shell.is-standalone .att-report-m3__hero-copy.awu-panel-head{
+  padding:0;border:0;box-shadow:none;background:transparent!important
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-archive__hero.awu-panel-head{
+  background:#fff!important;box-shadow:var(--awu-elev)!important
+}
+.attendance-workspace-page .attendance-shell.is-standalone .attendance-archive__toolbar{
+  padding:13px!important
+}
+.attendance-workspace-page .attendance-shell.is-standalone :is(
+  .stud-att__metrics article,.att-report-m3__metrics article,.ahv3__stat-grid article
+){
+  border-radius:13px!important;
+  box-shadow:none!important;
+  border:1px solid #d6e5f6!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone :is(
+  .stud-att__metric--students,.att-report-m3__metrics .is-blue
+){background:#edf5ff!important;color:#185dc3!important}
+.attendance-workspace-page .attendance-shell.is-standalone :is(
+  .stud-att__metric--periods,.att-report-m3__metrics .is-green
+){background:#eaf9f3!important;color:#0b805f!important}
+.attendance-workspace-page .attendance-shell.is-standalone :is(
+  .stud-att__metric--rate,.att-report-m3__metrics .is-purple
+){background:#f3effd!important;color:#6951b1!important}
+.attendance-workspace-page .attendance-shell.is-standalone :is(
+  .stud-att__metric--watch,.att-report-m3__metrics .is-amber
+){background:#fff6e7!important;color:#ac721b!important}
+/* Preserve semantic colors: green present, orange late, red absent. */
+.attendance-workspace-page .attendance-shell.is-standalone .att-m3-attendance-status button.is-active.is-present{
+  background:#d8f3e6!important;color:#07734e!important;border-color:#abdcc3!important
+}
+.attendance-workspace-page .attendance-shell.is-standalone .att-m3-attendance-status button.is-active.is-late{
+  background:#fff0cc!important;color:#9e6511!important;border-color:#efd297!important
+}
+.attendance-workspace-page .attendance-shell.is-standalone .att-m3-attendance-status button.is-active.is-absent{
+  background:#fde0e4!important;color:#ab394a!important;border-color:#efbbc3!important
+}
+.attendance-workspace-page .attendance-shell.is-standalone .att-m3-roster-entry.is-absent{
+  background:#fff5f5!important
+}
+/* Supplemental form overlays may be rendered through portals outside the
+   workspace. They keep the same primitive border radius, panel hierarchy. */
+.bes-supplemental-dialog .bes-supplemental-dialog-head,
+.bes-supplemental-reporting-panel .bes-supplemental-reporting-head {
+  background:#fff!important;
+  border-bottom:1px solid #e0e9f3!important;
+}
+.bes-supplemental-dialog :is(.bes-supplemental-section,.bes-supplemental-card,.bes-supplemental-daily-card,.bes-supplemental-history-card),
+.bes-supplemental-reporting-panel :is(.bes-supplemental-section,.bes-supplemental-card,.bes-supplemental-history-card){
+  border:1px solid #dbe5f0!important;
+  border-radius:var(--awu-corner,16px)!important;
+  box-shadow:0 3px 12px rgba(27,63,105,.05)!important;
+  background:#fff!important;
+}
+.bes-supplemental-dialog :is(input,select,textarea),
+.bes-supplemental-reporting-panel :is(input,select,textarea){
+  border-color:#cfddec!important;border-radius:10px!important
+}
+@media(max-width:1260px){
+ .awu-page-head{flex-direction:column;align-items:stretch}
+ .awu-page-head__right{justify-content:flex-start;margin-left:0}
+ .awu-page-head__indicators{justify-content:flex-start}
+}
+@media(max-width:790px){
+ .attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs{
+   background:#f8fafc!important;padding:7px 10px!important
+ }
+ .attendance-workspace-page .attendance-shell.is-standalone .attendance-tabs>button{
+   color:#3c5c85!important;min-height:39px!important
+ }
+ .attendance-workspace-page .attendance-shell.is-standalone .attendance-content{
+   padding:12px!important
+ }
+ .awu-page-head{padding:15px;min-height:0;margin-bottom:12px;gap:12px}
+ .awu-page-head__identity{align-items:flex-start;gap:11px}
+ .awu-page-head__icon{width:42px;height:42px;flex-basis:42px}
+ .awu-page-head h1{font-size:19px!important}
+ .awu-page-head__indicator{min-width:0;padding:8px 10px}
+ .awu-page-head__indicator b{font-size:16px}
+ .awu-panel-head{padding:13px;flex-wrap:wrap;gap:9px}
+ .awu-panel-head__aside{margin-left:0;width:100%;justify-content:flex-start}
+ .awu-panel-head h2{font-size:16px!important}
+ .awu-mini-stats{justify-content:flex-start}
+}
+@media(max-width:490px){
+ .awu-page-head__breadcrumb{font-size:9px}
+ .awu-page-head__indicators{width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+ .awu-page-head__indicator{min-width:0}
+ .awu-page-head__indicator:last-child:nth-child(odd){grid-column:span 2}
+ .awu-page-head p{font-size:11px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .attendance-workspace-page .attendance-shell.is-standalone button{transition:none!important}
+}
