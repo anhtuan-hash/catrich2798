@@ -291,7 +291,7 @@ export default function AttendanceClassManagementWorkspace({
                   <span className="attendance-manage-tile__subject"><WorkspaceIcon name="book" size={16}/><span>Môn học</span><strong>{classRow.subject || 'Chưa ghi môn'}</strong></span>
                   <span className="attendance-manage-tile__teacher" title={teacher}><WorkspaceIcon name="teacher" size={16}/><span>Giáo viên</span><strong>{teacher}</strong></span>
                   <span className="attendance-manage-tile__room"><WorkspaceIcon name="room" size={16}/><span>Phòng học</span><strong>{room === 'Chưa ghi phòng' ? room : `Phòng ${room}`}</strong></span>
-                  <span className="attendance-manage-tile__weekday"><WorkspaceIcon name="calendar" size={16}/><span>Thời gian</span><strong>{weekday} · {time}</strong></span>
+                  <span className="attendance-manage-tile__weekday attendance-manage-tile__time"><WorkspaceIcon name="calendar" size={16}/><span>Thời gian</span><strong>{weekday} · {time}</strong></span>
                   <span className="attendance-manage-tile__students"><WorkspaceIcon name="users" size={16}/><span>Sĩ số</span><strong>{studentCount} học sinh</strong></span>
                 </span>
               </button>
