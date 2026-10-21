@@ -38,7 +38,7 @@ for(const status of ['is-active.is-present','is-active.is-late','is-active.is-ab
   assert.ok(css.includes(status),'Semantic attendance colors must remain');
 }
 assert.ok(css.includes('@media(max-width:790px)'),'Mobile must have a dedicated layout');
-assert.ok(!css.includes('body{')&&!css.includes('html{'),'No global resets outside attendance');
+assert.ok(!/(?:^|\})\s*(?:body|html)\s*\{/m.test(css),'No global resets outside attendance');
 assert.ok(!css.includes('@page'),'Printed reports must not inherit the screen dashboard styles');
 assert.ok(old.includes('grid-template-columns:240px minmax(0,1fr)'),'Keep the full-page sidebar');
 console.log('PASS: attendance page React components share headers, stats, empty states and one standalone design scale.');
