@@ -4,10 +4,12 @@ on:
     paths:
       - 'src/components/attendance/StudentAttendanceReport.jsx'
       - 'src/components/attendance/StudentAttendanceReport.css'
+      - 'src/components/attendance/StudentAttendanceReportTheme.css'
       - 'src/components/attendance/AttendanceMonthlyReport.jsx'
       - 'src/utils/studentAttendanceReport.js'
       - 'src/utils/studentAttendanceExport.js'
       - 'scripts/test-student-attendance-report.mjs'
+      - 'scripts/test-student-report-visual-theme.mjs'
       - '.github/workflows/student-attendance-report.yml'
   workflow_dispatch:
 permissions:
@@ -24,6 +26,7 @@ jobs:
           cache: npm
       - run: npm ci --ignore-scripts
       - run: node scripts/test-student-attendance-report.mjs
+      - run: node scripts/test-student-report-visual-theme.mjs
       - run: node scripts/test-attendance-report-aggregation.mjs
       - run: node scripts/test-attendance-report-export.mjs
       - run: node scripts/test-attendance-report-supplemental-integration.mjs
