@@ -39,6 +39,13 @@
     isolation: auto !important;
   }
 
+  /* Prevent padded 100%-width history children (not just the outer page)
+     from extending beyond the iPhone visual viewport. */
+  html body .attendance-workspace-page .attendance-shell.is-standalone.ah-history-v5,
+  html body .attendance-workspace-page .attendance-shell.is-standalone.ah-history-v5 * {
+    box-sizing: border-box !important;
+  }
+
   /* The page scrolls; only the result cards use a bounded list scroller. */
   html body .attendance-workspace-page .attendance-shell.is-standalone.ah-history-v5 .ahv3__shell[data-attendance-history-v3="true"] .ahv3__list {
     width: 100% !important;
