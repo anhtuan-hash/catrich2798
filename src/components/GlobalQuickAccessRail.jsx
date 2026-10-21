@@ -711,11 +711,9 @@ function runAction(item, sourceEl) {
     return;
   }
   if (item.action === 'attendance-quick') {
-    window.dispatchEvent(new CustomEvent('bes-attendance-quick-open', { detail: { source: 'action-dock' } }));
-    window.setTimeout(() => {
-      if (document.documentElement.classList.contains('bes-attendance-open')) return;
-      document.querySelector('.brian-nav__attendance-tab')?.click();
-    }, 90);
+    // Attendance is now a full-page workspace. Open its quick tab directly:
+    // the old modal-open event and delayed fallback could leave the user on Apps.
+    launchQuickAccessTarget('#/attendance?tab=quick', item.labelVi || item.label, item.accent, sourceEl);
     return;
   }
   if (item.action === 'gradebook-quick') {
