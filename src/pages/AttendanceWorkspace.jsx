@@ -4,6 +4,7 @@ import './AttendanceWorkspace.css';
 import './AttendanceWorkspaceRebuilt.css';
 import './AttendanceQuickLayoutFix.css';
 import './AttendanceMobileAudit.css';
+import './AttendanceHistoryIphoneViewportFix.css';
 
 /**
  * A first-class attendance workspace at #/attendance.
