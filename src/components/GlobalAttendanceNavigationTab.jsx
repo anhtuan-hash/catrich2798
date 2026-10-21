@@ -218,6 +218,8 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
   const today = vietnamDateString();
   const [host, setHost] = useState(null);
   const [open, setOpen] = useState(false);
+  const [initialLoadSettled, setInitialLoadSettled] = useState(false);
+  const supplementalRouteHandledRef = useRef('');
   const [view, setView] = useState(() => {
     if (!standalone || typeof window === 'undefined') return 'quick';
     const candidate = new URLSearchParams(window.location.hash.split('?')[1] || '').get('tab');
@@ -415,6 +417,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
         : (loadError?.message || 'Không thể tải dữ liệu điểm danh.'));
     } finally {
       setLoading(false);
+      setInitialLoadSettled(true);
     }
   }
 
@@ -567,6 +570,13 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
     const openSupplementalRollcall = async (event) => {
       const sessionId = String(event?.detail?.sessionId || '').trim();
       if (!sessionId) return;
+      if (!standalone) {
+        const params = new URLSearchParams({tab:'quick',supplementalSession:sessionId});
+        const classId = String(event?.detail?.classId || '').trim();
+        if (classId) params.set('classId',classId);
+        window.location.hash = '#/attendance?' + params.toString();
+        return;
+      }
       try {
         setBusy(true);
         setError('');
@@ -622,7 +632,6 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
           absence_reason_code: participant.absenceReasonCode || '',
           absence_note: participant.absenceNote || '',
         })));
-        setOpen(true);
         setView('quick');
       } catch (openError) {
         setError(openError?.message || 'Không thể mở điểm danh Học bổ sung.');
@@ -637,7 +646,20 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
       window.removeEventListener('bes-supplemental-open-rollcall', openSupplementalRollcall);
       window.removeEventListener('bes-open-supplemental-attendance', openSupplementalRollcall);
     };
-  }, [client, allowed, runtime]);
+  }, [client, allowed, runtime, standalone]);
+
+  // In-app navigation unmounts the old navigation component, so an incoming
+  // supplemental session is reopened after initial class loading completes.
+  useEffect(() => {
+    if (!standalone || !allowed || !runtime.ready || !initialLoadSettled || !canManageSupplementalLearning(runtime)) return;
+    const params = new URLSearchParams(window.location.hash.split('?')[1] || '');
+    const sessionId = String(params.get('supplementalSession') || '').trim();
+    if (!sessionId || supplementalRouteHandledRef.current === sessionId) return;
+    supplementalRouteHandledRef.current = sessionId;
+    window.dispatchEvent(new CustomEvent('bes-supplemental-open-rollcall', {
+      detail: {sessionId,classId:params.get('classId') || ''},
+    }));
+  }, [standalone, allowed, runtime.ready, runtime.session?.user?.id, initialLoadSettled]);
 
   async function loadDaySession(classId = selectedClassId, dateValue = attendanceDate) {
     if (!client || !classId || !dateValue || !allowed) {
