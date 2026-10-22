@@ -1,4 +1,5 @@
 import './styles/SupplementalLearning.css';
+import './styles/SupplementalWorkspaceUnified.css';
 import { readSheet } from 'read-excel-file/browser';
 import { ensureRuntimeReady, getRuntimeClient, getRuntimeState, subscribeRuntime } from './services/runtime/core.js';
 import { canManageSupplementalLearning } from './supplementalAccess.js';
@@ -36,6 +37,7 @@ function setMessage(text = '', tone = 'ok') {
   message = text;
   const node = document.querySelector('.bes-supplemental-message');
   if (node) { node.textContent = text; node.dataset.tone = tone; }
+  else if (document.getElementById(HOST_ID)) renderPanel();
 }
 
 async function reload({ keepSelection = true } = {}) {
@@ -49,6 +51,20 @@ async function reload({ keepSelection = true } = {}) {
   }
 }
 
+let routeRestoreQueued = false;
+function shouldRestoreSupplementalRoute() {
+  return Boolean(document.querySelector('.attendance-shell.is-standalone'))
+    && new URLSearchParams(window.location.hash.split('?')[1] || '').get('tab') === 'supplemental';
+}
+function restoreSupplementalRoute() {
+  if (!canManage() || !shouldRestoreSupplementalRoute() || document.getElementById(HOST_ID) || routeRestoreQueued) return;
+  routeRestoreQueued = true;
+  queueMicrotask(() => {
+    routeRestoreQueued = false;
+    if (canManage() && shouldRestoreSupplementalRoute() && document.querySelector('.bes-supplemental-nav-tab')
+      && !document.getElementById(HOST_ID)) openPanel();
+  });
+}
 function ensureLauncher() {
   const tabs = document.querySelector('.attendance-tabs');
   if (!tabs || !canManage()) {
@@ -56,7 +72,7 @@ function ensureLauncher() {
     document.getElementById(HOST_ID)?.remove();
     return;
   }
-  if (tabs.querySelector('.bes-supplemental-nav-tab')) return;
+  if (tabs.querySelector('.bes-supplemental-nav-tab')) { restoreSupplementalRoute(); return; }
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'bes-supplemental-nav-tab';
@@ -65,10 +81,14 @@ function ensureLauncher() {
   button.addEventListener('click', openPanel);
   const report = [...tabs.querySelectorAll('button')].find((item) => /báo cáo|report/i.test(item.textContent || ''));
   if (report) report.insertAdjacentElement('beforebegin', button); else tabs.append(button);
+  restoreSupplementalRoute();
 }
 
 function openPanel() {
   if (!canManage()) return;
+  if (document.querySelector('.attendance-shell.is-standalone') && window.location.hash.startsWith('#/attendance')) {
+    window.history.replaceState(null, '', '#/attendance?tab=supplemental');
+  }
   let host = document.getElementById(HOST_ID);
   if (!host) { host = document.createElement('div'); host.id = HOST_ID; document.body.append(host); }
   renderPanel();
@@ -122,7 +142,7 @@ function parseImportedMembers(rows = []) {
 function classCards() {
   const q = fold(classQuery);
   const rows = classes.filter((item) => !item.archivedAt && (!q || classSearchText(item).includes(q)));
-  if (!rows.length) return '<div class="bes-supplemental-empty-state"><strong>Chưa có lớp học bổ sung phù hợp.</strong><span>Chọn “Tạo lớp học bổ sung” để bắt đầu.</span></div>';
+  if (!rows.length) return `<div class="bes-supplemental-empty-state"><span class="bes-supplemental-empty-state__icon" aria-hidden="true"><svg viewBox="0 0 48 48" width="48" height="48" fill="none"><rect x="8" y="8" width="32" height="32" rx="9" fill="#eaf2ff"/><path d="M16 18h16M16 24h10M16 30h7" stroke="#4b85d8" stroke-width="2.2" stroke-linecap="round"/><path d="M32 27v10m-5-5h10" stroke="#1767cf" stroke-width="2.6" stroke-linecap="round"/></svg></span><strong>${q ? 'Không tìm thấy lớp phù hợp' : 'Chưa có lớp học bổ sung'}</strong><span>${q ? 'Thử thay đổi từ khóa tìm kiếm để xem các lớp khác.' : 'Chọn “Tạo lớp học bổ sung” để bắt đầu quản lý lịch học và điểm danh.'}</span></div>`;
   return `<div class="bes-supplemental-class-grid">${rows.map((item) => {
     const next = item.nextSession || null;
     return `<article class="bes-supplemental-class-card"><header><div><span class="bes-supplemental-source-badge">LỚP HỌC BỔ SUNG</span><h3>${esc(item.className || item.groupName)}</h3><p>${esc(item.subject)} · Khối ${esc(item.gradeLevel || '—')}</p></div><span class="bes-supplemental-status ${item.active === false ? 'is-paused' : ''}">${item.active === false ? 'Tạm dừng' : 'Đang hoạt động'}</span></header><div class="bes-supplemental-class-meta"><span><b>Phòng</b>${esc(item.room || 'Chưa xếp')}</span><span><b>Lịch học</b>${esc(scheduleLabel(item))}</span><span><b>Giáo viên</b>${esc(teacherNames(item))}</span><span><b>Học sinh</b>${Number(item.activeStudentCount || 0)} đang học</span></div>${next ? `<p class="bes-supplemental-next-session"><b>Buổi kế tiếp:</b> ${esc(next.date)} · ${esc(next.startTime)}–${esc(next.endTime)}</p>` : '<p class="bes-supplemental-next-session is-muted">Chưa có buổi sắp tới.</p>'}<footer><button type="button" class="is-primary" data-action="manage-class" data-id="${esc(item.id)}">Quản lý</button><button type="button" data-action="attendance" data-id="${esc(item.id)}" data-session="${esc(next?.id || '')}" ${next ? '' : 'disabled'}>Điểm danh</button><button type="button" data-action="history" data-id="${esc(item.id)}">Lịch sử</button><button type="button" class="is-danger-quiet" data-action="delete-class" data-id="${esc(item.id)}">Xóa lớp</button></footer></article>`;
@@ -150,7 +170,7 @@ function renderPanel() {
   const host = document.getElementById(HOST_ID);
   if (!host || !canManage()) return;
   const selected = creatingClass ? emptyClass() : classes.find((item) => item.id === selectedClassId) || null;
-  host.innerHTML = `<section class="bes-supplemental-dialog bes-supplemental-admin-workspace"><header class="bes-supplemental-header"><div><span class="bes-supplemental-source-badge">ĐIỂM DANH</span><h2>Lớp học bổ sung</h2><p>Tạo lớp, quản lý giáo viên và học sinh thủ công, sau đó điểm danh như các lớp khác.</p></div><button type="button" data-action="close" aria-label="Đóng">×</button></header><div class="bes-supplemental-message" data-tone="ok">${esc(message)}</div><main class="bes-supplemental-main">${selected ? classEditor(selected) : `<section class="bes-supplemental-class-home"><div class="bes-supplemental-class-toolbar"><label>Tìm lớp<input type="search" data-class-search value="${esc(classQuery)}" placeholder="Tên lớp, môn, giáo viên, học sinh"></label><button class="is-primary" type="button" data-action="create-class">+ Tạo lớp học bổ sung</button></div>${classCards()}${archivedClasses()}</section>`}</main></section>`;
+  host.innerHTML = `<section class="bes-supplemental-dialog bes-supplemental-admin-workspace"><header class="bes-supplemental-header"><div class="bes-supplemental-header__identity"><span class="bes-supplemental-header__icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8h8m-8 4h8m-8 4h5"/><path d="M17 15v4m-2-2h4"/></svg></span><div><h2>Học bổ sung</h2><p>Quản lý lớp, giáo viên, học sinh và các buổi học bổ sung.</p></div></div><div class="bes-supplemental-header__aside"><span class="bes-supplemental-header__count">${classes.filter((item) => !item.archivedAt).length} lớp học</span><button type="button" data-action="close" aria-label="Đóng Học bổ sung">×</button></div></header>${message ? `<div class="bes-supplemental-message" data-tone="ok">${esc(message)}</div>` : ''}<main class="bes-supplemental-main">${selected ? classEditor(selected) : `<section class="bes-supplemental-class-home"><div class="bes-supplemental-class-toolbar"><label>Tìm lớp<input type="search" data-class-search value="${esc(classQuery)}" placeholder="Tên lớp, môn, giáo viên, học sinh"></label><button class="is-primary" type="button" data-action="create-class">+ Tạo lớp học bổ sung</button></div>${classCards()}${archivedClasses()}</section>`}</main></section>`;
   bindPanel(host, selected);
 }
 
@@ -275,6 +295,10 @@ async function install() {
   window[INSTALL_KEY] = true;
   try { await ensureRuntimeReady(); } catch { /* runtime can recover */ }
   runtime = getRuntimeState(); client = getRuntimeClient(); startObserver();
+  window.addEventListener('hashchange', () => {
+    if (shouldRestoreSupplementalRoute()) restoreSupplementalRoute();
+    else if (document.querySelector('.attendance-shell.is-standalone')) closePanel();
+  });
   subscribeRuntime((next) => { runtime = next || getRuntimeState(); client = getRuntimeClient(); ensureLauncher(); if (!canManage()) closePanel(); });
 }
 if (typeof window !== 'undefined' && typeof document !== 'undefined') install();

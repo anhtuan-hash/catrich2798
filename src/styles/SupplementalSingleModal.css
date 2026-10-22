@@ -1,6 +1,7 @@
+/* Preserve the illustrated navigation deck while the supplemental workspace is open. */
 /* Học bổ sung reuses the native Attendance modal. No supplemental surface may create a second modal/backdrop. */
 .attendance-content.bes-supplemental-workspace-active{overflow:hidden!important;position:relative}
-.attendance-content.bes-supplemental-workspace-active>:not(.bes-supplemental-workspace-host){display:none!important}
+.attendance-content.bes-supplemental-workspace-active>:not(.bes-supplemental-workspace-host):not(.awu-feature-deck){display:none!important}
 .bes-supplemental-workspace-host{width:100%;height:100%;min-height:0;box-sizing:border-box}
 
 /* Never paint the legacy supplemental page backdrop. The bridge removes these nodes before paint as well. */

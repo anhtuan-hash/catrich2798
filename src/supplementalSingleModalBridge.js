@@ -87,8 +87,9 @@ function normalize() {
 }
 
 function closeSupplementalWorkspaceForNativeTab(event) {
-  const button = event.target?.closest?.('.attendance-tabs button');
-  if (!button || button.classList.contains('bes-supplemental-nav-tab')) return;
+  const button = event.target?.closest?.('.attendance-tabs button, .awu-feature-tile');
+  if (!button || button.classList.contains('bes-supplemental-nav-tab')
+    || button.classList.contains('is-supplemental')) return;
 
   const admin = document.getElementById(ADMIN_ID);
   const rollcall = document.getElementById(ROLLCALL_ID);
