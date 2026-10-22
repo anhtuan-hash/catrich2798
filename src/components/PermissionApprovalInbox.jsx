@@ -112,6 +112,12 @@ export default function PermissionApprovalInbox({ currentUser, language = 'vi' }
     window.addEventListener(PERMISSION_REQUESTS_EVENT, notify);
     window.addEventListener('focus', notify);
     document.addEventListener('visibilitychange', onVisible);
+    // Realtime gives immediate updates if Postgres changes are published.
+    // The 45-second visible-tab refresh remains a safe fallback when disabled.
+    const channel = supabase
+      .channel('bes-approval-inbox-' + currentUser.id)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'permission_requests' }, notify)
+      .subscribe();
     const timer = window.setInterval(() => {
       if (document.visibilityState === 'visible') notify();
     }, REFRESH_MS);
@@ -122,6 +128,7 @@ export default function PermissionApprovalInbox({ currentUser, language = 'vi' }
       window.removeEventListener(PERMISSION_REQUESTS_EVENT, notify);
       window.removeEventListener('focus', notify);
       document.removeEventListener('visibilitychange', onVisible);
+      supabase.removeChannel(channel);
     };
   }, [canReview, currentUser?.id, refresh]);
 
