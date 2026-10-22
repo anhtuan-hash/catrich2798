@@ -26,7 +26,7 @@ import {
   setHomeroomWorkspaceStatus,
 } from '../utils/homeroomClassWorkspaceStore.js';
 import { makeWorkspaceId, prepareWorkspaceCommit } from '../utils/homeroomPhase3.js';
-import { syncAssignedStudentRosterDelta } from '../utils/assignedStudentRosterSync.js';
+import { flushPendingAssignedStudentRosters, syncAssignedStudentRosterDelta } from '../utils/assignedStudentRosterSync.js';
 import {
   HOMEROOM_CLASS_TYPE,
   SUBJECT_CLASS_TYPE,
@@ -165,6 +165,23 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   const [syncState, setSyncState] = useState('local');
   const [commandTarget, setCommandTarget] = useState(null);
   const hydrationSequenceRef = useRef(0);
+
+  useEffect(() => {
+    if (!currentUser?.id || typeof window === 'undefined') return undefined;
+    const retryQueuedChanges = () => {
+      void flushPendingAssignedStudentRosters(currentUser);
+    };
+    // Recovery runs once when opening the app and whenever the network returns.
+    retryQueuedChanges();
+    window.addEventListener('online', retryQueuedChanges);
+    window.addEventListener('focus', retryQueuedChanges);
+    return () => {
+      window.removeEventListener('online', retryQueuedChanges);
+      window.removeEventListener('focus', retryQueuedChanges);
+    };
+  }, [currentUser?.id]);
+
+
 
   useEffect(() => {
     if (!workspace?.id) return;
