@@ -84,7 +84,7 @@
   display:block;width:100%;border:0!important;box-shadow:none!important;
   margin:0!important;padding:0 10px 0 0!important;min-height:20px!important;
   height:auto!important;color:#214779!important;background:transparent!important;
-  font:780 12px/1.35 inherit!important;outline:none!important;
+  font-family:inherit!important;font-size:12px!important;line-height:1.35!important;font-weight:780!important;outline:none!important;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 #root .gradebook-studio.gb7-rebirth .gbm3-hero-buttons {
