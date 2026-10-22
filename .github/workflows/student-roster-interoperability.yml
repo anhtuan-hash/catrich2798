@@ -1,0 +1,52 @@
+name: Student Roster Interoperability
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/utils/schoolClassRegistry.js'
+      - 'src/utils/homeroomStore.js'
+      - 'src/utils/assignedStudentRosterSync.js'
+      - 'src/utils/lessonCheckAssessment.js'
+      - 'src/pages/HomeroomWorkspace.jsx'
+      - 'src/pages/GradebookStudio.jsx'
+      - 'src/schoolClassBootstrap.jsx'
+      - 'src/assignedSchoolClassBootstrap.js'
+      - 'src/components/lessonCheck/AssessmentWorkspace.jsx'
+      - 'supabase/migrations/*roster*.sql'
+      - 'scripts/test-assigned-student-roster-sync.mjs'
+      - 'scripts/test-school-class-registry.mjs'
+      - '.github/workflows/student-roster-interoperability.yml'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: student-roster-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  student-roster:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: School registry import and preservation
+        run: node scripts/test-school-class-registry.mjs
+      - name: Assigned school class load and permission guards
+        run: node scripts/test-assigned-school-class-bootstrap.mjs
+      - name: Canonical roster student delta merge
+        run: node scripts/test-assigned-student-roster-sync.mjs
+      - name: Gradebook assigned class identity and history
+        run: node scripts/test-gradebook-verified-roster.mjs
+      - name: Lesson Check assigned rosters
+        run: node scripts/test-lesson-check-studio.mjs
+      - name: Vite production bundle
+        run: npm run build
