@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { clearSessionRecovery, loadSessionRecovery, saveSessionRecovery } from '../../utils/lessonCheckWorkbench.js';
+import { subscribeTable } from '../../services/runtime/core.js';
 import { createPortal } from 'react-dom';
 import {
   ArrowLeft,
@@ -334,6 +335,21 @@ export default function AssessmentWorkspace({
       window.removeEventListener('bes-class-roster-updated', reload);
     };
   }, [visible, view, step, refreshAssignedClasses]);
+
+  useEffect(() => {
+    if (!visible || view !== 'session' || step !== 1 || !className) return undefined;
+    const selectedClass = classes.find((item) => item.className === className);
+    const schoolYear = selectedClass?.schoolYear;
+    if (!schoolYear) return undefined;
+    // Keep the unstarted selection list current across different teachers/devices.
+    // A running or completed assessment must never be reshuffled by realtime.
+    return subscribeTable({
+      key: `lesson-check-roster-${currentUser?.id || 'guest'}-${schoolYear}-${className}`,
+      table: 'bes_class_rosters',
+      filter: `roster_key=eq.class:${schoolYear}||${className}`,
+      onChange: () => { void refreshAssignedClasses(); },
+    });
+  }, [visible, view, step, className, classes, currentUser?.id, refreshAssignedClasses]);
 
   useEffect(() => {
     setSelectedRefs([]);
