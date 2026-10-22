@@ -299,3 +299,22 @@
     box-sizing:border-box!important;
   }
 }
+
+
+/* Android/Chromium touch-scroll parity: let vertical gestures bubble from
+   local attendance lists to the page when those lists reach an edge.
+   Their own internal scrolling and horizontal navigation remain unchanged.
+   No global modal or desktop scroll lock is modified. */
+@media (max-width: 900px) and (pointer: coarse) {
+  .attendance-workspace-page .attendance-shell.is-standalone :is(
+    .attendance-class-list > div:last-child,
+    .ahv3__items,
+    .attendance-manage-classes,
+    .attendance-member-manager,
+    .attendance-archive__list,
+    .stud-att__table-wrap,
+    .att-report-m3__table-wrap
+  ) {
+    overscroll-behavior-y: auto !important;
+  }
+}

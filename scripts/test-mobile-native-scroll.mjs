@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+const mobile = readFileSync('src/styles/mobile/mobile-shell.css','utf8');
+const attendance = readFileSync('src/pages/AttendanceMobileAudit.css','utf8');
+const root = mobile.match(/html\.bes-mobile-shell-active,\s*html\.bes-mobile-shell-active body\s*\{([^}]*)\}/)?.[1];
+assert.ok(root, 'The mobile html/body scroll rules must exist.');
+assert.match(root, /overflow-x:\s*clip\s*;/, 'Mobile html/body must use clip to preserve native vertical scroll.');
+assert.doesNotMatch(root, /overflow-x:\s*hidden\s*;/, 'overflow-x:hidden on body coerces overflow-y into auto.');
+assert.match(mobile, /html\.bes-mobile-shell-active #root,[\s\S]*?overflow-x:\s*clip/, 'App wrapper must not become another y-scroll container.');
+assert.match(attendance, /overscroll-behavior-y:\s*auto\s*!important/, 'Local attendance lists must hand vertical gestures to the page.');
+assert.match(attendance, /\.ahv3__items/, 'History lists are covered.');
+assert.match(attendance, /\.attendance-class-list > div:last-child/, 'Quick attendance classes are covered.');
+assert.doesNotMatch(mobile, /touch-action:\s*none/, 'Mobile root must not disable native touch panning.');
+console.log('PASS: mobile root keeps native page scrolling and attendance lists allow vertical scroll chaining.');
