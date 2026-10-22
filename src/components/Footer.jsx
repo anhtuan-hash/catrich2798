@@ -1,6 +1,5 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { APP_VERSION } from '../config/version.js';
 import './FooterCompactDisclosure.css';
 import './FooterAuthCards.css';
 import './FooterIntegrity.css';
@@ -23,7 +22,6 @@ const ENGLISH_DETAILS = {
     'Master of Arts in Educational Management',
     'Currently pursuing Master of Arts in English Linguistics',
   ],
-  copyright: '© 2026 English Hub',
 };
 
 const VIETNAMESE_DETAILS = {
@@ -42,7 +40,6 @@ const VIETNAMESE_DETAILS = {
     'Thạc sĩ Quản lí giáo dục',
     'Đang theo học Thạc sĩ Ngôn ngữ Anh',
   ],
-  copyright: 'Bản quyền © 2026 English Hub',
 };
 
 const PORTFOLIO_URL = 'https://decisive-difference-557977.framer.app/';
@@ -301,12 +298,7 @@ export default function Footer({ language, route = '' }) {
 
       <DashboardFooterArtwork />
 
-      <div className="signature-footer-static-summary">
-        <span className="signature-footer-summary">
-          <strong>English Hub v{APP_VERSION}</strong>
-          <span className="signature-footer-summary-separator" aria-hidden="true">•</span>
-          <span>{content.copyright}</span>
-        </span>
+      <div className="signature-footer-static-summary signature-footer-static-summary--attribution-only">
         <button
           ref={portfolioTriggerRef}
           type="button"
