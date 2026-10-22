@@ -29,7 +29,7 @@ import {
 import { attachVerifiedGradebookAssignment, evaluateGradebookAssignmentLifecycle, isAssignedGradebookWorkspace } from '../utils/gradebookAssignmentLifecycle.js';
 import { makeWorkspaceId } from '../utils/homeroomPhase3.js';
 import { getClassTypeLabel } from '../utils/homeroomClassTypes.js';
-import { syncAssignedStudentRosterDelta } from '../utils/assignedStudentRosterSync.js';
+import { flushPendingAssignedStudentRosters, syncAssignedStudentRosterDelta } from '../utils/assignedStudentRosterSync.js';
 import '../styles/homeroom-complete.css';
 import '../styles/GradebookStudio.css';
 import '../styles/GradebookLifecycle.css';
@@ -279,6 +279,21 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     workspace?.classProfile?.className,
     workspace?.classProfile?.schoolYear,
   ]);
+
+  useEffect(() => {
+    if (!currentUser?.id || typeof window === 'undefined') return undefined;
+    const retryQueuedChanges = () => {
+      void flushPendingAssignedStudentRosters(currentUser);
+    };
+    // Recovery runs once when opening the app and whenever the network returns.
+    retryQueuedChanges();
+    window.addEventListener('online', retryQueuedChanges);
+    window.addEventListener('focus', retryQueuedChanges);
+    return () => {
+      window.removeEventListener('online', retryQueuedChanges);
+      window.removeEventListener('focus', retryQueuedChanges);
+    };
+  }, [currentUser?.id]);
 
   const commit = async (next, successMessage = 'Đã lưu dữ liệu sổ điểm.') => {
     const previous = workspaceRef.current;
