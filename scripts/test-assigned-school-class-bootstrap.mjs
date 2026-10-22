@@ -16,7 +16,7 @@ assert.match(syncSource, /SUBJECT_CLASS_TYPE/);
 assert.match(syncSource, /homeroomWorkspaceId/);
 assert.match(syncSource, /preferHomeroom/);
 assert.match(syncSource, /openDefaultHomeroom/);
-assert.match(syncSource, /setCurrentHomeroomWorkspaceId\(user, homeroomWorkspaceId\)/);
+assert.match(syncSource, /setCurrentHomeroomWorkspaceId\(user, selectedWorkspaceId\)/, 'Preserve selected classroom during background roster sync.');
 assert.match(syncSource, /enteringHomeroomApp/);
 assert.match(syncSource, /bes-school-class-assignment-synced/);
 assert.match(syncSource, /preserveTab:\s*true/);
