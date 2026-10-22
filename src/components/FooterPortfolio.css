@@ -1,215 +1,370 @@
-/* ESL Brian: canonical footer remains unchanged; portfolio is a separate
-   always-present page section immediately AFTER it, never a modal. */
-html body #root .app-shell > footer[data-app-shell-footer="true"] > .signature-footer-static-summary {
-  flex-wrap: wrap !important;
-  column-gap: 14px !important;
-  row-gap: 7px !important;
+/* ESL Brian · Unified Portfolio Footer
+   The previous three-card footer and the separate iframe section are replaced
+   with a single, full-width portfolio showcase. All selectors are scoped. */
+
+html body #root .app-shell > footer.bes-portfolio-unified-footer[data-app-shell-footer="true"] {
+  position: relative !important;
+  inset: auto !important;
+  z-index: 3 !important;
+  display: flex !important;
+  flex: 0 0 auto !important;
+  flex-direction: column !important;
+  order: 2147483647 !important;
+  isolation: isolate;
+  box-sizing: border-box !important;
+  width: min(1480px, calc(100% - 32px)) !important;
+  max-width: calc(100% - 32px) !important;
+  min-width: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  margin: 26px auto 36px !important;
+  padding: 38px clamp(22px, 3.7vw, 54px) 18px !important;
+  overflow: hidden !important;
+  border: 1px solid #d7e9fc !important;
+  border-radius: 28px !important;
+  color: #193557 !important;
+  background:
+    radial-gradient(ellipse 41% 65% at 89% 47%, rgba(232, 226, 255, .65), transparent 90%),
+    radial-gradient(ellipse 45% 68% at 49% 52%, rgba(225, 243, 255, .72), transparent 86%),
+    linear-gradient(125deg, #f8fcff 0%, #f4f9ff 47%, #fff6fc 100%) !important;
+  box-shadow: 0 12px 36px rgba(44, 96, 154, .10) !important;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  scroll-margin-top: 20px;
 }
-html body #root .app-shell > footer[data-app-shell-footer="true"] .bes-portfolio-footer-trigger {
+
+html body #root .app-shell > footer.bes-portfolio-unified-footer *,
+html body #root .app-shell > footer.bes-portfolio-unified-footer *::before,
+html body #root .app-shell > footer.bes-portfolio-unified-footer *::after {
+  box-sizing: border-box;
+}
+
+.bes-portfolio-unified-main {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  align-items: center;
+  gap: clamp(26px, 4vw, 70px);
+  width: 100%;
+  min-height: 0;
+}
+
+.bes-portfolio-unified-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  padding: 14px 0 18px;
+}
+
+.bes-portfolio-unified-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 18px;
+  color: #2470dc;
+  font-size: 11px;
+  line-height: 1.3;
+  font-weight: 850;
+  letter-spacing: .12em;
+}
+
+.bes-portfolio-unified-eyebrow-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4b94ed;
+  box-shadow: 0 0 0 4px rgba(75, 148, 237, .12);
+}
+
+.bes-portfolio-unified-title {
+  margin: 0 0 22px;
+  max-width: 680px;
+  color: #123859;
+  font-size: clamp(27px, 3vw, 45px);
+  line-height: 1.16;
+  font-weight: 850;
+  letter-spacing: -.048em;
+  text-wrap: balance;
+}
+
+.bes-portfolio-unified-description {
+  max-width: 540px;
+  margin: 0;
+  color: #586e87;
+  font-size: clamp(14px, 1.1vw, 17px);
+  line-height: 1.82;
+  font-weight: 480;
+}
+
+.bes-portfolio-unified-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 24px 0 0;
+}
+
+.bes-portfolio-unified-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 730;
+  border: 1px solid #dce9f8;
+  background: #f9fcff;
+  color: #1c477a;
+  box-shadow: 0 2px 6px rgba(51, 96, 148, .04);
+}
+
+.bes-portfolio-unified-pill-icon { font-size: 14px; line-height: 1; }
+
+.bes-portfolio-unified-pill--purple {
+  color: #6243a9;
+  background: #f8f5ff;
+  border-color: #e7ddff;
+}
+.bes-portfolio-unified-pill--orange {
+  color: #b9621c;
+  background: #fff8f1;
+  border-color: #f9e6d3;
+}
+
+.bes-portfolio-unified-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+
+.bes-portfolio-unified-action-primary,
+.bes-portfolio-unified-action-secondary {
   appearance: none;
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
-  flex-wrap: wrap;
-  gap: 4px 6px;
-  min-height: 32px;
-  max-width: 100%;
-  margin: 0;
-  padding: 6px 11px;
-  border: 1px solid #c9d8ef;
-  border-radius: 100px;
-  background: #f1f6ff;
-  color: #43556b;
-  font: inherit;
-  font-size: 12px;
-  font-weight: 600;
+  gap: 10px;
+  min-height: 48px;
+  border-radius: 15px;
+  padding: 12px 20px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 790;
   line-height: 1.25;
-  text-align: center;
-  white-space: normal;
   cursor: pointer;
-  transition: background-color .18s ease, border-color .18s ease, box-shadow .18s ease;
+  text-decoration: none !important;
+  transition: transform .2s ease, background-color .2s ease, box-shadow .2s ease;
 }
-html body #root .app-shell > footer[data-app-shell-footer="true"] .bes-portfolio-footer-trigger strong {
-  color: #1967d2;
-  font-weight: 800;
+
+.bes-portfolio-unified-action-primary {
+  border: 1px solid #07558f;
+  background: linear-gradient(130deg, #085d9c, #074472) !important;
+  color: #fff !important;
+  box-shadow: 0 6px 15px rgba(0, 80, 145, .24);
 }
-html body #root .app-shell > footer[data-app-shell-footer="true"] .bes-portfolio-footer-trigger:hover {
-  background: #e7f0ff;
-  border-color: #92b7ed;
-  box-shadow: 0 2px 7px rgba(32, 92, 180, .09);
+
+.bes-portfolio-unified-action-primary:hover {
+  background: #07528a !important;
+  box-shadow: 0 9px 18px rgba(0, 80, 145, .27);
+  transform: translateY(-1px);
 }
-html body #root .app-shell > footer[data-app-shell-footer="true"] .bes-portfolio-footer-trigger:focus-visible,
-.bes-portfolio-inline-section a:focus-visible {
+
+.bes-portfolio-unified-action-arrow {
+  margin-left: 4px;
+  font-size: 15px;
+}
+
+.bes-portfolio-unified-action-secondary {
+  border: 1px solid #bdd5fd;
+  background: rgba(255, 255, 255, .85);
+  color: #236bc4 !important;
+}
+
+.bes-portfolio-unified-action-secondary:hover {
+  background: #eff6ff;
+  transform: translateY(-1px);
+}
+
+.bes-portfolio-unified-action-primary:focus-visible,
+.bes-portfolio-unified-action-secondary:focus-visible,
+.bes-portfolio-unified-iframe:focus-visible {
   outline: 3px solid #4285f4;
   outline-offset: 3px;
 }
-.bes-portfolio-footer-trigger-icon {
-  font-size: 16px;
-  font-weight: 800;
-  line-height: 1;
-}
 
-/* Home has a legacy CSS rule giving the footer the absolute last flex order.
-   Override only that ordering so the inline portfolio actually sits BELOW it. */
-html body #root .app-shell.metro-clean-system[data-route="home"] > footer.signature-footer-collapsible[data-app-shell-footer="true"] {
-  order: 2147483646 !important;
+.bes-portfolio-unified-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  max-width: 530px;
+  margin: 18px 0 0;
+  color: #7487a0;
+  font-size: 11px;
+  line-height: 1.55;
 }
-html body #root .app-shell.metro-clean-system[data-route="home"] > section.bes-portfolio-inline-section {
-  order: 2147483647 !important;
-}
+.bes-portfolio-unified-hint > span { color: #6e93ed; font-size: 16px; line-height: 1; }
 
-html body #root .app-shell > section.bes-portfolio-inline-section {
-  position: relative !important;
-  inset: auto !important;
-  display: flex !important;
-  flex: 0 0 auto !important;
-  flex-direction: column;
-  align-items: stretch;
-  width: min(1480px, calc(100% - 24px)) !important;
-  max-width: calc(100% - 24px) !important;
-  min-width: 0;
-  height: auto !important;
-  min-height: 0;
-  margin: 12px auto 30px !important;
-  padding: 0 !important;
-  overflow: hidden !important;
-  border: 1px solid #d7e5f4;
-  border-radius: 24px;
-  background: #fff;
-  color: #1e293b;
-  box-shadow: 0 9px 32px rgba(40, 78, 122, .08);
-  isolation: isolate;
-  box-sizing: border-box;
-  scroll-margin-top: 20px;
-}
-.bes-portfolio-inline-section *,
-.bes-portfolio-inline-section *::before,
-.bes-portfolio-inline-section *::after {
-  box-sizing: border-box;
-}
-.bes-portfolio-inline-heading {
+.bes-portfolio-unified-showcase {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 18px 24px;
-  border-bottom: 1px solid #e9eef5;
-  background: linear-gradient(110deg, #f6faff 0%, #fff 58%, #f5fbf9 100%);
-}
-.bes-portfolio-inline-intro {
-  min-width: 0;
-}
-.bes-portfolio-inline-eyebrow {
-  display: block;
-  margin-bottom: 6px;
-  color: #336fc5;
-  font: 800 10px/1.3 system-ui, -apple-system, sans-serif;
-  letter-spacing: .12em;
-}
-.bes-portfolio-inline-heading h2 {
-  margin: 0;
-  color: #172b47;
-  font: 800 clamp(18px, 2vw, 25px)/1.2 system-ui, -apple-system, sans-serif;
-  letter-spacing: -.03em;
-}
-.bes-portfolio-inline-heading p {
-  margin: 7px 0 0;
-  color: #60738c;
-  font: 500 12px/1.5 system-ui, -apple-system, sans-serif;
-}
-.bes-portfolio-inline-external {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
   justify-content: center;
-  gap: 7px;
-  min-height: 40px;
-  padding: 9px 14px;
-  border: 1px solid #d9e5f5;
-  border-radius: 12px;
-  background: #fff;
-  color: #1a63c8;
-  font: 750 12px/1.2 system-ui, -apple-system, sans-serif;
-  text-decoration: none;
-}
-.bes-portfolio-inline-external:hover {
-  background: #edf5ff;
-  border-color: #9bc2f1;
-}
-.bes-portfolio-inline-frame-wrap {
-  display: block;
-  flex: 0 0 auto;
   width: 100%;
   min-width: 0;
-  overflow: hidden;
-  background: #fff;
+  min-height: 0;
+  padding: 18px 22px 24px;
+  background:
+    radial-gradient(ellipse 44% 54% at 50% 48%, rgba(99, 158, 241, .27), transparent 95%),
+    radial-gradient(ellipse 40% 50% at 64% 60%, rgba(255, 170, 186, .18), transparent 100%);
 }
-.bes-portfolio-inline-frame {
+
+.bes-portfolio-unified-browser {
+  position: relative;
+  z-index: 2;
   display: block;
   width: 100%;
-  height: 90vh;
-  height: clamp(640px, 100dvh, 1080px);
+  max-width: 640px;
+  min-width: 0;
+  border: 1px solid #dce6f1;
+  border-radius: 23px;
+  overflow: hidden;
+  background: white;
+  box-shadow: 0 20px 45px rgba(21, 50, 81, .15), 0 3px 9px rgba(21, 50, 81, .08);
+}
+
+.bes-portfolio-unified-iframe {
+  display: block;
+  width: 100%;
+  height: clamp(550px, 50vw, 720px);
   min-height: 0;
   border: 0;
   background: #fff;
   touch-action: pan-x pan-y;
 }
-.bes-portfolio-inline-caption {
-  margin: 0;
-  padding: 10px 24px 12px;
-  border-top: 1px solid #edf1f6;
-  background: #fafcff;
-  color: #758498;
-  font: 500 11px/1.4 system-ui, -apple-system, sans-serif;
+
+.bes-portfolio-unified-sparkle {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  color: #8ab9f7;
+  font-size: 34px;
+}
+.bes-portfolio-unified-sparkle-one { top: 2%; left: 2%; transform: rotate(-19deg); }
+.bes-portfolio-unified-sparkle-two { right: 7%; bottom: 14%; color: #d2b5fd; font-size: 23px; }
+
+.bes-portfolio-unified-aside {
+  position: absolute;
+  right: -20px;
+  bottom: 15%;
+  z-index: 2;
+  color: #3d76bd;
+  font-family: Georgia, serif;
+  font-size: 18px;
+  line-height: 1.35;
+  font-style: italic;
+  text-align: center;
+  transform: rotate(-11deg);
+  opacity: .84;
+  pointer-events: none;
+  text-shadow: 0 1px 1px #fff;
 }
 
-/* The existing Android scroll fix remains in charge of page scrolling.
-   No body overflow locks or full-screen overlays are used here. */
-@media (max-width: 720px) {
-  html body #root .app-shell > footer[data-app-shell-footer="true"] > .signature-footer-static-summary {
-    justify-content: center !important;
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 8px auto 0 !important;
-    padding: 10px 10px 0 !important;
+.bes-portfolio-unified-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px 26px;
+  width: 100%;
+  min-width: 0;
+  margin-top: 20px;
+  padding: 18px 0 4px;
+  border-top: 1px solid rgba(110, 151, 194, .19);
+}
+
+.bes-portfolio-unified-copyright {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 7px;
+  color: #637c96;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.bes-portfolio-unified-copyright strong {
+  color: #3e607d;
+  font-weight: 790;
+}
+.bes-portfolio-unified-copyright .bes-portfolio-unified-author { color: #2874d2; }
+
+.bes-portfolio-unified-signoff {
+  color: #3467b1;
+  font-family: "Brush Script MT", "Segoe Script", cursive;
+  font-size: 21px;
+  font-style: italic;
+  line-height: 1.2;
+  white-space: nowrap;
+  transform: rotate(-3deg);
+}
+
+@media (max-width: 1080px) {
+  .bes-portfolio-unified-main {
+    gap: 20px;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
-  html body #root .app-shell > footer[data-app-shell-footer="true"] .bes-portfolio-footer-trigger {
-    margin: 0 auto;
-    padding: 8px 12px;
-    font-size: 12px;
+  .bes-portfolio-unified-aside { display: none; }
+  .bes-portfolio-unified-showcase { padding: 10px 0 18px; }
+  .bes-portfolio-unified-pill { font-size: 11px; }
+}
+
+@media (max-width: 850px) {
+  html body #root .app-shell > footer.bes-portfolio-unified-footer[data-app-shell-footer="true"] {
+    width: calc(100% - 24px) !important;
+    max-width: calc(100% - 24px) !important;
+    margin: 16px auto 24px !important;
+    padding: 26px 22px 16px !important;
   }
-  html body #root .app-shell > section.bes-portfolio-inline-section {
+  .bes-portfolio-unified-main { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .bes-portfolio-unified-content { padding: 0; }
+  .bes-portfolio-unified-description { max-width: 700px; }
+  .bes-portfolio-unified-showcase { max-width: 100%; padding: 14px 5px 16px; }
+  .bes-portfolio-unified-browser { max-width: 100%; }
+  .bes-portfolio-unified-iframe { height: clamp(560px, 86svh, 750px); }
+  .bes-portfolio-unified-bottom { margin-top: 8px; }
+}
+
+@media (max-width: 540px) {
+  html body #root .app-shell > footer.bes-portfolio-unified-footer[data-app-shell-footer="true"] {
     width: calc(100% - 16px) !important;
     max-width: calc(100% - 16px) !important;
-    margin: 8px auto 16px !important;
-    border-radius: 18px;
-    scroll-margin-top: 10px;
+    margin: 12px auto 16px !important;
+    padding: 24px 15px 14px !important;
+    border-radius: 20px !important;
   }
-  .bes-portfolio-inline-heading {
-    align-items: flex-start;
-    gap: 12px;
-    padding: 16px;
-  }
-  .bes-portfolio-inline-heading h2 { font-size: 17px; }
-  .bes-portfolio-inline-heading p { font-size: 11px; }
-  .bes-portfolio-inline-external {
-    min-height: 36px;
-    padding: 8px 10px;
-    font-size: 11px;
-  }
-  .bes-portfolio-inline-frame {
-    height: 100svh;
-    height: clamp(590px, 100dvh, 930px);
-  }
-  .bes-portfolio-inline-caption { padding: 10px 16px; }
+  .bes-portfolio-unified-eyebrow { font-size: 9px; margin-bottom: 14px; }
+  .bes-portfolio-unified-title { font-size: clamp(24px, 7vw, 32px); margin-bottom: 13px; }
+  .bes-portfolio-unified-description { font-size: 13px; line-height: 1.68; }
+  .bes-portfolio-unified-pills { margin-top: 18px; gap: 7px; }
+  .bes-portfolio-unified-pill { padding: 7px 10px; font-size: 10.5px; min-height: 32px; }
+  .bes-portfolio-unified-actions { width: 100%; margin-top: 24px; gap: 8px; }
+  .bes-portfolio-unified-action-primary,
+  .bes-portfolio-unified-action-secondary { min-height: 44px; padding: 10px 12px; font-size: 12px; }
+  .bes-portfolio-unified-hint { font-size: 10px; margin-top: 12px; }
+  .bes-portfolio-unified-showcase { padding: 10px 0; }
+  .bes-portfolio-unified-browser { border-radius: 16px; }
+  .bes-portfolio-unified-iframe { height: clamp(520px, 85svh, 690px); }
+  .bes-portfolio-unified-bottom { gap: 9px; padding-top: 14px; }
+  .bes-portfolio-unified-copyright { font-size: 10px; gap: 4px 6px; }
+  .bes-portfolio-unified-signoff { font-size: 18px; }
 }
-@media (max-width: 480px) {
-  .bes-portfolio-inline-heading {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .bes-portfolio-inline-external { align-self: flex-start; }
-}
+
 @media (prefers-reduced-motion: reduce) {
-  html body #root .app-shell .bes-portfolio-footer-trigger { transition: none; }
+  .bes-portfolio-unified-action-primary,
+  .bes-portfolio-unified-action-secondary { transition: none; }
 }
