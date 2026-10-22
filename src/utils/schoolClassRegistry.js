@@ -360,11 +360,15 @@ export function applyRosterImport(registry, parsed, sourceLabel = '') {
       const imported = parsed?.rosters?.[blueprint.className] || [];
       const deleted = (existing.students || []).filter(isDeletedSchoolStudent);
       const active = imported.filter((student) => !deleted.some((tombstone) => sameStudent(student, tombstone)));
+      // Merge the incoming file with previously added students. Missing from
+      // an older spreadsheet is never an automatic archive/delete request.
+      const retained = (existing.students || []).filter((student) => !isDeletedSchoolStudent(student));
+      const students = [...mergeRosterStudents(retained, active, importedAt), ...deleted];
       return {
         ...blueprint,
         ...existing,
-        students: [...active, ...deleted],
-        importedCount: active.length,
+        students,
+        importedCount: activeRosterCount(students),
         assignment: normalizeAssignment(existing.assignment),
       };
     }),
