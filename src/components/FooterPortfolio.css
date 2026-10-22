@@ -273,6 +273,41 @@ html body #root .app-shell > footer[data-app-shell-footer="true"] .bes-portfolio
     padding: 9px max(12px, env(safe-area-inset-right)) max(9px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
     font-size: 10px;
   }
+
+  /* Safari iOS/WebKit cannot reliably display a 1440px cross-origin iframe
+     when it is transformed down to a narrow phone-sized window.
+     Give the original Framer site a real mobile viewport and native scrolling.
+     The desktop-wide layout is retained unchanged on desktop. */
+  .bes-portfolio-dialog[data-framer-mode="mobile"] .bes-portfolio-frame-wrap {
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    flex: 1 1 auto !important;
+    overflow: auto !important;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  .bes-portfolio-dialog[data-framer-mode="mobile"] iframe.bes-portfolio-frame {
+    position: relative !important;
+    inset: auto !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    min-height: 100% !important;
+    max-height: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    transform: none !important;
+    -webkit-transform: none !important;
+    touch-action: pan-x pan-y;
+  }
 }
 
 @media (max-width: 400px) {
