@@ -25,7 +25,7 @@ import {
   listMyGradebookTeachingAssignments,
   matchGradebookClassToAssignment,
 } from '../utils/gradebookTeachingAssignments.js';
-import { evaluateGradebookAssignmentLifecycle } from '../utils/gradebookAssignmentLifecycle.js';
+import { attachVerifiedGradebookAssignment, evaluateGradebookAssignmentLifecycle } from '../utils/gradebookAssignmentLifecycle.js';
 import { makeWorkspaceId } from '../utils/homeroomPhase3.js';
 import { getClassTypeLabel } from '../utils/homeroomClassTypes.js';
 import '../styles/homeroom-complete.css';
@@ -200,19 +200,22 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
       try {
         const result = await loadGradebookClass(currentUser, workspaceId);
         if (!result.workspace) return;
+        const verifiedWorkspace = attachVerifiedGradebookAssignment(
+          result.workspace, teachingAssignments, assignmentSource,
+        );
         const access = evaluateGradebookAssignmentLifecycle(
-          result.workspace,
+          verifiedWorkspace,
           teachingAssignments,
           assignmentSource,
         );
         const rosterResult = access.sharingAllowed
-          ? await hydrateGradebookWithSharedRoster(currentUser, result.workspace)
+          ? await hydrateGradebookWithSharedRoster(currentUser, verifiedWorkspace)
           : {
-            workspace: result.workspace,
+            workspace: verifiedWorkspace,
             source: access.status === 'historical' ? 'historical-roster' : 'assignment-ended',
           };
         if (!alive) return;
-        const hydrated = rosterResult.workspace || result.workspace;
+        const hydrated = rosterResult.workspace || verifiedWorkspace;
         const saved = saveLocalGradebookClass(hydrated, currentUser);
         workspaceRef.current = saved;
         setWorkspace(saved);
@@ -280,7 +283,10 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
       return { ok: false, blocked: true, workspace: workspaceRef.current };
     }
 
-    const local = saveLocalGradebookClass(next, currentUser);
+    const verifiedNext = attachVerifiedGradebookAssignment(
+      next, teachingAssignments, assignmentSource,
+    );
+    const local = saveLocalGradebookClass(verifiedNext, currentUser);
     workspaceRef.current = local;
     setWorkspace(local);
     setSaving(true);

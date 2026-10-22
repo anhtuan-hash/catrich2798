@@ -88,3 +88,44 @@ SELECT 'class:'||lower(public.bes_current_school_year())||'||'||lower(class_name
 FROM sanitized
 ON CONFLICT (roster_key) DO NOTHING;
 COMMIT;
+
+
+-- Regression fix: roster UPDATE history must default to 'update' even when no
+-- bes.roster_history_action GUC has been set in this session. Previously NULL
+-- history actions violated NOT NULL and silently blocked all roster updates.
+CREATE OR REPLACE FUNCTION public.bes_capture_class_roster_history()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER
+SET search_path TO 'public', 'pg_temp'
+AS $history$
+DECLARE
+  history_action text := 'update';
+  actor_label text := '';
+BEGIN
+  IF tg_op = 'INSERT' THEN
+    history_action := 'create';
+  ELSE
+    history_action := coalesce(nullif(current_setting('bes.roster_history_action', true),''),'update');
+    IF history_action NOT IN ('update','restore') THEN history_action := 'update'; END IF;
+  END IF;
+  actor_label := coalesce(
+    nullif(auth.jwt() ->> 'email',''),
+    nullif(auth.jwt() -> 'user_metadata' ->> 'full_name',''),
+    coalesce(new.updated_by, auth.uid())::text,'');
+  INSERT INTO public.bes_class_roster_history (
+    roster_key,class_name,school_year,grade,action,students,
+    source_updated_at,changed_by,changed_by_label,changed_at
+  ) VALUES (
+    new.roster_key,coalesce(new.class_name,''),coalesce(new.school_year,''),
+    coalesce(new.grade,''),history_action,coalesce(new.students,'[]'::jsonb),
+    new.updated_at,coalesce(new.updated_by, auth.uid()),actor_label,now()
+  );
+  DELETE FROM public.bes_class_roster_history history
+  WHERE history.roster_key=new.roster_key
+    AND history.id NOT IN (
+      SELECT keep.id FROM public.bes_class_roster_history keep
+      WHERE keep.roster_key=new.roster_key
+      ORDER BY keep.changed_at DESC,keep.id DESC LIMIT 120
+    );
+  RETURN new;
+END;
+$history$;

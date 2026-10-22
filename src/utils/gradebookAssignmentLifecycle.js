@@ -34,6 +34,28 @@ export function findWorkspaceAssignment(workspace, assignments = []) {
   )) || null;
 }
 
+// An existing school gradebook can predate Brian Team assignments and therefore
+// lack assignmentSource. The server-confirmed current-year assignment is sufficient
+// to attach it to its canonical school roster; unassigned/private and historical
+// gradebooks stay in their original owner scope.
+export function attachVerifiedGradebookAssignment(workspace, assignments = [], source = '', date = new Date()) {
+  if (!workspace || isAssignedGradebookWorkspace(workspace)) return workspace;
+  if (source !== 'brian-team-sync') return workspace;
+  const profile = workspace.classProfile || {};
+  if (normalizeSchoolYear(profile.schoolYear) !== normalizeSchoolYear(currentSchoolYear(date))) return workspace;
+  const assignment = findWorkspaceAssignment(workspace, assignments);
+  if (!assignment) return workspace;
+  return {
+    ...workspace,
+    classProfile: {
+      ...profile,
+      assignmentSource: 'brian-team-sync',
+      assignmentDepartmentId: assignment.departmentId || '',
+      assignmentDepartmentName: assignment.departmentName || '',
+    },
+  };
+}
+
 export function evaluateGradebookAssignmentLifecycle(
   workspace,
   assignments = [],
