@@ -16,10 +16,13 @@ import { getCurrentUser } from './utils/auth.js';
 import { isDepartmentLeaderRole } from './utils/roles.js';
 import { listTeamTeacherAccounts } from './utils/personnelHub.js';
 import { isSupabaseConfigured, supabase } from './utils/supabase.js';
+import { currentSchoolYear } from './utils/gradebookAssignmentLifecycle.js';
+import { selectCanonicalMatch, syncAssignedStudentRosterDelta } from './utils/assignedStudentRosterSync.js';
 import {
   SCHOOL_CLASS_BLUEPRINTS,
   SCHOOL_CLASS_REGISTRY_TABLE,
   applyRosterImport,
+  mergeRosterStudents,
   assignHomeroomTeacher,
   createDefaultSchoolClassRegistry,
   normalizeSchoolClassName,
@@ -393,21 +396,72 @@ function SchoolClassRegistryPanel() {
     try {
       const rows = await readSheet(file);
       const parsed = parseSchoolRosterRows(rows);
-      if (parsed.totalStudents !== 718) {
-        throw new Error(`Tệp hiện có ${parsed.totalStudents} học sinh; danh sách chuẩn cần 718 học sinh.`);
+      if (!parsed.totalStudents) throw new Error('Không đọc được học sinh nào từ tệp Excel.');
+      const year = currentSchoolYear();
+      let schoolRosters = [];
+      if (isSupabaseConfigured) {
+        const shared = await supabase.from('bes_class_rosters')
+          .select('class_name,students')
+          .eq('school_year', year)
+          .like('roster_key', 'class:%');
+        if (shared.error) throw new Error(`Không đọc được danh sách dùng chung: ${shared.error.message}`);
+        schoolRosters = shared.data || [];
       }
+      const sharedByClass = new Map(schoolRosters.map((row) => [row.class_name, row.students || []]));
+      const warnings = [];
+      const newByClass = new Map();
+      const mergedRosters = Object.fromEntries(
+        Object.entries(parsed.rosters).map(([className, importedStudents]) => {
+          const existing = sharedByClass.get(className) || [];
+          const valid = [];
+          importedStudents.forEach((student) => {
+            const match = selectCanonicalMatch(student, existing);
+            if (match.ambiguous) {
+              warnings.push(`Lớp ${className} có học sinh trùng nhận diện; chưa gộp tự động.`);
+              return;
+            }
+            if (match.index < 0) {
+              valid.push(student);
+              newByClass.set(className, [...(newByClass.get(className) || []), student]);
+            } else if (existing[match.index].active !== false) {
+              valid.push(student);
+            }
+            // A previously archived student is never reactivated solely by re-import.
+          });
+          return mergeRosterStudents(existing, valid);
+        }),
+      );
+      const mergedParsed = {
+        ...parsed,
+        rosters: mergedRosters,
+        totalStudents: Object.values(mergedRosters).reduce((n, rows) =>
+          n + rows.filter((student) => student.active !== false).length, 0),
+      };
       const current = registryRef.current;
-      const imported = applyRosterImport(current, parsed, file.name);
+      const imported = applyRosterImport(current, mergedParsed, file.name);
       const next = preserveAssignmentLocks(imported, current);
       replaceRegistry(next, { persist: true });
-      const localResult = reconcileLocalWorkspaces(user, parsed.rosters);
-      const cloudResult = await reconcileCloudWorkspaces(user, parsed.rosters);
+      const localResult = reconcileLocalWorkspaces(user, mergedRosters);
+      const cloudResult = await reconcileCloudWorkspaces(user, mergedRosters);
       const changedClasses = [...new Set([...localResult.changedClasses, ...cloudResult.changedClasses])];
+      let published = 0;
+      for (const [className, additions] of newByClass) {
+        if (!additions.length || !isSupabaseConfigured) continue;
+        const source = sharedByClass.get(className) || [];
+        const classProfile = { className, schoolYear: year };
+        const outcome = await syncAssignedStudentRosterDelta(
+          user,
+          { classProfile, students: source },
+          { classProfile, students: [...source, ...additions] },
+        );
+        if (outcome.ok) published += outcome.changed || 0;
+        else warnings.push(`Lớp ${className} chưa đồng bộ lên danh sách chung: ${outcome.message}`);
+      }
       const detail = changedClasses.length
         ? ` Đã cập nhật lớp đang có: ${changedClasses.sort().join(', ')}; điểm số, hạnh kiểm và phân công đã khóa được giữ nguyên.`
         : ' Chưa tìm thấy lớp cá nhân trùng tên trong tài khoản hiện tại.';
-      setMessage(`Đã tạo đủ 27 lớp với ${parsed.totalStudents} học sinh.${detail}`);
-      setWarning(parsed.warnings.length ? parsed.warnings.join(' ') : '');
+      setMessage(`Đã cập nhật 27 lớp với ${mergedParsed.totalStudents} học sinh; ${published} hồ sơ mới đã chuyển vào danh sách dùng chung.${detail}`);
+      setWarning([...parsed.warnings, ...warnings, ...(cloudResult.warning ? [cloudResult.warning] : [])].join(' '));
       window.dispatchEvent(new CustomEvent('bes-homeroom-store-updated'));
       window.dispatchEvent(new CustomEvent('bes-school-class-registry-updated'));
     } catch (error) {
