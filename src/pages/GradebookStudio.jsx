@@ -296,14 +296,15 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     setWorkspace(local);
     setSaving(true);
 
-    const [result, rosterResult] = await Promise.all([
-      saveGradebookClass(local, currentUser),
-      rosterChanged && lifecycle.sharingAllowed
-        ? (isAssignedGradebookWorkspace(local)
-          ? syncAssignedStudentRosterDelta(currentUser, previous, local)
-          : saveSharedGradebookRosterSafely(currentUser, local))
-        : Promise.resolve(null),
-    ]);
+    // Persist the teacher's gradebook before publishing roster changes.
+    // A failed cloud save must never leave a student visible in other apps
+    // while the initiating gradebook has no durable record of that addition.
+    const result = await saveGradebookClass(local, currentUser);
+    const rosterResult = result.ok && !result.offline && rosterChanged && lifecycle.sharingAllowed
+      ? (isAssignedGradebookWorkspace(local)
+        ? await syncAssignedStudentRosterDelta(currentUser, previous, local)
+        : await saveSharedGradebookRosterSafely(currentUser, local))
+      : null;
 
     setSaving(false);
     if (rosterResult) setRosterSource(rosterResult.ok
