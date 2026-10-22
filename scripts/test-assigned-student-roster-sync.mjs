@@ -1,5 +1,15 @@
 import assert from 'node:assert/strict';
-import { applyStudentChangesToCanonicalRoster, selectCanonicalMatch } from '../src/utils/assignedStudentRosterSync.js';
+import { readFileSync } from 'node:fs';
+
+// Test the pure canonical merge logic without importing browser-only CSS,
+// React or Supabase dependencies into Node's test runner.
+const source = readFileSync(new URL('../src/utils/assignedStudentRosterSync.js', import.meta.url), 'utf8')
+  .replace(/^import .*;\r?\n/gm, '')
+  .replace(/^export /gm, '');
+const { applyStudentChangesToCanonicalRoster, selectCanonicalMatch } = new Function(
+  'projectSharedRosterStudents',
+  source + '\nreturn { applyStudentChangesToCanonicalRoster, selectCanonicalMatch };',
+)((students) => students.map((student) => ({ ...student })));
 
 const remote = [
   { rosterStudentId: 'S1', rosterPersonKey: 'person:student a||nam',
