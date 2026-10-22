@@ -453,7 +453,7 @@ export default function AttendanceClassManagementWorkspace({
             <small>{schoolRosterStatus}</small>
             {filteredSchoolStudents.length ? <div className="attendance-school-student-lookup__results">
               {filteredSchoolStudents.map((student, index) => (
-                <button key={student.identity || `${student.className}:${student.fullName}:${student.birthDate}:${index}`}
+                <button key={`${student.className}:${student.identity || student.fullName}:${index}`}
                   type="button" onClick={() => {
                     setAddForm?.((current) => ({
                       ...current,
