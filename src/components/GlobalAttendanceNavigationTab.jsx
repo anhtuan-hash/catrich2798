@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { AttendanceViewHeader } from './attendance/AttendanceWorkspaceUI.jsx';
+import { AttendanceViewHeader, AttendanceAppHero, AttendanceFeatureDeck } from './attendance/AttendanceWorkspaceUI.jsx';
 import { createPortal } from 'react-dom';
 import { readSheet } from 'read-excel-file/browser';
 import { getRuntimeClient } from '../services/runtime/core.js';
@@ -1598,12 +1598,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
         aria-label="Điểm danh lớp phụ đạo và bồi dưỡng học sinh giỏi">
         <header className="attendance-topbar">
           <div className="attendance-title"><span><Icon name="attendance" size={28} /></span><div><small>{standalone ? "ESL BRIAN · ỨNG DỤNG ĐIỂM DANH" : "QUẢN LÝ CHUYÊN CẦN"}</small><strong>Điểm danh lớp phụ đạo & bồi dưỡng</strong></div></div>
-          <div className="attendance-top-actions"><button type="button" className="attendance-icon-button" onClick={() => { loadAll(); loadDaySession(); loadTeacherDaySessions(); if (view === 'calendar') loadCalendarSessions(calendarDate); if (view === 'archive') loadArchive(); }} title="Làm mới"><Icon name="refresh" /></button><button type="button" className={standalone ? 'attendance-icon-button attendance-workspace-back' : 'attendance-icon-button'}
-            onClick={() => standalone ? (window.location.hash = '#/settings?section=admin') : setOpen(false)}
-            aria-label={standalone ? 'Trở về ESL Brian' : 'Đóng'}>
-            <Icon name={standalone ? 'back' : 'close'} />
-            {standalone ? <span>Về ESL Brian</span> : null}
-          </button></div>
+          <div className="attendance-top-actions"><button type="button" className="attendance-icon-button" onClick={() => { loadAll(); loadDaySession(); loadTeacherDaySessions(); if (view === 'calendar') loadCalendarSessions(calendarDate); if (view === 'archive') loadArchive(); }} title="Làm mới"><Icon name="refresh" /></button>{!standalone ? <button type="button" className="attendance-icon-button" onClick={() => setOpen(false)} aria-label="Đóng"><Icon name="close" /></button> : null}</div>
         </header>
 
         <nav className="attendance-tabs" aria-label="Phân hệ điểm danh">
@@ -1621,6 +1616,15 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
         {error ? <div className="attendance-banner is-error">{error}</div> : null}
 
         <main className="attendance-content">
+          {standalone ? <>
+            <AttendanceAppHero />
+            <AttendanceFeatureDeck items={availableAttendanceTabs} activeView={view}
+              onNavigate={(nextView) => {
+                setView(nextView);
+                window.history.replaceState(null, '', '#/attendance?tab=' + encodeURIComponent(nextView));
+              }} />
+          </> : null}
+
           {standalone ? <AttendanceViewHeader view={view} items={
             view === 'quick' ? [
               {label:'Lớp hoạt động',value:activeClasses.length,tone:'blue',icon:'manage'},

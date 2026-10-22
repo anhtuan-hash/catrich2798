@@ -1,0 +1,243 @@
+
+/* Attendance app hero & feature navigation — scoped to standalone only.
+   Product-like illustrations are SVG/CSS; no photo, student data or external dependencies. */
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero {
+  position:relative;isolation:isolate;display:flex;align-items:center;
+  min-height:185px;margin:0 0 16px;padding:25px clamp(24px,3vw,44px);
+  overflow:hidden;border-radius:20px;border:1px solid #d9e7f8;
+  background:linear-gradient(112deg,#e9f3ff 0%,#f8fbff 48%,#eef7fa 75%,#fff0de 100%);
+  box-shadow:0 7px 24px rgba(26,68,123,.065);
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero::before {
+  content:"";position:absolute;width:400px;height:270px;border-radius:50%;
+  background:radial-gradient(circle,rgba(65,128,225,.12),transparent 70%);
+  right:3%;top:-150px;pointer-events:none;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__copy {
+  position:relative;z-index:2;max-width:68%;min-width:0;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__eyebrow {
+  display:block;margin-bottom:9px;color:#1a67bf;font-size:11px;font-weight:850;letter-spacing:.1em;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero h2 {
+  margin:0!important;color:#142f59!important;font-size:clamp(22px,2.3vw,36px)!important;
+  line-height:1.18!important;font-weight:850!important;letter-spacing:-.035em!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero h2 span {color:#2068cd;}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero p {
+  margin:10px 0 16px!important;font-size:clamp(12px,1vw,14px)!important;
+  line-height:1.5!important;color:#536b8b!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__benefits {
+  display:flex;gap:8px;flex-wrap:wrap;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__benefits span {
+  display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:99px;
+  background:rgba(255,255,255,.78);border:1px solid rgba(192,215,245,.8);
+  color:#285b9d;font-size:11px;font-weight:740;white-space:nowrap;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__scene{
+  position:absolute;width:33%;max-width:410px;height:100%;right:4%;top:0;
+  display:grid;place-items:center;transform:rotate(-3deg);
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__screen{
+  width:min(94%,340px);height:143px;position:relative;z-index:2;
+  border-radius:14px;padding:12px;background:#fff;border:1px solid #c0d3f1;
+  box-shadow:0 17px 34px rgba(23,62,121,.18),0 4px 7px rgba(27,70,129,.08);
+  transform:perspective(550px) rotateY(-11deg) rotateX(4deg);
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__screen-top{
+  display:flex;gap:5px;align-items:center;border-bottom:1px solid #e4eafa;padding-bottom:9px;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__screen-top i{
+  width:32%;height:8px;border-radius:9px;background:#2b69db;margin-right:auto;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__screen-top span{
+  width:16px;height:6px;border-radius:8px;background:#dce8f9;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__screen-body{
+  display:flex;align-items:flex-end;gap:11px;height:82px;padding-top:9px;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__screen-col{
+  flex:0 0 36%;height:100%;display:flex;flex-direction:column;gap:8px;padding:8px;border-radius:8px;background:#f2f6fc;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__screen-col b{
+  height:8px;width:75%;border-radius:5px;background:#aac5f1;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__screen-col span{
+  height:5px;width:90%;border-radius:5px;background:#d7e3f5;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__screen-col span:last-child{width:55%}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__chart{
+  flex:1;height:100%;display:flex;align-items:flex-end;gap:6px;padding:6px 7px 0;
+  border-radius:8px;background:linear-gradient(180deg,#f8fbff,#f0f6ff);
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__chart span{
+  flex:1;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#75a7f7,#2663d3);
+  height:42%;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__chart span:nth-child(2){height:72%;background:#8ecfc8}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__chart span:nth-child(3){height:53%}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__chart span:nth-child(4){height:88%;background:#7ebec7}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__chart span:nth-child(5){height:65%}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__chart span:nth-child(6){height:95%;background:#7fb5ed}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__screen-bottom{display:none}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__sheet{
+  position:absolute;right:10%;top:14px;width:170px;height:112px;background:#fff;
+  border:1px solid #cee0f9;border-radius:12px;transform:rotate(11deg);
+  box-shadow:0 7px 20px rgba(48,102,176,.12);
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__sheet span{
+  display:block;margin:19px 22px;height:5px;border-radius:5px;background:#d4e6fa;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__sheet span:nth-child(2){width:50%}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__approval {
+  position:absolute;z-index:3;right:1%;bottom:17px;
+  width:47px;height:47px;display:grid;place-items:center;border-radius:15px;
+  color:#fff;background:linear-gradient(135deg,#31b59a,#158b75);
+  border:3px solid #e7fff7;box-shadow:0 7px 18px rgba(19,126,103,.24);
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-feature-deck {
+  display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:11px;
+  margin-bottom:16px;width:100%;min-width:0;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile {
+  --awu-tile-accent:#1c62d3;--awu-tile-soft:#e6f0ff;
+  appearance:none;cursor:pointer;position:relative;isolation:isolate;
+  min-width:0;min-height:198px;display:flex;flex-direction:column;align-items:flex-start;
+  overflow:hidden;text-align:left;padding:15px 15px 13px;
+  border:1px solid rgba(205,221,244,.86);border-radius:19px;
+  background:linear-gradient(155deg,#f2f7ff 0%,#e6f1ff 100%);
+  box-shadow:0 5px 18px rgba(29,69,125,.06);
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+  color:#132d52;font-family:inherit;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile.is-calendar{
+  --awu-tile-accent:#7256c4;--awu-tile-soft:#ece7ff;
+  background:linear-gradient(155deg,#faf7ff,#ebe8ff);
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile.is-manage{
+  --awu-tile-accent:#d56b29;--awu-tile-soft:#fff0df;
+  background:linear-gradient(155deg,#fff9f4,#ffebdf);
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile.is-history{
+  --awu-tile-accent:#138e80;--awu-tile-soft:#dcf5ee;
+  background:linear-gradient(155deg,#f5fffc,#e2f6f1);
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile.is-supplemental{
+  --awu-tile-accent:#cc527d;--awu-tile-soft:#ffe7ee;
+  background:linear-gradient(155deg,#fff9fb,#ffeaf0);
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile.is-report{
+  --awu-tile-accent:#bc8422;--awu-tile-soft:#fff0ce;
+  background:linear-gradient(155deg,#fffaf0,#fff0d7);
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile:hover{
+  transform:translateY(-3px);border-color:var(--awu-tile-accent);
+  box-shadow:0 12px 26px rgba(27,73,126,.12);
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile:focus-visible{
+  outline:3px solid var(--awu-tile-accent);outline-offset:3px;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile.is-current{
+  border-color:var(--awu-tile-accent);box-shadow:inset 0 3px 0 var(--awu-tile-accent),0 7px 20px rgba(34,83,142,.1);
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile__icon{
+  position:relative;z-index:2;display:grid;place-items:center;width:36px;height:36px;
+  border-radius:11px;background:var(--awu-tile-soft);color:var(--awu-tile-accent);
+  box-shadow:0 2px 7px rgba(45,77,122,.05);
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile__title{
+  position:relative;z-index:2;display:block;margin:11px 0 6px;
+  font-size:15px;font-weight:860;line-height:1.25;color:#17335b;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile__description{
+  position:relative;z-index:2;display:block;max-width:94%;
+  font-size:11px;font-weight:550;line-height:1.42;color:#62748f;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile__art{
+  position:absolute;right:-17px;bottom:-24px;width:130px;height:110px;
+  opacity:.91;pointer-events:none;transition:transform .2s ease;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile:hover .awu-feature-tile__art{transform:translate(-4px,-3px)}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile__arrow{
+  position:absolute;bottom:13px;left:15px;display:grid;place-items:center;
+  width:28px;height:28px;border-radius:99px;color:var(--awu-tile-accent);
+  background:rgba(255,255,255,.87);font-size:17px;font-weight:800;border:1px solid rgba(255,255,255,.8);
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-feature-artwork{width:100%;height:100%;display:block;overflow:visible}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-art-shadow{fill:rgba(42,81,134,.12)}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-art-edge{fill:var(--awu-tile-accent);opacity:.35}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-art-paper{fill:#fff;stroke:rgba(113,147,195,.28);stroke-width:1.4}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-art-primary{fill:var(--awu-tile-accent);opacity:.83}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-art-circle{fill:var(--awu-tile-soft);stroke:var(--awu-tile-accent);stroke-width:1.3}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-art-highlight{fill:var(--awu-tile-accent);opacity:.6}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-art-line{fill:#9eafd0}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-art-light{fill:#e2e9f4}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-art-tick{fill:none;stroke:var(--awu-tile-accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-art-track{fill:none;stroke:#cad7e9;stroke-width:3}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-art-wire{fill:none;stroke:#b8a2ef;stroke-width:6;stroke-linecap:round}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-art-book-line{fill:none;stroke:#b9c9df;stroke-width:3;stroke-linecap:round}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-art-axis{fill:none;stroke:#c5d6e9;stroke-width:2}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-art-graph{fill:none;stroke:var(--awu-tile-accent);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:.7}
+/* Secondary contextual hero art on Reports, Archive and other subviews. */
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head[data-awu-page]{
+  position:relative;overflow:hidden;background:linear-gradient(110deg,#fff 0%,#fff 56%,#f0f6ff 100%)!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head[data-awu-page="calendar"]{background:linear-gradient(110deg,#fff,#f8f4ff)!important}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head[data-awu-page="manage"]{background:linear-gradient(110deg,#fff,#fff5ee)!important}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head[data-awu-page="history"]{background:linear-gradient(110deg,#fff,#eefaf7)!important}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head[data-awu-page="supplemental"]{background:linear-gradient(110deg,#fff,#fff1f5)!important}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head[data-awu-page="report"]{background:linear-gradient(110deg,#fff,#fff8ea)!important}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__identity{position:relative;z-index:1}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__visual{
+  flex:0 0 clamp(110px,16vw,215px);height:128px;margin-left:auto;
+  --awu-tile-accent:#2d70dc;--awu-tile-soft:#e3efff;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head[data-awu-page="report"] .awu-page-head__visual{
+  --awu-tile-accent:#d7a43e;--awu-tile-soft:#fff1d2;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head[data-awu-page="history"] .awu-page-head__visual{
+  --awu-tile-accent:#1b9884;--awu-tile-soft:#def7ee;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__visual .awu-feature-artwork{max-height:126px}
+@media(max-width:1350px){
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-feature-deck{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile{min-height:150px}
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile__art{width:145px;height:120px}
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile__description{max-width:63%}
+}
+@media(max-width:740px){
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero{
+    min-height:176px;padding:21px 18px;margin-bottom:12px;border-radius:16px;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__copy{max-width:100%}
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero h2{
+    font-size:clamp(21px,5vw,28px)!important;max-width:90%;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero p{max-width:85%;font-size:12px!important}
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__benefits{gap:5px}
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__benefits span{font-size:10px;padding:5px 7px}
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__scene{opacity:.15;width:60%;right:-12%}
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-feature-deck{
+    display:grid;grid-auto-flow:column;grid-auto-columns:minmax(180px,64vw);
+    grid-template-columns:none!important;overflow-x:auto;overscroll-behavior-x:contain;
+    scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;
+    scrollbar-width:thin;gap:9px;padding:2px 2px 10px;margin-bottom:12px;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile{
+    min-height:170px!important;scroll-snap-align:start;border-radius:16px;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile__description{max-width:78%}
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-page-head__visual{display:none}
+}
+@media(max-width:400px){
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__eyebrow{font-size:9px}
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero h2{font-size:21px!important}
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-app-hero__benefits span:last-child{display:none}
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-feature-deck{grid-auto-columns:minmax(172px,72vw)}
+}
+@media(prefers-reduced-motion:reduce){
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile,
+  .attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile__art{transition:none}
+}
