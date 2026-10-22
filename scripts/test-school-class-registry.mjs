@@ -69,4 +69,22 @@ registry = assignHomeroomTeacher(registry, '12.6', 'teacher-a');
 assert.equal(registry.classes.find((item) => item.className === '11.4').assignment.homeroomTeacherId, '');
 assert.equal(registry.classes.find((item) => item.className === '12.6').assignment.homeroomTeacherId, 'teacher-a');
 
+// Exact duplicate imports are data-entry repetitions, not extra pupils.
+const repeatedExcelRows = parseSchoolRosterRows([
+  ['Mã Học Sinh', 'Họ và Tên', 'Lớp', 'Ngày sinh', 'Giới tính'],
+  ['015', 'Học sinh thử nghiệm', '10.5', '01/01/2010', 'Nam'],
+  ['015', 'Học sinh thử nghiệm', '10.5', '01/01/2010', 'Nam'],
+]);
+assert.equal(repeatedExcelRows.totalStudents, 1);
+assert.equal(repeatedExcelRows.rosters['10.5'].length, 1);
+assert.ok(repeatedExcelRows.warnings.some((notice) => notice.includes('hai lần')));
+assert.throws(() => parseSchoolRosterRows([
+  ['Mã Học Sinh', 'Họ và Tên', 'Lớp', 'Ngày sinh', 'Giới tính'],
+  ['015', 'Học sinh thứ nhất', '10.5', '01/01/2010', 'Nam'],
+  ['015', 'Học sinh thứ hai', '10.5', '02/01/2010', 'Nữ'],
+]), /trùng mã học sinh/);
+const cachedDuplicate = { ...existing[0] };
+const cleanedLegacy = mergeRosterStudents([existing[0], cachedDuplicate], [parsed.rosters['11.4'][0]]);
+assert.equal(cleanedLegacy.length, 1, 'Do not revive exact duplicates from browser cache');
+
 console.log('school-class-registry: ok');
