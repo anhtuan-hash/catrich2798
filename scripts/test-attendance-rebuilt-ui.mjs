@@ -16,10 +16,13 @@ for(const component of ['AttendanceViewHeader','AttendancePanelHeading','Attenda
 for(const tab of ['quick','calendar','manage','history','report','archive','supplemental','teacher']){
   assert.ok(ui.includes(tab+':{eyebrow:'),'Missing shared heading metadata for '+tab);
 }
-assert.match(nav,/<AttendanceViewHeader view=\{view\}/,'Root tab heading must use shared React view component');
-assert.match(nav,/view === 'history' \? \[/,'History should report dynamic data');
-assert.match(nav,/view === 'manage' \? \[/,'Manage should report dynamic data');
-assert.match(nav,/view === 'quick' \? \[/,'Quick should report dynamic data');
+assert.doesNotMatch(nav,/<AttendanceViewHeader view=\{view\}/,'Standalone pages must not repeat the large title/KPI banner');
+assert.match(nav,/<AttendanceFeatureDeck items=\{availableAttendanceTabs\}/,'Standalone pages retain the six illustrated navigation cards');
+assert.match(nav,/className="attendance-quick-layout"/,'Quick rollcall remains accessible');
+assert.match(nav,/<AttendanceDailySchedule/,'Calendar remains accessible');
+assert.match(nav,/<AttendanceClassManagementWorkspace/,'Class management remains accessible');
+assert.match(nav,/<AttendanceMonthlyReport/,'Reporting remains accessible');
+assert.match(nav,/<AttendanceArchivePanel/,'Archive remains accessible');
 assert.match(manage,/attendance-manage-list-heading/,'Class list uses a compact inline heading instead of duplicating the main hero');
 assert.match(archive,/<AttendancePanelHeading className="attendance-archive__hero"/);
 assert.match(archive,/<AttendanceStatCard icon="archive"/);
@@ -43,4 +46,4 @@ assert.ok(!css.includes('@page'),'Printed reports must not inherit the screen da
 assert.ok(old.includes('flex-direction:row!important;'),'Mockup-approved horizontal navigation must remain');
 assert.ok(!css.includes('KHÔNG GIAN LÀM VIỆC'),'Retired sidebar styles must not return');
 assert.ok(old.includes('height:auto!important;'),'Pages must grow to avoid clipped reports');
-console.log('PASS: attendance page React components share headers, stats, empty states and one standalone design scale.');
+console.log('PASS: attendance standalone uses illustrated cards without duplicate title/KPI banners; core views remain.');
