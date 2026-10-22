@@ -1,0 +1,271 @@
+/* Personal portfolio: a small footer credit opens a true viewport overlay.
+   Keep it outside the app-shell footer (React portal) so existing clipping,
+   layering and scroll guards cannot cover the embedded Framer page. */
+html body #root .app-shell > footer[data-app-shell-footer="true"] > .signature-footer-static-summary {
+  flex-wrap: wrap !important;
+  column-gap: 14px !important;
+  row-gap: 7px !important;
+}
+
+html body #root .app-shell > footer[data-app-shell-footer="true"] .bes-portfolio-footer-trigger {
+  appearance: none;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  min-height: 32px;
+  max-width: 100%;
+  margin: 0;
+  padding: 6px 11px;
+  border: 1px solid #c9d8ef;
+  border-radius: 100px;
+  background: #f1f6ff;
+  color: #43556b;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  white-space: normal;
+  cursor: pointer;
+  transition: background-color .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+html body #root .app-shell > footer[data-app-shell-footer="true"] .bes-portfolio-footer-trigger strong {
+  color: #1967d2;
+  font-weight: 800;
+}
+
+html body #root .app-shell > footer[data-app-shell-footer="true"] .bes-portfolio-footer-trigger:hover {
+  background: #e7f0ff;
+  border-color: #92b7ed;
+  box-shadow: 0 2px 7px rgba(32, 92, 180, .09);
+}
+
+html body #root .app-shell > footer[data-app-shell-footer="true"] .bes-portfolio-footer-trigger:focus-visible,
+.bes-portfolio-dialog button:focus-visible,
+.bes-portfolio-dialog a:focus-visible {
+  outline: 3px solid #4285f4;
+  outline-offset: 3px;
+}
+
+.bes-portfolio-footer-trigger-icon {
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.bes-portfolio-backdrop {
+  position: fixed !important;
+  z-index: 2147483646 !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: stretch;
+  justify-content: center;
+  box-sizing: border-box;
+  padding:
+    max(10px, env(safe-area-inset-top))
+    max(10px, env(safe-area-inset-right))
+    max(10px, env(safe-area-inset-bottom))
+    max(10px, env(safe-area-inset-left));
+  background: rgba(14, 28, 48, .77);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.bes-portfolio-dialog,
+.bes-portfolio-dialog *,
+.bes-portfolio-dialog *::before,
+.bes-portfolio-dialog *::after {
+  box-sizing: border-box;
+}
+
+.bes-portfolio-dialog {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 1800px;
+  min-height: 0;
+  max-height: 100%;
+  margin: auto;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid rgba(206, 220, 239, .75);
+  border-radius: 20px;
+  box-shadow: 0 24px 80px rgba(5, 18, 40, .32);
+  color: #202124;
+}
+
+.bes-portfolio-dialog-header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 72px;
+  margin: 0;
+  padding: 12px 18px;
+  border-bottom: 1px solid #e5e9f0;
+  background: #fff;
+}
+
+.bes-portfolio-dialog-monogram {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  background: linear-gradient(140deg, #d6e7ff, #e4f6ed);
+  color: #155cba;
+  font: 800 15px/1 Arial, sans-serif;
+  letter-spacing: -.035em;
+}
+
+.bes-portfolio-dialog-heading {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.bes-portfolio-dialog-heading h2 {
+  margin: 0;
+  color: #202b40;
+  font: 800 clamp(15px, 1.7vw, 19px)/1.3 system-ui, -apple-system, sans-serif;
+  letter-spacing: -.025em;
+}
+
+.bes-portfolio-dialog-heading p {
+  margin: 4px 0 0;
+  color: #64748b;
+  font: 500 12px/1.4 system-ui, -apple-system, sans-serif;
+}
+
+.bes-portfolio-dialog-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  min-width: 90px;
+  min-height: 42px;
+  padding: 9px 13px;
+  border: 1px solid #d7e2f3;
+  border-radius: 13px;
+  background: #f5f8ff;
+  color: #234c83;
+  font: 750 13px/1 system-ui, -apple-system, sans-serif;
+  cursor: pointer;
+}
+
+.bes-portfolio-dialog-close:hover {
+  background: #e9f2ff;
+}
+
+.bes-portfolio-frame-wrap {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: #f8fafc;
+  -webkit-overflow-scrolling: touch;
+}
+
+.bes-portfolio-frame {
+  display: block;
+  flex: 1 1 auto;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+  background: #fff;
+  touch-action: pan-x pan-y;
+}
+
+.bes-portfolio-dialog-footnote {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 5px 14px;
+  min-height: 36px;
+  padding: 8px 18px;
+  border-top: 1px solid #e9eef5;
+  background: #fafcff;
+  color: #65748a;
+  font: 500 11px/1.4 system-ui, -apple-system, sans-serif;
+}
+
+.bes-portfolio-dialog-footnote a {
+  color: #1967d2;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.bes-portfolio-dialog-footnote a:hover { text-decoration: underline; }
+
+@media (max-width: 720px) {
+  html body #root .app-shell > footer[data-app-shell-footer="true"] > .signature-footer-static-summary {
+    justify-content: center !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 8px auto 0 !important;
+    padding: 10px 10px 0 !important;
+  }
+
+  html body #root .app-shell > footer[data-app-shell-footer="true"] .bes-portfolio-footer-trigger {
+    margin: 0 auto;
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .bes-portfolio-backdrop {
+    padding: 0 !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .bes-portfolio-dialog {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .bes-portfolio-dialog-header {
+    gap: 10px;
+    min-height: 62px;
+    padding:
+      max(10px, env(safe-area-inset-top))
+      max(12px, env(safe-area-inset-right))
+      10px
+      max(12px, env(safe-area-inset-left));
+  }
+
+  .bes-portfolio-dialog-monogram { width: 36px; height: 36px; border-radius: 11px; }
+  .bes-portfolio-dialog-heading h2 { font-size: 14px; }
+  .bes-portfolio-dialog-heading p { font-size: 10px; }
+  .bes-portfolio-dialog-close {
+    min-width: 42px;
+    min-height: 40px;
+    padding: 8px;
+  }
+  .bes-portfolio-dialog-close > span:last-child { display: none; }
+  .bes-portfolio-dialog-footnote {
+    padding: 8px max(12px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  }
+}
+
+@media (max-width: 400px) {
+  .bes-portfolio-dialog-heading p { display: none; }
+  .bes-portfolio-dialog-footnote > span { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html body #root .app-shell .bes-portfolio-footer-trigger { transition: none; }
+}
