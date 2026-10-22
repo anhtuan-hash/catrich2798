@@ -365,6 +365,78 @@ function GradebookNavigationPalette({
   </div>;
 }
 
+function GradebookCompactAnalytics({ progress, semesterLabel, studentsCount, onOpenSection }) {
+  const total = progress.total || 0;
+  const next = progress.sections.find((section) => section.missing > 0 && section.total > 0);
+  return (
+    <section className="gb9-compact-analytics" aria-labelledby="gb9-analytics-title">
+      <header className="gb9-analytics-head">
+        <span className="gb9-analytics-icon" aria-hidden="true"><ChartColumnIncreasing size={21} /></span>
+        <div>
+          <h2 id="gb9-analytics-title">Phân tích & tổng hợp điểm</h2>
+          <p>Tiến độ nhập điểm thực tế · {semesterLabel} · Chỉ thống kê ô điểm, không tính trung bình môn</p>
+        </div>
+        <span className="gb9-analytics-semester">{semesterLabel}</span>
+      </header>
+      <div className="gb9-analytics-grid">
+        <div className="gb9-analytics-pane gb9-analytics-pane--ring">
+          <h3>Tiến độ nhập điểm</h3>
+          <div className="gb9-ring-row">
+            <div
+              className="gb9-ring"
+              style={{ '--gb9-donut': String(progress.percent) + '%' }}
+              role="img"
+              aria-label={'Đã nhập ' + progress.percent + '% của ' + total + ' ô điểm'}
+            >
+              <span><strong>{progress.percent}%</strong><small>đã nhập</small></span>
+            </div>
+            <div className="gb9-ring-legend">
+              <span><i className="is-filled" /> Đã nhập <b>{progress.filled}</b></span>
+              <span><i className="is-missing" /> Còn thiếu <b>{progress.missing}</b></span>
+              <small>Tổng {total} ô điểm</small>
+            </div>
+          </div>
+        </div>
+        <div className="gb9-analytics-pane gb9-analytics-pane--bars">
+          <h3>Tiến độ các thành phần</h3>
+          <div className="gb9-component-bars">
+            {progress.sections.map((section) => (
+              <button
+                key={section.id}
+                type="button"
+                className={'gb9-component-bar gb9-component-bar--' + section.color}
+                onClick={() => onOpenSection(section.id)}
+                title={'Mở ' + section.title + ' · ' + section.filled + '/' + section.total + ' ô đã nhập'}
+              >
+                <span className="gb9-component-name">{section.short}</span>
+                <span className="gb9-component-track" aria-hidden="true">
+                  <span style={{ width: String(section.percent) + '%' }} />
+                </span>
+                <strong>{section.percent}%</strong>
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="gb9-analytics-pane gb9-analytics-pane--insights">
+          <h3>Nhận xét nhanh</h3>
+          <div className="gb9-insight gb9-insight--mint">
+            <BookOpenCheck size={19} aria-hidden="true" />
+            <span><small>Thành phần hoàn thiện</small><strong>{progress.completedSections}/6</strong></span>
+          </div>
+          <div className="gb9-insight gb9-insight--blue">
+            <GraduationCap size={19} aria-hidden="true" />
+            <span><small>Học sinh đang quản lý</small><strong>{studentsCount}</strong></span>
+          </div>
+          <div className="gb9-insight gb9-insight--orange">
+            <NotebookPen size={19} aria-hidden="true" />
+            <span><small>Ưu tiên tiếp theo</small><strong>{next ? 'Hoàn thiện ' + next.short : 'Đã hoàn tất điểm'}</strong></span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function HomeroomLearningGradebook({ workspace, onCommit, currentUser, teachingOverview, classManagement, gradebookAction, onDirtyChange }) {
   const students = useMemo(
     () => (workspace.students || []).filter((student) => student.active !== false),
@@ -1094,6 +1166,20 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
 
 
     </div>
+
+    {view !== 'mock' ? (
+      <GradebookCompactAnalytics
+        progress={semesterEntryProgress}
+        semesterLabel={semesterLabel}
+        studentsCount={students.length}
+        onOpenSection={(id) => {
+          setView(id);
+          setMissingOnly(false);
+          setStudentQuery('');
+        }}
+      />
+    ) : null}
+
     <details className="gb5-insights-drawer" open={insightsOpen}
       onToggle={(event) => setInsightsOpen(event.currentTarget.open)}>
       <summary aria-label="Mở bảng phân tích và các công cụ Sổ điểm">
