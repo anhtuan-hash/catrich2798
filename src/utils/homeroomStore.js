@@ -447,7 +447,10 @@ export function addStudent(workspace, input = {}) {
   const current = normalizeHomeroomWorkspace(workspace);
   const duplicateIndex = current.students.findIndex((item) => (
     (student.code && item.code && item.code.toLowerCase() === student.code.toLowerCase())
-    || item.fullName.toLowerCase() === student.fullName.toLowerCase()
+    || (student.birthDate && item.birthDate
+      && item.fullName.toLowerCase() === student.fullName.toLowerCase()
+      && item.birthDate === student.birthDate
+      && (!student.gender || !item.gender || item.gender === student.gender))
   ));
   const students = [...current.students];
   if (duplicateIndex >= 0) students[duplicateIndex] = { ...students[duplicateIndex], ...student, id: students[duplicateIndex].id };
