@@ -1,0 +1,584 @@
+/* Gradebook Readability V11
+   Restore human-readable Material 3 sizes after over-compact V8-V10.
+   Only presentation is changed; grade edits, formulas and exports are untouched.
+   The long score table deliberately scrolls horizontally rather than compressing text. */
+#root .gradebook-studio.gb7-rebirth {
+  --gb11-body:15px;
+  --gb11-label:13px;
+  --gb11-field:15px;
+  --gb11-title:21px;
+  font-size:var(--gb11-body)!important;
+  line-height:1.5!important;
+  letter-spacing:0!important;
+}
+
+/* Page identity and selectors */
+#root .gradebook-studio.gb7-rebirth .gbm3-hero {
+  border-radius:22px!important;
+  margin-bottom:17px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-banner {
+  min-height:156px!important;
+  padding:27px 31px 19px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-brand {
+  font-size:12px!important;
+  letter-spacing:.075em!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-brand svg {
+  width:18px!important;height:18px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-title h1 {
+  font-size:44px!important;
+  line-height:1.14!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-text p {
+  font-size:15px!important;
+  line-height:1.55!important;
+  color:#4d698e!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-state {
+  font-size:12px!important;
+  min-height:29px!important;
+  padding:6px 11px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-controls {
+  gap:12px!important;
+  padding:18px 24px 21px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-controls > label {
+  min-height:67px!important;
+  padding:11px 13px!important;
+  gap:6px!important;
+  border-radius:13px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-controls > label > span {
+  color:#56739c!important;
+  font-size:13px!important;
+  font-weight:740!important;
+  line-height:1.35!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-controls :is(select,strong) {
+  font-size:15px!important;
+  font-weight:800!important;
+  line-height:1.45!important;
+  min-height:24px!important;
+  width:100%!important;
+  letter-spacing:0!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-buttons {
+  gap:9px!important;
+  padding-bottom:4px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-buttons button {
+  min-height:48px!important;
+  padding:12px 16px!important;
+  font-size:14px!important;
+  border-radius:13px!important;
+  line-height:1.2!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-hero-buttons svg {width:18px!important;height:18px!important;}
+
+/* Four metrics: easy to scan without using microscopic helper text. */
+#root .gradebook-studio.gb7-rebirth .gb8-kpis {
+  gap:13px!important;margin-bottom:16px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-kpi {
+  min-height:116px!important;
+  padding:18px!important;
+  gap:13px!important;
+  border-radius:18px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-kpi-icon {
+  width:51px!important;height:51px!important;
+  flex:0 0 51px!important;
+  border-radius:14px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-kpi-icon svg {width:24px!important;height:24px!important;}
+#root .gradebook-studio.gb7-rebirth .gb8-kpi > div > span:first-child {
+  font-size:14px!important;
+  color:#4a668b!important;
+  font-weight:760!important;
+  line-height:1.35!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-kpi > div > strong {
+  font-size:36px!important;
+  line-height:1.12!important;
+  letter-spacing:-.035em!important;
+  font-weight:850!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-kpi small {
+  font-size:12px!important;
+  line-height:1.4!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-kpi-track{
+  height:9px!important;margin-top:7px!important;
+}
+
+/* Assessment navigation. Enough height for touch, horizontal scroll if needed. */
+#root .gradebook-studio.gb7-rebirth .gbm3-assessment-nav {
+  margin:0 0 17px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-assessment-nav > .hr-grade-navigation {
+  padding:11px!important;
+  border-radius:17px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-assessment-nav .hr-grade-views{
+  gap:9px!important;
+  overflow-x:auto!important;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-assessment-nav .hr-grade-views button{
+  flex:1 0 122px!important;
+  min-height:48px!important;
+  padding:11px 14px!important;
+  font-size:14px!important;
+  font-weight:760!important;
+  line-height:1.2!important;
+  border-radius:13px!important;
+  letter-spacing:0!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-assessment-nav .gbm3-tab-icon svg,
+#root .gradebook-studio.gb7-rebirth .gbm3-assessment-nav .hr-grade-views button > svg {
+  width:18px!important;height:18px!important;
+}
+
+/* Editor title and full-size actions. Allow toolbar to wrap; never shrink type. */
+#root .gradebook-studio.gb7-rebirth .gb5-editor-anchor{
+  border-radius:19px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-editor-head{
+  gap:13px!important;
+  min-height:86px!important;
+  padding:18px 20px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-editor-icon{
+  width:47px!important;height:47px!important;
+  flex:0 0 47px!important;
+  border-radius:13px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-editor-icon svg{width:23px!important;height:23px!important;}
+#root .gradebook-studio.gb7-rebirth .gbm3-editor-titles h2{
+  font-size:22px!important;
+  font-weight:850!important;
+  line-height:1.2!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-editor-titles p {
+  font-size:13px!important;
+  line-height:1.45!important;
+  margin-top:5px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-editor-actions{
+  flex:0 1 auto!important;
+  gap:9px!important;
+  justify-content:flex-start!important;
+  min-width:0!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-search{
+  min-height:47px!important;
+  min-width:226px!important;
+  padding:0 13px!important;
+  border-radius:12px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-search input{
+  width:100%!important;
+  max-width:240px!important;
+  font-size:15px!important;
+  min-height:43px!important;
+  line-height:1.3!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-sort {
+  min-height:47px!important;
+  gap:8px!important;
+  padding:0 12px!important;
+  font-size:13px!important;
+  border-radius:12px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-sort select{
+  min-height:44px!important;
+  height:44px!important;
+  font-size:14px!important;
+  font-weight:700!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-missing{
+  font-size:14px!important;
+  white-space:normal!important;
+  line-height:1.3!important;
+  gap:9px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-missing input{
+  width:19px!important;height:19px!important;flex-shrink:0;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-saved,
+#root .gradebook-studio.gb7-rebirth .gbm3-unsaved{
+  font-size:12px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-save,
+#root .gradebook-studio.gb7-rebirth .gbm3-undo {
+  min-height:47px!important;
+  padding:11px 15px!important;
+  font-size:14px!important;
+  font-weight:770!important;
+  border-radius:12px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-editor-advanced > summary,
+#root .gradebook-studio.gb7-rebirth .gbm3-column-config > summary{
+  min-height:43px!important;
+  padding:12px 17px!important;
+  font-size:13px!important;
+  line-height:1.35!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-column-config button {
+  min-height:40px!important;
+  padding:10px 12px!important;
+  font-size:13px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-editor-advanced select,
+#root .gradebook-studio.gb7-rebirth .gbm3-editor-advanced button,
+#root .gradebook-studio.gb7-rebirth .gbm3-editor-advanced input {
+  font-size:14px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-empty{
+  font-size:14px!important;
+}
+
+/* Grade editing: increase real visual row height, header labels and actual
+   score input text. Each attempt column can be 120px+; scroll horizontally. */
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-panel-head{
+  min-height:79px!important;
+  padding:17px 20px!important;
+  gap:13px!important;
+  flex-wrap:wrap!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-panel-head small {
+  font-size:12px!important;
+  line-height:1.4!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-panel-head h2 {
+  font-size:21px!important;
+  line-height:1.25!important;
+  font-weight:830!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-panel-head p{
+  font-size:13px!important;
+  line-height:1.4!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-table-wrap {
+  max-height:min(70vh,760px)!important;
+  overflow-x:auto!important;
+  overflow-y:auto!important;
+  overscroll-behavior-x:contain;
+  -webkit-overflow-scrolling:touch;
+  margin:10px 15px 16px!important;
+  border-radius:12px!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-table {
+  font-size:14px!important;
+  table-layout:auto!important;
+  border-spacing:0!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-table thead th {
+  min-height:55px!important;
+  height:auto!important;
+  padding:11px 10px!important;
+  font-size:14px!important;
+  line-height:1.35!important;
+  font-weight:750!important;
+  vertical-align:middle!important;
+  white-space:nowrap!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-table tbody td {
+  min-height:61px!important;
+  height:61px!important;
+  padding:9px 10px!important;
+  font-size:14px!important;
+  line-height:1.35!important;
+  vertical-align:middle!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-table .hr-grade-index{
+  min-width:57px!important;width:57px!important;
+  font-size:13px!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-table .hr-grade-student {
+  min-width:215px!important;
+  width:215px!important;
+  max-width:none!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-table .hr-grade-student b {
+  font-size:14px!important;
+  font-weight:790!important;
+  line-height:1.4!important;
+  white-space:normal!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-table .hr-grade-student small{
+  display:block!important;
+  font-size:12px!important;
+  line-height:1.32!important;
+  margin-top:2px!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-table th.gb-m3-attempt,
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-table td.gb-m3-score-cell{
+  min-width:118px!important;width:118px!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-table th.gb-m3-attempt input{
+  font-size:13px!important;
+  line-height:1.4!important;
+  font-weight:770!important;
+  min-height:37px!important;
+  padding:7px 5px!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-table th.gb-m3-attempt button{
+  font-size:17px!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-table input.hr-grade-input {
+  width:85%!important;
+  min-width:73px!important;
+  min-height:43px!important;
+  height:43px!important;
+  padding:8px 10px!important;
+  font-size:16px!important;
+  line-height:1.35!important;
+  font-weight:770!important;
+  border-radius:9px!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-table :is(.hr-grade-plus-cell,.hr-grade-bonus-cell,.hr-grade-result){
+  min-width:105px!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-table .hr-grade-derived-bonus strong,
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-table .hr-grade-result strong {
+  font-size:16px!important;
+  font-weight:820!important;
+  line-height:1.3!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-table .hr-grade-derived-bonus small,
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-table .hr-grade-result small{
+  font-size:12px!important;
+  line-height:1.35!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-table .hr-grade-status{
+  font-size:14px!important;
+}
+
+/* Summary view: maintain 10-row pagination, but no compressed grid text. */
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll .hr-grade-summary-table {
+  min-width:1170px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll th {
+  font-size:14px!important;
+  padding:13px 11px!important;
+  min-height:54px!important;
+  line-height:1.3!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-head small {
+  font-size:12px!important;
+  line-height:1.3!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll tbody td{
+  min-height:62px!important;
+  height:62px!important;
+  padding:9px 11px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-click-score button {
+  min-width:66px!important;
+  max-width:none!important;
+  min-height:41px!important;
+  padding:10px!important;
+  font-size:15px!important;
+  line-height:1.25!important;
+  font-weight:750!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-average{font-size:16px!important}
+#root .gradebook-studio.gb7-rebirth .gbm3-summary-status span {
+  font-size:12px!important;
+  padding:7px 10px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-pagination {
+  padding:14px 17px!important;
+  font-size:13px!important;
+  gap:12px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gbm3-pagination > small{font-size:12px!important;line-height:1.4!important}
+#root .gradebook-studio.gb7-rebirth .gbm3-pages button {
+  min-width:41px!important;
+  min-height:41px!important;
+  padding:9px!important;
+  font-size:14px!important;
+}
+
+/* Analytics and collapsed advanced sections. */
+#root .gradebook-studio.gb7-rebirth .gb9-compact-analytics {
+  padding:20px!important;
+  border-radius:19px!important;
+  margin-bottom:12px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb9-analytics-head{
+  gap:13px!important;
+  margin-bottom:17px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb9-analytics-icon{
+  width:45px!important;height:45px!important;
+  flex:0 0 45px!important;
+  border-radius:12px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb9-analytics-icon svg{width:24px!important;height:24px!important}
+#root .gradebook-studio.gb7-rebirth .gb9-analytics-head h2 {
+  font-size:20px!important;
+  line-height:1.3!important;
+  font-weight:840!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb9-analytics-head p{
+  font-size:13px!important;
+  line-height:1.5!important;
+  margin-top:5px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb9-analytics-semester {
+  font-size:13px!important;
+  padding:9px 12px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb9-analytics-grid{gap:12px!important}
+#root .gradebook-studio.gb7-rebirth .gb9-analytics-pane{
+  padding:18px!important;
+  border-radius:15px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb9-analytics-pane h3{
+  font-size:16px!important;
+  line-height:1.3!important;
+  font-weight:800!important;
+  margin-bottom:17px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb9-ring {
+  width:145px!important;height:145px!important;
+  flex:0 0 145px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb9-ring::before{inset:18px!important}
+#root .gradebook-studio.gb7-rebirth .gb9-ring strong {font-size:34px!important}
+#root .gradebook-studio.gb7-rebirth .gb9-ring small{font-size:13px!important}
+#root .gradebook-studio.gb7-rebirth .gb9-ring-row{gap:16px!important;flex-wrap:wrap}
+#root .gradebook-studio.gb7-rebirth .gb9-ring-legend{min-width:120px!important;gap:10px!important}
+#root .gradebook-studio.gb7-rebirth .gb9-ring-legend > span {font-size:13px!important}
+#root .gradebook-studio.gb7-rebirth .gb9-ring-legend > small{font-size:12px!important}
+#root .gradebook-studio.gb7-rebirth .gb9-component-bars{gap:11px!important}
+#root .gradebook-studio.gb7-rebirth .gb9-component-bar{
+  grid-template-columns:55px minmax(0,1fr) 45px!important;
+  min-height:34px!important;
+  padding:5px 4px!important;
+  gap:11px!important;
+  font-size:13px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb9-component-bar > strong{font-size:13px!important}
+#root .gradebook-studio.gb7-rebirth .gb9-component-track{height:11px!important}
+#root .gradebook-studio.gb7-rebirth .gb9-analytics-pane--insights{gap:11px!important}
+#root .gradebook-studio.gb7-rebirth .gb9-insight{
+  gap:10px!important;
+  padding:12px!important;
+  border-radius:12px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb9-insight > svg {
+  width:20px!important;height:20px!important;
+  flex:0 0 20px!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb9-insight small{
+  font-size:12px!important;
+  line-height:1.3!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb9-insight strong {
+  font-size:14px!important;
+  line-height:1.4!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb5-insights-drawer > summary,
+#root .gradebook-studio.gb7-rebirth .gbm3-extra-export > summary,
+#root .gradebook-studio.gb7-rebirth .gbv2-support-extra > summary {
+  min-height:48px!important;
+  padding:14px 17px!important;
+  font-size:14px!important;
+  line-height:1.4!important;
+}
+#root .gradebook-studio.gb7-rebirth .gb5-insights-drawer > summary strong{font-size:14px!important}
+#root .gradebook-studio.gb7-rebirth .gb5-insights-drawer > summary small{font-size:12px!important}
+#root .gradebook-studio.gb7-rebirth .gb5-insights-content :is(button,label,input,select,summary){
+  font-size:14px!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-grade-export-copy h3{font-size:18px!important}
+#root .gradebook-studio.gb7-rebirth .hr-grade-export-copy p{font-size:13px!important}
+#root .gradebook-studio.gb7-rebirth .hr-grade-export-actions button{
+  font-size:14px!important;
+  min-height:45px!important;
+  padding:10px 14px!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-grade-export-dialog{
+  font-size:14px!important;
+}
+#root .gradebook-studio.gb7-rebirth .hr-grade-export-dialog :is(input,select,button,label){
+  font-size:14px!important;
+}
+
+/* Never cut off large text on a mid-sized desktop. Wrap actions or scroll
+   horizontally; 2-column KPI layout before width becomes too constrained. */
+@media (max-width:1279px) {
+  #root .gradebook-studio.gb7-rebirth .gbm3-hero-controls{
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  }
+  #root .gradebook-studio.gb7-rebirth .gbm3-hero-buttons{
+    grid-column:1/-1!important;
+    justify-content:flex-start!important;
+  }
+  #root .gradebook-studio.gb7-rebirth .gbm3-editor-actions {
+    flex:1 1 100%!important;
+    width:100%!important;
+  }
+  #root .gradebook-studio.gb7-rebirth .gb9-analytics-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  #root .gradebook-studio.gb7-rebirth .gb9-analytics-pane--insights{grid-column:1/-1}
+}
+@media (max-width:900px) {
+  #root .gradebook-studio.gb7-rebirth .gb8-kpis{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  #root .gradebook-studio.gb7-rebirth .gbm3-hero-controls{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  #root .gradebook-studio.gb7-rebirth .gb9-analytics-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  #root .gradebook-studio.gb7-rebirth .gb9-ring-row {justify-content:flex-start}
+}
+@media (max-width:640px) {
+  #root .gradebook-studio.gb7-rebirth {font-size:15px!important}
+  #root .gradebook-studio.gb7-rebirth .gbm3-hero-banner{padding:20px 16px!important;min-height:0!important}
+  #root .gradebook-studio.gb7-rebirth .gbm3-hero-title h1{font-size:35px!important}
+  #root .gradebook-studio.gb7-rebirth .gbm3-hero-text p{font-size:14px!important}
+  #root .gradebook-studio.gb7-rebirth .gbm3-hero-controls {padding:13px!important}
+  #root .gradebook-studio.gb7-rebirth .gbm3-hero-controls > label{min-height:69px!important}
+  #root .gradebook-studio.gb7-rebirth .gbm3-hero-controls :is(select,strong){font-size:16px!important}
+  #root .gradebook-studio.gb7-rebirth .gbm3-hero-buttons button{font-size:14px!important}
+  #root .gradebook-studio.gb7-rebirth .gb8-kpi {padding:12px!important;min-height:100px!important}
+  #root .gradebook-studio.gb7-rebirth .gb8-kpi-icon{display:grid!important;width:38px!important;height:38px!important;flex:0 0 38px!important}
+  #root .gradebook-studio.gb7-rebirth .gb8-kpi-icon svg{width:19px!important;height:19px!important}
+  #root .gradebook-studio.gb7-rebirth .gb8-kpi > div > span:first-child{font-size:12px!important}
+  #root .gradebook-studio.gb7-rebirth .gb8-kpi > div > strong{font-size:29px!important}
+  #root .gradebook-studio.gb7-rebirth .gb8-kpi small{font-size:11px!important}
+  #root .gradebook-studio.gb7-rebirth .gbm3-assessment-nav .hr-grade-views button{
+    flex:0 0 auto!important;min-width:105px!important;
+    font-size:14px!important;min-height:48px!important;
+  }
+  #root .gradebook-studio.gb7-rebirth .gbm3-editor-head{padding:14px!important}
+  #root .gradebook-studio.gb7-rebirth .gbm3-editor-titles h2{font-size:20px!important}
+  #root .gradebook-studio.gb7-rebirth .gbm3-search{min-width:100%!important}
+  #root .gradebook-studio.gb7-rebirth .gbm3-search input{
+    font-size:16px!important;max-width:none!important;
+  }
+  #root .gradebook-studio.gb7-rebirth .gbm3-sort select{font-size:16px!important}
+  #root .gradebook-studio.gb7-rebirth .gbm3-save-wrapper{width:100%;justify-content:space-between}
+  #root .gradebook-studio.gb7-rebirth .hr-gradebook .hr-grade-table-wrap{
+    margin:7px 6px 12px!important;
+    max-height:70vh!important;
+  }
+  #root .gradebook-studio.gb7-rebirth .gbm3-summary-scroll .hr-grade-summary-table{min-width:1200px!important}
+  #root .gradebook-studio.gb7-rebirth .gb9-analytics-grid{grid-template-columns:minmax(0,1fr)!important}
+  #root .gradebook-studio.gb7-rebirth .gb9-analytics-pane--insights{grid-column:auto!important}
+  #root .gradebook-studio.gb7-rebirth .gb9-analytics-pane{padding:15px!important}
+}
+/* Enlarging type must not modify the global nav/footer used by other apps.
+   Footer's three informational panels keep their existing independently tested layout. */
