@@ -16,8 +16,18 @@ function stableId(s = {}) { return text(s.rosterStudentId || s.id); }
 function score(student, candidate) {
   const id = stableId(student);
   if (id && id === stableId(candidate)) return 3;
-  if (text(student.code) && lower(student.code) === lower(candidate.code)) return 2;
-  return fold(student.fullName) && personKey(student) === personKey(candidate) ? 1 : 0;
+  const incomingCode = lower(student.code);
+  const candidateCode = lower(candidate.code);
+  if (incomingCode && candidateCode) return incomingCode === candidateCode ? 2 : 0;
+  // Names alone are not unique. Anonymous-code students may be matched only
+  // when a non-empty birth date and gender both agree. Otherwise require review.
+  const fullName = fold(student.fullName);
+  const birthDate = text(student.birthDate);
+  const gender = lower(student.gender);
+  return fullName && birthDate && gender
+    && fullName === fold(candidate.fullName)
+    && birthDate === text(candidate.birthDate)
+    && gender === lower(candidate.gender) ? 1 : 0;
 }
 export function selectCanonicalMatch(student, students = []) {
   const matches = students.map((row, index) => ({ index, score: score(student, row) }))
