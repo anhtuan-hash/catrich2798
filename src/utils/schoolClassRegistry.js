@@ -190,36 +190,37 @@ export function mergeRosterStudents(existingStudents = [], importedStudents = []
     }
     if (match?.id) usedIds.add(match.id);
     const deleted = isDeletedSchoolStudent(student);
+    const inactive = student.active === false
+      || student.lifecycleStatus === 'archived'
+      || student.lifecycleStatus === 'transferred';
+    const active = !deleted && !inactive;
     return {
       ...(match || {}),
       ...student,
-      id: match?.id || student.id || stableStudentId(student),
+      id: match?.id || student.id || student.rosterStudentId || stableStudentId(student),
+      rosterStudentId: student.rosterStudentId || match?.rosterStudentId || '',
       portalPin: match?.portalPin || student.portalPin,
       pinUpdatedAt: match?.pinUpdatedAt || student.pinUpdatedAt,
       teamId: match?.teamId || student.teamId || '',
-      active: deleted ? false : true,
-      lifecycleStatus: deleted ? 'deleted' : 'active',
+      active,
+      lifecycleStatus: deleted ? 'deleted' : active ? 'active'
+        : (student.lifecycleStatus === 'transferred' ? 'transferred' : 'archived'),
       deletedAt: deleted ? (student.deletedAt || importedAt) : '',
       deletedReason: deleted ? (student.deletedReason || 'TTCM xóa khỏi danh sách lớp') : '',
       deletedBy: deleted ? (student.deletedBy || '') : '',
-      inactiveReason: deleted ? (student.deletedReason || 'TTCM xóa khỏi danh sách lớp') : '',
-      inactiveAt: deleted ? (student.deletedAt || importedAt) : '',
-      transferClass: '',
+      inactiveReason: active ? '' : (student.inactiveReason || student.archivedReason || match?.inactiveReason || ''),
+      inactiveAt: active ? '' : (student.inactiveAt || student.archivedAt || match?.inactiveAt || importedAt),
+      transferClass: student.transferClass || '',
       updatedAt: importedAt,
       createdAt: match?.createdAt || student.createdAt || importedAt,
     };
   });
 
+  // An older school list does not have authority to archive new learners.
+  // Archiving must be explicit, never inferred merely from absence.
   existing.forEach((student) => {
     if (student?.id && usedIds.has(student.id)) return;
-    merged.push(student?.active === false ? student : {
-      ...student,
-      active: false,
-      lifecycleStatus: 'archived',
-      inactiveReason: 'Không còn trong danh sách học sinh chuẩn gần nhất',
-      inactiveAt: importedAt,
-      updatedAt: importedAt,
-    });
+    merged.push(student);
   });
   return merged;
 }
