@@ -241,3 +241,26 @@
   .attendance-workspace-page .attendance-shell.is-standalone #bes-supplemental-learning-admin
     .bes-supplemental-header__count {display:none}
 }
+
+/* Match other attendance tabs: no duplicate title/summary card below six tiles.
+   Start with the functional search/action toolbar, then the class list. */
+.attendance-workspace-page .attendance-shell.is-standalone #bes-supplemental-learning-admin
+  .bes-supplemental-header {display:none!important}
+.attendance-workspace-page .attendance-shell.is-standalone #bes-supplemental-learning-admin
+  .bes-supplemental-list-heading {
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  margin:0 2px 12px;padding:0 2px;min-width:0;
+}
+.attendance-workspace-page .attendance-shell.is-standalone #bes-supplemental-learning-admin
+  .bes-supplemental-list-heading h3 {
+  color:#203d64!important;font-size:17px!important;font-weight:800!important;
+  letter-spacing:-.025em!important;margin:0!important;
+}
+.attendance-workspace-page .attendance-shell.is-standalone #bes-supplemental-learning-admin
+  .bes-supplemental-list-heading > span {
+  font-size:12px!important;font-weight:700!important;color:#6a819d!important;white-space:nowrap;
+}
+@media(max-width:440px){
+  .attendance-workspace-page .attendance-shell.is-standalone #bes-supplemental-learning-admin
+    .bes-supplemental-list-heading h3 {font-size:15px!important}
+}
