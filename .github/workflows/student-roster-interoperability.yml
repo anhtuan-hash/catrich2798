@@ -16,6 +16,7 @@ on:
       - 'supabase/migrations/*roster*.sql'
       - 'scripts/test-assigned-school-class-bootstrap.mjs'
       - 'scripts/test-assigned-student-roster-sync.mjs'
+      - 'scripts/test-homeroom-student-conflict-merge.mjs'
       - 'scripts/test-school-class-registry.mjs'
       - '.github/workflows/student-roster-interoperability.yml'
   pull_request:
@@ -45,6 +46,8 @@ jobs:
         run: node scripts/test-assigned-school-class-bootstrap.mjs
       - name: Canonical roster student delta merge
         run: node scripts/test-assigned-student-roster-sync.mjs
+      - name: Homeroom concurrent student additions
+        run: node scripts/test-homeroom-student-conflict-merge.mjs
       - name: Gradebook assigned class identity and history
         run: node scripts/test-gradebook-verified-roster.mjs
       - name: Lesson Check assigned rosters
