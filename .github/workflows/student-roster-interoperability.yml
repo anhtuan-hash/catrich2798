@@ -13,6 +13,9 @@ on:
       - 'src/schoolClassBootstrap.jsx'
       - 'src/assignedSchoolClassBootstrap.js'
       - 'src/components/lessonCheck/AssessmentWorkspace.jsx'
+      - 'src/components/attendance/AttendanceClassManagementWorkspace.jsx'
+      - 'src/components/attendance/AttendanceClassManagementRosterScroll.css'
+      - 'scripts/test-attendance-canonical-school-roster.mjs'
       - 'supabase/migrations/*roster*.sql'
       - 'scripts/test-assigned-school-class-bootstrap.mjs'
       - 'scripts/test-assigned-student-roster-sync.mjs'
@@ -50,6 +53,8 @@ jobs:
         run: node scripts/test-homeroom-student-conflict-merge.mjs
       - name: Gradebook assigned class identity and history
         run: node scripts/test-gradebook-verified-roster.mjs
+      - name: Attendance school student lookup
+        run: node scripts/test-attendance-canonical-school-roster.mjs
       - name: Lesson Check assigned rosters
         run: node scripts/test-lesson-check-studio.mjs
       - name: Vite production bundle
