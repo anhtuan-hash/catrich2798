@@ -1,9 +1,11 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { APP_VERSION } from '../config/version.js';
 import './FooterCompactDisclosure.css';
 import './FooterAuthCards.css';
 import './FooterIntegrity.css';
 import './FooterDashboardMockup.css';
+import './FooterPortfolio.css';
 
 const ENGLISH_DETAILS = {
   language: 'EN',
@@ -43,6 +45,86 @@ const VIETNAMESE_DETAILS = {
   copyright: 'Bản quyền © 2026 English Hub',
 };
 
+const PORTFOLIO_URL = 'https://decisive-difference-557977.framer.app/';
+
+function FooterPortfolioDialog({ isVi, onClose }) {
+  const closeButtonRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const previousBodyOverflow = document.body.style.overflow;
+    const previousHtmlOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    closeButtonRef.current?.focus({ preventScroll: true });
+
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousHtmlOverflow;
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      className="bes-portfolio-backdrop"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <section
+        className="bes-portfolio-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="bes-portfolio-dialog-title"
+        aria-describedby="bes-portfolio-dialog-hint"
+      >
+        <header className="bes-portfolio-dialog-header">
+          <span className="bes-portfolio-dialog-monogram" aria-hidden="true">AT</span>
+          <div className="bes-portfolio-dialog-heading">
+            <h2 id="bes-portfolio-dialog-title">Portfolio · Nguyễn Anh Tuấn</h2>
+            <p id="bes-portfolio-dialog-hint">
+              {isVi ? 'Hồ sơ cá nhân · Xem ngay trong ESL Brian' : 'Personal portfolio · View inside ESL Brian'}
+            </p>
+          </div>
+          <button
+            ref={closeButtonRef}
+            type="button"
+            className="bes-portfolio-dialog-close"
+            onClick={onClose}
+            aria-label={isVi ? 'Đóng portfolio' : 'Close portfolio'}
+          >
+            <span aria-hidden="true">✕</span>
+            <span>{isVi ? 'Đóng' : 'Close'}</span>
+          </button>
+        </header>
+        <div className="bes-portfolio-frame-wrap">
+          <iframe
+            className="bes-portfolio-frame"
+            title={isVi ? 'Portfolio Nguyễn Anh Tuấn trên Framer' : 'Nguyễn Anh Tuấn Framer portfolio'}
+            src={PORTFOLIO_URL}
+            loading="eager"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allowFullScreen
+          />
+        </div>
+        <footer className="bes-portfolio-dialog-footnote">
+          <span>{isVi ? 'Website được hiển thị trực tiếp từ Framer.' : 'Portfolio shown directly from Framer.'}</span>
+          <a href={PORTFOLIO_URL} target="_blank" rel="noopener noreferrer">
+            {isVi ? 'Không xem được? Mở bản gốc ↗' : 'Not visible? Open original ↗'}
+          </a>
+        </footer>
+      </section>
+    </div>
+  );
+}
+
 function DashboardFooterArtwork() {
   return (
     <div className="signature-footer-dashboard-artwork" aria-hidden="true">
@@ -79,8 +161,15 @@ export default function Footer({ language, route = '' }) {
   const isVi = language === 'vi';
   const resolvedRoute = route || (typeof document !== 'undefined' ? (document.querySelector('.app-shell')?.dataset?.route || '') : '');
   const content = isVi ? VIETNAMESE_DETAILS : ENGLISH_DETAILS;
+  const [portfolioOpen, setPortfolioOpen] = React.useState(false);
+  const portfolioTriggerRef = React.useRef(null);
+  const closePortfolio = React.useCallback(() => {
+    setPortfolioOpen(false);
+    window.requestAnimationFrame(() => portfolioTriggerRef.current?.focus({ preventScroll: true }));
+  }, []);
 
   return (
+    <>
     <footer
       className={`footer footer-v10 signature-footer-v75 signature-footer-v50 signature-footer-collapsible signature-footer-dashboard-global ${isVi ? 'signature-footer-v50-vi' : 'signature-footer-v50-en'}`}
       aria-label={isVi ? 'Thông tin English Hub' : 'English Hub information'}
@@ -138,7 +227,23 @@ export default function Footer({ language, route = '' }) {
           <span className="signature-footer-summary-separator" aria-hidden="true">•</span>
           <span>{content.copyright}</span>
         </span>
+        <button
+          ref={portfolioTriggerRef}
+          type="button"
+          className="bes-portfolio-footer-trigger"
+          onClick={() => setPortfolioOpen(true)}
+          aria-haspopup="dialog"
+        >
+          <span>Designed &amp; Developed by</span>
+          <strong>Nguyễn Anh Tuấn</strong>
+          <span className="bes-portfolio-footer-trigger-icon" aria-hidden="true">↗</span>
+        </button>
       </div>
     </footer>
+    {portfolioOpen && createPortal(
+      <FooterPortfolioDialog isVi={isVi} onClose={closePortfolio} />,
+      document.body,
+    )}
+  </>
   );
 }
