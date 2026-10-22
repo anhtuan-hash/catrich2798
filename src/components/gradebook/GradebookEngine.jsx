@@ -1008,11 +1008,11 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
           <h2>Nhập điểm cho toàn bộ lớp</h2>
           <p>Nhập điểm theo thang 10. Điểm cộng và điểm đợt được tính tự động.</p>
         </div>
-        <div className="gbv2-head-actions">
+        <details className="gbm3-column-config"><summary>Cấu hình đợt điểm</summary><div>
           <button type="button" className="secondary" onClick={addRegularColumn} disabled={finalized}>＋ Thêm lần nhập</button>
           <button type="button" className="gbv3-expand-table" aria-pressed={showFullRoster} onClick={() => setShowFullRoster((value) => !value)}>{showFullRoster ? 'Thu gọn bảng' : 'Xem toàn bộ ' + students.length + ' học sinh'}</button>
           {renderTableControls()}
-        </div>
+        </div></details>
       </div>
       {students.length ? <div ref={scoreTableRef} className={`hr-grade-table-wrap${showFullRoster ? ' gbv3-table-expanded' : ''}`}>
         <table className={`hr-grade-table${activeRound.columns.length === 1 ? ' gb5-table-fill' : ''}`} style={{ minWidth: `${Math.max(820, 290 + activeRound.columns.length * 104 + 3 * 118)}px` }}>
@@ -1054,7 +1054,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
 
   const renderExamTable = (type, title) => (
     <section className="hr-panel hr-grade-panel">
-      <div className="hr-panel-head hr-grade-panel-head"><span className="hr-grade-panel-icon" aria-hidden="true"><GradebookUiIcon type="pencil" /></span><div><small>{title}</small><h2>Nhập điểm cho toàn bộ lớp</h2><p>Thang điểm 10</p></div>{renderTableControls()}</div>
+      <div className="hr-panel-head hr-grade-panel-head"><span className="hr-grade-panel-icon" aria-hidden="true"><GradebookUiIcon type="pencil" /></span><div><small>{title}</small><h2>Nhập điểm cho toàn bộ lớp</h2><p>Thang điểm 10</p></div><details className="gbm3-column-config"><summary>Cấu hình</summary>{renderTableControls()}</details></div>
       {students.length ? <div className="hr-grade-table-wrap compact">
         <table className="hr-grade-table hr-grade-exam-table">
           <thead><tr><th className="hr-grade-index">STT</th><th className="hr-grade-student">Học sinh</th><th>{title}</th><th>Trạng thái</th></tr></thead>
@@ -1067,23 +1067,78 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     </section>
   );
 
-  const renderSummary = () => (
-    <section className="hr-panel hr-grade-panel">
-      <div className="hr-panel-head hr-grade-panel-head"><span className="hr-grade-panel-icon" aria-hidden="true"><GradebookUiIcon type="document" /></span><div><small>Tổng hợp thành phần</small><h2>Bảng điểm {SEMESTERS.find((item) => item.id === semesterId)?.label}</h2><p>4 đợt thường xuyên · giữa kỳ · cuối kỳ</p></div>{renderTableControls()}</div>
-      {students.length ? <div className="hr-grade-table-wrap">
-        <table className="hr-grade-table hr-grade-summary-table">
-          <thead><tr><th className="hr-grade-index">STT</th><th className="hr-grade-student">Học sinh</th>{activeSemester.regular.map((_, index) => <th key={index}>TX Đợt {index + 1}</th>)}<th>Giữa kỳ</th><th>Cuối kỳ</th><th>Đã nhập</th></tr></thead>
-          <tbody>{visibleStudents.map((student) => {
-            const regular = activeSemester.regular.map((round) => roundScore(round, student.id, studentIds));
-            const midterm = scoreNumber(activeSemester.midterm.scores?.[student.id]);
-            const final = scoreNumber(activeSemester.final.scores?.[student.id]);
-            const count = [...regular, midterm, final].filter((value) => value != null).length;
-            return <tr key={student.id}><td className="hr-grade-index">{originalStudentPosition.get(student.id)}</td><td className="hr-grade-student"><b>{student.fullName}</b><small>{student.code || 'Chưa có mã học sinh'}</small></td>{regular.map((value, scoreIndex) => <td key={scoreIndex} className="hr-grade-summary-score">{formatScore(value)}</td>)}<td className="hr-grade-summary-score">{formatScore(midterm)}</td><td className="hr-grade-summary-score">{formatScore(final)}</td><td className="hr-grade-completion"><b>{count}/6</b></td></tr>;
-          })}</tbody>
-        </table>
-      </div> : <div className="hr-grade-empty"><b>Chưa có danh sách lớp</b><span>Hãy nhập học sinh trước khi mở sổ điểm.</span></div>}
-    </section>
-  );
+  const renderSummary = () => {
+    const pageCount = Math.max(1, Math.ceil(visibleStudents.length / 10));
+    const currentPage = Math.min(summaryPage, pageCount - 1);
+    const pageStudents = visibleStudents.slice(currentPage * 10, currentPage * 10 + 10);
+    const openComponent = (target) => {
+      setView(target);
+      setMissingOnly(false);
+      setSummaryPage(0);
+      window.requestAnimationFrame(() =>
+        document.getElementById('gb5-grade-entry')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    };
+    return (
+      <section className="hr-panel hr-grade-panel gbm3-summary-panel">
+        {students.length ? (
+          <div className="hr-grade-table-wrap gbm3-summary-scroll">
+            <table className="hr-grade-table hr-grade-summary-table">
+              <thead><tr>
+                <th className="hr-grade-index">STT</th>
+                <th className="hr-grade-student">Họ và tên học sinh</th>
+                {['TX 1','TX 2','TX 3','TX 4'].map((label, index) => (
+                  <th key={label} className={'gbm3-summary-head gbm3-summary-head--' + index}>
+                    <span>{label}</span><small>Hệ số 1</small>
+                  </th>
+                ))}
+                <th className="gbm3-summary-head gbm3-summary-head--4"><span>Giữa kỳ</span><small>Hệ số 2</small></th>
+                <th className="gbm3-summary-head gbm3-summary-head--5"><span>Cuối kỳ</span><small>Hệ số 3</small></th>
+                <th className="gbm3-summary-average">Điểm TB*</th>
+                <th>Trạng thái</th>
+              </tr></thead>
+              <tbody>{pageStudents.map((student) => {
+                const regular = activeSemester.regular.map((round) => roundScore(round, student.id, studentIds));
+                const midterm = scoreNumber(activeSemester.midterm.scores?.[student.id]);
+                const final = scoreNumber(activeSemester.final.scores?.[student.id]);
+                const allScores = [...regular, midterm, final];
+                const count = allScores.filter((score) => score != null).length;
+                const complete = count === allScores.length && allScores.length === 6;
+                // Weighted preview is shown ONLY when all six components exist;
+                // never present an incomplete semester as a final official mark.
+                const average = complete
+                  ? (regular.reduce((sum, value) => sum + value, 0) + 2 * midterm + 3 * final) / 9
+                  : null;
+                return <tr key={student.id}>
+                  <td className="hr-grade-index">{originalStudentPosition.get(student.id)}</td>
+                  <td className="hr-grade-student"><b>{student.fullName}</b><small>{student.code || 'Chưa có mã học sinh'}</small></td>
+                  {regular.map((value, scoreIndex) => <td key={scoreIndex} className="gbm3-click-score">
+                    <button type="button" title={'Mở nhập điểm TX ' + (scoreIndex + 1) + ' cho ' + student.fullName}
+                      onClick={() => openComponent('regular-' + scoreIndex)}>{value == null ? '—' : formatScore(value)}</button>
+                  </td>)}
+                  {['midterm','final'].map((type,i) => <td key={type} className="gbm3-click-score">
+                    <button type="button" title={'Mở nhập ' + (i ? 'cuối kỳ' : 'giữa kỳ') + ' cho ' + student.fullName}
+                      onClick={() => openComponent(type)}>{(i ? final : midterm) == null ? '—' : formatScore(i ? final : midterm)}</button>
+                  </td>)}
+                  <td className="gbm3-summary-average">{average == null ? '—' : formatScore(Math.round(average * 100) / 100)}</td>
+                  <td className="gbm3-summary-status"><span className={complete ? 'is-complete' : 'is-pending'}><i />{complete ? 'Đủ 6/6' : count + '/6 thành phần'}</span></td>
+                </tr>;
+              })}</tbody>
+            </table>
+          </div>
+        ) : <div className="hr-grade-empty"><b>Chưa có danh sách lớp</b><span>Hãy nhập học sinh trước khi mở sổ điểm.</span></div>}
+        <div className="gbm3-pagination">
+          <span>Hiển thị {visibleStudents.length ? currentPage * 10 + 1 : 0}–{Math.min((currentPage + 1) * 10, visibleStudents.length)} trong {visibleStudents.length} học sinh</span>
+          <div className="gbm3-pages">
+            <button type="button" disabled={currentPage === 0} onClick={() => setSummaryPage(currentPage - 1)} aria-label="Trang trước">‹</button>
+            {Array.from({ length: pageCount }, (_, index) => <button key={index} type="button" aria-current={index === currentPage ? 'page' : undefined}
+              onClick={() => setSummaryPage(index)}>{index + 1}</button>)}
+            <button type="button" disabled={currentPage + 1 >= pageCount} onClick={() => setSummaryPage(currentPage + 1)} aria-label="Trang sau">›</button>
+          </div>
+          <small>* Điểm TB tham khảo khi đủ 6 thành phần; nhấn một ô để mở đúng màn hình nhập/sửa điểm.</small>
+        </div>
+      </section>
+    );
+  };
 
   return <div className={`hr-tab-stack hr-gradebook${focusMode ? ' gb-is-focused' : ''}${density === 'compact' ? ' gb-density-compact' : ''}`} data-grade-view={view} data-grade-tone={activeView.tone}>
     <GradebookNavigationPalette
@@ -1250,7 +1305,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
       <div><button type="button" className="secondary" disabled={!dirty} aria-disabled={savePending} onClick={discard}>Hoàn tác</button><button type="button" className="primary" disabled={!dirty} aria-disabled={savePending} onClick={save}>Lưu điểm</button></div>
     </div> : null}
 
-    {view !== 'mock' ? <section className="hr-panel hr-grade-export-bar" aria-labelledby="hr-grade-export-title">
+    {view !== 'mock' ? <details className="gbm3-extra-export"><summary>Xuất Excel và phiếu điểm PDF</summary><section className="hr-panel hr-grade-export-bar" aria-labelledby="hr-grade-export-title">
       <div className="hr-grade-export-copy">
         <span className="hr-grade-export-icon" aria-hidden="true"><GradebookUiIcon type="excel" /></span>
         <div><span>EXCEL · PDF REPORTS</span><h3 id="hr-grade-export-title">Xuất báo cáo điểm</h3><p>Xuất theo môn <b>{activeSubject?.name || '—'}</b> · <b>{semesterLabel}</b>. File dùng dữ liệu đang hiển thị, kể cả thay đổi chưa lưu.</p></div>
@@ -1263,7 +1318,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
           <span aria-hidden="true">▤</span>Xuất phiếu điểm cá nhân (PDF)
         </button>
       </div>
-    </section> : null}
+    </section></details> : null}
 
     {exportDialogMode ? <div className="hr-grade-export-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !exporting) setExportDialogMode(''); }}>
       <section className="hr-grade-export-dialog" role="dialog" aria-modal="true" aria-labelledby="hr-grade-export-dialog-title">
