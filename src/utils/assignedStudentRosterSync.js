@@ -110,7 +110,114 @@ export function applyStudentChangesToCanonicalRoster(remote = [], previous = [],
   });
   return { students, changed, issues };
 }
-export async function syncAssignedStudentRosterDelta(user, before, after) {
+const PENDING_PREFIX = 'bes-school-roster-pending-v1';
+const MAX_PENDING_OPERATIONS = 100;
+
+function queueKey(user, profile) {
+  return `${PENDING_PREFIX}:${text(user?.id)}:${lower(profile?.schoolYear)}:${lower(profile?.className)}`;
+}
+
+function readPending(key) {
+  if (typeof localStorage === 'undefined') return [];
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || '[]');
+    return Array.isArray(value) ? value.slice(0, MAX_PENDING_OPERATIONS) : [];
+  } catch {
+    return [];
+  }
+}
+
+function writePending(key, operations) {
+  if (typeof localStorage === 'undefined') return false;
+  try {
+    if (operations.length) localStorage.setItem(key, JSON.stringify(operations));
+    else localStorage.removeItem(key);
+    return true;
+  } catch { return false; }
+}
+
+export function getPendingAssignedStudentRosterCount(user) {
+  if (typeof localStorage === 'undefined' || !user?.id) return 0;
+  try {
+    const prefix = `${PENDING_PREFIX}:${text(user.id)}:`;
+    let count = 0;
+    for (let index = 0; index < localStorage.length; index += 1) {
+      const key = localStorage.key(index);
+      if (key?.startsWith(prefix)) count += readPending(key).length;
+    }
+    return count;
+  } catch { return 0; }
+}
+
+function pendingOperations(before, after) {
+  const previous = Array.isArray(before?.students) ? before.students : [];
+  const current = Array.isArray(after?.students) ? after.students : [];
+  const profile = {
+    className: text(after?.classProfile?.className),
+    schoolYear: text(after?.classProfile?.schoolYear),
+  };
+  return current.flatMap((student) => {
+    const match = selectCanonicalMatch(student, previous);
+    if (match.ambiguous) return [];
+    const original = match.index < 0 ? null : previous[match.index];
+    const changes = original
+      ? FIELDS.some((field) => rosterFields(student)[field] !== rosterFields(original)[field])
+      : true;
+    return changes ? [{
+      classProfile: profile,
+      before: original ? [original] : [],
+      after: [student],
+    }] : [];
+  });
+}
+
+function enqueueFailedSync(user, before, after) {
+  const key = queueKey(user, after.classProfile);
+  const pending = readPending(key);
+  const incoming = pendingOperations(before, after);
+  for (const operation of incoming) {
+    if (pending.some((existing) => JSON.stringify(existing) === JSON.stringify(operation))) continue;
+    if (pending.length >= MAX_PENDING_OPERATIONS) return false;
+    pending.push(operation);
+  }
+  return writePending(key, pending);
+}
+
+const activeFlushes = new Set();
+
+// Persisted on this device: transient failures are replayed after reconnect or
+// when opening the teacher workspace again. No background server task is assumed.
+export async function flushPendingAssignedStudentRosters(user, onlyKey = '') {
+  if (typeof localStorage === 'undefined' || !user?.id) return { ok: false, changed: 0 };
+  const prefix = `${PENDING_PREFIX}:${text(user.id)}:`;
+  const keys = [];
+  for (let index = 0; index < localStorage.length; index += 1) {
+    const key = localStorage.key(index);
+    if (key?.startsWith(prefix) && (!onlyKey || key === onlyKey)) keys.push(key);
+  }
+  let changed = 0;
+  for (const key of keys) {
+    if (activeFlushes.has(key)) return { ok: false, changed, message: 'Đồng bộ đang diễn ra.' };
+    activeFlushes.add(key);
+    try {
+      const pending = readPending(key);
+      while (pending.length) {
+        const operation = pending[0];
+        const oldClass = { classProfile: operation.classProfile, students: operation.before };
+        const newClass = { classProfile: operation.classProfile, students: operation.after };
+        const result = await syncAssignedStudentRosterDelta(user, oldClass, newClass, { skipQueue: true });
+        if (!result.ok) return { ok: false, changed, message: result.message };
+        changed += result.changed || 0;
+        pending.shift();
+        if (!writePending(key, pending))
+          return { ok: false, changed, message: 'Không thể cập nhật hàng đợi đồng bộ trên thiết bị.' };
+      }
+    } finally { activeFlushes.delete(key); }
+  }
+  return { ok: true, changed };
+}
+
+export async function syncAssignedStudentRosterDelta(user, before, after, options = {}) {
   if (!isSupabaseConfigured || !supabase || !user?.id)
     return { ok: false, message: 'Không có kết nối đến danh sách học sinh dùng chung.' };
   const className = text(after?.classProfile?.className);
@@ -125,13 +232,26 @@ export async function syncAssignedStudentRosterDelta(user, before, after) {
   const nextStudents = Array.isArray(after?.students) ? after.students : [];
   const preliminary = applyStudentChangesToCanonicalRoster(oldStudents, oldStudents, nextStudents);
   if (preliminary.issues.length) return { ok: false, message: preliminary.issues.join(' ') };
-  if (!preliminary.changed) return { ok: true, changed: 0 };
   const rosterKey = `class:${lower(schoolYear)}||${lower(className)}`;
+  if (!options.skipQueue && readPending(queueKey(user, after.classProfile)).length) {
+    const queued = await flushPendingAssignedStudentRosters(user, queueKey(user, after.classProfile));
+    if (!queued.ok) {
+      enqueueFailedSync(user, before, after);
+      return { ok: false, message: queued.message || 'Có thay đổi cũ đang chờ đồng bộ.' };
+    }
+  }
+  if (!preliminary.changed) return { ok: true, changed: 0 };
+  const fail = (message) => {
+    if (options.skipQueue) return { ok: false, message };
+    return { ok: false, message: enqueueFailedSync(user, before, after)
+      ? `${message} Thay đổi đã được xếp hàng để đồng bộ khi kết nối trở lại.`
+      : `${message} Không thể lưu hàng đợi; vui lòng giữ bản sao và thử lại.` };
+  };
   for (let attempt = 0; attempt < 3; attempt++) {
     const { data: row, error: readError } = await supabase.from('bes_class_rosters')
       .select('roster_key,students,updated_at').eq('roster_key', rosterKey).maybeSingle();
     if (readError || !row) {
-      return { ok: false, message: readError?.message || 'Danh sách chung chưa được tạo.' };
+      return fail(readError?.message || 'Danh sách chung chưa được tạo.');
     }
     const applied = applyStudentChangesToCanonicalRoster(row.students || [], oldStudents, nextStudents);
     if (applied.issues.length) return { ok: false, message: applied.issues.join(' ') };
@@ -143,7 +263,7 @@ export async function syncAssignedStudentRosterDelta(user, before, after) {
       })
       .eq('roster_key', rosterKey).eq('updated_at', row.updated_at)
       .select('roster_key').maybeSingle();
-    if (error) return { ok: false, message: error.message };
+    if (error) return fail(error.message);
     if (data) {
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('bes-class-roster-updated', {
@@ -153,5 +273,5 @@ export async function syncAssignedStudentRosterDelta(user, before, after) {
       return { ok: true, changed: applied.changed };
     }
   }
-  return { ok: false, message: 'Danh sách vừa thay đổi trên thiết bị khác. Hãy lưu lại để đồng bộ.' };
+  return fail('Danh sách vừa thay đổi trên thiết bị khác. Hãy lưu lại để đồng bộ.');
 }
