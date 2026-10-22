@@ -1,10 +1,30 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import {
-  attachVerifiedGradebookAssignment,
-  evaluateGradebookAssignmentLifecycle,
-} from '../src/utils/gradebookAssignmentLifecycle.js';
-import { makeGradebookRosterIdentity } from '../src/utils/gradebookRosterStore.js';
+// The application modules depend on browser/Supabase CSS; evaluate only their
+// pure domain functions in Node's regression runner.
+const lifecycleSource = readFileSync(
+  new URL('../src/utils/gradebookAssignmentLifecycle.js', import.meta.url), 'utf8',
+).replace(/^import .*;\r?\n/gm, '').replace(/^export /gm, '');
+const { attachVerifiedGradebookAssignment, evaluateGradebookAssignmentLifecycle } = new Function(
+  'matchGradebookClassToAssignment',
+  lifecycleSource + '\nreturn { attachVerifiedGradebookAssignment, evaluateGradebookAssignmentLifecycle };',
+)((item, assignment) => item.className?.toLowerCase() === assignment.className?.toLowerCase()
+  && (!item.teachingSubject || item.teachingSubject === assignment.subject));
+const rosterSource = readFileSync(
+  new URL('../src/utils/gradebookRosterStore.js', import.meta.url), 'utf8',
+);
+const startRoster = rosterSource.indexOf('function assignedClassProfile(');
+const endRoster = rosterSource.indexOf('export function makeLegacyGradebookRosterIdentity(');
+assert.ok(startRoster > 0 && endRoster > startRoster);
+const makeGradebookRosterIdentity = new Function(
+  'text', 'lower', 'userId',
+  rosterSource.slice(startRoster, endRoster).replace(/^export /gm, '')
+    + '\nreturn makeGradebookRosterIdentity;',
+)(
+  (value, fallback = '') => String(value ?? '').trim() || fallback,
+  (value) => String(value ?? '').trim().toLowerCase(),
+  (user) => user?.id || 'guest',
+);
 
 const date = new Date('2026-10-22T09:00:00+07:00');
 const studentWorkspace = {
