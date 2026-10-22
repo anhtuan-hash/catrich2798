@@ -60,6 +60,12 @@ html body #root .app-shell > footer[data-app-shell-footer="true"] .bes-portfolio
   position: fixed !important;
   z-index: 2147483646 !important;
   inset: 0 !important;
+  /* A definite viewport height ensures percentage-sized dialogs resolve correctly.
+     100dvh tracks Safari/Chrome's changing browser chrome on mobile. */
+  height: 100vh !important;
+  height: 100dvh !important;
+  min-height: 0;
+  overflow: hidden;
   display: flex !important;
   align-items: stretch;
   justify-content: center;
@@ -86,9 +92,12 @@ html body #root .app-shell > footer[data-app-shell-footer="true"] .bes-portfolio
   flex-direction: column;
   width: 100%;
   max-width: 1800px;
+  /* An auto-height flex child collapses to the default 150px iframe height.
+     Stretch to the overlay's full available height instead. */
+  height: 100% !important;
   min-height: 0;
-  max-height: 100%;
-  margin: auto;
+  max-height: 100% !important;
+  margin: 0 auto;
   overflow: hidden;
   background: #fff;
   border: 1px solid rgba(206, 220, 239, .75);
@@ -231,8 +240,8 @@ html body #root .app-shell > footer[data-app-shell-footer="true"] .bes-portfolio
   .bes-portfolio-dialog {
     width: 100%;
     max-width: none;
-    height: 100%;
-    max-height: none;
+    height: 100% !important;
+    max-height: 100% !important;
     border: 0;
     border-radius: 0;
   }
