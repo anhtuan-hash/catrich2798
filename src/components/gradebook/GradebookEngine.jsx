@@ -883,6 +883,7 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
     if (gradebookAction.action === 'entry') setView('regular-0');
     if (gradebookAction.action === 'summary') setView('summary');
     if (gradebookAction.action === 'pdf') openStudentReport();
+    if (gradebookAction.action === 'class-report') openClassGradebook();
   }, [gradebookAction?.seq]);
 
   const totalRegularColumns = activeSemester.regular.reduce((sum, round) => sum + round.columns.length, 0);
