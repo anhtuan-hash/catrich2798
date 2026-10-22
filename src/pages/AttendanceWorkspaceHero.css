@@ -241,3 +241,43 @@
   .attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile,
   .attendance-workspace-page .attendance-shell.is-standalone .awu-feature-tile__art{transition:none}
 }
+
+
+/* History page without the duplicate 292/292 statistics banner.
+   Keep the real history panel title prominent, aligned and responsive. */
+.attendance-workspace-page .attendance-shell.is-standalone .ahv3__list-title {
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .ahv3__list-title > div:first-child {
+  min-width: 0;
+  flex: 1 1 160px;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .ahv3__list-title strong {
+  font-size: 17px;
+  font-weight: 820;
+  line-height: 1.3;
+  letter-spacing: -.02em;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .ahv3__list-title p {
+  font-size: 12px;
+  line-height: 1.45;
+  margin-top: 4px;
+}
+.attendance-workspace-page .attendance-shell.is-standalone .ahv3__list-actions {
+  margin-left: auto;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+@media(max-width:620px) {
+  .attendance-workspace-page .attendance-shell.is-standalone .ahv3__list-title {
+    align-items: stretch;
+    gap: 9px;
+  }
+  .attendance-workspace-page .attendance-shell.is-standalone .ahv3__list-actions {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+}

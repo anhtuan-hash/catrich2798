@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { AttendanceViewHeader, AttendanceAppHero, AttendanceFeatureDeck } from './attendance/AttendanceWorkspaceUI.jsx';
+import { AttendanceViewHeader, AttendanceFeatureDeck } from './attendance/AttendanceWorkspaceUI.jsx';
 import { createPortal } from 'react-dom';
 import { readSheet } from 'read-excel-file/browser';
 import { getRuntimeClient } from '../services/runtime/core.js';
@@ -1617,7 +1617,6 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
 
         <main className="attendance-content">
           {standalone ? <>
-            <AttendanceAppHero />
             <AttendanceFeatureDeck items={availableAttendanceTabs} showSupplemental={canSeeSupplementalHistory} activeView={view}
               onNavigate={(nextView) => {
                 if (nextView === 'supplemental') {
@@ -1631,7 +1630,7 @@ export default function GlobalAttendanceNavigationTab({ currentUser, standalone 
               }} />
           </> : null}
 
-          {standalone ? <AttendanceViewHeader view={view} items={
+          {standalone && view !== 'history' ? <AttendanceViewHeader view={view} items={
             view === 'quick' ? [
               {label:'Lớp hoạt động',value:activeClasses.length,tone:'blue',icon:'manage'},
               {label:'Lớp phù hợp',value:filteredActiveClasses.length,tone:'teal',icon:'filter'},
