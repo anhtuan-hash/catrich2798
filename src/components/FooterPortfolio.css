@@ -1,12 +1,10 @@
-/* Personal portfolio: a small footer credit opens a true viewport overlay.
-   Keep it outside the app-shell footer (React portal) so existing clipping,
-   layering and scroll guards cannot cover the embedded Framer page. */
+/* ESL Brian: canonical footer remains unchanged; portfolio is a separate
+   always-present page section immediately AFTER it, never a modal. */
 html body #root .app-shell > footer[data-app-shell-footer="true"] > .signature-footer-static-summary {
   flex-wrap: wrap !important;
   column-gap: 14px !important;
   row-gap: 7px !important;
 }
-
 html body #root .app-shell > footer[data-app-shell-footer="true"] .bes-portfolio-footer-trigger {
   appearance: none;
   display: inline-flex !important;
@@ -31,191 +29,142 @@ html body #root .app-shell > footer[data-app-shell-footer="true"] .bes-portfolio
   cursor: pointer;
   transition: background-color .18s ease, border-color .18s ease, box-shadow .18s ease;
 }
-
 html body #root .app-shell > footer[data-app-shell-footer="true"] .bes-portfolio-footer-trigger strong {
   color: #1967d2;
   font-weight: 800;
 }
-
 html body #root .app-shell > footer[data-app-shell-footer="true"] .bes-portfolio-footer-trigger:hover {
   background: #e7f0ff;
   border-color: #92b7ed;
   box-shadow: 0 2px 7px rgba(32, 92, 180, .09);
 }
-
 html body #root .app-shell > footer[data-app-shell-footer="true"] .bes-portfolio-footer-trigger:focus-visible,
-.bes-portfolio-dialog button:focus-visible,
-.bes-portfolio-dialog a:focus-visible {
+.bes-portfolio-inline-section a:focus-visible {
   outline: 3px solid #4285f4;
   outline-offset: 3px;
 }
-
 .bes-portfolio-footer-trigger-icon {
   font-size: 16px;
   font-weight: 800;
   line-height: 1;
 }
 
-.bes-portfolio-backdrop {
-  position: fixed !important;
-  z-index: 2147483646 !important;
-  inset: 0 !important;
-  /* A definite viewport height ensures percentage-sized dialogs resolve correctly.
-     100dvh tracks Safari/Chrome's changing browser chrome on mobile. */
-  height: 100vh !important;
-  height: 100dvh !important;
-  min-height: 0;
-  overflow: hidden;
+/* Home has a legacy CSS rule giving the footer the absolute last flex order.
+   Override only that ordering so the inline portfolio actually sits BELOW it. */
+html body #root .app-shell.metro-clean-system[data-route="home"] > footer.signature-footer-collapsible[data-app-shell-footer="true"] {
+  order: 2147483646 !important;
+}
+html body #root .app-shell.metro-clean-system[data-route="home"] > section.bes-portfolio-inline-section {
+  order: 2147483647 !important;
+}
+
+html body #root .app-shell > section.bes-portfolio-inline-section {
+  position: relative !important;
+  inset: auto !important;
   display: flex !important;
-  align-items: stretch;
-  justify-content: center;
-  box-sizing: border-box;
-  padding:
-    max(10px, env(safe-area-inset-top))
-    max(10px, env(safe-area-inset-right))
-    max(10px, env(safe-area-inset-bottom))
-    max(10px, env(safe-area-inset-left));
-  background: rgba(14, 28, 48, .77);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-}
-
-.bes-portfolio-dialog,
-.bes-portfolio-dialog *,
-.bes-portfolio-dialog *::before,
-.bes-portfolio-dialog *::after {
-  box-sizing: border-box;
-}
-
-.bes-portfolio-dialog {
-  display: flex;
+  flex: 0 0 auto !important;
   flex-direction: column;
-  width: 100%;
-  max-width: 1800px;
-  /* An auto-height flex child collapses to the default 150px iframe height.
-     Stretch to the overlay's full available height instead. */
-  height: 100% !important;
+  align-items: stretch;
+  width: min(1480px, calc(100% - 24px)) !important;
+  max-width: calc(100% - 24px) !important;
+  min-width: 0;
+  height: auto !important;
   min-height: 0;
-  max-height: 100% !important;
-  margin: 0 auto;
-  overflow: hidden;
+  margin: 12px auto 30px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: 1px solid #d7e5f4;
+  border-radius: 24px;
   background: #fff;
-  border: 1px solid rgba(206, 220, 239, .75);
-  border-radius: 20px;
-  box-shadow: 0 24px 80px rgba(5, 18, 40, .32);
-  color: #202124;
+  color: #1e293b;
+  box-shadow: 0 9px 32px rgba(40, 78, 122, .08);
+  isolation: isolate;
+  box-sizing: border-box;
+  scroll-margin-top: 20px;
 }
-
-.bes-portfolio-dialog-header {
+.bes-portfolio-inline-section *,
+.bes-portfolio-inline-section *::before,
+.bes-portfolio-inline-section *::after {
+  box-sizing: border-box;
+}
+.bes-portfolio-inline-heading {
   display: flex;
-  flex: 0 0 auto;
   align-items: center;
-  gap: 12px;
-  min-height: 72px;
-  margin: 0;
-  padding: 12px 18px;
-  border-bottom: 1px solid #e5e9f0;
-  background: #fff;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 24px;
+  border-bottom: 1px solid #e9eef5;
+  background: linear-gradient(110deg, #f6faff 0%, #fff 58%, #f5fbf9 100%);
 }
-
-.bes-portfolio-dialog-monogram {
-  display: inline-flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 42px;
-  border-radius: 13px;
-  background: linear-gradient(140deg, #d6e7ff, #e4f6ed);
-  color: #155cba;
-  font: 800 15px/1 Arial, sans-serif;
-  letter-spacing: -.035em;
-}
-
-.bes-portfolio-dialog-heading {
-  flex: 1 1 auto;
+.bes-portfolio-inline-intro {
   min-width: 0;
 }
-
-.bes-portfolio-dialog-heading h2 {
+.bes-portfolio-inline-eyebrow {
+  display: block;
+  margin-bottom: 6px;
+  color: #336fc5;
+  font: 800 10px/1.3 system-ui, -apple-system, sans-serif;
+  letter-spacing: .12em;
+}
+.bes-portfolio-inline-heading h2 {
   margin: 0;
-  color: #202b40;
-  font: 800 clamp(15px, 1.7vw, 19px)/1.3 system-ui, -apple-system, sans-serif;
-  letter-spacing: -.025em;
+  color: #172b47;
+  font: 800 clamp(18px, 2vw, 25px)/1.2 system-ui, -apple-system, sans-serif;
+  letter-spacing: -.03em;
 }
-
-.bes-portfolio-dialog-heading p {
-  margin: 4px 0 0;
-  color: #64748b;
-  font: 500 12px/1.4 system-ui, -apple-system, sans-serif;
+.bes-portfolio-inline-heading p {
+  margin: 7px 0 0;
+  color: #60738c;
+  font: 500 12px/1.5 system-ui, -apple-system, sans-serif;
 }
-
-.bes-portfolio-dialog-close {
+.bes-portfolio-inline-external {
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 7px;
-  flex: 0 0 auto;
-  min-width: 90px;
-  min-height: 42px;
-  padding: 9px 13px;
-  border: 1px solid #d7e2f3;
-  border-radius: 13px;
-  background: #f5f8ff;
-  color: #234c83;
-  font: 750 13px/1 system-ui, -apple-system, sans-serif;
-  cursor: pointer;
+  min-height: 40px;
+  padding: 9px 14px;
+  border: 1px solid #d9e5f5;
+  border-radius: 12px;
+  background: #fff;
+  color: #1a63c8;
+  font: 750 12px/1.2 system-ui, -apple-system, sans-serif;
+  text-decoration: none;
 }
-
-.bes-portfolio-dialog-close:hover {
-  background: #e9f2ff;
+.bes-portfolio-inline-external:hover {
+  background: #edf5ff;
+  border-color: #9bc2f1;
 }
-
-.bes-portfolio-frame-wrap {
-  display: flex;
-  flex: 1 1 auto;
-  min-width: 0;
-  min-height: 0;
-  overflow: hidden;
-  background: #f8fafc;
-  -webkit-overflow-scrolling: touch;
-}
-
-.bes-portfolio-frame {
+.bes-portfolio-inline-frame-wrap {
   display: block;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   width: 100%;
-  height: 100%;
   min-width: 0;
+  overflow: hidden;
+  background: #fff;
+}
+.bes-portfolio-inline-frame {
+  display: block;
+  width: 100%;
+  height: 90vh;
+  height: clamp(640px, 100dvh, 1080px);
   min-height: 0;
   border: 0;
   background: #fff;
   touch-action: pan-x pan-y;
 }
-
-.bes-portfolio-dialog-footnote {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 5px 14px;
-  min-height: 36px;
-  padding: 8px 18px;
-  border-top: 1px solid #e9eef5;
+.bes-portfolio-inline-caption {
+  margin: 0;
+  padding: 10px 24px 12px;
+  border-top: 1px solid #edf1f6;
   background: #fafcff;
-  color: #65748a;
+  color: #758498;
   font: 500 11px/1.4 system-ui, -apple-system, sans-serif;
 }
 
-.bes-portfolio-dialog-footnote a {
-  color: #1967d2;
-  font-weight: 750;
-  text-decoration: none;
-}
-
-.bes-portfolio-dialog-footnote a:hover { text-decoration: underline; }
-
+/* The existing Android scroll fix remains in charge of page scrolling.
+   No body overflow locks or full-screen overlays are used here. */
 @media (max-width: 720px) {
   html body #root .app-shell > footer[data-app-shell-footer="true"] > .signature-footer-static-summary {
     justify-content: center !important;
@@ -224,57 +173,43 @@ html body #root .app-shell > footer[data-app-shell-footer="true"] .bes-portfolio
     margin: 8px auto 0 !important;
     padding: 10px 10px 0 !important;
   }
-
   html body #root .app-shell > footer[data-app-shell-footer="true"] .bes-portfolio-footer-trigger {
     margin: 0 auto;
     padding: 8px 12px;
     font-size: 12px;
   }
-
-  .bes-portfolio-backdrop {
-    padding: 0 !important;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
+  html body #root .app-shell > section.bes-portfolio-inline-section {
+    width: calc(100% - 16px) !important;
+    max-width: calc(100% - 16px) !important;
+    margin: 8px auto 16px !important;
+    border-radius: 18px;
+    scroll-margin-top: 10px;
   }
-
-  .bes-portfolio-dialog {
-    width: 100%;
-    max-width: none;
-    height: 100% !important;
-    max-height: 100% !important;
-    border: 0;
-    border-radius: 0;
+  .bes-portfolio-inline-heading {
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
   }
-
-  .bes-portfolio-dialog-header {
-    gap: 10px;
-    min-height: 62px;
-    padding:
-      max(10px, env(safe-area-inset-top))
-      max(12px, env(safe-area-inset-right))
-      10px
-      max(12px, env(safe-area-inset-left));
+  .bes-portfolio-inline-heading h2 { font-size: 17px; }
+  .bes-portfolio-inline-heading p { font-size: 11px; }
+  .bes-portfolio-inline-external {
+    min-height: 36px;
+    padding: 8px 10px;
+    font-size: 11px;
   }
-
-  .bes-portfolio-dialog-monogram { width: 36px; height: 36px; border-radius: 11px; }
-  .bes-portfolio-dialog-heading h2 { font-size: 14px; }
-  .bes-portfolio-dialog-heading p { font-size: 10px; }
-  .bes-portfolio-dialog-close {
-    min-width: 42px;
-    min-height: 40px;
-    padding: 8px;
+  .bes-portfolio-inline-frame {
+    height: 100svh;
+    height: clamp(590px, 100dvh, 930px);
   }
-  .bes-portfolio-dialog-close > span:last-child { display: none; }
-  .bes-portfolio-dialog-footnote {
-    padding: 8px max(12px, env(safe-area-inset-right)) max(8px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
-  }
+  .bes-portfolio-inline-caption { padding: 10px 16px; }
 }
-
-@media (max-width: 400px) {
-  .bes-portfolio-dialog-heading p { display: none; }
-  .bes-portfolio-dialog-footnote > span { display: none; }
+@media (max-width: 480px) {
+  .bes-portfolio-inline-heading {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .bes-portfolio-inline-external { align-self: flex-start; }
 }
-
 @media (prefers-reduced-motion: reduce) {
   html body #root .app-shell .bes-portfolio-footer-trigger { transition: none; }
 }
