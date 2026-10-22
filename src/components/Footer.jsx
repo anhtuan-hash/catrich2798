@@ -53,6 +53,20 @@ function FooterPortfolioDialog({ isVi, onClose }) {
   const closeButtonRef = React.useRef(null);
   const previewRef = React.useRef(null);
   const [viewport, setViewport] = React.useState({ width: 1440, height: 850 });
+  // Safari on iPhone can render cross-origin, transform-scaled iframes as an
+  // empty white canvas. Use the Framer site's native responsive viewport there.
+  // Desktop keeps the wide Framer layout and its existing interactive effects.
+  const [isMobileViewport, setIsMobileViewport] = React.useState(() => (
+    typeof window !== 'undefined' && window.matchMedia('(max-width: 720px)').matches
+  ));
+
+  React.useEffect(() => {
+    const query = window.matchMedia('(max-width: 720px)');
+    const onChange = () => setIsMobileViewport(query.matches);
+    onChange();
+    query.addEventListener?.('change', onChange);
+    return () => query.removeEventListener?.('change', onChange);
+  }, []);
 
   React.useLayoutEffect(() => {
     const node = previewRef.current;
@@ -109,12 +123,19 @@ function FooterPortfolioDialog({ isVi, onClose }) {
     };
   }, [onClose]);
 
-  // Keep the REAL desktop breakpoint of the Framer site. On narrower screens,
-  // shrink the 1440px-wide interactive iframe instead of switching Framer to
-  // its mobile/tablet layout or clipping the page horizontally.
+  // A genuine 1440px desktop iframe remains available on desktop.
+  // On iPhone, avoid scaling a cross-origin iframe altogether (WebKit bug).
+  // The standalone Framer site is responsive and can render at mobile width.
   const desktopWidth = Math.max(MIN_DESKTOP_FRAME_WIDTH, viewport.width);
   const scale = Math.min(1, viewport.width / MIN_DESKTOP_FRAME_WIDTH);
-  const desktopHeight = Math.ceil(viewport.height / scale);
+  const desktopHeight = Math.ceil(viewport.height / Math.max(scale, 0.01));
+  const frameStyle = isMobileViewport
+    ? { width: '100%', height: '100%', transform: 'none' }
+    : {
+        width: `${desktopWidth}px`,
+        height: `${desktopHeight}px`,
+        transform: `scale(${scale})`,
+      };
 
   return (
     <div
@@ -125,6 +146,7 @@ function FooterPortfolioDialog({ isVi, onClose }) {
     >
       <section
         className="bes-portfolio-dialog"
+        data-framer-mode={isMobileViewport ? 'mobile' : 'desktop'}
         role="dialog"
         aria-modal="true"
         aria-labelledby="bes-portfolio-dialog-title"
@@ -141,9 +163,11 @@ function FooterPortfolioDialog({ isVi, onClose }) {
               {isVi ? 'Khám phá hồ sơ và các dự án ngay trong ESL Brian' : 'Explore the original website without leaving ESL Brian'}
             </p>
           </div>
-          <span className="bes-portfolio-dialog-desktop-chip" aria-label={isVi ? 'Giữ giao diện máy tính' : 'Desktop layout preserved'}>
-            <span aria-hidden="true">▣</span> Desktop
-          </span>
+          {!isMobileViewport && (
+            <span className="bes-portfolio-dialog-desktop-chip" aria-label={isVi ? 'Giữ giao diện máy tính' : 'Desktop layout preserved'}>
+              <span aria-hidden="true">▣</span> Desktop
+            </span>
+          )}
           <button
             ref={closeButtonRef}
             type="button"
@@ -157,22 +181,21 @@ function FooterPortfolioDialog({ isVi, onClose }) {
         </header>
         <div className="bes-portfolio-frame-wrap" ref={previewRef}>
           <iframe
+            key={isMobileViewport ? 'ios-responsive' : 'desktop'}
             className="bes-portfolio-frame"
-            title={isVi ? 'Portfolio Nguyễn Anh Tuấn trên Framer, giao diện desktop' : 'Nguyễn Anh Tuấn Framer portfolio, desktop layout'}
+            title={isVi ? 'Portfolio Nguyễn Anh Tuấn trên Framer' : 'Nguyễn Anh Tuấn Framer portfolio'}
             src={PORTFOLIO_URL}
             loading="eager"
             referrerPolicy="strict-origin-when-cross-origin"
             allowFullScreen
             tabIndex={0}
-            style={{
-              width: `${desktopWidth}px`,
-              height: `${desktopHeight}px`,
-              transform: `scale(${scale})`,
-            }}
+            style={frameStyle}
           />
         </div>
         <div className="bes-portfolio-dialog-footnote">
-          <span>{isVi ? 'Bản Framer gốc · Giữ bố cục desktop và hiệu ứng tương tác' : 'Original Framer site · Desktop layout and interactions'}</span>
+          <span>{isMobileViewport
+            ? (isVi ? 'Bố cục Framer tối ưu cho iPhone · Cuộn để khám phá' : 'iPhone-ready Framer layout · Scroll to explore')
+            : (isVi ? 'Bản Framer gốc · Giữ bố cục desktop và hiệu ứng tương tác' : 'Original Framer site · Desktop layout and interactions')}</span>
           <a href={PORTFOLIO_URL} target="_blank" rel="noopener noreferrer">
             {isVi ? 'Mở bản gốc ↗' : 'Open original ↗'}
           </a>
