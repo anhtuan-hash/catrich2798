@@ -25,6 +25,36 @@ function stableStudentRef(student = {}) {
   return `name-${slug || 'student'}`;
 }
 
+function legacyStudentRef(student = {}) {
+  const original = text(student.id || student.studentRef || student.code);
+  if (original) return original;
+  const slug = text(student.fullName, 'student')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+  return `name-${slug || 'student'}`;
+}
+
+// New anonymous-code learners use durable rosterStudentId. Legacy assessment
+// results used name-based refs, so retain unique aliases for historical reports.
+export function buildAssessmentStudentRefAliases(classes = []) {
+  const aliases = new Map();
+  const ambiguous = new Set();
+  classes.flatMap((entry) => entry.students || []).forEach((student) => {
+    const ref = text(student.ref);
+    const legacy = text(student.legacyRef);
+    if (!ref) return;
+    aliases.set(ref, ref);
+    if (!legacy || legacy === ref || ambiguous.has(legacy)) return;
+    if (aliases.has(legacy) && aliases.get(legacy) !== ref) {
+      aliases.delete(legacy);
+      ambiguous.add(legacy);
+    } else {
+      aliases.set(legacy, ref);
+    }
+  });
+  return aliases;
+}
+
 function normalizeAssignedClass(row) {
   const payload = row?.class_payload && typeof row.class_payload === 'object' ? row.class_payload : {};
   const className = text(row?.class_name || payload.className);
@@ -33,6 +63,7 @@ function normalizeAssignedClass(row) {
     .filter(activeStudent)
     .map((student) => ({
       ref: stableStudentRef(student),
+      legacyRef: legacyStudentRef(student),
       id: text(student.id),
       code: text(student.code),
       fullName: text(student.fullName, 'Học sinh'),
