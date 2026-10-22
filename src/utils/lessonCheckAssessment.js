@@ -14,7 +14,7 @@ function activeStudent(student) {
 }
 
 function stableStudentRef(student = {}) {
-  const direct = text(student.id || student.studentRef || student.code);
+  const direct = text(student.id || student.studentRef || student.code || student.rosterStudentId || student.rosterPersonKey);
   if (direct) return direct;
   const slug = text(student.fullName, 'student')
     .normalize('NFD')
