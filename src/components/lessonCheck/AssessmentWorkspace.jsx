@@ -24,6 +24,7 @@ import {
   X,
 } from 'lucide-react';
 import {
+  buildAssessmentStudentRefAliases,
   deleteAssessmentSession,
   listAssessmentAssignedClasses,
   listAssessmentResults,
@@ -444,9 +445,12 @@ export default function AssessmentWorkspace({
     setNotice('Hoạt động đã kết thúc. Tiếp tục ghi nhận kết quả.');
   }, [resumeToScoreToken, sessionId]);
 
+  const rosterRefAliases = useMemo(() => buildAssessmentStudentRefAliases(classes), [classes]);
   const reportSummary = useMemo(() => {
     const completedSessions = reportSessions.filter((item) => item.status === 'completed');
-    const uniqueStudents = new Set(reportResults.map((item) => item.studentRef).filter(Boolean));
+    const uniqueStudents = new Set(reportResults.map((item) => (
+      rosterRefAliases.get(item.studentRef) || item.studentRef
+    )).filter(Boolean));
     const numeric = reportResults.map((item) => item.grade10).filter((value) => Number.isFinite(value));
     const average = numeric.length ? numeric.reduce((sum, value) => sum + value, 0) / numeric.length : null;
     const reportRoster = reportClass
@@ -460,12 +464,12 @@ export default function AssessmentWorkspace({
       average,
       coverage,
     };
-  }, [classes, reportClass, reportResults, reportSessions]);
+  }, [classes, reportClass, reportResults, reportSessions, rosterRefAliases]);
 
   const studentReportRows = useMemo(() => {
     const byStudent = new Map();
     reportResults.forEach((item) => {
-      const key = item.studentRef || item.studentName;
+      const key = rosterRefAliases.get(item.studentRef) || item.studentRef || item.studentName;
       const current = byStudent.get(key) || {
         studentRef: key,
         studentCode: item.studentCode,
@@ -491,7 +495,7 @@ export default function AssessmentWorkspace({
         focusText: [...item.focuses].map(focusLabel).join(', '),
       }))
       .sort((a, b) => a.studentName.localeCompare(b.studentName, 'vi'));
-  }, [reportResults]);
+  }, [reportResults, rosterRefAliases]);
 
   const toggleStudent = (ref) => {
     setSelectedRefs((current) => current.includes(ref)
