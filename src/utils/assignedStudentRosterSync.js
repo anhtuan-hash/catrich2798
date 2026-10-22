@@ -74,6 +74,17 @@ export function applyStudentChangesToCanonicalRoster(remote = [], previous = [],
       issues.push('Có nhiều học sinh trùng thông tin nhận diện ở danh sách chuẩn.');
       return;
     }
+    if (remoteMatch.index < 0 && students.some((existing) => (
+      fold(fields.fullName) && fold(fields.fullName) === fold(existing.fullName)
+      && (!fields.birthDate || !fields.gender
+        || !text(existing.birthDate) || !text(existing.gender))
+      && !(fields.code && text(existing.code) && lower(fields.code) !== lower(existing.code))
+    ))) {
+      // Do not turn an uncertain match into a duplicate while importing legacy
+      // name-only student rows. Ask for identifiers rather than guessing.
+      issues.push('Trùng họ tên với học sinh chưa đủ ngày sinh/giới tính; hãy kiểm tra mã học sinh.');
+      return;
+    }
 
     if (remoteMatch.index >= 0) {
       const found = students[remoteMatch.index];
