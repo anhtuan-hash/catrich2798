@@ -25,9 +25,10 @@ import {
   listMyGradebookTeachingAssignments,
   matchGradebookClassToAssignment,
 } from '../utils/gradebookTeachingAssignments.js';
-import { attachVerifiedGradebookAssignment, evaluateGradebookAssignmentLifecycle } from '../utils/gradebookAssignmentLifecycle.js';
+import { attachVerifiedGradebookAssignment, evaluateGradebookAssignmentLifecycle, isAssignedGradebookWorkspace } from '../utils/gradebookAssignmentLifecycle.js';
 import { makeWorkspaceId } from '../utils/homeroomPhase3.js';
 import { getClassTypeLabel } from '../utils/homeroomClassTypes.js';
+import { syncAssignedStudentRosterDelta } from '../utils/assignedStudentRosterSync.js';
 import '../styles/homeroom-complete.css';
 import '../styles/GradebookStudio.css';
 import '../styles/GradebookLifecycle.css';
@@ -277,7 +278,8 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   ]);
 
   const commit = async (next, successMessage = 'Đã lưu dữ liệu sổ điểm.') => {
-    const rosterChanged = rosterFingerprint(next?.students) !== rosterFingerprint(workspaceRef.current?.students);
+    const previous = workspaceRef.current;
+    const rosterChanged = rosterFingerprint(next?.students) !== rosterFingerprint(previous?.students);
     if (rosterChanged && !lifecycle.rosterEditable) {
       flash('Roster đang ở chế độ chỉ đọc vì phân công không còn hiệu lực hoặc đây là dữ liệu năm học cũ.');
       return { ok: false, blocked: true, workspace: workspaceRef.current };
@@ -294,12 +296,16 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
     const [result, rosterResult] = await Promise.all([
       saveGradebookClass(local, currentUser),
       rosterChanged && lifecycle.sharingAllowed
-        ? saveSharedGradebookRosterSafely(currentUser, local)
+        ? (isAssignedGradebookWorkspace(local)
+          ? syncAssignedStudentRosterDelta(currentUser, previous, local)
+          : saveSharedGradebookRosterSafely(currentUser, local))
         : Promise.resolve(null),
     ]);
 
     setSaving(false);
-    if (rosterResult) setRosterSource(rosterResult.source || 'roster-local');
+    if (rosterResult) setRosterSource(rosterResult.ok
+      ? (rosterResult.source || 'roster-cloud')
+      : (rosterResult.source || 'roster-cloud-error'));
 
     const gradebookWorkspace = result.workspace || local;
     const resolvedWorkspace = rosterResult?.workspace
