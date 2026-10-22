@@ -93,7 +93,16 @@ export function makeLegacyGradebookRosterIdentity(user, workspace) {
 
 export function projectSharedRosterStudents(students = []) {
   const seen = new Set();
-  return (Array.isArray(students) ? students : []).map((student) => {
+  const exactRows = new Set();
+  return (Array.isArray(students) ? students : []).filter((student) => {
+    // Older device caches may still contain the same record twice. Skip only
+    // byte-for-byte-equivalent snapshots; never silently coalesce conflicting
+    // grades, statuses, names or identities.
+    const fingerprint = JSON.stringify(student);
+    if (exactRows.has(fingerprint)) return false;
+    exactRows.add(fingerprint);
+    return true;
+  }).map((student) => {
     const key = personKey(student);
     const suffix = seen.has(key) ? `:${text(student.id, String(seen.size + 1))}` : '';
     seen.add(key);
