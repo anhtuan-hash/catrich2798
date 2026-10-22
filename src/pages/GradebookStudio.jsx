@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import GradebookWorkspace from '../components/gradebook/GradebookWorkspace.jsx';
 import { ClipboardPenLine, ChartNoAxesCombined, FileDown, UsersRound, Plus, Sparkles, Palette, Check, ShieldCheck, BookOpenCheck } from 'lucide-react';
 import GradebookRosterHistoryPanel from '../components/gradebook/GradebookRosterHistoryPanel.jsx';
+import { summarizeGradebookProgress } from '../utils/gradebookProgressDeck.js';
 import SubjectStudentsTab from '../components/homeroom/SubjectStudentsTab.jsx';
 import {
   createGradebookClass,
@@ -37,6 +38,7 @@ import '../styles/GradebookSpectrumV4.css';
 import '../styles/GradebookRosterLayoutHotfix.css';
 import '../styles/GradebookFocusV5.css';
 import '../styles/GradebookRebirthV7.css';
+import '../styles/GradebookClarityV8.css';
 
 const EMPTY_CLASS = {
   className: '',
@@ -423,6 +425,16 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   const activeMeta = activeClasses.find((item) => item.id === workspaceId);
   const studentCount = (workspace?.students || []).filter((item) => item.active !== false).length;
   const activeSubject = workspace?.classProfile?.teachingSubject || activeMeta?.teachingSubject || '';
+  // Read-only saved-score summary. GradebookEngine remains the sole owner of
+  // grade mathematics, draft editing, save requests and semester navigation.
+  const progressPreview = useMemo(() => {
+    const saved = workspace?.learningGradebook;
+    const subjects = saved?.subjects && typeof saved.subjects === 'object' ? saved.subjects : {};
+    const subject = subjects[saved?.activeSubject] || Object.values(subjects)[0];
+    const semester = subject?.semesters?.semester1;
+    if (!semester) return null;
+    return summarizeGradebookProgress(workspace?.students || [], semester);
+  }, [workspace]);
   const vi = language === 'vi';
   const rosterLabel = rosterStatusLabel(rosterSource, vi);
   const rosterCloudReady = [
@@ -506,60 +518,68 @@ export default function GradebookStudio({ currentUser, language = 'vi' }) {
   );
 
   return <div className={`page hr-page gradebook-studio gb4-spectrum gb5-focus gb7-rebirth gb4-palette-${visualPalette}`}>
-    <section className="gradebook-studio-hero gb-academic-hero" aria-label="Không gian Sổ điểm">
-      <div className="gb-academic-heading">
-        <div className="gb7-heading-lockup">
-          <span className="gb7-heading-icon" aria-hidden="true"><ClipboardPenLine size={29} strokeWidth={2.1} /></span>
-        <div className="gb-academic-heading-copy">
-          <span className="gb-academic-eyebrow"><Sparkles size={13} strokeWidth={2.4} aria-hidden="true" /> GRADEBOOK / SỔ ĐIỂM</span>
-          <h1>{vi ? 'Sổ điểm' : 'Gradebook'}</h1>
-          <p>{vi ? 'Quản lý điểm số, theo dõi tiến độ và đánh giá học tập trực quan' : 'Manage scores and track learning progress'}</p>
-          <div className="gb4-hero-signals" aria-label="Thông tin sổ điểm">
-            <span><BookOpenCheck size={14} aria-hidden="true" />{activeMeta?.className ? `Lớp ${activeMeta.className}` : 'Academic workspace'}</span>
-            <span><UsersRound size={14} aria-hidden="true" />{studentCount} học sinh</span>
-            <span><ShieldCheck size={14} aria-hidden="true" />{gradebookDirty ? 'Có thay đổi chưa lưu' : 'Đồng bộ an toàn'}</span>
+    <section className="gradebook-studio-hero gb-academic-hero gb8-hero" aria-label={vi ? 'Tổng quan Sổ điểm' : 'Gradebook overview'}>
+      <div className="gb8-hero-top">
+        <div className="gb8-hero-copy">
+          <div className="gb8-hero-eyebrow"><BookOpenCheck size={15} aria-hidden="true" /> {vi ? 'BRIAN ENGLISH · SỔ ĐIỂM' : 'BRIAN ENGLISH · GRADEBOOK'}</div>
+          <div className="gb8-hero-titleline">
+            <span className="gb8-hero-icon" aria-hidden="true"><ClipboardPenLine size={29} strokeWidth={2.1}/></span>
+            <div>
+              <h1>{vi ? 'Sổ điểm' : 'Gradebook'}</h1>
+              <span className={`gb8-status-pill ${gradebookDirty ? 'is-pending' : ''}`}><span aria-hidden="true" />{gradebookDirty ? (vi ? 'Có thay đổi chưa lưu' : 'Unsaved changes') : (vi ? 'Sẵn sàng nhập điểm' : 'Ready for score entry')}</span>
+            </div>
+          </div>
+          <p className="gb8-hero-subtitle">{vi ? 'Quản lý và nhập điểm cho lớp học một cách rõ ràng, chính xác và hiệu quả.' : 'Manage classroom grades with clarity, accuracy and confidence.'}</p>
+          <div className="gb8-hero-selectors">
+            <label className="gb8-hero-class">
+              <span>{vi ? 'Lớp học' : 'Class'}</span>
+              <select value={workspaceId} onChange={(event) => switchGradebookClass(event.target.value)} disabled={saving || !activeClasses.length}>
+                {!activeClasses.length ? <option value="">{vi ? 'Chưa có lớp' : 'No class'}</option> : null}
+                {activeClasses.map((item) => <option key={item.id} value={item.id}>{item.className || classLabel(item)}</option>)}
+              </select>
+            </label>
+            <div className="gb8-hero-fact"><span>{vi ? 'Môn học' : 'Subject'}</span><strong>{activeSubject || '—'}</strong></div>
+            <div className="gb8-hero-fact"><span>{vi ? 'Học kỳ' : 'Term'}</span><strong>{activeMeta?.semester || 'Học kỳ I'}</strong></div>
+            <div className="gb8-hero-fact"><span>{vi ? 'Năm học' : 'School year'}</span><strong>{activeMeta?.schoolYear || '2026–2027'}</strong></div>
+          </div>
+          <div className="gb8-hero-actions">
+            <button type="button" className="gb8-primary" disabled={!workspace} onClick={() => requestGradebookAction('entry')}><ClipboardPenLine size={17} aria-hidden="true" />{vi ? 'Nhập bảng điểm' : 'Enter scores'}</button>
+            <button type="button" className="gb8-secondary" disabled={!workspace} onClick={() => requestGradebookAction('pdf')}><FileDown size={17} aria-hidden="true" />{vi ? 'Xuất báo cáo' : 'Export reports'}</button>
+            <button type="button" className="gb8-textaction" onClick={openStudentRoster} disabled={!workspace}><UsersRound size={16} aria-hidden="true" />{vi ? 'Học sinh' : 'Students'}</button>
           </div>
         </div>
-        </div>
-        <img className="gb-m3-hero-illustration" src="/gradebook-material3-hero.svg" alt="" aria-hidden="true" decoding="async" />
-        <span className="gb-academic-class-meta">{activeMeta?.schoolYear || '2026–2027'} · {activeMeta?.semester || 'Học kỳ I'}</span>
-      </div>
-      <div className="gb-academic-class-row">
-        <span className="gb-academic-section-label">{vi ? 'LỚP ĐANG MỞ' : 'ACTIVE CLASS'}</span>
-        {activeClasses.length > 12 ? <div className="gb-m3-class-jump">
-          <label htmlFor="gb-m3-quick-class">Chuyển nhanh đến lớp</label>
-          <select id="gb-m3-quick-class" value={workspaceId} onChange={(event) => switchGradebookClass(event.target.value)} disabled={saving} aria-label="Chuyển nhanh đến lớp">
-            {activeClasses.map((item) => <option key={item.id} value={item.id}>{classLabel(item)}</option>)}
-          </select>
-        </div> : null}
-        <div className="gb-academic-class-list" role="group" aria-label="Chọn lớp Sổ điểm">
-          {activeClasses.length ? activeClasses.map((item) => (
-            <button key={item.id} type="button" className={item.id === workspaceId ? 'is-active' : ''} aria-pressed={item.id === workspaceId} disabled={saving} onClick={() => switchGradebookClass(item.id)} title={classLabel(item)}>{item.className || classLabel(item)}</button>
-          )) : <span className="gb-academic-no-classes">Chưa có lớp</span>}
+        <div className="gb8-hero-art" aria-hidden="true">
+          <span className="gb8-art-ring gb8-art-ring-one" />
+          <span className="gb8-art-ring gb8-art-ring-two" />
+          <img src="/gradebook-material3-hero.svg" className="gb8-hero-illustration" alt="" decoding="async" />
+          <span className="gb8-art-badge gb8-art-badge-a">A+</span>
+          <span className="gb8-art-badge gb8-art-badge-star">✦</span>
         </div>
       </div>
-      <div className="gb-academic-actions">
-        <div className="gb-academic-primary-actions">
-          <button type="button" className="gb-academic-primary" disabled={!workspace} onClick={() => requestGradebookAction('entry')}><ClipboardPenLine size={17} strokeWidth={2.2} aria-hidden="true" /> {vi ? 'Nhập điểm' : 'Enter scores'}</button>
-          <button type="button" disabled={!workspace} onClick={() => requestGradebookAction('summary')}><ChartNoAxesCombined size={17} strokeWidth={2.2} aria-hidden="true" /> {vi ? 'Tổng hợp' : 'Summary'}</button>
-          <button type="button" disabled={!workspace} onClick={() => requestGradebookAction('pdf')}><FileDown size={17} strokeWidth={2.2} aria-hidden="true" /> {vi ? 'Xuất báo cáo' : 'Export reports'}</button>
-        </div>
-        <div className="gb-academic-secondary-actions">
-          <button type="button" disabled={!workspace} onClick={openStudentRoster}><UsersRound size={17} strokeWidth={2.2} aria-hidden="true" /> {vi ? 'Danh sách HS' : 'Students'}</button>
-          <button type="button" onClick={() => setCreateOpen((value) => !value)}><Plus size={17} strokeWidth={2.2} aria-hidden="true" /> {vi ? 'Thêm lớp' : 'Add class'}</button>
-        </div>
-        <div className="gb4-palette-selector" role="group" aria-label="Chọn bảng màu Sổ điểm">
-          <span><Palette size={15} aria-hidden="true" /> Giao diện</span>
-          {[
-            { id:'electric', name:'Xanh điện', shade:'#3a66fc' },
-            { id:'coral', name:'San hô', shade:'#e45769' },
-            { id:'orbit', name:'Tím cực quang', shade:'#7548d9' },
-          ].map((palette) => <button key={palette.id} type="button" className="gb4-palette-choice"
-            style={{ '--swatch':palette.shade }} title={`Chọn màu ${palette.name}`}
-            aria-label={`Bảng màu ${palette.name}`} aria-pressed={visualPalette === palette.id}
-            onClick={() => setVisualPalette(palette.id)}>{visualPalette === palette.id ? <Check size={16} strokeWidth={3} aria-hidden="true" /> : null}</button>)}
+      <div className="gb8-hero-bottom">
+        <span className="gb8-subheader"><ShieldCheck size={15} aria-hidden="true" />{rosterLabel}</span>
+        <div className="gb8-hero-bottom-actions">
+          {activeClasses.length > 1 ? <span>{activeClasses.length} {vi ? 'lớp đang quản lý' : 'managed classes'}</span> : null}
+          <button type="button" onClick={() => setCreateOpen((value) => !value)}><Plus size={15} aria-hidden="true" />{vi ? 'Thêm lớp' : 'Add class'}</button>
+          <details className="gb8-theme-settings">
+            <summary><Palette size={15} aria-hidden="true" />{vi ? 'Màu giao diện' : 'Theme'}</summary>
+            <div className="gb8-palette-options" role="group" aria-label="Chọn màu giao diện">
+              {[
+                { id: 'electric', name: 'Xanh dương', shade: '#3a66fc' },
+                { id: 'coral', name: 'San hô', shade: '#e45769' },
+                { id: 'orbit', name: 'Tím', shade: '#7548d9' },
+              ].map((palette) => <button key={palette.id} type="button" className="gb8-palette-option" style={{ '--swatch': palette.shade }} title={palette.name} aria-label={palette.name} aria-pressed={visualPalette === palette.id} onClick={() => setVisualPalette(palette.id)}>{visualPalette === palette.id ? <Check size={14} aria-hidden="true" /> : null}</button>)}
+            </div>
+          </details>
         </div>
       </div>
+    </section>
+
+    <section className="gb8-kpis" aria-label={vi ? 'Tổng quan nhanh' : 'Quick overview'}>
+      <article className="gb8-kpi is-lavender"><span className="gb8-kpi-icon"><UsersRound size={22} aria-hidden="true" /></span><div><span>{vi ? 'Tổng học sinh' : 'Students'}</span><strong>{studentCount}</strong><small>{vi ? 'Học sinh trong lớp' : 'In this class'}</small></div></article>
+      <article className="gb8-kpi is-mint"><span className="gb8-kpi-icon"><Check size={24} aria-hidden="true" /></span><div><span>{vi ? 'Ô điểm đã nhập' : 'Entered scores'}</span><strong>{progressPreview ? progressPreview.filled : '—'}</strong><small>{vi ? 'Theo dữ liệu học kỳ I đã lưu' : 'Saved term I scores'}</small></div></article>
+      <article className="gb8-kpi is-peach"><span className="gb8-kpi-icon"><BookOpenCheck size={22} aria-hidden="true" /></span><div><span>{vi ? 'Ô điểm còn thiếu' : 'Missing scores'}</span><strong>{progressPreview ? progressPreview.missing : '—'}</strong><small>{vi ? 'Còn chờ hoàn thiện' : 'To be completed'}</small></div></article>
+      <article className="gb8-kpi is-sky"><span className="gb8-kpi-icon"><ChartNoAxesCombined size={22} aria-hidden="true" /></span><div><span>{vi ? 'Tiến độ nhập điểm' : 'Entry progress'}</span><strong>{progressPreview ? `${progressPreview.percent}%` : '—'}</strong><span className="gb8-kpi-track" aria-hidden="true"><span style={{ width: `${progressPreview?.percent || 0}%` }} /></span></div></article>
     </section>
 
     {!teachingAssignments.length && assignmentSource === 'assignment-sync-not-installed' ? <section className="gradebook-assignment-note hr-panel">
