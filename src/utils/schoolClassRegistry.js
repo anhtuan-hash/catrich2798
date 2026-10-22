@@ -136,6 +136,21 @@ export function parseSchoolRosterRows(rows = []) {
       lifecycleStatus: 'active',
     };
     student.id = stableStudentId(student);
+    const duplicate = rosters[className].find((existing) => (
+      (student.code && normalizeStudentCode(existing.code).toLowerCase() === normalizeStudentCode(student.code).toLowerCase())
+      || existing.id === student.id
+    ));
+    if (duplicate) {
+      const identical = fold(duplicate.fullName) === fold(student.fullName)
+        && normalizeBirthDate(duplicate.birthDate) === normalizeBirthDate(student.birthDate)
+        && normalizeGender(duplicate.gender) === normalizeGender(student.gender)
+        && normalizeStudentCode(duplicate.code) === normalizeStudentCode(student.code);
+      if (!identical) {
+        throw new Error(`Dòng ${offset + 2}: trùng mã học sinh hoặc định danh với hồ sơ khác trong lớp ${className} nhưng thông tin không khớp. Kiểm tra tệp Excel trước khi nhập.`);
+      }
+      warnings.push(`Dòng ${offset + 2}: học sinh xuất hiện hai lần trong lớp ${className}; đã bỏ qua bản lặp giống hệt.`);
+      return;
+    }
     rosters[className].push(student);
   });
 
@@ -165,8 +180,19 @@ function sameStudent(left, right) {
 }
 
 export function mergeRosterStudents(existingStudents = [], importedStudents = [], importedAt = nowIso()) {
-  const existing = Array.isArray(existingStudents) ? existingStudents : [];
-  const incoming = Array.isArray(importedStudents) ? importedStudents : [];
+  const exactUnique = (items) => {
+    const seen = new Set();
+    return (Array.isArray(items) ? items : []).filter((item) => {
+      const fingerprint = JSON.stringify(item);
+      if (seen.has(fingerprint)) return false;
+      seen.add(fingerprint);
+      return true;
+    });
+  };
+  // Collapse identical legacy rows, but never merge records with conflicting
+  // fields. The server's identity validator rejects unresolved conflicts.
+  const existing = exactUnique(existingStudents);
+  const incoming = exactUnique(importedStudents);
   const byCode = new Map();
   const byIdentity = new Map();
   existing.forEach((student) => {
