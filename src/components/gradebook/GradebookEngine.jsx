@@ -309,60 +309,33 @@ function PlusCountInput({ value, onChange, label, disabled=false }) {
 }
 
 function GradebookNavigationPalette({
-  semesterId,
-  onSemesterChange,
-  view,
-  onViewChange,
-  dirty,
-  saving,
-  onDiscard,
-  onSave,
-  showMockExams = false,
-  progressSections = [],
+  semesterId, onSemesterChange, externalSemester,
+  view, onViewChange, showMockExams = false, progressSections = [],
 }) {
-  // Permanent navigation: no persisted collapse preference, idle timer,
-  // scroll listener, launcher or manual hide button. Every choice stays mounted.
   const viewMeta = VIEWS.find((item) => item.id === view) || VIEWS[0];
   const progressById = Object.fromEntries(progressSections.map((section) => [section.id, section]));
-
-  return <div data-grade-tone={viewMeta.tone} className="hr-grade-navigation-dock is-always-visible">
-    <section className="hr-panel hr-grade-navigation" aria-label="Điều hướng sổ điểm">
-      <div className="hr-grade-semesters" role="group" aria-label="Chọn học kỳ">
-        {view === 'mock' ? <span className="gb-mock-year-note">Sổ thi thử độc lập · Cả năm học</span> : SEMESTERS.map((semester) => <button
-          key={semester.id}
-          type="button"
-          className={semesterId === semester.id ? 'active' : ''}
-          aria-pressed={semesterId === semester.id}
-          onClick={() => onSemesterChange(semester.id)}
-        >{semester.label}</button>)}
+  const labels = { 'regular-0': 'TX 1', 'regular-1': 'TX 2', 'regular-2': 'TX 3', 'regular-3': 'TX 4', midterm: 'Giữa kỳ', final: 'Cuối kỳ', summary: 'Tổng hợp' };
+  return <nav data-grade-tone={viewMeta.tone} className="hr-grade-navigation-dock is-always-visible gbm3-assessment-nav" aria-label="Thành phần điểm">
+    <div className="hr-grade-navigation">
+      {!externalSemester ? <label className="gbm3-term-fallback">
+        <span>Học kỳ</span>
+        <select value={semesterId} onChange={(event) => onSemesterChange(event.target.value)}>
+          {SEMESTERS.map((semester) => <option key={semester.id} value={semester.id}>{semester.label}</option>)}
+        </select>
+      </label> : null}
+      <div className="hr-grade-views" role="group" aria-label="Chọn thành phần">
+        {VIEWS.filter((item) => item.id !== 'mock').map((item) => (
+          <button key={item.id} type="button" data-grade-tone={item.tone}
+            className={view === item.id ? 'active' : ''}
+            aria-pressed={view === item.id}
+            title={progressById[item.id] ? item.label + ': ' + progressById[item.id].filled + '/' + progressById[item.id].total + ' ô đã nhập' : item.label}
+            onClick={() => onViewChange(item.id)}
+          ><span className="gbm3-tab-icon" aria-hidden="true">{item.id === 'summary' ? <Sigma size={16}/> : <FileBarChart2 size={15}/>}</span>{labels[item.id]}</button>
+        ))}
+        {showMockExams ? <button type="button" className={view === 'mock' ? 'active' : ''} aria-pressed={view === 'mock'} onClick={() => onViewChange('mock')}><GraduationCap size={15}/> Thi thử 12</button> : null}
       </div>
-      <div className="hr-grade-views" role="group" aria-label="Chọn thành phần điểm">
-        {VIEWS.map((item) => item.id === 'mock' && !showMockExams ? null : <button
-          key={item.id}
-          type="button"
-          data-grade-tone={item.tone}
-          className={`${view === item.id ? 'active' : ''}${item.id === 'mock' ? ' gb-mock-tab' : ''}`}
-          aria-pressed={view === item.id}
-          title={progressById[item.id] ? `${item.label}: ${progressById[item.id].filled}/${progressById[item.id].total} ô đã nhập` : item.label}
-          style={progressById[item.id]?.total ? { '--gb6-progress': `${progressById[item.id].percent}%` } : undefined}
-          onClick={() => onViewChange(item.id)}
-        ><span className="gb4-view-icon" role="presentation">{
-          item.id === 'mock' ? <GraduationCap size={16} /> :
-          item.id === 'midterm' ? <NotebookPen size={16} /> :
-          item.id === 'final' ? <BookOpenCheck size={16} /> :
-          item.id === 'summary' ? <Sigma size={16} /> :
-          <FileBarChart2 size={16} />
-        }</span>{item.label}{progressById[item.id]?.total ? <span className="gb6-tab-fill" role="presentation" /> : null}</button>)}
-      </div>
-      <div className="hr-grade-save-actions">
-        <span role="status" aria-live="polite" className={dirty ? 'is-dirty' : 'is-saved'}>
-          {saving ? 'Đang lưu điểm…' : dirty ? 'Có thay đổi chưa lưu' : 'Dữ liệu đã lưu'}
-        </span>
-        {dirty ? <button type="button" className="secondary" aria-disabled={saving} onClick={onDiscard}>Hoàn tác</button> : null}
-        <button type="button" className="primary" disabled={!dirty} aria-disabled={saving} onClick={onSave}>Lưu bảng điểm</button>
-      </div>
-    </section>
-  </div>;
+    </div>
+  </nav>;
 }
 
 function GradebookCompactAnalytics({ progress, semesterLabel, studentsCount, onOpenSection }) {
@@ -437,7 +410,7 @@ function GradebookCompactAnalytics({ progress, semesterLabel, studentsCount, onO
   );
 }
 
-export default function HomeroomLearningGradebook({ workspace, onCommit, currentUser, teachingOverview, classManagement, gradebookAction, onDirtyChange }) {
+export default function HomeroomLearningGradebook({ workspace, onCommit, currentUser, teachingOverview, classManagement, gradebookAction, onDirtyChange, semesterIdExternal, onSemesterChangeExternal }) {
   const students = useMemo(
     () => (workspace.students || []).filter((student) => student.active !== false),
     [workspace.students],
@@ -446,8 +419,13 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
   const showMockExams = isGrade12Class(workspace.classProfile);
   const [gradebook, setGradebook] = useState(() => normalizeGradebook(workspace.learningGradebook, workspace.learningRecords));
   const [activeSubjectKey, setActiveSubjectKey] = useState(() => normalizeGradebook(workspace.learningGradebook, workspace.learningRecords).activeSubject);
-  const [semesterId, setSemesterId] = useState('semester1');
-  const [view, setView] = useState('regular-0');
+  const [semesterId, setSemesterId] = useState(semesterIdExternal || 'semester1');
+  const [view, setView] = useState('summary');
+  const [summaryPage, setSummaryPage] = useState(0);
+  const changeSemester = (id) => { setSemesterId(id); onSemesterChangeExternal?.(id); };
+  useEffect(() => {
+    if (semesterIdExternal && semesterIdExternal !== semesterId) setSemesterId(semesterIdExternal);
+  }, [semesterIdExternal]);
   // Regular class sizes show every student immediately; very large rosters start compact.
   const [showFullRoster, setShowFullRoster] = useState(() => students.length <= 45);
   const [studentQuery, setStudentQuery] = useState('');
@@ -1109,37 +1087,11 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
 
   return <div className={`hr-tab-stack hr-gradebook${focusMode ? ' gb-is-focused' : ''}${density === 'compact' ? ' gb-density-compact' : ''}`} data-grade-view={view} data-grade-tone={activeView.tone}>
     <GradebookNavigationPalette
-      semesterId={semesterId}
-      onSemesterChange={setSemesterId}
-      view={view}
-      onViewChange={setView}
-      dirty={dirty}
-      saving={savePending}
-      blocked={Boolean(exportDialogMode || exporting)}
-      onDiscard={discard}
-      onSave={save}
+      semesterId={semesterId} onSemesterChange={changeSemester}
+      externalSemester={Boolean(onSemesterChangeExternal)}
+      view={view} onViewChange={(id) => { setView(id); setSummaryPage(0); }}
       showMockExams={showMockExams}
       progressSections={semesterEntryProgress.sections}
-      currentUser={currentUser}
-    />
-
-    <GradebookFocusBar
-      students={students} semester={activeSemester} subjectName={activeSubject?.name || 'Môn học'}
-      semesterLabel={semesterLabel} view={view} showMockExams={showMockExams}
-      dirty={dirty} savePending={savePending} missingOnly={missingOnly}
-      onToggleMissing={() => setMissingOnly((current) => !current)}
-      onNextMissing={(nextView) => {
-        if (!VIEWS.some((item) => item.id === nextView)) return;
-        setView(nextView);
-        setMissingOnly(true);
-        setStudentQuery('');
-        window.requestAnimationFrame(() => document.querySelector('.gradebook-studio .gb5-editor-anchor')?.scrollIntoView({ behavior:'smooth',block:'start' }));
-      }}
-      onOpenInsights={() => {
-        setInsightsOpen(true);
-        window.requestAnimationFrame(() => document.querySelector('.gradebook-studio .gb5-insights-drawer')?.scrollIntoView({ behavior:'smooth',block:'start' }));
-      }}
-      onScrollToTable={() => document.querySelector('.gradebook-studio .gb5-editor-anchor')?.scrollIntoView({ behavior:'smooth',block:'start' })}
     />
 
     {finalized && view !== 'mock' ? <div className="gb-finalized-banner" role="status"><strong>Học kỳ đã chốt</strong><span>Các ô điểm và thao tác chỉnh sửa đang khóa trong giao diện. Mở Bộ công cụ Sổ điểm → Chốt điểm để xem trạng thái hoặc mở khóa có lý do.</span></div> : null}
@@ -1147,8 +1099,32 @@ export default function HomeroomLearningGradebook({ workspace, onCommit, current
 
     {saveFailure ? <div className="gb-save-error" role="alert"><strong>Không thể lưu điểm</strong><span>{saveFailure}</span><button type="button" disabled={savePending} onClick={save}>Thử lưu lại</button></div> : null}
     <div className="gb5-editor-anchor" id="gb5-grade-entry" aria-label="Bảng nhập điểm và bộ lọc học sinh">
-    {renderRosterToolbar()}
-    {renderColumnInsights()}
+      <header className="gbm3-editor-head">
+        <span className="gbm3-editor-icon" aria-hidden="true"><NotebookPen size={21}/></span>
+        <div className="gbm3-editor-titles">
+          <h2>Bảng nhập điểm</h2>
+          <p>{workspace.classProfile?.className || ''} · {activeSubject?.name || 'Môn học'} · {semesterLabel} · {students.length} học sinh</p>
+        </div>
+        <div className="gbm3-editor-actions">
+          <label className="gbm3-search">
+            <Search size={16} aria-hidden="true" />
+            <input value={studentQuery} onChange={(event) => { setStudentQuery(event.target.value); setSummaryPage(0); }} placeholder="Tìm kiếm học sinh..." aria-label="Tìm kiếm học sinh" />
+          </label>
+          <label className="gbm3-sort"><span>Sắp xếp</span>
+            <select value={sortBy} onChange={(event) => { setSortBy(event.target.value); setSummaryPage(0); }} aria-label="Sắp xếp học sinh">
+              <option value="original">Theo STT</option><option value="name">Tên A–Z</option><option value="missing-first">Thiếu điểm trước</option>
+            </select>
+          </label>
+          <label className="gbm3-missing"><input type="checkbox" checked={missingOnly} onChange={(event) => { setMissingOnly(event.target.checked); setSummaryPage(0); }}/> <span>Chỉ học sinh thiếu điểm</span></label>
+          <div className="gbm3-save-wrapper">
+            <span className={dirty ? 'gbm3-unsaved' : 'gbm3-saved'} role="status">{savePending ? 'Đang lưu…' : dirty ? 'Chưa lưu' : 'Đã lưu'}</span>
+            {dirty ? <button type="button" className="gbm3-undo" onClick={discard} disabled={savePending}>Hoàn tác</button> : null}
+            <button type="button" className="gbm3-save" disabled={!dirty || savePending} onClick={save}>Lưu bảng điểm</button>
+          </div>
+        </div>
+      </header>
+      {!visibleStudents.length && students.length ? <p className="gbm3-empty">Không tìm thấy học sinh phù hợp. Thử đổi bộ lọc hoặc từ khóa.</p> : null}
+      {view !== 'summary' ? <details className="gbm3-editor-advanced"><summary>Tùy chọn nhập điểm nâng cao</summary>{renderRosterToolbar()}{renderColumnInsights()}</details> : null}
 
     {view.startsWith('regular-') ? renderRegularTable() : null}
     {view === 'midterm' ? renderExamTable('midterm', 'Điểm giữa kỳ') : null}
