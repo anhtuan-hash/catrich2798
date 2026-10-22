@@ -55,6 +55,17 @@ const applied = applyCatalogClassType(
   [{ id: 'subject-a', classType: SUBJECT_CLASS_TYPE }],
 );
 assert.equal(applied.classProfile.classType, SUBJECT_CLASS_TYPE);
+
+// GVCN + GVBM in the same class must retain Conduct despite a stale subject catalog.
+const dualRoleWorkspace = { id: 'school-12-6', classProfile: { className: '12.6', classType: SUBJECT_CLASS_TYPE } };
+const staleCatalog = [{ id: 'school-12-6', classType: SUBJECT_CLASS_TYPE, classTypeResolved: true }];
+const restoredGvcn = applyCatalogClassType(dualRoleWorkspace, staleCatalog, 'school-12-6');
+assert.equal(restoredGvcn.classProfile.classType, HOMEROOM_CLASS_TYPE);
+assert.equal(isClassTabAllowed('conduct', restoredGvcn), true);
+assert.equal(getDefaultClassTab(restoredGvcn), 'overview');
+assert.equal(dualRoleWorkspace.classProfile.classType, SUBJECT_CLASS_TYPE, 'never mutate original data');
+assert.equal(applyCatalogClassType(dualRoleWorkspace, staleCatalog, 'another-class').classProfile.classType, SUBJECT_CLASS_TYPE);
+assert.equal(applyCatalogClassType({ id: 'school-12-6', classProfile: { classType: HOMEROOM_CLASS_TYPE } }, staleCatalog, 'school-12-6').classProfile.classType, HOMEROOM_CLASS_TYPE);
 assert.equal(applied.classProfile.className, '11.4');
 
 const memory = new Map();

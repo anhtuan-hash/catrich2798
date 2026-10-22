@@ -54,7 +54,17 @@ export function getDefaultClassTab(workspace) {
   return isSubjectClass(workspace) ? 'students' : 'overview';
 }
 
-export function applyCatalogClassType(workspace, catalog = []) {
+export function applyCatalogClassType(workspace, catalog = [], serverAssignedHomeroomWorkspaceId = '') {
+  // Server-confirmed GVCN assignments override stale local subject metadata.
+  // Teaching a class as GVBM alone never grants homeroom access.
+  const assignedId = String(serverAssignedHomeroomWorkspaceId || '').trim();
+  if (workspace?.id && assignedId && String(workspace.id).trim() === assignedId) {
+    if (getWorkspaceClassType(workspace) === HOMEROOM_CLASS_TYPE) return workspace;
+    return {
+      ...workspace,
+      classProfile: { ...(workspace.classProfile || {}), classType: HOMEROOM_CLASS_TYPE },
+    };
+  }
   const item = catalog.find((entry) => entry.id === workspace?.id);
   if (!item || !isValidHomeroomClassType(item.classType)) return workspace;
   const currentType = getWorkspaceClassType(workspace);

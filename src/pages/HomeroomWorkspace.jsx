@@ -154,7 +154,7 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
     || getCurrentHomeroomWorkspaceId(currentUser)
   ));
   const [workspaceId, setWorkspaceId] = useState(initialWorkspaceId);
-  const [workspace, setWorkspace] = useState(() => getInitialWorkspace(currentUser, initialWorkspaceId));
+  const [workspace, setWorkspace] = useState(() => applyCatalogClassType(getInitialWorkspace(currentUser, initialWorkspaceId), listFastHomeroomCatalog(currentUser), assignedHomeroomWorkspaceId()));
   const [catalog, setCatalog] = useState(() => listFastHomeroomCatalog(currentUser));
   const [classDraft, setClassDraft] = useState(() => workspace.classProfile);
   const [activeTab, setActiveTab] = useState(() => getDefaultClassTab(workspace));
@@ -170,13 +170,29 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
     homeroomSessionCache.set(snapshotKey(currentUser, workspace.id), workspace);
   }, [currentUser?.id, currentUser?.authId, currentUser?.email, workspace]);
 
+  const withAssignedClassType = (items = []) => {
+    const assignedId = assignedHomeroomWorkspaceId();
+    if (!assignedId) return items;
+    return items.map((item) => (
+      item.id === assignedId && item.status !== 'archived'
+        ? { ...item, classType: HOMEROOM_CLASS_TYPE, classTypeResolved: true }
+        : item
+    ));
+  };
   const refreshCatalog = async () => {
-    const localItems = listLocalHomeroomWorkspaces(currentUser);
+    const localItems = withAssignedClassType(listLocalHomeroomWorkspaces(currentUser));
     if (localItems.length) setCatalog(localItems);
     const result = await listHomeroomWorkspaces(currentUser);
-    const items = result.items || localItems;
+    const items = withAssignedClassType(result.items || localItems);
     setCatalog(items);
     return items;
+  };
+  const restoreAssignedHomeroomDisplay = (targetId) => {
+    if (!targetId || targetId !== workspaceId) return;
+    setWorkspace((current) => applyCatalogClassType(current, [], targetId));
+    setClassDraft((current) => current?.classType === HOMEROOM_CLASS_TYPE
+      ? current : { ...current, classType: HOMEROOM_CLASS_TYPE });
+    setCatalog((items) => withAssignedClassType(items));
   };
 
   useEffect(() => {
@@ -188,7 +204,7 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
     const immediateWorkspace = cachedWorkspace || localWorkspace;
 
     if (immediateWorkspace) {
-      const cached = applyCatalogClassType(normalizeHomeroomWorkspace(immediateWorkspace, currentUser), localItems);
+      const cached = applyCatalogClassType(normalizeHomeroomWorkspace(immediateWorkspace, currentUser), localItems, assignedHomeroomWorkspaceId());
       setWorkspace(cached);
       setClassDraft(cached.classProfile);
       setActiveTab((current) => isClassTabAllowed(current, cached, currentUser?.role === 'admin') ? current : getDefaultClassTab(cached));
@@ -216,7 +232,7 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
         }
 
         const normalized = normalizeHomeroomWorkspace(result.workspace, currentUser);
-        const loaded = applyCatalogClassType(normalized, localItems);
+        const loaded = applyCatalogClassType(normalized, localItems, assignedHomeroomWorkspaceId());
         if (authoritativeId && loaded.id !== authoritativeId) return;
         setSyncState(result.source === 'cloud' ? 'cloud' : 'local');
         setWorkspace(loaded);
@@ -249,6 +265,7 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
       if (!targetWorkspaceId) return;
       window.__besAssignedHomeroomWorkspaceId = targetWorkspaceId;
       setCurrentHomeroomWorkspaceId(currentUser, targetWorkspaceId);
+      restoreAssignedHomeroomDisplay(targetWorkspaceId);
 
       // Background assignment syncs are frequent and may fire while the teacher
       // is working inside another Homeroom tab. If the authoritative workspace
@@ -260,15 +277,24 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
       }
     };
     window.addEventListener('bes-school-class-assignment-synced', onAssignedHomeroom);
-
+    const onPreferredHomeroom = (event) => {
+      const source = String(event?.detail?.source || '');
+      if (source !== 'server-assignment' && source !== 'cached-server-assignment') return;
+      restoreAssignedHomeroomDisplay(String(event?.detail?.workspaceId || '').trim());
+    };
+    window.addEventListener('bes-preferred-homeroom-selected', onPreferredHomeroom);
     const alreadyAssigned = assignedHomeroomWorkspaceId();
+    if (alreadyAssigned) restoreAssignedHomeroomDisplay(alreadyAssigned);
     if (alreadyAssigned && alreadyAssigned !== workspaceId) {
       setCurrentHomeroomWorkspaceId(currentUser, alreadyAssigned);
       setCommandTarget({ workspaceId: alreadyAssigned, tab: 'overview', studentQuery: '' });
       setWorkspaceId(alreadyAssigned);
     }
 
-    return () => window.removeEventListener('bes-school-class-assignment-synced', onAssignedHomeroom);
+    return () => {
+      window.removeEventListener('bes-school-class-assignment-synced', onAssignedHomeroom);
+      window.removeEventListener('bes-preferred-homeroom-selected', onPreferredHomeroom);
+    };
   }, [currentUser?.id, currentUser?.authId, currentUser?.email, workspaceId]);
 
   useEffect(() => {
@@ -279,6 +305,9 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
       const isServerAssignment = action.source === 'server-assignment'
         || action.source === 'assigned-school-class-sync'
         || action.source === 'assigned-homeroom-entry-guard';
+      if (isServerAssignment && requestedWorkspaceId === workspaceId) {
+        restoreAssignedHomeroomDisplay(requestedWorkspaceId);
+      }
 
       // Generic/stale entry commands may carry a workspace id from before the
       // current Admin assignment. Once server authority is known they cannot pull
@@ -435,7 +464,7 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
     const target = catalog.find((item) => item.id === id);
     const localTarget = homeroomSessionCache.get(snapshotKey(currentUser, id)) || loadLocalHomeroomWorkspace(currentUser, id);
     if (localTarget) {
-      const normalizedTarget = normalizeHomeroomWorkspace(localTarget, currentUser);
+      const normalizedTarget = applyCatalogClassType(normalizeHomeroomWorkspace(localTarget, currentUser), catalog, assignedHomeroomWorkspaceId());
       setWorkspace(normalizedTarget);
       setClassDraft(normalizedTarget.classProfile);
     }
@@ -488,6 +517,10 @@ export default function HomeroomWorkspace({ language = 'vi', currentUser }) {
   };
 
   const saveClassProfile = async () => {
+    if (workspace.id === assignedHomeroomWorkspaceId() && classDraft.classType === SUBJECT_CLASS_TYPE) {
+      flash('Lớp này đang được phân công GVCN. Không thể đổi thành lớp bộ môn khi phân công còn hiệu lực.');
+      return;
+    }
     if (!await reserveHomeroomSlot(classDraft.classType, workspace.id, classDraft.className)) return;
     const classType = normalizeHomeroomClassType(classDraft.classType);
     await commit({ ...workspace, classProfile: { ...classDraft, classType } }, `Đã lưu thông tin ${getClassTypeLabel(classType).toLowerCase()}.`);
