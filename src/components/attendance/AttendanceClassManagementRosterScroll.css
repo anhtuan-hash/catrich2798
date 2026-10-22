@@ -177,3 +177,79 @@
     font-size: 14px;
   }
 }
+
+
+/* Add members by selecting verified school students without auto-enrolling
+   all main-class students in supplemental / enrichment attendance classes. */
+.attendance-manage-detail-add .attendance-school-student-lookup {
+  grid-column: 1 / -1;
+  min-width: 0;
+  display: grid;
+  gap: 9px;
+  padding: 13px;
+  border: 1px solid #d9e7f5;
+  border-radius: 12px;
+  background: #f7faff;
+}
+.attendance-school-student-lookup__head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+}
+.attendance-school-student-lookup__head strong { font-size: 13px; color: #254367; }
+.attendance-school-student-lookup__head button {
+  min-height: 32px;
+  padding: 0 11px;
+  border: 1px solid #bcd0e5;
+  border-radius: 9px;
+  background: #fff;
+  color: #2a568a;
+  cursor: pointer;
+}
+.attendance-school-student-lookup > input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid #c8dbed;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 13px;
+}
+.attendance-school-student-lookup > small { font-size: 11px; color: #58718d; }
+.attendance-school-student-lookup__results {
+  display: grid;
+  gap: 5px;
+  max-height: 210px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.attendance-school-student-lookup__results button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-width: 0;
+  min-height: 42px;
+  padding: 9px 11px;
+  border: 1px solid #dce7f3;
+  border-radius: 9px;
+  background: #fff;
+  color: #264668;
+  text-align: left;
+  cursor: pointer;
+}
+.attendance-school-student-lookup__results button:hover,
+.attendance-school-student-lookup__results button:focus-visible {
+  background: #edf5ff;
+  border-color: #8bb6ed;
+}
+.attendance-school-student-lookup__results b { font-size: 12px; }
+.attendance-school-student-lookup__results span { font-size: 11px; color: #657e9a; }
+@media(max-width:720px) {
+  .attendance-manage-detail-add .attendance-school-student-lookup { padding: 10px; }
+  .attendance-school-student-lookup__results button { flex-direction: column; align-items: flex-start; gap: 3px; }
+}
