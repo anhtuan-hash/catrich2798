@@ -1,5 +1,9 @@
 import React from 'react';
 import { APP_VERSION } from '../config/version.js';
+// Retain global page-flow and duplicate-footer safeguards used across app routes.
+// Legacy three-card presentation styles are intentionally NOT imported.
+import './FooterCompactDisclosure.css';
+import './FooterIntegrity.css';
 import './FooterPortfolio.css';
 
 const PORTFOLIO_URL = 'https://decisive-difference-557977.framer.app/';
