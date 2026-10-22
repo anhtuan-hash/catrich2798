@@ -395,3 +395,109 @@ html[data-theme="dark"] #root .gradebook-studio.gb7-rebirth .gb8-hero-titleline 
 html[data-theme="dark"] #root .gradebook-studio.gb7-rebirth .gb8-hero-fact,
 html[data-theme="dark"] #root .gradebook-studio.gb7-rebirth .gb8-hero-selectors .gb8-hero-class,
 html[data-theme="dark"] #root .gradebook-studio.gb7-rebirth .gb8-kpi{background:#1d2c47!important;color:#e5f0ff!important}
+
+
+/* Focused, truthful analytics from the saved semester data. */
+#root .gradebook-studio.gb7-rebirth .gb8-analysis{
+  display:block;margin:14px 0 0;padding:18px;border:1px solid #dfe9f6;
+  border-radius:19px;background:#fff;box-shadow:var(--gb8-shadow);
+}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-heading {
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;
+  gap:12px;margin:0 0 15px;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-title{
+  display:flex;align-items:center;gap:12px;color:#2a6fee;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-title > svg {
+  box-sizing:content-box;padding:11px;background:#ebf2ff;border-radius:12px;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-title h2{
+  margin:0;color:#213c65;font-size:17px;font-weight:850;line-height:1.25;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-title p{
+  margin:3px 0 0;color:#7a8ca5;font-size:11px;line-height:1.5;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-tag{
+  border:1px solid #e3ebf5;border-radius:10px;padding:8px 11px;
+  color:#627c9b;background:#f9fbff;font-size:11px;font-weight:750;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-grid{
+  display:grid;grid-template-columns:minmax(0, .85fr) minmax(0, 1.35fr) minmax(0, 1fr);gap:12px;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-panel{
+  min-width:0;padding:15px;border:1px solid #e5edf7;border-radius:15px;
+  background:linear-gradient(160deg,#fff,#fbfdff);
+}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-panel h3{
+  margin:0 0 15px;font-size:13px;color:#2a466d;font-weight:850;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-donut{
+  width:145px;height:145px;margin:5px auto 14px;border-radius:50%;
+  display:grid;place-items:center;
+  background:conic-gradient(#11b98c var(--gb8-percent),#e6edf7 0);
+  position:relative;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-donut::before{
+  content:"";position:absolute;inset:17px;border-radius:50%;background:#fff;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-donut div{
+  position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;
+  gap:3px;text-align:center;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-donut strong{
+  font-size:30px;letter-spacing:-.05em;color:#18385f;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-donut div span{font-size:11px;color:#6f86a0}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-legend{display:grid;gap:8px}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-legend > span{
+  display:flex;align-items:center;gap:7px;padding:8px 10px;
+  background:#f7faff;border-radius:9px;font-size:11px;color:#587391;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-legend b{margin-left:auto;color:#24496f}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-legend i{
+  flex:0 0 11px;width:11px;height:11px;border-radius:50%;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-legend i.is-mint{background:#11b98c}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-legend i.is-grey{background:#bdccdf}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-bars{display:grid;gap:14px;padding:5px 0}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-bar > div {
+  display:flex;justify-content:space-between;gap:10px;margin-bottom:6px;
+  font-size:11px;color:#587492;font-weight:730;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-bar b{color:#315c91}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-bar-track {
+  display:block;height:10px;border-radius:100px;background:#ebf1f9;overflow:hidden;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-bar-track > span {
+  display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#79b8f9,#4c80e9);
+}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-bar:nth-child(2) .gb8-analysis-bar-track > span{background:linear-gradient(90deg,#9ad8c1,#32b994)}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-bar:nth-child(3) .gb8-analysis-bar-track > span{background:linear-gradient(90deg,#c4b2f3,#9574e8)}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-bar:nth-child(4) .gb8-analysis-bar-track > span{background:linear-gradient(90deg,#efc785,#eaa155)}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-bar:nth-child(5) .gb8-analysis-bar-track > span{background:linear-gradient(90deg,#9ed2e1,#4ea6bb)}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-bar:nth-child(6) .gb8-analysis-bar-track > span{background:linear-gradient(90deg,#f0b0c0,#dd769f)}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-insights{display:flex;flex-direction:column;gap:10px}
+#root .gradebook-studio.gb7-rebirth .gb8-analysis-insights h3{margin-bottom:4px}
+#root .gradebook-studio.gb7-rebirth .gb8-insight{
+  display:flex;align-items:center;gap:12px;padding:12px;background:#f7faff;
+  border:1px solid #edf1f8;border-radius:11px;min-width:0;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-insight > svg{
+  box-sizing:content-box;flex:0 0 19px;padding:10px;border-radius:10px;
+}
+#root .gradebook-studio.gb7-rebirth .gb8-insight.is-green > svg{background:#e4f8ef;color:#18a678}
+#root .gradebook-studio.gb7-rebirth .gb8-insight.is-blue > svg{background:#e7f0ff;color:#4b83e7}
+#root .gradebook-studio.gb7-rebirth .gb8-insight.is-orange > svg{background:#fff0df;color:#e49a3a}
+#root .gradebook-studio.gb7-rebirth .gb8-insight > div{display:flex;flex-direction:column;gap:4px;min-width:0}
+#root .gradebook-studio.gb7-rebirth .gb8-insight small{color:#7d90a9;font-size:10px}
+#root .gradebook-studio.gb7-rebirth .gb8-insight strong{color:#2a476f;font-size:12px;font-weight:800;line-height:1.35}
+@media(max-width:900px){
+  #root .gradebook-studio.gb7-rebirth .gb8-analysis-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #root .gradebook-studio.gb7-rebirth .gb8-analysis-insights{grid-column:1/-1}
+}
+@media(max-width:600px){
+  #root .gradebook-studio.gb7-rebirth .gb8-analysis{padding:12px}
+  #root .gradebook-studio.gb7-rebirth .gb8-analysis-grid{grid-template-columns:minmax(0,1fr)}
+  #root .gradebook-studio.gb7-rebirth .gb8-analysis-insights{grid-column:auto}
+}
